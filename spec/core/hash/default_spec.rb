@@ -41,7 +41,8 @@ describe "Hash#default=" do
 
   compliant :ruby do
     it "raises TypeError if called on a frozen instance" do
-      lambda { HashSpecs.hsh.default = nil }.should raise_error(TypeError)
+      lambda { HashSpecs.frozen_hash.default = nil }.should raise_error(TypeError)
+      lambda { HashSpecs.empty_frozen_hash.default = nil }.should raise_error(TypeError)
     end
   end
 end

@@ -53,8 +53,8 @@ describe "Hash#rehash" do
 
   compliant :ruby, :jruby do
     it "raises TypeError if called on a frozen instance" do
-      lambda { HashSpecs.hsh.rehash  }.should raise_error(TypeError)
-      lambda { HashSpecs.empty.rehash }.should raise_error(TypeError)
+      lambda { HashSpecs.frozen_hash.rehash  }.should raise_error(TypeError)
+      lambda { HashSpecs.empty_frozen_hash.rehash }.should raise_error(TypeError)
     end  
   end
 end

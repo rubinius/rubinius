@@ -29,8 +29,8 @@ describe "Hash#delete_if" do
 
   compliant :ruby do
     it "raises TypeError if called on a frozen instance" do
-      lambda { HashSpecs.hsh.delete_if { false } }.should raise_error(TypeError)
-      lambda { HashSpecs.empty.delete_if { true } }.should raise_error(TypeError)
+      lambda { HashSpecs.frozen_hash.delete_if { false } }.should raise_error(TypeError)
+      lambda { HashSpecs.empty_frozen_hash.delete_if { true } }.should raise_error(TypeError)
     end
   end
   

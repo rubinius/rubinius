@@ -4,13 +4,13 @@ class ToHashHash < Hash
 end
 
 module HashSpecs
-  def self.empty
+  def self.empty_frozen_hash
     @empty ||= {}
     @empty.freeze
     @empty
   end
   
-  def self.hsh
+  def self.frozen_hash
     @hash ||= {1 => 2, 3 => 4}
     @hash.freeze
     @hash

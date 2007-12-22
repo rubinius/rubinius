@@ -39,8 +39,8 @@ describe "Hash#delete" do
 
   compliant :ruby do
     it "raises TypeError if called on a frozen instance" do
-      lambda { HashSpecs.hsh.delete("foo")  }.should raise_error(TypeError)
-      lambda { HashSpecs.empty.delete("foo") }.should raise_error(TypeError)
+      lambda { HashSpecs.frozen_hash.delete("foo")  }.should raise_error(TypeError)
+      lambda { HashSpecs.empty_frozen_hash.delete("foo") }.should raise_error(TypeError)
     end
   end
 end

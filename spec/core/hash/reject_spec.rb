@@ -68,8 +68,8 @@ describe "Hash#reject!" do
 
   compliant :ruby do
     it "raises TypeError if called on a frozen instance" do
-      lambda { HashSpecs.hsh.reject! { false } }.should raise_error(TypeError)
-      lambda { HashSpecs.empty.reject! { true } }.should raise_error(TypeError)
+      lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(TypeError)
+      lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(TypeError)
     end
   end
 

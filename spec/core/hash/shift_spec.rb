@@ -23,10 +23,10 @@ describe "Hash#shift" do
     h.shift.should == [h, nil]
   end
 
-  compliant :ruby do
+  compliant :ruby, :jruby do
     it "raises TypeError if called on a frozen instance" do
-      lambda { HashSpecs.hsh.shift  }.should raise_error(TypeError)
-      lambda { HashSpecs.empty.shift }.should raise_error(TypeError)
+      lambda { HashSpecs.frozen_hash.shift  }.should raise_error(TypeError)
+      lambda { HashSpecs.empty_frozen_hash.shift }.should raise_error(TypeError)
     end
   end
 end

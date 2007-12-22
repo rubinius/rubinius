@@ -16,10 +16,17 @@ describe "Hash#initialize" do
 
   compliant :ruby do
     it "raises TypeError if called on a frozen instance" do
-      lambda { HashSpecs.hsh.instance_eval { initialize() }     }.should raise_error(TypeError)
-      lambda { HashSpecs.hsh.instance_eval { initialize(nil) }  }.should raise_error(TypeError)
-      lambda { HashSpecs.hsh.instance_eval { initialize(5) }    }.should raise_error(TypeError)
-      lambda { HashSpecs.hsh.instance_eval { initialize { 5 } } }.should raise_error(TypeError)
+      block = lambda { HashSpecs.frozen_hash.instance_eval { initialize() }}
+      block.should raise_error(TypeError)
+
+      block = lambda { HashSpecs.frozen_hash.instance_eval { initialize(nil) }  }
+      block.should raise_error(TypeError)
+
+      block = lambda { HashSpecs.frozen_hash.instance_eval { initialize(5) }    }
+      block.should raise_error(TypeError)
+
+      block = lambda { HashSpecs.frozen_hash.instance_eval { initialize { 5 } } }
+      block.should raise_error(TypeError)
     end
   end
 end
