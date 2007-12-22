@@ -63,16 +63,13 @@ module Compile
   def self.unified_load(path, rb, rbc, ext, requiring = nil)
     # ./ ../ ~/ /
     if path =~ %r{\A(?:(\.\.?)|(~))?/}
-      if $1       # Relative
-        res = Compile.single_load Dir.pwd, rb, rbc, ext, requiring
-
-      elsif $2    # ~
+      if $2    # ~ 
         rb.slice! '~/'
         rbc.slice! '~/'
         ext.slice! '~/'
-        res = Compile.single_load ENV['HOME'], rb, rbc, ext, requiring
+        res = Compile.single_load "#{ENV['HOME']}/", rb, rbc, ext, requiring
 
-      else        # Absolute
+      else
         res = Compile.single_load '', rb, rbc, ext, requiring
       end
 
@@ -96,7 +93,7 @@ module Compile
           # Fall through
         end
 
-        res = Compile.single_load dir, rb, rbc, ext, requiring
+        res = Compile.single_load "#{dir}/", rb, rbc, ext, requiring
         return res unless res.equal? nil
       end
     end
@@ -110,10 +107,10 @@ module Compile
     unless rb.equal? nil
       return false if requiring.equal?(true) and $LOADED_FEATURES.include? rb
 
-      rb_path = "#{dir}/#{rb}"
+      rb_path = "#{dir}#{rb}"
 
       if File.file? rb_path
-        rbc_path = "#{dir}/#{rbc}"
+        rbc_path = "#{dir}#{rbc}"
 
         # Use source only if it is newer
         if !File.file?(rbc_path) or File.mtime(rb_path) > File.mtime(rbc_path)
@@ -139,7 +136,7 @@ module Compile
     unless rbc.equal? nil
       return false if requiring.equal?(true) and $LOADED_FEATURES.include?(rbc.chomp 'c')
 
-      rbc_path = "#{dir}/#{rbc}"
+      rbc_path = "#{dir}#{rbc}"
 
       if File.file? rbc_path then
 

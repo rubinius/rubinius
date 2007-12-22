@@ -31,9 +31,9 @@ describe "Kernel#load" do
 
   # Avoid storing .rbc and .rba in repo
   before :all do
-#    Dir.chdir($load_fixture_dir) do |dir|
-#      `rm *.rbc load_dynamic*`
-#    end
+    Dir.chdir($load_fixture_dir) do |dir|
+      `rm *.rbc load_dynamic*`
+    end
 
     compliant :rubinius do
       Kernel.compile($load_fixture_dir + '/load_spec_10.rb')

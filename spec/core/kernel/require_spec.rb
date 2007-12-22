@@ -145,6 +145,21 @@ end
     $require_spec_rooby.should == :rb
   end
 
+  it "produces __FILE__ as the given filename and __LINE__ as the source line number" do
+    Dir.chdir($require_fixture_dir) do |dir|
+      require('require_spec_4').should == true 
+      $require_spec_4.should == [['./require_spec_4.rb', 1], ['./require_spec_4.rb', 10]]
+
+      extension :rubinius do
+        `rm require_spec_4.rbc`
+      end
+    end
+
+    require("#{$require_fixture_dir}/require_spec_4").should == true 
+    $require_spec_4.should == [['./spec/core/kernel/fixtures/require/require_spec_4.rb', 1], 
+                               ['./spec/core/kernel/fixtures/require/require_spec_4.rb', 10]]
+  end
+
   it "stores the loaded file in $LOADED_FEATURES" do
     $LOADED_FEATURES.include?('require_spec_6.rb').should == false
     require('require_spec_6.rb').should == true
