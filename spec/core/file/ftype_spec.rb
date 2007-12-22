@@ -7,11 +7,10 @@ describe "File.ftype" do
   # `directory’’, ``characterSpecial’’, ``blockSpecial’’, ``fifo’’, ``link’’, 
   # `socket’’, or ``unknown’’.
   
-  before :each do
+  before :all do
     @file = "test.txt"
     @dir  = Dir.pwd
     File.open(@file, "w"){} # Touch
-    #@char = Pathname.new(File.null).realpath
 
     platform :mswin do
       @block_dev = "NUL"
@@ -21,37 +20,25 @@ describe "File.ftype" do
       @fifo = "test_fifo"
       system("mkfifo #{@fifo}") unless File.exists?(@fifo)
 
-      if File.exists?("/dev/fd0")
-        @block = Pathname.new("/dev/fd0").realpath
-      elsif File.exists?("/dev/diskette")
-        @block = Pathname.new("/dev/diskette").realpath
-      elsif File.exists?("/dev/cdrom")
-        @block = Pathname.new("/dev/cdrom").realpath
-      elsif File.exists?("/dev/sr0") # CDROM
-        @block = Pathname.new("/dev/sr0").realpath
-      elsif File.exists?("/dev/disk0")
-        @block = "/dev/disk0"
-      else
-        @block = nil
-        @link  = nil
-      end
+      # Block devices
+      @block = `find /dev -type b`.split("\n").first
+      @block = Pathname.new(@block).realpath if @block
+
+      # Character devices
+      @char = `find /dev -type c`.split("\n").first
+      @path = Pathname.new(@path).realpath if @path
       
-      if File.symlink?("/dev/fd0")
-        @link = "/dev/fd0"
-      elsif File.symlink?("/dev/diskette")
-        @link = "/dev/diskette"
-      elsif File.symlink?("/dev/cdrom")
-        @link = "/dev/cdrom" 
-      elsif File.symlink?("/dev/sr0")
-        @link = "/dev/sr0" 
-      else
-        @link = "/tmp"
+      # Symlinks
+      %w[/dev /usr/bin /usr/local/bin].each do |dir|
+        links = `find /usr/local/bin -type l`.split("\n")
+        next if links.empty?
+        @link = links.first
+        break
       end
-      
     end
   end
 
-  after :each do 
+  after :all do 
     File.delete(@fifo) if File.exist?(@fifo)
       
     @file   = nil
@@ -75,12 +62,14 @@ describe "File.ftype" do
     File.ftype(@dir).should == 'directory'
   end
 
-  #   it "return characterSpecial when is a char"  do
-  #      File.ftype(@char).should = 'characterSpecial'
-  #   end
+  it "return characterSpecial when is a char"  do
+    File.ftype(@char).should == 'characterSpecial'
+  end
 
-  it "return blockSpecial when is a block" do
-    File.ftype(@block).should == 'blockSpecial'
+  platform :not, :freebsd do  # FreeBSD does not have block devices
+    it "return blockSpecial when is a block" do
+      File.ftype(@block).should == 'blockSpecial'
+    end
   end
 
   it "return link when is a link" do
