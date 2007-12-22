@@ -2188,6 +2188,55 @@ class String
     self
   end
 
+  def unpack(format)
+    i = 0
+    elements = []
+    directives = format.scan(/ (?: [NnZ] ) (?: \-? [0-9]+ | \* )* /x)
+    directives.each do |d|
+      case d
+      when / \A ( [Nn] ) (.*) \Z /x
+        num_bytes = $1 == 'N' ? 4 : 2
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        proc = Proc.new do
+          if num_bytes == 4
+            elements << (self[i] * 2**24) + (self[i+1] * 2**16) + (self[i+2] * 2**8) + self[i+3]
+          else
+            elements << (self[i] * 2**8) + self[i+1]
+          end
+          i += num_bytes
+        end
+        if repeat == '*'
+          proc.call while i + num_bytes <= self.length
+        else
+          repeat.to_i.times do
+            if i + num_bytes > self.length
+              elements << nil
+            else
+              proc.call
+            end
+          end
+        end
+      when / \A (Z) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if i >= self.length
+          elements << ''
+        elsif repeat == '*'
+          self[i..-1] =~ / \A ( [^\x00]* ) ( [\x00]? ) /x
+          elements << $1
+          i += $1.length
+          i += 1 if $2 == "\0"
+        else
+          repeat = repeat.to_i
+          str = i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1]
+          str =~ / \A ( [^\x00]* ) /x
+          elements << $1
+          i += repeat
+        end
+      end
+    end
+    elements
+  end
+
 =begin
 
   # Should be added when Crypt is required
@@ -2195,10 +2244,6 @@ class String
     raise NotImplementedError
   end
 
-
-  def unpack(format) # => anArray
-    raise NotImplementedError
-  end
 =end
 
 end
