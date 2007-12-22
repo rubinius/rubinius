@@ -56,34 +56,6 @@ describe "String#to_i" do
     "5e10".to_i.should == 5
   end
   
-  noncompliant :rubinius do
-    it "does not expose weird strtoul behaviour" do
-      "0b-1".to_i(0).should == 0
-      "0d-1".to_i(0).should == 0
-      "0o-1".to_i(0).should == 0
-      "0x-1".to_i(0).should == 0
-
-      "0b-1".to_i(2).should == 0
-      "0o-1".to_i(8).should == 0
-      "0d-1".to_i(10).should == 0
-      "0x-1".to_i(16).should == 0
-    end
-  end
-  
-  noncompliant :ruby do
-    it "exposes weird strtoul behaviour" do
-      "0b-1".to_i(0).should == 4294967295
-      "0d-1".to_i(0).should == 4294967295
-      "0o-1".to_i(0).should == 4294967295
-      "0x-1".to_i(0).should == 4294967295
-
-      "0b-1".to_i(2).should == (2 ** 32) - 1
-      "0d-1".to_i(10).should == (2 ** 32) - 1
-      "0o-1".to_i(8).should == (2 ** 32) - 1
-      "0x-1".to_i(16).should == (2 ** 32) - 1
-    end
-  end
-  
   it "auto-detects base via base specifiers (default: 10) for base = 0" do
     "01778".to_i(0).should == 0177
     "0b112".to_i(0).should == 0b11
@@ -129,6 +101,18 @@ describe "String#to_i" do
     obj.should_receive(:method_missing).with(:to_int).and_return(8)
 
     "777".to_i(obj).should == 0777
+  end
+  
+  it "requires that the sign if any appears before the base specifier" do
+    "0b-1".to_i(0).should == 0
+    "0d-1".to_i(0).should == 0
+    "0o-1".to_i(0).should == 0
+    "0x-1".to_i(0).should == 0
+
+    "0b-1".to_i(2).should == 0
+    "0o-1".to_i(8).should == 0
+    "0d-1".to_i(10).should == 0
+    "0x-1".to_i(16).should == 0
   end
   
   it "raises ArgumentError for illegal bases (1, < 0 or > 36)" do
