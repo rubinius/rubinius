@@ -118,7 +118,7 @@ shared :file_fnmatch do |cmd|
     end
   
     it "raises a TypeError if the first and second arguments are not string-like" do
-      lambda { File.send(cmd, @path1, @path1, 0, 0) }.should raise_error(ArgumentError)
+      lambda { File.send(cmd, nil, nil, 0, 0) }.should raise_error(ArgumentError)
       lambda { File.send(cmd, 1, 'some/thing') }.should raise_error(TypeError)
       lambda { File.send(cmd, 'some/thing', 1) }.should raise_error(TypeError)
       lambda { File.send(cmd, 1, 1) }.should raise_error(TypeError)
