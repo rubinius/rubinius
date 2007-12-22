@@ -40,9 +40,13 @@ describe "Array#fill" do
     [1, 2, 3, 4, 5].fill('a', -10, 10).should == %w|a a a a a a a a a a|
   end
   
-  it "does not change the Array with an index and a count of < 1" do
-    [1, 2, 3].fill('a', 1, -3).should == [1, 2, 3]
+  it "does not change the Array given an index and a count of 0" do
     [1, 2, 3].fill('a', 1, 0).should == [1, 2, 3]
+  end
+
+  it "raises an error if given an index and a negative count" do
+    lambda { [1, 2, 3].fill('a', 1, -3)}.should raise_error(ArgumentError)
+    lambda { [1, 2, 3].fill('a', 1, -300000)}.should raise_error(ArgumentError)
   end
 
   it "replaces elements in range with object" do
