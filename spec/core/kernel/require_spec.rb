@@ -23,7 +23,7 @@ describe "Kernel#require" do
   # Avoid storing .rbc and .rba in repo
   before :all do
     Dir.chdir($require_fixture_dir) {
-      `rm *.rbc require_dynamic*`
+      `rm -f ./*.rbc`
       `touch require_spec_dummy.#{Config::CONFIG['DLEXT']}`
       `touch require_spec_dummy.rb`
     }
@@ -246,51 +246,58 @@ extension :rbx do
   end
 
   it "loads a .rbc file if it's not older than the associated .rb file" do
-    time = Time.now
+    begin
+      time = Time.now
 
-    Dir.chdir($require_fixture_dir) do |dir|
-      File.open('require_spec_dynamic.rb', 'w+') do |f| 
-        f.puts "$require_spec_dynamic = [#{time.tv_sec}, #{time.tv_usec}]" 
+      Dir.chdir($require_fixture_dir) do |dir|
+        File.open('require_spec_dynamic.rb', 'w+') do |f| 
+          f.puts "$require_spec_dynamic = [#{time.tv_sec}, #{time.tv_usec}]" 
+        end
+      end
+
+      Kernel.compile "#{$require_fixture_dir}/require_spec_dynamic.rb"
+
+      require('require_spec_dynamic.rb').should == true
+      $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+
+      $LOADED_FEATURES.delete 'require_spec_dynamic.rb'
+
+      require('require_spec_dynamic.rb').should == true
+      $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+
+      require('require_spec_dynamic.rb').should == false
+      $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+
+      time2 = Time.now
+
+      Dir.chdir($require_fixture_dir) do |dir|
+        `mv require_spec_dynamic.rbc rsd.old`
+
+        File.open('require_spec_dynamic.rb', 'w+') do |f| 
+          f.puts "$require_spec_dynamic = [#{time2.tv_sec}, #{time2.tv_usec}]" 
+        end
+      end
+
+      $LOADED_FEATURES.delete 'require_spec_dynamic.rb'
+
+      require('require_spec_dynamic.rb').should == true
+      $require_spec_dynamic.should == [time2.tv_sec, time2.tv_usec]
+
+      Dir.chdir($require_fixture_dir) do |dir|
+        `mv rsd.old require_spec_dynamic.rbc`
+        `touch require_spec_dynamic.rbc`
+      end
+
+      $LOADED_FEATURES.delete 'require_spec_dynamic.rb'
+
+      require('require_spec_dynamic.rb').should == true
+      $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+
+    ensure
+      Dir.chdir($require_fixture_dir) do |dir|
+        `rm -f ./require_dynamic.rb*`
       end
     end
-
-    Kernel.compile "#{$require_fixture_dir}/require_spec_dynamic.rb"
-
-    require('require_spec_dynamic.rb').should == true
-    $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
-
-    $LOADED_FEATURES.delete 'require_spec_dynamic.rb'
-
-    require('require_spec_dynamic.rb').should == true
-    $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
-
-    require('require_spec_dynamic.rb').should == false
-    $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
-
-    time2 = Time.now
-
-    Dir.chdir($require_fixture_dir) do |dir|
-      `mv require_spec_dynamic.rbc rsd.old`
-
-      File.open('require_spec_dynamic.rb', 'w+') do |f| 
-        f.puts "$require_spec_dynamic = [#{time2.tv_sec}, #{time2.tv_usec}]" 
-      end
-    end
-
-    $LOADED_FEATURES.delete 'require_spec_dynamic.rb'
-
-    require('require_spec_dynamic.rb').should == true
-    $require_spec_dynamic.should == [time2.tv_sec, time2.tv_usec]
-
-    Dir.chdir($require_fixture_dir) do |dir|
-      `mv rsd.old require_spec_dynamic.rbc`
-      `touch require_spec_dynamic.rbc`
-    end
-
-    $LOADED_FEATURES.delete 'require_spec_dynamic.rb'
-
-    require('require_spec_dynamic.rb').should == true
-    $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
   end
 
   it "loads a .rbc even if the .rb is missing" do

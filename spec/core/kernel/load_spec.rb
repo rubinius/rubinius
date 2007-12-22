@@ -32,7 +32,7 @@ describe "Kernel#load" do
   # Avoid storing .rbc and .rba in repo
   before :all do
     Dir.chdir($load_fixture_dir) do |dir|
-      `rm *.rbc load_dynamic*`
+      `rm -f ./*.rbc`
     end
 
     compliant :rubinius do
@@ -243,40 +243,47 @@ extension :rubinius do
   end
 
   it "loads a .rbc file if it's not older than the associated .rb file" do
-    time = Time.now
+    begin
+      time = Time.now
 
-    File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", 'w+') do |f| 
-      f.puts "$load_spec_dynamic = [#{time.tv_sec}, #{time.tv_usec}]" 
-    end
+      File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", 'w+') do |f| 
+        f.puts "$load_spec_dynamic = [#{time.tv_sec}, #{time.tv_usec}]" 
+      end
 
-    Kernel.compile "#{$load_fixture_dir}/load_spec_dynamic.rb"
+      Kernel.compile "#{$load_fixture_dir}/load_spec_dynamic.rb"
 
-    load('load_spec_dynamic.rb').should == true
-    $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+      load('load_spec_dynamic.rb').should == true
+      $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
 
-    load('load_spec_dynamic.rb').should == true
-    $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+      load('load_spec_dynamic.rb').should == true
+      $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
 
-    time2 = Time.now
+      time2 = Time.now
 
-    Dir.chdir($load_fixture_dir) do |dir|
-      `mv load_spec_dynamic.rbc rsd.old`
+      Dir.chdir($load_fixture_dir) do |dir|
+        `mv load_spec_dynamic.rbc rsd.old`
 
-      File.open('load_spec_dynamic.rb', 'w+') do |f| 
-        f.puts "$load_spec_dynamic = [#{time2.tv_sec}, #{time2.tv_usec}]" 
+        File.open('load_spec_dynamic.rb', 'w+') do |f| 
+          f.puts "$load_spec_dynamic = [#{time2.tv_sec}, #{time2.tv_usec}]" 
+        end
+      end
+
+      load('load_spec_dynamic.rb').should == true
+      $load_spec_dynamic.should == [time2.tv_sec, time2.tv_usec]
+
+      Dir.chdir($load_fixture_dir) do |dir|
+        `mv rsd.old load_spec_dynamic.rbc`
+        `touch load_spec_dynamic.rbc`
+      end
+
+      load('load_spec_dynamic.rb').should == true
+      $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+
+    ensure
+      Dir.chdir($load_fixture_dir) do |dir|
+        `rm -f ./load_dynamic.rb*`
       end
     end
-
-    load('load_spec_dynamic.rb').should == true
-    $load_spec_dynamic.should == [time2.tv_sec, time2.tv_usec]
-
-    Dir.chdir($load_fixture_dir) do |dir|
-      `mv rsd.old load_spec_dynamic.rbc`
-      `touch load_spec_dynamic.rbc`
-    end
-
-    load('load_spec_dynamic.rb').should == true
-    $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
   end
 
   it "loads a .rbc even if the .rb is missing" do
