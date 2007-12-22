@@ -30,9 +30,9 @@ describe "Module#public_class_method" do
   end
 
   it "accepts more than one method at a time" do
-    raise_error(NoMethodError) { ModuleSpecs::Parent.public_method_1 }
-    raise_error(NoMethodError) { ModuleSpecs::Parent.public_method_2 }
-    raise_error(NoMethodError) { ModuleSpecs::Parent.public_method_3 }
+    lambda { ModuleSpecs::Parent.public_method_1 }.should raise_error(NameError)
+    lambda { ModuleSpecs::Parent.public_method_2 }.should raise_error(NameError)
+    lambda { ModuleSpecs::Parent.public_method_3 }.should raise_error(NameError)
 
     ModuleSpecs::Child.public_class_method :public_method_1, :public_method_2, :public_method_3
     

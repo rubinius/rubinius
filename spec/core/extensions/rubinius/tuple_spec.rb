@@ -210,7 +210,7 @@ extension :rubinius do
 
     it "raises InvalidIndex when index is greater than or equal to tuple size" do
       t = Tuple.new(1)
-      raise_error(InvalidIndex) { t.put(1,'wrong') }
+      lambda { t.put(1,'wrong') }.should raise_error(InvalidIndex)
     end
   
     it "raises InvalidIndex when index is less than zero" do
