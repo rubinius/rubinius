@@ -37,7 +37,7 @@ module MSpec
     unless args.empty?
       reverse = args.first == :not
       args.shift if reverse
-      result = args.any? &cond
+      result = args.any?(&cond)
     else
       result = yield
     end

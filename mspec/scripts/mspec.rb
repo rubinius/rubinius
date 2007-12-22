@@ -20,6 +20,7 @@ clean = false
 target = 'shotgun/rubinius'
 format = 'DottedFormatter'
 verbose = false
+warnings = false
 flags = []
 commas = false
 
@@ -101,6 +102,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-V", "--verbose", "Output each file processed when running") do
     verbose = true
   end
+  opts.on("-w", "--warnings", "Don't supress warnings") do
+    flags << '-w'
+    warnings = true
+  end
   opts.on("-,", "--comma", "Output a comma for each file processed") do
     commas = true
   end
@@ -131,9 +136,9 @@ end
 
 code = <<-EOC
 ENV['MSPEC_RUNNER'] = '1'
+OUTPUT_WARNINGS = true if #{warnings}
 require 'spec/spec_helper'
 
-$VERBOSE=nil
 #{name}
 set_spec_runner(#{format}, #{output ? output.inspect : 'STDOUT'})
 spec_runner.only(*#{only.inspect})

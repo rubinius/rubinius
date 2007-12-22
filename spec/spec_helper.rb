@@ -12,7 +12,9 @@ else
   TOLERANCE = 0.00003 unless Object.const_defined?(:TOLERANCE)
 end
 
-$verbose = $VERBOSE
-$VERBOSE = nil
+unless Object.const_defined?(:OUTPUT_WARNINGS)
+  $verbose = $VERBOSE
+  $VERBOSE = nil
 
-at_exit { $VERBOSE = $verbose }
+  at_exit { $VERBOSE = $verbose }
+end
