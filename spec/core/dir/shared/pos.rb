@@ -8,47 +8,21 @@ shared :dir_pos do |cmd|
       @dir.close rescue nil
     end
 
-    platform :darwin do
-      version '1.8'..'1.8.5' do
-        it "gives the current dir position" do
-          @dir.pos.should == 1
-          @dir.tell.should == 2
-          @dir.pos.should == 3
-          @dir.tell.should == 4
-        end
-      end
-      
-      version '1.8.6' do
-        it "gives the current dir position" do
-          @dir.pos.should == 0
-          @dir.tell.should == 0
-          @dir.pos.should == 0
-          @dir.tell.should == 0
-        end
-      end
+    it "returns an Integer representing the current position in the directory" do
+      @dir.send(cmd).should be_kind_of(Integer)
+      @dir.send(cmd).should be_kind_of(Integer)
+      @dir.send(cmd).should be_kind_of(Integer)
     end
 
-    platform :not, :darwin do
-      it "gives the current dir position" do
-        @dir.pos.should == 0
-        @dir.tell.should == 0
-        @dir.pos.should == 0
-        @dir.tell.should == 0
-      end
-    end
+    it "returns a different Integer if moved from previous position" do
+      a = @dir.send(cmd)
+      @dir.read
+      b = @dir.send(cmd)
 
-    it "seeks to a certain position and returns a location number" do
-      pos = @dir.pos
-      a   = @dir.read
-      b   = @dir.read
-      ret = @dir.pos = pos
-      c   = @dir.read
-  
+      a.should be_kind_of(Integer)
+      b.should be_kind_of(Integer)
+
       a.should_not == b
-      b.should_not == c
-      c.should     == a
-
-      ret.should == pos
     end
   end
 end

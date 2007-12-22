@@ -6,7 +6,7 @@ describe "Dir#rewind" do
   before(:each) do
     @dir = Dir.open DirSpecs.mock_dir
   end
-  
+
   after(:each) do
     @dir.close
   end
@@ -24,10 +24,9 @@ describe "Dir#rewind" do
     b.should_not == c
     c.should     == a
 
-    second.should == first
     second.should_not == prejmp
   end
-  
+
   it "returns the Dir instance" do
     @dir.rewind.should == @dir
   end
