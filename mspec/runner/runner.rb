@@ -1,5 +1,16 @@
 require 'mspec/runner/formatters/dotted'
 
+unless defined?(RUBY_ENGINE)
+  # The useless use warnings are a crime against OO.
+  def $stderr.write(msg)
+    if msg =~ /useless use of/
+      nil
+    else
+      super(msg)
+    end
+  end
+end
+
 class DescribeState
   def before_all
     @before_all ||= []
