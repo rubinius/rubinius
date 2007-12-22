@@ -36,12 +36,6 @@ describe SpecExecution do
     @execution.it = :it
     @execution.it.should == 'it'
   end
-  
-  it "provides #full_message that returns the describe + it message" do
-    @execution.describe = 'it'
-    @execution.it = 'is'
-    @execution.full_message.should == 'it is'
-  end
 end
 
 describe BaseFormatter, "interface" do
