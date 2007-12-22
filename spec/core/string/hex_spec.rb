@@ -21,17 +21,18 @@ describe "String#hex" do
   
   it "takes an optional 0x" do
     "0x0a".hex.should == 10
-
-    # Weird strtoul behaviour, see to_i_spec.rb
-    noncompliant :ruby do
-      "0x0x1".hex.should == 1
-      "0x-1".hex.should == (2 ** 32) - 1
-    end
+    "0a".hex.should == 10
   end
+
+  it "requires that the sign is in front of the 0x if present" do 
+    "-0x1".hex.should == -1
+    "0x-1".hex.should == 0
+  end  
   
   it "returns 0 on error" do
     "".hex.should == 0
     "+-5".hex.should == 0
     "wombat".hex.should == 0
+    "0x0x42".hex.should == 0
   end
 end

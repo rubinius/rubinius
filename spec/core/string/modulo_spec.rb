@@ -13,6 +13,44 @@ describe "String#%" do
   it "formats %% into %" do
     ("%d%% %s" % [10, "of chickens!"]).should == "10% of chickens!"
   end
+  
+  it "formats single % characters before a newline or NULL as literal %s" do
+    ("%" % []).should == "%"
+    ("foo%" % []).should == "foo%"
+    ("%\n" % []).should == "%\n"
+    ("foo%\n" % []).should == "foo%\n"
+    ("%\0" % []).should == "%\0"
+    ("foo%\0" % []).should == "foo%\0"
+  end
+  
+  it "raises an error if single % appears anywhere else" do
+    lambda { (" % " % []) }.should raise_error(ArgumentError)
+    lambda { ("foo%quux" % []) }.should raise_error(ArgumentError)
+  end
+
+  it "treats format strings where % is immediately followed by NULL or \n as literals" do
+    begin
+      old_debug, $DEBUG = $DEBUG, false
+
+      ("%\n.3f" % 1.2).should == "%\n.3f"
+      ("%\0.3f" % 1.2).should == "%\0.3f"
+    ensure
+      $DEBUG = old_debug
+    end
+  end
+
+  it "raises an error if NULL or \n appear anywhere else in the format string" do
+    begin
+      old_debug, $DEBUG = $DEBUG, false
+
+      lambda { "%.\n3f" % 1.2 }.should raise_error(ArgumentError)
+      lambda { "%.3\nf" % 1.2 }.should raise_error(ArgumentError)
+      lambda { "%.\03f" % 1.2 }.should raise_error(ArgumentError)
+      lambda { "%.3\0f" % 1.2 }.should raise_error(ArgumentError)
+    ensure
+      $DEBUG = old_debug
+    end
+  end
 
   it "ignores unused arguments when $DEBUG is false" do
     begin
@@ -54,12 +92,6 @@ describe "String#%" do
     end
   end
   
-  it "ignores percent signs at end of string / before newlines, null bytes" do
-    ("%" % []).should == "%"
-    ("foo%" % []).should == "foo%"
-    ("%\0x hello" % []).should == "%x hello"
-  end
-  
   it "replaces trailing absolute argument specifier without type with percent sign" do
     ("hello %1$" % "foo").should == "hello %"
   end
@@ -76,29 +108,6 @@ describe "String#%" do
     lambda { "%0$s" % "x"              }.should raise_error(ArgumentError)
     lambda { "%*0$s" % [5, "x"]        }.should raise_error(ArgumentError)
     lambda { "%*1$.*0$1$s" % [1, 2, 3] }.should raise_error(ArgumentError)
-    
-    # Commented these out because they were incorrect behavior in MRI
-    
-    # Star precision before star width:
-    # raise_error(ArgumentError) { "%.**d" % [5, 10, 1] }
-
-    # Precision before flags and width:
-    # raise_error(ArgumentError) { "%.5+05d" % 5 }
-    # raise_error(ArgumentError) { "%.5 5d" % 5 }
-
-    # Overriding a star width with a numeric one:
-    # raise_error(ArgumentError) { "%*1s" % [5, 1] }
-
-    # Width before flags:
-    # raise_error(ArgumentError) { "%5+0d" % 1 }
-    # raise_error(ArgumentError) { "%5 0d" % 1 }
-
-    # Specifying width multiple times:
-    # raise_error(ArgumentError) { "%50+30+20+10+5d" % 5 }
-    # raise_error(ArgumentError) { "%50 30 20 10 5d" % 5 }
-
-    # Specifying the precision multiple times with negative star arguments:
-    # raise_error(ArgumentError) { "%.*.*.*.*f" % [-1, -1, -1, 5, 1] }
   end
 
   it "raises an ArgumentError when multiple positional argument tokens are given for one format specifier" do
@@ -372,11 +381,13 @@ describe "String#%" do
     ("%05o" % 10).should == "00012"
     ("%*o" % [10, 6]).should == "         6"
 
+    # These are incredibly wrong. -05 == -5, not 7177777...whatever
     ("%o" % -5).should == "..73"
     ("%0o" % -5).should == "73"
     ("%.1o" % -5).should == "73"
     ("%.7o" % -5).should == "7777773"
     ("%.10o" % -5).should == "7777777773"
+
     ("% o" % -26).should == "-32"
     ("%+o" % -26).should == "-32"
     ("%o" % -(2 ** 64 + 5)).should == "..75777777777777777777773"
@@ -442,13 +453,10 @@ describe "String#%" do
 
   # MRI crashes on this one.
   # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
-  # failure :ruby do
-  #   it "raises ArgumentError for huge precisions for %s" do
-  #     raise_error(ArgumentError) do
-  #       "%.25555555555555555555555555555555555555s" % "hello world"
-  #     end
-  #   end
-  # end
+  it "raises ArgumentError for huge precisions for %s" do
+    block = lambda { "%.25555555555555555555555555555555555555s" % "hello world" }
+    block.should raise_error(ArgumentError)
+  end
   
   # Note: %u has been changed to an alias for %d in MRI 1.9 trunk.
   # Let's wait a bit for it to cool down and see if it will
@@ -461,12 +469,23 @@ describe "String#%" do
     ("%-7u" % 10).should == "10     "
     ("%04u" % 10).should == "0010"
     ("%*u" % [10, 4]).should == "         4"
+
+  platform '64' do
+    ("%u" % -5).should == "..#{2**64 - 5}"
+    ("%0u" % -5).should == (2**64 - 5).to_s
+    ("%.1u" % -5).should == (2**64 - 5).to_s
+    ("%.7u" % -5).should == (2**64 - 5).to_s
+    ("%.10u" % -5).should == (2**64 - 5).to_s
+  end  
     
-    ("%u" % -5).should == "..4294967291"
-    ("%0u" % -5).should == "4294967291"
-    ("%.1u" % -5).should == "4294967291"
-    ("%.7u" % -5).should == "4294967291"
-    ("%.10u" % -5).should == "4294967291"
+  platform :not, '64' do
+    ("%u" % -5).should == "..#{2**32 - 5}"
+    ("%0u" % -5).should == (2**32 - 5).to_s
+    ("%.1u" % -5).should == (2**32 - 5).to_s
+    ("%.7u" % -5).should == (2**32 - 5).to_s
+    ("%.10u" % -5).should == (2**32 - 5).to_s
+  end  
+
     ("% u" % -26).should == "-26"
     ("%+u" % -26).should == "-26"
   end
@@ -524,20 +543,21 @@ describe "String#%" do
     format = "%" + f
     
     it "behaves as if calling Kernel#Integer for #{format} argument" do
-      (format % "10").should == (format % 10)
-      (format % nil).should == (format % 0)
-      (format % "0x42").should == (format % 0x42)
-      (format % "0b1101").should == (format % 0b1101)
-      (format % "0b1101_0000").should == (format % 0b1101_0000)
-      (format % "0777").should == (format % 0777)
-      (format % "0_7_7_7").should == (format % 0777)
+      (format % "10").should == (format % Kernel.Integer("10"))
+      (format % nil).should == (format % Kernel.Integer(nil))
+      (format % "0x42").should == (format % Kernel.Integer("0x42"))
+      (format % "0b1101").should == (format % Kernel.Integer("0b1101"))
+      (format % "0b1101_0000").should == (format % Kernel.Integer("0b1101_0000"))
+      (format % "0777").should == (format % Kernel.Integer("0777"))
+
+      lambda { format % "0_7_7_7" }.should raise_error(ArgumentError)
       
-      raise_error(ArgumentError) { format % "" }
-      raise_error(ArgumentError) { format % "x" }
-      raise_error(ArgumentError) { format % "5x" }
-      raise_error(ArgumentError) { format % "08" }
-      raise_error(ArgumentError) { format % "0b2" }
-      raise_error(ArgumentError) { format % "123__456" }
+      lambda { format % "" }.should raise_error(ArgumentError)
+      lambda { format % "x" }.should raise_error(ArgumentError)
+      lambda { format % "5x" }.should raise_error(ArgumentError)
+      lambda { format % "08" }.should raise_error(ArgumentError)
+      lambda { format % "0b2" }.should raise_error(ArgumentError)
+      lambda { format % "123__456" }.should raise_error(ArgumentError)
       
       obj = mock('5')
       obj.should_receive(:to_i).and_return(5)
@@ -590,16 +610,16 @@ describe "String#%" do
       
       (format % "0777").should == (format % 777)
 
-      raise_error(ArgumentError) { format % "" }
-      raise_error(ArgumentError) { format % "x" }
-      raise_error(ArgumentError) { format % "." }
-      raise_error(ArgumentError) { format % "10." }
-      raise_error(ArgumentError) { format % "5x" }
-      raise_error(ArgumentError) { format % "0xA" }
-      raise_error(ArgumentError) { format % "0b1" }
-      raise_error(ArgumentError) { format % "10e10.5" }
-      raise_error(ArgumentError) { format % "10__10" }
-      raise_error(ArgumentError) { format % "10.10__10" }
+      lambda { format % "" }.should raise_error(ArgumentError)
+      lambda { format % "x" }.should raise_error(ArgumentError)
+      lambda { format % "." }.should raise_error(ArgumentError)
+      lambda { format % "10." }.should raise_error(ArgumentError)
+      lambda { format % "5x" }.should raise_error(ArgumentError)
+      lambda { format % "0xA" }.should raise_error(ArgumentError)
+      lambda { format % "0b1" }.should raise_error(ArgumentError)
+      lambda { format % "10e10.5" }.should raise_error(ArgumentError)
+      lambda { format % "10__10" }.should raise_error(ArgumentError)
+      lambda { format % "10.10__10" }.should raise_error(ArgumentError)
       
       obj = mock('5.0')
       obj.should_receive(:to_f).and_return(5.0)
