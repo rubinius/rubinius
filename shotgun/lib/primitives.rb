@@ -1905,7 +1905,6 @@ class ShotgunPrimitives
 
   def fastctx_reload_method
     <<-CODE
-    int i;
     struct fast_context *fc;
     t1 = stack_pop();
 

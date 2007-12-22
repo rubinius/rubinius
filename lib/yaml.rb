@@ -1,4 +1,4 @@
-require 'sexp/simple_processor'
+require 'compiler1/sexp/simple_processor'
 require 'ext/syck/rbxext'
 
 module YAML
@@ -11,7 +11,7 @@ module YAML
   RegexpTag = :"tag:ruby.yaml.org,2002:regexp"
   ObjectPrefix = /tag:ruby.yaml.org,2002:object:(.+)/
   
-  class Processor < SimpleSexpProcessor
+  class Processor < Compiler1::SimpleSexpProcessor
     
     def initialize(resolver)
       super()
