@@ -2188,20 +2188,49 @@ class String
     self
   end
 
+  # assumes self is a byte string
+  def extract_number(i, num_bytes, endian)
+    result = exp = 0
+    bytebits = 8
+    if endian == 'B'
+      exp = bytebits * (num_bytes - 1)
+      bytebits = -bytebits
+    end
+    num_bytes.times do
+      result += (self[i] * 2**exp)
+      exp += bytebits
+      i += 1
+    end
+    result
+  end
+
   def unpack(format)
     i = 0
     elements = []
-    directives = format.scan(/ (?: [NnZ] ) (?: \-? [0-9]+ | \* )* /x)
+    directives = format.scan(/ (?: [CcNnQqVvZ] ) (?: \-? [0-9]+ | \* )* /x)
     directives.each do |d|
       case d
-      when / \A ( [Nn] ) (.*) \Z /x
-        num_bytes = $1 == 'N' ? 4 : 2
+      when / \A ( [CcNnQqVv] ) (.*) \Z /x
+        directive = $1
         repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        num_bytes = case directive
+                    when /[Qq]/ then 8
+                    when /[NV]/ then 4
+                    when /[nv]/ then 2
+                    when /[Cc]/ then 1
+                    end
         proc = Proc.new do
-          if num_bytes == 4
-            elements << (self[i] * 2**24) + (self[i+1] * 2**16) + (self[i+2] * 2**8) + self[i+3]
-          else
-            elements << (self[i] * 2**8) + self[i+1]
+          case directive
+          when /[CNn]/ then elements << extract_number(i, num_bytes, 'B')
+          when /[QVv]/ then elements << extract_number(i, num_bytes, 'L')
+          when 'c'
+            n = extract_number(i, num_bytes, 'B')
+            n = n >= 2**7 ? -(2**8 - n) : n
+            elements << n
+          when 'q'
+            n = extract_number(i, num_bytes, 'L')
+            n = n >= 2**63 ? -(2**64 - n) : n
+            elements << n
           end
           i += num_bytes
         end
