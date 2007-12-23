@@ -47,7 +47,7 @@ describe "Module#alias_method" do
     lambda { @class.alias_method :ichi, :public_one }.should raise_error(NoMethodError)
   end
 
-  it "works as in e2mmap.rb" do
+  it "works in module" do
     module Exception2MessageMapper
       alias fail! fail
     end
