@@ -73,9 +73,11 @@ class Module
       method
     elsif direct_superclass
       direct_superclass.find_method_in_hierarchy(sym)
+    else
+      [Object,Kernel].detect { |k| k.method_table[sym] }
     end
   end
-  
+
   def ancestors
     if self.class == MetaClass
       out = []
