@@ -324,7 +324,14 @@ describe "String#%" do
     ("%-7e" % 10).should == "1.000000e+01"
     ("%05e" % 10).should == "1.000000e+01"
     ("%*e" % [10, 9]).should == "9.000000e+00"
-    ("%e" % (0.0/0)).should == "nan"
+
+    compliant :ruby, :rubinius do
+      ("%e" % (0.0/0)).should == "nan"
+    end
+
+    compliant :jruby do
+      ("%e" % (0.0/0)).should == "NaN"
+    end
   end
   
   it "supports float formats using %E" do
