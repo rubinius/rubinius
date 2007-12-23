@@ -2205,17 +2205,18 @@ class String
   end
 
   def unpack(format)
+    raise TypeError, "can't convert nil into String" if format.nil?
     i = 0
     elements = []
-    directives = format.scan(/ (?: [CcNnQqVvZ] ) (?: \-? [0-9]+ | \* )* /x)
+    directives = format.scan(/ (?: [aCcDdEeFfGgNnQqVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
     directives.each do |d|
       case d
-      when / \A ( [CcNnQqVv] ) (.*) \Z /x
+      when / \A ( [CcDdEeFfGgNnQqVv] ) (.*) \Z /x
         directive = $1
         repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
         num_bytes = case directive
-                    when /[Qq]/ then 8
-                    when /[NV]/ then 4
+                    when /[DdEGQq]/ then 8
+                    when /[eFfgNV]/ then 4
                     when /[nv]/ then 2
                     when /[Cc]/ then 1
                     end
@@ -2231,6 +2232,14 @@ class String
             n = extract_number(i, num_bytes, 'L')
             n = n >= 2**63 ? -(2**64 - n) : n
             elements << n
+          when /[eFfg]/
+            endian = directive == 'g' ? 'B' : 'L'
+            n = extract_number(i, num_bytes, endian)
+            elements << n.interpret_as_float
+          when /[DdEG]/
+            endian = directive == 'G' ? 'B' : 'L'
+            n = extract_number(i, num_bytes, endian)
+            elements << n.interpret_as_double
           end
           i += num_bytes
         end
@@ -2239,7 +2248,7 @@ class String
         else
           repeat.to_i.times do
             if i + num_bytes > self.length
-              elements << nil
+              elements << nil if directive != 'Q'
             else
               proc.call
             end
@@ -2259,6 +2268,33 @@ class String
           str = i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1]
           str =~ / \A ( [^\x00]* ) /x
           elements << $1
+          i += repeat
+        end
+      when / \A (a) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if i >= self.length
+          elements << ''
+        elsif repeat == '*'
+          elements << self[i..-1]
+          i = self.length
+        else
+          repeat = repeat.to_i
+          elements << (i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1])
+          i += repeat
+        end
+      when / \A (X) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        repeat = repeat == '*' ? self.length - i : repeat.to_i
+        raise ArgumentError, "X outside of string" if repeat < 0 or i - repeat < 0
+        i -= repeat
+      when / \A (x) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if repeat == '*'
+          raise ArgumentError, "x outside of string" if i > self.length
+          i = self.length
+        else
+          repeat = repeat.to_i
+          raise ArgumentError, "x outside of string" if i + repeat > self.length
           i += repeat
         end
       end

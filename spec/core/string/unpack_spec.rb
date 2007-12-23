@@ -18,7 +18,13 @@ describe "String#unpack" do
   end
 end
 
-describe "String#unpack with Z pattern" do
+#describe "String#unpack with nil format argument" do
+#  it "raises a TypeError exception" do
+#    "abc".unpack(nil).should raise_error(TypeError)
+#  end
+#end
+
+describe "String#unpack with 'Z' directive" do
   it "returns an array by decoding self according to the format string" do
     "abc \0abc \0".unpack('Z*Z*').should == ["abc ", "abc "]
     "abc \0abc \0".unpack('Z10').should == ["abc "]
@@ -86,8 +92,8 @@ end
 describe "String#unpack with 'Q' and 'q' directives" do
   it "returns an array by decoding self according to the format string" do
     "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q').should == [17344245288696546035]
-    "\xF3\x02".unpack('Q').should == [nil]
-    "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931, nil]
+    "\xF3\x02".unpack('Q*').should == []
+    "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931]
     "\xF3\x02\xC0\x42\x3A\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('Q*').should ==
       [68547103638422259, 17218254449219272698]
     "\xF3\x02\x00\x42".unpack('q').should == [nil]
@@ -98,5 +104,41 @@ describe "String#unpack with 'Q' and 'q' directives" do
     "\x0A\x02\x00\x02\x32\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('q*').should ==
       [68547068192358922, -1228489624490278918]
     "\x7F\x77\x77\x77\x77\x77\x77\x77".unpack('q0Q*').should == [8608480567731124095]
+  end
+end
+
+describe "String#unpack with 'a', 'X' and 'x' directives" do
+  it "returns an array by decoding self according to the format string" do
+    "abc".unpack('x3a').should == [""]
+    "abc".unpack('x3X3a').should == ["a"]
+    "abc".unpack('x2X-5a').should == ["b"]
+    "abcdefghijklmnopqrstuvwxyz".unpack('aaax10aX14a').should == ["a", "b", "c", "n", "a"]
+    "abcdefghijklmnopqrstuvwxyz".unpack('aa-8ax10aX*a').should == ["a", "b", "c", "n", "c"]
+    "abcdefghijklmnopqrstuvwxyz".unpack('x*aX26a').should == ["", "a"]
+    "abcdefghijklmnopqrstuvwxyz".unpack('x*x*x*aX26a').should == ["", "a"]
+    "abc".unpack('x3X*').should == []
+    "abc".unpack('x3X*a').should == [""]
+    "abc".unpack('x3X*X3a').should == ["a"]
+#    "abc".unpack('X*').should raise_error(ArgumentError)
+#    "abc".unpack('x*x').should raise_error(ArgumentError)
+#    "abc".unpack('x4').should raise_error(ArgumentError)
+#    "abc".unpack('X').should raise_error(ArgumentError)
+#    "abc".unpack('xX*').should raise_error(ArgumentError)
+  end
+end
+
+describe "String#unpack with 'DdEeFfGg' directives" do
+  it "returns an array by decoding self according to the format string" do
+    "\xF3\x02\x00\x42\xF3\x02\x00\x42".unpack('eg').to_s.should == "32.0028800964355-1.02997409159585e+31"
+    "\xF3\x02".unpack('GD').should == [nil, nil]
+    "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('F2').to_s.should == "NaN1.87687113714737e-40"
+    "\xF3\x02\xC0\x42\x3A\x87\xF3\x00".unpack('f*').to_s.should == "96.00576019287112.23645357166299e-38"
+    "\xFF\x80\x00\x00".unpack('g').to_s.should == "-Infinity"
+    "\x01\x62\xEE\x42".unpack('e-7e').to_s.should == "119.191413879395"
+    "\x00\x00\x00\x00".unpack('f5').should == [0.0, nil, nil, nil, nil]
+    "\xF3".unpack('E').should == [nil]
+    "\xF3\xFF\xFF\xFF\x32\x87\xF3\x00".unpack('d3').to_s.should == "4.44943499804409e-304"
+    "\xF3\x02\x00\x42\x32\x87\xF3\x00".unpack('E*').to_s.should == "4.44943241769783e-304"
+    "\x00\x00\x00\x42\x32\x87\xF3\x02".unpack('g0G*').to_s.should == "1.40470576419087e-312"
   end
 end
