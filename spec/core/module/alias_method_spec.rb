@@ -45,5 +45,11 @@ describe "Module#alias_method" do
 
   it "is a private method" do
     lambda { @class.alias_method :ichi, :public_one }.should raise_error(NoMethodError)
-  end  
+  end
+
+  it "works as in e2mmap.rb" do
+    module Exception2MessageMapper
+      alias fail! fail
+    end
+  end
 end
