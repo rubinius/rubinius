@@ -50,7 +50,7 @@ Get to know your way around the place!
 
 * lib/
   All Ruby Stdlib libraries that are verified to work as well as
-  any Rubinius-specific non-core libraries. Of special interest
+  any Rubinius-specific standard libraries. Of special interest
   here are four subdirectories:
 
 * lib/bin/
@@ -62,6 +62,12 @@ Get to know your way around the place!
 
 * lib/compiler{1,2}/
   These two hold the current and the new compilers, respectively.
+
+* stdlib/
+  This is the Ruby Stdlib, copied straight from the distribution. 
+  These libraries do not yet work on Rubinius (or have not been
+  tried.) When a library is verified to work, it is copied to
+  lib/ instead.
 
 * bin/
   Various utility programs like bin/mspec and bin/ci.
