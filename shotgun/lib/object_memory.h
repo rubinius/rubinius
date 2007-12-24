@@ -83,7 +83,7 @@ static inline OBJECT object_memory_new_context(object_memory om, int locals) {
   }
   
   ctx = ((OBJECT)heap_allocate_dirty(om->contexts, size));
-  memset(ctx, 0, size);
+  // memset(ctx, 0, size);
   
   /* not really the number of fields, rather the number of bytes
      this context is using. */

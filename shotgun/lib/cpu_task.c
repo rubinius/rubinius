@@ -79,7 +79,9 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   OBJECT obj, home;
   OBJECT *ns;
   
-  cpu_save_registers(state, c, 0);
+  if(c->active_context != Qnil) {
+    cpu_save_registers(state, c, 0);
+  }
   cpu_flush_sp(c);
   cpu_flush_ip(c);
   
@@ -163,7 +165,9 @@ int cpu_task_alive_p(STATE, OBJECT self) {
 void cpu_task_flush(STATE, cpu c) {
   struct cpu_task *task, *ct;
   
-  cpu_save_registers(state, c, 0);
+  if(c->active_context != Qnil) {
+    cpu_save_registers(state, c, 0);
+  }
     
   ct = (struct cpu_task*)CPU_TASKS_LOCATION(c);
   task = (struct cpu_task*)BYTES_OF(c->current_task);
@@ -174,7 +178,10 @@ void cpu_task_flush(STATE, cpu c) {
 int cpu_task_select(STATE, cpu c, OBJECT nw) {
   struct cpu_task *cur_task, *new_task, *ct;
   OBJECT home, cur;
-  cpu_save_registers(state, c, 0);
+
+  if(c->active_context != Qnil) {
+    cpu_save_registers(state, c, 0);
+  }
 
   cur = c->current_task;
   

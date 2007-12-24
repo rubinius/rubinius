@@ -42,9 +42,11 @@ void baker_gc_clear_marked(baker_gc g);
 void baker_gc_describe(baker_gc g);
 void baker_gc_find_lost_souls(STATE, baker_gc g);
 void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, ptr_array refs);
-inline int baker_gc_forwarded_p(OBJECT obj);
 void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int top);
 
+static inline int baker_gc_forwarded_p(OBJECT obj) {
+  return FORWARDED_P(obj);
+}
 
 
 #define baker_gc_allocate_ultra(g, size) heap_allocate_dirty((g)->current, size)

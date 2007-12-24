@@ -119,7 +119,7 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_local_set(state, cpu, idx, obj) (SET_FIELD(cpu->locals, idx, obj))
 
 #define stack_push(obj) cpu_stack_push(state, c, obj, FALSE)
-#define stack_pop() ({cpu_stack_pop(state, c);})
+#define stack_pop() cpu_stack_pop(state, c)
 #define stack_top() cpu_stack_top(state, c)
 
 #define cpu_current_block(state, cpu) (FASTCTX(cpu->home_context)->block)
@@ -144,9 +144,9 @@ void cpu_initialize(STATE, cpu c);
 void cpu_setup_top_scope(STATE, cpu c);
 void cpu_initialize_context(STATE, cpu c);
 void cpu_update_roots(STATE, cpu c, ptr_array roots, int start);
-inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
-inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception);
-inline int cpu_simple_return(STATE, cpu c, OBJECT val);
+void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
+int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception);
+int cpu_simple_return(STATE, cpu c, OBJECT val);
 
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym);
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under);
@@ -155,7 +155,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c, int setup);
 int cpu_dispatch(STATE, cpu c);
-inline void cpu_compile_instructions(STATE, OBJECT ba);
+void cpu_compile_instructions(STATE, OBJECT ba);
 OBJECT cpu_compile_method(STATE, OBJECT cm);
 OBJECT cpu_create_block_context(STATE, cpu c, OBJECT env, int sp);
 
@@ -168,17 +168,17 @@ void cpu_raise_arg_error(STATE, cpu c, int args, int req);
 void cpu_raise_arg_error_generic(STATE, cpu c, const char *msg);
 void cpu_raise_from_errno(STATE, cpu c, const char *msg);
 OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg);
-inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
+void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
 
-inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
+void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name, OBJECT block);
 
-inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
+void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
 OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include_private);
-inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
+void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
 
 void cpu_run_script(STATE, cpu c, OBJECT meth);
-inline void cpu_save_registers(STATE, cpu c, int stack_offset);
+void cpu_save_registers(STATE, cpu c, int stack_offset);
 
 OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT recv, OBJECT name, OBJECT *mod);
 

@@ -33,7 +33,7 @@ DT_ADDRESSES;
 
 #endif
 
-#define next_literal next_int; _lit = tuple_at(state, cpu_current_literals(state, c), _int)
+#define next_literal next_int; _lit = fast_fetch(cpu_current_literals(state, c), _int)
 
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, int *created) {
   OBJECT sym, _lit, val, s1, s2, s3, s4, sup_itr;
@@ -365,7 +365,7 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
     state->om->collect_now |= OMCollectYoung;
   }
 
-  ins = cmethod_get_compiled(meth);
+  ins = fast_fetch(meth, CMETHOD_f_COMPILED);
 
   if(NIL_P(ins)) {
     ins = cpu_compile_method(state, meth);
@@ -381,10 +381,9 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
 
   fc->method = meth;
   fc->data = bytearray_byte_address(state, ins);
-  fc->literals = cmethod_get_literals(meth);
+  fc->literals = fast_fetch(meth, CMETHOD_f_LITERALS);
   
   if(locals > 0) {
-    // fc->locals = tuple_new(state, locals);
     fc->locals = object_memory_context_locals(ctx);
     CLEAR_FLAGS(fc->locals);
     fc->locals->gc_zone = 0;
@@ -496,7 +495,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
   int prim, req;
   OBJECT prim_obj;
   
-  prim_obj = cmethod_get_primitive(mo);
+  prim_obj = fast_fetch(mo, CMETHOD_f_PRIMITIVE);
   
   if(!FIXNUM_P(prim_obj)) {
     if(SYMBOL_P(prim_obj)) {
@@ -543,7 +542,6 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
 inline void cpu_save_registers(STATE, cpu c, int offset) {
   struct fast_context *fc;
   
-  if(!RTEST(c->active_context)) return;
   cpu_flush_ip(c);
   cpu_flush_sp(c);
   fc = (struct fast_context*)BYTES_OF(c->active_context);
@@ -575,7 +573,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   c->type = fc->type;
   
   if(fc->type != FASTCTX_NMC) {
-    c->cache = cmethod_get_cache(fc->method);
+    c->cache = fast_fetch(fc->method, CMETHOD_f_CACHE);
   } else {
     c->cache = Qnil;
   }
@@ -595,8 +593,9 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
 /* Layer 2 method movement: use lower level only. */
 
 inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) {
-  c->depth += 2;
-  cpu_save_registers(state, c, so);
+  if(c->active_context != Qnil) {
+    cpu_save_registers(state, c, so);
+  }
   cpu_restore_context_with_home(state, c, ctx, home, FALSE, FALSE);
 }
 
@@ -902,7 +901,7 @@ static inline void cpu_activate_method(STATE, cpu c, OBJECT recv, OBJECT mo,
 }
 
 /* Layer 4: send. Primary method calling function. */
-inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
+static inline void _inline_cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
   OBJECT mo, mod, cls, cache, ser, ic;
   int missing, count, ci;
 
@@ -1011,6 +1010,10 @@ inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OB
   return;  
 }
 
+void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
+  _inline_cpu_unified_send(state, c, recv, sym, args, block);
+}
+
 /* This is duplicated from above rather than adding another parameter
    because unified_send is used SO often that I didn't want to slow it down
    any with checking a flag. */
@@ -1054,9 +1057,16 @@ int cpu_dispatch(STATE, cpu c) {
 void state_collect(STATE, cpu c);
 void state_major_collect(STATE, cpu c);
 
+#define stack_back(idx) (c->sp_ptr[-idx])
+#define stack_clear(idx) (c->sp_ptr -= idx)
+#define stack_pop_2(v1, v2) v1 = stack_back(0); v2 = stack_back(1);
+#define stack_pop_3 (v1, v2, v3) v1 = stack_back(0); v2 = stack_back(1); v3 = stack_back(2);
+#define stack_set_top(val) *c->sp_ptr = (val);
+
 void cpu_run(STATE, cpu ic, int setup) {
   register IP_TYPE op;
   register cpu c = ic;
+  struct rubinius_globals *global = state->global;
 
   if(setup) {
     (void)op;
