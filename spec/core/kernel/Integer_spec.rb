@@ -28,6 +28,12 @@ describe "Kernel.Integer" do
     Integer(obj).should == 1
   end
   
+  it "should call to_inum on strings with a base of 0 and with checks on" do
+    the_answer = "0x42"
+    the_answer.should_receive(:to_inum).with(0, true).and_return(66)
+    Integer(the_answer).should == 66
+  end
+  
   it "should call to_i to convert any arbitrary argument to an Integer" do
     (obj = mock('7')).should_receive(:to_i).and_return(7)
     Integer(obj).should == 7

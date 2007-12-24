@@ -44,7 +44,7 @@ module Kernel
   end
   
   def Integer(obj)
-    return obj.to_inum(10, true) if obj.is_a?(String)
+    return obj.to_inum(0, true) if obj.is_a?(String)
     method = obj.respond_to?(:to_int) ? :to_int : :to_i
     Type.coerce_to(obj, Integer, method)
   end
