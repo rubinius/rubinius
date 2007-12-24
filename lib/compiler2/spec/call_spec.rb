@@ -43,19 +43,13 @@ describe Compiler2 do
   
   it "compiles 'block_given?'" do
     gen [:fcall, :block_given?] do |g|
-      g.push :true
       g.push_block
-      g.is_nil
-      g.equal
     end
   end
   
   it "compiles 'iterator?'" do
     gen [:fcall, :block_given?] do |g|
-      g.push :true
       g.push_block
-      g.is_nil
-      g.equal
     end
   end
   
