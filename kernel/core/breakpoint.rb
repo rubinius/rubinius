@@ -85,6 +85,7 @@ class BreakpointTracker
 
   def initialize
     @breakpoints = Hash.new { |h,k| h[k] = {} }
+    @threads = []
     @debug_channel = Channel.new
     @control_channel = Channel.new
   end
@@ -97,6 +98,7 @@ class BreakpointTracker
   # registered, or an error is raised by the VM.
   def debug_thread(thr)
     thr.set_debugging @debug_channel, @control_channel
+    @threads << thr unless @threads.include? thr
   end
 
   # Adds a breakpoint
@@ -118,8 +120,7 @@ class BreakpointTracker
     if @breakpoints[cm][ip]
       raise RuntimeError, "A breakpoint is already set #{@method.name} at IP:#{@ip}"
     end
-    
-    bp = Breakpoint.new(cm, ip, prc)
+    bp = Breakpoint.new(cm, ip, &prc)
     @breakpoints[cm][ip] = bp
     unless opts[:noinstall]
       bp.enable
@@ -128,7 +129,7 @@ class BreakpointTracker
   end
 
   # Locates the +Breakpoint+ for the specified execution context
-  def find_handler(ctx)
+  def find_breakpoint(ctx)
     cm = ctx.method
     ip = ctx.ip - 1
     @breakpoints[cm][ip]
@@ -136,22 +137,32 @@ class BreakpointTracker
   
   def process
     ctx = wait_for_breakpoint
-    pnt = find_handler(ctx)
-    unless pnt
-      raise "Unable to find handler for #{ctx.inspect}"
+    bp = find_breakpoint(ctx)
+    unless bp
+      raise "Unable to find breakpoint for #{ctx.inspect}"
     end
-    if pnt.installed?
-      pnt.restore_into(ctx)
+    if bp.enabled?
+      bp.restore_into(ctx)
     end
-    pnt.call(ctx)
+
+    begin
+      bp.call_handler(ctx)
+    rescue Error => e
+      puts "An exception occured in a breakpoint handler:"
+      puts e
+    end
     wake_target
   end
 
+  # Suspends the current thread until a breakpoint is signaled
   def wait_for_breakpoint
     @debug_channel.receive
   end
   
+  # Wakes the debuggee thread and continues execution until the next breakpoint
   def wake_target
+    # TODO: What happens if there are multiple suspended threads - any chance
+    # the wrong thread will be re-started?
     @control_channel.send nil
   end
 
