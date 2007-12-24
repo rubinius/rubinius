@@ -141,6 +141,11 @@ class BreakpointTracker
     return bp
   end
 
+  def remove(bp)
+    bp.disable if bp.enabled?
+    @breakpoints[bp.method].delete(bp.ip)
+  end
+
   def get_breakpoint(cm, ip)
     @breakpoints[cm][ip]
   end

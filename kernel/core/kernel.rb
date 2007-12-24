@@ -266,6 +266,35 @@ module Kernel
     Signal.trap(sig, prc, &block)
   end
 
+  # Activates the singleton +Debugger+ instance, and sets a breakpoint
+  # immediately after the call site to this method.
+  # TODO: Have method take an options hash to configure debugger behavior,
+  # and perhaps a block containing debugger commands to be executed when the
+  # breakpoint is hit.
+  def debugger
+    require 'debugger/debugger'
+    # Get hold of debugger, initialising it if not already running
+    dbg = Debugger.instance
+
+    # Register a breakpoint immediately following the call site
+    dbg.register_thread Thread.current
+    ctxt = MethodContext.current.sender
+    bp = dbg.get_breakpoint(ctxt.method, ctxt.ip)
+    if bp
+      unless bp.enabled?
+        bp.enable
+        ctxt.reload_method
+      end
+    else
+      dbg.set_breakpoint ctxt.method, ctxt.ip
+      ctxt.reload_method
+    end
+
+    # Have debugger spin up a thread and wait until a breakpoint is hit
+    Thread.pass until dbg.waiting_for_breakpoint?
+  end
+  alias_method :breakpoint, :debugger
+
   def self.after_loaded
     # This nukes the bootstrap raise so the Kernel one is used.
     Object.method_table.delete :raise
