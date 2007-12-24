@@ -29,7 +29,7 @@ describe "File.dirname" do
     File.dirname("/foo/bar/baz").should =="/foo/bar"
   end
 
-  platform :not, :mswin do
+  platform_not :mswin do
     it "return all the components of filename except the last one (edge cases)" do
       File.dirname("").should == "."
       File.dirname(".").should == "."

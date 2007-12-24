@@ -15,7 +15,7 @@ describe "File.symlink" do
     @link = nil
   end
 
-  platform :not, :mswin do
+  platform_not :mswin do
     it "create a symlink between a source and target file" do
       File.symlink(@file, @link).should == 0
       File.exists?(@link).should == true

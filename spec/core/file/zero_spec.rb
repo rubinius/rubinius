@@ -27,7 +27,7 @@ describe "File.zero?" do
     end
   end
     
-  platform :not, :mswin do
+  platform_not :mswin do
     it "returns true for /dev/null" do
       File.zero?('/dev/null').should == true
     end

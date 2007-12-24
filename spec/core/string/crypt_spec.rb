@@ -28,7 +28,7 @@ describe "String#crypt" do
     "hello world".crypt("aabc").should == "aayPz4hyPS1wI"
     
     # Maps null bytes in salt to ..
-    platform :not, :darwin do
+    platform_not :darwin do
       "hello".crypt("\x00\x00").should == ""
     end
     

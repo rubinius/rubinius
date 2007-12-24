@@ -16,21 +16,21 @@ describe "File.ftype" do
       @block_dev = "NUL"
     end
     
-    platform :not, :mswin do
+    platform_not :mswin do
       @fifo = "test_fifo"
       system("mkfifo #{@fifo}") unless File.exists?(@fifo)
 
       # Block devices
-      @block = `find /dev -type b`.split("\n").first
+      @block = `find /dev -type b 2> /dev/null`.split("\n").first
       @block = Pathname.new(@block).realpath if @block
 
       # Character devices
-      @char = `find /dev -type c`.split("\n").first
+      @char = `find /dev -type c 2> /dev/null`.split("\n").first
       @path = Pathname.new(@path).realpath if @path
       
       # Symlinks
       %w[/dev /usr/bin /usr/local/bin].each do |dir|
-        links = `find /usr/local/bin -type l`.split("\n")
+        links = `find /usr/local/bin -type l 2> /dev/null`.split("\n")
         next if links.empty?
         @link = links.first
         break
@@ -66,7 +66,7 @@ describe "File.ftype" do
     File.ftype(@char).should == 'characterSpecial'
   end
 
-  platform :not, :freebsd do  # FreeBSD does not have block devices
+  platform_not :freebsd do  # FreeBSD does not have block devices
     it "return blockSpecial when is a block" do
       File.ftype(@block).should == 'blockSpecial'
     end

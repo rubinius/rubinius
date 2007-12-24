@@ -478,7 +478,7 @@ describe "String#%" do
     ("%.10u" % -5).should == (2**64 - 5).to_s
   end  
     
-  platform :not, '64' do
+  platform_not '64' do
     ("%u" % -5).should == "..#{2**32 - 5}"
     ("%0u" % -5).should == (2**32 - 5).to_s
     ("%.1u" % -5).should == (2**32 - 5).to_s

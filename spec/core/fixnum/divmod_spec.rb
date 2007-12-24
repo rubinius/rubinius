@@ -18,13 +18,7 @@ describe "Fixnum#divmod" do
     lambda { -10.divmod(0) }.should raise_error(ZeroDivisionError)
   end
 
-  version '1.8.4' do
-    it "returns [NaN, NaN] if the given argument is 0 and is a Float" do
-      1.divmod(0.0).inspect.should == '[NaN, NaN]'
-    end
-  end
-  
-  version '1.8.5'..'1.8.6' do
+  platform :version => '1.8.5'..'1.8.6' do
     it "raises a FloatDomainError when the given argument is 0 and a Float" do
       lambda { 0.divmod(0.0)   }.should raise_error(FloatDomainError)
       lambda { 10.divmod(0.0)  }.should raise_error(FloatDomainError)

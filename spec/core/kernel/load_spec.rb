@@ -63,12 +63,12 @@ describe "Kernel#load" do
     end
   end
 
-failure :ruby, :rubinius do
-  it "loads extension files" do
-    # Not sure how to spec this yet because it needs an extension file
-    fail "Not implemented"
+  failure :ruby, :rubinius do
+    it "loads extension files" do
+      # Not sure how to spec this yet because it needs an extension file
+      fail "Not implemented"
+    end
   end
-end
 
   it "loads an unqualified .rb by looking in $LOAD_PATH and returns true" do
     load('load_spec_2.rb').should == true
@@ -160,7 +160,7 @@ end
     a.eql?(b).should == true
     c.eql?(a).should == false
   end
-  
+
   it "does not cause #require on the same filename to fail" do 
     load('load_spec_7.rb').should == true
     a = $load_spec_7
@@ -180,7 +180,6 @@ end
     lambda { load("./nonexistent#{Time.now.to_f}#{$$}") }.should raise_error LoadError
   end
 
-failure :rubinius do
   # TODO: This currently fails on Rubinius because the #load logic
   #       will take 'load_spec_1' and try 'load_spec_1.rbc' since
   #       that is the logic for .rb files. 
@@ -189,7 +188,6 @@ failure :rubinius do
     load('load_spec_1.rb').should == true
     lambda { load('load_spec_1') }.should raise_error LoadError
   end
-end
 
   it "only accepts strings as the filename argument" do
     lambda { load(nil) }.should raise_error TypeError
@@ -197,121 +195,18 @@ end
     lambda { load([]) }.should raise_error TypeError
   end
 
-failure :rubinius do
-  # TODO: This is completely unimplemented.
-  it "allows wrapping the code in the file in an anonymous module" do
-    lambda { LoadSpecWrap }.should raise_error NameError
-    lambda { LoadSpecWrapTwo }.should raise_error NameError
+  runner_not :rspec do
+    it "allows wrapping the code in the file in an anonymous module" do
+      lambda { LoadSpecWrap }.should raise_error NameError
+      lambda { LoadSpecWrapTwo }.should raise_error NameError
    
-    load('load_spec_wrap.rb').should == true
-    $load_spec_wrap.nil?.should == false
-    LoadSpecWrap.lsw.should == :lsw 
+      load('load_spec_wrap.rb').should == true
+      $load_spec_wrap.nil?.should == false
+      LoadSpecWrap.lsw.should == :lsw 
 
-    load('load_spec_wrap2.rb', true).should == true
-    $load_spec_wrap2.nil?.should == false
-    lambda { LoadSpecWrapTwo }.should raise_error NameError
-  end    
-end
-
-
-extension :rubinius do
-  it "loads a .rbc file directly" do
-    load('load_spec_2.rb').should == true
-    load('load_spec_2.rbc').should == true
-  end
-
-  it "compiles a new .rbc file whenever using the source file" do
-    `rm #{$load_fixture_dir}/load_spec_2.rbc`
-
-    load('load_spec_2.rb').should == true
-
-    File.exist?("#{$load_fixture_dir}/load_spec_2.rbc").should == true
-  end
-
-  it "generates a .rbc but no .rb file if using a file with no extension (appends .rbc)" do
-    `rm #{$load_fixture_dir}/load_spec.rbc`
-
-    load('load_spec').should == true
-    File.exist?("#{$load_fixture_dir}/load_spec.rbc").should == true
-  end
-
-  it "generates a .rbc file if using a file with an arbitrary extension (appends .rbc)" do
-    `rm #{$load_fixture_dir}/load_spec.rooby.rbc`
-
-    load('load_spec.rooby').should == true
-    File.exist?("#{$load_fixture_dir}/load_spec.rooby.rbc").should == true
-  end
-
-  it "loads a .rbc file if it's not older than the associated .rb file" do
-    begin
-      time = Time.now
-
-      File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", 'w+') do |f| 
-        f.puts "$load_spec_dynamic = [#{time.tv_sec}, #{time.tv_usec}]" 
-      end
-
-      Kernel.compile "#{$load_fixture_dir}/load_spec_dynamic.rb"
-
-      load('load_spec_dynamic.rb').should == true
-      $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
-
-      load('load_spec_dynamic.rb').should == true
-      $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
-
-      time2 = Time.now
-
-      Dir.chdir($load_fixture_dir) do |dir|
-        `mv load_spec_dynamic.rbc rsd.old`
-
-        File.open('load_spec_dynamic.rb', 'w+') do |f| 
-          f.puts "$load_spec_dynamic = [#{time2.tv_sec}, #{time2.tv_usec}]" 
-        end
-      end
-
-      load('load_spec_dynamic.rb').should == true
-      $load_spec_dynamic.should == [time2.tv_sec, time2.tv_usec]
-
-      Dir.chdir($load_fixture_dir) do |dir|
-        `mv rsd.old load_spec_dynamic.rbc`
-        `touch load_spec_dynamic.rbc`
-      end
-
-      load('load_spec_dynamic.rb').should == true
-      $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
-
-    ensure
-      Dir.chdir($load_fixture_dir) do |dir|
-        `rm -f ./load_dynamic.rb*`
-      end
+      load('load_spec_wrap2.rb', true).should == true
+      $load_spec_wrap2.nil?.should == false
+      lambda { LoadSpecWrapTwo }.should raise_error NameError
     end
   end
-
-  it "loads a .rbc even if the .rb is missing" do
-    begin
-      load('load_spec_9.rb').should == true
-
-      Dir.chdir($load_fixture_dir) do |dir|
-        `mv load_spec_9.rb ls9.old`
-      end
-
-      load('load_spec_9.rb').should == true
-
-    ensure
-      Dir.chdir($load_fixture_dir) do |dir|
-         `mv ls9.old load_spec_9.rb`
-      end
-    end   
-  end
-
-  it "loads a .rbc from a .rba in $LOAD_PATH" do
-    load('load_spec_10.rbc').should == true
-    $load_spec_10.nil?.should == false
-  end
-
-  it "loads a .rbc from a .rba in $LOAD_PATH if only given .rb name" do
-    $load_spec_10 = nil
-    load('load_spec_10.rb').should == true
-    $load_spec_10.nil?.should == false
-  end
-end     
 end

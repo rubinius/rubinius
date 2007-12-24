@@ -14,7 +14,7 @@ describe "File.rename" do
     File.delete(@new) if File.exist?(@new)
   end
 
-  platform :not, :mswin do
+  platform_not :mswin do
     it "renames a file " do
       File.exists?(@old).should == true
       File.exists?(@new).should == false

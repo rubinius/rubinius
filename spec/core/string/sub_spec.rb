@@ -360,11 +360,11 @@ describe "String#sub! with pattern and block" do
   end
   
   compliant :ruby do
-    version '1.8.4'..'1.8.5' do
+    platform :version => '1.8.5' do
       it_behaves_like(:string_sub_bang_frozen_raises, TypeError)
     end
 
-    version '1.8.6' do
+    platform :version => '1.8.6' do
       it_behaves_like(:string_sub_bang_frozen_raises, RuntimeError)
     end
   end

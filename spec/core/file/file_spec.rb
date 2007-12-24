@@ -7,7 +7,7 @@ describe "File.file?" do
       @dir  = "C:\\"
     end
     
-    platform :not, :mswin do
+    platform_not :mswin do
       @null = "/dev/null"
       @dir  = "/bin"
     end

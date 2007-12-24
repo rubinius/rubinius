@@ -31,7 +31,7 @@ describe "Thread#inspect" do
       c = Channel.new
       t = Thread.new { c << Thread.current.inspect; Thread.stop }
       c.receive.should include('run')
-      t.inspect.should  include('sleep')
+      t.inspect.should include('sleep')
       Thread.critical = true
       t.kill
       t.inspect.should include('aborting')

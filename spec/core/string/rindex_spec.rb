@@ -30,7 +30,7 @@ describe "String#rindex with object" do
   end
   
   compliant :ruby, :jruby do
-    version "1.8.6" do
+    platform :version => "1.8.6" do
       it "tries to convert obj to a string via to_str" do
         obj = mock('lo')
         def obj.to_str() "lo" end

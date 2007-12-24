@@ -7,7 +7,7 @@ describe "File.directory?" do
       @file = "C:\\winnt\\notepad.exe"
     end
     
-    platform :not, :mswin do
+    platform_not :mswin do
       @dir  = "/"
       @file = "/bin/ls"
     end

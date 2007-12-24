@@ -34,7 +34,7 @@ describe "String#slice! with index" do
     end
   end
   
-  version '1.8.6' do
+  platform :version => '1.8.6' do
     it "calls to_int on index" do
       "hello".slice!(0.5).should == ?h
 
@@ -50,7 +50,7 @@ describe "String#slice! with index" do
     end
   end
   
-  version '1.8.4'..'1.8.5' do
+  platform :version => '1.8.5' do
     it "raises IndexError when passed other than a Fixnum" do
       lambda { "hello".slice!(0.5).should == ?h }.should raise_error(IndexError)
 

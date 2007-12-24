@@ -32,14 +32,8 @@ describe 'Kernel#caller' do
     caller.should == caller(1)
   end
 
-  it "returns an empty Array if all frames are omitted" do
-    c(c(0).size).should == []
-  end
-  
-  it "returns nil if the omission request is for more elements than the Array has" do
-    x = c(0).size
-    c(x).should == []
-    c(x+1).should == nil
-    c(x+2).should == nil
-  end
+  # The contents of the array returned by #caller depends on whether
+  # the call is made from an instance_eval block or a <block>#call.
+  # We purposely do not spec what happens if you request to omit
+  # more entries than exist in the array returned.
 end

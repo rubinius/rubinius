@@ -19,7 +19,7 @@ describe "File.truncate" do
       File.size(@name).should == 11
     end
     
-    platform :not, :mswin do
+    platform_not :mswin do
       File.size(@name).should == 10
     end
     File.truncate(@name, 5)

@@ -33,14 +33,14 @@ describe "Bignum#>>" do
 
   # This test was added as the result of ruby-core:9020.
   platform :darwin do
-    version '1.8'..'1.8.5' do
+    platform :version => '1.8.5' do
       it "shows the bug described in ruby-core:9020" do
         ((1 - 2**32) >> 32).should == 0
         ((1 - 2**64) >> 64).should == 0
       end
     end
 
-    version :not, '1.8'..'1.8.5' do
+    platform :version => '1.8.6' do
       it "return the right shift alignment" do
         ((1 - 2**31) >> 31).should == -1
         ((1 - 2**32) >> 32).should == -1
@@ -50,7 +50,7 @@ describe "Bignum#>>" do
     end
   end
 
-  platform :not, :darwin do
+  platform_not :darwin do
     it "return the right shift alignment" do
       ((1 - 2**31) >> 31).should == -1
       ((1 - 2**32) >> 32).should == -1
