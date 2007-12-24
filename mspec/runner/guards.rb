@@ -68,6 +68,10 @@ module MSpec
     MSpec.guard?(*patches) { |patch| patch === RUBY_PATCHLEVEL }
   end
   
+  def self.size?(size)
+    size == 8 * 1.size
+  end
+  
   def self.platform_match?(*args)
     options, platforms = args.partition { |a| a.is_a?(Hash) }
     options = options.first
@@ -78,6 +82,7 @@ module MSpec
       should_yield |= MSpec.version?(*options[:version]) if options.key?(:version)
       should_yield |= MSpec.date?(*options[:date]) if options.key?(:date)
       should_yield |= MSpec.patch?(*options[:patch]) if options.key?(:patch)
+      should_yield |= MSpec.size?(options[:size]) if options.key?(:size)
     end
     should_yield
   end

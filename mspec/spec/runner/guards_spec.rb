@@ -264,6 +264,16 @@ describe MSpec, ".patch?" do
   end
 end
 
+describe MSpec, ".size?" do
+  it "returns true when arg is 32 and 1.size is 4" do
+    MSpec.size?(32).should == (1.size == 4)
+  end
+  
+  it "returns true when arg is 64 and 1.size is 8" do
+    MSpec.size?(64).should == (1.size == 8)
+  end
+end
+
 describe Object, "#failure" do
   it "does not yield when MSpec.engine? returns true" do
     MSpec.should_receive(:engine?).with(:rbx).and_return(true)
@@ -749,6 +759,34 @@ describe Object, "#platform_not :patch => PATCHLEVEL_SPEC" do
     lambda {
       platform_not(:patch => [120, 122, 124]) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
+  end
+end
+
+describe Object, "#platform :size => SIZE_SPEC" do
+  it "yields when MSpec.size? returns true" do
+    lambda {
+      platform(:size => (1.size * 8)) { raise Exception, "I am raised" }
+    }.should raise_error(Exception, "I am raised")
+  end
+  
+  it "doesn not yield when MSpec.size? returns false" do
+    lambda {
+      platform(:size => (1.size * 4)) { raise Exception, "I have not been raised" }
+    }.should_not raise_error
+  end
+end
+
+describe Object, "#platform_not :size => SIZE_SPEC" do
+  it "yields when MSpec.size? returns false" do
+    lambda {
+      platform_not(:size => (1.size * 4)) { raise Exception, "I am raised" }
+    }.should raise_error(Exception, "I am raised")
+  end
+  
+  it "doesn not yield when MSpec.size? returns true" do
+    lambda {
+      platform_not(:size => (1.size * 8)) { raise Exception, "I have not been raised" }
+    }.should_not raise_error
   end
 end
 
