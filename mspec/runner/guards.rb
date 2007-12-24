@@ -35,23 +35,63 @@ module MSpec
   
   def self.guard?(*args, &cond)
     unless args.empty?
-      reverse = args.first == :not
-      args.shift if reverse
       result = args.any?(&cond)
     else
       result = yield
     end
-    reverse ? (not result) : result
+    return result
   end
   
-  def self.runner?(runner)
-    case runner
-    when :mspec
-      ENV['MSPEC_RUNNER'] == '1'
-    when :rspec
-      ENV['RSPEC_RUNNER'] == '1' or Object.const_defined?(:Spec)
-    else
-      false
+  def self.platform?(*platforms)
+    MSpec.guard?(*platforms) { |platform| RUBY_PLATFORM.match(platform.to_s) }
+  end
+  
+  def self.version?(*versions)
+    MSpec.guard?(*versions) { |version| version === RUBY_VERSION }
+  end
+  
+  def self.date?(*dates)
+    MSpec.guard?(*dates) do |date|
+      date = case date
+      when Range
+        first = date.first
+        last = date.last
+        Time.parse(first)..Time.parse(last)
+      else
+        Time.parse(date)
+      end 
+      date === Time.parse(RUBY_RELEASE_DATE)
+    end
+  end
+  
+  def self.patch?(*patches)
+    MSpec.guard?(*patches) { |patch| patch === RUBY_PATCHLEVEL }
+  end
+  
+  def self.platform_match?(*args)
+    options, platforms = args.partition { |a| a.is_a?(Hash) }
+    options = options.first
+
+    should_yield = false
+    should_yield |= MSpec.platform?(*platforms) unless platforms.empty?
+    if options
+      should_yield |= MSpec.version?(*options[:version]) if options.key?(:version)
+      should_yield |= MSpec.date?(*options[:date]) if options.key?(:date)
+      should_yield |= MSpec.patch?(*options[:patch]) if options.key?(:patch)
+    end
+    should_yield
+  end
+  
+  def self.runner?(*runners)
+    MSpec.guard?(*runners) do |runner|
+      case runner
+      when :mspec
+        ENV['MSPEC_RUNNER'] == '1'
+      when :rspec
+        ENV['RSPEC_RUNNER'] == '1' or Object.const_defined?(:Spec)
+      else
+        false
+      end
     end
   end
 end
@@ -95,36 +135,46 @@ class Object
     yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
-  # version :not, '1.8.4', '1.8.6' do
-  #   run these specs if RUBY_VERSION is not 1.8.4 or 1.8.6
-  # end
-  #
-  # version '1.8.4'..'1.8.6' do
-  #   run these specs if RUBY_VERSION is in the range 1.8.4 to 1.8.6
-  # end
-  def version(*args)
-    yield if MSpec.guard?(*args) { |a| a === RUBY_VERSION }
-  end
-
   # platform :darwin, :mswin do
   #   run these specs if RUBY_PLATFORM matches :darwin or :mswin
   # end
   #
-  # platform :not, :mswin do
+  # Specify a single version, a version range, or multiple versions
+  # platform :version => '1.8.4' ...
+  # platform :version => '1.8.4'..'1.8.6' ...
+  # platform :version => ['1.8', '1.9']
+  #
+  # Specify a date or date range that is understood by Time.parse
+  # platform :date => '2007-09-04' ...
+  # platform :date => '2007-09-04'..'2007-10-18'
+  # platform :date => ['2007-10-04', '2007-10-18']
+  #
+  # Specify a patch level or range
+  # platform :patch => '111'
+  # platform :patch => '34'..'111'
+  # platform :patch => ['34', '111']
+  def platform(*args)
+    yield if MSpec.platform_match?(*args)
+  end
+
+  # platform_not :mswin do
   #   run these specs if RUBY_PLATFORM does not match :mswin
   # end
-  def platform(*args)
-    yield if MSpec.guard?(*args) { |a| RUBY_PLATFORM.match(a.to_s) }
+  def platform_not(*args)
+    yield unless MSpec.platform_match?(*args)
   end
   
   # runner :mspec do
   #   run these specs if MSpec is the spec runner
   # end
-  #
-  # runner :not :rspec do
+  def runner(*args)
+    yield if MSpec.runner?(*args)
+  end
+
+  # runner_not :rspec do
   #   run these specs if RSpec is not the spec runner
   # end
-  def runner(*args)
-    yield if MSpec.guard?(*args) { |r| MSpec.runner? r }
+  def runner_not(*args)
+    yield unless MSpec.runner?(*args)
   end
 end
