@@ -2208,29 +2208,30 @@ class String
     raise TypeError, "can't convert nil into String" if format.nil?
     i = 0
     elements = []
-    directives = format.scan(/ (?: [aCcDdEeFfGgNnQqVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
+    directives = format.scan(/ (?: [aBbCcDdEeFfGgHhIiLlNnQqSsVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
     directives.each do |d|
       case d
-      when / \A ( [CcDdEeFfGgNnQqVv] ) (.*) \Z /x
+      when / \A ( [CcDdEeFfGgIiLlNnQqSsVv] ) (.*) \Z /x
         directive = $1
         repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
         num_bytes = case directive
                     when /[DdEGQq]/ then 8
                     when /[eFfgNV]/ then 4
-                    when /[nv]/ then 2
+                    when /[nSsv]/ then 2
                     when /[Cc]/ then 1
+                    when /[IiLl]/ then 1.size
                     end
         proc = Proc.new do
           case directive
           when /[CNn]/ then elements << extract_number(i, num_bytes, 'B')
-          when /[QVv]/ then elements << extract_number(i, num_bytes, 'L')
+          when /[ILQSVv]/ then elements << extract_number(i, num_bytes, 'L')
           when 'c'
             n = extract_number(i, num_bytes, 'B')
-            n = n >= 2**7 ? -(2**8 - n) : n
+            n = n >= 2**(num_bytes*8 - 1) ? -(2**(num_bytes*8) - n) : n
             elements << n
-          when 'q'
+          when /[ilqs]/
             n = extract_number(i, num_bytes, 'L')
-            n = n >= 2**63 ? -(2**64 - n) : n
+            n = n >= 2**(num_bytes*8 - 1) ? -(2**(num_bytes*8) - n) : n
             elements << n
           when /[eFfg]/
             endian = directive == 'g' ? 'B' : 'L'
@@ -2296,6 +2297,45 @@ class String
           repeat = repeat.to_i
           raise ArgumentError, "x outside of string" if i + repeat > self.length
           i += repeat
+        end
+      when / \A ([BbHh]) (.*) \Z /x
+        directive = $1
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        formaat = case directive
+                  when /[Bb]/ then "%08b"
+                  when /[Hh]/ then "%02x"
+                  end
+        if i >= self.length
+          elements << ''
+        elsif repeat == '*'
+          str = ''
+          proc = (['B', 'H'].include? directive) ? Proc.new { |s| s } : Proc.new { |s| s.reverse }
+          self[i..-1].each_byte { |n| str << proc.call(formaat % n) }
+          elements << str
+          i = self.length
+        else
+          # works when num_bytes == 0 because of this behavior:
+          # str[0...0] == '' and str[1..0] == ''
+          case directive
+          when /[Bb]/
+            (num_bytes, r) = repeat.to_i.divmod(8)
+            num_drop = r != 0 ? 8 - r : 0
+          when /[Hh]/
+            (num_bytes, r) = (repeat.to_i * 4).divmod(8)
+            num_drop = r != 0 ? 1 : 0
+          end
+          num_bytes += 1 if r != 0
+          str0 = i + num_bytes <= self.length ? self[i...(i + num_bytes)] : self[i..-1]
+          len = str0.length
+          str1 = ''
+          if ['B', 'H'].include? directive
+            proc = Proc.new { |s| len -= 1; len == 0 ? s[0..-num_drop.succ] : s }
+          else
+            proc = Proc.new { |s| len -= 1; len == 0 ? s[num_drop..-1].reverse : s.reverse }
+          end
+          str0.each_byte { |n| str1 << proc.call(formaat % n) }
+          elements << str1
+          i += num_bytes
         end
       end
     end
