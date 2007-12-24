@@ -1,104 +1,224 @@
+# vim: tw=65
+
+General help and instructions on writing code for Rubinius.
+
+
 1. Files and Directories
+========================
 
-* .load_order.txt explains the dependencies between files so the VM can load
-  them in the correct order.
-* kernel/ contains the ruby language additions to the basic VM.  These files
-  are compiled into runtime/
-* kernel/bootstrap/ contains the files needed to start up Ruby.
-* kernel/core/ contains the rest of the Ruby language.
-* runtime/ contains run-time compiled files for Rubinius.  You'll use these
+Get to know your way around the place!
+
+* .load_order.txt 
+  Explains the dependencies between files so the VM can load them
+  in the correct order.
+
+* kernel/ 
+  The Ruby half of the implementation. The classes, methods etc. 
+  that make up the Ruby language environment are defined here. 
+  Further divided into..
+  
+* kernel/bootstrap/ 
+  Minimal set of incomplete core classes that is used to load up 
+  the rest of the system. Any code that requires Rubinius' special
+  abilities needs to be here too.
+
+* kernel/core/ 
+  Complete implementation of the core classes. Builds on and/or
+  overrides bootstrap/. Theoretically this code should be portable
+  so all Rubinius-dependent stuff such as primitives goes in 
+  bootstrap/ also.
+
+* runtime/ 
+  Contains run-time compiled files for Rubinius. You'll use these
   files when running shotgun/rubinius
-* runtime/stable/* is only used by commands run from the Rakefile.  You
-  probably don't need to touch anything in here, but when you do, you can
-  rebuild it with rake build:stable.
-* shotgun/ contains the Rubinius VM.
-* shotgun/external_libs/ contains libraries required by Rubinius for
-  convenience.
-* spec/ and test/ contain tests for verifying that Rubinius implements Ruby.
 
-2. Kernel Classes
+* runtime/stable/* 
+  Known-good versions of the Ruby libraries that are used by the
+  compiler to make sure you can recompile in case you break one
+  of the core classes. 
 
-If you create a new file in one of the kernel subdirectories, it will be
-necessary to regenerate the .load_order.txt file in the equivalent runtime
-subdirectory in order to get your class loaded when Rubinius starts up. Use the
-rake task build:load_order to regenerate the .load_order.txt files.
+* shotgun/ 
+  The C parts. This top-level directory contains most of the build 
+  process configuration as well as the very short main.c.
 
-3. Primitives
+* shotgun/lib/
+  All of the C code that implements the VM as well as the extremely
+  bare-bones versions of some Ruby constructs.
 
-To add a primitive:
+* shotgun/external_libs/ 
+  Libraries required by Rubinius, bundled for convenience.
+
+* lib/
+  All Ruby Stdlib libraries that are verified to work as well as
+  any Rubinius-specific non-core libraries. Of special interest
+  here are four subdirectories:
+
+* lib/bin/
+  Some utility programs such as lib/bin/compile.rb which is used
+  to compile files during the build process.
+
+* lib/ext/
+  C extensions that use Subtend.
+
+* lib/compiler{1,2}/
+  These two hold the current and the new compilers, respectively.
+
+* bin/
+  Various utility programs like bin/mspec and bin/ci.
+
+* spec/ and test/ 
+  These contain the behaviour specification and verification files. 
+  Rubinius is developed in the Behaviour-Driven Design (BDD) style 
+  which means we write the specification of how the code should work
+  first and then the implementation to comply to that. The specs go 
+  here. The test/ directory is not used for new specs and has mostly 
+  inherited tests and benchmarks.
+
+
+Notes: Occasionally working with kernel/ you may seem classes that
+       are not completely defined or looks strange. Remember that
+       some classes are set up in the VM and we are basically just
+       reopening those classes.
+
+
+2. Working with Kernel classes
+==============================
+
+If you modify a kernel class, you need to `rake build` after to 
+have the changes picked up. With some exceptions, you should not 
+regenerate the stable files. They will in most cases work just fine
+even without the newest code. `rake build:stable` is the command 
+for that. 
+
+If you create a new file in one of the kernel subdirectories, it 
+will be necessary to regenerate the .load_order.txt file in the 
+equivalent runtime subdirectory in order to get your class loaded 
+when Rubinius starts up. Use the rake task build:load_order to 
+regenerate the .load_order.txt files.
+
+
+3. Libraries and C: Primitives vs. FFI
+======================================
+
+There are two ways to "drop to C" in Rubinius. Firstly, primitives
+are special instructions that are specifically defined in the VM. 
+In general they are operations that are impossible to do in the
+Ruby layer such as opening a file. Primitives should be used to 
+access the functionality of the VM from inside Ruby.
+
+FFI or Foreign Function Interface, on the other hand, is meant as
+a generalised method of accessing system libraries. FFI is able to
+automatically generate the bridge code needed to call out to some 
+library and get the result back into Ruby. FFI functions at runtime 
+as real machine code generation so that it is not necessary to have 
+anything compiled beforehand. FFI should be used to access the code
+outside of Rubinius, whether it is system libraries or some type of
+extension code, for example.
+
+There is also a specific Rubinius extension layer called Subtend.
+It emulates the extension interface of Ruby to allow old Ruby 
+extensions to work with Rubinius.
+
+
+4. Primitives
+=============
+Using the above rationale, if you need to implement a primitive:
 
 * Give the primitive a sane name
-* Implement the primitive in shotgun/lib/primitives.rb
-* Give the primitive a number in shotgun/lib/primitive_names.rb
-* `rake runtime/stable/compiler.rba`
-* `rake`
+* Implement the primitive in shotgun/lib/primitives.rb using the
+  name you chose as the method name.
+* Enter the primitive name as a symbol at the BOTTOM of the Array
+  in shotgun/lib/primitive_names.rb.
+* `rake build`
 
-If your primitive takes variable arguments, you need to provide a wrapper
-method that calls the primitive.  For example Dir::glob calls
-Dir::prim_glob.
+This makes your primitive available in the Ruby layer using the 
+special form @Ruby.primitive :primitive_name@. Primitives have a 
+few rules and chief among them is that a primitive must be the 
+first instruction in the method that it appears in. Partially for
+this reason all primitives should reside in a wrapper method in 
+bootstrap/ (the other part is that core/ should be implementation
+independent and primitives are not.)
 
-4. gdb
+In addition to this, primitives have another property that may 
+seem unintuitive: anything that appears below the primitive form 
+in the method is executed if the primitive FAILS and only if it 
+fails. There is no exception handling syntax involved. So this 
+is a typical pattern:
+ 
+    # kernel/bootstrap/whatever.rb
+    def self.prim_primitive_name()
+      Ruby.primitive :primitive_name
+      raise SomeError, "Whatever I was doing just failed." 
+    end
 
-You can run shotgun/rubinius with gdb.
+    # kernel/core/whatever.rb
+    def self.primitive_name()
+      self.prim_primitive_name
+      ...
+    end
+
+
+5. GDB, valgrind
+================
+To really be able to use GDB, make sure that you build Rubinius
+with DEV=1 set. This disables optimisations and adds debugging
+symbols.
+
+There are two ways to access GDB for Rubinius. You can, of course,
+simply run shotgun/rubinius with gdb (use the builtin support so
+you do not need to worry about linking etc.):
 
 * Run `shotgun/rubinius --gdb`
 * Hit ^C to interrupt
 * Type 'rbt' at the gdb prompt to get a ruby backtrace
 
-To keep yourself from fighting gdb, you will want to recompile shotgun/lib with
-DEV=1:
-
-* rake clean
-* DEV=1 rake
-* shotgun/rubinius --gdb
+You can also drop into GDB from Ruby code by using Kernel#yield_gdb.
+To continue past the yield_gdb, jump one line after the line you
+have stopped on.
 
 Useful gdb commands:
 
+* rbt
+  Prints the backtrace of the Ruby side of things. Use this in 
+  conjunction with gdb's own bt which shows the C backtrace.
+
 * p _inspect(OBJECT)
+  Useful information about a given Ruby object.
 
-You can drop to the debugger using Kernel#yield_gdb.  You can pass it an object
-you'd like to examine, or nil.  To continue past the yield_gdb, jump one line
-after the line you've stopped on.
+Valgrind is a program for debugging, profiling and memory-checking
+programs. The invocation is just  `shotgun/rubinius --valgrind`. 
+See http://valgrind.org for usage information.
 
-5. Specifications
 
-RSpec is the machinery behind executing these specs. The intention is to have
-specs for Ruby as a language and set of standard libraries, and to TDD/BDD the
-development of Rubinius. Some spec subdirectories below are implementation
-agnostic and some are specific to Rubinius.
+6. Specs (Specifications)
+=========================
+RSpec is the machinery behind executing these specs. The intention
+is to have specs for Ruby as a language plus as a set of standard
+libraries, and to TDD/BDD the development of Rubinius. Some spec 
+subdirectories below are implementation agnostic and some are 
+specific to Rubinius.
 
 For more information on the Ruby specs developed for Rubinius, see:
 http://rubinius.lighthouseapp.com/projects/5089/specs-overview
 
-6. Build w/o Optimization
 
-When you get <value temporarily unavailable, due to optimizations> in gdb, you
-can easily rebuild without optimization:
+7. FFI 
+======
+Module#attach_function allows a C function to be called from Ruby
+code using FFI.
 
-* `touch thefile.c`
-* `DEV=1 rake`
-
-To rebuild everything without optimization:
-
-* `rake clean:shotgun`
-* `DEV=1 rake`
-
-7. Using C libraries
-
-Module#attach_function allows a C function to be called from Ruby code using
-FFI.
-
-Module#attach_function takes the C function name, the ruby module function to
-bind it to, the C argument types, and the C return type.
-
+Module#attach_function takes the C function name, the ruby module
+function to bind it to, the C argument types, and the C return type.
 For a list of C argument types, see kernel/platform/ffi.rb.
 
-Currently, FFI does not support C functions with more than 6 arguments.
+Currently, FFI does not support C functions with more than 6 
+arguments.
 
-When the C function will be filling in a String, be sure the Ruby String is
-large enough.  For the C function rbx_Digest_MD5_Finish, the digest string is
-allocated with a 16 character length.  The string is passed to md5_finish which
-calls rbx_Digest_MD5_Finish which fills in the string with the digest.
+When the C function will be filling in a String, be sure the Ruby
+String is large enough. For the C function rbx_Digest_MD5_Finish,
+the digest string is allocated with a 16 character length.  The
+string is passed to md5_finish which calls rbx_Digest_MD5_Finish
+which fills in the string with the digest.
 
   class Digest::MD5
     attach_function nil, 'rbx_Digest_MD5_Finish', :md5_finish,
@@ -112,4 +232,3 @@ calls rbx_Digest_MD5_Finish which fills in the string with the digest.
   end
 
 For a complete additional example, see digest/md5.rb.
-
