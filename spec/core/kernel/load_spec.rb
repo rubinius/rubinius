@@ -34,14 +34,6 @@ describe "Kernel#load" do
     Dir.chdir($load_fixture_dir) do |dir|
       `rm -f ./*.rbc`
     end
-
-    compliant :rubinius do
-      Kernel.compile($load_fixture_dir + '/load_spec_10.rb')
-
-      Dir.chdir($load_fixture_dir) do |dir|
-        `zip load_spec_rba.rba load_spec_10.rbc`
-      end
-    end
   end
 
   it "loads a .rb from an absolute path and returns true" do

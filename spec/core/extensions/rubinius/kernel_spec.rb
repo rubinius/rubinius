@@ -34,14 +34,51 @@ extension :rubinius do
     end
   end
   
+  $load_fixture_dir = (File.dirname(__FILE__) + '/../../kernel/fixtures/load')
+  $LOAD_PATH << $load_fixture_dir
+  $LOAD_PATH << (File.dirname(__FILE__) + '/../../kernel/fixtures/load/load_spec_rba.rba')
+
+  $load_spec_1 = nil
+  $load_spec_2 = nil
+  $load_spec_3 = nil
+  $load_spec_4 = nil
+  $load_spec_5 = nil
+  $load_spec_6 = nil
+  $load_spec_7 = nil
+  $load_spec_8 = nil
+  $load_spec_9 = nil
+  $load_spec_10 = nil
+  $load_spec_wrap   = nil
+  $load_spec_wrap2  = nil
+  $load_spec = nil
+  $load_spec_rooby = nil
+
+  require 'rbconfig'
+
   describe "Kernel#load" do
+
+    # Avoid storing .rbc and .rba in repo
+    before :all do
+      Dir.chdir($load_fixture_dir) do |dir|
+        `rm -f ./*.rbc`
+      end
+
+      compliant :rubinius do
+        Kernel.compile($load_fixture_dir + '/load_spec_10.rb')
+
+        Dir.chdir($load_fixture_dir) do |dir|
+          `zip load_spec_rba.rba load_spec_10.rbc`
+        end
+      end
+    end
+
     it "loads a .rbc file directly" do
       load('load_spec_2.rb').should == true
       load('load_spec_2.rbc').should == true
     end
 
     it "compiles a new .rbc file whenever using the source file" do
-      `rm #{$load_fixture_dir}/load_spec_2.rbc`
+      `rm -f #{$load_fixture_dir}/load_spec_2.rbc`
 
       load('load_spec_2.rb').should == true
 
@@ -49,14 +86,14 @@ extension :rubinius do
     end
 
     it "generates a .rbc but no .rb file if using a file with no extension (appends .rbc)" do
-      `rm #{$load_fixture_dir}/load_spec.rbc`
+      `rm -f #{$load_fixture_dir}/load_spec.rbc`
 
       load('load_spec').should == true
       File.exist?("#{$load_fixture_dir}/load_spec.rbc").should == true
     end
 
     it "generates a .rbc file if using a file with an arbitrary extension (appends .rbc)" do
-      `rm #{$load_fixture_dir}/load_spec.rooby.rbc`
+      `rm -f #{$load_fixture_dir}/load_spec.rooby.rbc`
 
       load('load_spec.rooby').should == true
       File.exist?("#{$load_fixture_dir}/load_spec.rooby.rbc").should == true
@@ -134,4 +171,151 @@ extension :rubinius do
       $load_spec_10.nil?.should == false
     end
   end     
+
+
+  $require_fixture_dir = (File.dirname(__FILE__) + '/../../kernel/fixtures/require')
+  $LOAD_PATH << $require_fixture_dir
+  $LOAD_PATH << (File.dirname(__FILE__) + '/../../kernel/fixtures/require/require_spec_rba.rba')
+
+  $require_spec   = nil
+  $require_spec_1 = nil
+  $require_spec_2 = nil
+  $require_spec_3 = nil
+  $require_spec_4 = nil
+  $require_spec_5 = nil
+  $require_spec_6 = nil
+  $require_spec_7 = nil
+  $require_spec_8 = nil
+  $require_spec_9 = nil
+  $require_spec_10 = nil
+  $require_spec_rooby = nil
+
+  require 'rbconfig'
+
+  describe "Kernel#require" do
+    # Avoid storing .rbc and .rba in repo
+    before :all do
+      Dir.chdir($require_fixture_dir) {
+        `rm -f ./*.rbc`
+        `touch require_spec_dummy.#{Config::CONFIG['DLEXT']}`
+        `touch require_spec_dummy.rb`
+      }
+
+      Kernel.compile("#{$require_fixture_dir}/require_spec_10.rb")
+
+      Dir.chdir($require_fixture_dir) {
+        `zip require_spec_rba.rba require_spec_10.rbc`
+      }
+    end
+
+    it "loads a .rbc file directly" do
+      $LOADED_FEATURES.delete 'require_spec_2.rb'
+      load('require_spec_2.rb')
+      require('require_spec_2.rbc').should == true
+      $LOADED_FEATURES.include?('require_spec_2.rb').should == true
+    end
+
+    it "compiles a .rbc file when re-evaluating the source file" do
+      Dir.chdir($require_fixture_dir) do |dir|
+        system("rm -f require_spec_8.rbc")
+      end
+
+      File.exist?("#{$require_fixture_dir}/require_spec_8.rbc").should == false
+
+      require('require_spec_8.rb').should == true
+
+      File.exist?("#{$require_fixture_dir}/require_spec_8.rbc").should == true
+    end
+
+    it "loads a .rbc file if it's not older than the associated .rb file" do
+      begin
+        time = Time.now
+
+        Dir.chdir($require_fixture_dir) do |dir|
+          File.open('require_spec_dynamic.rb', 'w+') do |f| 
+            f.puts "$require_spec_dynamic = [#{time.tv_sec}, #{time.tv_usec}]" 
+          end
+        end
+
+        Kernel.compile "#{$require_fixture_dir}/require_spec_dynamic.rb"
+
+        require('require_spec_dynamic.rb').should == true
+        $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+
+        $LOADED_FEATURES.delete 'require_spec_dynamic.rb'
+
+        require('require_spec_dynamic.rb').should == true
+        $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+
+        require('require_spec_dynamic.rb').should == false
+        $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+
+        time2 = Time.now
+
+        Dir.chdir($require_fixture_dir) do |dir|
+          `mv require_spec_dynamic.rbc rsd.old`
+
+          File.open('require_spec_dynamic.rb', 'w+') do |f| 
+            f.puts "$require_spec_dynamic = [#{time2.tv_sec}, #{time2.tv_usec}]" 
+          end
+        end
+
+        $LOADED_FEATURES.delete 'require_spec_dynamic.rb'
+
+        require('require_spec_dynamic.rb').should == true
+        $require_spec_dynamic.should == [time2.tv_sec, time2.tv_usec]
+
+        Dir.chdir($require_fixture_dir) do |dir|
+          `mv rsd.old require_spec_dynamic.rbc`
+          `touch require_spec_dynamic.rbc`
+        end
+
+        $LOADED_FEATURES.delete 'require_spec_dynamic.rb'
+
+        require('require_spec_dynamic.rb').should == true
+        $require_spec_dynamic.should == [time.tv_sec, time.tv_usec]
+
+      ensure
+        Dir.chdir($require_fixture_dir) do |dir|
+          `rm -f ./require_dynamic.rb*`
+        end
+      end
+    end
+
+    it "loads a .rbc even if the .rb is missing" do
+      begin 
+        Kernel.compile "#{$require_fixture_dir}/require_spec_9.rb"
+
+        Dir.chdir($require_fixture_dir) do |dir|
+          `mv require_spec_9.rb ls9.old`
+        end
+
+        require('require_spec_9.rb').should == true
+
+      ensure
+        Dir.chdir($require_fixture_dir) do |dir|
+          system "mv ls9.old require_spec_9.rb"
+        end
+      end
+    end
+
+    it "loads a .rb from a .rba in $LOAD_PATH" do
+      require('require_spec_10.rb').should == true
+      $require_spec_10.nil?.should == false
+    end
+
+    it "loads a .rb from a .rba in $LOAD_PATH, only once" do
+      $LOADED_FEATURES.delete 'require_spec_10.rb'
+      
+      require('require_spec_10.rb').should == true
+      a = $require_spec_2
+      a.nil?.should == false
+
+      require('require_spec_2').should == false
+      b = $require_spec_2
+
+      a.eql?(b).should == true
+    end
+
+  end
 end
