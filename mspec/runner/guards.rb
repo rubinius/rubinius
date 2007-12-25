@@ -23,9 +23,11 @@ module MSpec
     when :rbx, :rubinius
       RUBY_NAME =~ /^rbx/
     when :ruby
-      RUBY_NAME =~ /^ruby(1\.[^9])?/
+      RUBY_NAME =~ /^ruby/
+    when :ruby18
+      RUBY_NAME =~ /^ruby(1.8)?/ and RUBY_VERSION =~ /^1.8/
     when :ruby19
-      RUBY_NAME == 'ruby1.9'
+      RUBY_NAME =~ /^ruby(1.9)?/ and RUBY_VERSION =~ /^1.9/
     when :jruby
       RUBY_NAME =~ /^jruby/
     else
