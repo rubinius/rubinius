@@ -2188,6 +2188,39 @@ class String
     self
   end
 
+  def utf8_regex_permissive()
+    / [\x00-\x7F] | [\xC0-\xDF] [\x80-\xBF] | [\xE0-\xEF] [\x80-\xBF]{2} |
+      [\xF0-\xF7] [\x80-\xBF]{3} | [\xF8-\xFB] [\x80-\xBF]{4} |
+      [\xFC-\xFD] [\x80-\xBF]{5} | [\x00-\xFF]+ /x
+  end
+
+  def utf8_regex_strict()
+    / \A [\x00-\x7F] | [\xC2-\xDF] [\x80-\xBF] | [\xE1-\xEF] [\x80-\xBF]{2} |
+         [\xF1-\xF7] [\x80-\xBF]{3} | [\xF9-\xFB] [\x80-\xBF]{4} |
+         [\xFD-\xFD] [\x80-\xBF]{5} \Z /x
+  end
+
+  def utf8_chars(first = 0, last = -1, &block)
+    self[first..last].scan(utf8_regex_permissive, &block)
+  end
+
+  # assumes self is one valid code point
+  def utf8_code_value()
+    len = self.length
+    if len == 1
+      result = self[0]
+    else
+      shift = (len - 1) * 2
+      result = (((2**(8 - len.succ) - 1) & self[0]) * 2**((len - 1) * 8)) >> shift
+      for i in 1...(len - 1)
+        shift -= 2
+        result |= (((2**6 - 1) & self[i]) * 2**((len - i.succ) * 8)) >> shift
+      end
+      result |= (2**6 - 1) & self[-1]
+    end
+    result
+  end
+
   # assumes self is a byte string
   def extract_number(i, num_bytes, endian)
     result = exp = 0
@@ -2208,7 +2241,7 @@ class String
     raise TypeError, "can't convert nil into String" if format.nil?
     i = 0
     elements = []
-    directives = format.scan(/ (?: [aBbCcDdEeFfGgHhIiLlNnQqSsVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
+    directives = format.scan(/ (?: [aBbCcDdEeFfGgHhIiLlNnQqSsUVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
     directives.each do |d|
       case d
       when / \A ( [CcDdEeFfGgIiLlNnQqSsVv] ) (.*) \Z /x
@@ -2335,6 +2368,27 @@ class String
           end
           str0.each_byte { |n| str1 << proc.call(formaat % n) }
           elements << str1
+          i += num_bytes
+        end
+      when / \A (U) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if i >= self.length
+        elsif repeat == '*'
+          utf8_chars(i) do |c|
+            raise ArgumentError, "malformed UTF-8 character" if not c =~ utf8_regex_strict
+            elements << c.utf8_code_value
+          end
+          i = self.length
+        else
+          repeat = repeat.to_i
+          num_bytes = 0
+          utf8_chars(i) do |c|
+            raise ArgumentError, "malformed UTF-8 character" if not c =~ utf8_regex_strict
+            break if repeat == 0
+            elements << c.utf8_code_value
+            num_bytes += c.length
+            repeat -= 1
+          end
           i += num_bytes
         end
       end

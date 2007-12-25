@@ -196,3 +196,31 @@ describe "String#unpack with 'IiLlSs' directives" do
     end
   end
 end
+
+describe "String#unpack with 'U' directive" do
+  it "returns an array by decoding self according to the format string" do
+    "\xFD\x80\x80\x80\x80\x80".unpack('U').should == [1073741824]
+    "\xF9\x80\x80\x80\x80".unpack('U').should == [16777216]
+    "\xF1\x80\x80\x80".unpack('UU').should == [262144]
+    "\xE1\x80\x80".unpack('U').should == [4096]
+    "\xC2\x80\xD2\x80".unpack('U-8U').should == [128, 1152]
+    "\x00\x7F".unpack('U100').should == [0, 127]
+    "\x05\x7D".unpack('U0U0').should == []
+    "".unpack('U').should == []
+    "\xF1\x80\x80\xB1\xE1\x8A\x80\xC2\xBF\x0C\x6B".unpack('U*').should == [262193, 4736, 191, 12, 107]
+    "\xF1\x8F\x85\xB1\xE1\x8A\x89\xC2\xBF\x0C\x6B".unpack('U2x2U').should == [323953, 4745, 12]
+    lambda { "\xF0\x80\x80\x80".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xE0\x80\x80".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xC0\x80".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xC1\x80".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\x80".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xF1\x80\x80".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xE1\x80".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xC2".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xF1\x00\x00\x00".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xE1\x00\x00".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xC2\x00".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\xFE".unpack('U') }.should raise_error(ArgumentError)
+    lambda { "\x03\xFF".unpack('UU') }.should raise_error(ArgumentError)
+  end
+end
