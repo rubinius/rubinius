@@ -17,4 +17,24 @@ module DirSpecs
       end
     end
   end
+  
+    %w[ spec/core/dir/fixtures/mock/.dotfile
+        spec/core/dir/fixtures/mock/.dotsubdir/.dotfile
+        spec/core/dir/fixtures/mock/.dotsubdir/nondotfile
+        spec/core/dir/fixtures/mock/deeply/.dotfile
+        spec/core/dir/fixtures/mock/deeply/nested/.dotfile.ext
+        spec/core/dir/fixtures/mock/deeply/nested/directory/structure/.ext
+        spec/core/dir/fixtures/mock/deeply/nested/directory/structure/bar
+        spec/core/dir/fixtures/mock/deeply/nested/directory/structure/baz
+        spec/core/dir/fixtures/mock/deeply/nested/directory/structure/file_one
+        spec/core/dir/fixtures/mock/deeply/nested/directory/structure/file_one.ext
+        spec/core/dir/fixtures/mock/deeply/nested/directory/structure/foo
+        spec/core/dir/fixtures/mock/deeply/nondotfile
+        spec/core/dir/fixtures/mock/file_one.ext
+        spec/core/dir/fixtures/mock/file_two.ext
+        spec/core/dir/fixtures/mock/nondotfile
+        spec/core/dir/fixtures/mock/subdir_one/.dotfile
+        spec/core/dir/fixtures/mock/subdir_one/nondotfile
+        spec/core/dir/fixtures/mock/subdir_two/nondotfile
+        spec/core/dir/fixtures/mock/subdir_two/nondotfile.ext]
 end
