@@ -1,3 +1,2 @@
-Dir#tell gives the current dir position
-Dir#tell seeks to a certain position and returns a location number
-Dir#tell raises an IOError when called on a closed Dir instance
+Dir#tell returns an Integer representing the current position in the directory
+Dir#tell returns a different Integer if moved from previous position

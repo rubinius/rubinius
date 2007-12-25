@@ -1,1 +1,1 @@
-Dir#seek moves the current read position
+Dir#seek moves the read position to a previously obtained position

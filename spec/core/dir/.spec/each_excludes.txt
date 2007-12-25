@@ -1,1 +1,0 @@
-Dir#each yields each directory entry in succession
