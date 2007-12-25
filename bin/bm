@@ -101,8 +101,6 @@ class RbxBenchmarkFile
     command = "#{@interpreter} #{@file}"
 
     case @file
-      when /wycats\/bm_string[.]rb/
-        command << %{ -x "String#unpack"}
       when /borasky\/bm_MatrixBenchmark[.]rb/
         command << %{ 64}
     end
