@@ -21,22 +21,13 @@ describe "String#%" do
     ("foo%\n" % []).should == "foo%\n"
     ("%\0" % []).should == "%\0"
     ("foo%\0" % []).should == "foo%\0"
+    ("%\n.3f" % 1.2).should == "%\n.3f"
+    ("%\0.3f" % 1.2).should == "%\0.3f"
   end
   
   it "raises an error if single % appears anywhere else" do
     lambda { (" % " % []) }.should raise_error(ArgumentError)
     lambda { ("foo%quux" % []) }.should raise_error(ArgumentError)
-  end
-
-  it "treats format strings where % is immediately followed by NULL or \n as literals" do
-    begin
-      old_debug, $DEBUG = $DEBUG, false
-
-      ("%\n.3f" % 1.2).should == "%\n.3f"
-      ("%\0.3f" % 1.2).should == "%\0.3f"
-    ensure
-      $DEBUG = old_debug
-    end
   end
 
   it "raises an error if NULL or \n appear anywhere else in the format string" do
