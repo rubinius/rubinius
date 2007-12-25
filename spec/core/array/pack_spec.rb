@@ -445,6 +445,21 @@ describe "Array#pack" do
     ["ABC", "DEF", "GHI"].pack('m*').should == ["ABC"].pack('m')
   end
 
+  it "converts integers into UTF-8 encoded byte sequences with ('U')" do
+    compliant :ruby, :jruby do
+      numbers = [0, 1, 15, 16, 127,
+          128, 255, 256, 1024, 2048, 4096, 2**16 -1, 2**16, 2**16 + 1, 2**30]
+      numbers.each do |n|
+        [n].pack('U').unpack('U').should == [n]
+      end
+      [0x7F, 0x7F].pack('U*').should == "\x7F\x7F"
+      [262193, 4736, 191, 12, 107].pack('U*').should == "\xF1\x80\x80\xB1\xE1\x8A\x80\xC2\xBF\x0C\x6B"
+      lambda { [].pack('U') }.should raise_error(ArgumentError)
+      lambda { [1].pack('UU') }.should raise_error(ArgumentError)
+      lambda { [2**32].pack('U') }.should raise_error(RangeError)
+    end
+  end
+
   it "encodes string with UU-encoding with ('u')" do
     ["ABCDEF"].pack('u').should == "&04)#1$5&\n"
   end
