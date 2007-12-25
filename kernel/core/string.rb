@@ -1797,7 +1797,7 @@ class String
         base = 10
       end
     end
-    
+
     case base
     when 2
       i += 2 if @data[i] == ?0 && (@data[i+1] == ?b || @data[i+1] == ?B)
@@ -1814,8 +1814,8 @@ class String
     result = 0
     i.upto(@bytes - 1) do |index|
       char = @data[index]
-
-      if char.isspace || (!check && char == ?_) 
+      
+      if char.isspace || char == ?_
         next
       elsif char >= ?0 && char <= ?9
         value = (char - ?0)

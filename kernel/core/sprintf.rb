@@ -480,8 +480,9 @@ class YSprintf
     @positional = false
     @relative = false
     @arg_position = 0
-    
+
     while (match = /%/.match_from(fmt, start))
+
       @flags = {:space => nil, :position => nil, :alternative => nil, :plus => nil, 
         :minus => nil, :zero => nil, :star => nil}
       @width = @precision = @type = nil
@@ -550,7 +551,7 @@ class YSprintf
         @type = type[0]
         start += 1
       end
-    
+      
       # Next: Use the parsed values to format some stuff :)
       f = format
       ret << f if f
