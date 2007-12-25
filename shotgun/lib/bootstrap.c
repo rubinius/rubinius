@@ -88,6 +88,8 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(blokenv), "BlockEnvironment");
   module_setup(state, BC(icache), "InlineCache");
   module_setup(state, BC(staticscope), "StaticScope");
+  
+  class_set_object_type(BC(string), I2N(StringType));
     
   rbs_const_set(state, obj, "Symbols", state->global->symbols);
   BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);
@@ -96,11 +98,15 @@ void cpu_bootstrap(STATE) {
   tmp = rbs_class_new(state, "Numeric", 0, obj);
   tmp2 = rbs_class_new(state, "Integer", 0, tmp);
   BC(fixnum_class) = rbs_class_new(state, "Fixnum", 0, tmp2);
+  class_set_object_type(BC(fixnum_class), I2N(FixnumType));
   
   BC(bignum) = rbs_class_new(state, "Bignum", 0, tmp2);
+  class_set_object_type(BC(bignum), I2N(BignumType));
   bignum_init(state);
   
   BC(floatpoint) = rbs_class_new(state, "Float", 0, tmp);
+  class_set_object_type(BC(floatpoint), I2N(FloatType));
+  
   BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
   BC(fastctx) = rbs_class_new(state, "MethodContext", 0, obj);
   BC(methctx) = BC(fastctx);

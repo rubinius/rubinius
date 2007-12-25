@@ -168,6 +168,7 @@ void cpu_raise_arg_error(STATE, cpu c, int args, int req);
 void cpu_raise_arg_error_generic(STATE, cpu c, const char *msg);
 void cpu_raise_from_errno(STATE, cpu c, const char *msg);
 OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg);
+OBJECT cpu_new_exception2(STATE, cpu c, OBJECT klass, const char *msg, ...);
 void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
 
 void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
@@ -243,6 +244,16 @@ void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags);
 void cpu_sampler_init(STATE, cpu c);
 void cpu_sampler_activate(STATE, int hz);
 OBJECT cpu_sampler_disable(STATE);
+
+#define type_assert(obj, type) ({\
+  if(type == FixnumType) {\
+    if(!FIXNUM_P(obj)) machine_handle_type_error(obj); \
+  } else if(type == SymbolType) { \
+    if(!SYMBOL_P(obj)) machine_handle_type_error(obj); \
+  } else {\
+    if(!REFERENCE_P(obj) || obj->obj_type != type) machine_handle_type_error(obj);\
+  }\
+})
 
 #if 1
 

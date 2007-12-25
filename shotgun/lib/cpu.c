@@ -271,6 +271,25 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg) {
   return obj;
 }
 
+OBJECT cpu_new_exception2(STATE, cpu c, OBJECT klass, const char *msg, ...) {
+  OBJECT obj, str;
+  static char buffer[1024];
+  int count;
+  va_list ap;
+  
+  va_start(ap, msg);
+  count = vsnprintf(buffer, 1024, msg, ap);
+  va_end(ap);
+  
+  obj = class_new_instance(state, klass);
+  str = string_new2(state, buffer, count);
+  exception_set_message(obj, str);
+  methctx_reference(state, c->active_context);
+  exception_set_context(obj, c->active_context);
+  return obj;
+}
+
+
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   OBJECT cur, klass, start, hsh, val;
   OBJECT cref, cbase;

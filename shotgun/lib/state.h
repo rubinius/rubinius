@@ -157,6 +157,7 @@ struct rubinius_state {
 #define FIRE_NULL   2
 #define FIRE_STACK  3
 #define FIRE_ASSERT 4
+#define FIRE_TYPE   5
 
 OBJECT rbs_const_set(STATE, OBJECT module, const char *name, OBJECT obj);
 OBJECT rbs_const_get(STATE, OBJECT module, const char *name);
@@ -254,9 +255,11 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 extern ucontext_t g_firesuit;
 extern int g_use_firesuit;
 extern int g_access_violation;
+extern int g_firesuit_arg;
 
 void machine_handle_fire(int);
 void machine_handle_assert(const char *reason, const char *file, int line);
+void machine_handle_type_error(OBJECT);
 
 /* No bounds checking! Be careful! */
 #define fast_fetch(obj, idx) NTH_FIELD_DIRECT(obj, idx)

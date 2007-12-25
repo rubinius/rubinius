@@ -1084,19 +1084,33 @@ void cpu_run(STATE, cpu ic, int setup) {
   
   /* Ok, we jumped back here because something went south. */
   if(g_access_violation) {
-    if(g_access_violation == FIRE_ACCESS) {
+    switch(g_access_violation) {
+    case FIRE_ACCESS:
       cpu_raise_exception(state, c, 
         cpu_new_exception(state, c, state->global->exc_arg, 
             "Accessed outside bounds of object"));
-    } else if(g_access_violation == FIRE_NULL) {
+      break;
+    case FIRE_NULL:
       cpu_raise_exception(state, c, 
         cpu_new_exception(state, c, state->global->exc_arg, 
             "Attempted to access field of non-reference (null pointer)")); 
-    } else if(g_access_violation == FIRE_ASSERT) {
+      break;
+    case FIRE_ASSERT:
       cpu_raise_exception(state, c, 
         cpu_new_exception(state, c, 
             rbs_const_get(state, BASIC_CLASS(object), "VMAssertion"), 
             "An error has occured within the VM"));
+      break;
+    case FIRE_TYPE:
+      cpu_raise_exception(state, c, 
+        cpu_new_exception2(state, c, global->exc_type,
+            "Invalid type encountered: %d", g_firesuit_arg));
+      break;
+    default:
+      cpu_raise_exception(state, c, 
+        cpu_new_exception2(state, c, global->exc_type,
+            "Unknown firesuit reason: %d", g_access_violation));
+      break;
     }
   }
 
