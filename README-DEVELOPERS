@@ -3,9 +3,15 @@
 General help and instructions on writing code for Rubinius.
 
 
+0. Further Reading
+==================
+At some point, you should read everything in doc/. It is not
+necessary to understand or memorise everything but it will
+help with the big picture at least!
+
+
 1. Files and Directories
 ========================
-
 Get to know your way around the place!
 
 * .load_order.txt 
