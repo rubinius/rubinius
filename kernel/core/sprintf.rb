@@ -491,7 +491,11 @@ class YSprintf
       start = match.begin(0) + 1
 
       # Special case: %% prints out as "%"
-      if [?%, nil, ?\n, 0].include?(@fmt[start])
+      if [?\n, 0].include?(@fmt[start])
+        ret << "%" << @fmt[start]
+        start += 1
+        next
+      elsif [?%, nil].include?(@fmt[start])
         ret << "%"
         start += 1
         next
