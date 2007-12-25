@@ -9,5 +9,6 @@ cat contribution_files_limited_3.txt | xargs -n 1 git blame                     
 egrep --binary-files=text -v 'Not Committed Yet'                   contribution_blames.txt >  contribution_blames_limited.txt
 perl -p -e 's/^[^(]+\(([^0-9]+).+/$1/'                     contribution_blames_limited.txt >  contribution_names_white.txt
 perl -p -e 's/\s*$/\n/'                                       contribution_names_white.txt >  contribution_names.txt
-sort contribution_names.txt | uniq -c
+sort contribution_names.txt | uniq -c > contribution_counts.txt
+cat contribution_counts.txt | bin/contributors.rb
 rm contribution_*.txt
