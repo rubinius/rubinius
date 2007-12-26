@@ -16,7 +16,9 @@ class Compiler2::Node
     ivs = instance_variables.map {|iv| [iv.sub('@', '.'), instance_variable_get(iv)] }
     max = ivs.sort_by {|iv| iv.first.length }.last.first.length
 
-    ivs.each do |name, var|
+    ivs.each do |name|
+      name, var = name.first, name.last
+
       next if name == '.compiler'
 
       str << "#{offset}#{name.ljust(max)} = "
