@@ -177,7 +177,7 @@ describe "Array#[]=" do
     ary.should == [5, 6, 7]
   end
 
-  compliant :ruby do
+  compliant :ruby, :jruby do
     it "raises TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(TypeError)
     end  

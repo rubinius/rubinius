@@ -17,7 +17,7 @@ describe "Array#push" do
     a.should == ["b", "c", "foo"]
   end
   
-  compliant :ruby do
+  compliant :ruby, :jruby do
     it "raises TypeError on a frozen array if modification takes place" do
       lambda { ArraySpecs.frozen_array.push(1) }.should raise_error(TypeError)
     end

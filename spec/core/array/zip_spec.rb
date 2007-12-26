@@ -13,7 +13,7 @@ describe "Array#zip" do
   end
   
   # MRI 1.8.6 uses to_ary, but it's been fixed in 1.9
-  compliant(:ruby) do
+  compliant(:ruby, :jruby) do
     it "calls to_ary on its arguments" do
       obj = mock('[3,4]')
       obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)

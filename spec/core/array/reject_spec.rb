@@ -14,7 +14,7 @@ describe "Array#reject" do
   
   # Returns MyArray on MRI 1.8 which is inconsistent with select.
   # It has been changed on 1.9 however.
-  compliant(:ruby) do
+  compliant(:ruby, :jruby) do
     it "returns subclass instance on Array subclasses" do
       MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == MyArray
     end
@@ -53,7 +53,7 @@ describe "Array#reject!" do
     a.reject! { true }.should == nil
   end
 
-  compliant :ruby do
+  compliant :ruby, :jruby do
     it "raises TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.reject! {} }.should raise_error(TypeError)
     end

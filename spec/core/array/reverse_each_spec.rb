@@ -9,7 +9,7 @@ describe "Array#reverse_each" do
   end
 
 # Is this a valid requirement? -rue
-compliant :r18 do
+compliant :r18, :jruby do
   it "does not fail when removing elements from block" do
     ary = [0, 0, 1, 1, 3, 2, 1, :x]
     
