@@ -199,10 +199,10 @@ end
 
 describe "String#unpack with 'U' directive" do
   it "returns an array by decoding self according to the format string" do
-    "\xFD\x80\x80\x80\x80\x80".unpack('U').should == [1073741824]
+    "\xFD\x80\x80\xB7\x80\x80".unpack('U').should == [1073967104]
     "\xF9\x80\x80\x80\x80".unpack('U').should == [16777216]
     "\xF1\x80\x80\x80".unpack('UU').should == [262144]
-    "\xE1\x80\x80".unpack('U').should == [4096]
+    "\xE1\xB7\x80".unpack('U').should == [7616]
     "\xC2\x80\xD2\x80".unpack('U-8U').should == [128, 1152]
     "\x00\x7F".unpack('U100').should == [0, 127]
     "\x05\x7D".unpack('U0U0').should == []
@@ -222,5 +222,48 @@ describe "String#unpack with 'U' directive" do
     lambda { "\xC2\x00".unpack('U') }.should raise_error(ArgumentError)
     lambda { "\xFE".unpack('U') }.should raise_error(ArgumentError)
     lambda { "\x03\xFF".unpack('UU') }.should raise_error(ArgumentError)
+  end
+end
+
+describe "String#unpack with 'A' directive" do
+  it "returns an array by decoding self according to the format string" do
+    "".unpack('A').should == [""]
+    " \0 abc \0\0\0abc\0\0 \0abc".unpack('A*').should ==
+      [" \000 abc \000\000\000abc\000\000 \000abc"]
+    " \0 abc \0\0\0abc\0\0 \0abc \0 a ".unpack('A16A-9A*A*A100').should ==
+      [" \000 abc \000\000\000abc", "", "abc \000 a", "", ""]
+    " \0 abc \0\0\0abc\0\0 \0abc \0 a ".unpack('A3A4AAA').should == ["", "abc", "", "", ""]
+    " \0 abc \0\0\0abc\0\0 \0abc \0 a ".unpack('A2A0A14').should == ["", "", " abc \000\000\000abc"]
+  end
+end
+
+describe "String#unpack with '@' directive" do
+  it "returns an array by decoding self according to the format string" do
+    "abcdefg".unpack('@2').should == []
+    "abcdefg".unpack('@3@-5a').should == ["a"]
+    "abcdefg".unpack('@*@a').should == ["a"]
+    "abcdefg".unpack('@3@5a').should == ["f"]
+    "abcdefg".unpack('@*a').should == [""]
+    "abcdefg".unpack('@7a').should == [""]
+    lambda { "abcdefg".unpack('@8') }.should raise_error(ArgumentError)
+  end
+end
+
+describe "String#unpack with 'M' directive" do
+  it "returns an array by decoding self according to the format string" do
+    "".unpack('M').should == [""]
+    "=5".unpack('Ma').should == ["", ""]
+    "abc=".unpack('M').should == ["abc"]
+    "a=*".unpack('MMMM').should == ["a", "*", "", ""]
+    "\x3D72=65abcdefg=5%=33".unpack('M').should == ["reabcdefg"]
+    "\x3D72=65abcdefg=5%=33".unpack('M0').should == ["reabcdefg"]
+    "\x3D72=65abcdefg=5%=33".unpack('M100').should == ["reabcdefg"]
+    "\x3D72=65abcdefg=5%=33".unpack('M*').should == ["reabcdefg"]
+    "\x3D72=65abcdefg=5%=33".unpack('M-8M').should == ["reabcdefg", "%3"]
+    "abc===abc".unpack('MMMMM').should == ["abc", "", "\253c", "", ""]
+    "=$$=47".unpack('MMMM').should == ["", "$$G", "", ""]
+    "=$$=4@=47".unpack('MMMMM').should == ["", "$$", "@G", "", ""]
+    "=$$=4@=47".unpack('M5000').should == [""]
+    "=4@".unpack('MMM').should == ["", "@", ""]
   end
 end

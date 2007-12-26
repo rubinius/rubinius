@@ -2195,9 +2195,9 @@ class String
   end
 
   def utf8_regex_strict()
-    / \A [\x00-\x7F] | [\xC2-\xDF] [\x80-\xBF] | [\xE1-\xEF] [\x80-\xBF]{2} |
-         [\xF1-\xF7] [\x80-\xBF]{3} | [\xF9-\xFB] [\x80-\xBF]{4} |
-         [\xFD-\xFD] [\x80-\xBF]{5} \Z /x
+    / \A (?: [\x00-\x7F] | [\xC2-\xDF] [\x80-\xBF] | [\xE1-\xEF] [\x80-\xBF]{2} |
+             [\xF1-\xF7] [\x80-\xBF]{3} | [\xF9-\xFB] [\x80-\xBF]{4} |
+             [\xFD-\xFD] [\x80-\xBF]{5} ) \Z /x
   end
 
   def utf8_chars(first = 0, last = -1, &block)
@@ -2237,11 +2237,13 @@ class String
     result
   end
 
+  # some of the directives work when repeat == 0 because of this behavior:
+  # str[0...0] == '' and str[1..0] == ''
   def unpack(format)
     raise TypeError, "can't convert nil into String" if format.nil?
     i = 0
     elements = []
-    directives = format.scan(/ (?: [aBbCcDdEeFfGgHhIiLlNnQqSsUVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
+    directives = format.scan(/ (?: [@AaBbCcDdEeFfGgHhIiLlMNnQqSsUVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
     directives.each do |d|
       case d
       when / \A ( [CcDdEeFfGgIiLlNnQqSsVv] ) (.*) \Z /x
@@ -2347,8 +2349,6 @@ class String
           elements << str
           i = self.length
         else
-          # works when num_bytes == 0 because of this behavior:
-          # str[0...0] == '' and str[1..0] == ''
           case directive
           when /[Bb]/
             (num_bytes, r) = repeat.to_i.divmod(8)
@@ -2389,6 +2389,53 @@ class String
             num_bytes += c.length
             repeat -= 1
           end
+          i += num_bytes
+        end
+      when / \A (A) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if i >= self.length
+          elements << ''
+        elsif repeat == '*'
+          elements << self[i..-1].sub(/ [\x00\x20]+ \Z /x, '')
+          i = self.length
+        else
+          repeat = repeat.to_i
+          str = i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1]
+          elements << str.sub(/ [\x00\x20]+ \Z /x, '')
+          i += repeat
+        end
+      when / \A (\@) (.*) \Z /x
+        new_index = ($2 == '' or $2[0].chr == '-') ? 0 : $2
+        if new_index == '*'
+          i = self.length
+        else
+          new_index = new_index.to_i
+          raise ArgumentError, "@ outside of string" if new_index > self.length
+          i = new_index
+        end
+      when / \A M .* \Z /x
+        if i >= self.length
+          elements << ''
+        else
+          str = ''
+          num_bytes = 0
+          regex_permissive = / \= [0-9A-Fa-f]{2} | [^=]+ | [\x00-\xFF]+ /x
+          regex_junk = / \A ( \= [0-9A-Fa-f]{0,1} ) /x
+          regex_strict = / \A (?: \= [0-9A-Fa-f]{2} | [^=]+ ) \Z /x
+          regex_hex = / \A \= [0-9A-Fa-f]{2} \Z /x
+          self[i..-1].scan(regex_permissive) do |s|
+            if s =~ regex_strict
+              if s =~ regex_hex
+                str << s.sub(/\A\=/, '').hex.chr
+              else
+                str << s
+              end
+              num_bytes += s.length
+            elsif s =~ regex_junk
+              num_bytes += $1.length
+            end
+          end
+          elements << str
           i += num_bytes
         end
       end
