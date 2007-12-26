@@ -208,17 +208,9 @@ class InstructionSequence
       
       begin
         while @offset < @iseq.size
-          inst = iseq2int
-          op = InstructionSet[inst]
-
-          case op.arg_count
-          when 0
-            stream << [op.opcode]
-          when 1
-            stream << [op.opcode, iseq2int]
-          when 2
-            stream << [op.opcode, iseq2int, iseq2int]
-          end
+          inst = decode
+          stream << inst
+          op = inst.first
           last_good = [op, stream.size] unless op.opcode == :noop
         end
       rescue InstructionSet::InvalidOpCode => ex
@@ -276,6 +268,30 @@ class InstructionSequence
       @offset = start
       encode inst
       replaced
+    end
+
+    # Decodes a single instruction at the specified instruction pointer address
+    def decode_instruction(iseq, ip)
+      @iseq = iseq
+      @offset = ip * InstructionSet::InstructionSize
+
+      decode
+    end
+
+    private
+
+    def decode
+      inst = iseq2int
+      op = InstructionSet[inst]
+
+      case op.arg_count
+      when 0
+        [op]
+      when 1
+        [op, iseq2int]
+      when 2
+        [op, iseq2int, iseq2int]
+      end
     end
     
     def encode(inst)
