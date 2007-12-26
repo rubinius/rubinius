@@ -25,6 +25,7 @@
 #include "list.h"
 #include "config.h"
 
+typedef enum { OTHER, WAITER } thread_info_type;
 struct thread_info {
   STATE;
   cpu c;
@@ -33,6 +34,8 @@ struct thread_info {
   OBJECT buffer;
   int count;
   pid_t pid;
+  int options;
+  thread_info_type type;
   struct thread_info *prev, *next;
 };
 
@@ -264,110 +267,75 @@ void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   signal_add(&ti->ev, NULL);  
 }
 
-void _cpu_find_waiters(int fd, short event, void *arg) {
-  STATE;
+static void cpu_find_waiters(STATE) {
   pid_t pid;
-  int status, found;
+  int status, skip;
   OBJECT ret;
-  struct thread_info *ti;
-  
-  struct thread_info *sti = (struct thread_info*)arg;
-  
-  state = sti->state;
-    
-  while((pid = waitpid(-1, &status, WNOHANG)) != 0) {
-    if(pid == -1) {
-      if(errno == EINTR) continue;
-      break;
-    }
-    
-    ti = (struct thread_info*)(state->thread_infos);
-    found = 0;
-    
-    while(ti) {
-      if(ti->pid == pid) {
-        state = ti->state;
-        found = 1;
-        if(WIFEXITED(status)) {
-          ret = I2N(WEXITSTATUS(status));
-        } else {
-          /* Could support WIFSIGNALED also. */
-          ret = Qtrue;
-        }
-        cpu_channel_send(state, ti->c, ti->channel, I2N(pid));
-        cpu_channel_send(state, ti->c, ti->channel, ret);
-        _cpu_event_unregister_info(state, ti);
-        XFREE(ti);
-        break;
-      }
+  struct thread_info *ti, *tnext;
+
+  ti = (struct thread_info*)(state->thread_infos);
+  while (ti) {
+    if (ti->type != WAITER) {
       ti = ti->next;
+      continue;
     }
-    
-    if(!found) {
-      hash_set(state, state->global->recent_children, I2N(pid), I2N(status));
+    while((pid = waitpid(ti->pid, &status, WNOHANG)) == -1 && errno == EINTR)
+      ;
+
+    skip = 0;
+    if (pid > 0) {
+      if (WIFEXITED(status)) {
+        ret = I2N(WEXITSTATUS(status));
+      } else {
+        /* Could support WIFSIGNALED also. */
+        ret = Qtrue;
+      }
+      cpu_channel_send(ti->state, ti->c, ti->channel, I2N(pid));
+      cpu_channel_send(ti->state, ti->c, ti->channel, ret);
+    } else if (pid == -1 && errno == ECHILD) {
+      cpu_channel_send(ti->state, ti->c, ti->channel, Qfalse);
+    } else if (pid == 0 && (ti->options & WNOHANG)) {
+      cpu_channel_send(ti->state, ti->c, ti->channel, Qnil);
+    } else {
+      skip = 1;
     }
-  }  
+
+    tnext = ti->next;
+    if (!skip) {
+      _cpu_event_unregister_info(ti->state, ti);
+      XFREE(ti);
+    }
+    ti = tnext;
+  }
+}
+
+void _cpu_find_waiters_cb(int fd, short event, void *arg) {
+  struct thread_info *sti = (struct thread_info*)arg;
+
+  cpu_find_waiters(sti->state);
 }
 
 void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
   struct thread_info *ti;
-  int status;
-  OBJECT ret, tmp;
-  pid_t out;
-    
-  /* Check if the child has already exited. */
-  out = waitpid((pid_t)pid, &status, WNOHANG);
-  if(out > 0) {
-    if(WIFEXITED(status)) {
-      ret = I2N(WEXITSTATUS(status));
-    } else {
-      /* Could support WIFSIGNALED also. */
-      ret = Qtrue;
-    }
-    cpu_channel_send(state, c, channel, I2N(out)); /* the pid */
-    cpu_channel_send(state, c, channel, ret);
-    return;
-  }
-  
-  /* Child exited recently and we already caught the SIGCHLD */
-  tmp = hash_find(state, state->global->recent_children, I2N(pid));
-  if(!NIL_P(tmp)) {
-    status = FIXNUM_TO_INT(tmp);
-    
-    if(WIFEXITED(status)) {
-      ret = I2N(WEXITSTATUS(status));
-    } else {
-      /* Could support WIFSIGNALED also. */
-      ret = Qtrue;
-    }
-    cpu_channel_send(state, c, channel, I2N(pid)); /* the pid */
-    cpu_channel_send(state, c, channel, ret);
-    return;
-  }
-  
-  /* No children out there. */
-  if(out == -1 && errno == ECHILD) {
-    cpu_channel_send(state, c, channel, Qfalse);
-  } else {
-    /* Still somewhere out there, register we want it. */
 
-    ti = ALLOC_N(struct thread_info, 1);
-    ti->state = state;
-    ti->c = c;
-    ti->pid = pid;
-    ti->channel = channel;
-    _cpu_event_register_info(state, ti);
-  }
+  ti = ALLOC_N(struct thread_info, 1);
+  ti->state = state;
+  ti->c = c;
+  ti->pid = pid;
+  ti->options = flags;
+  ti->type = WAITER;
+  ti->channel = channel;
+  _cpu_event_register_info(state, ti);
+  cpu_find_waiters(state); // run once right away, in case no children match
 }
 
 void cpu_event_setup_children(STATE, cpu c) {
   struct thread_info *ti;
 
-  state->global->recent_children = hash_new(state);
   ti = ALLOC_N(struct thread_info, 1);
   ti->state = state;
   ti->c = c;
-  signal_set(&ti->ev, SIGCHLD, _cpu_find_waiters, (void*)ti);
+  signal_set(&ti->ev, SIGCHLD, _cpu_find_waiters_cb, (void*)ti);
   signal_add(&ti->ev, NULL);  
 }
 
