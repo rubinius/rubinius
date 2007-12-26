@@ -2741,14 +2741,17 @@ class ShotgunPrimitives
       stack_push(Qtrue);
     } else {
       t2 = string_get_bytes(self);
-    
-      GUARD(t2 == string_get_bytes(t1));
-      j =  FIXNUM_TO_INT(t2);
-      t2 = string_get_data(self);
-      t3 = string_get_data(t1);
+      
+      if(t2 != string_get_bytes(t1)) {
+        stack_push(Qfalse);
+      } else {
+        j =  FIXNUM_TO_INT(t2);
+        t2 = string_get_data(self);
+        t3 = string_get_data(t1);
 
-      k = strncmp(BYTEARRAY_ADDRESS(t2), BYTEARRAY_ADDRESS(t3), j);
-      stack_push(k == 0 ? Qtrue : Qfalse);
+        k = strncmp(BYTEARRAY_ADDRESS(t2), BYTEARRAY_ADDRESS(t3), j);
+        stack_push(k == 0 ? Qtrue : Qfalse);
+      }
     }
     CODE
   end

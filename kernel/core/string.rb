@@ -719,6 +719,7 @@ class String
 
   # Two strings are equal if the have the same length and content.
   def eql?(other)
+    Ruby.primitive :string_equal
     return false unless other.is_a?(String) && other.size == @bytes
     (@data.fetch_bytes(0, @bytes) <=> other.data.fetch_bytes(0, @bytes)) == 0
   end
