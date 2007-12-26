@@ -41,6 +41,71 @@ $~               MatchData       An object that encapsulates the results of a su
                                  current scope. [thread] 
 =end
 
+
+describe 'Predefined global $~' do
+  it 'is set to contain the MatchData object of the last match if successful' do
+    md = /foo/.match 'foo'
+    $~.class.should == MatchData
+    $~.object_id.should == md.object_id
+
+    /bar/ =~ 'bar'
+    $~.class.should == MatchData
+    $~.object_id.should_not == md.object_id
+  end   
+
+  it 'is set to nil if the last match was unsuccessful' do
+    /foo/ =~ 'foo'
+    $~.nil?.should == false
+
+    /foo/ =~ 'bar'
+    $~.nil?.should == true
+  end
+end
+
+describe 'Predefined global $&' do
+  it 'is equivalent to MatchData#[0] on the last match $~' do
+    /foo/ =~ 'barfoobaz'
+    $&.should == $~[0]
+    $&.should == 'foo'
+  end
+end
+
+describe 'Predefined global $`' do
+  it 'is equivalent to MatchData#pre_match on the last match $~' do
+    /foo/ =~ 'barfoobaz'
+    $`.should == $~.pre_match
+    $`.should == 'bar'
+  end
+end
+
+describe "Predefined global $'" do
+  it 'is equivalent to MatchData#post_match on the last match $~' do
+    /foo/ =~ 'barfoobaz'
+    $'.should == $~.post_match
+    $'.should == 'baz'
+  end
+end
+
+describe 'Predefined global $+' do
+  it 'is equivalent to $~.captures.last' do
+    /(f(o)o)/ =~ 'barfoobaz'
+    $+.should == $~.captures.last
+    $+.should == 'o'
+  end
+end
+
+describe 'Predefined globals $1..N' do
+  it 'are equivalent to $~[N]' do
+    /(f)(o)(o)/ =~ 'foo'
+    $1.should == $~[1]
+    $2.should == $~[2]
+    $3.should == $~[3]
+    $4.should == $~[4]
+
+    [$1, $2, $3, $4].should == ['f', 'o', 'o', nil]
+  end
+end
+
 =begin
 Input/Output Variables 
 ---------------------------------------------------------------------------------------------------
