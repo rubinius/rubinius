@@ -211,6 +211,9 @@ activate_method
       @args.size + 1
     end
 
+    attr_reader :ip
+    attr_reader :line
+
     def to_s
       str = "%04d:  %-27s" % [@ip, opcode]
       str << @args.map{|a| a.inspect}.join(', ')
