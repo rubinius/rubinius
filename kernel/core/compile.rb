@@ -101,6 +101,16 @@ module Compile
     raise LoadError, "No such file: #{path}"
   end
 
+  def self.compile_feature(rb, requiring, &block)
+    $LOADED_FEATURES << rb if requiring.equal?(true)
+    begin
+      yield
+    rescue => e
+      $LOADED_FEATURES.delete(rb) if requiring.equal?(true)
+      raise
+    end
+  end
+
   # Internally used by #unified_load. This attempts to load the
   # designated file from a single prefix path.
   def self.single_load(dir, rb, rbc, ext, requiring = nil)
@@ -114,13 +124,36 @@ module Compile
 
         # Use source only if it is newer
         if !File.file?(rbc_path) or File.mtime(rb_path) > File.mtime(rbc_path)
-          cm = Compile.compile_file(rb_path)
-          raise LoadError, "Unable to compile: #{rb_path}" unless cm
+          compile_feature(rb, requiring) do
+            cm = Compile.compile_file(rb_path)
+            raise LoadError, "Unable to compile: #{rb_path}" unless cm
+          end
 
           # Store it for the future
           Marshal.dump_to_file cm, rbc_path, Rubinius::CompiledMethodVersion
 
         else
+          compile_feature(rb, requiring) do
+            cm = CompiledMethod.load_from_file(rbc_path, Rubinius::CompiledMethodVersion)
+            raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
+          end
+        end
+
+        cm.compile
+        cm.as_script
+
+        return true
+      end
+    end
+
+    unless rbc.equal? nil
+      rb = rbc.chomp 'c'
+      return false if requiring.equal?(true) and $LOADED_FEATURES.include?(rb)
+
+      rbc_path = "#{dir}#{rbc}"
+
+      if File.file? rbc_path then
+        compile_feature(rb, requiring) do
           cm = CompiledMethod.load_from_file(rbc_path, Rubinius::CompiledMethodVersion)
           raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
         end
@@ -128,25 +161,6 @@ module Compile
         cm.compile
         cm.as_script
 
-        $LOADED_FEATURES << rb if requiring.equal?(true)
-        return true
-      end
-    end
-
-    unless rbc.equal? nil
-      return false if requiring.equal?(true) and $LOADED_FEATURES.include?(rbc.chomp 'c')
-
-      rbc_path = "#{dir}#{rbc}"
-
-      if File.file? rbc_path then
-
-        cm = CompiledMethod.load_from_file(rbc_path, Rubinius::CompiledMethodVersion)
-        raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
-
-        cm.compile
-        cm.as_script
-
-        $LOADED_FEATURES << rbc.chomp('c') if requiring.equal?(true)
         return true
       end
     end

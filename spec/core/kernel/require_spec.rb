@@ -16,6 +16,7 @@ $require_spec_8 = nil
 $require_spec_9 = nil
 $require_spec_10 = nil
 $require_spec_rooby = nil
+$require_spec_recursive = nil
 
 require 'rbconfig'
 
@@ -69,10 +70,12 @@ failure :ruby, :rubinius do
 end
 
   it "does not expand/resolve qualified files against $LOAD_PATH" do
+    num_features = $LOADED_FEATURES.size
     Dir.chdir($require_fixture_dir + '/../') do |dir|
       # This would be a valid path if expanded against the fixture dir
       lambda { require '../require/require_spec_2.rb' }.should raise_error LoadError
     end
+    $LOADED_FEATURES.size.should == num_features
   end
 
   it "allows unqualified files to contain path information (just not in the beginning)" do
@@ -215,5 +218,35 @@ end
     lambda { require(nil) }.should raise_error(TypeError)
     lambda { require(42)  }.should raise_error(TypeError)
     lambda { require([])  }.should raise_error(TypeError)
+  end
+
+  it "should not infinite loop on an rb file that requires itself" do
+    $require_spec_recursive = nil
+    $LOADED_FEATURES.delete 'require_spec_recursive.rb'
+
+    $LOADED_FEATURES.include?('require_spec_recursive.rb').should == false
+    require('require_spec_recursive').should == true
+    $LOADED_FEATURES.include?('require_spec_recursive.rb').should == true
+    $require_spec_recursive.nil?.should == false
+  end
+
+  it "should not infinite loop on an rbc file that requires itself" do
+    $require_spec_recursive = nil
+    $LOADED_FEATURES.delete 'require_spec_recursive.rb'
+
+    begin
+      Dir.chdir($require_fixture_dir) do
+        Kernel.compile('require_spec_recursive.rb')
+        `mv require_spec_recursive.rb tmp1234`
+      end
+      $LOADED_FEATURES.include?('require_spec_recursive.rb').should == false
+      require('require_spec_recursive').should == true
+      $LOADED_FEATURES.include?('require_spec_recursive.rb').should == true
+      $require_spec_recursive.nil?.should == false
+    ensure
+      Dir.chdir($require_fixture_dir) do
+        `mv tmp1234 require_spec_recursive.rb`
+      end
+    end
   end
 end
