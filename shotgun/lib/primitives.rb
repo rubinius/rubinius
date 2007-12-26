@@ -839,8 +839,7 @@ class ShotgunPrimitives
       }
       stack_push(t2);
       /* TODO: copy the ivars in slot 0 */
-      // perform_hook is broken currently.
-      // cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
+      cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
     } else {
       stack_push(t1);
     }
@@ -2662,6 +2661,74 @@ class ShotgunPrimitives
     <<-CODE
     cpu_push_encloser(state, c);
     stack_push(Qnil);
+    CODE
+  end
+  
+  def array_aref
+    <<-CODE
+    GUARD(num_args == 1);
+    self = stack_pop();
+    t1 = stack_top();
+    GUARD(FIXNUM_P(t1));
+
+    j = FIXNUM_TO_INT(array_get_total(self));
+
+    k = FIXNUM_TO_INT(t1);
+
+    if(k < 0) k += j;
+    
+    if(k < 0 || k >= j) {
+      stack_set_top(Qnil);
+    } else {
+      k += FIXNUM_TO_INT(array_get_start(self));
+      t3 = array_get_tuple(self);
+      GUARD(k < NUM_FIELDS(t3));
+      
+      stack_set_top(tuple_at(state, t3, k));
+    }
+    CODE
+  end
+  
+  def array_aset
+    <<-CODE
+    GUARD(num_args == 2);
+    self = stack_pop();
+    t1 = stack_pop();
+    GUARD(FIXNUM_P(t1));
+
+    j = FIXNUM_TO_INT(array_get_total(self));    
+    k = FIXNUM_TO_INT(t1);
+  
+    if(k < 0) k += j;
+      
+    if(k >= j - 1) {
+      array_set_total(self, I2N(k + 1));
+    }
+
+    k += FIXNUM_TO_INT(array_get_start(self));
+    t3 = array_get_tuple(self);
+    GUARD(k < NUM_FIELDS(t3));
+    
+    tuple_put(state, t3, k, stack_top());
+    CODE
+  end
+  
+  def string_append
+    <<-CODE
+    GUARD(num_args == 1);
+    self = stack_pop();
+    t1 = stack_top();
+    GUARD(STRING_P(t1));
+    
+    string_append(state, self, t1);
+    cpu_stack_set_top(state, c, self);
+    CODE
+  end
+  
+  def string_dup
+    <<-CODE
+    GUARD(num_args == 0);
+    cpu_stack_set_top(state, c, string_dup(state, stack_top()));
     CODE
   end
 

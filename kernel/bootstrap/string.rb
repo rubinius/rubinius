@@ -20,6 +20,8 @@ class String
   end
   
   def append(str)
+    Ruby.primitive :string_append
+    
     unless str.kind_of? String
       raise TypeError, "only a String instance is accepted"
     end
@@ -28,6 +30,7 @@ class String
   end
   
   def dup
+    Ruby.primitive :string_dup
     Ruby.asm "push self\nstring_dup\n"
   end
 

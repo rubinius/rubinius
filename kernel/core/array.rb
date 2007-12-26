@@ -79,6 +79,8 @@ class Array
   # request cannot be completed. Array#slice is synonymous with #[].
   # Subclasses return instances of themselves.
   def [](one, two = nil)
+    Ruby.primitive :array_aref
+    
     # Normalise the argument variants
     start, finish, count, simple, is_range = nil, nil, nil, false, false
 
@@ -135,6 +137,8 @@ class Array
   alias_method :slice, :[]
 
   def []=(idx, ent, *args)
+    Ruby.primitive :array_aset
+    
     cnt = nil
     if args.size != 0
       cnt = ent.to_int
