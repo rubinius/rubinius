@@ -1,4 +1,14 @@
-class Process    
+class Process
+  def self.fork
+    pid = fork_prim
+    pid = nil if pid == 0
+    if block_given? && pid.nil?
+      yield nil
+      Kernel.exit
+    end
+    pid
+  end
+
   def self.sleep(sec)
     micro_sleep(sec * 1_000_000)
   end
@@ -91,7 +101,7 @@ module Kernel
   def system(prog, *args)
     cmd = args.inject(prog.to_s) { |a,e| a << " #{e}" }
     pid = Process.fork
-    if pid != 0
+    if pid
       chan = Channel.new
       Scheduler.send_on_stopped chan, pid
       status = chan.receive
@@ -112,7 +122,7 @@ module Kernel
     str = StringValue(str)
     read, write = IO.pipe
     pid = Process.fork
-    if pid != 0
+    if pid
       write.close
       chan = Channel.new
       output = ""
@@ -147,8 +157,8 @@ class IO
     pa_read, ch_write = IO.pipe
     
     pid = Process.fork
-    
-    if pid != 0
+
+    if pid
       ch_write.close
       rp = BidirectionalPipe.new(pid, pa_read, nil)
       if block_given?
