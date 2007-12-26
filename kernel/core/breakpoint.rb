@@ -28,7 +28,7 @@ class Breakpoint
     end
 
     # If we get here, there's a problem with the IP
-    max_ip = bc.size / InstructionSet::InstructionSize
+    max_ip = bc.size
     if @ip < 0 or @ip > max_ip
       raise ArgumentError, "Breakpoint (IP:#{@ip}) is outside valid range of 0 to #{max_ip}"
     else
@@ -68,7 +68,8 @@ class Breakpoint
     @ip
   end
 
-  # Disables the breakpoint, and resets the supplied +MethodContext+ object to 
+  # Disables the breakpoint, and reloads the instruction sequence on the
+  # supplied +MethodContext+ object.
   def restore_into(ctx)
     ctx.ip = disable
     ctx.reload_method
@@ -103,10 +104,9 @@ class BreakpointTracker
 
   # Adds a breakpoint
   def on(method, opts, &prc)
+    cm = method
     if method.kind_of? Method
       cm = method.compiled_method
-    else
-      cm = method
     end
 
     if line = opts[:line]
@@ -118,7 +118,7 @@ class BreakpointTracker
     end
 
     if @breakpoints[cm][ip]
-      raise RuntimeError, "A breakpoint is already set #{@method.name} at IP:#{@ip}"
+      raise RuntimeError, "A breakpoint is already set #{cm.name} at IP:#{ip}"
     end
     bp = Breakpoint.new(cm, ip, &prc)
     @breakpoints[cm][ip] = bp
