@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 extension :rubinius do
-  $require_fixture_dir = (File.dirname(__FILE__) + '/../../kernel/fixtures/require')
+  $require_fixture_dir = (File.dirname(__FILE__) + '/../../../fixtures/require')
   $LOAD_PATH << $require_fixture_dir
-  $LOAD_PATH << (File.dirname(__FILE__) + '/../../kernel/fixtures/require/require_spec_rba.rba')
+  $LOAD_PATH << (File.dirname(__FILE__) + '/../../../fixtures/require/require_spec_rba.rba')
 
   $require_spec   = nil
   $require_spec_1 = nil

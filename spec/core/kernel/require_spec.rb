@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-$require_fixture_dir = (File.dirname(__FILE__) + '/fixtures/require')
+$require_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/require')
 $LOAD_PATH << $require_fixture_dir
-$LOAD_PATH << (File.dirname(__FILE__) + '/fixtures/require/require_spec_rba.rba')
+$LOAD_PATH << (File.dirname(__FILE__) + '/../../fixtures/require/require_spec_rba.rba')
 
 $require_spec   = nil
 $require_spec_1 = nil
@@ -38,7 +38,7 @@ describe "Kernel#require" do
   #          or add items.
 
   it "loads a .rb from an absolute path and returns true" do
-    path = File.expand_path(File.dirname(__FILE__) + '/fixtures/require/require_spec_1.rb')
+    path = File.expand_path(File.dirname(__FILE__) + '/../../fixtures/require/require_spec_1.rb')
 
     require(path).should == true
     $require_spec_1.nil?.should == false
@@ -76,7 +76,7 @@ end
   end
 
   it "allows unqualified files to contain path information (just not in the beginning)" do
-    name = (File.dirname(__FILE__) + '/fixtures')
+    name = (File.dirname(__FILE__) + '/../../fixtures')
     $LOAD_PATH << name
 
     $require_spec2 = nil
@@ -148,8 +148,8 @@ end
     end
 
     require("#{$require_fixture_dir}/require_spec_4").should == true 
-    $require_spec_4.should == [['./spec/core/kernel/fixtures/require/require_spec_4.rb', 1], 
-                               ['./spec/core/kernel/fixtures/require/require_spec_4.rb', 10]]
+    $require_spec_4.should == [['./spec/core/kernel/../../fixtures/require/require_spec_4.rb', 1], 
+                               ['./spec/core/kernel/../../fixtures/require/require_spec_4.rb', 10]]
   end
 
   it "stores the loaded file in $LOADED_FEATURES" do

@@ -13,7 +13,7 @@ tags
 tmtags
 *.rbc
 .spec/bm.yml
-spec/core/kernel/fixtures/load/load_spec_rba.rba
+spec/fixtures/load/load_spec_rba.rba
 spec/core/dir/fixtures/mock
 tmp
 scratch

@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 extension :rubinius do
-  $load_fixture_dir = (File.dirname(__FILE__) + '/../../kernel/fixtures/load')
+  $load_fixture_dir = (File.dirname(__FILE__) + '/../../../fixtures/load')
   $LOAD_PATH << $load_fixture_dir
-  $LOAD_PATH << (File.dirname(__FILE__) + '/../../kernel/fixtures/load/load_spec_rba.rba')
+  $LOAD_PATH << (File.dirname(__FILE__) + '/../../../fixtures/load/load_spec_rba.rba')
 
   $load_spec_1 = nil
   $load_spec_2 = nil

@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-$load_fixture_dir = (File.dirname(__FILE__) + '/fixtures/load')
+$load_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/load')
 $LOAD_PATH << $load_fixture_dir
-$LOAD_PATH << (File.dirname(__FILE__) + '/fixtures/load/load_spec_rba.rba')
+$LOAD_PATH << (File.dirname(__FILE__) + '/../../fixtures/load/load_spec_rba.rba')
 
 $load_spec_1 = nil
 $load_spec_2 = nil
@@ -37,7 +37,7 @@ describe "Kernel#load" do
   end
 
   it "loads a .rb from an absolute path and returns true" do
-    path = File.expand_path(File.dirname(__FILE__) + '/fixtures/load/load_spec_1.rb')
+    path = File.expand_path(File.dirname(__FILE__) + '/../../fixtures/load/load_spec_1.rb')
 
     load(path).should == true
     $load_spec_1.nil?.should == false
@@ -75,7 +75,7 @@ describe "Kernel#load" do
   end
 
   it "allows unqualified files to contain path information (just not in the beginning)" do
-    name = (File.dirname(__FILE__) + '/fixtures')
+    name = (File.dirname(__FILE__) + '/../../fixtures')
     $LOAD_PATH << name
 
     $load_spec_2 = nil
@@ -121,8 +121,8 @@ describe "Kernel#load" do
     end
 
     load("#{$load_fixture_dir}/load_spec_4.rb").should == true 
-    $load_spec_4.should == [['./spec/core/kernel/fixtures/load/load_spec_4.rb', 1], 
-                            ['./spec/core/kernel/fixtures/load/load_spec_4.rb', 10]]
+    $load_spec_4.should == [['./spec/core/kernel/../../fixtures/load/load_spec_4.rb', 1], 
+                            ['./spec/core/kernel/../../fixtures/load/load_spec_4.rb', 10]]
   end
 
   it "reloads the file if invoked on the same filename again, returning true" do
