@@ -20,7 +20,19 @@ describe "String#inspect" do
       $KCODE = old_kcode
     end
   end
-  
+
+  it "can handle malformed UTF-8 string when $KCODE is UTF-8" do
+    old_kcode = $KCODE
+
+    begin
+      $KCODE = "UTF-8"
+      # malformed UTF-8 sequence
+      "\007äöüz\303".inspect.should == "\"\\aäöüz\\303\""
+    ensure
+      $KCODE = old_kcode
+    end
+  end
+
   it "taints the result if self is tainted" do
     "foo".taint.inspect.tainted?.should == true
     "foo\n".taint.inspect.tainted?.should == true
