@@ -1,1 +1,1 @@
-Module#const_set raises a NameError when there is no constant with the given name
+Module#const_set should work in e2mmap.rb

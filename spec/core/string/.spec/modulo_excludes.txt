@@ -1,3 +1,12 @@
+String#% formats single % characters before a newline or NULL as literal %s
 String#% allows positional arguments for width star and precision star arguments
+String#% raises ArgumentError for huge precisions for %s
 String#% supports unsigned formats using %u
 String#% supports negative bignums
+String#% behaves as if calling Kernel#Integer for %b argument
+String#% behaves as if calling Kernel#Integer for %d argument
+String#% behaves as if calling Kernel#Integer for %i argument
+String#% behaves as if calling Kernel#Integer for %o argument
+String#% behaves as if calling Kernel#Integer for %u argument
+String#% behaves as if calling Kernel#Integer for %x argument
+String#% behaves as if calling Kernel#Integer for %X argument
