@@ -10,6 +10,8 @@ end
 
 action = :run
 patterns = []
+includes = ['-Ispec']
+requires = []
 target = 'shotgun/rubinius'
 format = 'CIFormatter'
 clean = false
@@ -25,7 +27,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-c", "--create", "Create the exclude file for failing specs") do
     action = :create
   end
-  opts.on("-r", "--run", "Run the specs excluding the expected failures") do
+  opts.on("-R", "--run", "Run the specs excluding the expected failures") do
     action = :run
   end
   opts.on("-i", "--invert", "Run the specs using only the expected failures") do
@@ -66,6 +68,14 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       exit
     end
   end
+  opts.on("-I", "--include DIRECTORY", String,
+          "Passes through as the -I option to the target") do |d|
+    includes << "-I#{d}"
+  end
+  opts.on("-r", "--require LIBRARY", String,
+          "Passes through as the -r option to the target") do |f|
+    requires << "-r#{f}"
+  end
   opts.on("-T", "--targetopt OPT", String,
           "Pass OPT as a flag to the target implementation") do |t|
     flags <<  t
@@ -84,6 +94,9 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-A", "--valgrind", "Run under valgrind") do
     flags << '--valgrind'
+  end
+  opts.on('-2', '--compiler2', 'Use Compiler2 to compile the files') do
+    requires << '-rcompiler2/init'
   end
   opts.on("-v", "--version", "Show version") do
     puts "Continuous Integration Tool #{CI::VERSION}"
@@ -186,4 +199,4 @@ File.open("tmp/last_ci.rb", "w") do |f|
   f << code
 end
 
-exec("#{target} #{flags.join(' ')} -Ispec tmp/last_ci.rb")
+exec("#{target} #{flags.join(' ')} #{includes.join(" ")} #{requires.join(" ")} tmp/last_ci.rb")

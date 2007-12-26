@@ -23,7 +23,6 @@ verbose = false
 warnings = false
 flags = []
 commas = false
-c2 = nil
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "mspec [options] (FILE|DIRECTORY|GLOB)+"
@@ -111,7 +110,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     commas = true
   end
   opts.on('-2', '--compiler2', 'Use Compiler2 to compile the files') do
-    c2 = "require 'compiler2/init'"
+    requires << '-rcompiler2/init'
   end
   opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
@@ -147,9 +146,6 @@ require 'spec/spec_helper'
 set_spec_runner(#{format}, #{output ? output.inspect : 'STDOUT'})
 spec_runner.only(*#{only.inspect})
 spec_runner.except(*#{except.inspect})
-
-# Compiler2 if desired
-#{c2}
 
 #{files.inspect}.each do |f|
   cname = "\#{f}c"
