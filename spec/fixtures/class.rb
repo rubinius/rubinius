@@ -10,6 +10,10 @@ module ClassSpecs
     def self.make_class_variable
       @@cvar = :cvar
     end
+
+    def self.make_class_instance_variable
+      @civ = :civ
+    end
   end
   
   class D
