@@ -2,6 +2,29 @@
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
 # you can get recursive exceptions being raised (THATS BAD, BTW).
 class MethodContext
+
+  # The Nth group of the last regexp match.
+  #
+  # Implemented to support Compiler2.
+  def nth_ref(n)
+    $~[n]
+  end
+
+  # One of the special globals $&, $`, $' or $+.
+  #
+  # Implemented to support Compiler2.
+  def back_ref(kind)
+    case kind
+    when :&
+      $~[0]
+    when :"`"
+      $~.pre_match
+    when :"'"
+      $~.post_match
+    when :+
+      $~.captures.last
+    end
+  end
     
   def to_s
     "#<#{self.class}:0x#{self.object_id.to_s(16)} #{receiver}##{name} #{file}:#{line}>"
@@ -61,6 +84,29 @@ class NativeMethodContext
 end
 
 class BlockContext
+
+  # The Nth group of the last regexp match.
+  #
+  # Implemented to support Compiler2.
+  def nth_ref(n)
+    $~[n]
+  end
+
+  # One of the special globals $&, $`, $' or $+.
+  #
+  # Implemented to support Compiler2.
+  def back_ref(kind)
+    case kind
+    when :&
+      $~[0]
+    when :"`"
+      $~.pre_match
+    when :"'"
+      $~.post_match
+    when :+
+      $~.captures.last
+    end
+  end
   
   def home
     env.home
