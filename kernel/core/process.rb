@@ -104,6 +104,7 @@ module Kernel
     if pid
       chan = Channel.new
       Scheduler.send_on_stopped chan, pid
+      pid = chan.receive
       status = chan.receive
       $? = Process::Status.new pid, status
       return false if status != 0
@@ -132,6 +133,7 @@ module Kernel
         res = chan.receive
         if res.nil?
           Scheduler.send_on_stopped chan, pid
+          pid = chan.receive
           $? = Process::Status.new pid, chan.receive
           return output
         else

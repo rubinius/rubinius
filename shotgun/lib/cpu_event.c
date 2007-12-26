@@ -294,6 +294,7 @@ void _cpu_find_waiters(int fd, short event, void *arg) {
           /* Could support WIFSIGNALED also. */
           ret = Qtrue;
         }
+        cpu_channel_send(state, ti->c, ti->channel, I2N(pid));
         cpu_channel_send(state, ti->c, ti->channel, ret);
         _cpu_event_unregister_info(state, ti);
         XFREE(ti);
@@ -323,6 +324,7 @@ void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
       /* Could support WIFSIGNALED also. */
       ret = Qtrue;
     }
+    cpu_channel_send(state, c, channel, I2N(out)); /* the pid */
     cpu_channel_send(state, c, channel, ret);
     return;
   }
@@ -338,7 +340,7 @@ void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
       /* Could support WIFSIGNALED also. */
       ret = Qtrue;
     }
-    
+    cpu_channel_send(state, c, channel, I2N(pid)); /* the pid */
     cpu_channel_send(state, c, channel, ret);
     return;
   }
