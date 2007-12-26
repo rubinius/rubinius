@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/../fixtures/class'
+require File.dirname(__FILE__) + '/fixtures/class'
 
 describe "A class definition" do
   it "creates a new class" do
@@ -11,17 +11,18 @@ describe "A class definition" do
     ClassSpecs::A.class_variables.should == []
   end
   
-  it "has no class-level instance variables" do
-    ClassSpecs::A.instance_variables.should == []
-  end
+#  # I do not think this is a valid spec   -- rue
+#  it "has no class-level instance variables" do
+#    ClassSpecs::A.instance_variables.should == []
+#  end
 
   it "allows the declaration of class variables in the body" do
     ClassSpecs::B.class_variables.should == ["@@cvar"]
     ClassSpecs::B.send(:class_variable_get, :@@cvar).should == :cvar
   end
   
-  it "allows the declaration of class-level instance variables in the body" do
-    ClassSpecs::B.instance_variables.should == ["@ivar"]
+  it "stores instance variables defined in the class body in the class object" do
+    ClassSpecs::B.instance_variables.include?("@ivar").should == true
     ClassSpecs::B.instance_variable_get(:@ivar).should == :ivar
   end
 
@@ -29,6 +30,12 @@ describe "A class definition" do
     ClassSpecs::C.class_variables.should == []
     ClassSpecs::C.make_class_variable
     ClassSpecs::C.class_variables.should == ["@@cvar"]
+  end
+
+  it "allows the definition of class-level instance variables in a class method" do
+    ClassSpecs::C.instance_variables.include?("@civ").should == false
+    ClassSpecs::C.make_class_instance_variable
+    ClassSpecs::C.instance_variables.include?("@civ").should == true
   end
   
   it "allows the declaration of class variables in an instance method" do
