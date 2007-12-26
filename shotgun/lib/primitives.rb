@@ -2727,8 +2727,29 @@ class ShotgunPrimitives
   
   def string_dup
     <<-CODE
-    GUARD(num_args == 0);
     cpu_stack_set_top(state, c, string_dup(state, stack_top()));
+    CODE
+  end
+  
+  def string_equal
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_top();
+    GUARD(STRING_P(t1));
+    
+    if(self == t1) {
+      stack_push(Qtrue);
+    } else {
+      t2 = string_get_bytes(self);
+    
+      GUARD(t2 == string_get_bytes(t1));
+      j =  FIXNUM_TO_INT(t2);
+      t2 = string_get_data(self);
+      t3 = string_get_data(t1);
+
+      k = strncmp(BYTEARRAY_ADDRESS(t2), BYTEARRAY_ADDRESS(t3), j);
+      stack_push(k == 0 ? Qtrue : Qfalse);
+    }
     CODE
   end
 

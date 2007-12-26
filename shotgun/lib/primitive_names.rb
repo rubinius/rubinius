@@ -93,7 +93,7 @@ module Bytecode
       :bignum_neg,
       :bignum_invert,
       :string_dup,
-      nil,  # :float_infinite_p,
+      :string_equal,
       nil,  # :float_div,
       nil,  # :float_uminus,
       :bignum_div,

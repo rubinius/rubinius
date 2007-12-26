@@ -14,16 +14,15 @@ describe "String#==" do
   end
   
   it "returns obj == self if obj responds to to_str" do
-    obj = mock('world!')
-    def obj.to_str() 'world!' end
-    obj.should_receive(:==).any_number_of_times.and_return(true)
-    ('hello' == obj).should == true
-    ('world!' == obj).should == true 
+    obj = Object.new
+    def obj.to_str() nil end
+    def obj.==(o) true end
+    ('hello' == obj).should ==  true
+    ('world!' == obj).should == true
     
     obj = mock('x')
-    other = "abc"
     obj.should_receive(:respond_to?).with(:to_str).and_return(true)
     obj.should_receive(:==).and_return(true)
-    (other == obj).should == true
+    ("abc" == obj).should == true
   end
 end
