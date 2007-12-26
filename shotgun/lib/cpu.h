@@ -233,7 +233,7 @@ void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig);
 void cpu_channel_register(STATE, cpu c, OBJECT self, OBJECT cur_thr);
 void cpu_task_set_outstanding(STATE, OBJECT self, OBJECT ary);
 void cpu_event_setup_children(STATE, cpu c);
-void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid);
+void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags);
 
 #define channel_set_waiting(obj, val) SET_FIELD(obj, 1, val)
 #define channel_get_waiting(obj) NTH_FIELD(obj, 1)

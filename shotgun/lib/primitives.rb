@@ -2346,9 +2346,10 @@ class ShotgunPrimitives
     stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1, FIXNUM);
+    POP(t2, FIXNUM);
     GUARD(RISA(self, channel));
     
-    cpu_event_wait_child(state, c, self, FIXNUM_TO_INT(t1));
+    cpu_event_wait_child(state, c, self, FIXNUM_TO_INT(t1), FIXNUM_TO_INT(t2));
     stack_push(Qtrue);
     CODE
   end

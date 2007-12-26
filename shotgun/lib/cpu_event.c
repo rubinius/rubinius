@@ -308,7 +308,7 @@ void _cpu_find_waiters(int fd, short event, void *arg) {
   }  
 }
 
-void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid) {
+void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
   struct thread_info *ti;
   int status;
   OBJECT ret, tmp;

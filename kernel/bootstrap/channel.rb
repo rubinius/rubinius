@@ -58,8 +58,8 @@ class Scheduler
   def self.send_on_signal(chan, signum)
     Ruby.primitive :channel_send_on_signal
   end
-  
-  def self.send_on_stopped(chan, pid)
+
+  def self.send_on_stopped(chan, pid=-1, flags=0)
     Ruby.primitive :channel_send_on_stopped
   end
 end
