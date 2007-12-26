@@ -230,22 +230,24 @@ end
     $require_spec_recursive.nil?.should == false
   end
 
-  it "should not infinite loop on an rbc file that requires itself" do
-    $require_spec_recursive = nil
-    $LOADED_FEATURES.delete 'require_spec_recursive.rb'
+  extension :rubinius do
+    it "should not infinite loop on an rbc file that requires itself" do
+      $require_spec_recursive = nil
+      $LOADED_FEATURES.delete 'require_spec_recursive.rb'
 
-    begin
-      Dir.chdir($require_fixture_dir) do
-        Kernel.compile('require_spec_recursive.rb')
-        `mv require_spec_recursive.rb tmp1234`
-      end
-      $LOADED_FEATURES.include?('require_spec_recursive.rb').should == false
-      require('require_spec_recursive').should == true
-      $LOADED_FEATURES.include?('require_spec_recursive.rb').should == true
-      $require_spec_recursive.nil?.should == false
-    ensure
-      Dir.chdir($require_fixture_dir) do
-        `mv tmp1234 require_spec_recursive.rb`
+      begin
+        Dir.chdir($require_fixture_dir) do
+          Kernel.compile('require_spec_recursive.rb')
+          `mv require_spec_recursive.rb tmp1234`
+        end
+        $LOADED_FEATURES.include?('require_spec_recursive.rb').should == false
+        require('require_spec_recursive').should == true
+        $LOADED_FEATURES.include?('require_spec_recursive.rb').should == true
+        $require_spec_recursive.nil?.should == false
+      ensure
+        Dir.chdir($require_fixture_dir) do
+          `mv tmp1234 require_spec_recursive.rb`
+        end
       end
     end
   end
