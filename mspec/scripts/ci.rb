@@ -128,10 +128,6 @@ if clean
   end
 end
 
-file_list = files.map { |i| i.inspect }.join(",\n")
-
-file_list = "[\n#{file_list}\n]"
-
 code = <<-EOC
 ENV['MSPEC_RUNNER'] = '1'
 require 'spec/spec_helper'
