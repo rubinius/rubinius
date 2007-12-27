@@ -13,10 +13,10 @@ patterns = []
 includes = ['-Ispec']
 requires = []
 target = 'shotgun/rubinius'
-format = 'CIFormatter'
+format = 'DottedFormatter'
 clean = false
 verbose = false
-status = false
+marker = nil
 ci_files = "tmp/files.txt"
 flags = []
 
@@ -32,7 +32,6 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-i", "--invert", "Run the specs using only the expected failures") do
     action = :invert
-    format = 'DottedFormatter'
   end
   opts.on("-t", "--target TARGET", String, 
           "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
@@ -83,11 +82,13 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-C", "--clean", "Remove all compiled spec files first") do
     clean = true
   end
-  opts.on("-V", "--verbose", "Output each file processed when running") do
+  opts.on("-V", "--verbose", "Output the name of each file processed") do
     verbose = true
   end
-  opts.on("-s", "--status", "Output a dot for every file run") do
-    status = true
+  opts.on("-m", "--marker MARKER", String,
+          "Outout MARKER for each file processed. Overrides -V") do |m|
+    marker = m
+    verbose = true
   end
   opts.on("-g", "--gdb", "Run under gdb") do
     flags << '--gdb'
@@ -160,21 +161,24 @@ end
 
 all_excludes = read_excludes("spec/excludes.txt")
 
+set_spec_runner(#{format}, %s)
+spec_runner.formatter.print_start
 #{files.inspect}.each do |file|
   mk_exclude_dir(file)
   excludes = read_excludes(exclude_name(file))
-  formatter = #{format}.new(%s)
-  spec_runner.formatter = formatter
   spec_runner.%s(*all_excludes)
   %s
-  STDERR.puts file if #{verbose}
-  STDERR.print "," if #{status}
-  load file
-  formatter.summary
-  spec_runner.clear_filters
+  begin
+    STDERR.print (#{marker.inspect} || "\n\#{file}") if #{verbose}
+    load file
+  rescue Exception => e
+    puts "\#{e} loading \#{file}"
+  ensure
+    spec_runner.clear_filters
+  end
   %s
 end
-STDERR.puts "" if #{status}
+spec_runner.formatter.summary
 EOC
 
 case action
