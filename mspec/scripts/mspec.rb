@@ -153,7 +153,7 @@ spec_runner.formatter.print_start
   cname = "\#{f}c"
   File.delete(cname) if #{clean} and File.exist?(cname)
   begin
-    STDERR.print (#{marker.inspect} || "\n\#{f}") if #{verbose}
+    STDERR.print(#{marker.inspect} || "\\n\#{f}") if #{verbose}
     load f
   rescue Exception => e
     puts "\#{e} loading \#{f}"

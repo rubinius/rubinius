@@ -169,7 +169,7 @@ spec_runner.formatter.print_start
   spec_runner.%s(*all_excludes)
   %s
   begin
-    STDERR.print (#{marker.inspect} || "\n\#{file}") if #{verbose}
+    STDERR.print(#{marker.inspect} || "\\n\#{file}") if #{verbose}
     load file
   rescue Exception => e
     puts "\#{e} loading \#{file}"
