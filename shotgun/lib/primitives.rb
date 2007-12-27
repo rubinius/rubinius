@@ -2734,7 +2734,7 @@ class ShotgunPrimitives
   def string_equal
     <<-CODE
     self = stack_pop();
-    t1 = stack_top();
+    t1 = stack_pop();
     GUARD(STRING_P(t1));
     
     if(self == t1) {
