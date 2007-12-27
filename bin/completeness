@@ -16,6 +16,7 @@ get_class_or_module = lambda do |const|
 end
 
 target = 'shotgun/rubinius'
+base = nil
 constants = []
 except = []
 requires = []
@@ -35,6 +36,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-c", "--constant CONSTANT", String,
           "Name of a Class or Module") do |c|
     constant_names << c
+  end
+  opts.on("-b", "--base BASE", String,
+          "Set base directory to BASE") do |b|
+    base = b
   end
   opts.on("-t", "--target TARGET", String,
           "Implementation to test for completeness: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
@@ -151,7 +156,8 @@ cmd = lambda do |name|
     meth = meth[0..-2]
   end
   dir = dir_map[const] || const.downcase
-  spec_file = "spec/core/#{dir}/#{meth}_spec.rb"
+  base = 'spec/core' unless base
+  spec_file = "#{base}/#{dir}/#{meth}_spec.rb"
   mspec_cmd =  %(bin/mspec -t #{target} #{requires.map { |r| "-r#{r}" }.join(" ")} -e '#{name} ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d #{spec_file} 2> /dev/null)
   puts mspec_cmd if verbose
   %x{#{mspec_cmd}}
