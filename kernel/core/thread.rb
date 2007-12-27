@@ -99,6 +99,10 @@ class Thread
     end
   end
 
+  def stop?
+    !alive? || @sleep
+  end
+  
   def status
     if alive?
       if @sleep
@@ -107,7 +111,11 @@ class Thread
         "run"
       end
     else
-      false
+      if(@exception)
+        nil
+      else
+        false
+      end
     end
   end
 
