@@ -1,20 +1,22 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ThreadGroup#list" do
   it "should return the list of threads in the group" do
-    thread = Thread.new { sleep }
-    Thread.pass until thread.status == 'sleep'
+    chan = Channel.new
+    th1 = Thread.new { chan << :go; sleep }
+    chan.receive.should == :go
     tg = ThreadGroup.new
-    tg.add(thread)
-    tg.list.should include(thread)
+    tg.add(th1)
+    tg.list.should include(th1)
     
-    thread2 = Thread.new { sleep }
-    Thread.pass until thread2.status == 'sleep'
-    tg.add(thread2)
+    th2 = Thread.new { chan << :go; sleep }
+    chan.receive.should == :go
     
-    (tg.list & [thread, thread2]).should include(thread, thread2)
+    tg.add(th2)    
+    (tg.list & [th1, th2]).should include(th1, th2)
 
-    thread.run; thread.join
-    thread2.run; thread2.join
+    th1.run; th1.join
+    th2.run; th2.join
   end
 end

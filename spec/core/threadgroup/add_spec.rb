@@ -1,13 +1,16 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ThreadGroup#add" do
   before(:each) do
-    @thread = Thread.new { sleep }
+    @chan1,@chan2 = Channel.new,Channel.new
+    @thread = Thread.new { @chan1 << :go; @chan2.receive }
+    @chan1.receive
   end
   
   after(:each) do
-    @thread.run
-    @thread.exit unless @thread.join(1)
+    @chan2 << :done
+    @thread.join
   end
   
   it "adds the given thread to a group and returns self" do
