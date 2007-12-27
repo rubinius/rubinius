@@ -158,24 +158,27 @@ OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
 
   /* Implements the external ivars table for objects that don't
      have their own space for ivars. */
-  if(!REFERENCE_P(self) || !object_has_ivars(state, self)) {
+  if(!REFERENCE_P(self)) {
     tbl = hash_find(state, state->global->external_ivars, self);
     if(RTEST(tbl)) {
       return hash_find(state, tbl, sym);
     }
     return Qnil;
+  } else if(!object_has_ivars(state, self)) {
+    OBJECT meta;
+    meta = object_metaclass(state, self);
+    tbl = metaclass_get_has_ivars(meta);
+
+    if(NIL_P(tbl)) return Qnil;
+
+    return hash_find(state, tbl, sym);
   }
   
   tbl = object_get_instance_variables(self);
 
   /* No table, no ivar! */
   if(!RTEST(tbl)) return Qnil;
-  
-  /*
-  printf("Grab ivar '%s' (%d)\n", rbs_symbol_to_cstring(state, sym), 
-    object_hash_int(state, sym));
-  */
-  
+
   /* It's a tuple, use csm */
   if(ISA(tbl, state->global->tuple)) {
     return csm_find(state, tbl, sym);
@@ -191,19 +194,27 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
   
   /* Implements the external ivars table for objects that don't
      have their own space for ivars. */
-  if(!REFERENCE_P(self) || !object_has_ivars(state, self)) {
+  if(!REFERENCE_P(self)) {
     tbl = hash_find(state, state->global->external_ivars, self);
-    
-    /* Lazy creation of the hash table for the object. */
-    /* HACK: This breaks any garbage collection of these objects
-         because the GC will see the objects has keys here even
-         if they are not referenced elsewhere... */
-    
-    if(!RTEST(tbl)) {
+
+    if(NIL_P(tbl)) {
       t2 = hash_new(state);
       hash_set(state, state->global->external_ivars, self, t2);
       tbl = t2;
     }
+    hash_set(state, tbl, sym, val);
+    return val;
+  } else if(!object_has_ivars(state, self)) {
+    OBJECT meta;
+    meta = object_metaclass(state, self);
+    tbl = metaclass_get_has_ivars(meta);
+
+    if(NIL_P(tbl)) {
+      t2 = hash_new(state);
+      metaclass_set_has_ivars(meta, t2);
+      tbl = t2;
+    }
+
     hash_set(state, tbl, sym, val);
     return val;
   }
@@ -218,10 +229,6 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
     return val;
   }
   
-  /*
-  printf("Setting ivar '%s' to %p (%d)\n", rbs_symbol_to_cstring(state, sym), val,
-    object_hash_int(state, sym));
-  */
   if(ISA(tbl, state->global->tuple)) {
     if(TRUE_P(csm_add(state, tbl, sym, val))) {
       return val;
@@ -236,21 +243,13 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
 }
 
 OBJECT object_get_ivars(STATE, OBJECT self) {
-  OBJECT tbl;
-  
-  if(!REFERENCE_P(self) || !object_has_ivars(state, self)) {
-    tbl = hash_find(state, state->global->external_ivars, self);
-    if(!RTEST(tbl)) {
-      return Qnil;
-    }
-    return tbl;
+  if(!REFERENCE_P(self)) {
+    return hash_find(state, state->global->external_ivars, self);
+  } else if(!object_has_ivars(state, self)) {
+    return metaclass_get_has_ivars(object_metaclass(state, self));
   }
   
-  tbl = object_get_instance_variables(self);
-  if(!RTEST(tbl)) {
-    return Qnil;
-  }
-  return tbl;
+  return object_get_instance_variables(self);
 }
 
 int object_stores_bytes_p(STATE, OBJECT self) {

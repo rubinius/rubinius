@@ -1,6 +1,20 @@
 class ByteArray
-  def self.new(cnt)
+  def self.allocate(cnt)
     Ruby.primitive :allocate_bytes
+  end
+
+  def self.new(cnt)
+    obj = allocate(cnt)
+    Ruby.asm <<-CODE
+push_block
+#local obj
+push 0
+set_args
+set_call_flags 1
+&send initialize +
+    CODE
+
+    return obj
   end
 
   def fetch_bytes(start, count)
