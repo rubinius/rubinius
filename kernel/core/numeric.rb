@@ -206,9 +206,9 @@ class Numeric
       sign.to_f * 0.0  # zero
     elsif expo == 0
       sign * 2**(expo - 1022) * (frac.to_f / 2**52.to_f)  # denormalized
-    elsif expo == 0xFF and frac == 0
+    elsif expo == 0x7FF and frac == 0
       sign.to_f / 0.0  # Infinity
-    elsif expo == 0xFF
+    elsif expo == 0x7FF
       0.0 / 0.0  # NaN
     else
       sign * 2**(expo - 1023) * (1.0 + (frac.to_f / 2**52.to_f))  # normalized
