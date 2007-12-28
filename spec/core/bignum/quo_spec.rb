@@ -7,8 +7,8 @@ describe "Bignum#quo" do
   end
   
   it "returns the result of self divided by the given Integer as a Float" do
-    @bignum.quo(2.5).should be_close(429496730.8, TOLERANCE)
-    @bignum.quo(13).should be_close(82595525.1538462, TOLERANCE)
+    @bignum.quo(0xffff_afed.to_f).should be_close(2147493897.54892, TOLERANCE)
+    @bignum.quo(0xabcd_effe).should be_close(3199892875.41007, TOLERANCE)
     @bignum.quo(BignumHelper.sbm).should be_close(1.00000000279397, TOLERANCE)
   end
 

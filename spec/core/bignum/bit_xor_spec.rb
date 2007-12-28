@@ -7,16 +7,16 @@ describe "Bignum#^" do
   end
   
   it "returns self bitwise EXCLUSIVE OR other" do
-    (@bignum ^ 2).should == 1073741840
+    (@bignum ^ 2).should == 9223372036854775824
     (@bignum ^ @bignum).should == 0
-    (@bignum ^ 14).should == 1073741852
+    (@bignum ^ 14).should == 9223372036854775836
   end
 
   it "tries to convert the given argument to an Integer using to_int" do
-    (@bignum ^ 14.5).should == 1073741852
+    (@bignum ^ 14.5).should == 9223372036854775836
     
     (obj = mock('2')).should_receive(:to_int).and_return(2)
-    (@bignum ^ obj).should == 1073741840
+    (@bignum ^ obj).should == 9223372036854775824
   end
   
   it "raises a TypeError when the given argument can't be converted to Integer" do

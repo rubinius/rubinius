@@ -10,7 +10,7 @@ describe "Bignum#&" do
     @bignum = BignumHelper.sbm(5)
     (@bignum & 3).should == 1
     (@bignum & 52).should == 4
-    (@bignum & BignumHelper.sbm(9921)).should == 1073741825
+    (@bignum & BignumHelper.sbm(9921)).should == 9223372036854775809
 
     (18446744073709551616 & 1).should == 0
     (18446744073709551616 & -1).should == 18446744073709551616

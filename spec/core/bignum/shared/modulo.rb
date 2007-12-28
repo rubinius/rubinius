@@ -5,11 +5,11 @@ shared :bignum_modulo do |cmd|
     end
     
     it "returns the modulus obtained from dividing self by the given argument" do
-      @bignum.send(cmd, 5).should == 4
-      @bignum.send(cmd, -5).should == -1
-      @bignum.send(cmd, -100).should == -76
-      @bignum.send(cmd, 2.22).should be_close(0.639999905491734, TOLERANCE)
-      @bignum.send(cmd, BignumHelper.sbm(10)).should == 1073741824
+      @bignum.send(cmd, 5).should == 3
+      @bignum.send(cmd, -5).should == -2
+      @bignum.send(cmd, -100).should == -92
+      @bignum.send(cmd, 2.22).should be_close(0.780180180180252, TOLERANCE)
+      @bignum.send(cmd, BignumHelper.sbm(10)).should == 9223372036854775808
     end
 
     it "raises a ZeroDivisionError when the given argument is 0" do

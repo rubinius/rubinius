@@ -7,9 +7,9 @@ describe "Bignum#+" do
   end
   
   it "returns self plus the given Integer" do
-    (@bignum + 4).should == 1073741904
-    (@bignum + 4.2).should == 1073741904.2
-    (@bignum + BignumHelper.sbm(3)).should == 2147483727
+    (@bignum + 4).should == 9223372036854775888
+    (@bignum + 4.2).to_s.should == "9.22337203685478e+18"
+    (@bignum + BignumHelper.sbm(3)).should == 18446744073709551695
   end
 
   it "raises a TypeError when given a non-Integer" do

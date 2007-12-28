@@ -17,7 +17,7 @@ describe "Bignum#[]" do
   it "tries to convert the given argument to an Integer using #to_int" do
     @bignum[1.3].should == @bignum[1]
     
-    (obj = mock('2')).should_receive(:to_int).and_return(2)
+    (obj = mock('2')).should_receive(:to_int).at_least(1).and_return(2)
     @bignum[obj].should == 1
   end
 

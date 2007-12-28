@@ -7,8 +7,8 @@ describe "Bignum#-" do
   end
   
   it "returns self minus the given Integer" do
-    (@bignum - 9).should == 1073742129
-    (@bignum - 12.57).should == 1073742125.43
+    (@bignum - 9).should == 9223372036854776113
+    (@bignum - 12.57).to_s.should == "9.22337203685478e+18"
     (@bignum - BignumHelper.sbm(42)).should == 272
   end
 

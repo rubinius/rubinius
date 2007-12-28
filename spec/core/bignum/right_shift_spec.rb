@@ -7,8 +7,8 @@ describe "Bignum#>>" do
   end
 
   it "returns self shifted the given amount of bits to the right" do
-    (@bignum >> 1).should == 536916318
-    (@bignum >> 3).should == 134229079
+    (@bignum >> 1).should == 4611686018427433310
+    (@bignum >> 3).should == 1152921504606858327
   end
 
   it "performs a left-shift if given a negative value" do
@@ -17,10 +17,10 @@ describe "Bignum#>>" do
   end
   
   it "tries to convert it's argument to an Integer using to_int" do
-    (@bignum >> 1.3).should == 536916318
+    (@bignum >> 1.3).should == 4611686018427433310
     
     (obj = mock('1')).should_receive(:to_int).and_return(1)
-    (@bignum >> obj).should == 536916318
+    (@bignum >> obj).should == 4611686018427433310
   end
   
   it "raises a TypeError when the given argument can't be converted to Integer" do

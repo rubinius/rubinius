@@ -20,8 +20,8 @@ end
 
 describe "Bignum#to_s when no base given" do
   it "returns self converted to a String using base 10" do
-    BignumHelper.sbm(9).to_s.should == "1073741833"
-    BignumHelper.sbm.to_s.should == "1073741824"
-    (-BignumHelper.sbm(675)).to_s.should == "-1073742499"
+    BignumHelper.sbm(9).to_s.should == "9223372036854775817"
+    BignumHelper.sbm.to_s.should == "9223372036854775808"
+    (-BignumHelper.sbm(675)).to_s.should == "-9223372036854776483"
   end
 end

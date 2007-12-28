@@ -7,8 +7,8 @@ describe "Bignum#<<" do
   end
   
   it "returns self shifted the given amount of bits to the left" do
-    (@bignum << 4).should == 17179869328
-    (@bignum << 9).should == 549755818496
+    (@bignum << 4).should == 147573952589676413072
+    (@bignum << 9).should == 4722366482869645218304
   end
 
   it "performs a right-shift if given a negative value" do
@@ -17,10 +17,10 @@ describe "Bignum#<<" do
   end
 
   it "tries to convert its argument to an Integer using to_int" do
-    (@bignum << 4.5).should == 17179869328
+    (@bignum << 4.5).should == 147573952589676413072
     
     (obj = mock('4')).should_receive(:to_int).and_return(4)
-    (@bignum << obj).should == 17179869328
+    (@bignum << obj).should == 147573952589676413072
   end
 
   it "raises a TypeError when the given argument can't be converted to Integer" do

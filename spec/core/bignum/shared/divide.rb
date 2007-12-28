@@ -5,9 +5,9 @@ shared :bignum_divide do |cmd|
     end
     
     it "returns self divided by other" do
-      @bignum.send(cmd, 4).should == 268435478
+      @bignum.send(cmd, 4).should == 2305843009213693974
 
-      @bignum.send(cmd, 16.2).should be_close(66280364.9382716, TOLERANCE)
+      @bignum.send(cmd, 0xffff_ffff.to_f).should be_close(2147483648.5, TOLERANCE)
       @bignum.send(cmd, BignumHelper.sbm(2)).should be_close(1, TOLERANCE)
     end
 

@@ -7,8 +7,8 @@ describe "Bignum#**" do
   end
   
   it "returns self raised to other power" do
-    (@bignum ** 4).should == 1329228228517658539377366716859970881
-    (@bignum ** 5.2).inspect.should == "9.13438731244363e+46"
+    (@bignum ** 4).should == 7237005577332262361485077344629993318496048279512298547155833600056910050625
+    (@bignum ** 5.2).inspect.should == "4.14406519833189e+98"
   end
 
   it "raises a TypeError when given a non-Integer" do

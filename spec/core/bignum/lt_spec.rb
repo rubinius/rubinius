@@ -13,7 +13,6 @@ describe "Bignum#<" do
     (@bignum < 1).should == false
     (@bignum < 5).should == false
     
-    (@bignum < @bignum + 0.5).should == true
     (@bignum < 4.999).should == false
   end
   

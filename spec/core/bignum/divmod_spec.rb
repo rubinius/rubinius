@@ -7,14 +7,14 @@ describe "Bignum#divmod" do
   end
   
   it "returns an Array containing quotient and modulus obtained from dividing self by the given argument" do
-    @bignum.divmod(4).should == [268435469, 3]
-    @bignum.divmod(13).should == [82595529, 2]
+    @bignum.divmod(4).should == [2305843009213693965, 3]
+    @bignum.divmod(13).should == [709490156681136604, 11]
 
-    @bignum.divmod(4.0).should == [268435469, 3.0]
-    @bignum.divmod(13.0).should == [82595529, 2.0]
+    @bignum.divmod(4.0).should == [2305843009213693952, 0.0]
+    @bignum.divmod(13.0).should == [709490156681136640, 8.0]
 
-    @bignum.divmod(2.0).should == [536870939, 1.0]
-    @bignum.divmod(0xffffffff).should == [0,  1073741879]
+    @bignum.divmod(2.0).should == [4611686018427387904, 0.0]
+    @bignum.divmod(0xffffffff).should == [2147483648,  2147483703]
   end
   
   it "raises a ZeroDivisionError when the given argument is 0" do

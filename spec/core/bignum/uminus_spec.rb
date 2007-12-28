@@ -3,10 +3,10 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#-@" do
   it "returns self as a negative value" do
-    BignumHelper.sbm.send(:-@).should == -1073741824
-    (-BignumHelper.sbm).send(:-@).should == 1073741824
+    BignumHelper.sbm.send(:-@).should == -9223372036854775808
+    (-BignumHelper.sbm).send(:-@).should == 9223372036854775808
     
-    BignumHelper.sbm(921).send(:-@).should == -1073742745
-    (-BignumHelper.sbm(921).send(:-@)).should == 1073742745
+    BignumHelper.sbm(921).send(:-@).should == -9223372036854776729
+    (-BignumHelper.sbm(921).send(:-@)).should == 9223372036854776729
   end
 end
