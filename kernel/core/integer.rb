@@ -108,5 +108,41 @@ class Integer < Numeric
       bits(~int / 2) + 1 # could use >> in primitive
     end
   end
+
+  # assumes self is positive
+  def interpret_as_float()
+    sign = (2**31 & self != 0) ? -1 : 1
+    expo = ((0xFF * 2**23) & self) >> 23
+    frac = (2**23 - 1) & self
+    if expo == 0 and frac == 0
+      sign.to_f * 0.0  # zero
+    elsif expo == 0
+      sign * 2**(expo - 126) * (frac.to_f / 2**23.to_f)  # denormalized
+    elsif expo == 0xFF and frac == 0
+      sign.to_f / 0.0  # Infinity
+    elsif expo == 0xFF
+      0.0 / 0.0  # NaN
+    else
+      sign * 2**(expo - 127) * (1.0 + (frac.to_f / 2**23.to_f))  # normalized
+    end
+  end
+
+  # assumes self is positive
+  def interpret_as_double()
+    sign = (2**63 & self != 0) ? -1 : 1
+    expo = ((0x7FF * 2**52) & self) >> 52
+    frac = (2**52 - 1) & self
+    if expo == 0 and frac == 0
+      sign.to_f * 0.0  # zero
+    elsif expo == 0
+      sign * 2**(expo - 1022) * (frac.to_f / 2**52.to_f)  # denormalized
+    elsif expo == 0x7FF and frac == 0
+      sign.to_f / 0.0  # Infinity
+    elsif expo == 0x7FF
+      0.0 / 0.0  # NaN
+    else
+      sign * 2**(expo - 1023) * (1.0 + (frac.to_f / 2**52.to_f))  # normalized
+    end
+  end
 end
 

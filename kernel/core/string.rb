@@ -2188,6 +2188,25 @@ class String
     self
   end
 
+  def b64_regex_permissive()
+    / [A-Za-z0-9+\/]{4} | [A-Za-z0-9+\/]{3} \=? |
+      [A-Za-z0-9+\/]{2} \={0,2} | [A-Za-z0-9+\/] \={0,3} | [^A-Za-z0-9+\/]+ /x
+  end
+
+  def b64_regex_strict()
+    / \A (?: [A-Za-z0-9+\/]{4} | [A-Za-z0-9+\/]{3} \=? |
+             [A-Za-z0-9+\/]{2} \={0,2} | [A-Za-z0-9+\/] \={0,3} ) \Z /x
+  end
+
+  def b64_encoded_units(first = 0, last = -1, &block)
+    begin
+      self[first..last].scan(b64_regex_permissive, &block)
+    rescue RuntimeError
+      # hack, 'break' in a block isn't fully working yet.
+      # it doesn't cause String#scan to return
+    end
+  end
+
   def utf8_regex_permissive()
     / [\x00-\x7F] | [\xC0-\xDF] [\x80-\xBF] | [\xE0-\xEF] [\x80-\xBF]{2} |
       [\xF0-\xF7] [\x80-\xBF]{3} | [\xF8-\xFB] [\x80-\xBF]{4} |
@@ -2243,7 +2262,7 @@ class String
     raise TypeError, "can't convert nil into String" if format.nil?
     i = 0
     elements = []
-    directives = format.scan(/ (?: [@AaBbCcDdEeFfGgHhIiLlMNnQqSsUVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
+    directives = format.scan(/ (?: [@AaBbCcDdEeFfGgHhIiLlMmNnQqSsUVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
     directives.each do |d|
       case d
       when / \A ( [CcDdEeFfGgIiLlNnQqSsVv] ) (.*) \Z /x
@@ -2433,6 +2452,52 @@ class String
               num_bytes += s.length
             elsif s =~ regex_junk
               num_bytes += $1.length
+            end
+          end
+          elements << str
+          i += num_bytes
+        end
+      when / \A m .* \Z /x
+        if i >= self.length
+          elements << ''
+        else
+          buffer = ''
+          str = ''
+          num_bytes = 0
+          b64_encoded_units(i) do |s|
+            num_bytes += s.length
+            if s =~ b64_regex_strict
+              if s =~ /\=\Z/
+                s << '=' while s.length != 4
+              end
+              if buffer == '' and s =~ / \A ( [A-Za-z0-9+\/] ) \=+ \Z /x
+                buffer << $1
+              else
+                buffer << s
+              end
+              if buffer.length >= 4
+                s = buffer[0..3]
+                buffer = buffer.length == 4 ? '' : buffer[4..-1]
+                process = true
+              else
+                process = false
+              end
+              if process
+                a = s[0].b64_symbol_value; b = s[1].b64_symbol_value
+                c = s[2].b64_symbol_value; d = s[3].b64_symbol_value
+                decoded = [a << 2 | b >> 4,
+                           (b & (2**4 - 1)) << 4 | c >> 2,
+                           (c & (2**2 - 1)) << 6 | d].pack('CCC')
+                if s[3].chr == '='
+                  num_bytes -= 1
+                  decoded = decoded[0..-2]
+                  decoded = decoded[0..-2] if s[2].chr == '='
+                  str << decoded
+                  raise "break hack"
+                else
+                  str << decoded
+                end
+              end
             end
           end
           elements << str

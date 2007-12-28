@@ -311,3 +311,39 @@ describe "String#unpack with 'M' directive" do
     "=4@".unpack('MMM').should == ["", "@", ""]
   end
 end
+
+describe "String#unpack with 'm' directive" do
+  it "returns an array by decoding self according to the format string" do
+    "YQ==".unpack('m').should == ["a"]
+    "YWE=".unpack('m').should == ["aa"]
+    "ab c=awerB2y+".unpack('mmmmm').should == ["i\267", "k\a\253\al\276", "", "", ""]
+    "a=b=c=d=e=f=g=".unpack('mamamamam').should ==
+      ["i", "=", "q", "=", "y", "=", "", "", ""]
+    "a===b===c===d===e===f===g===".unpack('mamamamam').should ==
+      ["i", "=", "q", "=", "y", "=", "", "", ""]
+    "ab c= de f= gh i= jk l=".unpack('mmmmmmmmmm').should ==
+      ["i\267", "u\347", "\202\030", "\216I", "", "", "", "", "", ""]
+    "+/=\n".unpack('mam').should == ["\373", "=", ""]
+    "aA==aA==aA==".unpack('m-100').should == ["h"]
+    "aGk=aGk=aGk=".unpack('m*mm').should == ["hi", "hi", "hi"]
+    "aA".unpack('m55').should == [""]
+    "aGk".unpack('m').should == [""]
+    "/w==".unpack('m').should == ["\377"]
+    "Pj4+".unpack('m').should == [">>>"]
+    "<>:?Pj@$%^&*4+".unpack('m').should == [">>>"]
+    "<>:?Pja@$%^&*4+".unpack('ma').should == [">6\270", ""]
+    "<>:?P@$%^&*+".unpack('ma').should == ["", ""]
+    "54321".unpack('m').should == ["\347\215\366"]
+    "==43".unpack('m').should == [""]
+    "43aw".unpack('mmm').should == ["\343v\260", "", ""]
+    "=======43aw".unpack('m').should == ["\343v\260"]
+    "cmVxdWlyZSAnYmFzZTY0Jw==".unpack('m').should == ["require 'base64'"]
+    "+/=".unpack('m').should == ["\373"]
+    "YXNkb2Zpc09BSVNERk9BU0lESjk4ODc5ODI0YWlzdWYvLy8rKw==".unpack('m').should ==
+      ["asdofisOAISDFOASIDJ98879824aisuf///++"]
+    "IUAjJSMgJCBeJV4qJV4oXiYqKV8qKF8oKStQe308Pj9LTCJLTCI6\n".unpack('m').should ==
+      ["!@#$@#%# $ ^%^*%^(^&*)_*(_()+P{}<>?KL\"KL\":"]
+    "sfj98349//+ASDd98934jg+N,CBMZP2133GgHJiYrB12".unpack('m').should ==
+      ["\261\370\375\363~=\377\377\200H7}\363\335\370\216\017\215\b\023\031?mw\334h\a&&+"]
+  end
+end
