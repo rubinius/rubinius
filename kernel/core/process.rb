@@ -127,6 +127,15 @@ class Process
     alias_method :waitpid2, :wait2
   end
 
+  def self.detach(pid)
+    thr = Thread.new {
+      while true
+        break if Process.wait(pid, Process::WNOHANG)
+        sleep(1)
+      end
+    }
+  end
+
   # TODO: Most of the fields aren't implemented yet.
   # TODO: Also, these objects should only need to be constructed by Process.wait and family.
   class Status
