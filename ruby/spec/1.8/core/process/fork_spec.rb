@@ -4,6 +4,7 @@ describe "Process.fork" do
   not_compliant_on :jruby do
     before :each do
       @file = '/tmp/i_exist'
+      File.delete(@file) if File.exist?(@file)
     end
 
     after :each do
@@ -18,6 +19,16 @@ describe "Process.fork" do
       else
         Process.waitpid(child_id)
       end
+      File.exist?(@file).should == true
+    end
+
+    it "runs a block in a child process" do
+      pid = Process.fork {
+        File.open(@file,'w'){|f| f.write 'rubinius'}
+        Process.exit!
+      }
+      sleep(1)
+      Process.waitpid(pid)
       File.exist?(@file).should == true
     end
   end
