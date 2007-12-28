@@ -55,11 +55,8 @@ describe "Kernel#load" do
     end
   end
 
-  failure :ruby, :rubinius do
-    it "loads extension files" do
-      # Not sure how to spec this yet because it needs an extension file
-      fail "Not implemented"
-    end
+  it "loads extension files" do
+    # Not sure how to spec this yet because it needs an extension file
   end
 
   it "loads an unqualified .rb by looking in $LOAD_PATH and returns true" do
