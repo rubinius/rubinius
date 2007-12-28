@@ -51,7 +51,16 @@ module MSpec
   def self.version?(*versions)
     MSpec.guard?(*versions) { |version| version === RUBY_VERSION }
   end
-  
+
+  def self.os?(*oses)
+      require 'rbconfig'
+      MSpec.guard?(*oses) do |os|
+        host_os = Config::CONFIG['host_os']  || RUBY_PLATFORM
+        host_os.downcase!
+        host_os.match(os.to_s)
+      end
+  end
+
   def self.date?(*dates)
     MSpec.guard?(*dates) do |date|
       date = case date
@@ -85,6 +94,7 @@ module MSpec
       should_yield |= MSpec.date?(*options[:date]) if options.key?(:date)
       should_yield |= MSpec.patch?(*options[:patch]) if options.key?(:patch)
       should_yield |= MSpec.size?(options[:size]) if options.key?(:size)
+      should_yield |= MSpec.os?(*options[:os]) if options.key?(:os)
     end
     should_yield
   end
@@ -168,6 +178,9 @@ class Object
   # platform :patch => '111'
   # platform :patch => '34'..'111'
   # platform :patch => ['34', '111']
+  #
+  # Specify a host OS
+  # platform :os => [:linux, :mswin]
   def platform(*args)
     yield if MSpec.platform_match?(*args)
   end
