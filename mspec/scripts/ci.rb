@@ -26,6 +26,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
 
   opts.on("-c", "--create", "Create the exclude file for failing specs") do
     action = :create
+    format = 'CIFormatter'
   end
   opts.on("-R", "--run", "Run the specs excluding the expected failures") do
     action = :run
@@ -161,10 +162,11 @@ end
 
 all_excludes = read_excludes("spec/excludes.txt")
 
-set_spec_runner(#{format}, %s)
+set_spec_runner(#{format})
 spec_runner.formatter.print_start
 #{files.inspect}.each do |file|
   mk_exclude_dir(file)
+  spec_runner.formatter.out = %s
   excludes = read_excludes(exclude_name(file))
   spec_runner.%s(*all_excludes)
   %s
@@ -183,7 +185,7 @@ EOC
 
 case action
 when :create
-  code = code % ['create_exclude_file(file)', 'except', '', 'formatter.out.close']
+  code = code % ['create_exclude_file(file)', 'except', '', 'spec_runner.formatter.out.close']
 when :run
   code = code % ['STDOUT', 'except', 'spec_runner.except(*excludes)', '']
 when :invert
