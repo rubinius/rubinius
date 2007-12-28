@@ -143,7 +143,7 @@ describe "Assigning multiple values" do
     b.should == 1
   end
 
-  compliant_on :ruby, :jruby do
+  compliant :ruby, :jruby do
     it "evaluates rhs left-to-right" do
       a = VariablesSpecs::ParAsgn.new
       d,e,f = a.inc, a.inc, a.inc
@@ -156,7 +156,7 @@ describe "Assigning multiple values" do
   # Rubinius evaluates the rhs args right-to-left, not left-to-right.
   # In most cases, this should make no noticeable difference, and it is felt
   # that RHS evaluation order ought to be left to the implementation.
-  deviates_on :rubinius do
+  noncompliant :rubinius do
     it "evaluates rhs right-to-left" do
       a = VariablesSpecs::ParAsgn.new
       d,e,f = a.inc, a.inc, a.inc
@@ -688,7 +688,7 @@ end
 
 describe 'Multiple assignments with splats' do
   # TODO make this normal once rubinius eval works
-  compliant_on :ruby do
+  compliant :ruby do
     it '* on the lhs has to be applied to the last parameter' do
       lambda { eval 'a, *b, c = 1, 2, 3' }.should raise_error(SyntaxError)
     end
@@ -757,14 +757,17 @@ describe 'Multiple assignments with grouping' do
     d.should == 4
   end
 
-  compliant_on :ruby do
+  compliant :ruby do
     it 'rhs cannot use parameter grouping, it is a syntax error' do
       lambda { eval '(a, b) = (1, 2)' }.should raise_error(SyntaxError)
     end
   end
 end
 
+compliant :ruby do
+
 describe "Multiple assignment" do
+  
   it "should have the proper return value" do
     (a,b,*c = *[5,6,7,8,9,10]).should == [5,6,7,8,9,10]
     (d,e = VariablesSpecs.reverse_foo(4,3)).should == [3,4]
@@ -786,12 +789,14 @@ describe "Multiple assignment" do
   end
 end
 
+end
+
 # For now, masgn is deliberately non-compliant with MRI wrt the return val from an masgn.
 # Rubinius returns true as the result of the assignment, but MRI returns an array
 # containing all the elements on the rhs. As this result is never used, the cost
 # of creating and then discarding this array is avoided
 describe "Multiple assignment, array-style" do
-  compliant_on :ruby do
+  compliant :ruby do
     it "returns an array of all rhs values" do
       (a,b = 5,6,7).should == [5,6,7]
       a.should == 5
@@ -809,7 +814,7 @@ describe "Multiple assignment, array-style" do
     end
   end
 
-  deviates_on :rubinius do
+  noncompliant :rubinius do
     it "returns true" do
       (a,b = 5,6,7).should == true
       a.should == 5

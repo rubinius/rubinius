@@ -141,7 +141,9 @@ describe "Return from within a begin" do
         return 1
       end
     end
-    f([]).should == 1
+    a = []
+    f(a).should == 1
+    a.should == [2, 1]
   end
 end
 

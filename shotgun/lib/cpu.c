@@ -431,10 +431,15 @@ static void cpu_increment_serials(STATE, OBJECT module, OBJECT sym) {
 }
 
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
-  OBJECT meths, vis;
+  OBJECT meths, vis, cref;
   
   if(!ISA(target, BASIC_CLASS(module))) {
-    target = c->enclosing_class;
+    cref = cmethod_get_staticscope(cpu_current_method(state, c));
+    if(NIL_P(cref)) {
+      target = state->global->object;
+    } else {
+      target = staticscope_get_module(cref);
+    }
   }
   
   cpu_clear_cache_for_method(state, c, sym, FALSE);

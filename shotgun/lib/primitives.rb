@@ -339,26 +339,13 @@ class ShotgunPrimitives
     
     c->blockargs = num_args;
     
-    /* MRI fun. if an array is passed in, then present it as all
-       the args. */
-    if(0 && num_args == 1 && ISA(stack_top(), state->global->array)) {
-      printf("Cast array as block args.\\n");
+    t3 = tuple_new(state, num_args);
+    for(j = 0; j < num_args; j++) {
       t1 = stack_pop();
-      k = FIXNUM_TO_INT(array_get_total(t1));
-      c->blockargs = k;
-      t3 = tuple_new(state, k);
-      for(j = 0; j < k; j++) {
-        tuple_put(state, t3, j, array_get(state, t1, j));
-      }
-      stack_push(t3);
-    } else { /* if(num_args > 1) { */
-      t3 = tuple_new(state, num_args);
-      for(j = 0; j < num_args; j++) {
-        tuple_put(state, t3, j, stack_pop());
-      }
-      stack_push(t3);
+      tuple_put(state, t3, j, t1);
     }
-    
+    stack_push(t3);
+
     cpu_flush_sp(c);
     t2 = cpu_create_block_context(state, c, self, c->sp);
     cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);

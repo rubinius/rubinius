@@ -53,7 +53,7 @@ describe "The loop expression" do
     a.should == [1, 1, 2]
   end
 
-  it "uses a speghetti nightmare of redo, next and break" do
+  it "uses a spaghetti nightmare of redo, next and break" do
     a = []
     loop do
       a << 1

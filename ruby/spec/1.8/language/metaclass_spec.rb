@@ -28,15 +28,15 @@ describe "self in a metaclass body (class << obj)" do
     cls.equal?(Object).should == false
   end
   
-  extended_on :rubinius do 
+  extension(:rubinius) do 
     it "is a MetaClass instance" do
       cls = class << mock('x'); self; end
       cls.is_a?(MetaClass).should == true
     end
 
     it "has the object's class as superclass" do
-      cls = class << mock('x'); self; end
-      cls.superclass.should == Object
+      cls = class << "blah"; self; end
+      cls.superclass.should == String
     end
   end
   

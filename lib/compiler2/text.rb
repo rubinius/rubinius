@@ -13,7 +13,7 @@ class Compiler2
     end
     
     attr_reader :text, :ip, :file, :line
-    attr_accessor :redo, :retry, :break
+    attr_accessor :redo, :retry, :break, :next
     
     def advanced_since?(old)
       old < @ip
@@ -109,6 +109,12 @@ class Compiler2
     
     def as_primitive(name)
       @text << "#primitive #{name}\n"
+    end
+    
+    def exceptions
+      ex = Compiler2::Generator::ExceptionBlock.new(self)
+      ex.start!
+      yield ex
     end
     
   end

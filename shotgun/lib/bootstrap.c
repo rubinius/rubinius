@@ -163,6 +163,7 @@ void cpu_bootstrap_exceptions(STATE) {
   sz = 3;
   
   OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce, type, lje, vm;
+  OBJECT fce;
   
   #define dexc(name, sup) rbs_class_new(state, #name, sz, sup)
   
@@ -186,6 +187,9 @@ void cpu_bootstrap_exceptions(STATE) {
   
   lje = dexc(LocalJumpError, std);
   dexc(IllegalLongReturn, lje);
+  
+  fce = dexc(FlowControlException, exc);
+  dexc(ReturnException, fce);
   
   state->global->exc_type = type;
   state->global->exc_arg = arg;

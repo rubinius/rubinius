@@ -9,6 +9,10 @@ end
 
 class NilClass
   alias_method :|, :^
+
+  def call(*a)
+    raise LocalJumpError, "not callable"
+  end
 end
 
 NIL = nil

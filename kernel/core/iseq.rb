@@ -299,16 +299,20 @@ class InstructionSequence
 
       arg_count = opcode.arg_count
       unless inst.size - 1 == arg_count
-        raise Error, "Missing instruction arguments to #{inst.first} (need #{arg_count} / got #{inst.size - 1})"
+        raise ArgumentError, "Missing instruction arguments to #{inst.first} (need #{arg_count} / got #{inst.size - 1})"
       end
 
-      int2str(opcode.bytecode)
-      case arg_count
-      when 1
-        int2str(inst[1])
-      when 2
-        int2str(inst[1])
-        int2str(inst[2])
+      begin
+        int2str(opcode.bytecode)
+        case arg_count
+        when 1
+          int2str(inst[1])
+        when 2
+          int2str(inst[1])
+          int2str(inst[2])
+        end
+      rescue Object
+        raise ArgumentError, "Unable to encode #{inst.inspect}"
       end
     end
 

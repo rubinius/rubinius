@@ -178,3 +178,11 @@ class IllegalLongReturn
   attr_reader :return_value
 end
 
+class ReturnException
+  attr_reader :return_value
+
+  def initialize(val)
+    super()
+    @return_value = val
+  end
+end

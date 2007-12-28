@@ -569,6 +569,8 @@ module Bytecode
         kind = x.shift
         if kind == ?'
           valid_last_match "send post_match 0"
+        elsif kind == ?+
+          valid_last_match "send last_capture 0"
         elsif kind == ?`
           valid_last_match "send pre_match 0"
         elsif kind == ?&

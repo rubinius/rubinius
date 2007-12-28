@@ -49,7 +49,11 @@ class Compiler2
         if part.kind_of? Array
           part.map! do |x|
             if x.kind_of? Label
-              x.position
+              pos = x.position
+              if pos.nil?
+                raise Error, "Label never set, but used"
+              end
+              pos
             else
               x
             end
@@ -85,7 +89,7 @@ class Compiler2
     
     def encode_exceptions
       @exceptions.sort!
-      
+            
       tup = Tuple.new(@exceptions.size)
       i = 0
       @exceptions.each do |e|
@@ -205,31 +209,55 @@ class Compiler2
       
       def handle!
         @handler = @generator.ip
+        @end = @handler - 1
       end
       
       def range
-        [@start, @handler - 1]
+        [@start, @end]
       end
       
       def as_tuple
-        Tuple[@start, @handler - 1, @handler]
+        Tuple[@start, @end, @handler]
       end
       
       def <=>(other)
-        os, oe = other.range
-        return -1 if @start < os
-        return -1 if @end < oe
+        return 0 if self.equal?(other)
         
+        os, oe = other.range
+        
+        # Make sure that the 2 blocks are valid
         if os == @start and oe == @end
           raise Compiler2::Error, "Invalid exception blocking detected"
         end
         
-        return 1
+        if @start < os and @end >= os and @end <= oe
+          raise Compiler2::Error, "Overlapping exception ranges"
+        end
+        
+        if os < @start and oe >= @start and oe <= @end
+          raise Compiler2::Error, "Overlapping exception ranges"
+        end
+        
+        # Now, they're either disjoined or one is a subrange.
+        
+        # If self is a sub-region of other, then it's
+        # less than other.
+        return -1 if @start >= os and @end <= oe
+        return  1 if os >= @start and oe <= @end
+        
+        # Ok, they're disjoined.
+        
+        @start <=> os        
+      end
+      
+      def inspect
+        "#<#{self.class}:0x#{object_id.to_s(16)} start=#{@start} handler=#{@handler}>"
       end
     end
     
     def exceptions
       ex = ExceptionBlock.new(self)
+      ex.start!
       @exceptions << ex
       yield ex
     end
@@ -421,6 +449,15 @@ class Compiler2
       
       idx = find_literal(meth)
       add :send_with_arg_register, idx      
+    end
+    
+    def send_super(meth, args=nil)
+      idx = find_literal(meth)
+      if args
+        add :send_super_stack_with_block, idx, args
+      else
+        add :send_super_with_arg_register, idx
+      end
     end
     
     def method_missing(*op)

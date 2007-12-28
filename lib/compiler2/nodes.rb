@@ -93,7 +93,10 @@ class Node
       @block_scope = []
       @all_scopes = [@top_scope]
       @ivar_as_slot = {}
+      @visibility = :public
     end
+    
+    attr_accessor :visibility
     
     def create_scope
       Compiler2::LocalScope.new(self)
@@ -110,7 +113,7 @@ class Node
     end
     
     def consume(sexp)
-      set(:scope => self, :visibility => :public, :iter => false) do
+      set(:scope => self, :iter => false) do
         out = convert(sexp[0])
         @all_scopes.each do |scope|
           scope.formalize!
@@ -689,7 +692,10 @@ class Node
   end
   
   class LocalVariable < Node
-    def args(name)
+    
+    def consume(sexp)
+      name = sexp[0]
+      
       scope = get(:scope)
       
       if get(:iter)
@@ -698,6 +704,10 @@ class Node
         @variable, @depth = scope.find_local name
       end
       
+      super(sexp)
+    end
+    
+    def args(name)
       @name = name
     end
     
@@ -711,7 +721,7 @@ class Node
 
   class LocalAssignment < LocalVariable
     kind :lasgn
-    
+        
     def args(name, idx, val=nil)
       # val will be nil if this is e.g. an lasgn inside an masgn
       @value = val
@@ -1230,7 +1240,7 @@ class Node
       @in_rescue = get(:in_rescue)
       
       if ens = get(:in_ensure)
-        ens[:did_return] = self
+        ens[:did_return] = true
         @in_ensure = true
       else
         @in_ensure = false
@@ -1588,12 +1598,23 @@ class Node
       converted = convert(sexp[0])
       sexp[0] = converted # enum for the 'each' call
 
-      set(:iter_args) do
-       sexp[1] = convert([:iter_args, sexp[1]]) # local var assignment
+      # 'declare' the vars outside the for.
+      scope = get(:scope)
+      
+      vars = sexp[1]
+      
+      if get(:iter)
+        scope.find_local vars[1], true
+      else
+        scope.find_local vars[1]
       end
-
+  
       set(:iter) do
         @locals = get(:scope).new_block_scope do
+          set(:iter_args) do
+           sexp[1] = convert([:iter_args, sexp[1]]) # local var assignment
+          end
+          
           sexp[2] = convert(sexp[2]) # body
         end
       end
