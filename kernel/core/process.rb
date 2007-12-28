@@ -29,7 +29,27 @@ class Process
   def self.gid
     Platform::POSIX.getgid
   end
-  
+
+  def self.wait(pid=-1, flags=0)
+    chan = Channel.new
+    Scheduler.send_on_stopped(chan, pid, flags)
+    pid = chan.receive
+    case pid
+    when false
+      raise Errno::ECHILD
+    when nil
+      return nil
+    else
+      status = chan.receive
+      $? = Process::Status.new pid, status
+    end
+    return pid
+  end
+
+  class << self
+    alias_method :waitpid, :wait
+  end
+
   # TODO: Most of the fields aren't implemented yet.
   # TODO: Also, these objects should only need to be constructed by Process.wait and family.
   class Status
@@ -102,14 +122,8 @@ module Kernel
     cmd = args.inject(prog.to_s) { |a,e| a << " #{e}" }
     pid = Process.fork
     if pid
-      chan = Channel.new
-      Scheduler.send_on_stopped chan, pid
-      pid = chan.receive
-      status = chan.receive
-      $? = Process::Status.new pid, status
-      return false if status != 0
-      
-      return true
+      Process.waitpid(pid)
+      return $?.exitstatus == 0
     else
       Process.replace "/bin/sh", ["-c", cmd]
     end
@@ -132,9 +146,7 @@ module Kernel
         Scheduler.send_on_readable chan, read, buf, 50
         res = chan.receive
         if res.nil?
-          Scheduler.send_on_stopped chan, pid
-          pid = chan.receive
-          $? = Process::Status.new pid, chan.receive
+          Process.waitpid(pid)
           return output
         else
           output << buf
