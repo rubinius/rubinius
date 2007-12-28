@@ -84,4 +84,11 @@ module Platform::POSIX
   attach_function 'setgrent', [], :void
   attach_function 'getgrent', [], :pointer
   attach_function 'endgrent', [], :void
+
+  # processes and signals
+  attach_function 'kill', [:int, :int], :int
+  attach_function 'getpgid', [:int], :int
+  attach_function 'setpgid', [:int, :int], :int
+  attach_function 'getpid', [], :int
+  attach_function 'getppid', [], :int
 end

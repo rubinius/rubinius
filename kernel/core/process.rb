@@ -22,6 +22,51 @@ class Process
     Struct::Tms.new(now - $STARTUP_TIME, 0.0, 0.0, 0.0)
   end
 
+  def self.kill(sig, pid)
+    use_process_group = false
+    if sig.kind_of?(String)
+      if sig[0] == 45
+        sig = sig[1..-1]
+        use_process_group = true
+      end
+      if sig[0..2] == "SIG"
+        sig = sig[3..-1]
+      end
+      number = Signal::Names[sig]
+    else
+      number = sig.to_i
+      if number < 0
+        number = -number
+        use_process_group = true
+      end
+    end
+    pid = -pid if use_process_group
+    raise ArgumentError unless number
+    ret = Platform::POSIX.kill(pid, number)
+    case ret
+    when 0
+      return 1
+    when -1
+      Errno.handle
+    end
+  end
+
+  def self.getpgid(pid)
+    Platform::POSIX.getpgid(pid)
+  end
+
+  def self.setpgid(pid, int)
+    Platform::POSIX.setpgid(pid, int)
+  end
+
+  def self.pid
+    Platform::POSIX.getpid
+  end
+
+  def self.ppid
+    Platform::POSIX.getppid
+  end
+
   def self.uid
     Platform::POSIX.getuid
   end
