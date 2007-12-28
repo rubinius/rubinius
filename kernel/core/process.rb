@@ -110,8 +110,21 @@ class Process
     return pid
   end
 
+  def self.waitall
+    statuses = []
+    statuses << [Process.wait, $?] while true
+  rescue Errno::ECHILD
+    statuses
+  end
+
+  def self.wait2(pid=-1, flags=0)
+    pid = Process.wait(pid, flags)
+    pid ? [pid, $?] : nil
+  end
+
   class << self
     alias_method :waitpid, :wait
+    alias_method :waitpid2, :wait2
   end
 
   # TODO: Most of the fields aren't implemented yet.
