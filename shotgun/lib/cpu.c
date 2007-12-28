@@ -486,7 +486,7 @@ void cpu_hard_cache(STATE, cpu c) {
   
   cpu_flush_ip(c);
   
-  fc = (struct fast_context*)BYTES_OF(c->home_context);
+  fc = (struct fast_context*)BYTES_OF(c->active_context);
   c->data = fc->data;
   
   cpu_cache_ip(c);  
