@@ -40,16 +40,17 @@ module Signal
     end
 
     chan = Channel.new
-    
+
     thr = Thread.new do
       while true
-        ctx = chan.receive
+        break unless ctx = chan.receive
+
         if pass_ctx
           obj = ctx
         else
           obj = number
         end
-        
+
         begin
           prc.call(obj)
         rescue Object

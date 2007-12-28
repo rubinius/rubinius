@@ -25,7 +25,7 @@
 #include "list.h"
 #include "config.h"
 
-typedef enum { OTHER, WAITER } thread_info_type;
+typedef enum { OTHER, WAITER, SIGNAL } thread_info_type;
 struct thread_info {
   STATE;
   cpu c;
@@ -34,7 +34,10 @@ struct thread_info {
   OBJECT buffer;
   int count;
   pid_t pid;
-  int options;
+  union {
+    int options;
+    int sig;
+  };
   thread_info_type type;
   struct thread_info *prev, *next;
 };
@@ -164,7 +167,7 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
   XFREE(ti);
 }
 
-/* Doesn't clear it's own data, since it's going to be called a lot. */
+/* Doesn't clear its own data, since it's going to be called a lot. */
 void _cpu_wake_channel_alot(int fd, short event, void *arg) {
   STATE;
   struct thread_info *ti = (struct thread_info*)arg;
@@ -173,13 +176,19 @@ void _cpu_wake_channel_alot(int fd, short event, void *arg) {
   cpu_channel_send(state, ti->c, ti->channel, I2N((int)event));
 }
 
-/* Doesn't clear it's own data, since it's going to be called a lot. */
-void _cpu_wake_channel_for_signal(int fd, short event, void *arg) {
-  STATE;
+static void cpu_wake_channel_for_signal(struct thread_info *ti, int remove) {
+  if (remove) {
+    cpu_channel_send(ti->state, ti->c, ti->channel, Qnil);
+  } else {
+    cpu_channel_send(ti->state, ti->c, ti->channel, ti->c->current_thread);
+  }
+}
+
+/* Doesn't clear its own data, since it's going to be called a lot. */
+static void _cpu_wake_channel_for_signal_cb(int fd, short event, void *arg) {
   struct thread_info *ti = (struct thread_info*)arg;
-    
-  state = ti->state;
-  cpu_channel_send(state, ti->c, ti->channel, ti->c->current_thread);
+
+  cpu_wake_channel_for_signal(ti, 0);
 }
 
 
@@ -191,7 +200,7 @@ void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv) {
   ti->c = c;
   ti->channel = channel;
   _cpu_event_register_info(state, ti);
-  
+
   evtimer_set(&ti->ev, _cpu_wake_channel, (void*)ti);
   evtimer_add(&ti->ev, tv);
 }
@@ -257,14 +266,30 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   struct thread_info *ti;
 
+  ti = (struct thread_info*)(state->thread_infos);
+  while (ti) {
+    if (ti->type == SIGNAL && ti->sig == sig) {
+      _cpu_event_unregister_info(state, ti);
+      cpu_wake_channel_for_signal(ti, TRUE);
+      XFREE(ti);
+      break;
+    }
+    ti = ti->next;
+  }
+
+  /* Here is a short period during which a incoming signal would not
+     be delivered to either an old handler or the new handler. */
+
   ti = ALLOC_N(struct thread_info, 1);
+  ti->type = SIGNAL;
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
+  ti->sig = sig;
   _cpu_event_register_info(state, ti);
-    
-  signal_set(&ti->ev, sig, _cpu_wake_channel_for_signal, (void*)ti);
-  signal_add(&ti->ev, NULL);  
+
+  signal_set(&ti->ev, sig, _cpu_wake_channel_for_signal_cb, (void*)ti);
+  signal_add(&ti->ev, NULL);
 }
 
 static void cpu_find_waiters(STATE) {
