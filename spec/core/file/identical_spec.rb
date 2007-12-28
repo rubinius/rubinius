@@ -9,15 +9,11 @@ describe "File.identical?" do
      
     File.open(@file1,"w+") { |f| f.puts "file1" }
     File.open(@file2,"w+") { |f| f.puts "file2" }
-    compliant :ruby, :rubinius do
-      File.link(@file1, @file3)
-    end
+    File.link(@file1, @file3)
   end
   
   after :each do
-    compliant :ruby, :rubinius do
-      File.unlink(@file3)
-    end
+    File.unlink(@file3)
     File.delete(@file1) if File.exists?(@file1)    
     File.delete(@file2) if File.exists?(@file2)     
     @file1 = nil
