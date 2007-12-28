@@ -74,17 +74,10 @@ void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_
 }
 
 void _cpu_event_register_info(STATE, struct thread_info *ti) {
-  struct thread_info *top = (struct thread_info*)state->thread_infos;
-  
   state->pending_events++;
-  if(!state->thread_infos) {
-    state->thread_infos = (void*)ti;
-    ti->prev = ti->next = NULL;
-  } else {
-    top->next = ti;
-    ti->prev = top;
-    ti->next = NULL;
-  }  
+  ti->prev = NULL;
+  ti->next = state->thread_infos ? state->thread_infos : NULL;
+  state->thread_infos = ti;
 }
 
 void _cpu_event_unregister_info(STATE, struct thread_info *ti) {
