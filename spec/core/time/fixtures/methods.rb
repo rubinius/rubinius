@@ -18,11 +18,11 @@ def with_timezone(name, offset, daylight_saving_zone = "")
 end
 
 def localtime(seconds)
-  platform :darwin, :bsd do
+  platform :os => [:darwin, :bsd] do
     return `date -r #{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
   end
   
-  platform :linux do
+  platform :os => :linux do
     return `date -d @#{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
   end
   
