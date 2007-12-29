@@ -141,6 +141,14 @@ class Object
   def noncompliant(*engines)
     yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
+  
+  # not_compliant_on(:jruby) do
+  #   Run these specs only if the current engine is not specified.
+  #   Used for specs known to be permanently failing, broken, or unsupported
+  #   by a given implementation or implementations.
+  def not_compliant_on(*engines)
+    yield unless MSpec.guard?(*engines) { |engine| MSpec.engine? engine}
+  end
 
   # platform :darwin, :mswin do
   #   run these specs if RUBY_PLATFORM matches :darwin or :mswin
