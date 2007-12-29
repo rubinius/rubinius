@@ -34,11 +34,11 @@ describe "Float#CONSTANTS" do
   end 
   
   specify "the MAX is 1.79769313486232e+308" do
-    Float::MAX.to_s.should == "1.79769313486232e+308".to_s    
+    Float::MAX.should be_close(1.7976931348623e+308, TOLERANCE * 1e+299)
   end 
   
   specify "the MIN is 2.2250738585072e-308" do    
-    Float::MIN.should be_close(2.2250738585072e-308,TOLERANCE)    
+    Float::MIN.should be_close(2.225073858507e-308, TOLERANCE)    
   end 
   
   specify "the RADIX is 2" do
