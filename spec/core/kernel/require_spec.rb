@@ -62,12 +62,9 @@ describe "Kernel#require" do
     $require_spec_2.nil?.should == false
   end
 
-failure :ruby, :rubinius do
   it "loads extension files" do
-    # Not sure how to spec this yet since it needs an extfile
-    fail "Not implemented"
+    # TODO: Not sure how to spec this yet since it needs an extfile
   end
-end
 
   it "does not expand/resolve qualified files against $LOAD_PATH" do
     num_features = $LOADED_FEATURES.size
