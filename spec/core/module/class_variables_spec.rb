@@ -11,6 +11,6 @@ describe "Module#class_variables" do
     Module.new.class_variables.should == []
     c.class_variables.should == ["@@var1"]
     m.class_variables.should == ["@@var2"]
-    c2.class_variables.should == ["@@var3", "@@var2", "@@var1"]
+    c2.class_variables.sort.should == ["@@var1", "@@var2", "@@var3"]
   end
 end
