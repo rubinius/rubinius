@@ -1,6 +1,29 @@
-Marshal.dump when given a recursion limit raises an ArgumentError when the recursion limit is exceeded
 Marshal.dump when given an IO-Object should write the serialized data to the IO-Object
 Marshal.dump when given an IO-Object returns the IO-Object
 Marshal.dump when given an IO-Object raises an Error when the IO-Object does not respond to #write
 Marshal.dump returns a string-serialized version of the given argument
 Marshal.dump raises an Error when trying to dump an anonymous class/module
+Marshal.dump with nil returns a string-serialized version of the given argument
+Marshal.dump with true returns a string-serialized version of the given argument
+Marshal.dump with false returns a string-serialized version of the given argument
+Marshal.dump with empty string returns a string-serialized version of the given argument
+Marshal.dump with string of length 100 returns a string-serialized version of the given argument
+Marshal.dump with string of length 200 returns a string-serialized version of the given argument
+Marshal.dump with string of length 300 returns a string-serialized version of the given argument
+Marshal.dump with empty extended_string returns a string-serialized version of the given argument
+Marshal.dump with empty user_string returns a string-serialized version of the given argument
+Marshal.dump with empty extended_user_string returns a string-serialized version of the given argument
+Marshal.dump with symbol of length 1 returns a string-serialized version of the given argument
+Marshal.dump with symbol of length 300 returns a string-serialized version of the given argument
+Marshal.dump with fixnum 0 returns a string-serialized version of the given argument
+Marshal.dump with fixnum 5 returns a string-serialized version of the given argument
+Marshal.dump with fixnum 2**16 returns a string-serialized version of the given argument
+Marshal.dump with fixnum 2**24 returns a string-serialized version of the given argument
+Marshal.dump with fixnum (2**30 - 1) returns a string-serialized version of the given argument
+Marshal.dump with fixnum -2**16 returns a string-serialized version of the given argument
+Marshal.dump with fixnum -2**30 returns a string-serialized version of the given argument
+Marshal.dump with bignum 2**30 returns a string-serialized version of the given argument
+Marshal.dump with bignum -2**31 returns a string-serialized version of the given argument
+Marshal.dump with bignum -2**63 returns a string-serialized version of the given argument
+Marshal.dump with bignum 2**64 returns a string-serialized version of the given argument
+Marshal.dump with bignum -2**64 returns a string-serialized version of the given argument
