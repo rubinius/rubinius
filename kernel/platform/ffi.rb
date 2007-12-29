@@ -161,7 +161,28 @@ class MemoryPointer
   def read_float
     self.class.read_float self
   end
-  
+
+  def read_array_of_int(length)
+    ary = []
+    size = FFI.type_size(:int)
+    tmp = self
+    length.times {
+      ary << tmp.read_int
+      tmp += size
+    }
+    ary
+  end
+
+  def write_array_of_int(ary)
+    size = FFI.type_size(:int)
+    tmp = self
+    ary.each {|i|
+      tmp.write_int i
+      tmp += size
+    }
+    self
+  end
+
   def inspect
     "#<MemoryPointer address=0x#{address.to_s(16)}>"
   end
