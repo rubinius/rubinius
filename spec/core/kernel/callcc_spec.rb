@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#callcc" do
-  compliant(:ruby, :rubinius) do
+  not_compliant_on(:jruby) do
     it "should be possible to exit a loop like a break" do
       i = 0
       Kernel.callcc do |x|
