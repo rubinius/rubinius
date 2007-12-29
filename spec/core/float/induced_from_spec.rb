@@ -10,7 +10,7 @@ describe "Float.induced_from" do
   end
 
   it "returns a Float of the correct value when sent a Bignum" do
-    Float.induced_from(23472398472349872349872349872348972348972439423).to_s.should == '2.34723984723499e+46'
+    Float.induced_from(23472398472349872349872349872348972348972439423).should be_close(2.34723984723499e+46, 0.00003e+46)
   end
 
   it "raises a TypeError if the argument is not a Float, Fixnum, or Bignum" do
