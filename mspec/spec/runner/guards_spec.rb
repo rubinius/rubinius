@@ -274,50 +274,50 @@ describe MSpec, ".size?" do
   end
 end
 
-describe Object, "#failure" do
+describe Object, "#fails_on" do
   it "does not yield when MSpec.engine? returns true" do
     MSpec.should_receive(:engine?).with(:rbx).and_return(true)
     lambda {
-      failure(:rbx) { raise Exception, "I have not been raised" }
+      fails_on(:rbx) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.engine? returns false" do
     MSpec.should_receive(:engine?).and_return(false)
     lambda {
-      failure(:rbx) { raise Exception, "I am raised" }
+      fails_on(:rbx) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#extension" do
+describe Object, "#extended_on" do
   it "does not yield when MSpec.engine? returns false" do
     MSpec.should_receive(:engine?).with(:rbx).and_return(false)
     lambda {
-      extension(:rbx) { raise Exception, "I have not been raised" }
+      extended_on(:rbx) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.engine? returns true" do
     MSpec.should_receive(:engine?).and_return(true)
     lambda {
-      extension(:rbx) { raise Exception, "I am raised" }
+      extended_on(:rbx) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#compliant" do
+describe Object, "#compliant_on" do
   it "does not yield when MSpec.engine? returns false" do
     MSpec.should_receive(:engine?).with(:rbx).and_return(false)
     lambda {
-      compliant(:rbx) { raise Exception, "I have not been raised" }
+      compliant_on(:rbx) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.engine? returns true" do
     MSpec.should_receive(:engine?).and_return(true)
     lambda {
-      compliant(:rbx) { raise Exception, "I am raised" }
+      compliant_on(:rbx) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
@@ -338,23 +338,23 @@ describe Object, "#not_compliant_on" do
   end
 end
 
-describe Object, "#noncompliant" do
+describe Object, "#deviates_on" do
   it "does not yield when MSpec.engine? returns false" do
     MSpec.should_receive(:engine?).with(:rbx).and_return(false)
     lambda {
-      noncompliant(:rbx) { raise Exception, "I have not been raised" }
+      deviates_on(:rbx) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.engine? returns true" do
     MSpec.should_receive(:engine?).and_return(true)
     lambda {
-      noncompliant(:rbx) { raise Exception, "I am raised" }
+      deviates_on(:rbx) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#platform" do
+describe Object, "#platform_is" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -375,30 +375,30 @@ describe Object, "#platform" do
   
   it "does not yield when MSpec.platform? returns false" do
     lambda {
-      platform(:ruby) { raise Exception, "I have not been raised" }
+      platform_is(:ruby) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.platform? returns false" do
     lambda {
-      platform(:ruby, :jruby, :rubinius) { raise Exception, "I have not been raised" }
+      platform_is(:ruby, :jruby, :rubinius) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.platform? returns true" do
     lambda {
-      platform(:solarce) { raise Exception, "I am raised" }
+      platform_is(:solarce) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
   
   it "yields when MSpec.platform? returns true" do
     lambda {
-      platform(:ruby, :jruby, :solarce, :rubinius) { raise Exception, "I am raised" }
+      platform_is(:ruby, :jruby, :solarce, :rubinius) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#platform_not" do
+describe Object, "#platform_is_not" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -419,30 +419,30 @@ describe Object, "#platform_not" do
   
   it "does not yield when MSpec.platform? returns true" do
     lambda {
-      platform_not(:solarce) { raise Exception, "I have not been raised" }
+      platform_is_not(:solarce) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.platform? returns true" do
     lambda {
-      platform_not(:ruby, :jruby, :solarce, :rubinius) { raise Exception, "I have not been raised" }
+      platform_is_not(:ruby, :jruby, :solarce, :rubinius) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.platform? returns false" do
     lambda {
-      platform_not(:ruby) { raise Exception, "I am raised" }
+      platform_is_not(:ruby) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
   
   it "yields when MSpec.platform? returns false" do
     lambda {
-      platform_not(:ruby, :jruby, :rubinius) { raise Exception, "I am raised" }
+      platform_is_not(:ruby, :jruby, :rubinius) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#platform :version => VERSION_SPEC" do
+describe Object, "#platform_is :version => VERSION_SPEC" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -463,42 +463,42 @@ describe Object, "#platform :version => VERSION_SPEC" do
   
   it "does not yield when MSpec.version? returns false" do
     lambda {
-      platform(:version => '1.6.2'..'1.6.4') { raise Exception, "I have not been raised" }
+      platform_is(:version => '1.6.2'..'1.6.4') { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.version? returns false" do
     lambda {
-      platform(:version => '1.8.4') { raise Exception, "I have not been raised" }
+      platform_is(:version => '1.8.4') { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.version? returns false" do
     lambda {
-      platform(:version => ['1.8.4', '1.8.5', '1.8.7']) { raise Exception, "I have not been raised" }
+      platform_is(:version => ['1.8.4', '1.8.5', '1.8.7']) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when arg MSpec.version? returns true" do
     lambda {
-      platform(:version => '1.8.2'..'1.8.6') { raise Exception, "I am raised" }
+      platform_is(:version => '1.8.2'..'1.8.6') { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.version? returns true" do
     lambda {
-      platform(:version => '1.8.6') { raise Exception, "I am raised" }
+      platform_is(:version => '1.8.6') { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.version? returns true" do
     lambda {
-      platform(:version => ['1.8.2', '1.8.4', '1.8.6']) { raise Exception, "I am raised" }
+      platform_is(:version => ['1.8.2', '1.8.4', '1.8.6']) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#platform_not :version => VERSION_SPEC" do
+describe Object, "#platform_is_not :version => VERSION_SPEC" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -519,42 +519,42 @@ describe Object, "#platform_not :version => VERSION_SPEC" do
 
   it "does not yield when MSpec.version? returns true" do
     lambda {
-      platform_not(:version => '1.8.2'..'1.8.6') { raise Exception, "I have not been raised" }
+      platform_is_not(:version => '1.8.2'..'1.8.6') { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.version? returns true" do
     lambda {
-      platform_not(:version => '1.8.6') { raise Exception, "I have not been raised" }
+      platform_is_not(:version => '1.8.6') { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.version? returns true" do
     lambda {
-      platform_not(:version => ['1.8.4', '1.8.6', '1.8.7']) { raise Exception, "I have not been raised" }
+      platform_is_not(:version => ['1.8.4', '1.8.6', '1.8.7']) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.version? returns false" do
     lambda {
-      platform_not(:version => '1.6.2'..'1.6.4') { raise Exception, "I am raised" }
+      platform_is_not(:version => '1.6.2'..'1.6.4') { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.version? returns false" do
     lambda {
-      platform_not(:version => '1.8.5') { raise Exception, "I am raised" }
+      platform_is_not(:version => '1.8.5') { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.version? returns false" do
     lambda {
-      platform_not(:version => ['1.8.2', '1.8.4', '1.8.5']) { raise Exception, "I am raised" }
+      platform_is_not(:version => ['1.8.2', '1.8.4', '1.8.5']) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#platform :date => DATE_SPEC" do
+describe Object, "#platform_is :date => DATE_SPEC" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -575,42 +575,42 @@ describe Object, "#platform :date => DATE_SPEC" do
   
   it "does not yield when MSpec.date? returns false" do
     lambda {
-      platform(:date => '2006-10-18'..'2006-10-19') { raise Exception, "I have not been raised" }
+      platform_is(:date => '2006-10-18'..'2006-10-19') { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.date? returns false" do
     lambda {
-      platform(:date => '2007-10-12') { raise Exception, "I have not been raised" }
+      platform_is(:date => '2007-10-12') { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.date? returns false" do
     lambda {
-      platform(:date => ['2007-10-14', '2007-10-16', '2007-10-19']) { raise Exception, "I have not been raised" }
+      platform_is(:date => ['2007-10-14', '2007-10-16', '2007-10-19']) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.date? returns true" do
     lambda {
-      platform(:date => '2007-10-14'..'2007-10-20') { raise Exception, "I am raised" }
+      platform_is(:date => '2007-10-14'..'2007-10-20') { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.date? returns true" do
     lambda {
-      platform(:date => '2007-10-18') { raise Exception, "I am raised" }
+      platform_is(:date => '2007-10-18') { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.date? returns true" do
     lambda {
-      platform(:date => ['2007-10-14', '2007-10-18', '2007-10-19']) { raise Exception, "I am raised" }
+      platform_is(:date => ['2007-10-14', '2007-10-18', '2007-10-19']) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#platform_not :date => DATE_SPEC" do
+describe Object, "#platform_is_not :date => DATE_SPEC" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -631,42 +631,42 @@ describe Object, "#platform_not :date => DATE_SPEC" do
   
   it "does not yield when MSpec.date? returns true" do
     lambda {
-      platform_not(:date => '2007-10-14'..'2007-10-20') { raise Exception, "I have not been raised" }
+      platform_is_not(:date => '2007-10-14'..'2007-10-20') { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.date? returns true" do
     lambda {
-      platform_not(:date => '2007-10-18') { raise Exception, "I have not been raised" }
+      platform_is_not(:date => '2007-10-18') { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.date? returns true" do
     lambda {
-      platform_not(:date => ['2007-10-14', '2007-10-18', '2007-10-19']) { raise Exception, "I have not been raised" }
+      platform_is_not(:date => ['2007-10-14', '2007-10-18', '2007-10-19']) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.date? returns false" do
     lambda {
-      platform_not(:date => '2006-10-14'..'2006-10-17') { raise Exception, "I am raised" }
+      platform_is_not(:date => '2006-10-14'..'2006-10-17') { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.date? returns false" do
     lambda {
-      platform_not(:date => '2007-10-19') { raise Exception, "I am raised" }
+      platform_is_not(:date => '2007-10-19') { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.date? returns false" do
     lambda {
-      platform_not(:date => ['2007-10-14', '2007-10-16', '2007-10-19']) { raise Exception, "I am raised" }
+      platform_is_not(:date => ['2007-10-14', '2007-10-16', '2007-10-19']) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#platform :patch => PATCHLEVEL_SPEC" do
+describe Object, "#platform_is :patch => PATCHLEVEL_SPEC" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -687,42 +687,42 @@ describe Object, "#platform :patch => PATCHLEVEL_SPEC" do
   
   it "does not yield when MSpec.patch? returns false" do
     lambda {
-      platform(:patch => 110..120) { raise Exception, "I have not been raised" }
+      platform_is(:patch => 110..120) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.patch? returns false" do
     lambda {
-      platform(:patch => 112) { raise Exception, "I have not been raised" }
+      platform_is(:patch => 112) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.patch? returns false" do
     lambda {
-      platform(:patch => [110, 112, 114]) { raise Exception, "I have not been raised" }
+      platform_is(:patch => [110, 112, 114]) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.patch? returns true" do
     lambda {
-      platform(:patch => 120..130) { raise Exception, "I am raised" }
+      platform_is(:patch => 120..130) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.patch? returns true" do
     lambda {
-      platform(:patch => 121) { raise Exception, "I am raised" }
+      platform_is(:patch => 121) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.patch? returns true" do
     lambda {
-      platform(:patch => [120, 121, 122]) { raise Exception, "I am raised" }
+      platform_is(:patch => [120, 121, 122]) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#platform_not :patch => PATCHLEVEL_SPEC" do
+describe Object, "#platform_is_not :patch => PATCHLEVEL_SPEC" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -743,70 +743,70 @@ describe Object, "#platform_not :patch => PATCHLEVEL_SPEC" do
   
   it "does not yield when MSpec.patch? returns true" do
     lambda {
-      platform_not(:patch => 118..122) { raise Exception, "I have not been raised" }
+      platform_is_not(:patch => 118..122) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.patch? returns true" do
     lambda {
-      platform_not(:patch => 121) { raise Exception, "I have not been raised" }
+      platform_is_not(:patch => 121) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "does not yield when MSpec.patch? returns true" do
     lambda {
-      platform_not(:patch => [110, 120, 121]) { raise Exception, "I have not been raised" }
+      platform_is_not(:patch => [110, 120, 121]) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when MSpec.patch? returns false" do
     lambda {
-      platform_not(:patch => 110..120) { raise Exception, "I am raised" }
+      platform_is_not(:patch => 110..120) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.patch? returns false" do
     lambda {
-      platform_not(:patch => 112) { raise Exception, "I am raised" }
+      platform_is_not(:patch => 112) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
   it "yields when arg MSpec.patch? returns false" do
     lambda {
-      platform_not(:patch => [120, 122, 124]) { raise Exception, "I am raised" }
+      platform_is_not(:patch => [120, 122, 124]) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 end
 
-describe Object, "#platform :size => SIZE_SPEC" do
+describe Object, "#platform_is :size => SIZE_SPEC" do
   it "yields when MSpec.size? returns true" do
     lambda {
-      platform(:size => (1.size * 8)) { raise Exception, "I am raised" }
+      platform_is(:size => (1.size * 8)) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
   
   it "doesn not yield when MSpec.size? returns false" do
     lambda {
-      platform(:size => (1.size * 4)) { raise Exception, "I have not been raised" }
+      platform_is(:size => (1.size * 4)) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
 end
 
-describe Object, "#platform_not :size => SIZE_SPEC" do
+describe Object, "#platform_is_not :size => SIZE_SPEC" do
   it "yields when MSpec.size? returns false" do
     lambda {
-      platform_not(:size => (1.size * 4)) { raise Exception, "I am raised" }
+      platform_is_not(:size => (1.size * 4)) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
   
   it "doesn not yield when MSpec.size? returns true" do
     lambda {
-      platform_not(:size => (1.size * 8)) { raise Exception, "I have not been raised" }
+      platform_is_not(:size => (1.size * 8)) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
 end
 
-describe Object, "#runner" do
+describe Object, "#runner_is" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -819,21 +819,21 @@ describe Object, "#runner" do
   it "yields when passed :mspec and ENV['MSPEC_RUNNER'] is true" do
     ENV['MSPEC_RUNNER'] = '1'
     lambda {
-      runner(:mspec) { raise Exception, "I am raised" }
+      runner_is(:mspec) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
   
   it "does not yield when passed :mspec and ENV['MSPEC_RUNNER'] is false" do
     ENV.delete 'MSPEC_RUNNER'
     lambda {
-      runner(:mspec) { raise Exception, "I have not been raised" }
+      runner_is(:mspec) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when passed :rspec and ENV['RSPEC_RUNNER'] is true" do
     ENV['RSPEC_RUNNER'] = '1'
     lambda {
-      runner(:rspec) { raise Exception, "I am raised" }
+      runner_is(:rspec) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
 
@@ -841,7 +841,7 @@ describe Object, "#runner" do
     ENV.delete 'RSPEC_RUNNER'
     Object.const_set(:Spec, 1) unless Object.const_defined?(:Spec)
     lambda {
-      runner(:rspec) { raise Exception, "I am raised" }
+      runner_is(:rspec) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
   
@@ -849,12 +849,12 @@ describe Object, "#runner" do
     ENV.delete 'RSPEC_RUNNER'
     Object.should_receive(:const_defined?).with(:Spec).and_return(false)
     lambda {
-      runner(:rspec) { raise Exception, "I have not been raised" }
+      runner_is(:rspec) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
 end
 
-describe Object, "#runner_not" do
+describe Object, "#runner_is_not" do
   before :all do
     @verbose = $VERBOSE
     $VERBOSE = nil
@@ -867,14 +867,14 @@ describe Object, "#runner_not" do
   it "does not yield when passed :mspec and ENV['MSPEC_RUNNER'] is true" do
     ENV['MSPEC_RUNNER'] = '1'
     lambda {
-      runner_not(:mspec) { raise Exception, "I have not been raised" }
+      runner_is_not(:mspec) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
   
   it "yields when passed :mspec and ENV['MSPEC_RUNNER'] is false" do
     ENV.delete 'MSPEC_RUNNER'
     lambda {
-      runner_not(:mspec) { raise Exception, "I am raised" }
+      runner_is_not(:mspec) { raise Exception, "I am raised" }
     }.should raise_error(Exception, "I am raised")
   end
   
@@ -882,7 +882,7 @@ describe Object, "#runner_not" do
     ENV.delete 'RSPEC_RUNNER'
     Object.const_set(:Spec, 1) unless Object.const_defined?(:Spec)
     lambda {
-      runner_not(:rspec) { raise Exception, "I have not been raised" }
+      runner_is_not(:rspec) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
 
@@ -890,7 +890,7 @@ describe Object, "#runner_not" do
     ENV['RSPEC_RUNNER'] = '1'
     Object.should_receive(:const_defined?).with(:Spec).any_number_of_times.and_return(false)
     lambda {
-      runner_not(:rspec) { raise Exception, "I have not been raised" }
+      runner_is_not(:rspec) { raise Exception, "I have not been raised" }
     }.should_not raise_error
   end
 end

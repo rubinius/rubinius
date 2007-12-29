@@ -114,7 +114,7 @@ module MSpec
 end
 
 class Object
-  # failure(:rubinius) do
+  # fails_on(:rubinius) do
   #   Do NOT run these specs on the listed platform.
   #   Used for specs that are expected to fail, perhaps because of
   #   a bug on the listed engine. This is not for specs that are
@@ -122,57 +122,58 @@ class Object
   #   specs on a particular engine, perhaps because executing
   #   the spec causes particularly nasty behavior.
   # end
-  def failure(*engines)
+  def fails_on(*engines)
     yield unless MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
-  # extension(:rubinus, :cardinal) do
+  # extended_on(:rubinus, :cardinal) do
   #   Run these specs on the listed engines.
   #   Used for specs that do NOT behave differently than a Ruby
   #   "standard" behavior, perhaps because no equivalent behavior
   #   exists in Ruby.
   # end
-  def extension(*engines)
+  def extended_on(*engines)
     yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
-  # compliant(:ruby, :jruby) do
+  # compliant_on(:ruby, :jruby) do
   #   Run these specs on the listed engines. 
   #   Used for specs that conform to the Ruby "standard"
   # end
-  def compliant(*engines)
+  def compliant_on(*engines)
     yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
-  # noncompliant(:rubinius, :jruby) do
-  #   Run these specs on the listed engines.
-  #   Used for specs that do not conform to the Ruby "standard"
-  # end
-  def noncompliant(*engines)
-    yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
-  end
-  
   # not_compliant_on(:jruby) do
   #   Run these specs only if the current engine is not specified.
   #   Used for specs known to be permanently failing, broken, or unsupported
   #   by a given implementation or implementations.
+  # end
   def not_compliant_on(*engines)
-    yield unless MSpec.guard?(*engines) { |engine| MSpec.engine? engine}
+    yield unless MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
-  # platform :darwin, :mswin do
+  # deviates_on(:rubinius, :jruby) do
+  #   Run these specs on the listed engines.
+  #   Used for specs that intentionally do not conform to the Ruby "standard"
+  # end
+  def deviates_on(*engines)
+    yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
+  end
+  
+  # platform_is :darwin, :mswin do
   #   run these specs if RUBY_PLATFORM matches :darwin or :mswin
   # end
   #
   # Specify a single version, a version range, or multiple versions
-  # platform :version => '1.8.4' ...
-  # platform :version => '1.8.4'..'1.8.6' ...
-  # platform :version => ['1.8', '1.9']
+  # platform_is :version => '1.8.4' ...
+  # platform_is :version => '1.8.4'..'1.8.6' ...
+  # platform_is :version => ['1.8', '1.9']
   #
   # Specify a date or date range that is understood by Time.parse
-  # platform :date => '2007-09-04' ...
-  # platform :date => '2007-09-04'..'2007-10-18'
-  # platform :date => ['2007-10-04', '2007-10-18']
+  # platform_is :date => '2007-09-04' ...
+  # platform_is :date => '2007-09-04'..'2007-10-18'
+  # platform_is :date => ['2007-10-04', '2007-10-18']
   #
   # Specify a patch level or range
   # platform :patch => '111'
@@ -181,28 +182,28 @@ class Object
   #
   # Specify a host OS
   # platform :os => [:linux, :mswin]
-  def platform(*args)
+  def platform_is(*args)
     yield if MSpec.platform_match?(*args)
   end
 
-  # platform_not :mswin do
+  # platform_is_not :mswin do
   #   run these specs if RUBY_PLATFORM does not match :mswin
   # end
-  def platform_not(*args)
+  def platform_is_not(*args)
     yield unless MSpec.platform_match?(*args)
   end
   
-  # runner :mspec do
+  # runner_is :mspec do
   #   run these specs if MSpec is the spec runner
   # end
-  def runner(*args)
+  def runner_is(*args)
     yield if MSpec.runner?(*args)
   end
 
-  # runner_not :rspec do
+  # runner_is_not :rspec do
   #   run these specs if RSpec is not the spec runner
   # end
-  def runner_not(*args)
+  def runner_is_not(*args)
     yield unless MSpec.runner?(*args)
   end
 end
