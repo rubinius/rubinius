@@ -36,7 +36,7 @@ describe "Hash#rehash" do
     h[k2].should == v2
   end
   
-  compliant :ruby, :rubinius do
+  compliant_on :ruby, :rubinius do
     it "gives precedence to keys coming later in keys() on collisions" do
       k1 = [1]
       k2 = [2]
@@ -51,7 +51,7 @@ describe "Hash#rehash" do
     end
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises TypeError if called on a frozen instance" do
       lambda { HashSpecs.frozen_hash.rehash  }.should raise_error(TypeError)
       lambda { HashSpecs.empty_frozen_hash.rehash }.should raise_error(TypeError)

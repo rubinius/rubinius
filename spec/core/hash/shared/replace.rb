@@ -45,7 +45,7 @@ shared :hash_replace do |cmd|
       hash_a.default.should == hash_b.default
     end
 
-    compliant :ruby, :jruby do
+    compliant_on :ruby, :jruby do
       it "raises TypeError if called on a frozen instance" do
         HashSpecs.frozen_hash.send(cmd, HashSpecs.frozen_hash) # ok, nothing changed
         block = lambda { HashSpecs.frozen_hash.send(cmd, HashSpecs.empty_frozen_hash) }

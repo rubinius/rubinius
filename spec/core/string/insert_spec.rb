@@ -63,7 +63,7 @@ describe "String#insert with index, other" do
     lambda { "abcd".insert(-6, mock('x')) }.should raise_error(TypeError)
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       str = "abcd".freeze
       lambda { str.insert(4, '')  }.should raise_error(TypeError)

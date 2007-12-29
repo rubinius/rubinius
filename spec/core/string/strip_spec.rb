@@ -29,7 +29,7 @@ describe "String#strip!" do
     a.should == "hello"
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       "hello".freeze.strip! # ok, nothing changed
       "".freeze.strip! # ok, nothing changed

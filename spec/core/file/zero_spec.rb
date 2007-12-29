@@ -21,13 +21,13 @@ describe "File.zero?" do
     File.zero?(@nonzero_file).should == false
   end
    
-  platform :mswin do
+  platform_is :mswin do
     it "returns true for NUL" do
       File.zero?('NUL').should == true
     end
   end
     
-  platform_not :mswin do
+  platform_is_not :mswin do
     it "returns true for /dev/null" do
       File.zero?('/dev/null').should == true
     end

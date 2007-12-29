@@ -35,7 +35,7 @@ describe "Numeric#quo" do
     4.0.quo(13).should be_close(0.307692307692308, TOLERANCE)
   end
    
-  failure :ruby do
+  fails_on :ruby do
     # NOTE: Doesn't work when run with RSpec because it loads rational.rb
     it " should quo right with bignums and integers" do
       2147483648.quo(100).to_s.should == 21474836.48.to_s

@@ -140,7 +140,7 @@ describe "String#chomp! with seperator" do
     "hello".chomp!(nil).should == nil
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       a = "string\n\r"
       a.freeze

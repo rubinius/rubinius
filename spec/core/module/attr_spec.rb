@@ -20,14 +20,14 @@ describe "Module#attr" do
       o.respond_to?("#{a}=").should == false
     end
 
-    compliant :ruby do
+    compliant_on :ruby do
       o.respond_to?('attr2').should == true
       o.respond_to?("attr2=").should == false
     end
 
     o.attr.should  == "test"
 
-    compliant :ruby do
+    compliant_on :ruby do
       o.attr2.should == "test2"
     end
 
@@ -52,14 +52,14 @@ describe "Module#attr" do
       o.respond_to?("#{a}=").should == true
     end
     
-    compliant :ruby do
+    compliant_on :ruby do
       o.respond_to?('attr2').should == true
       o.respond_to?("attr2=").should == true
     end
 
     o.attr = "test updated"
 
-    compliant :ruby do
+    compliant_on :ruby do
       o.attr2 = "test2 updated"
     end
 
@@ -89,7 +89,7 @@ describe "Module#attr" do
       o.respond_to?("#{a}=").should == true
     end
     
-    compliant :ruby do
+    compliant_on :ruby do
       o.respond_to?('attr2').should == true
       o.respond_to?("attr2=").should == true
     end
@@ -98,7 +98,7 @@ describe "Module#attr" do
     o.attr = "test updated"
     o.attr.should == "test updated"
 
-    compliant :ruby do
+    compliant_on :ruby do
       o.attr2.should == "test2"
       o.attr2 = "test2 updated"
       o.attr2.should == "test2 updated"

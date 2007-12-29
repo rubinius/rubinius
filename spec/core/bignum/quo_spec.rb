@@ -12,7 +12,7 @@ describe "Bignum#quo" do
     @bignum.quo(BignumHelper.sbm).should be_close(1.00000000279397, TOLERANCE)
   end
 
-  runner_not :rspec do
+  runner_is_not :rspec do
     it "does not raise a ZeroDivisionError when the given Integer is 0" do
       @bignum.quo(0).to_s.should == "Infinity"
       (-@bignum).quo(0).to_s.should == "-Infinity"
@@ -24,7 +24,7 @@ describe "Bignum#quo" do
     (-@bignum).quo(0.0).to_s.should == "-Infinity"
   end
 
-  runner_not :rspec do
+  runner_is_not :rspec do
     it "raises a TypeError when given a non-Integer" do
       lambda {
         (obj = mock('to_int')).should_not_receive(:to_int)

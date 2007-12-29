@@ -65,12 +65,12 @@ describe "String#scan" do
   # but not for tainted string patterns.
   # TODO: Report to ruby-core.
   it "taints the match strings if self is tainted, unless the taint happens in the method call" do
-    noncompliant :ruby do
+    deviates_on :ruby do
       a = "hello hello hello".scan("hello".taint)
       a.each { |m| m.tainted?.should == false }
     end
 
-    noncompliant :rubinius do
+    deviates_on :rubinius do
       a = "hello hello hello".scan("hello".taint)
       a.each { |m| m.tainted?.should == true }
     end
@@ -170,11 +170,11 @@ describe "String#scan with pattern and block" do
   # but not for tainted string patterns.
   # TODO: Report to ruby-core.
   it "taints the match strings if self is tainted, unless the tain happens inside the scan" do
-    noncompliant :ruby do
+    deviates_on :ruby do
       "hello hello hello".scan("hello".taint) { |m| m.tainted?.should == false }
     end
     
-    noncompliant :rubinius do
+    deviates_on :rubinius do
       "hello hello hello".scan("hello".taint) { |m| m.tainted?.should == true }
     end
 

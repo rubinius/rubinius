@@ -446,7 +446,7 @@ describe "Array#pack" do
   end
 
   it "converts integers into UTF-8 encoded byte sequences with ('U')" do
-    compliant :ruby, :jruby do
+    compliant_on :ruby, :jruby do
       numbers = [0, 1, 15, 16, 127,
           128, 255, 256, 1024, 2048, 4096, 2**16 -1, 2**16, 2**16 + 1, 2**30]
       numbers.each do |n|

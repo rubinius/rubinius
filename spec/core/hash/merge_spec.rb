@@ -66,7 +66,7 @@ describe "Hash#merge!" do
 
   it_behaves_like(:hash_iteration_method, :merge!)
 
-  compliant :ruby, :rubinius do
+  compliant_on :ruby, :rubinius do
     it_behaves_like(:hash_iteration_modifying, :merge!)
   end
 end

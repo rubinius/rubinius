@@ -21,13 +21,13 @@ describe "The next statement" do
   end
 
   # This seems like an MRI bug, not a feature or spec.
-  platform :version => '1.8.5' do
+  platform_is :version => '1.8.5' do
     it "accepts argument but returns nil from blocks" do
       lambda { 123; next 234; 345 }.call.should == nil
     end
   end
   
-  platform :version => '1.8.6' do
+  platform_is :version => '1.8.6' do
     it "returns the argument passed" do
       lambda { 123; next 234; 345 }.call.should == 234
     end

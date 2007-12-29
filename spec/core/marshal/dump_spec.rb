@@ -14,7 +14,7 @@ describe "Marshal.dump when given a recursion limit" do
   end
   
   it "ignores the recursion limit if the limit is negative" do
-    failure :rubinius do
+    fails_on :rubinius do
       Marshal.dump([], -1)
       Marshal.dump([[]], -1)
       Marshal.dump([[[]]], -1)

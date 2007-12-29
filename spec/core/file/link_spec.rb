@@ -15,7 +15,7 @@ describe "File.link" do
     @link = nil
   end
 
-  platform_not :mswin do
+  platform_is_not :mswin do
     it "link a file with another" do
       File.link(@file, @link).should == 0
       File.exists?(@link).should == true

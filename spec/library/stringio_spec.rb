@@ -618,7 +618,7 @@ describe "StringIO#reopen" do
     @io = StringIO.new('hello','a')
   end
 
-  failure(:ruby) do
+  fails_on :ruby do
     it "should reopen a stream when given a String argument" do
       @io.reopen('goodbye').should == @io
       @io.string.should == 'goodbye'
@@ -647,7 +647,7 @@ describe "StringIO#reopen" do
       str.should == ''
     end
 
-    compliant :ruby, :jruby do
+    compliant_on :ruby, :jruby do
       it "should deny access to prevent truncation of a frozen string" do
         @io = StringIO.new("ice")
         lambda { @io.reopen("burn".freeze, 'w') }.should raise_error(Errno::EACCES)
@@ -662,7 +662,7 @@ describe "StringIO#reopen" do
   end
 
   # MRI refuses to convert objects that support to_str, JRuby and Rubinius can
-  noncompliant(:jruby, :rubinius) do
+  deviates_on(:jruby, :rubinius) do
     it "should call to_str on the first argument if it is not a String" do
       obj = mock('reopen')
       def obj.to_str; "reopen"; end

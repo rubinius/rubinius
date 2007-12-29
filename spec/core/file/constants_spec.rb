@@ -8,7 +8,7 @@ describe "File::Constants" do
     File::FNM_CASEFOLD.should_not == nil
     File::FNM_SYSCASE.should_not == nil
 
-    platform :mswin do #|| VMS
+    platform_is :mswin do #|| VMS
       File::FNM_SYSCASE.should == 8
     end
   end
@@ -20,12 +20,12 @@ describe "File::Constants" do
     File::PATH_SEPARATOR.should_not == nil
     File::SEPARATOR.should == "/"
 
-    platform :mswin do #|| VMS
+    platform_is :mswin do #|| VMS
       File::ALT_SEPARATOR.should_not == nil
       File::PATH_SEPARATOR.should == ";"
     end
     
-    platform_not :mswin do
+    platform_is_not :mswin do
       File::ALT_SEPARATOR.should == nil
       File::PATH_SEPARATOR.should == ":"
     end
@@ -41,7 +41,7 @@ describe "File::Constants" do
     File::TRUNC.should_not == nil
     File::WRONLY.should_not == nil
       
-    platform_not :mswin do # Not sure about VMS here
+    platform_is_not :mswin do # Not sure about VMS here
       File::NOCTTY.should_not == nil
     end
   end
@@ -80,7 +80,7 @@ describe "File::Constants" do
     defined?(File::TRUNC).should == "constant" 
   end   
   
-  platform_not :mswin do # Not sure about VMS here
+  platform_is_not :mswin do # Not sure about VMS here
     specify "File::NOCTTY" do     
       defined?(File::NOCTTY).should == "constant" 
     end   
@@ -122,14 +122,14 @@ describe "File::Constants" do
     File::SEPARATOR.should == "/" 
   end   
   
-  platform :mswin do #|| VMS 
+  platform_is :mswin do #|| VMS 
     specify "File::ALT_SEPARATOR" do     
       defined?(File::ALT_SEPARATOR).should == "constant" 
       File::PATH_SEPARATOR.should == ";" 
     end  
   end
   
-  platform_not :mswin do
+  platform_is_not :mswin do
     specify "File::PATH_SEPARATOR" do     
       defined?(File::PATH_SEPARATOR).should == "constant"       
       File::PATH_SEPARATOR.should == ":"

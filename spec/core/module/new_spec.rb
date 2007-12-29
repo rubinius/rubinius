@@ -6,7 +6,7 @@ describe "Module.new" do
     Module.new.is_a?(Module).should == true
   end
   
-  failure :rbx do
+  fails_on :rbx do
     it "evaluates a passed block in the context of the module" do
       fred = Module.new do
         def hello() "hello" end

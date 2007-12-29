@@ -64,7 +64,7 @@ describe "File.basename" do
     File.basename("/bar/").should == "bar"
       
     # Considered UNC paths on Windows
-    platform :mswin do 
+    platform_is :mswin do 
       File.basename("baz//foo").should =="foo"
       File.basename("//foo/bar/baz").should == "baz"
     end
@@ -89,7 +89,7 @@ describe "File.basename" do
     File.basename("bar.txt", ".*").should == "bar"
     File.basename("bar.txt.exe", ".*").should == "bar.txt"
     File.basename("bar.txt.exe", ".txt.exe").should == "bar"
-    noncompliant :rbx do
+    deviates_on :rbx do
       File.basename("bar.txt.exe", ".txt.*").should == "bar"
     end
   end
@@ -103,7 +103,7 @@ describe "File.basename" do
   end
 
   # specific to MS Windows
-  platform :mswin do
+  platform_is :mswin do
     it "return the basename for windows" do  
       File.basename("C:\\foo\\bar\\baz.txt").should == "baz.txt"
       File.basename("C:\\foo\\bar").should == "baz"

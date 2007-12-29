@@ -11,13 +11,13 @@ describe "String#to_f" do
    ".5".to_f.should == 0.5
    ".5e1".to_f.should == 5.0
    
-   compliant(:ruby, :rubinius) do
+   compliant_on(:ruby, :rubinius) do
      "NaN".to_f.should == 0
      "Infinity".to_f.should == 0
      "-Infinity".to_f.should == 0
    end
    
-   noncompliant(:jruby) do
+   deviates_on(:jruby) do
      "NaN".to_f.nan?.should == true
      "Infinity".to_f.infinite?.should == 1
      "-Infinity".to_f.infinite?.should == -1

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-extension :rubinius do
+extended_on :rubinius do
   describe "String#each_char" do
     it "passes each char in self to the given block" do
       a = []

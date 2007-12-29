@@ -316,11 +316,11 @@ describe "String#%" do
     ("%05e" % 10).should == "1.000000e+01"
     ("%*e" % [10, 9]).should == "9.000000e+00"
 
-    compliant :ruby, :rubinius do
+    compliant_on :ruby, :rubinius do
       ("%e" % (0.0/0)).should == "nan"
     end
 
-    compliant :jruby do
+    compliant_on :jruby do
       ("%e" % (0.0/0)).should == "NaN"
     end
   end
@@ -468,7 +468,7 @@ describe "String#%" do
     ("%04u" % 10).should == "0010"
     ("%*u" % [10, 4]).should == "         4"
 
-  platform '64' do
+  platform_is :size => 64 do
     ("%u" % -5).should == "..#{2**64 - 5}"
     ("%0u" % -5).should == (2**64 - 5).to_s
     ("%.1u" % -5).should == (2**64 - 5).to_s
@@ -476,7 +476,7 @@ describe "String#%" do
     ("%.10u" % -5).should == (2**64 - 5).to_s
   end  
     
-  platform_not '64' do
+  platform_is_not :size => 64 do
     ("%u" % -5).should == "..#{2**32 - 5}"
     ("%0u" % -5).should == (2**32 - 5).to_s
     ("%.1u" % -5).should == (2**32 - 5).to_s
@@ -488,7 +488,7 @@ describe "String#%" do
     ("%+u" % -26).should == "-26"
   end
   
-  compliant :rubinius do
+  compliant_on :rubinius do
     # Something's odd for MRI here. For details see
     # http://groups.google.com/group/ruby-core-google/msg/408e2ebc8426f449
 

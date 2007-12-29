@@ -37,7 +37,7 @@ describe "Array#delete_at" do
     a.delete_at(-2).should == 1
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises TypeError on a frozen array" do
       lambda { [1,2,3].freeze.delete_at(0) }.should raise_error(TypeError)
     end

@@ -15,7 +15,7 @@ describe "File#chmod" do
     @file.chmod(0755).should == 0
   end 
     
-  platform_not :mswin do
+  platform_is_not :mswin do
     it "should modify the permission bits of the files specified" do
       @file.chmod(0755)
       File.stat(@filename).mode.should == 33261
@@ -38,7 +38,7 @@ describe "File.chmod" do
     @count.should == 1
   end
   
-  platform_not :mswin do
+  platform_is_not :mswin do
     it "should modify the permission bits of the files specified" do
       File.stat(@file).mode.should == 33261
     end

@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-compliant :ruby, :jruby do
+compliant_on :ruby, :jruby do
   describe "Kernel#frozen?" do
     it "returns true if self is frozen" do
       o = mock('o')

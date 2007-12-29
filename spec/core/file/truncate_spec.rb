@@ -15,11 +15,11 @@ describe "File.truncate" do
  
   it "truncate the a file" do 
     File.open(@name, "w") { |f| f.puts "123456789" } 
-    platform :mswin do
+    platform_is :mswin do
       File.size(@name).should == 11
     end
     
-    platform_not :mswin do
+    platform_is_not :mswin do
       File.size(@name).should == 10
     end
     File.truncate(@name, 5)

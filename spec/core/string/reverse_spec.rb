@@ -23,7 +23,7 @@ describe "String#reverse!" do
     "".reverse!.should == ""
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       "".freeze.reverse! # ok, no change
       lambda { "anna".freeze.reverse!  }.should raise_error(TypeError)

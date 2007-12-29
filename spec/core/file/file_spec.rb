@@ -2,12 +2,12 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.file?" do 
   before :each do 
-    platform :mswin do
+    platform_is :mswin do
       @null = "NUL"
       @dir  = "C:\\"
     end
     
-    platform_not :mswin do
+    platform_is_not :mswin do
       @null = "/dev/null"
       @dir  = "/bin"
     end

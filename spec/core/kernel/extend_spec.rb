@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-compliant :ruby, :jruby do
+compliant_on :ruby, :jruby do
   describe "Object#extend" do
     it "raises a TypeError if self is frozen" do
       module Mod; end

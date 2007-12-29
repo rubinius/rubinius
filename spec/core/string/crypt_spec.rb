@@ -28,17 +28,17 @@ describe "String#crypt" do
     "hello world".crypt("aabc").should == "aayPz4hyPS1wI"
     
     # Maps null bytes in salt to ..
-    platform_not :darwin do
-      compliant :ruby, :rubinius do
+    platform_is_not :darwin do
+      compliant_on :ruby, :rubinius do
         "hello".crypt("\x00\x00").should == ""
       end
     end
 
-    compliant :jruby do
+    compliant_on :jruby do
       "hello".crypt("\x00\x00").should == "\x00\x00dR0/E99ehpU"
     end
 
-    platform :darwin do
+    platform_is :darwin do
       "hello".crypt("\x00\x00").should == "..dR0/E99ehpU"
     end
   end

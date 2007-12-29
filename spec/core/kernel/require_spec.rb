@@ -118,7 +118,7 @@ describe "Kernel#require" do
     require('require_spec_dummy').should == false
   end
 
-failure :ruby, :rubinius do
+fails_on :ruby, :rubinius do
   it "will load explicit file.<ext> even if file.rb already loaded and vice versa" do
     # Not sure how to spec this yet because it needs an extfile. 
     fail "Spec not implemented"
@@ -142,7 +142,7 @@ end
       require('require_spec_4').should == true 
       $require_spec_4.should == [['./require_spec_4.rb', 1], ['./require_spec_4.rb', 10]]
 
-      extension :rubinius do
+      extended_on :rubinius do
         `rm require_spec_4.rbc`
       end
     end
@@ -227,7 +227,7 @@ end
     $require_spec_recursive.nil?.should == false
   end
 
-  extension :rubinius do
+  extended_on :rubinius do
     it "should not infinite loop on an rbc file that requires itself" do
       $require_spec_recursive = nil
       $LOADED_FEATURES.delete 'require_spec_recursive.rb'

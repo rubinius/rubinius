@@ -14,7 +14,7 @@ describe "Module#class_variable_set" do
     c.send(:class_variable_get, :@@test3).should == "test3"
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       lambda { Class.new.freeze.send(:class_variable_set, :@@test, "test")   }.should raise_error(TypeError)
       lambda {  Module.new.freeze.send(:class_variable_set, :@@test, "test") }.should raise_error(TypeError)

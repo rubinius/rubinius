@@ -30,7 +30,7 @@ describe "String#lstrip!" do
     a.should == "hello"
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       "hello".freeze.lstrip! # ok, nothing changed
       "".freeze.lstrip! # ok, nothing changed

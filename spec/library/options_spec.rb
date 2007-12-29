@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-extension :rubinius do
+extended_on :rubinius do
   require 'options'
 
   class String
     def squish(); self.gsub(/\s+/, ''); end
   end
 
-  extension :rubinius do
+  extended_on :rubinius do
 
     describe 'Options.new' do
       it 'creates a blank set of options' do

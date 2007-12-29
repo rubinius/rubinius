@@ -21,7 +21,7 @@ describe "Array#clear" do
     a.size.should == 0
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises TypeError on a frozen array" do
       a = [1]
       a.freeze

@@ -28,7 +28,7 @@ shared :hash_store do |cmd|
       h.size.should == 2
     end
 
-    compliant :ruby, :jruby do
+    compliant_on :ruby, :jruby do
       it "duplicates and freezes string keys" do
         key = "foo"
         h = {}

@@ -29,7 +29,7 @@ describe "File.dirname" do
     File.dirname("/foo/bar/baz").should =="/foo/bar"
   end
 
-  platform_not :mswin do
+  platform_is_not :mswin do
     it "return all the components of filename except the last one (edge cases)" do
       File.dirname("").should == "."
       File.dirname(".").should == "."
@@ -48,7 +48,7 @@ describe "File.dirname" do
     end
   end
   
-  platform :mswin do
+  platform_is :mswin do
     it "return all the components of filename except the last one (edge cases)" do
       File.dirname("//foo").should == "/"
     end
@@ -62,7 +62,7 @@ describe "File.dirname" do
   end
 
   # Windows specific tests
-  platform :mswin do
+  platform_is :mswin do
     it "return the return all the components of filename except the last one (Windows format)" do 
       File.dirname("C:\\foo\\bar\\baz.txt").should =="C:\\foo\\bar"
       File.dirname("C:\\foo\\bar").should =="C:\\foo"

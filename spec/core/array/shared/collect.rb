@@ -20,7 +20,7 @@ shared :array_collect_b do |cmd|
       a.should == [6, 8, 2, 4]
     end
 
-    compliant :ruby, :jruby do
+    compliant_on :ruby, :jruby do
       it "raises TypeError on a frozen array" do
         lambda { ArraySpecs.frozen_array.send(cmd) {} }.should raise_error(TypeError)
       end

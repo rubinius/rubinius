@@ -16,7 +16,7 @@ describe "MatchData#[]" do
     /(.)(.)(\d+)(\d)/.match("THX1138.")[1..3].should == %w|H X 113|
   end
 
-  extension :rubinius do
+  extended_on :rubinius do
     it "provides access to named groups" do
       r = Regexp.new("(?<section>...)(?<code>\d+)")
       m = r.match("THX1138")

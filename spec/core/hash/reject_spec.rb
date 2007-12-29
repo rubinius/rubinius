@@ -66,7 +66,7 @@ describe "Hash#reject!" do
     reject_bang_pairs.should == delete_if_pairs
   end  
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises TypeError if called on a frozen instance" do
       lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(TypeError)
       lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(TypeError)

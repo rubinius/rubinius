@@ -112,7 +112,7 @@ describe "Kernel#load" do
       load('load_spec_4.rb').should == true 
       $load_spec_4.should == [['./load_spec_4.rb', 1], ['./load_spec_4.rb', 10]]
 
-      extension :rubinius do
+      extended_on :rubinius do
         `rm load_spec_4.rbc`
       end
     end
@@ -184,7 +184,7 @@ describe "Kernel#load" do
     lambda { load([]) }.should raise_error TypeError
   end
 
-  runner_not :rspec do
+  runner_is_not :rspec do
     it "allows wrapping the code in the file in an anonymous module" do
       lambda { LoadSpecWrap }.should raise_error NameError
       lambda { LoadSpecWrapTwo }.should raise_error NameError

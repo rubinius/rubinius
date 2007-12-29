@@ -39,7 +39,7 @@ describe "Hash#default=" do
     end
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises TypeError if called on a frozen instance" do
       lambda { HashSpecs.frozen_hash.default = nil }.should raise_error(TypeError)
       lambda { HashSpecs.empty_frozen_hash.default = nil }.should raise_error(TypeError)

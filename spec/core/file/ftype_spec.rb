@@ -12,11 +12,11 @@ describe "File.ftype" do
     @dir  = Dir.pwd
     File.open(@file, "w"){} # Touch
 
-    platform :mswin do
+    platform_is :mswin do
       @block_dev = "NUL"
     end
     
-    platform_not :mswin do
+    platform_is_not :mswin do
       @fifo = "test_fifo"
       system("mkfifo #{@fifo}") unless File.exists?(@fifo)
 
@@ -66,7 +66,7 @@ describe "File.ftype" do
     File.ftype(@char).should == 'characterSpecial'
   end
 
-  platform_not :freebsd do  # FreeBSD does not have block devices
+  platform_is_not :freebsd do  # FreeBSD does not have block devices
     it "return blockSpecial when is a block" do
       File.ftype(@block).should == 'blockSpecial'
     end

@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 module ModuleSpecs
   class NoInheritance
     def method_to_remove; 1; end
-    failure :rubinius do
+    fails_on :rubinius do
       remove_method :method_to_remove
     end
   end
@@ -15,7 +15,7 @@ module ModuleSpecs
   
   class Child < Parent
     def method_to_remove; 2; end     
-    failure :rubinius do
+    fails_on :rubinius do
       remove_method :method_to_remove
     end
   end
@@ -44,7 +44,7 @@ describe "Module#remove_method" do
   it "raises NameError when attempting to remove method further up the inheritance tree" do
     lambda {
       class Third < ModuleSpecs::Second
-        failure :rubinius do
+        fails_on :rubinius do
           remove_method :method_to_remove
         end
       end

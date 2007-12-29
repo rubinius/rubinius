@@ -2,13 +2,13 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.expand_path" do
   before :each do
-    platform :mswin do
+    platform_is :mswin do
       @base = `cd`.chomp.tr '\\', '/'
       @tmpdir = "c:/tmp"
       @rootdir = "c:/"
     end
     
-    platform_not :mswin do
+    platform_is_not :mswin do
       @base = `pwd`.chomp
       @tmpdir = "/tmp"
       @rootdir = "/"
@@ -53,7 +53,7 @@ describe "File.expand_path" do
     end
   end
   
-  platform_not :mswin do
+  platform_is_not :mswin do
     it "expand path with " do      
       File.expand_path("../../bin", "/tmp/x").should == "/bin" 
       File.expand_path("../../bin", "/tmp").should == "/bin"
@@ -62,7 +62,7 @@ describe "File.expand_path" do
     end
   end  
   
-  platform_not :mswin do
+  platform_is_not :mswin do
     specify "expand_path for commoms unix path  give a full path" do      
       File.expand_path('/tmp/').should =='/tmp'
       File.expand_path('/tmp/../../../tmp').should == '/tmp'
@@ -84,7 +84,7 @@ describe "File.expand_path" do
     lambda { File.expand_path(nil)  }.should raise_error(TypeError)
     lambda { File.expand_path(true) }.should raise_error(TypeError)
       
-    platform_not :mswin do
+    platform_is_not :mswin do
       lambda { File.expand_path("~a_fake_file") }.should raise_error(ArgumentError)
       File.expand_path("~#{ENV['USER']}").should == ENV['HOME']
     end

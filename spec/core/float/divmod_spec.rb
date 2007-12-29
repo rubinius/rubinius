@@ -13,7 +13,7 @@ describe "Float#divmod" do
     values[1].should be_close(4294967294.0, TOLERANCE)
   end
 
-  platform :version => '1.8.5'..'1.8.6' do
+  platform_is :version => '1.8.5'..'1.8.6' do
     it "raises FloatDomainError if other is zero" do
       lambda { 1.0.divmod(0)   }.should raise_error(FloatDomainError)
       lambda { 1.0.divmod(0.0) }.should raise_error(FloatDomainError)

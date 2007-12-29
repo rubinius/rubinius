@@ -315,7 +315,7 @@ describe "String#gsub! with pattern, replacement" do
     a.should == "hello"
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       s = "hello"
       s.freeze
@@ -347,7 +347,7 @@ describe "String#gsub! with pattern and block" do
     a.should == "hello"
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a RuntimeError when self is frozen" do
       s = "hello"
       s.freeze

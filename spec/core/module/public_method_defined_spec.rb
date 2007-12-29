@@ -31,7 +31,7 @@ describe "Module#public_method_defined?" do
     ModuleSpecs::CountsMixin.public_method_defined?(:public_3).should == true
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises an exception on improper argument" do
       lambda { ModuleSpecs::CountsMixin.public_method_defined?(1)     }.should raise_error(ArgumentError)
       lambda { ModuleSpecs::CountsMixin.public_method_defined?(nil)   }.should raise_error(TypeError)
@@ -39,7 +39,7 @@ describe "Module#public_method_defined?" do
     end
   end
   
-  noncompliant :rubinius do
+  deviates_on :rubinius do
     it "accepts any object that is String-like" do
       o = mock('public_3')
       def o.to_str() 'public_3' end

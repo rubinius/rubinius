@@ -48,7 +48,7 @@ describe "String#[]= with index" do
     lambda { ""[-1] = ?a }.should raise_error(IndexError)
   end
 
-  platform :version => '1.8.5' do
+  platform_is :version => '1.8.5' do
     it "raises IndexError when passed other than a Fixnum" do
       str = "hello"
       lambda { str[0.5] = ?c }.should raise_error(IndexError)
@@ -64,7 +64,7 @@ describe "String#[]= with index" do
     end
   end
   
-  platform :version => '1.8.6' do
+  platform_is :version => '1.8.6' do
     it "calls to_int on index" do
       str = "hello"
       str[0.5] = ?c
@@ -98,7 +98,7 @@ describe "String#[]= with index" do
     lambda { "hi"[0] = obj }.should raise_error(TypeError)
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       a = "hello"
       a.freeze
@@ -140,7 +140,7 @@ describe "String#[]= with String" do
     lambda { ""[-1] = "bam" }.should raise_error(IndexError)
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       a = "hello"
       a.freeze
@@ -149,7 +149,7 @@ describe "String#[]= with String" do
     end
   end
 
-  platform :version => '1.8.5' do
+  platform_is :version => '1.8.5' do
     it "raises IndexError when passed other than a Fixnum" do
       str = "hello"
       lambda { str[0.5] = "hi " }.should raise_error(IndexError)
@@ -165,7 +165,7 @@ describe "String#[]= with String" do
     end
   end
   
-  platform :version => '1.8.6' do
+  platform_is :version => '1.8.6' do
     it "calls to_int on index" do
       str = "hello"
       str[0.5] = "hi "

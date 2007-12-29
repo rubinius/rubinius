@@ -7,7 +7,7 @@ describe "String#unpack" do
     "abc \0\0".unpack('a3a3').should == ["abc", " \000\000"]
     "aa".unpack('b8B8').should == ["10000110", "01100001"]
     "aaa".unpack('h2H2c').should == ["16", "61", 97]
-    compliant (:ruby) do
+    compliant_on :ruby do
       # Note: The result depends on the platform the test
       # is being executed (not good).
       # Also, For JRuby, the byte order is always big-endian.
@@ -146,7 +146,7 @@ describe "String#unpack with 'DdEeFfGg' directives" do
 
     # 'F2' pattern
     res = "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('F2')
-    compliant :jruby do
+    compliant_on :jruby do
       # In JRuby, the "native" byte order is always big-endian.
       res = "\xFF\xFF\xFF\xF3\x00\x02\x0B\x32".unpack('F2')
     end
@@ -156,7 +156,7 @@ describe "String#unpack with 'DdEeFfGg' directives" do
 
     # 'f*' pattern
     res = "\xF3\x02\xC0\x42\x3A\x87\xF3\x00".unpack('f*')
-    compliant :jruby do
+    compliant_on :jruby do
       res = "\x42\xC0\x02\xF3\x00\xF3\x87\x3A".unpack('f*')
     end
     res.length.should == 2
@@ -171,7 +171,7 @@ describe "String#unpack with 'DdEeFfGg' directives" do
 
     # 'd3' pattern
     res = "\xF3\xFF\xFF\xFF\x32\x87\xF3\x00".unpack('d3')
-    compliant :jruby do
+    compliant_on :jruby do
       # In JRuby, the "native" byte order is always big-endian.
       res = "\x00\xF3\x87\x32\xFF\xFF\xFF\xF3".unpack('d3')
     end
@@ -222,7 +222,7 @@ describe "String#unpack with 'H' and 'h' directives" do
 end
 
 describe "String#unpack with 'IiLlSs' directives" do
-  platform :size => 32 do
+  platform_is :size => 32 do
     it "returns an array by decoding self according to the format string" do
       "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('SLI').should == [755, 590496256, nil]
       "\xF3\x02".unpack('L*I*').should == []

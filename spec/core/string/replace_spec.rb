@@ -32,7 +32,7 @@ describe "String#replace" do
     lambda { "hello".replace(mock('x')) }.should raise_error(TypeError)
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       a = "hello".freeze
 

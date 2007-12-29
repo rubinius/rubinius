@@ -43,7 +43,7 @@ describe "String#upcase!" do
     a.should == "HELLO"
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       lambda { "HeLlo".freeze.upcase! }.should raise_error(TypeError)
       lambda { "HELLO".freeze.upcase! }.should raise_error(TypeError)

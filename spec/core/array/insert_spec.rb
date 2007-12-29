@@ -66,7 +66,7 @@ describe "Array#insert" do
     [].insert(obj, 'x').should == [nil, nil, 'x']
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises TypeError on frozen arrays if modification takes place" do
       lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(TypeError)
     end

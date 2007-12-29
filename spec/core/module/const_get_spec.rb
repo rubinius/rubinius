@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#const_get" do
-  extension :rubinius do
+  extended_on :rubinius do
     it "returns the value of the constant with the given String is defined in its parent" do
       ModuleSpecs.const_get("Super::SuperChild").should == ModuleSpecs::Super::SuperChild
       lambda {

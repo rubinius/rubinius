@@ -318,7 +318,7 @@ describe "String#sub! with pattern, replacement" do
     a.should == "hello"
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       s = "hello"
       s.freeze
@@ -355,16 +355,16 @@ describe "String#sub! with pattern and block" do
     lambda { str.sub!(//) { str << 'x' } }.should raise_error(RuntimeError)
   end
   
-  compliant :jruby do
+  compliant_on :jruby do
     it_behaves_like(:string_sub_bang_frozen_raises, RuntimeError)
   end
   
-  compliant :ruby do
-    platform :version => '1.8.5' do
+  compliant_on :ruby do
+    platform_is :version => '1.8.5' do
       it_behaves_like(:string_sub_bang_frozen_raises, TypeError)
     end
 
-    platform :version => '1.8.6' do
+    platform_is :version => '1.8.6' do
       it_behaves_like(:string_sub_bang_frozen_raises, RuntimeError)
     end
   end

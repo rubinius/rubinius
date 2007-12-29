@@ -60,7 +60,7 @@ describe "Struct.new" do
     lambda { Struct.new(:animal, { :name => 'chris' }) }.should raise_error(TypeError)
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises TypeError if object is not a Symbol" do
       obj = mock(':ruby')
       def obj.to_sym() :ruby end
@@ -68,7 +68,7 @@ describe "Struct.new" do
     end
   end
   
-  compliant :rbx do
+  compliant_on :rbx do
     it "calls to_sym if object responds to to_sym" do
       obj = mock(':ruby')
       def obj.to_sym() :ruby end

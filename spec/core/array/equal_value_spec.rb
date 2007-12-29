@@ -25,7 +25,7 @@ describe "Array#==" do
 
   # Broken in MRI as well. See MRI bug #11585:
   # http://rubyforge.org/tracker/index.php?func=detail&aid=11585&group_id=426&atid=1698
-  compliant(:r19) do
+  compliant_on(:r19) do
     it "calls to_ary on its argument" do
       obj = mock('to_ary')
       obj.should_receive(:to_ary).and_return([1, 2, 3])

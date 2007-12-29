@@ -11,11 +11,11 @@ describe "Etc.getpwnam" do
   it "returns a Passwd struct instance for the given user" do
     pw = Etc.getpwnam(`whoami`.strip)
 
-    noncompliant :rubinius do
+    deviates_on :rubinius do
       pw.is_a?(Etc::Passwd).should == true
     end
 
-    compliant :ruby do
+    compliant_on :ruby do
       pw.is_a?(Struct::Passwd).should == true
     end
   end
@@ -32,11 +32,11 @@ describe "Etc.getpwuid" do
   it "returns a Passwd struct instance for the given user" do
     pw = Etc.getpwuid(`id -u`.strip.to_i)
 
-    noncompliant :rubinius do
+    deviates_on :rubinius do
       pw.is_a?(Etc::Passwd).should == true
     end
 
-    compliant :ruby do
+    compliant_on :ruby do
       pw.is_a?(Struct::Passwd).should == true
     end
   end
@@ -48,7 +48,7 @@ describe "Etc.getpwuid" do
     }.should raise_error(TypeError)
   end
 
-  noncompliant :rubinius, :ruby19 do
+  deviates_on :rubinius, :ruby19 do
     it "uses Process.uid as the default value for the argument" do
       pw = Etc.getpwuid
     end
@@ -59,11 +59,11 @@ describe "Etc.getgrnam" do
   it "returns a Group struct instance for the given group" do
     gr = Etc.getgrnam("daemon")
 
-    noncompliant :rubinius do
+    deviates_on :rubinius do
       gr.is_a?(Etc::Group).should == true
     end
 
-    compliant :ruby do
+    compliant_on :ruby do
       gr.is_a?(Struct::Group).should == true
     end
   end
@@ -82,15 +82,15 @@ describe "Etc.getgrgid" do
     @name = `id -gn`.strip
   end
 
-  noncompliant :rubinius, :ruby19 do
+  deviates_on :rubinius, :ruby19 do
     it "returns a Group struct instance for the given user" do
       gr = Etc.getgrgid(@gid)
 
-      noncompliant :rubinius do
+      deviates_on :rubinius do
         gr.is_a?(Etc::Group).should == true
       end
 
-      compliant :ruby19 do
+      compliant_on :ruby19 do
         gr.is_a?(Struct::Group).should == true
       end
 
@@ -99,8 +99,8 @@ describe "Etc.getgrgid" do
     end
   end
 
-  compliant :ruby do
-    platform_not :darwin do
+  compliant_on :ruby do
+    platform_is_not :darwin do
       it "ignores its argument" do
         lambda { Etc.getgrgid("foo") }.should raise_error(TypeError)
         Etc.getgrgid(42)
@@ -116,7 +116,7 @@ describe "Etc.getgrgid" do
     end
   end
 
-  noncompliant :rubinius, :ruby19 do
+  deviates_on :rubinius, :ruby19 do
     it "only accepts integers as argument" do
       lambda {
         Etc.getgrgid("foo")
@@ -125,7 +125,7 @@ describe "Etc.getgrgid" do
     end
   end
 
-  noncompliant :rubinius, :ruby19 do
+  deviates_on :rubinius, :ruby19 do
     it "uses Process.gid as the default value for the argument" do
       gr = Etc.getgrgid
 

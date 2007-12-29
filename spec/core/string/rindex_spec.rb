@@ -16,7 +16,7 @@ describe "String#rindex with object" do
   # Note: MRI doesn't call to_str, but should do so because index() does it.
   # See http://groups.google.com/group/ruby-core-google/t/3f2d4129febd2a66
 
-  noncompliant :rubinius do
+  deviates_on :rubinius do
     it "tries to convert obj to a string via to_str" do
       obj = mock('lo')
       def obj.to_str() "lo" end
@@ -29,8 +29,8 @@ describe "String#rindex with object" do
     end
   end
   
-  compliant :ruby, :jruby do
-    platform :version => "1.8.6" do
+  compliant_on :ruby, :jruby do
+    platform_is :version => "1.8.6" do
       it "tries to convert obj to a string via to_str" do
         obj = mock('lo')
         def obj.to_str() "lo" end

@@ -1,6 +1,5 @@
 require File.dirname(__FILE__) + '/compiler_helper'
 
-extension :rubinius do
 c = CompilerHarness.new
 
 context "Local variable access" do
@@ -67,5 +66,4 @@ sret
   
     c.encode(code).should == asm
   end  
-end
 end

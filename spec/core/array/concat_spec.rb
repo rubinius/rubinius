@@ -30,7 +30,7 @@ describe "Array#concat" do
     [].concat(ToAryArray[5, 6, 7]).should == [5, 6, 7]
   end
   
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "raises a TypeError when Array is frozen and modification occurs" do
       lambda { ArraySpecs.frozen_array.concat [1] }.should raise_error(TypeError)
     end

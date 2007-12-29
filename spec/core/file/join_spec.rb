@@ -2,11 +2,11 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.join" do   
   before(:each) do
-    platform :mswin do
+    platform_is :mswin do
       @root = "C:\\"
     end
     
-    platform_not :mswin do
+    platform_is_not :mswin do
       @root = "/"
     end
     @dirs = ['usr', 'local', 'bin']
@@ -17,7 +17,7 @@ describe "File.join" do
     @dirs = nil
   end
 
-  platform :mswin do
+  platform_is :mswin do
     it "returns a new string formed by joining the strings using File::SEPARATOR (windows)" do 
       File.join(*@dirs).should == "usr/local/bin"
       File.join(@root, *@dirs).should == "C:\\usr/local/bin"
@@ -32,7 +32,7 @@ describe "File.join" do
     end
   end
   
-  platform_not :mswin do 
+  platform_is_not :mswin do 
     it "returns a new string formed by joining the strings using File::SEPARATOR (unix)" do 
       File.join(*@dirs).should == "usr/local/bin"
       File.join(@root, *@dirs).should == "/usr/local/bin"

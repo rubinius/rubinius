@@ -21,7 +21,7 @@ describe "File.umask" do
     File.umask.should == 006
   end
    
-  platform :mswin do
+  platform_is :mswin do
     it "Returns the current umask value for this process. (basic)" do   
       File.umask.should == 0
     end
