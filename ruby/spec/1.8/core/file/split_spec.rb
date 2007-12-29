@@ -21,7 +21,18 @@ describe "File.split" do
   end
 
   it "should split the given string into a directory and a file component and returns them in a two-element array.(windows)" do
-    File.split(@path_windows_backward).should ==  [".", "C:\\foo\\bar\\baz.rb"]
+    compliant_on :ruby, :rubinius do
+      File.split(@path_windows_backward).should ==  [".", "C:\\foo\\bar\\baz.rb"]
+    end
+
+    # Actually, MRI on windows behaves like this too, and that seems
+    # to be most proper behavior:
+    compliant_on :jruby do
+      File.split(@path_windows_backward).should ==  ["C:\\foo\\bar", "baz.rb"]
+    end
+
+    # Note: MRI on Cygwin exhibits third type of behavior,
+    # different from *both* variants above...
   end   
    
   it "should split the given string into a directory and a file component and returns them in a two-element array.(forward slash)" do
