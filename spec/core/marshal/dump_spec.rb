@@ -24,12 +24,12 @@ end
 
 describe "Marshal.dump when given an IO-Object" do
   it "should write the serialized data to the IO-Object" do
-    (obj = mock('test')).should_receive(:write)
+    (obj = mock('test')).should_receive(:write).at_least(1)
     Marshal.dump("test", obj)
   end
 
   it "returns the IO-Object" do
-    (obj = mock('test')).should_receive(:write)
+    (obj = mock('test')).should_receive(:write).at_least(1)
     Marshal.dump("test", obj).should == obj
   end
   
