@@ -12,40 +12,44 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 #   #[]               OK
 
 
-context 'Creating a Continuation object' do
-  specify 'Must be done through Kernel.callcc, no .new' do
-    lambda { Continuation.new }.should raise_error(NoMethodError)
+describe 'Creating a Continuation object' do
+  not_compliant_on :jruby do
+    it 'must be done through Kernel.callcc, no .new' do
+      lambda { Continuation.new }.should raise_error(NoMethodError)
 
-    Kernel.callcc {|@cc|}
-    c = @cc
-    c.class.should == Continuation
+      Kernel.callcc {|@cc|}
+      c = @cc
+      c.class.should == Continuation
+    end
   end
 end
 
 
-context 'Executing a Continuation' do
-  specify 'Using #call transfers execution to right after the Kernel.callcc block' do
-    array = [:reached, :not_reached]
+describe 'Executing a Continuation' do
+  not_compliant_on :jruby do
+    it 'using #call transfers execution to right after the Kernel.callcc block' do
+      array = [:reached, :not_reached]
 
-    Kernel.callcc {|@cc|}
+      Kernel.callcc {|@cc|}
     
-    unless array.first == :not_reached
-      array.shift
-      @cc.call
+      unless array.first == :not_reached
+        array.shift
+        @cc.call
+      end
+
+      array.should == [:not_reached]
     end
 
-    array.should == [:not_reached]
-  end
+    it 'arguments given to #call (or nil) are returned by the Kernel.callcc block (as Array unless only one object)' do
+      Kernel.callcc {|cc| cc.call}.should == nil 
+      Kernel.callcc {|cc| cc.call 1}.should == 1 
+      Kernel.callcc {|cc| cc.call 1, 2, 3}.should == [1, 2, 3] 
+    end
 
-  specify 'Arguments given to #call (or nil) are returned by the Kernel.callcc block (as Array unless only one object)' do
-    Kernel.callcc {|cc| cc.call}.should == nil 
-    Kernel.callcc {|cc| cc.call 1}.should == 1 
-    Kernel.callcc {|cc| cc.call 1, 2, 3}.should == [1, 2, 3] 
-  end
-
-  specify '#[] is an alias for #call' do
-    Kernel.callcc {|cc| cc.call}.should == Kernel.callcc {|cc| cc[]}
-    Kernel.callcc {|cc| cc.call 1}.should == Kernel.callcc {|cc| cc[1]}
-    Kernel.callcc {|cc| cc.call 1, 2, 3}.should == Kernel.callcc {|cc| cc[1, 2, 3]} 
+    it '#[] is an alias for #call' do
+      Kernel.callcc {|cc| cc.call}.should == Kernel.callcc {|cc| cc[]}
+      Kernel.callcc {|cc| cc.call 1}.should == Kernel.callcc {|cc| cc[1]}
+      Kernel.callcc {|cc| cc.call 1, 2, 3}.should == Kernel.callcc {|cc| cc[1, 2, 3]} 
+    end
   end
 end
