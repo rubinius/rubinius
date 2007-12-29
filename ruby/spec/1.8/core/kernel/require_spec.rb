@@ -148,8 +148,10 @@ end
     end
 
     require("#{$require_fixture_dir}/require_spec_4").should == true 
-    $require_spec_4.should == [['./spec/core/kernel/../../fixtures/require/require_spec_4.rb', 1], 
-                               ['./spec/core/kernel/../../fixtures/require/require_spec_4.rb', 10]]
+    $load_spec_4[0][0].should =~ %r[^.*/fixtures/load/load_spec_4.rb]
+    $load_spec_4[0][1].should == 1
+    $load_spec_4[1][0].should =~ %r[^.*/fixtures/load/load_spec_4.rb]
+    $load_spec_4[1][1].should == 10
   end
 
   it "stores the loaded file in $LOADED_FEATURES" do

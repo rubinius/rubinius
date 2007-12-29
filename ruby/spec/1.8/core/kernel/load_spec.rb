@@ -117,9 +117,11 @@ describe "Kernel#load" do
       end
     end
 
-    load("#{$load_fixture_dir}/load_spec_4.rb").should == true 
-    $load_spec_4.should == [['./spec/core/kernel/../../fixtures/load/load_spec_4.rb', 1], 
-                            ['./spec/core/kernel/../../fixtures/load/load_spec_4.rb', 10]]
+    load("#{$load_fixture_dir}/load_spec_4.rb").should == true
+    $load_spec_4[0][0].should =~ %r[^.*/fixtures/load/load_spec_4.rb]
+    $load_spec_4[0][1].should == 1
+    $load_spec_4[1][0].should =~ %r[^.*/fixtures/load/load_spec_4.rb]
+    $load_spec_4[1][1].should == 10
   end
 
   it "reloads the file if invoked on the same filename again, returning true" do
