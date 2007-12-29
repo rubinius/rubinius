@@ -114,7 +114,7 @@ end
 
 # only these directories are included because other directories have specs
 # that cause compilation to fail. ideally, spec/**/*_spec.rb would be run.
-patterns = ['spec/core', 'spec/language', 'spec/rubinius/parser'] if patterns.empty?
+patterns = CI_FILE_SPECS if patterns.empty?
 files = []
 patterns.each do |item|
   stat = File.stat(File.expand_path(item))
