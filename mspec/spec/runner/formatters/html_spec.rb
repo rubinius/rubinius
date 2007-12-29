@@ -14,7 +14,7 @@ describe HtmlFormatter do
   
   it "responds to print_head with no arguments" do
     @formatter.print_head
-    @out.should == "<html>\n<head>\n<title>Spec Output For ruby (1.8.6)</title>\n" \
+    @out.should == "<html>\n<head>\n<title>Spec Output For #{RUBY_NAME} (#{RUBY_VERSION})</title>\n" \
       "<script type=\"text/css\">\nul {\n  list-style: none;\n}\n" \
       ".fail {\n  color: red;\n}\n.pass {\n  color: green;\n}\n</script>\n</head>\n<body>\n"
   end
