@@ -206,4 +206,12 @@ class Object
   def runner_is_not(*args)
     yield unless MSpec.runner?(*args)
   end
+  
+  # quarantine! do
+  #   do NOT run these specs. Used for specs that are questionable
+  #   for whatever reason to removed them from execution while they
+  #   are investigated.
+  # end
+  def quarantine!
+  end
 end

@@ -274,6 +274,14 @@ describe MSpec, ".size?" do
   end
 end
 
+describe Object, "#quarantine!" do
+  it "does not yield" do
+    lambda {
+      quarantine! { raise Exception, "I have not been raised" } 
+    }.should_not raise_error
+  end
+end
+
 describe Object, "#fails_on" do
   it "does not yield when MSpec.engine? returns true" do
     MSpec.should_receive(:engine?).with(:rbx).and_return(true)
