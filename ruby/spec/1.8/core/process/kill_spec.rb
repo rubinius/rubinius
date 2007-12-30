@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Process.kill" do
+quarantine! do # these specs seem way too dangerous
   it "requires at least two arguments" do
     lambda { Process.kill }.should raise_error(ArgumentError)
     lambda { Process.kill(0) }.should raise_error(ArgumentError)
@@ -39,8 +40,10 @@ describe "Process.kill" do
     lambda { Process.kill(1, 1) }.should raise_error(Errno::EPERM)
   end
 end
+end
 
 describe "Process.kill" do
+quarantine! do # dangerous specs
   before :each do
     @foo = 0
     Signal.trap("HUP") { @foo = 42 }
@@ -67,8 +70,10 @@ describe "Process.kill" do
     Process.kill("SIGHUP", 0).should == 1
   end
 end
+end
 
 describe "Process.kill" do
+quarantine! do # dangerous
   before :each do
     @pid = Process.fork {
       begin
@@ -103,4 +108,5 @@ describe "Process.kill" do
   it "kills process groups if signal starts with a minus sign and 'SIG'" do
     Process.kill("-SIGHUP", Process.getpgid(@pid)).should == 1
   end
+end
 end
