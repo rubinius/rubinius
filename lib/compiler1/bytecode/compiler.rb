@@ -662,7 +662,7 @@ module Bytecode
       end
       
       def process_scope(x)
-        if x.first.empty?
+        if x.first.nil?
           x.clear
           add "push nil"        # stack un-cleanup
           return []

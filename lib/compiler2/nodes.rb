@@ -80,6 +80,10 @@ class Node
     self.kind_of?(clas)
   end
   
+  def expand(obj)
+    obj.nil? ? Nil.new(@compiler) : obj
+  end
+  
   # Start of Node subclasses
   
   class ClosedScope < Node
@@ -216,7 +220,7 @@ class Node
     end
     
     def args(body)
-      @body = body
+      @body = expand(body)
     end
     
     attr_accessor :body
@@ -226,7 +230,7 @@ class Node
     kind :script
     
     def args(body)
-      @body = body
+      @body = expand(body)
     end
 
     attr_accessor :body
@@ -433,7 +437,7 @@ class Node
     kind :while
     
     def args(cond, body, check_first=true)
-      @condition, @body, @check_first = cond, body, check_first
+      @condition, @body, @check_first = cond, expand(body), check_first
     end
     
     attr_accessor :condition, :body, :check_first
@@ -475,6 +479,10 @@ class Node
     end
     
     attr_accessor :block, :locals
+    
+    def empty?
+      @block.nil?
+    end
   end
   
   class Arguments < Node
@@ -614,7 +622,7 @@ class Node
     kind :when
     
     def args(cond, body = nil)
-      @body = body
+      @body = expand(body)
       @conditions = []
       @splat = nil
 
@@ -1345,7 +1353,7 @@ class Node
     end
     
     def args(name, body, args)
-      @name, @body, @arguments = name, body, args      
+      @name, @body, @arguments = name, expand(body), args      
     end
         
     attr_accessor :name, :body, :arguments
@@ -1614,7 +1622,7 @@ class Node
     end
     
     def normalize(c, a, b)
-      @arguments, @body = a, b
+      @arguments, @body = a, expand(b)
       
       if c.is? FCall and c.method == :loop
         n = Loop.new(@compiler)
@@ -1674,7 +1682,7 @@ class Node
     end
 
     def normalize(c, arguments, body)
-      @arguments, @body = arguments, body
+      @arguments, @body = arguments, expand(body)
       
       c.block = self
       return c

@@ -77,6 +77,9 @@ class Node
     end
     
     def attach_and_call(g, name)
+      # If the body is empty, then don't bother with it.
+      return if @body.empty?
+      
       desc = new_description()
       meth = desc.generator
       
@@ -525,7 +528,7 @@ class Node
         
         g.redo.set!
         
-        @body.bytecode(g) if @body
+        @body.bytecode(g)
         g.pop
       else
         g.next = g.new_label
@@ -533,7 +536,7 @@ class Node
         
         top.set!
         
-        @body.bytecode(g) if @body
+        @body.bytecode(g)
         g.pop
         
         g.next.set!
@@ -600,11 +603,7 @@ class Node
         sub.next = nil
         sub.redo = sub.new_label        
         sub.redo.set!
-        if @body
-          @body.bytecode(sub)
-        else
-          sub.push :nil
-        end
+        @body.bytecode(sub)
         sub.pop_modifiers
         sub.soft_return
         sub.close
@@ -748,11 +747,7 @@ class Node
 
       # Remove the thing we've been testing.
       g.pop if has_receiver
-      if @body.nil?
-        g.push :nil
-      else
-        @body.bytecode(g)
-      end
+      @body.bytecode(g)
       g.goto fin
     end
   end
