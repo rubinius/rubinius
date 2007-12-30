@@ -2736,7 +2736,7 @@ class ShotgunPrimitives
         t2 = string_get_data(self);
         t3 = string_get_data(t1);
 
-        k = strncmp(BYTEARRAY_ADDRESS(t2), BYTEARRAY_ADDRESS(t3), j);
+        k = memcmp(BYTEARRAY_ADDRESS(t2), BYTEARRAY_ADDRESS(t3), j);
         stack_push(k == 0 ? Qtrue : Qfalse);
       }
     }

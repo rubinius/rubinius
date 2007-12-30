@@ -47,6 +47,11 @@ class Compiler2
     def set_label(idx)
       @text << "l#{idx}:\n"
     end
+    
+    def add_text(text)
+      @text << text
+      @text << "\n"
+    end
         
     def run(node)
       node.bytecode(self)
@@ -111,8 +116,25 @@ class Compiler2
       @text << "#primitive #{name}\n"
     end
     
+    class EB
+      @@ids = 0
+      
+      def initialize(gen)
+        @gen = gen
+        @idx = (@@ids += 1)
+      end
+      
+      def start!
+        @gen.add_text "; exc#{@idx} start"
+      end
+      
+      def handle!
+        @gen.add_text "; exc#{@idx} end"
+      end
+    end
+    
     def exceptions
-      ex = Compiler2::Generator::ExceptionBlock.new(self)
+      ex = EB.new(self)
       ex.start!
       yield ex
     end

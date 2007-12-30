@@ -553,6 +553,30 @@ CODE
     CODE
   end
   
+  def cast_for_multi_block_arg
+    <<-CODE
+    t1 = stack_top();
+    k = NUM_FIELDS(t1);
+    /* If there is only one thing in the tuple... */
+    if(k == 1) {
+      t1 = tuple_at(state, t1, 0);
+      /* and that thing is an array... */
+      if(RISA(t1, array)) {
+        /* make a tuple out of the array contents... */
+        j = FIXNUM_TO_INT(array_get_total(t1));
+        t2 = tuple_new(state, j);
+
+        for(k = 0; k < j; k++) {
+          tuple_put(state, t2, k, array_get(state, t1, k));
+        }
+        
+        /* and put it on the top o the stack. */
+        stack_set_top(t2);
+      }
+    }
+    CODE
+  end
+  
   def make_hash
     <<-CODE
     next_int;

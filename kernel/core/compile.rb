@@ -9,7 +9,7 @@ module Compile
 
   @compiler = nil
 
-  DefaultCompiler = "compiler1"
+  DefaultCompiler = "compiler2"
 
   def self.register_compiler(obj)
     if $DEBUG
@@ -121,6 +121,8 @@ module Compile
 
       if File.file? rb_path
         rbc_path = "#{dir}#{rbc}"
+        
+        cm = nil
 
         # Use source only if it is newer
         if !File.file?(rbc_path) or File.mtime(rb_path) > File.mtime(rbc_path)

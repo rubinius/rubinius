@@ -143,7 +143,7 @@ describe "Assigning multiple values" do
     b.should == 1
   end
 
-  compliant :ruby, :jruby do
+  compliant_on :ruby, :jruby do
     it "evaluates rhs left-to-right" do
       a = VariablesSpecs::ParAsgn.new
       d,e,f = a.inc, a.inc, a.inc
@@ -156,7 +156,7 @@ describe "Assigning multiple values" do
   # Rubinius evaluates the rhs args right-to-left, not left-to-right.
   # In most cases, this should make no noticeable difference, and it is felt
   # that RHS evaluation order ought to be left to the implementation.
-  noncompliant :rubinius do
+  deviates_on :rubinius do
     it "evaluates rhs right-to-left" do
       a = VariablesSpecs::ParAsgn.new
       d,e,f = a.inc, a.inc, a.inc
@@ -688,7 +688,7 @@ end
 
 describe 'Multiple assignments with splats' do
   # TODO make this normal once rubinius eval works
-  compliant :ruby do
+  compliant_on :ruby do
     it '* on the lhs has to be applied to the last parameter' do
       lambda { eval 'a, *b, c = 1, 2, 3' }.should raise_error(SyntaxError)
     end
@@ -757,14 +757,14 @@ describe 'Multiple assignments with grouping' do
     d.should == 4
   end
 
-  compliant :ruby do
+  compliant_on :ruby do
     it 'rhs cannot use parameter grouping, it is a syntax error' do
       lambda { eval '(a, b) = (1, 2)' }.should raise_error(SyntaxError)
     end
   end
 end
 
-compliant :ruby do
+compliant_on :ruby do
 
 describe "Multiple assignment" do
   
@@ -796,7 +796,7 @@ end
 # containing all the elements on the rhs. As this result is never used, the cost
 # of creating and then discarding this array is avoided
 describe "Multiple assignment, array-style" do
-  compliant :ruby do
+  compliant_on :ruby do
     it "returns an array of all rhs values" do
       (a,b = 5,6,7).should == [5,6,7]
       a.should == 5
@@ -814,7 +814,7 @@ describe "Multiple assignment, array-style" do
     end
   end
 
-  noncompliant :rubinius do
+  deviates_on :rubinius do
     it "returns true" do
       (a,b = 5,6,7).should == true
       a.should == 5

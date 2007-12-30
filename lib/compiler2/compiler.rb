@@ -1,3 +1,5 @@
+require 'compiler2/system_hints'
+
 class Compiler2
 
   class Error < RuntimeError
@@ -43,6 +45,7 @@ class Compiler2
     activate :primitive
     activate :assembly
     activate :method_visibility
+    activate :fastmath
   end
 
   def activate(name)

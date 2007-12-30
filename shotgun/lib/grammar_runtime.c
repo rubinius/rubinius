@@ -577,7 +577,13 @@ again_no_block:
     } else {
         array_push(current, Q2SYM(node->nd_vid));
     }
-    add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+    
+    if(node->nd_value) {
+      add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+    } else{
+      array_push(current, Qnil);      
+    }
+    
     if(node->nd_next) {
       add_to_parse_tree(current, node->nd_next, newlines, locals, line_numbers);      
     } else {

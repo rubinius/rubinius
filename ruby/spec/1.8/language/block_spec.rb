@@ -48,7 +48,7 @@ describe "A block whose arguments are splatted" do
   end
 end
 
-compliant_on :ruby18 do
+not_compliant_on :rubinius do
   # This functionality is being removed from MRI and has never
   # been used in 1.8, therefore rubinius doesn't support
   # it already.

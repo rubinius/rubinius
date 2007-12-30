@@ -45,7 +45,7 @@ class Bignum < Integer
   end
 
   def eql?(value)
-    return false unless value.kind_of?(Bignum)
+    return false unless value.kind_of?(Integer)
 
     self == value
   end

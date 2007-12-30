@@ -182,7 +182,7 @@ class ReturnException
   attr_reader :return_value
 
   def initialize(val)
-    super()
+    super(nil) # HACK
     @return_value = val
   end
 end

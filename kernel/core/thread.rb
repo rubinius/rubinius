@@ -40,7 +40,7 @@ class Thread
       Kernel.raise ThreadError, "must be called with a block"
     end
 
-    block = Ruby.asm "push_block"
+    block = block_given?
     block.disable_long_return!
 
     setup(false)
@@ -74,12 +74,12 @@ class Thread
   end
 
   def setup_task
-    block = Ruby.asm "push_block"
+    block = block_given?
     @task.associate block
   end
 
   def self.new(*args)
-    block = Ruby.asm "push_block"
+    block = block_given?
     th = allocate()
     th.initialize(*args, &block)
     th.wakeup
@@ -134,10 +134,7 @@ class Thread
   end
 
   def join(timeout = Undefined)
-    join_inner(timeout) do
-      break nil if @alive
-      self
-    end
+    join_inner(timeout) { @alive ? nil : self }
   end
 
   def group
@@ -162,8 +159,8 @@ class Thread
         @lock.send nil
         begin
           unless timeout == Undefined
-            timeout = Time.at timeout
-            Scheduler.send_in_microseconds(jc, (timeout.to_f * 1_000_000).to_i)
+            msecs = (timeout.to_f * 1_000_000).to_i
+            Scheduler.send_in_microseconds(jc, msecs)
           end
           jc.receive
         ensure

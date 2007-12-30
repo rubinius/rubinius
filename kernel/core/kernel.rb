@@ -94,7 +94,7 @@ module Kernel
     end
 
     exc.set_backtrace MethodContext.current.sender unless exc.backtrace
-    Ruby.asm "#local exc\nraise_exc"
+    Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
   end
   
   alias_method :fail, :raise
@@ -203,7 +203,7 @@ module Kernel
   end
     
   def lambda
-    block = Ruby.asm "push_block"
+    block = block_given?
     raise ArgumentError, "block required" if block.nil?
     
     block.disable_long_return!

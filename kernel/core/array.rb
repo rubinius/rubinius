@@ -493,6 +493,8 @@ class Array
 
       i += 1
     end
+    
+    yield if block_given?
   end  
 
   # Deletes the element at the given index and returns

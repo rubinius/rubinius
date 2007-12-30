@@ -89,7 +89,7 @@ class Compiler2
     
     def encode_exceptions
       @exceptions.sort!
-            
+  
       tup = Tuple.new(@exceptions.size)
       i = 0
       @exceptions.each do |e|
@@ -303,6 +303,14 @@ class Compiler2
     # Pushes the specified literal value into the literal's tuple
     def push_literal(what)
       idx = find_literal(what)
+      add :push_literal, idx
+      return idx
+    end
+    
+    # Puts +what+ is the literals tuple without trying to see if
+    # something that is like +what+ is already there.
+    def push_unique_literal(what)
+      idx = add_literal(what)
       add :push_literal, idx
       return idx
     end

@@ -144,6 +144,11 @@ class Node
       g.set_line @line, @file
       @child.bytecode(g) if @child
     end
+    
+    def call_bytecode(g)
+      g.set_line @line, @file
+      @child.call_bytecode(g)
+    end    
   end
   
   # TESTED
@@ -218,11 +223,11 @@ class Node
   # TESTED  
   class Negate
     def bytecode(g)
-      if @child.kind_of? NumberLiteral
+      if @child.is? NumberLiteral
         g.push -@child.value
       else
         @child.bytecode(g)
-        g.send :"@-", 0
+        g.send :"-@", 0
       end
     end
   end
@@ -237,7 +242,7 @@ class Node
   # TESTED  
   class Literal
     def bytecode(g)
-      g.push_literal @value
+      g.push_unique_literal @value
     end
   end
   
@@ -263,13 +268,15 @@ class Node
   class HashLiteral
     def bytecode(g)
       count = @body.size
+      i = count - 1
 
-      until @body.empty?
-        v = @body.pop
-        k = @body.pop
+      while i > 0
+        v = @body[i]
+        k = @body[i - 1]
 
         v.bytecode(g)
         k.bytecode(g)
+        i -= 2
       end
       
       g.push_cpath_top
@@ -431,16 +438,17 @@ class Node
         return
       end
       
-      fin = @body.pop
-      @body.each do |part|
+      count = @body.size - 1
+      i = 0
+      while i < count
         ip = g.ip
-        part.bytecode(g)
+        @body[i].bytecode(g)
         
         # guards for things that plugins might optimize away.
         g.pop if g.advanced_since?(ip)
+        i += 1
       end
-      @body << fin
-      fin.bytecode(g)
+      @body[count].bytecode(g)
     end
   end
   
@@ -1095,15 +1103,17 @@ class Node
   # TESTED
   class ConstSet
     def bytecode(g)
-      @value.bytecode(g)
       if @parent
         @parent.bytecode(g)
+        @value.bytecode(g)
         g.set_const @name, true
       else
         if @from_top
           g.push_cpath_top
+          @value.bytecode(g)
           g.set_const @name, true
         else
+          @value.bytecode(g) if @value
           g.set_const @name
         end
       end
@@ -1485,8 +1495,9 @@ class Node
     def bytecode(g)
       case @child
       when MAsgn
+        g.cast_for_multi_block_arg
         @child.bytecode(g)
-      when LocalAssignment, IVarAssign
+      when LocalAssignment, IVarAssign, GVarAssign, AttrAssign
         g.cast_for_single_block_arg
         @child.bytecode(g)
         g.pop
@@ -1520,7 +1531,7 @@ class Node
     #   the outermost masgn.
     def bytecode(g)
       if @source
-        if @source.kind_of? ArrayLiteral
+        if @source.is? ArrayLiteral
           if @splat
             array_bytecode(g)
           else
@@ -1564,7 +1575,7 @@ class Node
       # Now all the source data is on the stack.
       
       @assigns.body.each do |x|
-        if x.kind_of? AttrAssign
+        if x.is? AttrAssign
           x.bytecode(g, true)
         else
           x.bytecode(g)
@@ -1608,9 +1619,11 @@ class Node
     end
     
     def statement_bytecode(g)
-      if @source.kind_of? Splat or @source.kind_of? ToArray
+      if @source.nil?
+        # skip
+      elsif @source.is? Splat or @source.is? ToArray
         @source.child.bytecode(g)
-      elsif @source.kind_of? ConcatArgs
+      elsif @source.is? ConcatArgs
         @source.bytecode(g)
       elsif @source
         raise Error, "Unknown form: #{@source.class}"
@@ -1705,12 +1718,12 @@ class Node
             x.bytecode(g)
           end
           @argcount = @arguments.size
-        elsif @arguments.kind_of? ConcatArgs
+        elsif @arguments.is? ConcatArgs
           @arguments.call_bytecode(g)
           # ConcatArgs calls get_args on its own, so we don't need to
           @dynamic = true
         else
-          if @arguments.kind_of? Splat
+          if @arguments.is? Splat
             @arguments.call_bytecode(g)
           else
             @arguments.bytecode(g)

@@ -119,18 +119,18 @@ class CompiledMethod
       block = nil
     end
     
-    out = Ruby.asm <<-ASM
-#local args
-push_array
-#local block
-#local locals
-#local sz
-#local mod
-push self
-#local recv
-activate_method
-    ASM
-    
+    out = Rubinius.asm(args, block, locals, sz, mod, recv) do |a,b,l,s,m,r|
+      run a
+      push_array
+      run b
+      run l
+      run s
+      run m
+      push :self
+      run r
+      activate_method 0
+    end
+        
     return out
   end
     

@@ -113,7 +113,9 @@ def compile(name, output, check_mtime=false)
     return
   end
   
-  if $compiler
+  if $compiler == :c2
+    inc = "-Iruntime/stable/compiler2.rba -rcompiler2/init"
+  elsif $compiler
     inc = "-I#{$compiler}"
   else
     inc = ""
@@ -136,7 +138,11 @@ task :stable_compiler do
   if ENV['USE_CURRENT']
     puts "Use current versions, not stable."
   else
-    $compiler = "runtime/stable/compiler1.rba"
+    if ENV['USE_C1']
+      $compiler = "runtime/stable/compiler1.rba"
+    else
+      $compiler = :c2
+    end
     ENV['RBX_BOOTSTRAP'] = "runtime/stable/bootstrap.rba"
     ENV['RBX_CORE'] = "runtime/stable/core.rba"
     ENV['RBX_LOADER'] = "runtime/stable/loader.rbc"
@@ -148,7 +154,7 @@ task :stable_shell => :stable_compiler do
   sh "shotgun/rubinius --gdb"
 end
 
-rule ".rbc" => %w[compiler .rb] do |t|
+rule ".rbc" => %w[.rb] do |t|
   compile t.source, t.name
 end
 
@@ -262,6 +268,10 @@ end
 
 file 'runtime/stable/compiler1.rba' => 'build:compiler1' do
   sh "cd lib; zip -r ../runtime/stable/compiler1.rba compiler1 -x \\*.rb"
+end
+
+file 'runtime/stable/compiler2.rba' => 'build:compiler2' do
+  sh "cd lib; zip -r ../runtime/stable/compiler2.rba compiler2 -x \\*.rb"
 end
 
 Rake::StructGeneratorTask.new do |t|
@@ -399,6 +409,7 @@ task :pristine do
     next if /^runtime/.match(fn)
     next if %r!fixtures/require!.match(fn)
     next if %r!lib/compiler1!.match(fn)
+    next if %r!lib/compiler2!.match(fn)
     FileUtils.rm fn rescue nil
   end
 end
@@ -412,6 +423,10 @@ namespace :clean do
     end
 
     (Dir["lib/compiler1/*.rbc"] + Dir["lib/compiler1/**/*.rbc"]).each do |f|
+      rm_f f, :verbose => $verbose
+    end
+    
+    (Dir["lib/compiler2/*.rbc"] + Dir["lib/compiler2/**/*.rbc"]).each do |f|
       rm_f f, :verbose => $verbose
     end
     
@@ -436,6 +451,7 @@ namespace :build do
     build:platform
     build:rbc
     compiler1
+    compiler2
     lib/etc.rb
     lib/rbconfig.rb
     extensions
@@ -475,6 +491,10 @@ namespace :build do
   task :compiler1 => :stable_compiler do
     compile_dir "lib/compiler1"
   end
+  
+  task :compiler2 => :stable_compiler do
+    compile_dir "lib/compiler2"
+  end
 
   desc "Rebuild runtime/stable/*.  If you don't know why you're running this, don't."
   task :stable => %w[
@@ -482,6 +502,7 @@ namespace :build do
     runtime/stable/bootstrap.rba
     runtime/stable/core.rba
     runtime/stable/compiler1.rba
+    runtime/stable/compiler2.rba
     runtime/stable/loader.rbc
     runtime/stable/platform.rba
   ]

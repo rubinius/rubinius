@@ -199,7 +199,10 @@ class String
   def =~(pattern)
     case pattern
     when Regexp
-      pattern.match(self)
+      if m = pattern.match(self)
+        return m.begin(0)
+      end
+      return nil      
     when String
       raise TypeError, "type mismatch: String given"
     else
@@ -1218,6 +1221,8 @@ class String
     start = 0
     ret = []
     
+    last_match = nil
+    
     while match = pattern.match_from(self, start)
       break if limited && limit - ret.size <= 1
       collapsed = match.collapsing?
@@ -1401,6 +1406,7 @@ class String
     
     carry = false
     c = 0
+    last_alnum = nil
     start.step(0, -1) do |idx|
       c = out[idx]
       carry = true 
@@ -1989,7 +1995,10 @@ class String
   # TODO: Make string_dup compatible with String subclasses
   #+++
   def dup
-    out = Ruby.asm "push self\nstring_dup\n"    
+    out = Rubinius.asm do
+      push :self
+      string_dup
+    end
     out.taint if self.tainted?
     return out
   end

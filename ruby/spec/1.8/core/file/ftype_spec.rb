@@ -30,7 +30,7 @@ describe "File.ftype" do
       
       # Symlinks
       %w[/dev /usr/bin /usr/local/bin].each do |dir|
-        links = `find /usr/local/bin -type l 2> /dev/null`.split("\n")
+        links = `find #{dir} -type l 2> /dev/null`.split("\n")
         next if links.empty?
         @link = links.first
         break

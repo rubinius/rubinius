@@ -157,7 +157,7 @@ static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name,
     } else if(vis == state->global->sym_protected) {
       /* If it's protected, bail if the receiver isn't the same
          class as self. */
-      if(!ISA(recv, object_class(state, c->self))) return Qnil;
+      if(object_class(state, recv) != object_class(state, c->self)) return Qnil;
     }
   }
   
@@ -1020,6 +1020,8 @@ void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT bl
 static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
   OBJECT mo, klass, mod;
   int missing;
+  
+  c->call_flags = 1;
     
   missing = 0;
   
@@ -1036,6 +1038,7 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, OBJECT sym,
   /* Make sure no one else sees the a recently set cache_index, it was
      only for us! */
   c->cache_index = -1;
+  c->call_flags = 0;
   
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
 }

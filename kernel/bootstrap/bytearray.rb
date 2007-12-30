@@ -5,14 +5,11 @@ class ByteArray
 
   def self.new(cnt)
     obj = allocate(cnt)
-    Ruby.asm <<-CODE
-push_block
-#local obj
-push 0
-set_args
-set_call_flags 1
-&send initialize +
-    CODE
+    Rubinius.asm(obj) do |obj|
+      push_block
+      run obj
+      send_with_block :initialize, 0, true
+    end
 
     return obj
   end

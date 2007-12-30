@@ -117,7 +117,8 @@ class InstructionSet
     {:opcode => :set_literal, :args => [:literal]},
     {:opcode => :passed_blockarg, :args => [:int]},
     {:opcode => :create_block2, :args => [], :vm_flags => [:check_interrupts]},
-    {:opcode => :cast_for_single_block_arg, :args => []}
+    {:opcode => :cast_for_single_block_arg, :args => []},
+    {:opcode => :cast_for_multi_block_arg, :args => []}
   ]
 
   InstructionSize = 4

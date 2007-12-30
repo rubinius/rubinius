@@ -393,7 +393,7 @@ class Node
     kind :match3
     
     def args(pattern, target)
-      @target, @pattern = target, pattern
+      @pattern, @target = pattern, target      
     end
     
     attr_accessor :target, :pattern
@@ -816,7 +816,17 @@ class Node
   class ArrayLiteral < Node
     kind :array
     
-    def args(*body)
+    # We do this to get around having to do *body in
+    # args. 1024 is the max number of args, so if an
+    # array had more elements that than, args would
+    # get an args error. This lets us leave it as an
+    # Array.
+    def consume(sexp)
+      sexp.map! { |s| convert(s) }
+      [sexp]
+    end
+    
+    def args(body)
       @body = body
     end
     
@@ -1065,7 +1075,19 @@ class Node
         parent = name.parent
       end
       
-      body = set(:family, self) do
+      # We have to set this before converting the body, because
+      # we'll need to know it to use find_ivar_index properly.
+      sup = sexp[1]
+      if sup and sup[0] == :const
+        @superclass_name = sup[1]
+      else
+        @superclass_name = nil
+      end
+      @name = sym
+
+      @namespace = get(:namespace)
+      
+      body = set(:family => self, :namespace => sym) do
         super([sexp[2]])
       end
             
@@ -1073,6 +1095,23 @@ class Node
     end
     
     attr_accessor :name, :parent, :superclass, :body
+    
+    def find_ivar_index(name)
+      slot = super(name)
+      if slot
+        return slot
+      elsif !@namespace
+        if tbl = Compiler2::Bootstrap::HINTS[@name]
+          return tbl[name]
+        elsif @superclass_name
+          if tbl = Compiler2::Bootstrap::HINTS[@superclass_name]
+            return tbl[name]
+          end
+        end
+      end
+      
+      return nil
+    end
   end
   
   class Module < ClosedScope
@@ -1088,11 +1127,17 @@ class Node
       
       if name.is? ConstFind
         parent = nil
+      elsif name.is? ConstAtTop
+        parent = name
       else
         parent = name.parent
       end
       
-      [sym, parent, super([sexp[1]])]
+      body = set(:namespace, sym) do
+        super([sexp[1]])
+      end
+      
+      [sym, parent, body]
     end
     
     attr_accessor :name, :body, :parent
@@ -1128,6 +1173,10 @@ class Node
         @splat = cond.array
       else
         raise Error, "Unknown rescue condition form"
+      end
+      
+      if body.nil?
+        @body = Nil.new(@compiler)
       end
     end
     
@@ -1449,7 +1498,7 @@ class Node
   class Super < Call
     kind :super
     
-    def args(args)
+    def args(args=nil)
       @method = get(:scope)
       @arguments = args
       
@@ -1514,6 +1563,8 @@ class Node
     end
     
     def names
+      return [] if @child.nil?
+      
       if @child.is? LocalAssignment
         [@child.name]
       else

@@ -28,7 +28,7 @@ describe "self in a metaclass body (class << obj)" do
     cls.equal?(Object).should == false
   end
   
-  extension(:rubinius) do 
+  deviates_on(:rubinius) do 
     it "is a MetaClass instance" do
       cls = class << mock('x'); self; end
       cls.is_a?(MetaClass).should == true

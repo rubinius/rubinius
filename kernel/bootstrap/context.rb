@@ -1,6 +1,6 @@
 class MethodContext
   def self.current
-    cur = Ruby.asm "push_context\n"
+    cur = Rubinius.asm { push_context }
     return cur.sender
   end
     
