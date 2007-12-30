@@ -1,4 +1,4 @@
-class Process
+module Process
   WNOHANG = 1
   WUNTRACED = 2
   PRIO_PROCESS = 0
@@ -78,6 +78,21 @@ class Process
     Platform::POSIX.setpgid(pid, int)
   end
 
+  @maxgroups = 32
+  class << self
+    attr_reader :maxgroups
+    def maxgroups=(m)
+      @maxgroups = m
+    end
+  end
+
+  def self.setpgrp
+    setpgid(0, 0)
+  end
+  def self.getpgrp
+    Platform::POSIX.getpgrp
+  end
+
   def self.pid
     Platform::POSIX.getpid
   end
@@ -86,12 +101,73 @@ class Process
     Platform::POSIX.getppid
   end
 
+  def self.uid=(uid)
+    Process::Sys.setuid uid
+  end
+
+  def self.gid=(gid)
+    Process::Sys.setgid gid
+  end
+
+  def self.euid=(uid)
+    Process::Sys.seteuid uid
+  end
+
+  def self.egid=(gid)
+    Process::Sys.setegid gid
+  end
+
   def self.uid
     Platform::POSIX.getuid
   end
 
   def self.gid
     Platform::POSIX.getgid
+  end
+
+  def self.euid
+    Platform::POSIX.geteuid
+  end
+
+  def self.egid
+    Platform::POSIX.getegid
+  end
+
+  def self.getpriority(kind, id)
+    Platform::POSIX.errno = 0
+    ret = Platform::POSIX.getpriority(kind, id)
+    Errno.handle
+    ret
+  end
+
+  def self.setpriority(kind, id, priority)
+    ret = Platform::POSIX.setpriority(kind, id, priority)
+    Errno.handle if ret == -1
+    ret
+  end
+
+  def self.groups
+    g = []
+    MemoryPointer.new(:int, @maxgroups) { |p|
+      num_groups = Platform::POSIX.getgroups(@maxgroups, p)
+      Errno.handle if num_groups == -1
+      g = p.read_array_of_int(num_groups)
+    }
+    g
+  end
+
+  def self.groups=(g)
+    @maxgroups = g.length if g.length > @maxgroups
+    MemoryPointer.new(:int, @maxgroups) { |p|
+      p.write_array_of_int(g)
+      Errno.handle if -1 == Platform::POSIX.setgroups(g.length, p)
+    }
+    g
+  end
+
+  def self.initgroups(username, gid)
+    Errno.handle if -1 == Platform::POSIX.initgroups(username, gid)
+    Process.groups
   end
 
   def self.wait(pid=-1, flags=0)
@@ -199,6 +275,172 @@ class Process
     
     def termsig
       nil
+    end
+  end
+
+  module Sys
+    class << self
+      def getegid
+        Platform::POSIX.getegid
+      end
+      def geteuid
+        Platform::POSIX.geteuid
+      end
+      def getgid
+        Platform::POSIX.getgid
+      end
+      def getuid
+        Platform::POSIX.getuid
+      end
+      def issetugid
+        raise "not implemented"
+      end
+      def setgid(gid)
+        Platform::POSIX.setgid gid
+        Errno.handle if ret == -1
+        nil
+      end
+      def setuid(uid)
+        Platform::POSIX.setuid uid
+        Errno.handle if ret == -1
+        nil
+      end
+      def setegid(egid)
+        ret = Platform::POSIX.setegid egid
+        Errno.handle if ret == -1
+        nil
+      end
+      def seteuid(euid)
+        Platform::POSIX.seteuid euid
+        Errno.handle if ret == -1
+        nil
+      end
+      def setrgid(rgid)
+        setregid(rgid, -1)
+      end
+      def setruid(ruid)
+        setreuid(ruid, -1)
+      end
+      def setregid(rid, eid)
+        Platform::POSIX.setregid rid, eid
+        Errno.handle if ret == -1
+        nil
+      end
+      def setreuid(rid)
+        Platform::POSIX.setreuid rid
+        Errno.handle if ret == -1
+        nil
+      end
+      def setresgid(rid, eid, sid)
+        Platform::POSIX.setresgid rid, eid, sid
+        Errno.handle if ret == -1
+        nil
+      end
+      def setresuid(rid, eig, sid)
+        Platform::POSIX.setresuid rid, eid, sid
+        Errno.handle if ret == -1
+        nil
+      end
+    end
+  end
+
+  module UID
+    class << self
+      def change_privilege(uid)
+        Platform::POSIX.setreuid(uid, uid)
+        uid
+      end
+
+      def eid
+        Platform::POSIX.geteuid
+      end
+
+      def eid=(uid)
+        Platform::POSIX.seteuid(uid)
+        uid
+      end
+      alias_method :grant_privilege, :eid=
+
+      def re_exchange
+        real = Platform::POSIX.getuid
+        eff = Platform::POSIX.geteuid
+        Platform::POSIX.setreuid(eff, real)
+        eff
+      end
+
+      def re_exchangeable?
+        true
+      end
+
+      def rid
+        Platform::POSIX.getuid
+      end
+
+      def sid_available?
+        true
+      end
+
+      def switch
+        eff = re_exchange
+        if block_given?
+          ret = yield
+          re_exchange
+          return ret
+        else
+          return eff
+        end
+      end
+
+    end
+  end
+
+  module GID
+    class << self
+      def change_privilege(gid)
+        Platform::POSIX.setregid(gid, gid)
+        gid
+      end
+
+      def eid
+        Platform::POSIX.getegid
+      end
+
+      def eid=(gid)
+        Platform::POSIX.setegid(gid)
+        gid
+      end
+      alias_method :grant_privilege, :eid=
+
+      def re_exchange
+        real = Platform::POSIX.getgid
+        eff = Platform::POSIX.getegid
+        Platform::POSIX.setregid(eff, real)
+        eff
+      end
+
+      def re_exchangeable?
+        true
+      end
+
+      def rid
+        Platform::POSIX.getgid
+      end
+
+      def sid_available?
+        true
+      end
+
+      def switch
+        eff = re_exchange
+        if block_given?
+          ret = yield
+          re_exchange
+          return ret
+        else
+          return eff
+        end
+      end
+
     end
   end
 end
