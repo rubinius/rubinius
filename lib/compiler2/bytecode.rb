@@ -525,7 +525,7 @@ class Node
         
         g.redo.set!
         
-        @body.bytecode(g)
+        @body.bytecode(g) if @body
         g.pop
       else
         g.next = g.new_label
@@ -533,7 +533,7 @@ class Node
         
         top.set!
         
-        @body.bytecode(g)
+        @body.bytecode(g) if @body
         g.pop
         
         g.next.set!
