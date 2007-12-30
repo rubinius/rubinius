@@ -20,6 +20,11 @@ marker = nil
 ci_files = "tmp/files.txt"
 flags = []
 
+# Subdir where exclude files for CI are stored.
+# Different implementations require different places.
+# Rubinius implementation by default uses '.spec'.
+excludes_subdir = '.spec'
+
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "ci [options] (FILE|DIRECTORY|GLOB)+"
   opts.separator ""
@@ -45,8 +50,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       target = 'shotgun/rubinius'
     when 'j', 'jruby'
       target = 'jruby'
+      excludes_subdir = '.jruby'
     else
       target = t
+      excludes_subdir = '.jruby' if /jruby(.bat|.sh)*$/ =~ target
     end
   end
   opts.on("-f", "--format FORMAT", String, 
@@ -137,7 +144,7 @@ require 'spec/spec_helper'
 $VERBOSE=nil
 
 def exclude_name(file)
-  File.join(File.dirname(file), '.spec', 
+  File.join(File.dirname(file), #{excludes_subdir.inspect},
     File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
 end
 
@@ -146,7 +153,7 @@ def create_exclude_file(file)
 end
 
 def mk_exclude_dir(file)
-  dir = File.join(File.dirname(file), '.spec')
+  dir = File.join(File.dirname(file), #{excludes_subdir.inspect})
   Dir.mkdir(dir) unless File.exist?(dir)
 end
 
