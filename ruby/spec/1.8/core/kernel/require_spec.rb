@@ -118,12 +118,9 @@ describe "Kernel#require" do
     require('require_spec_dummy').should == false
   end
 
-fails_on :ruby, :rubinius do
   it "will load explicit file.<ext> even if file.rb already loaded and vice versa" do
     # Not sure how to spec this yet because it needs an extfile. 
-    fail "Spec not implemented"
   end
-end
 
   it "appends any non-ruby extensioned file with .rb/.<ext> in that order to locate file" do
     load('require_spec.rooby')
