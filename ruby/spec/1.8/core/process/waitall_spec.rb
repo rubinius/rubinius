@@ -15,9 +15,9 @@ describe "Process.waitall" do
 
   it "waits for all children" do
     pids = []
-    pids << Process.fork { sleep 0.2; Process.exit! 2 }
-    pids << Process.fork { sleep 0.1; Process.exit! 1 }
-    pids << Process.fork {            Process.exit! 0 }
+    pids << Process.fork { Process.exit! 2 }
+    pids << Process.fork { Process.exit! 1 }
+    pids << Process.fork { Process.exit! 0 }
     Process.waitall
     pids.each { |pid|
       lambda { Process.kill(0, pid) }.should raise_error(Errno::ESRCH)
@@ -26,9 +26,9 @@ describe "Process.waitall" do
 
   it "returns an array of pid/status pairs" do
     pids = []
-    pids << Process.fork { sleep 0.2; Process.exit! 2 }
-    pids << Process.fork { sleep 0.1; Process.exit! 1 }
-    pids << Process.fork {            Process.exit! 0 }
+    pids << Process.fork { Process.exit! 2 }
+    pids << Process.fork { Process.exit! 1 }
+    pids << Process.fork { Process.exit! 0 }
     a = Process.waitall
     a.class.should == Array
     a.size.should == 3
