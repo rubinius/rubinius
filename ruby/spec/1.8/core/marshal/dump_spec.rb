@@ -101,6 +101,8 @@ end
 
 module Meths
 end
+module MethsMore
+end
 
 describe "Marshal.dump with empty extended_string" do
   it "returns a string-serialized version of the given argument" do
@@ -204,5 +206,174 @@ end
 describe "Marshal.dump with bignum -2**64" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(-2**64).should == "#{mv+nv}l-\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00"
+  end
+end
+
+describe "Marshal.dump with class" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(String).should == "#{mv+nv}c\x0BString"
+  end
+end
+
+describe "Marshal.dump with module" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Marshal).should == "#{mv+nv}m\x0CMarshal"
+  end
+end
+
+class Custom
+  def _dump(depth); "stuff"; end
+end
+
+describe "Marshal.dump with any object having _dump method" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Custom.new).should == "#{mv+nv}u:\x0BCustom\x0Astuff"
+  end
+end
+
+describe "Marshal.dump with object" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Object.new).should == "#{mv+nv}o:\x0BObject\x00"
+  end
+end
+
+describe "Marshal.dump with object having ivar" do
+  it "returns a string-serialized version of the given argument" do
+    obj = Object.new
+    obj.instance_variable_set(:@str, 'hi')
+    Marshal.dump(obj).should == "#{mv+nv}o:\x0BObject\x06:\x09@str\"\x07hi"
+  end
+end
+
+describe "Marshal.dump with regexp" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(/\A.\Z/).should == "#{mv+nv}/\x0A\\A.\\Z\x00"
+  end
+end
+
+describe "Marshal.dump with extended_regexp" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(/[a-z]/.extend(Meths, MethsMore)).should ==
+      "#{mv+nv}e:\x0AMethse:\x0EMethsMore/\x0A[a-z]\x00"
+  end
+end
+
+class UserRegexp < Regexp
+end
+
+describe "Marshal.dump with user_regexp having option Regexp::IGNORECASE" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(UserRegexp.new('', Regexp::IGNORECASE)).should ==
+      "#{mv+nv}C:\x0FUserRegexp/\x00\x01"
+  end
+end
+
+describe "Marshal.dump with extended_user_regexp" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(UserRegexp.new('').extend Meths).should ==
+      "#{mv+nv}e:\x0AMethsC:\x0FUserRegexp/\x00\x00"
+  end
+end
+
+describe "Marshal.dump with float 0.0" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(0.0).should == "#{mv+nv}f\x060"
+  end
+end
+
+describe "Marshal.dump with float NaN" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(0.0 / 0.0).should == "#{mv+nv}f\x08nan"
+  end
+end
+
+describe "Marshal.dump with float -Infinity" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(-1.0 / 0.0).should == "#{mv+nv}f\x09-inf"
+  end
+end
+
+describe "Marshal.dump with float 1.3" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(1.3).should == "#{mv+nv}f\x0B1.3\x00\xCC\xCD"
+  end
+end
+
+describe "Marshal.dump with float -5.1867345e-22" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(-5.1867345e-22).should == "#{mv+nv}f\x1F-5.1867344999999998e-22\x00\x83\x5E"
+  end
+end
+
+describe "Marshal.dump with hash" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Hash.new).should == "#{mv+nv}{\x00"
+  end
+end
+
+describe "Marshal.dump with extended_hash" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump({'one' => 1}.extend(Meths, MethsMore)).should ==
+      "#{mv+nv}e:\x0AMethse:\x0EMethsMore{\x06\"\x08onei\x06"
+  end
+end
+
+class UserHash < Hash
+end
+
+describe "Marshal.dump with user_hash" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(UserHash.new).should == "#{mv+nv}C:\x0DUserHash{\x00"
+  end
+end
+
+describe "Marshal.dump with extended_user_hash_default" do
+  it "returns a string-serialized version of the given argument" do
+    h = UserHash.new('default').extend(Meths)
+    h['three'] = 3
+    Marshal.dump(h).should == "#{mv+nv}e:\x0AMethsC:\x0DUserHash}\x06\"\x0Athreei\x08\"\x0Cdefault"
+  end
+end
+
+describe "Marshal.dump with array" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Array.new).should == "#{mv+nv}[\x00"
+  end
+end
+
+describe "Marshal.dump with array containing the same symbols" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Array.new(5, :so)).should == "#{mv+nv}[\x0A:\x07so;\x00;\x00;\x00;\x00"
+  end
+end
+
+describe "Marshal.dump with array containing refs to the same object" do
+  it "returns a string-serialized version of the given argument" do
+    s = "hi"; n = 5; b = 2**64
+    Marshal.dump([n, n, s, s, s, b, b, b]).should ==
+      "#{mv+nv}[\x0Di\x0Ai\x0A\"\x07hi@\x06@\x06l+\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00@\x07@\x07"
+  end
+end
+
+describe "Marshal.dump with extended_array" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump([5, 'hi'].extend(Meths, MethsMore)).should ==
+      "#{mv+nv}e:\x0AMethse:\x0EMethsMore[\x07i\x0A\"\x07hi"
+  end
+end
+
+class UserArray < Array
+end
+
+describe "Marshal.dump with user_array" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(UserArray.new).should == "#{mv+nv}C:\x0EUserArray[\x00"
+  end
+end
+
+describe "Marshal.dump with extended_user_array" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(UserArray.new.extend Meths).should ==
+      "#{mv+nv}e:\x0AMethsC:\x0EUserArray[\x00"
   end
 end
