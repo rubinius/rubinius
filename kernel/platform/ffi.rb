@@ -91,7 +91,7 @@ class Module
 
     func = FFI.create_function nil, name, args, ret
 
-    raise "Unable to create function #{name}" unless func
+    raise ArgumentError, "Unable to find function '#{name}' to bind to #{self.name}.#{mname}" unless func
 
     metaclass.method_table[mname] = func
     return func
