@@ -173,14 +173,13 @@ module Process
   def self.wait(pid=-1, flags=0)
     chan = Channel.new
     Scheduler.send_on_stopped(chan, pid, flags)
-    pid = chan.receive
+    pid, status = chan.receive
     case pid
     when false
       raise Errno::ECHILD
     when nil
       return nil
     else
-      status = chan.receive
       $? = Process::Status.new pid, status
     end
     return pid

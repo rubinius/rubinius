@@ -308,8 +308,8 @@ static void cpu_find_waiters(STATE) {
         /* Could support WIFSIGNALED also. */
         ret = Qtrue;
       }
-      cpu_channel_send(ti->state, ti->c, ti->channel, I2N(pid));
-      cpu_channel_send(ti->state, ti->c, ti->channel, ret);
+      cpu_channel_send(ti->state, ti->c, ti->channel, 
+                       tuple_new2(state, 2, I2N(pid), ret));
     } else if (pid == -1 && errno == ECHILD) {
       cpu_channel_send(ti->state, ti->c, ti->channel, Qfalse);
     } else if (pid == 0 && (ti->options & WNOHANG)) {
