@@ -21,7 +21,7 @@ module Process
   def self.fork
     pid = fork_prim
     pid = nil if pid == 0
-    if block_given? && pid.nil?
+    if block_given? and pid.nil?
       yield nil
       Kernel.exit
     end

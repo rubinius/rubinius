@@ -6,9 +6,18 @@ describe "Process.setpgrp" do
   end
 
   it "returns the process group ID of the calling process" do
-    pid = Process.fork { Process.setpgrp; Process.exit! }
+    read, write = IO.pipe
+    pid = Process.fork do
+      write.close
+      Process.setpgrp
+      read.read(1)
+      Process.exit!
+    end
+    read.close
     sleep(0.1) # wait for child to change process groups
     Process.getpgid(pid).should == pid
+    write << "!"
+    write.close
   end
 
   it "returns zero" do

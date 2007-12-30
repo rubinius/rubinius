@@ -2,13 +2,18 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Process.ppid" do
   it "returns the process id of the parent of this process" do
-    @file = '/tmp/ppid'
-    File.delete(@file) if File.exist?(@file)
+    
+    read, write = IO.pipe
 
     child_pid = Process.fork {
-      File.open(@file,'w'){|f| f.write Process.ppid }
+      read.close
+      write << "#{Process.ppid}\n"
+      write.close
+      exit!
     }
+    write.close
+    pid = read.gets
     Process.wait(child_pid)
-    File.read(@file).to_i.should == Process.pid
+    pid.to_i == Process.pid
   end
 end

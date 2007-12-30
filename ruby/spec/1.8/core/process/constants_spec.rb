@@ -21,7 +21,7 @@ describe "Process::Constants" do
     Process::RLIMIT_AS.should == 9
   end
 
-  platform :netbsd, :freebsd do
+  platform_is :os => [:netbsd, :freebsd] do
     specify "Process::RLIMIT_SBSIZE" do
       Process::RLIMIT_SBSIZE.should == nil # FIXME: what's it equal?
     end
