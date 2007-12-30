@@ -27,7 +27,6 @@ describe "Process.fork" do
         File.open(@file,'w'){|f| f.write 'rubinius'}
         Process.exit!
       }
-      sleep(1)
       Process.waitpid(pid)
       File.exist?(@file).should == true
     end

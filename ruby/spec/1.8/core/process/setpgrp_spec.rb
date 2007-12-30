@@ -6,18 +6,31 @@ describe "Process.setpgrp" do
   end
 
   it "returns the process group ID of the calling process" do
-    read, write = IO.pipe
+    # there are two synchronization points here:
+    # One for the child to let the parent know that it has finished
+    #   setting its process group;
+    # and another for the parent to let the child know that it's ok to die.
+    read1, write1 = IO.pipe
+    read2, write2 = IO.pipe
     pid = Process.fork do
-      write.close
+      read1.close
+      write2.close
       Process.setpgrp
-      read.read(1)
+      write1 << 1
+      write1.close
+      read2.read(1)
+      read2.close
       Process.exit!
     end
-    read.close
-    sleep(0.1) # wait for child to change process groups
+    write1.close
+    read2.close
+    read1.getc # wait for child to change process groups
+    read1.close
+
     Process.getpgid(pid).should == pid
-    write << "!"
-    write.close
+
+    write2 << "!"
+    write2.close
   end
 
   it "returns zero" do

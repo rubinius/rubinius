@@ -46,11 +46,17 @@ describe "Process.kill" do
 quarantine! do # dangerous specs
   before :each do
     @foo = 0
-    Signal.trap("HUP") { @foo = 42 }
+    @read, @write = IO.pipe
+    Signal.trap("HUP") {
+      @foo = 42
+      @write << "1"
+      @write.close
+    }
   end
 
   after :each do
-    sleep(0.1) # give the signal handler time to run
+    @read.gets # the signal handler has run
+    @read.close
     @foo.should == 42
   end
 
@@ -75,17 +81,22 @@ end
 describe "Process.kill" do
 quarantine! do # dangerous
   before :each do
+    @read, @write = IO.pipe
     @pid = Process.fork {
       begin
+        @read.close
         Process.setpgid(0, 0)
         Signal.trap("HUP") { Process.exit! 99 }
+        @write << "1"
+        @write.close
         sleep(2) # only so that failures are cleaned up
       ensure
         Process.exit! 42
       end
     }
-    # give the child time to change process groups before we look for it
-    sleep(0.1)
+    @write.close
+    @read.gets # the child has changed process groups
+    @read.close
   end
 
   after :each do
