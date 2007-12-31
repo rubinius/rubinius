@@ -396,12 +396,12 @@ long long ffi_to_ll() {
 void ffi_from_ll(long long val) {
   OBJECT ret;
   rni_context *ctx = subtend_retrieve_context();
-  
+
   ret = APPLY_TAG(val, TAG_FIXNUM);
-  if((int)val != rbs_to_int(ret)) {
-    ret = bignum_from_ll(ctx->state, val);    
+  if (val != (int)rbs_to_int(ret)) {
+    ret = bignum_from_ll(ctx->state, val);
   }
-  
+
   cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
 }
 

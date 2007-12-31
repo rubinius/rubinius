@@ -45,6 +45,7 @@ typedef void * xpointer;
 /* How many bits of data are available in fixnum, not including
    the sign. */
 #define FIXNUM_WIDTH 29
+#define FIXNUM_MAX ((1 << FIXNUM_WIDTH) - 1)
 
 /* rubinius_object types, takes up 3 bits */
 typedef enum

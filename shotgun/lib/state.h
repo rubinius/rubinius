@@ -188,12 +188,47 @@ static inline long rbs_to_int(OBJECT obj) {
 static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
   OBJECT ret;
   ret = APPLY_TAG(num, TAG_FIXNUM);
-  
+
   /* Number is too big for fixnum. Use bignum. */
-  if(rbs_to_int(ret) != num) {
+  if((int)rbs_to_int(ret) != num) {
     return bignum_new(state, num);
   }
   return ret;
+}
+
+static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
+  OBJECT ret;
+
+  if (num > FIXNUM_MAX) {
+    return bignum_new_unsigned(state, num);
+  } else {
+    ret = APPLY_TAG(num, TAG_FIXNUM);
+    rbs_to_int(ret);
+    return ret;
+  }
+}
+
+static inline OBJECT rbs_ll_to_integer(STATE, long long num) {
+  OBJECT ret;
+  ret = APPLY_TAG(num, TAG_FIXNUM);
+
+  /* Number is too big for fixnum. Use bignum. */
+  if((int)rbs_to_int(ret) != num) {
+    return bignum_from_ll(state, num);
+  }
+  return ret;
+}
+
+static inline OBJECT rbs_ull_to_integer(STATE, unsigned long long num) {
+  OBJECT ret;
+
+  if (num > FIXNUM_MAX) {
+    return bignum_from_ull(state, num);
+  } else {
+    ret = APPLY_TAG(num, TAG_FIXNUM);
+    rbs_to_int(ret);
+    return ret;
+  }
 }
 
 static inline double rbs_fixnum_to_double(OBJECT obj) {
@@ -201,17 +236,6 @@ static inline double rbs_fixnum_to_double(OBJECT obj) {
   return val;
 }
 
-static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
-  OBJECT ret;
-  
-  ret = APPLY_TAG(num, TAG_FIXNUM);
-  
-  if(rbs_to_int(ret) != num) {
-    return bignum_new_unsigned(state, num);
-  }
-  
-  return ret;
-}
 
 #define FIXNUM_TO_INT(obj) rbs_to_int(obj)
 #define FIXNUM_TO_DOUBLE(obj) rbs_fixnum_to_double(obj)
@@ -219,6 +243,8 @@ static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
 #define INT_TO_FIXNUM(int) rbs_int_to_fixnum(state, int)
 #define I2N(i) INT_TO_FIXNUM(i)
 #define UI2N(i) rbs_uint_to_fixnum(state, i)
+#define ULL2I(i) rbs_ull_to_integer(state, i)
+#define LL2I(i) rbs_ll_to_integer(state, i)
 #define FLOAT_TO_DOUBLE(k) (*DATA_STRUCT(k, double*))
 
 extern void* main_om;
