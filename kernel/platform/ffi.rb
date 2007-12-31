@@ -171,21 +171,37 @@ class MemoryPointer
   end
 
   def read_array_of_int(length)
+    read_array_of_type(:int, :read_int, length)
+  end
+
+  def write_array_of_int(ary)
+    write_array_of_type(:int, :write_int, ary)
+  end
+
+  def read_array_of_long(length)
+    read_array_of_type(:int, :read_long, length)
+  end
+
+  def write_array_of_long(ary)
+    write_array_of_type(:int, :write_long, ary)
+  end
+
+  def read_array_of_type(type, reader, length)
     ary = []
-    size = FFI.type_size(:int)
+    size = FFI.type_size(type)
     tmp = self
     length.times {
-      ary << tmp.read_int
+      ary << tmp.send(reader)
       tmp += size
     }
     ary
   end
 
-  def write_array_of_int(ary)
-    size = FFI.type_size(:int)
+  def write_array_of_type(type, writer, ary)
+    size = FFI.type_size(type)
     tmp = self
     ary.each {|i|
-      tmp.write_int i
+      tmp.send(writer, i)
       tmp += size
     }
     self
