@@ -139,11 +139,19 @@ class MemoryPointer
   def write_int(obj)
     self.class.write_int self, Integer(obj)
   end
-  
+
   def read_int
     self.class.read_int self
   end
-  
+
+  def write_long(obj)
+    self.class.write_long self, Integer(obj)
+  end
+
+  def read_long
+    self.class.read_long self
+  end
+
   def read_string
     self.class.read_string self
   end
@@ -202,6 +210,8 @@ class MemoryPointer
   attach_function "ffi_address", :address, [:pointer], :int
   attach_function "ffi_write_int", :write_int, [:pointer, :int], :int
   attach_function "ffi_read_int", :read_int, [:pointer], :int
+  attach_function "ffi_write_long", :write_long, [:pointer, :long], :long
+  attach_function "ffi_read_long", :read_long, [:pointer], :long
   attach_function "ffi_write_float", :write_float, [:pointer, :double], :double
   attach_function "ffi_read_float", :read_float, [:pointer], :double
   attach_function "ffi_read_string", :read_string, [:pointer], :string

@@ -44,6 +44,15 @@ int ffi_read_int(int *ptr) {
   return *ptr;
 }
 
+long ffi_write_long(long *ptr, long val) {
+  *ptr = val;
+  return val;
+}
+
+long ffi_read_long(long *ptr) {
+  return *ptr;
+}
+
 double ffi_write_float(double *ptr, double val) {
   *ptr = val;
   return val;
