@@ -1,4 +1,4 @@
-# depends on: array.rb
+# depends on: array.rb class.rb
 
 class Dir
   class DirEntry < FFI::Struct

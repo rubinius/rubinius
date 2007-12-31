@@ -1,3 +1,5 @@
+# depends on: module.rb
+
 module CType
   
   # isspace, islower, ... are not in MRI core library.

@@ -1,4 +1,4 @@
-# depends on: io.rb
+# depends on: io.rb class.rb module.rb
 
 class File < IO
   module Constants

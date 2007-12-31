@@ -1,3 +1,5 @@
+# depends on: module.rb kernel.rb
+
 module Type
   # The order seems backwards and it is. But the Type.coerce_to compiler
   # plugin is able to send this order much easier than in reverse, so

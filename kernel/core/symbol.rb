@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class SymbolTable
   ivar_as_index :__ivars__ => 0, :symbols => 1, :strings => 2
   def __ivars__; @__ivars__ ; end

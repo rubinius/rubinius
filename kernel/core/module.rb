@@ -1,4 +1,4 @@
-# depends on: proc.rb
+# depends on: class.rb proc.rb
 
 class Module
   

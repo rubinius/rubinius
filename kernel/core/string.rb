@@ -1,4 +1,4 @@
-# depends on: comparable.rb enumerable.rb
+# depends on: class.rb comparable.rb enumerable.rb
   
 # Default Ruby Record Separator
 # Used in this file and by various methods that need to ignore $/

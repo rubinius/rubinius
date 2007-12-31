@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 # Emulates the interface of Exception, but isn't one.
 class ThrownValue
   def initialize(name, value, ctx)

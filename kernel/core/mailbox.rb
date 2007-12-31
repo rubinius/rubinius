@@ -1,3 +1,4 @@
+# depends on: class.rb
 #
 # mailbox.rb - mailbox class supporting actor implementation
 #

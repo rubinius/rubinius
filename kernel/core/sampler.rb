@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class MethodContext
   def normalized_name
     if method_module.is_a?(MetaClass)

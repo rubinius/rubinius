@@ -1,3 +1,5 @@
+# depends on: module.rb
+
 module Precision
 
   def prec(klass)

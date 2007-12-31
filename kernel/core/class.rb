@@ -1,3 +1,5 @@
+# depends on: object.rb
+
 class Class
 
   def self.new(sclass=Object)

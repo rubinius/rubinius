@@ -1,4 +1,4 @@
-# depends on: numeric.rb precision.rb
+# depends on: numeric.rb precision.rb class.rb
 
 class Float < Numeric
 

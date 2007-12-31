@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class Method
   attr_reader :module
   

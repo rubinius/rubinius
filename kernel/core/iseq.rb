@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class InstructionSet
   # List of Rubinius machine opcodes
   # Each opcode consists of a hash identifying:

@@ -1,3 +1,5 @@
+# depends on: module.rb
+
 module Errno
   def self.handle(additional = nil)
     err = Platform::POSIX.errno

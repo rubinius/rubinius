@@ -1,3 +1,4 @@
+# depends on: class.rb
 #
 # actor.rb - implementation of the actor model
 #

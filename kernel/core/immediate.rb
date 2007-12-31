@@ -1,4 +1,4 @@
-# depends on: kernel.rb
+# depends on: kernel.rb module.rb
 
 module ImmediateValue
   def singleton_methods

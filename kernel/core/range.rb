@@ -1,4 +1,4 @@
-# depends on: enumerable.rb
+# depends on: class.rb enumerable.rb
 
 ##
 # Comments borrowed from MRI Implementation

@@ -1,4 +1,4 @@
-# depends on: enumerable.rb misc.rb
+# depends on: enumerable.rb misc.rb class.rb
 
 class Hash
   include Enumerable

@@ -1,4 +1,5 @@
-# depends on: object.rb
+# depends on: module.rb class.rb
+
 def self.to_s
   "main"
 end

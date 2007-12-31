@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class MethodTable
 
   def public_names

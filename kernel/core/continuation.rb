@@ -1,3 +1,5 @@
+# depends on: class.rb module.rb
+
 class Continuation
   def initialize(task=nil)
     @task = task

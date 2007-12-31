@@ -1,3 +1,4 @@
+# depends on: class.rb
 
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
 # you can get recursive exceptions being raised (THATS BAD, BTW).

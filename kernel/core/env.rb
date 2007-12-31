@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class EnvironmentVariables
   def [](key)
     env_get(StringValue(key))

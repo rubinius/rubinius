@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class Regexp
   
   ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3

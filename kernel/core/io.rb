@@ -1,5 +1,4 @@
-class IOError < StandardError
-end
+# depends on: class.rb
 
 class IO
   

@@ -1,4 +1,4 @@
-# depends on: integer.rb
+# depends on: class.rb integer.rb
 
 class Bignum < Integer
   def %(other)

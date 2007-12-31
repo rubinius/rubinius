@@ -1,3 +1,5 @@
+# depends on: module.rb class.rb
+
 module Process
   WNOHANG = 1
   WUNTRACED = 2

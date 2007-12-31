@@ -1,4 +1,4 @@
-# depends on: integer.rb
+# depends on: integer.rb class.rb
 
 class Fixnum < Integer
   

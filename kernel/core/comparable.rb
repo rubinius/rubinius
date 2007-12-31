@@ -1,3 +1,5 @@
+# depends on: module.rb
+#
 #  The <code>Comparable</code> mixin is used by classes whose objects
 #  may be ordered. The class must define the <code><=></code> operator,
 #  which compares the receiver against another object, returning -1, 0,
