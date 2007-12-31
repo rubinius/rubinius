@@ -2425,7 +2425,7 @@ class ShotgunPrimitives
   
   def channel_send_in_microseconds
     <<-CODE
-    struct timeval tv;
+    double seconds;
     (void)stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1, INTEGER);
@@ -2438,19 +2438,30 @@ class ShotgunPrimitives
       k = (long)bignum_to_int(state, t1);
     }
     
-    if(k > 1000000) {
-      tv.tv_sec = k / 1000000;
-      tv.tv_usec = k % 1000000;
-    } else {
-      tv.tv_sec = 0;
-      tv.tv_usec = k;
-    }
+    seconds = k / 1000000.0;
     
-    cpu_event_wake_channel(state, c, self, &tv);
+    cpu_event_wake_channel(state, c, self, seconds);
     stack_push(Qtrue);
     CODE
   end
-  
+
+  def channel_send_in_seconds
+    <<-CODE
+    double seconds;
+
+    (void)stack_pop(); /* scheduler */
+    POP(self, REFERENCE);
+    POP(t1, FLOAT);
+
+    GUARD(RISA(self, channel));
+
+    seconds = FLOAT_TO_DOUBLE(t1);
+
+    cpu_event_wake_channel(state, c, self, seconds);
+    stack_push(Qtrue);
+    CODE
+  end
+
   def channel_send_on_readable
     <<-CODE
     (void)stack_pop(); /* scheduler */

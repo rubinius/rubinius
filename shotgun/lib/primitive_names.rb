@@ -148,6 +148,7 @@ module Bytecode
       :thread_yield,
       :object_become,
       :channel_send_in_microseconds,
+      :channel_send_in_seconds,
       :channel_send_on_readable,
       :channel_send_on_writable,
       :channel_send_on_signal,

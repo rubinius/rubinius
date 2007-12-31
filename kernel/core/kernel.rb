@@ -261,7 +261,7 @@ module Kernel
     unless duration.equal?(Undefined)
       raise TypeError, 'time interval must be a numeric value' unless duration.kind_of?(Numeric)
       duration = Time.at duration
-      Scheduler.send_in_microseconds(chan, (duration.to_f * 1_000_000).to_i)
+      Scheduler.send_in_seconds(chan, duration.to_f)
     end
     chan.receive
     return (Time.now - start).round

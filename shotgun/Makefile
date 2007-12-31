@@ -10,9 +10,9 @@ else
   BINSUFFIX?=
 endif
 
-CFLAGS += -I.. $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa -Iexternal_libs/libmquark
+CFLAGS += -I.. $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa -Iexternal_libs/libmquark -Iexternal_libs/libev
 
-ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a external_libs/libbstring/libbstring.a external_libs/libcchash/libcchash.a external_libs/libmpa/libptr_array.a external_libs/libmquark/libmquark.a
+ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libev/.libs/libev.a external_libs/libbstring/libbstring.a external_libs/libcchash/libcchash.a external_libs/libmpa/libptr_array.a external_libs/libmquark/libmquark.a
 
 LIBS=$(ALIBS) -lz -lm shotgun/lib
 LDFLAGS=
@@ -85,11 +85,11 @@ external_libs/libzip/lib/.libs/libzip.a:	external_libs/libzip/config.h
 external_libs/cinvoke/lib/libcinvoke.a:
 	cd external_libs/cinvoke; CFLAGS=-fPIC ./configure; $(MAKE)
 
-external_libs/libevent/config.h:
-	cd external_libs/libevent; CFLAGS=-fPIC ./configure
+external_libs/libev/config.h:
+	cd external_libs/libev; CFLAGS=-fPIC ./configure
 
-external_libs/libevent/.libs/libevent.a: external_libs/libevent/config.h
-	cd external_libs/libevent; $(MAKE) libevent.la
+external_libs/libev/.libs/libev.a: external_libs/libev/config.h
+	cd external_libs/libev; $(MAKE) libev.la
 
 external_libs/libltdl/config.h:
 	cd external_libs/libltdl; CFLAGS=-fPIC ./configure
@@ -149,14 +149,14 @@ distclean: clean
 	rm -f config.h config.mk
 	rm config/is64bit
 	rm config/isbigendian
-	cd external_libs/libevent; rm -f config.h
+	cd external_libs/libev; rm -f config.h
 	cd external_libs/libltdl; rm -f config.h
 	cd external_libs/libzip; rm -f config.h
 	cd external_libs/lightning; rm -f config.h
 	cd external_libs/onig; rm -f config.h
 	cd external_libs/libbstring; $(MAKE) clean
 	cd external_libs/libcchash; $(MAKE) clean
-	cd external_libs/libevent; $(MAKE) clean
+	cd external_libs/libev; $(MAKE) clean
 	cd external_libs/libltdl; $(MAKE) clean
 	cd external_libs/libmpa; $(MAKE) clean
 	cd external_libs/libmquark; $(MAKE) clean

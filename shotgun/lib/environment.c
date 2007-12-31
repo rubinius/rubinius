@@ -7,22 +7,22 @@
 
 #include <pthread.h>
 #include <signal.h>
-#include <event.h>
+#include <ev.h>
 #include <unistd.h>
 
 static pthread_key_t global_key;
 
 #define lock(e) pthread_mutex_lock(&e->mutex)
 #define unlock(e) pthread_mutex_unlock(&e->mutex)
-
+/*
 struct event_base *_rbx_base_finder() {
   machine m = environment_current_machine();
   return m->s->event_base;
 }
-
+*/
 void environment_at_startup() {
   pthread_key_create(&global_key, NULL);
-  evsignal_set_base_finder(_rbx_base_finder);
+  /* evsignal_set_base_finder(_rbx_base_finder); */
 }
 
 environment environment_new() {

@@ -178,8 +178,7 @@ class Thread
         @lock.send nil
         begin
           unless timeout.equal?(Undefined)
-            msecs = (timeout.to_f * 1_000_000).to_i
-            Scheduler.send_in_microseconds(jc, msecs)
+            Scheduler.send_in_seconds(jc, timeout.to_f)
           end
           jc.receive
         ensure

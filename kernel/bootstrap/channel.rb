@@ -47,6 +47,10 @@ class Scheduler
     Ruby.primitive :channel_send_in_microseconds
   end
 
+  def self.send_in_seconds(chan, seconds)
+    Ruby.primitive :channel_send_in_seconds
+  end
+
   def self.send_on_readable(chan, io, buffer, nbytes)
     Ruby.primitive :channel_send_on_readable
   end
