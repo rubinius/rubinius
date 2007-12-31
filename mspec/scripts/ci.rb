@@ -128,6 +128,7 @@ patterns.each do |item|
   files << item if stat.file?
   files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
 end
+max_name_width = files.inject(0) { |max, f| f.size > max ? f.size : max }
 
 # remove all compiled spec files to catch compiler bugs
 if clean
@@ -178,7 +179,7 @@ spec_runner.formatter.print_start
   spec_runner.%s(*all_excludes)
   %s
   begin
-    STDERR.print(#{marker.inspect} || "\\n\#{file}") if #{verbose}
+    STDERR.print(#{marker.inspect} || "\\n\#{file.ljust(#{max_name_width})}") if #{verbose}
     load file
   rescue Exception => e
     puts "\#{e} loading \#{file}"
