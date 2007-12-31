@@ -1,0 +1,31 @@
+Revision history for libev, a high-performance and full-featured event loop
+
+2.01 Tue Dec 25 08:04:41 CET 2007
+	- separate Changes file.
+	- fix ev_path_set => ev_stat_set typo.
+        - remove event_compat.h from the libev tarball.
+        - change how include files are found.
+        - doc updates.
+        - update licenses, explicitly allow for GPL relicensing.
+
+2.0  Sat Dec 22 17:47:03 CET 2007
+        - new ev_sleep, ev_set_(io|timeout)_collect_interval.
+        - removed epoll from embeddable fd set.
+        - fix embed watchers.
+	- renamed ev_embed.loop to other.
+	- added exported Symbol tables.
+        - undefine member wrapper macros at the end of ev.c.
+        - respect EV_H in ev++.h.
+
+1.86 Tue Dec 18 02:36:57 CET 2007
+	- fix memleak on loop destroy (not relevant for perl).
+
+1.85 Fri Dec 14 20:32:40 CET 2007
+        - fix some aliasing issues w.r.t. timers and periodics
+          (not relevant for perl).
+
+(for historic versions refer to EV/Changes, found in the Perl interface)
+
+0.1  Wed Oct 31 21:31:48 CET 2007
+	- original version; hacked together in <24h.
+
