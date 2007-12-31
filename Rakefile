@@ -116,7 +116,7 @@ def compile(name, output, check_mtime=false)
   if $compiler == :c2
     inc = "-Iruntime/stable/compiler2.rba -rcompiler2/init"
   elsif $compiler
-    inc = "-I#{$compiler}"
+    inc = "-I#{$compiler} -rcompiler1/init"
   else
     inc = ""
   end

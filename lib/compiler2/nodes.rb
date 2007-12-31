@@ -1241,8 +1241,9 @@ class Node
     kind :defined
     
     def consume(sexp)
-      if sexp[0] == :call
-        sexp[1] = convert(sexp[1])
+      expr = sexp[0]
+      if expr[0] == :call
+        expr[1] = convert(expr[1])
       end
       
       sexp      

@@ -1212,7 +1212,7 @@ class Node
     def bytecode(g)
       # Imported directly from compiler1 and reworked to use g.
       
-      expr = @expression
+      expr = @expression.dup
       
       # if something is defined, !something is too.
       # if !something is undefined, then so is something.
@@ -1234,8 +1234,6 @@ class Node
 
       case node
       when :call
-        node_type = expr[0].first
-        
         receiver = expr.shift
         msg = expr.shift # method name
         
@@ -1245,25 +1243,9 @@ class Node
           return
         end
         
-        if receiver[0] == :const
-          lbl = g.new_label          
-          const = receiver[1]
-          g.push_literal const
-          g.push_const :Object
-          g.send :const_defined?, 1
-          # leave the boolean on the stack
-          g.dup
-          # if the const doesn't exist, it clearly can't respond
-          g.gif lbl
-          g.push_literal msg
-          g.push_const const
-          g.send :respond_to?, 1
-          lbl.set!
-        else
-          g.push_literal msg
-          receiver.bytecode(g)
-          g.send :respond_to?, 1
-        end
+        g.push_literal msg
+        receiver.bytecode(g)
+        g.send :respond_to?, 1
       when :cvar
         cvar = expr.shift
         g.push_literal cvar
