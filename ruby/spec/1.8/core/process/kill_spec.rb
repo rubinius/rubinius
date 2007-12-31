@@ -37,7 +37,9 @@ quarantine! do # these specs seem way too dangerous
   end
 
   it "raises EPERM if permission is denied" do
-    lambda { Process.kill(1, 1) }.should raise_error(Errno::EPERM)
+    if Process.uid != 0
+      lambda { Process.kill(1, 1) }.should raise_error(Errno::EPERM)
+    end
   end
 end
 end

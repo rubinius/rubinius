@@ -16,7 +16,7 @@ describe "Process.setpgrp" do
       read1.close
       write2.close
       Process.setpgrp
-      write1 << 1
+      write1 << "?"
       write1.close
       read2.read(1)
       read2.close
@@ -24,7 +24,7 @@ describe "Process.setpgrp" do
     end
     write1.close
     read2.close
-    read1.getc # wait for child to change process groups
+    read1.read(1) # wait for child to change process groups
     read1.close
 
     Process.getpgid(pid).should == pid
