@@ -1,5 +1,13 @@
-mSpec and mMock are simplistic apes of RSpec.
+mSpec and mMock are simplistic apes of RSpec. 
+
+The primary design rationale for mSpec is simplicity to allow nascent Ruby implementations to run the Ruby specs. So, for example, there is not great concern given to constant clashes. Namespacing (or module scoping) is not used because implementing this correctly took a significant amount of work in Rubinius and it is likely that other implementations would also face difficulties.
+
+mSpec is not intended as a replacement for RSpec. mSpec attempts to provide a subset of RSpec syntax. It does not provide all the matchers, for instance.
+
+mSpec also provides several extensions to facilitate writing the Ruby specs in a manner compatible with multiple Ruby implementations. First, mSpec offers a set of guards to control execution of the specs. These guards not only enable or disable execution but also annotate the specs with additional information about why they are run or not run. Second, mSpec provides a different shared spec implementation specifically designed to easy writing specs for the numerous aliased methods in Ruby. The mSpec shared spec implementation should not conflict with RSpec's own shared behavior facility.
 
 Caveats:
+* Use RSpec to run the mSpec specs. There are no plans currently to make
+  the mSpec specs runnable by mSpec.
 * Don't mock the #hash method as mMock uses Hash internally. This can be
   replaced if necessary, but at this point it's not worth it.
