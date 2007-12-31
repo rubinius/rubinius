@@ -206,9 +206,14 @@ See http://valgrind.org for usage information.
 =========================
 RSpec is the machinery behind executing these specs. The intention
 is to have specs for Ruby as a language plus as a set of standard
-libraries, and to TDD/BDD the development of Rubinius. Some spec 
-subdirectories below are implementation agnostic and some are 
-specific to Rubinius.
+libraries, and to TDD/BDD the development of Rubinius.
+
+The specs under ruby/spec/* are for the Ruby language, core and
+standard libraries.
+
+The specs under spec/* are for Rubinius. These include specs for
+Rubinius extensions to the Ruby core library and specs for the 
+components of Rubinius itself.
 
 For more information on the Ruby specs developed for Rubinius, see:
 http://rubinius.lighthouseapp.com/projects/5089/specs-overview
