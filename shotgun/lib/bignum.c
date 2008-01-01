@@ -378,14 +378,14 @@ long long bignum_to_ll(STATE, OBJECT self) {
   mp_int *s = MP(self);
   long long out, tmp;
 
+  /* mp_get_int() gets only the lower 32 bits, on any platform. */
   out = mp_get_int(s);
 
   mp_init(&t);
-  mp_copy(s, &t);
-  mp_rshd(&t, 1);
+  mp_div_2d(s, 32, &t, NULL);
 
   tmp = mp_get_int(&t);
-  out |= tmp << DIGIT_BIT;
+  out |= tmp << 32;
 
   mp_clear(&t);
 
@@ -395,16 +395,10 @@ long long bignum_to_ll(STATE, OBJECT self) {
 OBJECT bignum_from_ull(STATE, unsigned long long val) {
   OBJECT ret;
   mp_int low, high;
-  unsigned int tmp;
 
-  mp_init(&low);
-  tmp = val & 0xffffffff;
-  mp_set_int(&low, tmp);
-
-  mp_init(&high);
-  tmp = val >> DIGIT_BIT;
-  mp_set_int(&high, tmp);
-  mp_lshd(&high, 1);
+  mp_init_set_int(&low, val & 0xffffffff);
+  mp_init_set_int(&high, val >> 32);
+  mp_mul_2d(&high, 32, &high);
 
   ret = bignum_new_unsigned(state, 0);
 
