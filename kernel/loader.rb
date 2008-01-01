@@ -184,7 +184,7 @@ rescue Object => e
 end
 
 begin
-  Rubinius::AtExit.each {|handler| handler.call}
+  Rubinius::AtExit.shift.call until Rubinius::AtExit.empty?
 rescue SystemExit => e
   code = e.code
 rescue Object => e
