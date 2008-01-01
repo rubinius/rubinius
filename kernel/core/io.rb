@@ -9,15 +9,7 @@ class IO
   SEEK_END = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_END']
   
   def initialize(fd)
-    # not sure what message to use here. on unix we only accept fixnums,
-    # but on win32 we'll accept file handles, too, i think.
-    raise TypeError if fd.nil?
-    
-    if fd.kind_of? IO
-      @descriptor = fd.fileno
-    else
-      @descriptor = fd
-    end
+    @descriptor = Type.coerce_to fd, Fixnum, :to_int
   end
   
   ivar_as_index :__ivars__ => 0, :descriptor => 1, :buffer => 2, :mode => 3
