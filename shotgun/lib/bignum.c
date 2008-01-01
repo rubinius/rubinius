@@ -367,10 +367,6 @@ unsigned long bignum_to_int(STATE, OBJECT self) {
 }
 
 unsigned long long bignum_to_ull(STATE, OBJECT self) {
-  return 0; //FIXME
-}
-
-long long bignum_to_ll(STATE, OBJECT self) {
   mp_int t;
   mp_int *s = MP(self);
   long long out, tmp;
@@ -385,8 +381,16 @@ long long bignum_to_ll(STATE, OBJECT self) {
   out |= tmp << 32;
 
   mp_clear(&t);
+  return out;
+}
 
-  return (s->sign == MP_NEG) ? -out : out;
+long long bignum_to_ll(STATE, OBJECT self) {
+  mp_int *s = MP(self);
+
+  if (s->sign == MP_NEG)
+    return -bignum_to_ull(state, self);
+  else
+    return bignum_to_ull(state, self);
 }
 
 OBJECT bignum_from_ull(STATE, unsigned long long val) {
