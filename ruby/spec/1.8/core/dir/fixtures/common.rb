@@ -21,25 +21,26 @@ module DirSpecs
   end
   
   def DirSpecs.create_mock_dirs
-    files = %w[ spec/core/dir/fixtures/mock/.dotfile
-                spec/core/dir/fixtures/mock/.dotsubdir/.dotfile
-                spec/core/dir/fixtures/mock/.dotsubdir/nondotfile
-                spec/core/dir/fixtures/mock/deeply/.dotfile
-                spec/core/dir/fixtures/mock/deeply/nested/.dotfile.ext
-                spec/core/dir/fixtures/mock/deeply/nested/directory/structure/.ext
-                spec/core/dir/fixtures/mock/deeply/nested/directory/structure/bar
-                spec/core/dir/fixtures/mock/deeply/nested/directory/structure/baz
-                spec/core/dir/fixtures/mock/deeply/nested/directory/structure/file_one
-                spec/core/dir/fixtures/mock/deeply/nested/directory/structure/file_one.ext
-                spec/core/dir/fixtures/mock/deeply/nested/directory/structure/foo
-                spec/core/dir/fixtures/mock/deeply/nondotfile
-                spec/core/dir/fixtures/mock/file_one.ext
-                spec/core/dir/fixtures/mock/file_two.ext
-                spec/core/dir/fixtures/mock/nondotfile
-                spec/core/dir/fixtures/mock/subdir_one/.dotfile
-                spec/core/dir/fixtures/mock/subdir_one/nondotfile
-                spec/core/dir/fixtures/mock/subdir_two/nondotfile
-                spec/core/dir/fixtures/mock/subdir_two/nondotfile.ext]
+    stem = File.dirname(__FILE__)
+    files = %W[ #{stem}/mock/.dotfile
+                #{stem}/mock/.dotsubdir/.dotfile
+                #{stem}/mock/.dotsubdir/nondotfile
+                #{stem}/mock/deeply/.dotfile
+                #{stem}/mock/deeply/nested/.dotfile.ext
+                #{stem}/mock/deeply/nested/directory/structure/.ext
+                #{stem}/mock/deeply/nested/directory/structure/bar
+                #{stem}/mock/deeply/nested/directory/structure/baz
+                #{stem}/mock/deeply/nested/directory/structure/file_one
+                #{stem}/mock/deeply/nested/directory/structure/file_one.ext
+                #{stem}/mock/deeply/nested/directory/structure/foo
+                #{stem}/mock/deeply/nondotfile
+                #{stem}/mock/file_one.ext
+                #{stem}/mock/file_two.ext
+                #{stem}/mock/nondotfile
+                #{stem}/mock/subdir_one/.dotfile
+                #{stem}/mock/subdir_one/nondotfile
+                #{stem}/mock/subdir_two/nondotfile
+                #{stem}/mock/subdir_two/nondotfile.ext]
 
     FileUtils.rm_rf 'spec/core/dir/fixtures/mock/'
     files.each do |file|
