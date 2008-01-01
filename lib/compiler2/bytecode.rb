@@ -1334,6 +1334,7 @@ class Node
         
         body.set!
         @body.bytecode(g)
+        g.clear_exception
         g.goto if_done
       end
     end
