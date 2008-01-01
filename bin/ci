@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
-CI_FILE_SPECS = ['ruby/spec/1.8/core', 'ruby/spec/1.8/language', 'spec/rubinius/parser']
+CI_FILE_SPECS = ['ruby/spec/1.8/core', 'ruby/spec/1.8/language', 'spec/parser']
 require File.dirname(__FILE__) + '/../mspec/scripts/ci'
