@@ -145,7 +145,7 @@ begin
             end
           end
         end
-        exit 0
+        break
       end
     end
   end
