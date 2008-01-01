@@ -255,8 +255,11 @@ class InstructionSequence
       old_inst = iseq2int
       old_op = InstructionSet[old_inst]
       new_op = InstructionSet[inst.first]
-      if old_op.size < new_op.size
-        raise ArgumentError, "Cannot replace an instruction with a larger instruction (existing #{old_op.size} / new #{new_op.size})"
+      old_op.size.upto(new_op.size-1) do
+        next_inst = iseq2int
+        unless next_inst == 0
+          raise ArgumentError, "Cannot replace an instruction with a larger instruction (existing #{old_op.opcode} / new #{new_op.opcode})"
+        end
       end
       replaced = [old_op.opcode]
 
