@@ -99,7 +99,7 @@ class IO
         Scheduler.send_on_readable chan, self, chunk, BufferSize
 
         response = chan.receive
-        return out if chan.receive.nil?
+        return out if response.nil?
 
         if response.kind_of? Integer
           out << chunk
