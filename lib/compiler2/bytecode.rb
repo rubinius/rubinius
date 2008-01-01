@@ -1617,7 +1617,7 @@ class Node
       
       if @splat
         g.cast_array
-        @splat.bytecode(g)
+        @splat.bytecode(g) unless @splat.kind_of? TrueClass # HACK dup
       end
       g.pop
       
