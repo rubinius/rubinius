@@ -154,6 +154,14 @@ context "Exceptions" do
     end.should == 'RuntimeError'
   end
 
+  specify "that $! is cleared when an exception is rescued" do
+    begin
+      raise
+    rescue
+    end
+    $!.should == nil
+  end
+
   EXCEPTION_TREE = [
     :Exception, [
       :ScriptError, [
