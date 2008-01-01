@@ -412,13 +412,14 @@ OBJECT bignum_from_ull(STATE, unsigned long long val) {
 
 OBJECT bignum_from_ll(STATE, long long val) {
   OBJECT ret;
-  
-  ret = bignum_from_ull(state, (unsigned long long)val);
-  
+
   if(val < 0) {
+    ret = bignum_from_ull(state, (unsigned long long)-val);
     MP(ret)->sign = MP_NEG;
+  } else {
+    ret = bignum_from_ull(state, (unsigned long long)val);
   }
-  
+
   return ret;
 }
 
