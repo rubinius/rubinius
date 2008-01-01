@@ -369,6 +369,10 @@ unsigned long bignum_to_int(STATE, OBJECT self) {
   return mp_get_int(MP(self));
 }
 
+unsigned long long bignum_to_ull(STATE, OBJECT self) {
+  return 0; //FIXME
+}
+
 long long bignum_to_ll(STATE, OBJECT self) {
   mp_int t;
   mp_int *s = MP(self);

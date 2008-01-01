@@ -337,54 +337,12 @@ void ffi_from_uint(unsigned int obj) {
   cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
 }
 
-/* long */
-long ffi_to_long() {
-  OBJECT obj;
-  rni_context *ctx = subtend_retrieve_context();
-  obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
-  type_assert(obj, FixnumType);
-  
-  return FIXNUM_TO_INT(obj);
-}
-
-void ffi_from_long(long obj) {
-  OBJECT ret;
-  STATE;
-  rni_context *ctx = subtend_retrieve_context();
-  
-  state = ctx->state;
-  
-  ret = I2N(obj);
-  cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
-}
-
-unsigned long ffi_to_ulong() {
-  OBJECT obj;
-  rni_context *ctx = subtend_retrieve_context();
-  obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
-  type_assert(obj, FixnumType);
-  
-  return (unsigned long)FIXNUM_TO_INT(obj);
-}
-
-void ffi_from_ulong(unsigned long obj) {
-  OBJECT ret;
-  STATE;
-  rni_context *ctx = subtend_retrieve_context();
-  state = ctx->state;
-  
-  ret = UI2N(obj);
-  cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
-}
-
 /* ll */
 long long ffi_to_ll() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   if(FIXNUM_P(obj)) {
     return (long long)FIXNUM_TO_INT(obj);
   } else {
@@ -394,15 +352,61 @@ long long ffi_to_ll() {
 }
 
 void ffi_from_ll(long long val) {
-  OBJECT ret;
   rni_context *ctx = subtend_retrieve_context();
+  STATE;
+  state = ctx->state;
 
-  ret = APPLY_TAG(val, TAG_FIXNUM);
-  if (val != (int)rbs_to_int(ret)) {
-    ret = bignum_from_ll(ctx->state, val);
+  cpu_stack_push(ctx->state, ctx->cpu, LL2I(val), FALSE);
+}
+
+unsigned long long ffi_to_ull() {
+  OBJECT obj;
+  rni_context *ctx = subtend_retrieve_context();
+  obj = cpu_stack_pop(ctx->state, ctx->cpu);
+
+  if(FIXNUM_P(obj)) {
+    return (unsigned long long)FIXNUM_TO_INT(obj);
+  } else {
+    type_assert(obj, BignumType);
+    return (unsigned long long)bignum_to_ull(ctx->state, obj);
   }
+}
 
-  cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
+void ffi_from_ull(unsigned long long val) {
+  rni_context *ctx = subtend_retrieve_context();
+  STATE;
+  state = ctx->state;
+
+  cpu_stack_push(ctx->state, ctx->cpu, ULL2I(val), FALSE);
+}
+
+/* long */
+long ffi_to_long() {
+  if (sizeof(long) == sizeof(long long))
+    return (long)ffi_to_ll();
+  else
+    return (long)ffi_to_int();
+}
+
+void ffi_from_long(long obj) {
+  if (sizeof(long) == sizeof(long long))
+    return ffi_from_ll(obj);
+  else
+    return ffi_from_int(obj);
+}
+
+unsigned long ffi_to_ulong() {
+  if (sizeof(long) == sizeof(long long))
+    return (long)ffi_to_ull();
+  else
+    return (long)ffi_to_uint();
+}
+
+void ffi_from_ulong(unsigned long obj) {
+  if (sizeof(long) == sizeof(long long))
+    return ffi_from_ull(obj);
+  else
+    return ffi_from_uint(obj);
 }
 
 /* float */
@@ -718,7 +722,6 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
         call_conv(l);
         jit_stxi_l(ids[i], JIT_FP, reg);
         break;
-    
       case FFI_TYPE_FLOAT:
         call_conv(f);
         jit_stxi_f(ids[i], JIT_FP, reg);
@@ -988,12 +991,10 @@ void ffi_call(STATE, cpu c, OBJECT ptr) {
 
 OBJECT ffi_get_field(char *ptr, int offset, int type) {
   nf_converter conv = (nf_converter)ffi_get_from_converter(type);
-  STATE;
   int sz;
   rni_context *ctx = subtend_retrieve_context();
   
   ptr += offset;
-  state = ctx->state;
 
   sz = ffi_type_size(type);
   
