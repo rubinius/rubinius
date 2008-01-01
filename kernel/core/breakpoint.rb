@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 # +Breakpoint+ objects represent debugging breakpoints on +CompiledMethod+s.
 # In Rubinius, a breakpoint is represented by substituting the special opcode
 # yield_debugger into the instruction sequence at the point at which execution
@@ -118,7 +120,7 @@ class BreakpointTracker
     end
 
     if @breakpoints[cm][ip]
-      raise RuntimeError, "A breakpoint is already set #{cm.name} at IP:#{ip}"
+      raise RuntimeError, "A breakpoint is already set for #{cm.name} at IP:#{ip}"
     end
     bp = Breakpoint.new(cm, ip, &prc)
     @breakpoints[cm][ip] = bp
