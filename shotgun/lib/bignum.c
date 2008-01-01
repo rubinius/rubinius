@@ -48,23 +48,20 @@ OBJECT bignum_new(STATE, int num) {
   OBJECT o;
   o = object_memory_new_opaque(state, BASIC_CLASS(bignum), sizeof(mp_int));
   a = (mp_int*)BYTES_OF(o);
-  mp_init(a);
+
   if(num < 0) {
-    mp_set_int(a, (unsigned int)-num);
+    mp_init_set_int(a, (unsigned int)-num);
     a->sign = MP_NEG;
   } else {
-    mp_set_int(a, (unsigned int)num);
+    mp_init_set_int(a, (unsigned int)num);
   }
   return o;
 }
 
 OBJECT bignum_new_unsigned(STATE, unsigned int num) {
-  mp_int *a;
   OBJECT o;
   o = object_memory_new_opaque(state, BASIC_CLASS(bignum), sizeof(mp_int));
-  a = (mp_int*)BYTES_OF(o);
-  mp_init(a);
-  mp_set_int(a, num);
+  mp_init_set_int(MP(o), num);
   return o;
 }
 
