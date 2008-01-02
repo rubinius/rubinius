@@ -126,19 +126,20 @@ class Module
       end
     end
   end
-  
+
+  # Will raise a NameError if the method doesn't exist.
+
   def undef_method(name)
-    # Will raise a NameError if the method doesn't exist.
     meth = instance_method(name)
+
     method_table[name] = false
     VM.reset_method_cache(name)
-    if respond_to? :method_undefined
-      method_undefined(name)
-    end
-    
+
+    method_undefined name if respond_to? :method_undefined
+
     return meth
   end
-  
+
   def public_method_defined?(sym)
     sym = StringValue(sym) unless sym.is_a? Symbol
     m = find_method_in_hierarchy sym
@@ -192,14 +193,22 @@ class Module
     unless all or self.is_a?(MetaClass) or self.is_a?(IncludedModule)
       return names
     end
+
+    excludes = method_table.map { |name, meth| meth == false ? name : nil }
+    undefed = excludes.compact
     
-    sup = direct_superclass()
+    sup = direct_superclass
+
     while sup
       names |= sup.method_table.__send__(filter)
-      sup = sup.direct_superclass()
+
+      excludes = method_table.map { |name, meth| meth == false ? name : nil }
+      undefed += excludes.compact
+
+      sup = sup.direct_superclass
     end
-    
-    return names
+
+    (names - undefed).map { |name| name.to_s }
   end
   # private :filter_methods
   

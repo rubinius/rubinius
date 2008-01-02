@@ -141,13 +141,13 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
  
 static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name, OBJECT recv) {
   OBJECT meth, vis;
-  
+
   meth = hash_find(state, hsh, name);
-  
-  if(!RTEST(meth)) { return Qnil; }
-  
+
+  if(!RTEST(meth)) { return meth; }
+
   if(c->call_flags == 1) { return meth; }
-  
+
   /* Check that unless we can look for private methods that method isn't private. */
   if(TUPLE_P(meth)) {
     vis = tuple_at(state, meth, 0);
@@ -232,9 +232,11 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
   
   /*
   printf("Looking for method: %s in %p (%s)\n", 
-    string_byte_address(state, symtbl_find_string(state, state->global->symbols, name)), obj,
-    string_byte_address(state, symtbl_find_string(state, state->global->symbols, 
-        class_get_name(object_class(state, obj))))
+    string_byte_address(state, symtbl_find_string(state, state->global->symbols,
+                                                  name)),
+    klass,
+    string_byte_address(state, symtbl_find_string(state, state->global->symbols,
+                                                  class_get_name(klass)))
     );
   */
   
@@ -252,8 +254,9 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
     klass = class_get_superclass(klass);
     if(NIL_P(klass)) { break; }
     /*
-    printf("Looking for method (sup): %s in %ul (%s)\n", 
-      string_byte_address(state, symtbl_find_string(state, state->global->symbols, name)), klass,
+    printf("Looking for method (sup): %s in %p (%s)\n", 
+      string_byte_address(state, symtbl_find_string(state, state->global->symbols, name)),
+      klass,
       string_byte_address(state, symtbl_find_string(state, state->global->symbols, 
         class_get_name(klass)))
     );

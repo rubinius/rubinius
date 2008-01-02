@@ -230,19 +230,21 @@ class Object
   # TODO - Implement support for the 'all' parameter
   def singleton_methods(all=true)
     class << self
-      method_table.public_names + method_table.protected_names
+      (method_table.public_names + method_table.protected_names).map do |name|
+        name.to_s
+      end
     end
   end
 
   def private_singleton_methods
     class << self
-      method_table.private_names
+      method_table.private_names.map { |nam| name.to_s }
     end
   end
   
   def protected_singleton_methods
     class << self
-      method_table.protected_names
+      method_table.protected_names.map { |nam| name.to_s }
     end
   end
 
