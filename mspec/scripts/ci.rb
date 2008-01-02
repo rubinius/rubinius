@@ -17,13 +17,14 @@ format = 'DottedFormatter'
 clean = false
 verbose = false
 marker = nil
-ci_files = "tmp/files.txt"
 flags = []
-
-# Subdir where exclude files for CI are stored.
-# Different implementations require different places.
-# Rubinius implementation by default uses '.spec'.
-excludes_subdir = '.spec'
+# The exclude directory defaults to '.spec' in the directories containing
+# the spec files. Override by setting CI_EXCLUDES_DIR or with the 
+# --excludes-dir command line switch. If the value is an absolute path
+# (e.g. starts with '/'), write the exclude directories relative to that
+# path. Otherwise, create the exclude directory relative to the directories
+# containing the spec files.
+excludes_dir = Object.const_defined?(:CI_EXCLUDES_DIR) ? Object.const_get(:CI_EXCLUDES_DIR) : '.spec'
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "ci [options] (FILE|DIRECTORY|GLOB)+"
@@ -40,7 +41,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     action = :invert
   end
   opts.on("-t", "--target TARGET", String, 
-          "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
+          "Use TARGET to run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
     case t
     when 'r', 'ruby'
       target = 'ruby'
@@ -50,14 +51,12 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       target = 'shotgun/rubinius'
     when 'j', 'jruby'
       target = 'jruby'
-      excludes_subdir = '.jruby'
     else
       target = t
-      excludes_subdir = '.jruby' if /jruby(.bat|.sh)*$/ =~ target
     end
   end
   opts.on("-f", "--format FORMAT", String, 
-          "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") do |f|
+          "Use FORMAT for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") do |f|
     case f
     when 's', 'specdox', 'specdoc'
       format = 'SpecdocFormatter'
@@ -75,12 +74,16 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       exit
     end
   end
-  opts.on("-I", "--include DIRECTORY", String,
-          "Passes through as the -I option to the target") do |d|
+  opts.on("-E", "--excludes-dir DIR", String,
+          "Use DIR for the files containing spec descriptions to exclude" ) do |d|
+    excludes_dir = d
+  end
+  opts.on("-I", "--include DIR", String,
+          "Pass DIR through as the -I option to the target") do |d|
     includes << "-I#{d}"
   end
   opts.on("-r", "--require LIBRARY", String,
-          "Passes through as the -r option to the target") do |f|
+          "Pass LIBRARY through as the -r option to the target") do |f|
     requires << "-r#{f}"
   end
   opts.on("-T", "--targetopt OPT", String,
@@ -103,9 +106,6 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-A", "--valgrind", "Run under valgrind") do
     flags << '--valgrind'
-  end
-  opts.on('-2', '--compiler2', 'Use Compiler2 to compile the files') do
-    requires << '-rcompiler2/init'
   end
   opts.on("-v", "--version", "Show version") do
     puts "Continuous Integration Tool #{CI::VERSION}"
@@ -140,13 +140,22 @@ end
 
 code = <<-EOC
 ENV['MSPEC_RUNNER'] = '1'
+require 'fileutils'
 require 'spec/spec_helper'
 
 $VERBOSE=nil
 
+def exclude_dir(file, dir=#{excludes_dir.inspect})
+  if dir[0] == ?/
+    m = file.match %%r[.*/spec/(.*)/.*_spec.rb]
+    m ? File.join(dir, m[1]) : dir
+  else
+    File.join(File.dirname(file), dir)
+  end
+end
+
 def exclude_name(file)
-  File.join(File.dirname(file), #{excludes_subdir.inspect},
-    File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
+  File.join(exclude_dir(file), File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
 end
 
 def create_exclude_file(file)
@@ -154,8 +163,8 @@ def create_exclude_file(file)
 end
 
 def mk_exclude_dir(file)
-  dir = File.join(File.dirname(file), #{excludes_subdir.inspect})
-  Dir.mkdir(dir) unless File.exist?(dir)
+  dir = exclude_dir(file)
+  FileUtils.mkdir_p(dir) unless File.exist?(dir)
 end
 
 def read_excludes(file)
@@ -168,7 +177,7 @@ def read_excludes(file)
   end
 end
 
-all_excludes = read_excludes("spec/excludes.txt")
+all_excludes = read_excludes("spec/data/critical.txt")
 
 set_spec_runner(#{format})
 spec_runner.formatter.print_start

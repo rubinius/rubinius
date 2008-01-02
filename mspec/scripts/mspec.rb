@@ -111,9 +111,6 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     flags << '-w'
     warnings = true
   end
-  opts.on('-2', '--compiler2', 'Use Compiler2 to compile the files') do
-    requires << '-rcompiler2/init'
-  end
   opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
     exit
