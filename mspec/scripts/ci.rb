@@ -147,7 +147,7 @@ $VERBOSE=nil
 
 def exclude_dir(file, dir=#{excludes_dir.inspect})
   if dir[0] == ?/
-    m = file.match %%r[.*/spec/(.*)/.*_spec.rb]
+    m = file.match %%r[.*spec/(.*)/.*_spec.rb]
     m ? File.join(dir, m[1]) : dir
   else
     File.join(File.dirname(file), dir)
