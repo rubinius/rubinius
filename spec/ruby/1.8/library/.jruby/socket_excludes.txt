@@ -1,2 +1,0 @@
-The socket class hierarchy should have a UNIXSocket in parallel to Socket
-Server class hierarchy should contain UNIXServer

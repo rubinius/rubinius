@@ -1,1 +1,0 @@
-Dir.mkdir raises without adequate permissions in the parent dir
