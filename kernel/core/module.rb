@@ -491,7 +491,7 @@ class Module
     end
     @name = name
   end
-  
+
   # A fixup, move the core versions in place now that everything
   # is loaded.
   def self.after_loaded
@@ -504,7 +504,14 @@ class Module
     alias_method :attr_writer, :attr_writer_cv
     alias_method :attr_accessor, :attr_accessor_cv
   end
-  
+
+  def autoload(name, path)
+    name = normalize_const_name(name)
+    raise ArgumentError, "empty file name" if path.empty?
+    @autoloads ||= Hash.new
+    @autoloads[name] = path
+  end
+
 private
 
   def calculate_name
@@ -570,15 +577,19 @@ private
       return constant if constant = current.constants_table[name]
       current = current.direct_superclass
     end
-    
+
+    if @autoloads and path = @autoloads[name]
+      require path
+      @autoloads.delete(name)
+      return recursive_const_get(name)
+    end
+
     const_missing(name)
   end
   
   def normalize_const_name(name)
     name = normalize_name(name)
-    unless valid_const_name?(name)
-      raise NameError, "wrong constant name #{name}"
-    end
+    raise NameError, "wrong constant name #{name}" unless valid_const_name?(name)
     name
   end
 

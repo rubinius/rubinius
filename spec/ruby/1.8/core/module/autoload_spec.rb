@@ -5,7 +5,7 @@ describe "Module#autoload" do
   it "registers the given filename to be loaded the first time that the Module with the given name is accessed" do
     begin
       $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/fixtures/autoload.rb") }
-      
+
       # $m::A is set in module_spec.autoload.rb
       $m.const_get(:A).should == "test"
 
@@ -20,7 +20,7 @@ describe "Module#autoload" do
       $m = nil
     end
   end
-  
+
   it "does not autoload when the specified constant was already set" do
     begin
       $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/../core/../core/../core/fixtures/autoload.rb") }

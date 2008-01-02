@@ -1,2 +1,0 @@
-Module#autoload raises a NameError when an invalid constant name is given
-Module#autoload raises an ArgumentError when an empty filename is given
