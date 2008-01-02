@@ -1,0 +1,2 @@
+Dir#tell returns an Integer representing the current position in the directory
+Dir#tell returns a different Integer if moved from previous position

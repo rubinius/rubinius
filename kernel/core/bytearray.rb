@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class ByteArray
   alias_method :[], :get_byte
   alias_method :[]=, :set_byte

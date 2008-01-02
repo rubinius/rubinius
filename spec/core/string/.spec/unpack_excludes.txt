@@ -1,2 +1,0 @@
-String#unpack returns an array by decoding self according to the format string
-String#unpack with Z pattern returns an array by decoding self according to the format string

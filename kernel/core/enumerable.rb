@@ -1,3 +1,5 @@
+# depends on: module.rb class.rb
+#
 #  The <code>Enumerable</code> mixin provides collection classes with
 #  several traversal and searching methods, and with the ability to
 #  sort. The class must provide a method <code>each</code>, which

@@ -13,7 +13,7 @@ class Compiler2
     end
     
     attr_reader :text, :ip, :file, :line
-    attr_accessor :redo, :retry, :break
+    attr_accessor :redo, :retry, :break, :next
     
     def advanced_since?(old)
       old < @ip
@@ -46,6 +46,11 @@ class Compiler2
     
     def set_label(idx)
       @text << "l#{idx}:\n"
+    end
+    
+    def add_text(text)
+      @text << text
+      @text << "\n"
     end
         
     def run(node)
@@ -109,6 +114,29 @@ class Compiler2
     
     def as_primitive(name)
       @text << "#primitive #{name}\n"
+    end
+    
+    class EB
+      @@ids = 0
+      
+      def initialize(gen)
+        @gen = gen
+        @idx = (@@ids += 1)
+      end
+      
+      def start!
+        @gen.add_text "; exc#{@idx} start"
+      end
+      
+      def handle!
+        @gen.add_text "; exc#{@idx} end"
+      end
+    end
+    
+    def exceptions
+      ex = EB.new(self)
+      ex.start!
+      yield ex
     end
     
   end

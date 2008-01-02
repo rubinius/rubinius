@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class List
   ivar_as_index :count => 0, :first => 1, :last => 2
   

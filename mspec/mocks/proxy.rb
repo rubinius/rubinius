@@ -1,5 +1,7 @@
 class MockProxy
   def initialize
+    @multiple_returns = nil
+    @returning = nil
     @arguments = :any_args
   end
   

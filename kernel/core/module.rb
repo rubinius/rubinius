@@ -1,4 +1,4 @@
-# depends on: proc.rb
+# depends on: class.rb proc.rb
 
 class Module
   
@@ -12,7 +12,7 @@ class Module
     mod = self.allocate
     
     Rubinius.module_setup_fields(mod)
-    block = Ruby.asm "push_block"
+    block = block_given?
     if block
       mod.initialize(*args, &block)
     else
@@ -36,7 +36,7 @@ class Module
   end
   
   def initialize
-    block = Ruby.asm "push_block"
+    block = block_given?
     instance_eval(&block) if block
     # I think we need this for constant lookups
     @parent = ::Object
@@ -73,9 +73,11 @@ class Module
       method
     elsif direct_superclass
       direct_superclass.find_method_in_hierarchy(sym)
+    else
+      [Object,Kernel].detect { |k| k.method_table[sym] }
     end
   end
-  
+
   def ancestors
     if self.class == MetaClass
       out = []
@@ -127,9 +129,14 @@ class Module
   
   def undef_method(name)
     # Will raise a NameError if the method doesn't exist.
-    instance_method(name)
+    meth = instance_method(name)
     method_table[name] = false
     VM.reset_method_cache(name)
+    if respond_to? :method_undefined
+      method_undefined(name)
+    end
+    
+    return meth
   end
   
   def public_method_defined?(sym)
@@ -286,9 +293,9 @@ class Module
     end
     
     mc = self.metaclass
-    mc.method_table[name] = tup.dup
 
     if tup.kind_of?(Tuple)
+      mc.method_table[name] = tup.dup
       mc.method_table[name][0] = vis
     else
       mc.method_table[name] = Tuple[vis, tup]
@@ -547,7 +554,8 @@ private
   # Get a constant with the given name. If the constant does not exist, return nil.
   def recursive_const_get(name)
     name = normalize_const_name(name)
-    
+
+    constant = nil
     current = self
     while current
       return constant if constant = current.constants_table[name]

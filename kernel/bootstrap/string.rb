@@ -20,15 +20,13 @@ class String
   end
   
   def append(str)
-    unless str.kind_of? String
-      raise TypeError, "only a String instance is accepted"
-    end
+    Ruby.primitive :string_append
     
-    Ruby.asm "#local str\npush self\nstring_append\n"
+    raise TypeError, "only a String instance is accepted"
   end
   
   def dup
-    Ruby.asm "push self\nstring_dup\n"
+    Ruby.primitive :string_dup
   end
 
   def to_s

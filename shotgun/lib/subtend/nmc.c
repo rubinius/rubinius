@@ -14,7 +14,7 @@ static rni_context* global_context = NULL;
 
 void subtend_setup_global() {
   if(!global_context) {
-    global_context = ALLOC(rni_context);
+    global_context = ALLOC_N(rni_context, 1);
   }
 }
 
@@ -73,7 +73,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
 rni_nmc *nmc_new_standalone() {
   rni_nmc *n;
   
-  n = ALLOC(rni_nmc);
+  n = ALLOC_N(rni_nmc, 1);
   
   n->num_handles = 16;
   n->used = 0;
@@ -389,7 +389,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
       
     default:
       printf("Unknown travel plans %d!\n", travel);
-      abort();
+      sassert(0);
     }
   }
   

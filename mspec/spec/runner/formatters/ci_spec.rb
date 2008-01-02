@@ -15,9 +15,14 @@ describe CIFormatter do
     @execution.exception = @exception
   end
   
-  it "provides print_failure with an index and SpecExecution instance" do
-    @formatter.print_failure(1, @execution)
+  it "provides after_it that prints the spec description if an exception occurred" do
+    @formatter.after_it("it")
     @out.should == "describe it\n"
+  end
+  
+  it "overrides print_start to not output" do
+    @formatter.print_start
+    @out.should == ""
   end
   
   it "overrides print_time to not output" do
@@ -26,8 +31,8 @@ describe CIFormatter do
     @out.should == ""
   end
 
-  it "provides a summary" do
+  it "overrides summary to not output" do
     @formatter.summary
-    @out.should == "describe it\n"
+    @out.should == "\n"
   end
 end

@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class DelegatedMethod < RuntimePrimitive
 
   Receiver = 5

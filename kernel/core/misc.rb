@@ -1,4 +1,5 @@
-# depends on: object.rb
+# depends on: module.rb class.rb
+
 def self.to_s
   "main"
 end
@@ -9,6 +10,10 @@ end
 
 class NilClass
   alias_method :|, :^
+
+  def call(*a)
+    raise LocalJumpError, "not callable"
+  end
 end
 
 NIL = nil

@@ -18,12 +18,12 @@ describe BeKindOfMatcher do
   it "provides a useful failure message" do
     matcher = BeKindOfMatcher.new(Numeric)
     matcher.matches?('string')
-    matcher.failure_message.should == ["Expected \"string\"", "to be kind of Numeric"]
+    matcher.failure_message.should == ["Expected \"string\" (String)", "to be kind of Numeric"]
   end
   
   it "provides a useful negative failure message" do
     matcher = BeKindOfMatcher.new(Numeric)
     matcher.matches?(4.2)
-    matcher.negative_failure_message.should == ["Expected 4.2", "not to be kind of Numeric"]
+    matcher.negative_failure_message.should == ["Expected 4.2 (Float)", "not to be kind of Numeric"]
   end
 end

@@ -119,23 +119,28 @@ module Zlib
     end
 
     def finish
-      until @buffer.empty? do
+      flush = Zlib::NO_FLUSH
+
+      while flush != Zlib::FINISH do
         chunk = @buffer.slice! 0, CHUNK
-        flush = @buffer.empty? ? Zlib::NO_FLUSH : Zlib::FINISH
+        flush = Zlib::FINISH if @buffer.empty?
 
         @stream[:next_in] = chunk
         @stream[:avail_in] = chunk.length
 
-        @stream[:next_out] = "\000" * CHUNK
-        @stream[:avail_out] = CHUNK
+        begin
+          out = "\000" * CHUNK
+          @stream[:avail_out] = CHUNK
+          @stream[:next_out] = out
 
-        err = Zlib.deflate @stream_p, flush
+          err = Zlib.deflate @stream_p, flush
 
-        if err == Zlib::OK or err == Zlib::STREAM_END then
-          @io.write @stream[:next_out][0, @stream[:avail_out]]
-        else
-          raise "Zlib error #{err}"
-        end
+          raise "Zlib stream error" if err == Zlib::STREAM_ERROR
+
+          have = CHUNK - @stream[:avail_out]
+
+          @io.write out[0, have]
+        end while @stream[:avail_out] == 0
       end
 
       Zlib.deflateEnd @stream_p

@@ -1,4 +1,4 @@
-# depends on: integer.rb
+# depends on: integer.rb class.rb
 
 class Fixnum < Integer
   
@@ -36,5 +36,23 @@ class Fixnum < Integer
     id2name.to_sym
   rescue NoMethodError
     nil
+  end
+
+  def b64_symbol_value
+    if self >= 65 and self <= 90  # A-Z
+      self - 65
+    elsif self >= 97 and self <= 122  # a-z
+      self - 71
+    elsif self >= 48 and self <= 57  # 0-9
+      self + 4
+    elsif self == 43  # +
+      62
+    elsif self == 47  # /
+      63
+    elsif self == 61  # =
+      0
+    else
+      nil
+    end
   end
 end

@@ -20,8 +20,9 @@ clean = false
 target = 'shotgun/rubinius'
 format = 'DottedFormatter'
 verbose = false
+marker = nil
+warnings = false
 flags = []
-commas = false
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "mspec [options] (FILE|DIRECTORY|GLOB)+"
@@ -98,11 +99,20 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-A", "--valgrind", "Run under valgrind") do
     flags << '--valgrind'
   end
-  opts.on("-V", "--verbose", "Output each file processed when running") do
+  opts.on("-V", "--verbose", "Output the name of each file processed") do
     verbose = true
   end
-  opts.on("-,", "--comma", "Output a comma for each file processed") do
-    commas = true
+  opts.on("-m", "--marker MARKER", String,
+          "Outout MARKER for each file processed. Overrides -V") do |m|
+    marker = m
+    verbose = true
+  end
+  opts.on("-w", "--warnings", "Don't supress warnings") do
+    flags << '-w'
+    warnings = true
+  end
+  opts.on('-2', '--compiler2', 'Use Compiler2 to compile the files') do
+    requires << '-rcompiler2/init'
   end
   opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
@@ -131,19 +141,19 @@ end
 
 code = <<-EOC
 ENV['MSPEC_RUNNER'] = '1'
+OUTPUT_WARNINGS = true if #{warnings}
 require 'spec/spec_helper'
 
-$VERBOSE=nil
 #{name}
 set_spec_runner(#{format}, #{output ? output.inspect : 'STDOUT'})
 spec_runner.only(*#{only.inspect})
 spec_runner.except(*#{except.inspect})
+spec_runner.formatter.print_start
 #{files.inspect}.each do |f|
   cname = "\#{f}c"
   File.delete(cname) if #{clean} and File.exist?(cname)
-  STDERR.puts f if #{verbose}
   begin
-    spec_runner.formatter.out << "," if #{commas}
+    STDERR.print(#{marker.inspect} || "\\n\#{f}") if #{verbose}
     load f
   rescue Exception => e
     puts "\#{e} loading \#{f}"

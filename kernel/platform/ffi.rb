@@ -91,7 +91,7 @@ class Module
 
     func = FFI.create_function nil, name, args, ret
 
-    raise "Unable to create function #{name}" unless func
+    raise ArgumentError, "Unable to find function '#{name}' to bind to #{self.name}.#{mname}" unless func
 
     metaclass.method_table[mname] = func
     return func
@@ -103,6 +103,9 @@ class MemoryPointer
   #   MemoryPointer.new(num) => MemoryPointer instance of <i>num</i> bytes
   #   MemoryPointer.new(sym) => MemoryPointer instance with number 
   #                             of bytes need by FFI type <i>sym</i>
+  #   MemoryPointer.new(sym, count) => MemoryPointer instance with number
+  #                             of bytes need by length-<i>count</i> array
+  #                             of FFI type <i>sym</i>
   #   MemoryPointer.new(arg) { |p| ... }
   #
   # Both forms create a MemoryPointer instance. The number of bytes to
@@ -112,8 +115,9 @@ class MemoryPointer
   # The form without a block returns the MemoryPointer instance. The form
   # with a block yields the MemoryPointer instance and frees the memory
   # when the block returns. The value returned is the value of the block.
-  def self.new(type, clear=true)
+  def self.new(type, count=nil, clear=true)
     size = type.is_a?(Fixnum) ? type : FFI.type_size(type)
+    size *= count if count
     ptr = Platform::POSIX.malloc size
     Platform::POSIX.memset ptr, 0, size if clear
 
@@ -157,7 +161,28 @@ class MemoryPointer
   def read_float
     self.class.read_float self
   end
-  
+
+  def read_array_of_int(length)
+    ary = []
+    size = FFI.type_size(:int)
+    tmp = self
+    length.times {
+      ary << tmp.read_int
+      tmp += size
+    }
+    ary
+  end
+
+  def write_array_of_int(ary)
+    size = FFI.type_size(:int)
+    tmp = self
+    ary.each {|i|
+      tmp.write_int i
+      tmp += size
+    }
+    self
+  end
+
   def inspect
     "#<MemoryPointer address=0x#{address.to_s(16)}>"
   end

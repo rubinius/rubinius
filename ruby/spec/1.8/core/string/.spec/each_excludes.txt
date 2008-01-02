@@ -1,0 +1,1 @@
+String#each yields subclass instances for subclasses

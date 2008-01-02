@@ -1,0 +1,23 @@
+require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
+
+describe "Bignum#+" do
+  before(:each) do
+    @bignum = BignumHelper.sbm(76)
+  end
+  
+  it "returns self plus the given Integer" do
+    (@bignum + 4).should == 9223372036854775888
+    (@bignum + 4.2).to_s.should == "9.22337203685478e+18"
+    (@bignum + BignumHelper.sbm(3)).should == 18446744073709551695
+  end
+
+  it "raises a TypeError when given a non-Integer" do
+    lambda {
+      (obj = mock('10')).should_receive(:to_int).any_number_of_times.and_return(10)
+      @bignum + obj
+    }.should raise_error(TypeError)
+    lambda { @bignum + "10" }.should raise_error(TypeError)
+    lambda { @bignum + :symbol}.should raise_error(TypeError)
+  end
+end

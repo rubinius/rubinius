@@ -33,21 +33,21 @@ class Object
   end
   
   def kind_of?(cls)
-    Ruby.asm <<-ASM
-#local cls
-push self
-kind_of
-    ASM
+    Rubinius.asm(cls) do |c|
+      run c
+      push :self
+      kind_of
+    end
   end
   
   def respond_to?(meth,include_private=false)
     meth = meth.to_sym
-    cm = Ruby.asm <<-ASM
-push self
-#local meth
-#local include_private
-locate_method
-    ASM
+    cm = Rubinius.asm(meth, include_private) do |m,i|
+      push :self
+      run m
+      run i
+      locate_method
+    end
     !cm.nil?
   end
 
@@ -55,29 +55,28 @@ locate_method
     meth = name.to_sym
     count = args.size.to_i
     
-    prc = Ruby.asm "push_block\n"
-
-    Ruby.asm <<-ASM
-#local args
-push_array
-push self
-#local prc
-#local meth
-#local count
-set_args
-set_call_flags 1
-send_off_stack
-    ASM
+    Rubinius.asm(args, meth, count) do |a,m,c|
+      run a
+      push_array
+      push :self
+      push_block
+      run m
+      run c
+      set_args
+      set_call_flags 1
+      send_off_stack
+    end    
   end
   
   def __find_method__(meth)
     meth = meth.to_sym
-    cm = Ruby.asm <<-ASM
-push self
-#local meth
-push true
-locate_method
-    ASM
+    cm = Rubinius.asm(meth) do |m|
+      push :self
+      run m
+      push :true
+      locate_method
+    end
+
     return cm
   end
   
@@ -127,5 +126,36 @@ locate_method
     STDOUT.write "\n"
     Process.exit 1 
   end
+
+  def get_instance_variables
+    Ruby.primitive :ivars_get
+  end
+
+  def get_instance_variable(sym)
+    Ruby.primitive :ivar_get
+  end
+
+  def set_instance_variable(sym, value)
+    Ruby.primitive :ivar_set
+  end
+
+  def taint
+    Ruby.primitive :object_taint
+  end
   
+  def tainted?
+    Ruby.primitive :object_tainted_p
+  end
+
+  def untaint
+    Ruby.primitive :object_untaint
+  end
+  
+  def freeze
+    Ruby.primitive :object_freeze
+  end
+  
+  def frozen?
+    Ruby.primitive :object_frozen_p
+  end
 end

@@ -1,3 +1,4 @@
+# depends on: module.rb class.rb
 
 module Sprintf
 
@@ -480,8 +481,9 @@ class YSprintf
     @positional = false
     @relative = false
     @arg_position = 0
-    
+
     while (match = /%/.match_from(fmt, start))
+
       @flags = {:space => nil, :position => nil, :alternative => nil, :plus => nil, 
         :minus => nil, :zero => nil, :star => nil}
       @width = @precision = @type = nil
@@ -490,7 +492,11 @@ class YSprintf
       start = match.begin(0) + 1
 
       # Special case: %% prints out as "%"
-      if [?%, nil, ?\n, 0].include?(@fmt[start])
+      if [?\n, 0].include?(@fmt[start])
+        ret << "%" << @fmt[start]
+        start += 1
+        next
+      elsif [?%, nil].include?(@fmt[start])
         ret << "%"
         start += 1
         next
@@ -550,7 +556,7 @@ class YSprintf
         @type = type[0]
         start += 1
       end
-    
+      
       # Next: Use the parsed values to format some stuff :)
       f = format
       ret << f if f

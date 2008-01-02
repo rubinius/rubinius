@@ -5,23 +5,24 @@ class RaiseErrorMatcher
   end
   
   def matches?(proc)
-    begin
-      proc.call
-    rescue Exception => @actual
-      unless @exception === @actual
-        return false
-      end
-      
-      if @message and @message != @actual.message
-        return false
-      end
-    end
+    proc.call
+    return false
+  rescue Exception => @actual
+    return false unless @exception === @actual
+    return false if @message and @message != @actual.message
     return true
   end
   
   def failure_message
-    ["Expected #{@exception}#{%[ (#{@message})] if @message}",
-     "but got #{@actual.class}#{%[ (#{@actual.message})] if @actual.message}"]
+    message = ["Expected #{@exception}#{%[ (#{@message})] if @message}"]
+
+    if @actual then
+      message << "but got #{@actual.class}#{%[ (#{@actual.message})] if @actual.message}"
+    else
+      message << "but no exception was raised"
+    end
+
+    message
   end
   
   def negative_failure_message

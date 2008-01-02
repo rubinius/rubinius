@@ -32,20 +32,20 @@ class OutputMatcher
     expected_out = "\n"
     actual_out = "\n"
     unless @out.nil?
-      expected_out << "  $stdout: #{@out}\n"
-      actual_out << "  $stdout: #{@stdout.chomp}\n"
+      expected_out << "  $stdout: #{@out.dump}\n"
+      actual_out << "  $stdout: #{@stdout.chomp.dump}\n"
     end
     unless @err.nil?
-      expected_out << "  $stderr: #{@err}\n"
-      actual_out << "  $stderr: #{@stderr.chomp}\n"
+      expected_out << "  $stderr: #{@err.dump}\n"
+      actual_out << "  $stderr: #{@stderr.chomp.dump}\n"
     end
     ["Expected:#{expected_out}", "     got:#{actual_out}"]
   end
   
   def negative_failure_message
     out = ""
-    out << "  $stdout: #{@stdout.chomp}\n" unless @out.nil?
-    out << "  $stderr: #{@stderr.chomp}\n" unless @err.nil?
+    out << "  $stdout: #{@stdout.chomp.dump}\n" unless @out.nil?
+    out << "  $stderr: #{@stderr.chomp.dump}\n" unless @err.nil?
     ["Expected output not to be:\n", out]
   end
 end

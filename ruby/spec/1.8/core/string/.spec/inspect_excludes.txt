@@ -1,0 +1,1 @@
+String#inspect can handle malformed UTF-8 string when $KCODE is UTF-8

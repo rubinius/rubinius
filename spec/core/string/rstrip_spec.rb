@@ -1,41 +1,22 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#rstrip" do
-  it "returns a copy of self with trailing whitespace removed" do
-   "  hello  ".rstrip.should == "  hello"
-   "  hello world  ".rstrip.should == "  hello world"
-   "  hello world \n\r\t\n\v\r".rstrip.should == "  hello world"
-   "hello".rstrip.should == "hello"
-   "hello\x00".rstrip.should == "hello"
+  it "returns a string with all trailing \\000 and whitespace characters removed" do
+    " \t\n ".rstrip.should == ""
+    "\t".rstrip.rstrip.should == ""
+    "".rstrip.rstrip.should == ""
+    " hello ".rstrip.rstrip.should == " hello"
+    "\tgoodbye\r\n".rstrip.rstrip.should == "\tgoodbye"
+    "goodbye \000".rstrip.rstrip.should == "goodbye"
+    "goodbye \000\t \f  \000".rstrip.rstrip.should == "goodbye" 
   end
-  
-  it "taints the result when self is tainted" do
-    "".taint.rstrip.tainted?.should == true
-    "ok".taint.rstrip.tainted?.should == true
-    "ok    ".taint.rstrip.tainted?.should == true
-  end
-end
 
-describe "String#rstrip!" do
-  it "modifies self in place and returns self" do
-    a = "  hello  "
-    a.rstrip!.equal?(a).should == true
-    a.should == "  hello"
-  end
-  
-  it "returns nil if no modifications were made" do
-    a = "hello"
-    a.rstrip!.should == nil
-    a.should == "hello"
-  end
-  
-  compliant :ruby, :jruby do
-    it "raises a TypeError if self is frozen" do
-      "hello".freeze.rstrip! # ok, nothing changed
-      "".freeze.rstrip! # ok, nothing changed
-
-      lambda { "  hello  ".freeze.rstrip! }.should raise_error(TypeError)
-    end
+  it "modifies self by removing all trailing \\000 and whitespace characters" do
+    " hello ".rstrip!.should == " hello"
+    "\tgoodbye\r\n".rstrip!.should == "\tgoodbye"
+    "goodbye \000".rstrip!.should == "goodbye"
+    "goodbye \000 ".rstrip!.should == "goodbye"
+    "".rstrip!.should == nil
+    " \n \000\v\000".rstrip!.should == ""
   end
 end

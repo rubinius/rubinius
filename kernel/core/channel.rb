@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class Channel
   alias_method :<<, :send
 

@@ -1,4 +1,4 @@
-# depends on: enumerable.rb misc.rb
+# depends on: enumerable.rb misc.rb class.rb
 
 class Hash
   include Enumerable
@@ -37,6 +37,12 @@ class Hash
       @default_proc = false
     end
   end
+  private :initialize
+  
+  def initialize_copy(other)
+    replace(other)
+  end
+  private :initialize_copy
 
   def dup()
     self.class.new.replace self
@@ -320,7 +326,6 @@ class Hash
     end
     self
   end
-  alias_method :initialize_copy, :replace
 
   def select()
     raise LocalJumpError, "no block given" unless block_given? or empty?

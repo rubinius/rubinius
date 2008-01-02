@@ -3,18 +3,21 @@ require 'compiler1/bytecode/rubinius'
 
 file = ARGV.shift
 
-fd = File.open(file)
-code = fd.read
-fd.close
+#fd = File.open(file)
+#code = fd.read
+#fd.close
+#
+#puts "Path: #{file}"
+#puts "Size: #{code.size} bytes"
+#
+#sexp = code.to_sexp
+#puts "\nSexp:\n  #{sexp.indented_inspect}"
 
-puts "Path: #{file}"
-puts "Size: #{code.size} bytes"
+sexp = File.to_sexp file
+puts "\nSexp:\n  #{sexp.indented_inspect}"
 
 compiler = Compiler1::Bytecode::Compiler.new
 state = Compiler1::RsLocalState.new
-
-sexp = code.to_sexp
-puts "\nSexp:\n  #{sexp.indented_inspect}"
 
 # nx = compiler.fully_normalize(sexp, state)
 # puts "\nNormalized Sexp:\n  #{nx.indented_inspect}"

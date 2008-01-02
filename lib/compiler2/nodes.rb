@@ -80,6 +80,10 @@ class Node
     self.kind_of?(clas)
   end
   
+  def expand(obj)
+    obj.nil? ? Nil.new(@compiler) : obj
+  end
+  
   # Start of Node subclasses
   
   class ClosedScope < Node
@@ -93,7 +97,10 @@ class Node
       @block_scope = []
       @all_scopes = [@top_scope]
       @ivar_as_slot = {}
+      @visibility = :public
     end
+    
+    attr_accessor :visibility
     
     def create_scope
       Compiler2::LocalScope.new(self)
@@ -110,7 +117,7 @@ class Node
     end
     
     def consume(sexp)
-      set(:scope => self, :visibility => :public, :iter => false) do
+      set(:scope => self, :iter => false) do
         out = convert(sexp[0])
         @all_scopes.each do |scope|
           scope.formalize!
@@ -213,7 +220,7 @@ class Node
     end
     
     def args(body)
-      @body = body
+      @body = expand(body)
     end
     
     attr_accessor :body
@@ -223,7 +230,7 @@ class Node
     kind :script
     
     def args(body)
-      @body = body
+      @body = expand(body)
     end
 
     attr_accessor :body
@@ -390,7 +397,7 @@ class Node
     kind :match3
     
     def args(pattern, target)
-      @target, @pattern = target, pattern
+      @pattern, @target = pattern, target      
     end
     
     attr_accessor :target, :pattern
@@ -430,7 +437,7 @@ class Node
     kind :while
     
     def args(cond, body, check_first=true)
-      @condition, @body, @check_first = cond, body, check_first
+      @condition, @body, @check_first = cond, expand(body), check_first
     end
     
     attr_accessor :condition, :body, :check_first
@@ -472,6 +479,10 @@ class Node
     end
     
     attr_accessor :block, :locals
+    
+    def empty?
+      @block.nil?
+    end
   end
   
   class Arguments < Node
@@ -611,7 +622,7 @@ class Node
     kind :when
     
     def args(cond, body = nil)
-      @body = body
+      @body = expand(body)
       @conditions = []
       @splat = nil
 
@@ -689,7 +700,10 @@ class Node
   end
   
   class LocalVariable < Node
-    def args(name)
+    
+    def consume(sexp)
+      name = sexp[0]
+      
       scope = get(:scope)
       
       if get(:iter)
@@ -698,6 +712,10 @@ class Node
         @variable, @depth = scope.find_local name
       end
       
+      super(sexp)
+    end
+    
+    def args(name)
       @name = name
     end
     
@@ -711,7 +729,7 @@ class Node
 
   class LocalAssignment < LocalVariable
     kind :lasgn
-    
+        
     def args(name, idx, val=nil)
       # val will be nil if this is e.g. an lasgn inside an masgn
       @value = val
@@ -806,7 +824,17 @@ class Node
   class ArrayLiteral < Node
     kind :array
     
-    def args(*body)
+    # We do this to get around having to do *body in
+    # args. 1024 is the max number of args, so if an
+    # array had more elements that than, args would
+    # get an args error. This lets us leave it as an
+    # Array.
+    def consume(sexp)
+      sexp.map! { |s| convert(s) }
+      [sexp]
+    end
+    
+    def args(body)
       @body = body
     end
     
@@ -1055,7 +1083,19 @@ class Node
         parent = name.parent
       end
       
-      body = set(:family, self) do
+      # We have to set this before converting the body, because
+      # we'll need to know it to use find_ivar_index properly.
+      sup = sexp[1]
+      if sup and sup[0] == :const
+        @superclass_name = sup[1]
+      else
+        @superclass_name = nil
+      end
+      @name = sym
+
+      @namespace = get(:namespace)
+      
+      body = set(:family => self, :namespace => sym) do
         super([sexp[2]])
       end
             
@@ -1063,6 +1103,23 @@ class Node
     end
     
     attr_accessor :name, :parent, :superclass, :body
+    
+    def find_ivar_index(name)
+      slot = super(name)
+      if slot
+        return slot
+      elsif !@namespace
+        if tbl = Compiler2::Bootstrap::HINTS[@name]
+          return tbl[name]
+        elsif @superclass_name
+          if tbl = Compiler2::Bootstrap::HINTS[@superclass_name]
+            return tbl[name]
+          end
+        end
+      end
+      
+      return nil
+    end
   end
   
   class Module < ClosedScope
@@ -1078,11 +1135,17 @@ class Node
       
       if name.is? ConstFind
         parent = nil
+      elsif name.is? ConstAtTop
+        parent = name
       else
         parent = name.parent
       end
       
-      [sym, parent, super([sexp[1]])]
+      body = set(:namespace, sym) do
+        super([sexp[1]])
+      end
+      
+      [sym, parent, body]
     end
     
     attr_accessor :name, :body, :parent
@@ -1118,6 +1181,10 @@ class Node
         @splat = cond.array
       else
         raise Error, "Unknown rescue condition form"
+      end
+      
+      if body.nil?
+        @body = Nil.new(@compiler)
       end
     end
     
@@ -1174,8 +1241,9 @@ class Node
     kind :defined
     
     def consume(sexp)
-      if sexp[0] == :call
-        sexp[1] = convert(sexp[1])
+      expr = sexp[0]
+      if expr[0] == :call
+        expr[1] = convert(expr[1])
       end
       
       sexp      
@@ -1230,7 +1298,7 @@ class Node
       @in_rescue = get(:in_rescue)
       
       if ens = get(:in_ensure)
-        ens[:did_return] = self
+        ens[:did_return] = true
         @in_ensure = true
       else
         @in_ensure = false
@@ -1286,7 +1354,7 @@ class Node
     end
     
     def args(name, body, args)
-      @name, @body, @arguments = name, body, args      
+      @name, @body, @arguments = name, expand(body), args      
     end
         
     attr_accessor :name, :body, :arguments
@@ -1439,7 +1507,7 @@ class Node
   class Super < Call
     kind :super
     
-    def args(args)
+    def args(args=nil)
       @method = get(:scope)
       @arguments = args
       
@@ -1504,6 +1572,8 @@ class Node
     end
     
     def names
+      return [] if @child.nil?
+      
       if @child.is? LocalAssignment
         [@child.name]
       else
@@ -1553,7 +1623,7 @@ class Node
     end
     
     def normalize(c, a, b)
-      @arguments, @body = a, b
+      @arguments, @body = a, expand(b)
       
       if c.is? FCall and c.method == :loop
         n = Loop.new(@compiler)
@@ -1588,12 +1658,23 @@ class Node
       converted = convert(sexp[0])
       sexp[0] = converted # enum for the 'each' call
 
-      set(:iter_args) do
-       sexp[1] = convert([:iter_args, sexp[1]]) # local var assignment
+      # 'declare' the vars outside the for.
+      scope = get(:scope)
+      
+      vars = sexp[1]
+      
+      if get(:iter)
+        scope.find_local vars[1], true
+      else
+        scope.find_local vars[1]
       end
-
+  
       set(:iter) do
         @locals = get(:scope).new_block_scope do
+          set(:iter_args) do
+           sexp[1] = convert([:iter_args, sexp[1]]) # local var assignment
+          end
+          
           sexp[2] = convert(sexp[2]) # body
         end
       end
@@ -1602,7 +1683,7 @@ class Node
     end
 
     def normalize(c, arguments, body)
-      @arguments, @body = arguments, body
+      @arguments, @body = arguments, expand(body)
       
       c.block = self
       return c

@@ -10,12 +10,20 @@ end
 
 action = :run
 patterns = []
+includes = ['-Ispec']
+requires = []
 target = 'shotgun/rubinius'
-format = 'CIFormatter'
+format = 'DottedFormatter'
 clean = false
 verbose = false
+marker = nil
 ci_files = "tmp/files.txt"
 flags = []
+
+# Subdir where exclude files for CI are stored.
+# Different implementations require different places.
+# Rubinius implementation by default uses '.spec'.
+excludes_subdir = '.spec'
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "ci [options] (FILE|DIRECTORY|GLOB)+"
@@ -23,13 +31,13 @@ opts = OptionParser.new("", 24, '   ') do |opts|
 
   opts.on("-c", "--create", "Create the exclude file for failing specs") do
     action = :create
+    format = 'CIFormatter'
   end
-  opts.on("-r", "--run", "Run the specs excluding the expected failures") do
+  opts.on("-R", "--run", "Run the specs excluding the expected failures") do
     action = :run
   end
   opts.on("-i", "--invert", "Run the specs using only the expected failures") do
     action = :invert
-    format = 'DottedFormatter'
   end
   opts.on("-t", "--target TARGET", String, 
           "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
@@ -42,8 +50,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       target = 'shotgun/rubinius'
     when 'j', 'jruby'
       target = 'jruby'
+      excludes_subdir = '.jruby'
     else
       target = t
+      excludes_subdir = '.jruby' if /jruby(.bat|.sh)*$/ =~ target
     end
   end
   opts.on("-f", "--format FORMAT", String, 
@@ -65,6 +75,14 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       exit
     end
   end
+  opts.on("-I", "--include DIRECTORY", String,
+          "Passes through as the -I option to the target") do |d|
+    includes << "-I#{d}"
+  end
+  opts.on("-r", "--require LIBRARY", String,
+          "Passes through as the -r option to the target") do |f|
+    requires << "-r#{f}"
+  end
   opts.on("-T", "--targetopt OPT", String,
           "Pass OPT as a flag to the target implementation") do |t|
     flags <<  t
@@ -72,7 +90,12 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-C", "--clean", "Remove all compiled spec files first") do
     clean = true
   end
-  opts.on("-V", "--verbose", "Output each file processed when running") do
+  opts.on("-V", "--verbose", "Output the name of each file processed") do
+    verbose = true
+  end
+  opts.on("-m", "--marker MARKER", String,
+          "Outout MARKER for each file processed. Overrides -V") do |m|
+    marker = m
     verbose = true
   end
   opts.on("-g", "--gdb", "Run under gdb") do
@@ -80,6 +103,9 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-A", "--valgrind", "Run under valgrind") do
     flags << '--valgrind'
+  end
+  opts.on('-2', '--compiler2', 'Use Compiler2 to compile the files') do
+    requires << '-rcompiler2/init'
   end
   opts.on("-v", "--version", "Show version") do
     puts "Continuous Integration Tool #{CI::VERSION}"
@@ -95,13 +121,14 @@ end
 
 # only these directories are included because other directories have specs
 # that cause compilation to fail. ideally, spec/**/*_spec.rb would be run.
-patterns = ['spec/core', 'spec/language', 'spec/parser'] if patterns.empty?
+patterns = CI_FILE_SPECS if patterns.empty?
 files = []
 patterns.each do |item|
   stat = File.stat(File.expand_path(item))
   files << item if stat.file?
   files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
 end
+max_name_width = files.inject(0) { |max, f| f.size > max ? f.size : max }
 
 # remove all compiled spec files to catch compiler bugs
 if clean
@@ -118,7 +145,7 @@ require 'spec/spec_helper'
 $VERBOSE=nil
 
 def exclude_name(file)
-  File.join(File.dirname(file), '.spec', 
+  File.join(File.dirname(file), #{excludes_subdir.inspect},
     File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
 end
 
@@ -127,7 +154,7 @@ def create_exclude_file(file)
 end
 
 def mk_exclude_dir(file)
-  dir = File.join(File.dirname(file), '.spec')
+  dir = File.join(File.dirname(file), #{excludes_subdir.inspect})
   Dir.mkdir(dir) unless File.exist?(dir)
 end
 
@@ -143,23 +170,30 @@ end
 
 all_excludes = read_excludes("spec/excludes.txt")
 
+set_spec_runner(#{format})
+spec_runner.formatter.print_start
 #{files.inspect}.each do |file|
   mk_exclude_dir(file)
+  spec_runner.formatter.out = %s
   excludes = read_excludes(exclude_name(file))
-  formatter = #{format}.new(%s)
-  spec_runner.formatter = formatter
   spec_runner.%s(*all_excludes)
   %s
-  STDERR.puts file if #{verbose}
-  load file
-  formatter.summary
+  begin
+    STDERR.print(#{marker.inspect} || "\\n\#{file.ljust(#{max_name_width})}") if #{verbose}
+    load file
+  rescue Exception => e
+    puts "\#{e} loading \#{file}"
+  ensure
+    spec_runner.clear_filters
+  end
   %s
 end
+spec_runner.formatter.summary
 EOC
 
 case action
 when :create
-  code = code % ['create_exclude_file(file)', 'except', '', 'formatter.out.close']
+  code = code % ['create_exclude_file(file)', 'except', '', 'spec_runner.formatter.out.close']
 when :run
   code = code % ['STDOUT', 'except', 'spec_runner.except(*excludes)', '']
 when :invert
@@ -175,4 +209,4 @@ File.open("tmp/last_ci.rb", "w") do |f|
   f << code
 end
 
-exec("#{target} #{flags.join(' ')} -Ispec tmp/last_ci.rb")
+exec("#{target} #{flags.join(' ')} #{includes.join(" ")} #{requires.join(" ")} tmp/last_ci.rb")

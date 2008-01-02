@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 # Be very careful about calling raise in here! Thread has it's own
 # raise which, if you're calling raise, you probably don't want. Use
 # Kernel.raise to call the proper raise.
@@ -40,7 +42,7 @@ class Thread
       Kernel.raise ThreadError, "must be called with a block"
     end
 
-    block = Ruby.asm "push_block"
+    block = block_given?
     block.disable_long_return!
 
     setup(false)
@@ -74,12 +76,12 @@ class Thread
   end
 
   def setup_task
-    block = Ruby.asm "push_block"
+    block = block_given?
     @task.associate block
   end
 
   def self.new(*args)
-    block = Ruby.asm "push_block"
+    block = block_given?
     th = allocate()
     th.initialize(*args, &block)
     th.wakeup
@@ -99,6 +101,10 @@ class Thread
     end
   end
 
+  def stop?
+    !alive? || @sleep
+  end
+  
   def status
     if alive?
       if @sleep
@@ -107,7 +113,11 @@ class Thread
         "run"
       end
     else
-      false
+      if(@exception)
+        nil
+      else
+        false
+      end
     end
   end
 
@@ -126,10 +136,7 @@ class Thread
   end
 
   def join(timeout = Undefined)
-    join_inner(timeout) do
-      break nil if @alive
-      self
-    end
+    join_inner(timeout) { @alive ? nil : self }
   end
 
   def group
@@ -154,8 +161,8 @@ class Thread
         @lock.send nil
         begin
           unless timeout == Undefined
-            timeout = Time.at timeout
-            Scheduler.send_in_microseconds(jc, (timeout.to_f * 1_000_000).to_i)
+            msecs = (timeout.to_f * 1_000_000).to_i
+            Scheduler.send_in_microseconds(jc, msecs)
           end
           jc.receive
         ensure
@@ -170,6 +177,11 @@ class Thread
     result
   end
   private :join_inner
+  
+  def raise_prim(exc)
+    Ruby.primitive :thread_raise
+  end
+  private :raise_prim
 
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
@@ -186,11 +198,7 @@ class Thread
       STDERR.puts "Exception: #{exc.message} (#{exc.class})"
     end
 
-    ctx = @task.current_context
-
-    exc.set_backtrace ctx unless exc.backtrace
-
-    @task.raise exc
+    raise_prim exc
   end
 
   def [](key)

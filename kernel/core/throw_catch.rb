@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 # Emulates the interface of Exception, but isn't one.
 class ThrownValue
   def initialize(name, value, ctx)
@@ -60,7 +62,10 @@ class Object
       end
     rescue ThrownValue => val
       return val.value if val.name == sym
-      Ruby.asm "#local val\nraise_exc\n"
+      Rubinius.asm(val) do |v|
+        v.bytecode(self)
+        raise_exc
+      end
     end
   end
 
@@ -70,7 +75,10 @@ class Object
     end
     
     exc = ThrownValue.new(sym, value, MethodContext.current.sender)
-    Ruby.asm "#local exc\nraise_exc\n"    
+    Rubinius.asm(exc) do |v|
+      v.bytecode(self)
+      raise_exc
+    end
   end
 end
 

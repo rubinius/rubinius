@@ -11,16 +11,8 @@ class Channel
     Ruby.primitive :channel_send
   end
 
-  def receive_raw
-    Ruby.primitive :channel_receive
-  end
-
   def receive
-    receive_raw[1]
-  end
-
-  def self.receive_many(ary)
-    Ruby.primitive :channel_receive_many
+    Ruby.primitive :channel_receive
   end
 
   def self.convert_to_channel(obj)
@@ -51,11 +43,11 @@ class Channel
 end
 
 class Scheduler
-  def self.send_in_microseconds(chan, count)
+  def self.send_in_microseconds(chan, microseconds)
     Ruby.primitive :channel_send_in_microseconds
   end
 
-  def self.send_on_readable(chan, io, buffer, count)
+  def self.send_on_readable(chan, io, buffer, nbytes)
     Ruby.primitive :channel_send_on_readable
   end
 
@@ -63,11 +55,11 @@ class Scheduler
     Ruby.primitive :channel_send_on_readable
   end
 
-  def self.send_on_signal(chan, number)
+  def self.send_on_signal(chan, signum)
     Ruby.primitive :channel_send_on_signal
   end
-  
-  def self.send_on_stopped(chan, pid)
+
+  def self.send_on_stopped(chan, pid=-1, flags=0)
     Ruby.primitive :channel_send_on_stopped
   end
 end

@@ -51,6 +51,16 @@ describe SpecRunner do
     @runner.except('a', 'b', 'c').should == [/a/, /b/, /c/]
   end
   
+  it "provides #clear_filters that removes any #except and #only filters" do
+    @runner.only('a', 'b', 'c').should == [/a/, /b/, /c/]
+    @runner.only('d').should == [/a/, /b/, /c/, /d/]
+    @runner.except('a', 'b', 'c').should == [/a/, /b/, /c/]
+    @runner.except('d').should == [/a/, /b/, /c/, /d/]
+    @runner.clear_filters
+    @runner.only('a').should == [/a/]
+    @runner.except('a').should == [/a/]
+  end
+  
   it "provides #skip? that returns true if current spec full message matches an except element" do
     @runner.except('this one')
     @runner.skip?('this one').should == true

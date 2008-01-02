@@ -1,0 +1,1 @@
+Kernel.Integer should call to_inum on strings with a base of 0 and with checks on

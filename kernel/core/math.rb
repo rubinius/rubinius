@@ -1,3 +1,5 @@
+# depends on: module.rb
+
 module Math
   # Constants
   PI = 3.14159_26535_89793_23846

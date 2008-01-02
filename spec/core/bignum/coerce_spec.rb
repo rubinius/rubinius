@@ -1,28 +1,18 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
-
-describe "Bignum#coerce when given a Fixnum or Bignum" do
-  it "returns an Array containing the given argument and self" do
-    a = BignumHelper.sbm
-    a.coerce(2).should == [2, a]
-    
-    b = BignumHelper.sbm(701)
-    a.coerce(b).should == [b, a]
-  end
-end
 
 describe "Bignum#coerce" do
-  it "raises a TypeError when given a non Fixnum/Bignum" do
-    a = BignumHelper.sbm
+  it "returns [Bignum, Bignum] if other is a Fixnum" do
+      a = 0xffffffff.coerce(1)
+      a.should == [1, 4294967295]
+      a.collect { |i| i.class }.should == [Bignum, Bignum]
+  end
 
-    lambda { a.coerce(nil) }.should raise_error(TypeError)
-    lambda { a.coerce(mock('str')) }.should raise_error(TypeError)
-    lambda { a.coerce(1..4) }.should raise_error(TypeError)
-    lambda { a.coerce(:test) }.should raise_error(TypeError)
-
-    compliant :ruby do
-      lambda { a.coerce(12.3) }.should raise_error(TypeError)
-      lambda { a.coerce("123") }.should raise_error(TypeError)
-    end
+  it "returns [Float, Float] if other is not a Bignum or Fixnum" do
+    a = 0xffffffff.coerce("2")
+    a.inspect.should == "[2.0, 4294967295.0]"
+    a.collect { |i| i.class }.should == [Float, Float]
+    b = 0xffffffff.coerce(1.5)
+    b.inspect.should == "[1.5, 4294967295.0]"
+    b.collect { |i| i.class }.should == [Float, Float]
   end
 end

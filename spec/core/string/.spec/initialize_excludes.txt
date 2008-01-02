@@ -1,1 +1,0 @@
-String#initialize is a private method

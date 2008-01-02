@@ -219,7 +219,7 @@ CODE
   end
   
   def push_literal
-    "next_int; stack_push(tuple_at(state, cpu_current_literals(state, c), _int));"
+    "next_int; stack_push(fast_fetch(cpu_current_literals(state, c), _int));"
   end
   
   def set_literal
@@ -235,7 +235,7 @@ CODE
   end
   
   def push_local
-    "next_int; stack_push(tuple_at(state, cpu_current_locals(state, c), _int));"
+    "next_int; stack_push(fast_fetch(cpu_current_locals(state, c), _int));"
   end
   
   def push_local_depth
@@ -473,7 +473,7 @@ CODE
     }
     
     cpu_perform_hook(state, c, BASIC_CLASS(array), 
-                     state->global->sym_from_literal, t1);
+                     global->sym_from_literal, t1);
     stack_push(t1);
     CODE
   end
@@ -491,9 +491,9 @@ CODE
   def cast_array
     <<-CODE
     t1 = stack_pop();
-    if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->tuple)) {
+    if(REFERENCE_P(t1) && object_kind_of_p(state, t1, global->tuple)) {
       t1 = array_from_tuple(state, t1);
-    } else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, state->global->array)) {
+    } else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, global->array)) {
       t2 = array_new(state, 1);
       array_set(state, t2, 0, t1);
       t1 = t2;
@@ -507,9 +507,9 @@ CODE
     next_int;
     c->args = _int;
     t1 = stack_pop();
-    if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->tuple)) {
+    if(REFERENCE_P(t1) && object_kind_of_p(state, t1, global->tuple)) {
       t1 = array_from_tuple(state, t1);
-    } else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, state->global->array)) {
+    } else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, global->array)) {
       t2 = array_new(state, 1);
       array_set(state, t2, 0, t1);
       t1 = t2;
@@ -522,7 +522,7 @@ CODE
   def cast_tuple
     <<-CODE
     t1 = stack_pop();
-    if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->array)) {
+    if(REFERENCE_P(t1) && object_kind_of_p(state, t1, global->array)) {
       j = FIXNUM_TO_INT(array_get_total(t1));
       t2 = tuple_new(state, j);
 
@@ -530,7 +530,7 @@ CODE
         tuple_put(state, t2, k, array_get(state, t1, k));
       }
       t1 = t2;
-    } else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, state->global->tuple)) {
+    } else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, global->tuple)) {
       t2 = tuple_new(state, 1);
       tuple_put(state, t2, 0, t1);
       t1 = t2;
@@ -553,6 +553,30 @@ CODE
     CODE
   end
   
+  def cast_for_multi_block_arg
+    <<-CODE
+    t1 = stack_top();
+    k = NUM_FIELDS(t1);
+    /* If there is only one thing in the tuple... */
+    if(k == 1) {
+      t1 = tuple_at(state, t1, 0);
+      /* and that thing is an array... */
+      if(RISA(t1, array)) {
+        /* make a tuple out of the array contents... */
+        j = FIXNUM_TO_INT(array_get_total(t1));
+        t2 = tuple_new(state, j);
+
+        for(k = 0; k < j; k++) {
+          tuple_put(state, t2, k, array_get(state, t1, k));
+        }
+        
+        /* and put it on the top o the stack. */
+        stack_set_top(t2);
+      }
+    }
+    CODE
+  end
+  
   def make_hash
     <<-CODE
     next_int;
@@ -566,7 +590,7 @@ CODE
     }
     
     cpu_perform_hook(state, c, BASIC_CLASS(hash), 
-                     state->global->sym_from_literal, t1);
+                     global->sym_from_literal, t1);
     
     stack_push(t1);
     CODE
@@ -574,10 +598,9 @@ CODE
   
   def set_ivar
     <<-CODE
-    next_int;
-    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
+    next_literal;
     t2 = stack_pop();
-    object_set_ivar(state, c->self, t1, t2);
+    object_set_ivar(state, c->self, _lit, t2);
     stack_push(t2);
     CODE
   end
@@ -594,9 +617,8 @@ CODE
   def find_const
     <<-CODE
     t1 = stack_pop();
-    next_int;
-    t2 = tuple_at(state, cpu_current_literals(state, c), _int);
-    t2 = cpu_const_get_from(state, c, t2, t1);
+    next_literal;
+    t2 = cpu_const_get_from(state, c, _lit, t1);
     if(t2 != Qundef) stack_push(t2);
     c->cache_index = -1;
     CODE
@@ -604,24 +626,22 @@ CODE
   
   def set_const
     <<-CODE
-    next_int;
-    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
-    stack_push(cpu_const_set(state, c, t1, stack_pop(), c->enclosing_class));
+    next_literal;
+    stack_push(cpu_const_set(state, c, _lit, stack_pop(), c->enclosing_class));
     CODE
   end
   
   def set_const_at
     <<-CODE
-    next_int;
-    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
+    next_literal;
     t2 = stack_pop();
     t3 = stack_pop();
-    cpu_const_set(state, c, t1, t2, t3);
+    cpu_const_set(state, c, _lit, t2, t3);
     CODE
   end
   
   def push_cpath_top
-    "stack_push(state->global->object);"
+    "stack_push(global->object);"
   end
   
   def set_encloser
@@ -645,7 +665,7 @@ CODE
     t3 = cpu_open_class(state, c, t2, t1, &created);
     if(t3 != Qundef) {
       stack_push(t3);
-      if(created) cpu_perform_hook(state, c, t3, state->global->sym_opened_class, t1);
+      if(created) cpu_perform_hook(state, c, t3, global->sym_opened_class, t1);
     }
     CODE
   end
@@ -658,7 +678,7 @@ CODE
     t3 = cpu_open_class(state, c, t2, t1, &created);
     if(t3 != Qundef) {
       stack_push(t3);
-      if(created) cpu_perform_hook(state, c, t3, state->global->sym_opened_class, t1);
+      if(created) cpu_perform_hook(state, c, t3, global->sym_opened_class, t1);
     }
     CODE
   end
@@ -688,7 +708,7 @@ CODE
     t2 = stack_pop();
     cpu_attach_method(state, c, t1, _lit, t2);
     stack_push(t2);
-    cpu_perform_hook(state, c, t1, state->global->sym_s_method_added, _lit);
+    cpu_perform_hook(state, c, t1, global->sym_s_method_added, _lit);
     CODE
   end
   
@@ -699,7 +719,7 @@ CODE
     t2 = stack_pop();
     cpu_add_method(state, c, t1, _lit, t2);
     stack_push(t2);
-    cpu_perform_hook(state, c, t1, state->global->sym_method_added, _lit);
+    cpu_perform_hook(state, c, t1, global->sym_method_added, _lit);
     CODE
   end
   
@@ -805,7 +825,7 @@ CODE
     
     perform_send:
     
-    cpu_unified_send(state, c, t1, _lit, j, t2);
+    _inline_cpu_unified_send(state, c, t1, _lit, j, t2);
     CODE
   end
   
@@ -841,7 +861,7 @@ CODE
         t2 = stack_pop();
         t1 = stack_pop();
         stack_push(t3);
-        _lit = state->global->sym_send;
+        _lit = global->sym_send;
         j = c->args;
         goto perform_send;
       }
@@ -866,12 +886,11 @@ CODE
   def meta_send_op_plus
     <<-CODE
     t1 = stack_pop();
-    t2 = stack_pop();
+    t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
-      stack_push(fixnum_add(state, t1, t2));
+      stack_set_top(fixnum_add(state, t1, t2));
     } else {
-      stack_push(t2);
-      _lit = state->global->sym_plus;
+      _lit = global->sym_plus;
       t2 = Qnil;
       j = 1;
       goto perform_send;
@@ -882,12 +901,11 @@ CODE
   def meta_send_op_minus
     <<-CODE
     t1 = stack_pop();
-    t2 = stack_pop();
+    t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
-      stack_push(fixnum_sub(state, t1, t2));
+      stack_set_top(fixnum_sub(state, t1, t2));
     } else {
-      stack_push(t2);
-      _lit = state->global->sym_minus;
+      _lit = global->sym_minus;
       t2 = Qnil;
       j = 1;
       goto perform_send;
@@ -898,13 +916,12 @@ CODE
   def meta_send_op_equal
     <<-CODE
     t1 = stack_pop();
-    t2 = stack_pop();
+    t2 = stack_back(0);
     /* If both are fixnums, or one is a symbol, compare the ops directly. */
     if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
-      stack_push((t1 == t2) ? Qtrue : Qfalse);
+      stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
-      stack_push(t2);
-      _lit = state->global->sym_equal;
+      _lit = global->sym_equal;
       t2 = Qnil;
       j = 1;
       goto perform_send;
@@ -915,13 +932,12 @@ CODE
   def meta_send_op_nequal
     <<-CODE
     t1 = stack_pop();
-    t2 = stack_pop();
+    t2 = stack_back(0);
     /* If both are fixnums, or one is a symbol, compare the ops directly. */
     if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
-      stack_push((t1 == t2) ? Qfalse : Qtrue);
+      stack_set_top((t1 == t2) ? Qfalse : Qtrue);
     } else {
-      stack_push(t2);
-      _lit = state->global->sym_nequal;
+      _lit = global->sym_nequal;
       t2 = Qnil;
       j = 1;
       goto perform_send;
@@ -933,13 +949,12 @@ CODE
   def meta_send_op_tequal
     <<-CODE
     t1 = stack_pop();
-    t2 = stack_pop();
+    t2 = stack_back(0);
     /* If both are fixnums, or both are symbols, compare the ops directly. */
     if((FIXNUM_P(t1) && FIXNUM_P(t2)) || (SYMBOL_P(t1) && SYMBOL_P(t2))) {
-      stack_push((t1 == t2) ? Qtrue : Qfalse);
+      stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
-      stack_push(t2);
-      _lit = state->global->sym_tequal;
+      _lit = global->sym_tequal;
       t2 = Qnil;
       j = 1;
       goto perform_send;
@@ -950,14 +965,13 @@ CODE
   def meta_send_op_lt
     <<-CODE
     t1 = stack_pop();
-    t2 = stack_pop();
+    t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
       j = FIXNUM_TO_INT(t1);
       k = FIXNUM_TO_INT(t2);
-      stack_push((j < k) ? Qtrue : Qfalse);
+      stack_set_top((j < k) ? Qtrue : Qfalse);
     } else {
-      stack_push(t2);
-      _lit = state->global->sym_lt;
+      _lit = global->sym_lt;
       t2 = Qnil;
       j = 1;
       goto perform_send;
@@ -968,14 +982,13 @@ CODE
   def meta_send_op_gt
     <<-CODE
     t1 = stack_pop();
-    t2 = stack_pop();
+    t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
       j = FIXNUM_TO_INT(t1);
       k = FIXNUM_TO_INT(t2);
-      stack_push((j > k) ? Qtrue : Qfalse);
+      stack_set_top((j > k) ? Qtrue : Qfalse);
     } else {
-      stack_push(t2);
-      _lit = state->global->sym_gt;
+      _lit = global->sym_gt;
       t2 = Qnil;
       j = 1;
       goto perform_send;
@@ -1074,9 +1087,9 @@ CODE
   
   def check_argcount
     <<-CODE
-    next_int;
+    next_int; /* min */
     j = _int;
-    next_int;
+    next_int; /* max */
     
     if(cpu_current_argcount(c) < (unsigned long int)j) {
       cpu_raise_arg_error(state, c, cpu_current_argcount(c), j);

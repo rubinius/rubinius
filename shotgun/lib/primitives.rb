@@ -288,7 +288,9 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); GUARD( RISA(self, class) )
     POP(t1, FIXNUM);
-    stack_push(bytearray_new(state, FIXNUM_TO_INT(t1)));
+    t2 = bytearray_new(state, FIXNUM_TO_INT(t1));
+    t2->klass = self;
+    stack_push(t2);
     CODE
   end
 
@@ -337,26 +339,13 @@ class ShotgunPrimitives
     
     c->blockargs = num_args;
     
-    /* MRI fun. if an array is passed in, then present it as all
-       the args. */
-    if(0 && num_args == 1 && ISA(stack_top(), state->global->array)) {
-      printf("Cast array as block args.\\n");
+    t3 = tuple_new(state, num_args);
+    for(j = 0; j < num_args; j++) {
       t1 = stack_pop();
-      k = FIXNUM_TO_INT(array_get_total(t1));
-      c->blockargs = k;
-      t3 = tuple_new(state, k);
-      for(j = 0; j < k; j++) {
-        tuple_put(state, t3, j, array_get(state, t1, j));
-      }
-      stack_push(t3);
-    } else { /* if(num_args > 1) { */
-      t3 = tuple_new(state, num_args);
-      for(j = 0; j < num_args; j++) {
-        tuple_put(state, t3, j, stack_pop());
-      }
-      stack_push(t3);
+      tuple_put(state, t3, j, t1);
     }
-    
+    stack_push(t3);
+
     cpu_flush_sp(c);
     t2 = cpu_create_block_context(state, c, self, c->sp);
     cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);
@@ -837,8 +826,7 @@ class ShotgunPrimitives
       }
       stack_push(t2);
       /* TODO: copy the ivars in slot 0 */
-      // perform_hook is broken currently.
-      // cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
+      cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
     } else {
       stack_push(t1);
     }
@@ -1900,7 +1888,21 @@ class ShotgunPrimitives
     stack_push(t2);
     CODE
   end
-  
+
+  def fastctx_reload_method
+    <<-CODE
+    struct fast_context *fc;
+    t1 = stack_pop();
+
+    GUARD(RISA(t1, fastctx));
+
+    fc = FASTCTX(t1);
+    fc->data = BYTEARRAY_ADDRESS(cmethod_get_compiled(fc->method));
+
+    stack_push(Qtrue);
+    CODE
+  end
+
   def vm_stats
     <<-CODE
 #ifdef TRACK_STATS
@@ -2135,6 +2137,41 @@ class ShotgunPrimitives
     CODE
   end
   
+  def task_stack_size
+    <<-CODE
+    struct cpu_task *task;
+    self = stack_pop(); /* self */
+
+    GUARD(RISA(self, task));
+
+    task = (struct cpu_task*)BYTES_OF(self);
+    t1 = I2N(task->sp_ptr - task->stack_top);
+
+    stack_push(t1);
+    CODE
+  end
+
+  def task_get_stack_value
+    <<-CODE
+    struct cpu_task *task;
+    self = stack_pop(); /* self */
+    t1 = stack_pop();
+
+    GUARD(RISA(self, task));
+    GUARD(FIXNUM_P(t1));
+
+    task = (struct cpu_task*)BYTES_OF(self);
+    int idx = abs(FIXNUM_TO_INT(t1));
+    if(idx < 0 || idx >= (task->sp_ptr - task->stack_top)) {
+      cpu_raise_arg_error_generic(state, c, "Task stack index out of range");
+    }
+
+    t2 = *(task->sp_ptr - idx);
+
+    stack_push(t2);
+    CODE
+  end
+
   def task_raise
     <<-CODE
     self = stack_pop();
@@ -2148,9 +2185,30 @@ class ShotgunPrimitives
     /* This is conditional because task_select can decide that it's not
        not possible to select this task, in which case it handles letting
        the user know this on it's own. */
+        
     if(cpu_task_select(state, c, self)) {
       cpu_raise_exception(state, c, t1);
     }
+    CODE
+  end
+  
+  def thread_raise
+    <<-CODE
+    self = stack_pop();
+    GUARD( RISA(self, thread) );
+    
+    t1 = stack_pop();
+    
+    /* The return value */
+    stack_push(Qnil);
+    
+    cpu_thread_schedule(state, c->current_thread);    
+    cpu_thread_force_run(state, c, self);
+    
+    methctx_reference(state, c->active_context);
+    exception_set_context(t1, c->active_context);
+    
+    cpu_raise_exception(state, c, t1);
     CODE
   end
   
@@ -2187,37 +2245,8 @@ class ShotgunPrimitives
   
   def channel_receive_many
     <<-CODE
-    OBJECT ary;
-    stack_pop(); /* class */
-    ary = stack_pop();
-    
-    GUARD(RISA(ary, array));
-    t1 = array_get_tuple(ary);
-    k = FIXNUM_TO_INT(array_get_total(ary));
-    
-    for(j = 0; j < k; j++) {
-      t2 = tuple_at(state, t1, j);
-      
-      /* Oh, this channel is already ready! return it's value. */
-      t3 = channel_get_value(t2);
-      if(!NIL_P(t3) && !list_empty_p(t3)) {
-        channel_set_value(t2, Qnil);
-        stack_push(tuple_new2(state, 2, t2, list_shift(state, t3)));
-        return TRUE;
-      }
-    }
-    
-    for(j = 0; j < k; j++) {
-      t2 = tuple_at(state, t1, j);
-      cpu_channel_register(state, c, t2, c->current_thread);      
-    }
-    
-    c->outstanding = ary;
-    
-    /* We push something on the stack to reserve a place to put the result. */
-    stack_push(I2N(343434));
-    
-    cpu_thread_run_best(state, c);
+    stack_pop();
+    stack_push(Qnil);
     CODE
   end
   
@@ -2303,9 +2332,10 @@ class ShotgunPrimitives
     stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1, FIXNUM);
+    POP(t2, FIXNUM);
     GUARD(RISA(self, channel));
     
-    cpu_event_wait_child(state, c, self, FIXNUM_TO_INT(t1));
+    cpu_event_wait_child(state, c, self, FIXNUM_TO_INT(t1), FIXNUM_TO_INT(t2));
     stack_push(Qtrue);
     CODE
   end
@@ -2618,6 +2648,98 @@ class ShotgunPrimitives
     <<-CODE
     cpu_push_encloser(state, c);
     stack_push(Qnil);
+    CODE
+  end
+  
+  def array_aref
+    <<-CODE
+    GUARD(num_args == 1);
+    self = stack_pop();
+    t1 = stack_top();
+    GUARD(FIXNUM_P(t1));
+
+    j = FIXNUM_TO_INT(array_get_total(self));
+
+    k = FIXNUM_TO_INT(t1);
+
+    if(k < 0) k += j;
+    
+    if(k < 0 || k >= j) {
+      stack_set_top(Qnil);
+    } else {
+      k += FIXNUM_TO_INT(array_get_start(self));
+      t3 = array_get_tuple(self);
+      GUARD(k < NUM_FIELDS(t3));
+      
+      stack_set_top(tuple_at(state, t3, k));
+    }
+    CODE
+  end
+  
+  def array_aset
+    <<-CODE
+    GUARD(num_args == 2);
+    self = stack_pop();
+    t1 = stack_pop();
+    GUARD(FIXNUM_P(t1));
+
+    j = FIXNUM_TO_INT(array_get_total(self));    
+    k = FIXNUM_TO_INT(t1);
+  
+    if(k < 0) k += j;
+      
+    if(k >= j - 1) {
+      array_set_total(self, I2N(k + 1));
+    }
+
+    k += FIXNUM_TO_INT(array_get_start(self));
+    t3 = array_get_tuple(self);
+    GUARD(k < NUM_FIELDS(t3));
+    
+    tuple_put(state, t3, k, stack_top());
+    CODE
+  end
+  
+  def string_append
+    <<-CODE
+    GUARD(num_args == 1);
+    self = stack_pop();
+    t1 = stack_top();
+    GUARD(STRING_P(t1));
+    
+    string_append(state, self, t1);
+    cpu_stack_set_top(state, c, self);
+    CODE
+  end
+  
+  def string_dup
+    <<-CODE
+    cpu_stack_set_top(state, c, string_dup(state, stack_top()));
+    CODE
+  end
+  
+  def string_equal
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    GUARD(STRING_P(t1));
+    
+    if(self == t1) {
+      stack_push(Qtrue);
+    } else {
+      t2 = string_get_bytes(self);
+      
+      if(t2 != string_get_bytes(t1)) {
+        stack_push(Qfalse);
+      } else {
+        j =  FIXNUM_TO_INT(t2);
+        t2 = string_get_data(self);
+        t3 = string_get_data(t1);
+
+        k = memcmp(BYTEARRAY_ADDRESS(t2), BYTEARRAY_ADDRESS(t3), j);
+        stack_push(k == 0 ? Qtrue : Qfalse);
+      }
+    }
     CODE
   end
 

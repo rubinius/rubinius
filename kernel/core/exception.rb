@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class Exception
   
   ivar_as_index :__ivars => 0, :message => 1, :context => 2
@@ -61,6 +63,22 @@ class Exception
   end
 end
 
+# primitive fails from opcode "send_primitive"
+class PrimitiveFailure < Exception
+end
+
+class ScriptError < Exception
+end
+
+class StandardError < Exception
+end
+
+class SignalException < Exception
+end
+
+class NoMemoryError < Exception
+end
+
 class ZeroDivisionError < StandardError
 end
 
@@ -118,38 +136,22 @@ end
 class RegexpError < StandardError
 end
 
-class NoMemoryError < Exception
-end
-
-class ScriptError < Exception
-end
-
 class LoadError < ScriptError
 end
 
 class NotImplementedError < ScriptError
 end
 
-class SignalException < Exception
+class Interrupt < SignalException
 end
 
-class Interrupt < SignalException
+class IOError < StandardError
 end
 
 class EOFError < IOError
 end
 
 class LocalJumpError < StandardError
-end
-
-# primitive fails from opcode "send_primitive"
-class PrimitiveFailure < Exception
-end
-
-class ScriptError < Exception
-end
-
-class StandardError < Exception
 end
 
 class NotImplementedError < ScriptError
@@ -174,3 +176,15 @@ class SystemCallError < StandardError
   end
 end
 
+class IllegalLongReturn
+  attr_reader :return_value
+end
+
+class ReturnException
+  attr_reader :return_value
+
+  def initialize(val)
+    super(nil) # HACK
+    @return_value = val
+  end
+end

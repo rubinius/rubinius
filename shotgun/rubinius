@@ -54,6 +54,10 @@ unless ENV['RBX_LOADER']
   ENV['RBX_LOADER'] = "#{prefix}/runtime/loader.rbc"
 end
 
+unless ENV['RBX_PLATFORM_CONF']
+  ENV['RBX_PLATFORM_CONF'] = "#{prefix}/runtime/platform.conf"
+end
+
 if ARGV[0] == "--gdb"
   ARGV.shift
     

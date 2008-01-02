@@ -1,4 +1,4 @@
-# depends on: enumerable.rb
+# depends on: class.rb enumerable.rb tuple.rb
 
 # Ruby's builtin dynamic array implementation
 class Array
@@ -68,7 +68,9 @@ class Array
     end
   
     self
-  end              
+  end
+
+  private :initialize
 
   # Element reference, returns the element at the given index or 
   # a subarray starting from the index continuing for length 
@@ -77,6 +79,8 @@ class Array
   # request cannot be completed. Array#slice is synonymous with #[].
   # Subclasses return instances of themselves.
   def [](one, two = nil)
+    Ruby.primitive :array_aref
+    
     # Normalise the argument variants
     start, finish, count, simple, is_range = nil, nil, nil, false, false
 
@@ -133,6 +137,8 @@ class Array
   alias_method :slice, :[]
 
   def []=(idx, ent, *args)
+    Ruby.primitive :array_aset
+    
     cnt = nil
     if args.size != 0
       cnt = ent.to_int
@@ -487,6 +493,8 @@ class Array
 
       i += 1
     end
+    
+    yield if block_given?
   end  
 
   # Deletes the element at the given index and returns

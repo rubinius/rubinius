@@ -1,4 +1,16 @@
 require 'mspec/runner/formatters/dotted'
+require 'mspec/runner/guards'
+
+unless MSpec.engine?(:rubinius)
+  # The useless use warnings are a crime against OO.
+  def $stderr.write(msg)
+    if msg =~ /useless use of/
+      nil
+    else
+      super(msg)
+    end
+  end
+end
 
 class DescribeState
   def before_all
@@ -24,9 +36,7 @@ end
 
 class SpecRunner
   def initialize(formatter=nil)
-    @only = []
-    @except = []
-    @env = Object.new
+    clear_filters
     @stack = []
     @formatter = formatter
     if @formatter.nil?
@@ -72,6 +82,11 @@ class SpecRunner
     @except.concat convert_to_regexps(*args)
   end
   
+  def clear_filters
+    @only = []
+    @except = []
+  end
+  
   def skip?(example)
     @except.each { |re| return true if re.match(example) }
     return false if @only.empty?
@@ -109,21 +124,21 @@ class SpecRunner
     formatter.before_describe(dmsg)
 
     begin
-      @env.instance_eval &block
+      block.call
 
-      @stack.last.before_all.each { |ba| @env.instance_eval &ba }
+      @stack.last.before_all.each { |ba| ba.call }
       @stack.last.it.each do |msg, b|
         unless skip?("#{dmsg} #{msg}")
           formatter.before_it(msg)
           begin
             begin
-              @stack.last.before_each.each { |be| @env.instance_eval &be }
-              @env.instance_eval &b
+              @stack.last.before_each.each { |be| be.call }
+              b.call
               Mock.verify_count
             rescue Exception => e
               formatter.exception(e)
             ensure
-              @stack.last.after_each.each { |ae| @env.instance_eval &ae }
+              @stack.last.after_each.each { |ae| ae.call }
               Mock.cleanup
             end
           rescue Exception => e
@@ -133,7 +148,7 @@ class SpecRunner
         end
       end
     ensure
-      @stack.last.after_all.each { |aa| @env.instance_eval &aa }
+      @stack.last.after_all.each { |aa| aa.call }
       Mock.cleanup
     end
 

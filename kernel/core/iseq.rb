@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class InstructionSet
   # List of Rubinius machine opcodes
   # Each opcode consists of a hash identifying:
@@ -117,7 +119,8 @@ class InstructionSet
     {:opcode => :set_literal, :args => [:literal]},
     {:opcode => :passed_blockarg, :args => [:int]},
     {:opcode => :create_block2, :args => [], :vm_flags => [:check_interrupts]},
-    {:opcode => :cast_for_single_block_arg, :args => []}
+    {:opcode => :cast_for_single_block_arg, :args => []},
+    {:opcode => :cast_for_multi_block_arg, :args => []}
   ]
 
   InstructionSize = 4
@@ -143,7 +146,12 @@ class InstructionSet
       @opcode_info[:args]
     end
 
-    # Returns the width (size) of the opcode (including arguments) in bytes
+    # Returns the size of the opcode (including arguments)
+    def size
+      @opcode_info[:args].size + 1
+    end
+
+    # Returns the width of the opcode (including arguments) in bytes
     def width
       (@opcode_info[:args].size + 1) * InstructionSize
     end
@@ -198,28 +206,23 @@ class InstructionSequence
       @iseq = iseq
       @offset = 0
       stream = []
-      last_op = nil
+
+      last_good = [nil, 0]
       
       begin
         while @offset < @iseq.size
-          inst = iseq2int
-          op = InstructionSet[inst]
-          case op.arg_count
-          when 0
-            stream << [op.opcode]
-          when 1
-            stream << [op.opcode, iseq2int]
-          when 2
-            stream << [op.opcode, iseq2int, iseq2int]
-          end
-          last_op = op
+          inst = decode
+          stream << inst
+          op = inst.first
+          last_good = [op, stream.size] unless op.opcode == :noop
         end
       rescue InstructionSet::InvalidOpCode => ex
         # If direct-threading is not used, we can get junk at the end of the iseq
-        unless last_op and last_op.terminator?
-          ex.message << " at ip #{@offset}"
+        unless last_good.first and last_good.first.terminator?
+          ex.message << " at byte #{@offset} of #{@iseq.size} [IP:#{@offset / InstructionSet::InstructionSize}]"
           raise ex
         end
+        stream.slice! last_good.last, stream.size
       end
 
       return stream
@@ -251,36 +254,72 @@ class InstructionSequence
 
       old_inst = iseq2int
       old_op = InstructionSet[old_inst]
+      new_op = InstructionSet[inst.first]
+      old_op.size.upto(new_op.size-1) do
+        next_inst = iseq2int
+        unless next_inst == 0
+          raise ArgumentError, "Cannot replace an instruction with a larger instruction (existing #{old_op.opcode} / new #{new_op.opcode})"
+        end
+      end
       replaced = [old_op.opcode]
 
-      i = 0
-      while i < old_op.arg_count do
+      1.upto(old_op.arg_count) do
         replaced << iseq2int
         @offset -= InstructionSet::InstructionSize
         int2str(0)  # Replace old args with 0
-        i += 1
       end
       
       @offset = start
       encode inst
       replaced
     end
+
+    # Decodes a single instruction at the specified instruction pointer address
+    def decode_instruction(iseq, ip)
+      @iseq = iseq
+      @offset = ip * InstructionSet::InstructionSize
+
+      decode
+    end
+
+    private
+
+    def decode
+      inst = iseq2int
+      op = InstructionSet[inst]
+
+      case op.arg_count
+      when 0
+        [op]
+      when 1
+        [op, iseq2int]
+      when 2
+        [op, iseq2int, iseq2int]
+      end
+    end
     
     def encode(inst)
-      opcode = InstructionSet[inst.first]
+      opcode = inst.first
+      unless inst.kind_of? InstructionSet::OpCode
+        opcode = InstructionSet[opcode]
+      end
 
       arg_count = opcode.arg_count
       unless inst.size - 1 == arg_count
-        raise Error, "Missing instruction arguments to #{inst.first} (need #{arg_count} / got #{inst.size - 1})"
+        raise ArgumentError, "Missing instruction arguments to #{inst.first} (need #{arg_count} / got #{inst.size - 1})"
       end
 
-      int2str(opcode.bytecode)
-      case arg_count
-      when 1
-        int2str(inst[1])
-      when 2
-        int2str(inst[1])
-        int2str(inst[2])
+      begin
+        int2str(opcode.bytecode)
+        case arg_count
+        when 1
+          int2str(inst[1])
+        when 2
+          int2str(inst[1])
+          int2str(inst[2])
+        end
+      rescue Object
+        raise ArgumentError, "Unable to encode #{inst.inspect}"
       end
     end
 

@@ -10,15 +10,15 @@ class Class
   
   def new(*args)
     obj = allocate()
-    Ruby.asm <<-CODE
-#local args
-cast_array_for_args 0
-push_array
-push_block
-#local obj
-set_call_flags 1
-&send initialize +
-    CODE
+    Rubinius.asm(args, obj) do |args, obj|
+      run args
+      cast_array_for_args 0
+      push_array
+      push_block
+      run obj
+      set_call_flags 1
+      send_with_register :initialize
+    end
 
     return obj
   end

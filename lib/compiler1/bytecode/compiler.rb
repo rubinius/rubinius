@@ -569,6 +569,8 @@ module Bytecode
         kind = x.shift
         if kind == ?'
           valid_last_match "send post_match 0"
+        elsif kind == ?+
+          valid_last_match "send last_capture 0"
         elsif kind == ?`
           valid_last_match "send pre_match 0"
         elsif kind == ?&
@@ -660,7 +662,7 @@ module Bytecode
       end
       
       def process_scope(x)
-        if x.first.empty?
+        if x.first.nil?
           x.clear
           add "push nil"        # stack un-cleanup
           return []
@@ -2195,8 +2197,7 @@ module Bytecode
         # options nil
         
         if meth == :block_given?
-          add "push true"
-          add "send_primitive block_given 0"
+          add "push_block"
           return
         end
         

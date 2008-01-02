@@ -1,0 +1,5 @@
+Dir.glob matches any one of the strings in a set with '{<string>,<other>,...}'
+Dir.glob accepts string sets with empty strings with {<string>,,<other>}
+Dir.glob matches dot or non-dotfiles with '{,.}*'
+Dir.glob recursively matches directories with '**/<characters>'
+Dir.glob recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH

@@ -1,4 +1,10 @@
 class SpecExecution
+  def initialize
+    @exception = nil
+    @describe = nil
+    @it = nil
+  end
+  
   def exception=(e)
     @exception = e
   end
@@ -22,10 +28,6 @@ class SpecExecution
   def it
     @it
   end
-  
-  def full_message
-    "#{@describe} #{@it}"
-  end
 end
 
 class BaseFormatter
@@ -35,6 +37,7 @@ class BaseFormatter
     @failures = 0
     @current = SpecExecution.new
     @exceptions = []
+    @summarized = false
   end
   
   def out=(out)

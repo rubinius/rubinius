@@ -1,10 +1,12 @@
+# depends on: object.rb
+
 class Class
 
   def self.new(sclass=Object)
     raise TypeError, "superclass must be a Class (#{sclass.class.name} given)" unless sclass.kind_of?(Class)
     
     obj = Rubinius.class_constitute(sclass, nil)
-    block = Ruby.asm "push_block"
+    block = block_given?
     obj.class_eval(&block) if block
     # add clas to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses

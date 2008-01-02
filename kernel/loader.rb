@@ -25,11 +25,16 @@ end
 # code. We read out of ARGV to figure out what the user is
 # trying to do.
 
-Signal.trap("INT") do
+Signal.action("INT") do |thr|  
+  # We can't raise on ourselves, we raise on main.
+  if thr == Thread.current
+    thr = Thread.main
+  end
+  
   # Push the output down a little bit, makes things look more
   # obvious that the system was interrupted.
   puts
-  Thread.main.raise Interrupt, "Thread has been interrupted"
+  thr.raise Interrupt, "Thread has been interrupted"
 end
 
 # Setup $LOAD_PATH.
@@ -140,7 +145,7 @@ begin
             end
           end
         end
-        exit 0
+        break
       end
     end
   end
@@ -179,7 +184,7 @@ rescue Object => e
 end
 
 begin
-  Rubinius::AtExit.each {|handler| handler.call}
+  Rubinius::AtExit.shift.call until Rubinius::AtExit.empty?
 rescue SystemExit => e
   code = e.code
 rescue Object => e

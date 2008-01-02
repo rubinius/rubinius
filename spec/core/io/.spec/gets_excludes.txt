@@ -1,1 +1,0 @@
-IO#gets reads until the beginning of the next paragraph when the separator's length is 0

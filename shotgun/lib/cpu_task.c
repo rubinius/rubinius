@@ -79,7 +79,9 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   OBJECT obj, home;
   OBJECT *ns;
   
-  cpu_save_registers(state, c, 0);
+  if(c->active_context != Qnil) {
+    cpu_save_registers(state, c, 0);
+  }
   cpu_flush_sp(c);
   cpu_flush_ip(c);
   
@@ -163,7 +165,9 @@ int cpu_task_alive_p(STATE, OBJECT self) {
 void cpu_task_flush(STATE, cpu c) {
   struct cpu_task *task, *ct;
   
-  cpu_save_registers(state, c, 0);
+  if(c->active_context != Qnil) {
+    cpu_save_registers(state, c, 0);
+  }
     
   ct = (struct cpu_task*)CPU_TASKS_LOCATION(c);
   task = (struct cpu_task*)BYTES_OF(c->current_task);
@@ -174,7 +178,10 @@ void cpu_task_flush(STATE, cpu c) {
 int cpu_task_select(STATE, cpu c, OBJECT nw) {
   struct cpu_task *cur_task, *new_task, *ct;
   OBJECT home, cur;
-  cpu_save_registers(state, c, 0);
+
+  if(c->active_context != Qnil) {
+    cpu_save_registers(state, c, 0);
+  }
 
   cur = c->current_task;
   
@@ -296,20 +303,6 @@ OBJECT cpu_task_top(STATE, OBJECT self) {
   
   task = (struct cpu_task*)BYTES_OF(self);
   return *task->sp_ptr;
-}
-
-void cpu_task_set_outstanding(STATE, OBJECT self, OBJECT ary) {
-  struct cpu_task *task;
-  
-  task = (struct cpu_task*)BYTES_OF(self);
-  task->outstanding = ary;
-}
-
-OBJECT cpu_task_get_outstanding(STATE, OBJECT self) {
-  struct cpu_task *task;
-  
-  task = (struct cpu_task*)BYTES_OF(self);
-  return task->outstanding;
 }
 
 void cpu_task_set_debugging(STATE, OBJECT self, OBJECT dc, OBJECT cc) {
@@ -484,24 +477,8 @@ OBJECT cpu_channel_new(STATE) {
   return chan;
 }
 
-void _cpu_channel_clear_outstanding(STATE, cpu c, OBJECT thr, OBJECT ary) {
-  OBJECT t1, t2, t3;
-  int k, j;
-  
-  t1 = array_get_tuple(ary);
-  k = FIXNUM_TO_INT(array_get_total(ary));
-  
-  for(j = 0; j < k; j++) {
-    t2 = tuple_at(state, t1, j);
-    
-    t3 = channel_get_waiting(t2);
-    list_delete(state, t3, thr);
-  }
-  
-}
-
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
-  OBJECT readers, written, reader, reader_task, pair, out;
+  OBJECT readers, written, reader, reader_task;
   long int cur_prio, new_prio;
     
   readers = channel_get_waiting(self);
@@ -514,32 +491,28 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
     }
     list_append(state, written, obj);
   } else {
-    pair = tuple_new2(state, 2, self, obj);
     reader = list_shift(state, readers);
-    reader_task = thread_get_task(reader);
     /* Edge case. After going all around, we've decided that the current
        task needs to be restored. Since it's not yet saved, we push it
        to the current stack, since thats the current task's stack. */
-    if(reader_task == c->current_task) {
+    if(reader == c->current_thread) {
       stack_pop();
       if(!TASK_FLAG_P(c, TASK_NO_STACK)) {
-        stack_push(pair);
+        stack_push(obj);
       } else {
         TASK_CLEAR_FLAG(c, TASK_NO_STACK);
       }
-      out = c->outstanding;
     } else {
+      reader_task = thread_get_task(reader);
+      
       if(cpu_task_no_stack_p(state, reader_task)) {
         cpu_task_pop(state, reader_task);
         cpu_task_clear_flag(state, reader_task, TASK_NO_STACK);
       } else {
-        cpu_task_set_top(state, reader_task, pair);
+        cpu_task_set_top(state, reader_task, obj);
       }
-      out = cpu_task_get_outstanding(state, reader_task);
     }
-    if(!NIL_P(out)) {
-      _cpu_channel_clear_outstanding(state, c, reader, out);
-    }
+    
     /* If we're resuming a thread thats of higher priority than we are, 
        we run it now, otherwise, we just schedule it to be run. */
     cur_prio = FIXNUM_TO_INT(thread_get_priority(c->current_thread));
@@ -568,12 +541,12 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
   written = channel_get_value(self);
   if(!NIL_P(written) && !list_empty_p(written)) {
     obj = list_shift(state, written);
-    stack_push(tuple_new2(state, 2, self, obj));
+    stack_push(obj);
     return;
   }
   
   /* We push nil on the stack to reserve a place to put the result. */
-  stack_push(I2N(343434));
+  stack_push(Qfalse);
   
   object_set_ivar(state, cur_thr, SYM("@sleep"), Qtrue);
   readers = channel_get_waiting(self);

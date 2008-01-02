@@ -1,3 +1,5 @@
+# depends on: module.rb
+
 module FileTest
   def exist?(path)
     File.exist?(path)

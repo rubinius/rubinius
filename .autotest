@@ -9,7 +9,7 @@ class Autotest
   alias :old_make_test_cmd :make_test_cmd
 
   def ruby
-    "USE_MSPEC=1 AUTOTEST=1 shotgun/rubinius"
+    "MSPEC_RUNNER=1 AUTOTEST=1 shotgun/rubinius"
   end
 
   def make_test_cmd files_to_test

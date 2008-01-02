@@ -87,10 +87,6 @@ void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest) {
   obj->klass = dest;
 }
 
-inline int baker_gc_forwarded_p(OBJECT obj) {
-  return FORWARDED_P(obj);
-}
-
 OBJECT baker_gc_forwarded_object(OBJECT obj) {
   OBJECT out = obj->klass;
   CHECK_PTR(out);
@@ -145,7 +141,7 @@ void untrack_ref(OBJECT obj) {
   ptr_array_remove_fast(_track_refs, (xpointer)obj);
 }
 
-static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
+static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   OBJECT cls, tmp, mut;
   int i, fields;
   
@@ -533,9 +529,7 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
       }
     }
   }
-  
-  object_memory_shift_contexts(state, state->om);
-  
+    
   baker_gc_mutate_rest(state, g);
   
   assert(heap_fully_scanned_p(g->next));

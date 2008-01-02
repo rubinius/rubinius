@@ -1,0 +1,2 @@
+Regexp.union returns /(?!)/ when passed no arguments
+Regexp.union returns a regular expression that will match passed arguments

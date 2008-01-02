@@ -1,0 +1,1 @@
+Signal.list returns a hash of signal names mapped to the corresponding signal numbers

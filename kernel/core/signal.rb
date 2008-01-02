@@ -1,3 +1,5 @@
+# depends on: module.rb
+
 module Signal
 
   Names = {
@@ -25,7 +27,8 @@ module Signal
   }
 
   @handlers = {}
-  def self.trap(sig, prc=nil, &block)
+  
+  def self.trap(sig, prc=nil, pass_ctx=false, &block)
     if sig.kind_of?(String)
       number = Names[sig]
     else
@@ -39,11 +42,21 @@ module Signal
     end
 
     chan = Channel.new
-    
+
     thr = Thread.new do
-      loop do
-        chan.receive
-        prc.call
+      while true
+        break unless ctx = chan.receive
+
+        if pass_ctx
+          obj = ctx
+        else
+          obj = number
+        end
+
+        begin
+          prc.call(obj)
+        rescue Object
+        end
       end
     end
 
@@ -53,4 +66,9 @@ module Signal
     @handlers[number] = thr
     return old
   end
+  
+  def self.action(sig, prc=nil, &block)
+    trap(sig, prc, true, &block)
+  end
+    
 end

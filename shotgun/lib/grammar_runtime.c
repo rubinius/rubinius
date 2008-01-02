@@ -486,7 +486,12 @@ again_no_block:
       int i;
       int sz;
       // printf("=> scope %x, %d\n", node->nd_tbl, node->nd_tbl[0]);
-      add_to_parse_tree(current, node->nd_next, newlines, node->nd_tbl, line_numbers);
+      if(node->nd_next) {
+        add_to_parse_tree(current, node->nd_next, newlines, node->nd_tbl, line_numbers);
+      } else {
+        array_push(current, Qnil);
+      }
+      
       sz = node->nd_tbl[0];
       tbl = array_new(state, sz + 3);
       for(i = 0; i < sz; i++) {
@@ -577,7 +582,13 @@ again_no_block:
     } else {
         array_push(current, Q2SYM(node->nd_vid));
     }
-    add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+    
+    if(node->nd_value) {
+      add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
+    } else{
+      array_push(current, Qnil);      
+    }
+    
     if(node->nd_next) {
       add_to_parse_tree(current, node->nd_next, newlines, locals, line_numbers);      
     } else {

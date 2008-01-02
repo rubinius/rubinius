@@ -1,5 +1,4 @@
-class IOError < StandardError
-end
+# depends on: class.rb
 
 class IO
   
@@ -10,11 +9,7 @@ class IO
   SEEK_END = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_END']
   
   def initialize(fd)
-    # not sure what message to use here. on unix we only accept fixnums,
-    # but on win32 we'll accept file handles, too, i think.
-    raise TypeError if fd.nil?
-
-    @descriptor = fd
+    @descriptor = Type.coerce_to fd, Fixnum, :to_int
   end
   
   ivar_as_index :__ivars__ => 0, :descriptor => 1, :buffer => 2, :mode => 3
@@ -83,18 +78,26 @@ class IO
       buf = String.new(size) unless buf
       chan = Channel.new
       Scheduler.send_on_readable chan, self, buf, size
-      return nil if chan.receive.nil?
-      return buf
+      response = chan.receive
+      return buf if response.kind_of? Integer
+      return nil if response.nil?
+
+      raise response, "io error"
     else
       chunk = String.new(BufferSize)
       out = ""
       loop do
         chan = Channel.new
         Scheduler.send_on_readable chan, self, chunk, BufferSize
-        
-        return out if chan.receive.nil?
-                
-        out << chunk
+
+        response = chan.receive
+        return out if response.nil?
+
+        if response.kind_of? Integer
+          out << chunk
+        else
+          raise response, "io error"
+        end
       end
     end
   end
@@ -111,10 +114,6 @@ class IO
 
   def pos=(offset)
     seek pos, SEEK_SET
-  end
-
-  def prim_seek(amount, whence)
-    Ruby.primitive :io_seek
   end
 
   def close

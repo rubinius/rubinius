@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 # Class that allows global variables to have aliases
 class GlobalVariables
   def initialize

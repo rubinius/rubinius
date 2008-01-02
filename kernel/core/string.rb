@@ -1,4 +1,4 @@
-# depends on: comparable.rb enumerable.rb
+# depends on: class.rb comparable.rb enumerable.rb
   
 # Default Ruby Record Separator
 # Used in this file and by various methods that need to ignore $/
@@ -15,24 +15,25 @@ class String
   def data      ; @data       ; end
   def __ivars__ ; nil         ; end
 
-  def self.new(arg=0)
-    return arg.dup if arg.kind_of? String
-    super
-  end
-
-  # Can't be changed if run inside instance_eval with no param passed in
-  def initialize(arg=0)
+  def initialize(arg=nil)
     if arg.kind_of?(Fixnum)
       # + 1 for the null on the end.
       @data = ByteArray.new(arg+1)
       @bytes = arg
       @characters = arg
-      @encoding = nil
-    else
+      @encoding = nil      
+    elsif !arg.nil?
       replace(StringValue(arg))
+    elsif @data.nil?
+      @data = ByteArray.new(1)
+      @bytes = 0
+      @characters = 0
+      @encoding = nil
     end
+    
+    return self
   end
-  # private :initialize
+  private :initialize
 
   # call-seq:
   #   str % arg   => new_str
@@ -78,7 +79,8 @@ class String
   # 
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    r = String.new(self) << other
+    r = String.new(self)
+    r << other
     r.taint if self.tainted? || other.tainted?
     r
   end
@@ -162,36 +164,26 @@ class String
   # TODO: MRI does simply use <=> for Strings here, so what's this code about?
   #+++ 
   def ==(other)
-    if other.kind_of?(String)
-      return false unless @bytes == other.size
-      
-      # This clamps the data to the right size, then we compare
-      # FIXME: This is very inefficient, creating a new ByteArray just
-      # to compare. 
-      ld = @data.fetch_bytes(0, @bytes)
-      rd = other.data.fetch_bytes(0, @bytes)
-      
-      return (ld <=> rd) == 0
-      
-      # It would be nice if the rest of this worked, but it had problems
-      # last I (evan) tried. We need to go through and make sure null termination
-      # of ByteArray's is universal.
-      od = other.data
-      if @data.size == od.size
-        return (@data <=> od) == 0
-      elsif @data.size < od.size
-        puts "od is bigger"
-        return (od.fetch_bytes(0, @data.size) <=> @data) == 0
-      else
-        puts "data is bigger"
-        out = (@data.fetch_bytes(0, od.size) <=> od)
-        p out
-        return out == 0
+    Ruby.primitive :string_equal
+
+    unless other.kind_of?(String)
+      if other.respond_to?(:to_str)
+        return other == self
       end
-    elsif other.respond_to?(:to_str)
-      return other == self
+      
+      return false
     end
-    false
+    
+    return false unless @bytes == other.size
+      
+    # This clamps the data to the right size, then we compare
+    # This is very inefficient, creating a new ByteArray just
+    # to compare. But we don't care because it's typically handled
+    # by the primitive.
+    ld = @data.fetch_bytes(0, @bytes)
+    rd = other.data.fetch_bytes(0, @bytes)
+      
+    return (ld <=> rd) == 0      
   end
   alias_method :===, :==
 
@@ -207,7 +199,10 @@ class String
   def =~(pattern)
     case pattern
     when Regexp
-      pattern.match(self)
+      if m = pattern.match(self)
+        return m.begin(0)
+      end
+      return nil      
     when String
       raise TypeError, "type mismatch: String given"
     else
@@ -727,6 +722,7 @@ class String
 
   # Two strings are equal if the have the same length and content.
   def eql?(other)
+    Ruby.primitive :string_equal
     return false unless other.is_a?(String) && other.size == @bytes
     (@data.fetch_bytes(0, @bytes) <=> other.data.fetch_bytes(0, @bytes)) == 0
   end
@@ -1225,6 +1221,8 @@ class String
     start = 0
     ret = []
     
+    last_match = nil
+    
     while match = pattern.match_from(self, start)
       break if limited && limit - ret.size <= 1
       collapsed = match.collapsing?
@@ -1408,6 +1406,7 @@ class String
     
     carry = false
     c = 0
+    last_alnum = nil
     start.step(0, -1) do |idx|
       c = out[idx]
       carry = true 
@@ -1795,7 +1794,7 @@ class String
         base = 10
       end
     end
-    
+
     case base
     when 2
       i += 2 if @data[i] == ?0 && (@data[i+1] == ?b || @data[i+1] == ?B)
@@ -1812,8 +1811,8 @@ class String
     result = 0
     i.upto(@bytes - 1) do |index|
       char = @data[index]
-
-      if char.isspace || (!check && char == ?_) 
+      
+      if char.isspace || char == ?_
         next
       elsif char >= ?0 && char <= ?9
         value = (char - ?0)
@@ -1996,12 +1995,10 @@ class String
   # TODO: Make string_dup compatible with String subclasses
   #+++
   def dup
-    if self.instance_of? String
-      out = Ruby.asm "push self\nstring_dup\n"
-    else
-      out = self.class.new(self)
+    out = Rubinius.asm do
+      push :self
+      string_dup
     end
-    
     out.taint if self.tainted?
     return out
   end
@@ -2052,7 +2049,9 @@ class String
       exc.import_position out.at(1), out.at(2)
       raise exc
     end
-    return out
+
+    out = [:newline, 0, "<empty: #{name}>", [:nil]] unless out
+    out
   end
 
   def shared!
@@ -2189,6 +2188,326 @@ class String
     self
   end
 
+  def b64_regex_permissive()
+    / [A-Za-z0-9+\/]{4} | [A-Za-z0-9+\/]{3} \=? |
+      [A-Za-z0-9+\/]{2} \={0,2} | [A-Za-z0-9+\/] \={0,3} | [^A-Za-z0-9+\/]+ /x
+  end
+
+  def b64_regex_strict()
+    / \A (?: [A-Za-z0-9+\/]{4} | [A-Za-z0-9+\/]{3} \=? |
+             [A-Za-z0-9+\/]{2} \={0,2} | [A-Za-z0-9+\/] \={0,3} ) \Z /x
+  end
+
+  def b64_encoded_units(first = 0, last = -1, &block)
+    begin
+      self[first..last].scan(b64_regex_permissive, &block)
+    rescue RuntimeError
+      # hack, 'break' in a block isn't fully working yet.
+      # it doesn't cause String#scan to return
+    end
+  end
+
+  def utf8_regex_permissive()
+    / [\x00-\x7F] | [\xC0-\xDF] [\x80-\xBF] | [\xE0-\xEF] [\x80-\xBF]{2} |
+      [\xF0-\xF7] [\x80-\xBF]{3} | [\xF8-\xFB] [\x80-\xBF]{4} |
+      [\xFC-\xFD] [\x80-\xBF]{5} | [\x00-\xFF]+ /x
+  end
+
+  def utf8_regex_strict()
+    / \A (?: [\x00-\x7F] | [\xC2-\xDF] [\x80-\xBF] | [\xE1-\xEF] [\x80-\xBF]{2} |
+             [\xF1-\xF7] [\x80-\xBF]{3} | [\xF9-\xFB] [\x80-\xBF]{4} |
+             [\xFD-\xFD] [\x80-\xBF]{5} ) \Z /x
+  end
+
+  def utf8_chars(first = 0, last = -1, &block)
+    self[first..last].scan(utf8_regex_permissive, &block)
+  end
+
+  # assumes self is one valid code point
+  def utf8_code_value()
+    len = self.length
+    if len == 1
+      result = self[0]
+    else
+      shift = (len - 1) * 2
+      result = (((2**(8 - len.succ) - 1) & self[0]) * 2**((len - 1) * 8)) >> shift
+      for i in 1...(len - 1)
+        shift -= 2
+        result |= (((2**6 - 1) & self[i]) * 2**((len - i.succ) * 8)) >> shift
+      end
+      result |= (2**6 - 1) & self[-1]
+    end
+    result
+  end
+
+  # assumes self is a byte string
+  def extract_number(i, num_bytes, endian)
+    result = exp = 0
+    bytebits = 8
+    if endian == 'B'
+      exp = bytebits * (num_bytes - 1)
+      bytebits = -bytebits
+    end
+    num_bytes.times do
+      result += (self[i] * 2**exp)
+      exp += bytebits
+      i += 1
+    end
+    result
+  end
+
+  # some of the directives work when repeat == 0 because of this behavior:
+  # str[0...0] == '' and str[1..0] == ''
+  def unpack(format)
+    raise TypeError, "can't convert nil into String" if format.nil?
+    i = 0
+    elements = []
+    directives = format.scan(/ (?: [@AaBbCcDdEeFfGgHhIiLlMmNnQqSsUVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
+    directives.each do |d|
+      case d
+      when / \A ( [CcDdEeFfGgIiLlNnQqSsVv] ) (.*) \Z /x
+        directive = $1
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        num_bytes = case directive
+                    when /[DdEGQq]/ then 8
+                    when /[eFfgNV]/ then 4
+                    when /[nSsv]/ then 2
+                    when /[Cc]/ then 1
+                    when /[IiLl]/ then 1.size
+                    end
+        proc = Proc.new do
+          case directive
+          when /[CNn]/ then elements << extract_number(i, num_bytes, 'B')
+          when /[ILQSVv]/ then elements << extract_number(i, num_bytes, 'L')
+          when 'c'
+            n = extract_number(i, num_bytes, 'B')
+            n = n >= 2**(num_bytes*8 - 1) ? -(2**(num_bytes*8) - n) : n
+            elements << n
+          when /[ilqs]/
+            n = extract_number(i, num_bytes, 'L')
+            n = n >= 2**(num_bytes*8 - 1) ? -(2**(num_bytes*8) - n) : n
+            elements << n
+          when /[eFfg]/
+            endian = directive == 'g' ? 'B' : 'L'
+            n = extract_number(i, num_bytes, endian)
+            elements << n.interpret_as_float
+          when /[DdEG]/
+            endian = directive == 'G' ? 'B' : 'L'
+            n = extract_number(i, num_bytes, endian)
+            elements << n.interpret_as_double
+          end
+          i += num_bytes
+        end
+        if repeat == '*'
+          proc.call while i + num_bytes <= self.length
+        else
+          repeat.to_i.times do
+            if i + num_bytes > self.length
+              elements << nil if directive != 'Q'
+            else
+              proc.call
+            end
+          end
+        end
+      when / \A (Z) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if i >= self.length
+          elements << ''
+        elsif repeat == '*'
+          self[i..-1] =~ / \A ( [^\x00]* ) ( [\x00]? ) /x
+          elements << $1
+          i += $1.length
+          i += 1 if $2 == "\0"
+        else
+          repeat = repeat.to_i
+          str = i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1]
+          str =~ / \A ( [^\x00]* ) /x
+          elements << $1
+          i += repeat
+        end
+      when / \A (a) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if i >= self.length
+          elements << ''
+        elsif repeat == '*'
+          elements << self[i..-1]
+          i = self.length
+        else
+          repeat = repeat.to_i
+          elements << (i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1])
+          i += repeat
+        end
+      when / \A (X) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        repeat = repeat == '*' ? self.length - i : repeat.to_i
+        raise ArgumentError, "X outside of string" if repeat < 0 or i - repeat < 0
+        i -= repeat
+      when / \A (x) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if repeat == '*'
+          raise ArgumentError, "x outside of string" if i > self.length
+          i = self.length
+        else
+          repeat = repeat.to_i
+          raise ArgumentError, "x outside of string" if i + repeat > self.length
+          i += repeat
+        end
+      when / \A ([BbHh]) (.*) \Z /x
+        directive = $1
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        formaat = case directive
+                  when /[Bb]/ then "%08b"
+                  when /[Hh]/ then "%02x"
+                  end
+        if i >= self.length
+          elements << ''
+        elsif repeat == '*'
+          str = ''
+          proc = (['B', 'H'].include? directive) ? Proc.new { |s| s } : Proc.new { |s| s.reverse }
+          self[i..-1].each_byte { |n| str << proc.call(formaat % n) }
+          elements << str
+          i = self.length
+        else
+          case directive
+          when /[Bb]/
+            (num_bytes, r) = repeat.to_i.divmod(8)
+            num_drop = r != 0 ? 8 - r : 0
+          when /[Hh]/
+            (num_bytes, r) = (repeat.to_i * 4).divmod(8)
+            num_drop = r != 0 ? 1 : 0
+          end
+          num_bytes += 1 if r != 0
+          str0 = i + num_bytes <= self.length ? self[i...(i + num_bytes)] : self[i..-1]
+          len = str0.length
+          str1 = ''
+          if ['B', 'H'].include? directive
+            proc = Proc.new { |s| len -= 1; len == 0 ? s[0..-num_drop.succ] : s }
+          else
+            proc = Proc.new { |s| len -= 1; len == 0 ? s[num_drop..-1].reverse : s.reverse }
+          end
+          str0.each_byte { |n| str1 << proc.call(formaat % n) }
+          elements << str1
+          i += num_bytes
+        end
+      when / \A (U) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if i >= self.length
+        elsif repeat == '*'
+          utf8_chars(i) do |c|
+            raise ArgumentError, "malformed UTF-8 character" if not c =~ utf8_regex_strict
+            elements << c.utf8_code_value
+          end
+          i = self.length
+        else
+          repeat = repeat.to_i
+          num_bytes = 0
+          utf8_chars(i) do |c|
+            raise ArgumentError, "malformed UTF-8 character" if not c =~ utf8_regex_strict
+            break if repeat == 0
+            elements << c.utf8_code_value
+            num_bytes += c.length
+            repeat -= 1
+          end
+          i += num_bytes
+        end
+      when / \A (A) (.*) \Z /x
+        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
+        if i >= self.length
+          elements << ''
+        elsif repeat == '*'
+          elements << self[i..-1].sub(/ [\x00\x20]+ \Z /x, '')
+          i = self.length
+        else
+          repeat = repeat.to_i
+          str = i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1]
+          elements << str.sub(/ [\x00\x20]+ \Z /x, '')
+          i += repeat
+        end
+      when / \A (\@) (.*) \Z /x
+        new_index = ($2 == '' or $2[0].chr == '-') ? 0 : $2
+        if new_index == '*'
+          i = self.length
+        else
+          new_index = new_index.to_i
+          raise ArgumentError, "@ outside of string" if new_index > self.length
+          i = new_index
+        end
+      when / \A M .* \Z /x
+        if i >= self.length
+          elements << ''
+        else
+          str = ''
+          num_bytes = 0
+          regex_permissive = / \= [0-9A-Fa-f]{2} | [^=]+ | [\x00-\xFF]+ /x
+          regex_junk = / \A ( \= [0-9A-Fa-f]{0,1} ) /x
+          regex_strict = / \A (?: \= [0-9A-Fa-f]{2} | [^=]+ ) \Z /x
+          regex_hex = / \A \= [0-9A-Fa-f]{2} \Z /x
+          self[i..-1].scan(regex_permissive) do |s|
+            if s =~ regex_strict
+              if s =~ regex_hex
+                str << s.sub(/\A\=/, '').hex.chr
+              else
+                str << s
+              end
+              num_bytes += s.length
+            elsif s =~ regex_junk
+              num_bytes += $1.length
+            end
+          end
+          elements << str
+          i += num_bytes
+        end
+      when / \A m .* \Z /x
+        if i >= self.length
+          elements << ''
+        else
+          buffer = ''
+          str = ''
+          num_bytes = 0
+          b64_encoded_units(i) do |s|
+            num_bytes += s.length
+            if s =~ b64_regex_strict
+              if s =~ /\=\Z/
+                s << '=' while s.length != 4
+              end
+              if buffer == '' and s =~ / \A ( [A-Za-z0-9+\/] ) \=+ \Z /x
+                buffer << $1
+              else
+                buffer << s
+              end
+              if buffer.length >= 4
+                s = buffer[0..3]
+                buffer = buffer.length == 4 ? '' : buffer[4..-1]
+                process = true
+              else
+                process = false
+              end
+              if process
+                a = s[0].b64_symbol_value; b = s[1].b64_symbol_value
+                c = s[2].b64_symbol_value; d = s[3].b64_symbol_value
+                decoded = [a << 2 | b >> 4,
+                           (b & (2**4 - 1)) << 4 | c >> 2,
+                           (c & (2**2 - 1)) << 6 | d].pack('CCC')
+                if s[3].chr == '='
+                  num_bytes -= 1
+                  decoded = decoded[0..-2]
+                  decoded = decoded[0..-2] if s[2].chr == '='
+                  str << decoded
+                  raise "break hack"
+                else
+                  str << decoded
+                end
+              end
+            end
+          end
+          elements << str
+          i += num_bytes
+        end
+      end
+    end
+    elements
+  end
+
 =begin
 
   # Should be added when Crypt is required
@@ -2196,10 +2515,6 @@ class String
     raise NotImplementedError
   end
 
-
-  def unpack(format) # => anArray
-    raise NotImplementedError
-  end
 =end
 
 end

@@ -1,4 +1,4 @@
-# depends on: comparable.rb
+# depends on: class.rb comparable.rb
 
 class Numeric
   include Comparable

@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class NativeMethod
   def lines
     nil
@@ -111,10 +113,6 @@ class CompiledMethod
     @bonus = tup
   end
   
-  def compile
-    Ruby.primitive :iseq_compile
-  end
-  
   def activate(recv, mod, args, locals=nil, &prc)
     sz = args.total
     if prc
@@ -123,18 +121,18 @@ class CompiledMethod
       block = nil
     end
     
-    out = Ruby.asm <<-ASM
-#local args
-push_array
-#local block
-#local locals
-#local sz
-#local mod
-push self
-#local recv
-activate_method
-    ASM
-    
+    out = Rubinius.asm(args, block, locals, sz, mod, recv) do |a,b,l,s,m,r|
+      run a
+      push_array
+      run b
+      run l
+      run s
+      run m
+      push :self
+      run r
+      activate_method 0
+    end
+        
     return out
   end
     
@@ -189,12 +187,12 @@ activate_method
 
   class Instruction
     def initialize(inst, cm, ip)
-      @op = InstructionSet[inst[0]]
+      @op = inst[0]
       @args = inst[1..-1]
       @args.each_index do |i|
         case @op.args[i]
         when :literal
-          @args[i] = cm.literals[@args[i]].inspect
+          @args[i] = cm.literals[@args[i]]
         end
       end
       @ip = ip
@@ -215,9 +213,12 @@ activate_method
       @args.size + 1
     end
 
+    attr_reader :ip
+    attr_reader :line
+
     def to_s
       str = "%04d:  %-27s" % [@ip, opcode]
-      str << @args.join(', ')
+      str << @args.map{|a| a.inspect}.join(', ')
     end
   end
 end

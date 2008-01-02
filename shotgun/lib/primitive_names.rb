@@ -75,10 +75,10 @@ module Bytecode
       :object_dup,
       :save_encloser_path,
       :restore_encloser_path,
-      nil,  # :float_add,
-      nil,  # :float_sub,
-      nil,  # :float_mul,
-      nil,  # :float_equal,
+      :thread_raise,
+      :array_aref,
+      :array_aset,
+      :string_append,
       :fixnum_size,
       :file_unlink,
       :fixnum_or,
@@ -92,8 +92,8 @@ module Bytecode
       :bignum_xor,
       :bignum_neg,
       :bignum_invert,
-      nil,  # :float_nan_p,
-      nil,  # :float_infinite_p,
+      :string_dup,
+      :string_equal,
       nil,  # :float_div,
       nil,  # :float_uminus,
       :bignum_div,
@@ -177,7 +177,10 @@ module Bytecode
       :reset_method_cache,
       nil,
       :regexp_match_region,
-      :bignum_from_float
+      :bignum_from_float,
+      :task_stack_size,
+      :task_get_stack_value,
+      :fastctx_reload_method
     ]
 
     FirstRuntimePrimitive = 1024

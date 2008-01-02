@@ -55,7 +55,7 @@ void object_memory_update_rs(object_memory om, OBJECT target, OBJECT val);
 void object_memory_shift_contexts(STATE, object_memory om);
 void object_memory_mark_contexts(STATE, object_memory om);
 void object_memory_formalize_contexts(STATE, object_memory om);
-
+void object_memory_reset_contexts(STATE, object_memory om);
 
 #define FAST_NEW 1
 
@@ -83,7 +83,7 @@ static inline OBJECT object_memory_new_context(object_memory om, int locals) {
   }
   
   ctx = ((OBJECT)heap_allocate_dirty(om->contexts, size));
-  memset(ctx, 0, size);
+  // memset(ctx, 0, size);
   
   /* not really the number of fields, rather the number of bytes
      this context is using. */

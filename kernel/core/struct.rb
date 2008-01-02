@@ -1,4 +1,4 @@
-# depends on: enumerable.rb
+# depends on: class.rb enumerable.rb
 
 class Struct
   include Enumerable

@@ -1,4 +1,4 @@
-# depends on: io.rb
+# depends on: io.rb class.rb module.rb
 
 class File < IO
   module Constants
@@ -51,7 +51,9 @@ class File < IO
       @path = nil
       return self
     end
-
+    
+    path_or_fd = StringValue(path_or_fd)
+    
     if mode.kind_of?(String)
       mode = parse_mode(mode)
     end
@@ -444,7 +446,9 @@ class File < IO
       exc.import_position out.at(1), out.at(2)
       raise exc
     end
-    return out
+
+    out = [:newline, 0, name, [:nil]] unless out
+    out
   end
   
   def self.umask(mask = nil)

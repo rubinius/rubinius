@@ -1,0 +1,2 @@
+Kernel#load produces __FILE__ as the given filename and __LINE__ as the source line number
+Kernel#load re-evaluates the file each time it is loaded

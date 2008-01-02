@@ -1,0 +1,13 @@
+File.open can't read in a block when call open with File::WRONLY||File::RDONLY mode
+File.open raise an IO exception when read in a block opened with WRONLY mode
+File.open raise an IO exception when read in a block opened with 'w' mode
+File.open raise an IO exception when read in a block opened with 'a' mode
+File.open raise an IO exception when read in a block opened with 'a' mode
+File.open raise an IO exception when read in a block opened with 'a' mode
+File.open can read and write in a block when call open with RDWR mode
+File.open can read and write in a block when call open with File::RDWR|File::EXCL mode
+File.open open a file when use File::WRONLY|File::APPEND mode
+File.open should open a file for read-write and truncate the file
+File.open should open a file for binary read-write starting at the beginning of the file
+File.open should open a file for binary read-write and truncate the file
+File.open expected errors 

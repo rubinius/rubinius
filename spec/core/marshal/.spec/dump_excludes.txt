@@ -1,6 +1,0 @@
-Marshal.dump when given a recursion limit raises an ArgumentError when the recursion limit is exceeded
-Marshal.dump when given an IO-Object should write the serialized data to the IO-Object
-Marshal.dump when given an IO-Object returns the IO-Object
-Marshal.dump when given an IO-Object raises an Error when the IO-Object does not respond to #write
-Marshal.dump returns a string-serialized version of the given argument
-Marshal.dump raises an Error when trying to dump an anonymous class/module

@@ -1,3 +1,5 @@
+# depends on: class.rb
+
 class MethodContext
   def normalized_name
     if method_module.is_a?(MetaClass)
@@ -46,6 +48,8 @@ class Sampler
     total_slices = 0
 
     @results.each do |ent|
+      next if ent.nil?
+      
       # FIXME: calls[name] += 1 always sets calls[name] to 1
       call = calls[ent.normalized_name]
       call.slices = call.slices + 1

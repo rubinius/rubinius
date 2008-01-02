@@ -1,3 +1,5 @@
+# depends on: module.rb kernel.rb
+
 module Type
   # The order seems backwards and it is. But the Type.coerce_to compiler
   # plugin is able to send this order much easier than in reverse, so
@@ -44,7 +46,7 @@ module Kernel
   end
   
   def Integer(obj)
-    return obj.to_inum(10, true) if obj.is_a?(String)
+    return obj.to_inum(0, true) if obj.is_a?(String)
     method = obj.respond_to?(:to_int) ? :to_int : :to_i
     Type.coerce_to(obj, Integer, method)
   end
@@ -94,7 +96,7 @@ module Kernel
     end
 
     exc.set_backtrace MethodContext.current.sender unless exc.backtrace
-    Ruby.asm "#local exc\nraise_exc"
+    Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
   end
   
   alias_method :fail, :raise
@@ -139,7 +141,8 @@ module Kernel
   alias_method :format, :sprintf
   
   def puts(*a)
-    $stdout.puts(a)
+    $stdout.puts(*a)
+    return nil
   end
   
   def p(*a)
@@ -155,20 +158,35 @@ module Kernel
     nil
   end
     
-  def open(*a, &block)  
-    if !a.empty? && a.first[0,1] == '|'
-      a[0] = a.first[1..-1]
-      IO.popen(*a, &block)
-    else 
-      File.open(*a, &block)
+  def open(*a, &block)
+    if !a.empty?
+      first = a.first
+      if first.kind_of? String and a.first.prefix? '|'
+        a[0] = a.first[1..-1]
+        return IO.popen(*a, &block)
+      end
     end
+      
+    File.open(*a, &block)
   end
 
-  # NOTE - this isn't quite MRI compatible, we don't store return the previous
-  # seed value from srand and we don't seed the RNG by default with a combination
+  # NOTE - this isn't quite MRI compatible.
+  # we don't seed the RNG by default with a combination
   # of time, pid and sequence number
   def srand(seed)
+    cur = Kernel.current_srand
     Platform::POSIX.srand(seed.to_i)
+    Kernel.current_srand = seed.to_i
+    return cur
+  end
+  
+  @current_seed = 0
+  def self.current_srand
+    @current_seed
+  end
+  
+  def self.current_srand=(val)
+    @current_seed = val
   end
 
   def rand(max=nil)
@@ -186,8 +204,13 @@ module Kernel
     end
   end
     
-  def lambda(&prc)
-    return prc
+  def lambda
+    block = block_given?
+    raise ArgumentError, "block required" if block.nil?
+    
+    block.disable_long_return!
+    
+    return Proc::Function.from_environment(block)
   end
   alias_method :proc, :lambda
 
@@ -244,10 +267,6 @@ module Kernel
   
   def at_exit(&block)
     Rubinius::AtExit.unshift(block)
-  end
-
-  def yield_gdb(obj)
-    Ruby.primitive :yield_gdb
   end
 
   def to_a

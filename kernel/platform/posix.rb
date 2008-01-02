@@ -69,8 +69,32 @@ module Platform::POSIX
   attach_function 'ffi_sprintf_f', :sprintf_f, [:double, :int, :string], :strptr
   attach_function 'ffi_sprintf_d', :sprintf_d, [:int, :int, :string], :strptr
 
-  attach_function 'getuid', [], :uint
-  attach_function 'getgid', [], :uint
+  # UID/GID
+  gid_t = :uint
+  uid_t = :uint
+  id_t = :uint
+  attach_function 'getuid', [], uid_t
+  attach_function 'getgid', [], gid_t
+  attach_function 'geteuid', [], uid_t
+  attach_function 'getegid', [], gid_t
+  
+  attach_function 'setgid', [gid_t], :int
+  attach_function 'setuid', [uid_t], :int
+  attach_function 'setegid', [gid_t], :int
+  attach_function 'seteuid', [uid_t], :int
+
+  attach_function 'setregid', [gid_t, gid_t], :int
+  attach_function 'setreuid', [uid_t, uid_t], :int
+  # These are linux specific
+  #attach_function 'setresgid', [gid_t, gid_t, gid_t], :int
+  #attach_function 'setresuid', [uid_t, uid_t, uid_t], :int
+
+  attach_function 'getpriority', [:int, id_t], :int
+  attach_function 'setpriority', [:int, id_t, :int], :int
+  
+  attach_function 'getgroups', [:int, :pointer], :int
+  attach_function 'setgroups', [:int, :pointer], :int
+  attach_function 'initgroups', [:string, gid_t], :int
 
   # password and group file access
   attach_function 'getpwnam', [:string], :pointer
@@ -84,4 +108,13 @@ module Platform::POSIX
   attach_function 'setgrent', [], :void
   attach_function 'getgrent', [], :pointer
   attach_function 'endgrent', [], :void
+
+  # processes and signals
+  pid_t = :int
+  attach_function 'kill', [pid_t, :int], :int
+  attach_function 'getpgid', [pid_t], pid_t
+  attach_function 'setpgid', [pid_t, pid_t], :int
+  attach_function 'getpid', [], pid_t
+  attach_function 'getppid', [], pid_t
+  attach_function 'getpgrp', [], pid_t
 end

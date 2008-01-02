@@ -1,21 +1,19 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#instance_methods" do
-  it "returns an array containing the public and protected methods of self if include_super is false" do
-    methods = ModuleSpecs::Parent.instance_methods(false) 
-    methods.should include("protected_parent", "public_parent")
-    
-    methods = ModuleSpecs::Child.instance_methods(false) 
-    methods.should include("protected_child", "public_child")
+  it "excludes super class instance methods when passed false" do
+    class A
+      def foo
+      end
+    end
+    A.instance_methods(false).should == ["foo"]
   end
-  
-  it "returns an array containing the public and protected methods of self and it's ancestors" do
-    methods = ModuleSpecs::Basic.instance_methods
-    methods.should include("protected_module", "public_module")
-    
-    methods = ModuleSpecs::Super.instance_methods
-    methods.should include("protected_module", "protected_super_module", 
-      "public_module", "public_super_module")
+
+  it "returns all instance methods of a module when not passed an argument" do
+    module B
+      def foo
+      end
+    end
+    B.instance_methods.should include("foo")
   end
 end

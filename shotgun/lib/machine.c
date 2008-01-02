@@ -43,6 +43,7 @@ machine current_machine;
 ucontext_t g_firesuit;
 int g_use_firesuit;
 int g_access_violation;
+int g_firesuit_arg;
 
 static int _recursive_reporting = 0;
 
@@ -440,6 +441,19 @@ machine machine_new() {
 void machine_handle_fire(int kind) {
   g_access_violation = kind;
   setcontext(&g_firesuit);
+}
+
+void machine_handle_type_error(OBJECT obj) {
+  if(FIXNUM_P(obj)) {
+    g_firesuit_arg = FixnumType;
+  } else if(SYMBOL_P(obj)) {
+    g_firesuit_arg = SymbolType;    
+  } else if(REFERENCE_P(obj)) {
+    g_firesuit_arg = obj->obj_type;
+  } else {
+    g_firesuit_arg = 0;
+  }
+  machine_handle_fire(FIRE_TYPE);
 }
 
 void machine_handle_assert(const char *reason, const char *file, int line) {

@@ -1,18 +1,17 @@
 require 'mspec/runner/formatters/base'
 
 class CIFormatter < BaseFormatter
-  def print_failure(i,r)
-    @out.print r.describe + " " + r.it + "\n"
+  def after_it(msg)
+    if @current.exception
+      @out.print @current.describe + " " + @current.it + "\n"
+    end
   end
   
+  def print_start() end
+
   def print_time() end
   
   def summary
-    unless @summarized
-      @exceptions.each_with_index do |r,i|
-        print_failure(i+1,r)
-      end
-      @summarized = true
-    end
+    @out.puts ""
   end
 end

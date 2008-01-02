@@ -21,7 +21,10 @@
 void Init_ffi(STATE) {
   OBJECT mod;
   BASIC_CLASS(ffi_ptr) = rbs_class_new(state, "MemoryPointer", 0, BASIC_CLASS(bytearray));
+  class_set_object_type(BASIC_CLASS(ffi_ptr), I2N(MemPtrType));
+  
   BASIC_CLASS(ffi_func) = rbs_class_new(state, "NativeFunction", 0, BASIC_CLASS(object));
+  
   mod = rbs_module_new(state, "FFI", BASIC_CLASS(object));
   rbs_const_set(state, mod, "TYPE_OBJECT",   I2N(FFI_TYPE_OBJECT));
   rbs_const_set(state, mod, "TYPE_CHAR",     I2N(FFI_TYPE_CHAR));
@@ -215,6 +218,8 @@ char ffi_to_char() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
+  type_assert(obj, FixnumType);
+  
   return (char)FIXNUM_TO_INT(obj);
 }
 
@@ -231,6 +236,8 @@ unsigned char ffi_to_uchar() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
+  
+  type_assert(obj, FixnumType);
   
   return (unsigned char)FIXNUM_TO_INT(obj);
 }
@@ -252,6 +259,8 @@ short ffi_to_short() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
+  type_assert(obj, FixnumType);
+  
   return (short)FIXNUM_TO_INT(obj);
 }
 
@@ -268,6 +277,8 @@ unsigned short ffi_to_ushort() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
+  
+  type_assert(obj, FixnumType);
   
   return (unsigned short)FIXNUM_TO_INT(obj);
 }
@@ -290,6 +301,8 @@ int ffi_to_int() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
+  type_assert(obj, FixnumType);
+  
   return FIXNUM_TO_INT(obj);
 }
 
@@ -307,6 +320,8 @@ unsigned int ffi_to_uint() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
+  
+  type_assert(obj, FixnumType);
   
   return (unsigned int)FIXNUM_TO_INT(obj);
 }
@@ -328,6 +343,8 @@ long ffi_to_long() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
+  type_assert(obj, FixnumType);
+  
   return FIXNUM_TO_INT(obj);
 }
 
@@ -346,6 +363,8 @@ unsigned long ffi_to_ulong() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
+  
+  type_assert(obj, FixnumType);
   
   return (unsigned long)FIXNUM_TO_INT(obj);
 }
@@ -369,6 +388,7 @@ long long ffi_to_ll() {
   if(FIXNUM_P(obj)) {
     return (long long)FIXNUM_TO_INT(obj);
   } else {
+    type_assert(obj, BignumType);
     return bignum_to_ll(ctx->state, obj);
   }
 }
@@ -391,6 +411,8 @@ float ffi_to_float() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
+  type_assert(obj, FloatType);
+  
   return (float)FLOAT_TO_DOUBLE(obj);
 }
 
@@ -407,6 +429,8 @@ double ffi_to_double() {
   double ret;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
+  
+  type_assert(obj, FloatType);
   
   ret = FLOAT_TO_DOUBLE(obj);
   return ret;
@@ -426,6 +450,8 @@ void* ffi_to_ptr() {
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
   if(NIL_P(obj)) return NULL;
+  
+  type_assert(obj, MemPtrType);
   
   return (*DATA_STRUCT(obj, void**));  
 }
@@ -459,6 +485,8 @@ char *ffi_to_string() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
+  
+  type_assert(obj, StringType);
   
   return string_byte_address(ctx->state, obj);
 }

@@ -1,6 +1,17 @@
 class ByteArray
-  def self.new(cnt)
+  def self.allocate(cnt)
     Ruby.primitive :allocate_bytes
+  end
+
+  def self.new(cnt)
+    obj = allocate(cnt)
+    Rubinius.asm(obj) do |obj|
+      push_block
+      run obj
+      send_with_block :initialize, 0, true
+    end
+
+    return obj
   end
 
   def fetch_bytes(start, count)

@@ -1,7 +1,31 @@
+# depends on: class.rb
 
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
 # you can get recursive exceptions being raised (THATS BAD, BTW).
 class MethodContext
+
+  # The Nth group of the last regexp match.
+  #
+  # Implemented to support Compiler2.
+  def nth_ref(n)
+    $~[n]
+  end
+
+  # One of the special globals $&, $`, $' or $+.
+  #
+  # Implemented to support Compiler2.
+  def back_ref(kind)
+    case kind
+    when :&
+      $~[0]
+    when :"`"
+      $~.pre_match
+    when :"'"
+      $~.post_match
+    when :+
+      $~.captures.last
+    end
+  end
     
   def to_s
     "#<#{self.class}:0x#{self.object_id.to_s(16)} #{receiver}##{name} #{file}:#{line}>"
@@ -61,6 +85,29 @@ class NativeMethodContext
 end
 
 class BlockContext
+
+  # The Nth group of the last regexp match.
+  #
+  # Implemented to support Compiler2.
+  def nth_ref(n)
+    $~[n]
+  end
+
+  # One of the special globals $&, $`, $' or $+.
+  #
+  # Implemented to support Compiler2.
+  def back_ref(kind)
+    case kind
+    when :&
+      $~[0]
+    when :"`"
+      $~.pre_match
+    when :"'"
+      $~.post_match
+    when :+
+      $~.captures.last
+    end
+  end
   
   def home
     env.home
@@ -161,12 +208,18 @@ class Backtrace
   def initialize
     @frames = []
     @top_context = nil
+    @first_color = "\033[0;31m"
+    @kernel_color = "\033[0;34m"
+    @eval_color = "\033[0;33m"
   end
+
+  attr_accessor :first_color
+  attr_accessor :kernel_color
+  attr_accessor :eval_color
   
-  def show
+  def show(sep="\n", colorize = true)
     first = true
     color_config = RUBY_CONFIG["rbx.colorize_backtraces"]
-    colorize = true
     if color_config == "no" or color_config == "NO"
       colorize = false
       color = ""
@@ -184,7 +237,7 @@ class Backtrace
       times = 0 if times < 0
       "#{color}    #{' ' * times}#{recv} at #{loc}#{clear}"
     end
-    return fr2.join("\n")
+    return fr2.join(sep)
   end
   
   def join(sep)
@@ -194,11 +247,11 @@ class Backtrace
   alias_method :to_s, :show
 
   def color_from_loc(loc, first)
-    return "\033[0;31m" if first
+    return @first_color if first
     if loc =~ /kernel/
-      "\033[0;34m"
+      @kernel_color
     elsif loc =~ /\(eval\)/
-      "\033[0;33m"
+      @eval_color
     else
       ""
     end
@@ -245,7 +298,7 @@ class Backtrace
     end
     @max = MAX_WIDTH if @max > MAX_WIDTH
   end
-  
+
   def self.backtrace(ctx=nil)
     obj = new()
     unless ctx

@@ -1,3 +1,5 @@
+# depends on: module.rb
+
 module ObjectSpace
   def self.each_object(what=nil, &block)
     unless what == Class

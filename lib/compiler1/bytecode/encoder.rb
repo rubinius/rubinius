@@ -225,7 +225,8 @@ class InstructionEncoder
     :set_literal,
     :passed_blockarg,
     :create_block2,
-    :cast_for_single_block_arg
+    :cast_for_single_block_arg,
+    :cast_for_multi_block_arg
   ]
   
   CheckInterupts = [
