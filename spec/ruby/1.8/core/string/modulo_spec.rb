@@ -547,8 +547,12 @@ describe "String#%" do
       (format % "0b1101").should == (format % Kernel.Integer("0b1101"))
       (format % "0b1101_0000").should == (format % Kernel.Integer("0b1101_0000"))
       (format % "0777").should == (format % Kernel.Integer("0777"))
+      lambda {
+        # see [ruby-core:14139] for more details
+        (format % "0777").should == (format % Kernel.Integer("0777"))
+      }.should_not raise_error(ArgumentError)
 
-      lambda { format % "0_7_7_7" }.should raise_error(ArgumentError)
+      lambda { format % "0__7_7_7" }.should raise_error(ArgumentError)
       
       lambda { format % "" }.should raise_error(ArgumentError)
       lambda { format % "x" }.should raise_error(ArgumentError)
