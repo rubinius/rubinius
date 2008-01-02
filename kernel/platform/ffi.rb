@@ -248,7 +248,7 @@ module FFI
     attach_function "ffi_set_field", [:pointer, :int, :int, :object], :void
 
     def self.layout(*spec)
-      return @layout if spec.empty?
+      return @layout if spec.size == 0
       
       cspec = {}
       i = 0
