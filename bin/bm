@@ -13,7 +13,7 @@ require 'ostruct'
 BM_GLOB        = File.expand_path(File.join(File.dirname(__FILE__),'../test/benchmark/*/bm*.rb'))
 
 # Which Ruby runtimes to test: MRI should be first and Rubinius should be last
-RUNTIMES       = ['ruby','shotgun/rubinius']
+$interpreters       = ['ruby','shotgun/rubinius']
 
 # WIDTH of test labels, required for nice formating
 WIDTH          = 44
@@ -31,10 +31,6 @@ OPTIONS = OpenStruct.new( :size   => 1024,
                           :path   => './' )
 
 options = OptionParser.new do |opts|
-  opts.on('-2', '--compiler2', 'Use compiler2 for Rubinius tests') do |c2|
-    RUNTIMES[-1] = 'shotgun/rubinius -rcompiler2/init'
-  end
-
   opts.on('-c', '--chart [FILENAME]', 'Output passing test times to SVG file at --path') do |c|
     OPTIONS.chart = c || "#{NOW}-times.svg"
   end
@@ -51,6 +47,23 @@ options = OptionParser.new do |opts|
     OPTIONS.grep = g
   end
 
+  opts.on("-t", "--target TARGET", String, 
+          "Use TARGET to compare against: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
+    case t
+    when 'r', 'ruby'
+      target = 'ruby'
+    when 'r19', 'ruby19'
+      target = 'ruby19'
+    when 'x', 'rbx', 'rubinius'
+      target = 'shotgun/rubinius'
+    when 'j', 'jruby'
+      target = 'jruby'
+    else
+      target = t
+    end
+    $interpreters.insert(1,target)
+  end
+  
   opts.on('-h', '--help', 'Output this help information') do |h|
     OPTIONS.help = h
   end
@@ -86,7 +99,7 @@ class RbxBenchmarkFile
   end
 
   def pretty_interpreter
-    @interpreter.match(%r{ruby|rubinius})[0]
+    @interpreter.match(%r{ruby19|rubinius|ruby|jruby})[0]
   end
 
   def pretty_file
@@ -283,7 +296,7 @@ end
 
 runs = []
 
-RUNTIMES.each do |i|
+$interpreters.each do |i|
   runs << RbxBenchmarkRun.new(i).run
 end
 
