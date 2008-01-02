@@ -50,7 +50,7 @@ describe "Process.setpriority" do
       Process.setpriority(Process::PRIO_USER, 0, p).should == 0
     else
       lambda {
-        Process.setpriority(Process::PRIO_USER, 0, p + 1)
+        Process.setpriority(Process::PRIO_USER, 0, p - 1)
       }.should raise_error(Errno::EACCES)
     end
   end

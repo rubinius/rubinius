@@ -57,8 +57,8 @@ describe "Process.wait" do
     }
 
     write.close
-    read.getc
-    read.getc # to give children a chance to set their process groups
+    read.read(1)
+    read.read(1) # to give children a chance to set their process groups
     read.close
     Process.wait(0).should == pid2
     Process.wait.should == pid1

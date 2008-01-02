@@ -46,6 +46,10 @@ end
 
 describe "Process.kill" do
 quarantine! do # dangerous specs
+  before :all do
+    @saved_trap = Signal.trap("HUP") {}
+  end
+
   before :each do
     @foo = 0
     @read, @write = IO.pipe
@@ -60,6 +64,10 @@ quarantine! do # dangerous specs
     @read.gets # the signal handler has run
     @read.close
     @foo.should == 42
+  end
+
+  after :all do
+    Signal.trap("HUP", @saved_trap)
   end
 
   it "sends the given signal to the current process if pid is zero" do
