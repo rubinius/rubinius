@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-CI_FILE_SPECS = ['ruby/spec/1.8/core', 'ruby/spec/1.8/language', 'spec/parser']
+CI_FILE_SPECS = ['spec/ruby/1.8/core', 'spec/ruby/1.8/language', 'spec/parser']
 CI_EXCLUDES_DIR = File.expand_path(File.dirname(__FILE__) + '/../spec/data')
 
 require File.dirname(__FILE__) + '/../mspec/scripts/ci'
