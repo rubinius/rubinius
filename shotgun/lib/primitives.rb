@@ -461,7 +461,7 @@ class ShotgunPrimitives
   
   def file_unlink
     <<-CODE
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     POP(t1, STRING);
 
     char *name;
@@ -479,7 +479,7 @@ class ShotgunPrimitives
     <<-CODE
     struct timeval tv;
 
-    stack_pop();
+    (void)stack_pop();
 
     /* don't fill in the 2nd argument here. getting the timezone here
      * this way is not portable and broken anyway.
@@ -1042,7 +1042,7 @@ class ShotgunPrimitives
   
   def process_exit
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     POP(t1, FIXNUM);
 
     if(state->gc_stats) {
@@ -1055,7 +1055,7 @@ class ShotgunPrimitives
   def micro_sleep
     <<-CODE
     struct timespec ts;
-    stack_pop();
+    (void)stack_pop();
     POP(t1, FIXNUM);
 
     j = FIXNUM_TO_INT(t1);
@@ -1146,7 +1146,7 @@ class ShotgunPrimitives
       struct termios ts;
       int err;
 
-      stack_pop();
+      (void)stack_pop();
 
       if (NULL == state->termios) {
         if (!isatty(STDOUT_FILENO)) {
@@ -1202,7 +1202,7 @@ class ShotgunPrimitives
   def terminal_normal
     <<-CODE
     {
-      stack_pop();
+      (void)stack_pop();
       
       if (NULL == state->termios) {
         stack_push(Qfalse);
@@ -1278,7 +1278,7 @@ class ShotgunPrimitives
   
   def gc_start
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     t1 = stack_pop();
     if(RTEST(t1)) {
       state->om->collect_now = OMCollectYoung;
@@ -1318,7 +1318,7 @@ class ShotgunPrimitives
       if(Qtrue == t3) {
         num_args++;
       } else {
-       stack_pop();
+       (void)stack_pop();
       }
       cpu_unified_send(state, c, t2, t1, num_args, Qnil);
     CODE
@@ -1356,7 +1356,7 @@ class ShotgunPrimitives
   
   def marshal_object
     <<-CODE
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     t1 = stack_pop();
     POP(t2, FIXNUM);
     stack_push(cpu_marshal(state, t1, FIXNUM_TO_INT(t2)));
@@ -1365,7 +1365,7 @@ class ShotgunPrimitives
   
   def unmarshal_object
     <<-CODE
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
@@ -1376,7 +1376,7 @@ class ShotgunPrimitives
   def marshal_to_file
     <<-CODE
     char *_path;
-    stack_pop();
+    (void)stack_pop();
     t1 = stack_pop();
     POP(t2, STRING);
     POP(t3, FIXNUM);
@@ -1389,7 +1389,7 @@ class ShotgunPrimitives
   def unmarshal_from_file
     <<-CODE
     char *_path;
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
@@ -1401,7 +1401,7 @@ class ShotgunPrimitives
   def archive_files
     <<-CODE
     char *path;
-    stack_pop(); /* blah */
+    (void)stack_pop(); /* blah */
     POP(t1, STRING);
 
     path = string_byte_address(state, t1);
@@ -1412,7 +1412,7 @@ class ShotgunPrimitives
   def archive_get_file
     <<-CODE
     char *path, *file;
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING);
     POP(t2, STRING);
 
@@ -1425,7 +1425,7 @@ class ShotgunPrimitives
   def archive_get_object
     <<-CODE
     char *path, *file;
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING);
     POP(t2, STRING);
     POP(t3, FIXNUM);
@@ -1439,7 +1439,7 @@ class ShotgunPrimitives
   def archive_add_file
     <<-CODE
     char *path, *file, *data;
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING);
     POP(t2, STRING);
     POP(t3, STRING);
@@ -1456,7 +1456,7 @@ class ShotgunPrimitives
   def archive_add_object
     <<-CODE
     char *path, *file;
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING);
     POP(t2, STRING);
     t3 = stack_pop();
@@ -1472,7 +1472,7 @@ class ShotgunPrimitives
   
   def archive_delete_file
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
@@ -1581,7 +1581,7 @@ class ShotgunPrimitives
 
   def bignum_new
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     POP(t1, FIXNUM);
     stack_push(bignum_new(state, FIXNUM_TO_INT(t1)));
     CODE
@@ -1935,7 +1935,7 @@ class ShotgunPrimitives
   def nfunc_call
     <<-CODE
     /* Get rid of the module */
-    stack_pop();
+    (void)stack_pop();
     /* The definition of beauty. Simplicity. To call a native function, there is no work 
        to be done. The stub contains all the serialization code. 
        
@@ -1956,7 +1956,7 @@ class ShotgunPrimitives
   
   def nfunc_add
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING_OR_NIL);
     POP(t2, STRING);
     POP(t3, ARRAY);
@@ -1967,7 +1967,7 @@ class ShotgunPrimitives
   
   def load_library
     <<-CODE
-    stack_pop(); /* self */
+    (void)stack_pop(); /* self */
     t1 = stack_pop();
     t2 = stack_pop();
     stack_push(subtend_load_library(state, c, t1, t2));
@@ -1980,7 +1980,7 @@ class ShotgunPrimitives
     char *pat;
     int flags = GLOB_NOSORT | GLOB_BRACE;
 
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING);
     POP(t2, FIXNUM);
     
@@ -2000,7 +2000,7 @@ class ShotgunPrimitives
   def dir_chdir
     <<-CODE
     char *path;
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING);
     
     path = string_byte_address(state, t1);
@@ -2014,7 +2014,7 @@ class ShotgunPrimitives
 
   def yield_gdb
     <<-CODE
-      stack_pop();
+      (void)stack_pop();
       self = stack_pop();
       *((char*)4) = 1; /* cause a SIGBUS */
       stack_push(Qtrue);
@@ -2023,7 +2023,7 @@ class ShotgunPrimitives
   
   def make_weak_ref
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     POP(t1, REFERENCE);
     
     stack_push(object_make_weak_ref(state, t1));
@@ -2032,7 +2032,7 @@ class ShotgunPrimitives
   
   def gc_collect_references
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     POP(self, REFERENCE);
     
     stack_push(object_memory_collect_references(state, state->om, self));
@@ -2060,7 +2060,7 @@ class ShotgunPrimitives
   
   def task_set_current
     <<-CODE
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     self = stack_pop();
     
     GUARD( RISA(self, task) );
@@ -2084,7 +2084,7 @@ class ShotgunPrimitives
   
   def task_current
     <<-CODE
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     stack_push(c->current_task);
     CODE
   end
@@ -2214,7 +2214,7 @@ class ShotgunPrimitives
   
   def channel_new
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     stack_push(cpu_channel_new(state));
     CODE
   end
@@ -2245,7 +2245,7 @@ class ShotgunPrimitives
   
   def channel_receive_many
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     stack_push(Qnil);
     CODE
   end
@@ -2253,7 +2253,7 @@ class ShotgunPrimitives
   def channel_send_in_microseconds
     <<-CODE
     struct timeval tv;
-    stack_pop(); /* scheduler */
+    (void)stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1, INTEGER);
     
@@ -2280,7 +2280,7 @@ class ShotgunPrimitives
   
   def channel_send_on_readable
     <<-CODE
-    stack_pop(); /* scheduler */
+    (void)stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     t1 = stack_pop();
     t2 = stack_pop();
@@ -2303,7 +2303,7 @@ class ShotgunPrimitives
   
   def channel_send_on_writable
     <<-CODE
-    stack_pop(); /* scheduler */
+    (void)stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1,   IO);
     
@@ -2317,7 +2317,7 @@ class ShotgunPrimitives
   
   def channel_send_on_signal
     <<-CODE
-    stack_pop(); /* scheduler */
+    (void)stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1,   FIXNUM);
     GUARD(RISA(self, channel));
@@ -2329,7 +2329,7 @@ class ShotgunPrimitives
   
   def channel_send_on_stopped
     <<-CODE
-    stack_pop(); /* scheduler */
+    (void)stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1, FIXNUM);
     POP(t2, FIXNUM);
@@ -2369,7 +2369,7 @@ class ShotgunPrimitives
   
   def thread_yield
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     /* Same reason as thread_run */
     stack_push(Qnil);
     cpu_thread_schedule(state, c->current_thread);
@@ -2379,7 +2379,7 @@ class ShotgunPrimitives
   
   def thread_current
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     stack_push(c->current_thread);
     CODE
   end
@@ -2420,7 +2420,7 @@ class ShotgunPrimitives
   
   def sampler_activate
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     POP(t1, FIXNUM);
     cpu_sampler_activate(state, FIXNUM_TO_INT(t1));
     stack_push(I2N((int)clock()));
@@ -2429,7 +2429,7 @@ class ShotgunPrimitives
   
   def sampler_stop
     <<-CODE
-    stack_pop();
+    (void)stack_pop();
     t1 = cpu_sampler_disable(state);
     stack_push(t1);
     CODE
@@ -2437,7 +2437,7 @@ class ShotgunPrimitives
   
   def fork_process
     <<-CODE
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     k = fork();
     if(k == -1) {
       cpu_raise_from_errno(state, c, "Unable to fork");
@@ -2454,7 +2454,7 @@ class ShotgunPrimitives
     char *tmp, *file;
     char **argv;
     
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, ARRAY);
     
@@ -2527,7 +2527,7 @@ class ShotgunPrimitives
     <<-CODE
     char *key;
 
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING);
 
     t2 = Qnil;
@@ -2549,7 +2549,7 @@ class ShotgunPrimitives
     <<-CODE
     char *key, *value;
 
-    stack_pop();
+    (void)stack_pop();
     POP(t1, STRING);
     t2 = stack_pop();
 
@@ -2623,7 +2623,7 @@ class ShotgunPrimitives
 
   def reset_method_cache
     <<-CODE
-    stack_pop(); /* self */
+    (void)stack_pop(); /* self */
     t1 = stack_pop();
     cpu_clear_cache_for_method(state, c, t1, TRUE);
     CODE
@@ -2631,7 +2631,7 @@ class ShotgunPrimitives
   
   def bignum_from_float
     <<-CODE
-    stack_pop(); /* we don't care */
+    (void)stack_pop(); /* we don't care */
     POP(t1, FLOAT);
     stack_push(bignum_from_double(state, FLOAT_TO_DOUBLE(t1)));
     CODE

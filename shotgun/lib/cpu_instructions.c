@@ -519,7 +519,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
       return TRUE;
     }
     /* Didn't work, need to remove the recv we put on before. */
-    stack_pop();
+    (void)stack_pop();
     if(EXCESSIVE_TRACING) {
       printf("[[ Primitive failed! -- %d ]]\n", prim);
     }

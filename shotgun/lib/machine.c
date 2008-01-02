@@ -699,7 +699,7 @@ void machine_migrate_config(machine m) {
       bstring v = (bstring)hashtable_iterator_value(&iter);
       ok = string_newfrombstr(m->s, k);
       if(is_number(bdata(v))) {
-        ov = I2N(atoi(bdata(v)));
+	ov = I2N(atoi(bdatae(v,"")));
       } else {
         ov = string_newfrombstr(m->s, v);
       }

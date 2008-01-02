@@ -400,7 +400,7 @@ CODE
   end
   
   def pop
-    "stack_pop();"
+    "    (void)stack_pop();"
   end
   
   def set_local
