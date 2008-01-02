@@ -278,7 +278,7 @@ def report(runs)
     file.puts line
   end
 
-  file.close
+  file.close unless file == STDOUT
 end
 
 runs = []
