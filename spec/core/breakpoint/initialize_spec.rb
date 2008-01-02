@@ -15,14 +15,13 @@ describe "Breakpoint#initalize" do
   end
 
   it "throws an ArgumentError if the IP is out of range" do
-    Breakpoint.new(@cm, 10) {}
     lambda { Breakpoint.new(@cm, -1) {} }.should raise_error(ArgumentError)
     lambda { Breakpoint.new(@cm, 1000) {} }.should raise_error(ArgumentError)
-    #lambda { Breakpoint.new(@cm, 10) {} }.should_not raise_error(ArgumentError)
+    lambda { Breakpoint.new(@cm, 10) {} }.should_not raise_error(ArgumentError)
   end
 
   it "throws an ArgumentError if the IP is not the address of an instruction" do
-    lambda { Breakpoint.new(@cm, 1) {} }.should raise_error(ArgumentError)
+    lambda { Breakpoint.new(@cm, 14) {} }.should raise_error(ArgumentError)
   end
 
   it "throws an ArgumentError if no block is given" do

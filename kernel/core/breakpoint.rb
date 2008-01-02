@@ -1,4 +1,4 @@
-# depends on: class.rb
+# depends on: class.rb iseq.rb
 
 # +Breakpoint+ objects represent debugging breakpoints on +CompiledMethod+s.
 # In Rubinius, a breakpoint is represented by substituting the special opcode
@@ -16,6 +16,10 @@ class Breakpoint
   # It will be called with two parameters: the +MethodContext+ active when the
   # breakpoint was hit, and this +Breakpoint+ instance.
   def initialize(cm, ip = nil, &prc)
+    unless block_given?
+      raise ArgumentError, "A block must be supplied to be executed when the breakpoint is hit"
+    end
+
     @method = cm
     @ip = ip || 0
     @handler = prc
@@ -41,6 +45,10 @@ class Breakpoint
 
   attr_reader :method
   attr_reader :ip
+
+  def line
+    @method.line_from_ip(@ip)
+  end
 
   def enabled?
     @enabled
