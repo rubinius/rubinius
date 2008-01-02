@@ -1,4 +1,0 @@
-The unpacking splat operator (*) when applied to a literal nested array, unpacks its elements into the containing array
-The unpacking splat operator (*) when applied to a nested referenced array, unpacks its elements into the containing array
-The unpacking splat operator (*) unpacks a literal array into arguments in a method call
-The unpacking splat operator (*) unpacks a referenced array into arguments in a method call

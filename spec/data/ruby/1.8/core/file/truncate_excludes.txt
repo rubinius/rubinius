@@ -2,5 +2,4 @@ File.truncate truncate the a file
 File.truncate truncate to 0 a file
 File.truncate truncate to 5 a file
 File.truncate truncate to a larger size than the original file
-File.truncate truncate to a the same size the original file
 File.truncate raise an exception if the arguments are wrong type or are the incorect number of arguments

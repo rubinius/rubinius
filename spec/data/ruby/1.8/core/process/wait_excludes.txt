@@ -1,0 +1,3 @@
+Process.wait always accepts flags=0
+Process.wait doesn't block if no child is available when WNOHANG is used
+Process.wait waits for a child whose process group ID is that of the calling process

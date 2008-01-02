@@ -1,1 +1,0 @@
-The private keyword should be overridden when a new class is opened

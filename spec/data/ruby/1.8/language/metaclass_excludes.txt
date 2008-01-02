@@ -1,1 +1,0 @@
-self in a metaclass body (class << obj) has the object's class as superclass

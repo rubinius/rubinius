@@ -1,2 +1,1 @@
-A class definition has no class-level instance variables
-A class definition allows the declaration of class-level instance variables in the body
+A class definition returns the value of the last statement in the body

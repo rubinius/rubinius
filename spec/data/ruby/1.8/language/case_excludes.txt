@@ -1,1 +1,0 @@
-The 'case'-construct lets you define a method after the case statement
