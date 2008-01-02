@@ -77,7 +77,7 @@ module Platform::POSIX
   attach_function 'getgid', [], gid_t
   attach_function 'geteuid', [], uid_t
   attach_function 'getegid', [], gid_t
-  
+
   attach_function 'setgid', [gid_t], :int
   attach_function 'setuid', [uid_t], :int
   attach_function 'setegid', [gid_t], :int
@@ -91,10 +91,13 @@ module Platform::POSIX
 
   attach_function 'getpriority', [:int, id_t], :int
   attach_function 'setpriority', [:int, id_t, :int], :int
-  
+
   attach_function 'getgroups', [:int, :pointer], :int
   attach_function 'setgroups', [:int, :pointer], :int
   attach_function 'initgroups', [:string, gid_t], :int
+
+  attach_function 'setrlimit', [:int, :pointer], :int
+  attach_function 'getrlimit', [:int, :pointer], :int
 
   # password and group file access
   attach_function 'getpwnam', [:string], :pointer
@@ -117,4 +120,5 @@ module Platform::POSIX
   attach_function 'getpid', [], pid_t
   attach_function 'getppid', [], pid_t
   attach_function 'getpgrp', [], pid_t
+  attach_function 'setsid', [], pid_t
 end

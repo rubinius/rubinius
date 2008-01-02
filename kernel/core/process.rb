@@ -20,6 +20,36 @@ module Process
   RLIMIT_MEMLOCK = 8
   RLIMIT_AS = 9
 
+  class Rlimit < FFI::Struct
+    layout :rlim_cur, :ulong, 0, :rlim_max, :ulong, FFI.type_size(:ulong)
+  end
+
+  def self.setrlimit(resource, cur_limit, max_limit=Undefined)
+    MemoryPointer.new(:ulong, 2) { |p|
+      rlimit = Rlimit.new(p)
+      rlimit[:rlim_cur] = cur_limit
+      rlimit[:rlim_max] = (Undefined == max_limit) ? cur_limit : max_limit
+      Errno.handle if -1 == Platform::POSIX.setrlimit(resource, p)
+    }
+    nil
+  end
+
+  def self.getrlimit(resource)
+    lim_max = []
+    MemoryPointer.new(:ulong, 2) { |p|
+      Errno.handle if -1 == Platform::POSIX.getrlimit(resource, p)
+      rlimit = Rlimit.new(p)
+      lim_max = [rlimit[:rlim_cur], rlimit[:rlim_max]]
+    }
+    lim_max
+  end
+
+  def self.setsid
+    pgid = Platform::POSIX.setsid
+    Errno.handle if -1 == pgid
+    pgid
+  end
+
   def self.fork
     pid = fork_prim
     pid = nil if pid == 0
