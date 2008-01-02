@@ -1,4 +1,4 @@
-# depends on: class.rb iseq.rb
+# depends on: class.rb iseq.rb array.rb
 
 # +Breakpoint+ objects represent debugging breakpoints on +CompiledMethod+s.
 # In Rubinius, a breakpoint is represented by substituting the special opcode

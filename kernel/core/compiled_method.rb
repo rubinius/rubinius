@@ -1,4 +1,4 @@
-# depends on: class.rb
+# depends on: class.rb array.rb
 
 class NativeMethod
   def lines
