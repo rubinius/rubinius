@@ -97,7 +97,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     verbose = true
   end
   opts.on("-m", "--marker MARKER", String,
-          "Outout MARKER for each file processed. Overrides -V") do |m|
+          "Output MARKER for each file processed. Overrides -V") do |m|
     marker = m
     verbose = true
   end
