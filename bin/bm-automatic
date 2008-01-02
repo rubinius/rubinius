@@ -8,6 +8,7 @@ require 'ostruct'
 
 TEST_AFTER_REVISION = 'c7a7d86bdbc8c4a7351cb7142c90e74a6ef08515'
 
+HOME    = Dir.getwd
 OPTIONS = OpenStruct.new
 
 options = OptionParser.new do |opts|
@@ -60,11 +61,12 @@ class Commit
   end
 
   def benchmark
+    Dir.chdir HOME
     execute "rm -rf #{OPTIONS.working}"
     execute "git clone git://git.rubini.us/code #{OPTIONS.working}"
+
     Dir.chdir OPTIONS.working
     execute 'rake build'
-
     Dir.mkdir path
     execute "bin/bm -c -d -f -p #{path} -w >/dev/null 2>&1"
   end
