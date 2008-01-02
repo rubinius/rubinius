@@ -32,6 +32,12 @@ class Fixnum < Integer
     Symbols.symbols.to_a[self]
   end
 
+  def to_s(base=10)
+    raise ArgumentError, 'base must be between 2 and 36' unless base.between?(2, 36)
+    based_to_s(base)
+  end
+  private :base_to_s
+  
   def to_sym
     id2name.to_sym
   rescue NoMethodError
