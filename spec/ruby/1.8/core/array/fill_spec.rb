@@ -44,7 +44,14 @@ describe "Array#fill" do
     [1, 2, 3].fill('a', 1, 0).should == [1, 2, 3]
   end
 
-  it "raises an ArgumentError if given an index and a negative count" do
+  it "does not raise an exception if given an index and a negative count whose absolute value does not exceed the index" do
+    lambda { [1, 2, 3].fill('a', 3, -1)}.should_not raise_error(ArgumentError)
+    lambda { [1, 2, 3].fill('a', 3, -2)}.should_not raise_error(ArgumentError)
+    lambda { [1, 2, 3].fill('a', 3, -3)}.should_not raise_error(ArgumentError)
+  end
+
+  it "raises an ArgumentError if given an index and a negative count whose absolute value exceeds the index" do
+    lambda { [1, 2, 3].fill('a', 3, -4)}.should raise_error(ArgumentError)
     lambda { [1, 2, 3].fill('a', 1, -3)}.should raise_error(ArgumentError)
     lambda { [1, 2, 3].fill('a', 1, -300000)}.should raise_error(ArgumentError)
   end
