@@ -10,7 +10,7 @@ describe "Signal.list" do
       "FPE", "HUP", "ILL", "INFO", "INT", "IO", "IOT", "KILL", "PIPE", "PROF",
       "QUIT", "SEGV", "STOP", "SYS", "TERM", "TRAP", "TSTP", "TTIN", "TTOU", "URG",
       "USR1", "USR2", "VTALRM", "WINCH", "XCPU", "XFSZ"]
-    values.should == [7, 15, 11, 21, 22, 20, 8, 0, 9, 1, 4, 31, 2, 25, 6, 10, 14,
-      29, 3, 12, 18, 13, 16, 5, 19, 23, 24, 17, 32, 33, 28, 30, 26, 27]
+    values.should == [6, 14, 10, 20, 20, 19, 7, 0, 8, 1, 4, 29, 2, 23, 6, 9, 13, 27,
+      3, 11, 17, 12, 15, 5, 18, 21, 22, 16, 30, 31, 26, 28, 24, 25]
   end
 end
