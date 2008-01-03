@@ -30,6 +30,20 @@ class Module
       end
     end
   end
+  
+  # Ultra simple protected
+  def protected(name)
+    if cm = @method_table[name]
+      if cm.kind_of? Tuple
+        cm.put 0, :protected
+      else
+        tup = Tuple.new(2)
+        tup.put 0, :protected
+        tup.put 1, cm
+        @method_table[name] = tup
+      end
+    end
+  end
 
   def __find_method(namesym)
     Ruby.primitive :find_method

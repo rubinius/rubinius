@@ -21,6 +21,12 @@ rescue Object => e
   exit 2
 end
 
+# Re-setup all the stdio channels, to pull in new ivars
+
+STDOUT.setup
+STDIN.setup
+STDERR.setup
+
 # This is the end of the kernel and the beginning of specified
 # code. We read out of ARGV to figure out what the user is
 # trying to do.

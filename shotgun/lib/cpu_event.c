@@ -113,10 +113,10 @@ void _cpu_wake_channel(int fd, short event, void *arg) {
 
 void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
   STATE;
-  size_t sz, total;
+  size_t sz, total, offset;
   ssize_t i;
   char *buf;
-  OBJECT ret, ba;
+  OBJECT ret, ba, enc;
   struct thread_info *ti = (struct thread_info*)arg;
   
   state = ti->state;
@@ -125,15 +125,24 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
     ret = Qtrue;
   } else {
     ba = string_get_data(ti->buffer);
+    enc = string_get_encoding(ti->buffer);
     sz = (size_t)ti->count;
+    
+    if(enc == SYM("buffer")) {
+      offset = FIXNUM_TO_INT(string_get_bytes(ti->buffer));
+    } else {
+      offset = 0;
+    }
 
     /* Clamp the read size so we don't overrun */
-    total = SIZE_OF_BODY(ba) - 1;
+    total = SIZE_OF_BODY(ba) - offset - 1;
     if(total < sz) {
       sz = total;
     }
     
     buf = bytearray_byte_address(state, ba);
+    buf += offset;
+    
     while(1) {
       i = read(fd, buf, sz);
       if(i == 0) {
@@ -146,7 +155,7 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
         ret = hash_find(state, state->global->errno_mapping, I2N(errno));
       } else {        
         buf[i] = 0;
-        string_set_bytes(ti->buffer, I2N(i));
+        string_set_bytes(ti->buffer, I2N(i + offset));
         
         ret = I2N(i);
       }

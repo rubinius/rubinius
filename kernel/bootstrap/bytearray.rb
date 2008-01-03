@@ -18,6 +18,11 @@ class ByteArray
     Ruby.primitive :fetch_bytes
   end
 
+  def move_bytes(start, count, offset)
+    Ruby.primitive :move_bytes
+    raise ArgumentError, "move_bytes failed!"
+  end
+
   def get_byte(index)
     Ruby.primitive :get_byte
   end

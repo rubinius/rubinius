@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#gets" do
   after :each do
@@ -44,10 +45,11 @@ describe "IO#gets" do
     end
   end
 
-  # This could probably be added to the previous test using pos, but right now this doesn't
-  # pass and the previous test does.
+  # This could probably be added to the previous test using pos, but right now 
+  # this doesn't pass and the previous test does.
   it "reads until the beginning of the next paragraph when the separator's length is 0" do
-    # Leverage the fact that there are three newlines between the first and second paragraph
+    # Leverage the fact that there are three newlines between the first 
+    # and second paragraph
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
       f.gets('')
 

@@ -34,7 +34,7 @@ class String
     return self
   end
   private :initialize
-
+  
   # call-seq:
   #   str % arg   => new_str
   #  
@@ -1961,17 +1961,23 @@ class String
 
     str = self.class.allocate
     str.taint if self.tainted?
-    str.put 0, count
-    str.put 1, count
     if count == 0
-      str.put(3, ByteArray.new(0))
+      ba = ByteArray.new(0)
     else
-      str.put(3, @data.fetch_bytes(start, count))
+      ba = @data.fetch_bytes(start, count)
     end
     
+    str.initialize_from count, ba
+
     return str
   end
-
+  
+  def initialize_from(count, ba)
+    @bytes = count
+    @characters = count
+    @data = ba
+  end
+  
   def splice(start, count, replacement)
     raise IndexError, "negative length #{count}" if count < 0
     self.modify!

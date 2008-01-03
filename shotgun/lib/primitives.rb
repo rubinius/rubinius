@@ -919,6 +919,40 @@ class ShotgunPrimitives
     stack_push(t3);
     CODE
   end
+  
+  def move_bytes
+    <<-CODE
+    char *data, *source, *dest;
+    int total, offset, start, count;
+    
+    self = stack_pop(); 
+    GUARD(object_stores_bytes_p(state, self));
+    
+    POP(t1, FIXNUM);
+    POP(t2, FIXNUM);
+    POP(t3, FIXNUM);
+    
+    start  = FIXNUM_TO_INT(t1);
+    count  = FIXNUM_TO_INT(t2);
+    offset = FIXNUM_TO_INT(t3);
+    
+    total = bytearray_bytes(state, self);
+        
+    GUARD(start + count + offset < total);
+    GUARD(offset >= 0);
+    
+    data = (char*)bytearray_byte_address(state, self);
+    source = data;
+    dest = data;
+    
+    source += start;
+    dest += offset;
+        
+    memmove((void*)dest, (void*)source, count);
+    
+    stack_push(t2);    
+    CODE
+  end
 
   def compare_bytes
     <<-CODE

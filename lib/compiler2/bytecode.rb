@@ -1268,8 +1268,7 @@ class Node
         g.send :include?, 1
       when :yield
         # conform to "all primitives have a self" rule
-        g.push :true
-        g.send_primitive :block_given, 0
+        g.push_block
       when :const
         g.push_literal expr.shift
         g.push_const :Object
