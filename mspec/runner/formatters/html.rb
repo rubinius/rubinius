@@ -45,10 +45,11 @@ EOH
   
   def after_it(msg)
     if @current.exception
-      error = if @current.exception.is_a?(ExpectationNotMetError)
-        " (FAILED - #{@failures})"
+      count = @tally.failures + @tally.errors
+      error = if failure?(@current.exception)
+        " (FAILED - #{count})"
       else
-        " (ERROR - #{@failures})"
+        " (ERROR - #{count})"
       end
       @out.print %[<li class="fail">- #{@current.it}#{error}</li>]
     else
@@ -57,7 +58,8 @@ EOH
   end
   
   def print_failure(i,r)
-    @out.print "<li>#{r.describe} #{r.it} FAILED</li>\n"
+    result = failure?(r.exception) ? "FAILED" : "ERROR"
+    @out.print "<li>#{r.describe} #{r.it} #{result}</li>\n"
   end
 
   def print_backtrace(e)
@@ -76,6 +78,14 @@ EOH
 
   def print_summary
     css_class = @exceptions.empty? ? "pass" : "fail"
-    @out.print %[<p class="#{css_class}">#{@examples} examples, #{@failures} failures</p>\n</body>\n</html>\n]
+    @out.print %[<p class="#{css_class}">#{@tally.examples} example]
+    @out.print "s" if @tally.examples != 1
+    @out.print %[, #{@tally.expectations} expectation]
+    @out.print "s" if @tally.expectations != 1
+    @out.print %[, #{@tally.failures} failure]
+    @out.print "s" if @tally.failures != 1
+    @out.print %[, #{@tally.errors} error]
+    @out.print "s" if @tally.errors != 1
+    @out.print %[</p>\n</body>\n</html>\n]
   end
 end

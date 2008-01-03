@@ -49,7 +49,7 @@ describe HtmlFormatter do
   
   it "provides print_failure with an index and SpecExecution instance" do
     @formatter.print_failure(1, @execution)
-    @out.should == "<li>describe it FAILED</li>\n"
+    @out.should == "<li>describe it ERROR</li>\n"
   end
   
   it "provides print_exception with an Exception instance" do
@@ -59,12 +59,12 @@ describe HtmlFormatter do
   
   it "provides print_summary when all specs pass" do
     @formatter.print_summary
-    @out.should == %[<p class="pass">0 examples, 0 failures</p>\n</body>\n</html>\n]
+    @out.should == %[<p class="pass">0 examples, 0 expectations, 0 failures, 0 errors</p>\n</body>\n</html>\n]
   end
   
   it "provides print_summary when any spec fails" do
     @formatter.exception @exception
     @formatter.print_summary
-    @out.should == %[<p class="fail">0 examples, 1 failures</p>\n</body>\n</html>\n]
+    @out.should == %[<p class="fail">0 examples, 0 expectations, 0 failures, 1 error</p>\n</body>\n</html>\n]
   end
 end

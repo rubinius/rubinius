@@ -26,10 +26,11 @@ class SpecdocFormatter < BaseFormatter
   
   def exception(e)
     super
-    if e.is_a?(ExpectationNotMetError)
-      @out.print " (FAILED - " + @failures.to_s + ")"
+    count = @tally.failures + @tally.errors
+    if failure?(e)
+      @out.print " (FAILED - #{count})"
     else
-      @out.print " (ERROR - " + @failures.to_s + ")"
+      @out.print " (ERROR - #{count})"
     end
   end
 end

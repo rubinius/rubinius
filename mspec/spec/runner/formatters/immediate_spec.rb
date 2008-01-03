@@ -22,6 +22,6 @@ describe ImmediateFormatter do
   
   it "provides a summary" do
     @formatter.summary
-    @out.should == "\n\n1 examples, 1 failures\n"
+    @out.should == "\n\n1 example, 0 expectations, 0 failures, 1 error\n"
   end
 end

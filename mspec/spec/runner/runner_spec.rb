@@ -123,7 +123,7 @@ describe SpecRunner, "complete run" do
       "  after :each" \
       "after :all"
     $runner_spec_runner.formatter.summary
-    @report.should == "..\n\n2 examples, 0 failures\n"
+    @report.should == "..\n\n2 examples, 0 expectations, 0 failures, 0 errors\n"
   end
 end
 

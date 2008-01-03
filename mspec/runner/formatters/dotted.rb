@@ -4,7 +4,7 @@ require 'mspec/runner/formatters/base'
 class DottedFormatter < BaseFormatter
   def after_it(msg)
     if @current.exception
-      if @current.exception.is_a?(ExpectationNotMetError)
+      if failure? @current.exception
         @out.print 'F'
       else
         @out.print 'E'

@@ -12,6 +12,12 @@ class Object
   alias_method :mspec_should_not, :should_not
 end
 
+def spec_runner
+  obj = Object.new
+  def obj.method_missing(*) self end
+  obj
+end
+
 # Adapted from RSpec 1.0.8
 describe Object, "#should" do  
   before :each do

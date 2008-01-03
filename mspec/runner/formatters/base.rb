@@ -30,11 +30,51 @@ class SpecExecution
   end
 end
 
+class SpecTally
+  def initialize
+    @examples = 0
+    @expectations = 0
+    @failures = 0
+    @errors = 0
+  end
+  
+  def example
+    @examples += 1
+  end
+  
+  def examples
+    @examples
+  end
+  
+  def expectation
+    @expectations += 1
+  end
+  
+  def expectations
+    @expectations
+  end
+  
+  def failure
+    @failures += 1
+  end
+  
+  def failures
+    @failures
+  end
+  
+  def error
+    @errors += 1
+  end
+  
+  def errors
+    @errors
+  end
+end
+
 class BaseFormatter
   def initialize(out=$stdout)
     self.out = out
-    @examples = 0
-    @failures = 0
+    @tally = SpecTally.new
     @current = SpecExecution.new
     @exceptions = []
     @summarized = false
@@ -46,6 +86,10 @@ class BaseFormatter
   
   def out
     @out
+  end
+  
+  def tally
+    @tally
   end
   
   def current
@@ -62,6 +106,10 @@ class BaseFormatter
     end
   end
   
+  def failure?(e)
+    e.is_a?(ExpectationNotMetError)
+  end
+  
   def before_describe(msg)
     @describe = msg
   end
@@ -72,13 +120,13 @@ class BaseFormatter
     @current = SpecExecution.new
     @current.describe = @describe
     @current.it = msg
-    @examples += 1
+    @tally.example
   end
   
   def after_it(msg) end
 
   def exception(e)
-    @failures += 1
+    failure?(e) ? @tally.failure : @tally.error
     @current.exception = e
     @exceptions.push(@current)
   end
@@ -92,7 +140,8 @@ class BaseFormatter
   end
   
   def print_failure(i,r)
-    @out.print i.to_s + ")\n" + r.describe + " " + r.it + " FAILED\n"
+    result = failure?(r.exception) ? "FAILED" : "ERROR"
+    @out.print "#{i})\n#{r.describe} #{r.it} #{result}\n"
   end
   
   def print_backtrace(e)
@@ -120,7 +169,15 @@ class BaseFormatter
   end
 
   def print_summary
-    @out.print @examples.to_s + " examples, " + @failures.to_s + " failures\n"
+    @out.print "#{@tally.examples} example"
+    @out.print "s" if @tally.examples != 1
+    @out.print ", #{@tally.expectations} expectation"
+    @out.print "s" if @tally.expectations != 1
+    @out.print ", #{@tally.failures} failure"
+    @out.print "s" if @tally.failures != 1
+    @out.print ", #{@tally.errors} error"
+    @out.print "s" if @tally.errors != 1
+    @out.print "\n"
   end
   
   def summary
