@@ -10,16 +10,16 @@ describe "Thread#inspect" do
   it "should describe a sleeping thread" do
     c = Channel.new
     t = Thread.new do      
-      c << :s1      
       sleep
       c << Thread.current.inspect
       sleep
     end
     
-    c.receive.should == :s1
+    Thread.pass until t.status == 'sleep'
     t.inspect.should include('sleep')
     t.run
     c.receive.should include('run')
+    Thread.pass until t.status == 'sleep'
     t.inspect.should include('sleep')
     t.run
     t.join
