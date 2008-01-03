@@ -144,11 +144,13 @@ describe "Kernel#require" do
       end
     end
 
+    $require_spec_4 = nil
+
     require("#{$require_fixture_dir}/require_spec_4").should == true 
-    $load_spec_4[0][0].should =~ %r[^.*/fixtures/load/load_spec_4.rb]
-    $load_spec_4[0][1].should == 1
-    $load_spec_4[1][0].should =~ %r[^.*/fixtures/load/load_spec_4.rb]
-    $load_spec_4[1][1].should == 10
+    $require_spec_4[0][0].should =~ %r[^.*/fixtures/require/require_spec_4.rb]
+    $require_spec_4[0][1].should == 1
+    $require_spec_4[1][0].should =~ %r[^.*/fixtures/require/require_spec_4.rb]
+    $require_spec_4[1][1].should == 10
   end
 
   it "stores the loaded file in $LOADED_FEATURES" do
@@ -224,27 +226,5 @@ describe "Kernel#require" do
     require('require_spec_recursive').should == true
     $LOADED_FEATURES.include?('require_spec_recursive.rb').should == true
     $require_spec_recursive.nil?.should == false
-  end
-
-  extended_on :rubinius do
-    it "should not infinite loop on an rbc file that requires itself" do
-      $require_spec_recursive = nil
-      $LOADED_FEATURES.delete 'require_spec_recursive.rb'
-
-      begin
-        Dir.chdir($require_fixture_dir) do
-          Kernel.compile('require_spec_recursive.rb')
-          `mv require_spec_recursive.rb tmp1234`
-        end
-        $LOADED_FEATURES.include?('require_spec_recursive.rb').should == false
-        require('require_spec_recursive').should == true
-        $LOADED_FEATURES.include?('require_spec_recursive.rb').should == true
-        $require_spec_recursive.nil?.should == false
-      ensure
-        Dir.chdir($require_fixture_dir) do
-          `mv tmp1234 require_spec_recursive.rb`
-        end
-      end
-    end
   end
 end

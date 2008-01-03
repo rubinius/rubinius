@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-$require_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/require')
+$require_fixture_dir = (File.dirname(__FILE__) + '/../../ruby/1.8/fixtures/require')
 $LOAD_PATH << $require_fixture_dir
-$LOAD_PATH << (File.dirname(__FILE__) + '/../../fixtures/require/require_spec_rba.rba')
+$LOAD_PATH << (File.dirname(__FILE__) + '/../../ruby/1.8/fixtures/require/require_spec_rba.rba')
 
 $require_spec   = nil
 $require_spec_1 = nil
@@ -122,6 +122,31 @@ describe "Kernel#require" do
     ensure
       Dir.chdir($require_fixture_dir) do |dir|
         system "mv ls9.old require_spec_9.rb"
+      end
+    end
+  end
+
+  it "should not infinite loop on an rbc file that requires itself" do
+    $require_spec_recursive = nil
+    $LOADED_FEATURES.delete 'require_spec_recursive.rb'
+
+    begin
+      Kernel.compile("#{$require_fixture_dir}/require_spec_recursive.rb")
+
+      Dir.chdir($require_fixture_dir) do
+        `mv require_spec_recursive.rb tmp1234`
+      end
+
+      $LOADED_FEATURES.include?('require_spec_recursive.rb').should == false
+
+      require('require_spec_recursive').should == true
+
+      $LOADED_FEATURES.include?('require_spec_recursive.rb').should == true
+      $require_spec_recursive.nil?.should == false
+
+    ensure
+      Dir.chdir($require_fixture_dir) do
+        `mv tmp1234 require_spec_recursive.rb`
       end
     end
   end
