@@ -45,4 +45,8 @@ class Hash
   def []=(key, val)
     set_by_hash key.hash, key, val
   end
+
+  def delete_by_hash(hsh, key)
+    Ruby.primitive :hash_delete
+  end  
 end
