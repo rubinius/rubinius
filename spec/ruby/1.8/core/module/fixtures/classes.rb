@@ -11,33 +11,39 @@ module ModuleSpecs
 
     public
     def public_parent() end
+
     protected
-      def protected_parent() end
+    def protected_parent() end
+
     private
-      def private_parent() end
+    def private_parent() end
   end
-    
+
   module Basic
     def public_module() end
+
     protected
-      def protected_module() end
+    def protected_module() end
+
     private
-      def private_module() end
+    def private_module() end
   end
-  
+
   module Super
     include Basic
-    
+
     def public_super_module() end
+
     protected
-      def protected_super_module() end
+    def protected_super_module() end
+
     private
-      def private_super_module() end
-        
+    def private_super_module() end
+
     class SuperChild
     end
   end
-    
+
   module Internal
   end
 
@@ -47,12 +53,14 @@ module ModuleSpecs
     class << self
       include Internal
     end
-    
+
     def public_child() end
+
     protected
-      def protected_child() end
+    def protected_child() end
+
     private
-      def private_child() end
+    def private_child() end
   end
 
   class Child2 < Parent
@@ -65,8 +73,10 @@ module ModuleSpecs
   module CountsMixin
     def public_3; end
     public :public_3
+
     def private_3; end
     private :private_3
+
     def protected_3; end
     protected :protected_3
   end
@@ -75,16 +85,20 @@ module ModuleSpecs
     include CountsMixin
 
     def public_2; end
+
     private
     def private_2; end
+
     protected
     def protected_2; end
   end
- 
+
   class CountsChild < CountsParent
     def public_1; end
+
     private
     def private_1; end
+
     protected
     def protected_1; end
   end
@@ -98,6 +112,7 @@ module ModuleSpecs
     def ma(); :a; end
     def self.cma(); :a; end
   end
+
   module B
     CONSTANT_B = :b
     OVERRIDE = :b
@@ -105,19 +120,24 @@ module ModuleSpecs
     def mb(); :b; end
     def self.cmb(); :b; end
   end
+
   class C
     OVERRIDE = :c
-    include B    
+    include B
   end
 
   class Aliasing
     def self.make_alias(*a)
       alias_method(*a)
     end
+
     def public_one; 1; end
+
     def public_two(n); n * 2; end
+
     private
     def private_one; 1; end
+
     protected
     def protected_one; 1; end
   end
@@ -129,11 +149,11 @@ module ModuleSpecs
     def self.meta; class << self; self; end; end
 
     Nesting[:basic] = Module.nesting
-    
+
     module ::ModuleSpecs
       Nesting[:open_first_level] = Module.nesting
     end
-    
+
     class << self
       Nesting[:open_meta] = Module.nesting
     end
@@ -141,10 +161,10 @@ module ModuleSpecs
     def self.called_from_module_method
       Module.nesting
     end
-    
+
     class NestedClass
       Nesting[:nest_class] = Module.nesting
-      
+
       def self.called_from_class_method
         Module.nesting
       end
@@ -153,7 +173,7 @@ module ModuleSpecs
         Module.nesting
       end
     end
-    
+
   end
 
   Nesting[:first_level] = Module.nesting
