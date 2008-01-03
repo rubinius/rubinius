@@ -2,12 +2,15 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Signal.list" do
   it "returns a hash of signal names mapped to the corresponding signal numbers" do
-    Signal.list.should == {"ABRT"=>6, "ALRM"=>14, "BUS"=>7, "CHLD"=>17,
-      "CLD"=>17, "CONT"=>18, "FPE"=>8, "HUP"=>1, "ILL"=>4, "INT"=>2,
-      "IO"=>29, "IOT"=>6, "KILL"=>9, "PIPE"=>13, "POLL"=>29, "PROF"=>27,
-      "PWR"=>30, "QUIT"=>3, "SEGV"=>11, "STOP"=>19, "SYS"=>31,
-      "TERM"=>15, "TRAP"=>5, "TSTP"=>20, "TTIN"=>21, "TTOU"=>22,
-      "URG"=>23, "USR1"=>10, "USR2"=>12, "VTALRM"=>26, "WINCH"=>28,
-      "XCPU"=>24, "XFSZ"=>25, "EXIT"=>0}
+    list = Signal.list
+    keys = list.keys.sort
+    values = keys.map {|key| list[key]}
+
+    keys.should == ["ABRT", "ALRM", "BUS", "CHLD", "CLD", "CONT", "EMT", "EXIT",
+      "FPE", "HUP", "ILL", "INFO", "INT", "IO", "IOT", "KILL", "PIPE", "PROF",
+      "QUIT", "SEGV", "STOP", "SYS", "TERM", "TRAP", "TSTP", "TTIN", "TTOU", "URG",
+      "USR1", "USR2", "VTALRM", "WINCH", "XCPU", "XFSZ"]
+    values.should == [7, 15, 11, 21, 22, 20, 8, 0, 9, 1, 4, 31, 2, 25, 6, 10, 14,
+      29, 3, 12, 18, 13, 16, 5, 19, 23, 24, 17, 32, 33, 28, 30, 26, 27]
   end
 end
