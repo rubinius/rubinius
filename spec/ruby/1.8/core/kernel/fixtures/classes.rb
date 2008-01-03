@@ -38,10 +38,15 @@ module KernelSpecs
     def juu_san; end
   end
 
-  class A 
+  class A
     def public_method; :public_method; end
+
+    def undefed_method; :undefed_method; end
+    undef_method :undefed_method
+
     protected
     def protected_method; :protected_method; end
+
     private
     def private_method; :private_method; end
   end

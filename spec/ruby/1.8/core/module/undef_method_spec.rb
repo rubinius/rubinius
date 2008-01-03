@@ -3,46 +3,50 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 module ModuleSpecs
   class NoInheritance
-    def method_to_undef;1;end
-    undef_method :method_to_undef
+    def method_to_undef() 1 end
   end
 
   class Parent
-    def method_to_undef; 1; end
+    def method_to_undef() 1 end
   end
 
   class Child < Parent
-    undef_method :method_to_undef
   end
 
   class Ancestor
-    def method_to_undef; 1; end
+    def method_to_undef() 1 end
   end
 
   class Descendant < Ancestor
-    undef_method :method_to_undef
   end
 end
 
 describe "Module#undef_method" do
-  it "removes a method definition from a class" do
+  it "removes a method defined in a class" do
     x = ModuleSpecs::NoInheritance.new
-    x.respond_to?(:method_to_undef).should == false
-    x.methods.include?('method_to_undef').should == false
+
+    x.method_to_undef.should == 1
+
+    ModuleSpecs::NoInheritance.send :undef_method, :method_to_undef
+
+    lambda { x.method_to_undef }.should raise_error(NoMethodError)
   end
 
   it "removes a method defined in a super class" do
     child = ModuleSpecs::Child.new
-    child.respond_to?(:method_to_undef).should == false
-    child.methods.include?('method_to_undef').should == false
+    child.method_to_undef.should == 1
 
-    parent = ModuleSpecs::Parent.new
-    parent.respond_to?(:method_to_undef).should == true
+    ModuleSpecs::Child.send :undef_method, :method_to_undef
+
+    lambda { child.method_to_undef }.should raise_error(NoMethodError)
   end
 
-  it "does not remove the method for instances of a parent class when removed in a child" do
-    x = ModuleSpecs::Ancestor.new
-    x.respond_to?(:method_to_undef).should == true
-    x.methods.include?('method_to_undef').should == true
+  it "does not remove a method defined in a super class when removed from a subclass" do
+    ancestor = ModuleSpecs::Ancestor.new
+    ancestor.method_to_undef.should == 1
+
+    ModuleSpecs::Descendant.send :undef_method, :method_to_undef
+
+    ancestor.method_to_undef.should == 1
   end
 end

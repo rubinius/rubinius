@@ -4,6 +4,9 @@ module ModuleSpecs
     def self.private_method; end
     private_class_method :private_method
 
+    def undefed_method() end
+    undef_method :undefed_method
+
     # For public_class_method spec
     private
     def self.public_method; end
