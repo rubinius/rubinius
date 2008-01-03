@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+#
+# Example script to be placed e.g. in your implementation's bin
+# directory to call the mSpec ci.rb script
+#
+# Set CI_FILE_SPEC to an array of directories (and/or files)
+# that should be run.
+#
+# CI_FILE_SPECS = ['spec/ruby/1.8/core', 'spec/ruby/1.8/language']
+#
+# Set CI_EXCLUDES_DIR to a path to store the exclude files for 
+# failing specs. The directory defaults to '.spec' in each
+# directory containing spec files. CI_EXCLUDES_DIR overrides
+# the default. Or use the --excludes-dir command line option.
+# If the value of the excludes dir is an absolute path (e.g. 
+# starting with '/'), the exclude directories paralleling 
+# the spec directory tree will be written in that directory.
+# Otherwise, the exclude directories will be relative to each
+# directory containing spec files.
+#
+# CI_EXCLUDES_DIR = File.expand_path(File.dirname(__FILE__) + '/../spec/data')
+#
+# Finally, require the ci.rb script
+# require File.dirname(__FILE__) + '/../mspec/scripts/ci'

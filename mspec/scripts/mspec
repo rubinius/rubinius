@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+#
+# Example script to be placed e.g. in your implementation's bin
+# directory to call the mSpec ci.rb script
+#
+# Require the mspec.rb script
+# require File.dirname(__FILE__) + '/../mspec/scripts/mspec'
