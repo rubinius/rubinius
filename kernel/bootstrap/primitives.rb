@@ -25,12 +25,6 @@ class IO
   end
 end
 
-class Hash
-  def delete_by_hash(hsh, key)
-    Ruby.primitive :hash_delete
-  end
-end
-
 class CompiledMethod
   def self.load_from_file(path, version)
     Ruby.primitive :load_file
