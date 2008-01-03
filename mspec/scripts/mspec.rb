@@ -66,20 +66,20 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Pass OPT as a flag to the target implementation") do |t|
     flags <<  t
   end
-  opts.on("-I", "--include DIRECTORY", String,
-          "Passes through as the -I option to the target") do |d|
+  opts.on("-I", "--include DIR", String,
+          "Pass DIR through as the -I option to the target") do |d|
     includes << "-I#{d}"
   end
   opts.on("-r", "--require LIBRARY", String,
-          "Passes through as the -r option to the target") do |f|
+          "Pass LIBRARY through as the -r option to the target") do |f|
     requires << "-r#{f}"
   end
   opts.on("-n", "--name RUBY_NAME", String,
-          "Overrides the name used to determine the implementation") do |n|
+          "Override the name used to determine the implementation") do |n|
     name = "RUBY_NAME = \"#{n}\";"
   end
   opts.on("-o", "--output FILE", String,
-          "Reporter output will be sent to FILE") do |f|
+          "Formatter output will be sent to FILE") do |f|
     output = f
   end
   opts.on("-e", "--example STRING|FILE", String,
@@ -93,12 +93,6 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-C", "--clean", "Remove all compiled spec files first") do
     clean = true
   end
-  opts.on("-g", "--gdb", "Run under gdb") do
-    flags << '--gdb'
-  end
-  opts.on("-A", "--valgrind", "Run under valgrind") do
-    flags << '--valgrind'
-  end
   opts.on("-V", "--verbose", "Output the name of each file processed") do
     verbose = true
   end
@@ -110,6 +104,12 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-w", "--warnings", "Don't supress warnings") do
     flags << '-w'
     warnings = true
+  end
+  opts.on("-g", "--gdb", "Run under gdb") do
+    flags << '--gdb'
+  end
+  opts.on("-A", "--valgrind", "Run under valgrind") do
+    flags << '--valgrind'
   end
   opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
@@ -139,9 +139,9 @@ end
 code = <<-EOC
 ENV['MSPEC_RUNNER'] = '1'
 OUTPUT_WARNINGS = true if #{warnings}
+#{name}
 require 'spec/spec_helper'
 
-#{name}
 set_spec_runner(#{format}, #{output ? output.inspect : 'STDOUT'})
 spec_runner.only(*#{only.inspect})
 spec_runner.except(*#{except.inspect})

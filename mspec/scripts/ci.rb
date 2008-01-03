@@ -13,6 +13,7 @@ patterns = []
 includes = ['-Ispec']
 requires = []
 target = 'shotgun/rubinius'
+name = nil
 format = 'DottedFormatter'
 clean = false
 verbose = false
@@ -86,6 +87,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Pass LIBRARY through as the -r option to the target") do |f|
     requires << "-r#{f}"
   end
+  opts.on("-n", "--name RUBY_NAME", String,
+          "Override the name used to determine the implementation") do |n|
+    name = "RUBY_NAME = \"#{n}\";"
+  end
   opts.on("-T", "--targetopt OPT", String,
           "Pass OPT as a flag to the target implementation") do |t|
     flags <<  t
@@ -140,6 +145,7 @@ end
 
 code = <<-EOC
 ENV['MSPEC_RUNNER'] = '1'
+#{name}
 require 'fileutils'
 require 'spec/spec_helper'
 
