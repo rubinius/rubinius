@@ -1,3 +1,0 @@
-IO#gets reads until the beginning of the next paragraph when the separator's length is 0
-IO#gets returns the entire content if the separator is nil
-IO#gets returns the next paragraph if the separator's length is 0

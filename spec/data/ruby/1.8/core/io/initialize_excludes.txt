@@ -1,1 +1,0 @@
-IO#ininitialize should throw an exception when given a bad file descriptor

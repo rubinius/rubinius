@@ -1,2 +1,0 @@
-IO#eof? should be at EOF after reading
-IO#eof? should not be at EOF on open

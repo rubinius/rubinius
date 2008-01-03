@@ -1,2 +1,0 @@
-IO#rewind positions the instance to the beginning of input
-IO#rewind sets lineno to 0
