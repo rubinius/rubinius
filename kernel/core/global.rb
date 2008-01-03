@@ -20,43 +20,45 @@ class GlobalVariables
       :$stdout => STDOUT,
       :$stdin => STDIN,
       :$CONSOLE => STDOUT,
-      :$DEBUG => false
+      :$DEBUG => false,
+      :$SAFE => 0,
     }
+
     @alias = {}
   end
 
   def key?(key)
     @internal.key?(key) || @alias.key?(key)
   end
-  
+
   def variables
     @internal.keys + @alias.keys
   end
 
   def [](key)
-    if val = @internal[key]
-      return val
+    if @internal.key? key then
+      @internal[key]
     else
-      return @internal[@alias[key]]
+      @internal[@alias[key]]
     end
   end
 
   def []=(key, data)
-    if !@internal[key] && val = @alias[key]
-      return @internal[val] = data
+    if !@internal.key?(key) && alias_key = @alias[key] then
+      @internal[alias_key] = data
     else
-      return @internal[key] = data
+      @internal[key] = data
     end
   end
 
-  def add_alias(a, b)
-    if @internal[a]
-      @alias[b] = a
-    elsif val = @alias[a]
-      @alias[b] = val
+  def add_alias(from, to)
+    if @internal.key? from then
+      @alias[to] = from
+    elsif alias_key = @alias[from] then
+      @alias[to] = alias_key
     else
-      raise NameError, "Error finding global variable #{a} while " +
-                       "attempting to alias it"
+      raise NameError, "Error finding global variable #{from} while " \
+                       "attempting to alias it to #{to}"
     end
   end
 end
