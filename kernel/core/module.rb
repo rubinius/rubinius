@@ -187,16 +187,16 @@ class Module
   def protected_instance_methods(all=true)
     filter_methods(:protected_names, all)
   end
-  
+
   def filter_methods(filter, all)
     names = method_table.__send__(filter)
     unless all or self.is_a?(MetaClass) or self.is_a?(IncludedModule)
-      return names
+      return names.map { |name| name.to_s }
     end
 
     excludes = method_table.map { |name, meth| meth == false ? name : nil }
     undefed = excludes.compact
-    
+
     sup = direct_superclass
 
     while sup
@@ -211,7 +211,7 @@ class Module
     (names - undefed).map { |name| name.to_s }
   end
   # private :filter_methods
-  
+
   def define_method(name, meth = nil, &prc)
     meth ||= prc
 
