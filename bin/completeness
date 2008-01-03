@@ -160,7 +160,7 @@ cmd = lambda do |name|
     meth = meth[0..-2]
   end
   dir = dir_map[const] || const.downcase
-  base = 'spec/core' unless base
+  base = 'spec/ruby/1.8/core' unless base
   spec_file = "#{base}/#{dir}/#{meth}_spec.rb"
   mspec_cmd =  %(bin/mspec -t #{target} #{requires.map { |r| "-r#{r}" }.join(" ")} -e '#{name} ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d #{spec_file} 2> /dev/null)
   puts mspec_cmd if verbose
@@ -176,17 +176,18 @@ colors = {
 }
 
 print_summary = lambda do |str, name, tab|
-  examples, failures = 0, 0
+  examples = failures = errors = 0
   failure_messages = []
-  str.scan(/(\d+) examples, (\d+) failures/) do |e, f|
-    examples += e.to_i
+  str.scan(/(\d+) example.*(\d+) failure.*(\d+) error./) do |ex, f, er|
+    examples += ex.to_i
     failures += f.to_i
+    errors += er.to_i
   end
   str.scan(/\n(\d+\)\n)(([^\n]+\n)+)/) do |number, error|
     failure_messages << error
   end
   summary = if examples > 0
-    "#{examples} examples, #{failures} failures"
+    "#{examples} examples, #{failures} failures, #{errors} errors"
   else
     "No examples found"
   end
@@ -203,7 +204,7 @@ print_summary = lambda do |str, name, tab|
     end
     puts "#{name}\n    #{summary}"
   end
-  tab.add(examples, failures, failure_messages)
+  tab.add(examples, failures, errors, failure_messages)
 end
 
 constants = constant_names.map { |c| get_class_or_module.call(c) }
@@ -214,22 +215,23 @@ constants.sort! { |a,b| a.to_s <=> b.to_s }
 
 class Tabulator
   def initialize
-    @methods = @examples = @failures = @missing = 0
+    @methods = @examples = @failures = @errors = @missing = 0
     @failure_messages = []
     @start = Time.now
   end
 
-  def add(examples, failures, failure_messages = [])
+  def add(examples, failures, errors, failure_messages = [])
     @methods += 1
     @examples += examples
     @failures += failures
+    @errors += errors
     @failure_messages.push *failure_messages
     @missing += 1 if examples == 0
   end
 
   def summarize(list_failures=false)
     puts "\nFinished in #{Time.now - @start} seconds\n\n"
-    puts "#{@methods} methods, #{@examples} examples, #{@failures} failures, #{@missing} methods with no examples"
+    puts "#{@methods} methods, #{@examples} examples, #{@failures} failures, #{@errors} errors, #{@missing} methods with no examples"
     if list_failures && @failure_messages.size > 0
       puts "\nFailed specs:\n\n"
       @failure_messages.each_with_index do |message, number|
