@@ -1,2 +1,0 @@
-Process.fork return nil for the child process
-Process.fork return nil for the child process

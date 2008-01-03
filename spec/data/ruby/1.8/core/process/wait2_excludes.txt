@@ -1,4 +1,0 @@
-Process.wait2 should return the pid and status of child process
-Process.wait2 should raise a StandardError if no child processes exist
-Process.wait2 should return the pid and status of child process
-Process.wait2 should raise a StandardError if no child processes exist
