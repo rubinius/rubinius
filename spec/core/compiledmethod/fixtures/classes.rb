@@ -1,7 +1,8 @@
 module CompiledMethodSpecs
 
   def simple_puts
-    puts 'hello'
+    a = 'hello'
+    puts a
   end
 
 end

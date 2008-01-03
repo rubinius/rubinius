@@ -5,7 +5,8 @@ class InstructionSet
   # Each opcode consists of a hash identifying:
   #   - the opcode symbol,
   #   - an array of the arguments required by the opcode, which may be of types
-  #     :int, :literal, :local, :field, :primitive, :ip, :depth, or :cache
+  #     :int, :literal, :slot_local, :stack_local, :field, :primitive, :ip,
+  #     :depth, or :cache
   # IMPORTANT: Do not change the order of opcodes! The position in this array
   # is the opcode's instuction bytecode.
   OpCodes = [
@@ -26,8 +27,8 @@ class InstructionSet
     {:opcode => :goto_if_false, :args => [:ip]},
     {:opcode => :goto_if_true, :args => [:ip]},
     {:opcode => :swap_stack, :args => []},
-    {:opcode => :set_local, :args => [:local]},
-    {:opcode => :push_local, :args => [:local]},
+    {:opcode => :set_local, :args => [:slot_local]},
+    {:opcode => :push_local, :args => [:slot_local]},
     {:opcode => :push_exception, :args => []},
     {:opcode => :make_array, :args => [:int], :vm_flags => [:check_interrupts]},
     {:opcode => :set_ivar, :args => [:literal], :vm_flags => [:check_interrupts]},
@@ -94,8 +95,8 @@ class InstructionSet
     {:opcode => :meta_send_op_gt, :args => [], :vm_flags => [:check_interrupts]},
     {:opcode => :meta_send_op_tequal, :args => [], :vm_flags => [:check_interrupts]},
     {:opcode => :meta_send_op_nequal, :args => [], :vm_flags => [:check_interrupts]},
-    {:opcode => :push_local_depth, :args => [:depth, :local]},
-    {:opcode => :set_local_depth, :args => [:depth, :local], :vm_flags => [:check_interrupts]},
+    {:opcode => :push_local_depth, :args => [:depth, :enclosed_local]},
+    {:opcode => :set_local_depth, :args => [:depth, :enclosed_local], :vm_flags => [:check_interrupts]},
     {:opcode => :create_block, :args => [:int], :vm_flags => [:check_interrupts]},
     {:opcode => :send_off_stack, :args => [], :vm_flags => [:check_interrupts]},
     {:opcode => :locate_method, :args => []},
@@ -104,7 +105,7 @@ class InstructionSet
     {:opcode => :set_call_flags, :args => [:int]},
     {:opcode => :yield_debugger, :args => [], :vm_flags => [:check_interrupts]},
     {:opcode => :from_fp, :args => [:int]},
-    {:opcode => :set_local_from_fp, :args => [:local, :int]},
+    {:opcode => :set_local_from_fp, :args => [:slot_local, :int]},
     {:opcode => :make_rest_fp, :args => [:int], :vm_flags => [:check_interrupts]},
     {:opcode => :allocate_stack, :args => [:int]},
     {:opcode => :deallocate_stack, :args => [:int]},

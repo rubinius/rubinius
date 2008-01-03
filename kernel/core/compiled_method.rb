@@ -193,10 +193,19 @@ class CompiledMethod
         case @op.args[i]
         when :literal
           @args[i] = cm.literals[@args[i]]
+        when :slot_local
+          @args[i] = cm.bonus[0].at(args[i]) if cm.bonus && cm.bonus[0]
+        when :stack_local
+          @args[i] = cm.bonus[1].at(args[i]) if cm.bonus && cm.bonus[1]
         end
       end
       @ip = ip
       @line = cm.line_from_ip(ip)
+    end
+
+    # Returns the OpCode object
+    def instruction
+      @op
     end
 
     # Returns the symbol representing the opcode for this instruction
