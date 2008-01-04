@@ -1,1 +1,0 @@
-Bignum#to_s when given a base returns self converted to a String in the given base
