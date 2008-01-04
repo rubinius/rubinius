@@ -203,18 +203,18 @@ spec_runner.formatter.print_start
   ensure
     spec_runner.clear_filters
   end
+  %s
 end
-# reset formatter.out to stdout
 spec_runner.formatter.summary
 EOC
 
 case action
 when :create
-  code = code % ['create_exclude_file(file)', 'except', '']
+  code = code % ['create_exclude_file(file)', 'except', '', 'spec_runner.formatter.out.close']
 when :run
-  code = code % ['STDOUT', 'except', 'spec_runner.except(*excludes)']
+  code = code % ['STDOUT', 'except', 'spec_runner.except(*excludes)', '']
 when :invert
-  code = code % ['STDOUT', 'only', 'spec_runner.only(*excludes)']
+  code = code % ['STDOUT', 'only', 'spec_runner.only(*excludes)', '']
 else
   puts "Unknown action: #{action}"
   puts opts
