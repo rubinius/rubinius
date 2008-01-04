@@ -28,6 +28,7 @@ end
 
 class Object
   remove_const :Array
+  def disable_long_return!() end
 end
 
 require 'kernel/bootstrap/array'
