@@ -119,6 +119,8 @@ namespace :git do
       `git stash clear` if clear
     end
   end
+
+  task :pull => :update
   
   desc "Make patches upto current"
   task :make_patches do
