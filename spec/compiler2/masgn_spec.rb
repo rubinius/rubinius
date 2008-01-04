@@ -272,6 +272,40 @@ describe Compiler2 do
     end
   end
   
+# 506 % pts 'ary.each { |*args| p args  }'
+# s(:iter,
+#  s(:call, s(:vcall, :ary), :each),
+#  s(:masgn, s(:dasgn_curr, :args)),
+#  s(:fcall, :p, s(:array, s(:dvar, :args))))
+
+  it "compiles '|*args|'" do
+    x = [:iter,
+         [:call, [:vcall, :x], :each], 
+         [:masgn, [:dasgn_curr, :args]],
+         nil]
+    
+    gen x do |g|
+      desc = description do |d|
+        d.unshift_tuple
+        d.set_local_depth 0,0
+        d.pop
+        d.cast_array
+        d.set_local_depth 0,1
+        d.pop
+        d.new_label.set!
+        d.push :nil
+        d.soft_return
+      end
+
+      g.push_literal desc
+      g.create_block2
+      g.push :self
+      g.send :x, 0, true
+      g.send_with_block :each, 0, false
+    end
+  end
+ 
+
   it "compiles '|a, *b|'" do
     x = [:iter, [:call, [:vcall, :x], :each], 
           [:masgn, [:array, [:lasgn, :a, 0]], [:lasgn, :b, 0], nil]
