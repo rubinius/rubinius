@@ -1,3 +1,0 @@
-Module#public_class_method makes an existing class method public
-Module#public_class_method makes an existing class method public up the inheritance tree
-Module#public_class_method accepts more than one method at a time

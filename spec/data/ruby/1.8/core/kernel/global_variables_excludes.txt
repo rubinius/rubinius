@@ -1,1 +1,0 @@
-Kernel.global_variables should find subset starting with std

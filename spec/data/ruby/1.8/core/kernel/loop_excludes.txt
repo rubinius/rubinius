@@ -1,1 +1,0 @@
-Kernel.loop raises LocalJumpError if no block given

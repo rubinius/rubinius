@@ -1,1 +1,0 @@
-Struct#inspect returns a string representation of some kind

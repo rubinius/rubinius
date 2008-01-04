@@ -1,3 +1,1 @@
-Kernel.proc raises an ArgumentError when no block is given
 Kernel.proc raises an ArgumentError when given to many arguments
-Kernel.proc returns from block into caller block

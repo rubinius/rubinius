@@ -1,2 +1,0 @@
-Kernel#methods returns a list of the names of publicly accessible methods in the object
-Kernel#methods returns a list of the names of publicly accessible methods in the object and its ancestors and mixed-in modules

@@ -1,3 +1,0 @@
-Hash#== compares keys with eql? semantics
-Hash#== does not compare keys with different hash codes via eql?
-Hash#== compares keys with matching hash codes via eql?

@@ -1,1 +1,0 @@
-Hash#rehash reorganizes the hash by recomputing all key hash codes

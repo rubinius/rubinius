@@ -1,1 +1,0 @@
-Kernel#callcc should return the results of a block if block is not called

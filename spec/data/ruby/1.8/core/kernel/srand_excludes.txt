@@ -1,2 +1,0 @@
-Kernel.srand srand should return the previous seed value
-Kernel.srand srand should seed the RNG correctly and repeatedly

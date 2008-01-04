@@ -1,4 +1,0 @@
-Kernel#caller returns the current call stack
-Kernel#caller omits a number of frames corresponding to the parameter
-Kernel#caller returns nil when all frames are omitted
-Kernel#caller defaults to omitting one frame

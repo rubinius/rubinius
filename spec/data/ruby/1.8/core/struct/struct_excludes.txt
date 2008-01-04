@@ -1,1 +1,0 @@
-Struct anonymous class instance methods reader method should not interfere with undefined methods

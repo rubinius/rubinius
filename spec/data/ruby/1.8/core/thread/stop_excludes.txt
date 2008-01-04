@@ -1,1 +1,0 @@
-Thread.stop should cause the current thread to sleep indefinitely

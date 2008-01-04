@@ -1,1 +1,0 @@
-Hash#default calls default proc with nil arg if passed a default proc but no arg

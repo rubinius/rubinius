@@ -1,1 +1,0 @@
-Module.constants returns an array of the names of all constants defined
