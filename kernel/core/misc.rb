@@ -1,5 +1,23 @@
 # depends on: module.rb class.rb
 
+class << MAIN
+  def include(*mods)
+    self.metaclass.include(*mods)
+  end
+  
+  def public(*methods)
+    self.metaclass.public(*methods)
+  end
+  
+  def private(*methods)
+    self.metaclass.private(*methods)
+  end
+
+  def protected(*methods)
+    self.metaclass.protected(*methods)
+  end
+end
+
 def self.to_s
   "main"
 end
