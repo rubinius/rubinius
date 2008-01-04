@@ -104,6 +104,14 @@ class Tuple
     return ary
   end
   
+  def first
+    at(0)
+  end
+  
+  def last
+    at(fields-1)
+  end
+  
   alias :fields :size
   alias :length :size
   
