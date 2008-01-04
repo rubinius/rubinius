@@ -28,7 +28,7 @@ module Process
     MemoryPointer.new(:ulong, 2) { |p|
       rlimit = Rlimit.new(p)
       rlimit[:rlim_cur] = cur_limit
-      rlimit[:rlim_max] = (Undefined == max_limit) ? cur_limit : max_limit
+      rlimit[:rlim_max] = max_limit.equal?(Undefined) ? cur_limit : max_limit
       Errno.handle if -1 == Platform::POSIX.setrlimit(resource, p)
     }
     nil

@@ -160,7 +160,7 @@ class Thread
         @joins << jc
         @lock.send nil
         begin
-          unless timeout == Undefined
+          unless timeout.equal?(Undefined)
             msecs = (timeout.to_f * 1_000_000).to_i
             Scheduler.send_in_microseconds(jc, msecs)
           end

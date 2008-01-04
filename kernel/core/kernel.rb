@@ -256,7 +256,7 @@ module Kernel
     # No duration means we sleep forever. By not registering anything with
     # Scheduler, the receive call will effectively block until someone
     # explicitely wakes this thread.
-    unless duration == Undefined
+    unless duration.equal?(Undefined)
       raise TypeError, 'time interval must be a numeric value' unless duration.kind_of?(Numeric)
       duration = Time.at duration
       Scheduler.send_in_microseconds(chan, (duration.to_f * 1_000_000).to_i)
