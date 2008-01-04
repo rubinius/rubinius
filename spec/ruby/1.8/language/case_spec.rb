@@ -44,6 +44,18 @@ describe "The 'case'-construct" do
       else
     end.should == nil
   end
+
+  it "returns 2 when a then body is empty" do
+    case Object.new
+    when Numeric then
+      1
+    when String then
+      # ok
+    else
+      2
+    end.should == 2
+  end
+
   it "returns the statement following ':'" do
     case "a"
       when "a": 'foo'
