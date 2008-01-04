@@ -203,6 +203,8 @@ spec_runner.formatter.print_start
   end
   %s
 end
+# reset formatter.out to stdout
+spec_runner.formatter.out = $stdout
 spec_runner.formatter.summary
 EOC
 
