@@ -73,13 +73,20 @@ class Regexp
   end
 
   def self.last_match(field = nil)
-    match = $~
+    match = MethodContext.current.sender.last_match
     if match
       return match if field.nil?
       return match[field]
     else
       return nil
     end
+  end
+  
+  def self.last_match=(match)
+    # Set an ivar in the sender of our sender
+    parent = MethodContext.current.sender
+    ctx = parent.sender
+    ctx.last_match = match
   end
 
   def self.union(*patterns)
@@ -100,7 +107,7 @@ class Regexp
   def ~
     line = $_
     if !line.is_a?(String)
-      $~ = nil
+      Regexp.last_match = nil
       return nil
     end
     res = self.match(line)
@@ -108,9 +115,14 @@ class Regexp
   end
 
   def =~(str)
-    m = match(str)
-    return m.begin(0) if m
-    nil
+    match = match_from(str, 0)
+    if match
+      Regexp.last_match = match
+      return match.begin(0)
+    else
+      Regexp.last_match = nil
+      return nil
+    end
   end
   
   def match_all(str)
@@ -142,11 +154,17 @@ class Regexp
   def ===(other)
     if !other.is_a?(String)
       if !other.respond_to(:to_str)
-        $~ = nil
+        Regexp.last_match = nil
         return false
       end
     end
-    return !self.match(other.to_str).nil?
+    if match = self.match_from(other.to_str, 0)
+      Regexp.last_match = match
+      return true
+    else
+      Regexp.last_match = nil
+      return false
+    end
   end
 
   def casefold?
@@ -187,11 +205,11 @@ class Regexp
   end
 
   def match(str)
-    $~ = match_region(str, 0, str.size, true)
+    Regexp.last_match = match_region(str, 0, str.size, true)
   end
   
   def match_from(str, count)
-    $~ = match_region(str, count, str.size, true)
+    match_region(str, count, str.size, true)
   end
 
   def to_s

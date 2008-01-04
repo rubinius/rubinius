@@ -3,28 +3,40 @@
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
 # you can get recursive exceptions being raised (THATS BAD, BTW).
 class MethodContext
+  
+  attr_accessor :last_match
 
   # The Nth group of the last regexp match.
   #
   # Implemented to support Compiler2.
   def nth_ref(n)
-    $~[n]
+    if lm = @last_match
+      return lm[n]
+    end
+    
+    return nil
   end
 
   # One of the special globals $&, $`, $' or $+.
   #
   # Implemented to support Compiler2.
   def back_ref(kind)
-    case kind
-    when :&
-      $~[0]
-    when :"`"
-      $~.pre_match
-    when :"'"
-      $~.post_match
-    when :+
-      $~.captures.last
+    if lm = @last_match
+      res = case kind
+      when :&
+        lm[0]
+      when :"`"
+        lm.pre_match
+      when :"'"
+        lm.post_match
+      when :+
+        lm.captures.last
+      end
+      
+      return res
     end
+    
+    return nil
   end
     
   def to_s
@@ -85,28 +97,21 @@ class NativeMethodContext
 end
 
 class BlockContext
-
-  # The Nth group of the last regexp match.
-  #
-  # Implemented to support Compiler2.
-  def nth_ref(n)
-    $~[n]
+  
+  def last_match
+    home.last_match
   end
-
-  # One of the special globals $&, $`, $' or $+.
-  #
-  # Implemented to support Compiler2.
-  def back_ref(kind)
-    case kind
-    when :&
-      $~[0]
-    when :"`"
-      $~.pre_match
-    when :"'"
-      $~.post_match
-    when :+
-      $~.captures.last
-    end
+  
+  def last_match=(match)
+    home.last_match = match
+  end
+  
+  def nth_ref(idx)
+    home.nth_ref(idx)
+  end
+  
+  def back_ref(idx)
+    home.back_ref(idx)
   end
   
   def home

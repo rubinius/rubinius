@@ -23,8 +23,9 @@ module Compile
   def self.find_compiler
     begin
       load "#{DefaultCompiler}/init"
-    rescue Exception
-      raise "Unable to load default compiler"
+    rescue Exception => e
+      STDERR.puts "Unable to load default compiler"
+      raise e
     end
 
     unless @compiler

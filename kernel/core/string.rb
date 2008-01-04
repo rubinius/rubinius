@@ -199,9 +199,11 @@ class String
   def =~(pattern)
     case pattern
     when Regexp
-      if m = pattern.match(self)
+      if m = pattern.match_from(self, 0)
+        Regexp.last_match = m
         return m.begin(0)
       end
+      Regexp.last_match = nil
       return nil      
     when String
       raise TypeError, "type mismatch: String given"
@@ -259,7 +261,9 @@ class String
       length = Type.coerce_to(other, Fixnum, :to_int)
       
       if index.kind_of? Regexp
-        return subpattern(index, length)
+        match, str = subpattern(index, length)
+        Regexp.last_match = match
+        return str
       else
         start  = Type.coerce_to(index, Fixnum, :to_int)
         return substring(start, length)
@@ -268,7 +272,9 @@ class String
     
     case index
     when Regexp
-      return subpattern(index, 0)
+      match, str = subpattern(index, 0)
+      Regexp.last_match = match
+      return str
     when String
       return include?(index) ? index.dup : nil
     when Range
@@ -751,14 +757,71 @@ class String
   #   "hello".gsub(/[aeiou]/, '*')              #=> "h*ll*"
   #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
   #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
-  def gsub(pattern, replacement = nil, &block)
-    str_gsub(pattern, replacement, false, &block)
+  def gsub(pattern, replacement=nil)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" unless replacement || block_given?
+    raise ArgumentError, "wrong number of arguments (0 for 2)" unless pattern
+
+    tainted = false
+
+    if replacement
+      tainted = replacement.tainted?
+      replacement = StringValue(replacement).replace_slashes
+      tainted ||= replacement.tainted?
+    end
+    
+    pattern = get_pattern(pattern, true)
+    copy = self.dup
+    
+    last_end = start = 0
+    ret = []
+    
+    last_match = nil
+
+    while match = pattern.match_from(self, start)
+      ret << (match.pre_match_from(last_end) || "")
+      
+      if replacement
+        ret << replacement.to_sub_replacement(match)
+      else
+        Regexp.last_match = match
+        
+        val = yield(match[0].dup)
+        tainted ||= val.tainted?
+        ret << val.to_s
+        
+        raise RuntimeError, "string modified" if self != copy
+      end
+      
+      tainted ||= val.tainted?
+      
+      last_end = match.end(0)
+      start = match.collapsing? ? start + 1 : match.end(0)
+      
+      last_match = match
+    end
+    
+    Regexp.last_match = last_match
+
+    ret << self[start..-1] if self[start..-1]
+
+    str = ret.join
+    str = self.class.new(str) unless self.instance_of?(String)
+    str.taint if tainted || self.tainted?
+    return str
   end
   
   # Performs the substitutions of <code>String#gsub</code> in place, returning
   # <i>self</i>, or <code>nil</code> if no substitutions were performed.
   def gsub!(pattern, replacement = nil, &block)
-    str_gsub(pattern, replacement, true, &block)
+    str = gsub(pattern, replacement, &block)
+    if lm = Regexp.last_match
+      Regexp.last_match = Regexp.last_match
+      replace(str)
+      return self
+    else
+      Regexp.last_match = nil
+      return nil
+    end
   end
 
   # Treats leading characters from <i>self</i> as a string of hexadecimal digits
@@ -825,8 +888,11 @@ class String
         end
       end
     when Regexp
-      if match = needle.match(self[offset..-1])
+      if match = needle.match_from(self[offset..-1], 0)
+        Regexp.last_match = match
         return (offset + match.begin(0))
+      else
+        Regexp.last_match = nil
       end
     else
       raise TypeError, "type mismatch: #{needle.class} given"
@@ -956,7 +1022,9 @@ class String
   #   'hello'.match(/(.)\1/)[0]   #=> "ll"
   #   'hello'.match('xx')         #=> nil
   def match(pattern)
-    get_pattern(pattern).match(self)
+    obj = get_pattern(pattern).match_from(self, 0)
+    Regexp.last_match = obj
+    return obj
   end
 
   # Treats leading characters of <i>self</i> as a string of octal digits (with an
@@ -1052,7 +1120,7 @@ class String
     end
     
     ret = arg.match_region(self, 0, finish, false)
-    $~ = ret if original_klass == Regexp
+    Regexp.last_match = ret if original_klass == Regexp
     ret && ret.begin(0)
   end
 
@@ -1124,20 +1192,48 @@ class String
   #    
   #   <<cruel>> <<world>>
   #   rceu lowlr
-  def scan(pattern, &block)
+    
+  def scan(pattern)
     taint = self.tainted? || pattern.tainted?
     pattern = get_pattern(pattern, true)
     index = 0
+    
+    last_match = nil
+    
+    if block_given?
+      ret = self
+    else
+      ret = []
+    end
+    
+    while match = pattern.match_from(self, index)
+      index = match.collapsing? ? match.end(0) + 1 : match.end(0)
+      last_match = match
+      val = (match.length == 1 ? match[0] : match.captures)
+      val.taint if taint
+      
+      if block_given?
+        Regexp.last_match = match
+        yield(val)
+      else
+        ret << val
+      end
+    end
+    
+    Regexp.last_match = last_match
+    return ret
+=begin
 
     unless block_given?
       ret = []
+      
       while (index, match = scan_once(pattern, index)) && match
-        last_match = $~
+        last_match = match
         match.taint if taint
         ret << match
       end
       
-      $~ = last_match
+      Regexp.last_match = last_match
       return ret
     else
       while (index, match = scan_once(pattern, index)) && match
@@ -1146,12 +1242,15 @@ class String
         match.taint if taint
         
         block.call(match)
-        $~ = old_md
+        Regexp.last_match = old_md
       end
       
-      $~ = last_match
-      return self
+      ret = self
     end
+    
+    Regexp.last_match = last_match
+    return ret
+=end
   end
   
   # Deletes the specified portion from <i>self</i>, and returns the portion
@@ -1168,7 +1267,9 @@ class String
   #   string                  #=> "thing"
   def slice!(*args)
     result = slice(*args)
+    lm = Regexp.last_match
     self[*args] = '' unless result.nil?
+    Regexp.last_match = lm
     result
   end
 
@@ -1335,40 +1436,65 @@ class String
   #   "hello".sub(/[aeiou]/, '*')               #=> "h*llo"
   #   "hello".sub(/([aeiou])/, '<\1>')          #=> "h<e>llo"
   #   "hello".sub(/./) {|s| s[0].to_s + ' ' }   #=> "104 ello"
-  def sub(pattern, replacement = nil, &block)
-    (str = self.dup).sub!(pattern, replacement, &block) || str
-  end
+  def sub(pattern, replacement = nil)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
+    raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
+    
+    if match = get_pattern(pattern, true).match_from(self, 0)
+      out = match.pre_match
 
+      Regexp.last_match = match
+
+      if replacement
+        out.taint if replacement.tainted?
+        replacement = StringValue(replacement).replace_slashes.to_sub_replacement(match)
+      else
+        replacement = yield(match[0].dup).to_s
+        out.taint if replacement.tainted?        
+      end
+      
+      # We have to reset it again to match the specs
+      Regexp.last_match = match
+
+      out << replacement << match.post_match
+      out.taint if self.tainted?
+    else
+      out = self
+      Regexp.last_match = nil
+    end
+    
+    # MRI behavior emulation. Sub'ing String subclasses doen't return the
+    # subclass, they return String instances.
+    unless self.instance_of?(String)
+      out = self.class.new(out)
+    end
+    
+    return out
+  end
+  
   # Performs the substitutions of <code>String#sub</code> in place,
   # returning <i>self</i>, or <code>nil</code> if no substitutions were
   # performed.
   def sub!(pattern, replacement = nil)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
-    raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
-    
-    out = self.dup
-    if match = get_pattern(pattern, true).match(self)
-      out = match.pre_match
-      old_md = $~
-
-      if replacement
-        self.taint if replacement.tainted?
-        replacement = StringValue(replacement).replace_slashes.to_sub_replacement(match)
-      else
-        old_str = self.dup
-        replacement = yield(match[0].dup).to_s
-        raise RuntimeError, "string modified" if old_str != self
-
-        self.taint if replacement.tainted?
+    if block_given?
+      orig = self.dup
+      str = sub(pattern, replacement) do |rep|
+        ret = yield(rep)
+        raise RuntimeError, "illegal manipulation" unless self == orig
+        ret
       end
-
-      self.modify!
-      out << replacement << match.post_match
-      $~ = old_md
+    else
+      str = sub(pattern, replacement)
     end
     
-    out = self.class.new(out) unless self.instance_of?(String)
-    out == self ? nil : self.replace(out)
+    if lm = Regexp.last_match
+      Regexp.last_match = lm
+      replace(str)
+      return self
+    else
+      Regexp.last_match = nil
+      return nil
+    end
   end
 
   # Returns the successor to <i>self</i>. The successor is calculated by
@@ -1602,59 +1728,6 @@ class String
 
     modified ? self : nil
   end
-  
-
-
-  def str_gsub(pattern, replacement, bang)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" unless replacement || block_given?
-    raise ArgumentError, "wrong number of arguments (0 for 2)" unless pattern
-
-    tainted = false
-
-    if replacement
-      tainted = replacement.tainted?
-      replacement = StringValue(replacement).replace_slashes
-      tainted ||= replacement.tainted?
-    end
-    
-    pattern = get_pattern(pattern, true)
-    copy = self.dup
-    
-    last_end = start = 0
-    ret = []
-
-    while match = pattern.match_from(self, start) and last_match = match
-      ret << (match.pre_match_from(last_end) || "")
-      
-      if replacement
-        ret << replacement.to_sub_replacement(match)
-      else
-        val = yield(match[0].dup)
-        tainted ||= val.tainted?
-        ret << val.to_s
-        
-        raise RuntimeError, "string modified" if self != copy
-        $~ = match
-      end
-      
-      tainted ||= val.tainted?
-      
-      last_end = match.end(0)
-      start = match.collapsing? ? start + 1 : match.end(0)
-    end
-    
-    $~ = last_match
-
-    ret << self[start..-1] if self[start..-1]
-
-    return if bang && !last_match
-
-    str = ret.join
-    str = self.class.new(str) unless self.instance_of?(String)
-    str.taint if tainted || self.tainted?
-    return bang ? replace(str) : str
-  end
-
 
   def tr_trans(source, replacement, squeeze)
     source = StringValue(source).to_expanded_tr_string
@@ -1721,13 +1794,6 @@ class String
       end
       
       return modified ? self : nil
-    end
-  end
-
-  def scan_once(pattern, start)
-    if match = pattern.match_from(self, start)
-      start = match.collapsing? ? match.end(0) + 1 : match.end(0)
-      return start, match.length == 1 ? match[0] : match.captures
     end
   end
 
@@ -1921,17 +1987,21 @@ class String
 
   def subpattern(pattern, capture)
     # TODO: A part of the functionality here should go into MatchData#[]
-    return if (match = pattern.match(self)).nil? || capture >= match.size
+    match = pattern.match(self)
+    if !match or capture >= match.size
+      return nil
+    end
+    
     if capture < 0
       capture += match.size
-      return if capture <= 0
+      return nil if capture <= 0
     end
     
     start = match.begin(capture)
     count = match.end(capture) - match.begin(capture)
     str = self.substring(start, count)
     str.taint if pattern.tainted?
-    str
+    [match, str]
   end
 
   def subpattern_set(pattern, capture, replacement)
@@ -2101,12 +2171,6 @@ class String
     end
     ret << self[start..-1]
     ret
-  end
-
-  def without_changing_regex_global
-    old_md = $~
-    yield
-    $~ = old_md
   end
 
   # def rindex(arg, finish = nil )

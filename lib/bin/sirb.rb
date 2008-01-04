@@ -117,6 +117,7 @@ while true
         context = ""
       else  
         pstate = ">"
+        context = "MethodContext.current.last_match = $sirb_last_match; #{context}; $sirb_last_match = MethodContext.current.last_match;"
         sexp = context.to_sexp
         puts "\nS-exp:\n#{sexp.inspect}" if $show_parse
         desc = compiler.compile_as_method(sexp, :__eval_script__, compiler_state)

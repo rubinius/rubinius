@@ -90,8 +90,8 @@ class Module
   
   def attr_writer(name)
     sym = "@#{name}".__symbol_lookup__
-    meth = AccessVarMethod.get_ivar(sym)
-    @method_table[name] = meth
+    meth = AccessVarMethod.set_ivar(sym)
+    @method_table["#{name}=".__symbol_lookup__] = meth
     return nil    
   end
   

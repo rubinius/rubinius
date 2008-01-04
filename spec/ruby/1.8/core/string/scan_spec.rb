@@ -70,11 +70,6 @@ describe "String#scan" do
       a.each { |m| m.tainted?.should == false }
     end
 
-    deviates_on :rubinius do
-      a = "hello hello hello".scan("hello".taint)
-      a.each { |m| m.tainted?.should == true }
-    end
-
     a = "hello hello hello".taint.scan("hello")
     a.each { |m| m.tainted?.should == true }
     

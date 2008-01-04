@@ -134,6 +134,15 @@ class Node
       set(:scope, self) do
         prelude(nil, g)
         @body.bytecode(g)
+      end
+    end
+  end
+  
+  class Expression
+    def bytecode(g)
+      set(:scope, self) do
+        prelude(nil, g)
+        @body.bytecode(g)
         g.sret
       end
     end
@@ -1055,6 +1064,10 @@ class Node
     def bytecode(g)
       if @name == :$!
         g.push_exception
+      elsif @name == :$~
+        g.push_cpath_top
+        g.find_const :Regexp
+        g.send :last_match, 0
       else
         g.push_literal @name
         g.push_cpath_top
@@ -1071,6 +1084,11 @@ class Node
       
       if @name == :$!
         g.raise_exc
+        return
+      elsif @name == :$~
+        g.push_cpath_top
+        g.find_const :Regexp
+        g.send :last_match=, 1
         return
       end
       

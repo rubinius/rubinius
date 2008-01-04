@@ -241,11 +241,12 @@ OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OB
   max = FIXNUM_TO_INT(string_get_bytes(string));
   str = (UChar*)string_byte_address(state, string);
   
-  if(forward == Qfalse) 
+  if(forward == Qfalse) {
     beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + FIXNUM_TO_INT(end), str + FIXNUM_TO_INT(start), region, ONIG_OPTION_NONE);  
-  else 
+  } else {
     beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + FIXNUM_TO_INT(start), str + FIXNUM_TO_INT(end), region, ONIG_OPTION_NONE);
-  
+  }
+
   if(beg == ONIG_MISMATCH) {
     onig_region_free(region, 1);
     return Qnil;
