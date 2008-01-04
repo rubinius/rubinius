@@ -366,6 +366,18 @@ unsigned long bignum_to_int(STATE, OBJECT self) {
   return mp_get_int(MP(self));
 }
 
+int bignum_to_i(STATE, OBJECT self) {
+  mp_int *s = MP(self);
+  
+  if (s->sign == MP_NEG) return -mp_get_int(s);
+  
+  return mp_get_int(s);  
+}
+
+unsigned int bignum_to_ui(STATE, OBJECT self) {
+  return (unsigned int)mp_get_int(MP(self));  
+}
+
 unsigned long long bignum_to_ull(STATE, OBJECT self) {
   mp_int t;
   mp_int *s = MP(self);

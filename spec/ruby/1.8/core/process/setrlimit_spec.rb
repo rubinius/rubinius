@@ -57,11 +57,13 @@ describe "Process.setrlimit and Process.getrlimit" do
     Process.setrlimit(Process::RLIMIT_STACK, lim, max).should == nil
   end
 
-  it "limit and get total available memory (bytes)" do
-    lim, max = Process.getrlimit(Process::RLIMIT_AS)
-    lim.kind_of?(Integer).should == true
-    max.kind_of?(Integer).should == true
-    Process.setrlimit(Process::RLIMIT_AS, lim, max).should == nil
+  platform_is_not :darwin do
+    it "limit and get total available memory (bytes)" do
+      lim, max = Process.getrlimit(Process::RLIMIT_AS)
+      lim.kind_of?(Integer).should == true
+      max.kind_of?(Integer).should == true
+      Process.setrlimit(Process::RLIMIT_AS, lim, max).should == nil
+    end
   end
 
   it "limit and get total size for mlock(2) (bytes)" do

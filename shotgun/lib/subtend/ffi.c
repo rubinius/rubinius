@@ -301,9 +301,12 @@ int ffi_to_int() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
-  type_assert(obj, FixnumType);
-  
-  return FIXNUM_TO_INT(obj);
+  if(FIXNUM_P(obj)) {
+    return FIXNUM_TO_INT(obj);
+  } else {
+    type_assert(obj, BignumType);
+    return bignum_to_i(ctx->state, obj);
+  }
 }
 
 void ffi_from_int(int obj) {
@@ -321,9 +324,12 @@ unsigned int ffi_to_uint() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
-  type_assert(obj, FixnumType);
-  
-  return (unsigned int)FIXNUM_TO_INT(obj);
+  if(FIXNUM_P(obj)) {
+    return (unsigned int)FIXNUM_TO_INT(obj);
+  } else {
+    type_assert(obj, BignumType);
+    return bignum_to_ui(ctx->state, obj);
+  }
 }
 
 void ffi_from_uint(unsigned int obj) {
@@ -382,31 +388,35 @@ void ffi_from_ull(unsigned long long val) {
 
 /* long */
 long ffi_to_long() {
-  if (sizeof(long) == sizeof(long long))
+  if(sizeof(long) == sizeof(long long)) {
     return (long)ffi_to_ll();
-  else
+  } else {
     return (long)ffi_to_int();
+  }
 }
 
 void ffi_from_long(long obj) {
-  if (sizeof(long) == sizeof(long long))
+  if(sizeof(long) == sizeof(long long)) {
     return ffi_from_ll(obj);
-  else
+  } else {
     return ffi_from_int(obj);
+  }
 }
 
 unsigned long ffi_to_ulong() {
-  if (sizeof(long) == sizeof(long long))
+  if(sizeof(long) == sizeof(long long)) {
     return (long)ffi_to_ull();
-  else
+  } else {
     return (long)ffi_to_uint();
+  }
 }
 
 void ffi_from_ulong(unsigned long obj) {
-  if (sizeof(long) == sizeof(long long))
+  if(sizeof(long) == sizeof(long long)) {
     return ffi_from_ull(obj);
-  else
+  } else {
     return ffi_from_uint(obj);
+  }
 }
 
 /* float */
