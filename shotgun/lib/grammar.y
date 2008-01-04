@@ -168,14 +168,11 @@ static void syd_local_push(rb_parse_state*, int cnt);
 #define local_push(cnt) syd_local_push(vps, cnt)
 static void syd_local_pop(rb_parse_state*);
 #define local_pop() syd_local_pop(vps)
-static int  syd_local_append(rb_parse_state*,ID);
-#define local_append(i) syd_local_append(vps, i)
 static int  syd_local_cnt(rb_parse_state*,ID);
 #define local_cnt(i) syd_local_cnt(vps, i)
 static int  syd_local_id(rb_parse_state*,ID);
 #define local_id(i) syd_local_id(vps, i)
 static ID  *syd_local_tbl();
-static ID   internal_id();
 static ID   convert_op();
 
 static void tokadd(char c, rb_parse_state *parse_state);
@@ -5721,7 +5718,6 @@ cond0(node, parse_state)
         node->nd_end = range_op(node->nd_end, parse_state);
         if (nd_type(node) == NODE_DOT2) nd_set_type(node,NODE_FLIP2);
         else if (nd_type(node) == NODE_DOT3) nd_set_type(node, NODE_FLIP3);
-        node->nd_cnt = local_append(internal_id());
         if (!e_option_supplied()) {
             int b = literal_node(node->nd_beg);
             int e = literal_node(node->nd_end);
@@ -6006,33 +6002,6 @@ syd_local_tbl(rb_parse_state *st)
 }
 
 static int
-syd_local_append(rb_parse_state *st, ID id)
-{
-  return var_table_add(st->variables, id);
-  /*
-    VALUE out;
-    out = rb_funcall(st->self, rb_intern("local_append"), 1, ID2SYM(id));
-    return NUM2INT(out);
-
-    if (lvtbl->tbl == 0) {
-        lvtbl->tbl = ALLOC_N(ID, 4);
-        lvtbl->tbl[0] = 0;
-        lvtbl->tbl[1] = '_';
-        lvtbl->tbl[2] = '~';
-        lvtbl->cnt = 2;
-        if (id == '_') return 0;
-        if (id == '~') return 1;
-    }
-    else {
-        REALLOC_N(lvtbl->tbl, ID, lvtbl->cnt+2);
-    }
-
-    lvtbl->tbl[lvtbl->cnt+1] = id;
-    return lvtbl->cnt++;
-    */
-}
-
-static int
 syd_local_cnt(rb_parse_state *st, ID id)
 {
     int idx;
@@ -6251,11 +6220,6 @@ Init_sym()
     sym_rev_tbl = st_init_numtable_with_size(200);
 }
 */
-static ID
-internal_id()
-{
-    return ID_INTERNAL | (++syd_last_id << ID_SCOPE_SHIFT);
-}
 
 static ID
 rb_intern(const char *name)
