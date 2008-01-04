@@ -227,6 +227,7 @@ class Node
   end
   
   class Expression < Snippit
+    kind :expression
   end
   
   class Script < ClosedScope
