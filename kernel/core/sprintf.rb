@@ -467,6 +467,7 @@ class YSprintf
   
   RADIXES = {"b" => 2, "o" => 8, "d" => 10, "x" => 16}
   ALTERNATIVES = {"o" => "0", "b" => "0b", "B" => "0B", "x" => "0x", "X" => "0X"}
+  PrecisionMax = 1048576 # Totally random value
   
   def initialize(fmt, *args)
     @tainted = fmt.tainted?
@@ -606,7 +607,23 @@ class YSprintf
       val = Float(val)
       ret = val.to_s_formatted(build_format_string(width, precision))
       ret = plus_char + ret if val >= 0 && @old_type
-    when "d", "i", "u"
+    when "u"
+      val = get_number(val)
+      if val < 0
+        unless val.kind_of?(Fixnum)
+          raise ArgumentError, "invalid type (only Fixnum allowed)"
+        end
+        
+        val = (2**32) + val
+        if !flags[:zero] and !precision
+          ret = "..#{pad(val, width, precision)}"
+        else
+          ret = pad(val, width, precision)
+        end
+      else
+        ret = pad(val, width, precision)
+      end
+    when "d", "i"
       val = get_number(val)
       ret = pad(val, width, precision)
     when "c"
@@ -700,6 +717,9 @@ class YSprintf
       ret.gsub!("..", "")
     end
     if precision
+      if precision > PrecisionMax
+        raise ArgumentError, "precision too big"
+      end
       ret = plus_char + ret.send(direction, precision, pad_override || "0") 
       flags[:zero] = flags[:plus] = flags[:space] = nil
     end

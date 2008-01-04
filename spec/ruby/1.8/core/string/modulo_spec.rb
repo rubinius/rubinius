@@ -484,17 +484,26 @@ describe "String#%" do
     ("%.10u" % -5).should == (2**32 - 5).to_s
   end  
 
-    ("% u" % -26).should == "-26"
-    ("%+u" % -26).should == "-26"
+    deviates_on :ruby do
+      ("% u" % -26).should == "-26"
+      ("%+u" % -26).should == "-26"
+    end
   end
   
-  compliant_on :rubinius do
+  deviates_on :ruby do
     # Something's odd for MRI here. For details see
     # http://groups.google.com/group/ruby-core-google/msg/408e2ebc8426f449
 
     it "supports negative bignums" do
       ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
     end
+  end
+  
+  deviates_on :rubinius do
+    it "does not support negative bignums" do
+      lambda { ("%u" % -(2 ** 64 + 5)) }.should raise_error(ArgumentError)
+    end
+    
   end
   
   it "supports hex formats using %x" do

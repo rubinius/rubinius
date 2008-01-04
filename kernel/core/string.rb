@@ -64,7 +64,7 @@ class String
       num = num.to_int
     end
     
-    raise RangeError, "bignum too big to convert into `long'" if num.is_a? Bignum
+    raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
     str = []
@@ -1875,12 +1875,22 @@ class String
     end
     
     result = 0
+    saw_space = false
     i.upto(@bytes - 1) do |index|
       char = @data[index]
       
-      if char.isspace || char == ?_
-        next
-      elsif char >= ?0 && char <= ?9
+      if check
+        if char.isspace
+          saw_space = true
+          next
+        elsif saw_space
+          raise ArgumentError, "invalid value for Integer: #{inspect()}"
+        end
+      else
+        next if char.isspace || char == ?_
+      end
+      
+      if char >= ?0 && char <= ?9
         value = (char - ?0)
       elsif char >= ?A && char <= ?Z
         value = (char - ?A + 10)
