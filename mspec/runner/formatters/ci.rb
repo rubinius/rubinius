@@ -8,4 +8,10 @@ class CIFormatter < BaseFormatter
   end
   
   def print_start() end
+
+  def print_time() end
+  
+  def summary
+    @out.puts ""
+  end
 end
