@@ -6199,8 +6199,6 @@ rb_parser_while_loop(chop, split)
 */
 
 
-static ID syd_last_id;
-
 #if 0
 /* FIXME:
  * Why is this function not called?

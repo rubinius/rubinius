@@ -2065,20 +2065,6 @@ class String
     replace(output)
   end
 
-  #---
-  # NOTE: This overwrites String#dup defined in bootstrap.
-  # TODO: Remove me and make string_dup check taint and freeze.
-  # TODO: Make string_dup compatible with String subclasses
-  #+++
-  def dup
-    out = Rubinius.asm do
-      push :self
-      string_dup
-    end
-    out.taint if self.tainted?
-    return out
-  end
-
   # FIXME - Make Unicode-safe
   def codepoints
     chars = []

@@ -67,6 +67,7 @@ OBJECT string_dup(STATE, OBJECT self) {
   xassert(STRING_P(self));
   obj = string_new_shared(state, self);
   obj->klass = object_class(state, self);
+  obj->IsTainted = self->IsTainted;
   return obj;
 }
 
