@@ -179,11 +179,11 @@ class MemoryPointer
   end
 
   def read_array_of_long(length)
-    read_array_of_type(:int, :read_long, length)
+    read_array_of_type(:long, :read_long, length)
   end
 
   def write_array_of_long(ary)
-    write_array_of_type(:int, :write_long, ary)
+    write_array_of_type(:long, :write_long, ary)
   end
 
   def read_array_of_type(type, reader, length)
