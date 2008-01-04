@@ -221,12 +221,15 @@ describe Compiler2 do
     
     gen x do |g|
       desc = description do |d|
+        d.cast_for_multi_block_arg
         d.unshift_tuple
         d.set_local_depth 0,0
         d.pop
         d.pop
+        d.push_modifiers
         d.new_label.set!
         d.push :nil
+        d.pop_modifiers
         d.soft_return
       end
 
@@ -245,6 +248,7 @@ describe Compiler2 do
 
     gen(x) do |g|
       desc = description do |d|
+        d.cast_for_multi_block_arg
         d.unshift_tuple
         d.set_local_depth 0,0
         d.pop
@@ -253,8 +257,10 @@ describe Compiler2 do
 
         d.pop
         d.pop
+        d.push_modifiers
         d.new_label.set!
         d.push :nil
+        d.pop_modifiers
         d.soft_return
       end
 
@@ -273,14 +279,17 @@ describe Compiler2 do
     
     gen x do |g|
       desc = description do |d|
+        d.cast_for_multi_block_arg
         d.unshift_tuple
         d.set_local_depth 0,0
         d.pop
         d.cast_array
         d.set_local_depth 0,1
         d.pop
+        d.push_modifiers
         d.new_label.set!
         d.push :nil
+        d.pop_modifiers
         d.soft_return
       end
 

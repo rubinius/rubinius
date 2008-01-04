@@ -17,7 +17,7 @@ class Compiler2
     sexp = string.to_sexp(filename, line, true)
 
     comp = new(Compiler2::Generator)
-    node = comp.convert_sexp([:snippit, sexp])
+    node = comp.convert_sexp([:expression, sexp])
     return node.to_description(:__eval_script__).to_cmethod
   end
 

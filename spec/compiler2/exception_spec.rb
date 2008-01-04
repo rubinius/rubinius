@@ -45,6 +45,7 @@ describe Compiler2 do
       last = g.new_label
       
       exc_start.set!
+      exc_start.set!
       g.push 12
       g.goto fin
       
@@ -58,6 +59,7 @@ describe Compiler2 do
       g.goto rr
       body.set!
       g.push 13
+      g.clear_exception
       g.goto last
       
       rr.set!
@@ -89,6 +91,7 @@ describe Compiler2 do
       last = g.new_label
       
       exc_start.set!
+      exc_start.set!
       g.push 12
       g.goto fin
       
@@ -102,6 +105,7 @@ describe Compiler2 do
       g.goto rr
       body.set!
       g.push 13
+      g.clear_exception
       g.goto last
       
       rr.set!
@@ -134,6 +138,7 @@ describe Compiler2 do
       last = g.new_label
       
       exc_start.set!
+      exc_start.set!
       g.push 12
       g.goto fin
       
@@ -153,6 +158,7 @@ describe Compiler2 do
       g.goto rr
       body.set!
       g.push 13
+      g.clear_exception
       g.goto last
       
       rr.set!
@@ -186,6 +192,7 @@ describe Compiler2 do
       last = g.new_label
       
       exc_start.set!
+      exc_start.set!
       g.push 12
       g.goto fin
       
@@ -214,6 +221,7 @@ describe Compiler2 do
       g.goto rr
       body2.set!
       g.push 14
+      g.clear_exception
       g.goto last
       
       rr.set!
@@ -246,6 +254,7 @@ describe Compiler2 do
       last = g.new_label
       
       exc_start.set!
+      exc_start.set!
       g.push 12
       g.goto fin
       
@@ -259,6 +268,7 @@ describe Compiler2 do
       g.goto rr
       body.set!
       g.push 13
+      g.clear_exception
       g.goto last
       
       rr.set!
@@ -292,6 +302,7 @@ describe Compiler2 do
       last = g.new_label
       
       exc_start.set!
+      exc_start.set!
       g.push 12
       g.goto fin
       
@@ -307,6 +318,7 @@ describe Compiler2 do
       g.goto rr
       body.set!
       g.push 13
+      g.clear_exception
       g.goto last
       
       rr.set!
@@ -339,6 +351,7 @@ describe Compiler2 do
       last = g.new_label
       
       exc_start.set!
+      exc_start.set!
       g.push 12
       g.goto fin
       
@@ -361,6 +374,7 @@ describe Compiler2 do
       g.goto rr
       body.set!
       g.push 13
+      g.clear_exception
       g.goto last
       
       rr.set!
@@ -393,6 +407,7 @@ describe Compiler2 do
       last = g.new_label
       
       exc_start.set!
+      exc_start.set!
       g.push 12
       g.goto fin
       
@@ -408,6 +423,7 @@ describe Compiler2 do
       g.clear_exception
       g.push :nil
       g.sret
+      g.clear_exception
       g.goto last
       
       rr.set!

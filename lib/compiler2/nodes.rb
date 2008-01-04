@@ -226,6 +226,9 @@ class Node
     attr_accessor :body
   end
   
+  class Expression < Snippit
+  end
+  
   class Script < ClosedScope
     kind :script
     
@@ -1614,7 +1617,7 @@ class Node
           set(:iter_args) do
             sexp[1] = convert([:iter_args, sexp[1]])
           end
-                
+
           sexp[2] = convert(sexp[2])
         end
       end

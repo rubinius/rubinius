@@ -166,8 +166,10 @@ describe Compiler2 do
         d.cast_for_single_block_arg
         d.set_local_depth 0, 0
         d.pop
+        d.push_modifiers
         d.new_label.set!
         d.push :nil
+        d.pop_modifiers
         d.soft_return
       end
       g.push_literal iter
@@ -191,6 +193,7 @@ describe Compiler2 do
 
     gen(sexp) do |g|
       iter = description do |d|
+        d.cast_for_multi_block_arg
         d.unshift_tuple
         d.set_local_depth 0, 0
         d.pop
@@ -198,8 +201,10 @@ describe Compiler2 do
         d.set_local_depth 0, 1
         d.pop
         d.pop
+        d.push_modifiers
         d.new_label.set!
         d.push 5
+        d.pop_modifiers
         d.soft_return
       end
       g.push_literal iter
@@ -221,8 +226,10 @@ describe Compiler2 do
         d.cast_for_single_block_arg
         d.set_local 0
         d.pop
+        d.push_modifiers
         d.new_label.set!
         d.push :nil
+        d.pop_modifiers
         d.soft_return
       end
       g.push_literal iter
@@ -246,8 +253,10 @@ describe Compiler2 do
         d.cast_for_single_block_arg
         d.set_ivar :@xyzzy
         d.pop
+        d.push_modifiers
         d.new_label.set!
         d.push :nil
+        d.pop_modifiers
         d.soft_return
       end
       g.push_literal iter
@@ -270,6 +279,7 @@ describe Compiler2 do
 
     gen(sexp) do |g|
       iter = description do |d|
+        d.cast_for_multi_block_arg
         d.unshift_tuple
         d.set_local 0
         d.pop
@@ -382,11 +392,13 @@ describe Compiler2 do
     gen [:iter, [:fcall, :go], nil, [:block, [:fixnum, 12], [:break]]] do |g|
       iter = description do |d|
         d.pop
+        d.push_modifiers
         d.new_label.set! # redo
         d.push 12
         d.pop
         d.push :nil
         d.caller_return
+        d.pop_modifiers
         d.soft_return
       end
       
@@ -438,11 +450,13 @@ describe Compiler2 do
     gen [:iter, [:fcall, :go], nil, [:block, [:fixnum, 12], [:redo]]] do |g|
       iter = description do |d|
         d.pop
+        d.push_modifiers
         d.redo = d.new_label
         d.redo.set!
         d.push 12
         d.pop
         d.goto d.redo
+        d.pop_modifiers
         d.soft_return
       end
       
@@ -632,7 +646,7 @@ describe Compiler2 do
             
       g.push 2
       g.push 1
-      g.send :==, 1, false
+      g.meta_send_op_equal
       g.gif cond4      
       g.push_literal "bar"
       g.string_dup
@@ -682,7 +696,7 @@ describe Compiler2 do
       body = g.new_label 
       g.push 2
       g.push 1
-      g.send :==, 1, false
+      g.meta_send_op_equal
       g.git body
       g.push 13
       g.git body
@@ -857,6 +871,7 @@ describe Compiler2 do
       last = g.new_label
       
       exc_start.set!
+      exc_start.set!
       g.push 12
       g.goto fin
       
@@ -872,6 +887,8 @@ describe Compiler2 do
       g.clear_exception
       g.push 13
       g.sret
+      g.clear_exception
+      
       g.goto last
       
       rr.set!
@@ -891,9 +908,11 @@ describe Compiler2 do
     gen [:iter, [:fcall, :go], nil, [:block, [:return, [:fixnum, 12]]]] do |g|
       iter = description do |d|
         d.pop
+        d.push_modifiers
         d.new_label.set! # redo
         d.push 12
         d.ret
+        d.pop_modifiers
         d.soft_return
       end
       

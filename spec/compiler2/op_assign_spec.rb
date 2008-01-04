@@ -46,7 +46,7 @@ describe Compiler2 do
       g.push :self
       g.send :hsh, 0, true
       g.dup
-      g.push_literal :blah
+      g.push_unique_literal :blah
       g.swap
       g.send :[], 1
       g.dup
@@ -55,7 +55,7 @@ describe Compiler2 do
       g.pop
       g.push 8
       g.swap
-      g.push_literal :blah
+      g.push_unique_literal :blah
       g.swap
       g.send :[]=, 2
       g.goto fin
@@ -81,7 +81,7 @@ describe Compiler2 do
       g.push :self
       g.send :hsh, 0, true
       g.dup
-      g.push_literal :blah
+      g.push_unique_literal :blah
       g.swap
       g.send :[], 1
       g.dup
@@ -90,7 +90,7 @@ describe Compiler2 do
       g.pop
       g.push 8
       g.swap
-      g.push_literal :blah
+      g.push_unique_literal :blah
       g.swap
       g.send :[]=, 2
       g.goto fin
@@ -116,14 +116,14 @@ describe Compiler2 do
       g.push :self
       g.send :hsh, 0, true
       g.dup
-      g.push_literal :blah
+      g.push_unique_literal :blah
       g.swap
       g.send :[], 1
       g.push 8
       g.swap
       g.send :"^", 1
       g.swap
-      g.push_literal :blah
+      g.push_unique_literal :blah
       g.swap
       g.send :[]=, 2
     end

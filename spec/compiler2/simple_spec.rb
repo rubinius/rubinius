@@ -71,7 +71,7 @@ describe Compiler2 do
   
   it "compiles symbols" do
     gen [:lit, :blah] do |g|
-      g.push_literal :blah
+      g.push_unique_literal :blah
     end
   end
   
@@ -84,20 +84,20 @@ describe Compiler2 do
   it "compiles bignums" do
     num = 10 ** 10
     gen [:lit, num] do |g|
-      g.push_literal num
+      g.push_unique_literal num
     end
   end
   
   it "compiles floats" do
     num = 1.2
     gen [:lit, num] do |g|
-      g.push_literal num
+      g.push_unique_literal num
     end
   end
   
   it "compiles strings" do
     gen [:lit, "blah"] do |g|
-      g.push_literal "blah"
+      g.push_unique_literal "blah"
     end
   end
   
@@ -111,7 +111,7 @@ describe Compiler2 do
     gen [:negate, [:str, "str"]] do |g|
       g.push_literal "str"
       g.string_dup
-      g.send :"@-", 0
+      g.send :"-@", 0
     end
   end
   
@@ -337,7 +337,7 @@ describe Compiler2 do
       g.dup
       g.send :size, 0
       g.push 1
-      g.send :>, 1
+      g.send :<, 1
       
       lbl = g.new_label
       g.git lbl

@@ -34,7 +34,7 @@ describe Compiler2 do
         d.check_argcount 2, 2
         d.from_fp 1
         d.from_fp 0
-        d.send :+, 1, false
+        d.meta_send_op_plus
         d.sret
       end
       
@@ -74,7 +74,7 @@ describe Compiler2 do
         
         d.push_local 0
         d.from_fp 0
-        d.send :+, 1, false
+        d.meta_send_op_plus
         d.sret
       end
       
@@ -109,12 +109,13 @@ describe Compiler2 do
           i.cast_for_single_block_arg
           i.set_local_depth 0, 0
           i.pop
-
+          i.push_modifiers
           i.new_label.set! # redo
           
           i.push_local_depth 0, 0
           i.push_local 0
-          i.send :+, 1, false
+          i.meta_send_op_plus
+          i.pop_modifiers
           i.soft_return
         end
 
@@ -219,10 +220,12 @@ describe Compiler2 do
         end
 
         l.pop
+        l.push_modifiers
         l.new_label.set!
         l.push_literal meth
         l.push :self
         l.add_method :a
+        l.pop_modifiers
         l.soft_return
       end
 
@@ -332,7 +335,7 @@ describe Compiler2 do
   
   it "compiles a class with space allocated for locals" do
     x = [:class, [:colon2, :A], nil,
-          [:block, [:lasgn, :a, 0, [:fixnum, 1]]]]
+          [:scope, [:block, [:lasgn, :a, 0, [:fixnum, 1]]], []]]
           
     gen x do |g|
       desc = description do |d|

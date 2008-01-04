@@ -84,8 +84,10 @@ describe Compiler2 do
     gen x do |g|
       desc = description do |d|
         d.pop
+        d.push_modifiers
         d.new_label.set! # redo
         d.push 12
+        d.pop_modifiers
         d.soft_return
       end
       
@@ -107,8 +109,10 @@ describe Compiler2 do
     gen x do |g|
        desc = description do |d|
          d.pop
+         d.push_modifiers
          d.new_label.set! # redo
          d.push 12
+         d.pop_modifiers
          d.soft_return
        end
        g.push :self
@@ -132,7 +136,7 @@ describe Compiler2 do
     
     gen x do |g|
       g.push 8
-      g.push_literal :blah
+      g.push_unique_literal :blah
       g.push :self
       g.send :h, 0, true
       g.send :[]=, 2, false
@@ -301,6 +305,7 @@ describe Compiler2 do
       g.get_args
       
       g.set_args
+      g.push :nil
       g.push_block
       g.send_with_register :call, false
     end
@@ -316,7 +321,7 @@ describe Compiler2 do
         d.check_argcount 0, 0
         d.push 1
         d.push :nil
-        d.super :a, 1
+        d.send_super :a, 1
         d.sret
       end
       
@@ -341,7 +346,7 @@ describe Compiler2 do
         d.push :nil
         d.swap
         d.set_args
-        d.super_with_register :a
+        d.send_super :a
         d.sret
       end
       
@@ -362,7 +367,7 @@ describe Compiler2 do
         d.from_fp 1
         d.from_fp 0
         d.push :nil        
-        d.super :a, 2
+        d.send_super :a, 2
         d.sret
       end
       
@@ -393,7 +398,7 @@ describe Compiler2 do
         d.push :nil
         d.swap
         d.set_args
-        d.super_with_register :a
+        d.send_super :a
         d.sret
       end
       

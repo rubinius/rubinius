@@ -53,8 +53,10 @@ describe Compiler2 do
     gen x do |g|
       iter = description do |d|
         d.pop
+        d.push_modifiers
         d.new_label.set! # redo
         d.push_local 0
+        d.pop_modifiers
         d.soft_return
       end
 
@@ -76,11 +78,13 @@ describe Compiler2 do
     gen ax do |g|
       iter = description do |d|
         d.pop
+        d.push_modifiers
         d.new_label.set! # redo
         d.push 12
         d.set_local_depth 0, 0
         d.pop
         d.push_local_depth 0, 0
+        d.pop_modifiers
         d.soft_return
       end
 
@@ -102,14 +106,17 @@ describe Compiler2 do
     gen ax do |g|
       iter = description do |d|
         d.pop
+        d.push_modifiers
         d.new_label.set! # redo
         d.push 12
         d.set_local_depth 0, 0
         d.pop
         i2 = description do |j|
           j.pop
+          j.push_modifiers
           j.new_label.set! # redo
           j.push_local_depth 1, 0
+          j.pop_modifiers
           j.soft_return
         end
         
@@ -117,7 +124,7 @@ describe Compiler2 do
         d.create_block2
         d.push :self
         d.send_with_block :go, 0, true
-        
+        d.pop_modifiers
         d.soft_return
       end
 
@@ -224,16 +231,16 @@ describe Compiler2 do
   
   it "compiles 'Object::Blah = 1'" do
     gen [:cdecl, nil, [:lit, 1], [:colon2, [:const, :Object], :Blah]] do |g|
-      g.push 1
       g.push_const :Object
+      g.push 1
       g.set_const :Blah, true
     end
   end
   
   it "compiles '::Blah = 1'" do
     gen [:cdecl, nil, [:lit, 1], [:colon3, :Blah]] do |g|
-      g.push 1
       g.push_cpath_top
+      g.push 1
       g.set_const :Blah, true
     end
   end
