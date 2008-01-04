@@ -253,6 +253,7 @@ shotgun/lib/.*.d
 shotgun/lib/*.gen
 shotgun/lib/auto.c
 shotgun/lib/auto.h
+shotgun/lib/grammar.c
 shotgun/lib/instruction_names.c
 shotgun/lib/instruction_names.h
 shotgun/lib/node_types.c
