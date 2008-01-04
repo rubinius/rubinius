@@ -91,16 +91,16 @@ class Regexp
 
   def self.union(*patterns)
     if patterns.nil? || patterns.length == 0
-      return '/(?!)/'
+      return /(?!)/
     else
       flag  = false
-      string = '/'
+      string = ""
       patterns.each do |pattern|
         string += '|' if flag
         string += pattern.to_s
         flag = true
       end
-      return string += '/'
+      return Regexp.new(string)
     end
   end
 
