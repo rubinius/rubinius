@@ -24,15 +24,4 @@ describe CIFormatter do
     @formatter.print_start
     @out.should == ""
   end
-  
-  it "overrides print_time to not output" do
-    @formatter.stub!(:stop_timer).and_return("33.000000")
-    @formatter.print_time
-    @out.should == ""
-  end
-
-  it "overrides summary to not output" do
-    @formatter.summary
-    @out.should == "\n"
-  end
 end

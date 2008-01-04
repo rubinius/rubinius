@@ -69,8 +69,6 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       format = 'CIFormatter'
     when 'i', 'immediate'
       format = 'ImmediateFormatter'
-    when 'q', 'quiet'
-      format = 'QuietFormatter'
     else
       puts "Unknown format: #{f}"
       puts opts
