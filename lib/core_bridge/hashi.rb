@@ -6,6 +6,14 @@ class Module
   def ivar_as_index(hash)
     # do nothing
   end
+  
+  public :include
+end
+
+module Rubinius
+  class AtExit
+    def self.unshift(x) end
+  end
 end
 
 # -- special logic for Array --
