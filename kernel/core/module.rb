@@ -241,8 +241,8 @@ class Module
     modules.reverse_each do |mod|
       raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.class == Module
       next if ancestors.include?(mod)
-      mod.append_features(self)
-      mod.included(self)
+      mod.send(:append_features, self)
+      mod.send(:included, self)
     end
   end
   
