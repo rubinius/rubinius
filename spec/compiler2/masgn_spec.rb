@@ -215,9 +215,9 @@ describe Compiler2 do
   end
   
   it "compiles '|a,|'" do
-    x = [:iter, [:call, [:vcall, :x], :each], 
-          [:masgn, [:array, [:lasgn, :a, 0]], nil, nil]
-        ]
+    x = [:iter,
+         [:call, [:vcall, :x], :each], 
+         [:masgn, [:array, [:lasgn, :a, 0]], nil, nil]]
     
     gen x do |g|
       desc = description do |d|
@@ -242,9 +242,11 @@ describe Compiler2 do
   end
   
   it "compiles '|a,b|'" do
-    x = [:iter, [:call, [:vcall, :x], :each], 
-          [:masgn, [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil, nil]
-        ]
+    x = [:iter,
+         [:call, [:vcall, :x], :each], 
+         [:masgn, [:array,
+                   [:lasgn, :a, 0],
+                   [:lasgn, :b, 0]], nil, nil]]
 
     gen(x) do |g|
       desc = description do |d|
@@ -272,28 +274,21 @@ describe Compiler2 do
     end
   end
   
-# 506 % pts 'ary.each { |*args| p args  }'
-# s(:iter,
-#  s(:call, s(:vcall, :ary), :each),
-#  s(:masgn, s(:dasgn_curr, :args)),
-#  s(:fcall, :p, s(:array, s(:dvar, :args))))
-
   it "compiles '|*args|'" do
     x = [:iter,
          [:call, [:vcall, :x], :each], 
-         [:masgn, [:dasgn_curr, :args]],
-         nil]
+         [:masgn, [:lasgn, :args, nil], nil]]
     
     gen x do |g|
       desc = description do |d|
-        d.unshift_tuple
-        d.set_local_depth 0,0
-        d.pop
+        d.cast_for_multi_block_arg
         d.cast_array
-        d.set_local_depth 0,1
+        d.set_local_depth 0, 0
         d.pop
+        d.push_modifiers
         d.new_label.set!
         d.push :nil
+        d.pop_modifiers
         d.soft_return
       end
 

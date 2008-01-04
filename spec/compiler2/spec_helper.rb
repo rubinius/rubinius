@@ -5,8 +5,6 @@ require File.dirname(__FILE__) + '/../../lib/compiler2/generator'
 require File.dirname(__FILE__) + '/../../lib/compiler2/bytecode'
 require File.dirname(__FILE__) + '/../../lib/compiler2/text'
 
-require 'pp'
-
 class TestGenerator
   def initialize
     @stream = []
@@ -20,8 +18,7 @@ class TestGenerator
   end
   
   def inspect
-    inspected_stream = @stream.pretty_inspect.gsub(/\n/,"\n    ")
-    "#<TestGenerator> with @stream:\n  #{inspected_stream}"
+    [:test_generator, @stream].inspect
   end
   
   def add(*args)

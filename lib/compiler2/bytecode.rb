@@ -30,6 +30,11 @@ class Compiler2
     def to_cmethod
       @generator.to_cmethod(self)
     end
+
+    def inspect
+      [:method_description,
+       @name, @locals, @required, @optional, @generator].inspect
+    end
   end
 end
 
