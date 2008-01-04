@@ -1,1 +1,0 @@
-String#center with length, padding returns subclass instances when called on subclasses

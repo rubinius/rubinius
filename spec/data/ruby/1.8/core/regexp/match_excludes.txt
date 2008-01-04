@@ -1,0 +1,2 @@
+Regexp#=~ returns the first position of the match
+Regexp#match returns the first position of the match

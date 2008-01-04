@@ -1,1 +1,0 @@
-String#* returns subclass instances

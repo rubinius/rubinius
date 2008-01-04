@@ -1,1 +1,0 @@
-String#upcase returns a subclass instance for subclasses

@@ -1,1 +1,0 @@
-String#gsub with pattern, replacement returns subclass instances when called on a subclass

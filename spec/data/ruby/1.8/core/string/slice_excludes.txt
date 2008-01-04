@@ -1,10 +1,2 @@
-String#slice with index, length returns subclass instances
-String#slice with Range returns subclass instances
-String#slice with Regexp returns subclass instances
-String#slice with Regexp, index returns subclass instances
-String#slice with String returns a subclass instance when given a subclass instance
-String#slice! with index, length returns subclass instances
-String#slice! Range returns subclass instances
-String#slice! with Regexp returns subclass instances
-String#slice! with Regexp, index returns subclass instances
-String#slice! with String returns a subclass instance when given a subclass instance
+String#slice with Regexp sets $~ to MatchData when there is a match and nil when there's none
+String#slice with Regexp, index sets $~ to MatchData when there is a match and nil when there's none

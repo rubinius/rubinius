@@ -1,1 +1,0 @@
-String#chomp with separator returns subclass instances when called on a subclass

@@ -1,1 +1,0 @@
-String#unpack with 'DdEeFfGg' directives returns an array by decoding self according to the format string

@@ -1,1 +1,0 @@
-String#rjust with length, padding returns subclass instances when called on subclasses

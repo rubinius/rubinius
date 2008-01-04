@@ -1,5 +1,2 @@
-String#[] with index, length returns subclass instances
-String#[] with Range returns subclass instances
-String#[] with Regexp returns subclass instances
-String#[] with Regexp, index returns subclass instances
-String#[] with String returns a subclass instance when given a subclass instance
+String#[] with Regexp sets $~ to MatchData when there is a match and nil when there's none
+String#[] with Regexp, index sets $~ to MatchData when there is a match and nil when there's none

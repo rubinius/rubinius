@@ -1,1 +1,0 @@
-String#dump returns a subclass instance for subclasses

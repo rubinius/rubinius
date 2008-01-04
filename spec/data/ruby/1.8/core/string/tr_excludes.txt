@@ -1,1 +1,0 @@
-String#tr returns subclass instances when called on a subclass
