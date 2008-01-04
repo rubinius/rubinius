@@ -33,6 +33,6 @@ describe CIFormatter do
 
   it "overrides summary to not output" do
     @formatter.summary
-    @out.should == "\n"
+    @out.should == ""
   end
 end

@@ -139,8 +139,8 @@ max_name_width = files.inject(0) { |max, f| f.size > max ? f.size : max }
 
 # remove all compiled spec files to catch compiler bugs
 if clean
-  files.each do |name|
-    cname = "#{name}c"
+  files.each do |fname|
+    cname = "#{fname}c"
     File.delete(cname) if File.exist?(cname)
   end
 end
@@ -203,20 +203,18 @@ spec_runner.formatter.print_start
   ensure
     spec_runner.clear_filters
   end
-  %s
 end
 # reset formatter.out to stdout
-spec_runner.formatter.out = $stdout
 spec_runner.formatter.summary
 EOC
 
 case action
 when :create
-  code = code % ['create_exclude_file(file)', 'except', '', 'spec_runner.formatter.out.close']
+  code = code % ['create_exclude_file(file)', 'except', '']
 when :run
-  code = code % ['STDOUT', 'except', 'spec_runner.except(*excludes)', '']
+  code = code % ['STDOUT', 'except', 'spec_runner.except(*excludes)']
 when :invert
-  code = code % ['STDOUT', 'only', 'spec_runner.only(*excludes)', '']
+  code = code % ['STDOUT', 'only', 'spec_runner.only(*excludes)']
 else
   puts "Unknown action: #{action}"
   puts opts

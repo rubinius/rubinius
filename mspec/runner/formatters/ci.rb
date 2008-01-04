@@ -12,6 +12,5 @@ class CIFormatter < BaseFormatter
   def print_time() end
   
   def summary
-    @out.puts ""
   end
 end
