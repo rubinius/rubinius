@@ -125,6 +125,15 @@ class Node
       set(:scope, self) do
         prelude(nil, g)
         @body.bytecode(g)
+      end
+    end
+  end
+  
+  class Expression
+    def bytecode(g)
+      set(:scope, self) do
+        prelude(nil, g)
+        @body.bytecode(g)
         g.sret
       end
     end
