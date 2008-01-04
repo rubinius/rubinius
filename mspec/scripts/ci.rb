@@ -57,7 +57,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     end
   end
   opts.on("-f", "--format FORMAT", String, 
-          "Use FORMAT for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") do |f|
+          "Use FORMAT for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate|m:summary") do |f|
     case f
     when 's', 'specdox', 'specdoc'
       format = 'SpecdocFormatter'
@@ -69,8 +69,8 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       format = 'CIFormatter'
     when 'i', 'immediate'
       format = 'ImmediateFormatter'
-    when 'q', 'quiet'
-      format = 'QuietFormatter'
+    when 'm', 'summary'
+      format = 'SummaryFormatter'
     else
       puts "Unknown format: #{f}"
       puts opts
