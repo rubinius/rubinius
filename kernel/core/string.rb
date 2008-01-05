@@ -2310,7 +2310,7 @@ class String
     else
       shift = (len - 1) * 2
       result = (((2**(8 - len.succ) - 1) & self[0]) * 2**((len - 1) * 8)) >> shift
-      for i in 1...(len - 1)
+      (1...(len - 1)).each do |i|
         shift -= 2
         result |= (((2**6 - 1) & self[i]) * 2**((len - i.succ) * 8)) >> shift
       end
