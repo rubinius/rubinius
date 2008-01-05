@@ -397,12 +397,12 @@ task :compiledir => :stable_compiler do
 end
 
 desc "Recompile all ruby system files"
-task :rebuild => %w[clean:rbc clean:shotgun build:all]
+task :rebuild => %w[clean:rbc clean:extensions clean:shotgun build:all]
 
-task :clean => %w[clean:rbc clean:shotgun]
+task :clean => %w[clean:rbc clean:extensions clean:shotgun]
 
 desc "Remove all ruby system files"
-task :distclean => %w[clean:rbc clean:shotgun clean:external]
+task :distclean => %w[clean:rbc clean:extensions clean:shotgun clean:external]
 
 desc "Remove all stray compiled Ruby files"
 task :pristine do
@@ -432,6 +432,13 @@ namespace :clean do
     end
     
     rm_f "runtime/platform.conf"
+  end
+  
+  desc "Cleans all compiled extension files (lib/ext)"
+  task :extensions do
+    Dir["lib/ext/**/*#{$dlext}"].each do |f|
+      rm_f f, :verbose => $verbose
+    end
   end
 
   desc "Cleans up VM building site"
