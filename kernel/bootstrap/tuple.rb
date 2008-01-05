@@ -9,12 +9,12 @@ class Tuple
   
   def [](idx)
     Ruby.primitive :at
-    raise InvalidIndex, "Unable to access index '#{idx}' of #{self}"
+    raise InvalidIndexError, "Unable to access index '#{idx}' of #{self}"
   end
 
   def []=(idx, val)
     Ruby.primitive :put
-    raise InvalidIndex, "Unable to access index '#{idx}' of #{self}"
+    raise InvalidIndexError, "Unable to access index '#{idx}' of #{self}"
   end
   
 end

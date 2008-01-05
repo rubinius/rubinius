@@ -1,16 +1,16 @@
-class InvalidIndex < Exception
+class InvalidIndexError < Exception
 end
 
 class Object
   
   def at(idx)
     Ruby.primitive :at
-    raise InvalidIndex, "Object#at failed."
+    raise InvalidIndexError, "Object#at failed."
   end
   
   def put(idx, val)
     Ruby.primitive :put
-    raise InvalidIndex, "Object#put failed."
+    raise InvalidIndexError, "Object#put failed."
   end
   
   def class
@@ -55,7 +55,7 @@ class Object
     meth = name.to_sym
     count = args.size.to_i
     
-    ret = Rubinius.asm(args, meth, count) do |a,m,c|
+    Rubinius.asm(args, meth, count) do |a,m,c|
       run a
       push_array
       push :self
@@ -65,10 +65,7 @@ class Object
       set_args
       set_call_flags 1
       send_off_stack
-    end
-    Regexp.last_match = Regexp.last_match
-    
-    return ret
+    end    
   end
   
   def __find_method__(meth)

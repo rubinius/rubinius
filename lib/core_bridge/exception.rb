@@ -1,2 +1,2 @@
-class InvalidIndex < StandardError
+class InvalidIndexError < StandardError
 end

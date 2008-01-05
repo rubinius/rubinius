@@ -118,8 +118,8 @@ class Tuple
   private
   
   def guard(index)
-    raise InvalidIndex, "Index must be positive: attempted #{index} for #{self}" if index < 0
-    raise InvalidIndex, "Index must be less than size: attempted #{index} for #{self}" if index >= size
+    raise InvalidIndexError, "Index must be positive: attempted #{index} for #{self}" if index < 0
+    raise InvalidIndexError, "Index must be less than size: attempted #{index} for #{self}" if index >= size
   end
   
   def reset
