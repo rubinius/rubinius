@@ -48,30 +48,7 @@ class Class
     @subclasses.each {|cls| all << cls; cls.subclasses_descend(all)}
     all
   end
-  
-  def class_variable_set(name, val)
-    raise NameError, "#{name} is not an allowed class variable name" unless name.to_s[0..1] == '@@'
 
-    @variables ||= Hash.new
-    @variables[name.to_sym] = val
-  end
-  
-  def class_variable_get(name)
-    raise NameError, "#{name} is not an allowed class variable name" unless name.to_s[0..1] == '@@'
-
-    @variables ||= Hash.new
-    @variables[name.to_sym]
-  end
-
-  def class_variables(symbols = false)
-    @variables ||= Hash.new
-    if symbols
-      @variables.keys
-    else
-      @variables.keys.map {|k| k.to_s}
-    end
-  end
-  
   def superclass
     cls = direct_superclass
     return nil unless cls

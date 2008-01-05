@@ -54,12 +54,49 @@ class Module
     method_added(name) if self.respond_to? :method_added
   end
   
+  def class_variable_set(name, val)
+    raise NameError, "#{name} is not an allowed class variable name" unless
+      name.to_s[0..1] == '@@'
+
+    if direct_superclass and
+       direct_superclass.class_variables.include? name.to_s then
+      direct_superclass.class_variable_set name, val
+    else
+      @variables ||= Hash.new
+      @variables[name.to_sym] = val
+    end
+  end
+
+  def class_variable_get(name)
+    raise NameError, "#{name} is not an allowed class variable name" unless
+      name.to_s[0..1] == '@@'
+
+    @variables ||= Hash.new
+
+    if @variables.key? name.to_sym then
+      @variables[name.to_sym]
+    else
+      direct_superclass.class_variable_get name
+    end
+  end
+
+  def class_variables(symbols = false)
+    names = ancestors.map do |mod|
+      if vars = mod.instance_variable_get(:@variables) then
+        vars.keys
+      end
+    end.flatten.compact.uniq
+    
+    names = names.map { |name| name.to_s } unless symbols
+
+    names
+  end
+
   def name
     return @name.to_s if @name
     return calculate_name()    
   end
-  
-  
+
   def to_s
     if @name
       @name.to_s
