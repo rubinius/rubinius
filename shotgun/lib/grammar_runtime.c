@@ -282,7 +282,7 @@ again_no_block:
           if (node->nd_body) {
             add_to_parse_tree(t2, node->nd_body, newlines, locals, line_numbers); /* body */
           } else {
-            array_push(current, Qnil);
+            array_push(t2, Qnil);
           }
           
           node = node->nd_next; 
