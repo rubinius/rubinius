@@ -133,16 +133,7 @@ class Node
       end
     end
   end
-  
-  class Expression
-    def bytecode(g)
-      set(:scope, self) do
-        prelude(nil, g)
-        @body.bytecode(g)
-      end
-    end
-  end
-  
+    
   class Expression
     def bytecode(g)
       set(:scope, self) do
@@ -150,6 +141,14 @@ class Node
         @body.bytecode(g)
         g.sret
       end
+    end
+  end
+  
+  class EvalExpression
+    def bytecode(g)
+      ret = super(g)
+      enlarge_context
+      return ret
     end
   end
   
@@ -1902,7 +1901,7 @@ class Node
         done.set!
       end
       
-      if @splat
+      if @splat.kind_of? Local
         g.make_rest_fp @required.size + @optional.size
         lv = LocalAssignment.new(@compiler)
         lv.from_variable @splat

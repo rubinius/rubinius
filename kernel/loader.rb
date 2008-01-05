@@ -85,6 +85,8 @@ END
 $VERBOSE = false
 code = 0
 
+TOPLEVEL_BINDING = binding()
+
 begin
 
   until ARGV.empty?
@@ -176,8 +178,18 @@ rescue Object => e
     else
       msg = "strange object detected as exception: #{e.inspect}"
     end
-    puts "An exception has occurred:"
-    puts "    #{msg} (#{e.class})"
+    if e.kind_of? SyntaxError
+      puts "A syntax error has occured:"
+      puts "    #{msg}"
+      puts "    near line #{e.file}:#{e.line}, column #{e.column}"
+      puts "\nCode:\n#{e.code}"
+      if e.column
+        puts((" " * (e.column - 1)) + "^")
+      end
+    else
+      puts "An exception has occurred:"
+      puts "    #{msg} (#{e.class})"
+    end
     puts "\nBacktrace:"
     puts e.backtrace.show
     code = 1

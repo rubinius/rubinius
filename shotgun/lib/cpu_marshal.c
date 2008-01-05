@@ -557,6 +557,8 @@ OBJECT cpu_unmarshal(STATE, uint8_t *str, int len, int version) {
   OBJECT ret;
   int in_version;
   int offset = 4;
+  unsigned char cur_digest[20];
+  
   if(!memcmp(str, "RBIS", 4)) {
     version = -1;
   } else if(!memcmp(str, "RBIX", 4)) {
@@ -566,19 +568,14 @@ OBJECT cpu_unmarshal(STATE, uint8_t *str, int len, int version) {
       return Qnil;
     }
     
-    offset += 4;
-    
-    if(in_version == 6) {
-      unsigned char cur_digest[20];
+    offset += 4;      
+    offset += 20;
       
-      offset += 20;
-      
-      sha1_hash_string((unsigned char*)(str + offset), len - offset, cur_digest);
+    sha1_hash_string((unsigned char*)(str + offset), len - offset, cur_digest);
 
-      /* Check if the calculate one is the one in the stream. */
-      if(memcmp(str + offset - 20, cur_digest, 20)) {
-        return Qnil;
-      }
+    /* Check if the calculate one is the one in the stream. */
+    if(memcmp(str + offset - 20, cur_digest, 20)) {
+      return Qnil;
     }
   } else {
     printf("Invalid compiled file.\n");

@@ -92,10 +92,10 @@ class Node
       
       @use_eval = false
       @alloca = 0
-      @slot = 0
       @top_scope = create_scope()
       @block_scope = []
       @all_scopes = [@top_scope]
+      @slot = 0
       @ivar_as_slot = {}
       @visibility = :public
     end
@@ -109,15 +109,15 @@ class Node
     attr_accessor :use_eval
     
     def locals
-      @top_scope.size
+      @top_scope
     end
     
     def name
       nil
     end
     
-    def consume(sexp)
-      set(:scope => self, :iter => false) do
+    def consume(sexp, iter=false)
+      set(:scope => self, :iter => iter) do
         out = convert(sexp[0])
         @all_scopes.each do |scope|
           scope.formalize!
@@ -140,14 +140,20 @@ class Node
         @block_scope.pop
       end
       
-      return scope.size
+      return scope
     end
     
-    def find_local(name, in_block=false)
+    def find_local(name, in_block=false, allocate=true)
       # If the caller is not in a block, things can only
       # be in the top_context. Easy enough, return out of the Hash 
       # (which might created in for us automatically)
-      return [@top_scope[name], nil] unless in_block
+      unless in_block
+        if allocate or @top_scope.key?(name)
+          return [@top_scope[name], nil]
+        else
+          return nil
+        end
+      end          
       
       # They're asking from inside a block, look in the current
       # block scopes as well as top_scope
@@ -162,7 +168,11 @@ class Node
       
       @block_scope.reverse_each do |scope|
         if scope.key?(name)
-          depth = dep
+          if scope.from_eval
+            depth = dep + 1
+          else
+            depth = dep
+          end
           lcl = scope[name]
           break
         end
@@ -174,13 +184,19 @@ class Node
       unless lcl
         if @top_scope.key?(name)
           lcl = @top_scope[name]
+        elsif !allocate
+          return nil
         else
           # This not found. create it.
           in_scope = @block_scope.last
           idx = in_scope.size
           lcl = in_scope[name]
           lcl.created_in_block!(idx)
-          depth = 0
+          if in_scope.from_eval
+            depth = 1
+          else
+            depth = 0
+          end
         end
       end
       
@@ -213,9 +229,9 @@ class Node
   class Snippit < ClosedScope
     kind :snippit
     
-    def consume(sexp)
+    def consume(sexp, iter=false)
       set(:family, self) do
-        super(sexp)
+        super(sexp, iter)
       end
     end
     
@@ -228,6 +244,61 @@ class Node
   
   class Expression < Snippit
     kind :expression
+  end
+  
+  class EvalExpression < Expression
+    kind :eval_expression
+    
+    def consume(sexp)
+      ret = nil
+      set(:eval, true) do
+        ret = super(sexp, @in_iter)
+      end
+      
+      return ret
+    end
+    
+    def locals
+      @my_scope
+    end
+    
+    def initialize(comp)
+      super(comp)
+
+      unless comp.custom_scopes?
+        raise ArgumentError, "only use with custom scopes"
+      end
+      
+      @top_scope, @block_scope, @all_scopes, @context = comp.create_scopes
+      @slot = @top_scope.size
+      
+      if @block_scope.empty?
+        @my_scope = @top_scope
+        @in_iter = false
+      else
+        @my_scope = @block_scope.last
+        @in_iter = true
+      end
+      
+      # Setup stuff so allocate_slot works
+      @my_scope.scope = self
+      @slot = @my_scope.size - 1
+    end
+    
+    def enlarge_context
+      locals = @context.locals      
+      
+      if !locals
+        if @my_scope.size > 0
+          @context.locals = Tuple.new(@my_scope.size)
+          @context.method.local_names = @my_scope.encoded_order
+        end
+      elsif @my_scope.size > locals.size
+        @context.locals = locals.enlarge(@my_scope.size)
+        @context.method.local_names = @my_scope.encoded_order
+      end      
+    end
+    
   end
   
   class Script < ClosedScope
@@ -246,7 +317,6 @@ class Node
   
   class Newline < Node
     kind :newline
-    
     
     def consume(sexp)
       @compiler.set_position sexp[1], sexp[0]
@@ -501,7 +571,7 @@ class Node
       end
       
       # Strip the parser calculated index of splat
-      if sexp[2] and sexp[2].size == 2
+      if sexp[2] and !sexp[2].empty?
         sexp[2] = sexp[2].first
       end
       
@@ -536,6 +606,13 @@ class Node
     def args(req, optional, splat, defaults)
       @block_arg = nil
       @required, @optional, @splat, @defaults = req, optional, splat, defaults
+      
+      # The splat has no name, so give it a name that a user can't actually
+      # give, so that we can still use it (ie, for super)
+      if @splat.kind_of? TrueClass
+        @splat = :@anon_splat
+      end
+      
       populate
     end
     
@@ -567,8 +644,8 @@ class Node
         var
       end
       
-      if @splat
-        var, depth = scope.find_local(splat)
+      if @splat.kind_of? Symbol
+        var, depth = scope.find_local(@splat)
         var.argument!(i, true)
         @splat = var
       end
@@ -723,9 +800,9 @@ class Node
       @name = name
     end
     
-    def from_variable(var)
+    def from_variable(var, depth=nil)
       @variable = var
-      @depth = nil
+      @depth = depth
       @name = var.name
     end
     
@@ -1482,6 +1559,27 @@ class Node
   class VCall < FCall
     kind :vcall
     
+    def normalize(meth)
+      if get(:eval)
+        scope = get(:scope)
+      
+        if get(:iter)
+          var, dep = scope.find_local meth, true, false
+        else
+          var, dep = scope.find_local meth, false, false
+        end
+      
+        if var
+          # p :vcall_rewrite => [meth, var, dep, var.created_in_block?]
+          lv = LocalAccess.new(@compiler)
+          lv.from_variable(var, dep)
+          return lv
+        end
+      end
+      
+      super(meth)
+    end
+    
     def args(meth)
       @method = meth
       @arguments = nil
@@ -1652,7 +1750,7 @@ class Node
     def self.create(compiler, sexp)
       # sexp[0] is :for
       # sexp[1] is the enumeration for each
-      # sexp[2] is the lasgn of the for argument
+      # sexp[2] is the arguments
       # sexp[3] is the body, if any
       sexp = [sexp[0], [:call, sexp[1], :each], sexp[2], sexp[3]]
       super(compiler, sexp)
@@ -1666,19 +1764,24 @@ class Node
       scope = get(:scope)
       
       vars = sexp[1]
+
+      block = !get(:iter).nil?
       
-      if get(:iter)
-        scope.find_local vars[1], true
+      if vars.first == :masgn
+        ary = vars[1]
+        1.upto(ary.size - 1) do |i|
+          scope.find_local ary[i][1], block
+        end
       else
-        scope.find_local vars[1]
+        scope.find_local vars[1], block
       end
-  
+
       set(:iter) do
         @locals = get(:scope).new_block_scope do
           set(:iter_args) do
            sexp[1] = convert([:iter_args, sexp[1]]) # local var assignment
           end
-          
+        
           sexp[2] = convert(sexp[2]) # body
         end
       end

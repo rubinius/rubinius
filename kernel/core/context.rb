@@ -125,17 +125,6 @@ class BlockContext
   def receiver
     home.receiver
   end
-  
-  def file
-    home.file
-  end
-  
-  def line
-    return 0 unless method
-    # We subtract 1 because the ip is actually set to what it should do
-    # next, not what it's currently doing.
-    return method.line_from_ip(self.ip - 1)
-  end
 
   def method_module
     home.method_module
@@ -154,10 +143,37 @@ class BlockEnvironment
   def local_count ; @local_count ; end
   def bonus       ; @bonus       ; end
   def method      ; @method      ; end
+    
+  def under_context(home, cmethod)
+    if home.kind_of? BlockContext
+      home_block = home
+      home = home.home
+    else
+      home_block = home
+    end
+    
+    @home = home
+    @initial_ip = 0
+    @last_ip = 2 ** 28
+    @post_send = 0
+    @home_block = home_block
+    @method = cmethod
+    @local_count = cmethod.locals
+    return self
+  end
       
   # Holds a Tuple of local variable names to support eval
   def bonus=(tup)
     @bonus = tup
+  end
+  
+  def from_eval?
+    @bonus and @bonus[0]
+  end
+  
+  def from_eval!
+    @bonus = Tuple.new(1) unless @bonus
+    @bonus[0] = true
   end
 
   # The CompiledMethod object that we were called from

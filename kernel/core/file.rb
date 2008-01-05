@@ -443,7 +443,8 @@ class File < IO
     out = to_sexp_full(name, newlines)
     if out.kind_of? Tuple
       exc = SyntaxError.new out.at(0)
-      exc.import_position out.at(1), out.at(2)
+      exc.import_position out.at(1), out.at(2), out.at(3)
+      exc.file = name
       raise exc
     end
 

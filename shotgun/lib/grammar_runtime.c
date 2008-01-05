@@ -104,6 +104,8 @@ void pt_free(rb_parse_state *st) {
   free(st->memory_pools);
 }
 
+extern int syd_sourceline;
+
 void create_error(rb_parse_state *parse_state, char *msg) {
   int col;
   STATE;
@@ -113,10 +115,11 @@ void create_error(rb_parse_state *parse_state, char *msg) {
   
   col = parse_state->lex_p - parse_state->lex_pbeg;
   
-  tup = tuple_new(state, 3);
+  tup = tuple_new(state, 4);
   tuple_put(state, tup, 0, string_new(state, msg));
   tuple_put(state, tup, 1, I2N(col));
-  tuple_put(state, tup, 2, string_newfrombstr(state, parse_state->lex_lastline));
+  tuple_put(state, tup, 2, I2N(syd_sourceline));
+  tuple_put(state, tup, 3, string_newfrombstr(state, parse_state->lex_lastline));
   parse_state->error = tup;
 }
 

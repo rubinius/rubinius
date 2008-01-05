@@ -40,6 +40,14 @@ class MethodContext
     _set_field(7, val)
   end
 
+  def locals
+    _get_field(8)
+  end
+
+  def locals=(val)
+    _set_field(8, val)
+  end
+
   def name
     _get_field(10)
   end

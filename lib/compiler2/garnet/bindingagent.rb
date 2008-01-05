@@ -18,7 +18,7 @@ class Compiler::Node
     Aliases = {
       :fixnum? => "FIXNUM_P",
       :bignum? => "BIGNUM_P",
-      :ref?    => "REFERENCE"
+      :ref?    => "REFERENCE",
       :to_int  => "FIXNUM_TO_INT",
       :put     => "SET_FIELD",
       :at      => "NTH_FIELD"

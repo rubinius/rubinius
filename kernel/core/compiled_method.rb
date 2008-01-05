@@ -113,6 +113,30 @@ class CompiledMethod
     @bonus = tup
   end
   
+  def local_names
+    return nil unless @bonus
+    @bonus[0]
+  end
+  
+  def local_names=(names)
+    return if names.nil?
+    
+    unless names.kind_of? Tuple
+      raise ArgumentError, "only accepts a Tuple"
+    end
+    
+    names.each do |n|
+      unless n.kind_of? Symbol
+        raise ArgumentError, "must be a tuple of symbols"
+      end
+    end
+    
+    @bonus = Tuple.new(1) unless @bonus
+    @bonus[0] = names
+    return names
+  end
+    
+  
   def activate(recv, mod, args, locals=nil, &prc)
     sz = args.total
     if prc

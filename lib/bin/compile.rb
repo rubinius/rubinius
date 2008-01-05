@@ -197,18 +197,18 @@ class ExtensionCompiler
     end
     
     def setup
-      module Kernel
-        def extension
-          yield $ec_dsl if block_given?
-          $ec_dsl
-        end
-      end
-      
       $ec_dsl = self
     end
   end
 end
 
+module Kernel
+  def extension
+    yield $ec_dsl if block_given?
+    $ec_dsl
+  end
+end
+ 
 flags = []
 while ARGV[0] and ARGV[0].prefix? "-f"
   flags << ARGV.shift[2..-1]

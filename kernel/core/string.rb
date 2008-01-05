@@ -1876,6 +1876,7 @@ class String
     
     result = 0
     saw_space = false
+    saw_under = false
     i.upto(@bytes - 1) do |index|
       char = @data[index]
       
@@ -1886,10 +1887,21 @@ class String
         elsif saw_space
           raise ArgumentError, "invalid value for Integer: #{inspect()}"
         end
+        
+        if char == ?_
+          if saw_under
+            raise ArgumentError, "invalid value for Integer: #{inspect}"
+          else
+            saw_under = true
+            next
+          end
+          
+          saw_under = false
+        end        
       else
         next if char.isspace || char == ?_
       end
-      
+            
       if char >= ?0 && char <= ?9
         value = (char - ?0)
       elsif char >= ?A && char <= ?Z
@@ -1898,7 +1910,7 @@ class String
         value = (char - ?a + 10)
       # An invalid character.
       else
-        raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check
+        raise ArgumentError, "invalid value for Integer: #{self.inspect} (#{char.chr})" if check
         return negative ? -result : result
       end
 
@@ -2118,7 +2130,8 @@ class String
     out = to_sexp_full(name, line, newlines)
     if out.kind_of? Tuple
       exc = SyntaxError.new out.at(0)
-      exc.import_position out.at(1), out.at(2)
+      exc.import_position out.at(1), out.at(2), out.at(3)
+      exc.file = name
       raise exc
     end
 

@@ -71,6 +71,16 @@ class Tuple
     return t
   end
   
+  def enlarge(size)
+    if size > fields()
+      t = Tuple.new(size)
+      t.copy_from self, 0
+      return t
+    end
+    
+    return self
+  end
+  
   alias_method :size, :fields
   alias_method :length, :fields
   

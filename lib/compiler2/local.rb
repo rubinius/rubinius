@@ -4,10 +4,17 @@ class Compiler2
     def initialize(scope)
       @scope = scope
       @names = []
-      @locals = Hash.new { |h,k| h[k] = Compiler2::Local.new(scope, k) }
+      @locals = Hash.new { |h,k| h[k] = Compiler2::Local.new(@scope, k) }
+      @from_eval = false
     end
     
+    attr_accessor :from_eval
+    
     def [](name)
+      unless name.kind_of? Symbol
+        raise ArgumentError, "must be a symbol: #{name.inspect}"
+      end
+      
       unless @locals.key? name
         @names << name        # Maintain insertion order
       end
@@ -28,6 +35,30 @@ class Compiler2
     def size
       @names.size
     end
+    
+    def encoded_order
+      # figure out the size
+      size = 0
+      @names.each do |name|
+        size += 1 unless @locals[name].on_stack?
+      end
+      
+      return nil if size == 0
+      
+      tup = Tuple.new(size)
+      
+      @names.each do |name|
+        var = @locals[name]
+        unless var.on_stack?
+          tup[var.slot] = name
+        end
+      end
+      
+      return tup
+    end
+    
+    attr_reader :locals
+    attr_accessor :scope
   end
   
   class Local
@@ -71,6 +102,8 @@ class Compiler2
       
       return @slot
     end
+    
+    attr_writer :slot
     
     def stack_position
       if @argument

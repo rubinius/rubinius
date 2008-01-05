@@ -158,12 +158,15 @@ class NotImplementedError < ScriptError
 end
 
 class SyntaxError < ScriptError
-  def column; @column ; end
-  def line  ; @line   ; end
+  attr_accessor :column
+  attr_accessor :line
+  attr_accessor :file
+  attr_accessor :code
 
-  def import_position(c,l)
+  def import_position(c,l, code)
     @column = c
     @line = l
+    @code = code
   end
 end
 

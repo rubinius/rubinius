@@ -120,41 +120,6 @@ class Object
     env = prc.block.redirect_to self
     env.call(*args)
   end
-
-  #  call-seq:
-  #     obj.instance_eval(string [, filename [, lineno]] )   => obj
-  #     obj.instance_eval {| | block }                       => obj
-  #  
-  #  Evaluates a string containing Ruby source code, or the given block,
-  #  within the context of the receiver (_obj_). In order to set the
-  #  context, the variable +self+ is set to _obj_ while
-  #  the code is executing, giving the code access to _obj_'s
-  #  instance variables. In the version of <code>instance_eval</code>
-  #  that takes a +String+, the optional second and third
-  #  parameters supply a filename and starting line number that are used
-  #  when reporting compilation errors.
-  #     
-  #     class Klass
-  #       def initialize
-  #         @secret = 99
-  #       end
-  #     end
-  #     k = Klass.new
-  #     k.instance_eval { @secret }   #=> 99
-  def instance_eval(string = nil, filename = "(eval)", line = 1, &prc)
-    if block_given?
-      raise ArgumentError, 'cannot pass both a block and a string to evaluate' if string
-      instance_exec(self, &prc)
-    elsif string
-      string = StringValue(string)
-      mod = nil # FIXME
-      
-      cm = Compile.compile_string string, nil, filename, line
-      cm.activate(self, mod, [])
-    else
-      raise ArgumentError, 'block not supplied'
-    end
-  end
   
   def instance_variables(symbols = false)
     vars = get_instance_variables

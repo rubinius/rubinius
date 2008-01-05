@@ -48,7 +48,7 @@ static NODE *syd_node_newnode(rb_parse_state*, enum node_type, OBJECT, OBJECT, O
 #define string_new(ptr, len) blk2bstr(ptr, len)
 #define string_new2(ptr) cstr2bstr(ptr)
 
-static int syd_sourceline;
+int syd_sourceline;
 static char *syd_sourcefile;
 
 #define ruby_sourceline syd_sourceline
@@ -2788,6 +2788,7 @@ syd_compile_string(STATE, const char *f, bstring s, int line, int newlines)
     parse_state->lex_pbeg = 0;
     parse_state->lex_p = 0;
     parse_state->lex_pend = 0;
+    parse_state->error = Qfalse;
     ruby_sourceline = line - 1;
     compile_for_eval = 1;
     
@@ -2795,7 +2796,7 @@ syd_compile_string(STATE, const char *f, bstring s, int line, int newlines)
     // ruby_eval_tree = parse_state->top;
     // if (n != 0) ruby_eval_tree_begin = 0;
     
-    if(!n) {
+    if(parse_state->error == Qfalse) {
         ret = convert_to_sexp(state, parse_state->top, newlines);
     } else {
         ret = parse_state->error;
@@ -2849,7 +2850,7 @@ syd_compile_file(STATE, const char *f, FILE *file, int start, int newlines)
 
     n = yycompile(parse_state, f, start);
     
-    if(!n) {
+    if(parse_state->error == Qfalse) {
         // ruby_eval_tree = parse_state->top;
         ret = convert_to_sexp(state, parse_state->top, newlines);
     } else {

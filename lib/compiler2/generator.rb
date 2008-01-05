@@ -103,7 +103,7 @@ class Compiler2
     def to_cmethod(desc)
       collapse_labels
       iseq = @encoder.encode_stream @stream
-      cm = CompiledMethod.new.from_string iseq, desc.locals, desc.required
+      cm = CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
 
       if @file
         cm.file = @file.to_sym
@@ -123,7 +123,7 @@ class Compiler2
       cm.lines = encode_lines()
       cm.exceptions = encode_exceptions()
       cm.serial = 0
-            
+      cm.local_names = desc.locals.encoded_order
       return cm
     end
     

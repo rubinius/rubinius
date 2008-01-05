@@ -214,12 +214,6 @@ module Kernel
   end
   alias_method :proc, :lambda
 
-  def eval(string, binding = self, filename = '(eval)', lineno = 1)
-    compiled_method = Compile.compile_string string, nil, filename, lineno
-    method = Method.new(binding, nil, compiled_method)
-    method.call
-  end
-
   def caller(start=1)
     ret = []
     ctx = MethodContext.current.sender

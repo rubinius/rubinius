@@ -49,9 +49,7 @@ module Compile
   end
 
   def self.execute(string)
-    cm = compile_string(string)
-    cm.compile
-    cm.activate MAIN, Object, []
+    eval(string, TOPLEVEL_BINDING)
   end
 
   # Called when we encounter a break keyword that we do not support
