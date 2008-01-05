@@ -405,7 +405,7 @@ void ffi_from_long(long obj) {
 
 unsigned long ffi_to_ulong() {
   if(sizeof(long) == sizeof(long long)) {
-    return (long)ffi_to_ull();
+    return (unsigned long)ffi_to_ull();
   } else {
     return (long)ffi_to_uint();
   }
@@ -1010,17 +1010,17 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
   
   switch(sz) {
   case 1:
-    conv(*((uint8_t*)ptr));
+    (void)conv(*((uint8_t*)ptr));
     break;
   case 2:
-    conv(*((uint16_t*)ptr));
+    (void)conv(*((uint16_t*)ptr));
     break;
   default:
   case 4:
-    conv(*((uint32_t*)ptr));
+    (void)conv(*((uint32_t*)ptr));
     break;
   case 8:
-    conv(*((uint64_t*)ptr));
+    (void)conv(*((uint64_t*)ptr));
     break;
   }
   

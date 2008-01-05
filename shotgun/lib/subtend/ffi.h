@@ -29,7 +29,7 @@ OBJECT ffi_new_pointer(STATE, void *ptr);
 #define FFI_TYPE_CHARARR 18
 
 typedef void (*nf_stub_ffi)(void);
-typedef int (*nf_converter)();
+typedef long (*nf_converter)();
 
 #define NFUNC_FIELDS 7
 
