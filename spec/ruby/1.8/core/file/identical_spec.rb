@@ -32,8 +32,12 @@ describe "File.identical?" do
     File.identical?(@file1, @file3).should == true
   end
 
-  it "raise an exception if the arguments are the wrong type or of incorrect number" do
+  it "raises an ArgumentError if not passed two arguments" do
     lambda { File.identical?(@file1, @file2, @file3) }.should raise_error(ArgumentError)
+    lambda { File.identical?(@file1) }.should raise_error(ArgumentError)
+  end
+    
+  it "raises a TypeError if not passed String types" do
     lambda { File.identical?(1,1) }.should raise_error(TypeError)
   end
 

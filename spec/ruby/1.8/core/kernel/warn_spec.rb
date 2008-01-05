@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.warn" do
-  it "should call #write on $stderr" do
+  it "calls #write on $stderr" do
     lambda {
       v = $VERBOSE
       $VERBOSE = true
@@ -13,7 +13,7 @@ describe "Kernel.warn" do
     }.should output(nil, "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn\n")
   end
 
-  it "should write the default record seperator (\\n) and NOT $/ to $stderr after the warning message" do
+  it "writes the default record seperator (\\n) and NOT $/ to $stderr after the warning message" do
     lambda {
       v = $VERBOSE
       rs = $/
@@ -27,7 +27,7 @@ describe "Kernel.warn" do
     }.should output(nil, "\n")
   end
 
-  it "should not call #write on $stderr if $VERBOSE is nil" do
+  it "does not call #write on $stderr if $VERBOSE is nil" do
     lambda {
       v = $VERBOSE
       $VERBOSE = nil

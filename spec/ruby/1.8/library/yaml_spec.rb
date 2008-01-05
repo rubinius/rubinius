@@ -32,7 +32,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 require 'yaml'
 $test_file = "/tmp/yaml_test.yml"
 
-context "YAML class method" do
+describe "YAML class method" do
   specify "dump should convert object to YAML and write result to io when io provided" do
     File.open($test_file, 'w' ) do |io|
       YAML.dump( ['badger', 'elephant', 'tiger'], io )

@@ -6,7 +6,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 #   body
 # end
 describe "The for expression" do
-  it "should iterate over an Enumerable passing each element to the block" do
+  it "iterates over an Enumerable passing each element to the block" do
     j = 0
     for i in 1..3
       j += i
@@ -14,7 +14,7 @@ describe "The for expression" do
     j.should == 6
   end
 
-  it "should iterate over an Hash passing each key-value pair to the block" do
+  it "iterates over an Hash passing each key-value pair to the block" do
     k = 0
     l = 0
     
@@ -27,7 +27,7 @@ describe "The for expression" do
     l.should == 30
   end
 
-  it "should iterate over any object responding to 'each'" do
+  it "iterates over any object responding to 'each'" do
     class XYZ
       def each
         (0..10).each { |i| yield i }
@@ -41,7 +41,7 @@ describe "The for expression" do
     j.should == 55
   end
 
-  it "should allow an instance variable as an iterator name" do
+  it "allows an instance variable as an iterator name" do
     m = [1,2,3]
     n = 0
     for @var in m
@@ -51,7 +51,7 @@ describe "The for expression" do
     n.should == 3
   end
 
-  it "should 'splat' multiple arguments together if there are fewer arguments than values" do
+  it "splats multiple arguments together if there are fewer arguments than values" do
     v = $VERBOSE
     $VERBOSE = nil
     class OFor

@@ -9,7 +9,7 @@ shared :getoptlong_each do |cmd|
       )
     end
     
-    it "should pass each argument/value pair to the block" do
+    it "passes each argument/value pair to the block" do
       begin
         old_argv = ARGV
         ARGV = [ "--size", "10k", "-v", "-q", "a.txt", "b.txt" ]

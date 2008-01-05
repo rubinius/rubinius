@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Struct#select" do
-  it "raises ArgumentError if given any non-block arguments" do
+  it "raises an ArgumentError if given any non-block arguments" do
     lambda { Struct::Car.new.select(1) { } }.should raise_error(ArgumentError)
   end
   

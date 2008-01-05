@@ -32,21 +32,32 @@ describe "Module#private_method_defined?" do
   end
 
   compliant_on :ruby, :jruby do
-    it "raises an exception on improper argument" do
-      lambda { ModuleSpecs::CountsMixin.private_method_defined?(1)     }.should raise_error(ArgumentError)
-      lambda { ModuleSpecs::CountsMixin.private_method_defined?(nil)   }.should raise_error(TypeError)
-      lambda { ModuleSpecs::CountsMixin.private_method_defined?(false) }.should raise_error(TypeError)
+    it "raises an ArgumentError if passed a Fixnum" do
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(1)   }.should raise_error(ArgumentError)
+    end
+    
+    it "raises a TypeError if not passed a Symbol" do
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(nil)       }.should raise_error(TypeError)
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(false)     }.should raise_error(TypeError)
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(mock('x')) }.should raise_error(TypeError)
+      
+      sym = mock('symbol')
+      def sym.to_sym() :private_3 end
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(sym) }.should raise_error(TypeError)
     end
   end
   
+  it "accepts any argument that is a String type" do
+    str = mock('string')
+    def str.to_str() 'private_3' end
+    ModuleSpecs::CountsMixin.private_method_defined?(str).should == true
+  end
+  
   deviates_on :rubinius do
-    it "accepts any object that is String-like" do
-      o = mock('private_3')
-      def o.to_str() 'private_3' end
-      ModuleSpecs::CountsMixin.private_method_defined?(o).should == true
-    end
-    
-    it "raises TypeError if passed a non-String-like argument" do
+    it "raises a TypeError if not passed a String type" do
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(1)         }.should raise_error(TypeError)
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(nil)       }.should raise_error(TypeError)
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(false)     }.should raise_error(TypeError)
       lambda { ModuleSpecs::CountsMixin.private_method_defined?(mock('x')) }.should raise_error(TypeError)
     end
   end

@@ -42,7 +42,7 @@ describe "Module#private_class_method" do
     lambda { ModuleSpecs::Child.private_method_3 }.should raise_error(NoMethodError)
   end
 
-  it "should raise a NameError if class method doesn't exist" do
+  it "raises a NameError if class method doesn't exist" do
     lambda { ModuleSpecs.private_class_method :no_method_here }.should raise_error(NameError)
   end
 

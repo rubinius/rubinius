@@ -54,7 +54,7 @@ describe "File.truncate" do
     IO.read(@name).should == "1234567890"
   end
 
-  it "raises Errno::ENOENT if the file does not exist" do
+  it "raises an Errno::ENOENT if the file does not exist" do
     not_existing_file = "file-does-not-exist-for-sure.txt"
 
     # make sure it doesn't exist for real
@@ -67,9 +67,20 @@ describe "File.truncate" do
     end
   end
 
-  it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
-    lambda { File.truncate(@name)      }.should raise_error(ArgumentError)
+  it "raises an ArgumentError if not passed two arguments" do
+    lambda { File.truncate        }.should raise_error(ArgumentError)
+    lambda { File.truncate(@name) }.should raise_error(ArgumentError)
+  end
+  
+  it "raises an Errno::EINVAL if the length is not valid" do
     lambda { File.truncate(@name, -1)  }.should raise_error(Errno::EINVAL) # May fail
+  end
+  
+  it "raises a TypeError if not passed a String type for the first argument" do
+    lambda { File.truncate(1, 1) }.should raise_error(TypeError)
+  end
+  
+  it "raises a TypeError if not passed an Integer type for the second argument" do
     lambda { File.truncate(@name, nil) }.should raise_error(TypeError)
   end
 end

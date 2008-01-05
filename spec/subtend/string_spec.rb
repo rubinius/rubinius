@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/subtend_helper'
 compile_extension('subtend_string')
 require File.dirname(__FILE__) + '/ext/subtend_string'
 
-context "SubtendString" do
+describe "SubtendString" do
   setup do
     @s = SubtendString.new
   end

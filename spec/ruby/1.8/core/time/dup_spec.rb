@@ -7,7 +7,7 @@ describe "Time#dup" do
 	  t.dup.tv_sec.should == t.tv_sec
   end
 
-  it "should copy the gmt state flag" do
+  it "copies the gmt state flag" do
 	  Time.now.gmtime.dup.gmt?.should == true
   end
 

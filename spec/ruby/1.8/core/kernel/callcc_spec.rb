@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#callcc" do
   not_compliant_on(:jruby) do
-    it "should be possible to exit a loop like a break" do
+    it "is possible to exit a loop like a break" do
       i = 0
       Kernel.callcc do |x|
         loop do
@@ -14,7 +14,7 @@ describe "Kernel#callcc" do
       i.should == 5
     end
 
-    it "should be possible to call a continuation multiple times" do
+    it "is possible to call a continuation multiple times" do
       i = 0
       cont = nil
       Kernel.callcc {|cont|}
@@ -23,14 +23,14 @@ describe "Kernel#callcc" do
       i.should == 5    
     end
 
-    it "should return the results of a block if block is not called" do
+    it "returns the results of a block if block is not called" do
       cont = nil
       a = callcc {|cont| 0}
       cont.call(1) if a == 0
       a.should == 1
     end
 
-    it "should return the arguments to call" do
+    it "returns the arguments to call" do
       callcc {|cont| cont.call }.should == nil
       callcc {|cont| cont.call 1 }.should == 1
       callcc {|cont| cont.call 1,2,3 }.should == [1,2,3]

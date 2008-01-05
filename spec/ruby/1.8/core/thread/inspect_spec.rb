@@ -7,7 +7,7 @@ describe "Thread#inspect" do
     t.value.should include('run')
   end
   
-  it "should describe a sleeping thread" do
+  it "describes a sleeping thread" do
     c = Channel.new
     t = Thread.new do      
       sleep
@@ -27,7 +27,7 @@ describe "Thread#inspect" do
   end
 
   compliant_on(:ruby) do
-    it "should report aborting on a killed thread" do
+    it "reports aborting on a killed thread" do
       c = Channel.new
       t = Thread.new { c << Thread.current.inspect; Thread.stop }
       c.receive.should include('run')

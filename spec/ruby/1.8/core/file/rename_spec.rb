@@ -23,14 +23,17 @@ describe "File.rename" do
       File.exists?(@new).should == true
     end
 
-    it "raises an exception if the source does not exist" do
+    it "raises an Errno::ENOENT if the source does not exist" do
       File.delete(@old)
       lambda { File.rename(@old, @new) }.should raise_error(Errno::ENOENT)
     end
 
-    it "raises an exception if the arguments are wrong type or are the incorect number of arguments" do
+    it "raises an ArgumentError if not passed two arguments" do
       lambda { File.rename        }.should raise_error(ArgumentError)
       lambda { File.rename(@file) }.should raise_error(ArgumentError)
+    end
+    
+    it "raises a TypeError if not passed String types" do
       lambda { File.rename(1, 2)  }.should raise_error(TypeError)
     end
   end

@@ -24,21 +24,21 @@ describe "Math.atanh" do
   end
 
   platform_is :mswin, :linux, :openbsd do
-    it "raises Errno::EDOM if x = 1.0" do
+    it "raises an Errno::EDOM if x = 1.0" do
       lambda { Math.atanh(1.0) }.should raise_error(Errno::EDOM)
     end
 
-    it "raises Errno::EDOM if x = -1.0" do
+    it "raises an Errno::EDOM if x = -1.0" do
       lambda { Math.atanh(-1.0) }.should raise_error(Errno::EDOM)
     end
   end
   
-  it "raises Errno::EDOM if x > 1.0" do
+  it "raises an Errno::EDOM if x > 1.0" do
     lambda { Math.atanh(1.0 + TOLERANCE)  }.should raise_error(Errno::EDOM)
     lambda { Math.atanh(-1.0 - TOLERANCE) }.should raise_error(Errno::EDOM)
   end
   
-  it "raises ArgumentError if the argument cannot be coerced with Float()" do
+  it "raises an ArgumentError if the argument cannot be coerced with Float()" do
     lambda { Math.atanh("test") }.should raise_error(ArgumentError)
   end
 

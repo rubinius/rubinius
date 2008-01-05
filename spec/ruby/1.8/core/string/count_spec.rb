@@ -21,7 +21,7 @@ describe "String#count" do
     s.count("helo", "", "x").should == 0
   end
 
-  it "raises ArgumentError when given no arguments" do
+  it "raises an ArgumentError when given no arguments" do
     lambda { "hell yeah".count }.should raise_error(ArgumentError)
   end
 

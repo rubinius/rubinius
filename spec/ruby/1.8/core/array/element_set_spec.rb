@@ -69,7 +69,7 @@ describe "Array#[]=" do
     a.should == [1, 2, -1]
   end
 
-  it "should set elements in the range arguments when passed ranges" do
+  it "sets elements in the range arguments when passed ranges" do
     ary = [1, 2, 3]
     rhs = [nil, [], ["x"], ["x", "y"]]
     (0 .. ary.size + 2).each do |a|
@@ -140,7 +140,7 @@ describe "Array#[]=" do
     a[from .. to] = ["a", "b", "c"]
   end
   
-  it "raises IndexError when passed indexes out of bounds" do
+  it "raises an IndexError when passed indexes out of bounds" do
     a = [1, 2, 3, 4]
     lambda { a[-5] = ""      }.should raise_error(IndexError)
     lambda { a[-5, -1] = ""  }.should raise_error(IndexError)
@@ -178,7 +178,7 @@ describe "Array#[]=" do
   end
 
   compliant_on :ruby, :jruby do
-    it "raises TypeError on a frozen array" do
+    it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(TypeError)
     end  
   end
@@ -274,7 +274,7 @@ describe "Array#[]= with [index, count]" do
     a.should == [1, 2, 3, 7, 8, 4, 5]
   end
   
-  it "raises IndexError when passed start and negative length" do
+  it "raises an IndexError when passed start and negative length" do
     a = [1, 2, 3, 4]
     lambda { a[-2, -1] = "" }.should raise_error(IndexError)
     lambda { a[0, -1] = ""  }.should raise_error(IndexError)

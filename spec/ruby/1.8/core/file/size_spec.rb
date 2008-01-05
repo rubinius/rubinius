@@ -10,7 +10,7 @@ describe "File.size" do
     File.delete(@file) if File.exist?(@file)
   end
   
-  it "should return the size of the file" do
+  it "returns the size of the file" do
     File.size?(@file).should == 8
   end
 end 
@@ -28,7 +28,7 @@ describe "File.size?" do
     File.delete(@file) if File.exist?(@file)
   end
   
-  it "should return nil if file_name doesn't exist or has zero size, the size of the file otherwise" do
+  it "returns nil if file_name doesn't exist or has zero size, the size of the file otherwise" do
     File.size?(@file).should == 8
   end
 end

@@ -39,7 +39,7 @@ describe "Module#alias_method" do
     @class.make_alias "cinq", name
   end
 
-  it "raises TypeError when the given name can't be converted using to_str" do
+  it "raises a TypeError when the given name can't be converted using to_str" do
     lambda { @class.make_alias mock('x'), :public_one }.should raise_error(TypeError)
   end
 

@@ -27,11 +27,15 @@ describe "File.extname" do
     File.extname("a.b.c.d.e").should == ".e"
   end
 
-  it "raise an exception if the argumnents are not of the correct type or are missing" do
+  it "raises a TypeError if not passed a String type" do
     lambda { File.extname(nil)   }.should raise_error(TypeError)
     lambda { File.extname(0)     }.should raise_error(TypeError)
     lambda { File.extname(true)  }.should raise_error(TypeError)
     lambda { File.extname(false) }.should raise_error(TypeError)
+  end
+  
+  it "raises an ArgumentError if not passed one argument" do
+    lambda { File.extname }.should raise_error(ArgumentError)
     lambda { File.extname("foo.bar", "foo.baz") }.should raise_error(ArgumentError)
   end  
 end

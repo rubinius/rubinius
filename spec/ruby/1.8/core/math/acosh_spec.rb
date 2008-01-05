@@ -17,7 +17,7 @@ describe "Math.acosh" do
     lambda { Math.acosh(-1.0) }.should raise_error(Errno::EDOM)
   end
   
-  it "raises ArgumentError if the argument cannot be coerced with Float()" do
+  it "raises an ArgumentError if the argument cannot be coerced with Float()" do
     lambda { Math.acosh("test") }.should raise_error(ArgumentError)
   end
 

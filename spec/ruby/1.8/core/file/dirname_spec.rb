@@ -54,7 +54,7 @@ describe "File.dirname" do
     end
   end
 
-  it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do
+  it "raises a TypeError if not passed a String type" do
     lambda { File.dirname(nil)   }.should raise_error(TypeError)
     lambda { File.dirname(0)     }.should raise_error(TypeError)
     lambda { File.dirname(true)  }.should raise_error(TypeError)

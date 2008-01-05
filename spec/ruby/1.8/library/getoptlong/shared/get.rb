@@ -9,7 +9,7 @@ shared :getoptlong_get do |cmd|
       )
     end
     
-    it "should return the next option name and its argument as an Array" do
+    it "returns the next option name and its argument as an Array" do
       begin
         old_argv = ARGV
         ARGV = [ "--size", "10k", "-v", "-q", "a.txt", "b.txt" ]
@@ -23,7 +23,7 @@ shared :getoptlong_get do |cmd|
       end
     end
     
-    it "should shift ARGV on each call" do
+    it "shifts ARGV on each call" do
       begin
         old_argv = ARGV
         ARGV = [ "--size", "10k", "-v", "-q", "a.txt", "b.txt" ]
@@ -44,7 +44,7 @@ shared :getoptlong_get do |cmd|
       end
     end
     
-    it "should terminate processing when encountering '--'" do
+    it "terminates processing when encountering '--'" do
       begin
         old_argv = ARGV
         ARGV = [ "--size", "10k", "--", "-v", "-q", "a.txt", "b.txt" ]
@@ -62,7 +62,7 @@ shared :getoptlong_get do |cmd|
       end
     end
     
-    it "should raise a if an argument was required, but none given" do
+    it "raises a if an argument was required, but none given" do
       begin
         s = $stderr
         $stderr = CaptureOutput.new

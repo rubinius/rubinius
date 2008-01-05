@@ -22,9 +22,12 @@ describe "File.directory?" do
     File.directory?(@file).should == false
   end
    
-  it "raise an exception its the arguments are the worng type or number" do
+  it "raises an ArgumentError if not passed one argument" do
     lambda { File.directory?              }.should raise_error(ArgumentError)
     lambda { File.directory?(@dir, @file) }.should raise_error(ArgumentError)
-    lambda { File.directory?(nil)         }.should raise_error(TypeError)
+  end
+  
+  it "raises a TypeError if not passed a String type" do
+    lambda { File.directory?(nil) }.should raise_error(TypeError)
   end
 end

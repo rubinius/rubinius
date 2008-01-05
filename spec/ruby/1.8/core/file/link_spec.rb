@@ -22,14 +22,20 @@ describe "File.link" do
       File.identical?(@file, @link).should == true
     end
 
-    it "raise an exception if the target already exists" do
+    it "raises an Errno::EEXIST if the target already exists" do
       File.link(@file, @link)  
       lambda { File.link(@file, @link) }.should raise_error(Errno::EEXIST)
     end
 
-    it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
-      lambda { File.link        }.should raise_error(ArgumentError)
-      lambda { File.link(@file) }.should raise_error(ArgumentError)
+    it "raises an ArgumentError if not passed two arguments" do
+      lambda { File.link                      }.should raise_error(ArgumentError)
+      lambda { File.link(@file)               }.should raise_error(ArgumentError)
+      lambda { File.link(@file, @link, @file) }.should raise_error(ArgumentError)
+    end
+    
+    it "raises a TypeError if not passed String types" do
+      lambda { File.link(@file, nil) }.should raise_error(TypeError)
+      lambda { File.link(@file, 1)   }.should raise_error(TypeError)
     end
   end
 end

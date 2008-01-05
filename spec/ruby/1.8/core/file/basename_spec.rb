@@ -94,11 +94,14 @@ describe "File.basename" do
     end
   end
 
-  it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do
+  it "raises a TypeError if the arguments are not String types" do
     lambda { File.basename(nil)          }.should raise_error(TypeError)
     lambda { File.basename(1)            }.should raise_error(TypeError)
     lambda { File.basename("bar.txt", 1) }.should raise_error(TypeError)
     lambda { File.basename(true)         }.should raise_error(TypeError)
+  end
+  
+  it "raises an ArgumentError if passed more than two arguments" do
     lambda { File.basename('bar.txt', '.txt', '.txt') }.should raise_error(ArgumentError)
   end
 

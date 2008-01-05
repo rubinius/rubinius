@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/subtend_helper'
 compile_extension('subtend_wrapped_struct')
 require File.dirname(__FILE__) + '/ext/subtend_wrapped_struct'
 
-context "SubtendWrappedStruct" do
+describe "SubtendWrappedStruct" do
   setup do
     @s = SubtendWrappedStruct.new
   end

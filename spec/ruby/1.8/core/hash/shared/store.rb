@@ -39,7 +39,7 @@ shared :hash_store do |cmd|
         h.keys[0].frozen?.should == true
       end
       
-      it "raises TypeError if called on a frozen instance" do
+      it "raises a TypeError if called on a frozen instance" do
         lambda { HashSpecs.frozen_hash.send(cmd, 1, 2) }.should raise_error(TypeError)
       end
     end

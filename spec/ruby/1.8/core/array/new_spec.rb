@@ -9,7 +9,7 @@ describe "Array.new" do
     b.class.should == MyArray
   end
   
-  it "raises ArgumentError when passed a negative size" do
+  it "raises an ArgumentError when passed a negative size" do
     lambda { Array.new(-1) }.should raise_error(ArgumentError)
   end
   

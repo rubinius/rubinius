@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The break statement" do
-  it "raises LocalJumpError if used not within block or while/for loop" do
+  it "raises a LocalJumpError if used not within block or while/for loop" do
     def x; break; end
     lambda { x }.should raise_error(LocalJumpError)
   end
@@ -27,7 +27,7 @@ end
 
 describe "Breaking out of a loop with a value" do
   
-  it "should assign objects" do
+  it "assigns objects" do
     a = loop do break; end;          a.should == nil
     a = loop do break nil; end;      a.should == nil
     a = loop do break 1; end;        a.should == 1
@@ -40,7 +40,7 @@ describe "Breaking out of a loop with a value" do
     a = loop do break [*[1,2]]; end; a.should == [1,2]
   end
 
-  it "should assign splatted objects" do
+  it "assigns splatted objects" do
     a = loop do break *nil; end;      a.should == nil
     a = loop do break *1; end;        a.should == 1
     a = loop do break *[]; end;       a.should == nil
@@ -54,7 +54,7 @@ describe "Breaking out of a loop with a value" do
     a = loop do break *[*[1,2]]; end; a.should == [1,2]
   end
 
-  it "should assign to a splatted reference" do
+  it "assigns to a splatted reference" do
     *a = loop do break; end;          a.should == [nil]
     *a = loop do break nil; end;      a.should == [nil]
     *a = loop do break 1; end;        a.should == [1]
@@ -68,7 +68,7 @@ describe "Breaking out of a loop with a value" do
     *a = loop do break [*[1,2]]; end; a.should == [[1,2]]    
   end
 
-  it "should assign splatted objects to a splatted reference" do
+  it "assigns splatted objects to a splatted reference" do
     *a = loop do break *nil; end;      a.should == [nil]
     *a = loop do break *1; end;        a.should == [1]
     *a = loop do break *[]; end;       a.should == [nil]
@@ -81,7 +81,7 @@ describe "Breaking out of a loop with a value" do
     *a = loop do break *[*[1,2]]; end; a.should == [[1,2]]    
   end
 
-  it "should assign splatted objects to a splatted reference from a splatted loop" do
+  it "assigns splatted objects to a splatted reference from a splatted loop" do
     *a = *loop do break *nil; end;      a.should == [nil]
     *a = *loop do break *1; end;        a.should == [1]
     *a = *loop do break *[]; end;       a.should == [nil]
@@ -94,7 +94,7 @@ describe "Breaking out of a loop with a value" do
     *a = *loop do break *[*[1,2]]; end; a.should == [1,2]    
   end
 
-  it "should assign objects to multiple block variables" do
+  it "assigns objects to multiple block variables" do
     a,b,*c = loop do break; end;          [a,b,c].should == [nil,nil,[]]
     a,b,*c = loop do break nil; end;      [a,b,c].should == [nil,nil,[]]
     a,b,*c = loop do break 1; end;        [a,b,c].should == [1,nil,[]]
@@ -108,7 +108,7 @@ describe "Breaking out of a loop with a value" do
     a,b,*c = loop do break [*[1,2]]; end; [a,b,c].should == [1,2,[]]
   end
 
-  it "should assign splatted objects to multiple block variables" do
+  it "assigns splatted objects to multiple block variables" do
     a,b,*c = loop do break *nil; end;      [a,b,c].should == [nil,nil,[]]
     a,b,*c = loop do break *1; end;        [a,b,c].should == [1,nil,[]]
     a,b,*c = loop do break *[]; end;       [a,b,c].should == [nil,nil,[]]
@@ -121,7 +121,7 @@ describe "Breaking out of a loop with a value" do
     a,b,*c = loop do break *[*[1,2]]; end; [a,b,c].should == [1,2,[]]    
   end
 
-  it "should stop any loop type at the correct spot" do
+  it "stops any loop type at the correct spot" do
     i = 0; loop do break i if i == 2; i+=1; end.should == 2
     i = 0; loop do break if i == 3; i+=1; end; i.should == 3
     i = 0; 0.upto(5) {|i| break i if i == 2 }.should == 2
@@ -130,7 +130,7 @@ describe "Breaking out of a loop with a value" do
     i = 0; while (i < 5) do break if i == 3 ; i+=1; end; i.should == 3
   end
 
-  it "should stop a yielded method at the correct spot" do
+  it "stops a yielded method at the correct spot" do
     def break_test()
       yield 1
       yield 2

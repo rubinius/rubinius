@@ -98,12 +98,15 @@ describe "Numeric#step" do
     x.should == [5.4, 7.4, 9.4]
   end
   
-  it "raise the expected exception" do
+  it "raises an ArgumentError if not passed not passed Numeric types in the correct range" do
     lambda { @base.step            }.should raise_error(ArgumentError)
     lambda { @base.step(100,0)     }.should raise_error(ArgumentError)
     lambda { @base.step(nil)       }.should raise_error(ArgumentError)
     lambda { @base.step('test')    }.should raise_error(ArgumentError)
-    lambda { @base.step(true, 123) }.should raise_error(ArgumentError)   
+    lambda { @base.step(true, 123) }.should raise_error(ArgumentError)
+  end
+  
+  it "raises a LocalJumpError if not provided a block" do
     lambda { @base.step(5, 5)      }.should raise_error(LocalJumpError)
     lambda { @base.step(5, 3.4)    }.should raise_error(LocalJumpError)
     lambda { @base.step(5.0, 2)    }.should raise_error(LocalJumpError)

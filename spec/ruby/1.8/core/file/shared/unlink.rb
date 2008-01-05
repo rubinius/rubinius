@@ -33,11 +33,11 @@ shared :file_unlink do |cmd|
       File.exists?(@file2).should == false
     end
 
-    it "raises an exception if the arguments are wrong type or are the incorrect number of arguments " do
+    it "raises an TypeError if not passed a String type" do
       lambda { File.send(cmd, 1) }.should raise_error(TypeError)
     end
-
-    it "raises an error when the given file doesn't exist" do
+    
+    it "raises an Errno::ENOENT when the given file doesn't exist" do
       lambda { File.send(cmd, 'bogus') }.should raise_error(Errno::ENOENT)
     end
 

@@ -28,7 +28,7 @@ describe MockProxy, "#with" do
     @proxy.with(:a).should be_equal(@proxy)
   end
 
-  it "raises ArgumentError if no arguments are given" do
+  it "raises an ArgumentError if no arguments are given" do
     lambda { @proxy.with }.should raise_error(ArgumentError)
   end
   
@@ -237,7 +237,7 @@ describe MockProxy, "#times" do
     @proxy = MockProxy.new
   end
   
-  it "should be a no-op" do
+  it "is a no-op" do
     @proxy.times.should == @proxy
   end
 end

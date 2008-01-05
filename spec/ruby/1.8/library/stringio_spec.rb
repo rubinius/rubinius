@@ -14,11 +14,11 @@ end
 class StringSubclass < String;end
 
 describe "StringIO.open" do
-  it "should contain an empty string if no argument is provided" do
+  it "contains an empty string if no argument is provided" do
     StringIO.open.string.should == ""
   end
 
-  it "should yield the IO object to the block" do
+  it "yields the IO object to the block" do
     sio = nil
     StringIO.open("abc") do |io|
       io.string.should == 'abc'
@@ -29,7 +29,7 @@ describe "StringIO.open" do
     sio.closed?.should == true
   end
 
-  it "should call to_str on the first argument if it is not a String" do
+  it "calls to_str on the first argument if it is not a String" do
     obj = mock('hello')
     def obj.to_str; "hello"; end
     StringIO.open(obj) do |io|
@@ -37,30 +37,30 @@ describe "StringIO.open" do
     end
   end
 
-  it "should raise TypeError if the argument cannot be converted" do
+  it "raises a TypeError if the argument cannot be converted" do
     obj = mock('x')
     lambda { StringIO.open(obj) }.should raise_error(TypeError)
   end
 end
 
 describe "StringIO.new" do
-  it "should contain an empty string if no argument is provided" do
+  it "contains an empty string if no argument is provided" do
     StringIO.new.string.should == ""
   end
 
-  it "should call to_str on the first argument if it is not a String" do
+  it "calls to_str on the first argument if it is not a String" do
     obj = mock('hello')
     def obj.to_str; "hello"; end
     io = StringIO.new(obj)
     io.string.should == "hello"
   end
 
-  it "should raise TypeError if the argument cannot be converted" do
+  it "raises a TypeError if the argument cannot be converted" do
     obj = mock('x')
     lambda { StringIO.new(obj) }.should raise_error(TypeError)
   end
 
-  it "should initialize in read-only mode when given a 'read' mode flag" do
+  it "initializes in read-only mode when given a 'read' mode flag" do
     io = StringIO.new('hi', 'r')
     io.closed_write?.should == true
     io.closed_read?.should == false
@@ -70,7 +70,7 @@ describe "StringIO.new" do
     lambda { io.write('!') }.should raise_error(IOError)
   end
 
-  it "should not call to_str on String subclasses" do
+  it "does not call to_str on String subclasses" do
     str = StringSubclass.new('keep')
     io = StringIO.new(str)
     io.string.class.should == StringSubclass
@@ -80,13 +80,13 @@ describe "StringIO.new" do
 end
 
 describe "StringIO#<<" do
-  it "should append to the string when in append mode" do
+  it "appends to the string when in append mode" do
     @io = StringIO.new("example", 'a')
     (@io << "x").should == @io
     @io.string.should == "examplex"
   end
 
-  it "should write to the string when in default mode" do
+  it "writes to the string when in default mode" do
     @io = StringIO.new("example")
     (@io << "x").should == @io
     @io.string.should == "xxample"
@@ -94,7 +94,7 @@ describe "StringIO#<<" do
 end
 
 describe "StringIO#binmode" do
-  it "should return the IO object" do
+  it "returns the IO object" do
     @io = StringIO.new("example")
     @io.binmode.should == @io
   end
@@ -104,7 +104,7 @@ describe "StringIO#close" do
   before(:each) do
     util_build_stringio
   end
-  it "should prevent further operations" do
+  it "prevents further operations" do
     @io.close.should == nil
     @io.closed?.should == true
     @io.closed_read?.should == true
@@ -119,13 +119,13 @@ describe "StringIO#close_read" do
     @io.close_read
   end
 
-  it "should prevent further reading" do
+  it "prevents further reading" do
     @io.closed_read?.should == true
     @io.closed_write?.should == false
     lambda { @io.read(1) }.should raise_error(IOError)
   end
 
-  it "should allow further writing" do
+  it "allows further writing" do
     @io.write("x").should == 1
   end
 end
@@ -136,13 +136,13 @@ describe "StringIO#close_write" do
     @io.close_write
   end
 
-  it "should prevent further writing" do
+  it "prevents further writing" do
     @io.closed_read?.should == false
     @io.closed_write?.should == true
     lambda { @io.write('x') }.should raise_error(IOError)
   end
 
-  it "should allow further reading" do
+  it "allows further reading" do
     @io.read(1).should == 'e'
   end
 end
@@ -152,13 +152,13 @@ describe "StringIO#each and each_line" do
     @io = StringIO.new("a b c d e") 
   end
   
-  it "should yield each line by default" do
+  it "yields each line by default" do
     seen = []
     @io.each {|s| seen << s}.should == @io
     seen.should == ["a b c d e"]
   end
 
-  it "should support a separator argument" do
+  it "supports a separator argument" do
     seen = []
     @io.each(' ') {|s| seen << s}.should == @io
     seen.should == ["a ", "b ", "c ", "d ", "e"]
@@ -170,13 +170,13 @@ describe "StringIO#each_byte" do
     @io = StringIO.new("xyz")
   end
 
-  it "should yield each character code in turn" do
+  it "yields each character code in turn" do
     seen = []
     @io.each_byte {|b| seen << b}.should == nil
     seen.should == [120, 121, 122]
   end
 
-  it "should raise IOError unless the IO is open for reading" do
+  it "raises an IOError unless the IO is open for reading" do
     @io.close_read
     lambda { @io.each_byte {|b| b } }.should raise_error(IOError)
   end
@@ -187,68 +187,68 @@ describe "StringIO#eof? and eof" do
     @io = StringIO.new("eof")
   end
 
-  it "should be false for a new StringIO" do
+  it "is false for a new StringIO" do
     @io.eof.should == false
     @io.eof?.should == false
   end
 
-  it "should be true once the IO has been read" do
+  it "is true once the IO has been read" do
     @io.read(3)
     @io.eof.should == true
     @io.eof?.should == true
   end
 
-  it "should be true after gets returns nil" do
+  it "is true after gets returns nil" do
     @io.gets.should == 'eof'
     @io.gets.should == nil
     @io.eof.should == true
     @io.eof?.should == true
   end
 
-  it "should be true after seeking to the end" do
+  it "is true after seeking to the end" do
     @io.seek(3)
     @io.eof.should == true
   end
 
-  it "should be true after seeking beyond the end" do
+  it "is true after seeking beyond the end" do
     @io.seek(5)
     @io.eof.should == true
   end
 
-  it "should be true after setting the position to the end" do
+  it "is true after setting the position to the end" do
     @io.pos = 3
     @io.eof.should == true
   end
 
-  it "should be true after setting the position beyond the end" do
+  it "is true after setting the position beyond the end" do
     @io.pos = 5
     @io.eof.should == true
   end
 end
 
 describe "StringIO#fcntl" do
-  it "should raise NotImplementedError" do
+  it "raises a NotImplementedError" do
     @io = StringIO.new("boom")
     lambda { @io.fcntl }.should raise_error(NotImplementedError)
   end
 end
 
 describe "StringIO#fileno" do
-  it "should be nil" do
+  it "is nil" do
     @io = StringIO.new("nuffin")
     @io.fileno.should == nil
   end
 end
 
 describe "StringIO#flush" do
-  it "should return itself" do
+  it "returns itself" do
     @io = StringIO.new("flush")
     @io.flush.should == @io
   end
 end
 
 describe "StringIO#fsync" do
-  it "should return zero" do
+  it "returns zero" do
     @io = StringIO.new("fsync")
     @io.fsync.should == 0
   end
@@ -259,7 +259,7 @@ describe "StringIO#getc" do
     @io = StringIO.new("getc")
   end
 
-  it "should return the next character code" do
+  it "returns the next character code" do
     @io.getc.should == ?g
     @io.getc.should == ?e
     @io.getc.should == ?t
@@ -278,22 +278,22 @@ describe "StringIO#gets" do
     $/ = "\n"
   end
 
-  it "should return the next 'line'" do
+  it "returns the next 'line'" do
     @io.gets.should == 'g e t s'
     @io.gets.should == nil
   end
 
-  it "should raise IOError when it is not open for reading" do
+  it "raises an IOError when it is not open for reading" do
     @io.close_read
     lambda { @io.gets }.should raise_error(IOError)
   end
 
-  it "should support separator strings" do
+  it "supports separator strings" do
     @io.gets('e').should == 'g e'
     @io.gets('e').should == ' t s'
   end
 
-  it "should honor the $/ global separator" do
+  it "honors the $/ global separator" do
     $/ = ' '
     @io.gets.should == 'g '
     @io.gets.should == 'e '
@@ -307,7 +307,7 @@ describe "StringIO#size and length" do
     util_build_stringio
   end
 
-  it "should return the length of the wrapped string" do
+  it "returns the length of the wrapped string" do
     @io.size.should == 37
     @io.length.should == 37
   end
@@ -318,7 +318,7 @@ describe "StringIO#tty? and isatty" do
     @io = StringIO.new('tty')
   end
 
-  it "should be false" do
+  it "is false" do
     @io.tty?.should == false
     @io.isatty.should == false
   end
@@ -329,17 +329,17 @@ describe "StringIO#lineno" do
     util_build_stringio
   end
 
-  it "should only count lines that have been read 'line-wise'" do
+  it "only counts lines that have been read 'line-wise'" do
     @io.read(@io.size)
     @io.lineno.should == 0
   end
 
-  it "should match the newline count after each_line" do
+  it "matches the newline count after each_line" do
     @io.each_line {|l| l }
     @io.lineno.should == 4
   end
 
-  it "should match the number of 'lines' read, even if they are not lines" do
+  it "matches the number of 'lines' read, even if they are not lines" do
     @io.gets('a')
     @io.gets('c')
     @io.gets('h')
@@ -347,7 +347,7 @@ describe "StringIO#lineno" do
     @io.lineno.should == 7
   end
 
-  it "should update the line number after readline, as well as gets" do
+  it "updates the line number after readline, as well as gets" do
     @io.readline
     @io.readline
     @io.readline
@@ -360,7 +360,7 @@ describe "StringIO#lineno=" do
     util_build_stringio
   end
 
-  it "should update the current line number but not advance the position" do
+  it "updates the current line number but not advance the position" do
     @io.lineno = 2
     @io.gets.should == "    each\n"
     @io.lineno.should == 3
@@ -368,13 +368,13 @@ describe "StringIO#lineno=" do
 end
 
 describe "StringIO#path" do
-  it "should return nil" do
+  it "returns nil" do
     StringIO.new("path").path.should == nil
   end
 end
 
 describe "StringIO#pid" do
-  it "should return nil" do
+  it "returns nil" do
     StringIO.new("pid").pid.should == nil
   end
 end
@@ -384,7 +384,7 @@ describe "StringIO#pos and tell" do
     util_build_stringio
   end
 
-  it "should return the current byte offset" do
+  it "returns the current byte offset" do
     @io.getc
     @io.pos.should == 1
     @io.read(7)
@@ -397,12 +397,12 @@ describe "StringIO#pos=" do
     util_build_stringio
   end
 
-  it "should update the current byte offset" do
+  it "updates the current byte offset" do
     @io.pos = 26
     @io.read(1).should == "r"
   end
 
-  it "should raise EINVAL if given a negative argument" do
+  it "raises an EINVAL if given a negative argument" do
     lambda { @io.pos = -10 }.should  raise_error(Errno::EINVAL)
   end
 end
@@ -415,12 +415,12 @@ describe "StringIO#print" do
     $\ = nil
   end
 
-  it "should print multiple items to the output" do
+  it "prints multiple items to the output" do
     @io.print(5,6,7,8).should == nil
     @io.string.should == '5678'
   end
 
-  it "should honor the output record separator global" do
+  it "honors the output record separator global" do
     $\ = 'x'
     @io.print(5,6,7,8).should == nil
     @io.string.should == '5678x'
@@ -432,7 +432,7 @@ describe "StringIO#printf" do
     @io = StringIO.new('')
   end
 
-  it "should perform format conversion" do
+  it "performs format conversion" do
     @io.printf("%d %04x", 123, 123).should == nil
     @io.string.should == "123 007b"
   end
@@ -443,7 +443,7 @@ describe "StringIO#putc" do
     @io = StringIO.new('')
   end
 
-  it "should handle characters and character codes" do
+  it "handles characters and character codes" do
     @io.putc(65).should == 65
     @io.putc('A').should == 'A'
     @io.putc('AA').should == 'AA'
@@ -517,23 +517,23 @@ describe "StringIO#read" do
     util_build_stringio
   end
 
-  it "should read at most 'length' bytes" do
+  it "reads at most 'length' bytes" do
     @io.read(666).should == @io.string
   end
 
-  it "should read to the end of the string if length is omitted" do
+  it "reads to the end of the string if length is omitted" do
     @io.read.should == @io.string
     @io.read.should == ""
     @io.read(nil).should == ""
     @io.read(50).should == nil
   end
 
-  it "should only support String buffers" do
+  it "only supports String buffers" do
     lambda { @io.read(5, []) }.should raise_error(TypeError)
     @io.pos.should == 0
   end
 
-  it "should read data into a buffer string if provided" do
+  it "reads data into a buffer string if provided" do
     @io = StringIO.new('buffered')
     buf = ""
     @io.read(5, buf).object_id.should == buf.object_id
@@ -549,13 +549,13 @@ describe "StringIO#readchar" do
     @io = StringIO.new('abc')
   end
 
-  it "should return character codes one at a time" do
+  it "returns character codes one at a time" do
     @io.readchar.should == ?a
     @io.readchar.should == ?b
     @io.readchar.should == ?c
   end
 
-  it "should raise EOFError at the end of the string" do
+  it "raises an EOFError at the end of the string" do
     3.times { @io.readchar }
     lambda { @io.readchar }.should raise_error(EOFError)
   end
@@ -566,21 +566,21 @@ describe "StringIO#readline" do
     @io = StringIO.new("r e a d")
   end
 
-  it "should return the next 'line'" do
+  it "returns the next 'line'" do
     @io.readline.should == 'r e a d'
   end
 
-  it "should raise EOFError at the end" do
+  it "raises an EOFError at the end" do
     @io.readline
     lambda { @io.readline }.should raise_error(EOFError)
   end
 
-  it "should raise IOError when it is not open for reading" do
+  it "raises an IOError when it is not open for reading" do
     @io.close_read
     lambda { @io.readline }.should raise_error(IOError)
   end
 
-  it "should support separator strings" do
+  it "support separator strings" do
     @io.gets('e').should == 'r e'
     @io.gets('e').should == ' a d'
   end
@@ -591,21 +591,21 @@ describe "StringIO#readlines" do
     @io = StringIO.new("line1\nline2\nline3\n")
   end
 
-  it "should return an array of lines" do
+  it "returns an array of lines" do
     @io.readlines.should == ["line1\n", "line2\n", "line3\n"]
   end
 
-  it "should raise IOError when it is not open for reading" do
+  it "raises an IOError when it is not open for reading" do
     @io.close_read
     lambda { @io.readlines }.should raise_error(IOError)
   end
 
-  it "should return the rest of the stream when separator is nil" do
+  it "returns the rest of the stream when separator is nil" do
     @io.read(4)
     @io.readlines(nil).should == ["1\nline2\nline3\n"]
   end
 
-  it "should optionally accept a separator string" do
+  it "optionally accepts a separator string" do
     @io.readlines('line').should == ["line", "1\nline", "2\nline", "3\n"]
   end
 end
@@ -619,28 +619,28 @@ describe "StringIO#reopen" do
   end
 
   fails_on :ruby do
-    it "should reopen a stream when given a String argument" do
+    it "reopens a stream when given a String argument" do
       @io.reopen('goodbye').should == @io
       @io.string.should == 'goodbye'
       @io << 'x'
       @io.string.should == 'xoodbye'
     end
 
-    it "should reopen a stream in append mode when flagged as such" do
+    it "reopens a stream in append mode when flagged as such" do
       @io.reopen('goodbye', 'a').should == @io
       @io.string.should == 'goodbye'
       @io << 'x'
       @io.string.should == 'goodbyex'
     end
 
-    it "should reopen and truncate when reopened in write mode" do
+    it "reopens and truncate when reopened in write mode" do
       @io.reopen('goodbye', 'wb').should == @io
       @io.string.should == ''
       @io << 'x'
       @io.string.should == 'x'
     end
 
-    it "should truncate the given string, not a copy" do
+    it "truncates the given string, not a copy" do
       str = 'goodbye'
       @io.reopen(str, 'w')
       @io.string.should == ''
@@ -648,13 +648,13 @@ describe "StringIO#reopen" do
     end
 
     compliant_on :ruby, :jruby do
-      it "should deny access to prevent truncation of a frozen string" do
+      it "denies access to prevent truncation of a frozen string" do
         @io = StringIO.new("ice")
         lambda { @io.reopen("burn".freeze, 'w') }.should raise_error(Errno::EACCES)
         lambda { @io.reopen("burn".freeze, 'a') }.should raise_error(Errno::EACCES)
       end
 
-      it "should not raise IOError if a frozen string is passed in read mode" do
+      it "does not raise IOError if a frozen string is passed in read mode" do
         @io.reopen("burn".freeze, 'r')
         @io.string.should == "burn"
       end
@@ -663,7 +663,7 @@ describe "StringIO#reopen" do
 
   # MRI refuses to convert objects that support to_str, JRuby and Rubinius can
   deviates_on(:jruby, :rubinius) do
-    it "should call to_str on the first argument if it is not a String" do
+    it "calls to_str on the first argument if it is not a String" do
       obj = mock('reopen')
       def obj.to_str; "reopen"; end
       @io.reopen(obj)
@@ -671,12 +671,12 @@ describe "StringIO#reopen" do
     end
   end
 
-  it "should raise TypeError if the argument cannot be converted" do
+  it "raises a TypeError if the argument cannot be converted" do
     obj = mock('x')
     lambda { @io.reopen(obj) }.should raise_error(TypeError)
   end
   
-  it "should reopen a stream when given a new StringIO object" do
+  it "reopens a stream when given a new StringIO object" do
     @io.close
     nio = StringIO.new('goodbye')
     @io.reopen(nio)
@@ -690,14 +690,14 @@ describe "StringIO#rewind" do
     @io = StringIO.new("hello\nworld")
   end
 
-  it "should reset the position" do
+  it "resets the position" do
     @io.gets
     @io.pos.should == 6
     @io.rewind
     @io.pos.should == 0
   end
 
-  it "should reset the line number" do
+  it "resets the line number" do
     @io.gets
     @io.lineno.should == 1
     @io.rewind
@@ -710,18 +710,18 @@ describe "StringIO#seek" do
     @io = StringIO.new("12345678")
   end
 
-  it "should seek to an absolute position" do
+  it "seeks to an absolute position" do
     @io.seek(5).should == 0
     @io.read(1).should == '6'
   end
 
-  it "should seek from the current position" do
+  it "seeks from the current position" do
     @io.read(1)
     @io.seek(1, IO::SEEK_CUR)
     @io.read(1).should == '3'
   end
 
-  it "should seek from the end of the IO" do
+  it "seeks from the end of the IO" do
     @io.seek(1, IO::SEEK_END)
     @io.read(1).should == nil
     @io.seek(-2, IO::SEEK_END)
@@ -730,7 +730,7 @@ describe "StringIO#seek" do
 end
 
 describe "StringIO#string" do
-  it "should return the underlying string" do
+  it "returns the underlying string" do
     str = "hello"
     @io = StringIO.new(str)
     @io.string.should == str
@@ -743,14 +743,14 @@ describe "StringIO#string=" do
     @io = StringIO.new("example\nstring")
   end
 
-  it "should change the underlying string" do
+  it "changes the underlying string" do
     str = "hello"
     @io.string = str
     @io.string.should == str
     @io.string.object_id.should == str.object_id
   end
 
-  it "should reset the position" do
+  it "resets the position" do
     @io.read(1)
     @io.pos.should == 1
     @io.string = "other"
@@ -758,7 +758,7 @@ describe "StringIO#string=" do
     @io.read(1).should == 'o'
   end
 
-  it "should reset the line number" do
+  it "resets the line number" do
     @io.gets
     @io.lineno.should == 1
     @io.string = "other"
@@ -772,7 +772,7 @@ describe "StringIO#sync" do
     @io = StringIO.new('')
   end
 
-  it "should be true" do
+  it "is true" do
     @io.sync.should == true
   end
 end
@@ -782,7 +782,7 @@ describe "StringIO#sync=" do
     @io = StringIO.new('')
   end
 
-  it "should not change 'sync' status" do
+  it "does not change 'sync' status" do
     @io.sync = false
     @io.sync.should == true
   end
@@ -793,26 +793,26 @@ describe "StringIO#sysread" do
     util_build_stringio
   end
 
-  it "should read at most 'length' bytes" do
+  it "reads at most 'length' bytes" do
     @io.sysread(666).should == @io.string
   end
 
-  it "should read to the end of the string if length is omitted" do
+  it "reads to the end of the string if length is omitted" do
     @io.sysread.should == @io.string
   end
 
-  it "should raise EOFError after the end of the string" do
+  it "raises an EOFError after the end of the string" do
     @io.sysread
     lambda { @io.sysread    }.should raise_error(EOFError)
     lambda { @io.sysread(5) }.should raise_error(EOFError)
   end
 
-  it "should only support String buffers" do
+  it "only supports String buffers" do
     lambda { @io.sysread(5, []) }.should raise_error(TypeError)
     @io.pos.should == 0
   end
 
-  it "should read data into a buffer string if provided" do
+  it "reads data into a buffer string if provided" do
     @io = StringIO.new('buffered')
     buf = ""
     @io.sysread(5, buf).object_id.should == buf.object_id
@@ -825,7 +825,7 @@ describe "StringIO#write and syswrite" do
     @io = StringIO.new('12345')
   end
 
-  it "should write at the current buffer position" do
+  it "writes at the current buffer position" do
     @io.read(2)
     @io.write('x').should == 1
     @io.string.should == '12x45'
@@ -833,7 +833,7 @@ describe "StringIO#write and syswrite" do
     @io.string.should == '12x75'
   end
 
-  it "should pad with null bytes if the position is after the end" do
+  it "pads with null bytes if the position is after the end" do
     @io.pos = 8
     @io.write('x')
     @io.string.should == "12345\000\000\000x"
@@ -841,7 +841,7 @@ describe "StringIO#write and syswrite" do
     @io.string.should == "12345\000\000\000x9"
   end
 
-  it "should return the number of bytes written" do
+  it "returns the number of bytes written" do
     @io.write('').should == 0
     @io.write(nil).should == 0
     str = "1" * 100
@@ -855,12 +855,12 @@ describe "StringIO#truncate" do
   end
 
   # TODO - ri error - says truncate always returns 0
-  it "should truncate the underlying string" do
+  it "truncates the underlying string" do
     @io.truncate(4).should == 4
     @io.string.should == '1234'
   end
 
-  it "should not update the position" do
+  it "does not update the position" do
     @io.read(5)
     @io.truncate(3)
     @io.pos.should == 5
@@ -872,25 +872,25 @@ describe "StringIO#ungetc" do
     @io = StringIO.new('1234')
   end
 
-  it "should write a character before the current position" do
+  it "writes a character before the current position" do
     @io.read(1)
     @io.ungetc(65)
     @io.string.should == 'A234'
   end
 
-  it "should rewind the current position by one" do
+  it "rewinds the current position by one" do
     @io.read(2)
     @io.pos.should == 2
     @io.ungetc(65)
     @io.pos.should == 1
   end
 
-  it "should do nothing when pos == 0" do
+  it "does nothing when pos == 0" do
     @io.ungetc(65)
     @io.string.should == '1234'
   end
 
-  it "should not accept strings" do
+  it "does not accept strings" do
     lambda { @io.ungetc('A') }.should raise_error(TypeError)
   end
 end

@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#eval" do
-  it "should accept a Proc object as a binding" do
+  it "accepts a Proc object as a binding" do
     x = 1
     bind = proc {}
 
@@ -14,12 +14,12 @@ describe "Kernel#eval" do
     eval("z", bind).should == 3
   end
 
-  it "should not make Proc locals visible to evaluated code" do
+  it "does not make Proc locals visible to evaluated code" do
     bind = proc { inner = 4 }
     lambda { eval("inner", bind) }.should raise_error(NameError)
   end
 
-  it "should allow a binding to be captured inside an eval" do
+  it "allows a binding to be captured inside an eval" do
     outer_binding = binding
     level1 = eval("binding", outer_binding)
     level2 = eval("binding", level1)
@@ -44,7 +44,7 @@ describe "Kernel#eval" do
     eval("y", level2).should == 3
   end
 
-  it "should allow Proc and binding to be nested in horrible ways" do
+  it "allows Proc and binding to be nested in horrible ways" do
     outer_binding = binding
     proc_binding = eval("proc {l = 5; binding}.call", outer_binding)
     inner_binding = eval("proc {k = 6; binding}.call", proc_binding)

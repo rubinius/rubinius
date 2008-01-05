@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 # DO NOT PUT ANYTHING ABOVE THIS
-describe 'Kernel#caller' do
+describe "Kernel#caller" do
   before :each do
     def a(skip)
       caller(skip)

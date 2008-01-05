@@ -11,7 +11,7 @@ describe "GetoptLong#terminate" do
     )
   end
   
-  it "should terminate option proccessing" do
+  it "terminates option proccessing" do
     begin
       old_argv = ARGV
       ARGV = [ "--size", "10k", "-v", "-q", "a.txt", "b.txt" ]
@@ -24,11 +24,11 @@ describe "GetoptLong#terminate" do
     end
   end
   
-  it "should return self when option processsing is terminated" do
+  it "returns self when option processsing is terminated" do
     @opts.terminate.should == @opts
   end
   
-  it "should return nil when option processing was already terminated" do
+  it "returns nil when option processing was already terminated" do
     @opts.terminate
     @opts.terminate.should == nil
   end

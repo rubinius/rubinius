@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'getoptlong'
 
 describe "GetoptLong#initialize" do
-  it "should set ordering to REQUIRE_ORDER if ENV['POSIXLY_CORRECT'] is set" do
+  it "sets ordering to REQUIRE_ORDER if ENV['POSIXLY_CORRECT'] is set" do
     begin
       old_env_value = ENV["POSIXLY_CORRECT"]
       ENV["POSIXLY_CORRECT"] = ""
@@ -14,7 +14,7 @@ describe "GetoptLong#initialize" do
     end
   end
   
-  it "should set ordering to PERMUTE if ENV['POSIXLY_CORRECT'] is not set" do
+  it "sets ordering to PERMUTE if ENV['POSIXLY_CORRECT'] is not set" do
     begin
       old_env_value = ENV["POSIXLY_CORRECT"]
       ENV["POSIXLY_CORRECT"] = nil

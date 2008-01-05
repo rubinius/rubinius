@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The redo statement" do
-  it "raises LocalJumpError if used not within block or while/for loop" do
+  it "raises a LocalJumpError if used not within block or while/for loop" do
     def bad_meth_redo; redo; end
     lambda { bad_meth_redo() }.should raise_error(LocalJumpError)
   end
@@ -16,7 +16,7 @@ describe "The redo statement" do
     a.should == [1, 1, 2]
   end
 
-  it "should redo closest loop" do
+  it "re-executes the closest loop" do
     exist = [2,3]
     processed = []
     order = []
@@ -37,7 +37,7 @@ describe "The redo statement" do
     order.should == [1,2,2,3,3,4]
   end
 
-  it "should redo last step in enumeration" do
+  it "re-executes the last step in enumeration" do
     list = []
     [1,2,3].each do |x|
       list << x

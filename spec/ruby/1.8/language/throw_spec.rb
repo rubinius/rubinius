@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The throw keyword" do
-  it "should abandon processing" do
+  it "abandons processing" do
     i = 0
     catch(:done) do
       loop do
@@ -13,27 +13,27 @@ describe "The throw keyword" do
     i.should == 5
   end
 
-  it "should support a second parameter" do
+  it "supports a second parameter" do
     msg = catch(:exit) do
       throw :exit,:msg
     end
     msg.should == :msg
   end
 
-  it "should use nil as a default second parameter" do
+  it "uses nil as a default second parameter" do
     msg = catch(:exit) do
       throw :exit
     end
     msg.should == nil
   end
 
-  it "should return the last value of catch if it nothing is thrown" do
+  it "returns the last value of catch if it nothing is thrown" do
     catch(:exit) do      
       :noexit
     end.should == :noexit
   end
   
-  it "should support nesting" do
+  it "supports nesting" do
     i = []
     catch(:exita) do
       i << :a
@@ -49,7 +49,7 @@ describe "The throw keyword" do
     i.should == [:a,:b,:a_exit]
   end
 
-  it "should support nesting with the same name" do
+  it "supports nesting with the same name" do
     i = []
     catch(:exit) do
       i << :a
@@ -64,7 +64,7 @@ describe "The throw keyword" do
     i.should == [:a,:b,:b_exit,:a_exit]
   end
 
-  it "should unwind stack from within a method" do
+  it "unwinds stack from within a method" do
     def throw_method(handler,val)
       throw handler,val
     end
@@ -74,12 +74,12 @@ describe "The throw keyword" do
     end.should == 5
   end
   
-  it "should raise a name error if outside of scope of a matching catch" do    
+  it "raises a name error if outside of scope of a matching catch" do    
     lambda { throw :test,5 }.should raise_error(NameError)
     lambda { catch(:different) { throw :test,5 } }.should raise_error(NameError)
   end
 
-  it "should raise an exception if used to exit a thread" do
+  it "raises a ThreadError if used to exit a thread" do
     lambda {
       catch(:what) do
         Thread.new do

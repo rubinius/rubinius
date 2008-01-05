@@ -23,13 +23,13 @@ describe "File.expand_path" do
     @pwd  = nil
   end
   
-  it "Converts a pathname to an absolute pathname" do 
+  it "converts a pathname to an absolute pathname" do 
     File.expand_path('').should == @base
     File.expand_path('a').should == File.join(@base, 'a')
     File.expand_path('a', nil).should == File.join(@base, 'a')
   end
   
-  it "Converts a pathname to an absolute pathname, Ruby-Talk:18512 " do 
+  it "converts a pathname to an absolute pathname, Ruby-Talk:18512 " do 
     # Because of Ruby-Talk:18512
     File.expand_path('a.').should == File.join(@base, 'a.')
     File.expand_path('.a').should == File.join(@base, '.a')
@@ -38,15 +38,16 @@ describe "File.expand_path" do
     File.expand_path('a../b').should == File.join(@base, 'a../b')
   end
   
-  it "Converts a pathname to an absolute pathname, using a complete path" do     
+  it "converts a pathname to an absolute pathname, using a complete path" do     
     File.expand_path("", "#{@tmpdir}").should == "#{@tmpdir}"
     File.expand_path("a", "#{@tmpdir}").should =="#{@tmpdir}/a"
     File.expand_path("../a", "#{@tmpdir}/xxx").should == "#{@tmpdir}/a"
     File.expand_path(".", "#{@rootdir}").should == "#{@rootdir}"
   end
   
+  # FIXME: do not use conditionals like this around #it blocks
   unless not home = ENV['HOME']
-    it "Converts a pathname to an absolute pathname, using ~ (home) as base" do
+    it "converts a pathname to an absolute pathname, using ~ (home) as base" do
       File.expand_path('~').should == home
       File.expand_path('~', '/tmp/gumby/ddd').should == home
       File.expand_path('~/a', '/tmp/gumby/ddd').should == File.join(home, 'a')
@@ -54,15 +55,14 @@ describe "File.expand_path" do
   end
   
   platform_is_not :mswin do
+    # FIXME: these are insane!
     it "expand path with " do      
       File.expand_path("../../bin", "/tmp/x").should == "/bin" 
       File.expand_path("../../bin", "/tmp").should == "/bin"
       File.expand_path("../../bin", "/").should == "/bin"
       File.expand_path("../../bin", "tmp/x").should == File.join(@pwd, 'bin')
     end
-  end  
-  
-  platform_is_not :mswin do
+
     specify "expand_path for commoms unix path  give a full path" do      
       File.expand_path('/tmp/').should =='/tmp'
       File.expand_path('/tmp/../../../tmp').should == '/tmp'
@@ -76,17 +76,24 @@ describe "File.expand_path" do
       File.expand_path('//').should == '//'
       File.expand_path('~/a','~/b').should == ENV['HOME']+"/a"
     end
-  end 
+
+    it "raises an ArgumentError if the path is not valid" do
+      lambda { File.expand_path("~a_fake_file") }.should raise_error(ArgumentError)
+    end
+    
+    it "expands ~ENV['USER'] to the user's home directory" do
+      File.expand_path("~#{ENV['USER']}").should == ENV['HOME']
+    end
+  end
   
-  it "raise an exception if the argumnents are not of the correct type or are missing" do
-    lambda { File.expand_path       }.should raise_error(ArgumentError)
+  it "raises an ArgumentError is not passed one or two arguments" do
+    lambda { File.expand_path }.should raise_error(ArgumentError)
+    lambda { File.expand_path '../', 'tmp', 'foo' }.should raise_error(ArgumentError)
+  end
+  
+  it "raises a TypeError if not passed a String type" do
     lambda { File.expand_path(1)    }.should raise_error(TypeError)
     lambda { File.expand_path(nil)  }.should raise_error(TypeError)
     lambda { File.expand_path(true) }.should raise_error(TypeError)
-      
-    platform_is_not :mswin do
-      lambda { File.expand_path("~a_fake_file") }.should raise_error(ArgumentError)
-      File.expand_path("~#{ENV['USER']}").should == ENV['HOME']
-    end
   end
 end

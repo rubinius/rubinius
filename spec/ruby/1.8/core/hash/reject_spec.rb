@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 require File.dirname(__FILE__) + '/shared/iteration'
 
 describe "Hash#reject" do
-  it "should be equivalent to hsh.dup.delete_if" do
+  it "is equivalent to hsh.dup.delete_if" do
     h = { :a => 'a', :b => 'b', :c => 'd' }
     h.reject { |k,v| k == 'd' }.should == (h.dup.delete_if { |k, v| k == 'd' })
     
@@ -67,7 +67,7 @@ describe "Hash#reject!" do
   end  
 
   compliant_on :ruby, :jruby do
-    it "raises TypeError if called on a frozen instance" do
+    it "raises a TypeError if called on a frozen instance" do
       lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(TypeError)
       lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(TypeError)
     end

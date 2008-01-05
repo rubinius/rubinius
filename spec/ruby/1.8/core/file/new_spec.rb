@@ -48,7 +48,7 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
-  it "raise an Errorno::EEXIST if the file exists when create a new file with File::CREAT|File::EXCL" do 
+  it "raises an Errorno::EEXIST if the file exists when create a new file with File::CREAT|File::EXCL" do 
     lambda { @fh = File.new(@file, File::CREAT|File::EXCL) }.should raise_error(Errno::EEXIST)
   end
   
@@ -58,16 +58,16 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
-  it "raise an Errno::EINVAL error with File::APPEND" do 
+  it "raises an Errno::EINVAL error with File::APPEND" do 
     lambda { @fh = File.new(@file, File::APPEND) }.should raise_error(Errno::EINVAL)
   end
   
   
-  it "raise an Errno::EINVAL error with File::RDONLY|File::APPEND" do 
+  it "raises an Errno::EINVAL error with File::RDONLY|File::APPEND" do 
     lambda { @fh = File.new(@file, File::RDONLY|File::APPEND) }.should raise_error(Errno::EINVAL)
   end
   
-  it "raise an Errno::EINVAL error with File::RDONLY|File::WRONLY" do 
+  it "raises an Errno::EINVAL error with File::RDONLY|File::WRONLY" do 
     @fh = File.new(@file, File::RDONLY|File::WRONLY)
     @fh.class.should == File
     File.exists?(@file).should == true

@@ -6,7 +6,7 @@ describe "Hash#fetch" do
     { :a => 1, :b => -1 }.fetch(:b).should == -1
   end
   
-  it "raises IndexError if key is not found" do
+  it "raises an IndexError if key is not found" do
     lambda { {}.fetch(:a)             }.should raise_error(IndexError)
     lambda { Hash.new(5).fetch(:a)    }.should raise_error(IndexError)
     lambda { Hash.new { 5 }.fetch(:a) }.should raise_error(IndexError)
@@ -28,7 +28,7 @@ describe "Hash#fetch" do
     $VERBOSE = old
   end
 
-  it "raises when the size of its arguments isn't two or one" do
+  it "raises an ArgumentError when not passed one or two arguments" do
     lambda { {}.fetch()        }.should raise_error(ArgumentError)
     lambda { {}.fetch(1, 2, 3) }.should raise_error(ArgumentError)
   end

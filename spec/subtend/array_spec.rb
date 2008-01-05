@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/subtend_helper'
 compile_extension('subtend_array')
 require File.dirname(__FILE__) + '/ext/subtend_array'
 
-context "SubtendArray" do
+describe "SubtendArray" do
   setup do
     @s = SubtendArray.new
   end

@@ -6,7 +6,7 @@ describe "Bignum#==" do
     @bignum = BignumHelper.sbm
   end
   
-  it "should return true if self has the same value as the given argument" do
+  it "returns true if self has the same value as the given argument" do
     (@bignum == @bignum).should == true
     (@bignum == @bignum + 1).should == false
     (@bignum + 1 == @bignum).should == false

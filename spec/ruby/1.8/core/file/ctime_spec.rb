@@ -14,7 +14,7 @@ describe "File.ctime" do
     File.ctime(@file).class.should == Time
   end
 
-  it "raise an Errno::ENOENT exception if the file is not found" do    
+  it "raises an Errno::ENOENT exception if the file is not found" do    
     lambda { File.ctime('bogus') }.should raise_error(Errno::ENOENT)
   end
 end 

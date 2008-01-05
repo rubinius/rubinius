@@ -92,7 +92,7 @@ describe "Array#uniq!" do
   end
   
   compliant_on :ruby, :jruby do
-    it "raises TypeError on a frozen array if modification would take place" do
+    it "raises a TypeError on a frozen array if modification would take place" do
       dup_ary = [1, 1, 2]
       dup_ary.freeze
       lambda { dup_ary.uniq! }.should raise_error(TypeError)

@@ -32,25 +32,25 @@ describe "Module#include" do
     lambda { ModuleSpecs::Basic.send(:include, Class.new) }.should raise_error(TypeError)
   end
   
-  it "should import constants to modules and classes" do
+  it "imports constants to modules and classes" do
     ModuleSpecs::A.constants.should include("CONSTANT_A")
     ModuleSpecs::B.constants.should include("CONSTANT_A","CONSTANT_B")
     ModuleSpecs::C.constants.should include("CONSTANT_A","CONSTANT_B")
   end
 
-  it "should not override existing constants in modules and classes" do
+  it "does not override existing constants in modules and classes" do
     ModuleSpecs::A::OVERRIDE.should == :a
     ModuleSpecs::B::OVERRIDE.should == :b
     ModuleSpecs::C::OVERRIDE.should == :c    
   end
 
-  it "should import instance methods to modules and classes" do
+  it "imports instance methods to modules and classes" do
     ModuleSpecs::A.instance_methods.should include("ma")
     ModuleSpecs::B.instance_methods.should include("ma","mb")
     ModuleSpecs::C.instance_methods.should include("ma","mb")
   end
 
-  it "should not import methods to modules and classes" do
+  it "does not import methods to modules and classes" do
     ModuleSpecs::A.methods.include?("cma").should == true
     ModuleSpecs::B.methods.include?("cma").should == false
     ModuleSpecs::B.methods.include?("cmb").should == true

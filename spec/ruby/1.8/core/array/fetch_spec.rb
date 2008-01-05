@@ -11,7 +11,7 @@ describe "Array#fetch" do
     [1, 2, 3, 4].fetch(-1).should == 4
   end
   
-  it "raises IndexError if there is no element at index" do
+  it "raises an IndexError if there is no element at index" do
     lambda { [1, 2, 3].fetch(3) }.should raise_error(IndexError)
     lambda { [1, 2, 3].fetch(-4) }.should raise_error(IndexError)
     lambda { [].fetch(0) }.should raise_error(IndexError)

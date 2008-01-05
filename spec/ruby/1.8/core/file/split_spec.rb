@@ -7,20 +7,20 @@ describe "File.split" do
     @path_windows_forward  = "C:/foo/bar/baz.rb"
   end 
   
-  it "should split the given string into a directory and a file component and returns them in a 2 element array" do
+  it "splits the given string into a directory and a file component and returns them in a 2 element array" do
     File.split("/rubinius/better/than/ruby").should == ["/rubinius/better/than", "ruby"]
   end
 
-  it "should split the given string into a directory and a file component and returns them in a two-element array. (unix)" do
+  it "splits the given string into a directory and a file component and returns them in a two-element array. (unix)" do
     File.split(@path_unix).should == ["/foo/bar","baz.rb"]
   end
 
-  it "should split the given string into a directory and a file component and returns them in a two-element array. (edge cases)" do 
+  it "splits the given string into a directory and a file component and returns them in a two-element array. (edge cases)" do 
     File.split("").should == [".", ""]
     File.split("//foo////").should == ["/", "foo"]  
   end
 
-  it "should split the given string into a directory and a file component and returns them in a two-element array.(windows)" do
+  it "splits the given string into a directory and a file component and returns them in a two-element array. (windows)" do
     compliant_on :ruby, :rubinius do
       File.split(@path_windows_backward).should ==  [".", "C:\\foo\\bar\\baz.rb"]
     end
@@ -35,17 +35,20 @@ describe "File.split" do
     # different from *both* variants above...
   end   
    
-  it "should split the given string into a directory and a file component and returns them in a two-element array.(forward slash)" do
+  it "splits the given string into a directory and a file component and returns them in a two-element array. (forward slash)" do
     File.split(@path_windows_forward).should == ["C:/foo/bar", "baz.rb"] 
   end
   
-  it "should raise an exception if the number of arguments are incorrect or of incorrect type" do
+  it "raises an ArgumentError when not passed a single argument" do
     lambda { File.split }.should raise_error(ArgumentError)
     lambda { File.split('string', 'another string') }.should raise_error(ArgumentError)
+  end
+
+  it "raises a TypeError if the argument is not a String type" do
     lambda { File.split(1) }.should raise_error(TypeError)
   end
     
-  it "should coerce argument to a string if a non string type is given" do
+  it "coerces the argument with to_str if it is not a String type" do
     class C; def to_str; "/rubinius/better/than/ruby"; end; end
     File.split(C.new).should == ["/rubinius/better/than", "ruby"]
   end

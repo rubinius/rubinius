@@ -58,13 +58,13 @@ describe "File.join" do
     end
   end
   
-  it "raise a TypeError exception when args are nil" do
+  it "raises a TypeError exception when args are nil" do
     lambda { File.join(nil, nil) }.should raise_error(TypeError)
   end
 end
 
 describe "File.join" do
-  it "should return a new string formed by joining the strings using File::SEPARATOR" do
+  it "returns a new string formed by joining the strings using File::SEPARATOR" do
     File.join("smalltalk","ruby","rubinius").should == "smalltalk/ruby/rubinius"
     File.join.should == ""
 

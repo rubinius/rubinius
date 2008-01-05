@@ -43,7 +43,7 @@ describe "Array#insert" do
     [1, 2, 3].insert(-4, -3).should == [-3, 1, 2, 3]
   end  
   
-  it "raises IndexError if the negative index is out of bounds" do
+  it "raises an IndexError if the negative index is out of bounds" do
     lambda { [].insert(-2, 1)  }.should raise_error(IndexError)
     lambda { [1].insert(-3, 2) }.should raise_error(IndexError)
   end
@@ -67,7 +67,7 @@ describe "Array#insert" do
   end
   
   compliant_on :ruby, :jruby do
-    it "raises TypeError on frozen arrays if modification takes place" do
+    it "raises a TypeError on frozen arrays if modification takes place" do
       lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(TypeError)
     end
 

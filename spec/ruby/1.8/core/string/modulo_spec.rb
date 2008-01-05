@@ -55,7 +55,7 @@ describe "String#%" do
     end
   end
 
-  it "raises ArgumentError for unused arguments when $DEBUG is true" do
+  it "raises an ArgumentError for unused arguments when $DEBUG is true" do
     begin
       old_debug = $DEBUG
       $DEBUG = true
@@ -451,7 +451,7 @@ describe "String#%" do
 
   # MRI crashes on this one.
   # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
-  it "raises ArgumentError for huge precisions for %s" do
+  it "raises an ArgumentError for huge precisions for %s" do
     block = lambda { "%.25555555555555555555555555555555555555s" % "hello world" }
     block.should raise_error(ArgumentError)
   end

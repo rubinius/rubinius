@@ -126,7 +126,7 @@ describe "Kernel#require" do
     end
   end
 
-  it "should not infinite loop on an rbc file that requires itself" do
+  it "does not recursively load an rbc file that requires itself" do
     $require_spec_recursive = nil
     $LOADED_FEATURES.delete 'require_spec_recursive.rb'
 

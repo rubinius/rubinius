@@ -23,7 +23,7 @@ describe "Dir.mkdir" do
     end
   end
 
-  it "raises without adequate permissions in the parent dir" do
+  it "raises a SystemCallError when lacking adequate permissions in the parent dir" do
     Dir.mkdir 'noperms', 0000
 
     lambda { Dir.mkdir 'noperms/subdir' }.should raise_error(SystemCallError)

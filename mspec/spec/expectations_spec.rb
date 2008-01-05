@@ -8,7 +8,7 @@ describe ExpectationNotMetError do
 end
 
 describe Expectation, "#fail_with" do
-  it "raises ExpectationNotMetError" do
+  it "raises an ExpectationNotMetError" do
     lambda {
       Expectation.fail_with "expected this", "to equal that"
     }.should raise_error(ExpectationNotMetError, "expected this to equal that")

@@ -22,7 +22,7 @@ describe "Array#clear" do
   end
 
   compliant_on :ruby, :jruby do
-    it "raises TypeError on a frozen array" do
+    it "raises a TypeError on a frozen array" do
       a = [1]
       a.freeze
       lambda { a.clear }.should raise_error(TypeError)

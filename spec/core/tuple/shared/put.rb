@@ -6,14 +6,14 @@ shared :tuple_put do |cmd|
       t.at(0).should == "Whee"
     end
 
-    it "raises InvalidIndex when index is greater than or equal to tuple size" do
+    it "raises an InvalidIndexError when index is greater than or equal to tuple size" do
       t = Tuple.new(1)
-      lambda { t.send(cmd, 1, 'wrong') }.should raise_error(InvalidIndex)
+      lambda { t.send(cmd, 1, 'wrong') }.should raise_error(InvalidIndexError)
     end
   
-    it "raises InvalidIndex when index is less than zero" do
+    it "raises an InvalidIndexError when index is less than zero" do
       t = Tuple.new(1)
-      lambda { t.send(cmd, -1, 'wrong') }.should raise_error(InvalidIndex)
+      lambda { t.send(cmd, -1, 'wrong') }.should raise_error(InvalidIndexError)
     end
   end
 end

@@ -3,8 +3,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # Language-level method behaviour
 
 
-describe 'Defining methods with *' do
-  it 'If * by itself is the only param, method takes any number of args that are ignored' do
+describe "Defining methods with *" do
+  it "If * by itself is the only param, method takes any number of args that are ignored" do
     def foo(*); end;
 
     foo.should == nil
@@ -12,30 +12,30 @@ describe 'Defining methods with *' do
     foo(1, 2, 3, 4, :a, :b, 'c', 'd').should == nil
   end
 
-  it 'With a parameter name, * stores all extra arguments as an Array in it' do
+  it "With a parameter name, * stores all extra arguments as an Array in it" do
     def foo(*a); a; end;
     foo.should == []
     foo(1, 2).should == [1, 2]
     foo([:a]).should == [[:a]]
   end
 
-  it 'A * param may be preceded by any number of other parameter names' do
+  it "A * param may be preceded by any number of other parameter names" do
     def foo(a, b, c, d, e, *f); [a, b, c, d, e, f]; end
     foo(1, 2, 3, 4, 5, 6, 7, 8).should == [1, 2, 3, 4, 5, [6, 7, 8]]
   end
 
-  it 'Only one *param may appear in a parameter list' do
+  it "Only one *param may appear in a parameter list" do
     lambda { eval 'def foo(a, *b, *c); end' }.should raise_error(SyntaxError)
   end
 
-  it 'The required arguments must be supplied even with a * param' do
+  it "The required arguments must be supplied even with a * param" do
     def foo(a, b, *c); end
     lambda { foo 1 }.should raise_error(ArgumentError)
   end
 end
 
 describe "Defining a method with a default arg" do
-  it "should assign single default arg when nothing is passed" do
+  it "assigns single default arg when nothing is passed" do
     def foo(a = 1)
       a
     end
@@ -43,7 +43,7 @@ describe "Defining a method with a default arg" do
     foo(2).should == 2
   end
 
-  it "should assign [] to unpassed rest args" do
+  it "assigns [] to unpassed rest args" do
     def foo(a = 1, *b)
       [a,b]
     end
@@ -51,7 +51,7 @@ describe "Defining a method with a default arg" do
     foo(2).should == [2, []]
   end
 
-  it "should assign when only required args are passed" do
+  it "assigns when only required args are passed" do
     def foo(a, b = 2)
       [a,b]
     end
@@ -59,7 +59,7 @@ describe "Defining a method with a default arg" do
     foo(1).should == [1, 2]
   end
 
-  it "should assign default and assign [] to rest args when only required args are present" do
+  it "assigns default and assign [] to rest args when only required args are present" do
     def foo(a, b = 2, *c)
       [a,b,c]
     end
@@ -67,14 +67,14 @@ describe "Defining a method with a default arg" do
     foo(1).should == [1,2,[]]
   end
 
-  it "should not assign when restargs get assigned" do
+  it "does not assign when restargs get assigned" do
     def foo(a = 1, *args)
       [a,args]
     end
     foo(2,2).should == [2,[2]]
   end
 
-  it "should not assign when required and restargs get assigned" do
+  it "does not assign when required and restargs get assigned" do
     def foo(a, b = 2, *args)
       [a,b,args]
     end
@@ -83,7 +83,7 @@ describe "Defining a method with a default arg" do
 end
 
 describe "Defining a singleton method" do
-  it "should work on an lvar" do
+  it "works on an lvar" do
     a = "hi"
     def a.foo
       5
@@ -91,7 +91,7 @@ describe "Defining a singleton method" do
     a.foo.should == 5
   end
 
-  it "should work on an ivar" do
+  it "works on an ivar" do
     @a = "hi"
     def @a.foo
       6
@@ -99,7 +99,7 @@ describe "Defining a singleton method" do
     @a.foo.should == 6
   end
 
-  it "should work on a gvar" do
+  it "works on a gvar" do
     $__a__ = "hi"
     def $__a__.foo
       7
@@ -107,7 +107,7 @@ describe "Defining a singleton method" do
     $__a__.foo.should == 7
   end
 
-  it "should work on a cvar" do
+  it "works on a cvar" do
     @@a = "hi"
     def @@a.foo
       8
@@ -115,7 +115,7 @@ describe "Defining a singleton method" do
     @@a.foo.should == 8
   end
 
-  it "should work without a body" do
+  it "works without a body" do
     class DefSpec
       def self.foo;end
     end
@@ -124,7 +124,7 @@ describe "Defining a singleton method" do
 end
 
 describe "Defining a method with complex default args" do
-  it "should let you define a method inside a default argument" do
+  it "lets you define a method inside a default argument" do
     class DefSpecs
       def foo(x = (def foo; "hello"; end;1));x;end
     end
@@ -134,27 +134,27 @@ describe "Defining a method with complex default args" do
     d.foo.should == 'hello'
   end
 
-  it "should let you use an fcall as a default argument" do
+  it "lets you use an fcall as a default argument" do
     def foo(x = caller())
       x
     end
     foo.shift.class.should == String
   end
 
-  it "should evaluate default arguments in the proper scope" do
+  it "evaluates default arguments in the proper scope" do
     def foo(x = ($foo_self = self; nil)); end
     foo
     $foo_self.should == self
   end
 
-  it "should support method calls on other arguments as defaults" do
+  it "supports method calls on other arguments as defaults" do
     def foo(obj, width=obj.length)
       width
     end
     foo('abcde').should == 5
   end
 
-  it "should support procs as defaults" do
+  it "supports procs as defaults" do
     def foo(output = 'a', prc = lambda {|n| output * n})
       prc.call(5)
     end
@@ -163,7 +163,7 @@ describe "Defining a method with complex default args" do
 end
 
 describe "Defining a singleton method with complex default args" do
-  it "should let you define a method inside a default argument" do
+  it "lets you define a method inside a default argument" do
     $__a = "hi"
     def $__a.foo(x = (def $__a.foo; "hello"; end;1));x;end
     $__a.foo(42).should == 42
@@ -171,7 +171,7 @@ describe "Defining a singleton method with complex default args" do
     $__a.foo.should == 'hello'
   end
 
-  it "should let you use an fcall as a default argument" do
+  it "lets you use an fcall as a default argument" do
     a = "hi"
     def a.foo(x = caller())
       x
@@ -179,14 +179,14 @@ describe "Defining a singleton method with complex default args" do
     a.foo.shift.class.should == String
   end
 
-  it "should evaluate default arguments in the proper scope" do
+  it "evaluates default arguments in the proper scope" do
     a = "hi"
     def a.foo(x = ($foo_self = self; nil)); 5 ;end
     a.foo
     $foo_self.should == a
   end
 
-  it "should support method calls on other arguments as defaults" do
+  it "supports method calls on other arguments as defaults" do
     a = 'hi'
     def a.foo(obj, width=obj.length)
       width
@@ -194,7 +194,7 @@ describe "Defining a singleton method with complex default args" do
     a.foo('abcde').should == 5
   end
   
-  it "should support procs as defaults" do
+  it "supports procs as defaults" do
     a = 'hi'
     def a.foo(output = 'a', prc = lambda {|n| output * n})
       prc.call(5)

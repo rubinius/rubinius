@@ -32,7 +32,7 @@ describe "Array#transpose" do
     ary.transpose.should == [[1, 4], [2, 6]]
   end
 
-  it "raises IndexError if the arrays are not of the same length" do
+  it "raises an IndexError if the arrays are not of the same length" do
     lambda { [[1, 2], [:a]].transpose }.should raise_error(IndexError)
   end
   

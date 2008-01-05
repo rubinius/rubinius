@@ -33,8 +33,11 @@ describe "File.zero?" do
     end
   end
   
-  it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do  
+  it "raises an ArgumentError if not passed one argument" do
     lambda { File.zero?        }.should raise_error(ArgumentError)
+  end
+  
+  it "raises a TypeError if not passed a String type" do
     lambda { File.zero?(nil)   }.should raise_error(TypeError)
     lambda { File.zero?(true)  }.should raise_error(TypeError)
     lambda { File.zero?(false) }.should raise_error(TypeError)

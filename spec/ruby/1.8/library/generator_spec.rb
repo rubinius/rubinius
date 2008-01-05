@@ -73,18 +73,18 @@ describe "Generator#next" do
     util_build_generators
   end
 
-  it "raises EOFError on empty generator" do
+  it "raises an EOFError on empty generator" do
     lambda { @empty_generator.next }.should raise_error(EOFError)
   end
 
-  it "raises EOFError if no elements available" do
+  it "raises an EOFError if no elements available" do
     g = @generator_two_elems
     g.next;
     g.next
     lambda { g.next }.should raise_error(EOFError)
   end
 
-  it "raises EOFError if end? returns true" do
+  it "raises an EOFError if end? returns true" do
     g = @generator_two_elems
     def g.end?; true end
     lambda { g.next }.should raise_error(EOFError)

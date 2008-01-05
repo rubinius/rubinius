@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'getoptlong'
 
 describe "GetoptLong#ordering=" do
-  it "should raise an ArgumentError if called after processing has started" do
+  it "raises an ArgumentError if called after processing has started" do
     begin
       s = $stderr
       $stderr = CaptureOutput.new
@@ -22,7 +22,7 @@ describe "GetoptLong#ordering=" do
     end
   end
 
-  it "should raise an ArgumentError if given an invalid value" do
+  it "raises an ArgumentError if given an invalid value" do
     opts = GetoptLong.new
     
     lambda {
@@ -30,7 +30,7 @@ describe "GetoptLong#ordering=" do
     }.should raise_error(ArgumentError)
   end
   
-  it "should not allow changing ordering to PERMUTE if ENV['POSIXLY_CORRECT'] is set" do
+  it "does not allow changing ordering to PERMUTE if ENV['POSIXLY_CORRECT'] is set" do
     begin
       old_env_value = ENV['POSIXLY_CORRECT']
       ENV['POSIXLY_CORRECT'] = ""

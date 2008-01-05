@@ -5,7 +5,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 require "time"
 
-context "Time class method" do
+describe "Time class method" do
   # rfc2822
   
   specify "rfc2822 should parse RFC-822 strings" do
@@ -162,5 +162,5 @@ context "Time class method" do
   end
 end
 
-context "Time instance method" do
+describe "Time instance method" do
 end

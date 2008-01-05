@@ -16,7 +16,7 @@ describe "File.atime" do
     File.atime(@file).class.should == Time
   end
 
-  it "raise an Errno::ENOENT exception if the file is not found" do 
+  it "raises an Errno::ENOENT exception if the file is not found" do 
     lambda { File.atime('a_fake_file') }.should raise_error(Errno::ENOENT)
   end
 end

@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 # The natural logarithm, having base Math::E
-context "Math.log" do
+describe "Math.log" do
   it "returns a float" do
     Math.log(1).class.should == Float
   end

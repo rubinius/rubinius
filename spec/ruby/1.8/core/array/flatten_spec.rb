@@ -16,7 +16,7 @@ describe "Array#flatten" do
     [obj, obj].flatten.should == [5, 4, 5, 4]
   end
   
-  it "raises ArgumentError on recursive arrays" do
+  it "raises an ArgumentError on recursive arrays" do
     x = []
     x << x
     lambda { x.flatten }.should raise_error(ArgumentError)
@@ -48,7 +48,7 @@ describe "Array#flatten!" do
     a.flatten!.should == nil
   end
 
-  it "raises ArgumentError on recursive arrays" do
+  it "raises an ArgumentError on recursive arrays" do
     x = []
     x << x
     lambda { x.flatten! }.should raise_error(ArgumentError)
@@ -61,7 +61,7 @@ describe "Array#flatten!" do
   end
 
   compliant_on :ruby, :jruby do
-    it "raises TypeError on frozen arrays when modification would take place" do
+    it "raises a TypeError on frozen arrays when modification would take place" do
       nested_ary = [1, 2, []]
       nested_ary.freeze
       lambda { nested_ary.flatten! }.should raise_error(TypeError)

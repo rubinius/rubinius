@@ -11,14 +11,14 @@ describe "The alias keyword" do
     @meta = class << @obj;self;end
   end
 
-  it "should create a new name for an existing method" do
+  it "creates a new name for an existing method" do
     @meta.class_eval do
       alias __value value
     end
     @obj.__value.should == 5
   end
 
-  it "should add the new method to the list of methods" do
+  it "adds the new method to the list of methods" do
     original_methods = @obj.methods
     @meta.class_eval do
       alias __value value
@@ -26,7 +26,7 @@ describe "The alias keyword" do
     (@obj.methods - original_methods).should == ["__value"]
   end
 
-  it "should add the new method to the list of public methods" do
+  it "adds the new method to the list of public methods" do
     original_methods = @obj.public_methods
     @meta.class_eval do
       alias __value value
@@ -34,14 +34,14 @@ describe "The alias keyword" do
     (@obj.public_methods - original_methods).should == ["__value"]
   end
 
-  it "should overwrite an existing method with the target name" do
+  it "overwrites an existing method with the target name" do
     @meta.class_eval do
       alias false_value value
     end
     @obj.false_value.should == 5
   end
 
-  it "should be reversible" do
+  it "is reversible" do
     @meta.class_eval do
       alias __value value
       alias value false_value

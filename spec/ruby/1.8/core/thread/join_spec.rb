@@ -24,7 +24,7 @@ describe "Thread#join" do
     t.join.should == t
   end
 
-  it "should accept a floating point timeout length" do
+  it "accepts a floating point timeout length" do
     c = Channel.new
     lock = Channel.new
     t = Thread.new { c.receive }

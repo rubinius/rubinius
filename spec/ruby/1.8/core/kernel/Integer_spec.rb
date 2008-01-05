@@ -28,16 +28,16 @@ describe "Kernel.Integer" do
     Integer(obj).should == 1
   end
   
-  it "should call to_i to convert any arbitrary argument to an Integer" do
+  it "calls to_i to convert any arbitrary argument to an Integer" do
     (obj = mock('7')).should_receive(:to_i).and_return(7)
     Integer(obj).should == 7
   end
 
-  it "should raise a TypeError if there is no to_i method on an object" do
+  it "raises a TypeError if there is no to_i method on an object" do
     lambda { Integer(mock('x')) }.should raise_error(TypeError)
   end
 
-  it "should raise a TypeError if to_i doesn't return an Integer" do
+  it "raises a TypeError if to_i doesn't return an Integer" do
     (obj = mock('ha!')).should_receive(:to_i).and_return("ha!")
     lambda { Integer(obj) }.should raise_error(TypeError)
   end

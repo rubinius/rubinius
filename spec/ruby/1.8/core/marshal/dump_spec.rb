@@ -23,7 +23,7 @@ describe "Marshal.dump when given a recursion limit" do
 end
 
 describe "Marshal.dump when given an IO-Object" do
-  it "should write the serialized data to the IO-Object" do
+  it "writes the serialized data to the IO-Object" do
     (obj = mock('test')).should_receive(:write).at_least(1)
     Marshal.dump("test", obj)
   end
@@ -40,7 +40,7 @@ describe "Marshal.dump when given an IO-Object" do
 end
 
 describe "Marshal.dump" do
-  it "should be provided" do
+  it "is provided" do
     Marshal.respond_to?(:dump).should == true
   end
   

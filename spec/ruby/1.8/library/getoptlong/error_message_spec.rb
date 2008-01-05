@@ -2,12 +2,12 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'getoptlong'
 
 describe "GetoptLong#error_message" do
-  it "should return nil if no error occurred" do
+  it "returns nil if no error occurred" do
     opts = GetoptLong.new
     opts.error_message.should == nil
   end
   
-  it "should return the error message of the last error that occurred" do
+  it "returns the error message of the last error that occurred" do
     begin
       s = $stderr
       $stderr = CaptureOutput.new

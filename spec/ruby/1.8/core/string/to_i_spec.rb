@@ -115,7 +115,7 @@ describe "String#to_i" do
     "0x-1".to_i(16).should == 0
   end
   
-  it "raises ArgumentError for illegal bases (1, < 0 or > 36)" do
+  it "raises an ArgumentError for illegal bases (1, < 0 or > 36)" do
     lambda { "".to_i(1)  }.should raise_error(ArgumentError)
     lambda { "".to_i(-1) }.should raise_error(ArgumentError)
     lambda { "".to_i(37) }.should raise_error(ArgumentError)

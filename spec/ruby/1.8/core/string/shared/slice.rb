@@ -131,7 +131,7 @@ shared :string_slice do |cmd|
       "hello".send(cmd, obj, obj).should == "ll"
     end
 
-    it "raises TypeError when idx or length can't be converted to an integer" do
+    it "raises a TypeError when idx or length can't be converted to an integer" do
       lambda { "hello".send(cmd, mock('x'), 0) }.should raise_error(TypeError)
       lambda { "hello".send(cmd, 0, mock('x')) }.should raise_error(TypeError)
 

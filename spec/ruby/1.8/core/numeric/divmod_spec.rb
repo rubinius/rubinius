@@ -4,6 +4,8 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 # by dividing num by aNumeric. If q, r = x.divmod(y), then
 #    q = floor(float(x)/float(y))
 #    x = q*y + r
+
+# FIXME: this awful wording
 describe "Numeric#divmod" do    
   it "divmod right integers" do 
     13.divmod(4).should == [3,1]
@@ -25,13 +27,20 @@ describe "Numeric#divmod" do
     4.0.divmod(13).should == [0.0,4.0]
   end
   
-  it "should divmod right with bignums and integers" do
+  it "returns self divmod other" do
     (3**33).divmod( 100).should == [55590605665555, 23]
   end
   
-  it "raise the expected exception" do
-    lambda { 13.divmod         }.should raise_error(ArgumentError)
+  it "raises an ArgumentError when not passed one argument" do
+    lambda { 13.divmod       }.should raise_error(ArgumentError)
+    lambda { 13.divmod(1, 2) }.should raise_error(ArgumentError)
+  end
+  
+  it "raises a ZeroDivisionError when passed 0" do
     lambda { 13.divmod(0)      }.should raise_error(ZeroDivisionError)
+  end
+  
+  it "raises a TypeError when not passed a Numeric type" do
     lambda { 13.divmod(nil)    }.should raise_error(TypeError)
     lambda { 13.divmod('test') }.should raise_error(TypeError)
     lambda { 13.divmod(true)   }.should raise_error(TypeError)   

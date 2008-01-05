@@ -46,7 +46,7 @@ describe "Module#const_set" do
     lambda { Module.const_set(o, "Test") }.should raise_error(TypeError)
   end
 
-  it "should work in e2mmap.rb" do
+  it "works in e2mmap.rb" do
     # Sorry this test is so inspecific, but I felt it important to note before
     # I understand the root cause, which could very well be never. :-)
     require 'e2mmap'

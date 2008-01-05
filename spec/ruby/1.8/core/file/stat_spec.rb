@@ -10,7 +10,7 @@ describe "File.stat" do
     File.delete(@file) if File.exist?(@file)
   end
 
-  it "should return a File::Stat object if the given file exists" do
+  it "returns a File::Stat object if the given file exists" do
     st = File.stat(@file)
 
     st.file?.should == true

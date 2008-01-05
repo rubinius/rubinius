@@ -24,7 +24,7 @@ describe "Kernel.loop" do
     end.should == nil
   end
 
-  it "raises LocalJumpError if no block given" do
+  it "raises a LocalJumpError if no block given" do
     lambda { loop }.should raise_error(LocalJumpError)
   end
 end

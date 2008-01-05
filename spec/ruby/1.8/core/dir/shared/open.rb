@@ -6,7 +6,7 @@ shared :dir_open do |cmd|
       dir.close
     end
   
-    it "raises SystemCallError if the directory does not exist" do
+    it "raises a SystemCallError if the directory does not exist" do
       lambda {  Dir.send cmd, DirSpecs.nonexistent }.should raise_error(SystemCallError)
     end
   

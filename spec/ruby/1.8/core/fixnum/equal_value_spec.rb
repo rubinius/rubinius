@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Fixnum#==" do
-  it "should return true if self has the same value as other" do
+  it "returns true if self has the same value as other" do
     (1 == 1).should == true
     (9 == 5).should == false
     

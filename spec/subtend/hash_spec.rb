@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/subtend_helper'
 compile_extension('subtend_hash')
 require File.dirname(__FILE__) + '/ext/subtend_hash'
 
-context "SubtendHash" do
+describe "SubtendHash" do
   setup do
     @s = SubtendHash.new
   end

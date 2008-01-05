@@ -13,11 +13,11 @@ describe "Hash.[]" do
     Hash[{}].should == {}
   end
 
-  it "raises on odd parameter list count" do
+  it "raises an ArgumentError when passed an odd number of arguments" do
     lambda { Hash[1, 2, 3] }.should raise_error(ArgumentError)
   end
  
-  it "raises when mixing argument styles" do
+  it "raises an ArgumentError when mixing argument styles" do
     lambda { Hash[1, 2, {3 => 4}] }.should raise_error(ArgumentError)
     Hash[1, 2, 3, {3 => 4}].should == {1 => 2, 3 => {3 => 4}}
   end

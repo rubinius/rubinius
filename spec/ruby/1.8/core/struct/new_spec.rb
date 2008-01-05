@@ -50,12 +50,19 @@ describe "Struct.new" do
     lambda { Struct.new('animal', :name, :legs, :eyeballs) }.should raise_error(NameError)
   end
 
-  it "raises TypeError if object doesn't respond to to_sym" do
-    lambda { Struct.new Object.new }.should raise_error(TypeError)
+  it "raises a TypeError if object doesn't respond to to_sym" do
+    lambda { Struct.new(:animal, mock('giraffe'))      }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, 1.0)                  }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, Time.now)             }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, Class)                }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, nil)                  }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, true)                 }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, ['chris', 'evan'])    }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, { :name => 'chris' }) }.should raise_error(TypeError)
   end
 
   compliant_on :ruby, :jruby do
-    it "raises TypeError if object is not a Symbol" do
+    it "raises a TypeError if object is not a Symbol" do
       obj = mock(':ruby')
       def obj.to_sym() :ruby end
       lambda { Struct.new(:animal, obj) }.should raise_error(TypeError)
@@ -77,7 +84,7 @@ describe "Struct.new" do
     $VERBOSE = old
   end
 
-  it "raises ArgumentError if fixnum#to_sym is nil" do
+  it "raises an ArgumentError if fixnum#to_sym is nil" do
     old, $VERBOSE = $VERBOSE, nil
     num = 10000
     num.to_sym.should == nil  # if this fails, we need a new Fixnum to test

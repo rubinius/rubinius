@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The retry statement" do
-  it "should raise LocalJumpError if used outside of a block" do
+  it "raises a LocalJumpError if used outside of a block" do
     def bad_meth_retry; retry; end
     lambda { bad_meth_retry()      }.should raise_error(LocalJumpError)
     lambda { lambda { retry }.call }.should raise_error(LocalJumpError)
   end
   
-  it "should retry closest block" do
+  it "re-executes the closest block" do
     exist = [2,3]
     processed = []
     order = []
@@ -28,9 +28,9 @@ describe "The retry statement" do
     order.should == [1,2,3,4]
   end
 
-  # block retry is crazy. rubinius is not planning to currently implement it.
+  # block retry is crazy. rubinius is not currently planning to implement it.
   compliant_on :ruby do
-    it "should retry entire enumeration" do
+    it "re-executes the entire enumeration" do
       list = []
       [1,2,3].each do |x|
         list << x

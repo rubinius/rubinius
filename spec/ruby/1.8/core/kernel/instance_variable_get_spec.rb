@@ -21,22 +21,22 @@ describe "Kernel#instance_variable_get" do
     [].instance_variable_get(:@c).should == nil
   end
 
-  it "raises NameError exception if the argument is not of form '@x'" do
+  it "raises a NameError exception if the argument is not of form '@x'" do
     class NoFred; end
     lambda { NoFred.new.instance_variable_get(:c) }.should raise_error(NameError)
     lambda { [].instance_variable_get(:c) }.should raise_error(NameError)
   end
 
-  it "should raise ArgumentError if the instance variable name is a Fixnum" do
+  it "raises an ArgumentError if the instance variable name is a Fixnum" do
     lambda { "".instance_variable_get(1) }.should raise_error(ArgumentError)
   end
   
-  it "should raise TypeError if the instance variable name is an object that does not respond to to_str" do
+  it "raises a TypeError if the instance variable name is an object that does not respond to to_str" do
     class KernelSpecs::A; end
     lambda { "".instance_variable_get(KernelSpecs::A.new) }.should raise_error(TypeError)
   end
   
-  it "should raise NameError if the passed object, when coerced with to_str, does not start with @" do
+  it "raises a NameError if the passed object, when coerced with to_str, does not start with @" do
     class KernelSpecs::B
       def to_str
         ":c"
@@ -45,11 +45,11 @@ describe "Kernel#instance_variable_get" do
     lambda { "".instance_variable_get(KernelSpecs::B.new) }.should raise_error(NameError)
   end
   
-  it "should raise NameError if pass an object that cannot be a symbol" do
+  it "raises a NameError if pass an object that cannot be a symbol" do
     lambda { "".instance_variable_get(:c) }.should raise_error(NameError)
   end
   
-  it "should accept as instance variable name any instance of a class that responds to to_str" do
+  it "accepts as instance variable name any instance of a class that responds to to_str" do
     class KernelSpecs::C
       def initialize
         @a = 1

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-context "Exceptions" do
+describe "Exceptions" do
   specify "raise should abort execution" do
     lambda { 
       begin

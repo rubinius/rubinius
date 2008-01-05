@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/subtend_helper'
 compile_extension('subtend_module')
 require File.dirname(__FILE__) + '/ext/subtend_module'
 
-context "Module" do
+describe "Module" do
 
   module SubtendModuleTest
     BAR = 7

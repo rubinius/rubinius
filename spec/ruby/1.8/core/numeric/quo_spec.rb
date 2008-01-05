@@ -49,8 +49,12 @@ describe "Numeric#quo" do
     end
   
     # NOTE: Doesn't work when run with RSpec because it loads rational.rb
-    it "raise the expected exception" do
-      lambda { 13.quo         }.should raise_error(ArgumentError)
+    it "raises an ArgumentError when not passed one argument" do
+      lambda { 13.quo       }.should raise_error(ArgumentError)
+      lambda { 13.quo(1, 2) }.should raise_error(ArgumentError)
+    end
+    
+    it "raises a TypeError when not passed a Numeric type" do
       lambda { 13.quo(nil)    }.should raise_error(TypeError)
       lambda { 13.quo('test') }.should raise_error(TypeError)
       lambda { 13.quo(true)   }.should raise_error(TypeError)   

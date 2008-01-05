@@ -6,7 +6,7 @@ describe "Fixnum#/" do
     (3 / 2).should == 1
   end
   
-  it "raises ZeroDivisionError if the given argument is zero and not a Float" do
+  it "raises a ZeroDivisionError if the given argument is zero and not a Float" do
     lambda { 1 / 0 }.should raise_error(ZeroDivisionError)
   end
   

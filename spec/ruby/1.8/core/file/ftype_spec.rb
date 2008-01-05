@@ -80,14 +80,18 @@ describe "File.ftype" do
     File.ftype(@fifo).should == 'fifo'
   end   
   
-  it "should return the type of the named file" do
+  it "returns the type of the named file" do
     File.ftype(@file).should == "file"
     File.ftype("/dev/tty").should == "characterSpecial"
     File.ftype("/").should == "directory"
   end
 
-  it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
-    lambda { File.ftype          }.should raise_error(ArgumentError)
+  it "raises an ArgumentError if not passed one argument" do
+    lambda { File.ftype               }.should raise_error(ArgumentError)
+    lambda { File.ftype(@file, @file) }.should raise_error(ArgumentError)
+  end
+  
+  it "raises an Errno::ENOENT if the file is not valid" do
     lambda { File.ftype('bogus') }.should raise_error(Errno::ENOENT)
   end
 end 

@@ -9,15 +9,15 @@ module SingletonSpecs
 end
 
 describe "Singleton" do
-  it "should make the new method private" do
+  it "makes the new method private" do
     lambda { SingletonSpecs::MyClass.new }.should raise_error(NoMethodError)
   end
 
-  it "should provide an instance method" do
+  it "provides an instance method" do
     SingletonSpecs::MyClass.instance.kind_of?(SingletonSpecs::MyClass).should == true
   end
 
-  it "two instances of the class should return the same object" do
+  it "returns the same object for any instance of the class" do
     a = SingletonSpecs::MyClass.instance
     b = SingletonSpecs::MyClass.instance
     a.data = 123

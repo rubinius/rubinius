@@ -30,19 +30,15 @@ describe "Array#each" do
     b.should == [0, 2, 4]
   end    
 
-  it "should support array explosion" do
-    a = [[1, 2], [3, 4]]
+  it "yields each element to a block that takes multiple arguments" do
+    a = [[1, 2], :a, [3, 4]]
     b = []
     
     a.each { |x, y| b << x }
-    b.should == [1, 3]
+    b.should == [1, :a, 3]
 
     b = []
     a.each { |x, y| b << y }
-    b.should == [2, 4]
-    
-    b = []
-    a.each { |x, y| b << x + y }
-    b.should == [3, 7]
+    b.should == [2, nil, 4]
   end
 end

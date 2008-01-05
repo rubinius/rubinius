@@ -31,9 +31,16 @@ describe "Numeric#remainder" do
     (-2**31).remainder(2**31).should == 0
   end
   
-  it "raise the expected exception" do
-    lambda { 13.remainder         }.should raise_error(ArgumentError)
-    lambda { 13.remainder(0)      }.should raise_error(ZeroDivisionError)
+  it "raises an ArgumentError when not passed one argument" do
+    lambda { 13.remainder       }.should raise_error(ArgumentError)
+    lambda { 13.remainder(1, 2) }.should raise_error(ArgumentError)
+  end
+  
+  it "raises a ZeroDivisionError when passed 0" do
+    lambda { 13.remainder(0) }.should raise_error(ZeroDivisionError)
+  end
+  
+  it "raises a TypeError when not passed a Numeric type" do
     lambda { 13.remainder(nil)    }.should raise_error(TypeError)
     lambda { 13.remainder('test') }.should raise_error(TypeError)
     lambda { 13.remainder(true)   }.should raise_error(TypeError)   

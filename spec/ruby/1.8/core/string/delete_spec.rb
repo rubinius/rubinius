@@ -12,7 +12,7 @@ describe "String#delete" do
     "hell yeah".delete("").should == "hell yeah"
   end
   
-  it "raises ArgumentError when given no arguments" do
+  it "raises an ArgumentError when given no arguments" do
     lambda { "hell yeah".delete }.should raise_error(ArgumentError)
   end
 

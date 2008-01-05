@@ -20,7 +20,7 @@ describe "File.readlink" do
     File.readlink(@file3).should == @file1
   end
 
-  it "raises if called with an invalid argument" do
+  it "raises an Errno::ENOENT if called with an invalid argument" do
     lambda { File.readlink("/this/surely/doesnt/exist") }.should raise_error(Errno::ENOENT)
   end
 end

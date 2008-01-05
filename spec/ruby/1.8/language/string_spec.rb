@@ -18,12 +18,12 @@ describe "Ruby character strings in various ways" do
     '#{@ip}'.should == '#{@ip}'
   end
 
-  it 'interpolation is used with #{your_var}' do
+  it "interpolation is used with #{}" do
     "#{@ip}".should == 'xxx'
   end
 
   # TODO : Add specs that determine the end of the variable
-  it 'instance variables can also be interpolated just with the # character' do
+  it "instance variables can also be interpolated just with the # character" do
     "#@ip".should == 'xxx'
   end
 

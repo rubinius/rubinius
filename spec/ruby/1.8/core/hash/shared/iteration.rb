@@ -10,7 +10,7 @@ shared :hash_iteration_method do |cmd|
     big_hash = {}
     64.times { |k| big_hash[k.to_s] = k }    
        
-    # it "raise RuntimeError if #rehash is called from block" do
+    # it "raises a RuntimeError if #rehash is called from block" do
     #   h = hsh.dup
     #   args = cmd.to_s[/merge|update/] ? [h] : []
     #   
@@ -61,11 +61,11 @@ shared :hash_iteration_no_block do |cmd|
     hsh = {1 => 2, 3 => 4, 5 => 6}  
     empty = {}
     
-    it "raises LocalJumpError when called on a non-empty hash without a block" do
+    it "raises a LocalJumpError when called on a non-empty hash without a block" do
       lambda { hsh.delete_if }.should raise_error(LocalJumpError)
     end
     
-    it "does not raise LocalJumpError when called on an empty hash without a block" do
+    it "does not raise a LocalJumpError when called on an empty hash without a block" do
       empty.delete_if.should == empty
     end
   end

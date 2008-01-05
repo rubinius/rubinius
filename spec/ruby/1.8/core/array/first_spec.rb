@@ -28,7 +28,7 @@ describe "Array#first" do
     [1, 2, 3, 4, 5].first(1).should == [1]
   end
   
-  it "raises ArgumentError when count is negative" do
+  it "raises an ArgumentError when count is negative" do
     lambda { [1, 2].first(-1) }.should raise_error(ArgumentError)
   end
   

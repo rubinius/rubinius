@@ -42,8 +42,8 @@ $~               MatchData       An object that encapsulates the results of a su
 =end
 
 
-describe 'Predefined global $~' do
-  it 'is set to contain the MatchData object of the last match if successful' do
+describe "Predefined global $~" do
+  it "is set to contain the MatchData object of the last match if successful" do
     md = /foo/.match 'foo'
     $~.class.should == MatchData
     $~.object_id.should == md.object_id
@@ -53,7 +53,7 @@ describe 'Predefined global $~' do
     $~.object_id.should_not == md.object_id
   end   
 
-  it 'is set to nil if the last match was unsuccessful' do
+  it "is set to nil if the last match was unsuccessful" do
     /foo/ =~ 'foo'
     $~.nil?.should == false
 
@@ -62,16 +62,16 @@ describe 'Predefined global $~' do
   end
 end
 
-describe 'Predefined global $&' do
-  it 'is equivalent to MatchData#[0] on the last match $~' do
+describe "Predefined global $&" do
+  it "is equivalent to MatchData#[0] on the last match $~" do
     /foo/ =~ 'barfoobaz'
     $&.should == $~[0]
     $&.should == 'foo'
   end
 end
 
-describe 'Predefined global $`' do
-  it 'is equivalent to MatchData#pre_match on the last match $~' do
+describe "Predefined global $`" do
+  it "is equivalent to MatchData#pre_match on the last match $~" do
     /foo/ =~ 'barfoobaz'
     $`.should == $~.pre_match
     $`.should == 'bar'
@@ -79,15 +79,15 @@ describe 'Predefined global $`' do
 end
 
 describe "Predefined global $'" do
-  it 'is equivalent to MatchData#post_match on the last match $~' do
+  it "is equivalent to MatchData#post_match on the last match $~" do
     /foo/ =~ 'barfoobaz'
     $'.should == $~.post_match
     $'.should == 'baz'
   end
 end
 
-describe 'Predefined global $+' do
-  it 'is equivalent to $~.captures.last' do
+describe "Predefined global $+" do
+  it "is equivalent to $~.captures.last" do
     /(f(o)o)/ =~ 'barfoobaz'
     # causes a compiler exception as of 036b07375
     # $+.should == $~.captures.last
@@ -95,8 +95,8 @@ describe 'Predefined global $+' do
   end
 end
 
-describe 'Predefined globals $1..N' do
-  it 'are equivalent to $~[N]' do
+describe "Predefined globals $1..N" do
+  it "are equivalent to $~[N]" do
     /(f)(o)(o)/ =~ 'foo'
     $1.should == $~[1]
     $2.should == $~[2]
@@ -231,7 +231,7 @@ describe "The predefined standard object nil" do
     nil.class.should == NilClass
   end
   
-  it "raises SyntaxError if assigned to" do
+  it "raises a SyntaxError if assigned to" do
     # this needs to be tested with a subprocess because
     # MRI aborts reading in the file
   end
@@ -242,7 +242,7 @@ describe "The predefined standard object true" do
     true.class.should == TrueClass
   end
   
-  it "raises SyntaxError if assigned to" do
+  it "raises a SyntaxError if assigned to" do
     # this needs to be tested with a subprocess because
     # MRI aborts reading in the file
   end
@@ -253,7 +253,7 @@ describe "The predefined standard object false" do
     false.class.should == FalseClass
   end
   
-  it "raises SyntaxError if assigned to" do
+  it "raises a SyntaxError if assigned to" do
     # this needs to be tested with a subprocess because
     # MRI aborts reading in the file
   end

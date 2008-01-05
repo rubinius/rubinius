@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/compiler_helper'
 
 c = CompilerHarness.new
 
-context "Local variable access" do
+describe "Local variable access" do
   specify "lvar in method body uses specific syntax" do
     code = <<-CODE
     a = 3

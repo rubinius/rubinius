@@ -41,7 +41,7 @@ describe "Module#remove_method" do
     x.method_to_remove.should == 1
   end
   
-  it "raises NameError when attempting to remove method further up the inheritance tree" do
+  it "raises a NameError when attempting to remove method further up the inheritance tree" do
     lambda {
       class Third < ModuleSpecs::Second
         fails_on :rubinius do

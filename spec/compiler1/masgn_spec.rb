@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/compiler_helper'
 
 c = CompilerHarness.new
 
-context 'Single assignment' do
+describe "Single assignment" do
   specify 'If rhs has multiple arguments, lhs becomes an Array of them' do
     code = <<-CODE
       a = 1, 2, 3
@@ -22,7 +22,7 @@ sret
   end
 end
 
-context 'Multiple assignment without grouping or splatting' do
+describe "Multiple assignment without grouping or splatting" do
   specify 'An equal number of arguments on lhs and rhs assigns positionally' do
     code = <<-CODE 
       a, b, c, d = 1, 2, 3, 4
@@ -96,7 +96,7 @@ sret
 end
 
 =begin
-context 'Multiple assignments with grouping' do
+describe "Multiple assignments with grouping" do
   specify 'A group on the lhs is considered one position and treats its corresponding rhs position like an Array' do
     a, (b, c), d = 1, 2, 3, 4
     [a, b, c, d].should == [1, 2, nil, 3]
@@ -112,7 +112,7 @@ context 'Multiple assignments with grouping' do
 end
 =end
 
-context 'Multiple assignments with splats' do
+describe "Multiple assignments with splats" do
 =begin
   specify '* on the lhs has to be applied to the last parameter' do
     lambda { eval 'a, *b, c = 1, 2, 3' }.should raise_error(SyntaxError)

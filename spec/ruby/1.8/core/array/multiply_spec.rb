@@ -36,7 +36,7 @@ describe "Array#*" do
     ([] * 10).should == []
   end
   
-  it "raises ArgumentError when passed a negative integer" do
+  it "raises an ArgumentError when passed a negative integer" do
     lambda { [ 1, 2, 3 ] * -1 }.should raise_error(ArgumentError)
     lambda { [] * -1 }.should raise_error(ArgumentError)
   end
@@ -67,7 +67,7 @@ describe "Array#*" do
     (MyArray[1, 2, 3] * 2).class.should == MyArray
   end
 
-  it "raises TypeError if the argument can neither be converted to a string nor an integer" do
+  it "raises a TypeError if the argument can neither be converted to a string nor an integer" do
     lambda { [1, 2] * mock('str') }.should raise_error(TypeError)
   end  
 end

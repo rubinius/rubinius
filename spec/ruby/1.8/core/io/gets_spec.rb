@@ -58,7 +58,7 @@ describe "IO#gets" do
     end
   end
 
-  it "raises IOError if the stream is not opened for reading" do
+  it "raises an IOError if the stream is not opened for reading" do
     lambda { File.open(IOSpecs.gets_output, 'a') {|f| f.gets} }.should raise_error(IOError)
     lambda { File.open(IOSpecs.gets_output, 'w') {|f| f.gets} }.should raise_error(IOError)
   end

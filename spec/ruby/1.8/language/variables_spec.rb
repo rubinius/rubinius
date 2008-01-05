@@ -2,8 +2,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/variables'
 
 describe "Basic assignment" do
-  
-  it "should allow the rhs to be assigned to the lhs" do
+  it "allows the rhs to be assigned to the lhs" do
     a = nil;       a.should == nil
     a = 1;         a.should == 1
     a = [];        a.should == []
@@ -16,7 +15,7 @@ describe "Basic assignment" do
     a = [*[1,2]];  a.should == [1, 2]
   end
 
-  it "should allow the assignment of the rhs to the lhs using the rhs splat operator" do
+  it "allows the assignment of the rhs to the lhs using the rhs splat operator" do
     a = *nil;      a.should == nil
     a = *1;        a.should == 1
     a = *[];       a.should == nil
@@ -29,7 +28,7 @@ describe "Basic assignment" do
     a = *[*[1,2]]; a.should == [1,2]
   end
 
-  it "should allow the assignment of the rhs to the lhs using the lhs splat operator" do
+  it "allows the assignment of the rhs to the lhs using the lhs splat operator" do
     * = 1,2        # Valid syntax, but pretty useless! Nothing to test
     *a = nil;      a.should == [nil]
     *a = 1;        a.should == [1]
@@ -43,7 +42,7 @@ describe "Basic assignment" do
     *a = [*[1,2]]; a.should == [[1,2]]
   end
   
-  it "should allow the assignment of rhs to the lhs using the lhs and rhs splat operators simultaneously" do
+  it "allows the assignment of rhs to the lhs using the lhs and rhs splat operators simultaneously" do
     *a = *nil;      a.should == [nil]
     *a = *1;        a.should == [1]
     *a = *[];       a.should == []
@@ -56,7 +55,7 @@ describe "Basic assignment" do
     *a = *[*[1,2]]; a.should == [1,2]
   end
 
-  it "should allow multiple values to be assigned" do
+  it "allows multiple values to be assigned" do
     a,b,*c = nil;       [a,b,c].should == [nil, nil, []]
     a,b,*c = 1;         [a,b,c].should == [1, nil, []]
     a,b,*c = [];        [a,b,c].should == [nil, nil, []]
@@ -80,7 +79,7 @@ describe "Basic assignment" do
     a,b,*c = *[*[1,2]]; [a,b,c].should == [1, 2, []]
   end
   
-  it "should allow assignment through lambda" do
+  it "allows assignment through lambda" do
     f = lambda {|r,| r.should == []}
     f.call([], *[])
 
@@ -107,7 +106,7 @@ describe "Basic assignment" do
     f.call(42,55).should == [42,55]
   end
   
-  it 'should allow chained assignment' do
+  it "allows chained assignment" do
     (a = 1 + b = 2 + c = 4 + d = 8).should == 15
     d.should == 8
     c.should == 12
@@ -117,17 +116,14 @@ describe "Basic assignment" do
 end
 
 describe "Assignment using expansion" do
-  
-  it "should succeed without conversion" do
+  it "succeeds without conversion" do
     *x = (1..7).to_a
     x.should == [[1, 2, 3, 4, 5, 6, 7]]
   end
-  
 end
 
 describe "Assigning multiple values" do
-  
-  it "should allow parallel assignment" do
+  it "allows parallel assignment" do
     a, b = 1, 2
     a.should == 1
     b.should == 2
@@ -136,7 +132,7 @@ describe "Assigning multiple values" do
     a.should == 1
   end
   
-  it "should allow safe parallel swapping" do
+  it "allows safe parallel swapping" do
     a, b = 1, 2
     a, b = b, a
     a.should == 2
@@ -185,7 +181,7 @@ describe "Assigning multiple values" do
     b.should == 5
   end
 
-  it "should bundle remaining values to an array when using the splat operator" do
+  it "bundles remaining values to an array when using the splat operator" do
     a, *b = 1, 2, 3
     a.should == 1
     b.should == [2, 3]
@@ -309,12 +305,10 @@ describe "Assigning multiple values" do
     b.should == 8
     c.should == [4,7,6]
   end
-  
 end
 
 describe "Conditional assignment" do
-
-  it "should assign the lhs if previously unassigned" do
+  it "assigns the lhs if previously unassigned" do
     a=[]
     a[0] ||= "bar"
     a[0].should == "bar"
@@ -340,7 +334,6 @@ describe "Conditional assignment" do
     cc &&=44
     cc.should == 44
   end
-  
 end
 
 describe "Operator assignment 'var op= expr'" do
@@ -633,8 +626,8 @@ describe "Operator assignment 'obj[idx] op= expr'" do
   end
 end
 
-describe 'Single assignment' do
-  it 'Assignment does not modify the lhs, it reassigns its reference' do
+describe "Single assignment" do
+  it "Assignment does not modify the lhs, it reassigns its reference" do
     a = 'Foobar'
     b = a
     b = 'Bazquux'
@@ -642,21 +635,21 @@ describe 'Single assignment' do
     b.should == 'Bazquux'
   end
 
-  it 'Assignment does not copy the object being assigned, just creates a new reference to it' do
+  it "Assignment does not copy the object being assigned, just creates a new reference to it" do
     a = []
     b = a
     b << 1
     a.should == [1]
   end
 
-  it 'If rhs has multiple arguments, lhs becomes an Array of them' do
+  it "If rhs has multiple arguments, lhs becomes an Array of them" do
     a = 1, 2, 3
     a.should == [1, 2, 3]
   end
 end
 
-describe 'Multiple assignment without grouping or splatting' do
-  it 'An equal number of arguments on lhs and rhs assigns positionally' do
+describe "Multiple assignment without grouping or splatting" do
+  it "An equal number of arguments on lhs and rhs assigns positionally" do
     a, b, c, d = 1, 2, 3, 4
     a.should == 1
     b.should == 2
@@ -664,20 +657,20 @@ describe 'Multiple assignment without grouping or splatting' do
     d.should == 4
   end 
 
-  it 'If rhs has too few arguments, the missing ones on lhs are assigned nil' do
+  it "If rhs has too few arguments, the missing ones on lhs are assigned nil" do
     a, b, c = 1, 2
     a.should == 1
     b.should == 2
     c.should == nil
   end
 
-  it 'If rhs has too many arguments, the extra ones are silently not assigned anywhere' do
+  it "If rhs has too many arguments, the extra ones are silently not assigned anywhere" do
     a, b = 1, 2, 3
     a.should == 1
     b.should == 2
   end
 
-  it 'The assignments are done in parallel so that lhs and rhs are independent of eachother without copying' do
+  it "The assignments are done in parallel so that lhs and rhs are independent of eachother without copying" do
     o_of_a, o_of_b = mock('a'), mock('b')
     a, b = o_of_a, o_of_b
     a, b = b, a
@@ -686,15 +679,15 @@ describe 'Multiple assignment without grouping or splatting' do
   end
 end
 
-describe 'Multiple assignments with splats' do
+describe "Multiple assignments with splats" do
   # TODO make this normal once rubinius eval works
   compliant_on :ruby do
-    it '* on the lhs has to be applied to the last parameter' do
+    it "* on the lhs has to be applied to the last parameter" do
       lambda { eval 'a, *b, c = 1, 2, 3' }.should raise_error(SyntaxError)
     end
   end
 
-  it '* on the lhs collects all parameters from its position onwards as an Array or an empty Array' do
+  it "* on the lhs collects all parameters from its position onwards as an Array or an empty Array" do
     a, *b = 1, 2
     c, *d = 1
     e, *f = 1, 2, 3
@@ -717,8 +710,8 @@ describe 'Multiple assignments with splats' do
   end
 end
 
-describe 'Multiple assignments with grouping' do
-  it 'A group on the lhs is considered one position and treats its corresponding rhs position like an Array' do
+describe "Multiple assignments with grouping" do
+  it "A group on the lhs is considered one position and treats its corresponding rhs position like an Array" do
     a, (b, c), d = 1, 2, 3, 4
     e, (f, g), h = 1, [2, 3, 4], 5
     i, (j, k), l = 1, 2, 3
@@ -736,7 +729,7 @@ describe 'Multiple assignments with grouping' do
     l.should == 3
   end
 
-  it 'supports multiple levels of nested groupings' do
+  it "supports multiple levels of nested groupings" do
     a,(b,(c,d)) = 1,[2,[3,4]]
     a.should == 1
     b.should == 2
@@ -758,7 +751,7 @@ describe 'Multiple assignments with grouping' do
   end
 
   compliant_on :ruby do
-    it 'rhs cannot use parameter grouping, it is a syntax error' do
+    it "rhs cannot use parameter grouping, it is a syntax error" do
       lambda { eval '(a, b) = (1, 2)' }.should raise_error(SyntaxError)
     end
   end
@@ -767,8 +760,7 @@ end
 compliant_on :ruby do
 
 describe "Multiple assignment" do
-  
-  it "should have the proper return value" do
+  it "has the proper return value" do
     (a,b,*c = *[5,6,7,8,9,10]).should == [5,6,7,8,9,10]
     (d,e = VariablesSpecs.reverse_foo(4,3)).should == [3,4]
     (f,g,h = VariablesSpecs.reverse_foo(6,7)).should == [7,6]
@@ -788,7 +780,6 @@ describe "Multiple assignment" do
     l.should == [6,7]
   end
 end
-
 end
 
 # For now, masgn is deliberately non-compliant with MRI wrt the return val from an masgn.
@@ -832,4 +823,3 @@ describe "Multiple assignment, array-style" do
     end
   end
 end
-

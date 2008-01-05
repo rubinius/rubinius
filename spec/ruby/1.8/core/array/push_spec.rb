@@ -18,7 +18,7 @@ describe "Array#push" do
   end
   
   compliant_on :ruby, :jruby do
-    it "raises TypeError on a frozen array if modification takes place" do
+    it "raises a TypeError on a frozen array if modification takes place" do
       lambda { ArraySpecs.frozen_array.push(1) }.should raise_error(TypeError)
     end
 

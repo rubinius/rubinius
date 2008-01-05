@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ThreadGroup#list" do
-  it "should return the list of threads in the group" do
+  it "returns the list of threads in the group" do
     chan = Channel.new
     th1 = Thread.new { chan << :go; sleep }
     chan.receive.should == :go

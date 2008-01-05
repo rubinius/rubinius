@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-context "Kernel.srand" do
+describe "Kernel.srand" do
   it "srand should return the previous seed value" do
     srand(10)
     srand(20).should == 10

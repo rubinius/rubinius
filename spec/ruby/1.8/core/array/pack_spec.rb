@@ -31,7 +31,7 @@ describe "Array#pack" do
   #          v     |  Short, little-endian byte order
   #          w     |  BER-compressed integer\fnm
 
-  it "raises ArgumentError with ('%')" do
+  it "raises an ArgumentError with ('%')" do
     lambda { [].pack("%") }.should raise_error(ArgumentError)
   end
 
@@ -43,11 +43,11 @@ describe "Array#pack" do
     ["abc", "def"].pack("A*#A10%\nA*").should == "abcdef"
   end
 
-  it "returns space padded string with ('A')" do
+  it "returns space padded string with ('A<count>')" do
     ['abcde'].pack('A7').should == 'abcde  '
   end
 
-  it "cuts string if its size greater than directive count with ('A')" do
+  it "cuts string if its size greater than directive count with ('A<count>')" do
     ['abcde'].pack('A3').should == 'abc'
   end
 
@@ -55,7 +55,7 @@ describe "Array#pack" do
     ['abcde'].pack('A').should == 'a'
   end
 
-  it "returns empty string if count = 0 with ('A')" do
+  it "returns empty string if count = 0 with ('A<count>')" do
     ['abcde'].pack('A0').should == ''
   end
 
@@ -63,21 +63,17 @@ describe "Array#pack" do
     ['abcdef'].pack('A*').should == 'abcdef'
   end
 
-  it "raises TypeError if array item is not String with ('A')" do
+  it "raises a TypeError if array item is not String with ('A<count>')" do
     lambda { [123].pack('A5') }.should raise_error(TypeError)
     lambda { [:hello].pack('A5') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('A5') }.should raise_error(TypeError)
   end
 
-  it "should work with multi-digit padding sizes with ('A')" do
-    ['abcdef'].pack('A10').should == "abcdef    "
-  end
-
-  it "returns null padded string with ('a')" do
+  it "returns null padded string with ('a<count>')" do
     ['abcdef'].pack('a7').should == "abcdef\x0"
   end
 
-  it "cuts string if its size greater than directive count with ('a')" do
+  it "cuts string if its size greater than directive count with ('a<count>')" do
     ['abcde'].pack('a3').should == 'abc'
   end
 
@@ -85,7 +81,7 @@ describe "Array#pack" do
     ['abcde'].pack('a').should == 'a'
   end
 
-  it "returns empty string if count = 0 with ('a')" do
+  it "returns empty string if count = 0 with ('a<count>')" do
     ['abcde'].pack('a0').should == ''
   end
 
@@ -93,7 +89,7 @@ describe "Array#pack" do
     ['abcdef'].pack('a*').should == 'abcdef'
   end
 
-  it "raises TypeError if array item is not String with ('a')" do
+  it "raises a TypeError if array item is not String with ('a<count>')" do
     lambda { [123].pack('a5') }.should raise_error(TypeError)
     lambda { [:hello].pack('a5') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('a5') }.should raise_error(TypeError)
@@ -161,7 +157,7 @@ describe "Array#pack" do
     ["0011", "1011"].pack('B*B*').should == ["0011"].pack('B4') + ["1011"].pack('B4')
   end
 
-  it "raises TypeError if corresponding array item is not String with ('B')" do
+  it "raises a TypeError if corresponding array item is not String with ('B')" do
     lambda { [123].pack('B8') }.should raise_error(TypeError)
     lambda { [:data].pack('B8') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('B8') }.should raise_error(TypeError)
@@ -229,7 +225,7 @@ describe "Array#pack" do
     ["0011", "1011"].pack('b*b*').should == ["0011"].pack('b4') + ["1011"].pack('b4')
   end
 
-  it "raises TypeError if corresponding array item is not String with ('b')" do
+  it "raises a TypeError if corresponding array item is not String with ('b')" do
     lambda { [123].pack('b8') }.should raise_error(TypeError)
     lambda { [:data].pack('b8') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('b8') }.should raise_error(TypeError)
@@ -256,7 +252,7 @@ describe "Array#pack" do
     [:hello].pack('C').should == [:hello.to_i].pack('C')
   end
 
-  it "raises TypeErorr if value is string with ('C')" do
+  it "raises a TypeErorr if value is string with ('C')" do
     lambda { ["hello"].pack('C') }.should raise_error(TypeError)
   end
 
@@ -273,7 +269,7 @@ describe "Array#pack" do
     [1, 2, 3, 4, 5].pack('C*').should == "\001\002\003\004\005"
   end
 
-  it "raises ArgumentError if count is greater than array elements left with ('C')" do
+  it "raises an ArgumentError if count is greater than array elements left with ('C')" do
     lambda { [1, 2].pack('C3') }.should raise_error(ArgumentError)
   end
 
@@ -298,7 +294,7 @@ describe "Array#pack" do
     [:hello].pack('c').should == [:hello.to_i].pack('c')
   end
 
-  it "raises TypeError if value is string with ('c')" do
+  it "raises a TypeError if value is string with ('c')" do
     lambda { ["hello"].pack('c') }.should raise_error(TypeError)
   end
 
@@ -314,7 +310,7 @@ describe "Array#pack" do
     [1, 2, 3, 4, 5].pack('c*').should == "\001\002\003\004\005"
   end
 
-  it "raises ArgumentError if count is greater than array elements left with ('c')" do
+  it "raises an ArgumentError if count is greater than array elements left with ('c')" do
     lambda { [1, 2].pack('c3') }.should raise_error(ArgumentError)
   end
 
@@ -430,7 +426,7 @@ describe "Array#pack" do
     [""].pack('m').should == ""
   end
 
-  it "raises TypeError if corresponding array item is not string with ('m')" do
+  it "raises a TypeError if corresponding array item is not string with ('m')" do
     lambda { [123].pack('m') }.should raise_error(TypeError)
     lambda { [:hello].pack('m') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('m') }.should raise_error(TypeError)
@@ -503,7 +499,7 @@ describe "Array#pack" do
     [""].pack('u').should == ""
   end
 
-  it "raises TypeError if corresponding array item is not string with ('u')" do
+  it "raises a TypeError if corresponding array item is not string with ('u')" do
     lambda { [123].pack('u') }.should raise_error(TypeError)
     lambda { [:hello].pack('u') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('u') }.should raise_error(TypeError)
@@ -534,11 +530,11 @@ describe "Array#pack" do
     ['abcdef'].pack('A6X*').should == 'abcdef'
   end
 
-  it "raises ArgumentError if count greater than already generated string length with ('X')" do
+  it "raises an ArgumentError if count greater than already generated string length with ('X')" do
     lambda { ['abcdef'].pack('A6X7') }.should raise_error(ArgumentError)
   end
 
-  it "raises ArgumentError if it is first directive with ('X')" do
+  it "raises an ArgumentError if it is first directive with ('X')" do
     lambda { [].pack('X') }.should raise_error(ArgumentError)
   end
 
@@ -586,7 +582,7 @@ describe "Array#pack" do
     ['abcdef'].pack('Z*').should == "abcdef\000"
   end
 
-  it "raises TypeError if array item is not String with ('Z')" do
+  it "raises a TypeError if array item is not String with ('Z')" do
     lambda { [123].pack('Z5') }.should raise_error(TypeError)
     lambda { [:hello].pack('Z5') }.should raise_error(TypeError)
     lambda { [mock('not string')].pack('Z5') }.should raise_error(TypeError)

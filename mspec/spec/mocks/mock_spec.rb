@@ -73,21 +73,21 @@ describe Mock, ".verify_call" do
     Mock.verify_call @mock, :method_call, 1, 'two', :three
   end
   
-  it "raises ExpectationNotMetError when the mock method does not receive the expected arguments" do
+  it "raises an ExpectationNotMetError when the mock method does not receive the expected arguments" do
     @proxy.with(4, 2)
     lambda {
       Mock.verify_call @mock, :method_call, 42
     }.should raise_error(ExpectationNotMetError)
   end
   
-  it "raises ExpectationNotMetError when the mock method is called with arguments but expects none" do
+  it "raises an ExpectationNotMetError when the mock method is called with arguments but expects none" do
     lambda {
       @proxy.with(:no_args)
       Mock.verify_call @mock, :method_call, "hello"
     }.should raise_error(ExpectationNotMetError)
   end
   
-  it "raises ExpectationNotMetError when the mock method is called with no arguments but expects some" do
+  it "raises an ExpectationNotMetError when the mock method is called with no arguments but expects some" do
     @proxy.with("hello", "beautiful", "world")
     lambda {
       Mock.verify_call @mock, :method_call
@@ -117,7 +117,7 @@ describe Mock, ".verify_count" do
     Mock.verify_count
   end
   
-  it "raises ExpectationNotMetError when the mock receives less than at least the expected number of calls" do
+  it "raises an ExpectationNotMetError when the mock receives less than at least the expected number of calls" do
     @proxy.at_least(2)
     @mock.method_call
     lambda { Mock.verify_count }.should raise_error(ExpectationNotMetError)
@@ -130,7 +130,7 @@ describe Mock, ".verify_count" do
     Mock.verify_count
   end
   
-  it "raises ExpectationNotMetError when the mock receives more than at most the expected number of calls" do
+  it "raises an ExpectationNotMetError when the mock receives more than at most the expected number of calls" do
     @proxy.at_most(2)
     @mock.method_call
     @mock.method_call
@@ -145,13 +145,13 @@ describe Mock, ".verify_count" do
     Mock.verify_count
   end
   
-  it "raises ExpectationNotMetError when the mock receives less than exactly the expected number of calls" do
+  it "raises an ExpectationNotMetError when the mock receives less than exactly the expected number of calls" do
     @proxy.exactly(2)
     @mock.method_call
     lambda { Mock.verify_count }.should raise_error(ExpectationNotMetError)
   end
   
-  it "raises ExpectationNotMetError when the mock receives more than exactly the expected number of calls" do
+  it "raises an ExpectationNotMetError when the mock receives more than exactly the expected number of calls" do
     @proxy.exactly(2)
     @mock.method_call
     @mock.method_call

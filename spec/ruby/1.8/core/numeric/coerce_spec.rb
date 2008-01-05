@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
+# FIXME: this awful wording
 describe "Numeric#coerce" do   
   before(:each) do 
     @integer = 1
@@ -21,12 +22,12 @@ describe "Numeric#coerce" do
     @float.coerce(0).should == [0,2.5]
   end  
   
-  it "coerce with bignums " do 
+  it "coerce with bignums" do 
     @integer.coerce(4294967296).should == [4294967296, 1]
     @float.coerce(4294967296).should == [4294967296.0, 2.5]
   end  
  
-  it "should coerce strings to numerics" do
+  it "coerces strings to numerics" do
     @integer.coerce("1").should == [1.0, 1.0]
     @integer.coerce("3.32").should == [3.32, 1.0]
     @float.coerce("1").should == [1.0, 2.5]

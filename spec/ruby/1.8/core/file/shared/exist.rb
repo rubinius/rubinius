@@ -10,9 +10,12 @@ shared :file_exist do |cmd|
       File.exists?('a_fake_file').should == false
     end
 
-    it "raise an exception if the argumnent is not from the correct type or are missing" do
+    it "raises an ArgumentError if not passed one argument" do
       lambda { File.exist? }.should raise_error(ArgumentError)
       lambda { File.exist?(__FILE__, __FILE__) }.should raise_error(ArgumentError)
+    end
+    
+    it "raises a TypeError if not passed a String type" do
       lambda { File.exist?(nil) }.should raise_error(TypeError)
     end 
   end

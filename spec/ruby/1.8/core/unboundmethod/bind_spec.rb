@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "UnboundMethod#bind" do
-  it "should handle unbinding and binding of the method properly" do
+  it "handles unbinding and binding of the method properly" do
     um1 = UnboundMethodSpecs::B.new.method(:baz).unbind
     um2 = UnboundMethodSpecs::B.instance_method(:baz)
 

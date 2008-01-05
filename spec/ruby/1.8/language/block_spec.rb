@@ -53,14 +53,14 @@ not_compliant_on :rubinius do
   # been used in 1.8, therefore rubinius doesn't support
   # it already.
   describe "Block parameters (to be removed from MRI)" do
-    it "should assign to a global variable" do
+    it "assigns to a global variable" do
       $global_for_block_assignment = 0
       a = [1,2,3]
       a.each {|$global_for_block_assignment| ;}
       $global_for_block_assignment.should == 3
     end
 
-    it "should call method=" do
+    it "calls method=" do
       class T
         def n; return @n; end
         def n=(val); @n = val + 1; end

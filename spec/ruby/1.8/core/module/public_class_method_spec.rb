@@ -41,7 +41,7 @@ describe "Module#public_class_method" do
     ModuleSpecs::Child.public_method_3.should == nil
   end
 
-  it "should raise a NameError if class method doesn't exist" do
+  it "raises a NameError if class method doesn't exist" do
     lambda { ModuleSpecs.public_class_method :no_method_here }.should raise_error(NameError)
   end
 

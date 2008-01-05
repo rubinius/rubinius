@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/subtend_helper'
 compile_extension('subtend_exception')
 require File.dirname(__FILE__) + '/ext/subtend_exception'
 
-context "SubtendRaiser" do
+describe "SubtendRaiser" do
   setup do
     @s = SubtendRaiser.new
   end

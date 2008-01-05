@@ -11,7 +11,7 @@ shared :bignum_divide do |cmd|
       @bignum.send(cmd, BignumHelper.sbm(2)).should be_close(1, TOLERANCE)
     end
 
-    it "raises ZeroDivisionError if other is zero and not a Float" do
+    it "raises a ZeroDivisionError if other is zero and not a Float" do
       lambda { @bignum.send(cmd, 0) }.should raise_error(ZeroDivisionError)
     end
 

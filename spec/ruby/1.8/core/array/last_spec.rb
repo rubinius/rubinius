@@ -23,7 +23,7 @@ describe "Array#last" do
     [1, 2, 3, 4, 5].last(0).should == []
   end
   
-  it "raises ArgumentError when count is negative" do
+  it "raises an ArgumentError when count is negative" do
     lambda { [1, 2].last(-1) }.should raise_error(ArgumentError)
   end
   

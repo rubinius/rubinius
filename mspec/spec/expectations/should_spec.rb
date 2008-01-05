@@ -41,7 +41,7 @@ describe Object, "#should" do
     @target.should @matcher rescue nil
   end
 
-  it "raises ExpectationNotMetError when matcher #matches? returns false" do
+  it "raises an ExpectationNotMetError when matcher #matches? returns false" do
     @matcher.should_receive(:matches?).with(@target).and_return(false)
     @matcher.should_receive(:failure_message).and_return(["expected", "actual"])
     lambda {
@@ -80,7 +80,7 @@ describe Object, "#should_not" do
     @target.should_not @matcher rescue nil
   end
   
-  it "raises ExpectationNotMetError when matcher.matches? returns true" do
+  it "raises an ExpectationNotMetError when matcher.matches? returns true" do
     @matcher.should_receive(:matches?).with(@target).and_return(true)
     @matcher.should_receive(:negative_failure_message).and_return(["expected", "actual"])
     lambda {

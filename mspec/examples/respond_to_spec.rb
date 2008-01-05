@@ -42,7 +42,7 @@ class LiarLiarPantsOnFire
   end
 end
 
-describe 'should_receive' do
+describe "should_receive" do
   before(:each) do
     @liar = LiarLiarPantsOnFire.new
   end
@@ -52,12 +52,12 @@ describe 'should_receive' do
     @liar.something
   end
 
-  it 'should work when class lies about responding to a method' do
+  it "should work when class lies about responding to a method" do
     LiarLiarPantsOnFire.should_receive(:something)
     LiarLiarPantsOnFire.something
   end
   
-  it 'should cleanup after itself' do
+  it "should cleanup after itself" do
     LiarLiarPantsOnFire.metaclass.instance_methods.should_not include("something")
   end
 end

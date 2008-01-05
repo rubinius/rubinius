@@ -2,21 +2,21 @@ require File.dirname(__FILE__) + '/../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/super'
 
 describe "The super keyword" do
-  it "should call the method on the calling class" do
+  it "calls the method on the calling class" do
     Super::S1::A.new.foo([]).should == ["A#foo","A#bar"]
     Super::S1::A.new.bar([]).should == ["A#bar"]
     Super::S1::B.new.foo([]).should == ["B#foo","A#foo","B#bar","A#bar"]
     Super::S1::B.new.bar([]).should == ["B#bar","A#bar"]
   end
   
-  it "should search the full inheritence chain" do
+  it "searches the full inheritence chain" do
     Super::S2::B.new.foo([]).should == ["B#foo","A#baz"]
     Super::S2::B.new.baz([]).should == ["A#baz"]
     Super::S2::C.new.foo([]).should == ["B#foo","C#baz","A#baz"]
     Super::S2::C.new.baz([]).should == ["C#baz","A#baz"]
   end
 
-  it "should search class methods" do
+  it "searches class methods" do
     Super::S3::A.new.foo([]).should == ["A#foo"]
     Super::S3::A.foo([]).should == ["A::foo"]
     Super::S3::A.bar([]).should == ["A::bar","A::foo"]
@@ -25,21 +25,21 @@ describe "The super keyword" do
     Super::S3::B.bar([]).should == ["B::bar","A::bar","B::foo","A::foo"]
   end
 
-  it "should call the method on the calling class including modules" do
+  it "calls the method on the calling class including modules" do
     Super::MS1::A.new.foo([]).should == ["ModA#foo","ModA#bar"]
     Super::MS1::A.new.bar([]).should == ["ModA#bar"]
     Super::MS1::B.new.foo([]).should == ["B#foo","ModA#foo","ModB#bar","ModA#bar"]
     Super::MS1::B.new.bar([]).should == ["ModB#bar","ModA#bar"]
   end
   
-  it "should search the full inheritence chain including modules" do
+  it "searches the full inheritence chain including modules" do
     Super::MS2::B.new.foo([]).should == ["ModB#foo","A#baz"]
     Super::MS2::B.new.baz([]).should == ["A#baz"]
     Super::MS2::C.new.baz([]).should == ["C#baz","A#baz"]
     Super::MS2::C.new.foo([]).should == ["ModB#foo","C#baz","A#baz"]
   end
 
-  it "should search class methods including modules" do
+  it "searche class methods including modules" do
     Super::MS3::A.new.foo([]).should == ["A#foo"]
     Super::MS3::A.foo([]).should == ["ModA#foo"]
     Super::MS3::A.bar([]).should == ["ModA#bar","ModA#foo"]

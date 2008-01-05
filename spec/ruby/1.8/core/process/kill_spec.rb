@@ -6,7 +6,7 @@ describe "Process.kill" do
     lambda { Process.kill(0) }.should raise_error(ArgumentError)
   end
 
-  it "raises ArgumentError for unknown signals" do
+  it "raises an ArgumentError for unknown signals" do
     lambda { Process.kill("FOO", 0) }.should raise_error(ArgumentError)
   end
 
@@ -35,7 +35,7 @@ describe "Process.kill" do
     lambda { Process.kill(0, pid) }.should raise_error(Errno::ESRCH)
   end
 
-  it "raises EPERM if permission is denied" do
+  it "raises an EPERM if permission is denied" do
     if Process.uid != 0
       lambda { Process.kill(1, 1) }.should raise_error(Errno::EPERM)
     end

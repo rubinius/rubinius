@@ -6,7 +6,7 @@ describe "GetoptLong#set_options" do
     @opts = GetoptLong.new
   end
   
-  it "should allow setting command line options" do
+  it "allows setting command line options" do
     begin
       old_argv_value = ARGV
       ARGV = ["--size", "10k", "-v", "arg1", "arg2"]
@@ -47,26 +47,26 @@ describe "GetoptLong#set_options" do
     end
   end
   
-  it "should raise an ArgumentError if too many argument flags where given" do
+  it "raises an ArgumentError if too many argument flags where given" do
     lambda {
       @opts.set_options(["--size", GetoptLong::NO_ARGUMENT, GetoptLong::REQUIRED_ARGUMENT])
     }.should raise_error(ArgumentError)
   end
   
-  it "should raise a RuntimeError if processing has already started" do
+  it "raises a RuntimeError if processing has already started" do
     @opts.get
     lambda {
       @opts.set_options()
     }.should raise_error(RuntimeError)
   end
   
-  it "should raise an ArgumentError if no argument flag was given" do
+  it "raises an ArgumentError if no argument flag was given" do
     lambda {
       @opts.set_options(["--size"])
     }.should raise_error(ArgumentError)
   end
   
-  it "should raise an ArgumentError if one of the given arguments is not an Array" do
+  it "raises an ArgumentError if one of the given arguments is not an Array" do
     lambda {
       @opts.set_options(
         ["--size", GetoptLong::REQUIRED_ARGUMENT],
@@ -74,7 +74,7 @@ describe "GetoptLong#set_options" do
     }.should raise_error(ArgumentError)
   end
   
-  it "should raise an ArgumentError if the same option is given twice" do
+  it "raises an ArgumentError if the same option is given twice" do
     lambda {
       @opts.set_options(
         ["--size", GetoptLong::NO_ARGUMENT],
@@ -88,7 +88,7 @@ describe "GetoptLong#set_options" do
     }.should raise_error(ArgumentError)
   end
   
-  it "should raise an ArgumentError if the given option is invalid" do
+  it "raises an ArgumentError if the given option is invalid" do
     lambda {
       @opts.set_options(["-size", GetoptLong::NO_ARGUMENT])
     }.should raise_error(ArgumentError)

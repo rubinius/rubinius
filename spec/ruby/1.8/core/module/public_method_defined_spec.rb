@@ -13,7 +13,7 @@ describe "Module#public_method_defined?" do
     ModuleSpecs::CountsChild.public_method_defined?("public_1").should == true
   end
 
-  it "should return false if method is not a public method" do
+  it "returns false if method is not a public method" do
     ModuleSpecs::CountsChild.public_method_defined?("private_3").should == false
     ModuleSpecs::CountsChild.public_method_defined?("private_2").should == false
     ModuleSpecs::CountsChild.public_method_defined?("private_1").should == false
@@ -32,21 +32,28 @@ describe "Module#public_method_defined?" do
   end
 
   compliant_on :ruby, :jruby do
-    it "raises an exception on improper argument" do
+    it "raises an ArgumentError if called with a Fixnum" do
       lambda { ModuleSpecs::CountsMixin.public_method_defined?(1)     }.should raise_error(ArgumentError)
+    end
+    
+    it "raises a TypeError if not passed a Symbol" do
       lambda { ModuleSpecs::CountsMixin.public_method_defined?(nil)   }.should raise_error(TypeError)
       lambda { ModuleSpecs::CountsMixin.public_method_defined?(false) }.should raise_error(TypeError)
+
+      sym = mock('symbol')
+      def sym.to_sym() :public_3 end
+      lambda { ModuleSpecs::CountsMixin.public_method_defined?(sym) }.should raise_error(TypeError)
     end
   end
   
+  it "accepts any object that is a String type" do
+    str = mock('public_3')
+    def str.to_str() 'public_3' end
+    ModuleSpecs::CountsMixin.public_method_defined?(str).should == true
+  end
+  
   deviates_on :rubinius do
-    it "accepts any object that is String-like" do
-      o = mock('public_3')
-      def o.to_str() 'public_3' end
-      ModuleSpecs::CountsMixin.public_method_defined?(o).should == true
-    end
-    
-    it "raises TypeError if passed a non-String-like argument" do
+    it "raises a TypeError if not passed a String type" do
       lambda { ModuleSpecs::CountsMixin.public_method_defined?(mock('x')) }.should raise_error(TypeError)
     end
   end

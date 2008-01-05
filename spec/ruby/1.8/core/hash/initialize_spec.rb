@@ -15,7 +15,7 @@ describe "Hash#initialize" do
   end
 
   compliant_on :ruby, :jruby do
-    it "raises TypeError if called on a frozen instance" do
+    it "raises a TypeError if called on a frozen instance" do
       block = lambda { HashSpecs.frozen_hash.instance_eval { initialize() }}
       block.should raise_error(TypeError)
 

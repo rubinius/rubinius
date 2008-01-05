@@ -44,7 +44,7 @@ describe "Array#fill" do
     [1, 2, 3].fill('a', 1, 0).should == [1, 2, 3]
   end
 
-  it "raises an error if given an index and a negative count" do
+  it "raises an ArgumentError if given an index and a negative count" do
     lambda { [1, 2, 3].fill('a', 1, -3)}.should raise_error(ArgumentError)
     lambda { [1, 2, 3].fill('a', 1, -300000)}.should raise_error(ArgumentError)
   end
@@ -82,16 +82,16 @@ describe "Array#fill" do
     a.size.should == 10 
   end
 
-  it "raises ArgumentError if the wrong number of arguments is given" do
+  it "raises an ArgumentError if the wrong number of arguments is given" do
     lambda { [].fill('a', 1, 2, true) }.should raise_error(ArgumentError)
     lambda { [].fill('a', 1, true) {|i|} }.should raise_error(ArgumentError)
   end
 
-  it "raises TypeError if the index is not numeric" do
+  it "raises a TypeError if the index is not numeric" do
     lambda { [].fill 'a', true }.should raise_error(TypeError)
   end
 
-  it "raises TypeError with range and length argument" do
+  it "raises a TypeError with range and length argument" do
     lambda { [].fill('x', 0 .. 2, 5) }.should raise_error(TypeError)
   end
 
@@ -102,7 +102,7 @@ describe "Array#fill" do
   end
 
   compliant_on :ruby, :jruby do
-    it "raises TypeError on a frozen array" do
+    it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(TypeError)
     end
   end

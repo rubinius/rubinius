@@ -12,9 +12,9 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 #   #[]               OK
 
 
-describe 'Creating a Continuation object' do
+describe "Creating a Continuation object" do
   not_compliant_on :jruby do
-    it 'must be done through Kernel.callcc, no .new' do
+    it "must be done through Kernel.callcc, no .new" do
       lambda { Continuation.new }.should raise_error(NoMethodError)
 
       Kernel.callcc {|@cc|}
@@ -25,9 +25,9 @@ describe 'Creating a Continuation object' do
 end
 
 
-describe 'Executing a Continuation' do
+describe "Executing a Continuation" do
   not_compliant_on :jruby do
-    it 'using #call transfers execution to right after the Kernel.callcc block' do
+    it "using #call transfers execution to right after the Kernel.callcc block" do
       array = [:reached, :not_reached]
 
       Kernel.callcc {|@cc|}
@@ -40,13 +40,13 @@ describe 'Executing a Continuation' do
       array.should == [:not_reached]
     end
 
-    it 'arguments given to #call (or nil) are returned by the Kernel.callcc block (as Array unless only one object)' do
+    it "arguments given to #call (or nil) are returned by the Kernel.callcc block (as Array unless only one object)" do
       Kernel.callcc {|cc| cc.call}.should == nil 
       Kernel.callcc {|cc| cc.call 1}.should == 1 
       Kernel.callcc {|cc| cc.call 1, 2, 3}.should == [1, 2, 3] 
     end
 
-    it '#[] is an alias for #call' do
+    it "#[] is an alias for #call" do
       Kernel.callcc {|cc| cc.call}.should == Kernel.callcc {|cc| cc[]}
       Kernel.callcc {|cc| cc.call 1}.should == Kernel.callcc {|cc| cc[1]}
       Kernel.callcc {|cc| cc.call 1, 2, 3}.should == Kernel.callcc {|cc| cc[1, 2, 3]} 

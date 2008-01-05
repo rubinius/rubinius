@@ -18,7 +18,7 @@ class SubtendClassTest
   end
 end
 
-context "SubtendClass" do
+describe "SubtendClass" do
   setup do
     @s = SubtendClass.new
   end

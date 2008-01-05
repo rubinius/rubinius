@@ -51,7 +51,7 @@ describe "String#slice! with index" do
   end
   
   platform_is :version => '1.8.5' do
-    it "raises IndexError when passed other than a Fixnum" do
+    it "raises an IndexError when passed other than a Fixnum" do
       lambda { "hello".slice!(0.5).should == ?h }.should raise_error(IndexError)
 
       obj = mock('1')

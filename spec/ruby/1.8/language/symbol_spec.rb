@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-context 'Using the literal form to create Symbols' do
+describe "Using the literal form to create Symbols" do
   specify 'Colon followed by a valid series of characters creates a Symbol' do
     a = :foo
     [a.class == Symbol, a.inspect == ':foo', a == :foo].all? {|x| x == true}.should == true

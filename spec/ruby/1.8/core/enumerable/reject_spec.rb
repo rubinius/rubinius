@@ -11,7 +11,7 @@ describe "Enumerable#reject" do
     numerous.reject {|i| false }.should == entries
   end
   
-  it "raises LocalJumpError if no block is given" do
+  it "raises a LocalJumpError if no block is given" do
     lambda { EnumerableSpecs::Numerous.new.reject }.should raise_error(LocalJumpError)
   end
 end

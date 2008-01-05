@@ -11,7 +11,7 @@ describe "File#path" do
     File.delete(@file2) if File.exist?(@file2)
   end
   
-  it "should return the pathname used to create file as a string" do
+  it "returns the pathname used to create file as a string" do
     File.open(@file1,'w'){|file| file.path.should == "testfile"}
     File.open(@file2, 'w'){|file| file.path.should == "/tmp/../tmp/xxx"}
   end

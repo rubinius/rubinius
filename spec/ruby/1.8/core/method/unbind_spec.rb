@@ -11,7 +11,7 @@ describe "Method#unbind" do
     @um.kind_of?(UnboundMethod).should == true
   end
 
-  it "should handle unbinding and binding of the method properly" do
+  it "handles unbinding and binding of the method properly" do
     MethodSpecs::B.module_eval "def baz; false end"
 
     @um.bind(MethodSpecs::B.new).call(1, 2).should == MethodSpecs::B

@@ -41,7 +41,7 @@ shared :hash_update do |cmd|
     end
 
     compliant_on :ruby do
-      it "raises TypeError if called on a non-empty, frozen instance" do
+      it "raises a TypeError if called on a non-empty, frozen instance" do
         HashSpecs.frozen_hash.send(cmd, HashSpecs.empty_frozen_hash) # ok, empty
         lambda { HashSpecs.frozen_hash.send(cmd, 1 => 2) }.should raise_error(TypeError)
       end

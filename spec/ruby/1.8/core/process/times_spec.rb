@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-context "Process.times" do
+describe "Process.times" do
   specify "returns current cpu times" do
 
     t = Process::times

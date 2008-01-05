@@ -24,7 +24,7 @@ describe "Array#delete" do
   end
   
   compliant_on :ruby, :jruby do
-    it "raises TypeError on a frozen array if a modification would take place" do
+    it "raises a TypeError on a frozen array if a modification would take place" do
       lambda { [1, 2, 3].freeze.delete(1) }.should raise_error(TypeError)
     end
 

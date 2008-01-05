@@ -16,8 +16,11 @@ describe "File.writable_real?" do
     }
   end
   
-  it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do  
+  it "raises an ArgumentError if not passed one argument" do
     lambda { File.writable_real?        }.should raise_error(ArgumentError)
+  end
+  
+  it "raises a TypeError if not passed a String type" do
     lambda { File.writable_real?(1)     }.should raise_error(TypeError)
     lambda { File.writable_real?(nil)   }.should raise_error(TypeError)
     lambda { File.writable_real?(false) }.should raise_error(TypeError)

@@ -23,7 +23,7 @@ describe "Array#initialize" do
     [].instance_eval { initialize(1) }.should == [nil]
   end
   
-  it "raises ArgumentError if size is negative" do
+  it "raises an ArgumentError if size is negative" do
     lambda { [].instance_eval { initialize(-1, :a) } }.should raise_error(ArgumentError)
     lambda { [1, 2, 3].instance_eval { initialize(-1) } }.should raise_error(ArgumentError)
   end
@@ -37,7 +37,7 @@ describe "Array#initialize" do
   end
   
   compliant_on :ruby, :jruby do
-    it "raises TypeError on frozen arrays even if the array would not be 'modified'" do
+    it "raises a TypeError on frozen arrays even if the array would not be 'modified'" do
       # This is true at least 1.8.6p111 onwards 
       lambda { ArraySpecs.frozen_array.instance_eval { initialize } }.should raise_error(TypeError)
 

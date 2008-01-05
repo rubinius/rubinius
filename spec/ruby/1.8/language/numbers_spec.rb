@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-context "Ruby numbers in various ways" do
+describe "Ruby numbers in various ways" do
 
   specify "the standard way" do
     435.should == 435

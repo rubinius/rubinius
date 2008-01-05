@@ -23,7 +23,7 @@ describe "Array#pop" do
   end
 
   compliant_on :ruby, :jruby do
-    it "raises TypeError on a frozen array" do
+    it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.pop }.should raise_error(TypeError)
     end
   end

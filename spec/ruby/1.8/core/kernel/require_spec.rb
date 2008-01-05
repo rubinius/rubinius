@@ -218,7 +218,7 @@ describe "Kernel#require" do
     lambda { require([])  }.should raise_error(TypeError)
   end
 
-  it "should not infinite loop on an rb file that requires itself" do
+  it "does not infinite loop on an rb file that requires itself" do
     $require_spec_recursive = nil
     $LOADED_FEATURES.delete 'require_spec_recursive.rb'
 

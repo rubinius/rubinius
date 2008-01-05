@@ -26,7 +26,7 @@ describe "Array#unshift" do
   end
 
   compliant_on :ruby, :jruby do
-    it "raises TypeError on a frozen array" do
+    it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.unshift(1) }.should raise_error(TypeError)
     end  
     

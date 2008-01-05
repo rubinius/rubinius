@@ -7,13 +7,13 @@ shared :dir_delete do |cmd|
       }
     end
 
-    it "raises SystemCallError when trying to remove a nonempty directory" do
+    it "raises a SystemCallError when trying to remove a nonempty directory" do
       %w|rmdir delete unlink|.each {|cmd|
         lambda { Dir.send cmd, 'subdir_one' }.should raise_error(SystemCallError)
       }
     end
 
-    it "raises SystemCallError if lacking adequate permissions to remove the directory" do
+    it "raises a SystemCallError if lacking adequate permissions to remove the directory" do
       %w|rmdir delete unlink|.each {|cmd|
         system "mkdir -p noperm_#{cmd}/child"
         system "chmod 0000 noperm_#{cmd}"

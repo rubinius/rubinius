@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/subtend_helper'
 compile_extension('subtend_float')
 require File.dirname(__FILE__) + '/ext/subtend_float'
 
-context "SubtendFloat" do
+describe "SubtendFloat" do
   setup do
     @f = SubtendFloat.new
   end

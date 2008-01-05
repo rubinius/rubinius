@@ -140,7 +140,7 @@ describe "File.open" do
   end  
   
   # Check the grants associated to the differents open modes combinations.   
-  it "raise an ArgumentError exception when call with an unknown mode" do 
+  it "raises an ArgumentError exception when call with an unknown mode" do 
     lambda { File.open(@file, "q") }.should raise_error(ArgumentError)
   end
   
@@ -156,13 +156,13 @@ describe "File.open" do
     end
   end
   
-  it "raise an IO exception when write in a block opened with RDONLY mode" do 
+  it "raises an IO exception when write in a block opened with RDONLY mode" do 
     File.open(@file, File::RDONLY) do |f| 
       lambda { f.puts "writing ..." }.should raise_error(IOError)
     end
   end
   
-  it "raise an IO exception when write in a block opened with 'r' mode" do 
+  it "raises an IO exception when write in a block opened with 'r' mode" do 
     File.open(@file, "r") do |f| 
       lambda { f.puts "writing ..." }.should raise_error(IOError)
     end
@@ -194,44 +194,44 @@ describe "File.open" do
     end
   end
   
-  it "raise an IO exception when read in a block opened with WRONLY mode" do 
+  it "raises an IO exception when read in a block opened with WRONLY mode" do 
     File.open(@file, File::WRONLY) do |f| 
       lambda { f.gets  }.should raise_error(IOError)
     end
   end
   
-  it "raise an IO exception when read in a block opened with 'w' mode" do 
+  it "raises an IO exception when read in a block opened with 'w' mode" do 
     File.open(@file, "w") do |f| 
       lambda { f.gets   }.should raise_error(IOError)
     end
   end
   
-  it "raise an IO exception when read in a block opened with 'a' mode" do 
+  it "raises an IO exception when read in a block opened with 'a' mode" do 
     File.open(@file, "a") do |f| 
       lambda { f.gets  }.should raise_error(IOError)
     end
   end
   
-  it "raise an IO exception when read in a block opened with 'a' mode" do 
+  it "raises an IO exception when read in a block opened with 'a' mode" do 
     File.open(@file, "a") do |f|        
       f.puts("writing").should == nil      
       lambda { f.gets }.should raise_error(IOError)
     end
   end  
   
-  it "raise an IO exception when read in a block opened with 'a' mode" do 
+  it "raises an IO exception when read in a block opened with 'a' mode" do 
     File.open(@file, File::WRONLY|File::APPEND ) do |f| 
       lambda { f.gets }.should raise_error(IOError)
     end
   end
   
-  it "raise an IO exception when read in a block opened with File::WRONLY|File::APPEND mode" do 
+  it "raises an IO exception when read in a block opened with File::WRONLY|File::APPEND mode" do 
     File.open(@file, File::WRONLY|File::APPEND ) do |f|        
       f.puts("writing").should == nil  
     end
   end
   
-  it "raise an IO exception when read in a block opened with File::RDONLY|File::APPEND mode" do 
+  it "raises an IO exception when read in a block opened with File::RDONLY|File::APPEND mode" do 
     lambda {
       File.open(@file, File::RDONLY|File::APPEND ) do |f|        
         f.puts("writing")  
@@ -271,7 +271,7 @@ describe "File.open" do
     end     
   end
   
-  it "raise an Errorno::EEXIST if the file exists when open with File::CREAT|File::EXCL" do 
+  it "raises an Errorno::EEXIST if the file exists when open with File::CREAT|File::EXCL" do 
     lambda {
       File.open(@file, File::CREAT|File::EXCL) do |f|  
         f.puts("writing")
@@ -298,7 +298,7 @@ describe "File.open" do
     end     
   end  
   
-  it "raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND" do 
+  it "raises an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND" do 
     lambda {
       File.open(@file, File::RDONLY|File::APPEND) do |f|  
         f.puts("writing").should == nil 
@@ -337,7 +337,7 @@ describe "File.open" do
     }.should raise_error(IOError)
   end  
       
-  it "raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC" do 
+  it "raises an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC" do 
     lambda {
       File.open(@file, File::RDONLY|File::TRUNC) do |f|  
         f.puts("writing").should == nil 
@@ -345,21 +345,21 @@ describe "File.open" do
     }.should raise_error(IOError)
   end
   
-  it "should throw Errno::EACCES when opening non-permitted file" do
+  it "raises an Errno::EACCES when opening non-permitted file" do
     @fh = File.open(@file, "w")
     @fh.chmod(000)
     lambda { File.open(@file) }.should raise_error(Errno::EACCES)
   end
   
-  it "should open a file for binary read" do
+  it "opens a file for binary read" do
     @fh = File.open(@file, "rb")
   end
   
-  it "should open a file for binary write" do
+  it "opens a file for binary write" do
     @fh = File.open(@file, "wb")
   end
   
-  it "should open a file for read-write and truncate the file" do
+  it "opens a file for read-write and truncate the file" do
     @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
     @fh = File.open(@file, "w+")    
     @fh.pos.should == 0
@@ -368,14 +368,14 @@ describe "File.open" do
     File.size(@file).should == 0
   end
 
-  it "should open a file for binary read-write starting at the beginning of the file" do
+  it "opens a file for binary read-write starting at the beginning of the file" do
     @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
     @fh = File.open(@file, "rb+")
     @fh.pos.should == 0
     @fh.eof?.should == false
   end
   
-  it "should open a file for binary read-write and truncate the file" do
+  it "opens a file for binary read-write and truncate the file" do
     @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
     @fh = File.open(@file, "wb+")
     @fh.pos.should == 0

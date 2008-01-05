@@ -6,11 +6,11 @@ describe "Kernel#binding" do
     @b1 = KernelSpecs::Binding.new(99).get_binding
   end
 
-  it "should return a Binding object" do
+  it "returns a Binding object" do
     @b1.kind_of?(Binding).should == true
   end
 
-  it "should encapsulate the execution context properly" do
+  it "encapsulates the execution context properly" do
     eval("@secret", @b1).should == 100
     eval("a", @b1).should == true
     eval("b", @b1).should == true
@@ -23,7 +23,7 @@ describe "Kernel#binding" do
     eval("a", @b1).should == false
   end
 
-  it "should raise NameError on undefined variable" do
+  it "raises a NameError on undefined variable" do
     lambda { eval("a_fake_variable", @b1) }.should raise_error(NameError)
   end
 end

@@ -49,7 +49,7 @@ describe "String#[]= with index" do
   end
 
   platform_is :version => '1.8.5' do
-    it "raises IndexError when passed other than a Fixnum" do
+    it "raises an IndexError when passed other than a Fixnum" do
       str = "hello"
       lambda { str[0.5] = ?c }.should raise_error(IndexError)
     
@@ -150,7 +150,7 @@ describe "String#[]= with String" do
   end
 
   platform_is :version => '1.8.5' do
-    it "raises IndexError when passed other than a Fixnum" do
+    it "raises an IndexError when passed other than a Fixnum" do
       str = "hello"
       lambda { str[0.5] = "hi " }.should raise_error(IndexError)
     

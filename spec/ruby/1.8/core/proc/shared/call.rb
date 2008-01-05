@@ -57,14 +57,14 @@ shared :proc_call do |cmd|
       p.send(cmd, [1, 2, 3], 4).should == [[1, 2, 3], 4]
     end
     
-    it "raises ArgumentError when called with too few arguments on a Proc created with Kernel#lambda or Kernel#proc" do
+    it "raises an ArgumentError when called with too few arguments on a Proc created with Kernel#lambda or Kernel#proc" do
       lambda { lambda { |a, b| [a, b] }.send(cmd)    }.should raise_error(ArgumentError)
       lambda { lambda { |a, b| [a, b] }.send(cmd, 1) }.should raise_error(ArgumentError)
       lambda { proc { |a, b| [a, b] }.send(cmd)      }.should raise_error(ArgumentError)
       lambda { proc { |a, b| [a, b] }.send(cmd, 1)   }.should raise_error(ArgumentError)
     end
     
-    it "raises ArgumentError when called with too many arguments on a Proc created with Kernel#lambda or Kernel#proc" do
+    it "raises an ArgumentError when called with too many arguments on a Proc created with Kernel#lambda or Kernel#proc" do
       lambda { lambda { |a, b| [a, b] }.send(cmd, 1, 2, 3) }.should raise_error(ArgumentError)
       lambda { proc { |a, b| [a, b] }.send(cmd, 1, 2, 3)   }.should raise_error(ArgumentError)
     end

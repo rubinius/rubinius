@@ -8,25 +8,25 @@ module SocketSpecs
 end
 
 describe "Socket" do
-  it "should inherit from BasicSocket and IO" do
+  it "inherits from BasicSocket and IO" do
     Socket.superclass.should == BasicSocket
     BasicSocket.superclass.should == IO
   end
 end
 
 describe "The socket class hierarchy" do
-  it "should have an IPSocket in parallel to Socket" do
+  it "has an IPSocket in parallel to Socket" do
     Socket.ancestors.include?(IPSocket).should == false
     IPSocket.ancestors.include?(Socket).should == false
     IPSocket.superclass.should == BasicSocket
   end
 
-  it "should have TCPSocket and UDPSocket subclasses of IPSocket" do
+  it "has TCPSocket and UDPSocket subclasses of IPSocket" do
     TCPSocket.superclass.should == IPSocket
     UDPSocket.superclass.should == IPSocket
   end
 
-  it "should have a UNIXSocket in parallel to Socket" do
+  it "has a UNIXSocket in parallel to Socket" do
     Socket.ancestors.include?(UNIXSocket).should == false
     UNIXSocket.ancestors.include?(Socket).should == false
     UNIXSocket.superclass.should == BasicSocket
@@ -34,7 +34,7 @@ describe "The socket class hierarchy" do
 end
 
 describe "Server class hierarchy" do
-  it "should contain UNIXServer" do
+  it "contains UNIXServer" do
     UNIXServer.superclass.should == UNIXSocket
   end
 end
@@ -43,7 +43,7 @@ describe "TCPServer.new" do
   after(:each) do
     @server.close if @server
   end
-  it "should bind to a host and a port" do
+  it "binds to a host and a port" do
     @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
   end
 end
@@ -73,7 +73,7 @@ describe "TCPServer#accept" do
     @socket.close if @socket
   end
 
-  it "should accept what is written by the client" do
+  it "accepts what is written by the client" do
     @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     @socket.write('hello')
     Thread.pass until @read
@@ -91,7 +91,7 @@ describe "IPSocket#peeraddr" do
     @socket.close if @socket
   end
 
-  it "should return an array of values" do
+  it "returns an array of values" do
     @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     @socket.peeraddr.should == ["AF_INET", SocketSpecs.port, "localhost", "127.0.0.1"]
   end
@@ -107,7 +107,7 @@ describe "BasicSocket#do_not_reverse_lookup" do
     @socket.close if @socket
   end
 
-  it "should cause 'peeraddr' to avoid name lookups" do
+  it "causes 'peeraddr' to avoid name lookups" do
     @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     @socket.peeraddr.should == ["AF_INET", SocketSpecs.port, "127.0.0.1", "127.0.0.1"]
   end
