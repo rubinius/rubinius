@@ -32,9 +32,6 @@ describe "Struct#[]" do
 
   it "fails if not passed a string, symbol, or integer" do
     car = Struct::Car.new('Ford', 'Ranger')
-    lambda { car[Time.now]               }.should raise_error(TypeError)
-    lambda { car[ { :name => 'chris' } ] }.should raise_error(TypeError)
-    lambda { car[ ['chris', 'evan'] ]    }.should raise_error(TypeError)
-    lambda { car[ Class ]                }.should raise_error(TypeError)
+    lambda { car[Object.new] }.should raise_error(TypeError)
   end
 end

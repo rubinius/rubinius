@@ -30,3 +30,11 @@ describe "Struct anonymous class instance methods" do
     car[1].should == 'F150'
   end
 end
+
+describe "Struct subclasses" do
+  it "can be subclassed" do
+    compact = Class.new Struct::Car
+    compact.new.class.should == compact
+  end
+end
+

@@ -51,13 +51,7 @@ describe "Struct.new" do
   end
 
   it "raises TypeError if object doesn't respond to to_sym" do
-    lambda { Struct.new(:animal, 1.0)                  }.should raise_error(TypeError)
-    lambda { Struct.new(:animal, Time.now)             }.should raise_error(TypeError)
-    lambda { Struct.new(:animal, Class)                }.should raise_error(TypeError)
-    lambda { Struct.new(:animal, nil)                  }.should raise_error(TypeError)
-    lambda { Struct.new(:animal, true)                 }.should raise_error(TypeError)
-    lambda { Struct.new(:animal, ['chris', 'evan'])    }.should raise_error(TypeError)
-    lambda { Struct.new(:animal, { :name => 'chris' }) }.should raise_error(TypeError)
+    lambda { Struct.new Object.new }.should raise_error(TypeError)
   end
 
   compliant_on :ruby, :jruby do
@@ -93,7 +87,7 @@ describe "Struct.new" do
 
   it "instance_eval's a passed block" do
     klass = Struct.new(:something) { @something_else = 'something else entirely!' }
-    klass.instance_variables.should include '@something_else'
+    klass.instance_variables.should include('@something_else')
   end
 
   it "creates a constant in subclass' namespace" do

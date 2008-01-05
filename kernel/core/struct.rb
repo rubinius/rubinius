@@ -1,230 +1,386 @@
 # depends on: class.rb enumerable.rb
 
 class Struct
+
   include Enumerable
 
-  # TODO: Use fields when RBX kinks are worked out.
-  #self.instance_fields = 4
-  #ivar_as_index :index => 1, :map => 2, :generated => 3
-
-  # Branch on whether this is a Struct/Struct subclass or a generated anonymous class
-  def self.new(*args, &block)
-    if @generated
-      super
-    else
-      new_anonymous_class(*args, &block)
-    end
+  class << self
+    alias subclass_new new
   end
 
   ##
-  # Struct class methods
+  # call-seq:
+  #   Struct.new( [aString] [, aSym]+> )    => StructClass
+  #   StructClass.new(arg, ...)             => obj
+  #   StructClass[arg, ...]                 => obj
+  #
+  # Creates a new class, named by <em>aString</em>, containing accessor
+  # methods for the given symbols. If the name <em>aString</em> is omitted,
+  # an anonymous structure class will be created. Otherwise, the name of
+  # this struct will appear as a constant in class <tt>Struct</tt>, so it
+  # must be unique for all <tt>Struct</tt>s in the system and should start
+  # with a capital letter. Assigning a structure class to a constant
+  # effectively gives the class the name of the constant.
+  #
+  # <tt>Struct::new</tt> returns a new <tt>Class</tt> object, which can then
+  # be used to create specific instances of the new structure. The number of
+  # actual parameters must be less than or equal to the number of attributes
+  # defined for this class; unset parameters default to \nil{}. Passing too
+  # many parameters will raise an \E{ArgumentError}.
+  #
+  # The remaining methods listed in this section (class and instance) are
+  # defined for this generated class.
+  #
+  #    # Create a structure with a name in Struct
+  #    Struct.new("Customer", :name, :address)    #=> Struct::Customer
+  #    Struct::Customer.new("Dave", "123 Main")   #=> #<Struct::Customer
+  # name="Dave", address="123 Main">
+  #    # Create a structure named by its constant
+  #    Customer = Struct.new(:name, :address)     #=> Customer
+  #    Customer.new("Dave", "123 Main")           #=> #<Customer
+  # name="Dave", address="123 Main">
 
-  def self.new_anonymous_class(*args, &block)
-    name, *attributes = args.dup
-
-    unless constant = constantize(name)
-      attributes.unshift name if name
-    end
-
-    attributes.collect! do |attribute|
-      validate_attribute_type(attribute)
-    end
-
-    create_anonymous_class(attributes, constant, &block)
-  end
-
-  def self.constantize(name)
-    return unless name.respond_to?(:to_str)
-    name = name.to_str
-    return name if name =~ /^[A-Z]\w*$/
-    raise NameError, "identifier #{name} needs to be a constant"
-  end
-
-  def self.validate_attribute_type(attribute)
-    unless attribute.respond_to?(:to_sym)
-      raise TypeError, "#{attribute} is not a symbol"
-    end
-
-    if symbol = attribute.to_sym
-      symbol
-    else
-      raise ArgumentError, "#{attribute} is not a symbol"
-    end
-  end
-
-  def self.create_anonymous_class(attributes, name = nil, &block)
-    klass = Class.new(Struct, &block)
-    klass.define_attributes(attributes)
-    klass.instance_variable_set(:@generated, true)
-    self.const_set(name, klass) if name
-    klass
-  end
-
-  ##
-  # Anonymous class methods
-
-  def self.[](*args, &block)
-    new(*args, &block)
-  end
-
-  # Expects an array of symbols.  Order matters.
-  def self.define_attributes(attributes)
-    member_accessor(*attributes)
-    @index = attributes
-  end
-
-  def self.member_accessor(*attributes)
-    attributes.each do |member|
-      define_method(member) { self[member] }
-      define_method("#{member}=") { |value| self[member] = value }
-    end
-  end
-
-  def self.members
-    @index.map { |i| i.to_s }
-  end
-
-  ##
-  # Anonymous instance methods
-
-  def initialize(*args, &block)
-    @index = self.class.instance_variable_get(:@index)
-    @map   = {}
-
-    args.each_with_index do |value, index|
-      if member = @index.at(index)
-        @map[member] = value
-      else
-        raise ArgumentError, 'struct size differs' 
+  def self.new(klass_name, *attrs, &block)
+    unless klass_name.nil? then
+      begin
+        klass_name = StringValue klass_name
+      rescue TypeError
+        attrs.unshift klass_name
+        klass_name = nil
       end
     end
+
+    begin
+      attrs = attrs.map { |attr| attr.to_sym }
+    rescue NoMethodError => e
+      raise TypeError, e.message
+    end
+
+    raise ArgumentError if attrs.any? { |attr| attr.nil? }
+
+    klass = Class.new self do
+
+      attr_accessor(*attrs)
+
+      def self.new(*args)
+        return subclass_new(*args)
+      end
+
+      def self.[](*args)
+        return new(*args)
+      end
+
+    end
+
+    Struct.const_set klass_name, klass if klass_name
+
+    klass.const_set :STRUCT_ATTRS, attrs
+
+    klass.module_eval(&block) if block
+
+    return klass
   end
-  
+
+  def self.allocate # :nodoc:
+    super
+  end
+
+  def _attrs # :nodoc:
+    return self.class.const_get(:STRUCT_ATTRS)
+  end
+
+  def initialize(*args)
+    raise ArgumentError unless args.length <= _attrs.length
+    _attrs.each_with_index do |attr, i|
+      instance_variable_set "@#{attr}", args[i]
+    end
+  end
+
   private :initialize
-    
-  def length
-    @index.size
-  end
-  alias_method :size, :length
 
-  def members
-    self.class.members
-  end
-
-  def to_a
-    @index.map { |member| @map[member] }
-  end
-  alias_method :values, :to_a
-
-  def values_at(*args)
-    args = args.first.to_a if args.first.kind_of?(Range)
-
-    indices = args.map do |arg|
-      validate_index_type(arg)
-    end
-
-    @index.values_at(*indices).map { |member| @map[member] }
-  end
-
-  def [](member_or_index)
-    @map[validate_member_type(member_or_index)]
-  end
-
-  def []=(member_or_index, value)
-    @map[validate_member_type(member_or_index)] = value
-  end
-
-  def member?(member)
-    @index.include?(member.to_sym) rescue false
-  end
-
-  def validate_member_type(member)
-    if member.kind_of?(Symbol) || member.kind_of?(String)
-      unless member?(sym = member.to_sym)
-        raise NameError, "no member '#{member}' in struct" 
-      end
-
-      return sym
-    else
-      @index.at(validate_index_type(member))
-    end
-  end
-
-  def validate_index_type(index)
-    if index.respond_to?(:to_int)
-      index = index.to_int
-    else
-      raise TypeError, "can't convert #{index.class} into Integer"
-    end
-
-    if index > size - 1
-      raise IndexError, "offset #{index} too large for struct(size:#{size})"
-    elsif index < 0
-      raise IndexError, "offset #{index} too small for struct(size:#{size})"
-    end
-
-    index
-  end
-
-  def each(&block)
-    raise LocalJumpError unless block_given?
-    
-    to_a.each(&block)
-    self
-  end
-
-  def each_pair
-    raise LocalJumpError unless block_given?
-
-    @index.each do |member|
-      yield member, @map[member]
-    end
-    self
-  end
+  ##
+  # call-seq:
+  #   struct == other_struct     => true or false
+  #
+  # Equality---Returns <tt>true</tt> if <em>other_struct</em> is equal to
+  # this one: they must be of the same class as generated by
+  # <tt>Struct::new</tt>, and the values of all instance variables must be
+  # equal (according to <tt>Object#==</tt>).
+  #
+  #    Customer = Struct.new(:name, :address, :zip)
+  #    joe   = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    joejr = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    jane  = Customer.new("Jane Doe", "456 Elm, Anytown NC", 12345)
+  #    joe == joejr   #=> true
+  #    joe == jane    #=> false
 
   def ==(other)
-    self.class == other.class && members.all? { |member| self[member] == other[member] }
+    return self.class == other.class && self.values == other.values
   end
-  alias_method :eql?, :==
 
-  def inspect
-    string = "#<struct #{self.class.name}"
+  ##
+  # call-seq:
+  #   struct[symbol]    => anObject
+  #   struct[fixnum]    => anObject 
+  #
+  # Attribute Reference---Returns the value of the instance variable named
+  # by <em>symbol</em>, or indexed (0..length-1) by <em>fixnum</em>. Will
+  # raise <tt>NameError</tt> if the named variable does not exist, or
+  # <tt>IndexError</tt> if the index is out of range.
+  #
+  #    Customer = Struct.new(:name, :address, :zip)
+  #    joe = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    joe["name"]   #=> "Joe Smith"
+  #    joe[:name]    #=> "Joe Smith"
+  #    joe[0]        #=> "Joe Smith"
 
-    each_pair do |member, value|
-      string << " #{member}=#{value.inspect},"
+  def [](var)
+    case var
+    when Numeric then
+      var = var.to_i
+      if var > _attrs.length - 1 then
+        raise IndexError, "offset #{var} too large for struct"
+      end
+      var = _attrs[var]
+    when Symbol, String then
+      42 # HACK
+      # ok
+    else
+      raise TypeError
     end
 
-    string[-1] = '>'
-    string
+    unless _attrs.include? var.to_sym then
+      raise NameError, "no member '#{var}' in struct"
+    end
+
+    return instance_variable_get("@#{var}")
   end
-  alias_method :to_s, :inspect
+
+  ##
+  # call-seq:
+  #   struct[symbol] = obj    => obj
+  #   struct[fixnum] = obj    => obj
+  #
+  # Attribute Assignment---Assigns to the instance variable named by
+  # <em>symbol</em> or <em>fixnum</em> the value <em>obj</em> and returns
+  # it. Will raise a <tt>NameError</tt> if the named variable does not
+  # exist, or an <tt>IndexError</tt> if the index is out of range.
+  #
+  #    Customer = Struct.new(:name, :address, :zip)
+  #    joe = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    joe["name"] = "Luke"
+  #    joe[:zip]   = "90210"
+  #    joe.name   #=> "Luke"
+  #    joe.zip    #=> "90210"
+
+  def []=(var, obj)
+    case var
+    when Numeric then
+      var = var.to_i
+      if var > _attrs.length - 1 then
+        raise IndexError, "offset #{var} too large for struct"
+      end
+      var = _attrs[var]
+    when Symbol, String then
+      42 # HACK
+      # ok
+    else
+      raise TypeError
+    end
+
+    unless _attrs.include? var.to_s.intern then
+      raise NameError, "no member '#{var}' in struct"
+    end
+
+    return instance_variable_set("@#{var}", obj)
+  end
+
+  ##
+  # call-seq:
+  #   struct.each {|obj| block }  => struct
+  #
+  # Calls <em>block</em> once for each instance variable, passing the value
+  # as a parameter.
+  #
+  #    Customer = Struct.new(:name, :address, :zip)
+  #    joe = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    joe.each {|x| puts(x) }
+  #
+  # <em>produces:</em>
+  #
+  #    Joe Smith
+  #    123 Maple, Anytown NC
+  #    12345
+
+  def each(&block)
+    return values.each(&block)
+  end
+
+  ##
+  # call-seq:
+  #   struct.each_pair {|sym, obj| block }     => struct
+  #
+  # Calls <em>block</em> once for each instance variable, passing the name
+  # (as a symbol) and the value as parameters.
+  #
+  #    Customer = Struct.new(:name, :address, :zip)
+  #    joe = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    joe.each_pair {|name, value| puts("#{name} => #{value}") }
+  #
+  # <em>produces:</em>
+  #
+  #    name => Joe Smith
+  #    address => 123 Maple, Anytown NC
+  #    zip => 12345
+
+  def each_pair
+    raise LocalJumpError unless block_given? # HACK yield should do this
+    _attrs.map { |var| yield var, instance_variable_get("@#{var}") }
+  end
+
+  ##
+  # call-seq:
+  #   (p1)
+  #
+  # code-seq:
+  #
+  #   struct.eql?(other)   => true or false
+  #
+  # Two structures are equal if they are the same object, or if all their
+  # fields are equal (using <tt>eql?</tt>).
+
+  def eql?(other)
+    return true if self == other
+    return false if self.class != other.class
+    to_a.eql? other
+  end
+
+  ##
+  # call-seq:
+  #   struct.hash   => fixnum
+  #
+  # Return a hash value based on this struct's contents.
 
   def hash
-    # cribbed from MRI's struct.c
-    h = self.class.hash
-    mask = Platform::Fixnum.MAX
-    @map.each do |k, v|
-      h = mask & ((h << 1) | (h > 0 ? 1 : 0))
-      h ^= v.hash
-    end
-    
-    h & mask
+    to_a.hash
   end
-  
-  # FIXME: This should eventually just be a struct, once struct is working right
-  # Struct.new("Tms", :utime, :stime, :cutime, :cstime)
-  class Tms < Struct
-    @generated = true
-    attr_accessor :utime
-    attr_accessor :stime
-    attr_accessor :cutime
-    attr_accessor :cstime
-    
-    def initialize(u, s, cu, cs)
-      @utime = u
-      @stime = s
-      @cutime = cu
-      @cstime = cs
-    end
+
+  ##
+  # call-seq:
+  #   struct.length    => fixnum
+  #   struct.size      => fixnum
+  #
+  # Returns the number of instance variables.
+  #
+  #    Customer = Struct.new(:name, :address, :zip)
+  #    joe = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    joe.length   #=> 3
+
+  def length
+    return _attrs.length
   end
+
+  alias size length
+
+  ##
+  # call-seq:
+  #   struct.members    => array
+  #
+  # Returns an array of strings representing the names of the instance
+  # variables.
+  #
+  #    Customer = Struct.new(:name, :address, :zip)
+  #    joe = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    joe.members   #=> ["name", "address", "zip"]
+
+  def self.members
+    return const_get(:STRUCT_ATTRS).map { |member| member.to_s }
+  end
+
+  def members
+    return self.class.members
+  end
+
+  ##
+  # call-seq:
+  #   struct.select(fixnum, ... )   => array
+  #   struct.select {|i| block }    => array
+  #
+  # The first form returns an array containing the elements in
+  # <em>struct</em> corresponding to the given indices. The second form
+  # invokes the block passing in successive elements from <em>struct</em>,
+  # returning an array containing those elements for which the block returns
+  # a true value (equivalent to <tt>Enumerable#select</tt>).
+  #
+  #    Lots = Struct.new(:a, :b, :c, :d, :e, :f)
+  #    l = Lots.new(11, 22, 33, 44, 55, 66)
+  #    l.select(1, 3, 5)               #=> [22, 44, 66]
+  #    l.select(0, 2, 4)               #=> [11, 33, 55]
+  #    l.select(-1, -3, -5)            #=> [66, 44, 22]
+  #    l.select {|v| (v % 2).zero? }   #=> [22, 44, 66]
+
+  def select(&block)
+    to_a.select(&block)
+  end
+
+  ##
+  # call-seq:
+  #   struct.to_a     => array
+  #   struct.values   => array
+  #
+  # Returns the values for this instance as an array.
+  #
+  #    Customer = Struct.new(:name, :address, :zip)
+  #    joe = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    joe.to_a[1]   #=> "123 Maple, Anytown NC"
+
+  def to_a
+    return _attrs.map { |var| instance_variable_get "@#{var}" }
+  end
+
+  ##
+  # call-seq:
+  #   struct.to_s      => string
+  #   struct.inspect   => string
+  #
+  # Describe the contents of this struct in a string.
+
+  def to_s
+    "#<struct #{self.class.name} #{_attrs.zip(self.to_a).map{|o| o[1] = o[1].inspect; o.join('=')}.join(', ') }>"
+  end
+
+  alias inspect to_s
+
+  ##
+  # call-seq:
+  #   struct.to_a     => array
+  #   struct.values   => array
+  #
+  # Returns the values for this instance as an array.
+  #
+  #    Customer = Struct.new(:name, :address, :zip)
+  #    joe = Customer.new("Joe Smith", "123 Maple, Anytown NC", 12345)
+  #    joe.to_a[1]   #=> "123 Maple, Anytown NC"
+
+  alias values to_a
+
+  ##
+  # call-seq:
+  #   struct.values_at(selector,... )  => an_array
+  #
+  # Returns an array containing the elements in <em>self</em> corresponding
+  # to the given selector(s). The selectors may be either integer indices or
+  # ranges. See also </code>.select<code>.
+  #
+  #    a = %w{ a b c d e f }
+  #    a.values_at(1, 3, 5)
+  #    a.values_at(1, 3, 5, 7)
+  #    a.values_at(-1, -3, -5, -7)
+  #    a.values_at(1..3, 2...5)
+
+  def values_at(*args)
+    to_a.values_at(*args)
+  end
+
 end
+

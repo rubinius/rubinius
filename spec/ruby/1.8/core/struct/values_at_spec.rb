@@ -11,8 +11,6 @@ describe "Struct#values_at" do
 
   it "fails when passed unsupported types" do
     car = Struct::Car.new('Ford', 'Ranger')
-    lambda { car.values_at('name', 'director') }.should raise_error(TypeError)
-    lambda { car.values_at(Class)              }.should raise_error(TypeError)
-    lambda { car.values_at(:name, :director)   }.should raise_error(IndexError)
+    lambda { car.values_at('make') }.should raise_error(TypeError)
   end
 end
