@@ -1,1 +1,1 @@
-The throw keyword should raise an exception if used to exit a thread
+The throw keyword raises a ThreadError if used to exit a thread

@@ -52,3 +52,4 @@ Marshal.dump with array containing refs to the same object returns a string-seri
 Marshal.dump with extended_array returns a string-serialized version of the given argument
 Marshal.dump with user_array returns a string-serialized version of the given argument
 Marshal.dump with extended_user_array returns a string-serialized version of the given argument
+Marshal.dump when given an IO-Object writes the serialized data to the IO-Object

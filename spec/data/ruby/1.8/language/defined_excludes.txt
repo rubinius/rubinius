@@ -1,1 +1,1 @@
-A ruby environment should return false when defined?(DoesNotExist.puts) is sent
+A ruby environment returns false when defined?(DoesNotExist.puts) is sent

@@ -1,2 +1,2 @@
-Kernel.local_variables should contain locals as they are added
-Kernel.local_variables should be accessable from bindings
+Kernel.local_variables contains locals as they are added
+Kernel.local_variables is accessable from bindings

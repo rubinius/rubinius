@@ -1,1 +1,1 @@
-UnboundMethod#bind should handle unbinding and binding of the method properly
+UnboundMethod#bind handles unbinding and binding of the method properly

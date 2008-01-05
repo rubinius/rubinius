@@ -1,1 +1,1 @@
-Thread#[] should raise exceptions on the wrong type of keys
+Thread#[] raises exceptions on the wrong type of keys

@@ -1,1 +1,1 @@
-Thread#key? should raise exceptions on the wrong type of keys
+Thread#key? raises exceptions on the wrong type of keys

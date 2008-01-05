@@ -1,85 +1,85 @@
-Shotgun should convert a class definition to an sexp
-Producing sexps from source code should succeed for a node of type :defn_empty
-Producing sexps from source code should succeed for a node of type :defn_rescue
-Producing sexps from source code should succeed for a node of type :match3
-Producing sexps from source code should succeed for a node of type :rescue
-Producing sexps from source code should succeed for a node of type :bmethod
-Producing sexps from source code should succeed for a node of type :defn_or
-Producing sexps from source code should succeed for a node of type :dsym
-Producing sexps from source code should succeed for a node of type :ivar
-Producing sexps from source code should succeed for a node of type :lasgn_call
-Producing sexps from source code should succeed for a node of type :lit_regexp
-Producing sexps from source code should succeed for a node of type :match2
-Producing sexps from source code should succeed for a node of type :block_pass_omgwtf
-Producing sexps from source code should succeed for a node of type :conditional4
-Producing sexps from source code should succeed for a node of type :dmethod
-Producing sexps from source code should succeed for a node of type :flip3
-Producing sexps from source code should succeed for a node of type :rescue_exceptions
-Producing sexps from source code should succeed for a node of type :undef
-Producing sexps from source code should succeed for a node of type :class_plain
-Producing sexps from source code should succeed for a node of type :dasgn
-Producing sexps from source code should succeed for a node of type :flip2
-Producing sexps from source code should succeed for a node of type :masgn
-Producing sexps from source code should succeed for a node of type :proc_args
-Producing sexps from source code should succeed for a node of type :block_pass_splat
-Producing sexps from source code should succeed for a node of type :case_nested
-Producing sexps from source code should succeed for a node of type :case_no_expr
-Producing sexps from source code should succeed for a node of type :class_super_expr
-Producing sexps from source code should succeed for a node of type :conditional2
-Producing sexps from source code should succeed for a node of type :cvasgn
-Producing sexps from source code should succeed for a node of type :defn_args
-Producing sexps from source code should succeed for a node of type :defs
-Producing sexps from source code should succeed for a node of type :masgn_iasgn
-Producing sexps from source code should succeed for a node of type :masgn_splat
-Producing sexps from source code should succeed for a node of type :conditional3
-Producing sexps from source code should succeed for a node of type :dregx_once
-Producing sexps from source code should succeed for a node of type :dxstr
-Producing sexps from source code should succeed for a node of type :masgn_attrasgn
-Producing sexps from source code should succeed for a node of type :bmethod_splat
-Producing sexps from source code should succeed for a node of type :class_super_array
-Producing sexps from source code should succeed for a node of type :dregx
-Producing sexps from source code should succeed for a node of type :conditional1
-Producing sexps from source code should succeed for a node of type :yield
-Producing sexps from source code should succeed for a node of type :attrset
-Producing sexps from source code should succeed for a node of type :defn_is_something
-Producing sexps from source code should succeed for a node of type :fbody
-Producing sexps from source code should succeed for a node of type :dstr
-Producing sexps from source code should succeed for a node of type :lasgn_array
-Producing sexps from source code should succeed for a node of type :op_asgn_or
-Producing sexps from source code should succeed for a node of type :super
-Producing sexps from source code should succeed for a node of type :zarray
-Producing sexps from source code should succeed for a node of type :iteration3
-Producing sexps from source code should succeed for a node of type :lit_range3
-Producing sexps from source code should succeed for a node of type :match
-Producing sexps from source code should succeed for a node of type :svalue
-Producing sexps from source code should succeed for a node of type :to_ary
-Producing sexps from source code should succeed for a node of type :valias
-Producing sexps from source code should succeed for a node of type :yield_arg
-Producing sexps from source code should succeed for a node of type :attrasgn
-Producing sexps from source code should succeed for a node of type :cdecl
-Producing sexps from source code should succeed for a node of type :iteration2
-Producing sexps from source code should succeed for a node of type :lit_range2
-Producing sexps from source code should succeed for a node of type :undef_multi
-Producing sexps from source code should succeed for a node of type :zsuper
-Producing sexps from source code should succeed for a node of type :ensure
-Producing sexps from source code should succeed for a node of type :iteration5
-Producing sexps from source code should succeed for a node of type :case
-Producing sexps from source code should succeed for a node of type :cvdecl
-Producing sexps from source code should succeed for a node of type :for
-Producing sexps from source code should succeed for a node of type :iteration4
-Producing sexps from source code should succeed for a node of type :op_asgn1
-Producing sexps from source code should succeed for a node of type :op_asgn_and
-Producing sexps from source code should succeed for a node of type :sclass
-Producing sexps from source code should succeed for a node of type :super_multi
-Producing sexps from source code should succeed for a node of type :argscat
-Producing sexps from source code should succeed for a node of type :back_ref
-Producing sexps from source code should succeed for a node of type :class_super_object
-Producing sexps from source code should succeed for a node of type :dasgn_curr
-Producing sexps from source code should succeed for a node of type :defn_zarray
-Producing sexps from source code should succeed for a node of type :op_asgn2
-Producing sexps from source code should succeed for a node of type :rescue_block_body
-Producing sexps from source code should succeed for a node of type :rescue_block_nada
-Producing sexps from source code should succeed for a node of type :yield_args
-Producing sexps from source code should succeed for a node of type :alias
-Producing sexps from source code should succeed for a node of type :iteration6
-Producing sexps from source code should succeed for a node of type :module
+Shotgun converts a class definition to an sexp
+Producing sexps from source code succeeds for a node of type :defn_empty
+Producing sexps from source code succeeds for a node of type :defn_rescue
+Producing sexps from source code succeeds for a node of type :match3
+Producing sexps from source code succeeds for a node of type :rescue
+Producing sexps from source code succeeds for a node of type :bmethod
+Producing sexps from source code succeeds for a node of type :defn_or
+Producing sexps from source code succeeds for a node of type :dsym
+Producing sexps from source code succeeds for a node of type :ivar
+Producing sexps from source code succeeds for a node of type :lasgn_call
+Producing sexps from source code succeeds for a node of type :lit_regexp
+Producing sexps from source code succeeds for a node of type :match2
+Producing sexps from source code succeeds for a node of type :block_pass_omgwtf
+Producing sexps from source code succeeds for a node of type :conditional4
+Producing sexps from source code succeeds for a node of type :dmethod
+Producing sexps from source code succeeds for a node of type :flip3
+Producing sexps from source code succeeds for a node of type :rescue_exceptions
+Producing sexps from source code succeeds for a node of type :undef
+Producing sexps from source code succeeds for a node of type :class_plain
+Producing sexps from source code succeeds for a node of type :dasgn
+Producing sexps from source code succeeds for a node of type :flip2
+Producing sexps from source code succeeds for a node of type :masgn
+Producing sexps from source code succeeds for a node of type :proc_args
+Producing sexps from source code succeeds for a node of type :block_pass_splat
+Producing sexps from source code succeeds for a node of type :case_nested
+Producing sexps from source code succeeds for a node of type :case_no_expr
+Producing sexps from source code succeeds for a node of type :class_super_expr
+Producing sexps from source code succeeds for a node of type :conditional2
+Producing sexps from source code succeeds for a node of type :cvasgn
+Producing sexps from source code succeeds for a node of type :defn_args
+Producing sexps from source code succeeds for a node of type :defs
+Producing sexps from source code succeeds for a node of type :masgn_iasgn
+Producing sexps from source code succeeds for a node of type :masgn_splat
+Producing sexps from source code succeeds for a node of type :conditional3
+Producing sexps from source code succeeds for a node of type :dregx_once
+Producing sexps from source code succeeds for a node of type :dxstr
+Producing sexps from source code succeeds for a node of type :masgn_attrasgn
+Producing sexps from source code succeeds for a node of type :bmethod_splat
+Producing sexps from source code succeeds for a node of type :class_super_array
+Producing sexps from source code succeeds for a node of type :dregx
+Producing sexps from source code succeeds for a node of type :conditional1
+Producing sexps from source code succeeds for a node of type :yield
+Producing sexps from source code succeeds for a node of type :attrset
+Producing sexps from source code succeeds for a node of type :defn_is_something
+Producing sexps from source code succeeds for a node of type :fbody
+Producing sexps from source code succeeds for a node of type :dstr
+Producing sexps from source code succeeds for a node of type :lasgn_array
+Producing sexps from source code succeeds for a node of type :op_asgn_or
+Producing sexps from source code succeeds for a node of type :super
+Producing sexps from source code succeeds for a node of type :zarray
+Producing sexps from source code succeeds for a node of type :iteration3
+Producing sexps from source code succeeds for a node of type :lit_range3
+Producing sexps from source code succeeds for a node of type :match
+Producing sexps from source code succeeds for a node of type :svalue
+Producing sexps from source code succeeds for a node of type :to_ary
+Producing sexps from source code succeeds for a node of type :valias
+Producing sexps from source code succeeds for a node of type :yield_arg
+Producing sexps from source code succeeds for a node of type :attrasgn
+Producing sexps from source code succeeds for a node of type :cdecl
+Producing sexps from source code succeeds for a node of type :iteration2
+Producing sexps from source code succeeds for a node of type :lit_range2
+Producing sexps from source code succeeds for a node of type :undef_multi
+Producing sexps from source code succeeds for a node of type :zsuper
+Producing sexps from source code succeeds for a node of type :ensure
+Producing sexps from source code succeeds for a node of type :iteration5
+Producing sexps from source code succeeds for a node of type :case
+Producing sexps from source code succeeds for a node of type :cvdecl
+Producing sexps from source code succeeds for a node of type :for
+Producing sexps from source code succeeds for a node of type :iteration4
+Producing sexps from source code succeeds for a node of type :op_asgn1
+Producing sexps from source code succeeds for a node of type :op_asgn_and
+Producing sexps from source code succeeds for a node of type :sclass
+Producing sexps from source code succeeds for a node of type :super_multi
+Producing sexps from source code succeeds for a node of type :argscat
+Producing sexps from source code succeeds for a node of type :back_ref
+Producing sexps from source code succeeds for a node of type :class_super_object
+Producing sexps from source code succeeds for a node of type :dasgn_curr
+Producing sexps from source code succeeds for a node of type :defn_zarray
+Producing sexps from source code succeeds for a node of type :op_asgn2
+Producing sexps from source code succeeds for a node of type :rescue_block_body
+Producing sexps from source code succeeds for a node of type :rescue_block_nada
+Producing sexps from source code succeeds for a node of type :yield_args
+Producing sexps from source code succeeds for a node of type :alias
+Producing sexps from source code succeeds for a node of type :iteration6
+Producing sexps from source code succeeds for a node of type :module
