@@ -23,6 +23,10 @@ describe "IO.read" do
     IO.read(@fname, 5, 3).should == @contents.slice(3, 5)
   end
   
+  it "reads the contents of a file when more bytes are specified" do
+    IO.read(@fname, @contents.length + 1).should == @contents
+  end
+    
   it "raises an Errno::ENOENT when the requested file does not exist" do
     File.delete(@fname) if File.exists?(@fname)
     lambda { IO.read @fname }.should raise_error(Errno::ENOENT)

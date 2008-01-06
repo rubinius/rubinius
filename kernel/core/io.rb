@@ -30,10 +30,15 @@ class IO
     end
 
     def shift_front(count)
+      count = @bytes if count > @bytes
+
       str = String.allocate
       str.initialize_from count, @data.fetch_bytes(0, count)
+
       rest = @bytes - count
+
       @data.move_bytes count, rest, 0
+
       @bytes -= count
 
       return str
