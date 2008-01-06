@@ -1,15 +1,12 @@
 # depends on: class.rb
 
 class Regexp
-  
+
   ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
-  def __ivars__; @__ivars__ ; end
-  def source   ; @source    ; end
-  def data     ; @data      ; end
-  def names    ; @names     ; end
+  attr_reader   :__ivars__, :source, :data, :names
 
   ValidOptions = ['m','i','x']
-  
+
   ValidKcode = [?n,?e,?s,?u]
   KcodeValue = [16,32,48,64]
 
@@ -27,7 +24,7 @@ class Regexp
 
   class << self
     def new(arg, opts=nil, lang=nil)
-     if arg.is_a?(Regexp)
+      if arg.is_a?(Regexp)
         opts = arg.options
         arg  = arg.source
       elsif opts.is_a?(Fixnum)
@@ -75,13 +72,12 @@ class Regexp
   def self.last_match(field = nil)
     match = MethodContext.current.sender.last_match
     if match
-      return match if field.nil?
-      return match[field]
+      field.nil? ? match : match[field]
     else
-      return nil
+      nil
     end
   end
-  
+
   def self.last_match=(match)
     # Set an ivar in the sender of our sender
     parent = MethodContext.current.sender
@@ -90,18 +86,8 @@ class Regexp
   end
 
   def self.union(*patterns)
-    if patterns.nil? || patterns.length == 0
-      return /(?!)/
-    else
-      flag  = false
-      string = ""
-      patterns.each do |pattern|
-        string += '|' if flag
-        string += pattern.to_s
-        flag = true
-      end
-      return Regexp.new(string)
-    end
+    return /(?!)/ if patterns.nil? || patterns.length == 0
+    Regexp.new(patterns.join('|'))
   end
 
   def ~
@@ -111,20 +97,20 @@ class Regexp
       return nil
     end
     res = self.match(line)
-    return res.nil? ? nil : res.begin(0)
+    res.nil? ? nil : res.begin(0)
   end
 
   def =~(str)
     match = match_from(str, 0)
     if match
       Regexp.last_match = match
-      return match.begin(0)
+      match.begin(0)
     else
       Regexp.last_match = nil
-      return nil
+      nil
     end
   end
-  
+
   def match_all(str)
     start = 0
     arr = []
@@ -176,38 +162,35 @@ class Regexp
     # Ruby 1.8 doesn't destinguish between KCODE_NONE (16) & not specified (0) for eql?
     self_options  = options       & KCODE_MASK != 0 ? options       : options       + KCODE_NONE
     other_options = other.options & KCODE_MASK != 0 ? other.options : other.options + KCODE_NONE
-    return (source == other.source) && ( self_options == other_options)
+    (source == other.source) && ( self_options == other_options)
   end
 
   alias_method :==, :eql?
 
   def hash
     str = '/' << source << '/' << option_to_string(options)
-    if options & KCODE_MASK == 0
-      str << 'n'
-    else
-      str << kcode[0,1]
-    end
+    str << (options & KCODE_MASK == 0) ? 'n' : kcode[0, 1]
     str.hash
   end
 
   def inspect
-    '/' << source << '/' << option_to_string(options) << kcode[0,1]
+    '/' << source << '/' << option_to_string(options) << kcode[0, 1]
   end
 
   def kcode
-    lang = options & KCODE_MASK
-    return "none" if lang == KCODE_NONE
-    return "euc"  if lang == KCODE_EUC
-    return 'sjis' if lang == KCODE_SJIS
-    return 'utf8' if lang == KCODE_UTF8
-    return nil
+    case options & KCODE_MASK
+    when KCODE_NONE; 'none'
+    when KCODE_EUC;  'euc'
+    when KCODE_SJIS; 'sjis'
+    when KCODE_UTF8; 'utf8'
+    else nil
+    end
   end
 
   def match(str)
     Regexp.last_match = match_region(str, 0, str.size, true)
   end
-  
+
   def match_from(str, count)
     return nil if str.nil?
     match_region(str, count, str.size, true)
@@ -265,14 +248,10 @@ class Regexp
 
   # private functions
   def get_option_string_length(string)
-    idx = 0
-    while idx < string.length do
-      if !ValidOptions.include?(string[idx,1])
-        return idx
-      end
-      idx += 1
+    0.upto(string.length).each do |idx|
+      return idx if !ValidOptions.include?(string[idx, 1])
     end
-    return idx
+    string.length
   end
 
   def option_to_string(option)
@@ -288,71 +267,54 @@ end
 class MatchData
 
   ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
-  
-  def string
-    @source
-  end
-  
-  def source
-    @source
-  end
-  
-  def full
-    @full
-  end
-  
+  attr_reader   :source, :full
+  alias_method  :source, :string
+  alias_method  :matched_area, :to_s
+
   def begin(idx)
-   return full.at(0) if idx == 0
-   return @region.at(idx - 1).at(0)
+    return full.at(0) if idx == 0
+    @region.at(idx - 1).at(0)
   end
 
   def end(idx)
-   return full.at(1) if idx == 0
-   @region.at(idx - 1).at(1)
+    return full.at(1) if idx == 0
+    @region.at(idx - 1).at(1)
   end
 
   def offset(idx)
-   out = []
-   out << self.begin(idx)
-   out << self.end(idx)
-   return out
+    [self.begin(idx), self.end(idx)]
   end
 
   def length
-   @region.fields + 1
+    @region.fields + 1
   end
 
   def captures
-    out = []
-    @region.each do |tup|
+    @region.collect do |tup|
       x = tup.at(0)
-      
       if x == -1
-        out << nil
-      else  
+        nil
+      else
         y = tup.at(1)
-        out << @source[x...y]
+        @source[x...y]
       end
     end
-    return out
   end
-  
+
   def pre_match
-    return "" if full.at(0) == 0
-    nd = full.at(0) - 1
-    @source[0..nd]
+    pre_match_from(0)
   end
-  
+
   def pre_match_from(idx)
     return "" if full.at(0) == 0
     nd = full.at(0) - 1
-    @source[idx..nd]    
+    @source[idx..nd]
   end
-  
+
   def collapsing?
     self.begin(0) == self.end(0)
   end
-  
+
   def post_match
     nd = @source.size - 1
     st = full.at(1)
@@ -369,16 +331,12 @@ class MatchData
     elsif !idx.is_a?(Integer) or idx < 0
       return to_a[idx]
     end
-    
+
     if idx == 0
-      return matched_area()
+      return matched_area
     elsif idx < size
       return get_capture(idx - 1)
     end
-  end
-
-  def to_s
-    matched_area()
   end
 
   def inspect
@@ -386,14 +344,12 @@ class MatchData
   end
 
   def select
-    unless block_given?
-      raise LocalJumpError, "no block given"
-    end
-    
+    raise LocalJumpError, "no block given" unless block_given?
+
     out = []
-    ma = matched_area()
+    ma = matched_area
     out << ma if yield ma
-    
+
     each_capture do |str|
       if yield(str)
         out << str
@@ -405,28 +361,26 @@ class MatchData
   alias_method :size, :length
 
   def to_a
-    ary = captures()
-    ary.unshift matched_area()
-    return ary
+    ary = captures
+    ary.unshift matched_area
   end
 
   def values_at(*indexes)
     indexes.map { |i| self[i] }
   end
-  
+
   private
-  
+
   def matched_area
     x = full[0]
     y = full[1]
     @source[x...y]
   end
-  
+
   def get_capture(num)
     x, y = @region[num]
     return nil if !y or x == -1
-    
-    return @source[x...y]
+    @source[x...y]
   end
 
   def each_capture
@@ -435,6 +389,4 @@ class MatchData
       yield @source[x...y]
     end
   end
-
 end
-
