@@ -26,5 +26,12 @@ shared :time_local do |cmd|
         end
       end
     end
+
+    it "handles string-like arguments" do
+      with_timezone("PST", -8) do
+        Time.send(cmd, "2000", "1", "1" , "20", "15", "1").inspect.should == "Sat Jan 01 20:15:01 -0800 2000"
+        Time.send(cmd, "1", "15", "20", "1", "1", "2000", :ignored, :ignored, :ignored, :ignored).inspect.should == "Sat Jan 01 20:15:01 -0800 2000"
+      end
+    end
   end
 end

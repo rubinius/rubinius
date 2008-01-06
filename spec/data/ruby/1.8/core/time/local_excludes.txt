@@ -1,0 +1,1 @@
+Time.local handles string-like arguments
