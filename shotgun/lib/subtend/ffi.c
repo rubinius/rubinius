@@ -407,7 +407,7 @@ unsigned long ffi_to_ulong() {
   if(sizeof(long) == sizeof(long long)) {
     return (unsigned long)ffi_to_ull();
   } else {
-    return (long)ffi_to_uint();
+    return (unsigned long)ffi_to_uint();
   }
 }
 
