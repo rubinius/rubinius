@@ -228,9 +228,11 @@ class Thread
   def self.initialize_main_thread(thread)
     @main_thread = thread
   end
+  
+  def self.after_loaded
+    Thread.current.setup(true)
+    Thread.initialize_main_thread(Thread.current)
+  end
 end
-
-Thread.current.setup(true)
-Thread.initialize_main_thread(Thread.current)
 
 

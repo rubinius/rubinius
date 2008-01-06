@@ -24,7 +24,9 @@ class Compiler2
     
     comp = new(Compiler2::Generator, binding)
     node = comp.convert_sexp([:eval_expression, sexp])
-    return node.to_description(:__eval_script__).to_cmethod
+    cm = node.to_description(:__eval_script__).to_cmethod
+    cm.file = filename.to_sym
+    return cm
   end
 
   def initialize(gen_class, binding=nil)

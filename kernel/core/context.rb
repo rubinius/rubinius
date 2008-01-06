@@ -95,7 +95,20 @@ class MethodContext
     i = 0
     until ctx.nil?
       if i >= start
-        ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
+        if ctx.method.name
+          ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
+        else
+          ret << "#{ctx.file}:#{ctx.line}"
+        end
+        
+        # In a backtrace, an eval'd context's binding shows up
+        if ctx.kind_of? BlockContext
+          if ctx.env.from_eval?
+            home = ctx.env.home
+            ret << "#{home.file}:#{home.line} in `#{home.method.name}'"
+          end
+        end
+        
       end
       
       i += 1
@@ -104,6 +117,26 @@ class MethodContext
     
     return nil if start > i + 1
     ret
+  end
+  
+  def describe
+    if MAIN == receiver
+      str = "#{receiver.to_s}."
+    elsif method_module.kind_of?(MetaClass)
+      str = "#{receiver}."
+    elsif method_module and method_module != receiver.class
+      str = "#{method_module}(#{receiver.class})#"
+    else
+      str = "#{receiver.class}#"
+    end
+    
+    if kind_of? BlockContext
+      str << "#{name} {}"
+    elsif name == method.name
+      str << "#{name}"
+    else
+      str << "#{name} (#{method.name})"
+    end
   end
 end
 
@@ -309,24 +342,8 @@ class Backtrace
         next
       end
       
-      if MAIN == ctx.receiver
-        str = "#{ctx.receiver.to_s}."
-      elsif ctx.method_module.kind_of?(MetaClass)
-        str = "#{ctx.receiver}."
-      elsif ctx.method_module and ctx.method_module != ctx.receiver.class
-        str = "#{ctx.method_module}(#{ctx.receiver.class})#"
-      else
-        str = "#{ctx.receiver.class}#"
-      end
-      
-      if ctx.kind_of? BlockContext
-        str << "#{ctx.name} {}"
-      elsif ctx.name == ctx.method.name
-        str << "#{ctx.name}"
-      else
-        str << "#{ctx.name} (#{ctx.method.name})"
-      end
-      
+      str = ctx.describe
+            
       if str.size > @max
         @max = str.size
       end

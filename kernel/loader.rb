@@ -10,6 +10,7 @@ begin
   Actor.after_loaded
   Math.after_loaded
   FileTest.after_loaded
+  Thread.after_loaded
 
   ENV = EnvironmentVariables.new
 
