@@ -120,8 +120,6 @@ module Kernel
     Process.exit(code)
   end
   
-  private :exit!
-
   def abort(msg=nil)
     $stderr.puts(msg) if(msg)
     exit 1

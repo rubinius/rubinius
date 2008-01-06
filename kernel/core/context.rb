@@ -91,7 +91,7 @@ class MethodContext
   
   def calling_hierarchy(start=1)
     ret = []
-    ctx = MethodContext.current.sender
+    ctx = self
     i = 0
     until ctx.nil?
       if i >= start
