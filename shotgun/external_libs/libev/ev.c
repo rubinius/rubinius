@@ -1227,10 +1227,13 @@ ev_default_loop (unsigned int flags)
           siginit (EV_A);
 
 #ifndef _WIN32
+// Rubinius HACK
+#if RUBINIUS_WANTS_LIBEV_TO_HANDLE_SIGCHLD
           ev_signal_init (&childev, childcb, SIGCHLD);
           ev_set_priority (&childev, EV_MAXPRI);
           ev_signal_start (EV_A_ &childev);
           ev_unref (EV_A); /* child watcher should not keep loop alive */
+#endif
 #endif
         }
       else
@@ -1248,8 +1251,11 @@ ev_default_destroy (void)
 #endif
 
 #ifndef _WIN32
+// Rubinius HACK
+#if RUBINIUS_WANTS_LIBEV_TO_HANDLE_SIGCHLD
   ev_ref (EV_A); /* child watcher */
   ev_signal_stop (EV_A_ &childev);
+#endif
 #endif
 
   ev_ref (EV_A); /* signal watcher */
