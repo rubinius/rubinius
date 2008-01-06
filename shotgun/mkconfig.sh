@@ -28,6 +28,10 @@ else
   DISABLE_KQUEUE=0
 fi
 
+if echo "$HOST" | grep -q freebsd; then
+  DISABLE_KQUEUE=1
+fi
+
 if test -z "$CC"; then
   echo "CC=gcc"
 else
