@@ -209,7 +209,7 @@ class IO
 
       if bytes
         needed -= bytes
-        done = (needed == 0)
+        done = (needed <= 0)
       else
         done = true
       end
