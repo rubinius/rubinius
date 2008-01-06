@@ -1,1 +1,0 @@
-Time.local should be able to handle string-like second argument
