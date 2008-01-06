@@ -757,7 +757,7 @@ class String
   #   "hello".gsub(/[aeiou]/, '*')              #=> "h*ll*"
   #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
   #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
-  def gsub(pattern, replacement=nil)
+  def gsub(pattern, replacement=nil, &prc)
     raise ArgumentError, "wrong number of arguments (1 for 2)" unless replacement || block_given?
     raise ArgumentError, "wrong number of arguments (0 for 2)" unless pattern
 
@@ -783,7 +783,9 @@ class String
       if replacement
         ret << replacement.to_sub_replacement(match)
       else
-        Regexp.last_match = match
+        # We do this so that we always manipulate $~ in the context
+        # of the passed block.
+        prc.block.home.last_match = match
         
         val = yield(match[0].dup)
         tainted ||= val.tainted?
@@ -814,6 +816,7 @@ class String
   # <i>self</i>, or <code>nil</code> if no substitutions were performed.
   def gsub!(pattern, replacement = nil, &block)
     str = gsub(pattern, replacement, &block)
+    
     if lm = Regexp.last_match
       Regexp.last_match = Regexp.last_match
       replace(str)

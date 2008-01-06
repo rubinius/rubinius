@@ -95,7 +95,7 @@ module Bytecode
       :string_dup,
       :string_equal,
       :move_bytes,
-      nil,  # :float_uminus,
+      :io_operation,
       :bignum_div,
       nil,  # :float_pow,
       nil,  # :float_to_i,

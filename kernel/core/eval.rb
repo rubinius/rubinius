@@ -46,26 +46,10 @@ module Kernel
     elsif !binding.kind_of? Binding
       raise ArgumentError, "unknown type of binding"
     end
-    
-    text = false
-    if text
-      sexp = string.to_sexp(filename, lineno, true)
-    
-      require 'compiler2/init'
-      require 'compiler2/text'
-    
-      comp = Compiler2.new(Compiler2::TextGenerator, binding) # flags[:binding])
-      node = comp.convert_sexp([:eval_expression, sexp])
-      meth = node.to_description
-      puts ""
-      puts meth.generator.text
-      return nil
-    
-      return node.to_description(:__eval_script__).to_cmethod
-    end
-    
+
     flags = { :binding => binding }
     compiled_method = Compile.compile_string string, flags, filename, lineno
+    compiled_method.inherit_scope binding.context.method
     ctx = binding.context
     be = BlockEnvironment.new
     be.from_eval!
@@ -104,7 +88,30 @@ module Kernel
     elsif string
       string = StringValue(string)
       
-      flags = { :binding => Binding.setup(MethodContext.current.sender) }
+      binding = Binding.setup(MethodContext.current.sender)
+
+      text = false
+      if text
+        sexp = string.to_sexp(filename, line, true)
+
+        require 'compiler2/init'
+        require 'compiler2/text'
+        
+        p sexp
+
+        comp = Compiler2.new(Compiler2::TextGenerator, binding) # flags[:binding])
+        node = comp.convert_sexp([:eval_expression, sexp])
+        p node
+        meth = node.to_description
+        puts ""
+        puts meth.generator.text
+        return nil
+
+        return node.to_description(:__eval_script__).to_cmethod
+      end
+      
+      
+      flags = { :binding => binding }
       compiled_method = Compile.compile_string string, flags, filename, line
       ctx = binding.context
       be = BlockEnvironment.new
@@ -117,4 +124,12 @@ module Kernel
   end
   
   
+end
+
+class Module
+  # These have to be aliases, not methods that call instance eval, because we
+  # need to pull in the binding of the person that calls them, not the intermediate
+  # binding.
+  alias_method :module_eval, :instance_eval
+  alias_method :class_eval, :module_eval
 end

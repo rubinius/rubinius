@@ -77,7 +77,7 @@ class RubyLex
   # io functions
   def set_input(io, p = nil, &block)
     @io = io
-    if p.respond_to?(:call)
+    if p and p.respond_to?(:call)
       @input = p
     elsif block_given?
       @input = block

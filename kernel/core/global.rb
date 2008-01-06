@@ -25,6 +25,7 @@ class GlobalVariables
     }
 
     @alias = {}
+    @hooks = {}
   end
 
   def key?(key)
@@ -38,6 +39,8 @@ class GlobalVariables
   def [](key)
     if @internal.key? key then
       @internal[key]
+    elsif @hooks.key? key then
+      @hooks[key][0].call
     else
       @internal[@alias[key]]
     end
@@ -46,6 +49,8 @@ class GlobalVariables
   def []=(key, data)
     if !@internal.key?(key) && alias_key = @alias[key] then
       @internal[alias_key] = data
+    elsif @hooks.key? key then
+      @hooks[key][1].call(data)
     else
       @internal[key] = data
     end
@@ -60,6 +65,18 @@ class GlobalVariables
       raise NameError, "Error finding global variable #{from} while " \
                        "attempting to alias it to #{to}"
     end
+  end
+  
+  def set_hook(var, getter, setter)
+    unless getter.respond_to?(:call)
+      raise ArgumentError, "getter must respond to call"
+    end
+    
+    unless setter.respond_to?(:call)
+      raise ArgumentError, "setter must respond to call"
+    end
+    
+    @hooks[var] = [getter, setter]
   end
 end
 

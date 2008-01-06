@@ -88,6 +88,23 @@ class MethodContext
     # CTX_FLAG_NO_LONG_RETURN => 1
     _set_field(12, 1)
   end
+  
+  def calling_hierarchy(start=1)
+    ret = []
+    ctx = MethodContext.current.sender
+    i = 0
+    until ctx.nil?
+      if i >= start
+        ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
+      end
+      
+      i += 1
+      ctx = ctx.sender
+    end
+    
+    return nil if start > i + 1
+    ret
+  end
 end
 
 class NativeMethodContext
@@ -342,5 +359,9 @@ class Backtrace
     end
 
     ret
+  end
+  
+  def to_mri
+    return @top_context.calling_hierarchy(0)
   end
 end

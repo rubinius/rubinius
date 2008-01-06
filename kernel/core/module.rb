@@ -163,6 +163,28 @@ class Module
       end
     end
   end
+  
+  def remote_alias(new_name, mod, current_name)
+    cm = mod.find_method_in_hierarchy(current_name)
+    unless cm
+      raise NameError, "Unable to find method '#{current_name}' under #{mod}"
+    end
+    
+    if cm.kind_of? Tuple
+      meth = cm[1]
+    else
+      meth = cm
+    end
+    
+    if meth.primitive and meth.primitive > 0
+      raise NameError, "Unable to remote alias primitive method '#{current_name}'"
+    end
+    
+    method_table[new_name] = cm
+    VM.reset_method_cache(new_name)
+    
+    return new_name
+  end
 
   # Will raise a NameError if the method doesn't exist.
 
@@ -377,11 +399,6 @@ class Module
   end
   alias_method :class_exec, :module_exec
 
-  def module_eval(string = nil, filename = "(eval)", lineno = 1, &prc)
-    instance_eval(string, filename, lineno, &prc)
-  end
-  alias_method :class_eval, :module_eval
-
   # TODO - Handle module_function without args, as per 'private' and 'public'
   def module_function(*method_names)
     if method_names.empty?
@@ -521,12 +538,12 @@ class Module
   
   def set_name_if_necessary(name, mod)
     return unless @name.nil?
-    name = name.dup
+    name = name.to_s.dup
     while mod and mod != Object
       name.insert(0, "#{mod.name}::")
       mod = mod.parent
     end
-    @name = name
+    @name = name.to_sym
   end
 
   # A fixup, move the core versions in place now that everything

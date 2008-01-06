@@ -53,7 +53,7 @@ class Compiler2
           tup[var.slot] = name
         end
       end
-      
+
       return tup
     end
     
@@ -129,7 +129,7 @@ class Compiler2
     def access_in_block!
       @on_stack = false
     end
-        
+
     def argument?
       @argument
     end

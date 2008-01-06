@@ -459,6 +459,32 @@ class ShotgunPrimitives
     CODE
   end
   
+  def io_operation
+    <<-CODE
+    POP(self, IO);
+    POP(t1, FIXNUM);
+    
+    j = io_to_fd(self);
+    GUARD(j >= 0);
+    
+    k = FIXNUM_TO_INT(t1);
+    switch(k) {
+      case 0:
+        if(isatty(j)) {
+          stack_push(Qtrue);
+        } else {
+          stack_push(Qfalse);
+        }
+        break;
+      case 1:
+        stack_push(string_new(state, ttyname(j)));
+        break;
+      default:
+       stack_push(Qnil);
+    }
+    CODE
+  end
+  
   def file_unlink
     <<-CODE
     (void)stack_pop(); /* class */

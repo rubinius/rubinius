@@ -116,8 +116,8 @@ class Node
       nil
     end
     
-    def consume(sexp, iter=false)
-      set(:scope => self, :iter => iter) do
+    def consume(sexp, iter=false, eval=false)
+      set(:scope => self, :iter => iter, :eval => eval) do
         out = convert(sexp[0])
         @all_scopes.each do |scope|
           scope.formalize!
@@ -153,7 +153,7 @@ class Node
         else
           return nil
         end
-      end          
+      end
       
       # They're asking from inside a block, look in the current
       # block scopes as well as top_scope
@@ -229,9 +229,9 @@ class Node
   class Snippit < ClosedScope
     kind :snippit
     
-    def consume(sexp, iter=false)
+    def consume(sexp, iter=false, eval=false)
       set(:family, self) do
-        super(sexp, iter)
+        super(sexp, iter, eval)
       end
     end
     
@@ -250,12 +250,7 @@ class Node
     kind :eval_expression
     
     def consume(sexp)
-      ret = nil
-      set(:eval, true) do
-        ret = super(sexp, @in_iter)
-      end
-      
-      return ret
+      super(sexp, @in_iter, true)
     end
     
     def locals
@@ -282,7 +277,7 @@ class Node
       
       # Setup stuff so allocate_slot works
       @my_scope.scope = self
-      @slot = @my_scope.size - 1
+      @slot = @my_scope.size
     end
     
     def enlarge_context
@@ -1765,7 +1760,7 @@ class Node
       
       vars = sexp[1]
 
-      block = !get(:iter).nil?
+      block = get(:iter)
       
       if vars.first == :masgn
         ary = vars[1]

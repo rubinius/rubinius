@@ -113,10 +113,14 @@ module Kernel
     code = 0 if code.equal? true
     raise SystemExit.new(code)
   end
+  
+  private :exit
 
   def exit!(code=0)
     Process.exit(code)
   end
+  
+  private :exit!
 
   def abort(msg=nil)
     $stderr.puts(msg) if(msg)
@@ -215,20 +219,7 @@ module Kernel
   alias_method :proc, :lambda
 
   def caller(start=1)
-    ret = []
-    ctx = MethodContext.current.sender
-    i = 0
-    until ctx.nil?
-      if i >= start
-        ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
-      end
-      
-      i += 1
-      ctx = ctx.sender
-    end
-    
-    return nil if start > i + 1
-    ret
+    return MethodContext.current.sender.calling_hierarchy(start)
   end
   
   def global_variables
@@ -271,10 +262,18 @@ module Kernel
       [self]
     end
   end
+  
+  def trap(sig, prc=nil, &block)
+    Signal.trap(sig, prc, &block)
+  end
 
   def self.after_loaded
     # This nukes the bootstrap raise so the Kernel one is used.
     Object.method_table.delete :raise
+    
+    get = proc { $! ? $!.backtrace.to_mri : nil }
+    set = proc { raise RuntimeError, "illegal setting of backtrace" }
+    Globals.set_hook(:$@, get, set)
   end
 end
 

@@ -71,6 +71,10 @@ class CompiledMethod
     return self
   end
   
+  def inherit_scope(other)
+    @staticscope = other.staticscope
+  end
+  
   def exceptions=(tup)
     @exceptions = tup
   end
@@ -127,7 +131,7 @@ class CompiledMethod
     
     names.each do |n|
       unless n.kind_of? Symbol
-        raise ArgumentError, "must be a tuple of symbols"
+        raise ArgumentError, "must be a tuple of symbols: #{n.inspect}"
       end
     end
     

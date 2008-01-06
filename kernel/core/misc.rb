@@ -16,6 +16,10 @@ class << MAIN
   def protected(*methods)
     self.metaclass.protected(*methods)
   end
+  
+  def autoload(*args)
+    Object.autoload *args
+  end
 end
 
 def self.to_s
