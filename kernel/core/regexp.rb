@@ -209,6 +209,7 @@ class Regexp
   end
   
   def match_from(str, count)
+    return nil if str.nil?
     match_region(str, count, str.size, true)
   end
 

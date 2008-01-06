@@ -9,5 +9,9 @@ shared :regexp_match do |cmd|
       /xyz/ =~ "abxyc"
       $~.should == nil
     end
+
+    it "can match nil" do
+      (// =~ nil).should == nil
+    end
   end
 end
