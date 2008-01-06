@@ -23,10 +23,6 @@ describe "IO.read" do
     IO.read(@fname, 5, 3).should == @contents.slice(3, 5)
   end
   
-  it "reads the contents of a file when more bytes are specified" do
-    IO.read(@fname, @contents.length + 1).should == @contents
-  end
-    
   it "raises an Errno::ENOENT when the requested file does not exist" do
     File.delete(@fname) if File.exists?(@fname)
     lambda { IO.read @fname }.should raise_error(Errno::ENOENT)
@@ -45,3 +41,49 @@ describe "IO.read" do
     lambda { IO.read @fname, -1, -1 }.should raise_error(Errno::EINVAL)
   end
 end
+
+describe "IO#read" do
+
+  before :each do
+    @fname = "test.txt"
+    @contents = "1234567890"
+    open @fname, "w" do |io| io.write @contents end
+
+    @io = open @fname, "r+"
+  end
+
+  after :each do
+    @io.close
+    File.delete(@fname) if File.exists?(@fname)
+  end
+
+  it "is at end-of-file when everything has been read" do
+    @io.read
+    @io.eof?.should == true
+  end
+
+  it "reads the contents of a file" do
+    @io.read.should == @contents
+  end
+
+  it "returns an empty string at end-of-file" do
+    @io.read
+    @io.read.should == ''
+  end
+
+  it "reads the contents of a file when more bytes are specified" do
+    @io.read(@contents.length + 1).should == @contents
+  end
+
+  it "returns an empty string at end-of-file" do
+    @io.read
+    @io.read.should == ''
+  end
+
+  it "returns nil at end-of-file with a length" do
+    @io.read
+    @io.read(1).should == nil
+  end
+
+end
+
