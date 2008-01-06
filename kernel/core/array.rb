@@ -1,4 +1,4 @@
-# depends on: class.rb enumerable.rb tuple.rb
+# depends on: class.rb enumerable.rb tuple.rb kernel.rb
 
 # Ruby's builtin dynamic array implementation
 class Array
