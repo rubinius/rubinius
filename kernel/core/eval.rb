@@ -1,3 +1,7 @@
+# depends on: array.rb
+#
+# The dependency is from #alias_method.
+
 class Binding
   def self.setup(ctx)
     bind = allocate()
