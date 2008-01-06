@@ -8,6 +8,8 @@ class Bignum < Integer
   end
 
   def to_s(radix=10)
+    raise ArgumentError, 'base must be between 2 and 36' unless
+      radix.between?(2, 36)
     radix_to_s(radix)
   end
 

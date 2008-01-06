@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#to_s when given a base" do
   it "returns self converted to a String in the given base" do
-    a = 18446744073709551616 #2**64
+    a = 2**64
     a.to_s(2).should == "10000000000000000000000000000000000000000000000000000000000000000" 
     a.to_s(8).should == "2000000000000000000000"
     a.to_s(16).should == "10000000000000000"

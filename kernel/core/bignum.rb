@@ -1,12 +1,6 @@
 # depends on: class.rb integer.rb
 
 class Bignum < Integer
-  def to_s(radix=10)
-    raise ArgumentError, 'base must be between 2 and 36' unless radix.between?(2, 36)
-    radix_to_s(radix)
-  end
-  private :radix_to_s
-
   def %(other)
     if other.kind_of?(Float)
       if other == 0.0
@@ -59,4 +53,6 @@ class Bignum < Integer
   alias_method :modulo, :%
   
   alias_method :div, :/
+
+  private :radix_to_s # in kernel/bootstrap/bignum.rb
 end
