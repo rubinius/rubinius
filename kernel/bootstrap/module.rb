@@ -50,7 +50,14 @@ class Module
   end
   
   def alias_method(new_name, current_name)
-    meth = @method_table[current_name]
+    unless meth = @method_table[current_name]
+      mod = direct_superclass()
+      while !meth and mod
+        meth = mod.method_table[current_name]
+        mod = mod.direct_superclass
+      end
+    end
+
     unless meth
       raise NoMethodError, "Unable to find method '#{current_name}' to alias to '#{new_name}'"
     end

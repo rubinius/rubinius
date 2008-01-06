@@ -137,16 +137,6 @@ class Module
     self.metaclass.find_method_in_hierarchy(sym)
   end
 
-  def alias_method(new_name, current_name)
-    meth = find_method_in_hierarchy(current_name)
-    if meth
-      method_table[new_name] = meth
-      VM.reset_method_cache(new_name)
-    else
-      raise NameError, "undefined method `#{current_name}' for module `#{self.name}'"
-    end
-  end
-
   def alias_method_cv(new_name, current_name)
     new_name = normalize_name(new_name)
     current_name = normalize_name(current_name)
