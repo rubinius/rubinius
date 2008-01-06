@@ -966,6 +966,7 @@ class ShotgunPrimitives
         
     GUARD(start + count + offset < total);
     GUARD(offset >= 0);
+    GUARD(count >= 0);
     
     data = (char*)bytearray_byte_address(state, self);
     source = data;
