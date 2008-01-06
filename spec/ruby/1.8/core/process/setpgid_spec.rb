@@ -8,7 +8,7 @@ describe "Process.setpgid" do
 
   it "sets the process group id of the specified process" do
     pid = Process.fork { Process.exit! }
-    Process.getpgid(pid).should == Process.pid
+    Process.getpgid(pid).should == Process.getpgrp
     Process.setpgid(pid, pid).should == 0
     Process.getpgid(pid).should == pid
   end

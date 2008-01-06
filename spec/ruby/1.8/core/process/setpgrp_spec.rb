@@ -1,11 +1,12 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Process.setpgrp" do
-  it "takes no arguments" do
+describe "Process.setpgrp and Process.getpgrp" do
+  it "take no arguments" do
     lambda { Process.setpgrp(0) }.should raise_error(ArgumentError)
+    lambda { Process.getpgrp(1) }.should raise_error(ArgumentError)
   end
 
-  it "returns the process group ID of the calling process" do
+  it "set and get the process group ID of the calling process" do
     # there are two synchronization points here:
     # One for the child to let the parent know that it has finished
     #   setting its process group;
@@ -16,7 +17,7 @@ describe "Process.setpgrp" do
       read1.close
       write2.close
       Process.setpgrp
-      write1 << "?"
+      write1 << Process.getpgrp
       write1.close
       read2.read(1)
       read2.close
@@ -24,15 +25,18 @@ describe "Process.setpgrp" do
     end
     write1.close
     read2.close
-    read1.read(1) # wait for child to change process groups
+    pgid = read1.read # wait for child to change process groups
     read1.close
 
-    Process.getpgid(pid).should == pid
+    Process.getpgid(pid).should == pgid.to_i
 
     write2 << "!"
     write2.close
   end
 
+end
+
+describe "Process.setpgrp" do
   it "returns zero" do
     Process.setpgrp.should == 0
   end

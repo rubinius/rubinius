@@ -6,6 +6,10 @@ describe "Process.getpgid" do
   end
 
   it "returns the process group ID for the given process id" do
-    Process.getpgid(Process.ppid).should == Process.ppid
+    Process.getpgid(Process.pid).should == Process.getpgrp
+  end
+
+  it "returns the process group ID for the calling process id when passed 0" do
+    Process.getpgid(0).should == Process.getpgrp
   end
 end
