@@ -11,6 +11,11 @@ describe "Math.asinh" do
     Math.asinh(-2.97).should be_close(-1.8089166921397, TOLERANCE)
     Math.asinh(0.0).should == 0.0
     Math.asinh(-0.0).should == -0.0
+    Math.asinh(1.05367e-08).should be_close(1.05367e-08, TOLERANCE)
+    Math.asinh(-1.05367e-08).should be_close(-1.05367e-08, TOLERANCE)
+    # Default tolerance does not scale right for these...
+    #Math.asinh(94906265.62).should be_close(19.0615, TOLERANCE)
+    #Math.asinh(-94906265.62).should be_close(-19.0615, TOLERANCE)
   end
   
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
