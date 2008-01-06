@@ -96,6 +96,20 @@ Notes: Occasionally working with kernel/ you may seem classes that
 2. Working with Kernel classes
 ==============================
 
+Any time you make a change here -- or anywhere else for that
+matter -- make sure you do a full rebuild to pick up the changes,
+then run the related specs, and then run bin/ci to make sure
+that also the *unrelated* specs still work (minimal-seeming
+changes may have broad consequences.)
+
+There are a few special forms that are used in bootstrap/ as well
+as core/, such as @ivar_as_index@ which maps instance variable
+names on internal fields. These may impose special restrictions
+on their usage so it is best to follow the example of existing 
+code when dealing with these. Broadly speaking, if something looks 
+"unrubyish", there is probably a good reason for it so make sure 
+to ask before doing any "cosmetic" changes -- and to run CI after.
+
 If you modify a kernel class, you need to `rake build` after to 
 have the changes picked up. With some exceptions, you should not 
 regenerate the stable files. They will in most cases work just fine
