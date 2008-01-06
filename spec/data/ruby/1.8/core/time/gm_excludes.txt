@@ -1,0 +1,5 @@
+Time.gm handles string-like second argument
+Time.gm handles string arguments
+Time.gm handles float arguments
+Time.gm throws ArgumentError for out of range values
+Time.gm throws ArgumentError for invalid number of arguments
