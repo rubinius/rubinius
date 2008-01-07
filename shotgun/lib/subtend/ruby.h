@@ -104,6 +104,8 @@ VALUE rb_obj_is_kind_of(VALUE obj, VALUE klass);
 int rb_respond_to(VALUE obj, ID sym);
 ID rb_to_id(VALUE obj);
 
+VALUE rb_yield(VALUE val);
+
 VALUE rb_check_array_type(VALUE ary);
 VALUE rb_check_string_type(VALUE str);
 VALUE rb_check_convert_type(VALUE val, int type, const char* tname, const char* method);
@@ -118,6 +120,7 @@ void rb_secure(int);
 int FIX2INT(VALUE val);
 VALUE INT2NUM(int num);
 #define INT2FIX(v) INT2NUM(v)
+#define NUM2INT(val) FIX2INT(val)
 
 /* Array */
 VALUE rb_Array(VALUE val);

@@ -358,6 +358,15 @@ ID rb_to_id(VALUE obj) {
   return SYM2ID(rb_funcall(obj, rb_intern("to_sym"), 0));
 }
 
+VALUE rb_yield(VALUE val) {
+  CTX;
+  
+  VALUE obj = NEW_HANDLE(ctx, cpu_current_block(ctx->state, ctx->cpu));
+  
+  return rb_funcall(obj, rb_intern("call"), 1, val);
+}
+
+
 VALUE rb_check_array_type(VALUE ary) {
   CTX;
   VALUE coercable = rb_funcall(ary, rb_intern("respond_to?"), 1, CHAR2STR("to_ary"));
