@@ -35,6 +35,16 @@ describe "Array#pack" do
     lambda { [].pack("%") }.should raise_error(ArgumentError)
   end
 
+  it "raises an ArgumentError on empty array" do
+    ['A', 'a', 'B', 'b', 'C', 'c', 'D', 'd',
+     'E', 'e', 'F', 'f', 'G', 'g', 'H', 'h',
+     'I', 'i', 'L', 'l', 'M', 'm', 'N', 'n',
+     'Q', 'q', 'U', 'u','w', 'Z'].each { |pat|
+       puts pat
+       lambda { [].pack(pat) }.should raise_error(ArgumentError)
+     }
+  end
+
   it "skips everything till the end of schema string with ('#')" do
     ["abc", "def"].pack("A*#A10%").should == "abc"
   end
@@ -526,7 +536,6 @@ describe "Array#pack" do
     [1].pack('w').should == "\001"
     [9999].pack('w').should == "\316\017"
     [2**64].pack('w').should == "\202\200\200\200\200\200\200\200\200\000"
-    lambda { [].pack('w') }.should raise_error(ArgumentError)
     lambda { [-1].pack('w') }.should raise_error(ArgumentError)
     lambda { [-2**256].pack('w') }.should raise_error(ArgumentError)
   end
