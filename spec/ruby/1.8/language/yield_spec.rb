@@ -24,6 +24,15 @@ describe "Assignment via yield" do
     def f; yield *[*[1]]; end;  f {|a| a.should == 1 }
   end
 
+  it "assigns objects followed by splatted objects to block variables" do
+    def f; yield 1, *nil; end;     f {|a, b| b.should == nil }
+    def f; yield 1, *1; end;       f {|a, b| b.should == 1 }
+    def f; yield 1, *[1]; end;     f {|a, b| b.should == 1 }
+    def f; yield 1, *[nil]; end;   f {|a, b| b.should == nil }
+    def f; yield 1, *[[]]; end;    f {|a, b| b.should == [] }
+    def f; yield 1, *[*[1]]; end;  f {|a, b| b.should == 1 }
+  end
+
   it "assigns objects to block variables that include the splat operator inside the block" do
     def f; yield; end;          f {|*a| a.should == [] }
     def f; yield nil; end;      f {|*a| a.should == [nil] }
