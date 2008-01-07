@@ -221,10 +221,8 @@ class CompiledMethod
         case @op.args[i]
         when :literal
           @args[i] = cm.literals[@args[i]]
-        when :slot_local
-          @args[i] = cm.bonus[0].at(args[i]) if cm.bonus && cm.bonus[0]
-        when :stack_local
-          @args[i] = cm.bonus[1].at(args[i]) if cm.bonus && cm.bonus[1]
+        when :local
+          @args[i] = cm.local_names[args[i]] if cm.local_names
         end
       end
       @ip = ip
