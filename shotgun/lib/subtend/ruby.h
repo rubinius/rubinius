@@ -4,6 +4,8 @@
 #define RUBY
 
 #include <stdlib.h>
+#include <sys/types.h>
+#include <stdint.h>
 
 /* Pointers are seen as totally opaque */
 typedef void * VALUE;
