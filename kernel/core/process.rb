@@ -477,6 +477,11 @@ module Process
 end
 
 module Kernel
+  
+  def fork(&block)
+    Process.fork(&block)
+  end
+  
   def system(prog, *args)
     cmd = args.inject(prog.to_s) { |a,e| a << " #{e}" }
     pid = Process.fork
@@ -484,12 +489,28 @@ module Kernel
       Process.waitpid(pid)
       return $?.exitstatus == 0
     else
-      Process.replace "/bin/sh", ["-c", cmd]
+      Process.replace "/bin/sh", ["sh", "-c", cmd]
     end
   end
 
   def exec(cmd, *args)
-    Process.replace "bin/sh", ["-c", cmd, *args]
+    if args.empty? and cmd.kind_of? String
+      Process.replace "/bin/sh", ["sh", "-c", cmd]
+    else
+      if cmd.kind_of? Array
+        prog = cmd[0]
+        name = cmd[1]
+      else
+        name = prog = cmd
+      end
+      
+      argv = [name]
+      args.each do |arg|
+        argv << arg.to_s
+      end
+      
+      Process.replace prog, argv
+    end
   end
   
   def `(str) #`
@@ -514,7 +535,7 @@ module Kernel
     else
       read.close
       STDOUT.reopen write
-      Process.replace "/bin/sh", ["-c", str]
+      Process.replace "/bin/sh", ["sh", "-c", str]
     end
   end
 end

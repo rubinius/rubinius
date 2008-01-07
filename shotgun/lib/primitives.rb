@@ -2524,13 +2524,10 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, ARRAY);
     
-    tmp = string_byte_address(state, t1);
-    file = tmp ? strdup(tmp) : NULL;
-    k = FIXNUM_TO_INT(array_get_total(t2)) + 1;
+    k = FIXNUM_TO_INT(array_get_total(t2));
     argv = ALLOC_N(char*, k + 1);
-    argv[0] = file;
-    for(j = 1; j < k; j++) {
-      t3 = array_get(state, t2, j - 1);
+    for(j = 0; j < k; j++) {
+      t3 = array_get(state, t2, j);
       if(!ISA(t3, state->global->string)) {
         for(i = 0; i < j; i++) {
           XFREE(argv[i]);
@@ -2544,6 +2541,9 @@ class ShotgunPrimitives
     }
     
     argv[k] = NULL;
+    
+    tmp = string_byte_address(state, t1);
+    file = tmp ? strdup(tmp) : NULL;
     
     cpu_task_disable_preemption(state);
     k = execvp(file, argv);
