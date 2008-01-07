@@ -521,6 +521,16 @@ describe "Array#pack" do
     ['abcdef'].pack('A4X').should == 'abc'
   end
 
+  it "converts to BER-compressed integer with ('w')" do
+    [0].pack('w').should == "\000"
+    [1].pack('w').should == "\001"
+    [9999].pack('w').should == "\316\017"
+    [2**64].pack('w').should == "\202\200\200\200\200\200\200\200\200\000"
+    lambda { [].pack('w') }.should raise_error(ArgumentError)
+    lambda { [-1].pack('w') }.should raise_error(ArgumentError)
+    lambda { [-2**256].pack('w') }.should raise_error(ArgumentError)
+  end
+
   it "with count decreases result string by count chars with ('X')" do
     ['abcdef'].pack('A6X4').should == 'ab'
   end
