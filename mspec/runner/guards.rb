@@ -2,7 +2,7 @@ unless defined?(RUBY_NAME)
   if defined?(RUBY_ENGINE)
     RUBY_NAME = RUBY_ENGINE
     if defined?(ARG0)
-      if /rubinius.bin/.match(ARG0)
+      if /rubinius|rbx/.match(ARG0)
         RUBY_CLI = "shotgun/rubinius"
       else
         RUBY_CLI = ARG0

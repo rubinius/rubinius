@@ -146,11 +146,15 @@ class MethodContext
       scope = scope.parent
     end
     
-    return false
+    return Object.const_defined?(name)
   end
   
   def current_scope
     method.staticscope.module
+  end
+  
+  def send_private?
+    @send_private
   end
 end
 

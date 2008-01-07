@@ -496,6 +496,7 @@ module Kernel
 
   def exec(cmd, *args)
     if args.empty? and cmd.kind_of? String
+      raise SystemCallError if cmd.empty?
       Process.replace "/bin/sh", ["sh", "-c", cmd]
     else
       if cmd.kind_of? Array
