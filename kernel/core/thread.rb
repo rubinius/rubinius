@@ -6,6 +6,7 @@
 
 class Thread
   ivar_as_index :__ivars__ => 0, :priority => 1, :task => 2, :joins => 3
+  def task; @task; end
 
   @abort_on_exception = false
 

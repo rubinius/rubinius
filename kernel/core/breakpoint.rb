@@ -13,8 +13,9 @@ class Breakpoint
   # breakpoint is optional; if not specified, the breakpoint is inserted at the
   # start of the method.
   # A block that is to be executed when the breakpoint is hit must be supplied.
-  # It will be called with two parameters: the +MethodContext+ active when the
-  # breakpoint was hit, and this +Breakpoint+ instance.
+  # It will be called with three parameters: the +Thread+ that hit the
+  # breakpoint, the +MethodContext+ active when the breakpoint was hit, and this
+  # +Breakpoint+ instance.
   def initialize(cm, ip = nil, &prc)
     unless block_given?
       raise ArgumentError, "A block must be supplied to be executed when the breakpoint is hit"
@@ -85,8 +86,8 @@ class Breakpoint
     ctx.reload_method
   end
 
-  def call_handler(ctx)
-    @handler.call(ctx, self)
+  def call_handler(thread, ctx)
+    @handler.call(thread, ctx, self)
   end
 end
 
@@ -96,7 +97,6 @@ class BreakpointTracker
 
   def initialize
     @breakpoints = Hash.new { |h,k| h[k] = {} }
-    @threads = []
     @debug_channel = Channel.new
     @control_channel = Channel.new
   end
@@ -109,7 +109,6 @@ class BreakpointTracker
   # registered, or an error is raised by the VM.
   def debug_thread(thr)
     thr.set_debugging @debug_channel, @control_channel
-    @threads << thr unless @threads.include? thr
   end
 
   # Adds a breakpoint
@@ -146,7 +145,8 @@ class BreakpointTracker
   end
   
   def process
-    ctx = wait_for_breakpoint
+    thread = wait_for_breakpoint
+    ctx = thread.task.current_context
     bp = find_breakpoint(ctx)
     unless bp
       raise "Unable to find breakpoint for #{ctx.inspect}"
@@ -156,7 +156,7 @@ class BreakpointTracker
     end
 
     begin
-      bp.call_handler(ctx)
+      bp.call_handler(thread, ctx)
     rescue Error => e
       puts "An exception occured in a breakpoint handler:"
       puts e
@@ -171,8 +171,7 @@ class BreakpointTracker
   
   # Wakes the debuggee thread and continues execution until the next breakpoint
   def wake_target
-    # TODO: What happens if there are multiple suspended threads - any chance
-    # the wrong thread will be re-started?
+    # TODO:Each thread must have its own control channel
     @control_channel.send nil
   end
 
