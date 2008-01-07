@@ -1063,12 +1063,6 @@ int cpu_dispatch(STATE, cpu c) {
 void state_collect(STATE, cpu c);
 void state_major_collect(STATE, cpu c);
 
-#define stack_back(idx) (c->sp_ptr[-idx])
-#define stack_clear(idx) (c->sp_ptr -= idx)
-#define stack_pop_2(v1, v2) v1 = stack_back(0); v2 = stack_back(1);
-#define stack_pop_3 (v1, v2, v3) v1 = stack_back(0); v2 = stack_back(1); v3 = stack_back(2);
-#define stack_set_top(val) *c->sp_ptr = (val);
-
 void cpu_run(STATE, cpu ic, int setup) {
   register IP_TYPE op;
   register cpu c = ic;

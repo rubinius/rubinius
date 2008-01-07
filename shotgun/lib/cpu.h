@@ -121,6 +121,11 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define stack_push(obj) cpu_stack_push(state, c, obj, FALSE)
 #define stack_pop() cpu_stack_pop(state, c)
 #define stack_top() cpu_stack_top(state, c)
+#define stack_back(idx) (c->sp_ptr[-idx])
+#define stack_clear(idx) (c->sp_ptr -= idx)
+#define stack_pop_2(v1, v2) v1 = stack_back(0); v2 = stack_back(1);
+#define stack_pop_3 (v1, v2, v3) v1 = stack_back(0); v2 = stack_back(1); v3 = stack_back(2);
+#define stack_set_top(val) *c->sp_ptr = (val);
 
 #define cpu_current_block(state, cpu) (FASTCTX(cpu->home_context)->block)
 #define cpu_current_method(state, cpu) (FASTCTX(cpu->active_context)->method)

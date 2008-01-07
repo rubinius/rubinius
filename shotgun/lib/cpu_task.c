@@ -496,9 +496,8 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
        task needs to be restored. Since it's not yet saved, we push it
        to the current stack, since thats the current task's stack. */
     if(reader == c->current_thread) {
-      (void)stack_pop();
       if(!TASK_FLAG_P(c, TASK_NO_STACK)) {
-        stack_push(obj);
+        stack_set_top(obj);
       } else {
         TASK_CLEAR_FLAG(c, TASK_NO_STACK);
       }
