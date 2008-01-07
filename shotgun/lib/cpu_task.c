@@ -506,7 +506,6 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
       reader_task = thread_get_task(reader);
       
       if(cpu_task_no_stack_p(state, reader_task)) {
-        cpu_task_pop(state, reader_task);
         cpu_task_clear_flag(state, reader_task, TASK_NO_STACK);
       } else {
         cpu_task_set_top(state, reader_task, obj);
@@ -546,7 +545,9 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
   }
   
   /* We push nil on the stack to reserve a place to put the result. */
-  stack_push(Qfalse);
+  if(!TASK_FLAG_P(c, TASK_NO_STACK)) {
+    stack_push(Qfalse);
+  }
   
   object_set_ivar(state, cur_thr, SYM("@sleep"), Qtrue);
   readers = channel_get_waiting(self);
