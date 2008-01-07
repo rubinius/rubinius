@@ -40,7 +40,6 @@ describe "Array#pack" do
      'E', 'e', 'F', 'f', 'G', 'g', 'H', 'h',
      'I', 'i', 'L', 'l', 'M', 'm', 'N', 'n',
      'Q', 'q', 'U', 'u','w', 'Z'].each { |pat|
-       puts pat
        lambda { [].pack(pat) }.should raise_error(ArgumentError)
      }
   end
