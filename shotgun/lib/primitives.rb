@@ -1881,6 +1881,9 @@ class ShotgunPrimitives
       case 12:
         stack_push(I2N(fc->flags));
         break;
+      case 13:
+        stack_push(I2N(fc->fp));
+        break;
       default:
         stack_push(Qnil);
     }

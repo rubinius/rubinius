@@ -24,6 +24,10 @@ class MethodContext
     _get_field(2)
   end
 
+  def fp
+    _get_field(13)
+  end
+
   def block
     _get_field(3)
   end
