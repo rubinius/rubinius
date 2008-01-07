@@ -1,6 +1,7 @@
-#include "shotgun.h"
 #include <stdarg.h>
-#include "tuple.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/tuple.h"
 
 OBJECT tuple_enlarge(STATE, OBJECT tup, int inc) {
   int sz;

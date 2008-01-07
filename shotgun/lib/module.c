@@ -1,8 +1,8 @@
-#include "shotgun.h"
-#include "hash.h"
-#include "methtbl.h"
-#include "string.h"
-#include "module.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/methtbl.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/module.h"
 
 void module_setup_fields(STATE, OBJECT module) {
   if(NIL_P(module_get_constants(module))) {

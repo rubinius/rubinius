@@ -1,7 +1,8 @@
-#include "shotgun.h"
-#include "var_table.h"
 #include <stdlib.h>
 #include <assert.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/var_table.h"
 
 /* max number of vars, made up. */
 #define DATA_MAX 128

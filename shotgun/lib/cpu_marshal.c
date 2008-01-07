@@ -1,13 +1,3 @@
-#include "shotgun.h"
-#include "cpu.h"
-#include "string.h"
-#include "bytearray.h"
-#include "symbol.h"
-#include "tuple.h"
-#include "bignum.h"
-#include "float.h"
-#include "sha1.h"
-
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -16,7 +6,17 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "primitive_util.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/bytearray.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/bignum.h"
+#include "shotgun/lib/float.h"
+#include "shotgun/lib/sha1.h"
+
+#include "shotgun/lib/primitive_util.h"
 
 struct marshal_state {
   int consumed;

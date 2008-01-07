@@ -1,5 +1,5 @@
-#include "shotgun.h"
 #include <signal.h>
+#include "shotgun/lib/shotgun.h"
 
 struct rubinius_machine {
   rstate s;

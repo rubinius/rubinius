@@ -1,8 +1,8 @@
-#include "shotgun.h"
-#include "cpu.h"
-#include "methctx.h"
-#include "tuple.h"
-#include "bytearray.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/methctx.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/bytearray.h"
 
 OBJECT methctx_dup(STATE, OBJECT self) {
   OBJECT ctx;

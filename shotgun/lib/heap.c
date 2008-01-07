@@ -1,7 +1,8 @@
-#include "shotgun.h"
-#include "heap.h"
 #include <stdlib.h>
 #include <string.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/heap.h"
 
 rheap heap_new(int size) {
   rheap h = (rheap)calloc(1, sizeof(struct heap));

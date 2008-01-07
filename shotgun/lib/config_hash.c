@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "config_hash.h"
+#include "shotgun/lib/config_hash.h"
 
 
 DEFINE_HASHTABLE_INSERT(ht_config_insert, struct tagbstring, struct tagbstring);

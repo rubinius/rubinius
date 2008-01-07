@@ -16,12 +16,12 @@
  
 */
 
-#include "shotgun.h"
-#include "object.h"
-#include "cpu.h"
-#include "methctx.h"
-#include "bytearray.h"
-#include "tuple.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/methctx.h"
+#include "shotgun/lib/bytearray.h"
+#include "shotgun/lib/tuple.h"
 
 #define to_header(obj) ((struct ms_header*)((uintptr_t)(obj) - sizeof(struct ms_header)))
 #define to_object(hed) ((OBJECT)((uintptr_t)(hed) + sizeof(struct ms_header)))

@@ -1,19 +1,19 @@
 #ifndef RBS_STATE_H
 #define RBS_STATE_H
 
-#include "shotgun.h"
-#include "memutil.h"
-
 #include <ucontext.h>
 #include <hashtable.h>
 #include <ptr_array.h>
-#include "subtend/PortableUContext.h"
 
 #include <termios.h>
 
 #ifdef USE_CINVOKE
 #include <cinvoke.h>
 #endif
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/memutil.h"
+#include "shotgun/lib/subtend/PortableUContext.h"
 
 /* These are for custom literals. We'll need an API to set it
    eventually. */
@@ -88,9 +88,9 @@ rstate rubinius_state_new();
 #define FASTCTX_BLOCK  3
 #define FASTCTX_NMC    4
 
-#include "cpu.h"
-#include "object_memory.h"
-#include "subtend/handle.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/object_memory.h"
+#include "shotgun/lib/subtend/handle.h"
 
 struct rubinius_state {
   object_memory om;
@@ -149,9 +149,9 @@ struct rubinius_state {
 #define DATA_STRUCT(obj, kind) ((kind)BYTES_OF(obj))
 #define BYTES2FIELDS(bytes) (bytes % 4 == 0 ? bytes : ((bytes + 4) - ((bytes + 4) % 4)))
 
-#include "bignum.h"
-#include "float.h"
-#include "array.h"
+#include "shotgun/lib/bignum.h"
+#include "shotgun/lib/float.h"
+#include "shotgun/lib/array.h"
 
 #define FIRE_ACCESS 1
 #define FIRE_NULL   2
@@ -267,7 +267,7 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 // #define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
 #define CHECK_PTR(obj) 
 
-#include "object_memory-barrier.h"
+#include "shotgun/lib/object_memory-barrier.h"
 
 #define SET_FIELD(obj, fel, val) rbs_set_field(state->om, obj, fel, val)
 #define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
@@ -451,7 +451,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
 
 #define SET_STRUCT_FIELD(obj, fel, val) ({ OBJECT _tmp = (val); RUN_WB(obj, _tmp); fel = _tmp; _tmp; })  
 
-#include "object_memory-inline.h"
+#include "shotgun/lib/object_memory-inline.h"
 
 typedef void (*state_cleanup_func)(STATE, OBJECT);
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func);

@@ -1,4 +1,4 @@
-#include "auto.h"
+#include "shotgun/lib/auto.h"
 
 static inline void _om_apply_class_flags(OBJECT obj, OBJECT cls) {
   obj->CanStoreIvars = (class_get_has_ivars(cls) == Qtrue);

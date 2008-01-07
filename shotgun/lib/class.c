@@ -1,6 +1,6 @@
-#include "shotgun.h"
-#include "module.h"
-#include "class.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/module.h"
+#include "shotgun/lib/class.h"
 
 OBJECT class_superclass(STATE, OBJECT cls) {
   OBJECT sup;

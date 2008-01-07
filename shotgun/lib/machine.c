@@ -1,20 +1,9 @@
-#include "shotgun.h"
-#include "string.h"
-#include "io.h"
-#include "hash.h"
 #include <unistd.h>
 #include <stdlib.h>
-#include "machine.h"
 #include <string.h>
-#include "array.h"
-#include "archive.h"
-#include <sys/param.h>
 #include <signal.h>
-#include "symbol.h"
-#include "config_hash.h"
+#include <sys/param.h>
 #include <sys/stat.h>
-#include "config.h"
-#include "methctx.h"
 
 /* Backtrace support */
 #ifdef  __linux__ 
@@ -32,11 +21,21 @@
 #include <dlfcn.h>
 #endif
 
-#include "subtend.h"
-#include "subtend/nmc.h"
-
-#include "instruction_names.h"
-#include "tuple.h"
+#include "shotgun/config.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/io.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/machine.h"
+#include "shotgun/lib/array.h"
+#include "shotgun/lib/archive.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/config_hash.h"
+#include "shotgun/lib/methctx.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/subtend.h"
+#include "shotgun/lib/subtend/nmc.h"
+#include "shotgun/lib/instruction_names.h"
 
 machine current_machine;
 

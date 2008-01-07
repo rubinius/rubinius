@@ -1,8 +1,9 @@
-#include "shotgun.h"
-#include "tommath.h"
-#include "string.h"
 #include <ctype.h>
 #include <math.h>
+
+#include "tommath.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/string.h"
 
 #define NMP mp_int *n; OBJECT n_obj; \
   NEW_STRUCT(n_obj, n, BASIC_CLASS(bignum), mp_int); \

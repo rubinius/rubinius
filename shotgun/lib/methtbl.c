@@ -1,5 +1,5 @@
-#include "shotgun.h"
-#include "hash.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/hash.h"
 
 OBJECT methtbl_new(STATE) {
   OBJECT obj;

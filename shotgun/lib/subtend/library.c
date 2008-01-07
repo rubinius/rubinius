@@ -1,15 +1,13 @@
-#include <sys/stat.h>
-
-#include "shotgun.h"
-#include "nmc.h"
-
 #include <string.h>
+#include <sys/stat.h>
 
 #include "ltdl.h"
 
-#include "string.h"
-#include "strlcpy.h"
-#include "strlcat.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/strlcpy.h"
+#include "shotgun/lib/strlcat.h"
+#include "shotgun/lib/subtend/nmc.h"
 
 #ifdef _WIN32
 #define LIBSUFFIX ".dll"

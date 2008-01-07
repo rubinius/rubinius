@@ -17,8 +17,8 @@
 extern "C" {
 #endif
 
-#include "node_types.h"
 #include "bstrlib.h"
+#include "shotgun/lib/node_types.h"
 
 typedef struct RNode {
     unsigned long flags;

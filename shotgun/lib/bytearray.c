@@ -1,9 +1,9 @@
-#include "shotgun.h"
-#include "object.h"
 #include <stdlib.h>
 #include <string.h>
 
-#include "bytearray.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/bytearray.h"
 
 OBJECT bytearray_new(STATE, int size) {
   int words;

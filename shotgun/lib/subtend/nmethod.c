@@ -1,10 +1,10 @@
-#include "shotgun.h"
-#include "nmethod.h"
-#include "symbol.h"
-#include "object.h"
-#include "ffi.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/subtend/nmethod.h"
+#include "shotgun/lib/subtend/ffi.h"
 
-#include "primitive_indexes.h"
+#include "shotgun/lib/primitive_indexes.h"
 
 OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *func, int args) {
   OBJECT sys, nm;

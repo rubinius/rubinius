@@ -1,20 +1,21 @@
-#include "shotgun.h"
-#include "nmethod.h"
-#include "symbol.h"
-#include "object.h"
-#include "nmc.h"
-#include "ffi.h"
-#include "library.h"
-#include "string.h"
-#include "hash.h"
-#include "primitive_indexes.h"
-
 #include <lightning.h>
 
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/primitive_indexes.h"
+
+#include "shotgun/lib/subtend/library.h"
+#include "shotgun/lib/subtend/nmethod.h"
+#include "shotgun/lib/subtend/nmc.h"
+#include "shotgun/lib/subtend/ffi.h"
+
 #if defined(__amd64__) || defined(__x86_64__) || defined(X86_64)
-  #include "ffi_amd64.h" 
+  #include "shotgun/lib/subtend/ffi_amd64.h" 
 #elif defined(i386)
-# include "ffi_x86.h"
+  #include "shotgun/lib/subtend/ffi_x86.h"
 #endif
 
 

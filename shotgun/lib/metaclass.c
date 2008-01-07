@@ -1,5 +1,5 @@
-#include "shotgun.h"
-#include "module.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/module.h"
 
 OBJECT metaclass_s_attach(STATE, OBJECT obj) {
   OBJECT meta;

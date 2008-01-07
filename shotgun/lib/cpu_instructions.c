@@ -1,28 +1,27 @@
-#include "shotgun.h"
-#include "cpu.h"
-#include "tuple.h"
-#include "module.h"
-#include "class.h"
-#include "hash.h"
-#include "methctx.h"
-#include "array.h"
-#include "string.h"
-#include "symbol.h"
-#include "machine.h"
-#include "bytearray.h"
-#include "fixnum.h"
-
-#include "primitive_util.h"
-
 #include <string.h>
 #include <errno.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/module.h"
+#include "shotgun/lib/class.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/methctx.h"
+#include "shotgun/lib/array.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/machine.h"
+#include "shotgun/lib/bytearray.h"
+#include "shotgun/lib/fixnum.h"
+#include "shotgun/lib/primitive_util.h"
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
 #define next_int _int = *c->ip_ptr++;
 
 #if DIRECT_THREADED
-#include "instruction_funcs.gen"
+#include "shotgun/lib/instruction_funcs.gen"
 DT_ADDRESSES;
 
 #ifdef SHOW_OPS
@@ -1047,7 +1046,7 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, OBJECT sym,
 }
 
 const char *cpu_op_to_name(STATE, char op) {
-#include "instruction_names.h"
+#include "shotgun/lib/instruction_names.h"
   return get_instruction_name(op);
 }
 
@@ -1056,7 +1055,7 @@ int cpu_dispatch(STATE, cpu c) {
 
   op = *c->ip_ptr++;
   // printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
-  // #include "instructions.gen"
+  // #include "shotgun/lib/instructions.gen"
   return TRUE;
 }
 
@@ -1124,7 +1123,7 @@ insn_start:
         (void*)*c->ip_ptr);
     }
     NEXT_OP;
-    #include "instruction_dt.gen"
+    #include "shotgun/lib/instruction_dt.gen"
 #else
 
 next_op:
@@ -1138,7 +1137,7 @@ next_op:
       cpu_op_to_name(state, op), op, c->ip, c->sp);
     }
 
-    #include "instructions.gen"
+    #include "shotgun/lib/instructions.gen"
     
 #endif
 check_interupts:

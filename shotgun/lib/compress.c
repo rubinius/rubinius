@@ -1,9 +1,9 @@
-#include "shotgun.h"
-#include "string.h"
-#include "compress.h"
-
 #include <bstrlib.h>
 #include <zlib.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/compress.h"
 
 #define ZLIB_CHUNK_SIZE 512
 

@@ -1,14 +1,15 @@
-#include "shotgun.h"
 #include <stdarg.h>
-#include "nmc.h"
-#include "symbol.h"
-#include "string.h"
-#include "hash.h"
-#include "class.h"
-#include "module.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/class.h"
+#include "shotgun/lib/module.h"
+#include "shotgun/lib/subtend/nmc.h"
 
 #undef SYMBOL_P
-#include "ruby.h"
+#include "shotgun/lib/subtend/ruby.h"
 
 #define RBX_SYMBOL_P(obj) (DATA_TAG(obj) == DATA_TAG_SYMBOL)
 

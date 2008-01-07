@@ -1,8 +1,8 @@
-#include "shotgun.h"
-#include "tuple.h"
-#include "hash.h"
-#include "string.h"
-#include "symbol.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/symbol.h"
 
 #define StartSize 256
 #define Increments 32

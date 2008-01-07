@@ -10,11 +10,11 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "config.h"
-#include "oop.h"
-#include "state.h"
-#include "auto.h"
-#include "metaclass.h"
-#include "object.h"
-#include "log.h"
+#include "shotgun/config.h"
+#include "shotgun/lib/oop.h"
+#include "shotgun/lib/state.h"
+#include "shotgun/lib/auto.h"
+#include "shotgun/lib/metaclass.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/log.h"
 #endif

@@ -1,10 +1,11 @@
 #ifndef RBS_OBJECT_MEMORY_H
 #define RBS_OBJECT_MEMORY_H
 
-#include "shotgun.h"
-#include "baker.h"
-#include "marksweep.h"
 #include <stdlib.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/baker.h"
+#include "shotgun/lib/marksweep.h"
 
 #define OMDefaultSize 4194304
 /* A little over 1% of the total heap size. */

@@ -1,12 +1,13 @@
-#include "shotgun.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "machine.h"
-#include "baker.h"
-#include "marksweep.h"
-#include "tuple.h"
-#include "methctx.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/machine.h"
+#include "shotgun/lib/baker.h"
+#include "shotgun/lib/marksweep.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/methctx.h"
 
 void *main_om;
 

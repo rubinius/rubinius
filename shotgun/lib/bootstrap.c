@@ -1,13 +1,13 @@
-#include "shotgun.h"
-#include "object.h"
-#include "symbol.h"
-#include "module.h"
-#include "hash.h"
-#include "regexp.h"
 #include <assert.h>
 #include <errno.h>
 
-#include "subtend/ffi.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/module.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/regexp.h"
+#include "shotgun/lib/subtend/ffi.h"
 
 #define BC(o) BASIC_CLASS(o)
 

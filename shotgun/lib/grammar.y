@@ -21,9 +21,9 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "grammar_internal.h"
-#include "grammar_runtime.h"
-#include "array.h"
+#include "shotgun/lib/grammar_internal.h"
+#include "shotgun/lib/grammar_runtime.h"
+#include "shotgun/lib/array.h"
 
 static NODE *syd_node_newnode(rb_parse_state*, enum node_type, OBJECT, OBJECT, OBJECT);
 
@@ -3568,7 +3568,7 @@ here_document(here, parse_state)
     return tSTRING_CONTENT;
 }
 
-#include "grammar_lex.c.tab"
+#include "shotgun/lib/grammar_lex.c.tab"
 
 static void
 arg_ambiguous()

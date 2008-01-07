@@ -1,7 +1,7 @@
-#include "shotgun.h"
-#include "nmc.h"
-
 #include "ltdl.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/subtend/nmc.h"
 
 void subtend_setup_global();
 

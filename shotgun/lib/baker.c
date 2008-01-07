@@ -1,12 +1,13 @@
-#include "shotgun.h"
 #include <stdlib.h>
 #include <string.h>
-#include "heap.h"
-#include "cpu.h"
-#include "methctx.h"
-#include "bytearray.h"
-#include "baker.h"
-#include "tuple.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/heap.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/methctx.h"
+#include "shotgun/lib/bytearray.h"
+#include "shotgun/lib/baker.h"
+#include "shotgun/lib/tuple.h"
 
 #define DEFAULT_TENURE_AGE 6
 

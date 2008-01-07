@@ -1,25 +1,3 @@
-#include "shotgun.h"
-#include "cpu.h"
-#include "module.h"
-#include "methctx.h"
-#include "class.h"
-#include "string.h"
-#include "hash.h"
-#include "symbol.h"
-#include "object.h"
-#include "bytearray.h"
-#include "tuple.h"
-#include "regexp.h"
-#include "archive.h"
-#include "machine.h"
-#include "grammar.h"
-#include "subtend.h"
-#include "subtend/nmc.h"
-#include "fixnum.h"
-#include "list.h"
-#include "io.h"
-#include "subtend/ffi.h"
-
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -37,6 +15,28 @@
 #include <glob.h>
 #include <termios.h>
 #include <sys/time.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/module.h"
+#include "shotgun/lib/methctx.h"
+#include "shotgun/lib/class.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/bytearray.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/regexp.h"
+#include "shotgun/lib/archive.h"
+#include "shotgun/lib/machine.h"
+#include "shotgun/lib/grammar.h"
+#include "shotgun/lib/subtend.h"
+#include "shotgun/lib/subtend/nmc.h"
+#include "shotgun/lib/fixnum.h"
+#include "shotgun/lib/list.h"
+#include "shotgun/lib/io.h"
+#include "shotgun/lib/subtend/ffi.h"
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 # define HAVE_STRUCT_TM_TM_GMTOFF
@@ -98,7 +98,7 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args
   
   _orig_sp_ptr = c->sp_ptr;
   _orig_sp = c->sp;
-  #include "system_primitives.gen"
+  #include "shotgun/lib/system_primitives.gen"
   
   if(!_ret) {
     c->sp_ptr = _orig_sp_ptr;
@@ -115,7 +115,7 @@ int cpu_perform_runtime_primitive(STATE, cpu c, int prim, OBJECT mo, int num_arg
   
   _orig_sp_ptr = c->sp_ptr;
   _orig_sp = c->sp;
-  #include "runtime_primitives.gen"
+  #include "shotgun/lib/runtime_primitives.gen"
   
   if(!_ret) {
     c->sp_ptr = _orig_sp_ptr;

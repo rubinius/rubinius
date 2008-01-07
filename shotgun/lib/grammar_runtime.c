@@ -1,12 +1,13 @@
-#include "shotgun.h"
-#include "grammar_internal.h"
 #include <string.h>
-#include "array.h"
-#include "string.h"
-#include "tuple.h"
-#include "bignum.h"
-#include "symbol.h"
-#include "grammar.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/grammar_internal.h"
+#include "shotgun/lib/array.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/bignum.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/grammar.h"
 
 static OBJECT float_from_bstring(STATE, bstring str)
 {

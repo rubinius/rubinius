@@ -1,7 +1,8 @@
-#include "shotgun.h"
-#include "subtend/ffi.h"
 #include <fcntl.h>
 #include <unistd.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/subtend/ffi.h"
 
 void io_initialize(STATE, int fd) {
   int flags;

@@ -4,18 +4,18 @@
 #include <sys/mman.h>
 #include <stdint.h>
 
-#include "shotgun.h"
-#include "nmethod.h"
-#include "symbol.h"
-#include "object.h"
-#include "nmc.h"
-#include "ffi.h"
-#include "library.h"
-#include "string.h"
-#include "hash.h"
-#include "primitive_indexes.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/primitive_indexes.h"
 
-#include "ffi_amd64.h"
+#include "shotgun/lib/subtend/ffi_amd64.h"
+#include "shotgun/lib/subtend/nmethod.h"
+#include "shotgun/lib/subtend/nmc.h"
+#include "shotgun/lib/subtend/ffi.h"
+#include "shotgun/lib/subtend/library.h"
 
 /* Arguments passed in this order: %rdi, %rsi, %rdx, %rcx, %r8, %r9, stack */
 static int ffi_amd64_reg_offset[] = {FFI_RDI, FFI_RSI, FFI_RDX, FFI_RCX, FFI_R8, FFI_R9}; 

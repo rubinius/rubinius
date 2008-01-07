@@ -1,9 +1,10 @@
-#include "shotgun.h"
-#include "string.h"
-#include "symbol.h"
-#include "module.h"
-#include "class.h"
 #include <string.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/module.h"
+#include "shotgun/lib/class.h"
 
 OBJECT rbs_const_set(STATE, OBJECT module, const char *name, OBJECT obj) {
   OBJECT sym, str;

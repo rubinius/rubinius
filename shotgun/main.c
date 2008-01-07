@@ -1,11 +1,11 @@
-#include "shotgun.h"
-#include "machine.h"
-#include <sys/stat.h>
 #include <string.h>
 #include <setjmp.h>
+#include <sys/stat.h>
 
-#include "config.h"
-#include "subtend/ruby.h"
+#include "shotgun/config.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/machine.h"
+#include "shotgun/lib/subtend/ruby.h"
 
 /* TODO incorporate system paths calculated at compile time. */
 static const char *search_path[] = {

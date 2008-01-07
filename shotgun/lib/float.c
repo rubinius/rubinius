@@ -1,7 +1,3 @@
-#include "shotgun.h"
-#include "string.h"
-#include "array.h"
-
 #include <string.h>
 #include <math.h>
 
@@ -17,6 +13,10 @@
 #ifdef HAVE_IEEEFP_H
 #include <ieeefp.h>
 #endif
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/array.h"
 
 /* use IEEE 64bit values if not defined */
 #ifndef FLT_RADIX

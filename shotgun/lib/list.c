@@ -1,16 +1,17 @@
-#include "shotgun.h"
-#include "cpu.h"
-#include "machine.h"
 #include <stdlib.h>
-#include "tuple.h"
-#include "methctx.h"
-#include "object.h"
-#include "bytearray.h"
-#include "string.h"
-#include "class.h"
-#include "hash.h"
-#include "symbol.h"
-#include "list.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/machine.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/methctx.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/bytearray.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/class.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/list.h"
 
 void Init_list(STATE) {
   BASIC_CLASS(list) = rbs_class_new(state, "List", ListFields, BASIC_CLASS(object));

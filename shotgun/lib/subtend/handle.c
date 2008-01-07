@@ -1,4 +1,4 @@
-#include "shotgun.h"
+#include "shotgun/lib/shotgun.h"
 
 rni_handle_table *handle_table_new() {
   rni_handle_table *tbl;

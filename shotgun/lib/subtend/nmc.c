@@ -1,11 +1,10 @@
-#include "shotgun.h"
-#include "nmc.h"
-
 #include <string.h>
 
-#include "string.h"
-#include "cpu.h"
-#include "methctx.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/methctx.h"
+#include "shotgun/lib/subtend/nmc.h"
 
 /* TODO: replace this static with a pthread local */
 static rni_context* global_context = NULL;

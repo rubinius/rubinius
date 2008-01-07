@@ -22,10 +22,11 @@ Modified by Evan Phoenix to incorporate into Rubinius.
 
 #include <sys/types.h>
 #include <stdint.h>
-#include "config.h"
 #include <stdio.h>
 #include <string.h>
-#include "sha1.h"
+
+#include "shotgun/config.h"
+#include "shotgun/lib/sha1.h"
 
 #if !CONFIG_BIG_ENDIAN
 #define FLIP_DATA 1

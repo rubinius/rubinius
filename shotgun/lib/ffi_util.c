@@ -1,19 +1,17 @@
-
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <netdb.h>
-
-#include "shotgun.h"
-#include "symbol.h"
-#include "object.h"
-#include "tuple.h"
-#include "hash.h"
-#include "string.h"
-#include "primitive_indexes.h"
-
 #include <errno.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/primitive_indexes.h"
 
 int ffi_errno() { return errno; }
 

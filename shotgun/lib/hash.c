@@ -1,6 +1,6 @@
-#include "shotgun.h"
-#include "tuple.h"
-#include "hash.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/hash.h"
 
 /* Adapted from st.c in 1.8.5 */
 

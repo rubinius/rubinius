@@ -1,12 +1,13 @@
-#include "shotgun.h"
-#include "bytearray.h"
-#include "object.h"
-#include "symbol.h"
-#include "string.h"
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <bstrlib.h>
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/bytearray.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/string.h"
 
 #define STRING_P(obj) (REFERENCE_P(obj) && obj->klass == state->global->string)
 

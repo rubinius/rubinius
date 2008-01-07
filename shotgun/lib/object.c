@@ -1,11 +1,12 @@
-#include "shotgun.h"
-#include "metaclass.h"
 #include <string.h>
 #include <stdlib.h>
-#include "hash.h"
-#include "string.h"
-#include "tuple.h"
-#include "class.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/metaclass.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/class.h"
 
 OBJECT object_new(STATE) {
   return object_allocate(state);

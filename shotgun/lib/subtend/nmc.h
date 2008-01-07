@@ -1,8 +1,9 @@
 /* nmc == native method context */
 
-#include "nmethod.h"
 #include <setjmp.h>
-#include "cpu.h"
+
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/subtend/nmethod.h"
 
 struct rni_nmc {
   int num_handles;

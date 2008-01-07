@@ -1,7 +1,7 @@
 #ifndef RBS_BAKER_H
 #define RBS_BAKER_H
 
-#include "heap.h"
+#include "shotgun/lib/heap.h"
 
 struct baker_gc_struct {
   rheap space_a;

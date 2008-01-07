@@ -1,13 +1,12 @@
 #include <stdlib.h>
-
-#include "shotgun.h"
-#include <stdlib.h>
 #include <string.h>
-#include "cpu.h"
 #include <sys/time.h>
-#include "cleanup_hash.h"
-#include "config_hash.h"
-#include "machine.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/cleanup_hash.h"
+#include "shotgun/lib/config_hash.h"
+#include "shotgun/lib/machine.h"
 
 extern machine current_machine;
 

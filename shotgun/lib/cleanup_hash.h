@@ -2,8 +2,8 @@
 #define RBS_CLEANUP_HASH_H
 
 #include <hashtable.h>
-#include "state.h"
-#include "oop.h"
+#include "shotgun/lib/state.h"
+#include "shotgun/lib/oop.h"
 
 inline int ht_cleanup_insert(struct hashtable *h, OBJECT k, state_cleanup_func v)
 {

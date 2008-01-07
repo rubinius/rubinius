@@ -1,11 +1,12 @@
 #include <zip.h>
 #include <string.h>
-#include "shotgun.h"
-#include "string.h"
-#include "cpu.h"
-#include "array.h"
-#include "tuple.h"
-#include "archive.h"
+
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/string.h"
+#include "shotgun/lib/cpu.h"
+#include "shotgun/lib/array.h"
+#include "shotgun/lib/tuple.h"
+#include "shotgun/lib/archive.h"
 
 archive_handle archive_open(STATE, const char *path) {
   int err = 0;

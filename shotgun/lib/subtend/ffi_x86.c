@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "shotgun.h"
-#include "ffi.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/subtend/ffi.h"
 
 #define FFI_CODE_SIZE 256
 

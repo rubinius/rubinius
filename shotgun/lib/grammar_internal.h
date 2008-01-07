@@ -1,15 +1,16 @@
 #ifndef RBS_GRAMMAR_INTERNAL_H
 #define RBS_GRAMMAR_INTERNAL_H
 
-#include <quark.h>
 #include <stdbool.h>
-#include "shotgun.h"
+
+#include "quark.h"
 #include "bstrlib.h"
+#include "shotgun/lib/shotgun.h"
 
 #define ID quark
 #define VALUE OBJECT
 
-#include "var_table.h"
+#include "shotgun/lib/var_table.h"
 
 enum lex_state {
     EXPR_BEG,                   /* ignore newline, +/- is a sign. */
@@ -29,7 +30,7 @@ typedef unsigned LONG_LONG stack_type;
 typedef unsigned long stack_type;
 #endif
 
-#include "grammar_node.h"
+#include "shotgun/lib/grammar_node.h"
 
 typedef struct rb_parse_state {
     int end_seen;

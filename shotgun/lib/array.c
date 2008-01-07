@@ -1,6 +1,6 @@
-#include "shotgun.h"
-#include "object.h"
-#include "tuple.h"
+#include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/object.h"
+#include "shotgun/lib/tuple.h"
 
 OBJECT array_new(STATE, int count) {
   OBJECT tup, obj;
