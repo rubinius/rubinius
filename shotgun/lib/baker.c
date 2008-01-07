@@ -197,7 +197,7 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       fc_mutate(method_module);
       fc_mutate(name);
 
-      if(!NIL_P(fc->method)) {
+      if(!NIL_P(fc->method) && fc->method->obj_type == CMethodType) {
         /* We cache the bytecode in a char*, so adjust it. 
            We mutate the data first so we cache the newest address. */
         OBJECT ba;
@@ -322,7 +322,7 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
   fc_mutate(method_module);
   fc_mutate(name);
 
-  if(!NIL_P(fc->method)) {
+  if(!NIL_P(fc->method) && fc->method->obj_type == CMethodType) {
     /* We cache the bytecode in a char*, so adjust it. 
        We mutate the data first so we cache the newest address. */
     OBJECT ba;

@@ -51,9 +51,9 @@ class ExtensionCompiler
   
   def add_flag(flags, link=true)
     if link
-      @link_flags << flag
+      @link_flags << flags
     else
-      @compile_flags << flag
+      @compile_flags << flags
     end
   end
   
@@ -189,7 +189,7 @@ class ExtensionCompiler
     end
     
     def libs(*args)
-      args.each { |a| @ec.add_flags "-l#{a}", true }
+      args.each { |a| @ec.add_flag "-l#{a}", true }
     end
     
     def includes(*args)

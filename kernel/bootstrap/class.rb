@@ -37,7 +37,6 @@ class Class
   def object_type
     @object_type
   end
-
 end
 
 class RuntimePrimitive

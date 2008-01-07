@@ -20,8 +20,15 @@ typedef void * VALUE;
 #define Qnil   ((VALUE)14L)
 #define Qundef ((VALUE)18L)
 
+#undef RTEST
+#undef NIL_P
+#define RTEST(v) (((uintptr_t)(v) & 0x7) != 0x6)
+#define NIL_P(v) (v == Qnil)
 #define SYM2ID(sym) ((ID)(sym))
 #define ID2SYM(id) ((VALUE)(id))
+
+#undef ALLOC_N
+#define ALLOC_N(kind, many) (kind*)malloc(sizeof(kind) * many)
 
 #ifndef SYMBOL_P
 int SYMBOL_P(VALUE obj);
@@ -101,12 +108,17 @@ VALUE rb_check_convert_type(VALUE val, int type, const char* tname, const char* 
 
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass);
 
+void rb_thread_schedule();
+#define CHECK_INTS
+void rb_secure(int);
+
 /* Conversions */
 int FIX2INT(VALUE val);
 VALUE INT2NUM(int num);
 #define INT2FIX(v) INT2NUM(v)
 
 /* Array */
+VALUE rb_Array(VALUE val);
 VALUE rb_ary_new(void);
 VALUE rb_ary_new2(long length);
 int rb_ary_size(VALUE self);
@@ -134,7 +146,14 @@ VALUE rb_str_split(VALUE str, const char *sep);
 VALUE rb_str2inum(VALUE str, int base);
 VALUE rb_cstr2inum(VALUE str, int base);
 VALUE rb_str_substr(VALUE str, long beg, long len);
+VALUE rb_tainted_str_new2(const char *ptr);
 char *StringValuePtr(VALUE str);
+VALUE rb_obj_as_string(VALUE obj);
+char rb_str_get_char(VALUE arg, int index);
+
+void rb_string_value(VALUE *obj);
+#define StringValue(v) rb_string_value(&v)
+#define SafeStringValue StringValue
 
 /* Hash */
 VALUE rb_hash_new(void);

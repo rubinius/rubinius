@@ -64,7 +64,9 @@ typedef enum
   FloatType       = 11,
   MemPtrType      = 12,
   StringType      = 13,
-  SymbolType      = 14
+  SymbolType      = 14,
+  CMethodType     = 15,
+  NMethodType     = 16
 } object_type;
 
 /* rubinius_object gc zone, takes up two bits */

@@ -16,6 +16,8 @@ void subtend_setup(STATE) {
   BASIC_CLASS(nmc) =  rbs_class_new(state, "NativeMethodContext", 0, BASIC_CLASS(fastctx));
   BASIC_CLASS(nmethod) = rbs_class_new(state, "NativeMethod", 0, BASIC_CLASS(cmethod));
   
+  class_set_object_type(BASIC_CLASS(nmethod), I2N(NMethodType));
+  
   lt_dlinit();
   subtend_setup_global();
   

@@ -637,6 +637,7 @@ task :extensions => %w[
   extension:fcntl
   extension:syck
   extension:zlib
+  extension:readline
 ]
 
 namespace :extension do
@@ -694,6 +695,15 @@ namespace :extension do
     sh "./shotgun/rubinius compile lib/ext/zlib"
   end
 
+  task :readline => %W[lib/ext/readline/readline.#{$dlext} lib/readline.rb]
+
+  file "lib/ext/readline/readline.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/ruby.h',
+    'lib/ext/readline/build.rb',
+    'lib/ext/readline/*.c'
+  ] do
+    sh "./shotgun/rubinius compile lib/ext/readline"
+  end
 end
 
 desc "Build task for CruiseControl"

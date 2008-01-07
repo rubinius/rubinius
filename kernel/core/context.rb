@@ -138,6 +138,20 @@ class MethodContext
       str << "#{name} (#{method.name})"
     end
   end
+  
+  def const_defined?(name)
+    scope = method.staticscope
+    while scope
+      return true if scope.module.const_defined?(name)
+      scope = scope.parent
+    end
+    
+    return false
+  end
+  
+  def current_scope
+    method.staticscope.module
+  end
 end
 
 class NativeMethodContext

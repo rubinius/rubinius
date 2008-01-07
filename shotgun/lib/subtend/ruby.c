@@ -388,6 +388,14 @@ VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass) {
   return obj;
 }
 
+void rb_thread_schedule() {
+  rb_funcall2(rb_const_get(rb_cObject, rb_intern("Thread")), rb_intern("pass"), 0, NULL);
+}
+
+void rb_secure(int level) {
+  return;
+}
+
 int rb_ary_size(VALUE self) {
   OBJECT ary;
   CTX;
@@ -412,6 +420,21 @@ VALUE rb_float_new(double d) {
 }
 
 /* Array */
+
+VALUE rb_Array(VALUE val) {
+  CTX;
+  VALUE ary, tmp;
+  
+  ary = HNDL(val);
+  if(object_kind_of_p(ctx->state, ary, ctx->state->global->array)) {
+    return val;
+  }
+  
+  tmp = array_new(ctx->state, 1);
+  array_append(ctx->state, tmp, ary);
+  
+  return NEW_HANDLE(ctx, tmp);
+}
 
 VALUE rb_ary_new(void) {
   return rb_ary_new2(ARRAY_DEFAULT_SIZE);
@@ -517,6 +540,10 @@ VALUE rb_str_new2(const char *ptr) {
   return rb_str_new(ptr, strlen(ptr));
 }
 
+VALUE rb_tainted_str_new2(const char *ptr) {
+  return rb_str_new2(ptr);
+}
+
 VALUE rb_str_dup(VALUE str) {
   CTX;
   return NEW_HANDLE(ctx, string_dup(ctx->state, HNDL(str)));
@@ -569,6 +596,23 @@ char *StringValuePtr(VALUE str) {
   CTX;
   return (char*)string_byte_address(ctx->state, HNDL(str));
 }
+
+VALUE rb_obj_as_string(VALUE val) {
+  CTX;
+  OBJECT str = HNDL(val);
+    
+  if(object_kind_of_p(ctx->state, str, ctx->state->global->string)) {
+    return val;
+  }
+  
+  return rb_funcall2(val, rb_intern("to_s"), 0, NULL);
+}
+
+void rb_string_value(VALUE *val) {
+  *val = rb_obj_as_string(*val);
+}
+
+/* Hash */
 
 VALUE rb_hash_new(void) {
   CTX;
@@ -658,6 +702,17 @@ int rb_str_get_char_len(VALUE arg) {
   CTX;
   OBJECT str = HNDL(arg);
   return strlen(string_byte_address(ctx->state, str));
+}
+
+char rb_str_get_char(VALUE arg, int index) {
+  CTX;
+  char *data;
+  
+  OBJECT str = HNDL(arg);
+  
+  data = string_byte_address(ctx->state, str);
+  
+  return data[index];
 }
 
 /* Data_Get_Struct and Data_Wrap_Struct support */

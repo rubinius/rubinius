@@ -90,6 +90,7 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(staticscope), "StaticScope");
   
   class_set_object_type(BC(string), I2N(StringType));
+  class_set_object_type(BC(cmethod), I2N(CMethodType));
     
   rbs_const_set(state, obj, "Symbols", state->global->symbols);
   BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);

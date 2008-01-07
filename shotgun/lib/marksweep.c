@@ -306,7 +306,7 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       fc_mutate(method_module);
       fc_mutate(name);
       
-      if(!NIL_P(fc->method)) {
+      if(!NIL_P(fc->method) && fc->method->obj_type == CMethodType) {
         /* We cache the bytecode in a char*, so adjust it. */
         OBJECT ba;
         ba = cmethod_get_compiled(fc->method);
@@ -380,7 +380,7 @@ void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj) {
   fc_mutate(name);
   fc_mutate(locals);
   
-  if(!NIL_P(fc->method)) {
+  if(!NIL_P(fc->method) && fc->method->obj_type == CMethodType) {
     /* We cache the bytecode in a char*, so adjust it. */
     OBJECT ba;
     ba = cmethod_get_compiled(fc->method);

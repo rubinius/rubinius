@@ -33,6 +33,8 @@ class Symbol
     self
   end
   
+  alias_method :intern, :to_sym
+  
   def to_s
     Symbols.symbol_to_string(self).dup
   end

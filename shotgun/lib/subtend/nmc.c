@@ -6,8 +6,6 @@
 #include "string.h"
 #include "cpu.h"
 #include "methctx.h"
-#undef SYMBOL_P
-#include "ruby.h"
 
 /* TODO: replace this static with a pthread local */
 static rni_context* global_context = NULL;
@@ -80,6 +78,7 @@ rni_nmc *nmc_new_standalone() {
   n->handles = ALLOC_N(rni_handle*, n->num_handles);
   n->system_set = 0;
   n->cont_set = 0;
+  n->value = 0;
     
   return n;
 }
@@ -132,6 +131,11 @@ void nmc_delete(rni_nmc *nmc) {
   XFREE(nmc->handles);
   XFREE(nmc);
 }
+
+/* Imported by hand from ruby.h because we can NOT include ruby.h in here.
+   It breaks stuff. */
+   
+typedef void * VALUE;
 
 void _nmc_start() {
   rni_nmc *n;
@@ -207,7 +211,7 @@ void _nmc_start() {
       nha();
     }
     
-    retval = (*func)(recv, fc->argcount, args);
+    retval = (*func)(fc->argcount, args, recv);
   } else {
     int i, start;
     

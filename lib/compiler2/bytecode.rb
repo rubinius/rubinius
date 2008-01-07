@@ -1242,9 +1242,9 @@ class Node
     
     def bytecode(g)
       # Imported directly from compiler1 and reworked to use g.
-      
+
       expr = @expression.dup
-      
+
       # if something is defined, !something is too.
       # if !something is undefined, then so is something.
       expr.shift if expr[0] == :not
@@ -1298,13 +1298,21 @@ class Node
         g.send :instance_variables, 1
         g.send :include?, 1
       when :yield
-        # conform to "all primitives have a self" rule
         g.push_block
       when :const
         g.push_literal expr.shift
-        g.push_const :Object
+        g.push_context
         g.send :const_defined?, 1
-      when :colon2, :colon3
+      when :colon2
+        str = ""
+        until expr.empty?
+          # Convert the constant parse tree into a string like ::Object::SomeClass
+          str = const_to_string(expr, str)
+        end
+        g.push_literal str
+        g.push_context
+        g.send :const_defined?, 1
+      when :colon3
         str = ""
         until expr.empty?
           # Convert the constant parse tree into a string like ::Object::SomeClass

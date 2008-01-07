@@ -1961,7 +1961,9 @@ class ShotgunPrimitives
     GUARD(RISA(t1, fastctx));
 
     fc = FASTCTX(t1);
-    fc->data = BYTEARRAY_ADDRESS(cmethod_get_compiled(fc->method));
+    if(fc->method->obj_type == CMethodType) {
+      fc->data = BYTEARRAY_ADDRESS(cmethod_get_compiled(fc->method));
+    }
 
     stack_push(Qtrue);
     CODE

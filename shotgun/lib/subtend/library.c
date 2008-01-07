@@ -91,7 +91,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   lib = lt_dlopen(sys_name);
   if(!lib) {
     XFREE(sys_name);
-    // printf("Couldnt open '%s': %s\n", sys_name, lt_dlerror());
+    printf("Couldnt open '%s': %s\n", sys_name, lt_dlerror());
     /* No need to raise an exception, it's not there. */
     return I2N(0);
   }
