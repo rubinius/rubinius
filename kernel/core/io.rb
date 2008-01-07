@@ -251,7 +251,7 @@ class IO
   alias_method :tell, :pos
 
   def pos=(offset)
-    seek pos, SEEK_SET
+    seek offset, SEEK_SET
   end
 
   def rewind
