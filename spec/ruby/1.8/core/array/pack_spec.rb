@@ -453,6 +453,9 @@ describe "Array#pack" do
       lambda { [].pack('U') }.should raise_error(ArgumentError)
       lambda { [1].pack('UU') }.should raise_error(ArgumentError)
       lambda { [2**32].pack('U') }.should raise_error(RangeError)
+      lambda { [-1].pack('U') }.should raise_error(RangeError)
+      lambda { [-5].pack('U') }.should raise_error(RangeError)
+      lambda { [-2**32].pack('U') }.should raise_error(RangeError)
     end
   end
 
