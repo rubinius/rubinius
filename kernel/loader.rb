@@ -161,9 +161,21 @@ begin
   
   unless $0
     if Rubinius::Terminal
-      repr = ENV['RBX_REPR'] || "bin/sirb"
-      $0 = repr
-      require repr
+      ran = false
+      unless /^(rubinius|rbx)$/.match(ARG0)
+        begin
+          $0 = ARG0
+          require "bin/#{ARG0}"
+          ran = true
+        rescue LoadError
+        end
+      end
+
+      unless ran
+        repr = ENV['RBX_REPR'] || "bin/sirb"
+        $0 = repr
+        require repr
+      end
     else
       $0 = "(eval)"
       Compile.execute "p #{STDIN.read}"

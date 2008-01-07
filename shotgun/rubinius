@@ -1,6 +1,17 @@
 #!/usr/bin/env ruby
 
-m = %r!(.*?)[/]?shotgun/rubinius!.match($0)
+PR = %r!(.*?)[/]?shotgun/rubinius!
+
+m = PR.match($0)
+
+if m
+  # Good to go.
+elsif File.symlink?($0)
+  path = File.readlink($0)
+  m = PR.match(path)
+end
+
+my_name = File.basename($0)
 
 prefix = m[1]
 prefix = "" if prefix == "./"
@@ -79,5 +90,5 @@ elsif ARGV[0] == "--shark"
   pid = fork { sleep 5; exec real, *ARGV }
   exec "shark -o rbxshark -i -1 -a #{pid}"
 else
-  exec real, *ARGV
+  exec [real, my_name], *ARGV
 end
