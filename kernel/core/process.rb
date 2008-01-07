@@ -1,4 +1,4 @@
-# depends on: module.rb class.rb
+# depends on: module.rb class.rb struct.rb
 
 module Process
   WNOHANG = 1
@@ -474,6 +474,7 @@ module Process
 
     end
   end
+
 end
 
 module Kernel
@@ -597,5 +598,11 @@ class BidirectionalPipe < IO
     @write.syswrite str
   end
     
+end
+
+class Struct
+  def self.after_loaded
+    Struct.new 'Tms', :utime, :stime, :cutime, :cstime
+  end
 end
 

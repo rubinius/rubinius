@@ -11,6 +11,7 @@ begin
   Math.after_loaded
   FileTest.after_loaded
   Thread.after_loaded
+  Struct.after_loaded
 
   ENV = EnvironmentVariables.new
 
