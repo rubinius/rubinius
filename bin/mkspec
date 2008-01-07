@@ -123,7 +123,7 @@ map = {
 }
 
 get_dir_name = lambda do |c|
-  base = 'spec/core/' unless base
+  base = 'spec/ruby/1.8/core/' unless base
   if (c.name.include?('Error') or c.name == 'Errno') and c.ancestors.include?(Exception)
     base + 'exception'
   elsif c == Class
