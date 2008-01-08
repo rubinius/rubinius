@@ -60,8 +60,9 @@ describe "File.open" do
   # For this test we delete the file first to reset the perms
   it "open the file when call with mode, num and permissions" do
     File.delete(@file)
+    File.umask(0011)
     @fh = File.open(@file, @flags, 0755)
-    File.stat(@file).mode.to_s(8).should == "100755"
+    File.stat(@file).mode.to_s(8).should == "100744"
     @fh.class.should == File
     File.exists?(@file).should == true
   end

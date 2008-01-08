@@ -27,11 +27,12 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
-  it "return a new File with modus num and premissions " do 
+  it "return a new File with modus num and permissions" do 
     File.delete(@file) 
+    File.umask(0011)
     @fh = File.new(@file, @flags, 0755)
     @fh.class.should == File
-    File.stat(@file).mode.to_s(8).should == "100755"
+    File.stat(@file).mode.to_s(8).should == "100744"
     File.exists?(@file).should == true
   end
 
