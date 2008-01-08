@@ -86,8 +86,6 @@ int _object_stores_bytes(OBJECT self);
 
 void ffi_call(STATE, cpu c, OBJECT ptr);
 
-#define stack_set_top(obj) cpu_stack_set_top(state, c, obj)
-
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT method_name, OBJECT mod) {
   int _ret = TRUE;
   OBJECT self, t1, t2, t3, t4;
