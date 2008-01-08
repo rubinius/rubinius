@@ -20,7 +20,7 @@ describe "A Proc instance created using Proc.given" do
   it "is able to call the block" do
     def answer(&prc)
       a = [prc.nil?, Proc.given.nil?]
-      a << (block_given? == !Proc.given.nil?)
+      a << (!block_given? == Proc.given.nil?)
       if block_given?
          a << (prc.object_id == Proc.given.object_id)
          a << (prc.block.object_id == Proc.given.block.object_id)
