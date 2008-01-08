@@ -103,11 +103,15 @@ module Process
   end
 
   def self.getpgid(pid)
-    Platform::POSIX.getpgid(pid)
+    ret = Platform::POSIX.getpgid(pid)
+    Errno.handle if ret == -1
+    ret
   end
 
   def self.setpgid(pid, int)
-    Platform::POSIX.setpgid(pid, int)
+    ret = Platform::POSIX.setpgid(pid, int)
+    Errno.handle if ret == -1
+    ret
   end
 
   @maxgroups = 32
@@ -122,15 +126,21 @@ module Process
     setpgid(0, 0)
   end
   def self.getpgrp
-    Platform::POSIX.getpgrp
+    ret = Platform::POSIX.getpgrp
+    Errno.handle if ret == -1
+    ret
   end
 
   def self.pid
-    Platform::POSIX.getpid
+    ret = Platform::POSIX.getpid
+    Errno.handle if ret == -1
+    ret
   end
 
   def self.ppid
-    Platform::POSIX.getppid
+    ret = Platform::POSIX.getppid
+    Errno.handle if ret == -1
+    ret
   end
 
   def self.uid=(uid)
@@ -150,19 +160,27 @@ module Process
   end
 
   def self.uid
-    Platform::POSIX.getuid
+    ret = Platform::POSIX.getuid
+    Errno.handle if ret == -1
+    ret
   end
 
   def self.gid
-    Platform::POSIX.getgid
+    ret = Platform::POSIX.getgid
+    Errno.handle if ret == -1
+    ret
   end
 
   def self.euid
-    Platform::POSIX.geteuid
+    ret = Platform::POSIX.geteuid
+    Errno.handle if ret == -1
+    ret
   end
 
   def self.egid
-    Platform::POSIX.getegid
+    ret = Platform::POSIX.getegid
+    Errno.handle if ret == -1
+    ret
   end
 
   def self.getpriority(kind, id)
@@ -312,16 +330,24 @@ module Process
   module Sys
     class << self
       def getegid
-        Platform::POSIX.getegid
+        ret = Platform::POSIX.getegid
+        Errno.handle if ret == -1
+        ret
       end
       def geteuid
-        Platform::POSIX.geteuid
+        ret = Platform::POSIX.geteuid
+        Errno.handle if ret == -1
+        ret
       end
       def getgid
-        Platform::POSIX.getgid
+        ret = Platform::POSIX.getgid
+        Errno.handle if ret == -1
+        ret
       end
       def getuid
-        Platform::POSIX.getuid
+        ret = Platform::POSIX.getuid
+        Errno.handle if ret == -1
+        ret
       end
       def issetugid
         raise "not implemented"
@@ -383,19 +409,25 @@ module Process
       end
 
       def eid
-        Platform::POSIX.geteuid
+        ret = Platform::POSIX.geteuid
+        Errno.handle if ret == -1
+        ret
       end
 
       def eid=(uid)
-        Platform::POSIX.seteuid(uid)
+        ret = Platform::POSIX.seteuid(uid)
+        Errno.handle if ret == -1
         uid
       end
       alias_method :grant_privilege, :eid=
 
       def re_exchange
         real = Platform::POSIX.getuid
+        Errno.handle if real == -1
         eff = Platform::POSIX.geteuid
-        Platform::POSIX.setreuid(eff, real)
+        Errno.handle if eff == -1
+        ret = Platform::POSIX.setreuid(eff, real)
+        Errno.handle if ret == -1
         eff
       end
 
@@ -404,7 +436,9 @@ module Process
       end
 
       def rid
-        Platform::POSIX.getuid
+        ret = Platform::POSIX.getuid
+        Errno.handle if ret == -1
+        ret
       end
 
       def sid_available?
@@ -428,24 +462,31 @@ module Process
   module GID
     class << self
       def change_privilege(gid)
-        Platform::POSIX.setregid(gid, gid)
+        ret = Platform::POSIX.setregid(gid, gid)
+        Errno.handle if ret == -1
         gid
       end
 
       def eid
-        Platform::POSIX.getegid
+        ret = Platform::POSIX.getegid
+        Errno.handle if ret == -1
+        ret
       end
 
       def eid=(gid)
-        Platform::POSIX.setegid(gid)
+        ret = Platform::POSIX.setegid(gid)
+        Errno.handle if ret == -1
         gid
       end
       alias_method :grant_privilege, :eid=
 
       def re_exchange
         real = Platform::POSIX.getgid
+        Errno.handle if real == -1
         eff = Platform::POSIX.getegid
-        Platform::POSIX.setregid(eff, real)
+        Errno.handle if eff == -1
+        ret = Platform::POSIX.setregid(eff, real)
+        Errno.handle if ret == -1
         eff
       end
 
@@ -454,7 +495,9 @@ module Process
       end
 
       def rid
-        Platform::POSIX.getgid
+        ret = Platform::POSIX.getgid
+        Errno.handle if ret == -1
+        ret
       end
 
       def sid_available?
