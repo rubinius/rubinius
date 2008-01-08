@@ -845,6 +845,12 @@ void machine_setup_config(machine m) {
   machine_set_const_under(m, "ENDIAN", SYM("little"), mod);
 #endif
 
+  if(sizeof(long) == 8) {
+    machine_set_const_under(m, "L64", Qtrue, mod);
+  } else {
+    machine_set_const_under(m, "L64", Qfalse, mod);
+  }  
+
 #if defined(_WIN32) || defined(__NT__) || defined(WIN32) || defined(__WIN32__)
 #define LIBSUFFIX "dll"
 #elif defined(__APPLE__)
