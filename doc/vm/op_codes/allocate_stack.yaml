@@ -1,7 +1,7 @@
 ---
 mnemonic: allocate_stack
 operation: >-
-  Allocate space for local variables on the stack
+  Allocate space for local variables on the stack (deprecated)
 format: allocate_stack count
 opcode: 97
 stack_before:
@@ -15,11 +15,14 @@ stack_after:
 description: >-
   Allocate _count_ new slots for local variables on the stack. All allocated
   slots will be initialized to the special value @nil@.
+
+  This opcode is now deprecated, and is not currently used under compiler2.
 notes: >-
-  If a local variable is defined in a method and not captured by a block (i.e. 
-  a closure), it's space can be allocated on the stack. This is more efficient
-  than allocating space in a locals tuple, since the space is reclaimed
-  automatically when the current execution context returns.
+  Previously, if a local variable is defined in a method and not captured by a
+  block (i.e. a closure), it's storage could be allocated on the stack. Although
+  more efficient than storing such locals in the locals tuple, this complicated
+  local variable management, and as such, its use has been deprecated under
+  compiler2.
 source: |-
     next_int;
     /* The stack must be initialized to nil because any refers that

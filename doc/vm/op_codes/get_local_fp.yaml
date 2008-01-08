@@ -1,7 +1,7 @@
 ---
 mnemonic: get_local_fp
 operation: >-
-  Get the value of a local and push it onto the stack
+  Get the value of a local and push it onto the stack (deprecated)
 format: get_local_fp idx
 opcode: 100
 stack_before:
@@ -12,10 +12,13 @@ stack_after:
 description: >-
   Retrieves the current value of a local allocated on the stack, and pushes it 
   onto the top of the stack.
+
+  This opcode is now deprecated, and is not currently used under compiler2.
 notes:
-  Local variables that are used within a method and not captured are allocated
-  on the stack. This operation retrieves such a local, and places it on the
-  stack.
+  Local variables that are used within a method and not captured were previously
+  allocated on the stack. This operation retrieves such a local, and places it
+  on the stack. However, stack locals are no longer used under compiler2, and so
+  this opcode is now deprecated.
 see:
   - allocate_stack
   - set_local_fp

@@ -1,7 +1,7 @@
 ---
 mnemonic: from_fp
 operation: >-
-  Push an object from the caller's stack onto the current context's stack
+  Push an object from the caller's stack onto the current context's stack (deprecated)
 format: from_fp idx
 opcode: 94
 stack_before:
@@ -14,18 +14,19 @@ description: >-
   onto the stack in the current context. The argument _idx_ counts backwards from
   the frame pointer, with 0 referencing the first argument to the mehod, 1 the 
   second argument, etc.
+
+  This opcode is now deprecated, and is not currently used under compiler2.
 notes:
   The opcode *from_fp* exists as an optimisation in cases where arguments to a
   method are not modified. Rather than copying the argument off the stack and
   into the locals tuple, it can be copied directly from a frame pointer offset
   as needed.
-  
-  If all arguments to a method are read-only, and no local variables used in
-  the context are captured by a closure, no locals tuple need be allocated.
+
+  Under compiler2, all local variables are now allocated in the locals tuple,
+  which simplifies local variable management and ensures the correct results
+  when continuations are used. As such, this opcode is now deprecated.
 see:
   - get_local_fp
-questions:
-  When does a read-only argument at <= fp get removed from the caller's stack?
 source: |-
     next_int;
     stack_push(*(c->fp_ptr - _int));

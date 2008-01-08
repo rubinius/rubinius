@@ -1,7 +1,7 @@
 ---
 mnemonic: set_local_fp
 operation: >-
-  Updates the value of a stack allocated local variable
+  Updates the value of a stack allocated local variable (deprecated)
 format: set_local_fp idx
 opcode: 99
 stack_before:
@@ -14,10 +14,12 @@ description: >-
   Uses the _value_ on the top of the stack to update the value of the local variable
   allocated on the stack, identified by _idx_. The value is left on the stack, to
   represent the return value from the expression.
+
+  This opcode is now deprecated, and is not currently used under compiler2.
 notes:
-  Local variables that are used within a method and not captured are allocated
-  on the stack. This operation updates such a local from the current top of the
-  stack.
+  Local variables that are used within a method/block and not captured were
+  previously allocated on the stack. This operation updates such a local from
+  the current top of the stack.
 see:
   - get_local_fp
 source: |-
