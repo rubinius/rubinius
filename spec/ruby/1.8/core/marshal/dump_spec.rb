@@ -231,6 +231,12 @@ describe "Marshal.dump with any object having _dump method" do
   end
 end
 
+describe "Marshal.dump with any extended_object having _dump method" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Custom.new.extend Meths).should == "#{mv+nv}e:\x0AMethsu:\x0BCustom\x0Astuff"
+  end
+end
+
 describe "Marshal.dump with object" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(Object.new).should == "#{mv+nv}o:\x0BObject\x00"
@@ -375,5 +381,23 @@ describe "Marshal.dump with extended_user_array" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(UserArray.new.extend Meths).should ==
       "#{mv+nv}e:\x0AMethsC:\x0EUserArray[\x00"
+  end
+end
+
+describe "Marshal.dump with struct" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Struct.new("Ure").new).should == "#{mv+nv}S:\x10Struct::Ure\x00"
+  end
+end
+
+describe "Marshal.dump with struct having fields" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Struct.new("Ure", :a, :b).new).should == "#{mv+nv}S:\x10Struct::Ure\x07:\x06a0:\x06b0"
+  end
+end
+
+describe "Marshal.dump with extended_struct" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Struct.new("Ure").new.extend Meths).should == "#{mv+nv}e:\x0AMethsS:\x10Struct::Ure\x00"
   end
 end

@@ -1,4 +1,5 @@
-Marshal.dump when given an IO-Object should write the serialized data to the IO-Object
+Marshal.dump when given a recursion limit raises an ArgumentError when the recursion limit is exceeded
+Marshal.dump when given an IO-Object writes the serialized data to the IO-Object
 Marshal.dump when given an IO-Object returns the IO-Object
 Marshal.dump when given an IO-Object raises an Error when the IO-Object does not respond to #write
 Marshal.dump returns a string-serialized version of the given argument
@@ -27,10 +28,10 @@ Marshal.dump with bignum -2**31 returns a string-serialized version of the given
 Marshal.dump with bignum -2**63 returns a string-serialized version of the given argument
 Marshal.dump with bignum 2**64 returns a string-serialized version of the given argument
 Marshal.dump with bignum -2**64 returns a string-serialized version of the given argument
-Marshal.dump when given a recursion limit raises an ArgumentError when the recursion limit is exceeded
 Marshal.dump with class returns a string-serialized version of the given argument
 Marshal.dump with module returns a string-serialized version of the given argument
 Marshal.dump with any object having _dump method returns a string-serialized version of the given argument
+Marshal.dump with any extended_object having _dump method returns a string-serialized version of the given argument
 Marshal.dump with object returns a string-serialized version of the given argument
 Marshal.dump with object having ivar returns a string-serialized version of the given argument
 Marshal.dump with regexp returns a string-serialized version of the given argument
@@ -52,4 +53,6 @@ Marshal.dump with array containing refs to the same object returns a string-seri
 Marshal.dump with extended_array returns a string-serialized version of the given argument
 Marshal.dump with user_array returns a string-serialized version of the given argument
 Marshal.dump with extended_user_array returns a string-serialized version of the given argument
-Marshal.dump when given an IO-Object writes the serialized data to the IO-Object
+Marshal.dump with struct returns a string-serialized version of the given argument
+Marshal.dump with struct having fields returns a string-serialized version of the given argument
+Marshal.dump with extended_struct returns a string-serialized version of the given argument
