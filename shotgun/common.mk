@@ -7,6 +7,7 @@ endif
 UNAME=$(shell uname)
 CPU=$(shell uname -p)
 MARCH=$(shell uname -m)
+OSVER=$(shell uname -r)
 
 # amd64 is also known as x86_64
 ifeq ($(MARCH),x86_64)
@@ -26,7 +27,11 @@ ifeq ($(UNAME),Darwin)
   BIN_RPATH=
   SONAME=-current_version $(VERSION) -compatibility_version $(VERSION) -install_name /usr/local/lib/librubinius-$(VERSION).$(SUFFIX)
   ifeq ($(CPU),powerpc)
-    export MACOSX_DEPLOYMENT_TARGET=10.4
+    ifeq ($(OSVER),9.1.0)
+      export MACOSX_DEPLOYMENT_TARGET=10.5
+    else
+      export MACOSX_DEPLOYMENT_TARGET=10.4
+    endif
   endif
 else
   LDOPT=-shared

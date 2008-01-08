@@ -19,6 +19,7 @@ fi
 if echo "$HOST" | grep -q darwin9; then
   DARWIN=1
   DISABLE_KQUEUE=1
+  echo "export MACOSX_DEPLOYMENT_TARGET=10.5"
 elif echo "$HOST" | grep -q darwin; then
   DARWIN=1
   DISABLE_KQUEUE=1

@@ -8,6 +8,7 @@ endif
 UNAME=$(shell uname)
 CPU=$(shell uname -p)
 MARCH=$(shell uname -m)
+OSVER=$(shell uname -r)
 
 WARNINGS = -Wall
 DEBUG = -g -ggdb3
@@ -42,7 +43,11 @@ OUTPUT_A=libbstring.a
 
 ifeq ($(UNAME),Darwin)
   SINGLE_MODULE=-Wl,-single_module
-  export MACOSX_DEPLOYMENT_TARGET=10.4
+  ifeq ($(OSVER),9.1.0)
+    export MACOSX_DEPLOYMENT_TARGET=10.5
+  else
+    export MACOSX_DEPLOYMENT_TARGET=10.4
+  endif
 else
   SINGLE_MODULE=
 endif

@@ -166,7 +166,11 @@ void machine_gather_ppc_frames(ucontext_t *ctx, unsigned long *frames, int *coun
   
   /* Populate the initial value of the stack pointer from
      the context (probably generated from a signal) */
+#if defined (__DARWIN_VERS_1050)
+  sp = ctx->uc_mcontext->__ss.__r1;
+#else
   sp = ctx->mc.sp;
+#endif
   for(i = 0; i < *count && sp; i++) {
     /* The address of the routine is stored 8 bytes past
        the stark pointer on PPC. */
@@ -189,7 +193,11 @@ void machine_show_ppc_backtrace(ucontext_t *ctx) {
   
   /* Populate the initial value of the stack pointer from
      the context (probably generated from a signal) */
+#if defined (__DARWIN_VERS_1050)
+  sp = ctx->uc_mcontext->__ss.__r1;
+#else
   sp = ctx->mc.sp;
+#endif
   while(sp) {
     /* The address of the routine is stored 8 bytes past
        the stark pointer on PPC. */
