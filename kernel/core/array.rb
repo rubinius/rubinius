@@ -1018,6 +1018,16 @@ class Array
         # add \n to the end of each line (including the last line)
         ret << broken_stream.map {|set| set + "\n"}.join
         arr_idx += 1
+      # BER compressed integer
+      elsif kind == "w"
+        item = Type.coerce_to(item, Integer, :to_i)
+        raise ArgumentError, "can't compress negative numbers" if item < 0
+        ret << (item & 0x7f)
+        while (item >>= 7) > 0
+           ret << ((item & 0x7f) | 0x80)
+        end
+        ret.reverse!
+        arr_idx += 1
       # UUEncode
       elsif kind == "u"
         item = Type.coerce_to(item, String, :to_str)
