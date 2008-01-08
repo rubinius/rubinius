@@ -64,9 +64,26 @@ char *ffi_read_string(char *ptr) {
   return ptr;
 }
 
+OBJECT ffi_read_string_length(STATE, void *ptr, int len) {
+  OBJECT str = string_new2(state, NULL, len);
+  
+  memcpy(string_byte_address(state, str), ptr, len);
+  
+  return str;
+}
+
+int ffi_write_string_length(STATE, void *ptr, void* str, int len) {
+  void *src = string_byte_address(state, str);
+  
+  memcpy(ptr, src, len);
+  
+  return len;
+}
+
 void *ffi_read_pointer(void **ptr) {
   return *ptr;
 }
+
 
 char *ffi_sprintf_f(double value, int size, char *fmt) {
   char *str = ALLOC_N(char, size);

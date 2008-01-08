@@ -139,6 +139,26 @@ module FFI
 
   add_typedef TYPE_CHARARR, :char_array
   
+  TypeSizes = {
+    1 => :char,
+    2 => :short,
+    4 => :int,
+    8 => :long_long,
+  }
+  
+  if Rubinius::L64
+    TypeSizes[:long] = 8
+  end
+  
+  def self.size_to_type(size)
+    if sz = TypeSizes[size]
+      return sz
+    end
+    
+    # Be like C, use int as the default type size.
+    return :int
+  end
+  
 end
 
 class Module
@@ -178,9 +198,14 @@ class MemoryPointer
   #   MemoryPointer.new(num) => MemoryPointer instance of <i>num</i> bytes
   #   MemoryPointer.new(sym) => MemoryPointer instance with number 
   #                             of bytes need by FFI type <i>sym</i>
+  #   MemoryPointer.new(obj) => MemoryPointer instance with number 
+  #                             of <i>obj.size</i> bytes
   #   MemoryPointer.new(sym, count) => MemoryPointer instance with number
   #                             of bytes need by length-<i>count</i> array
   #                             of FFI type <i>sym</i>
+  #   MemoryPointer.new(obj, count) => MemoryPointer instance with number
+  #                             of bytes need by length-<i>count</i> array
+  #                             of <i>obj.size</i> bytes
   #   MemoryPointer.new(arg) { |p| ... }
   #
   # Both forms create a MemoryPointer instance. The number of bytes to
@@ -191,10 +216,23 @@ class MemoryPointer
   # with a block yields the MemoryPointer instance and frees the memory
   # when the block returns. The value returned is the value of the block.
   def self.new(type, count=nil, clear=true)
-    size = type.is_a?(Fixnum) ? type : FFI.type_size(type)
-    size *= count if count
-    ptr = Platform::POSIX.malloc size
-    Platform::POSIX.memset ptr, 0, size if clear
+    if type.kind_of? Fixnum
+      size = type
+    elsif type.kind_of? Symbol
+      size = FFI.type_size(type)
+    else
+      size = type.size
+    end
+    
+    if count
+      total = size * count
+    else
+      total = size
+    end
+
+    ptr = Platform::POSIX.malloc total
+    ptr.type_size = size
+    Platform::POSIX.memset ptr, 0, total if clear
 
     if block_given?
       begin
@@ -205,6 +243,13 @@ class MemoryPointer
     else
       ptr
     end
+  end
+  
+  attr_accessor :type_size
+  
+  def [](which)
+    raise ArgumentError, "unknown type size" unless @type_size
+    self + (which * @type_size)
   end
   
   def free
@@ -227,8 +272,18 @@ class MemoryPointer
     self.class.read_long self
   end
 
-  def read_string
-    self.class.read_string self
+  def read_string(len=nil)
+    if len
+      self.class.read_string_length self, len
+    else
+      self.class.read_string self
+    end
+  end
+
+  def write_string(str, len=nil)
+    len = str.size unless len
+
+    self.class.write_string self, str, len
   end
 
   def read_pointer
@@ -306,6 +361,8 @@ class MemoryPointer
   attach_function "ffi_write_float", :write_float, [:pointer, :double], :double
   attach_function "ffi_read_float", :read_float, [:pointer], :double
   attach_function "ffi_read_string", :read_string, [:pointer], :string
+  attach_function "ffi_read_string_length", :read_string_length, [:state, :pointer, :int], :object
+  attach_function "memcpy", :write_string, [:pointer, :string, :int], :void
   attach_function "ffi_read_pointer", :read_pointer, [:pointer], :pointer
   attach_function "ffi_add_ptr", :add_ptr, [:pointer, :int], :pointer
 end
@@ -328,6 +385,8 @@ module FFI
       cspec = {}
       i = 0
       
+      @size = 0
+      
       while i < spec.size
         name = spec[i]
         f = spec[i + 1]
@@ -335,6 +394,9 @@ module FFI
 
         code = FFI.find_type(f)
         cspec[name] = [offset, code]
+        ending = offset + FFI.type_size(f)
+        @size = ending if @size < ending
+        
         i += 3
       end
       
@@ -343,6 +405,37 @@ module FFI
       end
       
       return cspec
+    end
+    
+    def self.config(base, *fields)
+      @size = 0
+      cspec = {}
+      
+      fields.each do |field|
+        offset = Rubinius::RUBY_CONFIG["#{base}.#{field}.offset"]
+        size   = Rubinius::RUBY_CONFIG["#{base}.#{field}.size"]
+        
+        type = FFI.size_to_type(size)
+        
+        code = FFI.find_type type
+        
+        cspec[field] = [offset, code]
+        
+        ending = offset + size
+        @size = ending if @size < ending
+      end
+      
+      @layout = cspec
+      
+      return cspec
+    end
+    
+    def self.size
+      @size
+    end
+    
+    def size
+      self.class.size
     end
     
     def initialize(ptr, *spec)
