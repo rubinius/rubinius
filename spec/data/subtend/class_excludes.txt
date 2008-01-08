@@ -1,0 +1,2 @@
+SubtendClass rb_obj_call_init should send 
+SubtendClass rb_class_new_instance should allocate and initialize a new object
