@@ -1,0 +1,1 @@
+GetoptLong#error_message returns the error message of the last error that occurred

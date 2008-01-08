@@ -1,0 +1,1 @@
+GetoptLong#ordering= raises an ArgumentError if called after processing has started

@@ -1,0 +1,1 @@
+GetoptLong#get_option raises a if an argument was required, but none given
