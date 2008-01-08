@@ -13,8 +13,8 @@ stack_after:
 description: >-
   Pops the module or class _ns_ off the stack, and searches within it's
   namespace for the constant identified by the literal _konst_. If found, it is
-  pushed onto the stack; otherwise, the special value @Undefined@ is pushed
-  instead.
+  pushed onto the stack; otherwise, nothing is pushed onto the stack, and a
+  @NameError@ exception is raised.
 example: >-
   str = "abc"
   

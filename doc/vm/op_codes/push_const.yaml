@@ -2,7 +2,7 @@
 mnemonic: push_const
 operation: >-
   Pushes a constant onto the stack
-format: push_const
+format: push_const konst
 opcode: 24
 stack_before:
   - ...
@@ -10,8 +10,8 @@ stack_after:
   - const
   - ...
 description: >-
-  Locates the constant indicated by the literal from the current context, and
-  pushes it onto the stack. If the constant cannot be found in the current
+  Locates the constant indicated by the literal _konst_ from the current context,
+  and pushes it onto the stack. If the constant cannot be found in the current
   context, nothing is pushed onto the stack, and a @NameError@ exception is
   raised.
 example: >-

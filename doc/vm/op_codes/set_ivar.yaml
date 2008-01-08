@@ -8,10 +8,12 @@ stack_before:
   - value
   - ...
 stack_after:
+  - value
   - ...
 description: >-
   Pops a value off the stack, and uses it to set the value of the instance
   variable identifies by the literal _ivar_ on the current *self* object.
+  The value popped off the stack is then pushed back on again.
 source: |-
     next_literal;
     t2 = stack_pop();

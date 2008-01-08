@@ -11,7 +11,7 @@ stack_after:
   - ...
 description: >-
   Retrieves the current value of a local allocated on the stack, and pushes it
-   onto the top of the stack.
+  onto the top of the stack.
   
   This opcode is now deprecated, and is not currently used under compiler2.
 see:

@@ -20,6 +20,8 @@ description: >-
 notes: >-
   The implementation of the primitive is responsible for consuming the
   receiver and any arguments that are on the stack.
+
+  A primitive may also produce new items to be added to the stack.
 source: |-
     next_int;
     j = _int; // primitive index
