@@ -1,6 +1,65 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../runner/guards'
 
+describe MSpec, "RUBY_NAME" do
+  before :all do
+    @verbose = $VERBOSE
+    $VERBOSE = nil
+
+    RUBY_NAME = nil unless defined? RUBY_NAME
+    RUBY_ENGINE = nil unless defined? RUBY_ENGINE
+
+    @ruby_name = RUBY_NAME
+    @ruby_engine = RUBY_ENGINE
+
+    require 'rbconfig'          # Ensure this will not be reloaded
+  end
+
+  after :all do
+    Object.const_set :RUBY_NAME, @ruby_name
+    Object.const_set :RUBY_ENGINE, @ruby_engine
+
+    $VERBOSE = @verbose
+  end
+
+  before :each do
+    @install_name = Config::CONFIG['RUBY_INSTALL_NAME'] 
+    @install_name ||= Config::CONFIG['ruby_install_name']
+
+    Config::CONFIG.delete 'RUBY_INSTALL_NAME'
+    Config::CONFIG.delete 'ruby_install_name'
+
+    Object.const_set :RUBY_NAME, nil
+    Object.const_set :RUBY_ENGINE, nil
+  end
+
+  after :each do
+    Object.const_set :RUBY_NAME, @ruby_name
+    Object.const_set :RUBY_ENGINE, @ruby_engine
+
+    Config::CONFIG['RUBY_INSTALL_NAME'] = @install_name
+    Config::CONFIG['ruby_install_name'] = @install_name
+  end
+
+  it "can be extracted from rbconfig's 'RUBY_INSTALL_NAME'" do
+    distro = 'monkeypantsruby1.0'
+    Config::CONFIG['RUBY_INSTALL_NAME'] = distro
+
+    load(File.dirname(__FILE__) + '/../../runner/guards.rb')
+
+    RUBY_NAME.should == distro
+  end
+
+  it "can be extracted from rbconfig's 'ruby_install_name'" do
+    distro = 'monkeypantsruby1.0'
+    Config::CONFIG['ruby_install_name'] = distro
+
+    load(File.dirname(__FILE__) + '/../../runner/guards.rb')
+
+    RUBY_NAME.should == distro
+  end
+end
+
 describe MSpec, ".engine?" do
   before :all do
     @verbose = $VERBOSE
