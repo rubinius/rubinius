@@ -205,16 +205,43 @@ class CompiledMethod
   def decode
     stream = @bytecodes.decode
     ip = 0
+    args_reg = 0
     stream.map! do |inst|
-      instruct = Instruction.new(inst, self, ip)
+      instruct = Instruction.new(inst, self, ip, args_reg)
       ip += instruct.size
+      if instruct.opcode == :set_args
+        args_reg = 0
+      elsif instruct.opcode == :cast_array_for_args
+        args_reg = instruct.args.first
+      end
       instruct
     end
   end
 
+  # Calculates the minimum stack size required for this method
+  # Returns two values:
+  # - The minimum size stack required
+  # - A flag indicating whether this is an exact size, or a minimum
+  def min_stack_size
+    dc = decode
+    high_mark = 0
+    exact = true
+    dc.inject(0) do |sz,op|
+      i,flg = op.stack_produced
+      sz += i
+      exact &&= flg
+      i,flg = op.stack_consumed
+      sz -= i
+      exact &&= flg
+      high_mark = sz if sz > high_mark
+      sz
+    end
+    return high_mark, exact
+  end
+
 
   class Instruction
-    def initialize(inst, cm, ip)
+    def initialize(inst, cm, ip, args_reg)
       @op = inst[0]
       @args = inst[1..-1]
       @args.each_index do |i|
@@ -227,7 +254,13 @@ class CompiledMethod
       end
       @ip = ip
       @line = cm.line_from_ip(ip)
+
+      @stack_consumed = calculate_stack_usage(@op.stack_consumed, args_reg)
+      @stack_produced = calculate_stack_usage(@op.stack_produced)
     end
+
+    attr_reader :ip
+    attr_reader :line
 
     # Returns the OpCode object
     def instruction
@@ -248,8 +281,45 @@ class CompiledMethod
       @args.size + 1
     end
 
-    attr_reader :ip
-    attr_reader :line
+    # Returns the stack operands consumed by this instruction, as well as a flag
+    # indicating whether this is an exact value (true) or a minimum (false).
+    def stack_consumed
+      @stack_consumed
+    end
+
+    # Returns the stack operands produced by this instruction, as well as a flag
+    # indicating whether this is an exact value (true) or a minimum (false)..
+    def stack_produced
+      @stack_produced
+    end
+
+    # Calculate the stack usage (pushes or pops) of this instruction.
+    def calculate_stack_usage(code, args_reg=0)
+      usage = code
+      exact = true
+      if code < 0
+        usage = 0
+        if code == -999
+          exact = false
+        else
+          # Stack usage depends on opcode args
+          code *= -1
+          mult, code = code.divmod(100)
+          arg, code = code.divmod(10)
+          if arg >= 1 and arg <= 2
+            # Opcode consumes/produces a multiple of the value in the specified
+            # opcode arg
+            usage += mult * args[arg-1]
+          elsif arg == 3
+            # Opcode consumes number of args specified in args register
+            usage += mult * args_reg
+            exact = false
+          end
+          usage += code
+        end
+      end
+      return usage, exact
+    end
 
     def to_s
       str = "%04d:  %-27s" % [@ip, opcode]
