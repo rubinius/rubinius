@@ -43,25 +43,100 @@ module FFI
     end
   end  
   
+  ##
+  # Converts a Rubinius Object
+
   add_typedef TYPE_OBJECT,  :object
+
+  ##
+  # Converts a char
+
   add_typedef TYPE_CHAR,    :char
+  
+  ##
+  # Converts an unsigned char
+
   add_typedef TYPE_UCHAR,   :uchar
+  
+  ##
+  # Converts a short
+
   add_typedef TYPE_SHORT,   :short
+  
+  ##
+  # Converts an unsigned short
+
   add_typedef TYPE_USHORT,  :ushort
+  
+  ##
+  # Converts an int
+
   add_typedef TYPE_INT,     :int
+  
+  ##
+  # Converts an unsigned int
+
   add_typedef TYPE_UINT,    :uint
+  
+  ##
+  # Converts a long
+
   add_typedef TYPE_LONG,    :long
+  
+  ##
+  # Converts an unsigned long
+
   add_typedef TYPE_ULONG,   :ulong
+  
+  ##
+  # Converts a long long
+
   add_typedef TYPE_LL,      :long_long
+  
+  ##
+  # Converts an unsigned long long
+
   add_typedef TYPE_ULL,     :ulong_long
+  
+  ##
+  # Converts a float
+
   add_typedef TYPE_FLOAT,   :float
+  
+  ##
+  # Converts a double
+
   add_typedef TYPE_DOUBLE,  :double
+  
+  ##
+  # Converts a pointer to opaque data
+
   add_typedef TYPE_PTR,     :pointer
+  
+  ##
+  # For when a function has no return value
+
   add_typedef TYPE_VOID,    :void
+
+  ##
+  # Converts NULL-terminated C strings
+
   add_typedef TYPE_STRING,  :string
+  
+  ##
+  # Converts the current Rubinius state
+
   add_typedef TYPE_STATE,   :state
-  add_typedef TYPE_STRPTR,  :string_and_pointer
+
+  ##
+  # Use strptr when you need to free the result of some operation.
+
   add_typedef TYPE_STRPTR,  :strptr
+  add_typedef TYPE_STRPTR,  :string_and_pointer
+
+  ##
+  # Use for a C struct with a char [] embedded inside.
+
   add_typedef TYPE_CHARARR, :char_array
   
 end
