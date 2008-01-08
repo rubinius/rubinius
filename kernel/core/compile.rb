@@ -170,8 +170,8 @@ module Compile
 
     unless ext.equal? nil
       return false if requiring.equal?(true) and $LOADED_FEATURES.include? ext
-
-      ext_path = "#{dir}/#{ext}"
+      
+      ext_path = "#{dir}#{ext}"
       ext_name = File.basename ext, ".#{Rubinius::LIBSUFFIX}"
 
       if File.file? ext_path then
