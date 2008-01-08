@@ -157,6 +157,10 @@ spec_runner.formatter.print_start
   end
 end
 spec_runner.formatter.summary
+
+failures = spec_runner.formatter.tally.failures
+errors   = spec_runner.formatter.tally.errors
+exit failures + errors
 EOC
 
 Dir.mkdir "tmp" unless File.directory?("tmp")
