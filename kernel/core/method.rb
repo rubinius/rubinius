@@ -2,6 +2,8 @@
 
 class Method
   attr_reader :module
+  attr_reader :receiver
+  attr_reader :method
   
   def initialize(recv, mod, cm)
     @receiver = recv
@@ -38,6 +40,16 @@ class Method
   def to_proc
     env = Method::AsBlockEnvironment.new self
     Proc.from_environment(env)
+  end
+
+  # Method objects are equal if they have the
+  # same body and are bound to the same object.
+  def ==(other)
+    if other.kind_of? Method
+      return true if other.receiver.equal?(@receiver) && other.method == @method
+    end
+
+    false
   end
 end
 
