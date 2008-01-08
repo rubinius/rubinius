@@ -45,6 +45,7 @@ endif
 
 ifeq ($(UNAME),SunOS)
   CFLAGS+=-D__C99FEATURES__
+  LIBS+= -lsocket
 endif
 
 ifdef DEV

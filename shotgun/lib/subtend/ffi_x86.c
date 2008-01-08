@@ -22,6 +22,18 @@
     code += 4; \
   } while (0);
 
+/* These are defined in /usr/include/sys/regset.h on Solaris 10. */
+#ifdef __sun__
+#undef EAX
+#undef ECX
+#undef EDX
+#undef EBX
+#undef ESP
+#undef EBP
+#undef ESI
+#undef EDI
+#endif
+
 enum {
   EAX = 0,
   ECX,
