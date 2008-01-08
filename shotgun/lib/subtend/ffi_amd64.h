@@ -4,10 +4,10 @@
 
 /* Macros for writing bytes, words, doublewords or quadwords,
  * assume the existence of a variable 'code' */
-#define _B(byte)  (*code++ = (unsigned char) (byte))
-#define _W(word)  {(*((unsigned short*)code) = (unsigned short) (word)); code += 4;}
-#define _D(dword) {(*((unsigned int*)code) = (unsigned int) (dword)); code += 4;}
-#define _Q(qword) {(*((unsigned long*)code) = (unsigned long) (qword)); code += 8;}
+#define BYTE(byte)   (*code++ = (unsigned char) (byte))
+#define WORD(word)   {(*((unsigned short*)code) = (unsigned short) (word)); code += 4;}
+#define DWORD(dword) {(*((unsigned int*)code) = (unsigned int) (dword)); code += 4;}
+#define QWORD(qword) {(*((unsigned long*)code) = (unsigned long) (qword)); code += 8;}
 
 /* Register offsets, only 6 args in registers */
 #define FFI_RAX 0

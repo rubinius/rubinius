@@ -58,9 +58,9 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
   code = start;
 
   /* Function prolog */
-  _B(0x55);                                 /* push %rbp */ 
-  _B(0x48); _B(0x89); _B(0xe5);             /* mov %rsp, %rbp */
-  _B(0x48); _B(0x83); _B(0xec); _B(96);     /* sub $96, %rsp */ 
+  BYTE(0x55);                                    /* push %rbp */ 
+  BYTE(0x48); BYTE(0x89); BYTE(0xe5);            /* mov %rsp, %rbp */
+  BYTE(0x48); BYTE(0x83); BYTE(0xec); BYTE(96);  /* sub $96, %rsp */ 
 
 
   /* Byte offset from base pointer */
@@ -74,27 +74,27 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
   for (i = 0 ; i < arg_count; ++i) {
     converter = ffi_get_to_converter(arg_types[i]);
 
-    _B(0x48); _B(0xba); _Q(converter);      /* mov converter, %rdx */
-    _B(0xff); _B(0xd2);                     /* callq *%rdx */ 
+    BYTE(0x48); BYTE(0xba); QWORD(converter);    /* mov converter, %rdx */
+    BYTE(0xff); BYTE(0xd2);                      /* callq *%rdx */ 
 
     switch (arg_types[i]) { 
       case FFI_TYPE_FLOAT:
         /* movss %xmm0, offset(%rbp) */
         offset -= 4; 
-        _B(0xf3); _B(0x0f); _B(0x11); _B(0x45); _B(offset); 
+        BYTE(0xf3); BYTE(0x0f); BYTE(0x11); BYTE(0x45); BYTE(offset); 
         ++xmm_count; 
         break; 
         
       case FFI_TYPE_DOUBLE:
         /* movsd %xmm0, offset(%rbp) */
         offset -= 8; 
-        _B(0xf2); _B(0x0f); _B(0x11); _B(0x45); _B(offset);
+        BYTE(0xf2); BYTE(0x0f); BYTE(0x11); BYTE(0x45); BYTE(offset);
         ++xmm_count; 
         break; 
 
       default:
         /* push %rax */
-        _B(0x50 + FFI_RAX);
+        BYTE(0x50 + FFI_RAX);
         ++reg_count; 
         break; 
     }
@@ -105,31 +105,31 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
     switch (arg_types[i]) { 
       case FFI_TYPE_FLOAT:
         /* movss offset(%rbp), %xmmN ; each %xmmN increment is + 8 */
-        _B(0xf3); _B(0x0f); _B(0x10); _B(0x45 + (--xmm_count * 8)); _B(offset);
+        BYTE(0xf3); BYTE(0x0f); BYTE(0x10); BYTE(0x45 + (--xmm_count * 8)); BYTE(offset);
         offset += 4; 
         break; 
         
       case FFI_TYPE_DOUBLE:
         /* movsd offset(%rbp), %xmmN */
-        _B(0xf2); _B(0x0f); _B(0x10); _B(0x45 + (--xmm_count * 8)); _B(offset);
+        BYTE(0xf2); BYTE(0x0f); BYTE(0x10); BYTE(0x45 + (--xmm_count * 8)); BYTE(offset);
         offset += 8; 
         break; 
 
       default:
         /* pop %<register> */
-        _B(0x58 + ffi_amd64_reg_offset[--reg_count]); 
+        BYTE(0x58 + ffi_amd64_reg_offset[--reg_count]); 
         break; 
     }
   }
 
   /* Call the given function */
-  _B(0x48); _B(0xb8); _Q(func);           /* mov func, %rax ; %rdx may be taken */
-  _B(0xff); _B(0xd0);                     /* callq *%rax */ 
+  BYTE(0x48); BYTE(0xb8); QWORD(func);           /* mov func, %rax ; %rdx may be taken */
+  BYTE(0xff); BYTE(0xd0);                        /* callq *%rax */ 
 
   /* Set up return value processing */
   switch (ret_type) {
     case FFI_TYPE_VOID:
-      _B(0x48); _B(0xbf); _Q(1);          /* mov $1, %rdi ; dummy */
+      BYTE(0x48); BYTE(0xbf); QWORD(1);          /* mov $1, %rdi ; dummy */
       break; 
 
     /* Floats and doubles are already in %xmm0 */
@@ -138,19 +138,19 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
       break;
 
     default:
-      _B(0x48); _B(0x89); _B(0xc7);       /* mov %rax, %rdi */
+      BYTE(0x48); BYTE(0x89); BYTE(0xc7);        /* mov %rax, %rdi */
       break; 
   }
 
   converter = ffi_get_from_converter(ret_type); 
 
   /* Send return value back to rbx */
-  _B(0x48); _B(0xba); _Q(converter);      /* mov converter, %rdx */
-  _B(0xff); _B(0xd2);                     /* callq *%rdx */
+  BYTE(0x48); BYTE(0xba); QWORD(converter);      /* mov converter, %rdx */
+  BYTE(0xff); BYTE(0xd2);                        /* callq *%rdx */
   
   /* Clean up */
-  _B(0xc9);                               /* leaveq */
-  _B(0xc3);                               /* retq */
+  BYTE(0xc9);                                    /* leaveq */
+  BYTE(0xc3);                                    /* retq */
 
   NEW_STRUCT(obj, code_ptr, BASIC_CLASS(ffi_ptr), void*);
   *code_ptr = (void*)start;   /* Stash away the pointer */

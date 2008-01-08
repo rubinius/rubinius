@@ -12,10 +12,10 @@
 /* Macros for writing bytes or doublewords.
  * They assume the existence of a variable 'code'.
  */
-#define _B(byte) \
+#define BYTE(byte) \
   *code++ = (uint8_t) (byte)
 
-#define _D(dword) \
+#define DWORD(dword) \
   do { \
     uint32_t *tmp = (uint32_t *) code; \
     *tmp = (dword); \
@@ -69,9 +69,9 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
                       flags, -1, 0);
 
   /* Function prolog */
-  _B(0x50 + EBP);             /* push %ebp */
-  _B(0x89); _B(0xe5);         /* movl %esp, %ebp */
-  _B(0x83); _B(0xec); _B(96); /* subl $96, %esp */
+  BYTE(0x50 + EBP);                  /* push %ebp */
+  BYTE(0x89); BYTE(0xe5);            /* movl %esp, %ebp */
+  BYTE(0x83); BYTE(0xec); BYTE(96);  /* subl $96, %esp */
 
   /* Byte offset from base pointer */
   offset = 0xfe;
@@ -89,27 +89,27 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
 
     /* call converter */
     rel_addr = ((char *) converter) - code - 5;
-    _B(0xe8); _D(rel_addr);
+    BYTE(0xe8); DWORD(rel_addr);
 
     switch (arg_types[i]) {
       case FFI_TYPE_FLOAT:
         /* fstp offset(%ebp) */
         offset -= 4;
-        _B(0xd9); _B(0x5d); _B(offset);
+        BYTE(0xd9); BYTE(0x5d); BYTE(offset);
         break;
       case FFI_TYPE_DOUBLE:
         /* fstpl offset(%ebp) */
         offset -= 8;
-        _B(0xdd); _B(0x5d); _B(offset);
+        BYTE(0xdd); BYTE(0x5d); BYTE(offset);
         break;
       case FFI_TYPE_LL:
       case FFI_TYPE_ULL:
         offset -= 4;
-        _B(0x89); _B(0x55); _B(offset); /* movl %edx, offset(%ebp) */
+        BYTE(0x89); BYTE(0x55); BYTE(offset); /* movl %edx, offset(%ebp) */
         /* fall through */
       default:
         offset -= 4;
-        _B(0x89); _B(0x45); _B(offset); /* movl %eax, offset(%ebp) */
+        BYTE(0x89); BYTE(0x45); BYTE(offset); /* movl %eax, offset(%ebp) */
         break;
     }
   }
@@ -124,12 +124,12 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
      */
     switch (ffi_type_size(arg_types[i])) {
       case 8:
-        _B(0xff); _B(0x75); _B(offset + 4); /* push (offset+4)(%ebp) */
-        _B(0xff); _B(0x75); _B(offset);     /* push (offset)(%ebp) */
+        BYTE(0xff); BYTE(0x75); BYTE(offset + 4); /* push (offset+4)(%ebp) */
+        BYTE(0xff); BYTE(0x75); BYTE(offset);     /* push (offset)(%ebp) */
         offset += 8;
         break;
       default:
-        _B(0xff); _B(0x75); _B(offset);     /* push (offset)(%ebp) */
+        BYTE(0xff); BYTE(0x75); BYTE(offset);     /* push (offset)(%ebp) */
         offset += 4;
         break;
     }
@@ -137,34 +137,34 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
 
   /* call the given function */
   rel_addr = ((char *) func) - code - 5;
-  _B(0xe8); _D(rel_addr);
+  BYTE(0xe8); DWORD(rel_addr);
 
   /* Set up return value processing */
   switch (ret_type) {
     case FFI_TYPE_VOID:
-      _B(0x6a); _B(0x01); /* push $1 ; dummy */
+      BYTE(0x6a); BYTE(0x01); /* push $1 ; dummy */
       break;
     case FFI_TYPE_FLOAT:
       /* fstp offset(%ebp) */
       offset -= 4;
-      _B(0xd9); _B(0x5d); _B(offset);
+      BYTE(0xd9); BYTE(0x5d); BYTE(offset);
 
-      _B(0xff); _B(0x75); _B(offset);     /* push offset(%ebp) */
+      BYTE(0xff); BYTE(0x75); BYTE(offset);     /* push offset(%ebp) */
       break;
     case FFI_TYPE_DOUBLE:
       /* fstpl offset(%ebp) */
       offset -= 8;
-      _B(0xdd); _B(0x5d); _B(offset);
+      BYTE(0xdd); BYTE(0x5d); BYTE(offset);
 
-      _B(0xff); _B(0x75); _B(offset + 4); /* push (offset+4)(%ebp) */
-      _B(0xff); _B(0x75); _B(offset);     /* push offset(%ebp) */
+      BYTE(0xff); BYTE(0x75); BYTE(offset + 4); /* push (offset+4)(%ebp) */
+      BYTE(0xff); BYTE(0x75); BYTE(offset);     /* push offset(%ebp) */
       break;
     case FFI_TYPE_LL:
     case FFI_TYPE_ULL:
-      _B(0x50 + EDX); /* push %edx */
+      BYTE(0x50 + EDX); /* push %edx */
       /* fall through */
     default:
-      _B(0x50 + EAX); /* push %eax */
+      BYTE(0x50 + EAX); /* push %eax */
       break;
   }
 
@@ -172,11 +172,11 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
 
   /* Send return value back to rbx */
   rel_addr = ((char *) converter) - code - 5;
-  _B(0xe8); _D(rel_addr);
+  BYTE(0xe8); DWORD(rel_addr);
 
   /* Clean up */
-  _B(0xc9); /* leave */
-  _B(0xc3); /* ret */
+  BYTE(0xc9); /* leave */
+  BYTE(0xc3); /* ret */
 
   NEW_STRUCT(obj, code_ptr, BASIC_CLASS(ffi_ptr), void *);
   *code_ptr = start; /* Stash away the pointer */
