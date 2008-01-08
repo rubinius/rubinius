@@ -4,7 +4,7 @@ The primary design rationale for mSpec is simplicity to allow nascent Ruby imple
 
 mSpec is not intended as a replacement for RSpec. mSpec attempts to provide a subset of RSpec syntax. It does not provide all the matchers, for instance.
 
-mSpec also provides several extensions to facilitate writing the Ruby specs in a manner compatible with multiple Ruby implementations. First, mSpec offers a set of guards to control execution of the specs. These guards not only enable or disable execution but also annotate the specs with additional information about why they are run or not run. Second, mSpec provides a different shared spec implementation specifically designed to easy writing specs for the numerous aliased methods in Ruby. The mSpec shared spec implementation should not conflict with RSpec's own shared behavior facility.
+mSpec also provides several extensions to facilitate writing the Ruby specs in a manner compatible with multiple Ruby implementations. First, mSpec offers a set of guards to control execution of the specs. These guards not only enable or disable execution but also annotate the specs with additional information about why they are run or not run. Second, mSpec provides a different shared spec implementation specifically designed to ease writing specs for the numerous aliased methods in Ruby. The mSpec shared spec implementation should not conflict with RSpec's own shared behavior facility.
 
 Caveats:
 * Use RSpec to run the mSpec specs. There are no plans currently to make
