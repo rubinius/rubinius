@@ -67,6 +67,16 @@ if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
   $LOAD_PATH.unshift(*ENV['RUBYLIB'].split(':'))
 end
 
+# Allow system wide code preloading
+
+['/etc/rbxrc',"#{ENV['HOME']}/.rbxrc",ENV['RBX_PRELOAD']].each do |file|
+  begin
+    load file if file and File.exist?(file)
+  rescue LoadError
+    nil
+  end
+end
+
 # Parse options here!
 RBS_USAGE = <<END
 Usage: rubinius [options] [file]
