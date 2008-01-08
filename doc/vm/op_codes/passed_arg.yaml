@@ -10,8 +10,8 @@ stack_after:
   - true | false
   - ...
 description: >-
-  Checks if the number of arguments passed to a method is greater than the 
-  specified argument index _idx_ (0-based), and pushes the result of the test 
+  Checks if the number of arguments passed to a method is greater than the
+  specified argument index _idx_ (0-based), and pushes the result of the test
   onto the stack.
 source: |-
     next_int;

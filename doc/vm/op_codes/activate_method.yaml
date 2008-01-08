@@ -31,9 +31,10 @@ source: |-
     next_int;
     t1 = stack_pop(); /* recv */
     t2 = stack_pop(); /* self */ 
+    t4 = stack_pop(); /* mod */
     j = FIXNUM_TO_INT(stack_pop()); /* sz */
     t3 = stack_pop(); /* locals */
-    cpu_activate_method(state, c, t1, t2, j, cmethod_get_name(t2), stack_pop());
+    cpu_activate_method(state, c, t1, t2, t4, j, cmethod_get_name(t2), stack_pop());
     if(RTEST(t3)) {
       if(NIL_P(cpu_current_locals(state, c)) || NUM_FIELDS(t3) >= NUM_FIELDS(cpu_current_locals(state, c))) {
         // methctx_set_locals(c->active_context, t3);

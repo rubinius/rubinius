@@ -10,7 +10,7 @@ stack_after:
   - argc
   - ...
 description: >-
-  Pushes the number of arguments _argc_ actually passed to a method onto the 
+  Pushes the number of arguments _argc_ actually passed to a method onto the
   stack.
 see:
   - set_args

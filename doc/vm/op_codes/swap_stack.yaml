@@ -1,6 +1,5 @@
 ---
 mnemonic: swap_stack
-alias: swap
 operation: >-
   Swap the top two stack values
 format: swap_stack

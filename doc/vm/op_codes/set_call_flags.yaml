@@ -9,8 +9,9 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  The call flags on the current execution context are set to the opcode argument _flgs_.
-notes:
+  The call flags on the current execution context are set to the opcode
+  argument _flgs_.
+notes: >-
   Currently, the only call flag is 1, which instructs the machine to include
   private methods when looking for a method that responds to a message.
 source: |-

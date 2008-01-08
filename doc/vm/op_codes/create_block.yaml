@@ -17,13 +17,13 @@ description: >-
   (_retip_), and the address where the block instructions start (_blockip_) off
   of the stack. Then pops a tuple containing any block arguments off the stack.
   The created block context _blockctxt_ is then pushed back onto the stack.
-notes:
+notes: >-
   The opcode arg is hard-coded at 255 for the current version of create_block.
   This indicates to the VM that the block args are on the stack in a single
   (potentially empty) tuple; previously, the number of block args would be
   specified via this arg, but this is no longer supported. An arg value of
   anything other than 255 will raise an assertion.
-
+  
   create_block is deprecated under compiler2 in favour of create_block2.
 source: |-
     next_int;
@@ -32,7 +32,8 @@ source: |-
     if(_int == 255) {
       t5 = stack_pop();
     } else {
-      assert(0 && "old-style block!!");
+      sassert(0 && "old-style block!!");
+      t5 = Qnil;
     }
     
     t4 = c->active_context;

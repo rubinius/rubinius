@@ -1,6 +1,5 @@
 ---
 mnemonic: goto_if_true
-alias: git
 operation: >-
   Jump execution to the position specified by the label if the top of the
   stack evaluates to true.

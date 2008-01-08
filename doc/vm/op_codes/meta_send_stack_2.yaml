@@ -14,9 +14,9 @@ stack_after:
   - arg2
   - ...
 description: >-
-  Pops the receiver _recv_ off the top of the stack, and sends it the method 
-  identified by _mthd_. The two parameters _arg1_ and _arg2_ to be used by
-  the method are left on the top of the stack.
+  Pops the receiver _recv_ off the top of the stack, and sends it the method
+  identified by _mthd_. The two parameters _arg1_ and _arg2_ to be used by the
+  method are left on the top of the stack.
 notes: >-
   This is an optimised send for methods taking two parameters and no block.
 source: |-
@@ -25,4 +25,3 @@ source: |-
     t2 = Qnil;
     j = 2;
     goto perform_send;
-    // cpu_unified_send(state, c, stack_pop(), _int, 2, Qnil);

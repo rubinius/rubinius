@@ -28,7 +28,7 @@ source: |-
     cpu_flush_ip(c);
     methctx_reference(state, c->active_context);
     if(c->debug_channel != Qnil) {
-      cpu_channel_send(state, c, c->debug_channel, c->active_context);
+      cpu_channel_send(state, c, c->debug_channel, c->current_thread);
       /* This is so when this task is reactivated, the sent value wont be placed
          on the stack, keeping the stack clean. */
       TASK_SET_FLAG(c, TASK_NO_STACK);

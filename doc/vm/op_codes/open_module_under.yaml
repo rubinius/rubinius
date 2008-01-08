@@ -11,11 +11,12 @@ stack_after:
   - module
   - ...
 description: >-
-  Pops an enclosing class or module from the stack, and creates or re-opens the
-  module identified by the literal _name_. The module is then pushed onto the 
-  stack.
-example: |-
+  Pops an enclosing class or module from the stack, and creates or re-opens
+  the module identified by the literal _name_. The module is then pushed onto
+  the  stack.
+example: >-
   module X::Y    # Opens module Y under the module X
+  
   end
 source: |-
     stack_push(cpu_open_module(state, c, stack_pop()));

@@ -1,6 +1,5 @@
 ---
 mnemonic: goto_if_defined
-alias: gid
 operation: >-
   Jump execution to the position specified by the label if the top of the
   stack is not undefined.

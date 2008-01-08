@@ -14,18 +14,16 @@ stack_after:
 description: >-
   Pops _value1_ and _value2_ off the stack, and pushes the logical result of
   (_value1_ - _value2_). If _value1_ and _value2_ are both fixnums, the
-  subtraction is done directly via the fixnum_sub primitive; otherwise, the
-  - method is called on _value1_, passing _value2_ as the argument.
+  subtraction is done directly via the fixnum_sub primitive; otherwise, the -
+  method is called on _value1_, passing _value2_ as the argument.
 source: |-
     t1 = stack_pop();
-    t2 = stack_pop();
+    t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
-      stack_push(fixnum_add(state, t1, t2));
+      stack_set_top(fixnum_add(state, t1, t2));
     } else {
-      stack_push(t2);
-      _lit = state->global->sym_plus;
+      _lit = global->sym_plus;
       t2 = Qnil;
       j = 1;
       goto perform_send;
-      // cpu_send_method(state, c, t1, state->global->sym_plus, 1);
     }

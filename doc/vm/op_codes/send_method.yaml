@@ -22,4 +22,3 @@ source: |-
     t2 = Qnil;
     j = 0;
     goto perform_send;
-    // cpu_unified_send(state, c, t1, _int, 0, Qnil);

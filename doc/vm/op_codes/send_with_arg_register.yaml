@@ -11,8 +11,8 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  Pops the receiver _recv_ and an array of arguments _args_ off the top of
-  the stack, and sends the message _mthd_.
+  Pops the receiver _recv_ and an array of arguments _args_ off the top of the
+  stack, and sends the message _mthd_.
 see:
   - set_args
   - send_method
@@ -28,4 +28,4 @@ source: |-
     
     perform_send:
     
-    cpu_unified_send(state, c, t1, _lit, j, t2);
+    _inline_cpu_unified_send(state, c, t1, _lit, j, t2);

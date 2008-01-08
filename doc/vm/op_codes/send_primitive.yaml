@@ -14,12 +14,12 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  Execute a primitive method on the receiver (_recv_). The index of the primitive to 
-  execute (_primidx_), and the number of arguments being passed (_argc_) are 
-  specified as paramters.
-notes:
-  The implementation of the primitive is responsible for consuming the receiver and
-  any arguments that are on the stack.
+  Execute a primitive method on the receiver (_recv_). The index of the
+  primitive to  execute (_primidx_), and the number of arguments being passed
+  (_argc_) are  specified as paramters.
+notes: >-
+  The implementation of the primitive is responsible for consuming the
+  receiver and any arguments that are on the stack.
 source: |-
     next_int;
     j = _int; // primitive index

@@ -12,15 +12,15 @@ stack_after:
   - arg
   - ...
 description: >-
-  Pops the receiver _recv_ off the top of the stack, and sends it the method 
-  identified by _mthd_. The single parameter _arg_ to be passed to the method
-  is left on the top of the stack.
+  Pops the receiver _recv_ off the top of the stack, and sends it the method
+  identified by _mthd_. The single parameter _arg_ to be passed to the method is
+  left on the top of the stack.
 notes: >-
-  This is an optimised send for methods taking a single parameter and no block.
+  This is an optimised send for methods taking a single parameter and no
+  block.
 source: |-
     next_literal;
     t1 = stack_pop();
     t2 = Qnil;
     j = 1;
     goto perform_send;
-    // cpu_unified_send(state, c, stack_pop(), _int, 1, Qnil);

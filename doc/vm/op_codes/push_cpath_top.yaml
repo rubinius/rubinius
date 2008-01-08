@@ -10,9 +10,9 @@ stack_after:
   - cpathtop
   - ...
 description: >-
-  Pushes the top-level global object that represents the top-level namespace for
-  constants. Used when a global variable is referenced.
-example: |-
+  Pushes the top-level global object that represents the top-level namespace
+  for constants. Used when a global variable is referenced.
+example: >-
   puts $:    # Global variables are looked up on the top-level Globals object
 source: |-
-  stack_push(state->global->object);
+  stack_push(global->object);

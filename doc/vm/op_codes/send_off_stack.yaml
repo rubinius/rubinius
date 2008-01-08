@@ -16,14 +16,14 @@ stack_after:
 description: >-
   Pops the name of the method _mthd_ to call off the stack, and if necessary,
   converts it to a symbol. Then pops any block _blck_ and the receiver _recv_
-  off the stack. Any arguments required by the method are contained in the
-  array _args_, which remains on the stack for when the method begins executing.
-notes:
-  The number of arguments to be passed to the method in _args_ must have been
-  set previously via a call to "set_args":set_args.html.
+  off the stack. Any arguments required by the method are contained in the array
+  _args_, which remains on the stack for when the method begins executing.
 see:
   - set_args
-  - cast_array_for_args 
+  - cast_array_for_args
+notes: >-
+  The number of arguments to be passed to the method in _args_ must have been
+  set previously via a call to "set_args":set_args.html.
 source: |-
     t3 = stack_pop();
     if(!SYMBOL_P(t3)) {
@@ -33,9 +33,8 @@ source: |-
         t2 = stack_pop();
         t1 = stack_pop();
         stack_push(t3);
-        _lit = state->global->sym_send;
+        _lit = global->sym_send;
         j = c->args;
-        // cpu_send_method2(state, c, t1, state->global->sym_send, c->args + 1, t2);
         goto perform_send;
       }
     }
@@ -44,5 +43,3 @@ source: |-
     _lit = t3;
     j = c->args;
     goto perform_send;
-    // cpu_send_method2(state, c, t1, t3, c->args, t2);
-    // sos_done:

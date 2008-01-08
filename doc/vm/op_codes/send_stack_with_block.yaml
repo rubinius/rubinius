@@ -19,14 +19,14 @@ stack_after:
   - argn
   - ...
 description: >-
-  Pops the receiver _recv_ and a block off the stack, and sends the message 
+  Pops the receiver _recv_ and a block off the stack, and sends the message
   _mthd_ with _argc_ arguments. The arguments to the method remain on the stack,
   ready to be consumed when the method executes.
-notes:
-  This opcode passes a block to the receiver; see "send_stack":send_stack.html
-  for the equivalent op code used when no block is to be passed.
 see:
   - send_stack
+notes: >-
+  This opcode passes a block to the receiver; see "send_stack":send_stack.html
+  for the equivalent op code used when no block is to be passed.
 source: |-
     next_literal;
     t1 = stack_pop();
@@ -35,4 +35,3 @@ source: |-
     j = _int;
     
     goto perform_send;
-    // cpu_unified_send(state, c, t1, j, _int, t2);

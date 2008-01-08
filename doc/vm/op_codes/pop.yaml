@@ -15,4 +15,4 @@ notes: >-
   Pop is typically used when the return value of another opcode is not
   required.
 source: |-
-  stack_pop();
+    (void)stack_pop();

@@ -12,21 +12,19 @@ stack_after:
   - true | false
   - ...
 description: >-
-    Pops _value1_ and _value2_ off the stack, and pushes the logical result of
-    (_value1_ == _value2_). If _value1_ and _value2_ are both fixnums or both
-    symbols, the comparison is done directly; otherwise, the == method is 
-    called on _value1_, passing _value2_ as the argument.
+  Pops _value1_ and _value2_ off the stack, and pushes the logical result of
+  (_value1_ == _value2_). If _value1_ and _value2_ are both fixnums or both
+  symbols, the comparison is done directly; otherwise, the == method is  called
+  on _value1_, passing _value2_ as the argument.
 source: |-
     t1 = stack_pop();
-    t2 = stack_pop();
+    t2 = stack_back(0);
     /* If both are fixnums, or one is a symbol, compare the ops directly. */
     if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
-      stack_push((t1 == t2) ? Qtrue : Qfalse);
+      stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
-      stack_push(t2);
-      _lit = state->global->sym_equal;
+      _lit = global->sym_equal;
       t2 = Qnil;
       j = 1;
       goto perform_send;
-      // cpu_send_method(state, c, t1, state->global->sym_equal, 1);
     }

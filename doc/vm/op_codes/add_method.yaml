@@ -1,6 +1,5 @@
 ---
 mnemonic: add_method
-alias: add
 operation: >-
   Adds a method to a class or module
 format: add_method name
@@ -29,4 +28,4 @@ source: |-
     t2 = stack_pop();
     cpu_add_method(state, c, t1, _lit, t2);
     stack_push(t2);
-    cpu_perform_hook(state, c, t1, state->global->sym_method_added, _lit);
+    cpu_perform_hook(state, c, t1, global->sym_method_added, _lit);

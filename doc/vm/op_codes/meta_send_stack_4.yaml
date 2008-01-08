@@ -18,17 +18,15 @@ stack_after:
   - arg4
   - ...
 description: >-
-  Pops the receiver _recv_ off the top of the stack, and sends it the method 
+  Pops the receiver _recv_ off the top of the stack, and sends it the method
   identified by _mthd_. The four parameters _arg1_ through _arg4_ to be used by
   the method are left on the top of the stack.
 notes: >-
-  This is an optimised send for methods taking a single parameter and no block.
+  This is an optimised send for methods taking a single parameter and no
+  block.
 source: |-
     next_literal;
     t1 = stack_pop();
     t2 = Qnil;
     j = 4;
-    goto perform_send;
-    
-    // next_int;
-    // cpu_unified_send(state, c, stack_pop(), _int, 4, Qnil);
+    goto perform_send;    

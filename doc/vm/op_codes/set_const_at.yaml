@@ -11,11 +11,10 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  Pops the new _value_ for a constant identified by the _lit_ index in the 
+  Pops the new _value_ for a constant identified by the _lit_ index in the
   literals tuple, in the scope of _module_, which is also popped from the stack.
 source: |-
-    next_int;
-    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
+    next_literal;
     t2 = stack_pop();
     t3 = stack_pop();
-    cpu_const_set(state, c, t1, t2, t3);
+    cpu_const_set(state, c, _lit, t2, t3);

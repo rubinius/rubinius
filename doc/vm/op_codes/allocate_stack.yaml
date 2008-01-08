@@ -15,7 +15,7 @@ stack_after:
 description: >-
   Allocate _count_ new slots for local variables on the stack. All allocated
   slots will be initialized to the special value @nil@.
-
+  
   This opcode is now deprecated, and is not currently used under compiler2.
 notes: >-
   Previously, if a local variable is defined in a method and not captured by a

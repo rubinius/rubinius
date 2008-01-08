@@ -11,8 +11,8 @@ stack_after:
   - value
   - ...
 description: >-
-  Stores the value at the top of the stack into the field specified by _fld_ on
-  *self*.
+  Stores the value at the top of the stack into the field specified by _fld_
+  on *self*.
   
   The stack is left unmodified.
 source: |-

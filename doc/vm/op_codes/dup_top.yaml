@@ -1,6 +1,5 @@
 ---
 mnemonic: dup_top
-alias: dup
 operation: >-
   Duplicate the top item on the stack
 format: dup_top

@@ -10,12 +10,13 @@ stack_after:
   - module
   - ...
 description: >-
-  Creates or re-opens the module referenced by the literal _mod_, and pushes it
-  onto the stack.
+  Creates or re-opens the module referenced by the literal _mod_, and pushes
+  it onto the stack.
 see:
   - open_class
-example: |-
+example: >-
   module A   # Creates module A (or re-opens it if it already exists)
+  
   end
 source: |-
     stack_push(cpu_open_module(state, c, c->enclosing_class));

@@ -10,15 +10,15 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  Pops a fixnum off the top of the stack, and uses its value to set the argument
-  count for a method prior to executing it.
-notes:
-  Used prior to "send_with_arg_register":send_with_arg_register.html and
-  "send_super_with_arg_register":send_super_with_arg_register.html to set
-  the number of arguments being passed to a method.
+  Pops a fixnum off the top of the stack, and uses its value to set the
+  argument count for a method prior to executing it.
 see:
   - send_with_arg_register
   - send_super_with_arg_register
+notes: >-
+  Used prior to "send_with_arg_register":send_with_arg_register.html and
+  "send_super_with_arg_register":send_super_with_arg_register.html to set the
+  number of arguments being passed to a method.
 source: |-
     t1 = stack_pop();
     c->args = FIXNUM_TO_INT(t1);

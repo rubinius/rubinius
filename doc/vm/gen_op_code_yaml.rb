@@ -1,7 +1,5 @@
-$: << '../../compiler'
-require 'bytecode/encoder'
-require 'bytecode/assembler'
 require 'yaml'
+require '../../kernel/core/iseq'
 
 # Read shotgun/lib/instructions.rb, stripping out just the ShotgunInstruction class definition
 # Code at the end of the class generates instructions* files, which we don't want to do here
@@ -13,11 +11,7 @@ File.foreach('../../shotgun/lib/instructions.rb') do |line|
 end
 eval code
 
-op_codes = Bytecode::InstructionEncoder::OpCodes
-int_arg = Bytecode::InstructionEncoder::IntArg
-two_int = Bytecode::InstructionEncoder::TwoInt
 instructs = ShotgunInstructions.new
-translations = Bytecode::Assembler::Translations.invert
 
 def output_array(ary, output)
   ary.each do |item| 
@@ -73,7 +67,7 @@ end
 
 # Generate a YAML file for each op code, retaining any existing
 # operation, description, and notes
-op_codes.each_with_index do |op,idx|
+InstructionSet::OpCodes.each_with_index do |op,idx|
   # Load existing YAML document
   if File.exists?("op_codes/#{op.to_s}.yaml")
     prev = YAML::load(File.open("op_codes/#{op.to_s}.yaml"))
@@ -84,18 +78,16 @@ op_codes.each_with_index do |op,idx|
   if prev['format']
     args = prev['format']
   else
-    args = op.to_s
-    args << " <arg1>" if int_arg.include? op
-    args << "<arg1> <arg2>" if two_int.include? op
+    args = op.opcode.to_s
+    args << op.args.join(" ")
   end
 
   stack_before = prev['stack_before'] || ["<consumed>", "..."]
-  stack_after = prev['stack_after'] || ["<produced>", "..."]  
+  stack_after = prev['stack_after'] || ["<produced>", "..."]
 
   # Create the YAML file; hand-crafted due to need to control folding
   op_doc = "---\n"
-  op_doc << "mnemonic: #{op.to_s}\n"
-  op_doc << "alias: #{translations[op].to_s}\n" if translations[op]
+  op_doc << "mnemonic: #{op.opcode.to_s}\n"
   op_doc << "operation: >-\n"
   op_doc << fold(prev['operation']) << "\n"
   op_doc << "format: #{args}\n"
@@ -123,7 +115,7 @@ op_codes.each_with_index do |op,idx|
   # Output the source code from instructs.rb
   if instructs.methods.include? op.to_s
     op_doc << "source: |-\n"
-    source = instructs.send(op)
+    source = instructs.send(op.opcode)
     op_doc << "  " if source[0,1] != ' '
     op_doc << source
   end

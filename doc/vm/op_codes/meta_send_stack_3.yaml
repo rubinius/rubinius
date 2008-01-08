@@ -16,7 +16,7 @@ stack_after:
   - arg3
   - ...
 description: >-
-  Pops the receiver _recv_ off the top of the stack, and sends it the method 
+  Pops the receiver _recv_ off the top of the stack, and sends it the method
   identified by _mthd_. The three parameters _arg1_ through _arg3_ to be used by
   the method are left on the top of the stack.
 notes: >-
@@ -27,6 +27,3 @@ source: |-
     t2 = Qnil;
     j = 3;
     goto perform_send;
-    
-    // next_int;
-    // cpu_unified_send(state, c, stack_pop(), _int, 3, Qnil);

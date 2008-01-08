@@ -12,15 +12,15 @@ stack_after:
   - args
   - ...
 description: >-
-  Pops a block off the stack, and sends the message _mthd_ to the current objects 
-  superclass. The arguments _args_ to the method are contained in an array on the stack,
-  ready to be consumed when the method executes.
+  Pops a block off the stack, and sends the message _mthd_ to the current
+  objects  superclass. The arguments _args_ to the method are contained in an
+  array on the stack, ready to be consumed when the method executes.
+see:
+  - set_args
+  - cast_array_for_args
 notes: >-
   The args register must have previously been set to the count of the number
   of arguments in _args_.
-see:
-  - set_args
-  - cast_array_for_args  
 source: |-
     next_literal;
     t1 = stack_pop();

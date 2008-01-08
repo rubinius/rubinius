@@ -10,19 +10,19 @@ stack_after:
   - value
   - ...
 description: >-
-  Retrieves the current value of a local allocated on the stack, and pushes it 
-  onto the top of the stack.
-
+  Retrieves the current value of a local allocated on the stack, and pushes it
+   onto the top of the stack.
+  
   This opcode is now deprecated, and is not currently used under compiler2.
-notes:
-  Local variables that are used within a method and not captured were previously
-  allocated on the stack. This operation retrieves such a local, and places it
-  on the stack. However, stack locals are no longer used under compiler2, and so
-  this opcode is now deprecated.
 see:
   - allocate_stack
   - set_local_fp
+notes: >-
+  Local variables that are used within a method and not captured were
+  previously allocated on the stack. This operation retrieves such a local, and
+  places it on the stack. However, stack locals are no longer used under
+  compiler2, and so this opcode is now deprecated.
 source: |-
     next_int;
-    assert(c->sp_ptr > c->fp_ptr + _int);
-    stack_push(*(c->fp_ptr + _int));
+    sassert(c->sp_ptr > c->stack_top + (c->fp + _int));
+    stack_push(c->stack_top[c->fp + _int]);    

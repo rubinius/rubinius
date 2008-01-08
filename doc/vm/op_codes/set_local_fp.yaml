@@ -11,18 +11,18 @@ stack_after:
   - value
   - ...
 description: >-
-  Uses the _value_ on the top of the stack to update the value of the local variable
-  allocated on the stack, identified by _idx_. The value is left on the stack, to
-  represent the return value from the expression.
-
+  Uses the _value_ on the top of the stack to update the value of the local
+  variable allocated on the stack, identified by _idx_. The value is left on the
+  stack, to represent the return value from the expression.
+  
   This opcode is now deprecated, and is not currently used under compiler2.
-notes:
+see:
+  - get_local_fp
+notes: >-
   Local variables that are used within a method/block and not captured were
   previously allocated on the stack. This operation updates such a local from
   the current top of the stack.
-see:
-  - get_local_fp
 source: |-
     next_int;
-    assert(c->sp_ptr > c->fp_ptr + _int);
-    *(c->fp_ptr + _int) = stack_top();
+    sassert(c->sp_ptr > c->stack_top + (c->fp + _int));
+    c->stack_top[c->fp + _int] = stack_top();

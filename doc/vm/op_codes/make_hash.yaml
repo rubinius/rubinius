@@ -38,6 +38,6 @@ source: |-
     }
     
     cpu_perform_hook(state, c, BASIC_CLASS(hash), 
-                     state->global->sym_from_literal, t1);
+                     global->sym_from_literal, t1);
     
     stack_push(t1);

@@ -1,6 +1,5 @@
 ---
 mnemonic: attach_method
-alias: attach
 operation: >-
   Attaches a method definition to an object's singleton class
 format: attach_method name
@@ -29,4 +28,4 @@ source: |-
     t2 = stack_pop();
     cpu_attach_method(state, c, t1, _lit, t2);
     stack_push(t2);
-    cpu_perform_hook(state, c, t1, state->global->sym_s_method_added, _lit);
+    cpu_perform_hook(state, c, t1, global->sym_s_method_added, _lit);

@@ -11,10 +11,9 @@ stack_after:
   - ...
 description: >-
   Pops a value off the stack, and uses it to set the value of the instance
-  variable identifies by the literal _ivar_ on the current *self* object. 
+  variable identifies by the literal _ivar_ on the current *self* object.
 source: |-
-    next_int;
-    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
+    next_literal;
     t2 = stack_pop();
-    object_set_ivar(state, c->self, t1, t2);
+    object_set_ivar(state, c->self, _lit, t2);
     stack_push(t2);

@@ -14,10 +14,13 @@ description: >-
   subsequent class or module definitions.
 see:
   - push_encloser
-example: |-
+example: >-
   module A    # encloser is set to A after this line
+  
     module B  # encloser is set to B after this line
+  
     end       # encloser is reset to A after this line
+  
   end
 source: |-
     t1 = stack_pop();

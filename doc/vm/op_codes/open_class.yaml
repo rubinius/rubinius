@@ -16,19 +16,24 @@ description: >-
   
   The _cl_ argument to the opcode is the class literal identifying the class to
   be opened.
-notes:
-  The enclosing class (if any) will be the current enclosing class in the current
-  execution context. Typically, this will have been set by executing the opcode
-  "push_encloser":push_encloser.html.
 see:
   - push_encloser
   - open_class_under
-example: |-
+notes: >-
+  The enclosing class (if any) will be the current enclosing class in the
+  current execution context. Typically, this will have been set by executing the
+  opcode "push_encloser":push_encloser.html.
+example: >-
   class A
+  
     class B
+  
     end
+  
   end
+  
   # Stack transition:
+  
   # [...,A] => [...,B]
 source: |-
     int created;
@@ -37,5 +42,5 @@ source: |-
     t3 = cpu_open_class(state, c, t2, t1, &created);
     if(t3 != Qundef) {
       stack_push(t3);
-      if(created) cpu_perform_hook(state, c, t3, state->global->sym_opened_class, t1);
+      if(created) cpu_perform_hook(state, c, t3, global->sym_opened_class, t1);
     }
