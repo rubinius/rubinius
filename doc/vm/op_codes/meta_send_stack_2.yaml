@@ -10,13 +10,15 @@ stack_before:
   - arg2
   - ...
 stack_after:
-  - arg1
-  - arg2
+  - retval
   - ...
 description: >-
   Pops the receiver _recv_ off the top of the stack, and sends it the method
   identified by _mthd_. The two parameters _arg1_ and _arg2_ to be used by the
-  method are left on the top of the stack.
+  method are left on the top of the stack to be converted to locals as the
+  method is activated.
+
+  When the method returns, the return value will be on top of the stack.
 notes: >-
   This is an optimised send for methods taking two parameters and no block.
 source: |-

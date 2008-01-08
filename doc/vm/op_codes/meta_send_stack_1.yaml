@@ -9,12 +9,15 @@ stack_before:
   - arg
   - ...
 stack_after:
-  - arg
+  - retval
   - ...
 description: >-
   Pops the receiver _recv_ off the top of the stack, and sends it the method
   identified by _mthd_. The single parameter _arg_ to be passed to the method is
-  left on the top of the stack.
+  left on the top of the stack, and is converted to a local when the method
+  is activated.
+
+  When the method returns, the return value will be on top of the stack.
 notes: >-
   This is an optimised send for methods taking a single parameter and no
   block.

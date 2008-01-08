@@ -8,16 +8,18 @@ stack_before:
   - mthd
   - blck
   - recv
-  - args
+  - [arg1, arg2, ..., argn]
   - ...
 stack_after:
-  - args
+  - retval
   - ...
 description: >-
   Pops the name of the method _mthd_ to call off the stack, and if necessary,
   converts it to a symbol. Then pops any block _blck_ and the receiver _recv_
   off the stack. Any arguments required by the method are contained in the array
-  _args_, which remains on the stack for when the method begins executing.
+  _args_, which are popped and placed into locals when the method is activated.
+
+  When the method returns, the return value will be on top of the stack.
 see:
   - set_args
   - cast_array_for_args

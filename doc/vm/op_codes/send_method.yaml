@@ -8,10 +8,13 @@ stack_before:
   - recv
   - ...
 stack_after:
+  - retval
   - ...
 description: >-
   Pops an object off the top of the stack (_recv_), and sends it the no arg
   message _methodname_.
+
+  When the method returns, the return value will be on top of the stack.
 see:
   - send_with_arg_register
 notes: >-

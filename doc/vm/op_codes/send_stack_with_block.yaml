@@ -13,15 +13,14 @@ stack_before:
   - argn
   - ...
 stack_after:
-  - arg1
-  - arg2
-  - ...
-  - argn
+  - retval
   - ...
 description: >-
   Pops the receiver _recv_ and a block off the stack, and sends the message
   _mthd_ with _argc_ arguments. The arguments to the method remain on the stack,
-  ready to be consumed when the method executes.
+  ready to be converted to locals as part of method activation.
+
+  When the method returns, the return value will be on top of the stack.
 see:
   - send_stack
 notes: >-

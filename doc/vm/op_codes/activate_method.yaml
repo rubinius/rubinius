@@ -10,10 +10,13 @@ stack_before:
   - size
   - locals
   - block
-  - args
+  - arg1
+  - arg2
+  - ...
+  - argn
   - ...
 stack_after:
-  - args
+  - retval
   - ...
 description: >-
   Pops the top five items off the stack, using these to identify the object on
@@ -24,7 +27,9 @@ description: >-
   Additionally, the actual arguments to be passed to the method must also be on
   the stack as an array, with the number of actual arguments passed (_argc_)
   specified alongside the opcode; these arguments will be consumed from the
-  stack when the method starts executing.
+  stack and pushed into locals when the method starts executing.
+
+  When the method returns, the return value will be on top of the stack.
 used:
   - CompiledMethod#activate
 source: |-

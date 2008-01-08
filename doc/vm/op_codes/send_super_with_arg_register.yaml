@@ -6,15 +6,18 @@ format: send_super_with_arg_register mthd
 opcode: 69
 stack_before:
   - blck
-  - args
+  - [arg1, arg2, ..., argn]
   - ...
 stack_after:
-  - args
+  - retval
   - ...
 description: >-
   Pops a block off the stack, and sends the message _mthd_ to the current
   objects  superclass. The arguments _args_ to the method are contained in an
-  array on the stack, ready to be consumed when the method executes.
+  array on the top of the stack, ready to be converted into locals when the
+  method is activated.
+
+  When the method returns, the return value will be on top of the stack.
 see:
   - set_args
   - cast_array_for_args

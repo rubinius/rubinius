@@ -12,16 +12,18 @@ stack_before:
   - argn
   - ...
 stack_after:
+  - retval
   - ...
 description: >-
   Execute a primitive method on the receiver (_recv_). The index of the
   primitive to  execute (_primidx_), and the number of arguments being passed
   (_argc_) are  specified as paramters.
+
+  When the primitive returns, the return value will be on top of the stack.
 notes: >-
   The implementation of the primitive is responsible for consuming the
-  receiver and any arguments that are on the stack.
-
-  A primitive may also produce new items to be added to the stack.
+  receiver and any arguments that are on the stack, and for placing a return value
+  onto the stack.
 source: |-
     next_int;
     j = _int; // primitive index

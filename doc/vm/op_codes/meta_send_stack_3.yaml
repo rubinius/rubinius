@@ -11,14 +11,15 @@ stack_before:
   - arg3
   - ...
 stack_after:
-  - arg1
-  - arg2
-  - arg3
+  - retval
   - ...
 description: >-
   Pops the receiver _recv_ off the top of the stack, and sends it the method
   identified by _mthd_. The three parameters _arg1_ through _arg3_ to be used by
-  the method are left on the top of the stack.
+  the method are left on the top of the stack to be converted to locals as the
+  method is activated.
+
+  When the method returns, the return value will be on top of the stack.
 notes: >-
   This is an optimised send for methods taking three parameters and no block.
 source: |-
