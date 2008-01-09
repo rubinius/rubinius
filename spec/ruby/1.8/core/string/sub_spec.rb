@@ -95,7 +95,11 @@ describe "String#sub with pattern, replacement" do
     str.sub(//, '<\\\'>').should == "<hello!>hello!"
     str.sub(/../, '<\\\'>').should == "<llo!>llo!"
   end
-  
+
+  it "replaces \\\\\\+ with \\\\+" do
+    "x".sub(/x/, '\\\+').should == "\\+"
+  end
+
   it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
     
