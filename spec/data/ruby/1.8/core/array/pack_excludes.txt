@@ -1,1 +1,0 @@
-Array#pack converts to BER-compressed integer with ('w')
