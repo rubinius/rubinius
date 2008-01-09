@@ -2812,7 +2812,7 @@ static bool parse_io_gets(rb_parse_state *parse_state) {
   }
 
   while(TRUE) {
-    char *ptr, buf[128];
+    char *ptr, buf[1024];
     int read;
 
     ptr = fgets(buf, sizeof(buf), parse_state->lex_io);
@@ -2824,7 +2824,7 @@ static bool parse_io_gets(rb_parse_state *parse_state) {
     bcatblk(parse_state->line_buffer, ptr, read);
 
     /* check whether we read a full line */
-    if(!(read == (sizeof(buf) - 1) && ptr[read] != '\r')) {
+    if(!(read == (sizeof(buf) - 1) && ptr[read] != '\n')) {
       break;
     }
   }
