@@ -22,7 +22,7 @@ module Compile
 
   def self.find_compiler
     begin
-      load "#{DefaultCompiler}/init"
+      require "#{DefaultCompiler}/init"
     rescue Exception => e
       STDERR.puts "Unable to load default compiler"
       raise e
@@ -254,7 +254,7 @@ module Kernel
     elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
     else
-      rb, rbc, ext = path, "#{path}.rbc", nil
+      rb, rbc, ext = path, ".#{path}.compiled.rbc", nil
     end
 
     Compile.unified_load path, rb, rbc, ext
