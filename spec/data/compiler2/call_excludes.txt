@@ -1,0 +1,2 @@
+Compiler2 compiles 'super'
+Compiler2 compiles 'super' with a splat in the arg list

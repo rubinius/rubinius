@@ -1,0 +1,3 @@
+Compiler2 compiles 'def add(a,b); a + b; end'
+Compiler2 compiles 'def add(a,b=2); a + b; end'
+Compiler2 compiles 'lambda { def a(x); x; end }'
