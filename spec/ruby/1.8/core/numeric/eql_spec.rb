@@ -6,6 +6,7 @@ describe "Numeric#eql?" do
     @float    = 1.0
     @bignum   = 4294967296
     @bigfloat = 4294967296.0
+    @numeric = Numeric.new
   end
 
   after(:each) do 
@@ -13,6 +14,7 @@ describe "Numeric#eql?" do
     @float    = nil
     @bignum   = nil
     @bigfloat = nil
+    @numeric = nil
   end
   
   it "be equal (integers and floats)" do 
@@ -33,5 +35,7 @@ describe "Numeric#eql?" do
     0.eql?(0.0).should ==  false
     000000.eql?(0.0).should ==  false
     000000.eql?(000) .should ==  true
+    @numeric.eql?(@numeric).should == true
+    @numeric.eql?(Numeric.new).should == false
   end
 end
