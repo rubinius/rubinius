@@ -29,6 +29,9 @@ class Node
   
   def initialize(compiler)
     @compiler = compiler
+    @in_masgn = false
+    @splat = false
+    @parent = nil
   end
   
   def convert(x)

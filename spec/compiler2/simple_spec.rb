@@ -103,7 +103,7 @@ describe Compiler2 do
   
   it "compiles negate with fixnum" do
     gen [:negate, [:fixnum, 10]] do |g|
-      g.push -10
+      g.push(-10)
     end
   end
   

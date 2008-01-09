@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler2 do
   
-  it "compiles 'blah'" do |g|
+  it "compiles 'blah'" do
     gen [:vcall, :blah] do |g|
       g.push :self
       g.send :blah, 0, true

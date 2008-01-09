@@ -418,7 +418,7 @@ describe Compiler2 do
     end
   end
   
-  it "compiles redo in a while" do |g|
+  it "compiles redo in a while" do
     gen [:while, [:true], [:block, [:fixnum, 12], [:redo]], true] do |g|
       g.push_modifiers
       
