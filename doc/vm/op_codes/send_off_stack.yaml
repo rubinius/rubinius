@@ -8,7 +8,10 @@ stack_before:
   - mthd
   - blck
   - recv
-  - [arg1, arg2, ..., argn]
+  - arg1
+  - arg2
+  - ...
+  - argn
   - ...
 stack_after:
   - retval
@@ -16,8 +19,10 @@ stack_after:
 description: >-
   Pops the name of the method _mthd_ to call off the stack, and if necessary,
   converts it to a symbol. Then pops any block _blck_ and the receiver _recv_
-  off the stack. Any arguments required by the method are contained in the array
-  _args_, which are popped and placed into locals when the method is activated.
+  off the stack. Any arguments required by the method must have been placed on
+  the stack previously, and the number of arguments set in the args register.
+  The arguments will be popped from the stack and converted to locals when the
+  method is activated.
 
   When the method returns, the return value will be on top of the stack.
 see:
@@ -25,7 +30,8 @@ see:
   - cast_array_for_args
 notes: >-
   The number of arguments to be passed to the method in _args_ must have been
-  set previously via a call to "set_args":set_args.html.
+  set previously via a call to either "set_args":set_args.html or
+  "cast_array_for_args":cast_array_for_args.html.
 source: |-
     t3 = stack_pop();
     if(!SYMBOL_P(t3)) {

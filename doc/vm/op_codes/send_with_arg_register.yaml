@@ -18,18 +18,19 @@ stack_after:
 description: >-
   Pops the receiver _recv_ and a block _blck_ off the top of the stack, and
   sends the message _mthd_. The number of arguments taken by the method must
-  have previously been set in the args register via a call to *set_args*,
-  and the arg values themselves remain on the top of the stack, to be
-  converted to locals as part of method activation.
+  have previously been set in the args register, and the arg values themselves
+  remain on the top of the stack, to be converted to locals as part of method
+  activation.
 
   When the method returns, the return value will be on top of the stack.
 see:
-  - set_args
   - send_method
+  - set_args
   - cast_array_for_args
 notes: >-
-  The args register must have previously been set to the count of the number
-  of arguments in _args_.
+  The number of arguments to be passed to the method in _args_ must have been
+  set previously via a call to either "set_args":set_args.html or
+  "cast_array_for_args":cast_array_for_args.html.
 source: |-
     next_literal;
     t1 = stack_pop();
