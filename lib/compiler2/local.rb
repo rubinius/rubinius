@@ -141,7 +141,6 @@ class Compiler2
     def argument!(position, default=false)
       @position = position
       @argument = true
-      @on_stack = !default
     end
     
     def assigned!

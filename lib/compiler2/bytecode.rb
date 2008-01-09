@@ -1460,6 +1460,7 @@ class Node
           after = g.new_label
           g.gif after
           g.send :return_value, 0
+          g.clear_exception
           g.ret
 
           after.set!
@@ -1511,6 +1512,7 @@ class Node
       case @child
       when MAsgn
         g.cast_for_multi_block_arg
+        @child.in_block = true
         @child.bytecode(g)
       when LocalAssignment, IVarAssign, GVarAssign, AttrAssign
         g.cast_for_single_block_arg

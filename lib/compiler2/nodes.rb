@@ -1397,11 +1397,11 @@ class Node
       else
         @assigns, @splat, @source = assigns, splat, source
       end
-      
-      @in_block = get(:iter_args)
+
+      @in_block = false
     end
     
-    attr_accessor :assigns, :splat, :source
+    attr_accessor :assigns, :splat, :source, :in_block
     
     def empty?
       @assigns.nil? and (@splat.equal?(true) or @splat.nil?)
@@ -1565,7 +1565,6 @@ class Node
         end
       
         if var
-          # p :vcall_rewrite => [meth, var, dep, var.created_in_block?]
           lv = LocalAccess.new(@compiler)
           lv.from_variable(var, dep)
           return lv

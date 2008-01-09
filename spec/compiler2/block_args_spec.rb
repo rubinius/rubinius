@@ -172,10 +172,13 @@ describe Compiler2 do
       d.cast_for_multi_block_arg
       d.unshift_tuple
 
+      # Pull the first element out and use it like a tuple.
+      d.cast_tuple
       d.lvar_at 0
       d.lvar_at 1
-
       d.pop
+      d.push :true
+
       d.pop
 
       d.lvar_at 2
