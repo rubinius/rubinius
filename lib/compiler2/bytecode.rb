@@ -1091,7 +1091,7 @@ class Node
       elsif @name == :$~
         g.push_cpath_top
         g.find_const :Regexp
-        g.send :last_match=, 1
+        g.send :my_last_match=, 1
         return
       end
       

@@ -84,16 +84,19 @@ class Object
     if cm
       return Method.new(self, cm[1], cm[0])
     else
-      raise NoMethodError, "undefined method `#{name}' for #{self.inspect}"
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
     end
   end
   
   def method_missing(meth, *args)
     # Exclude method_missing from the backtrace since it only confuses
     # people.
-    ctx = MethodContext.current.sender
+    myself = MethodContext.current
+    ctx = myself.sender
     
-    if self.kind_of? Class or self.kind_of? Module
+    if myself.send_private?
+      raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
+    elsif self.kind_of? Class or self.kind_of? Module
       raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.class})", ctx, args)
     else
       raise NoMethodError.new("No method '#{meth}' on an instance of #{self.class}.", ctx, args)

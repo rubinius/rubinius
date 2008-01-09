@@ -126,11 +126,12 @@ module Kernel
   end  
   
   # Display methods
-  def printf(*args)
-    if args[0].class == IO
-      args[0].write(Sprintf::Parser.format(args[1], args[2..-1]))
-    elsif args[0].class == String
-      $stdout.write(Sprintf::Parser.format(args[0], args[1..-1]))
+  def printf(target, *args)
+    if target.kind_of? IO
+      str = args.shift
+      target << YSprintf.new(str, *args).parse
+    elsif target.kind_of? String
+      $stdout << YSprintf.new(target, *args).parse
     else
       raise TypeError, "The first arg to printf should be an IO or a String"
     end
@@ -138,7 +139,7 @@ module Kernel
   end
 
   def sprintf(str, *args)
-    Sprintf::Parser.format(str, args)
+    YSprintf.new(str, *args).parse    
   end
   alias_method :format, :sprintf
   
@@ -149,13 +150,13 @@ module Kernel
   
   def p(*a)
     a = [nil] if a.empty?
-    a.each { |obj| $CONSOLE.puts obj.inspect }
+    a.each { |obj| $stdout.puts obj.inspect }
     nil
   end
 
   def print(*args)
     args.each do |obj|
-      $CONSOLE.write obj.to_s
+      $stdout.write obj.to_s
     end
     nil
   end

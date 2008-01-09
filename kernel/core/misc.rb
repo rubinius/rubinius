@@ -2,19 +2,19 @@
 
 class << MAIN
   def include(*mods)
-    self.metaclass.include(*mods)
+    Object.include(*mods)
   end
   
   def public(*methods)
-    self.metaclass.public(*methods)
+    Object.public(*methods)
   end
   
   def private(*methods)
-    self.metaclass.private(*methods)
+    Object.private(*methods)
   end
 
   def protected(*methods)
-    self.metaclass.protected(*methods)
+    Object.protected(*methods)
   end
   
   def autoload(*args)
@@ -35,6 +35,10 @@ class NilClass
 
   def call(*a)
     raise LocalJumpError, "not callable"
+  end
+  
+  def =~(arg)
+    false
   end
 end
 

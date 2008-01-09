@@ -7,7 +7,19 @@ module Test
         TESTUNIT_RB_FILE = /\.rb\Z/
         
         def filter_backtrace(backtrace, prefix=nil)
-          return ["No backtrace"] unless(backtrace)
+          return ["No backtrace"] unless backtrace
+
+          entry = backtrace.detect do |e|
+            split_e = e.split(TESTUNIT_FILE_SEPARATORS)
+
+            split_e[0,4] != ["Test", "", "Unit", ""]
+          end
+
+          if entry
+            idx = backtrace.index(entry)
+            return backtrace[idx..-1]
+          end
+
           split_p = if(prefix)
             prefix.split(TESTUNIT_FILE_SEPARATORS)
           else
@@ -15,6 +27,7 @@ module Test
           end
           match = proc do |e|
             split_e = e.split(TESTUNIT_FILE_SEPARATORS)[0, split_p.size]
+            next false if split_e == ["Test", "", "Unit", ""]
             next false unless(split_e[0..-2] == split_p[0..-2])
             split_e[-1].sub(TESTUNIT_RB_FILE, '') == split_p[-1]
           end

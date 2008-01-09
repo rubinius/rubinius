@@ -941,7 +941,12 @@ class String
   #   str.inspect       #=> "hel\010o"
   def inspect
     return "\"#{self}\"".copy_properties(self) if $KCODE == "UTF-8"
-    res =  "\""
+    res = escaped("\"")
+    res << "\""
+    return res.copy_properties(self)
+  end
+  
+  def escaped(res="")
     self.each_byte do |char|
       if ci = ControlCharacters.index(char)
         res << ControlPrintValue[ci]
@@ -950,7 +955,7 @@ class String
       elsif char == ?\\
         res << "\\\\"
       elsif char == ?#
-        res << "\\\#"
+         res << "\\#" 
       elsif char < 32 or char > 126
         v = char.to_s(8)
         if v.size == 1
@@ -964,8 +969,7 @@ class String
         res << char.chr
       end
     end
-    res << "\""
-    return res.copy_properties(self)
+    return res
   end
 
   # Returns the length of <i>self</i>.
@@ -1439,7 +1443,7 @@ class String
   #   "hello".sub(/[aeiou]/, '*')               #=> "h*llo"
   #   "hello".sub(/([aeiou])/, '<\1>')          #=> "h<e>llo"
   #   "hello".sub(/./) {|s| s[0].to_s + ' ' }   #=> "104 ello"
-  def sub(pattern, replacement = nil)
+  def sub(pattern, replacement = nil, &prc)
     raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
     raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
     
@@ -1452,6 +1456,10 @@ class String
         out.taint if replacement.tainted?
         replacement = StringValue(replacement).replace_slashes.to_sub_replacement(match)
       else
+        # We do this so that we always manipulate $~ in the context
+        # of the passed block.
+        prc.block.home.last_match = match
+        
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?        
       end
@@ -1478,14 +1486,10 @@ class String
   # Performs the substitutions of <code>String#sub</code> in place,
   # returning <i>self</i>, or <code>nil</code> if no substitutions were
   # performed.
-  def sub!(pattern, replacement = nil)
+  def sub!(pattern, replacement = nil, &prc)
     if block_given?
       orig = self.dup
-      str = sub(pattern, replacement) do |rep|
-        ret = yield(rep)
-        raise RuntimeError, "illegal manipulation" unless self == orig
-        ret
-      end
+      str = sub(pattern, replacement, &prc)
     else
       str = sub(pattern, replacement)
     end

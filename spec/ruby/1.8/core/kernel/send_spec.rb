@@ -32,7 +32,7 @@ describe "Kernel#send" do
         'done'
       end
     end
-    lambda { KernelSpecs::Foo.new.send(:baz) }.should raise_error(NoMethodError)
+    lambda { KernelSpecs::Foo.new.send(:baz) }.should raise_error(NameError)
   end
 
   it "raises a NoMethodError if the corresponding singleton method can't be found" do
@@ -41,7 +41,7 @@ describe "Kernel#send" do
         'done'
       end
     end
-    lambda { KernelSpecs::Foo.send(:baz) }.should raise_error(NoMethodError)
+    lambda { KernelSpecs::Foo.send(:baz) }.should raise_error(NameError)
   end
 
   it "raises an ArgumentError if called with more arguments than available parameters" do

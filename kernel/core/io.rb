@@ -319,12 +319,19 @@ class IO
     if sep.empty?
       return gets_stripped($/ + $/)
     end
-
-    reg = /#{sep}/m
+    
+    if sep == "\n"
+      reg = /\n/m
+    else
+      reg = /#{sep}/m
+    end
 
     if str = buf.clip_to(reg)
       return str
     end
+
+    # Do an initial fill.
+    return nil unless buf.fill_from(self)
 
     output = nil
     while true

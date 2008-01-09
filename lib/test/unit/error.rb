@@ -44,7 +44,7 @@ module Test
       # Returns a verbose version of the error description.
       def long_display
         # HACK Exception#backtrace is not a Kernel#caller backtrace
-        backtrace = @exception.backtrace.frames.map { |f| f.join ' ' }
+        backtrace = @exception.backtrace.frames.map { |f| f.join ' at ' }
         backtrace = filter_backtrace(backtrace).join("\n    ")
         "Error:\n#@test_name:\n#{message}\n    #{backtrace}"
       end

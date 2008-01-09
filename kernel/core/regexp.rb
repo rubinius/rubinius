@@ -1,4 +1,4 @@
-# depends on: class.rb
+# depends on: class.rb string.rb
 
 class Regexp
   
@@ -30,15 +30,15 @@ class Regexp
      if arg.is_a?(Regexp)
         opts = arg.options
         arg  = arg.source
-      elsif opts.is_a?(Fixnum)
-          opts = opts & (OPTION_MASK | KCODE_MASK)
+      elsif opts.kind_of?(Fixnum)
+        opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
       elsif opts
         opts = IGNORECASE
       else
         opts = 0
       end
 
-      if !lang.nil? && !opts.nil? && lang.is_a?(String)
+      if opts and lang and lang.kind_of?(String)
         opts &= OPTION_MASK
         idx   = ValidKcode.index(lang[0])
         opts |= KcodeValue[idx] if idx
@@ -86,6 +86,14 @@ class Regexp
     # Set an ivar in the sender of our sender
     parent = MethodContext.current.sender
     ctx = parent.sender
+    ctx.last_match = match
+  end
+ 
+  # Different than last_match= because it sets the current last match,
+  # while last_match= sets the senders last match.
+  def self.my_last_match=(match)
+    # Set an ivar in the sender 
+    ctx = MethodContext.current.sender
     ctx.last_match = match
   end
 
@@ -153,7 +161,7 @@ class Regexp
 
   def ===(other)
     if !other.is_a?(String)
-      if !other.respond_to(:to_str)
+      if !other.respond_to?(:to_str)
         Regexp.last_match = nil
         return false
       end
@@ -192,7 +200,10 @@ class Regexp
   end
 
   def inspect
-    '/' << source << '/' << option_to_string(options) << kcode[0,1]
+    str = source.escaped('/') << '/' << option_to_string(options)
+    k = kcode()
+    str << k[0,1] if k and k != "none"
+    return str
   end
 
   def kcode

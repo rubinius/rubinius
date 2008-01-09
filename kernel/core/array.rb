@@ -404,6 +404,7 @@ class Array
   # Array. If the index is out of range, nil is
   # returned. Slightly faster than +Array#[]+
   def at(idx)
+    Ruby.primitive :array_aref
     idx = Type.coerce_to idx, Fixnum, :to_int
     idx += @total if idx < 0
 

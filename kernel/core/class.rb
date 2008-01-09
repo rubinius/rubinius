@@ -73,3 +73,9 @@ class Class
   end
 
 end
+
+class MetaClass
+  def inspect
+    "#<MetaClass #{attached_instance.inspect}>"
+  end  
+end

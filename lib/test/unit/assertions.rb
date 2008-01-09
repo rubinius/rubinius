@@ -571,11 +571,13 @@ EOT
         def convert(object)
           case object
             when Exception
+              # HACK
+              backtrace = object.backtrace.frames.map { |f| f.join ' at ' }
               <<EOM.chop
 Class: <#{convert(object.class)}>
 Message: <#{convert(object.message)}>
 ---Backtrace---
-#{filter_backtrace(object.backtrace).join("\n")}
+#{filter_backtrace(backtrace).join("\n")}
 ---------------
 EOM
             else
