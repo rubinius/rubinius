@@ -176,17 +176,30 @@ class Module
     return new_name
   end
 
-  # Will raise a NameError if the method doesn't exist.
 
-  def undef_method(name)
-    meth = instance_method(name)
+  def undef_method(*names)
+    names.each do |name|
+      # Will raise a NameError if the method doesn't exist.
+      instance_method(name)
+      method_table[name] = false
+      VM.reset_method_cache(name)
 
-    method_table[name] = false
-    VM.reset_method_cache(name)
+      method_undefined(name) if respond_to? :method_undefined
+    end
 
-    method_undefined name if respond_to? :method_undefined
+    nil
+  end
+  
+  def remove_method(*names)
+    names.each do |name|
+      instance_method(name)
+      method_table.delete name
+      VM.reset_method_cache(name)
 
-    return meth
+      method_removed(name) if respond_to? :method_removed
+    end
+
+    nil
   end
 
   def public_method_defined?(sym)
@@ -586,16 +599,6 @@ private
   def remove_const(name)
     const_missing(name) unless constants_table.has_key?(name)
     constants_table.delete(name)
-  end
-
-  def remove_method(*names)
-    names.each do |name|
-      instance_method(name)
-      method_table.delete name
-      VM.reset_method_cache(name)
-    end
-
-    nil
   end
 
   def method_added(name)
