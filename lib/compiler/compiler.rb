@@ -21,7 +21,7 @@ class Compiler
     else
       binding = nil
     end
-    
+
     comp = new(Compiler::Generator, binding)
     node = comp.convert_sexp([:eval_expression, sexp])
     cm = node.to_description(:__eval_script__).to_cmethod

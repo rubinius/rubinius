@@ -2881,14 +2881,20 @@ ps_nextc(rb_parse_state *parse_state)
             heredoc_end = 0;
         }
         ruby_sourceline++;
-        parse_state->lex_pbeg = parse_state->lex_p = bdata(v);
-        parse_state->lex_pend = parse_state->lex_p + blength(v);
-
+       
+        /* This code is setup so that lex_pend can be compared to
+           the data in lex_lastline. Thats important, otherwise
+           the heredoc code breaks. */
         if(parse_state->lex_lastline) {
           bassign(parse_state->lex_lastline, v);
         } else {
           parse_state->lex_lastline = bstrcpy(v);
         }
+
+        v = parse_state->lex_lastline;
+
+        parse_state->lex_pbeg = parse_state->lex_p = bdata(v);
+        parse_state->lex_pend = parse_state->lex_p + blength(v);
     }
     c = (unsigned char)*(parse_state->lex_p++);
     if (c == '\r' && parse_state->lex_p < parse_state->lex_pend && *(parse_state->lex_p) == '\n') {
@@ -3362,7 +3368,7 @@ heredoc_identifier(rb_parse_state *parse_state)
         /* The heredoc indent is quoted, so its easy to find, we just
            continue to consume characters into the token buffer until
            we hit the terminating character. */
-           
+        
         newtok(parse_state);
         tokadd((char)func, parse_state);
         term = c;
@@ -3370,13 +3376,16 @@ heredoc_identifier(rb_parse_state *parse_state)
         /* Where of where has the term gone.. */
         while ((c = nextc()) != -1 && c != term) {
             len = mbclen(c);
-            do { tokadd((char)c, parse_state); } while (--len > 0 && (c = nextc()) != -1);
+            do {
+              tokadd((char)c, parse_state);
+            } while (--len > 0 && (c = nextc()) != -1);
         }
         /* Ack! end of file or end of string. */
         if (c == -1) {
             rb_compile_error("unterminated here document identifier");
             return 0;
         }
+
         break;
 
       default:
@@ -3407,6 +3416,7 @@ heredoc_identifier(rb_parse_state *parse_state)
         pushback(c, parse_state);
         break;
     }
+    
 
     /* Fixup the token buffer, ie set the last character to null. */
     tokfix();
@@ -3517,10 +3527,11 @@ here_document(here, parse_state)
                     --pend;
                 }
             }
-            if (str)
+            if (str) {
                 bcatblk(str, p, pend - p);
-            else
+            } else {
                 str = blk2bstr(p, pend - p);
+            }
             if (pend < parse_state->lex_pend) bcatblk(str, "\n", 1);
             parse_state->lex_p = parse_state->lex_pend;
             if (nextc() == -1) {

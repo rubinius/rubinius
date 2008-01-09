@@ -453,7 +453,7 @@ namespace :build do
 
   c_source = FileList[
     "shotgun/config.h",
-    "shotgun/lib/*.[ch]",
+    "shotgun/lib/*.[chy]",
     "shotgun/lib/*.rb",
     "shotgun/lib/subtend/*.[chS]",
     "shotgun/main.c",
