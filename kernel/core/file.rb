@@ -353,9 +353,13 @@ class File < IO
         end
       end
     end.join
-    
+
+    pattern = pattern.gsub(/\{(.*?)\}/) do
+      "(#{$1.gsub ',', '|'})"
+    end
+
     re = Regexp.new("^#{pattern}$", nocase ? Regexp::IGNORECASE : 0)
-    
+
     m = re.match path
     if m
       return false unless m[0].size == path.size
@@ -388,9 +392,9 @@ class File < IO
   class Stat
     self.instance_fields = 12
     ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
-      :size => 5, :block => 6, :atime => 7, :mtime => 8, :ctime => 9, :path => 10,
-      :blksize => 11
-      
+                  :size => 5, :block => 6, :atime => 7, :mtime => 8,
+                  :ctime => 9, :path => 10, :blksize => 11
+
     def inode;   @inode; end
     def mode;    @mode; end
     def kind;    @kind; end
@@ -403,7 +407,7 @@ class File < IO
     def ctime;   @ctime; end
     def path;    @path; end
     def blksize; @blksize; end
-   
+
     def inspect
       "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
     end
