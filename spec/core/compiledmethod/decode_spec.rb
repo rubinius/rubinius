@@ -49,4 +49,37 @@ describe "CompiledMethod::Instruction" do
     end
   end
 
+  it "#stack_consumed returns a count of the stack operands consumed by the instruction" do
+    inst = CompiledMethod::Instruction.new([InstructionSet[:noop]], @cm, 0, 0)
+    inst.stack_consumed.should == [0, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:swap_stack]], @cm, 0, 0)
+    inst.stack_consumed.should == [1, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:make_hash], 2], @cm, 0, 0)
+    inst.stack_consumed.should == [4, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:send_stack],0,2], @cm, 0, 0)
+    inst.stack_consumed.should == [3, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:send_with_arg_register],0], @cm, 0, 0)
+    inst.stack_consumed.should == [2, false]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:send_with_arg_register],0], @cm, 0, 2)
+    inst.stack_consumed.should == [4, false]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:push_array]], @cm, 0, 0)
+    inst.stack_consumed.should == [1, true]
+  end
+
+  it "#stack_produced returns a count of the stack operands produced by the instruction" do
+    inst = CompiledMethod::Instruction.new([InstructionSet[:noop]], @cm, 0, 0)
+    inst.stack_produced.should == [0, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:swap_stack]], @cm, 0, 0)
+    inst.stack_produced.should == [1, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:make_hash], 2], @cm, 0, 0)
+    inst.stack_produced.should == [1, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:send_stack],0,2], @cm, 0, 0)
+    inst.stack_produced.should == [1, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:send_with_arg_register],0], @cm, 0, 0)
+    inst.stack_produced.should == [1, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:send_with_arg_register],0], @cm, 0, 2)
+    inst.stack_produced.should == [1, true]
+    inst = CompiledMethod::Instruction.new([InstructionSet[:push_array]], @cm, 0, 0)
+    inst.stack_produced.should == [0, false]
+  end
 end
