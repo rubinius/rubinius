@@ -180,7 +180,8 @@ module Bytecode
       :bignum_from_float,
       :task_stack_size,
       :task_get_stack_value,
-      :fastctx_reload_method
+      :fastctx_reload_method,
+      :add_module_name
     ]
 
     FirstRuntimePrimitive = 1024

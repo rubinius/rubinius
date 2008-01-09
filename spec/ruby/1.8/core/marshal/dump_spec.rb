@@ -106,7 +106,7 @@ end
 
 describe "Marshal.dump with empty extended_string" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(''.extend Meths).should == "#{mv+nv}e:\x0AMeths\"\x00"
+    Marshal.dump(''.extend(Meths)).should == "#{mv+nv}e:\x0AMeths\"\x00"
   end
 end
 
@@ -121,7 +121,7 @@ end
 
 describe "Marshal.dump with empty extended_user_string" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(UserString.new.extend Meths).should == "#{mv+nv}e:\x0AMethsC:\x0FUserString\"\x00"
+    Marshal.dump(UserString.new.extend(Meths)).should == "#{mv+nv}e:\x0AMethsC:\x0FUserString\"\x00"
   end
 end
 
@@ -149,9 +149,21 @@ describe "Marshal.dump with fixnum 5" do
   end
 end
 
-describe "Marshal.dump with fixnum 2**16" do
+describe "Marshal.dump with fixnum -9" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(2**16).should == "#{mv+nv}i\x03\x00\x00\x01"
+    Marshal.dump(-9).should == "#{mv+nv}i\xF2"
+  end
+end
+
+describe "Marshal.dump with fixnum 2**8" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(2**8).should == "#{mv+nv}i\x02\x00\x01"
+  end
+end
+
+describe "Marshal.dump with fixnum -2**8" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(-2**8).should == "#{mv+nv}i\xFF\x00"
   end
 end
 
@@ -167,9 +179,45 @@ describe "Marshal.dump with fixnum (2**30 - 1)" do
   end
 end
 
+describe "Marshal.dump with fixnum -16711680" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(-16711680).should == "#{mv+nv}i\xFD\x00\x00\x01"
+  end
+end
+
+describe "Marshal.dump with fixnum 2**16" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(2**16).should == "#{mv+nv}i\x03\x00\x00\x01"
+  end
+end
+
 describe "Marshal.dump with fixnum -2**16" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(-2**16).should == "#{mv+nv}i\xFE\x00\x00"
+  end
+end
+
+describe "Marshal.dump with fixnum -(2**16 - 1)" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(-(2**16 - 1)).should == "#{mv+nv}i\xFE\x01\x00"
+  end
+end
+
+describe "Marshal.dump with fixnum -(2**16 - 2)" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(-(2**16 - 2)).should == "#{mv+nv}i\xFE\x02\x00"
+  end
+end
+
+describe "Marshal.dump with fixnum 43690" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(43690).should == "#{mv+nv}i\x02\xAA\xAA"
+  end
+end
+
+describe "Marshal.dump with fixnum -43690" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(-43690).should == "#{mv+nv}i\xFE\x56\x55"
   end
 end
 
@@ -185,9 +233,9 @@ describe "Marshal.dump with bignum 2**30" do
   end
 end
 
-describe "Marshal.dump with bignum -2**31" do
+describe "Marshal.dump with bignum -(2**31 -1)" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(-2**31).should == "#{mv+nv}l-\x07\x00\x00\x00\x80"
+    Marshal.dump(-(2**31 - 1)).should == "#{mv+nv}l-\x07\xFF\xFF\xFF\x7F"
   end
 end
 
@@ -233,7 +281,7 @@ end
 
 describe "Marshal.dump with any extended_object having _dump method" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(Custom.new.extend Meths).should == "#{mv+nv}e:\x0AMethsu:\x0BCustom\x0Astuff"
+    Marshal.dump(Custom.new.extend(Meths)).should == "#{mv+nv}e:\x0AMethsu:\x0BCustom\x0Astuff"
   end
 end
 
@@ -274,10 +322,11 @@ describe "Marshal.dump with user_regexp having option Regexp::IGNORECASE" do
   end
 end
 
-describe "Marshal.dump with extended_user_regexp" do
+describe "Marshal.dump with extended_user_regexp having ivar" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(UserRegexp.new('').extend Meths).should ==
-      "#{mv+nv}e:\x0AMethsC:\x0FUserRegexp/\x00\x00"
+    r = UserRegexp.new('').extend(Meths)
+    r.instance_variable_set(:@noise, 'much')
+    Marshal.dump(r).should == "#{mv+nv}Ie:\x0AMethsC:\x0FUserRegexp/\x00\x00\x06:\x0B@noise\"\x09much"
   end
 end
 
@@ -361,10 +410,11 @@ describe "Marshal.dump with array containing refs to the same object" do
   end
 end
 
-describe "Marshal.dump with extended_array" do
+describe "Marshal.dump with extended_array having ivar" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump([5, 'hi'].extend(Meths, MethsMore)).should ==
-      "#{mv+nv}e:\x0AMethse:\x0EMethsMore[\x07i\x0A\"\x07hi"
+    a = [5, 'hi'].extend(Meths, MethsMore)
+    a.instance_variable_set(:@mix, 'well')
+    Marshal.dump(a).should == "#{mv+nv}Ie:\x0AMethse:\x0EMethsMore[\x07i\x0A\"\x07hi\x06:\x09@mix\"\x09well"
   end
 end
 
@@ -379,25 +429,25 @@ end
 
 describe "Marshal.dump with extended_user_array" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(UserArray.new.extend Meths).should ==
+    Marshal.dump(UserArray.new.extend(Meths)).should ==
       "#{mv+nv}e:\x0AMethsC:\x0EUserArray[\x00"
   end
 end
 
 describe "Marshal.dump with struct" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(Struct.new("Ure").new).should == "#{mv+nv}S:\x10Struct::Ure\x00"
+    Marshal.dump(Struct.new("Ure0").new).should == "#{mv+nv}S:\x11Struct::Ure0\x00"
   end
 end
 
 describe "Marshal.dump with struct having fields" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(Struct.new("Ure", :a, :b).new).should == "#{mv+nv}S:\x10Struct::Ure\x07:\x06a0:\x06b0"
+    Marshal.dump(Struct.new("Ure1", :a, :b).new).should == "#{mv+nv}S:\x11Struct::Ure1\x07:\x06a0:\x06b0"
   end
 end
 
 describe "Marshal.dump with extended_struct" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(Struct.new("Ure").new.extend Meths).should == "#{mv+nv}e:\x0AMethsS:\x10Struct::Ure\x00"
+    Marshal.dump(Struct.new("Ure2").new.extend(Meths)).should == "#{mv+nv}e:\x0AMethsS:\x11Struct::Ure2\x00"
   end
 end

@@ -7,7 +7,7 @@ class Compiler
     :MetaClass=>{:@__ivars__=>0, :@methods=>1, :@method_cache=>2, :@name=>3, :@constants=>4, :@parent=>5, :@superclass=>6, :@instance_fields=>7, :@has_ivars=>8, :@needs_cleanup=>9, :@object_type=>10, :@attached_instance=>11},
     :Class=>{:@__ivars__=>0, :@methods=>1, :@method_cache=>2, :@name=>3, :@constants=>4, :@parent=>5, :@superclass=>6, :@instance_fields=>7, :@has_ivars=>8, :@needs_cleanup=>9, :@object_type=>10},
     :BlockContext=>{},
-    :Object=>{:@__ivars__=>0},
+    :Object=>{:@__ivars__=>0, :@module_names => 1},
     :Float=>{:@__ivars__=>0},
     :Array=>{:@total=>0, :@tuple=>1, :@start => 2, :@shared => 3},
     :String=>{:@bytes=>0, :@characters=>1, :@encoding=>2, :@data=>3, :@hash => 4, :@shared => 5},
