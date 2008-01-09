@@ -6,10 +6,10 @@ module Zlib
     @@@
     name "struct z_stream_s"
     include "zlib.h"
-    field :next_in, :string
+    field :next_in, :pointer
     field :avail_in, :uint
     field :total_in, :ulong
-    field :next_out, :string
+    field :next_out, :pointer
     field :avail_out, :uint
     field :total_out, :ulong
     field :msg, :string
@@ -27,9 +27,13 @@ module Zlib
                     :int,     # int strategy
                   ], :int
 
-  attach_function 'deflate', :deflate, [:pointer, :int], :int
+  attach_function 'deflate',    :deflate,    [:pointer, :int], :int
+  attach_function 'deflateEnd', :deflateEnd, [:pointer],       :int
 
-  attach_function 'deflateEnd', :deflateEnd, [:pointer], :int
+  attach_function 'rbx_Zlib_inflateInit2', :inflateInit2, [:pointer, :int], :int
+
+  attach_function 'inflate',     :inflate,     [:pointer, :int], :int
+  attach_function 'inflateEnd',  :inflateEnd,  [:pointer],       :int
 
   #--
   # From zlib.h
@@ -86,6 +90,83 @@ module Zlib
     end
   end
 
+  class GzipReader # HACK usa a buffer class
+
+    CHUNK = 1024
+
+    def initialize(io)
+      @stream_p = Zlib.z_stream_Alloc
+      @stream = Zlib::Stream.new @stream_p
+
+      @window_bits = Zlib::MAX_WBITS + 16 # gzip header
+      err = Zlib.inflateInit2 @stream_p, @window_bits
+
+      raise "Zlib error #{err}" unless err == Zlib::OK # HACK
+
+      @io = io
+
+      @buffer = ''
+    end
+
+    def read
+      err = nil
+      data_in = MemoryPointer.new CHUNK
+      data_out = MemoryPointer.new CHUNK
+
+      begin
+        chunk_in = @io.read CHUNK
+
+        break if chunk_in.length == 0
+
+        data_in.write_string chunk_in, chunk_in.length
+
+        @stream[:avail_in] = chunk_in.length
+        @stream[:next_in] = data_in
+
+        begin
+          @stream[:avail_out] = CHUNK
+          @stream[:next_out] = data_out
+
+          err = Zlib.inflate @stream_p, Zlib::NO_FLUSH
+
+          case err
+          when Zlib::STREAM_ERROR then
+            raise "Zlib stream error"
+          when Zlib::NEED_DICT then
+            Zlib.inflateEnd @stream_p
+            raise "Zlib data error, need dictionary"
+          when Zlib::DATA_ERROR then
+            Zlib.inflateEnd @stream_p
+            raise "Zlib data error: #{@stream[:msg]}"
+          when Zlib::MEM_ERROR then
+            Zlib.inflateEnd @stream_p
+            raise "Zlib memory error"
+          end
+
+          have = CHUNK - @stream[:avail_out]
+
+          chunk_out = data_out.read_string have
+
+          @buffer << chunk_out
+        end while @stream[:avail_out] == 0
+
+      end until err == Zlib::STREAM_END
+
+      Zlib.inflateEnd @stream_p
+
+      raise "Zlib data error" if err == Zlib::DATA_ERROR
+
+      return @buffer
+    ensure
+      data_in.free
+      data_out.free
+    end
+
+    def close
+    end
+
+  end
+
   class GzipWriter # HACK use a buffer class
 
     CHUNK = 1024
@@ -104,7 +185,6 @@ module Zlib
       err = Zlib.deflateInit2(@stream_p, @level, @method, @window_bits,
                               @mem_level, @strategy)
 
-      err == 0
       raise "Zlib error #{err}" unless err == Zlib::OK # HACK
 
       @io = io
@@ -122,16 +202,20 @@ module Zlib
       flush = Zlib::NO_FLUSH
 
       while flush != Zlib::FINISH do
-        chunk = @buffer.slice! 0, CHUNK
+        chunk_in = @buffer.slice! 0, CHUNK
         flush = Zlib::FINISH if @buffer.empty?
 
-        @stream[:next_in] = chunk
-        @stream[:avail_in] = chunk.length
+        data_in = MemoryPointer.new chunk_in.length
+        data_in.write_string chunk_in, chunk_in.length
+
+        @stream[:next_in] = data_in
+        @stream[:avail_in] = chunk_in.length
 
         begin
-          out = "\000" * CHUNK
+          data_out = MemoryPointer.new CHUNK
+
           @stream[:avail_out] = CHUNK
-          @stream[:next_out] = out
+          @stream[:next_out] = data_out
 
           err = Zlib.deflate @stream_p, flush
 
@@ -139,7 +223,9 @@ module Zlib
 
           have = CHUNK - @stream[:avail_out]
 
-          @io.write out[0, have]
+          chunk_out = data_out.read_string have
+
+          @io.write chunk_out
         end while @stream[:avail_out] == 0
       end
 
