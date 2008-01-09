@@ -19,6 +19,7 @@ struct baker_gc_struct {
   OBJECT become_from, become_to;
   char *last_start, *last_end;
   int num_collection;
+  ptr_array tenured_objects;
 };
 
 typedef struct baker_gc_struct* baker_gc;

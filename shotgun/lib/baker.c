@@ -16,6 +16,7 @@ baker_gc baker_gc_new(int size) {
   g = (baker_gc)calloc(1, sizeof(struct baker_gc_struct));
   g->remember_set = ptr_array_new(8);
   g->seen_weak_refs = ptr_array_new(8);
+  g->tenured_objects = ptr_array_new(8);
   
   g->space_a = heap_new(size);
   g->space_b = heap_new(size);
@@ -355,18 +356,15 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
 #endif
   
   if((AGE(obj) == g->tenure_age)) {
-    // int age = AGE(obj);
+    int age = AGE(obj);
     xassert(obj->klass != state->global->fastctx);
     CLEAR_AGE(obj);
-    /*
-    if(CLASS_OBJECT(obj) == state->global->cmethod) {
-      printf("Tenuring %p (%s / %d)\n", obj, _inspect(cmethod_get_name(obj)), NUM_FIELDS(obj));
-    }
-    */
+
     dest = (*g->tenure)(g->tenure_data, obj);
     baker_gc_set_forwarding_address(obj, dest);
-    //printf("Tenuring object %p to %p, age %d (%d).\n", obj, dest, age, g->tenure_now);
-    _mutate_references(state, g, dest);
+    // printf("Tenuring object %p to %p, age %d (%d).\n", obj, dest, age, g->tenure_age);
+    ptr_array_append(g->tenured_objects, (xpointer)dest);
+    // _mutate_references(state, g, dest);
   } else {
     if(heap_enough_fields_p(g->next, NUM_FIELDS(obj))) {
       xassert(obj->klass != Qnil);
@@ -441,6 +439,7 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   
   /* empty it out. */
   ptr_array_clear(g->seen_weak_refs);
+  ptr_array_clear(g->tenured_objects);
   
   // printf("Running garbage collector...\n");
   
@@ -530,8 +529,27 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
       }
     }
   }
+  
+  /* This is a little odd, so I should explain. As we encounter
+     objects which should be tenured while scanning, we put them
+     into the tenured_objects array. We finish the normal scan, and
+     get down to here. Now, we're going to scan the tenured objects
+     using _mutate_references(). That is going to cause tenured_objects
+     to grow more. So as this loop processes objects, more are added
+     to the array. Eventually, it will exhaust itself as there will
+     be no more tenured objects, and the loop will end. */
+
+  i = 0;
+  while(!heap_fully_scanned_p(g->next) || i < ptr_array_length(g->tenured_objects)) {
     
-  baker_gc_mutate_rest(state, g);
+    baker_gc_mutate_rest(state, g);
+    
+    for(; i < ptr_array_length(g->tenured_objects); i++) {
+      tmp = (OBJECT)ptr_array_get_index(g->tenured_objects, i);
+      _mutate_references(state, g, tmp);
+    }
+  
+  }
   
   assert(heap_fully_scanned_p(g->next));
   baker_gc_swap(g);

@@ -308,13 +308,14 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
 
     while(!NIL_P(cbase)) {
       klass = staticscope_get_module(cbase);
+      
+      /* If we hit Object in the chain, we stop there. */
+      if(klass == state->global->object) break;
+      
       hsh = module_get_constants(klass);
       val = hash_find_undef(state, hsh, sym);
       if(val != Qundef) return val;
-      
-      /* If we need Object in the chain, we stop there. */
-      if(klass == state->global->object) break;
-    
+          
       cbase = staticscope_get_parent(cbase);
     }
   
