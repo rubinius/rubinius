@@ -76,7 +76,7 @@ describe Compiler2 do
          [:masgn, [:array, [:lasgn, :a, 0]], nil, nil]]
 
     gen_iter x do |d|
-      d.cast_for_multi_block_arg              # new
+      d.cast_for_multi_block_arg
       d.lvar_at 0
     end
   end if in_rubinius
@@ -94,7 +94,7 @@ describe Compiler2 do
 
     gen_iter x do |d|
       d.cast_for_multi_block_arg 
-      d.cast_array                            # new
+      d.cast_array
       d.set_local_depth 0, 0
     end
   end if in_rubinius
@@ -206,11 +206,13 @@ describe Compiler2 do
     gen_iter x do |d|
       d.cast_for_multi_block_arg
       d.unshift_tuple
+      d.cast_tuple
 
       d.lvar_at 0
       d.lvar_at 1
 
       d.pop
+      d.push :true
       d.pop
       d.cast_array
       d.set_local_depth 0, 2
@@ -241,15 +243,21 @@ describe Compiler2 do
     gen_iter x do |d|
       d.cast_for_multi_block_arg
       d.unshift_tuple
+      d.cast_tuple
 
       d.lvar_at 0
 
       d.unshift_tuple
+      d.cast_tuple
 
       d.lvar_at 1
       d.lvar_at 2
 
-      4.times { d.pop }
+      2.times do
+        d.pop
+        d.push :true
+        d.pop
+      end
 
       d.lvar_at 3
     end
