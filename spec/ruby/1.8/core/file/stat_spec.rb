@@ -17,5 +17,6 @@ describe "File.stat" do
     st.zero?.should == false
     st.size.should == 8
     st.size?.should == 8
+    st.blksize.should > 0
   end
 end
