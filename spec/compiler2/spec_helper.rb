@@ -76,7 +76,7 @@ class TestGenerator
     end
     
     def inspect
-      "#<Label #{ip}>"
+      ":label_#{@ip}"
     end
     
     attr_reader :ip
@@ -116,6 +116,11 @@ class TestGenerator
     yield eb
   end
   
+  def lvar_at slot
+    unshift_tuple
+    set_local_depth 0, slot
+    pop
+  end
 end
 
 def gen(sexp, plugins=[])
@@ -127,6 +132,28 @@ def gen(sexp, plugins=[])
   act = TestGenerator.new
   node.bytecode act
   act.should == tg
+end
+
+def gen_iter x
+  gen x do |g|
+    desc = description do |d|
+
+      yield d
+
+      d.pop
+      d.push_modifiers
+      d.new_label.set!
+      d.push :nil
+      d.pop_modifiers
+      d.soft_return
+    end
+
+    g.push_literal desc
+    g.create_block2
+    g.push :self
+    g.send :ary, 0, true
+    g.send_with_block :each, 0, false
+  end
 end
 
 def description

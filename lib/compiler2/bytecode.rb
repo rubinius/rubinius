@@ -32,8 +32,7 @@ class Compiler2
     end
 
     def inspect
-      [:method_description,
-       @name, @locals, @required, @optional, @generator].inspect
+      [:method_description, @name, @required, @optional, @generator].inspect
     end
   end
 end
