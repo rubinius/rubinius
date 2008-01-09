@@ -115,7 +115,7 @@ def compile(name, output=nil, check_mtime=false)
     end
   end
   
-  inc = "-Iruntime/stable/compiler2.rba -rcompiler2/init"
+  inc = "-Iruntime/stable/compiler.rba -rcompiler/init"
 
   if ENV['GDB']
     sh "shotgun/rubinius --gdb #{inc} compile #{name} #{output}", :verbose => $verbose
