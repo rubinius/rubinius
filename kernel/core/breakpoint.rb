@@ -35,7 +35,8 @@ class Breakpoint
     end
 
     # If we get here, there's a problem with the IP
-    max_ip = bc.size
+    max_ip = i
+    max_ip -= bc.last.first.size if bc.last
     if @ip < 0 or @ip > max_ip
       raise ArgumentError, "Breakpoint (IP:#{@ip}) is outside valid range of 0 to #{max_ip}"
     else
