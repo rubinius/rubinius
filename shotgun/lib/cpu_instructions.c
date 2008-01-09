@@ -151,12 +151,12 @@ static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name,
   if(TUPLE_P(meth)) {
     vis = tuple_at(state, meth, 0);
     if(vis == state->global->sym_private) {
-      /* We skip private methods. */
-      return Qnil;
+      /* We stop on private methods. */
+      return Qfalse;
     } else if(vis == state->global->sym_protected) {
       /* If it's protected, bail if the receiver isn't the same
          class as self. */
-      if(object_class(state, recv) != object_class(state, c->self)) return Qnil;
+      if(object_class(state, recv) != object_class(state, c->self)) return Qfalse;
     }
   }
   
@@ -493,7 +493,7 @@ void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
   cpu_raise_exception(state, c, primitive_failure);
 }
 
-static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int args, OBJECT sym, OBJECT mod) {
+static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int args, OBJECT sym, OBJECT mod, OBJECT block) {
   int prim, req;
   OBJECT prim_obj;
   
@@ -516,7 +516,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
   
   if(args == req || req < 0) {
     stack_push(recv);
-    if(cpu_perform_primitive(state, c, prim, mo, args, sym, mod)) {
+    if(cpu_perform_primitive(state, c, prim, mo, args, sym, mod, block)) {
       /* Worked! */
       return TRUE;
     }
@@ -817,7 +817,7 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name, OBJECT block) {
   OBJECT ctx;
   
-  if(cpu_try_primitive(state, c, meth, recv, count, name, Qnil)) { return; }
+  if(cpu_try_primitive(state, c, meth, recv, count, name, Qnil, block)) { return; }
   ctx = cpu_create_context(state, c, recv, meth, name, 
         _real_class(state, recv), (unsigned long int)count, block);
   cpu_activate_context(state, c, ctx, ctx, 0);
@@ -852,7 +852,6 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo, 
         OBJECT recv, OBJECT sym, int args, OBJECT block, int missing, OBJECT mod) {
   OBJECT ctx;
-  c->call_flags = 0;
 
   if(missing) {
     args += 1;
@@ -860,12 +859,13 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     // printf("EEK! method_missing!\n");
     // abort();
   } else {
-    if(cpu_try_primitive(state, c, mo, recv, args, sym, mod)) {
+    if(cpu_try_primitive(state, c, mo, recv, args, sym, mod, block)) {
       if(EXCESSIVE_TRACING) {
         printf("%05d: Called prim %s => %s on %s.\n", c->depth,
           rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
           rbs_symbol_to_cstring(state, sym), _inspect(recv));
       }
+      c->call_flags = 0;
       return;
     }
   }
@@ -881,6 +881,14 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
       );
   }
   ctx = cpu_create_context(state, c, recv, mo, sym, mod, (unsigned long int)args, block);
+  /* If it was missing, setup some extra data in the MethodContext for
+     the method_missing method to check out, to see why it was missing. */
+  if(missing) {
+    if(c->call_flags == 1) {
+      methctx_reference(state, ctx);
+      object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
+    }
+  }
   /*
   if(RTEST(block)) {
     printf("in send to '%s', block %p\n", rbs_symbol_to_cstring(state, sym), block);
@@ -889,6 +897,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   if(EXCESSIVE_TRACING) {
     printf("CTX:                 running %d\n", (int)ctx);
   }
+  c->call_flags = 0;
   cpu_activate_context(state, c, ctx, ctx, args);
 }
 

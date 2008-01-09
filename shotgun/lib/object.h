@@ -22,6 +22,8 @@ void object_set_untainted(STATE, OBJECT self);
 int object_tainted_p(STATE, OBJECT self);
 void object_set_frozen(STATE, OBJECT self);
 int object_frozen_p(STATE, OBJECT self);
+void object_copy_ivars(STATE, OBJECT self, OBJECT dest);
+void object_copy_metaclass(STATE, OBJECT self, OBJECT dest);
 
 OBJECT object_make_weak_ref(STATE, OBJECT self);
 void object_cleanup_weak_refs(STATE, OBJECT self);

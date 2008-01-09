@@ -253,6 +253,48 @@ OBJECT object_get_ivars(STATE, OBJECT self) {
   return object_get_instance_variables(self);
 }
 
+void object_copy_ivars(STATE, OBJECT self, OBJECT dest) {
+  OBJECT tbl;
+  if(!REFERENCE_P(self)) {
+    tbl = hash_find(state, state->global->external_ivars, self);
+  } else if(!object_has_ivars(state, self)) {
+    if(metaclass_s_metaclass_p(state, self->klass)) {
+      tbl = metaclass_get_has_ivars(self->klass);
+    } else {
+      return;
+    }
+  } else {
+    tbl = object_get_instance_variables(self);
+  }
+  
+  if(NIL_P(tbl)) return;
+  
+  if(ISA(tbl, state->global->tuple)) {
+    tbl = tuple_dup(state, tbl);
+  } else {
+    tbl = hash_dup(state, tbl);
+  }
+  
+  if(!REFERENCE_P(dest)) {
+    hash_set(state, state->global->external_ivars, dest, tbl);
+  } else if(!object_has_ivars(state, dest)) {
+    metaclass_set_has_ivars(object_metaclass(state, dest), tbl);
+  } else {
+    object_set_instance_variables(dest, tbl);
+  } 
+}
+
+void object_copy_metaclass(STATE, OBJECT self, OBJECT dest) {
+  OBJECT meta, new_meta;
+  if(!REFERENCE_P(self)) return;
+  
+  meta = self->klass;
+  if(!metaclass_s_metaclass_p(state, meta)) return;
+  
+  new_meta = object_metaclass(state, dest);
+  module_set_methods(new_meta, hash_dup(state, module_get_methods(meta)));
+}
+
 int object_stores_bytes_p(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return FALSE;
   return self->StoresBytes;

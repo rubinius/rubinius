@@ -7,6 +7,7 @@ class StructGenerator
     attr_reader :name
     attr_reader :type
     attr_reader :offset
+    attr_accessor :size
 
     def initialize(name, type)
       @name = name
@@ -71,7 +72,7 @@ class StructGenerator
 
       @fields.each do |field|
         f.puts <<EOF
-  printf("%s %u\\n", "#{field.name}", (unsigned int)offsetof(#{@struct_name}, #{field.name}));
+  printf("%s %u %u\\n", "#{field.name}", (unsigned int)offsetof(#{@struct_name}, #{field.name}), (unsigned int)sizeof(((#{@struct_name}*)0)->#{field.name}));
 EOF
       end
 
@@ -87,11 +88,22 @@ EOF
     line_no = 0
 
     output.each_line do |line|
-      md = line.match(/.+ (\d+)/)
-      @fields[line_no].offset = md.captures.first.to_i
+      md = line.match(/.+ (\d+) (\d+)/)
+      @fields[line_no].offset = md[1].to_i
+      @fields[line_no].size   = md[2].to_i
 
       line_no += 1
     end
+  end
+
+  def generate_config(name)
+    buf = ""
+    @fields.each_with_index do |field, i|
+      buf << "rbx.platform.#{name}.#{field.name}.offset = #{field.offset}\n"
+      buf << "rbx.platform.#{name}.#{field.name}.size = #{field.size}\n"
+    end
+
+    buf
   end
   
   def generate_layout

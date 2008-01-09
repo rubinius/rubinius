@@ -51,7 +51,12 @@ class Object
     !cm.nil?
   end
 
-  def __send__(name, *args)
+  def __send__(*args)
+    Ruby.primitive :object_send
+    raise RuntimeError, "send failed"
+  end
+
+  def old__send__(name, *args)
     meth = name.to_sym
     count = args.size.to_i
     
@@ -86,6 +91,10 @@ class Object
 
   def dup
     Ruby.primitive :object_dup
+  end
+
+  def clone
+    Ruby.primitive :object_clone
   end
   
   def to_s

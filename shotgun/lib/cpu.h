@@ -298,15 +298,15 @@ static inline OBJECT cpu_stack_top(STATE, cpu c) {
 
 #define FIRST_RUNTIME_PRIM 1024
 
-int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT name, OBJECT mod);
+int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT name, OBJECT mod, OBJECT block);
 
-int cpu_perform_runtime_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT name, OBJECT mod);
+int cpu_perform_runtime_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT name, OBJECT mod, OBJECT block);
 
-static inline int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args, OBJECT name, OBJECT mod) {
+static inline int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args, OBJECT name, OBJECT mod, OBJECT block) {
   if(prim < FIRST_RUNTIME_PRIM) {
-    return cpu_perform_system_primitive(state, c, prim, mo, args, name, mod);
+    return cpu_perform_system_primitive(state, c, prim, mo, args, name, mod, block);
   } else {
-    return cpu_perform_runtime_primitive(state, c, prim, mo, args, name, mod);
+    return cpu_perform_runtime_primitive(state, c, prim, mo, args, name, mod, block);
   }
 }
 

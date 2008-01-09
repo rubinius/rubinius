@@ -103,6 +103,41 @@ void hash_setup(STATE, OBJECT hsh, int size) {
   hash_set_default(hsh, Qnil);
 }
 
+OBJECT hash_dup(STATE, OBJECT hsh) {
+  int sz, i;
+  OBJECT dup, vals, ent, next, lst, tmp;
+  
+  sz = FIXNUM_TO_INT(hash_get_bins(hsh));
+  dup = hash_new_sized(state, sz);
+  dup->klass = object_class(state, hsh);
+  
+  hash_set_bins(dup, I2N(sz));
+  hash_set_entries(dup, hash_get_entries(hsh));
+  hash_set_default(dup, hash_get_default(hsh));
+  hash_set_keys(dup, tuple_dup(state, hash_get_keys(hsh)));
+  
+  vals = tuple_new(state, sz);
+  
+  for(i = 0; i < sz; i++) {
+    tmp = tuple_at(state, hsh, i);
+    if(NIL_P(tmp)) continue;
+    
+    ent = tuple_dup(state, tmp);
+    tuple_put(state, vals, i, ent);
+    
+    next = tuple_at(state, ent, 3);
+    lst = ent;
+    while(!NIL_P(next)) {
+      next = tuple_dup(state, next);
+      tuple_put(state, lst, 3, next);
+      lst = next;
+      next = tuple_at(state, next, 3);
+    }    
+  }
+  
+  return dup;
+}
+
 static void hash_rehash(STATE, OBJECT hsh, int _ents) {
   int new_bins, i, old_bins;
   unsigned int bin, hv;

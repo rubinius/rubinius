@@ -256,7 +256,7 @@ Core      = CodeGroup.new(files, 'runtime/core', 'core')
 
 Bootstrap = CodeGroup.new 'kernel/bootstrap/*.rb', 'runtime/bootstrap',
                           'bootstrap'
-Platform  = CodeGroup.new 'kernel/platform/*.rb', 'runtime/platform', 'platform'
+PlatformFiles  = CodeGroup.new 'kernel/platform/*.rb', 'runtime/platform', 'platform'
 
 file 'runtime/loader.rbc' => 'kernel/loader.rb' do
   compile 'kernel/loader.rb', 'runtime/loader.rbc'
@@ -282,7 +282,7 @@ Rake::StructGeneratorTask.new do |t|
   t.dest = 'lib/zlib.rb'
 end
 
-AllPreCompiled = Core.output + Bootstrap.output + Platform.output
+AllPreCompiled = Core.output + Bootstrap.output + PlatformFiles.output
 AllPreCompiled << "runtime/loader.rbc"
 
 # spec tasks
@@ -571,7 +571,14 @@ file 'runtime/platform.conf' do |t|
   sg.name 'struct dirent'
   fel = sg.field :d_name
   sg.calculate
-  
+
+  tg = StructGenerator.new
+  tg.include "sys/time.h"
+  tg.name 'struct timeval'
+  tv_sec =  tg.field :tv_sec
+  tv_usec = tg.field :tv_usec
+  tg.calculate
+
   # FIXME these constants don't have standard names.
   # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.
   # Binary doesn't exist at all in many non-Unix variants.
@@ -614,6 +621,7 @@ file 'runtime/platform.conf' do |t|
 
   File.open(t.name, "w") do |f|
     f.puts "rbx.platform.dir.d_name = #{fel.offset}"
+    f.puts tg.generate_config('timeval')
     file_constants.each do | name |
       const = cg.constants[name]
       f.puts "rbx.platform.file.#{name} = #{const.converted_value}"

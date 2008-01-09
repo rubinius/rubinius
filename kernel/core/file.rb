@@ -266,6 +266,29 @@ class File < IO
     Platform::POSIX.fchmod(@descriptor, mode)
   end
   
+  class TimeVal < FFI::Struct
+    config 'rbx.platform.timeval', :tv_sec, :tv_usec
+  end
+  
+  def self.utime(a_in, m_in, *paths)
+    ptr = MemoryPointer.new(TimeVal, 2)
+    atime = TimeVal.new ptr
+    mtime = TimeVal.new ptr[1]
+    atime[:tv_sec] = a_in.to_i
+    atime[:tv_usec] = 0
+    
+    mtime[:tv_sec] = m_in.to_i
+    mtime[:tv_usec] = 0
+    
+    paths.each do |path|      
+      if Platform::POSIX.utimes(path, ptr) != 0
+        Errno.handle
+      end
+    end
+    
+    ptr.free
+  end
+  
   def self.atime(path)
     Time.at stat(path).atime
   end
@@ -363,21 +386,23 @@ class File < IO
   end
   
   class Stat
-    self.instance_fields = 11
+    self.instance_fields = 12
     ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
-      :size => 5, :block => 6, :atime => 7, :mtime => 8, :ctime => 9, :path => 10
+      :size => 5, :block => 6, :atime => 7, :mtime => 8, :ctime => 9, :path => 10,
+      :blksize => 11
       
-    def inode; @inode; end
-    def mode; @mode; end
-    def kind; @kind; end
-    def owner; @owner; end
-    def group; @group; end
-    def size; @size; end
-    def block; @block; end
-    def atime; @atime; end
-    def mtime; @mtime; end
-    def ctime; @ctime; end
-    def path; @path; end
+    def inode;   @inode; end
+    def mode;    @mode; end
+    def kind;    @kind; end
+    def owner;   @owner; end
+    def group;   @group; end
+    def size;    @size; end
+    def block;   @block; end
+    def atime;   @atime; end
+    def mtime;   @mtime; end
+    def ctime;   @ctime; end
+    def path;    @path; end
+    def blksize; @blksize; end
    
     def inspect
       "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"

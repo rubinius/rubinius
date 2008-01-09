@@ -29,6 +29,7 @@ module Platform::POSIX
   attach_function 'symlink', [:string, :string], :int
   attach_function 'readlink', [:string, :string, :int], :int
   attach_function 'rename', [:string, :string], :int
+  attach_function 'utimes', [:string, :pointer], :int
 
   # directories
   attach_function 'chdir', [:string], :int

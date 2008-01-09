@@ -234,6 +234,51 @@ class ShotgunPrimitives
     CODE
   end
   
+  def fixnum_lt
+    <<-CODE
+    POP(self, FIXNUM);
+    POP(t1,   FIXNUM);
+    j = FIXNUM_TO_INT(self);
+    k = FIXNUM_TO_INT(t1);
+    
+    stack_push(j < k ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def fixnum_le
+    <<-CODE
+    POP(self, FIXNUM);
+    POP(t1,   FIXNUM);
+    j = FIXNUM_TO_INT(self);
+    k = FIXNUM_TO_INT(t1);
+    
+    stack_push(j <= k ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def fixnum_gt
+    <<-CODE
+    POP(self, FIXNUM);
+    POP(t1,   FIXNUM);
+    j = FIXNUM_TO_INT(self);
+    k = FIXNUM_TO_INT(t1);
+    
+    stack_push(j > k ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def fixnum_ge
+    <<-CODE
+    POP(self, FIXNUM);
+    POP(t1,   FIXNUM);
+    j = FIXNUM_TO_INT(self);
+    k = FIXNUM_TO_INT(t1);
+    
+    stack_push(j >= k ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  
   def at
     <<-CODE
     self = stack_pop(); GUARD( INDEXED(self) )
@@ -814,7 +859,7 @@ class ShotgunPrimitives
     stack_push(t1);
     CODE
   end
-  
+    
   def bytes_dup_into
     <<-CODE
     POP(self, REFERENCE);
@@ -851,13 +896,36 @@ class ShotgunPrimitives
         }
       }
       stack_push(t2);
-      /* TODO: copy the ivars in slot 0 */
+      object_copy_ivars(state, t1, t2);
       cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
     } else {
       stack_push(t1);
     }
     CODE
   end
+  
+  def object_clone
+    <<-CODE
+    POP(t1, REFERENCE);
+    j = NUM_FIELDS(t1);
+    t2 = NEW_OBJECT(object_class(state, t1), j);
+    if(t1->StoresBytes) {
+      memcpy(object_byte_start(state, t2), 
+             object_byte_start(state, t1), SIZE_OF_BODY(t1));
+      t2->StoresBytes = 1;
+    } else {
+      for(k = 0; k < j; k++) {
+        SET_FIELD(t2, k, NTH_FIELD(t1, k));
+      }
+    }
+    stack_push(t2);
+    object_copy_ivars(state, t1, t2);
+    object_copy_metaclass(state, t1, t2);
+    cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
+    
+    CODE
+  end
+  
   
   def fastctx_dup
     <<-CODE
@@ -1051,7 +1119,7 @@ class ShotgunPrimitives
     if(j != 0) {
       stack_push(Qfalse);
     } else {
-      t2 = NEW_OBJECT(self, 11);
+      t2 = NEW_OBJECT(self, 12);
       tuple_put(state, t2, 0, I2N((int)sb.st_ino));
       tuple_put(state, t2, 1, I2N((int)sb.st_mode));
 
@@ -1095,6 +1163,7 @@ class ShotgunPrimitives
       tuple_put(state, t2, 8, UI2N((int)sb.st_mtime));
       tuple_put(state, t2, 9, UI2N((int)sb.st_ctime));
       tuple_put(state, t2, 10, t1);
+      tuple_put(state, t2, 11, UI2N((unsigned long)sb.st_blksize));
     
       stack_push(t2);
     }
@@ -2806,6 +2875,26 @@ class ShotgunPrimitives
         stack_push(k == 0 ? Qtrue : Qfalse);
       }
     }
+    CODE
+  end
+  
+  def object_send
+    <<-CODE
+    self = stack_pop();
+    GUARD(num_args >= 1);
+    t1 = stack_pop();
+    if(!SYMBOL_P(t1)) {
+      if(STRING_P(t1)) {
+        t1 = string_to_sym(state, t1);
+      } else {
+        GUARD(0);
+      }
+    }
+
+    /* Send is allowed to call private methods. */
+    c->call_flags = 1;
+    
+    cpu_unified_send(state, c, self, t1, num_args - 1, block);
     CODE
   end
 

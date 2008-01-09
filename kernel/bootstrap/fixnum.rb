@@ -57,35 +57,29 @@ class Fixnum < Integer
     super(other)
   end
   
-  
-  
   def <=>(other)
     Ruby.primitive :compare
     super(other)
   end
 
-  def internal_cmp(other)
-    Ruby.primitive :compare
-    unless c = (self <=> other)
-      raise ArgumentError, "comparison of Fixnum with #{other.class} failed"
-    end
-    return c
-  end
-
   def <(o)
-    internal_cmp(o) == -1
+    Ruby.primitive :fixnum_lt
+    super(o)
   end
   
   def <=(o)
-    internal_cmp(o) != 1
+    Ruby.primitive :fixnum_le
+    super(o)
   end
   
   def >(o)
-    internal_cmp(o) == 1
+    Ruby.primitive :fixnum_gt
+    super(o)
   end
   
   def >=(o)
-    internal_cmp(o) != -1
+    Ruby.primitive :fixnum_ge
+    super(o)
   end
   
   def to_s(base=10)

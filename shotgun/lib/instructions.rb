@@ -336,7 +336,7 @@ CODE
     // performed on an object? Or should we state that the semantics of a primitive 
     // will always have an object or else it needs to be an opcode... ?
     // If the primitive fails raise an exception
-    if( ! cpu_perform_primitive(state, c, j, Qnil, k, Qnil, Qnil) )
+    if( ! cpu_perform_primitive(state, c, j, Qnil, k, Qnil, Qnil, Qnil) )
     {
       cpu_raise_primitive_failure(state, c, j);
     }
@@ -917,8 +917,8 @@ CODE
     <<-CODE
     t1 = stack_pop();
     t2 = stack_back(0);
-    /* If both are fixnums, or one is a symbol, compare the ops directly. */
-    if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
+    /* If both are not references, compare them directly. */
+    if(!REFERENCE_P(t1) && !REFERENCE_P(t2)) {
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
       _lit = global->sym_equal;
@@ -933,8 +933,8 @@ CODE
     <<-CODE
     t1 = stack_pop();
     t2 = stack_back(0);
-    /* If both are fixnums, or one is a symbol, compare the ops directly. */
-    if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
+    /* If both are not references, compare them directly. */
+    if(!REFERENCE_P(t1) && !REFERENCE_P(t2)) {
       stack_set_top((t1 == t2) ? Qfalse : Qtrue);
     } else {
       _lit = global->sym_nequal;
