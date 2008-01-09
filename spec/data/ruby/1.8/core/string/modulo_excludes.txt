@@ -1,4 +1,1 @@
 String#% allows positional arguments for width star and precision star arguments
-String#% raises an ArgumentError for huge precisions for %s
-String#% supports unsigned formats using %u
-String#% supports negative bignums
