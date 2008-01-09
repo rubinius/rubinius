@@ -1,4 +1,4 @@
-require '../../lib/compiler2/system_hints'
+require '../../lib/compiler/system_hints'
 
 klasses = []
 
@@ -6,10 +6,10 @@ fd = File.open("auto.h", "w")
 
 puts "#include \"shotgun.h\""
 
-Compiler2::Bootstrap::TYPES.each do |name, klass|
+Compiler::Bootstrap::TYPES.each do |name, klass|
   prefix = "#{name}_"
   
-  fields = Compiler2::Bootstrap::HINTS[klass] || Hash.new
+  fields = Compiler::Bootstrap::HINTS[klass] || Hash.new
   fields.each do |field_as_ivar, field_index|
     if field_as_ivar == :@__ivars__
       field_name = "instance_variables" 

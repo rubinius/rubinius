@@ -1,12 +1,12 @@
-require 'compiler1/bytecode/encoder'
+require "#{File.dirname(__FILE__)}/instruction_info.rb"
 
 class ShotgunInstructions
     
   def generate_switch(fd, op="op")
     i = 0 
-    order = Compiler1::Bytecode::InstructionEncoder::OpCodes
-    ci =    Compiler1::Bytecode::InstructionEncoder::CheckInterupts
-    term =  Compiler1::Bytecode::InstructionEncoder::Terminators
+    order = InstructionInfo::OpCodes
+    ci =    InstructionInfo::CheckInterupts
+    term =  InstructionInfo::Terminators
     
     fd.puts "switch(#{op}) {"
     order.each do |ins|
@@ -34,9 +34,9 @@ class ShotgunInstructions
   
   def generate_threaded(fd, op="op")
     i = 0 
-    order = Compiler1::Bytecode::InstructionEncoder::OpCodes
-    ci =    Compiler1::Bytecode::InstructionEncoder::CheckInterupts
-    term =  Compiler1::Bytecode::InstructionEncoder::Terminators
+    order = InstructionInfo::OpCodes
+    ci =    InstructionInfo::CheckInterupts
+    term =  InstructionInfo::Terminators
     
     order.each do |ins|
       code = send(ins) rescue nil
@@ -61,9 +61,9 @@ class ShotgunInstructions
   end
   
   def generate_dter
-    order = Compiler1::Bytecode::InstructionEncoder::OpCodes
-    two =   Compiler1::Bytecode::InstructionEncoder::TwoInt
-    one =   Compiler1::Bytecode::InstructionEncoder::IntArg - two
+    order = InstructionInfo::OpCodes
+    two =   InstructionInfo::TwoInt
+    one =   InstructionInfo::IntArg - two
     
     code = "static int _ip_size(uint32_t bc) {\nswitch(bc) {\n"
     two.each do |ins|
@@ -130,7 +130,7 @@ class ShotgunInstructions
   end
   
   def generate_names
-    order = Compiler1::Bytecode::InstructionEncoder::OpCodes;
+    order = InstructionInfo::OpCodes;
     str = "static const char instruction_names[] = {\n"
     order.each do |ins|
       str << "  \"#{ins.to_s}\\0\"\n"
@@ -154,7 +154,7 @@ CODE
   def generate_names_header
     str = "const char *get_instruction_name(int op);\n"
 
-    order = Compiler1::Bytecode::InstructionEncoder::OpCodes;
+    order = InstructionInfo::OpCodes;
     i = 0
     order.each do |ins|
       str << "#define CPU_INSTRUCTION_#{ins.to_s.upcase} #{i}\n"

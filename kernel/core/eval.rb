@@ -93,28 +93,7 @@ module Kernel
       string = StringValue(string)
       
       binding = Binding.setup(MethodContext.current.sender)
-
-      text = false
-      if text
-        sexp = string.to_sexp(filename, line, true)
-
-        require 'compiler2/init'
-        require 'compiler2/text'
-        
-        p sexp
-
-        comp = Compiler2.new(Compiler2::TextGenerator, binding) # flags[:binding])
-        node = comp.convert_sexp([:eval_expression, sexp])
-        p node
-        meth = node.to_description
-        puts ""
-        puts meth.generator.text
-        return nil
-
-        return node.to_description(:__eval_script__).to_cmethod
-      end
-      
-      
+ 
       flags = { :binding => binding }
       compiled_method = Compile.compile_string string, flags, filename, line
       ctx = binding.context

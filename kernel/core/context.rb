@@ -8,7 +8,7 @@ class MethodContext
 
   # The Nth group of the last regexp match.
   #
-  # Implemented to support Compiler2.
+  # Implemented to support Compiler.
   def nth_ref(n)
     if lm = @last_match
       return lm[n]
@@ -19,7 +19,7 @@ class MethodContext
 
   # One of the special globals $&, $`, $' or $+.
   #
-  # Implemented to support Compiler2.
+  # Implemented to support Compiler.
   def back_ref(kind)
     if lm = @last_match
       res = case kind

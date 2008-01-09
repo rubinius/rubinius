@@ -102,24 +102,20 @@ def create_load_order(files, output=".load_order.txt")
   end
 end
 
-def compile(name, output, check_mtime=false)
-  dir = File.dirname(output)
+def compile(name, output=nil, check_mtime=false)
+  if output
+    dir = File.dirname(output)
 
-  unless File.exists?(dir)
-    FileUtils.mkdir_p dir
+    unless File.exists?(dir)
+      FileUtils.mkdir_p dir
+    end
+
+    if check_mtime and File.exists?(output) and File.mtime(output) > File.mtime(name)
+      return
+    end
   end
   
-  if check_mtime and File.exists?(output) and File.mtime(output) > File.mtime(name)
-    return
-  end
-  
-  if $compiler == :c2
-    inc = "-Iruntime/stable/compiler2.rba -rcompiler2/init"
-  elsif $compiler
-    inc = "-I#{$compiler} -rcompiler1/init"
-  else
-    inc = ""
-  end
+  inc = "-Iruntime/stable/compiler2.rba -rcompiler2/init"
 
   if ENV['GDB']
     sh "shotgun/rubinius --gdb #{inc} compile #{name} #{output}", :verbose => $verbose
@@ -138,11 +134,6 @@ task :stable_compiler do
   if ENV['USE_CURRENT']
     puts "Use current versions, not stable."
   else
-    if ENV['USE_C1']
-      $compiler = "runtime/stable/compiler1.rba"
-    else
-      $compiler = :c2
-    end
     ENV['RBX_BOOTSTRAP'] = "runtime/stable/bootstrap.rba"
     ENV['RBX_CORE'] = "runtime/stable/core.rba"
     ENV['RBX_LOADER'] = "runtime/stable/loader.rbc"
@@ -266,12 +257,8 @@ file 'runtime/stable/loader.rbc' => 'runtime/loader.rbc' do
   cp 'runtime/loader.rbc', 'runtime/stable', :verbose => $verbose
 end
 
-file 'runtime/stable/compiler1.rba' => 'build:compiler1' do
-  sh "cd lib; zip -r ../runtime/stable/compiler1.rba compiler1 -x \\*.rb"
-end
-
-file 'runtime/stable/compiler2.rba' => 'build:compiler2' do
-  sh "cd lib; zip -r ../runtime/stable/compiler2.rba compiler2 -x \\*.rb"
+file 'runtime/stable/compiler.rba' => 'build:compiler' do
+  sh "cd lib; zip -r ../runtime/stable/compiler.rba compiler -x \\*.rb"
 end
 
 Rake::StructGeneratorTask.new do |t|
@@ -409,8 +396,7 @@ task :pristine do
   FileList['**/*.rbc'].each do |fn|
     next if /^runtime/.match(fn)
     next if %r!fixtures/require!.match(fn)
-    next if %r!lib/compiler1!.match(fn)
-    next if %r!lib/compiler2!.match(fn)
+    next if %r!lib/compiler!.match(fn)
     FileUtils.rm fn rescue nil
   end
 end
@@ -423,11 +409,7 @@ namespace :clean do
       rm_f f, :verbose => $verbose
     end
 
-    (Dir["lib/compiler1/*.rbc"] + Dir["lib/compiler1/**/*.rbc"]).each do |f|
-      rm_f f, :verbose => $verbose
-    end
-    
-    (Dir["lib/compiler2/*.rbc"] + Dir["lib/compiler2/**/*.rbc"]).each do |f|
+    (Dir["lib/compiler/*.rbc"] + Dir["lib/compiler/**/*.rbc"]).each do |f|
       rm_f f, :verbose => $verbose
     end
     
@@ -458,8 +440,7 @@ namespace :build do
     build:shotgun
     build:platform
     build:rbc
-    compiler1
-    compiler2
+    compiler
     lib/etc.rb
     lib/rbconfig.rb
     extensions
@@ -496,12 +477,8 @@ namespace :build do
 
   task :rbc => ([:setup_rbc] + AllPreCompiled)
   
-  task :compiler1 => :stable_compiler do
-    compile_dir "lib/compiler1"
-  end
-  
-  task :compiler2 => :stable_compiler do
-    compile_dir "lib/compiler2"
+  task :compiler => :stable_compiler do
+    compile_dir "lib/compiler"
   end
 
   desc "Rebuild runtime/stable/*.  If you don't know why you're running this, don't."
@@ -509,8 +486,7 @@ namespace :build do
     build:all
     runtime/stable/bootstrap.rba
     runtime/stable/core.rba
-    runtime/stable/compiler1.rba
-    runtime/stable/compiler2.rba
+    runtime/stable/compiler.rba
     runtime/stable/loader.rbc
     runtime/stable/platform.rba
   ]
@@ -658,7 +634,7 @@ namespace :extension do
     'lib/ext/digest/md5/*.h',
     'lib/ext/digest/defs.h',
   ] do
-    sh './shotgun/rubinius compile lib/ext/digest/md5'
+    compile 'lib/ext/digest/md5'
   end
 
   task :fcntl => "lib/ext/fcntl/fcntl.#{$dlext}"
@@ -668,7 +644,7 @@ namespace :extension do
     'lib/ext/fcntl/build.rb',
     'lib/ext/fcntl/*.c'
   ] do
-    sh "./shotgun/rubinius compile lib/ext/fcntl"
+    compile "lib/ext/fcntl"
   end
 
   task :syck => "lib/ext/syck/rbxext.#{$dlext}"
@@ -679,7 +655,7 @@ namespace :extension do
     'lib/ext/syck/*.c',
     'lib/ext/syck/*.h',
   ] do
-    sh "./shotgun/rubinius compile lib/ext/syck"
+    compile "lib/ext/syck"
   end
   
   task :mongrel => "lib/ext/mongrel/http11.#{$dlext}"
@@ -690,7 +666,7 @@ namespace :extension do
     'lib/ext/mongrel/*.c',
     'lib/ext/mongrel/*.h',
   ] do
-    sh "./shotgun/rubinius compile lib/ext/mongrel"
+    compile "lib/ext/mongrel"
   end
 
   task :zlib => %W[lib/ext/zlib/zlib.#{$dlext} lib/zlib.rb]
@@ -700,7 +676,7 @@ namespace :extension do
     'lib/ext/zlib/build.rb',
     'lib/ext/zlib/*.c'
   ] do
-    sh "./shotgun/rubinius compile lib/ext/zlib"
+    compile "lib/ext/zlib"
   end
 
   task :readline => %W[lib/ext/readline/readline.#{$dlext} lib/readline.rb]
@@ -710,7 +686,7 @@ namespace :extension do
     'lib/ext/readline/build.rb',
     'lib/ext/readline/*.c'
   ] do
-    sh "./shotgun/rubinius compile lib/ext/readline"
+    compile "lib/ext/readline"
   end
 end
 
@@ -746,19 +722,24 @@ namespace "doc" do
 
     desc "Generate HTML in doc/vm from YAML and Textile sources"
     task "html"
-
-    # Define tasks for each opcode html file on the corresponding YAML file
-    require 'doc/vm/op_code_info'
-    OpCode::Info.op_codes.each do |op|
-      html = "doc/vm/op_codes/#{op}.html"
-      yaml = "doc/vm/op_codes/#{op}.yaml"
-      file html => yaml do
-        cd 'doc/vm' do
-          ruby "gen_op_code_html.rb #{op}"
+    
+    begin
+      # Define tasks for each opcode html file on the corresponding YAML file
+      require 'doc/vm/op_code_info'
+      OpCode::Info.op_codes.each do |op|
+        html = "doc/vm/op_codes/#{op}.html"
+        yaml = "doc/vm/op_codes/#{op}.yaml"
+        file html => yaml do
+          cd 'doc/vm' do
+            ruby "gen_op_code_html.rb #{op}"
+          end
         end
+
+        task "html" => html
       end
 
-      task "html" => html
+    rescue LoadError
+
     end
 
     # Define tasks for each section html file on the corresponding textile file

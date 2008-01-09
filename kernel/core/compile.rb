@@ -11,7 +11,7 @@ module Compile
 
   @compiler = nil
 
-  DefaultCompiler = "compiler2"
+  DefaultCompiler = "compiler"
 
   def self.register_compiler(obj)
     if $DEBUG
@@ -24,7 +24,8 @@ module Compile
     begin
       require "#{DefaultCompiler}/init"
     rescue Exception => e
-      STDERR.puts "Unable to load default compiler"
+      STDERR.puts "Unable to load default compiler: #{e.message}"
+      puts e.backtrace.show
       raise e
     end
 
