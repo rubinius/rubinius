@@ -16,24 +16,25 @@ class Dir
   def self.glob(pattern, flags = 0)
     original_dir = Dir.pwd
     files = Array.new 0
-    
+
     period = (flags & File::FNM_DOTMATCH) > 0
     period_excludes = ["..", "."]
-    
+
     max_depth = glob_max_depth(pattern)
-    
+
     Dir.foreach(original_dir) do |entry|
       if match = glob_match(pattern, entry, flags)
         files << match
       end
-      
-      if File.directory?(entry) and (max_depth == GLOB_RECURSIVE or max_depth > 0) and
-         !period_excludes.include?(entry)
+
+      if File.directory?(entry) and
+         (max_depth == GLOB_RECURSIVE or max_depth > 0) and
+         !period_excludes.include?(entry) then
         next if entry =~ /^\./ and !period
         search_deeper(files, entry, pattern, flags, 1, max_depth)
       end
     end
-    
+
     files.to_a
   end
   
