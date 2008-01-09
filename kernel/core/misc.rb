@@ -36,10 +36,6 @@ class NilClass
   def call(*a)
     raise LocalJumpError, "not callable"
   end
-  
-  def =~(arg)
-    false
-  end
 end
 
 NIL = nil

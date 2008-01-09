@@ -22,6 +22,12 @@ class Object
     false
   end
     
+  # Regexp matching fails by default but may be overridden 
+  # by subclasses, notably Regexp and String.
+  def =~(other)
+    false
+  end
+
   def instance_of?(cls)
     self.class == cls
   end
