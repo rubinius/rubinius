@@ -8,6 +8,13 @@ class PositiveOperatorMatcher
       Expectation.fail_with("Expected #{@actual.inspect}", "to equal #{expected.inspect}")
     end
   end
+
+  def >(expected)
+    unless @actual > expected then
+      Expectation.fail_with("Expected #{@actual.inspect}",
+                            "to be greater than #{expected.inspect}")
+    end
+  end
   
   def =~(expected)
     unless @actual =~ expected
