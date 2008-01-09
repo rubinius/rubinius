@@ -69,10 +69,10 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, int *created) {
     *created = TRUE;
     
     /*
-    printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(c->enclosing_class));
+    printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(under));
     */
-    if(c->enclosing_class != state->global->object) {
-      s1 = symbol_to_string(state, module_get_name(c->enclosing_class));
+    if(under != state->global->object) {
+      s1 = symbol_to_string(state, module_get_name(under));
       s2 = symbol_to_string(state, sym);
       s3 = string_dup(state, s1);
       string_append(state, s3, string_new(state, "::"));
@@ -99,9 +99,12 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
   if(!RTEST(val)) {
     val = module_allocate_mature(state, 0);
     module_setup_fields(state, val);
-    
-    if(c->enclosing_class != state->global->object) {
-      s1 = symbol_to_string(state, module_get_name(c->enclosing_class));
+
+    /*
+    printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(under));
+    */
+    if(under != state->global->object) {
+      s1 = symbol_to_string(state, module_get_name(under));
       s1 = string_dup(state, s1);
       string_append(state, s1, string_new(state, "::"));
       string_append(state, s1, symbol_to_string(state, sym));
