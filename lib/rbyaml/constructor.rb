@@ -467,12 +467,20 @@ module RbYAML
       @@yaml_main_multi_regexps[tag_prefix] = Regexp.new("^"+Regexp.escape(tag_prefix))
     end
 
-    def construct_ruby(tag,node)
+    def construct_ruby(tag, node)
       obj_class = Object
-      tag.split( "::" ).each { |c| obj_class = obj_class.const_get( c ) } if tag
+
+      tag.split("::").each { |c| obj_class = obj_class.const_get c } if tag
+
       o = obj_class.allocate
-      mapping = map(node)
-      mapping.each {|key,val| o.instance_variable_set("@#{key}",val)}
+      mapping = map node
+
+      if o.respond_to? :yaml_initialize then
+        o.yaml_initialize tag, mapping
+      else
+        mapping.each { |key, val| o.instance_variable_set "@#{key}", val }
+      end
+
       o
     end
   end
