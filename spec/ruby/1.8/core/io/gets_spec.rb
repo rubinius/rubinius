@@ -37,11 +37,14 @@ describe "IO#gets" do
   # Two successive newlines in the input separate paragraphs.
   # When there are more than two successive newlines, only two are kept.
   it "returns the next paragraph if the separator's length is 0" do
-    pars = ["Voici la ligne une.\nQui \303\250 la linea due.\n\n",
-          "Aqu\303\255 est\303\241 la l\303\255nea tres.\nIst hier Linie vier.\n\n",
-          "Est\303\241 aqui a linha cinco.\nHere is line six.\n"]
+    a = "Voici la ligne une.\nQui \303\250 la linea due.\n\n"
+    b = "Aqu\303\255 est\303\241 la l\303\255nea tres.\nIst hier Linie vier.\n\n"
+    c = "Est\303\241 aqui a linha cinco.\nHere is line six.\n"
+
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
-      pars.each {|par| par.should == f.gets("")}
+      f.gets("").should == a
+      f.gets("").should == b
+      f.gets("").should == c
     end
   end
 

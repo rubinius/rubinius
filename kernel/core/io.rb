@@ -320,18 +320,14 @@ class IO
       return gets_stripped($/ + $/)
     end
     
-    if sep == "\n"
-      reg = /\n/m
-    else
-      reg = /#{sep}/m
-    end
+    reg = /#{sep}/m
 
     if str = buf.clip_to(reg)
       return str
     end
 
     # Do an initial fill.
-    return nil unless buf.fill_from(self)
+    return nil if !buf.fill_from(self) and buf.empty?
 
     output = nil
     while true

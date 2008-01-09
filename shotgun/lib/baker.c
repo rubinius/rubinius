@@ -356,7 +356,6 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
 #endif
   
   if((AGE(obj) == g->tenure_age)) {
-    int age = AGE(obj);
     xassert(obj->klass != state->global->fastctx);
     CLEAR_AGE(obj);
 
