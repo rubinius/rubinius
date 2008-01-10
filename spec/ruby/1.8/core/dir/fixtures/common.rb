@@ -42,7 +42,7 @@ module DirSpecs
                 #{stem}/mock/subdir_two/nondotfile
                 #{stem}/mock/subdir_two/nondotfile.ext]
 
-    FileUtils.rm_rf 'spec/core/dir/fixtures/mock/'
+    FileUtils.rm_rf "#{stem}/mock"
     files.each do |file|
       FileUtils.mkdir_p File.dirname(file)
       # eventually will be FileUtils.touch(File.basename(dir))
