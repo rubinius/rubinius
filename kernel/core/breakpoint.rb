@@ -26,6 +26,7 @@ class Breakpoint
     @handler = prc
     @enabled = false
     @encoder = InstructionSequence::Encoder.new
+    @hits = 0
 
     bc = @method.bytecodes.decode
     i = 0
@@ -45,6 +46,7 @@ class Breakpoint
     end
   end
 
+  attr_reader :hits
   attr_reader :method
   attr_reader :ip
 
@@ -88,6 +90,7 @@ class Breakpoint
   end
 
   def call_handler(thread, ctx)
+    @hits += 1
     @handler.call(thread, ctx, self)
   end
 end
@@ -136,6 +139,10 @@ class BreakpointTracker
       bp.enable
     end
     return bp
+  end
+
+  def get_breakpoint(cm, ip)
+    @breakpoints[cm][ip]
   end
 
   # Locates the +Breakpoint+ for the specified execution context
