@@ -71,11 +71,11 @@ class Float < Numeric
   def divmod(other)
     raise FloatDomainError, "divide by 0" if other == 0
     return super(other) unless other.is_a?(Float)
+    div = (self / other).floor;
     mod = Platform::Float.fmod self, other
-    div = (self - mod) / other;
+    
     if (other * mod < 0)
     	mod += other;
-    	div -= 1.0;
     end
     return [div.to_i, mod]
   end
