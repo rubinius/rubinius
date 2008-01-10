@@ -1,0 +1,1 @@
+Hash#each yields one argument: [key, value]
