@@ -28,7 +28,7 @@ class ShotgunInstructions
   
   def generate_threaded(fd, op="op")
     InstructionSet::OpCodes.each do |ins|
-      code = send(ins) rescue nil
+      code = send(ins.opcode) rescue nil
       if code
         fd.puts "   insn_#{ins.bytecode}: {"
         fd.puts code
