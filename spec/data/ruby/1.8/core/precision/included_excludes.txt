@@ -1,1 +1,0 @@
-Prec.included raises a TypeError when a class mixed with Precision does not specify induced_from
