@@ -41,4 +41,8 @@ describe "String#+" do
       end
     end
   end
+
+  it "raises a TypeError when given a Fixnum" do
+    lambda { "" + 65 }.should raise_error(TypeError)
+  end
 end
