@@ -93,20 +93,17 @@ describe Compiler do
          [:masgn, [:lasgn, :a, 0], nil]]
 
     gen_iter x do |d|
-      d.cast_for_multi_block_arg 
       d.cast_array
       d.set_local_depth 0, 0
     end
   end if in_rubinius
 
-# TODO: this is the known failure I'm trying to drive out, can't
-# really uncomment until the rest of the bugs I'm finding are solved.
-#
-#   it "runs 'ary.each do |*a|; ... end'" do
-#     all_args = []
-#     {1 => 2, 3 => 4}.each { |*args| all_args << args }
-#     all_args.should == [[[1, 2]], [[3, 4]]]
-#   end
+  it "runs 'ary.each do |*a|; ... end'" do
+    data = [[1, 2, 3], [4, 5], 6]
+    expected = [[[1, 2, 3]], [[4, 5]], [6]]
+
+    data.dup.map { |*a| a }.should == expected
+  end
 
   it "compiles 'ary.each do |a, b, c|; ... end'" do
     x = [:iter,
@@ -277,7 +274,6 @@ describe Compiler do
          [:masgn, true, nil]]
 
     gen_iter x do |d|
-      d.cast_for_multi_block_arg
     end
   end if in_rubinius
 
