@@ -1,100 +1,31 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../../spec_helper'
 require 'options'
 
-class String
-  def squish(); self.gsub(/\s+/, ''); end
-end
+describe "Options#parse" do
+  before do
+    @o = Options.new
 
-describe "Options.new" do
-  it "creates a blank set of options" do
-    Options.new.class.should == Options
+    @o.option '-b --bb Bb'
+    @o.option '-c --cc Cc'
+    @o.option '-d --dd Dd'
+    @o.option '-n --none None'
+    @o.option '-o --one  One',  :one
+    @o.option '-m --many Many', :many
+    @o.option '-a --any  Any',  :any
   end
 
-  it "optionally takes a block that yields the Options instance" do
-    oid = nil
-
-    opts = Options.new {|o| oid = o.object_id }
-
-    opts.object_id.should == oid
-    opts.class.should == Options
-  end
-
-  it "may be given a message to be shown at the top of #usage" do
-    o = Options.new 'My very own header'      
-    o.usage.squish.should == 'Myveryownheader'
-  end
-end
-
-describe "Options#option" do
-  before { @o = Options.new }
-
-  it "takes a string with three parts: short and long options and a description" do
-    @o.option '-h --help Help'
-  end
-
-  it "does not accept the definition string without leading dashes" do
-    lambda { @o.option 'h help Help' }.should raise_error(ArgumentError)
-  end
-
-  it "requires that all three parts are present" do
-    lambda { @o.option '-h Help'  }.should raise_error(ArgumentError)
-    lambda { @o.option '--h Help' }.should raise_error(ArgumentError)
-  end
-
-  it "requires that the three parts are in order" do
-    lambda { @o.option '--help -h Help' }.should raise_error(ArgumentError)
-    lambda { @o.option '-h Help --help' }.should raise_error(ArgumentError)
-  end
-
-  it "optionally takes a parameter to designate number of arguments wanted" do
-    @o.option '-f --file File', :one
-  end
-end
-
-shared :lib_options_usage_help do |cmd|
-  describe "Getting help from the option parser" do
-    it "provides a ##{cmd} message constructed from the given header and options" do
-      o = Options.new 'Some message here'
-      o.option '-h --help Displays a help message'
-      o.option '-f --foo Does nothing useful', :one
-
-      s = "SomemessagehereOptions:-h--helpDisplaysahelpmessage-f--fooARGDoesnothinguseful"
-      o.usage.squish.should == s
-    end  
-  end
-end
-
-describe "Options#usage" do
-  it_behaves_like :lib_options_usage_help, "usage"
-end
-
-describe "Options#help" do
-  it_behaves_like :lib_options_usage_help, "help"
-end
-
-describe "Parse error handling" do
-  it "Raises an ArgumentError by default" do
+  it "raises an ArgumentError by default" do
     lambda { Options.new.parse '-h' }.should raise_error(ArgumentError)
-  end  
+  end
 
-  it "Allows overriding of default by supplying a block to #on_error" do
+  it "allows overriding of default by supplying a block to #on_error" do
     o = Options.new {|o| o.on_error { :error } }
     o.parse('-h').should == :error
-  end  
+  end
 
-  it "Supplies the #on_error block with the Options object and the exception" do
+  it "supplies the #on_error block with the Options object and the exception" do
     o = Options.new {|o| o.on_error {|op, ex| [op.class, ex.class] } }
     o.parse('-h').should == [Options, ArgumentError]
-  end
-end  
-
-describe "Parsing options using the configured parser" do
-  before do 
-    @o = Options.new 
-
-    @o.option '-a --aa Aa'  
-    @o.option '-b --bb Bb'  
-    @o.option '-c --cc Cc'  
   end
 
   it "raises an error if given empty input" do
@@ -103,87 +34,66 @@ describe "Parsing options using the configured parser" do
   end
 
   it "returns a Hash with given options as defined keys" do
-    h = @o.parse '--aa'
+    h = @o.parse '--dd'
 
-    h.key?('aa').nil?.should == false
+    h.key?('dd').nil?.should == false
   end
 
   it "makes given option available both as long and short version" do
-    h = @o.parse '--aa'
+    h = @o.parse '--dd'
 
-    h.key?('a').nil?.should == false
-    h.key?('aa').nil?.should == false
+    h.key?('d').nil?.should == false
+    h.key?('dd').nil?.should == false
   end
 
   it "sets the value of any given option without a parameter to true" do
-    h = @o.parse '--aa'
+    h = @o.parse '--dd'
 
-    h.key?('a').should == true
-    h.key?('aa').should == true
+    h.key?('d').should == true
+    h.key?('dd').should == true
   end
 
   it "places any given arguments in :args if they do not belong to options" do
-    h = @o.parse '-a ARG'
+    h = @o.parse '-d ARG'
 
     h[:args].should == ['ARG']
-  end
-end
-
-describe "Parsing short options without arguments" do
-  before do 
-    @o = Options.new 
-
-    @o.option '-a --aa Aa'  
-    @o.option '-b --bb Bb'  
-    @o.option '-c --cc Cc'  
   end
 
   it "takes short options separately" do
-    h = @o.parse '-a -b -c'
+    h = @o.parse '-b -c -d'
 
-    h.key?('a').should == true
-    h.key?('aa').should == true
     h.key?('b').should == true
     h.key?('bb').should == true
     h.key?('c').should == true
     h.key?('cc').should == true
+    h.key?('d').should == true
+    h.key?('dd').should == true
   end
 
   it "takes short options combined" do
-    h = @o.parse '-abc'
+    h = @o.parse '-bcd'
 
-    h.key?('a').should == true
-    h.key?('aa').should == true
     h.key?('b').should == true
     h.key?('bb').should == true
     h.key?('c').should == true
     h.key?('cc').should == true
+    h.key?('d').should == true
+    h.key?('dd').should == true
   end
 
   it "takes short options interspersed with nonoption-arguments" do
-    h = @o.parse '-ab ARG -c'
+    h = @o.parse '-bd ARG -c'
 
-    h.key?('a').should == true
-    h.key?('aa').should == true
+    h.key?('d').should == true
+    h.key?('dd').should == true
     h.key?('b').should == true
     h.key?('bb').should == true
     h.key?('c').should == true
     h.key?('cc').should == true
     h[:args].should == ['ARG']
   end
-end
 
-describe "Parsing short options with arguments" do
-  before do 
-    @o = Options.new 
-
-    @o.option '-n --none None'  
-    @o.option '-o --one  One',  :one 
-    @o.option '-m --many Many', :many
-    @o.option '-a --any  Any',  :any
-  end
-
-  it "defaults to :none specified arguments which means no following argument is captured" do 
+  it "defaults to :none specified arguments which means no following argument is captured" do
     @o.parse('-n ARG')['n'].should == true
     @o.parse('-n ARG')['none'].should == true
   end
@@ -209,11 +119,11 @@ describe "Parsing short options with arguments" do
   it "accepts :many to indicate as many nonoption args as possible until next option" do
     h = @o.parse '-m ARG1 ARG2 ARG3 -n ARG4'
 
-    h['m'].should == %w|ARG1 ARG2 ARG3| 
-    h['many'].should == %w|ARG1 ARG2 ARG3| 
+    h['m'].should == %w|ARG1 ARG2 ARG3|
+    h['many'].should == %w|ARG1 ARG2 ARG3|
     h['n'].should == true
     h['none'].should == true
-    h[:args].should == %w|ARG4| 
+    h[:args].should == %w|ARG4|
   end
 
   it "accepts :any to indicate zero or as many as possible arguments" do
@@ -243,50 +153,29 @@ describe "Parsing short options with arguments" do
     @o.parse('-nao ARG')['o'].should == ['ARG']
     @o.parse('-nao ARG')['one'].should == ['ARG']
   end
-end
-
-describe "Parsing long options without arguments" do
-  before do 
-    @o = Options.new 
-
-    @o.option '-a --aa Aa'  
-    @o.option '-b --bb Bb'  
-    @o.option '-c --cc Cc'  
-  end
 
   it "takes long options separately" do
-    h = @o.parse '--aa --bb --cc'
+    h = @o.parse '--bb --cc --dd'
 
-    h.key?('a').should == true
-    h.key?('aa').should == true
     h.key?('b').should == true
     h.key?('bb').should == true
     h.key?('c').should == true
     h.key?('cc').should == true
+    h.key?('d').should == true
+    h.key?('dd').should == true
   end
 
   it "takes long options interspersed with nonoption-arguments" do
-    h = @o.parse '--aa ARG --cc'
+    h = @o.parse '--dd ARG --cc'
 
-    h.key?('a').should == true
-    h.key?('aa').should == true
+    h.key?('d').should == true
+    h.key?('dd').should == true
     h.key?('c').should == true
     h.key?('cc').should == true
     h[:args].should == ['ARG']
   end
-end
 
-describe "Parsing long options with arguments" do
-  before do 
-    @o = Options.new 
-
-    @o.option '-n --none None'  
-    @o.option '-o --one  One',  :one 
-    @o.option '-m --many Many', :many
-    @o.option '-a --any  Any',  :any
-  end
-
-  it "defaults to :none specified arguments which means no following argument is captured" do 
+  it "defaults to :none specified arguments which means no following argument is captured" do
     @o.parse('--none ARG')['n'].should == true
     @o.parse('--none ARG')['none'].should == true
   end
@@ -312,11 +201,11 @@ describe "Parsing long options with arguments" do
   it "accepts :many to indicate as many nonoption args as follow before the following option" do
     h = @o.parse '--many ARG1 ARG2 ARG3 -n ARG4'
 
-    h['m'].should == %w|ARG1 ARG2 ARG3| 
-    h['many'].should == %w|ARG1 ARG2 ARG3| 
+    h['m'].should == %w|ARG1 ARG2 ARG3|
+    h['many'].should == %w|ARG1 ARG2 ARG3|
     h['n'].should == true
     h['n'].should == true
-    h[:args].should == %w|ARG4| 
+    h[:args].should == %w|ARG4|
   end
 
   it "accepts :any to indicate zero or as many as possible arguments" do
