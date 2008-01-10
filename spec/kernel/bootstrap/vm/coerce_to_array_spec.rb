@@ -1,12 +1,12 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 describe "VM#coerce_to_array" do
-  it "when passed an Array, returns it" do
+  it "returns the Array passed to it" do
     array = [1]
     VM.coerce_to_array(array).equal?(array).should == true
   end
 
-  it "when passed an Object that implements #to_a and returns an Array, returns the Array" do
+  it "returns the Array provided by an Object that implements #to_a and returns an Array" do
     obj = mock('[1,2,3]')
     def obj.to_a
       [1, 2, 3]
@@ -14,7 +14,7 @@ describe "VM#coerce_to_array" do
     VM.coerce_to_array(obj).should == [1, 2, 3]
   end
 
-  it "when passed an Object that implements #to_a and does not return an Array, raises a TypeError" do
+  it "raises a TypeError when passed an Object that implements #to_a and does not return an Array" do
     obj = mock('x')
     def obj.to_a
       nil
@@ -37,7 +37,7 @@ describe "VM#coerce_to_array" do
 #    VM.coerce_to_array(obj).should == [obj]
 #  end
 
-  it "when passed an Object that uses Kernel#to_a, returns an Array containing that Object" do
+  it "returns an Array containing that Object when passed an Object that uses Kernel#to_a" do
     obj = mock('x')
     # TODO: NS/BT - Make Method#initialize take a Module instead of a IncludedModule
     obj.method(:to_a).module.module.should == Kernel
