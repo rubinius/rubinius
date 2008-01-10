@@ -2,13 +2,13 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 # Equivalent to Numeric#/, but overridden in subclasses.
 describe "Numeric#quo" do  
-  specify "quo should return the floating-point result of self divided by other" do
+  it "quo should return the floating-point result of self divided by other" do
     # the to_f is required because RSpec (I'm assuming) requires 'rational'
     2.quo(2.5).to_s.should == '0.8'
     5.quo(2).to_f.to_s.should == '2.5' 
   end
 
-  specify "quo should NOT raise an exception when other is zero" do
+  it "quo should NOT raise an exception when other is zero" do
     # 1.quo(0) should also not raise (i.e works in irb and from a file),
     # but fails here.
     1.quo(0.0).to_s.should == 'Infinity'

@@ -9,11 +9,11 @@ describe "SubtendRaiser" do
     @s = SubtendRaiser.new
   end
 
-  specify "rb_raise should raise an exception" do
+  it "rb_raise should raise an exception" do
     lambda { @s.raise! }.should raise_error(TypeError)
   end
 
-  specify "rb_raise terminates the function early" do
+  it "rb_raise terminates the function early" do
     h = {}
     lambda { @s.raise_early(h) }.should raise_error(TypeError)
     h[:screwed].should == false

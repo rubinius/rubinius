@@ -15,7 +15,7 @@ describe "File.umask" do
     File.umask.class.should == Fixnum
   end    
 
-  specify "umask should return the current umask value for the process" do
+  it "umask should return the current umask value for the process" do
     File.umask(022)
     File.umask(006).should == 022
     File.umask.should == 006

@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "Array literals" do
-  specify "[] should return a new array populated with the given elements" do
+  it "[] should return a new array populated with the given elements" do
     array = [1, 'a', nil]
     array[0].should == 1
     array[1].should == 'a'
@@ -11,23 +11,23 @@ end
 
 describe "Bareword array literals" do
     
-  specify "%w() transforms unquoted barewords into an array" do
+  it "%w() transforms unquoted barewords into an array" do
     a = 3
     %w(a #{3+a} 3).should == ["a", '#{3+a}', "3"]
   end
 
-  specify "%W() transforms unquoted barewords into an array, supporting interpolation" do
+  it "%W() transforms unquoted barewords into an array, supporting interpolation" do
     a = 3
     %W(a #{3+a} 3).should == ["a", '6', "3"]
   end
 end
 
 describe "The unpacking splat operator (*)" do
-  specify "when applied to a literal nested array, unpacks its elements into the containing array" do
+  it "when applied to a literal nested array, unpacks its elements into the containing array" do
     [1, 2, *[3, 4, 5]].should == [1, 2, 3, 4, 5]
   end
 
-  specify "when applied to a nested referenced array, unpacks its elements into the containing array" do
+  it "when applied to a nested referenced array, unpacks its elements into the containing array" do
     splatted_array = [3, 4, 5]
     [1, 2, *splatted_array].should == [1, 2, 3, 4, 5]
   end

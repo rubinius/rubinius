@@ -1,6 +1,6 @@
 shared :dir_delete do |cmd|
   describe "Dir.#{cmd}" do
-    specify "removes empty directories" do
+    it "removes empty directories" do
       %w|rmdir delete unlink|.each {|cmd|
         Dir.mkdir 'empty_subdir'
         Dir.send(cmd, 'empty_subdir').should == 0

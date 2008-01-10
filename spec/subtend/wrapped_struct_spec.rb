@@ -9,7 +9,7 @@ describe "SubtendWrappedStruct" do
     @s = SubtendWrappedStruct.new
   end
   
-  specify "Data_Wrap_Struct should wrap and Data_Get_Struct should return data" do
+  it "Data_Wrap_Struct should wrap and Data_Get_Struct should return data" do
     a = @s.wrap_struct(1024)
     @s.get_struct(a).should == 1024
   end

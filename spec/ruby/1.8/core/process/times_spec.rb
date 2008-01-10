@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Process.times" do
-  specify "returns current cpu times" do
+  it "returns current cpu times" do
 
     t = Process::times
     t.class.should == Struct::Tms

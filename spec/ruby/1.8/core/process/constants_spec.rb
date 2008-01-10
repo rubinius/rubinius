@@ -1,6 +1,6 @@
 
 describe "Process::Constants" do
-  specify "the constants" do
+  it "the constants" do
     Process::WNOHANG.should == 1
     Process::WUNTRACED.should == 2
     Process::PRIO_PROCESS.should == 0
@@ -22,7 +22,7 @@ describe "Process::Constants" do
   end
 
   platform_is :os => [:netbsd, :freebsd] do
-    specify "Process::RLIMIT_SBSIZE" do
+    it "Process::RLIMIT_SBSIZE" do
       Process::RLIMIT_SBSIZE.should == nil # FIXME: what's it equal?
     end
   end

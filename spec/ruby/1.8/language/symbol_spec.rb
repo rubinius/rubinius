@@ -1,12 +1,12 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "Using the literal form to create Symbols" do
-  specify 'Colon followed by a valid series of characters creates a Symbol' do
+  it 'Colon followed by a valid series of characters creates a Symbol' do
     a = :foo
     [a.class == Symbol, a.inspect == ':foo', a == :foo].all? {|x| x == true}.should == true
   end
 
-  specify 'Anything that would be a valid variable, method or constant name can be used in a literal Symbol' do
+  it 'Anything that would be a valid variable, method or constant name can be used in a literal Symbol' do
     # Add more of these?
     [ :Foo,
       :foo,
@@ -23,7 +23,7 @@ describe "Using the literal form to create Symbols" do
     ].all? {|x| Symbol === x}.should == true
   end
 
-  specify 'Colon followed by a single- or double-quoted String creates a Symbol which may contain nonvalid characters' do
+  it 'Colon followed by a single- or double-quoted String creates a Symbol which may contain nonvalid characters' do
     [ :'foo bar'.class, :'foo bar'.inspect,
       :'++'.class, :'++'.inspect,
       :'9'.class, :'9'.inspect,
@@ -36,7 +36,7 @@ describe "Using the literal form to create Symbols" do
       ]
   end
 
-  specify 'If the String consists of valid characters only, the representation is converted to a plain literal' do
+  it 'If the String consists of valid characters only, the representation is converted to a plain literal' do
     a, b, c = :'foo', :'+', :'Foo__9'
     a.class.should == Symbol
     a.inspect.should == ':foo'
@@ -46,18 +46,18 @@ describe "Using the literal form to create Symbols" do
     c.inspect.should == ':Foo__9'
   end
 
-  specify 'The string may not be empty' do
+  it 'The string may not be empty' do
     lambda { eval ":''" }.should raise_error(SyntaxError)
   end
 
-  specify '%s general-delimited expression creates Symbols like a single-quoted String' do
+  it '%s general-delimited expression creates Symbols like a single-quoted String' do
     a, b = :'foo bar', %s{foo bar}
     b.class.should == Symbol
     b.inspect.should == ':"foo bar"'
     b.should == a
   end
 
-  specify 'Each time a Symbol is constructed, the same object is returned' do
+  it 'Each time a Symbol is constructed, the same object is returned' do
     var = 'foo'
     a, b, c = :foo, :foo, :foo 
     d, e, f = :'foo', :'foo', :'foo'

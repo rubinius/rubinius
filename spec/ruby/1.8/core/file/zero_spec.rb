@@ -43,7 +43,7 @@ describe "File.zero?" do
     lambda { File.zero?(false) }.should raise_error(TypeError)
   end
    
-  specify "zero? should return true if the named file exists and has a zero size." do
+  it "zero? should return true if the named file exists and has a zero size." do
     begin
       File.zero?('fake_file').should == false
       file = '/tmp/i_exist'

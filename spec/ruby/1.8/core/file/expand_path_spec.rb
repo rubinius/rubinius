@@ -63,7 +63,7 @@ describe "File.expand_path" do
       File.expand_path("../../bin", "tmp/x").should == File.join(@pwd, 'bin')
     end
 
-    specify "expand_path for commoms unix path  give a full path" do      
+    it "expand_path for commoms unix path  give a full path" do      
       File.expand_path('/tmp/').should =='/tmp'
       File.expand_path('/tmp/../../../tmp').should == '/tmp'
       File.expand_path('').should == Dir.pwd

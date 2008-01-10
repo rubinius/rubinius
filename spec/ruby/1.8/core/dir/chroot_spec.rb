@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/common'
 
 # Need special perms to run chroot
 # describe "Dir.chroot" do
-#   specify 'Dir.chroot can be used to change the process\' root directory, see chroot(2)' do
+#   it 'Dir.chroot can be used to change the process\' root directory, see chroot(2)' do
 #     example do
 #      Kernel.fork {
 #        begin

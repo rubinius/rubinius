@@ -2,45 +2,45 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "Ruby numbers in various ways" do
 
-  specify "the standard way" do
+  it "the standard way" do
     435.should == 435
   end
 
-  specify "with underscore separations" do
+  it "with underscore separations" do
     4_35.should == 435
   end
 
-  specify "with some decimals" do
+  it "with some decimals" do
     4.35.should == 4.35
   end
   
-  specify "with decimals but no integer part should be a SyntaxError" do
+  it "with decimals but no integer part should be a SyntaxError" do
     lambda { eval(".75")  }.should raise_error(SyntaxError)
     lambda { eval("-.75") }.should raise_error(SyntaxError)
   end
 
   # TODO : find a better description
-  specify "using the e expression" do
+  it "using the e expression" do
     1.2e-3.should == 0.0012
   end
 
-  specify "the hexdecimal notation" do
+  it "the hexdecimal notation" do
     0xffff.should == 65535
   end
 
-  specify "the binary notation" do
+  it "the binary notation" do
     0b01011.should == 11
   end
 
-  specify "octal representation" do
+  it "octal representation" do
     0377.should == 255
   end
 
-  specify "character to numeric shortcut" do
+  it "character to numeric shortcut" do
     ?z.should == 122
   end
 
-  specify "character with control character to numeric shortcut" do
+  it "character with control character to numeric shortcut" do
     # Control-Z
     ?\C-z.should == 26
 

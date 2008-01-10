@@ -23,32 +23,32 @@ describe "SubtendClass" do
     @s = SubtendClass.new
   end
 
-  specify "rb_obj_alloc should allocate a new uninitialized object" do
+  it "rb_obj_alloc should allocate a new uninitialized object" do
     o = @s.rb_obj_alloc(SubtendClassTest)
     o.class.should == SubtendClassTest
     o.foo.should == nil
   end
 
-  specify "rb_obj_call_init should send #initialize" do
+  it "rb_obj_call_init should send #initialize" do
     o = @s.rb_obj_alloc(SubtendClassTest)
     @s.rb_obj_call_init(o, 1, [100])
     o.foo.should == 100
   end
 
-  specify "rb_class_new_instance should allocate and initialize a new object" do
+  it "rb_class_new_instance should allocate and initialize a new object" do
     o = @s.rb_class_new_instance(1, ["yo"], SubtendClassTest)
     o.class.should == SubtendClassTest
     o.foo.should == "yo"
   end
   
-  specify "rb_include_module should include a module into a class" do
+  it "rb_include_module should include a module into a class" do
     SubtendClassTest.new(4).respond_to?(:im_included).should == false
     @s.rb_include_module(SubtendClassTest, SubtendModuleTest)
     SubtendClassTest.new(4).respond_to?(:im_included).should == true
     SubtendClassTest.new(4).im_included.should == "YEP"
   end
   
-  specify "rb_define_attr should be able to define attributes" do
+  it "rb_define_attr should be able to define attributes" do
     @s.rb_define_attr(SubtendClassTest, :bar, true, false)
     @s.rb_define_attr(SubtendClassTest, :baz, false, true)
     @s.rb_define_attr(SubtendClassTest, :bat, true, true)      

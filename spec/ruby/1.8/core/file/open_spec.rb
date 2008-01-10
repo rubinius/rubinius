@@ -385,7 +385,7 @@ describe "File.open" do
     File.size(@file).should == 0  
   end
    
-  specify "expected errors " do
+  it "expected errors " do
     lambda { File.open(true)  }.should raise_error(TypeError)
     lambda { File.open(false) }.should raise_error(TypeError)
     lambda { File.open(nil)   }.should raise_error(TypeError)

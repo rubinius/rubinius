@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "Exceptions" do
-  specify "raise should abort execution" do
+  it "raise should abort execution" do
     lambda { 
       begin
         raise ArgumentError, "you don't know what you're talking about"
@@ -13,7 +13,7 @@ describe "Exceptions" do
   end
   
   # FIXME: code string is only necessary because ensure crashes shotgun
-  specify "ensure should execute when exception is raised" do
+  it "ensure should execute when exception is raised" do
     module RaiseSpecs
       class A
         def exception
@@ -33,7 +33,7 @@ describe "Exceptions" do
   end
   
   # FIXME: code string is only necessary because ensure crashes shotgun
-  specify "ensure should execute when exception is not raised" do
+  it "ensure should execute when exception is not raised" do
     class B
       def exception
         begin
@@ -50,7 +50,7 @@ describe "Exceptions" do
     B.new.exception.should == "ensure I never got to be an exception"
   end
 
-  specify "the result of ensure should be elided" do
+  it "the result of ensure should be elided" do
     begin
       true
     ensure
@@ -58,7 +58,7 @@ describe "Exceptions" do
     end.should == true
   end
 
-  specify "the result of else should be returned when no exception is raised" do
+  it "the result of else should be returned when no exception is raised" do
     begin
       true
     rescue
@@ -68,7 +68,7 @@ describe "Exceptions" do
     end.should == 6
   end
   
-  specify "the result of else should be returned when no exception is raised, even with an ensure" do
+  it "the result of else should be returned when no exception is raised, even with an ensure" do
     begin
       true
     rescue
@@ -80,7 +80,7 @@ describe "Exceptions" do
     end.should == 6
   end
 
-  specify "the result of else should be returned even if the body is empty" do
+  it "the result of else should be returned even if the body is empty" do
     begin
     rescue
       1
@@ -89,7 +89,7 @@ describe "Exceptions" do
     end.should == 2
   end
 
-  specify "retry should restart execution at begin" do
+  it "retry should restart execution at begin" do
     class C
       def exception
         @ret = []
@@ -112,16 +112,16 @@ describe "Exceptions" do
     C.new.exception.should == [1, 2, 3, 4, 7, 4]
   end
 
-  specify "on a single line, a default can be assigned on exception" do
+  it "on a single line, a default can be assigned on exception" do
     variable = [1,2,3].frist rescue 'exception'
     variable.should == 'exception'
   end
 
-  specify "that exceptions are not cleared exiting a thread" do
+  it "that exceptions are not cleared exiting a thread" do
     lambda { Thread.new { raise RangeError }.join }.should raise_error(RangeError)
   end
   
-  specify "that StandardError is the default rescue class" do
+  it "that StandardError is the default rescue class" do
     begin
       @ret = ''
       begin
@@ -145,7 +145,7 @@ describe "Exceptions" do
     end.should == 'intercepted'
   end
 
-  specify "that RuntimeError is the default raise class" do
+  it "that RuntimeError is the default raise class" do
     begin
       @ret = ''
       raise
@@ -154,7 +154,7 @@ describe "Exceptions" do
     end.should == 'RuntimeError'
   end
 
-  specify "that $! is cleared when an exception is rescued" do
+  it "that $! is cleared when an exception is rescued" do
     begin
       raise
     rescue
@@ -202,13 +202,13 @@ describe "Exceptions" do
   @last_exception  = nil
 
   generate_exception_existance_spec = lambda do |exception_name|
-    specify "exception #{exception_name} is in the core" do
+    it "exception #{exception_name} is in the core" do
       Object.const_defined?(exception_name).should == true
     end
   end
 
   generate_exception_ancestor_spec = lambda do |exception_name, parent_name|
-    specify "#{exception_name} has #{parent_name} as ancestor" do
+    it "#{exception_name} has #{parent_name} as ancestor" do
       exception = Object.const_get(exception_name.to_sym)
       ancestors = exception.ancestors.map { |x| x.to_s }
       ancestors.include?(parent_name.to_s).should == true

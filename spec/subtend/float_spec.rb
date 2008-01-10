@@ -9,7 +9,7 @@ describe "SubtendFloat" do
     @f = SubtendFloat.new
   end
   
-  specify "rb_float_new should create a new float" do
+  it "rb_float_new should create a new float" do
     ((@f.sf_new_zero - 0).abs < 0.000001).should == true
     ((@f.sf_new_point_five - 0.555).abs < 0.000001).should == true
   end

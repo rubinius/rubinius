@@ -16,7 +16,7 @@ describe "Array#assoc" do
     a.assoc("key not in array").should == nil
   end
 
-  specify "calls == on first element of each array" do
+  it "calls == on first element of each array" do
     key1 = 'it'
     key2 = mock('key2')
     items = [['not it', 1], [ArraySpecs::AssocKey.new, 2], ['na', 3]]
