@@ -1,5 +1,0 @@
-Time.utc handles string-like second argument
-Time.utc handles string arguments
-Time.utc handles float arguments
-Time.utc throws ArgumentError for out of range values
-Time.utc throws ArgumentError for invalid number of arguments

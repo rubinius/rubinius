@@ -1,4 +1,0 @@
-Time.local handles string arguments
-Time.local handles float arguments
-Time.local throws ArgumentError for out of range values
-Time.local throws ArgumentError for invalid number of arguments

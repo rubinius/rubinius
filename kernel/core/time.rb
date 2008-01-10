@@ -99,7 +99,7 @@ class Time
       usec = 0
     else
       # resolve month names to numbers
-      if args[0] && args[0].kind_of?(String)
+      if args[0] && args[0].respond_to?(:to_str) && (args[0] = args[0].to_str).to_i == 0
         month = MonthValue[args[0].upcase] || raise(ArgumentError.new('argument out of range'))
       end
       
@@ -300,7 +300,23 @@ class Time
   end
 
   def mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
+    sec  = sec.to_i
+    min  = min.to_i
+    hour = hour.to_i
+    mday = mday.to_i
+    mon  = mon.to_i
+    year = year.to_i
+    usec = usec.to_i
+    
+    raise ArgumentError, "time out of range" unless (0..60) === sec  &&
+                                                    (0..60) === min  &&
+                                                    (0..24) === hour &&
+                                                    (1..31) === mday &&
+                                                    (1..12) === mon 
+    
     @timeval = time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
+    raise ArgumentError, "time out of range" if @timeval.first == -1
+    
     self
   end
 

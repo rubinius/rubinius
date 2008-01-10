@@ -1,4 +1,0 @@
-Time.mktime handles string arguments
-Time.mktime handles float arguments
-Time.mktime throws ArgumentError for out of range values
-Time.mktime throws ArgumentError for invalid number of arguments
