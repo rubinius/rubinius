@@ -592,7 +592,7 @@ class IO
     if str == "+-+" and !block_given?
       raise ArgumentError, "this mode requires a block currently"
     end
-    
+
     pa_read, ch_write = IO.pipe
     
     pid = Process.fork
@@ -615,7 +615,7 @@ class IO
       if str == "+-+"
         yield nil
       else
-        Process.replace "/bin/sh", ["-c", str]
+        Process.replace "/bin/sh", ["sh", "-c", str]
       end
     end
   end
@@ -623,7 +623,7 @@ end
 
 class BidirectionalPipe < IO
   def initialize(pid, read, write)
-    super(read)
+    super(read.fileno)
     @pid = pid
     @write = write
   end

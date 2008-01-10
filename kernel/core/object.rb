@@ -211,35 +211,31 @@ class Object
     !(self == other)
   end
   
-  # TODO - Implement support for the 'all' parameter
   def singleton_methods(all=true)
-    class << self
-      (method_table.public_names + method_table.protected_names).map do |name|
-        name.to_s
-      end
+    mt = metaclass.method_table
+    if all
+      return mt.keys.map { |m| m.to_s }
+    else
+      (mt.public_names + mt.protected_names).map { |m| m.to_s }
     end
   end
 
   def private_singleton_methods
-    class << self
-      method_table.private_names.map { |nam| name.to_s }
-    end
+    metaclass.method_table.private_names.map { |meth| meth.to_s }
   end
   
   def protected_singleton_methods
-    class << self
-      method_table.protected_names.map { |nam| name.to_s }
-    end
+    metaclass.method_table.protected_names.map { |meth| meth.to_s }
   end
 
   def methods(all=true)
-    names = singleton_methods
+    names = singleton_methods(all)
     names |= self.class.instance_methods(true) if all
     return names
   end
   
   def public_methods(all=true)
-    names = singleton_methods
+    names = singleton_methods(all)
     names |= self.class.public_instance_methods(all)
     return names
   end
