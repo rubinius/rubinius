@@ -1,0 +1,1 @@
+BasicSocket#do_not_reverse_lookup causes 'peeraddr' to avoid name lookups
