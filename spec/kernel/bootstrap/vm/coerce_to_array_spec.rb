@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../../../spec_helper'
 
 describe "VM#coerce_to_array" do
   it "when passed an Array, returns it" do
@@ -39,7 +39,7 @@ describe "VM#coerce_to_array" do
 
   it "when passed an Object that uses Kernel#to_a, returns an Array containing that Object" do
     obj = mock('x')
-    # TODO: NS/BT - Make Method#initialize take a Module instead of a IncludedModule 
+    # TODO: NS/BT - Make Method#initialize take a Module instead of a IncludedModule
     obj.method(:to_a).module.module.should == Kernel
     VM.coerce_to_array(obj).should == [obj]
   end
