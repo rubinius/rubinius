@@ -2898,22 +2898,6 @@ class ShotgunPrimitives
     CODE
   end
 
-  def add_module_name
-    <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    if(!RISA(self, class) && !RISA(self, module)) {
-      t2 = object_get_module_names(self);
-      if(!RISA(t2, array)) {
-        t2 = array_new(state, 1);
-        object_set_module_names(self, t2);
-      }
-      array_append(state, t2, t1);
-    }
-    stack_push(self);
-    CODE
-  end
-
 end
 
 prim = ShotgunPrimitives.new

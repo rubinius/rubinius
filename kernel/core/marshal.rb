@@ -115,10 +115,8 @@ module Marshal
 
   def self.serialize_extended_object(obj)
     str = ''
-    if obj.module_names.kind_of?(Array)
-      obj.module_names.each do |mod_name|
-        str << TYPE_EXTENDED + serialize_symbol(mod_name)
-      end
+    get_module_names(obj).each do |mod_name|
+      str << TYPE_EXTENDED + serialize_symbol(mod_name)
     end
     str
   end
@@ -153,6 +151,16 @@ module Marshal
       sup = sup.superclass
     end
     sup
+  end
+
+  def self.get_module_names(obj)
+    names = []
+    sup = obj.metaclass.superclass
+    while sup and [Module, IncludedModule].include? sup.class
+      names << sup.name
+      sup = sup.superclass
+    end
+    names.reverse
   end
 
   def self.to_byte(n)

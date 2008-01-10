@@ -167,8 +167,4 @@ class Object
   def frozen?
     Ruby.primitive :object_frozen_p
   end
-
-  def add_module_name(mod_name)
-    Ruby.primitive :add_module_name
-  end
 end

@@ -8,9 +8,8 @@ class Object
   RUBY_ENGINE = Rubinius::RUBY_ENGINE
   RBX_VERSION = Rubinius::RBX_VERSION
   
-  ivar_as_index :__ivars__ => 0, :module_names => 1
+  ivar_as_index :__ivars__ => 0
   def __ivars__; @__ivars__ ; end
-  def module_names; @module_names; end
 
   def initialize
   end
@@ -250,7 +249,6 @@ class Object
   def extend(*modules)
     modules.reverse_each do |mod|
       mod.extend_object(self)
-      add_module_name(mod.name)
     end
     self
   end
