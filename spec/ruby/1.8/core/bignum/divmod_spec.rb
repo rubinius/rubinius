@@ -26,6 +26,18 @@ describe "Bignum#divmod" do
       (10**50).divmod(-(10**40 + 1)).should == [-9999999999, 9999999999999999999999999999990000000001]
     end
   end
+
+  # Based on MRI's test/test_integer.rb (test_divmod),
+  # MRI maintains the following property:
+  # if q, r = a.divmod(b) ==>
+  # assert(0 < b ? (0 <= r && r < b) : (b < r && r <= 0))
+  # So, r is always between 0 and b.
+  compliant_on :ruby, :jruby do
+    it "correctly handles negative values for x or y in x.divmod(y)" do
+      (-10**50).divmod(10**40 + 1).should == [-10000000000, 10000000000]
+      (10**50).divmod(-(10**40 + 1)).should == [-10000000000, -10000000000]
+    end
+  end
   
   it "raises a ZeroDivisionError when the given argument is 0" do
     lambda { @bignum.divmod(0) }.should raise_error(ZeroDivisionError)
