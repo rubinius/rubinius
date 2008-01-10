@@ -18,14 +18,6 @@ describe "Bignum#divmod" do
     (-(10**50)).divmod(-(10**40 + 1)).should == [9999999999, -9999999999999999999999999999990000000001]
     (10**50).divmod(10**40 + 1).should == [9999999999, 9999999999999999999999999999990000000001]
   end
-  
-  # see http://rubyforge.org/tracker/index.php?func=detail&aid=16988&group_id=426&atid=1698
-  not_compliant_on :ruby, :jruby do
-    it "correctly handles negative values for x or y in x.divmod(y)" do
-      (-10**50).divmod(10**40 + 1).should == [-9999999999, -9999999999999999999999999999990000000001]
-      (10**50).divmod(-(10**40 + 1)).should == [-9999999999, 9999999999999999999999999999990000000001]
-    end
-  end
 
   # Based on MRI's test/test_integer.rb (test_divmod),
   # MRI maintains the following property:
@@ -36,6 +28,14 @@ describe "Bignum#divmod" do
     it "correctly handles negative values for x or y in x.divmod(y)" do
       (-10**50).divmod(10**40 + 1).should == [-10000000000, 10000000000]
       (10**50).divmod(-(10**40 + 1)).should == [-10000000000, -10000000000]
+    end
+  end
+
+  # see http://rubyforge.org/tracker/index.php?func=detail&aid=16988&group_id=426&atid=1698
+  deviates_on :rubinius do
+    it "correctly handles negative values for x or y in x.divmod(y)" do
+      (-10**50).divmod(10**40 + 1).should == [-9999999999, -9999999999999999999999999999990000000001]
+      (10**50).divmod(-(10**40 + 1)).should == [-9999999999, 9999999999999999999999999999990000000001]
     end
   end
   
