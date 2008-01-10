@@ -300,7 +300,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   
   /* Look up the lexical scope first */
   
-  cref = cmethod_get_staticscope(cpu_current_method(state, c));
+  cref = cpu_current_scope(state, c);
   if(NIL_P(cref)) {
     start = state->global->object;
   } else {
@@ -470,7 +470,7 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   // aren't exactly CompiledMethods.
   // A method inherits the static scope of the method that that add/attaches it.
   if(NUM_FIELDS(method) > 10 && NIL_P(cmethod_get_staticscope(method))) {
-    cmethod_set_staticscope(method, cmethod_get_staticscope(cpu_current_method(state, c)));
+    cmethod_set_staticscope(method, cpu_current_scope(state, c));
   }
   
   hash_set(state, meths, sym, tuple_new2(state, 2, vis, method));

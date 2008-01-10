@@ -137,6 +137,7 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_current_data(cpu) (FASTCTX(cpu->home_context)->data)
 #define cpu_current_argcount(cpu) (cpu->argcount)
 #define cpu_current_sender(cpu) (cpu->sender)
+#define cpu_current_scope(state, cpu) cmethod_get_staticscope(FASTCTX(cpu->home_context)->method)
 
 #define cpu_flush_ip(cpu) (cpu->ip = (cpu->ip_ptr - cpu->data))
 #define cpu_flush_sp(cpu) (cpu->sp = (cpu->sp_ptr - cpu->stack_top))
