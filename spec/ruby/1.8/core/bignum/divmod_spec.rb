@@ -15,7 +15,16 @@ describe "Bignum#divmod" do
 
     @bignum.divmod(2.0).should == [4611686018427387904, 0.0]
     @bignum.divmod(0xffffffff).should == [2147483648,  2147483703]
-    (-10**50).divmod(10**40 + 1).should == [-10000000000, 10000000000]
+    (-(10**50)).divmod(-(10**40 + 1)).should == [9999999999, -9999999999999999999999999999990000000001]
+    (10**50).divmod(10**40 + 1).should == [9999999999, 9999999999999999999999999999990000000001]
+  end
+  
+  # see http://rubyforge.org/tracker/index.php?func=detail&aid=16988&group_id=426&atid=1698
+  not_compliant_on :ruby, :jruby do
+    it "correctly handles negative values for x or y in x.divmod(y)" do
+      (-10**50).divmod(10**40 + 1).should == [-9999999999, -9999999999999999999999999999990000000001]
+      (10**50).divmod(-(10**40 + 1)).should == [-9999999999, 9999999999999999999999999999990000000001]
+    end
   end
   
   it "raises a ZeroDivisionError when the given argument is 0" do
