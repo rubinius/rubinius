@@ -31,6 +31,8 @@ runtime/platform.conf
 *.so
 *.d
 *~
+\#*
+.\#*
 *.dSYM
 
 attic/externals/syd-parser/pkg

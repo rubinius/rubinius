@@ -13,6 +13,7 @@ module Platform::POSIX
   attach_function 'realloc', [:pointer, :int], :pointer
   attach_function 'free', [:pointer], :void
   attach_function 'memset', [:pointer, :int, :int], :pointer
+  attach_function 'memcpy', [:pointer, :pointer, :int], :pointer
 
   # rand
   attach_function 'srand', [:uint], :void
