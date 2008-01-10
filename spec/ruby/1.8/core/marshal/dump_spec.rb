@@ -149,9 +149,9 @@ describe "Marshal.dump with fixnum 5" do
   end
 end
 
-describe "Marshal.dump with fixnum -9" do
+describe "Marshal.dump with fixnum -123" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(-9).should == "#{mv+nv}i\xF2"
+    Marshal.dump(-123).should == "#{mv+nv}i\x80"
   end
 end
 
@@ -203,12 +203,6 @@ describe "Marshal.dump with fixnum -(2**16 - 1)" do
   end
 end
 
-describe "Marshal.dump with fixnum -(2**16 - 2)" do
-  it "returns a string-serialized version of the given argument" do
-    Marshal.dump(-(2**16 - 2)).should == "#{mv+nv}i\xFE\x02\x00"
-  end
-end
-
 describe "Marshal.dump with fixnum 43690" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(43690).should == "#{mv+nv}i\x02\xAA\xAA"
@@ -233,9 +227,15 @@ describe "Marshal.dump with bignum 2**30" do
   end
 end
 
-describe "Marshal.dump with bignum -(2**31 -1)" do
+describe "Marshal.dump with bignum -(2**31 - 1)" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(-(2**31 - 1)).should == "#{mv+nv}l-\x07\xFF\xFF\xFF\x7F"
+  end
+end
+
+describe "Marshal.dump with bignum 2**40" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(2**40).should == "#{mv+nv}l+\x08\x00\x00\x00\x00\x00\x01"
   end
 end
 
@@ -254,6 +254,12 @@ end
 describe "Marshal.dump with bignum -2**64" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(-2**64).should == "#{mv+nv}l-\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00"
+  end
+end
+
+describe "Marshal.dump with bignum 2**90" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(2**90).should == "#{mv+nv}l+\x0B\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04"
   end
 end
 
@@ -281,13 +287,19 @@ end
 
 describe "Marshal.dump with any extended_object having _dump method" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(Custom.new.extend(Meths)).should == "#{mv+nv}e:\x0AMethsu:\x0BCustom\x0Astuff"
+    Marshal.dump(Custom.new.extend(Meths)).should == "#{mv+nv}u:\x0BCustom\x0Astuff"
   end
 end
 
 describe "Marshal.dump with object" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(Object.new).should == "#{mv+nv}o:\x0BObject\x00"
+  end
+end
+
+describe "Marshal.dump with extended_object" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(Object.new.extend(Meths)).should == "#{mv+nv}e:\x0AMethso:\x0BObject\x00"
   end
 end
 
