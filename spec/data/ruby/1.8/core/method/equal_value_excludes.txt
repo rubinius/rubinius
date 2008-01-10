@@ -1,2 +1,0 @@
-Method#== returns true if methods are the same
-Method#== returns true on aliased methods

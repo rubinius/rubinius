@@ -14,7 +14,7 @@ class Method
   def inspect
     "#<#{self.class} #{@receiver.class}(#{@module})##{@method.name}>"
   end
-  
+
   def call(*args, &prc)
     @method.activate(@receiver, @module, args, &prc)
   end
@@ -22,7 +22,7 @@ class Method
   alias_method :[], :call
 
   def unbind
-    UnboundMethod.new(@module, @method)
+    UnboundMethod.new(@module, @method, @receiver.class)
   end
 
   def arity
@@ -71,9 +71,10 @@ class Method::AsBlockEnvironment < BlockEnvironment
 end
 
 class UnboundMethod
-  def initialize(mod, cm)
+  def initialize(mod, cm, orig_rcv = nil)
     @method = cm
     @module = mod
+    @orig_receiver = orig_rcv
   end
   
   def inspect
@@ -81,6 +82,7 @@ class UnboundMethod
   end
 
   def bind(receiver)
+    raise TypeError if @orig_receiver && !receiver.class.ancestors.include?(@orig_receiver)
     Method.new(receiver, @module, @method)
   end
 
