@@ -4,6 +4,7 @@
 # based on the specs.
 
 require 'optparse'
+require File.dirname(__FILE__) + '/name_map'
 
 module Completeness
   VERSION = '0.0.1'
@@ -86,83 +87,12 @@ end
 
 requires.each { |r| require r }
 
-dir_map = {
-  'NilClass' => 'nil',
-  'TrueClass' => 'true',
-  'FalseClass' => 'false',
-}
+cmd = lambda do |name, c, m|
+  base = 'spec/ruby/1.8/core/' unless base
+  dir = NameMap.get_dir_name(c, base)
+  spec_file = NameMap.get_spec_name(m, c)
 
-## from mkspec
-method_map = {
-  '`'   => 'backtick',
-  '+'   => 'plus',
-  '-'   => 'minus',
-  '+@'  => 'uplus',
-  '-@'  => 'uminus',
-  '*'   => 'multiply',
-  '/'   => 'divide',
-  '%'   => 'modulo',
-  '<<'  => {'Bignum' => 'left_shift', 
-            'Fixnum' => 'left_shift',
-            'Array'  => 'append',
-            'IO'     => 'output',
-            'String' => 'append',
-            'Set'    => 'append' },
-  '>>'  => 'right_shift',
-  '<'   => 'lt',
-  '<='  => 'lte',
-  '>'   => 'gt',
-  '>='  => 'gte',
-  '='   => 'assignment',
-  '=='  => 'equal_value',
-  '===' => 'case_compare',
-  '<=>' => 'comparison',
-  '[]'  => 'element_reference',
-  '[]=' => 'element_set',
-  '**'  => 'exponent',
-  '!'   => 'not',
-  '~'   => {'Bignum' => 'complement',
-            'Fixnum' => 'complement',
-            'Regexp' => 'match',
-            'String' => 'match' },
-  '!='  => 'not_equal',
-  '!~'  => 'not_match',
-  '=~'  => 'match',
-  '&'   => {'Bignum'     => 'bit_and',
-            'Fixnum'     => 'bit_and',
-            'Array'      => 'intersection',
-            'TrueClass'  => 'and',
-            'FalseClass' => 'and', 
-            'NilClass'   => 'and',
-            'Set'        => 'intersection' },
-  '|'   => {'Bignum'     => 'bit_or',
-            'Fixnum'     => 'bit_or',
-            'Array'      => 'union',
-            'TrueClass'  => 'or',
-            'FalseClass' => 'or',
-            'NilClass'   => 'or',
-            'Set'        => 'union' },
-  '^'   => {'Bignum'     => 'bit_xor',
-            'Fixnum'     => 'bit_xor',
-            'TrueClass'  => 'xor',
-            'FalseClass' => 'xor',
-            'NilClass'   => 'xor',
-            'Set'        => 'exclusion'}
-}
-
-cmd = lambda do |name|
-  spec_file = "spec"
-  const, meth = *name.split(/[#\.]/)
-  if method_map.key? meth
-    meth = method_map[meth]
-    meth = meth[const] if meth.kind_of? Hash
-  elsif meth =~ /[\?!=]$/
-    meth = meth[0..-2]
-  end
-  dir = dir_map[const] || const.downcase
-  base = 'spec/ruby/1.8/core' unless base
-  spec_file = "#{base}/#{dir}/#{meth}_spec.rb"
-  mspec_cmd =  %(bin/mspec -t #{target} #{requires.map { |r| "-r#{r}" }.join(" ")} -e '#{name} ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d #{spec_file} 2> /dev/null)
+  mspec_cmd =  %(bin/mspec -t #{target} #{requires.map { |r| "-r#{r}" }.join(" ")} -e '#{name} ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d #{dir}/#{spec_file} 2> /dev/null)
   puts mspec_cmd if verbose
   %x{#{mspec_cmd}}
 end
@@ -207,9 +137,9 @@ print_summary = lambda do |str, name, tab|
   tab.add(examples, failures, errors, failure_messages)
 end
 
-constants = constant_names.map { |c| get_class_or_module.call(c) }
+constants = constant_names.map { |c| NameMap.get_class_or_module(c) }
 if constants.empty?
-  constants = Object.constants.map { |c| get_class_or_module.call(c) }
+  constants = Object.constants.map { |c| NameMap.get_class_or_module(c) }
 end
 constants.sort! { |a,b| a.to_s <=> b.to_s }
 
@@ -247,14 +177,14 @@ tabulator = Tabulator.new
 constants.compact.each do |c|
   (c.methods(false) + c.singleton_methods).uniq.sort.each do |m|
     name = "#{c}.#{m}"
-    print_summary.call(cmd[name], name, tabulator)
+    print_summary.call(cmd[name, c, m], name, tabulator)
   end
 
   (c.public_instance_methods(false) +
       c.private_instance_methods(false) +
       c.protected_instance_methods(false)).sort.each do |m|
     name = "#{c}\##{m}"
-    print_summary.call(cmd[name], name, tabulator)
+    print_summary.call(cmd[name, c, m], name, tabulator)
   end
 end
 
