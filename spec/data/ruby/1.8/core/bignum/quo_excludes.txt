@@ -1,1 +1,0 @@
-Bignum#quo returns the result of self divided by the given Integer as a Float

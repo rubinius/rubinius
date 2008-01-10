@@ -87,7 +87,7 @@ class Numeric
   end
 
   def quo(other)
-    if other.is_a?(Fixnum)
+    if other.is_a?(Integer)
       self / Float(other)
     else
       b, a = self.do_coerce(other, true)
