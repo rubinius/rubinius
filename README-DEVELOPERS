@@ -22,7 +22,7 @@ Get to know your way around the place!
   The Ruby half of the implementation. The classes, methods etc. 
   that make up the Ruby language environment are defined here. 
   Further divided into..
-  
+
 * kernel/bootstrap/ 
   Minimal set of incomplete core classes that is used to load up 
   the rest of the system. Any code that requires Rubinius' special
@@ -121,6 +121,15 @@ will be necessary to regenerate the .load_order.txt file in the
 equivalent runtime subdirectory in order to get your class loaded 
 when Rubinius starts up. Use the rake task build:load_order to 
 regenerate the .load_order.txt files.
+
+Due to the dependencies inherent in writing the Core in Ruby, there
+is one idiom used that may confuse on first sight. Many methods are
+called #some_method_cv and the _cv stands for 'core version,' not
+one of the other things you thought it might be. The idea is that
+a simple version of a given method is used until everything is
+safely loaded, at which point it is replaced by the real version.
+This happens in WhateverClass.after_loaded (and it is NOT automated.)
+
 
 
 3. Libraries and C: Primitives vs. FFI
