@@ -1523,55 +1523,64 @@ class String
   #   "ZZZ9999".succ     #=> "AAAA0000"
   #   "***".succ         #=> "**+"
   def succ
-    return "".copy_properties(self) if length == 0
-    out = self.dup
-
-    start = length-1
-    alnum = self[-1..-1] =~ /[a-zA-Z0-9]/
-    while start >= 0       # can't break from a step or downto yet
-      if out[start].isalnum
-        break
-      else
-        start -= 1
-      end
-    end
-    start = length-1 if start < 0
-    
-    carry = false
-    c = 0
-    last_alnum = nil
-    start.step(0, -1) do |idx|
-      c = out[idx]
-      carry = true 
-      if alnum && carry && c.chr !~ /[a-zA-Z0-9]/
-        out[idx] = c
-        next
-      end
-      last_alnum = idx
-      if c == ?9
-        c = ?0
-      elsif c == ?Z
-        c = ?A
-      elsif c == ?z
-        c = ?a
-      else
-        c = (c + 1) % 256
-        carry = false if c != 0
-      end
-      out[idx] = c
-      return out.copy_properties(self) if !carry
-    end
-    c = out[last_alnum]
-    c += 1 if c == ?0 || c == 0
-    out = out[0...last_alnum] + c.chr + out[last_alnum..-1]
-    # work around for << not taking Fixnum
-    return out.copy_properties(self)
+    self.dup.succ!
   end
-
+  
   # Equivalent to <code>String#succ</code>, but modifies the receiver in
   # place.
   def succ!
-    replace(succ)
+    return self if @bytes == 0
+    
+    carry = nil
+    last_alnum = 0
+    start = @bytes - 1
+
+    self.modify!
+    
+    while start >= 0
+      if (s = @data[start]).isalnum
+        carry = 0
+        if (?0 <= s && s < ?9) ||
+           (?a <= s && s < ?z) ||
+           (?A <= s && s < ?Z)
+          @data[start] += 1
+        elsif s == ?9
+          @data[start] = ?0
+          carry = ?1
+        elsif s == ?z
+          @data[start] = carry = ?a
+        elsif s == ?Z
+          @data[start] = carry = ?A
+        end
+        
+        break if carry == 0
+        last_alnum = start
+      end
+
+      start -= 1
+    end
+
+    if carry.nil?
+      start = length - 1
+      carry = ?\001
+      
+      while start >= 0
+        if @data[start] >= 255
+          @data[start] = 0
+        else
+          @data[start] += 1
+          break
+        end
+
+        start -= 1
+      end
+    end
+    
+    if start < 0
+      self.splice(last_alnum, 1, carry.chr + @data[last_alnum].chr)
+    end
+
+    return self
   end
 
   alias_method :next, :succ
@@ -2261,16 +2270,17 @@ class String
   
   def upto(stop)
     stop = StringValue(stop)
-    raise LocalJumpError, "no block given" unless block_given?
-
     return self if self > stop
-
-    str = self.dup
-    loop do
-      yield str.dup
-      str.succ!
-      break if str.size > stop.size || str > stop
+    
+    after_stop = stop.succ
+    current = self
+    
+    until current == after_stop
+      yield current
+      current = StringValue(current.succ)
+      break if current.size > stop.size || current.size == 0
     end
+    
     self
   end
 
