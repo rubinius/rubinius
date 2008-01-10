@@ -1,5 +1,5 @@
 class Object
-  
+
   # VERSION is deprecated in MRI 1.9
   VERSION = Rubinius::RUBY_VERSION
   RUBY_VERSION = Rubinius::RUBY_VERSION
@@ -7,52 +7,62 @@ class Object
   RUBY_RELEASE_DATE = Rubinius::RUBY_RELEASE_DATE
   RUBY_ENGINE = Rubinius::RUBY_ENGINE
   RBX_VERSION = Rubinius::RBX_VERSION
-  
+
   ivar_as_index :__ivars__ => 0
   def __ivars__; @__ivars__ ; end
 
   def initialize
   end
-    
+
   def nil?
     false
   end
-  
+
   def undef?
     false
   end
-    
+
   # Regexp matching fails by default but may be overridden 
   # by subclasses, notably Regexp and String.
   def =~(other)
     false
   end
 
+  # Returns true if this object is an instance of the given class,
+  # otherwise false. Raises a TypeError if a non-Class object given.
+  #
+  # Module objects can also be given for MRI compatibility but the
+  # result is always false.
   def instance_of?(cls)
+    if cls.class != Class and cls.class != Module
+      # We can obviously compare against Modules but result is always false
+      raise TypeError, "instance_of? requires a Class argument"
+    end
+
     self.class == cls
   end
-  
+
   alias_method :is_a?, :kind_of?
-    
+
   alias_method :eql?, :equal?
   alias_method :==,   :equal?
   alias_method :===,  :equal?
-  
+
   alias_method :__id__, :object_id
 
   def to_s
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)}>"
   end
-  
+
   def inspect(prefix=nil, vars=nil)
     return "..." if RecursionGuard.inspecting?(self)
-    
+
     return self.to_s unless @__ivars__
-    
+
     if (@__ivars__.is_a?(Hash) or @__ivars__.is_a?(Tuple)) and @__ivars__.empty?
       return self.to_s
     end
-    
+
     prefix = "#{self.class.name}:0x#{self.object_id.to_s(16)}" unless prefix
     parts = []
     
