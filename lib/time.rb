@@ -363,7 +363,7 @@ class Time
         min = $5.to_i
         sec = $6.to_i
         usec = 0
-        usec = $7.to_f * 1000000 if $7
+        usec = ($7.to_f * 1000000).to_i if $7
         if $8
           zone = $8
           year, mon, day, hour, min, sec =
