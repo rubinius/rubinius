@@ -29,9 +29,11 @@ describe "Numeric#divmod" do
     # http://rubyforge.org/tracker/?func=detail&atid=1698&aid=14540&group_id=426
     y = 1 / 12.0
     0.58.divmod(y).first.should == 6
-    0.59.divmod(y).first.should == 7
-    0.63.divmod(y).first.should == 7
-    0.66.divmod(y).first.should == 7
+    fails_on(:ruby) do
+      0.59.divmod(y).first.should == 7
+      0.63.divmod(y).first.should == 7
+      0.66.divmod(y).first.should == 7
+    end
     0.67.divmod(y).first.should == 8
   end
 
