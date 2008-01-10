@@ -200,7 +200,19 @@ class Hash
     self
   end
 
-  def each_pair()
+  def each
+    raise LocalJumpError, "no block given" unless block_given? or empty?
+
+    @values.each do |tup|
+      while tup
+        yield([tup.at(1), tup.at(2)])
+        tup = tup.at(3)
+      end
+    end
+    self
+  end
+
+  def each_pair
     raise LocalJumpError, "no block given" unless block_given? or empty?
 
     @values.each do |tup|
@@ -211,7 +223,6 @@ class Hash
     end
     self
   end
-  alias_method :each, :each_pair
 
   def each_value(&block)
     values.each(&block)
