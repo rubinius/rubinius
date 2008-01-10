@@ -183,7 +183,7 @@ begin
       end
 
       unless ran
-        repr = ENV['RBX_REPR'] || "bin/sirb"
+        repr = ENV['RBX_REPR'] || "bin/irb"
         $0 = repr
         require repr
       end
