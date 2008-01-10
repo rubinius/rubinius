@@ -1,31 +1,25 @@
-require "#{File.dirname(__FILE__)}/instruction_info.rb"
+require "#{File.dirname(__FILE__)}/../../kernel/core/iseq"
 
 class ShotgunInstructions
     
   def generate_switch(fd, op="op")
-    i = 0 
-    order = InstructionInfo::OpCodes
-    ci =    InstructionInfo::CheckInterupts
-    term =  InstructionInfo::Terminators
-    
     fd.puts "switch(#{op}) {"
-    order.each do |ins|
-      code = send(ins) rescue nil
+    InstructionSet::OpCodes.each do |ins|
+      code = send(ins.opcode) rescue nil
       if code
-        fd.puts "   case #{i}: { /* #{ins} */"
+        fd.puts "   case #{ins.bytecode}: { /* #{ins.opcode} */"
         fd.puts code
-        if ci.index(ins)
+        if ins.check_interrupts?
           fd.puts "   goto check_interupts;"
-        elsif term.index(ins)
+        elsif ins.terminator?
           fd.puts "   goto insn_start;"
         else
           fd.puts "   goto next_op;"
         end
         fd.puts "   }"
       else
-        STDERR.puts "Problem with opcode: #{ins}"
+        STDERR.puts "Problem with opcode: #{ins.opcode}"
       end
-      i += 1
     end
     fd.puts "default: printf(\"Invalid bytecode: %d\\n\", (int)op); sassert(0);\n"
     fd.puts "}"
@@ -33,19 +27,14 @@ class ShotgunInstructions
   end
   
   def generate_threaded(fd, op="op")
-    i = 0 
-    order = InstructionInfo::OpCodes
-    ci =    InstructionInfo::CheckInterupts
-    term =  InstructionInfo::Terminators
-    
-    order.each do |ins|
+    InstructionSet::OpCodes.each do |ins|
       code = send(ins) rescue nil
       if code
-        fd.puts "   insn_#{i}: {"
+        fd.puts "   insn_#{ins.bytecode}: {"
         fd.puts code
-        if ci.index(ins)
+        if ins.check_interrupts?
           fd.puts "   goto check_interupts;"
-        elsif term.index(ins)
+        elsif ins.terminator?
           fd.puts "   goto insn_start;"
         else
           fd.puts "   NEXT_OP;"
@@ -53,42 +42,35 @@ class ShotgunInstructions
         fd.puts "   }"
           
       else
-        STDERR.puts "Problem with opcode: #{ins}"
+        STDERR.puts "Problem with opcode: #{ins.opcode}"
       end
-      i += 1
     end
     fd.puts
   end
   
   def generate_dter
-    order = InstructionInfo::OpCodes
-    two =   InstructionInfo::TwoInt
-    one =   InstructionInfo::IntArg - two
-    
     code = "static int _ip_size(uint32_t bc) {\nswitch(bc) {\n"
-    two.each do |ins|
-      code << "  case #{order.index(ins)}:\n"
+    InstructionSet::OpCodes.each do |ins|
+      if ins.arg_count == 2
+        code << "  case #{ins.bytecode}:\n"
+      end
     end
     code << "    return 3;\n"
     
-    one.each do |ins|
-      idx = order.index(ins)
-      unless idx
-        raise "Couldn't find index of #{ins}!!!"
+    InstructionSet::OpCodes.each do |ins|
+      if ins.arg_count == 1
+        code << "  case #{ins.bytecode}:\n"
       end
-      code << "  case #{idx}:\n"
     end
     code << "   return 2;\n"
     
     code << "}\nreturn 1;\n}\n\n"
     
-    code << "#define DT_ADDRESSES static void* _dt_addresses[#{order.size + 1}]; static int _dt_size = #{order.size};\n"
+    code << "#define DT_ADDRESSES static void* _dt_addresses[#{InstructionSet::OpCodes.size + 1}]; static int _dt_size = #{InstructionSet::OpCodes.size};\n"
     code << "#define SETUP_DT_ADDRESSES "
     
-    i = 0
-    order.each do |ins|
-      code << "_dt_addresses[#{i}] = &&insn_#{i}; "
-      i += 1
+    InstructionSet::OpCodes.each do |ins|
+      code << "_dt_addresses[#{ins.bytecode}] = &&insn_#{ins.bytecode}; "
     end
     code << "\n"
     
@@ -130,18 +112,17 @@ class ShotgunInstructions
   end
   
   def generate_names
-    order = InstructionInfo::OpCodes;
     str = "static const char instruction_names[] = {\n"
-    order.each do |ins|
-      str << "  \"#{ins.to_s}\\0\"\n"
+    InstructionSet::OpCodes.each do |ins|
+      str << "  \"#{ins.opcode.to_s}\\0\"\n"
     end
     str << "};\n\n"
     offset = 0
     str << "static const unsigned short instruction_name_offsets[] = {\n"
-    order.each_with_index do |ins, index|
+    InstructionSet::OpCodes.each_with_index do |ins, index|
       str << ",\n" if index > 0
       str << "  #{offset}"
-      offset += ins.to_s.length + 1
+      offset += ins.opcode.to_s.length + 1
     end
     str << "\n};\n\n"
     str << <<CODE
@@ -154,11 +135,8 @@ CODE
   def generate_names_header
     str = "const char *get_instruction_name(int op);\n"
 
-    order = InstructionInfo::OpCodes;
-    i = 0
-    order.each do |ins|
-      str << "#define CPU_INSTRUCTION_#{ins.to_s.upcase} #{i}\n"
-      i += 1
+    InstructionSet::OpCodes.each do |ins|
+      str << "#define CPU_INSTRUCTION_#{ins.opcode.to_s.upcase} #{ins.bytecode}\n"
     end
     
     str
