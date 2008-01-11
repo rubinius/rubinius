@@ -21,7 +21,7 @@ class String
       @data = ByteArray.new(arg+1)
       @bytes = arg
       @characters = arg
-      @encoding = nil      
+      @encoding = nil
     elsif !arg.nil?
       replace(StringValue(arg))
     elsif @data.nil?
@@ -75,7 +75,7 @@ class String
   # 
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    String.new(self) << other
+    "".replace(self) << other
   end
 
   # Append --- Concatenates the given object to <i>self</i>. If the object is a
@@ -1667,7 +1667,7 @@ class String
   # Returns self if self is an instance of String,
   # else returns self converted to a String instance.
   def to_s
-    self.class == String ? self : String.new(self)
+    self.class == String ? self : "".replace(self)
   end
   alias_method :to_str, :to_s
 
