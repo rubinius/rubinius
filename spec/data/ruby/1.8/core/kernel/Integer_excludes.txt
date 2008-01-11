@@ -1,1 +1,0 @@
-Kernel.Integer when given a String raises an ArgumentError if the given String is no valid String representation

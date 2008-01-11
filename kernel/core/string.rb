@@ -1845,7 +1845,7 @@ class String
       i += 1
     end
     
-    if @data[i] == ?+ || @data[i] == ?-
+    if @data[i] == ?+ || @data[i] == ?- || @data[i] == ?_
       raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check
       return 0
     end
