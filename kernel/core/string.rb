@@ -59,17 +59,13 @@ class String
   #   
   #   "Ho! " * 3   #=> "Ho! Ho! Ho! "
   def *(num)
-    unless num.is_a? Integer
-      raise "Can't convert #{num.class} to Integer" unless num.respond_to? :to_int
-      num = num.to_int
-    end
+    num = Type.coerce_to(num, Integer, :to_int) unless num.is_a? Integer
     
     raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
-    str = []
-    num.times { str << self }
-    str = self.class.new(str.join)
+    str = self.class.new
+    num.times { str.append(self) }
     str.taint if self.tainted?
     return str
   end
