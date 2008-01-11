@@ -3,8 +3,8 @@ require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "UDPSocket.open" do
   after(:each) do
-    @socket.close if @socket
-    @server.close if @server
+    @socket.close if @socket && !@socket.closed?
+    @server.close if @server && !@server.closed?
   end
 
   it "returns a socket that can be written to and read from" do
