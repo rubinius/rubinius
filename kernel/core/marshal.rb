@@ -1,87 +1,79 @@
 # depends on: module.rb
 
 class NilClass
-  def to_marshal(depth = -1, version = true, subclass = nil)
-    (version ? Marshal::VERSION_STRING : '') +
+  def to_marshal(depth = -1, subclass = nil)
     Marshal::TYPE_NIL
   end
 end
 
 class TrueClass
-  def to_marshal(depth = -1, version = true, subclass = nil)
-    (version ? Marshal::VERSION_STRING : '') +
+  def to_marshal(depth = -1, subclass = nil)
     Marshal::TYPE_TRUE
   end
 end
 
 class FalseClass
-  def to_marshal(depth = -1, version = true, subclass = nil)
-    (version ? Marshal::VERSION_STRING : '') +
+  def to_marshal(depth = -1, subclass = nil)
     Marshal::TYPE_FALSE
   end
 end
 
 class Class
-  def to_marshal(depth = -1, version = true, subclass = nil)
-    (version ? Marshal::VERSION_STRING : '') +
+  def to_marshal(depth = -1, subclass = nil)
     Marshal::TYPE_CLASS +
-    Marshal::serialize_integer(self.name.length) + self.name
+    Marshal.serialize_integer(self.name.length) + self.name
   end
 end
 
 class Module
-  def to_marshal(depth = -1, version = true, subclass = nil)
-    (version ? Marshal::VERSION_STRING : '') +
+  def to_marshal(depth = -1, subclass = nil)
     Marshal::TYPE_MODULE +
-    Marshal::serialize_integer(self.name.length) + self.name
+    Marshal.serialize_integer(self.name.length) + self.name
   end
 end
 
 class Symbol
-  def to_marshal(depth = -1, version = true, subclass = nil)
+  def to_marshal(depth = -1, subclass = nil)
     str = self.to_s
-    (version ? Marshal::VERSION_STRING : '') +
     Marshal::TYPE_SYMBOL +
-    Marshal::serialize_integer(str.length) + str
+    Marshal.serialize_integer(str.length) + str
   end
 end
 
 class String
-  def to_marshal(depth = -1, version = true, subclass = nil)
-    ivar_prefix = Marshal::serialize_instance_variables_prefix(self)
-    ivar_suffix = Marshal::serialize_instance_variables_suffix(self, depth, false, subclass)
-    (version ? Marshal::VERSION_STRING : '') + ivar_prefix +
-    Marshal::serialize_extended_object(self, depth) +
-    Marshal::serialize_user_class(self, depth, false, subclass) +
+  def to_marshal(depth = -1, subclass = nil)
+    ivar_prefix = Marshal.serialize_instance_variables_prefix(self)
+    ivar_suffix = Marshal.serialize_instance_variables_suffix(self, depth, subclass)
+    ivar_prefix +
+    Marshal.serialize_extended_object(self, depth) +
+    Marshal.serialize_user_class(self, depth, subclass) +
     Marshal::TYPE_STRING +
-    Marshal::serialize_integer(self.length) + self + ivar_suffix
+    Marshal.serialize_integer(self.length) + self + ivar_suffix
   end
 end
 
 class Integer
-  def to_marshal(depth = -1, version = true, subclass = nil)
+  def to_marshal(depth = -1, subclass = nil)
     if self >= -2**30 and self <= (2**30 - 1)
-      to_marshal_fixnum(depth, version, subclass)
+      to_marshal_fixnum(depth, subclass)
     else
-      to_marshal_bignum(depth, version, subclass)
+      to_marshal_bignum(depth, subclass)
     end
   end
 
-  def to_marshal_fixnum(depth = -1, version = true, subclass = nil)
-    (version ? Marshal::VERSION_STRING : '') +
+  def to_marshal_fixnum(depth = -1, subclass = nil)
     Marshal::TYPE_FIXNUM +
-    Marshal::serialize_integer(self)
+    Marshal.serialize_integer(self)
   end
 
-  def to_marshal_bignum(depth = -1, version = true, subclass = nil)
-    str = (version ? Marshal::VERSION_STRING : '') +
-          Marshal::TYPE_BIGNUM +
+  def to_marshal_bignum(depth = -1, subclass = nil)
+    str = Marshal::TYPE_BIGNUM +
           (self < 0 ? '-' : '+') + "\0"
     size_index = str.length - 1
     cnt = 0
     num = self.abs
     while num != 0
-      str << Marshal::to_byte(num & 0xFF)
+      str << Marshal.to_byte(num & 0xFF)
       num >>= 8
       cnt += 1
     end
@@ -89,47 +81,45 @@ class Integer
       str << "\0"
       cnt += 1
     end
-    str[size_index] = Marshal::to_byte(((cnt - 4) / 2) + 7)
+    str[size_index] = Marshal.to_byte(((cnt - 4) / 2) + 7)
     str
   end
 end
 
 class Regexp
-  def to_marshal(depth = -1, version = true, subclass = nil)
+  def to_marshal(depth = -1, subclass = nil)
     str = self.source
-    ivar_prefix = Marshal::serialize_instance_variables_prefix(self)
-    ivar_suffix = Marshal::serialize_instance_variables_suffix(self, depth, false, subclass)
-    (version ? Marshal::VERSION_STRING : '') + ivar_prefix +
-    Marshal::serialize_extended_object(self, depth) +
-    Marshal::serialize_user_class(self, depth, false, subclass) +
+    ivar_prefix = Marshal.serialize_instance_variables_prefix(self)
+    ivar_suffix = Marshal.serialize_instance_variables_suffix(self, depth, subclass)
+    ivar_prefix +
+    Marshal.serialize_extended_object(self, depth) +
+    Marshal.serialize_user_class(self, depth, subclass) +
     Marshal::TYPE_REGEXP +
-    Marshal::serialize_integer(str.length) + str +
-    Marshal::to_byte(self.options & 0x7) + ivar_suffix
+    Marshal.serialize_integer(str.length) + str +
+    Marshal.to_byte(self.options & 0x7) + ivar_suffix
   end
 end
 
 class Struct
-  def to_marshal(depth = -1, version = true, subclass = nil)
-    str = (version ? Marshal::VERSION_STRING : '') +
-          Marshal::serialize_extended_object(self, depth) +
+  def to_marshal(depth = -1, subclass = nil)
+    str = Marshal.serialize_extended_object(self, depth) +
           Marshal::TYPE_STRUCT +
-          self.class.name.to_sym.to_marshal(depth, false, subclass) +
-          Marshal::serialize_integer(self.length)
+          self.class.name.to_sym.to_marshal(depth, subclass) +
+          Marshal.serialize_integer(self.length)
     self.each_pair do |sym, val|
-      str << sym.to_marshal(depth, false, subclass) +
-             val.to_marshal(depth, false, subclass)
+      str << sym.to_marshal(depth, subclass) +
+             val.to_marshal(depth, subclass)
     end
     str
   end
 end
 
 class Object
-  def to_marshal(depth = -1, version = true, subclass = nil)
-    ivar_suffix = Marshal::serialize_instance_variables_suffix(self, depth, false, subclass)
-    (version ? Marshal::VERSION_STRING : '') +
-    Marshal::serialize_extended_object(self, depth) +
+  def to_marshal(depth = -1, subclass = nil)
+    ivar_suffix = Marshal.serialize_instance_variables_suffix(self, depth, subclass)
+    Marshal.serialize_extended_object(self, depth) +
     Marshal::TYPE_OBJECT +
-    self.class.name.to_sym.to_marshal(depth, false, subclass) + ivar_suffix
+    self.class.name.to_sym.to_marshal(depth, subclass) + ivar_suffix
   end
 end
 
@@ -170,7 +160,7 @@ module Marshal
   TYPE_LINK = '@'
 
   def self.dump(obj, depth = -1, io = nil)
-    serialize(obj, depth)
+    VERSION_STRING + serialize(obj, depth)
   end
 
   def self.serialize(obj, depth)
@@ -180,11 +170,11 @@ module Marshal
       case class_name
       when 'String'
         if obj.class != String
-          return obj.to_marshal(depth, true, obj.class)
+          return obj.to_marshal(depth, obj.class)
         end
       when 'Regexp'
         if obj.class != Regexp
-          return obj.to_marshal(depth, true, obj.class)
+          return obj.to_marshal(depth, obj.class)
         end
       end
     end
@@ -220,14 +210,14 @@ module Marshal
     end
   end
 
-  def self.serialize_instance_variables_suffix(obj, depth = -1, version = false, subclass = nil)
+  def self.serialize_instance_variables_suffix(obj, depth = -1, subclass = nil)
     if obj.class == Object or obj.instance_variables.length > 0
       str = serialize_integer(obj.instance_variables.length)
       obj.instance_variables.each do |ivar|
         sym = ivar.to_sym
         o = obj.instance_variable_get(sym)
-        str << sym.to_marshal(depth, false, subclass) +
-               o.to_marshal(depth, false, subclass)
+        str << sym.to_marshal(depth, subclass) +
+               o.to_marshal(depth, subclass)
       end
       str
     else
@@ -238,14 +228,14 @@ module Marshal
   def self.serialize_extended_object(obj, depth = -1)
     str = ''
     get_module_names(obj).each do |mod_name|
-      str << TYPE_EXTENDED + mod_name.to_sym.to_marshal(depth, false)
+      str << TYPE_EXTENDED + mod_name.to_sym.to_marshal(depth)
     end
     str
   end
 
-  def self.serialize_user_class(obj, depth, version, subclass)
+  def self.serialize_user_class(obj, depth, subclass)
     if obj.class == subclass
-      TYPE_UCLASS + obj.class.name.to_sym.to_marshal(depth, false, subclass)
+      TYPE_UCLASS + obj.class.name.to_sym.to_marshal(depth, subclass)
     else
       ''
     end
