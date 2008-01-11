@@ -28,7 +28,6 @@ void cpu_task_cleanup(STATE, OBJECT self) {
   }
 }
 
-extern machine current_machine;
 void cpu_task_configure_premption(STATE);
 
 void Init_cpu_task(STATE) {

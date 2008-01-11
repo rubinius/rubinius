@@ -5,15 +5,6 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 
-/* Backtrace support */
-#ifdef  __linux__ 
-#include <execinfo.h>
-#elif defined(__FreeBSD__) 
-#include <execinfo.h>
-#elif defined(__OpenBSD__) 
-#include <execinfo.h>
-#endif
-
 /* *BSD dl support */
 #ifdef __FreeBSD__
 #include <dlfcn.h>
@@ -38,11 +29,6 @@
 #include "shotgun/lib/instruction_names.h"
 
 machine current_machine;
-
-ucontext_t g_firesuit;
-int g_use_firesuit;
-int g_access_violation;
-int g_firesuit_arg;
 
 static int _recursive_reporting = 0;
 
@@ -144,192 +130,6 @@ void machine_print_stack(machine m) {
   
 }
 
-/* Cleans up the code that uses it for access specific addresses. */
-static inline unsigned _mem_at(unsigned long addr) {
-  return *(unsigned long*)(addr);
-}
-
-#if defined (__i486__)
-#define X8632
-#endif
-
-
-#ifdef __ppc__
-
-#include <dlfcn.h>
-#include <ucontext.h>
-#define BETTER_BT 1
-
-void machine_gather_ppc_frames(ucontext_t *ctx, unsigned long *frames, int *count) {
-  unsigned long sp, pc;
-  int i;
-  
-  /* Populate the initial value of the stack pointer from
-     the context (probably generated from a signal) */
-#if defined (__DARWIN_VERS_1050)
-  sp = ctx->uc_mcontext->__ss.__r1;
-#else
-  sp = ctx->mc.sp;
-#endif
-  for(i = 0; i < *count && sp; i++) {
-    /* The address of the routine is stored 8 bytes past
-       the stark pointer on PPC. */
-    pc = _mem_at(sp + 8);
-    /* We subtract 4 since pc points to the next instruction, and
-     * we want the current one. */
-    frames[i] = pc - 4;
-    
-    /* The saved stack pointer is the first thing pushed
-       on the stack by the caller. */
-    sp = _mem_at(sp);
-  }
-  
-  *count = i + 1;
-}
-
-void machine_show_ppc_backtrace(ucontext_t *ctx) {
-  unsigned long sp, sym, offset;
-  Dl_info info;
-  
-  /* Populate the initial value of the stack pointer from
-     the context (probably generated from a signal) */
-#if defined (__DARWIN_VERS_1050)
-  sp = ctx->uc_mcontext->__ss.__r1;
-#else
-  sp = ctx->mc.sp;
-#endif
-  while(sp) {
-    /* The address of the routine is stored 8 bytes past
-       the stark pointer on PPC. */
-    sym = _mem_at(sp + 8);
-    if(!dladdr((void*)sym, &info)) {
-      return;
-    } else {
-      if (info.dli_sname == NULL)
-        info.dli_sname = "???";
-      if (info.dli_saddr == NULL) {
-        offset = 0;
-      } else {
-        offset = sym - (unsigned long)info.dli_saddr;        
-      }
-      
-      fprintf(stdout, "%10p <%s+%d> at %s\n",
-            (void*)sym, info.dli_sname, (int)offset, info.dli_fname);
-      
-      /* The saved stack pointer is the first thing pushed
-         on the stack by the caller. */
-      sp = _mem_at(sp);
-    }
-  }
-}
-
-/* Only for 32bit x86 */
-#elif defined(X8632)
-#include <dlfcn.h>
-#include <ucontext.h>
-#define BETTER_BT 1
-
-void machine_gather_x86_frames(ucontext_t *ctx, unsigned long *frames, int *count) {
-  unsigned long sp, pc;
-  int i;
-  
-  /* Populate the initial value of the stack pointer.
-     Different OS's have different structures for ucontext,
-     so we use #ifdef's here to figure out where to get sp from. */
-  #ifdef __linux__
-  /* sp = ctx->uc_mcontext.gregs[REG_EBP]; */
-  sp = 0;
-  #elif __APPLE__
-  sp = ctx->uc_mcontext.mc_ebp;
-  #endif
-  
-  for(i = 0; i < *count && sp; i++) {
-    pc = _mem_at(sp + 4);
-    /* We subtract 4 since pc points to the next instruction, and
-     * we want the current one. */
-    frames[i] = pc - 4;
-    
-    /* The saved stack pointer is the first thing on the stack at
-       the current pointer. */
-    sp = _mem_at(sp);
-  }
-  
-  *count = i + 1;
-}
-
-#endif
-
-#ifdef __linux__
-void machine_resolve_address(unsigned long pc, 
-                    char *function, int fs, char *loc, int ls) {
-  FILE *io;
-  char cmd[1024];
-
-  snprintf(cmd, sizeof(cmd), "addr2line -f -e %s %p", current_machine->interpreter, (void*)pc);
-  io = popen(cmd, "r");
-  fgets(function, fs, io);
-  function[strlen(function)-1] = 0;
-  fgets(loc, ls, io);
-  loc[strlen(loc)-1] = 0;
-  pclose(io);
-}
-#elif defined(__APPLE__)
-void machine_resolve_address(unsigned long pc, 
-                    char *function, int fs, char *loc, int ls) {
-  FILE *io;
-  char cmd[1024];
-  int line;
-  char buf[1024];
-
-  snprintf(cmd, sizeof(cmd), "atos -o %s %p", current_machine->interpreter, (void*)pc);
-  io = popen(cmd, "r");
-  fgets(cmd, sizeof(cmd), io);
-  if(cmd[0] == '0') {
-    strlcpy(function, "unknown", fs);
-    strlcpy(loc, "??:0", ls);
-  } else {
-    line = sscanf(cmd, "_%s (in %s (%s\n", function, buf, loc);
-    loc[strlen(loc)-1] = 0;
-  }  
-  pclose(io);
-}
-#else
-
-void machine_resolve_address(unsigned long pc,
-                  char *function, int fs, char *loc, int ls) {
-  int offset;
-  Dl_info info;
-  if(!dladdr((void*)pc, &info)) {
-    strlcpy(function, "<unknown>", fs);
-    strlcpy(loc, "??:0", ls);
-  } else {
-    if (info.dli_sname == NULL)
-      info.dli_sname = "??";
-    if (info.dli_saddr == NULL) {
-      offset = 0;
-    } else {
-      offset = pc - (unsigned long)info.dli_saddr;        
-    }
-
-    snprintf(function, fs, "%s+%d", info.dli_sname, (int)offset);
-    strlcpy(loc, info.dli_fname, ls);
-  }
-}
-#endif
-
-void machine_show_backtrace(unsigned long *frames, int count) {
-  unsigned long sym;
-  int i;
-  char function[1024];
-  char loc[1024];
-
-  for(i = 0; i < count; i++) {
-    sym = frames[i];
-    machine_resolve_address(sym, function, sizeof(function), loc, sizeof(loc));
-    fprintf(stdout, "%10p <%s> at %s\n", (void*)sym, function, loc);
-  }
-}
-
 void machine_print_registers(machine m) {
   cpu_flush_sp(m->c);
   cpu_flush_ip(m->c);
@@ -370,7 +170,7 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     addr = (OBJECT)(info->si_addr);
     if(!REFERENCE_P(addr) || !REFERENCE_P(addr - 4) || !REFERENCE_P(addr - 8)) {
       printf("Attempted to access field of non-reference.\n");
-      if(g_use_firesuit) {
+      if(current_machine->g_use_firesuit) {
         machine_handle_fire(FIRE_NULL);
       }
     }
@@ -422,10 +222,9 @@ void machine_setup_signals(machine m) {
 machine machine_new() {
   machine m;
   
-  g_use_firesuit = 0;
-  g_access_violation = 0;
-  
   m = calloc(1, sizeof(struct rubinius_machine));
+  m->g_use_firesuit = 0;
+  m->g_access_violation = 0;
   m->s = rubinius_state_new();
   m->c = cpu_new(m->s);
   /* Initialize the instruction addresses. */
@@ -446,19 +245,19 @@ machine machine_new() {
 }
 
 void machine_handle_fire(int kind) {
-  g_access_violation = kind;
-  setcontext(&g_firesuit);
+  current_machine->g_access_violation = kind;
+  setcontext(&current_machine->g_firesuit);
 }
 
 void machine_handle_type_error(OBJECT obj) {
   if(FIXNUM_P(obj)) {
-    g_firesuit_arg = FixnumType;
+    current_machine->g_firesuit_arg = FixnumType;
   } else if(SYMBOL_P(obj)) {
-    g_firesuit_arg = SymbolType;    
+    current_machine->g_firesuit_arg = SymbolType;    
   } else if(REFERENCE_P(obj)) {
-    g_firesuit_arg = obj->obj_type;
+    current_machine->g_firesuit_arg = obj->obj_type;
   } else {
-    g_firesuit_arg = 0;
+    current_machine->g_firesuit_arg = 0;
   }
   machine_handle_fire(FIRE_TYPE);
 }
@@ -469,20 +268,9 @@ void machine_handle_assert(const char *reason, const char *file, int line) {
   printf("\nRuby backtrace:\n");
   machine_print_callstack(current_machine);
   
-  if(!g_use_firesuit) abort();
-  g_access_violation = FIRE_ASSERT;
-  setcontext(&g_firesuit);
-}
-
-void state_collect(STATE, cpu c);
-
-void machine_collect(machine m) {
-  state_collect(m->s, m->c);
-}
-
-void machine_tenure_collect(machine m) {
-  m->s->om->tenure_now = 1;
-  state_collect(m->s, m->c);
+  if(!current_machine->g_use_firesuit) abort();
+  current_machine->g_access_violation = FIRE_ASSERT;
+  setcontext(&current_machine->g_firesuit);
 }
 
 /*
@@ -1013,41 +801,3 @@ int machine_load_bundle(machine m, const char *path) {
 }
 
 
-/* Debugging functions */
-void _print_stack(int cnt, int start) {
-  OBJECT *stk;
-  int i;
-  
-  stk = current_machine->c->sp_ptr;
-  printf("Current Stack: %p\n", stk);
-  
-  if(start < 0) {
-    stk -= start;    
-    for(i = start; i < 0; i++) {
-      printf("  %3d:\t%s\t\t\t%p\n", i, _inspect(*stk), stk);
-      stk--;
-    }
-  }
-  
-  stk = current_machine->c->sp_ptr;
-  
-  printf(">   0:\t%s\n", _inspect(*stk--));  
-  
-  for(i = 1; i <= cnt; i++) {
-    printf("  %3d:\t%s\n", i, _inspect(*stk));
-    stk--;
-  }
-}
-
-const char *_inspect(OBJECT obj) {
-  if(SYMBOL_P(obj)) {
-    return rbs_symbol_to_cstring(current_machine->s, obj);
-  }
-  return rbs_inspect_verbose(current_machine->s, obj);
-}
-
-/*
-void _class(OBJECT obj) {
-  rbs_show_classes(current_machine->s, obj);
-}
-*/

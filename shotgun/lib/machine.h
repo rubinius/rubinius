@@ -1,3 +1,6 @@
+#ifndef RBS_MACHINE_H
+#define RBS_MACHINE_H
+
 #include <signal.h>
 #include "shotgun/lib/shotgun.h"
 
@@ -9,6 +12,14 @@ struct rubinius_machine {
   int argc;
   char **argv;
   int show_config;
+  ucontext_t g_firesuit;
+  /* work around a bug in 10.5's libc versus header files */
+#if __DARWIN_UNIX03
+  _STRUCT_MCONTEXT __system_mc;
+#endif
+  int g_use_firesuit;
+  int g_access_violation;
+  int g_firesuit_arg;
 };
 
 typedef struct rubinius_machine *machine;
@@ -33,3 +44,5 @@ void machine_parse_configs(machine m, const char *config);
 void machine_migrate_config(machine m);
 void machine_parse_config_file(machine m, const char *path);
 const char *_inspect(OBJECT obj);
+
+#endif

@@ -9,15 +9,9 @@
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/methctx.h"
 
-void *main_om;
-
-static int allocated_objects = 0;
-
-extern machine current_machine;
-
 void _describe(OBJECT ptr) {
   object_memory om;
-  om = (object_memory)main_om;
+  om = (object_memory)(current_machine->s->om);
   printf("Address:             %p (%lu)\n", (void*)ptr, (unsigned long int)ptr);
   printf("Contained in baker?: %d/%d\n", baker_gc_contains_p(om->gc, ptr), baker_gc_contains_spill_p(om->gc, ptr));
   printf("Contained in m/s?:   %d\n", ptr->gc_zone == MatureObjectZone);
@@ -40,7 +34,7 @@ void _describe(OBJECT ptr) {
 
 void _stats() {
   object_memory om;
-  om = (object_memory)main_om;
+  om = (object_memory)(current_machine->s->om);
   
   printf("Baker Info:\n");
   baker_gc_describe(om->gc);
@@ -50,7 +44,7 @@ void _stats() {
 
 void _verify(OBJECT self) {
   object_memory om;
-  om = (object_memory)main_om;
+  om = (object_memory)(current_machine->s->om);
   OBJECT tmp;
   int i, rs, refs;
   gc_zone tz, vz;
@@ -108,7 +102,6 @@ object_memory object_memory_new() {
   om->context_bottom = (OBJECT)(om->contexts->address);
   om->context_last = (OBJECT)((uintptr_t)om->contexts->address + CONTEXT_SIZE - (CTX_SIZE * 3));
   
-  main_om = (void*)om;
   // Start the values up a bit higher so they don't collide
   // with the hashs of symbols right off the bat.
   om->last_object_id = 0x10000;
@@ -177,8 +170,6 @@ void object_memory_clear_become(STATE, object_memory om) {
 
 int object_memory_collect(STATE, object_memory om, ptr_array roots) {
   int i;
-  // printf("%d objects since last collection.\n", allocated_objects);
-  allocated_objects = 0;
   om->gc->tenure_now = om->tenure_now;
   om->last_tenured = 0;
   i = baker_gc_collect(state, om->gc, roots);
@@ -190,9 +181,6 @@ int object_memory_collect(STATE, object_memory om, ptr_array roots) {
 }
 
 void object_memory_major_collect(STATE, object_memory om, ptr_array roots) {
-  // printf("%d objects since last collection.\n", allocated_objects);
-  
-  allocated_objects = 0;
   mark_sweep_collect(state, om->ms, roots);
   baker_gc_clear_marked(om->gc);
   object_memory_clear_marks(state, om);

@@ -9,8 +9,6 @@
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/methctx.h"
 
-extern machine current_machine;
-
 #define SAMPLE_INCS 1024
 
 void cpu_sampler_init(STATE, cpu c) {

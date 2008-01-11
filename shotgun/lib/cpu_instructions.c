@@ -1100,13 +1100,13 @@ void cpu_run(STATE, cpu ic, int setup) {
 #endif
   }
   
-  g_use_firesuit = 1;
-  g_access_violation = 0;
-  getcontext(&g_firesuit);
+  current_machine->g_use_firesuit = 1;
+  current_machine->g_access_violation = 0;
+  getcontext(&current_machine->g_firesuit);
   
   /* Ok, we jumped back here because something went south. */
-  if(g_access_violation) {
-    switch(g_access_violation) {
+  if(current_machine->g_access_violation) {
+    switch(current_machine->g_access_violation) {
     case FIRE_ACCESS:
       cpu_raise_exception(state, c, 
         cpu_new_exception(state, c, state->global->exc_arg, 
@@ -1126,12 +1126,12 @@ void cpu_run(STATE, cpu ic, int setup) {
     case FIRE_TYPE:
       cpu_raise_exception(state, c, 
         cpu_new_exception2(state, c, global->exc_type,
-            "Invalid type encountered: %d", g_firesuit_arg));
+            "Invalid type encountered: %d", current_machine->g_firesuit_arg));
       break;
     default:
       cpu_raise_exception(state, c, 
         cpu_new_exception2(state, c, global->exc_type,
-            "Unknown firesuit reason: %d", g_access_violation));
+            "Unknown firesuit reason: %d", current_machine->g_access_violation));
       break;
     }
   }

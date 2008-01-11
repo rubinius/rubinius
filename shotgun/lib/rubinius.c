@@ -137,3 +137,37 @@ const char *rbs_inspect_verbose(STATE, OBJECT obj) {
   }
   return buf;
 }
+
+/* Debugging functions */
+void _print_stack(int cnt, int start) {
+  OBJECT *stk;
+  int i;
+  
+  stk = current_machine->c->sp_ptr;
+  printf("Current Stack: %p\n", stk);
+  
+  if(start < 0) {
+    stk -= start;    
+    for(i = start; i < 0; i++) {
+      printf("  %3d:\t%s\t\t\t%p\n", i, _inspect(*stk), stk);
+      stk--;
+    }
+  }
+  
+  stk = current_machine->c->sp_ptr;
+  
+  printf(">   0:\t%s\n", _inspect(*stk--));  
+  
+  for(i = 1; i <= cnt; i++) {
+    printf("  %3d:\t%s\n", i, _inspect(*stk));
+    stk--;
+  }
+}
+
+const char *_inspect(OBJECT obj) {
+  if(SYMBOL_P(obj)) {
+    return rbs_symbol_to_cstring(current_machine->s, obj);
+  }
+  return rbs_inspect_verbose(current_machine->s, obj);
+}
+

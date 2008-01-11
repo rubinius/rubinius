@@ -7,10 +7,6 @@
 
 #include <termios.h>
 
-#ifdef USE_CINVOKE
-#include <cinvoke.h>
-#endif
-
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/memutil.h"
 #include "shotgun/lib/subtend/PortableUContext.h"
@@ -152,6 +148,7 @@ struct rubinius_state {
 #include "shotgun/lib/bignum.h"
 #include "shotgun/lib/float.h"
 #include "shotgun/lib/array.h"
+#include "shotgun/lib/machine.h"
 
 #define FIRE_ACCESS 1
 #define FIRE_NULL   2
@@ -247,7 +244,6 @@ static inline double rbs_fixnum_to_double(OBJECT obj) {
 #define LL2I(i) rbs_ll_to_integer(state, i)
 #define FLOAT_TO_DOUBLE(k) (*DATA_STRUCT(k, double*))
 
-extern void* main_om;
 void object_memory_check_ptr(void *ptr, OBJECT obj);
 static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);
 
@@ -264,7 +260,7 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 
 #define sassert(cond) ((void)((cond) ? 0 : machine_handle_assert(#cond, __FILE__, __LINE__)))
 
-// #define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
+// #define CHECK_PTR(obj) object_memory_check_ptr(current_machine->om, obj)
 #define CHECK_PTR(obj) 
 
 #include "shotgun/lib/object_memory-barrier.h"
@@ -278,14 +274,11 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 #define rbs_set_class(om, obj, cls) ({ if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); obj->klass = cls; })
 #define SET_CLASS(obj, cls) ({ RUN_WB(obj, cls); obj->klass = cls; })
 
-extern ucontext_t g_firesuit;
-extern int g_use_firesuit;
-extern int g_access_violation;
-extern int g_firesuit_arg;
-
 void machine_handle_fire(int);
 void machine_handle_assert(const char *reason, const char *file, int line);
 void machine_handle_type_error(OBJECT);
+
+extern machine current_machine;
 
 /* No bounds checking! Be careful! */
 #define fast_fetch(obj, idx) NTH_FIELD_DIRECT(obj, idx)
@@ -322,7 +315,7 @@ void machine_handle_type_error(OBJECT);
 
 static void _bad_reference(OBJECT in) {
   printf("Attempted to access field of non-reference.\n");
-  if(g_use_firesuit) {
+  if(current_machine->g_use_firesuit) {
     machine_handle_fire(FIRE_NULL);
   } 
 }
@@ -331,7 +324,7 @@ static void _bad_reference2(OBJECT in, int fel) {
   printf("Attempted to access field %d in an object with %lu fields.\n", 
     fel, (unsigned long)NUM_FIELDS(in));
     
-  if(g_use_firesuit) {
+  if(current_machine->g_use_firesuit) {
     machine_handle_fire(FIRE_ACCESS);
   }
 }
@@ -384,14 +377,14 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
 #if DISABLE_CHECKS
   if(!REFERENCE_P(in)) {
     printf("Attempted to access field of non-reference.\n");
-    if(g_use_firesuit) {
+    if(current_machine->g_use_firesuit) {
       machine_handle_fire(FIRE_NULL);
     }
   }
   
   if(in->StoresBytes) {
     printf("Attempted to access field of byte addressed object.\n");
-    if(g_use_firesuit) {
+    if(current_machine->g_use_firesuit) {
       machine_handle_fire(FIRE_NULL);
     }
   }
@@ -400,7 +393,7 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
     printf("Attempted to access field %d in an object with %lu fields.\n", 
       fel, (unsigned long)NUM_FIELDS(in));
       
-    if(g_use_firesuit) {
+    if(current_machine->g_use_firesuit) {
       machine_handle_fire(FIRE_ACCESS);
     }
     
@@ -420,7 +413,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
     printf("Attempted to access field %d in an object with %lu fields (%s).\n", 
       fel, (unsigned long)NUM_FIELDS(obj), _inspect(obj));
     
-    if(g_use_firesuit) {
+    if(current_machine->g_use_firesuit) {
       machine_handle_fire(1);
     }
     
@@ -430,7 +423,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
 
   if(obj->StoresBytes) {
     printf("Attempted to access field of byte addressed object.\n");
-    if(g_use_firesuit) {
+    if(current_machine->g_use_firesuit) {
       machine_handle_fire(FIRE_NULL);
     }
   }

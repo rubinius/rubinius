@@ -8,7 +8,6 @@
 #include "shotgun/lib/config_hash.h"
 #include "shotgun/lib/machine.h"
 
-extern machine current_machine;
 
 static size_t _gc_current_limit = 0;
 #define GC_EXTERNAL_LIMIT 10000000
