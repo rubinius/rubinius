@@ -62,6 +62,7 @@ module MSpec
   end
 
   def self.date?(*dates)
+    require 'time'
     MSpec.guard?(*dates) do |date|
       date = case date
       when Range
