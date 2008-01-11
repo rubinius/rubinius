@@ -75,10 +75,7 @@ class String
   # 
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    r = String.new(self)
-    r << other
-    r.taint if self.tainted? || other.tainted?
-    r
+    String.new(self) << other
   end
 
   # Append --- Concatenates the given object to <i>self</i>. If the object is a
