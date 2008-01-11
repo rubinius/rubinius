@@ -10,7 +10,7 @@ class ShotgunInstructions
         fd.puts "   case #{ins.bytecode}: { /* #{ins.opcode} */"
         fd.puts code
         if ins.check_interrupts?
-          fd.puts "   goto check_interupts;"
+          fd.puts "   goto check_interrupts;"
         elsif ins.terminator?
           fd.puts "   goto insn_start;"
         else
@@ -33,7 +33,7 @@ class ShotgunInstructions
         fd.puts "   insn_#{ins.bytecode}: {"
         fd.puts code
         if ins.check_interrupts?
-          fd.puts "   goto check_interupts;"
+          fd.puts "   goto check_interrupts;"
         elsif ins.terminator?
           fd.puts "   goto insn_start;"
         else

@@ -1152,7 +1152,7 @@ next_op:
     #include "shotgun/lib/instructions.gen"
     
 #endif
-check_interupts:
+check_interrupts:
     if(state->om->collect_now) {
       int cm = state->om->collect_now;
       
