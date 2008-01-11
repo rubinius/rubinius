@@ -154,7 +154,8 @@ module Digest
     # given, checks whether they have the same digest value.  Otherwise
     # returns false.
     def ==(other)
-      to_s == other.to_s
+      return hexdigest == other.hexdigest if other.is_a? Digest::Instance
+      to_s == other.to_str
     end
     
     # call-seq:
