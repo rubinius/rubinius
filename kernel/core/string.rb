@@ -1930,31 +1930,33 @@ class String
     end
     
     result = 0
-    saw_space = false
-    saw_under = false
+    seen_space = false
+    seen_digit = false
+    last_under = false
     i.upto(@bytes - 1) do |index|
       char = @data[index]
       
       if check
         if char.isspace
-          saw_space = true
+          seen_space = true
           next
-        elsif saw_space
+        elsif seen_space
           raise ArgumentError, "invalid value for Integer: #{inspect()}"
         end
         
         if char == ?_
-          if saw_under
+          if last_under || !seen_digit
             raise ArgumentError, "invalid value for Integer: #{inspect}"
           else
-            saw_under = true
+            last_under = true
             next
           end
-          
-          saw_under = false
         end        
+
+        last_under = false
       else
-        next if char.isspace || char == ?_
+        break if char.isspace
+        next if char == ?_
       end
             
       if char >= ?0 && char <= ?9
@@ -1974,9 +1976,11 @@ class String
         return negative ? -result : result
       end
 
+      seen_digit = true
       result *= base
       result += value
     end
+    raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check && (last_under || !seen_digit)
     
     return negative ? -result : result
   end

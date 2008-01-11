@@ -12,8 +12,8 @@ describe "Kernel.Integer when given a String" do
     Integer("  22222  ").should == 22222
   end
   
-  it "raises an ArgumentError if the given String is no valid String representation" do
-    [ "--2", "-+2", "++2", "a2", "2a", "__2", " _2", "2__", "2 _", "2 a"].each do |str|
+  it "raises an ArgumentError if the given String has no valid Integer representation" do
+    [ "", "--2", "-+2", "++2", "a2", "2a", "__2", " _2", "2__", "2 _", "2 a"].each do |str|
       lambda { Integer(str) }.should raise_error(ArgumentError)
     end
   end
@@ -24,7 +24,7 @@ describe "Kernel.Integer" do
     Kernel.private_instance_methods.should include("Integer")
   end
   
-  it "calls #to_int if the given obejct responds to it" do
+  it "calls #to_int if the given object responds to it" do
     obj = mock('1')
     obj.should_receive(:to_int).and_return(1)
     obj.should_not_receive(:to_i)

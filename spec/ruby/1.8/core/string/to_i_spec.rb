@@ -15,13 +15,14 @@ describe "String#to_i" do
     "___123".to_i.should == 123
   end
   
-  it "ignores whitespaces in between the digits" do
+  it "ignores underscores in between the digits" do
     "1_2_3asdf".to_i.should == 123
   end
   
   it "ignores subsequent invalid characters" do
     "123asdf".to_i.should == 123
     "123#123".to_i.should == 123
+    "123 456".to_i.should == 123
   end
   
   it "returns 0 if self is no valid integer-representation" do
