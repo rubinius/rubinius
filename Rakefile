@@ -628,7 +628,6 @@ namespace :extension do
   task :digest_md5 => "lib/ext/digest/md5/md5.#{$dlext}"
 
   file "lib/ext/digest/md5/md5.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/ruby.h',
     'lib/ext/digest/md5/build.rb',
     'lib/ext/digest/md5/*.c',
     'lib/ext/digest/md5/*.h',
@@ -636,6 +635,20 @@ namespace :extension do
   ] do
     compile 'lib/ext/digest/md5'
   end
+
+  task :digest_sha1 => "lib/ext/digest/sha1/sha1.#{$dlext}"
+
+  file "lib/ext/digest/sha1/sha1.#{$dlext}" => FileList[
+    'shotgun/lib/sha1.h',
+    'shotgun/lib/sha1.c',
+    'lib/ext/digest/sha1/build.rb',
+    'lib/ext/digest/sha1/*.c',
+    'lib/ext/digest/sha1/*.h',
+    'lib/ext/digest/defs.h',
+  ] do
+    compile 'lib/ext/digest/sha1'
+  end
+
 
   task :fcntl => "lib/ext/fcntl/fcntl.#{$dlext}"
 
