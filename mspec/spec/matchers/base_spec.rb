@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../expectations'
 require File.dirname(__FILE__) + '/../../matchers/base'
 
-describe PositiveOperatorMatcher do
+describe PositiveOperatorMatcher, "== operator" do
   it "raises an ExpectationNotMetError when expected == actual returns false" do
     lambda {
       PositiveOperatorMatcher.new(1) == 2
@@ -14,7 +14,9 @@ describe PositiveOperatorMatcher do
       PositiveOperatorMatcher.new(1) == 1
     }.should_not raise_error
   end
-  
+end
+
+describe PositiveOperatorMatcher, "=~ operator" do
   it "raises an ExpectationNotMetError when expected =~ actual returns false" do
     lambda {
       PositiveOperatorMatcher.new('real') =~ /fake/
@@ -28,7 +30,65 @@ describe PositiveOperatorMatcher do
   end
 end
 
-describe NegativeOperatorMatcher do
+describe PositiveOperatorMatcher, "> operator" do
+  it "raises an ExpectationNotMetError when expected > actual returns false" do
+    lambda {
+      PositiveOperatorMatcher.new(4) > 5
+    }.should raise_error(ExpectationNotMetError, "Expected 4 to be greater than 5")
+  end
+  
+  it "does not raise an exception when expected > actual returns true" do
+    lambda {
+      PositiveOperatorMatcher.new(5) > 4
+    }.should_not raise_error
+  end
+end
+
+describe PositiveOperatorMatcher, ">= operator" do
+  it "raises an ExpectationNotMetError when expected >= actual returns false" do
+    lambda {
+      PositiveOperatorMatcher.new(4) >= 5
+    }.should raise_error(ExpectationNotMetError, "Expected 4 to be greater than or equal to 5")
+  end
+  
+  it "does not raise an exception when expected > actual returns true" do
+    lambda {
+      PositiveOperatorMatcher.new(5) >= 4
+      PositiveOperatorMatcher.new(5) >= 5
+    }.should_not raise_error
+  end
+end
+
+describe PositiveOperatorMatcher, "< operater" do
+  it "raises an ExpectationNotMetError when expected < actual returns false" do
+    lambda {
+      PositiveOperatorMatcher.new(5) < 4
+    }.should raise_error(ExpectationNotMetError, "Expected 5 to be less than 4")
+  end
+  
+  it "does not raise an exception when expected < actual returns true" do
+    lambda {
+      PositiveOperatorMatcher.new(4) < 5
+    }.should_not raise_error
+  end
+end
+
+describe PositiveOperatorMatcher, "<= operater" do
+  it "raises an ExpectationNotMetError when expected < actual returns false" do
+    lambda {
+      PositiveOperatorMatcher.new(5) <= 4
+    }.should raise_error(ExpectationNotMetError, "Expected 5 to be less than or equal to 4")
+  end
+  
+  it "does not raise an exception when expected < actual returns true" do
+    lambda {
+      PositiveOperatorMatcher.new(4) <= 5
+      PositiveOperatorMatcher.new(4) <= 4
+    }.should_not raise_error
+  end
+end
+
+describe NegativeOperatorMatcher, "== operator" do
   it "raises an ExpectationNotMetError when expected == actual returns true" do
     lambda {
       NegativeOperatorMatcher.new(1) == 1
@@ -40,7 +100,9 @@ describe NegativeOperatorMatcher do
       NegativeOperatorMatcher.new(1) == 2
     }.should_not raise_error
   end
-  
+end
+
+describe NegativeOperatorMatcher, "=~ operator" do
   it "raises an ExpectationNotMetError when expected =~ actual returns true" do
     lambda {
       NegativeOperatorMatcher.new('real') =~ /real/
@@ -50,6 +112,68 @@ describe NegativeOperatorMatcher do
   it "does not raise an exception when expected =~ actual returns false" do
     lambda {
       NegativeOperatorMatcher.new('real') =~ /fake/
+    }.should_not raise_error
+  end
+end
+
+describe NegativeOperatorMatcher, "< operator" do
+  it "raises an ExpectationNotMetError when expected < actual returns true" do
+    lambda {
+      NegativeOperatorMatcher.new(4) < 5
+    }.should raise_error(ExpectationNotMetError, "Expected 4 not to be less than 5")
+  end
+  
+  it "does not raise an exception when expected < actual returns false" do
+    lambda {
+      NegativeOperatorMatcher.new(5) < 4
+    }.should_not raise_error
+  end
+end
+
+describe NegativeOperatorMatcher, "<= operator" do
+  it "raises an ExpectationNotMetError when expected <= actual returns true" do
+    lambda {
+      NegativeOperatorMatcher.new(4) <= 5
+    }.should raise_error(ExpectationNotMetError, "Expected 4 not to be less than or equal to 5")
+    lambda {
+      NegativeOperatorMatcher.new(5) <= 5
+    }.should raise_error(ExpectationNotMetError, "Expected 5 not to be less than or equal to 5")
+  end
+  
+  it "does not raise an exception when expected <= actual returns false" do
+    lambda {
+      NegativeOperatorMatcher.new(5) <= 4
+    }.should_not raise_error
+  end
+end
+
+describe NegativeOperatorMatcher, "> operator" do
+  it "raises an ExpectationNotMetError when expected > actual returns true" do
+    lambda {
+      NegativeOperatorMatcher.new(5) > 4
+    }.should raise_error(ExpectationNotMetError, "Expected 5 not to be greater than 4")
+  end
+  
+  it "does not raise an exception when expected > actual returns false" do
+    lambda {
+      NegativeOperatorMatcher.new(4) > 5
+    }.should_not raise_error
+  end
+end
+
+describe NegativeOperatorMatcher, ">= operator" do
+  it "raises an ExpectationNotMetError when expected >= actual returns true" do
+    lambda {
+      NegativeOperatorMatcher.new(5) >= 4
+    }.should raise_error(ExpectationNotMetError, "Expected 5 not to be greater than or equal to 4")
+    lambda {
+      NegativeOperatorMatcher.new(5) >= 5
+    }.should raise_error(ExpectationNotMetError, "Expected 5 not to be greater than or equal to 5")
+  end
+  
+  it "does not raise an exception when expected >= actual returns false" do
+    lambda {
+      NegativeOperatorMatcher.new(4) >= 5
     }.should_not raise_error
   end
 end
