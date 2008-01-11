@@ -23,7 +23,7 @@ while true
     $stdout.puts "#{title}:"
     $stdout.puts "  #{type1}: #{mri_time}"
     $stdout.puts "  #{type2}: #{rbx_time}"
-    $stdout.puts "  ratio: #{"%0.4f" % (mri_time / rbx_time)}"
+    $stdout.puts "  ratio: #{"%0.4f" % (rbx_time / mri_time)}"
     $stdout.puts
   end
 end
