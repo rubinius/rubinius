@@ -6,6 +6,7 @@
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/machine.h"
 #include "shotgun/lib/subtend/ruby.h"
+#include "shotgun/lib/environment.h"
 
 /* TODO incorporate system paths calculated at compile time. */
 static const char *search_path[] = {
@@ -16,7 +17,7 @@ static const char *search_path[] = {
   NULL
 };
 
-static const char *search_for(const char *evs, const char *file) {
+static char *search_for(const char *evs, const char *file) {
   char *env;
   static char path[PATH_MAX];
   struct stat _st;
@@ -41,99 +42,66 @@ static const char *search_for(const char *evs, const char *file) {
 }
 
 int main(int argc, char **argv) {
+  environment e;
   machine m;
-  const char *archive;
-  int offset = 0;
-  int flag;
-    
-  m = machine_new();
-  machine_save_args(m, argc, argv);
-  machine_setup_standard_io(m);
-  machine_setup_ruby(m, argv[0]);
-  machine_setup_config(m);
-  /* move argc and argv around so that the kernel and rubinius
-     don't show up. */
-  machine_config_env(m);
-  
-  archive = search_for("RBX_PLATFORM_CONF", "platform.conf");
-  if(archive) {
-    machine_parse_config_file(m, archive);
-  }
+  char *archive;
+ 
+  environment_at_startup();
 
-  machine_migrate_config(m);
-  machine_setup_from_config(m);
-  machine_setup_argv(m, argc-offset, argv+offset);
+  e = environment_new();
+  m = machine_new();
+  environment_add_machine(e, m);
+  environment_setup_thread(e, m);
+
+  machine_setup_normal(m, argc, argv);
+
+  /* We build up the environment information by looking around
+   * the filesystem now. */
+ 
+  /* Find the platform config */
+  e->platform_config = search_for("RBX_PLATFORM_CONF", "platform.conf");
   
-  /* Load the bootstrap. */
-  
+  /* Find the bootstrap. */
   archive = search_for("RBX_BOOTSTRAP", "bootstrap");
   if(!archive) {
     printf("Unable to find a bootstrap to load!\n");
     return 1;
   }
-    
-  flag = machine_load_bundle(m, archive);
+  e->bootstrap_path = archive;
   
-  if(!flag) {
-    printf("Unable to run %s\n", archive);
-    return 1;
-  }
-  
-  /* Load the platform. */
-  
+  /* Find the platform. */
   archive = search_for("RBX_PLATFORM", "platform");
   if(!archive) {
     printf("Unable to find a platform to load!\n");
     return 1;
   }
-    
-  flag = machine_load_bundle(m, archive);
   
-  if(!flag) {
-    printf("Unable to run %s\n", archive);
-    return 1;
-  }
+  e->platform_path = archive;
   
-  /* Load the core. */
-
+  /* Find the core. */
   archive = search_for("RBX_CORE", "core");
   if(!archive) {
     printf("Unable to find a core to load!\n");
     return 1;
   }
-    
-  flag = machine_load_bundle(m, archive);
-   
-  if(!flag) {
-    printf("Unable to run %s\n", archive);
-    return 1;
-  }
+  
+  e->core_path = archive;
   
   /* Load the loader.rbc */
-  
   archive = search_for("RBX_LOADER", "loader.rbc");
   if(!archive) {
     printf("Unable to find loader.rbc to load!\n");
     return 1;
   }
   
-  flag = machine_run_file(m, archive);
-  
-  if(!flag) {
-    printf("Unable to run %s\n", archive);
-    return 1;
-  }
-  
+  e->loader_path = archive;
+
+  environment_load_machine(e, m);
+    
   /* Done! */
-  
   if(m->s->gc_stats) {
     printf("[GC M %6dK total]\n", m->s->om->ms->allocated_bytes);
   }
   
-  
-  // machine_emit_memory(m);
-  
-  // object_memory_print_stats(m->s->om);
-    
   return 0;
 }

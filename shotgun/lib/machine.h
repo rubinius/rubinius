@@ -2,9 +2,14 @@
 #define RBS_MACHINE_H
 
 #include <signal.h>
+#include <pthread.h>
+
 #include "shotgun/lib/shotgun.h"
 
 struct rubinius_machine {
+  int id;
+  pthread_t pthread;
+  int sub;
   rstate s;
   cpu c;
   struct sigaction error_report;
@@ -32,6 +37,7 @@ int machine_load_directory(machine m, const char *prefix);
 int machine_load_bundle(machine m, const char *path);
 void machine_set_const(machine m, const char *str, OBJECT val);
 void machine_setup_standard_io(machine m);
+int *machine_setup_piped_io(machine m);
 void machine_collect(machine m);
 void machine_setup_ruby(machine m, char *name);
 void machine_setup_argv(machine m, int argc, char **argv);
@@ -43,6 +49,10 @@ void machine_setup_from_config(machine m);
 void machine_parse_configs(machine m, const char *config);
 void machine_migrate_config(machine m);
 void machine_parse_config_file(machine m, const char *path);
+void machine_setup_normal(machine m, int argc, char **argv);
+int *machine_setup_thread(machine m, int argc, char **argv);
 const char *_inspect(OBJECT obj);
+void machine_print_callstack(machine m);
+void machine_print_callstack_limited(machine m, int maxlev);
 
 #endif

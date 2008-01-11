@@ -1179,7 +1179,11 @@ class ShotgunPrimitives
     if(state->gc_stats) {
       printf("[GC M %6dK total]\\n", state->om->ms->allocated_bytes / 1024);
     }
-    exit(FIXNUM_TO_INT(t1));
+    if(current_machine->sub) {
+      environment_exit_machine(); 
+    } else {
+      exit(FIXNUM_TO_INT(t1));
+    }
     CODE
   end
   
@@ -2901,6 +2905,58 @@ class ShotgunPrimitives
     c->call_flags = 1;
     
     cpu_unified_send(state, c, self, t1, num_args - 1, block);
+    CODE
+  end
+
+  def machine_new
+    <<-CODE
+    int *pipes;
+    int argc;
+    char **argv;
+    OBJECT ret, ary, str;
+    int i;
+    machine m;
+    environment e = environment_current();
+
+    stack_pop(); /* class */
+    POP(ary, ARRAY);
+
+    argc = FIXNUM_TO_INT(array_get_total(ary));
+    argv = ALLOC_N(char*, argc);
+    for(i = 0; i < argc; i++) {
+      str = array_get(state, ary, i);
+      if(STRING_P(str)) {
+        argv[i] = strdup(string_byte_address(state, str));
+      } else {
+        argv[i] = strdup("");
+      }
+    }
+    
+    m = machine_new();
+    pipes = machine_setup_thread(m, argc, argv);
+    environment_add_machine(e, m);
+
+    ret = tuple_new(state, 4);
+    tuple_put(state, ret, 0, I2N(m->id));
+    tuple_put(state, ret, 1, io_new(state, pipes[0], "w"));
+    tuple_put(state, ret, 2, io_new(state, pipes[1], "r"));
+    tuple_put(state, ret, 3, io_new(state, pipes[2], "r"));
+    stack_push(ret);
+
+    environment_start_thread(e, m);
+
+    CODE
+  end
+
+  def machine_join
+    <<-CODE
+    stack_pop(); /* class */
+    POP(t1, FIXNUM);
+    if(environment_join_machine(environment_current(), FIXNUM_TO_INT(t1))) {
+      stack_push(Qtrue);
+    } else {
+      stack_push(Qfalse);
+    }
     CODE
   end
 

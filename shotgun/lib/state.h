@@ -278,7 +278,9 @@ void machine_handle_fire(int);
 void machine_handle_assert(const char *reason, const char *file, int line);
 void machine_handle_type_error(OBJECT);
 
-extern machine current_machine;
+#include "shotgun/lib/environment.h"
+
+#define current_machine (environment_current_machine())
 
 /* No bounds checking! Be careful! */
 #define fast_fetch(obj, idx) NTH_FIELD_DIRECT(obj, idx)

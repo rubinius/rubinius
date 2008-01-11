@@ -39,3 +39,31 @@ void ht_config_destroy(struct hashtable *ht_config)
   while (hashtable_iterator_remove(&iter));
   hashtable_destroy(ht_config, 0);
 }
+
+DEFINE_HASHTABLE_INSERT(ht_vconfig_insert, int, void);
+DEFINE_HASHTABLE_SEARCH(ht_vconfig_search, int, void);
+DEFINE_HASHTABLE_REMOVE(ht_vconfig_remove, int, void);
+
+static unsigned int int_hash(const void *value)
+{
+  unsigned int retval = 0x64a3b9ac; /* totally made up */
+
+  retval ^= *(int*)value;
+
+  return retval;
+}
+
+static int int_eq(const void *value1, const void *value2)
+{
+  return *(int*)value1 == *(int*)value2;
+}
+
+struct hashtable * ht_vconfig_create(unsigned int minsize)
+{
+  return create_hashtable(minsize, int_hash, int_eq);
+}
+
+void ht_vconfig_destroy(struct hashtable *ht_config)
+{
+  hashtable_destroy(ht_config, 0);
+}

@@ -171,16 +171,10 @@ OBJECT ffi_decode_sockaddr(STATE, struct sockaddr *addr, int len, int reverse_lo
 }
 
 OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
-  OBJECT host;
-  OBJECT address;
-
   int error = 0;
 
   struct sockaddr_storage addr;
   socklen_t len = sizeof addr;
-
-  char hbuf[1024];
-  char pbuf[1024];
 
   error = getpeername(s, (struct sockaddr*)&addr, &len);
   if(error) {
@@ -192,16 +186,10 @@ OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
 }
 
 OBJECT ffi_getsockname(STATE, int s, int reverse_lookup) {
-  OBJECT host;
-  OBJECT address;
-
   int error = 0;
 
   struct sockaddr_storage addr;
   socklen_t len = sizeof addr;
-
-  char hbuf[1024];
-  char pbuf[1024];
 
   error = getsockname(s, (struct sockaddr*)&addr, &len);
   if(error) {

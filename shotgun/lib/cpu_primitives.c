@@ -37,6 +37,7 @@
 #include "shotgun/lib/list.h"
 #include "shotgun/lib/io.h"
 #include "shotgun/lib/subtend/ffi.h"
+#include "shotgun/lib/environment.h"
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 # define HAVE_STRUCT_TM_TM_GMTOFF

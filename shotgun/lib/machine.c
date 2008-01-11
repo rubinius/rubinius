@@ -28,8 +28,6 @@
 #include "shotgun/lib/subtend/nmc.h"
 #include "shotgun/lib/instruction_names.h"
 
-machine current_machine;
-
 static int _recursive_reporting = 0;
 
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
@@ -225,6 +223,7 @@ machine machine_new() {
   m = calloc(1, sizeof(struct rubinius_machine));
   m->g_use_firesuit = 0;
   m->g_access_violation = 0;
+  m->sub = 0;
   m->s = rubinius_state_new();
   m->c = cpu_new(m->s);
   /* Initialize the instruction addresses. */
@@ -237,8 +236,6 @@ machine machine_new() {
   cpu_initialize_context(m->s, m->c);
   
   machine_set_const(m, "MAIN", m->c->main);
-  current_machine = m;
-  
   cpu_task_configure_premption(m->s);
   
   return m;
@@ -273,20 +270,6 @@ void machine_handle_assert(const char *reason, const char *file, int line) {
   setcontext(&current_machine->g_firesuit);
 }
 
-/*
-void machine_emit_memory(machine m) {
-  char *fd;
-  FILE *fobj;
-  
-  fd = getenv("MEMORYFD");
-  if(!fd) return;
-  
-  fobj = fdopen(atoi(fd), "w");
-  
-  object_memory_emit_details(m->s, m->s->om, fobj);
-}
-*/
-
 OBJECT machine_load_file(machine m, const char *path) {
   return cpu_unmarshal_file(m->s, path, 0);
 }
@@ -301,7 +284,12 @@ void machine_show_exception(machine m, OBJECT exc) {
   } else {
     buf = "<no message>";
   }
-  printf(" => %s (%s)\n", buf, rbs_inspect(m->s, exc->klass));
+  printf(" => %s (%s)\n\n", buf, rbs_inspect(m->s, exc->klass));
+
+  /* Restore the context it happened at so print_callstack shows it. */
+  m->c->active_context = exception_get_context(exc);
+  machine_print_callstack(m);
+  puts("");
 }
 
 int machine_run(machine m) {
@@ -354,12 +342,37 @@ void machine_save_args(machine m, int argc, char **argv) {
   memcpy(na, argv, argc);
   m->argc = argc;
   m->argv = na;
+  
+  machine_setup_ruby(m, argv[0]);
+  machine_setup_argv(m, argc, argv);
 }
 
 void machine_setup_standard_io(machine m) {
   machine_set_const(m, "STDIN", io_new(m->s, 0, "r"));
   machine_set_const(m, "STDOUT", io_new(m->s, 1, "w"));
   machine_set_const(m, "STDERR", io_new(m->s, 2, "w"));
+}
+
+int *machine_setup_piped_io(machine m) {
+  int pin[2];
+  int pout[2];
+  int perr[2];
+  int *pipes;
+
+  pipe(pin);
+  pipe(pout);
+  pipe(perr);
+
+  machine_set_const(m, "STDIN",  io_new(m->s, pin[0],  "r"));
+  machine_set_const(m, "STDOUT", io_new(m->s, pout[1], "w"));
+  machine_set_const(m, "STDERR", io_new(m->s, perr[1], "w"));
+
+  pipes = ALLOC_N(int, 3);
+  pipes[0] = pin[1];
+  pipes[1] = pout[0];
+  pipes[2] = perr[0];
+
+  return pipes;
 }
 
 void machine_setup_ruby(machine m, char *name) {
@@ -505,6 +518,7 @@ void machine_migrate_config(machine m) {
   }
   
   machine_set_const(m, "RUBY_CONFIG", m->s->global->config);
+  machine_setup_from_config(m);
 }
 
 void machine_setup_from_config(machine m) {
@@ -800,4 +814,18 @@ int machine_load_bundle(machine m, const char *path) {
   return TRUE;
 }
 
+void machine_setup_normal(machine m, int argc, char **argv) {
+  machine_save_args(m, argc, argv);
+  machine_setup_config(m);
+  machine_config_env(m);
+  machine_setup_standard_io(m);
+}
+
+int *machine_setup_thread(machine m, int argc, char **argv) {
+  m->sub = TRUE;
+  machine_save_args(m, argc, argv);
+  machine_setup_config(m);
+  machine_config_env(m);
+  return machine_setup_piped_io(m);
+}
 

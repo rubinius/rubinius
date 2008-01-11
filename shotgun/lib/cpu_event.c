@@ -263,6 +263,8 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer
   ti->count = count;
   
   event_set(&ti->ev, fd, EV_READ, _cpu_wake_channel_and_read, (void*)ti);
+  event_base_set((struct event_base*)state->event_base, &ti->ev);
+  
   /* Check that we were able to add it correctly... */
   if(event_add(&ti->ev, NULL) != 0) {
     struct stat sb;
@@ -293,6 +295,8 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
   _cpu_event_register_info(state, ti);
   
   event_set(&ti->ev, fd, EV_WRITE, _cpu_wake_channel, (void*)ti);
+  event_base_set((struct event_base*)state->event_base, &ti->ev);
+  
   if(event_add(&ti->ev, NULL) != 0) {
     struct stat sb;
     fstat(fd, &sb);
@@ -337,6 +341,8 @@ void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   _cpu_event_register_info(state, ti);
 
   signal_set(&ti->ev, sig, _cpu_wake_channel_for_signal_cb, (void*)ti);
+  event_base_set((struct event_base*)state->event_base, &ti->ev);
+  
   signal_add(&ti->ev, NULL);
 }
 
@@ -410,7 +416,10 @@ void cpu_event_setup_children(STATE, cpu c) {
   ti->fd = 0;
   ti->state = state;
   ti->c = c;
+  
   signal_set(&ti->ev, SIGCHLD, _cpu_find_waiters_cb, (void*)ti);
+  event_base_set((struct event_base*)state->event_base, &ti->ev);
+  
   signal_add(&ti->ev, NULL);  
 }
 
