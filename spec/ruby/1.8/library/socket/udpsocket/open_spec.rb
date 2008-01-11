@@ -1,8 +1,7 @@
-require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "UDPSocket.open" do
-
   after(:each) do
     @socket.close if @socket
     @server.close if @server
