@@ -1,0 +1,1 @@
+Digest::MD5#== should be equal to appropriate object that responds to to_str
