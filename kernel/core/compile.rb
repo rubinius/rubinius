@@ -245,7 +245,7 @@ module Kernel
   #       load should fail. Currently it does not if 'somefile.rb'
   #       has been compiled to 'somefile.rbc'.
   #
-  def load(path)
+  def load(path, wrap = false)
     path = StringValue(path)
 
     if path.suffix? '.rbc'
