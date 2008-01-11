@@ -55,7 +55,14 @@
 #include "evsignal.h"
 #include "log.h"
 
+
+evsignal_base_finder evsignal_get_base = NULL;
+
 struct event_base *evsignal_base = NULL;
+
+static struct event_base *_get_static_base() {
+  return evsignal_base;
+}
 
 static void evsignal_handler(int sig);
 
@@ -104,6 +111,14 @@ evsignal_init(struct event_base *base)
 	    evsignal_cb, &base->sig.ev_signal);
 	base->sig.ev_signal.ev_base = base;
 	base->sig.ev_signal.ev_flags |= EVLIST_INTERNAL;
+
+        if(!evsignal_get_base) {
+          evsignal_get_base = _get_static_base;
+        }
+}
+
+void evsignal_set_base_finder(evsignal_base_finder finder) {
+  evsignal_get_base = finder;
 }
 
 int
@@ -145,19 +160,22 @@ static void
 evsignal_handler(int sig)
 {
 	int save_errno = errno;
+        struct event_base *base;
 
-	if(evsignal_base == NULL) {
+        base = (evsignal_get_base)();
+	
+        if(base == NULL) {
 		event_warn(
 			"%s: received signal %s, but have no base configured",
 			__func__, sig);
 		return;
 	}
 
-	evsignal_base->sig.evsigcaught[sig]++;
-	evsignal_base->sig.evsignal_caught = 1;
+	base->sig.evsigcaught[sig]++;
+	base->sig.evsignal_caught = 1;
 
 	/* Wake up our notification mechanism */
-	write(evsignal_base->sig.ev_signal_pair[0], "a", 1);
+	write(base->sig.ev_signal_pair[0], "a", 1);
 	errno = save_errno;
 }
 

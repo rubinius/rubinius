@@ -35,6 +35,7 @@ struct evsignal_info {
 	volatile sig_atomic_t evsignal_caught;
 	sig_atomic_t evsigcaught[NSIG];
 };
+
 void evsignal_init(struct event_base *);
 void evsignal_process(struct event_base *);
 int evsignal_add(struct event *);

@@ -182,6 +182,10 @@ int event_base_loopexit(struct event_base *, struct timeval *);
 #define signal_pending(ev, tv)		event_pending(ev, EV_SIGNAL, tv)
 #define signal_initialized(ev)		((ev)->ev_flags & EVLIST_INIT)
 
+typedef struct event_base *(*evsignal_base_finder)();
+
+void evsignal_set_base_finder(evsignal_base_finder finder);
+
 void event_set(struct event *, int, short, void (*)(int, short, void *), void *);
 int event_once(int, short, void (*)(int, short, void *), void *, struct timeval *);
 int event_base_once(struct event_base *, int, short, void (*)(int, short, void *), void *, struct timeval *);
