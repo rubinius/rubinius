@@ -356,6 +356,17 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
 #endif
 
   cmethod_set_compiled(cm, ba);
+
+  /* Allocate a tuple to hold the cache entries for method calls */
+  OBJECT cs;
+  cs = cmethod_get_cache(cm);
+  if(FIXNUM_P(cs)) {
+    int sz = FIXNUM_TO_INT(cs);
+    if(sz > 0) {
+      cs = tuple_new(state, sz);
+      cmethod_set_cache(cm, cs);
+    }
+  }
   
   return ba;
 }
