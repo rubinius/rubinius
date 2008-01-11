@@ -10,11 +10,22 @@ describe Object, "#shared" do
 end
 
 describe Object, "#it_behaves_like" do
+  before :each do
+  end
+  
   it "retrieves the instance variable set on Object and calls the proc" do
-    proc = lambda { raise Exception, "visited" }
+    proc = lambda { |a| raise Exception, "visited with #{a.inspect}" }
     shared :shared, &proc
     lambda {
       it_behaves_like(:shared, nil)
-    }.should raise_error(Exception, "visited")
+    }.should raise_error(Exception, "visited with nil")
+  end
+  
+  it "accepts an optional argument to specify the class" do
+    proc = lambda { |a, b| raise Exception, "visited with #{a.inspect}, #{b.inspect}" }
+    shared :shared, &proc
+    lambda {
+      it_behaves_like(:shared, :method, :klass)
+    }.should raise_error(Exception, "visited with :method, :klass")
   end
 end
