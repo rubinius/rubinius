@@ -24,11 +24,19 @@ module CType
     islower or isupper or isdigit
   end
   
+  def toupper!
+    self - ?\s
+  end
+  
   def toupper
-    self.islower ? self - ?\s : self
+    self.islower ? self.toupper! : self
+  end
+  
+  def tolower!
+    self + ?\s
   end
   
   def tolower
-    self.isupper ? self + ?\s : self
+    self.isupper ? self.tolower! : self
   end
 end

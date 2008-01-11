@@ -196,7 +196,7 @@ class String
         return m.begin(0)
       end
       Regexp.last_match = nil
-      return nil      
+      return nil
     when String
       raise TypeError, "type mismatch: String given"
     else
@@ -605,8 +605,8 @@ class String
     modified = false
   
     @bytes.times do |i|
-      if @data[i].isupper
-        @data[i] = @data[i].tolower
+      if (c = @data[i]).isupper
+        @data[i] = c.tolower!
         modified = true
       end
     end
@@ -839,7 +839,8 @@ class String
   #   "hello".include? ?h     #=> true
   def include?(needle)
     if needle.is_a? Fixnum
-      each_byte { |b| return true if b == (needle % 256) }
+      needle = needle % 256
+      each_byte { |b| return true if b == needle }
       return false
     end
 
@@ -1608,11 +1609,12 @@ class String
     modified = false
   
     @bytes.times do |i|
-      if @data[i].islower
-        @data[i] = @data[i].toupper
+      c = @data[i]
+      if c.islower
+        @data[i] = c.toupper!
         modified = true
-      elsif @data[i].isupper
-        @data[i] = @data[i].tolower
+      elsif c.isupper
+        @data[i] = c.tolower!
         modified = true
       end
     end
@@ -1728,8 +1730,8 @@ class String
     modified = false
   
     @bytes.times do |i|
-      if @data[i].islower
-        @data[i] = @data[i].toupper
+      if (c = @data[i]).islower
+        @data[i] = c.toupper!
         modified = true
       end
     end
