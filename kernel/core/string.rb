@@ -94,7 +94,6 @@ class String
       end
     end
     
-    self.modify!
     self.taint if other.tainted?
     self.append(other)
   end
