@@ -7,18 +7,19 @@ describe "TCPServer#accept" do
     @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
     @read = false
     @thread = Thread.new do
-      begin
-        client = @server.accept_nonblock
-      rescue Errno::EAGAIN, Errno::ECONNABORTED, Errno::EPROTO, Errno::EINTR
-        @listening = true
-        IO.select([@server])
-        retry
-      end
+      @listening = true
+      client = @server.accept
       @data << client.read(5)
+      client << "hello"
       @read = true
       client.close
     end
-    Thread.pass until @listening
+    
+    while @thread.status and !@listening
+      sleep 0.2
+      Thread.pass
+    end
+    sleep 0.2
   end
 
   after(:each) do
@@ -29,7 +30,7 @@ describe "TCPServer#accept" do
   it "accepts what is written by the client" do
     @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     @socket.write('hello')
-    Thread.pass until @read
+    out = @socket.read(5)
     @thread.join
     @data.should == ['hello']
   end

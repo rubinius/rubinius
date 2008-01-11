@@ -8,10 +8,14 @@ class BasicSocket < IO
   end
 
   def initialize(domain, type, protocol)
-    fd = Socket::Foreign.create_socket(domain.to_i, type.to_i, protocol.to_i)
-    Errno.handle if fd < 0
-
-    super(fd)
+    # TCPSocket hits here already setup (the class inheritance
+    # for socket is busted, thats why we have this.)
+    unless descriptor
+      fd = Socket::Foreign.create_socket(domain.to_i, type.to_i, protocol.to_i)
+      Errno.handle if fd < 0
+    
+      super(fd)
+    end
     
     @domain = domain
     @type = type
@@ -28,7 +32,7 @@ class BasicSocket < IO
     if optval.is_a?(Fixnum)
       MemoryPointer.new :int do |val|
         val.write_int optval
-        error = Socket::Foreign.set_socket_option(@descriptor, level, optname, val, optval.size)
+        error = Socket::Foreign.set_socket_option(descriptor, level, optname, val, val.size)
       end
     elsif optval.is_a?(String)
       raise NotImplementedError
@@ -46,30 +50,20 @@ end
 class Socket < BasicSocket
     
   module Constants
-    AF_UNIX =   1
-    AF_LOCAL =  1
-    AF_INET =   2
+    AF_UNIX =   FFI.config('socket.AF_UNIX')
+    AF_LOCAL =  FFI.config('socket.AF_LOCAL')
+    AF_INET =   FFI.config('socket.AF_INET')
     
     AI_PASSIVE = 1
 
-    SOCK_STREAM = 1
-    SOCK_DGRAM =  2
-    SOCK_RAW =    3
-    SOCK_RDM =    4
-    SOCK_SEQPACKET = 5
+    SOCK_STREAM = FFI.config('socket.SOCK_STREAM')
+    SOCK_DGRAM =  FFI.config('socket.SOCK_DGRAM')
+    SOCK_RAW =    FFI.config('socket.SOCK_RAW')
+    SOCK_RDM =    FFI.config('socket.SOCK_RDM')
+    SOCK_SEQPACKET = FFI.config('socket.SOCK_SEQPACKET')
 
-    SO_ACCEPTFILTER = 4096
-
-    SOL_TCP = 6
-
-    case RUBY_PLATFORM
-    when /linux/
-      SOL_SOCKET = 1
-      SO_REUSEADDR = 2
-    else
-      SOL_SOCKET = 65535 # TODO - Different on weird platforms
-      SO_REUSEADDR = 4
-    end
+    SOL_SOCKET =   FFI.config('socket.SOL_SOCKET')
+    SO_REUSEADDR = FFI.config('socket.SO_REUSEADDR')
   end
   
   module Foreign
@@ -82,6 +76,8 @@ class Socket < BasicSocket
     attach_function "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
     attach_function "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
     attach_function "ffi_getpeername", :getpeername, [:state, :int, :int], :object
+    attach_function "ffi_getsockname", :getsockname, [:state, :int, :int], :object
+    attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
   end
   
   include Socket::Constants
@@ -93,6 +89,7 @@ class Socket < BasicSocket
   class << self
     alias_method :sockaddr_in, :pack_sockaddr_in
   end
+  
 end
 
 class UNIXSocket < BasicSocket
@@ -115,53 +112,79 @@ class IPSocket < BasicSocket
   def peeraddr
     reverse = BasicSocket.do_not_reverse_lookup ? 0 : 1
 
-    name, addr = Socket::Foreign.getpeername descriptor, reverse
+    name, addr, port = Socket::Foreign.getpeername descriptor, reverse
     if addr.nil?
       raise "Unable to get peer address"
     end
-    ["AF_INET", @port, name, addr]
+    ["AF_INET", port.to_i, name, addr]
   end
 end
 
 class UDPSocket < IPSocket
-  ivar_as_index :descriptor => 1
-  def descriptor=(other)
-    @descriptor = other
+  def initialize
+    super(Socket::Constants::SOCK_DGRAM)
   end
   
-  def initialize(host, port)
-    super(Socket::Constants::SOCK_DGRAM)
-
-    @host = host
+  def bind(host, port)
     @port = port
+    @host = host
 
+    ret = Socket::Foreign.bind_name(descriptor, @host.to_s, @port.to_s, @type.to_i)
+
+    Errno.handle if ret != 0
+
+    return
+
+    p :bind => [host, port]
     @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
 
-    ret = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
+    p :sockaddr => [descriptor, @sockaddr]
+    ret = Socket::Foreign.bind_socket(descriptor, @sockaddr, @sockaddr.size)
+    p :ret => ret
     Errno.handle if ret != 0
   end
   
   def inspect
     "#<#{self.class}:0x#{object_id.to_s(16)} #{@host}:#{@port}>"
   end
+
 end
 
 class TCPSocket < IPSocket
-  ivar_as_index :descriptor => 1
-  def descriptor=(other)
-    @descriptor = other
+
+  def self.from_descriptor(fixnum)
+    sock = allocate()
+    sock.from_descriptor(fixnum)
+    return sock
   end
-  
+
+  def from_descriptor(fixnum)
+    setup(fixnum)
+
+    @connected = true
+    
+    name, addr, port = Socket::Foreign.getpeername fixnum, 0
+
+    initialize(addr, port)
+
+    return self
+  end
+
   def initialize(host, port)
     super(Socket::Constants::SOCK_STREAM)
 
     @host = host
     @port = port
 
-    @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
+    @connected ||= false
 
-    ret = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
-    Errno.handle if ret != 0
+    unless @connected
+      @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
+
+      ret = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
+      Errno.handle if ret != 0
+      @connected = true
+    end
   end
   
   def inspect
@@ -170,7 +193,6 @@ class TCPSocket < IPSocket
 end
 
 class TCPServer < TCPSocket
-  ivar_as_index :descriptor => 1
   def initialize(host, port = nil)
     if host.kind_of?(Fixnum) then
       port = host
@@ -187,13 +209,19 @@ class TCPServer < TCPSocket
       Errno.handle "Unable to create socket"
     end
 
-    @descriptor = fd
-    setsockopt(Socket::Constants::SOL_SOCKET, Socket::Constants::SO_REUSEADDR, true)
+    setup(fd)
+
+    begin
+      setsockopt(Socket::Constants::SOL_SOCKET, Socket::Constants::SO_REUSEADDR, true)
+    rescue SystemCallError
+      # MRI's socket.c tries this but never checks the return value, so
+      # just eat any error.
+    end
 
     @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type,
                                         Socket::Constants::AI_PASSIVE)
 
-    ret = Socket::Foreign.bind_socket(@descriptor, @sockaddr, @sockaddr.size)
+    ret = Socket::Foreign.bind_socket(descriptor, @sockaddr, @sockaddr.size)
     Errno.handle if ret != 0
 
     ret = Socket::Foreign.listen_socket(fd, 5)
@@ -204,27 +232,27 @@ class TCPServer < TCPSocket
 
   def accept
     return if closed?
+    wait_til_readable()
+
     fd = -1
     size = 0
     MemoryPointer.new :int do |sz|
       sz.write_int @sockaddr.size # initialize to the 'expected' size
-      fd = Socket::Foreign.accept @descriptor, @sockaddr, sz
+      fd = Socket::Foreign.accept descriptor, @sockaddr, sz
       size = sz.read_int
     end
+
     if fd < 0
       Errno.handle "Unable to accept on socket"
     end
 
-    socket = TCPSocket.allocate
-    socket.descriptor = fd
-
-    socket
+    TCPSocket.from_descriptor(fd)
   end
   
   def listen(log)
     log = Type.coerce_to(log, Fixnum, :to_int)
 
-    ret = Socket::Foreign.listen_socket(@descriptor, log)
+    ret = Socket::Foreign.listen_socket(descriptor, log)
     if ret != 0
       Errno.handle
     end

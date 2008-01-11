@@ -158,6 +158,10 @@ module FFI
     # Be like C, use int as the default type size.
     return :int
   end
+
+  def self.config(name)
+    ::RUBY_CONFIG["rbx.platform.#{name}"]
+  end
   
 end
 

@@ -585,12 +585,27 @@ file 'runtime/platform.conf' do |t|
     SEEK_CUR
     SEEK_END
   }
+
+  socket_constants = %w{
+    AF_UNIX
+    AF_LOCAL
+    AF_INET
+    SOCK_STREAM
+    SOCK_DGRAM
+    SOCK_RAW
+    SOCK_RDM
+    SOCK_SEQPACKET
+    SO_REUSEADDR
+    SOL_SOCKET
+  }
   
   cg = ConstGenerator.new
   cg.include "stdio.h"
   cg.include "fcntl.h"
+  cg.include "sys/socket.h"
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
+  socket_constants.each { |c| cg.const c }
   cg.calculate
   
   puts "Generating #{t.name}..."
@@ -606,6 +621,11 @@ file 'runtime/platform.conf' do |t|
     io_constants.each do | name |
       const = cg.constants[name]
       f.puts "rbx.platform.io.#{name} = #{const.converted_value}"
+    end
+
+    socket_constants.each do |name|
+      const = cg.constants[name]
+      f.puts "rbx.platform.socket.#{name} = #{const.converted_value}"
     end
   end
   

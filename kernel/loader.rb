@@ -38,7 +38,20 @@ Signal.action("INT") do |thr|
   if thr == Thread.current
     thr = Thread.main
   end
-  
+
+  # The current thread might be dead if all other live threads are
+  # a sleep when the current one died.
+  unless thr.alive?
+
+    thr = Thread.main
+    # If main is dead too. Wow. Ok.. well... tell the user.
+    unless thr.alive?
+      puts "Signal received, but the main thread is dead."
+      puts "Unable to continue."
+      exit! 1
+    end
+  end
+
   # Push the output down a little bit, makes things look more
   # obvious that the system was interrupted.
   puts
