@@ -410,23 +410,27 @@ end
 
 describe "Marshal.dump with array containing the same symbols" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(Array.new(5, :so)).should == "#{mv+nv}[\x0A:\x07so;\x00;\x00;\x00;\x00"
+    a = [:no, 5, :so, 'a', :so, 'b', :so, :no]
+    Marshal.dump(a).should == "#{mv+nv}[\x0D:\x07noi\x0A:\x07so\"\x06a;\x06\"\x06b;\x06;\x00"
   end
 end
 
 describe "Marshal.dump with array containing refs to the same object" do
   it "returns a string-serialized version of the given argument" do
-    s = "hi"; n = 5; b = 2**64
-    Marshal.dump([n, n, s, s, s, b, b, b]).should ==
-      "#{mv+nv}[\x0Di\x0Ai\x0A\"\x07hi@\x06@\x06l+\x0A\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00@\x07@\x07"
+    s = "hi"; n = 5; r = //; a = [2]; c = String
+    Marshal.dump([s, n, a, n, s, a, s, c, r, r, c]).should ==
+      "#{mv+nv}[\x10\"\x07hii\x0A[\x06i\x07i\x0A@\x06@\x07@\x06c\x0BString/\x00\x00@\x09@\x08"
   end
 end
 
 describe "Marshal.dump with extended_array having ivar" do
   it "returns a string-serialized version of the given argument" do
-    a = [5, 'hi'].extend(Meths, MethsMore)
-    a.instance_variable_set(:@mix, 'well')
-    Marshal.dump(a).should == "#{mv+nv}Ie:\x0AMethse:\x0EMethsMore[\x07i\x0A\"\x07hi\x06:\x09@mix\"\x09well"
+    s = 'well'
+    s.instance_variable_set(:@foo, 10)
+    a = ['5', s, 'hi'].extend(Meths, MethsMore)
+    a.instance_variable_set(:@mix, s)
+    Marshal.dump(a).should ==
+      "#{mv+nv}Ie:\x0AMethse:\x0EMethsMore[\x08\"\x065I\"\x09well\x06:\x09@fooi\x0F\"\x07hi\x06:\x09@mix@\x07"
   end
 end
 
@@ -458,8 +462,17 @@ describe "Marshal.dump with struct having fields" do
   end
 end
 
+describe "Marshal.dump with struct having fields with same object" do
+  it "returns a string-serialized version of the given argument" do
+    s = 'hi'
+    st = Struct.new("Ure2", :a, :b).new
+    st.a = s; st.b = s
+    Marshal.dump(st).should == "#{mv+nv}S:\x11Struct::Ure2\x07:\x06a\"\x07hi:\x06b@\x06"
+  end
+end
+
 describe "Marshal.dump with extended_struct" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(Struct.new("Ure2").new.extend(Meths)).should == "#{mv+nv}e:\x0AMethsS:\x11Struct::Ure2\x00"
+    Marshal.dump(Struct.new("Ure3").new.extend(Meths)).should == "#{mv+nv}e:\x0AMethsS:\x11Struct::Ure3\x00"
   end
 end
