@@ -17,7 +17,7 @@ describe "String#*" do
     ("a" * a).should == "aaaa"
     
     a = mock('4')
-    a.should_receive(:respond_to?).with(:to_int).and_return(true)
+    a.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     a.should_receive(:method_missing).with(:to_int).and_return(4)
     ("a" * a).should == "aaaa"    
   end
