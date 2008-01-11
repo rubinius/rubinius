@@ -2918,7 +2918,7 @@ class ShotgunPrimitives
     machine m;
     environment e = environment_current();
 
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     POP(ary, ARRAY);
 
     argc = FIXNUM_TO_INT(array_get_total(ary));
@@ -2950,7 +2950,7 @@ class ShotgunPrimitives
 
   def machine_join
     <<-CODE
-    stack_pop(); /* class */
+    (void)stack_pop(); /* class */
     POP(t1, FIXNUM);
     if(environment_join_machine(environment_current(), FIXNUM_TO_INT(t1))) {
       stack_push(Qtrue);
