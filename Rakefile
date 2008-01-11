@@ -20,7 +20,12 @@ end
 task :default => :build
 
 def make(args = nil)
-  "#{ENV['MAKE'] || 'make'} #{args}"
+  if RUBY_PLATFORM =~ /bsd/
+    gmake = 'gmake'
+  else
+    gmake = 'make'
+  end
+  "#{ENV['MAKE'] || gmake} #{args}"
 end
 
 class Hash

@@ -27,6 +27,7 @@ ifneq ($(findstring BSD,$(UNAME)),BSD)
 else
   # BSD and Darwin comes with strlcat and strlcpy
   CPPFLAGS+=-DHAVE_STRLCAT -DHAVE_STRLCPY
+	CPPFLAGS+=-I/usr/local/include
 endif
   
 ifeq ($(UNAME),Darwin)
