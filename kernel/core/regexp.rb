@@ -25,52 +25,52 @@ class Regexp
   KCODE_UTF8  = 64
   KCODE_MASK  = 112
 
-  class << self
-    def new(arg, opts=nil, lang=nil)
-     if arg.is_a?(Regexp)
-        opts = arg.options
-        arg  = arg.source
-      elsif opts.kind_of?(Fixnum)
-        opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
-      elsif opts
-        opts = IGNORECASE
-      else
-        opts = 0
-      end
-
-      if opts and lang and lang.kind_of?(String)
-        opts &= OPTION_MASK
-        idx   = ValidKcode.index(lang[0])
-        opts |= KcodeValue[idx] if idx
-      end
-
-      __regexp_new__(arg, opts)
+  def self.new(arg, opts=nil, lang=nil)
+   if arg.is_a?(Regexp)
+      opts = arg.options
+      arg  = arg.source
+    elsif opts.kind_of?(Fixnum)
+      opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
+    elsif opts
+      opts = IGNORECASE
+    else
+      opts = 0
     end
 
-    alias_method :compile, :new
-
-    # FIXME - Optimize me using String#[], String#chr, etc.
-    # Do away with the control-character comparisons.
-    def escape(str)
-      meta = %w![ ] { } ( ) | - * . \\ ? + ^ $ #!
-      quoted = ""
-      str.codepoints.each do |c|
-        quoted << if meta.include?(c)
-        "\\#{c}"
-        elsif c == "\n"
-        "\\n"
-        elsif c == "\r"
-        "\\r"
-        elsif c == "\f"
-        "\\f"
-        else
-          c
-        end
-      end
-      quoted
+    if opts and lang and lang.kind_of?(String)
+      opts &= OPTION_MASK
+      idx   = ValidKcode.index(lang[0])
+      opts |= KcodeValue[idx] if idx
     end
-    alias_method :quote, :escape
+
+    __regexp_new__(arg, opts)
   end
+
+  # FIXME - Optimize me using String#[], String#chr, etc.
+  # Do away with the control-character comparisons.
+  def self.escape(str)
+    meta = %w![ ] { } ( ) | - * . \\ ? + ^ $ #!
+    quoted = ""
+    str.codepoints.each do |c|
+      quoted << if meta.include?(c)
+      "\\#{c}"
+      elsif c == "\n"
+      "\\n"
+      elsif c == "\r"
+      "\\r"
+      elsif c == "\f"
+      "\\f"
+      else
+        c
+      end
+    end
+    quoted
+  end
+
+  # Class aliases
+  metaclass.send :alias_method, :compile, :new
+  metaclass.send :alias_method, :quote, :escape
+
 
   def self.last_match(field = nil)
     match = MethodContext.current.sender.last_match

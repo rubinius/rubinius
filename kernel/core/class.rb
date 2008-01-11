@@ -4,7 +4,7 @@ class Class
 
   def self.new(sclass=Object)
     raise TypeError, "superclass must be a Class (#{sclass.class.name} given)" unless sclass.kind_of?(Class)
-    
+
     obj = Rubinius.class_constitute(sclass, nil)
     block = block_given?
     obj.class_eval(&block) if block
@@ -17,14 +17,14 @@ class Class
   def opened_class_cv(cls)
     cls = Object unless cls
     cls.add_subclass(self)
-    
+
     # Fire all the inherited hooks
     sup = cls
     while sup and sup != Object
       sup.inherited(self) if sup.respond_to?(:inherited)
       sup = sup.superclass
     end
-    
+
     # FIXME: We shouldn't have to do this; hook calls should preserve the stack
     self
   end
