@@ -1,1 +1,0 @@
-Method#inspect returns a string representing the method

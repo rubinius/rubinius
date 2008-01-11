@@ -498,6 +498,7 @@ class ShotgunPrimitives
     if( close(j) ) {
       stack_push(Qfalse);
     } else {
+      cpu_event_clear(state, j);
       io_set_descriptor(self, I2N(-1));
       stack_push(Qtrue);
     }
@@ -2333,17 +2334,22 @@ class ShotgunPrimitives
     GUARD( RISA(self, thread) );
     
     t1 = stack_pop();
-    
-    /* The return value */
-    stack_push(Qnil);
-    
-    cpu_thread_schedule(state, c->current_thread);    
-    cpu_thread_force_run(state, c, self);
-    
-    methctx_reference(state, c->active_context);
-    exception_set_context(t1, c->active_context);
-    
-    cpu_raise_exception(state, c, t1);
+
+    if(!cpu_thread_alive_p(state, self)) {
+      stack_push(Qfalse);
+    } else {
+
+      /* The return value */
+      stack_push(Qtrue);
+
+      cpu_thread_schedule(state, c->current_thread);    
+      cpu_thread_force_run(state, c, self);
+
+      methctx_reference(state, c->active_context);
+      exception_set_context(t1, c->active_context);
+
+      cpu_raise_exception(state, c, t1);
+    }
     CODE
   end
   

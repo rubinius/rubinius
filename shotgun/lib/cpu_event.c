@@ -33,6 +33,7 @@ struct thread_info {
   OBJECT buffer;
   int count;
   pid_t pid;
+  int fd;
   union {
     int options;
     int sig;
@@ -49,6 +50,7 @@ void cpu_event_init(STATE) {
   setenv("EVENT_NOPOLL", "1", 1);
 #endif
   state->event_base = event_init();
+  state->thread_infos = NULL;
 }
 
 void cpu_event_run(STATE) {
@@ -75,28 +77,69 @@ void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_
 void _cpu_event_register_info(STATE, struct thread_info *ti) {
   state->pending_events++;
   ti->prev = NULL;
-  ti->next = state->thread_infos ? state->thread_infos : NULL;
+  ti->next = state->thread_infos;
+  if(state->thread_infos) {
+    ((struct thread_info*)state->thread_infos)->prev = ti;
+  }
   state->thread_infos = ti;
 }
 
 void _cpu_event_unregister_info(STATE, struct thread_info *ti) {
-  if(!ti->prev) {
-    if(ti->next) {
-      state->thread_infos = ti->next;
-      ti->next->prev = NULL;
+  struct thread_info *next, *prev;
+
+  next = ti->next;
+  prev = ti->prev;
+
+  if(next) {
+    next->prev = prev;
+  }
+
+  if(prev) {
+    prev->next = next;
+  }
+
+  if(next) {
+    if(next->next == prev) {
+      next->next = NULL;
+    }
+  }
+
+  if(prev) {
+    if(prev->prev == next) {
+      prev->prev = NULL;
+    }
+  }
+
+  if(state->thread_infos == ti) {
+    if(next) {
+      state->thread_infos = next;
+    } else if(prev) {
+      state->thread_infos = prev;
     } else {
       state->thread_infos = NULL;
     }
-  } else {
-    ti->prev->next = ti->next;
-    if(ti->next) {
-      ti->next->prev = ti->prev;
-    }
   }
- 
+
   event_del(&ti->ev);
   state->pending_events--;
-  event_del(&ti->ev);
+}
+
+void cpu_event_clear(STATE, int fd) {
+  struct thread_info *ti = (struct thread_info*)state->thread_infos;
+  struct thread_info *tnext;
+
+  if(fd <= 0) return;
+
+  while(ti) {
+    tnext = ti->next;
+    if(ti->fd == fd) {
+      cpu_channel_send(state, ti->c, ti->channel, Qnil);
+      _cpu_event_unregister_info(state, ti);
+      XFREE(ti);
+    }
+    ti = tnext;
+  }
+
 }
 
 void _cpu_wake_channel(int fd, short event, void *arg) {
@@ -197,6 +240,7 @@ void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv) {
   struct thread_info *ti;
 
   ti = ALLOC_N(struct thread_info, 1);
+  ti->fd = 0;
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -211,6 +255,7 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer
   struct thread_info *ti;
 
   ti = ALLOC_N(struct thread_info, 1);
+  ti->fd = fd;
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -241,6 +286,7 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
   struct thread_info *ti;
 
   ti = ALLOC_N(struct thread_info, 1);
+  ti->fd = fd;
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -282,6 +328,7 @@ void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
      be delivered to either an old handler or the new handler. */
 
   ti = ALLOC_N(struct thread_info, 1);
+  ti->fd = 0;
   ti->type = SIGNAL;
   ti->state = state;
   ti->c = c;
@@ -345,6 +392,7 @@ void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
   struct thread_info *ti;
 
   ti = ALLOC_N(struct thread_info, 1);
+  ti->fd = 0;
   ti->state = state;
   ti->c = c;
   ti->pid = pid;
@@ -359,6 +407,7 @@ void cpu_event_setup_children(STATE, cpu c) {
   struct thread_info *ti;
 
   ti = ALLOC_N(struct thread_info, 1);
+  ti->fd = 0;
   ti->state = state;
   ti->c = c;
   signal_set(&ti->ev, SIGCHLD, _cpu_find_waiters_cb, (void*)ti);

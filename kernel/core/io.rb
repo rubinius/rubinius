@@ -92,11 +92,11 @@ class IO
       raise Errno::EBADF, "invalid descriptor"
     end
 
-    @descriptor = desc
-    setup
+    setup(desc)
   end
 
-  def setup
+  def setup(desc=nil)
+    @descriptor = desc if desc
     @buffer = IO::Buffer.new(BufferSize)
     @eof = false
     @lineno = 0
@@ -110,6 +110,12 @@ class IO
 
   def eof?
     @eof
+  end
+
+  def wait_til_readable
+    chan = Channel.new
+    Scheduler.send_on_readable chan, self, nil, nil
+    chan.receive
   end
 
   def __ivars__ ; @__ivars__  ; end
@@ -153,12 +159,24 @@ class IO
     nil
   end
 
+  # Writes each given argument.to_s to the stream or $_ (the
+  # result of last IO#gets) if called without arguments. Appends 
+  # $\.to_s to output. Returns nil.
+  def print(*args)
+    if args.empty?
+      write $_.to_s
+    else
+      args.each {|o| write o.to_s }
+    end
+
+    write $\.to_s
+    nil
+  end
+
   def <<(obj)
     write(obj.to_s)
     return self
   end
-
-  alias_method :print, :<<
 
   def sysread(size, buf=nil)
     buf = String.new(size) unless buf

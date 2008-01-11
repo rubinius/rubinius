@@ -15,6 +15,8 @@ class Method
     "#<#{self.class} #{@receiver.class}(#{@module})##{@method.name}>"
   end
 
+  alias_method :to_s, :inspect
+
   def call(*args, &prc)
     @method.activate(@receiver, @module, args, &prc)
   end

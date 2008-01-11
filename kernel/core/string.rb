@@ -21,7 +21,7 @@ class String
       @data = ByteArray.new(arg+1)
       @bytes = arg
       @characters = arg
-      @encoding = nil      
+      @encoding = nil
     elsif !arg.nil?
       replace(StringValue(arg))
     elsif @data.nil?
@@ -59,17 +59,13 @@ class String
   #   
   #   "Ho! " * 3   #=> "Ho! Ho! Ho! "
   def *(num)
-    unless num.is_a? Integer
-      raise "Can't convert #{num.class} to Integer" unless num.respond_to? :to_int
-      num = num.to_int
-    end
+    num = Type.coerce_to(num, Integer, :to_int) unless num.is_a? Integer
     
     raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
-    str = []
-    num.times { str << self }
-    str = self.class.new(str.join)
+    str = self.class.new
+    num.times { str.append(self) }
     str.taint if self.tainted?
     return str
   end
@@ -79,10 +75,7 @@ class String
   # 
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    r = String.new(self)
-    r << other
-    r.taint if self.tainted? || other.tainted?
-    r
+    "".replace(self) << other
   end
 
   # Append --- Concatenates the given object to <i>self</i>. If the object is a
@@ -101,7 +94,6 @@ class String
       end
     end
     
-    self.modify!
     self.taint if other.tainted?
     self.append(other)
   end
@@ -204,7 +196,7 @@ class String
         return m.begin(0)
       end
       Regexp.last_match = nil
-      return nil      
+      return nil
     when String
       raise TypeError, "type mismatch: String given"
     else
@@ -613,8 +605,8 @@ class String
     modified = false
   
     @bytes.times do |i|
-      if @data[i].isupper
-        @data[i] = @data[i].tolower
+      if (c = @data[i]).isupper
+        @data[i] = c.tolower!
         modified = true
       end
     end
@@ -847,7 +839,8 @@ class String
   #   "hello".include? ?h     #=> true
   def include?(needle)
     if needle.is_a? Fixnum
-      each_byte { |b| return true if b == (needle % 256) }
+      needle = needle % 256
+      each_byte { |b| return true if b == needle }
       return false
     end
 
@@ -1616,11 +1609,12 @@ class String
     modified = false
   
     @bytes.times do |i|
-      if @data[i].islower
-        @data[i] = @data[i].toupper
+      c = @data[i]
+      if c.islower
+        @data[i] = c.toupper!
         modified = true
-      elsif @data[i].isupper
-        @data[i] = @data[i].tolower
+      elsif c.isupper
+        @data[i] = c.tolower!
         modified = true
       end
     end
@@ -1675,7 +1669,7 @@ class String
   # Returns self if self is an instance of String,
   # else returns self converted to a String instance.
   def to_s
-    self.class == String ? self : String.new(self)
+    self.class == String ? self : "".replace(self)
   end
   alias_method :to_str, :to_s
 
@@ -1736,8 +1730,8 @@ class String
     modified = false
   
     @bytes.times do |i|
-      if @data[i].islower
-        @data[i] = @data[i].toupper
+      if (c = @data[i]).islower
+        @data[i] = c.toupper!
         modified = true
       end
     end

@@ -21,6 +21,8 @@ class Compiler
       @encoder = InstructionSequence::Encoder.new
       @literals = []
       @ip = 0
+      @cache_size = 0
+      @enable_method_cache = false
       @modstack = []
       @break = nil
       @redo = nil
@@ -35,13 +37,13 @@ class Compiler
       @exceptions = []
     end
     
-    attr_reader :ip, :exceptions
+    attr_reader :ip, :cache_size, :exceptions
     attr_accessor :break, :redo, :next, :retry, :ensure_return
     
     def run(node)
       node.bytecode self
     end
-    
+
     # Formalizers
         
     def collapse_labels
@@ -123,6 +125,7 @@ class Compiler
       cm.lines = encode_lines()
       cm.exceptions = encode_exceptions()
       cm.serial = 0
+      cm.cache = @cache_size
       cm.local_names = desc.locals.encoded_order
       return cm
     end
@@ -261,7 +264,13 @@ class Compiler
       @exceptions << ex
       yield ex
     end
-    
+
+    def next_cache_index
+      i = @cache_size
+      @cache_size += 1
+      i
+    end
+
     # Operations
     
     def push(what)
@@ -434,6 +443,7 @@ class Compiler
     
     def send(meth, count, priv=false)
       add :set_call_flags, 1 if priv
+      add :set_cache_index, next_cache_index if @enable_method_cache
       
       idx = find_literal(meth)
       if count == 0
@@ -447,6 +457,7 @@ class Compiler
     
     def send_with_block(meth, count, priv=false)
       add :set_call_flags, 1 if priv
+      add :set_cache_index, next_cache_index if @enable_method_cache
       
       idx = find_literal(meth)
       add :send_stack_with_block, idx, count
@@ -454,6 +465,7 @@ class Compiler
     
     def send_with_register(meth, priv=false)
       add :set_call_flags, 1 if priv
+      add :set_cache_index, next_cache_index if @enable_method_cache
       
       idx = find_literal(meth)
       add :send_with_arg_register, idx      

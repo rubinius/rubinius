@@ -70,8 +70,12 @@ class Thread
         @lock.send nil
       end
 
-      if Thread.abort_on_exception
-        Thread.main.raise @exception
+      if @exception
+        if Thread.abort_on_exception
+          Thread.main.raise @exception
+        elsif $DEBUG
+          STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
+        end
       end
     end
   end

@@ -16,6 +16,8 @@
 #include "shotgun/lib/array.h"
 #include "shotgun/lib/object.h"
 
+void cpu_thread_dequeue(STATE, OBJECT thr);
+
 void cpu_task_cleanup(STATE, OBJECT self) {
   struct cpu_task *task;
   
@@ -155,9 +157,8 @@ int cpu_task_alive_p(STATE, OBJECT self) {
   
   task = (struct cpu_task*)BYTES_OF(self);
   
-  if(NIL_P(task->active_context) || NIL_P(task->home_context)) {
-    return FALSE;
-  }
+  if(!REFERENCE_P(task->active_context)) return FALSE;
+  if(!REFERENCE_P(task->home_context)) return FALSE;
   
   return TRUE;
 }
@@ -178,6 +179,8 @@ void cpu_task_flush(STATE, cpu c) {
 int cpu_task_select(STATE, cpu c, OBJECT nw) {
   struct cpu_task *cur_task, *new_task, *ct;
   OBJECT home, cur;
+
+  assert(cpu_task_alive_p(state, nw));
 
   if(c->active_context != Qnil) {
     cpu_save_registers(state, c, 0);
@@ -211,9 +214,9 @@ int cpu_task_select(STATE, cpu c, OBJECT nw) {
   assert(cur_task->sp_ptr >= cur_task->stack_top);
   if(REFERENCE_P(cur_task->active_context)) {
     assert(cur_task->active_context->obj_type == MContextType ||
-          cur_task->active_context->obj_type == BContextType);
+        cur_task->active_context->obj_type == BContextType);
+
   }
-  
   if(REFERENCE_P(cur_task->home_context)) {
     assert(cur_task->home_context->obj_type == MContextType ||
           cur_task->home_context->obj_type == BContextType);
@@ -341,6 +344,7 @@ OBJECT cpu_thread_get_task(STATE, OBJECT self) {
 
 void cpu_thread_exited(STATE, cpu c) {
   thread_set_task(c->current_thread, Qnil);
+  cpu_thread_dequeue(state, c->current_thread);
   cpu_thread_run_best(state, c);
 }
 
@@ -348,8 +352,11 @@ int cpu_thread_alive_p(STATE, OBJECT self) {
   OBJECT task;
   
   task = thread_get_task(self);
-  if(NIL_P(task)) return FALSE;
-  return cpu_task_alive_p(state, task);
+  if(NIL_P(task)) {
+    return FALSE;
+  } else {
+    return cpu_task_alive_p(state, task);
+  }
 }
 
 void cpu_thread_schedule(STATE, OBJECT self) {
@@ -376,7 +383,7 @@ void cpu_thread_schedule(STATE, OBJECT self) {
 
 OBJECT cpu_thread_find_highest(STATE) {
   int i, t;
-  OBJECT lst, tup;
+  OBJECT lst, tup, thr;
   
   cpu_event_update(state);
 
@@ -387,7 +394,10 @@ OBJECT cpu_thread_find_highest(STATE) {
       lst = tuple_at(state, tup, i);
       if(FIXNUM_TO_INT(list_get_count(lst)) != 0) {
         state->pending_threads--;
-        return list_shift(state, lst);
+        thr = list_shift(state, lst);
+        /* It's a bug that a dead thread shows up as queued.
+         * But for now, just check again here, it's safer anyway. */
+        if(cpu_thread_alive_p(state, thr)) return thr;
       }
     }
     // printf("Nothing to do, waiting for events.\n");
@@ -426,7 +436,9 @@ void cpu_thread_switch(STATE, cpu c, OBJECT thr) {
      the already running thread (via the current thread waiting
      for an event), and we thus don't need to restore it. */
   if(thr == c->current_thread) return;
-  
+ 
+  assert(cpu_thread_alive_p(state, thr));
+
   object_set_ivar(state, thr, SYM("@sleep"), Qfalse);
     
   /* Save the current task back into the current thread, in case
@@ -441,6 +453,7 @@ void cpu_thread_run_best(STATE, cpu c) {
   OBJECT thr;
   
   thr = cpu_thread_find_highest(state);
+  assert(cpu_thread_alive_p(state, thr));
   cpu_thread_switch(state, c, thr);
 }
 
