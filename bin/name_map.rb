@@ -55,20 +55,25 @@ class NameMap
     'initialize' => 'new'
   }
 
+  def self.const_lookup(c)
+    c.split('::').inject(Object) { |k,n| k.const_get n }
+  end
+    
   def self.get_class_or_module(c)
-    const = Object.const_get(c)
+    const = const_lookup(c)
     return const if (const.is_a?(Module) or const.is_a?(Class)) and 
       not ['DTracer', 'NameMap', 'OptionParser', 'SystemExit'].include?(const.name)
   end
 
   def self.get_dir_name(c, base='spec/ruby/1.8/core/')
     base = 'spec/ruby/1.8/core/' unless base
-    if (c.name.include?('Error') or c.name == 'Errno') and c.ancestors.include?(Exception)
+    name = c.name.split('::').last
+    if (name.include?('Error') or name == 'Errno') and c.ancestors.include?(Exception)
       base + 'exception'
     elsif c == Class
-      base + c.name.downcase
+      base + name.downcase
     else
-      base + c.name.gsub(/Class/, '').downcase
+      base + name.gsub(/Class/, '').downcase
     end
   end
 
