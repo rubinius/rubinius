@@ -141,7 +141,7 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
  
 #define TUPLE_P(obj) (CLASS_OBJECT(obj) == BASIC_CLASS(tuple))
  
-static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name, OBJECT recv) {
+static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name, OBJECT recv, OBJECT mod) {
   OBJECT meth, vis;
 
   meth = hash_find(state, hsh, name);
@@ -159,7 +159,7 @@ static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name,
     } else if(vis == state->global->sym_protected) {
       /* If it's protected, bail if the receiver isn't the same
          class as self. */
-      if(object_class(state, recv) != object_class(state, c->self)) return Qfalse;
+      if(!object_kind_of_p(state, c->self, mod)) return Qfalse;
     }
   }
   
@@ -230,7 +230,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
     return Qnil; 
   }
   
-  meth = cpu_check_for_method(state, c, hsh, name, recv);
+  meth = cpu_check_for_method(state, c, hsh, name, recv, klass);
   
   /*
   printf("Looking for method: %s in %p (%s)\n", 
@@ -270,7 +270,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
       return Qnil; 
     }
         
-    meth = cpu_check_for_method(state, c, hsh, name, recv);
+    meth = cpu_check_for_method(state, c, hsh, name, recv, klass);
   }
   
   *mod = klass;

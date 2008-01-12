@@ -627,26 +627,28 @@ module URI
         rel_path  = split_path(rel)
 
         # RFC2396, Section 5.2, 6), a)
-	base_path << '' if base_path.last == '..'
-	while i = base_path.index('..')
-	  base_path.slice!(i - 1, 2)
+        base_path << '' if base_path.last == '..'
+        while i = base_path.index('..')
+          base_path.slice!(i - 1, 2)
         end
         if base_path.empty?
           base_path = [''] # keep '/' for root directory
         else
-	  base_path.pop
+          base_path.pop
         end
+        
 
         # RFC2396, Section 5.2, 6), c)
         # RFC2396, Section 5.2, 6), d)
         rel_path.push('') if rel_path.last == '.' || rel_path.last == '..'
         rel_path.delete('.')
+        
 
         # RFC2396, Section 5.2, 6), e)
         tmp = []
         rel_path.each do |x|
           if x == '..' &&
-              !(tmp.empty? || tmp.last == '..')
+            !(tmp.empty? || tmp.last == '..')
             tmp.pop
           else
             tmp << x
