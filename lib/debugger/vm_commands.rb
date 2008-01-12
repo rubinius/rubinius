@@ -165,4 +165,35 @@ class Debugger
       return output
     end
   end
+  
+  
+  # Shows the contents of the method caches within a compiled method
+  class ShowMethodCaches < Command
+    def help
+      return "v[m] m[ethod] c[ache]", "Display the method cache stats for each call site in the current method"
+    end
+    
+    def command_regexp
+      /^v(?:m)?\s*m(?:ethod)?\s*c(?:ache(?:s)?)?$/
+    end
+    
+    def execute(dbg, md)
+      cm = dbg.debug_context.method
+      cache = cm.cache
+
+      if cache
+        output = Output.new
+        output << "VM Method Caches for #{cm.name}:"
+        output.set_columns(['%d.', '%s', '%s', '%s', '%d', '%d', '%d'])
+        i = 0
+        cache.each do |ic|
+          output << [i, ic.at(2).name, ic.at(3), ic.at(1).name, ic.at(4), ic.at(5), ic.at(6)] if ic
+          i += 1
+        end
+      else
+        output = "There are no call site method caches in #{cm.name}"
+      end
+      output
+    end
+  end
 end

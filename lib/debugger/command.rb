@@ -229,7 +229,7 @@ class Debugger
         when String
           str << color.escape if color
           str << output_marker(marker)
-          str << item
+          str << item.rstrip
           str << color.clear if color
           str << "\n"
           marker = nil
@@ -237,7 +237,7 @@ class Debugger
           str << '  '
           str << color.escape if color
           str << output_marker(marker)
-          str << column.format_str(item)
+          str << column.format_str(item).rstrip
           str << color.clear if color
           str << "\n"
           marker = nil

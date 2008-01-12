@@ -22,7 +22,7 @@ class Compiler
       @literals = []
       @ip = 0
       @cache_size = 0
-      @enable_method_cache = false
+      @enable_method_cache = true #false
       @modstack = []
       @break = nil
       @redo = nil

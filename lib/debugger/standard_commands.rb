@@ -50,18 +50,20 @@ class Debugger
     end
 
     def command_regexp
-      /^b(?:reak)?\s+(?:((?:\w*(?:::)?)*\w+)[.#])?([\w_]+[\w\d?_\[\]])$/
+      /^b(?:reak)?\s+(?:((?:\w*(?:::)?)*\w+)[.#])?([\w_]+[\w\d?_\[\]])(?:\s+(\d+))?$/
     end
 
     def execute(dbg, md)
-      cls, mthd = md[1], md[2]
+      cls, mthd, line = md[1], md[2], md[3]
       clazz = MAIN
       unless cls.nil?
         clazz = Module.const_get(cls.to_sym)
       end
       cm = clazz.method(mthd.to_sym).compiled_method
+      ip = 0
+      ip = cm.ip_for_line(line.to_i) if line
 
-      bp = dbg.set_breakpoint cm, 0
+      bp = dbg.set_breakpoint cm, ip
       return "Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}"
     end
   end
@@ -218,8 +220,8 @@ class Debugger
       end
 
       line = dbg.debug_context.method.line_from_ip(dbg.debug_context.ip)
-      first = line - 5 unless first
-      last = first + 10 unless last
+      first = line - 10 unless first
+      last = first + 20 unless last
       first, last = last, first if first > last
       first = 1 if first < 1
       last = lines.size if last > lines.size
