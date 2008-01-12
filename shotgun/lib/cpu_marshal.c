@@ -202,6 +202,36 @@ static OBJECT unmarshal_object(STATE, char *str, struct marshal_state *ms) {
 
 */
 
+static void marshal_ary(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
+  int sz, i;
+  sz = FIXNUM_TO_INT(array_get_total(obj));
+  append_c('A');
+  append_sz(sz);
+  for(i = 0; i < sz; i++) {
+    marshal(state, array_get(state, obj, i), buf, ms);
+  }
+}
+
+static OBJECT unmarshal_ary(STATE, struct marshal_state *ms) {
+  int i, j, cur;
+  OBJECT o;
+  int sz = unmarshal_num_fields(ms);
+  OBJECT ary = array_new(state, sz);
+
+  cur = ms->consumed;
+  for(i = 0; i < sz; i++) {
+    uint8_t *old = ms->buf;
+
+    o = unmarshal(state, ms);
+    j = ms->consumed - cur;
+    ms->buf = old + j;
+    cur = ms->consumed;
+    array_set(state, ary, i, o);
+  }
+  
+  return ary;
+}
+
 static void marshal_tup(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
   return marshal_fields_as(state, obj, buf, 'p', ms);
 }
@@ -394,6 +424,10 @@ static OBJECT unmarshal(STATE, struct marshal_state *ms) {
       o = unmarshal_tup(state, ms);
       _add_object(o, ms);
       break;
+    case 'A':
+      o = unmarshal_ary(state, ms);
+      _add_object(o, ms);
+      break;
     case 'b':
       o = unmarshal_bytes(state, ms);
       _add_object(o, ms);
@@ -466,6 +500,8 @@ static void marshal(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
         marshal_str(state, obj, buf);
       } else if(kls == state->global->tuple) {
         marshal_tup(state, obj, buf, ms);
+      } else if(kls == state->global->array) {
+        marshal_ary(state, obj, buf, ms);
       } else if(kls == state->global->cmethod) {
         marshal_cmethod2(state, obj, buf, ms);
       } else if(kls == state->global->bytearray) {
