@@ -55,7 +55,7 @@ describe "Module#alias_method" do
   
   it "works on private module methods" do
     ModuleSpecs::AliasingPrivateMethod.foo.should == true
-    ModuleSpecs::AliasingPrivateMethod.should_not raise_error(NoMethodError)
+    lambda { ModuleSpecs::AliasingPrivateMethod }.should_not raise_error(RuntimeError)
   end
   
   
