@@ -1042,6 +1042,14 @@ class Node
       return self
     end
 
+    def optional
+      []
+    end
+
+    def required
+      [name]
+    end
+
     attr_accessor :name, :value
   end
 
@@ -1063,6 +1071,14 @@ class Node
     end
 
     attr_accessor :name, :value
+
+    def optional
+      []
+    end
+
+    def required
+      [name]
+    end
   end
 
   class ConstFind < Node
@@ -1419,12 +1435,13 @@ class Node
     end
 
     def optional
-      splat.nil? ? [] : splat.required
+      return [] if splat.equal?(true) or splat.nil?
+      splat.required
     end
 
     def required
       return [] if assigns.nil?
-      assigns.body.map { |i| i.name }
+      assigns.body.map { |i| i.kind_of?(MAsgn) ? i.required : i.name }.flatten
     end
   end
 
@@ -1617,6 +1634,14 @@ class Node
       end
 
       collapse_args()
+    end
+
+    def optional
+      []
+    end
+
+    def required
+      ["#{@object}.#{@method}"]
     end
   end
 
