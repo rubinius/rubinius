@@ -120,19 +120,31 @@ int environment_load_machine(environment e, machine m) {
   }
 
   machine_migrate_config(m);
-  
+
+  if(m->s->excessive_tracing) {
+    printf("[ Loading bootstrap bundle %s]\n", e->bootstrap_path);
+  }
+
   if(!machine_load_bundle(m, e->bootstrap_path)) {
-    printf("Problem encountered while loading %s\n", e->bootstrap_path);
+    printf("Problem encountered while loading bootstrap %s\n", e->bootstrap_path);
     return FALSE;
+  }
+
+  if(m->s->excessive_tracing) {
+    printf("[ Loading platform bundle %s]\n", e->platform_path);
   }
 
   if(!machine_load_bundle(m, e->platform_path)) {
-    printf("Problem encountered while loading %s\n", e->platform_path);
+    printf("Problem encountered while loading platform %s\n", e->platform_path);
     return FALSE;
   }
 
+  if(m->s->excessive_tracing) {
+    printf("[ Loading core bundle %s]\n", e->core_path);
+  }
+
   if(!machine_load_bundle(m, e->core_path)) {
-    printf("Problem encountered while loading %s\n", e->core_path);
+    printf("Problem encountered while loading core %s\n", e->core_path);
     return FALSE;
   }
 

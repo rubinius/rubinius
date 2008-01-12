@@ -318,11 +318,11 @@ int machine_run(machine m) {
 int machine_run_file(machine m, const char *path) {
   OBJECT meth;
   int out;
-  
+
   if(m->s->excessive_tracing) {
     printf("[ Loading file %s]\n", path);
   }
-    
+
   meth = machine_load_file(m, path);
   if(!RTEST(meth)) {
     printf("Unable to load '%s'.\n", path);
