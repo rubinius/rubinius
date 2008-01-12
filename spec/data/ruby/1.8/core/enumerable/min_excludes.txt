@@ -1,3 +1,0 @@
-Enumerable#min min should return the minimum element
-Enumerable#min return the minimun (basic cases)
-Enumerable#min return nil when error

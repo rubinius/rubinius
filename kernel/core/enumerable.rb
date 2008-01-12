@@ -18,7 +18,7 @@ module Enumerable
 
     def sort(xs, &prc)
       # The ary should be inmutable while sorting
-      prc = lambda { |a,b| a <=> b } unless block_given?
+      prc = Proc.new { |a,b| a <=> b } unless block_given?
       @sorter = method(@sorter) unless @sorter.respond_to?(:call)
       @sorter.call(xs, &prc)
     end
@@ -414,7 +414,7 @@ module Enumerable
   #     %w{ant bear cat}.all? {|word| word.length >= 4}   #=> false
   #     [ nil, true, 99 ].all?                            #=> false
   def all?(&prc)
-    prc = lambda { |obj| obj } unless block_given?
+    prc = Proc.new { |obj| obj } unless block_given?
     each { |o| return false unless prc.call(o) }
     true
   end
@@ -434,7 +434,7 @@ module Enumerable
   #     %w{ant bear cat}.any? {|word| word.length >= 4}   #=> true
   #     [ nil, true, 99 ].any?                            #=> true
   def any?(&prc)
-    prc = lambda { |obj| obj } unless block_given?
+    prc = Proc.new { |obj| obj } unless block_given?
     each { |o| return true if prc.call(o) }
     false
   end
@@ -453,7 +453,7 @@ module Enumerable
   #     [ nil, true, 99 ].one?                            #=> true
   #     
   def one?(&prc)
-    prc = lambda { |obj| obj } unless block_given?
+    prc = Proc.new { |obj| obj } unless block_given?
     times = 0
     each { |o| times += 1 if prc.call(o) }
     times == 1
@@ -472,7 +472,7 @@ module Enumerable
   #     %w{ant bear cat}.one? {|word| word.length >= 4}   #=> false
   #     [ nil, true, 99 ].one?                            #=> true
   def none?(&prc)
-    prc = lambda { |obj| obj } unless block_given?
+    prc = Proc.new { |obj| obj } unless block_given?
     times = 0
     each { |o| times += 1 if prc.call(o) }
     times == 0
@@ -491,7 +491,7 @@ module Enumerable
   #     a.min                                  #=> "albatross"
   #     a.min {|a,b| a.length <=> b.length }   #=> "dog"
   def min(&prc)
-    prc = lambda { |a, b| a <=> b } unless block_given?
+    prc = Proc.new { |a, b| a <=> b } unless block_given?
     min = nil
     each do |o|
       if min.nil?
@@ -521,7 +521,7 @@ module Enumerable
   #     a.max                                  #=> "horse"
   #     a.max {|a,b| a.length <=> b.length }   #=> "albatross"
   def max(&prc)
-    prc = lambda { |a, b| a <=> b } unless block_given?
+    prc = Proc.new { |a, b| a <=> b } unless block_given?
     max = nil
     each do |o|
       if max.nil?

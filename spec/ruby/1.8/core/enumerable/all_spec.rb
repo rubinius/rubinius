@@ -8,7 +8,7 @@ describe "Enumerable#all?" do
     @enum2 = [nil, false, true]
   end
 
-  it "fails when have a wrong argument "  do
+  it "fails when have a wrong argument" do
     lambda { @enum1.all?(1) }.should raise_error(ArgumentError)
   end
   
@@ -16,7 +16,7 @@ describe "Enumerable#all?" do
     EnumerableSpecs::Numerous.new.all?.should == true
     EnumerableSpecs::Numerous.new(1, nil, 2).all?.should == false
     EnumerableSpecs::Numerous.new(false).all?.should == false
-
+  
     @enum1.all?.should == true
     @enum2.all?.should == false
   end
