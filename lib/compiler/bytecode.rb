@@ -16,17 +16,17 @@ class Compiler
 
     attr_reader :generator, :locals
     attr_accessor :required, :optional, :name
-    
+
     def run(container, body)
       @generator.run(body)
       @required, @optional = container.argument_info
       @name = container.name
     end
-    
+
     def ==(desc)
       desc.kind_of? MethodDescription and @generator == desc.generator
     end
-    
+
     def to_cmethod
       @generator.to_cmethod(self)
     end
@@ -39,9 +39,9 @@ end
 
 class Compiler
 class Node
-  
+
   class GenerationError < Error; end
-  
+
   def show_errors(gen)
     begin
       yield
@@ -53,54 +53,54 @@ class Node
       puts "   near #{gen.file}:#{gen.line}"
       puts ""
       puts e.backtrace.show
-      
+
       raise GenerationError, "unable to generate bytecode"
     end
   end
-  
+
   class ClosedScope
-    
+
     def new_description
       Compiler::MethodDescription.new(@compiler.generator_class, self.locals)
-    end      
-    
+    end
+
     def to_description(name=nil)
       desc = new_description()
       desc.name = name if name
       gen = desc.generator
-      
+
       show_errors(gen) do
         desc.run(self, self)
         gen.close
       end
       return desc
     end
-    
+
     def argument_info
       [0, 0]
     end
-    
+
     def attach_and_call(g, name)
       # If the body is empty, then don't bother with it.
       return if @body.empty?
-      
+
       desc = new_description()
       meth = desc.generator
-      
+
       prelude(g, meth)
-      
+
       meth.push :self
       meth.set_encloser
-      
+
       set(:scope, self) do
         show_errors(meth) do
           desc.run self, @body
         end
       end
-      
+
       meth.sret
       meth.close
-      
+
       g.dup
       g.push_literal desc
       g.swap
@@ -109,21 +109,21 @@ class Node
       g.send name, 0
       g.push_encloser
     end
-    
+
     def prelude(orig, g)
-      
+
       if orig
         g.set_line orig.line, orig.file
       end
-      
+
       # Allocate some stack to store locals.
-      
+
       if @alloca > 0
         g.allocate_stack @alloca
       end
     end
   end
-  
+
   class Snippit
     def bytecode(g)
       set(:scope, self) do
@@ -132,7 +132,7 @@ class Node
       end
     end
   end
-    
+
   class Expression
     def bytecode(g)
       set(:scope, self) do
@@ -142,7 +142,7 @@ class Node
       end
     end
   end
-  
+
   class EvalExpression
     def bytecode(g)
       ret = super(g)
@@ -150,7 +150,7 @@ class Node
       return ret
     end
   end
-  
+
   class Script
     def bytecode(g)
       set(:scope, self) do
@@ -168,68 +168,68 @@ class Node
       g.set_line @line, @file
       @child.bytecode(g) if @child
     end
-    
+
     def call_bytecode(g)
       g.set_line @line, @file
       @child.call_bytecode(g)
-    end    
+    end
   end
-  
+
   # TESTED
   class True
     def bytecode(g)
       g.push :true
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class False
     def bytecode(g)
       g.push :false
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Nil
     def bytecode(g)
       g.push :nil
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Self
     def bytecode(g)
       g.push :self
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class And
     def bytecode(g, use_gif=true)
       @left.bytecode(g)
       g.dup
       lbl = g.new_label
-      
+
       if use_gif
         g.gif lbl
       else
         g.git lbl
       end
-      
+
       g.pop
       @right.bytecode(g)
-      lbl.set! 
+      lbl.set!
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Or
     def bytecode(g)
       super(g, false)
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Not
     def bytecode(g)
       @child.bytecode(g)
@@ -240,11 +240,11 @@ class Node
       g.goto ed
       tr.set!
       g.push :false
-      ed.set! 
+      ed.set!
     end
   end
-    
-  # TESTED  
+
+  # TESTED
   class Negate
     def bytecode(g)
       if @child.is? NumberLiteral
@@ -255,40 +255,40 @@ class Node
       end
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class NumberLiteral
     def bytecode(g)
       g.push @value
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Literal
     def bytecode(g)
       g.push_unique_literal @value
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class ArrayLiteral
     def bytecode(g)
       @body.each do |x|
         x.bytecode(g)
       end
-      
+
       g.make_array @body.size
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class EmptyArray
     def bytecode(g)
       g.make_array 0
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class HashLiteral
     def bytecode(g)
       count = @body.size
@@ -302,21 +302,21 @@ class Node
         k.bytecode(g)
         i -= 2
       end
-      
+
       g.push_cpath_top
       g.find_const :Hash
       g.send :[], count
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class StringLiteral
     def bytecode(g)
       g.push_literal @string
       g.string_dup
     end
   end
-  
+
   # TESTED
   class ExecuteString
     def bytecode(g)
@@ -325,16 +325,16 @@ class Node
       g.send :`, 1
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class ToString
     def bytecode(g)
       @child.bytecode(g)
       g.send :to_s, 0, true
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class DynamicString
     def bytecode(g)
       @body.reverse_each do |x|
@@ -342,13 +342,13 @@ class Node
       end
       g.push_literal @string
       g.string_dup
-      
+
       @body.size.times do
         g.string_append
       end
     end
   end
-  
+
   # TESTED
   class DynamicExecuteString
     def bytecode(g)
@@ -357,7 +357,7 @@ class Node
       g.send :`, 1, true
     end
   end
-  
+
   # TESTED
   class DynamicSymbol
     def bytecode(g)
@@ -365,8 +365,8 @@ class Node
       g.send :to_sym, 0, true
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class RegexLiteral
     def bytecode(g)
       # A regex literal should only be converted to a Regexp the first time it
@@ -377,7 +377,7 @@ class Node
       g.push_literal_at idx
       g.dup
       g.is_nil
-      
+
       lbl = g.new_label
       g.gif lbl
       g.pop
@@ -389,36 +389,36 @@ class Node
       lbl.set!
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class DynamicRegex
     def bytecode(g)
       super(g)
-      
+
       g.push_const :Regexp
       g.send :new, 1
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class DynamicOnceRegex
     def bytecode(g)
       idx = g.push_literal nil
       g.dup
       g.is_nil
-      
+
       lbl = g.new_label
       g.gif lbl
       g.pop
-      
+
       super(g)
-      
+
       g.set_literal idx
       lbl.set!
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Match2
     def bytecode(g)
       @target.bytecode(g)
@@ -426,8 +426,8 @@ class Node
       g.send :=~, 1
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Match3
     def bytecode(g)
       @pattern.bytecode(g)
@@ -435,8 +435,8 @@ class Node
       g.send :=~, 1
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class BackRef
     def bytecode(g)
       g.push_literal @kind
@@ -444,8 +444,8 @@ class Node
       g.send :back_ref, 1
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class NthRef
     def bytecode(g)
       g.push @which
@@ -453,21 +453,21 @@ class Node
       g.send :nth_ref, 1
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Block
     def bytecode(g)
       if @body.empty?
         g.push :nil
         return
       end
-      
+
       count = @body.size - 1
       i = 0
       while i < count
         ip = g.ip
         @body[i].bytecode(g)
-        
+
         # guards for things that plugins might optimize away.
         g.pop if g.advanced_since?(ip)
         i += 1
@@ -475,27 +475,27 @@ class Node
       @body[count].bytecode(g)
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Scope
     def bytecode(g)
       if @block.nil?
         g.push :nil
         return
       end
-      
+
       @block.bytecode(g)
     end
   end
 
-  # TESTED  
+  # TESTED
   class If
     def bytecode(g)
       ed = g.new_label
       el = g.new_label
-      
+
       @condition.bytecode(g)
-      
+
       if @then and @else
         g.gif el
         @then.bytecode(g)
@@ -520,46 +520,46 @@ class Node
         g.push :nil
         return
       end
-      
+
       ed.set!
     end
   end
 
-  # TESTED  
+  # TESTED
   class While
     def bytecode(g, use_gif=true)
       g.push_modifiers
-      
+
       top = g.new_label
       bot = g.new_label
       g.break = g.new_label
-            
+
       if @check_first
         g.redo = g.new_label
         g.next = top
-        
+
         top.set!
-        
+
         @condition.bytecode(g)
         if use_gif
           g.gif bot
         else
           g.git bot
         end
-        
+
         g.redo.set!
-        
+
         @body.bytecode(g)
         g.pop
       else
         g.next = g.new_label
         g.redo = top
-        
+
         top.set!
-        
+
         @body.bytecode(g)
         g.pop
-        
+
         g.next.set!
         @condition.bytecode(g)
         if use_gif
@@ -568,48 +568,53 @@ class Node
           g.git bot
         end
       end
-      
+
       g.goto top
-      
+
       bot.set!
       g.push :nil
       g.break.set!
-      
+
       g.pop_modifiers
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Until
     def bytecode(g)
       super(g, false)
     end
   end
-    
-  # TESTED  
+
+  # TESTED
   class Loop
     def bytecode(g)
       g.push_modifiers
-      
+
       g.break = g.new_label
       g.next = g.redo = top = g.new_label
       top.set!
-      
+
       @body.bytecode(g)
       g.pop
-      
+
       g.goto top
-      
+
       g.break.set!
       g.pop_modifiers
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Iter
+    def argument_info
+      [@arguments.arity, @arguments.optional.size]
+    end
+
     def bytecode(g)
       desc = Compiler::MethodDescription.new @compiler.generator_class, @locals
       desc.name = :__block__
+      desc.required, desc.optional = argument_info
       sub = desc.generator
 
       show_errors(sub) do
@@ -622,29 +627,29 @@ class Node
         sub.push_modifiers
         sub.break = nil
         sub.next = nil
-        sub.redo = sub.new_label        
+        sub.redo = sub.new_label
         sub.redo.set!
         @body.bytecode(sub)
         sub.pop_modifiers
         sub.soft_return
         sub.close
       end
-      
+
       g.push_literal desc
       g.create_block2
     end
   end
-  
+
   # TESTED
   class BlockPass
     def bytecode(g)
       @block.bytecode(g)
     end
   end
-  
+
   # TESTED
   class Break
-    
+
     def do_value(g)
       if @value
         @value.bytecode(g)
@@ -652,17 +657,17 @@ class Node
         g.push :nil
       end
     end
-    
+
     def jump_error(g, msg)
       g.push_literal msg
       g.push_const :LocalJumpError
       g.push :self
       g.send :raise, 2, true
     end
-    
+
     def bytecode(g)
       do_value(g)
-      
+
       if g.break
         g.goto g.break
       elsif @in_block
@@ -674,8 +679,8 @@ class Node
       end
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Redo
     def bytecode(g)
       if g.redo
@@ -685,7 +690,7 @@ class Node
       end
     end
   end
-  
+
   class Next
     def bytecode(g)
       if g.next
@@ -699,25 +704,25 @@ class Node
         g.soft_return
       else
         jump_error g, "next used in invalid context"
-      end     
+      end
     end
   end
-  
+
   class Retry
     def bytecode(g)
       if g.retry
         g.goto g.retry
-      else  
+      else
         jump_error g, "retry used in invalid context"
       end
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class When
     # The bytecode to test a when condition is different, depending on whether
     # or not the case statement has a receiver, i.e.
-    #   case foo; when ... 
+    #   case foo; when ...
     # vs
     #   case; when ...
     def condition_bytecode(g, has_receiver, cond)
@@ -731,14 +736,14 @@ class Node
         cond.bytecode(g)
       end
     end
-    
+
     def bytecode(g, has_receiver, nxt, fin)
       if @conditions.size == 1 and !@splat
         condition_bytecode(g, has_receiver, @conditions.first)
         g.gif nxt
       else
         body = g.new_label
-        
+
         @conditions.each do |c|
           condition_bytecode(g, has_receiver, c)
           g.git body
@@ -760,9 +765,9 @@ class Node
             raise Error, "encountered splat on many-if!"
           end
         end
-        
+
         g.goto nxt
-        
+
         body.set!
       end
 
@@ -772,19 +777,19 @@ class Node
       g.goto fin
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class Case
     def bytecode(g)
       fin = g.new_label
-      
+
       @receiver.bytecode(g) if has_receiver?
       @whens.each do |w|
         nxt = g.new_label
         w.bytecode(g, has_receiver?, nxt, fin)
         nxt.set!
       end
-      
+
       # The condition is still on the stack
       g.pop if has_receiver?
       if @else
@@ -792,26 +797,26 @@ class Node
       else
         g.push :nil
       end
-      
+
       fin.set!
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class LocalAssignment
     def bytecode(g)
       if @value
         @value.bytecode(g)
       end
-      
-      # No @value means assume that someone else put the value on the 
+
+      # No @value means assume that someone else put the value on the
       # stack (ie, an masgn)
-      
+
       if @variable.on_stack?
         if @variable.argument?
           raise Error, "Invalid access semantics for argument: #{@name}"
         end
-        
+
         g.set_local_fp @variable.stack_position
       elsif @variable.created_in_block?
         g.set_local_depth @depth, @variable.slot
@@ -820,8 +825,8 @@ class Node
       end
     end
   end
-  
-  # TESTED  
+
+  # TESTED
   class LocalAccess
     def bytecode(g)
       if @variable.on_stack?
@@ -837,38 +842,38 @@ class Node
       end
     end
   end
-  
+
   class BlockAsArgument
     def bytecode(g)
-      g.set_local @variable.slot 
+      g.set_local @variable.slot
     end
   end
-  
+
   # TESTED
   class SValue
     def bytecode(g)
       @child.bytecode(g)
       g.cast_array
-      
+
       # If the array has 1 or 0 elements, grab the 0th element.
       # otherwise, leave the array on the stack.
-      
+
       g.dup
       g.send :size, 0
       g.push 1
       g.send :<, 1
-      
+
       lbl = g.new_label
       g.git lbl
-      
+
       g.push 0
       g.swap
       g.send :at, 1
-      
+
       lbl.set!
     end
   end
-  
+
   # TESTED
   class Splat
     def bytecode(g)
@@ -883,7 +888,7 @@ class Node
       g.push_array
     end
   end
-  
+
   # TESTED
   class OpAssignOr
     def bytecode(g, use_gif=false)
@@ -900,14 +905,14 @@ class Node
       lbl.set!
     end
   end
-  
+
   # TESTED
   class OpAssignAnd
     def bytecode(g)
       super(g, true)
     end
   end
-  
+
   # TESTED
   class OpAssign1
     def index_bytecode(g)
@@ -925,7 +930,7 @@ class Node
       g.dup
       index_bytecode(g)
       g.send :[], @index.size
-      
+
       if @kind == :or or @kind == :and
         g.dup
         if @kind == :or
@@ -944,20 +949,20 @@ class Node
         g.send :[]=, @index.size + 1
         return
       end
-      
+
       g.swap
       index_bytecode(g)
       g.send :[]=, @index.size + 1
       g.goto fin
-      
+
       fnd.set!
       g.swap
       g.pop
-      
+
       fin.set!
     end
   end
-  
+
   # TESTED
   class OpAssign2
     def bytecode(g)
@@ -966,7 +971,7 @@ class Node
       @object.bytecode(g)
       g.dup
       g.send @method, 0
-      
+
       if @kind == :or or @kind == :and
         g.dup
         if @kind == :or
@@ -984,19 +989,19 @@ class Node
         g.send @assign, 1
         return
       end
-      
+
       g.swap
       g.send @assign, 1
       g.goto fin
-      
+
       fnd.set!
       g.swap
       g.pop
-      
+
       fin.set!
     end
   end
-  
+
   # TESTED
   class ConcatArgs
     def call_bytecode(g)
@@ -1009,7 +1014,7 @@ class Node
         g.swap
       end
     end
-    
+
     def bytecode(g)
       @array.bytecode(g)
       g.cast_array
@@ -1019,9 +1024,9 @@ class Node
       g.make_array @rest.size
       g.send :+, 1
     end
-    
+
   end
-  
+
   # TESTED
   class PushArgs
     def bytecode(g)
@@ -1031,14 +1036,14 @@ class Node
       g.push_array
     end
   end
-  
+
   # TESTED
   class AccessSlot
     def bytecode(g)
       g.push_my_field @index
     end
   end
-  
+
   # TESTED
   class SetSlot
     def bytecode(g)
@@ -1046,14 +1051,14 @@ class Node
       g.store_my_field @index
     end
   end
-  
+
   # TESTED
   class IVar
     def bytecode(g)
       g.push_ivar @name
     end
   end
-  
+
   # TESTED
   class IVarAssign
     def bytecode(g)
@@ -1061,7 +1066,7 @@ class Node
       g.set_ivar @name
     end
   end
-  
+
   # TESTED
   class GVar
     def bytecode(g)
@@ -1079,12 +1084,12 @@ class Node
       end
     end
   end
-  
+
   # TESTED
   class GVarAssign
     def bytecode(g)
       @value.bytecode(g) if @value
-      
+
       if @name == :$!
         g.raise_exc
         return
@@ -1094,21 +1099,21 @@ class Node
         g.send :my_last_match=, 1
         return
       end
-      
+
       g.push_literal @name
       g.push_cpath_top
       g.find_const :Globals
       g.send :[]=, 2
     end
   end
-  
+
   # TESTED
   class ConstFind
     def bytecode(g)
       g.push_const @name
     end
   end
-  
+
   # TESTED
   class ConstAccess
     def bytecode(g)
@@ -1116,7 +1121,7 @@ class Node
       g.find_const @name
     end
   end
-  
+
   # TESTED
   class ConstAtTop
     def bytecode(g)
@@ -1124,7 +1129,7 @@ class Node
       g.find_const @name
     end
   end
-  
+
   # TESTED
   class ConstSet
     def bytecode(g)
@@ -1144,7 +1149,7 @@ class Node
       end
     end
   end
-  
+
   # TESTED
   class ToArray
     def bytecode(g)
@@ -1152,7 +1157,7 @@ class Node
       g.cast_array
     end
   end
-  
+
   # TESTED
   class SClass
     def bytecode(g)
@@ -1161,14 +1166,14 @@ class Node
      g.send :__verify_metaclass__, 0
      g.pop
      g.open_metaclass
-     
+
      attach_and_call g, :__metaclass_init__
     end
   end
-  
+
   # TESTED
   class Class
-    
+
     def superclass_bytecode(g)
       if @superclass
         @superclass.bytecode(g)
@@ -1176,7 +1181,7 @@ class Node
         g.push :nil
       end
     end
-    
+
     def bytecode(g)
       if @parent
         @parent.bytecode(g)
@@ -1186,14 +1191,14 @@ class Node
         superclass_bytecode(g)
         g.open_class @name
       end
-      
+
       attach_and_call g, :__class_init__
     end
   end
-  
+
   # TESTED
   class Module
-    
+
     def bytecode(g)
       if @parent
         @parent.bytecode(g)
@@ -1201,13 +1206,13 @@ class Node
       else
         g.open_module @name
       end
-      
+
       attach_and_call g, :__module_init__
     end
   end
-  
+
   class Defined
-    
+
     # e.g. [[:const, :Object], :Blah]
     # e.g. [[:colon3, :Foo], :Bar]
     # e.g. [[:colon2, [:colon3, :Faz], :Boo], :Batch]
@@ -1230,15 +1235,15 @@ class Node
         str << "#{piece}"
       end
     end
-    
+
     def reject(g)
       if $DEBUG
         STDERR << "Passed a complex expression to 'defined?'"
       end
-      
+
       g.push :false
     end
-    
+
     def bytecode(g)
       # Imported directly from compiler1 and reworked to use g.
 
@@ -1247,11 +1252,11 @@ class Node
       # if something is defined, !something is too.
       # if !something is undefined, then so is something.
       expr.shift if expr[0] == :not
-      
+
        # grouped expression == evil
       if expr.flatten.include?(:newline)
         reject(g)
-        return        
+        return
       end
 
       node = expr.shift
@@ -1266,13 +1271,13 @@ class Node
       when :call
         receiver = expr.shift
         msg = expr.shift # method name
-        
+
         # Make sure there are no args.
         unless expr.empty?
           reject(g)
           return
         end
-        
+
         g.push_literal msg
         receiver.bytecode(g)
         g.send :respond_to?, 1
@@ -1325,50 +1330,50 @@ class Node
       end
     end
   end
-  
+
   class Begin
     def bytecode(g)
       @body.bytecode(g)
     end
   end
-  
+
   # TESTED
   class RescueCondition
     def bytecode(g, top_if_false, if_done)
       body = g.new_label
-      
+
       if @conditions
         @conditions.each do |x|
-          g.push_exception          
+          g.push_exception
           x.bytecode(g)
           g.send :===, 1
           g.git body
         end
       end
-      
+
       if @splat
-        g.push_exception        
+        g.push_exception
         @splat.bytecode(g)
         g.cast_array
         g.send :__rescue_match__, 1
         g.git body
       end
-      
+
       if @next
         # There are rescues
         if_false = g.new_label
-        
+
         g.goto if_false
         body.set!
         @body.bytecode(g)
         g.goto if_done
-        
+
         if_false.set!
         @next.bytecode(g, top_if_false, if_done)
       else
         # This is the last rescue
         g.goto top_if_false
-        
+
         body.set!
         @body.bytecode(g)
         g.clear_exception
@@ -1376,7 +1381,7 @@ class Node
       end
     end
   end
-  
+
   # TESTED
   class Rescue
     def bytecode(g)
@@ -1395,19 +1400,19 @@ class Node
         fls = g.new_label
         els = g.new_label
         last = g.new_label
-        
+
         g.exceptions do |ex|
           g.retry.set!
           @body.bytecode(g)
           g.goto els
-          
-          ex.handle!          
+
+          ex.handle!
           @rescue.bytecode(g, rr, last)
           rr.set!
           g.push_exception
           g.raise_exc
         end
-        
+
         els.set!
         if @else
           g.pop
@@ -1418,23 +1423,23 @@ class Node
       g.pop_modifiers
     end
   end
-  
+
   class Ensure
     def bytecode(g)
       if @body.nil?
         # So dumb. Oh well.
-        
+
         if @ensure
           # Well, run it.
           @ensure.bytecode(g)
           g.pop
         end
-        
+
         g.push :nil
-        
+
         return
       end
-      
+
       # No ensure? dumb.
       if @ensure.nil?
         @body.bytecode(g)
@@ -1445,9 +1450,9 @@ class Node
       g.exceptions do |ex|
         @body.bytecode(g)
         g.goto ok
-        
+
         ex.handle!
-        
+
         @ensure.bytecode(g)
         g.pop
         # Re-raise the exception
@@ -1468,36 +1473,36 @@ class Node
 
         g.raise_exc
       end
-      
+
       ok.set!
-      
+
       # Now, re-emit the code for the ensure which will run if there was no
       # exception generated.
       @ensure.bytecode(g)
       g.pop
     end
   end
-  
+
   # TESTED
   class Return
     def bytecode(g, force=false)
       if @in_rescue
         g.clear_exception
       end
-            
+
       if @value
         @value.bytecode(g)
       else
         g.push :nil
       end
-      
+
       if !force and @in_ensure
         g.push_const :ReturnException
         g.send :new, 1
         g.raise_exc
         return
       end
-      
+
       if @in_block
         g.ret
       else
@@ -1505,7 +1510,7 @@ class Node
       end
     end
   end
-  
+
   # TESTED
   class IterArgs
     def bytecode(g)
@@ -1525,7 +1530,7 @@ class Node
       end
     end
   end
-  
+
   # TESTED
   class MAsgn
     # MAsgn rules:
@@ -1534,7 +1539,7 @@ class Node
     #   - it means there are no lasgns, i.e. the lhs consists solely of a splat
     #     arg.
     #   - the first arg is the lhs splat arg, and cannot be nil; however, it
-    #     may be just the value true, in the case of a block anonymous splat arg, 
+    #     may be just the value true, in the case of a block anonymous splat arg,
     #     i.e. |*|
     #   - the second arg is either one of [:array, :splat, :argscat, :to_ary], or
     #     nil if the masgn represents block arguments.
@@ -1575,7 +1580,7 @@ class Node
       end
       return diff
     end
-    
+
     # The easiest case for a normal masgn.
     # a,b = c,d
     # a = c,d
@@ -1584,13 +1589,13 @@ class Node
       # Pad the stack with extra nils if there are more assigns
       # than sources
       diff = pad_stack(g)
-      
+
       @source.body.reverse_each do |x|
         x.bytecode(g)
       end
-      
+
       # Now all the source data is on the stack.
-      
+
       @assigns.body.each do |x|
         if x.is? AttrAssign
           x.bytecode(g, true)
@@ -1599,29 +1604,29 @@ class Node
         end
         g.pop
       end
-            
+
       # Clean up the stack if there was extra sources
       if diff < 0
         # unary - has binds strangly
         (-diff).times { g.pop }
       end
-      
+
       g.push :true
     end
-    
+
     def array_bytecode(g)
       @source.body.each do |x|
         x.bytecode(g)
       end
-      
+
       diff = pad_stack(g)
-      
+
       if diff >= 0
         sz = 0
       else
         sz = -diff
       end
-      
+
       g.make_array sz
       @splat.bytecode(g) unless @splat.kind_of? TrueClass  # e.g. * = 1,2
       g.pop
@@ -1631,10 +1636,10 @@ class Node
           g.pop
         end
       end
-      
+
       g.push :true
     end
-    
+
     def statement_bytecode(g)
       if @source.nil?
         # skip
@@ -1654,16 +1659,16 @@ class Node
           g.pop
         end
       end
-      
+
       if @splat
         g.cast_array
         @splat.bytecode(g) unless @splat.kind_of? TrueClass # HACK dup
       end
       g.pop
-      
+
       g.push :true
     end
-    
+
     def block_arg_bytecode(g)
       if @assigns
         @assigns.body.each do |x|
@@ -1672,41 +1677,41 @@ class Node
           g.pop
         end
       end
-      
+
       if @splat and !@splat.kind_of? TrueClass
         g.cast_array
         @splat.bytecode(g)
       end
-      
-      g.pop      
+
+      g.pop
     end
 
     def splat_only?
       @assigns.nil? and @splat
     end
   end
-  
+
   # TESTED
   class MethodCall
     def use_plugin(g)
       @compiler.call_plugins.find do |plug|
         plug.handle(g, self)
-      end      
+      end
     end
   end
-  
+
   # TESTED
   class FCall
     def allow_private?
       true
     end
-    
+
     def receiver_bytecode(g)
       g.push :self
     end
-      
+
   end
-  
+
   # TESTED
   class AttrAssign
     def bytecode(g, in_masgn = false)
@@ -1720,17 +1725,17 @@ class Node
       end
     end
   end
-  
+
   # TESTED
   class Call
     def allow_private?
       false
     end
-    
+
     def receiver_bytecode(g)
       @object.bytecode(g)
     end
-    
+
     def emit_args(g)
       @dynamic = false
       if @arguments
@@ -1756,22 +1761,22 @@ class Node
         @argcount = 0
       end
     end
-    
+
     def bytecode(g)
       return if use_plugin(g)
-      
+
       emit_args(g)
-      
+
       if @block
         @block.bytecode(g)
       elsif @dynamic
         g.push :nil
       end
-      
+
       g.swap if @dynamic
-      
+
       receiver_bytecode(g)
-      
+
       if @dynamic
         g.swap
         g.set_args
@@ -1785,12 +1790,12 @@ class Node
       end
     end
   end
-  
+
   # TESTED
   class Yield
     def bytecode(g)
       emit_args(g)
-      
+
       if @dynamic
         g.set_args
         g.push :nil
@@ -1800,20 +1805,20 @@ class Node
         g.push_block
         g.send :call, @argcount
       end
-      
+
     end
   end
-  
+
   class Super
     def bytecode(g)
       emit_args(g)
-      
+
       if @block
         @block.bytecode(g)
       else
         g.push :nil
       end
-      
+
       if @dynamic
         g.swap
         g.set_args
@@ -1823,12 +1828,12 @@ class Node
       end
     end
   end
-  
+
   class ZSuper
-        
+
     def bytecode(g)
       args = []
-            
+
       @method.arguments.required.each do |var|
         la = LocalAccess.new @compiler
         la.from_variable var
@@ -1845,17 +1850,17 @@ class Node
         cc = ConcatArgs.new @compiler
         la = LocalAccess.new @compiler
         la.from_variable @method.arguments.splat
-        
+
         cc.args args, la
         @arguments = cc
       else
         @arguments = args
       end
-      
+
       super(g)
     end
   end
-  
+
   # TESTED
   class Undef
     def bytecode(g)
@@ -1867,7 +1872,7 @@ class Node
       g.send :undef_method, 1
     end
   end
-  
+
   # TESTED
   class Alias
     def bytecode(g)
@@ -1877,29 +1882,29 @@ class Node
       g.send :alias_method, 2
     end
   end
-  
+
   # TESTED
   class Arguments
     def bytecode(g)
-      
+
       min = @required.size
       if @splat
         max = 1024
       else
         max = min + @optional.size
       end
-      
+
       g.check_argcount min, max
-      
+
       @required.each do |var|
         unless var.on_stack?
           g.set_local_from_fp var.slot, var.stack_position
         end
-      end      
-      
+      end
+
       @optional.each do |var|
         assign = @mapped_defaults[var.name]
-        
+
         use_passed = g.new_label
         done = g.new_label
         g.passed_arg var.stack_position
@@ -1907,13 +1912,13 @@ class Node
         assign.bytecode(g)
         g.pop
         g.goto done
-        
+
         use_passed.set!
         g.set_local_from_fp var.slot, var.stack_position
-        
+
         done.set!
       end
-      
+
       if @splat.kind_of? Local
         g.make_rest_fp @required.size + @optional.size
         lv = LocalAssignment.new(@compiler)
@@ -1921,8 +1926,8 @@ class Node
         lv.bytecode(g)
         g.pop
       end
-      
-      if @block_arg        
+
+      if @block_arg
         g.push_block
         g.push_const :Proc
         g.send :from_environment, 1
@@ -1931,33 +1936,33 @@ class Node
       end
     end
   end
-  
+
   # TESTED
   class Define
-    
+
     def argument_info
       [@arguments.arity, @arguments.optional.size]
     end
-    
+
     def compile_body(g)
       desc = new_description()
-      meth = desc.generator 
-      
+      meth = desc.generator
+
       prelude(g, meth)
-      
+
       set(:scope, nil) do
         show_errors(meth) do
           @arguments.bytecode(meth)
           desc.run self, @body
         end
       end
-      
+
       meth.sret
       meth.close
-      
+
       return desc
     end
-    
+
     def bytecode(g)
       g.push_literal compile_body(g)
       g.push :self
@@ -1972,7 +1977,7 @@ class Node
       g.add_method @name
     end
   end
-  
+
   # TESTED
   class DefineSingleton
     def bytecode(g)
@@ -1981,7 +1986,7 @@ class Node
       g.attach_method @name
     end
   end
-  
+
   # TESTED
   class Range
     def bytecode(g)
@@ -1992,20 +1997,20 @@ class Node
       g.send :new, 2
     end
   end
-  
+
   # TESTED
   class RangeExclude
     def bytecode(g)
       g.push :true
       @finish.bytecode(g)
       @start.bytecode(g)
-      
+
       g.push_cpath_top
       g.find_const :Range
       g.send :new, 3
     end
   end
-  
+
   class CVarAssign
     def bytecode(g)
       @value.bytecode(g)
@@ -2014,7 +2019,7 @@ class Node
       g.send :class_variable_set, 2
     end
   end
-  
+
   class CVar
     def bytecode(g)
       g.push_literal @name

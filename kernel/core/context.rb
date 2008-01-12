@@ -287,6 +287,10 @@ class BlockEnvironment
   def disable_long_return!
     @post_send = nil
   end
+
+  def arity
+    method.required
+  end
 end
 
 class Backtrace

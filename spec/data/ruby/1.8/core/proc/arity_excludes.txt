@@ -1,9 +1,0 @@
-Proc#arity returns the number of arguments, using Proc.new
-Proc#arity returns the number of arguments, using Kernel#lambda
-Proc#arity return the number of arguments, using Kernel#proc
-Proc#arity if optional arguments, return the negative number of mandatory arguments using Proc.new 
-Proc#arity if optional arguments, return the negative number of mandatory arguments using Kernel#lambda
-Proc#arity if optional arguments, return the negative number of mandatory arguments using Kernel#proc
-Proc#arity returns -1 if no argument declaration is made, using Proc.new
-Proc#arity returns -1 if no argument declaration is made, using Kernel#lambda
-Proc#arity returns -1 if no argument declaration is made, using Kernel#proc
