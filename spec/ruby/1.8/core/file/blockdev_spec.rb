@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../../shared/file/blockdev'
 
 describe "File.blockdev?" do
-  it "returns true/false depending if the named file is a block device" do
-    File.blockdev?("/tmp").should == false
-  end
+  it_behaves_like :file_blockdev, :blockdev?, File
 end

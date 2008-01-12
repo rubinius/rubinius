@@ -1,18 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../../shared/file/readable_real'
 
 describe "File.readable_real?" do
-  before :each do
-    @file = '/tmp/i_exist'
-  end
-  
-  after :each do
-    File.delete(@file) if File.exists?(@file)
-  end
-  
-  it "returns true if named file is readable by the real user id of the process, otherwise false" do
-    File.readable_real?('fake_file').should == false
-    File.open(@file,'w'){
-      File.readable_real?(@file).should == true
-    }
-  end
+  it_behaves_like :file_readable_real, :readable_real?, File
 end
