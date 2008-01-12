@@ -413,7 +413,7 @@ module Enumerable
   #     %w{ant bear cat}.all? {|word| word.length >= 3}   #=> true
   #     %w{ant bear cat}.all? {|word| word.length >= 4}   #=> false
   #     [ nil, true, 99 ].all?                            #=> false
-  def all?(*args, &prc)
+  def all?(&prc)
     prc = lambda { |obj| obj } unless block_given?
     each { |o| return false unless prc.call(o) }
     true
