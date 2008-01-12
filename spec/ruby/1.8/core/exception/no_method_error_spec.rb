@@ -9,17 +9,17 @@ end
 class NoMethodErrorA; end
 class NoMethodErrorB; end
 
-describe "NoMethodError#args" do 
-  it "returns an empty array if the caller method had no arguments" do 
+describe "NoMethodError#args" do
+  it "returns an empty array if the caller method had no arguments" do
     begin
       NoMethodErrorB.new.foo
     rescue Exception => e
-      e.args.should == [] 
+      e.args.should == []
     end
   end
-  
-  it "returns an array with the same elements as passed to the method" do 
-    begin 
+
+  it "returns an array with the same elements as passed to the method" do
+    begin
       a = NoMethodErrorA.new
       NoMethodErrorB.new.foo(1,a)
     rescue Exception => e
@@ -29,37 +29,37 @@ describe "NoMethodError#args" do
   end
 end
 
-class NoMethodErrorC; 
+class NoMethodErrorC;
   protected
   def a_protected_method;end
-  private 
+  private
   def a_private_method; end
 end
 class NoMethodErrorD; end
 
-describe "NoMethodError#message" do  
-  it "for an undefined method match /undefined method/" do 
-    begin  
+describe "NoMethodError#message" do
+  it "for an undefined method match /undefined method/" do
+    begin
       NoMethodErrorD.new.foo
     rescue Exception => e
       e.class.should == NoMethodError
     end
   end
-  
+
   it "for an protected method match /protected method/" do
     begin
-      NoMethodErrorC.new.a_private_method
-    rescue Exception => e 
+      NoMethodErrorC.new.a_protected_method
+    rescue Exception => e
       e.class.should == NoMethodError
     end
   end
-  
+
   not_compliant_on :rubinius do
-    it "for private method match /private method/" do 
+    it "for private method match /private method/" do
       begin
-        NoMethodErrorC.new.a_protected_method
-      rescue Exception => e 
-        e.class.should == NoMethodError 
+        NoMethodErrorC.new.a_private_method
+      rescue Exception => e
+        e.class.should == NoMethodError
         e.message.match(/private method/).should_not == nil
       end
     end
