@@ -151,6 +151,10 @@ describe "String#split with Regexp" do
     "1, 2.34,56, 7".split(/,\s*/).should == ["1", "2.34", "56", "7"]
     "1x2X3".split(/x/i).should == ["1", "2", "3"]
   end
+
+  it "treats negative limits as no limit" do
+    "".split(%r!/+!, -1).should == []
+  end
   
   it "suppresses trailing empty fields when limit isn't given or 0" do
     "1,2,,3,4,,".split(/,/).should == ["1", "2", "", "3", "4"]

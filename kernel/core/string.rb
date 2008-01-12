@@ -1309,15 +1309,38 @@ class String
   #   "1,2,,3,4,,".split(',', 4)      #=> ["1", "2", "", "3,4,,"]
   #   "1,2,,3,4,,".split(',', -4)     #=> ["1", "2", "", "3", "4", "", ""]
   def split(pattern = nil, limit = nil)
-    limit = limit.to_int if (!limit.is_a?(Integer) && limit.respond_to?(:to_int))
-    return [self.dup] if limit == 1
-    limited = limit.to_i > 1
-    pattern ||= ($; || " ")
+
+    # Odd edge case
+    return [] if empty?
+
+    if limit
+      if !limit.kind_of?(Integer) and limit.respond_to?(:to_int)
+        limit = limit.to_int
+      end
+
+      if limit > 0
+        return [self.dup] if limit == 1
+        limited = true
+      else
+        limited = false
+      end
+    else
+      limited = false
+    end
     
-    spaces = true if pattern == ' '
-    pattern = /\s+/ if pattern.nil? || pattern == ' '
-    pattern = pattern.to_str if ![String, Regexp].include?(pattern.class) && pattern.respond_to?(:to_str)
-    pattern = Regexp.new(Regexp.quote(pattern)) unless pattern.kind_of?(Regexp)
+    pattern ||= ($; || " ")
+   
+    if pattern == ' '
+      spaces = true
+      pattern = /\s+/
+    elsif pattern.nil?
+      pattern = /\s+/
+    elsif pattern.kind_of?(Regexp)
+      # Pass
+    else
+      pattern = StringValue(pattern) unless pattern.kind_of?(String)
+      pattern = Regexp.new(Regexp.quote(pattern))
+    end
     
     start = 0
     ret = []
@@ -1326,11 +1349,14 @@ class String
     
     while match = pattern.match_from(self, start)
       break if limited && limit - ret.size <= 1
+      
       collapsed = match.collapsing?
+      
       if !collapsed || (match.begin(0) != 0)
         ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
         ret.push(*match.captures.compact)
       end
+
       if collapsed
         start += 1
       elsif last_match && last_match.collapsing?
@@ -1338,17 +1364,36 @@ class String
       else
         start = match.end(0)
       end
+
       last_match = match
     end
+
     if last_match
       ret << last_match.post_match
     elsif ret.empty?
       ret << self.dup
     end
-    (ret.pop while ret[-1] == "") if limit == 0 || limit.nil?
-    (ret.shift while ret[0] == "") if spaces
+
+    # Trim from end
+    if !ret.empty? and (limit == 0 || limit.nil?)
+      while s = ret.last and s.empty?
+        ret.pop
+      end
+    end
+
+    # Trim from front
+    if !ret.empty? and spaces
+      while s = ret.first and s.empty?
+        ret.shift
+      end
+    end
+
+    # Support subclasses
     ret = ret.map { |str| self.class.new(str) } if !self.instance_of?(String)
+
+    # Taint all
     ret = ret.map { |str| str.taint } if self.tainted?
+    
     ret
   end
 
