@@ -146,6 +146,7 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_cache_sp(cpu) (cpu->sp_ptr = (cpu->stack_top + cpu->sp))
 
 cpu cpu_new(STATE);
+void cpu_destroy(cpu c);
 void cpu_initialize(STATE, cpu c);
 void cpu_setup_top_scope(STATE, cpu c);
 void cpu_initialize_context(STATE, cpu c);

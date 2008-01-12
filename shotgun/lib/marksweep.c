@@ -63,6 +63,32 @@ mark_sweep_gc mark_sweep_new() {
   return ms;
 }
 
+void mark_sweep_destroy(mark_sweep_gc ms) {
+  int i, count;
+  struct ms_entry *ent;
+  ms_chunk *cur, *old;
+  
+  cur = ms->chunks;
+  count = 0;
+  
+  while(cur) {
+      
+    for(i = 0; i < cur->num_entries; i++) {
+      ent = &(cur->entries[i]);
+      if(ent->bytes) {
+        free(ent->object);
+      }
+    }
+    
+    old = cur;
+    cur = cur->next;
+    free(old->entries);
+    free(old);
+  }
+ 
+  free(ms);
+}
+
 void mark_sweep_add_chunk(mark_sweep_gc ms) {
   ms_chunk *new;
   struct ms_entry *ent;

@@ -8,6 +8,7 @@
 
 struct rubinius_machine {
   int id;
+  int parent_id;
   pthread_t pthread;
   int sub;
   int message_read_fd;
@@ -32,6 +33,7 @@ struct rubinius_machine {
 typedef struct rubinius_machine *machine;
 
 machine machine_new();
+void machine_destroy(machine m);
 OBJECT machine_load_file(machine m, const char *path);
 int machine_run_file(machine m, const char *path);
 OBJECT machine_load_archive(machine m, const char *path);

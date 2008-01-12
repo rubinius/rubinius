@@ -248,6 +248,12 @@ machine machine_new() {
   return m;
 }
 
+void machine_destroy(machine m) {
+  cpu_destroy(m->c);
+  state_destroy(m->s);
+  free(m);
+}
+
 void machine_handle_fire(int kind) {
   current_machine->g_access_violation = kind;
   setcontext(&current_machine->g_firesuit);

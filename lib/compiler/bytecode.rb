@@ -1518,7 +1518,7 @@ class Node
         g.cast_for_single_block_arg
         @child.bytecode(g)
         g.pop
-      when nil
+      when Fixnum, nil
         g.pop
       else
         raise Error, "Unknown form of block args: #{@child.class}"

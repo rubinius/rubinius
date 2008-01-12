@@ -81,6 +81,7 @@ int baker_gc_swap(baker_gc g) {
 int baker_gc_destroy(baker_gc g) {
   heap_deallocate(g->space_a);
   heap_deallocate(g->space_b);
+  free(g);
   return TRUE;
 }
 

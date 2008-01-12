@@ -2936,6 +2936,8 @@ class ShotgunPrimitives
     pipes = machine_setup_thread(m, argc, argv);
     environment_add_machine(e, m);
 
+    m->parent_id = current_machine->id;
+
     ret = tuple_new(state, 4);
     tuple_put(state, ret, 0, I2N(m->id));
     tuple_put(state, ret, 1, io_new(state, pipes[0], "w"));

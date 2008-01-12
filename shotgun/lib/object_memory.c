@@ -110,6 +110,13 @@ object_memory object_memory_new() {
   return om;
 }
 
+int object_memory_destroy(object_memory om) {
+  baker_gc_destroy(om->gc);
+  mark_sweep_destroy(om->ms);
+  free(om);
+  return TRUE;
+}
+
 void object_memory_formalize_contexts(STATE, object_memory om) {
   OBJECT ctx;
   
@@ -142,12 +149,6 @@ void object_memory_clear_marks(STATE, object_memory om) {
   EACH_CTX(om, ctx) {
     mark_sweep_clear_mark(state, ctx);
   } DONE_EACH_CTX(ctx);
-}
-
-
-int object_memory_delete(object_memory om) {
-  baker_gc_destroy(om->gc);
-  return TRUE;
 }
 
 int object_memory_used(object_memory om) {

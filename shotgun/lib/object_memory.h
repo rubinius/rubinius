@@ -36,7 +36,7 @@ struct object_memory_struct {
 typedef struct object_memory_struct *object_memory;
 
 object_memory object_memory_new();
-int object_memory_delete(object_memory om);
+int object_memory_destroy(object_memory om);
 int object_memory_used(object_memory om);
 int object_memory_collect(STATE, object_memory om, ptr_array roots);
 void object_memory_check_memory(object_memory om);

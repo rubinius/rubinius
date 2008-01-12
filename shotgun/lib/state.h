@@ -72,6 +72,7 @@ struct rubinius_state;
 typedef struct rubinius_state* rstate;
 
 rstate rubinius_state_new();
+void state_destroy(rstate);
 
 #ifdef STATE
 #undef STATE
@@ -90,7 +91,6 @@ rstate rubinius_state_new();
 
 struct rubinius_state {
   object_memory om;
-  ptr_array free_contexts;
   
   struct method_cache method_cache[CPU_CACHE_SIZE + CPU_CACHE_TOLERANCE];
   

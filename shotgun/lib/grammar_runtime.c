@@ -358,7 +358,13 @@ again_no_block:
         && node->nd_var != NULL) {
       add_to_parse_tree(current, node->nd_var, newlines, locals, line_numbers);
     } else {
-      array_push(current, Qnil);
+      if (node->nd_var == NULL) {
+        // e.g. proc {}
+        array_push(current, Qnil);
+      } else {
+        // e.g. proc {||}
+        array_push(current, I2N(0));
+      }
     }
     add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
     break;

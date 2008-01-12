@@ -73,5 +73,6 @@ void mark_sweep_describe(mark_sweep_gc ms);
 void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, ptr_array refs);
 void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj);
 void mark_sweep_clear_mark(STATE, OBJECT iobj);
+void mark_sweep_destroy(mark_sweep_gc ms);
 
 #endif /* __MARKSWEEP_H__ */

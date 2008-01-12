@@ -18,6 +18,12 @@ cpu cpu_new(STATE) {
   return c;
 }
 
+void cpu_destroy(cpu c) {
+  /* BUG. Doesn't free the operand stacks. */
+  ptr_array_free(c->paths);
+  free(c);
+}
+
 #define FC_STACK_SIZE    3000
 
 void cpu_initialize(STATE, cpu c) {

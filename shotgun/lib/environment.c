@@ -2,6 +2,8 @@
 #include "shotgun/lib/cpu.h"
 #include "shotgun/lib/environment.h"
 #include "shotgun/lib/config_hash.h"
+#include "shotgun/lib/symbol.h"
+#include "shotgun/lib/tuple.h"
 
 #include <pthread.h>
 #include <signal.h>
@@ -90,6 +92,7 @@ int environment_join_machine(environment e, int id) {
   if(!m) return FALSE;
 
   if(pthread_join(m->pthread, &ret) == 0) {
+    machine_destroy(m);
     return TRUE;
   }
 
@@ -97,8 +100,16 @@ int environment_join_machine(environment e, int id) {
 }
 
 void environment_exit_machine() {
-  // machine m = environment_current_machine();
-  // environment e = environment_current();
+  machine m = environment_current_machine();
+  environment e = environment_current();
+  STATE;
+
+  state = m->s;
+
+  if(m->parent_id) {
+    environment_send_message(e, m->parent_id, 
+        tuple_new2(state, 2, SYM("machine_exited"), I2N(m->id)));
+  }
 
   pthread_exit(NULL);
 }

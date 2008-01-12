@@ -44,11 +44,20 @@ rstate rubinius_state_new() {
   rstate st;
   st = (rstate)calloc(1, sizeof(struct rubinius_state));
   st->om = object_memory_new();
-  st->free_contexts = ptr_array_new(8);
   st->global = (struct rubinius_globals*)calloc(1, sizeof(struct rubinius_globals));
   st->cleanup = ht_cleanup_create(11);
   st->config = ht_config_create(11);
   return st;
+}
+
+void state_destroy(STATE) {
+  object_memory_destroy(state->om);
+  free(state->global);
+ 
+  ht_cleanup_destroy(state->cleanup);
+  ht_config_destroy(state->config);
+
+  free(state);
 }
 
 static ptr_array _gather_roots(STATE, cpu c) {
@@ -76,8 +85,6 @@ void state_collect(STATE, cpu c) {
   if(stats) {
     gettimeofday(&start, NULL);
   }
-  
-  ptr_array_clear(state->free_contexts);
   
   cpu_flush_ip(c);
   cpu_flush_sp(c);
@@ -137,8 +144,6 @@ void state_major_collect(STATE, cpu c) {
   cpu_flush_ip(c);
   cpu_flush_sp(c);
   
-  ptr_array_clear(state->free_contexts);
-  
   /* HACK: external_ivars needs to be moved out of being a generic
       global and being a special case one so that it's references
       can't keep objects alive. */
@@ -176,8 +181,7 @@ void state_major_collect(STATE, cpu c) {
 
 void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
   ptr_array roots;
-  ptr_array_clear(state->free_contexts);
-        
+ 
   state->current_stack = c->stack_top;
   state->current_sp =    c->sp_ptr;
 
