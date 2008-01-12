@@ -17,7 +17,7 @@ class Dir
   def self.glob(pattern, flags = 0)
     matches = []
 
-    glob0 pattern, flags & ~GLOB_VERBOSE, matches
+    glob_brace_expand pattern, flags & ~GLOB_VERBOSE, matches
 
     matches
   end
@@ -32,8 +32,6 @@ class Dir
     end
 
     list = glob_pattern root, flags
-
-    #p list
 
     glob_helper path, false, :unknown, :unknown, list, 0...1, flags, matches
   end
@@ -60,15 +58,74 @@ class Dir
     chars.length
   end
 
+  def self.glob_brace_expand(pattern, flags, matches)
+    escape = (flags & File::FNM_NOESCAPE) == 0
+
+    rbrace = nil
+    lbrace = nil
+    nest = 0
+
+    chars = pattern.split ''
+    skip = false
+
+    chars.each_with_index do |char, i|
+      if skip then
+        skip = false
+        next
+      end
+
+      if char == '{' and nest == 0 then
+        lbrace = i
+        nest += 1
+      end
+
+      if char == '}' and nest - 1 <= 0 then
+        rbrace = i
+        nest -= 1
+      end
+
+      skip = true if char == '\\' and escape
+    end
+
+    if lbrace and rbrace then
+      pos = lbrace
+      front = pattern[0...lbrace]
+      back = pattern[(rbrace + 1)..-1]
+
+      while pos < rbrace do
+        nest = 0
+        pos += 1
+        last = pos
+
+        while pos < rbrace and not (chars[pos] == ',' and nest == 0) do
+          nest += 1 if chars[pos] == '{'
+          nest -= 1 if chars[pos] == '}'
+
+          if chars[pos] == '\\' and escape then
+            pos += 1
+            break if pos == rbrace
+          end
+
+          pos += 1
+        end
+
+        brace_pattern = "#{front}#{pattern[last...pos]}#{back}"
+
+        glob_brace_expand brace_pattern, flags, matches
+      end
+
+    else
+      glob0 pattern, flags, matches
+    end
+  end
+
   ##
   # +dirsep+:: Should '/' be placed before appending child's entry name to
-  #            +path+
+  #            +path+?
   # +exist+:: Does 'path' indicate an existing entry?
   # +isdir+:: Does 'path' indicate a directory or a symlink to a directory?
 
   def self.glob_helper(path, dirsep, exist, isdir, pattern, range, flags, matches)
-    #p caller[0]
-    #p [path, dirsep, exist, isdir, pattern, range, flags, matches]
     status = nil
     plain = magic = recursive = match_all = match_dir = false
     escape = (flags & File::FNM_NOESCAPE) == 0
