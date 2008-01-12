@@ -348,15 +348,33 @@ describe "Marshal.dump with float 0.0" do
   end
 end
 
+describe "Marshal.dump with float -0.0" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(-0.0).should == "#{mv+nv}f\x07-0"
+  end
+end
+
 describe "Marshal.dump with float NaN" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(0.0 / 0.0).should == "#{mv+nv}f\x08nan"
   end
 end
 
+describe "Marshal.dump with float Infinity" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(1.0 / 0.0).should == "#{mv+nv}f\x08inf"
+  end
+end
+
 describe "Marshal.dump with float -Infinity" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(-1.0 / 0.0).should == "#{mv+nv}f\x09-inf"
+  end
+end
+
+describe "Marshal.dump with float 1.0" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(1.0).should == "#{mv+nv}f\x061"
   end
 end
 
@@ -369,6 +387,12 @@ end
 describe "Marshal.dump with float -5.1867345e-22" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(-5.1867345e-22).should == "#{mv+nv}f\x1F-5.1867344999999998e-22\x00\x83\x5E"
+  end
+end
+
+describe "Marshal.dump with float 1.1867345e+22" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(1.1867345e+22).should == "#{mv+nv}f\x1E1.1867344999999999e+22\x00\xE4\x40"
   end
 end
 

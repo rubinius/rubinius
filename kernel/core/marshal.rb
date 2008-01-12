@@ -43,7 +43,7 @@ end
 class String
   def to_marshal(depth = -1, subclass = nil, links = {})
     Marshal.serialize_instance_variables_prefix(self) +
-    Marshal.serialize_extended_object(self) +
+    Marshal.serialize_extended_object(self, depth) +
     Marshal.serialize_user_class(self, depth, subclass) +
     Marshal::TYPE_STRING +
     Marshal.serialize_integer(self.length) + self +
@@ -72,7 +72,7 @@ class Integer
     cnt = 0
     num = self.abs
     while num != 0
-      str << Marshal.to_byte(num & 0xFF)
+      str << Marshal.to_byte(num)
       num >>= 8
       cnt += 1
     end
@@ -90,7 +90,7 @@ class Regexp
   def to_marshal(depth = -1, subclass = nil, links = {})
     str = self.source
     Marshal.serialize_instance_variables_prefix(self) +
-    Marshal.serialize_extended_object(self) +
+    Marshal.serialize_extended_object(self, depth) +
     Marshal.serialize_user_class(self, depth, subclass) +
     Marshal::TYPE_REGEXP +
     Marshal.serialize_integer(str.length) + str +
@@ -101,12 +101,12 @@ end
 
 class Struct
   def to_marshal(depth = -1, subclass = nil, links = {})
-    str = Marshal.serialize_extended_object(self) +
+    str = Marshal.serialize_extended_object(self, depth) +
           Marshal::TYPE_STRUCT +
-          self.class.name.to_sym.to_marshal +
+          self.class.name.to_sym.to_marshal(depth) +
           Marshal.serialize_integer(self.length)
     self.each_pair do |sym, val|
-      str << sym.to_marshal +
+      str << sym.to_marshal(depth) +
              Marshal.serialize_duplicate(val, depth, subclass, links)
     end
     str
@@ -116,7 +116,7 @@ end
 class Array
   def to_marshal(depth = -1, subclass = nil, links = {})
     str = Marshal.serialize_instance_variables_prefix(self) +
-          Marshal.serialize_extended_object(self) +
+          Marshal.serialize_extended_object(self, depth) +
           Marshal.serialize_user_class(self, depth, subclass) +
           Marshal::TYPE_ARRAY +
           Marshal.serialize_integer(self.length)
@@ -130,7 +130,7 @@ end
 class Hash
   def to_marshal(depth = -1, subclass = nil, links = {})
     str = Marshal.serialize_instance_variables_prefix(self) +
-          Marshal.serialize_extended_object(self) +
+          Marshal.serialize_extended_object(self, depth) +
           Marshal.serialize_user_class(self, depth, subclass) +
           (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH) +
           Marshal.serialize_integer(self.length)
@@ -143,11 +143,27 @@ class Hash
   end
 end
 
+class Float
+  def to_marshal(depth = -1, subclass = nil, links = {})
+    str = if self.nan?
+            "nan"
+          elsif self.zero?
+            (1.0 / self) < 0 ? '-0' : '0'
+          elsif self.infinite?
+            self < 0 ? "-inf" : "inf"
+          else
+            "%.*g" % [17, self] + Marshal.serialize_float_thing(self)
+          end
+    Marshal::TYPE_FLOAT +
+    Marshal.serialize_integer(str.length) + str
+  end
+end
+
 class Object
   def to_marshal(depth = -1, subclass = nil, links = {})
-    Marshal.serialize_extended_object(self) +
+    Marshal.serialize_extended_object(self, depth) +
     Marshal::TYPE_OBJECT +
-    self.class.name.to_sym.to_marshal +
+    self.class.name.to_sym.to_marshal(depth) +
     Marshal.serialize_instance_variables_suffix(self, depth, subclass, links)
   end
 end
@@ -193,6 +209,10 @@ module Marshal
   end
 
   def self.serialize(obj, depth)
+    if obj.respond_to? :_dump
+      return serialize_custom_object(obj, depth)
+    end
+
     cls = obj.class
     sup = get_superclass(cls)
     [cls, sup].each do |classy|
@@ -216,7 +236,7 @@ module Marshal
       s = "\x00"
       cnt = 0
       4.times do
-        s << to_byte(n & 0xFF)
+        s << to_byte(n)
         n >>= 8
         cnt += 1
         break if n == 0 or n == -1
@@ -240,8 +260,8 @@ module Marshal
       obj.instance_variables.each do |ivar|
         sym = ivar.to_sym
         val = obj.instance_variable_get(sym)
-        str << sym.to_marshal +
-               Marshal.serialize_duplicate(val, depth, subclass, links)
+        str << sym.to_marshal(depth) +
+               serialize_duplicate(val, depth, subclass, links)
       end
       str
     else
@@ -249,20 +269,26 @@ module Marshal
     end
   end
 
-  def self.serialize_extended_object(obj)
+  def self.serialize_extended_object(obj, depth)
     str = ''
     get_module_names(obj).each do |mod_name|
-      str << TYPE_EXTENDED + mod_name.to_sym.to_marshal
+      str << TYPE_EXTENDED + mod_name.to_sym.to_marshal(depth)
     end
     str
   end
 
   def self.serialize_user_class(obj, depth, subclass)
     if obj.class == subclass
-      TYPE_UCLASS + obj.class.name.to_sym.to_marshal
+      TYPE_UCLASS + obj.class.name.to_sym.to_marshal(depth)
     else
       ''
     end
+  end
+
+  def self.serialize_custom_object(obj, depth)
+    str = obj._dump(depth)
+    TYPE_USERDEF + obj.class.name.to_sym.to_marshal(depth) +
+    serialize_integer(str.length) + str
   end
 
   def self.serialize_duplicate(obj, depth, subclass, links)
@@ -296,6 +322,41 @@ module Marshal
     else
       false
     end
+  end
+
+  def self.serialize_float_thing(flt)
+    str = ''
+    (flt, ) = modf(ldexp(frexp(flt.abs), 37));
+    str << "\0" if flt > 0
+    while flt > 0
+      (flt, n) = modf(ldexp(flt, 32))
+      n = n.to_i
+      str << to_byte(n >> 24)
+      str << to_byte(n >> 16)
+      str << to_byte(n >> 8)
+      str << to_byte(n)
+    end
+    str.chomp!("\0") while str[-1] == 0
+    str
+  end
+
+  def self.frexp(flt)
+    p = MemoryPointer.new(:int)
+    flt = Platform::Float.frexp(flt, p)
+    p.free
+    flt
+  end
+
+  def self.modf(flt)
+    p = MemoryPointer.new(:double)
+    flt = Platform::Float.modf(flt, p)
+    exp = p.read_float
+    p.free
+    [flt, exp]
+  end
+
+  def self.ldexp(flt, exp)
+    Platform::Float.ldexp(flt, exp)
   end
 
   def self.get_superclass(cls)

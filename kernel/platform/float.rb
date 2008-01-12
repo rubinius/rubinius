@@ -27,6 +27,10 @@ class Platform::Float
   attach_function 'isnan', [:double], :int
   attach_function 'isinf', [:double], :int
 
+  attach_function 'frexp', [:double, :pointer], :double
+  attach_function 'ldexp', [:double, :int], :double
+  attach_function 'modf', [:double, :pointer], :double
+
   def self.eql?(a, b)
     value_equal(a, b) == 1
   end
