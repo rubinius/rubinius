@@ -1,2 +1,0 @@
-Kernel.local_variables contains locals as they are added
-Kernel.local_variables is accessable from bindings

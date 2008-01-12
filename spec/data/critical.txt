@@ -14,3 +14,4 @@ Kernel#callcc should be possible to exit a loop like a break
 Kernel#callcc should be possible to call a continuation multiple times
 Kernel#callcc should return the arguments to call
 Kernel#callcc
+Module#class_variable_get raises a NameError when an uninitialized class variable is accessed

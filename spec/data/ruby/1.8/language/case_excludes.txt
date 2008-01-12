@@ -1,1 +1,0 @@
-The 'case'-construct returns 2 when a then body is empty

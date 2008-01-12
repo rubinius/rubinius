@@ -1,2 +1,1 @@
-Kernel#load raises a LoadError if filename given without its extension
 Kernel#load allows wrapping the code in the file in an anonymous module

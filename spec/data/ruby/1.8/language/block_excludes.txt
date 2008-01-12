@@ -1,1 +1,0 @@
-A block whose arguments are splatted captures the array passed to the block in an array

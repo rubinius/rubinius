@@ -1,3 +1,0 @@
-Kernel#eval accepts a Proc object as a binding
-Kernel#eval allows a binding to be captured inside an eval
-Kernel#eval allows Proc and binding to be nested in horrible ways

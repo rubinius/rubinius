@@ -1,3 +1,2 @@
 The predefined global constants includes DATA when main script contains __END__
 The predefined global constants does not include DATA when main script contains no __END__
-The predefined global constants includes TOPLEVEL_BINDING

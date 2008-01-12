@@ -1,2 +1,0 @@
-Binding#clone returns a copy of the Bind object
-Binding#clone is a shallow copy of the Bind object

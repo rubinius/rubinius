@@ -1,2 +1,0 @@
-File.fnmatch does not support { } patterns
-File.fnmatch? does not support { } patterns

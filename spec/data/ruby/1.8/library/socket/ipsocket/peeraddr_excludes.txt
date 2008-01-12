@@ -1,1 +1,0 @@
-IPSocket#peeraddr returns an array of values
