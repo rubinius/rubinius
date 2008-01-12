@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/common'
 
 describe "NoMethodError.new" do
   it "allows passing method args" do
@@ -6,13 +7,10 @@ describe "NoMethodError.new" do
   end
 end
 
-class NoMethodErrorA; end
-class NoMethodErrorB; end
-
 describe "NoMethodError#args" do
   it "returns an empty array if the caller method had no arguments" do
     begin
-      NoMethodErrorB.new.foo
+      NoMethodErrorSpecs::NoMethodErrorB.new.foo
     rescue Exception => e
       e.args.should == []
     end
@@ -20,8 +18,8 @@ describe "NoMethodError#args" do
 
   it "returns an array with the same elements as passed to the method" do
     begin
-      a = NoMethodErrorA.new
-      NoMethodErrorB.new.foo(1,a)
+      a = NoMethodErrorSpecs::NoMethodErrorA.new
+      NoMethodErrorSpecs::NoMethodErrorB.new.foo(1,a)
     rescue Exception => e
       e.args.should == [1,a]
       e.args[1].object_id.should == a.object_id
@@ -29,18 +27,10 @@ describe "NoMethodError#args" do
   end
 end
 
-class NoMethodErrorC;
-  protected
-  def a_protected_method;end
-  private
-  def a_private_method; end
-end
-class NoMethodErrorD; end
-
 describe "NoMethodError#message" do
   it "for an undefined method match /undefined method/" do
     begin
-      NoMethodErrorD.new.foo
+      NoMethodErrorSpecs::NoMethodErrorD.new.foo
     rescue Exception => e
       e.class.should == NoMethodError
     end
@@ -48,7 +38,7 @@ describe "NoMethodError#message" do
 
   it "for an protected method match /protected method/" do
     begin
-      NoMethodErrorC.new.a_protected_method
+      NoMethodErrorSpecs::NoMethodErrorC.new.a_protected_method
     rescue Exception => e
       e.class.should == NoMethodError
     end
@@ -57,7 +47,7 @@ describe "NoMethodError#message" do
   not_compliant_on :rubinius do
     it "for private method match /private method/" do
       begin
-        NoMethodErrorC.new.a_private_method
+        NoMethodErrorSpecs::NoMethodErrorC.new.a_private_method
       rescue Exception => e
         e.class.should == NoMethodError
         e.message.match(/private method/).should_not == nil
