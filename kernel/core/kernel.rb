@@ -298,8 +298,10 @@ module Kernel
     Object.method_table.delete :raise
     
     get = proc { $! ? $!.backtrace.to_mri : nil }
-    set = proc { raise RuntimeError, "illegal setting of backtrace" }
-    Globals.set_hook(:$@, get, set)
+    Globals.set_hook(:$@, get, nil)
+
+    get = proc { Process.pid }
+    Globals.set_hook(:$$, get, nil)
   end
 end
 

@@ -186,6 +186,10 @@ class Compiler
     end
     
     attr_reader :file
+
+    def import_position(g)
+      set_line g.line, g.file
+    end
     
     def close
       if @lines and !@lines.empty? and @lines.last[1].nil?

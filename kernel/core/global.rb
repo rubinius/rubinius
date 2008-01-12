@@ -66,13 +66,19 @@ class GlobalVariables
                        "attempting to alias it to #{to}"
     end
   end
+
+  def illegal_set
+    raise RuntimeError, "unable to set global"
+  end
   
   def set_hook(var, getter, setter)
     unless getter.respond_to?(:call)
       raise ArgumentError, "getter must respond to call"
     end
     
-    unless setter.respond_to?(:call)
+    if setter.nil?
+      setter = method(:illegal_set)
+    elsif setter.respond_to?(:call)
       raise ArgumentError, "setter must respond to call"
     end
     

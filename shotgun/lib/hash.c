@@ -105,7 +105,7 @@ void hash_setup(STATE, OBJECT hsh, int size) {
 
 OBJECT hash_dup(STATE, OBJECT hsh) {
   int sz, i;
-  OBJECT dup, vals, ent, next, lst, tmp;
+  OBJECT dup, cv, vals, ent, next, lst, tmp;
   
   sz = FIXNUM_TO_INT(hash_get_bins(hsh));
   dup = hash_new_sized(state, sz);
@@ -115,11 +115,14 @@ OBJECT hash_dup(STATE, OBJECT hsh) {
   hash_set_entries(dup, hash_get_entries(hsh));
   hash_set_default(dup, hash_get_default(hsh));
   hash_set_keys(dup, tuple_dup(state, hash_get_keys(hsh)));
-  
+
+  cv = hash_get_values(hsh);
+
   vals = tuple_new(state, sz);
+  hash_set_values(dup, vals);
   
   for(i = 0; i < sz; i++) {
-    tmp = tuple_at(state, hsh, i);
+    tmp = tuple_at(state, cv, i);
     if(NIL_P(tmp)) continue;
     
     ent = tuple_dup(state, tmp);

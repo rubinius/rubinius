@@ -103,6 +103,14 @@ class Compiler
     @file, @line = file, line
   end
 
+  def current_file
+    @file
+  end
+
+  def current_line
+    @line
+  end
+
   def load_plugins
     # The default plugins
     activate :block_given
