@@ -27,7 +27,7 @@ class Proc
       raise ArgumentError.new("Unable to turn a #{env.inspect} into a Proc")
     end
   end
-  
+
   def self.new(&block)
     if block
       return block
@@ -41,8 +41,8 @@ class Proc
       end
     end
   end
-  
-  # Return the proc given to the currently running method or 
+
+  # Return the proc given to the currently running method or
   # to the given MethodContext/Binding.
   #
   #   def bar(&prc)
@@ -55,7 +55,7 @@ class Proc
   #      end
   #      a
   #   end
-  #   
+  #
   #   bar()                 # => [true, true, true]
   #   bar() { |n| n * 2 }   # => [false, false, true, false, true, 42]
   #
@@ -73,7 +73,7 @@ class Proc
   #   end
   #
   #   stormtrooper { |msg| puts "Stormtrooper: #{msg}" }
-  #      
+  #
   # produces the following output:
   #
   #   Stormtrooper: Let me see your identification.
@@ -108,7 +108,7 @@ class Proc
     end
     from_environment(ctx)
   end
-  
+
   def inspect
     "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
   end
@@ -126,16 +126,19 @@ class Proc
     raise "Corrupt proc detected!" unless obj
     obj.call(*args)
   end
-  
+
   alias_method :[], :call
-  
+
   class Function < Proc
     def call(*args)
       obj = at(1)
+      unless args.size == arity || arity.abs == 1
+        raise ArgumentError, "wrong number of arguments (#{args.size} for #{arity})" unless arity < -1 && args.size > arity.abs - 1
+      end
       begin
         obj.call(*args)
       rescue IllegalLongReturn => e
-        return e.return_value 
+        return e.return_value
       end
     end
   end

@@ -414,8 +414,6 @@ module Enumerable
   #     %w{ant bear cat}.all? {|word| word.length >= 4}   #=> false
   #     [ nil, true, 99 ].all?                            #=> false
   def all?(*args, &prc)
-    raise ArgumentError, "wrong number of arguments (#{args.size} for 0)" unless args.empty?
-    
     prc = lambda { |obj| obj } unless block_given?
     each { |o| return false unless prc.call(o) }
     true

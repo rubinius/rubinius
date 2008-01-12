@@ -1,0 +1,2 @@
+Enumerable#all? with no block returns true if no elements are false or nil
+Enumerable#all? passes each element of the collection to the given block. (Legacy form rubycon)

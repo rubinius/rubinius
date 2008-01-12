@@ -1,1 +1,0 @@
-Kernel.proc raises an ArgumentError when given to many arguments

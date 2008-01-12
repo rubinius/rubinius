@@ -1,0 +1,3 @@
+Enumerable#max max should return the maximum element
+Enumerable#max return the maximum element (basics cases)
+Enumerable#max return an error when introduce the wrong kind or number of parameters 

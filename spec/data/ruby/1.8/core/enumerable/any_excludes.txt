@@ -1,0 +1,2 @@
+Enumerable#any? any? with no block should return true if any element is not false or nil
+Enumerable#any? any? with no block should return true if any element is not false or nil (Legacy form rubycon)

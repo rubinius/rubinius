@@ -1,3 +1,0 @@
-Proc#call raises an ArgumentError when called with too few arguments on a Proc created with Kernel#lambda or Kernel#proc
-Proc#call raises an ArgumentError when called with too many arguments on a Proc created with Kernel#lambda or Kernel#proc
-Proc#call treats a single Array argument as a single argument when called on a Proc created with Kernel#lambda or Kernel#proc
