@@ -14,7 +14,7 @@ tmtags
 *.rbc
 .spec/bm.yml
 spec/fixtures/load/load_spec_rba.rba
-spec/core/dir/fixtures/mock
+spec/ruby/1.8/core/dir/fixtures/mock
 tmp
 scratch
 !runtime/stable/loader.rbc

@@ -25,6 +25,7 @@ module DirSpecs
     files = %W[ #{stem}/mock/.dotfile
                 #{stem}/mock/.dotsubdir/.dotfile
                 #{stem}/mock/.dotsubdir/nondotfile
+
                 #{stem}/mock/deeply/.dotfile
                 #{stem}/mock/deeply/nested/.dotfile.ext
                 #{stem}/mock/deeply/nested/directory/structure/.ext
@@ -34,13 +35,33 @@ module DirSpecs
                 #{stem}/mock/deeply/nested/directory/structure/file_one.ext
                 #{stem}/mock/deeply/nested/directory/structure/foo
                 #{stem}/mock/deeply/nondotfile
+
                 #{stem}/mock/file_one.ext
                 #{stem}/mock/file_two.ext
+
                 #{stem}/mock/nondotfile
+
                 #{stem}/mock/subdir_one/.dotfile
                 #{stem}/mock/subdir_one/nondotfile
                 #{stem}/mock/subdir_two/nondotfile
-                #{stem}/mock/subdir_two/nondotfile.ext]
+                #{stem}/mock/subdir_two/nondotfile.ext
+
+                #{stem}/mock/special/+
+                #{stem}/mock/special/*
+                #{stem}/mock/special/?
+
+                #{stem}/mock/special/|
+
+                #{stem}/mock/special/^
+                #{stem}/mock/special/$
+
+                #{stem}/mock/special/(
+                #{stem}/mock/special/)
+                #{stem}/mock/special/[
+                #{stem}/mock/special/]
+                #{stem}/mock/special/{
+                #{stem}/mock/special/}
+              ]
 
     FileUtils.rm_rf "#{stem}/mock"
     files.each do |file|

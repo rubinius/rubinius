@@ -7,8 +7,65 @@ shared :dir_glob do |cmd|
     end
     
     it "matches non-dotfiles with '*'" do
-      Dir.send(cmd,'*').sort.should == 
-        %w|subdir_one subdir_two deeply nondotfile file_one.ext file_two.ext|.sort
+      expected = %w[
+        deeply
+        file_one.ext
+        file_two.ext
+        nondotfile
+        special
+        subdir_one
+        subdir_two
+      ]
+
+      Dir.send(cmd,'*').sort.should == expected
+    end
+
+    it "matches regexp special +" do
+      Dir.send(cmd, 'special/+').should == ['special/+']
+    end
+
+    it "matches regexp special *" do
+      Dir.send(cmd, 'special/\*').should == ['special/*']
+    end
+
+    it "matches regexp special ?" do
+      Dir.send(cmd, 'special/\?').should == ['special/?']
+    end
+
+    it "matches regexp special |" do
+      Dir.send(cmd, 'special/|').should == ['special/|']
+    end
+
+    it "matches regexp special ^" do
+      Dir.send(cmd, 'special/^').should == ['special/^']
+    end
+
+    it "matches regexp special $" do
+      Dir.send(cmd, 'special/$').should == ['special/$']
+    end
+
+    it "matches regexp special (" do
+      Dir.send(cmd, 'special/(').should == ['special/(']
+    end
+
+    it "matches regexp special )" do
+      Dir.send(cmd, 'special/)').should == ['special/)']
+    end
+
+    it "matches regexp special [" do
+      Dir.send(cmd, 'special/\[').should == ['special/[']
+    end
+
+    it "matches regexp special ]" do
+      Dir.send(cmd, 'special/]').should == ['special/]']
+    end
+
+    it "matches regexp special {" do
+      Dir.send(cmd, 'special/\{').should == ['special/{']
+    end
+
+    it "matches regexp special }" do
+      Dir.send(cmd, 'special/\}').should == ['special/}']
     end
 
     it "matches dotfiles with '.*'" do
@@ -36,7 +93,17 @@ shared :dir_glob do |cmd|
     end
 
     it "matches non-dotfiles in the current directory with '**'" do
-      Dir.send(cmd, '**').sort.should == %w|subdir_one subdir_two deeply nondotfile file_one.ext file_two.ext|.sort
+      expected = %w[
+        deeply
+        file_one.ext
+        file_two.ext
+        nondotfile
+        special
+        subdir_one
+        subdir_two
+      ]
+
+      Dir.send(cmd, '**').sort.should == expected
     end
 
     it "matches dotfiles in the current directory with '.**'" do
@@ -44,8 +111,17 @@ shared :dir_glob do |cmd|
     end
 
     it "recursively matches any nondot subdirectories with '**/'" do
-      Dir.send(cmd, '**/').sort.should == %w|subdir_one/ subdir_two/ deeply/ deeply/nested/ 
-                                             deeply/nested/directory/ deeply/nested/directory/structure/|.sort
+      expected = %w[
+        deeply/
+        deeply/nested/
+        deeply/nested/directory/
+        deeply/nested/directory/structure/
+        special/
+        subdir_one/
+        subdir_two/
+      ]
+
+      Dir.send(cmd, '**/').sort.should == expected
     end
 
     it "recursively matches any subdirectories including ./ and ../ with '.**/'" do
@@ -89,8 +165,21 @@ shared :dir_glob do |cmd|
     end
 
     it "matches dot or non-dotfiles with '{,.}*'" do
-      Dir.send(cmd, '{,.}*').sort.should == %w|. .. .dotsubdir subdir_one subdir_two deeply 
-                                               .dotfile nondotfile file_one.ext file_two.ext|.sort
+      expected = %w[
+        .
+        ..
+        .dotfile
+        .dotsubdir
+        deeply
+        file_one.ext
+        file_two.ext
+        nondotfile
+        special
+        subdir_one
+        subdir_two
+      ]
+
+      Dir.send(cmd, '{,.}*').sort.should == expected
     end
 
     it "matches special characters by escaping with a backslash with '\\<character>'" do

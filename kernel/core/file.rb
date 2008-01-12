@@ -323,7 +323,7 @@ class File < IO
   def self.expand_path(path, dir_string = nil)
     Platform::File.expand_path(path, dir_string)
   end
-  
+
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern).dup
     path = StringValue(path).dup
@@ -331,10 +331,16 @@ class File < IO
     pathname = (flags & FNM_PATHNAME) != 0
     nocase = (flags & FNM_CASEFOLD) != 0
     period = (flags & FNM_DOTMATCH) == 0
-    subs = { /\{/ => '\{', /\}/ => '\}',
-             /(^|([^\\]))\*{1,2}/ => '\1(.*)', /\\\*/ => '\\\\\*',
-             /(^|([^\\]))\?/ => '\1(.)',       /\\\?/ => '\\\\\?' }
-    
+    subs = { /\{/ => '\{',
+             /\}/ => '\}',
+             /(^|([^\\]))\*{1,2}/ => '\1(.*)',
+             /(^|([^\\]))\?/ => '\1(.)',
+             /\\\?/ => '\\\\\?',
+             /\\\*/ => '\\\\\*',
+             # HACK /\+/   => '\\\+',
+             /(\+)/ => '\\\\\\\\\+', # HACK String#sub is broken
+           }
+
     return false if path[0] == ?. and pattern[0] != ?. and period
     pattern.gsub!('.', '\.')
     pattern = pattern.split(/(?<b>\[(?:\\[\[\]]|[^\[\]]|\g<b>)*\])/).collect do |part|
@@ -353,10 +359,6 @@ class File < IO
         end
       end
     end.join
-
-    pattern = pattern.gsub(/\{(.*?)\}/) do
-      "(#{$1.gsub ',', '|'})"
-    end
 
     re = Regexp.new("^#{pattern}$", nocase ? Regexp::IGNORECASE : 0)
 

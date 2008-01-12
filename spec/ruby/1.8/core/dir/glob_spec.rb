@@ -7,12 +7,26 @@ describe "Dir.glob" do
   
   before(:all) do
     @cwd = Dir.pwd
+
     Dir.chdir DirSpecs.mock_dir
+
+    @all_dirs = %w[
+      .
+      ..
+      .dotfile
+      .dotsubdir
+      deeply
+      file_one.ext
+      file_two.ext
+      nondotfile
+      special
+      subdir_one
+      subdir_two
+    ]
   end
   
   it "matches both dot and non-dotfiles with '*' and option File::FNM_DOTMATCH" do
-    Dir.glob('*', File::FNM_DOTMATCH).sort.should == 
-      %w|. .. .dotfile .dotsubdir subdir_one subdir_two deeply nondotfile file_one.ext file_two.ext|.sort
+    Dir.glob('*', File::FNM_DOTMATCH).sort.should == @all_dirs
   end
 
   it "matches files with any beginning with '*<non-special characters>' and option File::FNM_DOTMATCH" do
@@ -20,13 +34,22 @@ describe "Dir.glob" do
   end
 
   it "matches any files in the current directory with '**' and option File::FNM_DOTMATCH" do
-    Dir.glob('**', File::FNM_DOTMATCH).sort.should == %w|. .. .dotsubdir .dotfile subdir_one subdir_two 
-                                                          deeply nondotfile file_one.ext file_two.ext|.sort
+    Dir.glob('**', File::FNM_DOTMATCH).sort.should == @all_dirs
   end
 
   it "recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH" do
-    Dir.glob('**/', File::FNM_DOTMATCH).sort.should == %w|.dotsubdir/ subdir_one/ subdir_two/ deeply/ deeply/nested/ 
-                                                          deeply/nested/directory/ deeply/nested/directory/structure/|.sort
+    expected = %w[
+      .dotsubdir/
+      deeply/
+      deeply/nested/
+      deeply/nested/directory/
+      deeply/nested/directory/structure/
+      special/
+      subdir_one/
+      subdir_two/
+    ]
+
+    Dir.glob('**/', File::FNM_DOTMATCH).sort.should == expected
   end
 
   it "matches the literal character '\\' with option File::FNM_NOESCAPE" do
