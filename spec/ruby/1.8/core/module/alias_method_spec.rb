@@ -52,4 +52,11 @@ describe "Module#alias_method" do
       alias fail! fail
     end
   end
+  
+  it "works on private module methods" do
+    ModuleSpecs::AliasingPrivateMethod.foo.should == true
+    ModuleSpecs::AliasingPrivateMethod.should_not raise_error(NoMethodError)
+  end
+  
+  
 end

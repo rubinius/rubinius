@@ -145,6 +145,13 @@ module ModuleSpecs
     def protected_one; 1; end
   end
 
+  module AliasingPrivateMethod
+    def foo; true; end
+    module_function :foo
+    private :foo
+    alias :foo2 :foo
+  end
+
   module Nesting
     @tests = {}
     def self.[](name); @tests[name]; end
