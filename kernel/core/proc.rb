@@ -3,6 +3,7 @@
 class Proc
   self.instance_fields = 3
   ivar_as_index :__ivars__ => 0, :block => 1, :check_args => 2
+
   def block; @block ; end
 
   def block=(other)
@@ -114,7 +115,7 @@ class Proc
   end
 
   def arity
-    at(1).arity
+    @block.arity
   end
 
   def to_proc
@@ -122,21 +123,22 @@ class Proc
   end
 
   def call(*args)
-    obj = at(1)
-    raise "Corrupt proc detected!" unless obj
-    obj.call(*args)
+    @block.call(*args)
   end
 
   alias_method :[], :call
 
   class Function < Proc
+    ivar_as_index :block => 1
+
     def call(*args)
-      obj = at(1)
-      unless args.size == arity || arity.abs == 1
-        raise ArgumentError, "wrong number of arguments (#{args.size} for #{arity})" unless arity < -1 && args.size > arity.abs - 1
+      a = arity()
+      unless a < 0 or a == 1 or args.size == a
+        raise ArgumentError, "wrong number of arguments (#{args.size} for #{arity})"
       end
+
       begin
-        obj.call(*args)
+        @block.call(*args)
       rescue IllegalLongReturn => e
         return e.return_value
       end
