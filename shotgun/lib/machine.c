@@ -679,6 +679,9 @@ void machine_setup_config(machine m) {
   
   machine_set_const_under(m, "DEBUG_INST", I2N(CPU_INSTRUCTION_YIELD_DEBUGGER), mod);
 
+  machine_set_const_under(m, "VM_ID", I2N(m->id), mod);
+  machine_set_const_under(m, "VM_INFERIOR", m->sub ? Qtrue : Qfalse, mod);
+
   /* This feels like the wrong place for this, but it works. */
   machine_set_const_under(m, "MESSAGE_IO", io_new(m->s, m->message_read_fd, "r"), mod);
 }
