@@ -6,94 +6,289 @@ class Dir
   end
 
   include Enumerable
-  
+
+  GLOB_VERBOSE = 1 << (4 * 8 - 1) # HACK
   GLOB_RECURSIVE = -2
-  
+
   def self.[](pattern)
     glob(pattern, 0)
   end
-  
+
   def self.glob(pattern, flags = 0)
-    original_dir = Dir.pwd
-    files = Array.new 0
+    matches = []
 
-    period = (flags & File::FNM_DOTMATCH) > 0
-    period_excludes = ["..", "."]
+    glob0 pattern, flags & ~GLOB_VERBOSE, matches
 
-    max_depth = glob_max_depth(pattern)
+    matches
+  end
 
-    Dir.foreach(original_dir) do |entry|
-      if match = glob_match(pattern, entry, flags)
-        files << match
-      end
+  def self.glob0(pattern, flags, matches)
+    root = pattern.dup
+    path = ''
 
-      if File.directory?(entry) and
-         (max_depth == GLOB_RECURSIVE or max_depth > 0) and
-         !period_excludes.include?(entry) then
-        next if entry =~ /^\./ and !period
-        search_deeper(files, entry, pattern, flags, 1, max_depth)
+    if root[0] == ?/ then # HACK windows
+      root = root[1..-1]
+      path = '/'
+    end
+
+    list = glob_pattern root, flags
+
+    #p list
+
+    glob_helper path, false, :unknown, :unknown, list, 0...1, flags, matches
+  end
+
+  def self.find_dirsep(pattern, flags)
+    escape = (flags & File::FNM_NOESCAPE) == 0
+    open = false
+
+    chars = pattern.split ''
+
+    chars.each_with_index do |char, i|
+      case char
+      when '[' then
+        open = true
+      when ']' then
+        open = false
+      when '/' then
+        return i unless open
+      when '\\' then
+        return i if escape and (i + 1 == chars.length)
       end
     end
 
-    files.to_a
+    chars.length
   end
-  
-  def self.search_deeper(files, path, pattern, flags, depth, max_depth) # needs depth
-    period = (flags & File::FNM_DOTMATCH) > 0
-    period_excludes = ["..", "."]
-    
-    paths = [[path,depth]]
-    until paths.empty?
-      
-      path, depth = paths.shift
-      Dir.foreach(path) do |entry|
-        next if period_excludes.include?(entry)
-        file = File.join(path, entry)
-      
-        if match = glob_match(pattern, file, flags)
-          files << match
+
+  ##
+  # +dirsep+:: Should '/' be placed before appending child's entry name to
+  #            +path+
+  # +exist+:: Does 'path' indicate an existing entry?
+  # +isdir+:: Does 'path' indicate a directory or a symlink to a directory?
+
+  def self.glob_helper(path, dirsep, exist, isdir, pattern, range, flags, matches)
+    #p caller[0]
+    #p [path, dirsep, exist, isdir, pattern, range, flags, matches]
+    status = nil
+    plain = magic = recursive = match_all = match_dir = false
+    escape = (flags & File::FNM_NOESCAPE) == 0
+
+    last_type = nil
+
+    pattern[range].each_with_index do |part, i|
+      if part[1] == :recursive then
+        recursive = true
+        part = pattern[i + 1]
+      end
+
+      case part[1]
+      when :magic then
+        magic = true
+      when :match_all then
+        match_all = true
+      when :match_dir then
+        match_dir = true
+      when :plain then
+        plain = true
+      when :recursive then
+        raise "continuous RECURSIVEs"
+      end
+    end
+
+    unless path.empty? then
+      if match_all and exist == :unknown then
+        if stat = File.stat(path) rescue nil then
+          exist = :yes
+          isdir = if stat.directory? then
+                    :yes
+                  elsif stat.symlink? then
+                    :unknown
+                  else
+                    :no
+                  end
+        else
+          exist = isdir = :no
         end
-      
-        if File.directory?(file) and (max_depth == GLOB_RECURSIVE or depth < max_depth)
-          next if entry =~ /^\./ and !period
-          paths << [file, depth + 1]
+      end
+
+      if match_dir and isdir == :unknown then
+        if stat = File.stat(path) rescue nil then
+          exist = :yes
+          isdir = stat.directory? ? :yes : :no
+        else
+          exist = isdir = :no
         end
       end
-      
+
+      matches << path if match_all and exist == :yes
+
+      if match_dir and isdir == :yes then
+        return if path.empty? and not dirsep
+        tmp = join_path path, '', dirsep
+        matches << tmp
+      end
+    end
+
+    return if exist == :no or isdir == :no
+
+    if magic or recursive then
+      dir = path.empty? ? '.' : path
+
+      return unless File.directory? dir
+
+      begin
+        Dir.foreach dir do |entry|
+          buf = join_path path, entry, dirsep
+          new_isdir = :unknown
+          new_pattern = []
+          copied = range.begin
+
+          if recursive and not %w[. ..].include?(entry) and
+            File.fnmatch('*', entry, flags) then
+            stat = File.stat buf
+            new_isdir = if stat.directory? then
+                          :yes
+                        elsif stat.symlink? then
+                          :unknown
+                        else
+                          :no
+                        end
+          end
+
+          pattern[range].each_with_index do |part, i|
+            if part[1] == :recursive then
+              if new_isdir == :yes then
+                new_pattern << part
+                copied += 1
+              end
+              part = pattern[range.begin + i + 1]
+              i += 1
+            end
+
+            if (part[1] == :plain or part[1] == :magic) and
+              File.fnmatch part[0], entry, flags then
+              new_pattern << pattern[range.begin + i + 1]
+              copied += 1
+            end
+          end
+
+          length = new_pattern.length
+
+          new_pattern.concat pattern[copied..-1]
+
+          glob_helper(buf, true, :yes, new_isdir, new_pattern, (0...length),
+                      flags, matches)
+        end
+      rescue Errno::ENOTDIR
+        # File.directory? may return true on entries in an fdesc file system
+        return
+      end
+    elsif plain then
+      copy_end = 0
+      copy_pattern = pattern.dup
+
+      pattern[range].each_with_index do |part, i|
+        copy_pattern[i] = nil unless part[1] == :plain
+      end
+
+      copy_pattern[range].each_with_index do |part, i|
+        next unless part
+
+        new_pattern = []
+        copied = i
+        next_offset = i + 1
+
+        name = part[0]
+        name = name.gsub '\\', '' if escape
+
+        new_pattern << copy_pattern[next_offset]
+        copied += 1
+
+        copy_pattern[(i + 1)...range.end].each_with_index do |part2, j|
+          if part2 and not File.fnmatch part2[0], name, flags then
+            new_pattern << copy_pattern[next_offset + j]
+            copied += 1
+
+            copy_pattern[next_offset + j] = nil
+          end
+        end
+
+        length = new_pattern.length
+
+        new_pattern.concat copy_pattern[(copied + 1)..-1]
+
+        buf = join_path path, name, dirsep
+
+        glob_helper(buf, true, :unknown, :unknown, new_pattern,
+                    0...length, flags, matches)
+      end
     end
   end
-  
-  def self.glob_match(pattern, entry, flags)
-    if glob_fnmatch? pattern, entry, flags
-      entry
-    elsif File.directory?(entry) and glob_fnmatch?(pattern, "#{entry}/", flags)
-      "#{entry}/"
-    else
-      nil
-    end
-  end
-  
-  # This is going to need to be modified for {}
-  def self.glob_fnmatch?(pattern, entry, flags)
-    File.fnmatch?(pattern, entry, flags)
-  end
-  
-  def self.glob_max_depth(pattern)
-    # TODO: Change to check for path seperator rather than /
-    if pattern =~ /\*{2}/
-      # Special case for Dir["**"]
-      seps = pattern.split("/").size - 1
-      pattern_ends_in_slash = pattern[pattern.size - 1] == ?/
-      if seps == 0 and !pattern_ends_in_slash
-        max_depth = 0
+
+  def self.glob_magic?(pattern, flags)
+    escape = (flags & File::FNM_NOESCAPE) == 0
+    nocase = (flags & File::FNM_CASEFOLD) == 0
+
+    chars = pattern.split ''
+
+    chars.each_with_index do |char, i|
+      case char
+      when '*', '?', '[' then
+        return true
+      when '\\' then
+        return false if escape && i == chars.length
       else
-        max_depth = GLOB_RECURSIVE
+       return true if char == /[a-z]/i && nocase # HACK FNM_SYSCASE
       end
-    else
-      max_depth = pattern.split("/").size - 1
     end
+
+    false
   end
-  
+
+  def self.glob_pattern(pattern, flags)
+    dirsep = false
+    glob_pattern = []
+
+    until pattern.empty? do
+      part = []
+
+      if pattern =~ /\A\*\*\// then
+        # fold continuous :recursive for glob_helper
+        pattern.sub!(/\A(\*\*\/)+/, '')
+        part[0] = ''
+        part[1] = :recursive
+        dirsep = true
+      else
+        m = find_dirsep pattern, flags
+
+        part[0] = pattern[0...m]
+        part[1] = glob_magic?(part[0], flags) ? :magic : :plain
+
+        unless pattern.length == m then
+          dirsep = true
+          pattern = pattern[(m+1)..-1]
+        else
+          dirsep = false
+          pattern = ''
+        end
+      end
+
+      glob_pattern << part
+    end
+
+    part = []
+    part[0] = ''
+    part[1] = dirsep ? :match_dir : :match_all
+
+    glob_pattern << part
+
+    glob_pattern
+  end
+
+  def self.join_path(p1, p2, dirsep)
+    "#{p1}#{dirsep ? '/' : ''}#{p2}"
+  end
+
   def self.chdir(path = ENV['HOME'])
     if block_given?
       original_path = self.getwd
