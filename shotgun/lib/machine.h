@@ -10,6 +10,8 @@ struct rubinius_machine {
   int id;
   pthread_t pthread;
   int sub;
+  int message_read_fd;
+  int message_write_fd;
   rstate s;
   cpu c;
   struct sigaction error_report;

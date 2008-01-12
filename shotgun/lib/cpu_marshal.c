@@ -513,7 +513,7 @@ bstring cpu_marshal_to_bstring(STATE, OBJECT obj, int version) {
   bdestroy(stream);
   
   ptr_array_free(ms.objects);
-  return stream;
+  return buf;
 }
 
 OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {

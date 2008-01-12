@@ -219,11 +219,18 @@ void machine_setup_signals(machine m) {
 
 machine machine_new() {
   machine m;
+  int pipes[2];
   
   m = calloc(1, sizeof(struct rubinius_machine));
   m->g_use_firesuit = 0;
   m->g_access_violation = 0;
   m->sub = 0;
+  pipe(pipes);
+
+  /* Setup pipes used for message notification. */
+  m->message_read_fd =  pipes[0];
+  m->message_write_fd = pipes[1];
+
   m->s = rubinius_state_new();
   m->c = cpu_new(m->s);
   /* Initialize the instruction addresses. */
@@ -671,6 +678,9 @@ void machine_setup_config(machine m) {
   }
   
   machine_set_const_under(m, "DEBUG_INST", I2N(CPU_INSTRUCTION_YIELD_DEBUGGER), mod);
+
+  /* This feels like the wrong place for this, but it works. */
+  machine_set_const_under(m, "MESSAGE_IO", io_new(m->s, m->message_read_fd, "r"), mod);
 }
 
 void machine_config_env(machine m) {

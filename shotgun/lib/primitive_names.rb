@@ -180,7 +180,9 @@ module Bytecode
       :bignum_from_float,
       :task_stack_size,
       :task_get_stack_value,
-      :fastctx_reload_method
+      :fastctx_reload_method,
+      :machine_get_message,
+      :machine_send_message
     ]
 
     FirstRuntimePrimitive = 1024

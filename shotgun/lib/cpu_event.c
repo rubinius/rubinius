@@ -247,6 +247,7 @@ void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv) {
   _cpu_event_register_info(state, ti);
 
   evtimer_set(&ti->ev, _cpu_wake_channel, (void*)ti);
+  event_base_set((struct event_base*)state->event_base, &ti->ev);
   evtimer_add(&ti->ev, tv);
 }
 

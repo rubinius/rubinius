@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <event.h>
+#include <unistd.h>
 
 static pthread_key_t global_key;
 
@@ -26,6 +27,8 @@ environment environment_new() {
   environment e = ALLOC_N(struct rubinius_environment, 1);
   e->machines = ht_vconfig_create(11);
   e->machine_id = 1;
+  
+  e->messages = ht_vconfig_create(11);
 
   return e;
 }
@@ -158,4 +161,61 @@ void environment_start_thread(environment e, machine m) {
   args->m = m;
 
   pthread_create(&m->pthread, NULL, _environment_spawn, (void*)args);
+}
+
+static const char magic[] = "!";
+
+void environment_send_message(environment e, int id, OBJECT msg) {
+  ptr_array cur;
+  bstring data;
+  machine m;
+  int *key;
+
+  /* Marshal the data before the lock. */
+  m = environment_current_machine();
+  data = cpu_marshal_to_bstring(m->s, msg, 0);
+  
+  lock(e);
+
+  cur = ht_vconfig_search(e->messages, &id);
+  if(!cur) {
+    cur = ptr_array_new(8);
+    key = ALLOC_N(int, 1);
+    *key = id;
+    ht_vconfig_insert(e->messages, key, cur);
+  }
+
+  ptr_array_append(cur, (xpointer)data);
+  
+  m = ht_vconfig_search(e->machines, &id);
+
+  /* write the magic byte, to let the machine know there are
+   * messages for it. */
+  write(m->message_write_fd, magic, 1);
+
+  unlock(e);
+}
+
+OBJECT environment_get_message(environment e, int id) {
+  ptr_array cur;
+  bstring data;
+  machine m;
+
+  lock(e);
+
+  cur = ht_vconfig_search(e->messages, &id);
+  if(!cur) goto error;
+  if(ptr_array_length(cur) == 0) goto error;
+  data = ptr_array_remove_index_ordered(cur, 0);
+  if(!data) goto error;
+  
+  /* Now that we're sure we've got what we need, we unlock.. */
+  unlock(e);
+
+  /* and unmarshal. */
+  m = environment_current_machine();
+  return cpu_unmarshal(m->s, (uint8_t*)bdata(data), (int)blength(data), 0);
+error:
+  unlock(e);
+  return Qnil;
 }

@@ -2960,6 +2960,25 @@ class ShotgunPrimitives
     CODE
   end
 
+  def machine_get_message
+    <<-CODE
+    stack_pop(); /* class */
+    stack_push(environment_get_message(environment_current(), current_machine->id));
+    CODE
+  end
+
+  def machine_send_message
+    <<-CODE
+    stack_pop(); /* class */
+    POP(t1, FIXNUM);
+    t2 = stack_pop();
+
+    environment_send_message(environment_current(), FIXNUM_TO_INT(t1), t2);
+
+    stack_push(Qtrue);
+    CODE
+  end
+
 end
 
 prim = ShotgunPrimitives.new
