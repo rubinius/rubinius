@@ -351,29 +351,29 @@ def install_files(files, destination)
   end
 end
 
-# This is disabled to avoid confusion since it does not work
-#desc "Install rubinius as rbx"
-#task :install => :config_env do
-#  sh "cd shotgun; #{make "install"}"
-#
-#  mkdir_p ENV['RBAPATH'], :verbose => true
-#  mkdir_p ENV['CODEPATH'], :verbose => true
-#
-#  rba_files = Rake::FileList.new('runtime/**/*.rb{a,c}',
-#                                 'runtime/**/.load_order.txt')
-#
-#  install_files rba_files, ENV['RBAPATH']
-#
-#  lib_files = Rake::FileList.new 'lib/**/*'
-#
-#  install_files lib_files, ENV['CODEPATH']
-#
-#  mkdir_p File.join(ENV['CODEPATH'], 'bin'), :verbose => true
-#
-#  Rake::FileList.new("#{ENV['CODEPATH']}/**/*.rb").sort.each do |rb_file|
-#    sh File.join(ENV['BINPATH'], 'rbx'), 'compile', rb_file, :verbose => true
-#  end
-#end
+desc "Install rubinius as rbx"
+task :install => :config_env do
+  sh "cd shotgun; #{make "install"}"
+
+  mkdir_p ENV['RBAPATH'], :verbose => true
+  mkdir_p ENV['CODEPATH'], :verbose => true
+
+  rba_files = Rake::FileList.new('runtime/platform.conf',
+                                 'runtime/**/*.rb{a,c}',
+                                 'runtime/**/.load_order.txt')
+
+  install_files rba_files, ENV['RBAPATH']
+
+  lib_files = Rake::FileList.new 'lib/**/*'
+
+  install_files lib_files, ENV['CODEPATH']
+
+  mkdir_p File.join(ENV['CODEPATH'], 'bin'), :verbose => true
+
+  Rake::FileList.new("#{ENV['CODEPATH']}/**/*.rb").sort.each do |rb_file|
+    sh File.join(ENV['BINPATH'], 'rbx'), 'compile', rb_file, :verbose => true
+  end
+end
 
 task :config_env => 'shotgun/config.mk' do
   File.foreach 'shotgun/config.mk' do |line|
