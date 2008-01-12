@@ -19,7 +19,7 @@ module DirSpecs
       end
     end
   end
-  
+
   def DirSpecs.create_mock_dirs
     stem = File.dirname(__FILE__)
     files = %W[ #{stem}/mock/.dotfile
@@ -70,6 +70,23 @@ module DirSpecs
       File.open(file, "w") { }
     end
   end
+
+  def self.expected_paths
+    %w[
+      .
+      ..
+      .dotfile
+      .dotsubdir
+      deeply
+      file_one.ext
+      file_two.ext
+      nondotfile
+      special
+      subdir_one
+      subdir_two
+    ]
+  end
+
 end
 
 # Create the fixture directories every time the specs are run

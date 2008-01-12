@@ -9,24 +9,10 @@ describe "Dir.glob" do
     @cwd = Dir.pwd
 
     Dir.chdir DirSpecs.mock_dir
-
-    @all_dirs = %w[
-      .
-      ..
-      .dotfile
-      .dotsubdir
-      deeply
-      file_one.ext
-      file_two.ext
-      nondotfile
-      special
-      subdir_one
-      subdir_two
-    ]
   end
-  
+
   it "matches both dot and non-dotfiles with '*' and option File::FNM_DOTMATCH" do
-    Dir.glob('*', File::FNM_DOTMATCH).sort.should == @all_dirs
+    Dir.glob('*', File::FNM_DOTMATCH).sort.should == DirSpecs.expected_paths
   end
 
   it "matches files with any beginning with '*<non-special characters>' and option File::FNM_DOTMATCH" do
@@ -34,7 +20,7 @@ describe "Dir.glob" do
   end
 
   it "matches any files in the current directory with '**' and option File::FNM_DOTMATCH" do
-    Dir.glob('**', File::FNM_DOTMATCH).sort.should == @all_dirs
+    Dir.glob('**', File::FNM_DOTMATCH).sort.should == DirSpecs.expected_paths
   end
 
   it "recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH" do

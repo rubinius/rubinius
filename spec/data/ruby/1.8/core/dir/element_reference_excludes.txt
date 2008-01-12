@@ -1,4 +1,1 @@
-Dir.[] matches any one of the strings in a set with '{<string>,<other>,...}'
-Dir.[] accepts string sets with empty strings with {<string>,,<other>}
-Dir.[] matches dot or non-dotfiles with '{,.}*'
-Dir.[] recursively matches directories with '**/<characters>'
+Dir.[] matches regexp special [

@@ -14,7 +14,8 @@ describe "Dir#each" do
   it "yields each directory entry in succession" do
     a = []
     @dir.each {|dir| a << dir}
-    a.sort.should == %w|. .. .dotfile .dotsubdir nondotfile subdir_one subdir_two deeply file_one.ext file_two.ext|.sort
+
+    a.sort.should == DirSpecs.expected_paths
   end
 
   it "returns the directory which remains open" do

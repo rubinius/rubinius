@@ -165,21 +165,7 @@ shared :dir_glob do |cmd|
     end
 
     it "matches dot or non-dotfiles with '{,.}*'" do
-      expected = %w[
-        .
-        ..
-        .dotfile
-        .dotsubdir
-        deeply
-        file_one.ext
-        file_two.ext
-        nondotfile
-        special
-        subdir_one
-        subdir_two
-      ]
-
-      Dir.send(cmd, '{,.}*').sort.should == expected
+      Dir.send(cmd, '{,.}*').sort.should == DirSpecs.expected_paths
     end
 
     it "matches special characters by escaping with a backslash with '\\<character>'" do
