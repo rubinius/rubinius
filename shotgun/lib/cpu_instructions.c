@@ -942,7 +942,7 @@ static inline void _inline_cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sy
   
 #if USE_INLINE_CACHING
   /* There is a cache index for this send, use it! */
-  if(ci > 0) {
+  if(ci >= 0) {
     cache = c->cache;
     
     ic = fast_fetch(cache, ci);
