@@ -34,7 +34,7 @@ static char *search_for(const char *evs, const char *file) {
   for(i = 0; search_path[i]; i++) {
     snprintf(path, PATH_MAX, "%s/%s", search_path[i], file);
     if(file_exists_p(path)) {
-      return path;
+      return strdup(path);
     }
   }
   
