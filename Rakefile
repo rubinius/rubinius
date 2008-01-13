@@ -607,6 +607,7 @@ file 'runtime/platform.conf' do |t|
     SOL_SOCKET
     SO_TYPE
     SO_ERROR
+    SO_LINGER
   }
   
   cg = ConstGenerator.new
