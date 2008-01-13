@@ -23,10 +23,10 @@ class BasicSocket < IO
   end
 
   def getsockopt(level, optname)
-    
+
     MemoryPointer.new 256 do |val|
       MemoryPointer.new :int do |length|
-        length.write_int 256       
+        length.write_int 256
         error = Socket::Foreign.get_socket_option(descriptor, level, optname, val, length)
 
         if error != 0
@@ -86,7 +86,7 @@ class Socket < BasicSocket
     SO_LINGER =    FFI.config('socket.SO_LINGER')
     # Used only for getsockopt
     SO_TYPE =      FFI.config('socket.SO_TYPE')
-    SO_ERROR =     FFI.config('socket.SO_ERROR')   
+    SO_ERROR =     FFI.config('socket.SO_ERROR')
   end
   
   module Foreign
