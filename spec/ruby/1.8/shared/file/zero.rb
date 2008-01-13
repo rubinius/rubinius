@@ -1,5 +1,5 @@
-shared :file_zero do |cmd, klass|
-  describe "#{klass}.#{cmd}" do
+shared :file_zero do |cmd, klass, name|
+  describe "#{name || klass}.#{cmd}" do
     before :each do
       @zero_file    = 'test.txt'
       @nonzero_file = 'test2.txt'
@@ -44,7 +44,6 @@ shared :file_zero do |cmd, klass|
 
     it "zero? should return true if the named file exists and has a zero size." do
       begin
-        klass.send(cmd, 'fake_file').should == false
         file = '/tmp/i_exist'
         File.open(file,'w') { klass.send(cmd, file).should == true }
       ensure
@@ -52,4 +51,12 @@ shared :file_zero do |cmd, klass|
       end
     end
   end 
+end
+
+shared :file_zero_missing do |cmd, klass, name|
+  describe "#{name || klass}.#{cmd}" do
+    it "returns false if the file does not exist" do
+      klass.send(cmd, 'fake_file').should == false
+    end
+  end
 end

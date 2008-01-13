@@ -1,5 +1,5 @@
-shared :file_executable do |cmd, klass|
-  describe "#{klass}.#{cmd}" do 
+shared :file_executable do |cmd, klass, name|
+  describe "#{name || klass}.#{cmd}" do 
     before :each do
       @file1 = 'temp1.txt'
       @file2 = 'temp2.txt'
@@ -19,7 +19,6 @@ shared :file_executable do |cmd, klass|
     end
 
     it "returns true if named file is readable by the effective user id of the process, otherwise false" do
-      klass.send(cmd, 'fake_file').should == false
       klass.send(cmd, '/etc/passwd').should == false
       klass.send(cmd, @file1).should == true
       klass.send(cmd, @file2).should == false
@@ -29,7 +28,6 @@ shared :file_executable do |cmd, klass|
       it "return true if the argument its an executable file" do
         klass.send(cmd, @file1).should == true
         klass.send(cmd, @file2).should == false
-        klass.send(cmd, 'a_fake_file').should == false
       end
     end
 
@@ -41,6 +39,14 @@ shared :file_executable do |cmd, klass|
       lambda { klass.send(cmd, 1)     }.should raise_error(TypeError)
       lambda { klass.send(cmd, nil)   }.should raise_error(TypeError)
       lambda { klass.send(cmd, false) }.should raise_error(TypeError)
+    end
+  end
+end
+
+shared :file_executable_missing do |cmd, klass, name|
+  describe "#{name || klass}.#{cmd}" do
+    it "returns false if the file does not exist" do
+      klass.send(cmd, 'fake_file').should == false
     end
   end
 end

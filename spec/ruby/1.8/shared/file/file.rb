@@ -1,5 +1,5 @@
-shared :file_file do |cmd, klass|
-  describe "#{klass}.#{cmd}" do 
+shared :file_file do |cmd, klass, name|
+  describe "#{name || klass}.#{cmd}" do 
     before :each do 
       platform_is :mswin do
         @null = "NUL"

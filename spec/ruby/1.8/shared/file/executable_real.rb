@@ -1,5 +1,5 @@
-shared :file_executable_real do |cmd, klass|
-  describe "#{klass}.#{cmd}" do
+shared :file_executable_real do |cmd, klass, name|
+  describe "#{name || klass}.#{cmd}" do
     before :each do
       @file1 = File.join(Dir.pwd, 'temp1.txt')
       @file2 = File.join(Dir.pwd, 'temp2.txt')
@@ -22,12 +22,10 @@ shared :file_executable_real do |cmd, klass|
       it "returns true if the file its an executable" do 
         klass.send(cmd, @file1).should == true
         klass.send(cmd, @file2).should == false
-        klass.send(cmd, 'bogus').should == false
       end
     end
 
     it "returns true if named file is readable by the real user id of the process, otherwise false" do
-      klass.send(cmd, 'fake_file').should == false
       klass.send(cmd, @file1).should == true
     end
 
@@ -39,6 +37,14 @@ shared :file_executable_real do |cmd, klass|
       lambda { klass.send(cmd, 1)     }.should raise_error(TypeError)
       lambda { klass.send(cmd, nil)   }.should raise_error(TypeError)
       lambda { klass.send(cmd, false) }.should raise_error(TypeError)
+    end
+  end
+end
+
+shared :file_executable_real_missing do |cmd, klass, name|
+  describe "#{name || klass}.#{cmd}" do
+    it "returns false if the file does not exist" do
+      klass.send(cmd, 'fake_file').should == false
     end
   end
 end
