@@ -104,7 +104,7 @@ class Object
     end
   end
   
-  def method_missing(meth, *args)
+  def method_missing_cv(meth, *args)
     # Exclude method_missing from the backtrace since it only confuses
     # people.
     myself = MethodContext.current
@@ -257,5 +257,9 @@ class Object
       mod.extend_object(self)
     end
     self
+  end
+
+  def self.after_loaded
+    alias_method :method_missing, :method_missing_cv
   end
 end
