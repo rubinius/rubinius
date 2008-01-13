@@ -20,6 +20,7 @@ end
 
 class Class
   def to_marshal(depth = -1, subclass = nil, links = {})
+    raise TypeError, "can't dump anonymous class #{self}" if self.name == ''
     Marshal::TYPE_CLASS +
     Marshal.serialize_integer(self.name.length) + self.name
   end
@@ -27,6 +28,7 @@ end
 
 class Module
   def to_marshal(depth = -1, subclass = nil, links = {})
+    raise TypeError, "can't dump anonymous module #{self}" if self.name == ''
     Marshal::TYPE_MODULE +
     Marshal.serialize_integer(self.name.length) + self.name
   end
@@ -43,7 +45,7 @@ end
 class String
   def to_marshal(depth = -1, subclass = nil, links = {})
     Marshal.serialize_instance_variables_prefix(self) +
-    Marshal.serialize_extended_object(self, depth) +
+    Marshal.serialize_extended_object(self) +
     Marshal.serialize_user_class(self, depth, subclass) +
     Marshal::TYPE_STRING +
     Marshal.serialize_integer(self.length) + self +
@@ -67,8 +69,7 @@ class Integer
 
   def to_marshal_bignum
     str = Marshal::TYPE_BIGNUM +
-          (self < 0 ? '-' : '+') + "\0"
-    size_index = str.length - 1
+          (self < 0 ? '-' : '+')
     cnt = 0
     num = self.abs
     while num != 0
@@ -80,9 +81,7 @@ class Integer
       str << "\0"
       cnt += 1
     end
-    # TODO - handle bignum of more than 242 bytes
-    str[size_index] = Marshal.to_byte(((cnt - 4) / 2) + 7)
-    str
+    str[0..1] + Marshal.serialize_integer(cnt / 2) + str[2..-1]
   end
 end
 
@@ -90,7 +89,7 @@ class Regexp
   def to_marshal(depth = -1, subclass = nil, links = {})
     str = self.source
     Marshal.serialize_instance_variables_prefix(self) +
-    Marshal.serialize_extended_object(self, depth) +
+    Marshal.serialize_extended_object(self) +
     Marshal.serialize_user_class(self, depth, subclass) +
     Marshal::TYPE_REGEXP +
     Marshal.serialize_integer(str.length) + str +
@@ -101,12 +100,12 @@ end
 
 class Struct
   def to_marshal(depth = -1, subclass = nil, links = {})
-    str = Marshal.serialize_extended_object(self, depth) +
+    str = Marshal.serialize_extended_object(self) +
           Marshal::TYPE_STRUCT +
-          self.class.name.to_sym.to_marshal(depth) +
+          self.class.name.to_sym.to_marshal +
           Marshal.serialize_integer(self.length)
     self.each_pair do |sym, val|
-      str << sym.to_marshal(depth) +
+      str << sym.to_marshal +
              Marshal.serialize_duplicate(val, depth, subclass, links)
     end
     str
@@ -115,8 +114,9 @@ end
 
 class Array
   def to_marshal(depth = -1, subclass = nil, links = {})
+    raise ArgumentError, "exceed depth limit" if depth == 0; depth -= 1
     str = Marshal.serialize_instance_variables_prefix(self) +
-          Marshal.serialize_extended_object(self, depth) +
+          Marshal.serialize_extended_object(self) +
           Marshal.serialize_user_class(self, depth, subclass) +
           Marshal::TYPE_ARRAY +
           Marshal.serialize_integer(self.length)
@@ -129,8 +129,10 @@ end
 
 class Hash
   def to_marshal(depth = -1, subclass = nil, links = {})
+    raise ArgumentError, "exceed depth limit" if depth == 0; depth -= 1
+    raise TypeError, "can't dump hash with default proc" if self.default_proc
     str = Marshal.serialize_instance_variables_prefix(self) +
-          Marshal.serialize_extended_object(self, depth) +
+          Marshal.serialize_extended_object(self) +
           Marshal.serialize_user_class(self, depth, subclass) +
           (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH) +
           Marshal.serialize_integer(self.length)
@@ -161,9 +163,9 @@ end
 
 class Object
   def to_marshal(depth = -1, subclass = nil, links = {})
-    Marshal.serialize_extended_object(self, depth) +
+    Marshal.serialize_extended_object(self) +
     Marshal::TYPE_OBJECT +
-    self.class.name.to_sym.to_marshal(depth) +
+    self.class.name.to_sym.to_marshal +
     Marshal.serialize_instance_variables_suffix(self, depth, subclass, links)
   end
 end
@@ -185,7 +187,7 @@ module Marshal
   TYPE_OBJECT = 'o'
   TYPE_DATA = 'd'  # no specs
   TYPE_USERDEF = 'u'
-  TYPE_USRMARSHAL = 'U'  # no specs
+  TYPE_USRMARSHAL = 'U'
   TYPE_FLOAT = 'f'
   TYPE_BIGNUM = 'l'
   TYPE_STRING = '"'
@@ -204,13 +206,37 @@ module Marshal
   TYPE_IVAR = 'I'
   TYPE_LINK = '@'
 
-  def self.dump(obj, depth = -1, io = nil)
-    VERSION_STRING + serialize(obj, depth)
+  def self.dump(obj, *args)
+    if args.length == 2
+      if args[1] and not args[1].kind_of? Integer
+        raise TypeError, "can't convert #{args[1].class} into Integer"
+      elsif not args[0].respond_to? :write
+        raise TypeError, "instance of IO needed"
+      end
+      depth = args[1] == nil ? -1 : args[1]
+      args[0].write(VERSION_STRING + serialize(obj, depth))
+      args[0]
+    elsif args.length == 1
+      if args[0].kind_of? Integer
+        VERSION_STRING + serialize(obj, args[0])
+      elsif args[0].respond_to? :write
+        args[0].write(VERSION_STRING + serialize(obj))
+        args[0]
+      else
+        raise TypeError, "instance of IO needed"
+      end
+    else
+      VERSION_STRING + serialize(obj)
+    end
   end
 
-  def self.serialize(obj, depth)
+  def self.serialize(obj, depth = -1)
+    raise ArgumentError, "exceed depth limit" if depth == 0
+
     if obj.respond_to? :_dump
-      return serialize_custom_object(obj, depth)
+      return serialize_custom_object_AA(obj, depth)
+    elsif obj.respond_to? :marshal_dump
+      return serialize_custom_object_BB(obj, depth)
     end
 
     cls = obj.class
@@ -260,7 +286,7 @@ module Marshal
       obj.instance_variables.each do |ivar|
         sym = ivar.to_sym
         val = obj.instance_variable_get(sym)
-        str << sym.to_marshal(depth) +
+        str << sym.to_marshal +
                serialize_duplicate(val, depth, subclass, links)
       end
       str
@@ -269,26 +295,35 @@ module Marshal
     end
   end
 
-  def self.serialize_extended_object(obj, depth)
+  def self.serialize_extended_object(obj)
     str = ''
     get_module_names(obj).each do |mod_name|
-      str << TYPE_EXTENDED + mod_name.to_sym.to_marshal(depth)
+      str << TYPE_EXTENDED + mod_name.to_sym.to_marshal
     end
     str
   end
 
   def self.serialize_user_class(obj, depth, subclass)
     if obj.class == subclass
-      TYPE_UCLASS + obj.class.name.to_sym.to_marshal(depth)
+      TYPE_UCLASS + obj.class.name.to_sym.to_marshal
     else
       ''
     end
   end
 
-  def self.serialize_custom_object(obj, depth)
+  def self.serialize_custom_object_AA(obj, depth)
     str = obj._dump(depth)
-    TYPE_USERDEF + obj.class.name.to_sym.to_marshal(depth) +
-    serialize_integer(str.length) + str
+    raise TypeError, "_dump() must return string" if str.class != String
+    serialize_instance_variables_prefix(str) +
+    TYPE_USERDEF + obj.class.name.to_sym.to_marshal +
+    serialize_integer(str.length) + str +
+    serialize_instance_variables_suffix(str, depth)
+  end
+
+  def self.serialize_custom_object_BB(obj, depth)
+    val = obj.marshal_dump
+    TYPE_USRMARSHAL + obj.class.name.to_sym.to_marshal +
+    val.to_marshal(depth)
   end
 
   def self.serialize_duplicate(obj, depth, subclass, links)
@@ -350,9 +385,9 @@ module Marshal
   def self.modf(flt)
     p = MemoryPointer.new(:double)
     flt = Platform::Float.modf(flt, p)
-    exp = p.read_float
+    num = p.read_float
     p.free
-    [flt, exp]
+    [flt, num]
   end
 
   def self.ldexp(flt, exp)

@@ -8,17 +8,21 @@ describe "Marshal.dump when given a recursion limit" do
     Marshal.dump([], 1)
     Marshal.dump([[]], 2)
     Marshal.dump([[[]]], 3)
-    
+
+    h = {'one' => {'two' => {'three' => 0}}}
+    lambda { Marshal.dump(h, 3) }.should raise_error(ArgumentError)
+    lambda { Marshal.dump([h], 4) }.should raise_error(ArgumentError)
+    Marshal.dump({}, 1)
+    Marshal.dump(h, 4)
+
     lambda { Marshal.dump([], 0)     }.should raise_error(ArgumentError)
     lambda { Marshal.dump([[[]]], 1) }.should raise_error(ArgumentError)
   end
-  
+
   it "ignores the recursion limit if the limit is negative" do
-    fails_on :rubinius do
-      Marshal.dump([], -1)
-      Marshal.dump([[]], -1)
-      Marshal.dump([[[]]], -1)
-    end
+    Marshal.dump([], -1)
+    Marshal.dump([[]], -1)
+    Marshal.dump([[[]]], -1)
   end
 end
 
@@ -275,19 +279,59 @@ describe "Marshal.dump with module" do
   end
 end
 
+class CustomWithIvar
+  def _dump(depth)
+    s = "stuff"
+    s.instance_variable_set(:@foo, 5)
+    s
+  end
+end
 class Custom
   def _dump(depth); "stuff"; end
+end
+class BadCustom
+  def _dump(depth); 10; end
+end
+
+describe "Marshal.dump with any object having _dump method returning non-string" do
+  it "raises a TypeError" do
+    lambda { Marshal.dump(BadCustom.new) }.should raise_error(TypeError)
+  end
 end
 
 describe "Marshal.dump with any object having _dump method" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(Custom.new).should == "#{mv+nv}u:\x0BCustom\x0Astuff"
+    Marshal.dump(CustomWithIvar.new).should == "#{mv+nv}Iu:\x13CustomWithIvar\x0Astuff\x06:\x09@fooi\x0A"
   end
 end
 
 describe "Marshal.dump with any extended_object having _dump method" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(Custom.new.extend(Meths)).should == "#{mv+nv}u:\x0BCustom\x0Astuff"
+  end
+end
+
+class OtherCustomWithIvar
+  def marshal_dump
+    a = []
+    a.instance_variable_set(:@foo, 'hi')
+    a
+  end
+end
+class OtherCustom
+  def marshal_dump; "stuff"; end
+end
+
+describe "Marshal.dump with any object having marshal_dump method" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(OtherCustomWithIvar.new).should ==
+      "#{mv+nv}U:\x18OtherCustomWithIvarI[\x00\x06:\x09@foo\"\x07hi"
+  end
+end
+
+describe "Marshal.dump with any extended_object having marshal_dump method" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(OtherCustom.new.extend(Meths)).should == "#{mv+nv}U:\x10OtherCustom\"\x0Astuff"
   end
 end
 
@@ -399,6 +443,12 @@ end
 describe "Marshal.dump with hash" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(Hash.new).should == "#{mv+nv}{\x00"
+  end
+end
+
+describe "Marshal.dump with hash having default proc" do
+  it "raises a TypeError" do
+    lambda { Marshal.dump(Hash.new {}) }.should raise_error(TypeError)
   end
 end
 
