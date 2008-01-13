@@ -21,11 +21,21 @@ describe Object, "#it_behaves_like" do
     }.should raise_error(Exception, "visited with nil")
   end
   
-  it "accepts an optional argument to specify the class" do
+  it "accepts an optional argument to specify the class/module" do
     proc = lambda { |a, b| raise Exception, "visited with #{a.inspect}, #{b.inspect}" }
     shared :shared, &proc
     lambda {
       it_behaves_like(:shared, :method, :klass)
     }.should raise_error(Exception, "visited with :method, :klass")
+  end
+
+  it "accepts an optional argument to specify the class/module name" do
+    proc = lambda { |a, b, c| 
+      raise Exception, "visited with #{a.inspect}, #{b.inspect}, #{c.inspect}" 
+    }
+    shared :shared, &proc
+    lambda {
+      it_behaves_like(:shared, :method, :klass, :name)
+    }.should raise_error(Exception, "visited with :method, :klass, :name")
   end
 end

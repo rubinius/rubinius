@@ -3,8 +3,8 @@ class Object
     Object.instance_variable_set(:"@#{msg}", Proc.new(&block))
   end
 
-  def it_behaves_like(behavior, meth, klass=nil)
+  def it_behaves_like(behavior, *args)
     p = Object.instance_variable_get(:"@#{behavior}")
-    klass ? p[meth, klass] : p[meth]
+    p[*args]
   end
 end
