@@ -1002,7 +1002,7 @@ class String
     start = 0
     while start < @bytes
       c = @data[start]
-      if c.isspace
+      if c.isspace or c == 0
         start += 1
       else
         break
