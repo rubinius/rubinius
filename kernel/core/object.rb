@@ -110,7 +110,7 @@ class Object
     myself = MethodContext.current
     ctx = myself.sender
     
-    if myself.send_private?
+    if myself.respond_to?(:send_private?) and myself.send_private?
       raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
     elsif self.kind_of? Class or self.kind_of? Module
       raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.class})", ctx, args)
