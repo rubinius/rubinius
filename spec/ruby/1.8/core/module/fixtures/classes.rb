@@ -145,11 +145,16 @@ module ModuleSpecs
     def protected_one; 1; end
   end
 
-  module AliasingPrivateMethod
+  module ReopeningModule
     def foo; true; end
     module_function :foo
     private :foo
+  end
+  
+  # Yes, we want to re-open the module
+  module ReopeningModule
     alias :foo2 :foo
+    module_function :foo2
   end
 
   module Nesting

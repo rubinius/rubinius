@@ -53,10 +53,9 @@ describe "Module#alias_method" do
     end
   end
   
-  it "works on private module methods" do
-    ModuleSpecs::AliasingPrivateMethod.foo.should == true
-    lambda { ModuleSpecs::AliasingPrivateMethod }.should_not raise_error(RuntimeError)
+  it "works on methods in a module that has been reopened" do
+    ModuleSpecs::ReopeningModule.foo.should == true
+    lambda { ModuleSpecs::ReopeningModule.foo2 }.should_not raise_error(NoMethodError)
   end
-  
   
 end
