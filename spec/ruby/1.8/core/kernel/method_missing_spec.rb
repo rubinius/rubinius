@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#method_missing" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("method_missing")
+  end
+  
   it "is not called when a defined method is called" do
     KernelSpecs::MethodMissing.should_not_receive(:method_missing)
     KernelSpecs::MethodMissingC.should_not_receive(:method_missing)

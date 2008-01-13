@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.String" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("String")
+  end
+  
   it "converts the given argument to a String by calling #to_s" do
     Kernel.String(nil).should == ""
     Kernel.String("10").should == "10"

@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#Array" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("Array")
+  end
+  
   it "first tries to call #to_ary on the given argument" do
     (obj = mock('[1,2,3]')).should_receive(:to_ary).and_return([1, 2, 3])
     obj.should_not_receive(:to_a)

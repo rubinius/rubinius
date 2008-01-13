@@ -1,0 +1,1 @@
+Kernel#getc is a private method

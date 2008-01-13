@@ -1,0 +1,2 @@
+Kernel#sub is a private method
+Kernel#sub! is a private method

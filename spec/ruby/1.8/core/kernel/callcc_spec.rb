@@ -3,6 +3,10 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#callcc" do
   not_compliant_on(:jruby) do
+    it "is a private method" do
+      Kernel.private_instance_methods.should include("callcc")
+    end
+    
     it "is possible to exit a loop like a break" do
       i = 0
       Kernel.callcc do |x|

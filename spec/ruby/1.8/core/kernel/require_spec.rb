@@ -21,6 +21,10 @@ $require_spec_recursive = nil
 require 'rbconfig'
 
 describe "Kernel#require" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("require")
+  end
+  
   # Avoid storing .rbc and .rba in repo
   before :all do
     Dir.chdir($require_fixture_dir) {

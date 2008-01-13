@@ -20,6 +20,10 @@ describe "Kernel.Integer when given a String" do
 end
 
 describe "Kernel.Integer" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("Integer")
+  end
+  
   it "calls #to_int if the given obejct responds to it" do
     obj = mock('1')
     obj.should_receive(:to_int).and_return(1)

@@ -1,0 +1,1 @@
+Kernel#singleton_method_added is a private method

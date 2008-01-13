@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.fail" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("fail")
+  end
+  
   it "raises a RuntimeError" do
     lambda { fail }.should raise_error(RuntimeError)
   end

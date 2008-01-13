@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.loop" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("loop")
+  end
+  
   it "calls block until it is terminated by a break" do
     i = 0
     loop do

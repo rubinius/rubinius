@@ -260,6 +260,7 @@ module Kernel
 
     Compile.unified_load path, rb, rbc, ext
   end
+  module_function :load
 
   # Attempt to load the given file, returning true if successful.
   # If the file has already been successfully loaded and exists
@@ -318,5 +319,6 @@ module Kernel
 
     Compile.unified_load path, rb, rbc, ext, true
   end
+  module_function :require
 end
 

@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#binding" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("binding")
+  end
+  
   before(:each) do
     @b1 = KernelSpecs::Binding.new(99).get_binding
   end

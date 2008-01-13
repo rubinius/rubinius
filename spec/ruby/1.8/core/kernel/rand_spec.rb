@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.rand" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("rand")
+  end
+  
   it "returns a random float less than 1 if no max argument is passed" do
     rand.kind_of?(Float).should == true
   end

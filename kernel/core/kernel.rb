@@ -44,12 +44,14 @@ module Kernel
   
     Type.coerce_to(obj, Float, :to_f)
   end
+  module_function :Float
   
   def Integer(obj)
     return obj.to_inum(0, true) if obj.is_a?(String)
     method = obj.respond_to?(:to_int) ? :to_int : :to_i
     Type.coerce_to(obj, Integer, method)
   end
+  module_function :Integer
 
   def Array(obj)
     if obj.respond_to?(:to_ary)
@@ -60,10 +62,12 @@ module Kernel
       [obj]
     end
   end
+  module_function :Array
 
   def String(obj)
     Type.coerce_to(obj, String, :to_s)
   end
+  module_function :String
   
   # MRI uses a macro named StringValue which has essentially
   # the same semantics as obj.coerce_to(String, :to_str), but
@@ -100,6 +104,8 @@ module Kernel
   end
   
   alias_method :fail, :raise
+  module_function :raise
+  module_function :fail
   
   def warn(warning)
     unless $VERBOSE.nil?
@@ -108,22 +114,23 @@ module Kernel
     end
     nil
   end
+  module_function :warn
 
   def exit(code=0)
     code = 0 if code.equal? true
     raise SystemExit.new(code)
   end
+  module_function :exit
   
-  private :exit
-
   def exit!(code=0)
     Process.exit(code)
   end
+  module_function :exit!
   
   def abort(msg=nil)
-    $stderr.puts(msg) if(msg)
-    exit 1
+    Process.abort(msg)
   end  
+  module_function :abort
   
   # Display methods
   def printf(target, *args)
@@ -137,22 +144,27 @@ module Kernel
     end
     nil
   end
+  module_function :printf
 
   def sprintf(str, *args)
     YSprintf.new(str, *args).parse    
   end
   alias_method :format, :sprintf
+  module_function :sprintf
+  module_function :abort
   
   def puts(*a)
     $stdout.puts(*a)
     return nil
   end
+  module_function :puts
   
   def p(*a)
     a = [nil] if a.empty?
     a.each { |obj| $stdout.puts obj.inspect }
     nil
   end
+  module_function :p
 
   def print(*args)
     args.each do |obj|
@@ -160,6 +172,7 @@ module Kernel
     end
     nil
   end
+  module_function :print
     
   def open(path, *rest, &block)
     path = StringValue(path)
@@ -170,6 +183,7 @@ module Kernel
  
     File.open(path, *rest, &block)
   end
+  module_function :open
 
   # NOTE - this isn't quite MRI compatible.
   # we don't seed the RNG by default with a combination
@@ -180,6 +194,7 @@ module Kernel
     Kernel.current_srand = seed.to_i
     return cur
   end
+  module_function :srand
   
   @current_seed = 0
   def self.current_srand
@@ -204,6 +219,7 @@ module Kernel
       end
     end
   end
+  module_function :rand
     
   def lambda
     block = block_given?
@@ -214,14 +230,18 @@ module Kernel
     return Proc::Function.from_environment(block)
   end
   alias_method :proc, :lambda
+  module_function :lambda
+  module_function :proc
 
   def caller(start=1)
     return MethodContext.current.sender.calling_hierarchy(start)
   end
+  module_function :caller
   
   def global_variables
     Globals.variables.map { |i| i.to_s }
   end
+  module_function :global_variables
   
   def loop
     raise LocalJumpError, "no block given" unless block_given?
@@ -230,6 +250,7 @@ module Kernel
       yield
     end
   end
+  module_function :loop
 
   # Sleeps the current thread for +duration+ seconds.
   def sleep(duration = Undefined)
@@ -246,11 +267,13 @@ module Kernel
     chan.receive
     return (Time.now - start).round
   end
+  module_function :sleep
   
   
   def at_exit(&block)
     Rubinius::AtExit.unshift(block)
   end
+  module_function :at_exit
 
   def to_a
     if self.kind_of? Array
@@ -263,6 +286,7 @@ module Kernel
   def trap(sig, prc=nil, &block)
     Signal.trap(sig, prc, &block)
   end
+  module_function :trap
 
   # Activates the singleton +Debugger+ instance, and sets a breakpoint
   # immediately after the call site to this method.

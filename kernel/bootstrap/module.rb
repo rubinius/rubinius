@@ -45,6 +45,18 @@ class Module
     end
   end
 
+  # Ultra simple module_function
+  def module_function(name)
+    if cm = @method_table[name]
+      if cm.kind_of? Tuple
+        cm = cm[1]
+      end
+      meta = class << self; self; end
+      meta.method_table[name] = cm
+      private name
+    end
+  end
+
   def __find_method(namesym)
     Ruby.primitive :find_method
   end

@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#`" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("`")
+  end
+  
   it "returns the standard output of the executed sub-process" do
     ip = 'world'
     `echo disc #{ip}`.should == "disc world\n"

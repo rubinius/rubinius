@@ -53,7 +53,18 @@ describe "Module#module_function" do
     
     (o = mock('x')).extend(m)
     o.respond_to?(:test).should == false
+    m.private_instance_methods.map {|m| m.to_s }.include?('test').should == true
+    o.private_methods.map {|m| m.to_s }.include?('test').should == true
     o.send(:test).should == "hello"
+  end
+
+  it "leaves the module method public" do
+    m = Module.new do
+      def test() "hello" end
+      module_function :test
+    end
+    
+    m.public_methods.map {|m| m.to_s }.include?('test').should == true
   end
   
   it "makes subsequently defined methods module functions if no names are given" do

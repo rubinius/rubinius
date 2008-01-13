@@ -54,7 +54,7 @@ class ThrownValue
   end
 end
 
-class Object
+module Kernel
   def catch(sym)
     begin
       ThrownValue.register(sym) do
@@ -68,6 +68,7 @@ class Object
       end
     end
   end
+  module_function :catch
 
   def throw(sym, value = nil)
     unless ThrownValue.available? sym
@@ -80,6 +81,7 @@ class Object
       raise_exc
     end
   end
+  module_function :throw
 end
 
 

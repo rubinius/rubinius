@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.local_variables" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("local_variables")
+  end
+  
   it "contains locals as they are added" do
     a = 1
     b = 2

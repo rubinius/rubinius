@@ -42,4 +42,5 @@ module Kernel
       return cont.value
     end
   end
+  module_function :callcc
 end

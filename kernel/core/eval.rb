@@ -37,10 +37,12 @@ module Kernel
     
     return ary
   end
+  module_function :local_variables
   
   def binding
     Binding.setup MethodContext.current.sender
   end
+  module_function :binding
   
   def eval(string, binding=nil, filename='(eval)', lineno=1)
     if !binding

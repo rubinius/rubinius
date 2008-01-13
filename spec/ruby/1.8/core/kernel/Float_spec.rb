@@ -11,6 +11,10 @@ describe "Kernel.Float when passed a String" do
 end
 
 describe "Kernel.Float" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("Float")
+  end
+  
   it "converts the given argument to a Float by calling #to_f" do
     Kernel.Float(1).should == 1.0
     Kernel.Float(1.12).should == 1.12

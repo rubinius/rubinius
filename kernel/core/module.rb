@@ -403,7 +403,7 @@ class Module
   alias_method :class_exec, :module_exec
 
   # TODO - Handle module_function without args, as per 'private' and 'public'
-  def module_function(*args)
+  def module_function_cv(*args)
     if args.empty?
       raise ArgumentError, "module_function without an argument is not supported"
     else
@@ -414,6 +414,7 @@ class Module
         mc.method_table[method_name] = method.dup
         set_visibility(method_name, :private)
       end
+      private *args
     end
     nil
   end
@@ -556,6 +557,7 @@ class Module
   def self.after_loaded
     alias_method :__method_added__, :__method_added__cv
     alias_method :alias_method, :alias_method_cv
+    alias_method :module_function, :module_function_cv
     alias_method :include, :include_cv
     alias_method :private, :private_cv
     alias_method :append_features, :append_features_cv

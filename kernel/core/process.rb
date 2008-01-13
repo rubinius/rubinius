@@ -102,6 +102,14 @@ module Process
     end
   end
 
+  def self.abort(msg=nil)
+    $stderr.puts(msg) if(msg)
+    exit 1
+  end
+  def self.exit!(code=0)
+    exit(code)
+  end
+
   def self.getpgid(pid)
     ret = Platform::POSIX.getpgid(pid)
     Errno.handle if ret == -1
@@ -525,6 +533,7 @@ module Kernel
   def fork(&block)
     Process.fork(&block)
   end
+  module_function :fork
   
   def system(prog, *args)
     cmd = args.inject(prog.to_s) { |a,e| a << " #{e}" }
@@ -536,6 +545,7 @@ module Kernel
       Process.replace "/bin/sh", ["sh", "-c", cmd]
     end
   end
+  module_function :system
 
   def exec(cmd, *args)
     if args.empty? and cmd.kind_of? String
@@ -557,6 +567,7 @@ module Kernel
       Process.replace prog, argv
     end
   end
+  module_function :exec
   
   def `(str) #`
     str = StringValue(str)

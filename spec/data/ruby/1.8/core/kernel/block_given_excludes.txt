@@ -1,0 +1,1 @@
+Kernel#block_given? is a private method

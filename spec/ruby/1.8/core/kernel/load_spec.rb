@@ -28,6 +28,9 @@ require 'rbconfig'
 # similarly named classes. The class definitions, in
 # addition, contain another global timestamp assignment.
 describe "Kernel#load" do
+  it "is a private method" do
+    Kernel.private_instance_methods.should include("load")
+  end
 
   # Avoid storing .rbc and .rba in repo
   before :all do
