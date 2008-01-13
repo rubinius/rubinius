@@ -26,7 +26,7 @@ endif
 ifneq ($(findstring 64,$(MARCH)),64)
 	RBS_LIGHTNING_DISASS='--enable-disassembling'
 	ALIBS+=external_libs/lightning/opcode/libdisass.a
-endif	
+endif
 
 ifeq ($(UNAME),SunOS)
   LDFLAGS+=-lrt

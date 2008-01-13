@@ -19,7 +19,7 @@ endif
 ifneq ($(MARCH),amd64)
 	CPPFLAGS+="-DRBS_DISASS=1"
 	LIBS+=../external_libs/lightning/opcode/libdisass.a
-endif 
+endif
 
 ifneq ($(findstring BSD,$(UNAME)),BSD)
   # BSD do not require a separate libdl
@@ -29,7 +29,7 @@ else
   CPPFLAGS+=-DHAVE_STRLCAT -DHAVE_STRLCPY
 	CPPFLAGS+=-I/usr/local/include
 endif
-  
+
 ifeq ($(UNAME),Darwin)
   # BSD and Darwin comes with strlcat and strlcpy
   CPPFLAGS+=-DHAVE_STRLCAT -DHAVE_STRLCPY
@@ -42,6 +42,11 @@ ifneq ($(UNAME),Darwin)
 ifneq ($(findstring BSD,$(UNAME)),BSD)
   LIBS+= -lrt
 endif
+endif
+
+# BSD needs special PThread handling
+ifeq ($(findstring BSD,$(UNAME)),BSD)
+	LIBS+=-lpthread
 endif
 
 ifeq ($(UNAME),SunOS)
