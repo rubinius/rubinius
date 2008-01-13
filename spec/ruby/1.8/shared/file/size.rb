@@ -1,5 +1,5 @@
 shared :file_size do |cmd, klass, name|
-  describe "#{name || klass}.#{cmd}" do
+  describe "#{name || "#{klass}.#{cmd}"}" do
     before :each do
       @file = "i_dont_exist"
       File.delete(@file) if File.exists?(@file)

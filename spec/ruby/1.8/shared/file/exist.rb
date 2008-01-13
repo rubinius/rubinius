@@ -1,5 +1,5 @@
 shared :file_exist do |cmd, klass, name|
-  describe "#{name || klass}.#{cmd}" do
+  describe "#{name || "#{klass}.#{cmd}"}" do
     it "return true if the file exist" do
       klass.send(cmd, __FILE__).should == true
       klass.send(cmd, 'a_fake_file').should == false

@@ -1,1 +1,1 @@
-File::Stat.writable? returns true if named file is writable by the effective user id of the process, otherwise false
+File::Stat#writable? returns true if named file is writable by the effective user id of the process, otherwise false

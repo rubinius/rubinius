@@ -1,5 +1,5 @@
 shared :file_executable do |cmd, klass, name|
-  describe "#{name || klass}.#{cmd}" do 
+  describe "#{name || "#{klass}.#{cmd}"}" do
     before :each do
       @file1 = 'temp1.txt'
       @file2 = 'temp2.txt'
@@ -44,7 +44,7 @@ shared :file_executable do |cmd, klass, name|
 end
 
 shared :file_executable_missing do |cmd, klass, name|
-  describe "#{name || klass}.#{cmd}" do
+  describe "#{name || "#{klass}.#{cmd}"}" do
     it "returns false if the file does not exist" do
       klass.send(cmd, 'fake_file').should == false
     end

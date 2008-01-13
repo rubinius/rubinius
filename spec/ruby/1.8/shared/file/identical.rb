@@ -1,5 +1,5 @@
 shared :file_identical do |cmd, klass, name|
-  describe "#{name || klass}.#{cmd}" do  
+  describe "#{name || "#{klass}.#{cmd}"}" do
     before :each do    
       @file1 = 'test.txt'
       @file2 = 'test2.txt'

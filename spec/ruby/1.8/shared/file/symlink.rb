@@ -1,5 +1,5 @@
 shared :file_symlink do |cmd, klass, name|
-  describe "#{name || klass}.#{cmd}" do
+  describe "#{name || "#{klass}.#{cmd}"}" do
     before :each do   
       @file = "test.txt"
       @link = "test.lnk"     

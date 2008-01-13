@@ -1,5 +1,5 @@
 shared :file_directory do |cmd, klass, name|
-  describe "#{name || klass}.#{cmd}" do 
+  describe "#{name || "#{klass}.#{cmd}"}" do
     before :each do
       platform_is :mswin do
         @dir  = "C:\\"

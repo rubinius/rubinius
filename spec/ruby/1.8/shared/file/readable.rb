@@ -1,5 +1,5 @@
 shared :file_readable do |cmd, klass, name|
-  describe "#{name || klass}.#{cmd}" do
+  describe "#{name || "#{klass}.#{cmd}"}" do
     before :each do
       @file = '/tmp/i_exist'
     end
@@ -16,7 +16,7 @@ shared :file_readable do |cmd, klass, name|
 end
 
 shared :file_readable_missing do |cmd, klass, name|
-  describe "#{name || klass}.#{cmd}" do
+  describe "#{name || "#{klass}.#{cmd}"}" do
     it "returns false if the file does not exist" do
       klass.send(cmd, 'fake_file').should == false
     end
