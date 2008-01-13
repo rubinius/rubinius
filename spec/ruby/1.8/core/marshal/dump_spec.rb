@@ -482,18 +482,13 @@ describe "Marshal.dump with array" do
   end
 end
 
-describe "Marshal.dump with array containing the same symbols" do
+describe "Marshal.dump with array containing the same objects" do
   it "returns a string-serialized version of the given argument" do
-    a = [:no, 5, :so, 'a', :so, 'b', :so, :no]
-    Marshal.dump(a).should == "#{mv+nv}[\x0D:\x07noi\x0A:\x07so\"\x06a;\x06\"\x06b;\x06;\x00"
-  end
-end
-
-describe "Marshal.dump with array containing refs to the same object" do
-  it "returns a string-serialized version of the given argument" do
-    s = "hi"; n = 5; r = //; a = [2]; c = String
-    Marshal.dump([s, n, a, n, s, a, s, c, r, r, c]).should ==
-      "#{mv+nv}[\x10\"\x07hii\x0A[\x06i\x07i\x0A@\x06@\x07@\x06c\x0BString/\x00\x00@\x09@\x08"
+    s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String
+    a = [:so, 'hello', 100, :so, :so, d, :so, :so, :no, :go, c, nil,
+          :go, :no, s, b, r, :so, 'huh', true, b, b, 99, r, b, s, :so, c, :no, d]
+    Marshal.dump(a).should ==
+      "#{mv+nv}[\x23:\x07so\"\x0Ahelloi\x69;\x00;\x00[\x09\"\x07hi:\x07no\"\x07oh:\x07go;\x00;\x00;\x06;\x07c\x0BString0;\x07;\x06@\x09@\x08/\x00\x00;\x00\"\x08huhT@\x08@\x08i\x68@\x0B@\x08@\x09;\x00@\x0A;\x06@\x07"
   end
 end
 
