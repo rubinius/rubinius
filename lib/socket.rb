@@ -22,6 +22,24 @@ class BasicSocket < IO
     @protocol = protocol
   end
 
+  def getsockopt(level, optname)
+    
+    MemoryPointer.new 256 do |val|
+      MemoryPointer.new :int do |length|
+        length.write_int 256       
+        error = Socket::Foreign.get_socket_option(descriptor, level, optname, val, length)
+
+        if error != 0
+          Errno.handle "Unable to get socket option"
+          return nil
+        end
+
+        return val.read_string(length.read_int)
+      end
+    end
+    
+  end
+
   def setsockopt(level, optname, optval)
     if optval.is_a?(TrueClass)
       optval = 1
@@ -64,6 +82,11 @@ class Socket < BasicSocket
 
     SOL_SOCKET =   FFI.config('socket.SOL_SOCKET')
     SO_REUSEADDR = FFI.config('socket.SO_REUSEADDR')
+    
+    SO_LINGER =    FFI.config('socket.SO_LINGER')
+    # Used only for getsockopt
+    SO_TYPE =      FFI.config('socket.SO_TYPE')
+    SO_ERROR =     FFI.config('socket.SO_ERROR')   
   end
   
   module Foreign
@@ -73,6 +96,7 @@ class Socket < BasicSocket
     attach_function "listen", :listen_socket, [:int, :int], :int
     attach_function "accept", :accept, [:int, :string, :pointer], :int
     attach_function "setsockopt", :set_socket_option, [:int, :int, :int, :pointer, :int], :int
+    attach_function "getsockopt", :get_socket_option, [:int, :int, :int, :pointer, :pointer], :int
     attach_function "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
     attach_function "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
     attach_function "ffi_getpeername", :getpeername, [:state, :int, :int], :object

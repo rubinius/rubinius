@@ -605,6 +605,8 @@ file 'runtime/platform.conf' do |t|
     SOCK_SEQPACKET
     SO_REUSEADDR
     SOL_SOCKET
+    SO_TYPE
+    SO_ERROR
   }
   
   cg = ConstGenerator.new
