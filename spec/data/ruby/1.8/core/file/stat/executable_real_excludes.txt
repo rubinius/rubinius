@@ -1,0 +1,2 @@
+File::Stat.executable_real? returns true if the file its an executable
+File::Stat.executable_real? returns true if named file is readable by the real user id of the process, otherwise false
