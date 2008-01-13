@@ -69,54 +69,42 @@ class File < IO
   end
   
   def self.exist?(path)
-    out = Stat.stat(StringValue(path), true)
-    if out.kind_of? Stat
-      return true
-    else
-      return false
-    end
+    perform_stat(path) ? true : false
   end
 
   def self.file?(path)
-    st = Stat.stat(StringValue(path), true)
-    return false unless st.kind_of? Stat
-    st.kind == :file
+    st = perform_stat path
+    st ? st.file? : false
   end
 
   def self.directory?(path)
-    st = Stat.stat(StringValue(path), true)
-    return false unless st.kind_of? Stat
-    st.kind == :dir
+    st = perform_stat path
+    st ? st.directory? : false
   end
   
   def self.symlink?(path)
-    st = Stat.stat(StringValue(path), false)
-    return false unless st.kind_of? Stat
-    st.kind == :link
+    st = perform_stat path, false
+    st ? st.symlink? : false
   end
 
   def self.blockdev?(path)
-    st = Stat.stat(StringValue(path), true)
-    return false unless st.kind_of? Stat
-    st.kind == :block
+    st = perform_stat path
+    st ? st.blockdev? : false
   end
 
   def self.chardev?(path)
-    st = Stat.stat(StringValue(path), true)
-    return false unless st.kind_of? Stat
-    st.kind == :char
+    st = perform_stat path
+    st ? st.chardev? : false
   end
   
   def self.pipe?(path)
-    st = Stat.stat(StringValue(path), true)
-    return false unless st.kind_of? Stat
-    st.kind == :fifo
+    st = perform_stat path
+    st ? st.pipe? : false
   end
   
   def self.socket?(path)
-    st = Stat.stat(StringValue(path), true)
-    return false unless st.kind_of? Stat
-    st.kind == :socket
+    st = perform_stat path
+    st ? st.socket? : false
   end
 
   FILE_TYPES = {
@@ -140,9 +128,8 @@ class File < IO
   end
 
   def self.zero?(path)
-    st = Stat.stat(StringValue(path), true)
-    return false unless st.kind_of? Stat
-    st.size == 0
+    st = perform_stat path
+    st ? st.zero? : false
   end
 
   def self.size(path)
@@ -150,9 +137,8 @@ class File < IO
   end
 
   def self.size?(path)
-    st = Stat.stat(StringValue(path), true)
-    return nil unless st.kind_of? Stat
-    st.size
+    st = perform_stat path
+    st ? st.size : nil
   end
   
   # FIXME: adding these methods but they don't explain difference
@@ -456,16 +442,16 @@ class File < IO
   end
   
   def self.stat(path)
-    perform_stat(path, true)
+    perform_stat(path, true, true)
   end
   
   def self.lstat(path)
-    perform_stat(path, false)
+    perform_stat(path, false, true)
   end
   
-  def self.perform_stat(path, follow_links)
+  def self.perform_stat(path, follow_links=true, complain=false)
     out = Stat.stat(StringValue(path), follow_links)
-    return out if out.is_a?(Stat)
+    return out if out.is_a?(Stat) or not complain
 
     Errno.handle path
   end
