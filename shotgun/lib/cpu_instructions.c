@@ -843,20 +843,30 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg) {
   OBJECT mo, mod, vm;
+  int call_flags;
+
+  /* Must be able to call private hooks too */
+  call_flags = c->call_flags;
+  c->call_flags = 1;
+
   mo = cpu_find_method(state, c, _real_class(state, recv), recv, meth, &mod);
+
+  c->call_flags = call_flags;
+
   if(NIL_P(mo)) return;
-  
+
+
   vm = rbs_const_get(state, BASIC_CLASS(object), "VM");
   if(NIL_P(vm)) return;
-  
+
   /* The top of the stack contains the value that should remain on the stack.
      we pass that to the perform_hook call so it is returned and stays on
      the top of the stack. Thats why we say there are 4 args.*/
-  
+
   stack_push(arg);
   stack_push(meth);
   stack_push(recv);
-  
+
   cpu_unified_send(state, c, vm, SYM("perform_hook"), 4, Qnil);
 }
 
