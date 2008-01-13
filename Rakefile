@@ -31,7 +31,10 @@ end
 class Hash
   include TSort
 
-  alias tsort_each_node each_key
+  # This keeps things consistent across all platforms
+  def tsort_each_node(&block)
+    keys.sort.each(&block)
+  end
 
   def tsort_each_child(node, &block)
     fetch(node).each(&block)
