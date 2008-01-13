@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "TCPServer.new" do
   after(:each) do
-    @server.close if @server
+    @server.close if @server && !@server.closed?
   end
   
   it "binds to a host and a port" do
