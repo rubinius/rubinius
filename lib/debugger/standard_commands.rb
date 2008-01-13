@@ -61,7 +61,7 @@ class Debugger
       end
       cm = clazz.method(mthd.to_sym).compiled_method
       ip = 0
-      ip = cm.ip_for_line(line.to_i) if line
+      ip = cm.first_ip_on_line(line.to_i) if line
 
       bp = dbg.set_breakpoint cm, ip
       return "Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}"
@@ -117,10 +117,11 @@ class Debugger
       end
 
       # Locate the line at n steps past the current line
+      cur_line = cm.line_from_ip(ctxt.ip)  # ctxt.line is current line, but ctxt.ip is next IP
       bp_ip = nil
       bc.each do |op|
         if steps
-          steps -= 1 if op.line > ctxt.line
+          steps -= 1 if op.line > cur_line
           if steps == 0
             bp_ip = op.ip
             break
