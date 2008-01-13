@@ -1,6 +1,5 @@
-$: << File.dirname(__FILE__) + '/../../lib'
-require 'compiler1/bytecode/encoder'
-require 'compiler1/bytecode/assembler'
+$: << File.dirname(__FILE__) + '/../..'
+require 'kernel/core/iseq'
 require 'yaml'
 
 
@@ -20,20 +19,17 @@ module OpCode
   # Some information is gleaned from Rubinius source files, while
   # descriptive info comes from opcode YAML files.
   class Info
-    @@op_codes = Compiler1::Bytecode::InstructionEncoder::OpCodes
-    @@int_arg = Compiler1::Bytecode::InstructionEncoder::IntArg
-    @@two_int = Compiler1::Bytecode::InstructionEncoder::TwoInt
     @@instructs = ShotgunInstructions.new
-    @@translations = Compiler1::Bytecode::Assembler::Translations.invert
 
     def self.op_codes
-      @@op_codes
+      InstructionSet::OpCodes
     end
 
-    attr_reader :mnemonic, :byte_code, :translation, :arg_count, :source
+    attr_reader :mnemonic, :byte_code, :arg_count, :source
 
     def initialize(mnemonic)
-      @mnemonic = mnemonic.to_s.intern
+      @op_code = InstructionSet[mnemonic.to_s.intern]
+      @mnemonic = @op_code.opcode
 
       f = "op_codes/#{@mnemonic.to_s}.yaml"
       if File.exist? f
@@ -43,19 +39,16 @@ module OpCode
       else
         @yaml = {}
       end
-      @byte_code = @@op_codes.index @mnemonic
-      @translation = @@translations[@mnemonic]
-      @arg_count = 0
-      @arg_count += 1 if @@int_arg.include? @mnemonic
-      @arg_count += 1 if @@two_int.include? @mnemonic
+      @byte_code = @op_code.bytecode
+      @arg_count = @op_code.arg_count
       @source = @@instructs.send(@mnemonic) if @@instructs.methods.include? @mnemonic.to_s
     end
     
     def args
       fmt = (@yaml['format'] || @mnemonic.to_s).split(' ')
       fmt.shift
-      fmt <<= "<arg1>" if fmt.size == 0 && arg_count >= 1
-      fmt <<= "<arg2>" if fmt.size == 1 && arg_count == 2
+      fmt <<= @opcode.args[0] if fmt.size == 0 && arg_count >= 1
+      fmt <<= @opcode.args[1] if fmt.size == 1 && arg_count == 2
       fmt
     end
 

@@ -7,7 +7,7 @@
     </head>
     <body>
         <div id="<%= op_code.mnemonic %>">
-            <h2><%= op_code.mnemonic %><%= " (#{op_code.alias})" if op_code.alias %></h2>
+            <h2><%= op_code.mnemonic %></h2>
             <b>Byte code:</b> <i><%= sprintf("%#x", op_code.byte_code) %></i>
 
             <h3>Operation</h3>
