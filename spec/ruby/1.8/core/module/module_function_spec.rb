@@ -16,6 +16,35 @@ describe "Module#module_function" do
     m.respond_to?(:test3).should == false
   end
 
+  it "creates an independent copy of the function" do
+    module Mixin
+      def test
+        "hello"
+      end
+      module_function :test
+    end
+
+    class BaseClass
+      include Mixin
+      def call_test
+        test
+      end
+    end
+
+    Mixin.test.should == "hello"
+    c = BaseClass.new
+    c.call_test.should == "hello"
+
+    module Mixin
+      def test
+        "goodbye"
+      end
+    end
+
+    Mixin.test.should == "hello"
+    c.call_test.should == "goodbye"
+  end
+
   it "makes the instance method versions private" do
     m = Module.new do
       def test() "hello" end

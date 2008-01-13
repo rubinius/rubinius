@@ -341,7 +341,7 @@ class Module
     vis = vis.to_sym
     
     unless tup
-      raise NoMethodError, "Unknown method '#{name}' to make private"
+      raise NoMethodError, "Unknown method '#{name}' to make #{vis.to_s}"
     end
 
     method_table[name] = tup.dup
@@ -403,14 +403,16 @@ class Module
   alias_method :class_exec, :module_exec
 
   # TODO - Handle module_function without args, as per 'private' and 'public'
-  def module_function(*method_names)
-    if method_names.empty?
+  def module_function(*args)
+    if args.empty?
       raise ArgumentError, "module_function without an argument is not supported"
     else
-      inst_methods = metaclass.method_table
-      method_names.each do |method_name|
+      mc = self.metaclass
+      args.each do |meth|
+        method_name = normalize_name(meth)
         method = find_method_in_hierarchy(method_name)
-        inst_methods[method_name] = method
+        mc.method_table[method_name] = method.dup
+        set_visibility(method_name, :private)
       end
     end
     nil
