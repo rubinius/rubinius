@@ -335,9 +335,18 @@ describe "Marshal.dump with any extended_object having marshal_dump method" do
   end
 end
 
+class UserObject
+end
+
 describe "Marshal.dump with object" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(Object.new).should == "#{mv+nv}o:\x0BObject\x00"
+  end
+end
+
+describe "Marshal.dump with user_object" do
+  it "returns a string-serialized version of the given argument" do
+    Marshal.dump(UserObject.new).should == "#{mv+nv}o:\x0FUserObject\x00"
   end
 end
 
@@ -349,9 +358,10 @@ end
 
 describe "Marshal.dump with object having ivar" do
   it "returns a string-serialized version of the given argument" do
+    s = 'hi'
     obj = Object.new
-    obj.instance_variable_set(:@str, 'hi')
-    Marshal.dump(obj).should == "#{mv+nv}o:\x0BObject\x06:\x09@str\"\x07hi"
+    obj.instance_variable_set(:@str, [:so, :so, s, s])
+    Marshal.dump(obj).should == "#{mv+nv}o:\x0BObject\x06:\x09@str[\x09:\x07so;\x07\"\x07hi@\x07"
   end
 end
 
@@ -454,8 +464,10 @@ end
 
 describe "Marshal.dump with extended_hash" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump({'one' => 1}.extend(Meths, MethsMore)).should ==
-      "#{mv+nv}e:\x0AMethse:\x0EMethsMore{\x06\"\x08onei\x06"
+    s = 'hi'
+    h = {'a' => :no, 'b' => s, 'c' => :no, 'd' => :no, 'e' => s, 'f' => :Meths}
+    Marshal.dump(h.extend(Meths, MethsMore)).should ==
+      "#{mv+nv}e:\x0AMethse:\x0EMethsMore{\x0B\"\x06a:\x07no\"\x06b\"\x07hi\"\x06c;\x07\"\x06d;\x07\"\x06e@\x08\"\x06f;\x00"
   end
 end
 
@@ -470,9 +482,9 @@ end
 
 describe "Marshal.dump with extended_user_hash_default" do
   it "returns a string-serialized version of the given argument" do
-    h = UserHash.new('default').extend(Meths)
+    h = UserHash.new(:Meths).extend(Meths)
     h['three'] = 3
-    Marshal.dump(h).should == "#{mv+nv}e:\x0AMethsC:\x0DUserHash}\x06\"\x0Athreei\x08\"\x0Cdefault"
+    Marshal.dump(h).should == "#{mv+nv}e:\x0AMethsC:\x0DUserHash}\x06\"\x0Athreei\x08;\x00"
   end
 end
 
@@ -531,17 +543,12 @@ describe "Marshal.dump with struct having fields" do
   end
 end
 
-describe "Marshal.dump with struct having fields with same object" do
+describe "Marshal.dump with extended_struct having fields with same objects" do
   it "returns a string-serialized version of the given argument" do
     s = 'hi'
-    st = Struct.new("Ure2", :a, :b).new
-    st.a = s; st.b = s
-    Marshal.dump(st).should == "#{mv+nv}S:\x11Struct::Ure2\x07:\x06a\"\x07hi:\x06b@\x06"
-  end
-end
-
-describe "Marshal.dump with extended_struct" do
-  it "returns a string-serialized version of the given argument" do
-    Marshal.dump(Struct.new("Ure3").new.extend(Meths)).should == "#{mv+nv}e:\x0AMethsS:\x11Struct::Ure3\x00"
+    st = Struct.new("Ure2", :a, :b).new.extend(Meths)
+    st.a = [:a, s]; st.b = [:Meths, s]
+    Marshal.dump(st).should ==
+      "#{mv+nv}e:\x0AMethsS:\x11Struct::Ure2\x07:\x06a[\x07;\x07\"\x07hi:\x06b[\x07;\x00@\x07"
   end
 end
