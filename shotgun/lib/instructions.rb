@@ -1142,6 +1142,15 @@ CODE
     CODE
   end
   
+  def set_call_info
+    <<-CODE
+    next_int;
+    c->call_flags = _int;
+    next_int;
+    c->cache_index = _int;
+    CODE
+  end
+
   def create_block
     <<-CODE
     next_int;

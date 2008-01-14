@@ -364,6 +364,8 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
     int sz = FIXNUM_TO_INT(cs);
     if(sz > 0) {
       cs = tuple_new(state, sz);
+      // Reserve field 0 for call sites that are not cached
+      fast_unsafe_set(cs, 0, Qfalse);
       cmethod_set_cache(cm, cs);
     }
   }

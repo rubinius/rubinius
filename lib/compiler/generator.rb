@@ -270,6 +270,8 @@ class Compiler
     end
 
     def next_cache_index
+      # Reserve first slot for call sites that are not cached
+      @cache_size = 1 if @cache_size == 0
       i = @cache_size
       @cache_size += 1
       i
@@ -446,8 +448,11 @@ class Compiler
     end
     
     def send(meth, count, priv=false)
-      add :set_call_flags, 1 if priv
-      add :set_cache_index, next_cache_index if @enable_method_cache
+      if @enable_method_cache
+        add :set_call_info, priv ? 1 : 0, next_cache_index
+      else
+        add :set_call_flags, 1 if priv
+      end
       
       idx = find_literal(meth)
       if count == 0
@@ -458,16 +463,22 @@ class Compiler
     end
     
     def send_with_block(meth, count, priv=false)
-      add :set_call_flags, 1 if priv
-      add :set_cache_index, next_cache_index if @enable_method_cache
+      if @enable_method_cache
+        add :set_call_info, priv ? 1 : 0, next_cache_index
+      else
+        add :set_call_flags, 1 if priv
+      end
       
       idx = find_literal(meth)
       add :send_stack_with_block, idx, count
     end
     
     def send_with_register(meth, priv=false)
-      add :set_call_flags, 1 if priv
-      add :set_cache_index, next_cache_index if @enable_method_cache
+      if @enable_method_cache
+        add :set_call_info, priv ? 1 : 0, next_cache_index
+      else
+        add :set_call_flags, 1 if priv
+      end
       
       idx = find_literal(meth)
       add :send_with_arg_register, idx      
