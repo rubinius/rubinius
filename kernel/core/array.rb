@@ -1061,12 +1061,12 @@ class Array
       elsif kind =~ /i|s|l/i
         item = Type.coerce_to(item, Integer, :to_i)
         # Either convert to short, integer, or long
-        # If _ is passed (like s_) then we use the native representation.  
+        # If _ is passed (like s_) then we use the native representation.
         # Otherwise, use the platform independent version
         native = !t.nil? && t == '_'
         # signed or unsigned?  MRI doesn't seem to use it, but it's here in case we need it
         unsigned = (kind =~ /I|S|L/)
-        
+
         # My 32 bit machine doesn't show any difference, but maybe a 64 bit machine will turn one up.
         if(!native)
           bytes = 2 if(kind =~ /s/i)
@@ -1076,7 +1076,7 @@ class Array
           bytes = 2 if(kind =~ /s/i)
           bytes = 4 if(kind =~ /i/i)
           bytes = 4 if(kind =~ /l/i)
-        end        
+        end
 
         # MRI seems only only raise RangeError at 2**32 and above, even for shorts
         if item.abs >= 2**32
