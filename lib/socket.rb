@@ -77,6 +77,9 @@ class Socket < BasicSocket
     FFI.config_hash("socket").each do |key, value|
       const_set(key, value)
     end
+
+    # Eventually needs to go into the Rakefile check:
+    AI_PASSIVE = 1
   end
   
   module Foreign

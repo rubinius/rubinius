@@ -620,7 +620,6 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
     PF_INET6
     AF_LOCAL
     PF_LOCAL
-    AI_PASSIVE
     MSG_OOB
     MSG_PEEK
     SO_DEBUG
