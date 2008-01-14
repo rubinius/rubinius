@@ -322,7 +322,7 @@ class Node
     def bytecode(g)
       super(g)
       g.push :self
-      g.send :`, 1
+      g.send :`, 1, true # ` (silly vim/emacs)
     end
   end
 
