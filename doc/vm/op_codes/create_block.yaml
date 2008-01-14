@@ -1,7 +1,7 @@
 ---
 mnemonic: create_block
 operation: >-
-  Creates a compiler1 style block
+  Creates a compiler1 style block (deprecated)
 format: create_block 255
 opcode: 87
 stack_before:

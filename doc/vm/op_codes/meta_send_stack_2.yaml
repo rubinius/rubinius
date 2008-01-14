@@ -1,7 +1,7 @@
 ---
 mnemonic: meta_send_stack_2
 operation: >-
-  Optimised send for performing a method taking two parameters
+  Optimised send for performing a method taking two parameters (deprecated)
 format: meta_send_stack_2 mthd
 opcode: 75
 stack_before:
@@ -21,6 +21,9 @@ description: >-
   When the method returns, the return value will be on top of the stack.
 notes: >-
   This is an optimised send for methods taking two parameters and no block.
+
+  This opcode has been deprecated, since it makes no noticeable difference to
+  performance.
 source: |-
     next_literal;
     t1 = stack_pop();

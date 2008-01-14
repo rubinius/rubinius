@@ -1,7 +1,7 @@
 ---
 mnemonic: meta_send_stack_1
 operation: >-
-  Optimised send for performing a method taking one parameter
+  Optimised send for performing a method taking one parameter (deprecated)
 format: meta_send_stack_1 mthd
 opcode: 74
 stack_before:
@@ -21,6 +21,9 @@ description: >-
 notes: >-
   This is an optimised send for methods taking a single parameter and no
   block.
+
+  This opcode has been deprecated, since it makes no noticeable difference to
+  performance.
 source: |-
     next_literal;
     t1 = stack_pop();

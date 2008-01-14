@@ -452,8 +452,6 @@ class Compiler
       idx = find_literal(meth)
       if count == 0
         add :send_method, idx
-      elsif count < 5
-        add "meta_send_stack_#{count}".to_sym, idx
       else
         add :send_stack, idx, count
       end

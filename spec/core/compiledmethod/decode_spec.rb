@@ -22,7 +22,7 @@ describe "CompiledMethod::Instruction" do
             [:string_dup], [:set_local, :a], [:pop], [:push_local, :a],
             [:push_self], [:set_call_flags, 1],
             #[:set_cache_index, 0],
-            [:meta_send_stack_1, :puts], [:sret]]
+            [:send_stack, :puts, 1], [:sret]]
   end
 
   it "#opcode returns a symbol representing the opcode for the corresponding instruction" do
