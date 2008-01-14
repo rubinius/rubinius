@@ -118,34 +118,6 @@ class Socket < BasicSocket
 
   end
 
-  def self.unpack_sockaddr_in(packed_addr)
-    s = SockAddr_In.new(packed_addr)
-
-    # Check the socket type to make sure it's AF_INET/AF_INET6
-    if( s[:sin_family] != Socket::AF_INET )
-      if( Socket.const_defined?(:AF_INET6) && s[:sin_family] != Socket::AF_INET6 )
-        raise ArgumentError, "not an AF_INET/AF_INET6 sockaddr"
-      end
-      raise "not an AF_INET sockaddr"
-    end
-
-    t = Socket::Foreign.unpack_sa_ip(packed_addr, packed_addr.length, 0)
-    host = t[1]
-    port = t[2].to_i
-
-    return [ port, host ]
-  end
-
-  def self.pack_sockaddr_in(port, host, type = 0, flags = 0)
-    host = "0.0.0.0" if host.empty?
-    Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, type, flags)
-  end
-
-  class << self
-    alias_method :sockaddr_in, :pack_sockaddr_in
-  end
-
-
   class SockAddr_Un < FFI::Struct
     config("rbx.platform.sockaddr_un", :sun_family, :sun_path)
 
@@ -165,8 +137,35 @@ class Socket < BasicSocket
     end
   end if (FFI.config("sockaddr_un.sun_family.offset") && Socket.const_defined?(:AF_UNIX))
 
+  def self.pack_sockaddr_in(port, host, type = 0, flags = 0)
+    host = "0.0.0.0" if host.empty?
+    Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, type, flags)
+  end
+
+  def self.unpack_sockaddr_in(packed_addr)
+    s = SockAddr_In.new(packed_addr)
+
+    # Check the socket type to make sure it's AF_INET/AF_INET6
+    if( s[:sin_family] != Socket::AF_INET )
+      if( Socket.const_defined?(:AF_INET6) && s[:sin_family] != Socket::AF_INET6 )
+        raise ArgumentError, "not an AF_INET/AF_INET6 sockaddr"
+      end
+      raise "not an AF_INET sockaddr"
+    end
+
+    t = Socket::Foreign.unpack_sa_ip(packed_addr, packed_addr.length, 0)
+    host = t[1]
+    port = t[2].to_i
+
+    return [ port, host ]
+  end
+
+  class << self
+    alias_method :sockaddr_in, :pack_sockaddr_in
+  end
+
   # Only define these methods if we support unix sockets
-  if Socket.const_defined?(:SockAddr_Un)
+  if self.const_defined?(:SockAddr_Un)
     def self.pack_sockaddr_un(file)
       SockAddr_Un.new(file).to_s
     end
@@ -220,12 +219,9 @@ class UDPSocket < IPSocket
 
     return
 
-    p :bind => [host, port]
     @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
 
-    p :sockaddr => [descriptor, @sockaddr]
     ret = Socket::Foreign.bind_socket(descriptor, @sockaddr, @sockaddr.size)
-    p :ret => ret
     Errno.handle if ret != 0
   end
   
@@ -271,7 +267,7 @@ class TCPSocket < IPSocket
       @connected = true
     end
   end
-  
+
   def inspect
     "#<#{self.class}:0x#{object_id.to_s(16)} #{@host}:#{@port}>"
   end
