@@ -1,8 +1,6 @@
 Module#class_variables returns an array with the names of class variables of self and self
 Module#extend_object extends the given object with constants and methods of self
 Module#extend_object is called when an object gets extended with self
-Module#extended is called when an object gets extended with self
-Module#extended is called after Module#extend_object
 Module#module_function makes the instance method versions private
 Module#autoload registers the given filename to be loaded the first time that the Module with the given name is accessed
 Thread#join raises any exceptions encountered in the thread body

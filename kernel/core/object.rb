@@ -255,6 +255,7 @@ class Object
   def extend(*modules)
     modules.reverse_each do |mod|
       mod.extend_object(self)
+      mod.send(:extended, self)
     end
     self
   end

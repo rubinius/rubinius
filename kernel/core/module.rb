@@ -605,6 +605,10 @@ private
     constants_table.delete(name)
   end
 
+  def extended(name)
+    nil
+  end
+
   def method_added(name)
     nil
   end
