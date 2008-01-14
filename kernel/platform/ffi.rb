@@ -162,6 +162,16 @@ module FFI
   def self.config(name)
     ::RUBY_CONFIG["rbx.platform.#{name}"]
   end
+
+  def self.config_hash(name)
+    vals = { }
+    ::RUBY_CONFIG.each do |key,value|
+      if(key =~ /rbx\.platform\.#{name}\.(.+)/)
+        vals[$1] = value
+      end
+    end
+    vals
+  end
   
 end
 

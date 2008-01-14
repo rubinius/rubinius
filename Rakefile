@@ -604,19 +604,31 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
   }
 
   socket_constants = %w{
-    AF_UNIX
-    AF_LOCAL
-    AF_INET
     SOCK_STREAM
     SOCK_DGRAM
     SOCK_RAW
     SOCK_RDM
     SOCK_SEQPACKET
+    SOCK_PACKET
+    AF_INET
+    PF_INET
+    AF_UNIX
+    PF_UNIX
+    AF_UNSPEC
+    PF_UNSPEC
+    AF_INET6
+    PF_INET6
+    AF_LOCAL
+    PF_LOCAL
+    AI_PASSIVE
+    MSG_OOB
+    MSG_PEEK
+    SO_DEBUG
     SO_REUSEADDR
-    SOL_SOCKET
     SO_TYPE
     SO_ERROR
     SO_LINGER
+    SOL_SOCKET
   }
   
   cg = ConstGenerator.new
@@ -646,7 +658,7 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
 
     socket_constants.each do |name|
       const = cg.constants[name]
-      f.puts "rbx.platform.socket.#{name} = #{const.converted_value}"
+      f.puts "rbx.platform.socket.#{name} = #{const.converted_value}" unless const.converted_value.nil?
     end
   end
   

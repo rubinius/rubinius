@@ -74,25 +74,9 @@ end
 class Socket < BasicSocket
     
   module Constants
-    AF_UNIX =   FFI.config('socket.AF_UNIX')
-    AF_LOCAL =  FFI.config('socket.AF_LOCAL')
-    AF_INET =   FFI.config('socket.AF_INET')
-    
-    AI_PASSIVE = 1
-
-    SOCK_STREAM = FFI.config('socket.SOCK_STREAM')
-    SOCK_DGRAM =  FFI.config('socket.SOCK_DGRAM')
-    SOCK_RAW =    FFI.config('socket.SOCK_RAW')
-    SOCK_RDM =    FFI.config('socket.SOCK_RDM')
-    SOCK_SEQPACKET = FFI.config('socket.SOCK_SEQPACKET')
-
-    SOL_SOCKET =   FFI.config('socket.SOL_SOCKET')
-    SO_REUSEADDR = FFI.config('socket.SO_REUSEADDR')
-    
-    SO_LINGER =    FFI.config('socket.SO_LINGER')
-    # Used only for getsockopt
-    SO_TYPE =      FFI.config('socket.SO_TYPE')
-    SO_ERROR =     FFI.config('socket.SO_ERROR')
+    FFI.config_hash("socket").each do |key, value|
+      const_set(key, value)
+    end
   end
   
   module Foreign

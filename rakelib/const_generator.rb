@@ -57,7 +57,9 @@ class ConstGenerator
 
       @constants.each_value do |const|
         f.puts <<EOF
+  #ifdef #{const.name}
   printf("#{const.name} #{const.format}\\n", #{const.name});
+  #endif
 EOF
       end
 
