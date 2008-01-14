@@ -203,11 +203,11 @@ spec_runner.formatter.print_start
   ensure
     spec_runner.clear_filters
     if #{action.inspect} == :create
+      %s
       exclude = exclude_name(file)
       File.delete exclude if File.zero?(exclude)
     end
   end
-  %s
 end
 spec_runner.formatter.summary
 EOC
