@@ -527,13 +527,17 @@ class YSprintf
           @flags[:zero] = true
         when "*"
           raise ArgumentError, "width given twice" if flags[:star]
+          if width_dollar_match = /\G[1-9]\$/.match_from(fmt, start + 1)
+            @width = Slot.new('*' << width_dollar_match[0])
+            start += 2
+          end
           @flags[:star] = true
         end
         start += 1
       end
       
       # WIDTH STATE
-      if width_match = /\G([1-9]\$|\*|\d+)/.match_from(fmt, start)
+      if !flags[:star] && width_match = /\G([1-9]\$|\*|\d+)/.match_from(fmt, start)
         @width = Slot.new(width_match[0])
         start += width_match[0].size
       end
@@ -542,11 +546,26 @@ class YSprintf
       if /\G\./.match_from(fmt, start)
         start += 1
         # PRECISION STATE
-        if precision_match = /\G([1-9]\$|\*|\d+)/.match_from(fmt, start)
+        if /\G\*/.match_from(fmt, start)
+          if precision_dollar_match = /\G[1-9]\$/.match_from(fmt, start + 1)
+            @precision = Slot.new('*' << precision_dollar_match[0])
+            start += 3
+          else
+            @precision = Slot.new('*')
+            start += 1
+          end
+        elsif precision_match = /\G([1-9]\$|\d+)/.match_from(fmt, start)
           @precision = Slot.new(precision_match[0])
           start += precision_match[0].size
         else
           @precision = Slot.new("0")
+        end
+
+        # check for positional value again, after the optional '.'
+        if positional_match = /\G[1-9]\$/.match_from(fmt, start)
+          raise ArgumentError, "value given twice - #{token[0]}" if flags[:position]
+          @flags[:position] = positional_match[0][0].chr.to_i
+          start += 2
         end
       end
     
@@ -571,8 +590,6 @@ class YSprintf
   end
   
   def format
-    raise ArgumentError, "provided width twice" if flags[:star] && @width
-    
     # GET VALUE
     if flags[:position]
       val = Slot.new("#{flags[:position]}$")
@@ -580,7 +597,7 @@ class YSprintf
     end
     
     # GET WIDTH
-    @width = Slot.new("*") if flags[:star]
+    @width = Slot.new("*") if flags[:star] && !@width
     width = get_arg(@width)
     width = width.to_int if width.respond_to?(:to_int)
     if width && width < 0
@@ -753,7 +770,10 @@ class YSprintf
     def initialize(str)
       @pos = false
       @str = str
-      if str.size == 2 && str[1] == ?$
+      if str.size == 3 && /\*\d\$/.match(str)
+        @pos = true
+        @position = str[1..1].to_i
+      elsif str.size == 2 && str[1] == ?$
         @pos = true
         @position = str[0..0].to_i
       elsif str == "*"

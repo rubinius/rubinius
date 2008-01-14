@@ -1,1 +1,0 @@
-String#% allows positional arguments for width star and precision star arguments
