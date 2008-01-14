@@ -576,7 +576,7 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
   sa.calculate
 
   su = StructGenerator.new
-  su.include "linux/un.h"
+  su.include "sys/un.h"
   su.name 'struct sockaddr_un'
   sun_family = su.field :sun_family
   sun_path   = su.field :sun_path
