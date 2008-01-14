@@ -53,7 +53,10 @@ class BasicSocket < IO
         error = Socket::Foreign.set_socket_option(descriptor, level, optname, val, val.size)
       end
     elsif optval.is_a?(String)
-      raise NotImplementedError
+      MemoryPointer.new optval.size do |val|
+        val.write_string optval
+        error = Socket::Foreign.set_socket_option(descriptor, level, optname, val, optval.size)
+      end
     else
       raise "socket option should be a String, a Fixnum, true, or false"
     end
@@ -61,7 +64,8 @@ class BasicSocket < IO
     if error != 0
       Errno.handle "Unable to set socket option"
     end
-    nil
+    
+    return 0
   end
 end
 
