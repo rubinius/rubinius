@@ -24,8 +24,13 @@ class StructGenerator
     @struct_name = nil
     @includes = []
     @fields = []
+    @found = false
   end
   
+  def found?
+    @found
+  end
+
   def get_field(name)
     @fields.each do |f|
       return f if name == f.name
@@ -80,6 +85,10 @@ EOF
       f.flush
 
       `gcc -x c -Wall #{f.path} -o #{binary}`
+      if $?.exitstatus == 1
+        @found = false
+        return
+      end
     end
 
     output = `./#{binary}`
@@ -94,6 +103,7 @@ EOF
 
       line_no += 1
     end
+    @found = true
   end
 
   def generate_config(name)

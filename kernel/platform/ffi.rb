@@ -156,7 +156,7 @@ module FFI
     end
     
     # Be like C, use int as the default type size.
-    return :int
+    return :char_array
   end
 
   def self.config(name)

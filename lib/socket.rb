@@ -90,7 +90,7 @@ class Socket < BasicSocket
     attach_function "accept", :accept, [:int, :string, :pointer], :int
     attach_function "setsockopt", :set_socket_option, [:int, :int, :int, :pointer, :int], :int
     attach_function "getsockopt", :get_socket_option, [:int, :int, :int, :pointer, :pointer], :int
-    attach_function "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
+    #attach_function "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
     attach_function "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
     attach_function "ffi_decode_sockaddr", :unpack_sa_ip, [:state, :string, :int, :int], :object
     attach_function "ffi_getpeername", :getpeername, [:state, :int, :int], :object
@@ -98,17 +98,22 @@ class Socket < BasicSocket
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
   end
 
+  include Socket::Constants
+
   class SockAddr_In < FFI::Struct
     config("rbx.platform.sockaddr_in", :sin_family, :sin_port, :sin_addr, :sin_zero)
 
     def initialize(sockaddrin)
-      p = FFI::MemoryPointer.new sockaddrin.size
-      p.write_string(sockaddrin)
-      super(p)
+      @p = FFI::MemoryPointer.new sockaddrin.size
+      @p.write_string(sockaddrin)
+      super(@p)
     end
-  end
 
-  include Socket::Constants
+    def to_s
+      @p.read_string(@p.size)
+    end
+
+  end
 
   def self.unpack_sockaddr_in(packed_addr)
     s = SockAddr_In.new(packed_addr)
@@ -137,10 +142,30 @@ class Socket < BasicSocket
     alias_method :sockaddr_in, :pack_sockaddr_in
   end
 
+
+  class SockAddr_Un < FFI::Struct
+    config("rbx.platform.sockaddr_un", :sun_family, :sun_path)
+
+    def initialize(filename)
+      maxfnsize = self.size - ( FFI.config("sockaddr_un.sun_family.size") + 1 )
+
+      if(filename.length > maxfnsize )
+        raise ArgumentError, "too long unix socket path (max: #{fnsize}bytes)"
+      end
+      @p = FFI::MemoryPointer.new self.size
+      @p.write_string( [Socket::AF_UNIX].pack("s") + filename )
+      super(@p)
+    end
+
+    def to_s
+      @p.read_string(self.size)
+    end
+  end if (FFI.config("sockaddr_un.sun_family.offset") && Socket.const_defined?(:AF_UNIX))
+
   # Only define these methods if we support unix sockets
-  if const_defined?(:AF_UNIX)
+  if Socket.const_defined?(:SockAddr_Un)
     def self.pack_sockaddr_un(file)
-      Socket::Foreign.pack_sa_unix(file.to_s)
+      SockAddr_Un.new(file).to_s
     end
     class << self
       alias_method :sockaddr_un, :pack_sockaddr_un

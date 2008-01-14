@@ -20,10 +20,8 @@ describe "Socket#unpack_sockaddr_in" do
     lambda { Socket.unpack_sockaddr_in( s ) }.should raise_error(ArgumentError)
   end
 
-  #not_compliant_on :rubinius do
-    it "decodes an empty hostname of a packed sockaddr_in to 0.0.0.0" do
-      Socket.unpack_sockaddr_in( Socket.sockaddr_in(0, "") )[1].should == "0.0.0.0"
-    end
-  #end
+  it "decodes an empty hostname of a packed sockaddr_in to 0.0.0.0" do
+    Socket.unpack_sockaddr_in( Socket.sockaddr_in(0, "") )[1].should == "0.0.0.0"
+  end
 
 end
