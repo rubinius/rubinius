@@ -78,14 +78,14 @@ class UnboundMethod
     @module = mod
     @orig_receiver = orig_rcv
   end
-  
+
   def inspect
     "#<#{self.class} #{@module}##{@method.name}>"
   end
   alias_method :to_s, :inspect
 
   def bind(receiver)
-    raise TypeError unless receiver.kind_of? @orig_receiver
+    raise TypeError, "bind argument must be an instance of #{@module}" unless receiver.kind_of?(@module)
     Method.new(receiver, @module, @method)
   end
 
