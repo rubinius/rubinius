@@ -1,8 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 # Do not change anything above this line
 
-require 'fileutils'
-
 
 describe "IO#dup" do
   before :all do
@@ -18,12 +16,12 @@ describe "IO#dup" do
   end
 
   after :each do
-    @i.close rescue nil
-    @f.close rescue nil
+    @i.close unless @i.closed?
+    @f.close unless @f.closed?
   end
 
   after :all do
-    FileUtils.rm @file
+    File.unlink @file
   end
 
   it "returns a new IO instance" do
@@ -61,7 +59,6 @@ describe "IO#dup" do
     @i.closed?.should == true
     @f.closed?.should == false
   end
-
 
   it "allows closing the original IO without affecting the new one" do
     @f.close
