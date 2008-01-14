@@ -1058,6 +1058,44 @@ class Array
         # add \n to the end of each line (including the last line)
         ret << lines.join
         arr_idx += 1
+      elsif kind =~ /i|s|l/i
+        item = Type.coerce_to(item, Integer, :to_i)
+        # Either convert to short, integer, or long
+        # If _ is passed (like s_) then we use the native representation.  
+        # Otherwise, use the platform independent version
+        native = !t.nil? && t == '_'
+        # signed or unsigned?  MRI doesn't seem to use it, but it's here in case we need it
+        unsigned = (kind =~ /I|S|L/)
+        
+        # My 32 bit machine doesn't show any difference, but maybe a 64 bit machine will turn one up.
+        if(!native)
+          bytes = 2 if(kind =~ /s/i)
+          bytes = 4 if(kind =~ /i/i)
+          bytes = 4 if(kind =~ /l/i)
+        else
+          bytes = 2 if(kind =~ /s/i)
+          bytes = 4 if(kind =~ /i/i)
+          bytes = 4 if(kind =~ /l/i)
+        end        
+
+        # MRI seems only only raise RangeError at 2**32 and above, even for shorts
+        if item.abs >= 2**32
+          raise RangeError, "bignum too big to convert into 'unsigned long'"
+        end
+
+        if item < 0
+          item = 2**(8*bytes) + item
+        end
+
+        str = ""
+        str << " " * bytes
+
+        (0..bytes-1).each do |byte|
+          str[byte] = ( item >> ( byte * 8 ) ) & 0xFF
+        end
+
+        ret << str
+
       else
         raise ArgumentError, "Unknown kind #{kind}"
       end

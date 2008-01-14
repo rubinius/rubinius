@@ -323,6 +323,44 @@ describe "Array#pack" do
     lambda { [1, 2].pack('c3') }.should raise_error(ArgumentError)
   end
 
+  it "encodes a positive integer with ('i')" do
+    [0].pack('i').should == "\000\000\000\000"
+    [1].pack('i').should == "\001\000\000\000"
+    [2**32-1].pack('i').should == "\377\377\377\377"
+  end
+
+  it "raises a RangeError when the positive integer is too big with ('i')" do
+    lambda { [2**32].pack('i') }.should raise_error(RangeError)
+  end
+
+  it "encodes a negative integer with ('i')" do
+    [-1].pack('i').should == "\377\377\377\377"
+    [-2].pack('i').should == "\376\377\377\377"
+  end
+
+  it "raises a RangeError when the negative integer is too big with ('l')" do
+    lambda { [-2**32].pack('l') }.should raise_error(RangeError)
+  end
+ 
+  it "encodes a positive integer with ('l')" do
+     [0].pack('l').should == "\000\000\000\000"
+     [1].pack('l').should == "\001\000\000\000"
+     [2**32-1].pack('l').should == "\377\377\377\377"
+   end
+
+   it "raises a RangeError when the positive integer is too big with ('l')" do
+     lambda { [2**32].pack('l') }.should raise_error(RangeError)
+   end
+
+   it "encodes a negative integer with ('l')" do
+     [-1].pack('l').should == "\377\377\377\377"
+     [-2].pack('l').should == "\376\377\377\377"
+   end
+
+   it "raises a RangeError when the negative integer is too big with ('l')" do
+     lambda { [-2**32].pack('l') }.should raise_error(RangeError)
+   end 
+  
   it "enocdes string with Qouted Printable encoding with ('M')" do
     ["ABCDEF"].pack('M').should == "ABCDEF=\n"
   end
@@ -449,6 +487,27 @@ describe "Array#pack" do
   it "ignores star parameter with ('m')" do
     ["ABC", "DEF", "GHI"].pack('m*').should == ["ABC"].pack('m')
   end
+
+  it "encodes a positive integer with ('s')" do
+    [0].pack('s').should == "\000\000"
+    [1].pack('s').should == "\001\000"
+    [2**32-1].pack('s').should == "\377\377"
+  end
+
+  it "raises a RangeError when the positive integer is too big with ('s')" do
+    lambda { [2**32].pack('s') }.should raise_error(RangeError)
+  end
+
+  it "encodes a negative integer with ('s')" do
+    [-1].pack('s').should == "\377\377"
+    [-2].pack('s').should == "\376\377"
+  end
+
+  it "raises a RangeError when the negative integer is too big with ('s')" do
+    lambda { [-2**32].pack('s') }.should raise_error(RangeError)
+  end
+
+
 
   it "converts integers into UTF-8 encoded byte sequences with ('U')" do
     compliant_on :ruby, :jruby do
