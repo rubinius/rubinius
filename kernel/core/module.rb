@@ -90,13 +90,13 @@ class Module
       return vars[name] if vars.key? name
       current = current.direct_superclass
     end
-    
+
     raise NameError, "uninitialized class variable #{name} in #{self.name}"
   end
-  
+
   def class_variable_defined?(name)
     name = verify_class_variable_name name
-    
+
     current = self
     while current
       vars = current.send :class_variables_table
