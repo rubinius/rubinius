@@ -1,7 +1,17 @@
 # depends on: class.rb module.rb
 
 class Continuation
-  def initialize(task=nil)
+  def self.new(*args)
+    raise NoMethodError.new
+  end
+
+  def self.create(task=nil)
+    cont = self.allocate
+    cont.setup(task)
+    cont
+  end
+  
+  def setup(task=nil)
     @task = task
     @value = nil
   end
@@ -31,7 +41,7 @@ end
 
 module Kernel
   def callcc
-    cont = Continuation.new
+    cont = Continuation.create
     # Task#dup appears as though it returns nil in the dup'd
     # task, kinda like fork().
     task = Task.current.dup
