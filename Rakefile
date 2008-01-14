@@ -646,7 +646,9 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
     RLIMIT_NOFILE
     RLIMIT_MEMLOCK
     RLIMIT_AS
+    RLIMIT_SBSIZE
   }
+
   long_process_constants = %w{
     RLIM_INFINITY
     RLIM_SAVED_MAX
