@@ -202,6 +202,10 @@ spec_runner.formatter.print_start
     puts "\#{e} loading \#{file}"
   ensure
     spec_runner.clear_filters
+    if #{action.inspect} == :create
+      exclude = exclude_name(file)
+      File.delete exclude if File.zero?(exclude)
+    end
   end
   %s
 end
