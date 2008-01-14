@@ -1130,26 +1130,26 @@ class ShotgunPrimitives
           break;
         case S_IFCHR:     // character special
           t3 = string_to_sym(state, string_new(state, "char"));
-        	break;
+                break;
         case S_IFDIR:     // directory
           t3 = string_to_sym(state, string_new(state, "dir"));
-        	break;
+                break;
         case S_IFBLK:     // block special
           t3 = string_to_sym(state, string_new(state, "block"));
-        	break;
+                break;
         case S_IFREG:     // regular file
           t3 = string_to_sym(state, string_new(state, "file"));
-        	break;
+                break;
         case S_IFLNK:     // symbolic link
           t3 = string_to_sym(state, string_new(state, "link"));
-        	break;
+                break;
         case S_IFSOCK:    // socket
           t3 = string_to_sym(state, string_new(state, "socket"));
-        	break;
+                break;
         #ifdef S_IFWHT
         case S_IFWHT:     // whiteout
           t3 = string_to_sym(state, string_new(state, "whiteout"));
-        	break;
+                break;
         #endif
         default:
           t3 = string_to_sym(state, string_new(state, "file"));

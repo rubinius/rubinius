@@ -209,12 +209,12 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
 }
 
 void machine_setup_signals(machine m) {
-	m->error_report.sa_sigaction = _machine_error_reporter;
-	sigemptyset(&m->error_report.sa_mask);
-	m->error_report.sa_flags = SA_SIGINFO;
-	sigaction(SIGSEGV, &m->error_report, NULL);
-	sigaction(SIGBUS, &m->error_report, NULL);
-	sigaction(SIGABRT, &m->error_report, NULL);
+        m->error_report.sa_sigaction = _machine_error_reporter;
+        sigemptyset(&m->error_report.sa_mask);
+        m->error_report.sa_flags = SA_SIGINFO;
+        sigaction(SIGSEGV, &m->error_report, NULL);
+        sigaction(SIGBUS, &m->error_report, NULL);
+        sigaction(SIGABRT, &m->error_report, NULL);
 }
 
 machine machine_new() {
