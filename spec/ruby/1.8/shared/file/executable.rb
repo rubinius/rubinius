@@ -18,7 +18,7 @@ shared :file_executable do |cmd, klass, name|
       @file2 = nil
     end
 
-    it "returns true if named file is readable by the effective user id of the process, otherwise false" do
+    it "returns true if named file is executable by the effective user id of the process, otherwise false" do
       klass.send(cmd, '/etc/passwd').should == false
       klass.send(cmd, @file1).should == true
       klass.send(cmd, @file2).should == false

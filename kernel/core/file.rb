@@ -31,6 +31,16 @@ class File < IO
     APPEND   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_APPEND']
     NONBLOCK = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NONBLOCK']
     SYNC     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_SYNC']
+    
+    S_IRUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRUSR']
+    S_IWUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWUSR']
+    S_IXUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXUSR']
+    S_IRGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRGRP']
+    S_IWGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWGRP']
+    S_IXGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXGRP']
+    S_IROTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IROTH']
+    S_IWOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWOTH']
+    S_IXOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXOTH']
   end
   include Constants
 
@@ -140,34 +150,37 @@ class File < IO
     st = perform_stat path
     st ? st.size : nil
   end
-  
-  # FIXME: adding these methods but they don't explain difference
-  # between _real correctly
-  
-  def self.writable?(path)
-    writable_real?(path)
-  end
-
-  def self.writable_real?(path)
-    Platform::POSIX.access(StringValue(path), Constants::W_OK) == 0
-  end
 
   def self.executable?(path)
-    executable_real?(path)
+    st = perform_stat path
+    st ? st.executable? : false
   end
 
   def self.executable_real?(path)
-    Platform::POSIX.access(StringValue(path), Constants::X_OK) == 0
+    st = perform_stat path
+    st ? st.executable_real? : false
   end
 
   def self.readable?(path)
-    readable_real?(path)
+    st = perform_stat path
+    st ? st.readable? : false
   end
 
   def self.readable_real?(path)
-    Platform::POSIX.access(StringValue(path), Constants::R_OK) == 0
+    st = perform_stat path
+    st ? st.readable_real? : false
   end
   
+  def self.writable?(path)
+    st = perform_stat path
+    st ? st.writable? : false
+  end
+
+  def self.writable_real?(path)
+    st = perform_stat path
+    st ? st.writable_real? : false
+  end
+
   def self.unlink(*paths)
     paths.each do |path|
       path = StringValue(path)
@@ -395,10 +408,22 @@ class File < IO
     def ctime;   @ctime; end
     def path;    @path; end
     def blksize; @blksize; end
+    
+    alias_method :gid, :group
+    alias_method :uid, :owner
 
     def inspect
       "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
     end
+    
+    def grpowned?
+      @group == Platform::POSIX.getegid
+    end
+    
+    def rgrpowned?
+      @group == Platform::POSIX.getgid
+    end
+    private :rgrpowned?
 
     def size?
       if @size == 0
@@ -427,10 +452,29 @@ class File < IO
     def file?
       @kind == :file
     end
+    
+    def owned?
+      @owner == Platform::POSIX.geteuid
+    end
 
     def pipe?
       @kind == :fifo
     end
+    
+    def rowned?
+      @owner == Platform::POSIX.getuid
+    end
+    private :rowned?
+    
+    def superuser?
+      Platform::POSIX.geteuid == 0
+    end
+    private :superuser?
+    
+    def rsuperuser?
+      Platform::POSIX.getuid == 0
+    end
+    private :rsuperuser?
 
     def socket?
       @kind == :socket
@@ -438,6 +482,48 @@ class File < IO
 
     def symlink?
       @kind == :link
+    end
+    
+    def executable?
+      return true if superuser?
+      return @mode & Constants::S_IXUSR != 0 if owned?
+      return @mode & Constants::S_IXGRP != 0 if grpowned?
+      return @mode & Constants::S_IXOTH != 0
+    end
+    
+    def executable_real?
+      return true if rsuperuser?
+      return @mode & Constants::S_IXUSR != 0 if rowned?
+      return @mode & Constants::S_IXGRP != 0 if rgrpowned?
+      return @mode & Constants::S_IXOTH != 0
+    end
+    
+    def readable?
+      return true if superuser?
+      return @mode & Constants::S_IRUSR != 0 if owned?
+      return @mode & Constants::S_IRGRP != 0 if grpowned?
+      return @mode & Constants::S_IROTH != 0
+    end
+    
+    def readable_real?
+      return true if rsuperuser?
+      return @mode & Constants::S_IRUSR != 0 if rowned?
+      return @mode & Constants::S_IRGRP != 0 if rgrpowned?
+      return @mode & Constants::S_IROTH != 0
+    end
+    
+    def writable?
+      return true if superuser?
+      return @mode & Constants::S_IWUSR != 0 if owned?
+      return @mode & Constants::S_IWGRP != 0 if grpowned?
+      return @mode & Constants::S_IWOTH != 0
+    end
+    
+    def writable_real?
+      return true if rsuperuser?
+      return @mode & Constants::S_IWUSR != 0 if rowned?
+      return @mode & Constants::S_IWGRP != 0 if rgrpowned?
+      return @mode & Constants::S_IWOTH != 0
     end
   end
   

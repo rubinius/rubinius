@@ -589,6 +589,12 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
     S_IRUSR
     S_IWUSR
     S_IXUSR
+    S_IRGRP
+    S_IWGRP
+    S_IXGRP
+    S_IROTH
+    S_IWOTH
+    S_IXOTH
   }
 
   io_constants = %w{
