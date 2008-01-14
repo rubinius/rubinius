@@ -1,7 +1,7 @@
 # depends on: class.rb string.rb
 
 class Regexp
-  
+
   ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
   def __ivars__; @__ivars__ ; end
   def source   ; @source    ; end
@@ -9,7 +9,6 @@ class Regexp
   def names    ; @names     ; end
 
   ValidOptions = ['m','i','x']
-  
   ValidKcode = [?n,?e,?s,?u]
   KcodeValue = [16,32,48,64]
 
@@ -39,7 +38,7 @@ class Regexp
 
     if opts and lang and lang.kind_of?(String)
       opts &= OPTION_MASK
-      idx   = ValidKcode.index(lang[0])
+      idx   = ValidKcode.index(lang.downcase[0])
       opts |= KcodeValue[idx] if idx
     end
 

@@ -1,2 +1,1 @@
 Regexp.new returns a subclass instance when called on a subclass
-Regexp.new given a String enables multibyte support if third argument is '[eEsSuU]' (EUC, SJIS, UTF-8)

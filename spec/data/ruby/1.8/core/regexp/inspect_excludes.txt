@@ -1,1 +1,0 @@
-Regexp#inspect returns a formatted string
