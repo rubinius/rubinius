@@ -220,11 +220,11 @@ void machine_setup_signals(machine m) {
 
 static void machine_setup_events(machine m) {
   /* libev will not "autodetect" kqueue because it is broken on darwin */
-  m->s->event_base = ev_default_loop(EVFLAG_FORKCHECK);
+  m->s->event_base = ev_loop_new(EVFLAG_FORKCHECK);
   m->s->thread_infos = NULL;
 }
 
-machine machine_new() {
+machine machine_new(environment e) {
   machine m;
   int pipes[2];
   
@@ -249,10 +249,11 @@ machine machine_new() {
   subtend_setup(m->s);
   cpu_setup_top_scope(m->s, m->c);
   cpu_initialize_context(m->s, m->c);
-  
+
   machine_set_const(m, "MAIN", m->c->main);
   cpu_task_configure_preemption(m->s);
-  
+  environment_add_machine(e, m);
+
   return m;
 }
 

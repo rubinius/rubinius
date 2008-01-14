@@ -14,34 +14,59 @@ static pthread_key_t global_key;
 
 #define lock(e) pthread_mutex_lock(&e->mutex)
 #define unlock(e) pthread_mutex_unlock(&e->mutex)
-/*
-struct event_base *_rbx_base_finder() {
-  machine m = environment_current_machine();
-  return m->s->event_base;
-}
-*/
+
 void environment_at_startup() {
   pthread_key_create(&global_key, NULL);
-  /* evsignal_set_base_finder(_rbx_base_finder); */
+}
+
+static void _find_child_waiters(int key, void *mach) {
+  machine m = mach;
+  cpu_find_waiters(m->s);
+}
+
+
+static void _child_ev_cb(EV_P_ struct ev_signal *w, int revents) {
+  environment e = (environment)w->data;
+
+  // call for all VMs/states
+  ht_vconfig_each(e->machines, _find_child_waiters);
 }
 
 environment environment_new() {
   environment e = ALLOC_N(struct rubinius_environment, 1);
   e->machines = ht_vconfig_create(11);
   e->machine_id = 1;
-  
-  e->messages = ht_vconfig_create(11);
 
+  e->messages = ht_vconfig_create(11);
+  e->sig_event_base = ev_default_loop(EVFLAG_FORKCHECK);
   return e;
+}
+
+static void _fork_event_loops(int key, void *mach) {
+  machine m = mach;
+  ev_loop_fork(m->s->event_base);
+  ev_loop(m->s->event_base, EVLOOP_NONBLOCK);
+}
+
+void environment_fork() {
+  environment e = environment_current();
+
+  ev_default_fork();
+  ev_loop(e->sig_event_base, EVLOOP_NONBLOCK);
+  ht_vconfig_each(e->machines, _fork_event_loops);
 }
 
 void environment_setup_thread(environment e, machine m) {
   struct rubinius_global *global = ALLOC_N(struct rubinius_global, 1);
-  
+
   global->e = e;
   global->m = m;
 
   pthread_setspecific(global_key, (const void*)global);
+
+  ev_signal_init(&e->sig_ev, _child_ev_cb, SIGCHLD);
+  e->sig_ev.data = e;
+  ev_signal_start(e->sig_event_base, &e->sig_ev);
 }
 
 environment environment_current() {

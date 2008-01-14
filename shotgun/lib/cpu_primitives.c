@@ -15,6 +15,7 @@
 #include <glob.h>
 #include <termios.h>
 #include <sys/time.h>
+#include <ev.h>
 
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/cpu.h"

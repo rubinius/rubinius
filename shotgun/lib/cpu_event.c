@@ -54,10 +54,16 @@ void cpu_event_init(STATE) {
 }
 
 void cpu_event_run(STATE) {
+  environment e;
+  e = environment_current();
+  ev_loop(e->sig_event_base, EVLOOP_NONBLOCK);  // HACK
   ev_loop(state->event_base, EVLOOP_ONESHOT);
 }
 
 void cpu_event_runonce(STATE) {
+  environment e;
+  e = environment_current();
+  ev_loop(e->sig_event_base, EVLOOP_NONBLOCK);  // HACK
   ev_loop(state->event_base, EVLOOP_ONESHOT | EVLOOP_NONBLOCK);
 }
 
@@ -122,7 +128,12 @@ static void _cpu_event_unregister_info(STATE, struct thread_info *ti) {
   }
 
   if (ti->stopper) {
-    ti->stopper(state->event_base, &ti->ev);
+    if (ti->type == SIGNAL) {
+      environment e = environment_current();
+      ti->stopper(e->sig_event_base, &ti->ev);
+    } else {
+      ti->stopper(state->event_base, &ti->ev);
+    }
   }
   state->pending_events--;
   XFREE(ti);
@@ -218,16 +229,6 @@ _cpu_wake_channel_and_read(EV_P_ struct ev_io *ev, int revents) {
 }
 
 /* Doesn't clear its own data, since it's going to be called a lot. */
-//DELETEME
-static void _cpu_wake_channel_alot(int fd, short event, void *arg) {
-  STATE;
-  struct thread_info *ti = (struct thread_info*)arg;
-
-  state = ti->state;
-  cpu_channel_send(state, ti->c, ti->channel, I2N((int)event));
-}
-
-/* Doesn't clear its own data, since it's going to be called a lot. */
 static void
 _cpu_wake_channel_for_signal(EV_P_ struct ev_signal *ev,
                              int revents) {
@@ -265,7 +266,6 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd,
   ti->buffer = buffer;
   ti->count = count;
   ti->stopper = (stopper_cb)ev_io_stop;
-  //event_base_set((struct event_base*)state->event_base, &ti->ev);
 
   _cpu_event_register_info(state, ti);
   ev_io_init(&ti->ev.io, _cpu_wake_channel_and_read, fd, EV_READ);
@@ -284,7 +284,6 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
   ti->stopper = (stopper_cb)ev_io_stop;
   _cpu_event_register_info(state, ti);
 
-  //event_base_set((struct event_base*)state->event_base, &ti->ev);
   ev_io_init(&ti->ev.io, _cpu_wake_channel_for_writable, fd, EV_WRITE);
   ti->ev.io.data = ti;
   ev_io_start(state->event_base, &ti->ev.io);
@@ -292,6 +291,7 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
 
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   struct thread_info *ti;
+  environment e = environment_current();
 
   ti = (struct thread_info*)(state->thread_infos);
   while (ti) {
@@ -320,12 +320,11 @@ void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   _cpu_event_register_info(state, ti);
 
   ev_signal_init(&ti->ev.signal, _cpu_wake_channel_for_signal, sig);
-  //event_base_set((struct event_base*)state->event_base, &ti->ev);
   ti->ev.signal.data = ti;
-  ev_signal_start(state->event_base, &ti->ev.signal);
+  ev_signal_start(e->sig_event_base, &ti->ev.signal);
 }
 
-static void cpu_find_waiters(STATE) {
+void cpu_find_waiters(STATE) {
   pid_t pid;
   int status, skip;
   OBJECT ret;
@@ -368,13 +367,6 @@ static void cpu_find_waiters(STATE) {
 }
 
 
-static void
-_cpu_find_waiters_cb(EV_P_ struct ev_signal *w, int revents) {
-  struct thread_info *ti = (struct thread_info*)w->data;
-
-  cpu_find_waiters(ti->state);
-}
-
 void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
   struct thread_info *ti;
 
@@ -389,20 +381,8 @@ void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
   ti->stopper = NULL;
   _cpu_event_register_info(state, ti);
 
+  /* todo: we can mitigate O(N^2) complexity for waitpid calls by
+     only looking for potentially matching watchers. */
   cpu_find_waiters(state); // run once right away, in case SIGCHLD has already been caught
 }
 
-void cpu_event_setup_children(STATE, cpu c) {
-  struct thread_info *ti;
-
-  ti = ALLOC_N(struct thread_info, 1);
-  ti->fd = 0;
-  ti->state = state;
-  ti->c = c;
-
-  //event_base_set((struct event_base*)state->event_base, &ti->ev);
-
-  ev_signal_init(&ti->ev.signal, _cpu_find_waiters_cb, SIGCHLD);
-  ti->ev.signal.data = ti;
-  ev_signal_start(state->event_base, &ti->ev.signal);
-}

@@ -4,7 +4,10 @@
 #include <signal.h>
 #include <pthread.h>
 
+typedef struct rubinius_machine *machine;
+
 #include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/environment.h"
 
 struct rubinius_machine {
   int id;
@@ -31,9 +34,7 @@ struct rubinius_machine {
   char *g_firesuit_message;
 };
 
-typedef struct rubinius_machine *machine;
-
-machine machine_new();
+machine machine_new(environment e);
 void machine_destroy(machine m);
 OBJECT machine_load_file(machine m, const char *path);
 int machine_run_file(machine m, const char *path);

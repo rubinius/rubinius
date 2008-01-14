@@ -117,8 +117,6 @@ void cpu_initialize_context(STATE, cpu c) {
   c->current_scope = Qnil;
   cpu_scope_push(state, c, BASIC_CLASS(object));
   state->global->top_scope = c->current_scope;
-
-  cpu_event_setup_children(state, c);
 }
 
 void cpu_add_roots(STATE, cpu c, ptr_array roots) {

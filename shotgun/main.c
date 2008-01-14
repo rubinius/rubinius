@@ -49,8 +49,7 @@ int main(int argc, char **argv) {
   environment_at_startup();
 
   e = environment_new();
-  m = machine_new();
-  environment_add_machine(e, m);
+  m = machine_new(e);
   environment_setup_thread(e, m);
 
   machine_setup_normal(m, argc, argv);

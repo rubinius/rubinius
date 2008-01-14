@@ -2626,6 +2626,9 @@ class ShotgunPrimitives
     if(k == -1) {
       cpu_raise_from_errno(state, c, "Unable to fork");
     } else {
+      if (k == 0) {
+        environment_fork();
+      }
       stack_push(I2N(k));
     }
     CODE
@@ -2971,9 +2974,8 @@ class ShotgunPrimitives
       }
     }
     
-    m = machine_new();
+    m = machine_new(e);
     pipes = machine_setup_thread(m, argc, argv);
-    environment_add_machine(e, m);
 
     m->parent_id = current_machine->id;
 
