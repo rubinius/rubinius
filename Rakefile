@@ -397,7 +397,7 @@ task :rebuild => %w[clean:rbc clean:extensions clean:shotgun build:all]
 task :clean => %w[clean:rbc clean:extensions clean:shotgun]
 
 desc "Remove all ruby system files"
-task :distclean => %w[clean:rbc clean:extensions clean:shotgun clean:external]
+task :distclean => %w[pristine clean:rbc clean:extensions clean:shotgun clean:external]
 
 desc "Remove all stray compiled Ruby files"
 task :pristine do
