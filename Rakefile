@@ -623,6 +623,7 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
   cg.include "stdio.h"
   cg.include "fcntl.h"
   cg.include "sys/socket.h"
+  cg.include "sys/stat.h"
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
   socket_constants.each { |c| cg.const c }
