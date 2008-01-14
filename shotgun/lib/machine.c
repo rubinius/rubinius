@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <ev.h>
 
 /* *BSD dl support */
 #ifdef __FreeBSD__
@@ -217,6 +218,12 @@ void machine_setup_signals(machine m) {
         sigaction(SIGABRT, &m->error_report, NULL);
 }
 
+static void machine_setup_events(machine m) {
+  /* libev will not "autodetect" kqueue because it is broken on darwin */
+  m->s->event_base = ev_default_loop(EVFLAG_FORKCHECK);
+  m->s->thread_infos = NULL;
+}
+
 machine machine_new() {
   machine m;
   int pipes[2];
@@ -236,6 +243,7 @@ machine machine_new() {
   /* Initialize the instruction addresses. */
   cpu_run(m->s, m->c, TRUE);
   machine_setup_signals(m);
+  machine_setup_events(m);
   cpu_initialize(m->s, m->c);
   cpu_bootstrap(m->s);
   subtend_setup(m->s);

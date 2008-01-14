@@ -51,9 +51,6 @@ struct thread_info {
 
 void cpu_event_init(STATE) {
 
-  /* libev will not "autodetect" kqueue because it is broken on darwin */
-  state->event_base = ev_default_loop(EVFLAG_FORKCHECK);
-  state->thread_infos = NULL;
 }
 
 void cpu_event_run(STATE) {
