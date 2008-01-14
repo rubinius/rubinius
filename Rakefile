@@ -563,6 +563,18 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
   tv_usec = tg.field :tv_usec
   tg.calculate
 
+  sa = StructGenerator.new
+  sa.include "netinet/in.h"
+  sa.include "fcntl.h"
+  sa.include "sys/socket.h"
+  sa.include "sys/stat.h"
+  sa.name 'struct sockaddr_in'
+  sin_family = sa.field :sin_family
+  sin_port   = sa.field :sin_port
+  sin_addr   = sa.field :sin_addr
+  sin_zero   = sa.field :sin_zero
+  sa.calculate
+
   # FIXME these constants don't have standard names.
   # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.
   # Binary doesn't exist at all in many non-Unix variants.
@@ -673,6 +685,7 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
   File.open(t.name, "w") do |f|
     f.puts "rbx.platform.dir.d_name = #{fel.offset}"
     f.puts tg.generate_config('timeval')
+    f.puts sa.generate_config('sockaddr_in')
     file_constants.each do | name |
       const = cg.constants[name]
       f.puts "rbx.platform.file.#{name} = #{const.converted_value}"

@@ -1,24 +1,26 @@
 shared :pack_sockaddr_in do |cmd|
   describe "Socket##{cmd}" do
 
-    it "properly encodes the sin_family portion of sockaddr_in struct" do
-      Socket.sockaddr_in(80, "").unpack("sslc")[0].should == 2
-    end
+    compliant_on :rubinius do
+      it "properly encodes the sin_family portion of sockaddr_in struct" do
+        SocketSpecs.sockaddr_in(0, "")[:sin_family].should == Socket::AF_INET
+      end
 
-    it "properly encodes the sin_port portion of sockaddr_in struct" do
-      Socket.sockaddr_in(0, "").unpack("sslc")[1].should == 0
-      Socket.sockaddr_in(1, "").unpack("sslc")[1].should == 256    # possibly different on big endian machines
-      Socket.sockaddr_in(80, "").unpack("sslc")[1].should == 20480 # possibly different on big endian machines
-    end 
+      it "properly encodes the sin_port portion of sockaddr_in struct" do
+        SocketSpecs.sockaddr_in(0, "")[:sin_port].should == 0
+        SocketSpecs.sockaddr_in(1, "")[:sin_port].should == 256    # possibly different on big endian machines
+        SocketSpecs.sockaddr_in(80, "")[:sin_port].should == 20480 # possibly different on big endian machines
+      end 
 
-    it "properly encodes the sin_addr portion of sockaddr_in struct" do
-      Socket.sockaddr_in(0, "127.0.0.1").unpack("sslc")[2].should == 16777343
-      Socket.sockaddr_in(0, "0.0.0.0").unpack("sslc")[2].should == 0
-    end
-   
-    not_compliant_on :rubinius do
-      it "encodes an empty sin_addr in sockaddr_in struct as 0" do
-        Socket.sockaddr_in(80, "").unpack("sslc")[2].should == 0
+      it "properly encodes the sin_addr portion of sockaddr_in struct" do
+        SocketSpecs.sockaddr_in(0, "127.0.0.1")[:sin_addr].should == 16777343
+        SocketSpecs.sockaddr_in(0, "0.0.0.0")[:sin_addr].should == 0
+      end
+
+      not_compliant_on :rubinius do
+        it "encodes an empty sin_addr in sockaddr_in struct as 0" do
+          SocketSpecs.sockaddr_in(0, "")[:sin_addr].should == 0
+        end
       end
     end
   end

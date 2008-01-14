@@ -92,12 +92,28 @@ class Socket < BasicSocket
     attach_function "getsockopt", :get_socket_option, [:int, :int, :int, :pointer, :pointer], :int
     attach_function "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
     attach_function "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
+    attach_function "ffi_decode_sockaddr", :unpack_sa_ip, [:state, :string, :int, :int], :object
     attach_function "ffi_getpeername", :getpeername, [:state, :int, :int], :object
     attach_function "ffi_getsockname", :getsockname, [:state, :int, :int], :object
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
   end
-  
+
+  class SockAddr_In < FFI::Struct
+    config("rbx.platform.sockaddr_in", :sin_family, :sin_port, :sin_addr, :sin_zero)
+
+    def initialize(sockaddrin)
+      p = FFI::MemoryPointer.new sockaddrin.size
+      p.write_string(sockaddrin)
+      super(p)
+    end
+  end
+
   include Socket::Constants
+
+  def self.unpack_sockaddr_in(packed_addr)
+    t = Socket::Foreign.unpack_sa_ip(packed_addr, packed_addr.length, 0)
+    return [ t[2].to_i, t[1] ]
+  end
 
   def self.pack_sockaddr_in(port, host, type = 0, flags = 0)
     Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, type, flags)
