@@ -14,10 +14,16 @@ describe "Socket#unpack_sockaddr_in" do
     Socket.unpack_sockaddr_in( Socket.sockaddr_in(0, "500") )[1].should == "0.0.1.244"
   end
 
-  not_compliant_on :rubinius do
+  it "raises an Argument error when the sin_family is not AF_INET" do
+    s = Socket.sockaddr_in(80, "")
+    s[0] = Socket::AF_UNIX
+    lambda { Socket.unpack_sockaddr_in( s ) }.should raise_error(ArgumentError)
+  end
+
+  #not_compliant_on :rubinius do
     it "decodes an empty hostname of a packed sockaddr_in to 0.0.0.0" do
       Socket.unpack_sockaddr_in( Socket.sockaddr_in(0, "") )[1].should == "0.0.0.0"
     end
-  end
+  #end
 
 end

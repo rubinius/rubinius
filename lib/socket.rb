@@ -111,11 +111,25 @@ class Socket < BasicSocket
   include Socket::Constants
 
   def self.unpack_sockaddr_in(packed_addr)
+    s = SockAddr_In.new(packed_addr)
+
+    # Check the socket type to make sure it's AF_INET/AF_INET6
+    if( s[:sin_family] != Socket::AF_INET )
+      if( Socket.const_defined?(:AF_INET6) && s[:sin_family] != Socket::AF_INET6 )
+        raise ArgumentError, "not an AF_INET/AF_INET6 sockaddr"
+      end
+      raise "not an AF_INET sockaddr"
+    end
+
     t = Socket::Foreign.unpack_sa_ip(packed_addr, packed_addr.length, 0)
-    return [ t[2].to_i, t[1] ]
+    host = t[1]
+    port = t[2].to_i
+
+    return [ port, host ]
   end
 
   def self.pack_sockaddr_in(port, host, type = 0, flags = 0)
+    host = "0.0.0.0" if host.empty?
     Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, type, flags)
   end
 

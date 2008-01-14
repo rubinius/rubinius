@@ -17,10 +17,8 @@ shared :pack_sockaddr_in do |cmd|
         SocketSpecs.sockaddr_in(0, "0.0.0.0")[:sin_addr].should == 0
       end
 
-      not_compliant_on :rubinius do
-        it "encodes an empty sin_addr in sockaddr_in struct as 0" do
-          SocketSpecs.sockaddr_in(0, "")[:sin_addr].should == 0
-        end
+      it "encodes an empty sin_addr in sockaddr_in struct as 0" do
+        SocketSpecs.sockaddr_in(0, "")[:sin_addr].should == 0
       end
     end
   end
