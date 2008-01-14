@@ -1,0 +1,2 @@
+Regexp.compile returns a subclass instance when called on a subclass
+Regexp.compile given a String enables multibyte support if third argument is '[eEsSuU]' (EUC, SJIS, UTF-8)

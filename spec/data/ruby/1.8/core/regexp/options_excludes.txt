@@ -1,0 +1,1 @@
+Regexp#options returns set of bits for options used
