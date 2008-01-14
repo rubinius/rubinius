@@ -4,12 +4,13 @@ class ConstGenerator
   class Constant
     attr_reader :name
     attr_reader :format
-    attr :value, true
+    attr_accessor :value
 
     def initialize(name, format, converter=nil)
       @name = name
       @format = format
       @converter = converter
+      @value = nil
     end
     
     def converted_value

@@ -629,15 +629,41 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
     SO_LINGER
     SOL_SOCKET
   }
+
+  process_constants = %w{
+    WNOHANG
+    WUNTRACED
+    PRIO_PROCESS
+    PRIO_PGRP
+    PRIO_USER
+    RLIMIT_CPU
+    RLIMIT_FSIZE
+    RLIMIT_DATA
+    RLIMIT_STACK
+    RLIMIT_CORE
+    RLIMIT_RSS
+    RLIMIT_NPROC
+    RLIMIT_NOFILE
+    RLIMIT_MEMLOCK
+    RLIMIT_AS
+  }
+  long_process_constants = %w{
+    RLIM_INFINITY
+    RLIM_SAVED_MAX
+    RLIM_SAVED_CUR
+  }
   
   cg = ConstGenerator.new
   cg.include "stdio.h"
   cg.include "fcntl.h"
   cg.include "sys/socket.h"
   cg.include "sys/stat.h"
+  cg.include "sys/resource.h"
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
   socket_constants.each { |c| cg.const c }
+  process_constants.each { |c| cg.const c }
+  long_process_constants.each { |c| cg.const(c, "%llu") }
   cg.calculate
   
   puts "Generating #{t.name}..."
@@ -650,7 +676,7 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
       f.puts "rbx.platform.file.#{name} = #{const.converted_value}"
     end
 
-    io_constants.each do | name |
+    io_constants.each do |name|
       const = cg.constants[name]
       f.puts "rbx.platform.io.#{name} = #{const.converted_value}"
     end
@@ -658,6 +684,11 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
     socket_constants.each do |name|
       const = cg.constants[name]
       f.puts "rbx.platform.socket.#{name} = #{const.converted_value}" unless const.converted_value.nil?
+    end
+
+    (process_constants + long_process_constants).each do |name|
+      const = cg.constants[name]
+      f.puts "rbx.platform.process.#{name} = #{const.converted_value}" unless const.converted_value.nil?
     end
   end
   
