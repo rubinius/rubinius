@@ -95,6 +95,17 @@ class IO
     setup(desc)
   end
 
+  # Obtains a new duplicate descriptor for the current
+  # one 
+  #
+  # Used internally by #dup and #clone. This is called
+  # on the new object after it has been copied normally.
+  def initialize_copy(original)
+    @descriptor = Platform::POSIX.dup(@descriptor)
+  end
+
+  private :initialize_copy
+
   def setup(desc=nil)
     @descriptor = desc if desc
     @buffer = IO::Buffer.new(BufferSize)

@@ -47,6 +47,8 @@ module Platform::POSIX
   attach_function 'fopen',  [:string, :string], :pointer
   attach_function 'fclose', [:pointer], :int
 
+  attach_function 'dup', [:int], :int
+
   #   buffering
   attach_function 'fflush', [:pointer], :int
 
