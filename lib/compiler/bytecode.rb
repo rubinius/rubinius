@@ -354,7 +354,7 @@ class Node
     def bytecode(g)
       super(g)
       g.push :self
-      g.send :`, 1, true
+      g.send :`, 1, true #`
     end
   end
 
@@ -1031,6 +1031,15 @@ class Node
   class PushArgs
     def bytecode(g)
       @item.bytecode(g)
+      @array.bytecode(g)
+      g.cast_array_for_args 1
+      g.push_array
+    end
+
+    # Used for h[*x] = 3
+    def attr_bytecode(g)
+      @item.bytecode(g)
+      g.dup
       @array.bytecode(g)
       g.cast_array_for_args 1
       g.push_array
@@ -1715,13 +1724,27 @@ class Node
   # TESTED
   class AttrAssign
     def bytecode(g, in_masgn = false)
-      @in_masgn = in_masgn
-
-      if @arguments
-        super(g)
-      else
+      if in_masgn
         @object.bytecode(g)
         g.send @method, 1, false
+      else
+        super(g)
+        g.pop
+        # The dup'd rhs is on the top of the stack now
+      end
+    end
+
+    def emit_args(g)
+      if @rhs_expression
+        @rhs_expression.bytecode(g)
+        g.dup
+        super(g)
+        @argcount += 1
+      else
+        # PushArgs only for this branch
+        @arguments.attr_bytecode(g)
+        g.get_args
+        @dynamic = true
       end
     end
   end
@@ -1783,8 +1806,6 @@ class Node
         g.send_with_register @method, allow_private?
       elsif @block
         g.send_with_block @method, @argcount, allow_private?
-      elsif @in_masgn
-        g.send @method, @argcount+1, allow_private?
       else
         g.send @method, @argcount, allow_private?
       end

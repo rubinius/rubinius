@@ -1634,6 +1634,20 @@ class Node
       end
 
       collapse_args()
+
+      # NOTE: []= has special semantics. It can be passed any number of arguments,
+      # NOTE: PushArgs is for syntax h[*s] = 3, we have to handle it special
+
+      # When we're in an masgn, there are no arguments
+      return unless @arguments
+
+      if @arguments.kind_of? Array
+        @rhs_expression = @arguments.pop
+      elsif @arguments.is? PushArgs
+        @rhs_expression = nil
+      else
+        raise Error, "unknown argument form to attrassgn"
+      end 
     end
 
     def optional

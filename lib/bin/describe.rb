@@ -1,5 +1,3 @@
-require 'compiler1/bytecode/compiler'
-require 'compiler1/bytecode/rubinius'
 
 file = ARGV.shift
 
@@ -8,6 +6,13 @@ sexp = if File.exist? file then
        else
          file.to_sexp
        end
+
+require 'pp'
+
+pp sexp
+
+exit
+
 puts "\nSexp:\n  #{sexp.inspect}"
 
 compiler = Compiler1::Bytecode::Compiler.new
