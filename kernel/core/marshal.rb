@@ -1,25 +1,25 @@
-# depends on: module.rb
+# depends on: module.rb class.rb
 
 class NilClass
-  def to_marshal(*args)
+  def to_marshal(ms = nil)
     Marshal::TYPE_NIL
   end
 end
 
 class TrueClass
-  def to_marshal(*args)
+  def to_marshal(ms = nil)
     Marshal::TYPE_TRUE
   end
 end
 
 class FalseClass
-  def to_marshal(*args)
+  def to_marshal(ms = nil)
     Marshal::TYPE_FALSE
   end
 end
 
 class Class
-  def to_marshal(*args)
+  def to_marshal(ms = nil)
     raise TypeError, "can't dump anonymous class #{self}" if self.name == ''
     Marshal::TYPE_CLASS +
     Marshal.serialize_integer(self.name.length) + self.name
@@ -27,7 +27,7 @@ class Class
 end
 
 class Module
-  def to_marshal(*args)
+  def to_marshal(ms = nil)
     raise TypeError, "can't dump anonymous module #{self}" if self.name == ''
     Marshal::TYPE_MODULE +
     Marshal.serialize_integer(self.name.length) + self.name
@@ -35,7 +35,7 @@ class Module
 end
 
 class Symbol
-  def to_marshal(*args)
+  def to_marshal(ms = nil)
     str = self.to_s
     Marshal::TYPE_SYMBOL +
     Marshal.serialize_integer(str.length) + str
@@ -43,18 +43,18 @@ class Symbol
 end
 
 class String
-  def to_marshal(depth = -1, subclass = nil, links = {}, symlinks = {})
+  def to_marshal(ms = Marshal::State.new)
     out = Marshal.serialize_instance_variables_prefix(self)
-    out << Marshal.serialize_extended_object(self, depth, subclass, links, symlinks)
-    out << Marshal.serialize_user_class(self, String, depth, subclass, links, symlinks)
+    out << Marshal.serialize_extended_object(ms, self)
+    out << Marshal.serialize_user_class(ms, self, String)
     out << Marshal::TYPE_STRING
     out << Marshal.serialize_integer(self.length) + self
-    out << Marshal.serialize_instance_variables_suffix(self, depth, subclass, links, symlinks)
+    out << Marshal.serialize_instance_variables_suffix(ms, self)
   end
 end
 
 class Integer
-  def to_marshal(*args)
+  def to_marshal(ms = nil)
     if Marshal.fixnum? self
       to_marshal_fixnum
     else
@@ -85,67 +85,67 @@ class Integer
 end
 
 class Regexp
-  def to_marshal(depth = -1, subclass = nil, links = {}, symlinks = {})
+  def to_marshal(ms = Marshal::State.new)
     str = self.source
     out = Marshal.serialize_instance_variables_prefix(self)
-    out << Marshal.serialize_extended_object(self, depth, subclass, links, symlinks)
-    out << Marshal.serialize_user_class(self, Regexp, depth, subclass, links, symlinks)
+    out << Marshal.serialize_extended_object(ms, self)
+    out << Marshal.serialize_user_class(ms, self, Regexp)
     out << Marshal::TYPE_REGEXP
     out << Marshal.serialize_integer(str.length) + str
     out << Marshal.to_byte(self.options & 0x7)
-    out << Marshal.serialize_instance_variables_suffix(self, depth, subclass, links, symlinks)
+    out << Marshal.serialize_instance_variables_suffix(ms, self)
   end
 end
 
 class Struct
-  def to_marshal(depth = -1, subclass = nil, links = {}, symlinks = {})
-    out = Marshal.serialize_extended_object(self, depth, subclass, links, symlinks)
+  def to_marshal(ms = Marshal::State.new)
+    out = Marshal.serialize_extended_object(ms, self)
     out << Marshal::TYPE_STRUCT
-    out << Marshal.serialize_duplicate(self.class.name.to_sym, depth, subclass, links, symlinks)
+    out << Marshal.serialize_duplicate(ms, self.class.name.to_sym)
     out << Marshal.serialize_integer(self.length)
     self.each_pair do |sym, val|
-      out << Marshal.serialize_duplicate(sym, depth, subclass, links, symlinks)
-      out << Marshal.serialize_duplicate(val, depth, subclass, links, symlinks)
+      out << Marshal.serialize_duplicate(ms, sym)
+      out << Marshal.serialize_duplicate(ms, val)
     end
     out
   end
 end
 
 class Array
-  def to_marshal(depth = -1, subclass = nil, links = {}, symlinks = {})
-    raise ArgumentError, "exceed depth limit" if depth == 0; depth -= 1
+  def to_marshal(ms = Marshal::State.new)
+    raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
     out = Marshal.serialize_instance_variables_prefix(self)
-    out << Marshal.serialize_extended_object(self, depth, subclass, links, symlinks)
-    out << Marshal.serialize_user_class(self, Array, depth, subclass, links, symlinks)
+    out << Marshal.serialize_extended_object(ms, self)
+    out << Marshal.serialize_user_class(ms, self, Array)
     out << Marshal::TYPE_ARRAY
     out << Marshal.serialize_integer(self.length)
     self.each do |element|
-      out << Marshal.serialize_duplicate(element, depth, subclass, links, symlinks)
+      out << Marshal.serialize_duplicate(ms, element)
     end
-    out + Marshal.serialize_instance_variables_suffix(self, depth, subclass, links, symlinks)
+    out + Marshal.serialize_instance_variables_suffix(ms, self)
   end
 end
 
 class Hash
-  def to_marshal(depth = -1, subclass = nil, links = {}, symlinks = {})
-    raise ArgumentError, "exceed depth limit" if depth == 0; depth -= 1
+  def to_marshal(ms = Marshal::State.new)
+    raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
     raise TypeError, "can't dump hash with default proc" if self.default_proc
     out = Marshal.serialize_instance_variables_prefix(self)
-    out << Marshal.serialize_extended_object(self, depth, subclass, links, symlinks)
-    out << Marshal.serialize_user_class(self, Hash, depth, subclass, links, symlinks)
+    out << Marshal.serialize_extended_object(ms, self)
+    out << Marshal.serialize_user_class(ms, self, Hash)
     out << (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH)
     out << Marshal.serialize_integer(self.length)
     self.each_pair do |(key, val)|
-      out << Marshal.serialize_duplicate(key, depth, subclass, links, symlinks)
-      out << Marshal.serialize_duplicate(val, depth, subclass, links, symlinks)
+      out << Marshal.serialize_duplicate(ms, key)
+      out << Marshal.serialize_duplicate(ms, val)
     end
-    out << (self.default ? Marshal.serialize_duplicate(self.default, depth, subclass, links, symlinks) : '')
-    out << Marshal.serialize_instance_variables_suffix(self, depth, subclass, links, symlinks)
+    out << (self.default ? Marshal.serialize_duplicate(ms, self.default) : '')
+    out << Marshal.serialize_instance_variables_suffix(ms, self)
   end
 end
 
 class Float
-  def to_marshal(*args)
+  def to_marshal(ms = nil)
     str = if self.nan?
             "nan"
           elsif self.zero?
@@ -161,11 +161,11 @@ class Float
 end
 
 class Object
-  def to_marshal(depth = -1, subclass = nil, links = {}, symlinks = {})
-    out = Marshal.serialize_extended_object(self, depth, subclass, links, symlinks)
+  def to_marshal(ms = Marshal::State.new)
+    out = Marshal.serialize_extended_object(ms, self)
     out << Marshal::TYPE_OBJECT
-    out << Marshal.serialize_duplicate(self.class.name.to_sym, depth, subclass, links, symlinks)
-    out << Marshal.serialize_instance_variables_suffix(self, depth, subclass, links, symlinks, true)
+    out << Marshal.serialize_duplicate(ms, self.class.name.to_sym)
+    out << Marshal.serialize_instance_variables_suffix(ms, self, true)
   end
 end
 
@@ -205,40 +205,56 @@ module Marshal
   TYPE_IVAR = 'I'
   TYPE_LINK = '@'
 
+  class State
+    def depth; @depth; end
+    def links; @links; end
+    def symlinks; @symlinks; end
+
+    def depth=(v); @depth = v; end
+    def links=(v); @links = v; end
+    def symlinks=(v); @symlinks = v; end
+
+    def initialize
+      @depth = -1; @links = {}; @symlinks = {}
+    end
+  end
+
   def self.dump(obj, *args)
+    ms = State.new
     if args.length == 2
       if args[1] and not args[1].kind_of? Integer
         raise TypeError, "can't convert #{args[1].class} into Integer"
       elsif not args[0].respond_to? :write
         raise TypeError, "instance of IO needed"
       end
-      depth = args[1] == nil ? -1 : args[1]
-      args[0].write(VERSION_STRING + serialize(obj, depth))
+      ms.depth = args[1] == nil ? -1 : args[1]
+      args[0].write(VERSION_STRING + serialize(ms, obj))
       args[0]
     elsif args.length == 1
       if args[0].kind_of? Integer
-        VERSION_STRING + serialize(obj, args[0])
+        ms.depth = args[0]
+        VERSION_STRING + serialize(ms, obj)
       elsif args[0].respond_to? :write
-        args[0].write(VERSION_STRING + serialize(obj))
+        args[0].write(VERSION_STRING + serialize(ms, obj))
         args[0]
       else
         raise TypeError, "instance of IO needed"
       end
     else
-      VERSION_STRING + serialize(obj)
+      VERSION_STRING + serialize(ms, obj)
     end
   end
 
-  def self.serialize(obj, depth = -1)
-    raise ArgumentError, "exceed depth limit" if depth == 0
+  def self.serialize(ms, obj)
+    raise ArgumentError, "exceed depth limit" if ms.depth == 0
 
     if obj.respond_to? :_dump
-      return serialize_custom_object_AA(obj, depth)
+      return serialize_custom_object_AA(ms, obj)
     elsif obj.respond_to? :marshal_dump
-      return serialize_custom_object_BB(obj, depth)
+      return serialize_custom_object_BB(ms, obj)
     end
 
-    obj.to_marshal(depth)
+    obj.to_marshal(ms)
   end
 
   def self.serialize_integer(n)
@@ -270,15 +286,14 @@ module Marshal
     end
   end
 
-  def self.serialize_instance_variables_suffix(obj, depth = -1, subclass = nil, links = {},
-                                                    symlinks = {}, force = false)
+  def self.serialize_instance_variables_suffix(ms, obj, force = false)
     if force or obj.instance_variables.length > 0
       str = serialize_integer(obj.instance_variables.length)
       obj.instance_variables.each do |ivar|
         sym = ivar.to_sym
         val = obj.instance_variable_get(sym)
-        str << serialize_duplicate(sym, depth, subclass, links, symlinks)
-        str << serialize_duplicate(val, depth, subclass, links, symlinks)
+        str << serialize_duplicate(ms, sym)
+        str << serialize_duplicate(ms, val)
       end
       str
     else
@@ -286,57 +301,55 @@ module Marshal
     end
   end
 
-  def self.serialize_extended_object(obj, depth, subclass, links, symlinks)
+  def self.serialize_extended_object(ms, obj)
     str = ''
     get_module_names(obj).each do |mod_name|
-      str << TYPE_EXTENDED +
-             serialize_duplicate(mod_name.to_sym, depth, subclass, links, symlinks)
+      str << TYPE_EXTENDED + serialize_duplicate(ms, mod_name.to_sym)
     end
     str
   end
 
-  def self.serialize_user_class(obj, cls, depth, subclass, links, symlinks)
+  def self.serialize_user_class(ms, obj, cls)
     if obj.class != cls
-      TYPE_UCLASS +
-      serialize_duplicate(obj.class.name.to_sym, depth, subclass, links, symlinks)
+      TYPE_UCLASS + serialize_duplicate(ms, obj.class.name.to_sym)
     else
       ''
     end
   end
 
-  def self.serialize_custom_object_AA(obj, depth)
-    str = obj._dump(depth)
+  def self.serialize_custom_object_AA(ms, obj)
+    str = obj._dump(ms.depth)
     raise TypeError, "_dump() must return string" if str.class != String
     out = serialize_instance_variables_prefix(str)
     out << TYPE_USERDEF + obj.class.name.to_sym.to_marshal
     out << serialize_integer(str.length) + str
-    out << serialize_instance_variables_suffix(str, depth)
+    out << serialize_instance_variables_suffix(ms, str)
   end
 
-  def self.serialize_custom_object_BB(obj, depth)
+  def self.serialize_custom_object_BB(ms, obj)
     val = obj.marshal_dump
     TYPE_USRMARSHAL + obj.class.name.to_sym.to_marshal +
-    val.to_marshal(depth)
+    val.to_marshal(ms)
   end
 
-  def self.serialize_duplicate(obj, depth, subclass, links, symlinks)
+  def self.serialize_duplicate(ms, obj)
     if obj.class == Symbol
-      dup_id = symlinks[obj.object_id]
+      dup_id = ms.symlinks[obj.object_id]
       if dup_id
         str = TYPE_SYMLINK + serialize_integer(dup_id)
       else
-        symlinks[obj.object_id] = symlinks.length
+        ms.symlinks[obj.object_id] = ms.symlinks.length
         str = obj.to_marshal
       end
     else
-      dup_id = links[obj.object_id]
+      dup_id = ms.links[obj.object_id]
       if dup_id
         str = TYPE_LINK + serialize_integer(dup_id)
       else
         if linkable_duplicate? obj
-          links[obj.object_id] = links.length.succ
+          ms.links[obj.object_id] = ms.links.length.succ
         end
-        str = obj.to_marshal(depth, subclass, links, symlinks)
+        str = obj.to_marshal(ms)
       end
     end
     str
