@@ -63,6 +63,10 @@ options = OptionParser.new do |opts|
     end
     $interpreters.insert(1,target)
   end
+
+  opts.on('-j', '--just', 'Benchmark just the target machine') do |j|
+    $interpreters.delete_at(0)
+  end
   
   opts.on('-h', '--help', 'Output this help information') do |h|
     OPTIONS.help = h
