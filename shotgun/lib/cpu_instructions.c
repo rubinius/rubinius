@@ -18,29 +18,25 @@
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
-#define next_int _int = *c->ip_ptr++;
+#define next_int _int = *ip_ptr++;
 
 #if DIRECT_THREADED
 #include "shotgun/lib/instruction_funcs.gen"
 DT_ADDRESSES;
 
 #ifdef SHOW_OPS
-#define NEXT_OP printf(" => %p\n", *c->ip_ptr); sassert(*c->ip_ptr); goto **c->ip_ptr++
+#define NEXT_OP printf(" => %p\n", *ip_ptr); sassert(*ip_ptr); goto **ip_ptr++
 #else
-#define NEXT_OP goto **c->ip_ptr++
+#define NEXT_OP goto **ip_ptr++
 #endif
 
 #endif
 
 #define next_literal next_int; _lit = fast_fetch(cpu_current_literals(state, c), _int)
 
-OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, int *created) {
-  OBJECT sym, _lit, val, s1, s2, s3, s4, sup_itr;
-  uint32_t _int;
+OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, OBJECT sym, int *created) {
+  OBJECT val, s1, s2, s3, s4, sup_itr;
     
-  next_literal;
-  sym = _lit;
-  
   *created = FALSE;
     
   val = module_const_get(state, under, sym);
@@ -88,12 +84,8 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, int *created) {
   return val;
 }
 
-OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
-  OBJECT sym, _lit, val, s1;
-  int _int;
-  next_literal;
-  
-  sym = _lit;
+OBJECT cpu_open_module(STATE, cpu c, OBJECT under, OBJECT sym) {
+  OBJECT val, s1;
   
   val = module_const_get(state, under, sym);
   if(!RTEST(val)) {
@@ -429,8 +421,8 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv,
   ctx = _allocate_context(state, c, mo, FIXNUM_TO_INT(cmethod_get_locals(mo)));
   fc = FASTCTX(ctx);
   
-  cpu_flush_sp(c);
   fc->ip = 0;
+  cpu_flush_sp(c);
   fc->sp = c->sp;
   /* fp points to the location on the stack as the context
      was being created. */
@@ -954,25 +946,32 @@ static inline void _inline_cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sy
   
 #if USE_INLINE_CACHING
   /* There is a cache index for this send, use it! */
-  if(ci >= 0) {
+  if(ci != -1) {
     cache = c->cache;
     
     ic = fast_fetch(cache, ci);
-    
-    /* If it's false, the cache is disabled. */
-    if(ic == Qfalse) {
-      mo = cpu_locate_method(state, c, cls, recv, sym, &mod, &missing);
-      if(NIL_P(mo)) goto really_no_method;
-      goto dispatch;
+
+    if(ic == Qfalse || ic == Qnil) {
+
+      /* If it's false, the cache is disabled. */
+      if(ic == Qfalse) {
+        mo = cpu_locate_method(state, c, cls, recv, sym, &mod, &missing);
+        if(NIL_P(mo)) goto really_no_method;
+        goto dispatch;
+      }
+
+      /* Cache hasn't been populated ever. */
+      goto lookup;
     }
-    
-    /* Cache hasn't been populated ever. */
-    if(ic == Qnil) goto lookup;
         
-    fast_inc(ic, ICACHE_f_HOTNESS);
+    // fast_inc(ic, ICACHE_f_HOTNESS);
 
     if(fast_fetch(ic, ICACHE_f_CLASS) == cls) {
       mo =  fast_fetch(ic, ICACHE_f_METHOD);
+      mod = fast_fetch(ic, ICACHE_f_MODULE);
+
+      goto dispatch;
+
       ser = fast_fetch(ic, ICACHE_f_SERIAL);
       /* We don't check the visibility here because the inline cache has
          fixed visibility, meaning it will always be the same after it's
@@ -981,7 +980,6 @@ static inline void _inline_cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sy
 #if TRACK_STATS
         state->cache_inline_hit++;
 #endif
-        mod = fast_fetch(ic, ICACHE_f_MODULE);
         goto dispatch;
       } else {
 #if TRACK_STATS
@@ -989,8 +987,8 @@ static inline void _inline_cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sy
 #endif
       }
     } else {      
-      count = FIXNUM_TO_INT(fast_fetch(ic, ICACHE_f_TRIP));
-      fast_set_int(ic, ICACHE_f_TRIP, count + 1);
+      // count = FIXNUM_TO_INT(fast_fetch(ic, ICACHE_f_TRIP));
+      // fast_set_int(ic, ICACHE_f_TRIP, count + 1);
     }
   }
 #endif
@@ -1085,21 +1083,15 @@ const char *cpu_op_to_name(STATE, char op) {
   return get_instruction_name(op);
 }
 
-int cpu_dispatch(STATE, cpu c) {
-  unsigned char op;  
-
-  op = *c->ip_ptr++;
-  // printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
-  // #include "shotgun/lib/instructions.gen"
-  return TRUE;
-}
-
 void state_collect(STATE, cpu c);
 void state_major_collect(STATE, cpu c);
 
-void cpu_run(STATE, cpu ic, int setup) {
-  register IP_TYPE op;
-  register cpu c = ic;
+void cpu_run(STATE, cpu c, int setup) {
+  IP_TYPE op;
+  IP_TYPE *ip_ptr = NULL;
+
+  c->ip_ptr = &ip_ptr;
+
   struct rubinius_globals *global = state->global;
 
   if(setup) {
@@ -1111,6 +1103,9 @@ void cpu_run(STATE, cpu ic, int setup) {
     return;
 #endif
   }
+  
+  /* recache ip_ptr to make it valid. */
+  cpu_cache_ip(c);
   
   current_machine->g_use_firesuit = 1;
   current_machine->g_access_violation = 0;
@@ -1155,14 +1150,14 @@ insn_start:
     if(EXCESSIVE_TRACING) {
       printf("%-15s: => %p\n",
         rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),
-        (void*)*c->ip_ptr);
+        (void*)*ip_ptr);
     }
     NEXT_OP;
     #include "shotgun/lib/instruction_dt.gen"
 #else
 
 next_op:
-    op = *c->ip_ptr++;
+    op = *ip_ptr++;
 
     if(EXCESSIVE_TRACING) {
     cpu_flush_ip(c);
@@ -1183,11 +1178,11 @@ check_interrupts:
       if(cm & OMCollectYoung) {
         if(EXCESSIVE_TRACING) {
           printf("[[ Collecting young objects. ]]\n");
-          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, cpu_current_data(c), c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, cpu_current_data(c), ip_ptr, c->ip, *ip_ptr);
         }
         state_collect(state, c);
         if(EXCESSIVE_TRACING) {
-          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, cpu_current_data(c), c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, cpu_current_data(c), ip_ptr, c->ip, *ip_ptr);
           printf("[[ Finished collect. ]]\n");
         }
       }

@@ -373,7 +373,8 @@ CODE
   
   def dup_top
     <<-CODE
-    stack_push(stack_top());
+    t1 = stack_top();
+    stack_push(t1);
     CODE
   end
   
@@ -605,7 +606,8 @@ CODE
   def set_const
     <<-CODE
     next_literal;
-    stack_push(cpu_const_set(state, c, _lit, stack_pop(), c->enclosing_class));
+    t1 = stack_pop();
+    stack_push(cpu_const_set(state, c, _lit, t1, c->enclosing_class));
     CODE
   end
   
@@ -640,7 +642,8 @@ CODE
     int created;
     t1 = stack_pop();
     t2 = stack_pop();
-    t3 = cpu_open_class(state, c, t2, t1, &created);
+    next_literal;
+    t3 = cpu_open_class(state, c, t2, t1, _lit, &created);
     if(t3 != Qundef) {
       stack_push(t3);
       if(created) cpu_perform_hook(state, c, t3, global->sym_opened_class, t1);
@@ -653,7 +656,8 @@ CODE
     int created;
     t1 = stack_pop();
     t2 = c->enclosing_class;
-    t3 = cpu_open_class(state, c, t2, t1, &created);
+    next_literal;
+    t3 = cpu_open_class(state, c, t2, t1, _lit, &created);
     if(t3 != Qundef) {
       stack_push(t3);
       if(created) cpu_perform_hook(state, c, t3, global->sym_opened_class, t1);
@@ -663,19 +667,23 @@ CODE
   
   def open_module_under
     <<-CODE
-    stack_push(cpu_open_module(state, c, stack_pop()));
+    next_literal;
+    t1 = stack_pop();
+    stack_push(cpu_open_module(state, c, t1, _lit));
     CODE
   end
   
   def open_module
     <<-CODE
-    stack_push(cpu_open_module(state, c, c->enclosing_class));
+    next_literal;
+    stack_push(cpu_open_module(state, c, c->enclosing_class, _lit));
     CODE
   end
 
   def open_metaclass
     <<-CODE
-    stack_push(object_metaclass(state, stack_pop()));
+    t1 = stack_pop();
+    stack_push(object_metaclass(state, t1));
     CODE
   end
   
@@ -1275,7 +1283,6 @@ CODE
   def set_local_fp
     <<-CODE
     next_int;
-    sassert(c->sp_ptr > c->stack_top + (c->fp + _int));
     c->stack_top[c->fp + _int] = stack_top();
     CODE
   end
@@ -1283,7 +1290,6 @@ CODE
   def get_local_fp
     <<-CODE
     next_int;
-    sassert(c->sp_ptr > c->stack_top + (c->fp + _int));
     stack_push(c->stack_top[c->fp + _int]);    
     CODE
   end

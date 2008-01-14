@@ -55,7 +55,7 @@ static inline int heap_enough_space_p(rheap h, int size) {
 static inline int heap_contains_p(rheap h, address addr) {
 
   if(addr < h->address) return FALSE;
-  if(addr >= (address)((uintptr_t)h->address + h->size)) return FALSE;
+  if(addr >= (address)((uintptr_t)h->last)) return FALSE;
   return TRUE;
 }
 

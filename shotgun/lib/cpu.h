@@ -71,7 +71,7 @@ struct fast_context {
   ptr_array paths; \
   unsigned int depth; \
   OBJECT current_scope; \
-  IP_TYPE *ip_ptr; \
+  IP_TYPE **ip_ptr; \
   OBJECT *sp_ptr; \
   int call_flags; \
   OBJECT debug_channel; \
@@ -139,10 +139,10 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_current_sender(cpu) (cpu->sender)
 #define cpu_current_scope(state, cpu) cmethod_get_staticscope(FASTCTX(cpu->home_context)->method)
 
-#define cpu_flush_ip(cpu) (cpu->ip = (cpu->ip_ptr - cpu->data))
+#define cpu_flush_ip(cpu) (cpu->ip = (*(cpu)->ip_ptr) - cpu->data)
 #define cpu_flush_sp(cpu) (cpu->sp = (cpu->sp_ptr - cpu->stack_top))
 
-#define cpu_cache_ip(cpu) (cpu->ip_ptr = (cpu->data + cpu->ip))
+#define cpu_cache_ip(cpu) (*(cpu)->ip_ptr = (cpu->data + cpu->ip))
 #define cpu_cache_sp(cpu) (cpu->sp_ptr = (cpu->stack_top + cpu->sp))
 
 cpu cpu_new(STATE);
@@ -263,39 +263,10 @@ OBJECT cpu_sampler_disable(STATE);
   }\
 })
 
-#if 1
-
 #define cpu_stack_push(state, c, oop, check) ({ OBJECT _tmp = (oop); CHECK_PTR(_tmp); (c)->sp_ptr++; *((c)->sp_ptr) = _tmp; })
 #define cpu_stack_pop(state, c) (*(c)->sp_ptr--)
 #define cpu_stack_top(state, c) (*(c)->sp_ptr)
 #define cpu_stack_set_top(state, c, oop) (*(c)->sp_ptr = oop)
-
-#else 
-static inline int cpu_stack_push(STATE, cpu c, OBJECT oop, int check) {
-  c->sp += 1;
-#if 0
-  if(check) {
-    if(NUM_FIELDS(c->stack) <= c->sp) {
-      return FALSE;
-    }
-  }
-#endif
-  SET_FIELD(c->stack, c->sp, oop);
-  return TRUE;
-}
-
-static inline OBJECT cpu_stack_pop(STATE, cpu c) {
-  OBJECT obj;
-  obj = NTH_FIELD(c->stack, c->sp);
-  c->sp -= 1;
-  return obj;
-}
-
-static inline OBJECT cpu_stack_top(STATE, cpu c) {
-  return NTH_FIELD(c->stack, c->sp);
-}
-
-#endif
 
 #define MAX_SYSTEM_PRIM 2048
 

@@ -147,6 +147,8 @@ void untrack_ref(OBJECT obj) {
 static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   OBJECT cls, tmp, mut;
   int i, fields;
+
+  void *om = g->om;
   
 #if 0
   if(_track_refs) {
@@ -183,9 +185,17 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
     for(i = 0; i < fields; i++) {
       tmp = NTH_FIELD(iobj, i);
       if(!REFERENCE_P(tmp)) continue;
-    
-      mut = baker_gc_maybe_mutate(state, g, tmp);
-      rbs_set_field(g->om, iobj, i, mut);
+
+      if(FORWARDED_P(tmp)) {
+        mut = tmp->klass;
+      } else if(heap_contains_p(g->current, tmp) || heap_contains_p(state->om->contexts, tmp)) {
+        mut = baker_gc_mutate_object(state, g, tmp);
+      } else {
+        mut = tmp;
+      }
+        
+      SET_FIELD_DIRECT(iobj, i, mut);
+      object_memory_write_barrier(om, iobj, mut);
     }
   } else {
 #define fc_mutate(field) if(fc->field && REFERENCE_P(fc->field)) SET_STRUCT_FIELD(iobj, fc->field, baker_gc_maybe_mutate(state, g, fc->field))

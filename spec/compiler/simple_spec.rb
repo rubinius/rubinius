@@ -369,7 +369,7 @@ describe Compiler do
       g.push_literal "ls"
       g.string_dup
       g.push :self
-      g.send :`, 1
+      g.send :`, 1, true #` (silly emacs/vim)
     end
   end
   
@@ -382,7 +382,7 @@ describe Compiler do
       g.string_dup
       g.string_append
       g.push :self
-      g.send :`, 1, true
+      g.send :`, 1, true  #`
     end
   end
   
