@@ -549,7 +549,7 @@ RbConfig = Config
   task :platform => 'runtime/platform.conf'
 end
 
-file 'runtime/platform.conf' do |t|
+file 'runtime/platform.conf' => 'Rakefile' do |t|
   sg = StructGenerator.new
   sg.include "dirent.h"
   sg.name 'struct dirent'
@@ -568,24 +568,27 @@ file 'runtime/platform.conf' do |t|
   # Binary doesn't exist at all in many non-Unix variants.
   # This should come out of something like config.h
   fixme_constants = %w{
-    LOCK_SH  
-    LOCK_EX  
-    LOCK_NB  
-    LOCK_UN  
-    BINARY   
+    LOCK_SH
+    LOCK_EX
+    LOCK_NB
+    LOCK_UN
+    BINARY  
   }
   
   file_constants = %w{
-    O_RDONLY   
-    O_WRONLY   
-    O_RDWR     
-    O_CREAT    
-    O_EXCL     
-    O_NOCTTY   
-    O_TRUNC    
-    O_APPEND   
-    O_NONBLOCK 
-    O_SYNC     
+    O_RDONLY
+    O_WRONLY
+    O_RDWR
+    O_CREAT
+    O_EXCL
+    O_NOCTTY
+    O_TRUNC
+    O_APPEND
+    O_NONBLOCK
+    O_SYNC
+    S_IRUSR
+    S_IWUSR
+    S_IXUSR
   }
 
   io_constants = %w{
