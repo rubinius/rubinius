@@ -92,6 +92,10 @@ class UnboundMethod
   def arity
     @method.required
   end
+  
+  def ==(other)
+    other == @method ? true : false
+  end
 
   def compiled_method
     @method
