@@ -2667,7 +2667,7 @@ class ShotgunPrimitives
     k = execvp(file, argv);
 
     /* If you're here, there was an error. */    
-    cpu_task_configure_premption(state);
+    cpu_task_configure_preemption(state);
     cpu_raise_from_errno(state, c, "Unable to execute");    
     
     CODE

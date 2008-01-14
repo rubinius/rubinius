@@ -225,7 +225,7 @@ void cpu_thread_exited(STATE, cpu c);
 int cpu_thread_alive_p(STATE, OBJECT self);
 
 void cpu_task_disable_preemption(STATE);
-void cpu_task_configure_premption(STATE);
+void cpu_task_configure_preemption(STATE);
 
 void cpu_sampler_collect(STATE, cpu_sampler_collect_cb, void *cb_data);
 

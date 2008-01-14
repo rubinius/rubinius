@@ -28,7 +28,7 @@ void cpu_task_cleanup(STATE, OBJECT self) {
   }
 }
 
-void cpu_task_configure_premption(STATE);
+void cpu_task_configure_preemption(STATE);
 
 void Init_cpu_task(STATE) {
   OBJECT tup;
@@ -57,7 +57,7 @@ static void _cpu_task_preempt(int sig) {
   current_machine->s->check_events = 1;
 }
 
-void cpu_task_configure_premption(STATE) {
+void cpu_task_configure_preemption(STATE) {
   struct itimerval new, old;
   new.it_interval.tv_usec = 10000; /* Same as MRI */
   new.it_interval.tv_sec = 0;

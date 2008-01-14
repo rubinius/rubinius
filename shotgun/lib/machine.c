@@ -243,7 +243,7 @@ machine machine_new() {
   cpu_initialize_context(m->s, m->c);
   
   machine_set_const(m, "MAIN", m->c->main);
-  cpu_task_configure_premption(m->s);
+  cpu_task_configure_preemption(m->s);
   
   return m;
 }
