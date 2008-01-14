@@ -106,7 +106,17 @@ class Socket < BasicSocket
   class << self
     alias_method :sockaddr_in, :pack_sockaddr_in
   end
-  
+
+  # Only define these methods if we support unix sockets
+  if const_defined?(:AF_UNIX)
+    def self.pack_sockaddr_un(file)
+      Socket::Foreign.pack_sa_unix(file.to_s)
+    end
+    class << self
+      alias_method :sockaddr_un, :pack_sockaddr_un
+    end
+  end
+
 end
 
 class UNIXSocket < BasicSocket

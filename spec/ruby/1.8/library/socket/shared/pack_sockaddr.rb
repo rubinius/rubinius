@@ -26,13 +26,11 @@ end
 
 
 shared :pack_sockaddr_un do |cmd|
-  describe "Socket##{cmd}" do
-
-    not_compliant_on :rubinius do
+  if Socket.const_defined?(:AF_UNIX)
+    describe "Socket##{cmd}" do
       it "encodes the unix socket type into the string" do
         Socket.sockaddr_un("/tmp/s").unpack("ccA104")[2].should == "/tmp/s"
       end
     end
-
   end
 end

@@ -104,9 +104,8 @@ OBJECT ffi_pack_sockaddr_un(STATE, char *path) {
   memset(sa, 0, sizeof(struct sockaddr_un));
   
   strncpy(sa->sun_path, path, sizeof(sa->sun_path) - 1);
-  
-  return tuple_new2(state, 2, 
-    ffi_new_pointer(state, (void*)sa), I2N(sizeof(struct sockaddr_un)));
+
+  return string_new2(state, (char*) sa, sizeof(struct sockaddr_un) );
 }
 
 OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) {
