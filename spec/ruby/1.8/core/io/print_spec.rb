@@ -1,6 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe IO, "#print" do
+  class IOSpecPrint
+    attr_accessor :message
+    def to_s; @message; end
+  end
+
   before :each do
     @old_separator = $\
     $\ = '->'
@@ -10,13 +15,14 @@ describe IO, "#print" do
     $\ = @old_separator
   end
 
-  # Fails due to incomplete output speccing
   it "writes $_.to_s followed by $\\ (if any) to the stream if no arguments given" do
-    $_ = nil
-    lambda { $stdout.print }.should output("#{$\}")
+    o = IOSpecPrint.new
+    o.message = 'I know what you did last line!'
+    $_ = o
+    l = lambda { $stdout.print }.should output_to_fd("#{o.message}#{$\}", STDOUT)
 
     string = File.open(__FILE__) {|f| f.gets }  # Set $_ to something known
-    lambda { $stdout.print }.should output("#{string}#{$\}")
+    lambda { $stdout.print }.should output_to_fd("#{string}#{$\}", STDOUT)
   end
 
   it "writes obj.to_s followed by $\\ (if any) to the stream when given one object" do
@@ -29,7 +35,6 @@ describe IO, "#print" do
   it "does not call obj.to_str" do
     o = Object.new
     def o.to_str(); 'Haha!'; end
-    def o.to_s(); 'I am an object'; end
 
     lambda { $stdout.print(o) }.should output("#{o.to_s}#{$\}")
   end
