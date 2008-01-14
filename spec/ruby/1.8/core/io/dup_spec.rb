@@ -18,8 +18,8 @@ describe "IO#dup" do
   end
 
   after :each do
-    @i.close unless @i.closed?
-    @f.close unless @f.closed?
+    @i.close rescue nil
+    @f.close rescue nil
   end
 
   after :all do
