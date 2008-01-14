@@ -325,7 +325,14 @@ describe "Array#pack" do
 
   it "encodes a positive integer with ('i')" do
     [0].pack('i').should == "\000\000\000\000"
-    [1].pack('i').should == "\001\000\000\000"
+    compliant_on :ruby, :rubinius do
+      # little-endian
+      [1].pack('i').should == "\001\000\000\000"
+    end
+    compliant_on :jruby do
+      # JRuby is always big-endian
+      [1].pack('i').should == "\000\000\000\001"
+    end
     [2**32-1].pack('i').should == "\377\377\377\377"
   end
 
@@ -335,7 +342,13 @@ describe "Array#pack" do
 
   it "encodes a negative integer with ('i')" do
     [-1].pack('i').should == "\377\377\377\377"
-    [-2].pack('i').should == "\376\377\377\377"
+    compliant_on :ruby, :rubinius do
+      [-2].pack('i').should == "\376\377\377\377"
+    end
+    compliant_on :jruby do
+      # JRuby is always big-endian
+      [-2].pack('i').should == "\377\377\377\376"
+    end
   end
 
   it "raises a RangeError when the negative integer is too big with ('l')" do
@@ -344,7 +357,13 @@ describe "Array#pack" do
  
   it "encodes a positive integer with ('l')" do
      [0].pack('l').should == "\000\000\000\000"
-     [1].pack('l').should == "\001\000\000\000"
+     compliant_on :ruby, :rubinius do
+       [1].pack('l').should == "\001\000\000\000"
+     end
+     compliant_on :jruby do
+       # JRuby is always big-endian
+       [1].pack('l').should == "\000\000\000\001"
+     end
      [2**32-1].pack('l').should == "\377\377\377\377"
    end
 
@@ -354,7 +373,13 @@ describe "Array#pack" do
 
    it "encodes a negative integer with ('l')" do
      [-1].pack('l').should == "\377\377\377\377"
-     [-2].pack('l').should == "\376\377\377\377"
+     compliant_on :ruby, :rubinius do
+       [-2].pack('l').should == "\376\377\377\377"
+     end
+     compliant_on :jruby do
+       # JRuby is always big-endian
+       [-2].pack('l').should == "\377\377\377\376"
+    end
    end
 
    it "raises a RangeError when the negative integer is too big with ('l')" do
@@ -490,7 +515,13 @@ describe "Array#pack" do
 
   it "encodes a positive integer with ('s')" do
     [0].pack('s').should == "\000\000"
-    [1].pack('s').should == "\001\000"
+    compliant_on :ruby, :rubinius do
+      [1].pack('s').should == "\001\000"
+    end
+    compliant_on :jruby do
+      # JRuby is always big-endian
+      [1].pack('s').should == "\000\001"
+    end
     [2**32-1].pack('s').should == "\377\377"
   end
 
@@ -500,7 +531,13 @@ describe "Array#pack" do
 
   it "encodes a negative integer with ('s')" do
     [-1].pack('s').should == "\377\377"
-    [-2].pack('s').should == "\376\377"
+    compliant_on :ruby, :rubinius do
+      [-2].pack('s').should == "\376\377"
+    end
+    compliant_on :jruby do
+      # JRuby is always big-endian
+      [-2].pack('s').should == "\377\376"
+    end
   end
 
   it "raises a RangeError when the negative integer is too big with ('s')" do
