@@ -47,6 +47,8 @@ class BasicSocket < IO
       optval = 0
     end
 
+    error = 0
+
     if optval.is_a?(Fixnum)
       MemoryPointer.new :int do |val|
         val.write_int optval
