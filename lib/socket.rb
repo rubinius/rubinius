@@ -1,3 +1,6 @@
+class SocketError < StandardError
+end
+
 class BasicSocket < IO
   def self.do_not_reverse_lookup=(setting)
     @no_reverse_lookup = setting
