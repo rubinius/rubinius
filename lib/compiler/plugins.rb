@@ -106,64 +106,23 @@ module Compiler::Plugins
     end
     
   end
-  
-  class VMOperation < Plugin
-    plugin :vmops
-    
+ 
+  class CurrentMethod < Plugin
+
+    plugin :current_method
+
     def handle(g, call)
-      return false unless call_match(call, :Rubinius, :vmop)
-      
-      name = call.arguments.shift.value
-      
-      send("op_#{name}", g, call)      
+      return false unless call.kind_of? Compiler::Node::VCall
+      if call.method == :__METHOD__
+        g.push_context
+        g.send :method, 0
+        return true
+      end
+
+      return false
     end
-    
-    def op_kind_of(g, call)
-      call.arguments.shift.bytecode(g)
-      g.push :self
-      g.kind_of
-    end
-    
-    def op_locate(g, call)
-      g.push :self
-      call.arguments[0].bytecode(g)
-      call.arguments[1].bytecode(g)
-      g.locate_method
-    end
-    
-    def op_push_block(g, call)
-      g.push_block
-    end
-    
-    def op_send(g, call)
-      call.arguments[0].bytecode(g)
-      g.push_array
-      g.push :self
-      call.arguments[1].bytecode(g)
-      call.arguments[2].bytecode(g)
-      call.arguments[3].bytecode(g)
-      g.set_args
-      g.set_call_flags 1
-      g.send_off_stack
-    end
-    
-    def op_activate(g, call)
-      
-    end
-    
-    def op_string_append(g, call)
-      call.arguments[1].bytecode(g)
-      call.arguments[0].bytecode(g)
-      g.string_append
-    end
-    
-    def op_string_dup(g, call)
-      call.arguments[0].bytecode(g)
-      g.string_dup
-    end
-    
   end
-  
+
   class FastMathOperators < Plugin
     
     plugin :fastmath

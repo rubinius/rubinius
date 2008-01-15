@@ -98,6 +98,7 @@ module Kernel
  
       flags = { :binding => binding }
       compiled_method = Compile.compile_string string, flags, filename, line
+      compiled_method.hints = { :source => :eval }
       ctx = binding.context
       be = BlockEnvironment.new
       be.from_eval!

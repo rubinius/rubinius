@@ -50,6 +50,10 @@ class CompiledMethod
   def bonus     ; @bonus      ; end
   def compiled  ; @compiled   ; end
   def staticscope; @staticscope; end
+
+  # This is runtime hints, added to the method by the VM to indicate how it's
+  # being used.
+  attr_accessor :hints
   
   def inspect
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} file=#{@file}>"

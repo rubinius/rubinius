@@ -22,7 +22,9 @@ module Compile
 
   def self.find_compiler
     begin
-      require "#{DefaultCompiler}/init"
+      loading_rbc_directly do
+        require "#{DefaultCompiler}/init"
+      end
     rescue Exception => e
       STDERR.puts "Unable to load default compiler: #{e.message}"
       puts e.backtrace.show
@@ -41,6 +43,16 @@ module Compile
     return find_compiler
   end
 
+  def self.version_number
+    # Until the compiler is loaded, load any versions. This
+    # lets us bootstrap the compiler into the system no matter
+    # what version it is. This is important because we don't want
+    # to keep the compiler from loading at all because it might have
+    # older versioned files.
+    return @compiler.version_number if @compiler
+    return 0
+  end
+
   def self.compile_file(path, flags=nil)
     compiler.compile_file(path, flags)
   end
@@ -51,6 +63,19 @@ module Compile
 
   def self.execute(string)
     eval(string, TOPLEVEL_BINDING)
+  end
+
+  # By calling require in the block passed to this, require will
+  # load rbc if they exist without checking mtime's and such.
+  @load_rbc_directly = false
+
+  def self.loading_rbc_directly
+    begin
+      @load_rbc_directly = true
+      yield
+    ensure
+      @load_rbc_directly = false
+    end
   end
 
   # Called when we encounter a break keyword that we do not support
@@ -81,12 +106,13 @@ module Compile
     else
       $LOAD_PATH.each do |dir|
         if rbc and dir.suffix? '.rba' and File.file? dir
-          cm = Archive.get_object(dir, rbc, Rubinius::CompiledMethodVersion)
+          cm = Archive.get_object(dir, rbc, version_number)
 
           if cm
             return false if requiring and $LOADED_FEATURES.include? rb
 
             cm.compile
+            cm.hints = { :source => :rba }
             cm.as_script
 
             $LOADED_FEATURES << rb if requiring
@@ -126,25 +152,52 @@ module Compile
         
         cm = nil
 
+        # Try to load rbc directly if requested
+        if @load_rbc_directly and File.file?(rbc_path)
+          compile_feature(rb, requiring) do
+            cm = CompiledMethod.load_from_file(rbc_path, version_number)
+            raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
+          end
+
         # Use source only if it is newer
-        if !File.file?(rbc_path) or File.mtime(rb_path) > File.mtime(rbc_path)
+        elsif !File.file?(rbc_path) or File.mtime(rb_path) > File.mtime(rbc_path)
+          if $DEBUG_LOADING
+            if !File.file?(rbc_path)
+              STDERR.puts "[Compiling #{rb_path}: Missing compiled version]"
+            else
+              STDERR.puts "[Compiling #{rb_path}: Newer source file]"
+            end
+          end
+
           compile_feature(rb, requiring) do
             cm = Compile.compile_file(rb_path)
             raise LoadError, "Unable to compile: #{rb_path}" unless cm
           end
 
           # Store it for the future
-          Marshal.dump_to_file cm, rbc_path, Rubinius::CompiledMethodVersion
-
+          Marshal.dump_to_file cm, rbc_path, version_number
         else
           compile_feature(rb, requiring) do
-            cm = CompiledMethod.load_from_file(rbc_path, Rubinius::CompiledMethodVersion)
-            raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
+            cm = CompiledMethod.load_from_file(rbc_path, version_number)
+            # cm is nil if the file is out of date, version wise.
+            unless cm
+              if $DEBUG_LOADING
+                STDERR.puts "[Recompling #{rb_path}, old version]"
+              end
+
+              compile_feature(rb, requiring) do
+                cm = Compile.compile_file(rb_path)
+                raise LoadError, "Unable to compile: #{rb_path}" unless cm
+              end
+
+              Marshal.dump_to_file cm, rbc_path, version_number
+            end
           end
         end
 
         begin
           cm.compile
+          cm.hints = { :source => :rb }
           cm.as_script
         rescue Exception => e
           $LOADED_FEATURES.delete(rb) if requiring
@@ -163,12 +216,13 @@ module Compile
 
       if File.file? rbc_path then
         compile_feature(rb, requiring) do
-          cm = CompiledMethod.load_from_file(rbc_path, Rubinius::CompiledMethodVersion)
+          cm = CompiledMethod.load_from_file(rbc_path, version_number)
           raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
         end
 
         begin
           cm.compile
+          cm.hints = { :source => :rbc }
           cm.as_script
         rescue Exception => e
           $LOADED_FEATURES.delete(rb) if requiring
@@ -209,9 +263,11 @@ module Kernel
     out = "#{path}c" unless out
     cm = Compile.compile_file(path, flags)
     raise LoadError, "Unable to compile '#{path}'" unless cm
-    Marshal.dump_to_file cm, out, Rubinius::CompiledMethodVersion
+    Marshal.dump_to_file cm, out, Compile.version_number
     return out
   end
+
+  module_function :compile
 
   # Loads the given file as executable code and returns true. If
   # the file cannot be found, cannot be compiled or some other
@@ -265,7 +321,9 @@ module Kernel
     elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
     else
-      rb, rbc, ext = path, ".#{path}.compiled.rbc", nil
+      dir, name = File.split(path)
+      name = ".#{name}" unless name[0] == ?.
+      rb, rbc, ext = path, "#{dir}/#{name}.compiled.rbc", nil
     end
 
     Compile.unified_load path, rb, rbc, ext

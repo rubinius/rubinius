@@ -29,6 +29,25 @@ class Compiler
     return cm
   end
 
+  TimeEpoch = 1141027200 # rubinius' birthday
+
+  @version_number = nil
+
+  def self.version_number
+    return @version_number if @version_number
+    max = Dir["#{File.dirname(__FILE__)}/*.rb"].map { |f| File.mtime(f).to_i }.max
+    @version_number = max - TimeEpoch
+    return @version_number
+  end
+
+  def self.version_number=(ver)
+    if ver
+      @version_number = ver - TimeEpoch
+    else
+      @version_number = 0
+    end
+  end
+
   def initialize(gen_class, binding=nil)
     @variables = {}
     @generator_class = gen_class
@@ -118,6 +137,7 @@ class Compiler
     activate :assembly
     activate :method_visibility
     activate :fastmath
+    activate :current_method
   end
 
   def activate(name)
