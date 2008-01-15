@@ -88,6 +88,11 @@ class Socket < BasicSocket
   end
 
   module Foreign
+    class AddrInfo < FFI::Struct
+      config("rbx.platform.addrinfo", :ai_flags, :ai_family, :ai_socktype,
+             :ai_protocol, :ai_addrlen, :ai_addr, :ai_canonname, :ai_next)
+    end
+
     attach_function "socket", :create_socket, [:int, :int, :int], :int
     attach_function "connect", :connect_socket, [:int, :string, :int], :int
     attach_function "bind", :bind_socket, [:int, :string, :int], :int
@@ -97,7 +102,15 @@ class Socket < BasicSocket
                     [:int, :int, :int, :pointer, :int], :int
     attach_function "getsockopt", :get_socket_option,
                     [:int, :int, :int, :pointer, :pointer], :int
-    #attach_function "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
+
+    attach_function "gai_strerror", :gai_strerror, [:int], :string
+
+    attach_function "getaddrinfo", :getaddrinfo,
+                    [:string, :string, :pointer, :pointer], :int
+    attach_function "freeaddrinfo", :freeaddrinfo, [:pointer], :void
+
+    #attach_function "ffi_pack_sockaddr_un", :pack_sa_unix,
+    #                [:state, :string], :object
     attach_function "ffi_pack_sockaddr_in", :ffi_pack_sockaddr_in,
                     [:state, :string, :string, :int, :int], :object
     attach_function "ffi_decode_sockaddr", :ffi_decode_sockaddr,
@@ -179,32 +192,55 @@ class Socket < BasicSocket
     end
   end if (FFI.config("sockaddr_un.sun_family.offset") && Socket.const_defined?(:AF_UNIX))
 
-  def self.getaddrinfo(host, service, family = 0, socktype = 0,
-                       protocol = 0, flags = 0)
+  def self.getaddrinfo(host, service, family = nil, socktype = nil,
+                       protocol = nil, flags = nil)
     service = service.to_s
 
-    host_service = [host, service] # HACK only 6 args to FFI functions
+    hints_p = MemoryPointer.new Socket::Foreign::AddrInfo.size
+    hints = Socket::Foreign::AddrInfo.new hints_p
+    hints[:ai_family] = family || 0
+    hints[:ai_socktype] = socktype || 0
+    hints[:ai_protocol] = protocol || 0
+    hints[:ai_flags] = flags || 0
 
-    obj = Socket::Foreign.ffi_getaddrinfo(host_service, family, socktype,
-                                          protocol, flags)
+    res_p = MemoryPointer.new :pointer
 
-    raise SocketError, obj if String === obj
-    raise "[BUG] can't handle #{obj.inspect}" unless Array === obj
+    err = Socket::Foreign.getaddrinfo host, service, hints_p, res_p
 
-    obj.map do |struct_ai|
-      ai_family, ai_socktype, ai_protocol, ai_sockaddr, ai_canonname = struct_ai
+    raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
+
+    res = Socket::Foreign::AddrInfo.new res_p.read_pointer
+
+    addrinfos = []
+
+    loop do
+      addrinfo = []
+      addrinfo << Socket::Constants::AF_TO_FAMILY[res[:ai_family]]
+
+      ai_sockaddr = res[:ai_addr].read_string res[:ai_addrlen]
 
       sockaddr = Socket::Foreign::unpack_sa_ip ai_sockaddr, true
 
-      ai = []
-      ai << Socket::Constants::AF_TO_FAMILY[ai_family]
-      ai << sockaddr.pop # port
-      ai.concat sockaddr # hosts
-      ai << ai_family
-      ai << ai_socktype
-      ai << ai_protocol
+      addrinfo << sockaddr.pop # port
+      addrinfo.concat sockaddr # hosts
+      addrinfo << res[:ai_family]
+      addrinfo << res[:ai_socktype]
+      addrinfo << res[:ai_protocol]
 
-      ai
+      addrinfos << addrinfo
+
+      break unless res[:ai_next]
+
+      res = Socket::Foreign::AddrInfo.new res[:ai_next]
+    end
+
+    return addrinfos
+  ensure
+    hints_p.free if hints_p
+
+    if res_p then
+      Socket::Foreign.freeaddrinfo res_p.read_pointer
+      res_p.free
     end
   end
 

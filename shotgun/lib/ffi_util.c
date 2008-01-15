@@ -169,50 +169,6 @@ OBJECT ffi_decode_sockaddr(STATE, struct sockaddr *addr, int len, int reverse_lo
   return tuple_new2(state, 3, host, address, INT_TO_FIXNUM(atoi(pbuf)));
 }
 
-OBJECT ffi_getaddrinfo(STATE, OBJECT host_service, int family, int socktype,
-                       int protocol, int flags) {
-  OBJECT addresses;
-  struct addrinfo hints, *res, *cur;
-  char *host, *service;
-  int error;
-
-  host = string_byte_address(state, array_get(state, host_service, 0));
-  service = string_byte_address(state, array_get(state, host_service, 1));
-
-  memset(&hints, 0, sizeof(struct addrinfo));
-
-  hints.ai_family = family;
-  hints.ai_socktype = socktype;
-  hints.ai_protocol = protocol;
-  hints.ai_flags = flags;
-
-  if(strlen(host) == 0) {
-    host = NULL;
-  }
-
-  error = getaddrinfo(host, service, &hints, &res);
-  if(error) {
-    return string_new(state, gai_strerror(error));
-  }
-
-  addresses = array_new(state, 0);
-
-  for(cur = res; cur != NULL; cur = cur->ai_next) {
-    OBJECT sockaddr, addrinfo = array_new(state, 0);
-
-    array_append(state, addrinfo, I2N(cur->ai_family));
-    array_append(state, addrinfo, I2N(cur->ai_socktype));
-    array_append(state, addrinfo, I2N(cur->ai_protocol));
-    sockaddr = string_new2(state, (char *)cur->ai_addr, cur->ai_addrlen);
-    array_append(state, addrinfo, sockaddr);
-    array_append(state, addrinfo, string_new(state, cur->ai_canonname));
-
-    array_append(state, addresses, addrinfo);
-  }
-
-  return addresses;
-}
-
 OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
   int error = 0;
 

@@ -549,7 +549,21 @@ RbConfig = Config
   task :platform => 'runtime/platform.conf'
 end
 
-file 'runtime/platform.conf' => 'Rakefile' do |task|
+file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |task|
+  addrinfo = StructGenerator.new
+  addrinfo.include 'sys/socket.h'
+  addrinfo.include 'netdb.h'
+  addrinfo.name 'struct addrinfo'
+  addrinfo.field :ai_flags, :int
+  addrinfo.field :ai_family, :int
+  addrinfo.field :ai_socktype, :int
+  addrinfo.field :ai_protocol, :int
+  addrinfo.field :ai_addrlen, :int
+  addrinfo.field :ai_addr, :pointer
+  addrinfo.field :ai_canonname, :string
+  addrinfo.field :ai_next, :pointer
+  addrinfo.calculate
+
   dirent = StructGenerator.new
   dirent.include "dirent.h"
   dirent.name 'struct dirent'
@@ -559,8 +573,8 @@ file 'runtime/platform.conf' => 'Rakefile' do |task|
   timeval = StructGenerator.new
   timeval.include "sys/time.h"
   timeval.name 'struct timeval'
-  timeval_tv_sec =  timeval.field :tv_sec
-  timeval_tv_usec = timeval.field :tv_usec
+  timeval.field :tv_sec
+  timeval.field :tv_usec
   timeval.calculate
 
   sockaddr_in = StructGenerator.new
@@ -569,17 +583,17 @@ file 'runtime/platform.conf' => 'Rakefile' do |task|
   sockaddr_in.include "sys/socket.h"
   sockaddr_in.include "sys/stat.h"
   sockaddr_in.name 'struct sockaddr_in'
-  sockaddr_in_family = sockaddr_in.field :sin_family
-  sockaddr_in_port   = sockaddr_in.field :sin_port
-  sockaddr_in_addr   = sockaddr_in.field :sin_addr
-  sockaddr_in_zero   = sockaddr_in.field :sin_zero
+  sockaddr_in.field :sin_family
+  sockaddr_in.field :sin_port
+  sockaddr_in.field :sin_addr
+  sockaddr_in.field :sin_zero
   sockaddr_in.calculate
 
   sockaddr_un = StructGenerator.new
   sockaddr_un.include "sys/un.h"
   sockaddr_un.name 'struct sockaddr_un'
-  sockaddr_un_family = sockaddr_un.field :sun_family
-  sockaddr_un_path   = sockaddr_un.field :sun_path
+  sockaddr_un.field :sun_family
+  sockaddr_un.field :sun_path
   sockaddr_un.calculate
 
   # FIXME these constants don't have standard names.
@@ -907,6 +921,7 @@ file 'runtime/platform.conf' => 'Rakefile' do |task|
   puts "Generating #{task.name}..."
 
   File.open task.name, "w" do |f|
+    f.puts addrinfo.generate_config('addrinfo')
     f.puts "rbx.platform.dir.d_name = #{dirent_d_name.offset}"
     f.puts timeval.generate_config('timeval')
     f.puts sockaddr_in.generate_config('sockaddr_in')

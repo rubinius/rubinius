@@ -208,6 +208,7 @@ class Module
 end
 
 class MemoryPointer
+
   # call-seq:
   #   MemoryPointer.new(num) => MemoryPointer instance of <i>num</i> bytes
   #   MemoryPointer.new(sym) => MemoryPointer instance with number 
@@ -229,6 +230,7 @@ class MemoryPointer
   # The form without a block returns the MemoryPointer instance. The form
   # with a block yields the MemoryPointer instance and frees the memory
   # when the block returns. The value returned is the value of the block.
+
   def self.new(type, count=nil, clear=true)
     if type.kind_of? Fixnum
       size = type
@@ -420,30 +422,35 @@ module FFI
       
       return cspec
     end
-    
+
     def self.config(base, *fields)
       @size = 0
       cspec = {}
-      
+
       fields.each do |field|
         offset = Rubinius::RUBY_CONFIG["#{base}.#{field}.offset"]
         size   = Rubinius::RUBY_CONFIG["#{base}.#{field}.size"]
-        
-        type = FFI.size_to_type(size)
-        
+        type   = Rubinius::RUBY_CONFIG["#{base}.#{field}.type"]
+
+        type = if type then
+                 type.intern
+               else
+                 FFI.size_to_type type
+               end
+
         code = FFI.find_type type
-        
+
         cspec[field] = [offset, code]
-        
+
         ending = offset + size
         @size = ending if @size < ending
       end
-      
+
       @layout = cspec
-      
+
       return cspec
     end
-    
+
     def self.size
       @size
     end
