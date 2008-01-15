@@ -197,7 +197,7 @@ spec_runner.formatter.print_start
   %s
   begin
     STDERR.print(#{marker.inspect} || "\\n\#{file.ljust(#{max_name_width})}") if #{verbose}
-    load file
+    load file unless #{action.inspect} == :invert && all_excludes.empty? && excludes.empty?
   rescue Exception => e
     puts "\#{e} loading \#{file}"
   ensure
