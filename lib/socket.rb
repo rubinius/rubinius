@@ -246,13 +246,7 @@ class Socket < BasicSocket
       Socket::Foreign.socketpair(domain, type, protocol, mp)
       fd0, fd1 = mp.read_array_of_int(2)
 
-      # Is there a better way to create these Sockets from the returned file descriptors?
-      s1, s2 = [ Socket.new(domain, type, protocol), Socket.new(domain, type, protocol ) ]
-      s1.close
-      s2.close
-      s1.setup(fd0)
-      s2.setup(fd1)
-      [s1, s2]
+      [ from_descriptor(fd0), from_descriptor(fd1) ]
     end
   end
 
@@ -278,6 +272,17 @@ class Socket < BasicSocket
     Errno.handle 'socket(2)' if @descriptor < 0
 
     setup @descriptor
+  end
+
+  def self.from_descriptor(fixnum)
+    sock = allocate()
+    sock.from_descriptor(fixnum)
+    return sock
+  end
+
+  def from_descriptor(fixnum)
+    setup(fixnum)
+    return self
   end
 
 end
@@ -316,7 +321,15 @@ class UDPSocket < IPSocket
     @host = host
 
     ret = Socket::Foreign.bind_name descriptor, @host.to_s, @port.to_s, @type
+    setup(fixnum)
 
+    @connected = true
+
+    name, addr, port = Socket::Foreign.getpeername fixnum, false
+
+    initialize(addr, port)
+
+    return self
     Errno.handle unless ret == 0 # HACK needs name
 
     return
@@ -339,12 +352,6 @@ class UDPSocket < IPSocket
 end
 
 class TCPSocket < IPSocket
-
-  def self.from_descriptor(fixnum)
-    sock = allocate()
-    sock.from_descriptor(fixnum)
-    return sock
-  end
 
   def from_descriptor(fixnum)
     setup(fixnum)
