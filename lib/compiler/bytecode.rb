@@ -1528,9 +1528,13 @@ class Node
         g.cast_for_multi_block_arg unless @child.splat_only?
         @child.in_block = true
         @child.bytecode(g)
-      when LocalAssignment, IVarAssign, GVarAssign, AttrAssign
+      when LocalAssignment, IVarAssign, GVarAssign
         g.cast_for_single_block_arg
         @child.bytecode(g)
+        g.pop
+      when AttrAssign
+        g.cast_for_single_block_arg
+        @child.bytecode(g, true)
         g.pop
       when Fixnum, nil
         g.pop
@@ -1725,8 +1729,8 @@ class Node
   class AttrAssign
     def bytecode(g, in_masgn = false)
       if in_masgn
-        @object.bytecode(g)
-        g.send @method, 1, false
+        @in_masgn = true
+        super(g)
       else
         super(g)
         g.pop
@@ -1735,7 +1739,18 @@ class Node
     end
 
     def emit_args(g)
-      if @rhs_expression
+      if @in_masgn
+        if @rhs_expression
+          extra = 2
+          @rhs_expression.bytecode(g)
+        else
+          extra = 1
+        end
+
+        super(g)
+        
+        @argcount += extra
+      elsif @rhs_expression
         @rhs_expression.bytecode(g)
         g.dup
         super(g)

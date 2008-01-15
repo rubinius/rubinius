@@ -136,10 +136,12 @@ describe Compiler do
     
     gen x do |g|
       g.push 8
+      g.dup
       g.push_unique_literal :blah
       g.push :self
       g.send :h, 0, true
       g.send :[]=, 2, false
+      g.pop
     end
   end
   
@@ -148,9 +150,11 @@ describe Compiler do
     
     gen x do |g|
       g.push 8
+      g.dup
       g.push :self
       g.send :a, 0, true
       g.send :b=, 1, false
+      g.pop
     end
   end
   
@@ -164,11 +168,13 @@ describe Compiler do
     gen x do |g|
       g.push :self
       g.send :other_string, 0, true
+      g.dup
       g.push 0
       g.push :self
       g.send :index, 0, true
       g.push :self
       g.send :[]=, 3, false
+      g.pop
     end
   end
   
@@ -202,6 +208,7 @@ describe Compiler do
         
     gen x do |g|
       g.push 3
+      g.dup
       g.push :self
       g.send :x, 0, true
       g.cast_array_for_args 1
@@ -214,6 +221,7 @@ describe Compiler do
       g.swap
       g.set_args
       g.send_with_register :[]=, false
+      g.pop
     end
   end
   
