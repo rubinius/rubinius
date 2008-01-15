@@ -18,15 +18,23 @@ class StructGenerator
     def offset=(o)
       @offset = o
     end
+
+    def to_config(name)
+      buf = []
+      buf << "rbx.platform.#{name}.#{@name}.offset = #{@offset}"
+      buf << "rbx.platform.#{name}.#{@name}.size = #{@size}"
+      buf << "rbx.platform.#{name}.#{@name}.type = #{@type}" if @type
+      buf
+    end
   end
-  
+
   def initialize
     @struct_name = nil
     @includes = []
     @fields = []
     @found = false
   end
-  
+
   def found?
     @found
   end
@@ -35,10 +43,10 @@ class StructGenerator
     @fields.each do |f|
       return f if name == f.name
     end
-    
+
     return nil
   end
-  
+
   attr_reader :fields
 
   def self.generate_from_code(code)
@@ -114,15 +122,11 @@ EOF
   end
 
   def generate_config(name)
-    buf = ""
-    @fields.each_with_index do |field, i|
-      buf << "rbx.platform.#{name}.#{field.name}.offset = #{field.offset}\n"
-      buf << "rbx.platform.#{name}.#{field.name}.size = #{field.size}\n"
-    end
-
-    buf
+    @fields.map do |field|
+      field.to_config name
+    end.join "\n"
   end
-  
+
   def generate_layout
     buf = ""
 
