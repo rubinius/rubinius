@@ -5,11 +5,17 @@ describe "Module#class_variable_defined?" do
   it "returns true if a class variable with the given name is defined in self" do
     c = Class.new { class_variable_set :@@class_var, "test" }
     c.class_variable_defined?(:@@class_var).should == true
-    c.class_variable_defined?(:@@class_var.to_i).should == true
     c.class_variable_defined?("@@class_var").should == true
     c.class_variable_defined?(:@@no_class_var).should == false
-    c.class_variable_defined?(:@@no_class_var.to_i).should == false
     c.class_variable_defined?("@@no_class_var").should == false
+  end
+  
+  not_compliant_on :rubinius do
+    it "accepts Fixnums for class variables" do
+      c = Class.new { class_variable_set :@@class_var, "test" }
+      c.class_variable_defined?(:@@class_var.to_i).should == true
+      c.class_variable_defined?(:@@no_class_var.to_i).should == false
+    end
   end
   
   it "raises a NameError when the given name is not allowed" do

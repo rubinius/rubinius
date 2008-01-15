@@ -1,1 +1,0 @@
-Module#class_variable_set sets the class variable with the given name to the given value

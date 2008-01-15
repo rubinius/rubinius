@@ -6,12 +6,18 @@ describe "Module#class_variable_set" do
     c = Class.new
     
     c.send(:class_variable_set, :@@test, "test")
-    c.send(:class_variable_set, :@@test2.to_i, "test2")
     c.send(:class_variable_set, "@@test3", "test3")
     
     c.send(:class_variable_get, :@@test).should == "test"
-    c.send(:class_variable_get, :@@test2).should == "test2"
     c.send(:class_variable_get, :@@test3).should == "test3"
+  end
+  
+  not_compliant_on :rubinius do
+    it "accepts Fixnums for class variables" do
+      c = Class.new
+      c.send(:class_variable_set, :@@test2.to_i, "test2")
+      c.send(:class_variable_get, :@@test2).should == "test2"
+    end
   end
   
   compliant_on :ruby, :jruby do

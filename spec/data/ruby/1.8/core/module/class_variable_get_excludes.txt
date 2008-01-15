@@ -1,2 +1,0 @@
-Module#class_variable_get returns the value of the class variable with the given name
-Module#class_variable_get raises a NameError when an uninitialized class variable is accessed
