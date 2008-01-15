@@ -36,6 +36,11 @@ OBJECT string_new2(STATE, const char *str, int sz) {
 
 OBJECT string_new(STATE, const char *str) {
   int sz;  
+
+  if(str == NULL) {
+    return string_new2(state, str, 0);
+  }
+
   sz = strlen(str);
   return string_new2(state, str, sz);
 }
