@@ -63,7 +63,6 @@ describe "File.new" do
     lambda { @fh = File.new(@file, File::APPEND) }.should raise_error(Errno::EINVAL)
   end
   
-  
   it "raises an Errno::EINVAL error with File::RDONLY|File::APPEND" do 
     lambda { @fh = File.new(@file, File::RDONLY|File::APPEND) }.should raise_error(Errno::EINVAL)
   end
@@ -79,6 +78,17 @@ describe "File.new" do
     @fh = File.new(@file, File::WRONLY|File::TRUNC) 
     @fh.class.should == File
     File.exists?(@file).should == true
+  end
+
+  it "coerces filename using to_str" do
+    f = Object.new
+    def f.to_str; __FILE__; end
+
+    begin
+      file = File.new(f)
+    ensure
+      file.close if file
+    end
   end
   
   specify  "expected errors " do
