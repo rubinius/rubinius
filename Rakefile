@@ -549,38 +549,38 @@ RbConfig = Config
   task :platform => 'runtime/platform.conf'
 end
 
-file 'runtime/platform.conf' => 'Rakefile' do |t|
-  sg = StructGenerator.new
-  sg.include "dirent.h"
-  sg.name 'struct dirent'
-  fel = sg.field :d_name
-  sg.calculate
+file 'runtime/platform.conf' => 'Rakefile' do |task|
+  dirent = StructGenerator.new
+  dirent.include "dirent.h"
+  dirent.name 'struct dirent'
+  dirent_d_name = dirent.field :d_name
+  dirent.calculate
 
-  tg = StructGenerator.new
-  tg.include "sys/time.h"
-  tg.name 'struct timeval'
-  tv_sec =  tg.field :tv_sec
-  tv_usec = tg.field :tv_usec
-  tg.calculate
+  timeval = StructGenerator.new
+  timeval.include "sys/time.h"
+  timeval.name 'struct timeval'
+  timeval_tv_sec =  timeval.field :tv_sec
+  timeval_tv_usec = timeval.field :tv_usec
+  timeval.calculate
 
-  sa = StructGenerator.new
-  sa.include "netinet/in.h"
-  sa.include "fcntl.h"
-  sa.include "sys/socket.h"
-  sa.include "sys/stat.h"
-  sa.name 'struct sockaddr_in'
-  sin_family = sa.field :sin_family
-  sin_port   = sa.field :sin_port
-  sin_addr   = sa.field :sin_addr
-  sin_zero   = sa.field :sin_zero
-  sa.calculate
+  sockaddr_in = StructGenerator.new
+  sockaddr_in.include "netinet/in.h"
+  sockaddr_in.include "fcntl.h"
+  sockaddr_in.include "sys/socket.h"
+  sockaddr_in.include "sys/stat.h"
+  sockaddr_in.name 'struct sockaddr_in'
+  sockaddr_in_family = sockaddr_in.field :sin_family
+  sockaddr_in_port   = sockaddr_in.field :sin_port
+  sockaddr_in_addr   = sockaddr_in.field :sin_addr
+  sockaddr_in_zero   = sockaddr_in.field :sin_zero
+  sockaddr_in.calculate
 
-  su = StructGenerator.new
-  su.include "sys/un.h"
-  su.name 'struct sockaddr_un'
-  sun_family = su.field :sun_family
-  sun_path   = su.field :sun_path
-  su.calculate
+  sockaddr_un = StructGenerator.new
+  sockaddr_un.include "sys/un.h"
+  sockaddr_un.name 'struct sockaddr_un'
+  sockaddr_un_family = sockaddr_un.field :sun_family
+  sockaddr_un_path   = sockaddr_un.field :sun_path
+  sockaddr_un.calculate
 
   # FIXME these constants don't have standard names.
   # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.
@@ -904,13 +904,14 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
 
   cg.calculate
   
-  puts "Generating #{t.name}..."
+  puts "Generating #{task.name}..."
 
-  File.open(t.name, "w") do |f|
-    f.puts "rbx.platform.dir.d_name = #{fel.offset}"
-    f.puts tg.generate_config('timeval')
-    f.puts sa.generate_config('sockaddr_in')
-    f.puts su.generate_config('sockaddr_un') if su.found?
+  File.open task.name, "w" do |f|
+    f.puts "rbx.platform.dir.d_name = #{dirent_d_name.offset}"
+    f.puts timeval.generate_config('timeval')
+    f.puts sockaddr_in.generate_config('sockaddr_in')
+    f.puts sockaddr_un.generate_config('sockaddr_un') if sockaddr_un.found?
+
     file_constants.each do | name |
       const = cg.constants[name]
       f.puts "rbx.platform.file.#{name} = #{const.converted_value}"
@@ -923,17 +924,18 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
 
     socket_constants.each do |name|
       const = cg.constants[name]
-      f.puts "rbx.platform.socket.#{name} = #{const.converted_value}" unless const.converted_value.nil?
+      next if const.converted_value.nil?
+      f.puts "rbx.platform.socket.#{name} = #{const.converted_value}"
     end
 
     (process_constants + long_process_constants).each do |name|
       const = cg.constants[name]
-      f.puts "rbx.platform.process.#{name} = #{const.converted_value}" unless const.converted_value.nil?
+      next if const.converted_value.nil?
+      f.puts "rbx.platform.process.#{name} = #{const.converted_value}"
     end
   end
   
 end
-
 
 desc "Build extensions from lib/ext"
 task :extensions => %w[
