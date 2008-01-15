@@ -75,7 +75,7 @@ module Compile
         res = Compile.single_load '', rb, rbc, ext, requiring
       end
 
-      return res unless res.equal? nil
+      return res unless res.nil? # can be false
 
     # Unqualified
     else
@@ -96,7 +96,7 @@ module Compile
         end
 
         res = Compile.single_load "#{dir}/", rb, rbc, ext, requiring
-        return res unless res.equal? nil
+        return res unless res.nil? # can be false
       end
     end
 
@@ -116,7 +116,7 @@ module Compile
   # Internally used by #unified_load. This attempts to load the
   # designated file from a single prefix path.
   def self.single_load(dir, rb, rbc, ext, requiring = nil)
-    unless rb.equal? nil
+    if rb then
       return false if requiring and $LOADED_FEATURES.include? rb
 
       rb_path = "#{dir}#{rb}"
@@ -155,7 +155,7 @@ module Compile
       end
     end
 
-    unless rbc.equal? nil
+    if rbc then
       rb = rbc.chomp 'c'
       return false if requiring and $LOADED_FEATURES.include?(rb)
 
@@ -179,7 +179,7 @@ module Compile
       end
     end
 
-    unless ext.equal? nil
+    if ext then
       return false if requiring and $LOADED_FEATURES.include? ext
       
       ext_path = "#{dir}#{ext}"
