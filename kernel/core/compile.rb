@@ -107,9 +107,9 @@ module Compile
     $LOADED_FEATURES << rb if requiring.equal?(true)
     begin
       yield
-    rescue => e
+    rescue Exception => e
       $LOADED_FEATURES.delete(rb) if requiring.equal?(true)
-      raise
+      raise e
     end
   end
 
@@ -143,8 +143,13 @@ module Compile
           end
         end
 
-        cm.compile
-        cm.as_script
+        begin
+          cm.compile
+          cm.as_script
+        rescue Exception => e
+          $LOADED_FEATURES.delete(rb) if requiring.equal?(true)
+          raise e
+        end
 
         return true
       end
@@ -162,8 +167,13 @@ module Compile
           raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
         end
 
-        cm.compile
-        cm.as_script
+        begin
+          cm.compile
+          cm.as_script
+        rescue Exception => e
+          $LOADED_FEATURES.delete(rb) if requiring.equal?(true)
+          raise e
+        end
 
         return true
       end
