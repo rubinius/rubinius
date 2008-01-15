@@ -101,9 +101,11 @@ class Node
       @slot = 0
       @ivar_as_slot = {}
       @visibility = :public
+      @module_function = false
     end
 
     attr_accessor :visibility
+    attr_accessor :module_function
 
     def create_scope
       Compiler::LocalScope.new(self)

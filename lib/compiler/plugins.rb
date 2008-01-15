@@ -53,7 +53,12 @@ module Compiler::Plugins
       return false unless call.kind_of? Compiler::Node::VCall
       scope = @compiler.get(:scope)
       return false unless scope
-                  
+      
+      scope.module_function = (call.method == :module_function)
+      if scope.module_function 
+        return true
+      end
+            
       if call.method == :private
         scope.visibility = :private
       elsif call.method == :protected

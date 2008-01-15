@@ -439,6 +439,7 @@ class Module
         method_name = normalize_name(meth)
         method = find_method_in_hierarchy(method_name)
         mc.method_table[method_name] = method.dup
+        set_class_visibility(method_name, :public)
         set_visibility(method_name, :private)
       end
     end
