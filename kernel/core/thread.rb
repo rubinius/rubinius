@@ -5,6 +5,9 @@
 # Kernel.raise to call the proper raise.
 
 class Thread
+
+  class Die < Exception; end # HACK
+
   ivar_as_index :__ivars__ => 0, :priority => 1, :task => 2, :joins => 3
   def task; @task; end
 
@@ -44,6 +47,7 @@ class Thread
     end
 
     block = block_given?
+    block = block.block if block.kind_of? Proc
     block.disable_long_return!
 
     setup(false)
@@ -93,6 +97,10 @@ class Thread
     return th
   end
 
+  def self.start(*args, &block)
+    new(*args, &block) # HACK
+  end
+
   def current_context
     @task.current_context
   end
@@ -109,7 +117,11 @@ class Thread
   def stop?
     !alive? || @sleep
   end
-  
+
+  def kill
+    raise Die
+  end
+
   def status
     if alive?
       if @sleep
