@@ -101,6 +101,7 @@ class Socket < BasicSocket
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
 
     attach_function "socketpair", :socketpair, [:int, :int, :int, :pointer], :int
+    attach_function "gethostname", :gethostname, [:pointer, :int], :int
 
     def self.getpeername(socket, reverse_lookup = false)
       reverse_lookup = reverse_lookup ? 1 : 0
@@ -220,6 +221,13 @@ class Socket < BasicSocket
     if res_p then
       Socket::Foreign.freeaddrinfo res_p.read_pointer
       res_p.free
+    end
+  end
+
+  def self.gethostname
+    MemoryPointer.new :char, 1024 do |mp|  #magic number 1024 comes from MRI
+      Socket::Foreign.gethostname(mp, 1024) # same here
+      return mp.read_string
     end
   end
 
