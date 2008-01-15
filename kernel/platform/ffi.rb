@@ -399,6 +399,8 @@ end
 
 class FFI::Struct
 
+  attr_reader :pointer
+
   attach_function "ffi_get_field", [:pointer, :int, :int], :object
   attach_function "ffi_set_field", [:pointer, :int, :int, :object], :void
 
@@ -472,6 +474,10 @@ class FFI::Struct
     end
 
     @cspec = self.class.layout(*spec)
+  end
+
+  def free
+    @pointer.free
   end
 
   def [](field)
