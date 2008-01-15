@@ -8,27 +8,36 @@ describe "The retry statement" do
   end
   
   it "re-executes the closest block" do
-    exist = [2,3]
-    processed = []
-    order = []
-    [1,2,3,4].each do |x|
-      order << x
-      begin
-        processed << x
-        if(exist.include?(x))
-          raise StandardError, "included"
-        end
-      rescue StandardError => e
-        exist.delete(x)
+    retry_first = true
+    retry_second = true
+    results = []
+    begin
+      results << 1
+      raise
+    rescue
+      results << 2
+      if retry_first
+        results << 3
+        retry_first = false
         retry
       end
+      begin
+        results << 4
+        raise
+      rescue
+        results << 5
+        if retry_second
+          results << 6
+          retry_second = false
+          retry
+        end
+      end
     end
-    processed.should == [1,2,2,3,3,4]
-    exist.should == []
-    order.should == [1,2,3,4]
+
+    results.should == [1, 2, 3, 1, 2, 4, 5, 6, 4, 5]
   end
 
-  # block retry is crazy. rubinius is not currently planning to implement it.
+  # block retry has been officially deprecated by matz and is unsupported in 1.9
   compliant_on :ruby do
     it "re-executes the entire enumeration" do
       list = []
