@@ -54,41 +54,64 @@ class Module
     method_added(name) if self.respond_to? :method_added
   end
 
-  def class_variable_set(name, val)
-    raise NameError, "#{name} is not an allowed class variable name" unless
-      name.to_s[0..1] == '@@'
-
-    if direct_superclass and
-       direct_superclass.class_variables.include? name.to_s then
-      direct_superclass.class_variable_set name, val
-    else
-      @variables ||= Hash.new
-      @variables[name.to_sym] = val
+  def verify_class_variable_name(name)
+    name = name.kind_of?(Symbol) ? name.to_s : StringValue(name)
+    unless name[0..1] == '@@' and name[2].toupper.between?(?A, ?Z) or name[2] == ?_
+      raise NameError, "#{name} is not an allowed class variable name"
     end
+    name.to_sym
+  end
+  private :verify_class_variable_name 
+    
+  def class_variables_table
+    @class_variables ||= Hash.new
+  end
+  private :class_variables_table
+  
+  def class_variable_set(name, val)
+    name = verify_class_variable_name name
+
+    current = direct_superclass
+    while current
+      vars = current.send :class_variables_table
+      return vars[name] = val if vars.key? name
+      current = current.direct_superclass
+    end
+    
+    class_variables_table[name] = val
   end
 
   def class_variable_get(name)
-    raise NameError, "#{name} is not an allowed class variable name" unless
-      name.to_s[0..1] == '@@'
+    name = verify_class_variable_name name
 
-    @variables ||= Hash.new
-
-    if @variables.key? name.to_sym then
-      @variables[name.to_sym]
-    else
-      direct_superclass.class_variable_get name
+    current = self
+    while current
+      vars = current.send :class_variables_table
+      return vars[name] if vars.key? name
+      current = current.direct_superclass
     end
+    
+    raise NameError, "uninitialized class variable #{name} in #{self.name}"
+  end
+  
+  def class_variable_defined?(name)
+    name = verify_class_variable_name name
+    
+    current = self
+    while current
+      vars = current.send :class_variables_table
+      return true if vars.key? name
+      current = current.direct_superclass
+    end
+    return false
   end
 
   def class_variables(symbols = false)
-    names = ancestors.map do |mod|
-      if vars = mod.instance_variable_get(:@variables) then
-        vars.keys
-      end
-    end.flatten.compact.uniq
-
+    names = []
+    ancestors.map do |mod|
+      names.concat mod.send(:class_variables_table).keys
+    end
     names = names.map { |name| name.to_s } unless symbols
-
     names
   end
 
