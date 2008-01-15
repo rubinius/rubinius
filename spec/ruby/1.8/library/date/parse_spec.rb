@@ -63,6 +63,8 @@ describe "Date#parse" do
     d.should == Date.civil(1910, 11, 1)
   end
 
+  # The combination of using the - separator and using names for
+  # months doesn't work, so - is excluded here.
   it_behaves_like(:date_parse, '.')
   it_behaves_like(:date_parse, '/')
   it_behaves_like(:date_parse, ' ')
