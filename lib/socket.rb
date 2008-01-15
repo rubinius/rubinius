@@ -100,6 +100,8 @@ class Socket < BasicSocket
                     [:state, :int, :int], :object
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
 
+    attach_function "socketpair", :socketpair, [:int, :int, :int, :pointer], :int
+
     def self.getpeername(socket, reverse_lookup = false)
       reverse_lookup = reverse_lookup ? 1 : 0
 
@@ -226,6 +228,7 @@ class Socket < BasicSocket
     Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, type, flags)
   end
 
+
   def self.unpack_sockaddr_in(sockaddr)
     host, address, port = Socket::Foreign.unpack_sa_ip sockaddr, false
 
@@ -238,8 +241,22 @@ class Socket < BasicSocket
     end
   end
 
+  def self.socketpair(domain, type, protocol)
+    MemoryPointer.new :int, 2 do |mp|
+      Socket::Foreign.socketpair(domain, type, protocol, mp)
+      fd0, fd1 = mp.read_array_of_int(2)
+
+      # Is there a better way to create these Sockets from the returned file descriptors?
+      s1, s2 = [ Socket.new(domain, type, protocol), Socket.new(domain, type, protocol ) ]
+      s1.setup(fd0)
+      s2.setup(fd1)
+      [s1, s2]
+    end
+  end
+
   class << self
     alias_method :sockaddr_in, :pack_sockaddr_in
+    alias_method :pair, :socketpair
   end
 
   # Only define these methods if we support unix sockets
