@@ -143,5 +143,6 @@ class Proc
         return e.return_value
       end
     end
+    alias_method :[], :call
   end
 end
