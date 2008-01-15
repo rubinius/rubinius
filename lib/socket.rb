@@ -115,8 +115,6 @@ class Socket < BasicSocket
                     [:state, :string, :string, :int, :int], :object
     attach_function "ffi_decode_sockaddr", :ffi_decode_sockaddr,
                     [:state, :string, :int, :int], :object
-    attach_function "ffi_getaddrinfo", :ffi_getaddrinfo,
-                    [:state, :object, :int, :int, :int, :int], :object
     attach_function "ffi_getpeername", :ffi_getpeername,
                     [:state, :int, :int], :object
     attach_function "ffi_getsockname", :getsockname,
