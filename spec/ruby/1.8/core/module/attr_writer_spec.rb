@@ -4,30 +4,35 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Module#attr_writer" do
   it "creates a setter for each given attribute name" do
     c = Class.new do
-      attr_writer :a, :b.to_i, "c"
+      attr_writer :a, "c"
     end
-    
     o = c.new
-    %w{a c}.each do |x|
-      o.respond_to?(x).should == false
-      o.respond_to?("#{x}=").should == true
-    end
 
-    compliant_on :ruby do
-      o.respond_to?('b').should == false
-      o.respond_to?("b=").should == true
-    end
-    
+    o.respond_to?("a").should == false
+    o.respond_to?("c").should == false
+
+    o.respond_to?("a=").should == true
     o.a = "test"
     o.instance_variable_get(:@a).should == "test"
 
-    compliant_on :ruby do
+    o.respond_to?("c=").should == true
+    o.c = "test3"
+    o.instance_variable_get(:@c).should == "test3"
+  end
+  
+  not_compliant_on :rubinius do
+    it "creates a setter for an attribute name given as a Fixnum" do
+      c = Class.new do
+        attr_writer :b.to_i
+      end
+      
+      o = c.new
+      o.respond_to?("b").should == false
+      o.respond_to?("b=").should == true
+
       o.b = "test2"
       o.instance_variable_get(:@b).should == "test2"
     end
-
-    o.c = "test3"
-    o.instance_variable_get(:@c).should == "test3"
   end
 
   it "converts non string/symbol/fixnum names to strings using to_str" do

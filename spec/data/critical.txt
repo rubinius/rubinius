@@ -1,7 +1,3 @@
-Module#extend_object extends the given object with constants and methods of self
-Module#extend_object is called when an object gets extended with self
-Module#module_function makes the instance method versions private
-Module#autoload registers the given filename to be loaded the first time that the Module with the given name is accessed
 Thread#join raises any exceptions encountered in the thread body
 The loop expression restarts the current iteration with redo
 IO#gets raises IOError if the stream is not opened for reading
