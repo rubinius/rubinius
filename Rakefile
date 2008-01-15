@@ -918,6 +918,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
   cg.include "netdb.h"
   cg.include "sys/stat.h"
   cg.include "sys/resource.h"
+  cg.include "netinet/tcp.h"
 
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
