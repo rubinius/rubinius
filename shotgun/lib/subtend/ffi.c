@@ -13,7 +13,7 @@
 #include "shotgun/lib/subtend/ffi.h"
 
 #if defined(__amd64__) || defined(__x86_64__) || defined(X86_64)
-  #include "shotgun/lib/subtend/ffi_amd64.h" 
+  #include "shotgun/lib/subtend/ffi_amd64.h"
 #elif defined(i386)
   #include "shotgun/lib/subtend/ffi_x86.h"
 #endif
@@ -23,9 +23,9 @@ void Init_ffi(STATE) {
   OBJECT mod;
   BASIC_CLASS(ffi_ptr) = rbs_class_new(state, "MemoryPointer", 0, BASIC_CLASS(bytearray));
   class_set_object_type(BASIC_CLASS(ffi_ptr), I2N(MemPtrType));
-  
+
   BASIC_CLASS(ffi_func) = rbs_class_new(state, "NativeFunction", 0, BASIC_CLASS(object));
-  
+
   mod = rbs_module_new(state, "FFI", BASIC_CLASS(object));
   rbs_const_set(state, mod, "TYPE_OBJECT",   I2N(FFI_TYPE_OBJECT));
   rbs_const_set(state, mod, "TYPE_CHAR",     I2N(FFI_TYPE_CHAR));
@@ -66,36 +66,35 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
   char *codebuf; /*, *res; */
   int in, i; /*, vars, aligned, size */
   int *ids;
-    
+
   /* The stub is called with the receiver, so if there are no args, we
      can just use func as the stub. */
   if(args == 0) return func;
-  
+
   /* Until lightning supports more than 6 args, we can only generate a stub
      for 5 args (0 is the receiver). */
   if(args > 5) return NULL;
-  
+
   codebuf = ALLOC_N(char, 4096);
   start = codebuf;
-  
+
   (void)jit_set_ip((jit_insn*)codebuf);
-      
+
   jit_prolog(1);
-  
+
   in = jit_arg_p();
   jit_getarg_p(JIT_V0, in);
-  
+
   if(args == 0) {
     jit_prepare_i(1);
     jit_pusharg_p(JIT_V0);
-    
   }
  /* else if(args == 1) {
     ffi_pop(JIT_V1);
     jit_prepare_i(2);
     jit_pusharg_p(JIT_V1);
     jit_pusharg_p(JIT_V0);
-    
+
   } else if(args == 2) {
     ffi_pop(JIT_V1);
     ffi_pop(JIT_V2);
@@ -103,33 +102,33 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
     jit_pusharg_p(JIT_V2);
     jit_pusharg_p(JIT_V1);
     jit_pusharg_p(JIT_V0);
-    
-  } */ 
+
+  } */
   else {
-    
+
     ids = ALLOC_N(int, args);
-    
-    for(i = 0; i < args; i++) {    
+
+    for(i = 0; i < args; i++) {
       ffi_pop(JIT_V1);
       ids[i] = jit_allocai(sizeof(void*));
       jit_stxi_p(ids[i], JIT_FP, JIT_V1);
     }
-        
+
     jit_prepare_i(args + 1);
-    
+
     for(i = args - 1; i >= 0; i--) {
       jit_ldxi_p(JIT_R2, JIT_FP, ids[i]);
       jit_pusharg_p(JIT_R2);
     }
-            
+
     jit_pusharg_p(JIT_V0);
     XFREE(ids);
-  }    
-  
+  }
+
   jit_finish(func);
   jit_retval_p(JIT_RET);
   jit_ret();
-  
+
   if(getenv("RBX_SHOW_STUBS")) {
     printf("Assembly stub for: %p (%d)\n", func, args);
 
@@ -137,17 +136,17 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
     disassemble(stderr, start, jit_get_ip().ptr);
     #endif
   }
-  
+
   jit_flush_code(start, jit_get_ip().ptr);
   return start;
-  
+
 /*  size = jit_get_ip().ptr - start;
   res = calloc(size, sizeof(char));
   memcpy(res, start, size);
   XFREE(codebuf);
-  
+
   jit_flush_code(res, res - size);
-  
+
   return res;
 */
 }
@@ -157,38 +156,38 @@ int ffi_type_size(int type) {
     case FFI_TYPE_CHAR:
     case FFI_TYPE_UCHAR:
     return sizeof(char);
-    
+
     case FFI_TYPE_SHORT:
     case FFI_TYPE_USHORT:
     return sizeof(short);
-    
+
     case FFI_TYPE_INT:
     case FFI_TYPE_UINT:
     return sizeof(int);
-    
+
     case FFI_TYPE_LONG:
     case FFI_TYPE_ULONG:
     return sizeof(long);
-    
+
     case FFI_TYPE_LL:
     case FFI_TYPE_ULL:
     return sizeof(long long);
-    
+
     case FFI_TYPE_FLOAT:
     return sizeof(float);
-    
+
     case FFI_TYPE_DOUBLE:
     return sizeof(double);
-    
+
     case FFI_TYPE_PTR:
     case FFI_TYPE_STRING:
     case FFI_TYPE_STATE:
     case FFI_TYPE_STRPTR:
     case FFI_TYPE_OBJECT:
     return sizeof(void*);
-    
+
     default:
-    
+
     return -1;
   }
 }
@@ -218,9 +217,9 @@ char ffi_to_char() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   type_assert(obj, FixnumType);
-  
+
   return (char)FIXNUM_TO_INT(obj);
 }
 
@@ -237,9 +236,9 @@ unsigned char ffi_to_uchar() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   type_assert(obj, FixnumType);
-  
+
   return (unsigned char)FIXNUM_TO_INT(obj);
 }
 
@@ -248,7 +247,7 @@ void ffi_from_uchar(unsigned char c) {
   STATE;
   rni_context *ctx = subtend_retrieve_context();
   state = ctx->state;
-  
+
   ret = I2N((int)c);
   cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
 }
@@ -259,9 +258,9 @@ short ffi_to_short() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   type_assert(obj, FixnumType);
-  
+
   return (short)FIXNUM_TO_INT(obj);
 }
 
@@ -278,9 +277,9 @@ unsigned short ffi_to_ushort() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   type_assert(obj, FixnumType);
-  
+
   return (unsigned short)FIXNUM_TO_INT(obj);
 }
 
@@ -289,7 +288,7 @@ void ffi_from_ushort(unsigned short c) {
   STATE;
   rni_context *ctx = subtend_retrieve_context();
   state = ctx->state;
-  
+
   ret = I2N((int)c);
   cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
 }
@@ -301,7 +300,7 @@ int ffi_to_int() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   if(FIXNUM_P(obj)) {
     return FIXNUM_TO_INT(obj);
   } else {
@@ -315,7 +314,7 @@ void ffi_from_int(int obj) {
   STATE;
   rni_context *ctx = subtend_retrieve_context();
   state = ctx->state;
-  
+
   ret = I2N(obj);
   cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
 }
@@ -324,7 +323,7 @@ unsigned int ffi_to_uint() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   if(FIXNUM_P(obj)) {
     return (unsigned int)FIXNUM_TO_INT(obj);
   } else {
@@ -337,9 +336,9 @@ void ffi_from_uint(unsigned int obj) {
   OBJECT ret;
   STATE;
   rni_context *ctx = subtend_retrieve_context();
-  
+
   state = ctx->state;
-  
+
   ret = UI2N(obj);
   cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
 }
@@ -425,9 +424,9 @@ float ffi_to_float() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   type_assert(obj, FloatType);
-  
+
   return (float)FLOAT_TO_DOUBLE(obj);
 }
 
@@ -444,9 +443,9 @@ double ffi_to_double() {
   double ret;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   type_assert(obj, FloatType);
-  
+
   ret = FLOAT_TO_DOUBLE(obj);
   return ret;
 }
@@ -463,23 +462,23 @@ void* ffi_to_ptr() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   if(NIL_P(obj)) return NULL;
-  
+
   type_assert(obj, MemPtrType);
-  
-  return (*DATA_STRUCT(obj, void**));  
+
+  return (*DATA_STRUCT(obj, void**));
 }
 
 void ffi_from_ptr(void *ptr) {
   OBJECT ret;
   STATE;
-  
+
   void **code_start;
-    
+
   rni_context *ctx = subtend_retrieve_context();
   state = ctx->state;
-  
+
   if(ptr == NULL) {
     ret = Qnil;
   } else {
@@ -500,9 +499,9 @@ char *ffi_to_string() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
+
   type_assert(obj, StringType);
-  
+
   return string_byte_address(ctx->state, obj);
 }
 
@@ -521,7 +520,7 @@ void ffi_from_string(char *str) {
 
 /* state */
 void* ffi_to_state() {
-  rni_context *ctx = subtend_retrieve_context();  
+  rni_context *ctx = subtend_retrieve_context();
   return (void*)ctx->state;
 }
 
@@ -529,16 +528,16 @@ void* ffi_to_state() {
 void ffi_from_strptr(char *str) {
   OBJECT obj, ptr, ret;
   STATE;
-  
+
   void **code_start;
-  
+
   rni_context *ctx = subtend_retrieve_context();
   obj = string_new(ctx->state, str);
-  
+
   state = ctx->state;
   NEW_STRUCT(ptr, code_start, BASIC_CLASS(ffi_ptr), void*);
   *code_start = (void*)str;
-  
+
   ret = array_new(ctx->state, 2);
   array_set(ctx->state, ret, 0, obj);
   array_set(ctx->state, ret, 1, ptr);
@@ -550,55 +549,55 @@ void* ffi_get_to_converter(int type) {
   switch(type) {
     case FFI_TYPE_OBJECT:
     return ffi_to_object;
-    
+
     case FFI_TYPE_CHAR:
     return ffi_to_char;
-    
+
     case FFI_TYPE_UCHAR:
     return ffi_to_uchar;
-    
+
     case FFI_TYPE_SHORT:
     return ffi_to_short;
-    
+
     case FFI_TYPE_USHORT:
     return ffi_to_ushort;
-        
+
     case FFI_TYPE_INT:
     return ffi_to_int;
-    
+
     case FFI_TYPE_UINT:
     return ffi_to_uint;
-    
+
     case FFI_TYPE_LONG:
     return ffi_to_long;
-    
+
     case FFI_TYPE_ULONG:
     return ffi_to_ulong;
-    
+
     case FFI_TYPE_LL:
     return ffi_to_ll;
-    
+
     /* FIXME: have a real converter */
     case FFI_TYPE_ULL:
     return ffi_to_ll;
-    
+
     case FFI_TYPE_FLOAT:
     return ffi_to_float;
-    
+
     case FFI_TYPE_DOUBLE:
     return ffi_to_double;
-    
+
     case FFI_TYPE_PTR:
     return ffi_to_ptr;
-    
+
     case FFI_TYPE_STRING:
     return ffi_to_string;
-    
+
     case FFI_TYPE_STATE:
     return ffi_to_state;
-    
+
     default:
-    
+
     return NULL;
   }
 }
@@ -607,58 +606,58 @@ void* ffi_get_from_converter(int type) {
   switch(type) {
     case FFI_TYPE_OBJECT:
     return ffi_from_object;
-    
+
     case FFI_TYPE_CHAR:
     return ffi_from_char;
-    
+
     case FFI_TYPE_UCHAR:
     return ffi_from_uchar;
-    
+
     case FFI_TYPE_SHORT:
     return ffi_from_short;
-    
+
     case FFI_TYPE_USHORT:
     return ffi_from_ushort;
-        
+
     case FFI_TYPE_INT:
     return ffi_from_int;
-    
+
     case FFI_TYPE_UINT:
     return ffi_from_uint;
-    
+
     case FFI_TYPE_LONG:
     return ffi_from_long;
-    
+
     case FFI_TYPE_ULONG:
     return ffi_from_ulong;
-    
+
     case FFI_TYPE_LL:
     return ffi_from_ll;
-    
+
     /* FIXME: have a real converter */
     case FFI_TYPE_ULL:
     return ffi_from_ll;
-    
+
     case FFI_TYPE_FLOAT:
     return ffi_from_float;
-    
+
     case FFI_TYPE_DOUBLE:
     return ffi_from_double;
-    
+
     case FFI_TYPE_PTR:
     return ffi_from_ptr;
-    
+
     case FFI_TYPE_VOID:
     return ffi_from_void;
-    
+
     case FFI_TYPE_STRING:
     return ffi_from_string;
-    
+
     case FFI_TYPE_STRPTR:
     return ffi_from_strptr;
-    
+
     default:
-    
+
     return NULL;
   }
 }
@@ -672,9 +671,9 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   void *conv;
   int int_count, float_count, double_count;
   OBJECT obj;
-      
+
   /* lightning only supports 6 arguments currently. */
-  if(args > 6) 
+  if(args > 6)
   {
     XFREE(arg_types);
     return Qnil;
@@ -682,17 +681,17 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   int_count = 0;
   float_count = 0;
   double_count = 0;
-    
+
   codebuf = ALLOC_N(char, 4096);
   start = codebuf;
-  
+
   (void)jit_set_ip((jit_insn*)codebuf);
-  
+
   jit_prolog(0);
-  
+
   if(args > 0) {
     ids = ALLOC_N(int, args);
-  
+
     for(i = 0; i < args; i++) {
       conv = ffi_get_to_converter(arg_types[i]);
       switch(arg_types[i]) {
@@ -709,9 +708,9 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
         int_count++;
         break;
       }
-            
+
 #define call_conv(kind) jit_prepare(0); (void)(jit_calli(conv)); jit_retval_ ## kind (reg); ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
-    
+
       switch(arg_types[i]) {
       case FFI_TYPE_CHAR:
       case FFI_TYPE_UCHAR:
@@ -749,47 +748,47 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
         jit_stxi_p(ids[i], JIT_FP, reg);
       }
     }
-    
+
     if(int_count > 0) jit_prepare_i(int_count);
     if(double_count > 0) jit_prepare_d(double_count);
     if(float_count > 0)  jit_prepare_f(float_count);
-    
+
     for(i = args - 1; i >= 0; i--) {
       switch(arg_types[i]) {
       case FFI_TYPE_CHAR:
       case FFI_TYPE_UCHAR:
-        jit_ldxi_c(JIT_R2, JIT_FP, ids[i]);      
+        jit_ldxi_c(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_c(JIT_R2);
         break;
-      
+
       case FFI_TYPE_SHORT:
       case FFI_TYPE_USHORT:
-        jit_ldxi_s(JIT_R2, JIT_FP, ids[i]);            
+        jit_ldxi_s(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_s(JIT_R2);
         break;
-      
+
       case FFI_TYPE_INT:
       case FFI_TYPE_UINT:
         jit_ldxi_i(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_i(JIT_R2);
         break;
-      
+
       case FFI_TYPE_LONG:
       case FFI_TYPE_ULONG:
         jit_ldxi_l(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_l(JIT_R2);
         break;
-    
+
       case FFI_TYPE_FLOAT:
         jit_ldxi_f(JIT_FPR5, JIT_FP, ids[i]);
-        jit_pusharg_f(JIT_FPR5);    
+        jit_pusharg_f(JIT_FPR5);
         break;
-      
+
       case FFI_TYPE_DOUBLE:
         jit_ldxi_d(JIT_FPR5, JIT_FP, ids[i]);
         jit_pusharg_d(JIT_FPR5);
         break;
-      
+
       case FFI_TYPE_OBJECT:
       case FFI_TYPE_PTR:
       case FFI_TYPE_STRING:
@@ -798,12 +797,12 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
         jit_ldxi_p(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_p(JIT_R2);
       }
-    
+
     }
     XFREE(arg_types);
     XFREE(ids);
   }
-  
+
 #ifdef i386
 # ifdef __linux__
   /* call finit to initialize the fpu. i don't know yet why this is
@@ -814,7 +813,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
 #endif
 
   jit_finish(func);
-  
+
   switch(ret_type) {
   case FFI_TYPE_FLOAT:
   case FFI_TYPE_DOUBLE:
@@ -823,7 +822,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   default:
     reg = JIT_V1;
   }
-  
+
   switch(ret_type) {
   case FFI_TYPE_CHAR:
   case FFI_TYPE_UCHAR:
@@ -831,46 +830,46 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     jit_prepare_i(1);
     jit_pusharg_c(reg);
     break;
-    
+
   case FFI_TYPE_SHORT:
   case FFI_TYPE_USHORT:
     jit_retval_s(reg);
     jit_prepare_i(1);
     jit_pusharg_s(reg);
     break;
-    
+
   case FFI_TYPE_INT:
   case FFI_TYPE_UINT:
     jit_retval_i(reg);
     jit_prepare_i(1);
     jit_pusharg_i(reg);
     break;
-    
+
   case FFI_TYPE_LONG:
   case FFI_TYPE_ULONG:
     jit_retval_l(reg);
     jit_prepare_i(1);
     jit_pusharg_l(reg);
     break;
-  
+
   case FFI_TYPE_FLOAT:
     jit_retval_f(reg);
     jit_prepare_f(1);
-    jit_pusharg_f(reg);    
+    jit_pusharg_f(reg);
     break;
-    
+
   case FFI_TYPE_DOUBLE:
     jit_retval_d(reg);
     jit_prepare_d(1);
     jit_pusharg_d(reg);
     break;
-    
+
   case FFI_TYPE_VOID:
     jit_prepare_i(1);
     jit_movi_i(reg, 1);
     jit_pusharg_i(reg);
     break;
-    
+
   case FFI_TYPE_OBJECT:
   case FFI_TYPE_PTR:
   case FFI_TYPE_STRING:
@@ -887,7 +886,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
      doesn't hurt to clear it. */
   jit_movi_i(JIT_RET, 1);
   jit_ret();
-  
+
   if(getenv("RBX_SHOW_STUBS")) {
     printf("Assembly stub for: %p (%d)\n", func, args);
 
@@ -895,21 +894,21 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     disassemble(stderr, start, jit_get_ip().ptr);
     #endif
   }
-  
-  jit_flush_code(start, jit_get_ip().ptr); 
+
+  jit_flush_code(start, jit_get_ip().ptr);
 /*  size = jit_get_ip().ptr - start;
-    
+
   res = calloc(size, sizeof(char));
   memcpy(res, start, size);
   XFREE(codebuf);
-  
+
   jit_flush_code(res, res + size);
-*/  
+*/
   // obj = object_memory_new_opaque(state, BASIC_CLASS(ffi_ptr), sizeof(void*));
   NEW_STRUCT(obj, code_start, BASIC_CLASS(ffi_ptr), void*);
   *code_start = (void*)start;
 /*  *code_start = (void*)res;*/
-  
+
   //memcpy(BYTES_OF(obj), &start, sizeof(void*));
   return obj;
 }
@@ -923,22 +922,23 @@ OBJECT ffi_function_new(STATE, OBJECT ptr, OBJECT name, int args) {
   cmethod_set_name(nf, name);
   cmethod_set_file(nf, symtbl_lookup_cstr(state, state->global->symbols, "<system>"));
   nmethod_set_data(nf, ptr);
-  
+
   return nf;
 }
 
-/* The main interface function, handles looking up the pointer in the library, generating
-   the stub, wrapping it up and attaching it to the module. */
+/* The main interface function, handles looking up the pointer in the library,
+ * generating the stub, wrapping it up and attaching it to the module.
+ */
 OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJECT ret) {
   void *ep;
   int *arg_types;
   int ret_type;
   int i, tot, arg_count;
   OBJECT ptr, func, sym, type; /* meths; */
-  
+
   ep = subtend_find_symbol(state, library, name);
   if(!ep) return Qnil;
-  
+
   tot = FIXNUM_TO_INT(array_get_total(args));
   arg_count = tot;
   /* We don't support more than 6 args currently. */
@@ -946,12 +946,12 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
     return Qnil;
   } else if(tot > 0) {
     arg_types = ALLOC_N(int, tot);
-  
+
     for(i = 0; i < tot; i++) {
       type = array_get(state, args, i);
       if(!FIXNUM_P(type)) return Qnil;
       arg_types[i] = FIXNUM_TO_INT(type);
-      
+
       /* State can only be passed as the first arg, and it's invisible,
          ie doesn't get seen as in onbound arg by ruby. But it can ONLY
          be the first arg. */
@@ -968,12 +968,12 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   } else {
     arg_types = NULL;
   }
-  
+
   ret_type = FIXNUM_TO_INT(ret);
-  
+
 #if defined(__amd64__) || defined(__x86_64__) || defined(X86_64)
-  ptr = ffi_amd64_generate_c_shim(state, tot, arg_types, ret_type, ep); 
-  XFREE(arg_types); 
+  ptr = ffi_amd64_generate_c_shim(state, tot, arg_types, ret_type, ep);
+  XFREE(arg_types);
 #elif defined(i386) && defined(__linux__)
   ptr = ffi_x86_generate_c_shim(state, tot, arg_types, ret_type, ep);
   XFREE(arg_types);
@@ -990,12 +990,12 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
 void ffi_call(STATE, cpu c, OBJECT ptr) {
   nf_stub_ffi func;
   rni_context *ctx;
-  
+
   ctx = subtend_retrieve_context();
   ctx->state = state;
   ctx->cpu = c;
-  
-  
+
+
   func = (nf_stub_ffi)(*DATA_STRUCT(ptr, void**));
   func();
 }
@@ -1004,11 +1004,11 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
   nf_converter conv = (nf_converter)ffi_get_from_converter(type);
   int sz;
   rni_context *ctx = subtend_retrieve_context();
-  
+
   ptr += offset;
 
   sz = ffi_type_size(type);
-  
+
   switch(sz) {
   case 1:
     (void)conv(*((uint8_t*)ptr));
@@ -1024,7 +1024,7 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
     (void)conv(*((uint64_t*)ptr));
     break;
   }
-  
+
   return cpu_stack_pop(ctx->state, ctx->cpu);
 }
 
@@ -1035,13 +1035,13 @@ void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
   uint16_t u16;
   uint32_t u32;
   uint64_t u64;
-  
+
   rni_context *ctx = subtend_retrieve_context();
   nf_converter conv = (nf_converter)ffi_get_to_converter(type);
   sz = ffi_type_size(type);
 
   cpu_stack_push(ctx->state, ctx->cpu, val, FALSE);
-  
+
   ptr += offset;
 
   switch(sz) {
@@ -1062,6 +1062,6 @@ void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
     u64 = (uint64_t)conv();
     memcpy(ptr, &u64, sz);
     break;
-  
+
   }
 }
