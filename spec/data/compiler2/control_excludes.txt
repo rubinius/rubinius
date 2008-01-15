@@ -1,2 +1,0 @@
-Compiler2 compiles a for loop with multiple arguments
-Compiler2 compiles a for loop with multiple arguments and an inner lasgn

@@ -1,7 +1,0 @@
-Bytecode::Compiler compiles a regexp literal
-Bytecode::Compiler compiles yield
-Bytecode::Compiler compiles ensure
-Bytecode::Compiler compiles masgn with array as the source and too many lhs
-Bytecode::Compiler compiles masgn with array as the source and too many rhs
-Bytecode::Compiler compiles masgn with array as source splat is stupid
-Bytecode::Compiler compiles iter

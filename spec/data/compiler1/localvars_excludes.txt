@@ -1,2 +1,0 @@
-Local variable access lvar in method body uses specific syntax
-Local variable access lvar defined in method, accessed in block

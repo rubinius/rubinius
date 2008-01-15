@@ -1,1 +1,0 @@
-Compiler2 compiles lvar for argument

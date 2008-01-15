@@ -1,2 +1,0 @@
-Compiler2 compiles 'ary.each do |(a, b), *c|; ... end'
-Compiler2 compiles 'ary.each do |(a, (b, c)), d|; ... end'
