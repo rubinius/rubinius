@@ -122,7 +122,10 @@ class Regexp
   end
 
   def =~(str)
-    match = match_from(StringValue(str), 0)
+    # unless str.nil? because it's nil and only nil, not false.
+    str = StringValue(str) unless str.nil?
+
+    match = match_from(str, 0)
     if match
       Regexp.last_match = match
       return match.begin(0)

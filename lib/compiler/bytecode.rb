@@ -1647,7 +1647,11 @@ class Node
       g.pop
       if @assigns
         @assigns.body.reverse_each do |x|
-          x.bytecode(g)
+          if x.is? AttrAssign
+            x.bytecode(g, true)
+          else
+            x.bytecode(g)
+          end
           g.pop
         end
       end
@@ -1670,7 +1674,11 @@ class Node
       if @assigns
         @assigns.body.each do |x|
           g.unshift_tuple
-          x.bytecode(g)
+          if x.is? AttrAssign
+            x.bytecode(g, true)
+          else
+            x.bytecode(g)
+          end
           g.pop
         end
       end

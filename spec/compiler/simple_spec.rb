@@ -181,7 +181,8 @@ describe Compiler do
   end
   
   it "compiles dynamic regexs" do
-    gen [:dregx, "(", [:evstr, [:true]], [:str, ")"]] do |g|
+    gen [:dregx, "(", [:evstr, [:true]], [:str, ")"], 0] do |g|
+      g.push 0
       g.push_literal ")"
       g.string_dup
       g.push :true
@@ -191,12 +192,13 @@ describe Compiler do
       g.string_append
       g.string_append
       g.push_const :Regexp
-      g.send :new, 1
+      g.send :new, 2
     end
   end
   
   it "compiles empty dynamic regexs" do
-    gen [:dregx, "(", [:evstr], [:str, ")"]] do |g|
+    gen [:dregx, "(", [:evstr], [:str, ")"], 0] do |g|
+      g.push 0
       g.push_literal ")"
       g.string_dup
       g.push_literal ""
@@ -207,12 +209,12 @@ describe Compiler do
       g.string_append
       g.string_append
       g.push_const :Regexp
-      g.send :new, 1
+      g.send :new, 2
     end
   end
   
   it "compiles a dynamic regex once is indicated" do
-    gen [:dregx_once, "(", [:evstr, [:true]], [:str, ")"]] do |g|
+    gen [:dregx_once, "(", [:evstr, [:true]], [:str, ")"], 0] do |g|
       idx = g.push_literal nil
       g.dup
       g.is_nil
@@ -220,7 +222,8 @@ describe Compiler do
       lbl = g.new_label
       g.gif lbl
       g.pop
-      
+     
+      g.push 0
       g.push_literal ")"
       g.string_dup
       g.push :true
@@ -230,7 +233,7 @@ describe Compiler do
       g.string_append
       g.string_append
       g.push_const :Regexp
-      g.send :new, 1
+      g.send :new, 2
       
       g.set_literal idx
       lbl.set!

@@ -256,7 +256,7 @@ again_no_block:
       /* HACK: emit newline nodes to govern a nd_else if it's another if.
        * the parser seems to not emit newlines properly at all. */
       if (node->nd_else) {
-        if(nd_type(node->nd_else) == NODE_IF) {
+        if(newlines && nd_type(node->nd_else) == NODE_IF) {
           OBJECT nl;
           nl = array_new(state, 4);
           array_push(current, nl);
