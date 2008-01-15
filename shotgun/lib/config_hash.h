@@ -15,3 +15,5 @@ void *ht_vconfig_remove(struct hashtable *ht, int *key);
 
 struct hashtable * ht_vconfig_create(unsigned int minsize);
 void ht_vconfig_destroy(struct hashtable *ht_config);
+
+void ht_vconfig_each(struct hashtable *ht, void (*cb)(int key, void *val));

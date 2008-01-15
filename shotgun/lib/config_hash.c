@@ -67,3 +67,15 @@ void ht_vconfig_destroy(struct hashtable *ht_config)
 {
   hashtable_destroy(ht_config, 0);
 }
+
+void ht_vconfig_each(struct hashtable *ht, void (*cb)(int key, void *val))
+{
+  struct hashtable_itr itr;
+
+  hashtable_iterator_init(&itr, ht);
+  do {
+    if (itr.e) {
+      cb((int)hashtable_iterator_key(&itr), hashtable_iterator_value(&itr));
+    }
+  } while (hashtable_iterator_advance(&itr));
+}
