@@ -3,8 +3,9 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Breakpoint#initalize" do
 
-  before do
+  before :all do
     @cm = BreakpointSpecs::Debuggee.instance_method(:simple_method).compiled_method
+    @cm.bytecodes = BreakpointSpecs::Debuggee.orig_bytecodes.dup
   end
 
   it "converts a missing instruction pointer argument to 0" do
