@@ -10,6 +10,11 @@ COMMIT
 CI-specs
 TAGS
 tags
+cscope.files
+cscope.out
+autom4te.cache
+stamp-h1
+.libs
 tmtags
 *.rbc
 .spec/bm.yml
@@ -88,12 +93,13 @@ shotgun/external_libs/libedit/common.h
 shotgun/external_libs/libedit/help.h
 shotgun/external_libs/libedit/libedit.a
 
-shotgun/external_libs/libevent/.libs
-shotgun/external_libs/libevent/config.h
-shotgun/external_libs/libevent/Makefile
-shotgun/external_libs/libevent/config.status
-shotgun/external_libs/libevent/libtool
-shotgun/external_libs/libevent/config.log
+shotgun/external_libs/libev/.libs
+shotgun/external_libs/libev/config.h
+shotgun/external_libs/libev/Makefile
+shotgun/external_libs/libev/config.status
+shotgun/external_libs/libev/libtool
+shotgun/external_libs/libev/config.log
+shotgun/external_libs/libev/configure.ac
 
 shotgun/external_libs/libevent/sample/Makefile
 
