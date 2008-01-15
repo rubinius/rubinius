@@ -84,7 +84,6 @@ void *ffi_read_pointer(void **ptr) {
   return *ptr;
 }
 
-
 char *ffi_sprintf_f(double value, int size, char *fmt) {
   char *str = ALLOC_N(char, size);
   snprintf(str, size, fmt, value);
@@ -113,7 +112,7 @@ OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) 
   struct addrinfo hints;
   struct addrinfo *res = NULL;
   int error;
-  
+
   if (type == 0 && flags == 0) {
     type = SOCK_DGRAM;
   }
@@ -122,18 +121,18 @@ OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) 
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = type;
   hints.ai_flags = flags;
-  
+
   if(strlen(name) == 0) {
     name = NULL;
   }
 
   error = getaddrinfo(name, port, &hints, &res);
   if(error) {
-    printf("ERROR: %s\n", gai_strerror(error));
-    return Qnil;
+    return tuple_new2(state, 2, Qfalse, string_new(state, gai_strerror(error)));
   }
 
-  ret = string_new2(state, (char *) res->ai_addr, res->ai_addrlen);
+  ret = tuple_new2(state, 2, Qtrue,
+                   string_new2(state, (char *) res->ai_addr, res->ai_addrlen));
 
   freeaddrinfo(res);
 
@@ -146,27 +145,72 @@ OBJECT ffi_decode_sockaddr(STATE, struct sockaddr *addr, int len, int reverse_lo
 
   int error = 0;
 
-  char hbuf[1024];
-  char pbuf[1024];
+  char hbuf[NI_MAXHOST];
+  char pbuf[NI_MAXSERV];
 
-  error = getnameinfo(addr, len, hbuf, sizeof(hbuf), pbuf, sizeof(pbuf), NI_NUMERICHOST | NI_NUMERICSERV);
+  error = getnameinfo(addr, len, hbuf, sizeof(hbuf), pbuf, sizeof(pbuf),
+                      NI_NUMERICHOST | NI_NUMERICSERV);
   if(error) {
-    printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
-    return Qnil;
+    return string_new(state, gai_strerror(error));
   }
+
   address = string_new(state, hbuf);
 
   if(reverse_lookup) {
     error = getnameinfo(addr, len, hbuf, sizeof(hbuf), NULL, 0, 0);
+
     if(error) {
-      printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
-      return Qnil;
+      return string_new(state, gai_strerror(error));
     }
   }
 
   host = string_new(state, hbuf);
 
-  return tuple_new2(state, 3, host, address, string_new(state, pbuf));
+  return tuple_new2(state, 3, host, address, INT_TO_FIXNUM(atoi(pbuf)));
+}
+
+OBJECT ffi_getaddrinfo(STATE, OBJECT host_service, int family, int socktype,
+                       int protocol, int flags) {
+  OBJECT addresses;
+  struct addrinfo hints, *res, *cur;
+  char *host, *service;
+  int error;
+
+  host = string_byte_address(state, array_get(state, host_service, 0));
+  service = string_byte_address(state, array_get(state, host_service, 1));
+
+  memset(&hints, 0, sizeof(struct addrinfo));
+
+  hints.ai_family = family;
+  hints.ai_socktype = socktype;
+  hints.ai_protocol = protocol;
+  hints.ai_flags = flags;
+
+  if(strlen(host) == 0) {
+    host = NULL;
+  }
+
+  error = getaddrinfo(host, service, &hints, &res);
+  if(error) {
+    return string_new(state, gai_strerror(error));
+  }
+
+  addresses = array_new(state, 0);
+
+  for(cur = res; cur != NULL; cur = cur->ai_next) {
+    OBJECT sockaddr, addrinfo = array_new(state, 0);
+
+    array_append(state, addrinfo, I2N(cur->ai_family));
+    array_append(state, addrinfo, I2N(cur->ai_socktype));
+    array_append(state, addrinfo, I2N(cur->ai_protocol));
+    sockaddr = string_new2(state, (char *)cur->ai_addr, cur->ai_addrlen);
+    array_append(state, addrinfo, sockaddr);
+    array_append(state, addrinfo, string_new(state, cur->ai_canonname));
+
+    array_append(state, addresses, addrinfo);
+  }
+
+  return addresses;
 }
 
 OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
@@ -177,11 +221,12 @@ OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
 
   error = getpeername(s, (struct sockaddr*)&addr, &len);
   if(error) {
-    printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
-    return Qnil;
+    return tuple_new2(state, 2, Qfalse, string_new(state, gai_strerror(error)));
   }
 
-  return ffi_decode_sockaddr(state, (struct sockaddr*)&addr, len, reverse_lookup);
+  return tuple_new2(state, 2, Qtrue,
+                    ffi_decode_sockaddr(state, (struct sockaddr*)&addr,
+                                        len, reverse_lookup));
 }
 
 OBJECT ffi_getsockname(STATE, int s, int reverse_lookup) {
@@ -192,8 +237,7 @@ OBJECT ffi_getsockname(STATE, int s, int reverse_lookup) {
 
   error = getsockname(s, (struct sockaddr*)&addr, &len);
   if(error) {
-    printf("ffi_getsockname ERROR: %s\n", gai_strerror(error));
-    return Qnil;
+    return string_new(state, gai_strerror(error));
   }
 
   return ffi_decode_sockaddr(state, (struct sockaddr*)&addr, len, reverse_lookup);

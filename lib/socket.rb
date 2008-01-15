@@ -75,30 +75,72 @@ class BasicSocket < IO
 end
 
 class Socket < BasicSocket
-    
+
   module Constants
-    FFI.config_hash("socket").each do |key, value|
-      const_set(key, value)
+    FFI.config_hash("socket").each do |name, value|
+      const_set name, value
     end
 
-    # Eventually needs to go into the Rakefile check:
-    AI_PASSIVE = 1
+    families = FFI.config_hash('socket').select { |name,| name =~ /^AF_/ }
+    families = families.map { |name, value| [value, name] }
+
+    AF_TO_FAMILY = Hash[*families.flatten]
   end
-  
+
   module Foreign
     attach_function "socket", :create_socket, [:int, :int, :int], :int
     attach_function "connect", :connect_socket, [:int, :string, :int], :int
     attach_function "bind", :bind_socket, [:int, :string, :int], :int
     attach_function "listen", :listen_socket, [:int, :int], :int
     attach_function "accept", :accept, [:int, :string, :pointer], :int
-    attach_function "setsockopt", :set_socket_option, [:int, :int, :int, :pointer, :int], :int
-    attach_function "getsockopt", :get_socket_option, [:int, :int, :int, :pointer, :pointer], :int
+    attach_function "setsockopt", :set_socket_option,
+                    [:int, :int, :int, :pointer, :int], :int
+    attach_function "getsockopt", :get_socket_option,
+                    [:int, :int, :int, :pointer, :pointer], :int
     #attach_function "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
-    attach_function "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
-    attach_function "ffi_decode_sockaddr", :unpack_sa_ip, [:state, :string, :int, :int], :object
-    attach_function "ffi_getpeername", :getpeername, [:state, :int, :int], :object
-    attach_function "ffi_getsockname", :getsockname, [:state, :int, :int], :object
+    attach_function "ffi_pack_sockaddr_in", :ffi_pack_sockaddr_in,
+                    [:state, :string, :string, :int, :int], :object
+    attach_function "ffi_decode_sockaddr", :ffi_decode_sockaddr,
+                    [:state, :string, :int, :int], :object
+    attach_function "ffi_getaddrinfo", :ffi_getaddrinfo,
+                    [:state, :object, :int, :int, :int, :int], :object
+    attach_function "ffi_getpeername", :ffi_getpeername,
+                    [:state, :int, :int], :object
+    attach_function "ffi_getsockname", :getsockname,
+                    [:state, :int, :int], :object
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
+
+    def self.getpeername(socket, reverse_lookup = false)
+      reverse_lookup = reverse_lookup ? 1 : 0
+
+      result = ffi_getpeername socket, reverse_lookup
+
+      ok, value = result.to_a
+
+      raise SocketError, value unless ok
+
+      value
+    end
+
+    def self.pack_sa_ip(name, port, type, flags)
+      result = ffi_pack_sockaddr_in name, port, type, flags
+
+      ok, value = result.to_a
+
+      raise SocketError, value unless ok
+
+      value
+    end
+
+    def self.unpack_sa_ip(sockaddr, reverse_lookup)
+      reverse_lookup = reverse_lookup ? 1 : 0
+
+      result = ffi_decode_sockaddr sockaddr, sockaddr.length, reverse_lookup
+
+      raise SocketError, result if String === result
+
+      result.to_a
+    end
   end
 
   include Socket::Constants
@@ -137,27 +179,50 @@ class Socket < BasicSocket
     end
   end if (FFI.config("sockaddr_un.sun_family.offset") && Socket.const_defined?(:AF_UNIX))
 
+  def self.getaddrinfo(host, service, family = 0, socktype = 0,
+                       protocol = 0, flags = 0)
+    service = service.to_s
+
+    host_service = [host, service] # HACK only 6 args to FFI functions
+
+    obj = Socket::Foreign.ffi_getaddrinfo(host_service, family, socktype,
+                                          protocol, flags)
+
+    raise SocketError, obj if String === obj
+    raise "[BUG] can't handle #{obj.inspect}" unless Array === obj
+
+    obj.map do |struct_ai|
+      ai_family, ai_socktype, ai_protocol, ai_sockaddr, ai_canonname = struct_ai
+
+      sockaddr = Socket::Foreign::unpack_sa_ip ai_sockaddr, true
+
+      ai = []
+      ai << Socket::Constants::AF_TO_FAMILY[ai_family]
+      ai << sockaddr.pop # port
+      ai.concat sockaddr # hosts
+      ai << ai_family
+      ai << ai_socktype
+      ai << ai_protocol
+
+      ai
+    end
+  end
+
   def self.pack_sockaddr_in(port, host, type = 0, flags = 0)
     host = "0.0.0.0" if host.empty?
     Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, type, flags)
   end
 
-  def self.unpack_sockaddr_in(packed_addr)
-    s = SockAddr_In.new(packed_addr)
+  def self.unpack_sockaddr_in(sockaddr)
+    host, address, port = Socket::Foreign.unpack_sa_ip sockaddr, false
 
-    # Check the socket type to make sure it's AF_INET/AF_INET6
-    if( s[:sin_family] != Socket::AF_INET )
-      if( Socket.const_defined?(:AF_INET6) && s[:sin_family] != Socket::AF_INET6 )
-        raise ArgumentError, "not an AF_INET/AF_INET6 sockaddr"
-      end
-      raise "not an AF_INET sockaddr"
+    return [port, address]
+  rescue SocketError => e
+    if e.message =~ /ai_family not supported/ then # HACK platform specific?
+      raise ArgumentError, 'not an AF_INET/AF_INET6 sockaddr'
+    else
+      raise
     end
-
-    t = Socket::Foreign.unpack_sa_ip(packed_addr, packed_addr.length, 0)
-    host = t[1]
-    port = t[2].to_i
-
-    return [ port, host ]
   end
 
   class << self
@@ -169,6 +234,7 @@ class Socket < BasicSocket
     def self.pack_sockaddr_un(file)
       SockAddr_Un.new(file).to_s
     end
+
     class << self
       alias_method :sockaddr_un, :pack_sockaddr_un
     end
@@ -177,7 +243,7 @@ class Socket < BasicSocket
 end
 
 class UNIXSocket < BasicSocket
-    
+
   def initialize(path)
     super(Socket::Constants::AF_UNIX, Socket::Constants::SOCK_STREAM, 0)
     @path = path
@@ -185,7 +251,7 @@ class UNIXSocket < BasicSocket
 end
 
 class UNIXServer < UNIXSocket
-  
+
 end
 
 class IPSocket < BasicSocket
@@ -194,12 +260,12 @@ class IPSocket < BasicSocket
   end
 
   def peeraddr
-    reverse = BasicSocket.do_not_reverse_lookup ? 0 : 1
+    reverse = !BasicSocket.do_not_reverse_lookup
 
     name, addr, port = Socket::Foreign.getpeername descriptor, reverse
-    if addr.nil?
-      raise "Unable to get peer address"
-    end
+
+    raise SocketError, "Unable to get peer address" if addr.nil?
+
     ["AF_INET", port.to_i, name, addr]
   end
 end
@@ -243,8 +309,8 @@ class TCPSocket < IPSocket
     setup(fixnum)
 
     @connected = true
-    
-    name, addr, port = Socket::Foreign.getpeername fixnum, 0
+
+    name, addr, port = Socket::Foreign.getpeername fixnum, false
 
     initialize(addr, port)
 
