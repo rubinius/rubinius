@@ -1,1 +1,0 @@
-Creating a Continuation object must be done through Kernel.callcc, no .new
