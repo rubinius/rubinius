@@ -65,6 +65,8 @@ class StructGenerator
   def calculate
     binary = "rb_struct_gen_bin_#{Process.pid}"
 
+    raise "struct name not set" if @struct_name.nil?
+
     Tempfile.open("rbx_struct_gen_tmp") do |f|
       f.puts "#include <stdio.h>"
 
@@ -83,6 +85,11 @@ EOF
 
       f.puts "\n\treturn 0;\n}"
       f.flush
+
+      if $verbose then
+        f.rewind
+        $stderr.puts f.read
+      end
 
       `gcc -x c -Wall #{f.path} -o #{binary}`
       if $?.exitstatus == 1
