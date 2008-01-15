@@ -41,6 +41,7 @@ module FFI
 
       create_backend(library, name, args, cret)
     end
+
   end
 
   ##
@@ -146,9 +147,7 @@ module FFI
     8 => :long_long,
   }
 
-  if Rubinius::L64
-    TypeSizes[:long] = 8
-  end
+  TypeSizes[:long] = 8 if Rubinius::L64
 
   def self.size_to_type(size)
     if sz = TypeSizes[size]
@@ -198,6 +197,10 @@ class Module
       ret = a4
     end
 
+    if args.size > 6 then
+      raise ArgumentError, "only C functions with up to 6 args may be attached"
+    end
+
     func = FFI.create_function nil, name, args, ret
 
     raise ArgumentError, "Unable to find function '#{name}' to bind to #{self.name}.#{mname}" unless func
@@ -205,6 +208,7 @@ class Module
     metaclass.method_table[mname] = func
     return func
   end
+
 end
 
 class MemoryPointer
@@ -384,104 +388,104 @@ class MemoryPointer
 end
 
 module FFI
+
   attach_function "ffi_type_size", :get_type_size, [:int], :int
 
   def self.type_size(type)
     get_type_size(find_type(type))
   end
 
-  class Struct
+end
 
-    attach_function "ffi_get_field", [:pointer, :int, :int], :object
-    attach_function "ffi_set_field", [:pointer, :int, :int, :object], :void
+class FFI::Struct
 
-    def self.layout(*spec)
-      return @layout if spec.size == 0
+  attach_function "ffi_get_field", [:pointer, :int, :int], :object
+  attach_function "ffi_set_field", [:pointer, :int, :int, :object], :void
 
-      cspec = {}
-      i = 0
+  def self.layout(*spec)
+    return @layout if spec.size == 0
 
-      @size = 0
+    cspec = {}
+    i = 0
 
-      while i < spec.size
-        name = spec[i]
-        f = spec[i + 1]
-        offset = spec[i + 2]
+    @size = 0
 
-        code = FFI.find_type(f)
-        cspec[name] = [offset, code]
-        ending = offset + FFI.type_size(f)
-        @size = ending if @size < ending
+    while i < spec.size
+      name = spec[i]
+      f = spec[i + 1]
+      offset = spec[i + 2]
 
-        i += 3
-      end
+      code = FFI.find_type(f)
+      cspec[name] = [offset, code]
+      ending = offset + FFI.type_size(f)
+      @size = ending if @size < ending
 
-      if self != Struct
-        @layout = cspec
-      end
-
-      return cspec
+      i += 3
     end
 
-    def self.config(base, *fields)
-      @size = 0
-      cspec = {}
+    @layout = cspec unless self == FFI::Struct
 
-      fields.each do |field|
-        offset = Rubinius::RUBY_CONFIG["#{base}.#{field}.offset"]
-        size   = Rubinius::RUBY_CONFIG["#{base}.#{field}.size"]
-        type   = Rubinius::RUBY_CONFIG["#{base}.#{field}.type"]
+    return cspec
+  end
 
-        type = if type then
-                 type.intern
-               else
-                 FFI.size_to_type type
-               end
+  def self.config(base, *fields)
+    @size = 0
+    cspec = {}
 
-        code = FFI.find_type type
+    fields.each do |field|
+      offset = Rubinius::RUBY_CONFIG["#{base}.#{field}.offset"]
+      size   = Rubinius::RUBY_CONFIG["#{base}.#{field}.size"]
+      type   = Rubinius::RUBY_CONFIG["#{base}.#{field}.type"]
 
-        cspec[field] = [offset, code]
+      type = if type then
+               type.intern
+             else
+               FFI.size_to_type type
+             end
 
-        ending = offset + size
-        @size = ending if @size < ending
-      end
+      code = FFI.find_type type
 
-      @layout = cspec
+      cspec[field] = [offset, code]
 
-      return cspec
+      ending = offset + size
+      @size = ending if @size < ending
     end
 
-    def self.size
-      @size
+    @layout = cspec
+
+    return cspec
+  end
+
+  def self.size
+    @size
+  end
+
+  def size
+    self.class.size
+  end
+
+  def initialize(ptr, *spec)
+    @ptr = ptr
+    @cspec = self.class.layout(*spec)
+  end
+
+  def [](field)
+    offset, type = @cspec[field]
+    raise "Unknown field #{field}" unless offset
+
+    if type == FFI::TYPE_CHARARR
+      (@ptr + offset).read_string
+    else
+      self.class.ffi_get_field(@ptr, offset, type)
     end
+  end
 
-    def size
-      self.class.size
-    end
+  def []=(field, val)
+    offset, type = @cspec[field]
+    raise "Unknown field #{field}" unless offset
 
-    def initialize(ptr, *spec)
-      @ptr = ptr
-      @cspec = self.class.layout(*spec)
-    end
-
-    def [](field)
-      offset, type = @cspec[field]
-      raise "Unknown field #{field}" unless offset
-
-      if type == FFI::TYPE_CHARARR
-        (@ptr + offset).read_string
-      else
-        self.class.ffi_get_field(@ptr, offset, type)
-      end
-    end
-
-    def []=(field, val)
-      offset, type = @cspec[field]
-      raise "Unknown field #{field}" unless offset
-
-      self.class.ffi_set_field(@ptr, offset, type, val)
-      return val
-    end
+    self.class.ffi_set_field(@ptr, offset, type, val)
+    return val
   end
 
 end
@@ -532,6 +536,10 @@ class NativeFunction
   end
 end
 
+#++
 # Define it now so that the rest of platform can use it.
+#--
+
 module Platform
 end
+
