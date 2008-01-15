@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-describe "VM#coerce_to_array" do
+describe "Rubinius::VM#coerce_to_array" do
   it "returns the Array passed to it" do
     array = [1]
-    VM.coerce_to_array(array).equal?(array).should == true
+    Rubinius::VM.coerce_to_array(array).equal?(array).should == true
   end
 
   it "returns the Array provided by an Object that implements #to_a and returns an Array" do
@@ -11,7 +11,7 @@ describe "VM#coerce_to_array" do
     def obj.to_a
       [1, 2, 3]
     end
-    VM.coerce_to_array(obj).should == [1, 2, 3]
+    Rubinius::VM.coerce_to_array(obj).should == [1, 2, 3]
   end
 
   it "raises a TypeError when passed an Object that implements #to_a and does not return an Array" do
@@ -21,7 +21,7 @@ describe "VM#coerce_to_array" do
     end
     type_error_raised = false
     begin
-      VM.coerce_to_array(obj)
+      Rubinius::VM.coerce_to_array(obj)
     rescue TypeError => e
       type_error_raised = true
     end
@@ -34,13 +34,13 @@ describe "VM#coerce_to_array" do
 #      remove_method :to_a
 #    end
 #    obj.respond_to?(:to_a).should == false
-#    VM.coerce_to_array(obj).should == [obj]
+#    Rubinius::VM.coerce_to_array(obj).should == [obj]
 #  end
 
   it "returns an Array containing that Object when passed an Object that uses Kernel#to_a" do
     obj = mock('x')
     # TODO: NS/BT - Make Method#initialize take a Module instead of a IncludedModule
     obj.method(:to_a).module.module.should == Kernel
-    VM.coerce_to_array(obj).should == [obj]
+    Rubinius::VM.coerce_to_array(obj).should == [obj]
   end
 end

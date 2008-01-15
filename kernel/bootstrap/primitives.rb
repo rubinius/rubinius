@@ -31,9 +31,9 @@ class CompiledMethod
   end
 
   def as_script
-    VM.save_encloser_path
+    Rubinius::VM.save_encloser_path
     activate_as_script
-    VM.restore_encloser_path
+    Rubinius::VM.restore_encloser_path
   end
   
   def activate_as_script

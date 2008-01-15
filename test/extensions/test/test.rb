@@ -1,4 +1,4 @@
-out = VM.load_library "extensions/test/test", "test"
+out = Rubinius::VM.load_library "extensions/test/test", "test"
 unless out
   puts "Unable to load extension."
   exit 1

@@ -834,7 +834,7 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 /* Layer 3: hook. Shortcut for running hook methods. */
 
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg) {
-  OBJECT mo, mod, vm;
+  OBJECT mo, mod, rub, vm;
   int call_flags;
 
   /* Must be able to call private hooks too */
@@ -848,7 +848,10 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
   if(NIL_P(mo)) return;
 
 
-  vm = rbs_const_get(state, BASIC_CLASS(object), "VM");
+  rub = rbs_const_get(state, BASIC_CLASS(object), "Rubinius");
+  if(NIL_P(rub)) return;
+
+  vm = rbs_const_get(state, rub, "VM");
   if(NIL_P(vm)) return;
 
   /* The top of the stack contains the value that should remain on the stack.

@@ -74,7 +74,7 @@ class Module
       raise NoMethodError, "Unable to find method '#{current_name}' to alias to '#{new_name}'"
     end
     @method_table[new_name] = meth
-    VM.reset_method_cache(new_name)
+    Rubinius::VM.reset_method_cache(new_name)
   end
   
   # 'superclass' method defined in class.rb, 

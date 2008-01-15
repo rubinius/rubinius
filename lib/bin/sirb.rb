@@ -130,7 +130,7 @@ while true
         puts "=> #{out.inspect}" # do it like this so exit won't do =>
         context = ""
         if $show_stats
-          stats = VM.stats
+          stats = Rubinius::VM.stats
           ch = stats.at(0)
           cm = stats.at(1)
           per = ch / cm

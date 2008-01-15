@@ -166,7 +166,7 @@ class Module
     meth = find_method_in_hierarchy(current_name)
     if meth
       method_table[new_name] = meth
-      VM.reset_method_cache(new_name)
+      Rubinius::VM.reset_method_cache(new_name)
     else
       if self.kind_of? MetaClass
         raise NameError, "Unable to find '#{current_name}' for object #{self.attached_instance.inspect}"
@@ -194,7 +194,7 @@ class Module
     end
 
     method_table[new_name] = cm
-    VM.reset_method_cache(new_name)
+    Rubinius::VM.reset_method_cache(new_name)
 
     return new_name
   end
@@ -205,7 +205,7 @@ class Module
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
       method_table[name] = false
-      VM.reset_method_cache(name)
+      Rubinius::VM.reset_method_cache(name)
 
       method_undefined(name) if respond_to? :method_undefined
     end
@@ -217,7 +217,7 @@ class Module
     names.each do |name|
       instance_method(name)
       method_table.delete name
-      VM.reset_method_cache(name)
+      Rubinius::VM.reset_method_cache(name)
 
       method_removed(name) if respond_to? :method_removed
     end
@@ -312,7 +312,7 @@ class Module
     end
 
     self.method_table[name.to_sym] = cm
-    VM.reset_method_cache(name.to_sym)
+    Rubinius::VM.reset_method_cache(name.to_sym)
     meth
   end
 

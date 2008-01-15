@@ -1,4 +1,4 @@
-module VM
+class Rubinius::VM
   def self.stats
     Ruby.primitive :vm_stats
   end
@@ -31,10 +31,7 @@ module VM
     obj.__send__(meth, arg)
     return ret
   end
-end
 
-
-class Rubinius::VM
   def self.spawn_prim(args)
     Ruby.primitive :machine_new
   end

@@ -186,7 +186,7 @@ module Compile
       ext_name = File.basename ext, ".#{Rubinius::LIBSUFFIX}"
 
       if File.file? ext_path then
-        case VM.load_library(ext_path, ext_name)
+        case Rubinius::VM.load_library(ext_path, ext_name)
         when true
           $LOADED_FEATURES << ext if requiring
           return true
