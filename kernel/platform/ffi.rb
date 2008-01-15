@@ -464,8 +464,13 @@ class FFI::Struct
     self.class.size
   end
 
-  def initialize(ptr, *spec)
-    @ptr = ptr
+  def initialize(pointer = nil, *spec)
+    if pointer then
+      @pointer = pointer
+    else
+      @pointer = MemoryPointer.new size
+    end
+
     @cspec = self.class.layout(*spec)
   end
 
@@ -474,9 +479,9 @@ class FFI::Struct
     raise "Unknown field #{field}" unless offset
 
     if type == FFI::TYPE_CHARARR
-      (@ptr + offset).read_string
+      (@pointer + offset).read_string
     else
-      self.class.ffi_get_field(@ptr, offset, type)
+      self.class.ffi_get_field(@pointer, offset, type)
     end
   end
 
@@ -484,7 +489,7 @@ class FFI::Struct
     offset, type = @cspec[field]
     raise "Unknown field #{field}" unless offset
 
-    self.class.ffi_set_field(@ptr, offset, type, val)
+    self.class.ffi_set_field(@pointer, offset, type, val)
     return val
   end
 
