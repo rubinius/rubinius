@@ -617,7 +617,7 @@ class ShotgunPrimitives
     if(FIXNUM_P(t1)) {
       seconds = FIXNUM_TO_INT(t1);
     } else {
-      seconds = bignum_to_int(state, t1);
+      seconds = bignum_to_ll(state, t1);
     }
 
     if(t2 == Qtrue) {
@@ -713,7 +713,7 @@ class ShotgunPrimitives
     }
 
     ret = array_new(state, 2);
-    array_set(state, ret, 0, I2N(seconds));
+    array_set(state, ret, 0, LL2I(seconds));
     array_set(state, ret, 1, t7);
 
     stack_push(ret);
