@@ -180,8 +180,7 @@ class Socket < BasicSocket
                        protocol = nil, flags = nil)
     service = service.to_s
 
-    hints_p = MemoryPointer.new Socket::Foreign::AddrInfo.size
-    hints = Socket::Foreign::AddrInfo.new hints_p
+    hints = Socket::Foreign::AddrInfo.new
     hints[:ai_family] = family || 0
     hints[:ai_socktype] = socktype || 0
     hints[:ai_protocol] = protocol || 0
@@ -189,7 +188,7 @@ class Socket < BasicSocket
 
     res_p = MemoryPointer.new :pointer
 
-    err = Socket::Foreign.getaddrinfo host, service, hints_p, res_p
+    err = Socket::Foreign.getaddrinfo host, service, hints, res_p
 
     raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
 
@@ -220,7 +219,7 @@ class Socket < BasicSocket
 
     return addrinfos
   ensure
-    hints_p.free if hints_p
+    hints.free if hints
 
     if res_p then
       Socket::Foreign.freeaddrinfo res_p.read_pointer
