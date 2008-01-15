@@ -596,6 +596,15 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
   sockaddr_un.field :sun_path
   sockaddr_un.calculate
 
+  servent = StructGenerator.new
+  servent.include "netdb.h"
+  servent.name 'struct servent'
+  servent.field :s_name, :pointer
+  servent.field :s_aliases, :pointer
+  servent.field :s_port, :int
+  servent.field :s_proto, :pointer
+  servent.calculate
+
   # FIXME these constants don't have standard names.
   # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.
   # Binary doesn't exist at all in many non-Unix variants.
@@ -926,6 +935,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
     f.puts timeval.generate_config('timeval')
     f.puts sockaddr_in.generate_config('sockaddr_in')
     f.puts sockaddr_un.generate_config('sockaddr_un') if sockaddr_un.found?
+    f.puts servent.generate_config('servent')
 
     file_constants.each do | name |
       const = cg.constants[name]

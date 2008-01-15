@@ -102,6 +102,10 @@ class Socket < BasicSocket
 
     attach_function "socketpair", :socketpair, [:int, :int, :int, :pointer], :int
     attach_function "gethostname", :gethostname, [:pointer, :int], :int
+    attach_function "getservbyname", :getservbyname, [:pointer, :pointer], :pointer
+
+    attach_function "htons", :htons, [:short], :short
+    attach_function "ntohs", :ntohs, [:short], :short
 
     def self.getpeername(socket, reverse_lookup = false)
       reverse_lookup = reverse_lookup ? 1 : 0
@@ -228,6 +232,37 @@ class Socket < BasicSocket
     MemoryPointer.new :char, 1024 do |mp|  #magic number 1024 comes from MRI
       Socket::Foreign.gethostname(mp, 1024) # same here
       return mp.read_string
+    end
+  end
+
+
+  class Servent < FFI::Struct
+    config("rbx.platform.servent", :s_name, :s_aliases, :s_port, :s_proto)
+
+    def initialize(data)
+      @p = FFI::MemoryPointer.new data.size
+      @p.write_string(data)
+      super(@p)
+    end
+
+    def to_s
+      @p.read_string(size)
+    end
+
+  end
+
+  def self.getservbyname(service, proto='tcp')
+    MemoryPointer.new :char, service.length + 1 do |svc|
+      MemoryPointer.new :char, proto.length + 1 do |prot|
+        svc.write_string(service + "\0")
+        prot.write_string(proto + "\0")
+        fn = Socket::Foreign.getservbyname(svc, prot)
+
+        raise SocketError, "no such service #{service}/#{proto}" if fn.nil?
+
+        s = Servent.new(fn.read_string(Servent.size))
+        return Socket::Foreign.ntohs(s[:s_port])
+      end
     end
   end
 
