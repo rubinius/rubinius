@@ -627,8 +627,9 @@ private
   end
 
   def remove_const(name)
-    const_missing(name) unless constants_table.has_key?(name)
-    constants_table.delete(name)
+    sym = name.to_sym
+    const_missing(name) unless constants_table.has_key?(sym)
+    constants_table.delete(sym)
   end
 
   def extended(name)
