@@ -1,20 +1,8 @@
 class Rubinius::VM
-  def self.spawn_prim(args)
-    Ruby.primitive :machine_new
-  end
-
   def self.spawn(*args)
     args.unshift "rubinius"
     ret = spawn_prim(args)
     return new(*ret)
-  end
-
-  def self.join(id)
-    Ruby.primitive :machine_join
-  end
-
-  def self.poll_message
-    Ruby.primitive :machine_get_message
   end
 
   def self.get_message
@@ -29,10 +17,6 @@ class Rubinius::VM
     while true
       yield get_message
     end
-  end
-
-  def self.send_message(id, obj)
-    Ruby.primitive :machine_send_message
   end
 
   def initialize(id, stdin, stdout, stderr)
