@@ -434,6 +434,8 @@ class Dir
       Errno.handle path
     end
 
+    @pos = 0
+    @seen_pos = [0]
     @path = path
   end
   
@@ -455,6 +457,8 @@ class Dir
 
     dir_entry_ptr = Platform::POSIX.readdir(@dirptr)
     return nil if dir_entry_ptr.nil?
+    @pos += 1
+    @seen_pos << @pos unless @seen_pos.include? @pos
     DirEntry.new(dir_entry_ptr)[:d_name]
   end
 
@@ -470,6 +474,7 @@ class Dir
 
   def pos
     raise IOError, "closed directory" if @dirptr.nil?
+    @pos
   end
 
   alias_method :tell, :pos
@@ -483,7 +488,10 @@ class Dir
 
   def seek(position)
     raise IOError, "closed directory" if @dirptr.nil?
+    return unless @seen_pos.include? position
 
+    rewind
+    position.times { read }
     self
   end
 
@@ -491,6 +499,7 @@ class Dir
     raise IOError, "closed directory" if @dirptr.nil?
 
     Platform::POSIX.rewinddir(@dirptr)
+    @pos = 0
     self
   end
   

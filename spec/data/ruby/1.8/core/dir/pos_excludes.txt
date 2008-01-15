@@ -1,3 +1,0 @@
-Dir#pos returns an Integer representing the current position in the directory
-Dir#pos returns a different Integer if moved from previous position
-Dir#pos= seeks to a certain previous position and returns an Integer position number
