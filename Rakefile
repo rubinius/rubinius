@@ -890,14 +890,18 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
   cg = ConstGenerator.new
   cg.include "stdio.h"
   cg.include "fcntl.h"
+  cg.include "sys/types.h"
   cg.include "sys/socket.h"
+  cg.include "netdb.h"
   cg.include "sys/stat.h"
   cg.include "sys/resource.h"
+
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
   socket_constants.each { |c| cg.const c }
   process_constants.each { |c| cg.const c }
   long_process_constants.each { |c| cg.const(c, "%llu") }
+
   cg.calculate
   
   puts "Generating #{t.name}..."
