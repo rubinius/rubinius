@@ -188,7 +188,7 @@ class Socket < BasicSocket
 
     res_p = MemoryPointer.new :pointer
 
-    err = Socket::Foreign.getaddrinfo host, service, hints, res_p
+    err = Socket::Foreign.getaddrinfo host, service, hints.pointer, res_p
 
     raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
 
