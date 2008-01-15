@@ -7,19 +7,15 @@ describe "BasicSocket#getsockopt" do
     @sock = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
   end
   
-  it "identifies the SOCK_STREAM socket type" do
+  it "gets a socket option" do
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_TYPE)
     n.should == [Socket::SOCK_STREAM].pack("i")
   end
 
-  it "identifies the SOCK_DGRAM socket type" do
-    UDPSocket.new.getsockopt(Socket::SOL_SOCKET, Socket::SO_TYPE).should == [Socket::SOCK_DGRAM].pack("i")
+  it "raises a SystemCallError with an invalid socket option" do
+    lambda { @sock.getsockopt Socket::SOL_SOCKET, -1 }.should \
+      raise_error(Errno::ENOPROTOOPT)
   end
-  
-  it "identifies the socket error" do
-    n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
-    n.should == [0].pack("i")  
-  end 
-  
+
 end
 

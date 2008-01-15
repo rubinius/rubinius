@@ -10,65 +10,42 @@ class BasicSocket < IO
     @no_reverse_lookup ? true : false
   end
 
-  def initialize(domain, type, protocol)
-    # TCPSocket hits here already setup (the class inheritance
-    # for socket is busted, thats why we have this.)
-    unless descriptor
-      fd = Socket::Foreign.create_socket(domain.to_i, type.to_i, protocol.to_i)
-      Errno.handle if fd < 0
-    
-      super(fd)
-    end
-    
-    @domain = domain
-    @type = type
-    @protocol = protocol
-  end
-
   def getsockopt(level, optname)
-
-    MemoryPointer.new 256 do |val|
+    MemoryPointer.new 256 do |val| # HACK magic number
       MemoryPointer.new :int do |length|
-        length.write_int 256
-        error = Socket::Foreign.get_socket_option(descriptor, level, optname, val, length)
+        length.write_int 256 # HACK magic number
 
-        if error != 0
-          Errno.handle "Unable to get socket option"
-          return nil
-        end
+        err = Socket::Foreign.getsockopt descriptor, level, optname, val, length
+
+        Errno.handle "Unable to get socket option" unless err == 0
 
         return val.read_string(length.read_int)
       end
     end
-    
   end
 
   def setsockopt(level, optname, optval)
-    if optval.is_a?(TrueClass)
-      optval = 1
-    elsif optval.is_a?(FalseClass)
-      optval = 0
-    end
+    optval = 1 if optval == true
+    optval = 0 if optval == false
 
     error = 0
 
-    if optval.is_a?(Fixnum)
+    case optval
+    when Fixnum then
       MemoryPointer.new :int do |val|
         val.write_int optval
-        error = Socket::Foreign.set_socket_option(descriptor, level, optname, val, val.size)
+        error = Socket::Foreign.setsockopt(descriptor, level, optname, val, val.size)
       end
-    elsif optval.is_a?(String)
+    when String then
       MemoryPointer.new optval.size do |val|
         val.write_string optval
-        error = Socket::Foreign.set_socket_option(descriptor, level, optname, val, optval.size)
+        error = Socket::Foreign.setsockopt(descriptor, level, optname, val, optval.size)
       end
     else
       raise "socket option should be a String, a Fixnum, true, or false"
     end
 
-    if error != 0
-      Errno.handle "Unable to set socket option"
-    end
+    Errno.handle "Unable to set socket option" unless error == 0
     
     return 0
   end
@@ -93,15 +70,17 @@ class Socket < BasicSocket
              :ai_protocol, :ai_addrlen, :ai_addr, :ai_canonname, :ai_next)
     end
 
-    attach_function "socket", :create_socket, [:int, :int, :int], :int
-    attach_function "connect", :connect_socket, [:int, :string, :int], :int
-    attach_function "bind", :bind_socket, [:int, :string, :int], :int
-    attach_function "listen", :listen_socket, [:int, :int], :int
     attach_function "accept", :accept, [:int, :string, :pointer], :int
-    attach_function "setsockopt", :set_socket_option,
-                    [:int, :int, :int, :pointer, :int], :int
-    attach_function "getsockopt", :get_socket_option,
+    attach_function "bind", :bind, [:int, :pointer, :int], :int
+    attach_function "close", :close, [:int], :int
+    attach_function "connect", :connect, [:int, :pointer, :int], :int
+    attach_function "listen", :listen, [:int, :int], :int
+    attach_function "socket", :socket, [:int, :int, :int], :int
+
+    attach_function "getsockopt", :getsockopt,
                     [:int, :int, :int, :pointer, :pointer], :int
+    attach_function "setsockopt", :setsockopt,
+                    [:int, :int, :int, :pointer, :int], :int
 
     attach_function "gai_strerror", :gai_strerror, [:int], :string
 
@@ -274,6 +253,14 @@ class Socket < BasicSocket
     end
   end
 
+  def initialize(family, socket_type, protocol)
+    @descriptor = Socket::Foreign.socket family, socket_type, protocol
+
+    Errno.handle 'socket(2)' if @descriptor < 0
+
+    setup @descriptor
+  end
+
 end
 
 class UNIXSocket < BasicSocket
@@ -289,10 +276,6 @@ class UNIXServer < UNIXSocket
 end
 
 class IPSocket < BasicSocket
-  def initialize(kind, protocol=0)
-    super(Socket::Constants::AF_INET, kind, protocol)
-  end
-
   def peeraddr
     reverse = !BasicSocket.do_not_reverse_lookup
 
@@ -306,23 +289,28 @@ end
 
 class UDPSocket < IPSocket
   def initialize
-    super(Socket::Constants::SOCK_DGRAM)
+    super Socket::Constants::SOCK_DGRAM
   end
   
   def bind(host, port)
     @port = port
     @host = host
 
-    ret = Socket::Foreign.bind_name(descriptor, @host.to_s, @port.to_s, @type.to_i)
+    ret = Socket::Foreign.bind_name descriptor, @host.to_s, @port.to_s, @type
 
-    Errno.handle if ret != 0
+    Errno.handle unless ret == 0 # HACK needs name
 
     return
 
     @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
+    sockaddr_p = MemoryPointer.new :char, @sockaddr.length
+    sockaddr_p.write_string @sockaddr, @sockaddr.length
 
-    ret = Socket::Foreign.bind_socket(descriptor, @sockaddr, @sockaddr.size)
-    Errno.handle if ret != 0
+    ret = Socket::Foreign.bind descriptor, sockaddr_p, @sockaddr.size
+
+    Errno.handle 'bind(2)' unless ret == 0
+  ensure
+    sockaddr_p.free if sockaddr_p
   end
   
   def inspect
@@ -352,20 +340,39 @@ class TCPSocket < IPSocket
   end
 
   def initialize(host, port)
-    super(Socket::Constants::SOCK_STREAM)
-
     @host = host
     @port = port
+    @type = Socket::SOCK_STREAM
 
     @connected ||= false
 
-    unless @connected
-      @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
+    return if @connected
 
-      ret = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
-      Errno.handle if ret != 0
-      @connected = true
+    Socket.getaddrinfo(@host, @port, nil, @type).each do |addrinfo|
+      family_name, port, host, addr, family, socket_type, protocol = addrinfo
+
+      @descriptor = Socket::Foreign.socket family, socket_type, protocol
+
+      break if @descriptor >= 0
     end
+
+    Errno.handle 'socket(2)' if @descriptor < 0
+
+    @sockaddr = Socket.pack_sockaddr_in @port, @host, @type
+    sockaddr_p = MemoryPointer.new :char, @sockaddr.length
+    sockaddr_p.write_string @sockaddr, @sockaddr.length
+
+    err = Socket::Foreign.connect @descriptor, sockaddr_p, @sockaddr.length
+
+    Errno.handle 'connect(2)' unless err == 0
+
+    setup @descriptor
+
+  rescue SystemCallError
+    Socket::Foreign.close @descriptor if @descriptor > 0
+    raise
+  ensure
+    sockaddr_p.free if sockaddr_p
   end
 
   def inspect
@@ -375,22 +382,23 @@ end
 
 class TCPServer < TCPSocket
   def initialize(host, port = nil)
-    if host.kind_of?(Fixnum) then
+    if host.kind_of?(Fixnum) then # HACK use the socket library
       port = host
-      host = '0.0.0.0' # TODO - Do this in a portable way
+      host = '0.0.0.0'
     end
+
     @host = host
     @port = port
 
     @domain = Socket::Constants::AF_INET
     @type = Socket::Constants::SOCK_STREAM
     @protocol = 0
-    fd = Socket::Foreign.create_socket(@domain, @type, @protocol)
-    if fd < 0
-      Errno.handle "Unable to create socket"
-    end
 
-    setup(fd)
+    fd = Socket::Foreign.socket @domain, @type, @protocol
+
+    Errno.handle "socket(2)" if fd < 0
+
+    setup fd
 
     begin
       setsockopt(Socket::Constants::SOL_SOCKET, Socket::Constants::SO_REUSEADDR, true)
@@ -402,13 +410,18 @@ class TCPServer < TCPSocket
     @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type,
                                         Socket::Constants::AI_PASSIVE)
 
-    ret = Socket::Foreign.bind_socket(descriptor, @sockaddr, @sockaddr.size)
-    Errno.handle if ret != 0
+    sockaddr_p = MemoryPointer.new :char, @sockaddr.length
+    sockaddr_p.write_string @sockaddr, @sockaddr.length
 
-    ret = Socket::Foreign.listen_socket(fd, 5)
-    if ret != 0
-      Errno.handle "Unable to listen on #{@host}:#{@port}"
-    end
+    ret = Socket::Foreign.bind descriptor, sockaddr_p, @sockaddr.length
+
+    Errno.handle 'bind(2)' unless ret == 0
+
+    ret = Socket::Foreign.listen fd, 5
+
+    Errno.handle "Unable to listen on #{@host}:#{@port}" unless ret == 0
+  ensure
+    sockaddr_p.free if sockaddr_p
   end
 
   def accept
