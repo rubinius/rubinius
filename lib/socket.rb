@@ -248,6 +248,8 @@ class Socket < BasicSocket
 
       # Is there a better way to create these Sockets from the returned file descriptors?
       s1, s2 = [ Socket.new(domain, type, protocol), Socket.new(domain, type, protocol ) ]
+      s1.close
+      s2.close
       s1.setup(fd0)
       s2.setup(fd1)
       [s1, s2]
