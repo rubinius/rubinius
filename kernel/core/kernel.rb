@@ -299,7 +299,6 @@ module Kernel
     dbg = Debugger.instance
 
     # Register a breakpoint immediately following the call site
-    dbg.register_thread Thread.current
     ctxt = MethodContext.current.sender
     bp = dbg.get_breakpoint(ctxt.method, ctxt.ip)
     if bp

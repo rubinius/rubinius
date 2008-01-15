@@ -34,6 +34,9 @@ class Debugger
       # TODO: De-register debugger on the to-be global debug channel
       puts "[Debugger exiting]"
     end
+
+    # Register this debugger as the default debug
+    Rubinius::VM.set_debug_channel @bt.debug_channel
   end
 
   attr_reader :commands
@@ -41,17 +44,6 @@ class Debugger
   # Returns the singleton instance of the +Debugger+.
   def self.instance
     @instance ||= Debugger.new
-  end
-
-  # Registers a thread for debugging. This method must be called with all
-  # threads that might encounter a breakpoint. If an unregistered thread hits a
-  # breakpoint, the VM will raise an exception.
-  # TODO: Change the way shotgun manages debug and control channels
-  # A single global debug channel should be created, and if/when a thread hits
-  # a breakpoint, it should get a control channel created at that time on which
-  # to be signalled to resume.
-  def register_thread(thread)
-    @bt.debug_thread thread
   end
 
   # Sets a breakpoint on a +CompiledMethod+ at the specified address.

@@ -102,17 +102,14 @@ class BreakpointTracker
   def initialize
     @breakpoints = Hash.new { |h,k| h[k] = {} }
     @debug_channel = Channel.new
-    @control_channel = Channel.new
   end
   
   attr_accessor :debug_channel
-  attr_accessor :control_channel
 
   # Registers this breakpoint tracker as the debug handler for the specified
-  # thread. Note that all threads that might hit a breakpoint must have been
-  # registered, or an error is raised by the VM.
+  # thread. The thread's existing control channel (if any) is not modified.
   def debug_thread(thr)
-    thr.set_debugging @debug_channel, @control_channel
+    thr.set_debugging @debug_channel, thr.control_channel
   end
 
   # Adds a breakpoint
@@ -156,7 +153,8 @@ class BreakpointTracker
     ip = ctx.ip - 1
     @breakpoints[cm][ip]
   end
-  
+
+  # Processes a breakpoint that has been triggered.
   def process
     thread = wait_for_breakpoint
     ctx = thread.task.current_context
@@ -174,7 +172,7 @@ class BreakpointTracker
       puts "An exception occured in a breakpoint handler:"
       puts e
     end
-    wake_target
+    wake_target thread
   end
 
   # Suspends the current thread until a breakpoint is signaled
@@ -183,9 +181,8 @@ class BreakpointTracker
   end
   
   # Wakes the debuggee thread and continues execution until the next breakpoint
-  def wake_target
-    # TODO:Each thread must have its own control channel
-    @control_channel.send nil
+  def wake_target(thrd)
+    thrd.control_channel.send nil
   end
 
   # Returns an array of +Breakpoint+ objects that correspond to the breakpoints
