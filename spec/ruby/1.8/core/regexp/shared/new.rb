@@ -4,10 +4,22 @@ shared :regexp_new do |cmd|
       Regexp.send(cmd, '').is_a?(Regexp).should == true
     end
 
-    it "returns a subclass instance when called on a subclass" do
-      class RegexpSpecsSubclass < Regexp; end
+    it "works by default for subclasses with overridden #initialize" do
+      class RegexpSpecsSubclass < Regexp
+        def initialize(*args)
+          super
+          @args = args
+        end
+
+        attr_accessor :args
+      end
+
+      class RegexpSpecsSubclassTwo < Regexp; end
 
       RegexpSpecsSubclass.send(cmd, "hi").class.should == RegexpSpecsSubclass
+      RegexpSpecsSubclass.send(cmd, "hi").args.first.should == "hi"
+
+      RegexpSpecsSubclassTwo.send(cmd, "hi").class.should == RegexpSpecsSubclassTwo
     end
   end
 
@@ -16,8 +28,20 @@ shared :regexp_new do |cmd|
       Regexp.send(cmd, "^hi{2,3}fo.o$").should == /^hi{2,3}fo.o$/
     end
 
-    it "does not set Regexp options if only given one argument or second argument is nil" do
+    it "does not set Regexp options if only given one argument" do
       r = Regexp.send(cmd, 'Hi')
+      (r.options & Regexp::IGNORECASE).should     == 0
+      (r.options & Regexp::MULTILINE).should      == 0
+      (r.options & Regexp::EXTENDED).should       == 0
+    end
+
+    it "does not set Regexp options if second argument is nil or false" do
+      r = Regexp.send(cmd, 'Hi', nil)
+      (r.options & Regexp::IGNORECASE).should     == 0
+      (r.options & Regexp::MULTILINE).should      == 0
+      (r.options & Regexp::EXTENDED).should       == 0
+
+      r = Regexp.send(cmd, 'Hi', false)
       (r.options & Regexp::IGNORECASE).should     == 0
       (r.options & Regexp::MULTILINE).should      == 0
       (r.options & Regexp::EXTENDED).should       == 0
@@ -52,11 +76,6 @@ shared :regexp_new do |cmd|
       (r.options & Regexp::IGNORECASE).should_not == 0
       (r.options & Regexp::MULTILINE).should      == 0
       (r.options & Regexp::EXTENDED).should       == 0
-
-      r = Regexp.send(cmd, 'Hi', false)
-      (r.options & Regexp::IGNORECASE).should     == 0
-      (r.options & Regexp::MULTILINE).should      == 0
-      (r.options & Regexp::EXTENDED).should       == 0
     end
 
     it "does not enable multibyte support by default" do
@@ -66,14 +85,34 @@ shared :regexp_new do |cmd|
       r.kcode.should_not == 'utf8'
     end
 
-    it "enables multibyte support if third argument is '[eEsSuU]' (EUC, SJIS, UTF-8)" do
-      Regexp.send(cmd, 'Hi', nil, 'e').kcode.should == 'euc'
-      Regexp.send(cmd, 'Hi', nil, 'S').kcode.should == 'sjis'
-      Regexp.send(cmd, 'Hi', nil, 'u').kcode.should == 'utf8'
+    it "enables EUC encoding if third argument is 'e' or 'euc' (case-insensitive)" do
+      Regexp.send(cmd, 'Hi', nil, 'e').kcode.should     == 'euc'
+      Regexp.send(cmd, 'Hi', nil, 'E').kcode.should     == 'euc'
+      Regexp.send(cmd, 'Hi', nil, 'euc').kcode.should   == 'euc'
+      Regexp.send(cmd, 'Hi', nil, 'EUC').kcode.should   == 'euc'
+      Regexp.send(cmd, 'Hi', nil, 'EuC').kcode.should   == 'euc'
     end
 
-    it "explicitly disables multibyte support if third argument is '[nN]' for None" do
+    it "enables SJIS encoding if third argument is 's' or 'sjis' (case-insensitive)" do
+      Regexp.send(cmd, 'Hi', nil, 's').kcode.should     == 'sjis'
+      Regexp.send(cmd, 'Hi', nil, 'S').kcode.should     == 'sjis'
+      Regexp.send(cmd, 'Hi', nil, 'sjis').kcode.should  == 'sjis'
+      Regexp.send(cmd, 'Hi', nil, 'SJIS').kcode.should  == 'sjis'
+      Regexp.send(cmd, 'Hi', nil, 'sJiS').kcode.should  == 'sjis'
+    end
+
+    it "enables UTF-8 encoding if third argument is 'u' or 'utf8' (case-insensitive)" do
+      Regexp.send(cmd, 'Hi', nil, 'u').kcode.should     == 'utf8'
+      Regexp.send(cmd, 'Hi', nil, 'U').kcode.should     == 'utf8'
+      Regexp.send(cmd, 'Hi', nil, 'utf8').kcode.should  == 'utf8'
+      Regexp.send(cmd, 'Hi', nil, 'UTF8').kcode.should  == 'utf8'
+      Regexp.send(cmd, 'Hi', nil, 'uTf8').kcode.should  == 'utf8'
+    end
+
+    it "disables multibyte support if third argument is 'n' or 'none' (case insensitive)" do
       Regexp.send(cmd, 'Hi', nil, 'N').kcode.should == 'none'
+      Regexp.send(cmd, 'Hi', nil, 'n').kcode.should == 'none'
+      Regexp.send(cmd, 'Hi', nil, 'nONE').kcode.should == 'none'
     end
   end
 
