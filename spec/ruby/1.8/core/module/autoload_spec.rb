@@ -49,3 +49,11 @@ describe "Module#autoload" do
     lambda { Module.new { autoload("A", "") } }.should raise_error(ArgumentError)
   end
 end
+
+describe "Module#autoload?" do
+  it "returns the name of the file that will be autoloaded" do
+    m = Module.new { autoload :A, "module_a" }
+    m.autoload?(:A).should == "module_a"
+    m.autoload?(:B).should == nil
+  end
+end

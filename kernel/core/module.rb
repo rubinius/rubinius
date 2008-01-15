@@ -594,6 +594,10 @@ class Module
     @autoloads ||= Hash.new
     @autoloads[name] = path
   end
+  
+  def autoload?(name)
+    @autoloads[name] if @autoloads
+  end
 
 private
 
