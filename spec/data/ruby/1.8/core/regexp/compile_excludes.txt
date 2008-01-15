@@ -1,1 +1,0 @@
-Regexp.compile returns a subclass instance when called on a subclass

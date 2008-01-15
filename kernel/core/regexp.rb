@@ -8,26 +8,54 @@ class Regexp
   def data     ; @data      ; end
   def names    ; @names     ; end
 
-  ValidOptions = ['m','i','x']
-  ValidKcode = [?n,?e,?s,?u]
-  KcodeValue = [16,32,48,64]
+  ValidOptions  = ['m','i','x']
+  ValidKcode    = [?n,?e,?s,?u]
+  KcodeValue    = [16,32,48,64]
 
-  IGNORECASE  = 1
-  EXTENDED    = 2
-  MULTILINE   = 4
-  OPTION_MASK = 7
+  IGNORECASE    = 1
+  EXTENDED      = 2
+  MULTILINE     = 4
+  OPTION_MASK   = 7
 
-  KCODE_ASCII = 0
-  KCODE_NONE  = 16
-  KCODE_EUC   = 32
-  KCODE_SJIS  = 48
-  KCODE_UTF8  = 64
-  KCODE_MASK  = 112
+  KCODE_ASCII   = 0
+  KCODE_NONE    = 16
+  KCODE_EUC     = 32
+  KCODE_SJIS    = 48
+  KCODE_UTF8    = 64
+  KCODE_MASK    = 112
 
-  def self.new(arg, opts=nil, lang=nil)
-   if arg.is_a?(Regexp)
-      opts = arg.options
-      arg  = arg.source
+  # Constructs a new regular expression from the given
+  # pattern. The pattern may either be a String or a
+  # Regexp. If given a Regexp, options are copied from
+  # the pattern and any options given are not honoured.
+  # If the pattern is a String, additional options may
+  # be given.
+  #
+  # The first optional argument can either be a Fixnum
+  # representing one or more of the Regexp options ORed
+  # together (Regexp::IGNORECASE, EXTENDED and MULTILINE)
+  # or a flag to toggle case sensitivity. If opts is nil
+  # or false, the match is case sensitive. If opts is
+  # any non-nil, non-false and non-Fixnum object, its
+  # presence makes the regexp case insensitive (the obj
+  # is not used in any way.)
+  #
+  # The second optional argument can be used to enable
+  # multibyte support (which is disabled by default.)
+  # The flag must be one of the following strings in
+  # any combination of upper- and lowercase:
+  #
+  # * 'e', 'euc'  for EUC
+  # * 's', 'sjis' for SJIS
+  # * 'u', 'utf8' for UTF-8
+  #
+  # You may also explicitly pass in 'n', 'N' or 'none'
+  # to disable multibyte support. Any other values are
+  # ignored.
+  def self.new(pattern, opts = nil, lang = nil)
+    if pattern.is_a?(Regexp)
+      opts = pattern.options
+      pattern  = pattern.source
     elsif opts.kind_of?(Fixnum)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
     elsif opts
@@ -42,7 +70,13 @@ class Regexp
       opts |= KcodeValue[idx] if idx
     end
 
-    __regexp_new__(arg, opts)
+    if self.class.equal? Regexp
+      return __regexp_new__(pattern, opts)
+    else
+      r = __regexp_new__(pattern, opts)
+      r.send :initialize, pattern, opts, lang
+      return r
+    end
   end
 
   # FIXME - Optimize me using String#[], String#chr, etc.
@@ -66,10 +100,16 @@ class Regexp
     quoted
   end
 
-  # Class aliases
-  metaclass.send :alias_method, :compile, :new
-  metaclass.send :alias_method, :quote, :escape
+  class << self
+    alias_method :compile, :new
+    alias_method :quote, :escape
+  end
 
+
+  # See Regexp.new. This may be overridden by subclasses.
+  def initialize(arg, opts, lang)
+    # Nothing to do
+  end
 
   def self.last_match(field = nil)
     match = MethodContext.current.sender.last_match

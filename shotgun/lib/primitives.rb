@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/primitive_generator'
 
 class ShotgunPrimitives
   include PrimitiveGenerator
- 
+
   def generate_select(fd, op="prim")
     i = 1
     order = Bytecode::Compiler::Primitives
@@ -32,19 +32,19 @@ class ShotgunPrimitives
 
       i += 1
     end
-    
+
     fd.puts "default:"
     fd.puts 'printf("Error: Primitive index out of range for this VM\n");'
     fd.puts "sassert(0);"
     fd.puts "}"
     fd.puts
-    
+
     File.open("runtime_primitives.gen","w") do |f|
       total = Bytecode::Compiler::FirstRuntimePrimitive
       order = Bytecode::Compiler::RuntimePrimitives
       i = 0
       f.puts "switch(#{op} - #{total}) {"
-      
+
       order.each do |ins|
         code = send(ins) rescue nil
         if code
@@ -1363,10 +1363,12 @@ class ShotgunPrimitives
     self = stack_pop();
     POP(t1, STRING);
     t2 = stack_pop();
-    stack_push(regexp_new(state, t1, t2));
+    t3 = regexp_new(state, t1, t2);
+    t3->klass = self;   /* Subclasses */
+    stack_push(t3);
     CODE
   end
-  
+
   def regexp_match
     <<-CODE
     self = stack_pop();
@@ -1374,7 +1376,7 @@ class ShotgunPrimitives
     stack_push(regexp_match(state, self, t1));
     CODE
   end
-  
+
   def regexp_match_start
     <<-CODE
     self = stack_pop();
