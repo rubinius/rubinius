@@ -235,7 +235,7 @@ class Date
   # month's numerical representation indexed into this array
   # gives the name of that month (hence the first element is nil).
   MONTHNAMES = [nil] + %w(January February March April May June July
-			  August September October November December)
+                          August September October November December)
 
   # Full names of days of the week, in English.  Days of the week
   # count from 0 to 6 (except in the commercial week); a day's numerical
@@ -244,7 +244,7 @@ class Date
 
   # Abbreviated month names, in English.
   ABBR_MONTHNAMES = [nil] + %w(Jan Feb Mar Apr May Jun
-			       Jul Aug Sep Oct Nov Dec)
+                               Jul Aug Sep Oct Nov Dec)
 
   # Abbreviated day names, in English.
   ABBR_DAYNAMES = %w(Sun Mon Tue Wed Thu Fri Sat)
@@ -278,11 +278,11 @@ class Date
       when Infinity; d <=> other.d
       when Numeric; d
       else
-	begin
-	  l, r = other.coerce(self)
-	  return l <=> r
-	rescue NoMethodError
-	end
+        begin
+          l, r = other.coerce(self)
+          return l <=> r
+        rescue NoMethodError
+        end
       end
       nil
     end
@@ -291,7 +291,7 @@ class Date
       case other
       when Numeric; return -d, d
       else
-	super
+        super
       end
     end
 
@@ -330,7 +330,7 @@ class Date
       jd < sg
     else
       if $VERBOSE
-	warn("#{caller.shift.sub(/:in .*/, '')}: " \
+        warn("#{caller.shift.sub(/:in .*/, '')}: " \
 "warning: do not use non-numerical object as julian day number anymore")
       end
       not sg
@@ -632,7 +632,7 @@ class Date
     end
     if w < 0
       ny, nw, nd =
-	jd_to_commercial(commercial_to_jd(y + 1, 1, 1) + w * 7)
+        jd_to_commercial(commercial_to_jd(y + 1, 1, 1) + w * 7)
       return unless ny == y
       w = nw
     end
@@ -648,7 +648,7 @@ class Date
     end
     if w < 0
       ny, nw, nd, nf =
-	jd_to_weeknum(weeknum_to_jd(y + 1, 1, f, f) + w * 7, f)
+        jd_to_weeknum(weeknum_to_jd(y + 1, 1, f, f) + w * 7, f)
       return unless ny == y
       w = nw
     end
@@ -674,11 +674,11 @@ class Date
     min += 60 if min < 0
     s   += 60 if s   < 0
     return unless ((0..23) === h &&
-		   (0..59) === min &&
-		   (0..59) === s) ||
-		  (24 == h &&
-		    0 == min &&
-		    0 == s)
+                   (0..59) === min &&
+                   (0..59) === s) ||
+                  (24 == h &&
+                    0 == min &&
+                    0 == s)
     time_to_day_fraction(h, min, s)
   end
 
@@ -784,16 +784,16 @@ class Date
   def self.complete_frags(elem) # :nodoc:
     i = 0
     g = [[:time, [:hour, :min, :sec]],
-	 [nil, [:jd]],
-	 [:ordinal, [:year, :yday, :hour, :min, :sec]],
-	 [:civil, [:year, :mon, :mday, :hour, :min, :sec]],
-	 [:commercial, [:cwyear, :cweek, :cwday, :hour, :min, :sec]],
-	 [:wday, [:wday, :hour, :min, :sec]],
-	 [:wnum0, [:year, :wnum0, :wday, :hour, :min, :sec]],
-	 [:wnum1, [:year, :wnum1, :wday, :hour, :min, :sec]],
-	 [nil, [:cwyear, :cweek, :wday, :hour, :min, :sec]],
-	 [nil, [:year, :wnum0, :cwday, :hour, :min, :sec]],
-	 [nil, [:year, :wnum1, :cwday, :hour, :min, :sec]]].
+         [nil, [:jd]],
+         [:ordinal, [:year, :yday, :hour, :min, :sec]],
+         [:civil, [:year, :mon, :mday, :hour, :min, :sec]],
+         [:commercial, [:cwyear, :cweek, :cwday, :hour, :min, :sec]],
+         [:wday, [:wday, :hour, :min, :sec]],
+         [:wnum0, [:year, :wnum0, :wday, :hour, :min, :sec]],
+         [:wnum1, [:year, :wnum1, :wday, :hour, :min, :sec]],
+         [nil, [:cwyear, :cweek, :wday, :hour, :min, :sec]],
+         [nil, [:year, :wnum0, :cwday, :hour, :min, :sec]],
+         [nil, [:year, :wnum1, :cwday, :hour, :min, :sec]]].
       collect{|k, a| e = elem.values_at(*a).compact; [k, a, e]}.
       select{|k, a, e| e.size > 0}.
       sort_by{|k, a, e| [e.size, i -= 1]}.last
@@ -805,45 +805,45 @@ class Date
 
       case g[0]
       when :ordinal
-	elem[:year] ||= d.year
-	elem[:yday] ||= 1
+        elem[:year] ||= d.year
+        elem[:yday] ||= 1
       when :civil
-	g[1].each do |e|
-	  break if elem[e]
-	  elem[e] = d.__send__(e)
-	end
-	elem[:mon]  ||= 1
-	elem[:mday] ||= 1
+        g[1].each do |e|
+          break if elem[e]
+          elem[e] = d.__send__(e)
+        end
+        elem[:mon]  ||= 1
+        elem[:mday] ||= 1
       when :commercial
-	g[1].each do |e|
-	  break if elem[e]
-	  elem[e] = d.__send__(e)
-	end
-	elem[:cweek] ||= 1
-	elem[:cwday] ||= 1
+        g[1].each do |e|
+          break if elem[e]
+          elem[e] = d.__send__(e)
+        end
+        elem[:cweek] ||= 1
+        elem[:cwday] ||= 1
       when :wday
-	elem[:jd] ||= (d - d.wday + elem[:wday]).jd
+        elem[:jd] ||= (d - d.wday + elem[:wday]).jd
       when :wnum0
-	g[1].each do |e|
-	  break if elem[e]
-	  elem[e] = d.__send__(e)
-	end
-	elem[:wnum0] ||= 0
-	elem[:wday]  ||= 0
+        g[1].each do |e|
+          break if elem[e]
+          elem[e] = d.__send__(e)
+        end
+        elem[:wnum0] ||= 0
+        elem[:wday]  ||= 0
       when :wnum1
-	g[1].each do |e|
-	  break if elem[e]
-	  elem[e] = d.__send__(e)
-	end
-	elem[:wnum1] ||= 0
-	elem[:wday]  ||= 0
+        g[1].each do |e|
+          break if elem[e]
+          elem[e] = d.__send__(e)
+        end
+        elem[:wnum1] ||= 0
+        elem[:wday]  ||= 0
       end
     end
 
     if g && g[0] == :time
       if self <= DateTime
-	d ||= Date.today
-	elem[:jd] ||= d.jd
+        d ||= Date.today
+        elem[:jd] ||= d.jd
       end
     end
 
@@ -861,56 +861,56 @@ class Date
     catch :jd do
       a = elem.values_at(:jd)
       if a.all?
-	if jd = valid_jd?(*(a << sg))
-	  throw :jd, jd
-	end
+        if jd = valid_jd?(*(a << sg))
+          throw :jd, jd
+        end
       end
 
       a = elem.values_at(:year, :yday)
       if a.all?
-	if jd = valid_ordinal?(*(a << sg))
-	  throw :jd, jd
-	end
+        if jd = valid_ordinal?(*(a << sg))
+          throw :jd, jd
+        end
       end
 
       a = elem.values_at(:year, :mon, :mday)
       if a.all?
-	if jd = valid_civil?(*(a << sg))
-	  throw :jd, jd
-	end
+        if jd = valid_civil?(*(a << sg))
+          throw :jd, jd
+        end
       end
 
       a = elem.values_at(:cwyear, :cweek, :cwday)
       if a[2].nil? && elem[:wday]
-	a[2] = elem[:wday].nonzero? || 7
+        a[2] = elem[:wday].nonzero? || 7
       end
       if a.all?
-	if jd = valid_commercial?(*(a << sg))
-	  throw :jd, jd
-	end
+        if jd = valid_commercial?(*(a << sg))
+          throw :jd, jd
+        end
       end
 
       a = elem.values_at(:year, :wnum0, :wday)
       if a[2].nil? && elem[:cwday]
-	a[2] = elem[:cwday] % 7
+        a[2] = elem[:cwday] % 7
       end
       if a.all?
-	if jd = valid_weeknum?(*(a << 0 << sg))
-	  throw :jd, jd
-	end
+        if jd = valid_weeknum?(*(a << 0 << sg))
+          throw :jd, jd
+        end
       end
 
       a = elem.values_at(:year, :wnum1, :wday)
       if a[2]
-	a[2] = (a[2] - 1) % 7
+        a[2] = (a[2] - 1) % 7
       end
       if a[2].nil? && elem[:cwday]
-	a[2] = (elem[:cwday] - 1) % 7
+        a[2] = (elem[:cwday] - 1) % 7
       end
       if a.all?
-	if jd = valid_weeknum?(*(a << 1 << sg))
-	  throw :jd, jd
-	end
+        if jd = valid_weeknum?(*(a << 1 << sg))
+          throw :jd, jd
+        end
       end
     end
   end
@@ -979,13 +979,13 @@ class Date
 
     def once(*ids) # :nodoc:
       for id in ids
-	module_eval <<-"end;"
-	  alias_method :__#{id.to_i}__, :#{id.to_s}
-	  private :__#{id.to_i}__
-	  def #{id.to_s}(*args, &block)
-	    (@__#{id.to_i}__ ||= [__#{id.to_i}__(*args, &block)])[0]
-	  end
-	end;
+        module_eval <<-"end;"
+          alias_method :__#{id.to_i}__, :#{id.to_s}
+          private :__#{id.to_i}__
+          def #{id.to_s}(*args, &block)
+            (@__#{id.to_i}__ ||= [__#{id.to_i}__(*args, &block)])[0]
+          end
+        end;
       end
     end
 
@@ -1150,7 +1150,7 @@ class Date
   # Is this a leap year?
   def leap?
     self.class.jd_to_civil(self.class.civil_to_jd(year, 3, 1, fix_style) - 1,
-		     fix_style)[-1] == 29
+                     fix_style)[-1] == 29
   end
 
   once :leap?
@@ -1428,7 +1428,7 @@ class DateTime < Date
   # All day/time values default to 0.
   def self.jd(jd=0, h=0, min=0, s=0, of=0, sg=ITALY)
     unless (jd = valid_jd?(jd, sg)) &&
-	   (fr = valid_time?(h, min, s))
+           (fr = valid_time?(h, min, s))
       raise ArgumentError, 'invalid date'
     end
     if String === of
@@ -1453,7 +1453,7 @@ class DateTime < Date
   # day 0.  The time values default to 0.
   def self.ordinal(y=-4712, d=1, h=0, min=0, s=0, of=0, sg=ITALY)
     unless (jd = valid_ordinal?(y, d, sg)) &&
-	   (fr = valid_time?(h, min, s))
+           (fr = valid_time?(h, min, s))
       raise ArgumentError, 'invalid date'
     end
     if String === of
@@ -1478,7 +1478,7 @@ class DateTime < Date
   # Number day 0.  The time values default to 0.
   def self.civil(y=-4712, m=1, d=1, h=0, min=0, s=0, of=0, sg=ITALY)
     unless (jd = valid_civil?(y, m, d, sg)) &&
-	   (fr = valid_time?(h, min, s))
+           (fr = valid_time?(h, min, s))
       raise ArgumentError, 'invalid date'
     end
     if String === of
@@ -1506,7 +1506,7 @@ class DateTime < Date
   # The time values default to 0.
   def self.commercial(y=1582, w=41, d=5, h=0, min=0, s=0, of=0, sg=ITALY)
     unless (jd = valid_commercial?(y, w, d, sg)) &&
-	   (fr = valid_time?(h, min, s))
+           (fr = valid_time?(h, min, s))
       raise ArgumentError, 'invalid date'
     end
     if String === of
@@ -1517,7 +1517,7 @@ class DateTime < Date
 
   def self.weeknum(y=1582, w=41, d=5, f=0, h=0, min=0, s=0, of=0, sg=ITALY) # :nodoc:
     unless (jd = valid_weeknum?(y, w, d, f, sg)) &&
-	   (fr = valid_time?(h, min, s))
+           (fr = valid_time?(h, min, s))
       raise ArgumentError, 'invalid date'
     end
     if String === of
@@ -1532,7 +1532,7 @@ class DateTime < Date
     elem = rewrite_frags(elem)
     elem = complete_frags(elem)
     unless (jd = valid_date_frags?(elem, sg)) &&
-	   (fr = valid_time_frags?(elem))
+           (fr = valid_time_frags?(elem))
       raise ArgumentError, 'invalid date'
     end
     sf = (elem[:sec_fraction] || 0)
@@ -1599,7 +1599,7 @@ class Time
   def to_datetime
     jd = DateTime.civil_to_jd(year, mon, mday, DateTime::ITALY)
     fr = DateTime.time_to_day_fraction(hour, min, [sec, 59].min) +
-	 usec.to_r/86400000000
+         usec.to_r/86400000000
     of = utc_offset.to_r/86400
     DateTime.new!(DateTime.jd_to_ajd(jd, fr, of), of, DateTime::ITALY)
   end
@@ -1637,9 +1637,9 @@ class DateTime < Date
     d = new_offset(0)
     d.instance_eval do
       Time.utc(year, mon, mday, hour, min, sec,
-	       (sec_fraction * 86400000000).to_i)
+               (sec_fraction * 86400000000).to_i)
     end.
-	getlocal
+        getlocal
   end
 
   def to_date() Date.new!(self.class.jd_to_ajd(jd, 0, 0), 0, @sg) end
@@ -1653,46 +1653,46 @@ end
 
 class Date
 
-  [ %w(os?	julian?),
-    %w(ns?	gregorian?),
-    %w(exist1?	valid_jd?),
-    %w(exist2?	valid_ordinal?),
-    %w(exist3?	valid_date?),
-    %w(exist?	valid_date?),
-    %w(existw?	valid_commercial?),
-    %w(new0	new!),
-    %w(new1	jd),
-    %w(new2	ordinal),
-    %w(new3	new),
-    %w(neww	commercial)
+  [ %w(os?      julian?),
+    %w(ns?      gregorian?),
+    %w(exist1?  valid_jd?),
+    %w(exist2?  valid_ordinal?),
+    %w(exist3?  valid_date?),
+    %w(exist?   valid_date?),
+    %w(existw?  valid_commercial?),
+    %w(new0     new!),
+    %w(new1     jd),
+    %w(new2     ordinal),
+    %w(new3     new),
+    %w(neww     commercial)
   ].each do |old, new|
     module_eval <<-"end;"
       def self.#{old}(*args, &block)
-	if $VERBOSE
-	  warn("\#{caller.shift.sub(/:in .*/, '')}: " \
-	       "warning: \#{self}::#{old} is deprecated; " \
-	       "use \#{self}::#{new}")
-	end
-	#{new}(*args, &block)
+        if $VERBOSE
+          warn("\#{caller.shift.sub(/:in .*/, '')}: " \
+               "warning: \#{self}::#{old} is deprecated; " \
+               "use \#{self}::#{new}")
+        end
+        #{new}(*args, &block)
       end
     end;
   end
 
-  [ %w(os?	julian?),
-    %w(ns?	gregorian?),
-    %w(sg	start),
-    %w(newsg	new_start),
-    %w(of	offset),
-    %w(newof	new_offset)
+  [ %w(os?      julian?),
+    %w(ns?      gregorian?),
+    %w(sg       start),
+    %w(newsg    new_start),
+    %w(of       offset),
+    %w(newof    new_offset)
   ].each do |old, new|
     module_eval <<-"end;"
       def #{old}(*args, &block)
-	if $VERBOSE
-	  warn("\#{caller.shift.sub(/:in .*/, '')}: " \
-	       "warning: \#{self.class}\##{old} is deprecated; " \
-	       "use \#{self.class}\##{new}")
-	end
-	#{new}(*args, &block)
+        if $VERBOSE
+          warn("\#{caller.shift.sub(/:in .*/, '')}: " \
+               "warning: \#{self.class}\##{old} is deprecated; " \
+               "use \#{self.class}\##{new}")
+        end
+        #{new}(*args, &block)
       end
     end;
   end
