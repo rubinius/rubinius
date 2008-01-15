@@ -2276,6 +2276,32 @@ class ShotgunPrimitives
     stack_push(Qtrue);
     CODE
   end
+
+  def task_debug_channel
+    <<-CODE
+    struct cpu_task *task;
+    self = stack_pop();
+    
+    GUARD(RISA(self, task));
+    
+    task = (struct cpu_task*)BYTES_OF(self);
+
+    stack_push(task->debug_channel);
+    CODE
+  end
+  
+  def task_control_channel
+    <<-CODE
+    struct cpu_task *task;
+    self = stack_pop();
+    
+    GUARD(RISA(self, task));
+    
+    task = (struct cpu_task*)BYTES_OF(self);
+
+    stack_push(task->control_channel);
+    CODE
+  end
   
   def task_stack_size
     <<-CODE

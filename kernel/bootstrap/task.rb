@@ -46,6 +46,14 @@ class Task
   def set_debugging(dc, cc)
     Ruby.primitive :task_set_debugging
   end
+
+  def debug_channel
+    Ruby.primitive :task_debug_channel
+  end
+
+  def control_channel
+    Ruby.primitive :task_control_channel
+  end
   
   def raise(exc)
     Ruby.primitive :task_raise

@@ -182,7 +182,9 @@ module Bytecode
       :task_get_stack_value,
       :fastctx_reload_method,
       :machine_get_message,
-      :machine_send_message
+      :machine_send_message,
+      :task_debug_channel,
+      :task_control_channel
     ]
 
     FirstRuntimePrimitive = 1024

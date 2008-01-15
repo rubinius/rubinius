@@ -226,6 +226,14 @@ class Thread
     @task.set_debugging(dc, cc)
   end
 
+  def debug_channel
+    @task.debug_channel
+  end
+
+  def control_channel
+    @task.control_channel
+  end
+
   def self.main
     @main_thread
   end
