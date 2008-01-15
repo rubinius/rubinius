@@ -420,10 +420,10 @@ namespace :clean do
     (Dir["lib/compiler/*.rbc"] + Dir["lib/compiler/**/*.rbc"]).each do |f|
       rm_f f, :verbose => $verbose
     end
-    
+
     rm_f "runtime/platform.conf"
   end
-  
+
   desc "Cleans all compiled extension files (lib/ext)"
   task :extensions do
     Dir["lib/ext/**/*#{$dlext}"].each do |f|
@@ -545,7 +545,7 @@ RbConfig = Config
       sh "cd shotgun/lib; make DEV=1"
     end
   end
-  
+
   task :platform => 'runtime/platform.conf'
 end
 
@@ -593,7 +593,7 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
     LOCK_UN
     BINARY  
   }
-  
+
   file_constants = %w{
     O_RDONLY
     O_WRONLY
@@ -622,32 +622,245 @@ file 'runtime/platform.conf' => 'Rakefile' do |t|
     SEEK_END
   }
 
-  socket_constants = %w{
-    SOCK_STREAM
+  socket_constants = %w[
+    AF_APPLETALK
+    AF_ATM
+    AF_AX25
+    AF_CCITT
+    AF_CHAOS
+    AF_CNT
+    AF_COIP
+    AF_DATAKIT
+    AF_DEC
+    AF_DLI
+    AF_E164
+    AF_ECMA
+    AF_HYLINK
+    AF_IMPLINK
+    AF_INET
+    AF_INET6
+    AF_IPX
+    AF_ISDN
+    AF_ISO
+    AF_LAT
+    AF_LINK
+    AF_LOCAL
+    AF_MAX
+    AF_NATM
+    AF_NDRV
+    AF_NETBIOS
+    AF_NETGRAPH
+    AF_NS
+    AF_OSI
+    AF_PPP
+    AF_PUP
+    AF_ROUTE
+    AF_SIP
+    AF_SNA
+    AF_SYSTEM
+    AF_UNIX
+    AF_UNSPEC
+
+    AI_ADDRCONFIG
+    AI_ALL
+    AI_CANONNAME
+    AI_DEFAULT
+    AI_MASK
+    AI_NUMERICHOST
+    AI_PASSIVE
+    AI_V4MAPPED
+    AI_V4MAPPED_CFG
+
+    EAI_ADDRFAMILY
+    EAI_AGAIN
+    EAI_BADFLAGS
+    EAI_BADHINTS
+    EAI_FAIL
+    EAI_FAMILY
+    EAI_MAX
+    EAI_MEMORY
+    EAI_NODATA
+    EAI_NONAME
+    EAI_PROTOCOL
+    EAI_SERVICE
+    EAI_SOCKTYPE
+    EAI_SYSTEM
+
+    INADDR_ALLHOSTS_GROUP
+    INADDR_ANY
+    INADDR_BROADCAST
+    INADDR_LOOPBACK
+    INADDR_MAX_LOCAL_GROUP
+    INADDR_NONE
+    INADDR_UNSPEC_GROUP
+
+    IPPORT_RESERVED
+    IPPORT_USERRESERVED
+
+    IPPROTO_BIP
+    IPPROTO_EGP
+    IPPROTO_EON
+    IPPROTO_GGP
+    IPPROTO_HELLO
+    IPPROTO_ICMP
+    IPPROTO_IDP
+    IPPROTO_IGMP
+    IPPROTO_IP
+    IPPROTO_MAX
+    IPPROTO_ND
+    IPPROTO_PUP
+    IPPROTO_RAW
+    IPPROTO_TCP
+    IPPROTO_TP
+    IPPROTO_UDP
+    IPPROTO_XTP
+
+    IPX_TYPE
+
+    IP_ADD_MEMBERSHIP
+    IP_DEFAULT_MULTICAST_LOOP
+    IP_DEFAULT_MULTICAST_TTL
+    IP_DROP_MEMBERSHIP
+    IP_HDRINCL
+    IP_MAX_MEMBERSHIPS
+    IP_MULTICAST_IF
+    IP_MULTICAST_LOOP
+    IP_MULTICAST_TTL
+    IP_OPTIONS
+    IP_RECVDSTADDR
+    IP_RECVOPTS
+    IP_RECVRETOPTS
+    IP_RETOPTS
+    IP_TOS
+    IP_TTL
+
+    MSG_COMPAT
+    MSG_CTRUNC
+    MSG_DONTROUTE
+    MSG_DONTWAIT
+    MSG_EOF
+    MSG_EOR
+    MSG_FLUSH
+    MSG_HAVEMORE
+    MSG_HOLD
+    MSG_OOB
+    MSG_PEEK
+    MSG_RCVMORE
+    MSG_SEND
+    MSG_TRUNC
+    MSG_WAITALL
+
+    NI_DGRAM
+    NI_MAXHOST
+    NI_MAXSERV
+    NI_NAMEREQD
+    NI_NOFQDN
+    NI_NUMERICHOST
+    NI_NUMERICSERV
+
+    PF_APPLETALK
+    PF_AX25
+    PF_CCITT
+    PF_CHAOS
+    PF_CNT
+    PF_COIP
+    PF_DATAKIT
+    PF_DLI
+    PF_ECMA
+    PF_HYLINK
+    PF_IMPLINK
+    PF_INET
+    PF_INET6
+    PF_IPX
+    PF_ISDN
+    PF_ISO
+    PF_KEY
+    PF_LAT
+    PF_LINK
+    PF_LOCAL
+    PF_MAX
+    PF_NATM
+    PF_NDRV
+    PF_NETBIOS
+    PF_NETGRAPH
+    PF_NS
+    PF_OSI
+    PF_PIP
+    PF_PPP
+    PF_PUP
+    PF_ROUTE
+    PF_RTIP
+    PF_SIP
+    PF_SNA
+    PF_SYSTEM
+    PF_UNIX
+    PF_UNSPEC
+    PF_XTP
+
+    SHUT_RD
+    SHUT_RDWR
+    SHUT_WR
+
     SOCK_DGRAM
+    SOCK_PACKET
     SOCK_RAW
     SOCK_RDM
     SOCK_SEQPACKET
-    SOCK_PACKET
-    AF_INET
-    PF_INET
-    AF_UNIX
-    PF_UNIX
-    AF_UNSPEC
-    PF_UNSPEC
-    AF_INET6
-    PF_INET6
-    AF_LOCAL
-    PF_LOCAL
-    MSG_OOB
-    MSG_PEEK
-    SO_DEBUG
-    SO_REUSEADDR
-    SO_TYPE
-    SO_ERROR
-    SO_LINGER
+    SOCK_STREAM
+
+    SOL_ATALK
+    SOL_AX25
+    SOL_IP
+    SOL_IPX
     SOL_SOCKET
-  }
+    SOL_TCP
+    SOL_UDP
+
+    SOPRI_BACKGROUND
+    SOPRI_INTERACTIVE
+    SOPRI_NORMAL
+
+    SO_ACCEPTCONN
+    SO_ACCEPTFILTER
+    SO_ATTACH_FILTER
+    SO_BINDTODEVICE
+    SO_BROADCAST
+    SO_DEBUG
+    SO_DETACH_FILTER
+    SO_DONTROUTE
+    SO_DONTTRUNC
+    SO_ERROR
+    SO_KEEPALIVE
+    SO_LINGER
+    SO_NKE
+    SO_NOSIGPIPE
+    SO_NO_CHECK
+    SO_NREAD
+    SO_OOBINLINE
+    SO_PASSCRED
+    SO_PEERCRED
+    SO_PEERNAME
+    SO_PRIORITY
+    SO_RCVBUF
+    SO_RCVLOWAT
+    SO_RCVTIMEO
+    SO_REUSEADDR
+    SO_REUSEPORT
+    SO_SECURITY_AUTHENTICATION
+    SO_SECURITY_ENCRYPTION_NETWORK
+    SO_SECURITY_ENCRYPTION_TRANSPORT
+    SO_SNDBUF
+    SO_SNDLOWAT
+    SO_SNDTIMEO
+    SO_TIMESTAMP
+    SO_TYPE
+    SO_USELOOPBACK
+    SO_WANTMORE
+    SO_WANTOOBFLAG
+
+    TCP_MAXSEG
+    TCP_NODELAY
+  ]
 
   process_constants = %w{
     WNOHANG
