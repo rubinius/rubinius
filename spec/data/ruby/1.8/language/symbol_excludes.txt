@@ -1,1 +1,0 @@
-Using the literal form to create Symbols The string may not be empty
