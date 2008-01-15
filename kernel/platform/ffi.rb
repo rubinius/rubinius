@@ -1,12 +1,12 @@
 module FFI
-  
+
   class TypeError < RuntimeError
   end
-  
+
   TypeDefs = {}
-  
+
   class << self
-    
+
     def add_typedef(current, add)
       if current.kind_of? Fixnum
         code = current
@@ -14,20 +14,20 @@ module FFI
         code = FFI::TypeDefs[current]
         raise TypeError, "Unable to resolve type '#{current}'" unless code
       end
-      
+
       FFI::TypeDefs[add] = code
     end
-    
+
     def find_type(name)
       code = FFI::TypeDefs[name]
       raise TypeError, "Unable to resolve type '#{name}'" unless code
       return code
     end
-    
+
     def create_backend(library, name, args, ret)
       Ruby.primitive :nfunc_add
     end
-    
+
     def create_function(library, name, args, ret)
       i = 0
       tot = args.size
@@ -38,11 +38,11 @@ module FFI
         i += 1
       end
       cret = find_type(ret)
-      
+
       create_backend(library, name, args, cret)
     end
-  end  
-  
+  end
+
   ##
   # Converts a Rubinius Object
 
@@ -52,67 +52,67 @@ module FFI
   # Converts a char
 
   add_typedef TYPE_CHAR,    :char
-  
+
   ##
   # Converts an unsigned char
 
   add_typedef TYPE_UCHAR,   :uchar
-  
+
   ##
   # Converts a short
 
   add_typedef TYPE_SHORT,   :short
-  
+
   ##
   # Converts an unsigned short
 
   add_typedef TYPE_USHORT,  :ushort
-  
+
   ##
   # Converts an int
 
   add_typedef TYPE_INT,     :int
-  
+
   ##
   # Converts an unsigned int
 
   add_typedef TYPE_UINT,    :uint
-  
+
   ##
   # Converts a long
 
   add_typedef TYPE_LONG,    :long
-  
+
   ##
   # Converts an unsigned long
 
   add_typedef TYPE_ULONG,   :ulong
-  
+
   ##
   # Converts a long long
 
   add_typedef TYPE_LL,      :long_long
-  
+
   ##
   # Converts an unsigned long long
 
   add_typedef TYPE_ULL,     :ulong_long
-  
+
   ##
   # Converts a float
 
   add_typedef TYPE_FLOAT,   :float
-  
+
   ##
   # Converts a double
 
   add_typedef TYPE_DOUBLE,  :double
-  
+
   ##
   # Converts a pointer to opaque data
 
   add_typedef TYPE_PTR,     :pointer
-  
+
   ##
   # For when a function has no return value
 
@@ -122,7 +122,7 @@ module FFI
   # Converts NULL-terminated C strings
 
   add_typedef TYPE_STRING,  :string
-  
+
   ##
   # Converts the current Rubinius state
 
@@ -138,23 +138,23 @@ module FFI
   # Use for a C struct with a char [] embedded inside.
 
   add_typedef TYPE_CHARARR, :char_array
-  
+
   TypeSizes = {
     1 => :char,
     2 => :short,
     4 => :int,
     8 => :long_long,
   }
-  
+
   if Rubinius::L64
     TypeSizes[:long] = 8
   end
-  
+
   def self.size_to_type(size)
     if sz = TypeSizes[size]
       return sz
     end
-    
+
     # Be like C, use int as the default type size.
     return :char_array
   end
@@ -172,7 +172,7 @@ module FFI
     end
     vals
   end
-  
+
 end
 
 class Module
@@ -211,9 +211,9 @@ class MemoryPointer
 
   # call-seq:
   #   MemoryPointer.new(num) => MemoryPointer instance of <i>num</i> bytes
-  #   MemoryPointer.new(sym) => MemoryPointer instance with number 
+  #   MemoryPointer.new(sym) => MemoryPointer instance with number
   #                             of bytes need by FFI type <i>sym</i>
-  #   MemoryPointer.new(obj) => MemoryPointer instance with number 
+  #   MemoryPointer.new(obj) => MemoryPointer instance with number
   #                             of <i>obj.size</i> bytes
   #   MemoryPointer.new(sym, count) => MemoryPointer instance with number
   #                             of bytes need by length-<i>count</i> array
@@ -239,7 +239,7 @@ class MemoryPointer
     else
       size = type.size
     end
-    
+
     if count
       total = size * count
     else
@@ -260,18 +260,18 @@ class MemoryPointer
       ptr
     end
   end
-  
+
   attr_accessor :type_size
-  
+
   def [](which)
     raise ArgumentError, "unknown type size" unless @type_size
     self + (which * @type_size)
   end
-  
+
   def free
     Platform::POSIX.free self
   end
-  
+
   def write_int(obj)
     self.class.write_int self, Integer(obj)
   end
@@ -305,13 +305,13 @@ class MemoryPointer
   def read_pointer
     self.class.read_pointer self
   end
-  
+
   def write_float(obj)
     # TODO: ffi needs to be fixed for passing [:pointer, double]
     #       when :pointer is a (double *)
     self.class.write_float self, Float(obj)
   end
-  
+
   def read_float
     self.class.read_float self
   end
@@ -356,15 +356,15 @@ class MemoryPointer
   def inspect
     "#<MemoryPointer address=0x#{address.to_s(16)}>"
   end
-  
+
   def address
     self.class.address self
   end
-  
+
   def null?
     address == 0x0
   end
-  
+
   def +(value)
     self.class.add_ptr(self, value)
   end
@@ -397,12 +397,12 @@ module FFI
 
     def self.layout(*spec)
       return @layout if spec.size == 0
-      
+
       cspec = {}
       i = 0
-      
+
       @size = 0
-      
+
       while i < spec.size
         name = spec[i]
         f = spec[i + 1]
@@ -412,14 +412,14 @@ module FFI
         cspec[name] = [offset, code]
         ending = offset + FFI.type_size(f)
         @size = ending if @size < ending
-        
+
         i += 3
       end
-      
+
       if self != Struct
         @layout = cspec
       end
-      
+
       return cspec
     end
 
@@ -454,45 +454,45 @@ module FFI
     def self.size
       @size
     end
-    
+
     def size
       self.class.size
     end
-    
+
     def initialize(ptr, *spec)
       @ptr = ptr
       @cspec = self.class.layout(*spec)
     end
-    
+
     def [](field)
       offset, type = @cspec[field]
       raise "Unknown field #{field}" unless offset
-      
+
       if type == FFI::TYPE_CHARARR
         (@ptr + offset).read_string
       else
         self.class.ffi_get_field(@ptr, offset, type)
       end
     end
-    
+
     def []=(field, val)
       offset, type = @cspec[field]
       raise "Unknown field #{field}" unless offset
-      
+
       self.class.ffi_set_field(@ptr, offset, type, val)
       return val
     end
   end
-  
+
 end
 
 class NativeFunction
-  
+
   # The *args means the primitive handles it own argument count checks.
   def call(*args)
     Ruby.primitive :nfunc_call_object
   end
-  
+
   class Variable
     def initialize(library, name, a2, a3=nil)
       if a3
@@ -507,25 +507,25 @@ class NativeFunction
       @name = name
       @functions = {}
     end
-    
+
     def find_function(at)
       if @static_args
         at = @static_args + at
       end
-      
+
       if func = @functions[at]
         return func
       end
-      
+
       func = FFI.create_function @library, @name, at, @ret
       @functions[at] = func
       return func
     end
-    
+
     def [](*args)
       find_function(args)
     end
-        
+
     def call(at, *args)
       find_function(at).call(*args)
     end
