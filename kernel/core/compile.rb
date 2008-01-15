@@ -84,12 +84,12 @@ module Compile
           cm = Archive.get_object(dir, rbc, Rubinius::CompiledMethodVersion)
 
           if cm
-            return false if requiring.equal?(true) and $LOADED_FEATURES.include? rb
+            return false if requiring and $LOADED_FEATURES.include? rb
 
             cm.compile
             cm.as_script
 
-            $LOADED_FEATURES << rb if requiring.equal?(true)
+            $LOADED_FEATURES << rb if requiring
             return true
           end
           # Fall through
@@ -104,11 +104,11 @@ module Compile
   end
 
   def self.compile_feature(rb, requiring, &block)
-    $LOADED_FEATURES << rb if requiring.equal?(true)
+    $LOADED_FEATURES << rb if requiring
     begin
       yield
     rescue Exception => e
-      $LOADED_FEATURES.delete(rb) if requiring.equal?(true)
+      $LOADED_FEATURES.delete(rb) if requiring
       raise e
     end
   end
@@ -117,7 +117,7 @@ module Compile
   # designated file from a single prefix path.
   def self.single_load(dir, rb, rbc, ext, requiring = nil)
     unless rb.equal? nil
-      return false if requiring.equal?(true) and $LOADED_FEATURES.include? rb
+      return false if requiring and $LOADED_FEATURES.include? rb
 
       rb_path = "#{dir}#{rb}"
 
@@ -147,7 +147,7 @@ module Compile
           cm.compile
           cm.as_script
         rescue Exception => e
-          $LOADED_FEATURES.delete(rb) if requiring.equal?(true)
+          $LOADED_FEATURES.delete(rb) if requiring
           raise e
         end
 
@@ -157,7 +157,7 @@ module Compile
 
     unless rbc.equal? nil
       rb = rbc.chomp 'c'
-      return false if requiring.equal?(true) and $LOADED_FEATURES.include?(rb)
+      return false if requiring and $LOADED_FEATURES.include?(rb)
 
       rbc_path = "#{dir}#{rbc}"
 
@@ -171,7 +171,7 @@ module Compile
           cm.compile
           cm.as_script
         rescue Exception => e
-          $LOADED_FEATURES.delete(rb) if requiring.equal?(true)
+          $LOADED_FEATURES.delete(rb) if requiring
           raise e
         end
 
@@ -180,7 +180,7 @@ module Compile
     end
 
     unless ext.equal? nil
-      return false if requiring.equal?(true) and $LOADED_FEATURES.include? ext
+      return false if requiring and $LOADED_FEATURES.include? ext
       
       ext_path = "#{dir}#{ext}"
       ext_name = File.basename ext, ".#{Rubinius::LIBSUFFIX}"
@@ -188,7 +188,7 @@ module Compile
       if File.file? ext_path then
         case VM.load_library(ext_path, ext_name)
         when true
-          $LOADED_FEATURES << ext if requiring.equal?(true)
+          $LOADED_FEATURES << ext if requiring
           return true
         when 0 # Absent or invalid
           return nil
