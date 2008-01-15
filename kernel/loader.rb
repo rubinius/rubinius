@@ -7,7 +7,6 @@ begin
   Class.after_loaded
   Hash.after_loaded
   Kernel.after_loaded
-  Actor.after_loaded
   Math.after_loaded
   FileTest.after_loaded
   Thread.after_loaded

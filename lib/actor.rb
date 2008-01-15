@@ -31,12 +31,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 class Actor
-  
-  def self.after_loaded
-    Actor.metaclass.alias_method :private_new, :new
-    Actor.metaclass.alias_method :new, :spawn
-    Actor.metaclass.private :private_new
-  end
+  alias_method :private_new, :new
+  alias_method :new, :spawn
+  private :private_new
   
   class << self
     def spawn(&prc)
