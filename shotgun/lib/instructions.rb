@@ -1243,6 +1243,24 @@ CODE
     cpu_flush_sp(c);
     cpu_flush_ip(c);
     methctx_reference(state, c->active_context);
+
+    if(c->debug_channel == Qnil) {
+      /* No debug channel on the task, so use the VM default one (if any) */
+      OBJECT mod, vm;
+      mod = rbs_const_get(state, BASIC_CLASS(object), "Rubinius");
+      if(!NIL_P(mod)) {
+        vm = rbs_const_get(state, mod, "VM");
+        if(!NIL_P(vm)) {
+          c->debug_channel = object_get_ivar(state, vm, SYM("@debug_channel"));
+        }
+      }
+    }
+
+    if(c->control_channel == Qnil) {
+      /* No control channel on the task, so create one */
+      c->control_channel = cpu_channel_new(state);
+    }
+
     if(c->debug_channel != Qnil) {
       cpu_channel_send(state, c, c->debug_channel, c->current_thread);
       /* This is so when this task is reactivated, the sent value wont be placed

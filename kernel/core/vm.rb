@@ -41,4 +41,19 @@ class Rubinius::VM
   def <<(obj)
     self.class.send_message @id, obj
   end
+
+  # Sets a default VM debug channel to be used for handling yield_debugger
+  # bytecodes. The caller must ensure that a debugger thread is waiting on the
+  # receive end of the debug channel before any yield_debugger ops are hit.
+  # If no VM debug channel is specified, individual threads must have
+  # #set_debugging called on them before they encounter a yield_debugger op.
+  # Only one debug channel can be set at any time. Attempts to call this method
+  # with a value other than nil while a debug channel is already set will raise
+  # an ArgumentError.
+  def self.set_debug_channel(channel)
+    if channel and @debug_channel
+      raise ArgumentError, "A VM debug channel has already been registered"
+    end
+    @debug_channel = channel
+  end
 end
