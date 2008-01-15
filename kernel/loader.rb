@@ -104,6 +104,7 @@ Options:
   -Idir1[:dir2]  Add directories to $LOAD_PATH.
   -p             Run the profiler.
   -rlibrary      Require library before execution.
+  -w             Enable warnings. (currently does nothing--compatibility)
   -v             Display the version and set $VERBOSE to true.
 
 END
@@ -124,6 +125,8 @@ begin
     when "-v"
       puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{Rubinius::RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
+    when "-w"
+      # do nothing (HACK)
     when '-dc'
       puts "[Compiler debugging enabled]"
       $DEBUG_COMPILER = true
