@@ -188,6 +188,6 @@ class BreakpointTracker
   # Returns an array of +Breakpoint+ objects that correspond to the breakpoints
   # currently set.
   def breakpoints
-    @breakpoints.values.map!{|h| h.values.first}
+    @breakpoints.values.map!{|h| h.values}.flatten
   end
 end
