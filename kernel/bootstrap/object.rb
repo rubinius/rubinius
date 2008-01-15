@@ -30,6 +30,7 @@ class Object
 
   def equal?(other)
     Ruby.primitive :object_equal
+    raise PrimitiveFailure, "Object#equal? failed."
   end
 
   # Returns true if the given Class is either the class or superclass
@@ -96,14 +97,17 @@ class Object
 
   def copy_from(other, start)
     Ruby.primitive :dup_into
+    raise TypeError, "unable to copy into"
   end
 
   def dup
     Ruby.primitive :object_dup
+    raise TypeError, "unable to dup"
   end
 
   def clone
     Ruby.primitive :object_clone
+    raise TypeError, "unable to clone"
   end
 
   def to_s
@@ -147,33 +151,41 @@ class Object
 
   def get_instance_variables
     Ruby.primitive :ivars_get
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def get_instance_variable(sym)
     Ruby.primitive :ivar_get
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def set_instance_variable(sym, value)
     Ruby.primitive :ivar_set
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def taint
     Ruby.primitive :object_taint
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def tainted?
     Ruby.primitive :object_tainted_p
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def untaint
     Ruby.primitive :object_untaint
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def freeze
     Ruby.primitive :object_freeze
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def frozen?
     Ruby.primitive :object_frozen_p
+    raise PrimitiveFailure, "primitive failed"
   end
 end

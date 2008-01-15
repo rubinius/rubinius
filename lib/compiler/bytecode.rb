@@ -393,10 +393,12 @@ class Node
   # TESTED
   class DynamicRegex
     def bytecode(g)
+      g.push @options
+
       super(g)
 
       g.push_const :Regexp
-      g.send :new, 1
+      g.send :new, 2
     end
   end
 

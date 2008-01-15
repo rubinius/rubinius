@@ -253,8 +253,21 @@ again_no_block:
       } else {
         array_push(current, Qnil);
       }
+      /* HACK: emit newline nodes to govern a nd_else if it's another if.
+       * the parser seems to not emit newlines properly at all. */
       if (node->nd_else) {
-        add_to_parse_tree(current, node->nd_else, newlines, locals, line_numbers);
+        if(nd_type(node->nd_else) == NODE_IF) {
+          OBJECT nl;
+          nl = array_new(state, 4);
+          array_push(current, nl);
+          array_push(nl, SYM("newline"));
+          array_push(nl, I2N(nd_line(node->nd_else)));
+          array_push(nl, string_new(state, node->nd_else->nd_file));
+          
+          add_to_parse_tree(nl, node->nd_else, newlines, locals, line_numbers);
+        } else {
+          add_to_parse_tree(current, node->nd_else, newlines, locals, line_numbers);
+        }
       } else {
         array_push(current, Qnil);
       }
@@ -682,6 +695,13 @@ again_no_block:
           }
         }
         list = list->nd_next;
+      }
+
+      /* the regex options. */
+      switch(nd_type(node)) {
+      case NODE_DREGX:
+      case NODE_DREGX_ONCE:
+        array_push(current, I2N(node->nd_cflag));
       }
     }
     break;

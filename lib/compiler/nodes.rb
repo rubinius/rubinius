@@ -449,6 +449,12 @@ class Node
 
   class DynamicRegex < DynamicString
     kind :dregx
+
+    def args(str, *body)
+      @string = str
+      @body = body
+      @options = body.pop
+    end
   end
 
   class DynamicOnceRegex < DynamicRegex

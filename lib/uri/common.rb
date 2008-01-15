@@ -1,7 +1,7 @@
 # = uri/common.rb
 #
 # Author:: Akira Yamada <akira@ruby-lang.org>
-# Revision:: $Id: common.rb 11747 2007-02-15 02:41:45Z knu $
+# Revision:: $Id: common.rb 14565 2007-12-24 01:51:49Z drbrain $
 # License:: 
 #   You can redistribute it and/or modify it under the same term as Ruby.
 #
@@ -110,7 +110,7 @@ module URI
       SERVER = "(?:#{USERINFO}@)?#{HOSTPORT}"
       # reg_name      = 1*( unreserved | escaped | "$" | "," |
       #                     ";" | ":" | "@" | "&" | "=" | "+" )
-      REG_NAME = "(?:[#{UNRESERVED}$,;+@&=+]|#{ESCAPED})+"
+      REG_NAME = "(?:[#{UNRESERVED}$,;:@&=+]|#{ESCAPED})+"
       # authority     = server | reg_name
       AUTHORITY = "(?:#{SERVER}|#{REG_NAME})"
 
@@ -186,31 +186,30 @@ module URI
 
     # for URI::split
     ABS_URI = Regexp.new('^' + PATTERN::X_ABS_URI + '$', #'
-                         Regexp::EXTENDED, 'N').freeze
+                         Regexp::EXTENDED).freeze
     REL_URI = Regexp.new('^' + PATTERN::X_REL_URI + '$', #'
-                         Regexp::EXTENDED, 'N').freeze
+                         Regexp::EXTENDED).freeze
 
     # for URI::extract
-    URI_REF     = Regexp.new(PATTERN::URI_REF, false, 'N').freeze
-    ABS_URI_REF = Regexp.new(PATTERN::X_ABS_URI, Regexp::EXTENDED, 'N').freeze
-    REL_URI_REF = Regexp.new(PATTERN::X_REL_URI, Regexp::EXTENDED, 'N').freeze
+    URI_REF     = Regexp.new(PATTERN::URI_REF).freeze
+    ABS_URI_REF = Regexp.new(PATTERN::X_ABS_URI, Regexp::EXTENDED).freeze
+    REL_URI_REF = Regexp.new(PATTERN::X_REL_URI, Regexp::EXTENDED).freeze
 
     # for URI::escape/unescape
-    ESCAPED = Regexp.new(PATTERN::ESCAPED, false, 'N').freeze
-    UNSAFE  = Regexp.new("[^#{PATTERN::UNRESERVED}#{PATTERN::RESERVED}]",
-                         false, 'N').freeze
+    ESCAPED = Regexp.new(PATTERN::ESCAPED).freeze
+    UNSAFE  = Regexp.new("[^#{PATTERN::UNRESERVED}#{PATTERN::RESERVED}]").freeze
 
     # for Generic#initialize
-    SCHEME   = Regexp.new("^#{PATTERN::SCHEME}$", false, 'N').freeze #"
-    USERINFO = Regexp.new("^#{PATTERN::USERINFO}$", false, 'N').freeze #"
-    HOST     = Regexp.new("^#{PATTERN::HOST}$", false, 'N').freeze #"
-    PORT     = Regexp.new("^#{PATTERN::PORT}$", false, 'N').freeze #"
-    OPAQUE   = Regexp.new("^#{PATTERN::OPAQUE_PART}$", false, 'N').freeze #"
-    REGISTRY = Regexp.new("^#{PATTERN::REG_NAME}$", false, 'N').freeze #"
-    ABS_PATH = Regexp.new("^#{PATTERN::ABS_PATH}$", false, 'N').freeze #"
-    REL_PATH = Regexp.new("^#{PATTERN::REL_PATH}$", false, 'N').freeze #"
-    QUERY    = Regexp.new("^#{PATTERN::QUERY}$", false, 'N').freeze #"
-    FRAGMENT = Regexp.new("^#{PATTERN::FRAGMENT}$", false, 'N').freeze #"
+    SCHEME   = Regexp.new("^#{PATTERN::SCHEME}$").freeze #"
+    USERINFO = Regexp.new("^#{PATTERN::USERINFO}$").freeze #"
+    HOST     = Regexp.new("^#{PATTERN::HOST}$").freeze #"
+    PORT     = Regexp.new("^#{PATTERN::PORT}$").freeze #"
+    OPAQUE   = Regexp.new("^#{PATTERN::OPAQUE_PART}$").freeze #"
+    REGISTRY = Regexp.new("^#{PATTERN::REG_NAME}$").freeze #"
+    ABS_PATH = Regexp.new("^#{PATTERN::ABS_PATH}$").freeze #"
+    REL_PATH = Regexp.new("^#{PATTERN::REL_PATH}$").freeze #"
+    QUERY    = Regexp.new("^#{PATTERN::QUERY}$").freeze #"
+    FRAGMENT = Regexp.new("^#{PATTERN::FRAGMENT}$").freeze #"
     # :startdoc:
   end # REGEXP
 

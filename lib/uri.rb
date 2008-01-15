@@ -6,7 +6,7 @@
 # License:: 
 #  Copyright (c) 2001 akira yamada <akira@ruby-lang.org>
 #  You can redistribute it and/or modify it under the same term as Ruby.
-# Revision:: $Id: uri.rb 11708 2007-02-12 23:01:19Z shyouhei $
+# Revision:: $Id: uri.rb 13772 2007-10-25 00:53:34Z akira $
 # 
 # See URI for documentation
 #
@@ -25,4 +25,5 @@ require 'uri/ftp'
 require 'uri/http'
 require 'uri/https'
 require 'uri/ldap'
+require 'uri/ldaps'
 require 'uri/mailto'

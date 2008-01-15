@@ -122,7 +122,7 @@ class Regexp
   end
 
   def =~(str)
-    match = match_from(str, 0)
+    match = match_from(StringValue(str), 0)
     if match
       Regexp.last_match = match
       return match.begin(0)
@@ -199,7 +199,7 @@ class Regexp
   end
 
   def inspect
-    str = source.escaped('/') << '/' << option_to_string(options)
+    str = '/' << source << '/' << option_to_string(options)
     k = kcode()
     str << k[0,1] if k and k != "none"
     return str
