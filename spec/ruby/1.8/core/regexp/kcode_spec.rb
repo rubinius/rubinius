@@ -2,7 +2,11 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Regexp#kcode" do
   it "returns the character set code" do
-    /f.(o)/.kcode.should == 'none'
+    default = /f.(o)/.kcode
+    default.should_not == 'sjis'
+    default.should_not == 'euc'
+    default.should_not == 'utf8'
+
     /ab+c/s.kcode.should == "sjis"
     /a(.)+s/n.kcode.should == "none"
     /xyz/e.kcode.should == "euc"
