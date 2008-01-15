@@ -437,7 +437,6 @@ class Module
         mc.method_table[method_name] = method.dup
         set_visibility(method_name, :private)
       end
-      private *args
     end
     nil
   end
