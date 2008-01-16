@@ -50,10 +50,14 @@ class Rubinius::VM
   # Only one debug channel can be set at any time. Attempts to call this method
   # with a value other than nil while a debug channel is already set will raise
   # an ArgumentError.
-  def self.set_debug_channel(channel)
+  def self.debug_channel=(channel)
     if channel and @debug_channel
       raise ArgumentError, "A VM debug channel has already been registered"
     end
     @debug_channel = channel
+  end
+
+  def self.debug_channel
+    @debug_channel
   end
 end

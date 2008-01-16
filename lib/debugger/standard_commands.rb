@@ -189,7 +189,7 @@ class Debugger
 
   class Quit < Command
     def help
-      return "q[uit]", "Remove all breakpoints and resume program"
+      return "q[uit]", "Remove all breakpoints, quit the debugger, and resume program"
     end
 
     def command_regexp
@@ -197,9 +197,7 @@ class Debugger
     end
 
     def execute(dbg, md)
-      dbg.remove_breakpoint dbg.breakpoints
-      dbg.done!
-      return "Exiting debugger"
+      dbg.quit!
     end
   end
 

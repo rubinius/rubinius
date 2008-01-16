@@ -108,6 +108,22 @@ class BreakpointTracker
 
   # Registers this breakpoint tracker as the debug handler for the specified
   # thread. The thread's existing control channel (if any) is not modified.
+  #
+  # Note: A debug channel must be established and registered before a breakpoint
+  # is encountered during code execution. There are two ways in which this may
+  # be done:
+  # 1. Register a VM-wide debug channel (via Rubinius::VM.debug_channel=)
+  # that will be used for all threads that do not have a debug channel already
+  # set.
+  # 2. Call Thread#set_debugging or Task#set_debugging to set a specific debug
+  # channel for the thread/task.
+  # This method uses the second option, and sets the BreakpointTracker's debug
+  # channel as the debug channel for the specified thread. As an alternative to
+  # calling this method, consider using Rubinius::VM.debug_channel= with the
+  # BreakpointTracker's debug channel instead; this has the advantage of
+  # handling breakpoints encountered by ANY thread without the need for pre-
+  # registering a debug channel on any and every thread that might encounter a
+  # breakpoint.
   def debug_thread(thr)
     thr.set_debugging @debug_channel, thr.control_channel
   end
@@ -157,22 +173,24 @@ class BreakpointTracker
   # Processes a breakpoint that has been triggered.
   def process
     thread = wait_for_breakpoint
-    ctx = thread.task.current_context
-    bp = find_breakpoint(ctx)
-    unless bp
-      raise "Unable to find breakpoint for #{ctx.inspect}"
-    end
-    if bp.enabled?
-      bp.restore_into(ctx)
-    end
+    if thread
+      ctx = thread.task.current_context
+      bp = find_breakpoint(ctx)
+      unless bp
+        raise "Unable to find breakpoint for #{ctx.inspect}"
+      end
+      if bp.enabled?
+        bp.restore_into(ctx)
+      end
 
-    begin
-      bp.call_handler(thread, ctx)
-    rescue Error => e
-      puts "An exception occured in a breakpoint handler:"
-      puts e
+      begin
+        bp.call_handler(thread, ctx)
+      rescue Error => e
+        puts "An exception occured in a breakpoint handler:"
+        puts e
+      end
     end
-    wake_target thread
+    thread
   end
 
   # Suspends the current thread until a breakpoint is signaled

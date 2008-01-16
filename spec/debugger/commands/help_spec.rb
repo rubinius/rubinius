@@ -7,7 +7,7 @@ describe "Help#execute" do
 
   it "returns an array of commands and descriptions" do
     hlp = Debugger::Help.new
-    out = hlp.execute @dbg, '?'
+    out = hlp.execute @dbg, nil
     out.class.should == Debugger::Output
   end
 end
