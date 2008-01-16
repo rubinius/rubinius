@@ -118,7 +118,7 @@ class Socket < BasicSocket
 
       value
     end
-
+    
     def self.pack_sa_ip(name, port, type, flags)
       result = ffi_pack_sockaddr_in name, port, type, flags
 
@@ -326,7 +326,6 @@ class Socket < BasicSocket
     setup(fixnum)
     return self
   end
-
 end
 
 class UNIXSocket < BasicSocket
@@ -342,6 +341,16 @@ class UNIXServer < UNIXSocket
 end
 
 class IPSocket < BasicSocket
+  def addr
+    reverse = !BasicSocket.do_not_reverse_lookup
+    
+    name, addr, port = Socket::Foreign.getsockname descriptor, reverse
+
+    raise SocketError, "Unable to get local address" if addr.nil?
+
+    ["AF_INET", port.to_i, name, addr]
+  end
+  
   def peeraddr
     reverse = !BasicSocket.do_not_reverse_lookup
 
@@ -394,7 +403,13 @@ class UDPSocket < IPSocket
 end
 
 class TCPSocket < IPSocket
-
+  
+  def self.from_descriptor(fixnum)
+    sock = allocate()
+    sock.from_descriptor(fixnum)
+    return sock    
+  end
+  
   def from_descriptor(fixnum)
     setup(fixnum)
 
