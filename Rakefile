@@ -378,6 +378,13 @@ task :install => :config_env do
   end
 end
 
+
+desc "Uninstall rubinius and libraries. Helps with build problems."
+task :uninstall => :config_env do
+  rm Dir[File.join(ENV['BINPATH'], 'rbx*')]
+  rm_r Dir[File.join(ENV['LIBPATH'], '*rubinius*')]
+end
+
 task :config_env => 'shotgun/config.mk' do
   File.foreach 'shotgun/config.mk' do |line|
     next unless line =~ /(.*?)=(.*)/
