@@ -207,6 +207,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
   /* Validate klass is valid even. */
   if(NUM_FIELDS(klass) <= CLASS_f_SUPERCLASS) {
     printf("Warning: encountered invalid class (not big enough).\n");
+    sassert(0);
     *mod = Qnil;
     return Qnil;
   }
@@ -218,6 +219,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
   
   if(!ISA(hsh, state->global->hash)) {
     printf("Warning: encountered invalid module (methods not a hash).\n");
+    sassert(0);
     *mod = Qnil;
     return Qnil; 
   }
@@ -241,6 +243,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
     /* Validate klass is still valid. */
     if(NUM_FIELDS(klass) <= CLASS_f_SUPERCLASS) {
       printf("Warning: encountered invalid class (not big enough).\n");
+      sassert(0);
       *mod = Qnil;
       return Qnil;
     }
@@ -258,6 +261,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
     hsh = module_get_methods(klass);
     if(!ISA(hsh, state->global->hash)) {
       printf("Warning: encountered invalid module (methods not a hash).\n");
+      sassert(0);
       *mod = Qnil;
       return Qnil; 
     }
@@ -1197,6 +1201,11 @@ check_interrupts:
         }
         state_major_collect(state, c);
         // printf("Done with major collection.\n");
+      }
+  
+      /* If someone is reading the ON_GC channel, write to it to notify them. */
+      if(cpu_channel_was_readers_p(state, state->global->on_gc_channel)) {
+        cpu_channel_send(state, c, state->global->on_gc_channel, Qtrue);
       }
       
       state->om->collect_now = 0;

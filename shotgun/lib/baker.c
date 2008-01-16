@@ -524,22 +524,6 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   cpu_sampler_collect(state,
       (cpu_sampler_collect_cb) baker_gc_mutate_from, g);
   
-  int j;
-  OBJECT t2;
-  for(i = 0; i < ptr_array_length(g->seen_weak_refs); i++) {
-    tmp = (OBJECT)ptr_array_get_index(g->seen_weak_refs, i);
-    for(j = 0; j < NUM_FIELDS(tmp); j++) {
-      t2 = tuple_at(state, tmp, j);
-      if(t2->gc_zone == YoungObjectZone) {
-        if(baker_gc_forwarded_p(t2)) {
-          tuple_put(state, tmp, j, baker_gc_forwarded_object(t2));
-        } else {
-          tuple_put(state, tmp, j, Qnil);
-        }
-      }
-    }
-  }
-  
   /* This is a little odd, so I should explain. As we encounter
      objects which should be tenured while scanning, we put them
      into the tenured_objects array. We finish the normal scan, and
@@ -559,6 +543,24 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
       _mutate_references(state, g, tmp);
     }
   
+  }
+  
+  int j;
+  OBJECT t2, ref;
+  if(ptr_array_length(g->seen_weak_refs) > 0)
+  for(i = 0; i < ptr_array_length(g->seen_weak_refs); i++) {
+    tmp = (OBJECT)ptr_array_get_index(g->seen_weak_refs, i);
+    for(j = 0; j < NUM_FIELDS(tmp); j++) {
+      t2 = tuple_at(state, tmp, j);
+      if(REFERENCE_P(t2) && t2->gc_zone == YoungObjectZone) {
+        if(baker_gc_forwarded_p(t2)) {
+          ref = baker_gc_forwarded_object(t2);
+          tuple_put(state, tmp, j, ref);
+        } else {
+          tuple_put(state, tmp, j, Qnil);
+        }
+      }
+    }
   }
   
   assert(heap_fully_scanned_p(g->next));

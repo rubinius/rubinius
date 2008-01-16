@@ -4,10 +4,11 @@ class WeakRef
   
   def self.create_weakref(obj)
     Ruby.primitive :make_weak_ref
+    raise PrimitiveFailure, "unable to make weak reference"
   end
   
   def initialize(object)
-    @wr = create_weakref(object)
+    @wr = self.class.create_weakref(object)
   end
   
   def weakref_alive?

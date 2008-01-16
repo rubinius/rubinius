@@ -45,7 +45,12 @@ void Init_cpu_task(STATE) {
   class_set_has_ivars(BASIC_CLASS(channel), Qtrue);
   class_set_has_ivars(BASIC_CLASS(thread),  Qtrue);
   
-  cpu_event_init(state);  
+  cpu_event_init(state);
+
+  state->global->on_gc_channel = cpu_channel_new(state);
+  rbs_const_set(state, 
+      rbs_const_get(state, BASIC_CLASS(object), "Rubinius"), "ON_GC",
+      state->global->on_gc_channel);
 }
 
 static void _cpu_task_preempt(int sig) {
@@ -487,6 +492,18 @@ OBJECT cpu_channel_new(STATE) {
   chan = rbs_class_new_instance(state, BASIC_CLASS(channel));
   channel_set_waiting(chan, list_new(state));
   return chan;
+}
+
+int cpu_channel_was_readers_p(STATE, OBJECT self) {
+  OBJECT readers;
+
+  readers = channel_get_waiting(self);
+
+  if(list_empty_p(readers)) {
+    return FALSE;
+  }
+
+  return TRUE;
 }
 
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {

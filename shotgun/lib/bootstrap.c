@@ -151,12 +151,15 @@ void cpu_bootstrap(STATE) {
       
   cpu_bootstrap_exceptions(state);
   
+  rbs_module_new(state, "Rubinius", BC(object));
+  
   Init_list(state);
   Init_cpu_task(state);
   Init_ffi(state);
   regexp_init(state);
   
-  state->global->external_ivars = hash_new(state);  
+  state->global->external_ivars = hash_new(state);
+
 }
 
 void cpu_bootstrap_exceptions(STATE) {

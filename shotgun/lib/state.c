@@ -126,7 +126,7 @@ void state_collect(STATE, cpu c) {
   
   cpu_task_flush(state, c);
   cpu_hard_cache(state, c);
-  cpu_cache_sp(c);  
+  cpu_cache_sp(c);
 }
 
 

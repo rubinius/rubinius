@@ -213,6 +213,7 @@ void cpu_task_set_debugging(STATE, OBJECT self, OBJECT dc, OBJECT cc);
 OBJECT cpu_channel_new(STATE);
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj);
 void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_task);
+int cpu_channel_was_readers_p(STATE, OBJECT self);
 OBJECT cpu_thread_new(STATE, cpu c);
 void cpu_thread_switch(STATE, cpu c, OBJECT thr);
 OBJECT cpu_thread_get_task(STATE, OBJECT self);

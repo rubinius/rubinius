@@ -22,4 +22,44 @@ module ObjectSpace
     
     return count
   end
+
+  # Finalizer support. Uses WeakRef to detect object death.
+  # WeakRef uses the GC to do all the real work.
+
+  @finalizers = Hash.new
+
+  def self.define_finalizer(obj, prc=nil, &block)
+    prc ||= block
+
+    if prc.nil? or !prc.respond_to?(:call)
+      raise ArgumentError, "action must respond to call"
+    end
+
+    @finalizers[obj.object_id] = [WeakRef.new(obj), prc]
+    return nil
+  end
+
+  def self.run_finalizers
+    @finalizers.each_pair do |key, val|
+      unless val[0].weakref_alive?
+        @finalizers.delete key
+        val[1].call(key)
+      end
+    end
+  end
+
+  def self.garbage_collect
+    GC.start
+  end
+
+  def self.after_loaded
+    # Fire up the Thread that will process finalization
+    @thread = Thread.new do
+      loop do
+        Rubinius::ON_GC.receive
+        ObjectSpace.run_finalizers
+      end
+    end
+  end
 end
+

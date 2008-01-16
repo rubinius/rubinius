@@ -15,7 +15,7 @@ OBJECT hash_dup(STATE, OBJECT hsh);
 
 #define hash_find_undef(state, hash, key) (hash_get_undef(state, hash, object_hash_int(state, key)))
 
-#define CSM_SIZE 6
+#define CSM_SIZE 12
 
 #define csm_new(st) tuple_new(st, CSM_SIZE)
 #define csm_size(st, obj) (NUM_FIELDS(obj) / 2)

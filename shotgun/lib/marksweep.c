@@ -513,11 +513,9 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, ptr_array roots) {
   }
   
   cpu_event_each_channel(state,
-                         (cpu_event_each_channel_cb) mark_sweep_mark_object,
-                         ms);
+      (cpu_event_each_channel_cb) mark_sweep_mark_object, ms);
   cpu_sampler_collect(state,
-                      (cpu_sampler_collect_cb) mark_sweep_mark_object,
-                      ms);
+      (cpu_sampler_collect_cb) mark_sweep_mark_object, ms);
                       
   object_memory_mark_contexts(state, state->om);
 }
@@ -566,8 +564,9 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, ptr_array roots) {
   
   ms->seen_weak_refs = ptr_array_new(8);
   mark_sweep_mark_phase(state, ms, roots);
-  mark_sweep_sweep_phase(state, ms);
-  
+ 
+  /* We update the weakrefs BEFORE we sweep, since the sweep will free
+   * the data for the object, and we'll loose important info. */
   int j, i;
   OBJECT tmp, t2;
   for(i = 0; i < ptr_array_length(ms->seen_weak_refs); i++) {
@@ -575,12 +574,14 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, ptr_array roots) {
     for(j = 0; j < NUM_FIELDS(tmp); j++) {
       t2 = tuple_at(state, tmp, j);
       if(REFERENCE_P(t2) && t2->gc_zone == MatureObjectZone) {
-        if(!to_header(t2)->entry->object) {
+        if(!to_header(t2)->entry->marked) {
           tuple_put(state, tmp, j, Qnil);
         }
       }
     }
   }
+  
+  mark_sweep_sweep_phase(state, ms);
   
   ptr_array_free(ms->seen_weak_refs);
   ms->seen_weak_refs = NULL;

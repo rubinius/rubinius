@@ -45,7 +45,7 @@ struct rubinius_globals {
   OBJECT sym_public, sym_private, sym_protected, sym_const_missing;
   OBJECT sym_object_id;
   OBJECT exception, iseq, icache;
-  OBJECT top_scope;
+  OBJECT top_scope, on_gc_channel;
   
   OBJECT special_classes[SPECIAL_CLASS_SIZE];
 };
