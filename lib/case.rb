@@ -80,6 +80,16 @@ class Sequence
   end
 end
 
+class Predicate
+  def initialize(&predicate)
+    @predicate = predicate
+  end
+
+  def ===(other)
+    @predicate.call other
+  end
+end
+
 # Shorthand for Case::Sequence.[]
 def self.[](*args)
   Sequence[*args]
