@@ -5,15 +5,15 @@ nv = "\x08"  # Marshal::MINOR_VERSION
 
 describe "Marshal.dump when given a recursion limit" do
   it "raises an ArgumentError when the recursion limit is exceeded" do
-    Marshal.dump([], 1)
-    Marshal.dump([[]], 2)
-    Marshal.dump([[[]]], 3)
+    lambda { Marshal.dump([], 1) }.should_not raise_error(ArgumentError)
+    lambda { Marshal.dump([[]], 2) }.should_not raise_error(ArgumentError)
+    lambda { Marshal.dump([[[]]], 3) }.should_not raise_error(ArgumentError)
 
     h = {'one' => {'two' => {'three' => 0}}}
     lambda { Marshal.dump(h, 3) }.should raise_error(ArgumentError)
     lambda { Marshal.dump([h], 4) }.should raise_error(ArgumentError)
-    Marshal.dump({}, 1)
-    Marshal.dump(h, 4)
+    lambda { Marshal.dump({}, 1) }.should_not raise_error(ArgumentError)
+    lambda { Marshal.dump(h, 4) }.should_not raise_error(ArgumentError)
 
     lambda { Marshal.dump([], 0)     }.should raise_error(ArgumentError)
     lambda { Marshal.dump([[[]]], 1) }.should raise_error(ArgumentError)
