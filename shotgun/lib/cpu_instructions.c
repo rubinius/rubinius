@@ -472,6 +472,7 @@ OBJECT cpu_create_block_context(STATE, cpu c, OBJECT env, int sp) {
   return ctx;
 }
 
+
 void cpu_raise_from_errno(STATE, cpu c, const char *msg) {
   OBJECT cls;
   char buf[32];
@@ -493,6 +494,8 @@ void cpu_raise_arg_error_generic(STATE, cpu c, const char *msg) {
 void cpu_raise_arg_error(STATE, cpu c, int args, int req) {
   char msg[1024];
   snprintf(msg, 1024, "wrong number of arguments (got %d, required %d)", args, req);
+  cpu_flush_ip(c);
+  printf("arg error: %p, %p, %d\n", c->data, *c->ip_ptr, c->ip);
   cpu_raise_exception(state, c, cpu_new_exception(state, c, state->global->exc_arg, msg));
 }
 
@@ -1083,6 +1086,76 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, OBJECT sym,
   c->call_flags = 0;
   
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
+}
+
+void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
+  OBJECT ctx, table, ent, env;
+  int cur, total, target, idx, l, r, is_block;
+  c->exception = exc;
+  ctx = c->active_context;
+  
+  if(INTERNAL_DEBUG && getenv("EXCHALT")) {
+    printf("An exception has occured: %s\n", _inspect(exc));
+    assert(0);
+  }
+  
+  cpu_flush_ip(c);
+  cpu_save_registers(state, c, 0);
+  
+  /* NOTE: using return_to_sender worries me a little because it can
+     switch to a different task if you try to return off the top
+     of a task.. */
+  
+  while(!NIL_P(ctx)) {
+    is_block = blokctx_s_block_context_p(state, ctx);
+    
+    if(c->type == FASTCTX_NMC) {
+      cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
+      ctx = c->active_context;
+      continue;
+    }    
+    
+    table = cmethod_get_exceptions(cpu_current_method(state, c));
+    
+    if(!table || NIL_P(table)) {
+      cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
+      ctx = c->active_context;
+      continue;
+    }
+    
+    cur = c->ip;
+    total = NUM_FIELDS(table);
+    target = 0;
+    for(idx=0; idx < total; idx++) {
+      ent = tuple_at(state, table, idx);
+      l = FIXNUM_TO_INT(tuple_at(state, ent, 0));
+      r = FIXNUM_TO_INT(tuple_at(state, ent, 1));
+      if(cur >= l && cur <= r) {
+        /* Make sure the bounds are within the block, therwise, don't use
+           it. */
+        if(is_block) {
+          env = blokctx_env(state, ctx);
+          if(l < FIXNUM_TO_INT(blokenv_get_initial_ip(env))
+                  || r > FIXNUM_TO_INT(blokenv_get_last_ip(env))) {
+            continue;
+          }
+        }
+        target = FIXNUM_TO_INT(tuple_at(state, ent, 2));
+        c->ip = target;
+        cpu_cache_ip(c);
+        return;
+      }
+    }
+    
+    cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
+    ctx = c->active_context;
+  }
+  
+  /* Reset it because it can get overriden in the return_to_senders. */
+  c->exception = exc;
+  
+  // printf("Unable to find exception handler, i'm confused.\n");
+  return;
 }
 
 const char *cpu_op_to_name(STATE, char op) {

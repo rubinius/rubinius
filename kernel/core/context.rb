@@ -80,7 +80,12 @@ class MethodContext
   end
 
   def location
-    "#{file}:#{line}"
+    l = line()
+    if l == 0
+      "#{file}+#{ip-1}"
+    else
+      "#{file}:#{line}"
+    end
   end
 
   def disable_long_return!
@@ -253,11 +258,11 @@ class BlockEnvironment
   # and have a nil CompiledMethod (something that can (and has) happened
   # with MethodContexts)
   def file
-    home.method.file
+    method.file
   end
   
   def line
-    home.method.line_from_ip(initial_ip)
+    method.line_from_ip(initial_ip)
   end
   
   def home=(home)

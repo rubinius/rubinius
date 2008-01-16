@@ -58,14 +58,6 @@ class Class
     return cls
   end
   
-  def inspect
-    if name
-      name
-    else
-      super.inspect
-    end
-  end
-  
   def self.after_loaded
     alias_method :opened_class, :opened_class_cv
     alias_method :add_subclass, :add_subclass_cv

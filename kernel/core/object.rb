@@ -13,6 +13,8 @@ class Object
 
   def initialize
   end
+  
+  private :initialize
 
   def nil?
     false

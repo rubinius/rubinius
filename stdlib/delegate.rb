@@ -133,17 +133,11 @@ class Delegator
     for method in obj.methods
       next if preserved.include? method
       begin
-	eval <<-EOS
-	  def self.#{method}(*args, &block)
-	    begin
-	      __getobj__.__send__(:#{method}, *args, &block)
-	    rescue Exception
-	      $@.delete_if{|s| /:in `__getobj__'$/ =~ s} #`
-	      $@.delete_if{|s| /^\\(eval\\):/ =~ s}
-	      Kernel::raise
-	    end
-	  end
-	EOS
+        eval <<-EOS
+        def self.#{method}(*args, &block)
+           __getobj__.__send__(:#{method}, *args, &block)
+        end
+        EOS
       rescue SyntaxError
         raise NameError, "invalid identifier %s" % method, caller(4)
       end
@@ -259,50 +253,53 @@ def DelegateClass(superclass)
   methods = superclass.public_instance_methods(true)
   methods -= ::Kernel.public_instance_methods(false)
   methods |= ["to_s","to_a","inspect","==","=~","==="]
-  klass.module_eval {
+
+  klass.module_eval do
     def initialize(obj)  # :nodoc:
       @_dc_obj = obj
     end
+
     def method_missing(m, *args)  # :nodoc:
       unless @_dc_obj.respond_to?(m)
         super(m, *args)
       end
       @_dc_obj.__send__(m, *args)
     end
+
     def respond_to?(m)  # :nodoc:
       return true if super
       return @_dc_obj.respond_to?(m)
     end
+
     def __getobj__  # :nodoc:
       @_dc_obj
     end
+
     def __setobj__(obj)  # :nodoc:
       raise ArgumentError, "cannot delegate to self" if self.equal?(obj)
       @_dc_obj = obj
     end
+
     def clone  # :nodoc:
       super
       __setobj__(__getobj__.clone)
     end
+
     def dup  # :nodoc:
       super
       __setobj__(__getobj__.dup)
     end
-  }
-  for method in methods
+  end
+
+  methods.each do |method|
     begin
       klass.module_eval <<-EOS
         def #{method}(*args, &block)
-	  begin
-	    @_dc_obj.__send__(:#{method}, *args, &block)
-	  rescue
-	    $@[0,2] = nil
-	    raise
-	  end
-	end
+          @_dc_obj.__send__(:#{method}, *args, &block)
+        end
       EOS
     rescue SyntaxError
-      raise NameError, "invalid identifier %s" % method, caller(3)
+      raise NameError, "invalid identifier #{method}"
     end
   end
   return klass

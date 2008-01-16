@@ -128,6 +128,10 @@ class Module
     end
   end
 
+  def inspect
+    to_s
+  end
+
   def find_method_in_hierarchy(sym)
     if method = @method_table[sym.to_sym]
       method

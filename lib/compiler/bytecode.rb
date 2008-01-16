@@ -618,6 +618,9 @@ class Node
       desc.name = :__block__
       desc.required, desc.optional = argument_info
       sub = desc.generator
+      
+      # Push line info down.
+      sub.set_line g.line, g.file
 
       show_errors(sub) do
         if @arguments

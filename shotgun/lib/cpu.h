@@ -154,6 +154,7 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start);
 void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
 int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception);
 int cpu_simple_return(STATE, cpu c, OBJECT val);
+void cpu_save_registers(STATE, cpu c, int offset);
 
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym);
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under);
@@ -186,7 +187,6 @@ OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include
 void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
 
 void cpu_run_script(STATE, cpu c, OBJECT meth);
-void cpu_save_registers(STATE, cpu c, int stack_offset);
 
 OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT recv, OBJECT name, OBJECT *mod);
 
