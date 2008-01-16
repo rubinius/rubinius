@@ -909,6 +909,55 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
     RLIM_SAVED_MAX
     RLIM_SAVED_CUR
   }
+
+  # The constants come from MRI's signal.c. This means that some of them might
+  # be missing.
+  signal_constants = %w{
+    SIGHUP
+    SIGINT
+    SIGQUIT
+    SIGILL
+    SIGTRAP
+    SIGIOT
+    SIGABRT
+    SIGEMT
+    SIGFPE
+    SIGKILL
+    SIGBUS
+    SIGSEGV
+    SIGSYS
+    SIGPIPE
+    SIGALRM
+    SIGTERM
+    SIGURG
+    SIGSTOP
+    SIGTSTP
+    SIGCONT
+    SIGCHLD
+    SIGCLD
+    SIGCHLD
+    SIGTTIN
+    SIGTTOU
+    SIGIO
+    SIGXCPU
+    SIGXFSZ
+    SIGVTALRM
+    SIGPROF
+    SIGWINCH
+    SIGUSR1
+    SIGUSR2
+    SIGLOST
+    SIGMSG
+    SIGPWR
+    SIGPOLL
+    SIGDANGER
+    SIGMIGRATE
+    SIGPRE
+    SIGGRANT
+    SIGRETRACT
+    SIGSOUND
+    SIGINFO
+  }
   
   cg = ConstGenerator.new
   cg.include "stdio.h"
@@ -919,12 +968,14 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
   cg.include "sys/stat.h"
   cg.include "sys/resource.h"
   cg.include "netinet/tcp.h"
+  cg.include "signal.h"
 
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
   socket_constants.each { |c| cg.const c }
   process_constants.each { |c| cg.const c }
   long_process_constants.each { |c| cg.const(c, "%llu") }
+  signal_constants.each { |c| cg.const c }
 
   cg.calculate
   
@@ -958,6 +1009,12 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
       const = cg.constants[name]
       next if const.converted_value.nil?
       f.puts "rbx.platform.process.#{name} = #{const.converted_value}"
+    end
+
+    signal_constants.each do |name|
+      const = cg.constants[name]
+      next if const.converted_value.nil?
+      f.puts "rbx.platform.signal.#{name} = #{const.converted_value}"
     end
   end
   

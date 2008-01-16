@@ -1,30 +1,7 @@
 # depends on: module.rb
 
 module Signal
-
-  Names = {
-    "HUP" =>  1,
-    "INT" =>  2,
-    "QUIT" => 3,
-    "ABRT" => 6,
-    "POLL" => 7,
-    "EMT" =>  7,
-    "FPE" =>  8,
-    "SYS" =>  12,
-    "PIPE" => 13,
-    "ALRM" => 14,
-    "TERM" => 15,
-    "URG" =>  16,
-    "STOP" => 17,
-    "TSTP" => 18,
-    "CONT" => 19,
-    "CHLD" => 20,
-    "IO" =>   23,
-    "PROF" => 27,
-    "INFO" => 29,
-    "USR1" => 30,
-    "USR2" => 31
-  }
+  Names = {"EXIT" => 0}
 
   @handlers = {}
   
@@ -70,5 +47,21 @@ module Signal
   def self.action(sig, prc=nil, &block)
     trap(sig, prc, true, &block)
   end
-    
+
+  def self.list
+    Names.dup
+  end
+
+  def self.after_loaded
+    Rubinius::RUBY_CONFIG.keys.each do |key|
+      if key[0, 20] == 'rbx.platform.signal.'
+        Names[ key[23, 100] ] = Rubinius::RUBY_CONFIG[key]
+      end
+    end
+    # special case of signal.c
+    if Names["CHLD"]
+      Names["CLD"] = Names["CHLD"]
+    end
+  end
+
 end

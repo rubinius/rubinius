@@ -11,6 +11,7 @@ begin
   FileTest.after_loaded
   Thread.after_loaded
   Struct.after_loaded
+  Signal.after_loaded
   Object.after_loaded
 
   ENV = EnvironmentVariables.new
