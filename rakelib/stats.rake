@@ -40,7 +40,18 @@ namespace :stats do
     # stupid specs that kill the parent process.
     trap 'HUP', 'IGNORE'
 
-    IO.popen "(rake clean && rake && ./bin/ci -C -f s) 2>&1" do |p|
+    IO.popen "(time ./bin/ci -f s) 2>&1" do |p|
+      Process.setpgid(0, 0)
+      p.each_line do |l|
+        f.puts l
+      end
+    end
+  end
+
+  git_task "zbuild" do |f, date| # keep this alphabetically last
+    trap 'HUP', 'IGNORE'
+
+    IO.popen "(rake clean && time rake) 2>&1" do |p|
       Process.setpgid(0, 0)
       p.each_line do |l|
         f.puts l
