@@ -35,8 +35,7 @@ def git_revisions
 end
 
 def git_task type, &block
-  task type => $dates.map { |date| File.join $stats_dir, "#{date}.#{type}" }
-  task :collect => type
+  task :collect => $dates.map { |date| File.join $stats_dir, "#{date}.#{type}" }
 
   rule ".#{type}" do |t|
     file = t.name
@@ -44,6 +43,7 @@ def git_task type, &block
     hash = git_revisions[date]
     File.open file, 'w' do |f|
       Dir.chdir $git_dir do
+        warn date
         sh "git checkout -q #{hash}"
         block[f, date]
       end

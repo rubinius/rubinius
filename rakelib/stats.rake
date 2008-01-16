@@ -3,11 +3,12 @@
 require 'find'
 
 namespace :stats do
-  $first_date = "2007-11-01"
+  $first_date = ENV['DATE'] || "2007-11-01"
   $stats_dir = "stats"
 
   require 'rakelib/git_task'
 
+  desc "Collect statistics for the project"
   task :collect => [$git_dir]
 
   directory $stats_dir
@@ -33,4 +34,21 @@ namespace :stats do
   git_task "flog" do |f, date|
     f.puts `flog -c kernel 2>&1`
   end
+
+  git_task "spec" do |f, date|
+    # all these extra convolutions are to try to protect us from
+    # stupid specs that kill the parent process.
+    trap 'HUP', 'IGNORE'
+
+    IO.popen "(rake clean && rake && ./bin/ci -C -f s) 2>&1" do |p|
+      Process.setpgid(0, 0)
+      p.each_line do |l|
+        f.puts l
+      end
+    end
+  end
+
+  # This allows the dates to interleave, causing less churn
+  Rake::Task["collect"].prerequisites.sort!
+  Rake::Task["collect"].prerequisites.reverse!
 end
