@@ -141,6 +141,10 @@ class IO
 
   alias_method :to_i, :fileno
 
+  def printf(fmt, *args)
+    write YSprintf.new(fmt, *args).parse
+  end
+  
   def puts(*args)
     if args.empty?
       write DEFAULT_RECORD_SEPARATOR

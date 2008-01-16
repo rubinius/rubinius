@@ -135,8 +135,7 @@ module Kernel
   # Display methods
   def printf(target, *args)
     if target.kind_of? IO
-      str = args.shift
-      target << YSprintf.new(str, *args).parse
+      target.printf(*args)
     elsif target.kind_of? String
       $stdout << YSprintf.new(target, *args).parse
     else
