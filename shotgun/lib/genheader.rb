@@ -1,4 +1,4 @@
-require '../../lib/compiler/system_hints'
+require "#{File.dirname(__FILE__)}/../../lib/compiler/system_hints"
 
 klasses = []
 

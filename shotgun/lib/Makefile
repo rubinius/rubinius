@@ -83,7 +83,9 @@ SOURCES=$(sort \
         node_types.c \
         )
 OBJS=$(SOURCES:.c=.o) subtend/PortableUContext_asm.o
-RUBY=ruby -I../../lib
+
+# Explicitly require anything you need from kernel/ or lib/
+RUBY=ruby
 
 %.o: %.c
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@
