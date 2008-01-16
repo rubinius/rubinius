@@ -547,7 +547,6 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   
   int j;
   OBJECT t2, ref;
-  if(ptr_array_length(g->seen_weak_refs) > 0)
   for(i = 0; i < ptr_array_length(g->seen_weak_refs); i++) {
     tmp = (OBJECT)ptr_array_get_index(g->seen_weak_refs, i);
     for(j = 0; j < NUM_FIELDS(tmp); j++) {
