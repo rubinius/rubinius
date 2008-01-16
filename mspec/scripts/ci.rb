@@ -210,6 +210,8 @@ spec_runner.formatter.print_start
   end
 end
 spec_runner.formatter.summary
+tally = spec_runner.formatter.tally
+exit(tally.failures + tally.errors)
 EOC
 
 case action
