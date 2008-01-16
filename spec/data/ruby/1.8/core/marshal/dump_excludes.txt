@@ -1,1 +1,0 @@
-Marshal.dump when given a recursion limit raises an ArgumentError when the recursion limit is exceeded

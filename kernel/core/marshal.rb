@@ -113,14 +113,17 @@ end
 
 class Array
   def to_marshal(ms = Marshal::State.new)
-    raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
     out = Marshal.serialize_instance_variables_prefix(self)
     out << Marshal.serialize_extended_object(ms, self)
     out << Marshal.serialize_user_class(ms, self, Array)
     out << Marshal::TYPE_ARRAY
     out << Marshal.serialize_integer(self.length)
-    self.each do |element|
-      out << Marshal.serialize_duplicate(ms, element)
+    unless self.empty?
+      raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
+      self.each do |element|
+        out << Marshal.serialize_duplicate(ms, element)
+      end
+      ms.depth += 1
     end
     out + Marshal.serialize_instance_variables_suffix(ms, self)
   end
@@ -128,16 +131,19 @@ end
 
 class Hash
   def to_marshal(ms = Marshal::State.new)
-    raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
     raise TypeError, "can't dump hash with default proc" if self.default_proc
     out = Marshal.serialize_instance_variables_prefix(self)
     out << Marshal.serialize_extended_object(ms, self)
     out << Marshal.serialize_user_class(ms, self, Hash)
     out << (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH)
     out << Marshal.serialize_integer(self.length)
-    self.each_pair do |(key, val)|
-      out << Marshal.serialize_duplicate(ms, key)
-      out << Marshal.serialize_duplicate(ms, val)
+    unless self.empty?
+      raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
+      self.each_pair do |(key, val)|
+        out << Marshal.serialize_duplicate(ms, key)
+        out << Marshal.serialize_duplicate(ms, val)
+      end
+      ms.depth += 1
     end
     out << (self.default ? Marshal.serialize_duplicate(ms, self.default) : '')
     out << Marshal.serialize_instance_variables_suffix(ms, self)
@@ -246,7 +252,7 @@ module Marshal
   end
 
   def self.serialize(ms, obj)
-    raise ArgumentError, "exceed depth limit" if ms.depth == 0
+    raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
 
     if obj.respond_to? :_dump
       return serialize_custom_object_AA(ms, obj)
