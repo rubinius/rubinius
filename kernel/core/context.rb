@@ -155,17 +155,19 @@ class MethodContext
   end
 
   def class_variable_get(name)
-    scope = method.staticscope
-    return scope.module.class_variable_get(name)
+    return current_scope.class_variable_get(name)
   end
 
   def class_variable_set(name, val)
-    scope = method.staticscope
-    return scope.module.class_variable_set(name, val)
+    return current_scope.class_variable_set(name, val)
   end
   
   def current_scope
-    method.staticscope.module
+    if ss = method.staticscope
+      return ss.module
+    else
+      return method_module
+    end
   end
   
   def send_private?
@@ -211,6 +213,10 @@ class BlockContext
 
   def method_module
     home.method_module
+  end
+
+  def current_scope
+    home.current_scope
   end
 end
 
