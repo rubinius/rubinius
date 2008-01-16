@@ -1,5 +1,3 @@
-# depends on: class.rb
-#
 # actor.rb - implementation of the actor model
 #
 # Copyright 2007  MenTaLguY <mental@rydia.net>
@@ -29,6 +27,8 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+
+require 'mailbox'
 
 class Actor
   alias_method :private_new, :new
