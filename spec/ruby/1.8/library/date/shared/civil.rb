@@ -65,5 +65,7 @@ shared :date_civil do |cmd|
   
       lambda { Date.send(cmd, 2000, 2, 2, r.jd) }.should raise_error(ArgumentError)
     end
+
   end
+
 end

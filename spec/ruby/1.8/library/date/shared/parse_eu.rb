@@ -29,5 +29,7 @@ shared :date_parse_eu do |sep|
       d.month.should == 1
       d.day.should   == 7
     end
+
   end
+
 end

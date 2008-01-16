@@ -1,6 +1,7 @@
 shared :date_commercial do |cmd|
 
   describe "Date##{cmd}" do
+
     it "creates a Date for the day of Julian calendar reform in Italy by default" do
       d = Date.send(cmd)
       d.year.should  == 1582
@@ -38,5 +39,7 @@ shared :date_commercial do |cmd|
       lambda { Date.send(cmd, 2003, 52, 0) }.should raise_error(ArgumentError)
       lambda { Date.send(cmd, 2003, 52, 8) }.should raise_error(ArgumentError)
     end
+
   end
+
 end

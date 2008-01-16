@@ -54,5 +54,7 @@ shared :date_parse do |sep|
       d = Date.parse("5th#{sep}november#{sep}-2005")
       d.should == Date.civil(-2005, 11, 5)
     end
+
   end
+
 end
