@@ -9,13 +9,28 @@ describe "TCPSocket.new" do
   it "refuses the connection when there is no server to connect to" do
     lambda { TCPSocket.new('127.0.0.1', SocketSpecs.port) }.should raise_error(Errno::ECONNREFUSED)
   end
-  
-# This isn't passing on MRI on at least OS X for me (headius)
-quarantine! do
+
   it "connects to a listening server" do
-    @server = TCPServer.new(SocketSpecs.port)
-    @server.accept_nonblock
+    thread = Thread.new do
+      server = TCPServer.new(SocketSpecs.port)
+      server.accept
+      server.close
+    end
+    Thread.pass until thread.status == 'sleep'
     lambda { TCPSocket.new('127.0.0.1', SocketSpecs.port) }.should_not raise_error(Errno::ECONNREFUSED)
+    thread.join
   end
-end
+
+  it "has an address once it has connected to a listening server" do
+    thread = Thread.new do
+      server = TCPServer.new(SocketSpecs.port)
+      server.accept
+      server.close
+    end
+    Thread.pass until thread.status == 'sleep'
+    sock = TCPSocket.new('127.0.0.1', SocketSpecs.port)    
+    sock.addr.should == ["AF_INET", sock.addr[1], "localhost","127.0.0.1"]
+    sock.addr.be_kind_of Fixnum
+    thread.join
+  end
 end

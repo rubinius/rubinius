@@ -8,5 +8,10 @@ describe "TCPServer.new" do
   
   it "binds to a host and a port" do
     @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
+    addr = @server.addr
+    addr[0].should == 'AF_INET'
+    addr[1].be_kind_of Fixnum
+    addr[2].should == 'localhost'
+    addr[3].should == '127.0.0.1'
   end
 end

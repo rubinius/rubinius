@@ -3,23 +3,13 @@ require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "TCPServer#accept" do
   before(:each) do
-    @data = []
     @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
-    @read = false
     @thread = Thread.new do
-      @listening = true
       client = @server.accept
-      @data << client.read(5)
-      client << "hello"
-      @read = true
+      @data = client.read(5)
+      client << "goodbye"
       client.close
     end
-    
-    while @thread.status and !@listening
-      sleep 0.2
-      Thread.pass
-    end
-    sleep 0.2
   end
 
   after(:each) do
@@ -30,8 +20,8 @@ describe "TCPServer#accept" do
   it "accepts what is written by the client" do
     @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     @socket.write('hello')
-    out = @socket.read(5)
+    @socket.read(7).should == 'goodbye'
     @thread.join
-    @data.should == ['hello']
+    @data.should == 'hello'
   end
 end
