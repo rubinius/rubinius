@@ -31,19 +31,19 @@
 require 'mailbox'
 
 class Actor
-  alias_method :private_new, :new
-  alias_method :new, :spawn
-  private :private_new
-  
   class << self
-    def spawn(&prc)
+    alias_method :private_new, :new
+    private :private_new
+  
+    def spawn(*args, &prc)
       channel = Channel.new
       Thread.new do
         channel << current
-        prc.call
+        prc.call *args
       end
       channel.receive
     end
+    alias_method :new, :spawn
 
     def current
       Thread.current[:__current_actor__] ||= private_new(current_mailbox)
