@@ -2064,7 +2064,11 @@ class Node
     def bytecode(g)
       @value.bytecode(g)
       g.push_literal @name
-      g.push :self
+      if @in_module
+        g.push :self
+      else
+        g.push_context
+      end
       g.send :class_variable_set, 2
     end
   end
@@ -2072,7 +2076,11 @@ class Node
   class CVar
     def bytecode(g)
       g.push_literal @name
-      g.push :self
+      if @in_module
+        g.push :self
+      else
+        g.push_context
+      end
       g.send :class_variable_get, 1
     end
   end

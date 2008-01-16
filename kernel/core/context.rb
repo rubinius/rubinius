@@ -153,6 +153,16 @@ class MethodContext
     
     return Object.const_defined?(name)
   end
+
+  def class_variable_get(name)
+    scope = method.staticscope
+    return scope.module.class_variable_get(name)
+  end
+
+  def class_variable_set(name, val)
+    scope = method.staticscope
+    return scope.module.class_variable_set(name, val)
+  end
   
   def current_scope
     method.staticscope.module

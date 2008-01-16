@@ -227,6 +227,10 @@ class Node
       @slot += 1
       return i
     end
+
+    def module_body?
+      false
+    end
   end
 
   class Snippit < ClosedScope
@@ -1229,6 +1233,10 @@ class Node
 
       return nil
     end
+
+    def module_body?
+      true
+    end
   end
 
   class Module < ClosedScope
@@ -1258,6 +1266,10 @@ class Node
     end
 
     attr_accessor :name, :body, :parent
+    
+    def module_body?
+      true
+    end
   end
 
   class Begin < Node
@@ -1965,6 +1977,7 @@ class Node
 
     def args(name, val)
       @name, @value = name, val
+      @in_module = get(:scope).module_body?
     end
 
     attr_accessor :name, :value
@@ -1979,6 +1992,7 @@ class Node
 
     def args(name)
       @name = name
+      @in_module = get(:scope).module_body?
     end
 
     attr_accessor :name
