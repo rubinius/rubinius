@@ -495,7 +495,6 @@ void cpu_raise_arg_error(STATE, cpu c, int args, int req) {
   char msg[1024];
   snprintf(msg, 1024, "wrong number of arguments (got %d, required %d)", args, req);
   cpu_flush_ip(c);
-  printf("arg error: %p, %p, %d\n", c->data, *c->ip_ptr, c->ip);
   cpu_raise_exception(state, c, cpu_new_exception(state, c, state->global->exc_arg, msg));
 }
 
