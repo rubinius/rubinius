@@ -5,18 +5,20 @@ require File.dirname(__FILE__) + '/../../matchers/output_to_fd'
 describe OutputToFDMatcher do
   # Figure out how in the hell to achieve this
   it "matches when running the block produces the expected output to the given FD" do
-    s = "Hi\n"
-    output_to_fd(s, STDERR).matches?(lambda { $stderr.print s }).should == true
+    output_to_fd("Hi\n", STDERR).matches?(lambda { $stderr.print "Hi\n" }).should == true
   end
 
   it "does not match if running the block does not produce the expected output to the FD" do
-    s = "Hi\n"
-    output_to_fd(s, STDERR).matches?(lambda { $stderr.puts(s + s) }).should == false
+    output_to_fd("Hi\n", STDERR).matches?(lambda { $stderr.puts("Hello\n") }).should == false
   end
 
   it "defaults to matching against STDOUT" do
-    s = "Hi\n"
-    output_to_fd(s).matches?(lambda { $stdout.print s }).should == true
+    output_to_fd("Hi\n").matches?(lambda { $stdout.print "Hi\n" }).should == true
+  end
+  
+  it "accepts any IO instance" do
+    io = IO.new STDOUT.fileno
+    output_to_fd("Hi\n", io).matches?(lambda { io.print "Hi\n" }).should == true
   end
 
   it "allows matching with a Regexp" do

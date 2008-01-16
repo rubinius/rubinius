@@ -14,6 +14,8 @@ class OutputToFDMatcher
       @to_name = "STDOUT"
     when STDERR
       @to_name = "STDERR"
+    when IO
+      @to_name = @to.object_id.to_s
     else
       raise ArgumentError, "#{@to.inspect} is not a supported output target"
     end
