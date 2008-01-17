@@ -2,6 +2,8 @@
 
 class File < IO
   module Constants
+    include IO::Constants
+
     # TODO: "OK" constants aren't in File::Constants in MRI
     F_OK = 0 # test for existence of file
     X_OK = 1 # test for execute or search permission
@@ -12,35 +14,6 @@ class File < IO
     FNM_PATHNAME = 0x02;
     FNM_DOTMATCH = 0x04;
     FNM_CASEFOLD = 0x08;
-
-    # TODO: these flags should probably be imported from Platform
-    LOCK_SH  = 0x01
-    LOCK_EX  = 0x02
-    LOCK_NB  = 0x04
-    LOCK_UN  = 0x08
-    BINARY   = 0x04
-
-    RDONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDONLY']
-    WRONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_WRONLY']
-    RDWR     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDWR']
-    
-    CREAT    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_CREAT']
-    EXCL     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_EXCL']
-    NOCTTY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NOCTTY']
-    TRUNC    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_TRUNC']
-    APPEND   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_APPEND']
-    NONBLOCK = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NONBLOCK']
-    SYNC     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_SYNC']
-    
-    S_IRUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRUSR']
-    S_IWUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWUSR']
-    S_IXUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXUSR']
-    S_IRGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRGRP']
-    S_IWGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWGRP']
-    S_IXGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXGRP']
-    S_IROTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IROTH']
-    S_IWOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWOTH']
-    S_IXOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXOTH']
   end
   include Constants
 
@@ -62,20 +35,17 @@ class File < IO
       return self
     end
     
-    path_or_fd = StringValue(path_or_fd)
+    path = StringValue(path_or_fd)
     
-    if mode.kind_of?(String)
-      mode = parse_mode(mode)
-    end
-
-    fd = self.class.open_with_mode(path_or_fd, mode, perm)
+    fd = IO.sysopen(path, mode, perm)
+    
     if fd < 0
-      Errno.handle path_or_fd
+      Errno.handle path
     end
 
     super(fd)
 
-    @path = path_or_fd
+    @path = path
   end
 
   def self.exist?(path)
@@ -486,44 +456,44 @@ class File < IO
     
     def executable?
       return true if superuser?
-      return @mode & Constants::S_IXUSR != 0 if owned?
-      return @mode & Constants::S_IXGRP != 0 if grpowned?
-      return @mode & Constants::S_IXOTH != 0
+      return @mode & IO::S_IXUSR != 0 if owned?
+      return @mode & IO::S_IXGRP != 0 if grpowned?
+      return @mode & IO::S_IXOTH != 0
     end
     
     def executable_real?
       return true if rsuperuser?
-      return @mode & Constants::S_IXUSR != 0 if rowned?
-      return @mode & Constants::S_IXGRP != 0 if rgrpowned?
-      return @mode & Constants::S_IXOTH != 0
+      return @mode & IO::S_IXUSR != 0 if rowned?
+      return @mode & IO::S_IXGRP != 0 if rgrpowned?
+      return @mode & IO::S_IXOTH != 0
     end
     
     def readable?
       return true if superuser?
-      return @mode & Constants::S_IRUSR != 0 if owned?
-      return @mode & Constants::S_IRGRP != 0 if grpowned?
-      return @mode & Constants::S_IROTH != 0
+      return @mode & IO::S_IRUSR != 0 if owned?
+      return @mode & IO::S_IRGRP != 0 if grpowned?
+      return @mode & IO::S_IROTH != 0
     end
     
     def readable_real?
       return true if rsuperuser?
-      return @mode & Constants::S_IRUSR != 0 if rowned?
-      return @mode & Constants::S_IRGRP != 0 if rgrpowned?
-      return @mode & Constants::S_IROTH != 0
+      return @mode & IO::S_IRUSR != 0 if rowned?
+      return @mode & IO::S_IRGRP != 0 if rgrpowned?
+      return @mode & IO::S_IROTH != 0
     end
     
     def writable?
       return true if superuser?
-      return @mode & Constants::S_IWUSR != 0 if owned?
-      return @mode & Constants::S_IWGRP != 0 if grpowned?
-      return @mode & Constants::S_IWOTH != 0
+      return @mode & IO::S_IWUSR != 0 if owned?
+      return @mode & IO::S_IWGRP != 0 if grpowned?
+      return @mode & IO::S_IWOTH != 0
     end
     
     def writable_real?
       return true if rsuperuser?
-      return @mode & Constants::S_IWUSR != 0 if rowned?
-      return @mode & Constants::S_IWGRP != 0 if rgrpowned?
-      return @mode & Constants::S_IWOTH != 0
+      return @mode & IO::S_IWUSR != 0 if rowned?
+      return @mode & IO::S_IWGRP != 0 if rgrpowned?
+      return @mode & IO::S_IWOTH != 0
     end
   end
   
@@ -569,47 +539,5 @@ class File < IO
     unless self.exist?(path)
       raise Errno::ENOENT, path
     end
-  end
-
-  private
-  def parse_mode(mode)
-    ret = 0
-
-    case mode[0]
-    when ?r
-      ret |= RDONLY
-    when ?w
-      ret |= WRONLY | CREAT | TRUNC
-    when ?a
-      ret |= WRONLY | CREAT | APPEND
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    return ret if mode.length == 1
-
-    case mode[1]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-  
-    return ret if mode.length == 2
-
-    case mode[2]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    ret
   end
 end

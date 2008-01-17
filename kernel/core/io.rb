@@ -82,10 +82,42 @@ class IO
     end
   end
 
-  SEEK_SET = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_SET']
-  SEEK_CUR = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_CUR']
-  SEEK_END = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_END']
+  module Constants
+    SEEK_SET = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_SET']
+    SEEK_CUR = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_CUR']
+    SEEK_END = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_END']
 
+    RDONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDONLY']
+    WRONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_WRONLY']
+    RDWR     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDWR']
+  
+    CREAT    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_CREAT']
+    EXCL     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_EXCL']
+    NOCTTY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NOCTTY']
+    TRUNC    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_TRUNC']
+    APPEND   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_APPEND']
+    NONBLOCK = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NONBLOCK']
+    SYNC     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_SYNC']
+  
+    S_IRUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRUSR']
+    S_IWUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWUSR']
+    S_IXUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXUSR']
+    S_IRGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRGRP']
+    S_IWGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWGRP']
+    S_IXGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXGRP']
+    S_IROTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IROTH']
+    S_IWOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWOTH']
+    S_IXOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXOTH']
+
+    # TODO: these flags should probably be imported from Platform
+    LOCK_SH  = 0x01
+    LOCK_EX  = 0x02
+    LOCK_NB  = 0x04
+    LOCK_UN  = 0x08
+    BINARY   = 0x04
+  end
+  include Constants
+  
   def initialize(fd)
     desc = Type.coerce_to fd, Fixnum, :to_int
     if desc < 0
@@ -298,7 +330,7 @@ class IO
 
   def close
     raise IOError, "Instance of IO already closed" if closed?
-    io_close
+    io_close or raise SystemCallError, "Invalid file descriptor"
   end
 
   def descriptor
@@ -427,6 +459,14 @@ class IO
     return ary
   end
 
+  def self.sysopen(path, mode = "r", perm = 0666)
+    if mode.kind_of?(String)
+      mode = parse_mode(mode)
+    end
+
+    return open_with_mode(path, mode, perm)
+  end
+  
   def self.readlines(name, sep_string = $/)
     io = File.open(StringValue(name), 'r')
     return if io.nil?
@@ -503,5 +543,47 @@ class IO
     end
   end
 
+  private
+  def self.parse_mode(mode)
+    ret = 0
+
+    case mode[0]
+    when ?r
+      ret |= RDONLY
+    when ?w
+      ret |= WRONLY | CREAT | TRUNC
+    when ?a
+      ret |= WRONLY | CREAT | APPEND
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+
+    return ret if mode.length == 1
+
+    case mode[1]
+    when ?+
+      ret &= ~(RDONLY | WRONLY)
+      ret |= RDWR
+    when ?b
+      ret |= BINARY
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+  
+    return ret if mode.length == 2
+
+    case mode[2]
+    when ?+
+      ret &= ~(RDONLY | WRONLY)
+      ret |= RDWR
+    when ?b
+      ret |= BINARY
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+
+    ret
+  end
+  
   private :io_close
 end

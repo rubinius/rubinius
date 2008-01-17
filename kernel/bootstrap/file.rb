@@ -1,8 +1,4 @@
-class File < IO
-  def self.open_with_mode(path, mode, perm)
-    Ruby.primitive :io_open
-  end
-  
+class File < IO  
   def self.unlink(path)
     Ruby.primitive :file_unlink
   end

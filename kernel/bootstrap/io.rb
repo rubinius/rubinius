@@ -1,4 +1,8 @@
 class IO
+  def self.open_with_mode(path, mode, perm)
+    Ruby.primitive :io_open
+  end
+
   def write(str)
     Ruby.primitive :io_write
     raise PrimitiveFailure, "IO#write failed. Might not have passed a string."
