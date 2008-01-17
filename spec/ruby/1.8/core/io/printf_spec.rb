@@ -5,7 +5,7 @@ describe "IO#printf" do
     @io = IO.new STDOUT.fileno
   end
   
-fails_on :jruby
+fails_on :jruby do
   it "writes the #sprintf formatted string to the file descriptor" do
     lambda {
       @io.printf "%s\n", "look ma, no hands"
