@@ -1958,6 +1958,16 @@ class Node
     attr_accessor :current, :new
   end
 
+  class VAlias < Node
+    kind :valias
+
+    def args(current, name)
+      @current, @new = current, name
+    end
+
+    attr_accessor :current, :new
+  end
+
   class Range < Node
     kind :dot2
 

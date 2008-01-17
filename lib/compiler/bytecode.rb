@@ -1932,6 +1932,16 @@ class Node
     end
   end
 
+  class VAlias
+    def bytecode(g)
+      g.push_literal @new
+      g.push_literal @current
+      g.push_cpath_top
+      g.find_const :Globals
+      g.send :add_alias, 2
+    end
+  end
+
   # TESTED
   class Arguments
     def bytecode(g)
