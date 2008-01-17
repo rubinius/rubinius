@@ -1,1 +1,0 @@
-Kernel#test is a private method

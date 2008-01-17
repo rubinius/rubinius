@@ -273,6 +273,20 @@ module Kernel
     Rubinius::AtExit.unshift(block)
   end
   module_function :at_exit
+  
+  def test(cmd, file1, file2=nil)
+    case cmd
+    when ?d
+      File.directory? file1
+    when ?e
+      File.exist? file1
+    when ?f
+      File.file? file1
+    else
+      false
+    end
+  end
+  module_function :test
 
   def to_a
     if self.kind_of? Array
