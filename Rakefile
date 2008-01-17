@@ -1035,6 +1035,7 @@ task :extensions => %w[
   build:rbc
 
   extension:digest_md5
+  extension:digest_sha1
   extension:fcntl
   extension:syck
   extension:zlib

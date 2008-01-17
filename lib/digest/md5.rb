@@ -36,7 +36,7 @@ class Digest::MD5 < Digest::Instance
   def block_length
     64
   end
-  
+
   def reset
     @context = self.class.md5_alloc
     self.class.md5_init @context
