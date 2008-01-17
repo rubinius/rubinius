@@ -19,7 +19,9 @@ class Fixnum < Integer
     super(o)
   end
   
-  def /(o)
+  # this method is aliased to / in core
+  # see README-DEVELOPERS regarding safe math compiler plugin
+  def divide(o)
     Ruby.primitive :fixnum_div
     super(o)
   end

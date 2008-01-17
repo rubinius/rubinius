@@ -8,7 +8,7 @@ class ExtensionCompiler
     extra.each do |e|
       if e.prefix?("-I")
         @includes << e
-      elsif e.prefix("-C,")
+      elsif e.prefix?("-C,")
         @compile_flags << e[3..-1]
       else
         @link_flags << e
@@ -209,9 +209,14 @@ module Kernel
   end
 end
  
-flags = []
+rbx_flags = []
+ext_flags = []
 while ARGV[0] and ARGV[0].prefix? "-f"
-  flags << ARGV.shift[2..-1]
+  if ARGV[0][2..4] == 'rbx'
+    rbx_flags << ARGV.shift[2..-1]
+  else
+    ext_flags << ARGV.shift[2..-1]
+  end
 end
 
 file = ARGV.shift
@@ -223,7 +228,7 @@ if File.directory?(file)
     exit 1
   end
   puts "Building from instructions at #{rec}" if $VERBOSE
-  ext = ExtensionCompiler.new(flags, ARGV)
+  ext = ExtensionCompiler.new(ext_flags, ARGV)
   dsl = ExtensionCompiler::DSL.new(ext)
   dsl.setup
   cur = Dir.pwd
@@ -232,13 +237,13 @@ if File.directory?(file)
   ext.compile
 elsif file.suffix?(".c")
   puts "Compiling extension #{file}..."
-  ext = ExtensionCompiler.new(flags, ARGV)
+  ext = ExtensionCompiler.new(ext_flags, ARGV)
   ext.add_file file
   ext.compile
 else
   if File.exists?(file)
     puts "Compiling #{file}..."
-    compile(file, ARGV.shift, flags)
+    compile(file, ARGV.shift, rbx_flags)
   else
     puts "Unable to compile '#{file}'"
   end

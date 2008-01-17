@@ -4,6 +4,8 @@ class Fixnum < Integer
   
   MAX = Platform::Fixnum.MAX
   
+  # see README-DEVELOPERS regarding safe math compiler plugin
+  alias_method :/, :divide
   alias_method :modulo, :%
   
   def <<(c)

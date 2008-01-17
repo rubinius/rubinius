@@ -151,6 +151,26 @@ module Compiler::Plugins
     end
   end
   
+  class SafeMathOperators < Plugin
+    
+    plugin :safemath
+    
+    MathOps = {
+      :/ => :divide
+    }
+    
+    def handle(g, call)
+      name = MathOps[call.method]
+      if name and call.argcount == 1
+        call.emit_args(g)
+        call.receiver_bytecode(g)
+        g.send name, 1, false
+        return true
+      end
+      return false
+    end
+  end
+  
   # This are not currently used.
   class SystemMethods < Plugin
     

@@ -44,10 +44,12 @@ class Float < Numeric
     Platform::Float.mul self, other
   end
   
-  def /(other)
+  # see README-DEVELOPERS regarding safe math compiler plugin
+  def divide(other)
     return super(other) unless other.is_a?(Float)
     Platform::Float.div self, other
   end
+  alias_method :/, :divide
   
   def -@
     Platform::Float.uminus self

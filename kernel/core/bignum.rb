@@ -1,6 +1,10 @@
 # depends on: class.rb integer.rb
 
 class Bignum < Integer
+
+  # see README-DEVELOPERS regarding safe math compiler plugin
+  alias_method :/, :divide
+
   def %(other)
     if other.kind_of?(Float)
       if other == 0.0

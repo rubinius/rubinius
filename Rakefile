@@ -124,11 +124,12 @@ def compile(name, output=nil, check_mtime=false)
   end
   
   inc = "-Iruntime/stable/compiler.rba -rcompiler/init"
+  flags = "-frbx-safe-math"
 
   if ENV['GDB']
-    sh "shotgun/rubinius --gdb #{inc} compile #{name} #{output}", :verbose => $verbose
+    sh "shotgun/rubinius --gdb #{inc} compile #{flags} #{name} #{output}", :verbose => $verbose
   else
-    sh "shotgun/rubinius #{inc} compile #{name} #{output}", :verbose => $verbose
+    sh "shotgun/rubinius #{inc} compile #{flags} #{name} #{output}", :verbose => $verbose
   end
 end
 

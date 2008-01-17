@@ -18,11 +18,13 @@ class Numeric
     a * b
   end
   
-  def /(other)
+  # see README-DEVELOPERS regarding safe math compiler plugin
+  def divide(other)
     b, a = self.do_coerce(other, true)
     raise ZeroDivisionError, "divided by 0" unless b.kind_of?(Float) or b != 0
     a / b
   end
+  alias_method :/, :divide
   
   def **(other)
     b, a = self.do_coerce(other, true)

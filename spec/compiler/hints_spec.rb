@@ -55,6 +55,22 @@ describe Compiler do
       g.push 1
       g.meta_send_op_gt
     end
-  end  
+  end
+  
+  it "compiles '1 / 1' using :/ without safemath" do
+    gen [:call, [:fixnum, 1], :/, [:array, [:fixnum, 1]]] do |g|
+      g.push 1
+      g.push 1
+      g.send :/, 1, false
+    end
+  end
+  
+  it "compiles '1 / 1' using :divide with safemath" do
+    gen [:call, [:fixnum, 1], :/, [:array, [:fixnum, 1]]], [:safemath] do |g|
+      g.push 1
+      g.push 1
+      g.send :divide, 1, false
+    end
+  end
   
 end

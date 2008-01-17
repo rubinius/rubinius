@@ -131,6 +131,37 @@ safely loaded, at which point it is replaced by the real version.
 This happens in WhateverClass.after_loaded (and it is NOT automated.)
 
 
+2.1 Safe Math Compiler Plugin =============================
+
+Since the core libraries are built of the same blocks as any other
+Ruby code, and since Ruby is a dynamic language with open classes and
+late binding, it is possible to change fundamental classes, like
+Fixnum, in ways that violate the semantics that other classes depend
+on. For example, imagine we did the following
+
+class Fixnum
+  def +(other)
+    (self + other) % 5
+  end
+end
+
+While it is certainly possible to redefine fixed point arithmetic plus
+to be modulo 5, doing so will certainly cause some class like Array to
+be unable to calculate the correct length for certain operations.
+While the dynamic nature of Ruby is one of its cherished features, it
+is truly a double-edged sword.
+
+The mathn library is one that redefines Fixnum#/ in a fundamentally
+incompatible manner. The mathn library aliases Fixnum#/ to Fixnum#quo,
+which returns a Float by default. Because of this, there is a special
+compiler plugin that emits a different method name when it encounters
+the #/ method. The compiler emits #divide instead of #/. The numeric
+classes Fixnum, Bignum, Float, and Numeric all define this method.
+During compilation of the core libraries, the -frbx-safe-math switch
+is used to enable this compiler plugin. During regular compilation,
+this plugin is not enabled. This enables us to support mathn without
+breaking the core libraries.
+
 
 3. Libraries and C: Primitives vs. FFI
 ======================================

@@ -2,10 +2,17 @@ require 'compiler/system_hints'
 
 class Compiler
 
+  Config = Hash.new
+  
   class Error < RuntimeError
+  end
+  
+  def self.process_flags(flags)
+    flags.each { |f| Config[f] = true } if flags
   end
 
   def self.compile_file(path, flags=nil)
+    process_flags(flags)
     sexp = File.to_sexp(path, true)
 
     comp = new(Compiler::Generator)
@@ -138,6 +145,7 @@ class Compiler
     activate :method_visibility
     activate :fastmath
     activate :current_method
+    activate :safemath if Config['rbx-safe-math']
   end
 
   def activate(name)
