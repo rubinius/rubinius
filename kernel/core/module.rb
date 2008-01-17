@@ -14,9 +14,9 @@ class Module
     Rubinius.module_setup_fields(mod)
     block = block_given?
     if block
-      mod.initialize(*args, &block)
+      mod.__send__ :initialize, *args, &block
     else
-      mod.initialize(*args)
+      mod.__send__ :initialize, *args, &block
     end
 
     mod

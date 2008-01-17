@@ -106,6 +106,7 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_object_id = SYM("object_id");
   state->global->sym_from_literal = SYM("from_literal");
   state->global->sym_opened_class = SYM("opened_class");
+  state->global->sym_initialize = SYM("initialize");
   state->global->sym_init_copy = SYM("initialize_copy");
   
   c->current_thread = cpu_thread_new(state, c);
@@ -397,6 +398,11 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   case 2:
     vis = state->global->sym_protected;
     break;
+  }
+
+  /* force initialize to be private. */
+  if(sym == state->global->sym_initialize) {
+    vis = state->global->sym_private;
   }
   
   if(EXCESSIVE_TRACING) {

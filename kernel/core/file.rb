@@ -77,7 +77,7 @@ class File < IO
 
     @path = path_or_fd
   end
-  
+
   def self.exist?(path)
     perform_stat(path) ? true : false
   end

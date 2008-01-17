@@ -38,7 +38,7 @@ struct rubinius_globals {
   OBJECT exc_arg, exc_segfault;
   OBJECT exc_loe, exc_type;
   OBJECT exc_stack_explosion;
-  OBJECT exc_primitive_failure;
+  OBJECT exc_primitive_failure, sym_initialize;
   
   OBJECT external_ivars, scheduled_threads, errno_mapping;
   OBJECT config, ffi_ptr, ffi_func, sym_send;

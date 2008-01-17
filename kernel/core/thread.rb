@@ -92,7 +92,7 @@ class Thread
   def self.new(*args)
     block = block_given?
     th = allocate()
-    th.initialize(*args, &block)
+    th.__send__ :initialize, *args, &block
     th.wakeup
     return th
   end
