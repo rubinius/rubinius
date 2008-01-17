@@ -379,9 +379,12 @@ class File < IO
     def ctime;   Time.at(@ctime); end
     def path;    @path; end
     def blksize; @blksize; end
+    def dev;     @dev; end
     
     alias_method :gid, :group
     alias_method :uid, :owner
+    
+    alias_method :blocks, :block
 
     def ftype
       case @kind
