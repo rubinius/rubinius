@@ -194,17 +194,8 @@ static int _debug_print(const char *fmt, ...) {
 #endif
 }
  
-//static void syd_rb_warn(char *fmt, ...);
 #define rb_warn _debug_print
 #define rb_warning _debug_print
-
-// #define rb_warn printf
-// #define rb_warning printf
-
-//static void syd_compile_error(char *fmt, ...);
-// #define rb_compile_error _debug_print
-
-// #define rb_compile_error printf
 #define rb_compile_error _debug_print
 
 static ID rb_intern(const char *name);
@@ -218,32 +209,6 @@ static void reset_block(rb_parse_state *parse_state);
 static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars);
 
 #define ruby_verbose 0
-
-/*
-static VALUE syd_dyna_push();
-#define dyna_push() syd_dyna_push(vps)
-static void syd_dyna_pop();
-#define dyna_pop(i) syd_dyna_pop(vps, i)
-static int syd_dyna_in_block();
-#define dyna_in_block(vps)
-static NODE *syd_dyna_init();
-#define dyna_init(a, b) syd_dyna_init(vps, a, b)
-
-#define ruby_dyna_vars syd_dyna_vars(vps)
-static VALUE syd_dyna_vars();
-
-#define rb_dvar_defined(id) syd_dvar_defined(vps, id)
-static VALUE syd_dvar_defined();
-
-#define rb_dvar_curr(id) syd_dvar_curr(vps, id)
-static VALUE syd_dvar_curr();
-
-#define rb_dvar_push(id, val) syd_dvar_push(vps, id, val)
-static void syd_dvar_push();
-*/
-// static void top_local_init();
-// static void top_local_setup();
-
 #define RE_OPTION_ONCE 0x80
 #define RE_OPTION_IGNORECASE (1L)
 #define RE_OPTION_EXTENDED   (RE_OPTION_IGNORECASE<<1)
@@ -423,11 +388,7 @@ static void syd_dvar_push();
 program         :  {
                         vps->lex_state = EXPR_BEG;
                         vps->variables = var_table_create();
-                        // rb_funcall(vps->self, rb_intern("local_init"), 0);
-                        // top_local_init();
                         class_nest = 0;
-                        // if (ruby_class == rb_cObject) class_nest = 0;
-                        // else class_nest = 1;
                     }
                   compstmt
                     {
@@ -443,10 +404,6 @@ program         :  {
                             }
                         }
                         vps->top = block_append(parse_state, vps->top, $2); 
-                        //vps->top = NEW_SCOPE(block_append(vps->top, $2)); 
-                        // rb_funcall(vps->self, rb_intern("local_finish"), 0);
-                        
-                        // top_local_setup();
                         class_nest = 0;
                     }
                 ;
@@ -2195,7 +2152,6 @@ string_content  : tSTRING_CONTENT
                         CMDARG_LEXPOP();
                         if (($$ = $3) && nd_type($$) == NODE_NEWLINE) {
                             $$ = $$->nd_next;
-                            // rb_gc_force_recycle((VALUE)$3);
                         }
                         $$ = new_evstr(parse_state, $$);
                     }
@@ -2320,7 +2276,6 @@ f_arglist       : '(' f_args opt_nl ')'
 
 f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     {
-                        // printf("rest + all = %d\n", $5);
                         $$ = block_append(parse_state, NEW_ARGS($1, $3, $5), $6);
                     }
                 | f_arg ',' f_optarg opt_f_block_arg
@@ -2329,7 +2284,6 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     }
                 | f_arg ',' f_rest_arg opt_f_block_arg
                     {
-                        // printf("arg + rest = %d\n", $3);
                         $$ = block_append(parse_state, NEW_ARGS($1, 0, $3), $4);
                     }
                 | f_arg opt_f_block_arg
@@ -2338,7 +2292,6 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     }
                 | f_optarg ',' f_rest_arg opt_f_block_arg
                     {
-                        // printf("rest + opt = %d\n", $3);
                         $$ = block_append(parse_state, NEW_ARGS(0, $1, $3), $4);
                     }
                 | f_optarg opt_f_block_arg
@@ -2347,7 +2300,6 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     }
                 | f_rest_arg opt_f_block_arg
                     {
-                        // printf("rest only = %d\n", $1);
                         $$ = block_append(parse_state, NEW_ARGS(0, 0, $1), $2);
                     }
                 | f_block_arg
@@ -2429,7 +2381,6 @@ f_rest_arg      : restarg_mark tIDENTIFIER
                     }
                 | restarg_mark
                     {
-                        //$$ = -2;
                         $$ = 0;
                     }
                 ;
@@ -2577,73 +2528,15 @@ none            : /* none */ {$$ = 0;}
 
 #define LEAVE_BS 1
 
-/*
-static VALUE (*lex_gets)();
-static VALUE lex_input; 
-static VALUE lex_lastline;
-static char *lex_pbeg;
-static char *lex_p;
-static char *lex_pend;
-*/
-
-
 static int
 syd_yyerror(msg, parse_state)
     const char *msg;
     rb_parse_state *parse_state;
 {
-    // char *p, *pe, *buf;
-    // int len, i, col;
-    
     create_error(parse_state, (char *)msg);
-    
-    // printf("FIXME ERROR: %s, %d ('%s', %d)\n", msg, parse_state->lex_state, parse_state->lex_lastline->str, col);
-    /*
-    
-    rb_compile_error("%s", msg);
-    p = parse_state->lex_p;
-    while (parse_state->lex_pbeg <= p) {
-        if (*p == '\n') break;
-        p--;
-    }
-    p++;
-
-    pe = parse_state->lex_p;
-    while (pe < parse_state->lex_pend) {
-        if (*pe == '\n') break;
-        pe++;
-    }
-
-    len = pe - p;
-    if (len > 4) {
-        buf = ALLOCA_N(char, len+2);
-        MEMCPY(buf, p, char, len);
-        buf[len] = '\0';
-        rb_compile_error_append("%s", buf);
-
-        i = parse_state->lex_p - p;
-        p = buf; pe = p + len;
-
-        while (p < pe) {
-            if (*p != '\t') *p = ' ';
-            p++;
-        }
-        buf[i] = '^';
-        buf[i+1] = '\0';
-        rb_compile_error_append("%s", buf);
-    }
-    */
 
     return 1;
 }
-
-/*
-static int heredoc_end;
-static int command_start = TRUE;
-*/
-/* :int:
-int ruby_in_compile = 0;
-*/
 
 static int
 yycompile(parse_state, f, line)
@@ -2652,51 +2545,13 @@ yycompile(parse_state, f, line)
     int line;
 {
     int n;
-    // struct RVarmap *vp, *vars = ruby_dyna_vars;
-
-    // ruby_in_compile = 1;
-    /*
-    if (!compile_for_eval && rb_safe_level() == 0 &&
-        rb_const_defined(rb_cObject, rb_intern("SCRIPT_LINES__"))) {
-        VALUE hash, fname;
-
-        hash = rb_const_get(rb_cObject, rb_intern("SCRIPT_LINES__"));
-        if (TYPE(hash) == T_HASH) {
-            fname = string_new2(f);
-            ruby_debug_lines = rb_hash_aref(hash, fname);
-            if (NIL_P(ruby_debug_lines)) {
-                ruby_debug_lines = rb_ary_new();
-                rb_hash_aset(hash, fname, ruby_debug_lines);
-            }
-        }
-        if (line > 1) {
-            VALUE str = string_new(0,0);
-            while (line > 1) {
-                rb_ary_push(ruby_debug_lines, str);
-                line--;
-            }
-        }
-    }
-    */
-    
     /* Setup an initial empty scope. */
-    /*
-    syd_scope = (struct SCOPE*)rb_newobj();
-    OBJSETUP(syd_scope, 0, T_SCOPE);
-    syd_scope->local_tbl = 0;
-    syd_scope->local_vars = 0;
-    syd_scope->flags = 0;
-*/
-    // ruby__end__seen = 0;
-    // ruby_eval_tree = 0;
     heredoc_end = 0;
     lex_strterm = 0;
-    // ruby_current_node = 0;
     ruby_sourcefile = f;
     n = yyparse(parse_state);
     ruby_debug_lines = 0;
     compile_for_eval = 0;
-    // ruby_in_compile = 0;
     parse_state->cond_stack = 0;
     parse_state->cmdarg_stack = 0;
     command_start = TRUE;
@@ -2707,16 +2562,6 @@ yycompile(parse_state, f, line)
 
     lex_strterm = 0;
 
-    /*
-    vp = ruby_dyna_vars;
-    ruby_dyna_vars = vars;
-    lex_strterm = 0;
-    while (vp && vp != vars) {
-        struct RVarmap *tmp = vp;
-        vp = vp->next;
-        rb_gc_force_recycle((VALUE)tmp);
-    }
-    */
     return n;
 }
 
@@ -2792,8 +2637,6 @@ syd_compile_string(STATE, const char *f, bstring s, int line, int newlines)
     compile_for_eval = 1;
     
     n = yycompile(parse_state, f, line);
-    // ruby_eval_tree = parse_state->top;
-    // if (n != 0) ruby_eval_tree_begin = 0;
     
     if(parse_state->error == Qfalse) {
         ret = convert_to_sexp(state, parse_state->top, newlines);
@@ -2850,10 +2693,8 @@ syd_compile_file(STATE, const char *f, FILE *file, int start, int newlines)
     n = yycompile(parse_state, f, start);
     
     if(parse_state->error == Qfalse) {
-        // ruby_eval_tree = parse_state->top;
         ret = convert_to_sexp(state, parse_state->top, newlines);
     } else {
-        // ruby_eval_tree_begin = 0;
         ret = parse_state->error;
     }
     
@@ -3450,7 +3291,6 @@ heredoc_restore(here, parse_state)
     heredoc_end = ruby_sourceline;
     ruby_sourceline = nd_line(here);
     bdestroy((bstring)here->nd_lit);
-//    rb_gc_force_recycle((VALUE)here);
 }
 
 static int
@@ -3618,7 +3458,6 @@ yylex(YYSTYPE *yylval, void *vstate)
         else {
             token = parse_string(lex_strterm, parse_state);
             if (token == tSTRING_END || token == tREGEXP_END) {
-                // rb_gc_force_recycle((VALUE)lex_strterm);
                 lex_strterm = 0;
                 parse_state->lex_state = EXPR_END;
             }
@@ -3642,7 +3481,6 @@ yylex(YYSTYPE *yylval, void *vstate)
         goto retry;
 
       case '#':         /* it's a comment */
-        // printf("hit comment.. %x\n", parse_state->comments);
         if(parse_state->comments) {
             comment_column = parse_state->column;
             cur_line = bfromcstralloc(50, "");
@@ -3653,9 +3491,7 @@ yylex(YYSTYPE *yylval, void *vstate)
             
             // FIXME: used to have the file and column too, but took it out.
             ptr_array_append(parse_state->comments, cur_line);
-                // rb_ary_new3(3, INT2NUM(ruby_sourceline), INT2NUM(comment_column),
-                //    cur_line));
-            
+
             if(c == -1) {
                 return 0;
             }
@@ -4645,7 +4481,6 @@ yylex(YYSTYPE *yylval, void *vstate)
 
       case '_':
         if (was_bol() && whole_match_p("__END__", 7, 0, parse_state)) {
-            // ruby__end__seen = 1;
             parse_state->lex_lastline = 0;
             return -1;
         }
@@ -4788,9 +4623,7 @@ syd_node_newnode(rb_parse_state *st, enum node_type type,
                  OBJECT a0, OBJECT a1, OBJECT a2)
 {
     NODE *n = (NODE*)pt_allocate(st, sizeof(NODE));
-    // NODE *n = (NODE*)rb_newobj();
 
-    // n->flags |= T_NODE;
     n->flags = 0;
     nd_set_type(n, type);
     nd_set_line(n, ruby_sourceline);
@@ -4970,7 +4803,6 @@ literal_concat(parse_state, head, tail)
         if (htype == NODE_STR) {
             bconcat(head->nd_str, tail->nd_str);
 			bdestroy(tail->nd_str);
-            // rb_gc_force_recycle((VALUE)tail);
         }
         else {
             list_append(parse_state, head, tail);
@@ -4983,7 +4815,6 @@ literal_concat(parse_state, head, tail)
             bdestroy(tail->nd_str);
 
             tail->nd_lit = head->nd_lit;
-            // rb_gc_force_recycle((VALUE)head);
             head = tail;
         }
         else {
@@ -5099,7 +4930,6 @@ call_op(recv, id, narg, arg1, parse_state)
     NODE *arg1;
     rb_parse_state *parse_state;
 {
-    // int i;
     value_expr(recv);
     if (narg == 1) {
         value_expr(arg1);
@@ -5176,11 +5006,6 @@ syd_gettable(parse_state, id)
     else if (is_local_id(id)) {
         if (local_id(id)) return NEW_LVAR(id);
         /* method call without arguments */
-#if 0
-        /* Rite will warn this */
-        rb_warn("ambiguous identifier; %s() or self.%s is better for method call",
-                rb_id2name(id), rb_id2name(id));
-#endif
         return NEW_VCALL(id);
     }
     else if (is_global_id(id)) {
@@ -5213,22 +5038,15 @@ static NODE *
 extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars)
 {
     int i;
-    // struct RVarmap *post = ruby_dyna_vars;
     NODE *var, *out = node;
         
     if (!node) goto out;
     if(var_table_size(vars) == 0) goto out;
         
     var = NULL;
-    // if (!node || !post || pre == post) return node;
     for(i = 0; i < var_table_size(vars); i++) {
         var = NEW_DASGN_CURR(var_table_get(vars, i), var);
     }
-    /*
-    for (var = 0; post != pre && post->id; post = post->next) {
-        var = NEW_DASGN_CURR(post->id, var);
-    }
-    */
     out = block_append(parse_state, var, node);
 
 out:
@@ -5491,7 +5309,7 @@ void_expr0(node)
           case tLEQ:
           case tEQ:
           case tNEQ:
-            useless = ""; // rb_id2name(node->nd_mid);
+            useless = "";
             break;
         }
         break;
@@ -5624,11 +5442,6 @@ assign_in_cond(node, parse_state)
       default:
         break;
     }
-#if 0
-    if (assign_in_cond(node->nd_value) == 0) {
-        parser_warning(parse_state, node->nd_value, "assignment in condition");
-    }
-#endif
     return 1;
 }
 
@@ -5851,28 +5664,6 @@ new_yield(parse_state, node)
     return NEW_YIELD(node, state);
 }
 
-/*
-static NODE*
-negate_lit(node)
-    NODE *node;
-{
-    switch (TYPE(node->nd_lit)) {
-      case T_FIXNUM:
-        node->nd_lit = LONG2FIX(-FIX2LONG(node->nd_lit));
-        break;
-      case T_BIGNUM:
-        node->nd_lit = rb_funcall(node->nd_lit,rb_intern("-@"),0,0);
-        break;
-      case T_FLOAT:
-        RFLOAT(node->nd_lit)->value = -RFLOAT(node->nd_lit)->value;
-        break;
-      default:
-        break;
-    }
-    return node;
-}
-*/
-
 static NODE *
 arg_blk_pass(node1, node2)
     NODE *node1;
@@ -5952,42 +5743,12 @@ static void
 syd_local_push(rb_parse_state *st, int top)
 {
     st->variables = var_table_push(st->variables);
-    //rb_funcall(st->self, rb_intern("local_push"), 1, top ? Qtrue : Qfalse);
-    /*
-    struct local_vars *local;
-
-    local = ALLOC(struct local_vars);
-    local->prev = lvtbl;
-    local->nofree = 0;
-    local->cnt = 0;
-    local->tbl = 0;
-    local->dlev = 0;
-    local->dyna_vars = ruby_dyna_vars;
-    lvtbl = local;
-    if (!top) {
-        // preserve reference for GC, but link should be cut. 
-        rb_dvar_push(0, (VALUE)ruby_dyna_vars);
-        ruby_dyna_vars->next = 0;
-    }
-    */
 }
 
 static void
 syd_local_pop(rb_parse_state *st)
 {
     st->variables = var_table_pop(st->variables);
-    // rb_funcall(st->self, rb_intern("local_pop"), 0);
-    /*
-    struct local_vars *local = lvtbl->prev;
-
-    if (lvtbl->tbl) {
-        if (!lvtbl->nofree) free(lvtbl->tbl);
-        else lvtbl->tbl[0] = lvtbl->cnt;
-    }
-    ruby_dyna_vars = lvtbl->dyna_vars;
-    free(lvtbl);
-    lvtbl = local;
-    */
 }
 
 
@@ -5995,12 +5756,10 @@ static ID*
 syd_local_tbl(rb_parse_state *st)
 {
     ID *lcl_tbl;
-    // ID tmp;
     var_table tbl;
     int i, len;
     tbl = st->variables;
     len = var_table_size(tbl);
-    // printf("Converting local table with %d entries.\n", len);
     lcl_tbl = pt_allocate(st, sizeof(ID) * (len + 3));
     lcl_tbl[0] = (ID)len;
     lcl_tbl[1] = '_';
@@ -6008,7 +5767,6 @@ syd_local_tbl(rb_parse_state *st)
     for(i = 0; i < len; i++) {
         lcl_tbl[i + 3] = var_table_get(tbl, i);
     }
-    // printf("Created table %x\n", lcl_tbl);
     return lcl_tbl;
 }
 
@@ -6027,21 +5785,6 @@ syd_local_cnt(rb_parse_state *st, ID id)
     if(idx >= 0) return idx + 2;
     
     return var_table_add(st->variables, id);
-    
-    /*
-    out = rb_funcall(st->self, rb_intern("local_cnt"), 1, ID2SYM(id));
-    
-    return NUM2INT(out);
-    
-    int cnt, max;
-
-    if (id == 0) return lvtbl->cnt;
-
-    for (cnt=1, max=lvtbl->cnt+1; cnt<max;cnt++) {
-        if (lvtbl->tbl[cnt] == id) return cnt-1;
-    }
-    return local_append(id);
-    */
 }
 
 static int
@@ -6049,186 +5792,7 @@ syd_local_id(rb_parse_state *st, ID id)
 {
     if(var_table_find(st->variables, id) >= 0) return 1;
     return 0;
-    /*
-    VALUE out;
-    out = rb_funcall(st->self, rb_intern("local_defined?"), 1, ID2SYM(id));
-    return out;
-    
-    int i, max;
-
-    if (lvtbl == 0) return Qfalse;
-    for (i=3, max=lvtbl->cnt+1; i<max; i++) {
-        if (lvtbl->tbl[i] == id) return Qtrue;
-    }
-    return Qfalse;
-    */
 }
-
-/*
-static void
-top_local_init()
-{
-    local_push(1);
-    lvtbl->cnt = ruby_scope->local_tbl?ruby_scope->local_tbl[0]:0;
-    if (lvtbl->cnt > 0) {
-        lvtbl->tbl = ALLOC_N(ID, lvtbl->cnt+3);
-        MEMCPY(lvtbl->tbl, ruby_scope->local_tbl, ID, lvtbl->cnt+1);
-    }
-    else {
-        lvtbl->tbl = 0;
-    }
-    if (ruby_dyna_vars)
-        lvtbl->dlev = 1;
-    else
-        lvtbl->dlev = 0;
-}
-
-static void
-top_local_setup()
-{
-    int len = lvtbl->cnt;
-    int i;
-
-    if (len > 0) {
-        i = ruby_scope->local_tbl?ruby_scope->local_tbl[0]:0;
-
-        if (i < len) {
-            if (i == 0 || (ruby_scope->flags & SCOPE_MALLOC) == 0) {
-                VALUE *vars = ALLOC_N(VALUE, len+1);
-                if (ruby_scope->local_vars) {
-                    *vars++ = ruby_scope->local_vars[-1];
-                    MEMCPY(vars, ruby_scope->local_vars, VALUE, i);
-                    rb_mem_clear(vars+i, len-i);
-                }
-                else {
-                    *vars++ = 0;
-                    rb_mem_clear(vars, len);
-                }
-                ruby_scope->local_vars = vars;
-                ruby_scope->flags |= SCOPE_MALLOC;
-            }
-            else {
-                VALUE *vars = ruby_scope->local_vars-1;
-                REALLOC_N(vars, VALUE, len+1);
-                ruby_scope->local_vars = vars+1;
-                rb_mem_clear(ruby_scope->local_vars+i, len-i);
-            }
-            if (ruby_scope->local_tbl && ruby_scope->local_vars[-1] == 0) {
-                free(ruby_scope->local_tbl);
-            }
-            ruby_scope->local_vars[-1] = 0;
-            ruby_scope->local_tbl = local_tbl();
-        }
-    }
-    local_pop();
-}
-*/
-/* 
- * Sets ruby_dyna_vars to a new set of dynamic vars.
- * Increments dlev in the local table so thot dyna_in_block()
- * knows that there are potential dynamic vars available.
- *
-static VALUE
-syd_dyna_push(rb_parse_state *st)
-{
-    return rb_funcall(st->self, rb_intern("dyna_push"), 0);
-}
-
-static void
-syd_dyna_pop(rb_parse_state *st, VALUE vars)
-{
-    rb_funcall(st->self, rb_intern("dyna_pop"), 1, vars);
-    lvtbl->dlev--;
-    ruby_dyna_vars = vars;
-}
-
-static VALUE
-syd_dvar_defined(rb_parse_state *st, ID id)
-{
-    return rb_funcall(st->self, rb_intern("dvar_defined"), 1, ID2SYM(id));
-}
-
-static VALUE
-syd_dvar_curr(rb_parse_state *st, ID id) {
-    return rb_funcall(st->self, rb_intern("dvar_curr"), 1, ID2SYM(id));
-}
-
-static void
-syd_dvar_push(rb_parse_state *st, ID id, VALUE val) {
-    rb_funcall(st->self, rb_intern("dvar_push"), 2, ID2SYM(id), val);
-}
-
-static int
-syd_dyna_in_block(rb_parse_state *st)
-{
-    VALUE out;
-    out = rb_funcall(st->self, rb_intern("dyna_in_block"), 0);
-    if(RTEST(out)) {
-        return 1;
-    } else {
-        return 0;
-    }
-    // return (lvtbl->dlev > 0);
-}
-
-
-static VALUE
-syd_dyna_vars(rb_parse_state *st) {
-    return rb_funcall(st->self, rb_intern("dyna_vars"), 0);
-}
-*/
-
-/*
-void
-rb_parser_append_print()
-{
-    ruby_eval_tree =
-        block_append(ruby_eval_tree,
-                     NEW_FCALL(rb_intern("print"),
-                               NEW_ARRAY(NEW_GVAR(rb_intern("$_")))));
-}
-
-void
-rb_parser_while_loop(chop, split)
-    int chop, split;
-{
-    if (split) {
-        ruby_eval_tree =
-            block_append(NEW_GASGN(rb_intern("$F"),
-                                   NEW_CALL(NEW_GVAR(rb_intern("$_")),
-                                            rb_intern("split"), 0)),
-                                   ruby_eval_tree);
-    }
-    if (chop) {
-        ruby_eval_tree =
-            block_append(NEW_CALL(NEW_GVAR(rb_intern("$_")),
-                                  rb_intern("chop!"), 0), ruby_eval_tree);
-    }
-    ruby_eval_tree = NEW_OPT_N(ruby_eval_tree);
-}
-
-*/
-
-
-#if 0
-/* FIXME:
- * Why is this function not called?
- * Someone look into this and either put this to use or kill it.
- */
-void setup_parser() {
-    syd_last_id = tLAST_TOKEN;
-}
-#endif
-
-/*
-void
-Init_sym()
-{
-    STATE_VAR(last_id) = tLAST_TOKEN;
-    sym_tbl = st_init_strtable_with_size(200);
-    sym_rev_tbl = st_init_numtable_with_size(200);
-}
-*/
 
 static ID
 rb_intern(const char *name)
@@ -6269,18 +5833,6 @@ rb_intern(const char *name)
         }
 
         if (name[last] == '=') {
-            /*
-            char *buf = (char*)malloc(sizeof(char) * (last+1));
-
-            strncpy(buf, name, last);
-            buf[last] = '\0';
-            id = rb_intern(buf);
-            free(buf);
-            if (id > tLAST_TOKEN && !is_attrset_id(id)) {
-                id = rb_id_attrset(id);
-                goto id_regist;
-            }
-            */
             id = ID_ATTRSET;
         }
         else if (ISUPPER(name[0])) {
@@ -6299,7 +5851,6 @@ rb_intern(const char *name)
     pre = qrk + tLAST_TOKEN;
     bef = id;
     id |= ( pre << ID_SCOPE_SHIFT );
-    // printf("Registered '%s' as %d (%d, %d, %d).\n", name, id, qrk, tLAST_TOKEN, bef);
     return id;
 }
 
@@ -6307,7 +5858,6 @@ quark id_to_quark(ID id) {
   quark qrk;
   
   qrk = (quark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
-  // printf("ID %d == %d\n", id, qrk);
   return qrk;
 }
 
@@ -6353,180 +5903,3 @@ const char *op_to_name(ID id) {
   }
   return NULL;
 }
-
-/*
-char *
-rb_id2name(id)
-    ID id;
-{
-    char *name;
-
-    if (id < tLAST_TOKEN) {
-        int i = 0;
-
-        for (i=0; op_tbl[i].token; i++) {
-            if (op_tbl[i].token == id)
-                return op_tbl[i].name;
-        }
-    }
-    
-    name = quark_to_string(id >> ID_SCOPE_SHIFT);
-    if(name) return name;
-
-    if (is_attrset_id(id)) {
-        ID id2 = (id & ~ID_SCOPE_MASK) | ID_LOCAL;
-
-      again:
-        name = rb_id2name(id2);
-        if (name) {
-            char *buf = ALLOCA_N(char, strlen(name)+2);
-
-            strcpy(buf, name);
-            strcat(buf, "=");
-            rb_intern(buf);
-            return rb_id2name(id);
-        }
-        if (is_local_id(id2)) {
-            id2 = (id & ~ID_SCOPE_MASK) | ID_CONST;
-            goto again;
-        }
-    }
-    return 0;
-}
-
-static int
-symbols_i(key, value, ary)
-    char *key;
-    ID value;
-    VALUE ary;
-{
-    rb_ary_push(ary, ID2SYM(value));
-    return ST_CONTINUE;
-}
-*/
-/*
- *  call-seq:
- *     Symbol.all_symbols    => array
- *  
- *  Returns an array of all the symbols currently in Ruby's symbol
- *  table.
- *     
- *     Symbol.all_symbols.size    #=> 903
- *     Symbol.all_symbols[1,20]   #=> [:floor, :ARGV, :Binding, :symlink,
- *                                     :chown, :EOFError, :$;, :String, 
- *                                     :LOCK_SH, :"setuid?", :$<, 
- *                                     :default_proc, :compact, :extend, 
- *                                     :Tms, :getwd, :$=, :ThreadGroup,
- *                                     :wait2, :$>]
- 
-
-VALUE
-rb_sym_all_symbols()
-{
-    VALUE ary = rb_ary_new2(sym_tbl->num_entries);
-
-    st_foreach(sym_tbl, symbols_i, ary);
-    return ary;
-}
-
-int
-rb_is_const_id(id)
-    ID id;
-{
-    if (is_const_id(id)) return Qtrue;
-    return Qfalse;
-}
-
-int
-rb_is_class_id(id)
-    ID id;
-{
-    if (is_class_id(id)) return Qtrue;
-    return Qfalse;
-}
-
-int
-rb_is_instance_id(id)
-    ID id;
-{
-    if (is_instance_id(id)) return Qtrue;
-    return Qfalse;
-}
-
-int
-rb_is_local_id(id)
-    ID id;
-{
-    if (is_local_id(id)) return Qtrue;
-    return Qfalse;
-}
-
-int
-rb_is_junk_id(id)
-    ID id;
-{
-    if (is_junk_id(id)) return Qtrue;
-    return Qfalse;
-}
-
-
-static void
-special_local_set(c, val)
-    char c;
-    VALUE val;
-{
-    int cnt;
-
-    top_local_init();
-    cnt = local_cnt(c);
-    top_local_setup();
-    ruby_scope->local_vars[cnt] = val;
-}
-
-
-VALUE
-rb_backref_get()
-{
-    VALUE *var = rb_svar(1);
-    if (var) {
-        return *var;
-    }
-    return Qnil;
-}
-
-void
-rb_backref_set(val)
-    VALUE val;
-{
-    VALUE *var = rb_svar(1);
-    if (var) {
-        *var = val;
-    }
-    else {
-        special_local_set('~', val);
-    }
-}
-
-VALUE
-rb_lastline_get()
-{
-    VALUE *var = rb_svar(0);
-    if (var) {
-        return *var;
-    }
-    return Qnil;
-}
-
-void
-rb_lastline_set(val)
-    VALUE val;
-{
-    VALUE *var = rb_svar(0);
-    if (var) {
-        *var = val;
-    }
-    else {
-        special_local_set('_', val);
-    }
-}
-*/
