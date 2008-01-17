@@ -209,10 +209,6 @@ class Object
   
   private :set_instance_variable
   
-  def !=(other)
-    !(self == other)
-  end
-  
   def singleton_methods(all=true)
     mt = metaclass.method_table
     if all

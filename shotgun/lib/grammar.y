@@ -1020,7 +1020,6 @@ op              : '|'           { $$ = '|'; }
                 | '&'           { $$ = '&'; }
                 | tCMP          { $$ = tCMP; }
                 | tEQ           { $$ = tEQ; }
-                | tNEQ          { $$ = tNEQ; }
                 | tEQQ          { $$ = tEQQ; }
                 | tMATCH        { $$ = tMATCH; }
                 | '>'           { $$ = '>'; }
@@ -1250,7 +1249,7 @@ arg             : lhs '=' arg
                     }
                 | arg tNEQ arg
                     {
-                        $$ = call_op($1, tNEQ, 1, $3, parse_state);
+                        $$ = NEW_NOT(call_op($1, tEQ, 1, $3, parse_state));
                     }
                 | arg tMATCH arg
                     {
