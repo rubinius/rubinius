@@ -127,11 +127,10 @@ class IO
     setup(desc)
   end
 
-  # Obtains a new duplicate descriptor for the current
-  # one 
+  # Obtains a new duplicate descriptor for the current one.
   #
-  # Used internally by #dup and #clone. This is called
-  # on the new object after it has been copied normally.
+  # Used internally by #dup and #clone. This is called on the new object after
+  # it has been copied normally.
   def initialize_copy(original)
     @descriptor = Platform::POSIX.dup(@descriptor)
   end
@@ -148,6 +147,10 @@ class IO
   attr_accessor :lineno
 
   alias_method :isatty, :tty?
+
+  def binmode
+    # HACK what to do?
+  end
 
   def eof!
     @eof = true
