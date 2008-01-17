@@ -108,10 +108,12 @@ describe "Kernel#require" do
     $LOADED_FEATURES.include?("require_spec_dummy.#{Config::CONFIG['DLEXT']}").should == false
   end
 
-  it "will not add a bad load to LOADED_FEATURES" do
-    lambda { require('require_spec_raises') }.should raise_error(RuntimeError)
+  runner_is_not :rspec do
+    it "will not add a bad load to LOADED_FEATURES" do
+      lambda { require('require_spec_raises') }.should raise_error(RuntimeError)
     
-    $LOADED_FEATURES.include?('require_spec_raises.rb').should == false
+      $LOADED_FEATURES.include?('require_spec_raises.rb').should == false
+    end
   end
 
   it "will load file.rb when given 'file' if it exists even if file.<ext> is loaded" do
