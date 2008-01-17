@@ -115,6 +115,8 @@ class IO
 
   attr_accessor :lineno
 
+  alias_method :isatty, :tty?
+
   def eof!
     @eof = true
   end
@@ -144,7 +146,7 @@ class IO
   def printf(fmt, *args)
     write YSprintf.new(fmt, *args).parse
   end
-  
+
   def puts(*args)
     if args.empty?
       write DEFAULT_RECORD_SEPARATOR

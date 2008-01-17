@@ -8,18 +8,22 @@ describe "IO#puts" do
   before(:each) do
     @io = IO.new(2)
   end
-  
+
   it "writes just a newline when given no args" do
     @io.should_receive(:write).with("\n")
     @io.puts.should == nil
   end
-  
+
+  it "writes just a newline when given just a newline" do
+    lambda { $stdout.puts "\n" }.should output_to_fd("\n", STDOUT)
+  end
+
   it "writes nil with a newline when given nil as an arg" do
     @io.should_receive(:write).with("nil")
     @io.should_receive(:write).with("\n")
     @io.puts(nil).should == nil
   end
-  
+
   it "calls to_s before writing non-string objects" do
     object = mock('hola')
     object.should_receive(:to_s).and_return("hola")
