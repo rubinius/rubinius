@@ -332,7 +332,20 @@ module Kernel
   def self.after_loaded
     # This nukes the bootstrap raise so the Kernel one is used.
     Object.method_table.delete :raise
-    
+  
+    # Add in $! in as a hook, to just do $!. This is for accesses to $!
+    # that the compiler can't see.
+    get = proc { $! }
+    Globals.set_hook(:$!, get, nil)
+
+    # Same as $!, for any accesses we might miss.
+    # HACK. I doubt this is correct, because of how it will be called.
+    get = proc { Regex.last_match }
+    Globals.set_hook(:$~, get, nil)
+
+    get = proc { ARGV }
+    Globals.set_hook(:$*, get, nil)
+
     get = proc { $! ? $!.backtrace.to_mri : nil }
     Globals.set_hook(:$@, get, nil)
 

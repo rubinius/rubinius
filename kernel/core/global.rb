@@ -22,6 +22,11 @@ class GlobalVariables
       :$CONSOLE => STDOUT,
       :$DEBUG => false,
       :$SAFE => 0,
+      :$. => 0,    # no clue what this one is.
+      :$_ => nil,  # HACK: bunk for now.
+      :$< => nil,  # HACK: should be ARGF
+      :$? => nil,  # Process status. nil until set
+      :$= => false, # ignore case, whatever that is
     }
 
     @alias = {}
@@ -57,13 +62,12 @@ class GlobalVariables
   end
 
   def add_alias(from, to)
-    if @internal.key? from then
-      @alias[to] = from
+    if hook = @hooks[from]
+      @hooks[to] = hook
     elsif alias_key = @alias[from] then
       @alias[to] = alias_key
     else
-      raise NameError, "Error finding global variable #{from} while " \
-                       "attempting to alias it to #{to}"
+      @alias[to] = from
     end
   end
 
