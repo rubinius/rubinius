@@ -399,12 +399,13 @@ task :compiledir => :stable_compiler do
 end
 
 desc "Recompile all ruby system files"
-task :rebuild => %w[clean:rbc clean:extensions clean:shotgun build:all]
+task :rebuild => %w[clean build:all]
 
+desc "Clean up the usuals"
 task :clean => %w[clean:rbc clean:extensions clean:shotgun]
 
 desc "Remove all ruby system files"
-task :distclean => %w[pristine clean:rbc clean:extensions clean:shotgun clean:external]
+task :distclean => %w[pristine clean clean:external]
 
 desc "Remove all stray compiled Ruby files"
 task :pristine do
