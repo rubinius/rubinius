@@ -2160,11 +2160,10 @@ class String
     sub = substring(0, pre.size)
     pre == sub
   end
-  
-  def suffix?(pre)
-    return false if pre.size >= @bytes
-    sub = substring(@bytes - pre.size, pre.size)
-    pre == sub
+
+  def suffix?(other)
+    return false if other.size > @bytes
+    other == substring(@bytes - other.size, other.size)
   end
 
   # TODO: inspect is NOT dump!
