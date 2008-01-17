@@ -1,3 +1,2 @@
 String instance method lstrip should return a string with all leading \000 and whitespace characters removed
 String instance method lstrip! should modify self by removing all leading \000 and whitespace characters
-String instance method % format float values Infinity and Nan

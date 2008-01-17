@@ -2,8 +2,8 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Process.wait2" do
   before :all do
-    # this kludge is temporarily necessary because some misbehaving
-    # spec somewhere else does not clear processes
+    # HACK: this kludge is temporarily necessary because some
+    # misbehaving spec somewhere else does not clear processes
     Process.waitall
   end
 
