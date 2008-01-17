@@ -1130,7 +1130,7 @@ class ShotgunPrimitives
     if(j != 0) {
       stack_push(Qfalse);
     } else {
-      t2 = NEW_OBJECT(self, 13);
+      t2 = NEW_OBJECT(self, 15);
       tuple_put(state, t2, 0, I2N((int)sb.st_ino));
       tuple_put(state, t2, 1, I2N((int)sb.st_mode));
 
@@ -1176,6 +1176,23 @@ class ShotgunPrimitives
       tuple_put(state, t2, 10, t1);
       tuple_put(state, t2, 11, UI2N((unsigned long)sb.st_blksize));
       tuple_put(state, t2, 12, UI2N((unsigned long)sb.st_dev));
+      tuple_put(state, t2, 12, I2N((int)sb.st_dev));
+      
+      int dev_major, dev_minor;
+      #ifdef major
+        dev_major = (int)major(sb.st_dev);
+      #else
+        dev_major = Qnil;
+      #endif
+      
+      #ifdef minor
+        dev_minor = (int)minor(sb.st_dev);
+      #else
+        dev_minor = Qnil;
+      #endif
+
+      tuple_put(state, t2, 13, I2N(dev_major));
+      tuple_put(state, t2, 14, I2N(minor(dev_minor)));
     
       stack_push(t2);
     }

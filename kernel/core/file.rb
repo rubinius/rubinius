@@ -361,10 +361,11 @@ class File < IO
   end
   
   class Stat
-    self.instance_fields = 13
+    self.instance_fields = 15
     ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
                   :size => 5, :block => 6, :atime => 7, :mtime => 8,
-                  :ctime => 9, :path => 10, :blksize => 11, :dev => 12
+                  :ctime => 9, :path => 10, :blksize => 11, :dev => 12,
+                  :dev_major => 13, :dev_minor => 14
 
     def dev;     @dev; end
     def ino;     @inode; end
@@ -380,6 +381,8 @@ class File < IO
     def path;    @path; end
     def blksize; @blksize; end
     def dev;     @dev; end
+    def dev_major; @dev_major; end
+    def dev_minor; @dev_minor; end
     
     alias_method :gid, :group
     alias_method :uid, :owner
