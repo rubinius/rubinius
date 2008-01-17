@@ -58,24 +58,18 @@ class Any
   end
 end
 
-# Pattern-matches with an Array or Tuple
-class Sequence
-  class << self
-    alias_method :[], :new
-  end
-
-  def initialize(*elements)
-    @elements = elements
-  end
-
-  def elements
-    @elements.dup
-  end
-
+class Tuple < ::Tuple
   def ===(other)
-    return false unless Tuple === other or Array === other
-    return false unless @elements.size == other.size
-    @elements.zip(other) { |a, b| return false unless a === b }
+    return false unless ::Tuple === other and size == other.size
+    to_a.zip(other) { |a, b| return false unless a === b }
+    true 
+  end
+end
+
+class Array < ::Array
+  def ===(other)
+    return false unless ::Array === other and size == other.size
+    zip(other) { |a, b| return false unless a === b }
     true
   end
 end
@@ -90,9 +84,9 @@ class Predicate
   end
 end
 
-# Shorthand for Case::Sequence.[]
+# Shorthand for Case::Array.[]
 def self.[](*args)
-  Sequence[*args]
+  Array[*args]
 end
 
 end
