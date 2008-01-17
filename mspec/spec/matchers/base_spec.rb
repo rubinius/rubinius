@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../expectations'
 require File.dirname(__FILE__) + '/../../matchers/base'
+require 'time'
 
 describe PositiveOperatorMatcher, "== operator" do
   it "raises an ExpectationNotMetError when expected == actual returns false" do

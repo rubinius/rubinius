@@ -56,6 +56,14 @@ describe Mock, ".install_method" do
     @mock.respond_to?(:to_s).should == true
     @mock.respond_to?(:not_really_a_real_method_seriously).should == false
   end
+  
+  it "adds to the expectation tally" do
+    runner = spec_runner
+    runner.stub!(:formatter).and_return(mock('formatter'))
+    runner.formatter.stub!(:tally).and_return(mock('tally'))
+    runner.formatter.tally.should_receive(:expectation)
+    Mock.install_method(@mock, :method_call).and_return(1)
+  end
 end
 
 describe Mock, ".verify_call" do
