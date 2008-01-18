@@ -638,11 +638,9 @@ private
   end
 
   def extended(name)
-    nil
   end
 
   def method_added(name)
-    nil
   end
 
   def normalize_name(name)

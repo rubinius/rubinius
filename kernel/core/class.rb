@@ -10,7 +10,7 @@ class Class
     obj.class_eval(&block) if block
     # add clas to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses
-    sclass.inherited(obj) if sclass.respond_to?(:inherited)
+    sclass.send :inherited, obj
     obj
   end
 
@@ -21,7 +21,7 @@ class Class
     # Fire all the inherited hooks
     sup = cls
     while sup and sup != Object
-      sup.inherited(self) if sup.respond_to?(:inherited)
+      sup.send :inherited, self
       sup = sup.superclass
     end
 
@@ -56,6 +56,9 @@ class Class
       cls = cls.direct_superclass
     end
     return cls
+  end
+  
+  def inherited(name)
   end
   
   def self.after_loaded
