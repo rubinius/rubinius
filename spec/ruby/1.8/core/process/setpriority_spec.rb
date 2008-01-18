@@ -11,6 +11,8 @@ describe "Process.setpriority" do
     }.should raise_error(ArgumentError)
   end
 
+  # Needs a valid version written for Linux
+  platform_is :os => :darwin do
   it "sets the scheduling priority for a specified process" do
     p = Process.getpriority(Process::PRIO_PROCESS, 0)
     Process.setpriority(Process::PRIO_PROCESS, 0, p + 1).should == 0
@@ -22,6 +24,7 @@ describe "Process.setpriority" do
         Process.setpriority(Process::PRIO_PROCESS, 0, p)
       }.should raise_error(Errno::EACCES)
     end
+  end
   end
 
   # Darwin doesn't seem to handle these at all, getting all out of
