@@ -319,6 +319,10 @@ class Backtrace
 
   attr_reader :frames
 
+  attr_accessor :first_color
+  attr_accessor :kernel_color
+  attr_accessor :eval_color
+  
   def initialize
     @frames = []
     @top_context = nil
@@ -327,10 +331,10 @@ class Backtrace
     @eval_color = "\033[0;33m"
   end
 
-  attr_accessor :first_color
-  attr_accessor :kernel_color
-  attr_accessor :eval_color
-  
+  def [](index)
+    @frames[index]
+  end
+
   def show(sep="\n", colorize = true)
     first = true
     color_config = RUBY_CONFIG["rbx.colorize_backtraces"]
