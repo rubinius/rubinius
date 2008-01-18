@@ -100,4 +100,14 @@ class UnboundMethod
   def call_on_instance(obj, *args)
     bind(obj).call *args
   end
+
+  # Method objects are equal if they have the
+  # same compiled_method
+  def ==(other)
+    if other.kind_of? UnboundMethod
+      return true if other.compiled_method == @method
+    end
+
+    false
+  end
 end

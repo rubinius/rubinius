@@ -1,1 +1,0 @@
-UnboundMethod#clone returns a copy of the UnboundMethod
