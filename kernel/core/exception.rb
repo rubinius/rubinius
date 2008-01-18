@@ -195,3 +195,12 @@ class ReturnException
     @return_value = val
   end
 end
+
+class LongReturnException
+  attr_reader :return_value
+
+  def initialize(val)
+    super(nil) # HACK
+    @return_value = val
+  end
+end

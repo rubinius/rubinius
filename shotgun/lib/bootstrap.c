@@ -194,6 +194,7 @@ void cpu_bootstrap_exceptions(STATE) {
   
   fce = dexc(FlowControlException, exc);
   dexc(ReturnException, fce);
+  dexc(LongReturnException, fce);
   
   state->global->exc_type = type;
   state->global->exc_arg = arg;
