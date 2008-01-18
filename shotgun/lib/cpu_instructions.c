@@ -1168,6 +1168,7 @@ void state_major_collect(STATE, cpu c);
 void cpu_run(STATE, cpu c, int setup) {
   IP_TYPE op;
   IP_TYPE *ip_ptr = NULL;
+  const char *firesuit_arg;
 
   c->ip_ptr = &ip_ptr;
 
@@ -1210,9 +1211,12 @@ void cpu_run(STATE, cpu c, int setup) {
             "An error has occured within the VM"));
       break;
     case FIRE_TYPE:
-      cpu_raise_exception(state, c, 
+      object_type_to_type(current_machine->g_firesuit_arg, firesuit_arg);
+      cpu_raise_exception(state, c,
         cpu_new_exception2(state, c, global->exc_type,
-            "Invalid type encountered: %d", current_machine->g_firesuit_arg));
+            "Invalid type encountered %s: %s",
+	    current_machine->g_firesuit_message, firesuit_arg));
+      free(current_machine->g_firesuit_message);
       break;
     default:
       cpu_raise_exception(state, c, 

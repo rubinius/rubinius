@@ -259,16 +259,21 @@ void machine_handle_fire(int kind) {
   setcontext(&current_machine->g_firesuit);
 }
 
-void machine_handle_type_error(OBJECT obj) {
+void machine_handle_type_error(OBJECT obj, const char *message) {
+  current_machine->g_firesuit_message = strdup(message);
+
   if(FIXNUM_P(obj)) {
     current_machine->g_firesuit_arg = FixnumType;
   } else if(SYMBOL_P(obj)) {
     current_machine->g_firesuit_arg = SymbolType;    
   } else if(REFERENCE_P(obj)) {
     current_machine->g_firesuit_arg = obj->obj_type;
+  } else if(NIL_P(obj)) {
+    current_machine->g_firesuit_arg = NilType;
   } else {
     current_machine->g_firesuit_arg = 0;
   }
+
   machine_handle_fire(FIRE_TYPE);
 }
 

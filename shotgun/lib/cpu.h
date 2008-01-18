@@ -254,13 +254,14 @@ void cpu_sampler_init(STATE, cpu c);
 void cpu_sampler_activate(STATE, int hz);
 OBJECT cpu_sampler_disable(STATE);
 
-#define type_assert(obj, type) ({\
+#define type_assert(obj, type, message) ({\
   if(type == FixnumType) {\
-    if(!FIXNUM_P(obj)) machine_handle_type_error(obj); \
+    if(!FIXNUM_P(obj)) machine_handle_type_error(obj, message); \
   } else if(type == SymbolType) { \
-    if(!SYMBOL_P(obj)) machine_handle_type_error(obj); \
+    if(!SYMBOL_P(obj)) machine_handle_type_error(obj, message); \
   } else {\
-    if(!REFERENCE_P(obj) || obj->obj_type != type) machine_handle_type_error(obj);\
+    if(!REFERENCE_P(obj) || obj->obj_type != type) \
+      machine_handle_type_error(obj, message); \
   }\
 })
 

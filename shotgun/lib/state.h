@@ -276,7 +276,7 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 
 void machine_handle_fire(int);
 void machine_handle_assert(const char *reason, const char *file, int line);
-void machine_handle_type_error(OBJECT);
+void machine_handle_type_error(OBJECT, const char *message);
 
 #include "shotgun/lib/environment.h"
 

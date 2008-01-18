@@ -28,6 +28,7 @@ struct rubinius_machine {
   int g_use_firesuit;
   int g_access_violation;
   int g_firesuit_arg;
+  char *g_firesuit_message;
 };
 
 typedef struct rubinius_machine *machine;

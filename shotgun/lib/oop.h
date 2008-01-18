@@ -66,8 +66,70 @@ typedef enum
   StringType      = 13,
   SymbolType      = 14,
   CMethodType     = 15,
-  NMethodType     = 16
+  NMethodType     = 16,
+  NilType         = 17
 } object_type;
+
+#define object_type_to_type(object_type, type) do {\
+  switch((object_type)) { \
+  case ObjectType: \
+    type = "Object"; \
+    break; \
+  case MContextType: \
+    type = "MethodContext"; \
+    break; \
+  case BContextType: \
+    type = "BlockContext"; \
+    break; \
+  case ClassType: \
+    type = "Class"; \
+    break; \
+  case MetaclassType: \
+    type = "Metaclass"; \
+    break; \
+  case MTType: \
+    type = "MethodTable"; \
+    break; \
+  case WrapsStructType: \
+    type = "SubtendCStructure"; \
+    break; \
+  case IncModType: \
+    type = "included Module"; \
+    break; \
+  case TaskType: \
+    type = "Task"; \
+    break; \
+  case FixnumType: \
+    type = "Fixnum"; \
+    break; \
+  case BignumType: \
+    type = "Bignum"; \
+    break; \
+  case FloatType: \
+    type = "Float"; \
+    break; \
+  case MemPtrType: \
+    type = "MemoryPointer"; \
+    break; \
+  case StringType: \
+    type = "String"; \
+    break; \
+  case SymbolType: \
+    type = "Symbol"; \
+    break; \
+  case CMethodType: \
+    type = "CompiledMethod"; \
+    break; \
+  case NMethodType: \
+    type = "NativeMethod"; \
+    break; \
+  case NilType: \
+    type = "nil"; \
+    break; \
+  default: \
+    type = "unknown"; \
+    break; \
+  }} while (0)
 
 /* rubinius_object gc zone, takes up two bits */
 typedef enum

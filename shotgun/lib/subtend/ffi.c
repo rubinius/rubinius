@@ -218,7 +218,7 @@ char ffi_to_char() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
-  type_assert(obj, FixnumType);
+  type_assert(obj, FixnumType, "converting to char");
 
   return (char)FIXNUM_TO_INT(obj);
 }
@@ -237,7 +237,7 @@ unsigned char ffi_to_uchar() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
-  type_assert(obj, FixnumType);
+  type_assert(obj, FixnumType, "converting to unsigned char");
 
   return (unsigned char)FIXNUM_TO_INT(obj);
 }
@@ -259,7 +259,7 @@ short ffi_to_short() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
-  type_assert(obj, FixnumType);
+  type_assert(obj, FixnumType, "converting to short");
 
   return (short)FIXNUM_TO_INT(obj);
 }
@@ -278,7 +278,7 @@ unsigned short ffi_to_ushort() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
-  type_assert(obj, FixnumType);
+  type_assert(obj, FixnumType, "converting to unsigned short");
 
   return (unsigned short)FIXNUM_TO_INT(obj);
 }
@@ -304,7 +304,7 @@ int ffi_to_int() {
   if(FIXNUM_P(obj)) {
     return FIXNUM_TO_INT(obj);
   } else {
-    type_assert(obj, BignumType);
+    type_assert(obj, BignumType, "converting to int");
     return bignum_to_i(ctx->state, obj);
   }
 }
@@ -327,7 +327,7 @@ unsigned int ffi_to_uint() {
   if(FIXNUM_P(obj)) {
     return (unsigned int)FIXNUM_TO_INT(obj);
   } else {
-    type_assert(obj, BignumType);
+    type_assert(obj, BignumType, "converting to unsigned int");
     return bignum_to_ui(ctx->state, obj);
   }
 }
@@ -352,7 +352,7 @@ long long ffi_to_ll() {
   if(FIXNUM_P(obj)) {
     return (long long)FIXNUM_TO_INT(obj);
   } else {
-    type_assert(obj, BignumType);
+    type_assert(obj, BignumType, "converting to long long");
     return bignum_to_ll(ctx->state, obj);
   }
 }
@@ -373,7 +373,7 @@ unsigned long long ffi_to_ull() {
   if(FIXNUM_P(obj)) {
     return (unsigned long long)FIXNUM_TO_INT(obj);
   } else {
-    type_assert(obj, BignumType);
+    type_assert(obj, BignumType, "converting to unsigned long long");
     return (unsigned long long)bignum_to_ull(ctx->state, obj);
   }
 }
@@ -425,7 +425,7 @@ float ffi_to_float() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
-  type_assert(obj, FloatType);
+  type_assert(obj, FloatType, "converting to float");
 
   return (float)FLOAT_TO_DOUBLE(obj);
 }
@@ -444,7 +444,7 @@ double ffi_to_double() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
-  type_assert(obj, FloatType);
+  type_assert(obj, FloatType, "converting to double");
 
   ret = FLOAT_TO_DOUBLE(obj);
   return ret;
@@ -465,7 +465,7 @@ void* ffi_to_ptr() {
 
   if(NIL_P(obj)) return NULL;
 
-  type_assert(obj, MemPtrType);
+  type_assert(obj, MemPtrType, "converting to pointer");
 
   return (*DATA_STRUCT(obj, void**));
 }
@@ -500,7 +500,7 @@ char *ffi_to_string() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
-  type_assert(obj, StringType);
+  type_assert(obj, StringType, "converting to C string");
 
   return string_byte_address(ctx->state, obj);
 }
