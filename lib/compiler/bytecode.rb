@@ -1518,7 +1518,9 @@ class Node
       end
 
       if @in_block
-        g.ret
+        g.push_const :LongReturnException
+        g.send :new, 1
+        g.raise_exc
       else
         g.sret
       end
@@ -1828,12 +1830,39 @@ class Node
 
       receiver_bytecode(g)
 
-      if @dynamic
-        g.swap
-        g.set_args
-        g.send_with_register @method, allow_private?
-      elsif @block
-        g.send_with_block @method, @argcount, allow_private?
+      if @dynamic or @block
+        ok = g.new_label
+        g.exceptions do |ex|
+
+          if @dynamic
+            g.swap
+            g.set_args
+            g.send_with_register @method, allow_private?
+          else
+            g.send_with_block @method, @argcount, allow_private?
+          end
+
+          g.goto ok
+          
+          ex.handle!
+          
+          g.push_exception
+          g.dup
+          g.push_const :LongReturnException
+          g.send :===, 1
+
+          after = g.new_label
+          g.gif after
+          g.send :return_value, 0
+          g.clear_exception
+          g.ret
+
+          after.set!
+
+          g.raise_exc
+        end
+
+        ok.set!
       else
         g.send @method, @argcount, allow_private?
       end
