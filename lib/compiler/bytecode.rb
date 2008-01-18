@@ -2023,25 +2023,17 @@ class Node
     end
 
     def bytecode(g)
-      body = compile_body(g)
-      is_module_function = false
-      g.push_literal body
+      g.push_literal compile_body(g)
       g.push :self
       if scope = get(:scope)
         vis = scope.visibility
-        is_module_function = scope.module_function
-        if vis == :private || is_module_function
+        if vis == :private
           g.set_call_flags 1
         elsif vis == :protected
           g.set_call_flags 2
         end
       end
       g.add_method @name
-      if is_module_function
-        g.push_literal body
-        g.push :self
-        g.attach_method @name
-      end    
     end
   end
 
