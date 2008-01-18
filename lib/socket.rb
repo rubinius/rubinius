@@ -178,6 +178,7 @@ class Socket < BasicSocket
 
   def self.getaddrinfo(host, service, family = nil, socktype = nil,
                        protocol = nil, flags = nil)
+    host = '' if host.nil?
     service = service.to_s
 
     hints = Socket::Foreign::AddrInfo.new
