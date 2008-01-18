@@ -523,6 +523,7 @@ describe "String#%" do
     ("%.10x" % -5).should == "fffffffffb"
     ("% x" % -26).should == "-1a"
     ("%+x" % -26).should == "-1a"
+    ("%x" % 0xFFFFFFFF).should == "ffffffff"
     ("%x" % -(2 ** 64 + 5)).should == "..fefffffffffffffffb"
   end
   
@@ -543,6 +544,7 @@ describe "String#%" do
     ("%.10X" % -5).should == "FFFFFFFFFB"
     ("% X" % -26).should == "-1A"
     ("%+X" % -26).should == "-1A"
+    ("%X" % 0xFFFFFFFF).should == "FFFFFFFF"
     ("%X" % -(2 ** 64 + 5)).should == "..FEFFFFFFFFFFFFFFFB"
   end
   
