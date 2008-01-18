@@ -420,17 +420,16 @@ end
 
 namespace :clean do
 
-  desc "Remove all compile system ruby files (runtime/)"
+  desc "Remove all compile system ruby files"
   task :rbc do
-    AllPreCompiled.each do |f|
+    files_to_delete = []
+    files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"]
+    files_to_delete += ["runtime/platform.conf"]
+    files_to_delete -= ["runtime/stable/loader.rbc"] # never ever delete this
+
+    files_to_delete.each do |f|
       rm_f f, :verbose => $verbose
     end
-
-    (Dir["lib/compiler/*.rbc"] + Dir["lib/compiler/**/*.rbc"]).each do |f|
-      rm_f f, :verbose => $verbose
-    end
-
-    rm_f "runtime/platform.conf"
   end
 
   desc "Cleans all compiled extension files (lib/ext)"
