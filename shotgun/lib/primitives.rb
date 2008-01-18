@@ -2267,11 +2267,11 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
     t2 = stack_pop();
-    
-    GUARD(RISA(t1, channel));
-    GUARD(RISA(t2, channel));
+
+    GUARD(t1 == Qnil || RISA(t1, channel));
+    GUARD(t2 == Qnil || RISA(t2, channel));
     GUARD(RISA(self, task));
-    
+
     if(self == c->current_task) {
       c->debug_channel = t1;
       c->control_channel = t2;
