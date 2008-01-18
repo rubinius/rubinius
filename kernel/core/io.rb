@@ -152,6 +152,8 @@ class IO
 
     io = read_array.find { |readable| readable.fileno == value }
 
+    return nil if io.nil?
+
     [[io], [], []]
   end
 
@@ -583,6 +585,14 @@ class IO
     end
   end
 
+  def fcntl(command, arg)
+    if arg.kind_of? Fixnum then
+      IO._fcntl_int descriptor, command, arg
+    else
+      raise NotImplementedError, "cannot handle #{arg.class}"
+    end
+  end
+
   private
   def self.parse_mode(mode)
     ret = 0
@@ -626,4 +636,10 @@ class IO
   end
   
   private :io_close
+
+  def self.after_loaded
+    attach_function "fcntl", :_fcntl_int, [:int, :int, :int], :int
+  end
+
 end
+

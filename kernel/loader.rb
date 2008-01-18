@@ -14,6 +14,7 @@ begin
   Signal.after_loaded
   Object.after_loaded
   ObjectSpace.after_loaded
+  IO.after_loaded
 
   ENV = EnvironmentVariables.new
 
