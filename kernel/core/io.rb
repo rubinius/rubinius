@@ -118,6 +118,43 @@ class IO
   end
   include Constants
   
+  def self.select(read_array, write_array = nil, error_array = nil,
+                  timeout = nil)
+    chan = Channel.new
+
+    if read_array then
+      read_array.each do |readable|
+        Scheduler.send_on_readable chan, readable, nil, nil
+      end
+    end
+
+    raise NonImplementedError, "write_array is not supported" if write_array
+    raise NonImplementedError, "error_array is not supported" if error_array
+
+    # HACK can't do this yet
+    #if write_array then
+    #  write_array.each do |writable|
+    #    Scheduler.send_on_writable chan, writable, nil, nil
+    #  end
+    #end
+    #
+    #if errore_array then
+    #  errore_array.each do |errorable|
+    #    Scheduler.send_on_error chan, errorable, nil, nil
+    #  end
+    #end
+
+    Scheduler.send_in_microseconds chan, (timeout * 1_000_000).to_i if timeout
+
+    value = chan.receive
+
+    return nil if value == 1 # timeout
+
+    io = read_array.select { |readable| readable.fileno == value }
+
+    [[io], [], []]
+  end
+
   def initialize(fd)
     desc = Type.coerce_to fd, Fixnum, :to_int
     if desc < 0
