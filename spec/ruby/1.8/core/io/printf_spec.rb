@@ -5,11 +5,11 @@ describe "IO#printf" do
     @io = IO.new STDOUT.fileno
   end
   
-fails_on :jruby do
-  it "writes the #sprintf formatted string to the file descriptor" do
-    lambda {
-      @io.printf "%s\n", "look ma, no hands"
-    }.should output_to_fd("look ma, no hands\n", @io)
+  fails_on :jruby do
+    it "writes the #sprintf formatted string to the file descriptor" do
+      lambda {
+        @io.printf "%s\n", "look ma, no hands"
+      }.should output_to_fd("look ma, no hands\n", @io)
+    end
   end
-end
 end

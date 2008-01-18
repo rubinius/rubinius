@@ -14,8 +14,10 @@ describe "IO#puts" do
     @io.puts.should == nil
   end
 
-  it "writes just a newline when given just a newline" do
-    lambda { $stdout.puts "\n" }.should output_to_fd("\n", STDOUT)
+  fails_on :jruby do
+    it "writes just a newline when given just a newline" do
+      lambda { $stdout.puts "\n" }.should output_to_fd("\n", STDOUT)
+    end
   end
 
   it "writes nil with a newline when given nil as an arg" do

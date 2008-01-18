@@ -15,14 +15,16 @@ describe IO, "#print" do
     $\ = @old_separator
   end
 
-  it "writes $_.to_s followed by $\\ (if any) to the stream if no arguments given" do
-    o = IOSpecPrint.new
-    o.message = 'I know what you did last line!'
-    $_ = o
-    l = lambda { $stdout.print }.should output_to_fd("#{o.message}#{$\}", STDOUT)
+  fails_on :jruby do
+    it "writes $_.to_s followed by $\\ (if any) to the stream if no arguments given" do
+      o = IOSpecPrint.new
+      o.message = 'I know what you did last line!'
+      $_ = o
+      l = lambda { $stdout.print }.should output_to_fd("#{o.message}#{$\}", STDOUT)
 
-    string = File.open(__FILE__) {|f| f.gets }  # Set $_ to something known
-    lambda { $stdout.print }.should output_to_fd("#{string}#{$\}", STDOUT)
+      string = File.open(__FILE__) {|f| f.gets }  # Set $_ to something known
+      lambda { $stdout.print }.should output_to_fd("#{string}#{$\}", STDOUT)
+    end
   end
 
   it "writes obj.to_s followed by $\\ (if any) to the stream when given one object" do
