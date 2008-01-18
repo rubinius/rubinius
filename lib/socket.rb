@@ -501,14 +501,14 @@ class TCPSocket < IPSocket
     syscall = nil
 
     flags = server ? Socket::AI_PASSIVE : 0
-    @remote_addrinfo = Socket::Foreign.getaddrinfo(remote_host,
+    @remote_addrinfo = Socket::Foreign.getaddrinfo(remote_host.to_s,
                                                    remote_service.to_s,
                                                    Socket::AF_UNSPEC,
                                                    Socket::SOCK_STREAM, 0,
                                                    flags)
 
-    if server == false and (not local_host or not local_service) then
-      @local_addrinfo = Socket::Foreign.getaddrinfo(local_host,
+    if server == false and (local_host or local_service) then
+      @local_addrinfo = Socket::Foreign.getaddrinfo(local_host.to_s,
                                                     local_service.to_s, 
                                                     Socket::AF_UNSPEC,
                                                     Socket::SOCK_STREAM, 0, 0)
