@@ -251,12 +251,15 @@ class MemoryPointer
     end
 
     ptr = Platform::POSIX.malloc total
+    ptr.total = total
     ptr.type_size = size
     Platform::POSIX.memset ptr, 0, total if clear
 
     if block_given?
       begin
-        yield ptr
+        value = yield ptr
+
+        return value
       ensure
         ptr.free
       end
@@ -265,6 +268,7 @@ class MemoryPointer
     end
   end
 
+  attr_accessor :total
   attr_accessor :type_size
 
   def [](which)
@@ -358,7 +362,7 @@ class MemoryPointer
   end
 
   def inspect
-    "#<MemoryPointer address=0x#{address.to_s(16)}>"
+    "#<MemoryPointer address=0x#{address.to_s(16)} size=#{total} data=#{read_string(total).inspect}>"
   end
 
   def address
