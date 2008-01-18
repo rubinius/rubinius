@@ -164,7 +164,7 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
   state = ti->state;
   
   if(NIL_P(ti->buffer)) {
-    ret = Qtrue;
+    ret = I2N(fd);
   } else {
     ba = string_get_data(ti->buffer);
     enc = string_get_encoding(ti->buffer);
