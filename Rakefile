@@ -411,10 +411,8 @@ task :distclean => %w[pristine clean clean:external]
 desc "Remove all stray compiled Ruby files"
 task :pristine do
   FileList['**/*.rbc'].each do |fn|
-    next if /^runtime/.match(fn)
-    next if %r!fixtures/require!.match(fn)
-    next if %r!lib/compiler!.match(fn)
-    FileUtils.rm fn rescue nil
+    next if fn =~ %r%^runtime|fixtures/require|lib/complier%
+    rm_f fn, :verbose => $verbose
   end
 end
 
