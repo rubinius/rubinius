@@ -51,7 +51,7 @@ describe Compiler do
           [:scope, 
             [:block, 
               [:args, [:a], [:b], nil, 
-                [:block, [:lasgn, :b, 0, [:lit, 2]]]], 
+                [:block, [:lasgn, :b, [:lit, 2]]]], 
               [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
             ], 
             [:a, :b]
@@ -93,7 +93,7 @@ describe Compiler do
             [:block, 
               [:args, [:a], [], nil, nil],
               [:iter, [:call, [:zarray], :each], 
-                [:lasgn, :b, 0], 
+                [:lasgn, :b], 
                 [:block, [:dasgn_curr, :b], 
                   [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
                 ]
@@ -339,7 +339,7 @@ describe Compiler do
   
   it "compiles a class with space allocated for locals" do
     x = [:class, [:colon2, :A], nil,
-          [:scope, [:block, [:lasgn, :a, 0, [:fixnum, 1]]], []]]
+          [:scope, [:block, [:lasgn, :a, [:fixnum, 1]]], []]]
           
     gen x do |g|
       desc = description do |d|

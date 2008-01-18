@@ -56,7 +56,7 @@ describe Compiler do
   it "compiles 'ary.each do |a|; end'" do
     x = [:iter,
          [:call, [:vcall, :ary], :each],
-         [:lasgn, :a, 0]]
+         [:lasgn, :a]]
 
     gen_iter x do |d|
       d.cast_for_single_block_arg
@@ -73,7 +73,7 @@ describe Compiler do
   it "compiles 'ary.each do |a, |; ... end'" do
     x = [:iter,
          [:call, [:vcall, :ary], :each],
-         [:masgn, [:array, [:lasgn, :a, 0]], nil, nil]]
+         [:masgn, [:array, [:lasgn, :a]], nil, nil]]
 
     gen_iter x do |d|
       d.cast_for_multi_block_arg
@@ -90,7 +90,7 @@ describe Compiler do
   it "compiles 'ary.each do |*a|; ... end'" do
     x = [:iter,
          [:call, [:vcall, :ary], :each],
-         [:masgn, [:lasgn, :a, 0], nil]]
+         [:masgn, [:lasgn, :a], nil]]
 
     gen_iter x do |d|
       d.cast_array
@@ -110,9 +110,9 @@ describe Compiler do
          [:call, [:vcall, :ary], :each],
          [:masgn,
           [:array,
-           [:lasgn, :a, 0],
-           [:lasgn, :b, 0],
-           [:lasgn, :c, 0]], nil, nil]]
+           [:lasgn, :a],
+           [:lasgn, :b],
+           [:lasgn, :c]], nil, nil]]
 
     gen_iter x do |d|
       d.cast_for_multi_block_arg
@@ -134,9 +134,9 @@ describe Compiler do
          [:call, [:vcall, :ary], :each],
          [:masgn,
           [:array,
-           [:lasgn, :a, 0],
-           [:lasgn, :b, 0]],
-          [:lasgn, :c, 0], nil]]
+           [:lasgn, :a],
+           [:lasgn, :b]],
+          [:lasgn, :c], nil]]
 
     gen_iter x do |d|
       d.cast_for_multi_block_arg
@@ -161,9 +161,9 @@ describe Compiler do
           [:array,
            [:masgn,
             [:array,
-             [:lasgn, :a, 0],
-             [:lasgn, :b, 0]], nil, nil],
-           [:lasgn, :c, 0]], nil, nil]]
+             [:lasgn, :a],
+             [:lasgn, :b]], nil, nil],
+           [:lasgn, :c]], nil, nil]]
 
     gen_iter x do |d|
       d.cast_for_multi_block_arg
@@ -196,9 +196,9 @@ describe Compiler do
           [:array,
            [:masgn,
             [:array,
-             [:lasgn, :a, 0],
-             [:lasgn, :b, 0]], nil, nil]],
-          [:lasgn, :c, 0], nil]]
+             [:lasgn, :a],
+             [:lasgn, :b]], nil, nil]],
+          [:lasgn, :c], nil]]
 
     gen_iter x do |d|
       d.cast_for_multi_block_arg
@@ -230,12 +230,12 @@ describe Compiler do
           [:array,
            [:masgn,
             [:array,
-             [:lasgn, :a, 0],
+             [:lasgn, :a],
              [:masgn,
               [:array,
-               [:lasgn, :b, 0],
-               [:lasgn, :c, 0]], nil, nil]], nil, nil],
-           [:lasgn, :d, 0]], nil, nil]]
+               [:lasgn, :b],
+               [:lasgn, :c]], nil, nil]], nil, nil],
+           [:lasgn, :d]], nil, nil]]
 
     gen_iter x do |d|
       d.cast_for_multi_block_arg
@@ -286,7 +286,7 @@ describe Compiler do
   it "compiles 'ary.each do |a, *|; ... end'" do
     x = [:iter,
          [:call, [:vcall, :ary], :each],
-         [:masgn, [:array, [:lasgn, :a, 0]], true, nil]]
+         [:masgn, [:array, [:lasgn, :a]], true, nil]]
 
     gen_iter x do |d|
       d.cast_for_multi_block_arg

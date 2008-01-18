@@ -159,7 +159,7 @@ describe Compiler do
              [:iter, 
                [:call, 
                  [:newline, 1, "(eval)", [:dot2, [:lit, 1], [:lit, 2]]], :each], 
-                   [:lasgn, :x, 0] ] ]
+                   [:lasgn, :x] ] ]
 
     gen(sexp) do |g|
       iter = description do |d|
@@ -186,7 +186,7 @@ describe Compiler do
   it "compiles an each call with multiple block arguments" do
     sexp = [:newline, 1, "(eval)", 
             [:iter, [:call, [:vcall, :x], :each], [:masgn, 
-              [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil, nil], 
+              [:array, [:lasgn, :a], [:lasgn, :b]], nil, nil], 
               [:block, 
                 [:dasgn_curr, :b, [:dasgn_curr, :a]], 
                   [:newline, 1, "(eval)", [:lit, 5]] ] ] ]
@@ -219,7 +219,7 @@ describe Compiler do
     sexp = [:newline, 1, "(eval)", 
              [:for, 
               [:newline, 1, "(eval)", [:dot2, [:lit, 1], [:lit, 2]]], 
-                [:lasgn, :x, 0] ] ]
+                [:lasgn, :x] ] ]
 
     gen(sexp) do |g|
       iter = description do |d|
@@ -274,7 +274,7 @@ describe Compiler do
     sexp = [:newline, 1, "(eval)", 
             [:for, [:vcall, :x], 
               [:masgn, 
-                [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil, nil], 
+                [:array, [:lasgn, :a], [:lasgn, :b]], nil, nil], 
               [:newline, 2, "(eval)", [:lit, 5]] ] ]
 
     gen(sexp) do |g|
@@ -304,8 +304,8 @@ describe Compiler do
   it "compiles a for loop with multiple arguments and an inner lasgn" do
    sexp = [:newline, 1, "(eval)", 
             [:for, [:vcall, :x], 
-              [:masgn, [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil, nil], 
-              [:newline, 2, "(eval)", [:lasgn, :z, 0, [:lit, 5]]] ] ]
+              [:masgn, [:array, [:lasgn, :a], [:lasgn, :b]], nil, nil], 
+              [:newline, 2, "(eval)", [:lasgn, :z, [:lit, 5]]] ] ]
 
     gen(sexp) do |g|
       iter = description do |d|

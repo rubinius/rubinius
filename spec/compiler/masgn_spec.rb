@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + "/spec_helper"
 describe Compiler do
   it "compiles 'a, b = 1, 2'" do
     x = [:masgn, 
-          [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil,
+          [:array, [:lasgn, :a], [:lasgn, :b]], nil,
           [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
@@ -19,7 +19,7 @@ describe Compiler do
   
   it "compiles 'a, b.c = b.c, true'" do
     x = [:masgn, 
-          [:array, [:lasgn, :a, 0], [:attrasgn, [:vcall, :b], :c]], nil, 
+          [:array, [:lasgn, :a], [:attrasgn, [:vcall, :b], :c]], nil, 
           [:array, [:call, [:vcall, :b], :c], [:true]]
         ]
         
@@ -43,7 +43,7 @@ describe Compiler do
   
   it "compiles 'a, b = 1, 2, 3'" do
     x = [:masgn, 
-          [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil,
+          [:array, [:lasgn, :a], [:lasgn, :b]], nil,
           [:array, [:fixnum, 1], [:fixnum, 2], [:fixnum, 3]]]
 
     gen x do |g|
@@ -61,7 +61,7 @@ describe Compiler do
   
   it "compiles 'a, b, c = 1, 2'" do
     x = [:masgn, 
-          [:array, [:lasgn, :a, 0], [:lasgn, :b, 0], [:lasgn, :c, 0]], nil,
+          [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]], nil,
           [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
@@ -80,7 +80,7 @@ describe Compiler do
   
   it "compiles 'a, *b = 1, 2, 3'" do
     x = [:masgn, 
-          [:array, [:lasgn, :a, 0]], [:lasgn, :b, 0],
+          [:array, [:lasgn, :a]], [:lasgn, :b],
           [:array, [:fixnum, 1], [:fixnum, 2], [:fixnum, 3]]]
 
     gen x do |g|
@@ -98,7 +98,7 @@ describe Compiler do
   
   it "compiles 'a, b, *c = 1, 2, 3'" do
     x = [:masgn, 
-          [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], [:lasgn, :c, 0],
+          [:array, [:lasgn, :a], [:lasgn, :b]], [:lasgn, :c],
           [:array, [:fixnum, 1], [:fixnum, 2], [:fixnum, 3]]]
 
     gen x do |g|
@@ -118,7 +118,7 @@ describe Compiler do
   
   it "compiles 'a, b, c = *d'" do
     x = [:masgn, 
-          [:array, [:lasgn, :a, 0], [:lasgn, :b, 0], [:lasgn, :c, 0]], nil, 
+          [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]], nil, 
           [:splat, [:vcall, :d]]]
     
     gen x do |g|
@@ -145,7 +145,7 @@ describe Compiler do
   
   it "compiles 'a, b, c = 1, *d'" do
     x = [:masgn, 
-          [:array, [:lasgn, :a, 0], [:lasgn, :b, 0], [:lasgn, :c, 0]], nil, 
+          [:array, [:lasgn, :a], [:lasgn, :b], [:lasgn, :c]], nil, 
           [:argscat, [:array, [:lit, 1]], [:vcall, :d]]
         ]
     
@@ -178,7 +178,7 @@ describe Compiler do
   
   it "compiles 'a, b, *c = *d'" do
     x = [:masgn, 
-          [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], [:lasgn, :c, 0], 
+          [:array, [:lasgn, :a], [:lasgn, :b]], [:lasgn, :c], 
           [:splat, [:vcall, :d]]
         ]
     
@@ -205,7 +205,7 @@ describe Compiler do
   end
   
   it "compiles '|a|'" do
-    x = [:iter_args, [:lasgn, :a, 0]]
+    x = [:iter_args, [:lasgn, :a]]
     
     gen x do |g|
       g.cast_for_single_block_arg
@@ -217,7 +217,7 @@ describe Compiler do
   it "compiles '|a,|'" do
     x = [:iter,
          [:call, [:vcall, :x], :each], 
-         [:masgn, [:array, [:lasgn, :a, 0]], nil, nil]]
+         [:masgn, [:array, [:lasgn, :a]], nil, nil]]
     
     gen x do |g|
       desc = description do |d|
@@ -245,8 +245,8 @@ describe Compiler do
     x = [:iter,
          [:call, [:vcall, :x], :each], 
          [:masgn, [:array,
-                   [:lasgn, :a, 0],
-                   [:lasgn, :b, 0]], nil, nil]]
+                   [:lasgn, :a],
+                   [:lasgn, :b]], nil, nil]]
 
     gen(x) do |g|
       desc = description do |d|
@@ -277,7 +277,7 @@ describe Compiler do
   it "compiles '|*args|'" do
     x = [:iter,
          [:call, [:vcall, :x], :each], 
-         [:masgn, [:lasgn, :args, nil], nil]]
+         [:masgn, [:lasgn, :args], nil]]
     
     gen x do |g|
       desc = description do |d|
@@ -302,7 +302,7 @@ describe Compiler do
 
   it "compiles '|a, *b|'" do
     x = [:iter, [:call, [:vcall, :x], :each], 
-          [:masgn, [:array, [:lasgn, :a, 0]], [:lasgn, :b, 0], nil]
+          [:masgn, [:array, [:lasgn, :a]], [:lasgn, :b], nil]
         ]
     
     gen x do |g|

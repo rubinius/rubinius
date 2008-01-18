@@ -598,7 +598,8 @@ class Node
           # than [:output, :b]. To fix this, we pick up the name of the :lasgn,
           # in the defaults, and set the corresponding optional arg if the
           # :lasgn is an :iter.
-          if node[3].first == :iter
+          type = node[2].first rescue nil
+          if type == :iter
             name = node[1]
             sexp[1][i] = name
           end
@@ -821,7 +822,7 @@ class Node
   class LocalAssignment < LocalVariable
     kind :lasgn
 
-    def args(name, idx, val=nil)
+    def args(name, val=nil)
       # val will be nil if this is e.g. an lasgn inside an masgn
       @value = val
       super(name)

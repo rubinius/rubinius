@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles simple lasgn / lvar" do
-    x = [:block, [:lasgn, :a, 0, [:fixnum, 12]], [:lvar, :a, 0]]
+    x = [:block, [:lasgn, :a, [:fixnum, 12]], [:lvar, :a, 0]]
     
     gen x do |g|
       g.push 12
@@ -14,7 +14,7 @@ describe Compiler do
   
   it "compiles lvars only after declared" do
     x =   [:block, [:vcall, :name],
-                   [:lasgn, :name, 0, [:lit, 3]],
+                   [:lasgn, :name, [:lit, 3]],
                    [:lvar, :name, 0]]
     gen x do |g|
       g.push :self
@@ -48,7 +48,7 @@ describe Compiler do
   
   it "compiles toplevel lvar into locals when closure referenced" do
     x = [:block, 
-          [:lasgn, :name, 0, [:fixnum, 12]],
+          [:lasgn, :name, [:fixnum, 12]],
           [:iter, [:fcall, :go], nil, [:lvar, :name, 0]]]
             
     gen x do |g|
@@ -73,7 +73,7 @@ describe Compiler do
   
   it "compiles block lvar into depth referenced lvar" do
     ax = [:iter, [:fcall, :go], nil, [:block, 
-            [:lasgn, :name, 0, [:fixnum, 12]],
+            [:lasgn, :name, [:fixnum, 12]],
             [:lvar, :name, 0]]]
     
     gen ax do |g|
@@ -98,7 +98,7 @@ describe Compiler do
   
   it "compiles block lvar into depth referenced lvar upward" do
     ax = [:iter, [:fcall, :go], nil, [:block, 
-            [:lasgn, :name, 0, [:fixnum, 12]],
+            [:lasgn, :name, [:fixnum, 12]],
             [:iter, [:fcall, :go], nil, [:block,
               [:lvar, :name, 0]        
             ]]

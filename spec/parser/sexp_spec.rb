@@ -24,7 +24,7 @@ describe "Shotgun" do
   end
 
   it "converts a local var to an sexp" do
-    "a = 1; a".to_sexp.should == [:block, [:lasgn, :a, 0, [:lit, 1]], [:lvar, :a, 0]]
+    "a = 1; a".to_sexp.should == [:block, [:lasgn, :a, [:lit, 1]], [:lvar, :a, 0]]
   end
 
   it "converts an instance variable to an sexp" do
@@ -50,7 +50,7 @@ describe "Shotgun" do
   it "converts a string expansion to an sexp" do
     'a = 1; "hello #{a}, you rock."'.to_sexp.should == 
       [:block, 
-        [:lasgn, :a, 0, [:lit, 1]], 
+        [:lasgn, :a, [:lit, 1]], 
         [:dstr, "hello ", [:evstr, [:lvar, :a, 0]], 
         [:str, ", you rock."]]]
   end
@@ -83,7 +83,7 @@ describe "Shotgun" do
       "a = <<-BLAH
       hello
       BLAH
-      ".to_sexp.should == [:lasgn, :a, 0, [:str, "      hello\n"]]
+      ".to_sexp.should == [:lasgn, :a, [:str, "      hello\n"]]
   end
 end
 

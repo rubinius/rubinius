@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + "/spec_helper"
 
 describe Compiler do
   it "compiles 'a ||= 8'" do
-    x = [:op_asgn_or, [:lvar, :a, 0], [:lasgn, :a, 0, [:lit, 8]]]
+    x = [:op_asgn_or, [:lvar, :a, 0], [:lasgn, :a, [:lit, 8]]]
     gen x do |g|
       fin = g.new_label
       
@@ -19,7 +19,7 @@ describe Compiler do
   end
   
   it "compiles 'a &&= 8'" do
-    x = [:op_asgn_and, [:lvar, :a, 0], [:lasgn, :a, 0, [:lit, 8]]]
+    x = [:op_asgn_and, [:lvar, :a, 0], [:lasgn, :a, [:lit, 8]]]
     gen x do |g|
       fin = g.new_label
       
