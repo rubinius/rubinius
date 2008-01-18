@@ -150,7 +150,7 @@ class IO
 
     return nil if value == 1 # timeout
 
-    io = read_array.select { |readable| readable.fileno == value }
+    io = read_array.find { |readable| readable.fileno == value }
 
     [[io], [], []]
   end
