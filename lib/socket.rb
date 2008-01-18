@@ -34,12 +34,14 @@ class BasicSocket < IO
     when Fixnum then
       MemoryPointer.new :int do |val|
         val.write_int optval
-        error = Socket::Foreign.setsockopt(descriptor, level, optname, val, val.size)
+        error = Socket::Foreign.setsockopt(descriptor, level, optname, val,
+                                           val.size)
       end
     when String then
       MemoryPointer.new optval.size do |val|
         val.write_string optval
-        error = Socket::Foreign.setsockopt(descriptor, level, optname, val, optval.size)
+        error = Socket::Foreign.setsockopt(descriptor, level, optname, val,
+                                           optval.size)
       end
     else
       raise "socket option should be a String, a Fixnum, true, or false"
@@ -70,10 +72,10 @@ class Socket < BasicSocket
              :ai_protocol, :ai_addrlen, :ai_addr, :ai_canonname, :ai_next)
     end
 
-    attach_function "accept", :accept, [:int, :string, :pointer], :int
-    attach_function "bind", :bind, [:int, :pointer, :int], :int
+    attach_function "accept", :accept, [:int, :pointer, :pointer], :int
+    attach_function "bind", :_bind, [:int, :pointer, :int], :int
     attach_function "close", :close, [:int], :int
-    attach_function "connect", :connect, [:int, :pointer, :int], :int
+    attach_function "connect", :_connect, [:int, :pointer, :int], :int
     attach_function "listen", :listen, [:int, :int], :int
     attach_function "socket", :socket, [:int, :int, :int], :int
 
@@ -84,9 +86,26 @@ class Socket < BasicSocket
 
     attach_function "gai_strerror", :gai_strerror, [:int], :string
 
-    attach_function "getaddrinfo", :getaddrinfo,
+    attach_function "getaddrinfo", :_getaddrinfo,
                     [:string, :string, :pointer, :pointer], :int
     attach_function "freeaddrinfo", :freeaddrinfo, [:pointer], :void
+    attach_function "getpeername", :_getpeername,
+                    [:int, :pointer, :pointer], :int
+    attach_function "getsockname", :_getsockname,
+                    [:int, :pointer, :pointer], :int
+
+    attach_function "socketpair", :socketpair,
+                    [:int, :int, :int, :pointer], :int
+
+    attach_function "gethostname", :gethostname, [:pointer, :int], :int
+    attach_function "getservbyname", :getservbyname,
+                    [:pointer, :pointer], :pointer
+
+    attach_function "htons", :htons, [:short], :short
+    attach_function "ntohs", :ntohs, [:short], :short
+
+    attach_function "ffi_getnameinfo", :_getnameinfo,
+                    [:state, :pointer, :int, :int], :object
 
     #attach_function "ffi_pack_sockaddr_un", :pack_sa_unix,
     #                [:state, :string], :object
@@ -94,31 +113,128 @@ class Socket < BasicSocket
                     [:state, :string, :string, :int, :int], :object
     attach_function "ffi_decode_sockaddr", :ffi_decode_sockaddr,
                     [:state, :string, :int, :int], :object
-    attach_function "ffi_getpeername", :ffi_getpeername,
-                    [:state, :int, :int], :object
     attach_function "ffi_getsockname", :getsockname,
                     [:state, :int, :int], :object
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
 
-    attach_function "socketpair", :socketpair, [:int, :int, :int, :pointer], :int
-    attach_function "gethostname", :gethostname, [:pointer, :int], :int
-    attach_function "getservbyname", :getservbyname, [:pointer, :pointer], :pointer
+    def self.bind(descriptor, sockaddr)
+      MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
+        sockaddr_p.write_string sockaddr, sockaddr.length
 
-    attach_function "htons", :htons, [:short], :short
-    attach_function "ntohs", :ntohs, [:short], :short
-
-    def self.getpeername(socket, reverse_lookup = false)
-      reverse_lookup = reverse_lookup ? 1 : 0
-
-      result = ffi_getpeername socket, reverse_lookup
-
-      ok, value = result.to_a
-
-      raise SocketError, value unless ok
-
-      value
+        _bind descriptor, sockaddr_p, sockaddr.length
+      end
     end
-    
+
+    def self.connect(descriptor, sockaddr)
+      MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
+        sockaddr_p.write_string sockaddr, sockaddr.length
+
+        _connect descriptor, sockaddr_p, sockaddr.length
+      end
+    end
+
+    def self.getaddrinfo(host, service, family, socktype, protocol, flags)
+      hints = Socket::Foreign::AddrInfo.new
+      hints[:ai_family] = family
+      hints[:ai_socktype] = socktype
+      hints[:ai_protocol] = protocol
+      hints[:ai_flags] = flags
+
+      res_p = MemoryPointer.new :pointer
+
+      err = _getaddrinfo host, service, hints.pointer, res_p
+
+      raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
+
+      return [] if res_p.read_pointer.nil?
+
+      res = Socket::Foreign::AddrInfo.new res_p.read_pointer
+
+      addrinfos = []
+
+      loop do
+        addrinfo = []
+        addrinfo << res[:ai_flags]
+        addrinfo << res[:ai_family]
+        addrinfo << res[:ai_socktype]
+        addrinfo << res[:ai_protocol]
+        addrinfo << res[:ai_addr].read_string(res[:ai_addrlen])
+        addrinfo << res[:ai_canonname]
+
+        addrinfos << addrinfo
+
+        break unless res[:ai_next]
+
+        res = Socket::Foreign::AddrInfo.new res[:ai_next]
+      end
+
+      return addrinfos
+    ensure
+      hints.free if hints
+
+      if res_p then
+        Socket::Foreign.freeaddrinfo res_p.read_pointer
+        res_p.free
+      end
+    end
+
+    def self.getnameinfo(sockaddr)
+      name_info = []
+      value = nil
+
+      unless Socket.do_not_reverse_lookup then
+        MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
+          sockaddr_p.write_string sockaddr, sockaddr.length
+
+          success, value = _getnameinfo sockaddr_p, sockaddr.length, 0
+
+          raise SocketError, value unless success
+
+          name_info[2] = value[2]
+        end
+      end
+
+      MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
+        sockaddr_p.write_string sockaddr, sockaddr.length
+
+        success, value = _getnameinfo sockaddr_p, sockaddr.length, 0
+
+        raise SocketError, value unless success
+
+        name_info[0] = AF_TO_FAMILY[value[0]]
+        name_info[1] = value[1]
+        name_info[3] = value[2]
+      end
+
+      name_info[2] = name_info[3] if name_info[2].nil?
+
+      name_info
+    end
+
+    def self.getpeername(descriptor)
+      MemoryPointer.new :char, 128 do |sockaddr_storage_p|
+        MemoryPointer.new :int do |len_p|
+          err = _getpeername descriptor, sockaddr_storage_p, len_p
+
+          Error.handle 'getpeername(2)' unless err == 0
+
+          sockaddr_storage_p.read_string len_p.read_int
+        end
+      end
+    end
+
+    def self.getsockname(descriptor)
+      MemoryPointer.new :char, 128 do |sockaddr_storage_p|
+        MemoryPointer.new :int do |len_p|
+          err = _getsockname descriptor, sockaddr_storage_p, len_p
+
+          Error.handle 'getsockname(2)' unless err == 0
+
+          sockaddr_storage_p.read_string len_p.read_int
+        end
+      end
+    end
+
     def self.pack_sa_ip(name, port, type, flags)
       result = ffi_pack_sockaddr_in name, port, type, flags
 
@@ -181,50 +297,26 @@ class Socket < BasicSocket
     host = '' if host.nil?
     service = service.to_s
 
-    hints = Socket::Foreign::AddrInfo.new
-    hints[:ai_family] = family || 0
-    hints[:ai_socktype] = socktype || 0
-    hints[:ai_protocol] = protocol || 0
-    hints[:ai_flags] = flags || 0
+    family ||= 0
+    socktype ||= 0
+    protocol ||= 0
+    flags ||= 0
 
-    res_p = MemoryPointer.new :pointer
+    addrinfos = Socket::Foreign.getaddrinfo(host, service, family, socktype,
+                                            protocol, flags)
 
-    err = Socket::Foreign.getaddrinfo host, service, hints.pointer, res_p
-
-    raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
-
-    res = Socket::Foreign::AddrInfo.new res_p.read_pointer
-
-    addrinfos = []
-
-    loop do
+    addrinfos.map do |ai|
       addrinfo = []
-      addrinfo << Socket::Constants::AF_TO_FAMILY[res[:ai_family]]
+      addrinfo << Socket::Constants::AF_TO_FAMILY[ai[1]]
 
-      ai_sockaddr = res[:ai_addr].read_string res[:ai_addrlen]
-
-      sockaddr = Socket::Foreign::unpack_sa_ip ai_sockaddr, true
+      sockaddr = Socket::Foreign::unpack_sa_ip ai[4], true
 
       addrinfo << sockaddr.pop # port
       addrinfo.concat sockaddr # hosts
-      addrinfo << res[:ai_family]
-      addrinfo << res[:ai_socktype]
-      addrinfo << res[:ai_protocol]
-
-      addrinfos << addrinfo
-
-      break unless res[:ai_next]
-
-      res = Socket::Foreign::AddrInfo.new res[:ai_next]
-    end
-
-    return addrinfos
-  ensure
-    hints.free if hints
-
-    if res_p then
-      Socket::Foreign.freeaddrinfo res_p.read_pointer
-      res_p.free
+      addrinfo << ai[1]
+      addrinfo << ai[2]
+      addrinfo << ai[3]
+      addrinfo
     end
   end
 
@@ -310,11 +402,11 @@ class Socket < BasicSocket
   end
 
   def initialize(family, socket_type, protocol)
-    @descriptor = Socket::Foreign.socket family, socket_type, protocol
+    descriptor = Socket::Foreign.socket family, socket_type, protocol
 
-    Errno.handle 'socket(2)' if @descriptor < 0
+    Errno.handle 'socket(2)' if descriptor < 0
 
-    setup @descriptor
+    setup descriptor
   end
 
   def self.from_descriptor(fixnum)
@@ -343,23 +435,15 @@ end
 
 class IPSocket < BasicSocket
   def addr
-    reverse = !BasicSocket.do_not_reverse_lookup
-    
-    name, addr, port = Socket::Foreign.getsockname descriptor, reverse
+    sockaddr = Socket::Foreign.getsockname descriptor
 
-    raise SocketError, "Unable to get local address" if addr.nil?
-
-    ["AF_INET", port.to_i, name, addr]
+    Socket::Foreign.getnameinfo sockaddr
   end
   
   def peeraddr
-    reverse = !BasicSocket.do_not_reverse_lookup
+    sockaddr = Socket::Foreign.getpeername descriptor
 
-    name, addr, port = Socket::Foreign.getpeername descriptor, reverse
-
-    raise SocketError, "Unable to get peer address" if addr.nil?
-
-    ["AF_INET", port.to_i, name, addr]
+    Socket::Foreign.getnameinfo sockaddr
   end
 end
 
@@ -374,8 +458,6 @@ class UDPSocket < IPSocket
 
     ret = Socket::Foreign.bind_name descriptor, @host.to_s, @port.to_s, @type
     setup(fixnum)
-
-    @connected = true
 
     name, addr, port = Socket::Foreign.getpeername fixnum, false
 
@@ -405,136 +487,132 @@ end
 
 class TCPSocket < IPSocket
   
-  def self.from_descriptor(fixnum)
-    sock = allocate()
-    sock.from_descriptor(fixnum)
-    return sock    
-  end
-  
-  def from_descriptor(fixnum)
-    setup(fixnum)
-
-    @connected = true
-
-    name, addr, port = Socket::Foreign.getpeername fixnum, false
-
-    initialize(addr, port)
-
-    return self
-  end
-
   def initialize(host, port)
     @host = host
     @port = port
-    @type = Socket::SOCK_STREAM
 
-    @connected ||= false
+    tcp_setup @host, @port
+  end
+  private :initialize
 
-    return if @connected
+  def tcp_setup(remote_host, remote_service, local_host = nil,
+                local_service = nil, server = false)
+    status = nil
+    syscall = nil
 
-    Socket.getaddrinfo(@host, @port, nil, @type).each do |addrinfo|
-      family_name, port, host, addr, family, socket_type, protocol = addrinfo
+    flags = server ? Socket::AI_PASSIVE : 0
+    @remote_addrinfo = Socket::Foreign.getaddrinfo(remote_host,
+                                                   remote_service.to_s,
+                                                   Socket::AF_UNSPEC,
+                                                   Socket::SOCK_STREAM, 0,
+                                                   flags)
 
-      @descriptor = Socket::Foreign.socket family, socket_type, protocol
-
-      break if @descriptor >= 0
+    if server == false and (not local_host or not local_service) then
+      @local_addrinfo = Socket::Foreign.getaddrinfo(local_host,
+                                                    local_service.to_s, 
+                                                    Socket::AF_UNSPEC,
+                                                    Socket::SOCK_STREAM, 0, 0)
     end
 
-    Errno.handle 'socket(2)' if @descriptor < 0
+    @remote_addrinfo.each do |addrinfo|
+      flags, family, socket_type, protocol, sockaddr, canonname = addrinfo
 
-    @sockaddr = Socket.pack_sockaddr_in @port, @host, @type
-    sockaddr_p = MemoryPointer.new :char, @sockaddr.length
-    sockaddr_p.write_string @sockaddr, @sockaddr.length
+      status = Socket::Foreign.socket family, socket_type, protocol
+      syscall = 'socket(2)'
+      setup status
 
-    err = Socket::Foreign.connect @descriptor, sockaddr_p, @sockaddr.length
+      next if descriptor < 0
 
-    Errno.handle 'connect(2)' unless err == 0
+      if server then
+        status = 1
 
-    setup @descriptor
+        begin
+          setsockopt(Socket::Constants::SOL_SOCKET,
+                     Socket::Constants::SO_REUSEADDR, true)
+        rescue SystemCallError
+        end
 
-  rescue SystemCallError
-    Socket::Foreign.close @descriptor if @descriptor > 0
-    raise
-  ensure
-    sockaddr_p.free if sockaddr_p
+        status = Socket::Foreign.bind descriptor, sockaddr
+        syscall = 'bind(2)'
+      else
+        if @local_addrinfo then
+          status = bind descriptor, @local_addrinfo.first[4]
+          syscall = 'bind(2)'
+        end
+
+        if status >= 0 then
+          status = Socket::Foreign.connect descriptor, sockaddr
+          syscall = 'connect(2)'
+        end
+      end
+
+      break if status >= 0
+
+      Socket::Foreign.close descriptor
+    end
+
+    Errno.handle syscall if status < 0
+
+    if server then
+      err = Socket::Foreign.listen descriptor, 5
+      Errno.handle syscall unless err == 0
+    end
+
+    setup descriptor
   end
+  private :setup
 
-  def inspect
-    "#<#{self.class}:0x#{object_id.to_s(16)} #{@host}:#{@port}>"
+  def from_descriptor(descriptor)
+    setup descriptor
+
+    self
   end
+  private :from_descriptor
+
 end
 
 class TCPServer < TCPSocket
+
   def initialize(host, port = nil)
-    if host.kind_of?(Fixnum) then # HACK use the socket library
+    if Fixnum === host and port.nil? then
       port = host
-      host = '0.0.0.0'
+      host = nil
     end
 
     @host = host
     @port = port
 
-    @domain = Socket::Constants::AF_INET
-    @type = Socket::Constants::SOCK_STREAM
-    @protocol = 0
-
-    fd = Socket::Foreign.socket @domain, @type, @protocol
-
-    Errno.handle "socket(2)" if fd < 0
-
-    setup fd
-
-    begin
-      setsockopt(Socket::Constants::SOL_SOCKET, Socket::Constants::SO_REUSEADDR, true)
-    rescue SystemCallError
-      # MRI's socket.c tries this but never checks the return value, so
-      # just eat any error.
-    end
-
-    @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type,
-                                        Socket::Constants::AI_PASSIVE)
-
-    sockaddr_p = MemoryPointer.new :char, @sockaddr.length
-    sockaddr_p.write_string @sockaddr, @sockaddr.length
-
-    ret = Socket::Foreign.bind descriptor, sockaddr_p, @sockaddr.length
-
-    Errno.handle 'bind(2)' unless ret == 0
-
-    ret = Socket::Foreign.listen fd, 5
-
-    Errno.handle "Unable to listen on #{@host}:#{@port}" unless ret == 0
-  ensure
-    sockaddr_p.free if sockaddr_p
+    tcp_setup @host, @port, nil, nil, true
   end
 
   def accept
     return if closed?
-    wait_til_readable()
+    wait_til_readable
 
-    fd = -1
-    size = 0
-    MemoryPointer.new :int do |sz|
-      sz.write_int @sockaddr.size # initialize to the 'expected' size
-      fd = Socket::Foreign.accept descriptor, @sockaddr, sz
-      size = sz.read_int
+    fd = nil
+    sockaddr = nil
+
+    MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
+      MemoryPointer.new :int do |size_p|
+        fd = Socket::Foreign.accept descriptor, sockaddr_p, size_p
+      end
     end
 
-    if fd < 0
-      Errno.handle "Unable to accept on socket"
-    end
+    Errno.handle 'accept(2)' if fd < 0
 
-    TCPSocket.from_descriptor(fd)
+    socket = TCPSocket.allocate
+    socket.send :from_descriptor, fd
   end
   
-  def listen(log)
-    log = Type.coerce_to(log, Fixnum, :to_int)
+  def listen(backlog)
+    backlog = Type.coerce_to backlog, Fixnum, :to_int
 
-    ret = Socket::Foreign.listen_socket(descriptor, log)
-    if ret != 0
-      Errno.handle
-    end
-    ret
+    err = Socket::Foreign.listen descriptor, backlog
+
+    Error.handle 'listen(2)' unless err == 0
+
+    err
   end
+
 end
 

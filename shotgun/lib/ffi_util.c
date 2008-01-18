@@ -169,22 +169,6 @@ OBJECT ffi_decode_sockaddr(STATE, struct sockaddr *addr, int len, int reverse_lo
   return tuple_new2(state, 3, host, address, INT_TO_FIXNUM(atoi(pbuf)));
 }
 
-OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
-  int error = 0;
-
-  struct sockaddr_storage addr;
-  socklen_t len = sizeof addr;
-
-  error = getpeername(s, (struct sockaddr*)&addr, &len);
-  if(error) {
-    return tuple_new2(state, 2, Qfalse, string_new(state, gai_strerror(error)));
-  }
-
-  return tuple_new2(state, 2, Qtrue,
-                    ffi_decode_sockaddr(state, (struct sockaddr*)&addr,
-                                        len, reverse_lookup));
-}
-
 OBJECT ffi_getsockname(STATE, int s, int reverse_lookup) {
   int error = 0;
 
@@ -198,18 +182,6 @@ OBJECT ffi_getsockname(STATE, int s, int reverse_lookup) {
 
   return ffi_decode_sockaddr(state, (struct sockaddr*)&addr, len, reverse_lookup);
 }
-
-/*
-int ffi_bind(int s, struct sockaddr *name, socklen_t len) {
-  int ret;
-  struct stat sb;
-  ret = fstat(s, &sb);
-  assert(sb.st_mode & S_IFSOCK && "trying to bind something that isn't a socket!");
-  ret = bind(s, name, len);
-  return ret;
-}
-
-*/
 
 int ffi_bind(int s, char *host, char *port, int type) {
   struct addrinfo hints;
@@ -231,6 +203,31 @@ int ffi_bind(int s, char *host, char *port, int type) {
   }
   ret = bind(s, res->ai_addr, res->ai_addrlen);
   return ret;
+}
+
+OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, int sockaddr_len,
+                       int flags) {
+  char node[NI_MAXHOST], service[NI_MAXSERV];
+  OBJECT value, address, port;
+  int err;
+
+  err = getnameinfo(sockaddr, sockaddr_len, node, NI_MAXHOST,
+                    service, NI_MAXSERV, flags);
+
+  if(err != 0) {
+    return tuple_new2(state, 2, Qfalse,
+        string_new(state, gai_strerror(err)));
+  }
+
+  address = string_new2(state, node, strlen(node));
+  port = I2N(atoi(service));
+
+  value = array_new(state, 0);
+  array_append(state, value, I2N(sockaddr->sa_family));
+  array_append(state, value, port);
+  array_append(state, value, address);
+
+  return tuple_new2(state, 2, Qtrue, value);
 }
 
 void *ffi_add_ptr(char *ptr, int offset) { 
