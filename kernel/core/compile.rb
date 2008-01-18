@@ -27,7 +27,7 @@ module Compile
       end
     rescue Exception => e
       STDERR.puts "Unable to load default compiler: #{e.message}"
-      puts e.backtrace.show
+      puts e.awesome_backtrace.show
       raise e
     end
 

@@ -233,7 +233,7 @@ rescue Object => e
       puts "    #{msg} (#{e.class})"
     end
     puts "\nBacktrace:"
-    puts e.backtrace.show
+    puts e.awesome_backtrace.show
     code = 1
   rescue Object => e2
     puts "Unable to build backtrace due to errors"
@@ -251,7 +251,7 @@ rescue Object => e
   puts "An exception occurred inside an at_exit handler:"
   puts "    #{e.message} (#{e.class})"
   puts "\nBacktrace:"
-  puts e.backtrace.show
+  puts e.awesome_backtrace.show
   code = 1
 end
 
@@ -261,7 +261,7 @@ rescue Object => e
   puts "An exception occured while running object finalizers:"
   puts "    #{e.message} (#{e.class})"
   puts "\nBacktrace:"
-  puts e.backtrace.show
+  puts e.awesome_backtrace.show
   code = 1
 end
 

@@ -177,7 +177,7 @@ class Compiler
       puts "Compilation error detected: #{e.message}"
       puts "   near #{@file}:#{@line}"
       puts
-      puts e.backtrace.show
+      puts e.awesome_backtrace.show
     end
   end
 

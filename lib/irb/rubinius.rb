@@ -13,7 +13,7 @@ module IRB
             
             puts "#{e.class}: #{e.message}"
             
-            bt = e.backtrace
+            bt = e.awesome_backtrace
 
             continue = true
             bt.frames.each do |frame|

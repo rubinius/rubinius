@@ -12,14 +12,18 @@ class Exception
 
   def backtrace
     return nil unless @context
-    
-    bt = @context
-    unless bt.kind_of? Backtrace
-      bt = Backtrace.backtrace(bt)
-      @context = bt
+    unless @context.kind_of? Array
+      @context = Backtrace.backtrace(@context).to_mri
     end
-
-    return bt
+    @context
+  end
+  
+  def awesome_backtrace
+    return nil unless @context
+    unless @context.kind_of? Backtrace
+      @context = Backtrace.backtrace(@context)
+    end
+    @context
   end
 
   def set_backtrace(bt)

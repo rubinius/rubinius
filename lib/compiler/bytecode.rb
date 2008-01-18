@@ -52,7 +52,7 @@ class Node
       puts "   #{e.message} (#{e.class})"
       puts "   near #{gen.file}:#{gen.line}"
       puts ""
-      puts e.backtrace.show
+      puts e.awesome_backtrace.show
 
       raise GenerationError, "unable to generate bytecode"
     end

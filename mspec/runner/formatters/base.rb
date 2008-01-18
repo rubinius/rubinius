@@ -149,7 +149,7 @@ class BaseFormatter
       @out.print e.message + ": \n"
 
       begin
-        @out.print e.backtrace.show
+        @out.print e.awesome_backtrace.show
       rescue Exception
         bt = e.backtrace
         if bt

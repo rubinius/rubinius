@@ -414,16 +414,6 @@ class Backtrace
     @frames.each { |f| yield f.last }
     self
   end
-
-  def reverse
-    ret = self.class.new
-
-    @frames.reverse_each do |f|
-      ret.frames << f
-    end
-
-    ret
-  end
   
   def to_mri
     return @top_context.calling_hierarchy(0)

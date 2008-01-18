@@ -145,7 +145,7 @@ while true
         puts ""
         puts "An exception has occurred:\n    #{e.message} (#{e.class})"
         puts "Backtrace:"
-        puts e.backtrace.show
+        puts e.awesome_backtrace.show
         context = ""
       else
         pstate = "*"

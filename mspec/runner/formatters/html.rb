@@ -68,7 +68,7 @@ EOH
 
       @out.print "<pre>\n"
       begin
-        @out.print e.backtrace.show
+        @out.print e.awesome_backtrace.show
       rescue Exception
         @out.print e.backtrace
       end

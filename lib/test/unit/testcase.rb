@@ -77,8 +77,7 @@ module Test
           setup
           __send__(@method_name)
         rescue AssertionFailedError => e
-          # HACK Exception#backtrace is not a Kernel#caller backtrace
-          add_failure(e.message, e.backtrace.frames.map { |f| f.join ' ' })
+          add_failure(e.message, e.backtrace)
         rescue Exception
           raise if PASSTHROUGH_EXCEPTIONS.include? $!.class
           add_error($!)

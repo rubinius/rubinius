@@ -346,7 +346,7 @@ module Kernel
     get = proc { ARGV }
     Globals.set_hook(:$*, get, nil)
 
-    get = proc { $! ? $!.backtrace.to_mri : nil }
+    get = proc { $! ? $!.backtrace : nil }
     Globals.set_hook(:$@, get, nil)
 
     get = proc { Process.pid }
