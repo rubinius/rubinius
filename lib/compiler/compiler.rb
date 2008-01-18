@@ -41,11 +41,12 @@ class Compiler
   @version_number = nil
 
   def self.version_number
-    return @version_number if @version_number
-    dir = $:.detect { |path| File.file?("#{path}/compiler/compiler.rb") }
-    return 0 unless dir
-    max = Dir["#{dir}/compiler/*.rb"].map { |f| File.mtime(f).to_i }.max
-    @version_number = max - TimeEpoch
+    unless @version_number then
+      # handled for .rba files in init.rb
+      dir = $LOAD_PATH.detect { |path| File.file? "#{path}/compiler/compiler.rb" }
+      max = Dir["#{dir}/compiler/*.rb"].map { |f| File.mtime(f).to_i }.max
+      @version_number = (max ? max - TimeEpoch : 0)
+    end
     return @version_number
   end
 
