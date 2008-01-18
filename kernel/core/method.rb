@@ -82,6 +82,7 @@ class UnboundMethod
   def inspect
     "#<#{self.class} #{@module}##{@method.name}>"
   end
+  alias_method :to_s, :inspect
 
   def bind(receiver)
     raise TypeError if @orig_receiver && !receiver.class.ancestors.include?(@orig_receiver)
