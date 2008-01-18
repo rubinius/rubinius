@@ -1511,14 +1511,16 @@ class Node
       end
 
       if !force and @in_ensure
-        g.push_const :ReturnException
+        g.push_cpath_top
+        g.find_const :ReturnException
         g.send :new, 1
         g.raise_exc
         return
       end
 
       if @in_block
-        g.push_const :LongReturnException
+        g.push_cpath_top
+        g.find_const :LongReturnException
         g.send :new, 1
         g.raise_exc
       else
@@ -1830,7 +1832,7 @@ class Node
 
       receiver_bytecode(g)
 
-      if @dynamic or @block
+      if @block
         ok = g.new_label
         g.exceptions do |ex|
 
@@ -1863,6 +1865,10 @@ class Node
         end
 
         ok.set!
+      elsif @dynamic
+        g.swap
+        g.set_args
+        g.send_with_register @method, allow_private?
       else
         g.send @method, @argcount, allow_private?
       end

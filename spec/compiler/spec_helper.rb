@@ -121,6 +121,35 @@ class TestGenerator
     set_local_depth 0, slot
     pop
   end
+  
+  def passed_block
+    g = self
+    ok = g.new_label
+    g.exceptions do |ex|
+      yield
+      g.goto ok
+
+      ex.handle!
+
+      g.push_exception
+      g.dup
+      g.push_const :LongReturnException
+      g.send :===, 1
+
+      after = g.new_label
+      g.gif after
+      g.send :return_value, 0
+      g.clear_exception
+      g.ret
+
+      after.set!
+
+      g.raise_exc
+    end
+
+    ok.set!
+  end
+
 end
 
 def gen(sexp, plugins=[])
@@ -152,7 +181,10 @@ def gen_iter x
     g.create_block2
     g.push :self
     g.send :ary, 0, true
-    g.send_with_block :each, 0, false
+
+    g.passed_block do
+      g.send_with_block :each, 0, false
+    end
   end
 end
 

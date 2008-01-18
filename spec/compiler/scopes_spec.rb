@@ -125,7 +125,9 @@ describe Compiler do
         d.push_literal iter
         d.create_block2
         d.make_array 0
-        d.send_with_block :each, 0, false
+        d.passed_block do
+          d.send_with_block :each, 0, false
+        end
         d.sret
       end
       
@@ -236,7 +238,9 @@ describe Compiler do
       g.push_literal lam
       g.create_block2
       g.push :self
-      g.send_with_block :lambda, 0, true
+      g.passed_block do
+        g.send_with_block :lambda, 0, true
+      end
     end
   end
   

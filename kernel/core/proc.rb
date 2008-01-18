@@ -139,7 +139,7 @@ class Proc
 
       begin
         @block.call(*args)
-      rescue IllegalLongReturn => e
+      rescue IllegalLongReturn, LongReturnException => e
         return e.return_value
       end
     end

@@ -95,7 +95,9 @@ describe Compiler do
       g.push_literal desc
       g.create_block2
       g.push 10
-      g.send_with_block :times, 1, false
+      g.passed_block do
+        g.send_with_block :times, 1, false
+      end
     end
   end
   
@@ -125,9 +127,12 @@ describe Compiler do
        g.swap
        g.push :self
        g.send :a, 0, true
-       g.swap
-       g.set_args
-       g.send_with_register :b, false
+       
+       g.passed_block do
+         g.swap
+         g.set_args
+         g.send_with_register :b, false
+       end
     end
   end
   
@@ -426,7 +431,9 @@ describe Compiler do
       g.push :self
       g.send :blah, 0, true
       g.push :self
-      g.send_with_block :foo, 0, true 
+      g.passed_block do
+        g.send_with_block :foo, 0, true 
+      end
     end
   end
 end

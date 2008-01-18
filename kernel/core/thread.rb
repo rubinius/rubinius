@@ -57,7 +57,7 @@ class Thread
           @lock.send nil
           begin
             @result = block.call *args
-          rescue IllegalLongReturn => e2
+          rescue IllegalLongReturn, LongReturnException => e2
             Kernel.raise ThreadError,
                       "return is not allowed across threads", e2.context
           end

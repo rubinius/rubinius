@@ -237,7 +237,9 @@ describe Compiler do
       g.create_block2
       g.push :self
       g.send :x, 0, true
-      g.send_with_block :each, 0, false
+      g.passed_block do
+        g.send_with_block :each, 0, false
+      end
     end
   end
   
@@ -270,7 +272,9 @@ describe Compiler do
       g.create_block2
       g.push :self
       g.send :x, 0, true
-      g.send_with_block :each, 0, false
+      g.passed_block do
+        g.send_with_block :each, 0, false
+      end
     end
   end
   
@@ -295,7 +299,9 @@ describe Compiler do
       g.create_block2
       g.push :self
       g.send :x, 0, true
-      g.send_with_block :each, 0, false
+      g.passed_block do
+        g.send_with_block :each, 0, false
+      end
     end
   end
  
@@ -325,7 +331,9 @@ describe Compiler do
       g.create_block2
       g.push :self
       g.send :x, 0, true
-      g.send_with_block :each, 0, false
+      g.passed_block do
+        g.send_with_block :each, 0, false
+      end
     end
   end
   
