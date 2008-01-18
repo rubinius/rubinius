@@ -403,7 +403,7 @@ desc "Recompile all ruby system files"
 task :rebuild => %w[clean build:all]
 
 desc "Clean up the usuals"
-task :clean => %w[clean:rbc clean:extensions clean:shotgun]
+task :clean => %w[clean:rbc clean:extensions clean:shotgun clean:generated clean:crap]
 
 desc "Remove all ruby system files"
 task :distclean => %w[pristine clean clean:external]
@@ -442,9 +442,19 @@ namespace :clean do
     sh make('clean')
   end
 
+  desc "Cleans up generated files"
+  task :generated do
+    rm_f Dir["shotgun/lib/grammar.c"], :verbose => $verbose
+  end
+
   desc "Cleans up VM and external libs"
   task :external do
     sh "cd shotgun; #{make('distclean')}"
+  end
+
+  desc "Cleans up editor files and other misc crap"
+  task :crap do
+    rm_f Dir["*~"] + Dir["**/*~"], :verbose => $verbose
   end
 end
 
