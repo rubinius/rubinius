@@ -9,7 +9,7 @@ describe "File.expand_path" do
     end
     
     platform_is_not :mswin do
-      @base = `pwd`.chomp
+      @base = `pwd -P`.chomp
       @tmpdir = "/tmp"
       @rootdir = "/"
       @pwd  = Dir.pwd

@@ -1,7 +1,7 @@
 shared :dir_pwd do |cmd|
   describe "Dir.pwd" do
     it "returns the current working directory" do
-      Dir.send(cmd).should == `pwd`.chomp
+      Dir.send(cmd).should == `pwd -P`.chomp
     end
   end
 end
