@@ -8,12 +8,11 @@ describe "File.atime" do
   
   after :each do 
     File.delete(@file) if File.exist?(@file) 
-    @file = nil
   end
 
   it "returns the last access time for the named file as a Time object" do      
     File.atime(@file)
-    File.atime(@file).class.should == Time
+    File.atime(@file).should be_kind_of(Time)
   end
 
   it "raises an Errno::ENOENT exception if the file is not found" do 
@@ -29,12 +28,10 @@ describe "File#atime" do
 
   after :each do
     @file.close rescue nil
-    @name = nil
-    @file = nil
   end
 
   it "returns the last access time to self" do
     @file.atime  
-    @file.atime.class.should == Time
+    @file.atime.should be_kind_of(Time)
   end
 end

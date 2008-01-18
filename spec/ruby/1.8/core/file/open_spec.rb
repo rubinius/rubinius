@@ -1,143 +1,139 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.open" do 
+  before :all do
+    @file = "/tmp/test.txt"
+    File.delete(@file) if File.exist?(@file)
+    File.delete("fake") if File.exist?("fake")
+  end
+  
   before :each do         
-    @file = 'test.txt'    
-    File.delete(@file) if File.exists?(@file)
-    File.delete("fake") if File.exists?("fake")
-    @fh = nil
-    @fd = nil
+    @fh = @fd = nil
     @flags = File::CREAT | File::TRUNC | File::WRONLY
-    File.open(@file, "w"){} # touch
+    File.open(@file, "w") {} # touch
   end
   
   after :each do
-    File.delete("fake") rescue nil
-    @fh.delete if @fh  rescue nil
-    @fh.close if @fh rescue nil
-    @fh    = nil
-    @fd    = nil
-    @file  = nil
-    @flags = nil
+    File.delete(@file) if File.exist?(@file)
+    File.delete("fake") if File.exist?("fake")
+    @fh.close if @fh and not @fh.closed?
   end
   
-  it "open the file (basic case)" do 
+  it "opens the file (basic case)" do 
     @fh = File.open(@file) 
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end
 
-  it "open file when call with a block (basic case)" do
+  it "opens file when call with a block (basic case)" do
     File.open(@file){ |fh| @fd = fh.fileno }
     lambda { File.open(@fd) }.should raise_error(SystemCallError) # Should be closed by block
-    File.exists?(@file).should == true
+    File.exist?(@file).should == true
   end
 
-  it "open with mode string" do
+  it "opens with mode string" do
     @fh = File.open(@file, 'w') 
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end
 
-  it "open a file with mode string and block" do
+  it "opens a file with mode string and block" do
     File.open(@file, 'w'){ |fh| @fd = fh.fileno }
     lambda { File.open(@fd) }.should raise_error(SystemCallError)
-    File.exists?(@file).should == true
+    File.exist?(@file).should == true
   end
 
-  it "open a file with mode num" do 
+  it "opens a file with mode num" do 
     @fh = File.open(@file, @flags)
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end
 
-  it "open a file with mode num and block" do
+  it "opens a file with mode num and block" do
     File.open(@file, 'w'){ |fh| @fd = fh.fileno }
     lambda { File.open(@fd) }.should raise_error(SystemCallError)
-    File.exists?(@file).should == true
+    File.exist?(@file).should == true
   end
 
   # For this test we delete the file first to reset the perms
-  it "open the file when call with mode, num and permissions" do
+  it "opens the file when call with mode, num and permissions" do
     File.delete(@file)
     File.umask(0011)
     @fh = File.open(@file, @flags, 0755)
-    File.stat(@file).mode.to_s(8).should == "100744"
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    @fh.should be_kind_of(File)
+    @fh.lstat.mode.to_s(8).should == "100744"
+    File.exist?(@file).should == true
   end
 
   # For this test we delete the file first to reset the perms
-  it "open the flie when call with mode, num, permissions and block" do
+  it "opens the flie when call with mode, num, permissions and block" do
     File.delete(@file)
-    File.open(@file, @flags, 0755){ |fh| @fd = fh.fileno }
+    File.umask(0022)
+    File.open(@file, "w", 0755){ |fh| @fd = fh.fileno }
     lambda { File.open(@fd) }.should raise_error(SystemCallError)
     File.stat(@file).mode.to_s(8).should == "100755"
-    File.exists?(@file).should == true
+    File.exist?(@file).should == true
   end
 
-  it "open the file when call with fd" do
+  it "opens the file when call with fd" do
     @fh = File.open(@file)
     @fh = File.open(@fh.fileno) 
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end
 
-  # Note that this test invalidates the file descriptor in @fh. That's
-  # handled in the teardown via the 'rescue nil'.
-  #
-  it "open a file with a file descriptor d and a block" do 
+  it "opens a file with a file descriptor d and a block" do 
     @fh = File.open(@file) 
-    File.open(@fh.fileno){ |fh| @fd = fh.fileno }
+    @fh.should be_kind_of(File)
+    File.open(@fh.fileno) { |fh| @fd = fh.fileno; @fh.close }
     lambda { File.open(@fd) }.should raise_error(SystemCallError)
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    File.exist?(@file).should == true
   end  
     
-  it "open a file that no exists when use File::WRONLY mode" do 
+  it "opens a file that no exists when use File::WRONLY mode" do 
     lambda { File.open("fake", File::WRONLY) }.should raise_error(Errno::ENOENT)
   end  
   
-  it "open a file that no exists when use File::RDONLY mode" do 
+  it "opens a file that no exists when use File::RDONLY mode" do 
     lambda { File.open("fake", File::RDONLY) }.should raise_error(Errno::ENOENT)
   end    
   
-  it "open a file that no exists when use 'r' mode" do 
+  it "opens a file that no exists when use 'r' mode" do 
     lambda { File.open("fake", 'r') }.should raise_error(Errno::ENOENT)
   end  
   
-  it "open a file that no exists when use File::EXCL mode" do 
+  it "opens a file that no exists when use File::EXCL mode" do 
     lambda { File.open("fake", File::EXCL) }.should raise_error(Errno::ENOENT)
   end  
   
-  it "open a file that no exists when use File::NONBLOCK mode" do 
+  it "opens a file that no exists when use File::NONBLOCK mode" do 
     lambda { File.open("fake", File::NONBLOCK) }.should raise_error(Errno::ENOENT)
   end  
   
-  it "open a file that no exists when use File::TRUNC mode" do 
+  it "opens a file that no exists when use File::TRUNC mode" do 
     lambda { File.open("fake", File::TRUNC) }.should raise_error(Errno::ENOENT)
   end  
   
-  it "open a file that no exists when use File::NOCTTY mode" do 
+  it "opens a file that no exists when use File::NOCTTY mode" do 
     lambda { File.open("fake", File::NOCTTY) }.should raise_error(Errno::ENOENT)
   end  
   
-  it "open a file that no exists when use File::CREAT mode" do 
+  it "opens a file that no exists when use File::CREAT mode" do 
     @fh = File.open("fake", File::CREAT)      
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end  
   
-  it "open a file that no exists when use 'a' mode" do 
+  it "opens a file that no exists when use 'a' mode" do 
     @fh = File.open("fake", 'a')      
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end  
      
-  it "open a file that no exists when use 'w' mode" do 
+  it "opens a file that no exists when use 'w' mode" do 
     @fh = File.open("fake", 'w')  
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end  
   
   # Check the grants associated to the differents open modes combinations.   
@@ -282,11 +278,11 @@ describe "File.open" do
  
   it "create a new file when use File::WRONLY|File::APPEND mode" do 
     @fh = File.open(@file, File::WRONLY|File::APPEND) 
-    @fh.class.should == File
-    File.exists?(@file).should == true
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end  
   
-  it "open a file when use File::WRONLY|File::APPEND mode" do 
+  it "opens a file when use File::WRONLY|File::APPEND mode" do 
     File.open(@file, File::WRONLY) do |f|
       f.puts("hello file")
     end    
@@ -307,27 +303,24 @@ describe "File.open" do
     }.should raise_error(Errno::EINVAL)
   end
   
-  it "create a new file when use File::TRUNC mode" do 
-    # create and write in the file
-    File.open(@file, File::RDWR) do |f|
-      f.puts "hello file" 
-    end    
-    # Truncate the file    
-    @fh = File.new(@file, File::TRUNC)   
+  it "truncates the file when passed File::TRUNC mode" do 
+    File.open(@file, File::RDWR) { |f| f.puts "hello file" }
+    @fh = File.open(@file, File::TRUNC)   
     @fh.gets.should == nil
   end 
     
   
   it "can't read in a block when call open with File::TRUNC mode" do  
     File.open(@file, File::TRUNC) do |f|  
-      f.gets  
+      f.gets.should == nil
     end 
   end
     
-  it "open a file when use File::WRONLY|File::TRUNC mode" do 
-    File.open(@file, File::WRONLY|File::TRUNC) 
-    @fh.class.should == NilClass
-    File.exists?(@file).should == true
+  it "opens a file when use File::WRONLY|File::TRUNC mode" do
+    File.open(@file, "w")
+    @fh = File.open(@file, File::WRONLY|File::TRUNC)
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end
   
   it "can't write in a block when call open with File::TRUNC mode" do 
@@ -354,43 +347,60 @@ describe "File.open" do
   
   it "opens a file for binary read" do
     @fh = File.open(@file, "rb")
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end
   
   it "opens a file for binary write" do
     @fh = File.open(@file, "wb")
+    @fh.should be_kind_of(File)
+    File.exist?(@file).should == true
   end
   
   it "opens a file for read-write and truncate the file" do
-    @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
-    @fh = File.open(@file, "w+")    
-    @fh.pos.should == 0
-    @fh.eof?.should == true
-    @fh.close
+    File.open(@file, "w") { |f| f.puts "testing" }
+    File.size(@file).should > 0
+    File.open(@file, "w+") do |f|
+      f.pos.should == 0
+      f.eof?.should == true
+    end
     File.size(@file).should == 0
   end
 
   it "opens a file for binary read-write starting at the beginning of the file" do
-    @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
-    @fh = File.open(@file, "rb+")
-    @fh.pos.should == 0
-    @fh.eof?.should == false
+    File.open(@file, "w") { |f| f.puts "testing" }
+    File.size(@file).should > 0
+    File.open(@file, "rb+") do |f|
+      f.pos.should == 0
+      f.eof?.should == false
+    end
   end
   
   it "opens a file for binary read-write and truncate the file" do
-    @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
-    @fh = File.open(@file, "wb+")
-    @fh.pos.should == 0
-    @fh.eof?.should == true
-    @fh.close
+    File.open(@file, "w") { |f| f.puts "testing" }
+    File.size(@file).should > 0
+    File.open(@file, "wb+") do |f|
+      f.pos.should == 0
+      f.eof?.should == true
+    end
     File.size(@file).should == 0  
   end
    
-  it "expected errors " do
+  it "raises a TypeError if passed a filename that is not a String or Integer type" do
     lambda { File.open(true)  }.should raise_error(TypeError)
     lambda { File.open(false) }.should raise_error(TypeError)
     lambda { File.open(nil)   }.should raise_error(TypeError)
-    lambda { File.open(-1)    }.should raise_error(SystemCallError) # kind_of ?
+  end
+  
+  it "raises a SystemCallError if passed an invalid Integer type" do
+    lambda { File.open(-1)    }.should raise_error(SystemCallError)
+  end
+  
+  it "raises an ArgumentError if passed the wrong number of arguments" do
     lambda { File.open(@file, File::CREAT, 0755, 'test') }.should raise_error(ArgumentError)
+  end
+  
+  it "raises an ArgumentError if passed an invalid string for mode" do
     lambda { File.open(@file, 'fake') }.should raise_error(ArgumentError)
   end
 end
