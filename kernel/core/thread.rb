@@ -30,7 +30,7 @@ class Thread
 
   def setup(prime_lock)
     @__ivars__ = {}
-    @group = nil
+    @group = ThreadGroup.new
     @sleep = true
     @alive = true
     @result = nil
