@@ -317,7 +317,10 @@ describe "String#%" do
     ("%*e" % [10, 9]).should == "9.000000e+00"
 
     compliant_on :ruby, :rubinius do
+      ("%e" % 1e1020).should == "inf"
+      ("%e" % -1e1020).should == "-inf"
       ("%e" % (0.0/0)).should == "nan"
+      ("%e" % (-0e0/0)).should == "nan"
     end
 
     compliant_on :jruby do
@@ -334,6 +337,18 @@ describe "String#%" do
     ("%-7E" % 10).should == "1.000000E+01"
     ("%05E" % 10).should == "1.000000E+01"
     ("%*E" % [10, 9]).should == "9.000000E+00"
+    
+    compliant_on :ruby, :rubinius do
+      ("%E" % 1e1020).should == "INF"
+      ("%E" % -1e1020).should == "-INF"
+      ("%-10E" % 1e1020).should == "INF       "
+      ("%010E" % -1e1020).should == "-000000INF"
+      ("%010E" % 1e1020).should == "0000000INF"
+      ("%+E" % 1e1020).should == "+INF"
+      ("% E" % 1e1020).should == " INF"
+      ("%E" % (0.0/0)).should == "NAN"
+      ("%E" % (-0e0/0)).should == "NAN"
+    end
   end
   
   it "supports float formats using %f" do
