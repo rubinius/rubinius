@@ -8,6 +8,8 @@ else
   require 'mspec/runner/shared'
   require 'mspec/matchers/be_ancestor_of'
   require 'mspec/matchers/output'
+  require 'mspec/matchers/output_to_fd'
+  require 'mspec/matchers/complain'
 
   TOLERANCE = 0.00003 unless Object.const_defined?(:TOLERANCE)
 end

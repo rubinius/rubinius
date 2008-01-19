@@ -34,6 +34,14 @@ describe OutputMatcher do
     matcher.matches?(proc)
     matcher.failure_message.should == 
       ["Expected:\n  $stderr: \"error\"\n", "     got:\n  $stderr: \"unerror\"\n"]
+    matcher = OutputMatcher.new(/base/, nil)
+    matcher.matches?(proc)
+    matcher.failure_message.should ==
+      ["Expected:\n  $stdout: /base/\n", "     got:\n  $stdout: \"unexpected\"\n"]
+    matcher = OutputMatcher.new(nil, /octave/)
+    matcher.matches?(proc)
+    matcher.failure_message.should ==
+      ["Expected:\n  $stderr: /octave/\n", "     got:\n  $stderr: \"unerror\"\n"]
   end
   
   it "provides a useful negative failure message" do
@@ -49,6 +57,14 @@ describe OutputMatcher do
     matcher = OutputMatcher.new(nil, "error")
     matcher.matches?(proc)
     matcher.negative_failure_message.should == 
+      ["Expected output not to be:\n", "  $stderr: \"error\"\n"]
+    matcher = OutputMatcher.new(/expect/, nil)
+    matcher.matches?(proc)
+    matcher.negative_failure_message.should ==
+      ["Expected output not to be:\n", "  $stdout: \"expected\"\n"]
+    matcher = OutputMatcher.new(nil, /err/)
+    matcher.matches?(proc)
+    matcher.negative_failure_message.should ==
       ["Expected output not to be:\n", "  $stderr: \"error\"\n"]
   end    
 end

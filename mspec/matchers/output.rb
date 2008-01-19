@@ -16,19 +16,19 @@ class OutputMatcher
     
     unless @out.nil?
       case @out
-      when String
-        return false unless $stdout == @out
       when Regexp
         return false unless $stdout =~ @out
+      else
+        return false unless $stdout == @out
       end
     end
     
     unless @err.nil?
       case @err
-      when String
-        return false unless $stderr == @err
       when Regexp
         return false unless $stderr =~ @err
+      else
+        return false unless $stderr == @err
       end
     end
 
@@ -42,12 +42,12 @@ class OutputMatcher
     expected_out = "\n"
     actual_out = "\n"
     unless @out.nil?
-      expected_out << "  $stdout: #{@out.dump}\n"
-      actual_out << "  $stdout: #{@stdout.chomp.dump}\n"
+      expected_out << "  $stdout: #{@out.inspect}\n"
+      actual_out << "  $stdout: #{@stdout.chomp.inspect}\n"
     end
     unless @err.nil?
-      expected_out << "  $stderr: #{@err.dump}\n"
-      actual_out << "  $stderr: #{@stderr.chomp.dump}\n"
+      expected_out << "  $stderr: #{@err.inspect}\n"
+      actual_out << "  $stderr: #{@stderr.chomp.inspect}\n"
     end
     ["Expected:#{expected_out}", "     got:#{actual_out}"]
   end
