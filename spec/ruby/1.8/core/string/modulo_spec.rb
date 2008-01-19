@@ -342,7 +342,6 @@ describe "String#%" do
       ("%E" % 1e1020).should == "INF"
       ("%E" % -1e1020).should == "-INF"
       ("%-10E" % 1e1020).should == "INF       "
-      ("%010E" % 1e1020).should == "0000000INF"
       ("%+E" % 1e1020).should == "+INF"
       ("% E" % 1e1020).should == " INF"
       ("%E" % (0.0/0)).should == "NAN"
@@ -350,10 +349,12 @@ describe "String#%" do
       
       platform_is :darwin, :freebsd do
         ("%010E" % -1e1020).should == "-000000INF"
+        ("%010E" % 1e1020).should == "0000000INF"
       end
       
       platform_is_not :darwin, :freebsd do
-        ("%010E" % -1e1020).should == "       INF"
+        ("%010E" % -1e1020).should == "      -INF"
+        ("%010E" % 1e1020).should == "       INF"
       end
     end
   end
