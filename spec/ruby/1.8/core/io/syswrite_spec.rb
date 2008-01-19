@@ -36,32 +36,17 @@ describe "IO#syswrite on a file" do
   
   it "warns if called immediately after a buffered IO#write" do
     @file.write("abcde")
-    begin
-      $VERBOSE = false
-      lambda { @file.syswrite("fghij") }.should output(nil, /syswrite/)
-    ensure
-      $VERBOSE = nil
-    end
+    lambda { @file.syswrite("fghij") }.should complain(/syswrite/)
   end
   
   it "does not warn if called after IO#write with intervening IO#sysread" do
     @file.write("abcde")
     @file.sysread(5)
-    begin
-      $VERBOSE = false
-      lambda { @file.syswrite("fghij") }.should_not output(nil, /syswrite/)
-    ensure
-      $VERBOSE = nil
-    end
+    lambda { @file.syswrite("fghij") }.should_not complain
   end
   
   it "does not warn if called after IO#read" do
     @file.read(5)
-    begin
-      $VERBOSE = false
-      lambda { @file.syswrite("fghij") }.should_not output(nil, /syswrite/)
-    ensure
-      $VERBOSE = nil
-    end
+    lambda { @file.syswrite("fghij") }.should_not complain
   end
 end
