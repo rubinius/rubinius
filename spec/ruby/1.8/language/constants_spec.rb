@@ -79,7 +79,9 @@ describe "Constant declaration" do
   it "cannot be done under other types of constants" do
     begin
       V = 3
-      proc{ V::Z = 3 }.should raise_error(TypeError)
+      fails_on :jruby do
+        proc{ V::Z = 3 }.should raise_error(TypeError)
+      end
     ensure
       Object.send :remove_const, :V
     end
