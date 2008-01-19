@@ -1,0 +1,64 @@
+There are many conceivable ways to organize the spec files. A graphical
+representation of the Rubinius directories is shown below. This structure is
+based on the Ruby language as well as the major components of a Ruby
+implementation. The goal is to maintain locality by grouping related specs.
+
+There are two primary divisions of the specs in the spec directory:
+	1. specs for the Ruby language, which includes the Ruby core and standard
+	   libraries;
+	2. specs for the Rubinius system and its extensions to the Ruby core and
+	   standard libraries.
+
+spec
+ |-- compiler
+ |-- core
+ |    +-- array
+ |    +-- bignum
+ |    +-- breakpoint
+ |    +-- bytearray
+ |    +-- ...
+ |-- data
+ |-- kernel
+ |-- language
+ |-- library
+ |-- parser
+ |-- ruby
+ |    +-- 1.8
+ |          +-- core
+ |                + -- array
+ |                + -- bignum
+ |                + -- binding
+ |                + -- class
+ |                + -- ...
+ |                + -- time
+ |                + -- true
+ |                + -- unboundmethod
+ |          +-- fixtures
+ |          +-- language
+ |          +-- library
+ |                + -- enumerator
+ |                + -- ...
+ |                + -- time
+ |                + -- yaml
+ +-- subtend
+       +-- ext
+
+The specs for the reference implementation of the Ruby language (MRI) are
+under @spec/ruby@. Presently, these are mostly focused on version 1.8.x and
+there is only the 1.8 subdirectory. However, as specs are written for version
+1.9, those specs will be placed in a parallel tree under the 1.9 subdirectory.
+In the spec files under @spec/ruby@, there are also specs for other Ruby
+implementations where these implementations comply with or deviate from MRI
+(again, the reference implementation for Ruby).
+
+All the spec directories except for spec/ruby are for Rubinius specific code.
+Under spec/core, spec/language, and spec/libraries, there are specs for how
+Rubinius extends or significantly deviates from MRI.
+
+In general, there is no goal to unify spec/core, spec/language, and
+spec/libraries with the parallel directories under spec/ruby/. These
+directories serve different purposes.
+
+For more information, please refer to:
+  http://rubinius.lighthouseapp.com/projects/5089/specs-overview
+
