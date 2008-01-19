@@ -442,17 +442,10 @@ class FFI::Struct
       offset = Rubinius::RUBY_CONFIG["#{base}.#{field}.offset"]
       size   = Rubinius::RUBY_CONFIG["#{base}.#{field}.size"]
       type   = Rubinius::RUBY_CONFIG["#{base}.#{field}.type"]
-
-      type = if type then
-               type.intern
-             else
-               FFI.size_to_type size
-             end
+      type   = type ? type.to_sym : FFI.size_to_type(size)
 
       code = FFI.find_type type
-
       cspec[field] = [offset, code]
-
       ending = offset + size
       @size = ending if @size < ending
     end
