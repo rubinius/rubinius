@@ -256,7 +256,7 @@ class Module
   def instance_method(name)
     name = name.to_sym
     cur, cm = __find_method(name)
-    return UnboundMethod.new(cur, cm) if cm
+    return UnboundMethod.new(cur, cm, self) if cm
     thing = self.kind_of?(Class) ? "class" : "module"
     raise NameError, "undefined method `#{name}' for #{thing} #{self}"
   end

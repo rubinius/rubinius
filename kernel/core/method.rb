@@ -85,7 +85,7 @@ class UnboundMethod
   alias_method :to_s, :inspect
 
   def bind(receiver)
-    raise TypeError if @orig_receiver && !receiver.class.ancestors.include?(@orig_receiver)
+    raise TypeError unless receiver.kind_of? @orig_receiver
     Method.new(receiver, @module, @method)
   end
 
@@ -101,7 +101,7 @@ class UnboundMethod
     bind(obj).call *args
   end
 
-  # Method objects are equal if they have the
+  # UnboundMethod objects are equal if they have the
   # same compiled_method
   def ==(other)
     if other.kind_of? UnboundMethod
