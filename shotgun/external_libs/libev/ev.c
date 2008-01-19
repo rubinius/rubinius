@@ -1148,7 +1148,11 @@ loop_fork (EV_P)
   infy_fork (EV_A);
 #endif
 
+#if EV_MULTIPLICITY
+  if (ev_default_loop_ptr == loop && ev_is_active (&sigev))
+#else
   if (ev_is_active (&sigev))
+#endif
     {
       /* default loop */
 
