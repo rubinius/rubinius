@@ -15,11 +15,21 @@ class OutputMatcher
     proc.call
     
     unless @out.nil?
-      return false unless $stdout == @out
+      case @out
+      when String
+        return false unless $stdout == @out
+      when Regexp
+        return false unless $stdout =~ @out
+      end
     end
     
     unless @err.nil?
-      return false unless $stderr == @err
+      case @err
+      when String
+        return false unless $stderr == @err
+      when Regexp
+        return false unless $stderr =~ @err
+      end
     end
 
     return true

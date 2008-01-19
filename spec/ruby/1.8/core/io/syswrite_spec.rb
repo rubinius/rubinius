@@ -34,24 +34,34 @@ describe "IO#syswrite on a file" do
     end
   end
   
-  # These are not working; warnings are getting swallowed somewhere in mspec
-#  it "warns if called immediately after a buffered IO#write" do
-#    @file.write("abcde")
-#    begin
-#      old_stderr = $stderr
-#      $stderr = StringIO.new
-#      
-#      @file.syswrite("fghij").should == 5
-#      $stderr.rewind
-#      $stderr.to_s["sysread"].should_not == nil
-#    ensure
-#      $stderr = old_stderr
-#    end
-#  end
-#
-#  it "does not warn if called after IO#write with intervening IO#sysread" do
-#  end
-#
-#  it "does not warn if called after IO#read" do
-#  end
+  it "warns if called immediately after a buffered IO#write" do
+    @file.write("abcde")
+    begin
+      $VERBOSE = false
+      lambda { @file.syswrite("fghij") }.should output(nil, /syswrite/)
+    ensure
+      $VERBOSE = nil
+    end
+  end
+  
+  it "does not warn if called after IO#write with intervening IO#sysread" do
+    @file.write("abcde")
+    @file.sysread(5)
+    begin
+      $VERBOSE = false
+      lambda { @file.syswrite("fghij") }.should_not output(nil, /syswrite/)
+    ensure
+      $VERBOSE = nil
+    end
+  end
+  
+  it "does not warn if called after IO#read" do
+    @file.read(5)
+    begin
+      $VERBOSE = false
+      lambda { @file.syswrite("fghij") }.should_not output(nil, /syswrite/)
+    ensure
+      $VERBOSE = nil
+    end
+  end
 end
