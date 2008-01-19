@@ -1073,9 +1073,6 @@ loop_init (EV_P_ unsigned int flags)
 #if EV_USE_SELECT
       if (!backend && (flags & EVBACKEND_SELECT)) backend = select_init (EV_A_ flags);
 #endif
-
-      ev_init (&sigev, sigcb);
-      ev_set_priority (&sigev, EV_MAXPRI);
     }
 }
 
@@ -1224,6 +1221,8 @@ ev_default_loop (unsigned int flags)
 
       if (ev_backend (EV_A))
         {
+          ev_init (&sigev, sigcb);
+          ev_set_priority (&sigev, EV_MAXPRI);
           siginit (EV_A);
 
 #ifndef _WIN32
