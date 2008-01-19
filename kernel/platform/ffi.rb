@@ -446,7 +446,7 @@ class FFI::Struct
       type = if type then
                type.intern
              else
-               FFI.size_to_type type
+               FFI.size_to_type size
              end
 
       code = FFI.find_type type
