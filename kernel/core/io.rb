@@ -216,7 +216,7 @@ class IO
   alias_method :to_i, :fileno
 
   def printf(fmt, *args)
-    write YSprintf.new(fmt, *args).parse
+    write Sprintf.new(fmt, *args).parse
   end
 
   def puts(*args)

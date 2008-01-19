@@ -137,7 +137,7 @@ module Kernel
     if target.kind_of? IO
       target.printf(*args)
     elsif target.kind_of? String
-      $stdout << YSprintf.new(target, *args).parse
+      $stdout << Sprintf.new(target, *args).parse
     else
       raise TypeError, "The first arg to printf should be an IO or a String"
     end
@@ -146,7 +146,7 @@ module Kernel
   module_function :printf
 
   def sprintf(str, *args)
-    YSprintf.new(str, *args).parse    
+    Sprintf.new(str, *args).parse    
   end
   alias_method :format, :sprintf
   module_function :sprintf
