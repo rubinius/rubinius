@@ -768,7 +768,6 @@ static ANSIG *signals;
 static int signalmax;
 
 static int sigpipe [2];
-static sig_atomic_t volatile gotsig;
 static ev_io sigev;
 
 void inline_size
@@ -792,13 +791,9 @@ sighandler (int signum)
 
   signals [signum - 1].gotsig = 1;
 
-  if (!gotsig)
-    {
-      int old_errno = errno;
-      gotsig = 1;
-      write (sigpipe [1], &signum, 1);
-      errno = old_errno;
-    }
+  int old_errno = errno;
+  write (sigpipe [1], &signum, 1);
+  errno = old_errno;
 }
 
 void noinline
@@ -827,7 +822,6 @@ sigcb (EV_P_ ev_io *iow, int revents)
   int signum;
 
   read (sigpipe [0], &revents, 1);
-  gotsig = 0;
 
   for (signum = signalmax; signum--; )
     if (signals [signum].gotsig)
