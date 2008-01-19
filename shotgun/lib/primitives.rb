@@ -559,8 +559,8 @@ class ShotgunPrimitives
     gettimeofday(&tv, NULL);
 
     self = array_new(state, 2);
-    array_set(state, self, 0, I2N(tv.tv_sec));
-    array_set(state, self, 1, I2N(tv.tv_usec));
+    array_set(state, self, 0, LL2I(tv.tv_sec));
+    array_set(state, self, 1, LL2I(tv.tv_usec));
 
     stack_push(self);
     CODE
@@ -1160,9 +1160,9 @@ class ShotgunPrimitives
       tuple_put(state, t2, 4, I2N((int)sb.st_gid));
       tuple_put(state, t2, 5, I2N((int)sb.st_size));
       tuple_put(state, t2, 6, I2N((int)sb.st_blocks));
-      tuple_put(state, t2, 7, UI2N((int)sb.st_atime));
-      tuple_put(state, t2, 8, UI2N((int)sb.st_mtime));
-      tuple_put(state, t2, 9, UI2N((int)sb.st_ctime));
+      tuple_put(state, t2, 7, LL2I((long)sb.st_atime));
+      tuple_put(state, t2, 8, LL2I((long)sb.st_mtime));
+      tuple_put(state, t2, 9, LL2I((long)sb.st_ctime));
       tuple_put(state, t2, 10, t1);
       tuple_put(state, t2, 11, UI2N((unsigned long)sb.st_blksize));
     
@@ -2596,7 +2596,7 @@ class ShotgunPrimitives
     (void)stack_pop();
     POP(t1, FIXNUM);
     cpu_sampler_activate(state, FIXNUM_TO_INT(t1));
-    stack_push(I2N((int)clock()));
+    stack_push(LL2I((long)clock()));
     CODE
   end
   
