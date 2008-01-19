@@ -1,7 +1,6 @@
 File.open opens file when call with a block (basic case)
 File.open opens a file with mode string and block
 File.open opens a file with mode num and block
-File.open opens the file when call with mode, num and permissions
 File.open opens the flie when call with mode, num, permissions and block
 File.open opens a file with a file descriptor d and a block
 File.open raises an IO exception when write in a block opened with RDONLY mode

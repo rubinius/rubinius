@@ -1,2 +1,0 @@
-Using Class.new to create a new class If a block is provided, it is evaluated in the context of the Class object
-Class event hook methods #inherited, if implemented, is called when a Class object is inherited. Subclass object given as parameter.

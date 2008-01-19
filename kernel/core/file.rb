@@ -373,9 +373,9 @@ class File < IO
     def group;   @group; end
     def size;    @size; end
     def block;   @block; end
-    def atime;   @atime; end
-    def mtime;   @mtime; end
-    def ctime;   @ctime; end
+    def atime;   Time.at(@atime); end
+    def mtime;   Time.at(@mtime); end
+    def ctime;   Time.at(@ctime); end
     def path;    @path; end
     def blksize; @blksize; end
     
@@ -501,8 +501,16 @@ class File < IO
     perform_stat(path, true, true)
   end
   
+  def stat
+    self.class.stat(@path)
+  end
+  
   def self.lstat(path)
     perform_stat(path, false, true)
+  end
+  
+  def lstat
+    self.class.lstat(@path)
   end
   
   def self.perform_stat(path, follow_links=true, complain=false)
