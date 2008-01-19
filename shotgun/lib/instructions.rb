@@ -616,7 +616,7 @@ CODE
     next_literal;
     t2 = stack_pop();
     t3 = stack_pop();
-    cpu_const_set(state, c, _lit, t2, t3);
+    stack_push(cpu_const_set(state, c, _lit, t2, t3));
     CODE
   end
   

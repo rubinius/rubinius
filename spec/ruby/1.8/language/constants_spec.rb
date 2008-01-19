@@ -56,3 +56,44 @@ describe "Constant lookup rule" do
     ConstantSpecs::Foo.foo2.should == 47
   end
 end
+
+describe "Constant declaration" do
+  it "can be done under modules" do
+    begin
+      module M; end
+      proc{ M::Z = 3 }.should_not raise_error()
+    ensure
+      Object.send :remove_const, :M
+    end
+  end
+
+  it "can be done under classes" do
+    begin
+      class C; end
+      proc{ C::Z = 3 }.should_not raise_error()
+    ensure
+      Object.send :remove_const, :C
+    end
+  end
+
+  it "cannot be done under other types of constants" do
+    begin
+      V = 3
+      proc{ V::Z = 3 }.should raise_error(TypeError)
+    ensure
+      Object.send :remove_const, :V
+    end
+  end
+
+  it "returns the assigned variable" do
+    begin
+      module M; end
+      (Y = 3).should == 3
+      (M::Z = 3).should == 3
+    ensure
+      Object.send :remove_const, :Y
+      Object.send :remove_const, :M rescue nil
+    end
+  end
+end
+
