@@ -1531,12 +1531,12 @@ ev_loop (EV_P_ int flags)
           call_pending (EV_A);
         }
 
-      if (expect_false (!activecnt))
-        break;
-
       /* we might have forked, so reify kernel state if necessary */
       if (expect_false (postfork))
         loop_fork (EV_A);
+
+      if (expect_false (!activecnt))
+        break;
 
       /* update fd-related kernel structures */
       fd_reify (EV_A);
