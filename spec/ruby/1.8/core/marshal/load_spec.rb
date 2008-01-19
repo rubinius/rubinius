@@ -423,7 +423,7 @@ end
 describe "Marshal.load with serialized array containing the same objects" do
   it "returns a construction of the argument" do
     s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String
-    obj = [:so, 'hello', 100, :so, :so, d, :so, :so, :no, :go, c, nil,
+    obj = [:so, Custom.new, 'hello', 100, :so, :so, d, :so, :so, :no, :go, c, nil,
           :go, :no, s, b, r, :so, 'huh', true, b, b, 99, r, b, s, :so, c, :no, d]
     Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
   end

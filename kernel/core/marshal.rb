@@ -125,7 +125,7 @@ class Array
       end
       ms.depth += 1
     end
-    out + Marshal.serialize_instance_variables_suffix(ms, self)
+    out << Marshal.serialize_instance_variables_suffix(ms, self)
   end
 end
 
@@ -215,13 +215,29 @@ module Marshal
     def depth; @depth; end
     def links; @links; end
     def symlinks; @symlinks; end
+    def consumed; @consumed; end
+    def symbols; @symbols; end
+    def objects; @objects; end
+    def modules; @modules; end
+    def has_ivar; @has_ivar; end
+    def user_class; @user_class; end
+    def nested; @nested; end
 
     def depth=(v); @depth = v; end
     def links=(v); @links = v; end
     def symlinks=(v); @symlinks = v; end
+    def consumed=(v); @consumed = v; end
+    def symbols=(v); @symbols = v; end
+    def objects=(v); @objects = v; end
+    def modules=(v); @modules = v; end
+    def has_ivar=(v); @has_ivar = v; end
+    def user_class=(v); @user_class = v; end
+    def nested=(v); @nested = v; end
 
     def initialize
       @depth = -1; @links = {}; @symlinks = {}
+      @consumed = 0; @symbols = []; @objects = []
+      @modules = []; @has_ivar = false; @nested = false
     end
   end
 
@@ -251,6 +267,11 @@ module Marshal
     end
   end
 
+  def self.load(obj)
+    ms = State.new
+    construct(ms, obj.to_s)
+  end
+
   def self.serialize(ms, obj)
     raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
 
@@ -261,6 +282,68 @@ module Marshal
     end
 
     obj.to_marshal(ms)
+  end
+
+  def self.construct(ms, str)
+    i = ms.consumed
+    ms.consumed += 1
+    if i == 0 or i == 1
+      construct(ms, str)
+    else
+      c = str[i].chr
+      case c
+      when TYPE_NIL
+        nil
+      when TYPE_TRUE
+        true
+      when TYPE_FALSE
+        false
+      when TYPE_CLASS, TYPE_MODULE
+        cls_mod = Module.const_get(construct_symbol(ms, str))
+        store_unique_object(ms, cls_mod)
+      when TYPE_FIXNUM
+        construct_integer(ms, str)
+      when TYPE_BIGNUM
+        construct_bignum(ms, str)
+      when TYPE_FLOAT
+        construct_float(ms, str)
+      when TYPE_SYMBOL
+        construct_symbol(ms, str)
+      when TYPE_STRING
+        construct_string(ms, str)
+      when TYPE_REGEXP
+        construct_regexp(ms, str)
+      when TYPE_ARRAY
+        construct_array(ms, str)
+      when TYPE_HASH, TYPE_HASH_DEF
+        construct_hash(ms, str, c)
+      when TYPE_STRUCT
+        construct_struct(ms, str)
+      when TYPE_OBJECT
+        construct_object(ms, str)
+      when TYPE_LINK
+        num = construct_integer(ms, str)
+        ms.objects[num-1]
+      when TYPE_SYMLINK
+        num = construct_integer(ms, str)
+        ms.symbols[num]
+      when TYPE_EXTENDED
+        sym = construct(ms, str)
+        ms.modules << sym
+        store_unique_object(ms, sym)
+        construct(ms, str)
+      when TYPE_UCLASS
+        sym = construct(ms, str)
+        ms.user_class = sym
+        store_unique_object(ms, sym)
+        construct(ms, str)
+      when TYPE_IVAR
+        ms.has_ivar = true
+        construct(ms, str)
+      else
+        nil
+      end
+    end
   end
 
   def self.serialize_integer(n)
@@ -412,12 +495,189 @@ module Marshal
     Platform::Float.ldexp(flt, exp)
   end
 
-  def self.get_superclass(cls)
-    sup = cls.superclass
-    while sup and sup.superclass and sup.superclass != Object
-      sup = sup.superclass
+  def self.construct_integer(ms, str)
+    i = ms.consumed
+    ms.consumed += 1
+    n = str[i]
+    if (n > 0 and n < 5) or n > 251
+      (size, signed) = n > 251 ? [256 - n, 2**((256 - n)*8)] : [n, 0]
+      result = 0
+      (0...size).each do |exp|
+        i += 1
+        result += (str[i] * 2**(exp*8))
+      end
+      ms.consumed += size
+      result - signed
+    elsif n > 127
+      (n - 256) + 5
+    elsif n > 4
+      n - 5
+    else
+      n
     end
-    sup
+  end
+
+  def self.construct_bignum(ms, str)
+    result = 0
+    i = ms.consumed
+    ms.consumed += 1
+    sign = str[i].chr == '-' ? -1 : 1
+    size = construct_integer(ms, str) * 2
+    i = ms.consumed
+    (0...size).each do |exp|
+      result += (str[i] * 2**(exp*8))
+      i += 1
+    end
+    ms.consumed += size
+    store_unique_object(ms, result * sign)
+  end
+
+  def self.construct_float(ms, str)
+    get_byte_sequence(ms, str)
+    nil
+  end
+
+  def self.construct_string(ms, str)
+    modules = ms.modules; ms.modules = []
+    obj = get_byte_sequence(ms, str)
+    obj = get_user_class(ms).new(obj) if ms.user_class
+    store_unique_object(ms, obj)
+    set_instance_variables(ms, str, obj)
+    extend_object(modules, obj)
+  end
+
+  def self.construct_symbol(ms, str)
+    obj = get_byte_sequence(ms, str).to_sym
+    store_unique_object(ms, obj)
+  end
+
+  def self.construct_regexp(ms, str)
+    modules = ms.modules; ms.modules = []
+    s = get_byte_sequence(ms, str)
+    i = ms.consumed
+    ms.consumed += 1
+    if ms.user_class
+      obj = get_user_class(ms).new(s, str[i])
+    else
+      obj = Regexp.new(s, str[i])
+    end
+    store_unique_object(ms, obj)
+    set_instance_variables(ms, str, obj)
+    extend_object(modules, obj)
+  end
+
+  def self.construct_array(ms, str)
+    has_ivar = ms.has_ivar; ms.has_ivar = false
+    modules = ms.modules; ms.modules = []
+    obj = ms.user_class ? get_user_class(ms).new : []
+    store_unique_object(ms, obj) if ms.nested
+    ms.nested = true
+    construct_integer(ms, str).times do
+      obj << construct(ms, str)
+    end
+    ms.has_ivar = has_ivar
+    set_instance_variables(ms, str, obj)
+    extend_object(modules, obj)
+  end
+
+  def self.construct_hash(ms, str, type)
+    has_ivar = ms.has_ivar; ms.has_ivar = false
+    modules = ms.modules; ms.modules = []
+    obj = ms.user_class ? get_user_class(ms).new : {}
+    store_unique_object(ms, obj) if ms.nested
+    ms.nested = true
+    construct_integer(ms, str).times do
+      key = construct(ms, str)
+      val = construct(ms, str)
+      obj[key] = val
+    end
+    obj.default = construct(ms, str) if type == TYPE_HASH_DEF
+    ms.has_ivar = has_ivar
+    set_instance_variables(ms, str, obj)
+    extend_object(modules, obj)
+  end
+
+  def self.construct_struct(ms, str)
+    modules = ms.modules; ms.modules = []
+    symbols = []; values = []
+    sym = construct(ms, str)
+    store_unique_object(ms, sym) if ms.nested
+    ms.nested = true
+    construct_integer(ms, str).times do
+      symbols << construct(ms, str)
+      values << construct(ms, str)
+    end
+    obj = Struct.new(sym.to_s.sub(/\AStruct\:\:/, ''), *symbols).new
+    (0...symbols.length).each do |i|
+      obj[symbols[i]] = values[i]
+    end
+    set_instance_variables(ms, str, obj)
+    extend_object(modules, obj)
+  end
+
+  def self.construct_object(ms, str)
+    modules = ms.modules; ms.modules = []
+    obj = Module.const_get(construct(ms, str)).new
+    store_unique_object(ms, obj) if ms.nested
+    ms.has_ivar = true
+    set_instance_variables(ms, str, obj)
+    extend_object(modules, obj)
+  end
+
+  def self.set_instance_variables(ms, str, obj)
+    if ms.has_ivar
+      ms.has_ivar = false
+      ms.nested = true
+      construct_integer(ms, str).times do
+        sym = construct(ms, str)
+        val = construct(ms, str)
+        obj.instance_variable_set(prepare_ivar(sym), val)
+      end
+    end
+    obj
+  end
+
+  def self.get_byte_sequence(ms, str)
+    size = construct_integer(ms, str)
+    i = ms.consumed
+    k = i + size
+    ms.consumed += size
+    str[i...k]
+  end
+
+  def self.store_unique_object(ms, obj)
+    if obj.class == Symbol
+      unless ms.symlinks[obj.object_id]
+        ms.symlinks[obj.object_id] = obj
+        ms.symbols << obj
+      end
+    else
+      unless ms.links[obj.object_id]
+        ms.links[obj.object_id] = obj
+        ms.objects << obj
+      end
+    end
+    obj
+  end
+
+  def self.extend_object(modules, obj)
+    modules.reverse_each do |sym|
+      mod = Module.const_get(sym)
+      obj.extend(mod)
+    end
+    obj
+  end
+
+  def self.prepare_ivar(sym)
+    str = sym.to_s
+    str.sub!(/\A\@+/, '')
+    ('@' + str).to_sym
+  end
+
+  def self.get_user_class(ms)
+    cls = Module.const_get(ms.user_class)
+    ms.user_class = nil
+    cls
   end
 
   def self.get_module_names(obj)

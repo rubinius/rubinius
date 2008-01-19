@@ -1,0 +1,2 @@
+Marshal.dump when given more than three arguments raises an ArgumentError
+Marshal.dump with string having ivar with ref to self returns a string-serialized version of the given argument

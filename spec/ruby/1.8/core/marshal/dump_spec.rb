@@ -43,6 +43,12 @@ describe "Marshal.dump when given an IO-Object" do
   end
 end
 
+describe "Marshal.dump when given more than three arguments" do
+  it "raises an ArgumentError" do
+    lambda { Marshal.dump(nil, nil, nil, nil) }.should raise_error(ArgumentError)
+  end
+end
+
 describe "Marshal.dump" do
   it "is provided" do
     Marshal.respond_to?(:dump).should == true
@@ -126,6 +132,14 @@ end
 describe "Marshal.dump with empty extended_user_string" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(UserString.new.extend(Meths)).should == "#{mv+nv}e:\x0AMethsC:\x0FUserString\"\x00"
+  end
+end
+
+describe "Marshal.dump with string having ivar with ref to self" do
+  it "returns a string-serialized version of the given argument" do
+    s = 'hi'
+    s.instance_variable_set(:@self, s)
+    Marshal.dump(s).should == "#{mv+nv}I\"\x07hi\x06:\x0A@self@\x00"
   end
 end
 
