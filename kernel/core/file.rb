@@ -382,6 +382,28 @@ class File < IO
     alias_method :gid, :group
     alias_method :uid, :owner
 
+    def ftype
+      case @kind
+      when :file
+        "file"
+      when :dir
+        "directory"
+      when :block
+        "blockSpecial"
+      when :char
+        "characterSpecial"
+      when :fifo
+        "fifo"
+      when :link
+        "link"
+      when :socket
+        "socket"
+      else
+        "unknown"
+      end
+    end
+
+
     def inspect
       "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
     end
