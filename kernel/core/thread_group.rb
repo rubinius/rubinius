@@ -10,15 +10,29 @@ class ThreadGroup
       thread.group.remove(thread)
     end
     thread.add_to_group self
-    @threads << thread
+    @threads << WeakRef.new(thread)
     self
   end
+
+  def prune
+    @threads.delete_if { |w| !w.weakref_alive? or !w.object.alive? }
+  end
+
+  private :prune
   
   def remove(thread)
-    @threads.delete(thread)
+    prune
+    @threads.delete_if { |w| w.object == thread }
   end
   
   def list
-    @threads
+    prune
+    @threads.map { |w| w.object }
   end
+
+  def list_all
+    @threads.delete_if { |w| !w.weakref_alive? }
+    @threads.map { |w| w.object }
+  end
+
 end

@@ -250,7 +250,7 @@ module Process
     statuses = []
     statuses << [Process.wait, $?] while true
   rescue Errno::ECHILD
-    statuses
+    return statuses
   end
 
   def self.wait2(pid=-1, flags=0)

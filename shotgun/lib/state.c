@@ -81,6 +81,8 @@ void state_collect(STATE, cpu c) {
   ptr_array roots;
   int stats = state->gc_stats;
   struct timeval start, fin;
+  
+  cpu_task_flush(state, c);
     
   if(stats) {
     gettimeofday(&start, NULL);
@@ -134,6 +136,8 @@ void state_major_collect(STATE, cpu c) {
   ptr_array roots;
   int stats = state->gc_stats;
   struct timeval start, fin;
+  
+  cpu_task_flush(state, c);
   
   state_collect(state, c);
     

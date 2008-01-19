@@ -29,8 +29,7 @@ class Thread
   end
 
   def setup(prime_lock)
-    @__ivars__ = {}
-    @group = ThreadGroup.new
+    @group = nil
     @sleep = true
     @alive = true
     @result = nil
@@ -68,6 +67,8 @@ class Thread
             join.send self
           end
         end
+      rescue Die
+        @exception = nil
       rescue Exception => e
         @exception = e
       ensure
@@ -81,7 +82,12 @@ class Thread
           STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
         end
       end
+
+      Thread.dequeue
     end
+
+    Thread.current.group.add self
+
   end
 
   def setup_task
@@ -262,5 +268,8 @@ class Thread
   def self.after_loaded
     Thread.current.setup(true)
     Thread.initialize_main_thread(Thread.current)
+    dg = ThreadGroup.new
+    ThreadGroup.const_set :Default, dg
+    dg.add Thread.current
   end
 end

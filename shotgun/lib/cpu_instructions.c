@@ -1290,7 +1290,7 @@ check_interrupts:
     if(state->check_events) {
       state->check_events = 0;
       if(state->pending_events) cpu_event_runonce(state);
-      if(state->pending_threads) cpu_thread_switch_best(state, c);
+      if(state->pending_threads) cpu_thread_preempt(state, c);
     }
   }
 }

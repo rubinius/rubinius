@@ -242,15 +242,10 @@ OBJECT object_memory_collect_references(STATE, object_memory om, OBJECT mark) {
   int i;
   OBJECT tup;
   
-  /* Broken. Causes segfaults. Not sure why yet. */
-  return Qnil;
-  
-  
   refs = ptr_array_new(8);
   
   baker_gc_collect_references(state, om->gc, mark, refs);
   mark_sweep_collect_references(state, om->ms, mark, refs);
-  
   
   if(ptr_array_length(refs) == 0) return Qnil;
   

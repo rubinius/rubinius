@@ -16,13 +16,22 @@
 #include "shotgun/lib/array.h"
 #include "shotgun/lib/object.h"
 
-void cpu_thread_dequeue(STATE, OBJECT thr);
+#define thread_set_priority(obj, val) SET_FIELD(obj, 1, val)
+#define thread_set_task(obj, val) SET_FIELD(obj, 2, val)
+#define thread_set_joins(obj, val) SET_FIELD(obj, 3, val)
+#define thread_set_channel(obj, val) SET_FIELD(obj, 4, val)
+
+#define thread_get_priority(obj) NTH_FIELD(obj, 1)
+#define thread_get_task(obj) NTH_FIELD(obj, 2)
+#define thread_get_joins(obj) NTH_FIELD(obj, 3)
+#define thread_get_channel(obj) NTH_FIELD(obj, 4)
+
 
 void cpu_task_cleanup(STATE, OBJECT self) {
   struct cpu_task *task;
-  
+
   task = (struct cpu_task*)BYTES_OF(self);
-  
+
   if(!task->stack_slave) {
     XFREE(task->stack_top);
   }
@@ -41,7 +50,7 @@ void Init_cpu_task(STATE) {
   rbs_const_set(state, BASIC_CLASS(task), "ScheduledThreads", tup);
   
   BASIC_CLASS(channel) = rbs_class_new(state, "Channel", 3, BASIC_CLASS(object));
-  BASIC_CLASS(thread) =  rbs_class_new(state, "Thread", 4, BASIC_CLASS(object));
+  BASIC_CLASS(thread) =  rbs_class_new(state, "Thread", 5, BASIC_CLASS(object));
   class_set_has_ivars(BASIC_CLASS(channel), Qtrue);
   class_set_has_ivars(BASIC_CLASS(thread),  Qtrue);
   
@@ -79,6 +88,25 @@ void cpu_task_disable_preemption(STATE) {
   setitimer(ITIMER_VIRTUAL, &new, NULL);
 }
 
+static void cpu_task_run_wb(STATE, OBJECT obj) {
+  struct cpu_task *task;
+
+  task = (struct cpu_task*)BYTES_OF(obj);
+
+  RUN_WB(obj, task->outstanding);
+  RUN_WB(obj, task->exception);
+  RUN_WB(obj, task->enclosing_class);
+  RUN_WB(obj, task->new_class_of);
+  RUN_WB(obj, task->exceptions);
+  RUN_WB(obj, task->outstanding);
+  RUN_WB(obj, task->main);
+  RUN_WB(obj, task->current_scope);
+  RUN_WB(obj, task->debug_channel);
+  RUN_WB(obj, task->control_channel);
+  RUN_WB(obj, task->active_context);
+  RUN_WB(obj, task->home_context);
+}
+
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   struct cpu_task *cur_task, *task;
   
@@ -93,21 +121,13 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   
   if(NIL_P(cur) || cur == c->current_task) {
     cur_task = (struct cpu_task*)CPU_TASKS_LOCATION(c);
-    /*
-    if(!NIL_P(c->active_context)) {
-      printf("(current task dup) ip:%d, sp:%d, fp:%d%s\n", c->ip, c->sp, c->fp, _inspect(cpu_current_method(state, c)));
-    }
-    */
   } else {
     cur_task = (struct cpu_task*)BYTES_OF(cur);
-    /*
-    printf("(      a task dup) ip:%d, sp:%d, fp:%d %s\n", FASTCTX(cur_task->active_context)->ip, FASTCTX(cur_task->active_context)->sp, FASTCTX(cur_task->active_context)->fp,  _inspect(cpu_current_method(state, cur_task)));
-    */
   }
   
   NEW_STRUCT(obj, task, state->global->task, struct cpu_task);
   memcpy(task, cur_task, sizeof(struct cpu_task_shared));
-    
+
   task->active = FALSE;
   
   /* Duplicate the operand stack. */
@@ -140,7 +160,7 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
     
     assert(task->active_context->obj_type == MContextType ||
            task->active_context->obj_type == BContextType);
-    
+
   }
   
   if(REFERENCE_P(task->home_context)) {    
@@ -152,6 +172,8 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
            task->home_context->obj_type == BContextType);
 
   }
+
+  cpu_task_run_wb(state, obj);
   
   return obj;
 }
@@ -173,11 +195,16 @@ void cpu_task_flush(STATE, cpu c) {
   if(c->active_context != Qnil) {
     cpu_save_registers(state, c, 0);
   }
+
+  methctx_reference(state, c->active_context);
+  methctx_reference(state, c->home_context);
     
   ct = (struct cpu_task*)CPU_TASKS_LOCATION(c);
   task = (struct cpu_task*)BYTES_OF(c->current_task);
   
   memcpy(task, ct, sizeof(struct cpu_task_shared));
+  
+  cpu_task_run_wb(state, c->current_task);
 }
 
 int cpu_task_select(STATE, cpu c, OBJECT nw) {
@@ -196,46 +223,46 @@ int cpu_task_select(STATE, cpu c, OBJECT nw) {
   if(REFERENCE_P(c->active_context)) methctx_reference(state, c->active_context);
   if(REFERENCE_P(c->home_context))   methctx_reference(state, c->home_context);
   
-  ct = (struct cpu_task*)CPU_TASKS_LOCATION(c);
-  cur_task = (struct cpu_task*)BYTES_OF(cur);
   new_task = (struct cpu_task*)BYTES_OF(nw);
-  
-  if(state->excessive_tracing) {
-    printf("[CPU] Switching to task %s (%p, %p)\n", _inspect(nw), nw, new_task->sp_ptr);
-  }
-  
   if(NIL_P(new_task->active_context) || NIL_P(new_task->home_context)) {
     cpu_raise_arg_error_generic(state, c, "Task has already exited");
     return FALSE;
   }
   
-  memcpy(cur_task, ct, sizeof(struct cpu_task_shared));
-  // printf(" Saving to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)cur, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
-  memcpy(ct, new_task, sizeof(struct cpu_task_shared));
+  if(state->excessive_tracing) {
+    printf("[CPU] Switching to task %s (%p, %p)\n", _inspect(nw), nw, new_task->sp_ptr);
+  }
   
-  home = NIL_P(c->home_context) ? c->active_context : c->home_context;
+  ct = (struct cpu_task*)CPU_TASKS_LOCATION(c);
+
+  if(!NIL_P(cur)) {
+    cur_task = (struct cpu_task*)BYTES_OF(cur);
   
-  assert(cur_task->sp_ptr >= cur_task->stack_top);
-  if(REFERENCE_P(cur_task->active_context)) {
-    assert(cur_task->active_context->obj_type == MContextType ||
+    memcpy(cur_task, ct, sizeof(struct cpu_task_shared));
+    cpu_task_run_wb(state, cur);
+  
+    assert(cur_task->sp_ptr >= cur_task->stack_top);
+    if(REFERENCE_P(cur_task->active_context)) {
+      assert(cur_task->active_context->obj_type == MContextType ||
         cur_task->active_context->obj_type == BContextType);
 
-  }
-  if(REFERENCE_P(cur_task->home_context)) {
-    assert(cur_task->home_context->obj_type == MContextType ||
+    }
+
+    if(REFERENCE_P(cur_task->home_context)) {
+      assert(cur_task->home_context->obj_type == MContextType ||
           cur_task->home_context->obj_type == BContextType);
+    }
+  
+    cur_task->active = FALSE;
   }
-  
-  cur_task->active = FALSE;
+
+  memcpy(ct, new_task, sizeof(struct cpu_task_shared));
   new_task->active = TRUE;
-    
-  cpu_restore_context_with_home(state, c, c->active_context, home, FALSE, FALSE);
-  // printf("Swaping to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)nw, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
   
-  /*
-  printf("(switched to task) ip:%d, sp:%d, fp:%d %s\n", c->ip, c->sp, c->fp, _inspect(cpu_current_method(state, c)));
-  */
+  home = NIL_P(c->home_context) ? c->active_context : c->home_context;
+  cpu_restore_context_with_home(state, c, c->active_context, home, FALSE, FALSE);
   c->current_task = nw;
+  
   return TRUE;
 }
 
@@ -262,10 +289,13 @@ OBJECT cpu_task_associate(STATE, cpu c, OBJECT self, OBJECT be) {
   cpu_task_push(state, self, tuple_new(state, 0));
   
   methctx_reference(state, bc);
-  task->main = bc;
-  task->active_context = bc;
-  task->home_context = blokenv_get_home(be);
   methctx_reference(state, task->home_context);
+  
+  SET_STRUCT_FIELD(self, task->main, bc);
+  SET_STRUCT_FIELD(self, task->active_context, bc);
+  SET_STRUCT_FIELD(self, task->home_context, blokenv_get_home(be));
+  
+  cpu_task_run_wb(state, self);
   
   return bc;
 }
@@ -318,21 +348,15 @@ void cpu_task_set_debugging(STATE, OBJECT self, OBJECT dc, OBJECT cc) {
   task = (struct cpu_task*)BYTES_OF(self);
   task->debug_channel = dc;
   task->control_channel = cc;
+
+  cpu_task_run_wb(state, self);
 }
-
-#define thread_set_priority(obj, val) SET_FIELD(obj, 1, val)
-#define thread_set_task(obj, val) SET_FIELD(obj, 2, val)
-#define thread_set_joins(obj, val) SET_FIELD(obj, 3, val)
-
-#define thread_get_priority(obj) NTH_FIELD(obj, 1)
-#define thread_get_task(obj) NTH_FIELD(obj, 2)
-#define thread_get_joins(obj) NTH_FIELD(obj, 3)
 
 OBJECT cpu_thread_new(STATE, cpu c) {
   OBJECT thr;
   
   thr = rbs_class_new_instance(state, BASIC_CLASS(thread));
-  if(c->current_thread) {
+  if(c->current_thread && !NIL_P(c->current_thread)) {
     thread_set_priority(thr, thread_get_priority(c->current_thread));
   } else {
     thread_set_priority(thr, I2N(2));
@@ -347,8 +371,20 @@ OBJECT cpu_thread_get_task(STATE, OBJECT self) {
 }
 
 void cpu_thread_exited(STATE, cpu c) {
+  OBJECT chan;
   thread_set_task(c->current_thread, Qnil);
   cpu_thread_dequeue(state, c->current_thread);
+
+  /* Clear any events this thread was waiting on. */
+  chan = thread_get_channel(c->current_thread);
+  if(!NIL_P(chan)) {
+    cpu_event_clear_channel(state, chan);
+  }
+
+  c->active_context = Qnil;
+  c->home_context = Qnil;
+  c->current_thread = Qnil;
+  c->current_task = Qnil;
   cpu_thread_run_best(state, c);
 }
 
@@ -388,29 +424,21 @@ void cpu_thread_schedule(STATE, OBJECT self) {
 OBJECT cpu_thread_find_highest(STATE) {
   int i, t;
   OBJECT lst, tup, thr;
-  
-  cpu_event_update(state);
 
-  while(1) {
-    tup = state->global->scheduled_threads;
-    t = NUM_FIELDS(tup);
-    for(i = t - 1; i >= 0; i--) {
-      lst = tuple_at(state, tup, i);
-      if(FIXNUM_TO_INT(list_get_count(lst)) != 0) {
-        state->pending_threads--;
-        thr = list_shift(state, lst);
-        /* It's a bug that a dead thread shows up as queued.
-         * But for now, just check again here, it's safer anyway. */
-        if(cpu_thread_alive_p(state, thr)) return thr;
-      }
+  tup = state->global->scheduled_threads;
+  t = NUM_FIELDS(tup);
+  for(i = t - 1; i >= 0; i--) {
+    lst = tuple_at(state, tup, i);
+    if(FIXNUM_TO_INT(list_get_count(lst)) != 0) {
+      state->pending_threads--;
+      thr = list_shift(state, lst);
+      /* It's a bug that a dead thread shows up as queued.
+       * But for now, just check again here, it's safer anyway. */
+      if(cpu_thread_alive_p(state, thr)) return thr;
     }
-    // printf("Nothing to do, waiting for events.\n");
-    if(!cpu_event_outstanding_p(state)) {
-      printf("DEADLOCK!\n");
-      abort();
-    }
-    cpu_event_run(state);
   }
+
+  return Qnil;
 }
 
 void cpu_thread_dequeue(STATE, OBJECT thr) {
@@ -447,42 +475,91 @@ void cpu_thread_switch(STATE, cpu c, OBJECT thr) {
     
   /* Save the current task back into the current thread, in case
      Task's were used inside the thread itself (not just for the thread). */
-  thread_set_task(c->current_thread, c->current_task);
+  if(!NIL_P(c->current_thread)) {
+    thread_set_task(c->current_thread, c->current_task);
+  }
+
   task = thread_get_task(thr);
   cpu_task_select(state, c, task);
   c->current_thread = thr;
 }
 
-void cpu_thread_run_best(STATE, cpu c) {
+/* Called because the current thread is waiting on something. */
+void cpu_thread_suspend_current(STATE, cpu c) {
   OBJECT thr;
-  
+  c->current_thread_ready = FALSE;
+  cpu_event_update(state);
+
   thr = cpu_thread_find_highest(state);
-  assert(cpu_thread_alive_p(state, thr));
-  cpu_thread_switch(state, c, thr);
+
+  /* Ok, we found a suspended thread to run. */
+  if(!NIL_P(thr)) {
+
+    /* Reschedule current, because it's ready to run. */
+    if(c->current_thread_ready) {
+      cpu_thread_schedule(state, c->current_thread);
+    }
+
+    cpu_thread_switch(state, c, thr);
+
+    /* If current is ready, we're done. */
+  } else if(!c->current_thread_ready) {
+    /* No threads to run. Let events run and swap in a new thread. */
+    if(!cpu_event_outstanding_p(state)) {
+      printf("DEADLOCK!\n");
+      abort();
+    }
+
+    /* Running the events will swap in a new thread. */
+    cpu_event_run(state);
+  }
 }
 
-void cpu_thread_switch_best(STATE, cpu c) {
-  OBJECT thr, tup, lst;
-  int i, t;
-  
-  if(state->pending_threads == 0) return;
-  
-  tup = state->global->scheduled_threads;
-  t = NUM_FIELDS(tup);
-  
-  thr = Qnil;
-  
-  for(i = t - 1; i >= 0; i--) {
-    lst = tuple_at(state, tup, i);
-    if(FIXNUM_TO_INT(list_get_count(lst)) != 0) {
-      thr = list_shift(state, lst);
-      break;
+void cpu_thread_run_best(STATE, cpu c) {
+  OBJECT thr, chan;
+  int current_ready = 0;
+
+  /* If we have a current_thread, then also detect that it had
+   * events updated, so we know we don't have to call cpu_event_run. */
+
+  if(NIL_P(c->current_thread)) {
+    cpu_event_update(state);
+  } else {
+    chan = thread_get_channel(c->current_thread);
+    cpu_event_update(state);
+    if(!NIL_P(chan) && NIL_P(thread_get_channel(c->current_thread))) {
+      current_ready = 1;
     }
   }
   
-  if(thr == Qnil) return;
+  thr = cpu_thread_find_highest(state);
+  if(!NIL_P(thr)) {
+    assert(cpu_thread_alive_p(state, thr));
+    cpu_thread_switch(state, c, thr);
+  } else if(current_ready) {
+    return;
+  } else {
+    /* No threads to run. Let events run and swap in a new thread. */
+    if(!cpu_event_outstanding_p(state)) {
+      printf("DEADLOCK!\n");
+      abort();
+    }
+
+    /* Running the events will swap in a new thread. */
+    cpu_event_run(state);
+  }
+}
+
+void cpu_thread_preempt(STATE, cpu c) {
+  OBJECT thr;
   
-  state->pending_threads--;
+  cpu_event_update(state);
+  
+  thr = cpu_thread_find_highest(state);
+  
+  /* No one else to run.. */
+  if(thr == Qnil) return;
+
   cpu_thread_schedule(state, c->current_thread);
   cpu_thread_switch(state, c, thr);
 }
@@ -508,11 +585,11 @@ int cpu_channel_was_readers_p(STATE, OBJECT self) {
 
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
   OBJECT readers, written, reader, reader_task;
-  long int cur_prio, new_prio;
     
   readers = channel_get_waiting(self);
   
   if(list_empty_p(readers)) {
+    save_value:
     written = channel_get_value(self);
     if(NIL_P(written)) {
       written = list_new(state);
@@ -532,6 +609,13 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
       }
     } else {
       reader_task = thread_get_task(reader);
+
+      /* eek. the reader is dead. oh well. pretend we didn't see it. */
+      while(NIL_P(reader_task)) {
+        reader = list_shift(state, readers);
+        if(NIL_P(reader)) goto save_value;
+        reader_task = thread_get_task(reader);
+      }
       
       if(cpu_task_no_stack_p(state, reader_task)) {
         cpu_task_clear_flag(state, reader_task, TASK_NO_STACK);
@@ -539,14 +623,13 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
         cpu_task_set_top(state, reader_task, obj);
       }
     }
-    
-    /* If we're resuming a thread thats of higher priority than we are, 
-       we run it now, otherwise, we just schedule it to be run. */
-    cur_prio = FIXNUM_TO_INT(thread_get_priority(c->current_thread));
-    new_prio = FIXNUM_TO_INT(thread_get_priority(reader));
-    if(new_prio > cur_prio) {
-      cpu_thread_schedule(state, c->current_thread);
+
+    thread_set_channel(reader, Qnil);
+
+    if(NIL_P(c->current_thread)) {
       cpu_thread_switch(state, c, reader);
+    } else if(reader == c->current_thread) {
+      c->current_thread_ready = TRUE;
     } else {
       cpu_thread_schedule(state, reader);
     }
@@ -576,10 +659,12 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
   if(!TASK_FLAG_P(c, TASK_NO_STACK)) {
     stack_push(Qfalse);
   }
+
+  thread_set_channel(cur_thr, self);
   
   object_set_ivar(state, cur_thr, SYM("@sleep"), Qtrue);
   readers = channel_get_waiting(self);
   list_append(state, readers, cur_thr);
-  cpu_thread_run_best(state, c);
+  cpu_thread_suspend_current(state, c);
 }
 

@@ -422,7 +422,6 @@ void mark_sweep_clear_mark(STATE, OBJECT iobj) {
 void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, ptr_array roots) {
   int i, sz;
   OBJECT root, tmp;
-  struct method_cache *end, *ent;
     
   if(!NIL_P(ms->become_to)) {
     mark_sweep_mark_object(state, ms, ms->become_to);
@@ -452,37 +451,6 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, ptr_array roots) {
     } else {
       mark_sweep_mark_object(state, ms, root);
     }
-  }
-  
-  ent = state->method_cache;
-  end = ent + CPU_CACHE_SIZE;
-  
-  while(ent < end) {
-    if(ent->klass) {
-      if(BCM_P(ent->klass)) {
-        ent->klass = BCM_TO;
-      } else {
-        mark_sweep_mark_object(state, ms, ent->klass);
-      }
-    }
-     
-    if(ent->module) {
-      if(BCM_P(ent->module)) {
-        ent->module = BCM_TO;
-      } else {
-        mark_sweep_mark_object(state, ms, ent->module);
-      }
-    }
-      
-    if(ent->method) {
-      if(BCM_P(ent->method)) {
-        ent->method = BCM_TO;
-      } else {
-        mark_sweep_mark_object(state, ms, ent->method);
-      }
-    }
-
-    ent++;
   }
   
   /* Now the stack. */
@@ -558,12 +526,47 @@ void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
 }
 
 void mark_sweep_collect(STATE, mark_sweep_gc ms, ptr_array roots) {
+  struct method_cache *end, *ent;
   ms->enlarged = 0;
   ms->last_freed = 0;
   ms->last_marked = 0;
   
   ms->seen_weak_refs = ptr_array_new(8);
   mark_sweep_mark_phase(state, ms, roots);
+  
+  /* We handle the method cache a little differently. We treat it like every
+   * ref is weak so that it doesn't cause objects to live longer than they should. */
+
+  ent = state->method_cache;
+  end = ent + CPU_CACHE_SIZE;
+  
+  while(ent < end) {
+    if(ent->klass) {
+      if(ent->klass->gc_zone == MatureObjectZone) {
+        if(!to_header(ent->klass)->entry->marked) {
+          ent->klass = 0;
+        }
+      }
+    }
+    
+    if(ent->module) {
+      if(ent->module->gc_zone == MatureObjectZone) {
+        if(!to_header(ent->module)->entry->marked) {
+          ent->module = 0;
+        }
+      }
+    }
+    
+    if(ent->method) {
+      if(ent->method->gc_zone == MatureObjectZone) {
+        if(!to_header(ent->method)->entry->marked) {
+          ent->method = 0;
+        }
+      }
+    }
+    
+    ent++;
+  }
  
   /* We update the weakrefs BEFORE we sweep, since the sweep will free
    * the data for the object, and we'll loose important info. */
@@ -588,6 +591,41 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, ptr_array roots) {
   
   // printf("[GC M compacted to %d bytes]\n", ms->allocated_bytes);
   ms->next_collection_bytes = ms->allocated_bytes + MS_COLLECTION_BYTES;
+}
+
+void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, ptr_array refs) {
+  int i, count;
+  OBJECT obj;
+  struct ms_entry *ent;
+  ms_chunk *cur;
+  
+  cur = ms->chunks;
+  count = 0;
+  
+  while(cur) {
+      
+    for(i = 0; i < cur->num_entries; i++) {
+      ent = &(cur->entries[i]);
+      count++;
+      if(ent->bytes) {
+        obj = to_object(ent->object);
+        
+        assert(ent->fields == NUM_FIELDS(obj));
+
+        int j;
+        if(!_object_stores_bytes(obj)) {
+          for(j = 0; j < NUM_FIELDS(obj); j++) {
+            if(NTH_FIELD(obj, j) == mark) {
+              ptr_array_append(refs, (xpointer)obj);
+            }
+          }
+        }
+      }
+    }
+    
+    cur = cur->next;
+  }
+  
 }
 
 /*

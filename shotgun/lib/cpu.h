@@ -101,6 +101,8 @@ struct rubinius_cpu {
   
   // CPU_REGISTERS;
   
+  int current_thread_ready;
+ 
   OBJECT current_task, main_task;
   OBJECT current_thread, main_thread;
   
@@ -214,10 +216,13 @@ OBJECT cpu_channel_new(STATE);
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj);
 void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_task);
 int cpu_channel_was_readers_p(STATE, OBJECT self);
+void cpu_event_clear_channel(STATE, OBJECT chan);
+
 OBJECT cpu_thread_new(STATE, cpu c);
+void cpu_thread_dequeue(STATE, OBJECT thr);
 void cpu_thread_switch(STATE, cpu c, OBJECT thr);
 OBJECT cpu_thread_get_task(STATE, OBJECT self);
-void cpu_thread_switch_best(STATE, cpu c);
+void cpu_thread_preempt(STATE, cpu c);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
 void cpu_thread_force_run(STATE, cpu c, OBJECT thr);

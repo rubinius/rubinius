@@ -10,6 +10,10 @@ class Thread
   def self.pass
     Ruby.primitive :thread_yield
   end
+
+  def self.dequeue
+    Ruby.primitive :thread_dequeue
+  end
   
   def run
     Ruby.primitive :thread_run

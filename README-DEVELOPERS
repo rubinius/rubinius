@@ -162,6 +162,21 @@ is used to enable this compiler plugin. During regular compilation,
 this plugin is not enabled. This enables us to support mathn without
 breaking the core libraries.
 
+2.2 ivar_as_index ============================================
+
+As described above, you'll see calls to ivar_as_index in the kernel.
+This maps the objects numbered fields to ivar names, but ONLY for
+that file.
+
+You can NOT access those names using the @name syntax outside of that file.
+Doing so will cause madeningly odd behavior.
+
+For instance, if you make a subclass of IO, you can NOT access @descriptor
+directly in your subclass. You must go through methods to access it only.
+
+This is a gotcha of working in the kernel, so be aware of it.
+
+
 
 3. Libraries and C: Primitives vs. FFI
 ======================================

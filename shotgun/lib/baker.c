@@ -483,22 +483,6 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   }
           
   
-  ent = state->method_cache;
-  end = ent + CPU_CACHE_SIZE;
-  
-  while(ent < end) {
-    if(ent->klass)
-      ent->klass = baker_gc_mutate_from(state, g, ent->klass);
-      
-    if(ent->module)
-      ent->module = baker_gc_mutate_from(state, g, ent->module);
-      
-    if(ent->method)
-      ent->method = baker_gc_mutate_from(state, g, ent->method);
-
-    ent++;
-  }
-  
   /* Now the stack. */
   OBJECT *sp;
   
@@ -544,6 +528,47 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
     }
   
   }
+  
+  /* We handle the method cache a little differently. We treat it like every
+   * ref is weak so that it doesn't cause objects to live longer than they should. */
+
+  ent = state->method_cache;
+  end = ent + CPU_CACHE_SIZE;
+  
+  while(ent < end) {
+    if(ent->klass) {
+      if(ent->klass->gc_zone == YoungObjectZone) {
+        if(baker_gc_forwarded_p(ent->klass)) {
+          ent->klass = baker_gc_forwarded_object(ent->klass);
+        } else {
+          ent->klass = 0;
+        }
+      }
+    }
+    
+    if(ent->module) {
+      if(ent->module->gc_zone == YoungObjectZone) {
+        if(baker_gc_forwarded_p(ent->module)) {
+          ent->module = baker_gc_forwarded_object(ent->module);
+        } else {
+          ent->module = 0;
+        }
+      }
+    }
+    
+    if(ent->method) {
+      if(ent->method->gc_zone == YoungObjectZone) {
+        if(baker_gc_forwarded_p(ent->method)) {
+          ent->method = baker_gc_forwarded_object(ent->method);
+        } else {
+          ent->method = 0;
+        }
+      }
+    }
+      
+    ent++;
+  }
+  
   
   int j;
   OBJECT t2, ref;

@@ -12,6 +12,7 @@ class Exception
 
   def backtrace
     return nil unless @context
+    return @context if @context.kind_of? Array
     awesome_backtrace.to_mri
   end
   

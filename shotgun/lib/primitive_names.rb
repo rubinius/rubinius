@@ -185,7 +185,8 @@ module Bytecode
       :machine_get_message,
       :machine_send_message,
       :task_debug_channel,
-      :task_control_channel
+      :task_control_channel,
+      :thread_dequeue
     ]
 
     FirstRuntimePrimitive = 1024

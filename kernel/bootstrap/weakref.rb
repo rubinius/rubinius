@@ -10,6 +10,10 @@ class WeakRef
   def initialize(object)
     @wr = self.class.create_weakref(object)
   end
+
+  def inspect
+    "#<WeakRef:0x#{object_id.to_s(16)} object=#{@wr.at(0).inspect}>"
+  end
   
   def weakref_alive?
     !@wr.at(0).nil?

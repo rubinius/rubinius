@@ -2564,6 +2564,13 @@ class ShotgunPrimitives
     CODE
   end
   
+  def thread_dequeue
+    <<-CODE
+    (void)stack_pop();
+    cpu_thread_exited(state, c);
+    CODE
+  end
+  
   def thread_current
     <<-CODE
     (void)stack_pop();

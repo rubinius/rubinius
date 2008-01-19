@@ -156,22 +156,35 @@ void cpu_event_clear(STATE, int fd) {
 
 }
 
-static void
-_cpu_wake_channel_for_timer(EV_P_ struct ev_timer *ev, int revents) {
+void cpu_event_clear_channel(STATE, OBJECT chan) {
+  struct thread_info *ti = (struct thread_info*)state->thread_infos;
+  struct thread_info *tnext;
+
+  while(ti) {
+    tnext = ti->next;
+    if(ti->channel == chan) {
+      _cpu_event_unregister_info(state, ti);
+      XFREE(ti);
+    }
+    ti = tnext;
+  }
+}
+
+static void _cpu_wake_channel_for_timer(EV_P_ struct ev_timer *ev, int revents) {
   struct thread_info *ti = (struct thread_info*)ev->data;
+
   cpu_channel_send(ti->state, ti->c, ti->channel, Qnil);
   _cpu_event_unregister_info(ti->state, ti);
 }
 
-static void
-_cpu_wake_channel_for_writable(EV_P_ struct ev_io *ev, int revents) {
+static void _cpu_wake_channel_for_writable(EV_P_ struct ev_io *ev, int revents) {
   struct thread_info *ti = (struct thread_info*)ev->data;
+
   cpu_channel_send(ti->state, ti->c, ti->channel, Qnil);
   _cpu_event_unregister_info(ti->state, ti);
 }
 
-static void
-_cpu_wake_channel_and_read(EV_P_ struct ev_io *ev, int revents) {
+static void _cpu_wake_channel_and_read(EV_P_ struct ev_io *ev, int revents) {
   STATE;
   size_t sz, total, offset;
   ssize_t i;
@@ -229,13 +242,11 @@ _cpu_wake_channel_and_read(EV_P_ struct ev_io *ev, int revents) {
 }
 
 /* Doesn't clear its own data, since it's going to be called a lot. */
-static void
-_cpu_wake_channel_for_signal(EV_P_ struct ev_signal *ev,
-                             int revents) {
+static void _cpu_wake_channel_for_signal(EV_P_ struct ev_signal *ev, int revents) {
   struct thread_info *ti = (struct thread_info*)ev->data;
+
   cpu_channel_send(ti->state, ti->c, ti->channel, ti->c->current_thread);
 }
-
 
 void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, double seconds) {
   struct thread_info *ti;

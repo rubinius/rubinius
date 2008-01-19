@@ -57,6 +57,10 @@ OBJECT list_shift(STATE, OBJECT self) {
   list_set_count(self, I2N(FIXNUM_TO_INT(list_get_count(self)) - 1));  
   node = list_get_first(self);
   list_set_first(self, list_node_get_next(node));
+  
+  if(list_get_last(self) == node) {
+    list_set_last(self, Qnil);
+  }
   return list_node_get_object(node);
 }
 
@@ -78,10 +82,14 @@ int list_delete(STATE, OBJECT self, OBJECT obj) {
       } else {
         list_node_set_next(lst, nxt);
       }
+      if(list_get_last(self) == node) {
+        list_set_last(self, lst);
+      }
     } else {
       count++;
     }
-    
+   
+    lst = node;
     node = nxt;
   }
   

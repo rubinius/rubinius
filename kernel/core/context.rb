@@ -125,8 +125,8 @@ class MethodContext
   end
   
   def describe
-    if MAIN == receiver
-      str = "#{receiver.to_s}."
+    if method_module.equal?(Kernel)
+      str = "Kernel."
     elsif method_module.kind_of?(MetaClass)
       str = "#{receiver}."
     elsif method_module and method_module != receiver.class
