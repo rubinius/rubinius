@@ -1,11 +1,15 @@
 module QuickGem
-  PATH = `ruby -rubygems -e "puts Gem.path"`.strip + "/gems"
+  # there can be more than one path
+  PATHS = `ruby -rubygems -e "puts Gem.path"`.split
 
   @gems = nil
   def self.find_gems
     @gems = []
-    Dir.foreach(PATH) do |name|
-      @gems << name
+    PATHS.each do |path|
+      path = path.strip + "/gems"
+      Dir.foreach(path) do |name|
+        @gems << "#{path}/#{name}"
+      end
     end
     return @gems
   end
@@ -20,12 +24,12 @@ module QuickGem
       raise LoadError, "unknown gem '#{name}'"
     end
 
-    $:.unshift "#{PATH}/#{possible}/lib"
+    $:.unshift "#{possible}/lib"
     if $DEBUG
       STDERR.puts "[Loaded gem #{name} with quickgem]"
     end
 
-    return name
+    require name
   end
 end
 
