@@ -163,8 +163,16 @@ class Sprintf
         precision = 4 unless precision
       end
       val = Float(val)
-      ret = val.to_s_formatted(build_format_string(width, precision))
-      ret = plus_char + ret if val >= 0 && @old_type
+      if val.finite?
+        ret = val.send(:to_s_formatted, build_format_string(width, precision))
+        ret = plus_char + ret if val >= 0 && @old_type
+      else
+        ret = (val < 0 ? "-Inf" : "Inf") if val.infinite?
+        ret = "NaN" if val.nan?
+        ret = plus_char + ret if val > 0
+        flags[:zero] = flags[:space] = flags[:plus] = nil
+        ret = pad(ret, width, precision)
+      end
     when "u"
       val = get_number(val)
       if val < 0

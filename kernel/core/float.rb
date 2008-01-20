@@ -136,6 +136,7 @@ class Float < Numeric
   def to_s_formatted(fmt)
     Platform::Float.to_s_formatted STRLEN, fmt, self
   end
+  private :to_s_formatted
   
   def %(other)
     return 0 / 0.to_f if other == 0

@@ -315,16 +315,38 @@ describe "String#%" do
     ("%-7e" % 10).should == "1.000000e+01"
     ("%05e" % 10).should == "1.000000e+01"
     ("%*e" % [10, 9]).should == "9.000000e+00"
+  end
 
-    compliant_on :ruby, :rubinius do
+  compliant_on :ruby do
+    it "supports float formats using %e, and downcases -Inf, Inf, and NaN" do
       ("%e" % 1e1020).should == "inf"
       ("%e" % -1e1020).should == "-inf"
       ("%e" % (0.0/0)).should == "nan"
       ("%e" % (-0e0/0)).should == "nan"
     end
-
-    compliant_on :jruby do
+  end
+  
+  # Inf, -Inf, and NaN are identifiers for results of floating point operations
+  # that cannot be expressed with any value in the set of real numbers. Upcasing
+  # or downcasing these identifiers for %e or %E, which refers to the case of the
+  # of the exponent identifier, is silly.
+  deviates_on :rubinius, :jruby do
+    it "supports float formats using %e, but Inf, -Inf, and NaN are not floats" do
+      ("%e" % 1e1020).should == "Inf"
+      ("%e" % -1e1020).should == "-Inf"
+      ("%e" % (-0e0/0)).should == "NaN"
       ("%e" % (0.0/0)).should == "NaN"
+    end
+    
+    it "supports float formats using %E, but Inf, -Inf, and NaN are not floats" do
+      ("%E" % 1e1020).should == "Inf"
+      ("%E" % -1e1020).should == "-Inf"
+      ("%-10E" % 1e1020).should == "Inf       "
+      ("%10E" % 1e1020).should == "       Inf"
+      ("%+E" % 1e1020).should == "+Inf"
+      ("% E" % 1e1020).should == " Inf"
+      ("%E" % (0.0/0)).should == "NaN"
+      ("%E" % (-0e0/0)).should == "NaN"
     end
   end
   
@@ -337,8 +359,10 @@ describe "String#%" do
     ("%-7E" % 10).should == "1.000000E+01"
     ("%05E" % 10).should == "1.000000E+01"
     ("%*E" % [10, 9]).should == "9.000000E+00"
-    
-    compliant_on :ruby, :rubinius do
+  end
+
+  compliant_on :ruby do
+    it "supports float formats using %E, and upcases Inf, -Inf, and NaN" do
       ("%E" % 1e1020).should == "INF"
       ("%E" % -1e1020).should == "-INF"
       ("%-10E" % 1e1020).should == "INF       "
@@ -346,15 +370,21 @@ describe "String#%" do
       ("% E" % 1e1020).should == " INF"
       ("%E" % (0.0/0)).should == "NAN"
       ("%E" % (-0e0/0)).should == "NAN"
-      
-      platform_is :darwin, :freebsd do
+    end
+    
+    platform_is :darwin, :freebsd do
+      it "pads with zeros using %E with Inf, -Inf, and NaN" do
         ("%010E" % -1e1020).should == "-000000INF"
         ("%010E" % 1e1020).should == "0000000INF"
+        ("%010E" % (0.0/0)).should == "0000000NAN"
       end
-      
-      platform_is_not :darwin, :freebsd do
+    end
+    
+    platform_is_not :darwin, :freebsd do
+      it "pads with spaces for %E with Inf, -Inf, and NaN" do
         ("%010E" % -1e1020).should == "      -INF"
         ("%010E" % 1e1020).should == "       INF"
+        ("%010E" % (0.0/0)).should == "       NAN"
       end
     end
   end
@@ -513,12 +543,21 @@ describe "String#%" do
     end
   end
   
-  deviates_on :ruby do
+  compliant_on :ruby do
+    platform_is :version => '1.8.6', :patch => 36..111 do
+      it "supports negative bignums by prefixing the value with zeros" do
+        ("%u" % -(2 ** 64 + 5)).should == "0079228162495817593519834398715"
+      end
+    end
+  end
+  
+  compliant_on :ruby do
     # Something's odd for MRI here. For details see
     # http://groups.google.com/group/ruby-core-google/msg/408e2ebc8426f449
-
-    it "supports negative bignums" do
-      ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
+    platform_is :version => '1.8.5' do
+      it "supports negative bignums by prefixing the value with periods" do
+        ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
+      end
     end
   end
   
@@ -526,7 +565,6 @@ describe "String#%" do
     it "does not support negative bignums" do
       lambda { ("%u" % -(2 ** 64 + 5)) }.should raise_error(ArgumentError)
     end
-    
   end
   
   it "supports hex formats using %x" do
