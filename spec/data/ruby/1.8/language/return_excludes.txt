@@ -1,0 +1,2 @@
+Executing return from within a block raises a LocalJumpError
+Executing return from within a block causes the method calling the method that yields to the block to return

@@ -147,6 +147,19 @@ describe "Return from within a begin" do
   end
 end
 
+describe "Executing return from within a block" do
+  it "raises a LocalJumpError" do
+    def f; yield end
+    lambda { f { return 5 } }.should raise_error(LocalJumpError)
+  end
+  
+  it "causes the method calling the method that yields to the block to return" do
+    def f; yield; return 2 end
+    def b; f { return 5 } end
+    b.should == 5
+  end
+end
+
 describe "The return statement" do
   it "raises a ThreadError if used to exit a thread" do
     lambda { Thread.new { return }.join }.should raise_error(ThreadError)
