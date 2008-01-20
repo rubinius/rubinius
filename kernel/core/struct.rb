@@ -138,8 +138,12 @@ class Struct
     case var
     when Numeric then
       var = var.to_i
-      if var > _attrs.length - 1 then
-        raise IndexError, "offset #{var} too large for struct"
+      a_len = _attrs.length
+      if var > a_len - 1 then
+        raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
+      end
+      if var < -a_len then
+        raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
       end
       var = _attrs[var]
     when Symbol, String then
@@ -177,8 +181,12 @@ class Struct
     case var
     when Numeric then
       var = var.to_i
-      if var > _attrs.length - 1 then
-        raise IndexError, "offset #{var} too large for struct"
+      a_len = _attrs.length
+      if var > a_len - 1 then
+        raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
+      end
+      if var < -a_len then
+        raise IndexError, "offset #{var + a_len} too small for struct(size:#{a_len})"
       end
       var = _attrs[var]
     when Symbol, String then
