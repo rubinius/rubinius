@@ -1,7 +1,7 @@
 # depends on: kernel.rb module.rb
 
 module ImmediateValue
-  def singleton_methods
+  def singleton_methods(all=true)
     []
   end
   
