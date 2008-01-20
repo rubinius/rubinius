@@ -577,6 +577,7 @@ void machine_setup_config(machine m) {
   machine_set_const(m, "RUBY_RELEASE_DATE", string_new(m->s, CONFIG_RELDATE));
   machine_set_const_under(m, "RBX_VERSION", string_new(m->s, CONFIG_VERSION), mod);
   machine_set_const_under(m, "RUBY_VERSION", string_new(m->s, CONFIG_RUBY_VERSION), mod);
+  machine_set_const_under(m, "RUBY_PATCHLEVEL", string_new(m->s, CONFIG_RUBY_PATCHLEVEL), mod);
   machine_set_const_under(m, "VERSION", string_new(m->s, CONFIG_RUBY_VERSION), mod);
   machine_set_const_under(m, "RUBY_ENGINE", string_new(m->s, CONFIG_ENGINE), mod);
   machine_set_const_under(m, "BUILDREV", string_new(m->s, CONFIG_BUILDREV), mod);
