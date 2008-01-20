@@ -28,6 +28,10 @@ shared :regexp_new do |cmd|
       Regexp.send(cmd, "^hi{2,3}fo.o$").should == /^hi{2,3}fo.o$/
     end
 
+    it "should throw regexp error with incorrect regexp" do
+      lambda { Regexp.send(cmd, "^[$", 0) }.should raise_error(RegexpError)
+    end
+
     it "does not set Regexp options if only given one argument" do
       r = Regexp.send(cmd, 'Hi')
       (r.options & Regexp::IGNORECASE).should     == 0
