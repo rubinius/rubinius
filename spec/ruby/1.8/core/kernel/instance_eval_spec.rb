@@ -27,12 +27,12 @@ describe "Kernel#instance_eval" do
   end
 
   it "has access to receiver's instance variables" do
-    class Klass
-      def initialize
-        @secret = 99
-      end
-    end
-    Klass.new.instance_eval { @secret }.should == 99
-    Klass.new.instance_eval("@secret").should == 99
+    KernelSpecs::IVars.new.instance_eval { @secret }.should == 99
+    KernelSpecs::IVars.new.instance_eval("@secret").should == 99
+  end
+  
+  it "sets class variables in the receiver" do
+    KernelSpecs::IncludesInstEval.class_variables.should include("@@count")
+    KernelSpecs::IncludesInstEval.send(:class_variable_get, :@@count).should == 2
   end
 end

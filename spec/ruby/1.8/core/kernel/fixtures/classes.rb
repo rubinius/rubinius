@@ -148,6 +148,21 @@ module KernelSpecs
     i
   end
   
+  class IVars
+    def initialize
+      @secret = 99
+    end
+  end
+  
+  module InstEval
+    def self.included(base)
+      base.instance_eval { @@count = 2 }
+    end
+  end
+  
+  class IncludesInstEval
+    include InstEval
+  end
 end
 
 # for Kernel#sleep to have Channel in it's specs
