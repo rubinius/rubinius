@@ -16,12 +16,10 @@ void module_setup_fields(STATE, OBJECT module) {
 void module_setup_name(STATE, OBJECT module, const char *name, OBJECT ns) {
   OBJECT str, sym;
   
+  sassert(NIL_P(module_get_parent(module)));
   str = string_new(state, name);
   sym = string_to_sym(state, str);
-  module_set_name(module, sym);
   module_const_set(state, ns, sym, module);
-  sassert(NIL_P(module_get_parent(module)));
-  module_set_parent(module, ns);
   return;
 }
 
@@ -36,10 +34,15 @@ void module_setup(STATE, OBJECT module, const char *name) {
 }
 
 void module_const_set(STATE, OBJECT self, OBJECT sym, OBJECT obj) {
-  OBJECT cnt;
+  OBJECT hsh;
   
-  cnt = module_get_constants(self);
-  hash_add(state, cnt, object_hash_int(state, sym), sym, obj);
+  hsh = module_get_constants(self);
+  hash_set(state, hsh, sym, obj);
+
+  if (ISA(obj, BASIC_CLASS(module))) {
+    module_set_name(obj, sym);
+    module_set_parent(obj, self);
+  }
 }
 
 OBJECT module_const_get(STATE, OBJECT self, OBJECT sym) {
