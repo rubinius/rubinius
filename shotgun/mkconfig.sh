@@ -76,8 +76,10 @@ echo "#define CONFIG_CC \"$CC\""
 ) > config.h
 
 if config/run is64bit; then
+  echo "#define CONFIG_WORDSIZE 64" >> config.h
   echo "#define CONFIG_ENABLE_DT 0" >> config.h
 else
+  echo "#define CONFIG_WORDSIZE 32" >> config.h
   echo "#define CONFIG_ENABLE_DT 1" >> config.h
 fi
 

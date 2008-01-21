@@ -536,6 +536,7 @@ module Config
   CONFIG['ruby_version'] = Rubinius::RUBY_VERSION.dup
   CONFIG['sitedir'] = "#{File.join ENV['LIBPATH'], 'rubinius'}"
   CONFIG['sitelibdir'] = "#{ENV['CODEPATH']}"
+  CONFIG['wordsize'] = Rubinius::WORDSIZE
 
 end
 

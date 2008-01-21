@@ -584,6 +584,8 @@ void machine_setup_config(machine m) {
   machine_set_const_under(m, "CODE_PATH", string_new(m->s, CONFIG_CODEPATH), mod);
   machine_set_const_under(m, "EXT_PATH", string_new(m->s, CONFIG_EXTPATH), mod);
   machine_set_const_under(m, "RBA_PATH", string_new(m->s, CONFIG_RBAPATH), mod);
+
+  machine_set_const_under(m, "WORDSIZE", INT_TO_FIXNUM(CONFIG_WORDSIZE), mod);
   
 #if defined(__ppc__) || defined(__POWERPC__) || defined(_POWER)
   machine_set_const_under(m, "PLATFORM", SYM("ppc"), mod);
