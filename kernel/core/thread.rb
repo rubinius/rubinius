@@ -193,7 +193,7 @@ class Thread
     result
   end
   private :join_inner
-  
+
   def raise_prim(exc)
     Ruby.primitive :thread_raise
   end
@@ -218,10 +218,14 @@ class Thread
   end
 
   def [](key)
+    raise TypeError,     "#{key} is not a symbol" if key.kind_of?(NilClass)
+    raise ArgumentError, "#{key} is not a symbol" unless key.kind_of?(Symbol) or key.kind_of?(String)
     @locals[Type.coerce_to(key,Symbol,:to_sym)]
   end
 
   def []=(key, value)
+    raise TypeError,     "#{key} is not a symbol" if key.kind_of?(NilClass)
+    raise ArgumentError, "#{key} is not a symbol" unless key.kind_of?(Symbol) or key.kind_of?(String)
     @locals[Type.coerce_to(key,Symbol,:to_sym)] = value
   end
 
@@ -230,6 +234,8 @@ class Thread
   end
 
   def key?(key)
+    raise TypeError,     "#{key} is not a symbol" if key.kind_of?(NilClass)
+    raise ArgumentError, "#{key} is not a symbol" unless key.kind_of?(Symbol) or key.kind_of?(String)
     @locals.key?(Type.coerce_to(key,Symbol,:to_sym))
   end
 
@@ -252,11 +258,9 @@ class Thread
   def self.initialize_main_thread(thread)
     @main_thread = thread
   end
-  
+
   def self.after_loaded
     Thread.current.setup(true)
     Thread.initialize_main_thread(Thread.current)
   end
 end
-
-
