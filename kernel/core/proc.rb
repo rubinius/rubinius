@@ -114,6 +114,8 @@ class Proc
     "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
   end
 
+  alias_method :to_s, :inspect
+
   def arity
     @block.arity
   end
