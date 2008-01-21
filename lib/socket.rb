@@ -113,8 +113,8 @@ class Socket < BasicSocket
                     [:state, :string, :string, :int, :int], :object
     attach_function "ffi_decode_sockaddr", :ffi_decode_sockaddr,
                     [:state, :string, :int, :int], :object
-    attach_function "ffi_getsockname", :getsockname,
-                    [:state, :int, :int], :object
+    attach_function "ffi_getsockname", :ffi_getsockname,
+                    [:state, :int], :object
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
 
     def self.bind(descriptor, sockaddr)
