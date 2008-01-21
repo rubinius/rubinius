@@ -1364,6 +1364,9 @@ class ShotgunPrimitives
     POP(t1, STRING);
     t2 = stack_pop();
     t3 = regexp_new(state, t1, t2);
+    if(STRING_P(t3)) {
+      cpu_raise_exception(state, c, cpu_new_exception(state, c, state->global->exc_rex, string_byte_address(state, t3)));
+    }
     t3->klass = self;   /* Subclasses */
     stack_push(t3);
     CODE

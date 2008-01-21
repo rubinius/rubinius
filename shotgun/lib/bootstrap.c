@@ -166,7 +166,7 @@ void cpu_bootstrap_exceptions(STATE) {
   int sz;
   sz = 3;
   
-  OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce, type, lje, vm;
+  OBJECT exc, scp, std, arg, nam, loe, rex, stk, sxp, sce, type, lje, vm;
   OBJECT fce;
   
   #define dexc(name, sup) rbs_class_new(state, #name, sz, sup)
@@ -181,6 +181,7 @@ void cpu_bootstrap_exceptions(STATE) {
   type = dexc(TypeError, std);
   arg = dexc(ArgumentError, std);
   nam = dexc(NameError, std);
+  rex = dexc(RegexpError, std);
   dexc(NoMethodError, nam);
   dexc(SyntaxError, scp);
   loe = dexc(LoadError, scp);
@@ -199,6 +200,7 @@ void cpu_bootstrap_exceptions(STATE) {
   state->global->exc_type = type;
   state->global->exc_arg = arg;
   state->global->exc_loe = loe;
+  state->global->exc_rex = rex;
   
   state->global->exc_stack_explosion = sxp;
   state->global->exc_primitive_failure = dexc(PrimitiveFailure, exc);

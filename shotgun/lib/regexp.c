@@ -119,9 +119,11 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
   err = onig_new(reg, pat, end, 
       opts, enc, ONIG_SYNTAX_RUBY, &err_info); 
     
-  /* FIXME: error detection! */
   if(err != ONIG_NORMAL) {
-    return Qnil;
+    char err_buf[ONIG_MAX_ERROR_MESSAGE_LEN + 1024];
+    onig_error_code_to_str((UChar* )err_buf, err, &err_info);
+    snprintf(err_buf, ONIG_MAX_ERROR_MESSAGE_LEN + 1024, "%s: %s", err_buf, pat);
+    return string_new(state, err_buf);
   }
   
   o_reg = regexp_allocate(state);
