@@ -205,7 +205,7 @@ class File < IO
     st_c = stat(StringValue(copy))
     
     return false unless st_o.kind == st_c.kind
-    return false unless st_o.inode == st_c.inode
+    return false unless st_o.ino == st_c.ino
     return false unless Platform::POSIX.access(orig, Constants::R_OK)
     return false unless Platform::POSIX.access(copy, Constants::R_OK)
     
@@ -366,7 +366,7 @@ class File < IO
                   :size => 5, :block => 6, :atime => 7, :mtime => 8,
                   :ctime => 9, :path => 10, :blksize => 11
 
-    def inode;   @inode; end
+    def ino;     @inode; end
     def mode;    @mode; end
     def kind;    @kind; end
     def owner;   @owner; end
