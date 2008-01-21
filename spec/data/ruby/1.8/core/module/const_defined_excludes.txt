@@ -1,1 +1,2 @@
 Module#const_defined? returns true if constant with the given String is defined in its parent
+Module const_defined? should return true if the name is defined
