@@ -10,13 +10,13 @@ describe "Module#instance_method" do
     end
     
     meth = c.instance_method(:test)
-    meth.inspect.should == "#<UnboundMethod: #{c}#test>"
+    meth.inspect.should =~ /#<UnboundMethod(:)? #{c}#test>/
 
     meth = c.instance_method("test")
-    meth.inspect.should == "#<UnboundMethod: #{c}#test>"
+    meth.inspect.should =~ /#<UnboundMethod(:)? #{c}#test>/
     
     meth = Object.instance_method("dup")
-    meth.inspect.should == "#<UnboundMethod: Object(Kernel)#dup>"
+    meth.inspect.should =~ /#<UnboundMethod(:)? Object(\\(Kernel\\))?#dup>/
   end
   
   it "raises a TypeError if the given name is not a string/symbol" do
