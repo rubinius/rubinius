@@ -113,7 +113,9 @@ class Socket < BasicSocket
                     [:state, :string, :string, :int, :int], :object
     attach_function "ffi_decode_sockaddr", :ffi_decode_sockaddr,
                     [:state, :string, :int, :int], :object
-    attach_function "ffi_getsockname", :ffi_getsockname,
+    attach_function "ffi_getpeername", :_ffi_getpeername,
+                    [:state, :int], :object
+    attach_function "ffi_getsockname", :_ffi_getsockname,
                     [:state, :int], :object
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
 
@@ -131,6 +133,24 @@ class Socket < BasicSocket
 
         _connect descriptor, sockaddr_p, sockaddr.length
       end
+    end
+
+    # HACK FFI is broken when calling getpeername(2) directly
+    def self.ffi_getpeername(descriptor)
+      success, value = _ffi_getpeername descriptor
+
+      raise SocketError, value unless success
+
+      value
+    end
+
+    # HACK FFI is broken when calling getsockname(2) directly
+    def self.ffi_getsockname(descriptor)
+      success, value = _ffi_getsockname descriptor
+
+      raise SocketError, value unless success
+
+      value
     end
 
     def self.getaddrinfo(host, service, family, socktype, protocol, flags)
@@ -201,7 +221,7 @@ class Socket < BasicSocket
 
         raise SocketError, value unless success
 
-        name_info[0] = AF_TO_FAMILY[value[0]]
+        name_info[0] = Socket::Constants::AF_TO_FAMILY[value[0]]
         name_info[1] = value[1]
         name_info[3] = value[2]
       end
@@ -435,13 +455,13 @@ end
 
 class IPSocket < BasicSocket
   def addr
-    sockaddr = Socket::Foreign.getsockname descriptor
+    sockaddr = Socket::Foreign.ffi_getsockname descriptor
 
     Socket::Foreign.getnameinfo sockaddr
   end
-  
+
   def peeraddr
-    sockaddr = Socket::Foreign.getpeername descriptor
+    sockaddr = Socket::Foreign.ffi_getpeername descriptor
 
     Socket::Foreign.getnameinfo sockaddr
   end

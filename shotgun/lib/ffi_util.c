@@ -169,6 +169,21 @@ OBJECT ffi_decode_sockaddr(STATE, struct sockaddr *addr, int len, int reverse_lo
   return tuple_new2(state, 3, host, address, INT_TO_FIXNUM(atoi(pbuf)));
 }
 
+OBJECT ffi_getpeername(STATE, int s) {
+  int error = 0;
+
+  struct sockaddr_storage addr;
+  socklen_t len = sizeof addr;
+
+  error = getpeername(s, (struct sockaddr*)&addr, &len);
+
+  if(error) {
+    return tuple_new2(state, 2, Qfalse, string_new(state, gai_strerror(error)));
+  }
+
+  return tuple_new2(state, 2, Qtrue, string_new2(state, (char *)&addr, len));
+}
+
 OBJECT ffi_getsockname(STATE, int s) {
   int error = 0;
 
