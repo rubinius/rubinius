@@ -352,18 +352,7 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
     object_copy_body(state, bc, ba);
   }
   
-  /* If this is not a big endian platform, we need to adjust
-     the iseq to have the right order */
-#if !CONFIG_BIG_ENDIAN
-  iseq_flip(state, ba);
-#endif
-
-  /* If we're compiled with direct threading, then translate
-     the compiled version into addresses. */
-#if DIRECT_THREADED
-  calculate_into_gotos(state, ba, _dt_addresses, _dt_size);
-#endif
-
+  cpu_compile_instructions(state, ba);
   cmethod_set_compiled(cm, ba);
 
   /* Allocate a tuple to hold the cache entries for method calls */
@@ -380,6 +369,20 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
   }
   
   return ba;
+}
+
+void cpu_compile_instructions(STATE, OBJECT ba) {
+  /* If this is not a big endian platform, we need to adjust
+     the iseq to have the right order */
+#if !CONFIG_BIG_ENDIAN
+  iseq_flip(state, ba);
+#endif
+
+  /* If we're compiled with direct threading, then translate
+     the compiled version into addresses. */
+#if DIRECT_THREADED
+  calculate_into_gotos(state, ba, _dt_addresses, _dt_size);
+#endif
 }
 
 static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {

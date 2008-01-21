@@ -78,6 +78,15 @@ class MethodContext
   def reload_method
     Ruby.primitive :fastctx_reload_method
   end
+
+  # Modifies the context to use the specified instruction sequence.
+  # This method exists to support debugging; it should only be used to modify
+  # the task instruction sequence to add/remove temporary breakpoints that are
+  # only for the current thread, e.g. when stepping or restoring a persistent
+  # breakpoint.
+  def set_iseq(iseq)
+    Ruby.primitive :fastctx_set_iseq
+  end
 end
 
 class BlockContext  

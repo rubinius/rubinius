@@ -186,7 +186,8 @@ module Bytecode
       :machine_send_message,
       :task_debug_channel,
       :task_control_channel,
-      :thread_dequeue
+      :thread_dequeue,
+      :fastctx_set_iseq
     ]
 
     FirstRuntimePrimitive = 1024

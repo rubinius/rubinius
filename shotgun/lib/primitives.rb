@@ -2048,6 +2048,25 @@ class ShotgunPrimitives
     CODE
   end
 
+  def fastctx_set_iseq
+    <<-CODE
+    struct fast_context *fc;
+    t1 = stack_pop();
+    t2 = stack_pop();
+
+    GUARD(RISA(t1, fastctx));
+    GUARD(RISA(t2, bytearray));
+
+    fc = FASTCTX(t1);
+    if(fc->method->obj_type == CMethodType) {
+      cpu_compile_instructions(state, t2);
+      fc->data = BYTEARRAY_ADDRESS(t2);
+    }
+
+    stack_push(Qtrue);
+    CODE
+  end
+
   def vm_stats
     <<-CODE
 #ifdef TRACK_STATS
