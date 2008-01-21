@@ -1,4 +1,2 @@
 Module#instance_method returns an UnboundMethod representing the instance method with the given name
 Module#instance_method raises a TypeError if the given name is not a string/symbol
-Module instance_methods with false should exclude super class instance methods
-Module instance_methods should return all instance methods of a module

@@ -1,2 +1,1 @@
-Module#module_function makes the instance method versions private
 Module#module_function makes subsequently defined methods module functions if no names are given
