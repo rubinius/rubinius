@@ -32,6 +32,7 @@ describe "IO#dup" do
     @i.fileno.should_not == @f.fileno
   end
 
+quarantine! do # This does not appear to be consistent across platforms
   it "shares the original stream between the two IOs" do
     start = @f.pos
     @i.pos.should == start
@@ -51,6 +52,7 @@ describe "IO#dup" do
     @f.rewind
     @f.gets.should == "#{s2}\n"
   end
+end
 
   it "allows closing the new IO without affecting the original" do
     @i.close
