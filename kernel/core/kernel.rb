@@ -7,7 +7,7 @@ module Type
   def self.coerce_failed(cls, obj)
     raise TypeError, "A #{obj.class} tried to become a #{cls} but failed"
   end
-  
+
   def self.coerce_unable(exc, cls, obj)
     raise TypeError, "Unable to convert a #{obj.class} into a #{cls}"
   end
@@ -21,9 +21,9 @@ module Type
     begin
       ret = obj.__send__(meth)
     rescue Object => e
-      coerce_unable(e, cls, obj)  
+      coerce_unable(e, cls, obj)
     end
-    
+
     if ret.kind_of?(cls)
       return ret
     else
@@ -33,19 +33,20 @@ module Type
 end
 
 module Kernel
+
   def Float(obj)
     raise TypeError, "can't convert nil into Float" if obj.nil?
-    
+
     if obj.is_a?(String)
       if obj !~ /^(\+|\-)?\d+$/ && obj !~ /^(\+|\-)?(\d_?)*\.(\d_?)+$/ && obj !~ /^[-+]?\d*\.?\d*e[-+]\d*\.?\d*/
         raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
       end
     end
-  
+
     Type.coerce_to(obj, Float, :to_f)
   end
   module_function :Float
-  
+
   def Integer(obj)
     return obj.to_inum(0, true) if obj.is_a?(String)
     method = obj.respond_to?(:to_int) ? :to_int : :to_i
@@ -68,7 +69,7 @@ module Kernel
     Type.coerce_to(obj, String, :to_s)
   end
   module_function :String
-  
+
   # MRI uses a macro named StringValue which has essentially
   # the same semantics as obj.coerce_to(String, :to_str), but
   # rather than using that long construction everywhere, we
@@ -80,9 +81,9 @@ module Kernel
     Type.coerce_to(obj, String, :to_str)
   end
   private :StringValue
-  
+
   # Reporting methods
-  
+
   # HACK :: added due to broken constant lookup rules
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
@@ -102,11 +103,11 @@ module Kernel
     exc.set_backtrace MethodContext.current.sender unless exc.backtrace
     Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
   end
-  
+
   alias_method :fail, :raise
   module_function :raise
   module_function :fail
-  
+
   def warn(warning)
     unless $VERBOSE.nil?
       $stderr.write warning
@@ -121,17 +122,17 @@ module Kernel
     raise SystemExit.new(code)
   end
   module_function :exit
-  
+
   def exit!(code=0)
     Process.exit(code)
   end
   module_function :exit!
-  
+
   def abort(msg=nil)
     Process.abort(msg)
-  end  
+  end
   module_function :abort
-  
+
   # Display methods
   def printf(target, *args)
     if target.kind_of? IO
@@ -146,19 +147,19 @@ module Kernel
   module_function :printf
 
   def sprintf(str, *args)
-    Sprintf.new(str, *args).parse    
+    Sprintf.new(str, *args).parse
   end
   alias_method :format, :sprintf
   module_function :sprintf
   module_function :format
   module_function :abort
-  
+
   def puts(*a)
     $stdout.puts(*a)
     return nil
   end
   module_function :puts
-  
+
   def p(*a)
     a = [nil] if a.empty?
     a.each { |obj| $stdout.puts obj.inspect }
@@ -173,14 +174,14 @@ module Kernel
     nil
   end
   module_function :print
-    
+
   def open(path, *rest, &block)
     path = StringValue(path)
 
     if path.kind_of? String and path.prefix? '|'
       return IO.popen(path[1..-1], *rest, &block)
     end
- 
+
     File.open(path, *rest, &block)
   end
   module_function :open
@@ -195,12 +196,12 @@ module Kernel
     return cur
   end
   module_function :srand
-  
+
   @current_seed = 0
   def self.current_srand
     @current_seed
   end
-  
+
   def self.current_srand=(val)
     @current_seed = val
   end
@@ -220,13 +221,13 @@ module Kernel
     end
   end
   module_function :rand
-    
+
   def lambda
     block = block_given?
     raise ArgumentError, "block required" if block.nil?
-    
+
     block.disable_long_return!
-    
+
     return Proc::Function.from_environment(block)
   end
   alias_method :proc, :lambda
@@ -237,15 +238,15 @@ module Kernel
     return MethodContext.current.sender.calling_hierarchy(start)
   end
   module_function :caller
-  
+
   def global_variables
     Globals.variables.map { |i| i.to_s }
   end
   module_function :global_variables
-  
+
   def loop
     raise LocalJumpError, "no block given" unless block_given?
-    
+
     while true
       yield
     end
@@ -268,13 +269,13 @@ module Kernel
     return (Time.now - start).round
   end
   module_function :sleep
-  
-  
+
+
   def at_exit(&block)
     Rubinius::AtExit.unshift(block)
   end
   module_function :at_exit
-  
+
   def test(cmd, file1, file2=nil)
     case cmd
     when ?d
@@ -296,7 +297,7 @@ module Kernel
       [self]
     end
   end
-  
+
   def trap(sig, prc=nil, &block)
     Signal.trap(sig, prc, &block)
   end
@@ -333,7 +334,7 @@ module Kernel
   def self.after_loaded
     # This nukes the bootstrap raise so the Kernel one is used.
     Object.method_table.delete :raise
-  
+
     # Add in $! in as a hook, to just do $!. This is for accesses to $!
     # that the compiler can't see.
     get = proc { $! }
@@ -361,11 +362,11 @@ class SystemExit < Exception
   def initialize(code)
     @code = code
   end
-  
+
   attr_reader :code
-  
+
   def message
     "System is exiting with code '#{code}'"
   end
 end
-  
+

@@ -14,7 +14,7 @@ class Object
 
   def initialize
   end
-  
+
   private :initialize
 
   def nil?
@@ -25,7 +25,7 @@ class Object
     false
   end
 
-  # Regexp matching fails by default but may be overridden 
+  # Regexp matching fails by default but may be overridden
   # by subclasses, notably Regexp and String.
   def =~(other)
     false
@@ -68,9 +68,9 @@ class Object
 
     prefix = "#{self.class.name}:0x#{self.object_id.to_s(16)}" unless prefix
     parts = []
-    
+
     RecursionGuard.inspect(self) do
-    
+
       if @__ivars__.is_a?(Hash)
         @__ivars__.each do |k,v|
           next if vars and !vars.include?(k)
@@ -85,34 +85,34 @@ class Object
           end
         end
       end
-      
+
     end
-    
+
     if parts.empty?
       "#<#{prefix}>"
     else
       "#<#{prefix} #{parts.join(' ')}>"
     end
   end
-  
+
   alias_method :send, :__send__
-  
-  def method(name)    
+
+  def method(name)
     cm = __find_method__(name)
-    
+
     if cm
       return Method.new(self, cm[1], cm[0])
     else
       raise NameError, "undefined method `#{name}' for #{self.inspect}"
     end
   end
-  
+
   def method_missing_cv(meth, *args)
     # Exclude method_missing from the backtrace since it only confuses
     # people.
     myself = MethodContext.current
     ctx = myself.sender
-    
+
     if myself.send_private?
       raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
     elsif self.kind_of? Class or self.kind_of? Module
@@ -121,15 +121,15 @@ class Object
       raise NoMethodError.new("No method '#{meth}' on an instance of #{self.class}.", ctx, args)
     end
   end
-  
+
   #  call-seq:
   #     obj.instance_exec(arg...) {|var...| block }                       => obj
-  #  
+  #
   #  Executes the given block within the context of the receiver
   #  (_obj_). In order to set the context, the variable +self+ is set
   #  to _obj_ while the code is executing, giving the code access to
   #  _obj_'s instance variables.  Arguments are passed as block parameters.
-  #     
+  #
   #     class Klass
   #       def initialize
   #         @secret = 99
@@ -142,7 +142,7 @@ class Object
     env = prc.block.redirect_to self
     env.call(*args)
   end
-  
+
   def instance_variables(symbols = false)
     vars = get_instance_variables
     return [] if vars.nil?
@@ -163,9 +163,9 @@ class Object
     return vars.keys if symbols
     return vars.keys.collect { |v| v.to_s }
   end
-  
+
   private :get_instance_variables
-  
+
   def instance_variable_get(sym)
     sym = instance_variable_validate(sym)
     get_instance_variable(sym)
@@ -175,7 +175,7 @@ class Object
     sym = instance_variable_validate(sym)
     set_instance_variable(sym, value)
   end
-  
+
   # Class variable support
   def class_variable_set(sym, value)
     self.class.class_variable_set sym, value
@@ -205,11 +205,11 @@ class Object
     name.to_sym
   end
   private :instance_variable_validate
-  
+
   private :get_instance_variable
-  
+
   private :set_instance_variable
-  
+
   def singleton_methods(all=true)
     mt = metaclass.method_table
     if all
@@ -222,7 +222,7 @@ class Object
   def private_singleton_methods
     metaclass.method_table.private_names.map { |meth| meth.to_s }
   end
-  
+
   def protected_singleton_methods
     metaclass.method_table.protected_names.map { |meth| meth.to_s }
   end
@@ -232,19 +232,19 @@ class Object
     names |= self.class.instance_methods(true) if all
     return names
   end
-  
+
   def public_methods(all=true)
     names = singleton_methods(all)
     names |= self.class.public_instance_methods(all)
     return names
   end
-  
+
   def private_methods(all=true)
     names = private_singleton_methods
     names |= self.class.private_instance_methods(all)
     return names
   end
-  
+
   def protected_methods(all=true)
     names = protected_singleton_methods
     names |= self.class.protected_instance_methods(all)
