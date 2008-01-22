@@ -1,7 +1,0 @@
-Kernel#callcc is possible to exit a loop like a break
-Kernel#callcc is possible to call a continuation multiple times
-Kernel#callcc returns the results of a block if block is not called
-Kernel#callcc returns the arguments to call
-Kernel#callcc preserves changes to block-local scope
-Kernel#callcc preserves changes to method-local scope
-Kernel#callcc raises a LocalJumpError if callcc is not given a block
