@@ -250,9 +250,12 @@ class Module
   end
 
   def instance_method(name)
-    raise TypeError,     "#{name} is not a symbol" if name.kind_of?(NilClass)
-    raise ArgumentError, "#{name} is not a symbol" unless name.kind_of?(Symbol) or name.kind_of?(String)
-    name = name.to_sym
+    begin
+      name = name.to_sym
+    rescue Exception
+      raise TypeError, "#{name} is not a symbol"
+    end
+
     cur, cm = __find_method(name)
     return UnboundMethod.new(cur, cm, self) if cm
     thing = self.kind_of?(Class) ? "class" : "module"
