@@ -116,12 +116,16 @@ class Module
   end
 
   def name
-    calculate_name([])
+    return @name.to_s if @name
+    return calculate_name()
   end
 
   def to_s
-    return name unless @name.nil?
-    super
+    if @name
+      @name.to_s
+    else
+      super
+    end
   end
 
   def inspect
@@ -472,7 +476,7 @@ class Module
 
   def const_set(name, value)
     if value.is_a? Module
-      value.set_name_and_parent(name, self)
+      value.set_name_if_necessary(name, self)
     end
     constants_table[normalize_const_name(name)] = value
   end
@@ -569,9 +573,14 @@ class Module
     false
   end
 
-  def set_name_and_parent(name, parent)
-    @name = name.to_s.to_sym
-    @parent = parent
+  def set_name_if_necessary(name, mod)
+    return unless @name.nil?
+    name = name.to_s.dup
+    while mod and mod != Object
+      name.insert(0, "#{mod.name}::")
+      mod = mod.parent
+    end
+    @name = name.to_sym
   end
 
   # A fixup, move the core versions in place now that everything
@@ -601,19 +610,28 @@ class Module
 
 private
 
-  def calculate_name(visited_const)
-    return @memoized_name if @memoized_name
-    unless @name.nil?
-      if @parent.respond_to?(:name) && @parent != Object && !visited_const.include?(self) then
-        visited_const.push(self)
-        @memoized_name = parent.send(:calculate_name, visited_const).to_s.dup
-        @memoized_name.append("::")
-        @memoized_name.append(@name.to_s.dup)
-      else
-        @memoized_name = @name.to_s.dup
+  def calculate_name
+    # This should be removed if/when constant assignment happens
+    # via const_set() - it's pretty ugly!
+
+    seen = { Object => true }
+    constants = [[Object, Object.constants_table]]
+
+    until constants.empty?
+      mod, table = constants.shift
+      table.each do |const_name, value|
+        if value.equal? self
+          set_name_if_necessary(const_name.to_s, mod)
+          return @name.to_s
+        elsif value.is_a? Module
+          unless seen[value]
+            constants << [value, value.constants_table]
+            seen[value] = true
+          end
+        end
       end
-      return @memoized_name
     end
+
     return ""
   end
 

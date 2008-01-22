@@ -35,7 +35,7 @@ DT_ADDRESSES;
 #define next_literal next_int; _lit = fast_fetch(cpu_current_literals(state, c), _int)
 
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, OBJECT sym, int *created) {
-  OBJECT val;
+  OBJECT val, s1, s2, s3, s4, sup_itr;
     
   *created = FALSE;
     
@@ -67,24 +67,47 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, OBJECT sym, int *c
     /*
     printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(under));
     */
+    if(under != state->global->object) {
+      s1 = symbol_to_string(state, module_get_name(under));
+      s2 = symbol_to_string(state, sym);
+      s3 = string_dup(state, s1);
+      string_append(state, s3, string_new(state, "::"));
+      string_append(state, s3, s2);
+      s4 = string_to_sym(state, s3);
+      module_set_name(val, s4);
+    } else {
+      module_set_name(val, sym);
+    }
     module_const_set(state, under, sym, val);
+    sup_itr = sup;    
   }
   return val;
 }
 
 OBJECT cpu_open_module(STATE, cpu c, OBJECT under, OBJECT sym) {
-  OBJECT val;
+  OBJECT val, s1;
   
   val = module_const_get(state, under, sym);
   if(!RTEST(val)) {
     val = module_allocate_mature(state, 0);
     module_setup_fields(state, val);
-    module_setup_fields(state, object_metaclass(state, val));
 
     /*
     printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(under));
     */
+    if(under != state->global->object) {
+      s1 = symbol_to_string(state, module_get_name(under));
+      s1 = string_dup(state, s1);
+      string_append(state, s1, string_new(state, "::"));
+      string_append(state, s1, symbol_to_string(state, sym));
+      module_set_name(val, string_to_sym(state, s1));
+    } else {
+      module_set_name(val, sym);
+    }
+    
     module_const_set(state, under, sym, val);
+    module_setup_fields(state, object_metaclass(state, val));
+    module_set_parent(val, under);    
     module_set_parent(object_metaclass(state, val), under);
   }
   

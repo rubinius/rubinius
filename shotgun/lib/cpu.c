@@ -326,7 +326,10 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
 }
 
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under) {
-  module_const_set(state, under, sym, val);
+  OBJECT hsh;
+  
+  hsh = module_get_constants(under);
+  hash_set(state, hsh, sym, val);
   return val;
 }
 
