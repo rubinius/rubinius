@@ -1,2 +1,0 @@
-IO#sysread on a file does not raise error if called after IO#read followed by IO#write
-IO#sysread on a file does not raise error if called after IO#read followed by IO#syswrite

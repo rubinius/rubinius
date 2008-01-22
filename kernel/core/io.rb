@@ -279,7 +279,6 @@ class IO
 
   alias_method :readpartial, :sysread
 
-  alias_method :syswrite, :write
 
   def breadall(output=nil)
     return "" if @eof
@@ -342,6 +341,19 @@ class IO
 
     return output
   end
+
+  alias_method :prim_write, :write
+  
+  def write(data)
+    # If we have buffered data, rewind.
+    unless @buffer.empty?
+      seek 0, SEEK_CUR
+    end
+
+    prim_write(data)
+  end
+  
+  alias_method :syswrite, :write
 
   def seek(amount, whence=SEEK_SET)
     # Unseek the still buffered amount

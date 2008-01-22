@@ -32,13 +32,13 @@ describe "IO#sysread on a file" do
   it "does not raise error if called after IO#read followed by IO#write" do
     @file.read(5)
     @file.write("abcde")
-    lambda { @file.sysread(5) }.should_not raise_error
+    lambda { @file.sysread(5) }.should_not raise_error(IOError)
   end
   
   it "does not raise error if called after IO#read followed by IO#syswrite" do
     @file.read(5)
     @file.syswrite("abcde")
-    lambda { @file.sysread(5) }.should_not raise_error
+    lambda { @file.sysread(5) }.should_not raise_error(IOError)
   end
   
   it "flushes write buffer when called immediately after a buffered IO#write" do

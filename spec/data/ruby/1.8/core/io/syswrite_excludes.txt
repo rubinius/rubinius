@@ -1,2 +1,0 @@
-IO#syswrite on a file writes to the actual file position when called after buffered IO#read
-IO#syswrite on a file warns if called immediately after a buffered IO#write
