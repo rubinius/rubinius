@@ -1240,6 +1240,19 @@ ev_default_loop (unsigned int flags)
   return ev_default_loop_ptr;
 }
 
+#if EV_MULTIPLICITY
+/* the default loop is the only one that handles signals and child watchers */
+/* you can call this as often as you like */
+struct ev_loop *
+ev_default_loop (unsigned int flags)
+{
+  if (!ev_default_loop_ptr)
+    ev_default_loop_init (flags);
+
+  return ev_default_loop_ptr;
+}
+#endif
+
 void
 ev_default_destroy (void)
 {

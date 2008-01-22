@@ -385,6 +385,7 @@ void cpu_thread_exited(STATE, cpu c) {
   c->home_context = Qnil;
   c->current_thread = Qnil;
   c->current_task = Qnil;
+  THDEBUG("%d: thread exitted, switching.\n", getpid());
   cpu_thread_run_best(state, c);
 }
 
@@ -485,59 +486,19 @@ void cpu_thread_switch(STATE, cpu c, OBJECT thr) {
 }
 
 /* Called because the current thread is waiting on something. */
-void cpu_thread_suspend_current(STATE, cpu c) {
+void cpu_thread_run_best(STATE, cpu c) {
   OBJECT thr;
-  c->current_thread_ready = FALSE;
+ 
+  THDEBUG("%d: poll for events.\n", getpid());
   cpu_event_update(state);
 
   thr = cpu_thread_find_highest(state);
 
   /* Ok, we found a suspended thread to run. */
   if(!NIL_P(thr)) {
-
-    /* Reschedule current, because it's ready to run. */
-    if(c->current_thread_ready) {
-      cpu_thread_schedule(state, c->current_thread);
-    }
-
+    THDEBUG("%d: poll found thread %p\n", getpid(), thr);
     cpu_thread_switch(state, c, thr);
 
-    /* If current is ready, we're done. */
-  } else if(!c->current_thread_ready) {
-    /* No threads to run. Let events run and swap in a new thread. */
-    if(!cpu_event_outstanding_p(state)) {
-      printf("DEADLOCK!\n");
-      abort();
-    }
-
-    /* Running the events will swap in a new thread. */
-    cpu_event_run(state);
-  }
-}
-
-void cpu_thread_run_best(STATE, cpu c) {
-  OBJECT thr, chan;
-  int current_ready = 0;
-
-  /* If we have a current_thread, then also detect that it had
-   * events updated, so we know we don't have to call cpu_event_run. */
-
-  if(NIL_P(c->current_thread)) {
-    cpu_event_update(state);
-  } else {
-    chan = thread_get_channel(c->current_thread);
-    cpu_event_update(state);
-    if(!NIL_P(chan) && NIL_P(thread_get_channel(c->current_thread))) {
-      current_ready = 1;
-    }
-  }
-  
-  thr = cpu_thread_find_highest(state);
-  if(!NIL_P(thr)) {
-    assert(cpu_thread_alive_p(state, thr));
-    cpu_thread_switch(state, c, thr);
-  } else if(current_ready) {
-    return;
   } else {
     /* No threads to run. Let events run and swap in a new thread. */
     if(!cpu_event_outstanding_p(state)) {
@@ -545,8 +506,19 @@ void cpu_thread_run_best(STATE, cpu c) {
       abort();
     }
 
-    /* Running the events will swap in a new thread. */
-    cpu_event_run(state);
+      
+    THDEBUG("%d: waiting for events. (%d)\n", getpid(), state->pending_threads);
+    while(1) {
+      /* Running the events will swap in a new thread. */
+      cpu_event_run(state);
+      
+      thr = cpu_thread_find_highest(state);
+      if(!NIL_P(thr)) {
+        THDEBUG("%d: waiting found thread %p\n", getpid(), thr);
+        cpu_thread_switch(state, c, thr);
+        break;
+      }
+    }
   }
 }
 
@@ -560,8 +532,10 @@ void cpu_thread_preempt(STATE, cpu c) {
   /* No one else to run.. */
   if(thr == Qnil) return;
 
-  cpu_thread_schedule(state, c->current_thread);
-  cpu_thread_switch(state, c, thr);
+  if(thr != c->current_thread) {
+    cpu_thread_schedule(state, c->current_thread);
+    cpu_thread_switch(state, c, thr);
+  }
 }
 
 OBJECT cpu_channel_new(STATE) {
@@ -626,13 +600,7 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
 
     thread_set_channel(reader, Qnil);
 
-    if(NIL_P(c->current_thread)) {
-      cpu_thread_switch(state, c, reader);
-    } else if(reader == c->current_thread) {
-      c->current_thread_ready = TRUE;
-    } else {
-      cpu_thread_schedule(state, reader);
-    }
+    cpu_thread_schedule(state, reader);
   }
   
   return obj;
@@ -660,11 +628,13 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
     stack_push(Qfalse);
   }
 
+  THDEBUG("%d: thread %p, receive on %p\n", getpid(), cur_thr, self);
+
   thread_set_channel(cur_thr, self);
   
   object_set_ivar(state, cur_thr, SYM("@sleep"), Qtrue);
   readers = channel_get_waiting(self);
   list_append(state, readers, cur_thr);
-  cpu_thread_suspend_current(state, c);
+  cpu_thread_run_best(state, c);
 }
 

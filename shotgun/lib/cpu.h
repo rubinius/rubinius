@@ -225,6 +225,7 @@ OBJECT cpu_thread_get_task(STATE, OBJECT self);
 void cpu_thread_preempt(STATE, cpu c);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
+void cpu_thread_suspend_current(STATE, cpu c);
 void cpu_thread_force_run(STATE, cpu c, OBJECT thr);
 void cpu_thread_exited(STATE, cpu c);
 int cpu_thread_alive_p(STATE, OBJECT self);

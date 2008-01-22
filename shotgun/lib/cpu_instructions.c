@@ -634,6 +634,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
     
     /* Thread exitting, reschedule.. */
     if(c->current_thread != c->main_thread) {
+      THDEBUG("%d: thread reached end, dead.\n", getpid());
       cpu_thread_exited(state, c);
       return FALSE;
     /* Switch back to the main task... */
@@ -693,6 +694,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     
     /* Thread exitting, reschedule.. */
     if(c->current_thread != c->main_thread) {
+      THDEBUG("%d: thread reached end, dead.\n", getpid());
       cpu_thread_exited(state, c);
       return FALSE;
     /* Switch back to the main task... */

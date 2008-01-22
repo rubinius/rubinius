@@ -565,6 +565,13 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, ptr_array roots) {
       }
     }
     
+    if(!ent->klass || !ent->module || !ent->method) {
+      ent->name = 0;
+      ent->klass = 0;
+      ent->module = 0;
+      ent->method = 0;
+    }
+    
     ent++;
   }
  

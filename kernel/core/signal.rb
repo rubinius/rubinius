@@ -3,6 +3,7 @@
 module Signal
   Names = {"EXIT" => 0}
 
+  @threads = {}
   @handlers = {}
   
   def self.trap(sig, prc=nil, pass_ctx=false, &block)
@@ -18,11 +19,18 @@ module Signal
       prc = block
     end
 
+    old = @handlers[number]
+
+    @handlers[number] = prc
+
+    # If there is already at thread for this sig, give up.
+    return old if @threads[number]
+
     chan = Channel.new
 
     thr = Thread.new do
       while true
-        break unless ctx = chan.receive
+        ctx = chan.receive
 
         if pass_ctx
           obj = ctx
@@ -31,16 +39,18 @@ module Signal
         end
 
         begin
-          prc.call(obj)
-        rescue Object
+          @handlers[number].call(obj)
+        rescue Object => e
+          if $DEBUG
+            STDERR.pus "Exception while running signal handler: #{e.message}"
+          end
         end
       end
     end
 
-    Scheduler.send_on_signal chan, number
+    @threads[number] = thr
 
-    old = @handlers[number]
-    @handlers[number] = thr
+    Scheduler.send_on_signal chan, number
     return old
   end
   

@@ -373,19 +373,7 @@ void ev_set_allocator (void *(*cb)(void *ptr, long size));
 void ev_set_syserr_cb (void (*cb)(const char *msg));
 
 # if EV_MULTIPLICITY
-/* the default loop is the only one that handles signals and child watchers */
-/* you can call this as often as you like */
-static struct ev_loop *
-ev_default_loop (unsigned int flags)
-{
-  extern struct ev_loop *ev_default_loop_ptr;
-  extern struct ev_loop *ev_default_loop_init (unsigned int flags);
-
-  if (!ev_default_loop_ptr)
-    ev_default_loop_init (flags);
-
-  return ev_default_loop_ptr;
-}
+struct ev_loop *ev_default_loop(unsigned int flags);
 
 /* create and destroy alternative loops that don't handle signals */
 struct ev_loop *ev_loop_new (unsigned int flags);

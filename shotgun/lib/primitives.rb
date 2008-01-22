@@ -2560,6 +2560,7 @@ class ShotgunPrimitives
     /* Same reason as thread_run */
     stack_push(Qnil);
     cpu_thread_schedule(state, c->current_thread);
+    THDEBUG("%d: thread yield.\\n", getpid());
     cpu_thread_run_best(state, c);
     CODE
   end
@@ -2567,6 +2568,7 @@ class ShotgunPrimitives
   def thread_dequeue
     <<-CODE
     (void)stack_pop();
+    THDEBUG("%d: dequeue thread.\\n", getpid());
     cpu_thread_exited(state, c);
     CODE
   end
