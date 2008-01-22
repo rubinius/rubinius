@@ -9,20 +9,12 @@ describe "File.expand_path" do
     end
     
     platform_is_not :mswin do
-      @base = `pwd -P`.chomp
+      @base = Dir.pwd
       @tmpdir = "/tmp"
       @rootdir = "/"
-      @pwd  = Dir.pwd
     end
   end
 
-  after :each do
-    @base = nil
-    @tmpdir = nil
-    @rootdir = nil    
-    @pwd  = nil
-  end
-  
   it "converts a pathname to an absolute pathname" do 
     File.expand_path('').should == @base
     File.expand_path('a').should == File.join(@base, 'a')
@@ -60,7 +52,7 @@ describe "File.expand_path" do
       File.expand_path("../../bin", "/tmp/x").should == "/bin" 
       File.expand_path("../../bin", "/tmp").should == "/bin"
       File.expand_path("../../bin", "/").should == "/bin"
-      File.expand_path("../../bin", "tmp/x").should == File.join(@pwd, 'bin')
+      File.expand_path("../../bin", "tmp/x").should == File.join(@base, 'bin')
     end
 
     it "expand_path for commoms unix path  give a full path" do      
