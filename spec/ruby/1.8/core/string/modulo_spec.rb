@@ -496,17 +496,19 @@ describe "String#%" do
     # ("%s" % obj).should == "obj"
   end
   
-  it "taints result for %s when argument is tainted" do
-    ("%s" % "x".taint).tainted?.should == true
-    ("%s" % mock('x').taint).tainted?.should == true
-    ("%s" % 5.0.taint).tainted?.should == true
-  end
+  platform_is_not :version => '1.8.6', :patch => 0..36 do
+    it "taints result for %s when argument is tainted" do
+      ("%s" % "x".taint).tainted?.should == true
+      ("%s" % mock('x').taint).tainted?.should == true
+      ("%s" % 5.0.taint).tainted?.should == true
+    end
 
-  # MRI crashes on this one.
-  # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
-  it "raises an ArgumentError for huge precisions for %s" do
-    block = lambda { "%.25555555555555555555555555555555555555s" % "hello world" }
-    block.should raise_error(ArgumentError)
+    # MRI crashes on this one.
+    # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
+    it "raises an ArgumentError for huge precisions for %s" do
+      block = lambda { "%.25555555555555555555555555555555555555s" % "hello world" }
+      block.should raise_error(ArgumentError)
+    end
   end
   
   # Note: %u has been changed to an alias for %d in MRI 1.9 trunk.
