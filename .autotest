@@ -19,8 +19,6 @@ class Autotest
     unless full.empty? then
       classes = full.map {|k,v| k}.flatten.uniq.sort.join(' ')
 
-      system "find spec -name \*excludes.txt | xargs cat > all-exclude.txt~"
-
       cmds << "#{ruby} -I#{@libs} -e \"puts 'Started autotest'; %w[#{classes}].each { |f| require f }\" | #{unit_diff}"
     end
 
@@ -33,7 +31,9 @@ class Autotest
 end
 
 Autotest.add_hook :initialize do |at|
-  at.exceptions << /\.rbc$/ << /\.txt$/
+  at.add_exception(/\.rbc$/)
+  at.add_exception(/\.txt$/)
+  at.add_exception(/fixtures/)
 
   at.add_mapping %r%^spec/.*_spec\.rb$% do |filename, _|
     filename
