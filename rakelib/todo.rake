@@ -12,8 +12,10 @@ task :todo do
     end
   end
 
+  total = 0
   excludes.sort_by { |_, v| -v }.each do |dir, count|
-    puts "%3d: %s" % [count, dir]
+    puts "%3d: spec/%s" % [count, dir]
+    total += count
   end
+  puts "%3d: TOTAL" % total
 end
-
