@@ -203,7 +203,6 @@ class Module
     return new_name
   end
 
-
   def undef_method(*names)
     names.each do |name|
       # Will raise a NameError if the method doesn't exist.
@@ -219,7 +218,10 @@ class Module
 
   def remove_method(*names)
     names.each do |name|
+      # Will raise a NameError if the method doesn't exist.
       instance_method(name)
+      raise NameError, "method `#{name}' not defined in #{self.name}" unless
+        self.method_table[name]
       method_table.delete name
       Rubinius::VM.reset_method_cache(name)
 
