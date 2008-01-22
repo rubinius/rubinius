@@ -147,22 +147,22 @@ clean:
 # Clean, but also nuke configs
 distclean: clean
 	rm -f config.h config.mk
-	rm config/is64bit
-	rm config/isbigendian
-	cd external_libs/libev; rm -f config.h
-	cd external_libs/libltdl; rm -f config.h
-	cd external_libs/libzip; rm -f config.h
-	cd external_libs/lightning; rm -f config.h
-	cd external_libs/onig; rm -f config.h
-	cd external_libs/libbstring; $(MAKE) clean
-	cd external_libs/libcchash; $(MAKE) clean
-	cd external_libs/libev; $(MAKE) clean
-	cd external_libs/libltdl; $(MAKE) clean
-	cd external_libs/libmpa; $(MAKE) clean
-	cd external_libs/libmquark; $(MAKE) clean
-	cd external_libs/libtommath; $(MAKE) clean
-	cd external_libs/libzip; $(MAKE) clean
-	cd external_libs/lightning; $(MAKE) clean
-	cd external_libs/onig; $(MAKE) clean
+	rm -f config/is64bit
+	rm -f config/isbigendian
+	rm -f external_libs/libev/config.h
+	rm -f external_libs/libltdl/config.h
+	rm -f external_libs/libzip/config.h
+	rm -f external_libs/lightning/config.h
+	rm -f external_libs/onig/config.h
+	-cd external_libs/libbstring; $(MAKE) clean
+	-cd external_libs/libcchash; $(MAKE) clean
+	-cd external_libs/libev; $(MAKE) clean
+	-cd external_libs/libltdl; $(MAKE) clean
+	-cd external_libs/libmpa; $(MAKE) clean
+	-cd external_libs/libmquark; $(MAKE) clean
+	-cd external_libs/libtommath; $(MAKE) clean
+	-cd external_libs/libzip; $(MAKE) clean
+	-cd external_libs/lightning; $(MAKE) clean
+	-cd external_libs/onig; $(MAKE) clean
 
 .PHONY: distclean
