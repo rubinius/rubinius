@@ -55,6 +55,16 @@ class Tuple
     str << at(count).__send__(meth)
     return str
   end
+
+  def ===(other)
+    return false unless Tuple === other and fields == other.fields
+    i = 0
+    while i < fields
+      return false unless at(i) === other.at(i)
+      i += 1
+    end
+    true
+  end
   
   def to_a
     ary = []
