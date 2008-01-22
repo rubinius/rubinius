@@ -171,7 +171,6 @@ void cpu_event_clear_channel(STATE, OBJECT chan) {
     tnext = ti->next;
     if(ti->channel == chan) {
       _cpu_event_unregister_info(state, ti);
-      XFREE(ti);
     }
     ti = tnext;
   }
@@ -322,11 +321,13 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
 }
 
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
-  struct thread_info *ti;
+  struct thread_info *ti, *tnext;
   environment e = environment_current();
 
   ti = (struct thread_info*)(state->thread_infos);
   while (ti) {
+    tnext = ti->next;
+
     if (ti->type == SIGNAL && ti->sig == sig) {
       cpu tc = ti->c;
       STATE = ti->state;
@@ -335,7 +336,7 @@ void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
       cpu_channel_send(state, tc, tchan, Qnil);
       break;
     }
-    ti = ti->next;
+    ti = tnext;
   }
 
   /* Here is a short period during which a incoming signal would not

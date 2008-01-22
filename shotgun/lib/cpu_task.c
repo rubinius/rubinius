@@ -33,7 +33,10 @@ void cpu_task_cleanup(STATE, OBJECT self) {
   task = (struct cpu_task*)BYTES_OF(self);
 
   if(!task->stack_slave) {
-    XFREE(task->stack_top);
+    if(task->stack_top) {
+      XFREE(task->stack_top);
+    }
+    task->stack_top = NULL;
   }
 }
 
