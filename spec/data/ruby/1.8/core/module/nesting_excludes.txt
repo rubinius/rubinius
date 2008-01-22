@@ -1,1 +1,1 @@
-Module.nesting returns the list of Modules nested at the point of call
+Module::Nesting returns the list of Modules nested at the point of call

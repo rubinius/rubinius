@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "Module.nesting" do
+describe "Module::Nesting" do
 
   it "returns the list of Modules nested at the point of call" do
     ModuleSpecs::Nesting[:root_level].should == []

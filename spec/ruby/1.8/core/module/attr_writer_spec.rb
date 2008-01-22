@@ -8,6 +8,8 @@ describe "Module#attr_writer" do
     end
     o = c.new
 
+p o.methods.sort
+
     o.respond_to?("a").should == false
     o.respond_to?("c").should == false
 

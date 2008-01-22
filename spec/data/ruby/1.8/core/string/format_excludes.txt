@@ -1,1 +1,0 @@
-String instance method % format float values Infinity and Nan
