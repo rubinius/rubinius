@@ -8,6 +8,7 @@
 #include "shotgun/lib/object.h"
 #include "shotgun/lib/bytearray.h"
 #include "shotgun/lib/string.h"
+#include "shotgun/lib/module.h"
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/hash.h"
 #include "shotgun/lib/symbol.h"
