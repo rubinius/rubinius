@@ -101,16 +101,16 @@ class Module
   end
   
   def attr_reader(name)
-    sym = "@#{name}".__symbol_lookup__
+    sym = "@#{name}".to_sym
     meth = AccessVarMethod.get_ivar(sym)
     @method_table[name] = meth
     return nil
   end
   
   def attr_writer(name)
-    sym = "@#{name}".__symbol_lookup__
+    sym = "@#{name}".to_sym
     meth = AccessVarMethod.set_ivar(sym)
-    @method_table["#{name}=".__symbol_lookup__] = meth
+    @method_table["#{name}=".to_sym] = meth
     return nil    
   end
   
