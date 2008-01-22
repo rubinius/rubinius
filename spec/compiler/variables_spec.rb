@@ -67,7 +67,7 @@ describe Compiler do
       g.push_literal iter
       g.create_block2
       g.push :self
-      g.passed_block do
+      g.passed_block(1) do
         g.send_with_block :go, 0, true
       end
     end          

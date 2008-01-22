@@ -1519,9 +1519,13 @@ class Node
       end
 
       if @in_block
-        g.push_cpath_top
-        g.find_const :LongReturnException
-        g.send :new, 1
+        # Set the return value from @value above.
+        g.push_local @check_var.slot
+        g.send :return_value=, 1
+        g.pop
+
+        # Now raise it.
+        g.push_local @check_var.slot
         g.raise_exc
       else
         g.sret
@@ -1832,9 +1836,18 @@ class Node
 
       receiver_bytecode(g)
 
-      if @block
+      # @block might be BlockPass, and we don't generate the LRE detection
+      # code for that.
+      if @block and @block.is? Iter
         ok = g.new_label
         g.exceptions do |ex|
+
+          # We pre-create the exception.
+          g.push_cpath_top
+          g.find_const :LongReturnException
+          g.send :new, 0
+          g.set_local @check_var.slot
+          g.pop
 
           if @dynamic
             g.swap
@@ -1850,11 +1863,12 @@ class Node
           
           g.push_exception
           g.dup
-          g.push_const :LongReturnException
-          g.send :===, 1
+          g.push_local @check_var.slot
+          g.equal
 
           after = g.new_label
           g.gif after
+
           g.send :return_value, 0
           g.clear_exception
           g.ret
@@ -1869,6 +1883,9 @@ class Node
         g.swap
         g.set_args
         g.send_with_register @method, allow_private?
+      elsif @block
+        # Only BlockPass currently
+        g.send_with_block @method, @argcount, allow_private?
       else
         g.send @method, @argcount, allow_private?
       end

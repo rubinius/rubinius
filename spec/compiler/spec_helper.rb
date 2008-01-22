@@ -122,10 +122,16 @@ class TestGenerator
     pop
   end
   
-  def passed_block
+  def passed_block(local=0)
     g = self
     ok = g.new_label
     g.exceptions do |ex|
+      g.push_cpath_top
+      g.find_const :LongReturnException
+      g.send :new, 0
+      g.set_local local
+      g.pop
+
       yield
       g.goto ok
 
@@ -133,8 +139,8 @@ class TestGenerator
 
       g.push_exception
       g.dup
-      g.push_const :LongReturnException
-      g.send :===, 1
+      g.push_local local
+      g.equal
 
       after = g.new_label
       g.gif after

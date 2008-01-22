@@ -431,9 +431,7 @@ describe Compiler do
       g.push :self
       g.send :blah, 0, true
       g.push :self
-      g.passed_block do
-        g.send_with_block :foo, 0, true 
-      end
+      g.send_with_block :foo, 0, true 
     end
   end
 end

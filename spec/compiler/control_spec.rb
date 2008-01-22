@@ -243,7 +243,7 @@ describe Compiler do
       g.push_cpath_top
       g.find_const :Range
       g.send :new, 2
-      g.passed_block do
+      g.passed_block(1) do
         g.send_with_block :each, 0, false
       end
     end
@@ -305,7 +305,7 @@ describe Compiler do
       g.create_block2
       g.push :self
       g.send :x, 0, true
-      g.passed_block do
+      g.passed_block(2) do
         g.send_with_block :each, 0, false
       end
     end
@@ -338,7 +338,7 @@ describe Compiler do
       g.create_block2
       g.push :self
       g.send :x, 0, true
-      g.passed_block do
+      g.passed_block(2) do
         g.send_with_block :each, 0, false
       end
     end
@@ -932,9 +932,10 @@ describe Compiler do
         d.push_modifiers
         d.new_label.set! # redo
         d.push 12
-        d.push_cpath_top
-        d.find_const :LongReturnException
-        d.send :new, 1
+        d.push_local 0
+        d.send :return_value=, 1
+        d.pop
+        d.push_local 0
         d.raise_exc
         d.pop_modifiers
         d.soft_return

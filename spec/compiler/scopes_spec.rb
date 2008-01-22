@@ -125,7 +125,7 @@ describe Compiler do
         d.push_literal iter
         d.create_block2
         d.make_array 0
-        d.passed_block do
+        d.passed_block(1) do
           d.send_with_block :each, 0, false
         end
         d.sret

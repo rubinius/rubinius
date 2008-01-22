@@ -1426,10 +1426,12 @@ class Node
         @in_ensure = false
       end
 
-      @in_block = get(:iter)
+      if @in_block = get(:iter)
+        @check_var, _ = get(:scope).find_local :@lre
+      end
     end
 
-    attr_accessor :value, :in_rescue, :in_ensure, :in_block
+    attr_accessor :value, :in_rescue, :in_ensure, :in_block, :check_var
   end
 
   class MAsgn < Node
@@ -1528,8 +1530,17 @@ class Node
         @scope = :method
       end
     end
+    
+    def block=(obj)
+      if obj.kind_of? Iter
+        @check_var, _ = get(:scope).find_local :@lre
+      end
 
-    attr_accessor :block, :scope
+      @block = obj
+    end
+
+    attr_reader :block, :check_var
+    attr_accessor :scope
   end
 
   class Call < MethodCall
@@ -1867,10 +1878,10 @@ class Node
       if vars.first == :masgn
         ary = vars[1]
         1.upto(ary.size - 1) do |i|
-          scope.find_local ary[i][1], block
+          scope.find_local ary[i][1], block if ary[i].first == :lasgn
         end
       else
-        scope.find_local vars[1], block
+        scope.find_local vars[1], block if vars.first == :lasgn
       end
 
       set(:iter) do

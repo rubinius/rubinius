@@ -24,6 +24,9 @@ describe "Dir.mkdir" do
   end
 
   it "raises a SystemCallError when lacking adequate permissions in the parent dir" do
+    # In case something happened it it didn't get cleaned up.
+    Dir.rmdir 'noperms' if File.directory? 'noperms'
+
     Dir.mkdir 'noperms', 0000
 
     lambda { Dir.mkdir 'noperms/subdir' }.should raise_error(SystemCallError)
