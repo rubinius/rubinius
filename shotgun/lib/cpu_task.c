@@ -322,7 +322,7 @@ static void cpu_task_clear_flag(STATE, OBJECT self, int flag) {
   struct cpu_task *task;
   
   task = (struct cpu_task*)BYTES_OF(self);
-  TASK_CLEAR_FLAG(task, flag);  
+  TASK_CLEAR_FLAG(task, flag);
 }
 
 void cpu_task_set_top(STATE, OBJECT self, OBJECT val) {

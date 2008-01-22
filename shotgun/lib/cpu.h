@@ -53,6 +53,7 @@ struct fast_context {
 #define InitialStackSize 262144
 
 #define TASK_NO_STACK 1
+#define TASK_DEBUG_ON_CTXT_CHANGE 2
 #define TASK_FLAG_P(task, flag) ((task->flags & flag) == flag)
 #define TASK_SET_FLAG(task, flag) (task->flags |= flag)
 #define TASK_CLEAR_FLAG(task, flag) (task->flags ^= flag)
@@ -89,7 +90,7 @@ struct cpu_task {
 };
 
 struct rubinius_cpu {
-  /* Normal registers ande saved and restored per new method call . */
+  /* Normal registers are saved and restored per new method call . */
   OBJECT self, sender;
   OBJECT cache;
   IP_TYPE *data;
@@ -157,6 +158,7 @@ void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
 int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception);
 int cpu_simple_return(STATE, cpu c, OBJECT val);
 void cpu_save_registers(STATE, cpu c, int offset);
+void cpu_yield_debugger_check(STATE, cpu c);
 
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym);
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under);
@@ -187,6 +189,7 @@ void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
 OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include_private);
 void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
+void cpu_yield_debugger(STATE, cpu c);
 
 void cpu_run_script(STATE, cpu c, OBJECT meth);
 

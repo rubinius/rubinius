@@ -177,7 +177,7 @@ class BreakpointTracker
       ctx = thread.task.current_context
       bp = find_breakpoint(ctx)
       unless bp
-        raise "Unable to find breakpoint for #{ctx.inspect}"
+        thread.raise "Unable to find breakpoint for #{ctx.inspect}"
       end
       if bp.enabled?
         bp.restore_into(ctx)

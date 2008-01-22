@@ -187,7 +187,9 @@ module Bytecode
       :task_debug_channel,
       :task_control_channel,
       :thread_dequeue,
-      :fastctx_set_iseq
+      :fastctx_set_iseq,
+      :task_get_debug_context_change,
+      :task_set_debug_context_change
     ]
 
     FirstRuntimePrimitive = 1024

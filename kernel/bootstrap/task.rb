@@ -54,6 +54,18 @@ class Task
   def control_channel
     Ruby.primitive :task_control_channel
   end
+
+  # Returns the current state of the debug_context_change flag
+  def debug_context_change
+    Ruby.primitive :task_get_debug_context_change
+  end
+  
+  # Sets a flag on the task which will cause the task to yield to the debugger
+  # when the context changes. This is used to handle breakpoints that need to be
+  # triggered following a control flow change, e.g. after a send or return.
+  def debug_context_change=(val)
+    Ruby.primitive :task_set_debug_context_change
+  end
   
   def raise(exc)
     Ruby.primitive :task_raise

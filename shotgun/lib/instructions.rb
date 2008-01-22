@@ -1257,37 +1257,7 @@ CODE
   
   def yield_debugger
     <<-CODE
-    cpu_flush_sp(c);
-    cpu_flush_ip(c);
-    methctx_reference(state, c->active_context);
-
-    OBJECT dbg = c->debug_channel;
-    if(dbg == Qnil) {
-      /* No debug channel on the task, so use the VM default one (if any) */
-      OBJECT mod, vm;
-      mod = rbs_const_get(state, BASIC_CLASS(object), "Rubinius");
-      if(!NIL_P(mod)) {
-        vm = rbs_const_get(state, mod, "VM");
-        if(!NIL_P(vm)) {
-          dbg = object_get_ivar(state, vm, SYM("@debug_channel"));
-        }
-      }
-    }
-
-    if(dbg != Qnil) {
-      if(c->control_channel == Qnil) {
-        /* No control channel on the task, so create one */
-        c->control_channel = cpu_channel_new(state);
-      }
-
-      cpu_channel_send(state, c, dbg, c->current_thread);
-      /* This is so when this task is reactivated, the sent value wont be placed
-         on the stack, keeping the stack clean. */
-      TASK_SET_FLAG(c, TASK_NO_STACK);
-      cpu_channel_receive(state, c, c->control_channel, c->current_thread);
-    } else {
-      cpu_raise_arg_error_generic(state, c, "Attempted to switch to debugger, no debugger installed");
-    }
+    cpu_yield_debugger(state, c);
     CODE
   end
   

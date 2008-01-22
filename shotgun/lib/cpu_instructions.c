@@ -640,6 +640,18 @@ inline void cpu_save_registers(STATE, cpu c, int offset) {
 }
 
 
+inline void cpu_yield_debugger_check(STATE, cpu c) {
+  /* Yield to the debugger if flag is set */
+  struct cpu_task *task = (struct cpu_task*)BYTES_OF(c->current_task);
+  if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
+    if(EXCESSIVE_TRACING) {
+      printf("Yielding to debugger due to context change\n");
+    }
+    cpu_yield_debugger(state, c);
+  }
+}
+
+
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
   struct fast_context *fc;
     
@@ -768,7 +780,6 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
   }
   
   return TRUE;
-   
 }
 
 inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception) {
@@ -1054,6 +1065,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   }
   c->call_flags = 0;
   cpu_activate_context(state, c, ctx, ctx, args);
+  cpu_yield_debugger_check(state, c);
 }
 
 
@@ -1179,7 +1191,7 @@ static inline void _inline_cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sy
   c->cache_index = -1;
   
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
-  return;  
+  return;
 }
 
 void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
@@ -1283,6 +1295,47 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   
   // printf("Unable to find exception handler, i'm confused.\n");
   return;
+}
+
+void cpu_yield_debugger(STATE, cpu c) {
+  /* Ensure the DEBUG_ON_CTXT_CHANGE flag is cleared so we don't try
+    to yield more than once */
+  struct cpu_task *task = (struct cpu_task*)BYTES_OF(c->current_task);
+  if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
+    TASK_CLEAR_FLAG(task, TASK_DEBUG_ON_CTXT_CHANGE);
+  }
+
+  cpu_flush_sp(c);
+  cpu_flush_ip(c);
+  methctx_reference(state, c->active_context);
+
+  OBJECT dbg = c->debug_channel;
+  if(dbg == Qnil) {
+    /* No debug channel on the task, so use the VM default one (if any) */
+    OBJECT mod, vm;
+    mod = rbs_const_get(state, BASIC_CLASS(object), "Rubinius");
+    if(!NIL_P(mod)) {
+      vm = rbs_const_get(state, mod, "VM");
+      if(!NIL_P(vm)) {
+        dbg = object_get_ivar(state, vm, SYM("@debug_channel"));
+      }
+    }
+  }
+
+  if(dbg != Qnil) {
+    if(c->control_channel == Qnil) {
+      /* No control channel on the task, so create one */
+      c->control_channel = cpu_channel_new(state);
+    }
+
+    cpu_channel_send(state, c, dbg, c->current_thread);
+    /* This is so when this task is reactivated, the sent value wont be placed
+       on the stack, keeping the stack clean. */
+    TASK_SET_FLAG(c, TASK_NO_STACK);
+    cpu_channel_receive(state, c, c->control_channel, c->current_thread);
+  } else {
+    cpu_raise_arg_error_generic(state, c, "Attempted to switch to debugger, no debugger installed");
+  }
 }
 
 const char *cpu_op_to_name(STATE, char op) {

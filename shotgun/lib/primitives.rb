@@ -2341,6 +2341,43 @@ class ShotgunPrimitives
     stack_push(task->control_channel);
     CODE
   end
+
+  def task_get_debug_context_change
+    <<-CODE
+    struct cpu_task *task;
+    self = stack_pop();
+    
+    GUARD(RISA(self, task));
+    
+    task = (struct cpu_task*)BYTES_OF(self);
+    if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
+      stack_push(Qtrue);
+    } else {
+      stack_push(Qfalse);
+    }
+    CODE
+  end
+  
+  def task_set_debug_context_change
+    <<-CODE
+    struct cpu_task *task;
+    self = stack_pop();
+    t1 = stack_pop();
+    
+    GUARD(RISA(self, task));
+    
+    task = (struct cpu_task*)BYTES_OF(self);
+    if(RTEST(t1)) {
+      TASK_SET_FLAG(task, TASK_DEBUG_ON_CTXT_CHANGE);
+      stack_push(Qtrue);
+    } else {
+      if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
+        TASK_CLEAR_FLAG(task, TASK_DEBUG_ON_CTXT_CHANGE);
+      }
+      stack_push(Qfalse);
+    }
+    CODE
+  end
   
   def task_stack_size
     <<-CODE
