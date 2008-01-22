@@ -9,14 +9,12 @@ end
 
 class Symbol
   def self.all_symbols
-    # Symbols.strings.values.map {|x| x.to_sym}
-    Symbols.symbols.to_a.map { |x| x.intern }
+    # HACK: should be preventing the empty string from entering symtable instead
+    Symbols.symbols.to_a.reject { |s| s.empty? }.map { |x| x.intern }
   end
   
   alias_method :to_i,   :index
   alias_method :to_int, :index
-    
-  
   
   def inspect
     str = to_s
