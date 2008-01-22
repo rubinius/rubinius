@@ -336,8 +336,21 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT klass, OBJECT obj, O
 }
 
 OBJECT cpu_compile_method(STATE, OBJECT cm) {
-  OBJECT ba;
-  ba = bytearray_dup(state, cmethod_get_bytecodes(cm));
+  OBJECT ba, bc;
+  ba = cmethod_get_compiled(cm);
+  bc = cmethod_get_bytecodes(cm);
+  if(NIL_P(ba) || BYTEARRAY_SIZE(ba) < BYTEARRAY_SIZE(bc)) {
+    /* First time this method has been compiled, or size of current
+       bytearray is insufficient to hold revised bytecode */
+    ba = bytearray_dup(state, bc);
+  }
+  else {
+    /* Method is being recompiled due to a change to the iseq.
+       Reuse the existing compiled bytearray so that we don't
+       need to reload all contexts that have a reference to this
+       compiled method. */
+    object_copy_body(state, bc, ba);
+  }
   
   /* If this is not a big endian platform, we need to adjust
      the iseq to have the right order */
