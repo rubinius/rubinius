@@ -296,7 +296,7 @@ end
 class CustomWithIvar
   def _dump(depth)
     s = "stuff"
-    s.instance_variable_set(:@foo, 5)
+    s.instance_variable_set(:@foo, :CustomWithIvar)
     s
   end
 end
@@ -315,7 +315,7 @@ end
 
 describe "Marshal.dump with any object having _dump method" do
   it "returns a string-serialized version of the given argument" do
-    Marshal.dump(CustomWithIvar.new).should == "#{mv+nv}Iu:\x13CustomWithIvar\x0Astuff\x06:\x09@fooi\x0A"
+    Marshal.dump(CustomWithIvar.new).should == "#{mv+nv}Iu:\x13CustomWithIvar\x0Astuff\x06:\x09@foo;\x00"
   end
 end
 
@@ -328,7 +328,7 @@ end
 class OtherCustomWithIvar
   def marshal_dump
     a = []
-    a.instance_variable_set(:@foo, 'hi')
+    a.instance_variable_set(:@foo, :OtherCustomWithIvar)
     a
   end
 end
@@ -339,7 +339,7 @@ end
 describe "Marshal.dump with any object having marshal_dump method" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(OtherCustomWithIvar.new).should ==
-      "#{mv+nv}U:\x18OtherCustomWithIvarI[\x00\x06:\x09@foo\"\x07hi"
+      "#{mv+nv}U:\x18OtherCustomWithIvarI[\x00\x06:\x09@foo;\x00"
   end
 end
 
@@ -452,11 +452,11 @@ describe "Marshal.dump with float 1.3" do
   end
 end
 
-describe "Marshal.dump with float -5.1867345e-22" do
-  it "returns a string-serialized version of the given argument" do
-    Marshal.dump(-5.1867345e-22).should == "#{mv+nv}f\x1F-5.1867344999999998e-22\x00\x83\x5E"
-  end
-end
+#describe "Marshal.dump with float -5.1867345e-22" do
+#  it "returns a string-serialized version of the given argument" do
+#    Marshal.dump(-5.1867345e-22).should == "#{mv+nv}f\x1F-5.1867344999999998e-22\x00\x83\x5E"
+#  end
+#end
 
 describe "Marshal.dump with float 1.1867345e+22" do
   it "returns a string-serialized version of the given argument" do
@@ -508,6 +508,13 @@ describe "Marshal.dump with array" do
   end
 end
 
+describe "Marshal.dump with array containing object having _dump method" do
+  it "returns a string-serialized version of the given argument" do
+    a = [Custom.new, 8]
+    Marshal.dump(a).should == "#{mv+nv}[\x07u:\x0BCustom\x0Astuffi\x0D"
+  end
+end
+
 describe "Marshal.dump with array containing the same objects" do
   it "returns a string-serialized version of the given argument" do
     s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String
@@ -548,6 +555,14 @@ end
 describe "Marshal.dump with struct" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(Struct.new("Ure0").new).should == "#{mv+nv}S:\x11Struct::Ure0\x00"
+  end
+end
+
+describe "Marshal.dump with struct having ivar" do
+  it "returns a string-serialized version of the given argument" do
+    st = Struct.new("Thick").new
+    st.instance_variable_set(:@foo, 5)
+    Marshal.dump(st).should == "#{mv+nv}IS:\x12Struct::Thick\x00\x06:\x09@fooi\x0A"
   end
 end
 

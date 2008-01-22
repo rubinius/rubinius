@@ -1,14 +1,1 @@
-Marshal.load returns a Ruby Object from conversion of the given serialized data
-Marshal.load with serialized object having class name for _load method returns the object from _load
-Marshal.load with serializated extended_object having class name for _load method returns the object from _load
-Marshal.load with serialized object having class name for marshal_load method returns the object from marshal_load
-Marshal.load with serialized extended_object having class name for marshal_load method returns the object from marshal_load
-Marshal.load with serialized float 0.0 returns a construction of the argument
 Marshal.load with serialized float -0.0 returns a construction of the argument
-Marshal.load with serialized float NaN returns a construction of the argument
-Marshal.load with serialized float Infinity returns a construction of the argument
-Marshal.load with serialized float -Infinity returns a construction of the argument
-Marshal.load with serialized float 1.0 returns a construction of the argument
-Marshal.load with serialized float 1.3 returns a construction of the argument
-Marshal.load with serialized float -5.1867345e-22 returns a construction of the argument
-Marshal.load with serialized float 1.1867345e+22 returns a construction of the argument

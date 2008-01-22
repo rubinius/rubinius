@@ -36,8 +36,8 @@ describe "String#to_f" do
     "-45.67 degrees".to_f.should == -45.67
     "+45.67 degrees".to_f.should == 45.67
     "-5_5e-5_0".to_f.should == -55e-50
-    "-".to_f.should == -0.0
-    "-0".to_f.should == -0.0
+    (1.0 / "-".to_f).to_s.should == "-Infinity"
+    (1.0 / "-0".to_f).to_s.should == "-Infinity"
   end
   
   it "returns 0.0 if the conversion fails" do

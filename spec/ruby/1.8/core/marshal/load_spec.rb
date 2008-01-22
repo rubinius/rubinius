@@ -1,5 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
+mv = "\x04"  # Marshal::MAJOR_VERSION
+nv = "\x08"  # Marshal::MINOR_VERSION
+
 describe "Marshal.load" do
   it "returns a Ruby Object from conversion of the given serialized data" do
     Marshal.load(Marshal.dump("abc")).should == "abc"
@@ -207,41 +210,42 @@ end
 class CustomWithIvar
   def _dump(depth)
     s = "stuff"
-    s.instance_variable_set(:@foo, 5)
+    s.instance_variable_set(:@foo, :CustomWithIvar)
     s
   end
-  def self._load(s); CustomWithIvar.new; end
+  def self._load(s); s; end
 end
 class Custom
   def _dump(depth); "stuff"; end
-  def self._load(s); Custom.new; end
+  def self._load(s); s; end
 end
 
 describe "Marshal.load with serialized object having class name for _load method" do
   it "returns the object from _load" do
     obj = CustomWithIvar.new
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    Marshal.dump(Marshal.load(Marshal.dump(obj))).should ==
+      "#{mv+nv}I\"\x0Astuff\x06:\x09@foo:\x13CustomWithIvar"
   end
 end
 
 describe "Marshal.load with serializated extended_object having class name for _load method" do
   it "returns the object from _load" do
     obj = Custom.new.extend(Meths)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == "#{mv+nv}\"\x0Astuff"
   end
 end
 
 class OtherCustomWithIvar
   def marshal_dump
     a = []
-    a.instance_variable_set(:@foo, 'hi')
+    a.instance_variable_set(:@foo, :OtherCustomWithIvar)
     a
   end
-  def marshal_load(s); OtherCustomWithIvar.new; end
+  def marshal_load(o); o; end
 end
 class OtherCustom
   def marshal_dump; "stuff"; end
-  def marshal_load(s); OtherCustom.new; end
+  def marshal_load(o); o; end
 end
 
 describe "Marshal.load with serialized object having class name for marshal_load method" do
@@ -420,11 +424,33 @@ describe "Marshal.load with serialized array" do
   end
 end
 
+describe "Marshal.load with serialized array and proc" do
+  it "returns a construction of the argument" do
+    arr = []
+    s = 'hi'
+    s.instance_variable_set(:@foo, 5)
+    st = Struct.new("Brittle", :a).new
+#    st.instance_variable_set(:@clue, 'none')
+    st.a = 0.0
+    h = Hash.new('def')
+    h['nine'] = 9
+    a = [:a, :b, :c]
+    a.instance_variable_set(:@two, 2)
+    obj = [s, 10, s, s, st, h, a]
+    obj.instance_variable_set(:@zoo, 'ant')
+    proc = Proc.new { |o| arr << o }
+    Marshal.load(Marshal.dump(obj), proc)
+    arr.to_s.should ==
+      [5, s, 10, 0.0, st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj].to_s
+  end
+end
+
 describe "Marshal.load with serialized array containing the same objects" do
   it "returns a construction of the argument" do
-    s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String
-    obj = [:so, Custom.new, 'hello', 100, :so, :so, d, :so, :so, :no, :go, c, nil,
-          :go, :no, s, b, r, :so, 'huh', true, b, b, 99, r, b, s, :so, c, :no, d]
+    s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String; f = 1.0
+    obj = [:so, 'hello', 100, :so, :so, d, :so, :so, :no,
+           :go, c, nil, Struct.new("Pyramid").new, f, :go, :no, s, b, r,
+           :so, 'huh', true, b, b, 99, r, b, s, :so, f, c, :no, d]
     Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
   end
 end
@@ -459,6 +485,14 @@ end
 describe "Marshal.load with serialized struct" do
   it "returns a construction of the argument" do
     obj = Struct.new("Ure0").new
+    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+  end
+end
+
+describe "Marshal.load with serialized struct having ivar" do
+  it "returns a construction of the argument" do
+    obj = Struct.new("Thick").new
+    obj.instance_variable_set(:@foo, 5)
     Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
   end
 end
