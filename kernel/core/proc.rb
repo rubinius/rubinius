@@ -43,78 +43,16 @@ class Proc
     end
   end
 
-  # Return the proc given to the currently running method or
-  # to the given MethodContext/Binding.
-  #
-  #   def bar(&prc)
-  #      a = [prc.nil?, Proc.given.nil?]
-  #      a << block_given? == !Proc.given.nil?
-  #      if block_given?
-  #         a << prc.object_id == Proc.given.object_id
-  #         a << prc.block.object_id == Proc.given.block.object_id
-  #         a << Proc.given.call(21)
-  #      end
-  #      a
-  #   end
-  #
-  #   bar()                 # => [true, true, true]
-  #   bar() { |n| n * 2 }   # => [false, false, true, false, true, 42]
-  #
-  # An example mind trick using MethodContext.
-  #
-  #   def stormtrooper
-  #      yield "Let me see your identification."
-  #      obiwan { |reply| puts "Obi-Wan: #{reply}" }
-  #   end
-  #
-  #   def obiwan
-  #      yield "[with a small wave of his hand] You don't need to see his identification."
-  #      ctx = MethodContext.current.sender
-  #      Proc.given(ctx).call("We don't need to see his identification.")
-  #   end
-  #
-  #   stormtrooper { |msg| puts "Stormtrooper: #{msg}" }
-  #
-  # produces the following output:
-  #
-  #   Stormtrooper: Let me see your identification.
-  #   Obi-Wan: [with a small wave of his hand] You don't need to see his identification.
-  #   Stormtrooper: We don't need to see his identification
-  #
-  # Using a binging to obtain the given proc where the binding was created
-  #
-  #   def stormtrooper
-  #      binding
-  #   end
-  #
-  #   def obiwan(trick)
-  #      yield "These aren't the droids you're looking for."
-  #      trick.call("There aren't the droids we're looking for.")
-  #      yield "He can go about his business."
-  #      trick.call("You can go about your business.")
-  #   end
-  #
-  #   trick = stormtrooper { |msg| puts "Stormtrooper: #{msg}" }
-  #   obiwan(Proc.given(trick)) { |msg| puts "Obi-Wan: #{msg}" }
-  #
-  def self.given(ctx = nil)
-    case ctx
-    when nil
-      ctx = MethodContext.current.sender.block
-    when MethodContext
-      ctx = ctx.block
-      # when BlockEnvironment
-      # when Binding
-      # ctx = ctx.context
-    end
-    from_environment(ctx)
-  end
-
   def inspect
     "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
   end
 
   alias_method :to_s, :inspect
+
+  def ==(other)
+    return false unless other.kind_of? self.class
+    @block == other.block
+  end
 
   def arity
     @block.arity
