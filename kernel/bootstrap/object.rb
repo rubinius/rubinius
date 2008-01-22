@@ -66,23 +66,6 @@ class Object
     raise RuntimeError, "send failed"
   end
 
-  def old__send__(name, *args)
-    meth = name.to_sym
-    count = args.size.to_i
-
-    Rubinius.asm(args, meth, count) do |a,m,c|
-      run a
-      push_array
-      push :self
-      push_block
-      run m
-      run c
-      set_args
-      set_call_flags 1
-      send_off_stack
-    end
-  end
-
   def __find_method__(meth)
     meth = meth.to_sym
     cm = Rubinius.asm(meth) do |m|
