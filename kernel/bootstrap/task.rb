@@ -68,5 +68,9 @@ class Task
   # a positive integer counting down from the top of the stack.
   def get_stack_value(depth)
     Ruby.primitive :task_get_stack_value
+
+    # If we get here, the primitive failed
+    # Kernel raise is used, since we don't want to use the raise primitive above
+    Kernel.raise ArgumentError, "Task stack index out of range"
   end
 end

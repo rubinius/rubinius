@@ -2332,10 +2332,8 @@ class ShotgunPrimitives
     GUARD(FIXNUM_P(t1));
 
     task = (struct cpu_task*)BYTES_OF(self);
-    int idx = abs(FIXNUM_TO_INT(t1));
-    if(idx < 0 || idx >= (task->sp_ptr - task->stack_top)) {
-      cpu_raise_arg_error_generic(state, c, "Task stack index out of range");
-    }
+    int idx = FIXNUM_TO_INT(t1);
+    GUARD(idx >=0 && idx < (task->sp_ptr - task->stack_top));
 
     t2 = *(task->sp_ptr - idx);
 
