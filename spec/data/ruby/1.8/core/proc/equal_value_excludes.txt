@@ -1,1 +1,0 @@
-Proc#== returns true when the given value is self or a copy of self

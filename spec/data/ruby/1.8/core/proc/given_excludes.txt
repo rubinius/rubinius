@@ -1,5 +1,0 @@
-# no, these aren't actually 1.8... I'm planning on removing asap - zenspider
-A Proc instance created using Proc.given should be nil if no block given
-A Proc instance created using Proc.given should reference the same block
-A Proc instance created using Proc.given should be able to call the block
-A Proc instance created using Proc.given using a MethodContext should do the mind trick
