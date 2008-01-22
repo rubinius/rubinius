@@ -238,6 +238,18 @@ is a typical pattern:
       ...
     end
 
+To have a primitive fail, the primitive body (in primitives.rb)
+should return FALSE; this will cause the code following the
+Ruby.primitive line to be run. This provides a fallback so that
+the operation can be retried in Ruby.
+
+If a primitive cannot be retried in Ruby, it may raise an
+exception using a couple of macros:
+* RAISE(exc_class, msg) will raise an exception of type exc_class
+  and with a message of msg, e.g.
+    RAISE("ArgumentError", "Invalid argument");
+* RAISE_FROM_ERRNO(msg) will raise an Errno exception with the
+  specified msg.
 
 5. GDB, valgrind
 ================

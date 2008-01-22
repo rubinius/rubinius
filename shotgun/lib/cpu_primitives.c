@@ -85,6 +85,13 @@ int _object_stores_bytes(OBJECT self);
 // popping with type checking -- a predicate function must be specified
 // i.e. if type is STRING then STRING_P must be specified
 #define POP(var, type) var = stack_pop(); GUARD( type##_P(var) )
+// raise an exception of the specified type and msg
+#define RAISE(exc_class, msg) ({ \
+  OBJECT _cls = rbs_const_get(state, BASIC_CLASS(object), exc_class); \
+  GUARD(CLASS_P(_cls)); \
+  cpu_raise_exception(state, c, cpu_new_exception(state, c, _cls, msg)); \
+  })
+#define RAISE_FROM_ERRNO(msg) cpu_raise_from_errno(state, c, msg)
 
 void ffi_call(STATE, cpu c, OBJECT ptr);
 

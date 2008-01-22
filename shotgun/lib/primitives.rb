@@ -355,7 +355,7 @@ class ShotgunPrimitives
       }
 
       if (position == -1) {
-        cpu_raise_from_errno(state, c, "Unable to seek");
+        RAISE_FROM_ERRNO("Unable to seek");
         return TRUE;
       } else {
         stack_push(I2N(position));
@@ -481,7 +481,7 @@ class ShotgunPrimitives
 
     /* Probably needs an fflush here. */
     if(dup2(j, k) == -1) {
-      cpu_raise_from_errno(state, c, "Unable to reopen IO object");
+      RAISE_FROM_ERRNO("Unable to reopen IO object");
     } else {
       stack_push(Qtrue);
     }
@@ -1365,7 +1365,7 @@ class ShotgunPrimitives
     t2 = stack_pop();
     t3 = regexp_new(state, t1, t2);
     if(STRING_P(t3)) {
-      cpu_raise_exception(state, c, cpu_new_exception(state, c, state->global->exc_rex, string_byte_address(state, t3)));
+      RAISE("RegexpError", string_byte_address(state, t3));
     }
     t3->klass = self;   /* Subclasses */
     stack_push(t3);
@@ -2653,7 +2653,7 @@ class ShotgunPrimitives
     (void)stack_pop(); /* class */
     k = fork();
     if(k == -1) {
-      cpu_raise_from_errno(state, c, "Unable to fork");
+      RAISE_FROM_ERRNO("Unable to fork");
     } else {
       if (k == 0) {
         environment_fork();
@@ -2700,7 +2700,7 @@ class ShotgunPrimitives
 
     /* If you're here, there was an error. */    
     cpu_task_configure_preemption(state);
-    cpu_raise_from_errno(state, c, "Unable to execute");    
+    RAISE_FROM_ERRNO("Unable to execute");
     
     CODE
   end
