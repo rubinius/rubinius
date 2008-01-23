@@ -1362,12 +1362,16 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     POP(t1, STRING);
+    char err_buf[1024];
     t2 = stack_pop();
-    t3 = regexp_new(state, t1, t2);
-    if(STRING_P(t3)) {
-      RAISE("RegexpError", string_byte_address(state, t3));
+    t3 = regexp_new(state, t1, t2, err_buf);
+    
+    if(NIL_P(t3)) {
+      RAISE("RegexpError", err_buf);
+    } else {
+      t3->klass = self;   /* Subclasses */
     }
-    t3->klass = self;   /* Subclasses */
+    
     stack_push(t3);
     CODE
   end

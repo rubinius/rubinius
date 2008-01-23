@@ -90,7 +90,7 @@ int get_kcode_from_enc(OnigEncoding enc)
   return r;
 }
 
-OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
+OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options, char *err_buf) {
   regex_t **reg;
   const UChar *pat;
   const UChar *end;
@@ -120,10 +120,10 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
       opts, enc, ONIG_SYNTAX_RUBY, &err_info); 
     
   if(err != ONIG_NORMAL) {
-    char err_buf[ONIG_MAX_ERROR_MESSAGE_LEN + 1024];
-    onig_error_code_to_str((UChar* )err_buf, err, &err_info);
-    snprintf(err_buf, ONIG_MAX_ERROR_MESSAGE_LEN + 1024, "%s: %s", err_buf, pat);
-    return string_new(state, err_buf);
+    UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
+    onig_error_code_to_str(onig_err_buf, err, &err_info);
+    snprintf(err_buf, 1024, "%s: %s", onig_err_buf, pat);
+    return Qnil;
   }
   
   o_reg = regexp_allocate(state);
