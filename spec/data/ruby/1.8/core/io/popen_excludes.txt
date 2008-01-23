@@ -1,0 +1,1 @@
+IO#popen with block does not raise error when io closed inside the block
