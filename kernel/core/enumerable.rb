@@ -323,14 +323,14 @@ module Enumerable
   #        memo >= word.length ? memo : word.length
   #     end
   #     longest                                         #=> 5
-  def inject(memo = nil)
+  def inject(*args)
     first_item = true
-
+    memo = args.first if args.length > 0
     each { |o|
       if first_item 
         first_item = false
 
-        if memo.nil?
+        if args.length == 0
           memo = o
           next
         end
