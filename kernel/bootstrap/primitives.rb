@@ -1,10 +1,6 @@
 # All primitives not else where in the bootstrap must be here.
 
 class Object
-  def fields
-    Ruby.primitive :fields
-  end
-
   def become!(obj)
     Ruby.primitive :object_become
   end

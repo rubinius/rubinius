@@ -3,11 +3,7 @@ end
 
 class Object
 
-  def at(idx)
-    Ruby.primitive :at
-    raise InvalidIndexError, "Object#at failed."
-  end
-
+  # TODO move to Tuple, needed by AccessVarMethod
   def put(idx, val)
     Ruby.primitive :put
     raise InvalidIndexError, "Object#put failed."

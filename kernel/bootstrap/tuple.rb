@@ -1,4 +1,5 @@
 class Tuple
+
   def self.new(cnt)
     Ruby.primitive :allocate_count
   end
@@ -17,4 +18,14 @@ class Tuple
     raise InvalidIndexError, "Unable to access index '#{idx}' of #{self}"
   end
   
+  def at(idx)
+    Ruby.primitive :at
+    raise InvalidIndexError, "Object#at failed."
+  end
+
+  def fields
+    Ruby.primitive :fields
+  end
+
 end
+
