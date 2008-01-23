@@ -1,0 +1,1 @@
+Enumerable#inject inject with argument takes a block with an accumulator (with argument as initial value) and the current element. Value of block becomes new accumulator
