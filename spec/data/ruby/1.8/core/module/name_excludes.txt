@@ -1,1 +1,1 @@
-Module#name is memoized to the last set constant
+Module#name returns the name of self
