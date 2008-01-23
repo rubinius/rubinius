@@ -12,7 +12,6 @@ begin
   Thread.after_loaded
   Struct.after_loaded
   Signal.after_loaded
-  Object.after_loaded
   ObjectSpace.after_loaded
   IO.after_loaded
 

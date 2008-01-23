@@ -290,30 +290,44 @@ module Kernel
   end
   module_function :test
 
-  def to_a
-    if self.kind_of? Array
-      self
-    else
-      [self]
-    end
-  end
-
   def trap(sig, prc=nil, &block)
     Signal.trap(sig, prc, &block)
   end
   module_function :trap
 
+  alias_method :__id__, :object_id
+
+  alias_method :==,   :equal?
+  alias_method :===,  :equal?
+
+  # Regexp matching fails by default but may be overridden by subclasses,
+  # notably Regexp and String.
+  def =~(other)
+    false
+  end
+
+  def class_variable_get(sym)
+    self.class.class_variable_get sym
+  end
+
+  def class_variable_set(sym, value)
+    self.class.class_variable_set sym, value
+  end
+
+  def class_variables(symbols = false)
+    self.class.class_variables(symbols)
+  end
+
   # Activates the singleton +Debugger+ instance, and sets a breakpoint
   # immediately after the call site to this method.
+  #--
   # TODO: Have method take an options hash to configure debugger behavior,
   # and perhaps a block containing debugger commands to be executed when the
   # breakpoint is hit.
   def debugger
     require 'debugger/debugger'
-    # Get hold of debugger, initialising it if not already running
     dbg = Debugger.instance
 
-    # Register a breakpoint immediately following the call site
     ctxt = MethodContext.current.sender
     bp = dbg.get_breakpoint(ctxt.method, ctxt.ip)
     if bp
@@ -326,14 +340,228 @@ module Kernel
       ctxt.reload_method
     end
 
-    # Have debugger spin up a thread and wait until a breakpoint is hit
     Thread.pass until dbg.waiting_for_breakpoint?
   end
+
   alias_method :breakpoint, :debugger
 
+  alias_method :eql?, :equal?
+
+  def extend(*modules)
+    modules.reverse_each do |mod|
+      mod.extend_object(self)
+      mod.send(:extended, self)
+    end
+    self
+  end
+
+  def inspect(prefix=nil, vars=nil)
+    return "..." if RecursionGuard.inspecting?(self)
+
+    return self.to_s unless @__ivars__
+
+    if (@__ivars__.is_a?(Hash) or @__ivars__.is_a?(Tuple)) and @__ivars__.empty?
+      return self.to_s
+    end
+
+    prefix = "#{self.class.name}:0x#{self.object_id.to_s(16)}" unless prefix
+    parts = []
+
+    RecursionGuard.inspect(self) do
+
+      if @__ivars__.is_a?(Hash)
+        @__ivars__.each do |k,v|
+          next if vars and !vars.include?(k)
+          parts << "#{k}=#{v.inspect}"
+        end
+      else
+        0.step(@__ivars__.size - 1, 2) do |i|
+          if k = @__ivars__[i]
+            next if vars and !vars.include?(k)
+            v = @__ivars__[i+1]
+            parts << "#{k}=#{v.inspect}"
+          end
+        end
+      end
+
+    end
+
+    if parts.empty?
+      "#<#{prefix}>"
+    else
+      "#<#{prefix} #{parts.join(' ')}>"
+    end
+  end
+
+  #  call-seq:
+  #     obj.instance_exec(arg...) {|var...| block }                       => obj
+  #
+  #  Executes the given block within the context of the receiver
+  #  (_obj_). In order to set the context, the variable +self+ is set
+  #  to _obj_ while the code is executing, giving the code access to
+  #  _obj_'s instance variables.  Arguments are passed as block parameters.
+  #
+  #     class Klass
+  #       def initialize
+  #         @secret = 99
+  #       end
+  #     end
+  #     k = Klass.new
+  #     k.instance_exec(5) {|x| @secret+x }   #=> 104
+  def instance_exec(*args, &prc)
+    raise ArgumentError, "Missing block" unless block_given?
+    env = prc.block.redirect_to self
+    env.call(*args)
+  end
+
+  # Returns true if this object is an instance of the given class, otherwise
+  # false. Raises a TypeError if a non-Class object given.
+  #
+  # Module objects can also be given for MRI compatibility but the result is
+  # always false.
+  def instance_of?(cls)
+    if cls.class != Class and cls.class != Module
+      # We can obviously compare against Modules but result is always false
+      raise TypeError, "instance_of? requires a Class argument"
+    end
+
+    self.class == cls
+  end
+
+  def instance_variable_get(sym)
+    sym = instance_variable_validate(sym)
+    get_instance_variable(sym)
+  end
+
+  def instance_variable_set(sym, value)
+    sym = instance_variable_validate(sym)
+    set_instance_variable(sym, value)
+  end
+
+  def instance_variables(symbols = false)
+    vars = get_instance_variables
+    return [] if vars.nil?
+    # CSM awareness
+    if Tuple === vars
+      out = []
+      0.step(vars.size - 1, 2) do |i|
+        k = vars[i]
+        if k
+          k = k.to_s unless symbols
+          out << k
+        else
+          return out
+        end
+      end
+      return out
+    end
+    return vars.keys if symbols
+    return vars.keys.collect { |v| v.to_s }
+  end
+
+  alias_method :is_a?, :kind_of?
+
+  def method(name)
+    cm = __find_method__(name)
+
+    if cm
+      return Method.new(self, cm[1], cm[0])
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
+  end
+
+  def nil?
+    false
+  end
+
+  def method(name)
+    cm = __find_method__(name)
+
+    if cm
+      return Method.new(self, cm[1], cm[0])
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
+  end
+
+  def method_missing_cv(meth, *args)
+    # Exclude method_missing from the backtrace since it only confuses
+    # people.
+    myself = MethodContext.current
+    ctx = myself.sender
+
+    if myself.send_private?
+      raise NameError, "undefined local variable or method `#{meth}' for #{inspect}"
+    elsif self.kind_of? Class or self.kind_of? Module
+      raise NoMethodError.new("No method '#{meth}' on #{self} (#{self.class})", ctx, args)
+    else
+      raise NoMethodError.new("No method '#{meth}' on an instance of #{self.class}.", ctx, args)
+    end
+  end
+
+  def methods(all=true)
+    names = singleton_methods(all)
+    names |= self.class.instance_methods(true) if all
+    return names
+  end
+
+  def private_methods(all=true)
+    names = private_singleton_methods
+    names |= self.class.private_instance_methods(all)
+    return names
+  end
+
+  def private_singleton_methods
+    metaclass.method_table.private_names.map { |meth| meth.to_s }
+  end
+
+  def protected_methods(all=true)
+    names = protected_singleton_methods
+    names |= self.class.protected_instance_methods(all)
+    return names
+  end
+
+  def protected_singleton_methods
+    metaclass.method_table.protected_names.map { |meth| meth.to_s }
+  end
+
+  def public_methods(all=true)
+    names = singleton_methods(all)
+    names |= self.class.public_instance_methods(all)
+    return names
+  end
+
+  def singleton_methods(all=true)
+    mt = metaclass.method_table
+    if all
+      return mt.keys.map { |m| m.to_s }
+    else
+      (mt.public_names + mt.protected_names).map { |m| m.to_s }
+    end
+  end
+
+  alias_method :send, :__send__
+
+  def to_a
+    if self.kind_of? Array
+      self
+    else
+      [self]
+    end
+  end
+
+  def to_s
+    "#<#{self.class.name}:0x#{self.object_id.to_s(16)}>"
+  end
+
+  # From bootstrap
+  private :get_instance_variable
+  private :get_instance_variables
+  private :set_instance_variable
+
   def self.after_loaded
-    # This nukes the bootstrap raise so the Kernel one is used.
-    Object.method_table.delete :raise
+    alias_method :method_missing, :method_missing_cv
 
     # Add in $! in as a hook, to just do $!. This is for accesses to $!
     # that the compiler can't see.
@@ -354,9 +582,8 @@ module Kernel
     get = proc { Process.pid }
     Globals.set_hook(:$$, get, nil)
   end
-end
 
-Object.include Kernel
+end
 
 class SystemExit < Exception
   def initialize(code)
