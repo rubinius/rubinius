@@ -39,7 +39,7 @@ extern	void		makecontext(ucontext_t*, void(*)(), int, ...);
 #	define mcontext_t libthread_mcontext_t
 #	define ucontext libthread_ucontext
 #	define ucontext_t libthread_ucontext_t
-#	if defined(__i386__)
+#	if defined(__i386__) || defined(__x86_64__)
 #		include "PortableUContext386.h"
 #               define NEEDX86MAKECONTEXT
 #	else
