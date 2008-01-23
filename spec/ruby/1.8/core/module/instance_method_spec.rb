@@ -22,8 +22,9 @@ describe "Module#instance_method" do
   end
 
   it "inspect displays it's module if that is where it is from" do
-    meth = Object.instance_method("dup")
-    meth.inspect.should =~ /#<UnboundMethod(:)? Object(\(Kernel\))?#dup>/
+    meth = Object.instance_method("to_s")
+    o = Object.new
+    meth.bind(o).call.should == o.to_s
   end
 
   it "raises a TypeError if the given name is not a string/symbol" do
