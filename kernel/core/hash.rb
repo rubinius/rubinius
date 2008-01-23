@@ -38,15 +38,11 @@ class Hash
     end
   end
   private :initialize
-  
+
   def initialize_copy(other)
     replace(other)
   end
   private :initialize_copy
-
-  def dup()
-    self.class.new.replace self
-  end
 
   def ==(other)
     return true if self.equal? other
@@ -130,6 +126,12 @@ class Hash
     delete_if { true }
   end
 
+  def clone
+    new_hash = dup
+    new_hash.freeze if self.frozen?
+    new_hash
+  end
+
   def default(key = Undefined)
     # current MRI documentation comment is wrong.  Actual behavior is:
     # Hash.new { 1 }.default #=> nil
@@ -193,6 +195,13 @@ class Hash
     each_pair { |k, v| to_del << k if yield(k, v) }
     to_del.each { |k| delete k }
     self
+  end
+
+  def dup
+    new_hash = self.class.new
+    new_hash.send :initialize_copy, self
+    new_hash.taint if self.tainted?
+    new_hash
   end
 
   def each_key(&block)
