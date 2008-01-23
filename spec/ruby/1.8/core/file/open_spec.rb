@@ -19,6 +19,13 @@ describe "File.open" do
     @fh.close if @fh and not @fh.closed?
   end
   
+  it "with block does not raise error when file is closed inside the block" do
+    lambda {
+      @fh = File.open(@file) { |fh| fh.close; fh }
+    }.should_not raise_error
+    @fh.closed?.should == true
+  end
+
   it "opens the file (basic case)" do 
     @fh = File.open(@file) 
     @fh.should be_kind_of(File)
