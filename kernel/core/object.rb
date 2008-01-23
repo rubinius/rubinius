@@ -10,16 +10,13 @@ class Object
   RBX_VERSION = Rubinius::RBX_VERSION
 
   ivar_as_index :__ivars__ => 0
+
   def __ivars__; @__ivars__ ; end
   private :__ivars__
 
   def initialize
   end
   private :initialize
-
-  def undef?
-    false
-  end
 
   def instance_variable_validate(arg)
     # adapted from rb_to_id
