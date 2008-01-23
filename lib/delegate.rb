@@ -252,6 +252,13 @@ def DelegateClass(superclass)
   klass = Class.new
   methods = superclass.public_instance_methods(true)
   methods -= ::Kernel.public_instance_methods(false)
+  methods -= %w[
+    __verify_metaclass__
+    become!
+    copy_from
+    metaclass
+    to_marshal
+  ]
   methods |= ["to_s","to_a","inspect","==","=~","==="]
 
   klass.module_eval do
