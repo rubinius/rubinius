@@ -395,7 +395,7 @@ class InstructionSequence
     
     def encode(inst)
       opcode = inst.first
-      unless inst.kind_of? InstructionSet::OpCode
+      unless opcode.kind_of? InstructionSet::OpCode
         opcode = InstructionSet[opcode]
       end
 
