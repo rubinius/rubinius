@@ -1,34 +1,25 @@
 # depends on: module.rb kernel.rb
 
 module Type
-  # The order seems backwards and it is. But the Type.coerce_to compiler
-  # plugin is able to send this order much easier than in reverse, so
-  # we use this.
-  def self.coerce_failed(cls, obj)
-    raise TypeError, "A #{obj.class} tried to become a #{cls} but failed"
-  end
-
-  def self.coerce_unable(exc, cls, obj)
-    raise TypeError, "Unable to convert a #{obj.class} into a #{cls}"
-  end
-
-  # By default, the inline version of Type.coerce_to is used by the compiler.
-  # This is here for completeness but is rarely called. Changes to it
-  # are not reflected in existing calles to Type.coerce_to without changes
-  # to the compiler.
+  # Returns an object of given class. If given object already is
+  # one, it is returned. Otherwise tries obj.meth and returns
+  # the result if it is of the right kind. TypeErrors are 
+  # raised if the conversion method fails or the conversion
+  # result is wrong.
+  #
+  # Uses Type.obj_kind_of to bypass type check overrides.
   def self.coerce_to(obj, cls, meth)
-    return obj if obj.kind_of?(cls)
+    return obj if self.obj_kind_of?(obj, cls)
+
     begin
       ret = obj.__send__(meth)
-    rescue Object => e
-      coerce_unable(e, cls, obj)
+    rescue Exception => e
+      raise TypeError, "Coercion error: obj.#{meth} => #{cls} failed:\n(#{e.message})"
     end
 
-    if ret.kind_of?(cls)
-      return ret
-    else
-      coerce_failed(cls, obj)
-    end
+    return ret if self.obj_kind_of?(ret, cls)
+
+    raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{ret.class})"
   end
 end
 
