@@ -657,8 +657,6 @@ class Module
     @autoloads[name] if @autoloads
   end
 
-private
-
   def calculate_name
     # This should be removed if/when constant assignment happens
     # via const_set() - it's pretty ugly!
@@ -684,17 +682,25 @@ private
     return ""
   end
 
+  private :calculate_name
+
   def remove_const(name)
     sym = name.to_sym
     const_missing(name) unless constants_table.has_key?(sym)
     constants_table.delete(sym)
   end
 
+  private :remove_const
+
   def extended(name)
   end
 
+  private :extended
+
   def method_added(name)
   end
+
+  private :method_added
 
   def normalize_name(name)
     sym_name = nil
@@ -708,6 +714,8 @@ private
 
     sym_name
   end
+
+  private :normalize_name
 
   # Get a constant with the given name. If the constant does not exist, return nil.
   def recursive_const_get(name)
@@ -729,11 +737,15 @@ private
     const_missing(name)
   end
 
+  private :recursive_const_get
+
   def normalize_const_name(name)
     name = normalize_name(name)
     raise NameError, "wrong constant name #{name}" unless valid_const_name?(name)
     name
   end
+
+  private :normalize_const_name
 
   # Modified to fit definition at:
   # http://docs.huihoo.com/ruby/ruby-man-1.4/syntax.html#variable
@@ -741,16 +753,24 @@ private
     name.to_s =~ /^((::)?[A-Z]\w*)+$/ ? true : false
   end
 
+  private :valid_const_name?
+
   def attribute_symbol(name)
     "@#{normalize_name(name)}".to_sym
   end
+
+  private :attribute_symbol
 
   def reader_method_symbol(name)
     normalize_name(name)
   end
 
+  private :reader_method_symbol
+
   def writer_method_symbol(name)
     "#{normalize_name(name)}=".to_sym
   end
+
+  private :writer_method_symbol
 
 end

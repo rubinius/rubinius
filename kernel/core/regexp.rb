@@ -467,14 +467,14 @@ class MatchData
     indexes.map { |i| self[i] }
   end
   
-  private
-  
   def matched_area
     x = full[0]
     y = full[1]
     @source[x...y]
   end
   
+  private :matched_area
+
   def get_capture(num)
     x, y = @region[num]
     return nil if !y or x == -1
@@ -482,12 +482,16 @@ class MatchData
     return @source[x...y]
   end
 
+  private :get_capture
+
   def each_capture
     @region.each do |tup|
       x, y = *tup
       yield @source[x...y]
     end
   end
+
+  private :each_capture
 
 end
 

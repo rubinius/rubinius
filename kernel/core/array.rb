@@ -1496,9 +1496,6 @@ class Array
   end
 
 
-  # Internals
-  private
-  
   # Exactly the same as #replace but private
   def initialize_copy(other)
     other = Type.coerce_to other, Array, :to_ary
@@ -1508,6 +1505,8 @@ class Array
     @start = other.start
     self 
   end
+
+  private :initialize_copy
 
   # Reallocates the internal Tuple to accommodate at least given size
   def reallocate(at_least)
@@ -1526,6 +1525,8 @@ class Array
     @tuple = tuple
     @start = 0
   end
+
+  private :reallocate
 
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
@@ -1546,4 +1547,6 @@ class Array
     
     ret
   end
+
+  private :recursively_flatten
 end

@@ -605,7 +605,6 @@ class IO
     end
   end
 
-  private
   def self.parse_mode(mode)
     ret = 0
 

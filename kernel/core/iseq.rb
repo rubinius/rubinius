@@ -377,8 +377,6 @@ class InstructionSequence
       decode
     end
 
-    private
-
     def decode
       inst = iseq2int
       op = InstructionSet[inst]
@@ -392,6 +390,8 @@ class InstructionSequence
         [op, iseq2int, iseq2int]
       end
     end
+
+    private :decode
     
     def encode(inst)
       opcode = inst.first
@@ -418,6 +418,8 @@ class InstructionSequence
       end
     end
 
+    private :encode
+
     def iseq2int
       inst =  (@iseq[@offset    ] * 16777216)
       inst += (@iseq[@offset + 1] * 65536)
@@ -427,6 +429,8 @@ class InstructionSequence
       return inst
     end
 
+    private :iseq2int
+
     def int2str(int)
       3.downto(0) do |i|
         @iseq[@offset + i] = (int % 256)
@@ -435,6 +439,8 @@ class InstructionSequence
 
       @offset += 4
     end
+
+    private :int2str
   end
 
 
