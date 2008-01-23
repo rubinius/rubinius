@@ -34,19 +34,21 @@ extern	int		swapcontext(ucontext_t*, ucontext_t*);
 extern	void		makecontext(ucontext_t*, void(*)(), int, ...);
 #endif
 
-#if defined(__APPLE__) && !__DARWIN_UNIX03
+#if defined(__APPLE__) && (__DARWIN_UNIX03 == 0)
 #	define mcontext libthread_mcontext
 #	define mcontext_t libthread_mcontext_t
 #	define ucontext libthread_ucontext
 #	define ucontext_t libthread_ucontext_t
-#	if defined(__i386__) || defined(__x86_64__)
+#	if defined(__i386__)
 #		include "PortableUContext386.h"
-#               define NEEDX86MAKECONTEXT
-#	else
+#   define NEEDX86MAKECONTEXT
+#	elif defined(__ppc__)
 #		include "PortableUContextPPC.h"
-#               define NEEDPOWERMAKECONTEXT
+#   define NEEDPOWERMAKECONTEXT
+# else
+#   error Unsupported Apple platform
 #	endif	
-#       define NEEDSWAPCONTEXT
+#   define NEEDSWAPCONTEXT
 #endif
 
 #if defined(__OpenBSD__)

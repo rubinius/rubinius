@@ -23,6 +23,7 @@ This software was developed as part of a project at MIT.
  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
  
 #if defined(__FreeBSD__) && defined(__i386__) && __FreeBSD__ < 5
 #define NEEDX86CONTEXT 1
@@ -30,16 +31,33 @@ This software was developed as part of a project at MIT.
 #define GET getmcontext
 #endif
 
-#if (defined(__APPLE__) && !__DARWIN_UNIX03) && defined(__i386__)
+#if defined(__APPLE__)
+#include "sys/cdefs.h"
+#endif
+
+/* Mac OS 10.4 and earlier */
+#if defined(__APPLE__) && (__DARWIN_UNIX03 == 0)
+
+#if defined(__i386__)
 #define NEEDX86CONTEXT 1
 #define SET _setmcontext
 #define GET _getmcontext
-#endif
-
-#if (defined(__APPLE__) && !__DARWIN_UNIX03) && !defined(__i386__)
+#elif defined(__ppc__)
 #define NEEDPOWERCONTEXT 1
 #define SET __setmcontext
 #define GET __getmcontext
+#elif defined(__amd64__)
+#error 64-bit is unsupported prior to Mac OS 10.5
+#else
+#error Unknown Apple platform!
+#endif
+
+#endif
+
+/* Mac OS 10.5 and later */
+#if defined(__APPLE__) && (__DARWIN_UNIX03 == 1)
+#undef NEEDX86CONTEXT
+#undef NEEDPOWERCONTEXT
 #endif
 
 #if defined(__linux__) && defined(__arm__)
