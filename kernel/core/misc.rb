@@ -20,6 +20,10 @@ class << MAIN
   def autoload(*args)
     Object.autoload *args
   end
+
+  def add_method(name, obj)
+    Object.add_method(name, obj)
+  end
 end
 
 def self.to_s

@@ -104,7 +104,7 @@ def compile(name, output=nil, check_mtime=false)
   end
   
   inc = "-Iruntime/stable/compiler.rba -rcompiler/init"
-  flags = "-frbx-safe-math"
+  flags = "-frbx-safe-math -frbx-kernel"
 
   if ENV['GDB']
     sh "shotgun/rubinius --gdb #{inc} compile #{flags} #{name} #{output}", :verbose => $verbose

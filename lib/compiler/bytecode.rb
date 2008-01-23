@@ -2076,16 +2076,15 @@ class Node
 
     def bytecode(g)
       g.push_literal compile_body(g)
-      g.push :self
-      if scope = get(:scope)
-        vis = scope.visibility
-        if vis == :private
-          g.set_call_flags 1
-        elsif vis == :protected
-          g.set_call_flags 2
-        end
+
+      if @compiler.kernel?
+        g.push :self
+        g.add_method @name
+      else
+        g.push_literal @name
+        g.push :self
+        g.send :__add_method__, 2
       end
-      g.add_method @name
     end
   end
 
@@ -2093,8 +2092,15 @@ class Node
   class DefineSingleton
     def bytecode(g)
       g.push_literal compile_body(g)
-      @object.bytecode(g)
-      g.attach_method @name
+      if @compiler.kernel?
+        @object.bytecode(g)
+        g.attach_method @name
+      else
+        g.push_literal @name
+        @object.bytecode(g)
+        g.send :metaclass, 0
+        g.send :attach_method, 2
+      end
     end
   end
 

@@ -339,7 +339,6 @@ describe Compiler do
       end
       
       g.push_literal desc
-      g.push :self
       g.add_method :a
     end
   end
@@ -364,7 +363,6 @@ describe Compiler do
       end
       
       g.push_literal desc
-      g.push :self
       g.add_method :a
     end
   end
@@ -387,7 +385,6 @@ describe Compiler do
       end
       
       g.push_literal desc
-      g.push :self
       g.add_method :a
       
     end
@@ -419,7 +416,6 @@ describe Compiler do
       end
       
       g.push_literal desc
-      g.push :self
       g.add_method :a
       
     end

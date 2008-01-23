@@ -176,6 +176,24 @@ directly in your subclass. You must go through methods to access it only.
 
 This is a gotcha of working in the kernel, so be aware of it.
 
+2.3 kernel and user land =====================================
+
+In many ways, rubinius is architected like a normal OS, so i'll use terms
+from the OS world to describe the 2 modes of rubinius.
+
+Kernel land is describes how code in kernel/ is executed. Everything else
+is user land.
+
+Kernel land has a number of restrictions to keep things sane and simple:
+
+*) No 0 arg versions of: public, private, protected, module_function
+*) Limited usage of code in script and class body. Use after_loaded hooks
+   for doing fixups or extended computation. The code in platform bends this
+   rule the most, but it does not break it.
+*) Kernel land code does not use Module#__add_method__ and MetaClass#attach_method.
+   It adds and attaches methods directly in the VM. This is necessary for 
+   bootstrapping.
+*) Any use of string-based eval in the kernel must get go through discussion.
 
 
 3. Libraries and C: Primitives vs. FFI

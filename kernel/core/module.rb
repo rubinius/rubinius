@@ -203,6 +203,37 @@ class Module
     return new_name
   end
 
+  # Called when 'def name' is used in userland
+  def __add_method__(name, obj)
+    s = MethodContext.current.sender
+    scope = s.method_scope || :public
+
+    if name == :initialize
+      scope = :private
+    end
+
+    Rubinius::VM.reset_method_cache(name)
+    
+    method_table[name] = Tuple[scope, obj]
+
+    # Push the scoping down.
+    # HACK they all should have staticscopes
+    if ss = s.method.staticscope
+      obj.staticscope = ss
+    end
+
+    if s.method_tags == :module
+      module_function name
+    end
+
+    if respond_to? :method_added
+      method_added(name)
+    end
+
+    # Return value here is the return value of the 'def' expression
+    return obj
+  end
+
   def undef_method(*names)
     names.each do |name|
       # Will raise a NameError if the method doesn't exist.
@@ -410,14 +441,29 @@ class Module
 
   # Same as include_cv above, don't call this private.
   def private_cv(*args)
+    if args.empty?
+      MethodContext.current.sender.method_scope = :private
+      return
+    end
+
     args.each { |meth| set_visibility(meth, :private) }
   end
 
   def protected(*args)
+    if args.empty?
+      MethodContext.current.sender.method_scope = :protected
+      return
+    end
+
     args.each { |meth| set_visibility(meth, :protected) }
   end
 
   def public(*args)
+    if args.empty?
+      MethodContext.current.sender.method_scope = nil
+      return
+    end
+
     args.each { |meth| set_visibility(meth, :public) }
   end
 
@@ -439,15 +485,16 @@ class Module
   # TODO - Handle module_function without args, as per 'private' and 'public'
   def module_function_cv(*args)
     if args.empty?
-      raise ArgumentError, "module_function without an argument is not supported"
-    else
-      mc = self.metaclass
-      args.each do |meth|
-        method_name = normalize_name(meth)
-        method = find_method_in_hierarchy(method_name)
-        mc.method_table[method_name] = method.dup
-        set_visibility(method_name, :private)
-      end
+      MethodContext.current.sender.method_tags = :module
+      return
+    end
+      
+    mc = self.metaclass
+    args.each do |meth|
+      method_name = normalize_name(meth)
+      method = find_method_in_hierarchy(method_name)
+      mc.method_table[method_name] = method.dup
+      set_visibility(method_name, :private)
     end
     nil
   end

@@ -51,7 +51,6 @@ class TestGenerator
   end
   
   def class
-    raise "blah"
     add :class
   end
   
@@ -154,6 +153,13 @@ class TestGenerator
     end
 
     ok.set!
+  end
+
+  # Emits userland style code only.
+  def add_method(name)
+    self.push_literal name
+    self.push :self
+    self.send :__add_method__, 2
   end
 
 end

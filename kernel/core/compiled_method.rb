@@ -87,11 +87,15 @@ class CompiledMethod
   end
   
   def inherit_scope(other)
-    @staticscope = other.staticscope.dup
+    if ss = other.staticscope
+      @staticscope = ss
+    else
+      @staticscope = StaticScope.new(Object)
+    end
   end
 
   def staticscope=(val)
-    raise TypeError, "not a static scope" unless val.kind_of? StaticScope
+    raise TypeError, "not a static scope: #{val.inspect}" unless val.kind_of? StaticScope
     @staticscope = val
   end
   

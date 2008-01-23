@@ -13,7 +13,6 @@ describe Compiler do
       end
       
       g.push_literal meth
-      g.push :self
       g.add_method :a
     end
   end
@@ -41,7 +40,6 @@ describe Compiler do
       end
       
       g.push_literal meth
-      g.push :self
       g.add_method :add
     end
   end
@@ -82,7 +80,6 @@ describe Compiler do
       end
       
       g.push_literal meth
-      g.push :self
       g.add_method :add
     end
   end
@@ -132,7 +129,6 @@ describe Compiler do
       end
       
       g.push_literal meth
-      g.push :self
       g.add_method :add
     end
   end
@@ -158,7 +154,6 @@ describe Compiler do
       end
       
       g.push_literal meth
-      g.push :self
       g.add_method :a
     end
   end
@@ -184,7 +179,6 @@ describe Compiler do
       end
       
       g.push_literal meth
-      g.push :self
       g.add_method :a
     end
   end
@@ -201,9 +195,11 @@ describe Compiler do
       end
       
       g.push_literal meth
+      g.push_literal :go
       g.push :self
       g.send :a, 0, true
-      g.attach_method :go
+      g.send :metaclass, 0
+      g.send :attach_method, 2
     end
   end
 
@@ -229,7 +225,6 @@ describe Compiler do
         l.push_modifiers
         l.new_label.set!
         l.push_literal meth
-        l.push :self
         l.add_method :a
         l.pop_modifiers
         l.soft_return

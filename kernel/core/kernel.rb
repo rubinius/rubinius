@@ -309,6 +309,20 @@ module Kernel
     self.class.class_variables(symbols)
   end
 
+  def __add_method__(name, obj)
+    scope = MethodContext.current.sender.current_scope
+
+    Rubinius::VM.reset_method_cache(name)
+
+    scope.method_table[name] = Tuple[:public, obj]
+
+    if respond_to? :method_added
+      method_added(name)
+    end
+
+    return obj
+  end
+
   # Activates the singleton +Debugger+ instance, and sets a breakpoint
   # immediately after the call site to this method.
   #--
@@ -490,6 +504,8 @@ module Kernel
       raise NoMethodError.new("No method '#{meth}' on an instance of #{self.class}.", ctx, args)
     end
   end
+
+  private :method_missing_cv
 
   def methods(all=true)
     names = singleton_methods(all)

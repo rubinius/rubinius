@@ -71,7 +71,12 @@ class Compiler
     @line = 0
     @binding = binding
 
+    @kernel = Config['rbx-kernel']
     load_plugins
+  end
+
+  def kernel?
+    @kernel
   end
   
   def custom_scopes?
@@ -149,7 +154,6 @@ class Compiler
     activate :block_given
     activate :primitive
     activate :assembly
-    activate :method_visibility
     activate :fastmath
     activate :current_method
     activate :safemath if Config['rbx-safe-math']

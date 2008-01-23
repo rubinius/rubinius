@@ -70,6 +70,23 @@ class Class
 end
 
 class MetaClass
+
+  # Called when 'def obj.name' syntax is used in userland
+  def attach_method(name, object)
+    cur = method_table[name]
+    if cur and cur.kind_of? Tuple
+      # Override the slot which points to the method, so that we
+      # retain visibility.
+      cur[1] = object
+    else
+      method_table[name] = Tuple[:public, object]
+    end
+
+    object.staticscope = MethodContext.current.sender.method.staticscope
+    Rubinius::VM.reset_method_cache(name)
+    return object
+  end
+
   def inspect
     "#<MetaClass #{attached_instance.inspect}>"
   end  

@@ -201,6 +201,9 @@ class MethodContext
     # If for some reason that didn't work, return the compile time filename.
     method.file.to_s
   end
+
+  attr_accessor :method_scope
+  attr_accessor :method_tags
 end
 
 class NativeMethodContext

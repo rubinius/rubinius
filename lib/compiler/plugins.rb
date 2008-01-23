@@ -46,28 +46,6 @@ module Compiler::Plugins
     end
   end
   
-  class MethodVisibility < Plugin
-    plugin :method_visibility
-    
-    def handle(g, call)
-      return false unless call.kind_of? Compiler::Node::VCall
-      scope = @compiler.get(:scope)
-      return false unless scope
-                  
-      if call.method == :private
-        scope.visibility = :private
-      elsif call.method == :protected
-        scope.visibility = :protected
-      elsif call.method == :public
-        scope.visibility = :pubilc
-      else
-        return false
-      end
-      
-      return true
-    end
-  end
-  
   class PrimitiveDeclaration < Plugin
     
     plugin :primitive

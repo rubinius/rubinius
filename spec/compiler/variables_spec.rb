@@ -41,7 +41,6 @@ describe Compiler do
       end
       
       g.push_literal meth
-      g.push :self
       g.add_method :meth
     end
   end
