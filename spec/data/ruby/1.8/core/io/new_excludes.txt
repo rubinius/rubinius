@@ -1,0 +1,1 @@
+IO.new warns and ignores the provided block
