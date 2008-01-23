@@ -16,4 +16,19 @@ describe "TCPServer.new" do
     addr[2].should =~ /^localhost,?$/
     addr[3].should == '127.0.0.1'
   end
+  
+  it "binds to localhost and a port with either IPv4 or IPv6" do
+    @server = TCPServer.new('localhost', SocketSpecs.port)
+    addr = @server.addr
+    if addr[0] == 'AF_INET'
+      addr[1].be_kind_of Fixnum
+      addr[2].should == 'localhost'
+      addr[3].should == '127.0.0.1'
+    else
+      addr[1].be_kind_of Fixnum
+      addr[2].should == 'localhost'
+      addr[3].should == '::1'
+    end
+  end
+  
 end

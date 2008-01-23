@@ -223,11 +223,11 @@ class Socket < BasicSocket
 
         name_info[0] = Socket::Constants::AF_TO_FAMILY[value[0]]
         name_info[1] = value[1]
-        name_info[3] = value[2]
+        name_info[2] = value[2]
+        name_info[3] = value[3]
       end
 
       name_info[2] = name_info[3] if name_info[2].nil?
-
       name_info
     end
 

@@ -243,7 +243,7 @@ int ffi_bind(int s, char *host, char *port, int type) {
 OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, int sockaddr_len,
                        int flags) {
   char node[NI_MAXHOST], service[NI_MAXSERV];
-  OBJECT value, address, port;
+  OBJECT value, address, port, ip;
   int err;
 
   err = getnameinfo(sockaddr, sockaddr_len, node, NI_MAXHOST,
@@ -256,11 +256,21 @@ OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, int sockaddr_len,
 
   address = string_new2(state, node, strlen(node));
   port = I2N(atoi(service));
+  
+  err = getnameinfo(sockaddr, sockaddr_len, node, NI_MAXHOST,
+                    service, NI_MAXSERV, flags | NI_NUMERICHOST);
+
+  if(err != 0) {
+    return tuple_new2(state, 2, Qfalse,
+        string_new(state, gai_strerror(err)));
+  }
+  ip = string_new2(state, node, strlen(node));
 
   value = array_new(state, 0);
   array_append(state, value, I2N(sockaddr->sa_family));
   array_append(state, value, port);
   array_append(state, value, address);
+  array_append(state, value, ip);
 
   return tuple_new2(state, 2, Qtrue, value);
 }
