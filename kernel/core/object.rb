@@ -11,10 +11,10 @@ class Object
 
   ivar_as_index :__ivars__ => 0
   def __ivars__; @__ivars__ ; end
+  private :__ivars__
 
   def initialize
   end
-
   private :initialize
 
   def undef?
@@ -37,5 +37,12 @@ class Object
     name.to_sym
   end
   private :instance_variable_validate
+
+  def self.after_loaded
+    private :__find_method__
+    private :get_instance_variable
+    private :get_instance_variables
+    private :set_instance_variable
+  end
 
 end
