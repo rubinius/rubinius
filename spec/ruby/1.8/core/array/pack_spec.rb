@@ -257,8 +257,10 @@ describe "Array#pack" do
     [5.0].pack('C').should == [5].pack('C')
   end
 
-  it "calls to_i on symbol and returns char with that number with ('C')" do
-    [:hello].pack('C').should == [:hello.to_i].pack('C')
+  not_compliant_on :rubinius do
+    it "calls to_i on symbol and returns char with that number with ('C')" do
+      [:hello].pack('C').should == [:hello.to_i].pack('C')
+    end
   end
 
   it "raises a TypeErorr if value is string with ('C')" do
@@ -299,8 +301,10 @@ describe "Array#pack" do
     [5.0].pack('c').should == [5].pack('c')
   end
 
-  it "calls to_i on symbol and returns char with that number with ('c')" do
-    [:hello].pack('c').should == [:hello.to_i].pack('c')
+  not_compliant_on :rubinius do
+    it "calls to_i on symbol and returns char with that number with ('c')" do
+      [:hello].pack('c').should == [:hello.to_i].pack('c')
+    end
   end
 
   it "raises a TypeError if value is string with ('c')" do

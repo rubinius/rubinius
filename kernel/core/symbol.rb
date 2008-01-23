@@ -13,9 +13,6 @@ class Symbol
     Symbols.symbols.to_a.reject { |s| s.empty? }.map { |x| x.intern }
   end
   
-  alias_method :to_i,   :index
-  alias_method :to_int, :index
-  
   def inspect
     str = to_s
     if /^(\+|\-|<<|>>|<=|>=|=|==|===|=~|\*|\*\*|\[\]|\[\]=|\||\^|\&|\/|%|~|`|@?@\w+)$/ =~ str
@@ -38,9 +35,4 @@ class Symbol
   end
   
   alias_method :id2name, :to_s
-  
-  def to_int
-    warn "treating Symbol as an integer"
-    self.to_i
-  end
 end

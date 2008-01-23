@@ -43,7 +43,7 @@ shared :time_params do |cmd|
 
     it "throws ArgumentError for invalid number of arguments" do
       # Time.local only takes either 1-8, or 10 arguments
-      lambda { Time.send(cmd, 59, 1, 2, 3, 4, 2008, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # 9 go boom
+      lambda { Time.send(cmd, 59, 1, 2, 3, 4, 2008, 0, 0, 0) }.should raise_error(ArgumentError) # 9 go boom
 
       lambda { Time.send(cmd, 2008)                                                         }.should_not raise_error(ArgumentError)
       lambda { Time.send(cmd, 2008, 12)                                                     }.should_not raise_error(ArgumentError)
