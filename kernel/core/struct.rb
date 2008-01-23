@@ -89,6 +89,11 @@ class Struct
     return self.class.const_get(:STRUCT_ATTRS)
   end
 
+  def instance_variables
+    # Hide the ivars used to store the struct fields
+    super() - _attrs.map { |a| "@#{a}" }
+  end
+
   def initialize(*args)
     raise ArgumentError unless args.length <= _attrs.length
     _attrs.each_with_index do |attr, i|

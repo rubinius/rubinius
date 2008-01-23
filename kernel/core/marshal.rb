@@ -36,9 +36,15 @@ end
 
 class Symbol
   def to_marshal(ms = nil)
-    str = self.to_s
-    Marshal::TYPE_SYMBOL +
-    Marshal.serialize_integer(str.length) + str
+    if idx = ms.find_symlink(self)
+      Marshal::TYPE_SYMLINK + Marshal.serialize_integer(idx)
+    else
+      ms.add_symlink(self)
+
+      str = self.to_s
+      Marshal::TYPE_SYMBOL +
+      Marshal.serialize_integer(str.length) + str
+    end
   end
 end
 
@@ -99,14 +105,16 @@ end
 
 class Struct
   def to_marshal(ms = Marshal::State.new)
-    out = Marshal.serialize_extended_object(ms, self)
+    out =  Marshal.serialize_instance_variables_prefix(self)
+    out << Marshal.serialize_extended_object(ms, self)
     out << Marshal::TYPE_STRUCT
-    out << Marshal.serialize_duplicate(ms, self.class.name.to_sym)
+    out << Marshal.serialize(ms, self.class.name.to_sym)
     out << Marshal.serialize_integer(self.length)
     self.each_pair do |sym, val|
-      out << Marshal.serialize_duplicate(ms, sym)
-      out << Marshal.serialize_duplicate(ms, val)
+      out << Marshal.serialize(ms, sym)
+      out << Marshal.serialize(ms, val)
     end
+    out << Marshal.serialize_instance_variables_suffix(ms, self)
     out
   end
 end
@@ -119,11 +127,9 @@ class Array
     out << Marshal::TYPE_ARRAY
     out << Marshal.serialize_integer(self.length)
     unless self.empty?
-      raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
       self.each do |element|
-        out << Marshal.serialize_duplicate(ms, element)
+        out << Marshal.serialize(ms, element)
       end
-      ms.depth += 1
     end
     out << Marshal.serialize_instance_variables_suffix(ms, self)
   end
@@ -138,14 +144,12 @@ class Hash
     out << (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH)
     out << Marshal.serialize_integer(self.length)
     unless self.empty?
-      raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
       self.each_pair do |(key, val)|
-        out << Marshal.serialize_duplicate(ms, key)
-        out << Marshal.serialize_duplicate(ms, val)
+        out << Marshal.serialize(ms, key)
+        out << Marshal.serialize(ms, val)
       end
-      ms.depth += 1
     end
-    out << (self.default ? Marshal.serialize_duplicate(ms, self.default) : '')
+    out << (self.default ? Marshal.serialize(ms, self.default) : '')
     out << Marshal.serialize_instance_variables_suffix(ms, self)
   end
 end
@@ -170,7 +174,7 @@ class Object
   def to_marshal(ms = Marshal::State.new)
     out = Marshal.serialize_extended_object(ms, self)
     out << Marshal::TYPE_OBJECT
-    out << Marshal.serialize_duplicate(ms, self.class.name.to_sym)
+    out << Marshal.serialize(ms, self.class.name.to_sym)
     out << Marshal.serialize_instance_variables_suffix(ms, self, true)
   end
 end
@@ -212,64 +216,94 @@ module Marshal
   TYPE_LINK = '@'
 
   class State
-    def depth; @depth; end
-    def links; @links; end
-    def symlinks; @symlinks; end
-    def consumed; @consumed; end
-    def symbols; @symbols; end
-    def objects; @objects; end
-    def modules; @modules; end
-    def has_ivar; @has_ivar; end
-    def user_class; @user_class; end
-    def nested; @nested; end
-    def proc; @proc; end
-    def call_proc; @call_proc; end
-
-    def depth=(v); @depth = v; end
-    def links=(v); @links = v; end
-    def symlinks=(v); @symlinks = v; end
-    def consumed=(v); @consumed = v; end
-    def symbols=(v); @symbols = v; end
-    def objects=(v); @objects = v; end
-    def modules=(v); @modules = v; end
-    def has_ivar=(v); @has_ivar = v; end
-    def user_class=(v); @user_class = v; end
-    def nested=(v); @nested = v; end
-    def proc=(v); @proc = v; end
-    def call_proc=(v); @call_proc = v; end
+    
+    attr_accessor :depth
+    attr_accessor :consumed
+    attr_accessor :modules
+    attr_accessor :has_ivar
+    attr_accessor :user_class
+    attr_accessor :nested
+    attr_accessor :proc
+    attr_accessor :call_proc
+    attr_accessor :links
+    attr_accessor :symlinks
+    attr_accessor :objects
+    attr_accessor :symbols
 
     def initialize
-      @depth = -1; @links = {}; @symlinks = {}
-      @consumed = 0; @symbols = []; @objects = []
-      @modules = []; @has_ivar = false; @nested = false
+      @depth = -1
+      @links = {}
+      @symlinks = {}
+      @consumed = 0
+      @symbols = []
+      @objects = []
+      @modules = []
+      @has_ivar = false
+      @nested = false
+      @proc = nil
       @call_proc = false
+    end
+
+    def call(obj)
+      @proc.call(obj) if @proc and @call_proc
+    end
+
+    def find_link(obj)
+      if idx = @links[obj.object_id]
+        return idx
+      end
+
+      return nil
+    end
+
+    def add_object(obj)
+      return if obj.kind_of?(ImmediateValue)
+      sz = @links.size
+      @objects[sz] = obj
+      @links[obj.object_id] = sz
+    end
+
+    def find_symlink(obj)
+      if idx = @symlinks[obj.object_id]
+        return idx
+      end
+
+      return nil
+    end
+
+    def add_symlink(obj)
+      sz = @symlinks.size
+      @symbols[sz] = obj
+      @symlinks[obj.object_id] = sz
     end
   end
 
-  def self.dump(obj, *args)
+  def self.dump(obj, an_io=nil, limit=nil)
     ms = State.new
-    if args.length == 2
-      if args[1] and not args[1].kind_of? Integer
-        raise TypeError, "can't convert #{args[1].class} into Integer"
-      elsif not args[0].respond_to? :write
-        raise TypeError, "instance of IO needed"
-      end
-      ms.depth = args[1] == nil ? -1 : args[1]
-      args[0].write(VERSION_STRING + serialize(ms, obj))
-      args[0]
-    elsif args.length == 1
-      if args[0].kind_of? Integer
-        ms.depth = args[0]
-        VERSION_STRING + serialize(ms, obj)
-      elsif args[0].respond_to? :write
-        args[0].write(VERSION_STRING + serialize(ms, obj))
-        args[0]
+
+    if limit.nil?
+      if an_io.kind_of? Fixnum
+        limit = an_io
+        an_io = nil
       else
-        raise TypeError, "instance of IO needed"
+        limit = -1
       end
-    else
-      VERSION_STRING + serialize(ms, obj)
     end
+    
+    ms.depth = Type.coerce_to limit, Fixnum, :to_int
+
+    if an_io and !an_io.respond_to? :write
+      raise TypeError, "output must respond to write"
+    end
+
+    str = VERSION_STRING + serialize(ms, obj)
+
+    if an_io
+      an_io.write(str)
+      return an_io
+    end
+
+    return str
   end
 
   def self.load(obj, proc = nil)
@@ -290,15 +324,27 @@ module Marshal
   end
 
   def self.serialize(ms, obj)
-    raise ArgumentError, "exceed depth limit" if ms.depth == 0; ms.depth -= 1
+    raise ArgumentError, "exceed depth limit" if ms.depth == 0
 
-    if obj.respond_to? :_dump
-      return serialize_custom_object_ud(ms, obj)
-    elsif obj.respond_to? :marshal_dump
-      return serialize_custom_object_mud(ms, obj)
+    # How much depth we have left.
+    ms.depth -= 1;
+
+    if link = ms.find_link(obj)
+      str = TYPE_LINK + serialize_integer(link)
+    else
+      ms.add_object(obj)
+      if obj.respond_to? :_dump
+        str = serialize_custom_object_ud(ms, obj)
+      elsif obj.respond_to? :marshal_dump
+        str = serialize_custom_object_mud(ms, obj)
+      else
+        str = obj.to_marshal(ms)
+      end
     end
 
-    obj.to_marshal(ms)
+    ms.depth += 1
+
+    return str
   end
 
   def self.construct(ms, str)
@@ -410,8 +456,8 @@ module Marshal
       obj.instance_variables.each do |ivar|
         sym = ivar.to_sym
         val = obj.instance_variable_get(sym)
-        str << serialize_duplicate(ms, sym)
-        str << serialize_duplicate(ms, val)
+        str << serialize(ms, sym)
+        str << serialize(ms, val)
       end
       str
     else
@@ -422,14 +468,14 @@ module Marshal
   def self.serialize_extended_object(ms, obj)
     str = ''
     get_module_names(obj).each do |mod_name|
-      str << TYPE_EXTENDED + serialize_duplicate(ms, mod_name.to_sym)
+      str << TYPE_EXTENDED + serialize(ms, mod_name.to_sym)
     end
     str
   end
 
   def self.serialize_user_class(ms, obj, cls)
     if obj.class != cls
-      TYPE_UCLASS + serialize_duplicate(ms, obj.class.name.to_sym)
+      TYPE_UCLASS + serialize(ms, obj.class.name.to_sym)
     else
       ''
     end
@@ -439,46 +485,15 @@ module Marshal
     str = obj._dump(ms.depth)
     raise TypeError, "_dump() must return string" if str.class != String
     out = serialize_instance_variables_prefix(str)
-    out << TYPE_USERDEF + serialize_duplicate(ms, obj.class.name.to_sym)
+    out << TYPE_USERDEF + serialize(ms, obj.class.name.to_sym)
     out << serialize_integer(str.length) + str
     out << serialize_instance_variables_suffix(ms, str)
   end
 
   def self.serialize_custom_object_mud(ms, obj)
     val = obj.marshal_dump
-    out = TYPE_USRMARSHAL + serialize_duplicate(ms, obj.class.name.to_sym)
+    out = TYPE_USRMARSHAL + serialize(ms, obj.class.name.to_sym)
     out << val.to_marshal(ms)
-  end
-
-  def self.serialize_duplicate(ms, obj)
-    if obj.class == Symbol
-      dup_id = ms.symlinks[obj.object_id]
-      if dup_id
-        str = TYPE_SYMLINK + serialize_integer(dup_id)
-      else
-        ms.symlinks[obj.object_id] = ms.symlinks.length
-        str = obj.to_marshal
-      end
-    else
-      dup_id = ms.links[obj.object_id]
-      if dup_id
-        str = TYPE_LINK + serialize_integer(dup_id)
-      else
-        if linkable_duplicate? obj
-          ms.links[obj.object_id] = ms.links.length.succ
-        end
-        str = obj.to_marshal(ms)
-      end
-    end
-    str
-  end
-
-  def self.linkable_duplicate?(obj)
-    if fixnum?(obj) or [NilClass, TrueClass, FalseClass].include? obj.class
-      false
-    else
-      true
-    end
   end
 
   def self.fixnum?(n)
@@ -722,16 +737,10 @@ module Marshal
   end
 
   def self.store_unique_object(ms, obj)
-    if obj.class == Symbol
-      unless ms.symlinks[obj.object_id]
-        ms.symlinks[obj.object_id] = true
-        ms.symbols << obj
-      end
+    if obj.kind_of? Symbol
+      ms.add_symlink(obj)
     else
-      unless ms.links[obj.object_id]
-        ms.links[obj.object_id] = true
-        ms.objects << obj
-      end
+      ms.add_object(obj)
     end
     obj
   end
