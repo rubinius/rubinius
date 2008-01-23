@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Module#attr_accessor" do
   it "creates a getter and setter for each given attribute name" do
     c = Class.new do
-      attr_accessor :a, :b.to_i, "c"
+      attr_accessor :a, "c"
     end
     
     o = c.new

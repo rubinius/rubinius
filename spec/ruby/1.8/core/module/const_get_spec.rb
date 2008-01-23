@@ -13,7 +13,6 @@ describe "Module#const_get" do
   
   it "returns the value of the constant with the given name" do
     ModuleSpecs.const_get(:Basic).should == ModuleSpecs::Basic
-    ModuleSpecs.const_get(:Super.to_i).should == ModuleSpecs::Super
     ModuleSpecs.const_get("Child").should == ModuleSpecs::Child
   end
   

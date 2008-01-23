@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Module#attr_reader" do
   it "creates a getter for each given attribute name" do
     c = Class.new do
-      attr_reader :a, :b.to_i, "c"
+      attr_reader :a, "c"
       
       def initialize
         @a = "test"

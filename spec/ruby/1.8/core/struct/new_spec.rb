@@ -77,19 +77,21 @@ describe "Struct.new" do
     end
   end
   
-  it "accepts Fixnums as Symbols unless fixnum.to_sym.nil?" do
-    old, $VERBOSE = $VERBOSE, nil
-    num = :foo.to_i
-    Struct.new(nil, num).new("bar").foo.should == "bar"
-    $VERBOSE = old
-  end
+  not_compliant_on :rubinius do
+    it "accepts Fixnums as Symbols unless fixnum.to_sym.nil?" do
+      old, $VERBOSE = $VERBOSE, nil
+      num = :foo.to_i
+      Struct.new(nil, num).new("bar").foo.should == "bar"
+      $VERBOSE = old
+    end
 
-  it "raises an ArgumentError if fixnum#to_sym is nil" do
-    old, $VERBOSE = $VERBOSE, nil
-    num = 10000
-    num.to_sym.should == nil  # if this fails, we need a new Fixnum to test
-    lambda { Struct.new(:animal, num) }.should raise_error(ArgumentError)
-    $VERBOSE = old
+    it "raises an ArgumentError if fixnum#to_sym is nil" do
+      old, $VERBOSE = $VERBOSE, nil
+      num = 10000
+      num.to_sym.should == nil  # if this fails, we need a new Fixnum to test
+      lambda { Struct.new(:animal, num) }.should raise_error(ArgumentError)
+      $VERBOSE = old
+    end
   end
 
   it "instance_eval's a passed block" do

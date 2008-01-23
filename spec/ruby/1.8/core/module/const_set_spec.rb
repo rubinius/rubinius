@@ -4,11 +4,9 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Module#const_set" do
   it "sets the constant with the given name to the given value" do
     Module.const_set :A, "A"
-    Module.const_set :B.to_i, "B"
     Module.const_set "C", "C"
     
     Module.const_get("A").should == "A"
-    Module.const_get("B").should == "B"
     Module.const_get("C").should == "C"
   end
 

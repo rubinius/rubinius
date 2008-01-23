@@ -5,12 +5,10 @@ describe "Module#method_defined?" do
   it "returns true if a public or private method with the given name is defined in self, self's ancestors or one of self's included modules" do
     # Defined in Child
     ModuleSpecs::Child.method_defined?(:public_child).should == true
-    ModuleSpecs::Child.method_defined?(:protected_child.to_i).should == true
     ModuleSpecs::Child.method_defined?("private_child").should == false
 
     # Defined in Parent
     ModuleSpecs::Child.method_defined?("public_parent").should == true
-    ModuleSpecs::Child.method_defined?(:protected_parent.to_i).should == true
     ModuleSpecs::Child.method_defined?(:private_parent).should == false
 
     # Defined in Module

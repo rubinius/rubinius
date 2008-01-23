@@ -5,7 +5,6 @@ describe "Module#attr" do
   it "creates a getter for the given attribute name" do
     c = Class.new do
       attr :attr
-      attr :attr2.to_i
       attr "attr3"
       
       def initialize
@@ -37,7 +36,6 @@ describe "Module#attr" do
   it "creates a setter for the given attribute name if writable is true" do
     c = Class.new do
       attr :attr, true
-      attr :attr2.to_i, true
       attr "attr3", true
       
       def initialize
@@ -70,9 +68,6 @@ describe "Module#attr" do
     c = Class.new do
       attr :attr, true
       attr :attr
-
-      attr :attr2.to_i, true
-      attr :attr2.to_i
 
       attr "attr3", true
       attr "attr3"

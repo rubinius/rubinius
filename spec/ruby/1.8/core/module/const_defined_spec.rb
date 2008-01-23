@@ -19,10 +19,12 @@ describe "Module#const_defined?" do
     ModuleSpecs.const_defined?("Child").should == true
     ModuleSpecs.const_defined?("SomeThing").should == false
   end
-  
-  it "returns true if a constant with the given FixNum is defined in self" do
-    ModuleSpecs.const_defined?(:Child.to_i).should == true
-    ModuleSpecs.const_defined?(:SomeThing.to_i).should == false
+
+  not_compliant_on :rubinius do
+    it "returns true if a constant with the given FixNum is defined in self" do
+      ModuleSpecs.const_defined?(:Child.to_i).should == true
+      ModuleSpecs.const_defined?(:SomeThing.to_i).should == false
+    end
   end
   
   it "tries to convert the given name to a string using to_str" do

@@ -30,21 +30,14 @@ class Fixnum < Integer
     __fixnum_right_shift__(c)
   end
   
-  def id2name
-    Symbols.symbols.to_a[self]
-  end
-
   def to_s(base=10)
     raise ArgumentError, 'base must be between 2 and 36' unless base.between?(2, 36)
     based_to_s(base)
   end
   private :base_to_s
-  
-  def to_sym
-    id2name.to_sym
-  rescue NoMethodError
-    nil
-  end
+ 
+  # NOTE do NOT define to_sym or id2name. It's been deprecated for 5 years and we've
+  # decided to remove it.
 
   def b64_symbol_value
     if self >= 65 and self <= 90  # A-Z
