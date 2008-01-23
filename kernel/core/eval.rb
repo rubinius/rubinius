@@ -56,6 +56,12 @@ module Kernel
     flags = { :binding => binding }
     compiled_method = Compile.compile_string string, flags, filename, lineno
     compiled_method.inherit_scope binding.context.method
+
+    # This has to be setup so __FILE__ works in eval.
+    script = CompiledMethod::Script.new
+    script.path = filename
+    compiled_method.staticscope.script = script
+
     ctx = binding.context
     be = BlockEnvironment.new
     be.from_eval!

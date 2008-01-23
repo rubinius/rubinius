@@ -30,12 +30,6 @@ class CompiledMethod
     Ruby.primitive :load_file
   end
 
-  def as_script
-    Rubinius::VM.save_encloser_path
-    activate_as_script
-    Rubinius::VM.restore_encloser_path
-  end
-  
   def activate_as_script
     Ruby.primitive :activate_as_script
   end

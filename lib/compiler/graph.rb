@@ -1,4 +1,4 @@
-$: << File.expand_path(File.dirname(__FILE__))
+# $: << File.expand_path(File.dirname(__FILE__))
 
 require 'compiler'
 require 'generator'
@@ -202,8 +202,7 @@ class DotState
   end
 end
 
-
-if "./#{$0}" == __FILE__      # TODO: Fix this when we set the same way
+if true
   file = ARGV.shift
 
   gen = Compiler::Generator

@@ -114,6 +114,9 @@ END
 $VERBOSE = false
 code = 0
 
+# Setup the proper staticscope
+MethodContext.current.method.staticscope = StaticScope.new(Object)
+
 TOPLEVEL_BINDING = binding()
 
 begin
@@ -168,7 +171,7 @@ begin
       else
         if File.exists?(arg)
           $0 = arg
-          load(arg)
+          Compile.load_from_extension arg 
         else
           if arg.suffix?(".rb")
             puts "Unable to find '#{arg}'"

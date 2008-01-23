@@ -2019,5 +2019,9 @@ class Node
 
     attr_accessor :name
   end
+
+  class File < Node
+    kind :file
+  end
 end
 end

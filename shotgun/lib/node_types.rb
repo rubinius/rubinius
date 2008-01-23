@@ -111,6 +111,7 @@ node_types = %w{
   float
   negate
   last
+  file
 }
 
 File.open("node_types.c", "w") do |f|

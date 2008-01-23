@@ -173,6 +173,34 @@ class MethodContext
   def send_private?
     @send_private
   end
+
+  # Look up the staticscope chain to find the one with a Script object
+  # attached to it. Return that object.
+  def script_object
+    if ss = method.staticscope
+      while ss and !ss.script
+        ss = ss.parent
+      end
+
+      return ss.script if ss
+    end
+
+    return nil
+  end
+
+  # Used to implement __FILE__ properly. kernel/core/compile.rb stashes
+  # the path used to load this file in the Script object located in
+  # the top staticscope.
+  def active_path
+    if script = script_object()
+      if path = script.path
+        return path.dup
+      end
+    end
+
+    # If for some reason that didn't work, return the compile time filename.
+    method.file.to_s
+  end
 end
 
 class NativeMethodContext

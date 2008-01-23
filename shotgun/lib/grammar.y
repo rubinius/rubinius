@@ -4998,7 +4998,7 @@ syd_gettable(parse_state, id)
         return NEW_FALSE();
     }
     else if (id == k__FILE__) {
-        return NEW_STR(string_new2(ruby_sourcefile));
+        return NEW_FILE();
     }
     else if (id == k__LINE__) {
         return NEW_FIXNUM(ruby_sourceline);

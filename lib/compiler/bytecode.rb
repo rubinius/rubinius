@@ -2146,6 +2146,13 @@ class Node
       g.send :class_variable_get, 1
     end
   end
+
+  class File
+    def bytecode(g)
+      g.push_context
+      g.send :active_path, 0
+    end
+  end
 end
 end
 

@@ -113,7 +113,9 @@ module Compile
 
             cm.compile
             cm.hints = { :source => :rba }
-            cm.as_script
+            cm.as_script do |script|
+              script.path = rb
+            end
 
             $LOADED_FEATURES << rb if requiring
             return true
@@ -198,7 +200,9 @@ module Compile
         begin
           cm.compile
           cm.hints = { :source => :rb }
-          cm.as_script
+          cm.as_script do |script|
+            script.path = rb_path
+          end
         rescue Exception => e
           $LOADED_FEATURES.delete(rb) if requiring
           raise e
@@ -223,7 +227,9 @@ module Compile
         begin
           cm.compile
           cm.hints = { :source => :rbc }
-          cm.as_script
+          cm.as_script do |script|
+            script.path = rb_path
+          end
         rescue Exception => e
           $LOADED_FEATURES.delete(rb) if requiring
           raise e
@@ -254,6 +260,29 @@ module Compile
     end
 
     nil
+  end
+
+  def self.load_from_extension(path)
+    path = StringValue(path)
+
+    if path.suffix? '.rbc'
+      rb, rbc, ext = nil, path, nil
+    elsif path.suffix? '.rb'
+      rb, rbc, ext = path, "#{path}c", nil
+    elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
+      rb, rbc, ext = nil, nil, path
+    else
+      dir, name = File.split(path)
+      name = ".#{name}" unless name[0] == ?.
+      rb, rbc, ext = path, "#{dir}/#{name}.compiled.rbc", nil
+    end
+
+    if File.exists? rb or File.exists? rbc
+      Compile.single_load '', rb, rbc, ext, false
+      return true
+    end
+
+    return false
   end
 
 end       # Compile

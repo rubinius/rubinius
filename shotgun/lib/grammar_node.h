@@ -243,7 +243,7 @@ typedef struct RNode {
 #define NEW_FLOAT(l) NEW_NODE(NODE_FLOAT,l,0,0)
 #define NEW_NEGATE(l) NEW_NODE(NODE_NEGATE,l,0,0)
 #define NEW_REGEX(l,o) NEW_NODE(NODE_REGEX,l,0,o)
-
+#define NEW_FILE() NEW_NODE(NODE_FILE,0,0,0)
 #define NOEX_PUBLIC    0
 #define NOEX_NOSUPER   1
 #define NOEX_PRIVATE   2

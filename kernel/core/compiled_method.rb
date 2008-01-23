@@ -20,7 +20,18 @@ end
 
 class StaticScope
   ivar_as_index :__ivars__ => 0, :module => 1, :parent => 2
-  
+
+  def initialize(mod, par=nil)
+    @module = mod
+    @parent = par
+  end
+
+  attr_accessor :script
+
+  def script
+    @script
+  end
+
   def module
     @module
   end
@@ -76,7 +87,12 @@ class CompiledMethod
   end
   
   def inherit_scope(other)
-    @staticscope = other.staticscope
+    @staticscope = other.staticscope.dup
+  end
+
+  def staticscope=(val)
+    raise TypeError, "not a static scope" unless val.kind_of? StaticScope
+    @staticscope = val
   end
   
   def exceptions=(tup)
@@ -167,6 +183,26 @@ class CompiledMethod
         
     return out
   end
+
+  class Script
+    attr_accessor :path
+  end
+  
+  def as_script(script=nil)
+    script ||= CompiledMethod::Script.new
+    yield script if block_given?
+
+    Rubinius::VM.save_encloser_path
+   
+    # Setup the scoping.
+    ss = StaticScope.new(Object)
+    ss.script = script
+    @staticscope = ss
+
+    activate_as_script
+    Rubinius::VM.restore_encloser_path
+  end
+  
     
   def line_from_ip(i)
     @lines.each do |t|

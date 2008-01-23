@@ -908,6 +908,7 @@ again_no_block:
   case NODE_ZARRAY:
   case NODE_ZSUPER:
   case NODE_REDO:
+  case NODE_FILE:
     break;
 
   case NODE_SPLAT:
