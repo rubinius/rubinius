@@ -1,0 +1,61 @@
+**********************
+   Plugin API Howto
+ (so we don't forget)
+**********************
+
+Typical plugin:
+
+  module MatzBot::Commands
+    needs_gem 'hpricot' => [ :tinyurl, :get_tinyurl ]
+
+    def tinyurl(data)
+      say "Here it is! #{get_tinyurl(data.first)}"
+    rescue
+      say "No, no that's not gonna work."
+    end
+
+  private
+    def get_tinyurl(url)
+      return if url.empty?
+
+      res = Net::HTTP.post_form(URI.parse('http://tinyurl.com/create.php'), { 'url' => url })
+      doc = Hpricot(res.body)
+      ((doc/:blockquote).last/:b).innerHTML
+    end
+  end
+
+- New methods added to MatzBot::Commands show up as commands
+
+- If you want to add methods which aren't bot commands, make them protected or private.
+
+- Methods must accept one argument, an array of words said after the command.
+
+- If you need to require a gem, use needs_gem like above.  Pass it the gem name and all
+  the methods that depend on it.
+
+- If you need to keep around data, use the `session' hash.
+    session[:my_plugin] = true
+    session[:my_plugin]
+
+- You can use `reply' like say, except it will prefix your command with the user's name.
+    <defunkt> hey bot
+    <matzbot> defunkt: hey  # => using reply 'hey'
+
+- You can use `pm' to send a private message to whoever made a request of you.  Use it like `say.'
+
+- The above plugin would be triggered like this:
+    <irc_dude> tinyurl http://myurl.com
+    <matzbot> Here it is!  http://tinyurl.com/fz3
+
+- You get these methods in the Commands API:
+  - puts(string to say)
+  - reply(string to say)
+  - pm(sting to pm) [your bot must be ident'd on most networks for this to work]
+  - action(string to emote)
+  - config -- hash of runtime configuration options
+  - socket -- direct access to the socket, if you need it
+
+- Put plugins in ~/.matzbot and name them whatever.rb.
+
+=> Evan Weaver && Chris Wanstrath
+>> %w[ http://blog.evanweaver.com http://errtheblog.com ]

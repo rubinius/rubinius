@@ -1,0 +1,26 @@
+=== rubuildius zsh hack ===
+
+  based on matzbot and
+  plugins/git.rb is the only modified file
+
+Currently most files are hardcoded for my box
+
+== relevant information
+
+* interesting files:
+  + bin/*
+  + matzbot/plugins/git.rb
+  + repo/rubinius/HEAD [empty-dir]
+
+* everything needs to be in ~/continious
+
+* continious/repo/rubinius/HEAD should contain a git checkout.
+  + this one will be updated and then cloned to speed things up and not eat bandwidth
+
+* I launch it like this:
+  + ./launch.rb -u rubinius -n rubuildius -m 'rubinius_build_bot' -c rubinius
+
+* gets usr2 signal via cronjob
+  + */5 * * * * kill -USR2 `cat HOME/continuous/matzbot/matzbot.pid`
+
+* occasionally I run bin/cleanup.zsh to get save some space
