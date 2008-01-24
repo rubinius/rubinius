@@ -117,7 +117,7 @@ class Module
 
   def name
     return @name.to_s if @name
-    return calculate_name()
+    ""
   end
 
   def to_s
@@ -128,9 +128,7 @@ class Module
     end
   end
 
-  def inspect
-    to_s
-  end
+  alias_method :inspect, :to_s
 
   def find_method_in_hierarchy(sym)
     if method = @method_table[sym.to_sym]
@@ -482,7 +480,6 @@ class Module
   end
   alias_method :class_exec, :module_exec
 
-  # TODO - Handle module_function without args, as per 'private' and 'public'
   def module_function_cv(*args)
     if args.empty?
       MethodContext.current.sender.method_tags = :module
@@ -528,7 +525,13 @@ class Module
       value.set_name_if_necessary(name, self)
     end
     constants_table[normalize_const_name(name)] = value
+
+    return value
   end
+
+  # __const_set__ is emitted by the compiler for const set syntax in
+  # userland.
+  alias_method :__const_set__, :const_set
 
   def const_get(name)
     recursive_const_get(name)
@@ -624,12 +627,12 @@ class Module
 
   def set_name_if_necessary(name, mod)
     return unless @name.nil?
-    name = name.to_s.dup
+    parts = [name.to_s]
     while mod and mod != Object
-      name.insert(0, "#{mod.name}::")
+      parts.unshift mod.name
       mod = mod.parent
     end
-    @name = name.to_sym
+    @name = parts.join("::").to_sym
   end
 
   # A fixup, move the core versions in place now that everything
@@ -656,33 +659,6 @@ class Module
   def autoload?(name)
     @autoloads[name] if @autoloads
   end
-
-  def calculate_name
-    # This should be removed if/when constant assignment happens
-    # via const_set() - it's pretty ugly!
-
-    seen = { Object => true }
-    constants = [[Object, Object.constants_table]]
-
-    until constants.empty?
-      mod, table = constants.shift
-      table.each do |const_name, value|
-        if value.equal? self
-          set_name_if_necessary(const_name.to_s, mod)
-          return @name.to_s
-        elsif value.is_a? Module
-          unless seen[value]
-            constants << [value, value.constants_table]
-            seen[value] = true
-          end
-        end
-      end
-    end
-
-    return ""
-  end
-
-  private :calculate_name
 
   def remove_const(name)
     sym = name.to_sym

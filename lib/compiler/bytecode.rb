@@ -1147,12 +1147,12 @@ class Node
   # TESTED
   class ConstSet
     def bytecode(g)
-      if @parent
-        @parent.bytecode(g)
-        @value.bytecode(g)
-        g.set_const @name, true
-      else
-        if @from_top
+      if @compiler.kernel?
+        if @parent
+          @parent.bytecode(g)
+          @value.bytecode(g)
+          g.set_const @name, true
+        elsif @from_top
           g.push_cpath_top
           @value.bytecode(g)
           g.set_const @name, true
@@ -1160,7 +1160,20 @@ class Node
           @value.bytecode(g) if @value
           g.set_const @name
         end
-      end
+      else
+        @value.bytecode(g)
+        g.push_literal @name
+        
+        if @parent
+          @parent.bytecode(g)
+        elsif @from_top
+          g.push_cpath_top
+        else
+          g.push :self
+        end
+          
+        g.send :__const_set__, 2
+      end # @compiler.kernel?
     end
   end
 

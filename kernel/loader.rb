@@ -1,5 +1,11 @@
 # Contained first is the system startup code.
 
+# Re-setup all the stdio channels, to pull in new ivars
+
+STDOUT.setup
+STDIN.setup
+STDERR.setup
+
 begin
   Array.after_loaded
   Module.after_loaded
@@ -21,16 +27,10 @@ begin
   # define a global "start time" to use for process calculation
   $STARTUP_TIME = Time.now
 rescue Object => e
-  puts "Error detected running loader startup stage:"
-  puts "  #{e.message} (#{e.class})"
+  STDOUT << "Error detected running loader startup stage:\n"
+  STDOUT << "  #{e.message} (#{e.class})\n"
   exit 2
 end
-
-# Re-setup all the stdio channels, to pull in new ivars
-
-STDOUT.setup
-STDIN.setup
-STDERR.setup
 
 # This is the end of the kernel and the beginning of specified
 # code. We read out of ARGV to figure out what the user is

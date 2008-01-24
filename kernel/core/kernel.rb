@@ -323,6 +323,15 @@ module Kernel
     return obj
   end
 
+  # __const_set__ is emitted by the compiler for const set syntax
+  # in userland.
+  def __const_set__(name, obj)
+    scope = MethodContext.current.sender.current_scope
+    # TODO should warn here about dynamic const setting
+    scope.const_set(name, obj)
+    return obj
+  end
+
   # Activates the singleton +Debugger+ instance, and sets a breakpoint
   # immediately after the call site to this method.
   #--

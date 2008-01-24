@@ -233,23 +233,27 @@ describe Compiler do
   it "compiles 'Blah = 1'" do
     gen [:cdecl, :Blah, [:lit, 1], nil] do |g|
       g.push 1
-      g.set_const :Blah
+      g.push_literal :Blah
+      g.push :self
+      g.send :__const_set__, 2
     end
   end
   
   it "compiles 'Object::Blah = 1'" do
     gen [:cdecl, nil, [:lit, 1], [:colon2, [:const, :Object], :Blah]] do |g|
-      g.push_const :Object
       g.push 1
-      g.set_const :Blah, true
+      g.push_literal :Blah
+      g.push_const :Object
+      g.send :__const_set__, 2
     end
   end
   
   it "compiles '::Blah = 1'" do
     gen [:cdecl, nil, [:lit, 1], [:colon3, :Blah]] do |g|
-      g.push_cpath_top
       g.push 1
-      g.set_const :Blah, true
+      g.push_literal :Blah
+      g.push_cpath_top
+      g.send :__const_set__, 2
     end
   end
 end
