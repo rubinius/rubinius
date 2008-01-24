@@ -24,6 +24,10 @@ class << MAIN
   def add_method(name, obj)
     Object.add_method(name, obj)
   end
+
+  def __const_set__(name, obj)
+    Object.__const_set__(name, obj)
+  end
 end
 
 def self.to_s

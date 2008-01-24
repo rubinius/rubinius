@@ -518,9 +518,14 @@ class Module
     return value
   end
 
-  # __const_set__ is emitted by the compiler for const set syntax in
-  # userland.
-  alias_method :__const_set__, :const_set
+  # __const_set__ is emitted by the compiler for const assignment
+  # in userland.
+  def __const_set__(name, value)
+    if constants_table[normalize_const_name(name)]
+      warn "already initialized constant #{name}"
+    end
+    return const_set(name, value)
+  end
 
   def const_get(name)
     recursive_const_get(name)
