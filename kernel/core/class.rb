@@ -82,7 +82,7 @@ class MetaClass
       method_table[name] = Tuple[:public, object]
     end
 
-    object.staticscope = MethodContext.current.sender.method.staticscope
+    object.inherit_scope MethodContext.current.sender.method
     Rubinius::VM.reset_method_cache(name)
     return object
   end
