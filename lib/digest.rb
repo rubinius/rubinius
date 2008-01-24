@@ -8,6 +8,11 @@ module Digest
   #
   # Before calling, the C implementation of the algorithm needs to be loaded.
   #
+  # The C functions are attached using the following signatures:
+  # [+init_function+] [:pointer], :void
+  # [+update_function+] [:pointer, :string, :int], :void
+  # [+finish_function+] [:pointer, :string], :void
+  #
   # See digest/md5.rb for an example of usage.
   def self.create(name, init_function, update_function, finish_function,
                   struct_size, block_length, digest_length)

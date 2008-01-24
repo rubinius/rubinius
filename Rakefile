@@ -825,9 +825,11 @@ task :extensions => %w[
   build:shotgun
   build:rbc
 
+  extension:digest_rmd160
   extension:digest_md5
   extension:digest_sha1
   extension:digest_sha2
+
   extension:fcntl
   extension:syck
   extension:zlib
@@ -844,6 +846,17 @@ namespace :extension do
     'lib/ext/digest/defs.h',
   ] do
     compile 'lib/ext/digest/md5'
+  end
+
+  task :digest_rmd160 => "lib/ext/digest/rmd160/rmd160.#{$dlext}"
+
+  file "lib/ext/digest/rmd160/rmd160.#{$dlext}" => FileList[
+    'lib/ext/digest/rmd160/build.rb',
+    'lib/ext/digest/rmd160/*.c',
+    'lib/ext/digest/rmd160/*.h',
+    'lib/ext/digest/defs.h',
+  ] do
+    compile 'lib/ext/digest/rmd160'
   end
 
   task :digest_sha1 => "lib/ext/digest/sha1/sha1.#{$dlext}"
