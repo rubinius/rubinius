@@ -109,7 +109,7 @@ OBJECT hash_dup(STATE, OBJECT hsh) {
   
   sz = FIXNUM_TO_INT(hash_get_bins(hsh));
   dup = hash_new_sized(state, sz);
-  dup->klass = object_class(state, hsh);
+  SET_CLASS(dup, object_class(state, hsh));
   
   hash_set_bins(dup, I2N(sz));
   hash_set_entries(dup, hash_get_entries(hsh));

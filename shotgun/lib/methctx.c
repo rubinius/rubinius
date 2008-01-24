@@ -118,16 +118,16 @@ void methctx_reference(STATE, OBJECT ctx) {
   ctx->gc_zone = YoungObjectZone;
   switch(FASTCTX(ctx)->type) {
   case FASTCTX_NORMAL:
-    ctx->klass = BASIC_CLASS(fastctx);
+    SET_CLASS(ctx, BASIC_CLASS(fastctx));
     ctx->obj_type = MContextType;
     ctx->CTXFast = TRUE;
     break;
   case FASTCTX_BLOCK:  
-    ctx->klass = BASIC_CLASS(blokctx);
+    SET_CLASS(ctx, BASIC_CLASS(blokctx));
     ctx->obj_type = BContextType;
     break;
   case FASTCTX_NMC:
-    ctx->klass = BASIC_CLASS(nmc);
+    SET_CLASS(ctx, BASIC_CLASS(nmc));
     ctx->obj_type = MContextType;
     break;
   }

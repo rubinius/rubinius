@@ -29,8 +29,8 @@ OBJECT ffi_new_pointer(STATE, void *ptr) {
   return obj;
 }
 
-int ffi_address(void *ptr) {
-  return (int)ptr;
+uintptr_t ffi_address(void *ptr) {
+  return (uintptr_t)ptr;
 }
 
 int ffi_write_int(int *ptr, int val) {

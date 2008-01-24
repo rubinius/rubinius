@@ -38,7 +38,7 @@ static inline OBJECT object_class(STATE, OBJECT self) {
     return cls;
   }
 
-  return state->global->special_classes[((uint)self) & SPECIAL_CLASS_MASK];
+  return state->global->special_classes[((uintptr_t)self) & SPECIAL_CLASS_MASK];
 }
 
 #define object_byte_start(st, self) ((char*)BYTES_OF(self))
@@ -55,7 +55,7 @@ static inline void object_copy_body(STATE, OBJECT self, OBJECT dest) {
 
 #define ISA(o, c) object_kind_of_p(state, o, c)
 
-static inline uint32_t object_get_id(STATE, OBJECT self) {
+static inline uintptr_t object_get_id(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {
     OBJECT meta, id;
     
@@ -68,9 +68,9 @@ static inline uint32_t object_get_id(STATE, OBJECT self) {
       object_set_ivar(state, meta, state->global->sym_object_id, id);
     }
     
-    return (uint32_t)id;
+    return (uintptr_t)id;
   } else {
-    return (uint32_t)(self);
+    return (uintptr_t)(self);
   }
 }
 

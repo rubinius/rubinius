@@ -11,7 +11,7 @@ OBJECT symbol_to_string(STATE, OBJECT self);
 #define symbol_from_cstr(st, str) symtbl_lookup_cstr(st, st->global->symbols, str)
 #define SYM(str) symtbl_lookup_cstr(state, state->global->symbols, str)
 
-static inline OBJECT symbol_from_index(STATE, int idx) {
+static inline OBJECT symbol_from_index(STATE, uintptr_t idx) {
   return DATA_APPLY_TAG(idx, DATA_TAG_SYMBOL);
 }
 
