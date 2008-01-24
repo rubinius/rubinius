@@ -33,7 +33,7 @@ module Digest
     klass.const_set :BLOCK_LENGTH, block_length
     klass.const_set :DIGEST_LENGTH, digest_length
 
-    klass.include Digest::Class
+    klass.extend Digest::Class
 
     klass
   end
