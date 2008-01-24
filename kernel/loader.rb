@@ -124,6 +124,8 @@ begin
   until ARGV.empty?
     arg = ARGV.shift
     case arg
+    when '--'
+      break
     when '-h'
       puts RBS_USAGE
       exit 1
