@@ -38,9 +38,18 @@ describe "Process.setpriority" do
     if Process.uid == 0
       Process.setpriority(Process::PRIO_PGRP, 0, pr).should == 0
     else
-      lambda {
+      # EACCESS is not always raised. It's a stupid OS behavior.
+      ok = false
+      begin
         Process.setpriority(Process::PRIO_PGRP, 0, pr)
-      }.should raise_error(Errno::EACCES)
+        ok = true
+      rescue Errno::EACCES
+        ok = true
+      rescue Object
+        ok = false
+      end
+
+      ok.should == true
     end
   end
   end
@@ -52,9 +61,18 @@ describe "Process.setpriority" do
       Process.getpriority(Process::PRIO_USER, 0).should == (p + 1)
       Process.setpriority(Process::PRIO_USER, 0, p).should == 0
     else
-      lambda {
+      # EACCESS is not always raised. It's a stupid OS behavior.
+      ok = false
+      begin
         Process.setpriority(Process::PRIO_USER, 0, p - 1)
-      }.should raise_error(Errno::EACCES)
+        ok = true
+      rescue Errno::EACCES
+        ok = true
+      rescue Object
+        ok = false
+      end
+
+      ok.should == true
     end
   end
 
