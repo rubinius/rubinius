@@ -1161,7 +1161,7 @@ class Node
           g.set_const @name
         end
       else
-        @value.bytecode(g)
+        @value.bytecode(g) if @value
         g.push_literal @name
         
         if @parent
