@@ -59,6 +59,10 @@ class Hash
 
   def get_key_cv(key)
     hsh = key.hash
+    unless hsh.kind_of? Fixnum
+      hsh = hsh % 536870911 # The max fixnum value
+    end
+
     bin = hsh % @bins
 
     entry = @values.at(bin)
@@ -82,6 +86,10 @@ class Hash
     key = key.dup if key.kind_of?(String)
 
     hsh = key.hash
+    unless hsh.kind_of? Fixnum
+      hsh = hsh % 536870911 # The max fixnum value
+    end
+
     bin = hsh % @bins
 
     entry = @values.at(bin)
@@ -154,6 +162,10 @@ class Hash
 
   def delete(key)
     hsh = key.hash
+    unless hsh.kind_of? Fixnum
+      hsh = hsh % 536870911 # The max fixnum value
+    end
+
     bin = hsh % @bins
 
     entry = @values.at(bin)
@@ -424,4 +436,22 @@ class Hash
     return Tuple[true, val] if code
     Tuple[false, nil]
   end
+end
+
+# Uses object identity (ie Object#equal?) as the key test. Much faster
+# than Hash (which uses Object#==), but still uses Object#hash to compute
+# the hash value.
+#
+class LookupTable < Hash
+  def [](key)
+    code, hk, val, nxt = get_by_hash(key.hash, key)
+    return nil unless code
+    return val
+  end
+
+  def []=(key, val)
+    set_by_hash key.hash, key, val
+  end
+
+  alias_method :store, :[]=
 end

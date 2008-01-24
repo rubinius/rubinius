@@ -28,11 +28,21 @@ class Hash
 
   def set_by_hash(hsh, key, val)
     Ruby.primitive :hash_set
+    if hsh.kind_of? Integer
+      # This magic value is the fixnum max.
+      return get_by_hash(hsh % 536870911, key)
+    end
+
     raise PrimitiveFailure, "Hash#set_by_hash failed."    
   end
   
   def get_by_hash(hsh, key)
     Ruby.primitive :hash_get
+    if hsh.kind_of? Integer
+      # This magic value is the fixnum max.
+      return get_by_hash(hsh % 536870911, key)
+    end
+
     raise PrimitiveFailure, "Hash#get_by_hash failed."
   end
   
