@@ -189,7 +189,7 @@ module Digest
 
   end
 
-  module Class
+  class Class
     # call-seq:
     #     Digest::Class.digest(string, #parameters) -> hash_string
     #
@@ -208,12 +208,21 @@ module Digest
     # Returns the hex-encoded hash value of a given _string_.  This is
     # almost equivalent to
     # Digest.hexencode(Digest::Class.new(*parameters).digest(string)).
-    def hexdigest(string, *parameters)
-      if parameters
-        Digest.hexencode(self.new(*parameters).digest(string))
+    def hexdigest(string = nil)
+      data = nil
+
+      if string then
+        reset
+        update string
+        data = finish
+        reset
       else
-        Digest.hexencode(self.new().digest(string))
+        new = clone
+        data = new.send :finish
+        new.reset
       end
+
+      Digest.hexencode data
     end
    
   end

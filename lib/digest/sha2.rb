@@ -10,6 +10,9 @@
 #   $Id: sha2.rb 11708 2007-02-12 23:01:19Z shyouhei $
 
 require 'digest'
+require 'digest/sha256'
+require 'digest/sha384'
+require 'digest/sha512'
 
 module Digest
   #

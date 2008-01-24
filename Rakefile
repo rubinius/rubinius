@@ -827,6 +827,7 @@ task :extensions => %w[
 
   extension:digest_md5
   extension:digest_sha1
+  extension:digest_sha2
   extension:fcntl
   extension:syck
   extension:zlib
@@ -854,6 +855,17 @@ namespace :extension do
     'lib/ext/digest/defs.h',
   ] do
     compile 'lib/ext/digest/sha1'
+  end
+
+  task :digest_sha2 => "lib/ext/digest/sha2/sha2.#{$dlext}"
+
+  file "lib/ext/digest/sha2/sha2.#{$dlext}" => FileList[
+    'lib/ext/digest/sha2/build.rb',
+    'lib/ext/digest/sha2/*.c',
+    'lib/ext/digest/sha2/*.h',
+    'lib/ext/digest/defs.h',
+  ] do
+    compile 'lib/ext/digest/sha2'
   end
 
   task :fcntl => "lib/ext/fcntl/fcntl.#{$dlext}"
