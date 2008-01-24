@@ -100,7 +100,7 @@ object_memory object_memory_new() {
   
   om->contexts = heap_new(CONTEXT_SIZE);
   om->context_bottom = (OBJECT)(om->contexts->address);
-  om->context_last = (OBJECT)((uintptr_t)om->contexts->address + CONTEXT_SIZE - (CTX_SIZE * 3));
+  om->context_last = (OBJECT)((uintptr_t)om->contexts->address + CONTEXT_SIZE - (CTX_SIZE * 10));
   
   // Start the values up a bit higher so they don't collide
   // with the hashs of symbols right off the bat.
