@@ -1,0 +1,2 @@
+SystemCallError.new accepts single Fixnum argument as errno
+SystemCallError#message should return default message when no message given
