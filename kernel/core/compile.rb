@@ -277,12 +277,7 @@ module Compile
       rb, rbc, ext = path, "#{dir}/#{name}.compiled.rbc", nil
     end
 
-    if File.exists? rb or File.exists? rbc
-      Compile.single_load '', rb, rbc, ext, false
-      return true
-    end
-
-    return false
+    Compile.single_load '', rb, rbc, ext, false
   end
 
 end       # Compile
