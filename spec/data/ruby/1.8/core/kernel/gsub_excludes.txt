@@ -1,2 +1,0 @@
-Kernel#gsub is a private method
-Kernel#gsub! is a private method

@@ -1,2 +1,0 @@
-Kernel#chomp is a private method
-Kernel#chomp! is a private method

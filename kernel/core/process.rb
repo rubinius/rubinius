@@ -597,6 +597,8 @@ module Kernel
       Process.replace "/bin/sh", ["sh", "-c", str]
     end
   end
+
+  module_function :` # `
 end
 
 class IO

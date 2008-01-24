@@ -17,10 +17,6 @@ class << MAIN
     Object.protected(*methods)
   end
   
-  def autoload(*args)
-    Object.autoload *args
-  end
-
   def add_method(name, obj)
     Object.add_method(name, obj)
   end

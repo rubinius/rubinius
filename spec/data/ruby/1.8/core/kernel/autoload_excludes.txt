@@ -1,2 +1,0 @@
-Kernel#autoload is a private method
-Kernel#autoload? is a private method

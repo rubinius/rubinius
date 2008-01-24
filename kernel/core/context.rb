@@ -155,10 +155,18 @@ class MethodContext
   end
 
   def class_variable_get(name)
+    if receiver.kind_of? Module
+      return receiver.class_variable_get(name)
+    end
+
     return current_scope.class_variable_get(name)
   end
 
   def class_variable_set(name, val)
+    if receiver.kind_of? Module
+      return receiver.class_variable_set(name, val)
+    end
+    
     return current_scope.class_variable_set(name, val)
   end
   

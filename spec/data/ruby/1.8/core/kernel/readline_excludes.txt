@@ -1,1 +1,0 @@
-Kernel#readline is a private method

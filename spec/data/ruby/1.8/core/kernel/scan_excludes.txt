@@ -1,1 +1,0 @@
-Kernel#scan is a private method

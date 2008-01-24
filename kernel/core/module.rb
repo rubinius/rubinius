@@ -532,6 +532,16 @@ class Module
   end
 
   def const_missing(name)
+    # Check for autoloads here because this is called no matter how
+    # the constant was attempted to be accessed (ie, const_get or VM)
+    #
+    if @autoloads and path = @autoloads[name]
+      # Do the delete first in case the require bombs out.
+      @autoloads.delete(name)
+      require path
+      return recursive_const_get(name)
+    end
+
     raise NameError, "uninitialized constant #{name}"
   end
 
@@ -696,12 +706,6 @@ class Module
     while current
       return constant if constant = current.constants_table[name]
       current = current.direct_superclass
-    end
-
-    if @autoloads and path = @autoloads[name]
-      require path
-      @autoloads.delete(name)
-      return recursive_const_get(name)
     end
 
     const_missing(name)

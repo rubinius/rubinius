@@ -1,2 +1,0 @@
-Kernel#chop is a private method
-Kernel#chop! is a private method

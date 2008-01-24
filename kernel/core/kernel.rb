@@ -94,9 +94,9 @@ module Kernel
     exc.set_backtrace MethodContext.current.sender unless exc.backtrace
     Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
   end
+  module_function :raise
 
   alias_method :fail, :raise
-  module_function :raise
   module_function :fail
 
   def warn(warning)
@@ -213,6 +213,18 @@ module Kernel
   end
   module_function :rand
 
+  def block_given?
+    if MethodContext.current.sender.block
+      return true
+    end
+
+    return false
+  end
+  module_function :block_given?
+
+  alias_method :iterator?, :block_given?
+  module_function :iterator?
+
   def lambda
     block = block_given?
     raise ArgumentError, "block required" if block.nil?
@@ -285,6 +297,11 @@ module Kernel
     Signal.trap(sig, prc, &block)
   end
   module_function :trap
+
+  def initialize_copy(other)
+    return self
+  end
+  private :initialize_copy
 
   alias_method :__id__, :object_id
 
@@ -451,6 +468,12 @@ module Kernel
     set_instance_variable(sym, value)
   end
 
+  def remove_instance_variable(sym)
+    # HACK
+    instance_variable_set(sym, nil)
+  end
+  private :remove_instance_variable
+
   def instance_variables(symbols = false)
     vars = get_instance_variables
     return [] if vars.nil?
@@ -471,6 +494,18 @@ module Kernel
     return vars.keys if symbols
     return vars.keys.collect { |v| v.to_s }
   end
+
+  def singleton_method_added(name)
+  end
+  private :singleton_method_added
+
+  def singleton_method_removed(name)
+  end
+  private :singleton_method_removed
+  
+  def singleton_method_undefined(name)
+  end
+  private :singleton_method_undefined
 
   alias_method :is_a?, :kind_of?
 
@@ -569,6 +604,119 @@ module Kernel
   def to_s
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)}>"
   end
+
+  def autoload(name, file)
+    Object.autoload(name, file)
+  end
+  private :autoload
+
+  def autoload?(name)
+    Object.autoload?(name)
+  end
+  private :autoload?
+
+  def set_trace_func(*args)
+    raise NotImplementedError
+  end
+  module_function :set_trace_func
+  
+  def syscall(*args)
+    raise NotImplementedError
+  end
+  module_function :syscall
+
+  def trace_var(*args)
+    raise NotImplementedError
+  end
+  module_function :trace_var
+
+  def untrace_var(*args)
+    raise NotImplementedError
+  end
+  module_function :untrace_var
+
+  # Perlisms.
+
+  def chomp(string=$/)
+    $_ = $_.chomp(string)
+  end
+  module_function :chomp
+  
+  def chomp!(string=$/)
+    $_.chomp!(string)
+  end
+  module_function :chomp!
+
+  def chop(string=$/)
+    $_ = $_.chop(string)
+  end
+  module_function :chop
+  
+  def chop!(string=$/)
+    $_.chop!(string)
+  end
+  module_function :chop!
+
+  def getc
+    $stdin.getc
+  end
+  module_function :getc
+
+  def putc(int)
+    $stdin.putc(int)
+  end
+  module_function :putc
+
+  def gets(sep=$/)
+    # HACK. Needs to use ARGF first.
+    $stdin.gets(sep)
+  end
+  module_function :gets
+
+  def readline(sep)
+    $stdin.readline(sep)
+  end
+  module_function :readline
+  
+  def readlines(sep)
+    $stdin.readlines(sep)
+  end
+  module_function :readlines
+
+  def gsub(pattern, rep=nil, &block)
+    $_ = $_.gsub(pattern, rep, &block)
+  end
+  module_function :gsub
+  
+  def gsub!(pattern, rep=nil, &block)
+    $_.gsub!(pattern, rep, &block)
+  end
+  module_function :gsub!
+
+  def sub(pattern, rep=nil, &block)
+    $_ = $_.sub(pattern, rep, &block)
+  end
+  module_function :sub
+  
+  def sub!(pattern, rep=nil, &block)
+    $_.sub!(pattern, rep, &block)
+  end
+  module_function :sub!
+
+  def scan(pattern, &block)
+    $_.scan(pattern, &block)
+  end
+  module_function :scan
+
+  def select(*args)
+    IO.select(*args)
+  end
+  module_function :select
+
+  def split(*args)
+    $_.split(*args)
+  end
+  module_function :split
 
   # From bootstrap
   private :get_instance_variable
