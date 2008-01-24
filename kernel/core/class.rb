@@ -2,16 +2,31 @@
 
 class Class
 
-  def self.new(sclass=Object)
-    raise TypeError, "superclass must be a Class (#{sclass.class.name} given)" unless sclass.kind_of?(Class)
+  protected :object_type
+  protected :has_ivars
+  protected :needs_cleanup
 
-    obj = Rubinius.class_constitute(sclass, nil)
+  def initialize(sclass=Object)
+    unless sclass.kind_of?(Class)
+      raise TypeError, "superclass must be a Class (#{sclass.class.name} given)"
+    end
+
+    @instance_fields = sclass.instance_fields
+    @has_ivar = sclass.has_ivars
+    @needs_cleanup = sclass.needs_cleanup
+    @object_type = sclass.object_type
+    @superclass = sclass
+
+    super()
+
+    mc = self.metaclass
+    mc.set_superclass sclass.metaclass
+
     block = block_given?
-    obj.class_eval(&block) if block
+    instance_eval(&block) if block
     # add clas to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses
-    sclass.send :inherited, obj
-    obj
+    sclass.__send__ :inherited, self
   end
 
   def opened_class_cv(cls)
@@ -71,6 +86,8 @@ end
 
 class MetaClass
 
+  ivar_as_index :superclass => 6
+
   # Called when 'def obj.name' syntax is used in userland
   def attach_method(name, object)
     cur = method_table[name]
@@ -85,6 +102,10 @@ class MetaClass
     object.inherit_scope MethodContext.current.sender.method
     Rubinius::VM.reset_method_cache(name)
     return object
+  end
+
+  def set_superclass(obj)
+    @superclass = obj
   end
 
   def inspect

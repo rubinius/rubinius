@@ -8,20 +8,6 @@ class Module
   def constants_table; @constants    ; end
   def parent         ; @parent       ; end
 
-  def self.new(*args)
-    mod = self.allocate
-
-    Rubinius.module_setup_fields(mod)
-    block = block_given?
-    if block
-      mod.__send__ :initialize, *args, &block
-    else
-      mod.__send__ :initialize, *args, &block
-    end
-
-    mod
-  end
-
   def self.nesting
     mod  = MethodContext.current.sender.receiver
     unless mod.kind_of? Module
@@ -36,6 +22,9 @@ class Module
   end
 
   def initialize
+    @constants = Hash.new
+    @methods = MethodTable.new
+
     block = block_given?
     instance_eval(&block) if block
     # I think we need this for constant lookups

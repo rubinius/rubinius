@@ -37,6 +37,14 @@ class Class
   def object_type
     @object_type
   end
+
+  def has_ivars
+    @has_ivars
+  end
+
+  def needs_cleanup
+    @needs_cleanup
+  end
 end
 
 class RuntimePrimitive
