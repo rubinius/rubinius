@@ -1,7 +1,40 @@
 module Digest
 
- # Generates a hex-encoded version of a given +string+
-  def Digest.hexencode(string)
+  # Creates a new Digest Class of +name+ using the C functions
+  # +init_function+, +update_function+ and +finish_function+.  The C
+  # algorithm's state is allocated from a C struct of size +struct_size+.
+  # The algorithm's block length is set to +block_length+ and digest output
+  # length to +digest_length+.
+  #
+  # Before calling, the C implementation of the algorithm needs to be loaded.
+  #
+  # See digest/md5.rb for an example of usage.
+  def self.create(name, init_function, update_function, finish_function,
+                  struct_size, block_length, digest_length)
+    klass = ::Class.new Digest::Instance
+    Digest.const_set name, klass
+
+    context = ::Class.new FFI::Struct
+    # HACK FFI doesn't understand C arrays
+    context.instance_variable_set :@size, struct_size
+    klass.const_set :Context, context
+
+    klass.attach_function init_function, :digest_init, [:pointer], :void
+    klass.attach_function update_function, :digest_update,
+                          [:pointer, :string, :int], :void
+    klass.attach_function finish_function, :digest_finish,
+                          [:pointer, :string], :void
+
+    klass.const_set :BLOCK_LENGTH, block_length
+    klass.const_set :DIGEST_LENGTH, digest_length
+
+    klass.include Digest::Class
+
+    klass
+  end
+
+  # Generates a hex-encoded version of a given +string+
+  def self.hexencode(string)
     hex = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
 
     result = ' '*(string.length * 2)
@@ -19,6 +52,10 @@ module Digest
   # object to calculate message digest values.
   class Instance
 
+    def initialize
+      reset
+    end
+
     # call-seq:
     #     digest_obj.update(string) -> digest_obj
     #     digest_obj << string -> digest_obj
@@ -29,7 +66,8 @@ module Digest
     # each implementation subclass. (One should be an alias for the
     # other)
     def update(string)
-      raise RuntimeError, "#{self.class} does not implement update"
+      self.class.digest_update @context.pointer, string, string.length
+      self
     end
     alias :<< :update
 
@@ -43,8 +81,10 @@ module Digest
     # data uninitialized.  Do not call this method from outside.  Use
     # #digest! instead, which ensures that internal data be reset for
     # security reasons.
-    def finish(string)
-      raise RuntimeError, "#{self.class} does not implement finish"
+    def finish
+      value = ' ' * digest_length
+      self.class.digest_finish @context.pointer, value
+      value
     end
 
     # call-seq:
@@ -53,8 +93,10 @@ module Digest
     # Resets the digest to the initial state and returns self.
     #
     # This method is overridden by each implementation subclass.
-    def reset(string)
-      raise RuntimeError, "#{self.class} does not implement reset"
+    def reset
+      @context.free if @context
+      @context = self.class::Context.new
+      self.class.digest_init @context.pointer
     end
 
     # call-seq:
@@ -164,7 +206,7 @@ module Digest
     # This method should be overridden by each implementation subclass.
     # If not, digest_obj.digest.length is returned.
     def digest_length
-      digest.length
+      self.class::DIGEST_LENGTH
     end
 
     # call-seq:
@@ -182,12 +224,12 @@ module Digest
     #
     # This method is overridden by each implementation subclass.
     def block_length
-      raise RuntimeError, "#{self.class} does not implement block_length"
+      self.class::BLOCK_LENGTH
     end
 
   end
 
-  class Class
+  module Class
     # call-seq:
     #     Digest::Class.digest(string, #parameters) -> hash_string
     #
