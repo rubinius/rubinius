@@ -403,13 +403,16 @@ class Time
   end
   alias rfc822 rfc2822
 
-  RFC2822_DAY_NAME = [
-    'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
-  ]
-  RFC2822_MONTH_NAME = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-  ]
+  # Rubinius has these defined in kernel.
+  unless const_get(:RFC2822_DAY_NAME)
+    RFC2822_DAY_NAME = [
+      'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
+    ]
+    RFC2822_MONTH_NAME = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ]
+  end
 
   #
   # Returns a string which represents the time as rfc1123-date of HTTP-date
