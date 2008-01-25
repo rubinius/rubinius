@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#callcc" do
-  not_compliant_on(:jruby) do
+  not_supported_on(:jruby) do
     it "is a private method" do
       Kernel.private_instance_methods.should include("callcc")
     end

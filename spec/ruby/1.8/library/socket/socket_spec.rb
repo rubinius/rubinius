@@ -20,15 +20,19 @@ describe "The socket class hierarchy" do
     UDPSocket.superclass.should == IPSocket
   end
 
-  it "has a UNIXSocket in parallel to Socket" do
-    Socket.ancestors.include?(UNIXSocket).should == false
-    UNIXSocket.ancestors.include?(Socket).should == false
-    UNIXSocket.superclass.should == BasicSocket
+  not_supported_on :jruby do
+    it "has a UNIXSocket in parallel to Socket" do
+      Socket.ancestors.include?(UNIXSocket).should == false
+      UNIXSocket.ancestors.include?(Socket).should == false
+      UNIXSocket.superclass.should == BasicSocket
+    end
   end
 end
 
-describe "Server class hierarchy" do
-  it "contains UNIXServer" do
-    UNIXServer.superclass.should == UNIXSocket
+not_supported_on :jruby do
+  describe "Server class hierarchy" do
+    it "contains UNIXServer" do
+      UNIXServer.superclass.should == UNIXSocket
+    end
   end
 end

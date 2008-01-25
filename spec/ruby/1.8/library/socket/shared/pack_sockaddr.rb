@@ -12,7 +12,7 @@ shared :pack_sockaddr_in do |cmd|
 end
 
 shared :pack_sockaddr_un do |cmd|
-  if Socket.const_defined?(:AF_UNIX)
+  not_supported_on :jruby do
     describe "Socket##{cmd}" do
       it "packs and unpacks" do
         sockaddr_un = Socket.pack_sockaddr_un '/tmp/s'
