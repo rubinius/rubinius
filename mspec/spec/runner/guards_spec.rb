@@ -405,6 +405,22 @@ describe Object, "#not_compliant_on" do
   end
 end
 
+describe Object, "#not_supported_on" do
+  it "does not yield when MSpec.engine? returns true" do
+    MSpec.should_receive(:engine?).with(:rbx).and_return(true)
+    lambda {
+      not_supported_on(:rbx) { raise Exception, "I have not been raised" }
+    }.should_not raise_error
+  end
+
+  it "yields when MSpec.engine? returns false" do
+    MSpec.should_receive(:engine?).and_return(false)
+    lambda {
+      not_supported_on(:rbx) { raise Exception, "I am raised" }
+    }.should raise_error(Exception, "I am raised")
+  end
+end
+
 describe Object, "#deviates_on" do
   it "does not yield when MSpec.engine? returns false" do
     MSpec.should_receive(:engine?).with(:rbx).and_return(false)

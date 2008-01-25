@@ -147,10 +147,22 @@ class Object
 
   # not_compliant_on(:jruby) do
   #   Run these specs only if the current engine is not specified.
-  #   Used for specs known to be permanently failing, broken, or unsupported
-  #   by a given implementation or implementations.
+  #   Used for specs known to be permanently failing or broken.
+  #   Consider using not_supported_on in cases when the engine
+  #   is not going to support these specs.
   # end
   def not_compliant_on(*engines)
+    yield unless MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
+  end
+
+  # not_supported_on(:jruby) do
+  #   Run these specs only if the current engine is not specified.
+  #   Used for specs unsupported by a given implementation
+  #   or implementations. For example, Kernel#fork is not going to
+  #   be supported on JRuby, so the fork specs should be wrapped
+  #   inside not_supported_on(:jruby).
+  # end
+  def not_supported_on(*engines)
     yield unless MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
