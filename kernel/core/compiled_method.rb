@@ -293,7 +293,13 @@ class CompiledMethod
         when :literal
           @args[i] = cm.literals[@args[i]]
         when :local
-          @args[i] = cm.local_names[args[i]] if cm.local_names
+          # TODO: Blocks should be able to retrieve local names as well,
+          # but need access to method corresponding to home context
+          @args[i] = cm.local_names[args[i]] if cm.local_names and cm.name != :__block__
+        when :block_local
+          # TODO: Blocks should be able to retrieve enclosing block local names as well,
+          # but need access to static scope
+          @args[i] = cm.local_names[args[i]] if cm.local_names and args[0] == 0
         end
       end
       @ip = ip

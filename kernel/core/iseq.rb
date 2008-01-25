@@ -5,7 +5,7 @@ class InstructionSet
   # Each opcode consists of a hash identifying:
   #   - the opcode symbol,
   #   - an array of the arguments required by the opcode, which may be of types
-  #     :int, :literal, :local, :field, :primitive, :ip,
+  #     :int, :literal, :local, :block_local, :field, :primitive, :ip,
   #     :depth, or :cache
   # IMPORTANT: Do not change the order of opcodes! The position in this array
   # is the opcode's instuction bytecode.
@@ -140,9 +140,9 @@ class InstructionSet
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :meta_send_op_nequal, :args => [], :stack => [2,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
-    {:opcode => :push_local_depth, :args => [:depth, :enclosed_local],
+    {:opcode => :push_local_depth, :args => [:depth, :block_local],
       :stack => [0,1]},
-    {:opcode => :set_local_depth, :args => [:depth, :enclosed_local],
+    {:opcode => :set_local_depth, :args => [:depth, :block_local],
       :stack => [1,1], :vm_flags => [:check_interrupts]},
     {:opcode => :create_block, :args => [:int], :stack => [3,1],
       :vm_flags => [:check_interrupts]},
