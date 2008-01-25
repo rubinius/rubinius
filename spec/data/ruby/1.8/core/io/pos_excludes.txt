@@ -1,0 +1,1 @@
+IO#pos= can handle any numerical argument without breaking

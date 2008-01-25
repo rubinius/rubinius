@@ -30,4 +30,12 @@ describe "IO#seek" do
     @io.seek(-25, IO::SEEK_END)
     @io.readline.should == "cinco.\n"
   end
+
+  it "can handle any numerical argument without breaking" do
+    @io.seek(1.2).should == 0
+    @io.seek(2**32).should == 0
+    @io.seek(1.23423423432e12).should == 0
+    @io.seek(0.00000000000000000000001).should == 0
+    lambda { @io.seek(2**128) }.should raise_error(RangeError)
+  end
 end
