@@ -105,6 +105,20 @@ describe "String#unpack with 'Q' and 'q' directives" do
       [68547068192358922, -1228489624490278918]
     "\x7F\x77\x77\x77\x77\x77\x77\x77".unpack('q0Q*').should == [8608480567731124095]
   end
+
+  it "returns Bignums for big numeric values" do
+    "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q')[0].class.should ==
+      17344245288696546035.class
+    "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE".unpack('q')[0].class.should ==
+      -72057594037927937.class
+  end
+
+  it "returns Fixnums for small numeric values" do
+    "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('Q').should == [0]
+    "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('q').should == [0]
+    "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('Q')[0].class.should == Fixnum
+    "\x00\x00\x00\x00\x00\x00\x00\x00".unpack('q')[0].class.should == Fixnum
+  end
 end
 
 describe "String#unpack with 'a', 'X' and 'x' directives" do
