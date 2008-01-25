@@ -12,24 +12,42 @@ module Enumerable
 
   class Sort
 
-    def initialize(sorter = :quicksort)
+    def initialize(sorter = nil)
       @sorter = sorter
     end
 
     def sort(xs, &prc)
       # The ary should be inmutable while sorting
       prc = Proc.new { |a,b| a <=> b } unless block_given?
-      @sorter = method(@sorter) unless @sorter.respond_to?(:call)
-      @sorter.call(xs, &prc)
+      
+      if @sorter
+        @sorter = method(@sorter) unless @sorter.respond_to?(:call)
+        @sorter.call(xs, &prc)
+      else
+        quicksort(xs, &prc)
+      end
     end
 
     alias_method :call, :sort
 
-    def sort_by(xs, &prc)
+    class SortedElement
+      def initialize(val, sort_id)
+        @value, @sort_id = val, sort_id
+      end
+
+      attr_reader :value
+      attr_reader :sort_id
+
+      def <=>(other)
+        @sort_id <=> other.sort_id
+      end
+    end
+
+    def sort_by(xs)
       # The ary and its elements sould be inmutable while sorting
-      sort(xs.collect { |x| 
-             [yield(x), x] 
-           }).collect { |a| a[1] }
+
+      elements = xs.map { |x| SortedElement.new(x, yield(x)) }
+      sort(elements).map { |e| e.value }
     end
     
     # Sort an Enumerable using simple quicksort (not optimized)

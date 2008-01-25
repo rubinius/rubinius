@@ -477,6 +477,14 @@ class FFI::Struct
     @pointer.free
   end
 
+  def dup
+    np = MemoryPointer.new size
+    Platform::POSIX.memcpy np, @pointer, size
+    return self.class.new(np)
+  end
+
+  alias_method :clone, :dup
+
   def [](field)
     offset, type = @cspec[field]
     raise "Unknown field #{field}" unless offset

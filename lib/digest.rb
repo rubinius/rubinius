@@ -58,7 +58,12 @@ module Digest
   class Instance
 
     def initialize
+      @context = nil
       reset
+    end
+
+    def initialize_copy(other)
+      @context = @context.dup
     end
 
     # call-seq:
@@ -89,6 +94,8 @@ module Digest
     def finish
       value = ' ' * digest_length
       self.class.digest_finish @context.pointer, value
+      @context.free
+      @context = nil
       value
     end
 

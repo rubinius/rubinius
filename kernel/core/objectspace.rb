@@ -39,6 +39,10 @@ module ObjectSpace
     return nil
   end
 
+  def self.undefine_finalizer(obj)
+    @finalizers.delete(obj.object_id)
+  end
+
   def self.run_finalizers
     @finalizers.each_pair do |key, val|
       unless val[0].weakref_alive?
