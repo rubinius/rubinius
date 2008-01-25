@@ -405,7 +405,8 @@ class Node
   # TESTED
   class DynamicOnceRegex
     def bytecode(g)
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
 
