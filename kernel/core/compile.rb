@@ -21,6 +21,7 @@ module Compile
   end
 
   def self.find_compiler
+    @compiler = :loading
     begin
       loading_rbc_directly do
         require "#{DefaultCompiler}/init"
@@ -31,7 +32,7 @@ module Compile
       raise e
     end
 
-    unless @compiler
+    if @compiler == :loading
       raise "Attempted to load DefaultCompiler, but no compiler was registered"
     end
 
@@ -39,7 +40,7 @@ module Compile
   end
 
   def self.compiler
-    return @compiler if @compiler
+    return @compiler if @compiler and @compiler != :loading
     return find_compiler
   end
 
@@ -49,7 +50,7 @@ module Compile
     # what version it is. This is important because we don't want
     # to keep the compiler from loading at all because it might have
     # older versioned files.
-    return @compiler.version_number if @compiler
+    return @compiler.version_number if @compiler and @compiler != :loading
     return 0
   end
 
@@ -88,6 +89,11 @@ module Compile
   # load the file directly or by prefixing it with the paths in
   # $LOAD_PATH and then attempts to locate and load the file.
   def self.unified_load(path, rb, rbc, ext, requiring = nil)
+    # forces the compiler to be loaded. We need this to get
+    # the proper version_number calculation.
+    #
+    self.compiler unless @compiler
+
     # ./ ../ ~/ /
     if path =~ %r{\A(?:(\.\.?)|(~))?/}
       if $2    # ~ 
@@ -144,6 +150,11 @@ module Compile
   # Internally used by #unified_load. This attempts to load the
   # designated file from a single prefix path.
   def self.single_load(dir, rb, rbc, ext, requiring = nil)
+    # forces the compiler to be loaded. We need this to get
+    # the proper version_number calculation.
+    #
+    self.compiler unless @compiler
+
     if rb then
       return false if requiring and $LOADED_FEATURES.include? rb
 

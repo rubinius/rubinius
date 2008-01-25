@@ -50,6 +50,10 @@ class Compiler
       rescue Exception
         @version_number = 0
       end
+
+      if $DEBUG_LOADING
+        STDERR.puts "[Compiler version: #{@version_number}]"
+      end
     end
     return @version_number
   end
@@ -59,6 +63,10 @@ class Compiler
       @version_number = ver - TimeEpoch
     else
       @version_number = 0
+    end
+      
+    if $DEBUG_LOADING
+      STDERR.puts "[Compiler version: #{@version_number} (forced)]"
     end
   end
 

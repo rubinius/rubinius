@@ -215,7 +215,8 @@ describe Compiler do
   
   it "compiles a dynamic regex once is indicated" do
     gen [:dregx_once, "(", [:evstr, [:true]], [:str, ")"], 0] do |g|
-      idx = g.push_literal nil
+      idx = g.add_literal nil
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
