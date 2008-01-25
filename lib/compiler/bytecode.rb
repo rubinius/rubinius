@@ -1994,7 +1994,7 @@ class Node
       g.push_literal @current
       g.push_literal @new
       g.push :self
-      g.send :alias_method, 2
+      g.send :alias_method, 2, true
     end
   end
 

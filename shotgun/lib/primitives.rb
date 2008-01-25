@@ -674,10 +674,20 @@ class ShotgunPrimitives
     t9 = stack_pop();
 
     tm.tm_sec = FIXNUM_TO_INT(t1);
+    GUARD(tm.tm_sec >= 0 && tm.tm_sec <= 60);
+    
     tm.tm_min = FIXNUM_TO_INT(t2);
+    GUARD(tm.tm_min >= 0 && tm.tm_min <= 60);
+    
     tm.tm_hour = FIXNUM_TO_INT(t3);
+    GUARD(tm.tm_hour >= 0 && tm.tm_hour <= 24);
+    
     tm.tm_mday = FIXNUM_TO_INT(t4);
+    GUARD(tm.tm_mday >= 1 && tm.tm_mday <= 31);
+    
     tm.tm_mon = FIXNUM_TO_INT(t5) - 1;
+    GUARD(tm.tm_mon >= 0 && tm.tm_mon <= 11);
+    
     tm.tm_year = FIXNUM_TO_INT(t6) - 1900;
 
     /* In theory, we'd set the tm_isdst field to FIXNUM_TO_INT(t8).
@@ -711,6 +721,8 @@ class ShotgunPrimitives
         unsetenv("TZ");
       }
     }
+
+    GUARD(seconds > 0);
 
     ret = array_new(state, 2);
     array_set(state, ret, 0, LL2I(seconds));

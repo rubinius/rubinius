@@ -307,13 +307,18 @@ class Time
     mon  = mon.to_i
     year = year.to_i
     usec = usec.to_i
-    
-    raise ArgumentError, "time out of range" unless (0..60) === sec  &&
-                                                    (0..60) === min  &&
-                                                    (0..24) === hour &&
-                                                    (1..31) === mday &&
-                                                    (1..12) === mon 
-    
+
+    # This logic is taken from MRI, on how to deal with 2 digit dates.
+    if year < 200
+      if 0 <= year and year < 39
+        warn "2 digit year used: #{year}"
+        year += 2000
+      elsif 69 <= year and year < 139
+        warn "2 or 3 digit year used: #{year}"
+        year += 1900
+      end
+    end
+
     @timeval = time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
     raise ArgumentError, "time out of range" if @timeval.first == -1
     

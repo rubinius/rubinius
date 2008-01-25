@@ -40,7 +40,7 @@
 # $Id$
 #
 
-require 'parsedate'
+require 'date/format'
 
 #
 # Implements the extensions to the Time class that are described in the
@@ -66,7 +66,7 @@ class Time
       'N' => -1, 'O' => -2, 'P' => -3, 'Q' => -4,  'R' => -5,  'S' => -6, 
       'T' => -7, 'U' => -8, 'V' => -9, 'W' => -10, 'X' => -11, 'Y' => -12,
     }
-    def zone_offset(zone, year=Time.now.year)
+    def zone_offset(zone, year=self.now.year)
       off = nil
       zone = zone.upcase
       if /\A([+-])(\d\d):?(\d\d)\z/ =~ zone
@@ -75,9 +75,9 @@ class Time
         off = zone.to_i * 3600
       elsif ZoneOffset.include?(zone)
         off = ZoneOffset[zone] * 3600
-      elsif ((t = Time.local(year, 1, 1)).zone.upcase == zone rescue false)
+      elsif ((t = self.local(year, 1, 1)).zone.upcase == zone rescue false)
         off = t.utc_offset
-      elsif ((t = Time.local(year, 7, 1)).zone.upcase == zone rescue false)
+      elsif ((t = self.local(year, 7, 1)).zone.upcase == zone rescue false)
         off = t.utc_offset
       end
       off
@@ -150,7 +150,7 @@ class Time
 
     def make_time(year, mon, day, hour, min, sec, sec_fraction, zone, now)
       usec = nil
-      usec = (sec_fraction * 1000000).to_i if sec_fraction
+      usec = sec_fraction * 1000000 if sec_fraction
       if now
         begin
           break if year; year = now.year
@@ -177,7 +177,7 @@ class Time
       if off
         year, mon, day, hour, min, sec =
           apply_offset(year, mon, day, hour, min, sec, off)
-        t = Time.utc(year, mon, day, hour, min, sec, usec)
+        t = self.utc(year, mon, day, hour, min, sec, usec)
         t.localtime if !zone_utc?(zone)
         t
       else
@@ -236,8 +236,23 @@ class Time
     #
     # A failure for Time.parse should be checked, though.
     #
-    def parse(date, now=Time.now)
+    def parse(date, now=self.now)
       d = Date._parse(date, false)
+      year = d[:year]
+      year = yield(year) if year && block_given?
+      make_time(year, d[:mon], d[:mday], d[:hour], d[:min], d[:sec], d[:sec_fraction], d[:zone], now)
+    end
+
+    #
+    # Parses +date+ using Date._strptime and converts it to a Time object.
+    #
+    # If a block is given, the year described in +date+ is converted by the
+    # block.  For example:
+    #
+    #     Time.strptime(...) {|y| y < 100 ? (y >= 69 ? y + 1900 : y + 2000) : y}
+    def strptime(date, format, now=self.now)
+      d = Date._strptime(date, format)
+      raise ArgumentError, "invalid strptime format - `#{format}'" unless d
       year = d[:year]
       year = yield(year) if year && block_given?
       make_time(year, d[:mon], d[:mday], d[:hour], d[:min], d[:sec], d[:sec_fraction], d[:zone], now)
@@ -323,7 +338,13 @@ class Time
              (\d\d):(\d\d):(\d\d)\x20
              GMT
              \s*\z/ix =~ date
-        self.parse(date)
+        year = $3.to_i
+        if year < 50
+          year += 2000
+        else
+          year += 1900
+        end
+        self.utc(year, $2, $1.to_i, $4.to_i, $5.to_i, $6.to_i)
       elsif /\A\s*
              (?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\x20
              (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\x20
@@ -363,14 +384,14 @@ class Time
         min = $5.to_i
         sec = $6.to_i
         usec = 0
-        usec = ($7.to_f * 1000000).to_i if $7
+        usec = $7.to_f * 1000000 if $7
         if $8
           zone = $8
           year, mon, day, hour, min, sec =
             apply_offset(year, mon, day, hour, min, sec, zone_offset(zone))
-          Time.utc(year, mon, day, hour, min, sec, usec)
+          self.utc(year, mon, day, hour, min, sec, usec)
         else
-          Time.local(year, mon, day, hour, min, sec, usec)
+          self.local(year, mon, day, hour, min, sec, usec)
         end
       else
         raise ArgumentError.new("invalid date: #{date.inspect}")
@@ -403,8 +424,9 @@ class Time
   end
   alias rfc822 rfc2822
 
-  # Rubinius has these defined in kernel.
-  unless const_get(:RFC2822_DAY_NAME)
+  # Rubinius kernel defines these.
+  unless const_defined?(:RFC2822_DAY_NAME)
+
     RFC2822_DAY_NAME = [
       'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
     ]
@@ -412,8 +434,8 @@ class Time
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ]
-  end
 
+  end
   #
   # Returns a string which represents the time as rfc1123-date of HTTP-date
   # defined by RFC 2616: 
@@ -449,10 +471,10 @@ class Time
       year, mon, day, hour, min, sec) +
     if fraction_digits == 0
       ''
-    elsif fraction_digits <= 6
-      '.' + sprintf('%06d', usec)[0, fraction_digits]
+    elsif fraction_digits <= 9
+      '.' + sprintf('%09d', nsec)[0, fraction_digits]
     else
-      '.' + sprintf('%06d', usec) + '0' * (fraction_digits - 6)
+      '.' + sprintf('%09d', nsec) + '0' * (fraction_digits - 9)
     end +
     if utc?
       'Z'
@@ -531,6 +553,9 @@ if __FILE__ == $0
                    Time.httpdate("Tue, 15 Nov 1994 12:45:26 GMT"))
       assert_equal(Time.utc(1999, 12, 31, 23, 59, 59),
                    Time.httpdate("Fri, 31 Dec 1999 23:59:59 GMT"))
+
+      assert_equal(Time.utc(2007, 12, 23, 11, 22, 33),
+                   Time.httpdate('Sunday, 23-Dec-07 11:22:33 GMT'))
     end
 
     def test_rfc3339
@@ -795,6 +820,15 @@ if __FILE__ == $0
 
     def test_parse_fraction
       assert_equal(500000, Time.parse("2000-01-01T00:00:00.5+00:00").tv_usec)
+    end
+
+    def test_strptime
+      assert_equal(Time.utc(2005, 8, 28, 06, 54, 20), Time.strptime("28/Aug/2005:06:54:20 +0000", "%d/%b/%Y:%T %z"))
+    end
+
+    def test_nsec
+      assert_equal(123456789, Time.xmlschema("2000-01-01T00:00:00.123456789+00:00").tv_nsec)
+      assert_equal(123456789, Time.parse("2000-01-01T00:00:00.123456789+00:00").tv_nsec)
     end
   end
 end

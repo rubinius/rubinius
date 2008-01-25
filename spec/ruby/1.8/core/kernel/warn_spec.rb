@@ -14,7 +14,7 @@ describe "Kernel.warn" do
       warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
 
       $VERBOSE = v
-    }.should output(nil, "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn\n")
+    }.should output(nil, /Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn\n/)
   end
 
   it "writes the default record seperator (\\n) and NOT $/ to $stderr after the warning message" do
@@ -28,7 +28,7 @@ describe "Kernel.warn" do
 
       $VERBOSE = v
       $/ = rs
-    }.should output(nil, "\n")
+    }.should output(nil, /\n/)
   end
 
   it "does not call #write on $stderr if $VERBOSE is nil" do

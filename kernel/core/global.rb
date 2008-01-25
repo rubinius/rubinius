@@ -1,4 +1,4 @@
-# depends on: class.rb
+# depends on: class.rb hash.rb
 
 # Class that allows global variables to have aliases
 class GlobalVariables
@@ -6,7 +6,7 @@ class GlobalVariables
     load_path = ["lib", "stdlib", "."]
     loaded_features = []
 
-    @internal = {
+    defaults = {
       :$; => nil,
       :$/ => "\n",                # Input record separator
       :$\ => nil,                 # Output record separator
@@ -29,8 +29,10 @@ class GlobalVariables
       :$= => false, # ignore case, whatever that is
     }
 
-    @alias = {}
-    @hooks = {}
+    @internal = LookupTable.from_hash defaults
+
+    @alias = LookupTable.new
+    @hooks = LookupTable.new
   end
 
   def key?(key)

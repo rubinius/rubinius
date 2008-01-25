@@ -156,6 +156,9 @@ class Module
     current_name = normalize_name(current_name)
     meth = find_method_in_hierarchy(current_name)
     if meth
+      if meth.kind_of? Tuple
+        meth = meth.dup
+      end
       method_table[new_name] = meth
       Rubinius::VM.reset_method_cache(new_name)
     else
@@ -651,6 +654,8 @@ class Module
     alias_method :attr_reader, :attr_reader_cv
     alias_method :attr_writer, :attr_writer_cv
     alias_method :attr_accessor, :attr_accessor_cv
+
+    private :alias_method
   end
 
   def autoload(name, path)

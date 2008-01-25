@@ -9,6 +9,7 @@ class Time
   
   def time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
     Ruby.primitive :mktime
+    raise ArgumentError, "time out of range"
   end
   
   def __strftime(tm, format)
