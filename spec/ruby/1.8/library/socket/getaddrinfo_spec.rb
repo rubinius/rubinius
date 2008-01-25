@@ -5,7 +5,12 @@ describe "Socket#getaddrinfo" do
   it "gets the address information" do
     expected = []
 
-    if Socket.constants.include? 'AF_INET6' then
+    # The check for AP_INET6's class is needed because ipaddr.rb adds
+    # fake AP_INET6 even in case when IPv6 is not really supported.
+    # Without such check, this test might fail when ipaddr was required
+    # by some other specs.
+    if (Socket.constants.include? 'AF_INET6') &&
+        (Socket::AF_INET6.class != Object) then
       expected.concat [
         ['AF_INET6', 80, 'localhost', '::1', Socket::AF_INET6,
           Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
