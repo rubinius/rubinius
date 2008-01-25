@@ -11,7 +11,9 @@ describe "TCPServer.new" do
     addr = @server.addr
     addr[0].should == 'AF_INET'
     addr[1].be_kind_of Fixnum
-    addr[2].should == 'localhost'
+    # on some platforms (Mac), MRI
+    # returns comma at the end.
+    addr[2].should =~ /^localhost,?$/
     addr[3].should == '127.0.0.1'
   end
 end
