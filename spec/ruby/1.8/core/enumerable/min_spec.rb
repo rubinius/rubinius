@@ -67,4 +67,13 @@ describe "Enumerable#min" do
     @e_ints.min {|a,b| a <=> b }.should == 22
     @e_ints.min {|a,b| a.to_s <=> b.to_s }.should == 1010101010
   end
+  
+  it "returns the minimum for enumerables that contain nils" do
+    arr = EnumerableSpecs::Numerous.new(nil, nil, true)
+    arr.min { |a, b|
+      x = a.nil? ? -1 : a ? 0 : 1
+      y = b.nil? ? -1 : b ? 0 : 1
+      x <=> y
+    }.should == nil
+  end
 end
