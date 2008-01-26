@@ -7,7 +7,7 @@ if ! test -f run; then
 fi
 
 if test -z $CC; then
-  $CC='cc'
+  CC='cc'
 fi
 
 $CC $CFLAGS -o $name $name.c
