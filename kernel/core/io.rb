@@ -350,6 +350,8 @@ class IO
       seek 0, SEEK_CUR
     end
 
+    data = String data
+
     prim_write(data)
   end
   

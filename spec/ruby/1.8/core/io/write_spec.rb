@@ -9,7 +9,7 @@ describe "IO#write on a file" do
     @file = File.open(@filename, "r+")
     @readonly_file = File.open(@filename)
   end
-  
+
   after :each do
     @file.close
     @readonly_file.close
@@ -53,4 +53,6 @@ describe "IO#write on a file" do
       file.read(10).should == "abcde56789"
     end
   end
+
 end
+
