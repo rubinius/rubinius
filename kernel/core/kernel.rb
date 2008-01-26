@@ -396,7 +396,7 @@ module Kernel
       return self.to_s
     end
 
-    prefix = "#{self.class.name}:0x#{self.object_id.to_s(16)}" unless prefix
+    prefix = "#{self.class}:0x#{self.object_id.to_s(16)}" unless prefix
     parts = []
 
     RecursionGuard.inspect(self) do
@@ -604,7 +604,7 @@ module Kernel
   end
 
   def to_s
-    "#<#{self.class.name}:0x#{self.object_id.to_s(16)}>"
+    "#<#{self.class}:0x#{self.object_id.to_s(16)}>"
   end
 
   def autoload(name, file)

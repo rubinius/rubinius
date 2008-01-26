@@ -8,7 +8,7 @@ class Class
 
   def initialize(sclass=Object)
     unless sclass.kind_of?(Class)
-      raise TypeError, "superclass must be a Class (#{sclass.class.name} given)"
+      raise TypeError, "superclass must be a Class (#{sclass.class} given)"
     end
 
     @instance_fields = sclass.instance_fields
