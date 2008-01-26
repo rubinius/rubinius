@@ -11,6 +11,10 @@ if test -z $CC; then
 fi
 
 $CC $CFLAGS -o $name $name.c
+if test $? != 0; then
+  echo "[CONFIG] $1: error"
+  exit 2
+fi
 
 if ./$name; then
   rm $name
@@ -21,5 +25,3 @@ else
   echo "[CONFIG] $1: no"
   exit 1
 fi
-
-exit $code
