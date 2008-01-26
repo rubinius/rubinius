@@ -165,7 +165,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c, int setup);
 int cpu_dispatch(STATE, cpu c);
-void cpu_compile_instructions(STATE, OBJECT ba);
+void cpu_compile_instructions(STATE, OBJECT bc, OBJECT ba);
 OBJECT cpu_compile_method(STATE, OBJECT cm);
 OBJECT cpu_create_block_context(STATE, cpu c, OBJECT env, int sp);
 

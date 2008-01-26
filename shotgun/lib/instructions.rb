@@ -75,30 +75,47 @@ class ShotgunInstructions
     code << "\n"
     
     code << <<-CODE
+
+    static inline uint32_t read_int_from_be(uint8_t *str) {
+      return (uint32_t)((str[0] << 24)
+                      | (str[1] << 16)
+                      | (str[2] << 8 )
+                      |  str[3]      );
+    }
     
-    static void calculate_into_gotos(STATE, OBJECT iseq, void **addrs, int size) {
-      uint32_t *insn;
+    static void calculate_into_gotos(STATE, OBJECT iseq, OBJECT output, void* addrs[], int size) {
+      uint8_t *insn;
       uint32_t op;
-      void *addr;
-      int i, k, count;
+      uintptr_t *compiled;
+
+      int i, f, offset, sz;
       
-      k = bytearray_bytes(state, iseq) / sizeof(uint32_t);
-      insn = (uint32_t*)bytearray_byte_address(state, iseq);
-      i = 0;
-      count = 0;
-      
-      while(i < k) {
-        op = insn[i];
+      f = bytearray_bytes(state, iseq);
+      insn = (uint8_t*)bytearray_byte_address(state, iseq);
+      compiled = (uintptr_t*)bytearray_byte_address(state, output);
+
+      offset = 0;
+      for(offset = 0; offset < f; offset += 4) { 
+#if CONFIG_BIG_ENDIAN
+        op = *((uint32_t*)(insn + offset));
+#else
+        op = read_int_from_be(insn + offset);
+#endif
         /* Protect against errant data */
         if(op > size) op = 0;
-        addr = addrs[op];
-        // printf("OC: %d => %p\\n", op, addr);
-        // assert(addr);
-        insn[i] = (uint32_t)addr;
-        i += _ip_size(op);
-        count++;
+        *compiled++ = (uintptr_t)addrs[op];
+        /* copy the instruction args */
+        sz = _ip_size(op) - 1;
+        for(i = 0; i < sz; i++) {
+          offset += 4;
+#if CONFIG_BIG_ENDIAN
+          op = *((uint32_t*)(insn + offset));
+#else
+          op = read_int_from_be(insn + offset);
+#endif
+          *compiled++ = (uintptr_t)op;
+        }
       }
-      // printf("Calculated %d ops into %s\\n", count, _inspect(iseq));
     }
     
     CODE

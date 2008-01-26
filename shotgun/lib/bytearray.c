@@ -78,7 +78,7 @@ static inline uint32_t read_int_from_be(uint8_t *str) {
                   |  str[3]      );
 }
 
-void iseq_flip(STATE, OBJECT self) {
+void iseq_flip(STATE, OBJECT self, OBJECT output) {
   uint8_t *buf;
   uint32_t *ibuf;
   uint32_t val;
@@ -86,15 +86,12 @@ void iseq_flip(STATE, OBJECT self) {
   
   f = object_size(state, self);
   buf = (uint8_t*)bytearray_byte_address(state, self);
-  ibuf = (uint32_t*)bytearray_byte_address(state, self);
-  
-  /* The first thing can't be a noop */
-  sassert(*ibuf);
+  ibuf = (uint32_t*)bytearray_byte_address(state, output);
   
   /* A sanity check. The first thing is always an instruction,
    * and we've got less that 1024 instructions, so if it's less
    * it's already been flipped. */
-  if(*ibuf < 1024) return;
+  if(*(uint32_t*)buf < 1024) return;
 
   for(i = 0; i < f; i += 4, ibuf++) {
     val = read_int_from_be(buf + i);

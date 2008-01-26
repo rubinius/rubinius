@@ -2075,7 +2075,7 @@ class ShotgunPrimitives
 
     fc = FASTCTX(t1);
     if(fc->method->obj_type == CMethodType) {
-      cpu_compile_instructions(state, t2);
+      cpu_compile_method(state, fc->method);
       fc->data = BYTEARRAY_ADDRESS(t2);
     }
 

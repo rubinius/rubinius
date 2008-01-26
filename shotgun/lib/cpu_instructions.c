@@ -340,22 +340,26 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT klass, OBJECT obj, O
 
 OBJECT cpu_compile_method(STATE, OBJECT cm) {
   OBJECT ba, bc;
+  int target_size;
+
   ba = cmethod_get_compiled(cm);
   bc = cmethod_get_bytecodes(cm);
-  if(NIL_P(ba) || BYTEARRAY_SIZE(ba) < BYTEARRAY_SIZE(bc)) {
+
+  /* If we're direct threaded, the compiled version is an array of the pointer
+   * size. */
+#if DIRECT_THREADED
+  target_size = BYTEARRAY_SIZE(bc) * sizeof(uintptr_t);
+#else
+  target_size = BYTEARRAY_SIZE(bc);
+#endif
+
+  if(NIL_P(ba) || BYTEARRAY_SIZE(ba) < target_size) {
     /* First time this method has been compiled, or size of current
        bytearray is insufficient to hold revised bytecode */
-    ba = bytearray_dup(state, bc);
+    ba = bytearray_new(state, target_size);
   }
-  else {
-    /* Method is being recompiled due to a change to the iseq.
-       Reuse the existing compiled bytearray so that we don't
-       need to reload all contexts that have a reference to this
-       compiled method. */
-    object_copy_body(state, bc, ba);
-  }
-  
-  cpu_compile_instructions(state, ba);
+
+  cpu_compile_instructions(state, bc, ba);
   cmethod_set_compiled(cm, ba);
 
   /* Allocate a tuple to hold the cache entries for method calls */
@@ -374,17 +378,15 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
   return ba;
 }
 
-void cpu_compile_instructions(STATE, OBJECT ba) {
+void cpu_compile_instructions(STATE, OBJECT bc, OBJECT comp) {
   /* If this is not a big endian platform, we need to adjust
      the iseq to have the right order */
-#if !CONFIG_BIG_ENDIAN
-  iseq_flip(state, ba);
-#endif
-
+#if !CONFIG_BIG_ENDIAN && !DIRECT_THREADED
+  iseq_flip(state, bc, comp);
+#elif DIRECT_THREADED
   /* If we're compiled with direct threading, then translate
      the compiled version into addresses. */
-#if DIRECT_THREADED
-  calculate_into_gotos(state, ba, _dt_addresses, _dt_size);
+  calculate_into_gotos(state, bc, comp, _dt_addresses, _dt_size);
 #endif
 }
 

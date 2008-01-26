@@ -13,4 +13,4 @@ OBJECT bytearray_new_dirty(STATE, int size);
 #define bytearray_bytes(st, self) BYTEARRAY_SIZE(self)
 
 OBJECT iseq_new(STATE, int fields);
-void iseq_flip(STATE, OBJECT self);
+void iseq_flip(STATE, OBJECT self, OBJECT output);
