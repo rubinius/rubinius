@@ -1,19 +1,19 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "Enumerable#min" do  
+describe "Enumerable#min" do
   before :each do
     @a = EnumerableSpecs::EachDefiner.new( 2, 4, 6, 8, 10 )
 
     @e_strs = EnumerableSpecs::EachDefiner.new("333", "22", "666666", "1", "55555", "1010101010")
     @e_ints = EnumerableSpecs::EachDefiner.new( 333,   22,   666666,   55555, 1010101010)
   end
-    
+
   it "min should return the minimum element" do
     EnumerableSpecs::Numerous.new.min.should == 1
   end
-  
-  it "return the minimun (basic cases)" do  
+
+  it "return the minimun (basic cases)" do
     EnumerableSpecs::EachDefiner.new(55).min.should == 55
 
     EnumerableSpecs::EachDefiner.new(11,99).min.should ==  11
@@ -27,13 +27,13 @@ describe "Enumerable#min" do
 
     EnumerableSpecs::EachDefiner.new("aa","tt").min.should == "aa"
     EnumerableSpecs::EachDefiner.new("tt","aa").min.should == "aa"
-    EnumerableSpecs::EachDefiner.new("2","33","4","11").min.should == "11" 
+    EnumerableSpecs::EachDefiner.new("2","33","4","11").min.should == "11"
 
     @e_strs.min.should == "1"
     @e_ints.min.should == 22
   end
-  
-  it "return nil when error" do    
+
+  it "return nil when error" do
     EnumerableSpecs::EachDefiner.new().min.should == nil
     lambda {
       EnumerableSpecs::EachDefiner.new(Object.new, Object.new).min
@@ -45,7 +45,7 @@ describe "Enumerable#min" do
       EnumerableSpecs::EachDefiner.new(11,12,22,33).min{|a, b| nil}
     }.should raise_error(ArgumentError)
   end
-  
+
   it "return the minimun when using a block rule" do
     EnumerableSpecs::EachDefiner.new("2","33","4","11").min {|a,b| a <=> b }.should == "11"
     EnumerableSpecs::EachDefiner.new( 2 , 33 , 4 , 11 ).min {|a,b| a <=> b }.should == 2
