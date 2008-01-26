@@ -10,6 +10,12 @@
 #  rely on an ordering between members of the collection.
 module Enumerable
 
+  # Just to save you 10 seconds, the reason we always use #each
+  # to extract elements instead of something simpler is because
+  # Enumerable can not assume any other methods than #each. If
+  # needed, class-specific versions of any of these methods can
+  # be written *in those classes* to override these.
+
   class Sort
 
     def initialize(sorter = nil)
@@ -562,37 +568,53 @@ module Enumerable
   #  :call-seq:
   #     enum.min_by {| obj| block }   => obj
   #
-  #  Returns the object in <i>enum</i> that gives the minimum
-  #  value from the given block.
+  # Uses the values returned by the given block as a substitute
+  # for the real object to determine what is considered the
+  # smallest object in the enum using lhs <=> rhs. In the event
+  # of a tie, the object that appears first in #each is chosen.
+  # Returns the "smallest" object or nil if the enum is empty.
   #
-  #     a = %w(albatross dog horse)
-  #     a.min_by {|x| x.length }   #=> "dog"
-  def min_by
-    min, min_value = nil, nil
+  #   a = %w[albatross dog horse]
+  #   a.min_by {|x| x.length }   #=> "dog"
+  #
+  def min_by()
+    min_obj, min_value = Undefined, Undefined
+
     each do |o|
-      o_value = yield(o)
-      lesser = min.nil? || min_value <=> o_value > 0
-      min, min_value = o, o_value if lesser
+      value = yield(o)
+
+      if min_obj.equal?(Undefined) or (min_value <=> value) > 0
+        min_obj, min_value = o, value
+      end
     end
-    min
+
+    min_obj.equal?(Undefined) ? nil : min_obj
   end
 
   #  :call-seq:
   #     enum.max_by {| obj| block }   => obj
   #
-  #  Returns the object in <i>enum</i> that gives the maximum
-  #  value from the given block.
+  # Uses the values returned by the given block as a substitute
+  # for the real object to determine what is considered the
+  # largest object in the enum using lhs <=> rhs. In the event
+  # of a tie, the object that appears first in #each is chosen.
+  # Returns the "largest" object or nil if the enum is empty.
   #
   #     a = %w(albatross dog horse)
   #     a.max_by {|x| x.length }   #=> "albatross"
-  def max_by
-    max, max_value = nil, nil
+  #
+  def max_by()
+    max_obj, max_value = Undefined, Undefined
+
     each do |o|
-      o_value = yield(o)
-      greater = max.nil? || (max_value <=> o_value) < 0
-      max, max_value = o, o_value if greater
+      value = yield(o)
+
+      if max_obj.equal?(Undefined) or (max_value <=> value) < 0
+        max_obj, max_value = o, value
+      end
     end
-    max
+
+    max_obj.equal?(Undefined) ? nil : max_obj
   end
 
 
