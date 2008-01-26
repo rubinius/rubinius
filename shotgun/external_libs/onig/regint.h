@@ -164,6 +164,7 @@
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#include <stdint.h>
 #endif
 
 #if defined(HAVE_ALLOCA_H) && !defined(__GNUC__)
@@ -228,13 +229,13 @@
 
 #define GET_ALIGNMENT_PAD_SIZE(addr,pad_size) do {\
   (pad_size) = WORD_ALIGNMENT_SIZE \
-               - ((unsigned int )(addr) % WORD_ALIGNMENT_SIZE);\
+               - ((uintptr_t)(addr) % WORD_ALIGNMENT_SIZE);\
   if ((pad_size) == WORD_ALIGNMENT_SIZE) (pad_size) = 0;\
 } while (0)
 
 #define ALIGNMENT_RIGHT(addr) do {\
   (addr) += (WORD_ALIGNMENT_SIZE - 1);\
-  (addr) -= ((unsigned int )(addr) % WORD_ALIGNMENT_SIZE);\
+  (addr) -= ((uintptr_t)(addr) % WORD_ALIGNMENT_SIZE);\
 } while (0)
 
 #endif /* PLATFORM_UNALIGNED_WORD_ACCESS */
@@ -799,5 +800,11 @@ extern int onig_st_insert_strend P_((hash_table_type* table, const UChar* str_ke
 
 extern int onigenc_property_list_add_property P_((UChar* name, const OnigCodePoint* prop, hash_table_type **table, const OnigCodePoint*** plist, int *pnum, int *psize));
 extern int onigenc_property_list_init P_((int (*f)()));
+
+/* Add extern definitions for rubinius */
+extern void *XMALLOC(size_t n);
+extern void *XREALLOC(void *p, size_t n);
+extern void *XCALLOC(size_t n, size_t s);
+extern void XFREE(void *p);
 
 #endif /* REGINT_H */
