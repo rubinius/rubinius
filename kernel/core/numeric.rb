@@ -108,6 +108,10 @@ class Numeric
     a.divmod(b)
   end
   
+  def round
+    self.to_f.round
+  end
+  
   def ==(other)
     if values = self.do_coerce(other, false)
       return values[1] == values[0]
