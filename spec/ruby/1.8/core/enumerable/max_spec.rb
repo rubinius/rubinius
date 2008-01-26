@@ -63,4 +63,13 @@ describe "Enumerable#max" do
     @e_ints.max {|a,b| a <=> b }.should == 1010101010
     @e_ints.max {|a,b| a.to_s <=> b.to_s }.should == 666666
   end
+  
+  it "returns the minimum for enumerables that contain nils" do
+    arr = EnumerableSpecs::Numerous.new(nil, nil, true)
+    arr.max { |a, b|
+      x = a.nil? ? 1 : a ? 0 : -1
+      y = b.nil? ? 1 : b ? 0 : -1
+      x <=> y
+    }.should == nil
+  end
 end

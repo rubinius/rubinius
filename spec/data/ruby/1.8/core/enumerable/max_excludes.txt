@@ -1,0 +1,1 @@
+Enumerable#max returns the minimum for enumerables that contain nils
