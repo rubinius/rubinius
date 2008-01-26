@@ -644,8 +644,6 @@ class Date
 	iy = -iy + 1
       end
       
-      # If the user specified a 2 digit year, add 1900 to it.
-      iy += 1900 if y.size == 2
       e.year = iy
     end
 
@@ -853,20 +851,35 @@ class Date
     end
   end
 
-  def self._parse_sla(str, e) # :nodoc:
-    if str.sub!(%r|('?-?\d+)/\s*('?\d+)(?:\D\s*('?-?\d+))?|n, ' ') # '
+  def self._parse_sla_ja(str, e) # :nodoc:
+    if str.sub!(%r|('?-?\d+)[/.]\s*('?\d+)(?:[^\d]\s*('?-?\d+))?|n, ' ') # '
       s3e(e, $1, $2, $3)
       true
     end
   end
-
-  def self._parse_dot(str, e) # :nodoc:
-    if str.sub!(%r|('?-?\d+)\.\s*('?\d+)\.\s*('?-?\d+)|n, ' ') # '
-      s3e(e, $1, $2, $3)
+ 
+  def self._parse_sla_eu(str, e) # :nodoc:
+    if str.sub!(%r|('?-?\d+)[/.]\s*('?\d+)(?:[^\d]\s*('?-?\d+))?|n, ' ') # '
+      s3e(e, $3, $2, $1)
       true
     end
   end
 
+  def self._parse_sla_us(str, e) # :nodoc:
+    if str.sub!(%r|('?-?\d+)[/.]\s*('?\d+)(?:[^\d]\s*('?-?\d+))?|n, ' ') # '
+      s3e(e, $3, $1, $2)
+      true
+    end
+  end
+
+
+  def self._parse_sla_jp(str, e) # :nodoc:
+    if str.sub!(%r|('?-?\d+)[/.]\s*('?\d+)(?:\D\s*('?-?\d+))?|n, ' ') # '
+      s3e(e, $1, $2, $3)
+      true
+    end
+  end
+  
   def self._parse_year(str, e) # :nodoc:
     if str.sub!(/'(\d+)\b/n, ' ')
       e.year = $1.to_i
@@ -1023,7 +1036,7 @@ class Date
 
   private_class_method :_parse_day, :_parse_time, # :_parse_beat,
 	:_parse_eu, :_parse_us, :_parse_iso, :_parse_iso2,
-	:_parse_jis, :_parse_vms, :_parse_sla, :_parse_dot,
+	:_parse_jis, :_parse_vms, :_parse_sla_jp, :_parse_sla_eu, :_parse_sla_us,
 	:_parse_year, :_parse_mon, :_parse_mday, :_parse_ddd
 
   def self._parse(str, comp=true)
@@ -1043,8 +1056,7 @@ class Date
     _parse_iso(str, e)    ||
     _parse_jis(str, e)    ||
     _parse_vms(str, e)    ||
-    _parse_sla(str, e)    ||
-    _parse_dot(str, e)    ||
+    _parse_sla_us(str, e) ||
     _parse_iso2(str, e)   ||
     _parse_year(str, e)   ||
     _parse_mon(str, e)    ||
