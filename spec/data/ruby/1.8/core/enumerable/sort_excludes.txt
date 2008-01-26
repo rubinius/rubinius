@@ -1,1 +1,0 @@
-Enumerable#sort sorts enumerables that contain nils
