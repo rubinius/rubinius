@@ -23,10 +23,6 @@ describe "Date constants" do
     end
   end
 
-  it "should define UNIXEPOCH" do
-    Date::UNIXEPOCH.should == 2440588 # 1970-01-01
-  end
-  
   it "should define MONTHNAMES" do
     Date::MONTHNAMES.should == [nil] + %w(January February March April May June July
                                           August September October November December)

@@ -313,7 +313,20 @@ class Date
   # Gregorian calendar.
   GREGORIAN = -Infinity.new
 
-  UNIXEPOCH = 2440588 # 1970-01-01 :nodoc:
+  HALF_DAYS_IN_DAY       = Rational(1, 2) # :nodoc:
+  HOURS_IN_DAY           = Rational(1, 24) # :nodoc:
+  MINUTES_IN_DAY         = Rational(1, 1440) # :nodoc:
+  SECONDS_IN_DAY         = Rational(1, 86400) # :nodoc:
+  MILLISECONDS_IN_DAY    = Rational(1, 86400*10**3) # :nodoc:
+  NANOSECONDS_IN_DAY     = Rational(1, 86400*10**9) # :nodoc:
+  MILLISECONDS_IN_SECOND = Rational(1, 10**3) # :nodoc:
+  NANOSECONDS_IN_SECOND  = Rational(1, 10**9) # :nodoc:
+
+  MJD_EPOCH_IN_AJD       = Rational(4800001, 2) # 1858-11-17 # :nodoc:
+  UNIX_EPOCH_IN_AJD      = Rational(4881175, 2) # 1970-01-01 # :nodoc:
+  MJD_EPOCH_IN_CJD       = 2400001 # :nodoc:
+  UNIX_EPOCH_IN_CJD      = 2440588 # :nodoc:
+  LD_EPOCH_IN_CJD        = 2299160 # :nodoc:
 
   # Does a given Julian Day Number fall inside the old-style (Julian)
   # calendar?
@@ -768,7 +781,7 @@ class Date
       h,   fr = fr.divmod(3600)
       min, fr = fr.divmod(60)
       s,   fr = fr.divmod(1)
-      elem[:jd] = UNIXEPOCH + d
+      elem[:jd] = UNIX_EPOCH_IN_CJD + d
       elem[:hour] = h
       elem[:min] = min
       elem[:sec] = s
