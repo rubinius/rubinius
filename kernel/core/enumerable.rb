@@ -53,9 +53,10 @@ module Enumerable
     # Sort an Enumerable using simple quicksort (not optimized)
     def quicksort(xs, &prc)
       return [] unless xs
-      pivot = nil
+
+      pivot = Undefined
       xs.each { |o| pivot = o; break }
-      return xs if pivot.nil?
+      return xs if pivot.equal? Undefined
 
       lmr = xs.group_by do |o|
         if o.equal?(pivot)
