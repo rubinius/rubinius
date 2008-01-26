@@ -733,7 +733,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
       home = blokctx_home(state, c->active_context);
       destination = FASTCTX(home)->sender;
       if(EXCESSIVE_TRACING) {
-        printf("CTX: remote return from %d to %d\n", (int)c->active_context, (int)destination);
+        printf("CTX: remote return from %p to %p\n", c->active_context, destination);
       }
       
       /* If the current context is marked as not being allowed to
@@ -796,7 +796,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     
     if(EXCESSIVE_TRACING) {
       if(stack_context_p(destination)) {
-        printf("Returning to a stack context %d / %d (%s).\n", (int)c->active_context, (int)destination, (uintptr_t)c->active_context - (uintptr_t)destination == CTX_SIZE ? "stack" : "REMOTE");
+        printf("Returning to a stack context %p / %p (%s).\n", c->active_context, destination, (uintptr_t)c->active_context - (uintptr_t)destination == CTX_SIZE ? "stack" : "REMOTE");
       } else {
         printf("Returning to %s.\n", _inspect(destination));
       }
@@ -945,7 +945,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   }
   */
   if(EXCESSIVE_TRACING) {
-    printf("CTX:                 running %d\n", (int)ctx);
+    printf("CTX:                 running %p\n", ctx);
   }
   c->call_flags = 0;
   cpu_activate_context(state, c, ctx, ctx, args);

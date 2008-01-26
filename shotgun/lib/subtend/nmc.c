@@ -36,7 +36,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   }
   
   if(state->excessive_tracing) {
-    printf("CTX:           block running %d\n", (int)ctx);
+    printf("CTX:           block running %p\n", ctx);
   }
   
   CLEAR_FLAGS(ctx);

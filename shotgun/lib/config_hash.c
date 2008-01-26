@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include "shotgun/lib/config_hash.h"
 
 
@@ -75,7 +76,7 @@ void ht_vconfig_each(struct hashtable *ht, void (*cb)(int key, void *val))
   hashtable_iterator_init(&itr, ht);
   do {
     if (itr.e) {
-      cb((int)hashtable_iterator_key(&itr), hashtable_iterator_value(&itr));
+      cb((uintptr_t)hashtable_iterator_key(&itr), hashtable_iterator_value(&itr));
     }
   } while (hashtable_iterator_advance(&itr));
 }

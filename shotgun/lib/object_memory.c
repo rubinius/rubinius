@@ -378,7 +378,7 @@ void object_memory_emit_details(STATE, object_memory om, FILE *stream) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(obj);
     if(NUM_FIELDS(obj) == 0) {
-      fprintf(stream, "%d %d free\n", (int)obj, end - cur);
+      fprintf(stream, "%p %d free\n", obj, (int)(end - cur));
     }
     kls = obj->klass;
     if(kls == state->global->cmethod) {
@@ -397,7 +397,7 @@ void object_memory_emit_details(STATE, object_memory om, FILE *stream) {
       kind = "unknown";
     }
     
-    fprintf(stream, "%d %d %s\n", (int)obj, osz, kind);
+    fprintf(stream, "%p %d %s\n", obj, osz, kind);
     cur += osz;
   }
   fclose(stream);
