@@ -183,11 +183,11 @@ class BaseFormatter
   def summary
     unless @summarized
       @out.print "\n\n"
+      print_time
       @exceptions.each_with_index do |r,i|
         print_failure(i+1,r)
         print_backtrace(r.exception)
       end
-      print_time
       print_summary
       @summarized = true
     end

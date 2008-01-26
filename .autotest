@@ -1,5 +1,7 @@
 # -*- ruby -*-
 
+$q = true
+
 Autotest.add_hook :run_command do |at|
   system "rake"
 end
@@ -9,31 +11,29 @@ class Autotest
   alias :old_make_test_cmd :make_test_cmd
 
   def ruby
-    "MSPEC_RUNNER=1 AUTOTEST=1 shotgun/rubinius"
+    "bin/ci"
   end
 
   def make_test_cmd files_to_test
-    cmds = []
-    full, partial = files_to_test.partition { |k,v| v.empty? }
-
-    unless full.empty? then
-      classes = full.map {|k,v| k}.flatten.uniq.sort.join(' ')
-
-      cmds << "#{ruby} -I#{@libs} -e \"puts 'Started autotest'; %w[#{classes}].each { |f| require f }\" | #{unit_diff}"
-    end
-
-    partial.each do |klass, methods|
-      cmds << "#{ruby} -I#{@libs} #{klass} -n \"/^(#{Regexp.union(*methods).source})$/\" | #{unit_diff}"
-    end
-
-    return cmds.join("#{SEP} ")
+    # until bin/ci and bin/mspec allow for regexps, run the whole file again
+    classes = reorder(files_to_test).map { |k,v| k }.join(' ')
+    "#{ruby} #{classes} | #{unit_diff}"
   end
 end
 
 Autotest.add_hook :initialize do |at|
+  at.order = :natural
+
   at.add_exception(/\.rbc$/)
   at.add_exception(/\.txt$/)
   at.add_exception(/fixtures/)
+  at.add_exception(/\/data\//)
+
+  at.test_directories.clear
+  at.test_directories.push('spec/ruby/1.8/core',
+                           'spec/ruby/1.8/language',
+                           'spec/compiler',
+                           'spec/parser')
 
   at.add_mapping %r%^spec/.*_spec\.rb$% do |filename, _|
     filename

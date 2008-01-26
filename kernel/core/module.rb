@@ -433,7 +433,7 @@ class Module
   def set_class_visibility(meth, vis)
     # HACK this is called again in set_visibility
     unless find_class_method_in_hierarchy meth.to_sym then
-      raise NoMethodError, "Unknown class method '#{name}' to make #{vis.to_s}"
+      raise NoMethodError, "Unknown class method '#{name}' to make #{vis}"
     end
 
     metaclass.set_visibility meth, vis
@@ -468,12 +468,16 @@ class Module
   end
 
   def private_class_method(*args)
-    args.each { |meth| set_class_visibility(meth, :private) }
+    args.each do |meth|
+      set_class_visibility(meth, :private)
+    end
     self
   end
 
   def public_class_method(*args)
-    args.each { |meth| set_class_visibility(meth, :public) }
+    args.each do |meth|
+      set_class_visibility(meth, :public)
+    end
     self
   end
 
