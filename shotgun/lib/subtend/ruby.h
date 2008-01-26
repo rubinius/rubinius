@@ -9,7 +9,7 @@
 
 /* Pointers are seen as totally opaque */
 typedef void * VALUE;
-#define ID int
+#define ID uintptr_t
 
 /* We need to redefine those to casts to VALUE */
 #undef Qfalse
