@@ -1,6 +1,7 @@
 #ifndef __MASS_QUARK__
 #define __MASS_QUARK__
-typedef unsigned int quark;
+#include <stdint.h>
+typedef uintptr_t quark;
 
 quark quark_from_string(const char *string);
 
