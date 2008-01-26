@@ -8,8 +8,14 @@ fi
 
 cc -o $name $name.c
 
-./$name
-code=$?
-echo "[CONFIG] $1: $?"
-rm $name
+if ./$name; then
+  rm $name
+  echo "[CONFIG] $1: yes"
+  exit 0
+else
+  rm $name
+  echo "[CONFIG] $1: no"
+  exit 1
+fi
+
 exit $code
