@@ -18,7 +18,7 @@ describe "Enumerable#sort" do
       EnumerableSpecs::Numerous.new(Object.new, Object.new, Object.new).sort
     }.should raise_error(NoMethodError)
   end
-  
+
   it "sorts enumerables that contain nils" do
     arr = EnumerableSpecs::Numerous.new(nil, true, nil, false, nil, true, nil, false, nil)
     arr.sort { |a, b|

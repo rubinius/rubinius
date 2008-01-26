@@ -510,9 +510,9 @@ module Enumerable
   #     a.min {|a,b| a.length <=> b.length }   #=> "dog"
   def min(&prc)
     prc = Proc.new { |a, b| a <=> b } unless block_given?
-    min = nil
+    min = Undefined
     each do |o|
-      if min.nil?
+      if min.equal? Undefined
         min = o
       else
         comp = prc.call(o, min)
@@ -523,7 +523,8 @@ module Enumerable
         end
       end
     end
-    min
+
+    min.equal?(Undefined) ? nil : min
   end
 
 
@@ -540,9 +541,9 @@ module Enumerable
   #     a.max {|a,b| a.length <=> b.length }   #=> "albatross"
   def max(&prc)
     prc = Proc.new { |a, b| a <=> b } unless block_given?
-    max = nil
+    max = Undefined
     each do |o|
-      if max.nil?
+      if max.equal? Undefined
         max = o
       else
         comp = prc.call(o, max)
@@ -553,7 +554,8 @@ module Enumerable
         end
       end
     end
-    max
+
+    max.equal?(Undefined) ? nil : max
   end
 
   #  :call-seq:
@@ -658,5 +660,5 @@ module Enumerable
   end
 
 
-end # module Enumerable
+end
 
