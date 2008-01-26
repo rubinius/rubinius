@@ -21,6 +21,10 @@ class << MAIN
     Object.add_method(name, obj)
   end
 
+  def alias_method(new_name, current_name)
+    Object.__send__ :alias_method, new_name, current_name
+  end
+
   def __const_set__(name, obj)
     Object.__const_set__(name, obj)
   end
