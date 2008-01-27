@@ -1,0 +1,3 @@
+IO#write on a file coerces the argument to a string using to_s
+IO#write on a file checks if the file is writable if writing more than zero bytes
+IO#write on a file writes all of the string's bytes but buffers them
