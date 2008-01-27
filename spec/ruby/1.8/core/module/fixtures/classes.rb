@@ -1,4 +1,18 @@
 module ModuleSpecs
+  CONST = :plain_constant
+
+  module LookupMod
+    MODS = :rockers
+  end
+
+  class Lookup
+    include LookupMod
+    LOOKIE = :lookie
+  end
+
+  class LookupChild < Lookup
+  end
+
   class Parent
     # For private_class_method spec
     def self.private_method; end
@@ -150,7 +164,7 @@ module ModuleSpecs
     module_function :foo
     private :foo
   end
-  
+
   # Yes, we want to re-open the module
   module ReopeningModule
     alias :foo2 :foo
