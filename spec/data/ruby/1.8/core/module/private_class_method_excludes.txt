@@ -1,2 +1,1 @@
 Module#private_class_method makes an existing class method private
-Module#private_class_method makes an existing class method private up the inheritance tree
