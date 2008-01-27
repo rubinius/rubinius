@@ -2,29 +2,34 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#instance_method" do
-  it "returns an UnboundMethod copy of the method with the given name" do
-    c = Class.new do
-      def test
-        "test"
-      end
-    end
-
-    meth = c.instance_method(:test)
-    meth.class.should == UnboundMethod
-
-    bound = meth.bind c.new
-    bound.call.should == "test"
-
-    meth.inspect.should =~ /#<UnboundMethod(:)? #{c}#test>/
-
-    meth = c.instance_method("test")
-    meth.inspect.should =~ /#<UnboundMethod(:)? #{c}#test>/
+  before :all do
+    @parent_um = ModuleSpecs::InstanceMeth.instance_method(:foo)
+    @child_um = ModuleSpecs::InstanceMethChild.instance_method(:foo)
+    @mod_um = ModuleSpecs::InstanceMethChild.instance_method(:bar)
   end
 
-  it "inspect displays it's module if that is where it is from" do
-    meth = Object.instance_method("to_s")
-    o = Object.new
-    meth.bind(o).call.should == o.to_s
+  it "returns an UnboundMethod corresponding to the given name" do
+    @parent_um.class.should == UnboundMethod
+    @parent_um.bind(ModuleSpecs::InstanceMeth.new).call.should == :foo
+  end
+
+  it "returns an UnboundMethod corresponding to the given name from a superclass" do
+    @child_um.class.should == UnboundMethod
+    @child_um.bind(ModuleSpecs::InstanceMethChild.new).call.should == :foo
+  end
+
+  it "returns an UnboundMethod corresponding to the given name from an included Module" do
+    @mod_um.class.should == UnboundMethod
+    @mod_um.bind(ModuleSpecs::InstanceMethChild.new).call.should == :bar
+  end
+
+  it "populates the UnboundMethod with the method name and the Module it is defined in" do
+    @parent_um.inspect.should =~ /\bModuleSpecs::InstanceMeth\b/
+    @parent_um.inspect.should =~ /\bfoo\b/
+    @child_um.inspect.should =~ /\bModuleSpecs::InstanceMeth\b/
+    @child_um.inspect.should =~ /\bfoo\b/
+    @mod_um.inspect.should =~ /\bModuleSpecs::InstanceMethMod\b/
+    @mod_um.inspect.should =~ /\bbar\b/
   end
 
   it "raises a TypeError if the given name is not a string/symbol" do

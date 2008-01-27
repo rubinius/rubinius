@@ -213,6 +213,17 @@ module ModuleSpecs
 
   Nesting[:first_level] = Module.nesting
 
+  module InstanceMethMod
+    def bar(); :bar; end
+  end
+
+  class InstanceMeth
+    include InstanceMethMod
+    def foo(); :foo; end
+  end
+
+  class InstanceMethChild < InstanceMeth
+  end
 end
 
 ModuleSpecs::Nesting[:root_level] = Module.nesting
