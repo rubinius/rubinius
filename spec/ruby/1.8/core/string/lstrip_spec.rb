@@ -7,7 +7,13 @@ describe "String#lstrip" do
    "  hello world  ".lstrip.should == "hello world  "
    "\n\r\t\n\v\r hello world  ".lstrip.should == "hello world  "
    "hello".lstrip.should == "hello"
-   "\x00hello".lstrip.should == "\x00hello"
+  end
+
+  # spec/core/string/lstrip_spec.rb
+  not_compliant_on :rubinius do
+    it "does not strip leading \0" do
+     "\x00hello".lstrip.should == "\x00hello"
+    end
   end
   
   it "taints the result when self is tainted" do
