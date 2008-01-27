@@ -88,15 +88,18 @@ end
 # time of creation. Any subsequent changes to the original will
 # not affect any existing UnboundMethods.
 class UnboundMethod
-  # Takes the original Module and the CompiledMethod to store.
-  # Allows passing in the receiver also, but it is never used
-  # and thus not retained. This is always used internally only.
-  def initialize(mod, compiled_method, original_receiver = nil)
-    @module, @compiled_method = mod, compiled_method
+  # Accepts and stores the Module where the method is defined
+  # in as well as the CompiledMethod itself. Class of the object
+  # the method was extracted from can be given but will not be
+  # stored. This is always used internally only.
+  def initialize(mod, compiled_method, original_receiver_class = nil)
+    @defined_in, @compiled_method = mod, compiled_method
   end
 
   attr_reader :compiled_method
-  protected :compiled_method
+  attr_reader :defined_in
+  protected   :compiled_method
+  protected   :defined_in
 
   # Instance methods
 
@@ -106,11 +109,13 @@ class UnboundMethod
   # class or subclass. Two from different subclasses will not be
   # considered equal.
   def ==(other)
-    if other.kind_of? UnboundMethod
-      return true if other.compiled_method == @compiled_method
+    unless other.kind_of? UnboundMethod and
+           @defined_in == other.defined_in and
+           @compiled_method == other.compiled_method
+      return false
     end
 
-    false
+    true
   end
 
   # See Method#arity.
@@ -122,10 +127,10 @@ class UnboundMethod
   # supplied receiver. The receiver must be kind_of? original
   # Module object extracted from.
   def bind(receiver)
-    unless receiver.kind_of? @module
-      raise TypeError, "Must be bound to an object of kind #{@module}"
+    unless receiver.kind_of? @defined_in
+      raise TypeError, "Must be bound to an object of kind #{@defined_in}"
     end
-    Method.new receiver, @module, @compiled_method
+    Method.new receiver, @defined_in, @compiled_method
   end
 
   # Convenience method for #binding to the given receiver object and
@@ -138,7 +143,7 @@ class UnboundMethod
   # as well as the compiled_method name and the Module the compiled_method was
   # extracted from.
   def inspect()
-    "#<#{self.class} #{@module}##{@compiled_method.name}>"
+    "#<#{self.class} #{@defined_in}##{@compiled_method.name}>"
   end
 
   alias_method :to_s, :inspect
