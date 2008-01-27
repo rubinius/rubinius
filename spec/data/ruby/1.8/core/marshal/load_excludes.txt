@@ -1,1 +1,0 @@
-Marshal.load with serialized float -0.0 returns a construction of the argument

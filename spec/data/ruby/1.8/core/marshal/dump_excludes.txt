@@ -1,4 +1,0 @@
-Marshal.dump when given more than three arguments raises an ArgumentError
-Marshal.dump with string having ivar with ref to self returns a string-serialized version of the given argument
-Marshal.dump with array containing object having _dump method returns a string-serialized version of the given argument
-Marshal.dump with struct having ivar returns a string-serialized version of the given argument

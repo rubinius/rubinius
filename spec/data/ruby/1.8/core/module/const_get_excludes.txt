@@ -1,2 +1,1 @@
-Module#const_get returns the named top-level constant for a receiver module
 Module#const_get returns the value of the constant when a scoped constant name
