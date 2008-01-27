@@ -4,7 +4,7 @@ module MethodSpecs
       true
     end
     alias bar foo
-  
+
     def zero; end
     def one_req(a); end
     def two_req(a, b); end
