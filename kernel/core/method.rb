@@ -79,7 +79,10 @@ class UnboundMethod
     @orig_receiver = orig_rcv
   end
 
-  def inspect
+  # Returns a String representation thet indicates our class
+  # as well as the method name and the Module the method was
+  # extracted from.
+  def inspect()
     "#<#{self.class} #{@module}##{@method.name}>"
   end
   alias_method :to_s, :inspect
