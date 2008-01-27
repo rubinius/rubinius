@@ -76,7 +76,7 @@ end
 # are not connected to any particular object. They cannot be used
 # standalone for this reason, and must be bound to an object first.
 # The object must be kind_of? the Module in which this method was
-# originally defined. 
+# originally defined.
 #
 # UnboundMethods can be created in two ways: first, any existing
 # Method object can be sent #unbind to detach it from its current
@@ -91,8 +91,8 @@ class UnboundMethod
   # Takes the original Module and the CompiledMethod to store.
   # Allows passing in the receiver also, but it is never used
   # and thus not retained. This is always used internally only.
-  def initialize(module, compiled_method, original_receiver = nil)
-    @module, @compiled_method = module, compiled_method
+  def initialize(mod, compiled_method, original_receiver = nil)
+    @module, @compiled_method = mod, compiled_method
   end
 
   attr_reader :compiled_method
@@ -100,8 +100,11 @@ class UnboundMethod
 
   # Instance methods
 
-  # UnboundMethod objects are equal if and only if they have
-  # equal compiled_compiled_method.
+  # UnboundMethod objects are equal if and only if they refer to
+  # the same method. One may be an alias for the other or both
+  # for a common one. Both must have been extracted from the same
+  # class or subclass. Two from different subclasses will not be
+  # considered equal.
   def ==(other)
     if other.kind_of? UnboundMethod
       return true if other.compiled_method == @compiled_method
@@ -110,8 +113,8 @@ class UnboundMethod
     false
   end
 
-  # See Method#arity for explanation.
-  def arity
+  # See Method#arity.
+  def arity()
     @compiled_method.required
   end
 
@@ -122,7 +125,7 @@ class UnboundMethod
     unless receiver.kind_of? @module
       raise TypeError, "Must be bound to an object of kind #{@module}"
     end
-    Method.new(receiver, @module, @compiled_method)
+    Method.new receiver, @module, @compiled_method
   end
 
   # Convenience method for #binding to the given receiver object and
@@ -137,5 +140,7 @@ class UnboundMethod
   def inspect()
     "#<#{self.class} #{@module}##{@compiled_method.name}>"
   end
+
   alias_method :to_s, :inspect
+
 end
