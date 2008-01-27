@@ -11,9 +11,13 @@ describe "Module#const_get" do
     end
   end
 
-  it "returns the value of the constant with the given name" do
+  it "returns the value of its own constant with the given name" do
     ModuleSpecs.const_get(:Basic).should == ModuleSpecs::Basic
     ModuleSpecs.const_get("Child").should == ModuleSpecs::Child
+  end
+
+  it "returns the value of the top level constant with the given name" do
+    ModuleSpecs.const_get(:TopLevelConst).should == TopLevelConst
   end
 
   it "raises a NameError when there is no constant with the given name" do

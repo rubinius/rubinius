@@ -197,3 +197,6 @@ end
 
 ModuleSpecs::Nesting[:root_level] = Module.nesting
 
+class TopLevelConst
+end
+
