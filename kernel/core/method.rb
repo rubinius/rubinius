@@ -11,38 +11,7 @@ class Method
     @module = mod
   end
 
-  def inspect
-    "#<#{self.class} #{@receiver.class}(#{@module})##{@method.name}>"
-  end
-
-  alias_method :to_s, :inspect
-
-  def call(*args, &prc)
-    @method.activate(@receiver, @module, args, &prc)
-  end
-
-  alias_method :[], :call
-
-  def unbind
-    UnboundMethod.new(@module, @method, @receiver.class)
-  end
-
-  def arity
-    @method.required
-  end
-
-  def location
-    "#{@method.file}, near line #{@method.first_line}"
-  end
-
-  def compiled_method
-    @method
-  end
-
-  def to_proc
-    env = Method::AsBlockEnvironment.new self
-    Proc.from_environment(env)
-  end
+  # Instance methods
 
   # Method objects are equal if they have the
   # same body and are bound to the same object.
@@ -52,6 +21,47 @@ class Method
     end
 
     false
+  end
+
+  # [] is aliased as #call
+
+  def arity()
+    @method.required
+  end
+
+  def call(*args, &prc)
+    @method.activate(@receiver, @module, args, &prc)
+  end
+
+  def compiled_method()
+    @method
+  end
+
+  alias_method :[], :call
+
+  # String representation of this Method includes the method
+  # name, the Module it is defined in and the Module that it
+  # was extracted from.
+  def inspect()
+    "#<#{self.class}: #{@receiver.class}##{@method.name} (defined in #{@module})>"
+  end
+
+  alias_method :to_s, :inspect
+
+
+  def location()
+    "#{@method.file}, near line #{@method.first_line}"
+  end
+
+  def to_proc()
+    env = Method::AsBlockEnvironment.new self
+    Proc.from_environment(env)
+  end
+
+  # #to_s is aliased as #inspect
+
+  def unbind()
+    UnboundMethod.new(@module, @method, @receiver.class)
   end
 end
 
@@ -92,8 +102,10 @@ class UnboundMethod
   # in as well as the CompiledMethod itself. Class of the object
   # the method was extracted from can be given but will not be
   # stored. This is always used internally only.
-  def initialize(mod, compiled_method, original_receiver_class = nil)
-    @defined_in, @compiled_method = mod, compiled_method
+  def initialize(mod, compiled_method, pulled_from = nil)
+    @defined_in       = mod
+    @compiled_method  = compiled_method
+    @pulled_from      = pulled_from
   end
 
   attr_reader :compiled_method
@@ -143,11 +155,11 @@ class UnboundMethod
     bind(obj).call *args
   end
 
-  # Returns a String representation thet indicates our class
-  # as well as the compiled_method name and the Module the compiled_method was
-  # extracted from.
+  # String representation for UnboundMethod includes the method
+  # name, the Module it is defined in and the Module that it
+  # was extracted from.
   def inspect()
-    "#<#{self.class} #{@defined_in}##{@compiled_method.name}>"
+    "#<#{self.class}: #{@pulled_from}##{@compiled_method.name} (defined in #{@defined_in})>"
   end
 
   alias_method :to_s, :inspect
