@@ -943,10 +943,10 @@ enable_secure (void)
 #endif
 }
 
-unsigned int
+unsigned long
 ev_supported_backends (void)
 {
-  unsigned int flags = 0;
+  unsigned long flags = 0;
 
   if (EV_USE_PORT  ) flags |= EVBACKEND_PORT;
   if (EV_USE_KQUEUE) flags |= EVBACKEND_KQUEUE;
@@ -957,10 +957,10 @@ ev_supported_backends (void)
   return flags;
 }
 
-unsigned int
+unsigned long
 ev_recommended_backends (void)
 {
-  unsigned int flags = ev_supported_backends ();
+  unsigned long flags = ev_supported_backends ();
 
 #ifndef __NetBSD__
   /* kqueue is borked on everything but netbsd apparently */
@@ -975,10 +975,10 @@ ev_recommended_backends (void)
   return flags;
 }
 
-unsigned int
+unsigned long
 ev_embeddable_backends (void)
 {
-  int flags = EVBACKEND_EPOLL | EVBACKEND_KQUEUE | EVBACKEND_PORT;
+  unsigned long flags = EVBACKEND_EPOLL | EVBACKEND_KQUEUE | EVBACKEND_PORT;
 
   /* epoll embeddability broken on all linux versions up to at least 2.6.23 */
   /* please fix it and tell me how to detect the fix */
@@ -987,13 +987,13 @@ ev_embeddable_backends (void)
   return flags;
 }
 
-unsigned int
+unsigned long
 ev_backend (EV_P)
 {
   return backend;
 }
 
-unsigned int
+unsigned long
 ev_loop_count (EV_P)
 {
   return loop_count;
@@ -1166,7 +1166,7 @@ loop_fork (EV_P)
 
 #if EV_MULTIPLICITY
 struct ev_loop *
-ev_loop_new (unsigned int flags)
+ev_loop_new (unsigned long flags)
 {
   struct ev_loop *loop = (struct ev_loop *)ev_malloc (sizeof (struct ev_loop));
 
@@ -1197,10 +1197,10 @@ ev_loop_fork (EV_P)
 
 #if EV_MULTIPLICITY
 struct ev_loop *
-ev_default_loop_init (unsigned int flags)
+ev_default_loop_init (unsigned long flags)
 #else
 int
-ev_default_loop (unsigned int flags)
+ev_default_loop (unsigned long flags)
 #endif
 {
   if (sigpipe [0] == sigpipe [1])
@@ -1244,7 +1244,7 @@ ev_default_loop (unsigned int flags)
 /* the default loop is the only one that handles signals and child watchers */
 /* you can call this as often as you like */
 struct ev_loop *
-ev_default_loop (unsigned int flags)
+ev_default_loop (unsigned long flags)
 {
   if (!ev_default_loop_ptr)
     ev_default_loop_init (flags);
@@ -1502,7 +1502,7 @@ ev_unref (EV_P)
 static int loop_done;
 
 void
-ev_loop (EV_P_ int flags)
+ev_loop (EV_P_ unsigned int flags)
 {
   loop_done = flags & (EVLOOP_ONESHOT | EVLOOP_NONBLOCK)
             ? EVUNLOOP_ONE
@@ -1621,7 +1621,7 @@ ev_loop (EV_P_ int flags)
 }
 
 void
-ev_unloop (EV_P_ int how)
+ev_unloop (EV_P_ unsigned int how)
 {
   loop_done = how;
 }

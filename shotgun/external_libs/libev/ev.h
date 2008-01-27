@@ -351,9 +351,9 @@ union ev_any_watcher
 int ev_version_major (void);
 int ev_version_minor (void);
 
-unsigned int ev_supported_backends (void);
-unsigned int ev_recommended_backends (void);
-unsigned int ev_embeddable_backends (void);
+unsigned long ev_supported_backends (void);
+unsigned long ev_recommended_backends (void);
+unsigned long ev_embeddable_backends (void);
 
 ev_tstamp ev_time (void);
 void ev_sleep (ev_tstamp delay); /* sleep for a while */
@@ -373,10 +373,10 @@ void ev_set_allocator (void *(*cb)(void *ptr, long size));
 void ev_set_syserr_cb (void (*cb)(const char *msg));
 
 # if EV_MULTIPLICITY
-struct ev_loop *ev_default_loop(unsigned int flags);
+struct ev_loop *ev_default_loop(unsigned long flags);
 
 /* create and destroy alternative loops that don't handle signals */
-struct ev_loop *ev_loop_new (unsigned int flags);
+struct ev_loop *ev_loop_new (unsigned long flags);
 void ev_loop_destroy (EV_P);
 void ev_loop_fork (EV_P);
 
@@ -384,7 +384,7 @@ ev_tstamp ev_now (EV_P); /* time w.r.t. timers and the eventloop, updated after 
 
 # else
 
-int ev_default_loop (unsigned int flags); /* returns true when successful */
+int ev_default_loop (unsigned long flags); /* returns true when successful */
 
 static ev_tstamp
 ev_now (void)
@@ -402,8 +402,8 @@ void ev_default_destroy (void); /* destroy the default loop */
 /* you can actually call it at any time, anywhere :) */
 void ev_default_fork (void);
 
-unsigned int ev_backend (EV_P);    /* backend in use by loop */
-unsigned int ev_loop_count (EV_P); /* number of loop iterations */
+unsigned long ev_backend (EV_P);    /* backend in use by loop */
+unsigned long ev_loop_count (EV_P); /* number of loop iterations */
 #endif
 
 #define EVLOOP_NONBLOCK	1 /* do not block/wait */
@@ -413,8 +413,8 @@ unsigned int ev_loop_count (EV_P); /* number of loop iterations */
 #define EVUNLOOP_ALL    2 /* unloop all loops */
 
 #if EV_PROTOTYPES
-void ev_loop (EV_P_ int flags);
-void ev_unloop (EV_P_ int how); /* set to 1 to break out of event loop, set to 2 to break out of all event loops */
+void ev_loop (EV_P_ unsigned int flags);
+void ev_unloop (EV_P_ unsigned int how); /* set to 1 to break out of event loop, set to 2 to break out of all event loops */
 
 void ev_set_io_collect_interval (EV_P_ ev_tstamp interval); /* sleep at least this time, default 0 */
 void ev_set_timeout_collect_interval (EV_P_ ev_tstamp interval); /* sleep at least this time, default 0 */
