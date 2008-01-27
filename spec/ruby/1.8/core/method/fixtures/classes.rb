@@ -38,6 +38,16 @@ module MethodSpecs
     def one_req_two_opt_with_splat_and_block(a, b=nil, c=nil, *d, &block); end
   end
 
+  module MyMod
+    def bar; :bar; end
+  end
+
+  class MySuper
+    include MyMod
+  end
+
+  class MySub < MySuper; end
+
   class A
     def baz(a, b)
       self.class

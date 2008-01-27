@@ -11,7 +11,7 @@ describe "Kernel#method" do
     class KernelSpecs::Foo; def self.bar; 'done'; end; end
     KernelSpecs::Foo.method(:bar).class.should == Method
   end
- 
+
   it "raises a NameError for an invalid method name" do
     class KernelSpecs::Foo; def bar; 'done'; end; end
     lambda {
