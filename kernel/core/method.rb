@@ -123,9 +123,13 @@ class UnboundMethod
     @compiled_method.required
   end
 
-  # Creates a new Method object by attaching this compiled_method to the
-  # supplied receiver. The receiver must be kind_of? original
-  # Module object extracted from.
+  # Creates a new Method object by attaching this method to the
+  # supplied receiver. The receiver must be kind_of? the Module
+  # that the method in question is defined in. Notably, this is
+  # a difference from MRI which requires that the object is of
+  # the exact Module the method was extracted from. This is safe
+  # because any overridden method will be identified as being
+  # defined in a different Module anyway.
   def bind(receiver)
     unless receiver.kind_of? @defined_in
       raise TypeError, "Must be bound to an object of kind #{@defined_in}"

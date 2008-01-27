@@ -39,7 +39,7 @@ module UnboundMethodSpecs
 
   class A
     def baz(a, b)
-      self.class
+      return [__FILE__, self.class]
     end
   end
 
