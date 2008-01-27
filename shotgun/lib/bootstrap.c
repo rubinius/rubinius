@@ -140,10 +140,10 @@ void cpu_bootstrap(STATE) {
   
   /* These only have one value, so they only need one spot in
      the array */
-  state->global->special_classes[(int)Qundef] = BC(undef_class);
-  state->global->special_classes[(int)Qfalse] = BC(false_class);
-  state->global->special_classes[(int)Qnil  ] = BC(nil_class);
-  state->global->special_classes[(int)Qtrue ] = BC(true_class);
+  state->global->special_classes[(intptr_t)Qundef] = BC(undef_class);
+  state->global->special_classes[(intptr_t)Qfalse] = BC(false_class);
+  state->global->special_classes[(intptr_t)Qnil  ] = BC(nil_class);
+  state->global->special_classes[(intptr_t)Qtrue ] = BC(true_class);
     
   bcs(regexp, obj, "Regexp");
   bcs(regexpdata, obj, "RegexpData");

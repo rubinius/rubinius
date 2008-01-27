@@ -116,7 +116,7 @@ int object_copy_bytes_into(STATE, OBJECT self, OBJECT dest, int count, int offse
 
 unsigned int object_hash_int(STATE, OBJECT self) {
   unsigned int hsh;
-  hsh = (unsigned int)self;
+  hsh = (unsigned int)(uintptr_t)self;
   
   if(!REFERENCE_P(self)) {
     /* Get rid of the tag part (i.e. the part that indicate nature of self */

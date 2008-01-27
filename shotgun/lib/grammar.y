@@ -48,7 +48,7 @@ static NODE *syd_node_newnode(rb_parse_state*, enum node_type, OBJECT, OBJECT, O
 #define string_new(ptr, len) blk2bstr(ptr, len)
 #define string_new2(ptr) cstr2bstr(ptr)
 
-int syd_sourceline;
+intptr_t syd_sourceline;
 static char *syd_sourcefile;
 
 #define ruby_sourceline syd_sourceline
@@ -168,7 +168,7 @@ static void syd_local_push(rb_parse_state*, int cnt);
 #define local_push(cnt) syd_local_push(vps, cnt)
 static void syd_local_pop(rb_parse_state*);
 #define local_pop() syd_local_pop(vps)
-static int  syd_local_cnt(rb_parse_state*,ID);
+static intptr_t  syd_local_cnt(rb_parse_state*,ID);
 #define local_cnt(i) syd_local_cnt(vps, i)
 static int  syd_local_id(rb_parse_state*,ID);
 #define local_id(i) syd_local_id(vps, i)
@@ -2025,7 +2025,7 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END
 
 regexp          : tREGEXP_BEG xstring_contents tREGEXP_END
                     {
-                        int options = $3;
+                        intptr_t options = $3;
                         NODE *node = $2;
                         if (!node) {
                             node = NEW_REGEX(string_new2(""), options & ~RE_OPTION_ONCE);
@@ -2276,19 +2276,19 @@ f_arglist       : '(' f_args opt_nl ')'
 
 f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     {
-                        $$ = block_append(parse_state, NEW_ARGS($1, $3, $5), $6);
+		      $$ = block_append(parse_state, NEW_ARGS((intptr_t)$1, $3, $5), $6);
                     }
                 | f_arg ',' f_optarg opt_f_block_arg
                     {
-                        $$ = block_append(parse_state, NEW_ARGS($1, $3, -1), $4);
+		      $$ = block_append(parse_state, NEW_ARGS((intptr_t)$1, $3, -1), $4);
                     }
                 | f_arg ',' f_rest_arg opt_f_block_arg
                     {
-                        $$ = block_append(parse_state, NEW_ARGS($1, 0, $3), $4);
+		      $$ = block_append(parse_state, NEW_ARGS((intptr_t)$1, 0, $3), $4);
                     }
                 | f_arg opt_f_block_arg
                     {
-                        $$ = block_append(parse_state, NEW_ARGS($1, 0, -1), $2);
+		      $$ = block_append(parse_state, NEW_ARGS((intptr_t)$1, 0, -1), $2);
                     }
                 | f_optarg ',' f_rest_arg opt_f_block_arg
                     {
@@ -3191,7 +3191,8 @@ parse_string(quote, parse_state)
 static int
 heredoc_identifier(rb_parse_state *parse_state)
 {
-    int c = nextc(), term, func = 0, len;
+    int c = nextc(), term, func = 0;
+    size_t len;
 
     if (c == '-') {
         c = nextc();
@@ -3745,7 +3746,7 @@ yylex(YYSTYPE *yylval, void *vstate)
         }
         c &= 0xff;
         parse_state->lex_state = EXPR_END;
-        pslval->node = NEW_FIXNUM(c);
+        pslval->node = NEW_FIXNUM((intptr_t)c);
         return tINTEGER;
 
       case '&':
@@ -4132,10 +4133,10 @@ yylex(YYSTYPE *yylval, void *vstate)
         }
         switch (c) {
           case '\'':
-            lex_strterm = NEW_STRTERM(str_ssym, c, 0);
+            lex_strterm = NEW_STRTERM(str_ssym, (intptr_t)c, 0);
             break;
           case '"':
-            lex_strterm = NEW_STRTERM(str_dsym, c, 0);
+            lex_strterm = NEW_STRTERM(str_dsym, (intptr_t)c, 0);
             break;
           default:
             pushback(c, parse_state);
@@ -4277,8 +4278,8 @@ yylex(YYSTYPE *yylval, void *vstate)
 
       case '%':
         if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID) {
-            int term;
-            int paren;
+            intptr_t term;
+            intptr_t paren;
             char tmpstr[256];
             char *cur;
 
@@ -4431,7 +4432,7 @@ yylex(YYSTYPE *yylval, void *vstate)
           case '`':             /* $`: string before last match */
           case '\'':            /* $': string after last match */
           case '+':             /* $+: string matches last paren. */
-            pslval->node = NEW_BACK_REF(c);
+            pslval->node = NEW_BACK_REF((intptr_t)c);
             return tBACK_REF;
 
           case '1': case '2': case '3':
@@ -4444,7 +4445,7 @@ yylex(YYSTYPE *yylval, void *vstate)
             } while (ISDIGIT(c));
             pushback(c, parse_state);
             tokfix();
-            pslval->node = NEW_NTH_REF(atoi(tok()+1));
+            pslval->node = NEW_NTH_REF((intptr_t)atoi(tok()+1));
             return tNTH_REF;
 
           default:
@@ -4668,7 +4669,7 @@ parser_warning(rb_parse_state *parse_state, NODE *node, const char *mesg)
     int line = ruby_sourceline;
     if(parse_state->emit_warnings) {
       ruby_sourceline = nd_line(node);
-      printf("%s:%i: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
+      printf("%s:%zi: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
       ruby_sourceline = line;
     }
 }
@@ -5770,7 +5771,7 @@ syd_local_tbl(rb_parse_state *st)
     return lcl_tbl;
 }
 
-static int
+static intptr_t
 syd_local_cnt(rb_parse_state *st, ID id)
 {
     int idx;

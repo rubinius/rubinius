@@ -62,8 +62,8 @@ static rni_handle* _ffi_pop() {
 #define ffi_pop(reg) jit_prepare(0); (void)(jit_calli(_ffi_pop)); jit_retval_p(reg);
 
 char *ffi_generate_c_stub(STATE, int args, void *func) {
-  char *start; /*, *end; */
-  char *codebuf; /*, *res; */
+  void *start; /*, *end; */
+  void *codebuf; /*, *res; */
   int in, i; /*, vars, aligned, size */
   int *ids;
 

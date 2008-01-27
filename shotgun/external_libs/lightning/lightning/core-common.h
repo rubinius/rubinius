@@ -61,7 +61,7 @@ static jit_state 			_jit;
 
 #define _jitl				_jit.jitl
 
-#define	jit_get_ip()			(*(jit_code *) &_jit.x.pc)
+#define	jit_get_ip()			(*(jit_code *)(void*) &_jit.x.pc)
 #define	jit_set_ip(ptr)			(_jit.x.pc = (ptr), jit_get_ip ())
 #define	jit_get_label()			(_jit.x.pc)
 #define	jit_forward()			(_jit.x.pc)
