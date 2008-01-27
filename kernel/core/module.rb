@@ -50,13 +50,13 @@ class Module
     end
     name.to_sym
   end
-  private :verify_class_variable_name 
-    
+  private :verify_class_variable_name
+
   def class_variables_table
     @class_variables ||= Hash.new
   end
   private :class_variables_table
-  
+
   def class_variable_set(name, val)
     name = verify_class_variable_name name
 
@@ -66,7 +66,7 @@ class Module
       return vars[name] = val if vars.key? name
       current = current.direct_superclass
     end
-    
+
     class_variables_table[name] = val
   end
 
@@ -203,7 +203,7 @@ class Module
     end
 
     Rubinius::VM.reset_method_cache(name)
-    
+
     method_table[name] = Tuple[scope, obj]
 
     # Push the scoping down.
@@ -466,7 +466,7 @@ class Module
       MethodContext.current.sender.method_tags = :module
       return
     end
-      
+
     mc = self.metaclass
     args.each do |meth|
       method_name = normalize_name(meth)
@@ -654,7 +654,7 @@ class Module
     @autoloads ||= Hash.new
     @autoloads[name] = path
   end
-  
+
   def autoload?(name)
     @autoloads[name] if @autoloads
   end
