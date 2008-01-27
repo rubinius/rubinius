@@ -34,7 +34,7 @@ OBJECT archive_list_files(STATE, char *path) {
   ary = array_new(state, count);
   for(i=0; i < count; i++) {
     zip_stat_index(za, i, 0, &st);
-    tup = tuple_new2(state, 3, string_new(state, (char *)st.name), I2N(st.mtime), I2N(st.size));
+    tup = tuple_new2(state, 3, string_new(state, (char *)st.name), ML2N(st.mtime), ML2N(st.size));
     array_set(state, ary, i, tup);
   }
   
@@ -48,7 +48,8 @@ OBJECT archive_get_file(STATE, const char *path, const char* name) {
   struct zip_stat st;
   struct zip_file *zf;
   OBJECT str;
-  int n, total, err, file;
+  int err, file = -1;
+  native_int n, total;
   char *buf;
   
   if((za=zip_open(path, 0, &err)) == NULL) {
@@ -85,7 +86,8 @@ OBJECT archive_get_file2(STATE, archive_handle za, const char *name) {
   struct zip_stat st;
   struct zip_file *zf;
   OBJECT str;
-  int n, total, file;
+  int file = -1;
+  native_int n, total;
   char *buf;
 
   if((file = zip_name_locate((struct zip *)za, name, 0)) < 0) {
@@ -117,7 +119,8 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   struct zip_file *zf;
   uint8_t *str, *buf;
   OBJECT ret;
-  int n, total, err, file = -1;
+  int err, file = -1;
+  native_int n, total;
   
   if((za=zip_open(path, 0, &err)) == NULL) {
     return Qnil;
@@ -157,7 +160,8 @@ OBJECT archive_get_object2(STATE, archive_handle za,
   struct zip_file *zf;
   uint8_t *str, *buf;
   OBJECT ret;
-  int n, total, file = -1;
+  int file = -1;
+  native_int n, total;
 
   if((file = zip_name_locate((struct zip *)za, name, 0)) < 0) {
     return Qnil;
