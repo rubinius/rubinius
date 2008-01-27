@@ -5,25 +5,27 @@ describe "Module#const_get" do
   it "returns the named constant in the receiver module when name given as String" do
     ModuleSpecs.const_get("Lookup").should == ModuleSpecs::Lookup
   end
-  it "returns the named constant in the receiver module when name given as String" do
-    ModuleSpecs.const_get("Lookup").should == ModuleSpecs::Lookup
-  end
 
   it "returns the named constant in the receiver module when name given as Symbol" do
     ModuleSpecs::Lookup.const_get(:LOOKIE).should == ModuleSpecs::Lookup::LOOKIE
   end
 
-  it "returns the named constant in any superclass of the module" do
+  it "returns the named constant in any superclass of a receiver Class" do
     ModuleSpecs::LookupChild.const_get(:LOOKIE).should == ModuleSpecs::Lookup::LOOKIE
     ModuleSpecs::LookupChild.const_get(:MODS).should == ModuleSpecs::LookupMod::MODS
   end
 
-  it "returns the named top-level constant for a receiver class (since it is < Object)" do
+  it "returns the named constant in any included module in receiver's ancestry" do
+    ModuleSpecs::LookupMod.const_get(:INCS).should == ModuleSpecs::LookupModInMod::INCS
+    ModuleSpecs::LookupChild.const_get(:INCS).should == ModuleSpecs::LookupModInMod::INCS
+  end
+
+  it "returns the named top-level constant for a receiver Class (since it is < Object)" do
     Object.const_get(:TopLevelConst).should == TopLevelConst
     ModuleSpecs::LookupChild.const_get(:TopLevelConst).should == TopLevelConst
   end
 
-  it "returns the named top-level constant for a receiver module" do
+  it "returns the named top-level constant for a receiver Module" do
     Object.const_get(:TopLevelConst).should == TopLevelConst
     ModuleSpecs::LookupMod.const_get(:TopLevelConst).should == TopLevelConst
   end

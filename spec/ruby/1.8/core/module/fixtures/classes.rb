@@ -1,7 +1,13 @@
 module ModuleSpecs
   CONST = :plain_constant
 
+  module LookupModInMod
+    INCS = :ethereal
+  end
+
   module LookupMod
+    include LookupModInMod
+
     MODS = :rockers
   end
 

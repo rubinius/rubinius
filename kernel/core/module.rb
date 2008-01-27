@@ -534,9 +534,10 @@ class Module
 
   # Return the named constant enclosed in this Module.
   # Included Modules and, for Class objects, superclasses
-  # are also searched. The name is attempted to convert
-  # using #to_str. If the constant is not found, calls
-  # #const_missing with the name.
+  # are also searched. Modules will in addition look in
+  # Object. The name is attempted to convert using #to_str.
+  # If the constant is not found, #const_missing is called
+  # with the name.
   def const_get(name)
     recursive_const_get(name)
   end
@@ -703,6 +704,10 @@ class Module
     while current
       return constant if constant = current.constants_table[name]
       current = current.direct_superclass
+    end
+
+    if self.class == Module
+      return constant if constant = Object.constants_table[name]
     end
 
     const_missing(name)
