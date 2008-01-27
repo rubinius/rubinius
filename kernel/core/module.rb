@@ -2,7 +2,7 @@
 
 class Module
 
-  # Some terminology notes: 
+  # Some terminology notes:
   #
   # * "Encloser" is the Class or Module inside which this
   #   one is defined or, in the event we are at top-level,
@@ -288,17 +288,23 @@ class Module
     m ? [:public,:protected].include?(m.first) : false
   end
 
+  # Returns an UnboundMethod corresponding to the given name.
+  # The name will be searched for in this Module as well as
+  # any included Modules or superclasses. The UnboundMethod
+  # is populated with the method name and the Module that the
+  # method was located in. Raises a TypeError if the given
+  # name.to_sym fails and a NameError if the name cannot be
+  # located.
   def instance_method(name)
-    begin
-      name = name.to_sym
-    rescue Exception
-      raise TypeError, "#{name} is not a symbol"
-    end
+    name = Type.coerce_to name, Symbol, :to_sym
 
-    cur, cm = __find_method(name)
-    return UnboundMethod.new(cur, cm, self) if cm
-    thing = self.kind_of?(Class) ? "class" : "module"
-    raise NameError, "undefined method `#{name}' for #{thing} #{self}"
+    mod, cmethod = __find_method(name)
+
+    # We want to show the real module
+    mod = mod.module if mod.class == IncludedModule
+    return UnboundMethod.new(mod, cmethod, self) if cmethod
+
+    raise NameError, "Undefined method `#{name}' for #{self}"
   end
 
   def instance_methods(all=true)
