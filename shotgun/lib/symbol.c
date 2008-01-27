@@ -73,7 +73,7 @@ OBJECT symbol_to_string(STATE, OBJECT self) {
 }
 
 OBJECT symtbl_find_string(STATE, OBJECT self, OBJECT sym) {
-  int idx;
+  size_t idx;
   OBJECT str;
   
   idx = symbol_to_index(state, sym);

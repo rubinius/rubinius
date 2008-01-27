@@ -49,7 +49,7 @@ OBJECT archive_get_file(STATE, const char *path, const char* name) {
   struct zip_file *zf;
   OBJECT str;
   int err, file = -1;
-  native_int n, total;
+  size_t n, total;
   char *buf;
   
   if((za=zip_open(path, 0, &err)) == NULL) {
@@ -87,7 +87,7 @@ OBJECT archive_get_file2(STATE, archive_handle za, const char *name) {
   struct zip_file *zf;
   OBJECT str;
   int file = -1;
-  native_int n, total;
+  size_t n, total;
   char *buf;
 
   if((file = zip_name_locate((struct zip *)za, name, 0)) < 0) {
@@ -120,7 +120,7 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   uint8_t *str, *buf;
   OBJECT ret;
   int err, file = -1;
-  native_int n, total;
+  size_t n, total;
   
   if((za=zip_open(path, 0, &err)) == NULL) {
     return Qnil;
@@ -161,7 +161,7 @@ OBJECT archive_get_object2(STATE, archive_handle za,
   uint8_t *str, *buf;
   OBJECT ret;
   int file = -1;
-  native_int n, total;
+  size_t n, total;
 
   if((file = zip_name_locate((struct zip *)za, name, 0)) < 0) {
     return Qnil;

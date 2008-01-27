@@ -27,7 +27,7 @@
 #define to_object(hed) ((OBJECT)((uintptr_t)(hed) + sizeof(struct ms_header)))
 
 #define FREE_OBJECT 0x10000
-#define BARRIER (2**sizeof(OBJECT))
+#define BARRIER (2**SIZE_OF_OBJECT)
 
 #define TABLE_INCS 4096
 

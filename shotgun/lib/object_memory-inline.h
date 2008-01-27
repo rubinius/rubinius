@@ -6,8 +6,8 @@ static inline void _om_apply_class_flags(OBJECT obj, OBJECT cls) {
   obj->obj_type = FIXNUM_TO_INT(class_get_object_type(cls));
 }
 
-static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fields) {
-  int size;
+static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, unsigned int fields) {
+  unsigned int size;
   gc_zone loc;
   OBJECT obj;
   
@@ -20,7 +20,6 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
     
     loc = MatureObjectZone;
   } else {
-    //fields += 4; /* PAD */
     size = SIZE_IN_BYTES_FIELDS(fields);
     if(!heap_enough_space_p(om->gc->current, size)) {
       if(!heap_enough_space_p(om->gc->next, size)) {
@@ -57,7 +56,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
   return obj;
 }
 
-static inline OBJECT _om_inline_new_object_init(object_memory om, OBJECT cls, int fields) {
+static inline OBJECT _om_inline_new_object_init(object_memory om, OBJECT cls, unsigned int fields) {
   OBJECT obj;
   obj = _om_inline_new_object(om, cls, fields);
   fast_memfill((void*)BYTES_OF(obj), (uintptr_t)Qnil, fields);
@@ -65,7 +64,7 @@ static inline OBJECT _om_inline_new_object_init(object_memory om, OBJECT cls, in
   return obj;
 }
 
-static inline OBJECT _om_new_ultra(object_memory om, OBJECT cls, int size) {
+static inline OBJECT _om_new_ultra(object_memory om, OBJECT cls, unsigned int size) {
   OBJECT obj;
   /* I'd love to remove this check, but context allocation could flow over. */
   if(!heap_enough_space_p(om->gc->current, size)) {

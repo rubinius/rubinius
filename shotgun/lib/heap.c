@@ -4,7 +4,7 @@
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/heap.h"
 
-rheap heap_new(int size) {
+rheap heap_new(size_t size) {
   rheap h = (rheap)calloc(1, sizeof(struct heap));
   h->size = size;
   heap_allocate_memory(h);

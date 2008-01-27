@@ -4,7 +4,7 @@
 typedef void* address;
 
 struct heap {
-  int size;
+  size_t size;
   address address;
   address current;
   address last;
@@ -13,7 +13,7 @@ struct heap {
 
 typedef struct heap* rheap;
 
-rheap heap_new(int size);
+rheap heap_new(size_t size);
 int heap_deallocate(rheap h);
 int heap_allocate_memory(rheap h);
 int heap_allocate_extended(rheap h);
@@ -33,7 +33,7 @@ int heap_enough_fields_p(rheap h, int fields);
 
 #include <string.h>
 
-static inline address heap_allocate(rheap h, int size) {
+static inline address heap_allocate(rheap h, unsigned int size) {
   address addr;
   addr = (address)h->current;
   memset((void*)addr, 0, size);
@@ -47,12 +47,12 @@ static inline address heap_allocate(rheap h, int size) {
 
 #define heap_putback(h, size) (h->current = (address)((uintptr_t)h->current - size))
 
-static inline int heap_enough_space_p(rheap h, int size) {
+static inline unsigned int heap_enough_space_p(rheap h, unsigned int size) {
   if((uintptr_t)h->current + size > (uintptr_t)h->last + 1) return FALSE;
   return TRUE;
 }
 
-static inline int heap_contains_p(rheap h, address addr) {
+static inline unsigned int heap_contains_p(rheap h, address addr) {
 
   if(addr < h->address) return FALSE;
   if(addr >= (address)((uintptr_t)h->last)) return FALSE;
@@ -60,16 +60,10 @@ static inline int heap_contains_p(rheap h, address addr) {
 }
 
 
-// #define heap_contains_p(h, addr) ((addr > h->address) && (addr < h->last))
-
-// #define heap_enough_space_p(h, size) ((address)((uintptr_t)(h)->current + size) <= (h)->last)
-
-// #define heap_allocate(h, size) ({ address addr = (address)((h)->current); (h)->current = (address)((uintptr_t)(h)->current + size); addr; })
-
 #else
 
-address heap_allocate(rheap h, int size);
-int heap_enough_space_p(rheap h, int size);
+address heap_allocate(rheap h, unsigned int size);
+unsigned int heap_enough_space_p(rheap h, unsigned int size);
 
 #endif
 

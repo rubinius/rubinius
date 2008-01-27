@@ -135,7 +135,7 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   
   /* Duplicate the operand stack. */
   ns = ALLOC_N(OBJECT, InitialStackSize);
-  memcpy(ns, task->stack_top, InitialStackSize * sizeof(OBJECT));
+  memcpy(ns, task->stack_top, InitialStackSize * SIZE_OF_OBJECT);
   task->stack_top = ns;
   task->stack_size = InitialStackSize;
   task->stack_slave = 0;

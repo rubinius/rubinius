@@ -8,7 +8,7 @@ struct baker_gc_struct {
   rheap space_b;
   rheap current;
   rheap next;
-  int used;
+  size_t used;
   int tenure_age;
   ptr_array remember_set;
   void *tenure_data;
@@ -26,7 +26,7 @@ typedef struct baker_gc_struct* baker_gc;
 
 baker_gc baker_gc_new(int size);
 address baker_gc_start_address(baker_gc g);
-int baker_gc_used(baker_gc g);
+size_t baker_gc_used(baker_gc g);
 int baker_gc_swap(baker_gc g);
 int baker_gc_destroy(baker_gc g);
 address baker_gc_allocate(baker_gc g, int size);
@@ -38,7 +38,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj);
 int baker_gc_contains_p(baker_gc g, OBJECT obj);
 int baker_gc_contains_spill_p(baker_gc g, OBJECT obj);
 OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT iobj);
-int baker_gc_collect(STATE, baker_gc g, ptr_array roots);
+unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots);
 void baker_gc_clear_marked(baker_gc g);
 void baker_gc_describe(baker_gc g);
 void baker_gc_find_lost_souls(STATE, baker_gc g);

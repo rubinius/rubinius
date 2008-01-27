@@ -31,7 +31,7 @@ void cpu_initialize(STATE, cpu c) {
   state->global->tuple = Qnil;
   state->global->hash = Qnil;
   state->global->methtbl = Qnil;
-  c->stack_top = (OBJECT*)calloc(InitialStackSize, sizeof(OBJECT));
+  c->stack_top = (OBJECT*)calloc(InitialStackSize, SIZE_OF_OBJECT);
   c->sp_ptr = c->stack_top;
   c->stack_size = InitialStackSize;
   c->sp = 0;

@@ -37,15 +37,15 @@ typedef struct object_memory_struct *object_memory;
 
 object_memory object_memory_new();
 int object_memory_destroy(object_memory om);
-int object_memory_used(object_memory om);
+size_t object_memory_used(object_memory om);
 int object_memory_collect(STATE, object_memory om, ptr_array roots);
 void object_memory_check_memory(object_memory om);
-OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields);
-static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fields);
+OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, unsigned int fields);
+static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, unsigned int fields);
 
-OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields);
+OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, unsigned int fields);
 void object_memory_print_stats(object_memory om);
-OBJECT object_memory_new_opaque(STATE, OBJECT cls, int sz);
+OBJECT object_memory_new_opaque(STATE, OBJECT cls, unsigned int sz);
 OBJECT object_memory_tenure_object(void* data, OBJECT obj);
 void object_memory_major_collect(STATE, object_memory om, ptr_array roots);
 OBJECT object_memory_collect_references(STATE, object_memory om, OBJECT mark);
@@ -73,14 +73,14 @@ void object_memory_reset_contexts(STATE, object_memory om);
 #define BYTES_PAST(ctx, num) ((char*)ctx + num)
 #define AFTER_CTX(ctx) BYTES_PAST(ctx, FASTCTX(ctx)->size)
 
-static inline OBJECT object_memory_new_context(object_memory om, int locals) {
-  int size;
+static inline OBJECT object_memory_new_context(object_memory om, unsigned int locals) {
+  unsigned int size;
   OBJECT ctx;
   
   if(locals > 0) {
-    size = CTX_SIZE + SIZE_IN_BYTES_FIELDS(locals) + 4;
+    size = (unsigned int)(CTX_SIZE + SIZE_IN_BYTES_FIELDS(locals) + 4);
   } else {
-    size = CTX_SIZE;
+    size = (unsigned int)CTX_SIZE;
   }
   
   ctx = ((OBJECT)heap_allocate_dirty(om->contexts, size));

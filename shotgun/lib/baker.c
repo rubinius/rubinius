@@ -30,15 +30,15 @@ baker_gc baker_gc_new(int size) {
 }
 
 void baker_gc_describe(baker_gc g) {
-  printf("Size:    %x (%d)\n", g->current->size, g->current->size);
-  printf("Used:    %d\n", g->used);
+  printf("Size:    %lx (%ld)\n", g->current->size, g->current->size);
+  printf("Used:    %ld\n", g->used);
   printf("Current: %p => %p\n", (void*)g->current->address, 
       (void*)g->current->last);
   printf("Next:    %p => %p\n", (void*)g->next->address, (void*)g->next->last);
   printf("RS Size: %zd\n", ptr_array_length(g->remember_set));
 }
 
-int baker_gc_enlarge_next(baker_gc g, int sz) {
+int baker_gc_enlarge_next(baker_gc g, size_t sz) {
   rheap h;
   h = heap_new(sz);
   return baker_gc_set_next(g, h);
@@ -58,7 +58,7 @@ address baker_gc_start_address(baker_gc g) {
   return g->current->address;
 }
 
-int baker_gc_used(baker_gc g) {
+size_t baker_gc_used(baker_gc g) {
   return g->used;
 }
 
@@ -437,8 +437,8 @@ void baker_gc_mutate_rest(STATE, baker_gc g) {
 }
 
 
-int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
-  int i, sz;
+unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
+  size_t i, sz;
   OBJECT tmp, root;
   struct method_cache *end, *ent;
   ptr_array rs;
@@ -672,7 +672,8 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
 }
 
 void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, ptr_array refs) {
-  int sz, osz, i;
+  unsigned int osz, i;
+  size_t sz;
   char *end, *cur;
   OBJECT obj;
   

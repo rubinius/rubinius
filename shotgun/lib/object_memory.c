@@ -151,7 +151,7 @@ void object_memory_clear_marks(STATE, object_memory om) {
   } DONE_EACH_CTX(ctx);
 }
 
-int object_memory_used(object_memory om) {
+size_t object_memory_used(object_memory om) {
   return baker_gc_used(om->gc);
 }
 
@@ -210,7 +210,7 @@ OBJECT object_memory_tenure_object(void *data, OBJECT obj) {
 }
 
 void object_memory_print_stats(object_memory om) {
-  printf("Memory: %d used, %d total.\n", object_memory_used(om), om->gc->current->size);
+  printf("Memory: %zd used, %zd total.\n", object_memory_used(om), om->gc->current->size);
 }
 
 void object_memory_check_ptr(void *ptr, OBJECT obj) {
@@ -403,7 +403,7 @@ void object_memory_emit_details(STATE, object_memory om, FILE *stream) {
   fclose(stream);
 }
 
-OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields) {
+OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, unsigned int fields) {
   int i;
   OBJECT obj;
   mark_sweep_gc ms;
@@ -432,7 +432,7 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
   return obj;
 }
 
-OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields) {
+OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, unsigned int fields) {
   int size, i;
   OBJECT obj;
     
@@ -464,11 +464,11 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
   return obj;
 }
 
-OBJECT object_memory_new_opaque(STATE, OBJECT cls, int sz) {
-  int fel;
+OBJECT object_memory_new_opaque(STATE, OBJECT cls, unsigned int sz) {
+  unsigned int fel;
   OBJECT obj;
-  fel = sz / sizeof(OBJECT);
-  if(sz % sizeof(OBJECT)) fel++;
+  fel = sz / SIZE_OF_OBJECT;
+  if(sz % SIZE_OF_OBJECT) fel++;
   obj = object_memory_new_object(state->om, cls, fel);
   object_make_byte_storage(state, obj);
   return obj;

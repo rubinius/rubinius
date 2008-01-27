@@ -741,7 +741,7 @@ again_no_block:
       long arg_count;
 
       if(locals[0] < node->nd_cnt) {
-          printf("Corrupted args detected (count of %ld, local size of %ul)", node->nd_cnt, locals[0]);
+          printf("Corrupted args detected (count of %ld, local size of %ld)", node->nd_cnt, locals[0]);
           abort();
       }
       tmp = array_new(state, node->nd_cnt);

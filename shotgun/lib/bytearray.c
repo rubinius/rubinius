@@ -5,12 +5,12 @@
 #include "shotgun/lib/object.h"
 #include "shotgun/lib/bytearray.h"
 
-OBJECT bytearray_new(STATE, int size) {
-  int words;
+OBJECT bytearray_new(STATE, unsigned int size) {
+  unsigned int words;
   OBJECT obj;
   
-  words = size / sizeof(OBJECT);
-  if(size % sizeof(OBJECT) != 0) {
+  words = size / SIZE_OF_OBJECT;
+  if(size % SIZE_OF_OBJECT != 0) {
     words += 1;
   }
   
@@ -21,12 +21,12 @@ OBJECT bytearray_new(STATE, int size) {
   return obj;
 }
 
-OBJECT bytearray_new_dirty(STATE, int size) {
-  int words;
+OBJECT bytearray_new_dirty(STATE, unsigned int size) {
+  unsigned int words;
   OBJECT obj;
     
-  words = size / sizeof(OBJECT);
-  if(size % sizeof(OBJECT) != 0) {
+  words = size / SIZE_OF_OBJECT;
+  if(size % SIZE_OF_OBJECT != 0) {
     words += 1;
   }
     
@@ -51,7 +51,7 @@ OBJECT bytearray_dup(STATE, OBJECT self) {
 char *bytearray_as_string(STATE, OBJECT self) {
   char *str;
   char *out;
-  int sz;
+  unsigned int sz;
   
   str = (char*)bytearray_byte_address(state, self);
   
@@ -62,7 +62,7 @@ char *bytearray_as_string(STATE, OBJECT self) {
   return out;
 }
 
-OBJECT iseq_new(STATE, int fields) {
+OBJECT iseq_new(STATE, unsigned int fields) {
   OBJECT obj;
   
   obj = NEW_OBJECT(state->global->iseq, fields);

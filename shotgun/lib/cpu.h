@@ -44,7 +44,7 @@
 
 struct fast_context {
   CPU_REGISTERS
-  int size;
+  unsigned int size;
 };
 
 #define FASTCTX(ctx) ((struct fast_context*)BYTES_OF(ctx))
@@ -85,7 +85,7 @@ struct cpu_task_shared {
 
 struct cpu_task {
   CPU_TASK_REGISTERS;
-  int active;
+  unsigned int active;
 };
 
 struct rubinius_cpu {
@@ -101,7 +101,7 @@ struct rubinius_cpu {
   
   // CPU_REGISTERS;
   
-  int current_thread_ready;
+  unsigned int current_thread_ready;
  
   OBJECT current_task, main_task;
   OBJECT current_thread, main_thread;
