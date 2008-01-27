@@ -12,7 +12,7 @@ require 'options'
 # "Interactive" mode
 def interactive()
   require 'readline'
-  
+
   c = Compiler.new(Compiler::TextGenerator)
   puts "Enter ? for help, ^D to exit."
 
@@ -43,7 +43,7 @@ def batch(opts)
 
     puts "\nParsing #{file}\n"
     puts "\n -- Sexp:\n"
-    s = File.to_sexp file 
+    s = File.to_sexp file
     puts s.indented_inspect
 
     puts "\n -- Constructing AST:\n"

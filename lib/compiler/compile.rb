@@ -11,7 +11,7 @@ require 'options'
 # "Interactive" mode
 def interactive
   require 'readline'
-  
+
   c = Compiler.new(Compiler::Generator)
   puts "Enter ? for help, ^D to exit."
 
@@ -70,11 +70,11 @@ def batch(opts)
     cm = meth.to_cmethod
 
     if verbose
-      puts "\n  Decoded:\n" 
+      puts "\n  Decoded:\n"
       puts "  ========\n"
       puts "  " << cm.decode.join("\n  ")
     end
-    
+
     if opts['output']
       out = opts['output'].first
       puts "  Saving to '#{out}'...\n"
