@@ -72,49 +72,70 @@ class Method::AsBlockEnvironment < BlockEnvironment
   def arity; @method.arity; end
 end
 
+# UnboundMethods are similar to Method objects except that they
+# are not connected to any particular object. They cannot be used
+# standalone for this reason, and must be bound to an object first.
+# The object must be kind_of? the Module in which this method was
+# originally defined. 
+#
+# UnboundMethods can be created in two ways: first, any existing
+# Method object can be sent #unbind to detach it from its current
+# object and return an UnboundMethod instead. Secondly, they can
+# be directly created by calling Module#instance_method with the
+# desired method's name.
+#
+# The UnboundMethod is a copy of the method as it existed at the
+# time of creation. Any subsequent changes to the original will
+# not affect any existing UnboundMethods.
 class UnboundMethod
-  def initialize(mod, cm, orig_rcv = nil)
-    @method = cm
-    @module = mod
-    @orig_receiver = orig_rcv
+  # Takes the original Module and the CompiledMethod to store.
+  # Allows passing in the receiver also, but it is never used
+  # and thus not retained. This is always used internally only.
+  def initialize(module, compiled_method, original_receiver = nil)
+    @module, @compiled_method = module, compiled_method
   end
 
-  # Returns a String representation thet indicates our class
-  # as well as the method name and the Module the method was
-  # extracted from.
-  def inspect()
-    "#<#{self.class} #{@module}##{@method.name}>"
-  end
-  alias_method :to_s, :inspect
+  attr_reader :compiled_method
+  protected :compiled_method
 
-  def bind(receiver)
-    raise TypeError, "bind argument must be an instance of #{@module}" unless receiver.kind_of?(@module)
-    Method.new(receiver, @module, @method)
-  end
+  # Instance methods
 
-  def arity
-    @method.required
-  end
-
-  def ==(other)
-    other == @method ? true : false
-  end
-
-  def compiled_method
-    @method
-  end
-
-  def call_on_instance(obj, *args)
-    bind(obj).call *args
-  end
-
-  # UnboundMethod objects are equal if they have the
-  # same compiled_method
+  # UnboundMethod objects are equal if and only if they have
+  # equal compiled_compiled_method.
   def ==(other)
     if other.kind_of? UnboundMethod
-      return true if other.compiled_method == @method
+      return true if other.compiled_method == @compiled_method
     end
 
     false
   end
+
+  # See Method#arity for explanation.
+  def arity
+    @compiled_method.required
+  end
+
+  # Creates a new Method object by attaching this compiled_method to the
+  # supplied receiver. The receiver must be kind_of? original
+  # Module object extracted from.
+  def bind(receiver)
+    unless receiver.kind_of? @module
+      raise TypeError, "Must be bound to an object of kind #{@module}"
+    end
+    Method.new(receiver, @module, @compiled_method)
+  end
+
+  # Convenience method for #binding to the given receiver object and
+  # calling it with the optionally supplied arguments.
+  def call_on_instance(obj, *args)
+    bind(obj).call *args
+  end
+
+  # Returns a String representation thet indicates our class
+  # as well as the compiled_method name and the Module the compiled_method was
+  # extracted from.
+  def inspect()
+    "#<#{self.class} #{@module}##{@compiled_method.name}>"
+  end
+  alias_method :to_s, :inspect
 end
