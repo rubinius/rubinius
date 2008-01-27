@@ -119,7 +119,7 @@ class IncludedModule < Module
     @method_cache = nil
     @name = mod.name.__symbol_lookup__
     @constants = mod.constant_table
-    @parent = mod.parent
+    @encloser = mod.encloser
     @module = mod
   end
 

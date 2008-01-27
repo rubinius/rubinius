@@ -1,2 +1,0 @@
-Module#alias_method is a private method
-Module#alias_method works on private module methods in a module that has been reopened

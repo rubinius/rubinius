@@ -84,34 +84,37 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, OBJECT sym, int *c
   return val;
 }
 
+/* Return the module object corresponding to the name or, if
+ * the module does not exist yet, create a new one first.
+ */
 OBJECT cpu_open_module(STATE, cpu c, OBJECT under, OBJECT sym) {
-  OBJECT val, s1;
-  
-  val = module_const_get(state, under, sym);
-  if(!RTEST(val)) {
-    val = module_allocate_mature(state, 0);
-    module_setup_fields(state, val);
+  OBJECT module, s1;
+
+  module = module_const_get(state, under, sym);
+  if(!RTEST(module)) {
+    module = module_allocate_mature(state, 0);
+    module_setup_fields(state, module);
 
     /*
     printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(under));
     */
-    if(under != state->global->object) {
+    if(under != BASIC_CLASS(object)) {
       s1 = symbol_to_string(state, module_get_name(under));
       s1 = string_dup(state, s1);
       string_append(state, s1, string_new(state, "::"));
       string_append(state, s1, symbol_to_string(state, sym));
-      module_set_name(val, string_to_sym(state, s1));
+      module_set_name(module, string_to_sym(state, s1));
     } else {
-      module_set_name(val, sym);
+      module_set_name(module, sym);
     }
-    
-    module_const_set(state, under, sym, val);
-    module_setup_fields(state, object_metaclass(state, val));
-    module_set_parent(val, under);    
-    module_set_parent(object_metaclass(state, val), under);
+
+    module_const_set(state, under, sym, module);
+    module_setup_fields(state, object_metaclass(state, module));
+    module_set_encloser(module, under);
+    module_set_encloser(object_metaclass(state, module), under);
   }
-  
-  return val;
+
+  return module;
 }
 
 static inline OBJECT _real_class(STATE, OBJECT obj) {

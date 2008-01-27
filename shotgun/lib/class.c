@@ -80,8 +80,8 @@ OBJECT class_constitute(STATE, OBJECT sup, OBJECT under) {
   class_set_superclass(val, sup);
   module_setup_fields(state, val);
   object_create_metaclass(state, val, object_metaclass(state, sup));
-  module_set_parent(val, under);
+  module_set_encloser(val, under);
   module_setup_fields(state, object_metaclass(state, val));
-  module_set_parent(object_metaclass(state, val), under);
+  module_set_encloser(object_metaclass(state, val), under);
   return val; 
 }

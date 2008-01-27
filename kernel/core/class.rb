@@ -64,7 +64,10 @@ class Class
     all
   end
 
-  def superclass
+  # Returns the Class object that this Class inherits
+  # from. Included Modules are not considered for this
+  # purpose.
+  def superclass()
     cls = direct_superclass
     return nil unless cls
     while cls and cls.kind_of? IncludedModule
@@ -72,16 +75,15 @@ class Class
     end
     return cls
   end
-  
+
   def inherited(name)
   end
-  
+
   def self.after_loaded
     alias_method :opened_class, :opened_class_cv
     alias_method :add_subclass, :add_subclass_cv
     alias_method :subclasses, :subclasses_cv
   end
-
 end
 
 class MetaClass

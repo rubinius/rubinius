@@ -1,5 +1,5 @@
 class Module
-  ivar_as_index :method_table => 1, :name => 3, :constants => 4, :parent => 5, :superclass => 6
+  ivar_as_index :method_table => 1, :name => 3, :constants => 4, :encloser => 5, :superclass => 6
 
   def method_table
     @method_table
@@ -9,8 +9,8 @@ class Module
     @constants
   end
 
-  def parent
-    @parent
+  def encloser
+    @encloser
   end
 
   def name
@@ -83,6 +83,8 @@ class Module
     @superclass = other
   end
 
+  # This may be either an included Module or then
+  # an inherited Class.
   def direct_superclass
     @superclass
   end

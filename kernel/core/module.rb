@@ -2,11 +2,25 @@
 
 class Module
 
-  ivar_as_index :__ivars__ => 0, :method_table => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5, :superclass => 6
-  def method_table   ; @method_table ; end
-  def method_cache   ; @method_cache ; end
-  def constants_table; @constants    ; end
-  def parent         ; @parent       ; end
+  # Some terminology notes: 
+  #
+  # * "Encloser" is the Class or Module inside which this
+  #   one is defined or, in the event we are at top-level,
+  #   Object.
+  #
+  # * "Direct superclass" is whatever is next in the chain
+  #   of @superclass invocations. This may be either an
+  #   included Module, a Class or nil.
+  #
+  # * "Superclass" is the real semantic superclass and thus
+  #   only applies to Class objects.
+
+  ivar_as_index :__ivars__ => 0, :method_table => 1, :method_cache => 2, :name => 3, :constants => 4, :encloser => 5, :superclass => 6
+
+  def method_table    ; @method_table ; end
+  def method_cache    ; @method_cache ; end
+  def constants_table ; @constants    ; end
+  def encloser        ; @encloser  ; end
 
   def self.nesting
     mod  = MethodContext.current.sender.receiver
@@ -16,7 +30,7 @@ class Module
     nesting = []
     while mod != Object && mod.kind_of?(Module)
       nesting << mod
-      mod = mod.parent
+      mod = mod.encloser
     end
     nesting
   end
@@ -27,8 +41,6 @@ class Module
 
     block = block_given?
     instance_eval(&block) if block
-    # I think we need this for constant lookups
-    @parent = ::Object
   end
 
   # HACK: This should work after after the bootstrap is loaded,
@@ -520,6 +532,11 @@ class Module
     return const_set(name, value)
   end
 
+  # Return the named constant enclosed in this Module.
+  # Included Modules and, for Class objects, superclasses
+  # are also searched. The name is attempted to convert
+  # using #to_str. If the constant is not found, calls
+  # #const_missing with the name.
   def const_get(name)
     recursive_const_get(name)
   end
@@ -535,7 +552,7 @@ class Module
       return recursive_const_get(name)
     end
 
-    raise NameError, "uninitialized constant #{name}"
+    raise NameError, "Missing or uninitialized constant: #{name}"
   end
 
   def attr_reader_cv(*names)
@@ -627,7 +644,7 @@ class Module
     parts = [name.to_s]
     while mod and mod != Object
       parts.unshift mod.name
-      mod = mod.parent
+      mod = mod.encloser
     end
     @name = parts.join("::").to_sym
   end
@@ -677,6 +694,22 @@ class Module
 
   private :method_added
 
+  # See #const_get for documentation.
+  def recursive_const_get(name)
+    name = normalize_const_name(name)
+
+    current, constant = self, nil
+
+    while current
+      return constant if constant = current.constants_table[name]
+      current = current.direct_superclass
+    end
+
+    const_missing(name)
+  end
+
+  private :recursive_const_get
+
   def normalize_name(name)
     sym_name = nil
     if name.respond_to?(:to_sym)
@@ -691,22 +724,6 @@ class Module
   end
 
   private :normalize_name
-
-  # Get a constant with the given name. If the constant does not exist, return nil.
-  def recursive_const_get(name)
-    name = normalize_const_name(name)
-
-    constant = nil
-    current = self
-    while current
-      return constant if constant = current.constants_table[name]
-      current = current.direct_superclass
-    end
-
-    const_missing(name)
-  end
-
-  private :recursive_const_get
 
   def normalize_const_name(name)
     name = normalize_name(name)

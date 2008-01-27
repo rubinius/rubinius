@@ -24,7 +24,7 @@ methods
 method_cache
 name
 constants
-parent
+encloser
 superclass
 instance_fields
 instance_flags
@@ -74,7 +74,7 @@ methods
 method_cache
 name
 constants
-parent
+encloser
 superclass
 instance_fields
 instance_flags
@@ -111,7 +111,7 @@ methods
 method_cache
 name
 constants
-parent
+encloser
 !
 Object
 __ivars__

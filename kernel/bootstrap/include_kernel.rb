@@ -9,7 +9,7 @@ class IncludedModule < Module
     @method_cache = nil
     @name = :Kernel
     @constants = Kernel.constant_table
-    @parent = Kernel.parent
+    @encloser = Kernel.encloser
     @module = Kernel
 
     # attach
