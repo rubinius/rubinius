@@ -1,10 +1,7 @@
-# $: << File.expand_path(File.dirname(__FILE__))
-
-require 'compiler'
-require 'generator'
-require 'bytecode'
-require 'text'
-require 'graph'
+require 'compiler/compiler'
+require 'compiler/generator'
+require 'compiler/bytecode'
+require 'compiler/text'
 
 require 'options'
 
@@ -74,8 +71,6 @@ interactive if ARGV.empty?
 
 opts = o.parse ARGV
 (puts o.usage; exit) if opts['help']
-
-p opts
 
 interactive if opts['interactive'] or opts[:args].empty?
 batch opts

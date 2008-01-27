@@ -1,9 +1,7 @@
-# $: << File.expand_path(File.dirname(__FILE__))
-
-require 'compiler'
-require 'generator'
-require 'bytecode'
-require 'text'
+require 'compiler/compiler'
+require 'compiler/generator'
+require 'compiler/bytecode'
+require 'compiler/text'
 
 
 class Compiler::Node
