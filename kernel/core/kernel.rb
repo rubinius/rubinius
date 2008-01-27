@@ -504,7 +504,7 @@ module Kernel
   def singleton_method_removed(name)
   end
   private :singleton_method_removed
-  
+
   def singleton_method_undefined(name)
   end
   private :singleton_method_undefined
@@ -523,16 +523,6 @@ module Kernel
 
   def nil?
     false
-  end
-
-  def method(name)
-    cm = __find_method__(name)
-
-    if cm
-      return Method.new(self, cm[1], cm[0])
-    else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
-    end
   end
 
   def method_missing_cv(meth, *args)
