@@ -722,8 +722,6 @@ class ShotgunPrimitives
       }
     }
 
-    GUARD(seconds > 0);
-
     ret = array_new(state, 2);
     array_set(state, ret, 0, LL2I(seconds));
     array_set(state, ret, 1, t7);
