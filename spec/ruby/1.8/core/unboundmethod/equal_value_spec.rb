@@ -58,9 +58,22 @@ describe "UnboundMethod#==" do
     (@alias_2 == @alias_1).should == true
   end
 
-  it "returns true if both are extracted through the same subclass" do
+  it "returns true if same method is extracted from the same subclass" do
     (@child1 == @child1_alt).should == true
     (@child1_alt == @child1).should == true
+  end
+
+  # See below for MRI
+  deviates_on :rubinius do
+    it "returns true if same method but one extracted from a subclass" do
+      (@parent == @child1).should == true
+      (@child1 == @parent).should == true
+    end
+
+    it "returns true if same method but extracted from two different subclasses" do
+      (@child2 == @child1).should == true
+      (@child1 == @child2).should == true
+    end
   end
 
   it "returns false if UnboundMethods are different methods" do
@@ -73,14 +86,16 @@ describe "UnboundMethod#==" do
     (@identical_body == @original_name).should == false
   end
 
-  it "returns false if one or both was extracted from a subclass even if the same" do
-    (@parent == @child1).should == false
-    (@child1 == @parent).should == false
-  end
+  not_compliant_on :rubinius do
+    it "returns false if same method but one extracted from a subclass" do
+      (@parent == @child1).should == false
+      (@child1 == @parent).should == false
+    end
 
-  it "returns false if both were extracted from different subclasses of the original" do
-    (@child2 == @child1).should == false
-    (@child1 == @child2).should == false
+    it "returns false if same method but extracted from two different subclasses" do
+      (@child2 == @child1).should == false
+      (@child1 == @child2).should == false
+    end
   end
 
   it "returns false if methods are the same but added from an included Module" do
