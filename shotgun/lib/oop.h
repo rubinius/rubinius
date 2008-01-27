@@ -5,6 +5,7 @@
 
 typedef struct rubinius_object_t* OBJECT;
 typedef void * xpointer;
+typedef intptr_t native_int;
 
 /* OOP layout:
  * [30 bits of data | 2 bits of tag]
@@ -191,19 +192,21 @@ A rubinius object can be followed by:
 */ 
 
 #define CLASS_OBJECT(obj) (obj->klass)
+#define SIZE_OF_OBJECT ((unsigned int)(sizeof(OBJECT)))
 
 #define NUM_FIELDS(obj)                 (obj->field_count)
 #define SET_NUM_FIELDS(obj, fel)        (obj->field_count = fel)
-#define SIZE_IN_BYTES_FIELDS(fel)       (sizeof(struct rubinius_object_t) + \
-                                         fel*sizeof(OBJECT))
-#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(struct rubinius_object_t)/sizeof(OBJECT) + fel)
+#define SIZE_IN_BYTES_FIELDS(fel)       ((unsigned int)(sizeof(struct rubinius_object_t) + \
+                                         fel*SIZE_OF_OBJECT))
+#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(struct rubinius_object_t)/SIZE_OF_OBJECT + fel)
 #define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->field_count)
-#define SIZE_OF_BODY(obj)               (obj->field_count * sizeof(OBJECT))
+#define SIZE_OF_BODY(obj)               (obj->field_count * SIZE_OF_OBJECT)
 #define ADDRESS_OF_FIELD(obj, fel)      (&obj->field[fel])
 #define NTH_FIELD_DIRECT(obj, fel)      (obj->field[fel])
 #define SET_FIELD_DIRECT(obj, fel, val) (obj->field[fel] = val)
 #define BYTES_OF(obj)                   ((char*)obj->field)
 #define FIXNUM_NEG(obj)                 ((intptr_t)obj < 0)
+
 
 #ifdef Qfalse
 #undef Qfalse

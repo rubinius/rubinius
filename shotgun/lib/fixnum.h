@@ -8,7 +8,7 @@
 
 static inline OBJECT fixnum_add(STATE, OBJECT a, OBJECT b) {
   OBJECT r;
-  int j, k, m;
+  native_int j, k, m;
   
   // + will never overflow an int because of the size of a Fixnum
   j = FIXNUM_TO_INT(a);
@@ -24,7 +24,7 @@ static inline OBJECT fixnum_add(STATE, OBJECT a, OBJECT b) {
 
 static inline OBJECT fixnum_sub(STATE, OBJECT a, OBJECT b) {
   OBJECT r;
-  int j, k, m;
+  native_int j, k, m;
   
   // - will never overflow a signed int because of the size of a Fixnum
   j = FIXNUM_TO_INT(a);
@@ -41,7 +41,7 @@ static inline OBJECT fixnum_sub(STATE, OBJECT a, OBJECT b) {
 static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
   OBJECT r;
   long long m;
-  int j, k;
+  native_int j, k;
 
   j = FIXNUM_TO_INT(a);
   k = FIXNUM_TO_INT(b);
@@ -57,7 +57,7 @@ static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
 static inline OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
   OBJECT ary;
   long div, mod;
-  int x, y;
+  native_int x, y;
 
   x = FIXNUM_TO_INT(a);
   y = FIXNUM_TO_INT(b);

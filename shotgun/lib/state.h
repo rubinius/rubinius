@@ -51,7 +51,7 @@ struct rubinius_globals {
 };
 
 
-#define NUM_OF_GLOBALS (sizeof(struct rubinius_globals) / sizeof(OBJECT))
+#define NUM_OF_GLOBALS ((unsigned int)(sizeof(struct rubinius_globals) / SIZE_OF_OBJECT))
 
 #define CPU_CACHE_MASK 0xfff
 #define CPU_CACHE_HASH(c,m) ((((uintptr_t)(c)>>3)^((uintptr_t)m)) & CPU_CACHE_MASK)
@@ -178,7 +178,7 @@ void XFREE(void *p);
 #define REALLOC_N(v,t,n) (v)=(t*)XREALLOC((void*)(v), sizeof(t)*n)
 #define FREE(v) XFREE(v)
 
-static inline long rbs_to_int(OBJECT obj) {
+static inline native_int rbs_to_int(OBJECT obj) {
   return STRIP_TAG(obj);
 }
 
@@ -228,6 +228,18 @@ static inline OBJECT rbs_ull_to_integer(STATE, unsigned long long num) {
   }
 }
 
+static inline OBJECT rbs_max_long_to_numeric(STATE, long long num) {
+  OBJECT ret;
+  ret = APPLY_TAG(num, TAG_FIXNUM);
+
+  /* Number is too big for Fixnum. Use Bignum. */
+  /* TODO - Change this to native_int when Fixnum becomes platform-specific */
+  if((int)rbs_to_int(ret) != num) {
+    return bignum_from_ll(state, num);
+  }
+  return ret;
+}
+
 static inline double rbs_fixnum_to_double(OBJECT obj) {
   double val = rbs_to_int(obj);
   return val;
@@ -243,6 +255,8 @@ static inline double rbs_fixnum_to_double(OBJECT obj) {
 #define ULL2I(i) rbs_ull_to_integer(state, i)
 #define LL2I(i) rbs_ll_to_integer(state, i)
 #define FLOAT_TO_DOUBLE(k) (*DATA_STRUCT(k, double*))
+/* Convert the longest supported integer type to a Numeric */
+#define ML2N(i) rbs_max_long_to_numeric(state, i)
 
 void object_memory_check_ptr(void *ptr, OBJECT obj);
 static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);
