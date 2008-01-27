@@ -1,40 +1,74 @@
 # depends on: class.rb
 
+# Method objects are essentially detached, freely passed-around
+# methods. The Method is a copy of the method on the object at
+# the time of extraction, so if the method itself is changed,
+# overridden, aliased or removed from the object, the Method
+# object still contains the old functionality. In addition,
+# the call itself is not in any way stored so it will reflect
+# the state of the object at the time of calling. Methods
+# are normally bound to a particular object but it is possible
+# to use Method#unbind to create an UnboundMethod object for
+# the purpose of re-binding to a different object.
 class Method
-  attr_reader :module
-  attr_reader :receiver
-  attr_reader :method
 
-  def initialize(recv, mod, cm)
-    @receiver = recv
-    @method = cm
-    @module = mod
+  # Takes and stores the receiver object, the method's
+  # bytecodes and the Module that the method is defined
+  # in.
+  def initialize(receiver, defined_in, compiled_method)
+    @receiver         = receiver
+    @pulled_from      = receiver.class
+    @defined_in       = defined_in
+    @compiled_method  = compiled_method
   end
+
+  attr_reader :receiver
+  attr_reader :pulled_from
+  attr_reader :defined_in
+  attr_reader :compiled_method
+  protected   :receiver
+  protected   :pulled_from
+  protected   :defined_in
+  protected   :compiled_method
 
   # Instance methods
 
   # Method objects are equal if they have the
   # same body and are bound to the same object.
   def ==(other)
-    if other.kind_of? Method
-      return true if other.receiver.equal?(@receiver) && other.method == @method
-    end
+    return true if other.class == Method and
+                   @receiver.equal?(other.receiver) and
+                   @compiled_method == other.compiled_method
 
     false
   end
 
   # [] is aliased as #call
 
+  # Indication of how many arguments this method takes.
+  # It is defined so that a non-negative Integer means
+  # the method takes that fixed amount of arguments (up
+  # to 1024 currently.) A negative Integer is used to
+  # indicate a variable argument count. The number is
+  # ((-n) - 1), where n is the number of required args.
+  # Blocks are not counted.
+  #
+  #   def foo();              end   # arity => 0
+  #   def foo(a, b);          end   # arity => 2
+  #   def foo(a, &b);         end   # arity => 1
+  #   def foo(a, b = nil);    end   # arity => ((-1) -1) => -2
+  #   def foo(*a);            end   # arity => ((-0) -1) => -1
+  #   def foo(a, b, *c, &d);  end   # arity => ((-2) -1) => -3
+  #
   def arity()
-    @method.required
+    @compiled_method.required
   end
 
-  def call(*args, &prc)
-    @method.activate(@receiver, @module, args, &prc)
-  end
-
-  def compiled_method()
-    @method
+  # Execute the method. This works exactly like calling
+  # a method with the same code on the receiver object.
+  # Arguments and a block can be supplied optionally.
+  def call(*args, &block)
+    @compiled_method.activate(@receiver, @defined_in, args, &block)
   end
 
   alias_method :[], :call
@@ -43,16 +77,18 @@ class Method
   # name, the Module it is defined in and the Module that it
   # was extracted from.
   def inspect()
-    "#<#{self.class}: #{@receiver.class}##{@method.name} (defined in #{@module})>"
+    "#<#{self.class}: #{@pulled_from}##{@compiled_method.name} (defined in #{@defined_in})>"
   end
 
   alias_method :to_s, :inspect
 
-
+  # Location gives the file and line number of the start of
+  # this method's definition.
   def location()
-    "#{@method.file}, near line #{@method.first_line}"
+    "#{@compiled_method.file}, near line #{@compiled_method.first_line}"
   end
 
+  # Returns a Proc object corresponding to this Method.
   def to_proc()
     env = Method::AsBlockEnvironment.new self
     Proc.from_environment(env)
@@ -60,8 +96,13 @@ class Method
 
   # #to_s is aliased as #inspect
 
+  # Detach this Method from the receiver object it is bound
+  # to and create an UnboundMethod object. Populates the
+  # UnboundMethod with the method data as well as the Module
+  # it is defined in and the Module it was extracted from.
+  # See UnboundMethod for more information.
   def unbind()
-    UnboundMethod.new(@module, @method, @receiver.class)
+    UnboundMethod.new(@defined_in, @compiled_method, @pulled_from)
   end
 end
 
@@ -121,13 +162,11 @@ class UnboundMethod
   # class or subclass. Two from different subclasses will not be
   # considered equal.
   def ==(other)
-    unless other.kind_of? UnboundMethod and
-           @defined_in == other.defined_in and
-           @compiled_method == other.compiled_method
-      return false
-    end
+    return true if other.kind_of? UnboundMethod and
+                   @defined_in == other.defined_in and
+                   @compiled_method == other.compiled_method
 
-    true
+    false
   end
 
   # See Method#arity.
