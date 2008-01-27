@@ -4,13 +4,13 @@ class Method
   attr_reader :module
   attr_reader :receiver
   attr_reader :method
-  
+
   def initialize(recv, mod, cm)
     @receiver = recv
     @method = cm
     @module = mod
   end
-  
+
   def inspect
     "#<#{self.class} #{@receiver.class}(#{@module})##{@method.name}>"
   end
@@ -30,15 +30,15 @@ class Method
   def arity
     @method.required
   end
-  
+
   def location
     "#{@method.file}, near line #{@method.first_line}"
   end
-  
+
   def compiled_method
     @method
   end
-  
+
   def to_proc
     env = Method::AsBlockEnvironment.new self
     Proc.from_environment(env)
@@ -92,7 +92,7 @@ class UnboundMethod
   def arity
     @method.required
   end
-  
+
   def ==(other)
     other == @method ? true : false
   end
@@ -100,7 +100,7 @@ class UnboundMethod
   def compiled_method
     @method
   end
-  
+
   def call_on_instance(obj, *args)
     bind(obj).call *args
   end
