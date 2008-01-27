@@ -105,4 +105,11 @@ describe RunState, "#process" do
     Mock.should_receive(:cleanup).twice
     @state.process
   end
+  
+  it "calls the describe block" do
+    record = []
+    @state.describe(Object, "msg") { record << :a }
+    @state.process
+    record.should == [:a]
+  end
 end

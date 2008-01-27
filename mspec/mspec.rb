@@ -5,4 +5,12 @@ module MSpec
     rescue Exception => e
     end
   end
+  
+  def self.stack
+    @stack ||= []
+  end
+  
+  def self.current
+    stack.last
+  end
 end

@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../runner/runner'
+require File.dirname(__FILE__) + '/../../runner/state'
 require File.dirname(__FILE__) + '/../../runner/formatters/dotted'
 require File.dirname(__FILE__) + '/../../runner/formatters/ci'
 
@@ -150,5 +151,13 @@ describe DescribeState do
   
   it "provides #it" do
     @state.it.should be_an_instance_of(Array)
+  end
+end
+
+describe MSpec, ".describe" do
+  it "pushes a new RunState instance on the stack" do
+    MSpec.stack.clear
+    MSpec.describe(Object, "msg") { }
+    MSpec.current.should be_kind_of(RunState)
   end
 end

@@ -8,3 +8,18 @@ describe MSpec, ".protect" do
     }.should_not raise_error
   end
 end
+
+describe MSpec, ".stack" do
+  it "returns an array" do
+    MSpec.stack.should be_kind_of(Array)
+  end
+end
+
+describe MSpec, ".current" do
+  it "returns the top of the execution stack" do
+    MSpec.stack.clear
+    MSpec.stack.push :a
+    MSpec.stack.push :b
+    MSpec.current.should == :b
+  end
+end

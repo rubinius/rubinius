@@ -41,6 +41,7 @@ class RunState
   end
   
   def process
+    protect @describe, @block
     protect "before :all", @start
     @spec.each do |msg, spec|
       protect "before :each", @before

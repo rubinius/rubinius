@@ -156,3 +156,12 @@ class SpecRunner
     @stack.pop
   end
 end
+
+module MSpec
+  def self.describe(mod, msg, &block)
+    stack.push RunState.new
+    
+    current.describe(mod, msg, &block)
+    current.process
+  end
+end
