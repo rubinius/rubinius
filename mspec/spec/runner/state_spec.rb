@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../mspec'
+require File.dirname(__FILE__) + '/../../mocks/mock'
 require File.dirname(__FILE__) + '/../../runner/state'
 
 describe RunState do
@@ -69,11 +70,7 @@ describe RunState, "#state" do
   end
 end
 
-describe RunState, "#process" do
-  before :all do
-    module Mock; end
-  end
-  
+describe RunState, "#process" do  
   before :each do
     @state = RunState.new
     @a = lambda { @record << :a }
@@ -139,7 +136,16 @@ describe RunState, "#process" do
     @state.process
   end
   
-  it "records exceptions that occur while running the spec"
+  it "records exceptions that occur while running the spec" do
+    record = nil
+    exception = Exception.new("bump!")
+    MSpec.stack.push @state
+    @state.describe("describe") { }
+    @state.it("it") { raise exception }
+    @state.after(:each) { record = @state.state.exceptions }
+    @state.process
+    record.should == [[nil, exception]]
+  end
 end
 
 describe SpecState do

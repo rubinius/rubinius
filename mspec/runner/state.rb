@@ -50,7 +50,7 @@ class RunState
     @spec.each do |desc, spec|
       @state = SpecState.new @describe, desc
       protect "before :each", @before
-      protect "", spec
+      protect nil, spec
       protect "after :each", @after
       protect "Mock.cleanup", lambda { Mock.cleanup }
       @state = nil

@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/../mspec'
 describe MSpec, ".protect" do
   before :each do
     @ss = mock('SpecState')
-    @ss.stub!(:exception).and_return([])
+    @ss.stub!(:exceptions).and_return([])
     @rs = mock('RunState')
     @rs.stub!(:state).and_return(@ss)
     @exception = Exception.new("Sharp!")
@@ -20,7 +20,7 @@ describe MSpec, ".protect" do
   it "records the exception in the current.state object's exceptions" do
     MSpec.stack.push @rs
     MSpec.protect("testing") { raise @exception }
-    @ss.exception.should == [["testing", @exception]]
+    @ss.exceptions.should == [["testing", @exception]]
   end
   
   it "writes a message to STDERR if current is nil" do
