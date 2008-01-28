@@ -354,7 +354,7 @@ static inline OBJECT cpu_check_serial(STATE, cpu c, OBJECT obj, OBJECT sym, int 
   mo = cpu_find_method(state, c, _real_class(state, obj), obj, sym, &mod);
   if(NIL_P(mo)) return Qfalse;
 
-  if(FIXNUM_TO_INT(fast_fetch(mo, CMETHOD_f_SERIAL)) == serial) {
+  if(N2I(fast_fetch(mo, CMETHOD_f_SERIAL)) == serial) {
     return Qtrue;
   }
 
