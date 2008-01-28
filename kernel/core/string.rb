@@ -765,12 +765,16 @@ class String
     pattern = get_pattern(pattern, true)
     copy = self.dup
 
-    last_end = start = 0
+    last_end = 0
+    offset = nil
     ret = []
 
     last_match = nil
+    match = pattern.match_from self, last_end
 
-    while match = pattern.match_from(self, start)
+    offset = match.begin 0 if match
+
+    while match do
       ret << (match.pre_match_from(last_end) || "")
 
       if replacement
@@ -790,14 +794,19 @@ class String
       tainted ||= val.tainted?
 
       last_end = match.end(0)
-      start = match.collapsing? ? start + 1 : match.end(0)
-
+      offset = match.collapsing? ? offset + 1 : match.end(0)
+      
       last_match = match
+
+      match = pattern.match_from self, offset
+      break unless match
+
+      offset = match.begin 0
     end
 
     Regexp.last_match = last_match
 
-    ret << self[start..-1] if self[start..-1]
+    ret << self[last_end..-1] if self[last_end..-1]
 
     str = ret.join
     str = self.class.new(str) unless self.instance_of?(String)

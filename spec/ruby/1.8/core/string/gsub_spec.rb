@@ -1,7 +1,12 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
-describe "String#gsub with pattern, replacement" do
+describe "String#gsub with pattern and replacement" do
+
+  it "doesn't freak out when replacing ^" do
+    "Text\n".gsub(/^/, ' ').should == " Text\n"
+  end
+
   it "returns a copy of self with all occurrences of pattern replaced with replacement" do
     "hello".gsub(/[aeiou]/, '*').should == "h*ll*"
 
@@ -295,7 +300,7 @@ describe "String#gsub with pattern and block" do
   end  
 end
 
-describe "String#gsub! with pattern, replacement" do
+describe "String#gsub! with pattern and replacement" do
   it "modifies self in place and returns self" do
     a = "hello"
     a.gsub!(/[aeiou]/, '*').equal?(a).should == true
