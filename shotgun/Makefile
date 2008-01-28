@@ -10,7 +10,7 @@ else
   BINSUFFIX?=
 endif
 
-ifdef DTRACE
+ifeq ($(DTRACE),1)
 	DTRACE_H=dtrace.h
 else
 	DTRACE_H=
