@@ -29,7 +29,6 @@ class Method
   protected   :receiver
   protected   :pulled_from
   protected   :defined_in
-  protected   :compiled_method
 
   # Instance methods
 
