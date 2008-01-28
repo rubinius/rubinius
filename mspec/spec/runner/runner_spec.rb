@@ -164,50 +164,37 @@ describe MSpec, ".describe" do
 end
 
 describe MSpec do
-  it "provides .register_start for actions that run before any specs are executed" do
-    MSpec.register_start :start
-    MSpec.instance_variable_get(:@start).should == [:start]
-  end
-  
-  it "provides .register_load for actions that run before a spec file is loaded" do
-    MSpec.register_load :load
-    MSpec.instance_variable_get(:@load).should == [:load]
-  end
-  
-  it "provides .register_unload for actions that run after a spec file has been run" do
-    MSpec.register_unload :unload
-    MSpec.instance_variable_get(:@unload).should == [:unload]
-  end
-  
-  it "provides .register_include for actions that return true if a spec should be run" do
-    MSpec.register_include :include
-    MSpec.instance_variable_get(:@include).should == [:include]
-  end
-  
-  it "provides .register_exclude for actions that return true if a spec should not be run" do
-    MSpec.register_exclude :exclude
-    MSpec.instance_variable_get(:@exclude).should == [:exclude]
-  end
-  
-  it "provides .register_finish for actions that run after all specs are executed" do
-    MSpec.register_finish :finish
-    MSpec.instance_variable_get(:@finish).should == [:finish]
-  end
-  
   it "provides .register_files to record which spec files to run" do
     MSpec.register_files [:one, :two, :three]
-    MSpec.instance_variable_get(:@files).should == [:one, :two, :three]
+    MSpec.retrieve(:files).should == [:one, :two, :three]
   end
   
   it "provides .register_mode for setting execution mode flags" do
     MSpec.register_mode :verify
-    MSpec.instance_variable_get(:@mode).should == :verify
+    MSpec.retrieve(:mode).should == :verify
+  end
+  
+  it "provides .store to store data" do
+    MSpec.store :anything, :value
+    MSpec.retrieve(:anything).should == :value
   end
 
-  it "provides .register as the gateway behind all register actions" do
-    MSpec.register :@bonus, :first
-    MSpec.register :@bonus, :second
-    MSpec.instance_variable_get(:@bonus).should == [:first, :second]
+  it "provides .retrieve to access .store'd data" do
+    MSpec.register :action, :first
+    MSpec.retrieve(:action).should == [:first]
+  end
+  
+  it "provides .register as the gateway behind the register(symbol, action) facility" do
+    MSpec.register :bonus, :first
+    MSpec.register :bonus, :second
+    MSpec.retrieve(:bonus).should == [:first, :second]
+  end
+
+  it "provides .unregister as the gateway behind the unregister(symbol, actions) facility" do
+    MSpec.register :unregister, :first
+    MSpec.register :unregister, :second
+    MSpec.unregister :unregister, :second
+    MSpec.retrieve(:unregister).should == [:first]
   end
 end
 

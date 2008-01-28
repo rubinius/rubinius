@@ -165,42 +165,32 @@ module MSpec
     current.process
   end
   
-  def self.register_start(action)
-    register :@start, action
-  end
-  
-  def self.register_load(action)
-    register :@load, action
-  end
-  
-  def self.register_unload(action)
-    register :@unload, action
-  end
-  
-  def self.register_include(action)
-    register :@include, action
-  end
-  
-  def self.register_exclude(action)
-    register :@exclude, action
-  end
-  
-  def self.register_finish(action)
-    register :@finish, action
-  end
-  
   def self.register_files(files)
-    @files = files
+    store :files, files
   end
   
   def self.register_mode(mode)
-    @mode = mode
+    store :mode, mode
   end
   
-  def self.register(var, action)
-    unless v = instance_variable_get(var)
-      v = instance_variable_set var, []
+  def self.retrieve(symbol)
+    instance_variable_get :"@#{symbol}"
+  end
+  
+  def self.store(symbol, value)
+    instance_variable_set :"@#{symbol}", value
+  end
+  
+  def self.register(symbol, action)
+    unless value = retrieve(symbol)
+      value = store symbol, []
     end
-    v << action
+    value << action
+  end
+  
+  def self.unregister(symbol, action)
+    if value = retrieve(symbol)
+      value.delete action
+    end
   end
 end
