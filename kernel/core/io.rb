@@ -393,6 +393,10 @@ class IO
     @descriptor
   end
 
+  def sysseek(amount, whence=SEEK_SET)
+    Platform::POSIX.lseek(@descriptor, amount, whence)
+  end
+    
   def closed?
     @descriptor == -1
   end
