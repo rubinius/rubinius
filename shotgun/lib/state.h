@@ -185,7 +185,7 @@ static inline native_int rbs_to_int(OBJECT obj) {
 
 static inline OBJECT rbs_int_to_numeric(STATE, int num) {
   OBJECT ret;
-  ret = APPLY_TAG(num, TAG_FIXNUM);
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
   if((native_int)rbs_to_int(ret) != num) {
@@ -197,7 +197,7 @@ static inline OBJECT rbs_int_to_numeric(STATE, int num) {
 
 static inline OBJECT rbs_uint_to_numeric(STATE, unsigned int num) {
   OBJECT ret;
-  ret = APPLY_TAG(num, TAG_FIXNUM);
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
   if((native_int)rbs_to_int(ret) != num) {
@@ -209,7 +209,7 @@ static inline OBJECT rbs_uint_to_numeric(STATE, unsigned int num) {
 
 static inline OBJECT rbs_ll_to_numeric(STATE, long long num) {
   OBJECT ret;
-  ret = APPLY_TAG(num, TAG_FIXNUM);
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
   if((native_int)rbs_to_int(ret) != num) {
@@ -221,7 +221,7 @@ static inline OBJECT rbs_ll_to_numeric(STATE, long long num) {
 
 static inline OBJECT rbs_ull_to_numeric(STATE, unsigned long long num) {
   OBJECT ret;
-  ret = APPLY_TAG(num, TAG_FIXNUM);
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
   if((native_int)rbs_to_int(ret) != num) {
@@ -233,7 +233,7 @@ static inline OBJECT rbs_ull_to_numeric(STATE, unsigned long long num) {
 
 static inline OBJECT rbs_max_long_to_numeric(STATE, long long num) {
   OBJECT ret;
-  ret = APPLY_TAG(num, TAG_FIXNUM);
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
   if((native_int)rbs_to_int(ret) != num) {
@@ -363,7 +363,7 @@ static void _bad_reference2(OBJECT in, int fel) {
   *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
 
 #define rbs_get_field(i_in, i_fel) ({ \
-  OBJECT in = (i_in); int fel = (i_fel); \
+  OBJECT in = (i_in); unsigned int fel = (unsigned int)(i_fel); \
   if(!REFERENCE_P(in)) _bad_reference(in); \
   if(fel >= in->field_count) _bad_reference2(in, fel); \
   NTH_FIELD_DIRECT(in, fel); })
@@ -382,7 +382,7 @@ static void _bad_reference2(OBJECT in, int fel) {
   *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
 
 #define rbs_get_field(i_in, i_fel) ({ \
-  OBJECT in = (i_in); int fel = (i_fel); \
+  OBJECT in = (i_in); unsigned int fel = (unsigned int)(i_fel); \
   if(fel >= in->field_count) _bad_reference2(in, fel); \
   NTH_FIELD_DIRECT(in, fel); })
 
@@ -394,7 +394,7 @@ static void _bad_reference2(OBJECT in, int fel) {
 #else
 
 
-static inline OBJECT rbs_get_field(OBJECT in, int fel) {
+static inline OBJECT rbs_get_field(OBJECT in, unsigned int fel) {
   OBJECT obj;
 #if DISABLE_CHECKS
   if(!REFERENCE_P(in)) {
