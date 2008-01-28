@@ -412,7 +412,7 @@ int rb_ary_size(VALUE self) {
   
   ary = HNDL(self);
   
-  return N2I(array_get_total(ary));
+  return (int)rbs_to_int(array_get_total(ary));
 }
 
 /* The same value as 1.8.x */
@@ -476,7 +476,8 @@ VALUE rb_ary_entry(VALUE array, int offset) {
   CTX;
   OBJECT val, ary = HNDL(array);
 
-  int total = N2I(array_get_total(ary));
+  // FIXME - 64-bit
+  unsigned int total = (unsigned int)rbs_to_int(array_get_total(ary));
 
   /* support wrap-around */
   if(offset < 0) {
@@ -521,7 +522,7 @@ void rb_ary_store(VALUE array, int offset, VALUE val) {
   CTX;
   OBJECT ary = HNDL(array);
 
-  int total = N2I(array_get_total(ary));
+  unsigned int total = (unsigned int)rbs_to_int(array_get_total(ary));
 
   /* support wrap-around */
   if(offset < 0) {
@@ -677,12 +678,12 @@ VALUE rb_require(const char* name) {
 int FIX2INT(VALUE val) {
   CTX;
   OBJECT arg = HNDL(val);
-  return N2I(arg);
+  return (int)rbs_to_int(arg);
 }
 
 VALUE INT2NUM(int num) {
   CTX;
-  return NEW_HANDLE(ctx, rbs_int_to_fixnum(ctx->state, num));
+  return NEW_HANDLE(ctx, rbs_int_to_numeric(ctx->state, num));
 }
 
 int SYMBOL_P(VALUE obj) {
@@ -732,7 +733,7 @@ VALUE subtend_wrap_struct(VALUE klass, void *struct_value, void *mark_func, void
   STATE;
   state = ctx->state;
   
-  OBJECT obj = NEW_OBJECT(HNDL(klass), sizeof(struct wraps_struct)/sizeof(uintptr_t));
+  OBJECT obj = NEW_OBJECT(HNDL(klass), (unsigned int)(sizeof(struct wraps_struct)/sizeof(uintptr_t)));
   struct wraps_struct *s = (struct wraps_struct *)BYTES_OF(obj);
   s->ptr = struct_value;
   s->mark = mark_func;
