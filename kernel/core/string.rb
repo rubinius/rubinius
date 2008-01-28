@@ -74,9 +74,8 @@ class String
   #
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    r = String.new(self)
-    r << StringValue(other)
-    r.taint if self.tainted? || other.tainted?
+    r = "".replace(self).append(StringValue(other))
+    r.taint if other.tainted?   # Own taintedness already copied
     r
   end
 
