@@ -187,6 +187,41 @@ class IO
 
   alias_method :isatty, :tty?
 
+  def self.popen(str, mode="r")
+    raise "TODO make this support more than r" if mode != "r"
+    
+    if str == "+-+" and !block_given?
+      raise ArgumentError, "this mode requires a block currently"
+    end
+
+    pa_read, ch_write = IO.pipe
+    
+    pid = Process.fork
+
+    if pid
+      ch_write.close
+      # See bottom for definition
+      rp = BidirectionalPipe.new(pid, pa_read, nil)
+      if block_given?
+        begin
+          yield rp
+        ensure
+          pa_read.close
+        end
+      else
+        return rp
+      end
+    else
+      pa_read.close
+      STDOUT.reopen ch_write
+      if str == "+-+"
+        yield nil
+      else
+        Process.replace "/bin/sh", ["sh", "-c", str]
+      end
+    end
+  end
+
   def binmode
     # HACK what to do?
   end
@@ -660,3 +695,24 @@ class IO
 
 end
 
+class BidirectionalPipe < IO
+  def initialize(pid, read, write)
+    super(read.fileno)
+    @pid = pid
+    @write = write
+  end
+  
+  def pid
+    @pid
+  end
+  
+  def <<(str)
+    @write << str
+  end
+  
+  alias_method :write, :<<
+  
+  def syswrite(str)
+    @write.syswrite str
+  end
+end
