@@ -1,5 +1,5 @@
 # depends on: class.rb comparable.rb enumerable.rb
-  
+
 # Default Ruby Record Separator
 # Used in this file and by various methods that need to ignore $/
 DEFAULT_RECORD_SEPARATOR = "\n"
@@ -7,7 +7,7 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 class String
   include Comparable
   include Enumerable
-  
+
   ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3, :hash => 4, :shared => 5
   def bytes     ; @bytes      ; end
   def characters; @characters ; end
@@ -30,20 +30,20 @@ class String
       @characters = 0
       @encoding = nil
     end
-    
+
     return self
   end
   private :initialize
-  
+
   # call-seq:
   #   str % arg   => new_str
-  #  
+  #
   # Format---Uses <i>self</i> as a format specification, and returns the result
   # of applying it to <i>arg</i>. If the format specification contains more than
   # one substitution, then <i>arg</i> must be an <code>Array</code> containing
   # the values to be substituted. See <code>Kernel::sprintf</code> for details
   # of the format string.
-  # 
+  #
   #   "%05d" % 123                       #=> "00123"
   #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
   def %(args)
@@ -55,11 +55,11 @@ class String
   #
   # Copy --- Returns a new <code>String</code> containing <i>integer</i> copies of
   # the receiver.
-  #   
+  #
   #   "Ho! " * 3   #=> "Ho! Ho! Ho! "
   def *(num)
     num = Type.coerce_to(num, Integer, :to_int) unless num.is_a? Integer
-    
+
     raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
@@ -68,10 +68,10 @@ class String
     str.taint if self.tainted?
     return str
   end
-  
+
   # Concatenation --- Returns a new <code>String</code> containing
   # <i>other</i> concatenated to <i>string</i>.
-  # 
+  #
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
     r = String.new(self)
@@ -83,7 +83,7 @@ class String
   # Append --- Concatenates the given object to <i>self</i>. If the object is a
   # <code>Fixnum</code> between 0 and 255, it is converted to a character before
   # concatenation.
-  #    
+  #
   #   a = "hello "
   #   a << "world"   #=> "hello world"
   #   a.concat(33)   #=> "hello world!"
@@ -95,7 +95,7 @@ class String
         other = StringValue(other)
       end
     end
-    
+
     self.taint if other.tainted?
     self.append(other)
   end
@@ -103,7 +103,7 @@ class String
 
   # call-seq:
   #   str <=> other_str   => -1, 0, +1
-  # 
+  #
   # Comparison --- Returns -1 if <i>other_str</i> is less than, 0 if
   # <i>other_str</i> is equal to, and +1 if <i>other_str</i> is greater than
   # <i>self</i>. If the strings are of different lengths, and the strings are
@@ -118,7 +118,7 @@ class String
   # <code><=</code>, <code>></code>, <code>>=</code>, and <code>between?</code>,
   # included from module <code>Comparable</code>. The method
   # <code>String#==</code> does not use <code>Comparable#==</code>.
-  #    
+  #
   #    "abcdef" <=> "abcde"     #=> 1
   #    "abcdef" <=> "abcdef"    #=> 0
   #    "abcdef" <=> "abcdefg"   #=> -1
@@ -150,13 +150,13 @@ class String
 
   # call-seq:
   #    str == obj   => true or false
-  # 
+  #
   # Equality---If <i>obj</i> is not a <code>String</code>, returns
   # <code>false</code>. Otherwise, returns <code>true</code> if <i>self</i>
   # <code><=></code> <i>obj</i> returns zero.
   #---
   # TODO: MRI does simply use <=> for Strings here, so what's this code about?
-  #+++ 
+  #+++
   def ==(other)
     Ruby.primitive :string_equal
 
@@ -164,30 +164,30 @@ class String
       if other.respond_to?(:to_str)
         return other == self
       end
-      
+
       return false
     end
-    
+
     return false unless @bytes == other.size
-      
+
     # This clamps the data to the right size, then we compare
     # This is very inefficient, creating a new ByteArray just
     # to compare. But we don't care because it's typically handled
     # by the primitive.
     ld = @data.fetch_bytes(0, @bytes)
     rd = other.data.fetch_bytes(0, @bytes)
-      
-    return (ld <=> rd) == 0      
+
+    return (ld <=> rd) == 0
   end
   alias_method :===, :==
 
   # Match --- If <i>pattern</i> is a <code>Regexp</code>, use it as a pattern to match
-  # against <i>self</i>, and return the position the match starts, or 
+  # against <i>self</i>, and return the position the match starts, or
   # <code>nil</code> if there is no match. Otherwise, invoke
   # <i>pattern.=~</i>, passing <i>self</i> as an argument.
-  # 
+  #
   # The default <code>=~</code> in <code>Object</code> returns <code>false</code>.
-  #    
+  #
   #   "cat o' 9 tails" =~ /\d/ #=> 7
   #   "cat o' 9 tails" =~ 9    #=> false
   def =~(pattern)
@@ -219,7 +219,7 @@ class String
   #    str.slice(regexp)           => new_str or nil
   #    str.slice(regexp, fixnum)   => new_str or nil
   #    str.slice(other_str)        => new_str or nil
-  # 
+  #
   # Element Reference --- If passed a single <code>Fixnum</code>, returns the code
   # of the character at that position. If passed two <code>Fixnum</code>
   # objects, returns a substring starting at the offset given by the first, and
@@ -228,14 +228,14 @@ class String
   # an offset is negative, it is counted from the end of <i>self</i>. Returns
   # <code>nil</code> if the initial offset falls outside the string, the length
   # is negative, or the beginning of the range is greater than the end.
-  #    
+  #
   # If a <code>Regexp</code> is supplied, the matching portion of <i>self</i> is
   # returned. If a numeric parameter follows the regular expression, that
   # component of the <code>MatchData</code> is returned instead. If a
   # <code>String</code> is given, that string is returned if it occurs in
   # <i>self</i>. In both cases, <code>nil</code> is returned if there is no
   # match.
-  #    
+  #
   #    a = "hello there"
   #    a[1]                   #=> 101
   #    a[1,3]                 #=> "ell"
@@ -253,7 +253,7 @@ class String
   def [](index, other = Undefined)
     unless other.equal?(Undefined)
       length = Type.coerce_to(other, Fixnum, :to_int)
-      
+
       if index.kind_of? Regexp
         match, str = subpattern(index, length)
         Regexp.last_match = match
@@ -263,7 +263,7 @@ class String
         return substring(start, length)
       end
     end
-    
+
     case index
     when Regexp
       match, str = subpattern(index, 0)
@@ -279,21 +279,21 @@ class String
 
       length += @bytes if length < 0
       length += 1 unless index.exclude_end?
-      
+
       return "" if start == @bytes
       return nil if start < 0 || start > @bytes
-      
+
       length = @bytes if length > @bytes
       length = length - start
       length = 0 if length < 0
-      
+
       return substring(start, length)
     else
       index = Type.coerce_to index, Fixnum, :to_int
       index = @bytes + index if index < 0
-    
+
       return if index < 0 || @bytes <= index
-      return @data[index]      
+      return @data[index]
     end
   end
   alias_method :slice, :[]
@@ -306,7 +306,7 @@ class String
   #   str[regexp] = new_str
   #   str[regexp, fixnum] = new_str
   #   str[other_str] = new_str
-  # 
+  #
   # Element Assignment --- Replaces some or all of the content of <i>self</i>. The
   # portion of the string affected is determined using the same criteria as
   # <code>String#[]</code>. If the replacement string is not the same length as
@@ -327,15 +327,15 @@ class String
       else
         self.splice(Type.coerce_to(args[0], Integer, :to_int), Type.coerce_to(args[1], Integer, :to_int), args[2])
       end
-      
+
       return args.last
     elsif args.size != 2
       raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
     end
-    
+
     index = args[0]
     replacement = args[1]
-    
+
     case index
     when Regexp
       self.subpattern_set(index, 0, replacement)
@@ -343,34 +343,34 @@ class String
       unless start = self.index(index)
         raise IndexError, "string not matched"
       end
-      
+
       self.splice(start, index.length, replacement)
     when Range
       start   = Type.coerce_to(index.first, Integer, :to_int)
       length  = Type.coerce_to(index.last, Integer, :to_int)
 
       start += @bytes if start < 0
-      
+
       # TODO: this is wrong
       return nil if start < 0 || start > @bytes
 
       length = @bytes if length > @bytes
       length += @bytes if length < 0
       length += 1 unless index.exclude_end?
-      
+
       length = length - start
       length = 0 if length < 0
-      
+
       self.splice(start, length, replacement)
     else
       index = Type.coerce_to(index, Integer, :to_int)
       raise IndexError, "index #{index} out of string" if @bytes <= index
-      
+
       if index < 0
         raise IndexError, "index #{index} out of string" if -index > @bytes
         index += @bytes
       end
-      
+
       if replacement.is_a?(Fixnum)
         self.modify!
         @data[index] = replacement
@@ -384,7 +384,7 @@ class String
   # Returns a copy of <i>self</i> with the first character converted to uppercase
   # and the remainder to lowercase.
   # Note: case conversion is effective only in ASCII region.
-  #    
+  #
   #   "hello".capitalize    #=> "Hello"
   #   "HELLO".capitalize    #=> "Hello"
   #   "123ABC".capitalize   #=> "123abc"
@@ -395,7 +395,7 @@ class String
   # Modifies <i>self</i> by converting the first character to uppercase and the
   # remainder to lowercase. Returns <code>nil</code> if no changes are made.
   # Note: case conversion is effective only in ASCII region.
-  #    
+  #
   #   a = "hello"
   #   a.capitalize!   #=> "Hello"
   #   a               #=> "Hello"
@@ -403,26 +403,26 @@ class String
   def capitalize!
     self.modify!
     return if @bytes == 0
-    
+
     modified = false
-    
+
     if @data[0].islower
       @data[0] = @data[0].toupper
       modified = true
     end
-    
+
     1.upto(@bytes - 1) do |i|
       if @data[i].isupper
         @data[i] = @data[i].tolower
         modified = true
       end
     end
-  
+
     modified ? self : nil
   end
 
   # Case-insensitive version of <code>String#<=></code>.
-  #    
+  #
   #   "abcdef".casecmp("abcde")     #=> 1
   #   "aBcDeF".casecmp("abcdef")    #=> 0
   #   "abcdef".casecmp("abcdefg")   #=> -1
@@ -434,7 +434,7 @@ class String
   # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
   # <code>String</code> of length <i>integer</i> with <i>self</i> centered and
   # padded with <i>padstr</i>; otherwise, returns <i>self</i>.
-  #    
+  #
   #    "hello".center(4)         #=> "hello"
   #    "hello".center(20)        #=> "       hello        "
   #    "hello".center(20, '123') #=> "1231231hello12312312"
@@ -447,7 +447,7 @@ class String
   # changed from the default Ruby record separator, then <code>chomp</code> also
   # removes carriage return characters (that is it will remove <code>\n</code>,
   # <code>\r</code>, and <code>\r\n</code>).
-  #    
+  #
   #   "hello".chomp            #=> "hello"
   #   "hello\n".chomp          #=> "hello"
   #   "hello\r\n".chomp        #=> "hello"
@@ -458,7 +458,7 @@ class String
   def chomp(separator = $/)
     (str = self.dup).chomp!(separator) || str
   end
-  
+
   # Modifies <i>self</i> in place as described for <code>String#chomp</code>,
   # returning <i>self</i>, or <code>nil</code> if no modifications were made.
   #---
@@ -471,16 +471,16 @@ class String
     if separator == $/ && separator == DEFAULT_RECORD_SEPARATOR
       return smart_chomp!
     end
-    
+
     separator = StringValue(separator)
     length = @bytes - 1
-    
-    if separator.length == 0 
+
+    if separator.length == 0
       while length > 0 && @data[length] == ?\n
         length -= 1
         length -= 1 if length > 0 && @data[length] == ?\r
       end
-      
+
       return replace(substring(0, length + 1)) if length + 1 < @bytes
       return nil
     elsif separator.length > @bytes
@@ -491,13 +491,13 @@ class String
       return replace(substring(0, length + 1 - separator.length))
     end
   end
-  
+
   # Returns a new <code>String</code> with the last character removed.  If the
   # string ends with <code>\r\n</code>, both characters are removed. Applying
   # <code>chop</code> to an empty string returns an empty
   # string. <code>String#chomp</code> is often a safer alternative, as it leaves
   # the string unchanged if it doesn't end in a record separator.
-  #    
+  #
   #   "string\r\n".chop   #=> "string"
   #   "string\n\r".chop   #=> "string\n"
   #   "string\n".chop     #=> "string"
@@ -512,18 +512,18 @@ class String
   # <code>String#chomp!</code>.
   def chop!
     return if @bytes == 0
-    
+
     length = @bytes - 1
     length -= 1 if @data[length] == ?\n && @data[length - 1] == ?\r
-    
+
     replace(substring(0, length))
   end
-  
+
   # Each <i>other_string</i> parameter defines a set of characters to count.  The
   # intersection of these sets defines the characters to count in
   # <i>self</i>. Any <i>other_str</i> that starts with a caret (^) is
   # negated. The sequence c1--c2 means all characters between c1 and c2.
-  #    
+  #
   #   a = "hello world"
   #   a.count "lo"            #=> 5
   #   a.count "lo", "o"       #=> 2
@@ -532,18 +532,18 @@ class String
   def count(*strings)
     raise ArgumentError, "wrong number of Arguments" if strings.empty?
     return 0 if @bytes == 0
-    
+
     pattern = tr_regex(strings)
     count = start = 0
-    
+
     while start < @bytes and match = pattern.match_from(self, start)
       start = match.begin(0) + 1
       count += 1
     end
-    
+
     count
   end
-  
+
   # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
   # library function <code>crypt</code>. The argument is the salt string, which
   # should be two characters long, each character drawn from
@@ -560,7 +560,7 @@ class String
   # Returns a copy of <i>self</i> with all characters in the intersection of its
   # arguments deleted. Uses the same rules for building the set of characters as
   # <code>String#count</code>.
-  #    
+  #
   #   "hello".delete "l","lo"        #=> "heo"
   #   "hello".delete "lo"            #=> "he"
   #   "hello".delete "aeiou", "^e"   #=> "hell"
@@ -574,38 +574,38 @@ class String
   def delete!(*strings)
     raise ArgumentError, "wrong number of arguments" if strings.empty?
     new = []
-    
+
     last_end = 0
     last_match = nil
     pattern = tr_regex(strings)
-    
+
     while match = pattern.match_from(self, last_end)
-      new << match.pre_match_from(last_end) 
+      new << match.pre_match_from(last_end)
       last_end = match.begin(0) + 1
     end
-    
+
     new << self[last_end..-1] if self[last_end..-1]
     new = new.join
     new != self ? replace(new) : nil
   end
-  
+
   # Returns a copy of <i>self</i> with all uppercase letters replaced with their
   # lowercase counterparts. The operation is locale insensitive---only
   # characters ``A'' to ``Z'' are affected.
-  # 
+  #
   # "hEllO".downcase   #=> "hello"
   def downcase
     (str = self.dup).downcase! || str
   end
-  
+
   # Downcases the contents of <i>self</i>, returning <code>nil</code> if no
   # changes were made.
   def downcase!
     return if @bytes == 0
     self.modify!
-  
+
     modified = false
-  
+
     @bytes.times do |i|
       if (c = @data[i]).isupper
         @data[i] = c.tolower!
@@ -615,13 +615,13 @@ class String
 
     modified ? self : nil
   end
-  
+
   # Passes each byte in <i>self</i> to the given block.
-  #    
+  #
   #   "hello".each_byte {|c| print c, ' ' }
-  #    
+  #
   # <em>produces:</em>
-  #    
+  #
   #   104 101 108 108 111
   def each_byte()
     i = 0
@@ -647,16 +647,16 @@ class String
   # block. If a zero-length record separator is supplied, the string is split on
   # <code>\n</code> characters, except that multiple successive newlines are
   # appended together.
-  #    
+  #
   #   print "Example one\n"
   #   "hello\nworld".each {|s| p s}
   #   print "Example two\n"
   #   "hello\nworld".each('l') {|s| p s}
   #   print "Example three\n"
   #   "hello\n\n\nworld".each('') {|s| p s}
-  #    
+  #
   # <em>produces:</em>
-  #    
+  #
   #   Example one
   #   "hello\n"
   #   "world"
@@ -675,22 +675,22 @@ class String
     end
 
     separator = StringValue(separator)
-    
+
     raise LocalJumpError, "no block given" unless block_given?
-    
+
     newline = separator.empty? ? ?\n : separator[separator.length - 1]
-    
+
     last_index = 0
     index = separator.length
-    
+
     old_str = self.dup
-    
+
     while index < self.length
       if separator.empty?
         index += 1 while (self.size > index + 2) && self[(index + 1)..(index + 2)] =~ /[^\n]/
         index += 1 while (self.size > index + 1) && self[index + 1] == ?\n
       end
-    
+
       if self[index] == newline && self[-separator.length, separator.length]
         line = self[last_index..index]
         line.taint if self.tainted?
@@ -698,10 +698,10 @@ class String
         raise RuntimeError, "You modified the string while running each" if old_str != self
         last_index = index + 1
       end
-      
+
       index += 1
     end
-    
+
     unless last_index == self.length
       line = self[last_index..self.length]
       line.taint if self.tainted?
@@ -713,7 +713,7 @@ class String
   alias_method :each_line, :each
 
   # Returns <code>true</code> if <i>self</i> has a length of zero.
-  #    
+  #
   #   "hello".empty?   #=> false
   #   "".empty?        #=> true
   def empty?
@@ -733,21 +733,21 @@ class String
   # <code>String</code> then no regular expression metacharacters will be
   # interpreted (that is <code>/\d/</code> will match a digit, but
   # <code>'\d'</code> will match a backslash followed by a 'd').
-  #    
+  #
   # If a string is used as the replacement, special variables from the match
   # (such as <code>$&</code> and <code>$1</code>) cannot be substituted into it,
   # as substitution into the string occurs before the pattern match
   # starts. However, the sequences <code>\1</code>, <code>\2</code>, and so on
   # may be used to interpolate successive groups in the match.
-  #    
+  #
   # In the block form, the current match string is passed in as a parameter, and
   # variables such as <code>$1</code>, <code>$2</code>, <code>$`</code>,
   # <code>$&</code>, and <code>$'</code> will be set appropriately. The value
   # returned by the block will be substituted for the match on each call.
-  #    
+  #
   # The result inherits any tainting in the original string or any supplied
   # replacement string.
-  #    
+  #
   #   "hello".gsub(/[aeiou]/, '*')              #=> "h*ll*"
   #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
   #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
@@ -762,40 +762,40 @@ class String
       replacement = StringValue(replacement).replace_slashes
       tainted ||= replacement.tainted?
     end
-    
+
     pattern = get_pattern(pattern, true)
     copy = self.dup
-    
+
     last_end = start = 0
     ret = []
-    
+
     last_match = nil
 
     while match = pattern.match_from(self, start)
       ret << (match.pre_match_from(last_end) || "")
-      
+
       if replacement
         ret << replacement.to_sub_replacement(match)
       else
         # We do this so that we always manipulate $~ in the context
         # of the passed block.
         prc.block.home.last_match = match
-        
+
         val = yield(match[0].dup)
         tainted ||= val.tainted?
         ret << val.to_s
-        
+
         raise RuntimeError, "string modified" if self != copy
       end
-      
+
       tainted ||= val.tainted?
-      
+
       last_end = match.end(0)
       start = match.collapsing? ? start + 1 : match.end(0)
-      
+
       last_match = match
     end
-    
+
     Regexp.last_match = last_match
 
     ret << self[start..-1] if self[start..-1]
@@ -805,12 +805,12 @@ class String
     str.taint if tainted || self.tainted?
     return str
   end
-  
+
   # Performs the substitutions of <code>String#gsub</code> in place, returning
   # <i>self</i>, or <code>nil</code> if no substitutions were performed.
   def gsub!(pattern, replacement = nil, &block)
     str = gsub(pattern, replacement, &block)
-    
+
     if lm = Regexp.last_match
       Regexp.last_match = Regexp.last_match
       replace(str)
@@ -824,7 +824,7 @@ class String
   # Treats leading characters from <i>self</i> as a string of hexadecimal digits
   # (with an optional sign and an optional <code>0x</code>) and returns the
   # corresponding number. Zero is returned on error.
-  #    
+  #
   #    "0x0a".hex     #=> 10
   #    "-1234".hex    #=> -4660
   #    "0".hex        #=> 0
@@ -835,7 +835,7 @@ class String
 
   # Returns <code>true</code> if <i>self</i> contains the given string or
   # character.
-  #    
+  #
   #   "hello".include? "lo"   #=> true
   #   "hello".include? "ol"   #=> false
   #   "hello".include? ?h     #=> true
@@ -853,7 +853,7 @@ class String
   # character (<i>fixnum</i>), or pattern (<i>regexp</i>) in <i>self</i>. Returns
   # <code>nil</code> if not found. If the second parameter is present, it
   # specifies the position in the string to begin the search.
-  # 
+  #
   #   "hello".index('e')             #=> 1
   #   "hello".index('lo')            #=> 3
   #   "hello".index('a')             #=> nil
@@ -874,12 +874,12 @@ class String
       end
     when String
       return offset if needle == ""
-            
+
       needle_size = needle.size
-      
+
       max = @bytes - needle_size
       return if max < 0 # <= 0 maybe?
-      
+
       offset.upto(max) do |i|
         if @data[i] == needle.data[0]
           return i if substring(i, needle_size) == needle
@@ -898,13 +898,13 @@ class String
 
     return nil
   end
-  
+
   # Inserts <i>other_string</i> before the character at the given
   # <i>index</i>, modifying <i>self</i>. Negative indices count from the
   # end of the string, and insert <em>after</em> the given character.
   # The intent is insert <i>other_string</i> so that it starts at the given
   # <i>index</i>.
-  #    
+  #
   #   "abcd".insert(0, 'X')    #=> "Xabcd"
   #   "abcd".insert(3, 'X')    #=> "abcXd"
   #   "abcd".insert(4, 'X')    #=> "abcdX"
@@ -912,15 +912,15 @@ class String
   #   "abcd".insert(-1, 'X')   #=> "abcdX"
   def insert(index, other_string)
     other_string = StringValue(other_string)
-    
+
     index = Integer(index)
-    
+
     if index == -1
       return self << other_string
     elsif index < 0
       index += 1
     end
-    
+
     self[index, 0] = other_string
     self
   end
@@ -940,7 +940,7 @@ class String
     res << "\""
     return res.copy_properties(self)
   end
-  
+
   def escaped(res="")
     self.each_byte do |char|
       if ci = ControlCharacters.index(char)
@@ -950,7 +950,7 @@ class String
       elsif char == ?\\
         res << "\\\\"
       elsif char == ?#
-         res << "\\#" 
+         res << "\\#"
       elsif char < 32 or char > 126
         v = char.to_s(8)
         if v.size == 1
@@ -976,32 +976,32 @@ class String
   # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
   # <code>String</code> of length <i>integer</i> with <i>self</i> left justified
   # and padded with <i>padstr</i>; otherwise, returns <i>self</i>.
-  #    
+  #
   #   "hello".ljust(4)            #=> "hello"
   #   "hello".ljust(20)           #=> "hello               "
   #   "hello".ljust(20, '1234')   #=> "hello123412341234123"
   def ljust(integer, padstr = " ")
     justify(integer, :left, padstr)
   end
-  
+
   # Returns a copy of <i>self</i> with leading whitespace removed. See also
   # <code>String#rstrip</code> and <code>String#strip</code>.
-  #    
+  #
   #   "  hello  ".lstrip   #=> "hello  "
   #   "hello".lstrip       #=> "hello"
   def lstrip
     (str = self.dup).lstrip! || str
   end
-  
+
   # Removes leading whitespace from <i>self</i>, returning <code>nil</code> if no
   # change was made. See also <code>String#rstrip!</code> and
   # <code>String#strip!</code>.
-  #    
+  #
   #   "  hello  ".lstrip   #=> "hello  "
   #   "hello".lstrip!      #=> nil
   def lstrip!
     return if @bytes == 0
-  
+
     start = 0
     while start < @bytes
       c = @data[start]
@@ -1011,14 +1011,14 @@ class String
         break
       end
     end
-  
+
     return if start == 0
     replace(substring(start, @bytes - start))
   end
 
   # Converts <i>pattern</i> to a <code>Regexp</code> (if it isn't already one),
   # then invokes its <code>match</code> method on <i>self</i>.
-  #    
+  #
   #   'hello'.match('(.)\1')      #=> #<MatchData:0x401b3d30>
   #   'hello'.match('(.)\1')[0]   #=> "ll"
   #   'hello'.match(/(.)\1/)[0]   #=> "ll"
@@ -1032,7 +1032,7 @@ class String
   # Treats leading characters of <i>self</i> as a string of octal digits (with an
   # optional sign) and returns the corresponding number. Returns 0 if the
   # conversion fails.
-  #    
+  #
   #   "123".oct       #=> 83
   #   "-377".oct      #=> -255
   #   "bad".oct       #=> 0
@@ -1043,7 +1043,7 @@ class String
 
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
   # values in <i>other</i>.
-  # 
+  #
   #   s = "hello"         #=> "hello"
   #   s.replace "world"   #=> "world"
   def replace(other)
@@ -1058,16 +1058,16 @@ class String
     @bytes = other.bytes
     @characters = other.characters
     @encoding = other.encoding
-    
+
     self.taint if other.tainted?
-    
+
     self
   end
   alias_method :initialize_copy, :replace
   # private :initialize_copy
 
   # Returns a new string with the characters from <i>self</i> in reverse order.
-  #    
+  #
   #   "stressed".reverse   #=> "desserts"
   def reverse
     self.dup.reverse!
@@ -1077,7 +1077,7 @@ class String
   def reverse!
     return self if @bytes <= 1
     self.modify!
-    
+
     i = 0
     j = @bytes - 1
     while i < j
@@ -1096,7 +1096,7 @@ class String
   # <code>nil</code> if not found. If the second parameter is present, it
   # specifies the position in the string to end the search---characters beyond
   # this point will not be considered.
-  #    
+  #
   #   "hello".rindex('e')             #=> 1
   #   "hello".rindex('l')             #=> 3
   #   "hello".rindex('a')             #=> nil
@@ -1120,7 +1120,7 @@ class String
     when String
       arg = Regexp.new(Regexp.quote(arg))
     end
-    
+
     ret = arg.match_region(self, 0, finish, false)
     Regexp.last_match = ret if original_klass == Regexp
     ret && ret.begin(0)
@@ -1129,17 +1129,17 @@ class String
   # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
   # <code>String</code> of length <i>integer</i> with <i>self</i> right justified
   # and padded with <i>padstr</i>; otherwise, returns <i>self</i>.
-  #    
+  #
   #   "hello".rjust(4)            #=> "hello"
   #   "hello".rjust(20)           #=> "               hello"
   #   "hello".rjust(20, '1234')   #=> "123412341234123hello"
   def rjust(integer, padstr = " ")
     justify(integer, :right, padstr)
   end
-  
+
   # Returns a copy of <i>self</i> with trailing whitespace removed. See also
   # <code>String#lstrip</code> and <code>String#strip</code>.
-  #    
+  #
   #   "  hello  ".rstrip   #=> "  hello"
   #   "hello".rstrip       #=> "hello"
   def rstrip
@@ -1149,12 +1149,12 @@ class String
   # Removes trailing whitespace from <i>self</i>, returning <code>nil</code> if
   # no change was made. See also <code>String#lstrip!</code> and
   # <code>String#strip!</code>.
-  # 
+  #
   #   "  hello  ".rstrip   #=> "  hello"
   #   "hello".rstrip!      #=> nil
   def rstrip!
     return if @bytes == 0
-    
+
     stop = @bytes - 1
     while stop >= 0
       c = @data[stop]
@@ -1176,44 +1176,44 @@ class String
   # the pattern contains no groups, each individual result consists of the
   # matched string, <code>$&</code>.  If the pattern contains groups, each
   # individual result is itself an array containing one entry per group.
-  #    
+  #
   #   a = "cruel world"
   #   a.scan(/\w+/)        #=> ["cruel", "world"]
   #   a.scan(/.../)        #=> ["cru", "el ", "wor"]
   #   a.scan(/(...)/)      #=> [["cru"], ["el "], ["wor"]]
   #   a.scan(/(..)(..)/)   #=> [["cr", "ue"], ["l ", "wo"]]
-  #    
+  #
   # And the block form:
-  #    
+  #
   #   a.scan(/\w+/) {|w| print "<<#{w}>> " }
   #   print "\n"
   #   a.scan(/(.)(.)/) {|x,y| print y, x }
   #   print "\n"
-  #    
+  #
   # <em>produces:</em>
-  #    
+  #
   #   <<cruel>> <<world>>
   #   rceu lowlr
-    
+
   def scan(pattern)
     taint = self.tainted? || pattern.tainted?
     pattern = get_pattern(pattern, true)
     index = 0
-    
+
     last_match = nil
-    
+
     if block_given?
       ret = self
     else
       ret = []
     end
-    
+
     while match = pattern.match_from(self, index)
       index = match.collapsing? ? match.end(0) + 1 : match.end(0)
       last_match = match
       val = (match.length == 1 ? match[0] : match.captures)
       val.taint if taint
-      
+
       if block_given?
         Regexp.last_match = match
         yield(val)
@@ -1221,46 +1221,46 @@ class String
         ret << val
       end
     end
-    
+
     Regexp.last_match = last_match
     return ret
 =begin
 
     unless block_given?
       ret = []
-      
+
       while (index, match = scan_once(pattern, index)) && match
         last_match = match
         match.taint if taint
         ret << match
       end
-      
+
       Regexp.last_match = last_match
       return ret
     else
       while (index, match = scan_once(pattern, index)) && match
         last_match = old_md = $~
-        
+
         match.taint if taint
-        
+
         block.call(match)
         Regexp.last_match = old_md
       end
-      
+
       ret = self
     end
-    
+
     Regexp.last_match = last_match
     return ret
 =end
   end
-  
+
   # Deletes the specified portion from <i>self</i>, and returns the portion
   # deleted. The forms that take a <code>Fixnum</code> will raise an
   # <code>IndexError</code> if the value is out of range; the <code>Range</code>
   # form will raise a <code>RangeError</code>, and the <code>Regexp</code> and
   # <code>String</code> forms will silently ignore the assignment.
-  #    
+  #
   #   string = "this is a string"
   #   string.slice!(2)        #=> 105
   #   string.slice!(3..6)     #=> " is "
@@ -1277,27 +1277,27 @@ class String
 
   # Divides <i>self</i> into substrings based on a delimiter, returning an array
   # of these substrings.
-  #    
+  #
   # If <i>pattern</i> is a <code>String</code>, then its contents are used as
   # the delimiter when splitting <i>self</i>. If <i>pattern</i> is a single
   # space, <i>self</i> is split on whitespace, with leading whitespace and runs
   # of contiguous whitespace characters ignored.
-  #    
+  #
   # If <i>pattern</i> is a <code>Regexp</code>, <i>self</i> is divided where the
   # pattern matches. Whenever the pattern matches a zero-length string,
   # <i>self</i> is split into individual characters.
-  #    
+  #
   # If <i>pattern</i> is omitted, the value of <code>$;</code> is used.  If
   # <code>$;</code> is <code>nil</code> (which is the default), <i>self</i> is
   # split on whitespace as if ` ' were specified.
-  #    
+  #
   # If the <i>limit</i> parameter is omitted, trailing null fields are
   # suppressed. If <i>limit</i> is a positive number, at most that number of
   # fields will be returned (if <i>limit</i> is <code>1</code>, the entire
   # string is returned as the only entry in an array). If negative, there is no
   # limit to the number of fields returned, and trailing null fields are not
   # suppressed.
-  #    
+  #
   #   " now's  the time".split        #=> ["now's", "the", "time"]
   #   " now's  the time".split(' ')   #=> ["now's", "the", "time"]
   #   " now's  the time".split(/ /)   #=> ["", "now's", "", "the", "time"]
@@ -1305,7 +1305,7 @@ class String
   #   "hello".split(//)               #=> ["h", "e", "l", "l", "o"]
   #   "hello".split(//, 3)            #=> ["h", "e", "llo"]
   #   "hi mom".split(%r{\s*})         #=> ["h", "i", "m", "o", "m"]
-  #    
+  #
   #   "mellow yellow".split("ello")   #=> ["m", "w y", "w"]
   #   "1,2,,3,4,,".split(',')         #=> ["1", "2", "", "3", "4"]
   #   "1,2,,3,4,,".split(',', 4)      #=> ["1", "2", "", "3,4,,"]
@@ -1329,9 +1329,9 @@ class String
     else
       limited = false
     end
-    
+
     pattern ||= ($; || " ")
-   
+
     if pattern == ' '
       spaces = true
       pattern = /\s+/
@@ -1343,17 +1343,17 @@ class String
       pattern = StringValue(pattern) unless pattern.kind_of?(String)
       pattern = Regexp.new(Regexp.quote(pattern))
     end
-    
+
     start = 0
     ret = []
-    
+
     last_match = nil
-    
+
     while match = pattern.match_from(self, start)
       break if limited && limit - ret.size <= 1
-      
+
       collapsed = match.collapsing?
-      
+
       if !collapsed || (match.begin(0) != 0)
         ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
         ret.push(*match.captures.compact)
@@ -1395,7 +1395,7 @@ class String
 
     # Taint all
     ret = ret.map { |str| str.taint } if self.tainted?
-    
+
     ret
   end
 
@@ -1404,7 +1404,7 @@ class String
   # where runs of the same character that occur in this set are replaced by a
   # single character. If no arguments are given, all runs of identical
   # characters are replaced by a single character.
-  # 
+  #
   #   "yellow moon".squeeze                  #=> "yelow mon"
   #   "  now   is  the".squeeze(" ")         #=> " now is the"
   #   "putters shoot balls".squeeze("m-z")   #=> "puters shot balls"
@@ -1417,10 +1417,10 @@ class String
   def squeeze!(*strings)
     self.modify!
     return if @bytes == 0
-    
+
     new = []
     save = nil
-    
+
     if strings.empty?
       each_byte do |c|
         new << (save = c).chr unless save == c
@@ -1429,14 +1429,14 @@ class String
       last_end = 0
       last_match = nil
       pattern = tr_regex(strings)
-      
+
       while match = pattern.match_from(self, last_end)
         unless save == match[0] && match.begin(0) == last_end
-          new << match.pre_match_from(last_end) << (save = match[0]) 
+          new << match.pre_match_from(last_end) << (save = match[0])
         end
         last_end = match.begin(0) + 1
       end
-      
+
       new << self[last_end..-1] if self[last_end..-1]
     end
 
@@ -1445,13 +1445,13 @@ class String
   end
 
   # Returns a copy of <i>self</i> with leading and trailing whitespace removed.
-  #    
+  #
   #   "    hello    ".strip   #=> "hello"
   #   "\tgoodbye\r\n".strip   #=> "goodbye"
   def strip
     (str = self.dup).strip! || str
   end
-  
+
   # Removes leading and trailing whitespace from <i>self</i>. Returns
   # <code>nil</code> if <i>self</i> was not altered.
   def strip!
@@ -1466,27 +1466,27 @@ class String
   # a <code>String</code> then no regular expression metacharacters will be
   # interpreted (that is <code>/\d/</code> will match a digit, but
   # <code>'\d'</code> will match a backslash followed by a 'd').
-  #    
+  #
   # If the method call specifies <i>replacement</i>, special variables such as
   # <code>$&</code> will not be useful, as substitution into the string occurs
   # before the pattern match starts. However, the sequences <code>\1</code>,
   # <code>\2</code>, etc., may be used.
-  #    
+  #
   # In the block form, the current match string is passed in as a parameter, and
   # variables such as <code>$1</code>, <code>$2</code>, <code>$`</code>,
   # <code>$&</code>, and <code>$'</code> will be set appropriately. The value
   # returned by the block will be substituted for the match on each call.
-  #    
+  #
   # The result inherits any tainting in the original string or any supplied
   # replacement string.
-  #    
+  #
   #   "hello".sub(/[aeiou]/, '*')               #=> "h*llo"
   #   "hello".sub(/([aeiou])/, '<\1>')          #=> "h<e>llo"
   #   "hello".sub(/./) {|s| s[0].to_s + ' ' }   #=> "104 ello"
   def sub(pattern, replacement = nil, &prc)
     raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
     raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
-    
+
     if match = get_pattern(pattern, true).match_from(self, 0)
       out = match.pre_match
 
@@ -1499,11 +1499,11 @@ class String
         # We do this so that we always manipulate $~ in the context
         # of the passed block.
         prc.block.home.last_match = match
-        
+
         replacement = yield(match[0].dup).to_s
-        out.taint if replacement.tainted?        
+        out.taint if replacement.tainted?
       end
-      
+
       # We have to reset it again to match the specs
       Regexp.last_match = match
 
@@ -1513,16 +1513,16 @@ class String
       out = self
       Regexp.last_match = nil
     end
-    
+
     # MRI behavior emulation. Sub'ing String subclasses doen't return the
     # subclass, they return String instances.
     unless self.instance_of?(String)
       out = self.class.new(out)
     end
-    
+
     return out
   end
-  
+
   # Performs the substitutions of <code>String#sub</code> in place,
   # returning <i>self</i>, or <code>nil</code> if no substitutions were
   # performed.
@@ -1533,7 +1533,7 @@ class String
     else
       str = sub(pattern, replacement)
     end
-    
+
     if lm = Regexp.last_match
       Regexp.last_match = lm
       replace(str)
@@ -1551,11 +1551,11 @@ class String
   # incrementing a letter results in another letter of the same case.
   # Incrementing nonalphanumerics uses the underlying character set's
   # collating sequence.
-  #    
+  #
   # If the increment generates a ``carry,'' the character to the left of
   # it is incremented. This process repeats until there is no carry,
   # adding an additional character if necessary.
-  #    
+  #
   #   "abcd".succ        #=> "abce"
   #   "THX1138".succ     #=> "THX1139"
   #   "<<koala>>".succ   #=> "<<koalb>>"
@@ -1565,18 +1565,18 @@ class String
   def succ
     self.dup.succ!
   end
-  
+
   # Equivalent to <code>String#succ</code>, but modifies the receiver in
   # place.
   def succ!
     return self if @bytes == 0
-    
+
     carry = nil
     last_alnum = 0
     start = @bytes - 1
 
     self.modify!
-    
+
     while start >= 0
       if (s = @data[start]).isalnum
         carry = 0
@@ -1592,7 +1592,7 @@ class String
         elsif s == ?Z
           @data[start] = carry = ?A
         end
-        
+
         break if carry == 0
         last_alnum = start
       end
@@ -1603,7 +1603,7 @@ class String
     if carry.nil?
       start = length - 1
       carry = ?\001
-      
+
       while start >= 0
         if @data[start] >= 255
           @data[start] = 0
@@ -1615,7 +1615,7 @@ class String
         start -= 1
       end
     end
-    
+
     if start < 0
       self.splice(last_alnum, 1, carry.chr + @data[last_alnum].chr)
     end
@@ -1646,15 +1646,15 @@ class String
   def swapcase
     (str = self.dup).swapcase! || str
   end
-  
+
   # Equivalent to <code>String#swapcase</code>, but modifies the receiver in
   # place, returning <i>self</i>, or <code>nil</code> if no changes were made.
   def swapcase!
     self.modify!
     return if @bytes == 0
-  
+
     modified = false
-  
+
     @bytes.times do |i|
       c = @data[i]
       if c.islower
@@ -1665,13 +1665,13 @@ class String
         modified = true
       end
     end
-  
+
     modified ? self : nil
   end
 
   # Returns the <code>Symbol</code> corresponding to <i>self</i>, creating the
   # symbol if it did not previously exist. See <code>Symbol#id2name</code>.
-  #    
+  #
   #   "Koala".intern         #=> :Koala
   #   s = 'cat'.to_sym       #=> :cat
   #   s == :cat              #=> true
@@ -1680,7 +1680,7 @@ class String
   #
   # This can also be used to create symbols that cannot be represented using the
   # <code>:xxx</code> notation.
-  #    
+  #
   #   'cat and dog'.to_sym   #=> :"cat and dog"
   #--
   # TODO: Add taintedness-check
@@ -1697,7 +1697,7 @@ class String
   # end of a valid number are ignored. If there is not a valid number at the
   # start of <i>self</i>, <code>0</code> is returned. This method never raises an
   # exception.
-  #    
+  #
   #   "12345".to_i             #=> 12345
   #   "99 red balloons".to_i   #=> 99
   #   "0a".to_i                #=> 0
@@ -1712,7 +1712,7 @@ class String
     raise ArgumentError, "illegal radix #{base}" if base < 0
     self.to_inum(base)
   end
-  
+
   # Returns self if self is an instance of String,
   # else returns self converted to a String instance.
   def to_s
@@ -1726,7 +1726,7 @@ class String
   # strings may use the c1--c2 notation to denote ranges of characters, and
   # <i>from_str</i> may start with a <code>^</code>, which denotes all
   # characters except those listed.
-  #    
+  #
   #    "hello".tr('aeiou', '*')    #=> "h*ll*"
   #    "hello".tr('^aeiou', '*')   #=> "*e**o"
   #    "hello".tr('el', 'ip')      #=> "hippo"
@@ -1745,7 +1745,7 @@ class String
   # Processes a copy of <i>self</i> as described under <code>String#tr</code>,
   # then removes duplicate characters in regions that were affected by the
   # translation.
-  #    
+  #
   #    "hello".tr_s('l', 'r')     #=> "hero"
   #    "hello".tr_s('el', '*')    #=> "h*o"
   #    "hello".tr_s('el', 'hx')   #=> "hhxo"
@@ -1762,20 +1762,20 @@ class String
   # Returns a copy of <i>self</i> with all lowercase letters replaced with their
   # uppercase counterparts. The operation is locale insensitive---only
   # characters ``a'' to ``z'' are affected.
-  #    
+  #
   #   "hEllO".upcase   #=> "HELLO"
   def upcase
     (str = self.dup).upcase! || str
   end
-  
+
   # Upcases the contents of <i>self</i>, returning <code>nil</code> if no changes
   # were made.
   def upcase!
     return if @bytes == 0
     self.modify!
-  
+
     modified = false
-  
+
     @bytes.times do |i|
       if (c = @data[i]).islower
         @data[i] = c.toupper!
@@ -1791,24 +1791,24 @@ class String
     replacement = StringValue(replacement).to_expanded_tr_string
 
     self.modify!
-    
+
     return self.delete!(source) if replacement.empty?
     return if @bytes == 0
 
     if replacement.length < source.length
       replacement << (replacement.empty? ? " " : replacement[-1,1]) * (source.length - replacement.length)
     end
-    
+
     if source[0] == ?^ && source.length > 1
       trans = Array.new(256, 1)
-      
+
       (1...source.size).each do |i|
         c = source[i]
         trans[c] = -1
       end
-      
+
       c = replacement[-1]
-      
+
       trans.each_index do |i|
         trans[i] = c if trans[i] >= 0
       end
@@ -1819,10 +1819,10 @@ class String
         trans[c] = replacement[i]
       end
     end
-    
+
     self.modify!
     modified = false
-    
+
     if squeeze
       new = []
       last = nil
@@ -1838,7 +1838,7 @@ class String
           last = nil
         end
       end
-      
+
       new = new.join
       return new != self ? replace(new) : nil
     else
@@ -1849,13 +1849,13 @@ class String
           modified = true
         end
       end
-      
+
       return modified ? self : nil
     end
   end
 
   def to_sub_replacement(match)
-    self.gsub(/\\[\d\&\`\'\+]/) do |x| 
+    self.gsub(/\\[\d\&\`\'\+]/) do |x|
       # x[-1,1] returns a character version of the last character
       case cap = x[-1,1]
       when "`"
@@ -1883,7 +1883,7 @@ class String
         i += 1
       end
     end
-    
+
     negative = false
     if @data[i] == ?+
       i += 1
@@ -1891,12 +1891,12 @@ class String
       negative = true
       i += 1
     end
-    
+
     if @data[i] == ?+ || @data[i] == ?- || @data[i] == ?_
       raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check
       return 0
     end
-    
+
     if base <= 0
       if @data[i] == ?0
         case @data[i+1]
@@ -1930,14 +1930,14 @@ class String
     else
       raise ArgumentError, "illegal radix #{base}" if (base < 2 || 36 < base)
     end
-    
+
     result = 0
     seen_space = false
     seen_digit = false
     last_under = false
     i.upto(@bytes - 1) do |index|
       char = @data[index]
-      
+
       if check
         if char.isspace
           seen_space = true
@@ -1945,7 +1945,7 @@ class String
         elsif seen_space
           raise ArgumentError, "invalid value for Integer: #{inspect()}"
         end
-        
+
         if char == ?_
           if last_under || !seen_digit
             raise ArgumentError, "invalid value for Integer: #{inspect}"
@@ -1953,14 +1953,14 @@ class String
             last_under = true
             next
           end
-        end        
+        end
 
         last_under = false
       else
         break if char.isspace
         next if char == ?_
       end
-            
+
       if char >= ?0 && char <= ?9
         value = (char - ?0)
       elsif char >= ?A && char <= ?Z
@@ -1983,7 +1983,7 @@ class String
       result += value
     end
     raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check && (last_under || !seen_digit)
-    
+
     return negative ? -result : result
   end
 
@@ -2016,7 +2016,7 @@ class String
       self.gsub(/.-./) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
     end
   end
-  
+
   def smart_chomp!
     length = @bytes - 1
     if @data[length] == ?\n
@@ -2027,14 +2027,14 @@ class String
     else
       return nil
     end
-    
+
     return replace(substring(0, length + 1))
   end
 
   def justify(integer, direction, padstr = " ")
     integer = Type.coerce_to(integer, Integer, :to_int) unless integer.is_a?(Fixnum)
     padstr = StringValue(padstr)
-    
+
     raise ArgumentError, "zero width padding" if padstr.length == 0
 
     padsize = integer - self.size
@@ -2050,7 +2050,7 @@ class String
       dup.insert(0, lpad).insert(-1, rpad)
     end
   end
-  
+
   # Convert this string to a padstring for use in String#justify.
   def to_padding(padsize)
     if padsize != 0
@@ -2074,12 +2074,12 @@ class String
     if !match or capture >= match.size
       return nil
     end
-    
+
     if capture < 0
       capture += match.size
       return nil if capture <= 0
     end
-    
+
     start = match.begin(capture)
     count = match.end(capture) - match.begin(capture)
     str = self.substring(start, count)
@@ -2091,24 +2091,24 @@ class String
     unless match = pattern.match(self)
       raise IndexError, "regexp not matched"
     end
-    
+
     raise IndexError, "index #{index} out of regexp" if capture >= match.size
-    
+
     if capture < 0
       raise IndexError, "index #{index} out of regexp" if -capture >= match.size
       capture += match.size
     end
-    
+
     start  = match.begin(capture)
-    length = match.end(capture) - start 
+    length = match.end(capture) - start
     self.splice(start, length, replacement)
   end
 
   def substring(start, count)
     return if count < 0 || start > @bytes || -start > @bytes
-    
+
     start += @bytes if start < 0
-    
+
     count = @bytes - start if start + count > @bytes
     count = 0 if count < 0
 
@@ -2119,32 +2119,32 @@ class String
     else
       ba = @data.fetch_bytes(start, count)
     end
-    
+
     str.initialize_from count, ba
 
     return str
   end
-  
+
   def initialize_from(count, ba)
     @bytes = count
     @characters = count
     @data = ba
   end
-  
+
   def splice(start, count, replacement)
     raise IndexError, "negative length #{count}" if count < 0
     self.modify!
     raise IndexError, "index #{start} out of string" if @bytes < start || -start > @bytes
-    
+
     start += @bytes if start < 0
     count = @bytes - start if start + count > @bytes
-    
+
     # TODO: Optimize this by using the @data ByteArray directly?
     output = ""
     output << substring(0, start) if start != 0
     output << StringValue(replacement)
     output << substring(start + count, @bytes - (start + count)) if start + count < @bytes
-      
+
     replace(output)
   end
 
@@ -2176,7 +2176,7 @@ class String
     $KCODE = $KCODE
     ret
   end
-  
+
   def copy_properties(original)
     ret = self.dup
     ret.taint if original.tainted?
@@ -2185,7 +2185,7 @@ class String
     end
     ret
   end
-  
+
   def to_sexp(name="(eval)",line=1,newlines=true)
     out = to_sexp_full(name, line, newlines)
     if out.kind_of? Tuple
@@ -2202,10 +2202,10 @@ class String
   def shared!
     @shared = true
   end
-  
+
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
   # values in <i>other</i> if they differ.
-  # 
+  #
   #   s = "hello"           #=> "hello"
   #   s.replace_if "hello"  #=> nil
   #   s                     #=> "hello"
@@ -2214,7 +2214,7 @@ class String
   def replace_if(other)
     self == other ? nil : replace(other)
   end
-  
+
   def get_pattern(pattern, quote = false)
     unless pattern.is_a?(String) || pattern.is_a?(Regexp)
       if pattern.respond_to?(:to_str)
@@ -2245,7 +2245,7 @@ class String
   # def rindex(arg, finish = nil )
   #   arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
   #   return (finish || self.size) if arg.is_a?(String) && arg.empty?
-  #   
+  #
   #   arg_finish = finish
   #   if finish
   #     at_end = 0
@@ -2256,9 +2256,9 @@ class String
   #   else
   #     finish, at_end = @bytes - 1, 1
   #   end
-  # 
+  #
   #   arg = arg[0] if arg.is_a?(String) && arg.size == 1
-  #   
+  #
   #   if arg.is_a?(Fixnum)
   #     finish.step(0, -1) do |idx|
   #       return idx if @data[idx] == arg
@@ -2301,7 +2301,7 @@ class String
       raise ArgumentError, err if /([^0-9a-f_])/i.match_from(self, after.end(0))
       to_i(16)
     when /^[-+]?0b[01]/i
-      after = self.match(/^[-+]?0b/i)      
+      after = self.match(/^[-+]?0b/i)
       raise ArgumentError, err if /[^01_]/.match_from(self, after.end(0))
       to_i(2)
     when /^[-+]?\d/
@@ -2311,20 +2311,20 @@ class String
       raise ArgumentError, err
     end
   end
-  
+
   def upto(stop)
     stop = StringValue(stop)
     return self if self > stop
-    
+
     after_stop = stop.succ
     current = self
-    
+
     until current == after_stop
       yield current
       current = StringValue(current.succ)
       break if current.size > stop.size || current.size == 0
     end
-    
+
     self
   end
 

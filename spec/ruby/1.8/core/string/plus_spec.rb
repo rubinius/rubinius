@@ -8,11 +8,11 @@ describe "String#+" do
     ("Hello" + "").should == "Hello"
     ("Ruby !" + "= Rubinius").should == "Ruby != Rubinius"
   end
-  
+
   it "converts its argument to a string using to_str" do
     c = mock('aaa')
     def c.to_str() "aaa" end
-    
+
     ("a" + c).should == "aaaa"
 
     c = mock('aaa')
@@ -20,7 +20,7 @@ describe "String#+" do
     c.should_receive(:method_missing).with(:to_str).and_return("aaa")
     ("a" + c).should == "aaaa"
   end
-  
+
   it "doesn't return subclass instances" do
     (MyString.new("hello") + "").class.should == String
     (MyString.new("hello") + "foo").class.should == String
@@ -30,11 +30,11 @@ describe "String#+" do
     ("hello" + MyString.new("foo")).class.should == String
     ("hello" + MyString.new("")).class.should == String
   end
-  
+
   it "always taints the result when self or other is tainted" do
     strs = ["", "OK", MyString.new(""), MyString.new("OK")]
     strs += strs.map { |s| s.dup.taint }
-    
+
     strs.each do |str|
       strs.each do |other|
         (str + other).tainted?.should == (str.tainted? | other.tainted?)
