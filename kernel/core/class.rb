@@ -92,6 +92,9 @@ class MetaClass
 
   # Called when 'def obj.name' syntax is used in userland
   def attach_method(name, object)
+    # All userland added methods start out with a serial of 1.
+    object.serial = 1
+    
     cur = method_table[name]
     if cur and cur.kind_of? Tuple
       # Override the slot which points to the method, so that we

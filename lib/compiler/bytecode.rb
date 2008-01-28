@@ -39,23 +39,9 @@ end
 
 class Compiler
 class Node
-
-  class GenerationError < Error; end
-
-  def show_errors(gen)
-    begin
-      yield
-    rescue GenerationError => e
-      raise e
-    rescue Object => e
-      puts "Bytecode generation error: "
-      puts "   #{e.message} (#{e.class})"
-      puts "   near #{gen.file}:#{gen.line}"
-      puts ""
-      puts e.awesome_backtrace.show
-
-      raise GenerationError, "unable to generate bytecode"
-    end
+    
+  def show_errors(gen, &block)
+    @compiler.show_errors(gen, &block)
   end
 
   class ClosedScope
@@ -1853,46 +1839,7 @@ class Node
       # @block might be BlockPass, and we don't generate the LRE detection
       # code for that.
       if @block and @block.is? Iter
-        ok = g.new_label
-        g.exceptions do |ex|
-
-          # We pre-create the exception.
-          g.push_cpath_top
-          g.find_const :LongReturnException
-          g.send :new, 0
-          g.set_local @check_var.slot
-          g.pop
-
-          if @dynamic
-            g.swap
-            g.set_args
-            g.send_with_register @method, allow_private?
-          else
-            g.send_with_block @method, @argcount, allow_private?
-          end
-
-          g.goto ok
-          
-          ex.handle!
-          
-          g.push_exception
-          g.dup
-          g.push_local @check_var.slot
-          g.equal
-
-          after = g.new_label
-          g.gif after
-
-          g.send :return_value, 0
-          g.clear_exception
-          g.ret
-
-          after.set!
-
-          g.raise_exc
-        end
-
-        ok.set!
+        block_bytecode(g)
       elsif @dynamic
         g.swap
         g.set_args
@@ -1903,6 +1850,49 @@ class Node
       else
         g.send @method, @argcount, allow_private?
       end
+    end
+
+    def block_bytecode(g)
+      ok = g.new_label
+      g.exceptions do |ex|
+
+        # We pre-create the exception.
+        g.push_cpath_top
+        g.find_const :LongReturnException
+        g.send :new, 0
+        g.set_local @check_var.slot
+        g.pop
+
+        if @dynamic
+          g.swap
+          g.set_args
+          g.send_with_register @method, allow_private?
+        else
+          g.send_with_block @method, @argcount, allow_private?
+        end
+
+        g.goto ok
+
+        ex.handle!
+
+        g.push_exception
+        g.dup
+        g.push_local @check_var.slot
+        g.equal
+
+        after = g.new_label
+        g.gif after
+
+        g.send :return_value, 0
+        g.clear_exception
+        g.ret
+
+        after.set!
+
+        g.raise_exc
+      end
+
+      ok.set!
     end
   end
 

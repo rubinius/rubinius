@@ -1558,6 +1558,10 @@ class Node
       collapse_args()
     end
 
+    def no_args?
+      @arguments.nil? or @arguments.empty?
+    end
+
     attr_accessor :object, :method, :arguments
 
     def fcall?

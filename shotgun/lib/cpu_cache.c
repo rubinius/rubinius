@@ -39,7 +39,9 @@ void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth, int full) {
         if(ISA(meth, state->global->tuple)) {
           meth = tuple_at(state, meth, 1);
         }
-        fast_inc(meth, CMETHOD_f_SERIAL); 
+        // Don't this for now. Inline caches are disabled and we're using
+        // the serial number to detect core methods.
+        // fast_inc(meth, CMETHOD_f_SERIAL); 
       }
       
       ent->name = 0;

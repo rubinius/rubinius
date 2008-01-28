@@ -165,6 +165,7 @@ class Compiler
     activate :fastmath
     activate :current_method
     activate :safemath if Config['rbx-safe-math']
+    activate :inline
   end
 
   def activate(name)
@@ -221,6 +222,25 @@ class Compiler
       end
     end
   end
+  
+  class GenerationError < Error; end
+  
+  def show_errors(gen)
+    begin
+      yield
+    rescue GenerationError => e
+      raise e
+    rescue Object => e
+      puts "Bytecode generation error: "
+      puts "   #{e.message} (#{e.class})"
+      puts "   near #{gen.file}:#{gen.line}"
+      puts ""
+      puts e.awesome_backtrace.show
+
+      raise GenerationError, "unable to generate bytecode"
+    end
+  end
+
 end
 
 require 'compiler/nodes'

@@ -148,6 +148,106 @@ module Compiler::Plugins
       return false
     end
   end
+
+  class CompilerInlining < Plugin
+    plugin :inline
+
+    Methods = {
+      :times => :fixnum_times
+    }
+
+    def handle(g, call)
+      return false unless call.block.kind_of? Compiler::Node::Iter
+      if handler = Methods[call.method]
+        return __send__(handler, g, call)
+      end
+
+      return false
+    end
+
+    def fixnum_times(g, call)
+      return false unless call.no_args?
+      return false unless call.block.arguments.names.empty?
+
+      do_call = g.new_label
+
+      # Since there are no args, this just makes sure that the internals
+      # are setup properly.
+      call.emit_args(g)
+
+      call.receiver_bytecode(g)
+      g.dup
+      g.is_fixnum
+      g.gif do_call
+      g.dup
+      g.check_serial :times, 0
+      g.gif do_call
+
+      done = g.new_label
+      
+      desc = Compiler::MethodDescription.new @compiler.generator_class, call.block.locals
+      desc.name = :__inlined_block__
+      desc.required, desc.optional = call.block.argument_info
+      sub = desc.generator
+
+      sub.set_line g.line, g.file
+
+      @compiler.show_errors(sub) do
+        sub.push_modifiers
+
+        top = sub.new_label
+        fin = sub.new_label
+
+        sub.next = top
+        sub.break = fin
+        sub.redo = sub.new_label
+        
+        # Get rid of the block args.
+        sub.unshift_tuple
+
+        # To the times logic now, calling block.body
+       
+        top.set!
+
+        # Check if the value is 0
+        sub.dup
+        sub.push 0
+        sub.equal
+        sub.git fin
+
+        sub.redo.set!
+
+        call.block.body.bytecode(sub)
+
+        # Subtract 1 from the value
+        sub.pop
+        sub.push 1
+        sub.swap
+        sub.meta_send_op_minus
+
+        sub.goto top
+
+        sub.pop_modifiers
+        fin.set!
+        sub.push :self
+        sub.soft_return
+        sub.close
+      end
+
+      g.push_literal desc
+      g.create_block2
+      g.send :call, 1
+
+      g.goto done
+      do_call.set!
+      
+      call.block.bytecode(g)
+      g.swap
+      call.block_bytecode(g)
+
+      done.set!
+    end
+  end
   
   # This are not currently used.
   class SystemMethods < Plugin

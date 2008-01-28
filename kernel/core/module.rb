@@ -214,6 +214,9 @@ class Module
       scope = :private
     end
 
+    # All userland added methods start out with a serial of 1.
+    obj.serial = 1
+
     Rubinius::VM.reset_method_cache(name)
 
     method_table[name] = Tuple[scope, obj]

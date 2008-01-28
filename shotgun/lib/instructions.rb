@@ -1365,6 +1365,15 @@ CODE
     stack_push(t1 == t2 ? Qtrue : Qfalse);
     CODE
   end
+
+  def check_serial
+    <<-CODE
+    t1 = stack_pop();
+    next_literal;
+    next_int;
+    stack_push(cpu_check_serial(state, c, t1, _lit, _int));
+    CODE
+  end
   
 end
 

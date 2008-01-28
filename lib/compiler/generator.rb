@@ -492,6 +492,11 @@ class Compiler
         add :send_super_with_arg_register, idx
       end
     end
+
+    def check_serial(sym, serial)
+      idx = find_literal(sym)
+      add :check_serial, idx, serial.to_i
+    end
     
     def method_missing(*op)
       add *op

@@ -348,6 +348,19 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT klass, OBJECT obj, O
   return mo;
 }
 
+static inline OBJECT cpu_check_serial(STATE, cpu c, OBJECT obj, OBJECT sym, int serial) {
+  OBJECT mo, mod;
+
+  mo = cpu_find_method(state, c, _real_class(state, obj), obj, sym, &mod);
+  if(NIL_P(mo)) return Qfalse;
+
+  if(FIXNUM_TO_INT(fast_fetch(mo, CMETHOD_f_SERIAL)) == serial) {
+    return Qtrue;
+  }
+
+  return Qfalse;
+}
+
 OBJECT cpu_compile_method(STATE, OBJECT cm) {
   OBJECT ba, bc;
   int target_size;
