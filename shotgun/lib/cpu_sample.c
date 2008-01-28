@@ -74,6 +74,9 @@ void _cpu_sampler_record_context(int sig) {
   c = current_machine->c;
   
   if(!state->samples) return;
+
+  /* If we weren't doing anything, nothing to do. */
+  if(NIL_P(c->active_context)) return;
   
   /* We don't recycle context's even still, but when we do, rather than using
      this, we should tell the cpu to just disable all recycling while
