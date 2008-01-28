@@ -198,6 +198,23 @@ describe MSpec do
   end
 end
 
+describe MSpec, ".actions" do
+  before :each do
+    @record = []
+    start_one = mock("one")
+    start_one.stub!(:start).and_return { @record << :one }
+    start_two = mock("two")
+    start_two.stub!(:start).and_return { @record << :two }
+    MSpec.register :start, start_one
+    MSpec.register :start, start_two
+  end
+  
+  it "runs each action registered as a start action" do
+    MSpec.actions :start
+    @record.should == [:one, :two]
+  end
+end
+
 describe MSpec, ".verify_mode?" do
   before :each do
     MSpec.instance_variable_set :@mode, nil

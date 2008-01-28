@@ -165,6 +165,10 @@ module MSpec
     current.process
   end
   
+  def self.actions(action)
+    retrieve(action).each { |obj| obj.send action }
+  end
+  
   def self.register_files(files)
     store :files, files
   end
@@ -181,6 +185,25 @@ module MSpec
     instance_variable_set :"@#{symbol}", value
   end
   
+  # This method is used for registering actions that are
+  # run at particular points in the spec cycle:
+  #   :start    before any specs are run
+  #   :load     before a spec file is loaded
+  #   :before   before a single spec is run
+  #   :after    after a single spec is run
+  #   :unload   after a spec file is run
+  #   :finish   after all specs are run
+  #
+  # Objects registered as actions above should respond to
+  # a method of the same name. For example, if an object
+  # is registered as a :start action, it should respond to
+  # a #start method call.
+  #
+  # Additionally, there are two "action" lists for 
+  # filtering specs:
+  #   :include  return true if the spec should be run
+  #   :exclude  return true if the spec should NOT be run
+  #
   def self.register(symbol, action)
     unless value = retrieve(symbol)
       value = store symbol, []
