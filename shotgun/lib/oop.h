@@ -10,9 +10,9 @@ typedef intptr_t native_int;
 /* OOP layout:
  * [30 bits of data | 2 bits of tag]
  * if tag == 00, the whole thing is a pointer to a memory location.
- * if tag == 11, the data is a symbol index
  * if tag == 01, the data is a fixnum
  * if tag == 10, the data is a literal
+ * if tag == 11, the data is any data, using the DATA_* macros 
  */
 
 #define TAG_MASK    0x3
@@ -25,7 +25,7 @@ typedef intptr_t native_int;
 
 #define TAG(v) (((uintptr_t)v) & TAG_MASK)
 #define APPLY_TAG(v, tag) ((OBJECT)(((uintptr_t)v << TAG_SHIFT) | tag))
-#define STRIP_TAG(v) (((intptr_t)v) >> TAG_SHIFT)
+#define STRIP_TAG(v) (((uintptr_t)v) >> TAG_SHIFT)
 
 #define DATA_P(v) (TAG(v) == TAG_DATA)
 #define FIXNUM_P(v) (TAG(v) == TAG_FIXNUM)

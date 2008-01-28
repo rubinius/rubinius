@@ -180,28 +180,29 @@ void XFREE(void *p);
 #define FREE(v) XFREE(v)
 
 static inline native_int rbs_to_int(OBJECT obj) {
-  return STRIP_TAG(obj);
+  return (native_int)STRIP_TAG(obj);
 }
 
 static inline OBJECT rbs_int_to_numeric(STATE, int num) {
   OBJECT ret;
   ret = APPLY_TAG(num, TAG_FIXNUM);
 
-  /* Number is too big for fixnum. Use bignum. */
-  if((int)rbs_to_int(ret) != num) {
+  /* Number is too big for Fixnum. Use Bignum. */
+  if((native_int)rbs_to_int(ret) != num) {
     return bignum_new(state, num);
+  } else {
+    return ret;
   }
-  return ret;
 }
 
 static inline OBJECT rbs_uint_to_numeric(STATE, unsigned int num) {
   OBJECT ret;
+  ret = APPLY_TAG(num, TAG_FIXNUM);
 
-  if (num > FIXNUM_MAX) {
+  /* Number is too big for Fixnum. Use Bignum. */
+  if((native_int)rbs_to_int(ret) != num) {
     return bignum_new_unsigned(state, num);
   } else {
-    ret = APPLY_TAG(num, TAG_FIXNUM);
-    rbs_to_int(ret);
     return ret;
   }
 }
@@ -210,21 +211,22 @@ static inline OBJECT rbs_ll_to_numeric(STATE, long long num) {
   OBJECT ret;
   ret = APPLY_TAG(num, TAG_FIXNUM);
 
-  /* Number is too big for fixnum. Use bignum. */
-  if((int)rbs_to_int(ret) != num) {
+  /* Number is too big for Fixnum. Use Bignum. */
+  if((native_int)rbs_to_int(ret) != num) {
     return bignum_from_ll(state, num);
+  } else {
+    return ret;
   }
-  return ret;
 }
 
 static inline OBJECT rbs_ull_to_numeric(STATE, unsigned long long num) {
   OBJECT ret;
+  ret = APPLY_TAG(num, TAG_FIXNUM);
 
-  if (num > FIXNUM_MAX) {
+  /* Number is too big for Fixnum. Use Bignum. */
+  if((native_int)rbs_to_int(ret) != num) {
     return bignum_from_ull(state, num);
   } else {
-    ret = APPLY_TAG(num, TAG_FIXNUM);
-    rbs_to_int(ret);
     return ret;
   }
 }
@@ -234,11 +236,11 @@ static inline OBJECT rbs_max_long_to_numeric(STATE, long long num) {
   ret = APPLY_TAG(num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
-  /* TODO - Change this to native_int when Fixnum becomes platform-specific */
-  if((int)rbs_to_int(ret) != num) {
+  if((native_int)rbs_to_int(ret) != num) {
     return bignum_from_ll(state, num);
+  } else {
+    return ret;
   }
-  return ret;
 }
 
 static inline double rbs_fixnum_to_double(OBJECT obj) {
