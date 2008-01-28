@@ -361,11 +361,12 @@ class File < IO
   end
   
   class Stat
-    self.instance_fields = 12
+    self.instance_fields = 13
     ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
                   :size => 5, :block => 6, :atime => 7, :mtime => 8,
-                  :ctime => 9, :path => 10, :blksize => 11
+                  :ctime => 9, :path => 10, :blksize => 11, :dev => 12
 
+    def dev;     @dev; end
     def ino;     @inode; end
     def mode;    @mode; end
     def kind;    @kind; end
@@ -402,7 +403,6 @@ class File < IO
         "unknown"
       end
     end
-
 
     def inspect
       "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
