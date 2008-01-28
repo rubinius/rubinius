@@ -14,7 +14,8 @@ module Type
     begin
       ret = obj.__send__(meth)
     rescue Exception => e
-      raise TypeError, "Coercion error: obj.#{meth} => #{cls} failed:\n(#{e.message})"
+      raise TypeError, "Coercion error: #{obj.inspect}.#{meth} => #{cls} failed:\n" \
+                       "(#{e.message})"
     end
 
     return ret if self.obj_kind_of?(ret, cls)
