@@ -18,4 +18,8 @@ module MSpec
   def self.current
     stack.last
   end
+  
+  def self.verify_mode?
+    @mode == :verify
+  end
 end

@@ -51,3 +51,9 @@ describe MSpec, ".current" do
     MSpec.current.should == :b
   end
 end
+
+describe MSpec, ".verify_mode?" do
+  it "returns false" do
+    MSpec.verify_mode?.should == false
+  end
+end

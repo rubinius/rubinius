@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../runner/runner'
 require File.dirname(__FILE__) + '/../../runner/state'
+require File.dirname(__FILE__) + '/../../runner/runner'
 require File.dirname(__FILE__) + '/../../runner/formatters/dotted'
 require File.dirname(__FILE__) + '/../../runner/formatters/ci'
 
@@ -154,10 +154,71 @@ describe DescribeState do
   end
 end
 
+
 describe MSpec, ".describe" do
   it "pushes a new RunState instance on the stack" do
     MSpec.stack.clear
     MSpec.describe(Object, "msg") { }
     MSpec.current.should be_kind_of(RunState)
+  end
+end
+
+describe MSpec do
+  it "provides .register_start for actions that run before any specs are executed" do
+    MSpec.register_start :start
+    MSpec.instance_variable_get(:@start).should == [:start]
+  end
+  
+  it "provides .register_load for actions that run before a spec file is loaded" do
+    MSpec.register_load :load
+    MSpec.instance_variable_get(:@load).should == [:load]
+  end
+  
+  it "provides .register_unload for actions that run after a spec file has been run" do
+    MSpec.register_unload :unload
+    MSpec.instance_variable_get(:@unload).should == [:unload]
+  end
+  
+  it "provides .register_include for actions that return true if a spec should be run" do
+    MSpec.register_include :include
+    MSpec.instance_variable_get(:@include).should == [:include]
+  end
+  
+  it "provides .register_exclude for actions that return true if a spec should not be run" do
+    MSpec.register_exclude :exclude
+    MSpec.instance_variable_get(:@exclude).should == [:exclude]
+  end
+  
+  it "provides .register_finish for actions that run after all specs are executed" do
+    MSpec.register_finish :finish
+    MSpec.instance_variable_get(:@finish).should == [:finish]
+  end
+  
+  it "provides .register_files to record which spec files to run" do
+    MSpec.register_files [:one, :two, :three]
+    MSpec.instance_variable_get(:@files).should == [:one, :two, :three]
+  end
+  
+  it "provides .register_mode for setting execution mode flags" do
+    MSpec.register_mode :verify
+    MSpec.instance_variable_get(:@mode).should == :verify
+  end
+
+  it "provides .register as the gateway behind all register actions" do
+    MSpec.register :@bonus, :first
+    MSpec.register :@bonus, :second
+    MSpec.instance_variable_get(:@bonus).should == [:first, :second]
+  end
+end
+
+describe MSpec, ".verify_mode?" do
+  before :each do
+    MSpec.instance_variable_set :@mode, nil
+  end
+  
+  it "returns true if register_mode(:verify) is called" do
+    MSpec.verify_mode?.should == false
+    MSpec.register_mode :verify
+    MSpec.verify_mode?.should == true
   end
 end
