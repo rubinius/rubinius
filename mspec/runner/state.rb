@@ -9,6 +9,10 @@ class RunState
     @spec = []
   end
   
+  def state
+    @state
+  end
+  
   def before(at=:each, &block)
     case at
     when :each
@@ -27,28 +31,57 @@ class RunState
     end
   end
   
-  def it(msg, &block)
-    @spec << [msg, block]
+  def it(desc, &block)
+    @spec << [desc, block]
   end
   
-  def describe(mod, msg=nil, &block)
-    @describe = msg ? "#{mod} #{msg}" : mod.to_s
+  def describe(mod, desc=nil, &block)
+    @describe = desc ? "#{mod} #{desc}" : mod.to_s
     @block = block
   end
   
-  def protect(msg, blocks)
-    Array(blocks).each { |block| MSpec.protect msg, &block }
+  def protect(what, blocks)
+    Array(blocks).each { |block| MSpec.protect what, &block }
   end
   
   def process
     protect @describe, @block
     protect "before :all", @start
-    @spec.each do |msg, spec|
+    @spec.each do |desc, spec|
+      @state = SpecState.new @describe, desc
       protect "before :each", @before
       protect "", spec
       protect "after :each", @after
       protect "Mock.cleanup", lambda { Mock.cleanup }
+      @state = nil
     end
     protect "after :all", @finish
+  end
+end
+
+class SpecState
+  def initialize(describe, it)
+    @describe = describe
+    @it = it
+  end
+  
+  def describe
+    @describe
+  end
+  
+  def it
+    @it
+  end
+  
+  def description
+    "#{@describe} #{@it}"
+  end
+  
+  def exceptions
+    @exceptions ||= []
+  end
+  
+  def exception?
+    not exceptions.empty?
   end
 end

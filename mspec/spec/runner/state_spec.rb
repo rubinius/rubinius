@@ -50,6 +50,25 @@ describe RunState, "#protect" do
   end
 end
 
+describe RunState, "#state" do
+  before :each do
+    @state = RunState.new
+  end
+  
+  it "returns nil if no spec is being executed" do
+    @state.state.should == nil
+  end
+  
+  it "returns a SpecState instance if a spec is being executed" do
+    record = nil
+    @state.describe("") { }
+    @state.it("") { record = @state.state }
+    @state.process
+    @state.state.should == nil
+    record.should be_kind_of(SpecState)
+  end
+end
+
 describe RunState, "#process" do
   before :all do
     module Mock; end
@@ -111,5 +130,65 @@ describe RunState, "#process" do
     @state.describe(Object, "msg") { record << :a }
     @state.process
     record.should == [:a]
+  end
+  
+  it "creates a new SpecState instance for each spec" do
+    SpecState.should_receive(:new).with("describe", "it")
+    @state.describe("describe") { }
+    @state.it("it") { }
+    @state.process
+  end
+  
+  it "records exceptions that occur while running the spec"
+end
+
+describe SpecState do
+  it "is initialized with the describe and it strings" do
+    SpecState.new("This", "does").should be_kind_of(SpecState)
+  end
+end
+
+describe SpecState, "#describe" do
+  before :each do
+    @state = SpecState.new("describe", "it")
+  end
+
+  it "returns the arguments to the #describe block stringified and concatenated" do
+    @state.describe.should == "describe"
+  end
+end
+
+describe SpecState, "#it" do
+  before :each do
+    @state = SpecState.new("describe", "it")
+  end
+
+  it "returns the argument to the #it block" do
+    @state.it.should == "it"
+  end
+end
+
+describe SpecState, "#exceptions" do
+  before :each do
+    @state = SpecState.new("describe", "it")
+  end
+  
+  it "returns an array" do
+    @state.exceptions.should be_kind_of(Array)
+  end
+end
+
+describe SpecState, "#exception?" do
+  before :each do
+    @state = SpecState.new("describe", "it")
+  end
+  
+  it "returns false if no exceptions were recorded" do
+    @state.exception?.should == false
+  end
+  
+  it "returns true if any exceptions were recorded" do
+    @state.exceptions.push :a
+    @state.exception?.should == true
   end
 end
