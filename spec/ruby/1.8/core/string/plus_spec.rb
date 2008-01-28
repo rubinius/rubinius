@@ -9,16 +9,16 @@ describe "String#+" do
     ("Ruby !" + "= Rubinius").should == "Ruby != Rubinius"
   end
 
-  it "converts its argument to a string using to_str" do
-    c = mock('aaa')
-    def c.to_str() "aaa" end
+  it "converts any non-String argument with #to_str" do
+    c = mock 'str'
+    c.should_receive(:to_str).any_number_of_times.and_return(' + 1 = 2')
 
-    ("a" + c).should == "aaaa"
+    ("1" + c).should == '1 + 1 = 2'
+  end
 
-    c = mock('aaa')
-    c.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    c.should_receive(:method_missing).with(:to_str).and_return("aaa")
-    ("a" + c).should == "aaaa"
+  it "raises a TypeError when given any object that fails #to_str" do
+    lambda { "" + Object.new }.should raise_error(TypeError)
+    lambda { "" + 65 }.should raise_error(TypeError)
   end
 
   it "doesn't return subclass instances" do
@@ -31,7 +31,7 @@ describe "String#+" do
     ("hello" + MyString.new("")).class.should == String
   end
 
-  it "always taints the result when self or other is tainted" do
+  it "taints the result when self or other is tainted" do
     strs = ["", "OK", MyString.new(""), MyString.new("OK")]
     strs += strs.map { |s| s.dup.taint }
 
@@ -40,9 +40,5 @@ describe "String#+" do
         (str + other).tainted?.should == (str.tainted? | other.tainted?)
       end
     end
-  end
-
-  it "raises a TypeError when given a Fixnum" do
-    lambda { "" + 65 }.should raise_error(TypeError)
   end
 end
