@@ -410,7 +410,7 @@ void cpu_thread_schedule(STATE, OBJECT self) {
   object_set_ivar(state, self, SYM("@sleep"), Qfalse);
   
   state->pending_threads++;
-  prio = FIXNUM_TO_INT(thread_get_priority(self));
+  prio = N2I(thread_get_priority(self));
   
   if(prio < 1) { 
     rprio = 1;
@@ -433,7 +433,7 @@ OBJECT cpu_thread_find_highest(STATE) {
   t = NUM_FIELDS(tup);
   for(i = t - 1; i >= 0; i--) {
     lst = tuple_at(state, tup, i);
-    if(FIXNUM_TO_INT(list_get_count(lst)) != 0) {
+    if(N2I(list_get_count(lst)) != 0) {
       state->pending_threads--;
       thr = list_shift(state, lst);
       /* It's a bug that a dead thread shows up as queued.

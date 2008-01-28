@@ -172,9 +172,9 @@ int cpu_ip2line(STATE, OBJECT meth, int ip) {
   total = NUM_FIELDS(lines);
   for(l = 0; l < total; l++) {
     tup = tuple_at(state, lines, l);
-    start = FIXNUM_TO_INT(tuple_at(state, tup, 0));
-    nd = FIXNUM_TO_INT(tuple_at(state, tup, 1));
-    op = FIXNUM_TO_INT(tuple_at(state, tup, 2));
+    start = N2I(tuple_at(state, tup, 0));
+    nd = N2I(tuple_at(state, tup, 1));
+    op = N2I(tuple_at(state, tup, 2));
 
     if(ip >= start && ip <= nd) {
       return op;
@@ -212,7 +212,7 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   ar(c->control_channel);
   ar(c->current_scope);
   tmp = ptr_array_get_index(roots, start++);
-  len = FIXNUM_TO_INT((OBJECT)tmp);
+  len = N2I((OBJECT)tmp);
   for(i = 0; i < len; start++, i++) {
     tmp = ptr_array_get_index(roots, start);
     //printf("Adding path %s back in...\n", _inspect(tmp));

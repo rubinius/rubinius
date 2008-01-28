@@ -166,7 +166,7 @@ OBJECT ffi_decode_sockaddr(STATE, struct sockaddr *addr, int len, int reverse_lo
 
   host = string_new(state, hbuf);
 
-  return tuple_new2(state, 3, host, address, INT_TO_FIXNUM(atoi(pbuf)));
+  return tuple_new2(state, 3, host, address, I2N(atoi(pbuf)));
 }
 
 OBJECT ffi_getpeername(STATE, int s) {

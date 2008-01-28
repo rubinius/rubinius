@@ -182,7 +182,7 @@ static inline native_int rbs_to_int(OBJECT obj) {
   return STRIP_TAG(obj);
 }
 
-static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
+static inline OBJECT rbs_int_to_numeric(STATE, int num) {
   OBJECT ret;
   ret = APPLY_TAG(num, TAG_FIXNUM);
 
@@ -193,7 +193,7 @@ static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
   return ret;
 }
 
-static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
+static inline OBJECT rbs_uint_to_numeric(STATE, unsigned int num) {
   OBJECT ret;
 
   if (num > FIXNUM_MAX) {
@@ -205,7 +205,7 @@ static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
   }
 }
 
-static inline OBJECT rbs_ll_to_integer(STATE, long long num) {
+static inline OBJECT rbs_ll_to_numeric(STATE, long long num) {
   OBJECT ret;
   ret = APPLY_TAG(num, TAG_FIXNUM);
 
@@ -216,7 +216,7 @@ static inline OBJECT rbs_ll_to_integer(STATE, long long num) {
   return ret;
 }
 
-static inline OBJECT rbs_ull_to_integer(STATE, unsigned long long num) {
+static inline OBJECT rbs_ull_to_numeric(STATE, unsigned long long num) {
   OBJECT ret;
 
   if (num > FIXNUM_MAX) {
@@ -246,17 +246,20 @@ static inline double rbs_fixnum_to_double(OBJECT obj) {
 }
 
 
-#define FIXNUM_TO_INT(obj) rbs_to_int(obj)
-#define FIXNUM_TO_DOUBLE(obj) rbs_fixnum_to_double(obj)
-#define BIGNUM_TO_INT(o) bignum_to_int(state, o)
-#define INT_TO_FIXNUM(int) rbs_int_to_fixnum(state, int)
-#define I2N(i) INT_TO_FIXNUM(i)
-#define UI2N(i) rbs_uint_to_fixnum(state, i)
-#define ULL2I(i) rbs_ull_to_integer(state, i)
-#define LL2I(i) rbs_ll_to_integer(state, i)
-#define FLOAT_TO_DOUBLE(k) (*DATA_STRUCT(k, double*))
+/*
+ * These macros convert between native (C) types and Ruby types
+ * 'N' means a Numeric (e.g. Fixnum), 'I' means native_int (C)
+ */
+#define N2I(obj) rbs_to_int(obj)
+#define I2N(i) rbs_int_to_numeric(state, i)
+#define UI2N(i) rbs_uint_to_numeric(state, i)
+#define ULL2N(i) rbs_ull_to_numeric(state, i)
+#define LL2N(i) rbs_ll_to_numeric(state, i)
 /* Convert the longest supported integer type to a Numeric */
-#define ML2N(i) rbs_max_long_to_numeric(state, i)
+#define ML2N(i) rbs_max_long_to_numeric(state, (long long)i)
+
+#define FIXNUM_TO_DOUBLE(obj) rbs_fixnum_to_double(obj)
+#define FLOAT_TO_DOUBLE(k) (*DATA_STRUCT(k, double*))
 
 void object_memory_check_ptr(void *ptr, OBJECT obj);
 static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);

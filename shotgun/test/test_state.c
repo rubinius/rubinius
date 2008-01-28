@@ -69,10 +69,10 @@ void test_bootstrap_secondary(STATE) {
   tup = state->global->tuple;
   
   assert_equal(obj, SP(sym));
-  assert_equal(0, FIXNUM_TO_INT(class_get_instance_fields(sym)));
+  assert_equal(0, N2I(class_get_instance_fields(sym)));
   
   assert_equal(obj, SP(tup));
-  assert_equal(0, FIXNUM_TO_INT(class_get_instance_fields(tup)));
+  assert_equal(0, N2I(class_get_instance_fields(tup)));
   
   OBJECT obj_meta, tup_meta, sym_meta;
   

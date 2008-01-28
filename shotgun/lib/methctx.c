@@ -89,7 +89,7 @@ OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, O
 
 OBJECT blokenv_s_under_context2(STATE, OBJECT cmethod, OBJECT ctx, OBJECT ctx_block) {
   OBJECT obj;
-  int num_lcls = FIXNUM_TO_INT(cmethod_get_locals(cmethod));
+  int num_lcls = N2I(cmethod_get_locals(cmethod));
     
   obj = blokenv_allocate(state);
   blokenv_set_home(obj, ctx);

@@ -29,7 +29,7 @@ OBJECT class_new(STATE, const char *name, int fields, OBJECT sup, OBJECT ns) {
 OBJECT class_new_instance(STATE, OBJECT self) {
   int count;
   
-  count = FIXNUM_TO_INT(class_get_instance_fields(self));
+  count = N2I(class_get_instance_fields(self));
   return NEW_OBJECT(self, count);
 }
 

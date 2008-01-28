@@ -34,7 +34,7 @@ OBJECT array_set(STATE, OBJECT self, size_t idx, OBJECT val) {
   cur = NUM_FIELDS(tup);
   
   oidx = idx;
-  idx += FIXNUM_TO_INT(array_get_start(self));
+  idx += N2I(array_get_start(self));
   
   if(idx >= cur) {
     size_t new_size = (cur == 0) ? 1 : cur;
@@ -51,7 +51,7 @@ OBJECT array_set(STATE, OBJECT self, size_t idx, OBJECT val) {
   }
   
   tuple_put(state, tup, idx, val);
-  if(FIXNUM_TO_INT(array_get_total(self)) <= oidx) {
+  if(N2I(array_get_total(self)) <= oidx) {
     array_set_total(self, ML2N(oidx+1));
   }
   return val;
@@ -59,18 +59,18 @@ OBJECT array_set(STATE, OBJECT self, size_t idx, OBJECT val) {
 
 // TODO - Support >32bit counts?
 OBJECT array_get(STATE, OBJECT self, size_t idx) {
-  if(idx >= FIXNUM_TO_INT(array_get_total(self))) {
+  if(idx >= N2I(array_get_total(self))) {
     return Qnil;
   }
   
-  idx += FIXNUM_TO_INT(array_get_start(self));
+  idx += N2I(array_get_start(self));
   
   return tuple_at(state, array_get_tuple(self), idx);
 }
 
 OBJECT array_append(STATE, OBJECT self, OBJECT val) {
   size_t idx;
-  idx = FIXNUM_TO_INT(array_get_total(self));
+  idx = N2I(array_get_total(self));
   return array_set(state, self, idx, val);
 }
 
@@ -78,7 +78,7 @@ OBJECT array_pop(STATE, OBJECT self) {
   size_t idx;
   OBJECT val;
   
-  idx = FIXNUM_TO_INT(array_get_total(self)) - 1;
+  idx = N2I(array_get_total(self)) - 1;
   val = array_get(state, self, idx);
   array_set(state, self, idx, Qnil);
   

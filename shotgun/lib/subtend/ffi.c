@@ -220,7 +220,7 @@ char ffi_to_char() {
 
   type_assert(obj, FixnumType, "converting to char");
 
-  return (char)FIXNUM_TO_INT(obj);
+  return (char)N2I(obj);
 }
 
 void ffi_from_char(char c) {
@@ -239,7 +239,7 @@ unsigned char ffi_to_uchar() {
 
   type_assert(obj, FixnumType, "converting to unsigned char");
 
-  return (unsigned char)FIXNUM_TO_INT(obj);
+  return (unsigned char)N2I(obj);
 }
 
 void ffi_from_uchar(unsigned char c) {
@@ -261,7 +261,7 @@ short ffi_to_short() {
 
   type_assert(obj, FixnumType, "converting to short");
 
-  return (short)FIXNUM_TO_INT(obj);
+  return (short)N2I(obj);
 }
 
 void ffi_from_short(short c) {
@@ -280,7 +280,7 @@ unsigned short ffi_to_ushort() {
 
   type_assert(obj, FixnumType, "converting to unsigned short");
 
-  return (unsigned short)FIXNUM_TO_INT(obj);
+  return (unsigned short)N2I(obj);
 }
 
 void ffi_from_ushort(unsigned short c) {
@@ -302,7 +302,7 @@ int ffi_to_int() {
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
   if(FIXNUM_P(obj)) {
-    return FIXNUM_TO_INT(obj);
+    return N2I(obj);
   } else {
     type_assert(obj, BignumType, "converting to int");
     return bignum_to_i(ctx->state, obj);
@@ -325,7 +325,7 @@ unsigned int ffi_to_uint() {
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
   if(FIXNUM_P(obj)) {
-    return (unsigned int)FIXNUM_TO_INT(obj);
+    return (unsigned int)N2I(obj);
   } else {
     type_assert(obj, BignumType, "converting to unsigned int");
     return bignum_to_ui(ctx->state, obj);
@@ -350,7 +350,7 @@ long long ffi_to_ll() {
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
   if(FIXNUM_P(obj)) {
-    return (long long)FIXNUM_TO_INT(obj);
+    return (long long)N2I(obj);
   } else {
     type_assert(obj, BignumType, "converting to long long");
     return bignum_to_ll(ctx->state, obj);
@@ -362,7 +362,7 @@ void ffi_from_ll(long long val) {
   STATE;
   state = ctx->state;
 
-  cpu_stack_push(ctx->state, ctx->cpu, LL2I(val), FALSE);
+  cpu_stack_push(ctx->state, ctx->cpu, LL2N(val), FALSE);
 }
 
 unsigned long long ffi_to_ull() {
@@ -371,7 +371,7 @@ unsigned long long ffi_to_ull() {
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
 
   if(FIXNUM_P(obj)) {
-    return (unsigned long long)FIXNUM_TO_INT(obj);
+    return (unsigned long long)N2I(obj);
   } else {
     type_assert(obj, BignumType, "converting to unsigned long long");
     return (unsigned long long)bignum_to_ull(ctx->state, obj);
@@ -383,7 +383,7 @@ void ffi_from_ull(unsigned long long val) {
   STATE;
   state = ctx->state;
 
-  cpu_stack_push(ctx->state, ctx->cpu, ULL2I(val), FALSE);
+  cpu_stack_push(ctx->state, ctx->cpu, ULL2N(val), FALSE);
 }
 
 /* long */
@@ -939,7 +939,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   ep = subtend_find_symbol(state, library, name);
   if(!ep) return Qnil;
 
-  tot = FIXNUM_TO_INT(array_get_total(args));
+  tot = N2I(array_get_total(args));
   arg_count = tot;
   /* We don't support more than 6 args currently. */
   if(tot > 6) {
@@ -950,7 +950,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
     for(i = 0; i < tot; i++) {
       type = array_get(state, args, i);
       if(!FIXNUM_P(type)) return Qnil;
-      arg_types[i] = FIXNUM_TO_INT(type);
+      arg_types[i] = N2I(type);
 
       /* State can only be passed as the first arg, and it's invisible,
          ie doesn't get seen as in onbound arg by ruby. But it can ONLY
@@ -969,7 +969,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
     arg_types = NULL;
   }
 
-  ret_type = FIXNUM_TO_INT(ret);
+  ret_type = N2I(ret);
 
 #if defined(__amd64__) || defined(__x86_64__) || defined(X86_64)
   ptr = ffi_amd64_generate_c_shim(state, tot, arg_types, ret_type, ep);

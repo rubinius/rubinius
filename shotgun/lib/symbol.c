@@ -35,7 +35,7 @@ OBJECT symtbl_lookup_str_with_size(STATE, OBJECT self,
     return symtbl_lookup(state, self, string_new2(state, str, size));
   }
   
-  return symbol_from_index(state, FIXNUM_TO_INT(idx));
+  return symbol_from_index(state, N2I(idx));
 }
 
 OBJECT symtbl_lookup(STATE, OBJECT self, OBJECT string) {
@@ -52,19 +52,19 @@ OBJECT symtbl_lookup(STATE, OBJECT self, OBJECT string) {
   if(NIL_P(idx) || idx == Qundef) {
     idx = hash_get_entries(strs);
     sz = tuple_fields(state, syms);
-    if(FIXNUM_TO_INT(idx) == sz) {
+    if(N2I(idx) == sz) {
       ns = tuple_new(state, sz + Increments);
       object_copy_fields_from(state, syms, ns, 0, sz);
       symtbl_set_symbols(self, ns);
       syms = ns;
     }
     
-    tuple_put(state, syms, FIXNUM_TO_INT(idx), string);
-    // printf("Adding to symbol table: %d, %s\n", FIXNUM_TO_INT(idx), string_byte_address(state, string));
+    tuple_put(state, syms, N2I(idx), string);
+    // printf("Adding to symbol table: %d, %s\n", N2I(idx), string_byte_address(state, string));
     hash_add(state, strs, hash, I2N(hash), idx);
   }
   
-  obj = symbol_from_index(state, FIXNUM_TO_INT(idx));
+  obj = symbol_from_index(state, N2I(idx));
   return obj;
 }
 

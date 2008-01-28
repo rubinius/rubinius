@@ -3,7 +3,7 @@
 static inline void _om_apply_class_flags(OBJECT obj, OBJECT cls) {
   obj->CanStoreIvars = (class_get_has_ivars(cls) == Qtrue);
   obj->RequiresCleanup = (class_get_needs_cleanup(cls) == Qtrue);
-  obj->obj_type = FIXNUM_TO_INT(class_get_object_type(cls));
+  obj->obj_type = N2I(class_get_object_type(cls));
 }
 
 static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, unsigned int fields) {

@@ -376,7 +376,7 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
   OBJECT cs;
   cs = cmethod_get_cache(cm);
   if(FIXNUM_P(cs)) {
-    int sz = FIXNUM_TO_INT(cs);
+    int sz = N2I(cs);
     if(sz > 0) {
       cs = tuple_new(state, sz);
       // Reserve field 0 for call sites that are not cached
@@ -453,7 +453,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv,
   OBJECT ctx;
   struct fast_context *fc;
   
-  ctx = _allocate_context(state, c, mo, FIXNUM_TO_INT(cmethod_get_locals(mo)));
+  ctx = _allocate_context(state, c, mo, N2I(cmethod_get_locals(mo)));
   fc = FASTCTX(ctx);
   
   fc->ip = 0;
@@ -478,10 +478,10 @@ OBJECT cpu_create_block_context(STATE, cpu c, OBJECT env, int sp) {
   struct fast_context *fc;
   
   ctx = _allocate_context(state, c, blokenv_get_method(env),
-                      FIXNUM_TO_INT(blokenv_get_local_count(env)));
+                      N2I(blokenv_get_local_count(env)));
   fc = FASTCTX(ctx);
   
-  fc->ip = FIXNUM_TO_INT(blokenv_get_initial_ip(env));
+  fc->ip = N2I(blokenv_get_initial_ip(env));
   fc->sp = sp;
   
   fc->block = Qnil;
@@ -552,12 +552,12 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
     }
     cmethod_set_primitive(mo, I2N(prim));    
   } else {
-    prim = FIXNUM_TO_INT(prim_obj); 
+    prim = N2I(prim_obj); 
   }  
   
   if(prim < 0) return FALSE;
       
-  req = FIXNUM_TO_INT(cmethod_get_required(mo));
+  req = N2I(cmethod_get_required(mo));
   
   if(args == req || req < 0) {
 #if ENABLE_DTRACE
@@ -1111,7 +1111,7 @@ static inline void _inline_cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sy
 #endif
       }
     } else {      
-      // count = FIXNUM_TO_INT(fast_fetch(ic, ICACHE_f_TRIP));
+      // count = N2I(fast_fetch(ic, ICACHE_f_TRIP));
       // fast_set_int(ic, ICACHE_f_TRIP, count + 1);
     }
   }
@@ -1242,19 +1242,19 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
     target = 0;
     for(idx=0; idx < total; idx++) {
       ent = tuple_at(state, table, idx);
-      l = FIXNUM_TO_INT(tuple_at(state, ent, 0));
-      r = FIXNUM_TO_INT(tuple_at(state, ent, 1));
+      l = N2I(tuple_at(state, ent, 0));
+      r = N2I(tuple_at(state, ent, 1));
       if(cur >= l && cur <= r) {
         /* Make sure the bounds are within the block, therwise, don't use
            it. */
         if(is_block) {
           env = blokctx_env(state, ctx);
-          if(l < FIXNUM_TO_INT(blokenv_get_initial_ip(env))
-                  || r > FIXNUM_TO_INT(blokenv_get_last_ip(env))) {
+          if(l < N2I(blokenv_get_initial_ip(env))
+                  || r > N2I(blokenv_get_last_ip(env))) {
             continue;
           }
         }
-        target = FIXNUM_TO_INT(tuple_at(state, ent, 2));
+        target = N2I(tuple_at(state, ent, 2));
         c->ip = target;
         cpu_cache_ip(c);
         return;

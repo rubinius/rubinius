@@ -75,7 +75,7 @@ OBJECT rbs_raw_class(OBJECT obj) {
 OBJECT rbs_class_new_instance(STATE, OBJECT cls) {
   OBJECT t1;
   t1 = class_get_instance_fields(cls);
-  return NEW_OBJECT(cls, FIXNUM_TO_INT(t1));
+  return NEW_OBJECT(cls, N2I(t1));
 }
 
 const char *rbs_inspect(STATE, OBJECT obj) {

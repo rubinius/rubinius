@@ -412,7 +412,7 @@ int rb_ary_size(VALUE self) {
   
   ary = HNDL(self);
   
-  return FIXNUM_TO_INT(array_get_total(ary));
+  return N2I(array_get_total(ary));
 }
 
 /* The same value as 1.8.x */
@@ -476,7 +476,7 @@ VALUE rb_ary_entry(VALUE array, int offset) {
   CTX;
   OBJECT val, ary = HNDL(array);
 
-  int total = FIXNUM_TO_INT(array_get_total(ary));
+  int total = N2I(array_get_total(ary));
 
   /* support wrap-around */
   if(offset < 0) {
@@ -521,7 +521,7 @@ void rb_ary_store(VALUE array, int offset, VALUE val) {
   CTX;
   OBJECT ary = HNDL(array);
 
-  int total = FIXNUM_TO_INT(array_get_total(ary));
+  int total = N2I(array_get_total(ary));
 
   /* support wrap-around */
   if(offset < 0) {
@@ -677,7 +677,7 @@ VALUE rb_require(const char* name) {
 int FIX2INT(VALUE val) {
   CTX;
   OBJECT arg = HNDL(val);
-  return FIXNUM_TO_INT(arg);
+  return N2I(arg);
 }
 
 VALUE INT2NUM(int num) {

@@ -514,7 +514,7 @@ void machine_migrate_config(machine m) {
       bstring v = (bstring)hashtable_iterator_value(&iter);
       ok = string_newfrombstr(m->s, k);
       if(is_number(bdata(v))) {
-        ov = LL2I(strtoll(bdatae(v,""), NULL, 10));
+        ov = LL2N(strtoll(bdatae(v,""), NULL, 10));
       } else {
         ov = string_newfrombstr(m->s, v);
       }
@@ -565,7 +565,7 @@ void machine_setup_config(machine m) {
   machine_set_const_under(m, "EXT_PATH", string_new(m->s, CONFIG_EXTPATH), mod);
   machine_set_const_under(m, "RBA_PATH", string_new(m->s, CONFIG_RBAPATH), mod);
 
-  machine_set_const_under(m, "WORDSIZE", INT_TO_FIXNUM(CONFIG_WORDSIZE), mod);
+  machine_set_const_under(m, "WORDSIZE", I2N(CONFIG_WORDSIZE), mod);
   
 #if defined(__ppc__) || defined(__POWERPC__) || defined(_POWER)
   machine_set_const_under(m, "PLATFORM", SYM("ppc"), mod);

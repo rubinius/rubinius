@@ -74,7 +74,7 @@ class CubyPrimitives
   
   ObjectMap = {
     :fixnum? => "FIXNUM_P(%s)",
-    :to_int => "FIXNUM_TO_INT(%s)"
+    :to_int => "N2I(%s)"
   }
   
   NumericMap = {

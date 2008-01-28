@@ -101,7 +101,7 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options, char *err_buf) {
   int err, num_names, kcode;
   
   pat = (UChar*)string_byte_address(state, pattern);
-  end = pat + FIXNUM_TO_INT(string_get_bytes(pattern));
+  end = pat + N2I(string_get_bytes(pattern));
 
   /* Ug. What I hate about the onig API is that there is no way
      to define how to allocate the reg, onig_new does it for you.
@@ -111,7 +111,7 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options, char *err_buf) {
      
   NEW_STRUCT(o_regdata, reg, BASIC_CLASS(regexpdata), regex_t*);
 
-  opts  = FIXNUM_TO_INT(options);
+  opts  = N2I(options);
   kcode = opts & KCODE_MASK;
   enc   = get_enc_from_kcode(kcode);
   opts &= OPTION_MASK;
@@ -179,7 +179,7 @@ OBJECT regexp_scan(STATE, OBJECT regexp, OBJECT string) {
   regex_t *reg;
   OBJECT matches;
   
-  max = FIXNUM_TO_INT(string_get_bytes(string));
+  max = N2I(string_get_bytes(string));
   str = (UChar*)string_byte_address(state, string);
   end = str + max;
   
@@ -219,10 +219,10 @@ OBJECT regexp_match_start(STATE, OBJECT regexp, OBJECT string, OBJECT start) {
   
   region = onig_region_new();
   
-  max = FIXNUM_TO_INT(string_get_bytes(string));
+  max = N2I(string_get_bytes(string));
   str = (UChar*)string_byte_address(state, string);
   
-  beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + FIXNUM_TO_INT(start), str + max, region, ONIG_OPTION_NONE);
+  beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(start), str + max, region, ONIG_OPTION_NONE);
   
   if(beg == ONIG_MISMATCH) {
     onig_region_free(region, 1);
@@ -241,13 +241,13 @@ OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OB
   
   region = onig_region_new();
   
-  max = FIXNUM_TO_INT(string_get_bytes(string));
+  max = N2I(string_get_bytes(string));
   str = (UChar*)string_byte_address(state, string);
   
   if(forward == Qfalse) {
-    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + FIXNUM_TO_INT(end), str + FIXNUM_TO_INT(start), region, ONIG_OPTION_NONE);  
+    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(end), str + N2I(start), region, ONIG_OPTION_NONE);  
   } else {
-    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + FIXNUM_TO_INT(start), str + FIXNUM_TO_INT(end), region, ONIG_OPTION_NONE);
+    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(start), str + N2I(end), region, ONIG_OPTION_NONE);
   }
 
   if(beg == ONIG_MISMATCH) {
@@ -269,7 +269,7 @@ OBJECT regexp_match(STATE, OBJECT regexp, OBJECT string) {
   
   region = onig_region_new();
   
-  max = FIXNUM_TO_INT(string_get_bytes(string));
+  max = N2I(string_get_bytes(string));
   str = (UChar*)string_byte_address(state, string);
   end = str + max;
   start = str;

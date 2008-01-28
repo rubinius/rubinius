@@ -107,7 +107,7 @@ OBJECT hash_dup(STATE, OBJECT hsh) {
   int sz, i;
   OBJECT dup, cv, vals, ent, next, lst, tmp;
   
-  sz = FIXNUM_TO_INT(hash_get_bins(hsh));
+  sz = N2I(hash_get_bins(hsh));
   dup = hash_new_sized(state, sz);
   SET_CLASS(dup, object_class(state, hsh));
   
@@ -146,18 +146,18 @@ static void hash_rehash(STATE, OBJECT hsh, int _ents) {
   unsigned int bin, hv;
   OBJECT tbl, tup, ent, next;
   
-  old_bins = FIXNUM_TO_INT(hash_get_bins(hsh));
+  old_bins = N2I(hash_get_bins(hsh));
   new_bins = hash_new_size(old_bins + 1);
   tup = tuple_new(state, new_bins);
   tbl = hash_get_values(hsh);
   
-  // printf("Rehash %p, %d => %d (%d)\n", hsh, old_bins, new_bins, FIXNUM_TO_INT(hash_get_entries(hsh)));
+  // printf("Rehash %p, %d => %d (%d)\n", hsh, old_bins, new_bins, N2I(hash_get_entries(hsh)));
   
   for(i = 0; i < old_bins; i++) {
     ent = tuple_at(state, tbl, i);
     while(!NIL_P(ent)) {
       next = tuple_at(state, ent, 3);
-      hv = (unsigned int)FIXNUM_TO_INT(tuple_at(state, ent, 0));
+      hv = (unsigned int)N2I(tuple_at(state, ent, 0));
       
       bin = hv % new_bins;
       tuple_put(state, ent, 3, tuple_at(state, tup, (int)bin));
@@ -200,7 +200,7 @@ static OBJECT add_entry(STATE, OBJECT h, unsigned int hsh, OBJECT ent) {
   unsigned int bin;
   OBJECT entry;
   
-  bin = hsh % FIXNUM_TO_INT(hash_get_bins(h));
+  bin = hsh % N2I(hash_get_bins(h));
   entry = tuple_at(state, hash_get_values(h), bin);
   
   if(NIL_P(entry)) {
@@ -209,7 +209,7 @@ static OBJECT add_entry(STATE, OBJECT h, unsigned int hsh, OBJECT ent) {
     entry_append(state, entry, ent);
   }
   
-  hash_set_entries(h, I2N(FIXNUM_TO_INT(hash_get_entries(h)) + 1));
+  hash_set_entries(h, I2N(N2I(hash_get_entries(h)) + 1));
   return ent;
 }
 
@@ -217,16 +217,16 @@ OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh) {
   unsigned int bin, bins;
   OBJECT entry, th;
   
-  bins = (unsigned int)FIXNUM_TO_INT(hash_get_bins(h));
+  bins = (unsigned int)N2I(hash_get_bins(h));
   bin = hsh % bins;
   entry = tuple_at(state, hash_get_values(h), bin);
   
-  // printf("start: %x, %ud, %d, %d\n", entry, hsh, bin, FIXNUM_TO_INT(hash_get_bins(h)));
+  // printf("start: %x, %ud, %d, %d\n", entry, hsh, bin, N2I(hash_get_bins(h)));
   
   while(!NIL_P(entry)) {
     // printf("entry: %x\n", entry);
     th = tuple_at(state, entry, 0);
-    if(FIXNUM_TO_INT(th) == hsh) {
+    if(N2I(th) == hsh) {
       return entry;
     }
     entry = tuple_at(state, entry, 3);
@@ -246,8 +246,8 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
     return data;
   }
   
-  i = FIXNUM_TO_INT(hash_get_entries(h));
-  b = FIXNUM_TO_INT(hash_get_bins(h));
+  i = N2I(hash_get_entries(h));
+  b = N2I(hash_get_bins(h));
   
   if(i / b > MAX_DENSITY) {
     hash_rehash(state, h, i);
@@ -299,7 +299,7 @@ OBJECT hash_delete(STATE, OBJECT self, unsigned int hsh) {
   unsigned int bin;
   OBJECT entry, th, lk, val, lst;
   
-  bin = hsh % FIXNUM_TO_INT(hash_get_bins(self));
+  bin = hsh % N2I(hash_get_bins(self));
   entry = tuple_at(state, hash_get_values(self), bin);
   
   lst = Qnil;
@@ -308,14 +308,14 @@ OBJECT hash_delete(STATE, OBJECT self, unsigned int hsh) {
     th = tuple_at(state, entry, 0);
     lk = tuple_at(state, entry, 3);
     
-    if(FIXNUM_TO_INT(th) == hsh) {
+    if(N2I(th) == hsh) {
       val = tuple_at(state, entry, 2);
       if(NIL_P(lst)) {
         tuple_put(state, hash_get_values(self), bin, lk);
       } else {
         tuple_put(state, lst, 3, lk);
       }
-      hash_set_entries(self, I2N(FIXNUM_TO_INT(hash_get_entries(self)) - 1));
+      hash_set_entries(self, I2N(N2I(hash_get_entries(self)) - 1));
       return val;
     }
     

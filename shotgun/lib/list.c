@@ -46,7 +46,7 @@ void list_append(STATE, OBJECT self, OBJECT obj) {
     list_set_first(self, node);
   }
   
-  list_set_count(self, I2N(FIXNUM_TO_INT(list_get_count(self)) + 1));
+  list_set_count(self, I2N(N2I(list_get_count(self)) + 1));
 }
 
 OBJECT list_shift(STATE, OBJECT self) {
@@ -54,7 +54,7 @@ OBJECT list_shift(STATE, OBJECT self) {
   
   if(list_empty_p(self)) return Qnil;
 
-  list_set_count(self, I2N(FIXNUM_TO_INT(list_get_count(self)) - 1));  
+  list_set_count(self, I2N(N2I(list_get_count(self)) - 1));  
   node = list_get_first(self);
   list_set_first(self, list_node_get_next(node));
   

@@ -159,7 +159,7 @@ class ShotgunPrimitives
   
   def fixnum_div(_ = fixnum, t1 = fixnum)
     <<-CODE
-    GUARD( FIXNUM_TO_INT(t1) != 0 ) // no divide by zero
+    GUARD( N2I(t1) != 0 ) // no divide by zero
 
     t3 = fixnum_divmod(state, self, t1);
     stack_push(array_get(state, t3, 0));
@@ -218,8 +218,8 @@ class ShotgunPrimitives
     if(self == t1) {
       stack_push(I2N(0));
     } else {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
+      j = N2I(self);
+      k = N2I(t1);
 
       if (j < k) {
         stack_push(I2N(-1));
@@ -238,8 +238,8 @@ class ShotgunPrimitives
     <<-CODE
     POP(self, FIXNUM);
     POP(t1,   FIXNUM);
-    j = FIXNUM_TO_INT(self);
-    k = FIXNUM_TO_INT(t1);
+    j = N2I(self);
+    k = N2I(t1);
     
     stack_push(j < k ? Qtrue : Qfalse);
     CODE
@@ -249,8 +249,8 @@ class ShotgunPrimitives
     <<-CODE
     POP(self, FIXNUM);
     POP(t1,   FIXNUM);
-    j = FIXNUM_TO_INT(self);
-    k = FIXNUM_TO_INT(t1);
+    j = N2I(self);
+    k = N2I(t1);
     
     stack_push(j <= k ? Qtrue : Qfalse);
     CODE
@@ -260,8 +260,8 @@ class ShotgunPrimitives
     <<-CODE
     POP(self, FIXNUM);
     POP(t1,   FIXNUM);
-    j = FIXNUM_TO_INT(self);
-    k = FIXNUM_TO_INT(t1);
+    j = N2I(self);
+    k = N2I(t1);
     
     stack_push(j > k ? Qtrue : Qfalse);
     CODE
@@ -271,8 +271,8 @@ class ShotgunPrimitives
     <<-CODE
     POP(self, FIXNUM);
     POP(t1,   FIXNUM);
-    j = FIXNUM_TO_INT(self);
-    k = FIXNUM_TO_INT(t1);
+    j = N2I(self);
+    k = N2I(t1);
     
     stack_push(j >= k ? Qtrue : Qfalse);
     CODE
@@ -283,7 +283,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); GUARD( INDEXED(self) )
     t1 = stack_pop(); GUARD( FIXNUM_P(t1) )
-    j = FIXNUM_TO_INT(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
+    j = N2I(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
 
     stack_push(NTH_FIELD(self, j));
     CODE
@@ -294,7 +294,7 @@ class ShotgunPrimitives
     self = stack_pop(); GUARD( INDEXED(self) )
     t1 = stack_pop(); GUARD( FIXNUM_P(t1) )
     t2 = stack_pop(); // We do not care about the type
-    j = FIXNUM_TO_INT(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
+    j = N2I(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
 
     SET_FIELD(self, j, t2);
     stack_push(t2);
@@ -314,7 +314,7 @@ class ShotgunPrimitives
     self = stack_pop(); GUARD( RISA(self, class) )
     t1 = class_get_instance_fields(self); GUARD( FIXNUM_P(t1) )
 
-    t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1));
+    t2 = NEW_OBJECT(self, N2I(t1));
     stack_push(t2);
     CODE
   end
@@ -324,7 +324,7 @@ class ShotgunPrimitives
     self = stack_pop(); GUARD( RISA(self, class) )
     POP(t1, FIXNUM);
 
-    t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1));
+    t2 = NEW_OBJECT(self, N2I(t1));
     stack_push(t2);
     CODE
   end
@@ -333,7 +333,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); GUARD( RISA(self, class) )
     POP(t1, FIXNUM);
-    t2 = bytearray_new(state, FIXNUM_TO_INT(t1));
+    t2 = bytearray_new(state, N2I(t1));
     t2->klass = self;
     stack_push(t2);
     CODE
@@ -349,9 +349,9 @@ class ShotgunPrimitives
       j = io_to_fd(self);
 
       if (FIXNUM_P(t1)) {
-        position = lseek(j, FIXNUM_TO_INT(t1), FIXNUM_TO_INT(t2));
+        position = lseek(j, N2I(t1), N2I(t2));
       } else {
-        position = lseek(j, bignum_to_ll(state, t1), FIXNUM_TO_INT(t2));
+        position = lseek(j, bignum_to_ll(state, t1), N2I(t2));
       }
 
       if (position == -1) {
@@ -404,10 +404,10 @@ class ShotgunPrimitives
 
     j = io_to_fd(self);
     buf = string_byte_address(state, t1);
-    k = FIXNUM_TO_INT(string_get_bytes(t1));
+    k = N2I(string_get_bytes(t1));
     k = write(j, buf, k);
     t2 = I2N(k);
-    if(k != FIXNUM_TO_INT(t2)) {
+    if(k != N2I(t2)) {
       t2 = bignum_new(state, k);
     }
     stack_push(t2);
@@ -419,12 +419,12 @@ class ShotgunPrimitives
     POP(self, IO);
     POP(t1, FIXNUM);
 
-    t2 = string_new2(state, NULL, FIXNUM_TO_INT(t1));
+    t2 = string_new2(state, NULL, N2I(t1));
     j = io_to_fd(self);
-    k = read(j, string_byte_address(state, t2), FIXNUM_TO_INT(t1));
+    k = read(j, string_byte_address(state, t2), N2I(t1));
     if(k == 0) {
       t2 = Qnil;
-    } else if(k != FIXNUM_TO_INT(t1)) {
+    } else if(k != N2I(t1)) {
       t3 = string_new2(state, NULL, k);
       memcpy(string_byte_address(state, t3), string_byte_address(state, t2), k);
       t2 = t3;
@@ -459,8 +459,8 @@ class ShotgunPrimitives
     POP(t3, FIXNUM);
     
     _path = string_byte_address(state, t1);
-    mode = FIXNUM_TO_INT(t2);
-    perm = FIXNUM_TO_INT(t3);
+    mode = N2I(t2);
+    perm = N2I(t3);
 
     fd = open(_path, mode, perm);
 
@@ -513,7 +513,7 @@ class ShotgunPrimitives
     j = io_to_fd(self);
     GUARD(j >= 0);
     
-    k = FIXNUM_TO_INT(t1);
+    k = N2I(t1);
     switch(k) {
       case 0:
         if(isatty(j)) {
@@ -559,8 +559,8 @@ class ShotgunPrimitives
     gettimeofday(&tv, NULL);
 
     self = array_new(state, 2);
-    array_set(state, self, 0, LL2I(tv.tv_sec));
-    array_set(state, self, 1, LL2I(tv.tv_usec));
+    array_set(state, self, 0, ML2N(tv.tv_sec));
+    array_set(state, self, 1, ML2N(tv.tv_usec));
 
     stack_push(self);
     CODE
@@ -577,18 +577,18 @@ class ShotgunPrimitives
     char str[MAX_STRFTIME_OUTPUT+1];
     size_t out;
 
-    tm.tm_sec = FIXNUM_TO_INT(array_get(state, t1, 0));
-    tm.tm_min = FIXNUM_TO_INT(array_get(state, t1, 1));
-    tm.tm_hour = FIXNUM_TO_INT(array_get(state, t1, 2));
-    tm.tm_mday = FIXNUM_TO_INT(array_get(state, t1, 3));
-    tm.tm_mon = FIXNUM_TO_INT(array_get(state, t1, 4));
-    tm.tm_year = FIXNUM_TO_INT(array_get(state, t1, 5));
-    tm.tm_wday = FIXNUM_TO_INT(array_get(state, t1, 6));
-    tm.tm_yday = FIXNUM_TO_INT(array_get(state, t1, 7));
-    tm.tm_isdst = FIXNUM_TO_INT(array_get(state, t1, 8));
+    tm.tm_sec = N2I(array_get(state, t1, 0));
+    tm.tm_min = N2I(array_get(state, t1, 1));
+    tm.tm_hour = N2I(array_get(state, t1, 2));
+    tm.tm_mday = N2I(array_get(state, t1, 3));
+    tm.tm_mon = N2I(array_get(state, t1, 4));
+    tm.tm_year = N2I(array_get(state, t1, 5));
+    tm.tm_wday = N2I(array_get(state, t1, 6));
+    tm.tm_yday = N2I(array_get(state, t1, 7));
+    tm.tm_isdst = N2I(array_get(state, t1, 8));
 
 #ifdef HAVE_STRUCT_TM_TM_GMTOFF
-    tm.tm_gmtoff = FIXNUM_TO_INT(array_get(state, t1, 9));
+    tm.tm_gmtoff = N2I(array_get(state, t1, 9));
 #endif
 
 #ifdef HAVE_STRUCT_TM_TM_ZONE
@@ -615,7 +615,7 @@ class ShotgunPrimitives
     t2 = stack_pop();
 
     if(FIXNUM_P(t1)) {
-      seconds = FIXNUM_TO_INT(t1);
+      seconds = N2I(t1);
     } else {
       seconds = bignum_to_ll(state, t1);
     }
@@ -673,24 +673,24 @@ class ShotgunPrimitives
     POP(t8, FIXNUM);
     t9 = stack_pop();
 
-    tm.tm_sec = FIXNUM_TO_INT(t1);
+    tm.tm_sec = N2I(t1);
     GUARD(tm.tm_sec >= 0 && tm.tm_sec <= 60);
     
-    tm.tm_min = FIXNUM_TO_INT(t2);
+    tm.tm_min = N2I(t2);
     GUARD(tm.tm_min >= 0 && tm.tm_min <= 60);
     
-    tm.tm_hour = FIXNUM_TO_INT(t3);
+    tm.tm_hour = N2I(t3);
     GUARD(tm.tm_hour >= 0 && tm.tm_hour <= 24);
     
-    tm.tm_mday = FIXNUM_TO_INT(t4);
+    tm.tm_mday = N2I(t4);
     GUARD(tm.tm_mday >= 1 && tm.tm_mday <= 31);
     
-    tm.tm_mon = FIXNUM_TO_INT(t5) - 1;
+    tm.tm_mon = N2I(t5) - 1;
     GUARD(tm.tm_mon >= 0 && tm.tm_mon <= 11);
     
-    tm.tm_year = FIXNUM_TO_INT(t6) - 1900;
+    tm.tm_year = N2I(t6) - 1900;
 
-    /* In theory, we'd set the tm_isdst field to FIXNUM_TO_INT(t8).
+    /* In theory, we'd set the tm_isdst field to N2I(t8).
      * But since that will break on at least FreeBSD,
      * and I don't see the point of filling in that flag at all,
      * we're telling the system here to figure the DST stuff
@@ -723,7 +723,7 @@ class ShotgunPrimitives
     }
 
     ret = array_new(state, 2);
-    array_set(state, ret, 0, LL2I(seconds));
+    array_set(state, ret, 0, ML2N(seconds));
     array_set(state, ret, 1, t7);
 
     stack_push(ret);
@@ -736,8 +736,8 @@ class ShotgunPrimitives
     char buf[100];
     char *b = buf + sizeof(buf);
 
-    j = FIXNUM_TO_INT(t1);
-    k = FIXNUM_TO_INT(self);
+    j = N2I(t1);
+    k = N2I(self);
     GUARD( j >= 2 && j <= 36 )
 
     /* Algorithm taken from 1.8.4 rb_fix2str */
@@ -792,7 +792,7 @@ class ShotgunPrimitives
     t2 = stack_pop(); // some type of object
     t3 = stack_pop(); // some type of object can we do an object guard?
 
-    hash_add(state, self, FIXNUM_TO_INT(t1), t2, t3);
+    hash_add(state, self, N2I(t1), t2, t3);
     stack_push(t3);
     CODE
   end
@@ -802,8 +802,8 @@ class ShotgunPrimitives
     POP(self, HASH);
     POP(t1, FIXNUM);
     t2 = stack_pop();
-    t3 = hash_find_entry(state, self, FIXNUM_TO_INT(t1));
-    // t3 = hash_get_undef(state, self, FIXNUM_TO_INT(t1));
+    t3 = hash_find_entry(state, self, N2I(t1));
+    // t3 = hash_get_undef(state, self, N2I(t1));
     stack_push(t3);
     CODE
   end
@@ -822,7 +822,7 @@ class ShotgunPrimitives
     POP(self, HASH);
     POP(t1, FIXNUM);
 
-    t2 = hash_delete(state, self, FIXNUM_TO_INT(t1));
+    t2 = hash_delete(state, self, N2I(t1));
     stack_push(t2);
     CODE
   end
@@ -857,7 +857,7 @@ class ShotgunPrimitives
     POP(t1, REFERENCE);
     POP(t2, FIXNUM);
 
-    int start = FIXNUM_TO_INT(t2);
+    int start = N2I(t2);
     for(k = start, j = 0; 
         k < NUM_FIELDS(t1) && j < NUM_FIELDS(self); 
         k++, j++) {
@@ -952,7 +952,7 @@ class ShotgunPrimitives
     POP(self, TUPLE);
     POP(t1, FIXNUM);
 
-    j = FIXNUM_TO_INT(t1);
+    j = N2I(t1);
     if (!j)
       t2 = self;
     else {
@@ -970,7 +970,7 @@ class ShotgunPrimitives
     POP(t1, FIXNUM); /* index */
 
     unsigned char *indexed;
-    j = FIXNUM_TO_INT(t1);
+    j = N2I(t1);
     k = bytearray_bytes(state, self);
 
     GUARD( j >= 0 && j < k )
@@ -987,13 +987,13 @@ class ShotgunPrimitives
     POP(t2, FIXNUM); /* value */
 
     unsigned char *indexed;
-    j = FIXNUM_TO_INT(t1);
+    j = N2I(t1);
     k = bytearray_bytes(state, self);
 
     GUARD( j >= 0 && j < k )
     indexed = (unsigned char*)bytearray_byte_address(state, self);
     indexed += j;
-    t2 = UI2N(*indexed = FIXNUM_TO_INT(t2));
+    t2 = UI2N(*indexed = N2I(t2));
     stack_push(t2);
     CODE
   end
@@ -1006,8 +1006,8 @@ class ShotgunPrimitives
 
     char *source, *dest;
     int num;
-    j = FIXNUM_TO_INT(t1);
-    k = FIXNUM_TO_INT(t2);
+    j = N2I(t1);
+    k = N2I(t2);
     m = bytearray_bytes(state, self);
 
     num = abs(j - k);
@@ -1037,9 +1037,9 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
     POP(t3, FIXNUM);
     
-    start  = FIXNUM_TO_INT(t1);
-    count  = FIXNUM_TO_INT(t2);
-    offset = FIXNUM_TO_INT(t3);
+    start  = N2I(t1);
+    count  = N2I(t2);
+    offset = N2I(t3);
     
     total = bytearray_bytes(state, self);
         
@@ -1098,7 +1098,7 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
 
     char *path = string_byte_address(state, t1);
-    t2 = cpu_unmarshal_file(state, path, FIXNUM_TO_INT(t2));
+    t2 = cpu_unmarshal_file(state, path, N2I(t2));
     stack_push(t2);
     CODE
   end
@@ -1166,13 +1166,13 @@ class ShotgunPrimitives
       }
       
       tuple_put(state, t2, 2, t3);
-      tuple_put(state, t2, 3, I2N((int)sb.st_uid));
-      tuple_put(state, t2, 4, I2N((int)sb.st_gid));
-      tuple_put(state, t2, 5, I2N((int)sb.st_size));
-      tuple_put(state, t2, 6, I2N((int)sb.st_blocks));
-      tuple_put(state, t2, 7, LL2I((long)sb.st_atime));
-      tuple_put(state, t2, 8, LL2I((long)sb.st_mtime));
-      tuple_put(state, t2, 9, LL2I((long)sb.st_ctime));
+      tuple_put(state, t2, 3, I2N((native_int)sb.st_uid));
+      tuple_put(state, t2, 4, I2N((native_int)sb.st_gid));
+      tuple_put(state, t2, 5, I2N((native_int)sb.st_size));
+      tuple_put(state, t2, 6, I2N((native_int)sb.st_blocks));
+      tuple_put(state, t2, 7, ML2N((long long)sb.st_atime));
+      tuple_put(state, t2, 8, ML2N((long long)sb.st_mtime));
+      tuple_put(state, t2, 9, ML2N((long long)sb.st_ctime));
       tuple_put(state, t2, 10, t1);
       tuple_put(state, t2, 11, UI2N((unsigned long)sb.st_blksize));
     
@@ -1192,7 +1192,7 @@ class ShotgunPrimitives
     if(current_machine->sub) {
       environment_exit_machine(); 
     } else {
-      exit(FIXNUM_TO_INT(t1));
+      exit(N2I(t1));
     }
     CODE
   end
@@ -1203,7 +1203,7 @@ class ShotgunPrimitives
     (void)stack_pop();
     POP(t1, FIXNUM);
 
-    j = FIXNUM_TO_INT(t1);
+    j = N2I(t1);
     ts.tv_sec = j / 1000000;
     ts.tv_nsec = (j % 1000000) * 1000;
       
@@ -1256,7 +1256,7 @@ class ShotgunPrimitives
 
       contents = cstr2bstr(string_byte_address(state, self));
       name = string_byte_address(state, t1);
-      t1 = syd_compile_string(state, name, contents, FIXNUM_TO_INT(t2), RTEST(t3));
+      t1 = syd_compile_string(state, name, contents, N2I(t2), RTEST(t3));
       bdestroy(contents);
       stack_push(t1);
     }
@@ -1483,7 +1483,7 @@ class ShotgunPrimitives
     self = stack_pop();
     GUARD(INDEXED(self));
 
-    j = FIXNUM_TO_INT(NTH_FIELD(mo, 4));
+    j = N2I(NTH_FIELD(mo, 4));
     SET_FIELD(self, j, stack_pop());
     stack_push(NTH_FIELD(self, j));  
     CODE
@@ -1494,14 +1494,14 @@ class ShotgunPrimitives
     self = stack_pop();
     GUARD(INDEXED(self));
 
-    j = FIXNUM_TO_INT(NTH_FIELD(mo, 4));
+    j = N2I(NTH_FIELD(mo, 4));
     stack_push(NTH_FIELD(self, j));
     CODE
   end
 
   def fixnum_modulo(_ = fixnum, t1 = fixnum)
     <<-CODE
-    GUARD( FIXNUM_TO_INT(t1) != 0 ) // no divide by zero
+    GUARD( N2I(t1) != 0 ) // no divide by zero
 
     t3 = fixnum_divmod(state, self, t1);
     stack_push(array_get(state, t3, 1));
@@ -1513,7 +1513,7 @@ class ShotgunPrimitives
     (void)stack_pop(); /* class */
     t1 = stack_pop();
     POP(t2, FIXNUM);
-    stack_push(cpu_marshal(state, t1, FIXNUM_TO_INT(t2)));
+    stack_push(cpu_marshal(state, t1, N2I(t2)));
     CODE
   end
   
@@ -1523,7 +1523,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
-    stack_push(cpu_unmarshal(state, (uint8_t*)string_byte_address(state, t1), FIXNUM_TO_INT(string_get_bytes(t1)), FIXNUM_TO_INT(t2)));
+    stack_push(cpu_unmarshal(state, (uint8_t*)string_byte_address(state, t1), N2I(string_get_bytes(t1)), N2I(t2)));
     CODE
   end
   
@@ -1536,7 +1536,7 @@ class ShotgunPrimitives
     POP(t3, FIXNUM);
 
     _path = string_byte_address(state, t2);
-    stack_push(cpu_marshal_to_file(state, t1, _path, FIXNUM_TO_INT(t3)));
+    stack_push(cpu_marshal_to_file(state, t1, _path, N2I(t3)));
     CODE
   end
   
@@ -1548,7 +1548,7 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
 
     _path = string_byte_address(state, t1);
-    stack_push(cpu_unmarshal_file(state, _path, FIXNUM_TO_INT(t2)));
+    stack_push(cpu_unmarshal_file(state, _path, N2I(t2)));
     CODE
   end
   
@@ -1586,7 +1586,7 @@ class ShotgunPrimitives
 
     path = string_byte_address(state, t1);
     file = string_byte_address(state, t2);
-    stack_push(archive_get_object(state, path, file, FIXNUM_TO_INT(t3)));
+    stack_push(archive_get_object(state, path, file, N2I(t3)));
     CODE
   end
   
@@ -1619,7 +1619,7 @@ class ShotgunPrimitives
     path = string_byte_address(state, t1);
     file = string_byte_address(state, t2);
     
-    t1 = archive_add_object(state, path, file, t3, FIXNUM_TO_INT(t4));
+    t1 = archive_add_object(state, path, file, t3, N2I(t4));
     stack_push(t1);
     CODE
   end
@@ -1630,7 +1630,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
-    t3 = archive_delete_file(state, string_byte_address(state, t1), FIXNUM_TO_INT(t2));
+    t3 = archive_delete_file(state, string_byte_address(state, t1), N2I(t2));
     stack_push(t3);
     CODE
   end  
@@ -1640,12 +1640,12 @@ class ShotgunPrimitives
   def fixnum_and(_ = fixnum, t1 = integer)
     <<-CODE
     if( FIXNUM_P(t1) ) {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
+      j = N2I(self);
+      k = N2I(t1);
       m = j & k;
       stack_push(I2N(m));
     } else {
-      stack_push(bignum_and(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
+      stack_push(bignum_and(state, bignum_new(state, N2I(self)), t1));
     }
     CODE
   end
@@ -1655,12 +1655,12 @@ class ShotgunPrimitives
   def fixnum_or(_ = fixnum, t1 = integer)
     <<-CODE
     if(FIXNUM_P(t1)) {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
+      j = N2I(self);
+      k = N2I(t1);
       m = j | k;
       stack_push(I2N(m));
     } else {
-      stack_push(bignum_or(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
+      stack_push(bignum_or(state, bignum_new(state, N2I(self)), t1));
     }
     CODE
   end
@@ -1670,26 +1670,26 @@ class ShotgunPrimitives
   def fixnum_xor(_ = fixnum, t1 = integer)
     <<-CODE
     if(FIXNUM_P(t1)) {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
+      j = N2I(self);
+      k = N2I(t1);
       m = j ^ k;
       stack_push(I2N(m));
     } else {
-      stack_push(bignum_xor(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
+      stack_push(bignum_xor(state, bignum_new(state, N2I(self)), t1));
     }
     CODE
   end
 
   def fixnum_invert(_ = fixnum)
     <<-CODE
-      j = FIXNUM_TO_INT(self);
+      j = N2I(self);
       stack_push(I2N(~j));
     CODE
   end
 
   def fixnum_neg(_ = fixnum)
     <<-CODE
-      j = FIXNUM_TO_INT(self);
+      j = N2I(self);
       stack_push(I2N(-j));
     CODE
   end
@@ -1698,8 +1698,8 @@ class ShotgunPrimitives
     <<-CODE
     long value;
     int  width;
-    value = FIXNUM_TO_INT(self);
-    width = FIXNUM_TO_INT(t1);
+    value = N2I(self);
+    width = N2I(t1);
 
     if (width > 0) {
       if (width >= sizeof(value)*8-1) {
@@ -1723,8 +1723,8 @@ class ShotgunPrimitives
 
     long value;
     int  width;
-    value = FIXNUM_TO_INT(self);
-    width = FIXNUM_TO_INT(t1);
+    value = N2I(self);
+    width = N2I(t1);
 
     value <<= width;
     t2 = I2N(value);
@@ -1737,7 +1737,7 @@ class ShotgunPrimitives
     <<-CODE
     (void)stack_pop();
     POP(t1, FIXNUM);
-    stack_push(bignum_new(state, FIXNUM_TO_INT(t1)));
+    stack_push(bignum_new(state, N2I(t1)));
     CODE
   end
   
@@ -1799,13 +1799,13 @@ class ShotgunPrimitives
       if(BIGNUM_P(t1)) {
         array_set(state, t3, 0, t1);
       } else {
-        array_set(state, t3, 0, bignum_new(state, FIXNUM_TO_INT(t1)));
+        array_set(state, t3, 0, bignum_new(state, N2I(t1)));
       }
       array_set(state, t3, 1, self);
     } else {
       if(BIGNUM_P(t1)) {
         array_set(state, t3, 0, t1);
-        array_set(state, t3, 1, bignum_new(state, FIXNUM_TO_INT(self)));
+        array_set(state, t3, 1, bignum_new(state, N2I(self)));
       } else {
         array_set(state, t3, 0, t1);
         array_set(state, t3, 1, self);
@@ -1837,7 +1837,7 @@ class ShotgunPrimitives
   
   def fixnum_divmod(_ = fixnum, t1 = fixnum)
     <<-CODE
-    GUARD( FIXNUM_TO_INT(t1) != 0 ) // no divide by zero
+    GUARD( N2I(t1) != 0 ) // no divide by zero
     stack_push(fixnum_divmod(state, self, t1));
     CODE
   end
@@ -1933,7 +1933,7 @@ class ShotgunPrimitives
     GUARD(RISA(t1, fastctx));
 
     fc = FASTCTX(t1);
-    i = FIXNUM_TO_INT(stack_pop());
+    i = N2I(stack_pop());
     switch(i) {
       case 0:
         if(!NIL_P(fc->sender)) {
@@ -1988,7 +1988,7 @@ class ShotgunPrimitives
     int i;
     struct fast_context *fc;
     t1 = stack_pop();
-    i = FIXNUM_TO_INT(stack_pop());
+    i = N2I(stack_pop());
     t2 = stack_pop();
     
     GUARD(RISA(t1, fastctx));
@@ -2000,11 +2000,11 @@ class ShotgunPrimitives
         break;
       case 1:
         GUARD(FIXNUM_P(t2));
-        fc->ip = FIXNUM_TO_INT(t2);
+        fc->ip = N2I(t2);
         break;
       case 2:
         GUARD(FIXNUM_P(t2));
-        fc->sp = FIXNUM_TO_INT(t2);
+        fc->sp = N2I(t2);
         break;
       case 3:
         fc->block = t2;
@@ -2023,7 +2023,7 @@ class ShotgunPrimitives
         break;
       case 9:
         GUARD(FIXNUM_P(t2));
-        fc->argcount = FIXNUM_TO_INT(t2);
+        fc->argcount = N2I(t2);
         break;
       case 10:
         fc->name = t2;
@@ -2035,7 +2035,7 @@ class ShotgunPrimitives
         if(NIL_P(t2)) {
           fc->flags = 0;
         } else if(FIXNUM_P(t2)) {
-          fc->flags |= FIXNUM_TO_INT(t2);
+          fc->flags |= N2I(t2);
         }
         break;
       default:
@@ -2277,7 +2277,7 @@ class ShotgunPrimitives
     GUARD( FIXNUM_P(t1) );
     
     task = (struct cpu_task*)BYTES_OF(self);
-    k = FIXNUM_TO_INT(t1);
+    k = N2I(t1);
     
     switch(k) {
     case 0:
@@ -2365,7 +2365,7 @@ class ShotgunPrimitives
     GUARD(FIXNUM_P(t1));
 
     task = (struct cpu_task*)BYTES_OF(self);
-    int idx = FIXNUM_TO_INT(t1);
+    int idx = N2I(t1);
     GUARD(idx >=0 && idx < (task->sp_ptr - task->stack_top));
 
     t2 = *(task->sp_ptr - idx);
@@ -2467,7 +2467,7 @@ class ShotgunPrimitives
     GUARD(RISA(self, channel));
     
     if(FIXNUM_P(t1)) {
-      k = (long)FIXNUM_TO_INT(t1);
+      k = (long)N2I(t1);
     } else {
       k = (long)bignum_to_int(state, t1);
     }
@@ -2510,11 +2510,11 @@ class ShotgunPrimitives
     if(IO_P(t1)) {
       j = io_to_fd(t1);
     } else if(FIXNUM_P(t1)) {
-      j = FIXNUM_TO_INT(t1);
+      j = N2I(t1);
     } else {
       GUARD(0);
     }
-    cpu_event_wait_readable(state, c, self, j, t2, FIXNUM_TO_INT(t3));
+    cpu_event_wait_readable(state, c, self, j, t2, N2I(t3));
     stack_push(Qtrue);
     CODE
   end
@@ -2540,7 +2540,7 @@ class ShotgunPrimitives
     POP(t1,   FIXNUM);
     GUARD(RISA(self, channel));
     
-    cpu_event_wait_signal(state, c, self, FIXNUM_TO_INT(t1));
+    cpu_event_wait_signal(state, c, self, N2I(t1));
     stack_push(Qtrue);
     CODE
   end
@@ -2553,7 +2553,7 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
     GUARD(RISA(self, channel));
     
-    cpu_event_wait_child(state, c, self, FIXNUM_TO_INT(t1), FIXNUM_TO_INT(t2));
+    cpu_event_wait_child(state, c, self, N2I(t1), N2I(t2));
     stack_push(Qtrue);
     CODE
   end
@@ -2649,8 +2649,8 @@ class ShotgunPrimitives
     <<-CODE
     (void)stack_pop();
     POP(t1, FIXNUM);
-    cpu_sampler_activate(state, FIXNUM_TO_INT(t1));
-    stack_push(LL2I((long)clock()));
+    cpu_sampler_activate(state, N2I(t1));
+    stack_push(ML2N(clock()));
     CODE
   end
   
@@ -2688,7 +2688,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, ARRAY);
     
-    k = FIXNUM_TO_INT(array_get_total(t2));
+    k = N2I(array_get_total(t2));
     argv = ALLOC_N(char*, k + 1);
     for(j = 0; j < k; j++) {
       t3 = array_get(state, t2, j);
@@ -2888,16 +2888,16 @@ class ShotgunPrimitives
     t1 = stack_top();
     GUARD(FIXNUM_P(t1));
 
-    j = FIXNUM_TO_INT(array_get_total(self));
+    j = N2I(array_get_total(self));
 
-    k = FIXNUM_TO_INT(t1);
+    k = N2I(t1);
 
     if(k < 0) k += j;
     
     if(k < 0 || k >= j) {
       stack_set_top(Qnil);
     } else {
-      k += FIXNUM_TO_INT(array_get_start(self));
+      k += N2I(array_get_start(self));
       t3 = array_get_tuple(self);
       GUARD(k < NUM_FIELDS(t3));
       
@@ -2913,8 +2913,8 @@ class ShotgunPrimitives
     t1 = stack_pop();
     GUARD(FIXNUM_P(t1));
 
-    j = FIXNUM_TO_INT(array_get_total(self));    
-    k = FIXNUM_TO_INT(t1);
+    j = N2I(array_get_total(self));    
+    k = N2I(t1);
   
     if(k < 0) k += j;
       
@@ -2922,7 +2922,7 @@ class ShotgunPrimitives
       array_set_total(self, I2N(k + 1));
     }
 
-    k += FIXNUM_TO_INT(array_get_start(self));
+    k += N2I(array_get_start(self));
     t3 = array_get_tuple(self);
     GUARD(k < NUM_FIELDS(t3));
     
@@ -2962,7 +2962,7 @@ class ShotgunPrimitives
       if(t2 != string_get_bytes(t1)) {
         stack_push(Qfalse);
       } else {
-        j =  FIXNUM_TO_INT(t2);
+        j =  N2I(t2);
         t2 = string_get_data(self);
         t3 = string_get_data(t1);
 
@@ -3006,7 +3006,7 @@ class ShotgunPrimitives
     (void)stack_pop(); /* class */
     POP(ary, ARRAY);
 
-    argc = FIXNUM_TO_INT(array_get_total(ary));
+    argc = N2I(array_get_total(ary));
     argv = ALLOC_N(char*, argc);
     for(i = 0; i < argc; i++) {
       str = array_get(state, ary, i);
@@ -3038,7 +3038,7 @@ class ShotgunPrimitives
     <<-CODE
     (void)stack_pop(); /* class */
     POP(t1, FIXNUM);
-    if(environment_join_machine(environment_current(), FIXNUM_TO_INT(t1))) {
+    if(environment_join_machine(environment_current(), N2I(t1))) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -3059,7 +3059,7 @@ class ShotgunPrimitives
     POP(t1, FIXNUM);
     t2 = stack_pop();
 
-    environment_send_message(environment_current(), FIXNUM_TO_INT(t1), t2);
+    environment_send_message(environment_current(), N2I(t1), t2);
 
     stack_push(Qtrue);
     CODE

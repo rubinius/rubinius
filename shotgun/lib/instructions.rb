@@ -272,7 +272,7 @@ CODE
   def allocate
     <<-CODE
     _lit = stack_pop();
-    stack_push(NEW_OBJECT(Qnil, FIXNUM_TO_INT(_lit)));
+    stack_push(NEW_OBJECT(Qnil, N2I(_lit)));
     CODE
   end
   
@@ -290,7 +290,7 @@ CODE
     t1 = stack_pop();
     t2 = stack_pop();
     t3 = stack_pop();
-    SET_FIELD(t3, FIXNUM_TO_INT(t1), t2);
+    SET_FIELD(t3, N2I(t1), t2);
     stack_push(t3);
     CODE
   end
@@ -299,7 +299,7 @@ CODE
     <<-CODE
     t1 = stack_pop();
     t2 = stack_pop();
-    stack_push(NTH_FIELD(t2, FIXNUM_TO_INT(t1)));
+    stack_push(NTH_FIELD(t2, N2I(t1)));
     CODE
   end
   
@@ -477,7 +477,7 @@ CODE
   def push_array
     <<-CODE
     t1 = stack_pop();
-    j = FIXNUM_TO_INT(array_get_total(t1));
+    j = N2I(array_get_total(t1));
     for(j--; j >= 0; j--) {
       stack_push(array_get(state, t1, j));
     }
@@ -511,7 +511,7 @@ CODE
       t1 = t2;
     }
     stack_push(t1);
-    c->args += FIXNUM_TO_INT(array_get_total(t1));
+    c->args += N2I(array_get_total(t1));
     CODE
   end
   
@@ -519,7 +519,7 @@ CODE
     <<-CODE
     t1 = stack_pop();
     if(REFERENCE_P(t1) && object_kind_of_p(state, t1, global->array)) {
-      j = FIXNUM_TO_INT(array_get_total(t1));
+      j = N2I(array_get_total(t1));
       t2 = tuple_new(state, j);
 
       for(k = 0; k < j; k++) {
@@ -559,7 +559,7 @@ CODE
       /* and that thing is an array... */
       if(RISA(t1, array)) {
         /* make a tuple out of the array contents... */
-        j = FIXNUM_TO_INT(array_get_total(t1));
+        j = N2I(array_get_total(t1));
         t2 = tuple_new(state, j);
 
         for(k = 0; k < j; k++) {
@@ -732,7 +732,7 @@ CODE
     t1 = stack_pop(); /* recv */
     t2 = stack_pop(); /* self */ 
     t4 = stack_pop(); /* mod */
-    j = FIXNUM_TO_INT(stack_pop()); /* sz */
+    j = N2I(stack_pop()); /* sz */
     t3 = stack_pop(); /* locals */
     cpu_activate_method(state, c, t1, t2, t4, j, cmethod_get_name(t2), stack_pop());
     if(RTEST(t3)) {
@@ -970,8 +970,8 @@ CODE
     t1 = stack_pop();
     t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
-      j = FIXNUM_TO_INT(t1);
-      k = FIXNUM_TO_INT(t2);
+      j = N2I(t1);
+      k = N2I(t2);
       stack_set_top((j < k) ? Qtrue : Qfalse);
     } else {
       _lit = global->sym_lt;
@@ -987,8 +987,8 @@ CODE
     t1 = stack_pop();
     t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
-      j = FIXNUM_TO_INT(t1);
-      k = FIXNUM_TO_INT(t2);
+      j = N2I(t1);
+      k = N2I(t2);
       stack_set_top((j > k) ? Qtrue : Qfalse);
     } else {
       _lit = global->sym_gt;
@@ -1143,7 +1143,7 @@ CODE
   def set_args
     <<-CODE
     t1 = stack_pop();
-    c->args = FIXNUM_TO_INT(t1);
+    c->args = N2I(t1);
     CODE
   end
   

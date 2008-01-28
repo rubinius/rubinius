@@ -121,7 +121,7 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) {
     /* Get rid of the tag part (i.e. the part that indicate nature of self */
     if(FIXNUM_P(self)) {
-      int val = FIXNUM_TO_INT(self);
+      int val = N2I(self); // FIXME for 64bit
       /* We do this so the 2's complement will fit into 29 bits properly. */
       if(val < 0) {
         hsh = hsh >> 1;

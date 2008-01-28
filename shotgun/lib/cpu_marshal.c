@@ -61,7 +61,7 @@ static void _append_sz(bstring buf, unsigned int i) {
 
 static void marshal_int(STATE, OBJECT obj, bstring buf) {
   int i;
-  i = FIXNUM_TO_INT(obj);
+  i = N2I(obj);
   append_c('i');
   if(i < 0) {
     i = abs(i);
@@ -99,7 +99,7 @@ static OBJECT unmarshal_int(STATE, struct marshal_state *ms) {
 
 static void marshal_str(STATE, OBJECT obj, bstring buf) {
   int i;
-  i = FIXNUM_TO_INT(string_get_bytes(obj));
+  i = N2I(string_get_bytes(obj));
   append_c('s');
   append_sz(i);
   append_str(string_byte_address(state, obj), i);
@@ -117,7 +117,7 @@ static void marshal_sym(STATE, OBJECT obj, bstring buf) {
   OBJECT str;
   int i;
   str = symtbl_find_string(state, state->global->symbols, obj);
-  i = FIXNUM_TO_INT(string_get_bytes(str));
+  i = N2I(string_get_bytes(str));
   append_c('x');
   append_sz(i);
   append_str(string_byte_address(state, str), i);
@@ -204,7 +204,7 @@ static OBJECT unmarshal_object(STATE, char *str, struct marshal_state *ms) {
 
 static void marshal_ary(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
   int sz, i;
-  sz = FIXNUM_TO_INT(array_get_total(obj));
+  sz = N2I(array_get_total(obj));
   append_c('A');
   append_sz(sz);
   for(i = 0; i < sz; i++) {
@@ -398,7 +398,7 @@ static OBJECT unmarshal_cmethod2(STATE, struct marshal_state *ms) {
   
   o = cmethod_get_cache(cm);
   if(FIXNUM_P(o)) {
-    cmethod_set_cache(cm, tuple_new(state, FIXNUM_TO_INT(o)));
+    cmethod_set_cache(cm, tuple_new(state, N2I(o)));
   }
   
   return cm;

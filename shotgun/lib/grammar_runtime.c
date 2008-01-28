@@ -945,7 +945,7 @@ again_no_block:
 
     /* First we generate our very own manual dstr node */
     OBJECT a2   = array_pop(state, current);
-    int sz      = FIXNUM_TO_INT(array_get_total(a2));
+    int sz      = N2I(array_get_total(a2));
     OBJECT hack = array_new(state, sz);
 
     array_append(state, hack, SYMBOL("dstr"));

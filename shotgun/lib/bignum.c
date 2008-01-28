@@ -84,7 +84,7 @@ OBJECT bignum_add(STATE, OBJECT a, OBJECT b) {
   NMP;
   
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, FIXNUM_TO_INT(b));
+    b = bignum_new(state, N2I(b));
   }
     
   mp_add(MP(a), MP(b), n);
@@ -95,7 +95,7 @@ OBJECT bignum_sub(STATE, OBJECT a, OBJECT b) {
   NMP;
   
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, FIXNUM_TO_INT(b));
+    b = bignum_new(state, N2I(b));
   }
   
   mp_sub(MP(a), MP(b), n);
@@ -110,7 +110,7 @@ OBJECT bignum_mul(STATE, OBJECT a, OBJECT b) {
       mp_mul_2(MP(a), n);
       return n_obj;
     }
-    b = bignum_new(state, FIXNUM_TO_INT(b));
+    b = bignum_new(state, N2I(b));
   }
   
   mp_mul(MP(a), MP(b), n);
@@ -121,7 +121,7 @@ OBJECT bignum_div(STATE, OBJECT a, OBJECT b) {
   NMP;
   
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, FIXNUM_TO_INT(b));
+    b = bignum_new(state, N2I(b));
   }
   
   mp_div(MP(a), MP(b), n, NULL);
@@ -132,7 +132,7 @@ OBJECT bignum_mod(STATE, OBJECT a, OBJECT b) {
   NMP;
   
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, FIXNUM_TO_INT(b));
+    b = bignum_new(state, N2I(b));
   }
   
   mp_mod(MP(a), MP(b), n);
@@ -236,7 +236,7 @@ OBJECT bignum_and(STATE, OBJECT a, OBJECT b) {
   NMP;
 
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, FIXNUM_TO_INT(b));
+    b = bignum_new(state, N2I(b));
   }
 
   /* Perhaps this should use mp_and rather than our own version */
@@ -248,7 +248,7 @@ OBJECT bignum_or(STATE, OBJECT a, OBJECT b) {
   NMP;
 
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, FIXNUM_TO_INT(b));
+    b = bignum_new(state, N2I(b));
   }
   /* Perhaps this should use mp_or rather than our own version */
   bignum_bitwise_op(BITWISE_OP_OR, MP(a), MP(b), n);
@@ -259,7 +259,7 @@ OBJECT bignum_xor(STATE, OBJECT a, OBJECT b) {
   NMP;
 
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, FIXNUM_TO_INT(b));
+    b = bignum_new(state, N2I(b));
   }
   /* Perhaps this should use mp_xor rather than our own version */
   bignum_bitwise_op(BITWISE_OP_XOR, MP(a), MP(b), n);
@@ -292,7 +292,7 @@ OBJECT bignum_neg(STATE, OBJECT self) {
 
 OBJECT bignum_left_shift(STATE, OBJECT self, OBJECT bits) {
   NMP;
-  int shift = FIXNUM_TO_INT(bits);
+  int shift = N2I(bits);
   mp_int *a = MP(self);
 
   mp_mul_2d(a, shift, n);
@@ -302,7 +302,7 @@ OBJECT bignum_left_shift(STATE, OBJECT self, OBJECT bits) {
 
 OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits) {
   NMP;
-  int shift = FIXNUM_TO_INT(bits);
+  int shift = N2I(bits);
   mp_int * a = MP(self);
 
   if ((shift / DIGIT_BIT) >= a->used) {
@@ -344,7 +344,7 @@ OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits) {
 OBJECT bignum_equal(STATE, OBJECT a, OBJECT b) {
   
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, FIXNUM_TO_INT(b));
+    b = bignum_new(state, N2I(b));
   }
   
   if(mp_cmp(MP(a), MP(b)) == MP_EQ) {
@@ -445,7 +445,7 @@ OBJECT bignum_to_s(STATE, OBJECT self, OBJECT radix) {
   sz = 1024;
   for(;;) {
     buf = ALLOC_N(char, sz);
-    mp_toradix_nd(MP(self), buf, FIXNUM_TO_INT(radix), sz, &k);
+    mp_toradix_nd(MP(self), buf, N2I(radix), sz, &k);
     if(k < sz - 2) {
       obj = string_new(state, buf);
       FREE(buf);

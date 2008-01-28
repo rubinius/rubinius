@@ -89,8 +89,8 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   
   cur = string_get_data(self);
   obs = string_get_data(other);
-  cur_sz = FIXNUM_TO_INT(string_get_bytes(self));
-  oth_sz = FIXNUM_TO_INT(string_get_bytes(other));
+  cur_sz = N2I(string_get_bytes(self));
+  oth_sz = N2I(string_get_bytes(other));
   
   ns = cur_sz + oth_sz;
   tmp = bytearray_bytes(state, cur);
@@ -201,10 +201,10 @@ unsigned int string_hash_int(STATE, OBJECT self) {
   data = string_get_data(self);
   hsh = string_get_hash(self);
   if(hsh != Qnil) {
-    return FIXNUM_TO_INT(hsh);
+    return N2I(hsh);
   }
   bp = (unsigned char*)bytearray_byte_address(state, data);
-  sz = FIXNUM_TO_INT(string_get_bytes(self));
+  sz = N2I(string_get_bytes(self));
   
   h = string_hash_str(bp, sz);
   string_set_hash(self, UI2N(h));

@@ -214,7 +214,7 @@ static void _cpu_wake_channel_and_read(EV_P_ struct ev_io *ev, int revents) {
     sz = (size_t)ti->count;
     
     if(enc == SYM("buffer")) {
-      offset = FIXNUM_TO_INT(string_get_bytes(ti->buffer));
+      offset = N2I(string_get_bytes(ti->buffer));
     } else {
       offset = 0;
     }

@@ -19,7 +19,7 @@ class Compiler::Node
       :fixnum? => "FIXNUM_P",
       :bignum? => "BIGNUM_P",
       :ref?    => "REFERENCE",
-      :to_int  => "FIXNUM_TO_INT",
+      :to_int  => "N2I",
       :put     => "SET_FIELD",
       :at      => "NTH_FIELD"
     }

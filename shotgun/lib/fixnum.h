@@ -11,11 +11,11 @@ static inline OBJECT fixnum_add(STATE, OBJECT a, OBJECT b) {
   native_int j, k, m;
   
   // + will never overflow an int because of the size of a Fixnum
-  j = FIXNUM_TO_INT(a);
-  k = FIXNUM_TO_INT(b);
+  j = N2I(a);
+  k = N2I(b);
   m = j + k;
   r = I2N(m);
-  if(m != FIXNUM_TO_INT(r)) {
+  if(m != N2I(r)) {
     r = bignum_add(state, bignum_new(state, j), bignum_new(state, k));
   }
   
@@ -27,11 +27,11 @@ static inline OBJECT fixnum_sub(STATE, OBJECT a, OBJECT b) {
   native_int j, k, m;
   
   // - will never overflow a signed int because of the size of a Fixnum
-  j = FIXNUM_TO_INT(a);
-  k = FIXNUM_TO_INT(b);
+  j = N2I(a);
+  k = N2I(b);
   m = j - k;
   r = I2N(m);
-  if(m != FIXNUM_TO_INT(r)) {
+  if(m != N2I(r)) {
     r = bignum_sub(state, bignum_new(state, j), bignum_new(state, k));
   }
   
@@ -43,11 +43,11 @@ static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
   long long m;
   native_int j, k;
 
-  j = FIXNUM_TO_INT(a);
-  k = FIXNUM_TO_INT(b);
+  j = N2I(a);
+  k = N2I(b);
   m = (long long)j * (long long)k;
   r = I2N((int) m);
-  if(m != FIXNUM_TO_INT(r)) {
+  if(m != N2I(r)) {
     r = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
   }
   
@@ -59,8 +59,8 @@ static inline OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
   long div, mod;
   native_int x, y;
 
-  x = FIXNUM_TO_INT(a);
-  y = FIXNUM_TO_INT(b);
+  x = N2I(a);
+  y = N2I(b);
   
   // adapted from ruby 1.8.x
   if (y < 0) {

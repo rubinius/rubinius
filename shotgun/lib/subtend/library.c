@@ -64,7 +64,8 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   
   nmc = NULL;
 
-  len = FIXNUM_TO_INT(string_get_bytes(path)) + 21;
+  /* Try to make room for 'Init_', the extension, and a null byte */
+  len = N2I(string_get_bytes(path)) + 21;
 
   sys_name = ALLOC_N(char, len);
   
