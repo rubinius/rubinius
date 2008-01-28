@@ -35,7 +35,6 @@ runtime/platform.conf
 *.swp
 *.dylib
 *.so
-*.d
 *~
 \#*
 .\#*

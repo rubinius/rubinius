@@ -73,7 +73,13 @@ echo "#define CONFIG_EXTPATH \"$EXTPATH\""
 echo "#define CONFIG_BUILDREV \"$BUILDREV\""
 echo "#define CONFIG_ENGINE \"$ENGINE\""
 echo "#define CONFIG_CC \"$CC\""
+
+if test "$DTRACE" = "1"; then
+  echo "#define CONFIG_ENABLE_DTRACE 1"
+fi
+
 ) > config.h
+
 
 if config/run is64bit; then
   echo "#define CONFIG_WORDSIZE 64" >> config.h

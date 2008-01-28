@@ -201,6 +201,8 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version);
 void cpu_bootstrap(STATE);
 void cpu_add_roots(STATE, cpu c, ptr_array roots);
 void cpu_update_roots(STATE, cpu c, ptr_array roots, int start);
+int cpu_ip2line(STATE, OBJECT meth, int ip);
+
 
 /* Method cache functions */
 void cpu_clear_cache(STATE, cpu c);

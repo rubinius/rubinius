@@ -33,26 +33,6 @@ static int _recursive_reporting = 0;
 
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
 
-static int _ip2line(STATE, OBJECT meth, int ip) {
-  OBJECT lines, tup;
-  int l, total, start, nd, op;
-
-  lines = cmethod_get_lines(meth);
-  total = NUM_FIELDS(lines);
-  for(l = 0; l < total; l++) {
-    tup = tuple_at(state, lines, l);
-    start = FIXNUM_TO_INT(tuple_at(state, tup, 0));
-    nd = FIXNUM_TO_INT(tuple_at(state, tup, 1));
-    op = FIXNUM_TO_INT(tuple_at(state, tup, 2));
-
-    if(ip >= start && ip <= nd) {
-      return op;
-    }
-  }
-
-  return 0;
-}
-
 void machine_print_callstack_limited(machine m, int maxlev) {
   OBJECT context, tmp;
   const char *modname, *methname, *filename;
@@ -102,7 +82,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
       (void*)context, modname, methname,
       fc->ip,
       filename,
-      _ip2line(m->s, fc->method, fc->ip)
+      cpu_ip2line(m->s, fc->method, fc->ip)
     );
     context = fc->sender;
   }

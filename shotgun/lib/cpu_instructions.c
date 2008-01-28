@@ -16,6 +16,13 @@
 #include "shotgun/lib/fixnum.h"
 #include "shotgun/lib/primitive_util.h"
 
+#if CONFIG_ENABLE_DTRACE
+#include "dtrace.h"
+#define ENABLE_DTRACE 1
+#else
+#define ENABLE_DTRACE 0
+#endif
+
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
 #define next_int _int = *ip_ptr++;
@@ -553,9 +560,39 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
   req = FIXNUM_TO_INT(cmethod_get_required(mo));
   
   if(args == req || req < 0) {
+#if ENABLE_DTRACE
+  if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
+    const char * module_name = mod == Qnil ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(mod));
+    const char * method_name = rbs_symbol_to_cstring(state, sym);
+
+    cpu_flush_ip(c);
+
+    struct fast_context *fc = FASTCTX(c->active_context);
+    int line_number = cpu_ip2line(state, fc->method, fc->ip);
+    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+
+    RUBINIUS_FUNCTION_ENTRY(module_name, method_name, filename, line_number);
+  }
+#endif
+    
     stack_push(recv);
     if(cpu_perform_primitive(state, c, prim, mo, args, sym, mod, block)) {
       /* Worked! */
+      
+#if ENABLE_DTRACE
+  if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
+    const char * module_name = mod == Qnil ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(mod));
+    const char * method_name = rbs_symbol_to_cstring(state, sym);
+
+    cpu_flush_ip(c);
+
+    struct fast_context *fc = FASTCTX(c->active_context);
+    int line_number = cpu_ip2line(state, fc->method, fc->ip);
+    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+
+    RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+  }
+#endif
       return TRUE;
     }
     /* Didn't work, need to remove the recv we put on before. */
@@ -647,6 +684,23 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise);
 inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
   OBJECT destination, home;
 
+#if ENABLE_DTRACE
+  if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
+    OBJECT module = cpu_current_module(state, c);
+    
+    const char * module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
+    const char * method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
+    
+    cpu_flush_ip(c);
+    
+    struct fast_context *fc = FASTCTX(c->active_context);
+    int line_number = cpu_ip2line(state, fc->method, fc->ip);
+    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+
+    RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+  }
+#endif
+
   destination = cpu_current_sender(c);
   
   // printf("Rtrnng frm %p (%d)\n", c->active_context, FASTCTX(c->active_context)->size);
@@ -710,6 +764,24 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
   
   is_block = blokctx_s_block_context_p(state, c->active_context);
   destination = cpu_current_sender(c);
+  
+#if ENABLE_DTRACE
+  if (RUBINIUS_FUNCTION_RETURN_ENABLED() && !is_block) {
+    OBJECT module = cpu_current_module(state, c);
+
+    const char * module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
+    const char * method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
+
+    cpu_flush_ip(c);
+    
+    struct fast_context *fc = FASTCTX(c->active_context);
+    int line_number = cpu_ip2line(state, fc->method, fc->ip);
+    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+
+    RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+  }
+#endif
+  
     
   if(destination == Qnil) {
     object_memory_retire_context(state->om, c->active_context);
@@ -856,8 +928,9 @@ static inline void cpu_return_to_block_creator(STATE, cpu c) {
 inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name, OBJECT block) {
   OBJECT ctx;
-  
+
   if(cpu_try_primitive(state, c, meth, recv, count, name, Qnil, block)) { return; }
+
   ctx = cpu_create_context(state, c, recv, meth, name, 
         _real_class(state, recv), (unsigned long int)count, block);
   cpu_activate_context(state, c, ctx, ctx, 0);
@@ -933,6 +1006,22 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
       missing ? "METHOD MISSING" : ""
       );
   }
+  
+#if ENABLE_DTRACE
+  if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
+    const char * module_name = rbs_symbol_to_cstring(state, module_get_name(mod));
+    const char * method_name = rbs_symbol_to_cstring(state, sym);
+
+    cpu_flush_ip(c);
+
+    struct fast_context *fc = FASTCTX(c->active_context);
+    int line_number = cpu_ip2line(state, fc->method, fc->ip);
+    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+
+    RUBINIUS_FUNCTION_ENTRY(module_name, method_name, filename, line_number);
+  }
+#endif
+
   ctx = cpu_create_context(state, c, recv, mo, sym, mod, (unsigned long int)args, block);
   /* If it was missing, setup some extra data in the MethodContext for
      the method_missing method to check out, to see why it was missing. */
@@ -1281,6 +1370,12 @@ next_op:
 #endif
 check_interrupts:
     if(state->om->collect_now) {
+
+#if ENABLE_DTRACE
+      if (RUBINIUS_GC_BEGIN_ENABLED()) {
+        RUBINIUS_GC_BEGIN();
+      }
+#endif      
       int cm = state->om->collect_now;
       
       /* Collect the first generation. */
@@ -1311,6 +1406,12 @@ check_interrupts:
       }
       
       state->om->collect_now = 0;
+
+#if ENABLE_DTRACE
+      if (RUBINIUS_GC_END_ENABLED()) {
+        RUBINIUS_GC_END();
+      }
+#endif      
     }
     
     if(state->check_events) {

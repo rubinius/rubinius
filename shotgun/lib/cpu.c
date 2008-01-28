@@ -162,6 +162,28 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   #undef ar
 }
 
+int cpu_ip2line(STATE, OBJECT meth, int ip) {
+  OBJECT lines, tup;
+  int l, total, start, nd, op;
+  
+  if(meth->obj_type != CMethodType) return 0;
+
+  lines = cmethod_get_lines(meth);
+  total = NUM_FIELDS(lines);
+  for(l = 0; l < total; l++) {
+    tup = tuple_at(state, lines, l);
+    start = FIXNUM_TO_INT(tuple_at(state, tup, 0));
+    nd = FIXNUM_TO_INT(tuple_at(state, tup, 1));
+    op = FIXNUM_TO_INT(tuple_at(state, tup, 2));
+
+    if(ip >= start && ip <= nd) {
+      return op;
+    }
+  }
+
+  return 0;
+}
+
 void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   xpointer tmp;
   int i, len;

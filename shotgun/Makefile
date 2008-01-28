@@ -10,6 +10,12 @@ else
   BINSUFFIX?=
 endif
 
+ifdef DTRACE
+	DTRACE_H=dtrace.h
+else
+	DTRACE_H=
+endif
+
 CFLAGS += -I.. $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa -Iexternal_libs/libmquark -Iexternal_libs/libev
 
 ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libev/.libs/libev.a external_libs/libbstring/libbstring.a external_libs/libcchash/libcchash.a external_libs/libmpa/libptr_array.a external_libs/libmquark/libmquark.a
@@ -109,13 +115,16 @@ external_libs/libmpa/libptr_array.a:
 external_libs/libmquark/libmquark.a:
 	cd external_libs/libmquark; $(MAKE)
 
-$(RBLIB): config.h $(ALIBS) external_libs/lightning/config.h 
+$(RBLIB): config.h $(DTRACE_H) $(ALIBS) external_libs/lightning/config.h 
 	cd lib; $(MAKE) library; 
 
 .PHONY: $(RBLIB)
 
 # Don't try to build main until librubinius exists
 main.c: $(RBLIB)
+
+dtrace.h: rubinius.d
+	/usr/sbin/dtrace -h -s rubinius.d -o dtrace.h
 
 rubinius.bin: $(RBLIB) main.o
 	$(COMP) -o rubinius.bin main.o $(RBLIB) $(BIN_RPATH)
