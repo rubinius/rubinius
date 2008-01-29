@@ -72,6 +72,14 @@ describe "Marshal.load with serialized extended_user_string" do
   end
 end
 
+describe "Marshal.load with serialized string having ivar with ref to self" do
+  it "returns a construction of the argument" do
+    obj = 'hi'
+    obj.instance_variable_set(:@self, obj)
+    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+  end
+end
+
 describe "Marshal.load with serialized symbol of length 1" do
   it "returns a construction of the argument" do
     Marshal.dump(Marshal.load(Marshal.dump(:a))).should == Marshal.dump(:a)
@@ -424,13 +432,47 @@ describe "Marshal.load with serialized array" do
   end
 end
 
+describe "Marshal.load with serialized array containing objects having _dump method, and with proc" do
+  it "returns a construction of the argument" do
+    arr = []
+    proc = Proc.new { |o| arr << o }
+    o1 = Custom.new; o2 = CustomWithIvar.new
+    obj = [o1, o2, o1, o2]
+    Marshal.dump(Marshal.load(Marshal.dump(obj), proc)).should ==
+      "#{mv+nv}[\x09\"\x0AstuffI\"\x0Astuff\x06:\x09@foo:\x13CustomWithIvar@\x06@\x07"
+    arr.length.should == 3
+    arr[0].should == "stuff"
+    arr[1].should == "stuff"
+    arr[1].instance_variables.first.should == "@foo"
+    arr[2].class.should == Array
+    arr[2].length.should == 4
+  end
+end
+
+describe "Marshal.load with serialized array containing objects having marshal_dump method, and with proc" do
+  it "returns a construction of the argument" do
+    arr = []
+    proc = Proc.new { |o| arr << o }
+    o1 = OtherCustom.new; o2 = OtherCustomWithIvar.new
+    obj = [o1, o2, o1, o2]
+    Marshal.dump(Marshal.load(Marshal.dump(obj), proc)).should == Marshal.dump(obj)
+    arr.length.should == 5
+    arr[0].should == "stuff"
+    arr[1].class.should == OtherCustom
+    arr[2].class.should == Array
+    arr[3].class.should == OtherCustomWithIvar
+    arr[4].class.should == Array
+    arr[4].length.should == 4
+  end
+end
+
 describe "Marshal.load with serialized array and proc" do
   it "returns a construction of the argument" do
     arr = []
     s = 'hi'
     s.instance_variable_set(:@foo, 5)
     st = Struct.new("Brittle", :a).new
-#    st.instance_variable_set(:@clue, 'none')
+    st.instance_variable_set(:@clue, 'none')
     st.a = 0.0
     h = Hash.new('def')
     h['nine'] = 9
@@ -441,16 +483,17 @@ describe "Marshal.load with serialized array and proc" do
     proc = Proc.new { |o| arr << o }
     Marshal.load(Marshal.dump(obj), proc)
     arr.to_s.should ==
-      [5, s, 10, 0.0, st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj].to_s
+      [5, s, 10, 0.0, 'none', st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj].to_s
   end
 end
 
 describe "Marshal.load with serialized array containing the same objects" do
   it "returns a construction of the argument" do
     s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String; f = 1.0
-    obj = [:so, 'hello', 100, :so, :so, d, :so, :so, :no,
+    o1 = OtherCustomWithIvar.new; o2 = OtherCustom.new
+    obj = [:so, 'hello', 100, :so, :so, d, :so, o2, :so, :no, o2,
            :go, c, nil, Struct.new("Pyramid").new, f, :go, :no, s, b, r,
-           :so, 'huh', true, b, b, 99, r, b, s, :so, f, c, :no, d]
+           :so, 'huh', o1, true, b, b, 99, r, b, s, :so, f, c, :no, o1, d]
     Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
   end
 end

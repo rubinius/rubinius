@@ -508,10 +508,21 @@ describe "Marshal.dump with array" do
   end
 end
 
-describe "Marshal.dump with array containing object having _dump method" do
+describe "Marshal.dump with array containing objects having _dump method" do
   it "returns a string-serialized version of the given argument" do
-    a = [Custom.new, 8]
-    Marshal.dump(a).should == "#{mv+nv}[\x07u:\x0BCustom\x0Astuffi\x0D"
+    o1 = Custom.new; o2 = CustomWithIvar.new
+    a = [o1, o2, o1, o2]
+    Marshal.dump(a).should ==
+      "#{mv+nv}[\x09u:\x0BCustom\x0AstuffIu:\x13CustomWithIvar\x0Astuff\x06:\x09@foo;\x06@\x06@\x07"
+  end
+end
+
+describe "Marshal.dump with array containing objects having marshal_dump method" do
+  it "returns a string-serialized version of the given argument" do
+    o1 = OtherCustom.new; o2 = OtherCustomWithIvar.new
+    a = [o1, o2, o1, o2]
+    Marshal.dump(a).should ==
+      "#{mv+nv}[\x09U:\x10OtherCustom\"\x0AstuffU:\x18OtherCustomWithIvarI[\x00\x06:\x09@foo;\x06@\x06@\x08"
   end
 end
 
