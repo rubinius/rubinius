@@ -343,7 +343,6 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       
       if(!fc->active) {
         fc_mutate(exception);
-        fc_mutate(new_class_of);
         fc_mutate(enclosing_class);
         fc_mutate(exceptions);
         fc_mutate(active_context);

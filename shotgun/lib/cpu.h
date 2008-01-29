@@ -65,7 +65,6 @@ struct fast_context {
   unsigned long int stack_size; \
   OBJECT exception; \
   OBJECT enclosing_class; \
-  OBJECT new_class_of; \
   OBJECT exceptions; \
   OBJECT active_context, home_context, main; \
   ptr_array paths; \

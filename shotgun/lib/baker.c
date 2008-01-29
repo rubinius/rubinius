@@ -235,7 +235,6 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
         }
         
         fc_mutate(exception);
-        fc_mutate(new_class_of);
         fc_mutate(enclosing_class);
         fc_mutate(exceptions);
         fc_mutate(active_context);

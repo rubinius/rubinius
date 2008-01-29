@@ -98,7 +98,6 @@ static void cpu_task_run_wb(STATE, OBJECT obj) {
 
   RUN_WB(obj, task->exception);
   RUN_WB(obj, task->enclosing_class);
-  RUN_WB(obj, task->new_class_of);
   RUN_WB(obj, task->exceptions);
   RUN_WB(obj, task->main);
   RUN_WB(obj, task->current_scope);

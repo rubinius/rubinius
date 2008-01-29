@@ -39,7 +39,6 @@ void cpu_initialize(STATE, cpu c) {
   c->self = Qnil;
   c->exception = Qnil;
   c->enclosing_class = Qnil;
-  c->new_class_of = Qnil;
   c->args = 0;
   c->depth = 0;
   c->call_flags = 0;
@@ -53,7 +52,6 @@ void cpu_initialize(STATE, cpu c) {
 
 void cpu_setup_top_scope(STATE, cpu c) {
   c->enclosing_class = state->global->object;
-  c->new_class_of = state->global->class;
 }
 
 OBJECT cpu_scope_push(STATE, cpu c, OBJECT mod) {
@@ -74,7 +72,6 @@ void cpu_initialize_context(STATE, cpu c) {
   c->active_context = Qnil;
   c->home_context = c->active_context;
   c->enclosing_class = state->global->object;
-  c->new_class_of = state->global->class;
   c->exception = Qnil;
   c->main = object_new(state);
   rbs_const_set(state, state->global->object, "MAIN", c->main);
@@ -137,7 +134,6 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   ar(c->cache);
   ar(c->exception);
   ar(c->enclosing_class);
-  ar(c->new_class_of);
   ar(c->main);
   ar(c->exceptions);
   ar(c->current_thread);
@@ -198,7 +194,6 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   ar(c->cache);
   ar(c->exception);
   ar(c->enclosing_class);
-  ar(c->new_class_of);
   ar(c->main);
   ar(c->exceptions);
   ar(c->current_thread);

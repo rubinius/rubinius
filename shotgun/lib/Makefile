@@ -93,10 +93,10 @@ RUBY=ruby
 %.o: %.S
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@
 
-.%.d:  %.c  $(DEPS)
+%.d:  %.c  $(DEPS)
 	@echo DEP $<
 	@set -e; rm -f $@; \
-	$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
+	$(CC) -MM -MT '$(<:.c=.o)' $(CPPFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
@@ -136,12 +136,12 @@ grammar.c: grammar.y
 	bison -o grammar.c grammar.y
 
 clean:
-	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.* instruction_names.c instruction_names.h node_types.c node_types.h
+	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h *.d *.d.* instruction_names.c instruction_names.h node_types.c node_types.h
 	rm -rf .libs subtend/.libs librubinius-*
 	rm -rf *.dylib
 
 .PHONY: clean
 
 ifneq ($(MAKECMDGOALS),clean)
--include $(SOURCES:%.c=.%.d)
+-include $(SOURCES:%.c=%.d)
 endif
