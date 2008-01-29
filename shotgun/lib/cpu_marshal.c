@@ -566,7 +566,7 @@ bstring cpu_marshal_to_bstring(STATE, OBJECT obj, int version) {
   return buf;
 }
 
-OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
+OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, native_int version) {
   bstring buf;
   FILE *f;
   struct marshal_state ms;

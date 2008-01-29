@@ -140,10 +140,10 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_current_sender(cpu) (cpu->sender)
 #define cpu_current_scope(state, cpu) cmethod_get_staticscope(FASTCTX(cpu->home_context)->method)
 
-#define cpu_flush_ip(cpu) (cpu->ip = (*(cpu)->ip_ptr) - cpu->data)
-#define cpu_flush_sp(cpu) (cpu->sp = (cpu->sp_ptr - cpu->stack_top))
+#define cpu_flush_ip(cpu) (cpu->ip = (unsigned int)(*(cpu->ip_ptr) - cpu->data))
+#define cpu_flush_sp(cpu) (cpu->sp = (unsigned int)(cpu->sp_ptr - cpu->stack_top))
 
-#define cpu_cache_ip(cpu) (*(cpu)->ip_ptr = (cpu->data + cpu->ip))
+#define cpu_cache_ip(cpu) (*(cpu->ip_ptr) = (cpu->data + cpu->ip))
 #define cpu_cache_sp(cpu) (cpu->sp_ptr = (cpu->stack_top + cpu->sp))
 
 cpu cpu_new(STATE);
@@ -197,7 +197,7 @@ OBJECT cpu_unmarshal(STATE, uint8_t *str, int len, int version);
 OBJECT cpu_marshal(STATE, OBJECT obj, int version);
 OBJECT cpu_unmarshal_file(STATE, const char *path, int version);
 bstring cpu_marshal_to_bstring(STATE, OBJECT obj, int version);
-OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version);
+OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, native_int version);
 
 void cpu_bootstrap(STATE);
 void cpu_add_roots(STATE, cpu c, ptr_array roots);

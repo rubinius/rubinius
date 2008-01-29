@@ -44,17 +44,17 @@ static void twos_complement(mp_int *a)
 
 }
 
-OBJECT bignum_new(STATE, int num) {
+OBJECT bignum_new(STATE, native_int num) {
   mp_int *a;
   OBJECT o;
   o = object_memory_new_opaque(state, BASIC_CLASS(bignum), sizeof(mp_int));
   a = (mp_int*)BYTES_OF(o);
 
   if(num < 0) {
-    mp_init_set_int(a, (unsigned int)-num);
+    mp_init_set_int(a, (unsigned long)-num);
     a->sign = MP_NEG;
   } else {
-    mp_init_set_int(a, (unsigned int)num);
+    mp_init_set_int(a, (unsigned long)num);
   }
   return o;
 }
@@ -70,11 +70,8 @@ static inline OBJECT bignum_normalize(STATE, OBJECT b) {
   mp_clamp(MP(b));
 
   if(mp_count_bits(MP(b)) <= FIXNUM_WIDTH) {
-    int val;
-    val = (int)mp_get_int(MP(b));
-    if(MP(b)->sign == MP_NEG) {
-      val = -val;
-    }
+    native_int val;
+    val = (native_int)bignum_to_ll(state, b);
     return I2N(val);
   }
   return b;
@@ -439,10 +436,10 @@ OBJECT bignum_from_ll(STATE, long long val) {
 
 OBJECT bignum_to_s(STATE, OBJECT self, OBJECT radix) {
   char *buf;
-  int sz;  
+  int sz = 1024;  
   int k;
   OBJECT obj;
-  sz = 1024;
+
   for(;;) {
     buf = ALLOC_N(char, sz);
     mp_toradix_nd(MP(self), buf, N2I(radix), sz, &k);
