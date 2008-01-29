@@ -1,4 +1,10 @@
-require 'pp'
+if ENV['PRETTY'] then
+  require 'pp'
+else
+  class Object
+    alias :pretty_inspect :inspect
+  end
+end
 
 class PositiveOperatorMatcher
   def initialize(actual)

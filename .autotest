@@ -17,7 +17,7 @@ class Autotest
   def make_test_cmd files_to_test
     # until bin/ci and bin/mspec allow for regexps, run the whole file again
     classes = reorder(files_to_test).map { |k,v| k }.join(' ')
-    "#{ruby} #{classes} | #{unit_diff}"
+    "PRETTY=1 #{ruby} #{classes} | #{unit_diff}"
   end
 end
 
