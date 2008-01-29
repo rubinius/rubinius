@@ -1,0 +1,20 @@
+Process.kill requires at least two arguments
+Process.kill raises an ArgumentError for unknown signals
+Process.kill doesn't accept lowercase signal names
+Process.kill doesn't tolerate leading or trailing spaces in signal names
+Process.kill tests for the existence of a process without sending a signal
+Process.kill raises an EPERM if permission is denied
+Process.kill sends the given signal to the specified process
+Process.kill kills process groups if signal is negative
+Process.kill kills process groups if signal starts with a minus sign
+Process.kill kills process groups if signal starts with a minus sign and 'SIG'
+Process.kill requires at least two arguments
+Process.kill raises an ArgumentError for unknown signals
+Process.kill doesn't accept lowercase signal names
+Process.kill doesn't tolerate leading or trailing spaces in signal names
+Process.kill tests for the existence of a process without sending a signal
+Process.kill raises an EPERM if permission is denied
+Process.kill sends the given signal to the current process if pid is zero
+Process.kill accepts integer signal numbers
+Process.kill accepts POSIX signal names without 'SIG' prefix
+Process.kill accepts POSIX signal names with 'SIG' prefix

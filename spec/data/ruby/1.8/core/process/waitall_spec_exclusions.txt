@@ -1,0 +1,4 @@
+Process.waitall returns an empty array when there are no children
+Process.waitall takes no arguments
+Process.waitall waits for all children
+Process.waitall returns an array of pid/status pairs
