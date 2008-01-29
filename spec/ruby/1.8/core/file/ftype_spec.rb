@@ -1,97 +1,59 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require 'pathname'
+require "#{File.dirname(__FILE__)}/../../spec_helper"
+require "#{File.dirname(__FILE__)}/fixtures/file_types.rb"
 
 describe "File.ftype" do
-  
-  # Identifies the type of the named file; the return string is one of ``file’’, 
-  # `directory’’, ``characterSpecial’’, ``blockSpecial’’, ``fifo’’, ``link’’, 
-  # `socket’’, or ``unknown’’.
-  
-  before :all do
-    @file = "test.txt"
-    @dir  = Dir.pwd
-    File.open(@file, "w"){} # Touch
 
-    platform_is :mswin do
-      @block_dev = "NUL"
+  it "raises ArgumentError if not given exactly one filename" do
+    lambda { File.ftype }.should raise_error(ArgumentError)
+    lambda { File.ftype('blah', 'bleh') }.should raise_error(ArgumentError)
+  end
+  
+  it "raises Errno::ENOENT if the file is not valid" do
+    l = lambda { File.ftype("/#{$$}#{Time.now.to_f}#{$0}") }
+    l.should raise_error(Errno::ENOENT)
+  end
+
+  it "returns a String " do  
+    FileSpecs.normal_file do |file|
+      File.ftype(file).class.should == String
     end
-    
-    platform_is_not :mswin do
-      @fifo = "test_fifo"
-      system("mkfifo #{@fifo}") unless File.exists?(@fifo)
+  end
 
-      # Block devices
-      @block = `find /dev -type b 2> /dev/null`.split("\n").first
-      @block = Pathname.new(@block).realpath if @block
+  it "returns 'file' when is a file" do
+    FileSpecs.normal_file do |file|
+      File.ftype(file).should == 'file'
+    end
+  end
 
-      # Character devices
-      @char = `find /dev -type c 2> /dev/null`.split("\n").first
-      @path = Pathname.new(@path).realpath if @path
-      
-      # Symlinks
-      %w[/dev /usr/bin /usr/local/bin].each do |dir|
-        links = `find #{dir} -type l 2> /dev/null`.split("\n")
-        next if links.empty?
-        @link = links.first
-        break
+  it "returns 'directory' when is a dir" do
+    FileSpecs.directory do |dir|
+      File.ftype(dir).should == 'directory'
+    end
+  end
+
+  it "returns 'characterSpecial' when is a char"  do
+    FileSpecs.character_device do |char|
+      File.ftype(char).should == 'characterSpecial'
+    end
+  end
+
+  platform_is_not :freebsd do  # FreeBSD does not have block devices
+    it "returns 'blockSpecial' when is a block" do
+      FileSpecs.block_device do |block|
+        File.ftype(block).should == 'blockSpecial'
       end
     end
   end
 
-  after :all do 
-    File.delete(@fifo) if File.exist?(@fifo)
-      
-    @file   = nil
-    @dir    = nil
-    @char   = nil
-    @block  = nil
-    @fifo   = nil
-    @link   = nil
-    @socket = nil
-  end
-
-  it "return a string " do  
-    File.ftype(@file).class.should == String
-  end
-
-  it "return 'file' when is a file" do
-    File.ftype(@file).should == 'file'
-  end
-
-  it "return 'directory' when is a dir" do
-    File.ftype(@dir).should == 'directory'
-  end
-
-  it "return characterSpecial when is a char"  do
-    File.ftype(@char).should == 'characterSpecial'
-  end
-
-  platform_is_not :freebsd do  # FreeBSD does not have block devices
-    it "return blockSpecial when is a block" do
-      File.ftype(@block).should == 'blockSpecial'
+  it "returns 'link' when is a link" do
+    FileSpecs.symlink do |link|
+      File.ftype(link).should == 'link'
     end
   end
 
-  it "return link when is a link" do
-    File.ftype(@link).should == 'link'
-  end
-
-  it "return fifo when is a fifo" do
-    File.ftype(@fifo).should == 'fifo'
+  it "returns fifo when is a fifo" do
+    FileSpecs.fifo do |fifo|
+      File.ftype(fifo).should == 'fifo'
+    end
   end   
-  
-  it "returns the type of the named file" do
-    File.ftype(@file).should == "file"
-    File.ftype("/dev/tty").should == "characterSpecial"
-    File.ftype("/").should == "directory"
-  end
-
-  it "raises an ArgumentError if not passed one argument" do
-    lambda { File.ftype               }.should raise_error(ArgumentError)
-    lambda { File.ftype(@file, @file) }.should raise_error(ArgumentError)
-  end
-  
-  it "raises an Errno::ENOENT if the file is not valid" do
-    lambda { File.ftype('bogus') }.should raise_error(Errno::ENOENT)
-  end
 end 
