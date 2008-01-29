@@ -26,7 +26,7 @@ def localtime(seconds)
   end
 
   platform_is :os => :linux do
-    return `date -d @#{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
+    return `LC_ALL=C date -d @#{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
   end
 
   return `date -j -f "%s" #{seconds} "+%a %b %d %H:%M:%S %z %Y"`.chomp
