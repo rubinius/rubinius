@@ -7,9 +7,9 @@ module Type
   # raised if the conversion method fails or the conversion
   # result is wrong.
   #
-  # Uses Type.obj_kind_of to bypass type check overrides.
+  # Uses obj.__kind_of__ (which is a compiler macro) to bypass type check overrides.
   def self.coerce_to(obj, cls, meth)
-    return obj if self.obj_kind_of?(obj, cls)
+    return obj if obj.__kind_of__(cls)
 
     begin
       ret = obj.__send__(meth)
@@ -18,7 +18,7 @@ module Type
                        "(#{e.message})"
     end
 
-    return ret if self.obj_kind_of?(ret, cls)
+    return obj if obj.__kind_of__(cls)
 
     raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{ret.class})"
   end
@@ -58,7 +58,11 @@ module Kernel
   module_function :Array
 
   def String(obj)
-    Type.coerce_to(obj, String, :to_s)
+    if obj.__kind_of__(String)
+      obj
+    else
+      Type.coerce_to(obj, String, :to_s)
+    end
   end
   module_function :String
 
@@ -70,7 +74,11 @@ module Kernel
   #   String(obj, sym=:to_s)
   # and use String(obj, :to_str) instead of StringValue(obj)
   def StringValue(obj)
-    Type.coerce_to(obj, String, :to_str)
+    if obj.__kind_of__(String)
+      obj
+    else
+      Type.coerce_to(obj, String, :to_str)
+    end
   end
   private :StringValue
 

@@ -80,6 +80,10 @@ class Compiler
         advance 1 + args.size
       end
     end
+
+    def add(thing)
+      method_missing(thing)
+    end
     
     def push(what)
       @text << "push #{what}\n"

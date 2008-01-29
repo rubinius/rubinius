@@ -178,11 +178,11 @@ def mk_exclude_dir(file)
 end
 
 def read_excludes(file)
-  if File.exist?(file)
+  begin
     File.open(file) do |f|
-      f.readlines.map { |l| Regexp.new(Regexp.escape(l.chomp)) }
+      return f.readlines.map { |l| Regexp.new(Regexp.escape(l.chomp)) }
     end
-  else
+  rescue Errno::ENOENT
     []
   end
 end

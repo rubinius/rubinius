@@ -1549,7 +1549,13 @@ class Node
     # Args could be an array, splat or argscat
     def collapse_args
       return unless @arguments
-      @arguments = @arguments.body if @arguments.is? ArrayLiteral
+
+      if @arguments.is? ArrayLiteral
+        @arguments = @arguments.body
+        @argcount = @arguments.size
+      else
+        @argcount = nil
+      end
     end
 
     def args(object, meth, args=nil)
@@ -1562,7 +1568,11 @@ class Node
       @arguments.nil? or @arguments.empty?
     end
 
-    attr_accessor :object, :method, :arguments
+    def static_args?
+      @arguments.nil? or @arguments.kind_of? Array
+    end
+
+    attr_accessor :object, :method, :arguments, :argcount
 
     def fcall?
       false

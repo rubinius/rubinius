@@ -3,7 +3,11 @@
 class MethodContext
   def normalized_name
     if method_module.is_a?(MetaClass)
-      "#{method_module.attached_instance.inspect}.#{name}"
+      begin
+        "#{method_module.attached_instance.inspect}.#{name}"
+      rescue Object
+        "#{method_module.attached_instance.class}##{name}"
+      end
     else
       "#{method_module.name}##{name}"
     end

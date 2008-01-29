@@ -10,6 +10,20 @@ class Compiler
   def self.process_flags(flags)
     flags.each { |f| Config[f] = true } if flags
   end
+  
+  def self.parse_flags(stream)
+    to_clear = []
+    stream.each do |token|
+      if token.prefix? "-f"
+        to_clear << token
+        name, val = token[2..-1].split("=")
+        val = true unless val
+        Config[name] = val
+      end
+    end
+
+    to_clear.each { |t| stream.delete(t) }
+  end
 
   def self.compile_file(path, flags=nil)
     process_flags(flags)
@@ -159,13 +173,18 @@ class Compiler
 
   def load_plugins
     # The default plugins
-    activate :block_given
-    activate :primitive
-    activate :assembly
-    activate :fastmath
-    activate :current_method
+    activate_default :block_given
+    activate_default :primitive
+    activate_default :assembly
+    activate_default :fastmath
+    activate_default :current_method
     activate :safemath if Config['rbx-safe-math']
-    activate :inline
+    activate_default :inline
+    activate_default :fastsystem
+  end
+
+  def activate_default(name)
+    activate(name) unless Config["no-#{name}"]
   end
 
   def activate(name)

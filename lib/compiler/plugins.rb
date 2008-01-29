@@ -249,35 +249,31 @@ module Compiler::Plugins
     end
   end
   
-  # This are not currently used.
   class SystemMethods < Plugin
     
     plugin :fastsystem
     
     Methods = {
-      :kind_of? =>      :kind_of,
-      :instance_of? =>  :instance_of,
-      :nil? =>          :is_nil,
-      :equal? =>        :equal,
-      :class =>         :class
+      :__kind_of__ =>      :kind_of,
+      :__instance_of__ =>  :instance_of,
+      :__nil__ =>          :is_nil,
+      :__equal__ =>        :equal,
+      :__class__ =>        :class,
+      :__fixnum__ =>       :is_fixnum,
+      :__symbol__ =>       :is_symbol,
+      :__nil__ =>          :is_nil
     }
 
     # How many arguments each method takes.
     Args = {
-      :kind_of?     => 1,
-      :instance_of? => 1,
-      :nil?         => 0,
-      :equal?       => 1,
-      :class        => 0
-    }
-    
-    # How to map class checks directly to instructions.
-    # I highly doubt anyone does the last one, but it's here
-    # for completeness.
-    KindOf = {
-      :Fixnum =>    :is_fixnum,
-      :Symbol =>    :is_symbol,
-      :NilClass =>  :is_nil
+      :__kind_of__     => 1,
+      :__instance_of__ => 1,
+      :__nil__         => 0,
+      :__equal__       => 1,
+      :__class__       => 0,
+      :__fixnum__      => 0,
+      :__symbol__      => 0,
+      :__nil__         => 0
     }
     
     def handle(g, call)
@@ -287,16 +283,11 @@ module Compiler::Plugins
                   
       return false unless name
       return false unless Args[call.method] == call.argcount
-            
-      if call.argcount == 0
-        call.receiver_bytecode(g)
-        g.add name
-        return true
-      end
       
-      if call.argcount == 1
-        cls = call.arguments.last.kind_of? Const
-      end
+      call.emit_args(g)
+      call.receiver_bytecode(g)
+      g.add name
+      return true
     end
     
   end

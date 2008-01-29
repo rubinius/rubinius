@@ -453,6 +453,10 @@ class Compiler
       else
         add :set_call_flags, 1 if priv
       end
+
+      unless count.kind_of? Fixnum
+        raise Error, "count must be a number"
+      end
       
       idx = find_literal(meth)
       if count == 0
