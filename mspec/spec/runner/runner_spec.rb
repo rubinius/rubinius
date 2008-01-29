@@ -261,3 +261,20 @@ describe MSpec, ".process" do
     MSpec.process
   end
 end
+
+describe MSpec, ".files" do
+  before :each do
+    MSpec.store :load, []
+    MSpec.store :unload, []
+    @files = [:one, :two, :three]
+    Kernel.stub!(:load)
+  end
+  
+  it "calls load actions before each file" do
+    load = mock("load")
+    load.stub!(:load).and_return { @record = :load }
+    MSpec.register :load, load
+    MSpec.files
+    @record.should == :load
+  end
+end

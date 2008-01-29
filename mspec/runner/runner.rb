@@ -171,9 +171,19 @@ module MSpec
     actions :finish
   end
   
-  def self.actions(action)
+  def self.files
+    return unless files = retrieve(:files)
+
+    files.each do |file|
+      actions :load
+      protect("loading #{file}") { Kernel.load file }
+      actions :unload
+    end
+  end
+  
+  def self.actions(action, state=nil)
     actions = retrieve(action)
-    actions.each { |obj| obj.send action } if actions
+    actions.each { |obj| obj.send action, state } if actions
   end
   
   def self.register_files(files)
