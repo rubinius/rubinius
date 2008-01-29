@@ -26,6 +26,16 @@ class File < IO
   ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
 
+  FILE_TYPES = {
+    :dir    => 'directory',
+    :char   => 'characterSpecial',
+    :block  => 'blockSpecial',
+    :fifo   => 'fifo',
+    :link   => 'link',
+    :socket => 'socket',
+    :file   => 'file'
+  }
+
   attr_reader :path
 
   def initialize(path_or_fd, mode = "r", perm = 0666)
@@ -87,15 +97,6 @@ class File < IO
     st ? st.socket? : false
   end
 
-  FILE_TYPES = {
-    :dir => 'directory',
-    :char => 'characterSpecial',
-    :block => 'blockSpecial',
-    :fifo => 'fifo',
-    :link => 'link',
-    :socket => 'socket',
-    :file => 'file'
-  }
   
   def self.ftype(path)
     kind = lstat(path).kind
@@ -390,24 +391,7 @@ class File < IO
     alias_method :blocks, :block
 
     def ftype
-      case @kind
-      when :file
-        "file"
-      when :dir
-        "directory"
-      when :block
-        "blockSpecial"
-      when :char
-        "characterSpecial"
-      when :fifo
-        "fifo"
-      when :link
-        "link"
-      when :socket
-        "socket"
-      else
-        "unknown"
-      end
+      FILE_TYPES[@kind] or 'unknown'
     end
 
     def inspect
