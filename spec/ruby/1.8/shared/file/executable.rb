@@ -25,7 +25,7 @@ shared :file_executable do |cmd, klass, name|
     end
 
     platform_is_not :mswin do
-      it "return true if the argument its an executable file" do
+      it "return true if the argument is an executable file" do
         klass.send(cmd, @file1).should == true
         klass.send(cmd, @file2).should == false
       end
