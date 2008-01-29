@@ -21,7 +21,7 @@ describe PositiveOperatorMatcher, "=~ operator" do
   it "raises an ExpectationNotMetError when expected =~ actual returns false" do
     lambda {
       PositiveOperatorMatcher.new('real') =~ /fake/
-    }.should raise_error(ExpectationNotMetError, %(Expected "real" to match /fake/))
+    }.should raise_error(ExpectationNotMetError, %(Expected real to match (?-mix:fake)))
   end
   
   it "does not raise an exception when expected =~ actual returns true" do
@@ -107,7 +107,7 @@ describe NegativeOperatorMatcher, "=~ operator" do
   it "raises an ExpectationNotMetError when expected =~ actual returns true" do
     lambda {
       NegativeOperatorMatcher.new('real') =~ /real/
-    }.should raise_error(ExpectationNotMetError, %(Expected "real" not to match /real/))
+    }.should raise_error(ExpectationNotMetError, %(Expected real not to match (?-mix:real)))
   end
   
   it "does not raise an exception when expected =~ actual returns false" do

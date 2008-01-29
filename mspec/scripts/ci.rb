@@ -71,6 +71,8 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       format = 'ImmediateFormatter'
     when 'm', 'summary'
       format = 'SummaryFormatter'
+    when 'u', 'unit'
+      format = 'UnitdiffFormatter'
     else
       puts "Unknown format: #{f}"
       puts opts

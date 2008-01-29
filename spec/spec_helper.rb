@@ -3,6 +3,7 @@ $:.push File.dirname(__FILE__) + '/../'
 if ENV['MSPEC_RUNNER'] == '1'
   require 'mspec/complete'
   require 'mspec/mocks'
+  require 'pp'
 else
   require 'mspec/runner/guards'
   require 'mspec/runner/shared'

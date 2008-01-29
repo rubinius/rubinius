@@ -1,9 +1,5 @@
-if ENV['PRETTY'] then
-  require 'pp'
-else
-  class Object
-    alias :pretty_inspect :inspect
-  end
+class Object
+  alias pretty_inspect inspect
 end
 
 class PositiveOperatorMatcher

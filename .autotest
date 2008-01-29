@@ -11,7 +11,7 @@ class Autotest
   alias :old_make_test_cmd :make_test_cmd
 
   def ruby
-    "bin/ci"
+    "bin/ci -fu"
   end
 
   def make_test_cmd files_to_test
