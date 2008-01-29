@@ -215,9 +215,24 @@ class File < IO
   end
 
   # FIXME: will fail a bunch if platfrom == :mswin
-  def self.join(*args)
-    args = args.flatten.map { |arg| StringValue(arg) }
-    args.join(SEPARATOR).gsub(/#{SEPARATOR}+/,SEPARATOR)
+  def self.join(*parts)
+    path = ''
+
+    parts.flatten.each_with_index do |part, i|
+      part = StringValue part
+
+      if i > 0 then
+        if part[0] == ?/ then
+          path = path.sub %r|(.*?)/+\z|m, '\1'
+        elsif path !~ %r|/+\z| then
+          path << SEPARATOR
+        end
+      end
+
+      path << part
+    end
+
+    path
   end
 
   def self.link(from, to)
@@ -227,6 +242,12 @@ class File < IO
     n = Platform::POSIX.link(from, to)
     Errno.handle if n == -1
     n
+  end
+
+  class << self
+    alias_method :delete, :unlink
+    alias_method :exists?, :exist?
+    alias_method :fnmatch?, :fnmatch
   end
 
   def self.lstat(path)
