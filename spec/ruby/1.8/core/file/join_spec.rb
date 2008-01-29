@@ -39,6 +39,13 @@ describe "File::join" do
     File.join("usr/",  "", "/bin").should == "usr/bin"
   end
 
+  it "handles recursive arrays" do
+    parts = []
+    parts << parts
+
+    File.join(parts).should == '[...]'
+  end
+
   it "doesn't remove File::SEPARATOR from the middle of arguments" do
     path = File.join "file://usr", "bin"
     path.should == "file://usr/bin"
