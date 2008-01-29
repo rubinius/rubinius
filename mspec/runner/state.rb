@@ -101,5 +101,9 @@ class SpecState
   
   def filtered?
     not unfiltered?
-  end 
+  end
+  
+  def failure?(exception)
+    exception.is_a?(ExpectationNotMetError)
+  end
 end

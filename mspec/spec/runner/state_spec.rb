@@ -299,3 +299,9 @@ describe SpecState, "#filtered?" do
     @state.filtered?.should == false
   end
 end
+
+describe SpecState, "#failure?" do
+  before :each do
+    @state = SpecState.new("describe", "it")
+  end
+end

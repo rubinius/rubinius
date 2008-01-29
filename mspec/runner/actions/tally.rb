@@ -24,7 +24,7 @@ class TallyAction
   def after(state)
     @examples += 1
     state.exceptions.each do |e|
-      e.is_a?(ExpectationNotMetError) ? @failures += 1 : @errors += 1
+      state.failure?(e) ? @failures += 1 : @errors += 1
     end
   end
   
