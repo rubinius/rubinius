@@ -1,6 +1,21 @@
 # depends on: io.rb class.rb module.rb
 
 class File < IO
+
+  # Definition is further down
+  class Stat
+  end
+
+  # Strictly internal class
+  class TimeVal < FFI::Struct
+    config 'rbx.platform.timeval', :tv_sec, :tv_usec
+  end
+
+  class FileError < Exception; end
+  class NoFileError < FileError; end
+  class UnableToStat < FileError; end
+  class PermissionError < FileError; end
+
   module Constants
     include IO::Constants
 
@@ -17,24 +32,9 @@ class File < IO
   end
   include Constants
 
-  class FileError < Exception; end
-  class NoFileError < FileError; end
-  class UnableToStat < FileError; end
-  class PermissionError < FileError; end
-
   SEPARATOR = Platform::File::SEPARATOR
   ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
-
-  FILE_TYPES = {
-    :dir    => 'directory',
-    :char   => 'characterSpecial',
-    :block  => 'blockSpecial',
-    :fifo   => 'fifo',
-    :link   => 'link',
-    :socket => 'socket',
-    :file   => 'file'
-  }
 
   attr_reader :path
 
@@ -99,8 +99,7 @@ class File < IO
 
 
   def self.ftype(path)
-    kind = lstat(path).kind
-    FILE_TYPES.include?(kind) ? FILE_TYPES[kind] : 'unknown'
+    lstat(path).ftype
   end
 
   def self.split(path)
@@ -236,10 +235,6 @@ class File < IO
     Platform::POSIX.fchmod(@descriptor, mode)
   end
 
-  class TimeVal < FFI::Struct
-    config 'rbx.platform.timeval', :tv_sec, :tv_usec
-  end
-
   def self.utime(a_in, m_in, *paths)
     ptr = MemoryPointer.new(TimeVal, 2)
     atime = TimeVal.new ptr
@@ -361,154 +356,6 @@ class File < IO
     alias_method :fnmatch?, :fnmatch
   end
 
-  class Stat
-    self.instance_fields = 15
-    ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
-                  :size => 5, :block => 6, :atime => 7, :mtime => 8,
-                  :ctime => 9, :path => 10, :blksize => 11, :dev => 12,
-                  :dev_major => 13, :dev_minor => 14
-
-    def dev;     @dev; end
-    def ino;     @inode; end
-    def mode;    @mode; end
-    def kind;    @kind; end
-    def owner;   @owner; end
-    def group;   @group; end
-    def size;    @size; end
-    def block;   @block; end
-    def atime;   Time.at(@atime); end
-    def mtime;   Time.at(@mtime); end
-    def ctime;   Time.at(@ctime); end
-    def path;    @path; end
-    def blksize; @blksize; end
-    def dev;     @dev; end
-    def dev_major; @dev_major; end
-    def dev_minor; @dev_minor; end
-
-    alias_method :gid, :group
-    alias_method :uid, :owner
-
-    alias_method :blocks, :block
-
-    def ftype
-      FILE_TYPES[@kind] or 'unknown'
-    end
-
-    def inspect
-      "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
-    end
-
-    def grpowned?
-      @group == Platform::POSIX.getegid
-    end
-
-    def rgrpowned?
-      @group == Platform::POSIX.getgid
-    end
-    private :rgrpowned?
-
-    def size?
-      if @size == 0
-        nil
-      else
-        @size
-      end
-    end
-
-    def zero?
-      @size == 0
-    end
-
-    def blockdev?
-      @kind == :block
-    end
-
-    def chardev?
-      @kind == :char
-    end
-
-    def directory?
-      @kind == :dir
-    end
-
-    def file?
-      @kind == :file
-    end
-
-    def owned?
-      @owner == Platform::POSIX.geteuid
-    end
-
-    def pipe?
-      @kind == :fifo
-    end
-
-    def rowned?
-      @owner == Platform::POSIX.getuid
-    end
-    private :rowned?
-
-    def superuser?
-      Platform::POSIX.geteuid == 0
-    end
-    private :superuser?
-
-    def rsuperuser?
-      Platform::POSIX.getuid == 0
-    end
-    private :rsuperuser?
-
-    def socket?
-      @kind == :socket
-    end
-
-    def symlink?
-      @kind == :link
-    end
-
-    def executable?
-      return true if superuser?
-      return @mode & IO::S_IXUSR != 0 if owned?
-      return @mode & IO::S_IXGRP != 0 if grpowned?
-      return @mode & IO::S_IXOTH != 0
-    end
-
-    def executable_real?
-      return true if rsuperuser?
-      return @mode & IO::S_IXUSR != 0 if rowned?
-      return @mode & IO::S_IXGRP != 0 if rgrpowned?
-      return @mode & IO::S_IXOTH != 0
-    end
-
-    def readable?
-      return true if superuser?
-      return @mode & IO::S_IRUSR != 0 if owned?
-      return @mode & IO::S_IRGRP != 0 if grpowned?
-      return @mode & IO::S_IROTH != 0
-    end
-
-    def readable_real?
-      return true if rsuperuser?
-      return @mode & IO::S_IRUSR != 0 if rowned?
-      return @mode & IO::S_IRGRP != 0 if rgrpowned?
-      return @mode & IO::S_IROTH != 0
-    end
-
-    def writable?
-      return true if superuser?
-      return @mode & IO::S_IWUSR != 0 if owned?
-      return @mode & IO::S_IWGRP != 0 if grpowned?
-      return @mode & IO::S_IWOTH != 0
-    end
-
-    def writable_real?
-      return true if rsuperuser?
-      return @mode & IO::S_IWUSR != 0 if rowned?
-      return @mode & IO::S_IWGRP != 0 if rgrpowned?
-      return @mode & IO::S_IWOTH != 0
-    end
-  end
-
   def self.stat(path)
     perform_stat(path, true, true)
   end
@@ -560,4 +407,168 @@ class File < IO
       raise Errno::ENOENT, path
     end
   end
-end
+end       # File
+
+
+class File::Stat
+  self.instance_fields = 15
+  ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
+                :size => 5, :block => 6, :atime => 7, :mtime => 8,
+                :ctime => 9, :path => 10, :blksize => 11, :dev => 12,
+                :dev_major => 13, :dev_minor => 14
+
+  def ino;        @inode;           end
+  def mode;       @mode;            end
+  def kind;       @kind;            end
+  def owner;      @owner;           end
+  def group;      @group;           end
+  def size;       @size;            end
+  def block;      @block;           end
+  def atime;      Time.at(@atime);  end
+  def mtime;      Time.at(@mtime);  end
+  def ctime;      Time.at(@ctime);  end
+  def path;       @path;            end
+  def blksize;    @blksize;         end
+  def dev;        @dev;             end
+  def dev_major;  @dev_major;       end
+  def dev_minor;  @dev_minor;       end
+
+  alias_method :gid, :group
+  alias_method :uid, :owner
+  alias_method :blocks, :block
+
+  # Constants
+
+  FILE_TYPES = {
+    :dir    => 'directory',
+    :char   => 'characterSpecial',
+    :block  => 'blockSpecial',
+    :fifo   => 'fifo',
+    :link   => 'link',
+    :socket => 'socket',
+    :file   => 'file'
+  }
+
+  # Instance methods
+
+  def blockdev?
+    @kind == :block
+  end
+
+  def chardev?
+    @kind == :char
+  end
+
+  def directory?
+    @kind == :dir
+  end
+
+  def executable?
+    return true if superuser?
+    return @mode & IO::S_IXUSR != 0 if owned?
+    return @mode & IO::S_IXGRP != 0 if grpowned?
+    return @mode & IO::S_IXOTH != 0
+  end
+
+  def executable_real?
+    return true if rsuperuser?
+    return @mode & IO::S_IXUSR != 0 if rowned?
+    return @mode & IO::S_IXGRP != 0 if rgrpowned?
+    return @mode & IO::S_IXOTH != 0
+  end
+
+  def file?
+    @kind == :file
+  end
+
+  def ftype
+    FILE_TYPES[@kind] or 'unknown'
+  end
+
+  def grpowned?
+    @group == Platform::POSIX.getegid
+  end
+
+  def inspect
+    "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
+  end
+
+  def owned?
+    @owner == Platform::POSIX.geteuid
+  end
+
+  def pipe?
+    @kind == :fifo
+  end
+
+  def readable?
+    return true if superuser?
+    return @mode & IO::S_IRUSR != 0 if owned?
+    return @mode & IO::S_IRGRP != 0 if grpowned?
+    return @mode & IO::S_IROTH != 0
+  end
+
+  def readable_real?
+    return true if rsuperuser?
+    return @mode & IO::S_IRUSR != 0 if rowned?
+    return @mode & IO::S_IRGRP != 0 if rgrpowned?
+    return @mode & IO::S_IROTH != 0
+  end
+
+  def size?
+    if @size == 0
+      nil
+    else
+      @size
+    end
+  end
+
+  def socket?
+    @kind == :socket
+  end
+
+  def symlink?
+    @kind == :link
+  end
+
+  def writable?
+    return true if superuser?
+    return @mode & IO::S_IWUSR != 0 if owned?
+    return @mode & IO::S_IWGRP != 0 if grpowned?
+    return @mode & IO::S_IWOTH != 0
+  end
+
+  def writable_real?
+    return true if rsuperuser?
+    return @mode & IO::S_IWUSR != 0 if rowned?
+    return @mode & IO::S_IWGRP != 0 if rgrpowned?
+    return @mode & IO::S_IWOTH != 0
+  end
+
+  def zero?
+    @size == 0
+  end
+
+  # Internal methods
+
+  def rgrpowned?
+    @group == Platform::POSIX.getgid
+  end
+  private :rgrpowned?
+
+  def rowned?
+    @owner == Platform::POSIX.getuid
+  end
+  private :rowned?
+
+  def rsuperuser?
+    Platform::POSIX.getuid == 0
+  end
+  private :rsuperuser?
+
+  def superuser?
+    Platform::POSIX.geteuid == 0
+  end
+  private :superuser?
+
+end   # File::Stat

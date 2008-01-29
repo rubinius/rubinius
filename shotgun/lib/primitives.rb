@@ -1176,7 +1176,7 @@ class ShotgunPrimitives
       tuple_put(state, t2, 10, t1);
       tuple_put(state, t2, 11, UI2N((unsigned long)sb.st_blksize));
       tuple_put(state, t2, 12, UI2N((unsigned long)sb.st_dev));
-      tuple_put(state, t2, 12, I2N((int)sb.st_dev));
+      tuple_put(state, t2, 12, UI2N((unsigned long)sb.st_dev));
       
       OBJECT dev_major = Qnil, dev_minor = Qnil;
 
