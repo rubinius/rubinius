@@ -50,10 +50,12 @@ class RunState
     @spec.each do |desc, spec|
       @state = SpecState.new @describe, desc
       MSpec.actions :before, @state
-      protect "before :each", @before
-      protect nil, spec
-      protect "after :each", @after
-      protect "Mock.cleanup", lambda { Mock.cleanup }
+      if @state.unfiltered?
+        protect "before :each", @before
+        protect nil, spec
+        protect "after :each", @after
+        protect "Mock.cleanup", lambda { Mock.cleanup }
+      end
       MSpec.actions :after, @state
       @state = nil
     end
@@ -76,7 +78,7 @@ class SpecState
   end
   
   def description
-    "#{@describe} #{@it}"
+    @description ||= "#{@describe} #{@it}"
   end
   
   def exceptions
@@ -86,4 +88,18 @@ class SpecState
   def exception?
     not exceptions.empty?
   end
+  
+  def unfiltered?
+    unless @unfiltered
+      incl = MSpec.retrieve(:include) || []
+      excl = MSpec.retrieve(:exclude) || []
+      @unfiltered   = incl.empty? || incl.any? { |f| f === description }
+      @unfiltered &&= excl.empty? || !excl.any? { |f| f === description }
+    end
+    @unfiltered
+  end
+  
+  def filtered?
+    not unfiltered?
+  end 
 end

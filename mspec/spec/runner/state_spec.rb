@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../mspec'
+# require File.dirname(__FILE__) + '/../../mspec'
 require File.dirname(__FILE__) + '/../../runner/runner'
 require File.dirname(__FILE__) + '/../../mocks/mock'
 require File.dirname(__FILE__) + '/../../runner/state'
@@ -131,10 +131,10 @@ describe RunState, "#process" do
   end
   
   it "creates a new SpecState instance for each spec" do
-    SpecState.should_receive(:new).with("describe", "it")
-    @state.describe("describe") { }
-    @state.it("it") { }
+    @state.describe("desc") { }
+    @state.it("it") { @record = @state.state }
     @state.process
+    @record.should be_kind_of(SpecState)
   end
   
   it "records exceptions that occur while running the spec" do
@@ -232,5 +232,70 @@ describe SpecState, "#exception?" do
   it "returns true if any exceptions were recorded" do
     @state.exceptions.push :a
     @state.exception?.should == true
+  end
+end
+
+describe SpecState, "#unfiltered?" do
+  before :each do
+    MSpec.store :include, nil
+    MSpec.store :exclude, nil
+    
+    @state = SpecState.new("describe", "it")
+    @filter = mock("filter")
+  end
+
+  it "returns true if MSpec include filters list is empty" do
+    @state.unfiltered?.should == true
+  end
+  
+  it "returns true if MSpec include filters match this spec" do
+    @filter.should_receive(:===).and_return(true)
+    MSpec.register :include, @filter
+    @state.unfiltered?.should == true
+  end
+  
+  it "returns false if MSpec include filters do not match this spec" do
+    @filter.should_receive(:===).and_return(false)
+    MSpec.register :include, @filter
+    @state.unfiltered?.should == false
+  end
+  
+  it "returns true if MSpec exclude filters list is empty" do
+    @state.unfiltered?.should == true
+  end
+  
+  it "returns true if MSpec exclude filters do not match this spec" do
+    @filter.should_receive(:===).and_return(false)
+    MSpec.register :exclude, @filter
+    @state.unfiltered?.should == true
+  end
+  
+  it "returns false if MSpec exclude filters match this spec" do
+    @filter.should_receive(:===).and_return(true)
+    MSpec.register :exclude, @filter
+    @state.unfiltered?.should == false
+  end
+  
+  it "returns false if MSpec include and exclude filters match this spec" do
+    @filter.should_receive(:===).twice.and_return(true)
+    MSpec.register :include, @filter
+    MSpec.register :exclude, @filter
+    @state.unfiltered?.should == false
+  end
+end
+
+describe SpecState, "#filtered?" do
+  before :each do
+    @state = SpecState.new("describe", "it")
+  end
+  
+  it "returns true if #unfiltered returns false" do
+    @state.should_receive(:unfiltered?).and_return(false)
+    @state.filtered?.should == true
+  end
+  
+  it "returns false if #unfiltered returns true" do
+    @state.should_receive(:unfiltered?).and_return(true)
+    @state.filtered?.should == false
   end
 end
