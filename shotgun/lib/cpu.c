@@ -106,7 +106,6 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_initialize = SYM("initialize");
   state->global->sym_init_copy = SYM("initialize_copy");
  
-  c->exceptions = Qnil;
   c->current_thread = Qnil;
   c->current_scope = Qnil;
 
@@ -135,7 +134,6 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   ar(c->exception);
   ar(c->enclosing_class);
   ar(c->main);
-  ar(c->exceptions);
   ar(c->current_thread);
   ar(c->main_thread);
   ar(c->current_task);
@@ -195,7 +193,6 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   ar(c->exception);
   ar(c->enclosing_class);
   ar(c->main);
-  ar(c->exceptions);
   ar(c->current_thread);
   ar(c->main_thread);
   ar(c->current_task);

@@ -65,7 +65,6 @@ struct fast_context {
   unsigned long int stack_size; \
   OBJECT exception; \
   OBJECT enclosing_class; \
-  OBJECT exceptions; \
   OBJECT active_context, home_context, main; \
   ptr_array paths; \
   unsigned int depth; \
@@ -100,8 +99,6 @@ struct rubinius_cpu {
   
   // CPU_REGISTERS;
   
-  unsigned int current_thread_ready;
- 
   OBJECT current_task, main_task;
   OBJECT current_thread, main_thread;
   
