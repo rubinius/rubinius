@@ -254,27 +254,10 @@ module Digest
       self.new.digest(data)
     end
 
-    # call-seq:
-    #     Digest::Class.hexdigest(string[, ...]) -> hash_string
-    #
-    # Returns the hex-encoded hash value of a given +string+.  This is
-    # almost equivalent to
-    # Digest.hexencode(Digest::Class.new(*parameters).digest(string)).
-    def hexdigest(string = nil)
-      data = nil
-
-      if string then
-        reset
-        update string
-        data = finish
-        reset
-      else
-        new = clone
-        data = new.send :finish
-        new.reset
-      end
-
-      Digest.hexencode data
+    # Returns the hex-encoded digest value of the given +data+.
+    def hexdigest(data = nil)
+      raise ArgumentError, 'no data given' if data.nil?
+      new.hexdigest data
     end
 
   end
