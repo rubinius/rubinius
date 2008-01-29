@@ -365,7 +365,7 @@ module Marshal
         ms.proc.call(false) if ms.call_proc
         false
       when TYPE_CLASS, TYPE_MODULE
-        cls_mod = Module.const_get(construct_symbol(ms, str))
+        cls_mod = Module.const_lookup construct_symbol(ms, str)
         ms.proc.call(cls_mod) if ms.call_proc
         store_unique_object(ms, cls_mod)
       when TYPE_FIXNUM
@@ -692,7 +692,7 @@ module Marshal
     ms.call_proc = false
 
     name = construct ms, str
-    mod = name.to_s.split('::').inject(Object) do |m, n| m.const_get n end
+    mod = Object.const_lookup name
     obj = mod.allocate
 
     store_unique_object(ms, obj) if ms.nested
@@ -708,14 +708,19 @@ module Marshal
     store_unique_object(ms, sym)
     s = get_byte_sequence(ms, str)
     set_instance_variables(ms, str, s)
-    Module.const_get(sym)._load(s)
+    Module.const_lookup(sym)._load(s)
   end
 
   def self.construct_custom_object_mul(ms, str)
     sym = construct(ms, str)
     store_unique_object(ms, sym)
-    obj = Module.const_get(sym).new
-    obj.marshal_load(obj)
+
+    obj = Module.const_lookup(sym).allocate
+
+    data = construct ms, str
+    obj.marshal_load data
+
+    obj
   end
 
   def self.set_instance_variables(ms, str, obj)
@@ -752,7 +757,7 @@ module Marshal
 
   def self.extend_object(modules, obj)
     modules.reverse_each do |sym|
-      mod = Module.const_get(sym)
+      mod = Module.const_lookup sym
       obj.extend(mod)
     end
     obj
@@ -765,7 +770,7 @@ module Marshal
   end
 
   def self.get_user_class(ms)
-    cls = Module.const_get(ms.user_class)
+    cls = Module.const_lookup ms.user_class
     ms.user_class = nil
     cls
   end

@@ -555,6 +555,15 @@ class Module
     recursive_const_get(name)
   end
 
+  def const_lookup(name)
+    mod = self
+
+    parts = String(name).split '::'
+    parts.each do |part| mod = mod.const_get part end
+
+    mod
+  end
+
   def const_missing(name)
     # Check for autoloads here because this is called no matter how
     # the constant was attempted to be accessed (ie, const_get or VM)

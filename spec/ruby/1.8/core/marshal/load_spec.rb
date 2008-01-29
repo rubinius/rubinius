@@ -260,29 +260,46 @@ describe "Marshal.load with serializated extended_object having class name for _
 end
 
 class OtherCustomWithIvar
+  attr_reader :data
+
+  def initialize
+    @data = 'my data'
+  end
+
   def marshal_dump
-    a = []
-    a.instance_variable_set(:@foo, :OtherCustomWithIvar)
-    a
+    [@data]
   end
-  def marshal_load(o); o; end
-end
-class OtherCustom
-  def marshal_dump; "stuff"; end
-  def marshal_load(o); o; end
+
+  def marshal_load(o)
+    @data = o.first
+  end
 end
 
-describe "Marshal.load with serialized object having class name for marshal_load method" do
-  it "returns the object from marshal_load" do
+describe "Marshal.load with object using marshal_load" do
+  it "calls marshal_load" do
     obj = OtherCustomWithIvar.new
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    new_obj = Marshal.load Marshal.dump(obj)
+
+    new_obj.data.should == obj.data
   end
 end
 
-describe "Marshal.load with serialized extended_object having class name for marshal_load method" do
-  it "returns the object from marshal_load" do
+class OtherCustom
+  attr_reader :data
+
+  def initialize
+    @data = 'stuff'
+  end
+  def marshal_dump() @data end
+  def marshal_load(o) @data = o end
+end
+
+describe "Marshal.load with extended object using marshal_load method" do
+  it "calls marshal_load" do
     obj = OtherCustom.new.extend(Meths)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    new_obj = Marshal.load Marshal.dump(obj)
+
+    new_obj.data.should == obj.data
   end
 end
 
