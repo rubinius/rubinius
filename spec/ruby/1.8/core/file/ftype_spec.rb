@@ -2,7 +2,6 @@ require "#{File.dirname(__FILE__)}/../../spec_helper"
 require "#{File.dirname(__FILE__)}/fixtures/file_types.rb"
 
 describe "File.ftype" do
-
   it "raises ArgumentError if not given exactly one filename" do
     lambda { File.ftype }.should raise_error(ArgumentError)
     lambda { File.ftype('blah', 'bleh') }.should raise_error(ArgumentError)
