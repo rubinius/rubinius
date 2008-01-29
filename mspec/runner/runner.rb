@@ -165,8 +165,15 @@ module MSpec
     current.process
   end
   
+  def self.process
+    actions :start
+    files
+    actions :finish
+  end
+  
   def self.actions(action)
-    retrieve(action).each { |obj| obj.send action }
+    actions = retrieve(action)
+    actions.each { |obj| obj.send action } if actions
   end
   
   def self.register_files(files)

@@ -200,6 +200,7 @@ end
 
 describe MSpec, ".actions" do
   before :each do
+    MSpec.store :start, []
     @record = []
     start_one = mock("one")
     start_one.stub!(:start).and_return { @record << :one }
@@ -207,6 +208,11 @@ describe MSpec, ".actions" do
     start_two.stub!(:start).and_return { @record << :two }
     MSpec.register :start, start_one
     MSpec.register :start, start_two
+  end
+  
+  it "does not attempt to run any actions if none have been registered" do
+    MSpec.store :finish, nil
+    lambda { MSpec.actions :finish }.should_not raise_error
   end
   
   it "runs each action registered as a start action" do
@@ -224,5 +230,34 @@ describe MSpec, ".verify_mode?" do
     MSpec.verify_mode?.should == false
     MSpec.register_mode :verify
     MSpec.verify_mode?.should == true
+  end
+end
+
+describe MSpec, ".process" do
+  before :each do
+    MSpec.stub!(:files)
+    MSpec.store :start, []
+    MSpec.store :finish, []
+  end
+  
+  it "calls all start actions" do
+    start = mock("start")
+    start.stub!(:start).and_return { @record = :start }
+    MSpec.register :start, start
+    MSpec.process
+    @record.should == :start
+  end
+  
+  it "calls all finish actions" do
+    finish = mock("finish")
+    finish.stub!(:finish).and_return { @record = :finish }
+    MSpec.register :finish, finish
+    MSpec.process
+    @record.should == :finish
+  end
+  
+  it "calls the files method" do
+    MSpec.should_receive(:files)
+    MSpec.process
   end
 end
