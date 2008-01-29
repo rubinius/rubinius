@@ -1,0 +1,1 @@
+require 'mspec/runner/actions/tally'
