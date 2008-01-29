@@ -215,6 +215,22 @@ describe "Marshal.load with serialized module" do
   end
 end
 
+class Custom
+  class Nested
+    def ==(other)
+      other.kind_of? self.class
+    end
+  end
+end
+
+describe "Marshal.load with nested modules" do
+  it "loads" do
+    obj = Custom::Nested.new
+    data = Marshal.dump obj
+    Marshal.load(data).should == obj
+  end
+end
+
 class CustomWithIvar
   def _dump(depth)
     s = "stuff"

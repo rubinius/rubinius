@@ -687,9 +687,14 @@ module Marshal
   end
 
   def self.construct_object(ms, str)
-    modules = ms.modules; ms.modules = []
+    modules = ms.modules
+    ms.modules = []
     ms.call_proc = false
-    obj = Module.const_get(construct(ms, str)).allocate
+
+    name = construct ms, str
+    mod = name.to_s.split('::').inject(Object) do |m, n| m.const_get n end
+    obj = mod.allocate
+
     store_unique_object(ms, obj) if ms.nested
     ms.has_ivar = true
     set_instance_variables(ms, str, obj)
