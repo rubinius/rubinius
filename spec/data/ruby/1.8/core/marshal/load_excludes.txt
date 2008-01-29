@@ -1,0 +1,5 @@
+Marshal.load with serialized string having ivar with ref to self returns a construction of the argument
+Marshal.load with serialized float -0.0 returns a construction of the argument
+Marshal.load with serialized array containing objects having _dump method, and with proc returns a construction of the argument
+Marshal.load with serialized array containing objects having marshal_dump method, and with proc returns a construction of the argument
+Marshal.load with serialized array containing the same objects returns a construction of the argument
