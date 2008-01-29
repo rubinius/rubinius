@@ -240,3 +240,13 @@ SET:
 	ldr	r0, [r0]
 	mov	pc, lr
 #endif
+
+
+/* The following is a fix that ensures the assembly code isn't part of the executable stack
+   Added 01.29.08 by Caleb Tennis
+   See http://www.gentoo.org/proj/en/hardened/gnu-stack.xml
+*/
+
+#if defined(__linux__) && defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
