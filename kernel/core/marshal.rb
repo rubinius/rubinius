@@ -1,181 +1,173 @@
 # depends on: module.rb class.rb
 
 class NilClass
-  def to_marshal(ms = nil)
+  def to_marshal(ms)
     Marshal::TYPE_NIL
   end
 end
 
 class TrueClass
-  def to_marshal(ms = nil)
+  def to_marshal(ms)
     Marshal::TYPE_TRUE
   end
 end
 
 class FalseClass
-  def to_marshal(ms = nil)
+  def to_marshal(ms)
     Marshal::TYPE_FALSE
   end
 end
 
 class Class
-  def to_marshal(ms = nil)
+  def to_marshal(ms)
     raise TypeError, "can't dump anonymous class #{self}" if self.name == ''
-    Marshal::TYPE_CLASS +
-    Marshal.serialize_integer(self.name.length) + self.name
+    Marshal::TYPE_CLASS + ms.serialize_integer(name.length) + name
   end
 end
 
 class Module
-  def to_marshal(ms = nil)
+  def to_marshal(ms)
     raise TypeError, "can't dump anonymous module #{self}" if self.name == ''
-    Marshal::TYPE_MODULE +
-    Marshal.serialize_integer(self.name.length) + self.name
+    Marshal::TYPE_MODULE + ms.serialize_integer(name.length) + name
   end
 end
 
 class Symbol
-  def to_marshal(ms = nil)
-    if idx = ms.find_symlink(self)
-      Marshal::TYPE_SYMLINK + Marshal.serialize_integer(idx)
+  def to_marshal(ms)
+    if idx = ms.find_symlink(self) then
+      Marshal::TYPE_SYMLINK + ms.serialize_integer(idx)
     else
-      ms.add_symlink(self)
+      ms.add_symlink self
 
-      str = self.to_s
-      Marshal::TYPE_SYMBOL +
-      Marshal.serialize_integer(str.length) + str
+      str = to_s
+      Marshal::TYPE_SYMBOL + ms.serialize_integer(str.length) + str
     end
   end
 end
 
 class String
-  def to_marshal(ms = Marshal::State.new)
-    out = Marshal.serialize_instance_variables_prefix(self)
-    out << Marshal.serialize_extended_object(ms, self)
-    out << Marshal.serialize_user_class(ms, self, String)
+  def to_marshal(ms)
+    out = ms.serialize_instance_variables_prefix(self)
+    out << ms.serialize_extended_object(self)
+    out << ms.serialize_user_class(self, String)
     out << Marshal::TYPE_STRING
-    out << Marshal.serialize_integer(self.length) + self
-    out << Marshal.serialize_instance_variables_suffix(ms, self)
+    out << ms.serialize_integer(self.length) << self
+    out << ms.serialize_instance_variables_suffix(self)
   end
 end
 
-class Integer
-  def to_marshal(ms = nil)
-    if Marshal.fixnum? self
-      to_marshal_fixnum
-    else
-      to_marshal_bignum
-    end
+class Fixnum
+  def to_marshal(ms)
+    Marshal::TYPE_FIXNUM + ms.serialize_integer(self)
   end
+end
 
-  def to_marshal_fixnum
-    Marshal::TYPE_FIXNUM +
-    Marshal.serialize_integer(self)
-  end
-
-  def to_marshal_bignum
+class Bignum
+  def to_marshal(ms)
     str = Marshal::TYPE_BIGNUM + (self < 0 ? '-' : '+')
     cnt = 0
     num = self.abs
+
     while num != 0
-      str << Marshal.to_byte(num)
+      str << ms.to_byte(num)
       num >>= 8
       cnt += 1
     end
+
     if cnt % 2 == 1
       str << "\0"
       cnt += 1
     end
-    str[0..1] + Marshal.serialize_integer(cnt / 2) + str[2..-1]
+
+    str[0..1] + ms.serialize_integer(cnt / 2) + str[2..-1]
   end
 end
 
 class Regexp
-  def to_marshal(ms = Marshal::State.new)
+  def to_marshal(ms)
     str = self.source
-    out = Marshal.serialize_instance_variables_prefix(self)
-    out << Marshal.serialize_extended_object(ms, self)
-    out << Marshal.serialize_user_class(ms, self, Regexp)
+    out = ms.serialize_instance_variables_prefix(self)
+    out << ms.serialize_extended_object(self)
+    out << ms.serialize_user_class(self, Regexp)
     out << Marshal::TYPE_REGEXP
-    out << Marshal.serialize_integer(str.length) + str
-    out << Marshal.to_byte(self.options & 0x7)
-    out << Marshal.serialize_instance_variables_suffix(ms, self)
+    out << ms.serialize_integer(str.length) + str
+    out << ms.to_byte(options & 0x7)
+    out << ms.serialize_instance_variables_suffix(self)
   end
 end
 
 class Struct
-  def to_marshal(ms = Marshal::State.new)
-    out =  Marshal.serialize_instance_variables_prefix(self)
-    out << Marshal.serialize_extended_object(ms, self)
+  def to_marshal(ms)
+    out =  ms.serialize_instance_variables_prefix(self)
+    out << ms.serialize_extended_object(self)
     out << Marshal::TYPE_STRUCT
-    out << Marshal.serialize(ms, self.class.name.to_sym)
-    out << Marshal.serialize_integer(self.length)
+    out << ms.serialize(self.class.name.to_sym)
+    out << ms.serialize_integer(self.length)
     self.each_pair do |sym, val|
-      out << Marshal.serialize(ms, sym)
-      out << Marshal.serialize(ms, val)
+      out << ms.serialize(sym)
+      out << ms.serialize(val)
     end
-    out << Marshal.serialize_instance_variables_suffix(ms, self)
+    out << ms.serialize_instance_variables_suffix(self)
     out
   end
 end
 
 class Array
-  def to_marshal(ms = Marshal::State.new)
-    out = Marshal.serialize_instance_variables_prefix(self)
-    out << Marshal.serialize_extended_object(ms, self)
-    out << Marshal.serialize_user_class(ms, self, Array)
+  def to_marshal(ms)
+    out = ms.serialize_instance_variables_prefix(self)
+    out << ms.serialize_extended_object(self)
+    out << ms.serialize_user_class(self, Array)
     out << Marshal::TYPE_ARRAY
-    out << Marshal.serialize_integer(self.length)
-    unless self.empty?
-      self.each do |element|
-        out << Marshal.serialize(ms, element)
+    out << ms.serialize_integer(self.length)
+    unless empty? then
+      each do |element|
+        out << ms.serialize(element)
       end
     end
-    out << Marshal.serialize_instance_variables_suffix(ms, self)
+    out << ms.serialize_instance_variables_suffix(self)
   end
 end
 
 class Hash
-  def to_marshal(ms = Marshal::State.new)
-    raise TypeError, "can't dump hash with default proc" if self.default_proc
-    out = Marshal.serialize_instance_variables_prefix(self)
-    out << Marshal.serialize_extended_object(ms, self)
-    out << Marshal.serialize_user_class(ms, self, Hash)
+  def to_marshal(ms)
+    raise TypeError, "can't dump hash with default proc" if default_proc
+    out = ms.serialize_instance_variables_prefix(self)
+    out << ms.serialize_extended_object(self)
+    out << ms.serialize_user_class(self, Hash)
     out << (self.default ? Marshal::TYPE_HASH_DEF : Marshal::TYPE_HASH)
-    out << Marshal.serialize_integer(self.length)
-    unless self.empty?
-      self.each_pair do |(key, val)|
-        out << Marshal.serialize(ms, key)
-        out << Marshal.serialize(ms, val)
+    out << ms.serialize_integer(length)
+    unless empty? then
+      each_pair do |(key, val)|
+        out << ms.serialize(key)
+        out << ms.serialize(val)
       end
     end
-    out << (self.default ? Marshal.serialize(ms, self.default) : '')
-    out << Marshal.serialize_instance_variables_suffix(ms, self)
+    out << (default ? ms.serialize(default) : '')
+    out << ms.serialize_instance_variables_suffix(self)
   end
 end
 
 class Float
-  def to_marshal(ms = nil)
-    str = if self.nan?
+  def to_marshal(ms)
+    str = if nan? then
             "nan"
-          elsif self.zero?
+          elsif zero? then
             (1.0 / self) < 0 ? '-0' : '0'
-          elsif self.infinite?
+          elsif infinite? then
             self < 0 ? "-inf" : "inf"
           else
-            "%.*g" % [17, self] + Marshal.serialize_float_thing(self)
+            "%.*g" % [17, self] + ms.serialize_float_thing(self)
           end
-    Marshal::TYPE_FLOAT +
-    Marshal.serialize_integer(str.length) + str
+    Marshal::TYPE_FLOAT + ms.serialize_integer(str.length) + str
   end
 end
 
 class Object
-  def to_marshal(ms = Marshal::State.new)
-    out = Marshal.serialize_extended_object(ms, self)
+  def to_marshal(ms)
+    out = ms.serialize_extended_object self
     out << Marshal::TYPE_OBJECT
-    out << Marshal.serialize(ms, self.class.name.to_sym)
-    out << Marshal.serialize_instance_variables_suffix(ms, self, true)
+    out << ms.serialize(self.class.name.to_sym)
+    out << ms.serialize_instance_variables_suffix(self, true)
   end
 end
 
@@ -216,7 +208,7 @@ module Marshal
   TYPE_LINK = '@'
 
   class State
-    
+
     attr_accessor :depth
     attr_accessor :consumed
     attr_accessor :modules
@@ -244,18 +236,6 @@ module Marshal
       @call_proc = false
     end
 
-    def call(obj)
-      @proc.call(obj) if @proc and @call_proc
-    end
-
-    def find_link(obj)
-      if idx = @links[obj.object_id]
-        return idx
-      end
-
-      return nil
-    end
-
     def add_object(obj)
       return if obj.kind_of?(ImmediateValue)
       sz = @links.size
@@ -263,19 +243,489 @@ module Marshal
       @links[obj.object_id] = sz
     end
 
-    def find_symlink(obj)
-      if idx = @symlinks[obj.object_id]
-        return idx
-      end
-
-      return nil
-    end
-
     def add_symlink(obj)
       sz = @symlinks.size
       @symbols[sz] = obj
       @symlinks[obj.object_id] = sz
     end
+
+    def call(obj)
+      @proc.call(obj) if @proc and @call_proc
+    end
+
+    def construct(str)
+      i = @consumed
+      @consumed += 1
+
+      if i == 0 or i == 1
+        construct str
+      else
+        c = str[i].chr
+        case c
+        when TYPE_NIL
+          @proc.call nil if @call_proc
+          nil
+        when TYPE_TRUE
+          @proc.call true if @call_proc
+          true
+        when TYPE_FALSE
+          @proc.call false if @call_proc
+          false
+        when TYPE_CLASS, TYPE_MODULE
+          cls_mod = Module.const_lookup construct_symbol(str)
+          @proc.call cls_mod if @call_proc
+          store_unique_object cls_mod
+        when TYPE_FIXNUM
+          obj = construct_integer str
+          @proc.call obj if @call_proc
+          obj
+        when TYPE_BIGNUM
+          construct_bignum str
+        when TYPE_FLOAT
+          construct_float str
+        when TYPE_SYMBOL
+          construct_symbol str
+        when TYPE_STRING
+          construct_string str
+        when TYPE_REGEXP
+          construct_regexp str
+        when TYPE_ARRAY
+          construct_array str
+        when TYPE_HASH, TYPE_HASH_DEF
+          construct_hash str, c
+        when TYPE_STRUCT
+          construct_struct str
+        when TYPE_OBJECT
+          construct_object str
+        when TYPE_USERDEF
+          construct_custom_object_ul str
+        when TYPE_USRMARSHAL
+          construct_custom_object_mul str
+        when TYPE_LINK
+          num = construct_integer str
+          @objects[num-1]
+        when TYPE_SYMLINK
+          num = construct_integer str
+          @symbols[num]
+        when TYPE_EXTENDED
+          @call_proc = false
+          sym = construct str
+          @modules << sym
+          store_unique_object sym
+          construct str
+        when TYPE_UCLASS
+          @call_proc = false
+          sym = construct str
+          @user_class = sym
+          store_unique_object sym
+          construct str
+        when TYPE_IVAR
+          @has_ivar = true
+          construct str
+        else
+          raise ArgumentError, "load error"
+        end
+      end
+    end
+
+    def construct_array(str)
+      has_ivar = @has_ivar; @has_ivar = false
+      modules = @modules; @modules = []
+      obj = @user_class ? get_user_class.new : []
+      store_unique_object obj if @nested
+      @nested = true
+      @call_proc = true if @proc
+      construct_integer(str).times do
+        obj << construct(str)
+      end
+      @has_ivar = has_ivar
+      set_instance_variables str, obj
+      extend_object(modules, obj)
+      @proc.call(obj) if @proc
+      obj
+    end
+
+    def construct_bignum(str)
+      result = 0
+      i = @consumed
+      @consumed += 1
+      sign = str[i].chr == '-' ? -1 : 1
+      size = construct_integer(str) * 2
+      i = @consumed
+      (0...size).each do |exp|
+        result += (str[i] * 2**(exp*8))
+        i += 1
+      end
+      @consumed += size
+      obj = result * sign
+      @proc.call(obj) if @call_proc
+      store_unique_object obj
+    end
+
+    def construct_custom_object_mul(str)
+      sym = construct str
+      store_unique_object sym
+
+      obj = Module.const_lookup(sym).allocate
+
+      data = construct str
+      obj.marshal_load data
+
+      obj
+    end
+
+    def construct_custom_object_ul(str)
+      sym = construct str
+      store_unique_object sym
+      s = get_byte_sequence str
+      set_instance_variables str, s
+      Module.const_lookup(sym)._load(s)
+    end
+
+    def construct_float(str)
+      s = get_byte_sequence str
+      if s == "nan"
+        obj = 0.0 / 0.0
+      elsif s == "inf"
+        obj = 1.0 / 0.0
+      elsif s == "-inf"
+        obj = 1.0 / -0.0
+      else
+        obj = s.to_f
+      end
+      @proc.call obj if @call_proc
+      store_unique_object obj
+    end
+
+    def construct_hash(str, type)
+      has_ivar = @has_ivar; @has_ivar = false
+      modules = @modules; @modules = []
+      obj = @user_class ? get_user_class.new : {}
+      store_unique_object obj if @nested
+      @nested = true
+      @call_proc = true if @proc
+      construct_integer(str).times do
+        key = construct str
+        val = construct str
+        obj[key] = val
+      end
+      @call_proc = true if @proc
+      obj.default = construct str if type == TYPE_HASH_DEF
+      @has_ivar = has_ivar
+      set_instance_variables str, obj
+      extend_object(modules, obj)
+      @proc.call(obj) if @proc
+      obj
+    end
+
+    def construct_integer(str)
+      i = @consumed
+      @consumed += 1
+      n = str[i]
+      if (n > 0 and n < 5) or n > 251
+        (size, signed) = n > 251 ? [256 - n, 2**((256 - n)*8)] : [n, 0]
+        result = 0
+        (0...size).each do |exp|
+          i += 1
+          result += (str[i] * 2**(exp*8))
+        end
+        @consumed += size
+        result - signed
+      elsif n > 127
+        (n - 256) + 5
+      elsif n > 4
+        n - 5
+      else
+        n
+      end
+    end
+
+    def construct_object(str)
+      modules = @modules
+      @modules = []
+      @call_proc = false
+
+      name = construct str
+      mod = Object.const_lookup name
+      obj = mod.allocate
+
+      store_unique_object obj if @nested
+      @has_ivar = true
+      set_instance_variables str, obj
+      extend_object(modules, obj)
+      @proc.call obj if @proc
+      obj
+    end
+
+    def construct_regexp(str)
+      modules = @modules; @modules = []
+      s = get_byte_sequence str
+      i = @consumed
+      @consumed += 1
+      if @user_class
+        obj = get_user_class.new(s, str[i])
+      else
+        obj = Regexp.new(s, str[i])
+      end
+      set_instance_variables str, obj
+      extend_object(modules, obj)
+      @proc.call obj if @call_proc
+      store_unique_object obj
+    end
+
+    def construct_string(str)
+      modules = @modules; @modules = []
+      obj = get_byte_sequence str
+      obj = get_user_class.new obj if @user_class
+      set_instance_variables str, obj
+      extend_object(modules, obj)
+      @proc.call obj if @call_proc
+      store_unique_object obj
+    end
+
+    def construct_struct(str)
+      modules = @modules; @modules = []
+      symbols = []; values = []
+      @call_proc = false
+      sym = construct str
+      store_unique_object sym
+      @nested = true
+      construct_integer(str).times do
+        @call_proc = false
+        symbols << construct(str)
+        @call_proc = true if @proc
+        values << construct(str)
+      end
+      obj = Struct.new(sym.to_s.sub(/\AStruct\:\:/, ''), *symbols).new
+      (0...symbols.length).each do |i|
+        obj[symbols[i]] = values[i]
+      end
+      set_instance_variables str, obj
+      extend_object(modules, obj)
+      @proc.call obj if @proc
+      store_unique_object obj
+    end
+
+    def construct_symbol(str)
+      obj = get_byte_sequence(str).to_sym
+      @proc.call obj if @call_proc
+      store_unique_object obj
+    end
+
+    def extend_object(modules, obj)
+      modules.reverse_each do |sym|
+        mod = Module.const_lookup sym
+        obj.extend mod
+      end
+
+      obj
+    end
+
+    def find_link(obj)
+      @links[obj.object_id]
+    end
+
+    def find_symlink(obj)
+      @symlinks[obj.object_id]
+    end
+
+    def frexp(flt)
+      ptr = MemoryPointer.new :int
+      return Platform::Float.frexp flt, ptr
+    ensure
+      ptr.free if ptr
+    end
+
+    def get_byte_sequence(str)
+      size = construct_integer(str)
+      i = @consumed
+      k = i + size
+      @consumed += size
+      str[i...k]
+    end
+
+    def get_module_names(obj)
+      names = []
+      sup = obj.metaclass.superclass
+
+      while sup and [Module, IncludedModule].include? sup.class do
+        names << sup.name
+        sup = sup.superclass
+      end
+
+      names
+    end
+
+    def get_user_class
+      cls = Module.const_lookup @user_class
+      @user_class = nil
+      cls
+    end
+
+    def ldexp(flt, exp)
+      Platform::Float.ldexp flt, exp
+    end
+
+    def modf(flt)
+      ptr = MemoryPointer.new :double
+
+      flt = Platform::Float.modf flt, ptr
+      num = ptr.read_float
+
+      return flt, num
+    ensure
+      ptr.free if ptr
+    end
+
+    def prepare_ivar(sym)
+      str = sym.to_s
+      str.sub!(/\A\@+/, '')
+      ('@' + str).to_sym
+    end
+
+    def serialize(obj)
+      raise ArgumentError, "exceed depth limit" if @depth == 0
+
+      # How much depth we have left.
+      @depth -= 1;
+
+      if link = find_link(obj)
+        str = TYPE_LINK + serialize_integer(link)
+      else
+        add_object obj
+        if obj.respond_to? :_dump then
+          str = serialize_custom_object_ud obj
+        elsif obj.respond_to? :marshal_dump then
+          str = serialize_custom_object_mud obj
+        else
+          str = obj.to_marshal self
+        end
+      end
+
+      @depth += 1
+
+      return str
+    end
+
+    def serialize_custom_object_mud(obj)
+      val = obj.marshal_dump
+      out = TYPE_USRMARSHAL + serialize(obj.class.name.to_sym)
+      out << val.to_marshal(self)
+    end
+
+    def serialize_custom_object_ud(obj)
+      str = obj._dump @depth
+      raise TypeError, "_dump() must return string" if str.class != String
+      out = serialize_instance_variables_prefix(str)
+      out << TYPE_USERDEF + serialize(obj.class.name.to_sym)
+      out << serialize_integer(str.length) + str
+      out << serialize_instance_variables_suffix(str)
+    end
+
+    def serialize_extended_object(obj)
+      str = ''
+      get_module_names(obj).each do |mod_name|
+        str << TYPE_EXTENDED + serialize(mod_name.to_sym)
+      end
+      str
+    end
+
+    def serialize_float_thing(flt)
+      str = ''
+      (flt, ) = modf(ldexp(frexp(flt.abs), 37));
+      str << "\0" if flt > 0
+      while flt > 0
+        (flt, n) = modf(ldexp(flt, 32))
+        n = n.to_i
+        str << to_byte(n >> 24)
+        str << to_byte(n >> 16)
+        str << to_byte(n >> 8)
+        str << to_byte(n)
+      end
+      str.chomp!("\0") while str[-1] == 0
+      str
+    end
+
+    def serialize_instance_variables_prefix(obj)
+      if obj.instance_variables.length > 0
+        TYPE_IVAR + ''
+      else
+      ''
+      end
+    end
+
+    def serialize_instance_variables_suffix(obj, force = false)
+      if force or obj.instance_variables.length > 0
+        str = serialize_integer(obj.instance_variables.length)
+        obj.instance_variables.each do |ivar|
+          sym = ivar.to_sym
+          val = obj.instance_variable_get(sym)
+          str << serialize(sym)
+          str << serialize(val)
+        end
+        str
+      else
+      ''
+      end
+    end
+
+    def serialize_integer(n)
+      if n == 0
+        s = to_byte(n)
+      elsif n > 0 and n < 123
+        s = to_byte(n + 5)
+      elsif n < 0 and n > -124
+        s = to_byte(256 + (n - 5))
+      else
+        s = "\0"
+        cnt = 0
+        4.times do
+          s << to_byte(n)
+          n >>= 8
+          cnt += 1
+          break if n == 0 or n == -1
+        end
+        s[0] = to_byte(n < 0 ? 256 - cnt : cnt)
+      end
+      s
+    end
+
+    def serialize_user_class(obj, cls)
+      if obj.class != cls
+        TYPE_UCLASS + serialize(obj.class.name.to_sym)
+      else
+      ''
+      end
+    end
+
+    def set_instance_variables(str, obj)
+      if @has_ivar
+        @has_ivar = false
+        @nested = true
+        construct_integer(str).times do
+          @call_proc = false
+          sym = construct str
+          @call_proc = true if @proc
+          val = construct str
+          obj.instance_variable_set(prepare_ivar(sym), val)
+        end
+      end
+      obj
+    end
+
+    def store_unique_object(obj)
+      if obj.kind_of? Symbol
+        add_symlink obj
+      else
+        add_object obj
+      end
+      obj
+    end
+
+    def to_byte(n)
+      [n].pack('C')
+    end
+
   end
 
   def self.dump(obj, an_io=nil, limit=nil)
@@ -289,14 +739,14 @@ module Marshal
         limit = -1
       end
     end
-    
+
     ms.depth = Type.coerce_to limit, Fixnum, :to_int
 
     if an_io and !an_io.respond_to? :write
       raise TypeError, "output must respond to write"
     end
 
-    str = VERSION_STRING + serialize(ms, obj)
+    str = VERSION_STRING + ms.serialize(obj)
 
     if an_io
       an_io.write(str)
@@ -310,6 +760,7 @@ module Marshal
     ms = State.new
     ms.proc = proc
     ms.call_proc = true if ms.proc
+
     if obj.respond_to? :to_str
       str = obj.to_s
     elsif obj.respond_to? :read
@@ -320,472 +771,9 @@ module Marshal
     else
       raise TypeError, "instance of IO needed"
     end
-    construct(ms, str)
+
+    ms.construct str
   end
 
-  def self.serialize(ms, obj)
-    raise ArgumentError, "exceed depth limit" if ms.depth == 0
-
-    # How much depth we have left.
-    ms.depth -= 1;
-
-    if link = ms.find_link(obj)
-      str = TYPE_LINK + serialize_integer(link)
-    else
-      ms.add_object(obj)
-      if obj.respond_to? :_dump
-        str = serialize_custom_object_ud(ms, obj)
-      elsif obj.respond_to? :marshal_dump
-        str = serialize_custom_object_mud(ms, obj)
-      else
-        str = obj.to_marshal(ms)
-      end
-    end
-
-    ms.depth += 1
-
-    return str
-  end
-
-  def self.construct(ms, str)
-    i = ms.consumed
-    ms.consumed += 1
-    if i == 0 or i == 1
-      construct(ms, str)
-    else
-      c = str[i].chr
-      case c
-      when TYPE_NIL
-        ms.proc.call(nil) if ms.call_proc
-        nil
-      when TYPE_TRUE
-        ms.proc.call(true) if ms.call_proc
-        true
-      when TYPE_FALSE
-        ms.proc.call(false) if ms.call_proc
-        false
-      when TYPE_CLASS, TYPE_MODULE
-        cls_mod = Module.const_lookup construct_symbol(ms, str)
-        ms.proc.call(cls_mod) if ms.call_proc
-        store_unique_object(ms, cls_mod)
-      when TYPE_FIXNUM
-        obj = construct_integer(ms, str)
-        ms.proc.call(obj) if ms.call_proc
-        obj
-      when TYPE_BIGNUM
-        construct_bignum(ms, str)
-      when TYPE_FLOAT
-        construct_float(ms, str)
-      when TYPE_SYMBOL
-        construct_symbol(ms, str)
-      when TYPE_STRING
-        construct_string(ms, str)
-      when TYPE_REGEXP
-        construct_regexp(ms, str)
-      when TYPE_ARRAY
-        construct_array(ms, str)
-      when TYPE_HASH, TYPE_HASH_DEF
-        construct_hash(ms, str, c)
-      when TYPE_STRUCT
-        construct_struct(ms, str)
-      when TYPE_OBJECT
-        construct_object(ms, str)
-      when TYPE_USERDEF
-        construct_custom_object_ul(ms, str)
-      when TYPE_USRMARSHAL
-        construct_custom_object_mul(ms, str)
-      when TYPE_LINK
-        num = construct_integer(ms, str)
-        ms.objects[num-1]
-      when TYPE_SYMLINK
-        num = construct_integer(ms, str)
-        ms.symbols[num]
-      when TYPE_EXTENDED
-        ms.call_proc = false
-        sym = construct(ms, str)
-        ms.modules << sym
-        store_unique_object(ms, sym)
-        construct(ms, str)
-      when TYPE_UCLASS
-        ms.call_proc = false
-        sym = construct(ms, str)
-        ms.user_class = sym
-        store_unique_object(ms, sym)
-        construct(ms, str)
-      when TYPE_IVAR
-        ms.has_ivar = true
-        construct(ms, str)
-      else
-        raise ArgumentError, "load error"
-      end
-    end
-  end
-
-  def self.serialize_integer(n)
-    if n == 0
-      s = to_byte(n)
-    elsif n > 0 and n < 123
-      s = to_byte(n + 5)
-    elsif n < 0 and n > -124
-      s = to_byte(256 + (n - 5))
-    else
-      s = "\0"
-      cnt = 0
-      4.times do
-        s << to_byte(n)
-        n >>= 8
-        cnt += 1
-        break if n == 0 or n == -1
-      end
-      s[0] = to_byte(n < 0 ? 256 - cnt : cnt)
-    end
-    s
-  end
-
-  def self.serialize_instance_variables_prefix(obj)
-    if obj.instance_variables.length > 0
-      TYPE_IVAR + ''
-    else
-      ''
-    end
-  end
-
-  def self.serialize_instance_variables_suffix(ms, obj, force = false)
-    if force or obj.instance_variables.length > 0
-      str = serialize_integer(obj.instance_variables.length)
-      obj.instance_variables.each do |ivar|
-        sym = ivar.to_sym
-        val = obj.instance_variable_get(sym)
-        str << serialize(ms, sym)
-        str << serialize(ms, val)
-      end
-      str
-    else
-      ''
-    end
-  end
-
-  def self.serialize_extended_object(ms, obj)
-    str = ''
-    get_module_names(obj).each do |mod_name|
-      str << TYPE_EXTENDED + serialize(ms, mod_name.to_sym)
-    end
-    str
-  end
-
-  def self.serialize_user_class(ms, obj, cls)
-    if obj.class != cls
-      TYPE_UCLASS + serialize(ms, obj.class.name.to_sym)
-    else
-      ''
-    end
-  end
-
-  def self.serialize_custom_object_ud(ms, obj)
-    str = obj._dump(ms.depth)
-    raise TypeError, "_dump() must return string" if str.class != String
-    out = serialize_instance_variables_prefix(str)
-    out << TYPE_USERDEF + serialize(ms, obj.class.name.to_sym)
-    out << serialize_integer(str.length) + str
-    out << serialize_instance_variables_suffix(ms, str)
-  end
-
-  def self.serialize_custom_object_mud(ms, obj)
-    val = obj.marshal_dump
-    out = TYPE_USRMARSHAL + serialize(ms, obj.class.name.to_sym)
-    out << val.to_marshal(ms)
-  end
-
-  def self.fixnum?(n)
-    if n.kind_of?(Integer) and n >= -2**30 and n <= (2**30 - 1)
-      true
-    else
-      false
-    end
-  end
-
-  def self.serialize_float_thing(flt)
-    str = ''
-    (flt, ) = modf(ldexp(frexp(flt.abs), 37));
-    str << "\0" if flt > 0
-    while flt > 0
-      (flt, n) = modf(ldexp(flt, 32))
-      n = n.to_i
-      str << to_byte(n >> 24)
-      str << to_byte(n >> 16)
-      str << to_byte(n >> 8)
-      str << to_byte(n)
-    end
-    str.chomp!("\0") while str[-1] == 0
-    str
-  end
-
-  def self.frexp(flt)
-    p = MemoryPointer.new(:int)
-    flt = Platform::Float.frexp(flt, p)
-    p.free
-    flt
-  end
-
-  def self.modf(flt)
-    p = MemoryPointer.new(:double)
-    flt = Platform::Float.modf(flt, p)
-    num = p.read_float
-    p.free
-    [flt, num]
-  end
-
-  def self.ldexp(flt, exp)
-    Platform::Float.ldexp(flt, exp)
-  end
-
-  def self.construct_integer(ms, str)
-    i = ms.consumed
-    ms.consumed += 1
-    n = str[i]
-    if (n > 0 and n < 5) or n > 251
-      (size, signed) = n > 251 ? [256 - n, 2**((256 - n)*8)] : [n, 0]
-      result = 0
-      (0...size).each do |exp|
-        i += 1
-        result += (str[i] * 2**(exp*8))
-      end
-      ms.consumed += size
-      result - signed
-    elsif n > 127
-      (n - 256) + 5
-    elsif n > 4
-      n - 5
-    else
-      n
-    end
-  end
-
-  def self.construct_bignum(ms, str)
-    result = 0
-    i = ms.consumed
-    ms.consumed += 1
-    sign = str[i].chr == '-' ? -1 : 1
-    size = construct_integer(ms, str) * 2
-    i = ms.consumed
-    (0...size).each do |exp|
-      result += (str[i] * 2**(exp*8))
-      i += 1
-    end
-    ms.consumed += size
-    obj = result * sign
-    ms.proc.call(obj) if ms.call_proc
-    store_unique_object(ms, obj)
-  end
-
-  def self.construct_float(ms, str)
-    s = get_byte_sequence(ms, str)
-    if s == "nan"
-      obj = 0.0 / 0.0
-    elsif s == "inf"
-      obj = 1.0 / 0.0
-    elsif s == "-inf"
-      obj = 1.0 / -0.0
-    else
-      obj = s.to_f
-    end
-    ms.proc.call(obj) if ms.call_proc
-    store_unique_object(ms, obj)
-  end
-
-  def self.construct_string(ms, str)
-    modules = ms.modules; ms.modules = []
-    obj = get_byte_sequence(ms, str)
-    obj = get_user_class(ms).new(obj) if ms.user_class
-    set_instance_variables(ms, str, obj)
-    extend_object(modules, obj)
-    ms.proc.call(obj) if ms.call_proc
-    store_unique_object(ms, obj)
-  end
-
-  def self.construct_symbol(ms, str)
-    obj = get_byte_sequence(ms, str).to_sym
-    ms.proc.call(obj) if ms.call_proc
-    store_unique_object(ms, obj)
-  end
-
-  def self.construct_regexp(ms, str)
-    modules = ms.modules; ms.modules = []
-    s = get_byte_sequence(ms, str)
-    i = ms.consumed
-    ms.consumed += 1
-    if ms.user_class
-      obj = get_user_class(ms).new(s, str[i])
-    else
-      obj = Regexp.new(s, str[i])
-    end
-    set_instance_variables(ms, str, obj)
-    extend_object(modules, obj)
-    ms.proc.call(obj) if ms.call_proc
-    store_unique_object(ms, obj)
-  end
-
-  def self.construct_array(ms, str)
-    has_ivar = ms.has_ivar; ms.has_ivar = false
-    modules = ms.modules; ms.modules = []
-    obj = ms.user_class ? get_user_class(ms).new : []
-    store_unique_object(ms, obj) if ms.nested
-    ms.nested = true
-    ms.call_proc = true if ms.proc
-    construct_integer(ms, str).times do
-      obj << construct(ms, str)
-    end
-    ms.has_ivar = has_ivar
-    set_instance_variables(ms, str, obj)
-    extend_object(modules, obj)
-    ms.proc.call(obj) if ms.proc
-    obj
-  end
-
-  def self.construct_hash(ms, str, type)
-    has_ivar = ms.has_ivar; ms.has_ivar = false
-    modules = ms.modules; ms.modules = []
-    obj = ms.user_class ? get_user_class(ms).new : {}
-    store_unique_object(ms, obj) if ms.nested
-    ms.nested = true
-    ms.call_proc = true if ms.proc
-    construct_integer(ms, str).times do
-      key = construct(ms, str)
-      val = construct(ms, str)
-      obj[key] = val
-    end
-    ms.call_proc = true if ms.proc
-    obj.default = construct(ms, str) if type == TYPE_HASH_DEF
-    ms.has_ivar = has_ivar
-    set_instance_variables(ms, str, obj)
-    extend_object(modules, obj)
-    ms.proc.call(obj) if ms.proc
-    obj
-  end
-
-  def self.construct_struct(ms, str)
-    modules = ms.modules; ms.modules = []
-    symbols = []; values = []
-    ms.call_proc = false
-    sym = construct(ms, str)
-    store_unique_object(ms, sym)
-    ms.nested = true
-    construct_integer(ms, str).times do
-      ms.call_proc = false
-      symbols << construct(ms, str)
-      ms.call_proc = true if ms.proc
-      values << construct(ms, str)
-    end
-    obj = Struct.new(sym.to_s.sub(/\AStruct\:\:/, ''), *symbols).new
-    (0...symbols.length).each do |i|
-      obj[symbols[i]] = values[i]
-    end
-    set_instance_variables(ms, str, obj)
-    extend_object(modules, obj)
-    ms.proc.call(obj) if ms.proc
-    store_unique_object(ms, obj)
-  end
-
-  def self.construct_object(ms, str)
-    modules = ms.modules
-    ms.modules = []
-    ms.call_proc = false
-
-    name = construct ms, str
-    mod = Object.const_lookup name
-    obj = mod.allocate
-
-    store_unique_object(ms, obj) if ms.nested
-    ms.has_ivar = true
-    set_instance_variables(ms, str, obj)
-    extend_object(modules, obj)
-    ms.proc.call(obj) if ms.proc
-    obj
-  end
-
-  def self.construct_custom_object_ul(ms, str)
-    sym = construct(ms, str)
-    store_unique_object(ms, sym)
-    s = get_byte_sequence(ms, str)
-    set_instance_variables(ms, str, s)
-    Module.const_lookup(sym)._load(s)
-  end
-
-  def self.construct_custom_object_mul(ms, str)
-    sym = construct(ms, str)
-    store_unique_object(ms, sym)
-
-    obj = Module.const_lookup(sym).allocate
-
-    data = construct ms, str
-    obj.marshal_load data
-
-    obj
-  end
-
-  def self.set_instance_variables(ms, str, obj)
-    if ms.has_ivar
-      ms.has_ivar = false
-      ms.nested = true
-      construct_integer(ms, str).times do
-        ms.call_proc = false
-        sym = construct(ms, str)
-        ms.call_proc = true if ms.proc
-        val = construct(ms, str)
-        obj.instance_variable_set(prepare_ivar(sym), val)
-      end
-    end
-    obj
-  end
-
-  def self.get_byte_sequence(ms, str)
-    size = construct_integer(ms, str)
-    i = ms.consumed
-    k = i + size
-    ms.consumed += size
-    str[i...k]
-  end
-
-  def self.store_unique_object(ms, obj)
-    if obj.kind_of? Symbol
-      ms.add_symlink(obj)
-    else
-      ms.add_object(obj)
-    end
-    obj
-  end
-
-  def self.extend_object(modules, obj)
-    modules.reverse_each do |sym|
-      mod = Module.const_lookup sym
-      obj.extend(mod)
-    end
-    obj
-  end
-
-  def self.prepare_ivar(sym)
-    str = sym.to_s
-    str.sub!(/\A\@+/, '')
-    ('@' + str).to_sym
-  end
-
-  def self.get_user_class(ms)
-    cls = Module.const_lookup ms.user_class
-    ms.user_class = nil
-    cls
-  end
-
-  def self.get_module_names(obj)
-    names = []
-    sup = obj.metaclass.superclass
-    while sup and [Module, IncludedModule].include? sup.class
-      names << sup.name
-      sup = sup.superclass
-    end
-    names
-  end
-
-  def self.to_byte(n)
-    [n].pack('C')
-  end
 end
+
