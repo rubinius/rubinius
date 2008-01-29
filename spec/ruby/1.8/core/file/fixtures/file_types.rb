@@ -13,6 +13,19 @@ module FileSpecs
       @link = links.first
       break
     end
+
+    @sock   = nil
+    find_socket
+  end
+
+  # TODO: This is probably too volatile
+  def self.find_socket()
+    %w[/tmp /var].each do |dir|
+      socks = `find #{dir} -type s 2> /dev/null`.split("\n")
+      next if socks.empty?
+      @sock = socks.first
+      break
+    end
   end
 
   # TODO: Automatic reload mechanism
@@ -46,5 +59,14 @@ module FileSpecs
 
   def self.symlink()
     yield @link
+  end
+
+  # This will silently not execute the block if no socket
+  # can be found. However, if you are running X, there is
+  # a good chance that if nothing else, at least the X
+  # Server socket exists.
+  def self.socket()
+    find_socket
+    yield @sock if @sock
   end
 end
