@@ -163,6 +163,8 @@ module MSpec
     
     current.describe(mod, msg, &block)
     current.process
+    
+    stack.pop
   end
   
   def self.process

@@ -158,8 +158,15 @@ end
 describe MSpec, ".describe" do
   it "pushes a new RunState instance on the stack" do
     MSpec.stack.clear
-    MSpec.describe(Object, "msg") { }
-    MSpec.current.should be_kind_of(RunState)
+    MSpec.describe(Object, "msg") { @record = MSpec.current }
+    @record.should be_kind_of(RunState)
+  end
+  
+  it "pops the RunState instance off the stack when finished" do
+    MSpec.stack.clear
+    MSpec.describe(Object, "msg") { @record = MSpec.current }
+    @record.should be_kind_of(RunState)
+    MSpec.stack.should == []
   end
 end
 
