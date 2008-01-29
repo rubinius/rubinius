@@ -44,11 +44,11 @@ class File < IO
       @path = nil
       return self
     end
-    
+
     path = StringValue(path_or_fd)
-    
+
     fd = IO.sysopen(path, mode, perm)
-    
+
     if fd < 0
       Errno.handle path
     end
@@ -71,7 +71,7 @@ class File < IO
     st = perform_stat path
     st ? st.directory? : false
   end
-  
+
   def self.symlink?(path)
     st = perform_stat path, false
     st ? st.symlink? : false
@@ -86,23 +86,23 @@ class File < IO
     st = perform_stat path
     st ? st.chardev? : false
   end
-  
+
   def self.pipe?(path)
     st = perform_stat path
     st ? st.pipe? : false
   end
-  
+
   def self.socket?(path)
     st = perform_stat path
     st ? st.socket? : false
   end
 
-  
+
   def self.ftype(path)
     kind = lstat(path).kind
     FILE_TYPES.include?(kind) ? FILE_TYPES[kind] : 'unknown'
   end
-  
+
   def self.split(path)
     p = StringValue(path)
     [dirname(p), basename(p)]
@@ -141,7 +141,7 @@ class File < IO
     st = perform_stat path
     st ? st.readable_real? : false
   end
-  
+
   def self.writable?(path)
     st = perform_stat path
     st ? st.writable? : false
@@ -162,7 +162,7 @@ class File < IO
 
     paths.size
   end
-  
+
   def self.link(from, to)
     to = StringValue(to)
     from = StringValue(from)
@@ -171,7 +171,7 @@ class File < IO
     Errno.handle if n == -1
     n
   end
-  
+
   def self.symlink(from, to)
     to = StringValue(to)
     from = StringValue(from)
@@ -189,7 +189,7 @@ class File < IO
     Errno.handle if n == -1
     n
   end
-  
+
   def self.readlink(path)
     StringValue(path)
 
@@ -200,16 +200,16 @@ class File < IO
 
     buf[0, n]
   end
-  
+
   def self.identical?(orig, copy)
     st_o = stat(StringValue(orig))
     st_c = stat(StringValue(copy))
-    
+
     return false unless st_o.kind == st_c.kind
     return false unless st_o.ino == st_c.ino
     return false unless Platform::POSIX.access(orig, Constants::R_OK)
     return false unless Platform::POSIX.access(copy, Constants::R_OK)
-    
+
     true
   end
 
@@ -231,38 +231,38 @@ class File < IO
     paths.each { |path| Platform::POSIX.chmod(path, mode) }
     paths.size
   end
-    
+
   def chmod(mode)
     Platform::POSIX.fchmod(@descriptor, mode)
   end
-  
+
   class TimeVal < FFI::Struct
     config 'rbx.platform.timeval', :tv_sec, :tv_usec
   end
-  
+
   def self.utime(a_in, m_in, *paths)
     ptr = MemoryPointer.new(TimeVal, 2)
     atime = TimeVal.new ptr
     mtime = TimeVal.new ptr[1]
     atime[:tv_sec] = a_in.to_i
     atime[:tv_usec] = 0
-    
+
     mtime[:tv_sec] = m_in.to_i
     mtime[:tv_usec] = 0
-    
-    paths.each do |path|      
+
+    paths.each do |path|
       if Platform::POSIX.utimes(path, ptr) != 0
         Errno.handle
       end
     end
-    
+
     ptr.free
   end
-  
+
   def self.atime(path)
     Time.at stat(path).atime
   end
-  
+
   def atime
     Time.at self.class.stat(@path).atime
   end
@@ -274,7 +274,7 @@ class File < IO
   def self.ctime(path)
     Time.at stat(path).ctime
   end
-  
+
   def ctime
     Time.at self.class.stat(@path).ctime
   end
@@ -337,7 +337,7 @@ class File < IO
       return false unless m[0].size == path.size
       if pathname
         return false if m.captures.any? { |c| c.include?('/') }
-        
+
         a = StringValue(pattern).dup.split '/'
         b = path.split '/'
         return false unless a.size == b.size
@@ -352,15 +352,15 @@ class File < IO
   # FIXME: will fail a bunch if platfrom == :mswin
   def self.join(*args)
     args = args.flatten.map { |arg| StringValue(arg) }
-    args.join(SEPARATOR).gsub(/#{SEPARATOR}+/,SEPARATOR)    
+    args.join(SEPARATOR).gsub(/#{SEPARATOR}+/,SEPARATOR)
   end
-  
+
   class << self
     alias_method :delete, :unlink
     alias_method :exists?, :exist?
     alias_method :fnmatch?, :fnmatch
   end
-  
+
   class Stat
     self.instance_fields = 15
     ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
@@ -384,10 +384,10 @@ class File < IO
     def dev;     @dev; end
     def dev_major; @dev_major; end
     def dev_minor; @dev_minor; end
-    
+
     alias_method :gid, :group
     alias_method :uid, :owner
-    
+
     alias_method :blocks, :block
 
     def ftype
@@ -397,11 +397,11 @@ class File < IO
     def inspect
       "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
     end
-    
+
     def grpowned?
       @group == Platform::POSIX.getegid
     end
-    
+
     def rgrpowned?
       @group == Platform::POSIX.getgid
     end
@@ -434,7 +434,7 @@ class File < IO
     def file?
       @kind == :file
     end
-    
+
     def owned?
       @owner == Platform::POSIX.geteuid
     end
@@ -442,17 +442,17 @@ class File < IO
     def pipe?
       @kind == :fifo
     end
-    
+
     def rowned?
       @owner == Platform::POSIX.getuid
     end
     private :rowned?
-    
+
     def superuser?
       Platform::POSIX.geteuid == 0
     end
     private :superuser?
-    
+
     def rsuperuser?
       Platform::POSIX.getuid == 0
     end
@@ -465,42 +465,42 @@ class File < IO
     def symlink?
       @kind == :link
     end
-    
+
     def executable?
       return true if superuser?
       return @mode & IO::S_IXUSR != 0 if owned?
       return @mode & IO::S_IXGRP != 0 if grpowned?
       return @mode & IO::S_IXOTH != 0
     end
-    
+
     def executable_real?
       return true if rsuperuser?
       return @mode & IO::S_IXUSR != 0 if rowned?
       return @mode & IO::S_IXGRP != 0 if rgrpowned?
       return @mode & IO::S_IXOTH != 0
     end
-    
+
     def readable?
       return true if superuser?
       return @mode & IO::S_IRUSR != 0 if owned?
       return @mode & IO::S_IRGRP != 0 if grpowned?
       return @mode & IO::S_IROTH != 0
     end
-    
+
     def readable_real?
       return true if rsuperuser?
       return @mode & IO::S_IRUSR != 0 if rowned?
       return @mode & IO::S_IRGRP != 0 if rgrpowned?
       return @mode & IO::S_IROTH != 0
     end
-    
+
     def writable?
       return true if superuser?
       return @mode & IO::S_IWUSR != 0 if owned?
       return @mode & IO::S_IWGRP != 0 if grpowned?
       return @mode & IO::S_IWOTH != 0
     end
-    
+
     def writable_real?
       return true if rsuperuser?
       return @mode & IO::S_IWUSR != 0 if rowned?
@@ -508,30 +508,30 @@ class File < IO
       return @mode & IO::S_IWOTH != 0
     end
   end
-  
+
   def self.stat(path)
     perform_stat(path, true, true)
   end
-  
+
   def stat
     self.class.stat(@path)
   end
-  
+
   def self.lstat(path)
     perform_stat(path, false, true)
   end
-  
+
   def lstat
     self.class.lstat(@path)
   end
-  
+
   def self.perform_stat(path, follow_links=true, complain=false)
     out = Stat.stat(StringValue(path), follow_links)
     return out if out.is_a?(Stat) or not complain
 
     Errno.handle path
   end
-  
+
   def self.to_sexp(name, newlines=true)
     out = to_sexp_full(name, newlines)
     if out.kind_of? Tuple
@@ -544,7 +544,7 @@ class File < IO
     out = [:newline, 0, name, [:nil]] unless out
     out
   end
-  
+
   def self.umask(mask = nil)
     if mask
       Platform::POSIX.umask(mask)
