@@ -223,7 +223,7 @@ class File < IO
 
       if i > 0 then
         if part[0] == ?/ then
-          path = path.sub %r|(.*?)/+\z|m, '\1'
+          path.sub! %r|(.*?)/+\z|m, '\1'
         elsif path !~ %r|/+\z| then
           path << SEPARATOR
         end
