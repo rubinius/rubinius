@@ -449,6 +449,14 @@ class IO
     true
   end
 
+  def fsync
+    err = Platform::POSIX.fsync @descriptor
+
+    Errno.handle 'fsync(2)' if err < 0
+
+    err
+  end
+
   def gets(sep=$/)
     @lineno += 1
     $_ = gets_helper(sep)

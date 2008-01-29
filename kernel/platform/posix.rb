@@ -46,6 +46,7 @@ module Platform::POSIX
   attach_function 'fdopen', [:int, :string], :pointer
   attach_function 'fopen',  [:string, :string], :pointer
   attach_function 'fclose', [:pointer], :int
+  attach_function 'fsync',  [:int], :int
 
   attach_function 'dup', [:int], :int
 
