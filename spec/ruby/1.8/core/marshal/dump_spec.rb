@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-mv = "\x04"  # Marshal::MAJOR_VERSION
-nv = "\x08"  # Marshal::MINOR_VERSION
+mv = [Marshal::MAJOR_VERSION].pack 'C'
+nv = [Marshal::MINOR_VERSION].pack 'C'
 
 describe "Marshal.dump when given a recursion limit" do
   it "raises an ArgumentError when the recursion limit is exceeded" do
@@ -191,12 +191,6 @@ describe "Marshal.dump with fixnum 2**24" do
   end
 end
 
-describe "Marshal.dump with fixnum (2**30 - 1)" do
-  it "returns a string-serialized version of the given argument" do
-    Marshal.dump(2**30 - 1).should == "#{mv+nv}i\x04\xFF\xFF\xFF\x3F"
-  end
-end
-
 describe "Marshal.dump with fixnum -16711680" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(-16711680).should == "#{mv+nv}i\xFD\x00\x00\x01"
@@ -230,12 +224,6 @@ end
 describe "Marshal.dump with fixnum -43690" do
   it "returns a string-serialized version of the given argument" do
     Marshal.dump(-43690).should == "#{mv+nv}i\xFE\x56\x55"
-  end
-end
-
-describe "Marshal.dump with fixnum -2**30" do
-  it "returns a string-serialized version of the given argument" do
-    Marshal.dump(-2**30).should == "#{mv+nv}i\xFC\x00\x00\x00\xC0"
   end
 end
 
