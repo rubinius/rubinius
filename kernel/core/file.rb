@@ -41,7 +41,7 @@ class File < IO
 
   def initialize(path_or_fd, mode = "r", perm = 0666)
     if path_or_fd.kind_of?(Integer)
-      super(path_or_fd)
+      super(path_or_fd, mode)
       @path = nil
       return self
     end
@@ -51,9 +51,8 @@ class File < IO
     fd = IO.sysopen(path, mode, perm)
     Errno.handle path if fd < 0
 
-    super(fd)
-
     @path = path
+    setup fd
   end
 
   attr_reader :path
