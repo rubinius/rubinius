@@ -799,6 +799,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
 
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
+  fcntl_constants.each {|c| cg.const c }
   socket_constants.each { |c| cg.const c }
   process_constants.each { |c| cg.const c }
   long_process_constants.each { |c| cg.const(c, "%llu") }

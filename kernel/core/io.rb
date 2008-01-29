@@ -83,6 +83,9 @@ class IO
   end
 
   module Constants
+    F_GETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_GETFL']
+    F_SETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_SETFL']
+
     SEEK_SET = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_SET']
     SEEK_CUR = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_CUR']
     SEEK_END = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_END']
@@ -157,13 +160,27 @@ class IO
     [[io], [], []]
   end
 
-  def initialize(fd)
-    desc = Type.coerce_to fd, Fixnum, :to_int
-    if desc < 0
-      raise Errno::EBADF, "invalid descriptor"
+  # Creates a new IO object to access the existing stream referenced
+  # by the descriptor given. The stream is not copied in any way so
+  # anything done on one IO will affect any other IOs accessing the
+  # same descriptor. The mode string given must be compatible with
+  # the original one so going 'r' from 'w' cannot be done but it is
+  # possible to go from 'w+' to 'r', for example (since the stream
+  # is not being "widened".) The initialization will verify that
+  # the descriptor given is a valid one. Errno::EBADF will be raised
+  # if that is not the case. If the mode is incompatible, it will
+  # raise Errno::EINVAL instead.
+  def initialize(fd, mode)
+    fd = Type.coerce_to fd, Integer, :to_int
+
+    # We do our own buffering. MRI uses fdopen() here.
+
+    # Descriptor must be an open and valid one
+    if fd < 0 or IO._fcntl_int(fd, F_GETFL, 0) < 0
+      raise Errno::EBADF, "Invalid descriptor given"
     end
 
-    setup(desc)
+    setup fd
   end
 
   # Obtains a new duplicate descriptor for the current one.
