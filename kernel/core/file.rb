@@ -2,11 +2,11 @@
 
 class File < IO
 
-  # Definition is further down
+  # Definition at the bottom
   class Stat
   end
 
-  # Strictly internal class
+  # Internal class for accessing timevals
   class TimeVal < FFI::Struct
     config 'rbx.platform.timeval', :tv_sec, :tv_usec
   end
@@ -36,7 +36,8 @@ class File < IO
   ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
 
-  attr_reader :path
+
+  # Creation
 
   def initialize(path_or_fd, mode = "r", perm = 0666)
     if path_or_fd.kind_of?(Integer)
@@ -48,33 +49,26 @@ class File < IO
     path = StringValue(path_or_fd)
 
     fd = IO.sysopen(path, mode, perm)
-
-    if fd < 0
-      Errno.handle path
-    end
+    Errno.handle path if fd < 0
 
     super(fd)
 
     @path = path
   end
 
-  def self.exist?(path)
-    perform_stat(path) ? true : false
+  attr_reader :path
+
+
+  # Class methods
+
+  def self.atime(path)
+    Time.at stat(path).atime
   end
 
-  def self.file?(path)
-    st = perform_stat path
-    st ? st.file? : false
-  end
-
-  def self.directory?(path)
-    st = perform_stat path
-    st ? st.directory? : false
-  end
-
-  def self.symlink?(path)
-    st = perform_stat path, false
-    st ? st.symlink? : false
+  def self.basename(path,ext = "")
+    path = StringValue(path)
+    ext = StringValue(ext)
+    Platform::File.basename(path,ext)
   end
 
   def self.blockdev?(path)
@@ -87,38 +81,25 @@ class File < IO
     st ? st.chardev? : false
   end
 
-  def self.pipe?(path)
+  def self.chmod(mode, *paths)
+    paths.each { |path| Platform::POSIX.chmod(path, mode) }
+    paths.size
+  end
+
+  def self.ctime(path)
+    Time.at stat(path).ctime
+  end
+
+  # delete => unlink
+
+  def self.directory?(path)
     st = perform_stat path
-    st ? st.pipe? : false
+    st ? st.directory? : false
   end
 
-  def self.socket?(path)
-    st = perform_stat path
-    st ? st.socket? : false
-  end
-
-
-  def self.ftype(path)
-    lstat(path).ftype
-  end
-
-  def self.split(path)
-    p = StringValue(path)
-    [dirname(p), basename(p)]
-  end
-
-  def self.zero?(path)
-    st = perform_stat path
-    st ? st.zero? : false
-  end
-
-  def self.size(path)
-    stat(path).size
-  end
-
-  def self.size?(path)
-    st = perform_stat path
-    st ? st.size : nil
+  def self.dirname(path)
+    path = StringValue(path)
+    Platform::File.dirname(path)
   end
 
   def self.executable?(path)
@@ -131,85 +112,14 @@ class File < IO
     st ? st.executable_real? : false
   end
 
-  def self.readable?(path)
-    st = perform_stat path
-    st ? st.readable? : false
+  def self.exist?(path)
+    perform_stat(path) ? true : false
   end
 
-  def self.readable_real?(path)
-    st = perform_stat path
-    st ? st.readable_real? : false
-  end
+  # exists? => exist?
 
-  def self.writable?(path)
-    st = perform_stat path
-    st ? st.writable? : false
-  end
-
-  def self.writable_real?(path)
-    st = perform_stat path
-    st ? st.writable_real? : false
-  end
-
-  def self.unlink(*paths)
-    paths.each do |path|
-      path = StringValue(path)
-
-      n = Platform::POSIX.unlink(path)
-      Errno.handle if n == -1
-    end
-
-    paths.size
-  end
-
-  def self.link(from, to)
-    to = StringValue(to)
-    from = StringValue(from)
-
-    n = Platform::POSIX.link(from, to)
-    Errno.handle if n == -1
-    n
-  end
-
-  def self.symlink(from, to)
-    to = StringValue(to)
-    from = StringValue(from)
-
-    n = Platform::POSIX.symlink(from, to)
-    Errno.handle if n == -1
-    n
-  end
-
-  def self.rename(from, to)
-    to = StringValue(to)
-    from = StringValue(from)
-
-    n = Platform::POSIX.rename(from, to)
-    Errno.handle if n == -1
-    n
-  end
-
-  def self.readlink(path)
-    StringValue(path)
-
-    buf = " " * 1024
-
-    n = Platform::POSIX.readlink(path, buf, buf.length)
-    Errno.handle if n == -1
-
-    buf[0, n]
-  end
-
-  def self.identical?(orig, copy)
-    st_o = stat(StringValue(orig))
-    st_c = stat(StringValue(copy))
-
-    return false unless st_o.kind == st_c.kind
-    return false unless st_o.ino == st_c.ino
-    return false unless Platform::POSIX.access(orig, Constants::R_OK)
-    return false unless Platform::POSIX.access(copy, Constants::R_OK)
-
-    true
+  def self.expand_path(path, dir_string = nil)
+    Platform::File.expand_path(path, dir_string)
   end
 
   def self.extname(path)
@@ -226,67 +136,9 @@ class File < IO
     filename.slice idx..-1
   end
 
-  def self.chmod(mode, *paths)
-    paths.each { |path| Platform::POSIX.chmod(path, mode) }
-    paths.size
-  end
-
-  def chmod(mode)
-    Platform::POSIX.fchmod(@descriptor, mode)
-  end
-
-  def self.utime(a_in, m_in, *paths)
-    ptr = MemoryPointer.new(TimeVal, 2)
-    atime = TimeVal.new ptr
-    mtime = TimeVal.new ptr[1]
-    atime[:tv_sec] = a_in.to_i
-    atime[:tv_usec] = 0
-
-    mtime[:tv_sec] = m_in.to_i
-    mtime[:tv_usec] = 0
-
-    paths.each do |path|
-      if Platform::POSIX.utimes(path, ptr) != 0
-        Errno.handle
-      end
-    end
-
-    ptr.free
-  end
-
-  def self.atime(path)
-    Time.at stat(path).atime
-  end
-
-  def atime
-    Time.at self.class.stat(@path).atime
-  end
-
-  def self.mtime(path)
-    Time.at stat(path).mtime
-  end
-
-  def self.ctime(path)
-    Time.at stat(path).ctime
-  end
-
-  def ctime
-    Time.at self.class.stat(@path).ctime
-  end
-
-  def self.dirname(path)
-    path = StringValue(path)
-    Platform::File.dirname(path)
-  end
-
-  def self.basename(path,ext = "")
-    path = StringValue(path)
-    ext = StringValue(ext)
-    Platform::File.basename(path,ext)
-  end
-
-  def self.expand_path(path, dir_string = nil)
-    Platform::File.expand_path(path, dir_string)
+  def self.file?(path)
+    st = perform_stat path
+    st ? st.file? : false
   end
 
   def self.fnmatch(pattern, path, flags=0)
@@ -344,39 +196,117 @@ class File < IO
     end
   end
 
+  # fnmatch? => fnmatch
+
+  def self.ftype(path)
+    lstat(path).ftype
+  end
+
+  def self.identical?(orig, copy)
+    st_o = stat(StringValue(orig))
+    st_c = stat(StringValue(copy))
+
+    return false unless st_o.kind == st_c.kind
+    return false unless st_o.ino == st_c.ino
+    return false unless Platform::POSIX.access(orig, Constants::R_OK)
+    return false unless Platform::POSIX.access(copy, Constants::R_OK)
+
+    true
+  end
+
   # FIXME: will fail a bunch if platfrom == :mswin
   def self.join(*args)
     args = args.flatten.map { |arg| StringValue(arg) }
     args.join(SEPARATOR).gsub(/#{SEPARATOR}+/,SEPARATOR)
   end
 
-  class << self
-    alias_method :delete, :unlink
-    alias_method :exists?, :exist?
-    alias_method :fnmatch?, :fnmatch
-  end
+  def self.link(from, to)
+    to = StringValue(to)
+    from = StringValue(from)
 
-  def self.stat(path)
-    perform_stat(path, true, true)
-  end
-
-  def stat
-    self.class.stat(@path)
+    n = Platform::POSIX.link(from, to)
+    Errno.handle if n == -1
+    n
   end
 
   def self.lstat(path)
     perform_stat(path, false, true)
   end
 
-  def lstat
-    self.class.lstat(@path)
+  def self.mtime(path)
+    Time.at stat(path).mtime
   end
 
-  def self.perform_stat(path, follow_links=true, complain=false)
-    out = Stat.stat(StringValue(path), follow_links)
-    return out if out.is_a?(Stat) or not complain
+  def self.pipe?(path)
+    st = perform_stat path
+    st ? st.pipe? : false
+  end
 
-    Errno.handle path
+  def self.readable?(path)
+    st = perform_stat path
+    st ? st.readable? : false
+  end
+
+  def self.readable_real?(path)
+    st = perform_stat path
+    st ? st.readable_real? : false
+  end
+
+  def self.rename(from, to)
+    to = StringValue(to)
+    from = StringValue(from)
+
+    n = Platform::POSIX.rename(from, to)
+    Errno.handle if n == -1
+    n
+  end
+
+  def self.readlink(path)
+    StringValue(path)
+
+    buf = " " * 1024
+
+    n = Platform::POSIX.readlink(path, buf, buf.length)
+    Errno.handle if n == -1
+
+    buf[0, n]
+  end
+
+  def self.size(path)
+    stat(path).size
+  end
+
+  def self.size?(path)
+    st = perform_stat path
+    st ? st.size : nil
+  end
+
+  def self.socket?(path)
+    st = perform_stat path
+    st ? st.socket? : false
+  end
+
+  def self.split(path)
+    p = StringValue(path)
+    [dirname(p), basename(p)]
+  end
+
+  def self.stat(path)
+    perform_stat(path, true, true)
+  end
+
+  def self.symlink(from, to)
+    to = StringValue(to)
+    from = StringValue(from)
+
+    n = Platform::POSIX.symlink(from, to)
+    Errno.handle if n == -1
+    n
+  end
+
+  def self.symlink?(path)
+    st = perform_stat path, false
+    st ? st.symlink? : false
   end
 
   def self.to_sexp(name, newlines=true)
@@ -392,6 +322,12 @@ class File < IO
     out
   end
 
+  def self.truncate(path, length)
+    unless self.exist?(path)
+      raise Errno::ENOENT, path
+    end
+  end
+
   def self.umask(mask = nil)
     if mask
       Platform::POSIX.umask(mask)
@@ -402,11 +338,89 @@ class File < IO
     end
   end
 
-  def self.truncate(path, length)
-    unless self.exist?(path)
-      raise Errno::ENOENT, path
+  def self.unlink(*paths)
+    paths.each do |path|
+      path = StringValue(path)
+
+      n = Platform::POSIX.unlink(path)
+      Errno.handle if n == -1
     end
+
+    paths.size
   end
+
+  def self.utime(a_in, m_in, *paths)
+    ptr = MemoryPointer.new(TimeVal, 2)
+    atime = TimeVal.new ptr
+    mtime = TimeVal.new ptr[1]
+    atime[:tv_sec] = a_in.to_i
+    atime[:tv_usec] = 0
+
+    mtime[:tv_sec] = m_in.to_i
+    mtime[:tv_usec] = 0
+
+    paths.each do |path|
+      if Platform::POSIX.utimes(path, ptr) != 0
+        Errno.handle
+      end
+    end
+
+    ptr.free
+  end
+
+  def self.writable?(path)
+    st = perform_stat path
+    st ? st.writable? : false
+  end
+
+  def self.writable_real?(path)
+    st = perform_stat path
+    st ? st.writable_real? : false
+  end
+
+  def self.zero?(path)
+    st = perform_stat path
+    st ? st.zero? : false
+  end
+
+  class << self
+    alias_method :delete, :unlink
+    alias_method :exists?, :exist?
+    alias_method :fnmatch?, :fnmatch
+  end
+
+  # Instance methods
+
+  def atime
+    Time.at self.class.stat(@path).atime
+  end
+
+  def chmod(mode)
+    Platform::POSIX.fchmod(@descriptor, mode)
+  end
+
+  def ctime
+    Time.at self.class.stat(@path).ctime
+  end
+
+  def lstat
+    self.class.lstat(@path)
+  end
+
+  def stat
+    self.class.stat(@path)
+  end
+
+
+  # Internals
+
+  def self.perform_stat(path, follow_links=true, complain=false)
+    out = Stat.stat(StringValue(path), follow_links)
+    return out if out.is_a?(Stat) or not complain
+
+    Errno.handle path
+  end
+
 end       # File
 
 
