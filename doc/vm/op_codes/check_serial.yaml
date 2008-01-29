@@ -1,0 +1,30 @@
+---
+mnemonic: check_serial
+operation: >-
+  Checks if the specified method serial number matches an expected value
+format: check_serial mthd serial
+stack_before:
+  - obj
+  - ...
+stack_after:
+  - true | false
+  - ...
+description: >-
+  Pops an object off the stack, and determines whether the serial number of the
+  method identified by the literal _mthd_ is the same as the expected value
+  _serial_. The result is pushed back on the stack as the value *true* or
+  *false*.
+notes: >-
+  This opcode is typically used to determine at runtime whether an optimisation
+  can be performed. At compile time, two code paths are generated: a slow, but
+  guaranteed correct path, and a fast path that uses certain optimisations. The
+  serial number check is then performed at runtime to determine which code path
+  is executed.
+
+  For example, a method such as Fixnum#times can be optimised at compile time,
+  but we can't know until runtime whether or not the Fixnum#times method has
+  been overridden. The serial number check is used to determine each time the
+  code is executed, whether or not the standard Fixnum#times has been
+  overridden. It leverages the serial number field on a CompiledMethod, is
+  initialised to either 0 (for kernel land methods) or 1 (for user land
+  methods).
