@@ -18,13 +18,37 @@ describe "Ruby character strings in various ways" do
     '#{@ip}'.should == '#{@ip}'
   end
 
-  it "interpolation is used with #{}" do
+  it 'interpolation is used with #{}' do
     "#{@ip}".should == 'xxx'
   end
 
-  # TODO : Add specs that determine the end of the variable
   it "instance variables can also be interpolated just with the # character" do
     "#@ip".should == 'xxx'
+  end
+
+  it "globales variables can also be interpolated just with the # character" do
+    $ip = 'xxx'
+    "#$ip".should == 'xxx'
+  end
+
+  it "class variables can also be interpolated just with the # character" do
+    @@ip = 'xxx'
+    "#@@ip".should == 'xxx'
+  end
+
+  it "simple # interpolation allow _ as part of a variable name" do
+    @my_ip = 'xxx'
+    "#@my_ip".should == 'xxx'
+  end
+
+  it "characters [.(=?!# ends a simple # interpolation" do
+    "#@ip[".should == 'xxx['
+    "#@ip.".should == 'xxx.'
+    "#@ip(".should == 'xxx('
+    "#@ip=".should == 'xxx='
+    "#@ip?".should == 'xxx?'
+    "#@ip!".should == 'xxx!'
+    "#@ip#@ip".should == 'xxxxxx'
   end
 
   # NOTE : What chars are allowed to delimit a string ?
@@ -34,6 +58,12 @@ describe "Ruby character strings in various ways" do
     %{hey hey}.should == "hey hey"
     %@hey hey@.should == "hey hey"
     %!hey hey!.should == "hey hey"
+    %#hey hey#.should == "hey hey"
+    %|hey hey|.should == "hey hey"
+    %<hey hey>.should == "hey hey"
+    %_hey hey_.should == "hey hey"
+    %.hey hey..should == "hey hey"
+    %/hey hey/.should == "hey hey"
   end
 
   it "using percent with 'q' should stop interpolation" do
