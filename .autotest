@@ -25,15 +25,36 @@ Autotest.add_hook :initialize do |at|
   at.order = :natural
 
   at.add_exception(/\.rbc$/)
-  at.add_exception(/\.txt$/)
   at.add_exception(/fixtures/)
-  at.add_exception(/\/data\//)
+  at.add_exception(/README/)
+  at.add_exception(/spec.data.critical.txt/)
 
   at.test_directories.clear
   at.test_directories.push('spec/ruby/1.8/core',
                            'spec/ruby/1.8/language',
                            'spec/compiler',
+                           'spec/data',
                            'spec/parser')
+
+  at.add_mapping %r%^spec/data/(.*)_excludes.txt$% do |_, m|
+    Dir["spec/#{m[1]}_spec.rb"]
+  end
+
+  at.add_mapping %r%^spec/(.*)/shared/% do |_, m|
+    at.files_matching(%r%^spec/#{m[1]}/.*_spec.rb$%)
+  end
+
+  at.add_mapping %r%^spec/spec_helper.rb% do
+    at.files_matching(%r%^spec/.*_spec.rb$%)
+  end
+
+  at.add_mapping %r%^spec/compiler/spec_helper.rb% do
+    at.files_matching(%r%^spec/compiler/.*_spec.rb$%)
+  end
+
+  at.add_mapping %r%^spec/parser/sexp_expectations.rb% do
+    at.files_matching(%r%^spec/parser/.*_spec.rb$%)
+  end
 
   at.add_mapping %r%^spec/.*_spec\.rb$% do |filename, _|
     filename
