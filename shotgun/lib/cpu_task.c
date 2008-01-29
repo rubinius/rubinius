@@ -96,12 +96,10 @@ static void cpu_task_run_wb(STATE, OBJECT obj) {
 
   task = (struct cpu_task*)BYTES_OF(obj);
 
-  RUN_WB(obj, task->outstanding);
   RUN_WB(obj, task->exception);
   RUN_WB(obj, task->enclosing_class);
   RUN_WB(obj, task->new_class_of);
   RUN_WB(obj, task->exceptions);
-  RUN_WB(obj, task->outstanding);
   RUN_WB(obj, task->main);
   RUN_WB(obj, task->current_scope);
   RUN_WB(obj, task->debug_channel);

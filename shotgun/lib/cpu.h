@@ -63,7 +63,6 @@ struct fast_context {
   long int cache_index; \
   OBJECT *stack_top; \
   unsigned long int stack_size; \
-  OBJECT outstanding; \
   OBJECT exception; \
   OBJECT enclosing_class; \
   OBJECT new_class_of; \
@@ -251,7 +250,6 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer
 void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd);
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig);
 void cpu_channel_register(STATE, cpu c, OBJECT self, OBJECT cur_thr);
-void cpu_task_set_outstanding(STATE, OBJECT self, OBJECT ary);
 void cpu_event_setup_children(STATE, cpu c);
 void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags);
 void cpu_event_clear(STATE, int fd);

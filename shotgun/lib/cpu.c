@@ -40,7 +40,6 @@ void cpu_initialize(STATE, cpu c) {
   c->exception = Qnil;
   c->enclosing_class = Qnil;
   c->new_class_of = Qnil;
-  c->outstanding = Qnil;
   c->args = 0;
   c->depth = 0;
   c->call_flags = 0;
@@ -145,7 +144,6 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   ar(c->main_thread);
   ar(c->current_task);
   ar(c->main_task);
-  ar(c->outstanding);
   ar(c->debug_channel);
   ar(c->control_channel);
   ar(c->current_scope);
@@ -207,7 +205,6 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   ar(c->main_thread);
   ar(c->current_task);
   ar(c->main_task);
-  ar(c->outstanding);
   ar(c->debug_channel);
   ar(c->control_channel);
   ar(c->current_scope);

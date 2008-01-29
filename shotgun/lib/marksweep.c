@@ -349,7 +349,6 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
         fc_mutate(active_context);
         fc_mutate(home_context);
         fc_mutate(main);
-        fc_mutate(outstanding);
         fc_mutate(debug_channel);
         fc_mutate(control_channel);
         fc_mutate(current_scope);
