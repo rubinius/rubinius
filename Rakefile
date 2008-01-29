@@ -445,6 +445,33 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
     SEEK_END
   }
 
+  fcntl_constants = %w{
+    F_DUPFD
+    F_GETFD
+    F_GETLK
+    F_SETFD
+    F_GETFL
+    F_SETFL
+    F_SETLK
+    F_SETLKW
+    FD_CLOEXEC
+    F_RDLCK
+    F_UNLCK
+    F_WRLCK
+    O_CREAT
+    O_EXCL
+    O_NOCTTY
+    O_TRUNC
+    O_APPEND
+    O_NONBLOCK
+    O_NDELAY
+    O_RDONLY
+    O_RDWR
+    O_WRONLY
+    O_ACCMODE
+    O_ACCMODE
+  }
+
   socket_constants = %w[
     AF_APPLETALK
     AF_ATM
@@ -776,6 +803,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
   process_constants.each { |c| cg.const c }
   long_process_constants.each { |c| cg.const(c, "%llu") }
   signal_constants.each { |c| cg.const c }
+  fcntl_constants.each { |c| cg.const c }
 
   cg.calculate
   
@@ -797,6 +825,12 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
     io_constants.each do |name|
       const = cg.constants[name]
       f.puts "rbx.platform.io.#{name} = #{const.converted_value}"
+    end
+
+    fcntl_constants.each do |name|
+      const = cg.constants[name]
+      next if const.converted_value.nil?
+      f.puts "rbx.platform.fcntl.#{name} = #{const.converted_value}"
     end
 
     socket_constants.each do |name|
@@ -830,7 +864,6 @@ task :extensions => %w[
   extension:digest_sha1
   extension:digest_sha2
 
-  extension:fcntl
   extension:syck
   extension:zlib
   extension:readline
@@ -879,16 +912,6 @@ namespace :extension do
     'lib/ext/digest/defs.h',
   ] do
     compile 'lib/ext/digest/sha2'
-  end
-
-  task :fcntl => "lib/ext/fcntl/fcntl.#{$dlext}"
-
-  file "lib/ext/fcntl/fcntl.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/ruby.h',
-    'lib/ext/fcntl/build.rb',
-    'lib/ext/fcntl/*.c'
-  ] do
-    compile "lib/ext/fcntl"
   end
 
   task :syck => "lib/ext/syck/rbxext.#{$dlext}"
