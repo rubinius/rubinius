@@ -64,7 +64,7 @@ describe "UnboundMethod#==" do
   end
 
   # See below for MRI
-  deviates_on :rubinius do
+  deviates_on :rubinius, :jruby do
     it "returns true if same method extracted from super- and subclass" do
       (@parent == @child1).should == true
       (@child1 == @parent).should == true
@@ -91,8 +91,8 @@ describe "UnboundMethod#==" do
     (@identical_body == @original_name).should == false
   end
 
-  # See above for Rubinius
-  not_compliant_on :rubinius do
+  # See above for Rubinius, JRuby
+  not_compliant_on :rubinius, :jruby do
     it "returns false if same method but one extracted from a subclass" do
       (@parent == @child1).should == false
       (@child1 == @parent).should == false
