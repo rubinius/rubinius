@@ -47,8 +47,8 @@ module OpCode
     def args
       fmt = (@yaml['format'] || @mnemonic.to_s).split(' ')
       fmt.shift
-      fmt <<= @opcode.args[0] if fmt.size == 0 && arg_count >= 1
-      fmt <<= @opcode.args[1] if fmt.size == 1 && arg_count == 2
+      fmt <<= @op_code.args[0] if fmt.size == 0 && arg_count >= 1
+      fmt <<= @op_code.args[1] if fmt.size == 1 && arg_count == 2
       fmt
     end
 

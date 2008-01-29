@@ -975,11 +975,12 @@ namespace "doc" do
       OpCode::Info.op_codes.each do |op|
         html = "doc/vm/op_codes/#{op}.html"
         yaml = "doc/vm/op_codes/#{op}.yaml"
-        file html => yaml do
+        file html do
           cd 'doc/vm' do
             ruby "gen_op_code_html.rb #{op}"
           end
         end
+        file html => yaml if File.exists?("doc/vm/op_codes/#{op}.yaml")
 
         task "html" => html
       end
