@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "File.join" do
+describe "File::join" do
 
   it "does nothing to empty strings" do
     File.join("").should == ""
@@ -48,11 +48,7 @@ describe "File.join" do
     lambda { File.join nil }.should raise_error(TypeError)
   end
 
-  it "joins parts using File::SEPARATOR" do
-    File.join("smalltalk","ruby","rubinius").should == "smalltalk/ruby/rubinius"
-    File.join.should == ""
-
-    # arguments must respond to to_str
+  it "calls #to_str" do
     lambda { File.join(mock('x')) }.should raise_error(TypeError)
   end
 
