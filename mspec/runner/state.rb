@@ -49,10 +49,12 @@ class RunState
     protect "before :all", @start
     @spec.each do |desc, spec|
       @state = SpecState.new @describe, desc
+      MSpec.actions :before, @state
       protect "before :each", @before
       protect nil, spec
       protect "after :each", @after
       protect "Mock.cleanup", lambda { Mock.cleanup }
+      MSpec.actions :after, @state
       @state = nil
     end
     protect "after :all", @finish

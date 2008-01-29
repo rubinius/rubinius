@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../mspec'
+require File.dirname(__FILE__) + '/../../runner/runner'
 require File.dirname(__FILE__) + '/../../mocks/mock'
 require File.dirname(__FILE__) + '/../../runner/state'
 
@@ -145,6 +146,41 @@ describe RunState, "#process" do
     @state.after(:each) { record = @state.state.exceptions }
     @state.process
     record.should == [[nil, exception]]
+  end
+end
+
+describe RunState, "#process" do
+  before :each do
+    MSpec.store :before, []
+    MSpec.store :after, []
+    
+    @state = RunState.new
+    @state.describe("") { }
+    @state.it("") { }
+  end
+
+  it "calls registered before actions with the current SpecState instance" do
+    before = mock("before")
+    before.should_receive(:before).and_return { 
+      @record = :before
+      @spec_state = @state.state
+    }
+    MSpec.register :before, before
+    @state.process
+    @record.should == :before
+    @spec_state.should be_kind_of(SpecState)
+  end
+
+  it "calls registered after actions with the current SpecState instance" do
+    after = mock("after")
+    after.should_receive(:after).and_return {
+      @record = :after
+      @spec_state = @state.state
+    }
+    MSpec.register :after, after
+    @state.process
+    @record.should == :after
+    @spec_state.should be_kind_of(SpecState)
   end
 end
 
