@@ -922,6 +922,17 @@ class Array
           ret << parts[j].chr
         end
         arr_idx += 1
+      elsif kind == "V"
+        obj = item
+        parts = []
+        4.times do
+          parts << (obj % 256)
+          obj = obj / 256
+        end
+        0.upto(3) do |j|
+          ret << parts[j].chr
+        end
+        arr_idx += 1
       # A and a both pad the text
       elsif kind =~ /[aAZ]/
         item = Type.coerce_to(item, String, :to_str)
