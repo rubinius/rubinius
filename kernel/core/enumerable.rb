@@ -348,23 +348,16 @@ module Enumerable
   #        memo >= word.length ? memo : word.length
   #     end
   #     longest                                         #=> 5
-  def inject(*args)
-    first_item = true
-    memo = args.first if args.length > 0
+  def inject(memo = Undefined)
     each { |o|
-      if first_item
-        first_item = false
-
-        if args.length == 0
-          memo = o
-          next
-        end
+      if memo.equal? Undefined
+        memo = o
+      else
+        memo = yield(memo, o)
       end
-
-      memo = yield(memo, o)
     }
 
-    memo
+    memo.equal?(Undefined) ? nil : memo
   end
 
   # :call-seq:
