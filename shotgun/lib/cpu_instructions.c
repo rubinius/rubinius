@@ -715,6 +715,7 @@ inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) 
     cpu_save_registers(state, c, so);
   }
   cpu_restore_context_with_home(state, c, ctx, home, FALSE, FALSE);
+  cpu_yield_debugger_check(state, c);
 }
 
 /* Layer 2.5: Uses lower layers to return to the calling context.
@@ -1071,7 +1072,6 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   c->call_flags = 0;
 
   cpu_activate_context(state, c, ctx, ctx, args);
-  cpu_yield_debugger_check(state, c);
 }
 
 
