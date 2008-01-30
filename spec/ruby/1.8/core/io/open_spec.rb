@@ -1,24 +1,25 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require "#{File.dirname __FILE__}/../../spec_helper"
+require "#{File.dirname __FILE__}/shared/new_shared"
 
 describe "IO.open" do
+  it_behaves_like :io_new, :open
+end
+
+describe "IO.open" do
+  before :all do
+    @filename = "/tmp/rubinius-spec-io-new-#{$$}.txt"
+  end
+
+  after :all do
+    File.unlink @filename
+  end
+
   before :each do
-    @file = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
+    @file = File.open @filename, "w"
   end
 
   after :each do
-    @file.close rescue nil
-  end
-
-  it "creates an IO instance with given file descriptor" do
-    @io = IO.open @file.fileno
-    @io.class.should == IO
-    @io.fileno.should == @file.fileno
-  end
-
-  it "with block does not raise error when io closed inside the block" do
-    lambda {
-      @io = IO.open(@file.fileno) { |io| io.close; io }
-    }.should_not raise_error
-    @io.closed?.should == true
+    # This should normally NOT be rescued
+    @file.close unless @file.closed? rescue nil
   end
 end
