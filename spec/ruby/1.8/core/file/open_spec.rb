@@ -62,24 +62,27 @@ describe "File.open" do
     File.exist?(@file).should == true
   end
 
-  # For this test we delete the file first to reset the perms
-  it "opens the file when call with mode, num and permissions" do
-    File.delete(@file)
-    File.umask(0011)
-    @fh = File.open(@file, @flags, 0755)
-    @fh.should be_kind_of(File)
-    @fh.lstat.mode.to_s(8).should == "100744"
-    File.exist?(@file).should == true
-  end
+  # I do not think this should be valid on MRI either--File.new yes.
+  compliant_on :ruby do
+    # For this test we delete the file first to reset the perms
+    it "opens the file when call with mode, num and permissions" do
+      File.delete(@file)
+      File.umask(0011)
+      @fh = File.open(@file, @flags, 0755)
+      @fh.should be_kind_of(File)
+      @fh.lstat.mode.to_s(8).should == "100744"
+      File.exist?(@file).should == true
+    end
 
-  # For this test we delete the file first to reset the perms
-  it "opens the flie when call with mode, num, permissions and block" do
-    File.delete(@file)
-    File.umask(0022)
-    File.open(@file, "w", 0755){ |fh| @fd = fh.fileno }
-    lambda { File.open(@fd) }.should raise_error(SystemCallError)
-    File.stat(@file).mode.to_s(8).should == "100755"
-    File.exist?(@file).should == true
+    # For this test we delete the file first to reset the perms
+    it "opens the flie when call with mode, num, permissions and block" do
+      File.delete(@file)
+      File.umask(0022)
+      File.open(@file, "w", 0755){ |fh| @fd = fh.fileno }
+      lambda { File.open(@fd) }.should raise_error(SystemCallError)
+      File.stat(@file).mode.to_s(8).should == "100755"
+      File.exist?(@file).should == true
+    end
   end
 
   it "opens the file when call with fd" do
