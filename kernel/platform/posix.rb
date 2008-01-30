@@ -42,6 +42,8 @@ module Platform::POSIX
   attach_function 'rmdir', [:string], :int
 
   # File/IO
+  attach_function 'fcntl', [:int, :int, :int], :int
+
   #   opening/closing
   attach_function 'fdopen', [:int, :string], :pointer
   attach_function 'fopen',  [:string, :string], :pointer

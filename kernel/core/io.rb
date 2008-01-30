@@ -85,6 +85,7 @@ class IO
   module Constants
     F_GETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_GETFL']
     F_SETFL  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.F_SETFL']
+    ACCMODE  = Rubinius::RUBY_CONFIG['rbx.platform.fcntl.O_ACCMODE']
 
     SEEK_SET = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_SET']
     SEEK_CUR = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_CUR']
@@ -93,7 +94,7 @@ class IO
     RDONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDONLY']
     WRONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_WRONLY']
     RDWR     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDWR']
-  
+
     CREAT    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_CREAT']
     EXCL     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_EXCL']
     NOCTTY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NOCTTY']
@@ -101,7 +102,7 @@ class IO
     APPEND   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_APPEND']
     NONBLOCK = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NONBLOCK']
     SYNC     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_SYNC']
-  
+
     S_IRUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRUSR']
     S_IWUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWUSR']
     S_IXUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXUSR']
@@ -171,15 +172,25 @@ class IO
   # if that is not the case. If the mode is incompatible, it will
   # raise Errno::EINVAL instead.
   def initialize(fd, mode)
+    fd = Type.coerce_to fd, Integer, :to_int
+
     # Descriptor must be an open and valid one
-    @fptr = Platform::POSIX.fdopen(Type.coerce_to(fd, Integer, :to_int), mode)
-    Errno.handle if @fptr.nil? or @fptr.null?
+    raise Errno::EBADF, "Invalid descriptor #{fd}" if fd < 0
 
-    @descriptor = Platform::POSIX.fileno @fptr
-    Errno.handle if @descriptor < 0
+    cur_mode = Platform::POSIX.fcntl(fd, F_GETFL, 0)
+    raise Errno::EBADF, "Invalid descriptor #{fd}" if cur_mode < 0
 
-    @mode = mode
-    setup
+    # Must support the desired mode.
+    # O_ACCMODE is /undocumented/ for fcntl() on some platforms
+    # but it should work. If there is a problem, check it though.
+    new_mode = IO.parse_mode(mode) & ACCMODE
+    cur_mode = cur_mode & ACCMODE
+
+    if cur_mode != RDWR and cur_mode != new_mode
+      raise Errno::EINVAL, "Invalid mode '#{mode}' for existing descriptor #{fd}"
+    end
+
+    setup fd, mode
   end
 
   def self.open(fd, mode = 'r')
@@ -223,10 +234,9 @@ class IO
     @descriptor = Platform::POSIX.dup(@descriptor)
   end
 
-  def setup(desc = nil, mode = nil, fptr = nil)
+  def setup(desc = nil, mode = nil)
     @descriptor = desc if desc
     @mode = mode if mode
-    @fptr = fptr if fptr
     @buffer = IO::Buffer.new(BufferSize)
     @eof = false
     @lineno = 0
@@ -473,19 +483,7 @@ class IO
   def close()
     raise IOError, "Instance of IO already closed" if closed?
 
-    # We may be dealing with stream API vs. Channel API here.
-    if @fptr
-      # TODO: Should check for write mode here when possible
-      Platform::POSIX.fflush @fptr
-
-      Errno.handle unless Platform::POSIX.fclose(@fptr) == 0
-
-      @fptr = nil   # fclose should handle deallocation
-      @mode = nil
-      @descriptor = -1
-    else
-      io_close or raise SystemCallError, "Invalid file descriptor"
-    end
+    io_close or raise SystemCallError, "Invalid file descriptor"
   end
 
   def descriptor
@@ -679,7 +677,7 @@ class IO
 
   def fcntl(command, arg)
     if arg.kind_of? Fixnum then
-      IO._fcntl_int descriptor, command, arg
+      Platform::POSIX.fcntl(descriptor, command, arg)
     else
       raise NotImplementedError, "cannot handle #{arg.class}"
     end
@@ -728,10 +726,9 @@ class IO
   
   private :io_close
 
-  def self.after_loaded
-    attach_function "fcntl", :_fcntl_int, [:int, :int, :int], :int
+  def self.after_loaded()
+    # Nothing to do right now
   end
-
 end
 
 class BidirectionalPipe < IO

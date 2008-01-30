@@ -469,7 +469,6 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
     O_RDWR
     O_WRONLY
     O_ACCMODE
-    O_ACCMODE
   }
 
   socket_constants = %w[
