@@ -1,10 +1,12 @@
 require 'debugger/command'
+require 'thread'
 
 # A debugger, providing a CLI for debugging Ruby code running under Rubinius.
 # Takes advantage of Rubinius's support for full-speed debugging, via the
 # +Breakpoint+ and +BreakpointTracker+ classes.
 class Debugger
-  @@instance = nil
+  @instance = nil
+  @semaphore = Mutex.new
 
   # Only a single Debugger instance should be created
   def self.new
@@ -14,31 +16,48 @@ class Debugger
 
   # Returns the singleton instance of the +Debugger+.
   def self.instance
-    @@instance ||= new()
+    @semaphore.synchronize do
+      @instance ||= new()
+    end
+  end
+
+  def self.__instance__
+    @instance
+  end
+
+  def self.__clear_instance
+    @semaphore.synchronize do
+      @instance = nil
+    end
   end
 
   # Initializes a new +Debugger+ instance
   def initialize
     require 'readline'
 
-    @bt = BreakpointTracker.new
+    @breakpoint_tracker = BreakpointTracker.new
 
     # Register this debugger as the default debug
-    Rubinius::VM.debug_channel = @bt.debug_channel
+    Rubinius::VM.debug_channel = @breakpoint_tracker.debug_channel
 
     @quit = false
     @breakpoint_listener = Thread.new do
       thrd = nil
       until @quit do
         @done = false
-        thrd = @bt.process
-        @bt.wake_target(thrd) unless @quit  # defer wake until we cleanup
+        begin
+          thrd = @breakpoint_tracker.wait_for_breakpoint
+          @breakpoint_tracker.wake_target(thrd) unless @quit  # defer wake until we cleanup
+        rescue Error => e
+          puts "An exception occured while processing a breakpoint:"
+          puts e
+        end
       end
       # Release singleton, since our loop thread is exiting
-      @@instance = nil
+      Debugger.__clear_instance
 
       # Remove all remaining breakpoints
-      clear_breakpoints
+      @breakpoint_tracker.clear_breakpoints
 
       # De-register debugger on the to-be global debug channel
       Rubinius::VM.debug_channel = nil
@@ -46,15 +65,16 @@ class Debugger
       if thrd
         # thrd will be nil if debugger was quit from other than a debug thread
         puts "[Debugger exiting]"
-        @bt.wake_target(thrd)
+        @breakpoint_tracker.wake_target(thrd)
       end
+      @breakpoint_tracker.release_waiting_threads
     end
   end
 
   # Sets a breakpoint on a +CompiledMethod+ at the specified address.
   def set_breakpoint(cm, ip)
-    @bt.on(cm, :ip => ip) do |thread, ctxt, handler|
-      activate_debugger thread, ctxt
+    @breakpoint_tracker.on(cm, :ip => ip) do |thread, ctxt, bp|
+      activate_debugger thread, ctxt, bp
     end
   end
 
@@ -64,23 +84,24 @@ class Debugger
       bp = [bp]
     end
     bp.each do |bp|
-      @bt.remove bp
+      @breakpoint_tracker.remove_breakpoint bp
     end
   end
 
   # Clears all breakpoints
   def clear_breakpoints
-    remove_breakpoint @bt.breakpoints
+    @breakpoint_tracker.clear_breakpoints
   end
 
   # Returns details of all breakpoints that are being managed by the debugger.
+  # Note: This excludes transitory step breakpoints.
   def breakpoints
-    @bt.breakpoints
+    @breakpoint_tracker.breakpoints
   end
 
   # Returns the breakpoint for the specified compiled method and IP
   def get_breakpoint(cm, ip)
-    @bt.get_breakpoint(cm, ip)
+    @breakpoint_tracker.get_breakpoint(cm, ip)
   end
 
   # True if the debugger is sleeping, i.e. waiting for a breakpoint to be hit.
@@ -101,7 +122,7 @@ class Debugger
     # If quit! is called from other than a command, we need to interrupt the
     # breakpoint listener thread
     unless @debug_thread
-      @bt.debug_channel.send nil
+      @breakpoint_tracker.debug_channel.send nil
       @breakpoint_listener.join
     end
   end
@@ -124,8 +145,8 @@ class Debugger
 
   # Activates the debugger after a breakpoint has been hit, and responds to
   # debgging commands until a continue command is recevied.
-  def activate_debugger(thread, ctxt)
-    puts "[Debugger activated]"
+  def activate_debugger(thread, ctxt, bp)
+    puts "[Debugger activated]" unless bp.kind_of? StepBreakpoint
     @debug_thread = thread
     @debug_context = ctxt
 
@@ -134,7 +155,7 @@ class Debugger
 
     @prompt = "\nrbx:debug> "
     puts ""
-    puts "#{@debug_context.file}:#{@debug_context.line} [IP:#{@debug_context.ip}]"
+    puts "#{@debug_context.file}:#{bp.line} (#{@debug_context.method.name}) [IP:#{@debug_context.ip}]"
     until @done do
       inp = Readline.readline(@prompt)
       inp.strip!
