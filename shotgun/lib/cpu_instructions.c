@@ -642,8 +642,7 @@ inline void cpu_save_registers(STATE, cpu c, int offset) {
 
 inline void cpu_yield_debugger_check(STATE, cpu c) {
   /* Yield to the debugger if flag is set */
-  struct cpu_task *task = (struct cpu_task*)BYTES_OF(c->current_task);
-  if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
+  if(TASK_FLAG_P(c, TASK_DEBUG_ON_CTXT_CHANGE)) {
     if(EXCESSIVE_TRACING) {
       printf("Yielding to debugger due to context change\n");
     }
@@ -1300,8 +1299,9 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
 void cpu_yield_debugger(STATE, cpu c) {
   /* Ensure the DEBUG_ON_CTXT_CHANGE flag is cleared so we don't try
     to yield more than once */
-  struct cpu_task *task = (struct cpu_task*)BYTES_OF(c->current_task);
-  if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
+  if(TASK_FLAG_P(c, TASK_DEBUG_ON_CTXT_CHANGE)) {
+    TASK_CLEAR_FLAG(c, TASK_DEBUG_ON_CTXT_CHANGE);
+    struct cpu_task *task = (struct cpu_task*)BYTES_OF(c->current_task);
     TASK_CLEAR_FLAG(task, TASK_DEBUG_ON_CTXT_CHANGE);
   }
 

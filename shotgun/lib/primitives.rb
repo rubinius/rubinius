@@ -2385,10 +2385,16 @@ class ShotgunPrimitives
     task = (struct cpu_task*)BYTES_OF(self);
     if(RTEST(t1)) {
       TASK_SET_FLAG(task, TASK_DEBUG_ON_CTXT_CHANGE);
+      if(task->active) {
+        TASK_SET_FLAG(c, TASK_DEBUG_ON_CTXT_CHANGE);
+      }
       stack_push(Qtrue);
     } else {
       if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
         TASK_CLEAR_FLAG(task, TASK_DEBUG_ON_CTXT_CHANGE);
+        if(task->active) {
+          TASK_CLEAR_FLAG(c, TASK_DEBUG_ON_CTXT_CHANGE);
+        }
       }
       stack_push(Qfalse);
     }
