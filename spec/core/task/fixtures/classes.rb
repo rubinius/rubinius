@@ -50,34 +50,35 @@ module TaskSpecs
 
   # Simple listener class to receive call-backs when yield_debugger is hit
   class Listener
+
     def initialize
       @debug_channel = Channel.new
+      @msg_channel = Channel.new
       Rubinius::VM.debug_channel = @debug_channel
-    end
-    attr_accessor :name, :debugged
-
-    def reset
-      @name = nil
-      @debugged = false
     end
 
     def wait_for_breakpoint(&prc)
       @thread = Thread.new do
-        reset
-        Scheduler.send_in_microseconds @debug_channel, 1_000_000
+        #Scheduler.send_in_microseconds @debug_channel, 10_000_000
+        @msg_channel.send true
         thr = @debug_channel.receive
         if thr
-          @name = thr.task.current_context.method.name
-          @debugged = true
+          @msg_channel.send thr.task.current_context.method.name
           prc.call(thr.task) if block_given?
           thr.control_channel.send nil
         else
           Thread.main.raise "No breakpoint triggered"
         end
       end
+      @msg_channel.receive
       Thread.pass until @thread.status == "sleep"
     end
     attr_reader :thread
+
+    def get_breakpoint_method
+      Scheduler.send_in_microseconds @msg_channel, 100_000
+      @msg_channel.receive
+    end
   end
 
 end
