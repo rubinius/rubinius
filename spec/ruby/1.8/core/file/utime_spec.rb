@@ -17,9 +17,9 @@ describe "File.utime" do
   
   it "sets the access and modification time of each file" do
     File.utime(@atime, @mtime, @file1, @file2)
-    File.atime(@file1).to_i.should == @atime.to_i
-    File.mtime(@file1).to_i.should == @mtime.to_i
-    File.atime(@file2).to_i.should == @atime.to_i
-    File.mtime(@file2).to_i.should == @mtime.to_i
+    File.atime(@file1).to_i.should be_close(@atime.to_i, 2)
+    File.mtime(@file1).to_i.should be_close(@mtime.to_i, 2)
+    File.atime(@file2).to_i.should be_close(@atime.to_i, 2)
+    File.mtime(@file2).to_i.should be_close(@mtime.to_i, 2)
   end
 end
