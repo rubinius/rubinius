@@ -2,10 +2,16 @@ require 'mspec/expectations'
 require 'mspec/runner/formatters/dotted'
 
 class SpecdocFormatter < DottedFormatter
+  def register
+    super
+    MSpec.register :enter, self
+  end
+  
+  def enter(describe)
+    print "#{describe}\n"
+  end
+  
   def after(state)
-    unless @describe == state.describe
-      print "#{@describe = state.describe}\n"
-    end
     desc = "- #{state.it}"
     if state.exception?
       @states << state

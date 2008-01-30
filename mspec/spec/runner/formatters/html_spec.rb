@@ -1,70 +1,182 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../../../runner/formatters/html'
+require File.dirname(__FILE__) + '/../../../runner/runner'
+require File.dirname(__FILE__) + '/../../../runner/state'
 
 describe HtmlFormatter do
   before :each do
-    @out = CaptureOutput.new
-    @formatter = HtmlFormatter.new(@out)
-    @exception = Exception.new("something bad")
-    @execution = SpecExecution.new
-    @execution.describe = "describe"
-    @execution.it = "it"
-    @execution.exception = @exception
+    @formatter = HtmlFormatter.new
   end
   
-  it "responds to print_head with no arguments" do
-    @formatter.print_head
-    @out.should == "<html>\n<head>\n<title>Spec Output For #{RUBY_NAME} (#{RUBY_VERSION})</title>\n" \
-      "<script type=\"text/css\">\nul {\n  list-style: none;\n}\n" \
-      ".fail {\n  color: red;\n}\n.pass {\n  color: green;\n}\n</script>\n</head>\n<body>\n"
+  it "responds to #register by registering itself with MSpec for appropriate actions" do
+    MSpec.stub!(:register)
+    MSpec.should_receive(:register).with(:start, @formatter)
+    MSpec.should_receive(:register).with(:enter, @formatter)
+    MSpec.should_receive(:register).with(:leave, @formatter)
+    @formatter.register
+  end
+end
+
+describe HtmlFormatter, "#start" do
+  before :each do
+    $stdout = @out = CaptureOutput.new
+    @formatter = HtmlFormatter.new
   end
   
-  it "responds to print_describe with no arguments" do
-    @formatter.print_describe
-    @out.should == "<div><p></p>\n<ul>"
+  after :each do
+    $stdout = STDOUT
+  end
+  
+  it "prints the HTML head" do
+    @formatter.start
+    @out.should == 
+%[<html>
+<head>
+<title>Spec Output For #{RUBY_NAME} (#{RUBY_VERSION})</title>
+<script type="text/css">
+ul {
+  list-style: none;
+}
+.fail {
+  color: red;
+}
+.pass {
+  color: green;
+}
+</script>
+</head>
+<body>
+]
+  end
+end
+
+describe HtmlFormatter, "#enter" do
+  before :each do
+    $stdout = @out = CaptureOutput.new
+    @formatter = HtmlFormatter.new
+  end
+  
+  after :each do
+    $stdout = STDOUT
+  end
+  
+  it "prints the #describe string" do
+    @formatter.enter "describe"
+    @out.should == "<div><p>describe</p>\n<ul>\n"
+  end
+end
+
+describe HtmlFormatter, "#leave" do
+  before :each do
+    $stdout = @out = CaptureOutput.new
+    @formatter = HtmlFormatter.new
+  end
+  
+  after :each do
+    $stdout = STDOUT
+  end
+  
+  it "prints the closing tags for the #describe string" do
+    @formatter.leave
+    @out.should == "</ul>\n</div>\n"
+  end
+end
+
+describe HtmlFormatter, "#after" do
+  before :each do
+    $stdout = @out = CaptureOutput.new
+    @formatter = HtmlFormatter.new
+    @state = SpecState.new("describe", "it")
+  end
+  
+  after :each do
+    $stdout = STDOUT
+  end
+  
+  it "prints the #it once when there are no exceptions raised" do
+    @formatter.after(@state)
+    @out.should == %[<li class="pass">- it</li>\n]
+  end
+  
+  it "prints the #it string once for each exception raised" do
+    MSpec.stub!(:register)
+    tally = mock("tally", :null_object => true)
+    tally.stub!(:failures).and_return(1)
+    tally.stub!(:errors).and_return(1)
+    TallyAction.stub!(:new).and_return(tally)
+    
+    @formatter.register
+    @state.exceptions << ExpectationNotMetError.new("disappointing")
+    @state.exceptions << Exception.new("painful")
+    @formatter.after(@state)
+    @out.should == %[<li class="fail">- it (FAILED - 1)</li>\n<li class="fail">- it (ERROR - 2)</li>\n]
+  end
+end  
+
+describe HtmlFormatter, "#finish" do
+  before :each do
+    @tally = mock("tally", :null_object => true)
+    TallyAction.stub!(:new).and_return(@tally)
+    @timer = mock("timer", :null_object => true)
+    TimerAction.stub!(:new).and_return(@timer)
+    
+    $stdout = @out = CaptureOutput.new
+    @state = SpecState.new("describe", "it")
+    MSpec.stub!(:register)
+    @formatter = HtmlFormatter.new
+    @formatter.register
+  end
+  
+  after :each do
+    $stdout = STDOUT
+  end
+  
+  it "prints a failure message for an exception" do
+    @state.exceptions << Exception.new("broken")
+    @formatter.instance_variable_set :@states, [@state]
+    @formatter.finish
+    @out.should =~ %r[<p>describe it ERROR</p>]
+  end
+  
+  it "prints a backtrace for an exception" do
+    @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    @state.exceptions << Exception.new("broken")
+    @formatter.instance_variable_set :@states, [@state]
+    @formatter.finish
+    @out.should =~ %r[<pre>.*path/to/some/file.rb:35:in method.*</pre>]m
   end
 
-  it "responds to before_describe with one argument" do
-    @formatter.before_describe "describe"
-    @out.should == "<div><p>describe</p>\n<ul>"
+  it "prints a summary of elapsed time" do
+    @timer.should_receive(:format).and_return("Finished in 2.0 seconds")
+    @formatter.finish
+    @out.should =~ %r[<p>Finished in 2.0 seconds</p>\n]
   end
   
-  it "responds to after_describe with one argument" do
-    @formatter.after_describe "after"
-    @out.should == "</ul>\n</div>"
+  it "prints a tally of counts" do
+    @tally.should_receive(:format).and_return("1 example, 0 failures")
+    @formatter.finish
+    @out.should =~ %r[<p class="pass">1 example, 0 failures</p>]
   end
   
-  it "responds to after_it with one argument and outputs a pass message" do
-    @formatter.before_it "before"
-    @formatter.after_it "after"
-    @out.should == "<li class=\"pass\">- before</li>"
-  end
-  
-  it "responds to after_it with one argument and outputs a fail message" do
-    @formatter.before_it "before"
-    @formatter.exception @exception
-    @formatter.after_it "after"
-    @out.should == "<li class=\"fail\">- before (ERROR - 1)</li>"
-  end
-  
-  it "provides print_failure with an index and SpecExecution instance" do
-    @formatter.print_failure(1, @execution)
-    @out.should == "<li>describe it ERROR</li>\n"
-  end
-  
-  it "provides print_exception with an Exception instance" do
-    @formatter.print_backtrace(@exception)
-    @out.should == "<p>something bad</p><pre>\n</pre>\n"
-  end
-  
-  it "provides print_summary when all specs pass" do
-    @formatter.print_summary
-    @out.should == %[<p class="pass">0 examples, 0 expectations, 0 failures, 0 errors</p>\n</body>\n</html>\n]
-  end
-  
-  it "provides print_summary when any spec fails" do
-    @formatter.exception @exception
-    @formatter.print_summary
-    @out.should == %[<p class="fail">0 examples, 0 expectations, 0 failures, 1 error</p>\n</body>\n</html>\n]
+  it "prints errors, backtraces, elapsed time, and tallies" do
+    @state.exceptions << Exception.new("broken")
+    @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    @timer.should_receive(:format).and_return("Finished in 2.0 seconds")
+    @tally.should_receive(:format).and_return("1 example, 1 failures")
+    @formatter.instance_variable_set :@states, [@state]
+    @formatter.finish
+    @out.should == 
+%[<ol>
+<li><p>describe it ERROR</p>
+<p>broken</p>
+<pre>
+path/to/some/file.rb:35:in method</pre>
+</li>
+</ol>
+<p>Finished in 2.0 seconds</p>
+<p class="fail">1 example, 1 failures</p>
+</body>
+</html>
+]
   end
 end

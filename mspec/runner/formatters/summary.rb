@@ -1,7 +1,8 @@
 require 'mspec/expectations'
-require 'mspec/runner/formatters/base'
+require 'mspec/runner/formatters/dotted'
 
-class SummaryFormatter < BaseFormatter
-  def after_it(msg)
+class SummaryFormatter < DottedFormatter
+  def after(state)
+    @states << state if state.exception?
   end
 end

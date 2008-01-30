@@ -54,6 +54,9 @@ end
 
 describe RunState, "#state" do
   before :each do
+    MSpec.store :before, []
+    MSpec.store :after, []
+    
     @state = RunState.new
   end
   
@@ -73,6 +76,9 @@ end
 
 describe RunState, "#process" do  
   before :each do
+    MSpec.store :before, []
+    MSpec.store :after, []
+    
     @state = RunState.new
     @a = lambda { @record << :a }
     @b = lambda { @record << :b }
@@ -193,7 +199,7 @@ describe RunState, "#process" do
     @state.describe("") { }
   end
   
-  it "calls all enter actions" do
+  it "calls registered enter actions with the current #describe string" do
     enter = mock("enter")
     enter.should_receive(:enter).and_return { @record = :enter }
     MSpec.register :enter, enter
@@ -201,7 +207,7 @@ describe RunState, "#process" do
     @record.should == :enter
   end
   
-  it "calls all leave actions" do
+  it "calls registered leave actions" do
     leave = mock("leave")
     leave.should_receive(:leave).and_return { @record = :leave }
     MSpec.register :leave, leave

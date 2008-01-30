@@ -1,11 +1,16 @@
 require 'mspec/expectations'
-require 'mspec/runner/guards'
-require 'mspec/runner/formatters/base'
+require 'mspec/runner/formatters/dotted'
 
-class HtmlFormatter < BaseFormatter
-  def print_head
-    unless @head_printed
-      @out.print <<-EOH
+class HtmlFormatter < DottedFormatter
+  def register
+    super
+    MSpec.register :start, self
+    MSpec.register :enter, self
+    MSpec.register :leave, self
+  end
+  
+  def start
+    print <<-EOH
 <html>
 <head>
 <title>Spec Output For #{RUBY_NAME} (#{RUBY_VERSION})</title>
@@ -23,69 +28,46 @@ ul {
 </head>
 <body>
 EOH
-      @head_printed = true
-    end
   end
   
-  def before_describe(msg)
-    super
-    print_describe
+  def enter(describe)
+    print "<div><p>#{describe}</p>\n<ul>\n"
   end
   
-  def print_describe
-    unless @describe_printed
-      @out.print "<div><p>#{@describe}</p>\n<ul>"
-      @decribe_printed = true
-    end
+  def leave
+    print "</ul>\n</div>\n"
   end
-  
-  def after_describe(msg)
-    @out.print "</ul>\n</div>"
-  end
-  
-  def after_it(msg)
-    if @current.exception
-      count = @tally.failures + @tally.errors
-      error = if failure?(@current.exception)
-        " (FAILED - #{count})"
-      else
-        " (ERROR - #{count})"
+
+  def after(state)
+    desc = "- #{state.it}"
+    if state.exception?
+      @states << state
+      count = @tally.failures + @tally.errors - state.exceptions.size
+      state.exceptions.each do |exc|
+        outcome = state.failure?(exc) ? "FAILED" : "ERROR"
+        print %[<li class="fail">#{desc} (#{outcome} - #{count += 1})</li>\n]
       end
-      @out.print %[<li class="fail">- #{@current.it}#{error}</li>]
     else
-      @out.print %[<li class="pass">- #{@current.it}</li>]
+      print %[<li class="pass">#{desc}</li>\n]
     end
   end
-  
-  def print_failure(i,r)
-    result = failure?(r.exception) ? "FAILED" : "ERROR"
-    @out.print "<li>#{r.describe} #{r.it} #{result}</li>\n"
-  end
 
-  def print_backtrace(e)
-    if e.message != ""
-      @out.print "<p>#{e.message}</p>"
-
-      @out.print "<pre>\n"
-      begin
-        @out.print e.awesome_backtrace.show
-      rescue Exception
-        @out.print e.backtrace
+  def finish
+    success = @states.empty?
+    print "<ol>" unless success
+    @states.each do |state|
+      state.exceptions.each do |exc|
+        outcome = failure?(state) ? "FAILED" : "ERROR"
+        print "\n<li><p>#{state.description} #{outcome}</p>\n<p>"
+        print (exc.message.empty? ? "<No message>" : exc.message)
+        print "</p>\n<pre>\n"
+        print backtrace(exc)
+        print "</pre>\n</li>\n"
       end
-      @out.print "</pre>\n"
     end
-  end
-
-  def print_summary
-    css_class = @exceptions.empty? ? "pass" : "fail"
-    @out.print %[<p class="#{css_class}">#{@tally.examples} example]
-    @out.print "s" if @tally.examples != 1
-    @out.print %[, #{@tally.expectations} expectation]
-    @out.print "s" if @tally.expectations != 1
-    @out.print %[, #{@tally.failures} failure]
-    @out.print "s" if @tally.failures != 1
-    @out.print %[, #{@tally.errors} error]
-    @out.print "s" if @tally.errors != 1
-    @out.print %[</p>\n</body>\n</html>\n]
+    print "</ol>\n" unless success
+    print %[<p>#{@timer.format}</p>\n]
+    print %[<p class="#{success ? "pass" : "fail"}">#{@tally.format}</p>\n]
+    print "</body>\n</html>\n"
   end
 end
