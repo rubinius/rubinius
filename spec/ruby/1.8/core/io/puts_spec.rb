@@ -6,7 +6,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 # are correct.
 describe "IO#puts" do
   before(:each) do
-    @io = IO.new(2)
+    @io = IO.new(2, 'w')
   end
 
   it "writes just a newline when given no args" do
