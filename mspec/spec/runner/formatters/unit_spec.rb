@@ -1,37 +1,70 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../../../runner/formatters/unit'
+require File.dirname(__FILE__) + '/../../../runner/state'
 
-describe UnitdiffFormatter do
+describe UnitdiffFormatter, "#finish" do
   before :each do
-    @out = CaptureOutput.new
-    @formatter = UnitdiffFormatter.new(@out)
-    @formatter.before_describe "describe"
-    @formatter.before_it "it"
-    @exception = Exception.new("something bad")
-    @formatter.exception @exception
-    @execution = SpecExecution.new
-    @execution.describe = "describe"
-    @execution.it = "it"
-    @execution.exception = @exception
+    @tally = mock("tally", :null_object => true)
+    TallyAction.stub!(:new).and_return(@tally)
+    @timer = mock("timer", :null_object => true)
+    TimerAction.stub!(:new).and_return(@timer)
+    
+    $stdout = @out = CaptureOutput.new
+    @state = SpecState.new("describe", "it")
+    MSpec.stub!(:register)
+    @formatter = UnitdiffFormatter.new
+    @formatter.register
   end
   
-  it "responds to after_it with one argument" do
-    @formatter.after_it "after"
+  after :each do
+    $stdout = STDOUT
+  end
+  
+  it "prints a failure message for an exception" do
+    @state.exceptions << Exception.new("broken")
+    @formatter.after @state
+    @formatter.finish
+    @out.should =~ /^1\)\ndescribe it ERROR$/
+  end
+  
+  it "prints a backtrace for an exception" do
+    @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    @state.exceptions << Exception.new("broken")
+    @formatter.after @state
+    @formatter.finish
+    @out.should =~ %r[path/to/some/file.rb:35:in method$]
   end
 
-  it "provides execution results when after_it is called" do
-    @formatter.before_it "it"
-    @formatter.after_it "first"
-    @out.should == "."
-    @formatter.before_it "it"
-    @formatter.exception @exception
-    @formatter.after_it "second"
-    @out.should == ".E"
+  it "prints a summary of elapsed time" do
+    @timer.should_receive(:format).and_return("Finished in 2.0 seconds")
+    @formatter.finish
+    @out.should =~ /^Finished in 2.0 seconds$/
   end
+  
+  it "prints a tally of counts" do
+    @tally.should_receive(:format).and_return("1 example, 0 failures")
+    @formatter.finish
+    @out.should =~ /^1 example, 0 failures$/
+  end
+  
+  it "prints errors, backtraces, elapsed time, and tallies" do
+    @state.exceptions << Exception.new("broken")
+    @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    @timer.should_receive(:format).and_return("Finished in 2.0 seconds")
+    @tally.should_receive(:format).and_return("1 example, 0 failures")
+    @formatter.after @state
+    @formatter.finish
+    @out.should == 
+%[E
 
-  it "provides a summary" do
-    @formatter.stub!(:print_time).and_return { @out.print "Finished in 33.000000 seconds\n\n" }
-    @formatter.summary
-    @out.should == "\n\nFinished in 33.000000 seconds\n\n1)\ndescribe it ERROR\nsomething bad: \n\n\n1 example, 0 expectations, 0 failures, 1 error\n"
+Finished in 2.0 seconds
+
+1)
+describe it ERROR
+broken: 
+path/to/some/file.rb:35:in method
+
+1 example, 0 failures
+]
   end
 end

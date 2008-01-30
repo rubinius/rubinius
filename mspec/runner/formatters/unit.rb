@@ -1,29 +1,24 @@
 require 'mspec/expectations'
-require 'mspec/runner/formatters/base'
+require 'mspec/runner/formatters/dotted'
 
-class UnitdiffFormatter < BaseFormatter
-  def after_it(msg)
-    if @current.exception
-      if failure? @current.exception
-        @out.print 'F'
-      else
-        @out.print 'E'
+class UnitdiffFormatter < DottedFormatter
+  def finish
+    print "\n\n#{@timer.format}\n"
+    count = 0
+    @states.each do |state|
+      state.exceptions.each do |exc|
+        outcome = failure?(state) ? "FAILED" : "ERROR"
+        print "\n#{count += 1})\n#{state.description} #{outcome}\n"
+        print (exc.message.empty? ? "<No message>" : exc.message) + ": \n"
+        print backtrace(exc)
+        print "\n"
       end
-    else
-      @out.print '.'
     end
+    print "\n#{@tally.format}\n"
   end
   
-  def summary
-    unless @summarized
-      @out.print "\n\n"
-      print_time
-      @exceptions.each_with_index do |r,i|
-        print_failure(i+1,r)
-        print_backtrace(r.exception)
-      end
-      print_summary
-      @summarized = true
-    end
+  def backtrace(exc)
+    exc.backtrace && exc.backtrace.join("\n")
   end
+  private :backtrace
 end
