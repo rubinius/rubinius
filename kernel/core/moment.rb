@@ -1,6 +1,11 @@
 class Moment
+
+  def self.gettimeofday
+    Ruby.primitive :gettimeofday
+  end
+  
   def self.now
-    Moment.at Platform::POSIX.time(nil)
+    Moment.at(gettimeofday)
   end
 
   def self.at(time)
@@ -8,9 +13,10 @@ class Moment
   end
 
   def initialize(time)
-    @utc = time
-    @local = time - Platform::POSIX.timezone
-    @time = @local
+    @utc   = time.respond_to?(:first) ? time.first : time
+    @micro = time.respond_to?(:last)  ? time.last  : 0
+    @local = @utc - Platform::POSIX.timezone
+    @time  = @local
     @human = nil
   end
 
@@ -23,36 +29,10 @@ class Moment
       @moment = moment
     end
 
+    attr_accessor :micro
     attr_accessor :second
     attr_accessor :minute
     attr_accessor :hour
-
-    Centries = {
-      17 => 4,
-      18 => 2,
-      19 => 0,
-      20 => 6,
-      21 => 4,
-      22 => 2,
-      23 => 0,
-      24 => 6,
-      25 => 4
-    }
-
-    Months = {
-      1 => 0,
-      2 => 3,
-      3 => 3,
-      4 => 6,
-      5 => 1,
-      6 => 4,
-      7 => 6,
-      8 => 2,
-      9 => 5,
-      10 => 0,
-      11 => 3,
-      12 => 5
-    }
 
     Days = {
       0 => :sunday,
@@ -85,20 +65,11 @@ class Moment
 
       # HACK this only does gregorian weeks
       # see http://en.wikipedia.org/wiki/Calculating_the_day_of_the_week
-     
-      s1 = Centries[@year / 100]
-      s2 = @year % 100
-      s3 = s2 / 4
-      s4 = Months[@month]
-      s5 = s1 + s2 + s3 + s4 + @day
-      s6 = s5 % 7
+      @weekday = Days[(@jd + 1) % 7]
+    end
 
-      # leap year!
-      if @year % 4 == 0
-        s6 -= 1
-      end
-
-      @weekday = Days[s6]
+    def leap?
+      @year % 4 == 0 && @year % 100 != 0 || @year % 400 == 0
     end
 
     # HACK these need to be locale specific tables
@@ -178,7 +149,7 @@ class Moment
         if offset < 0
           "-0#{offset.abs}00"
         else
-          "0#{offset}00"
+          "+0#{offset}00"
         end
       else
         "#{offset}00"
@@ -194,19 +165,18 @@ class Moment
 
     s = @time % 86400
     h = HumanTime.new(self)
+
+    h.micro  = @micro
     h.second = (s % 60); s /= 60
     h.minute = (s % 60); s /= 60
-    h.hour = s
+    h.hour   = s
 
     u = @time / 86400
 
     @mjd = EpochToMDJ + u
 
     # The julian day began an noon, not midnight.
-    jd = @mjd + 2400000
-    if h.hour >= 12
-      jd += 1
-    end
+    jd = @mjd + 2400001
 
     h.from_jd(jd)
 
@@ -225,6 +195,8 @@ class Moment
     :d => :padded_day,
     :e => :day,
     :F => :ymd,
+    :g => :padded_short_commercial_year,
+    :G => :commercial_year,
     :H => :padded_hour_24,
     :h => :short_month,
     :I => :padded_hour,
