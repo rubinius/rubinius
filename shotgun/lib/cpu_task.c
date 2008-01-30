@@ -544,7 +544,7 @@ OBJECT cpu_channel_new(STATE) {
   return chan;
 }
 
-int cpu_channel_was_readers_p(STATE, OBJECT self) {
+int cpu_channel_has_readers_p(STATE, OBJECT self) {
   OBJECT readers;
 
   readers = channel_get_waiting(self);

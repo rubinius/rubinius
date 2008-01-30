@@ -1328,6 +1328,7 @@ void cpu_yield_debugger(STATE, cpu c) {
       c->control_channel = cpu_channel_new(state);
     }
 
+    sassert(cpu_channel_has_readers_p(state, dbg));
     cpu_channel_send(state, c, dbg, c->current_thread);
     /* This is so when this task is reactivated, the sent value wont be placed
        on the stack, keeping the stack clean. */
@@ -1467,7 +1468,7 @@ check_interrupts:
       }
   
       /* If someone is reading the ON_GC channel, write to it to notify them. */
-      if(cpu_channel_was_readers_p(state, state->global->on_gc_channel)) {
+      if(cpu_channel_has_readers_p(state, state->global->on_gc_channel)) {
         cpu_channel_send(state, c, state->global->on_gc_channel, Qtrue);
       }
       
