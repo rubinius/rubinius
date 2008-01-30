@@ -217,9 +217,9 @@ module Enumerable
   #     ary = [1, 2, 4, 2]
   #     ary.count(2)          # => 2
   #     ary.count{|x|x%2==0}  # => 3
-  def count(item=nil)
+  def count(item = Undefined)
     seq = 0
-    if item
+    unless item.equal? Undefined
       each { |o| seq += 1 if item == o }
     else
       each { |o| seq += 1 if yield(o) }
