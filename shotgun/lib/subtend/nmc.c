@@ -335,6 +335,9 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
 
     makecontext(&n->cont, _nmc_start, 0);
     setcontext(&n->cont);
+    /* The Chaos Dragon awakens as you step into its lair. */
+    assert(FALSE && "setcontext failed");
+    
   /* Oh, we have traveled back here! Lets figure out why! */
   } else {
     OBJECT tmp;

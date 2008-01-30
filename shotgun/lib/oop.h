@@ -8,7 +8,7 @@ typedef void * xpointer;
 typedef intptr_t native_int;
 
 /* OOP layout:
- * [30 bits of data | 2 bits of tag]
+ * [30 (or 62) bits of data | 2 bits of tag]
  * if tag == 00, the whole thing is a pointer to a memory location.
  * if tag == 01, the data is a fixnum
  * if tag == 10, the data is a literal
@@ -19,9 +19,9 @@ typedef intptr_t native_int;
 #define TAG_SHIFT   2
 
 #define TAG_REF     0x0
-#define TAG_DATA    0x3
 #define TAG_FIXNUM  0x1
 #define TAG_LITERAL 0x2
+#define TAG_DATA    0x3
 
 #define TAG(v) (((uintptr_t)v) & TAG_MASK)
 #define APPLY_TAG(v, tag) ((OBJECT)(((uintptr_t)v << TAG_SHIFT) | tag))

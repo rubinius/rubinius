@@ -215,7 +215,12 @@ CODE
   end
   
   def push_literal
-    "next_int; stack_push(fast_fetch(cpu_current_literals(state, c), _int));"
+    <<-CODE
+    next_int;
+    t1 = cpu_current_literals(state, c);
+    t2 = fast_fetch(t1, _int);
+    stack_push(t2);
+    CODE
   end
   
   def set_literal
