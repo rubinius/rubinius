@@ -1,5 +1,8 @@
 class Object
-  alias pretty_inspect inspect
+  # Aliasing WILL break.
+  def pretty_inspect()
+    inspect
+  end
 end
 
 class PositiveOperatorMatcher
