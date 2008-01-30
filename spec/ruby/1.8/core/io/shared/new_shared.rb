@@ -31,7 +31,6 @@ shared :io_new do |cmd|
 
     it "associates new IO with the old descriptor so each IO directly affects the other" do
       io = IO.send cmd, @file.fileno, 'w'
-      io.fileno.should == @file.fileno
 
       @file.syswrite "Hello "
       @file.closed?.should == false

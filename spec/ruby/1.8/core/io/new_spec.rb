@@ -6,8 +6,25 @@ describe "IO.new" do
 end
 
 describe "IO.new" do
+  before :all do
+    @filename = "/tmp/rubinius-spec-io-new-#{$$}.txt"
+  end
+
+  after :all do
+    File.unlink @filename
+  end
+
+  before :each do
+    @file = File.open @filename, "w"
+  end
+
+  after :each do
+    # This should normally NOT be rescued
+    @file.close unless @file.closed? rescue nil
+  end
+
   it "does not execute a block if given one" do
-    l = lambda { IO.new @file.fileno, 'w') {|io| raise Exception, "N-uh" } }
+    l = lambda { IO.new(@file.fileno, 'w') {|io| raise Exception, "N-uh" } }
     l.should_not raise_error(Exception, "N-uh")
   end
 
