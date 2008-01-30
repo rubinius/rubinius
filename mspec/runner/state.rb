@@ -46,6 +46,7 @@ class RunState
   
   def process
     protect @describe, @block
+    MSpec.actions :enter, @describe
     protect "before :all", @start
     @spec.each do |desc, spec|
       @state = SpecState.new @describe, desc
@@ -60,6 +61,7 @@ class RunState
       @state = nil
     end
     protect "after :all", @finish
+    MSpec.actions :leave
   end
 end
 

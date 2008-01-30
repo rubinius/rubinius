@@ -184,6 +184,32 @@ describe RunState, "#process" do
   end
 end
 
+describe RunState, "#process" do
+  before :each do
+    MSpec.store :enter, []
+    MSpec.store :leave, []
+    
+    @state = RunState.new
+    @state.describe("") { }
+  end
+  
+  it "calls all enter actions" do
+    enter = mock("enter")
+    enter.should_receive(:enter).and_return { @record = :enter }
+    MSpec.register :enter, enter
+    @state.process
+    @record.should == :enter
+  end
+  
+  it "calls all leave actions" do
+    leave = mock("leave")
+    leave.should_receive(:leave).and_return { @record = :leave }
+    MSpec.register :leave, leave
+    @state.process
+    @record.should == :leave
+  end
+end
+
 describe SpecState do
   it "is initialized with the describe and it strings" do
     SpecState.new("This", "does").should be_kind_of(SpecState)
