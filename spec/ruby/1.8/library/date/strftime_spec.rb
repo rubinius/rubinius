@@ -128,11 +128,6 @@ describe "Date#strftime" do
     Date.civil(2000, 4, 10).strftime("%w").should == "1"
   end
 
-  it "should be able to show the week day" do
-    Date.civil(2000, 4,  9).strftime("%w").should == "0"
-    Date.civil(2000, 4, 10).strftime("%w").should == "1"
-  end
-
   it "should be able to show the year in YYYY format" do
     Date.civil(2000, 4,  9).strftime("%Y").should == "2000"
   end
