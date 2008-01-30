@@ -1,35 +1,40 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../../../runner/formatters/specdoc'
+require File.dirname(__FILE__) + '/../../../runner/state'
 
-describe SpecdocFormatter do
+describe SpecdocFormatter, "#after" do
   before :each do
-    @out = CaptureOutput.new
-    @formatter = SpecdocFormatter.new(@out)
-    @formatter.before_describe "describe"
-    @exception = Exception.new("something bad")
+    $stdout = @out = CaptureOutput.new
+    @formatter = SpecdocFormatter.new
+    @state = SpecState.new("describe", "it")
   end
   
-  it "responds to before_describe with one argument" do
-    @formatter.before_describe "before"
+  after :each do
+    $stdout = STDOUT
   end
   
-  it "responds to print_describe with no arguments" do
-    @formatter.print_describe
-    @out.should == "\ndescribe\n"
+  it "prints the #describe string once" do
+    @formatter.after(@state)
+    @formatter.after(@state)
+    @out.should =~ /^describe\n- it\n- it/
   end
   
-  it "responds to before_it with one argument" do
-    @formatter.before_it "it"
-    @out.should == "\ndescribe\n- it"
+  it "prints the #it once when there are no exceptions raised" do
+    @formatter.after(@state)
+    @out.should =~ /^describe\n- it\n$/
   end
   
-  it "responds to after_it with one argument" do
-    @formatter.after_it "after"
-    @out.should == "\n"
+  it "prints the #it string once for each exception raised" do
+    MSpec.stub!(:register)
+    tally = mock("tally", :null_object => true)
+    tally.stub!(:failures).and_return(1)
+    tally.stub!(:errors).and_return(1)
+    TallyAction.stub!(:new).and_return(tally)
+    
+    @formatter.register
+    @state.exceptions << ExpectationNotMetError.new("disappointing")
+    @state.exceptions << Exception.new("painful")
+    @formatter.after(@state)
+    @out.should == "describe\n- it (FAILED - 1)\n- it (ERROR - 2)\n"
   end
-  
-  it "responds to exception with one argument" do
-    @formatter.exception @exception
-    @out.should == " (ERROR - 1)"
-  end
-end
+end  

@@ -1,36 +1,21 @@
 require 'mspec/expectations'
-require 'mspec/runner/formatters/base'
+require 'mspec/runner/formatters/dotted'
 
-class SpecdocFormatter < BaseFormatter
-  def before_describe(msg)
-    super
-    @describe_printed = false
-  end
-  
-  def print_describe
-    unless @describe_printed
-      @out.print "\n" + @describe.to_s + "\n"
-      @describe_printed = true
+class SpecdocFormatter < DottedFormatter
+  def after(state)
+    unless @describe == state.describe
+      print "#{@describe = state.describe}\n"
     end
-  end
-  
-  def before_it(msg)
-    super
-    print_describe
-    @out.print "- " + msg
-  end
-  
-  def after_it(msg)
-    @out.print "\n"
-  end
-  
-  def exception(e)
-    super
-    count = @tally.failures + @tally.errors
-    if failure?(e)
-      @out.print " (FAILED - #{count})"
+    desc = "- #{state.it}"
+    if state.exception?
+      @states << state
+      count = @tally.failures + @tally.errors - state.exceptions.size
+      state.exceptions.each do |exc|
+        outcome = state.failure?(exc) ? "FAILED" : "ERROR"
+        print "#{desc} (#{outcome} - #{count += 1})\n"
+      end
     else
-      @out.print " (ERROR - #{count})"
+      print "#{desc}\n"
     end
   end
 end

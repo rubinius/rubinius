@@ -15,7 +15,6 @@ class DottedFormatter
     @tally = TallyAction.new
     @tally.register
     
-    MSpec.register :start, self
     MSpec.register :after, self
     MSpec.register :finish, self
   end
