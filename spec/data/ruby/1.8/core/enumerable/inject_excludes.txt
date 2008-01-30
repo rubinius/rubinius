@@ -1,0 +1,1 @@
+Enumerable#inject only takes one argument

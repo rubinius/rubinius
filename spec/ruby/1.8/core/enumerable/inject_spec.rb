@@ -8,6 +8,10 @@ describe "Enumerable#inject" do
     a.should == [[0, 2], [2, 5], [5, 3], [3, 6], [6, 1], [1, 4]]
     EnumerableSpecs::EachDefiner.new(true, true, true).inject(nil) {|result, i| i && result}.should == nil
   end
+  
+  it "only takes one argument" do
+    lambda { EnumerableSpecs::Numerous.new.inject(0, 1) { |memo, i| i } }.should raise_error(ArgumentError)
+  end
     
   it "inject without argument takes a block with an accumulator (with first element as initial value) and the current element. Value of block becomes new accumulator" do
     a = []
