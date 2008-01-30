@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <errno.h>
+#include <time.h>
 
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/symbol.h"
@@ -17,6 +18,10 @@ int ffi_errno() { return errno; }
 
 void ffi_set_errno(int n) {
   errno = n;
+}
+
+long ffi_timezone() {
+  return timezone;
 }
 
 OBJECT ffi_new_pointer(STATE, void *ptr) {

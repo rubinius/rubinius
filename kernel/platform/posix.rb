@@ -76,7 +76,8 @@ module Platform::POSIX
 
   # Time
   attach_function 'time', [:pointer], :long
-
+  attach_function 'ffi_timezone', :timezone, [], :long 
+  
   # UID/GID
   gid_t = :uint
   uid_t = :uint
