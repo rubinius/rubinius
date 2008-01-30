@@ -1,1 +1,2 @@
+Marshal.dump with bignum 2**30 returns a string-serialized version of the given argument
 Marshal.dump with array containing objects having marshal_dump method returns a string-serialized version of the given argument
