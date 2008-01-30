@@ -8,7 +8,15 @@ module Signal
   
   def self.trap(sig, prc=nil, pass_ctx=false, &block)
     if sig.kind_of?(String)
-      number = Names[sig]
+      osig = sig
+
+      if sig.prefix? "SIG"
+        sig = sig[3..-1]
+      end
+
+      unless number = Names[sig]
+        raise ArgumentError, "Unknown signal '#{osig}'"
+      end
     else
       number = sig.to_i
     end

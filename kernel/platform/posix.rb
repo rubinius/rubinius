@@ -74,6 +74,9 @@ module Platform::POSIX
   attach_function 'ffi_sprintf_f', :sprintf_f, [:double, :int, :string], :strptr
   attach_function 'ffi_sprintf_d', :sprintf_d, [:int, :int, :string], :strptr
 
+  # Time
+  attach_function 'time', [:pointer], :long
+
   # UID/GID
   gid_t = :uint
   uid_t = :uint

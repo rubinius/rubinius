@@ -391,9 +391,11 @@ module Kernel
   def inspect(prefix=nil, vars=nil)
     return "..." if RecursionGuard.inspecting?(self)
 
-    return self.to_s unless @__ivars__
+    iv = __ivars__()
 
-    if (@__ivars__.is_a?(Hash) or @__ivars__.is_a?(Tuple)) and @__ivars__.empty?
+    return self.to_s unless iv
+
+    if (iv.is_a?(Hash) or iv.is_a?(Tuple)) and iv.empty?
       return self.to_s
     end
 
@@ -402,16 +404,16 @@ module Kernel
 
     RecursionGuard.inspect(self) do
 
-      if @__ivars__.is_a?(Hash)
-        @__ivars__.each do |k,v|
+      if iv.is_a?(Hash)
+        iv.each do |k,v|
           next if vars and !vars.include?(k)
           parts << "#{k}=#{v.inspect}"
         end
       else
-        0.step(@__ivars__.size - 1, 2) do |i|
-          if k = @__ivars__[i]
+        0.step(iv.size - 1, 2) do |i|
+          if k = iv[i]
             next if vars and !vars.include?(k)
-            v = @__ivars__[i+1]
+            v = iv[i+1]
             parts << "#{k}=#{v.inspect}"
           end
         end
