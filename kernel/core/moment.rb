@@ -14,7 +14,15 @@ class Moment
     @human = nil
   end
 
+  def offset
+    @local - @utc
+  end
+
   class HumanTime
+    def initialize(moment)
+      @moment = moment
+    end
+
     attr_accessor :second
     attr_accessor :minute
     attr_accessor :hour
@@ -162,6 +170,20 @@ class Moment
     def year
       @year.to_s
     end
+
+    def time_offset
+      offset = @moment.offset / 3600
+
+      if offset.abs < 10
+        if offset < 0
+          "-0#{offset.abs}00"
+        else
+          "0#{offset}00"
+        end
+      else
+        "#{offset}00"
+      end
+    end
   end
 
   EpochToMDJ = 40587
@@ -171,7 +193,7 @@ class Moment
     return @human if @human
 
     s = @time % 86400
-    h = HumanTime.new
+    h = HumanTime.new(self)
     h.second = (s % 60); s /= 60
     h.minute = (s % 60); s /= 60
     h.hour = s
@@ -242,7 +264,11 @@ class Moment
   end
 
   def to_s
-    format "%a %b %d %H:%M:%S UTC %Y"
+    if offset != 0
+      format "%a %b %d %H:%M:%S %z %Y"
+    else
+      format "%a %b %d %H:%M:%S UTC %Y"
+    end
   end
 
   alias_method :inspect, :to_s
