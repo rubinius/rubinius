@@ -6,20 +6,20 @@ describe "IO.open" do
 end
 
 describe "IO.open" do
-  before :all do
-    @filename = "/tmp/rubinius-spec-io-new-#{$$}.txt"
-  end
-
-  after :all do
-    File.unlink @filename
-  end
-
-  before :each do
-    @file = File.open @filename, "w"
-  end
-
-  after :each do
-    # This should normally NOT be rescued
-    @file.close unless @file.closed? rescue nil
-  end
+#  before :all do
+#    @filename = "/tmp/rubinius-spec-io-new-#{$$}.txt"
+#  end
+#
+#  after :all do
+#    File.unlink @filename
+#  end
+#
+#  before :each do
+#    @file = File.open @filename, "w"
+#  end
+#
+#  after :each do
+#    # This should normally NOT be rescued
+#    @file.close unless @file.closed? rescue nil
+#  end
 end

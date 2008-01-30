@@ -171,16 +171,48 @@ class IO
   # if that is not the case. If the mode is incompatible, it will
   # raise Errno::EINVAL instead.
   def initialize(fd, mode)
-    fd = Type.coerce_to fd, Integer, :to_int
-
-    # We do our own buffering. MRI uses fdopen() here.
-
     # Descriptor must be an open and valid one
-    if fd < 0 or IO._fcntl_int(fd, F_GETFL, 0) < 0
-      raise Errno::EBADF, "Invalid descriptor given"
+    @fptr = Platform::POSIX.fdopen(Type.coerce_to(fd, Integer, :to_int), mode)
+    Errno.handle if @fptr.nil? or @fptr.null?
+
+    @descriptor = Platform::POSIX.fileno @fptr
+    Errno.handle if @descriptor < 0
+
+    @mode = mode
+    setup
+  end
+
+  def self.open(fd, mode = 'r')
+    io = self.new fd, mode
+
+    return io unless block_given?
+
+    begin
+      yield io
+    ensure
+      io.close unless io.closed?
+    end
+  end
+
+  def self.sysopen(path, mode = "r", perm = 0666)
+    if mode.kind_of?(String)
+      mode = parse_mode(mode)
     end
 
-    setup fd
+    return open_with_mode(path, mode, perm)
+  end
+
+  def self.for_fd(fd)
+    self.new(fd)
+  end
+
+  def self.pipe
+    lhs = IO.allocate
+    rhs = IO.allocate
+    out = create_pipe(lhs, rhs)
+    lhs.setup
+    rhs.setup
+    return [lhs, rhs]
   end
 
   # Obtains a new duplicate descriptor for the current one.
@@ -191,28 +223,30 @@ class IO
     @descriptor = Platform::POSIX.dup(@descriptor)
   end
 
-  private :initialize_copy
-
-  def setup(desc=nil)
+  def setup(desc = nil, mode = nil, fptr = nil)
     @descriptor = desc if desc
+    @mode = mode if mode
+    @fptr = fptr if fptr
     @buffer = IO::Buffer.new(BufferSize)
     @eof = false
     @lineno = 0
   end
 
+  private :initialize_copy
+
   attr_accessor :lineno
 
   alias_method :isatty, :tty?
 
-  def self.popen(str, mode="r")
+  def self.popen(str, mode = "r")
     raise "TODO make this support more than r" if mode != "r"
-    
+
     if str == "+-+" and !block_given?
       raise ArgumentError, "this mode requires a block currently"
     end
 
     pa_read, ch_write = IO.pipe
-    
+
     pid = Process.fork
 
     if pid
@@ -436,9 +470,22 @@ class IO
     return 0
   end
 
-  def close
+  def close()
     raise IOError, "Instance of IO already closed" if closed?
-    io_close or raise SystemCallError, "Invalid file descriptor"
+
+    # We may be dealing with stream API vs. Channel API here.
+    if @fptr
+      # TODO: Should check for write mode here when possible
+      Platform::POSIX.fflush @fptr
+
+      Errno.handle unless Platform::POSIX.fclose(@fptr) == 0
+
+      @fptr = nil   # fclose should handle deallocation
+      @mode = nil
+      @descriptor = -1
+    else
+      io_close or raise SystemCallError, "Invalid file descriptor"
+    end
   end
 
   def descriptor
@@ -578,14 +625,6 @@ class IO
     end
     return ary
   end
-
-  def self.sysopen(path, mode = "r", perm = 0666)
-    if mode.kind_of?(String)
-      mode = parse_mode(mode)
-    end
-
-    return open_with_mode(path, mode, perm)
-  end
   
   def self.readlines(name, sep_string = $/)
     io = File.open(StringValue(name), 'r')
@@ -607,31 +646,6 @@ class IO
       end
     ensure
       io.close
-    end
-  end
-
-  def self.pipe
-    lhs = IO.allocate
-    rhs = IO.allocate
-    out = create_pipe(lhs, rhs)
-    lhs.setup
-    rhs.setup
-    return [lhs, rhs]
-  end
-
-  def self.for_fd(fd)
-    self.new(fd)
-  end
-
-  def self.open(*args)
-    o = self.new(*args)
-
-    return o unless block_given?
-
-    begin
-      yield o
-    ensure
-      o.close unless o.closed?
     end
   end
 
@@ -722,21 +736,21 @@ end
 
 class BidirectionalPipe < IO
   def initialize(pid, read, write)
-    super(read.fileno)
+    super(read.fileno, 'r')
     @pid = pid
     @write = write
   end
-  
+
   def pid
     @pid
   end
-  
+
   def <<(str)
     @write << str
   end
-  
+
   alias_method :write, :<<
-  
+
   def syswrite(str)
     @write.syswrite str
   end
