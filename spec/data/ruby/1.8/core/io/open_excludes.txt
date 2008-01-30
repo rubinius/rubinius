@@ -1,0 +1,1 @@
+IO#open associates new IO with the old descriptor so each IO directly affects the other
