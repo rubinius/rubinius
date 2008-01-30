@@ -1,6 +1,6 @@
 # -*- ruby -*-
 
-$q = true
+$q = true && ! $v
 
 Autotest.add_hook :run_command do |at|
   system "rake"
@@ -8,10 +8,29 @@ end
 
 class Autotest
   alias :old_ruby :ruby
+  alias :old_consolidate_failures :consolidate_failures
   alias :old_make_test_cmd :make_test_cmd
 
   def ruby
     "bin/ci -fu"
+  end
+
+  def consolidate_failures(failed)
+    filters = new_hash_of_arrays
+
+    failed.each do |spec, failed_trace|
+      failed_trace.scan(/ at ([^:]+)/).each do |file,|
+        file.sub!(/^\.\//, '')
+        next unless file =~ /^spec/
+          test_files_for(file).each do |f|
+            p :test_file => f
+            filters[f] # mspec doesn't have real spec filtering yet
+          end
+        break
+      end
+    end
+
+    return filters
   end
 
   def make_test_cmd files_to_test
@@ -26,15 +45,24 @@ Autotest.add_hook :initialize do |at|
 
   at.add_exception(/\.rbc$/)
   at.add_exception(/fixtures/)
+  at.add_exception(/shotgun\/external_libs/)
   at.add_exception(/README/)
   at.add_exception(/spec.data.critical.txt/)
 
-  at.test_directories.clear
-  at.test_directories.push('spec/ruby/1.8/core',
+  at.find_directories.clear
+  at.find_directories.push(
+                           'kernel',
+                           # 'lib', # TODO: port mri tests to specs?
+                           'shotgun',
+                           'spec/ruby/1.8/core',
                            'spec/ruby/1.8/language',
                            'spec/compiler',
-                           'spec/data',
-                           'spec/parser')
+                           'spec/parser',
+                           'spec/data'
+                           )
+
+  at.failed_results_re = /^\d+\)\n([^\n]*)(?:FAILED|ERROR)?\n(.*?)\n\n/m
+  at.completed_re = /\Z/ # FIX: some sort of summary line at the end?
 
   at.add_mapping %r%^spec/data/(.*)_excludes.txt$% do |_, m|
     Dir["spec/#{m[1]}_spec.rb"]
@@ -64,10 +92,6 @@ Autotest.add_hook :initialize do |at|
     Dir["spec/#{m[1]}/#{m[2]}/*_spec.rb"]
   end
 
-  at.add_mapping %r%^kernel/(.*)/(.*).rb$% do |_, m|
-    Dir["spec/#{m[1]}/#{m[2]}/*_spec.rb"]
-  end
-
   at.add_mapping %r%^compiler/(bytecode|sexp|translation)/*.rb$% do |_, m|
     Dir["spec/compiler/rubinius/*_spec.rb"] + Dir["spec/language/*_spec.rb"]
   end
@@ -76,7 +100,7 @@ Autotest.add_hook :initialize do |at|
     Dir["spec/library/#{m[1]}*_spec.rb"]
   end
 
-  at.add_mapping %r%^shotgun/lib/subtend/ruby.c$% do |_, m|
-    Dir["spec/rubinius|spec/rubinius/subtend/*_spec.rb"]
+  at.add_mapping %r%^shotgun% do |_, m|
+    at.files_matching(/^spec.*_spec\.rb/)
   end
 end
