@@ -322,7 +322,8 @@ int machine_run_file(machine m, const char *path) {
     printf("Unable to load '%s'.\n", path);
     return FALSE;
   }
-  
+ 
+  m->c->depth = 0;
   cpu_stack_push(m->s, m->c, meth, FALSE);
   cpu_run_script(m->s, m->c, meth);
   out = machine_run(m);

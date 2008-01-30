@@ -20,6 +20,9 @@
 #define USE_GLOBAL_CACHING 1
 #define USE_INLINE_CACHING 1
 
+/* number of contexts deep to allow */
+#define CPU_MAX_DEPTH 6000
+
 #define IP_TYPE uint32_t
 #define BS_JUMP 2
 
@@ -67,7 +70,7 @@ struct fast_context {
   OBJECT enclosing_class; \
   OBJECT active_context, home_context, main; \
   ptr_array paths; \
-  unsigned int depth; \
+  int depth; \
   OBJECT current_scope; \
   IP_TYPE **ip_ptr; \
   OBJECT *sp_ptr; \

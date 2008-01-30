@@ -693,7 +693,24 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
 
 /* Layer 2 method movement: use lower level only. */
 
+/* Used in debugging. Verifies that the expected depth is the actual depth. */
+/*
+static void _verify_depth(cpu c) {
+  int count = 0;
+  OBJECT ctx = c->active_context;
+
+  while(!NIL_P(ctx)) {
+    count++;
+    ctx = FASTCTX(ctx)->sender;
+  }
+
+  assert(count == c->depth);
+}
+*/
+
 inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) {
+  c->depth++;
+
   if(c->active_context != Qnil) {
     cpu_save_registers(state, c, so);
   }
@@ -724,6 +741,8 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
     RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
   }
 #endif
+
+  c->depth--;
 
   destination = cpu_current_sender(c);
   
@@ -804,8 +823,9 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
   }
 #endif
+
+  c->depth--;
   
-    
   if(destination == Qnil) {
     object_memory_retire_context(state->om, c->active_context);
     
@@ -927,24 +947,6 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
   return TRUE;
 }
 
-/* Layer 2.6: Uses lower layers to return to the created context of the
-   current block (ie, break in a block) */
-static inline void cpu_return_to_block_creator(STATE, cpu c) {
-  OBJECT caller, home, top;
-  
-  top = cpu_stack_top(state, c);
-  caller = blokctx_home(state, c->active_context);
-  
-  if(blokctx_s_block_context_p(state, caller)) {
-    home = blokctx_home(state, caller);
-  } else {
-    home = caller;
-  }
-  
-  cpu_restore_context_with_home(state, c, caller, home, TRUE, TRUE);
-  cpu_stack_push(state, c, top, FALSE);
-}
-
 /* Layer 3: goto. Basically jumps directly into the specificed method. 
    no lookup required. */
 
@@ -1001,6 +1003,10 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo, 
         OBJECT recv, OBJECT sym, int args, OBJECT block, int missing, OBJECT mod) {
   OBJECT ctx;
+
+  if(c->depth == CPU_MAX_DEPTH) {
+    machine_handle_fire(FIRE_STACK);
+  }
 
   if(missing) {
     args += 1;
@@ -1063,6 +1069,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     printf("CTX:                 running %p\n", ctx);
   }
   c->call_flags = 0;
+
   cpu_activate_context(state, c, ctx, ctx, args);
   cpu_yield_debugger_check(state, c);
 }
@@ -1399,6 +1406,12 @@ void cpu_run(STATE, cpu c, int setup) {
             "Invalid type encountered %s: %s",
 	    current_machine->g_firesuit_message, firesuit_arg));
       free(current_machine->g_firesuit_message);
+      break;
+    case FIRE_STACK:
+      cpu_raise_exception(state, c, 
+        cpu_new_exception(state, c, 
+            rbs_const_get(state, BASIC_CLASS(object), "SystemStackError"), 
+            "Maximum amount of stack space used"));
       break;
     default:
       cpu_raise_exception(state, c, 

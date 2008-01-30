@@ -1002,7 +1002,7 @@ CODE
   def soft_return
     <<-CODE
     t1 = stack_pop();
-    cpu_return_to_sender(state, c, t1, FALSE, FALSE);
+    cpu_simple_return(state, c, t1);
     CODE
   end
   
@@ -1038,7 +1038,8 @@ CODE
   
   def block_break
     <<-CODE
-    cpu_return_to_block_creator(state, c);
+    /* This instruction is deprecated. */
+    sassert(0);
     CODE
   end
   

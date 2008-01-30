@@ -70,6 +70,7 @@ OBJECT cpu_scope_pop(STATE, cpu c) {
 
 void cpu_initialize_context(STATE, cpu c) {
   c->active_context = Qnil;
+  c->depth = 0;
   c->home_context = c->active_context;
   c->enclosing_class = state->global->object;
   c->exception = Qnil;

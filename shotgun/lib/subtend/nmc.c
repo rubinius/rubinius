@@ -307,6 +307,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
     c->argcount = fc->argcount;
     c->home_context = nmc;
     c->active_context = nmc;
+    c->depth++;
     
     /* Oh! It's already running, lets reactivate it. */
     if(n->cont_set) {

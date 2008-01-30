@@ -281,6 +281,7 @@ OBJECT cpu_task_associate(STATE, cpu c, OBJECT self, OBJECT be) {
     task->stack_size = InitialStackSize;
     task->stack_slave = 0;
   }
+  task->depth = 1;
   
   task->sp_ptr = task->stack_top;
     
@@ -380,6 +381,7 @@ void cpu_thread_exited(STATE, cpu c) {
     cpu_event_clear_channel(state, chan);
   }
 
+  c->depth = 0;
   c->active_context = Qnil;
   c->home_context = Qnil;
   c->current_thread = Qnil;

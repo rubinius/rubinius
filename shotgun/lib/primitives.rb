@@ -1236,6 +1236,7 @@ class ShotgunPrimitives
   
   def activate_context
     <<-CODE
+    sassert(0);
     self = stack_pop();
     if(blokctx_s_block_context_p(state, self)) {
       t1 = blokctx_home(state, self);
