@@ -31,6 +31,8 @@ struct thread_info {
   STATE;
   cpu c;
   OBJECT channel;
+  unsigned int id;
+
   union {
     struct ev_io io;
     struct ev_signal signal;
@@ -90,13 +92,19 @@ void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT),
   }
 }
 
-static void _cpu_event_register_info(STATE, struct thread_info *ti) {
+static OBJECT _cpu_event_register_info(STATE, struct thread_info *ti) {
+  /* Increment and clamp. */
+  state->event_id = (++state->event_id & FIXNUM_WIDTH);
+  ti->id = state->event_id;
+
   ti->prev = NULL;
   ti->next = state->thread_infos;
   if(state->thread_infos) {
     ((struct thread_info*)state->thread_infos)->prev = ti;
   }
   state->thread_infos = ti;
+
+  return I2N(ti->id);
 }
 
 static void _cpu_event_unregister_info(STATE, struct thread_info *ti) {
@@ -174,6 +182,23 @@ void cpu_event_clear_channel(STATE, OBJECT chan) {
     }
     ti = tnext;
   }
+}
+
+int cpu_event_cancel_event(STATE, OBJECT oid) {
+  native_int id = N2I(oid);
+  struct thread_info *ti = (struct thread_info*)state->thread_infos;
+  struct thread_info *tnext;
+
+  while(ti) {
+    tnext = ti->next;
+    if(ti->id == id) {
+      _cpu_event_unregister_info(state, ti);
+      return TRUE;
+    }
+    ti = tnext;
+  }
+
+  return FALSE;
 }
 
 static void _cpu_wake_channel_for_timer(EV_P_ struct ev_timer *ev, int revents) {
@@ -263,8 +288,9 @@ static void _cpu_wake_channel_for_signal(EV_P_ struct ev_signal *ev, int revents
   cpu_channel_send(ti->state, ti->c, ti->channel, ti->c->current_thread);
 }
 
-void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, double seconds) {
+OBJECT cpu_event_wake_channel(STATE, cpu c, OBJECT channel, double seconds) {
   struct thread_info *ti;
+  OBJECT id;
 
   ti = ALLOC_N(struct thread_info, 1);
   ti->fd = 0;
@@ -274,17 +300,20 @@ void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, double seconds) {
   ti->stopper = (stopper_cb)ev_timer_stop;
   
   state->pending_events++;
-  _cpu_event_register_info(state, ti);
+  id = _cpu_event_register_info(state, ti);
 
   ev_timer_init(&ti->ev.timer, _cpu_wake_channel_for_timer,
                 (ev_tstamp)seconds, 0);
   ti->ev.timer.data = ti;
   ev_timer_start(state->event_base, &ti->ev.timer);
+
+  return id;
 }
 
-void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd,
+OBJECT cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd,
                              OBJECT buffer, int count) {
   struct thread_info *ti;
+  OBJECT id;
 
   ti = ALLOC_N(struct thread_info, 1);
   ti->fd = fd;
@@ -296,14 +325,17 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd,
   ti->stopper = (stopper_cb)ev_io_stop;
 
   state->pending_events++;
-  _cpu_event_register_info(state, ti);
+  id = _cpu_event_register_info(state, ti);
   ev_io_init(&ti->ev.io, _cpu_wake_channel_and_read, fd, EV_READ);
   ti->ev.io.data = ti;
   ev_io_start(state->event_base, &ti->ev.io);
+
+  return id;
 }
 
-void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
+OBJECT cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
   struct thread_info *ti;
+  OBJECT id;
 
   ti = ALLOC_N(struct thread_info, 1);
   ti->fd = fd;
@@ -313,15 +345,17 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
   ti->stopper = (stopper_cb)ev_io_stop;
   
   state->pending_events++;
-  _cpu_event_register_info(state, ti);
+  id = _cpu_event_register_info(state, ti);
 
   ev_io_init(&ti->ev.io, _cpu_wake_channel_for_writable, fd, EV_WRITE);
   ti->ev.io.data = ti;
   ev_io_start(state->event_base, &ti->ev.io);
+  return id;
 }
 
-void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
+OBJECT cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   struct thread_info *ti, *tnext;
+  OBJECT id;
   environment e = environment_current();
 
   ti = (struct thread_info*)(state->thread_infos);
@@ -350,13 +384,15 @@ void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   ti->channel = channel;
   ti->sig = sig;
   ti->stopper = (stopper_cb)ev_signal_stop;
-  _cpu_event_register_info(state, ti);
+  id = _cpu_event_register_info(state, ti);
 
   THDEBUG("%d: channel for signal: %p\n", getpid(), channel);
 
   ev_signal_init(&ti->ev.signal, _cpu_wake_channel_for_signal, sig);
   ti->ev.signal.data = ti;
   ev_signal_start(e->sig_event_base, &ti->ev.signal);
+
+  return id;
 }
 
 void cpu_find_waiters(STATE) {
@@ -402,8 +438,9 @@ void cpu_find_waiters(STATE) {
 }
 
 
-void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
+OBJECT cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
   struct thread_info *ti;
+  OBJECT id;
 
   ti = ALLOC_N(struct thread_info, 1);
   ti->fd = 0;
@@ -416,10 +453,12 @@ void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
   ti->stopper = NULL;
   
   state->pending_events++;
-  _cpu_event_register_info(state, ti);
+  id = _cpu_event_register_info(state, ti);
 
   /* todo: we can mitigate O(N^2) complexity for waitpid calls by
      only looking for potentially matching watchers. */
   cpu_find_waiters(state); // run once right away, in case SIGCHLD has already been caught
+
+  return id;
 }
 

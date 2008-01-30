@@ -189,7 +189,8 @@ module Bytecode
       :thread_dequeue,
       :fastctx_set_iseq,
       :task_get_debug_context_change,
-      :task_set_debug_context_change
+      :task_set_debug_context_change,
+      :scheduler_cancel
     ]
 
     FirstRuntimePrimitive = 1024

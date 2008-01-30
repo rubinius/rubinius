@@ -2535,8 +2535,7 @@ class ShotgunPrimitives
     
     seconds = k / 1000000.0;
     
-    cpu_event_wake_channel(state, c, self, seconds);
-    stack_push(Qtrue);
+    stack_push(cpu_event_wake_channel(state, c, self, seconds));
     CODE
   end
 
@@ -2552,8 +2551,7 @@ class ShotgunPrimitives
 
     seconds = FLOAT_TO_DOUBLE(t1);
 
-    cpu_event_wake_channel(state, c, self, seconds);
-    stack_push(Qtrue);
+    stack_push(cpu_event_wake_channel(state, c, self, seconds));
     CODE
   end
 
@@ -2575,8 +2573,8 @@ class ShotgunPrimitives
     } else {
       GUARD(0);
     }
-    cpu_event_wait_readable(state, c, self, j, t2, N2I(t3));
-    stack_push(Qtrue);
+    
+    stack_push(cpu_event_wait_readable(state, c, self, j, t2, N2I(t3)));
     CODE
   end
   
@@ -2589,8 +2587,7 @@ class ShotgunPrimitives
     GUARD(RISA(self, channel));
     
     j = io_to_fd(t1);
-    cpu_event_wait_writable(state, c, self, j);
-    stack_push(Qtrue);
+    stack_push(cpu_event_wait_writable(state, c, self, j));
     CODE
   end
   
@@ -2601,8 +2598,7 @@ class ShotgunPrimitives
     POP(t1,   FIXNUM);
     GUARD(RISA(self, channel));
     
-    cpu_event_wait_signal(state, c, self, N2I(t1));
-    stack_push(Qtrue);
+    stack_push(cpu_event_wait_signal(state, c, self, N2I(t1)));
     CODE
   end
   
@@ -2614,8 +2610,16 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
     GUARD(RISA(self, channel));
     
-    cpu_event_wait_child(state, c, self, N2I(t1), N2I(t2));
-    stack_push(Qtrue);
+    stack_push(cpu_event_wait_child(state, c, self, N2I(t1), N2I(t2)));
+    CODE
+  end
+
+  def scheduler_cancel
+    <<-CODE
+    (void)stack_pop();
+    POP(t1, FIXNUM);
+
+    stack_push(cpu_event_cancel_event(state, t1) ? Qtrue : Qfalse);
     CODE
   end
   

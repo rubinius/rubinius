@@ -124,6 +124,7 @@ struct rubinius_state {
   
   void *event_base;
   void *thread_infos;
+  unsigned int event_id;
   
   OBJECT *samples;
   int max_samples, cur_sample;
@@ -131,7 +132,7 @@ struct rubinius_state {
   int excessive_tracing, gc_stats;
   int check_events, pending_threads, pending_events;
 
-  struct termios * termios;
+  struct termios *termios;
 };
 
 #define BASIC_CLASS(kind) state->global->kind
