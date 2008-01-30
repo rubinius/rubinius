@@ -35,6 +35,23 @@ class Time
   RFC2822_MONTH_NAME = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   
   PRE_EPOCH_DAYS = 719468
+
+  TM_FIELDS = {
+    :sec => 0,
+    :min => 1,
+    :hour => 2,
+    :mday => 3,
+    :mon => 4,
+    :year => 5,
+    :wday => 6,
+    :yday => 7,
+    :isdst => 8,
+  }
+
+  TIMEVAL_FIELDS = {
+    :sec => 0,
+    :usec => 1,
+  }
   
   # Time methods
   
@@ -46,6 +63,63 @@ class Time
     @is_gmt = false
 
     @tm = time_switch(@timeval.first, false)
+  end
+
+  #--
+  # TODO: doesn't load nsec or ivars
+  #++
+  def self._load(data)
+    raise TypeError, 'marshaled time format differ' unless data.length == 8
+
+    major, minor = data.unpack 'VV'
+
+    if (major & (1 << 31)) == 0 then
+      at major, minor
+    else
+      major &= ~(1 << 31)
+
+      is_gmt =  (major >> 30) & 0x1
+      year   =  (major >> 14) & 0xffff
+      mon    = ((major >> 10) & 0xf) + 1
+      mday   =  (major >>  5) & 0x1f
+      hour   =  major         & 0x1f
+
+      min   =  (minor >> 26) & 0x3f
+      sec   =  (minor >> 20) & 0x3f
+      isdst = false
+
+      usec = minor & 0xfffff
+
+      time = gm year, mon, mday, hour, min, sec, usec
+      time.localtime # unless is_gmt.zero? # HACK MRI ignores the is_gmt flag
+      time
+    end
+  end
+
+  #--
+  # TODO: doesn't dump nsec or ivars
+  #++
+  def _dump(limit = nil)
+    tm = time_switch @timeval.first, true
+    year = tm[TM_FIELDS[:year]]
+
+    if (year & 0xffff) != year then
+      raise ArgumentError, "year too big to marshal: #{year}"
+    end
+
+    gmt = @is_gmt ? 1 : 0
+
+    major = 1                    << 31 | # 1 bit
+            gmt                  << 30 | # 1 bit
+            tm[TM_FIELDS[:year]] << 14 | # 16 bits
+            tm[TM_FIELDS[:mon]]  << 10 | # 4 bits
+            tm[TM_FIELDS[:mday]] <<  5 | # 5 bits
+            tm[TM_FIELDS[:hour]]         # 5 bits
+    minor = tm[TM_FIELDS[:min]]  << 26 | # 6 bits
+            tm[TM_FIELDS[:sec]]  << 20 | # 6 bits
+            @timeval[TIMEVAL_FIELDS[:usec]] # 20 bits
+
+    [major, minor].pack 'VV'
   end
 
   def dup

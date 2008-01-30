@@ -558,6 +558,7 @@ class ShotgunPrimitives
      */
     gettimeofday(&tv, NULL);
 
+    /* update Time::TIMEVAL_FIELDS when changing order of fields */
     self = array_new(state, 2);
     array_set(state, self, 0, ML2N(tv.tv_sec));
     array_set(state, self, 1, ML2N(tv.tv_usec));
@@ -626,6 +627,7 @@ class ShotgunPrimitives
       tm = localtime(&seconds);
     }
 
+    /* update Time::TM_FIELDS when changing order of fields */
     t3 = array_new(state, 2);
     array_set(state, t3, 0, I2N(tm->tm_sec));
     array_set(state, t3, 1, I2N(tm->tm_min));
