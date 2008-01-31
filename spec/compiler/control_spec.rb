@@ -413,8 +413,14 @@ describe Compiler do
         d.new_label.set! # redo
         d.push 12
         d.pop
+
         d.push :nil
-        d.caller_return
+        d.push_local 0
+        d.send :break_value=, 1
+        d.pop
+        d.push_local 0
+        d.raise_exc
+        
         d.pop_modifiers
         d.soft_return
       end

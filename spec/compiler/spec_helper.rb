@@ -127,7 +127,7 @@ class TestGenerator
     g.exceptions do |ex|
       g.push_cpath_top
       g.find_const :LongReturnException
-      g.send :new, 0
+      g.send :allocate, 0
       g.set_local local
       g.pop
 
@@ -143,13 +143,23 @@ class TestGenerator
 
       after = g.new_label
       g.gif after
-      g.send :return_value, 0
+      
       g.clear_exception
+      leave = g.new_label
+      g.dup
+      g.send :is_return, 0
+      
+      g.gif leave
+     
+      g.send :value, 0
       g.ret
 
       after.set!
 
       g.raise_exc
+
+      leave.set!
+      g.send :value, 0
     end
 
     ok.set!

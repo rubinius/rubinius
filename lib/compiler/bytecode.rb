@@ -663,7 +663,14 @@ class Node
       if g.break
         g.goto g.break
       elsif @in_block
-        g.caller_return
+        # Set the return value from @value above.
+        g.push_local @check_var.slot
+        g.send :break_value=, 1
+        g.pop
+
+        # Now raise it.
+        g.push_local @check_var.slot
+        g.raise_exc
       else
         g.pop
         g.push_const :Compile
@@ -1859,7 +1866,7 @@ class Node
         # We pre-create the exception.
         g.push_cpath_top
         g.find_const :LongReturnException
-        g.send :new, 0
+        g.send :allocate, 0
         g.set_local @check_var.slot
         g.pop
 
@@ -1882,14 +1889,24 @@ class Node
 
         after = g.new_label
         g.gif after
-
-        g.send :return_value, 0
         g.clear_exception
+
+        # This is also used for break in a block. If break was used, 
+        # is_return is false, so we just leave the value on the stack.
+        leave = g.new_label
+        g.dup
+        g.send :is_return, 0
+        g.gif leave
+        
+        g.send :value, 0
         g.ret
 
         after.set!
 
         g.raise_exc
+
+        leave.set!
+        g.send :value, 0
       end
 
       ok.set!

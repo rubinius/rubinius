@@ -195,11 +195,17 @@ class ReturnException
 end
 
 class LongReturnException
-  attr_accessor :return_value
+  attr_reader :value
+  attr_reader :is_return
 
-  def initialize(val=nil)
-    super(nil) # HACK
-    @return_value = val
+  def return_value=(val)
+    @value = val
+    @is_return = true
+  end
+
+  def break_value=(val)
+    @value = val
+    @is_return = false
   end
 
 end

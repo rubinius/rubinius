@@ -690,7 +690,10 @@ class Node
     kind :break
     def args(value=nil)
       @value = value
-      @in_block = get(:iter)
+      
+      if @in_block = get(:iter)
+        @check_var, _ = get(:scope).find_local :@lre
+      end
     end
 
     attr_accessor :value, :in_block

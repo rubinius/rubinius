@@ -80,7 +80,7 @@ class Proc
       begin
         @block.call(*args)
       rescue IllegalLongReturn, LongReturnException => e
-        return e.return_value
+        return e.value
       end
     end
     
