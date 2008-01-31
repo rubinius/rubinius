@@ -55,16 +55,20 @@ class Debugger
     end
 
     def command_regexp
-      /^b(?:reak)?\s+(?:((?:\w*(?:::)?)*\w+)[.#])?([\w_]+[\w\d?_\[\]])(?:\s+(\d+))?$/
+      /^b(?:reak)?\s+(?:((?:\w*(?:::)?)*\w+)([.#]))?([\w_]+[\w\d?_\[\]])(?:\s+(\d+))?$/
     end
 
     def execute(dbg, md)
-      cls, mthd, line = md[1], md[2], md[3]
+      cls, mthd_type, mthd, line = md[1], md[2], md[3], md[4]
       clazz = MAIN
       unless cls.nil?
-        clazz = Module.const_get(cls.to_sym)
+        clazz = Module.const_lookup(cls.to_sym)
       end
-      cm = clazz.method(mthd.to_sym).compiled_method
+      if mthd_type == '#'
+        cm = clazz.instance_method(mthd.to_sym).compiled_method
+      else
+        cm = clazz.method(mthd.to_sym).compiled_method
+      end
       ip = 0
       ip = cm.first_ip_on_line(line.to_i) if line
 
