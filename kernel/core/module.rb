@@ -210,8 +210,10 @@ class Module
     s = MethodContext.current.sender
     scope = s.method_scope || :public
 
-    if name == :initialize
-      scope = :private
+    if name == :initialize or scope == :module
+      visibility = :private
+    else
+      visibility = scope
     end
 
     # All userland added methods start out with a serial of 1.
@@ -219,7 +221,7 @@ class Module
 
     Rubinius::VM.reset_method_cache(name)
 
-    method_table[name] = Tuple[scope, obj]
+    method_table[name] = Tuple[visibility, obj]
 
     # Push the scoping down.
     # HACK they all should have staticscopes
@@ -227,7 +229,7 @@ class Module
       obj.staticscope = ss
     end
 
-    if s.method_tags == :module
+    if scope == :module
       module_function name
     end
 
@@ -488,17 +490,17 @@ class Module
 
   def module_function_cv(*args)
     if args.empty?
-      MethodContext.current.sender.method_tags = :module
+      MethodContext.current.sender.method_scope = :module
       return
     end
 
     mc = self.metaclass
     args.each do |meth|
-      method_name = normalize_name(meth)
+      method_name = normalize_name meth
       method = find_method_in_hierarchy(method_name)
       mc.method_table[method_name] = method.dup
       mc.set_visibility method_name, :public
-      set_visibility(method_name, :private)
+      set_visibility method_name, :private
     end
     nil
   end

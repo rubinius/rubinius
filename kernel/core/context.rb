@@ -210,8 +210,8 @@ class MethodContext
     method.file.to_s
   end
 
+  # Used to set the module body toggles
   attr_accessor :method_scope
-  attr_accessor :method_tags
 end
 
 class NativeMethodContext
