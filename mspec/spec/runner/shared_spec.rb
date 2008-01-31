@@ -2,10 +2,10 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../runner/shared'
 
 describe Object, "#shared" do
-  it "sets an instance variable on Object for the passed block" do
+  it "stores the passed block in the MSpec module" do
     proc = lambda { :shared }
     shared :shared, &proc
-    Object.instance_variable_get(:@shared).should == proc
+    MSpec.retrieve(:shared).should == proc
   end
 end
 

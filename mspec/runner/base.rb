@@ -9,18 +9,17 @@ class Object
   end
     
   def it(msg)
-    formatter.before_it(msg)
+    state = SpecState.new(@describe, msg)
     begin
       yield
     rescue Exception => e
-      formatter.exception(e)
+      state.exceptions << [nil, e]
     end
-    formatter.after_it(msg)
+    formatter.after(state)
   end
 
-  def describe(msg)
-    formatter.before_describe(msg)
+  def describe(mod, msg)
+    @describe = desc ? "#{mod} #{desc}" : mod.to_s
     yield
-    formatter.after_describe(msg)
   end
 end

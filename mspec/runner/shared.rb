@@ -1,10 +1,12 @@
+require 'mspec/runner/runner'
+
 class Object
   def shared(msg, &block)
-    Object.instance_variable_set(:"@#{msg}", Proc.new(&block))
+    MSpec.store msg.to_sym, block
   end
 
   def it_behaves_like(behavior, *args)
-    p = Object.instance_variable_get(:"@#{behavior}")
+    p = MSpec.retrieve behavior.to_sym
     p[*args]
   end
 end

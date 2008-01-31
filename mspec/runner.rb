@@ -5,12 +5,7 @@ require 'mspec/runner/formatters'
 require 'mspec/runner/guards'
 require 'mspec/runner/shared'
 
-class Object
-  def set_spec_runner(formatter=nil, out=STDOUT)
-    $mspec_runner = SpecRunner.new(formatter.new(out))
-  end
-
-  def spec_runner
-    $mspec_runner ||= SpecRunner.new
-  end
+def $stderr.write(str)
+  # The useless use warnings are a crime against OO.
+  str =~ /useless use of/ ? nil : super
 end

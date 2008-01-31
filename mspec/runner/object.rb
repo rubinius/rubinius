@@ -1,22 +1,17 @@
 class Object
   def before(at=:each, &block)
-    spec_runner.before(at, &block)
+    MSpec.current.before at, &block
   end
 
   def after(at=:each, &block)
-    spec_runner.after(at, &block)
+    MSpec.current.after at, &block
   end
 
-  def describe(*args, &block)
-    spec_runner.describe(*args, &block)
+  def describe(mod, msg, &block)
+    MSpec.describe mod, msg, &block
   end
 
   def it(msg, &block)
-    spec_runner.it(msg, &block)
+    MSpec.current.it msg, &block
   end
-  
-  alias context describe
-  alias specify it
-  alias setup before
-  alias teardown after
 end

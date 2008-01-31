@@ -1,4 +1,4 @@
-require 'mspec/mspec'
+require 'mspec/runner/runner'
 
 class RunState
   def initialize
