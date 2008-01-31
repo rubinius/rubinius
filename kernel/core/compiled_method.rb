@@ -245,6 +245,10 @@ class CompiledMethod
     return -1
   end
 
+  def is_block?
+    @name =~ /__(?:(?:\w|_)+)?block__/
+  end
+  
   ##
   # Decodes the instruction sequence that is represented by this compileed
   # method. Delegates to InstructionSequence to do the instruction decoding,
@@ -264,6 +268,18 @@ class CompiledMethod
       end
       instruct
     end
+
+    # Add a convenience method to the array containing the decoded instructions
+    # to convert an IP address to the index of the corresponding instruction
+    def stream.ip_to_index(ip)
+      if ip < 0 or ip > last.ip
+        raise ArgumentError, "IP address is outside valid range of 0 to #{last.ip} (got #{ip})"
+      end
+      each_with_index do |inst, i|
+        return i if ip <= inst.ip
+      end
+    end
+    stream
   end
 
   ##

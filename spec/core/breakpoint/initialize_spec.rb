@@ -9,8 +9,6 @@ describe "Breakpoint#initalize" do
   end
 
   it "converts a missing instruction pointer argument to 0" do
-    bp = Breakpoint.new(@cm, nil) {}
-    bp.ip.should == 0
     bp = Breakpoint.new(@cm) {}
     bp.ip.should == 0
   end
@@ -31,7 +29,7 @@ describe "Breakpoint#initalize" do
 
   it "does not modify the compiled method instruction sequence" do
     pre = @cm.bytecodes.decode
-    bp = Breakpoint.new(@cm, nil) {}
+    bp = Breakpoint.new(@cm) {}
     bp.enabled?.should == false
     @cm.bytecodes.decode.should == pre
   end

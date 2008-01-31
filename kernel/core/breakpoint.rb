@@ -137,11 +137,262 @@ class Breakpoint
   end
 end
 
+
+class TaskBreakpoint < Breakpoint
+  # Initializes a new instance of a step breakpoint
+  def initialize(task, &prc)
+    unless block_given?
+      raise ArgumentError, "A block must be supplied to be executed when the breakpoint is hit"
+    end
+    @task = task
+    @handler = prc
+    @encoder = InstructionSequence::Encoder.new
+  end
+  attr_reader :task
+end
+
+
 ##
 # A breakpoint that is to be triggered once only in a certain number of steps
 # (either lines or instructions) or at a specified IP address or line number.
+class StepBreakpoint < TaskBreakpoint
 
-class StepBreakpoint < Breakpoint
+  ##
+  # Initializes a step breakpoint. Takes the following parameters:
+  # task: The task whose execution is to be stepped.
+  # A selector hash specifying details of the type of step to be performed.
+  # Valid keys are:
+  #   step_type: A symbol specifying the type of stepping to perform; valid values
+  #     are :target, :next, or :in. Defaults to :next.
+  #   step_by: A symbol specifying whether to step by :line, :ip, or :caller
+  #     (i.e. when stepping out). Defaults to :line.
+  #   target: If the target is a specific line number or IP address, then target
+  #     is that line number or IP address. Otherwise, it is nil.
+  #   steps: The number of steps of the step_type to take. Ignored if a target is
+  #     specified. Defaults to 1.
+  # A block containing the action(s) to be performed when the step is complete.
+  def initialize(task, selector, &prc)
+    super(task, &prc)
+
+    if selector[:line]
+      # Shortcut selector to step to a line
+      @step_type = :target
+      @step_by = :line
+      @target = selector[:line]
+      @steps = nil
+    elsif selector[:ip]
+      # Shortcut selector to step to an IP address
+      @step_type = :target
+      @step_by = :ip
+      @target = selector[:ip]
+      @steps = nil
+    elsif selector[:out]
+      # Shortcut selector to step out
+      @step_type = :target
+      @step_by = :caller
+      @target = nil
+      @steps = selector[:out] || 1
+    else
+      @step_type = selector[:step_type] || :next
+      @step_by = selector[:step_by] || :line
+      @target = selector[:target]
+      if @target
+        @steps = nil
+      else
+        @steps = selector[:steps] || 1
+        if @step_by == :line
+          ctxt = task.current_context
+          @last_file = ctxt.file
+          @last_line = ctxt.line
+        end
+      end
+    end
+    raise ArgumentError, "Steps must be >= 1" if @steps and @steps < 1
+  end
+
+  attr_reader :context    # Context in which the next step breakpoint is to occur
+  attr_reader :ip         # IP at which the next step breakpoint is to occur
+  attr_reader :step_type
+  attr_reader :step_by
+  attr_reader :target
+  attr_reader :steps
+  attr_reader :break_type # The type of step break that is set
+
+  # Determines where to set the next breakpoint for this step breakpoint, and
+  # then sets it using the appropriate method. When we know where execution will
+  # go, we set a yield_debugger at the appropriate point; when we don't (i.e.
+  # because we are calling a method, or TODO: raising an exception, we set a
+  # flag on the task so that the VM calls us when the context change is complete.
+  def set_next_breakpoint
+    # Record location of last step position
+    @context = @task.current_context
+    @last_method = @context.method
+    @last_ip = @context.ip
+
+    if @step_type == :target  # Stepping to a fixed location
+      calculate_target_breakpoint
+    else
+      # Locate the IP at n steps past the current IP/line
+      calculate_next_breakpoint
+    end
+
+    if @ip
+      # Set new breakpoint
+      #dbg.set_breakpoint cm, bp_ip
+      #@context.reload_method
+    else
+      # Stepping past end of method, so set breakpoint at caller
+      #ctxt = @context.sender
+      #dbg.set_breakpoint ctxt.method, ctxt.ip
+      #ctxt.reload_method
+    end
+  end
+
+  # Calculates a target breakpoint, i.e. one where the final step destination
+  # is knowable. When a step breakpoint is set with a target, we can just set
+  # a yield_debugger at the specified target and then wait for it to be hit.
+  def calculate_target_breakpoint
+    @break_type = :opcode_replacement
+    ctxt = @context
+    mthd = ctxt.method
+    ip = ctxt.ip
+    bc = mthd.decode
+
+    if @step_by == :line
+      # Find IP of line to step to
+      first_line = mthd.first_line
+      last_line = mthd.line_from_ip(bc.last.ip)
+      if @target >= first_line and @target <= last_line
+        # within the current method/block or a contained method/block
+        # TODO: could still be in contained block rather than current method...
+        @ip = mthd.first_ip_on_line(@target)
+      else
+        # TODO: If target line is not in current method... step out? find it somehow?
+        raise ArgumentError, "Target line is not within the current #{mthd.is_block? ? 'block' : 'method'}"
+      end
+    elsif @step_by == :ip
+      # Stepping to specified IP
+      i = bc.ip_to_index(@target)  # Will throw ArgumentError if IP outside valid range
+      @ip = bc[i].ip
+    elsif @step_by == :caller  # Stepping out 1 or more levels
+      while @steps > 0
+        ctxt = ctxt.sender if ctxt.sender
+        @steps -= 1
+      end
+      raise ArgumentError, "Cannot step out of top-level context" if ctxt == @context
+      @context = ctxt
+      @ip = ip
+    else
+      # Shouldn't get here
+      raise ArgumentError, "Unsupported step_by type"
+    end
+
+    return @ip
+  end
+
+  # Calculates where to set the next breakpoint as we count down until our
+  # step breakpoint is ready to fire. When stepping by an increment, it is
+  # necessary to allow execution to proceed until the remaining steps are
+  # reduced to 0. This is straightforward enough when stepping over code in a
+  # single method with no branching (and can be calculated in a single pass),
+  # but when the flow of execution is non-sequential, we need to break at the
+  # points at which execution can fork, and determine where to set the next
+  # breakpoint.
+  def calculate_next_breakpoint
+    raise "Should not be called when @steps == 0" if @steps == 0
+    ctxt = @context
+    ip = ctxt.ip
+    mthd = ctxt.method
+    bc = mthd.decode
+    i = bc.ip_to_index(ip)
+
+    # Determine if we have started a new line
+    if @step_by == :line
+      line = bc[i].line
+      if @last_method.file != mthd.file or @last_method.line_from_ip(@last_ip) != line
+        @steps -= 1
+      end
+    end
+    @last_method = mthd
+    @last_ip = ip
+
+    # Loop from the current instruction until a flow control change or steps
+    # reduced to 0
+    @ip = nil
+    @break_type = nil
+    bc[i..-1].each do |op|
+      if @step_by == :line
+        if op.line > line
+          @steps -= 1 
+          line = op.line
+        end
+      else
+        # We've stepped if this instruction is not the starting instruction
+        @steps -= 1 if op.ip > ip
+      end
+
+      flow = op.instruction.flow
+      if @steps == 0 or (op.ip > ip and flow != :sequential)
+        # At target, or else we need to stop stepping because we are at an 
+        # opcode that may alter control flow. In the latter case, we will set
+        # the next breakpoint once we reach the point where the flow change
+        # occurs. This is so we do not set a breakpoint we might then hit before
+        # we are supposed to; e.g. if a opcode causes the IP to be set to an
+        # earlier value in the same method, it might be one we have not yet
+        # executed, and so we could trigger the breakpoint too early if we set
+        # it now.
+        unless steps > 0 and flow == :send and @step_type != :in
+          # There is one special case where we do nothing - when we are at a 
+          # send, but we are not stepping in
+          @ip = op.ip
+        end
+      elsif op.ip == ip and flow != :sequential
+        # We are currently stopped on a flow changing opcode
+        if flow == :send and @step_type == :in
+          # We only need to stop at a send if we are stepping into called methods
+          # Set flag so that we break after the target method is activated
+          @ip = 0
+          @break_type = :context_change
+        elsif flow == :return
+          # Switch to sender's context, and then find next breakpoint
+          @context = @context.sender
+          @ip = @context.ip
+        elsif flow == :raise
+          raise "Step handling on exception raise not yet implemented"
+        elsif flow == :goto
+          # At a flow control switch opcode; evaluate where execution will goto next
+          case op.opcode
+          when :goto
+            @ip = op.args.first
+          when :goto_if_true
+            @ip = op.args.first if @task.get_stack_value(0)
+          when :goto_if_false
+            @ip = op.args.first unless @task.get_stack_value(0)
+          when :goto_if_defined
+            @ip = op.args.first unless @task.get_stack_value(0) == Undefined
+          else
+            raise "Unrecognized goto instruction"
+          end
+        end
+        @steps -= 1 if @step_by == :ip and @ip
+      end
+      break if @ip
+    end
+
+    # Record last file/line we saw for next time
+    @break_type = :opcode_replacement unless @break_type
+    @ip
+  end
+
+  def call_handler(thread, ctx)
+    if @target or @steps == 0
+      # Final step destination reached
+      @handler.call(thread, ctx, self)
+    else
+      # Calculate next stepping point on the way to step destination
+      set_next_breakpoint
+    end
+  end
 end
 
 
@@ -171,8 +422,8 @@ class BreakpointTracker
   def initialize
     # Global breakpoints are tracked by compiled method and IP
     @global_breakpoints = Hash.new {|h,k| h[k] = {}}
-    # Context breakpoints are tracked by context and IP
-    @context_breakpoints = Hash.new {|h,k| h[k] = []}
+    # Context breakpoints are tracked by task
+    @task_breakpoints = Hash.new {|h,k| h[k] = []}
     @debug_channel = Channel.new
   end
   
