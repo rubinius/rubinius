@@ -106,7 +106,8 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_opened_class = SYM("opened_class");
   state->global->sym_initialize = SYM("initialize");
   state->global->sym_init_copy = SYM("initialize_copy");
- 
+  state->global->sym_call = SYM("call");
+
   c->current_thread = Qnil;
   c->current_scope = Qnil;
 

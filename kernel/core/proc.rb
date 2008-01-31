@@ -14,6 +14,21 @@ class Proc
     @check_args = other
   end
 
+  # An optimized version, used for the &block syntax
+  def self.__from_block__(env)
+    if env.__kind_of__(BlockEnvironment)
+      obj = allocate()
+      obj.block = env
+      return obj
+    else
+      begin
+        env.to_proc
+      rescue Exception
+        raise ArgumentError, "Unable to convert #{env.inspect} to a Proc"
+      end
+    end
+  end
+
   def self.from_environment(env, check_args=false)
     if env.nil?
       nil

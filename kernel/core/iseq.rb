@@ -176,7 +176,8 @@ class InstructionSet
     {:opcode => :cast_for_single_block_arg, :args => [], :stack => [1,1]},
     {:opcode => :cast_for_multi_block_arg, :args => [], :stack => [1,1]},
     {:opcode => :set_call_info, :args => [:int, :cache], :stack => [0,0]},
-    {:opcode => :check_serial, :args => [:literal, :int], :stack => [1,1]}
+    {:opcode => :check_serial, :args => [:literal, :int], :stack => [1,1]},
+    {:opcode => :meta_send_call, :args => [:int], :stack => [1,1]}
   ]
 
   InstructionSize = 4

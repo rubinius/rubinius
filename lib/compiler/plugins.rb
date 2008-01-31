@@ -128,6 +128,29 @@ module Compiler::Plugins
       return false
     end
   end
+
+  class FastGenericMethods < Plugin
+
+    plugin :fastgeneric
+
+    Methods = {
+      :call => :meta_send_call
+    }
+
+    def handle(g, call)
+      # Don't handle send's with a block or non static args.
+      return false if call.block or call.argcount.nil?
+
+      if name = Methods[call.method]
+        call.emit_args(g)
+        call.receiver_bytecode(g)
+        g.add name, call.argcount
+        return true
+      end
+
+      return false
+    end
+  end
   
   class SafeMathOperators < Plugin
     

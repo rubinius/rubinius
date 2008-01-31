@@ -998,6 +998,22 @@ CODE
     }
     CODE
   end
+
+  def meta_send_call
+    <<-CODE
+    next_int;
+    t1 = stack_pop();
+
+    if(REFERENCE_P(t1) && t1->obj_type == BlockEnvType) {
+      blokenv_call(state, c, t1, _int);
+    } else {
+      _lit = global->sym_call;
+      t2 = Qnil;
+      j = _int;
+      goto perform_send;
+    }
+    CODE
+  end
   
   def soft_return
     <<-CODE

@@ -43,7 +43,7 @@ struct rubinius_globals {
   OBJECT external_ivars, scheduled_threads, errno_mapping;
   OBJECT config, ffi_ptr, ffi_func, sym_send;
   OBJECT sym_public, sym_private, sym_protected, sym_const_missing;
-  OBJECT sym_object_id;
+  OBJECT sym_object_id, sym_call;
   OBJECT exception, iseq, icache;
   OBJECT top_scope, on_gc_channel;
   

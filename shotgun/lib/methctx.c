@@ -105,6 +105,25 @@ OBJECT blokenv_s_under_context2(STATE, OBJECT cmethod, OBJECT ctx, OBJECT ctx_bl
   return obj;
 }
 
+void blokenv_call(STATE, cpu c, OBJECT self, int num_args) {
+  OBJECT t1, t2, t3;
+  int j;
+
+  c->blockargs = num_args;
+
+  t3 = tuple_new(state, num_args);
+  for(j = 0; j < num_args; j++) {
+    t1 = stack_pop();
+    tuple_put(state, t3, j, t1);
+  }
+  stack_push(t3);
+
+  cpu_flush_sp(c);
+  t2 = cpu_create_block_context(state, c, self, c->sp);
+  cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);
+
+}
+
 void methctx_reference(STATE, OBJECT ctx) {
   struct fast_context *fc;
   /* Don't do it again. */

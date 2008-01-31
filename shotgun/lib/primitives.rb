@@ -380,20 +380,9 @@ class ShotgunPrimitives
   def block_call
     <<-CODE
     self = stack_pop(); 
-    GUARD( RISA(self, blokenv) );
-    
-    c->blockargs = num_args;
-    
-    t3 = tuple_new(state, num_args);
-    for(j = 0; j < num_args; j++) {
-      t1 = stack_pop();
-      tuple_put(state, t3, j, t1);
-    }
-    stack_push(t3);
-
-    cpu_flush_sp(c);
-    t2 = cpu_create_block_context(state, c, self, c->sp);
-    cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);
+    GUARD(REFERENCE_P(self) && self->obj_type == BlockEnvType);
+   
+    blokenv_call(state, c, self, num_args);
     CODE
   end
   

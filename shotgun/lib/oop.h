@@ -68,7 +68,8 @@ typedef enum
   SymbolType      = 14,
   CMethodType     = 15,
   NMethodType     = 16,
-  NilType         = 17
+  NilType         = 17,
+  BlockEnvType    = 18
 } object_type;
 
 #define object_type_to_type(object_type, type) do {\

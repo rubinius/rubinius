@@ -181,6 +181,7 @@ class Compiler
     activate :safemath if Config['rbx-safe-math']
     activate_default :inline
     activate_default :fastsystem
+    activate_default :fastgeneric
   end
 
   def activate_default(name)

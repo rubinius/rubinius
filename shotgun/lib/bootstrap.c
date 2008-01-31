@@ -91,6 +91,7 @@ void cpu_bootstrap(STATE) {
   
   class_set_object_type(BC(string), I2N(StringType));
   class_set_object_type(BC(cmethod), I2N(CMethodType));
+  class_set_object_type(BC(blokenv), I2N(BlockEnvType));
     
   rbs_const_set(state, obj, "Symbols", state->global->symbols);
   BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);

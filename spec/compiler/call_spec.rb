@@ -270,7 +270,7 @@ describe Compiler do
     
     gen x do |g|
       g.push_block
-      g.send :call, 0
+      g.meta_send_call 0
     end
   end
   
@@ -280,7 +280,7 @@ describe Compiler do
     gen x do |g|
       g.push 1
       g.push_block
-      g.send :call, 1
+      g.meta_send_call 1
     end
   end
   
@@ -291,7 +291,7 @@ describe Compiler do
       g.push 2
       g.push 1
       g.push_block
-      g.send :call, 2
+      g.meta_send_call 2
     end
   end
   
@@ -303,7 +303,7 @@ describe Compiler do
       g.push 2
       g.make_array 2
       g.push_block
-      g.send :call, 1
+      g.meta_send_call 1
     end
   end
   

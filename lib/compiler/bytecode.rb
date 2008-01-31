@@ -1925,7 +1925,7 @@ class Node
         g.send_with_register :call, false
       else
         g.push_block
-        g.send :call, @argcount
+        g.meta_send_call @argcount
       end
 
     end
@@ -2061,8 +2061,17 @@ class Node
 
       if @block_arg
         g.push_block
+        g.dup
+        g.is_nil
+
+        after = g.new_label
+        g.git after
+
         g.push_const :Proc
-        g.send :from_environment, 1
+        g.send :__from_block__, 1
+
+        after.set!
+
         @block_arg.bytecode(g)
         g.pop
       end

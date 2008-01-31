@@ -170,8 +170,16 @@ describe Compiler do
       meth = description do |d|
         d.check_argcount 0, 0
         d.push_block
+        d.dup
+        d.is_nil
+
+        after = d.new_label
+        d.git after
+
         d.push_const :Proc
-        d.send :from_environment, 1
+        d.send :__from_block__, 1
+
+        after.set!
         d.set_local 0
         d.pop
         d.push_local 0
