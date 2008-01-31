@@ -1482,7 +1482,7 @@ end",
     "Ruby"        => 'str.split(//i)',
     "ParseTree"   => [:call, [:vcall, :str], :split, [:array, [:lit, //i]]],
   },
-  
+
   "lit_regexp_n" => {
     "Ruby"        => "/x/n",
     "ParseTree"   => [:lit, /x/n],

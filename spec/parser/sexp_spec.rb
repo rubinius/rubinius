@@ -87,7 +87,7 @@ describe "Shotgun" do
   end
 end
 
-def fixit array
+def rewrite_expected array
   case array.first
   when :alias, :undef then
     array[1..-1] = array[1..-1].map { |lit| lit.last }
@@ -98,6 +98,16 @@ def fixit array
     array[-1] << []      # no clue
   when :defn then
     array[-1] << []      # no clue
+  when :lit then
+    case array[1]
+    when Regexp then
+      regexp = array[1]
+      array[0..-1] = [:regex, regexp.source, regexp.options - 16] # FIX: broken on kcode
+    when Range then
+      range = array[1]
+      type = range.exclude_end? ? :dot3 : :dot2
+      array[0..-1] = [type, [:lit, range.begin], [:lit, range.end]] # FIX
+    end
   when :yield then
     array << true
   when :resbody then
@@ -110,7 +120,7 @@ def fixit array
 
   array = array.map { |item|
     if Array === item then
-      fixit(item)
+      rewrite_expected(item)
     else
       item
     end
@@ -122,7 +132,7 @@ end
 describe "Producing sexps from source code" do
   SEXP_EXPECTATIONS.each do |node, hash|
     it "succeeds for a node of type :#{node}" do
-      expected = fixit(hash['ParseTree'])
+      expected = rewrite_expected(hash['ParseTree'])
       actual = hash['Ruby'].to_sexp
       actual.should == expected
     end
