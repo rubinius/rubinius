@@ -299,6 +299,10 @@ class Compiler
     def push_symbol(what)
       push_literal what
     end
+
+    # The max value we use for inline ints. Above this, they're
+    # stored in the literals tuple.
+    InlineIntCutoff = (2 ** 27)
     
     def push_int(int)
       case int
@@ -311,7 +315,11 @@ class Compiler
       when 2
         add :meta_push_2
       else
-        add :push_int, int
+        if int < InlineIntCutoff
+          add :push_int, int
+        else
+          push_literal int
+        end
       end
     end
     

@@ -256,6 +256,18 @@ static void marshal_bignum(STATE, OBJECT obj, bstring buf) {
   append_c(0);                  /* zero byte */
 }
 
+static void marshal_fixnum(STATE, OBJECT obj, bstring buf) {
+  char buffer[1024];
+  int i;
+
+  i = snprintf(buffer, 1023, "%ld", N2I(obj));
+
+  append_c('B');
+  append_sz(i);
+  bcatblk(buf, buffer, i);
+  append_c(0);
+}
+
 static OBJECT unmarshal_bignum(STATE, struct marshal_state *ms) {
   int sz;
   sz = read_int(ms->buf + 1);
@@ -510,6 +522,8 @@ static void marshal(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
         marshal_iseq(state, obj, buf);
       } else if(kls == BASIC_CLASS(bignum)) {
         marshal_bignum(state, obj, buf);
+      } else if(FIXNUM_P(obj)) {
+        marshal_fixnum(state, obj, buf);
       } else if(kls == BASIC_CLASS(floatpoint)) {
         marshal_floatpoint(state, obj, buf);
       } else {
