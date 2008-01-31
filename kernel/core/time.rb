@@ -9,31 +9,31 @@
 
 class Time
   include Comparable
-  
+
   # Time Constants
-  ZoneOffset  	=  	{ 'UTC' => 0, 'Z' => 0,  'UT' => 0, 'GMT' => 0, 
-                      'EST' => -5, 'EDT' => -4, 'CST' => -6, 'CDT' => -5, 
+  ZoneOffset =      { 'UTC' => 0, 'Z' => 0,  'UT' => 0, 'GMT' => 0,
+                      'EST' => -5, 'EDT' => -4, 'CST' => -6, 'CDT' => -5,
                       'CET' => 1, 'CEST' => 2,
-                      'MST' => -7, 'MDT' => -6, 'PST' => -8, 'PDT' => -7, 
-                      'A' => +1, 'B' => +2, 'C' => +3, 'D' => +4, 'E' => +5, 
-                      'F' => +6, 'G' => +7, 'H' => +8, 'I' => +9, 'K' => +10, 
-                      'L' => +11, 'M' => +12, 'N' => -1, 'O' => -2, 'P' => -3, 
-                      'Q' => -4, 'R' => -5, 'S' => -6, 'T' => -7, 'U' => -8, 
+                      'MST' => -7, 'MDT' => -6, 'PST' => -8, 'PDT' => -7,
+                      'A' => +1, 'B' => +2, 'C' => +3, 'D' => +4, 'E' => +5,
+                      'F' => +6, 'G' => +7, 'H' => +8, 'I' => +9, 'K' => +10,
+                      'L' => +11, 'M' => +12, 'N' => -1, 'O' => -2, 'P' => -3,
+                      'Q' => -4, 'R' => -5, 'S' => -6, 'T' => -7, 'U' => -8,
                       'V' => -9, 'W' => -10, 'X' => -11, 'Y' => -12, }
 
   MonthValue = {
     'JAN' => 1, 'FEB' => 2, 'MAR' => 3, 'APR' => 4, 'MAY' => 5, 'JUN' => 6,
     'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' =>10, 'NOV' =>11, 'DEC' =>12
   }
-  
+
   LeapYearMonthDays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  
+
   CommonYearMonthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  
+
   RFC2822_DAY_NAME = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  
+
   RFC2822_MONTH_NAME = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  
+
   PRE_EPOCH_DAYS = 719468
 
   TM_FIELDS = {
@@ -52,9 +52,9 @@ class Time
     :sec => 0,
     :usec => 1,
   }
-  
+
   # Time methods
-  
+
   def initialize
     @timeval = Time.gettimeofday
 
@@ -129,7 +129,7 @@ class Time
     t.instance_variable_set(:@is_gmt, @is_gmt)
     t
   end
-  
+
   def self.local(first, *args)
     if args.size == 9
       second = first
@@ -146,7 +146,7 @@ class Time
         args[0] = args[0].to_str if args[0].respond_to?(:to_str)
         month = MonthValue[args[0].upcase] || args[0].to_i || raise(ArgumentError.new('argument out of range'))
       end
-      
+
       year = first
       month ||= args[0] || 1
       day = args[1] || 1
@@ -161,7 +161,7 @@ class Time
     t.mktime(second, minute, hour, day, month, year, usec, isdst, false)
     t.force_localtime
   end
-  
+
   def self.gm(first, *args)
     if args.size == 9
       second = first
@@ -176,7 +176,7 @@ class Time
       if args[0] && args[0].respond_to?(:to_str) && (args[0] = args[0].to_str).to_i == 0
         month = MonthValue[args[0].upcase] || raise(ArgumentError.new('argument out of range'))
       end
-      
+
       # set argument defaults
       year = first
       month ||= args[0] || 1
@@ -196,15 +196,15 @@ class Time
     if secs_or_time.kind_of? Time
       return secs_or_time.dup
     end
-    
+
     secs_or_time = Type.coerce_to secs_or_time, Integer, :to_i
     Time.allocate.at_gmt(secs_or_time, msecs, false)
   end
-  
+
   def strftime(format)
     __strftime(@tm, format.to_str)
   end
-  
+
   def inspect
     if @is_gmt
       strftime("%a %b %d %H:%M:%S UTC %Y")
@@ -220,7 +220,7 @@ class Time
   def +(other)
     dup.at_gmt(seconds + other, usec, @is_gmt)
   end
-  
+
   def -(other)
     if other.kind_of? Time
       seconds - other.seconds + (usec - other.usec) * 0.000001
@@ -228,7 +228,7 @@ class Time
       dup.at_gmt(seconds - other, usec, @is_gmt)
     end
   end
-  
+
   def succ
     self + 1
   end
@@ -236,59 +236,59 @@ class Time
   def <=>(other)
     [self.seconds, self.usec] <=> [other.seconds, other.usec]
   end
-  
+
   def eql?(other)
     (self <=> other) == 0
   end
-  
+
   def asctime
     strftime("%a %b %e %H:%M:%S %Y")
   end
-  
+
   def hour
     @tm[2]
   end
-  
+
   def min
     @tm[1]
   end
-  
+
   def sec
     @tm[0]
   end
-  
+
   def day
     @tm[3]
   end
-  
+
   def year
     @tm[5] + 1900
   end
-  
+
   def yday
     @tm[7] + 1
   end
-  
+
   def wday
     @tm[6]
   end
-  
-  def zone 
+
+  def zone
     strftime("%Z")
   end
-  
+
   def mon
     @tm[4] + 1
   end
-  
+
   def gmt?
     @is_gmt
   end
-  
+
   def usec
     @timeval.last
   end
-  
+
   def to_i
     self.seconds
   end
@@ -296,12 +296,12 @@ class Time
   def to_f
     seconds + (usec / 1000000.0)
   end
-  
+
   # [ sec, min, hour, day, month, year, wday, yday, isdst, zone ]
   def to_a
     [sec, min, hour, day, month, year, wday, yday, isdst, zone]
   end
-  
+
   def gmt_offset
     return 0 if @is_gmt
 
@@ -326,39 +326,39 @@ class Time
     offset *= 60
     offset += sec - other.sec
   end
-  
+
   def localtime
     force_localtime if @is_gmt
 
     self
   end
-  
+
   def gmtime
     force_gmtime unless @is_gmt
 
     self
   end
-  
+
   def dst?
     !@tm[8].zero?
   end
-  
+
   def getlocal
     dup.localtime
   end
-  
+
   def getgm
     dup.gmtime
   end
-  
+
   def hash
     seconds ^ usec
   end
-  
+
   # internal
-  
+
   # private
-  
+
   def force_localtime
     @tm = time_switch(@timeval.first, false)
     @is_gmt = false
@@ -395,7 +395,7 @@ class Time
 
     @timeval = time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
     raise ArgumentError, "time out of range" if @timeval.first == -1
-    
+
     self
   end
 
@@ -461,17 +461,17 @@ class Time
     end
     return year, mon, day, hour, min, sec
   end
-  
+
   # aliases
-  
+
   public
-  
+
   class << self
     alias_method :now,    :new
     alias_method :mktime, :local
     alias_method :utc,    :gm
   end
-    
+
   alias_method :utc?,       :gmt?
   alias_method :month,      :mon
   alias_method :ctime,      :asctime
