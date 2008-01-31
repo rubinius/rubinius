@@ -3,7 +3,7 @@
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
 # you can get recursive exceptions being raised (THATS BAD, BTW).
 class MethodContext
-  
+
   attr_accessor :last_match
 
   # The Nth group of the last regexp match.
@@ -13,7 +13,7 @@ class MethodContext
     if lm = @last_match
       return lm[n]
     end
-    
+
     return nil
   end
 
@@ -32,39 +32,39 @@ class MethodContext
       when :+
         lm.captures.last
       end
-      
+
       return res
     end
-    
+
     return nil
   end
-    
+
   def to_s
     "#<#{self.class}:0x#{self.object_id.to_s(16)} #{receiver}##{name} #{file}:#{line}>"
   end
   alias_method :inspect, :to_s
-  
+
   def file
     return "(unknown)" unless self.method
     method.file
   end
-  
+
   def lines
     return [] unless self.method
     method.lines
   end
-  
+
   def line
     return 0 unless self.method
     # We subtract 1 because the ip is actually set to what it should do
     # next, not what it's currently doing.
     return self.method.line_from_ip(self.ip - 1)
   end
-    
+
   def copy(locals=false)
     d = self.dup
     return d unless locals
-    
+
     i = 0
     lc = self.locals
     tot = lc.fields
@@ -73,9 +73,9 @@ class MethodContext
       nl.put i, lc.at(i)
       i += 1
     end
-    
+
     # d.put 10, nl
-    
+
     return d
   end
 
@@ -93,7 +93,7 @@ class MethodContext
     # CTX_FLAG_NO_LONG_RETURN => 1
     _set_field(12, 1)
   end
-  
+
   def calling_hierarchy(start=1)
     ret = []
     ctx = self
@@ -105,7 +105,7 @@ class MethodContext
         else
           ret << "#{ctx.file}:#{ctx.line}"
         end
-        
+
         # In a backtrace, an eval'd context's binding shows up
         if ctx.kind_of? BlockContext
           if ctx.env.from_eval?
@@ -113,17 +113,17 @@ class MethodContext
             ret << "#{home.file}:#{home.line} in `#{home.method.name}'"
           end
         end
-        
+
       end
-      
+
       i += 1
       ctx = ctx.sender
     end
-    
+
     return nil if start > i + 1
     ret
   end
-  
+
   def describe
     if method_module.equal?(Kernel)
       str = "Kernel."
@@ -134,7 +134,7 @@ class MethodContext
     else
       str = "#{receiver.class}#"
     end
-    
+
     if kind_of? BlockContext
       str << "#{name} {}"
     elsif name == method.name
@@ -143,14 +143,14 @@ class MethodContext
       str << "#{name} (#{method.name})"
     end
   end
-  
+
   def const_defined?(name)
     scope = method.staticscope
     while scope
       return true if scope.module.const_defined?(name)
       scope = scope.parent
     end
-    
+
     return Object.const_defined?(name)
   end
 
@@ -166,10 +166,10 @@ class MethodContext
     if receiver.kind_of? Module
       return receiver.class_variable_set(name, val)
     end
-    
+
     return current_scope.class_variable_set(name, val)
   end
-  
+
   def current_scope
     if ss = method.staticscope
       return ss.module
@@ -177,7 +177,7 @@ class MethodContext
       return method_module
     end
   end
-  
+
   def send_private?
     @send_private
   end
@@ -221,31 +221,31 @@ class NativeMethodContext
 end
 
 class BlockContext
-  
+
   def last_match
     home.last_match
   end
-  
+
   def last_match=(match)
     home.last_match = match
   end
-  
+
   def nth_ref(idx)
     home.nth_ref(idx)
   end
-  
+
   def back_ref(idx)
     home.back_ref(idx)
   end
-  
+
   def home
     env.home
   end
-  
+
   def name
     home.name
   end
-  
+
   def receiver
     home.receiver
   end
@@ -260,7 +260,7 @@ class BlockContext
 end
 
 class BlockEnvironment
-  ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3, 
+  ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3,
     :post_send => 4, :home_block => 5, :local_count => 6, :bonus => 7, :method => 8
   def __ivars__   ; @__ivars__   ; end
   def home        ; @home        ; end
@@ -271,7 +271,7 @@ class BlockEnvironment
   def local_count ; @local_count ; end
   def bonus       ; @bonus       ; end
   def method      ; @method      ; end
-    
+
   def under_context(home, cmethod)
     if home.kind_of? BlockContext
       home_block = home
@@ -279,7 +279,7 @@ class BlockEnvironment
     else
       home_block = home
     end
-    
+
     @home = home
     @initial_ip = 0
     @last_ip = 2 ** 28
@@ -289,16 +289,16 @@ class BlockEnvironment
     @local_count = cmethod.locals
     return self
   end
-      
+
   # Holds a Tuple of local variable names to support eval
   def bonus=(tup)
     @bonus = tup
   end
-  
+
   def from_eval?
     @bonus and @bonus[0]
   end
-  
+
   def from_eval!
     @bonus = Tuple.new(1) unless @bonus
     @bonus[0] = true
@@ -315,11 +315,11 @@ class BlockEnvironment
   def file
     method.file
   end
-  
+
   def line
     method.line_from_ip(initial_ip)
   end
-  
+
   def home=(home)
     @home = home
   end
@@ -327,11 +327,11 @@ class BlockEnvironment
   def scope=(tup)
     @scope = tup
   end
-  
+
   def make_independent
     @home = @home.dup
   end
-  
+
   def redirect_to(obj)
     env = dup
     env.make_independent
@@ -361,7 +361,7 @@ class Backtrace
   attr_accessor :first_color
   attr_accessor :kernel_color
   attr_accessor :eval_color
-  
+
   def initialize
     @frames = []
     @top_context = nil
@@ -396,11 +396,11 @@ class Backtrace
     end
     return fr2.join(sep)
   end
-  
+
   def join(sep)
     show
   end
-  
+
   alias_method :to_s, :show
 
   def color_from_loc(loc, first)
@@ -413,27 +413,27 @@ class Backtrace
       ""
     end
   end
-  
+
   attr_reader :top_context
-    
+
   MAX_WIDTH = 40
-  
+
   def fill_from(ctx)
     @top_context = ctx
-    
+
     @max = 0
-    while ctx   
+    while ctx
       unless ctx.method
         ctx = ctx.sender
         next
       end
-      
+
       str = ctx.describe
-            
+
       if str.size > @max
         @max = str.size
       end
-      
+
       @frames << [str, ctx.location]
       ctx = ctx.sender
     end
@@ -453,7 +453,7 @@ class Backtrace
     @frames.each { |f| yield f.last }
     self
   end
-  
+
   def to_mri
     return @top_context.calling_hierarchy(0)
   end

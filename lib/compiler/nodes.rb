@@ -690,7 +690,7 @@ class Node
     kind :break
     def args(value=nil)
       @value = value
-      
+
       if @in_block = get(:iter)
         @check_var, _ = get(:scope).find_local :@lre
       end
@@ -1270,7 +1270,7 @@ class Node
     end
 
     attr_accessor :name, :body, :parent
-    
+
     def module_body?
       true
     end
@@ -1533,7 +1533,7 @@ class Node
         @scope = :method
       end
     end
-    
+
     def block=(obj)
       if obj.kind_of? Iter
         @check_var, _ = get(:scope).find_local :@lre
@@ -1694,7 +1694,7 @@ class Node
         @rhs_expression = nil
       else
         raise Error, "unknown argument form to attrassgn"
-      end 
+      end
     end
 
     def optional

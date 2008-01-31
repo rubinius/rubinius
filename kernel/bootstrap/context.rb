@@ -3,11 +3,11 @@ class MethodContext
     cur = Rubinius.asm { push_context }
     return cur.sender
   end
-    
+
   def activate(val)
-    Ruby.primitive :activate_context    
+    Ruby.primitive :activate_context
   end
-  
+
   def sender
     _get_field(0)
   end
@@ -15,7 +15,7 @@ class MethodContext
   def ip
     _get_field(1)
   end
-  
+
   def ip=(num)
     _set_field(1, num.to_i)
   end
@@ -31,15 +31,15 @@ class MethodContext
   def block
     _get_field(3)
   end
-  
+
   def method
     _get_field(5)
   end
-  
+
   def receiver
     _get_field(7)
   end
-  
+
   def receiver=(val)
     _set_field(7, val)
   end
@@ -59,15 +59,15 @@ class MethodContext
   def method_module
     _get_field(11)
   end
-  
+
   def dup
     Ruby.primitive :fastctx_dup
   end
-    
+
   def _get_field(int)
     Ruby.primitive :fastctx_get_field
   end
-  
+
   def _set_field(int, val)
     Ruby.primitive :fastctx_set_field
   end
@@ -89,7 +89,7 @@ class MethodContext
   end
 end
 
-class BlockContext  
+class BlockContext
   def env
     _get_field(10)
   end

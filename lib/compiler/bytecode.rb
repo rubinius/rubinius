@@ -39,7 +39,7 @@ end
 
 class Compiler
 class Node
-    
+
   def show_errors(gen, &block)
     @compiler.show_errors(gen, &block)
   end
@@ -605,7 +605,7 @@ class Node
       desc.name = :__block__
       desc.required, desc.optional = argument_info
       sub = desc.generator
-      
+
       # Push line info down.
       sub.set_line g.line, g.file
 
@@ -1157,7 +1157,7 @@ class Node
       else
         @value.bytecode(g) if @value
         g.push_literal @name
-        
+
         if @parent
           @parent.bytecode(g)
         elsif @from_top
@@ -1165,7 +1165,7 @@ class Node
         else
           g.push :self
         end
-          
+
         g.send :__const_set__, 2
       end # @compiler.kernel?
     end
@@ -1776,7 +1776,7 @@ class Node
         end
 
         super(g)
-        
+
         @argcount += extra
       elsif @rhs_expression
         @rhs_expression.bytecode(g)
@@ -1891,13 +1891,13 @@ class Node
         g.gif after
         g.clear_exception
 
-        # This is also used for break in a block. If break was used, 
+        # This is also used for break in a block. If break was used,
         # is_return is false, so we just leave the value on the stack.
         leave = g.new_label
         g.dup
         g.send :is_return, 0
         g.gif leave
-        
+
         g.send :value, 0
         g.ret
 
