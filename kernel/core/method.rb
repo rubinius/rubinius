@@ -28,7 +28,6 @@ class Method
   attr_reader :compiled_method
   protected   :receiver
   protected   :pulled_from
-  protected   :defined_in
 
   # Instance methods
 
@@ -150,8 +149,6 @@ class UnboundMethod
 
   attr_reader :compiled_method
   attr_reader :defined_in
-  protected   :compiled_method
-  protected   :defined_in
 
   # Instance methods
 
