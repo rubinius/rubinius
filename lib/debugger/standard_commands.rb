@@ -51,20 +51,20 @@ class Debugger
 
   class AddBreakpoint < Command
     def help
-      return "b[reak] <Method>", "Set a breakpoint at the start of the specified method"
+      return "b[reak] <Method>[:<line>]", "Set a breakpoint at the start or specified line of <Method>"
     end
 
     def command_regexp
-      /^b(?:reak)?\s+(?:((?:\w*(?:::)?)*\w+)([.#]))?([\w_]+[\w\d?_\[\]])(?:\s+(\d+))?$/
+      /^b(?:reak)?\s+(?:((?:\w*(?:::)?)*\w+)([.#]))?([\w_]+[\w\d?_\[\]])(?:(?::|\s+)(\d+))?$/
     end
 
     def execute(dbg, md)
       cls, mthd_type, mthd, line = md[1], md[2], md[3], md[4]
-      clazz = MAIN
+      clazz = MAIN.class
       unless cls.nil?
         clazz = Module.const_lookup(cls.to_sym)
       end
-      if mthd_type == '#'
+      if mthd_type.nil? || mthd_type == '#'
         cm = clazz.instance_method(mthd.to_sym).compiled_method
       else
         cm = clazz.method(mthd.to_sym).compiled_method
