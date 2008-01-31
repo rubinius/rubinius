@@ -171,6 +171,7 @@ VALUE rb_float_new(double d);
 
 const char *rb_id2name(ID sym);
 ID rb_intern(const char *name);
+const char *rb_class2name(VALUE klass);
 
 #define rb_obj_freeze(obj) obj
 

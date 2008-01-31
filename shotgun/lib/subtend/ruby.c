@@ -331,6 +331,14 @@ const char *rb_id2name(ID sym) {
   return rbs_symbol_to_cstring(ctx->state, obj);
 }
 
+const char *rb_class2name(VALUE klass) {
+  OBJECT h;
+  CTX;
+
+  h = HNDL(klass);
+  return rbs_symbol_to_cstring( ctx->state, class_get_name( h ) );
+}
+
 VALUE rb_obj_alloc(VALUE klass) {
   CTX;
   OBJECT o;

@@ -60,4 +60,8 @@ describe "SubtendClass" do
     s.respond_to?(:bat).should == true
     s.respond_to?(:bat=).should == true      
   end
+
+  it "rb_class2name should return the classname" do
+    @s.rb_class2name(SubtendClass).should == "SubtendClass"
+  end
 end

@@ -1,5 +1,6 @@
 #include <ruby.h>
 #include <stdio.h>
+#include <string.h>
 
 static VALUE sc_rb_obj_alloc(VALUE self, VALUE klass) {
   return rb_obj_alloc(klass);
@@ -44,6 +45,10 @@ void sc_define_attr(VALUE self, VALUE klass, VALUE sym, VALUE read, VALUE write)
   rb_define_attr(klass, SYM2ID(sym), int_read, int_write);
 }
 
+static VALUE sc_rbclass2name(VALUE self, VALUE klass) {
+  return rb_str_new2( rb_class2name(klass) );
+}
+
 void Init_subtend_class() {
   VALUE cls;
   cls = rb_define_class("SubtendClass", rb_cObject);
@@ -51,5 +56,6 @@ void Init_subtend_class() {
   rb_define_method(cls, "rb_obj_call_init", sc_rb_obj_call_init, 3);
   rb_define_method(cls, "rb_class_new_instance", sc_rb_class_new_instance, 3);
   rb_define_method(cls, "rb_include_module", sc_include_module, 2);
-  rb_define_method(cls, "rb_define_attr", sc_define_attr, 4);  
+  rb_define_method(cls, "rb_define_attr", sc_define_attr, 4);
+  rb_define_method(cls, "rb_class2name", sc_rbclass2name, 1);
 }
