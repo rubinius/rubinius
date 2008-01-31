@@ -62,6 +62,7 @@ Producing sexps from source code succeeds for a node of type :ensure
 Producing sexps from source code succeeds for a node of type :fcall_arglist_hash
 Producing sexps from source code succeeds for a node of type :fcall_arglist_norm_hash
 Producing sexps from source code succeeds for a node of type :fcall_arglist_norm_hash_splat
+Producing sexps from source code succeeds for a node of type :flip2
 Producing sexps from source code succeeds for a node of type :flip3
 Producing sexps from source code succeeds for a node of type :hash_rescue
 Producing sexps from source code succeeds for a node of type :iteration2
@@ -86,6 +87,7 @@ Producing sexps from source code succeeds for a node of type :masgn_splat_no_nam
 Producing sexps from source code succeeds for a node of type :match
 Producing sexps from source code succeeds for a node of type :match2
 Producing sexps from source code succeeds for a node of type :match3
+Producing sexps from source code succeeds for a node of type :op_asgn1
 Producing sexps from source code succeeds for a node of type :op_asgn2
 Producing sexps from source code succeeds for a node of type :op_asgn2_self
 Producing sexps from source code succeeds for a node of type :op_asgn_and
