@@ -24,6 +24,18 @@ long ffi_timezone() {
   return timezone;
 }
 
+char* ffi_tzname(int dst) {
+  if(dst) {
+    return tzname[1];
+  } else {
+    return tzname[0];
+  }
+}
+
+int ffi_daylight() {
+  return daylight;
+}
+
 OBJECT ffi_new_pointer(STATE, void *ptr) {
   void **code_start;
   OBJECT obj;

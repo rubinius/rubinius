@@ -1,11 +1,7 @@
 class Moment
 
-  def self.gettimeofday
-    Ruby.primitive :gettimeofday
-  end
-  
   def self.now
-    Moment.at(gettimeofday)
+    Moment.new(nil)
   end
 
   def self.at(time)
@@ -13,8 +9,22 @@ class Moment
   end
 
   def initialize(time)
-    @utc   = time.respond_to?(:first) ? time.first : time
-    @micro = time.respond_to?(:last)  ? time.last  : 0
+    if time
+      @utc   = time.respond_to?(:first) ? time.first : time
+      @micro = time.respond_to?(:last)  ? time.last  : 0
+    else
+      tv = Platform::POSIX::TimeVal.new
+
+      if 0 != Platform::POSIX.gettimeofday(tv.pointer, nil)
+        Errno.handle
+      end
+
+      @utc = tv[:tv_sec]
+      @micro = tv[:tv_usec]
+
+      tv.free
+    end
+
     @local = @utc - Platform::POSIX.timezone
     @time  = @local
     @human = nil
@@ -27,6 +37,8 @@ class Moment
   class HumanTime
     def initialize(moment)
       @moment = moment
+      # HACK. the 0 should be 1 if this Moment is during DST
+      @timezone = Platform::POSIX.tzname(0)
     end
 
     attr_accessor :micro
@@ -64,7 +76,6 @@ class Moment
       @day = k
 
       # HACK this only does gregorian weeks
-      # see http://en.wikipedia.org/wiki/Calculating_the_day_of_the_week
       @weekday = Days[(@jd + 1) % 7]
     end
 
@@ -140,6 +151,10 @@ class Moment
 
     def year
       @year.to_s
+    end
+
+    def time_zone
+      @timezone
     end
 
     def time_offset
@@ -237,7 +252,7 @@ class Moment
 
   def to_s
     if offset != 0
-      format "%a %b %d %H:%M:%S %z %Y"
+      format "%a %b %d %H:%M:%S %Z %Y"
     else
       format "%a %b %d %H:%M:%S UTC %Y"
     end

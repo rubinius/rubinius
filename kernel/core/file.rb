@@ -1,5 +1,11 @@
 # depends on: io.rb class.rb module.rb
 
+module Platform::POSIX
+  class TimeVal < FFI::Struct
+    config 'rbx.platform.timeval', :tv_sec, :tv_usec
+  end
+end 
+
 class File < IO
 
   # Definition at the bottom
@@ -7,10 +13,6 @@ class File < IO
   end
 
   # Internal class for accessing timevals
-  class TimeVal < FFI::Struct
-    config 'rbx.platform.timeval', :tv_sec, :tv_usec
-  end
-
   class FileError < Exception; end
   class NoFileError < FileError; end
   class UnableToStat < FileError; end
@@ -370,9 +372,9 @@ class File < IO
   end
 
   def self.utime(a_in, m_in, *paths)
-    ptr = MemoryPointer.new(TimeVal, 2)
-    atime = TimeVal.new ptr
-    mtime = TimeVal.new ptr[1]
+    ptr = MemoryPointer.new(Platform::POSIX::TimeVal, 2)
+    atime = Platform::POSIX::TimeVal.new ptr
+    mtime = Platform::POSIX::TimeVal.new ptr[1]
     atime[:tv_sec] = a_in.to_i
     atime[:tv_usec] = 0
 
