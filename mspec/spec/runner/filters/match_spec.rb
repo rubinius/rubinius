@@ -12,13 +12,6 @@ describe MatchFilter, "#to_regexp" do
   end
 end
 
-describe MatchFilter do
-  it "accepts multiple strings to match" do
-    filter = MatchFilter.new nil, 'a', 'b', 'c'
-    filter.instance_variable_get(:@descriptions).should == [/a/, /b/, /c/]
-  end
-end
-
 describe MatchFilter, "#===" do
   before :each do
     @filter = MatchFilter.new nil, 'a', 'b', 'c'

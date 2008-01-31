@@ -1,5 +1,4 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-# require File.dirname(__FILE__) + '/../../mspec'
 require File.dirname(__FILE__) + '/../../runner/runner'
 require File.dirname(__FILE__) + '/../../mocks/mock'
 require File.dirname(__FILE__) + '/../../runner/state'
