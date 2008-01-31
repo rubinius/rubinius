@@ -2,6 +2,8 @@ require 'mspec/mocks'
 require 'mspec/runner/runner'
 require 'mspec/runner/object'
 require 'mspec/runner/formatters'
+require 'mspec/runner/actions'
+require 'mspec/runner/filters'
 require 'mspec/runner/guards'
 require 'mspec/runner/shared'
 
