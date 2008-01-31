@@ -1,7 +1,7 @@
 ---
 mnemonic: caller_return
 operation: >-
-  Returns from the caller of the current method
+  Returns from the caller of the current method (deprecated)
 format: caller_return
 opcode: 46
 stack_before:
@@ -12,6 +12,9 @@ stack_after:
 description: >-
   Pops the return value from the top of the stack, and then returns to the
   sender of the sender, i.e. returns two levels instead of one.
+notes: >-
+  This opcode has been deprecated; break from a block is now handled using
+  LongReturnException.
 source: |-
     t2 = stack_pop();
     
