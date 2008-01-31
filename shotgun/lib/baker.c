@@ -642,11 +642,18 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
       //printf("%p is dead: %d, %p, %s.\n", obj, obj->RequiresCleanup);
       //  cls, cls ? _inspect(cls) : "(NULL)");
       if(obj->RequiresCleanup) {
-        if(REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
-          cls = baker_gc_forwarded_object(cls);
-        }
+        if(obj->obj_type == MemPtrType) {
+          void *addr = *DATA_STRUCT(obj, void**);
+          printf("free %p\n", addr);
+          if(addr) free(addr);
+          obj->RequiresCleanup = 0;
+        } else {
+          if(REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
+            cls = baker_gc_forwarded_object(cls);
+          }
         
-        state_run_cleanup(state, obj, cls);
+          state_run_cleanup(state, obj, cls);
+        }
       }
       
       if(obj->obj_type == WrapsStructType) FREE_WRAPPED_STRUCT(obj);

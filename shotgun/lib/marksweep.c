@@ -211,12 +211,18 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
   }
     
   if(obj->RequiresCleanup) {
-    cls = CLASS_OBJECT(obj);
-    if(cls && REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
-      cls = baker_gc_forwarded_object(cls);
+    if(obj->obj_type == MemPtrType) {
+      void *addr = *DATA_STRUCT(obj, void**);
+      if(addr) free(addr);
+      obj->RequiresCleanup = 0;
+    } else {
+      cls = CLASS_OBJECT(obj);
+      if(cls && REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
+        cls = baker_gc_forwarded_object(cls);
+      }
+
+      state_run_cleanup(state, obj, cls);
     }
-    
-    state_run_cleanup(state, obj, cls);
   }
   
   if(obj->obj_type == WrapsStructType) FREE_WRAPPED_STRUCT(obj);

@@ -48,6 +48,16 @@ OBJECT ffi_new_pointer(STATE, void *ptr) {
   return obj;
 }
 
+void ffi_autorelease(OBJECT ptr, int ar) {
+  type_assert(ptr, MemPtrType, "passing a pointer");
+  ptr->RequiresCleanup = (ar ? 1 : 0);
+}
+
+void ffi_set_address(OBJECT ptr, void *addr) {
+  type_assert(ptr, MemPtrType, "passing a pointer");
+  *DATA_STRUCT(ptr, void**) = addr;
+}
+
 uintptr_t ffi_address(void *ptr) {
   return (uintptr_t)ptr;
 }

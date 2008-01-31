@@ -264,6 +264,7 @@ class MemoryPointer
         ptr.free
       end
     else
+      ptr.autorelease = true
       ptr
     end
   end
@@ -277,7 +278,9 @@ class MemoryPointer
   end
 
   def free
-    Platform::POSIX.free self
+    self.autorelease = false
+    Platform::POSIX.free(self) unless null?
+    self.class.set_address self, nil
   end
 
   def write_int(obj)
@@ -362,7 +365,8 @@ class MemoryPointer
   end
 
   def inspect
-    "#<MemoryPointer address=0x#{address.to_s(16)} size=#{total} data=#{read_string(total).inspect}>"
+    # Don't have this print the data at the location. It can crash everything.
+    "#<MemoryPointer address=0x#{address.to_s(16)} size=#{total}>"
   end
 
   def address
@@ -377,6 +381,14 @@ class MemoryPointer
     self.class.add_ptr(self, value)
   end
 
+  def autorelease=(val)
+    if val
+      self.class.autorelease self, 1
+    else
+      self.class.autorelease self, 0
+    end
+  end
+
   attach_function "ffi_address", :address, [:pointer], :int
   attach_function "ffi_write_int", :write_int, [:pointer, :int], :int
   attach_function "ffi_read_int", :read_int, [:pointer], :int
@@ -389,6 +401,8 @@ class MemoryPointer
   attach_function "memcpy", :write_string, [:pointer, :string, :int], :void
   attach_function "ffi_read_pointer", :read_pointer, [:pointer], :pointer
   attach_function "ffi_add_ptr", :add_ptr, [:pointer, :int], :pointer
+  attach_function "ffi_autorelease", :autorelease, [:object, :int], :void
+  attach_function "ffi_set_address", :set_address, [:object, :pointer], :void
 end
 
 module FFI
