@@ -32,9 +32,11 @@ char* ffi_tzname(int dst) {
   }
 }
 
+/*
 int ffi_daylight() {
   return daylight;
 }
+*/
 
 OBJECT ffi_new_pointer(STATE, void *ptr) {
   void **code_start;

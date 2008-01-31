@@ -80,7 +80,6 @@ module Platform::POSIX
   attach_function 'time', [:pointer], :long
   attach_function 'ffi_timezone', :timezone, [], :long
   attach_function 'ffi_tzname', :tzname, [:int], :string
-  attach_function 'ffi_daylight', :daylight, [], :int
   attach_function 'gettimeofday', [:pointer, :pointer], :int
 
   # UID/GID
