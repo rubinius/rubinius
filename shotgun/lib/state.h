@@ -183,12 +183,12 @@ static inline native_int rbs_to_int(OBJECT obj) {
   return (native_int)STRIP_TAG(obj);
 }
 
-static inline OBJECT rbs_int_to_numeric(STATE, int num) {
+static inline OBJECT rbs_int_to_numeric(STATE, native_int num) {
   OBJECT ret;
   ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)rbs_to_int(ret) != num) {
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_new(state, num);
   } else {
     return ret;
@@ -200,7 +200,7 @@ static inline OBJECT rbs_uint_to_numeric(STATE, unsigned int num) {
   ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)rbs_to_int(ret) != num) {
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_new_unsigned(state, num);
   } else {
     return ret;
@@ -212,7 +212,7 @@ static inline OBJECT rbs_ll_to_numeric(STATE, long long num) {
   ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)rbs_to_int(ret) != num) {
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_from_ll(state, num);
   } else {
     return ret;
@@ -224,7 +224,7 @@ static inline OBJECT rbs_ull_to_numeric(STATE, unsigned long long num) {
   ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)rbs_to_int(ret) != num) {
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_from_ull(state, num);
   } else {
     return ret;
@@ -236,7 +236,7 @@ static inline OBJECT rbs_max_long_to_numeric(STATE, long long num) {
   ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)rbs_to_int(ret) != num) {
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_from_ll(state, num);
   } else {
     return ret;
