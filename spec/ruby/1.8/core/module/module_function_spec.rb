@@ -136,4 +136,78 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
     m.respond_to?(:test2).should == true
     m.respond_to?(:test3).should == true
   end
+
+  it "does not affect module_evaled method definitions also if outside the eval itself" do
+    m = Module.new {
+          module_function
+
+          module_eval { def test1() end }
+          module_eval " def test2() end "
+        }
+
+    c = Class.new { include m }
+
+    m.respond_to?(:test1).should == false
+    m.respond_to?(:test2).should == false
+  end
+
+  it "has no effect if inside a module_eval if the definitions are outside of it" do
+    m = Module.new {
+          module_eval { module_function }
+
+          def test1() end
+          def test2() end
+        }
+
+    m.respond_to?(:test1).should == false
+    m.respond_to?(:test2).should == false
+  end
+
+  it "functions normally if both toggle and definitions inside a module_eval" do
+    m = Module.new {
+          module_eval {
+            module_function
+
+            def test1() end
+            def test2() end
+          }
+        }
+
+    m.respond_to?(:test1).should == true
+    m.respond_to?(:test2).should == true
+  end
+
+  it "affects evaled method definitions also even when outside the eval itself" do
+    m = Module.new {
+          module_function
+
+          eval "def test1() end"
+        }
+
+    m.respond_to?(:test1).should == true
+  end
+
+  it "affects definitions when inside an eval even if the definitions are outside of it" do
+    m = Module.new {
+          eval "module_function"
+
+          def test1() end
+        }
+
+    m.respond_to?(:test1).should == true
+  end
+
+  it "functions normally if both toggle and definitions inside a module_eval" do
+    m = Module.new {
+          eval <<-CODE
+            module_function
+
+            def test1() end
+            def test2() end
+          CODE
+        }
+
+    m.respond_to?(:test1).should == true
+    m.respond_to?(:test2).should == true
+  end
 end
