@@ -1,6 +1,11 @@
 # -*- ruby -*-
 
-$q = true && ! $v
+require 'autotest/timestamp'
+
+$f = true # quickstart
+$q = ! $v # don't print all the files unless we run -v
+
+ENV['PRETTY'] = "1"
 
 Autotest.add_hook :run_command do |at|
   system "rake"
@@ -8,13 +13,11 @@ end
 
 class Autotest
   alias :old_ruby :ruby
-  alias :old_consolidate_failures :consolidate_failures
-  alias :old_make_test_cmd :make_test_cmd
-
   def ruby
     "bin/ci -fu"
   end
 
+  alias :old_consolidate_failures :consolidate_failures
   def consolidate_failures(failed)
     filters = new_hash_of_arrays
 
@@ -23,7 +26,6 @@ class Autotest
         file.sub!(/^\.\//, '')
         next unless file =~ /^spec/
           test_files_for(file).each do |f|
-            p :test_file => f
             filters[f] # mspec doesn't have real spec filtering yet
           end
         break
@@ -33,6 +35,7 @@ class Autotest
     return filters
   end
 
+  alias :old_make_test_cmd :make_test_cmd
   def make_test_cmd files_to_test
     # until bin/ci and bin/mspec allow for regexps, run the whole file again
     classes = reorder(files_to_test).map { |k,v| k }.join(' ')
@@ -42,6 +45,8 @@ end
 
 Autotest.add_hook :initialize do |at|
   at.order = :natural
+
+  at.sleep = 2
 
   at.add_exception(/\.rbc$/)
   at.add_exception(/fixtures/)

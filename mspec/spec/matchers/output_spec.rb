@@ -29,19 +29,23 @@ describe OutputMatcher do
     matcher = OutputMatcher.new("expected", nil)
     matcher.matches?(proc)
     matcher.failure_message.should == 
-      ["Expected:\n  $stdout: \"expected\"\n", "     got:\n  $stdout: \"unexpected\"\n"]
+      ["Expected:\n  $stdout: \"expected\"\n",
+       "     got:\n  $stdout: \"unexpected\"\n"]
     matcher = OutputMatcher.new(nil, "error")
     matcher.matches?(proc)
     matcher.failure_message.should == 
-      ["Expected:\n  $stderr: \"error\"\n", "     got:\n  $stderr: \"unerror\"\n"]
+      ["Expected:\n  $stderr: \"error\"\n",
+       "     got:\n  $stderr: \"unerror\"\n"]
     matcher = OutputMatcher.new(/base/, nil)
     matcher.matches?(proc)
     matcher.failure_message.should ==
-      ["Expected:\n  $stdout: /base/\n", "     got:\n  $stdout: \"unexpected\"\n"]
+      ["Expected:\n  $stdout: /base/\n",
+       "     got:\n  $stdout: \"unexpected\"\n"]
     matcher = OutputMatcher.new(nil, /octave/)
     matcher.matches?(proc)
     matcher.failure_message.should ==
-      ["Expected:\n  $stderr: /octave/\n", "     got:\n  $stderr: \"unerror\"\n"]
+      ["Expected:\n  $stderr: /octave/\n",
+       "     got:\n  $stderr: \"unerror\"\n"]
   end
   
   it "provides a useful negative failure message" do

@@ -1,7 +1,11 @@
-class Object
-  # Aliasing WILL break.
-  def pretty_inspect()
-    inspect
+if ENV['PRETTY'] then
+  require 'pp'
+else
+  class Object
+    # Aliasing WILL break.
+    def pretty_inspect
+      inspect
+    end
   end
 end
 
