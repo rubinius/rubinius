@@ -380,10 +380,22 @@ ID rb_to_id(VALUE obj) {
 
 VALUE rb_yield(VALUE val) {
   CTX;
-  
+
+  if(!rb_block_given_p()) {
+    // Should throw a LocalJumpError
+    // See ruby eval.c line 4898
+  }
+
   VALUE obj = NEW_HANDLE(ctx, cpu_current_block(ctx->state, ctx->cpu));
-  
+
   return rb_funcall(obj, rb_intern("call"), 1, val);
+}
+
+int rb_block_given_p()
+{
+	CTX;
+
+	return RTEST( cpu_current_block(ctx->state, ctx->cpu) );
 }
 
 

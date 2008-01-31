@@ -68,6 +68,8 @@ VALUE rb_iv_set(VALUE obj, char *name, VALUE val);
 void rb_define_attr(VALUE klass, ID id, int read, int write);
 VALUE rb_attr_get(VALUE obj, ID sym);
 
+int rb_block_given_p();
+
 #define rb_cObject (subtend_get_global(0))
 
 /* TODO: Pull these into an enum */
