@@ -313,13 +313,24 @@ void rb_define_method_(const char *file, VALUE vmod, const char *name, void *fun
   sym = symtbl_lookup_cstr(ctx->state, ctx->state->global->symbols, name);
   if(kind == 0) {
     cpu_add_method(ctx->state, ctx->cpu, mod, sym, meth);
-  } else {
-    cpu_attach_method(ctx->state, ctx->cpu, mod, sym, meth);    
+  } else if(kind == 1) { // private method
+    ctx->cpu->call_flags = 1;
+    cpu_add_method(ctx->state, ctx->cpu, mod, sym, meth);
+  } else if(kind == 2) { // protected method
+    ctx->cpu->call_flags = 2;
+    cpu_add_method(ctx->state, ctx->cpu, mod, sym, meth);
+  } else { // singleton method
+    cpu_attach_method(ctx->state, ctx->cpu, mod, sym, meth);
   }
 }
 
 void rb_define_alloc_func(VALUE class, void *func) {
   rb_define_singleton_method(class, "allocate", func, 0);
+}
+
+void rb_define_module_function(VALUE vmod, const char *name, void *func, int args) {
+  rb_define_private_method(vmod, name, func, args);
+  rb_define_singleton_method(vmod, name, func, args);
 }
 
 const char *rb_id2name(ID sym) {
