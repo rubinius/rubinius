@@ -16,7 +16,7 @@ else
 	DTRACE_H=
 endif
 
-CFLAGS += -I.. $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa -Iexternal_libs/libmquark -Iexternal_libs/libev
+CFLAGS += -I.. $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa -Iexternal_libs/libmquark -Iexternal_libs/libev -Iexternal_libs/libtommath
 
 ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libev/.libs/libev.a external_libs/libbstring/libbstring.a external_libs/libcchash/libcchash.a external_libs/libmpa/libptr_array.a external_libs/libmquark/libmquark.a
 

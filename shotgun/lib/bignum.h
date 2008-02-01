@@ -1,6 +1,6 @@
 #ifndef RBS_BIGNUM_H
 #define RBS_BIGNUM_H
-#include "tommath.h"
+#include <tommath.h>
 
 void bignum_debug(STATE, OBJECT n);
 OBJECT bignum_new(STATE, native_int num);
