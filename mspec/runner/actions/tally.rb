@@ -8,14 +8,14 @@ class TallyAction
   def register
     MSpec.register :load, self
     MSpec.register :after, self
-    MSpec.register :expectations, self
+    MSpec.register :expectation, self
   end
   
   def load
     @files += 1
   end
   
-  def expectation
+  def expectation(state)
     @expectations += 1
   end
   

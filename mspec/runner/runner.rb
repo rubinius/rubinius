@@ -47,14 +47,15 @@ module MSpec
   
   # This method is used for registering actions that are
   # run at particular points in the spec cycle:
-  #   :start    before any specs are run
-  #   :load     before a spec file is loaded
-  #   :enter    before a describe block is run
-  #   :before   before a single spec is run
-  #   :after    after a single spec is run
-  #   :leave    after a describe block is run
-  #   :unload   after a spec file is run
-  #   :finish   after all specs are run
+  #   :start        before any specs are run
+  #   :load         before a spec file is loaded
+  #   :enter        before a describe block is run
+  #   :before       before a single spec is run
+  #   :expectation  before a 'should', 'should_receive', etc.
+  #   :after        after a single spec is run
+  #   :leave        after a describe block is run
+  #   :unload       after a spec file is run
+  #   :finish       after all specs are run
   #
   # Objects registered as actions above should respond to
   # a method of the same name. For example, if an object

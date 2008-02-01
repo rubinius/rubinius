@@ -15,8 +15,8 @@ describe TallyAction do
     @tally.files.should == 1
   end
   
-  it "responds to #expecctation by incrementing the expectations count" do
-    @tally.expectation
+  it "responds to #expecctations by incrementing the expectations count" do
+    @tally.expectation @state
     @tally.expectations.should == 1
   end
   
@@ -30,15 +30,15 @@ describe TallyAction do
   it "responds to #format by returning a readable string of counts" do
     @tally.load
     @tally.after @state
-    @tally.expectation
-    @tally.expectation
+    @tally.expectation @state
+    @tally.expectation @state
     @tally.format.should == "1 file, 1 example, 2 expectations, 0 failures, 1 error"
   end
   
   it "responds to #register by registering itself with MSpec for appropriate actions" do
     MSpec.should_receive(:register).with(:load, @tally)
     MSpec.should_receive(:register).with(:after, @tally)
-    MSpec.should_receive(:register).with(:expectations, @tally)
+    MSpec.should_receive(:register).with(:expectation, @tally)
     @tally.register
   end
 end

@@ -1,6 +1,6 @@
 class Object
   def should(matcher=nil)
-    spec_runner.formatter.tally.expectation
+    MSpec.actions :expectation, MSpec.current.state
     if matcher
       unless matcher.matches?(self)
         raise Expectation.fail_with(*matcher.failure_message)
@@ -11,7 +11,7 @@ class Object
   end
   
   def should_not(matcher=nil)
-    spec_runner.formatter.tally.expectation
+    MSpec.actions :expectation, MSpec.current.state
     if matcher
       if matcher.matches?(self)
         raise Expectation.fail_with(*matcher.negative_failure_message)

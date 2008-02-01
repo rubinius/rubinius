@@ -16,6 +16,9 @@ end
 describe Object, "#should" do  
   before :each do
     class Object; alias_method :should, :mspec_should; end
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+
     @target = "target"
     @matcher = mock("matcher")
   end
@@ -54,6 +57,9 @@ describe Object, "#should_not" do
   before :each do
     class Object; alias_method :should, :mspec_should; end
     class Object; alias_method :should_not, :mspec_should_not; end
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+
     @target = "target"
     @matcher = mock("matcher")
   end

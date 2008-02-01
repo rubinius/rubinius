@@ -26,7 +26,7 @@ module Mock
       end
     END
     
-    spec_runner.formatter.tally.expectation
+    MSpec.actions :expectation, MSpec.current.state
     proxy = MockProxy.new
     expects[[obj, sym]] << proxy
     proxy.exactly(1)

@@ -3,6 +3,7 @@
 # arguments are NOT provided) is to simply alter the particular
 # spec to a failure condition.
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../../runner/runner'
 require File.dirname(__FILE__) + '/../../mocks/mock'
 require File.dirname(__FILE__) + '/../../mocks/proxy'
 
@@ -25,6 +26,8 @@ end
 describe Mock, ".install_method" do
   before :each do
     @mock = mock('install_method')
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
   end
   
   after :each do
@@ -58,16 +61,19 @@ describe Mock, ".install_method" do
   end
   
   it "adds to the expectation tally" do
-    runner = spec_runner
-    runner.stub!(:formatter).and_return(mock('formatter'))
-    runner.formatter.stub!(:tally).and_return(mock('tally'))
-    runner.formatter.tally.should_receive(:expectation)
+    state = mock("run state", :null_object => true)
+    state.stub!(:state).and_return(mock("spec state"))
+    MSpec.should_receive(:current).and_return(state)
+    MSpec.should_receive(:actions).with(:expectation, state.state)
     Mock.install_method(@mock, :method_call).and_return(1)
   end
 end
 
 describe Mock, ".verify_call" do
   before :each do
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+
     @mock = mock('verify_call')
     @proxy = Mock.install_method @mock, :method_call
   end
@@ -110,6 +116,9 @@ end
 
 describe Mock, ".verify_count" do
   before :each do
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+
     @mock = mock('verify_count')
     @proxy = Mock.install_method @mock, :method_call
   end
@@ -170,6 +179,9 @@ end
 
 describe Mock, ".cleanup" do
   before :each do
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+
     @mock = mock('cleanup')
     @proxy = Mock.install_method @mock, :method_call
   end
