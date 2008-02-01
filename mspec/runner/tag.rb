@@ -1,5 +1,5 @@
 class SpecTag
-  attr_reader :tag, :comment, :description
+  attr_accessor :tag, :comment, :description
   
   def initialize(string=nil)
     parse(string) if string

@@ -1,5 +1,3 @@
-require 'mspec/expectations'
-
 class TallyAction
   attr_reader :files, :examples, :expectations, :failures, :errors
   
