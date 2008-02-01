@@ -133,7 +133,7 @@ end
 Struct.new "Pyramid"
 Struct.new "Useful", :a, :b
 
-describe "Marshal.load" do
+describe "Marshal::load" do
 
   it "loads a nil" do
     Marshal.load("\004\b0").should ==
