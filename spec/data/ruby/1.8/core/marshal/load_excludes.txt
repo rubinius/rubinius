@@ -1,6 +1,0 @@
-Marshal.load with serialized string having ivar with ref to self returns a construction of the argument
-Marshal.load with serialized fixnum -2**30 returns a construction of the argument
-Marshal.load with serialized bignum -(2**31 - 1) returns a construction of the argument
-Marshal.load with serialized array containing objects having _dump method, and with proc returns a construction of the argument
-Marshal.load with serialized array containing objects having marshal_dump method, and with proc returns a construction of the argument
-Marshal.load with serialized array containing the same objects returns a construction of the argument

@@ -3,263 +3,90 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 mv = "\x04"  # Marshal::MAJOR_VERSION
 nv = "\x08"  # Marshal::MINOR_VERSION
 
-describe "Marshal.load" do
-  it "returns a Ruby Object from conversion of the given serialized data" do
-    Marshal.load(Marshal.dump("abc")).should == "abc"
-    Marshal.load(Marshal.dump(0..100)).should == (0..100)
-    Marshal.load(Marshal.dump(0...100)).should == (0...100)
-    Marshal.load(Marshal.dump(:symbol)).should == :symbol
-    Marshal.load(Marshal.dump(Object)).should == Object
-    Marshal.load(Marshal.dump([[], []])).should == [[], []]
-  end
-end
+class UserDefined
 
-describe "Marshal.load with serialized nil" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(nil))).should == Marshal.dump(nil)
-  end
-end
-
-describe "Marshal.load with serialized true" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(true))).should == Marshal.dump(true)
-  end
-end
-
-describe "Marshal.load with serialized false" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(false))).should == Marshal.dump(false)
-  end
-end
-
-describe "Marshal.load with serialized empty string" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(''))).should == Marshal.dump('')
-  end
-end
-
-describe "Marshal.load with serialized string of length 300" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump('a' * 300))).should == Marshal.dump('a' * 300)
-  end
-end
-
-module Meths
-end
-module MethsMore
-end
-
-describe "Marshal.load with serialized extended_string" do
-  it "returns a construction of the argument" do
-    obj = ''.extend(Meths)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-class UserString < String
-end
-
-describe "Marshal.load with serialized user_string" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(UserString.new))).should == Marshal.dump(UserString.new)
-  end
-end
-
-describe "Marshal.load with serialized extended_user_string" do
-  it "returns a construction of the argument" do
-    obj = UserString.new.extend(Meths)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized string having ivar with ref to self" do
-  it "returns a construction of the argument" do
-    obj = 'hi'
-    obj.instance_variable_set(:@self, obj)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized symbol of length 1" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(:a))).should == Marshal.dump(:a)
-  end
-end
-
-describe "Marshal.load with serialized symbol of length 300" do
-  it "returns a construction of the argument" do
-    obj = ('a' * 300).to_sym
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized fixnum 0" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(0))).should == Marshal.dump(0)
-  end
-end
-
-describe "Marshal.load with serialized fixnum 5" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(5))).should == Marshal.dump(5)
-  end
-end
-
-describe "Marshal.load with serialized fixnum -123" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(-123))).should == Marshal.dump(-123)
-  end
-end
-
-describe "Marshal.load with serialized fixnum 2**8" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(2**8))).should == Marshal.dump(2**8)
-  end
-end
-
-describe "Marshal.load with serialized fixnum -2**8" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(-2**8))).should == Marshal.dump(-2**8)
-  end
-end
-
-describe "Marshal.load with serialized fixnum 2**24" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(2**24))).should == Marshal.dump(2**24)
-  end
-end
-
-describe "Marshal.load with serialized fixnum (2**30 - 1)" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(2**30 - 1))).should == Marshal.dump(2**30 - 1)
-  end
-end
-
-describe "Marshal.load with serialized fixnum 2**16" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(2**16))).should == Marshal.dump(2**16)
-  end
-end
-
-describe "Marshal.load with serialized fixnum -2**16" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(-2**16))).should == Marshal.dump(-2**16)
-  end
-end
-
-describe "Marshal.load with serialized fixnum -(2**16 - 1)" do
-  it "returns a construction of the argument" do
-    obj = -(2**16 - 1)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized fixnum -2**30" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(-2**30))).should == Marshal.dump(-2**30)
-  end
-end
-
-describe "Marshal.load with serialized bignum 2**30" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(2**30))).should == Marshal.dump(2**30)
-  end
-end
-
-describe "Marshal.load with serialized bignum -(2**31 - 1)" do
-  it "returns a construction of the argument" do
-    obj = -(2**31 - 1)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized bignum 2**40" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(2**40))).should == Marshal.dump(2**40)
-  end
-end
-
-describe "Marshal.load with serialized bignum -2**63" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(-2**63))).should == Marshal.dump(-2**63)
-  end
-end
-
-describe "Marshal.load with serialized bignum 2**64" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(2**64))).should == Marshal.dump(2**64)
-  end
-end
-
-describe "Marshal.load with serialized bignum -2**64" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(-2**64))).should == Marshal.dump(-2**64)
-  end
-end
-
-describe "Marshal.load with serialized bignum 2**90" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(2**90))).should == Marshal.dump(2**90)
-  end
-end
-
-describe "Marshal.load with serialized class" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(String))).should == Marshal.dump(String)
-  end
-end
-
-describe "Marshal.load with serialized module" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(Marshal))).should == Marshal.dump(Marshal)
-  end
-end
-
-class Custom
   class Nested
     def ==(other)
       other.kind_of? self.class
     end
   end
-end
 
-describe "Marshal.load with nested modules" do
-  it "loads" do
-    obj = Custom::Nested.new
-    data = Marshal.dump obj
-    Marshal.load(data).should == obj
+  attr_reader :a, :b
+
+  def initialize
+    @a = 'stuff'
+    @b = @a
   end
-end
 
-class CustomWithIvar
   def _dump(depth)
-    s = "stuff"
-    s.instance_variable_set(:@foo, :CustomWithIvar)
-    s
+    Marshal.dump [@a, @b]
   end
-  def self._load(s); s; end
-end
-class Custom
-  def _dump(depth); "stuff"; end
-  def self._load(s); s; end
+
+  def self._load(data)
+    a, b = Marshal.load data
+
+    obj = allocate
+    obj.instance_variable_set :@a, a
+    obj.instance_variable_set :@b, b
+
+    obj
+  end
+
+  def ==(other)
+    self.class === other and
+    @a == other.a and
+    @b == other.b
+  end
+
 end
 
-describe "Marshal.load with serialized object having class name for _load method" do
-  it "returns the object from _load" do
-    obj = CustomWithIvar.new
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should ==
-      "#{mv+nv}I\"\x0Astuff\x06:\x09@foo:\x13CustomWithIvar"
+class UserDefinedWithIvar
+  attr_reader :a, :b, :c
+
+  def initialize
+    @a = 'stuff'
+    @a.instance_variable_set :@foo, :UserDefinedWithIvar
+    @b = 'more'
+    @c = @b
   end
+
+  def _dump(depth)
+    Marshal.dump [@a, @b, @c]
+  end
+
+  def self._load(data)
+    a, b, c = Marshal.load data
+
+    obj = allocate
+    obj.instance_variable_set :@a, a
+    obj.instance_variable_set :@b, b
+    obj.instance_variable_set :@c, c
+
+    obj
+  end
+
+  def ==(other)
+    self.class === other and
+    @a == other.a and
+    @b == other.b and
+    @c == other.c and
+    @a.instance_variable_get(:@foo) == other.a.instance_variable_get(:@foo)
+  end
+
 end
 
-describe "Marshal.load with serializated extended_object having class name for _load method" do
-  it "returns the object from _load" do
-    obj = Custom.new.extend(Meths)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == "#{mv+nv}\"\x0Astuff"
+class UserMarshal
+  attr_reader :data
+
+  def initialize
+    @data = 'stuff'
   end
+  def marshal_dump() @data end
+  def marshal_load(data) @data = data end
+  def ==(other) self.class === other and @data == other.data end
 end
 
-class OtherCustomWithIvar
+class UserMarshalWithIvar
   attr_reader :data
 
   def initialize
@@ -273,234 +100,421 @@ class OtherCustomWithIvar
   def marshal_load(o)
     @data = o.first
   end
-end
 
-describe "Marshal.load with object using marshal_load" do
-  it "calls marshal_load" do
-    obj = OtherCustomWithIvar.new
-    new_obj = Marshal.load Marshal.dump(obj)
-
-    new_obj.data.should == obj.data
+  def ==(other)
+    self.class === other and
+    @data = other.data
   end
 end
 
-class OtherCustom
-  attr_reader :data
-
-  def initialize
-    @data = 'stuff'
-  end
-  def marshal_dump() @data end
-  def marshal_load(o) @data = o end
-end
-
-describe "Marshal.load with extended object using marshal_load method" do
-  it "calls marshal_load" do
-    obj = OtherCustom.new.extend(Meths)
-    new_obj = Marshal.load Marshal.dump(obj)
-
-    new_obj.data.should == obj.data
-  end
-end
-
-class UserObject
-end
-
-describe "Marshal.load with serialized object" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(Object.new))).should == Marshal.dump(Object.new)
-  end
-end
-
-describe "Marshal.load with serialized user_object" do
-  it "returns a construction of the argument" do
-    obj = UserObject.new
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized extended_object" do
-  it "returns a construction of the argument" do
-    obj = Object.new.extend(Meths)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized object having ivar" do
-  it "returns a construction of the argument" do
-    s = 'hi'
-    obj = Object.new
-    obj.instance_variable_set(:@str, [:so, :so, s, s])
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized regexp" do
-  it "returns a construction of the argument" do
-    obj = /\A.\Z/
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized extended_regexp" do
-  it "returns a construction of the argument" do
-    obj = /[a-z]/.extend(Meths, MethsMore)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-class UserRegexp < Regexp
-end
-
-describe "Marshal.load with serialized user_regexp having option Regexp::IGNORECASE" do
-  it "returns a construction of the argument" do
-    obj = UserRegexp.new('', Regexp::IGNORECASE)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized extended_user_regexp having ivar" do
-  it "returns a construction of the argument" do
-    obj = UserRegexp.new('').extend(Meths)
-    obj.instance_variable_set(:@noise, 'much')
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized float 0.0" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(0.0))).should == Marshal.dump(0.0)
-  end
-end
-
-describe "Marshal.load with serialized float -0.0" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(-0.0))).should == Marshal.dump(-0.0)
-  end
-end
-
-describe "Marshal.load with serialized float NaN" do
-  it "returns a construction of the argument" do
-    obj = 0.0 / 0.0
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized float Infinity" do
-  it "returns a construction of the argument" do
-    obj = 1.0 / 0.0
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized float -Infinity" do
-  it "returns a construction of the argument" do
-    obj = -1.0 / 0.0
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized float 1.0" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(1.0))).should == Marshal.dump(1.0)
-  end
-end
-
-describe "Marshal.load with serialized float 1.3" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(1.3))).should == Marshal.dump(1.3)
-  end
-end
-
-describe "Marshal.load with serialized float -5.1867345e-22" do
-  it "returns a construction of the argument" do
-    obj = -5.1867345e-22
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized float 1.1867345e+22" do
-  it "returns a construction of the argument" do
-    obj = 1.1867345e+22
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized hash" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(Hash.new))).should == Marshal.dump(Hash.new)
-  end
-end
-
-describe "Marshal.load with serialized extended_hash" do
-  it "returns a construction of the argument" do
-    s = 'hi'
-    obj = {'a' => :no, 'b' => s, 'c' => :no, 'd' => :no, 'e' => s, 'f' => :Meths}
-    obj.extend(Meths, MethsMore)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
+class UserArray < Array
 end
 
 class UserHash < Hash
 end
 
-describe "Marshal.load with serialized user_hash" do
-  it "returns a construction of the argument" do
+class UserObject
+end
+
+class UserRegexp < Regexp
+end
+
+class UserString < String
+end
+
+module Meths
+  def meths_method() end
+end
+
+module MethsMore
+  def meths_more_method() end
+end
+
+Struct.new "Pyramid"
+Struct.new "Useful", :a, :b
+
+describe "Marshal.load" do
+
+  it "loads a nil" do
+    Marshal.load("\004\b0").should ==
+      nil
+  end
+
+  it "loads a .. Numeric Range" do
+    Marshal.load("\004\bo:\nRange\b:\nbegini\006:\texclF:\bendi\a").should ==
+      (1..2)
+  end
+
+  it "loads a ... Numeric Range" do
+    Marshal.load("\004\bo:\nRange\b:\nbegini\006:\texclT:\bendi\a").should ==
+      (1...2)
+  end
+
+  it "loads a .. String Range" do
+    Marshal.load("\004\bo:\nRange\b:\nbegin\"\006a:\texclF:\bend\"\006b").should ==
+      ('a'..'b')
+  end
+
+  it "loads a Struct" do
+    Marshal.load("\004\bS:\023Struct::Useful\a:\006ai\006:\006bi\a").should ==
+      Struct::Useful.new(1, 2)
+  end
+
+  it "loads a Symbol" do
+    Marshal.load("\004\b:\vsymbol").should ==
+      :symbol
+  end
+
+  it "loads a true" do
+    Marshal.load("\004\bT").should ==
+      true
+  end
+
+  it "loads a false" do
+    Marshal.load("\004\bF").should ==
+      false
+  end
+
+  it "loads a \"\"" do
+    Marshal.load("\004\b\"\000").should ==
+      ''
+  end
+
+  it "loads a string of length 300" do
+    Marshal.load("\004\b\"\002,\001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").should ==
+      'a' * 300
+  end
+
+  it "loads an extended String" do
+    obj = ''.extend(Meths)
+    Marshal.load("\004\be:\nMeths\"\000").should ==
+      obj
+  end
+
+  it "loads a user_string" do
+    Marshal.load("\004\bC:\017UserString\"\000").should ==
+      UserString.new
+  end
+
+  it "loads an extended user string" do
+    obj = UserString.new.extend(Meths)
+    Marshal.load("\004\be:\nMethsC:\017UserString\"\000").should ==
+      obj
+  end
+
+  it "loads a string having ivar with ref to self" do
+    obj = 'hi'
+    obj.instance_variable_set(:@self, obj)
+    Marshal.load("\004\bI\"\ahi\006:\n@self@\000").should ==
+      obj
+  end
+
+  it "loads a symbol of length 1" do
+    Marshal.load("\004\b:\006a").should ==
+      :a
+  end
+
+  it "loads a symbol of length 300" do
+    obj = ('a' * 300).to_sym
+    Marshal.load("\004\b:\002,\001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").should ==
+      obj
+  end
+
+  it "loads a fixnum 0" do
+    Marshal.load("\004\bi\000").should ==
+      0
+  end
+
+  it "loads a fixnum 5" do
+    Marshal.load("\004\bi\n").should ==
+      5
+  end
+
+  it "loads a fixnum -123" do
+    Marshal.load("\004\bi\200").should ==
+      -123
+  end
+
+  it "loads a fixnum 2**8" do
+    Marshal.load("\004\bi\002\000\001").should ==
+      2**8
+  end
+
+  it "loads a fixnum -2**8" do
+    Marshal.load("\004\bi\377\000").should ==
+      -2**8
+  end
+
+  it "loads a fixnum 2**24" do
+    Marshal.load("\004\bi\004\000\000\000\001").should ==
+      2**24
+  end
+
+  it "loads a fixnum (2**30 - 1)" do
+    Marshal.load("\004\bi\004\377\377\377?").should ==
+      2**30 - 1
+  end
+
+  it "loads a fixnum 2**16" do
+    Marshal.load("\004\bi\003\000\000\001").should ==
+      2**16
+  end
+
+  it "loads a fixnum -2**16" do
+    Marshal.load("\004\bi\376\000\000").should ==
+      -2**16
+  end
+
+  it "loads a fixnum -(2**16 - 1)" do
+    obj = -(2**16 - 1)
+    Marshal.load("\004\bi\376\001\000").should ==
+      obj
+  end
+
+  it "loads a fixnum -2**30" do
+    Marshal.load("\004\bi\374\000\000\000\300").should ==
+      -2**30
+  end
+
+  it "loads a bignum 2**30" do
+    Marshal.load("\004\bl+\a\000\000\000@").should ==
+      2**30
+  end
+
+  it "loads a bignum -(2**31 - 1)" do
+    obj = -(2**31 - 1)
+    Marshal.load("\004\bl-\a\377\377\377\177").should ==
+      obj
+  end
+
+  it "loads a bignum 2**40" do
+    Marshal.load("\004\bl+\b\000\000\000\000\000\001").should ==
+      2**40
+  end
+
+  it "loads a bignum -2**63" do
+    Marshal.load("\004\bl-\t\000\000\000\000\000\000\000\200").should ==
+      -2**63
+  end
+
+  it "loads a bignum 2**64" do
+    Marshal.load("\004\bl+\n\000\000\000\000\000\000\000\000\001\000").should ==
+      2**64
+  end
+
+  it "loads a bignum -2**64" do
+    Marshal.load("\004\bl-\n\000\000\000\000\000\000\000\000\001\000").should ==
+      -2**64
+  end
+
+  it "loads a bignum 2**90" do
+    Marshal.load("\004\bl+\v\000\000\000\000\000\000\000\000\000\000\000\004").should ==
+      2**90
+  end
+
+  it "loads a class" do
+    Marshal.load("\004\bc\vString").should ==
+      String
+  end
+
+  it "loads a module" do
+    Marshal.load("\004\bm\fMarshal").should ==
+      Marshal
+  end
+
+  it "loads a nested module" do
+    obj = UserDefined::Nested.new
+    Marshal.load("\004\bo:\030UserDefined::Nested\000").should ==
+      obj
+  end
+
+  it "loads a user-defined marshaled object" do
+    obj = UserDefinedWithIvar.new
+
+    Marshal.load("\004\bu:\030UserDefinedWithIvar5\004\b[\bI\"\nstuff\006:\t@foo:\030UserDefinedWithIvar\"\tmore@\a").should ==
+      obj
+  end
+
+  it "loads a user-defined marshaled and extended object" do
+    obj = UserDefined.new.extend(Meths)
+    Marshal.load("\004\bu:\020UserDefined\022\004\b[\a\"\nstuff@\006").should ==
+      obj
+  end
+
+  it "loads a user-marshaled object" do
+    obj = UserMarshalWithIvar.new
+    Marshal.load("\004\bU:\030UserMarshalWithIvar[\006\"\fmy data").should ==
+      obj
+  end
+
+  it "loads a user-marshaled extended object" do
+    obj = UserMarshal.new.extend(Meths)
+
+    new_obj = Marshal.load "\004\bU:\020UserMarshal\"\nstuff" 
+
+    new_obj.should == obj
+
+    new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+    new_obj_metaclass_ancestors.first.should == UserMarshal
+  end
+
+  it "loads a object" do
+    Marshal.load("\004\bo:\vObject\000").class.should ==
+      Object
+  end
+
+  it "loads a user_object" do
+    obj = UserObject.new
+    Marshal.load("\004\bo:\017UserObject\000").class.should ==
+      UserObject
+  end
+
+  it "loads an extended Object" do
+    obj = Object.new.extend(Meths)
+
+    new_obj = Marshal.load "\004\be:\nMethso:\vObject\000"
+
+    new_obj.class.should == obj.class
+    new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+    new_obj_metaclass_ancestors.first(2).should == [Meths, Object]
+  end
+
+  it "loads a object having ivar" do
+    s = 'hi'
+    arr = [:so, :so, s, s]
+    obj = Object.new
+    obj.instance_variable_set :@str, arr
+
+    new_obj = Marshal.load "\004\bo:\vObject\006:\t@str[\t:\aso;\a\"\ahi@\a"
+    new_str = new_obj.instance_variable_get :@str
+
+    new_str.should == arr
+  end
+
+  it "loads a regexp" do
+    obj = /\A.\Z/
+    Marshal.load("\004\b/\n\\A.\\Z\000").should ==
+      obj
+  end
+
+  it "loads an extended Regexp" do
+    obj = /[a-z]/.extend(Meths, MethsMore)
+    new_obj = Marshal.load "\004\be:\nMethse:\016MethsMore/\n[a-z]\000"
+
+    new_obj.should == obj
+    new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+    new_obj_metaclass_ancestors.first(3).should ==
+      [Meths, MethsMore, Regexp]
+  end
+
+  it "loads a user_regexp having option Regexp::IGNORECASE" do
+    obj = UserRegexp.new('', Regexp::IGNORECASE)
+    Marshal.load("\004\bC:\017UserRegexp/\000\001").should ==
+      obj
+  end
+
+  it "loads a extended_user_regexp having ivar" do
+    obj = UserRegexp.new('').extend(Meths)
+    obj.instance_variable_set(:@noise, 'much')
+
+    new_obj = Marshal.load "\004\bIe:\nMethsC:\017UserRegexp/\000\000\006:\v@noise\"\tmuch"
+
+    new_obj.should == obj
+    new_obj.instance_variable_get(:@noise).should == 'much'
+    new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+    new_obj_metaclass_ancestors.first(3).should ==
+      [Meths, UserRegexp, Regexp]
+  end
+
+  it "loads a Float 0.0" do
+    Marshal.load("\004\bf\0060").should ==
+      0.0
+  end
+
+  it "loads a Float -0.0" do
+    Marshal.load("\004\bf\a-0").should ==
+      -0.0
+  end
+
+  it "loads a Float NaN" do
+    obj = 0.0 / 0.0
+    Marshal.load("\004\bf\bnan").to_s.should == 'NaN'
+  end
+
+  it "loads a Float Infinity" do
+    obj = 1.0 / 0.0
+    Marshal.load("\004\bf\binf").should ==
+      obj
+  end
+
+  it "loads a Float -Infinity" do
+    obj = -1.0 / 0.0
+    Marshal.load("\004\bf\t-inf").should ==
+      obj
+  end
+
+  it "loads a Float 1.0" do
+    Marshal.load("\004\bf\0061").should ==
+      1.0
+  end
+
+  it "loads a Float 1.3" do
+    Marshal.load("\004\bf\v1.3\000\314\315").should ==
+      1.3
+  end
+
+  it "loads a Float -5.1867345e-22" do
+    obj = -5.1867345e-22
+    Marshal.load("\004\bf\037-5.1867345000000008e-22\000\203_").should \
+      be_close(obj, 1e-30)
+  end
+
+  it "loads a Float 1.1867345e+22" do
+    obj = 1.1867345e+22
+    Marshal.load("\004\bf\0361.1867344999999999e+22\000\344@").should ==
+      obj
+  end
+
+  it "loads a hash" do
+    Marshal.load("\004\b{\000").should ==
+      Hash.new
+  end
+
+  it "loads a user_hash" do
     obj = UserHash.new
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    Marshal.load("\004\bC:\rUserHash{\000").should ==
+      obj
   end
-end
 
-describe "Marshal.load with serialized extended_user_hash_default" do
-  it "returns a construction of the argument" do
-    obj = UserHash.new(:Meths).extend(Meths)
-    obj['three'] = 3
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+  it "loads a array" do
+    Marshal.load("\004\b[\000").should ==
+      Array.new
   end
-end
 
-describe "Marshal.load with serialized array" do
-  it "returns a construction of the argument" do
-    Marshal.dump(Marshal.load(Marshal.dump(Array.new))).should == Marshal.dump(Array.new)
-  end
-end
-
-describe "Marshal.load with serialized array containing objects having _dump method, and with proc" do
-  it "returns a construction of the argument" do
+  it "loads a array containing objects having _dump method, and with proc" do
     arr = []
     proc = Proc.new { |o| arr << o }
-    o1 = Custom.new; o2 = CustomWithIvar.new
+    o1 = UserDefined.new; o2 = UserDefinedWithIvar.new
     obj = [o1, o2, o1, o2]
-    Marshal.dump(Marshal.load(Marshal.dump(obj), proc)).should ==
-      "#{mv+nv}[\x09\"\x0AstuffI\"\x0Astuff\x06:\x09@foo:\x13CustomWithIvar@\x06@\x07"
-    arr.length.should == 3
-    arr[0].should == "stuff"
-    arr[1].should == "stuff"
-    arr[1].instance_variables.first.should == "@foo"
-    arr[2].class.should == Array
-    arr[2].length.should == 4
-  end
-end
 
-describe "Marshal.load with serialized array containing objects having marshal_dump method, and with proc" do
-  it "returns a construction of the argument" do
+    Marshal.load "\004\b[\tu:\020UserDefined\022\004\b[\a\"\nstuff@\006u:\030UserDefinedWithIvar5\004\b[\bI\"\nstuff\006:\t@foo:\030UserDefinedWithIvar\"\tmore@\a@\006@\a", proc
+
+    arr.should == [o1, o2, obj]
+  end
+
+  it "loads an array containing objects having marshal_dump method, and with proc" do
     arr = []
     proc = Proc.new { |o| arr << o }
-    o1 = OtherCustom.new; o2 = OtherCustomWithIvar.new
+    o1 = UserMarshal.new
+    o2 = UserMarshalWithIvar.new
     obj = [o1, o2, o1, o2]
-    Marshal.dump(Marshal.load(Marshal.dump(obj), proc)).should == Marshal.dump(obj)
-    arr.length.should == 5
-    arr[0].should == "stuff"
-    arr[1].class.should == OtherCustom
-    arr[2].class.should == Array
-    arr[3].class.should == OtherCustomWithIvar
-    arr[4].class.should == Array
-    arr[4].length.should == 4
-  end
-end
 
-describe "Marshal.load with serialized array and proc" do
-  it "returns a construction of the argument" do
+    Marshal.load "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc
+
+    arr.should == ['stuff', o1, 'my data', ['my data'], o2, obj]
+  end
+
+  it "loads an Array with proc" do
     arr = []
     s = 'hi'
     s.instance_variable_set(:@foo, 5)
@@ -513,78 +527,70 @@ describe "Marshal.load with serialized array and proc" do
     a.instance_variable_set(:@two, 2)
     obj = [s, 10, s, s, st, h, a]
     obj.instance_variable_set(:@zoo, 'ant')
+
     proc = Proc.new { |o| arr << o }
-    Marshal.load(Marshal.dump(obj), proc)
-    arr.to_s.should ==
-      [5, s, 10, 0.0, 'none', st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj].to_s
-  end
-end
+    new_obj = Marshal.load "\004\bI[\fI\"\ahi\006:\t@fooi\ni\017@\006@\006IS:\024Struct::Brittle\006:\006af\0060\006:\n@clue\"\tnone}\006\"\tninei\016\"\bdefI[\b;\a:\006b:\006c\006:\t@twoi\a\006:\t@zoo\"\bant", proc
 
-describe "Marshal.load with serialized array containing the same objects" do
-  it "returns a construction of the argument" do
+    new_obj.should == obj
+    new_obj.instance_variable_get(:@zoo).should == 'ant'
+
+    arr.should ==
+      [5, s, 10, 0.0, 'none', st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj]
+  end
+
+  it "loads a array containing the same objects" do
     s = 'oh'; b = 'hi'; r = //; d = [b, :no, s, :go]; c = String; f = 1.0
-    o1 = OtherCustomWithIvar.new; o2 = OtherCustom.new
+    o1 = UserMarshalWithIvar.new; o2 = UserMarshal.new
     obj = [:so, 'hello', 100, :so, :so, d, :so, o2, :so, :no, o2,
-           :go, c, nil, Struct.new("Pyramid").new, f, :go, :no, s, b, r,
+           :go, c, nil, Struct::Pyramid.new, f, :go, :no, s, b, r,
            :so, 'huh', o1, true, b, b, 99, r, b, s, :so, f, c, :no, o1, d]
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
 
-describe "Marshal.load with serialized extended_array having ivar" do
-  it "returns a construction of the argument" do
+    Marshal.load("\004\b[*:\aso\"\nhelloii;\000;\000[\t\"\ahi:\ano\"\aoh:\ago;\000U:\020UserMarshal\"\nstuff;\000;\006@\n;\ac\vString0S:\024Struct::Pyramid\000f\0061;\a;\006@\t@\b/\000\000;\000\"\bhuhU:\030UserMarshalWithIvar[\006\"\fmy dataT@\b@\bih@\017@\b@\t;\000@\016@\f;\006@\021@\a").should ==
+      obj
+  end
+
+  it "loads an array having ivar" do
     s = 'well'
     s.instance_variable_set(:@foo, 10)
     obj = ['5', s, 'hi'].extend(Meths, MethsMore)
     obj.instance_variable_set(:@mix, s)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    Marshal.load("\004\bI[\b\"\0065I\"\twell\006:\t@fooi\017\"\ahi\006:\t@mix@\a").should ==
+      obj
   end
-end
 
-class UserArray < Array
-end
-
-describe "Marshal.load with serialized user_array" do
-  it "returns a construction of the argument" do
+  it "loads a user_array" do
     obj = UserArray.new
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    Marshal.load("\004\bC:\016UserArray[\000").should ==
+      obj
   end
-end
 
-describe "Marshal.load with serialized extended_user_array" do
-  it "returns a construction of the argument" do
-    obj = UserArray.new.extend(Meths)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
-  end
-end
-
-describe "Marshal.load with serialized struct" do
-  it "returns a construction of the argument" do
+  it "loads a struct" do
     obj = Struct.new("Ure0").new
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    Marshal.load("\004\bS:\021Struct::Ure0\000").should ==
+      obj
   end
-end
 
-describe "Marshal.load with serialized struct having ivar" do
-  it "returns a construction of the argument" do
+  it "loads a struct having ivar" do
     obj = Struct.new("Thick").new
     obj.instance_variable_set(:@foo, 5)
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    Marshal.load("\004\bIS:\022Struct::Thick\000\006:\t@fooi\n").should ==
+      obj
   end
-end
 
-describe "Marshal.load with serialized struct having fields" do
-  it "returns a construction of the argument" do
+  it "loads a struct having fields" do
     obj = Struct.new("Ure1", :a, :b).new
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+    Marshal.load("\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should ==
+      obj
   end
-end
 
-describe "Marshal.load with serialized extended_struct having fields with same objects" do
-  it "returns a construction of the argument" do
+  it "loads a extended_struct having fields with same objects" do
     s = 'hi'
     obj = Struct.new("Ure2", :a, :b).new.extend(Meths)
     obj.a = [:a, s]; obj.b = [:Meths, s]
-    Marshal.dump(Marshal.load(Marshal.dump(obj))).should == Marshal.dump(obj)
+
+    Marshal.load("\004\be:\nMethsS:\021Struct::Ure2\a:\006a[\a;\a\"\ahi:\006b[\a;\000@\a").should ==
+      obj
   end
+
 end
+
