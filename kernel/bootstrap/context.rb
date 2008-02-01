@@ -5,7 +5,8 @@ class MethodContext
   end
 
   def activate(val)
-    Ruby.primitive :activate_context
+    Ruby.primitive :activate_context    
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def sender
@@ -62,14 +63,17 @@ class MethodContext
 
   def dup
     Ruby.primitive :fastctx_dup
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def _get_field(int)
     Ruby.primitive :fastctx_get_field
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def _set_field(int, val)
     Ruby.primitive :fastctx_set_field
+    raise PrimitiveFailure, "primitive failed"
   end
 
   # Reloads the compiled method instruction sequence into the method context.
@@ -77,6 +81,7 @@ class MethodContext
   # method context.
   def reload_method
     Ruby.primitive :fastctx_reload_method
+    raise PrimitiveFailure, "primitive failed"
   end
 
   # Modifies the context to use the specified instruction sequence.
@@ -86,6 +91,7 @@ class MethodContext
   # breakpoint.
   def set_iseq(iseq)
     Ruby.primitive :fastctx_set_iseq
+    raise PrimitiveFailure, "primitive failed"
   end
 end
 
@@ -98,5 +104,6 @@ end
 class BlockEnvironment
   def call(*args)
     Ruby.primitive :block_call
+    raise PrimitiveFailure, "primitive failed"
   end
 end

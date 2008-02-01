@@ -59,6 +59,7 @@ class Module
 
   def __find_method(namesym)
     Ruby.primitive :find_method
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def alias_method(new_name, current_name)

@@ -1,6 +1,7 @@
 class String
   def __symbol_lookup__
     Ruby.primitive :symbol_lookup
+    raise PrimitiveFailure, "Unable to symbolize: #{self.dump}"
   end
   
   def to_sym
@@ -9,14 +10,17 @@ class String
   
   def to_sexp_full(name, line, newlines)
     Ruby.primitive :string_to_sexp
+    raise PrimitiveFailure, "primitive failed"
   end
   
   def to_f
     Ruby.primitive :string_to_f
+    raise PrimitiveFailure, "primitive failed"
   end
   
   def __crypt__(other_str)
     Ruby.primitive :str_crypt
+    raise PrimitiveFailure, "primitive failed"
   end
   
   def append(str)
@@ -27,6 +31,7 @@ class String
   
   def dup
     Ruby.primitive :string_dup
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def to_s

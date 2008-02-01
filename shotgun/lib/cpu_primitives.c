@@ -58,21 +58,23 @@ int _object_stores_bytes(OBJECT self);
 
 #define INDEXED(obj) (RTEST(obj) && (REFERENCE_P(self) || !object_stores_bytes_p(state, obj)))
 
+#define RTYPE(obj,type) (REFERENCE_P(obj) && obj->obj_type == type)
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
-#define BIGNUM_P(obj) (RISA(obj, bignum))
-#define FLOAT_P(obj) (RISA(obj, floatpoint))
+#define BIGNUM_P(obj) (RTYPE(obj, BignumType))
+#define FLOAT_P(obj) (RTYPE(obj, FloatType))
 #define COMPLEX_P(obj) (FALSE)
 
 #define INTEGER_P(obj) (FIXNUM_P(obj) || BIGNUM_P(obj))
 #define NUMERIC_P(obj) (FIXNUM_P(obj) || COMPLEX_P(obj) || BIGNUM_P(obj) || FLOAT_P(obj))
 
-#define CLASS_P(obj) RISA(obj, class)
-#define TUPLE_P(obj) RISA(obj, tuple)
+#define CLASS_P(obj) RTYPE(obj, ClassType)
+#define TUPLE_P(obj) RTYPE(obj, TupleType)
 #define IO_P(obj) RISA(obj, io)
-#define STRING_P(obj) RISA(obj, string)
-#define HASH_P(obj) RISA(obj, hash)
-#define ARRAY_P(obj) RISA(obj, array)
+#define STRING_P(obj) RTYPE(obj, StringType)
+// #define STRING_P(obj) RISA(obj, string)
+#define HASH_P(obj) (RISA(obj, hash))
+#define ARRAY_P(obj) RTYPE(obj, ArrayType)
 
 #define STRING_OR_NIL_P(obj) (STRING_P(obj) || NIL_P(obj))
 

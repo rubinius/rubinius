@@ -48,10 +48,12 @@ class Fixnum < Integer
 
   def ~
     Ruby.primitive :fixnum_invert
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def -@
     Ruby.primitive :fixnum_neg
+    raise PrimitiveFailure, "primitive failed"
   end
   
   def divmod(other)
@@ -90,14 +92,17 @@ class Fixnum < Integer
   
   def based_to_s(base)
     Ruby.primitive :fixnum_to_s
+    raise PrimitiveFailure, "primitive failed"
   end
   
   def to_f
     Ruby.primitive :fixnum_to_f
+    raise PrimitiveFailure, "primitive failed"
   end
   
   def size
     Ruby.primitive :fixnum_size
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def inspect
@@ -110,14 +115,17 @@ class Fixnum < Integer
 
   def __fixnum_left_shift__(c)
     Ruby.primitive :fixnum_left_shift
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def __fixnum_right_shift__(c)
     Ruby.primitive :fixnum_right_shift
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def __bignum_new__(value)
     Ruby.primitive :bignum_new
+    raise PrimitiveFailure, "primitive failed"
   end
 end
 

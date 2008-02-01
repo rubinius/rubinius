@@ -67,6 +67,11 @@ void cpu_bootstrap(STATE) {
   BC(icache) = _icache_class(state, obj);
   BC(staticscope) = _staticscope_class(state, obj);
   
+  class_set_object_type(BC(string), I2N(StringType));
+  class_set_object_type(BC(methtbl), I2N(MTType));
+  class_set_object_type(BC(tuple), I2N(TupleType));
+  class_set_object_type(BC(hash), I2N(HashType));
+  
   /* The symbol table */
   state->global->symbols = symtbl_new(state);
   
@@ -82,14 +87,13 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(string), "String");
   module_setup(state, BC(symtbl), "SymbolTable");
   module_setup(state, BC(methtbl), "MethodTable");
-  class_set_object_type(BC(methtbl), I2N(MTType));
   module_setup(state, BC(cmethod), "CompiledMethod");
   module_setup(state, BC(io), "IO");
   module_setup(state, BC(blokenv), "BlockEnvironment");
   module_setup(state, BC(icache), "InlineCache");
   module_setup(state, BC(staticscope), "StaticScope");
-  
-  class_set_object_type(BC(string), I2N(StringType));
+ 
+  class_set_object_type(BC(array), I2N(ArrayType));
   class_set_object_type(BC(cmethod), I2N(CMethodType));
   class_set_object_type(BC(blokenv), I2N(BlockEnvType));
     

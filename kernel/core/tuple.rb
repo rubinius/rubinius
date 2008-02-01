@@ -1,6 +1,8 @@
 # depends on: class.rb module.rb
 
 class Tuple
+
+  include Enumerable
   
   def self.[](*args)
     sz = args.size

@@ -9,8 +9,8 @@ end
 
 class Symbol
   def self.all_symbols
-    # HACK: should be preventing the empty string from entering symtable instead
-    Symbols.symbols.to_a.reject { |s| s.empty? }.map { |x| x.intern }
+    # The find_all prunes nil out of the Tuple
+    Symbols.symbols.find_all { |s| s }.map { |x| x.to_sym }
   end
   
   def inspect

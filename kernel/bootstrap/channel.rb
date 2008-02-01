@@ -5,14 +5,17 @@ class Channel
   
   def self.new
     Ruby.primitive :channel_new
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def send(obj)
     Ruby.primitive :channel_send
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def receive
     Ruby.primitive :channel_receive
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def self.convert_to_channel(obj)

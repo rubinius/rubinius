@@ -1,10 +1,12 @@
 class Bignum < Integer
   def self.from_float(value)
     Ruby.primitive :bignum_from_float
+    raise PrimitiveFailure, "primitive failed"
   end
   
   def radix_to_s(radix)
     Ruby.primitive :bignum_to_s
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def to_s(radix=10)
@@ -56,10 +58,12 @@ class Bignum < Integer
 
   def ~
     Ruby.primitive :bignum_invert
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def -@
     Ruby.primitive :bignum_neg
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def ==(o)
@@ -69,14 +73,17 @@ class Bignum < Integer
   
   def __bignum_left_shift__(s)
     Ruby.primitive :bignum_left_shift
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def __bignum_right_shift__(s)
     Ruby.primitive :bignum_right_shift
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def to_f
     Ruby.primitive :bignum_to_float
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def <=>(other)
@@ -91,9 +98,11 @@ class Bignum < Integer
 
   def mod_primitive(other)
     Ruby.primitive :bignum_mod
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def size
     Ruby.primitive :bignum_size
+    raise PrimitiveFailure, "primitive failed"
   end
 end

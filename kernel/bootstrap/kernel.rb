@@ -116,6 +116,7 @@ module Kernel
 
   def yield_gdb(obj)
     Ruby.primitive :yield_gdb
+    raise PrimitiveFailure, "primitive failed"
   end
 
 end

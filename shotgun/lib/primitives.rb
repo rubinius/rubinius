@@ -837,7 +837,7 @@ class ShotgunPrimitives
   def symbol_lookup
     <<-CODE
     POP(self, STRING);
-
+    GUARD(N2I(string_get_bytes(self)) > 0);
     stack_push(string_to_sym(state, self));
     CODE
   end

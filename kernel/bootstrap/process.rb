@@ -6,10 +6,12 @@ class Process
   
   def self.micro_sleep(ms)
     Ruby.primitive :micro_sleep
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def self.fork_prim
     Ruby.primitive(:fork_process)
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def self.replace(file, arg)

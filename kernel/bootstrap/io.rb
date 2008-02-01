@@ -1,6 +1,7 @@
 class IO
   def self.open_with_mode(path, mode, perm)
     Ruby.primitive :io_open
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def write(str)
@@ -10,10 +11,12 @@ class IO
 
   def prim_seek(amount, whence)
     Ruby.primitive :io_seek
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def prim_operation(which)
     Ruby.primitive :io_operation
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def tty?

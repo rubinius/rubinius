@@ -58,5 +58,6 @@ class Hash
 
   def delete_by_hash(hsh, key)
     Ruby.primitive :hash_delete
+    raise PrimitiveFailure, "primitive failed"
   end  
 end

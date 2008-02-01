@@ -117,7 +117,7 @@ class IncludedModule < Module
   def initialize(mod)
     @method_table = mod.method_table
     @method_cache = nil
-    @name = mod.name.__symbol_lookup__
+    @name = nil
     @constants = mod.constant_table
     @encloser = mod.encloser
     @module = mod
@@ -126,6 +126,10 @@ class IncludedModule < Module
   def attach_to(cls)
     @superclass = cls.direct_superclass
     cls.superclass = self
+  end
+
+  def name
+    @module.name
   end
 
 end
