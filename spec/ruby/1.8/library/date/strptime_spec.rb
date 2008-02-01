@@ -39,12 +39,12 @@ describe "Date#strftime" do
 
   it "should be able to parse the month day with leading zeroes" do
     d = Date.today
-    Date.strptime("06", "%d").should == Date.civil(d.year, 1, 6)
+    Date.strptime("06", "%d").should == Date.civil(d.year, d.month, 6)
   end
 
   it "should be able to parse the month day with leading spaces" do
     d = Date.today
-    Date.strptime(" 6", "%e").should == Date.civil(d.year, 1, 6)
+    Date.strptime(" 6", "%e").should == Date.civil(d.year, d.month, 6)
   end
 
   it "should be able to parse the commercial year with leading zeroes" do
