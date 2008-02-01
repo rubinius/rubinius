@@ -644,7 +644,6 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
       if(obj->RequiresCleanup) {
         if(obj->obj_type == MemPtrType) {
           void *addr = *DATA_STRUCT(obj, void**);
-          printf("free %p\n", addr);
           if(addr) free(addr);
           obj->RequiresCleanup = 0;
         } else {
