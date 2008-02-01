@@ -54,6 +54,9 @@ void Init_cpu_task(STATE) {
   
   BASIC_CLASS(channel) = rbs_class_new(state, "Channel", 3, BASIC_CLASS(object));
   BASIC_CLASS(thread) =  rbs_class_new(state, "Thread", 5, BASIC_CLASS(object));
+  
+  class_set_object_type(BASIC_CLASS(channel), I2N(ChannelType));
+  class_set_object_type(BASIC_CLASS(thread), I2N(ThreadType));
   class_set_has_ivars(BASIC_CLASS(channel), Qtrue);
   class_set_has_ivars(BASIC_CLASS(thread),  Qtrue);
   

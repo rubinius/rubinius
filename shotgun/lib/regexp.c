@@ -244,7 +244,7 @@ OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OB
   max = N2I(string_get_bytes(string));
   str = (UChar*)string_byte_address(state, string);
   
-  if(forward == Qfalse) {
+  if(!RTEST(forward)) {
     beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(end), str + N2I(start), region, ONIG_OPTION_NONE);  
   } else {
     beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(start), str + N2I(end), region, ONIG_OPTION_NONE);

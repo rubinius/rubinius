@@ -73,6 +73,11 @@ typedef enum
   TupleType       ,
   ArrayType       ,
   HashType        ,
+  RegexpType      ,
+  ByteArrayType   ,
+  ISeqType        ,
+  ChannelType     ,
+  ThreadType
 } object_type;
 
 #define object_type_to_type(object_type, type) do {\

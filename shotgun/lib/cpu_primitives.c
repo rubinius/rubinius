@@ -78,6 +78,17 @@ int _object_stores_bytes(OBJECT self);
 
 #define STRING_OR_NIL_P(obj) (STRING_P(obj) || NIL_P(obj))
 
+#define CMETHOD_P(obj) RTYPE(obj, CMethodType)
+#define REGEXP_P(obj) RTYPE(obj, RegexpType)
+
+#define CTX_P(obj) RISA(obj, fastctx)
+#define BYTEARRAY_P(obj) RTYPE(obj, ByteArrayType)
+#define ISEQ_P(obj) RTYPE(obj, ISeqType)
+#define TASK_P(obj) RTYPE(obj, TaskType)
+#define CHANNEL_P(obj) RTYPE(obj, ChannelType)
+#define BLOCKENV_P(obj) RTYPE(obj, BlockEnvType)
+#define THREAD_P(obj) RTYPE(obj, ThreadType)
+
 // defines a required arity for a primitive
 // return true because we want other handler code to ignore it
 // this is because it is raised directly in the primitive as an exception

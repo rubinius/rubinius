@@ -282,7 +282,7 @@ class ShotgunPrimitives
   def at
     <<-CODE
     self = stack_pop(); GUARD( INDEXED(self) )
-    t1 = stack_pop(); GUARD( FIXNUM_P(t1) )
+    POP(t1, FIXNUM);
     j = N2I(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
 
     stack_push(NTH_FIELD(self, j));
@@ -292,7 +292,7 @@ class ShotgunPrimitives
   def put
     <<-CODE
     self = stack_pop(); GUARD( INDEXED(self) )
-    t1 = stack_pop(); GUARD( FIXNUM_P(t1) )
+    POP(t1, FIXNUM);
     t2 = stack_pop(); // We do not care about the type
     j = N2I(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
 
@@ -311,8 +311,8 @@ class ShotgunPrimitives
   
   def allocate
     <<-CODE
-    self = stack_pop(); GUARD( RISA(self, class) )
-    t1 = class_get_instance_fields(self); GUARD( FIXNUM_P(t1) )
+    POP(self, CLASS);
+    t1 = class_get_instance_fields(self);
 
     t2 = NEW_OBJECT(self, N2I(t1));
     stack_push(t2);
@@ -321,7 +321,7 @@ class ShotgunPrimitives
   
   def allocate_count
     <<-CODE
-    self = stack_pop(); GUARD( RISA(self, class) )
+    POP(self, CLASS);
     POP(t1, FIXNUM);
 
     t2 = NEW_OBJECT(self, N2I(t1));
@@ -331,7 +331,7 @@ class ShotgunPrimitives
   
   def allocate_bytes
     <<-CODE
-    self = stack_pop(); GUARD( RISA(self, class) )
+    POP(self, CLASS);
     POP(t1, FIXNUM);
     t2 = bytearray_new(state, N2I(t1));
     t2->klass = self;
@@ -379,9 +379,7 @@ class ShotgunPrimitives
   
   def block_call
     <<-CODE
-    self = stack_pop(); 
-    GUARD(REFERENCE_P(self) && self->obj_type == BlockEnvType);
-   
+    POP(self, BLOCKENV);
     blokenv_call(state, c, self, num_args);
     CODE
   end
@@ -540,7 +538,7 @@ class ShotgunPrimitives
     <<-CODE
     struct timeval tv;
 
-    (void)stack_pop();
+    (void)stack_pop(); /* class */
 
     /* don't fill in the 2nd argument here. getting the timezone here
      * this way is not portable and broken anyway.
@@ -1084,7 +1082,7 @@ class ShotgunPrimitives
   
   def load_file
     <<-CODE
-    self = stack_pop();
+    self = stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
@@ -1096,8 +1094,7 @@ class ShotgunPrimitives
   
   def activate_as_script
     <<-CODE
-    self = stack_pop();
-    GUARD(RISA(self, cmethod));
+    POP(self, CMETHOD);
 
     cpu_run_script(state, c, self);
     stack_push(Qtrue);
@@ -1107,7 +1104,7 @@ class ShotgunPrimitives
   def stat_file
     <<-CODE
     struct stat sb = {0};
-    self = stack_pop();
+    POP(self, CLASS);
     POP(t1, STRING);
     t2 = stack_pop();
 
@@ -1239,7 +1236,7 @@ class ShotgunPrimitives
   
   def context_sender
     <<-CODE
-    self = stack_pop();
+    POP(self, CTX);
     t1 = FASTCTX(self)->sender;
     
     if(t1 != Qnil) {
@@ -1256,7 +1253,7 @@ class ShotgunPrimitives
       bstring contents;
       const char *name;
 
-      self = stack_pop();
+      POP(self, STRING);
       POP(t1, STRING);
       POP(t2, FIXNUM);
       t3 = stack_pop();
@@ -1275,7 +1272,7 @@ class ShotgunPrimitives
     FILE *file;
     char *name;
 
-    self = stack_pop();
+    (void)stack_pop();
     POP(t1, STRING); /* The filename */
     t2 = stack_pop();
 
@@ -1377,7 +1374,7 @@ class ShotgunPrimitives
 
   def regexp_new
     <<-CODE
-    self = stack_pop();
+    POP(self, CLASS);
     POP(t1, STRING);
     char err_buf[1024];
     t2 = stack_pop();
@@ -1395,7 +1392,7 @@ class ShotgunPrimitives
 
   def regexp_match
     <<-CODE
-    self = stack_pop();
+    POP(self, REGEXP);
     POP(t1, STRING);
     stack_push(regexp_match(state, self, t1));
     CODE
@@ -1403,7 +1400,7 @@ class ShotgunPrimitives
 
   def regexp_match_start
     <<-CODE
-    self = stack_pop();
+    POP(self, REGEXP);
     POP(t1, STRING);
     POP(t2, FIXNUM);
     stack_push(regexp_match_start(state, self, t1, t2));
@@ -1412,7 +1409,7 @@ class ShotgunPrimitives
 
   def regexp_match_region
     <<-CODE
-    self = stack_pop();
+    POP(self, REGEXP);
     POP(t1, STRING);
     POP(t2, FIXNUM);
     POP(t3, FIXNUM);
@@ -1424,7 +1421,7 @@ class ShotgunPrimitives
 
   def regexp_scan
     <<-CODE
-    self = stack_pop();
+    POP(self, REGEXP);
     POP(t1, STRING);
     stack_push(regexp_scan(state, self, t1));
     CODE
@@ -1432,7 +1429,7 @@ class ShotgunPrimitives
 
   def regexp_options
     <<-CODE
-    self = stack_pop();
+    POP(self, REGEXP);
     stack_push(regexp_options(state, self));
     CODE
   end
@@ -1764,7 +1761,7 @@ class ShotgunPrimitives
 
   def bignum_or
     <<-CODE
-    self = stack_pop();
+    POP(self, BIGNUM);
     POP(t1, INTEGER);
 
     stack_push(bignum_or(state, self, t1));
@@ -1773,7 +1770,7 @@ class ShotgunPrimitives
 
   def bignum_xor
     <<-CODE
-    self = stack_pop();
+    POP(self, BIGNUM);
     POP(t1, INTEGER);
 
     stack_push(bignum_xor(state, self, t1));
@@ -1881,11 +1878,8 @@ class ShotgunPrimitives
   
   def bignum_divmod
     <<-CODE
-    self = stack_pop();
-    GUARD(RISA(self, bignum));
-    
-    t1  =  stack_pop();
-    GUARD(RISA(t1,   bignum));    
+    POP(self, BIGNUM);
+    POP(t1, BIGNUM); 
     
     // no divide by zero
     GUARD(!bignum_is_zero(state, t1));
@@ -1896,7 +1890,7 @@ class ShotgunPrimitives
   
   def object_taint
     <<-CODE
-    self = stack_pop();
+    POP(self, REFERENCE);
     object_set_tainted(state, self);
     stack_push(self);
     CODE
@@ -1904,14 +1898,14 @@ class ShotgunPrimitives
   
   def object_tainted_p
     <<-CODE
-    self = stack_pop();
+    POP(self, REFERENCE);
     stack_push(object_tainted_p(state, self) ? Qtrue : Qfalse);
     CODE
   end
   
   def object_untaint
     <<-CODE
-    self = stack_pop();
+    POP(self, REFERENCE);
     object_set_untainted(state, self);
     stack_push(self);
     CODE
@@ -1919,7 +1913,7 @@ class ShotgunPrimitives
   
   def object_freeze
     <<-CODE
-    self = stack_pop();
+    POP(self, REFERENCE);
     object_set_frozen(state, self);
     stack_push(self);
     CODE
@@ -1927,7 +1921,7 @@ class ShotgunPrimitives
   
   def object_frozen_p
     <<-CODE
-    self = stack_pop();
+    POP(self, REFERENCE);
     stack_push(object_frozen_p(state, self) ? Qtrue : Qfalse);
     CODE
   end
@@ -1936,8 +1930,7 @@ class ShotgunPrimitives
     <<-CODE
     int i;
     struct fast_context *fc;
-    t1 = stack_pop();
-    GUARD(RISA(t1, fastctx));
+    POP(t1, CTX);
 
     fc = FASTCTX(t1);
     i = N2I(stack_pop());
@@ -1994,15 +1987,15 @@ class ShotgunPrimitives
     <<-CODE
     int i;
     struct fast_context *fc;
-    t1 = stack_pop();
-    i = N2I(stack_pop());
+    POP(t1, CTX);
+    POP(t2, FIXNUM);
+    i = N2I(t2);
     t2 = stack_pop();
     
-    GUARD(RISA(t1, fastctx));
-
     fc = FASTCTX(t1);
     switch(i) {
       case 0:
+        GUARD(CTX_P(t2));
         fc->sender = t2;
         break;
       case 1:
@@ -2056,9 +2049,7 @@ class ShotgunPrimitives
   def fastctx_reload_method
     <<-CODE
     struct fast_context *fc;
-    t1 = stack_pop();
-
-    GUARD(RISA(t1, fastctx));
+    POP(t1, CTX);
 
     fc = FASTCTX(t1);
     if(fc->method->obj_type == CMethodType) {
@@ -2072,11 +2063,8 @@ class ShotgunPrimitives
   def fastctx_set_iseq
     <<-CODE
     struct fast_context *fc;
-    t1 = stack_pop();
-    t2 = stack_pop();
-
-    GUARD(RISA(t1, fastctx));
-    GUARD(RISA(t2, bytearray));
+    POP(t1, CTX);
+    POP(t1, BYTEARRAY);
 
     fc = FASTCTX(t1);
     if(fc->method->obj_type == CMethodType) {
@@ -2153,8 +2141,8 @@ class ShotgunPrimitives
   def load_library
     <<-CODE
     (void)stack_pop(); /* self */
-    t1 = stack_pop();
-    t2 = stack_pop();
+    POP(t1, STRING);
+    POP(t2, STRING);
     stack_push(subtend_load_library(state, c, t1, t2));
     CODE
   end
@@ -2233,7 +2221,7 @@ class ShotgunPrimitives
     
     stack_push(Qnil);
     
-    if(RISA(self, task)) {
+    if(TASK_P(self)) {
       t1 = cpu_task_dup(state, c, self);
     } else {
       t1 = cpu_task_dup(state, c, Qnil);
@@ -2246,9 +2234,7 @@ class ShotgunPrimitives
   def task_set_current
     <<-CODE
     (void)stack_pop(); /* class */
-    self = stack_pop();
-    
-    GUARD( RISA(self, task) );
+    POP(self, TASK);
     
     stack_push(Qnil);    
     cpu_task_select(state, c, self);
@@ -2257,11 +2243,8 @@ class ShotgunPrimitives
   
   def task_associate
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    
-    GUARD( RISA(self, task) );
-    GUARD( RISA(t1,   blokenv) );
+    POP(self, TASK);
+    POP(t1, BLOCKENV);
     
     stack_push(cpu_task_associate(state, c, self, t1));
     CODE
@@ -2277,11 +2260,8 @@ class ShotgunPrimitives
   def task_at
     <<-CODE
     struct cpu_task *task;
-    self = stack_pop();
-    t1 =   stack_pop();
-    
-    GUARD( RISA(self, task) );
-    GUARD( FIXNUM_P(t1) );
+    POP(self, TASK);
+    POP(t1, FIXNUM);
     
     task = (struct cpu_task*)BYTES_OF(self);
     k = N2I(t1);
@@ -2304,13 +2284,12 @@ class ShotgunPrimitives
   
   def task_set_debugging
     <<-CODE
-    self = stack_pop();
+    POP(self, TASK);
     t1 = stack_pop();
     t2 = stack_pop();
 
-    GUARD(t1 == Qnil || RISA(t1, channel));
-    GUARD(t2 == Qnil || RISA(t2, channel));
-    GUARD(RISA(self, task));
+    GUARD(t1 == Qnil || CHANNEL_P(t1));
+    GUARD(t2 == Qnil || CHANNEL_P(t2));
 
     if(self == c->current_task) {
       c->debug_channel = t1;
@@ -2325,9 +2304,7 @@ class ShotgunPrimitives
   def task_debug_channel
     <<-CODE
     struct cpu_task *task;
-    self = stack_pop();
-    
-    GUARD(RISA(self, task));
+    POP(self, TASK);
     
     task = (struct cpu_task*)BYTES_OF(self);
 
@@ -2338,9 +2315,7 @@ class ShotgunPrimitives
   def task_control_channel
     <<-CODE
     struct cpu_task *task;
-    self = stack_pop();
-    
-    GUARD(RISA(self, task));
+    POP(self, TASK);
     
     task = (struct cpu_task*)BYTES_OF(self);
 
@@ -2351,9 +2326,7 @@ class ShotgunPrimitives
   def task_get_debug_context_change
     <<-CODE
     struct cpu_task *task;
-    self = stack_pop();
-    
-    GUARD(RISA(self, task));
+    POP(self, TASK);
     
     task = (struct cpu_task*)BYTES_OF(self);
     if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
@@ -2367,10 +2340,8 @@ class ShotgunPrimitives
   def task_set_debug_context_change
     <<-CODE
     struct cpu_task *task;
-    self = stack_pop();
+    POP(self, TASK);
     t1 = stack_pop();
-    
-    GUARD(RISA(self, task));
     
     task = (struct cpu_task*)BYTES_OF(self);
     if(RTEST(t1)) {
@@ -2394,9 +2365,7 @@ class ShotgunPrimitives
   def task_stack_size
     <<-CODE
     struct cpu_task *task;
-    self = stack_pop(); /* self */
-
-    GUARD(RISA(self, task));
+    POP(self, TASK);
 
     task = (struct cpu_task*)BYTES_OF(self);
     t1 = I2N(task->sp_ptr - task->stack_top);
@@ -2408,11 +2377,8 @@ class ShotgunPrimitives
   def task_get_stack_value
     <<-CODE
     struct cpu_task *task;
-    self = stack_pop(); /* self */
-    t1 = stack_pop();
-
-    GUARD(RISA(self, task));
-    GUARD(FIXNUM_P(t1));
+    POP(self, TASK);
+    POP(t1, FIXNUM);
 
     task = (struct cpu_task*)BYTES_OF(self);
     int idx = N2I(t1);
@@ -2426,8 +2392,7 @@ class ShotgunPrimitives
 
   def task_raise
     <<-CODE
-    self = stack_pop();
-    GUARD( RISA(self, task) );
+    POP(self, TASK);
     
     t1 = stack_pop();
     
@@ -2446,8 +2411,7 @@ class ShotgunPrimitives
   
   def thread_raise
     <<-CODE
-    self = stack_pop();
-    GUARD( RISA(self, thread) );
+    POP(self, THREAD);
     
     t1 = stack_pop();
 
@@ -2478,9 +2442,7 @@ class ShotgunPrimitives
   
   def channel_send
     <<-CODE
-    self = stack_pop();
-    
-    GUARD(RISA(self, channel));
+    POP(self, CHANNEL);
     
     t1 = stack_pop();
     stack_push(cpu_channel_send(state, c, self, t1));
@@ -2489,9 +2451,7 @@ class ShotgunPrimitives
   
   def channel_receive
     <<-CODE
-    self = stack_pop();
-    
-    GUARD(RISA(self, channel));
+    POP(self, CHANNEL);
     
     cpu_channel_receive(state, c, self, c->current_thread);
     /* Don't touch the stack as we may be in a different task at this
@@ -2511,10 +2471,8 @@ class ShotgunPrimitives
     <<-CODE
     double seconds;
     (void)stack_pop(); /* scheduler */
-    POP(self, REFERENCE);
+    POP(self, CHANNEL);
     POP(t1, INTEGER);
-    
-    GUARD(RISA(self, channel));
     
     if(FIXNUM_P(t1)) {
       k = (long)N2I(t1);
@@ -2533,10 +2491,8 @@ class ShotgunPrimitives
     double seconds;
 
     (void)stack_pop(); /* scheduler */
-    POP(self, REFERENCE);
+    POP(self, CHANNEL);
     POP(t1, FLOAT);
-
-    GUARD(RISA(self, channel));
 
     seconds = FLOAT_TO_DOUBLE(t1);
 
@@ -2547,12 +2503,11 @@ class ShotgunPrimitives
   def channel_send_on_readable
     <<-CODE
     (void)stack_pop(); /* scheduler */
-    POP(self, REFERENCE);
+    POP(self, CHANNEL);
     t1 = stack_pop();
     t2 = stack_pop();
     t3 = stack_pop();
     
-    GUARD(RISA(self, channel));
     GUARD(STRING_P(t2) || NIL_P(t2));
     GUARD(FIXNUM_P(t3) || NIL_P(t3));
     if(IO_P(t1)) {
@@ -2570,10 +2525,8 @@ class ShotgunPrimitives
   def channel_send_on_writable
     <<-CODE
     (void)stack_pop(); /* scheduler */
-    POP(self, REFERENCE);
+    POP(self, CHANNEL);
     POP(t1,   IO);
-    
-    GUARD(RISA(self, channel));
     
     j = io_to_fd(t1);
     stack_push(cpu_event_wait_writable(state, c, self, j));
@@ -2583,9 +2536,8 @@ class ShotgunPrimitives
   def channel_send_on_signal
     <<-CODE
     (void)stack_pop(); /* scheduler */
-    POP(self, REFERENCE);
+    POP(self, CHANNEL);
     POP(t1,   FIXNUM);
-    GUARD(RISA(self, channel));
     
     stack_push(cpu_event_wait_signal(state, c, self, N2I(t1)));
     CODE
@@ -2594,10 +2546,9 @@ class ShotgunPrimitives
   def channel_send_on_stopped
     <<-CODE
     (void)stack_pop(); /* scheduler */
-    POP(self, REFERENCE);
+    POP(self, CHANNEL);
     POP(t1, FIXNUM);
     POP(t2, FIXNUM);
-    GUARD(RISA(self, channel));
     
     stack_push(cpu_event_wait_child(state, c, self, N2I(t1), N2I(t2)));
     CODE
@@ -2621,7 +2572,7 @@ class ShotgunPrimitives
   
   def thread_run
     <<-CODE
-    self = stack_pop();
+    POP(self, THREAD);
     GUARD(cpu_thread_alive_p(state, self));
     
     /* So when we're restored, there is a ret val. */
@@ -2633,7 +2584,7 @@ class ShotgunPrimitives
   
   def thread_schedule
     <<-CODE
-    self = stack_pop();
+    POP(self, THREAD);
     cpu_thread_schedule(state, self);
     stack_push(Qnil);
     CODE
@@ -2776,7 +2727,7 @@ class ShotgunPrimitives
   def ivar_get
     <<-CODE
     self = stack_pop();
-    t1 = stack_pop();
+    POP(t1, SYMBOL);
     stack_push(object_get_ivar(state, self, t1));
     CODE
   end
@@ -2784,7 +2735,7 @@ class ShotgunPrimitives
   def ivar_set
     <<-CODE
     self = stack_pop();
-    t1 = stack_pop();
+    POP(t1, SYMBOL);
     t2 = stack_pop();
     object_set_ivar(state, self, t1, t2);
     stack_push(t2);
@@ -2899,7 +2850,7 @@ class ShotgunPrimitives
 
   def iseq_compile
     <<-CODE
-    self = stack_pop();
+    POP(self, CMETHOD); 
     cpu_compile_method(state, self);
     stack_push(Qtrue);
     CODE
@@ -2908,7 +2859,7 @@ class ShotgunPrimitives
   def reset_method_cache
     <<-CODE
     (void)stack_pop(); /* self */
-    t1 = stack_pop();
+    POP(t1, SYMBOL);
     cpu_clear_cache_for_method(state, c, t1, TRUE);
     CODE
   end

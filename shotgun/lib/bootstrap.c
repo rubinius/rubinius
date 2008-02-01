@@ -66,7 +66,8 @@ void cpu_bootstrap(STATE) {
   BC(blokenv) = _blokenv_class(state, obj);
   BC(icache) = _icache_class(state, obj);
   BC(staticscope) = _staticscope_class(state, obj);
-  
+ 
+  class_set_object_type(BC(bytearray), I2N(ByteArrayType));
   class_set_object_type(BC(string), I2N(StringType));
   class_set_object_type(BC(methtbl), I2N(MTType));
   class_set_object_type(BC(tuple), I2N(TupleType));
@@ -119,9 +120,10 @@ void cpu_bootstrap(STATE) {
   BC(blokctx) = rbs_class_new(state, "BlockContext", 0, BC(fastctx));
   
   BC(task) = rbs_class_new(state, "Task", 0, obj);
-  BC(iseq) = rbs_class_new(state, "InstructionSequence", 0, BC(bytearray));
-  
   class_set_object_type(BC(task), I2N(TaskType));
+  
+  BC(iseq) = rbs_class_new(state, "InstructionSequence", 0, BC(bytearray));
+  class_set_object_type(BC(iseq), I2N(ISeqType));
     
   #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \
     module_setup(state, BC(name), string);
@@ -151,6 +153,7 @@ void cpu_bootstrap(STATE) {
   state->global->special_classes[(intptr_t)Qtrue ] = BC(true_class);
     
   bcs(regexp, obj, "Regexp");
+  class_set_object_type(BC(regexp), I2N(RegexpType));
   bcs(regexpdata, obj, "RegexpData");
   bcs(matchdata, obj, "MatchData");
       
