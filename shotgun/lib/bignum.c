@@ -1,7 +1,6 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "tommath.h"
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/string.h"
 
@@ -51,10 +50,10 @@ OBJECT bignum_new(STATE, native_int num) {
   a = (mp_int*)BYTES_OF(o);
 
   if(num < 0) {
-    mp_init_set_int(a, (unsigned long)-num);
+    mp_init_set_long(a, (unsigned long)-num);
     a->sign = MP_NEG;
   } else {
-    mp_init_set_int(a, (unsigned long)num);
+    mp_init_set_long(a, (unsigned long)num);
   }
   return o;
 }
@@ -79,29 +78,37 @@ static inline OBJECT bignum_normalize(STATE, OBJECT b) {
 
 OBJECT bignum_add(STATE, OBJECT a, OBJECT b) {
   NMP;
-  
+
   if(FIXNUM_P(b)) {
     b = bignum_new(state, N2I(b));
   }
-    
+
   mp_add(MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
 
 OBJECT bignum_sub(STATE, OBJECT a, OBJECT b) {
   NMP;
-  
+
   if(FIXNUM_P(b)) {
     b = bignum_new(state, N2I(b));
   }
-  
+
   mp_sub(MP(a), MP(b), n);
-  return bignum_normalize(state, n_obj); 
+  return bignum_normalize(state, n_obj);
+}
+
+void bignum_debug(STATE, OBJECT n) {
+  char *stra = XMALLOC(2048);
+  mp_toradix(MP(n), stra, 10);
+  printf("n: %s\n", stra);
+  FREE(stra);
+  return;
 }
 
 OBJECT bignum_mul(STATE, OBJECT a, OBJECT b) {
   NMP;
-  
+
   if(FIXNUM_P(b)) {
     if(b == I2N(2)) {
       mp_mul_2(MP(a), n);
@@ -109,29 +116,29 @@ OBJECT bignum_mul(STATE, OBJECT a, OBJECT b) {
     }
     b = bignum_new(state, N2I(b));
   }
-  
+
   mp_mul(MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
 
 OBJECT bignum_div(STATE, OBJECT a, OBJECT b) {
   NMP;
-  
+
   if(FIXNUM_P(b)) {
     b = bignum_new(state, N2I(b));
   }
-  
+
   mp_div(MP(a), MP(b), n, NULL);
   return bignum_normalize(state, n_obj);
 }
 
 OBJECT bignum_mod(STATE, OBJECT a, OBJECT b) {
   NMP;
-  
+
   if(FIXNUM_P(b)) {
     b = bignum_new(state, N2I(b));
   }
-  
+
   mp_mod(MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
@@ -140,11 +147,11 @@ OBJECT bignum_divmod(STATE, OBJECT a, OBJECT b) {
   NMP;
   MMP;
   OBJECT ary;
-  
+
   mp_div(MP(a), MP(b), n, m);
   ary = array_new(state, 2);
-  array_set(state, ary, 0, n_obj);
-  array_set(state, ary, 1, m_obj);
+  array_set(state, ary, 0, bignum_normalize(state, n_obj));
+  array_set(state, ary, 1, bignum_normalize(state, m_obj));
   return ary;
 }
 
@@ -343,7 +350,7 @@ OBJECT bignum_equal(STATE, OBJECT a, OBJECT b) {
   if(FIXNUM_P(b)) {
     b = bignum_new(state, N2I(b));
   }
-  
+
   if(mp_cmp(MP(a), MP(b)) == MP_EQ) {
     return Qtrue;
   }
@@ -366,14 +373,14 @@ unsigned long bignum_to_int(STATE, OBJECT self) {
 
 int bignum_to_i(STATE, OBJECT self) {
   mp_int *s = MP(self);
-  
+
   if (s->sign == MP_NEG) return -mp_get_int(s);
-  
-  return mp_get_int(s);  
+
+  return mp_get_int(s);
 }
 
 unsigned int bignum_to_ui(STATE, OBJECT self) {
-  return (unsigned int)mp_get_int(MP(self));  
+  return (unsigned int)mp_get_int(MP(self));
 }
 
 unsigned long long bignum_to_ull(STATE, OBJECT self) {
@@ -436,7 +443,7 @@ OBJECT bignum_from_ll(STATE, long long val) {
 
 OBJECT bignum_to_s(STATE, OBJECT self, OBJECT radix) {
   char *buf;
-  int sz = 1024;  
+  int sz = 1024;
   int k;
   OBJECT obj;
 
@@ -487,11 +494,11 @@ OBJECT bignum_from_string_detect(STATE, char *str) {
     }
   }
   mp_read_radix(n, s, radix);
-  
-  if(!sign) { 
+
+  if(!sign) {
     n->sign = MP_NEG;
   }
-  
+
   return bignum_normalize(state, n_obj);
 }
 
@@ -513,7 +520,7 @@ double bignum_to_double(STATE, OBJECT self) {
   mp_int *a;
 
   a = MP(self);
-  
+
   if (a->used == 0) {
      return 0;
   }
@@ -564,7 +571,7 @@ OBJECT bignum_from_double(STATE, double d)
   }
 
   mp_grow(n, i);
- 
+
   while (i--) {
     value *= DIGIT_RADIX;
     c = (BDIGIT_DBL) value;
@@ -581,10 +588,10 @@ OBJECT bignum_from_double(STATE, double d)
 }
 
 OBJECT bignum_size(STATE, OBJECT self)
-{  
+{
   int bits = mp_count_bits(MP(self));
   int bytes = (bits + 7) / 8;
-  
+
   /* MRI returns this in words, but thats an implementation detail as far
      as I'm concerned. */
   return I2N(bytes);
@@ -601,3 +608,42 @@ int bignum_hash_int(OBJECT self)
      are immutable, this shouldn't happen to us. */
   return string_hash_str((unsigned char *)a->dp, a->used * sizeof(mp_digit));
 }
+
+int mp_init_set_long (mp_int * a, unsigned long b)
+{
+  int err;
+  if ((err = mp_init(a)) != MP_OKAY) {
+     return err;
+  }
+  return mp_set_long(a, b);
+}
+
+int mp_set_long (mp_int * a, unsigned long b)
+{
+  int     x, res;
+  // TODO: Move these two values to bignum.h
+  size_t  count = sizeof(unsigned long) * 2;
+  size_t  shift_width = (sizeof(unsigned long) * 8) - 4;
+
+  mp_zero (a);
+
+  /* set four bits at a time */
+  for (x = 0; x < count; x++) {
+    /* shift the number up four bits */
+    if ((res = mp_mul_2d (a, 4, a)) != MP_OKAY) {
+      return res;
+    }
+
+    /* OR in the top four bits of the source */
+    a->dp[0] |= (b >> shift_width) & 15;
+
+    /* shift the source up to the next four bits */
+    b <<= 4;
+
+    /* ensure that digits are not clamped off */
+    a->used += 1;
+  }
+  mp_clamp (a);
+  return MP_OKAY;
+}
+

@@ -46,7 +46,7 @@ static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
   j = N2I(a);
   k = N2I(b);
   m = (long long)j * (long long)k;
-  r = I2N((int) m);
+  r = I2N(m);
   if(m != N2I(r)) {
     r = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
   }

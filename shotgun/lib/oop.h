@@ -23,8 +23,8 @@ typedef intptr_t native_int;
 #define TAG_LITERAL 0x2
 #define TAG_DATA    0x3
 
-#define TAG(v) (((uintptr_t)v) & TAG_MASK)
-#define APPLY_TAG(v, tag) ((OBJECT)(((uintptr_t)v << TAG_SHIFT) | tag))
+#define TAG(v) (((intptr_t)v) & TAG_MASK)
+#define APPLY_TAG(v, tag) ((OBJECT)(((intptr_t)v << TAG_SHIFT) | tag))
 #define STRIP_TAG(v) (((intptr_t)v) >> TAG_SHIFT)
 
 #define DATA_P(v) (TAG(v) == TAG_DATA)
@@ -36,9 +36,9 @@ typedef intptr_t native_int;
 #define DATA_TAG_SYMBOL 0x3
 #define DATA_TAG_CUSTOM 0x7
 
-#define DATA_TAG(v) ((uintptr_t)(v) & DATA_MASK)
+#define DATA_TAG(v) ((intptr_t)(v) & DATA_MASK)
 #define DATA_APPLY_TAG(v, tag) (OBJECT)((v << DATA_SHIFT) | tag)
-#define DATA_STRIP_TAG(v) (((uintptr_t)v) >> DATA_SHIFT)
+#define DATA_STRIP_TAG(v) (((intptr_t)v) >> DATA_SHIFT)
 
 #define SYMBOL_P(v) (DATA_TAG(v) == DATA_TAG_SYMBOL)
 #define CUSTOM_P(v) (DATA_TAG(v) == DATA_TAG_CUSTOM)
@@ -46,8 +46,6 @@ typedef intptr_t native_int;
 /* How many bits of data are available in fixnum, not including
    the sign. */
 enum { FIXNUM_WIDTH = (8 * sizeof(native_int)) - TAG_SHIFT - 1 };
-// enum { FIXNUM_WIDTH = 29 };
-// enum { FIXNUM_MAX = ((1 << FIXNUM_WIDTH) - 1) };
 
 /* rubinius_object types, takes up 3 bits */
 typedef enum

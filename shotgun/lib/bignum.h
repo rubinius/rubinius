@@ -1,6 +1,8 @@
 #ifndef RBS_BIGNUM_H
 #define RBS_BIGNUM_H
+#include "tommath.h"
 
+void bignum_debug(STATE, OBJECT n);
 OBJECT bignum_new(STATE, native_int num);
 OBJECT bignum_new_unsigned(STATE, unsigned int num);
 OBJECT bignum_add(STATE, OBJECT a, OBJECT b);
@@ -34,5 +36,9 @@ int bignum_is_zero(STATE, OBJECT a);
 int bignum_hash_int(OBJECT a);
 unsigned int bignum_to_ui(STATE, OBJECT self);
 int bignum_to_i(STATE, OBJECT self);
+
+/* initialize and set a long integer value */
+int mp_init_set_long (mp_int * a, unsigned long b);
+int mp_set_long (mp_int * a, unsigned long b);
 
 #endif
