@@ -1,4 +1,13 @@
 class MyHash < Hash; end
+
+class NewHash < Hash
+  def initialize(*args)
+    args.each_with_index do |val, index|
+      self[index] = val
+    end
+  end
+end
+
 class ToHashHash < Hash
   def to_hash() { "to_hash" => "was", "called!" => "duh." } end
 end

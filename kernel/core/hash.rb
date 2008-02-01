@@ -19,16 +19,29 @@ class Hash
     hsh
   end
 
-  def initialize(default = Undefined, &block)
-    @keys = Tuple.new(16)
-    @values = Tuple.new(16)
+  def self.new(*args, &block)
+    hash = allocate
+    hash.send :setup
+    hash.send :initialize, *args, &block
+    hash
+  end
+
+  # Separate from #initialize to allow subclasses
+  # easier access to #initialize. Do not touch this,
+  # and do not touch .new
+  def setup()
     @bins = 16
+    @keys = Tuple.new(@bins)
+    @values = Tuple.new(@bins)
     @entries = 0
-    
+  end
+  private :setup
+
+  def initialize(default = Undefined, &block)
     if !default.equal?(Undefined) and block
       raise ArgumentError, "Specify a default or a block, not both"
     end
-    
+
     if block
       @default = block
       @default_proc = true
@@ -192,7 +205,7 @@ class Hash
       lst = entry
       entry = nxt
     end
-    
+
     return yield(key) if block_given?
     nil
   end
@@ -271,7 +284,7 @@ class Hash
   def inspect()
     # recursively_inspect
     return '{...}' if RecursionGuard.inspecting?(self)
-    
+
     out = []
     RecursionGuard.inspect(self) do
       each_pair do |key, val|
@@ -281,7 +294,7 @@ class Hash
         out << str
       end
     end
-    
+
     "{#{out.join ', '}}"
   end
 
@@ -313,7 +326,7 @@ class Hash
   def merge(other, &block)
     dup.merge!(other, &block)
   end
-  
+
   def merge!(other)
     other = Type.coerce_to(other, Hash, :to_hash)
     other.each_pair do |k, v|
@@ -332,18 +345,18 @@ class Hash
     each_pair { |k, v| out[k] = v }
     replace out
   end
-  
+
   def reject(&block)
     dup.delete_if(&block)
   end
-  
+
   def reject!(&block)
     old_size = size
     delete_if(&block)
     return nil if old_size == size
     self
   end
-  
+
   def replace(other)
     other = Type.coerce_to(other, Hash, :to_hash)
     return self if self.equal? other
@@ -430,7 +443,7 @@ class Hash
   end
   alias_method :indexes, :values_at
   alias_method :indices, :values_at
-  
+
   def find_unambiguous(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     return Tuple[true, val] if code

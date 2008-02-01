@@ -2,6 +2,10 @@
 
 class MethodTable
 
+  def initialize()
+    setup
+  end
+
   def public_names
     filter_names :public
   end

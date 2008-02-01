@@ -14,6 +14,11 @@ describe "Hash#initialize" do
     h["a"].should == "aa"
   end
 
+  it "should get passed whatever args were passed to Hash#new" do
+    NewHash.new(:one, :two)[0].should == :one
+    NewHash.new(:one, :two)[1].should == :two
+  end
+
   compliant_on :ruby, :jruby do
     it "raises a TypeError if called on a frozen instance" do
       block = lambda { HashSpecs.frozen_hash.instance_eval { initialize() }}
