@@ -1,0 +1,2 @@
+Time#<=> returns nil when Time is compared to Numeric
+Time#<=> returns nil when Time is compared to some Object

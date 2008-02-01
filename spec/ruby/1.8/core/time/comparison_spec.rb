@@ -16,5 +16,15 @@ describe "Time#<=>" do
   it "returns -1 if the first argument is a point in time before the second argument" do
     (Time.at(0) <=> Time.now).should == -1
     (Time.at(0, 0) <=> Time.at(0, 100)).should == -1
-  end  
+  end
+
+  # see [ruby-core:15333]
+  it "returns nil when Time is compared to Numeric" do
+    (Time.at(100) <=> 100).should == nil
+    (Time.at(100) <=> 100.0).should == nil
+  end
+
+  it "returns nil when Time is compared to some Object" do
+    (Time.at(100) <=> Object.new).should == nil
+  end
 end
