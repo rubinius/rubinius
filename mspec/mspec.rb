@@ -22,4 +22,8 @@ module MSpec
   def self.verify_mode?
     @mode == :verify
   end
+  
+  def self.report_mode?
+    @mode == :report
+  end
 end

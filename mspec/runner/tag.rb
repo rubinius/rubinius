@@ -13,4 +13,8 @@ class SpecTag
   def to_s
     "#{@tag}#{ "(#{@comment})" if @comment }:#{@description}"
   end
+  
+  def ==(o)
+    @tag == o.tag and @comment == o.comment and @description == o.description
+  end
 end

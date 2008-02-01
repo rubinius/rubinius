@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../../mspec'
 require File.dirname(__FILE__) + '/../../runner/state'
 require File.dirname(__FILE__) + '/../../runner/runner'
 
@@ -11,6 +12,11 @@ describe MSpec do
   it "provides .register_mode for setting execution mode flags" do
     MSpec.register_mode :verify
     MSpec.retrieve(:mode).should == :verify
+  end
+  
+  it "provides .register_tags_path to record the path to tag files" do
+    MSpec.register_tags_path "path/to/tags"
+    MSpec.retrieve(:tags_path).should == "path/to/tags"
   end
   
   it "provides .store to store data" do
@@ -62,13 +68,25 @@ end
 
 describe MSpec, ".verify_mode?" do
   before :each do
-    MSpec.instance_variable_set :@mode, nil
+    MSpec.store :mode, nil
   end
   
   it "returns true if register_mode(:verify) is called" do
     MSpec.verify_mode?.should == false
     MSpec.register_mode :verify
     MSpec.verify_mode?.should == true
+  end
+end
+
+describe MSpec, ".report_mode?" do
+  before :each do
+    MSpec.store :mode, nil
+  end
+  
+  it "returns true if register_mode(:report) is called" do
+    MSpec.report_mode?.should == false
+    MSpec.register_mode :report
+    MSpec.report_mode?.should == true
   end
 end
 
@@ -120,7 +138,7 @@ describe MSpec, ".files" do
   before :each do
     MSpec.store :load, []
     MSpec.store :unload, []
-    @files = [:one, :two, :three]
+    MSpec.register_files [:one, :two, :three]
     Kernel.stub!(:load)
   end
   
@@ -130,5 +148,80 @@ describe MSpec, ".files" do
     MSpec.register :load, load
     MSpec.files
     @record.should == :load
+  end
+  
+  it "registers the current file" do
+    MSpec.should_receive(:store).with(:file, :one)
+    MSpec.should_receive(:store).with(:file, :two)
+    MSpec.should_receive(:store).with(:file, :three)
+    MSpec.files
+  end
+end
+
+describe MSpec, ".tags_path" do
+  before :each do
+    MSpec.store :tags_path, nil
+  end
+  
+  it "returns '.tags' if no tags path has been registered" do
+    MSpec.tags_path.should == ".tags"
+  end
+  
+  it "returns the registered tags path" do
+    MSpec.register_tags_path "/path/to/tags"
+    MSpec.tags_path.should == "/path/to/tags"
+  end
+end
+
+describe MSpec, ".tags_file" do
+  before :each do
+    MSpec.store :file, "/path/to/spec/something/some_spec.rb"
+    MSpec.store :tags_path, nil
+  end
+  
+  it "returns the tags file for the current spec file" do
+    MSpec.tags_file.should == "/path/to/spec/something/.tags/some_tags.txt"
+  end
+  
+  it "returns the tags file for the current spec file with custom tags_path" do
+    MSpec.register_tags_path "/path/to/tags"
+    MSpec.tags_file.should == "/path/to/tags/something/some_tags.txt"
+  end
+end
+
+describe MSpec, ".read_tags" do
+  before :each do
+    MSpec.stub!(:tags_file).and_return(File.dirname(__FILE__) + '/tags.txt')
+  end
+  
+  it "returns a list of tag instances for matching tag names found" do
+    one = SpecTag.new "fail(broken):Some#method works"
+    MSpec.read_tags("fail", "pass").should == [one]
+  end
+  
+  it "returns [] if no tags names match" do
+    MSpec.read_tags("super").should == []
+  end
+end
+
+describe MSpec, ".write_tag" do
+  before :each do
+    MSpec.stub!(:tags_file).and_return("/tmp/tags.txt")
+    @tag = SpecTag.new "fail(broken):Some#method works"
+  end
+  
+  after :all do
+    File.delete "/tmp/tags.txt" rescue nil
+  end
+  
+  it "writes a tag to the tags file for the current spec file" do
+    MSpec.write_tag @tag
+    IO.read("/tmp/tags.txt").should == "fail(broken):Some#method works\n"
+  end
+  
+  it "does not write a duplicate tag" do
+    File.open("/tmp/tags.txt", "w") { |f| f.puts @tag }
+    MSpec.write_tag @tag
+    IO.read("/tmp/tags.txt").should == "fail(broken):Some#method works\n"
   end
 end

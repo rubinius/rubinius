@@ -61,3 +61,12 @@ describe SpecTag, "#to_s" do
     tag.to_s.should == "tag:description"
   end
 end
+
+describe SpecTag, "#==" do
+  it "returns true if the tags have the same fields" do
+    one = SpecTag.new "tag(this):unicorn"
+    two = SpecTag.new "tag(this):unicorn"
+    one.==(two).should == true
+    [one].==([two]).should == true
+  end
+end

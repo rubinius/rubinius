@@ -57,3 +57,9 @@ describe MSpec, ".verify_mode?" do
     MSpec.verify_mode?.should == false
   end
 end
+
+describe MSpec, ".report_mode?" do
+  it "returns false" do
+    MSpec.report_mode?.should == false
+  end
+end

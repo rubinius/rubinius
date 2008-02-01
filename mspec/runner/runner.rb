@@ -1,3 +1,5 @@
+require 'mspec/runner/tag'
+
 module MSpec
   def self.describe(mod, msg, &block)
     stack.push RunState.new
@@ -18,6 +20,7 @@ module MSpec
     return unless files = retrieve(:files)
 
     files.each do |file|
+      store :file, file
       actions :load
       protect("loading #{file}") { Kernel.load file }
       actions :unload
@@ -31,6 +34,10 @@ module MSpec
   
   def self.register_files(files)
     store :files, files
+  end
+  
+  def self.register_tags_path(path)
+    store :tags_path, path
   end
   
   def self.register_mode(mode)
@@ -78,5 +85,45 @@ module MSpec
     if value = retrieve(symbol)
       value.delete action
     end
+  end
+  
+  def self.tags_path
+    retrieve(:tags_path) || ".tags"
+  end
+  
+  def self.tags_file
+    path = tags_path
+    file = retrieve :file
+    tags_file = File.basename(file, '.*').sub(/_spec$/, '_tags') + '.txt'
+    
+    if path[0] == ?/
+      m = file.match %r[.*spec/(.*)/.*_spec.rb]
+      tags_path = m ? File.join(path, m[1]) : path
+    else
+      tags_path = File.join(File.dirname(file), path)
+    end
+    File.join tags_path, tags_file
+  end
+  
+  def self.read_tags(*keys)
+    tags = []
+    return tags unless File.exist? tags_file
+    File.open(tags_file, "r") do |f|
+      f.each_line do |line|
+        tag = SpecTag.new line.chomp
+        tags << tag if keys.include? tag.tag
+      end
+    end
+    tags
+  end
+  
+  def self.write_tag(tag)
+    string = tag.to_s
+    if File.exist? tags_file
+      File.open(tags_file, "r") do |f|
+        f.each_line { |line| return if line.chomp == string }
+      end
+    end
+    File.open(tags_file, "a") { |f| f.puts string }
   end
 end
