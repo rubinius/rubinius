@@ -37,6 +37,10 @@ module Zlib
   attach_function 'inflate',     :inflate,     [:pointer, :int], :int
   attach_function 'inflateEnd',  :inflateEnd,  [:pointer],       :int
 
+  # Chunk size for inflation and deflation
+
+  CHUNK = 1024
+
   #--
   # From zlib.h
   #++
@@ -87,31 +91,81 @@ module Zlib
   GZ_EXTRAFLAG_SLOW = 0x2
 
   class Deflate
+
     def self.deflate(data)
-      Compression::ZLib.new.deflate data
+      new.deflate data
     end
+
+    def initialize(level = Zlib::DEFAULT_COMPRESSION,
+                   window_bits = Zlib::MAX_WBITS,
+                   mem_level = Zlib::DEF_MEM_LEVEL,
+                   strategy = Zlib::DEFAULT_STRATEGY)
+      level ||= Zlib::DEFAULT_COMPRESSION
+      window_bits ||= Zlib::MAX_WBITS
+      mem_level ||= Zlib::DEF_MEM_LEVEL
+      strategy ||= Zlib::DEFAULT_STRATEGY
+
+      @stream_p = Zlib.z_stream_Alloc
+      @stream = Zlib::Stream.new @stream_p
+
+      err = Zlib.deflateInit2(@stream_p, level, Zlib::DEFLATED, window_bits,
+                              mem_level, strategy)
+
+      raise GzipFile::Error, "Zlib error #{err}" unless err == Zlib::OK # HACK
+    end
+
+    def deflate(data)
+      flush = Zlib::NO_FLUSH
+
+      data = data.dup
+      buffer = ''
+
+      while flush != Zlib::FINISH do
+        chunk_in = data.slice! 0, CHUNK
+        flush = Zlib::FINISH if data.empty?
+
+        data_in = MemoryPointer.new chunk_in.length
+        data_in.write_string chunk_in, chunk_in.length
+
+        @stream[:next_in] = data_in
+        @stream[:avail_in] = chunk_in.length
+
+        begin
+          data_out = MemoryPointer.new CHUNK
+
+          @stream[:avail_out] = CHUNK
+          @stream[:next_out] = data_out
+
+          err = Zlib.deflate @stream_p, flush
+
+          raise GzipFile::Error, "Zlib stream error" if err == Zlib::STREAM_ERROR
+
+          have = CHUNK - @stream[:avail_out]
+
+          chunk_out = data_out.read_string have
+
+          buffer << chunk_out
+        end while @stream[:avail_out] == 0
+      end
+
+      Zlib.deflateEnd @stream_p
+
+      buffer
+    end
+
   end
 
   class GzipFile
     class Error < Zlib::Error; end
   end
 
-  class GzipReader # HACK usa a buffer class
-
-    CHUNK = 1024
+  class GzipReader < GzipFile # HACK usa a buffer class
 
     def initialize(io)
-      @stream_p = Zlib.z_stream_Alloc
-      @stream = Zlib::Stream.new @stream_p
-
-      @window_bits = Zlib::MAX_WBITS + 16 # gzip header
-      err = Zlib.inflateInit2 @stream_p, @window_bits
-
-      raise GzipFile::Error, "Zlib error #{err}" unless err == Zlib::OK # HACK
-
       @io = io
+      window_bits = Zlib::MAX_WBITS + 16 # gzip header
 
-      @buffer = ''
+      @inflator = Zlib::Inflate.new window_bits
     end
 
     def close
@@ -122,12 +176,80 @@ module Zlib
     end
 
     def read
+      data = ''
+
+      while chunk = @io.read(CHUNK) do
+        data << @inflator.inflate(chunk)
+      end
+
+      data
+    end
+
+  end
+
+  class GzipWriter < GzipFile # HACK use a buffer class
+
+    def initialize(io, level = Zlib::DEFAULT_COMPRESSION,
+                   strategy = Zlib::DEFAULT_STRATEGY)
+      @io = io
+      window_bits = Zlib::MAX_WBITS + 16 # gzip header
+
+      @deflator = Zlib::Deflate.new level, window_bits, nil, strategy
+
+      @buffer = ''
+    end
+
+    def close
+      finish
+      @io.close
+      nil
+    end
+
+    def finish
+      until @buffer.empty? do
+        chunk = @buffer.slice! 0, CHUNK
+        @io.write @deflator.deflate(chunk)
+      end
+    end
+
+    def flush
+      true
+    end
+
+    def write(data)
+      @buffer << data
+      data.length
+    end
+
+  end
+
+  class Inflate
+
+    def self.inflate(data)
+      new.inflate data
+    end
+
+    def initialize(window_bits = Zlib::MAX_WBITS)
+      @window_bits = window_bits
+
+      @stream_p = Zlib.z_stream_Alloc
+      @stream = Zlib::Stream.new @stream_p
+
+      err = Zlib.inflateInit2 @stream_p, @window_bits
+
+      raise GzipFile::Error, "Zlib error #{err}" unless err == Zlib::OK # HACK
+    end
+
+    def inflate(data)
       err = nil
       data_in = MemoryPointer.new CHUNK
       data_out = MemoryPointer.new CHUNK
 
+      data = data.dup
+      buffer = ''
+
       begin
-        chunk_in = @io.read CHUNK
+        chunk_in = data.slice! 0, CHUNK
 
         break if chunk_in.length == 0
 
@@ -160,7 +282,7 @@ module Zlib
 
           chunk_out = data_out.read_string have
 
-          @buffer << chunk_out
+          buffer << chunk_out
         end while @stream[:avail_out] == 0
 
       end until err == Zlib::STREAM_END
@@ -169,96 +291,12 @@ module Zlib
 
       raise GzipFile::Error, "Zlib data error" if err == Zlib::DATA_ERROR
 
-      return @buffer
+      buffer
     ensure
       data_in.free
       data_out.free
     end
 
-  end
-
-  class GzipWriter # HACK use a buffer class
-
-    CHUNK = 1024
-
-    def initialize(io, level = Zlib::DEFAULT_COMPRESSION,
-                   strategy = Zlib::DEFAULT_STRATEGY)
-      @stream_p = Zlib.z_stream_Alloc
-      @stream = Zlib::Stream.new @stream_p
-
-      @level = level
-      @method = Zlib::DEFLATED
-      @window_bits = Zlib::MAX_WBITS + 16 # gzip header
-      @mem_level = Zlib::DEF_MEM_LEVEL
-      @strategy = strategy
-
-      err = Zlib.deflateInit2(@stream_p, @level, @method, @window_bits,
-                              @mem_level, @strategy)
-
-      raise GzipFile::Error, "Zlib error #{err}" unless err == Zlib::OK # HACK
-
-      @io = io
-
-      @buffer = ''
-    end
-
-    def close
-      finish
-      @io.close
-      nil
-    end
-
-    def finish
-      flush = Zlib::NO_FLUSH
-
-      while flush != Zlib::FINISH do
-        chunk_in = @buffer.slice! 0, CHUNK
-        flush = Zlib::FINISH if @buffer.empty?
-
-        data_in = MemoryPointer.new chunk_in.length
-        data_in.write_string chunk_in, chunk_in.length
-
-        @stream[:next_in] = data_in
-        @stream[:avail_in] = chunk_in.length
-
-        begin
-          data_out = MemoryPointer.new CHUNK
-
-          @stream[:avail_out] = CHUNK
-          @stream[:next_out] = data_out
-
-          err = Zlib.deflate @stream_p, flush
-
-          raise GzipFile::Error, "Zlib stream error" if err == Zlib::STREAM_ERROR
-
-          have = CHUNK - @stream[:avail_out]
-
-          chunk_out = data_out.read_string have
-
-          @io.write chunk_out
-        end while @stream[:avail_out] == 0
-      end
-
-      Zlib.deflateEnd @stream_p
-
-      @io
-    end
-
-    def flush
-      true
-    end
-
-    def write(data)
-      @buffer << data
-      data.length
-    end
-
-  end
-
-  class Inflate
-    def self.inflate(data)
-      Compression::ZLib.new.inflate data
-    end
   end
 
 end
