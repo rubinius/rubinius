@@ -106,7 +106,7 @@ describe TagAction, "#register" do
     @action = TagAction.new :all, nil, nil, nil, nil
   end
   
-  it "registers itself with MSpec for the #after action" do
+  it "registers itself with MSpec for the :after action" do
     MSpec.should_receive(:register).with(:after, @action)
     @action.register
   end
@@ -118,7 +118,7 @@ describe TagAction, "#unregister" do
     @action = TagAction.new :all, nil, nil, nil, nil
   end
   
-  it "unregisters itself with MSpec for the #after action" do
+  it "unregisters itself with MSpec for the :after action" do
     MSpec.should_receive(:unregister).with(:after, @action)
     @action.unregister
   end
