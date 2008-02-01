@@ -1542,7 +1542,7 @@ class Array
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
   def recursively_flatten(array, out)
-    raise ArgumentError, "Recursive Array!" if RecursionGuard.inspecting?(array)
+    raise ArgumentError, "tried to flatten recursive array" if RecursionGuard.inspecting?(array)
     
     ret = nil
     array.each { |o|
