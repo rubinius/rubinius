@@ -1,0 +1,1 @@
+Time#- accepts arguments that can be coerced into Float
