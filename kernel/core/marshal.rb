@@ -213,7 +213,8 @@ module Marshal
 
   class State
 
-    def initialize(depth, proc)
+    def initialize(stream, depth, proc)
+      @stream = stream
       @depth = depth
       @links = {}
       @symlinks = {}
@@ -243,14 +244,14 @@ module Marshal
       @proc.call obj if @proc and @call
     end
 
-    def construct(str, ivar_index = nil, call_proc = true)
+    def construct(ivar_index = nil, call_proc = true)
       i = @consumed
       @consumed += 1
 
       if i == 0 or i == 1
-        construct str
+        construct
       else
-        c = str[i].chr
+        c = @stream[i].chr
         obj = case c
               when TYPE_NIL
                 nil
@@ -259,45 +260,45 @@ module Marshal
               when TYPE_FALSE
                 false
               when TYPE_CLASS, TYPE_MODULE
-                name = construct_symbol str
+                name = construct_symbol
                 obj = Object.const_lookup name
 
                 store_unique_object obj
 
                 obj
               when TYPE_FIXNUM
-                construct_integer str
+                construct_integer
               when TYPE_BIGNUM
-                construct_bignum str
+                construct_bignum
               when TYPE_FLOAT
-                construct_float str
+                construct_float
               when TYPE_SYMBOL
-                construct_symbol str
+                construct_symbol
               when TYPE_STRING
-                construct_string str
+                construct_string
               when TYPE_REGEXP
-                construct_regexp str
+                construct_regexp
               when TYPE_ARRAY
-                construct_array str
+                construct_array
               when TYPE_HASH, TYPE_HASH_DEF
-                construct_hash str, c
+                construct_hash c
               when TYPE_STRUCT
-                construct_struct str
+                construct_struct
               when TYPE_OBJECT
-                construct_object str
+                construct_object
               when TYPE_USERDEF
-                construct_user_defined str, ivar_index
+                construct_user_defined ivar_index
               when TYPE_USRMARSHAL
-                construct_user_marshal str
+                construct_user_marshal
               when TYPE_LINK
-                num = construct_integer str
+                num = construct_integer
                 obj = @objects[num]
 
                 raise ArgumentError, "dump format error (unlinked)" if obj.nil?
 
                 return obj
               when TYPE_SYMLINK
-                num = construct_integer str
+                num = construct_integer
                 sym = @symbols[num]
 
                 raise ArgumentError, "bad symbol" if sym.nil?
@@ -306,27 +307,27 @@ module Marshal
               when TYPE_EXTENDED
                 @modules ||= []
 
-                name = get_symbol str
+                name = get_symbol
                 @modules << Object.const_lookup(name)
 
-                obj = construct str, nil, false
+                obj = construct nil, false
 
                 extend_object obj
 
                 obj
               when TYPE_UCLASS
-                name = get_symbol str
+                name = get_symbol
                 @user_class = name
 
-                construct str, nil, false
+                construct nil, false
 
               when TYPE_IVAR
                 ivar_index = @has_ivar.length
                 @has_ivar.push true
 
-                obj = construct str, ivar_index, false
+                obj = construct ivar_index, false
 
-                set_instance_variables str, obj if @has_ivar.pop
+                set_instance_variables obj if @has_ivar.pop
 
                 obj
               else
@@ -334,31 +335,31 @@ module Marshal
               end
 
         call obj if call_proc
-        
+
         obj
       end
     end
 
-    def construct_array(str)
+    def construct_array
       obj = @user_class ? get_user_class.new : []
       store_unique_object obj
 
-      construct_integer(str).times do
-        obj << construct(str)
+      construct_integer.times do
+        obj << construct
       end
 
       obj
     end
 
-    def construct_bignum(str)
+    def construct_bignum
       result = 0
       i = @consumed
       @consumed += 1
-      sign = str[i].chr == '-' ? -1 : 1
-      size = construct_integer(str) * 2
+      sign = @stream[i].chr == '-' ? -1 : 1
+      size = construct_integer * 2
       i = @consumed
       (0...size).each do |exp|
-        result += (str[i] * 2**(exp*8))
+        result += (@stream[i] * 2**(exp*8))
         i += 1
       end
       @consumed += size
@@ -367,8 +368,8 @@ module Marshal
       store_unique_object obj
     end
 
-    def construct_float(str)
-      s = get_byte_sequence str
+    def construct_float
+      s = get_byte_sequence
 
       if s == "nan"
         obj = 0.0 / 0.0
@@ -385,31 +386,31 @@ module Marshal
       obj
     end
 
-    def construct_hash(str, type)
+    def construct_hash(type)
       obj = @user_class ? get_user_class.new : {}
       store_unique_object obj
 
-      construct_integer(str).times do
-        key = construct str
-        val = construct str
+      construct_integer.times do
+        key = construct
+        val = construct
         obj[key] = val
       end
 
-      obj.default = construct str if type == TYPE_HASH_DEF
+      obj.default = construct if type == TYPE_HASH_DEF
 
       obj
     end
 
-    def construct_integer(str)
+    def construct_integer
       i = @consumed
       @consumed += 1
-      n = str[i]
+      n = @stream[i]
       if (n > 0 and n < 5) or n > 251
         (size, signed) = n > 251 ? [256 - n, 2**((256 - n)*8)] : [n, 0]
         result = 0
         (0...size).each do |exp|
           i += 1
-          result += (str[i] * 2**(exp*8))
+          result += (@stream[i] * 2**(exp*8))
         end
         @consumed += size
         result - signed
@@ -422,44 +423,44 @@ module Marshal
       end
     end
 
-    def construct_object(str)
-      name = get_symbol str
+    def construct_object
+      name = get_symbol
       klass = Object.const_lookup name
       obj = klass.allocate
 
       raise TypeError, 'dump format error' unless Object === obj
 
       store_unique_object obj
-      set_instance_variables str, obj
+      set_instance_variables obj
 
       obj
     end
 
-    def construct_regexp(str)
-      s = get_byte_sequence str
+    def construct_regexp
+      s = get_byte_sequence
       i = @consumed
       @consumed += 1
       if @user_class
-        obj = get_user_class.new(s, str[i])
+        obj = get_user_class.new(s, @stream[i])
       else
-        obj = Regexp.new(s, str[i])
+        obj = Regexp.new(s, @stream[i])
       end
 
       store_unique_object obj
     end
 
-    def construct_string(str)
-      obj = get_byte_sequence str
+    def construct_string
+      obj = get_byte_sequence
       obj = get_user_class.new obj if @user_class
 
       store_unique_object obj
     end
 
-    def construct_struct(str)
+    def construct_struct
       symbols = []
       values = []
 
-      name = get_symbol str
+      name = get_symbol
       store_unique_object name
 
       klass = Object.const_lookup name
@@ -468,34 +469,34 @@ module Marshal
       obj = klass.allocate
       store_unique_object obj
 
-      construct_integer(str).times do |i|
-        slot = get_symbol str
+      construct_integer.times do |i|
+        slot = get_symbol
         unless members[i].intern == slot then
           raise TypeError, "struct %s is not compatible (%p for %p)" %
             [klass, slot, members[i]]
         end
 
-        obj.instance_variable_set "@#{slot}", construct(str)
+        obj.instance_variable_set "@#{slot}", construct
       end
 
       obj
     end
 
-    def construct_symbol(str)
-      obj = get_byte_sequence(str).to_sym
+    def construct_symbol
+      obj = get_byte_sequence.to_sym
       store_unique_object obj
 
       obj
     end
 
-    def construct_user_defined(str, ivar_index)
-      name = get_symbol str
+    def construct_user_defined(ivar_index)
+      name = get_symbol
       klass = Module.const_lookup name
 
-      data = get_byte_sequence str
+      data = get_byte_sequence
 
       if ivar_index and @has_ivar[ivar_index] then
-        set_instance_variables str, data
+        set_instance_variables data
         @has_ivar[ivar_index] = false
       end
 
@@ -506,8 +507,8 @@ module Marshal
       obj
     end
 
-    def construct_user_marshal(str)
-      name = get_symbol str
+    def construct_user_marshal
+      name = get_symbol
       store_unique_object name
 
       klass = Module.const_lookup name
@@ -521,7 +522,7 @@ module Marshal
 
       store_unique_object obj
 
-      data = construct str
+      data = construct
       obj.marshal_load data
 
       obj
@@ -546,12 +547,12 @@ module Marshal
       ptr.free if ptr
     end
 
-    def get_byte_sequence(str)
-      size = construct_integer(str)
+    def get_byte_sequence
+      size = construct_integer
       i = @consumed
       k = i + size
       @consumed += size
-      str[i...k]
+      @stream[i...k]
     end
 
     def get_module_names(obj)
@@ -572,19 +573,19 @@ module Marshal
       cls
     end
 
-    def get_symbol(str)
+    def get_symbol
       i = @consumed
       @consumed += 1
 
-      type = str[i].chr
+      type = @stream[i].chr
       case type
       when TYPE_SYMBOL then
         @call = false
-        obj = construct_symbol str
+        obj = construct_symbol
         @call = true
         obj
       when TYPE_SYMLINK then
-        num = construct_integer str
+        num = construct_integer
         @symbols[num]
       else
         raise ArgumentError, "expected TYPE_SYMBOL or TYPE_SYMLINK, got #{type.inspect}"
@@ -729,10 +730,10 @@ module Marshal
       out << val.to_marshal(self)
     end
 
-    def set_instance_variables(str, obj)
-      construct_integer(str).times do
-        ivar = get_symbol str
-        value = construct str
+    def set_instance_variables(obj)
+      construct_integer.times do
+        ivar = get_symbol
+        value = construct
         obj.instance_variable_set prepare_ivar(ivar), value
       end
     end
@@ -763,7 +764,7 @@ module Marshal
     end
 
     depth = Type.coerce_to limit, Fixnum, :to_int
-    ms = State.new depth, nil
+    ms = State.new nil, depth, nil
 
     if an_io and !an_io.respond_to? :write
       raise TypeError, "output must respond to write"
@@ -780,8 +781,6 @@ module Marshal
   end
 
   def self.load(obj, proc = nil)
-    ms = State.new 0, proc
-
     if obj.respond_to? :to_str
       str = obj.to_s
     elsif obj.respond_to? :read
@@ -793,7 +792,8 @@ module Marshal
       raise TypeError, "instance of IO needed"
     end
 
-    ms.construct str
+    ms = State.new str, nil, proc
+    ms.construct
   end
 
 end
