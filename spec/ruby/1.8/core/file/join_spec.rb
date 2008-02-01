@@ -42,8 +42,19 @@ describe "File::join" do
   it "handles recursive arrays" do
     parts = []
     parts << parts
-
     File.join(parts).should == '[...]'
+
+    parts = ["one", "two"]
+    parts << parts
+    File.join(parts).should == 'one/two/one/two/[...]'
+
+    parts << "three"
+    parts << "four"
+    File.join(parts).should == 'one/two/one/two/[...]/three/four/three/four'
+
+    parts = [["one", "two"], ["three", "four"]]
+    parts << parts
+    File.join(parts).should == 'one/two/three/four/one/two/three/four/[...]'
   end
 
   it "doesn't remove File::SEPARATOR from the middle of arguments" do
