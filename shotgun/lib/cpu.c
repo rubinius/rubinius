@@ -371,7 +371,7 @@ static void cpu_increment_serials(STATE, OBJECT module, OBJECT sym) {
   OBJECT hsh, meth;
   
   while(!NIL_P(module)) {
-    hsh = module_get_methods(module);
+    hsh = module_get_method_table(module);
     meth = hash_find(state, hsh, sym);
     
     if(REFERENCE_P(meth)) {
@@ -400,7 +400,7 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   cpu_clear_cache_for_method(state, c, sym, FALSE);
   
   cpu_increment_serials(state, target, sym);
-  meths = module_get_methods(target);
+  meths = module_get_method_table(target);
   
   switch(c->call_flags) {
   default:

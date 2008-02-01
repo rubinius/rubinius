@@ -110,12 +110,12 @@ class IncludedModule < Module
   # HACK: make this a VM exported constant
   self.object_type = 7
 
-  ivar_as_index :superclass => 6, :module => 7
+  ivar_as_index :__ivars__ => 0, :method_table => 1, :method_cache => 2, :name => 3, :constants => 4, :encloser => 5, :superclass => 6, :module => 7
   def superclass; @superclass ; end
   def module    ; @module     ; end
 
   def initialize(mod)
-    @methods = mod.method_table
+    @method_table = mod.method_table
     @method_cache = nil
     @name = mod.name.__symbol_lookup__
     @constants = mod.constant_table

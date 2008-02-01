@@ -29,6 +29,7 @@ begin
 rescue Object => e
   STDOUT << "Error detected running loader startup stage:\n"
   STDOUT << "  #{e.message} (#{e.class})\n"
+  STDOUT << e.backtrace
   exit 2
 end
 

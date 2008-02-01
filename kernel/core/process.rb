@@ -1,4 +1,4 @@
-# depends on: module.rb class.rb struct.rb
+# depends on: module.rb class.rb hash.rb struct.rb
 
 module Process
   module Constants

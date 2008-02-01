@@ -292,7 +292,7 @@ void object_copy_metaclass(STATE, OBJECT self, OBJECT dest) {
   if(!metaclass_s_metaclass_p(state, meta)) return;
   
   new_meta = object_metaclass(state, dest);
-  module_set_methods(new_meta, hash_dup(state, module_get_methods(meta)));
+  module_set_method_table(new_meta, hash_dup(state, module_get_method_table(meta)));
 }
 
 int object_stores_bytes_p(STATE, OBJECT self) {

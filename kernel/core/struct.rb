@@ -1,4 +1,4 @@
-# depends on: class.rb enumerable.rb
+# depends on: class.rb enumerable.rb hash.rb
 
 class Struct
 
@@ -394,6 +394,5 @@ class Struct
   def values_at(*args)
     to_a.values_at(*args)
   end
-
 end
 

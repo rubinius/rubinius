@@ -47,7 +47,7 @@ OBJECT class_constitute(STATE, OBJECT sup, OBJECT under) {
     sup_itr = sup;
     while(!NIL_P(sup_itr)) {
       if(NUM_FIELDS(sup_itr) <= CLASS_f_SUPERCLASS ||
-         !ISA(class_get_methods(sup_itr), state->global->hash)) {
+         !ISA(class_get_method_table(sup_itr), state->global->hash)) {
         /* Ok, this wont work as a superclass. */
         return Qnil;
       } else {

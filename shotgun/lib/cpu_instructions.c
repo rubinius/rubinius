@@ -222,7 +222,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
     return Qnil;
   }
 
-  hsh = module_get_methods(klass);
+  hsh = module_get_method_table(klass);
   
   /* Ok, rather than assert, i'm going to just bail. Makes the error
      a little strange, but handle-able in ruby land. */
@@ -268,7 +268,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
         class_get_name(klass)))
     );
     */
-    hsh = module_get_methods(klass);
+    hsh = module_get_method_table(klass);
     if(!ISA(hsh, state->global->hash)) {
       printf("Warning: encountered invalid module (methods not a hash).\n");
       sassert(0);

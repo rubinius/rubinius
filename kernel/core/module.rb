@@ -37,7 +37,7 @@ class Module
 
   def initialize
     @constants = Hash.new
-    @methods = MethodTable.new
+    @method_table = MethodTable.new
 
     block = block_given?
     instance_eval(&block) if block
@@ -584,7 +584,7 @@ class Module
     names.each do |name|
       method_symbol = reader_method_symbol(name)
       access_method = AccessVarMethod.get_ivar(attribute_symbol(name))
-      self.method_table[method_symbol] = access_method
+      method_table[method_symbol] = access_method
     end
 
     return nil
@@ -594,7 +594,7 @@ class Module
     names.each do |name|
       method_symbol = writer_method_symbol(name)
       access_method = AccessVarMethod.set_ivar(attribute_symbol(name))
-      self.method_table[method_symbol] = access_method
+      method_table[method_symbol] = access_method
     end
 
     return nil
