@@ -60,7 +60,7 @@ class Range
   # <em>range</em> will include the end object; otherwise, it will be
   # excluded.
   def initialize(first, last, exclude_end = false)
-    raise NameError, "`initialize' called twice" if @first
+    raise NameError, "`initialize' called twice" if @begin
     
     unless first.is_a?(Fixnum) && last.is_a?(Fixnum)
       begin
@@ -70,8 +70,9 @@ class Range
       end
     end
     
-    @first, @last = first, last
-    @exclude_end  = exclude_end
+    @begin = first
+    @end = last
+    @excl = exclude_end
   end
 
   # Returns <tt>true</tt> only if <em>obj</em> is a Range, has
@@ -103,11 +104,11 @@ class Range
   #
   #   high
   def ===(value)
-    if @first <= value
+    if @begin <= value
       if self.exclude_end?
-        return true if value < @last
+        return true if value < @end
       else
-        return true if value <= @last
+        return true if value <= @end
       end
     end
     return false
@@ -130,7 +131,7 @@ class Range
   #
   #    10 11 12 13 14 15
   def each(&block)
-    first, last = @first, @last # dup?
+    first, last = @begin, @end # dup?
     
     raise TypeError, "can't iterate from #{first.class}" unless first.respond_to? :succ
 
@@ -139,11 +140,11 @@ class Range
       first.upto(last, &block)
     elsif first.is_a?(String)
       first.upto(last) do |s|
-        block.call(s) unless @exclude_end && s == last
+        block.call(s) unless @excl && s == last
       end
     else
       current = first
-      if @exclude_end then
+      if @excl then
         while (current <=> last) < 0
           block.call(current)
           current = current.succ
@@ -161,12 +162,12 @@ class Range
 
   # Returns <tt>true</tt> if <em>rng</em> excludes its end value.
   def exclude_end?
-    @exclude_end
+    @excl
   end
 
   # Returns the first object in <em>rng</em>.
   def first
-    @first
+    @begin
   end
   alias_method :begin, :first
 
@@ -174,10 +175,10 @@ class Range
   # end points, and the same value for the "exclude end" flag, generate
   # the same hash value.
   def hash
-    excl = @exclude_end ? 1 : 0
+    excl = @excl ? 1 : 0
     hash = excl
-    hash ^= @first.hash << 1
-    hash ^= @last.hash << 9
+    hash ^= @begin.hash << 1
+    hash ^= @end.hash << 9
     hash ^= excl << 24;
     return hash
   end
@@ -185,7 +186,7 @@ class Range
   # Convert this range object to a printable form (using
   # <tt>inspect</tt> to convert the start and end objects).
   def inspect
-    "#{@first.inspect}#{@exclude_end ? "..." : ".."}#{@last.inspect}"
+    "#{@begin.inspect}#{@excl ? "..." : ".."}#{@end.inspect}"
   end
 
   # Returns the object that defines the end of <em>rng</em>.
@@ -193,7 +194,7 @@ class Range
   #    (1..10).end    #=> 10
   #    (1...10).end   #=> 10
   def last
-    return @last
+    @end
   end
   alias_method :end, :last
 
@@ -219,7 +220,7 @@ class Range
   #     7 xxxxxxx
   #    10 xxxxxxxxxx
   def step(step_size = 1, &block) # :yields: object
-    first, last = @first, @last
+    first, last = @begin, @end
     step_size = step_size.to_f #people might not pass numbers in. This stops them.
 
     raise ArgumentError, "step can't be negative" if step_size < 0
@@ -247,7 +248,7 @@ class Range
 
   # Convert this range object to a printable form.
   def to_s
-    "#@first#{@exclude_end ? "..." : ".."}#@last"
+    "#{@begin}#{@excl ? "..." : ".."}#{@end}"
   end
 end
 
