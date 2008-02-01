@@ -9,8 +9,6 @@
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/string.h"
 
-#define STRING_P(obj) (REFERENCE_P(obj) && obj->klass == state->global->string)
-
 OBJECT string_new2(STATE, const char *str, int sz) {
   OBJECT obj, data;
   char *ba;

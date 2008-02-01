@@ -77,7 +77,8 @@ typedef enum
   ByteArrayType   ,
   ISeqType        ,
   ChannelType     ,
-  ThreadType
+  ThreadType      ,
+  ModuleType
 } object_type;
 
 #define object_type_to_type(object_type, type) do {\

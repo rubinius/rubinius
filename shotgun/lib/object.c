@@ -114,6 +114,21 @@ int object_copy_bytes_into(STATE, OBJECT self, OBJECT dest, int count, int offse
   return TRUE;
 }
 
+// See http://www.concentric.net/~Ttwang/tech/inthash.htm
+static uint32_t _int_hash( uint32_t a)
+{
+   a = (a+0x7ed55d16) + (a<<12);
+   a = (a^0xc761c23c) ^ (a>>19);
+   a = (a+0x165667b1) + (a<<5);
+   a = (a+0xd3a2646c) ^ (a<<9);
+   a = (a+0xfd7046c5) + (a<<3);
+   a = (a^0xb55a4f09) ^ (a>>16);
+   return a;
+}
+
+/* Returns a number which is the hash value of self.
+ * NOTE: The return value MUST fit in a Fixnum, thus the 
+ * clamp at the end of the function. */
 unsigned int object_hash_int(STATE, OBJECT self) {
   unsigned int hsh;
   hsh = (unsigned int)(uintptr_t)self;
@@ -127,7 +142,8 @@ unsigned int object_hash_int(STATE, OBJECT self) {
         hsh = hsh >> 1;
       }
     }
-    hsh = hsh >> 2;
+
+    hsh = _int_hash((uint32_t)(hsh >> 2));
   } else {
     if(ISA(self, state->global->string)) {
       hsh = string_hash_int(state, self);
@@ -140,7 +156,7 @@ unsigned int object_hash_int(STATE, OBJECT self) {
     }
   }
 
-  return hsh;
+  return hsh & FIXNUM_MAX;
 }
 
 /* TODO: here we could check that the 1st field

@@ -56,39 +56,6 @@ int _object_stores_bytes(OBJECT self);
 
 #define ZLIB_CHUNK_SIZE 512
 
-#define INDEXED(obj) (RTEST(obj) && (REFERENCE_P(self) || !object_stores_bytes_p(state, obj)))
-
-#define RTYPE(obj,type) (REFERENCE_P(obj) && obj->obj_type == type)
-#define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
-
-#define BIGNUM_P(obj) (RTYPE(obj, BignumType))
-#define FLOAT_P(obj) (RTYPE(obj, FloatType))
-#define COMPLEX_P(obj) (FALSE)
-
-#define INTEGER_P(obj) (FIXNUM_P(obj) || BIGNUM_P(obj))
-#define NUMERIC_P(obj) (FIXNUM_P(obj) || COMPLEX_P(obj) || BIGNUM_P(obj) || FLOAT_P(obj))
-
-#define CLASS_P(obj) RTYPE(obj, ClassType)
-#define TUPLE_P(obj) RTYPE(obj, TupleType)
-#define IO_P(obj) RISA(obj, io)
-#define STRING_P(obj) RTYPE(obj, StringType)
-// #define STRING_P(obj) RISA(obj, string)
-#define HASH_P(obj) (RISA(obj, hash))
-#define ARRAY_P(obj) RTYPE(obj, ArrayType)
-
-#define STRING_OR_NIL_P(obj) (STRING_P(obj) || NIL_P(obj))
-
-#define CMETHOD_P(obj) RTYPE(obj, CMethodType)
-#define REGEXP_P(obj) RTYPE(obj, RegexpType)
-
-#define CTX_P(obj) RISA(obj, fastctx)
-#define BYTEARRAY_P(obj) RTYPE(obj, ByteArrayType)
-#define ISEQ_P(obj) RTYPE(obj, ISeqType)
-#define TASK_P(obj) RTYPE(obj, TaskType)
-#define CHANNEL_P(obj) RTYPE(obj, ChannelType)
-#define BLOCKENV_P(obj) RTYPE(obj, BlockEnvType)
-#define THREAD_P(obj) RTYPE(obj, ThreadType)
-
 // defines a required arity for a primitive
 // return true because we want other handler code to ignore it
 // this is because it is raised directly in the primitive as an exception

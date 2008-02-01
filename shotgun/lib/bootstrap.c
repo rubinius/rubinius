@@ -34,6 +34,7 @@ void cpu_bootstrap(STATE) {
   obj = _object_basic_class(state, Qnil);
   BC(object) = obj;
   BC(module) = _module_basic_class(state, obj);
+  class_set_object_type(BC(module), I2N(ModuleType));
   class_set_superclass(cls, BC(module));
   BC(metaclass) = _metaclass_basic_class(state, cls);
   class_set_object_type(BC(metaclass), I2N(MetaclassType));
@@ -41,6 +42,7 @@ void cpu_bootstrap(STATE) {
   BC(tuple) = _tuple_basic_class(state, obj);
   BC(hash) =  _hash_basic_class(state, obj);
   BC(methtbl) = _methtbl_basic_class(state, BC(hash));
+  class_set_object_type(BC(methtbl), I2N(MTType));
   
   object_create_metaclass(state, obj, cls);
   object_create_metaclass(state, BC(module), object_metaclass(state, obj));
@@ -69,7 +71,6 @@ void cpu_bootstrap(STATE) {
  
   class_set_object_type(BC(bytearray), I2N(ByteArrayType));
   class_set_object_type(BC(string), I2N(StringType));
-  class_set_object_type(BC(methtbl), I2N(MTType));
   class_set_object_type(BC(tuple), I2N(TupleType));
   class_set_object_type(BC(hash), I2N(HashType));
   

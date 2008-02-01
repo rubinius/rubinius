@@ -140,9 +140,7 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
      chain.
      
  */
- 
-#define TUPLE_P(obj) (CLASS_OBJECT(obj) == BASIC_CLASS(tuple))
- 
+
 static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name, OBJECT recv, OBJECT mod) {
   OBJECT meth, vis;
 
@@ -175,36 +173,21 @@ static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name,
 
 static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OBJECT name,  OBJECT *mod) {
   OBJECT ok, hsh, cache, orig_klass, meth;
-  int tup, tries;
-  struct method_cache *ent, *fent;
+  struct method_cache *ent;
   
   cache = Qnil;
 
 #if USE_GLOBAL_CACHING
-  tries = CPU_CACHE_TOLERANCE;
-  fent = state->method_cache + CPU_CACHE_HASH(klass, name);
-  ent = fent;
-  while(tries--) {
-    /* We hit a hole. Stop. */
-    if(!ent->name) {
-      fent = ent;
-      break;
-    }
-    if(ent->name == name && ent->klass == klass) {
+  ent = state->method_cache + CPU_CACHE_HASH(klass, name);
+  if(ent->name == name && ent->klass == klass) {
+    /* HACK: protected not tested for here. Do we need to? */
+    if(c->call_flags == 1 || ent->visibility == state->global->sym_public) {
+#if TRACK_STATS
+      state->cache_hits++;
+#endif
       *mod = ent->module;
-      meth = ent->method;
-      tup = TUPLE_P(meth);
-    
-      if(VISIBLE_P(c, meth, tup)) {
-        UNVIS_METHOD2(meth);
-    
-  #if TRACK_STATS
-        state->cache_hits++;
-  #endif
-        return meth;
-      }
+      return ent->method;
     }
-    ent++;
   }
 #if TRACK_STATS
   if(ent->name) {
@@ -215,8 +198,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
 #endif
 
   /* Validate klass is valid even. */
-  if(NUM_FIELDS(klass) <= CLASS_f_SUPERCLASS) {
-    printf("Warning: encountered invalid class (not big enough).\n");
+  if(!MODULE_P(klass)) {
+    printf("Warning: encountered invalid class.\n");
     sassert(0);
     *mod = Qnil;
     return Qnil;
@@ -226,8 +209,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
   
   /* Ok, rather than assert, i'm going to just bail. Makes the error
      a little strange, but handle-able in ruby land. */
-  
-  if(!ISA(hsh, state->global->hash)) {
+ 
+  if(!METHODTABLE_P(hsh)) {
     printf("Warning: encountered invalid module (methods not a hash).\n");
     sassert(0);
     *mod = Qnil;
@@ -251,8 +234,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
     ok = klass;
     
     /* Validate klass is still valid. */
-    if(NUM_FIELDS(klass) <= CLASS_f_SUPERCLASS) {
-      printf("Warning: encountered invalid class (not big enough).\n");
+    if(!MODULE_P(klass)) {
+      printf("Warning: encountered invalid class.\n");
       sassert(0);
       *mod = Qnil;
       return Qnil;
@@ -269,7 +252,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
     );
     */
     hsh = module_get_method_table(klass);
-    if(!ISA(hsh, state->global->hash)) {
+    if(!METHODTABLE_P(hsh)) {
       printf("Warning: encountered invalid module (methods not a hash).\n");
       sassert(0);
       *mod = Qnil;
@@ -285,13 +268,19 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
 
 #if USE_GLOBAL_CACHING
   /* Update the cache. */
-  if(RTEST(meth)) {
-    fent->klass = orig_klass;
-    fent->name = name;
-    fent->module = klass;
-    fent->method = meth;
-    
-    UNVIS_METHOD(meth);
+  if(meth != Qnil) {
+    ent->klass = orig_klass;
+    ent->name = name;
+    ent->module = klass;
+    if(TUPLE_P(meth)) {
+      ent->method = tuple_at(state, meth, 1);
+      ent->visibility = tuple_at(state, meth, 0);
+    } else {
+      ent->method = meth;
+      ent->visibility = state->global->sym_public;
+    }
+   
+    meth = ent->method;
   }
 #else
   if(RTEST(meth)) {
