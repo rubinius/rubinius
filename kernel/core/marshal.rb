@@ -100,13 +100,17 @@ class Struct
   def to_marshal(ms)
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
+
     out << Marshal::TYPE_STRUCT
+
     out << ms.serialize(self.class.name.to_sym)
     out << ms.serialize_integer(self.length)
-    self.each_pair do |sym, val|
-      out << ms.serialize(sym)
-      out << ms.serialize(val)
+
+    self.each_pair do |name, value|
+      out << ms.serialize(name)
+      out << ms.serialize(value)
     end
+
     out << ms.serialize_instance_variables_suffix(self)
     out
   end
@@ -209,31 +213,17 @@ module Marshal
 
   class State
 
-    attr_accessor :depth
-    attr_accessor :consumed
-    attr_accessor :modules
-    attr_accessor :has_ivar
-    attr_accessor :user_class
-    attr_accessor :nested
-    attr_accessor :proc
-    attr_accessor :call_proc
-    attr_accessor :links
-    attr_accessor :symlinks
-    attr_accessor :objects
-    attr_accessor :symbols
-
-    def initialize
-      @depth = -1
+    def initialize(depth, proc)
+      @depth = depth
       @links = {}
       @symlinks = {}
       @consumed = 0
       @symbols = []
       @objects = []
-      @modules = []
-      @has_ivar = false
-      @nested = false
-      @proc = nil
-      @call_proc = false
+      @modules = nil
+      @has_ivar = []
+      @proc = proc
+      @call = true
     end
 
     def add_object(obj)
@@ -250,10 +240,10 @@ module Marshal
     end
 
     def call(obj)
-      @proc.call(obj) if @proc and @call_proc
+      @proc.call obj if @proc and @call
     end
 
-    def construct(str)
+    def construct(str, ivar_index = nil, call_proc = true)
       i = @consumed
       @consumed += 1
 
@@ -261,87 +251,102 @@ module Marshal
         construct str
       else
         c = str[i].chr
-        case c
-        when TYPE_NIL
-          @proc.call nil if @call_proc
-          nil
-        when TYPE_TRUE
-          @proc.call true if @call_proc
-          true
-        when TYPE_FALSE
-          @proc.call false if @call_proc
-          false
-        when TYPE_CLASS, TYPE_MODULE
-          cls_mod = Module.const_lookup construct_symbol(str)
-          @proc.call cls_mod if @call_proc
-          store_unique_object cls_mod
-        when TYPE_FIXNUM
-          obj = construct_integer str
-          @proc.call obj if @call_proc
-          obj
-        when TYPE_BIGNUM
-          construct_bignum str
-        when TYPE_FLOAT
-          construct_float str
-        when TYPE_SYMBOL
-          construct_symbol str
-        when TYPE_STRING
-          construct_string str
-        when TYPE_REGEXP
-          construct_regexp str
-        when TYPE_ARRAY
-          construct_array str
-        when TYPE_HASH, TYPE_HASH_DEF
-          construct_hash str, c
-        when TYPE_STRUCT
-          construct_struct str
-        when TYPE_OBJECT
-          construct_object str
-        when TYPE_USERDEF
-          construct_custom_object_ul str
-        when TYPE_USRMARSHAL
-          construct_custom_object_mul str
-        when TYPE_LINK
-          num = construct_integer str
-          @objects[num-1]
-        when TYPE_SYMLINK
-          num = construct_integer str
-          @symbols[num]
-        when TYPE_EXTENDED
-          @call_proc = false
-          sym = construct str
-          @modules << sym
-          store_unique_object sym
-          construct str
-        when TYPE_UCLASS
-          @call_proc = false
-          sym = construct str
-          @user_class = sym
-          store_unique_object sym
-          construct str
-        when TYPE_IVAR
-          @has_ivar = true
-          construct str
-        else
-          raise ArgumentError, "load error"
-        end
+        obj = case c
+              when TYPE_NIL
+                nil
+              when TYPE_TRUE
+                true
+              when TYPE_FALSE
+                false
+              when TYPE_CLASS, TYPE_MODULE
+                name = construct_symbol str
+                obj = Object.const_lookup name
+
+                store_unique_object obj
+
+                obj
+              when TYPE_FIXNUM
+                construct_integer str
+              when TYPE_BIGNUM
+                construct_bignum str
+              when TYPE_FLOAT
+                construct_float str
+              when TYPE_SYMBOL
+                construct_symbol str
+              when TYPE_STRING
+                construct_string str
+              when TYPE_REGEXP
+                construct_regexp str
+              when TYPE_ARRAY
+                construct_array str
+              when TYPE_HASH, TYPE_HASH_DEF
+                construct_hash str, c
+              when TYPE_STRUCT
+                construct_struct str
+              when TYPE_OBJECT
+                construct_object str
+              when TYPE_USERDEF
+                construct_user_defined str, ivar_index
+              when TYPE_USRMARSHAL
+                construct_user_marshal str
+              when TYPE_LINK
+                num = construct_integer str
+                obj = @objects[num]
+
+                raise ArgumentError, "dump format error (unlinked)" if obj.nil?
+
+                return obj
+              when TYPE_SYMLINK
+                num = construct_integer str
+                sym = @symbols[num]
+
+                raise ArgumentError, "bad symbol" if sym.nil?
+
+                return sym
+              when TYPE_EXTENDED
+                @modules ||= []
+
+                name = get_symbol str
+                @modules << Object.const_lookup(name)
+
+                obj = construct str, nil, false
+
+                extend_object obj
+
+                obj
+              when TYPE_UCLASS
+                name = get_symbol str
+                @user_class = name
+
+                construct str, nil, false
+
+              when TYPE_IVAR
+                ivar_index = @has_ivar.length
+                @has_ivar.push true
+
+                obj = construct str, ivar_index, false
+
+                set_instance_variables str, obj if @has_ivar.pop
+
+                obj
+              else
+                raise ArgumentError, "load error"
+              end
+
+        call obj if call_proc
+        
+        obj
       end
     end
 
     def construct_array(str)
-      has_ivar = @has_ivar; @has_ivar = false
-      modules = @modules; @modules = []
       obj = @user_class ? get_user_class.new : []
-      store_unique_object obj if @nested
-      @nested = true
-      @call_proc = true if @proc
+      store_unique_object obj
+
       construct_integer(str).times do
         obj << construct(str)
       end
-      @has_ivar = has_ivar
-      set_instance_variables str, obj
-      extend_object(modules, obj)
-      @proc.call(obj) if @proc
+
       obj
     end
 
@@ -358,32 +363,13 @@ module Marshal
       end
       @consumed += size
       obj = result * sign
-      @proc.call(obj) if @call_proc
+
       store_unique_object obj
-    end
-
-    def construct_custom_object_mul(str)
-      sym = construct str
-      store_unique_object sym
-
-      obj = Module.const_lookup(sym).allocate
-
-      data = construct str
-      obj.marshal_load data
-
-      obj
-    end
-
-    def construct_custom_object_ul(str)
-      sym = construct str
-      store_unique_object sym
-      s = get_byte_sequence str
-      set_instance_variables str, s
-      Module.const_lookup(sym)._load(s)
     end
 
     def construct_float(str)
       s = get_byte_sequence str
+
       if s == "nan"
         obj = 0.0 / 0.0
       elsif s == "inf"
@@ -393,28 +379,24 @@ module Marshal
       else
         obj = s.to_f
       end
-      @proc.call obj if @call_proc
+
       store_unique_object obj
+
+      obj
     end
 
     def construct_hash(str, type)
-      has_ivar = @has_ivar; @has_ivar = false
-      modules = @modules; @modules = []
       obj = @user_class ? get_user_class.new : {}
-      store_unique_object obj if @nested
-      @nested = true
-      @call_proc = true if @proc
+      store_unique_object obj
+
       construct_integer(str).times do
         key = construct str
         val = construct str
         obj[key] = val
       end
-      @call_proc = true if @proc
+
       obj.default = construct str if type == TYPE_HASH_DEF
-      @has_ivar = has_ivar
-      set_instance_variables str, obj
-      extend_object(modules, obj)
-      @proc.call(obj) if @proc
+
       obj
     end
 
@@ -441,24 +423,19 @@ module Marshal
     end
 
     def construct_object(str)
-      modules = @modules
-      @modules = []
-      @call_proc = false
+      name = get_symbol str
+      klass = Object.const_lookup name
+      obj = klass.allocate
 
-      name = construct str
-      mod = Object.const_lookup name
-      obj = mod.allocate
+      raise TypeError, 'dump format error' unless Object === obj
 
-      store_unique_object obj if @nested
-      @has_ivar = true
+      store_unique_object obj
       set_instance_variables str, obj
-      extend_object(modules, obj)
-      @proc.call obj if @proc
+
       obj
     end
 
     def construct_regexp(str)
-      modules = @modules; @modules = []
       s = get_byte_sequence str
       i = @consumed
       @consumed += 1
@@ -467,58 +444,91 @@ module Marshal
       else
         obj = Regexp.new(s, str[i])
       end
-      set_instance_variables str, obj
-      extend_object(modules, obj)
-      @proc.call obj if @call_proc
+
       store_unique_object obj
     end
 
     def construct_string(str)
-      modules = @modules; @modules = []
       obj = get_byte_sequence str
       obj = get_user_class.new obj if @user_class
-      set_instance_variables str, obj
-      extend_object(modules, obj)
-      @proc.call obj if @call_proc
+
       store_unique_object obj
     end
 
     def construct_struct(str)
-      modules = @modules; @modules = []
-      symbols = []; values = []
-      @call_proc = false
-      sym = construct str
-      store_unique_object sym
-      @nested = true
-      construct_integer(str).times do
-        @call_proc = false
-        symbols << construct(str)
-        @call_proc = true if @proc
-        values << construct(str)
-      end
-      obj = Struct.new(sym.to_s.sub(/\AStruct\:\:/, ''), *symbols).new
-      (0...symbols.length).each do |i|
-        obj[symbols[i]] = values[i]
-      end
-      set_instance_variables str, obj
-      extend_object(modules, obj)
-      @proc.call obj if @proc
+      symbols = []
+      values = []
+
+      name = get_symbol str
+      store_unique_object name
+
+      klass = Object.const_lookup name
+      members = klass.members
+
+      obj = klass.allocate
       store_unique_object obj
+
+      construct_integer(str).times do |i|
+        slot = get_symbol str
+        unless members[i].intern == slot then
+          raise TypeError, "struct %s is not compatible (%p for %p)" %
+            [klass, slot, members[i]]
+        end
+
+        obj.instance_variable_set "@#{slot}", construct(str)
+      end
+
+      obj
     end
 
     def construct_symbol(str)
       obj = get_byte_sequence(str).to_sym
-      @proc.call obj if @call_proc
       store_unique_object obj
-    end
-
-    def extend_object(modules, obj)
-      modules.reverse_each do |sym|
-        mod = Module.const_lookup sym
-        obj.extend mod
-      end
 
       obj
+    end
+
+    def construct_user_defined(str, ivar_index)
+      name = get_symbol str
+      klass = Module.const_lookup name
+
+      data = get_byte_sequence str
+
+      if ivar_index and @has_ivar[ivar_index] then
+        set_instance_variables str, data
+        @has_ivar[ivar_index] = false
+      end
+
+      obj = klass._load data
+
+      store_unique_object obj
+
+      obj
+    end
+
+    def construct_user_marshal(str)
+      name = get_symbol str
+      store_unique_object name
+
+      klass = Module.const_lookup name
+      obj = klass.allocate
+
+      extend_object obj if @modules
+
+      unless obj.respond_to? :marshal_load then
+        raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
+      end
+
+      store_unique_object obj
+
+      data = construct str
+      obj.marshal_load data
+
+      obj
+    end
+
+    def extend_object(obj)
+      obj.extend(@modules.pop) until @modules.empty?
     end
 
     def find_link(obj)
@@ -562,6 +572,25 @@ module Marshal
       cls
     end
 
+    def get_symbol(str)
+      i = @consumed
+      @consumed += 1
+
+      type = str[i].chr
+      case type
+      when TYPE_SYMBOL then
+        @call = false
+        obj = construct_symbol str
+        @call = true
+        obj
+      when TYPE_SYMLINK then
+        num = construct_integer str
+        @symbols[num]
+      else
+        raise ArgumentError, "expected TYPE_SYMBOL or TYPE_SYMLINK, got #{type.inspect}"
+      end
+    end
+
     def ldexp(flt, exp)
       Platform::Float.ldexp flt, exp
     end
@@ -577,10 +606,8 @@ module Marshal
       ptr.free if ptr
     end
 
-    def prepare_ivar(sym)
-      str = sym.to_s
-      str.sub!(/\A\@+/, '')
-      ('@' + str).to_sym
+    def prepare_ivar(ivar)
+      ivar.to_s =~ /\A@/ ? ivar : "@#{ivar}".to_sym
     end
 
     def serialize(obj)
@@ -593,10 +620,11 @@ module Marshal
         str = TYPE_LINK + serialize_integer(link)
       else
         add_object obj
+
         if obj.respond_to? :_dump then
-          str = serialize_custom_object_ud obj
+          str = serialize_user_defined obj
         elsif obj.respond_to? :marshal_dump then
-          str = serialize_custom_object_mud obj
+          str = serialize_user_marshal obj
         else
           str = obj.to_marshal self
         end
@@ -605,21 +633,6 @@ module Marshal
       @depth += 1
 
       return str
-    end
-
-    def serialize_custom_object_mud(obj)
-      val = obj.marshal_dump
-      out = TYPE_USRMARSHAL + serialize(obj.class.name.to_sym)
-      out << val.to_marshal(self)
-    end
-
-    def serialize_custom_object_ud(obj)
-      str = obj._dump @depth
-      raise TypeError, "_dump() must return string" if str.class != String
-      out = serialize_instance_variables_prefix(str)
-      out << TYPE_USERDEF + serialize(obj.class.name.to_sym)
-      out << serialize_integer(str.length) + str
-      out << serialize_instance_variables_suffix(str)
     end
 
     def serialize_extended_object(obj)
@@ -698,19 +711,30 @@ module Marshal
       end
     end
 
+    def serialize_user_defined(obj)
+      str = obj._dump @depth
+      raise TypeError, "_dump() must return string" if str.class != String
+      out = serialize_instance_variables_prefix(str)
+      out << TYPE_USERDEF + serialize(obj.class.name.to_sym)
+      out << serialize_integer(str.length) + str
+      out << serialize_instance_variables_suffix(str)
+    end
+
+    def serialize_user_marshal(obj)
+      val = obj.marshal_dump
+
+      add_object val
+
+      out = TYPE_USRMARSHAL + serialize(obj.class.name.to_sym)
+      out << val.to_marshal(self)
+    end
+
     def set_instance_variables(str, obj)
-      if @has_ivar
-        @has_ivar = false
-        @nested = true
-        construct_integer(str).times do
-          @call_proc = false
-          sym = construct str
-          @call_proc = true if @proc
-          val = construct str
-          obj.instance_variable_set(prepare_ivar(sym), val)
-        end
+      construct_integer(str).times do
+        ivar = get_symbol str
+        value = construct str
+        obj.instance_variable_set prepare_ivar(ivar), value
       end
-      obj
     end
 
     def store_unique_object(obj)
@@ -729,8 +753,6 @@ module Marshal
   end
 
   def self.dump(obj, an_io=nil, limit=nil)
-    ms = State.new
-
     if limit.nil?
       if an_io.kind_of? Fixnum
         limit = an_io
@@ -740,7 +762,8 @@ module Marshal
       end
     end
 
-    ms.depth = Type.coerce_to limit, Fixnum, :to_int
+    depth = Type.coerce_to limit, Fixnum, :to_int
+    ms = State.new depth, nil
 
     if an_io and !an_io.respond_to? :write
       raise TypeError, "output must respond to write"
@@ -757,9 +780,7 @@ module Marshal
   end
 
   def self.load(obj, proc = nil)
-    ms = State.new
-    ms.proc = proc
-    ms.call_proc = true if ms.proc
+    ms = State.new 0, proc
 
     if obj.respond_to? :to_str
       str = obj.to_s
