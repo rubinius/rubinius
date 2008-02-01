@@ -214,13 +214,21 @@ module Marshal
   class State
 
     def initialize(stream, depth, proc)
-      @stream = stream
-      @depth = depth
+      # shared
       @links = {}
       @symlinks = {}
-      @consumed = 0
       @symbols = []
       @objects = []
+
+      # dumping
+      @depth = depth
+
+      # loading
+      @stream = stream
+      @consumed = 0
+
+      consume 2 if @stream
+
       @modules = nil
       @has_ivar = []
       @proc = proc
@@ -245,99 +253,92 @@ module Marshal
     end
 
     def construct(ivar_index = nil, call_proc = true)
-      i = @consumed
-      @consumed += 1
+      type = consume
+      obj = case type
+            when TYPE_NIL
+              nil
+            when TYPE_TRUE
+              true
+            when TYPE_FALSE
+              false
+            when TYPE_CLASS, TYPE_MODULE
+              name = construct_symbol
+              obj = Object.const_lookup name
 
-      if i == 0 or i == 1
-        construct
-      else
-        c = @stream[i].chr
-        obj = case c
-              when TYPE_NIL
-                nil
-              when TYPE_TRUE
-                true
-              when TYPE_FALSE
-                false
-              when TYPE_CLASS, TYPE_MODULE
-                name = construct_symbol
-                obj = Object.const_lookup name
+              store_unique_object obj
 
-                store_unique_object obj
+              obj
+            when TYPE_FIXNUM
+              construct_integer
+            when TYPE_BIGNUM
+              construct_bignum
+            when TYPE_FLOAT
+              construct_float
+            when TYPE_SYMBOL
+              construct_symbol
+            when TYPE_STRING
+              construct_string
+            when TYPE_REGEXP
+              construct_regexp
+            when TYPE_ARRAY
+              construct_array
+            when TYPE_HASH, TYPE_HASH_DEF
+              construct_hash type
+            when TYPE_STRUCT
+              construct_struct
+            when TYPE_OBJECT
+              construct_object
+            when TYPE_USERDEF
+              construct_user_defined ivar_index
+            when TYPE_USRMARSHAL
+              construct_user_marshal
+            when TYPE_LINK
+              num = construct_integer
+              obj = @objects[num]
 
-                obj
-              when TYPE_FIXNUM
-                construct_integer
-              when TYPE_BIGNUM
-                construct_bignum
-              when TYPE_FLOAT
-                construct_float
-              when TYPE_SYMBOL
-                construct_symbol
-              when TYPE_STRING
-                construct_string
-              when TYPE_REGEXP
-                construct_regexp
-              when TYPE_ARRAY
-                construct_array
-              when TYPE_HASH, TYPE_HASH_DEF
-                construct_hash c
-              when TYPE_STRUCT
-                construct_struct
-              when TYPE_OBJECT
-                construct_object
-              when TYPE_USERDEF
-                construct_user_defined ivar_index
-              when TYPE_USRMARSHAL
-                construct_user_marshal
-              when TYPE_LINK
-                num = construct_integer
-                obj = @objects[num]
+              raise ArgumentError, "dump format error (unlinked)" if obj.nil?
 
-                raise ArgumentError, "dump format error (unlinked)" if obj.nil?
+              return obj
+            when TYPE_SYMLINK
+              num = construct_integer
+              sym = @symbols[num]
 
-                return obj
-              when TYPE_SYMLINK
-                num = construct_integer
-                sym = @symbols[num]
+              raise ArgumentError, "bad symbol" if sym.nil?
 
-                raise ArgumentError, "bad symbol" if sym.nil?
+              return sym
+            when TYPE_EXTENDED
+              @modules ||= []
 
-                return sym
-              when TYPE_EXTENDED
-                @modules ||= []
+              name = get_symbol
+              @modules << Object.const_lookup(name)
 
-                name = get_symbol
-                @modules << Object.const_lookup(name)
+              obj = construct nil, false
 
-                obj = construct nil, false
+              extend_object obj
 
-                extend_object obj
+              obj
+            when TYPE_UCLASS
+              name = get_symbol
+              @user_class = name
 
-                obj
-              when TYPE_UCLASS
-                name = get_symbol
-                @user_class = name
+              construct nil, false
 
-                construct nil, false
+            when TYPE_IVAR
+              ivar_index = @has_ivar.length
+              @has_ivar.push true
 
-              when TYPE_IVAR
-                ivar_index = @has_ivar.length
-                @has_ivar.push true
+              obj = construct ivar_index, false
 
-                obj = construct ivar_index, false
+              set_instance_variables obj if @has_ivar.pop
 
-                set_instance_variables obj if @has_ivar.pop
+              obj
+            else
+              raise ArgumentError, "load error, unknown type #{type}"
+            end
 
-                obj
-              else
-                raise ArgumentError, "load error"
-              end
+      call obj if call_proc
 
-        call obj if call_proc
-
-        obj
-      end
+      obj
     end
 
     def construct_array
@@ -352,17 +353,16 @@ module Marshal
     end
 
     def construct_bignum
-      result = 0
-      i = @consumed
-      @consumed += 1
-      sign = @stream[i].chr == '-' ? -1 : 1
+      sign = consume == '-' ? -1 : 1
       size = construct_integer * 2
-      i = @consumed
+
+      result = 0
+
+      data = consume size
       (0...size).each do |exp|
-        result += (@stream[i] * 2**(exp*8))
-        i += 1
+        result += (data[exp] * 2**(exp*8))
       end
-      @consumed += size
+
       obj = result * sign
 
       store_unique_object obj
@@ -402,17 +402,18 @@ module Marshal
     end
 
     def construct_integer
-      i = @consumed
-      @consumed += 1
-      n = @stream[i]
+      n = consume[0]
+
       if (n > 0 and n < 5) or n > 251
-        (size, signed) = n > 251 ? [256 - n, 2**((256 - n)*8)] : [n, 0]
+        size, signed = n > 251 ? [256 - n, 2**((256 - n)*8)] : [n, 0]
+
         result = 0
+        data = consume size
+
         (0...size).each do |exp|
-          i += 1
-          result += (@stream[i] * 2**(exp*8))
+          result += (data[exp] * 2**(exp*8))
         end
-        @consumed += size
+
         result - signed
       elsif n > 127
         (n - 256) + 5
@@ -438,12 +439,10 @@ module Marshal
 
     def construct_regexp
       s = get_byte_sequence
-      i = @consumed
-      @consumed += 1
       if @user_class
-        obj = get_user_class.new(s, @stream[i])
+        obj = get_user_class.new s, consume[0]
       else
-        obj = Regexp.new(s, @stream[i])
+        obj = Regexp.new s, consume[0]
       end
 
       store_unique_object obj
@@ -528,6 +527,12 @@ module Marshal
       obj
     end
 
+    def consume(bytes = 1)
+      data = @stream[@consumed, bytes]
+      @consumed += bytes
+      data
+    end
+
     def extend_object(obj)
       obj.extend(@modules.pop) until @modules.empty?
     end
@@ -549,10 +554,7 @@ module Marshal
 
     def get_byte_sequence
       size = construct_integer
-      i = @consumed
-      k = i + size
-      @consumed += size
-      @stream[i...k]
+      consume size
     end
 
     def get_module_names(obj)
@@ -574,10 +576,8 @@ module Marshal
     end
 
     def get_symbol
-      i = @consumed
-      @consumed += 1
+      type = consume
 
-      type = @stream[i].chr
       case type
       when TYPE_SYMBOL then
         @call = false
@@ -782,17 +782,24 @@ module Marshal
 
   def self.load(obj, proc = nil)
     if obj.respond_to? :to_str
-      str = obj.to_s
+      data = obj.to_s
     elsif obj.respond_to? :read
-      str = obj.read
+      data = obj.read
     elsif obj.respond_to? :getc  # FIXME - don't read all of it upfront
-      str = ''
-      str << c while (c = obj.getc.chr)
+      data = ''
+      data << c while (c = obj.getc.chr)
     else
       raise TypeError, "instance of IO needed"
     end
 
-    ms = State.new str, nil, proc
+    major = data[0]
+    minor = data[1]
+
+    if major != MAJOR_VERSION and minor > MINOR_VERSION then
+      raise TypeError, "incompatible marshal file format (can't be read)\n\tformat version #{MAJOR_VERSION}.#{MINOR_VERSION} required; #{major}.#{minor} given"
+    end
+
+    ms = State.new data, nil, proc
     ms.construct
   end
 
