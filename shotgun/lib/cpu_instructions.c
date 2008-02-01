@@ -923,13 +923,23 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     
     xassert(om_valid_context_p(state, destination));
     xassert(om_valid_context_p(state, home));
+
+    /* Commenting out 02.01.08 - Caleb Tennis.
+       I don't know the purpose of this code, but if an exception is throws from
+       a rb_funcall in subtend, this causes an endless loop in cpu_return_to_sender.
+
+       Commenting it out fixes that for now.
+       Hopefully someone smarter than me knows a better fix for the future.
     
-    /* Skip over NMCs for now. */
+     Skip over NMCs for now. 
+
     if(exception && FASTCTX(destination)->type == FASTCTX_NMC) {
       c->active_context = destination;
       return cpu_return_to_sender(state, c, val, FALSE, TRUE);      
     }
     
+    */
+
     /* Ok, reason we'd be restoring a native context:
        1) the native context used rb_funcall and we need to return
           it the result of the call.
