@@ -51,5 +51,18 @@ describe "Array#join" do
     y_rec = '9:[...]:8:9:[...]:8:[...]:7:7'
     x_rec = '1:[...]:2:' + y_rec + ':3'
     x.join(":").should == '1:' + x_rec + ':2:' + y_rec + ':3'
+
+    x = ["one", "two"]
+    x << x
+    x.join('/').should == 'one/two/one/two/[...]'
+
+    x << "three"
+    x << "four"
+    x.join('/').should == 'one/two/one/two/[...]/three/four/three/four'
+
+    # nested and recursive
+    x = [["one", "two"], ["three", "four"]]
+    x << x
+    x.join('/').should == 'one/two/three/four/one/two/three/four/[...]'
   end
 end
