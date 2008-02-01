@@ -1,0 +1,3 @@
+Math.asinh returns the inverse hyperbolic sin of the argument
+Math.asinh accepts any argument that can be coerced with Float()
+Math#asinh is accessible as a private instance method
