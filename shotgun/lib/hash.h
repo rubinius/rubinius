@@ -10,6 +10,7 @@ OBJECT hash_s_from_tuple(STATE, OBJECT tup);
 OBJECT hash_get_undef(STATE, OBJECT hash, unsigned int hsh);
 OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh);
 OBJECT hash_dup(STATE, OBJECT hsh);
+void hash_rehash(STATE, OBJECT hsh, int _ents);
 
 #define hash_find(state, hash, key) (hash_get(state, hash, object_hash_int(state, key)))
 

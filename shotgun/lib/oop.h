@@ -178,8 +178,8 @@ struct rubinius_object_t {
       unsigned int CanStoreIvars          : 1;
       unsigned int StoresBytes            : 1;
       unsigned int RequiresCleanup        : 1;
-      unsigned int IsBlockContext         : 1;
-      unsigned int IsMeta                 : 1;
+      unsigned int UFlag1                 : 1;
+      unsigned int UFlag2                 : 1;
       
       unsigned int CTXFast                : 1;
       unsigned int IsTainted              : 1;
@@ -272,8 +272,8 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
   target->CanStoreIvars   = source->CanStoreIvars;
   target->StoresBytes     = source->StoresBytes;
   target->RequiresCleanup = source->RequiresCleanup;
-  target->IsBlockContext  = source->IsBlockContext;
-  target->IsMeta          = source->IsMeta;
+  target->UFlag1          = source->UFlag1;
+  target->UFlag2          = source->UFlag2;
 }
 
 #define CLEAR_FLAGS(obj)     (obj)->all_flags = 0

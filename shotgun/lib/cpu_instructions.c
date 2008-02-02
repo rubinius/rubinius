@@ -557,7 +557,11 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
     prim = N2I(prim_obj); 
   }  
   
-  if(prim < 0) return FALSE;
+  if(prim < 0) {
+    /* Used to fast forward skip trying it again. */
+    mo->UFlag1 = 1;
+    return FALSE;
+  }
       
   req = N2I(cmethod_get_required(mo));
   
@@ -1014,7 +1018,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     // printf("EEK! method_missing!\n");
     // abort();
   } else {
-    if(cpu_try_primitive(state, c, mo, recv, args, sym, mod, block)) {
+    if(!mo->UFlag1 && cpu_try_primitive(state, c, mo, recv, args, sym, mod, block)) {
       if(EXCESSIVE_TRACING) {
         printf("%05d: Called prim %s => %s on %s.\n", c->depth,
           rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  

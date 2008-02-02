@@ -248,8 +248,11 @@ OBJECT cpu_new_exception2(STATE, cpu c, OBJECT klass, const char *msg, ...) {
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   OBJECT cur, klass, start, hsh, val;
   OBJECT cref, cbase;
+  unsigned int hash;
 
   c->cache_index = -1;
+
+  hash = object_hash_int(state, sym);
   
   /* Look up the lexical scope first */
   
@@ -266,7 +269,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
       if(klass == state->global->object) break;
       
       hsh = module_get_constants(klass);
-      val = hash_find_undef(state, hsh, sym);
+      val = hash_get_undef(state, hsh, hash);
       if(val != Qundef) return val;
           
       cbase = staticscope_get_parent(cbase);
@@ -277,7 +280,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
     while(!NIL_P(cur) && cur != state->global->object) {
     
       hsh = module_get_constants(cur);
-      val = hash_find_undef(state, hsh, sym);
+      val = hash_get_undef(state, hsh, hash);
       if(val != Qundef) return val;
       cur = module_get_superclass(cur);
     }
@@ -285,7 +288,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   
   // As a last rescue, we search in Object's constants
   hsh = module_get_constants(state->global->object);
-  val = hash_find_undef(state, hsh, sym);
+  val = hash_get_undef(state, hsh, hash);
   if(val != Qundef) return val;
 
   c->cache_index = -1;
@@ -296,16 +299,19 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
 
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
   OBJECT cur, hsh, val;
+  unsigned int hash;
   
   // printf("Looking for %s under %s.\n", rbs_symbol_to_cstring(state, sym), rbs_symbol_to_cstring(state, module_get_name(under)));
-  
+ 
+  hash = object_hash_int(state, sym);
+
   cur = under;
   
   while(!NIL_P(cur)) {
     // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
     
     hsh = module_get_constants(cur);
-    val = hash_find_undef(state, hsh, sym);
+    val = hash_get_undef(state, hsh, hash);
     if(val != Qundef) { 
       // printf("   found!\n");
       return val;
@@ -319,7 +325,7 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
   if(object_kind_of_p(state, under, state->global->module)) {
     // printf("Looking directly in Object.\n");
     hsh = module_get_constants(state->global->object);
-    val = hash_find_undef(state, hsh, sym);
+    val = hash_get_undef(state, hsh, hash);
     if(val != Qundef) { 
       // printf("   found!\n");
       return val;

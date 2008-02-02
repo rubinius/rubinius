@@ -824,6 +824,14 @@ class ShotgunPrimitives
     CODE
   end
 
+  def hash_rehash
+    <<-CODE
+    POP(self, HASH);
+    hash_rehash(state, self, 0);
+    stack_push(Qtrue);
+    CODE
+  end
+
   def symbol_index
     <<-CODE
     POP(self, SYMBOL);
