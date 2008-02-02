@@ -2,8 +2,6 @@
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/hash.h"
 
-#include <math.h>
-
 /* Adapted from st.c in 1.8.5 */
 
 /*
@@ -75,7 +73,7 @@ static int hash_new_size(int size) {
   return -1;                  /* should raise exception */
 }
 
-#define MAX_DENSITY 3
+#define MAX_DENSITY 5
 
 /* end adaptation. */
 
@@ -143,9 +141,7 @@ OBJECT hash_dup(STATE, OBJECT hsh) {
   return dup;
 }
 
-#define find_bin(hv, bins) (hv % bins)
-
-void hash_rehash(STATE, OBJECT hsh, int _ents) {
+static void hash_rehash(STATE, OBJECT hsh, int _ents) {
   int new_bins, i, old_bins;
   unsigned int bin, hv;
   OBJECT tbl, tup, ent, next;
@@ -155,15 +151,15 @@ void hash_rehash(STATE, OBJECT hsh, int _ents) {
   tup = tuple_new(state, new_bins);
   tbl = hash_get_values(hsh);
   
-  // printf("Rehash %p, %d => %d (%d)\n", hsh, old_bins, new_bins, _ents);
+  // printf("Rehash %p, %d => %d (%d)\n", hsh, old_bins, new_bins, N2I(hash_get_entries(hsh)));
   
   for(i = 0; i < old_bins; i++) {
     ent = tuple_at(state, tbl, i);
     while(!NIL_P(ent)) {
       next = tuple_at(state, ent, 3);
       hv = (unsigned int)N2I(tuple_at(state, ent, 0));
-     
-      bin = find_bin(hv, new_bins);
+      
+      bin = hv % new_bins;
       tuple_put(state, ent, 3, tuple_at(state, tup, (int)bin));
       tuple_put(state, tup, (int)bin, ent);
       
@@ -203,8 +199,8 @@ static OBJECT entry_append(STATE, OBJECT top, OBJECT nxt) {
 static OBJECT add_entry(STATE, OBJECT h, unsigned int hsh, OBJECT ent) {
   unsigned int bin;
   OBJECT entry;
- 
-  bin = find_bin(hsh, N2I(hash_get_bins(h)));
+  
+  bin = hsh % N2I(hash_get_bins(h));
   entry = tuple_at(state, hash_get_values(h), bin);
   
   if(NIL_P(entry)) {
@@ -222,7 +218,7 @@ OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh) {
   OBJECT entry, th;
   
   bins = (unsigned int)N2I(hash_get_bins(h));
-  bin = find_bin(hsh, bins);
+  bin = hsh % bins;
   entry = tuple_at(state, hash_get_values(h), bin);
   
   // printf("start: %x, %ud, %d, %d\n", entry, hsh, bin, N2I(hash_get_bins(h)));
@@ -303,7 +299,7 @@ OBJECT hash_delete(STATE, OBJECT self, unsigned int hsh) {
   unsigned int bin;
   OBJECT entry, th, lk, val, lst;
   
-  bin = find_bin(hsh,N2I(hash_get_bins(self)));
+  bin = hsh % N2I(hash_get_bins(self));
   entry = tuple_at(state, hash_get_values(self), bin);
   
   lst = Qnil;

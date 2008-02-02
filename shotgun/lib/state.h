@@ -503,6 +503,5 @@ void state_run_cleanup(STATE, OBJECT obj, OBJECT cls);
 #define THREAD_P(obj) RTYPE(obj, ThreadType)
 #define METHODTABLE_P(obj) RTYPE(obj, MTType)
 
-#define metaclass_s_metaclass_p(st, obj) METACLASS_P(obj)
 
 #endif /* __STATE__ */

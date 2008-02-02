@@ -29,21 +29,5 @@ class MethodTable
     end.compact
   end
 
-  def [](key)
-    unless key.kind_of?(Symbol)
-      raise ArgumentError, "key must be a symbol"
-    end
-
-    code, hk, val, nxt = get_by_hash(key.hash, key)
-    return nil unless code
-    return val
-  end
-
-  def []=(key, val)
-    set_by_hash key.hash, key, val
-  end
-
-  alias_method :store, :[]=
-
 end
 
