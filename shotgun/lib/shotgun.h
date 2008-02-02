@@ -4,9 +4,7 @@
 #define INTERNAL_DEBUG 0
 
 #define TRACK_STATS 0
-#define DISABLE_CHECKS 1
-#define ACCESS_MACROS 1
-#define EXTRA_PROTECTION 0
+#define DISABLE_CHECKS 0
 
 #include <stdio.h>
 #include <stdlib.h>

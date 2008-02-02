@@ -57,25 +57,20 @@ static inline void object_copy_body(STATE, OBJECT self, OBJECT dest) {
 
 static inline uintptr_t object_get_id(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {
-    OBJECT meta, oid;
-    uintptr_t id;
+    OBJECT meta, id;
     
-    meta =   object_metaclass(state, self);
-    oid =    object_get_ivar(state, meta, state->global->sym_object_id);
+    meta =  object_metaclass(state, self);
+    id =    object_get_ivar(state, meta, state->global->sym_object_id);
                   
     /* Lazy allocate object's ids, since most don't need them. */
-    if(NIL_P(oid)) {
-      /* Reference object ids are all even. */
-      id = (state->om->last_object_id += 2);
-      object_set_ivar(state, meta, state->global->sym_object_id, UI2N(id));
-    } else {
-      id = N2I(oid);
+    if(NIL_P(id)) {
+      id = I2N(state->om->last_object_id++);
+      object_set_ivar(state, meta, state->global->sym_object_id, id);
     }
     
     return (uintptr_t)id;
   } else {
-    /* Immediate object ids are all odd. */
-    return (uintptr_t)(((uintptr_t)self << 1) | 1);
+    return (uintptr_t)(self);
   }
 }
 

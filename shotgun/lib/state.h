@@ -64,7 +64,6 @@ struct method_cache {
   OBJECT klass;
   OBJECT name;
   OBJECT module;
-  OBJECT visibility;
   OBJECT method;
 };
 
@@ -316,13 +315,18 @@ void machine_handle_type_error(OBJECT, const char *message);
 #define fast_set_int(obj, idx, int) fast_unsafe_set(obj, idx, I2N(int))
 #define fast_inc(obj, idx) fast_unsafe_set(obj, idx, (void*)((uintptr_t)fast_fetch(obj, idx) + (1 << TAG_SHIFT)))
 
+#define ACCESS_MACROS 1
+#define EXTRA_PROTECTION 0
+
 #if ACCESS_MACROS
 
 #if DISABLE_CHECKS
 
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
-  if(REFERENCE_P(_v)) { object_memory_write_barrier(om, _o, _v); }\
+  if(REFERENCE_P(_v)) { \
+    object_memory_write_barrier(om, _o, _v); \
+  } \
   SET_FIELD_DIRECT(_o, fel, _v); })
 
 #define rbs_get_field(obj, fel) NTH_FIELD_DIRECT(obj, fel)
@@ -354,7 +358,7 @@ static void _bad_reference2(OBJECT in, int fel) {
   if(REFERENCE_P(_v)) { \
     object_memory_write_barrier(om, _o, _v); \
   } \
-  SET_FIELD_DIRECT(_o, fel, _v); })
+  *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
 
 #define rbs_get_field(i_in, i_fel) ({ \
   OBJECT in = (i_in); int fel = (i_fel); \
@@ -364,13 +368,16 @@ static void _bad_reference2(OBJECT in, int fel) {
 
 #else
 
+/* These are the typically used versions. The don't check for ref, they
+   the segfault handler do that. */
+
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
   if(fel >= obj->field_count) _bad_reference2(obj, fel); \
   if(REFERENCE_P(_v)) { \
     object_memory_write_barrier(om, _o, _v); \
   } \
-  SET_FIELD_DIRECT(_o, fel, _v); })
+  *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
 
 #define rbs_get_field(i_in, i_fel) ({ \
   OBJECT in = (i_in); int fel = (i_fel); \
@@ -462,46 +469,5 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
 typedef void (*state_cleanup_func)(STATE, OBJECT);
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func);
 void state_run_cleanup(STATE, OBJECT obj, OBJECT cls);
-
-/* type test macros */
-#define INDEXED(obj) (RTEST(obj) && (REFERENCE_P(self) || !object_stores_bytes_p(state, obj)))
-
-#define RTYPE(obj,type) (REFERENCE_P(obj) && obj->obj_type == type)
-#define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
-
-#define BIGNUM_P(obj) (RTYPE(obj, BignumType))
-#define FLOAT_P(obj) (RTYPE(obj, FloatType))
-#define COMPLEX_P(obj) (FALSE)
-
-#define INTEGER_P(obj) (FIXNUM_P(obj) || BIGNUM_P(obj))
-#define NUMERIC_P(obj) (FIXNUM_P(obj) || COMPLEX_P(obj) || BIGNUM_P(obj) || FLOAT_P(obj))
-
-#define CLASS_P(obj) RTYPE(obj, ClassType)
-#define METACLASS_P(obj) RTYPE(obj, MetaclassType)
-#define CLASSISH_P(obj) (CLASS_P(obj) || METACLASS_P(obj))
-
-#define MODULE_P(obj) (RTYPE(obj, ModuleType) || CLASSISH_P(obj) || RTYPE(obj, IncModType))
-
-#define TUPLE_P(obj) RTYPE(obj, TupleType)
-#define IO_P(obj) RISA(obj, io)
-#define STRING_P(obj) RTYPE(obj, StringType)
-// #define STRING_P(obj) RISA(obj, string)
-#define HASH_P(obj) (RISA(obj, hash))
-#define ARRAY_P(obj) RTYPE(obj, ArrayType)
-
-#define STRING_OR_NIL_P(obj) (STRING_P(obj) || NIL_P(obj))
-
-#define CMETHOD_P(obj) RTYPE(obj, CMethodType)
-#define REGEXP_P(obj) RTYPE(obj, RegexpType)
-
-#define CTX_P(obj) RISA(obj, fastctx)
-#define BYTEARRAY_P(obj) RTYPE(obj, ByteArrayType)
-#define ISEQ_P(obj) RTYPE(obj, ISeqType)
-#define TASK_P(obj) RTYPE(obj, TaskType)
-#define CHANNEL_P(obj) RTYPE(obj, ChannelType)
-#define BLOCKENV_P(obj) RTYPE(obj, BlockEnvType)
-#define THREAD_P(obj) RTYPE(obj, ThreadType)
-#define METHODTABLE_P(obj) RTYPE(obj, MTType)
-
 
 #endif /* __STATE__ */
