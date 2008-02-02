@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 describe "IO#sysseek on a file" do
   # TODO: This should be made more generic with seek spec
   before :each do
-    @file = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
+    @file = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r+')
     @io = IO.open @file.fileno, 'r'
   end
 
@@ -19,6 +19,11 @@ describe "IO#sysseek on a file" do
   it "raises an error when called after buffered reads" do
     @io.readline
     lambda { @io.sysseek(-5, IO::SEEK_CUR) }.should raise_error(IOError)
+  end
+
+  it "warns if called immediately after a buffered IO#write" do
+    @file.write("abcde")
+    lambda { @file.sysseek(10) }.should complain(/sysseek/)
   end
 
   it "moves the read position relative to the start with SEEK_SET" do
