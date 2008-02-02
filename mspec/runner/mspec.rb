@@ -1,3 +1,4 @@
+require 'mspec/runner/state'
 require 'mspec/runner/tag'
 
 module MSpec
@@ -78,7 +79,7 @@ module MSpec
     unless value = retrieve(symbol)
       value = store symbol, []
     end
-    value << action
+    value << action unless value.include? action
   end
   
   def self.unregister(symbol, action)
@@ -87,6 +88,34 @@ module MSpec
     end
   end
   
+  def self.protect(msg, &block)
+    begin
+      block.call
+    rescue Exception => e
+      if current and current.state
+        current.state.exceptions << [msg, e]
+      else
+        STDERR.write "An exception occurred in #{msg}: #{e.class}: #{e.message}"
+      end
+    end
+  end
+  
+  def self.stack
+    @stack ||= []
+  end
+  
+  def self.current
+    stack.last
+  end
+  
+  def self.verify_mode?
+    @mode == :verify
+  end
+  
+  def self.report_mode?
+    @mode == :report
+  end
+
   def self.tags_path
     retrieve(:tags_path) || ".tags"
   end

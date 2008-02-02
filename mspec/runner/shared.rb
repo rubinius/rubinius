@@ -1,4 +1,4 @@
-require 'mspec/runner/runner'
+require 'mspec/runner/mspec'
 
 class Object
   def shared(msg, &block)

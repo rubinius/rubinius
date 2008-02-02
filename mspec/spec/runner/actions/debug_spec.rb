@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../../../runner/actions/debug'
-require File.dirname(__FILE__) + '/../../../runner/runner'
+require File.dirname(__FILE__) + '/../../../runner/mspec'
 require File.dirname(__FILE__) + '/../../../runner/state'
 
 describe DebugAction do

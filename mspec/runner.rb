@@ -1,5 +1,5 @@
 require 'mspec/mocks'
-require 'mspec/runner/runner'
+require 'mspec/runner/mspec'
 require 'mspec/runner/object'
 require 'mspec/runner/formatters'
 require 'mspec/runner/actions'

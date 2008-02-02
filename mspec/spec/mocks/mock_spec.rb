@@ -3,7 +3,7 @@
 # arguments are NOT provided) is to simply alter the particular
 # spec to a failure condition.
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../runner/runner'
+require File.dirname(__FILE__) + '/../../runner/mspec'
 require File.dirname(__FILE__) + '/../../mocks/mock'
 require File.dirname(__FILE__) + '/../../mocks/proxy'
 

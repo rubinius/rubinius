@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../../../runner/actions/timer'
-require File.dirname(__FILE__) + '/../../../runner/runner'
+require File.dirname(__FILE__) + '/../../../runner/mspec'
 require 'time'
 
 describe TimerAction do

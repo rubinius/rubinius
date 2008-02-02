@@ -42,12 +42,7 @@ class DottedFormatter
     end
     print "\n#{@timer.format}\n\n#{@tally.format}\n"
   end
-  
-  def print(str)
-    $stdout.print str
-  end
-  private :print
-  
+    
   def failure?(state)
     state.exceptions.all? { |e| state.failure?(e) }
   end

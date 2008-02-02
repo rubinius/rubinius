@@ -11,6 +11,12 @@ class TallyAction
     MSpec.register :expectation, self
   end
   
+  def unregister
+    MSpec.unregister :load, self
+    MSpec.unregister :after, self
+    MSpec.unregister :expectation, self
+  end
+  
   def load
     @files += 1
   end

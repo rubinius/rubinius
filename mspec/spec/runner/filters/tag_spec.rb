@@ -1,6 +1,5 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/runner'
-require File.dirname(__FILE__) + '/../../../runner/tag'
+require File.dirname(__FILE__) + '/../../../runner/mspec'
 require File.dirname(__FILE__) + '/../../../runner/filters/match'
 require File.dirname(__FILE__) + '/../../../runner/filters/tag'
 

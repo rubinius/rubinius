@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.dirname(__FILE__) + '/../../../expectations'
 require File.dirname(__FILE__) + '/../../../runner/actions/tally'
-require File.dirname(__FILE__) + '/../../../runner/runner'
+require File.dirname(__FILE__) + '/../../../runner/mspec'
 require File.dirname(__FILE__) + '/../../../runner/state'
 
 describe TallyAction do
@@ -40,5 +41,12 @@ describe TallyAction do
     MSpec.should_receive(:register).with(:after, @tally)
     MSpec.should_receive(:register).with(:expectation, @tally)
     @tally.register
+  end
+  
+  it "responds to #unregister by unregistering itself with MSpec for appropriate actions" do
+    MSpec.should_receive(:unregister).with(:load, @tally)
+    MSpec.should_receive(:unregister).with(:after, @tally)
+    MSpec.should_receive(:unregister).with(:expectation, @tally)
+    @tally.unregister
   end
 end

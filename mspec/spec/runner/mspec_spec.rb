@@ -1,7 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../mspec'
-require File.dirname(__FILE__) + '/../../runner/state'
-require File.dirname(__FILE__) + '/../../runner/runner'
+require File.dirname(__FILE__) + '/../../runner/mspec'
 
 describe MSpec do
   it "provides .register_files to record which spec files to run" do
@@ -32,6 +30,7 @@ describe MSpec do
   it "provides .register as the gateway behind the register(symbol, action) facility" do
     MSpec.register :bonus, :first
     MSpec.register :bonus, :second
+    MSpec.register :bonus, :second
     MSpec.retrieve(:bonus).should == [:first, :second]
   end
 
@@ -40,6 +39,57 @@ describe MSpec do
     MSpec.register :unregister, :second
     MSpec.unregister :unregister, :second
     MSpec.retrieve(:unregister).should == [:first]
+  end
+end
+
+describe MSpec, ".protect" do
+  before :each do
+    @ss = mock('SpecState')
+    @ss.stub!(:exceptions).and_return([])
+    @rs = mock('RunState')
+    @rs.stub!(:state).and_return(@ss)
+    @exception = Exception.new("Sharp!")
+  end
+  
+  it "rescues any exceptions raised when executing the block argument" do
+    MSpec.stack.push @rs
+    lambda {
+      MSpec.protect("") { raise Exception, "Now you see me..." }
+    }.should_not raise_error
+  end
+  
+  it "records the exception in the current.state object's exceptions" do
+    MSpec.stack.push @rs
+    MSpec.protect("testing") { raise @exception }
+    @ss.exceptions.should == [["testing", @exception]]
+  end
+  
+  it "writes a message to STDERR if current is nil" do
+    STDERR.should_receive(:write).with("An exception occurred in testing: Exception: Sharp!")
+    MSpec.stack.clear
+    MSpec.protect("testing") { raise @exception}
+  end
+  
+  it "writes a message to STDERR if current.state is nil" do
+    STDERR.should_receive(:write).with("An exception occurred in testing: Exception: Sharp!")
+    @rs.stub!(:state).and_return(nil)
+    MSpec.stack.push @rs
+    MSpec.protect("testing") { raise @exception}
+  end
+end
+
+describe MSpec, ".stack" do
+  it "returns an array" do
+    MSpec.stack.should be_kind_of(Array)
+  end
+end
+
+describe MSpec, ".current" do
+  it "returns the top of the execution stack" do
+    MSpec.stack.clear
+    MSpec.stack.push :a
+    MSpec.stack.push :b
+    MSpec.current.should == :b
   end
 end
 
