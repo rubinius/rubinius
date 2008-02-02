@@ -1,3 +1,12 @@
+require 'mspec/runner/guards/bug'
+require 'mspec/runner/guards/compliance'
+require 'mspec/runner/guards/extensions'
+require 'mspec/runner/guards/guard'
+require 'mspec/runner/guards/noncompliance'
+require 'mspec/runner/guards/platform'
+require 'mspec/runner/guards/quarantine'
+require 'mspec/runner/guards/runner'
+
 unless defined?(RUBY_NAME) and !RUBY_NAME.nil?
   if defined?(RUBY_ENGINE) and !RUBY_ENGINE.nil?
     RUBY_NAME = RUBY_ENGINE
