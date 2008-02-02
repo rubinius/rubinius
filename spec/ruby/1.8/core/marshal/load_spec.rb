@@ -181,7 +181,7 @@ describe "Marshal::load" do
       obj
   end
 
-  MarshalSpec::DATA.each do |description, (object, marshal)|
+  MarshalSpec::DATA.each do |description, (object, marshal, attributes)|
     it "loads a #{description}" do
       Marshal.load(marshal).should == object
     end
