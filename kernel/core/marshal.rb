@@ -1,5 +1,20 @@
 # depends on: module.rb class.rb
 
+class Object
+  def to_marshal(ms, strip_ivars = false)
+    out = ms.serialize_extended_object self
+    out << Marshal::TYPE_OBJECT
+    out << ms.serialize(self.class.name.to_sym)
+    out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
+  end
+end
+
+class Range
+  def to_marshal(ms)
+    super(ms, true)
+  end
+end
+
 class NilClass
   def to_marshal(ms)
     Marshal::TYPE_NIL
@@ -163,15 +178,6 @@ class Float
             "%.*g" % [17, self] + ms.serialize_float_thing(self)
           end
     Marshal::TYPE_FLOAT + ms.serialize_integer(str.length) + str
-  end
-end
-
-class Object
-  def to_marshal(ms)
-    out = ms.serialize_extended_object self
-    out << Marshal::TYPE_OBJECT
-    out << ms.serialize(self.class.name.to_sym)
-    out << ms.serialize_instance_variables_suffix(self, true)
   end
 end
 
@@ -668,13 +674,17 @@ module Marshal
       end
     end
 
-    def serialize_instance_variables_suffix(obj, force = false)
+    def serialize_instance_variables_suffix(obj, force = false, strip_ivars = false)
       if force or obj.instance_variables.length > 0
         str = serialize_integer(obj.instance_variables.length)
         obj.instance_variables.each do |ivar|
           sym = ivar.to_sym
           val = obj.instance_variable_get(sym)
-          str << serialize(sym)
+          unless strip_ivars then
+            str << serialize(sym)
+          else
+            str << serialize(ivar[1..-1].to_sym)
+          end
           str << serialize(val)
         end
         str
