@@ -22,8 +22,18 @@ describe "IO#sysseek on a file" do
   end
 
   it "warns if called immediately after a buffered IO#write" do
-    @file.write("abcde")
-    lambda { @file.sysseek(10) }.should complain(/sysseek/)
+    begin
+      # copy contents to a separate file
+      tmpfile = File.open("/tmp/tmp_IO_sysseek", "w")
+      tmpfile.write(@file.read)
+      tmpfile.seek(0, File::SEEK_SET)
+
+      tmpfile.write("abcde")
+      lambda { tmpfile.sysseek(10) }.should complain(/sysseek/)
+    ensure
+      tmpfile.close
+      File.unlink(tmpfile.path)
+    end
   end
 
   it "moves the read position relative to the start with SEEK_SET" do
