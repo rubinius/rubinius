@@ -49,7 +49,6 @@ Autotest.add_hook :initialize do |at|
   at.sleep = 2
 
   at.add_exception(/\.rbc$/)
-  at.add_exception(/fixtures/)
   at.add_exception(/shotgun\/external_libs/)
   at.add_exception(/README/)
   at.add_exception(/spec.data.critical.txt/)
@@ -73,8 +72,8 @@ Autotest.add_hook :initialize do |at|
     Dir["spec/#{m[1]}_spec.rb"]
   end
 
-  at.add_mapping %r%^spec/(.*)/shared/% do |_, m|
-    at.files_matching(%r%^spec/#{m[1]}/.*_spec.rb$%)
+  at.add_mapping %r%^spec/.*([^/]+)/(shared|fixtures)/% do |_, m|
+    at.files_matching(%r%^spec/.*#{m[1]}/.*_spec.rb$%)
   end
 
   at.add_mapping %r%^spec/spec_helper.rb% do
