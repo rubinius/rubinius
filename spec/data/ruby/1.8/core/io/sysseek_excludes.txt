@@ -1,0 +1,6 @@
+IO#sysseek on a file moves the read position relative to the current position with SEEK_CUR
+IO#sysseek on a file raises an error when called after buffered reads
+IO#sysseek on a file warns if called immediately after a buffered IO#write
+IO#sysseek on a file moves the read position relative to the start with SEEK_SET
+IO#sysseek on a file moves the read position relative to the end with SEEK_END
+IO#sysseek on a file can handle any numerical argument without breaking and can seek past EOF
