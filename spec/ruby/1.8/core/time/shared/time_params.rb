@@ -30,12 +30,13 @@ shared :time_params do |cmd|
       lambda { Time.send(cmd, 1901, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
       lambda { Time.send(cmd, 1901, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
       
-      if Rubinius::WORDSIZE == 32
+      
+      if defined? Rubinius && Rubinius::WORDSIZE == 32
         lambda { Time.send(cmd, 1900, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
         lambda { Time.send(cmd, 2038, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
       end
       
-      if Rubinius::WORDSIZE == 64
+      if defined? Rubinius && Rubinius::WORDSIZE == 64
         lambda { Time.send(cmd, 1900, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
         lambda { Time.send(cmd, 2038, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
       end
@@ -45,7 +46,7 @@ shared :time_params do |cmd|
     it "throws ArgumentError for out of range values" do
       # year-based Time.local(year (, month, day, hour, min, sec, usec))
       # Year range only fails on 32 bit archs
-      if Rubinius::WORDSIZE == 32
+      if defined? Rubinius && Rubinius::WORDSIZE == 32
         lambda { Time.send(cmd, 1111, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # year
       end
       lambda { Time.send(cmd, 2008, 13, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
@@ -61,7 +62,7 @@ shared :time_params do |cmd|
       lambda { Time.send(cmd, 59, 59, 23, 32, 12, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # day
       lambda { Time.send(cmd, 59, 59, 23, 31, 13, 2008, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # month
       # Year range only fails on 32 bit archs
-      if Rubinius::WORDSIZE == 32
+      if defined? Rubinius && Rubinius::WORDSIZE == 32
         lambda { Time.send(cmd, 59, 59, 23, 31, 12, 1111, :ignored, :ignored, :ignored, :ignored) }.should raise_error(ArgumentError) # year
       end
     end
