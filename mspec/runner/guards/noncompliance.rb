@@ -5,7 +5,7 @@ end
 
 class Object
   def deviates_on(*args)
-    g = NonCommplianceGuard.new(*args)
+    g = NonComplianceGuard.new *args
     yield if g.yield?
     g.unregister
   end

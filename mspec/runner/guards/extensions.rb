@@ -5,7 +5,7 @@ end
 
 class Object
   def extended_on(*args)
-    g = ExtensionsGuard.new(*args)
+    g = ExtensionsGuard.new *args
     yield if g.yield?
     g.unregister
   end

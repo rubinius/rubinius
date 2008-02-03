@@ -63,12 +63,18 @@ describe SpecGuard, "#yield?" do
     @guard.yield?(true).should == true
   end
   
-  it "returns false if neither report nor verify mode are true" do
+  it "returns #match? if neither report nor verify mode are true" do
+    @guard.stub!(:match?).and_return(false)
     @guard.yield?.should == false
+    @guard.stub!(:match?).and_return(true)
+    @guard.yield?.should == true
   end
   
-  it "returns true if invert is true and neither report nor verify mode are true" do
+  it "returns #match? if invert is true and neither report nor verify mode are true" do
+    @guard.stub!(:match?).and_return(false)
     @guard.yield?(true).should == true
+    @guard.stub!(:match?).and_return(true)
+    @guard.yield?(true).should == false
   end
 end
 
@@ -80,13 +86,107 @@ describe SpecGuard, "#===" do
 end
 
 describe SpecGuard, "#implementation?" do
+  before :all do
+    @verbose = $VERBOSE
+    $VERBOSE = nil
+  end
+  
+  after :all do
+    $VERBOSE = @verbose
+  end
+  
+  before :each do
+    @ruby_name = Object.const_get :RUBY_NAME
+    @guard = SpecGuard.new
+  end
+  
+  after :each do
+    Object.const_set :RUBY_NAME, @ruby_name
+  end
+  
+  it "returns true if passed :ruby and RUBY_NAME == 'ruby'" do
+    Object.const_set :RUBY_NAME, 'ruby'
+    @guard.implementation?(:ruby).should == true
+  end
+  
+  it "returns true if passed :rbx and RUBY_NAME == 'rbx'" do
+    Object.const_set :RUBY_NAME, 'rbx'
+    @guard.implementation?(:rbx).should == true
+  end
+  
+  it "returns true if passed :rubinius and RUBY_NAME == 'rbx'" do
+    Object.const_set :RUBY_NAME, 'rbx'
+    @guard.implementation?(:rubinius).should == true
+  end
+  
+  it "returns true if passed :jruby and RUBY_NAME == 'jruby'" do
+    Object.const_set :RUBY_NAME, 'jruby'
+    @guard.implementation?(:jruby).should == true
+  end
+  
+  it "returns false when passed an unrecognized name" do
+    Object.const_set :RUBY_NAME, 'ruby'
+    @guard.implementation?(:python).should == false
+  end
 end
 
 describe SpecGuard, "#platform?" do
+  before :all do
+    @verbose = $VERBOSE
+    $VERBOSE = nil
+  end
+  
+  after :all do
+    $VERBOSE = @verbose
+  end
+  
+  before :each do
+    @ruby_platform = Object.const_get :RUBY_PLATFORM
+    Object.const_set :RUBY_PLATFORM, 'solarce'
+    @guard = SpecGuard.new
+  end
+  
+  after :each do
+    Object.const_set :RUBY_PLATFORM, @ruby_platform
+  end
+  
+  it "returns false when arg does not match RUBY_PLATFORM" do
+    @guard.platform?(:ruby).should == false
+  end
+  
+  it "returns false when no arg matches RUBY_PLATFORM" do
+    @guard.platform?(:ruby, :jruby, :rubinius).should == false
+  end
+  
+  it "returns true when arg matches RUBY_PLATFORM" do
+    @guard.platform?(:solarce).should == true
+  end
+  
+  it "returns true when any arg matches RUBY_PLATFORM" do
+    @guard.platform?(:ruby, :jruby, :solarce, :rubinius).should == true
+  end
 end
 
 describe SpecGuard, "#match?" do
-  it "returns true if any initialize arguments match a ruby platform or implementation" do
+  before :each do
+    @guard = SpecGuard.new
+    SpecGuard.stub!(:new).and_return(@guard)
+  end
+  
+  it "returns true if #platform? or #implementation? return true" do
+    @guard.stub!(:implementation?).and_return(true)
+    @guard.stub!(:platform?).and_return(false)
+    @guard.match?.should == true
+    
+    @guard.stub!(:implementation?).and_return(false)
+    @guard.stub!(:platform?).and_return(true)
+    @guard.match?.should == true
+  end
+  
+  it "returns false if #platform? and #implementation? return false" do
+    @guard.stub!(:implementation?).and_return(false)
+    @guard.stub!(:platform?).and_return(false)
+    @guard.match?.should == false
   end
 end
 

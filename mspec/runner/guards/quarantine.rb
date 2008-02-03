@@ -1,13 +1,8 @@
 require 'mspec/runner/guards/guard'
 
 class QuarantineGuard < SpecGuard
-  def self.after
-  end
-  
-  def before
-  end
-  
-  def after
+  def match?
+    false
   end
 end
 

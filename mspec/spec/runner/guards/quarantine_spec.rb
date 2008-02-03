@@ -6,3 +6,10 @@ describe QuarantineGuard, "#match?" do
     QuarantineGuard.new.match?.should == false
   end
 end
+
+describe Object, "#quarantine!" do
+  it "does not yield" do
+    quarantine! { @record = :yield }
+    @record.should_not == :yield
+  end
+end

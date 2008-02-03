@@ -1,6 +1,9 @@
 require 'mspec/runner/guards/guard'
 
 class BugGuard < SpecGuard
+  def match?
+    not implementation?(:ruby, :ruby18, :ruby19)
+  end
 end
 
 class Object
