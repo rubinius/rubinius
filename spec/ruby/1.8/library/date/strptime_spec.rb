@@ -14,12 +14,18 @@ describe "Date#strftime" do
 
   it "should be able to parse the full day name" do
     d = Date.today
-    Date.strptime("Thursday", "%A").should == Date.commercial(d.cwyear, d.cweek, 4)
+    # strptime assumed week that start on sunday, not monday
+    week = d.cweek
+    week += 1 if d.cwday == 7
+    Date.strptime("Thursday", "%A").should == Date.commercial(d.cwyear, week, 4)
   end
 
   it "should be able to parse the short day name" do
     d = Date.today
-    Date.strptime("Thu", "%a").should == Date.commercial(d.cwyear, d.cweek, 4)
+    # strptime assumed week that start on sunday, not monday
+    week = d.cweek
+    week += 1 if d.cwday == 7
+    Date.strptime("Thu", "%a").should == Date.commercial(d.cwyear, week, 4)
   end
 
   it "should be able to parse the full month name" do
