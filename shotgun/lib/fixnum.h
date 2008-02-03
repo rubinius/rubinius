@@ -40,17 +40,30 @@ static inline OBJECT fixnum_sub(STATE, OBJECT a, OBJECT b) {
 
 static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
   OBJECT r;
-  long long m;
   native_int j, k;
-
+  int overflow;
   j = N2I(a);
   k = N2I(b);
-  m = (long long)j * (long long)k;
-  r = I2N(m);
-  if(m != N2I(r)) {
-    r = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
-  }
   
+  overflow = 0;
+  if(j > 0) {
+	if(k > 0) {
+	  overflow = j > (2 << FIXNUM_WIDTH / k);
+    } else if(k < 0) {
+      overflow = k < (-2 << FIXNUM_WIDTH / j);
+	}
+  } else if(j < 0) {
+    if(k > 0) {
+      overflow = j < (-2 << FIXNUM_WIDTH / k);
+    } else if(k < 0) {
+	  overflow = k < (2 << FIXNUM_WIDTH / j);
+	}
+  }
+  if(overflow) {
+    r = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
+  } else {
+	r = I2N(j * k);
+  }
   return r;
 }
 
