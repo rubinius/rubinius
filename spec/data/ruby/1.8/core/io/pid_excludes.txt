@@ -1,0 +1,3 @@
+IO#pid returns nil for IO not associated with a process
+IO#pid returns the ID of a process associated with stream
+IO#pid raises IOError on closed stream
