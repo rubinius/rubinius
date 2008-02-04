@@ -18,4 +18,8 @@ module IOSpecs
   def self.gets_output
     File.dirname(__FILE__) + '/gets_output.txt'
   end
+  
+  def self.closed_file
+    File.open(File.dirname(__FILE__) + '/gets.txt', 'r') { |f| f }
+  end
 end

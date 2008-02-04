@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#eof?" do
   before :each do
@@ -46,8 +47,7 @@ describe "IO#eof?" do
   end
 
   it "raises IOError on closed stream" do
-    @file.close
-    lambda { @file.eof? }.should raise_error(IOError)
+    lambda { IOSpecs.closed_file.eof? }.should raise_error(IOError)
   end
 
   it "raises IOError on stream not opened for reading" do

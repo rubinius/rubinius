@@ -1,3 +1,5 @@
+require File.dirname(__FILE__) + '/../fixtures/classes'
+
 shared :io_each do |cmd|
   describe "IO##{cmd}" do
     it "yields the next line of string that is separated by $/" do
@@ -35,6 +37,12 @@ shared :io_each do |cmd|
         $_ = val
         f.send(cmd) { |line| }
         $_.should == val
+      end
+    end
+    
+    fails_on :rubinius do
+      it "raises IOError on closed stream" do
+        lambda { IOSpecs.closed_file.send(cmd) }.should raise_error(IOError)
       end
     end
   end

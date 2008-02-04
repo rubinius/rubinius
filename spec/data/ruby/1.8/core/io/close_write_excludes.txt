@@ -3,3 +3,4 @@ IO#close_write raises an IOError on subsequent invocations
 IO#close_write allows subsequent invocation of close
 IO#close_write raises an IOError if the stream is not duplexed.
 IO#close_write flushes and closes the write stream
+IO#close_write raises IOError on closed stream

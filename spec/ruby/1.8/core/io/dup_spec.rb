@@ -1,6 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-# Do not change anything above this line
-
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#dup" do
   before :all do
@@ -68,5 +67,9 @@ end
 
     @i.closed?.should == false
     @f.closed?.should == true
+  end
+
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.dup }.should raise_error(IOError)
   end
 end

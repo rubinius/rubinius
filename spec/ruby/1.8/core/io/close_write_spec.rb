@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#close_write" do
   before :each do
@@ -34,5 +35,9 @@ describe "IO#close_write" do
     @io.print("p 12345")
     @io.close_write
     @io.read.should == "12345\n"
+  end
+
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.close_write }.should raise_error(IOError)
   end
 end

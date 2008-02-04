@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#close_read" do
   before :each do
@@ -28,5 +29,9 @@ describe "IO#close_read" do
   it "raises an IOError if the stream is not duplexed." do
      @io = IO.popen(RUBY_NAME, "w")
      lambda { @io.close_read }.should raise_error(IOError)
+  end
+  
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.close_read }.should raise_error(IOError)
   end
 end
