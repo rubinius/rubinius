@@ -82,7 +82,7 @@ describe Compiler do
   end
   
   it "compiles bignums" do
-    num = 10 ** 10
+    num = 0xffff_ffff_ffff_ffff
     gen [:lit, num] do |g|
       g.push_unique_literal num
     end
