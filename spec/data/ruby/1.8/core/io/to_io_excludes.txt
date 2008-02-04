@@ -1,0 +1,2 @@
+IO#to_io returns self for open stream
+IO#to_io returns self for closed stream
