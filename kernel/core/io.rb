@@ -193,8 +193,8 @@ class IO
     setup fd, mode
   end
 
-  def self.open(fd, mode = 'r')
-    io = self.new fd, mode
+  def self.open(*args)
+    io = self.new(*args)
 
     return io unless block_given?
 
