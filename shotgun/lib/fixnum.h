@@ -39,19 +39,33 @@ static inline OBJECT fixnum_sub(STATE, OBJECT a, OBJECT b) {
 }
 
 static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
-  OBJECT r;
-  long long m;
-  native_int j, k;
+  native_int na = N2I(a);
+  native_int nb = N2I(b);
+  unsigned int overflow = FALSE;
 
-  j = N2I(a);
-  k = N2I(b);
-  m = (long long)j * (long long)k;
-  r = I2N(m);
-  if(m != N2I(r)) {
-    r = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
+  /* There is no C type large enough to (always) hold the result of
+   * multiplying two native_ints together
+   */
+
+  if (na > 0) { /* a is positive */
+    if (nb > 0) { /* a and b are positive */
+      if (na > (FIXNUM_MAX / nb)) { overflow = TRUE; }
+    } else { /* a is positive, b is non-positive */
+      if (nb < (FIXNUM_MIN / na)) { overflow = TRUE; }
+    }
+  } else { /* a is non-positive */
+    if (nb > 0) { /* a is non-positive, b is positive */
+      if (na < (FIXNUM_MIN / nb)) { overflow = TRUE; }
+    } else { /* a and b are non-positive */
+      if ( (na != 0) && (nb < (FIXNUM_MAX / na))) { overflow = TRUE; }
+    }
   }
-  
-  return r;
+
+  if (overflow) {
+    return bignum_mul(state, bignum_new(state, na), bignum_new(state, nb));
+  } else {
+    return I2N(na * nb);
+  }
 }
 
 static inline OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
