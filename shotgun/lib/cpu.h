@@ -197,7 +197,7 @@ OBJECT cpu_unmarshal(STATE, uint8_t *str, int len, int version);
 OBJECT cpu_marshal(STATE, OBJECT obj, int version);
 OBJECT cpu_unmarshal_file(STATE, const char *path, int version);
 bstring cpu_marshal_to_bstring(STATE, OBJECT obj, int version);
-OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, native_int version);
+OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version);
 
 void cpu_bootstrap(STATE);
 void cpu_add_roots(STATE, cpu c, ptr_array roots);
