@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 # TODO: need to find a better way to test this. Too fragile to set expectations
 # to each write call. Only care that all the characters are sent not the number
@@ -80,8 +81,6 @@ describe "IO#puts" do
   end
   
   it "raises IOError on closed stream" do
-    f = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
-    f.close
-    lambda { f.puts("stuff") }.should raise_error(IOError)
+    lambda { IOSpecs.closed_file.puts("stuff") }.should raise_error(IOError)
   end
 end

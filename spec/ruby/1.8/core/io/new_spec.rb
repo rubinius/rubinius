@@ -29,7 +29,7 @@ describe "IO.new" do
     l.should_not raise_error(Exception, "N-uh")
   end
 
-    it "raises IOError on closed stream" do
+  it "raises IOError on closed stream" do
     lambda { IO.new(IOSpecs.closed_file.fileno, 'w') }.should raise_error(IOError)
   end
   

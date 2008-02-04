@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO.read" do
   before :each do
@@ -83,6 +84,12 @@ describe "IO#read" do
   it "returns nil at end-of-file with a length" do
     @io.read
     @io.read(1).should == nil
+  end
+  
+  fails_on :rubinius do
+    it "raises IOError on closed stream" do
+      lambda { IOSpecs.closed_file.read }.should raise_error(IOError)
+    end
   end
 
 end

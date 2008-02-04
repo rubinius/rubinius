@@ -2,3 +2,4 @@ IO#readchar returns the next byte from the stream
 IO#readchar raises EOFError when invoked at the end of the stream
 IO#readchar raises EOFError when reaches the end of the stream
 IO#readchar raises EOFError on empty stream
+IO#readchar raises IOError on closed stream

@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#rewind" do
   before :each do
@@ -23,9 +24,8 @@ describe "IO#rewind" do
     @io.rewind
     @io.lineno.should == 0
   end
-  
+
   it "raises IOError on closed stream" do
-    @file.close
-    lambda { @file.rewind }.should raise_error(IOError)
+    lambda { IOSpecs.closed_file.rewind }.should raise_error(IOError)
   end
 end

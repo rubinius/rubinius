@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#pos" do
 
@@ -20,10 +21,9 @@ describe "IO#pos" do
       f.pos.should == 3
     end
   end
-  
+
   it "raises IOError on closed stream" do
-    f = File.open(@fname) { |io| io }
-    lambda { f.pos }.should raise_error(IOError)
+    lambda { IOSpecs.closed_file.pos }.should raise_error(IOError)
   end
 
 end
@@ -58,8 +58,7 @@ describe "IO#pos=" do
   end
   
   it "raises IOError on closed stream" do
-    f = File.open(@fname) { |io| io }
-    lambda { f.pos = 0 }.should raise_error(IOError)
+    lambda { IOSpecs.closed_file.pos = 0 }.should raise_error(IOError)
   end
 
 end

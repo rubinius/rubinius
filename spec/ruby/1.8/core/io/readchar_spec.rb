@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#readchar" do
   before :each do
@@ -35,5 +36,9 @@ describe "IO#readchar" do
         empty.readchar
       }
     }.should raise_error(EOFError)
+  end
+  
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.readchar }.should raise_error(IOError)
   end
 end

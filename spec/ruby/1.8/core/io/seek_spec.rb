@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#seek" do
   before :each do
@@ -38,9 +39,8 @@ describe "IO#seek" do
     @io.seek(0.00000000000000000000001).should == 0
     lambda { @io.seek(2**128) }.should raise_error(RangeError)
   end
-  
+
   it "raises IOError on closed stream" do
-    @file.close
-    lambda { @file.seek(0) }.should raise_error(IOError)
+    lambda { IOSpecs.closed_file.seek(0) }.should raise_error(IOError)
   end
 end

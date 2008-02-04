@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#readline" do
   @testfile = File.dirname(__FILE__) + '/fixtures/gets.txt'
@@ -8,5 +9,10 @@ describe "IO#readline" do
       lambda { loop { f.readline } }.should raise_error(EOFError)
     end
   end
-end
 
+  fails_on :rubinius do
+    it "raises IOError on closed stream" do
+      lambda { IOSpecs.closed_file.readline }.should raise_error(IOError)
+    end
+  end
+end
