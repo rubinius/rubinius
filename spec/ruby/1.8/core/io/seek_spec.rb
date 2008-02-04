@@ -7,7 +7,7 @@ describe "IO#seek" do
   end
 
   after :each do
-    @file.close
+    @file.close unless @file.closed?
   end
 
   it "moves the read position relative to the current position with SEEK_CUR" do
@@ -37,5 +37,10 @@ describe "IO#seek" do
     @io.seek(1.23423423432e12).should == 0
     @io.seek(0.00000000000000000000001).should == 0
     lambda { @io.seek(2**128) }.should raise_error(RangeError)
+  end
+  
+  it "raises IOError on closed stream" do
+    @file.close
+    lambda { @file.seek(0) }.should raise_error(IOError)
   end
 end

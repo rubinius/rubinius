@@ -7,7 +7,7 @@ describe "IO#rewind" do
   end
 
   after :each do
-    @file.close
+    @file.close unless @file.closed?
   end
 
   it "positions the instance to the beginning of input" do
@@ -22,5 +22,10 @@ describe "IO#rewind" do
     @io.lineno.should == 1
     @io.rewind
     @io.lineno.should == 0
+  end
+  
+  it "raises IOError on closed stream" do
+    @file.close
+    lambda { @file.rewind }.should raise_error(IOError)
   end
 end

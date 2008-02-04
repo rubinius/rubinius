@@ -20,6 +20,11 @@ describe "IO#pos" do
       f.pos.should == 3
     end
   end
+  
+  it "raises IOError on closed stream" do
+    f = File.open(@fname) { |io| io }
+    lambda { f.pos }.should raise_error(IOError)
+  end
 
 end
 
@@ -50,6 +55,11 @@ describe "IO#pos=" do
       f.seek(0.00000000000000000000001).should == 0
       lambda { f.seek(2**128) }.should raise_error(RangeError)
     end
+  end
+  
+  it "raises IOError on closed stream" do
+    f = File.open(@fname) { |io| io }
+    lambda { f.pos = 0 }.should raise_error(IOError)
   end
 
 end
