@@ -1,1 +1,3 @@
+IO#pos raises IOError on closed stream
 IO#pos= can handle any numerical argument without breaking
+IO#pos= raises IOError on closed stream
