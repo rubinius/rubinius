@@ -1,6 +1,7 @@
 IO#eof? returns true after reading with read
 IO#eof? returns true after reading with sysread
 IO#eof? returns true on just opened empty stream
+IO#eof? should not consume the data from the stream
 IO#eof? raises IOError on closed stream
 IO#eof? raises IOError on stream not opened for reading
 IO#eof? raises IOError on stream closed for reading by close_read

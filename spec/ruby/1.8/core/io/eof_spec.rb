@@ -40,6 +40,11 @@ describe "IO#eof?" do
     @file.eof?.should == false
   end
 
+  it "should not consume the data from the stream" do
+    @file.eof?.should == false
+    @file.getc.should == 86
+  end
+
   it "raises IOError on closed stream" do
     @file.close
     lambda { @file.eof? }.should raise_error(IOError)
