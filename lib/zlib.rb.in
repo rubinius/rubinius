@@ -111,7 +111,7 @@ module Zlib
       err = Zlib.deflateInit2(@stream_p, level, Zlib::DEFLATED, window_bits,
                               mem_level, strategy)
 
-      raise GzipFile::Error, "Zlib error #{err}" unless err == Zlib::OK # HACK
+      raise Zlib::Error, "Zlib error #{err}" unless err == Zlib::OK # HACK
     end
 
     def deflate(data)
@@ -138,7 +138,7 @@ module Zlib
 
           err = Zlib.deflate @stream_p, flush
 
-          raise GzipFile::Error, "Zlib stream error" if err == Zlib::STREAM_ERROR
+          raise Zlib::Error, "Zlib stream error" if err == Zlib::STREAM_ERROR
 
           have = CHUNK - @stream[:avail_out]
 
@@ -148,9 +148,9 @@ module Zlib
         end while @stream[:avail_out] == 0
       end
 
-      Zlib.deflateEnd @stream_p
-
       buffer
+    ensure
+      Zlib.deflateEnd @stream_p
     end
 
   end
@@ -183,6 +183,8 @@ module Zlib
       end
 
       data
+    rescue Zlib::Error => e
+      raise GzipFile::Error, e.message
     end
 
   end
@@ -206,10 +208,9 @@ module Zlib
     end
 
     def finish
-      until @buffer.empty? do
-        chunk = @buffer.slice! 0, CHUNK
-        @io.write @deflator.deflate(chunk)
-      end
+      @io.write @deflator.deflate(@buffer)
+    rescue Zlib::Error => e
+      raise GzipFile::Error, e.message
     end
 
     def flush
@@ -237,7 +238,7 @@ module Zlib
 
       err = Zlib.inflateInit2 @stream_p, @window_bits
 
-      raise GzipFile::Error, "Zlib error #{err}" unless err == Zlib::OK # HACK
+      raise Zlib::Error, "Zlib error #{err}" unless err == Zlib::OK # HACK
     end
 
     def inflate(data)
@@ -266,16 +267,16 @@ module Zlib
 
           case err
           when Zlib::STREAM_ERROR then
-            raise GzipFile::Error, "Zlib stream error"
+            raise Zlib::Error, "Zlib stream error"
           when Zlib::NEED_DICT then
             Zlib.inflateEnd @stream_p
-            raise GzipFile::Error, "Zlib data error, need dictionary"
+            raise Zlib::Error, "Zlib data error, need dictionary"
           when Zlib::DATA_ERROR then
             Zlib.inflateEnd @stream_p
-            raise GzipFile::Error, "Zlib data error: #{@stream[:msg]}"
+            raise Zlib::Error, "Zlib data error: #{@stream[:msg]}"
           when Zlib::MEM_ERROR then
             Zlib.inflateEnd @stream_p
-            raise GzipFile::Error, "Zlib memory error"
+            raise Zlib::Error, "Zlib memory error"
           end
 
           have = CHUNK - @stream[:avail_out]
@@ -289,7 +290,7 @@ module Zlib
 
       Zlib.inflateEnd @stream_p
 
-      raise GzipFile::Error, "Zlib data error" if err == Zlib::DATA_ERROR
+      raise Zlib::Error, "Zlib data error" if err == Zlib::DATA_ERROR
 
       buffer
     ensure
