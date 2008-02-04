@@ -1,0 +1,5 @@
+IO#sync= sets the sync mode to true or false
+IO#sync= accepts non-boolean arguments
+IO#sync= raises IOError on closed stream
+IO#sync returns the current sync mode
+IO#sync raises IOError on closed stream
