@@ -1,1 +1,39 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+
+describe "IO#readchar" do
+  before :each do
+    @file_name = File.dirname(__FILE__) + '/fixtures/readlines.txt'
+    @file = File.open(@file_name, 'r')
+  end
+
+  after :each do
+    @file.close unless @file.closed?
+  end
+
+  it "returns the next byte from the stream" do
+    @file.readchar.should == 86
+    @file.readchar.should == 111
+    @file.readchar.should == 105
+    # read the rest of line
+    @file.readline.should == "ci la ligne une.\n"
+    @file.readchar.should == 81
+  end
+
+  it "raises EOFError when invoked at the end of the stream" do
+    # read entire content
+    @file.read
+    lambda { @file.readchar }.should raise_error(EOFError)
+  end
+
+  it "raises EOFError when reaches the end of the stream" do
+    lambda { loop { @file.readchar } }.should raise_error(EOFError)
+  end
+
+  it "raises EOFError on empty stream" do
+    lambda {
+      File.open(File.dirname(__FILE__) + '/fixtures/empty.txt') { |empty|
+        empty.readchar
+      }
+    }.should raise_error(EOFError)
+  end
+end

@@ -1,0 +1,3 @@
+IO#getc returns the next byte from the stream
+IO#getc returns nil when invoked at the end of the stream
+IO#getc returns nil on empty stream
