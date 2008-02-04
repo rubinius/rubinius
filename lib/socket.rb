@@ -347,7 +347,6 @@ class Socket < BasicSocket
     end
   end
 
-
   class Servent < FFI::Struct
     config("rbx.platform.servent", :s_name, :s_aliases, :s_port, :s_proto)
 
@@ -382,7 +381,6 @@ class Socket < BasicSocket
     host = "0.0.0.0" if host.empty?
     Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, type, flags)
   end
-
 
   def self.unpack_sockaddr_in(sockaddr)
     host, address, port = Socket::Foreign.unpack_sa_ip sockaddr, false
@@ -454,6 +452,13 @@ class UNIXServer < UNIXSocket
 end
 
 class IPSocket < BasicSocket
+
+  def self.getaddress(host)
+    addrinfos = Socket.getaddrinfo host, 0
+
+    addrinfos.first[3]
+  end
+
   def addr
     sockaddr = Socket::Foreign.ffi_getsockname descriptor
 
