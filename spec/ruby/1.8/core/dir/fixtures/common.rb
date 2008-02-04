@@ -2,7 +2,13 @@ require 'fileutils'
 
 module DirSpecs
   def DirSpecs.mock_dir
-    @mock_dir ||= Dir.chdir(File.dirname(__FILE__) + '/mock') { Dir.pwd }
+    unless defined? @mock_dir then
+      root_dir = File.dirname(__FILE__).sub(/spec.ruby.*/, '')
+      tmp_dir = File.join(root_dir, 'tmp', 'mock')
+      @mock_dir = File.expand_path(tmp_dir)
+    end
+
+    @mock_dir
   end
 
   def DirSpecs.nonexistent
@@ -21,49 +27,49 @@ module DirSpecs
   end
 
   def DirSpecs.create_mock_dirs
-    stem = File.dirname(__FILE__)
-    files = %W[ #{stem}/mock/.dotfile
-                #{stem}/mock/.dotsubdir/.dotfile
-                #{stem}/mock/.dotsubdir/nondotfile
+    mock_dir = self.mock_dir
+    files = %W[ #{mock_dir}/.dotfile
+                #{mock_dir}/.dotsubdir/.dotfile
+                #{mock_dir}/.dotsubdir/nondotfile
 
-                #{stem}/mock/deeply/.dotfile
-                #{stem}/mock/deeply/nested/.dotfile.ext
-                #{stem}/mock/deeply/nested/directory/structure/.ext
-                #{stem}/mock/deeply/nested/directory/structure/bar
-                #{stem}/mock/deeply/nested/directory/structure/baz
-                #{stem}/mock/deeply/nested/directory/structure/file_one
-                #{stem}/mock/deeply/nested/directory/structure/file_one.ext
-                #{stem}/mock/deeply/nested/directory/structure/foo
-                #{stem}/mock/deeply/nondotfile
+                #{mock_dir}/deeply/.dotfile
+                #{mock_dir}/deeply/nested/.dotfile.ext
+                #{mock_dir}/deeply/nested/directory/structure/.ext
+                #{mock_dir}/deeply/nested/directory/structure/bar
+                #{mock_dir}/deeply/nested/directory/structure/baz
+                #{mock_dir}/deeply/nested/directory/structure/file_one
+                #{mock_dir}/deeply/nested/directory/structure/file_one.ext
+                #{mock_dir}/deeply/nested/directory/structure/foo
+                #{mock_dir}/deeply/nondotfile
 
-                #{stem}/mock/file_one.ext
-                #{stem}/mock/file_two.ext
+                #{mock_dir}/file_one.ext
+                #{mock_dir}/file_two.ext
 
-                #{stem}/mock/nondotfile
+                #{mock_dir}/nondotfile
 
-                #{stem}/mock/subdir_one/.dotfile
-                #{stem}/mock/subdir_one/nondotfile
-                #{stem}/mock/subdir_two/nondotfile
-                #{stem}/mock/subdir_two/nondotfile.ext
+                #{mock_dir}/subdir_one/.dotfile
+                #{mock_dir}/subdir_one/nondotfile
+                #{mock_dir}/subdir_two/nondotfile
+                #{mock_dir}/subdir_two/nondotfile.ext
 
-                #{stem}/mock/special/+
-                #{stem}/mock/special/*
-                #{stem}/mock/special/?
+                #{mock_dir}/special/+
+                #{mock_dir}/special/*
+                #{mock_dir}/special/?
 
-                #{stem}/mock/special/|
+                #{mock_dir}/special/|
 
-                #{stem}/mock/special/^
-                #{stem}/mock/special/$
+                #{mock_dir}/special/^
+                #{mock_dir}/special/$
 
-                #{stem}/mock/special/(
-                #{stem}/mock/special/)
-                #{stem}/mock/special/[
-                #{stem}/mock/special/]
-                #{stem}/mock/special/{
-                #{stem}/mock/special/}
+                #{mock_dir}/special/(
+                #{mock_dir}/special/)
+                #{mock_dir}/special/[
+                #{mock_dir}/special/]
+                #{mock_dir}/special/{
+                #{mock_dir}/special/}
               ]
 
-    FileUtils.rm_rf "#{stem}/mock"
+    FileUtils.rm_rf mock_dir
     files.each do |file|
       FileUtils.mkdir_p File.dirname(file)
       # eventually will be FileUtils.touch(File.basename(dir))
