@@ -1,2 +1,3 @@
 IO#new associates new IO with the old descriptor so each IO directly affects the other
+IO.new raises IOError on closed stream
 IO.new emits a warning if given a block

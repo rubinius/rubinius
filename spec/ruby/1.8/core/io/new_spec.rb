@@ -1,5 +1,6 @@
 require "#{File.dirname __FILE__}/../../spec_helper"
 require "#{File.dirname __FILE__}/shared/new_shared"
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO.new" do
   it_behaves_like :io_new, :new
@@ -28,6 +29,10 @@ describe "IO.new" do
     l.should_not raise_error(Exception, "N-uh")
   end
 
+    it "raises IOError on closed stream" do
+    lambda { IO.new(IOSpecs.closed_file.fileno, 'w') }.should raise_error(IOError)
+  end
+  
   it "does not close the stream automatically if given a block" do
     io = IO.new(@file.fileno, 'w') {|f| puts f.read }
 
