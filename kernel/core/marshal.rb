@@ -805,7 +805,7 @@ module Marshal
     major = data[0]
     minor = data[1]
 
-    if major != MAJOR_VERSION and minor > MINOR_VERSION then
+    if major != MAJOR_VERSION or minor > MINOR_VERSION then
       raise TypeError, "incompatible marshal file format (can't be read)\n\tformat version #{MAJOR_VERSION}.#{MINOR_VERSION} required; #{major}.#{minor} given"
     end
 

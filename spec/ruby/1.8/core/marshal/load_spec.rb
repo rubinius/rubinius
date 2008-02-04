@@ -181,6 +181,20 @@ describe "Marshal::load" do
       obj
   end
 
+  it "raises a TypeError with bad Marshal version" do
+    marshal_data = '\xff\xff'
+    marshal_data[0] = (Marshal::MAJOR_VERSION).chr
+    marshal_data[1] = (Marshal::MINOR_VERSION + 1).chr
+
+    lambda { Marshal.load marshal_data }.should raise_error(TypeError)
+
+    marshal_data = '\xff\xff'
+    marshal_data[0] = (Marshal::MAJOR_VERSION - 1).chr
+    marshal_data[1] = (Marshal::MINOR_VERSION).chr
+
+    lambda { Marshal.load marshal_data }.should raise_error(TypeError)
+  end
+
   MarshalSpec::DATA.each do |description, (object, marshal, attributes)|
     it "loads a #{description}" do
       Marshal.load(marshal).should == object
