@@ -1,0 +1,7 @@
+IO#ungetc pushes back one character onto stream
+IO#ungetc pushes back one character when invoked at the end of the stream
+IO#ungetc pushes back one character when invoked on empty stream
+IO#ungetc affects EOF state
+IO#ungetc makes subsequent unbuffered operations to raise IOError
+IO#ungetc raises IOError when invoked on stream that was not yet read
+IO#ungetc raises IOError on closed stream
