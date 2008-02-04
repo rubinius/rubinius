@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#initialize" do
   before :each do
@@ -22,6 +23,10 @@ describe "IO#initialize" do
 
   it "raises a TypeError when given a non-integer" do
     lambda { @io.send :initialize, @fname, 'w' }.should raise_error(TypeError)
+  end
+  
+  it "raises IOError on closed stream" do
+    lambda { @io.send :initialize, IOSpecs.closed_file.fileno }.should raise_error(IOError)
   end
 
   it "raises an Errno::EBADF when given an invalid file descriptor" do

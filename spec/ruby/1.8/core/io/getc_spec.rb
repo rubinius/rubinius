@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#getc" do
   before :each do
@@ -29,5 +30,9 @@ describe "IO#getc" do
     File.open(File.dirname(__FILE__) + '/fixtures/empty.txt') { |empty|
       empty.getc.should == nil
     }
+  end
+
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.getc }.should raise_error(IOError)
   end
 end

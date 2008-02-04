@@ -65,4 +65,10 @@ describe "IO#gets" do
     lambda { File.open(IOSpecs.gets_output, 'a') {|f| f.gets} }.should raise_error(IOError)
     lambda { File.open(IOSpecs.gets_output, 'w') {|f| f.gets} }.should raise_error(IOError)
   end
+
+  fails_on :rubinius do
+    it "raises IOError on closed stream" do
+      lambda { IOSpecs.closed_file.gets }.should raise_error(IOError)
+    end
+  end
 end
