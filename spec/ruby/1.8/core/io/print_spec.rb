@@ -48,4 +48,10 @@ describe IO, "#print" do
 
     lambda { $stdout.print(o, o2) }.should output("#{o.to_s}#{o2.to_s}#{$\}")
   end
+
+  it "raises IOError on closed stream" do
+    f = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
+    f.close
+    lambda { f.print("stuff") }.should raise_error(IOError)
+  end
 end

@@ -12,4 +12,10 @@ describe "IO#printf" do
       }.should output_to_fd("look ma, no hands\n", @io)
     end
   end
+
+  it "raises IOError on closed stream" do
+    f = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
+    f.close
+    lambda { f.printf("stuff") }.should raise_error(IOError)
+  end
 end

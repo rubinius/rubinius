@@ -78,4 +78,10 @@ describe "IO#puts" do
     @io.puts(5).should == nil
     $/ = "\n"
   end
+  
+  it "raises IOError on closed stream" do
+    f = File.open(File.dirname(__FILE__) + '/fixtures/readlines.txt', 'r')
+    f.close
+    lambda { f.puts("stuff") }.should raise_error(IOError)
+  end
 end
