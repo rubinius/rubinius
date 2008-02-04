@@ -1,5 +1,6 @@
 require 'mspec/runner/state'
 require 'mspec/runner/tag'
+require 'fileutils'
 
 module MSpec
   def self.describe(mod, msg, &block)
@@ -136,11 +137,13 @@ module MSpec
   
   def self.read_tags(*keys)
     tags = []
-    return tags unless File.exist? tags_file
-    File.open(tags_file, "r") do |f|
-      f.each_line do |line|
-        tag = SpecTag.new line.chomp
-        tags << tag if keys.include? tag.tag
+    file = tags_file
+    if File.exist? file
+      File.open(file, "r") do |f|
+        f.each_line do |line|
+          tag = SpecTag.new line.chomp
+          tags << tag if keys.include? tag.tag
+        end
       end
     end
     tags
@@ -148,11 +151,25 @@ module MSpec
   
   def self.write_tag(tag)
     string = tag.to_s
-    if File.exist? tags_file
-      File.open(tags_file, "r") do |f|
+    file = tags_file
+    path = File.dirname file
+    FileUtils.mkdir_p(path) unless File.exist?(path)
+    if File.exist? file
+      File.open(file, "r") do |f|
         f.each_line { |line| return if line.chomp == string }
       end
     end
-    File.open(tags_file, "a") { |f| f.puts string }
+    File.open(file, "a") { |f| f.puts string }
+  end
+  
+  def self.delete_tag(tag)
+    string = tag.to_s
+    file = tags_file
+    if File.exist? file
+      lines = IO.readlines(file)
+      File.open(file, "w") do |f|
+        lines.each { |line| f.puts line unless string == line.chomp }
+      end
+    end
   end
 end

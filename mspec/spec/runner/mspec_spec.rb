@@ -256,6 +256,7 @@ end
 
 describe MSpec, ".write_tag" do
   before :each do
+    FileUtils.stub!(:mkdir_p)
     MSpec.stub!(:tags_file).and_return("/tmp/tags.txt")
     @tag = SpecTag.new "fail(broken):Some#method works"
   end
@@ -273,5 +274,33 @@ describe MSpec, ".write_tag" do
     File.open("/tmp/tags.txt", "w") { |f| f.puts @tag }
     MSpec.write_tag @tag
     IO.read("/tmp/tags.txt").should == "fail(broken):Some#method works\n"
+  end
+end
+
+describe MSpec, ".delete_tag" do
+  before :each do
+    FileUtils.cp File.dirname(__FILE__) + '/tags.txt', "/tmp/tags.txt"
+    MSpec.stub!(:tags_file).and_return("/tmp/tags.txt")
+    @tag = SpecTag.new "fail(broken):Some#method works"
+  end
+  
+  after :each do
+    File.delete "/tmp/tags.txt" rescue nil
+  end
+  
+  it "deletes the tag if it exists" do
+    MSpec.delete_tag @tag
+    IO.read("/tmp/tags.txt").should == %[incomplete(20%):The#best method ever
+benchmark(0.01825):The#fastest method today
+]
+  end
+  
+  it "does not change the tags file contents if the tag doesn't exist" do
+    @tag.tag = "failed"
+    MSpec.delete_tag @tag
+    IO.read("/tmp/tags.txt").should == %[fail(broken):Some#method works
+incomplete(20%):The#best method ever
+benchmark(0.01825):The#fastest method today
+]
   end
 end
