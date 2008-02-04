@@ -180,65 +180,67 @@ void XFREE(void *p);
 #define FREE(v) XFREE(v)
 
 static inline native_int rbs_to_int(OBJECT obj) {
-  return STRIP_TAG(obj);
+  return (native_int)STRIP_TAG(obj);
 }
 
-static inline OBJECT rbs_int_to_numeric(STATE, int num) {
+static inline OBJECT rbs_int_to_numeric(STATE, native_int num) {
   OBJECT ret;
-  ret = APPLY_TAG(num, TAG_FIXNUM);
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
-  /* Number is too big for fixnum. Use bignum. */
-  if((int)rbs_to_int(ret) != num) {
+  /* Number is too big for Fixnum. Use Bignum. */
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_new(state, num);
+  } else {
+    return ret;
   }
-  return ret;
 }
 
 static inline OBJECT rbs_uint_to_numeric(STATE, unsigned int num) {
   OBJECT ret;
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
-  if (num > FIXNUM_MAX) {
+  /* Number is too big for Fixnum. Use Bignum. */
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_new_unsigned(state, num);
   } else {
-    ret = APPLY_TAG(num, TAG_FIXNUM);
-    rbs_to_int(ret);
     return ret;
   }
 }
 
 static inline OBJECT rbs_ll_to_numeric(STATE, long long num) {
   OBJECT ret;
-  ret = APPLY_TAG(num, TAG_FIXNUM);
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
-  /* Number is too big for fixnum. Use bignum. */
-  if((int)rbs_to_int(ret) != num) {
+  /* Number is too big for Fixnum. Use Bignum. */
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_from_ll(state, num);
+  } else {
+    return ret;
   }
-  return ret;
 }
 
 static inline OBJECT rbs_ull_to_numeric(STATE, unsigned long long num) {
   OBJECT ret;
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
-  if (num > FIXNUM_MAX) {
+  /* Number is too big for Fixnum. Use Bignum. */
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_from_ull(state, num);
   } else {
-    ret = APPLY_TAG(num, TAG_FIXNUM);
-    rbs_to_int(ret);
     return ret;
   }
 }
 
 static inline OBJECT rbs_max_long_to_numeric(STATE, long long num) {
   OBJECT ret;
-  ret = APPLY_TAG(num, TAG_FIXNUM);
+  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
 
   /* Number is too big for Fixnum. Use Bignum. */
-  /* TODO - Change this to native_int when Fixnum becomes platform-specific */
-  if((int)rbs_to_int(ret) != num) {
+  if((native_int)STRIP_TAG(ret) != num) {
     return bignum_from_ll(state, num);
+  } else {
+    return ret;
   }
-  return ret;
 }
 
 static inline double rbs_fixnum_to_double(OBJECT obj) {
@@ -361,7 +363,7 @@ static void _bad_reference2(OBJECT in, int fel) {
   *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
 
 #define rbs_get_field(i_in, i_fel) ({ \
-  OBJECT in = (i_in); int fel = (i_fel); \
+  OBJECT in = (i_in); unsigned int fel = (unsigned int)(i_fel); \
   if(!REFERENCE_P(in)) _bad_reference(in); \
   if(fel >= in->field_count) _bad_reference2(in, fel); \
   NTH_FIELD_DIRECT(in, fel); })
@@ -380,7 +382,7 @@ static void _bad_reference2(OBJECT in, int fel) {
   *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
 
 #define rbs_get_field(i_in, i_fel) ({ \
-  OBJECT in = (i_in); int fel = (i_fel); \
+  OBJECT in = (i_in); unsigned int fel = (unsigned int)(i_fel); \
   if(fel >= in->field_count) _bad_reference2(in, fel); \
   NTH_FIELD_DIRECT(in, fel); })
 
@@ -392,7 +394,7 @@ static void _bad_reference2(OBJECT in, int fel) {
 #else
 
 
-static inline OBJECT rbs_get_field(OBJECT in, int fel) {
+static inline OBJECT rbs_get_field(OBJECT in, unsigned int fel) {
   OBJECT obj;
 #if DISABLE_CHECKS
   if(!REFERENCE_P(in)) {

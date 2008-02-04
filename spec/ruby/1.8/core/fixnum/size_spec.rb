@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Fixnum#size" do
-  platform_is_not :java do
+  platform_is :size => 32 do
     it "returns the number of bytes in the machine representation of self" do
       -1.size.should == 4
       0.size.should == 4
@@ -9,7 +9,7 @@ describe "Fixnum#size" do
     end
   end
 
-  platform_is :java do
+  platform_is :size => 64 do
     it "returns the number of bytes in the machine representation of self" do
       -1.size.should == 8
       0.size.should == 8

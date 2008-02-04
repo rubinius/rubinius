@@ -124,7 +124,8 @@ class ShotgunInstructions
   end
   
   def generate_declarations(fd)
-    fd.puts "register int _int, j, k, m;"
+    fd.puts "register int _int;"
+    fd.puts "register native_int j, k, m;"
     fd.puts "register OBJECT _lit, t1, t2, t3, t4, t5;"
   end
   
@@ -214,7 +215,12 @@ CODE
   end
   
   def push_literal
-    "next_int; stack_push(fast_fetch(cpu_current_literals(state, c), _int));"
+    <<-CODE
+    next_int;
+    t1 = cpu_current_literals(state, c);
+    t2 = fast_fetch(t1, _int);
+    stack_push(t2);
+    CODE
   end
   
   def set_literal
@@ -236,7 +242,7 @@ CODE
   def push_local_depth
     <<-CODE
     next_int;
-    k = _int;
+    k = (native_int)_int;
     next_int;
     t1 = c->active_context;
     for(j = 0; j < k; j++) {
@@ -323,9 +329,9 @@ CODE
   def send_primitive
     <<-CODE
     next_int;
-    j = _int; // primitive index
+    j = (native_int)_int; // primitive index
     next_int;
-    k = _int; // num_args
+    k = (native_int)_int; // num_args
 
     // Should the OBJECT parameter be removed since a primitive is not necesarily
     // performed on an object? Or should we state that the semantics of a primitive 
@@ -418,7 +424,7 @@ CODE
   def set_local_from_fp
     <<-CODE
     next_int;
-    k = _int;
+    k = (native_int)_int;
     next_int;
     
     t1 = c->stack_top[c->fp - _int];
@@ -436,7 +442,7 @@ CODE
   def set_local_depth
     <<-CODE
     next_int;
-    k = _int;
+    k = (native_int)_int;
     next_int;
     t3 = stack_pop();
     t1 = c->active_context;

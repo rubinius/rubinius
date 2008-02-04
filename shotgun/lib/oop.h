@@ -8,23 +8,23 @@ typedef void * xpointer;
 typedef intptr_t native_int;
 
 /* OOP layout:
- * [30 bits of data | 2 bits of tag]
+ * [30 (or 62) bits of data | 2 bits of tag]
  * if tag == 00, the whole thing is a pointer to a memory location.
- * if tag == 11, the data is a symbol index
  * if tag == 01, the data is a fixnum
  * if tag == 10, the data is a literal
+ * if tag == 11, the data is any data, using the DATA_* macros 
  */
 
 #define TAG_MASK    0x3
 #define TAG_SHIFT   2
 
 #define TAG_REF     0x0
-#define TAG_DATA    0x3
 #define TAG_FIXNUM  0x1
 #define TAG_LITERAL 0x2
+#define TAG_DATA    0x3
 
-#define TAG(v) (((uintptr_t)v) & TAG_MASK)
-#define APPLY_TAG(v, tag) ((OBJECT)(((uintptr_t)v << TAG_SHIFT) | tag))
+#define TAG(v) (((intptr_t)v) & TAG_MASK)
+#define APPLY_TAG(v, tag) ((OBJECT)(((intptr_t)v << TAG_SHIFT) | tag))
 #define STRIP_TAG(v) (((intptr_t)v) >> TAG_SHIFT)
 
 #define DATA_P(v) (TAG(v) == TAG_DATA)
@@ -36,17 +36,18 @@ typedef intptr_t native_int;
 #define DATA_TAG_SYMBOL 0x3
 #define DATA_TAG_CUSTOM 0x7
 
-#define DATA_TAG(v) ((uintptr_t)(v) & DATA_MASK)
+#define DATA_TAG(v) ((intptr_t)(v) & DATA_MASK)
 #define DATA_APPLY_TAG(v, tag) (OBJECT)((v << DATA_SHIFT) | tag)
-#define DATA_STRIP_TAG(v) (((uintptr_t)v) >> DATA_SHIFT)
+#define DATA_STRIP_TAG(v) (((intptr_t)v) >> DATA_SHIFT)
 
 #define SYMBOL_P(v) (DATA_TAG(v) == DATA_TAG_SYMBOL)
 #define CUSTOM_P(v) (DATA_TAG(v) == DATA_TAG_CUSTOM)
 
 /* How many bits of data are available in fixnum, not including
    the sign. */
-#define FIXNUM_WIDTH 29
-#define FIXNUM_MAX ((1 << FIXNUM_WIDTH) - 1)
+enum { FIXNUM_WIDTH = ((8 * sizeof(native_int)) - TAG_SHIFT - 1) };
+enum { FIXNUM_MAX = (((native_int)1 << FIXNUM_WIDTH) - 1) };
+enum { FIXNUM_MIN = (-(FIXNUM_MAX)) - 1 };
 
 /* rubinius_object types, takes up 3 bits */
 typedef enum

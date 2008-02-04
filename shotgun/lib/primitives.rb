@@ -144,7 +144,7 @@ class ShotgunPrimitives
   
   def fixnum_size(_ = fixnum)
     <<-CODE
-    stack_push(I2N(sizeof(int)));
+    stack_push(I2N(sizeof(native_int)));
     CODE
   end
 
@@ -846,7 +846,7 @@ class ShotgunPrimitives
     POP(t1, REFERENCE);
     POP(t2, FIXNUM);
 
-    int start = N2I(t2);
+    native_int start = N2I(t2);
     for(k = start, j = 0; 
         k < NUM_FIELDS(t1) && j < NUM_FIELDS(self); 
         k++, j++) {
@@ -994,7 +994,7 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
 
     char *source, *dest;
-    int num;
+    native_int num;
     j = N2I(t1);
     k = N2I(t2);
     m = bytearray_bytes(state, self);
@@ -1017,7 +1017,7 @@ class ShotgunPrimitives
   def move_bytes
     <<-CODE
     char *data, *source, *dest;
-    int total, offset, start, count;
+    native_int total, offset, start, count;
     
     self = stack_pop(); 
     GUARD(object_stores_bytes_p(state, self));
@@ -1700,8 +1700,7 @@ class ShotgunPrimitives
 
   def fixnum_right_shift(_ = fixnum, t1 = fixnum)
     <<-CODE
-    long value;
-    int  width;
+    native_int value, width;
     value = N2I(self);
     width = N2I(t1);
 
@@ -1725,8 +1724,7 @@ class ShotgunPrimitives
   def fixnum_left_shift(_ = fixnum, t1 = fixnum)
     <<-CODE
 
-    long value;
-    int  width;
+    native_int value, width;
     value = N2I(self);
     width = N2I(t1);
 
@@ -1928,7 +1926,7 @@ class ShotgunPrimitives
   
   def fastctx_get_field
     <<-CODE
-    int i;
+    native_int i;
     struct fast_context *fc;
     POP(t1, CTX);
 
@@ -1985,7 +1983,7 @@ class ShotgunPrimitives
   
   def fastctx_set_field
     <<-CODE
-    int i;
+    native_int i;
     struct fast_context *fc;
     POP(t1, CTX);
     POP(t2, FIXNUM);
@@ -2685,7 +2683,7 @@ class ShotgunPrimitives
   # aka execve().
   def replace_process
     <<-CODE
-    int i;
+    native_int i;
     char *tmp, *file;
     char **argv;
     

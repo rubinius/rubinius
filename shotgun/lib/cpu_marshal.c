@@ -492,7 +492,7 @@ static void marshal(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
   int ref;
   
   if(FIXNUM_P(obj)) {
-    marshal_int(state, obj, buf);
+    marshal_fixnum(state, obj, buf);
   } else if(SYMBOL_P(obj)) {
     marshal_sym(state, obj, buf);
   } else if(obj == Qnil) {
@@ -522,8 +522,6 @@ static void marshal(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
         marshal_iseq(state, obj, buf);
       } else if(kls == BASIC_CLASS(bignum)) {
         marshal_bignum(state, obj, buf);
-      } else if(FIXNUM_P(obj)) {
-        marshal_fixnum(state, obj, buf);
       } else if(kls == BASIC_CLASS(floatpoint)) {
         marshal_floatpoint(state, obj, buf);
       } else {

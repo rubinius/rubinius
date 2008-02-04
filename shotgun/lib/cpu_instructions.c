@@ -389,7 +389,7 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
   OBJECT cs;
   cs = cmethod_get_cache(cm);
   if(FIXNUM_P(cs)) {
-    int sz = N2I(cs);
+    native_int sz = N2I(cs);
     if(sz > 0) {
       cs = tuple_new(state, sz);
       // Reserve field 0 for call sites that are not cached

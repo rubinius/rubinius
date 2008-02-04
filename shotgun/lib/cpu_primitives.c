@@ -110,9 +110,11 @@ void ffi_call(STATE, cpu c, OBJECT ptr);
 
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT method_name, OBJECT mod, OBJECT block) {
   int _ret = TRUE;
-  OBJECT self, t1, t2, t3, t4;
-  int j, k, m, _orig_sp;
+  int _orig_sp;
   OBJECT *_orig_sp_ptr;
+  OBJECT self, t1, t2, t3, t4;
+
+  native_int j, k, m;
   int fds[2];
   char *buf;
   
@@ -130,7 +132,8 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args
 int cpu_perform_runtime_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT method_name, OBJECT mod, OBJECT block) {
   int _ret = TRUE;
   OBJECT self, t1, t2, t3;
-  int j, _orig_sp;
+  int _orig_sp;
+  native_int j;
   OBJECT *_orig_sp_ptr;
   
   _orig_sp_ptr = c->sp_ptr;

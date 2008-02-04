@@ -315,7 +315,7 @@ class Compiler
       when 2
         add :meta_push_2
       else
-        if int < InlineIntCutoff
+        if int.abs < InlineIntCutoff
           add :push_int, int
         else
           push_literal int
