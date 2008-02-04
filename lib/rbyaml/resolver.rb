@@ -133,7 +133,7 @@ module RbYAML
         end
         implicit = implicit[1]
       end
-      exact_paths = @resolver_exact_paths[-1]
+      exact_paths = @resolver_exact_paths[-1] || []
       return exact_paths[kind] if exact_paths.include?(kind) 
       return exact_paths[nil] if exact_paths.include?(nil)
       if ScalarNode == kind
@@ -149,6 +149,7 @@ module RbYAML
   class Resolver < BaseResolver
   end
   
+  BaseResolver.add_implicit_resolver('tag:yaml.org,2002:sym',/^(?:\:\w+)$/,':')
   BaseResolver.add_implicit_resolver('tag:yaml.org,2002:bool',/^(?:yes|Yes|YES|no|No|NO|true|True|TRUE|false|False|FALSE|on|On|ON|off|Off|OFF)$/,'yYnNtTfFoO')
   BaseResolver.add_implicit_resolver('tag:yaml.org,2002:float',/^(?:[-+]?(?:[0-9][0-9_]*)\.[0-9_]*(?:[eE][-+][0-9]+)?|[-+]?(?:[0-9][0-9_]*)?\.[0-9_]+(?:[eE][-+][0-9]+)?|[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\.[0-9_]*|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))$/,'-+0123456789.')
   BaseResolver.add_implicit_resolver('tag:yaml.org,2002:int',/^(?:[-+]?0b[0-1_]+|[-+]?0[0-7_]+|[-+]?(?:0|[1-9][0-9_]*)|[-+]?0x[0-9a-fA-F_]+|[-+]?[1-9][0-9_]*(?::[0-5]?[0-9])+)$/,'-+0123456789')
