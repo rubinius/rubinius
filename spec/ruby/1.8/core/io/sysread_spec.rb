@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#sysread on a file" do
   before :each do
@@ -46,6 +47,12 @@ describe "IO#sysread on a file" do
     @file.sysread(5).should == "56789"
     File.open(@file_name) do |f|
       f.sysread(10).should == "abcde56789"
+    end
+  end
+
+  fails_on :rubinius do
+    it "raises IOError on closed stream" do
+      lambda { IOSpecs.closed_file.sysread(5) }.should raise_error(IOError)
     end
   end
 end

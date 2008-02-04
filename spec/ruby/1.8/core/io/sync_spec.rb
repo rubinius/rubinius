@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#sync=" do
   before :each do
@@ -27,8 +28,7 @@ describe "IO#sync=" do
   end
 
   it "raises IOError on closed stream" do
-    @file.close
-    lambda { @file.sync = true }.should raise_error(IOError)
+    lambda { IOSpecs.closed_file.sync = true }.should raise_error(IOError)
   end
 end
 
@@ -47,7 +47,6 @@ describe "IO#sync" do
   end
 
   it "raises IOError on closed stream" do
-    @file.close
-    lambda { @file.sync }.should raise_error(IOError)
+    lambda { IOSpecs.closed_file.sync }.should raise_error(IOError)
   end
 end

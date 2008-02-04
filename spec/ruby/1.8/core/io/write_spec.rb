@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#write on a file" do
   before :each do
@@ -54,5 +55,7 @@ describe "IO#write on a file" do
     end
   end
 
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.write("hello") }.should raise_error(IOError)
+  end
 end
-

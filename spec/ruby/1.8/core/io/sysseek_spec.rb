@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#sysseek on a file" do
   # TODO: This should be made more generic with seek spec
@@ -53,5 +54,9 @@ describe "IO#sysseek on a file" do
     @io.sysseek(2**10).should == 1024
     @io.sysseek(2**32).should == 4294967296
     lambda { @io.sysseek(2**128) }.should raise_error(RangeError)
+  end
+
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.sysseek(0) }.should raise_error(IOError)
   end
 end
