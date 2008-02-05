@@ -121,9 +121,12 @@ namespace :git do
   end
 
   task :pull => :update
-  
+
   desc "Make patches upto current"
   task :make_patches do
     sh "git format-patch HEAD^"
   end
+
+  desc "Pull, build, spec, push"
+  task :safe_push => %w[git:pull build spec git:push]
 end
