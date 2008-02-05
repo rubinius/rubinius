@@ -180,7 +180,7 @@ class Sprintf
           raise ArgumentError, "invalid type (only Fixnum allowed)"
         end
         
-        val = (2**32) + val
+        val = (2**(2.size * 8)) + val
         if !flags[:zero] and !precision
           ret = "..#{pad(val, width, precision)}"
         else
