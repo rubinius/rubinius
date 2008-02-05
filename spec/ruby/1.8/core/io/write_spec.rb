@@ -34,6 +34,14 @@ describe "IO#write on a file" do
     written = @file.write("abcde")
     written.should == 5
   end
+  
+  it "invokes to_s on non-String argument" do
+    data = "abcdefgh9876"
+    (obj = mock(data)).should_receive(:to_s).and_return(data)
+    @file.write(obj)
+    @file.seek(0)
+    @file.read(data.length).should == data
+  end
 
   it "writes all of the string's bytes but buffers them" do
     written = @file.write("abcde")

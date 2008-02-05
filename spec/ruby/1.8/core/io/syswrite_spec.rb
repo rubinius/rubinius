@@ -22,6 +22,14 @@ describe "IO#syswrite on a file" do
     @file.sysread(10).should == "abcde56789"
   end
   
+  it "invokes to_s on non-String argument" do
+    data = "abcdefgh9876"
+    (obj = mock(data)).should_receive(:to_s).and_return(data)
+    @file.syswrite(obj)
+    @file.seek(0)
+    @file.sysread(data.length).should == data
+  end
+  
   it "advances the file position by the count of given bytes" do
     @file.syswrite("abcde")
     @file.sysread(10).should == "5678901234"
