@@ -8,88 +8,107 @@ require File.dirname(__FILE__) + '/name_map'
 
 module MkSpec
   VERSION = '0.0.1'
-end
 
-target = 'ruby'
-constant_names = []
-constants = []
-requires = []
-base = nil
-
-opts = OptionParser.new("", 24, '   ') do |opts|
-  opts.banner = "mkspec [options]"
-  opts.separator ""
-
-  opts.on("-c", "--constant CONSTANT", String,
-          "Name of a Class or Module") do |c|
-    constant_names << c
-  end
-  opts.on("-b", "--base BASE", String,
-          "Set base directory to BASE") do |b|
-    base = b
-  end
-  opts.on("-r", "--require LIBRARY", String, "Name of library to require") do |f|
-    requires << f
-  end
-  opts.on("-t", "--target TARGET", String, 
-          "Implementation to create spec files for (default ruby): r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
-    case t
-    when 'r', 'ruby'
-      target = 'ruby'
-    when 'r19', 'ruby19'
-      target = 'ruby19'
-    when 'x', 'rbx', 'rubinius'
-      target = 'shotgun/rubinius'
-    when 'j', 'jruby'
-      target = 'jruby'
-    else
-      target = t
+  def self.create_file(dir, name)
+    file = File.join(dir, name)
+    unless File.exist?(file)
+      File.open(file, 'w') do |f|
+        f.puts("require File.dirname(__FILE__) + '/../../spec_helper'\n")
+      end
+      puts file
     end
   end
-  opts.on("-v", "--version", "Show version") do
-    puts "Make Spec File Utility #{MkSpec::VERSION}"
-    exit
+
+  def self.generate(base, modules)
+    modules.each do |mod|
+      dir = NameMap.get_dir_name mod, base
+      if File.exist?(dir)
+        unless File.directory?(dir)
+          puts "A file named #{dir} already exists and is not a directory."
+          exit 1
+        end
+      else
+        Dir.mkdir dir
+      end
+
+      methods = [
+        mod.methods(false),
+        mod.public_instance_methods(false),
+        mod.private_instance_methods(false),
+        mod.protected_instance_methods(false),
+      ].flatten.uniq.sort
+
+      methods.each do |method|
+        name = NameMap.get_spec_name method, mod.name
+        MkSpec.create_file dir, name unless File.exist?(name)
+      end
+
+      sub_mods = mod.constants.sort.map do |constant_name|
+        NameMap.get_class_or_module "#{mod}::#{constant_name}"
+      end.compact
+
+      generate dir, sub_mods
+    end
   end
-  opts.on("-h", "--help", "Show this message") do
+
+  def self.process_args(argv)
+    constants = []
+    base = nil
+
+    opts = OptionParser.new do |opts|
+      opts.version = VERSION
+      opts.banner = "mkspec [options]"
+      opts.separator ""
+
+      opts.on("-c", "--constant CONSTANT",
+              "Class or Module to generate spec stubs for") do |name|
+        constant = NameMap.get_class_or_module(name)
+
+        if constant.nil? then
+          raise OptionParser::InvalidArgument, "#{name} is not a constant"
+        end
+
+        constants << constant
+      end
+
+      opts.on("-b", "--base BASE",
+              "Directory to generate specs into") do |directory|
+        base = File.expand_path directory
+      end
+
+      opts.on("-r", "--require LIBRARY",
+              "A library to require") do |file|
+        begin
+          require file
+        rescue LoadError
+          raise OptionParser::InvalidArgument, "#{file} could not be required"
+        end
+      end
+
+      opts.parse argv
+    end
+
+    if constants.empty? then
+      Object.constants.map { |const| NameMap.get_class_or_module(const) }
+    end
+
+    constants = constants.compact
+
+    return base, constants
+  rescue OptionParser::ParseError => e
     puts opts
-    exit
+    puts
+    puts e
+    exit 1
   end
-  
-  opts.parse ARGV
+
+  def self.run(argv = ARGV)
+    base, constants = process_args argv
+
+    generate base, constants
+  end
+
 end
 
-requires.each { |r| require r }
+MkSpec.run if __FILE__ == $0
 
-create_file = lambda do |dir, name|
-  file = File.join(dir, name)
-  unless File.exist?(file)
-    File.open(file, 'w') do |f|
-      f.puts("require File.dirname(__FILE__) + '/../../spec_helper'\n")
-    end
-  end
-end
-
-constants = constant_names.map { |c| NameMap.get_class_or_module(c) }
-if constants.empty?
-  constants = Object.constants.map { |c| NameMap.get_class_or_module(c) }
-end
-
-constants.compact.each do |c|
-  dir = NameMap.get_dir_name(c, base)
-  if File.exist?(dir)
-    unless File.directory?(dir)
-      puts "A file named #{dir} already exists and is not a directory."
-      exit 1
-    end
-  else
-    Dir.mkdir dir
-  end
-  
-  (c.methods(false) +
-      c.public_instance_methods(false) +
-      c.private_instance_methods(false) +
-      c.protected_instance_methods(false)).uniq.sort.each do |m|
-    name = NameMap.get_spec_name(m, c.name)
-    create_file.call(dir, name) unless File.exist?(name)
-  end
-end
