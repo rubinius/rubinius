@@ -132,4 +132,7 @@ class IncludedModule < Module
     @module.name
   end
 
+  def to_s
+    @module.to_s
+  end
 end

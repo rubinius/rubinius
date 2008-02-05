@@ -16,9 +16,14 @@ shared :method_to_s do |cmd|
     end
 
     it "the String shows the method name, Module defined in and Module extracted from" do
-      @method.send(cmd).should =~ /\bbar\b/
-      @method.send(cmd).should =~ /\bMethodSpecs::MyMod\b/
-      @method.send(cmd).should =~ /\bMethodSpecs::MySub\b/
+      name = @method.send(cmd).sub(/0x\w+/, '0xXXXXXX')
+
+      deviates_on(:rubinius) do
+        name.should == "#<Method: MethodSpecs::MySub#bar (defined in MethodSpecs::MyMod)>"
+      end
+      deviates_on(:ruby) do
+        name.should == "#<Method: MethodSpecs::MySub(MethodSpecs::MyMod)#bar>"
+      end
     end
   end
 end

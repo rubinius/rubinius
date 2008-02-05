@@ -14,9 +14,13 @@ describe "Method#unbind" do
   end
 
   it "gives UnboundMethod method name, Module defined in and Module extracted from" do
-    @pop_um.inspect.should =~ /\bbar\b/
-    @pop_um.inspect.should =~ /\bMethodSpecs::MyMod\b/
-    @pop_um.inspect.should =~ /\bMethodSpecs::MySub\b/
+    name = @pop_um.inspect.sub(/0x\w+/, '0xXXXXXX')
+    deviates_on(:rubinius) do
+      name.should == "#<UnboundMethod: MethodSpecs::MySub#bar (defined in MethodSpecs::MyMod)>"
+    end
+    deviates_on(:ruby) do
+      name.should == "#<UnboundMethod: MethodSpecs::MySub(MethodSpecs::MyMod)#bar>"
+    end
   end
 
   specify "rebinding UnboundMethod to Method's obj produces exactly equivalent Methods" do
