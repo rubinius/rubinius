@@ -121,7 +121,7 @@ MethodContext.current.method.staticscope = StaticScope.new(Object)
 TOPLEVEL_BINDING = binding()
 
 begin
-
+  version_requested = false
   until ARGV.empty?
     arg = ARGV.shift
     case arg
@@ -133,6 +133,7 @@ begin
     when "-v"
       puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{Rubinius::RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
+      version_requested = true
     when "-w"
       # do nothing (HACK)
     when '-dc'
@@ -207,7 +208,7 @@ begin
         end
       end
 
-      unless ran
+      unless ran or version_requested
         repr = ENV['RBX_REPR'] || "bin/irb"
         $0 = repr
         require repr
