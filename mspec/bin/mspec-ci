@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'spec/spec_helper'
+
+puts "mspec ci"

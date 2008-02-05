@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'spec/spec_helper'
+require 'mspec/bin/options'
+
+opts = SpecOptions.new "run", "", 24, "   "
+opts.options.on("-Y", "--verify", 
+                "Verify that guarded specs pass and fail as expected") { MSpec.set_mode :verify }
+opts.options.on("-O", "--report", "Report guarded specs") { MSpec.set_mode :report } 
+patterns = opts.parse
+config = opts.config
+
+if patterns.empty?
+  puts "No files specified."
+  puts opts
+  exit
+end
+
+files = []
+patterns.each do |item|
+  stat = File.stat(File.expand_path(item))
+  files << item if stat.file?
+  files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
+end
+
+MSpec.register_files files
+opts.config.register
+
+MSpec.process
