@@ -1,0 +1,1 @@
+IO#inspect does not raise anything when invoked on closed stream
