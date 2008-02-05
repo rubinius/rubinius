@@ -59,19 +59,6 @@ static void _append_sz(bstring buf, unsigned int i) {
 #define append_sz(sz) _append_sz(buf, (unsigned int)sz)
 #define append_str(str, sz) bcatblk(buf, str, sz)
 
-static void marshal_int(STATE, OBJECT obj, bstring buf) {
-  int i;
-  i = N2I(obj);
-  append_c('i');
-  if(i < 0) {
-    i = abs(i);
-    append_c('n');
-  } else {
-    append_c('p');
-  }
-  append_sz(i);
-}
-
 static int read_int(uint8_t *str) {
   return (int)( (str[0] << 24)
               | (str[1] << 16)
@@ -170,37 +157,6 @@ static int unmarshal_num_fields(struct marshal_state *ms) {
 
   return i;
 }
-
-/*
-
-static void marshal_object(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
-  marshal_fields_as(state, obj, buf, 'o', ms);
-  marshal_sym(state, class_get_name(object_class(state, obj)));
-}
-
-static OBJECT unmarshal_object(STATE, char *str, struct marshal_state *ms) {
-  OBJECT tup, name, klass;
-  int before;
-  
-  before = ms->consumed;
-  
-  sz = unmarshal_num_fields(str);
-  tup = tuple_new(state, sz);
-  
-  tup = unmarshal_into_fields(state, str, ms);
-  str += (ms->consumed - before);
-  name = unmarshal_sym(state, str, ms);
-  klass = module_const_get(state, state->global->object, name);
-  if(klass == Qnil || klass == Qundef) {
-    printf("Couldn't resolve a generic object's class!\n");
-    return Qnil;
-  }
-  
-  tup->klass = klass;
-  return tup;
-}
-
-*/
 
 static void marshal_ary(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
   int sz, i;
