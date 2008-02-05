@@ -380,7 +380,7 @@ class ShotgunPrimitives
   def block_call
     <<-CODE
     POP(self, BLOCKENV);
-    blokenv_call(state, c, self, num_args);
+    blokenv_call(state, c, self, msg->args);
     CODE
   end
   
@@ -1454,7 +1454,7 @@ class ShotgunPrimitives
   def get_ivar
     <<-CODE
     self = stack_pop();
-    t1 = NTH_FIELD(mo, 4);
+    t1 = NTH_FIELD(msg->method, 4);
     stack_push(object_get_ivar(state, self, t1));
     CODE
   end
@@ -1462,7 +1462,7 @@ class ShotgunPrimitives
   def set_ivar
     <<-CODE
     self = stack_pop();
-    t1 = NTH_FIELD(mo, 4);
+    t1 = NTH_FIELD(msg->method, 4);
     t2 = stack_pop();
     object_set_ivar(state, self, t1, t2);
     stack_push(t2);
@@ -1474,15 +1474,18 @@ class ShotgunPrimitives
   # field 6: whether or not we need to retain 'self'
   def dispatch_as_method
     <<-CODE
-      t1 = NTH_FIELD(mo, 4);
-      t2 = NTH_FIELD(mo, 5);
-      t3 = NTH_FIELD(mo, 6);
+      int args = msg->args;
+      t1 = NTH_FIELD(msg->method, 4);
+      t2 = NTH_FIELD(msg->method, 5);
+      t3 = NTH_FIELD(msg->method, 6);
+      
       if(Qtrue == t3) {
-        num_args++;
+        args++;
       } else {
        (void)stack_pop();
       }
-      cpu_unified_send(state, c, t2, t1, num_args, Qnil);
+
+      cpu_unified_send(state, c, t2, t1, args, Qnil);
     CODE
   end
   
@@ -1491,7 +1494,7 @@ class ShotgunPrimitives
     self = stack_pop();
     GUARD(INDEXED(self));
 
-    j = N2I(NTH_FIELD(mo, 4));
+    j = N2I(NTH_FIELD(msg->method, 4));
     SET_FIELD(self, j, stack_pop());
     stack_push(NTH_FIELD(self, j));  
     CODE
@@ -1502,7 +1505,7 @@ class ShotgunPrimitives
     self = stack_pop();
     GUARD(INDEXED(self));
 
-    j = N2I(NTH_FIELD(mo, 4));
+    j = N2I(NTH_FIELD(msg->method, 4));
     stack_push(NTH_FIELD(self, j));
     CODE
   end
@@ -2101,8 +2104,8 @@ class ShotgunPrimitives
     t1 = stack_pop();
     cpu_flush_ip(c);
     cpu_flush_sp(c);
-    cpu_save_registers(state, c, num_args);
-    t1 = nmc_new(state, mo, c->active_context, t1, method_name, num_args);
+    cpu_save_registers(state, c, msg->args);
+    t1 = nmc_new(state, msg->method, c->active_context, t1, msg->name, msg->args);
     nmc_activate(state, c, t1, Qnil, FALSE);
     CODE
   end
@@ -2115,7 +2118,7 @@ class ShotgunPrimitives
        to be done. The stub contains all the serialization code. 
        
        That being said, this might get more complicated when callbacks are supported. */
-    ffi_call(state, c, nfunc_get_data(mo));
+    ffi_call(state, c, nfunc_get_data(msg->method));
     CODE
   end
   
@@ -2890,7 +2893,7 @@ class ShotgunPrimitives
   
   def array_aref
     <<-CODE
-    GUARD(num_args == 1);
+    GUARD(msg->args == 1);
     self = stack_pop();
     t1 = stack_top();
     GUARD(FIXNUM_P(t1));
@@ -2915,7 +2918,7 @@ class ShotgunPrimitives
   
   def array_aset
     <<-CODE
-    GUARD(num_args == 2);
+    GUARD(msg->args == 2);
     self = stack_pop();
     t1 = stack_pop();
     GUARD(FIXNUM_P(t1));
@@ -2939,7 +2942,7 @@ class ShotgunPrimitives
   
   def string_append
     <<-CODE
-    GUARD(num_args == 1);
+    GUARD(msg->args == 1);
     self = stack_pop();
     t1 = stack_top();
     GUARD(STRING_P(t1));
@@ -2983,7 +2986,7 @@ class ShotgunPrimitives
   def object_send
     <<-CODE
     self = stack_pop();
-    GUARD(num_args >= 1);
+    GUARD(msg->args >= 1);
     t1 = stack_pop();
     if(!SYMBOL_P(t1)) {
       if(STRING_P(t1)) {
@@ -2996,7 +2999,7 @@ class ShotgunPrimitives
     /* Send is allowed to call private methods. */
     c->call_flags = 1;
     
-    cpu_unified_send(state, c, self, t1, num_args - 1, block);
+    cpu_unified_send(state, c, self, t1, msg->args - 1, msg->block);
     CODE
   end
 

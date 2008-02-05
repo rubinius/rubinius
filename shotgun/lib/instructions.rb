@@ -324,7 +324,6 @@ CODE
     CODE
   end
   
-  # cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args)
   # Make primitives safer by having the opcode be aware of the number of args sent.
   # This way we can remove the dependency of primitives being embedded in methods.
   def send_primitive
@@ -338,7 +337,12 @@ CODE
     // performed on an object? Or should we state that the semantics of a primitive 
     // will always have an object or else it needs to be an opcode... ?
     // If the primitive fails raise an exception
-    if( ! cpu_perform_primitive(state, c, j, Qnil, k, Qnil, Qnil, Qnil) )
+    
+    msg.name = Qnil;
+    msg.args = k;
+    msg.method = Qnil;
+    msg.module = Qnil;
+    if(!cpu_perform_primitive(state, c, j, &msg))
     {
       cpu_raise_primitive_failure(state, c, j);
     }
@@ -736,15 +740,17 @@ CODE
   def activate_method
     <<-CODE
     next_int;
-    t1 = stack_pop(); /* recv */
-    t2 = stack_pop(); /* self */ 
-    t4 = stack_pop(); /* mod */
-    j = N2I(stack_pop()); /* sz */
+    msg.recv   = stack_pop();
+    msg.method = stack_pop();
+    msg.module = stack_pop();
+    msg.args   = N2I(stack_pop());
+    msg.name   = cmethod_get_name(msg.method);
     t3 = stack_pop(); /* locals */
-    cpu_activate_method(state, c, t1, t2, t4, j, cmethod_get_name(t2), stack_pop());
+    msg.block  = stack_pop();
+
+    cpu_activate_method(state, c, &msg);
     if(RTEST(t3)) {
       if(NIL_P(cpu_current_locals(state, c)) || NUM_FIELDS(t3) >= NUM_FIELDS(cpu_current_locals(state, c))) {
-        // methctx_set_locals(c->active_context, t3);
         cpu_set_locals(state, c, t3);
       }
     }
@@ -842,7 +848,9 @@ CODE
     msg.priv = c->call_flags;
 
     msg.klass = _real_class(state, msg.recv);
-    
+   
+    c->call_flags = 0;
+
     _inline_cpu_unified_send(state, c, &msg);
     CODE
   end

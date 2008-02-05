@@ -284,15 +284,15 @@ OBJECT cpu_sampler_disable(STATE);
 
 #define FIRST_RUNTIME_PRIM 1024
 
-int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT name, OBJECT mod, OBJECT block);
+int cpu_perform_system_primitive(STATE, cpu c, int prim, struct message *msg);
 
-int cpu_perform_runtime_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT name, OBJECT mod, OBJECT block);
+int cpu_perform_runtime_primitive(STATE, cpu c, int prim, struct message *msg);
 
-static inline int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args, OBJECT name, OBJECT mod, OBJECT block) {
+static inline int cpu_perform_primitive(STATE, cpu c, int prim, struct message *msg) {
   if(prim < FIRST_RUNTIME_PRIM) {
-    return cpu_perform_system_primitive(state, c, prim, mo, args, name, mod, block);
+    return cpu_perform_system_primitive(state, c, prim, msg);
   } else {
-    return cpu_perform_runtime_primitive(state, c, prim, mo, args, name, mod, block);
+    return cpu_perform_runtime_primitive(state, c, prim, msg);
   }
 }
 

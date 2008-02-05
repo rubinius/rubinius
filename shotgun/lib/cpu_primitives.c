@@ -92,7 +92,7 @@ int _object_stores_bytes(OBJECT self);
 // defines a required arity for a primitive
 // return true because we want other handler code to ignore it
 // this is because it is raised directly in the primitive as an exception
-#define ARITY(required) if((required) != num_args) { _ret = TRUE; cpu_raise_arg_error(state, c, num_args, required); break; }
+#define ARITY(required) if((required) != msg->args) { _ret = TRUE; cpu_raise_arg_error(state, c, msg->args, required); break; }
 // for primitive protection
 #define GUARD(predicate_expression) if( ! (predicate_expression) ) { _ret = FALSE; break; }
 // popping with type checking -- a predicate function must be specified
@@ -108,7 +108,7 @@ int _object_stores_bytes(OBJECT self);
 
 void ffi_call(STATE, cpu c, OBJECT ptr);
 
-int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT method_name, OBJECT mod, OBJECT block) {
+int cpu_perform_system_primitive(STATE, cpu c, int prim, struct message *msg) {
   int _ret = TRUE;
   int _orig_sp;
   OBJECT *_orig_sp_ptr;
@@ -129,7 +129,7 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args
   return _ret;
 }
 
-int cpu_perform_runtime_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT method_name, OBJECT mod, OBJECT block) {
+int cpu_perform_runtime_primitive(STATE, cpu c, int prim, struct message *msg) {
   int _ret = TRUE;
   OBJECT self, t1, t2, t3;
   int _orig_sp;

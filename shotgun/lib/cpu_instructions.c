@@ -520,13 +520,11 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
   return ctx;
 }
 
-static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, 
-      OBJECT mo, OBJECT name, OBJECT mod, 
-      unsigned long int args, OBJECT block) {
+static inline OBJECT cpu_create_context(STATE, cpu c, struct message *msg) {
   OBJECT ctx;
   struct fast_context *fc;
   
-  ctx = _allocate_context(state, c, mo, N2I(cmethod_get_locals(mo)));
+  ctx = _allocate_context(state, c, msg->method, N2I(cmethod_get_locals(msg->method)));
   fc = FASTCTX(ctx);
   
   fc->ip = 0;
@@ -536,11 +534,11 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv,
      was being created. */
   fc->fp = c->sp;
   
-  fc->block = block;
-  fc->self = recv;
-  fc->argcount = args;
-  fc->name = name;
-  fc->method_module = mod;
+  fc->block = msg->block;
+  fc->self = msg->recv;
+  fc->argcount = msg->args;
+  fc->name = msg->name;
+  fc->method_module = msg->module;
   fc->type = FASTCTX_NORMAL;
   
   return ctx;
@@ -611,11 +609,11 @@ void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
   cpu_raise_exception(state, c, primitive_failure);
 }
 
-static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int args, OBJECT sym, OBJECT mod, OBJECT block) {
+static inline int cpu_try_primitive(STATE, cpu c, struct message *msg) {
   int prim, req;
   OBJECT prim_obj;
   
-  prim_obj = fast_fetch(mo, CMETHOD_f_PRIMITIVE);
+  prim_obj = fast_fetch(msg->method, CMETHOD_f_PRIMITIVE);
   
   if(!FIXNUM_P(prim_obj)) {
     if(SYMBOL_P(prim_obj)) {
@@ -623,20 +621,20 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
     } else {
       prim = -1;
     }
-    cmethod_set_primitive(mo, I2N(prim));    
+    cmethod_set_primitive(msg->method, I2N(prim));
   } else {
     prim = N2I(prim_obj); 
   }  
   
   if(prim < 0) return FALSE;
       
-  req = N2I(cmethod_get_required(mo));
+  req = N2I(cmethod_get_required(msg->method));
   
-  if(args == req || req < 0) {
+  if(msg->args == req || req < 0) {
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
-    char *module_name = mod == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(mod));
-    char *method_name = (char*)rbs_symbol_to_cstring(state, sym);
+    char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
+    char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
 
     cpu_flush_ip(c);
 
@@ -648,14 +646,20 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
   }
 #endif
     
-    stack_push(recv);
-    if(cpu_perform_primitive(state, c, prim, mo, args, sym, mod, block)) {
+    stack_push(msg->recv);
+    if(cpu_perform_primitive(state, c, prim, msg)) {
       /* Worked! */
+      
+      if(EXCESSIVE_TRACING) {
+        printf("%05d: Called prim %s => %s on %s.\n", c->depth,
+          rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
+          rbs_symbol_to_cstring(state, msg->name), _inspect(msg->recv));
+      }
       
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
-    char *module_name = mod == Qnil ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(mod));
-    char *method_name = rbs_symbol_to_cstring(state, sym);
+    char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
+    char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
 
     cpu_flush_ip(c);
 
@@ -678,7 +682,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
   }
     
   /* raise an exception about them not doing it right. */
-  cpu_raise_arg_error(state, c, args, req);
+  cpu_raise_arg_error(state, c, msg->args, req);
   
   /* Return TRUE to indicate that the work for this primitive has
      been done. */
@@ -1024,11 +1028,18 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
 inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name, OBJECT block) {
   OBJECT ctx;
+  struct message msg;
 
-  if(cpu_try_primitive(state, c, meth, recv, count, name, Qnil, block)) { return; }
+  msg.recv = recv;
+  msg.name = name;
+  msg.method = meth;
+  msg.module = Qnil;
+  msg.block = block;
+  msg.args = count;
 
-  ctx = cpu_create_context(state, c, recv, meth, name, 
-        _real_class(state, recv), (unsigned long int)count, block);
+  if(cpu_try_primitive(state, c, &msg)) return;
+
+  ctx = cpu_create_context(state, c, &msg);
   cpu_activate_context(state, c, ctx, ctx, 0);
 }
 
@@ -1067,105 +1078,41 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 /* Callings +mo+ either as a primitive or by allocating a context and
    activating it. */
 
-static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo, 
-        OBJECT recv, OBJECT sym, int args, OBJECT block, int missing, OBJECT mod) {
+static inline void _cpu_build_and_activate(STATE, cpu c, struct message *msg) {
   OBJECT ctx;
 
   if(c->depth == CPU_MAX_DEPTH) {
     machine_handle_fire(FIRE_STACK);
   }
 
-  if(missing) {
-    args += 1;
-    stack_push(sym);
-    // printf("EEK! method_missing!\n");
-    // abort();
+  if(msg->missing) {
+    msg->args += 1;
+    stack_push(msg->name);
   } else {
-    if(cpu_try_primitive(state, c, mo, recv, args, sym, mod, block)) {
-      if(EXCESSIVE_TRACING) {
-        printf("%05d: Called prim %s => %s on %s.\n", c->depth,
-          rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
-          rbs_symbol_to_cstring(state, sym), _inspect(recv));
-      }
-      c->call_flags = 0;
-      return;
-    }
-  }
-
-  if(EXCESSIVE_TRACING) {
-    cpu_flush_ip(c);
-    printf("%05d: Calling %s => %s#%s on %s (%p/%d) (%s).\n", c->depth,
-      rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
-      rbs_symbol_to_cstring(state, module_get_name(mod)),
-      rbs_symbol_to_cstring(state, sym), 
-      _inspect(recv), (void*)cpu_current_method(state, c), c->ip,
-      missing ? "METHOD MISSING" : ""
-      );
+    if(cpu_try_primitive(state, c, msg)) return;
   }
   
-#if ENABLE_DTRACE
-  if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
-    char *module_name = rbs_symbol_to_cstring(state, module_get_name(mod));
-    char *method_name = rbs_symbol_to_cstring(state, sym);
+  ctx = cpu_create_context(state, c, msg);
 
-    cpu_flush_ip(c);
-
-    struct fast_context *fc = FASTCTX(c->active_context);
-    int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-    RUBINIUS_FUNCTION_ENTRY(module_name, method_name, filename, line_number);
-  }
-#endif
-
-#if ENABLE_DTRACE
-  if(RUBINIUS_VM_CONTEXT_CREATE_BEGIN_ENABLED()) {
-    RUBINIUS_VM_CONTEXT_CREATE_BEGIN();
-  }
-#endif
-
-  ctx = cpu_create_context(state, c, recv, mo, sym, mod, (unsigned long int)args, block);
   /* If it was missing, setup some extra data in the MethodContext for
      the method_missing method to check out, to see why it was missing. */
-  if(missing) {
-    if(c->call_flags == 1) {
-      methctx_reference(state, ctx);
-      object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
-    }
+  if(msg->missing && msg->priv) {
+    methctx_reference(state, ctx);
+    object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
   }
-  /*
-  if(RTEST(block)) {
-    printf("in send to '%s', block %p\n", rbs_symbol_to_cstring(state, sym), block);
-  }
-  */
-  if(EXCESSIVE_TRACING) {
-    printf("CTX:                 running %p\n", ctx);
-  }
-  c->call_flags = 0;
-
-  cpu_activate_context(state, c, ctx, ctx, args);
-#if ENABLE_DTRACE
-  if(RUBINIUS_VM_CONTEXT_CREATE_END_ENABLED()) {
-    RUBINIUS_VM_CONTEXT_CREATE_END();
-  }
-#endif
-
+ 
+  cpu_save_registers(state, c, msg->args);
+  cpu_restore_context_with_home(state, c, ctx, ctx);
 }
-
 
 /* Layer 4: direct activation. Used for calling a method thats already
    been looked up. */
-static inline void cpu_activate_method(STATE, cpu c, OBJECT recv, OBJECT mo,
-                                       OBJECT mod, int args, OBJECT name,
-                                       OBJECT block) {
-  
-  _cpu_build_and_activate(state, c, mo, recv, name, args, block, 0, mod);
+static inline void cpu_activate_method(STATE, cpu c, struct message *msg) {
+  _cpu_build_and_activate(state, c, msg);
 }
 
 /* Layer 4: send. Primary method calling function. */
 static inline void _inline_cpu_unified_send(STATE, cpu c, struct message *msg) {
-  OBJECT ctx;
-
 #ifdef TIME_LOOKUP
   uint64_t start = measure_cpu_time();
 #endif
@@ -1194,42 +1141,7 @@ static inline void _inline_cpu_unified_send(STATE, cpu c, struct message *msg) {
     goto done;
   }
 
-  if(c->depth == CPU_MAX_DEPTH) {
-    machine_handle_fire(FIRE_STACK);
-  }
-
-  if(msg->missing) {
-    msg->args += 1;
-    stack_push(msg->name);
-  } else {
-    if(cpu_try_primitive(state, c, msg->method, msg->recv, msg->args, msg->name, msg->module, msg->block)) {
-      if(EXCESSIVE_TRACING) {
-        printf("%05d: Called prim %s => %s on %s.\n", c->depth,
-          rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
-          rbs_symbol_to_cstring(state, msg->name), _inspect(msg->recv));
-      }
-      c->call_flags = 0;
-      goto done;
-    }
-  }
-  
-  ctx = cpu_create_context(state, c, msg->recv, msg->method, msg->name, 
-      msg->module, (unsigned long int)msg->args, msg->block);
-
-  /* If it was missing, setup some extra data in the MethodContext for
-     the method_missing method to check out, to see why it was missing. */
-  if(msg->missing) {
-    if(c->call_flags == 1) {
-      methctx_reference(state, ctx);
-      object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
-    }
-  }
- 
-  c->call_flags = 0;
-
-  cpu_save_registers(state, c, msg->args);
-  cpu_restore_context_with_home(state, c, ctx, ctx);
-
+  _cpu_build_and_activate(state, c, msg);
 done:
 #ifdef TIME_LOOKUP
   state->lookup_time += (measure_cpu_time() - start);
@@ -1247,33 +1159,13 @@ void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT bl
   msg.klass = _real_class(state, recv);
   msg.priv = c->call_flags;
 
+  c->call_flags = 0;
+
   _inline_cpu_unified_send(state, c, &msg);
 }
 
 void cpu_unified_send_message(STATE, cpu c, struct message *msg) {
   _inline_cpu_unified_send(state, c, msg);
-}
-
-/* This is duplicated from above rather than adding another parameter
-   because unified_send is used SO often that I didn't want to slow it down
-   any with checking a flag. */
-static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
-  struct message msg;
-
-  msg.missing = 0;
-  msg.klass = class_get_superclass(cpu_current_module(state, c));
-  msg.priv = TRUE;
-  msg.recv = recv;
-  msg.name = sym;
-  
-  if(!cpu_locate_method(state, c, &msg)) {
-    printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
-    sassert(0);
-  }
-  
-  c->call_flags = 0;
-  
-  _cpu_build_and_activate(state, c, msg.method, recv, sym, args, block, msg.missing, msg.module);
 }
 
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
