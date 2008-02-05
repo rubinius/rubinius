@@ -7,5 +7,7 @@ describe "Float#ceil" do
     0.0.ceil.should == 0
     1.3.ceil.should == 2
     3.0.ceil.should == 3
+    -9223372036854775808.1.ceil.should == -9223372036854775808
+    9223372036854775808.1.ceil.should == 9223372036854775808
   end
 end

@@ -7,5 +7,7 @@ describe "Float#floor" do
     0.0.floor.should == 0
     1.0.floor.should == 1
     5.9.floor.should == 5
+    -9223372036854775808.1.floor.should == -9223372036854775808
+    9223372036854775808.1.floor.should == 9223372036854775808
   end
 end
