@@ -27,6 +27,7 @@ scratch
 runtime/pristine*
 runtime/platform.conf
 
+*.d
 *.o
 *.lo
 *.a
