@@ -13,20 +13,32 @@ shared :io_new do |cmd|
     end
 
     after :each do
-      # This should normally NOT be rescued
-      @file.close unless @file.closed? rescue nil
+      @file.close unless @file.closed? rescue Errno::EBADF
     end
 
     it "returns a new IO object" do
-      IO.send(cmd, @file.fileno, 'w').class.should == IO
+      begin
+        io = IO.send(cmd, @file.fileno, 'w')
+      ensure
+        io.close
+      end
+      io.class.should == IO
     end
 
     it "takes an Integer or #to_int argument as the descriptor to open" do
       o = mock('descriptor')
       o.should_receive(:to_int).any_number_of_times.and_return(@file.fileno)
 
-      IO.send(cmd, @file.fileno, 'w').fileno.should == @file.fileno
-      IO.send(cmd, o, 'w').fileno.should == @file.fileno
+      begin
+        io = IO.send(cmd, @file.fileno, 'w')
+        io.fileno.should == @file.fileno
+
+        io2 = IO.send(cmd, o, 'w')
+        io2.fileno.should == @file.fileno
+      ensure
+        io.close unless io.closed? rescue Errno::EBADF
+        io2.close unless io2.closed? rescue Errno::EBADF
+      end
     end
 
     it "associates new IO with the old descriptor so each IO directly affects the other" do
@@ -57,7 +69,7 @@ shared :io_new do |cmd|
 
     it "raises EINVAL if mode is not compatible with the descriptor's current mode" do
       lambda { IO.send(cmd, @file.fileno, 'r') }.should raise_error(Errno::EINVAL)
-      lambda { IO.send(cmd, @file.fileno, 'w') }.should_not raise_error
+      lambda { io = IO.send(cmd, @file.fileno, 'w'); io.close }.should_not raise_error
     end
   end
 end

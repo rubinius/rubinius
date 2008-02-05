@@ -20,12 +20,14 @@ describe "IO.new" do
   end
 
   after :each do
-    # This should normally NOT be rescued
-    @file.close unless @file.closed? rescue nil
+    @file.close unless @file.closed? rescue Errno::EBADF
   end
 
   it "does not execute a block if given one" do
-    l = lambda { IO.new(@file.fileno, 'w') {|io| raise Exception, "N-uh" } }
+    l = lambda {
+      io = IO.new(@file.fileno, 'w') {|io| raise Exception, "N-uh" }
+      io.close
+    }
     l.should_not raise_error(Exception, "N-uh")
   end
 
@@ -34,15 +36,19 @@ describe "IO.new" do
   end
   
   it "does not close the stream automatically if given a block" do
-    io = IO.new(@file.fileno, 'w') {|f| puts f.read }
-
-    io.closed?.should == false
-    @file.closed?.should == false
+    begin
+      io = IO.new(@file.fileno, 'w') {|f| puts f.read }
+      io.closed?.should == false
+      @file.closed?.should == false
+    ensure
+      io.close
+    end
   end
 
   it "emits a warning if given a block" do
     lambda {
-      IO.new(@file.fileno, 'w') {|io| puts io.read }
+      io = IO.new(@file.fileno, 'w') {|io| puts io.read }
+      io.close
     }.should complain(/IO::new.*does not take block.*IO::open.*instead/)
   end
 end

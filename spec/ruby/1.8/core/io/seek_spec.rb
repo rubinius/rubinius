@@ -8,7 +8,9 @@ describe "IO#seek" do
   end
 
   after :each do
-    @file.close unless @file.closed?
+    # we *must* close both in order to not leak descriptors
+    @io.close unless @io.closed?
+    @file.close unless @file.closed? rescue Errno::EBADF
   end
 
   it "moves the read position relative to the current position with SEEK_CUR" do

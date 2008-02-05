@@ -8,7 +8,9 @@ describe "IO#sync=" do
   end
 
   after :each do
-    @file.close unless @file.closed?
+    # we *must* close both in order to not leak descriptors
+    @io.close unless @io.closed?
+    @file.close unless @file.closed? rescue Errno::EBADF
   end
 
   it "sets the sync mode to true or false" do
@@ -39,7 +41,9 @@ describe "IO#sync" do
   end
 
   after :each do
-    @file.close unless @file.closed?
+    # we *must* close both in order to not leak descriptors
+    @io.close unless @io.closed?
+    @file.close unless @file.closed? rescue Errno::EBADF
   end
 
   it "returns the current sync mode" do

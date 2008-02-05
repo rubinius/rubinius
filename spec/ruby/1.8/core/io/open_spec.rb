@@ -52,6 +52,7 @@ describe "IO.open" do
         class << io
           alias_method(:close_orig, :close)
           def close
+            close_orig
             raise IOError
           end
         end

@@ -7,7 +7,9 @@ describe "IO#pid" do
   end
 
   after :each do
-    @file.close unless @file.closed?
+    # we *must* close both in order to not leak descriptors
+    @io.close unless @io.closed?
+    @file.close unless @file.closed? rescue Errno::EBADF
   end
 
   it "returns nil for IO not associated with a process" do
