@@ -42,7 +42,6 @@ void cpu_initialize(STATE, cpu c) {
   c->args = 0;
   c->depth = 0;
   c->call_flags = 0;
-  c->cache_index = -1;
   c->current_task = Qnil;
   c->debug_channel = Qnil;
   c->control_channel = Qnil;
@@ -249,8 +248,6 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   OBJECT cur, klass, start, hsh, val;
   OBJECT cref, cbase;
 
-  c->cache_index = -1;
-  
   /* Look up the lexical scope first */
   
   cref = cpu_current_scope(state, c);
@@ -288,7 +285,6 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   val = hash_find_undef(state, hsh, sym);
   if(val != Qundef) return val;
 
-  c->cache_index = -1;
   stack_push(sym);
   cpu_unified_send(state, c, start, state->global->sym_const_missing, 1, Qnil);
   return Qundef;
@@ -328,7 +324,6 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
   
   // printf("Still unable to find, firing const_missing.\n");
   
-  c->cache_index = -1;
   stack_push(sym);
   cpu_unified_send(state, c, under, state->global->sym_const_missing, 1, Qnil);
   return Qundef;

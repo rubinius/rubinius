@@ -1075,44 +1075,26 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 
 /* Layer 4: High level method calling. */
 
-/* Callings +mo+ either as a primitive or by allocating a context and
-   activating it. */
-
-static inline void _cpu_build_and_activate(STATE, cpu c, struct message *msg) {
+/* Layer 4: direct activation. Used for calling a method thats already
+   been looked up. */
+static inline void cpu_activate_method(STATE, cpu c, struct message *msg) {
   OBJECT ctx;
 
   if(c->depth == CPU_MAX_DEPTH) {
     machine_handle_fire(FIRE_STACK);
   }
 
-  if(msg->missing) {
-    msg->args += 1;
-    stack_push(msg->name);
-  } else {
-    if(cpu_try_primitive(state, c, msg)) return;
-  }
+  if(cpu_try_primitive(state, c, msg)) return;
   
   ctx = cpu_create_context(state, c, msg);
 
-  /* If it was missing, setup some extra data in the MethodContext for
-     the method_missing method to check out, to see why it was missing. */
-  if(msg->missing && msg->priv) {
-    methctx_reference(state, ctx);
-    object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
-  }
- 
   cpu_save_registers(state, c, msg->args);
   cpu_restore_context_with_home(state, c, ctx, ctx);
 }
 
-/* Layer 4: direct activation. Used for calling a method thats already
-   been looked up. */
-static inline void cpu_activate_method(STATE, cpu c, struct message *msg) {
-  _cpu_build_and_activate(state, c, msg);
-}
-
 /* Layer 4: send. Primary method calling function. */
-static inline void _inline_cpu_unified_send(STATE, cpu c, struct message *msg) {
+inline void cpu_unified_send_message(STATE, cpu c, struct message *msg) {
+  OBJECT ctx;
 #ifdef TIME_LOOKUP
   uint64_t start = measure_cpu_time();
 #endif
@@ -1141,7 +1123,29 @@ static inline void _inline_cpu_unified_send(STATE, cpu c, struct message *msg) {
     goto done;
   }
 
-  _cpu_build_and_activate(state, c, msg);
+  if(c->depth == CPU_MAX_DEPTH) {
+    machine_handle_fire(FIRE_STACK);
+  }
+
+  if(msg->missing) {
+    msg->args += 1;
+    stack_push(msg->name);
+  } else {
+    if(cpu_try_primitive(state, c, msg)) goto done;
+  }
+  
+  ctx = cpu_create_context(state, c, msg);
+
+  /* If it was missing, setup some extra data in the MethodContext for
+     the method_missing method to check out, to see why it was missing. */
+  if(msg->missing && msg->priv) {
+    methctx_reference(state, ctx);
+    object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
+  }
+ 
+  cpu_save_registers(state, c, msg->args);
+  cpu_restore_context_with_home(state, c, ctx, ctx);
+
 done:
 #ifdef TIME_LOOKUP
   state->lookup_time += (measure_cpu_time() - start);
@@ -1161,11 +1165,7 @@ void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT bl
 
   c->call_flags = 0;
 
-  _inline_cpu_unified_send(state, c, &msg);
-}
-
-void cpu_unified_send_message(STATE, cpu c, struct message *msg) {
-  _inline_cpu_unified_send(state, c, msg);
+  cpu_unified_send_message(state, c, &msg);
 }
 
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {

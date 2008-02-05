@@ -617,7 +617,6 @@ CODE
     next_literal;
     t1 = cpu_const_get_in_context(state, c, _lit);
     if(t1 != Qundef) stack_push(t1);
-    c->cache_index = -1;
     CODE
   end
   
@@ -627,7 +626,6 @@ CODE
     next_literal;
     t2 = cpu_const_get_from(state, c, _lit, t1);
     if(t2 != Qundef) stack_push(t2);
-    c->cache_index = -1;
     CODE
   end
   
@@ -851,7 +849,7 @@ CODE
    
     c->call_flags = 0;
 
-    _inline_cpu_unified_send(state, c, &msg);
+    cpu_unified_send_message(state, c, &msg);
     CODE
   end
   
@@ -880,7 +878,7 @@ CODE
 
     msg.klass = class_get_superclass(cpu_current_module(state, c));
     
-    _inline_cpu_unified_send(state, c, &msg);
+    cpu_unified_send_message(state, c, &msg);
     CODE
   end
   
