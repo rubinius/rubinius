@@ -23,12 +23,12 @@ describe "StringIO#seek" do
     @io.seek(-2, IO::SEEK_END)
     @io.read(1).should == '7'
   end
-  
-  it "can handle any numerical argument without breaking" do
+
+  it "can handle any numerical argument" do
     @io.seek(1.2).should == 0
-    @io.seek(2**30).should == 0
+    @io.seek(@io.string.size * 2).should == 0
     @io.seek(1.23423423432e5).should == 0
     @io.seek(0.00000000000000000000001).should == 0
-    lambda { @io.seek(2**128) }.should raise_error(RangeError)
+    lambda { @io.seek(2**128) }.should raise_error(RangeError, /bignum too big/)
   end
 end

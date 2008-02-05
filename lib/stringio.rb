@@ -149,10 +149,12 @@ class StringIO
     @pos = 0
     @lineno = 0
   end
-  
+
   def seek(amount, whence=nil)
     i = amount.to_i
-    
+
+    raise RangeError, "bignum too big" if Bignum === i
+
     if whence.nil? or whence == 0
       # nothing
     elsif whence == IO::SEEK_CUR
@@ -162,22 +164,22 @@ class StringIO
     else
       raise ArgumentError, "invalid whence #{whence}"
     end
-    
+
     if i < 0
       raise ArgumentError, "invalid offset #{i}"
     end
 
     @pos = i
-    
+
     if @pos >= @string.size - 1
       @eof = true
     else
       @eof = false
     end
-    
+
     return 0
   end
-  
+
   def sync
     true
   end

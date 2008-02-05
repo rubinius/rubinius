@@ -3,16 +3,23 @@ class RaiseErrorMatcher
     @exception = exception
     @message = message
   end
-  
+
   def matches?(proc)
     proc.call
     return false
   rescue Exception => @actual
     return false unless @exception === @actual
-    return false if @message and @message != @actual.message
+    if @message then
+      case @message
+      when String then
+        return false if @message != @actual.message
+      when Regexp then
+        return false if @message !~ @actual.message
+      end
+    end
     return true
   end
-  
+
   def failure_message
     message = ["Expected #{@exception}#{%[ (#{@message})] if @message}"]
 
@@ -24,7 +31,7 @@ class RaiseErrorMatcher
 
     message
   end
-  
+
   def negative_failure_message
     ["Expected to not get #{@exception}#{%[ (#{@message})] if @message}", ""]
   end
