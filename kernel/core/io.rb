@@ -9,6 +9,8 @@ class IO
   class Buffer < String
     ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3, :hash => 4, :shared => 5
 
+    # Create a buffer of size +size+ bytes. The buffer contains an internal
+    # Channel object it uses to fill itself.
     def initialize(size)
       @data = ByteArray.new(size)
       @bytes = 0
@@ -19,16 +21,20 @@ class IO
       @channel = Channel.new
     end
 
+    # Block until the buffer receives more data
     def process
       @channel.receive
     end
 
     attr_reader :channel
 
+    # Indicates how many bytes are left
     def unused
       @total - @bytes + 1
     end
 
+    # Remove +count+ bytes from the front of the buffer and return them.
+    # All other bytes are moved up.
     def shift_front(count)
       count = @bytes if count > @bytes
 
@@ -44,6 +50,7 @@ class IO
       return str
     end
 
+    # Empty the contents of the Buffer into a String object and return it.
     def as_str
       str = String.allocate
       str.initialize_from @bytes, @data
@@ -52,14 +59,19 @@ class IO
       return str
     end
 
+    # Indicates if the Buffer has no more room.
     def full?
       @total == @bytes
     end
 
+    # Empty the buffer.
     def reset!
       @bytes = 0
     end
 
+    # Fill the buffer from IO object +io+. The buffer requests +unused+
+    # bytes, but may not receive that many. Any new data causes this to
+    # return.
     def fill_from(io)
       Scheduler.send_on_readable @channel, io, self, unused()
       obj = @channel.receive
@@ -72,6 +84,9 @@ class IO
       return obj
     end
 
+    # Match the buffer against Regexp +reg+, and remove bytes starting
+    # at the beginning of the buffer, up to the end of where the Regexp
+    # matched.
     def clip_to(reg)
       if m = reg.match(self)
         idx = m.end(0)
