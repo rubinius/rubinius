@@ -65,13 +65,13 @@ describe MSpec, ".protect" do
   end
   
   it "writes a message to STDERR if current is nil" do
-    STDERR.should_receive(:write).with("An exception occurred in testing: Exception: Sharp!")
+    STDERR.should_receive(:write).with("An exception occurred in testing: Exception: Sharp!\n")
     MSpec.stack.clear
     MSpec.protect("testing") { raise @exception}
   end
   
   it "writes a message to STDERR if current.state is nil" do
-    STDERR.should_receive(:write).with("An exception occurred in testing: Exception: Sharp!")
+    STDERR.should_receive(:write).with("An exception occurred in testing: Exception: Sharp!\n")
     @rs.stub!(:state).and_return(nil)
     MSpec.stack.push @rs
     MSpec.protect("testing") { raise @exception}

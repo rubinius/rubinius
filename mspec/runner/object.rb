@@ -7,7 +7,7 @@ class Object
     MSpec.current.after at, &block
   end
 
-  def describe(mod, msg, &block)
+  def describe(mod, msg=nil, &block)
     MSpec.describe mod, msg, &block
   end
 

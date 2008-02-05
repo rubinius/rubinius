@@ -15,7 +15,7 @@ else
   TOLERANCE = 0.00003 unless Object.const_defined?(:TOLERANCE)
 end
 
-unless Object.const_defined?(:OUTPUT_WARNINGS)
+unless ENV['OUTPUT_WARNINGS'] == '1'
   $verbose = $VERBOSE
   $VERBOSE = nil
 

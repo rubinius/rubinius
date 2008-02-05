@@ -29,9 +29,9 @@ module MSpec
     end
   end
   
-  def self.actions(action, state=nil)
+  def self.actions(action, *args)
     actions = retrieve(action)
-    actions.each { |obj| obj.send action, state } if actions
+    actions.each { |obj| obj.send action, *args } if actions
   end
   
   def self.register_files(files)
@@ -96,7 +96,7 @@ module MSpec
       if current and current.state
         current.state.exceptions << [msg, e]
       else
-        STDERR.write "An exception occurred in #{msg}: #{e.class}: #{e.message}"
+        STDERR.write "An exception occurred in #{msg}: #{e.class}: #{e.message}\n"
       end
     end
   end
