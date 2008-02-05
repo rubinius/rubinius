@@ -263,6 +263,11 @@ namespace :spec do
 
   desc "Run continuous integration examples"
   task :ci do
+    ENV.delete 'RBX_BOOTSTRAP'
+    ENV.delete 'RBX_CORE'
+    ENV.delete 'RBX_LOADER'
+    ENV.delete 'RBX_PLATFORM'
+
     target = ENV['SPEC_TARGET'] || 'rbx'
     system %(shotgun/rubinius -e 'puts "rbx build: \#{Rubinius::BUILDREV}"') if target == 'rbx'
     sh "bin/ci -t #{target}"
