@@ -1,3 +1,5 @@
 IO#open associates new IO with the old descriptor so each IO directly affects the other
 IO.open raises IOError on closed stream
+IO.open with a block invokes close on opened IO object when exiting the block
+IO.open with a block propagates non-StandardErrors produced by close
 IO.open with a block swallows StandardErrors produced by close

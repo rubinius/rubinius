@@ -7,7 +7,7 @@ describe "File.open" do
     File.delete("fake") if File.exist?("fake")
   end
   
-  before :each do         
+  before :each do
     @fh = @fd = nil
     @flags = File::CREAT | File::TRUNC | File::WRONLY
     File.open(@file, "w") {} # touch
@@ -24,6 +24,44 @@ describe "File.open" do
       @fh = File.open(@file) { |fh| fh.close; fh }
     }.should_not raise_error
     @fh.closed?.should == true
+  end
+
+  it "with a block invokes close on opened file when exiting the block" do
+    file = File.open(@file, 'r') do |f|
+      class << f
+        @res = "close was not invoked"
+        alias_method(:close_orig, :close)
+        def close; close_orig; @res = "close was invoked"; end
+        def to_s;  @res; end
+      end
+      f
+    end
+    file.to_s.should == "close was invoked"
+  end
+
+  it "with a block propagates non-StandardErrors produced by close" do
+    lambda {
+      File.open(@file, 'r') do |f|
+        class << f
+          alias_method(:close_orig, :close)
+          def close
+            close_orig
+            raise Exception, "exception out of close"
+          end
+        end
+      end
+    }.should raise_error(Exception, "exception out of close")
+  end
+
+  it "with a block swallows StandardErrors produced by close" do
+    File.open(@file, 'r') do |f|
+      class << f
+        alias_method(:close_orig, :close)
+        def close
+          raise IOError
+        end
+      end
+    end
   end
 
   it "opens the file (basic case)" do 
@@ -129,19 +167,19 @@ describe "File.open" do
   end  
   
   it "opens a file that no exists when use File::CREAT mode" do 
-    @fh = File.open("fake", File::CREAT)      
+    @fh = File.open("fake", File::CREAT) { |f| f }
     @fh.should be_kind_of(File)
     File.exist?(@file).should == true
   end  
   
   it "opens a file that no exists when use 'a' mode" do 
-    @fh = File.open("fake", 'a')      
+    @fh = File.open("fake", 'a') { |f| f }
     @fh.should be_kind_of(File)
     File.exist?(@file).should == true
   end  
      
   it "opens a file that no exists when use 'w' mode" do 
-    @fh = File.open("fake", 'w')  
+    @fh = File.open("fake", 'w') { |f| f }
     @fh.should be_kind_of(File)
     File.exist?(@file).should == true
   end  

@@ -7,7 +7,7 @@ describe "IO.open" do
 end
 
 describe "IO.open" do
-  before :each do
+  before :all do
     @file_name = File.dirname(__FILE__) + '/fixtures/gets.txt'
   end
 
@@ -15,23 +15,45 @@ describe "IO.open" do
     lambda { IO.open(IOSpecs.closed_file.fileno, 'w') }.should raise_error(IOError)
   end
 
+  it "with a block invokes close on opened IO object when exiting the block" do
+    File.open(@file_name, 'r') do |f|
+      io = IO.open(f.fileno, 'r') do |io|
+        class << io
+          @res = "close was not invoked"
+          alias_method(:close_orig, :close)
+          def close; close_orig; @res = "close was invoked"; end
+          def to_s;  @res; end
+        end
+        io
+      end
+      io.to_s.should == "close was invoked"
+    end
+  end
+
   it "with a block propagates non-StandardErrors produced by close" do
     lambda {
       File.open(@file_name, 'r') do |f|
         IO.open(f.fileno, 'r') do |io|
-          def io.close
-            raise Exception
+          class << io
+            alias_method(:close_orig, :close)
+            def close
+              close_orig
+              raise Exception, "exception out of close"
+            end
           end
         end
       end
-    }.should raise_error(Exception)
+    }.should raise_error(Exception, "exception out of close")
   end
 
   it "with a block swallows StandardErrors produced by close" do
     File.open(@file_name, 'r') do |f|
       IO.open(f.fileno, 'r') do |io|
-        def io.close
-          raise IOError
+        class << io
+          alias_method(:close_orig, :close)
+          def close
+            raise IOError
+          end
         end
       end
     end
