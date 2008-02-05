@@ -1052,10 +1052,8 @@ CODE
   
   def caller_return
     <<-CODE
-    t2 = stack_pop();
-    
-    cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
-    cpu_return_to_sender(state, c, t2, FALSE, FALSE);
+    /* this instruction is deprecated. */
+    sassert(0);
     CODE
   end
   

@@ -963,20 +963,6 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
       home = destination;
     }
     
-    if(!is_block) {
-      /* Break the chain. Lets us detect invalid non-local returns, as well
-         is much nicer on the GC. exception is set if we're returning
-         due to raising an exception. We keep the sender in this case so that
-         the context chain can be walked to generate a backtrace. 
-         
-         NOTE: This might break Kernel#caller when called inside a block, which
-         was created inside a method that has already returned. Thats an edge
-         case I'm wiling to live with (for now). */
-      if(!exception) { 
-        // FASTCTX(c->active_context)->sender = Qnil;
-      }
-    }
-    
     if(EXCESSIVE_TRACING) {
       if(stack_context_p(destination)) {
         printf("Returning to a stack context %p / %p (%s).\n", c->active_context, destination, (uintptr_t)c->active_context - (uintptr_t)destination == CTX_SIZE ? "stack" : "REMOTE");
@@ -1080,6 +1066,7 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 static inline void cpu_activate_method(STATE, cpu c, struct message *msg) {
   OBJECT ctx;
 
+  c->depth++;
   if(c->depth == CPU_MAX_DEPTH) {
     machine_handle_fire(FIRE_STACK);
   }
