@@ -288,7 +288,7 @@ class Hash
   def key?(key)
     entry, hash, = hash_entry key
 
-    while entry do
+    while entry do # REFACTOR this loop is duplicated many times
       cur_hash, cur_key, cur_val, nxt = *entry
 
       return true if cur_hash == hash and key.eql?(cur_key)
