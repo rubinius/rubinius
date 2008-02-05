@@ -2927,7 +2927,8 @@ class ShotgunPrimitives
     k = N2I(t1);
   
     if(k < 0) k += j;
-      
+    GUARD(k >= 0);
+    
     if(k >= j - 1) {
       array_set_total(self, I2N(k + 1));
     }
