@@ -242,7 +242,7 @@ class Regexp
   end
 
   def inspect
-    str = '/' << source << '/' << option_to_string(options)
+    str = '/' << source.gsub("/", "\\/") << '/' << option_to_string(options)
     k = kcode()
     str << k[0,1] if k and k != "none"
     return str

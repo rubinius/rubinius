@@ -6,4 +6,9 @@ describe "Regexp#inspect" do
     /a(.)+s/n.inspect.should =~ %r|/a(.)+s/n?|  # Default 'n' may not appear
     /a(.)+s/u.inspect.should == "/a(.)+s/u"     # But a specified one does
   end
+  
+  it "correctly escapes forward slashes /" do
+    Regexp.new("/foo/bar").inspect.should == "/\\/foo\\/bar/"
+    Regexp.new("/foo/bar[/]").inspect.should == "/\\/foo\\/bar[\\/]/"
+  end  
 end
