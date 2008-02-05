@@ -1,58 +1,15 @@
 #! /usr/bin/env ruby
 #
-# mkspec - utility to create the appropriate file
-# for specs for Ruby core library class/module methods
+# mkspec - utility to create spec stubs
 
 require 'optparse'
 require File.dirname(__FILE__) + '/name_map'
 
-module MkSpec
+class MkSpec
   VERSION = '0.0.1'
 
-  def self.create_file(dir, name)
-    file = File.join(dir, name)
-    unless File.exist?(file)
-      File.open(file, 'w') do |f|
-        f.puts("require File.dirname(__FILE__) + '/../../spec_helper'\n")
-      end
-      puts file
-    end
-  end
-
-  def self.generate(base, modules)
-    modules.each do |mod|
-      dir = NameMap.get_dir_name mod, base
-      if File.exist?(dir)
-        unless File.directory?(dir)
-          puts "A file named #{dir} already exists and is not a directory."
-          exit 1
-        end
-      else
-        Dir.mkdir dir
-      end
-
-      methods = [
-        mod.methods(false),
-        mod.public_instance_methods(false),
-        mod.private_instance_methods(false),
-        mod.protected_instance_methods(false),
-      ].flatten.uniq.sort
-
-      methods.each do |method|
-        name = NameMap.get_spec_name method, mod.name
-        MkSpec.create_file dir, name unless File.exist?(name)
-      end
-
-      sub_mods = mod.constants.sort.map do |constant_name|
-        NameMap.get_class_or_module "#{mod}::#{constant_name}"
-      end.compact
-
-      generate dir, sub_mods
-    end
-  end
-
   def self.process_args(argv)
-    constants = []
+    modules = []
     base = nil
 
     opts = OptionParser.new do |opts|
@@ -68,7 +25,7 @@ module MkSpec
           raise OptionParser::InvalidArgument, "#{name} is not a constant"
         end
 
-        constants << constant
+        modules << constant
       end
 
       opts.on("-b", "--base BASE",
@@ -88,13 +45,13 @@ module MkSpec
       opts.parse argv
     end
 
-    if constants.empty? then
+    if modules.empty? then
       Object.constants.map { |const| NameMap.get_class_or_module(const) }
     end
 
-    constants = constants.compact
+    modules = modules.compact
 
-    return base, constants
+    return base, modules
   rescue OptionParser::ParseError => e
     puts opts
     puts
@@ -103,9 +60,62 @@ module MkSpec
   end
 
   def self.run(argv = ARGV)
-    base, constants = process_args argv
+    base, modules = process_args argv
 
-    generate base, constants
+    mkspec = new base
+    mkspec.generate base, modules
+  end
+
+  def initialize(base)
+    @base = base
+  end
+
+  def create_file(dir, name)
+    file = File.join dir, name
+
+    unless File.exist? file then
+      /\A#{Regexp.escape @base}\/?(.*)/ =~ dir
+
+      parent_dirs = '../' * ($1.split('/').length + 1)
+
+      File.open file, 'w' do |f|
+        f.puts "require File.dirname(__FILE__) + '/#{parent_dirs}spec_helper'"
+      end
+
+      puts file
+    end
+  end
+
+  def generate(dir, modules)
+    modules.each do |mod|
+      subdir = NameMap.get_dir_name mod, dir
+      if File.exist? subdir then
+        unless File.directory? subdir then
+          puts "A file named #{subdir} already exists and is not a directory."
+          exit 1
+        end
+      else
+        Dir.mkdir subdir
+      end
+
+      methods = [
+        mod.methods(false),
+        mod.public_instance_methods(false),
+        mod.private_instance_methods(false),
+        mod.protected_instance_methods(false),
+      ].flatten.uniq.sort
+
+      methods.each do |method|
+        name = NameMap.get_spec_name method, mod.name
+        create_file subdir, name unless File.exist? name
+      end
+
+      sub_mods = mod.constants.sort.map do |constant_name|
+        NameMap.get_class_or_module "#{mod}::#{constant_name}"
+      end.compact
+
+      generate subdir, sub_mods
+    end
   end
 
 end
