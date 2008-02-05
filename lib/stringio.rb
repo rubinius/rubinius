@@ -153,6 +153,8 @@ class StringIO
   def seek(amount, whence=nil)
     i = amount.to_i
 
+
+    # TODO: prolly should be a platform specific check long/long long/whatever
     raise RangeError, "bignum too big" if Bignum === i
 
     if whence.nil? or whence == 0
