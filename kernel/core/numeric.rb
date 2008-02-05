@@ -142,7 +142,7 @@ class Numeric
     b, a = self.do_coerce(other, true)
     mod = a % b
 
-    if (a < 0 && b > 0) || a > 0 && b < 0 
+    if mod != 0 && (a < 0 && b > 0 || a > 0 && b < 0)
       mod - b
     else
       mod

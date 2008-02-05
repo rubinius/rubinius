@@ -24,20 +24,6 @@ class Bignum < Integer
     end
   end
 
-  def remainder(other)
-    a = self
-    b = other
-
-    mod = a % b
-
-    # unlike Numeric#remainder, we just return the result if it's zero
-    if mod != 0 && (a < 0 && b > 0 || a > 0 && b < 0)
-      mod - b
-    else
-      mod
-    end
-  end
-
   def >>(s)
     s = Type.coerce_to(s, Fixnum, :to_int)
     s < 0 ? __bignum_left_shift__(-s) : __bignum_right_shift__(s) 
