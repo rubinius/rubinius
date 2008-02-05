@@ -1,6 +1,12 @@
 # depends on: enumerable.rb misc.rb class.rb
 
 class Hash
+
+  #--
+  # The result of #hash is not allowed to be larger than this.
+
+  HASH_MAX = 0x1fffffff
+
   include Enumerable
 
   def self.[](*args)
@@ -71,22 +77,12 @@ class Hash
   end
 
   def get_key_cv(key)
-    hsh = key.hash
-    unless hsh.kind_of? Fixnum
-      hsh = hsh % 536870911 # The max fixnum value
-    end
-
-    bin = hsh % @bins
-
-    entry = @values.at(bin)
+    entry, hash, = hash_entry key
 
     while entry
       cur_hash, cur_key, cur_val, nxt = *entry
 
-      # Check if this entry is for the key in question
-      if cur_hash == hsh and key.eql?(cur_key)
-        return cur_val
-      end
+      return cur_val if cur_hash == hash and key.eql?(cur_key)
 
       entry = nxt
     end
@@ -97,22 +93,14 @@ class Hash
 
   def set_key_cv(key, val)
     key = key.dup if key.kind_of?(String)
-
-    hsh = key.hash
-    unless hsh.kind_of? Fixnum
-      hsh = hsh % 536870911 # The max fixnum value
-    end
-
-    bin = hsh % @bins
-
-    entry = @values.at(bin)
+    entry, hash, bin = hash_entry key
     lst = nil
 
     while entry
       cur_hash, cur_key, cur_val, nxt = *entry
 
       # Check if this entry is for the key in question
-      if cur_hash == hsh and key.eql?(cur_key)
+      if cur_hash == hash and key.eql?(cur_key)
         entry.put 2, val
         return val
       end
@@ -122,7 +110,7 @@ class Hash
     end
 
     entry = Tuple.new(4)
-    entry.put 0, hsh
+    entry.put 0, hash
     entry.put 1, key
     entry.put 2, val
     entry.put 3, nil
@@ -174,21 +162,14 @@ class Hash
   end
 
   def delete(key)
-    hsh = key.hash
-    unless hsh.kind_of? Fixnum
-      hsh = hsh % 536870911 # The max fixnum value
-    end
-
-    bin = hsh % @bins
-
-    entry = @values.at(bin)
+    entry, hash, bin = hash_entry key
     lst = nil
 
     while entry
       cur_hash, cur_key, val, nxt = *entry
 
       # Check if this entry is for the key in question
-      if cur_hash == hsh and key.eql?(cur_key)
+      if cur_hash == hash and key.eql?(cur_key)
 
         # Ok, relink the other entries, leaving this one out.
         if lst
@@ -305,9 +286,19 @@ class Hash
   end
 
   def key?(key)
-    found, val = find_unambiguous key
-    found
+    entry, hash, = hash_entry key
+
+    while entry do
+      cur_hash, cur_key, cur_val, nxt = *entry
+
+      return true if cur_hash == hash and key.eql?(cur_key)
+
+      entry = nxt
+    end
+
+    false
   end
+
   alias_method :has_key?, :key?
   alias_method :include?, :key?
   alias_method :member?, :key?
@@ -449,6 +440,18 @@ class Hash
     return Tuple[true, val] if code
     Tuple[false, nil]
   end
+
+  def hash_entry(obj)
+    hash = obj.hash
+    hash = hash % HASH_MAX unless hash.kind_of? Fixnum
+
+    bin = hash % @bins
+
+    entry = @values.at bin
+
+    return entry, hash, bin
+  end
+
 end
 
 # Uses object identity (ie Object#equal?) as the key test. Much faster

@@ -17,5 +17,15 @@ shared :hash_key_p do |cmd|
     it "returns true if the key's matching value was false" do
       { :xyz => false }.send(cmd, :xyz).should == true
     end
+
+    it "returns false for objects with the same hash" do
+      o1 = Object.new
+      def o1.hash() 0 end
+
+      o2 = Object.new
+      def o2.hash() 0 end
+
+      { o1 => nil }.send(cmd, o2).should == false
+    end
   end
 end
