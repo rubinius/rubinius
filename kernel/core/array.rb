@@ -50,7 +50,7 @@ class Array
       
         @tuple = Tuple.new(ary.size + 10)
         @total = ary.size
-        @tuple.copy_from ary.tuple, ary.start
+        @tuple.copy_from ary.tuple, ary.start, 0
       else
         count = Type.coerce_to args.first, Fixnum, :to_int
         obj   = args[1]
@@ -204,7 +204,7 @@ class Array
         newtotal = @total + replacement.size - cnt
         if newtotal > @tuple.fields - @start
           nt = Tuple.new(newtotal + 10)
-          nt.copy_from @tuple, @start # FIXME: double copy of right part
+          nt.copy_from @tuple, @start, 0 # FIXME: double copy of right part
           @start = 0
           @tuple = nt
         end                     # this should be an else
@@ -460,8 +460,16 @@ class Array
 
   # Appends the elements in the other Array to self
   def concat(other)
-    push(*Type.coerce_to(other, Array, :to_ary))
-  end 
+    ary = Type.coerce_to(other, Array, :to_ary)
+    size = @total + ary.size
+    tuple = Tuple.new size
+    tuple.copy_from @tuple, @start, 0
+    tuple.copy_from ary.tuple, ary.start, @total
+    @tuple = tuple
+    @start = 0
+    @total = size
+    self
+  end
 
   # Stupid subtle differences prevent proper reuse in these three
   
@@ -1531,7 +1539,7 @@ class Array
     
     tuple = Tuple.new(new_size)
 
-    tuple.copy_from @tuple, @start     # Swap over old data
+    tuple.copy_from @tuple, @start, 0     # Swap over old data
 
     @tuple = tuple
     @start = 0

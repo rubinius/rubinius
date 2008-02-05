@@ -17,7 +17,7 @@ class Array
   def []=(idx, ent)
     if idx >= @tuple.fields
       nt = Tuple.new(idx + 10)
-      nt.copy_from @tuple, @start
+      nt.copy_from @tuple, @start, 0
       @tuple = nt
     end
 

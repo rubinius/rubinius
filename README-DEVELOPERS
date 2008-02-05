@@ -369,6 +369,15 @@ the exception, it may raise an exception using a couple of macros:
 * RAISE_FROM_ERRNO(msg) will raise an Errno exception with the
   specified msg.
 
+If you need to change the signature of a primitive, follow this
+procedure:
+  1. change the signature of the kernel method that calls the
+     VM primitive
+  2. change any calls to the kernel method in the kernel/**
+     code to use the new signature, then recompile
+  3. run rake build:stable
+  4. change the actual primitive in the VM and recompile again
+  5. run bin/ci
 
 4.2 FFI
 -------

@@ -21,7 +21,7 @@ class Object
     return cm
   end
 
-  def copy_from(other, start)
+  def copy_from(other, start, dest)
     Ruby.primitive :dup_into
     raise TypeError, "unable to copy into"
   end

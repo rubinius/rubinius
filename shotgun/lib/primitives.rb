@@ -845,9 +845,11 @@ class ShotgunPrimitives
     POP(self, REFERENCE);
     POP(t1, REFERENCE);
     POP(t2, FIXNUM);
+    POP(t3, FIXNUM);
 
     native_int start = N2I(t2);
-    for(k = start, j = 0; 
+    native_int dest = N2I(t3);
+    for(k = start, j = dest; 
         k < NUM_FIELDS(t1) && j < NUM_FIELDS(self); 
         k++, j++) {
       SET_FIELD(self, j, NTH_FIELD(t1, k));

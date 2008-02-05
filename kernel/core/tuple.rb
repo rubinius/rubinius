@@ -79,14 +79,14 @@ class Tuple
   def shift
     return self unless fields > 0
     t = Tuple.new(fields-1)
-    t.copy_from self, 1
+    t.copy_from self, 1, 0
     return t
   end
   
   def enlarge(size)
     if size > fields()
       t = Tuple.new(size)
-      t.copy_from self, 0
+      t.copy_from self, 0, 0
       return t
     end
     
