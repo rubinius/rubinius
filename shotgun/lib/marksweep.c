@@ -196,7 +196,7 @@ OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
 }
 
 void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
-  OBJECT obj, cls;
+  OBJECT obj;
   
   obj = to_object(ent->object);
   
@@ -216,12 +216,7 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
       if(addr) free(addr);
       obj->RequiresCleanup = 0;
     } else {
-      cls = CLASS_OBJECT(obj);
-      if(cls && REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
-        cls = baker_gc_forwarded_object(cls);
-      }
-
-      state_run_cleanup(state, obj, cls);
+      state_run_cleanup(state, obj);
     }
   }
   

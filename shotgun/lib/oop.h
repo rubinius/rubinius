@@ -74,11 +74,17 @@ typedef enum
   TupleType       ,
   ArrayType       ,
   HashType        ,
+  RegexpDataType  ,
   RegexpType      ,
   ByteArrayType   ,
   ISeqType        ,
   ChannelType     ,
-  ThreadType
+  ThreadType      ,
+  ModuleType      ,
+  SendSiteType    ,
+  SelectorType    ,
+
+  LastObjectType   // must remain at end
 } object_type;
 
 #define object_type_to_type(object_type, type) do {\

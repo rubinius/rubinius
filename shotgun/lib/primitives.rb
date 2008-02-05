@@ -1190,7 +1190,9 @@ class ShotgunPrimitives
     <<-CODE
     (void)stack_pop();
     POP(t1, FIXNUM);
-
+#ifdef TIME_LOOKUP
+    cpu_show_lookup_time(state);
+#endif
     if(state->gc_stats) {
       printf("[GC M %6dK total]\\n", state->om->ms->allocated_bytes / 1024);
     }

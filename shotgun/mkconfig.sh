@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if test "$1" = "--enable-dtrace"; then
+  echo "[CONFIG] dtrace enabled."
+  DTRACE=1
+fi
+
 cp vars.mk config.mk
 
 (
@@ -52,6 +57,7 @@ echo "CODEPATH=$PREFIX/lib/rubinius/$LIBVER"
 echo "RBAPATH=$PREFIX/lib/rubinius/$LIBVER/runtime"
 echo "EXTPATH=$PREFIX/lib/rubinius/$LIBVER/$HOST"
 echo "BUILDREV=$BUILDREV"
+echo "DTRACE=$DTRACE"
 
 ) >> config.mk
 

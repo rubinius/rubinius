@@ -647,12 +647,9 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
           if(addr) free(addr);
           obj->RequiresCleanup = 0;
         } else {
-          if(REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
-            cls = baker_gc_forwarded_object(cls);
-          }
-        
-          state_run_cleanup(state, obj, cls);
+          state_run_cleanup(state, obj);
         }
+        obj->RequiresCleanup = 0;
       }
       
       if(obj->obj_type == WrapsStructType) FREE_WRAPPED_STRUCT(obj);

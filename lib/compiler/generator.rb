@@ -456,11 +456,7 @@ class Compiler
     end
     
     def send(meth, count, priv=false)
-      if @enable_method_cache
-        add :set_call_info, priv ? 1 : 0, next_cache_index
-      else
-        add :set_call_flags, 1 if priv
-      end
+      add :set_call_flags, 1 if priv
 
       unless count.kind_of? Fixnum
         raise Error, "count must be a number"
@@ -475,22 +471,14 @@ class Compiler
     end
     
     def send_with_block(meth, count, priv=false)
-      if @enable_method_cache
-        add :set_call_info, priv ? 1 : 0, next_cache_index
-      else
-        add :set_call_flags, 1 if priv
-      end
+      add :set_call_flags, 1 if priv
       
       idx = find_literal(meth)
       add :send_stack_with_block, idx, count
     end
     
     def send_with_register(meth, priv=false)
-      if @enable_method_cache
-        add :set_call_info, priv ? 1 : 0, next_cache_index
-      else
-        add :set_call_flags, 1 if priv
-      end
+      add :set_call_flags, 1 if priv
       
       idx = find_literal(meth)
       add :send_with_arg_register, idx      

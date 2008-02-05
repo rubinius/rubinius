@@ -8,6 +8,8 @@
 #include "shotgun/lib/hash.h"
 #include "shotgun/lib/regexp.h"
 #include "shotgun/lib/subtend/ffi.h"
+#include "shotgun/lib/selector.h"
+#include "shotgun/lib/sendsite.h"
 
 #define BC(o) BASIC_CLASS(o)
 
@@ -124,7 +126,7 @@ void cpu_bootstrap(STATE) {
   
   BC(iseq) = rbs_class_new(state, "InstructionSequence", 0, BC(bytearray));
   class_set_object_type(BC(iseq), I2N(ISeqType));
-    
+
   #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \
     module_setup(state, BC(name), string);
   
@@ -155,6 +157,7 @@ void cpu_bootstrap(STATE) {
   bcs(regexp, obj, "Regexp");
   class_set_object_type(BC(regexp), I2N(RegexpType));
   bcs(regexpdata, obj, "RegexpData");
+  class_set_object_type(BC(regexpdata), I2N(RegexpDataType));
   bcs(matchdata, obj, "MatchData");
       
   cpu_bootstrap_exceptions(state);
@@ -165,6 +168,8 @@ void cpu_bootstrap(STATE) {
   Init_cpu_task(state);
   Init_ffi(state);
   regexp_init(state);
+  selector_init(state);
+  send_site_init(state);
   
   state->global->external_ivars = hash_new(state);
 

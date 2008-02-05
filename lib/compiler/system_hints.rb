@@ -20,7 +20,8 @@ class Compiler
     :BlockEnvironment=>{:@__ivars__=>0, :@home=>1, :@initial_ip=>2, :@last_ip=>3, :@post_send=>4, :@home_block => 5, :@local_count => 6, :@bonus => 7, :@method => 8},
     :Exception => {:@__ivars__ => 0, :@message => 1, :@context => 2 },
     :InlineCache => {:@__ivars__ => 0, :@method => 1, :@class => 2, :@module => 3, :@serial => 4, :@hotness => 5, :@trip => 6 },
-    :StaticScope => {:@__ivars__ => 0, :@module => 1, :@parent => 2 }
+    :StaticScope => {:@__ivars__ => 0, :@module => 1, :@parent => 2 },
+    :Selector => {:@name => 0, :@send_sites => 1 }
     }
 
     TYPES = {
@@ -33,7 +34,8 @@ class Compiler
       :hash => :Hash, :string => :String, :tuple => :Tuple,
       :blokenv=>:BlockEnvironment, :symbol => :Symbol,
       :methctx => :MethodContext, :exception => :Exception,
-      :icache => :InlineCache, :staticscope => :StaticScope
+      :icache => :InlineCache, :staticscope => :StaticScope,
+      :selector => :Selector
     }
   end
 end

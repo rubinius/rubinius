@@ -44,7 +44,7 @@ void cpu_task_configure_preemption(STATE);
 
 void Init_cpu_task(STATE) {
   OBJECT tup;
-  state_add_cleanup(state, state->global->task, cpu_task_cleanup);
+  state_add_cleanup(state, BASIC_CLASS(task), cpu_task_cleanup);
   
   tup = tuple_new2(state, 7, list_new(state), list_new(state), list_new(state),
     list_new(state), list_new(state), list_new(state), list_new(state));
@@ -262,7 +262,7 @@ int cpu_task_select(STATE, cpu c, OBJECT nw) {
   new_task->active = TRUE;
   
   home = NIL_P(c->home_context) ? c->active_context : c->home_context;
-  cpu_restore_context_with_home(state, c, c->active_context, home, FALSE, FALSE);
+  cpu_restore_context_with_home(state, c, c->active_context, home);
   c->current_task = nw;
   
   return TRUE;

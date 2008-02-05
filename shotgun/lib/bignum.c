@@ -22,7 +22,7 @@ void bignum_cleanup(STATE, OBJECT obj) {
 }
 
 void bignum_init(STATE) {
-  state_add_cleanup(state, state->global->bignum, bignum_cleanup);
+  state_add_cleanup(state, BASIC_CLASS(bignum), bignum_cleanup);
 }
 
 static void twos_complement(mp_int *a)

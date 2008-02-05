@@ -8,6 +8,9 @@
 #include "shotgun/lib/config_hash.h"
 #include "shotgun/lib/machine.h"
 
+#ifdef TIME_LOOKUP
+#include <mach/mach_time.h>
+#endif
 
 static size_t _gc_current_limit = 0;
 #define GC_EXTERNAL_LIMIT 10000000
@@ -47,6 +50,10 @@ rstate rubinius_state_new() {
   st->global = (struct rubinius_globals*)calloc(1, sizeof(struct rubinius_globals));
   st->cleanup = ht_cleanup_create(11);
   st->config = ht_config_create(11);
+#ifdef TIME_LOOKUP
+  st->system_start = mach_absolute_time();
+  st->lookup_time = 0;
+#endif
   return st;
 }
 
@@ -211,20 +218,21 @@ void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
 }
 
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func) {
-  ht_cleanup_insert(state->cleanup, module_get_name(cls), func);
+  int type = N2I(class_get_object_type(cls));
 
+  state->type_info[type].cleanup = func;
   // printf("Registered cleanup for %p\n", module_get_name(cls));
   class_set_needs_cleanup(cls, Qtrue);
 }
 
-void state_run_cleanup(STATE, OBJECT obj, OBJECT cls) {
+void state_run_cleanup(STATE, OBJECT obj) {
   state_cleanup_func func;
 
-  if(!REFERENCE_P(cls)) return;
+  func = state->type_info[obj->obj_type].cleanup;
+  
+  if(func) func(state, obj);
+}
 
-  // printf("Cleaning up %p (%s, %p)\n", obj, _inspect(cls), module_get_name(cls));
-  func = ht_cleanup_search(state->cleanup, module_get_name(cls));
-  if(func) {
-    func(state, obj);
-  }
+void state_setup_type(STATE, int type, struct type_info *info) {
+  state->type_info[type] = *info;
 }

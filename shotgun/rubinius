@@ -89,6 +89,11 @@ elsif ARGV[0] == "--shark"
   puts "Starting up rubinius, then pausing for shark to start"
   pid = fork { sleep 5; exec real, *ARGV }
   exec "shark -o rbxshark -i -1 -a #{pid}"
+elsif ARGV[0] == "--dtrace"
+  ARGV.shift
+  puts "Starting up rubinius, then pausing for dtrace to start"
+  pid = fork { sleep 5; exec real, *ARGV }
+  exec "dtrace -s #{ENV['SCRIPT']} -p #{pid}"
 else
   exec [real, my_name], *ARGV
 end

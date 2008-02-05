@@ -124,9 +124,10 @@ class ShotgunInstructions
   end
   
   def generate_declarations(fd)
-    fd.puts "register int _int;"
-    fd.puts "register native_int j, k, m;"
-    fd.puts "register OBJECT _lit, t1, t2, t3, t4, t5;"
+    fd.puts "int _int;"
+    fd.puts "native_int j, k, m;"
+    fd.puts "OBJECT _lit, t1, t2, t3, t4, t5;"
+    fd.puts "struct message msg;"
   end
   
   def generate_names
@@ -831,17 +832,24 @@ CODE
     t1 = stack_pop();
     t2 = stack_pop();
     j = c->args;
-    
+
     perform_send:
+
+    msg.name = _lit;
+    msg.recv = t1;
+    msg.block = t2;
+    msg.args = j;
+    msg.priv = c->call_flags;
+
+    msg.klass = _real_class(state, msg.recv);
     
-    _inline_cpu_unified_send(state, c, t1, _lit, j, t2);
+    _inline_cpu_unified_send(state, c, &msg);
     CODE
   end
   
   def send_super_stack_with_block
     <<-CODE
     next_literal;
-    t1 = stack_pop();
     next_int;
     j = _int;
     
@@ -852,11 +860,19 @@ CODE
   def send_super_with_arg_register
     <<-CODE
     next_literal;
-    t1 = stack_pop();
     j = c->args;
-        
+    
     perform_super_send:
-    cpu_unified_send_super(state, c, c->self, _lit, j, t1);
+    
+    msg.name = _lit;
+    msg.recv = c->self;
+    msg.block = stack_pop();
+    msg.args = j;
+    msg.priv = TRUE;
+
+    msg.klass = class_get_superclass(cpu_current_module(state, c));
+    
+    _inline_cpu_unified_send(state, c, &msg);
     CODE
   end
   

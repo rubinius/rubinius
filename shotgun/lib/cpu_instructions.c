@@ -16,8 +16,64 @@
 #include "shotgun/lib/fixnum.h"
 #include "shotgun/lib/primitive_util.h"
 
+#include <sys/time.h>
+
+#if TIME_LOOKUP
+
+#include <stdint.h>
+#include <time.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+
+/*
+static inline uint64_t measure_cpu_time() {
+  uint64_t x;
+  __asm__ __volatile__ ("rdtsc" : "=A" (x));
+  return x;
+}
+
+uint64_t get_cpu_frequency()
+{
+    uint64_t x, y;
+    time_t start;
+    static uint64_t result = 0;
+    if(result) return result;
+
+    start = time(NULL);
+    x = measure_cpu_time();
+    while(time(NULL) == start);
+    y = measure_cpu_time();
+    result = (y - x);
+    return result;
+}
+*/
+
+#define measure_cpu_time mach_absolute_time
+
+void cpu_show_lookup_time(STATE) {
+  struct mach_timebase_info timeinfo;
+  uint64_t nano;
+  double seconds, total;
+
+  mach_timebase_info(&timeinfo);
+
+  nano = (state->lookup_time * timeinfo.numer / timeinfo.denom); 
+
+  seconds = (double)(nano / (double)1000000000);
+
+  nano = ((mach_absolute_time() - state->system_start) * timeinfo.numer / timeinfo.denom);
+
+  total = (double)(nano / (double)1000000000);
+
+  printf("Total  time: % 3.3f\n", total);
+  printf("Lookup time: % 3.3f\n", seconds);
+  printf("Percent:     % 3.3f\n", (seconds / total) * 100);
+}
+
+#endif
+
 #if CONFIG_ENABLE_DTRACE
-#include "dtrace.h"
+#include "shotgun/dtrace.h"
 #define ENABLE_DTRACE 1
 #else
 #define ENABLE_DTRACE 0
@@ -143,69 +199,61 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
  
 #define TUPLE_P(obj) (CLASS_OBJECT(obj) == BASIC_CLASS(tuple))
  
-static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name, OBJECT recv, OBJECT mod) {
-  OBJECT meth, vis;
+static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message *msg) {
+  OBJECT vis;
 
-  meth = hash_find(state, hsh, name);
+  msg->method = hash_find(state, hsh, msg->name);
 
-  if(!RTEST(meth)) { return meth; }
+  if(NIL_P(msg->method)) return FALSE;
 
-  if(c->call_flags == 1) { return meth; }
+  /* false means to terminate method lookup. */
+  if(FALSE_P(msg->method)) return TRUE;
+
+  if(msg->priv) return TRUE;
 
   /* Check that unless we can look for private methods that method isn't private. */
-  if(TUPLE_P(meth)) {
-    vis = tuple_at(state, meth, 0);
+  if(TUPLE_P(msg->method)) {
+    vis = tuple_at(state, msg->method, 0);
     if(vis == state->global->sym_private) {
       /* We stop on private methods. */
-      return Qfalse;
+      msg->method = Qfalse;
+      return TRUE;
     } else if(vis == state->global->sym_protected) {
       /* If it's protected, bail if the receiver isn't the same
          class as self. */
-      if(!object_kind_of_p(state, c->self, mod)) return Qfalse;
-    }
-  }
-  
-  return meth;
-}
-
-#define PUBLIC_P(meth) (fast_fetch(meth, 0) == state->global->sym_public)
-#define VISIBLE_P(cp, mo, tu) ((c->call_flags == 1) || (!tup) || PUBLIC_P(meth))
-#define UNVIS_METHOD(var) if(TUPLE_P(var)) { var = tuple_at(state, var, 1); }
-#define UNVIS_METHOD2(var) if(tup) { var = tuple_at(state, var, 1); }
-
-static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OBJECT name,  OBJECT *mod) {
-  OBJECT ok, hsh, cache, orig_klass, meth;
-  int tup, tries;
-  struct method_cache *ent, *fent;
-  
-  cache = Qnil;
-
-#if USE_GLOBAL_CACHING
-  tries = CPU_CACHE_TOLERANCE;
-  fent = state->method_cache + CPU_CACHE_HASH(klass, name);
-  ent = fent;
-  while(tries--) {
-    /* We hit a hole. Stop. */
-    if(!ent->name) {
-      fent = ent;
-      break;
-    }
-    if(ent->name == name && ent->klass == klass) {
-      *mod = ent->module;
-      meth = ent->method;
-      tup = TUPLE_P(meth);
-    
-      if(VISIBLE_P(c, meth, tup)) {
-        UNVIS_METHOD2(meth);
-    
-  #if TRACK_STATS
-        state->cache_hits++;
-  #endif
-        return meth;
+      if(!object_kind_of_p(state, c->self, msg->module)) {
+        msg->method = Qfalse;
+        return TRUE;
       }
     }
-    ent++;
   }
+
+  return TRUE;
+}
+
+#define UNVIS_METHOD(var) if(TUPLE_P(var)) { var = tuple_at(state, var, 1); }
+
+static inline int cpu_find_method(STATE, cpu c, struct message *msg) {
+  OBJECT hsh, klass;
+  struct method_cache *ent;
+  
+#if USE_GLOBAL_CACHING
+  ent = state->method_cache + CPU_CACHE_HASH(msg->klass, msg->name);
+  /* We hit a hole. Stop. */
+  if(ent->name == msg->name && ent->klass == msg->klass) {
+
+    /* TODO does this need to check for protected? */
+    if(msg->priv || ent->is_public) {
+      msg->method = ent->method;
+      msg->module = ent->module;
+
+#if TRACK_STATS
+      state->cache_hits++;
+#endif
+      return TRUE;
+    }
+  }
+
 #if TRACK_STATS
   if(ent->name) {
     state->cache_collisions++;
@@ -214,147 +262,159 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
 #endif
 #endif
 
-  /* Validate klass is valid even. */
-  if(NUM_FIELDS(klass) <= CLASS_f_SUPERCLASS) {
-    printf("Warning: encountered invalid class (not big enough).\n");
-    sassert(0);
+  klass = msg->klass;
+
+  do {
+
+    /* Validate klass is valid even. */
+    if(NUM_FIELDS(klass) <= CLASS_f_SUPERCLASS) {
+      printf("Warning: encountered invalid class (not big enough).\n");
+      sassert(0);
+      return FALSE;
+    }
+
+    hsh = module_get_method_table(klass);
+
+    /* Ok, rather than assert, i'm going to just bail. Makes the error
+       a little strange, but handle-able in ruby land. */
+
+    if(!ISA(hsh, state->global->hash)) {
+      printf("Warning: encountered invalid module (methods not a hash).\n");
+      sassert(0);
+      return FALSE; 
+    }
+
+    msg->module = klass;
+    if(cpu_check_for_method(state, c, hsh, msg)) {
+      goto cache;
+    }
+    
+    klass = class_get_superclass(klass);
+    if(NIL_P(klass)) break;
+
+  } while(1);
+
+cache:
+  
+  if(!RTEST(msg->method)) return FALSE;
+
+#if USE_GLOBAL_CACHING
+  /* Update the cache. */
+  if(RTEST(msg->method)) {
+    ent->klass = msg->klass;
+    ent->name = msg->name;
+    ent->module = klass;
+
+    if(TUPLE_P(msg->method)) {
+      ent->method = NTH_FIELD(msg->method, 1);
+      if(NTH_FIELD(msg->method, 0) == state->global->sym_public) {
+        ent->is_public = TRUE;
+      } else {
+        ent->is_public = FALSE;
+      }
+
+      msg->method = ent->method;
+    } else {
+      ent->method = msg->method;
+      ent->is_public = TRUE;
+    }
+  }
+#else
+  if(RTEST(msg->method)) {
+    UNVIS_METHOD(msg->method);
+  }
+#endif
+  
+  return TRUE;
+}
+
+OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod) {
+  struct message msg;
+  
+  msg.name = name;
+  msg.klass = klass;
+  msg.recv = Qnil;
+  msg.priv = TRUE;
+  msg.module = Qnil;
+  msg.method = Qnil;
+  
+  if(!cpu_find_method(state, c, &msg)) {
     *mod = Qnil;
     return Qnil;
   }
 
-  hsh = module_get_method_table(klass);
-  
-  /* Ok, rather than assert, i'm going to just bail. Makes the error
-     a little strange, but handle-able in ruby land. */
-  
-  if(!ISA(hsh, state->global->hash)) {
-    printf("Warning: encountered invalid module (methods not a hash).\n");
-    sassert(0);
-    *mod = Qnil;
-    return Qnil; 
-  }
-  
-  meth = cpu_check_for_method(state, c, hsh, name, recv, klass);
-  
-  /*
-  printf("Looking for method: %s in %p (%s)\n", 
-    string_byte_address(state, symtbl_find_string(state, state->global->symbols,
-                                                  name)),
-    klass,
-    string_byte_address(state, symtbl_find_string(state, state->global->symbols,
-                                                  class_get_name(klass)))
-    );
-  */
-  
-  orig_klass = klass;
-  while(NIL_P(meth)) {
-    ok = klass;
-    
-    /* Validate klass is still valid. */
-    if(NUM_FIELDS(klass) <= CLASS_f_SUPERCLASS) {
-      printf("Warning: encountered invalid class (not big enough).\n");
-      sassert(0);
-      *mod = Qnil;
-      return Qnil;
-    }
-    
-    klass = class_get_superclass(klass);
-    if(NIL_P(klass)) { break; }
-    /*
-    printf("Looking for method (sup): %s in %p (%s)\n", 
-      string_byte_address(state, symtbl_find_string(state, state->global->symbols, name)),
-      klass,
-      string_byte_address(state, symtbl_find_string(state, state->global->symbols, 
-        class_get_name(klass)))
-    );
-    */
-    hsh = module_get_method_table(klass);
-    if(!ISA(hsh, state->global->hash)) {
-      printf("Warning: encountered invalid module (methods not a hash).\n");
-      sassert(0);
-      *mod = Qnil;
-      return Qnil; 
-    }
-        
-    meth = cpu_check_for_method(state, c, hsh, name, recv, klass);
-  }
-  
-  *mod = klass;
-  
-  if(FALSE_P(meth)) return Qnil;
-
-#if USE_GLOBAL_CACHING
-  /* Update the cache. */
-  if(RTEST(meth)) {
-    fent->klass = orig_klass;
-    fent->name = name;
-    fent->module = klass;
-    fent->method = meth;
-    
-    UNVIS_METHOD(meth);
-  }
-#else
-  if(RTEST(meth)) {
-    UNVIS_METHOD(meth);
-  }
-#endif
-  
-  return meth;
-}
-
-OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod) {
-    return cpu_find_method(state, c, klass, Qnil, name, mod);
+  *mod = msg.module;
+  return msg.method;
 }
 
 OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include_private) {
-  OBJECT mod, meth;
-  int call_flags;
+  struct message msg;
 
-  if(TRUE_P(include_private)) {
-    // save and change call_flags to allow searching for private methods
-    call_flags = c->call_flags;
-    c->call_flags = 1;
-    meth = cpu_find_method(state, c, _real_class(state, obj), obj, sym, &mod);
-    c->call_flags = call_flags;
-  } else {
-    meth = cpu_find_method(state, c, _real_class(state, obj), obj, sym, &mod);       
-  }
-  
+  msg.recv = obj;
+  msg.name = sym;
+  msg.klass = _real_class(state, obj);
+  msg.priv = TRUE_P(include_private);
+  msg.method = Qnil;
+  msg.module = Qnil;
 
-  if(RTEST(meth)) {
-    return tuple_new2(state, 2, meth, mod);
+  if(cpu_find_method(state, c, &msg)) {
+    if(RTEST(msg.method)) {
+      return tuple_new2(state, 2, msg.method, msg.module);
+    }
   }
+
   return Qnil;
 }
 
-static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT klass, OBJECT obj, OBJECT sym, 
-          OBJECT *mod, int *missing) {
-  OBJECT mo;
+static inline int cpu_locate_method(STATE, cpu c, struct message *msg) {
+  int ret;
+  struct message missing;
+
+#if ENABLE_DTRACE
+  if(RUBINIUS_VM_LOOKUP_BEGIN_ENABLED()) {
+    RUBINIUS_VM_LOOKUP_BEGIN();
+  }
+#endif
+
+  ret = TRUE;
   
-  *missing = FALSE;
-  
-  mo = cpu_find_method(state, c, klass, obj, sym, mod);
-  if(!NIL_P(mo)) { return mo; }
-   
-  c->call_flags = 1;
-  // printf("method missing: %p\n", state->global->method_missing);
-  mo = cpu_find_method(state, c, klass, obj, state->global->method_missing, mod);
-  *missing = TRUE;
-  
-  c->call_flags = 0;
-  
+  if(cpu_find_method(state, c, msg)) goto done;
+ 
+  missing = *msg;
+  missing.priv = TRUE;
+  missing.name = state->global->method_missing;
+
+  /* If we couldn't even find method_missing. bad. */
+  if(!cpu_find_method(state, c, &missing)) { ret = FALSE; goto done; }
+
+  msg->method = missing.method;
+  msg->module = missing.module;
+  msg->missing = TRUE;
+
+done:
+#if ENABLE_DTRACE
+  if(RUBINIUS_VM_LOOKUP_END_ENABLED()) {
+    RUBINIUS_VM_LOOKUP_END();
+  }
+#endif
   // printf("Found method: %p\n", mo);
   
-  return mo;
+  return ret;
 }
 
 static inline OBJECT cpu_check_serial(STATE, cpu c, OBJECT obj, OBJECT sym, int serial) {
-  OBJECT mo, mod;
+  struct message msg;
 
-  mo = cpu_find_method(state, c, _real_class(state, obj), obj, sym, &mod);
-  if(NIL_P(mo)) return Qfalse;
+  msg.name = sym;
+  msg.recv = obj;
+  msg.klass = _real_class(state, obj);
+  msg.priv = TRUE;
 
-  if(N2I(fast_fetch(mo, CMETHOD_f_SERIAL)) == serial) {
+  if(!cpu_find_method(state, c, &msg)) {
+    return Qfalse;
+  }
+
+  if(N2I(fast_fetch(msg.method, CMETHOD_f_SERIAL)) == serial) {
     return Qtrue;
   }
 
@@ -575,14 +635,14 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
   if(args == req || req < 0) {
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
-    const char * module_name = mod == Qnil ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(mod));
-    const char * method_name = rbs_symbol_to_cstring(state, sym);
+    char *module_name = mod == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(mod));
+    char *method_name = (char*)rbs_symbol_to_cstring(state, sym);
 
     cpu_flush_ip(c);
 
     struct fast_context *fc = FASTCTX(c->active_context);
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+    char *filename = (char*)rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
     RUBINIUS_FUNCTION_ENTRY(module_name, method_name, filename, line_number);
   }
@@ -594,14 +654,14 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
       
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
-    const char * module_name = mod == Qnil ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(mod));
-    const char * method_name = rbs_symbol_to_cstring(state, sym);
+    char *module_name = mod == Qnil ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(mod));
+    char *method_name = rbs_symbol_to_cstring(state, sym);
 
     cpu_flush_ip(c);
 
     struct fast_context *fc = FASTCTX(c->active_context);
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
     RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
   }
@@ -651,7 +711,7 @@ inline void cpu_yield_debugger_check(STATE, cpu c) {
 }
 
 
-inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
+inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home) {
   struct fast_context *fc;
     
   /* Home is actually the main context here because it's the method
@@ -714,7 +774,7 @@ inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) 
   if(c->active_context != Qnil) {
     cpu_save_registers(state, c, so);
   }
-  cpu_restore_context_with_home(state, c, ctx, home, FALSE, FALSE);
+  cpu_restore_context_with_home(state, c, ctx, home);
   cpu_yield_debugger_check(state, c);
 }
 
@@ -730,14 +790,14 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
     OBJECT module = cpu_current_module(state, c);
     
-    const char * module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
-    const char * method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
+    char *module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
+    char *method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
     
     cpu_flush_ip(c);
     
     struct fast_context *fc = FASTCTX(c->active_context);
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
     RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
   }
@@ -793,7 +853,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
          it needs to next. */
       return TRUE;
     } else {
-      cpu_restore_context_with_home(state, c, destination, home, TRUE, FALSE);
+      cpu_restore_context_with_home(state, c, destination, home);
       stack_push(val);
     }
   }
@@ -812,14 +872,14 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
   if (RUBINIUS_FUNCTION_RETURN_ENABLED() && !is_block) {
     OBJECT module = cpu_current_module(state, c);
 
-    const char * module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
-    const char * method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
+    char *module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
+    char *method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
 
     cpu_flush_ip(c);
     
     struct fast_context *fc = FASTCTX(c->active_context);
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
     RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
   }
@@ -950,7 +1010,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
          it needs to next. */
       return TRUE;
     } else {
-      cpu_restore_context_with_home(state, c, destination, home, TRUE, is_block);
+      cpu_restore_context_with_home(state, c, destination, home);
       if(!exception) stack_push(val);
     }
   }
@@ -975,19 +1035,15 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 /* Layer 3: hook. Shortcut for running hook methods. */
 
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg) {
-  OBJECT mo, mod, rub, vm;
-  int call_flags;
+  OBJECT rub, vm;
+  struct message msg;
 
-  /* Must be able to call private hooks too */
-  call_flags = c->call_flags;
-  c->call_flags = 1;
+  msg.name = meth;
+  msg.recv = recv;
+  msg.klass = _real_class(state, recv);
+  msg.priv = TRUE;
 
-  mo = cpu_find_method(state, c, _real_class(state, recv), recv, meth, &mod);
-
-  c->call_flags = call_flags;
-
-  if(NIL_P(mo)) return;
-
+  if(!cpu_find_method(state, c, &msg)) return;
 
   rub = rbs_const_get(state, BASIC_CLASS(object), "Rubinius");
   if(NIL_P(rub)) return;
@@ -1049,16 +1105,22 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
-    const char * module_name = rbs_symbol_to_cstring(state, module_get_name(mod));
-    const char * method_name = rbs_symbol_to_cstring(state, sym);
+    char *module_name = rbs_symbol_to_cstring(state, module_get_name(mod));
+    char *method_name = rbs_symbol_to_cstring(state, sym);
 
     cpu_flush_ip(c);
 
     struct fast_context *fc = FASTCTX(c->active_context);
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    const char * filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
     RUBINIUS_FUNCTION_ENTRY(module_name, method_name, filename, line_number);
+  }
+#endif
+
+#if ENABLE_DTRACE
+  if(RUBINIUS_VM_CONTEXT_CREATE_BEGIN_ENABLED()) {
+    RUBINIUS_VM_CONTEXT_CREATE_BEGIN();
   }
 #endif
 
@@ -1082,6 +1144,12 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   c->call_flags = 0;
 
   cpu_activate_context(state, c, ctx, ctx, args);
+#if ENABLE_DTRACE
+  if(RUBINIUS_VM_CONTEXT_CREATE_END_ENABLED()) {
+    RUBINIUS_VM_CONTEXT_CREATE_END();
+  }
+#endif
+
 }
 
 
@@ -1095,152 +1163,117 @@ static inline void cpu_activate_method(STATE, cpu c, OBJECT recv, OBJECT mo,
 }
 
 /* Layer 4: send. Primary method calling function. */
-static inline void _inline_cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
-  OBJECT mo, mod, cls, cache, ser, ic;
-  int missing, count, ci;
+static inline void _inline_cpu_unified_send(STATE, cpu c, struct message *msg) {
+  OBJECT ctx;
 
-  ci = c->cache_index;
-
-  missing = 0;
-  
-  cls = _real_class(state, recv);
-  
-  ic = Qnil;
-  cache = Qnil;
-  count = 0;
-  
-#if USE_INLINE_CACHING
-  /* There is a cache index for this send, use it! */
-  if(ci != -1) {
-    cache = c->cache;
-    
-    ic = fast_fetch(cache, ci);
-
-    if(ic == Qfalse || ic == Qnil) {
-
-      /* If it's false, the cache is disabled. */
-      if(ic == Qfalse) {
-        mo = cpu_locate_method(state, c, cls, recv, sym, &mod, &missing);
-        if(NIL_P(mo)) goto really_no_method;
-        goto dispatch;
-      }
-
-      /* Cache hasn't been populated ever. */
-      goto lookup;
-    }
-        
-    // fast_inc(ic, ICACHE_f_HOTNESS);
-
-    if(fast_fetch(ic, ICACHE_f_CLASS) == cls) {
-      mo =  fast_fetch(ic, ICACHE_f_METHOD);
-      mod = fast_fetch(ic, ICACHE_f_MODULE);
-
-      goto dispatch;
-
-      ser = fast_fetch(ic, ICACHE_f_SERIAL);
-      /* We don't check the visibility here because the inline cache has
-         fixed visibility, meaning it will always be the same after it's
-         populated. */
-      if(fast_fetch(mo, CMETHOD_f_SERIAL) == ser) {
-#if TRACK_STATS
-        state->cache_inline_hit++;
+#ifdef TIME_LOOKUP
+  uint64_t start = measure_cpu_time();
 #endif
-        goto dispatch;
-      } else {
-#if TRACK_STATS
-        state->cache_inline_stale++;
-#endif
-      }
-    } else {      
-      // count = N2I(fast_fetch(ic, ICACHE_f_TRIP));
-      // fast_set_int(ic, ICACHE_f_TRIP, count + 1);
-    }
+
+#if ENABLE_DTRACE
+  if(RUBINIUS_VM_SEND_BEGIN_ENABLED()) {
+    RUBINIUS_VM_SEND_BEGIN();
   }
 #endif
 
-  lookup:
-  mo = cpu_locate_method(state, c, cls, recv, sym, &mod, &missing);
-  if(NIL_P(mo)) {
-    char *msg;
-    really_no_method:
+  msg->missing = 0;
+ 
+  if(!cpu_locate_method(state, c, msg)) {
+    char *str;
+    OBJECT ser;
     
     ser = rbs_const_get(state, BASIC_CLASS(object), "RuntimeError");
     
-    msg = malloc(1024);
-    sprintf(msg, "Unable to find any version of '%s' to run", _inspect(sym));
+    str = malloc(1024);
+    sprintf(str, "Unable to find any version of '%s' to run", _inspect(msg->name));
     
-    cpu_raise_exception(state, c, cpu_new_exception(state, c, ser, msg));
+    cpu_raise_exception(state, c, cpu_new_exception(state, c, ser, str));
 
-    free(msg);
-    
-    return;    
+    free(str);
+
+    goto done;
   }
-  
-#if USE_INLINE_CACHING
-  /* Update the inline cache. */
-  if(cache != Qnil && !missing) {
-    if(ic == Qnil) {
-      ic = icache_allocate(state);
-      icache_set_class(ic, cls);
-      icache_set_module(ic, mod);
-      icache_set_method(ic, mo);
-      icache_set_serial(ic, cmethod_get_serial(mo));
-      icache_set_hotness(ic, I2N(0));
-      icache_set_trip(ic, I2N(0));
-      tuple_put(state, cache, ci, ic);
-    } else {
-      if(count > 100) {
-        fast_unsafe_set(cache, ci, Qfalse);
-      } else {
-        icache_set_class(ic, cls);
-        icache_set_module(ic, mod);
-        icache_set_method(ic, mo);
-        icache_set_serial(ic, cmethod_get_serial(mo));
+
+  if(c->depth == CPU_MAX_DEPTH) {
+    machine_handle_fire(FIRE_STACK);
+  }
+
+  if(msg->missing) {
+    msg->args += 1;
+    stack_push(msg->name);
+  } else {
+    if(cpu_try_primitive(state, c, msg->method, msg->recv, msg->args, msg->name, msg->module, msg->block)) {
+      if(EXCESSIVE_TRACING) {
+        printf("%05d: Called prim %s => %s on %s.\n", c->depth,
+          rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
+          rbs_symbol_to_cstring(state, msg->name), _inspect(msg->recv));
       }
+      c->call_flags = 0;
+      goto done;
     }
   }
+  
+  ctx = cpu_create_context(state, c, msg->recv, msg->method, msg->name, 
+      msg->module, (unsigned long int)msg->args, msg->block);
+
+  /* If it was missing, setup some extra data in the MethodContext for
+     the method_missing method to check out, to see why it was missing. */
+  if(msg->missing) {
+    if(c->call_flags == 1) {
+      methctx_reference(state, ctx);
+      object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
+    }
+  }
+ 
+  c->call_flags = 0;
+
+  cpu_save_registers(state, c, msg->args);
+  cpu_restore_context_with_home(state, c, ctx, ctx);
+
+done:
+#ifdef TIME_LOOKUP
+  state->lookup_time += (measure_cpu_time() - start);
 #endif
-  
-  dispatch:
-  /* Make sure no one else sees the a recently set cache_index, it was
-     only for us! */
-  c->cache_index = -1;
-  
-  _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
+
   return;
 }
 
 void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
-  _inline_cpu_unified_send(state, c, recv, sym, args, block);
+  struct message msg;
+  msg.recv = recv;
+  msg.name = sym;
+  msg.args = args;
+  msg.block = block;
+  msg.klass = _real_class(state, recv);
+  msg.priv = c->call_flags;
+
+  _inline_cpu_unified_send(state, c, &msg);
+}
+
+void cpu_unified_send_message(STATE, cpu c, struct message *msg) {
+  _inline_cpu_unified_send(state, c, msg);
 }
 
 /* This is duplicated from above rather than adding another parameter
    because unified_send is used SO often that I didn't want to slow it down
    any with checking a flag. */
 static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
-  OBJECT mo, klass, mod;
-  int missing;
+  struct message msg;
+
+  msg.missing = 0;
+  msg.klass = class_get_superclass(cpu_current_module(state, c));
+  msg.priv = TRUE;
+  msg.recv = recv;
+  msg.name = sym;
   
-  c->call_flags = 1;
-    
-  missing = 0;
-  
-  // printf("Looking up from: %s\n", _inspect(cpu_current_module(state, c)));
-  
-  klass = class_get_superclass(cpu_current_module(state, c));
-    
-  mo = cpu_locate_method(state, c, klass, recv, sym, &mod, &missing);
-  if(NIL_P(mo)) {
+  if(!cpu_locate_method(state, c, &msg)) {
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
-    sassert(RTEST(mo));
+    sassert(0);
   }
   
-  /* Make sure no one else sees the a recently set cache_index, it was
-     only for us! */
-  c->cache_index = -1;
   c->call_flags = 0;
   
-  _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
+  _cpu_build_and_activate(state, c, msg.method, recv, sym, args, block, msg.missing, msg.module);
 }
 
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
@@ -1465,7 +1498,7 @@ check_interrupts:
       if (RUBINIUS_GC_BEGIN_ENABLED()) {
         RUBINIUS_GC_BEGIN();
       }
-#endif      
+#endif
       int cm = state->om->collect_now;
       
       /* Collect the first generation. */

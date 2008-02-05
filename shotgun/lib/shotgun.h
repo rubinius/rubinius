@@ -5,6 +5,7 @@
 
 #define TRACK_STATS 0
 #define DISABLE_CHECKS 0
+// #define TIME_LOOKUP 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 
 #include "shotgun/config.h"
 #include "shotgun/lib/oop.h"
+#include "shotgun/lib/message.h"
 #include "shotgun/lib/state.h"
 #include "shotgun/lib/auto.h"
 #include "shotgun/lib/metaclass.h"

@@ -9,6 +9,14 @@ provider rubinius {
     /* Some initial memory type probes */
     probe object__create__start(char*, char*, int);
     probe object__create__done(char*, char*, int);
+
+    /* internal time probes */
+    probe vm__lookup__begin();
+    probe vm__lookup__end();
+    probe vm__send__begin();
+    probe vm__send__end();
+    probe vm__context__create__begin();
+    probe vm__context__create__end();
 };
 
 #pragma D attributes Evolving/Evolving/Common provider rubinius provider

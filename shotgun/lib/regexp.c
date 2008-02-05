@@ -22,8 +22,8 @@
 
 OBJECT get_match_data(STATE, OnigRegion *region, OBJECT string, OBJECT regex, int max);
 
-void regexp_cleanup(STATE, OBJECT regexp) {
-  onig_free(REG(regexp));
+void regexp_cleanup(STATE, OBJECT data) {
+  onig_free(REG(data));
 }
 
 void regexp_init(STATE) {

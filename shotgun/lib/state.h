@@ -27,7 +27,7 @@ struct rubinius_globals {
   OBJECT string, symbol, io, metaclass, symtbl;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
   OBJECT floatpoint, fastctx, data, nmethod, nmc, task, list, list_node;
-  OBJECT channel, thread, staticscope;
+  OBJECT channel, thread, staticscope, send_site, selector;
   
   /* the primary symbol table */
   OBJECT symbols;
@@ -46,6 +46,7 @@ struct rubinius_globals {
   OBJECT sym_object_id, sym_call;
   OBJECT exception, iseq, icache;
   OBJECT top_scope, on_gc_channel;
+  OBJECT selectors;
   
   OBJECT special_classes[SPECIAL_CLASS_SIZE];
 };
@@ -65,6 +66,7 @@ struct method_cache {
   OBJECT name;
   OBJECT module;
   OBJECT method;
+  int is_public;
 };
 
 struct rubinius_state;
@@ -79,6 +81,16 @@ void state_destroy(rstate);
 #endif
 
 #define STATE rstate state
+
+typedef void (*state_cleanup_func)(STATE, OBJECT);
+
+struct type_info {
+  /* IF the type is a ByteArray, how many fields at the front are
+   * OBJECT's that need to be GC'd */
+  int object_fields;
+  state_cleanup_func cleanup;
+};
+
 
 #define FASTCTX_FIELDS 18
 #define FASTCTX_NORMAL 1
@@ -133,7 +145,19 @@ struct rubinius_state {
   int check_events, pending_threads, pending_events;
 
   struct termios *termios;
+
+  struct type_info type_info[LastObjectType];
+
+#ifdef TIME_LOOKUP
+  uint64_t system_start;
+  uint64_t lookup_time;
+#endif
 };
+
+#ifdef TIME_LOOKUP
+void cpu_show_lookup_time(STATE);
+uint64_t get_cpu_frequency();
+#endif
 
 #define BASIC_CLASS(kind) state->global->kind
 #define NEW_OBJECT(kls, size) object_memory_new_object(state->om, kls, size)
@@ -468,8 +492,8 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
 
 #include "shotgun/lib/object_memory-inline.h"
 
-typedef void (*state_cleanup_func)(STATE, OBJECT);
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func);
-void state_run_cleanup(STATE, OBJECT obj, OBJECT cls);
+void state_run_cleanup(STATE, OBJECT obj);
+void state_setup_type(STATE, int type, struct type_info *info);
 
 #endif /* __STATE__ */
