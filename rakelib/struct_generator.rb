@@ -170,7 +170,7 @@ module Rake
 
         new_file = file.gsub(/^(\s*)@@@(.*?)@@@/m) do
           indent = $1
-          original_lines = $2.count "\n"
+          original_lines = $2.count("\n") - 1
 
           new_lines = StructGenerator.generate_from_code $2
           new_lines = new_lines.split("\n").map { |line| indent + line }
