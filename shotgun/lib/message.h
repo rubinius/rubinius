@@ -8,6 +8,7 @@ struct message {
   OBJECT block;
   int args;
   int priv;
+  OBJECT send_site;
 
   OBJECT module;
   OBJECT method;

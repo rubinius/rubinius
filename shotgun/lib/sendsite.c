@@ -24,10 +24,24 @@ OBJECT send_site_create(STATE, OBJECT name, send_site_lookup func) {
 
   NEW_STRUCT(ss_obj, ss, BASIC_CLASS(send_site), struct send_site);
   ss->name = name;
-  ss->selector = selector_lookup(state, name);
+  SET_STRUCT_FIELD(ss_obj, ss->selector, selector_lookup(state, name));
+  ss->data1 = ss->data2 = ss->data3 = Qnil;
   ss->lookup = func;
 
   selector_associate(state, ss->selector, ss_obj);
 
   return ss_obj;
+}
+
+OBJECT send_site_at(STATE, OBJECT self, int position) {
+  if(!SENDSITE_P(self)) return Qnil;
+
+  switch(position) {
+  case 0:
+    return SENDSITE(self)->name;
+  case 1:
+    return SENDSITE(self)->selector;
+  default:
+    return Qnil;
+  }
 }

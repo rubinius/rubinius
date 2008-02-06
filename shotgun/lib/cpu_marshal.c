@@ -15,6 +15,7 @@
 #include "shotgun/lib/bignum.h"
 #include "shotgun/lib/float.h"
 #include "shotgun/lib/sha1.h"
+#include "shotgun/lib/sendsite.h"
 
 #include "shotgun/lib/primitive_util.h"
 
@@ -119,6 +120,30 @@ static OBJECT unmarshal_sym(STATE, struct marshal_state *ms) {
   
   return symtbl_lookup_str_with_size(state, state->global->symbols,
                                      (char *) ms->buf + 5, sz);
+}
+
+static void marshal_sendsite(STATE, OBJECT obj, bstring buf) {
+  OBJECT str;
+  int i;
+  str = symtbl_find_string(state, state->global->symbols, SENDSITE(obj)->name);
+  i = N2I(string_get_bytes(str));
+  append_c('S');
+  append_sz(i);
+  append_str(string_byte_address(state, str), i);
+}
+
+static OBJECT unmarshal_sendsite(STATE, struct marshal_state *ms) {
+  int sz;
+  OBJECT sym;
+  
+  sz = read_int(ms->buf + 1);
+  ms->consumed += 5;
+  ms->consumed += sz;
+  
+  sym = symtbl_lookup_str_with_size(state, state->global->symbols,
+                                     (char *) ms->buf + 5, sz);
+  
+  return send_site_create(state, sym, NULL);
 }
 
 static void marshal_fields_as(STATE, OBJECT obj, bstring buf, char type, struct marshal_state *ms) {
@@ -385,6 +410,9 @@ static OBJECT unmarshal(STATE, struct marshal_state *ms) {
       o = unmarshal_str(state, ms);
       _add_object(o, ms);
       break;
+    case 'S':
+      o = unmarshal_sendsite(state, ms);
+      break;
     case 'x':
       o = unmarshal_sym(state, ms);
       break;
@@ -480,6 +508,8 @@ static void marshal(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
         marshal_bignum(state, obj, buf);
       } else if(kls == BASIC_CLASS(floatpoint)) {
         marshal_floatpoint(state, obj, buf);
+      } else if(SENDSITE_P(obj)) {
+        marshal_sendsite(state, obj, buf);
       } else {
         printf("Unable to marshal class %p = %s!\n", (void *)kls, rbs_inspect(state, kls));
       }

@@ -119,14 +119,15 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_local_get(state, cpu, idx) (NTH_FIELD(cpu->locals, idx))
 #define cpu_local_set(state, cpu, idx, obj) (SET_FIELD(cpu->locals, idx, obj))
 
-#define stack_push(obj) cpu_stack_push(state, c, obj, FALSE)
-#define stack_pop() cpu_stack_pop(state, c)
-#define stack_top() cpu_stack_top(state, c)
-#define stack_back(idx) (c->sp_ptr[-idx])
-#define stack_clear(idx) (c->sp_ptr -= idx)
+#define SP_PTR c->sp_ptr
+#define stack_push(obj) (*++SP_PTR = obj)
+#define stack_pop() (*SP_PTR--)
+#define stack_top() (*SP_PTR)
+#define stack_back(idx) (SP_PTR[-idx])
+#define stack_clear(idx) (SP_PTR -= idx)
 #define stack_pop_2(v1, v2) v1 = stack_back(0); v2 = stack_back(1);
 #define stack_pop_3 (v1, v2, v3) v1 = stack_back(0); v2 = stack_back(1); v3 = stack_back(2);
-#define stack_set_top(val) *c->sp_ptr = (val);
+#define stack_set_top(val) (*SP_PTR = (val))
 
 #define cpu_current_block(state, cpu) (FASTCTX(cpu->home_context)->block)
 #define cpu_current_method(state, cpu) (FASTCTX(cpu->active_context)->method)
@@ -275,7 +276,7 @@ OBJECT cpu_sampler_disable(STATE);
   }\
 })
 
-#define cpu_stack_push(state, c, oop, check) ({ OBJECT _tmp = (oop); CHECK_PTR(_tmp); (c)->sp_ptr++; *((c)->sp_ptr) = _tmp; })
+#define cpu_stack_push(state, c, oop, check) (*++(c)->sp_ptr = oop);
 #define cpu_stack_pop(state, c) (*(c)->sp_ptr--)
 #define cpu_stack_top(state, c) (*(c)->sp_ptr)
 #define cpu_stack_set_top(state, c, oop) (*(c)->sp_ptr = oop)

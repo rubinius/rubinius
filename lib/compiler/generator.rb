@@ -461,8 +461,10 @@ class Compiler
       unless count.kind_of? Fixnum
         raise Error, "count must be a number"
       end
+
+      ss = SendSite.new meth
+      idx = add_literal(ss)
       
-      idx = find_literal(meth)
       if count == 0
         add :send_method, idx
       else
@@ -473,19 +475,25 @@ class Compiler
     def send_with_block(meth, count, priv=false)
       add :set_call_flags, 1 if priv
       
-      idx = find_literal(meth)
+      ss = SendSite.new meth
+      idx = add_literal(ss)
+
       add :send_stack_with_block, idx, count
     end
     
     def send_with_register(meth, priv=false)
       add :set_call_flags, 1 if priv
       
-      idx = find_literal(meth)
+      ss = SendSite.new meth
+      idx = add_literal(ss)
+
       add :send_with_arg_register, idx      
     end
     
     def send_super(meth, args=nil)
-      idx = find_literal(meth)
+      ss = SendSite.new meth
+      idx = add_literal(ss)
+      
       if args
         add :send_super_stack_with_block, idx, args
       else

@@ -11,8 +11,7 @@
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/hash.h"
 #include "shotgun/lib/symbol.h"
-
-/* Pulled over from 1.8.5. */
+#include "shotgun/lib/selector.h"
 
 void cpu_clear_cache(STATE, cpu c) {
   struct method_cache *ent, *end;
@@ -27,6 +26,8 @@ void cpu_clear_cache(STATE, cpu c) {
 
 void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth, int full) {
   struct method_cache *ent, *end;
+  
+  selector_clear_by_name(state, meth);
   
   ent = state->method_cache;
   end = ent + CPU_CACHE_SIZE;

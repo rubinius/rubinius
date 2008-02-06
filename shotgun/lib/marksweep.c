@@ -376,6 +376,20 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
           }
         }
       }
+    } else {
+      /* Handle the generic type_info prefix fields */
+      int fields = state->type_info[iobj->obj_type].object_fields;
+      for(i = 0; i < fields; i++) {
+        tmp = NTH_FIELD(iobj, i);
+        if(!REFERENCE_P(tmp)) continue;
+
+        if(BCM_P(tmp)) {
+          SET_FIELD(iobj, i, BCM_TO);
+        } else {
+          mark_sweep_mark_object(state, ms, tmp);
+        }
+      }
+
     }
 #undef fc_mutate    
   }

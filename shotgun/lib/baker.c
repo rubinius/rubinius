@@ -262,6 +262,25 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
             (xpointer)baker_gc_maybe_mutate(state, g, (OBJECT)ptr_array_get_index(fc->paths, i)));
         }
       }
+    } else {
+      /* Handle the generic type_info prefix fields */
+      fields = state->type_info[iobj->obj_type].object_fields;
+      
+      for(i = 0; i < fields; i++) {
+        tmp = NTH_FIELD(iobj, i);
+        if(!REFERENCE_P(tmp)) continue;
+
+        if(FORWARDED_P(tmp)) {
+          mut = tmp->klass;
+        } else if(heap_contains_p(g->current, tmp) || heap_contains_p(state->om->contexts, tmp)) {
+          mut = baker_gc_mutate_object(state, g, tmp);
+        } else {
+          mut = tmp;
+        }
+
+        SET_FIELD_DIRECT(iobj, i, mut);
+        object_memory_write_barrier(om, iobj, mut);
+      }
     }
     
 #undef fc_mutate

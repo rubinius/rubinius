@@ -15,6 +15,7 @@
 #include "shotgun/lib/bytearray.h"
 #include "shotgun/lib/fixnum.h"
 #include "shotgun/lib/primitive_util.h"
+#include "shotgun/lib/sendsite.h"
 
 #include <sys/time.h>
 
@@ -1079,12 +1080,47 @@ static inline void cpu_activate_method(STATE, cpu c, struct message *msg) {
   cpu_restore_context_with_home(state, c, ctx, ctx);
 }
 
+static int _cpu_ss_mono(STATE, struct send_site *ss, struct message *msg) {
+  if(_real_class(state, msg->recv) != ss->data1) return SEND_SITE_ABORT;
+  msg->method = ss->data2;
+  msg->module = ss->data3;
+
+  return SEND_SITE_RESOLVED;
+}
+
+static inline void
+cpu_initialize_sendsite(STATE, struct send_site *ss, struct message *msg) {
+  ss->lookup = _cpu_ss_mono;
+  SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
+  SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
+  SET_STRUCT_FIELD(msg->send_site, ss->data3, msg->module);
+}
+
+static void _cpu_on_no_method(STATE, cpu c, struct message *msg) {
+  char *str;
+  OBJECT exc;
+
+  exc = rbs_const_get(state, BASIC_CLASS(object), "RuntimeError");
+
+  str = malloc(1024);
+  sprintf(str, "Unable to find any version of '%s' to run", _inspect(msg->name));
+
+  cpu_raise_exception(state, c, cpu_new_exception(state, c, exc, str));
+
+  free(str);
+}
+
 /* Layer 4: send. Primary method calling function. */
 inline void cpu_unified_send_message(STATE, cpu c, struct message *msg) {
   OBJECT ctx;
+
 #ifdef TIME_LOOKUP
   uint64_t start = measure_cpu_time();
 #endif
+
+  if(c->depth == CPU_MAX_DEPTH) {
+    machine_handle_fire(FIRE_STACK);
+  }
 
 #if ENABLE_DTRACE
   if(RUBINIUS_VM_SEND_BEGIN_ENABLED()) {
@@ -1093,26 +1129,37 @@ inline void cpu_unified_send_message(STATE, cpu c, struct message *msg) {
 #endif
 
   msg->missing = 0;
- 
+
+  if(SENDSITE_P(msg->name)) {
+    struct send_site *ss = SENDSITE(msg->name);
+
+    msg->send_site = msg->name;
+    msg->name = ss->name;
+
+    if(ss->lookup) {
+      switch(ss->lookup(state, ss, msg)) {
+      case SEND_SITE_DONE:
+        return;
+      case SEND_SITE_RESOLVED:
+        goto dispatch;
+      }
+    } 
+    
+    if(!cpu_locate_method(state, c, msg)) {
+      _cpu_on_no_method(state, c, msg);
+      goto done;
+    }
+    /* Don't cache method_missing */
+    if(!msg->missing) cpu_initialize_sendsite(state, ss, msg);
+    goto dispatch;
+  }
+
   if(!cpu_locate_method(state, c, msg)) {
-    char *str;
-    OBJECT ser;
-    
-    ser = rbs_const_get(state, BASIC_CLASS(object), "RuntimeError");
-    
-    str = malloc(1024);
-    sprintf(str, "Unable to find any version of '%s' to run", _inspect(msg->name));
-    
-    cpu_raise_exception(state, c, cpu_new_exception(state, c, ser, str));
-
-    free(str);
-
+    _cpu_on_no_method(state, c, msg);
     goto done;
   }
 
-  if(c->depth == CPU_MAX_DEPTH) {
-    machine_handle_fire(FIRE_STACK);
-  }
+dispatch:
 
   if(msg->missing) {
     msg->args += 1;
@@ -1345,7 +1392,7 @@ void cpu_run(STATE, cpu c, int setup) {
 
 insn_start:
   while(c->active_context != Qnil) {
-    
+
 #if DIRECT_THREADED
     if(EXCESSIVE_TRACING) {
       printf("%-15s: => %p\n",
