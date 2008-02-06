@@ -1,7 +1,6 @@
 OBJECT bytearray_new(STATE, unsigned int sz);
 OBJECT bytearray_new_dirty(STATE, unsigned int size);
 void *bytearray_byte_address(STATE, OBJECT self);
-int bytearray_bytes(STATE, OBJECT self);
 char *bytearray_as_string(STATE, OBJECT self);
 OBJECT bytearray_dup(STATE, OBJECT self);
 

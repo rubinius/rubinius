@@ -1053,22 +1053,41 @@ class ShotgunPrimitives
 
   def compare_bytes
     <<-CODE
-    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
-    t1 = stack_pop(); GUARD( object_stores_bytes_p(state, t1) )
-
+    native_int len, a, b, n, cmp;
+    
+    self = stack_pop();
+    GUARD(object_stores_bytes_p(state, self));
+    t1 = stack_pop();
+    GUARD(object_stores_bytes_p(state, t1));
+    POP(t2, FIXNUM);
+    POP(t3, FIXNUM);
+    a = N2I(t2);   /* max bytes to compare in self */
+    b = N2I(t3);   /* max bytes to compare in t1 */
+    
     j = bytearray_bytes(state, self);
     k = bytearray_bytes(state, t1);
-    if(j < k) {
-      stack_push(I2N(-1));
-    } else if(j > k) {
-      stack_push(I2N(1));
-    } else if(j == 0) {
-      stack_push(I2N(0));
+    m = j < a ? j : a;
+    n = k < b ? k : b;
+    
+    /* regardless of the user's request, 
+     * don't compare more bytes than there are
+     */
+    len = m < n ? m : n;
+    
+    cmp = memcmp(bytearray_byte_address(state, self), 
+                 bytearray_byte_address(state, t1), len);
+                 
+    /* check against m and n, to allow a, b to be non-symmetric with j, k */
+    if(cmp == 0) {
+      if(m < n) {
+        stack_push(I2N(-1));
+      } else if(m > n) {
+        stack_push(I2N(1));
+      } else {
+        stack_push(I2N(0));
+      }
     } else {
-      k = memcmp(bytearray_byte_address(state, self), bytearray_byte_address(state, t1), j);
-      if(k > 1) {k = 1;} // Normalize return
-      if(k < -1) {k = -1;} // values for <=> method.
-      stack_push(I2N(k));
+      stack_push(cmp < 0 ? I2N(-1) : I2N(1));
     }
     CODE
   end

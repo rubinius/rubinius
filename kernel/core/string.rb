@@ -124,22 +124,7 @@ class String
   #    "abcdef" <=> "ABCDEF"    #=> 1
   def <=>(other)
     if other.kind_of?(String)
-      len = other.size
-      len = size if size < len
-
-      od = other.data
-      len.times do |i|
-        result = (@data.get_byte(i) <=> od.get_byte(i))
-        return result if result != 0
-      end
-
-      if size < other.size
-        return -1
-      elsif size > other.size
-        return 1
-      else
-        return 0
-      end
+      @data.compare_bytes(other.data, size, other.size)
     else
       return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
       return unless tmp = (other <=> self)

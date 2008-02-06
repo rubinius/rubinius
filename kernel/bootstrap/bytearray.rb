@@ -35,7 +35,7 @@ class ByteArray
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def <=>(other)
+  def compare_bytes(other, a, b)
     Ruby.primitive :compare_bytes
     raise PrimitiveFailure, "primitive failed"
   end  

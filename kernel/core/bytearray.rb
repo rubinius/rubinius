@@ -14,4 +14,7 @@ class ByteArray
     "#<#{self.class}:0x#{object_id.to_s(16)} #{size} bytes>"
   end
   
+  def <=>(other)
+    compare_bytes(other, size, other.size)
+  end
 end
