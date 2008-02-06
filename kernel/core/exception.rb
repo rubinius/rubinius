@@ -176,6 +176,10 @@ class SystemCallError < StandardError
   def errno; @errno ; end
 
   def initialize(message, errno = nil)
+    if message.is_a?(Integer) && errno.nil?
+      errno   = message
+      message = "Unknown error"
+    end
     super(message)
     @errno = errno
   end
