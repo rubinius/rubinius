@@ -5,6 +5,10 @@ describe "Kernel#eval" do
   it "is a private method" do
     Kernel.private_instance_methods.should include("eval")
   end
+
+  it "is a module function" do
+    Kernel.respond_to?(:eval).should == true
+  end
   
   it "accepts a Proc object as a binding" do
     x = 1

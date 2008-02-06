@@ -68,7 +68,7 @@ module Kernel
     be.under_context ctx, compiled_method
     be.call
   end
-  
+  module_function :eval  
   private :eval
   
   #  call-seq:
