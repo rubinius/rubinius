@@ -31,12 +31,23 @@ describe "IO::foreach" do
     lines.should == @content_with_r
   end
 
-  it "yields a single string with entire content when the separator is an empty string" do
+  it "yields a single string with entire content when the separator is nil" do
     lines = []
-    IO::foreach(@file, "") do |line|
+    IO::foreach(@file, nil) do |line|
       lines << line
     end
     lines.should == [@content.join]
+  end
+
+  it "yields a sequence of paragraphs when the separator is an empty string" do
+    lines = []
+    IO::foreach(File.dirname(__FILE__) + '/fixtures/gets.txt', "") do |line|
+      lines << line
+    end
+    lines.should == [
+      "Voici la ligne une.\nQui \303\250 la linea due.\n\n",
+      "Aqu\303\255 est\303\241 la l\303\255nea tres.\nIst hier Linie vier.\n\n",
+      "Est\303\241 aqui a linha cinco.\nHere is line six.\n"]
   end
 
   it "updates $. with each yield" do
@@ -78,14 +89,6 @@ describe "IO::foreach" do
     lambda {
       IO::foreach(nil) {}
     }.should raise_error(TypeError)
-  end
-
-  it "treats second nil parameter as an empty string separator" do
-    lines = []
-    IO::foreach(@file, nil) do |line|
-      lines << line
-    end
-    lines.should == [@content.join]
   end
 
   it "converts first parameter to string and uses as file name" do

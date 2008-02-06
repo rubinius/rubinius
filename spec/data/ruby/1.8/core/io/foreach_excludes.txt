@@ -1,2 +1,2 @@
+IO::foreach yields a single string with entire content when the separator is nil
 IO::foreach updates $. with each yield
-IO::foreach treats second nil parameter as an empty string separator
