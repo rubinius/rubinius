@@ -168,7 +168,7 @@ module Rake
 
         file = File.read t.prerequisites.first
 
-        new_file = file.gsub(/^(\s*)@@@(.*?)@@@/m) do
+        new_file = file.gsub(/^( *)@@@(.*?)@@@/m) do
           indent = $1
           original_lines = $2.count("\n") - 1
 
