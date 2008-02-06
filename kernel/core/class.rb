@@ -24,7 +24,7 @@ class Class
 
     block = block_given?
     instance_eval(&block) if block
-    # add clas to sclass's subclass list, for ObjectSpace.each_object(Class)
+    # add class to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses
     sclass.__send__ :inherited, self
   end
@@ -33,15 +33,9 @@ class Class
     cls = Object unless cls
     cls.add_subclass(self)
 
-    # Fire all the inherited hooks
-    sup = cls
-    while sup and sup != Object
-      sup.send :inherited, self
-      sup = sup.superclass
-    end
+    cls.send :inherited, self
 
-    # FIXME: We shouldn't have to do this; hook calls should preserve the stack
-    self
+    self # FIXME: hook calls should preserve the stack
   end
 
   # NOTE: The next two methods are not standard Ruby; JRuby implements them, but not public

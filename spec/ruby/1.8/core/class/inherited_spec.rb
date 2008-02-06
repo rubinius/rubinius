@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Class.inherited" do
+
   before :each do
     ClassSpecs::Record.called nil
   end
@@ -22,6 +23,15 @@ describe "Class.inherited" do
     ensure
       $child_class = nil
     end
+  end
+
+  it "is invoked only once per subclass" do
+    expected = [
+      [ClassSpecs::Inherited::A, ClassSpecs::Inherited::B],
+      [ClassSpecs::Inherited::B, ClassSpecs::Inherited::C],
+    ]
+
+    ClassSpecs::Inherited::A::SUBCLASSES.should == expected
   end
 
   it "is called when marked as a private class method" do
@@ -73,4 +83,6 @@ describe "Class.inherited" do
     class << top; protected :inherited; end
     lambda { Class.new(top) }.should_not raise_error
   end
+
 end
+

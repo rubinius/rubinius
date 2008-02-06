@@ -32,4 +32,17 @@ module ClassSpecs
       super
     end
   end
+
+  module Inherited
+    class A
+      SUBCLASSES = []
+      def self.inherited(subclass)
+        SUBCLASSES << [self, subclass]
+      end
+    end
+
+    class B < A; end
+    class B < A; end # reopen
+    class C < B; end
+  end
 end
