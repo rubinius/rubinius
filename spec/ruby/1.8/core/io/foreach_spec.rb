@@ -39,6 +39,32 @@ describe "IO::foreach" do
     lines.should == [@content.join]
   end
 
+  it "updates $. with each yield" do
+    count = 1
+    IO::foreach(@file, nil) do
+      $..should == count
+      count += 1
+    end
+
+    count = 1
+    IO::foreach(@file, "") do
+      $..should == count
+      count += 1
+    end
+
+    count = 1
+    IO::foreach(@file) do
+      $..should == count
+      count += 1
+    end
+
+    count = 1
+    IO::foreach(@file, "la") do
+      $..should == count
+      count += 1
+    end
+  end
+
   it "can handle non-ASCII data as separator" do
     lines = []
     IO::foreach(@file, "\303\250") do |line|

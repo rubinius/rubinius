@@ -1,1 +1,2 @@
+IO::foreach updates $. with each yield
 IO::foreach treats second nil parameter as an empty string separator
