@@ -1,1 +1,0 @@
-Dir.glob matches regexp special [

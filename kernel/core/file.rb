@@ -171,7 +171,7 @@ class File < IO
         subd = part.gsub!(/(^|([^\\]))\?/, '\1(.)')
         subd = part.gsub!(/(^|([^\\]))\?/, '\1(.)') while subd
         if escape
-          part.gsub(/\\([^.])/, '\1')
+          part.gsub(/\\([^.\[])/, '\1')
         else
           part.gsub(/(\\)([^*?\[\]])/, '\1\1\2')
         end
