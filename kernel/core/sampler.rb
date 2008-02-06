@@ -9,7 +9,11 @@ class MethodContext
         "#{method_module.attached_instance.class}##{name}"
       end
     else
-      "#{method_module.name}##{name}"
+      if method_module
+        "#{method_module.name}##{name}"
+      else
+        "MethodContext#method_module is nil! sent #{name}"
+      end
     end
   end
 end
@@ -52,7 +56,7 @@ class Sampler
     total_slices = 0
 
     @results.each do |ent|
-      next if ent.nil?
+      next unless ent
       
       # FIXME: calls[name] += 1 always sets calls[name] to 1
       call = calls[ent.normalized_name]
