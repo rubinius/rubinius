@@ -1,1 +1,1 @@
-IO#to_i raises IOError on closed stream
+IO#syswrite on a file raises IOError on closed stream
