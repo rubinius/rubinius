@@ -90,7 +90,7 @@ requires.each { |r| require r }
 cmd = lambda do |name, c, m|
   base = 'spec/ruby/1.8/core/' unless base
   dir = NameMap.get_dir_name(c, base)
-  spec_file = NameMap.get_spec_name(m, c)
+  spec_file = NameMap.get_spec_name(m, c.name)
 
   mspec_cmd =  %(bin/mspec -t #{target} #{requires.map { |r| "-r#{r}" }.join(" ")} -e '#{name} ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d #{dir}/#{spec_file} 2> /dev/null)
   puts mspec_cmd if verbose
