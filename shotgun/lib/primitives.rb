@@ -2981,23 +2981,24 @@ class ShotgunPrimitives
   def string_equal
     <<-CODE
     self = stack_pop();
-    t1 = stack_pop();
-    GUARD(STRING_P(t1));
+    POP(t1, STRING);
     
     if(self == t1) {
       stack_push(Qtrue);
     } else {
       t2 = string_get_bytes(self);
+      t3 = string_get_bytes(t1);
       
-      if(t2 != string_get_bytes(t1)) {
+      if(t2 != t3) {
         stack_push(Qfalse);
       } else {
-        j =  N2I(t2);
+        j = N2I(t2);
+        k = N2I(t3);
         t2 = string_get_data(self);
         t3 = string_get_data(t1);
 
-        k = memcmp(BYTEARRAY_ADDRESS(t2), BYTEARRAY_ADDRESS(t3), j);
-        stack_push(k == 0 ? Qtrue : Qfalse);
+        m = memcmp(BYTEARRAY_ADDRESS(t2), BYTEARRAY_ADDRESS(t3), j < k ? j : k);
+        stack_push(m == 0 ? Qtrue : Qfalse);
       }
     }
     CODE

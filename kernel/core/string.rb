@@ -124,7 +124,7 @@ class String
   #    "abcdef" <=> "ABCDEF"    #=> 1
   def <=>(other)
     if other.kind_of?(String)
-      @data.compare_bytes(other.data, size, other.size)
+      @data.compare_bytes(other.data, @bytes, other.size)
     else
       return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
       return unless tmp = (other <=> self)
@@ -148,20 +148,11 @@ class String
       if other.respond_to?(:to_str)
         return other == self
       end
-
       return false
     end
 
     return false unless @bytes == other.size
-
-    # This clamps the data to the right size, then we compare
-    # This is very inefficient, creating a new ByteArray just
-    # to compare. But we don't care because it's typically handled
-    # by the primitive.
-    ld = @data.fetch_bytes(0, @bytes)
-    rd = other.data.fetch_bytes(0, @bytes)
-
-    return (ld <=> rd) == 0
+    return @data.compare_bytes(other.data, @bytes, other.size) == 0
   end
   alias_method :===, :==
 
