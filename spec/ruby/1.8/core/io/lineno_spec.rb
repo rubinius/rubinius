@@ -28,6 +28,12 @@ describe "IO#lineno=" do
     File.open(IOSpecs.gets_fixtures, 'r') do |f|
       f.lineno = obj
       f.lineno.should == 123
+
+      f.lineno = 1.5
+      f.lineno.should == 1
+
+      f.lineno = 92233.72036854775808
+      f.lineno.should == 92233
     end
   end
 
