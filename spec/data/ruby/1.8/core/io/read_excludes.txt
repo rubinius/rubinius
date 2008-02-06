@@ -1,0 +1,2 @@
+IO#read reads the specified number of bytes from the file to the buffer
+IO#read coerces the second argument to string and uses it as a buffer

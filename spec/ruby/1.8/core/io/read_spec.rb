@@ -67,6 +67,31 @@ describe "IO#read" do
     @io.read.should == @contents
   end
 
+  it "reads the specified number of bytes from the file to the buffer" do
+    buf = "" # empty buffer
+    @io.read(10, buf).should == buf
+    buf.should == @contents
+
+    @io.rewind
+
+    buf = "ABCDE" # small buffer
+    @io.read(10, buf).should == buf
+    buf.should == @contents
+
+    @io.rewind
+
+    buf = "ABCDE" * 5 # large buffer
+    @io.read(10, buf).should == buf
+    buf.should == @contents
+  end
+
+  it "coerces the second argument to string and uses it as a buffer" do
+    buf = "ABCDE"
+    (obj = mock("buff")).should_receive(:to_str).any_number_of_times.and_return(buf)
+    @io.read(15, obj).should == buf
+    buf.should == @contents
+  end
+
   it "returns an empty string at end-of-file" do
     @io.read
     @io.read.should == ''
