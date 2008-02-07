@@ -226,14 +226,27 @@ class Time
   end
 
   def +(other)
-    dup.at_gmt(seconds + other, usec, @is_gmt)
+    raise TypeError, 'time + time?' if other.kind_of?(Time)
+    other      = FloatValue(other) unless other.is_a?(Integer)
+    other_usec = 0
+    if other.kind_of?(Float) 
+      other_usec = (other % 1) * 1000000
+      other      = other.to_i
+    end
+    dup.at_gmt(seconds + other, usec + other_usec, @is_gmt)
   end
 
   def -(other)
     if other.kind_of? Time
       seconds - other.seconds + (usec - other.usec) * 0.000001
     else
-      dup.at_gmt(seconds - other, usec, @is_gmt)
+      other      = FloatValue(other) unless other.is_a?(Integer)
+      other_usec = 0
+      if other.kind_of?(Float) 
+        other_usec = (1 - other % 1) * 1000000
+        other      = other.ceil.to_i
+      end
+      dup.at_gmt(seconds - other, usec + other_usec, @is_gmt)
     end
   end
 
