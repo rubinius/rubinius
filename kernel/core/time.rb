@@ -192,12 +192,20 @@ class Time
     t.force_gmtime
   end
 
-  def self.at(secs_or_time, msecs = 0)
+  def self.at(secs_or_time, msecs = nil)
     if secs_or_time.kind_of? Time
       return secs_or_time.dup
     end
-
-    secs_or_time = Type.coerce_to secs_or_time, Integer, :to_i
+    
+    if secs_or_time.kind_of?(Integer) || msecs
+      secs_or_time = Type.coerce_to secs_or_time, Integer, :to_i
+      msecs      ||= 0
+    else
+      secs_or_time = Type.coerce_to secs_or_time, Float, :to_f
+      msecs        = (secs_or_time % 1) * 1000000
+      secs_or_time = secs_or_time.to_i
+    end
+      
     Time.allocate.at_gmt(secs_or_time, msecs, false)
   end
 
