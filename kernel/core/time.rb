@@ -234,7 +234,11 @@ class Time
   end
 
   def <=>(other)
-    [self.seconds, self.usec] <=> [other.seconds, other.usec]
+    if other.kind_of? Time
+      [self.seconds, self.usec] <=> [other.seconds, other.usec]
+    else
+      nil
+    end
   end
 
   def eql?(other)
