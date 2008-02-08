@@ -837,6 +837,10 @@ CODE
 
     perform_send:
 
+    msg.send_site = _lit;
+    msg.recv = t1;
+    msg.block = t2;
+    msg.args = j;
     msg.priv = c->call_flags;
     msg.klass = _real_class(state, msg.recv);
    

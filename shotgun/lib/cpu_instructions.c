@@ -1212,10 +1212,6 @@ inline void cpu_send_message(STATE, cpu c, struct message *msg) {
   uint64_t start = measure_cpu_time();
 #endif
 
-  if(c->depth == CPU_MAX_DEPTH) {
-    machine_handle_fire(FIRE_STACK);
-  }
-
 #if ENABLE_DTRACE
   if(RUBINIUS_VM_SEND_BEGIN_ENABLED()) {
     RUBINIUS_VM_SEND_BEGIN();
