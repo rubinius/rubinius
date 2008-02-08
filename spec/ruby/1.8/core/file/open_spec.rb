@@ -123,6 +123,18 @@ describe "File.open" do
     end
   end
 
+  it "creates the file and returns writable descriptor when called with 'w' mode and r-o permissions" do
+    # it should be possible to write to such a file via returned descriptior,
+    # even though the file permissions are r-r-r.
+
+    File.delete(@file) if File.exists?(@file)
+    File.open(@file, "w", 0444){ |f|
+      lambda { f.puts("test") }.should_not raise_error(IOError)
+    }
+    File.exist?(@file).should == true
+    File.read(@file).should == "test\n"
+  end
+
   it "opens the file when call with fd" do
     @fh = File.open(@file)
     @fh = File.open(@fh.fileno) 
