@@ -148,6 +148,13 @@ describe "File.open" do
     File.read(@file).should == "test\n"
   end
 
+  it "crates a new write-only file when invoked with 'w' and '0222'" do
+    File.delete(@file) if File.exists?(@file)
+    File.open(@file, 'w', 0222) {}
+    File.readable?(@file).should == false
+    File.writable?(@file).should == true
+  end
+
   it "opens the file when call with fd" do
     @fh = File.open(@file)
     @fh = File.open(@fh.fileno) 
