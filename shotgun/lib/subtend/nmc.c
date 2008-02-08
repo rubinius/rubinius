@@ -359,7 +359,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
       /* With call method, the rb_funcall shim pushs the arguments
          on the stack already, so we just have to perform the send. */
       tmp = handle_to_object(state, state->handle_tbl, n->value);
-      cpu_unified_send(state, c, tmp, n->symbol, n->args, (OBJECT)Qnil);
+      cpu_send(state, c, tmp, n->symbol, n->args, (OBJECT)Qnil);
       break;
     case SEGFAULT_DETECTED:
       {

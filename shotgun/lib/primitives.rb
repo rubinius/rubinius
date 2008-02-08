@@ -1653,7 +1653,7 @@ class ShotgunPrimitives
       args++;
     }
 
-    cpu_unified_send(state, c, t2, t1, args, Qnil);
+    cpu_send(state, c, t2, t1, args, Qnil);
     CODE
   end
   
@@ -3256,7 +3256,7 @@ class ShotgunPrimitives
     /* Send is allowed to call private methods. */
     c->call_flags = 1;
     
-    cpu_unified_send(state, c, msg->recv, t1, msg->args - 1, msg->block);
+    cpu_send(state, c, msg->recv, t1, msg->args - 1, msg->block);
     CODE
   end
 

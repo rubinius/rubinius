@@ -294,6 +294,7 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
 /* Type tests. */
 #define RTYPE(obj, type) (REFERENCE_P(obj) && obj->obj_type == type)
 #define SENDSITE_P(obj) RTYPE(obj, SendSiteType)
+#define TUPLE_P(obj) RTYPE(obj, TupleType) 
 
 struct wraps_struct {
   void *ptr;

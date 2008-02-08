@@ -12,4 +12,8 @@ class Selector
   def clear
     Selector.clear_object self
   end
+
+  def send_sites
+    @send_sites
+  end
 end

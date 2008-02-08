@@ -185,7 +185,7 @@ void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
 void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name, OBJECT block);
 
-void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
+void cpu_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
 OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include_private);
 void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home);
 void cpu_yield_debugger(STATE, cpu c);
@@ -287,5 +287,6 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, struct message *msg);
 
 void cpu_patch_ffi(STATE, struct message *msg);
 void ffi_call(STATE, cpu c, OBJECT ptr);
+OBJECT ffi_new_pointer(STATE, void *ptr);
 
 #endif /* RBS_CPU_H */

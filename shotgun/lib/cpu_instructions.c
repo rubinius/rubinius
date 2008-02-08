@@ -84,6 +84,7 @@ void cpu_show_lookup_time(STATE) {
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
+#define next_int_into(val) val = *ip_ptr++;
 #define next_int _int = *ip_ptr++;
 
 #if DIRECT_THREADED
@@ -98,7 +99,8 @@ DT_ADDRESSES;
 
 #endif
 
-#define next_literal next_int; _lit = fast_fetch(cpu_current_literals(state, c), _int)
+#define next_literal_into(val) next_int; val = fast_fetch(cpu_current_literals(state, c), _int)
+#define next_literal next_literal_into(_lit)
 
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, OBJECT sym, int *created) {
   OBJECT val, s1, s2, s3, s4, sup_itr;
@@ -199,8 +201,6 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
      chain.
      
  */
- 
-#define TUPLE_P(obj) (CLASS_OBJECT(obj) == BASIC_CLASS(tuple))
  
 static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message *msg) {
   OBJECT vis;
@@ -1056,7 +1056,7 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
   stack_push(meth);
   stack_push(recv);
 
-  cpu_unified_send(state, c, vm, SYM("perform_hook"), 4, Qnil);
+  cpu_send(state, c, vm, SYM("perform_hook"), 4, Qnil);
 }
 
 /* Layer 4: High level method calling. */
@@ -1204,7 +1204,7 @@ static void _cpu_on_no_method(STATE, cpu c, struct message *msg) {
 }
 
 /* Layer 4: send. Primary method calling function. */
-inline void cpu_unified_send_message(STATE, cpu c, struct message *msg) {
+inline void cpu_send_message(STATE, cpu c, struct message *msg) {
   OBJECT ctx;
   struct send_site *ss;
 
@@ -1285,7 +1285,7 @@ done:
 }
 
 /* A version used when there is no send_site. */
-void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
+void cpu_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
   struct message msg;
   OBJECT ctx;
 

@@ -41,6 +41,14 @@ OBJECT send_site_at(STATE, OBJECT self, int position) {
     return SENDSITE(self)->name;
   case 1:
     return SENDSITE(self)->selector;
+  case 2:
+    return SENDSITE(self)->data1;
+  case 3:
+    return SENDSITE(self)->data2;
+  case 4:
+    return SENDSITE(self)->data3;
+  case 5:
+    return ffi_new_pointer(state, SENDSITE(self)->c_data);
   default:
     return Qnil;
   }

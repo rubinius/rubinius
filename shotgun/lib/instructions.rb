@@ -758,61 +758,60 @@ CODE
   
   def send_method
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = Qnil;
-    j = 0;
+    next_literal_into(msg.send_site);
+    msg.recv = stack_pop();
+    msg.block = Qnil;
+    msg.args = 0;
     goto perform_send;
     CODE
   end
   
   def meta_send_stack_1
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = Qnil;
-    j = 1;
+    next_literal_into(msg.send_site);
+    msg.recv = stack_pop();
+    msg.block = Qnil;
+    msg.args = 1;
     goto perform_send;
     CODE
   end
   
   def meta_send_stack_2
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = Qnil;
-    j = 2;
+    next_literal_into(msg.send_site);
+    msg.recv = stack_pop();
+    msg.block = Qnil;
+    msg.args = 2;
     goto perform_send;
     CODE
   end
   
   def meta_send_stack_3
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = Qnil;
-    j = 3;
+    next_literal_into(msg.send_site);
+    msg.recv = stack_pop();
+    msg.block = Qnil;
+    msg.args = 3;
     goto perform_send;
     CODE
   end
   
   def meta_send_stack_4
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = Qnil;
-    j = 4;
+    next_literal_into(msg.send_site);
+    msg.recv = stack_pop();
+    msg.block = Qnil;
+    msg.args = 4;
     goto perform_send;    
     CODE
   end
   
   def send_stack
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = Qnil;
-    next_int;
-    j = _int; // num_args
+    next_literal_into(msg.send_site);
+    msg.recv = stack_pop();
+    msg.block = Qnil;
+    next_int_into(msg.args);
     
     goto perform_send;
     CODE
@@ -820,11 +819,10 @@ CODE
   
   def send_stack_with_block
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = stack_pop();
-    next_int;
-    j = _int;
+    next_literal_into(msg.send_site);
+    msg.recv = stack_pop();
+    msg.block = stack_pop();
+    next_int_into(msg.args);
     
     goto perform_send;
     CODE
@@ -832,24 +830,19 @@ CODE
 
   def send_with_arg_register
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = stack_pop();
-    j = c->args;
+    next_literal_into(msg.send_site);
+    msg.recv = stack_pop();
+    msg.block = stack_pop();
+    msg.args = c->args;
 
     perform_send:
 
-    msg.send_site = _lit;
-    msg.recv = t1;
-    msg.block = t2;
-    msg.args = j;
     msg.priv = c->call_flags;
-
     msg.klass = _real_class(state, msg.recv);
    
     c->call_flags = 0;
 
-    cpu_unified_send_message(state, c, &msg);
+    cpu_send_message(state, c, &msg);
     CODE
   end
   
@@ -878,7 +871,7 @@ CODE
 
     msg.klass = class_get_superclass(cpu_current_module(state, c));
     
-    cpu_unified_send_message(state, c, &msg);
+    cpu_send_message(state, c, &msg);
     CODE
   end
   
@@ -1040,7 +1033,7 @@ CODE
       j = _int;
 
 perform_no_ss_send:
-      cpu_unified_send(state, c, t1, _lit, j, t2); 
+      cpu_send(state, c, t1, _lit, j, t2); 
     }
     CODE
   end

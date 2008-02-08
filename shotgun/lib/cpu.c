@@ -286,7 +286,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   if(val != Qundef) return val;
 
   stack_push(sym);
-  cpu_unified_send(state, c, start, state->global->sym_const_missing, 1, Qnil);
+  cpu_send(state, c, start, state->global->sym_const_missing, 1, Qnil);
   return Qundef;
 }
 
@@ -325,7 +325,7 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
   // printf("Still unable to find, firing const_missing.\n");
   
   stack_push(sym);
-  cpu_unified_send(state, c, under, state->global->sym_const_missing, 1, Qnil);
+  cpu_send(state, c, under, state->global->sym_const_missing, 1, Qnil);
   return Qundef;
 }
 

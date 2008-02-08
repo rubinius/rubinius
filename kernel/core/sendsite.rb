@@ -15,6 +15,10 @@ class SendSite
     SendSite.at self, 1
   end
 
+  def data(which)
+    SendSite.at self, 2 + which
+  end
+
   def inspect
     "#<SendSite:0x#{object_id.to_s(16)} #{name}>"
   end
