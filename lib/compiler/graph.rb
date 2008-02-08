@@ -200,7 +200,7 @@ class DotState
   end
 end
 
-if true
+if __FILE__ == $0
   file = ARGV.shift
 
   gen = Compiler::Generator
