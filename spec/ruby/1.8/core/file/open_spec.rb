@@ -135,6 +135,19 @@ describe "File.open" do
     File.read(@file).should == "test\n"
   end
 
+  it "opens the existing file, does not change permissions even when they are specified" do
+    File.chmod(0664, @file)           # r-w perms
+    orig_perms = File.stat(@file).mode.to_s(8)
+    File.open(@file, "w", 0444){ |f|  # r-o perms, but they should be ignored
+      lambda { f.puts("test") }.should_not raise_error(IOError)
+    }
+    # check that original permissions preserved
+    File.stat(@file).mode.to_s(8).should == orig_perms
+
+    # it should be still possible to read from the file
+    File.read(@file).should == "test\n"
+  end
+
   it "opens the file when call with fd" do
     @fh = File.open(@file)
     @fh = File.open(@fh.fileno) 
