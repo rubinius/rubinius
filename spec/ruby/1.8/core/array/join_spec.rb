@@ -2,6 +2,11 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#join" do
+  it "returns an empty string if the Array is empty" do
+    a = []
+    a.join.should == ''
+  end
+
   it "returns a string formed by concatenating each element.to_s separated by separator without trailing separator" do
     obj = mock('foo')
     def obj.to_s() 'foo' end
@@ -35,6 +40,12 @@ describe "Array#join" do
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return(".")
     [1, 2].join(obj).should == "1.2"
+  end
+
+  it "does not process the separator if the array is empty" do
+    a = []
+    sep = Object.new
+    a.join(sep).should == ""
   end
 
   it "handles recursive arrays" do

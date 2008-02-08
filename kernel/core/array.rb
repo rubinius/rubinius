@@ -808,26 +808,30 @@ class Array
   # each. The separator defaults to $,. Detects recursive
   # Arrays.
   def join(sep = nil, method = :to_s)
+    return "" if @total == 0
     sep ||= $,
-    raise TypeError, "Cannot convert #{sep.inspect} to str" unless sep.respond_to? :to_str
-    sep = sep.to_str
+    begin
+      sep = sep.to_str
+    rescue NoMethodError
+      raise TypeError, "Cannot convert #{sep.inspect} to str"
+    end
 
     out = ""
 
     @total.times do |i|
-      o = at(i)
+      elem = at(i)
 
       out << sep unless i == 0
-      if o.kind_of?(Array)
-        if RecursionGuard.inspecting?(o)
+      if elem.kind_of?(Array)
+        if RecursionGuard.inspecting?(elem)
           out << "[...]"
         else
           RecursionGuard.inspect(self) do
-            out << o.join(sep, method)
+            out << elem.join(sep, method)
           end
         end
       else
-        out << o.__send__(method)
+        out << elem.__send__(method)
       end
     end
     out
