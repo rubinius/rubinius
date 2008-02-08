@@ -1,0 +1,4 @@
+File#chmod always succeeds with any numeric values
+File#chmod invokes to_int on non-integer argument
+File.chmod always succeeds with any numeric values
+File.chmod invokes to_int on non-integer argument
