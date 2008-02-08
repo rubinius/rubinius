@@ -1,80 +1,54 @@
 require File.dirname(__FILE__) + '/primitive_names'
-require File.dirname(__FILE__) + '/primitive_generator'
 
 class ShotgunPrimitives
-  include PrimitiveGenerator
 
   def generate_select(fd, op="prim")
     i = 1
     order = Bytecode::Compiler::Primitives
 
+    File.open("primitive_implementation.gen", "w") do |f|
+      order.each do |ins|
+        f.puts "int cpu_primitive_#{ins}(STATE, cpu c, struct message *msg) {"
+        f.puts send(ins)
+        f.puts "  DONE();\n}"
+      end
+
+      f.puts "\nprim_func cpu_lookup_primitive(int index) {"
+      f.puts "  static prim_func funcs[] = { NULL, "
+      
+      order.each do |ins|
+        f.puts "    cpu_primitive_#{ins},"
+      end
+
+      f.puts "  };"
+      f.puts "  return funcs[index];"
+      f.puts "}"
+    end
+
+    i = 1
     fd.puts "switch(#{op}) {"
     fd.puts "   // NOOP is 0 and signifies a method with no primitive"
     order.each do |ins|
-      unless ins
-        i += 1
-        next
-      end
-      meth = method(ins)
-      code = send(ins)
-
-      if code
-        fd.puts "   case #{i}: { // #{ins}"
-        if meth.arity < 0 # relinquish control to the new PrimitiveGenerator
-          fd.puts PrimitiveGenerator.generate(meth)
-        else # just put code
-          fd.puts code
-        end
-        fd.puts "    break;\n   }"
-      else
-        STDERR.puts "Problem with CPU primitive: #{ins}"
-      end
+      fd.puts "case #{i}: { // #{ins}"
+      fd.puts "  cpu_patch_primitive(state, msg, cpu_primitive_#{ins});"
+      fd.puts "  _ret = cpu_primitive_#{ins}(state, c, msg);"
+      fd.puts "  break;\n}"
 
       i += 1
     end
 
     fd.puts "default:"
-    fd.puts 'printf("Error: Primitive index out of range for this VM\n");'
-    fd.puts "sassert(0);"
+    fd.puts '  printf("Error: Primitive index out of range for this VM (%d)\n", prim);'
+    fd.puts "  sassert(0);"
     fd.puts "}"
     fd.puts
 
-    File.open("runtime_primitives.gen","w") do |f|
-      total = Bytecode::Compiler::FirstRuntimePrimitive
-      order = Bytecode::Compiler::RuntimePrimitives
-      i = 0
-      f.puts "switch(#{op} - #{total}) {"
-
-      order.each do |ins|
-        code = send(ins) rescue nil
-        if code
-          f.puts "   case #{i}: { // #{ins}"
-          f.puts code
-          f.puts "   break; \n   }"
-        else
-          STDERR.puts "Problem with runtime primitive: #{ins}"
-        end
-        i += 1
-      end
-      
-      f.puts "default:"
-      f.puts 'printf("Error: Primitive index out of range for this VM\n");'
-      f.puts "sassert(0);"
-      f.puts "}"
-      f.puts
-    end
-    
     File.open("primitive_indexes.h", "w") do |f|
       i = 1
       Bytecode::Compiler::Primitives.each do |name|
-        unless name
-          i += 1
-          next
-        end
         f.puts "#define CPU_PRIMITIVE_#{name.to_s.upcase} #{i}"
         i += 1
       end
-      
     end
     
     File.open("primitive_util.h", "w") do |f|
@@ -86,10 +60,6 @@ class ShotgunPrimitives
       
       i = 1
       Bytecode::Compiler::Primitives.each do |name|
-        unless name
-          i += 1
-          next
-        end
         f.puts %Q!  { "#{name}", #{i} },!
         i += 1
       end
@@ -109,126 +79,178 @@ class ShotgunPrimitives
     
   end
 
-  def add(_ = fixnum, t1 = fixnum)
+  def add
     <<-CODE
-    stack_push(fixnum_add(state, self, t1));
+    OBJECT t1;
+    
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
+    
+    RET(fixnum_add(state, msg->recv, t1));
     CODE
   end
   
-  def bignum_add(_ = bignum, t1 = bignum)
+  def bignum_add
     <<-CODE
-    stack_push(bignum_add(state, self, t1));
+    OBJECT t1;
+    
+    GUARD(BIGNUM_P(msg->recv));
+    POP(t1, BIGNUM);
+    
+    RET(bignum_add(state, msg->recv, t1));
     CODE
   end
   
-  def sub(_ = fixnum, t1 = fixnum)
+  def sub
     <<-CODE
-    stack_push(fixnum_sub(state, self, t1));
+    OBJECT t1;
+    
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
+
+    RET(fixnum_sub(state, msg->recv, t1));
     CODE
   end
   
   def bignum_sub
     <<-CODE
-    POP(self, BIGNUM);
+    OBJECT t1;
+
+    GUARD(BIGNUM_P(msg->recv));
     POP(t1, INTEGER);
 
-    stack_push(bignum_sub(state, self, t1));
+    RET(bignum_sub(state, msg->recv, t1));
     CODE
   end
   
-  def fixnum_mul(_ = fixnum, t1 = fixnum)
+  def fixnum_mul
     <<-CODE
-    stack_push(fixnum_mul(state, self, t1));
+    OBJECT t1;
+
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
+
+    RET(fixnum_mul(state, msg->recv, t1));
     CODE
   end
   
-  def fixnum_size(_ = fixnum)
+  def fixnum_size
     <<-CODE
-    stack_push(I2N(sizeof(native_int)));
+    RET(I2N(sizeof(native_int)));
     CODE
   end
 
   def bignum_mul
     <<-CODE
-    POP(self, BIGNUM);
+    OBJECT t1;
+
+    GUARD(BIGNUM_P(msg->recv));
     POP(t1, INTEGER);
 
-    stack_push(bignum_mul(state, self, t1));
+    RET(bignum_mul(state, msg->recv, t1));
     CODE
   end
   
-  def fixnum_div(_ = fixnum, t1 = fixnum)
+  def fixnum_div
     <<-CODE
+    OBJECT t1, t3;
+
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
+
     GUARD( N2I(t1) != 0 ) // no divide by zero
 
-    t3 = fixnum_divmod(state, self, t1);
-    stack_push(array_get(state, t3, 0));
+    t3 = fixnum_divmod(state, msg->recv, t1);
+    RET(array_get(state, t3, 0));
     CODE
   end
   
-  def bignum_div(_ = bignum, t1 = bignum)
+  def bignum_div
     <<-CODE
+    OBJECT t1;
+
+    GUARD(BIGNUM_P(msg->recv));
+    POP(t1, BIGNUM);
+
     // Can this ever happen since bignum will always be > zero?
     GUARD(!bignum_is_zero(state, t1));    
-    stack_push(bignum_div(state, self, t1));
+    RET(bignum_div(state, msg->recv, t1));
     CODE
   end
 
-  def bignum_mod(_ = bignum, t1 = integer)
+  def bignum_mod
     <<-CODE
-    stack_push(bignum_mod(state, self, t1));
+    OBJECT t1;
+
+    GUARD(BIGNUM_P(msg->recv));
+    POP(t1, INTEGER);
+
+    RET(bignum_mod(state, msg->recv, t1));
     CODE
   end
   
-  def equal(_ = fixnum, t1 = fixnum)
+  def equal
     <<-CODE
+    OBJECT t1;
+
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
+
     /* No need to shift them to be longs, the comparison is the same. */
-    if(self == t1) {
-      stack_push(Qtrue); 
+    if(msg->recv == t1) {
+      RET(Qtrue); 
     } else {
-      stack_push(Qfalse);
+      RET(Qfalse);
     }
     CODE
   end
   
   def object_equal
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
+    OBJECT t1;
+    t1 = stack_pop();
     
-    if(self == t1) {
-      stack_push(Qtrue); 
+    if(msg->recv == t1) {
+      RET(Qtrue); 
     } else {
-      stack_push(Qfalse);
+      RET(Qfalse);
     }
     CODE
   end
   
-  def bignum_equal(_ = bignum, t1 = bignum)
+  def bignum_equal
     <<-CODE
-    stack_push(bignum_equal(state, self, t1));
+    OBJECT t1;
+
+    GUARD(BIGNUM_P(msg->recv));
+    POP(t1, BIGNUM);
+
+    RET(bignum_equal(state, msg->recv, t1));
     CODE
   end
   
-  def compare(_ = fixnum, t1 = fixnum)
+  def compare
     <<-CODE
+    OBJECT t1;
+
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
     
     /* we can deduce == quickly and easily, so do it first. */
     
-    if(self == t1) {
-      stack_push(I2N(0));
+    if(msg->recv == t1) {
+      RET(I2N(0));
     } else {
-      j = N2I(self);
-      k = N2I(t1);
+      native_int j = N2I(msg->recv);
+      native_int k = N2I(t1);
 
       if (j < k) {
-        stack_push(I2N(-1));
-      }
-      else if (j > k) {
-        stack_push(I2N(1));
+        RET(I2N(-1));
+      } else if (j > k) {
+        RET(I2N(1));
       } else {
         /* We shouldn't be here! */
-        stack_push(I2N(0));
+        RET(I2N(0));
       }
     }
     CODE
@@ -236,117 +258,151 @@ class ShotgunPrimitives
   
   def fixnum_lt
     <<-CODE
-    POP(self, FIXNUM);
+    OBJECT t1;
+
+    GUARD(FIXNUM_P(msg->recv));
     POP(t1,   FIXNUM);
-    j = N2I(self);
-    k = N2I(t1);
     
-    stack_push(j < k ? Qtrue : Qfalse);
+    native_int j = N2I(msg->recv);
+    native_int k = N2I(t1);
+    
+    RET(j < k ? Qtrue : Qfalse);
     CODE
   end
   
   def fixnum_le
     <<-CODE
-    POP(self, FIXNUM);
+    OBJECT t1;
+
+    GUARD(FIXNUM_P(msg->recv));
     POP(t1,   FIXNUM);
-    j = N2I(self);
-    k = N2I(t1);
     
-    stack_push(j <= k ? Qtrue : Qfalse);
+    native_int j = N2I(msg->recv);
+    native_int k = N2I(t1);
+    
+    RET(j <= k ? Qtrue : Qfalse);
     CODE
   end
   
   def fixnum_gt
     <<-CODE
-    POP(self, FIXNUM);
+    OBJECT t1;
+
+    GUARD(FIXNUM_P(msg->recv));
     POP(t1,   FIXNUM);
-    j = N2I(self);
-    k = N2I(t1);
     
-    stack_push(j > k ? Qtrue : Qfalse);
+    native_int j = N2I(msg->recv);
+    native_int k = N2I(t1);
+    
+    RET(j > k ? Qtrue : Qfalse);
     CODE
   end
   
   def fixnum_ge
     <<-CODE
-    POP(self, FIXNUM);
+    OBJECT t1;
+
+    GUARD(FIXNUM_P(msg->recv));
     POP(t1,   FIXNUM);
-    j = N2I(self);
-    k = N2I(t1);
+    native_int j = N2I(msg->recv);
+    native_int k = N2I(t1);
     
-    stack_push(j >= k ? Qtrue : Qfalse);
+    RET(j >= k ? Qtrue : Qfalse);
     CODE
   end
   
   
   def at
     <<-CODE
-    self = stack_pop(); GUARD( INDEXED(self) )
-    POP(t1, FIXNUM);
-    j = N2I(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
+    OBJECT t1;
 
-    stack_push(NTH_FIELD(self, j));
+    GUARD(INDEXED(msg->recv));
+    POP(t1, FIXNUM);
+    
+    native_int j = N2I(t1);
+    
+    GUARD(j >= 0 && j < NUM_FIELDS(msg->recv));
+
+    RET(NTH_FIELD(msg->recv, j));
     CODE
   end
   
   def put
     <<-CODE
-    self = stack_pop(); GUARD( INDEXED(self) )
-    POP(t1, FIXNUM);
-    t2 = stack_pop(); // We do not care about the type
-    j = N2I(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
+    OBJECT t1, t2;
 
-    SET_FIELD(self, j, t2);
-    stack_push(t2);
+    GUARD(INDEXED(msg->recv));
+    POP(t1, FIXNUM);
+
+    t2 = stack_pop(); // We do not care about the type
+    native_int j = N2I(t1);
+    GUARD(j >= 0 && j < NUM_FIELDS(msg->recv));
+
+    SET_FIELD(msg->recv, j, t2);
+    RET(t2);
     CODE
   end
   
   def fields
     <<-CODE
-    POP(self, REFERENCE);
+    GUARD(REFERENCE_P(msg->recv));
 
-    stack_push(I2N(NUM_FIELDS(self)));
+    RET(I2N(NUM_FIELDS(msg->recv)));
     CODE
   end
   
   def allocate
     <<-CODE
-    POP(self, CLASS);
-    t1 = class_get_instance_fields(self);
+    OBJECT t1, t2;
 
-    t2 = NEW_OBJECT(self, N2I(t1));
-    stack_push(t2);
+    GUARD(CLASS_P(msg->recv));
+    
+    t1 = class_get_instance_fields(msg->recv);
+
+    t2 = NEW_OBJECT(msg->recv, N2I(t1));
+    RET(t2);
     CODE
   end
   
   def allocate_count
     <<-CODE
-    POP(self, CLASS);
+    OBJECT t1, t2;
+    
+    GUARD(CLASS_P(msg->recv));
     POP(t1, FIXNUM);
 
-    t2 = NEW_OBJECT(self, N2I(t1));
-    stack_push(t2);
+    t2 = NEW_OBJECT(msg->recv, N2I(t1));
+    RET(t2);
     CODE
   end
   
   def allocate_bytes
     <<-CODE
-    POP(self, CLASS);
+    OBJECT t1, t2;
+
+    GUARD(CLASS_P(msg->recv));
+    
     POP(t1, FIXNUM);
+    
     t2 = bytearray_new(state, N2I(t1));
-    t2->klass = self;
-    stack_push(t2);
+    t2->klass = msg->recv;
+   
+    RET(t2);
     CODE
   end
 
   def io_seek
     <<-CODE
+      OBJECT t1, t2;
+      native_int j;
       off_t position;
-      POP(self, IO);
+      
+      GUARD(IO_P(msg->recv));
+      
       POP(t1, INTEGER); /* offset */
       POP(t2, FIXNUM); /* whence */
 
-      j = io_to_fd(self);
+      j = io_to_fd(msg->recv);
 
       if (FIXNUM_P(t1)) {
         position = lseek(j, N2I(t1), N2I(t2));
@@ -358,7 +414,7 @@ class ShotgunPrimitives
         RAISE_FROM_ERRNO("Unable to seek");
         return TRUE;
       } else {
-        stack_push(I2N(position));
+        RET(I2N(position));
       }
     CODE
   end
@@ -366,48 +422,57 @@ class ShotgunPrimitives
   def block_given
     <<-CODE
     ARITY(0)
-    // pop true off the stack to conform to the "all primitives have a self rule"
-    self = stack_pop(); GUARD( TRUE_P(self) )
+    // pop true off the stack to conform to the "all primitives have a msg->recv rule"
+    GUARD( TRUE_P(msg->recv) )
 
     if( RTEST(cpu_current_block(state, c)) ) {
-      stack_push(Qtrue);
+      RET(Qtrue);
     } else {
-      stack_push(Qfalse);
+      RET(Qfalse);
     }
     CODE
   end
   
   def block_call
     <<-CODE
-    POP(self, BLOCKENV);
-    blokenv_call(state, c, self, msg->args);
+    GUARD(BLOCKENV_P(msg->recv));
+    
+    blokenv_call(state, c, msg->recv, msg->args);
     CODE
   end
   
   def io_write
     <<-CODE
-    POP(self, IO);
+    OBJECT t1, t2;
+
+    GUARD(IO_P(msg->recv));
     POP(t1, STRING);
 
-    j = io_to_fd(self);
-    buf = string_byte_address(state, t1);
-    k = N2I(string_get_bytes(t1));
+    native_int j = io_to_fd(msg->recv);
+    char *buf = string_byte_address(state, t1);
+    native_int k = N2I(string_get_bytes(t1));
+    
     k = write(j, buf, k);
     t2 = I2N(k);
     if(k != N2I(t2)) {
       t2 = bignum_new(state, k);
     }
-    stack_push(t2);
+    
+    RET(t2);
     CODE
   end
   
   def io_read
     <<-CODE
-    POP(self, IO);
+    OBJECT t1, t2, t3;
+    native_int j, k;
+
+    GUARD(IO_P(msg->recv));
+
     POP(t1, FIXNUM);
 
     t2 = string_new2(state, NULL, N2I(t1));
-    j = io_to_fd(self);
+    j = io_to_fd(msg->recv);
     k = read(j, string_byte_address(state, t2), N2I(t1));
     if(k == 0) {
       t2 = Qnil;
@@ -416,13 +481,17 @@ class ShotgunPrimitives
       memcpy(string_byte_address(state, t3), string_byte_address(state, t2), k);
       t2 = t3;
     }
-    stack_push(t2);
+    
+    RET(t2);
     CODE
   end
   
   def create_pipe
     <<-CODE
-    self = stack_pop(); /* class */
+    OBJECT t1, t2;
+    int j;
+    int fds[2];
+
     POP(t1, IO);
     POP(t2, IO);
     
@@ -431,7 +500,8 @@ class ShotgunPrimitives
       io_wrap(state, t1, fds[0], "r");
       io_wrap(state, t2, fds[1], "r");
     }
-    stack_push(I2N(j));
+
+    RET(I2N(j));
     CODE
   end
   
@@ -439,8 +509,8 @@ class ShotgunPrimitives
     <<-CODE
     int fd, mode, perm;
     char *_path;
+    OBJECT t1, t2, t3;
 
-    self = stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, FIXNUM);
     POP(t3, FIXNUM);
@@ -451,26 +521,29 @@ class ShotgunPrimitives
 
     fd = open(_path, mode, perm);
 
-    stack_push(I2N(fd));
+    RET(I2N(fd));
     CODE
   end
   
   def io_reopen
     <<-CODE
-    POP(self, IO);
+    OBJECT t1;
+    native_int j, k;
+
+    GUARD(IO_P(msg->recv));
     POP(t1, IO);
     
     /* MRI does a ton more with reopen, but I don't yet understand why.
        This seems perfectly acceptable currently. */
     
-    k = io_to_fd(self);
+    k = io_to_fd(msg->recv);
     j = io_to_fd(t1);
 
     /* Probably needs an fflush here. */
     if(dup2(j, k) == -1) {
       RAISE_FROM_ERRNO("Unable to reopen IO object");
     } else {
-      stack_push(Qtrue);
+      RET(Qtrue);
     }
     
     CODE
@@ -478,58 +551,65 @@ class ShotgunPrimitives
   
   def io_close
     <<-CODE
-    POP(self, IO);
-    j = io_to_fd(self);
+    native_int j;
+    
+    GUARD(IO_P(msg->recv));
+    
+    j = io_to_fd(msg->recv);
     GUARD(j >= 0);
 
-    if( close(j) ) {
-      stack_push(Qfalse);
+    if(close(j)) {
+      RET(Qfalse);
     } else {
       cpu_event_clear(state, j);
-      io_set_descriptor(self, I2N(-1));
-      stack_push(Qtrue);
+      io_set_descriptor(msg->recv, I2N(-1));
+      RET(Qtrue);
     }
     CODE
   end
   
   def io_operation
     <<-CODE
-    POP(self, IO);
+    OBJECT t1;
+    native_int k, j;
+
+    GUARD(IO_P(msg->recv));
     POP(t1, FIXNUM);
     
-    j = io_to_fd(self);
+    j = io_to_fd(msg->recv);
     GUARD(j >= 0);
     
     k = N2I(t1);
     switch(k) {
       case 0:
         if(isatty(j)) {
-          stack_push(Qtrue);
+          RET(Qtrue);
         } else {
-          stack_push(Qfalse);
+          RET(Qfalse);
         }
         break;
       case 1:
-        stack_push(string_new(state, ttyname(j)));
+        RET(string_new(state, ttyname(j)));
         break;
       default:
-       stack_push(Qnil);
+        RET(Qnil);
     }
     CODE
   end
   
   def file_unlink
     <<-CODE
-    (void)stack_pop(); /* class */
+    OBJECT t1;
+    char *name;
+    
     POP(t1, STRING);
 
-    char *name;
     name = string_byte_address(state, t1);
     if(unlink(name) == 0) {
-      stack_push(Qtrue);
+      RET(Qtrue);
     } else {
       /* TODO translate errno into an exception. */
-      stack_push(Qfalse);
+      RET(Qfalse);
     }
     CODE
   end
@@ -538,25 +618,25 @@ class ShotgunPrimitives
     <<-CODE
     struct timeval tv;
 
-    (void)stack_pop(); /* class */
-
     /* don't fill in the 2nd argument here. getting the timezone here
      * this way is not portable and broken anyway.
      */
     gettimeofday(&tv, NULL);
 
     /* update Time::TIMEVAL_FIELDS when changing order of fields */
-    self = array_new(state, 2);
-    array_set(state, self, 0, ML2N(tv.tv_sec));
-    array_set(state, self, 1, ML2N(tv.tv_usec));
+    msg->recv = array_new(state, 2);
+    array_set(state, msg->recv, 0, ML2N(tv.tv_sec));
+    array_set(state, msg->recv, 1, ML2N(tv.tv_usec));
 
-    stack_push(self);
+    RET(msg->recv);
     CODE
   end
 
   def strftime
     <<-CODE
-    POP(self, REFERENCE);
+    OBJECT t1, t2, t3;
+
+    GUARD(REFERENCE_P(msg->recv));
     POP(t1, ARRAY);
     POP(t2, STRING);
 
@@ -589,7 +669,7 @@ class ShotgunPrimitives
 
     str[MAX_STRFTIME_OUTPUT] = '\\0';
     t3 = string_new2(state, str, out);
-    stack_push(t3);
+    RET(t3);
     CODE
   end
 
@@ -597,8 +677,10 @@ class ShotgunPrimitives
     <<-CODE
     time_t seconds;
     struct tm *tm;
+    OBJECT t1, t2, t3;
 
-    POP(self, REFERENCE);
+    GUARD(REFERENCE_P(msg->recv));
+
     POP(t1, INTEGER);
     t2 = stack_pop();
 
@@ -638,7 +720,7 @@ class ShotgunPrimitives
     array_set(state, t3, 10, Qnil);
 #endif
 
-    stack_push(t3);
+    RET(t3);
     CODE
   end
 
@@ -647,11 +729,12 @@ class ShotgunPrimitives
     time_t seconds;
     struct tm tm;
     char *old_tz, old_tz_buf[128];
-    OBJECT t5, t6, t7, t8, t9, ret;
+    OBJECT t1, t2, t3, t4, t5, t6, t7, t8, t9, ret;
     
     old_tz = NULL;
+   
+    GUARD(REFERENCE_P(msg->recv));
     
-    POP(self, REFERENCE);
     POP(t1, FIXNUM);
     POP(t2, FIXNUM);
     POP(t3, FIXNUM);
@@ -683,7 +766,7 @@ class ShotgunPrimitives
      * But since that will break on at least FreeBSD,
      * and I don't see the point of filling in that flag at all,
      * we're telling the system here to figure the DST stuff
-     * out itself.
+     * out itmsg->recv.
      */
     tm.tm_isdst = -1;
 
@@ -715,23 +798,28 @@ class ShotgunPrimitives
     array_set(state, ret, 0, ML2N(seconds));
     array_set(state, ret, 1, t7);
 
-    stack_push(ret);
+    RET(ret);
     CODE
   end
 
-  def fixnum_to_s(_ = fixnum, t1 = fixnum)
+  def fixnum_to_s
     <<-CODE
+    OBJECT t1;
     static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
     char buf[100];
     char *b = buf + sizeof(buf);
+    native_int j, k, m;
+
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
 
     j = N2I(t1);
-    k = N2I(self);
-    GUARD( j >= 2 && j <= 36 )
+    k = N2I(msg->recv);
+    GUARD( j >= 2 && j <= 36 );
 
     /* Algorithm taken from 1.8.4 rb_fix2str */
     if(k == 0) {
-      stack_push(string_new(state, "0"));
+      RET(string_new(state, "0"));
     } else {
       m = 0;
       if(k < 0) {
@@ -745,80 +833,86 @@ class ShotgunPrimitives
       if(m) {
         *--b = '-';
       }
-      stack_push(string_new(state, b));
+      RET(string_new(state, b));
     }
     CODE
   end
 
   def bignum_to_s
     <<-CODE
-    POP(self, BIGNUM);
+    OBJECT t1;
+    GUARD(BIGNUM_P(msg->recv));
     POP(t1, FIXNUM);
 
-    stack_push(bignum_to_s(state, self, t1));
+    RET(bignum_to_s(state, msg->recv, t1));
     CODE
   end
 
   def logical_class
     <<-CODE
-    /* self is ANY object because object_class knows all. */
-    self = stack_pop();
-    stack_push(object_class(state, self));
+    /* msg->recv is ANY object because object_class knows all. */
+    RET(object_class(state, msg->recv));
     CODE
   end
 
   def object_id
     <<-CODE
-    self = stack_pop();
-    stack_push(UI2N(object_get_id(state, self)));
+    RET(UI2N(object_get_id(state, msg->recv)));
     CODE
   end
 
   def hash_set
     <<-CODE
-    POP(self, HASH);
+    OBJECT t1, t2, t3;
+    GUARD(HASH_P(msg->recv));
+
     POP(t1, FIXNUM);
     t2 = stack_pop(); // some type of object
     t3 = stack_pop(); // some type of object can we do an object guard?
 
-    hash_add(state, self, N2I(t1), t2, t3);
-    stack_push(t3);
+    hash_add(state, msg->recv, N2I(t1), t2, t3);
+    RET(t3);
     CODE
   end
 
   def hash_get
     <<-CODE
-    POP(self, HASH);
+    OBJECT t1, t2, t3;
+    GUARD(HASH_P(msg->recv));
+    
     POP(t1, FIXNUM);
     t2 = stack_pop();
-    t3 = hash_find_entry(state, self, N2I(t1));
-    // t3 = hash_get_undef(state, self, N2I(t1));
-    stack_push(t3);
+    t3 = hash_find_entry(state, msg->recv, N2I(t1));
+    RET(t3);
     CODE
   end
 
   def hash_object
     <<-CODE
-    /* self is ANY object because object_class knows all. */    
-    self = stack_pop();
-    t1 = UI2N(object_hash_int(state, self));
-    stack_push(t1);
+    OBJECT t1;
+    /* msg->recv is ANY object because object_class knows all. */    
+    t1 = UI2N(object_hash_int(state, msg->recv));
+    RET(t1);
     CODE
   end
   
   def hash_delete
     <<-CODE
-    POP(self, HASH);
+    OBJECT t1, t2;
+    GUARD(HASH_P(msg->recv));
+    
     POP(t1, FIXNUM);
 
-    t2 = hash_delete(state, self, N2I(t1));
-    stack_push(t2);
+    t2 = hash_delete(state, msg->recv, N2I(t1));
+    RET(t2);
     CODE
   end
   
   def hash_value_set
     <<-CODE
-    POP(self, REFERENCE);
+    OBJECT t1;
+    GUARD(REFERENCE_P(msg->recv));
+    
     POP(t1, NUMERIC);
     abort();
     CODE
@@ -826,23 +920,27 @@ class ShotgunPrimitives
 
   def symbol_index
     <<-CODE
-    POP(self, SYMBOL);
+    GUARD(SYMBOL_P(msg->recv));
 
-    stack_push(I2N(symbol_to_index(state, self)));
+    RET(I2N(symbol_to_index(state, msg->recv)));
     CODE
   end
 
   def symbol_lookup
     <<-CODE
-    POP(self, STRING);
-    GUARD(N2I(string_get_bytes(self)) > 0);
-    stack_push(string_to_sym(state, self));
+    GUARD(STRING_P(msg->recv));
+    GUARD(N2I(string_get_bytes(msg->recv)) > 0);
+    RET(string_to_sym(state, msg->recv));
     CODE
   end
 
   def dup_into
     <<-CODE
-    POP(self, REFERENCE);
+    OBJECT t1, t2, t3;
+    native_int k, j;
+
+    GUARD(REFERENCE_P(msg->recv));
+    
     POP(t1, REFERENCE);
     POP(t2, FIXNUM);
     POP(t3, FIXNUM);
@@ -850,148 +948,174 @@ class ShotgunPrimitives
     native_int start = N2I(t2);
     native_int dest = N2I(t3);
     for(k = start, j = dest; 
-        k < NUM_FIELDS(t1) && j < NUM_FIELDS(self); 
+        k < NUM_FIELDS(t1) && j < NUM_FIELDS(msg->recv); 
         k++, j++) {
-      SET_FIELD(self, j, NTH_FIELD(t1, k));
+      SET_FIELD(msg->recv, j, NTH_FIELD(t1, k));
     }
-    // object_copy_fields_from(state, t1, self, j, NUM_FIELDS(self));
-    // gc_zone selfgc = self->gc_zone;
-    object_copy_nongc_flags(self, t1);
-    // self->flags2 = (t1->flags2 & ZONE_MASK) | GC_ZONE(self);
-    stack_push(t1);
+    
+    object_copy_nongc_flags(msg->recv, t1);
+    
+    RET(t1);
     CODE
   end
     
   def bytes_dup_into
     <<-CODE
-    POP(self, REFERENCE);
+    OBJECT t1;
+    native_int k, j;
+
+    GUARD(REFERENCE_P(msg->recv));
+    
     POP(t1,   REFERENCE);
 
-    GUARD(_object_stores_bytes(self));
+    GUARD(_object_stores_bytes(msg->recv));
     GUARD(_object_stores_bytes(t1));
     
-    k = bytearray_bytes(state, self);
+    k = bytearray_bytes(state, msg->recv);
     j = bytearray_bytes(state, t1);
     
     if(j < k) { k = j; }
       
     memcpy(bytearray_byte_address(state, t1), 
-           bytearray_byte_address(state, self), k);
+           bytearray_byte_address(state, msg->recv), k);
            
-    stack_push(t1);
+    RET(t1);
     CODE
   end
 
   def object_dup
     <<-CODE
-    t1 = stack_pop();
-    if(REFERENCE_P(t1)) {
-      j = NUM_FIELDS(t1);
-      t2 = NEW_OBJECT(object_class(state, t1), j);
-      if(t1->StoresBytes) {
+    OBJECT t2;
+    native_int j, k;
+    
+    if(REFERENCE_P(msg->recv)) {
+      j = NUM_FIELDS(msg->recv);
+      t2 = NEW_OBJECT(object_class(state, msg->recv), j);
+      if(msg->recv->StoresBytes) {
         memcpy(object_byte_start(state, t2), 
-               object_byte_start(state, t1), SIZE_OF_BODY(t1));
+               object_byte_start(state, msg->recv), SIZE_OF_BODY(msg->recv));
         t2->StoresBytes = 1;
       } else {
         for(k = 0; k < j; k++) {
-          SET_FIELD(t2, k, NTH_FIELD(t1, k));
+          SET_FIELD(t2, k, NTH_FIELD(msg->recv, k));
         }
       }
+      
       stack_push(t2);
-      object_copy_ivars(state, t1, t2);
-      cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
+      object_copy_ivars(state, msg->recv, t2);
+      cpu_perform_hook(state, c, t2, state->global->sym_init_copy, msg->recv);
+      DONE();
     } else {
-      stack_push(t1);
+      RET(msg->recv);
     }
     CODE
   end
   
   def object_clone
     <<-CODE
-    POP(t1, REFERENCE);
-    j = NUM_FIELDS(t1);
-    t2 = NEW_OBJECT(object_class(state, t1), j);
-    if(t1->StoresBytes) {
+    native_int k, j;
+    OBJECT t2;
+
+    GUARD(REFERENCE_P(msg->recv));
+    
+    j = NUM_FIELDS(msg->recv);
+    t2 = NEW_OBJECT(object_class(state, msg->recv), j);
+    if(msg->recv->StoresBytes) {
       memcpy(object_byte_start(state, t2), 
-             object_byte_start(state, t1), SIZE_OF_BODY(t1));
+             object_byte_start(state, msg->recv), SIZE_OF_BODY(msg->recv));
       t2->StoresBytes = 1;
     } else {
       for(k = 0; k < j; k++) {
-        SET_FIELD(t2, k, NTH_FIELD(t1, k));
+        SET_FIELD(t2, k, NTH_FIELD(msg->recv, k));
       }
     }
-    stack_push(t2);
-    object_copy_ivars(state, t1, t2);
-    object_copy_metaclass(state, t1, t2);
-    cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
     
+    stack_push(t2);
+    object_copy_ivars(state, msg->recv, t2);
+    object_copy_metaclass(state, msg->recv, t2);
+    cpu_perform_hook(state, c, t2, state->global->sym_init_copy, msg->recv);
+    DONE();
     CODE
   end
   
   
   def fastctx_dup
     <<-CODE
-    POP(self, REFERENCE);
-    GUARD(ISA(self, state->global->fastctx));
+    GUARD(RISA(msg->recv, fastctx));
     
-    stack_push(methctx_dup(state, self));
+    RET(methctx_dup(state, msg->recv));
     CODE
   end
 
   def tuple_shifted
     <<-CODE
-    POP(self, TUPLE);
+    OBJECT t1, t2;
+    native_int j;
+
+    GUARD(TUPLE_P(msg->recv));
     POP(t1, FIXNUM);
 
     j = N2I(t1);
-    if (!j)
-      t2 = self;
-    else {
-      t2 = tuple_new(state, NUM_FIELDS(self) + j);
-      object_copy_fields_shifted(state, self, t2, j);
+    if(!j) {
+      t2 = msg->recv;
+    } else {
+      t2 = tuple_new(state, NUM_FIELDS(msg->recv) + j);
+      object_copy_fields_shifted(state, msg->recv, t2, j);
     }
 
-    stack_push(t2);
+    RET(t2);
     CODE
   end
 
   def get_byte
     <<-CODE
-    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
+    OBJECT t1;
+    native_int j, k;
+
+    GUARD( object_stores_bytes_p(state, msg->recv) )
     POP(t1, FIXNUM); /* index */
 
     unsigned char *indexed;
     j = N2I(t1);
-    k = bytearray_bytes(state, self);
+    k = bytearray_bytes(state, msg->recv);
 
-    GUARD( j >= 0 && j < k )
-    indexed = (unsigned char*)bytearray_byte_address(state, self);
+    GUARD( j >= 0 && j < k );
+    indexed = (unsigned char*)bytearray_byte_address(state, msg->recv);
     indexed += j;
-    stack_push(UI2N(*indexed));
+
+    RET(UI2N(*indexed));
     CODE
   end
 
   def set_byte
     <<-CODE
-    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
+    OBJECT t1, t2;
+    native_int j, k;
+
+    GUARD( object_stores_bytes_p(state, msg->recv) )
     POP(t1, FIXNUM); /* index */
     POP(t2, FIXNUM); /* value */
 
     unsigned char *indexed;
     j = N2I(t1);
-    k = bytearray_bytes(state, self);
+    k = bytearray_bytes(state, msg->recv);
 
-    GUARD( j >= 0 && j < k )
-    indexed = (unsigned char*)bytearray_byte_address(state, self);
+    GUARD( j >= 0 && j < k );
+
+    indexed = (unsigned char*)bytearray_byte_address(state, msg->recv);
     indexed += j;
     t2 = UI2N(*indexed = N2I(t2));
-    stack_push(t2);
+    
+    RET(t2);
     CODE
   end
     
   def fetch_bytes
     <<-CODE
-    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
+    OBJECT t1, t2, t3;
+    native_int j, k, m;
+
+    GUARD( object_stores_bytes_p(state, msg->recv) )
     POP(t1, FIXNUM);
     POP(t2, FIXNUM);
 
@@ -999,30 +1123,32 @@ class ShotgunPrimitives
     native_int num;
     j = N2I(t1);
     k = N2I(t2);
-    m = bytearray_bytes(state, self);
+    m = bytearray_bytes(state, msg->recv);
 
     num = abs(j - k);
 
-    GUARD( m >= num )
-    GUARD( k >= 0 )
-    GUARD( j >= 0 && j <= m )
+    GUARD( m >= num );
+    GUARD( k >= 0 );
+    GUARD( j >= 0 && j <= m );
+
     t3 = bytearray_new(state, k+1);
-    source = (char*)bytearray_byte_address(state, self);
+    source = (char*)bytearray_byte_address(state, msg->recv);
     dest = (char*)bytearray_byte_address(state, t3);
     source += j;
     memcpy(dest, source, k);
     dest[k] = 0;
-    stack_push(t3);
+
+    RET(t3);
     CODE
   end
   
   def move_bytes
     <<-CODE
+    OBJECT t1, t2, t3;
     char *data, *source, *dest;
     native_int total, offset, start, count;
     
-    self = stack_pop(); 
-    GUARD(object_stores_bytes_p(state, self));
+    GUARD(object_stores_bytes_p(state, msg->recv));
     
     POP(t1, FIXNUM);
     POP(t2, FIXNUM);
@@ -1032,13 +1158,13 @@ class ShotgunPrimitives
     count  = N2I(t2);
     offset = N2I(t3);
     
-    total = bytearray_bytes(state, self);
+    total = bytearray_bytes(state, msg->recv);
         
     GUARD(start + count + offset < total);
     GUARD(offset >= 0);
     GUARD(count >= 0);
     
-    data = (char*)bytearray_byte_address(state, self);
+    data = (char*)bytearray_byte_address(state, msg->recv);
     source = data;
     dest = data;
     
@@ -1047,16 +1173,17 @@ class ShotgunPrimitives
         
     memmove((void*)dest, (void*)source, count);
     
-    stack_push(t2);    
+    RET(t2);    
     CODE
   end
 
   def compare_bytes
     <<-CODE
+    OBJECT t1, t2, t3;
+    native_int j, k, m;
     native_int len, a, b, n, cmp;
     
-    self = stack_pop();
-    GUARD(object_stores_bytes_p(state, self));
+    GUARD(object_stores_bytes_p(state, msg->recv));
     t1 = stack_pop();
     GUARD(object_stores_bytes_p(state, t1));
     POP(t2, FIXNUM);
@@ -1064,7 +1191,7 @@ class ShotgunPrimitives
     a = N2I(t2);   /* max bytes to compare in self */
     b = N2I(t3);   /* max bytes to compare in t1 */
     
-    j = bytearray_bytes(state, self);
+    j = bytearray_bytes(state, msg->recv);
     k = bytearray_bytes(state, t1);
     m = j < a ? j : a;
     n = k < b ? k : b;
@@ -1074,58 +1201,66 @@ class ShotgunPrimitives
      */
     len = m < n ? m : n;
     
-    cmp = memcmp(bytearray_byte_address(state, self), 
+    cmp = memcmp(bytearray_byte_address(state, msg->recv), 
                  bytearray_byte_address(state, t1), len);
                  
     /* check against m and n, to allow a, b to be non-symmetric with j, k */
     if(cmp == 0) {
       if(m < n) {
-        stack_push(I2N(-1));
+        RET(I2N(-1));
       } else if(m > n) {
-        stack_push(I2N(1));
+        RET(I2N(1));
       } else {
-        stack_push(I2N(0));
+        RET(I2N(0));
       }
     } else {
-      stack_push(cmp < 0 ? I2N(-1) : I2N(1));
+      RET(cmp < 0 ? I2N(-1) : I2N(1));
     }
     CODE
   end
 
   def bytearray_size
     <<-CODE
-    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
+    native_int j;
+    GUARD( object_stores_bytes_p(state, msg->recv) )
 
-    j = bytearray_bytes(state, self);
-    stack_push(I2N(j));
+    j = bytearray_bytes(state, msg->recv);
+    
+    RET(I2N(j));
     CODE
   end
   
   def load_file
     <<-CODE
-    self = stack_pop(); /* class */
+    OBJECT t1, t2;
+
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
     char *path = string_byte_address(state, t1);
     t2 = cpu_unmarshal_file(state, path, N2I(t2));
-    stack_push(t2);
+    
+    RET(t2);
     CODE
   end
   
   def activate_as_script
     <<-CODE
-    POP(self, CMETHOD);
+    GUARD(CMETHOD_P(msg->recv));
 
-    cpu_run_script(state, c, self);
-    stack_push(Qtrue);
+    cpu_run_script(state, c, msg->recv);
+    DONE();
     CODE
   end
   
   def stat_file
     <<-CODE
+    OBJECT t1, t2, t3;
+    native_int j;
     struct stat sb = {0};
-    POP(self, CLASS);
+
+    GUARD(CLASS_P(msg->recv));
+
     POP(t1, STRING);
     t2 = stack_pop();
 
@@ -1137,9 +1272,9 @@ class ShotgunPrimitives
     }
 
     if(j != 0) {
-      stack_push(Qfalse);
+      RET(Qfalse);
     } else {
-      t2 = NEW_OBJECT(self, 15);
+      t2 = NEW_OBJECT(msg->recv, 15);
       tuple_put(state, t2, 0, I2N((int)sb.st_ino));
       tuple_put(state, t2, 1, I2N((int)sb.st_mode));
 
@@ -1200,21 +1335,25 @@ class ShotgunPrimitives
       tuple_put(state, t2, 13, dev_major);
       tuple_put(state, t2, 14, dev_minor);
 
-      stack_push(t2);
+      RET(t2);
     }
     CODE
   end
   
   def process_exit
     <<-CODE
-    (void)stack_pop();
+    OBJECT t1;
+
     POP(t1, FIXNUM);
+
 #ifdef TIME_LOOKUP
     cpu_show_lookup_time(state);
 #endif
+
     if(state->gc_stats) {
       printf("[GC M %6dK total]\\n", state->om->ms->allocated_bytes / 1024);
     }
+
     if(current_machine->sub) {
       environment_exit_machine(); 
     } else {
@@ -1225,8 +1364,9 @@ class ShotgunPrimitives
   
   def micro_sleep
     <<-CODE
+    OBJECT t1, t2;
+    native_int j;
     struct timespec ts;
-    (void)stack_pop();
     POP(t1, FIXNUM);
 
     j = N2I(t1);
@@ -1239,54 +1379,57 @@ class ShotgunPrimitives
       t2 = Qtrue;
     }
 
-    stack_push(t2);
+    RET(t2);
     CODE
   end
   
   def activate_context
     <<-CODE
+    OBJECT t1;
     sassert(0);
-    self = stack_pop();
-    if(blokctx_s_block_context_p(state, self)) {
-      t1 = blokctx_home(state, self);
+    if(blokctx_s_block_context_p(state, msg->recv)) {
+      t1 = blokctx_home(state, msg->recv);
     } else {
-      t1 = self;
+      t1 = msg->recv;
     }
     
-    cpu_activate_context(state, c, self, t1, 0);
+    cpu_activate_context(state, c, msg->recv, t1, 0);
     CODE
   end
   
   def context_sender
     <<-CODE
-    POP(self, CTX);
-    t1 = FASTCTX(self)->sender;
+    OBJECT t1;
+    GUARD(CTX_P(msg->recv));
+
+    t1 = FASTCTX(msg->recv)->sender;
     
     if(t1 != Qnil) {
       methctx_reference(state, t1);
     }
     
-    stack_push(t1);
+    RET(t1);
     CODE
   end
   
   def string_to_sexp
     <<-CODE
-    {
-      bstring contents;
-      const char *name;
+    bstring contents;
+    const char *name;
+    OBJECT t1, t2, t3;
 
-      POP(self, STRING);
-      POP(t1, STRING);
-      POP(t2, FIXNUM);
-      t3 = stack_pop();
+    GUARD(STRING_P(msg->recv));
 
-      contents = cstr2bstr(string_byte_address(state, self));
-      name = string_byte_address(state, t1);
-      t1 = syd_compile_string(state, name, contents, N2I(t2), RTEST(t3));
-      bdestroy(contents);
-      stack_push(t1);
-    }
+    POP(t1, STRING);
+    POP(t2, FIXNUM);
+    t3 = stack_pop();
+
+    contents = cstr2bstr(string_byte_address(state, msg->recv));
+    name = string_byte_address(state, t1);
+    t1 = syd_compile_string(state, name, contents, N2I(t2), RTEST(t3));
+    bdestroy(contents);
+    
+    RET(t1);
     CODE
   end
   
@@ -1294,8 +1437,8 @@ class ShotgunPrimitives
     <<-CODE
     FILE *file;
     char *name;
+    OBJECT t1, t2;
 
-    (void)stack_pop();
     POP(t1, STRING); /* The filename */
     t2 = stack_pop();
 
@@ -1303,327 +1446,350 @@ class ShotgunPrimitives
     file = fopen(name, "r");
 
     if(!file) {
-      _ret = FALSE;
+      FAIL();
     } else {
       t1 = syd_compile_file(state, name, file, 1, RTEST(t2));
       fclose(file);
-      stack_push(t1);
+      RET(t1);
     }
     CODE
   end
 
   def terminal_raw
     <<-CODE
-    {
-      struct termios ts;
-      int err;
+    struct termios ts;
+    int err;
+    OBJECT t3;
 
-      (void)stack_pop();
-
-      if (NULL == state->termios) {
-        if (!isatty(STDOUT_FILENO)) {
-          stack_push(Qfalse);
-          break;
-        }
-
-        /* HACK: this memory is never freed */
-        state->termios = ALLOC(struct termios);
-
-        if (NULL == state->termios) {
-          stack_push(Qfalse);
-          break;
-        }
-
-        err = tcgetattr(STDOUT_FILENO, state->termios);
-
-        if (err == -1) { /* TODO: handle errno */
-          XFREE(state->termios);
-          stack_push(Qfalse);
-          break;
-        }
+    if(NULL == state->termios) {
+      if(!isatty(STDOUT_FILENO)) {
+        RET(Qfalse);
       }
 
-      err = tcgetattr(STDOUT_FILENO, &ts);
+      /* HACK: this memory is never freed */
+      state->termios = ALLOC(struct termios);
 
-      if (err == -1) { /* TODO: handle errno */
-        stack_push(Qfalse);
-        break;
+      if(NULL == state->termios) {
+        RET(Qfalse);
       }
 
-      ts.c_lflag &= ~ICANON; /* -icanon */
-      ts.c_lflag &= ~ISIG;   /* -isig */
-      ts.c_lflag &= ~ECHO;   /* -echo */
-      ts.c_cc[VMIN] = 1;     /* min 1 */
+      err = tcgetattr(STDOUT_FILENO, state->termios);
 
-      err = tcsetattr(STDOUT_FILENO, TCSANOW, &ts);
-
-      if (err == -1) { /* TODO: handle errno */
-        stack_push(Qfalse);
-        break;
+      if(err == -1) { /* TODO: handle errno */
+        XFREE(state->termios);
+        RET(Qfalse);
       }
-
-      t3 = tuple_new2(state, 4,
-        I2N(ts.c_cc[VERASE]), I2N(ts.c_cc[VKILL]),
-        I2N(ts.c_cc[VQUIT]),  I2N(ts.c_cc[VINTR])
-      );
-      stack_push(t3);
     }
+
+    err = tcgetattr(STDOUT_FILENO, &ts);
+
+    if(err == -1) { /* TODO: handle errno */
+      RET(Qfalse);
+    }
+
+    ts.c_lflag &= ~ICANON; /* -icanon */
+    ts.c_lflag &= ~ISIG;   /* -isig */
+    ts.c_lflag &= ~ECHO;   /* -echo */
+    ts.c_cc[VMIN] = 1;     /* min 1 */
+
+    err = tcsetattr(STDOUT_FILENO, TCSANOW, &ts);
+
+    if(err == -1) { /* TODO: handle errno */
+      RET(Qfalse);
+    }
+
+    t3 = tuple_new2(state, 4,
+      I2N(ts.c_cc[VERASE]), I2N(ts.c_cc[VKILL]),
+      I2N(ts.c_cc[VQUIT]),  I2N(ts.c_cc[VINTR])
+    );
+
+    RET(t3);
     CODE
   end
 
   def terminal_normal
     <<-CODE
-    {
-      (void)stack_pop();
-      
-      if (NULL == state->termios) {
-        stack_push(Qfalse);
-      } else if (isatty(STDOUT_FILENO)) {
-        int err;
+    if(NULL == state->termios) {
+      RET(Qfalse);
+    } else if (isatty(STDOUT_FILENO)) {
+      int err;
 
-        err = tcsetattr(STDOUT_FILENO, TCSANOW, state->termios);
+      err = tcsetattr(STDOUT_FILENO, TCSANOW, state->termios);
 
-        if (err == -1) {
-          stack_push(Qfalse);
-        } else {
-          stack_push(Qtrue);
-        }
+      if (err == -1) {
+        RET(Qfalse);
       } else {
-        stack_push(Qfalse);
+        RET(Qtrue);
       }
+    } else {
+      RET(Qfalse);
     }
     CODE
   end
 
   def regexp_new
     <<-CODE
-    POP(self, CLASS);
-    POP(t1, STRING);
+    OBJECT t1, t2, t3;
     char err_buf[1024];
+    
+    GUARD(CLASS_P(msg->recv));
+    POP(t1, STRING);
     t2 = stack_pop();
     t3 = regexp_new(state, t1, t2, err_buf);
     
     if(NIL_P(t3)) {
       RAISE("RegexpError", err_buf);
     } else {
-      t3->klass = self;   /* Subclasses */
+      t3->klass = msg->recv;   /* Subclasses */
     }
     
-    stack_push(t3);
+    RET(t3);
     CODE
   end
 
   def regexp_match
     <<-CODE
-    POP(self, REGEXP);
+    OBJECT t1;
+    GUARD(REGEXP_P(msg->recv));
+
     POP(t1, STRING);
-    stack_push(regexp_match(state, self, t1));
+    
+    RET(regexp_match(state, msg->recv, t1));
     CODE
   end
 
   def regexp_match_start
     <<-CODE
-    POP(self, REGEXP);
+    OBJECT t1, t2;
+    GUARD(REGEXP_P(msg->recv));
+
     POP(t1, STRING);
     POP(t2, FIXNUM);
-    stack_push(regexp_match_start(state, self, t1, t2));
+    
+    RET(regexp_match_start(state, msg->recv, t1, t2));
     CODE
   end
 
   def regexp_match_region
     <<-CODE
-    POP(self, REGEXP);
+    OBJECT t1, t2, t3, t4, t5;
+    GUARD(REGEXP_P(msg->recv));
+
     POP(t1, STRING);
     POP(t2, FIXNUM);
     POP(t3, FIXNUM);
     t4 = stack_pop();
-    OBJECT t5 = regexp_match_region(state, self, t1, t2, t3, t4);
-    stack_push(t5);
+    
+    t5 = regexp_match_region(state, msg->recv, t1, t2, t3, t4);
+    
+    RET(t5);
     CODE
   end
 
   def regexp_scan
     <<-CODE
-    POP(self, REGEXP);
+    OBJECT t1;
+    GUARD(REGEXP_P(msg->recv));
+    
     POP(t1, STRING);
-    stack_push(regexp_scan(state, self, t1));
+
+    RET(regexp_scan(state, msg->recv, t1));
     CODE
   end  
 
   def regexp_options
     <<-CODE
-    POP(self, REGEXP);
-    stack_push(regexp_options(state, self));
+    GUARD(REGEXP_P(msg->recv));
+    
+    RET(regexp_options(state, msg->recv));
     CODE
   end
   
   def gc_start
     <<-CODE
-    (void)stack_pop();
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     if(RTEST(t1)) {
       state->om->collect_now = OMCollectYoung;
     } else {
       state->om->collect_now = OMCollectYoung | OMCollectMature;
     }
-    stack_push(Qtrue);
+    RET(Qtrue);
     CODE
   end
     
   def get_ivar
     <<-CODE
-    self = stack_pop();
-    t1 = NTH_FIELD(msg->method, 4);
-    stack_push(object_get_ivar(state, self, t1));
+    OBJECT t1 = NTH_FIELD(msg->method, 4);
+    RET(object_get_ivar(state, msg->recv, t1));
     CODE
   end
   
   def set_ivar
     <<-CODE
-    self = stack_pop();
+    OBJECT t1, t2;
+    
     t1 = NTH_FIELD(msg->method, 4);
     t2 = stack_pop();
-    object_set_ivar(state, self, t1, t2);
-    stack_push(t2);
+    object_set_ivar(state, msg->recv, t1, t2);
+
+    RET(t2);
     CODE
   end
 
   # field 4: method to call
   # field 5: object to call method on
-  # field 6: whether or not we need to retain 'self'
+  # field 6: whether or not we need to retain 'msg->recv'
   def dispatch_as_method
     <<-CODE
-      int args = msg->args;
-      t1 = NTH_FIELD(msg->method, 4);
-      t2 = NTH_FIELD(msg->method, 5);
-      t3 = NTH_FIELD(msg->method, 6);
-      
-      if(Qtrue == t3) {
-        args++;
-      } else {
-       (void)stack_pop();
-      }
+    OBJECT t1, t2, t3; 
+    int args = msg->args;
+    
+    t1 = NTH_FIELD(msg->method, 4);
+    t2 = NTH_FIELD(msg->method, 5);
+    t3 = NTH_FIELD(msg->method, 6);
+    
+    if(Qtrue == t3) {
+      stack_push(msg->recv);
+      args++;
+    }
 
-      cpu_unified_send(state, c, t2, t1, args, Qnil);
+    cpu_unified_send(state, c, t2, t1, args, Qnil);
     CODE
   end
   
   def set_index
     <<-CODE
-    self = stack_pop();
-    GUARD(INDEXED(self));
+    native_int j;
+    GUARD(INDEXED(msg->recv));
 
     j = N2I(NTH_FIELD(msg->method, 4));
-    SET_FIELD(self, j, stack_pop());
-    stack_push(NTH_FIELD(self, j));  
+    SET_FIELD(msg->recv, j, stack_pop());
+    
+    RET(NTH_FIELD(msg->recv, j));  
     CODE
   end
   
   def get_index
     <<-CODE
-    self = stack_pop();
-    GUARD(INDEXED(self));
+    native_int j;
+    GUARD(INDEXED(msg->recv));
 
     j = N2I(NTH_FIELD(msg->method, 4));
-    stack_push(NTH_FIELD(self, j));
+    RET(NTH_FIELD(msg->recv, j));
     CODE
   end
 
-  def fixnum_modulo(_ = fixnum, t1 = fixnum)
+  def fixnum_modulo
     <<-CODE
+    OBJECT t1, t3;
+
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
+
     GUARD( N2I(t1) != 0 ) // no divide by zero
 
-    t3 = fixnum_divmod(state, self, t1);
-    stack_push(array_get(state, t3, 1));
+    t3 = fixnum_divmod(state, msg->recv, t1);
+    RET(array_get(state, t3, 1));
     CODE
   end
   
   def marshal_object
     <<-CODE
-    (void)stack_pop(); /* class */
+    OBJECT t1, t2;
     t1 = stack_pop();
     POP(t2, FIXNUM);
-    stack_push(cpu_marshal(state, t1, N2I(t2)));
+
+    RET(cpu_marshal(state, t1, N2I(t2)));
     CODE
   end
   
   def unmarshal_object
     <<-CODE
-    (void)stack_pop(); /* class */
+    OBJECT t1, t2, t3;
     POP(t1, STRING);
     POP(t2, FIXNUM);
-
-    stack_push(cpu_unmarshal(state, (uint8_t*)string_byte_address(state, t1), N2I(string_get_bytes(t1)), N2I(t2)));
+    t3 = cpu_unmarshal(state, 
+                       (uint8_t*)string_byte_address(state, t1), 
+                       N2I(string_get_bytes(t1)), 
+                       N2I(t2));
+    RET(t3);
     CODE
   end
   
   def marshal_to_file
     <<-CODE
+    OBJECT t1, t2, t3;
+
     char *_path;
-    (void)stack_pop();
     t1 = stack_pop();
     POP(t2, STRING);
     POP(t3, FIXNUM);
 
     _path = string_byte_address(state, t2);
-    stack_push(cpu_marshal_to_file(state, t1, _path, N2I(t3)));
+    RET(cpu_marshal_to_file(state, t1, _path, N2I(t3)));
     CODE
   end
   
   def unmarshal_from_file
     <<-CODE
     char *_path;
-    (void)stack_pop(); /* class */
+    OBJECT t1, t2;
+
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
     _path = string_byte_address(state, t1);
-    stack_push(cpu_unmarshal_file(state, _path, N2I(t2)));
+    RET(cpu_unmarshal_file(state, _path, N2I(t2)));
     CODE
   end
   
   def archive_files
     <<-CODE
     char *path;
-    (void)stack_pop(); /* blah */
+    OBJECT t1;
     POP(t1, STRING);
 
     path = string_byte_address(state, t1);
-    stack_push(archive_list_files(state, path));
+    RET(archive_list_files(state, path));
     CODE
   end
   
   def archive_get_file
     <<-CODE
     char *path, *file;
-    (void)stack_pop();
+    OBJECT t1, t2;
+    
     POP(t1, STRING);
     POP(t2, STRING);
 
     path = string_byte_address(state, t1);
     file = string_byte_address(state, t2);
-    stack_push(archive_get_file(state, path, file));
+    
+    RET(archive_get_file(state, path, file));
     CODE
   end
   
   def archive_get_object
     <<-CODE
     char *path, *file;
-    (void)stack_pop();
+    OBJECT t1, t2, t3;
+    
     POP(t1, STRING);
     POP(t2, STRING);
     POP(t3, FIXNUM);
 
     path = string_byte_address(state, t1);
     file = string_byte_address(state, t2);
-    stack_push(archive_get_object(state, path, file, N2I(t3)));
+    
+    RET(archive_get_object(state, path, file, N2I(t3)));
     CODE
   end
   
   def archive_add_file
     <<-CODE
     char *path, *file, *data;
-    (void)stack_pop();
+    OBJECT t1, t2, t3;
+    
     POP(t1, STRING);
     POP(t2, STRING);
     POP(t3, STRING);
@@ -1633,14 +1799,15 @@ class ShotgunPrimitives
     data = string_byte_address(state, t3);
     
     t1 = archive_add_file(state, path, file, data);
-    stack_push(t1);
+    RET(t1);
     CODE
   end
   
   def archive_add_object
     <<-CODE
     char *path, *file;
-    (void)stack_pop();
+    OBJECT t1, t2, t3, t4;
+    
     POP(t1, STRING);
     POP(t2, STRING);
     t3 = stack_pop();
@@ -1650,84 +1817,114 @@ class ShotgunPrimitives
     file = string_byte_address(state, t2);
     
     t1 = archive_add_object(state, path, file, t3, N2I(t4));
-    stack_push(t1);
+    RET(t1);
     CODE
   end
   
   def archive_delete_file
     <<-CODE
-    (void)stack_pop();
+    OBJECT t1, t2, t3;
+
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
     t3 = archive_delete_file(state, string_byte_address(state, t1), N2I(t2));
-    stack_push(t3);
+    RET(t3);
     CODE
   end  
   
   # FIXME: get rid of bignum awareness and use coerce
   # i.e. t1 = fixnum
-  def fixnum_and(_ = fixnum, t1 = integer)
+  def fixnum_and
     <<-CODE
-    if( FIXNUM_P(t1) ) {
-      j = N2I(self);
+    OBJECT t1;
+    native_int j, k, m;
+
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, INTEGER);
+
+    if(FIXNUM_P(t1)) {
+      j = N2I(msg->recv);
       k = N2I(t1);
       m = j & k;
-      stack_push(I2N(m));
+      RET(I2N(m));
     } else {
-      stack_push(bignum_and(state, bignum_new(state, N2I(self)), t1));
+      RET(bignum_and(state, bignum_new(state, N2I(msg->recv)), t1));
     }
     CODE
   end
 
   # FIXME: get rid of bignum awareness and use coerce
   # i.e. t1 = fixnum
-  def fixnum_or(_ = fixnum, t1 = integer)
+  def fixnum_or
     <<-CODE
+    OBJECT t1;
+    native_int j, k, m;
+
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, INTEGER);
+
     if(FIXNUM_P(t1)) {
-      j = N2I(self);
+      j = N2I(msg->recv);
       k = N2I(t1);
       m = j | k;
-      stack_push(I2N(m));
+      RET(I2N(m));
     } else {
-      stack_push(bignum_or(state, bignum_new(state, N2I(self)), t1));
+      RET(bignum_or(state, bignum_new(state, N2I(msg->recv)), t1));
     }
     CODE
   end
 
   # FIXME: get rid of bignum awareness and use coerce
   # i.e. t1 = fixnum
-  def fixnum_xor(_ = fixnum, t1 = integer)
+  def fixnum_xor
     <<-CODE
+    OBJECT t1;
+    native_int j, k, m;
+
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, INTEGER);
+
     if(FIXNUM_P(t1)) {
-      j = N2I(self);
+      j = N2I(msg->recv);
       k = N2I(t1);
       m = j ^ k;
-      stack_push(I2N(m));
+      RET(I2N(m));
     } else {
-      stack_push(bignum_xor(state, bignum_new(state, N2I(self)), t1));
+      RET(bignum_xor(state, bignum_new(state, N2I(msg->recv)), t1));
     }
     CODE
   end
 
-  def fixnum_invert(_ = fixnum)
+  def fixnum_invert
     <<-CODE
-      j = N2I(self);
-      stack_push(I2N(~j));
+    native_int j;
+    GUARD(FIXNUM_P(msg->recv));
+
+    j = N2I(msg->recv);
+    RET(I2N(~j));
     CODE
   end
 
-  def fixnum_neg(_ = fixnum)
+  def fixnum_neg
     <<-CODE
-      j = N2I(self);
-      stack_push(I2N(-j));
+    native_int j;
+    GUARD(FIXNUM_P(msg->recv));
+    
+    j = N2I(msg->recv);
+    RET(I2N(-j));
     CODE
   end
 
-  def fixnum_right_shift(_ = fixnum, t1 = fixnum)
+  def fixnum_right_shift
     <<-CODE
+    OBJECT t1, t2;
     native_int value, width;
-    value = N2I(self);
+    
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
+
+    value = N2I(msg->recv);
     width = N2I(t1);
 
     if (width > 0) {
@@ -1741,212 +1938,244 @@ class ShotgunPrimitives
         value >>= width;
       }
     }
-    t2 = I2N(value);
-    stack_push(t2);
 
+    t2 = I2N(value);
+    RET(t2);
     CODE
   end
 
-  def fixnum_left_shift(_ = fixnum, t1 = fixnum)
+  def fixnum_left_shift
     <<-CODE
-
+    OBJECT t1, t2;
     native_int value, width;
-    value = N2I(self);
+    
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
+
+    value = N2I(msg->recv);
     width = N2I(t1);
 
     value <<= width;
     t2 = I2N(value);
-    stack_push(t2);
-
+    RET(t2);
     CODE
   end
 
   def bignum_new
     <<-CODE
-    (void)stack_pop();
+    OBJECT t1;
     POP(t1, FIXNUM);
-    stack_push(bignum_new(state, N2I(t1)));
+    RET(bignum_new(state, N2I(t1)));
     CODE
   end
   
   def bignum_to_float
     <<-CODE
-    POP(self, BIGNUM);
+    GUARD(BIGNUM_P(msg->recv));
 
-    stack_push(float_new(state, bignum_to_double(state, self)));
+    RET(float_new(state, bignum_to_double(state, msg->recv)));
     CODE
   end
 
-  def bignum_and(_ = bignum, t1 = integer)
+  def bignum_and
     <<-CODE
-    stack_push(bignum_and(state, self, t1));
+    OBJECT t1;
+    GUARD(BIGNUM_P(msg->recv));
+    POP(t1, INTEGER);
+
+    RET(bignum_and(state, msg->recv, t1));
     CODE
   end
 
   def bignum_or
     <<-CODE
-    POP(self, BIGNUM);
+    OBJECT t1;
+    GUARD(BIGNUM_P(msg->recv));
+    
     POP(t1, INTEGER);
 
-    stack_push(bignum_or(state, self, t1));
+    RET(bignum_or(state, msg->recv, t1));
     CODE
   end
 
   def bignum_xor
     <<-CODE
-    POP(self, BIGNUM);
+    OBJECT t1;
+    GUARD(BIGNUM_P(msg->recv));
+    
     POP(t1, INTEGER);
 
-    stack_push(bignum_xor(state, self, t1));
+    RET(bignum_xor(state, msg->recv, t1));
     CODE
   end
 
   def bignum_neg
     <<-CODE
-    POP(self, INTEGER);
+    GUARD(BIGNUM_P(msg->recv));
 
-    stack_push(bignum_neg(state, self));
+    RET(bignum_neg(state, msg->recv));
     CODE
   end
 
   def bignum_invert
     <<-CODE
-    POP(self, INTEGER);
+    GUARD(BIGNUM_P(msg->recv));
 
-    stack_push(bignum_invert(state, self));
+    RET(bignum_invert(state, msg->recv));
     CODE
   end
   
   def numeric_coerce
     <<-CODE
-    POP(self, INTEGER);
+    OBJECT t1, t3;
+
+    GUARD(INTEGER_P(msg->recv));
     POP(t1, INTEGER);
 
     t3 = array_new(state, 2);
-    if(BIGNUM_P(self)) {
+    if(BIGNUM_P(msg->recv)) {
       if(BIGNUM_P(t1)) {
         array_set(state, t3, 0, t1);
       } else {
         array_set(state, t3, 0, bignum_new(state, N2I(t1)));
       }
-      array_set(state, t3, 1, self);
+      array_set(state, t3, 1, msg->recv);
     } else {
       if(BIGNUM_P(t1)) {
         array_set(state, t3, 0, t1);
-        array_set(state, t3, 1, bignum_new(state, N2I(self)));
+        array_set(state, t3, 1, bignum_new(state, N2I(msg->recv)));
       } else {
         array_set(state, t3, 0, t1);
-        array_set(state, t3, 1, self);
+        array_set(state, t3, 1, msg->recv);
       }
     }
-    stack_push(t3);
+    RET(t3);
     CODE
   end
   
-  def bignum_compare(_ = bignum, t1 = bignum)
+  def bignum_compare
     <<-CODE
-    stack_push(bignum_compare(state, self, t1));
+    OBJECT t1;
+    GUARD(BIGNUM_P(msg->recv));
+    POP(t1, BIGNUM);
+
+    RET(bignum_compare(state, msg->recv, t1));
     CODE
   end
   
-  def fixnum_to_f(_ = fixnum)
+  def fixnum_to_f
     <<-CODE
-    stack_push(float_new(state, FIXNUM_TO_DOUBLE(self)));
+    GUARD(FIXNUM_P(msg->recv));
+
+    RET(float_new(state, FIXNUM_TO_DOUBLE(msg->recv)));
     CODE
   end
   
   def string_to_f
     <<-CODE
-    POP(self, STRING);
+    GUARD(STRING_P(msg->recv));
 
-    stack_push(float_new(state, string_to_double(state, self)));
+    RET(float_new(state, string_to_double(state, msg->recv)));
     CODE
   end
   
-  def fixnum_divmod(_ = fixnum, t1 = fixnum)
+  def fixnum_divmod
     <<-CODE
+    OBJECT t1;
+    GUARD(FIXNUM_P(msg->recv));
+    POP(t1, FIXNUM);
+
     GUARD( N2I(t1) != 0 ) // no divide by zero
-    stack_push(fixnum_divmod(state, self, t1));
+    RET(fixnum_divmod(state, msg->recv, t1));
     CODE
   end
   
   def bignum_left_shift
     <<-CODE
-    POP(self, BIGNUM);
+    OBJECT t1;
+    GUARD(BIGNUM_P(msg->recv));
+    
     POP(t1, FIXNUM);
 
-    stack_push(bignum_left_shift(state, self, t1));
+    RET(bignum_left_shift(state, msg->recv, t1));
     CODE
   end
 
   def bignum_right_shift
     <<-CODE
-    POP(self, BIGNUM);
+    OBJECT t1;
+    GUARD(BIGNUM_P(msg->recv));
+    
     POP(t1, FIXNUM);
 
-    stack_push(bignum_right_shift(state, self, t1));
+    RET(bignum_right_shift(state, msg->recv, t1));
     CODE
   end
 
   def find_method
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop(); // must be sym already
-    t1 = exported_cpu_find_method(state, c, self, t1, &t2);
+    OBJECT t1, t2, t3;
+    POP(t1, SYMBOL);
+    t1 = exported_cpu_find_method(state, c, msg->recv, t1, &t2);
     t3 = tuple_new(state, 2);
+    
     tuple_put(state, t3, 0, t2);
     tuple_put(state, t3, 1, t1);
-    stack_push(t3);
+    
+    RET(t3);
     CODE
   end
   
   def bignum_divmod
     <<-CODE
-    POP(self, BIGNUM);
+    OBJECT t1;
+
+    GUARD(BIGNUM_P(msg->recv));
+    
     POP(t1, BIGNUM); 
     
     // no divide by zero
     GUARD(!bignum_is_zero(state, t1));
 
-    stack_push(bignum_divmod(state, self, t1));
+    RET(bignum_divmod(state, msg->recv, t1));
     CODE
   end
   
   def object_taint
     <<-CODE
-    POP(self, REFERENCE);
-    object_set_tainted(state, self);
-    stack_push(self);
+    GUARD(REFERENCE_P(msg->recv));
+    object_set_tainted(state, msg->recv);
+    RET(msg->recv);
     CODE
   end
   
   def object_tainted_p
     <<-CODE
-    POP(self, REFERENCE);
-    stack_push(object_tainted_p(state, self) ? Qtrue : Qfalse);
+    GUARD(REFERENCE_P(msg->recv));
+    RET(object_tainted_p(state, msg->recv) ? Qtrue : Qfalse);
     CODE
   end
   
   def object_untaint
     <<-CODE
-    POP(self, REFERENCE);
-    object_set_untainted(state, self);
-    stack_push(self);
+    GUARD(REFERENCE_P(msg->recv));
+    object_set_untainted(state, msg->recv);
+    RET(msg->recv);
     CODE
   end
   
   def object_freeze
     <<-CODE
-    POP(self, REFERENCE);
-    object_set_frozen(state, self);
-    stack_push(self);
+    GUARD(REFERENCE_P(msg->recv));
+    object_set_frozen(state, msg->recv);
+    RET(msg->recv);
     CODE
   end
   
   def object_frozen_p
     <<-CODE
-    POP(self, REFERENCE);
-    stack_push(object_frozen_p(state, self) ? Qtrue : Qfalse);
+    GUARD(REFERENCE_P(msg->recv));
+    RET(object_frozen_p(state, msg->recv) ? Qtrue : Qfalse);
     CODE
   end
   
@@ -1954,55 +2183,59 @@ class ShotgunPrimitives
     <<-CODE
     native_int i;
     struct fast_context *fc;
-    POP(t1, CTX);
+    OBJECT t1;
 
-    fc = FASTCTX(t1);
-    i = N2I(stack_pop());
+    GUARD(CTX_P(msg->recv));
+    POP(t1, FIXNUM);
+
+    fc = FASTCTX(msg->recv);
+    i = N2I(t1);
+
     switch(i) {
       case 0:
         if(!NIL_P(fc->sender)) {
           methctx_reference(state, fc->sender);
         }
-        stack_push(fc->sender);
+        RET(fc->sender);
         break;
       case 1:
-        stack_push(I2N(fc->ip));
+        RET(I2N(fc->ip));
         break;
       case 2:
-        stack_push(I2N(fc->sp));
+        RET(I2N(fc->sp));
         break;
       case 3:
-        stack_push(fc->block);
+        RET(fc->block);
         break;
       case 5:
-        stack_push(fc->method);
+        RET(fc->method);
         break;
       case 6:
-        stack_push(fc->literals);
+        RET(fc->literals);
         break;
       case 7:
-        stack_push(fc->self);
+        RET(fc->self);
         break;
       case 8:
-        stack_push(fc->locals);
+        RET(fc->locals);
         break;
       case 9:
-        stack_push(I2N(fc->argcount));
+        RET(I2N(fc->argcount));
         break;
       case 10:
-        stack_push(fc->name);
+        RET(fc->name);
         break;
       case 11:
-        stack_push(fc->method_module);
+        RET(fc->method_module);
         break;
       case 12:
-        stack_push(I2N(fc->flags));
+        RET(I2N(fc->flags));
         break;
       case 13:
-        stack_push(I2N(fc->fp));
+        RET(I2N(fc->fp));
         break;
       default:
-        stack_push(Qnil);
+        RET(Qnil);
     }
     CODE
   end
@@ -2011,12 +2244,16 @@ class ShotgunPrimitives
     <<-CODE
     native_int i;
     struct fast_context *fc;
-    POP(t1, CTX);
+    OBJECT t2;
+
+    GUARD(CTX_P(msg->recv));
+    
     POP(t2, FIXNUM);
     i = N2I(t2);
-    t2 = stack_pop();
     
-    fc = FASTCTX(t1);
+    t2 = stack_pop();
+    fc = FASTCTX(msg->recv);
+    
     switch(i) {
       case 0:
         GUARD(CTX_P(t2));
@@ -2063,47 +2300,50 @@ class ShotgunPrimitives
         }
         break;
       default:
-        _ret = FALSE;
+        FAIL();
     }
 
-    stack_push(t2);
+    RET(t2);
     CODE
   end
 
   def fastctx_reload_method
     <<-CODE
     struct fast_context *fc;
-    POP(t1, CTX);
+    GUARD(CTX_P(msg->recv));
 
-    fc = FASTCTX(t1);
+    fc = FASTCTX(msg->recv);
     if(fc->method->obj_type == CMethodType) {
       fc->data = BYTEARRAY_ADDRESS(cmethod_get_compiled(fc->method));
     }
 
-    stack_push(Qtrue);
+    RET(Qtrue);
     CODE
   end
 
   def fastctx_set_iseq
     <<-CODE
     struct fast_context *fc;
-    POP(t1, CTX);
+    OBJECT t1;
+
+    GUARD(CTX_P(msg->recv));
+
     POP(t1, BYTEARRAY);
 
-    fc = FASTCTX(t1);
+    fc = FASTCTX(msg->recv);
     if(fc->method->obj_type == CMethodType) {
       cpu_compile_method(state, fc->method);
-      fc->data = BYTEARRAY_ADDRESS(t2);
+      fc->data = BYTEARRAY_ADDRESS(t1);
     }
 
-    stack_push(Qtrue);
+    RET(Qtrue);
     CODE
   end
 
   def vm_stats
     <<-CODE
 #ifdef TRACK_STATS
-    t1 = tuple_new(state, 7);
+    OBJECT t1 = tuple_new(state, 7);
     tuple_put(state, t1, 0, I2N(state->cache_hits));
     tuple_put(state, t1, 1, I2N(state->cache_misses));
     tuple_put(state, t1, 2, I2N(state->cache_used));
@@ -2111,32 +2351,31 @@ class ShotgunPrimitives
     tuple_put(state, t1, 4, I2N(state->cache_inline_hit));
     tuple_put(state, t1, 5, I2N(state->cache_inline_stale));
     tuple_put(state, t1, 6, I2N(state->cache_inline_const_hit));
-    stack_push(t1);
+    RET(t1);
 #else
-    stack_push(Qfalse);
+    RET(Qfalse);
 #endif
     CODE
   end
   
   def nmethod_call
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1;
     cpu_flush_ip(c);
     cpu_flush_sp(c);
     cpu_save_registers(state, c, msg->args);
-    t1 = nmc_new(state, msg->method, c->active_context, t1, msg->name, msg->args);
+    t1 = nmc_new(state, msg->method, c->active_context, msg->recv, msg->name, msg->args);
     nmc_activate(state, c, t1, Qnil, FALSE);
     CODE
   end
 
   def nfunc_call
     <<-CODE
-    /* Get rid of the module */
-    (void)stack_pop();
     /* The definition of beauty. Simplicity. To call a native function, there is no work 
        to be done. The stub contains all the serialization code. 
        
        That being said, this might get more complicated when callbacks are supported. */
+    cpu_patch_ffi(state, msg);
     ffi_call(state, c, nfunc_get_data(msg->method));
     CODE
   end
@@ -2147,27 +2386,29 @@ class ShotgunPrimitives
        to be done. The stub contains all the serialization code. 
        
        That being said, this might get more complicated when callbacks are supported. */
-    ffi_call(state, c, nfunc_get_data(stack_pop()));
+    ffi_call(state, c, nfunc_get_data(msg->recv));
     CODE
   end
   
   def nfunc_add
     <<-CODE
-    (void)stack_pop();
+    OBJECT t1, t2, t3, t4;
+
     POP(t1, STRING_OR_NIL);
     POP(t2, STRING);
     POP(t3, ARRAY);
     POP(t4, FIXNUM);
-    stack_push(ffi_function_create(state, t1, t2, t3, t4));
+    RET(ffi_function_create(state, t1, t2, t3, t4));
     CODE
   end
   
   def load_library
     <<-CODE
-    (void)stack_pop(); /* self */
+    OBJECT t1, t2;
+    
     POP(t1, STRING);
     POP(t2, STRING);
-    stack_push(subtend_load_library(state, c, t1, t2));
+    RET(subtend_load_library(state, c, t1, t2));
     CODE
   end
   
@@ -2176,8 +2417,9 @@ class ShotgunPrimitives
     glob_t gd;
     char *pat;
     int flags = GLOB_NOSORT | GLOB_BRACE;
+    OBJECT t1, t2;
+    native_int j, k;
 
-    (void)stack_pop();
     POP(t1, STRING);
     POP(t2, FIXNUM);
     
@@ -2190,104 +2432,107 @@ class ShotgunPrimitives
       array_set(state, t2, j, string_new(state, gd.gl_pathv[j]));
     }
     globfree(&gd);
-    stack_push(t2);
+    RET(t2);
     CODE
   end
   
   def dir_chdir
     <<-CODE
     char *path;
-    (void)stack_pop();
+    OBJECT t1;
+
     POP(t1, STRING);
     
     path = string_byte_address(state, t1);
     if(!chdir(path)) {
-      stack_push(Qtrue);
+      RET(Qtrue);
     } else {
-      stack_push(Qfalse);
+      RET(Qfalse);
     }
     CODE
   end
 
   def yield_gdb
     <<-CODE
-      (void)stack_pop();
-      self = stack_pop();
-      *((char*)4) = 1; /* cause a SIGBUS */
-      stack_push(Qtrue);
+    OBJECT t1 = stack_pop();
+    *((OBJECT*)4) = t1; /* cause a SIGBUS */
+    RET(Qtrue);
     CODE
   end
   
   def make_weak_ref
     <<-CODE
-    (void)stack_pop();
+    OBJECT t1;
     POP(t1, REFERENCE);
     
-    stack_push(object_make_weak_ref(state, t1));
+    RET(object_make_weak_ref(state, t1));
     CODE
   end
   
   def gc_collect_references
     <<-CODE
-    (void)stack_pop();
-    POP(self, REFERENCE);
+    OBJECT t1;
+    POP(t1, REFERENCE);
     
-    stack_push(object_memory_collect_references(state, state->om, self));
+    RET(object_memory_collect_references(state, state->om, t1));
     CODE
   end
 
   def task_dup
     <<-CODE
-    self = stack_pop();
-    
+    OBJECT t1;
     /* This is a little contrived so the dup'd task has
        it stack setup properly. */
     
     stack_push(Qnil);
     
-    if(TASK_P(self)) {
-      t1 = cpu_task_dup(state, c, self);
+    if(TASK_P(msg->recv)) {
+      t1 = cpu_task_dup(state, c, msg->recv);
     } else {
       t1 = cpu_task_dup(state, c, Qnil);
     }
     
-    cpu_stack_set_top(state, c, t1);    
+    cpu_stack_set_top(state, c, t1);
     CODE
   end
   
   def task_set_current
     <<-CODE
-    (void)stack_pop(); /* class */
-    POP(self, TASK);
+    OBJECT t1;
+    POP(t1, TASK);
     
     stack_push(Qnil);    
-    cpu_task_select(state, c, self);
+    cpu_task_select(state, c, t1);
     CODE
   end
   
   def task_associate
     <<-CODE
-    POP(self, TASK);
+    OBJECT t1;
+
+    GUARD(TASK_P(msg->recv));
     POP(t1, BLOCKENV);
     
-    stack_push(cpu_task_associate(state, c, self, t1));
+    RET(cpu_task_associate(state, c, msg->recv, t1));
     CODE
   end
   
   def task_current
     <<-CODE
-    (void)stack_pop(); /* class */
-    stack_push(c->current_task);
+    RET(c->current_task);
     CODE
   end
   
   def task_at
     <<-CODE
     struct cpu_task *task;
-    POP(self, TASK);
+    OBJECT t1, t2;
+    native_int k;
+
+    GUARD(TASK_P(msg->recv));
     POP(t1, FIXNUM);
     
-    task = (struct cpu_task*)BYTES_OF(self);
+    task = (struct cpu_task*)BYTES_OF(msg->recv);
     k = N2I(t1);
     
     switch(k) {
@@ -2302,61 +2547,63 @@ class ShotgunPrimitives
       t2 = Qnil;
     }
     
-    stack_push(t2);
+    RET(t2);
     CODE
   end
   
   def task_set_debugging
     <<-CODE
-    POP(self, TASK);
+    OBJECT t1, t2;
+    GUARD(TASK_P(msg->recv));
+
     t1 = stack_pop();
     t2 = stack_pop();
 
     GUARD(t1 == Qnil || CHANNEL_P(t1));
     GUARD(t2 == Qnil || CHANNEL_P(t2));
 
-    if(self == c->current_task) {
+    if(msg->recv == c->current_task) {
       c->debug_channel = t1;
       c->control_channel = t2;
     } else {
-      cpu_task_set_debugging(state, self, t1, t2);
+      cpu_task_set_debugging(state, msg->recv, t1, t2);
     }
-    stack_push(Qtrue);
+    RET(Qtrue);
     CODE
   end
 
   def task_debug_channel
     <<-CODE
     struct cpu_task *task;
-    POP(self, TASK);
+    GUARD(TASK_P(msg->recv));
     
-    task = (struct cpu_task*)BYTES_OF(self);
+    task = (struct cpu_task*)BYTES_OF(msg->recv);
 
-    stack_push(task->debug_channel);
+    RET(task->debug_channel);
     CODE
   end
   
   def task_control_channel
     <<-CODE
     struct cpu_task *task;
-    POP(self, TASK);
+    GUARD(TASK_P(msg->recv));
     
-    task = (struct cpu_task*)BYTES_OF(self);
+    task = (struct cpu_task*)BYTES_OF(msg->recv);
 
-    stack_push(task->control_channel);
+    RET(task->control_channel);
     CODE
   end
 
   def task_get_debug_context_change
     <<-CODE
     struct cpu_task *task;
-    POP(self, TASK);
+    GUARD(TASK_P(msg->recv));
     
-    task = (struct cpu_task*)BYTES_OF(self);
+    task = (struct cpu_task*)BYTES_OF(msg->recv);
     if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
-      stack_push(Qtrue);
+      RET(Qtrue);
     } else {
-      stack_push(Qfalse);
+      RET(Qfalse);
     }
     CODE
   end
@@ -2364,16 +2611,16 @@ class ShotgunPrimitives
   def task_set_debug_context_change
     <<-CODE
     struct cpu_task *task;
-    POP(self, TASK);
-    t1 = stack_pop();
+    GUARD(TASK_P(msg->recv));
+    OBJECT t1 = stack_pop();
     
-    task = (struct cpu_task*)BYTES_OF(self);
+    task = (struct cpu_task*)BYTES_OF(msg->recv);
     if(RTEST(t1)) {
       TASK_SET_FLAG(task, TASK_DEBUG_ON_CTXT_CHANGE);
       if(task->active) {
         TASK_SET_FLAG(c, TASK_DEBUG_ON_CTXT_CHANGE);
       }
-      stack_push(Qtrue);
+      RET(Qtrue);
     } else {
       if(TASK_FLAG_P(task, TASK_DEBUG_ON_CTXT_CHANGE)) {
         TASK_CLEAR_FLAG(task, TASK_DEBUG_ON_CTXT_CHANGE);
@@ -2381,7 +2628,7 @@ class ShotgunPrimitives
           TASK_CLEAR_FLAG(c, TASK_DEBUG_ON_CTXT_CHANGE);
         }
       }
-      stack_push(Qfalse);
+      RET(Qfalse);
     }
     CODE
   end
@@ -2389,34 +2636,37 @@ class ShotgunPrimitives
   def task_stack_size
     <<-CODE
     struct cpu_task *task;
-    POP(self, TASK);
+    GUARD(TASK_P(msg->recv));
 
-    task = (struct cpu_task*)BYTES_OF(self);
-    t1 = I2N(task->sp_ptr - task->stack_top);
+    task = (struct cpu_task*)BYTES_OF(msg->recv);
+    OBJECT t1 = I2N(task->sp_ptr - task->stack_top);
 
-    stack_push(t1);
+    RET(t1);
     CODE
   end
 
   def task_get_stack_value
     <<-CODE
     struct cpu_task *task;
-    POP(self, TASK);
+    OBJECT t1, t2;
+    
+    GUARD(TASK_P(msg->recv));
     POP(t1, FIXNUM);
 
-    task = (struct cpu_task*)BYTES_OF(self);
+    task = (struct cpu_task*)BYTES_OF(msg->recv);
     int idx = N2I(t1);
     GUARD(idx >=0 && idx < (task->sp_ptr - task->stack_top));
 
     t2 = *(task->sp_ptr - idx);
 
-    stack_push(t2);
+    RET(t2);
     CODE
   end
 
   def task_raise
     <<-CODE
-    POP(self, TASK);
+    OBJECT t1;
+    GUARD(TASK_P(msg->recv));
     
     t1 = stack_pop();
     
@@ -2427,7 +2677,7 @@ class ShotgunPrimitives
        not possible to select this task, in which case it handles letting
        the user know this on it's own. */
         
-    if(cpu_task_select(state, c, self)) {
+    if(cpu_task_select(state, c, msg->recv)) {
       cpu_raise_exception(state, c, t1);
     }
     CODE
@@ -2435,19 +2685,20 @@ class ShotgunPrimitives
   
   def thread_raise
     <<-CODE
-    POP(self, THREAD);
+    OBJECT t1;
+    GUARD(THREAD_P(msg->recv));
     
     t1 = stack_pop();
 
-    if(!cpu_thread_alive_p(state, self)) {
-      stack_push(Qfalse);
+    if(!cpu_thread_alive_p(state, msg->recv)) {
+      RET(Qfalse);
     } else {
 
       /* The return value */
       stack_push(Qtrue);
 
       cpu_thread_schedule(state, c->current_thread);    
-      cpu_thread_force_run(state, c, self);
+      cpu_thread_force_run(state, c, msg->recv);
 
       methctx_reference(state, c->active_context);
       exception_set_context(t1, c->active_context);
@@ -2459,43 +2710,38 @@ class ShotgunPrimitives
   
   def channel_new
     <<-CODE
-    (void)stack_pop();
-    stack_push(cpu_channel_new(state));
+    RET(cpu_channel_new(state));
     CODE
   end
   
   def channel_send
     <<-CODE
-    POP(self, CHANNEL);
+    OBJECT t1;
+    GUARD(CHANNEL_P(msg->recv));
     
     t1 = stack_pop();
-    stack_push(cpu_channel_send(state, c, self, t1));
+    RET(cpu_channel_send(state, c, msg->recv, t1));
     CODE
   end
   
   def channel_receive
     <<-CODE
-    POP(self, CHANNEL);
+    GUARD(CHANNEL_P(msg->recv));
     
-    cpu_channel_receive(state, c, self, c->current_thread);
+    cpu_channel_receive(state, c, msg->recv, c->current_thread);
     /* Don't touch the stack as we may be in a different task at this
        point. The original task's stack is updated when the channel
        is written to and the task restored. */
     CODE
   end
   
-  def channel_receive_many
-    <<-CODE
-    (void)stack_pop();
-    stack_push(Qnil);
-    CODE
-  end
-  
   def channel_send_in_microseconds
     <<-CODE
     double seconds;
-    (void)stack_pop(); /* scheduler */
-    POP(self, CHANNEL);
+    OBJECT t2, t1;
+    native_int k;
+
+    POP(t2, CHANNEL);
     POP(t1, INTEGER);
     
     if(FIXNUM_P(t1)) {
@@ -2506,34 +2752,37 @@ class ShotgunPrimitives
     
     seconds = k / 1000000.0;
     
-    stack_push(cpu_event_wake_channel(state, c, self, seconds));
+    RET(cpu_event_wake_channel(state, c, t2, seconds));
     CODE
   end
 
   def channel_send_in_seconds
     <<-CODE
     double seconds;
+    OBJECT t2, t1;
 
-    (void)stack_pop(); /* scheduler */
-    POP(self, CHANNEL);
+    POP(t2, CHANNEL);
     POP(t1, FLOAT);
 
     seconds = FLOAT_TO_DOUBLE(t1);
 
-    stack_push(cpu_event_wake_channel(state, c, self, seconds));
+    RET(cpu_event_wake_channel(state, c, t2, seconds));
     CODE
   end
 
   def channel_send_on_readable
     <<-CODE
-    (void)stack_pop(); /* scheduler */
-    POP(self, CHANNEL);
+    OBJECT t1, t2, t3, t4;
+    native_int j;
+
+    POP(t4, CHANNEL);
     t1 = stack_pop();
     t2 = stack_pop();
     t3 = stack_pop();
     
     GUARD(STRING_P(t2) || NIL_P(t2));
     GUARD(FIXNUM_P(t3) || NIL_P(t3));
+
     if(IO_P(t1)) {
       j = io_to_fd(t1);
     } else if(FIXNUM_P(t1)) {
@@ -2542,81 +2791,85 @@ class ShotgunPrimitives
       GUARD(0);
     }
     
-    stack_push(cpu_event_wait_readable(state, c, self, j, t2, N2I(t3)));
+    RET(cpu_event_wait_readable(state, c, t4, j, t2, N2I(t3)));
     CODE
   end
   
   def channel_send_on_writable
     <<-CODE
-    (void)stack_pop(); /* scheduler */
-    POP(self, CHANNEL);
-    POP(t1,   IO);
+    OBJECT t1, t2;
+    native_int j;
+
+    POP(t2, CHANNEL);
+    POP(t1, IO);
     
     j = io_to_fd(t1);
-    stack_push(cpu_event_wait_writable(state, c, self, j));
+    RET(cpu_event_wait_writable(state, c, t2, j));
     CODE
   end
   
   def channel_send_on_signal
     <<-CODE
-    (void)stack_pop(); /* scheduler */
-    POP(self, CHANNEL);
-    POP(t1,   FIXNUM);
+    OBJECT t1, t2;
+
+    POP(t2, CHANNEL);
+    POP(t1, FIXNUM);
     
-    stack_push(cpu_event_wait_signal(state, c, self, N2I(t1)));
+    RET(cpu_event_wait_signal(state, c, t2, N2I(t1)));
     CODE
   end
   
   def channel_send_on_stopped
     <<-CODE
-    (void)stack_pop(); /* scheduler */
-    POP(self, CHANNEL);
+    OBJECT t1, t2, t3;
+
+    POP(t3, CHANNEL);
     POP(t1, FIXNUM);
     POP(t2, FIXNUM);
     
-    stack_push(cpu_event_wait_child(state, c, self, N2I(t1), N2I(t2)));
+    RET(cpu_event_wait_child(state, c, t3, N2I(t1), N2I(t2)));
     CODE
   end
 
   def scheduler_cancel
     <<-CODE
-    (void)stack_pop();
+    OBJECT t1;
     POP(t1, FIXNUM);
 
-    stack_push(cpu_event_cancel_event(state, t1) ? Qtrue : Qfalse);
+    RET(cpu_event_cancel_event(state, t1) ? Qtrue : Qfalse);
     CODE
   end
   
   def thread_new
     <<-CODE
-    self = stack_pop();
-    stack_push(cpu_thread_new(state, c));
+    RET(cpu_thread_new(state, c));
     CODE
   end
   
   def thread_run
     <<-CODE
-    POP(self, THREAD);
-    GUARD(cpu_thread_alive_p(state, self));
+    GUARD(THREAD_P(msg->recv));
+    
+    GUARD(cpu_thread_alive_p(state, msg->recv));
     
     /* So when we're restored, there is a ret val. */
     stack_push(Qnil);
     cpu_thread_schedule(state, c->current_thread);    
-    cpu_thread_force_run(state, c, self);
+    cpu_thread_force_run(state, c, msg->recv);
     CODE
   end
   
   def thread_schedule
     <<-CODE
-    POP(self, THREAD);
-    cpu_thread_schedule(state, self);
-    stack_push(Qnil);
+    GUARD(THREAD_P(msg->recv));
+    
+    cpu_thread_schedule(state, msg->recv);
+    RET(Qnil);
     CODE
   end
   
   def thread_yield
     <<-CODE
-    (void)stack_pop();
     /* Same reason as thread_run */
     stack_push(Qnil);
     cpu_thread_schedule(state, c->current_thread);
@@ -2627,7 +2880,6 @@ class ShotgunPrimitives
   
   def thread_dequeue
     <<-CODE
-    (void)stack_pop();
     THDEBUG("%d: dequeue thread.\\n", getpid());
     cpu_thread_exited(state, c);
     CODE
@@ -2635,73 +2887,49 @@ class ShotgunPrimitives
   
   def thread_current
     <<-CODE
-    (void)stack_pop();
-    stack_push(c->current_thread);
+    RET(c->current_thread);
     CODE
   end
   
   def object_become
     <<-CODE
     void state_object_become(STATE, cpu c, OBJECT from, OBJECT to);
-    
-    POP(self, REFERENCE);
-    POP(t1,   REFERENCE);
-    state_object_become(state, c, self, t1);
-    stack_push(self);
-    CODE
-  end
-  
-  def old_object_become
-    <<-CODE
-    /* A very poor mans become. Copies all the data of t1 into self, so that 
-       self 'becomes' t1. This works perfectly for 'normal' objects that just
-       use ivars because the copy of t1 shares the ivar's hash, so they have the
-       same ivars. If you use #become! on a object that uses slots, they're just
-       copied, so you should use the newly become'd object rather than the original.
-       In other words, there is strangness with this implementation. */
-       
-    POP(self, REFERENCE);
-    POP(t1,   REFERENCE);
-    GUARD(NUM_FIELDS(t1) <= NUM_FIELDS(self));
-    k = NUM_FIELDS(self);
-    memcpy((void*)self, (void*)t1, SIZE_IN_BYTES(t1));
-    if(NUM_FIELDS(self) < k) {
-      for(j = 0; j < (k - NUM_FIELDS(self)); j++) {
-        SET_FIELD(self, NUM_FIELDS(self) + j, Qnil);
-      }
-    }
-    stack_push(Qnil);
+    OBJECT t1, t2;
+
+    POP(t2, REFERENCE);
+    POP(t1, REFERENCE);
+    state_object_become(state, c, t2, t1);
+    RET(t2);
     CODE
   end
   
   def sampler_activate
     <<-CODE
-    (void)stack_pop();
+    OBJECT t1;
+
     POP(t1, FIXNUM);
     cpu_sampler_activate(state, N2I(t1));
-    stack_push(ML2N(clock()));
+    RET(ML2N(clock()));
     CODE
   end
   
   def sampler_stop
     <<-CODE
-    (void)stack_pop();
-    t1 = cpu_sampler_disable(state);
-    stack_push(t1);
+    OBJECT t1 = cpu_sampler_disable(state);
+    RET(t1);
     CODE
   end
   
   def fork_process
     <<-CODE
-    (void)stack_pop(); /* class */
-    k = fork();
+    native_int k = fork();
     if(k == -1) {
       RAISE_FROM_ERRNO("Unable to fork");
     } else {
       if (k == 0) {
         environment_fork();
       }
-      stack_push(I2N(k));
+      RET(I2N(k));
     }
     CODE
   end
@@ -2709,11 +2937,11 @@ class ShotgunPrimitives
   # aka execve().
   def replace_process
     <<-CODE
-    native_int i;
+    native_int i, j, k;
     char *tmp, *file;
     char **argv;
+    OBJECT t1, t2, t3;
     
-    (void)stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, ARRAY);
     
@@ -2750,34 +2978,35 @@ class ShotgunPrimitives
 
   def ivar_get
     <<-CODE
-    self = stack_pop();
+    OBJECT t1;
     POP(t1, SYMBOL);
-    stack_push(object_get_ivar(state, self, t1));
+    RET(object_get_ivar(state, msg->recv, t1));
     CODE
   end
   
   def ivar_set
     <<-CODE
-    self = stack_pop();
+    OBJECT t1, t2;
     POP(t1, SYMBOL);
     t2 = stack_pop();
-    object_set_ivar(state, self, t1, t2);
-    stack_push(t2);
+    object_set_ivar(state, msg->recv, t1, t2);
+    RET(t2);
     CODE
   end
   
   def ivars_get
     <<-CODE
-    self = stack_pop();
-    stack_push(object_get_ivars(state, self));
+    RET(object_get_ivars(state, msg->recv));
     CODE
   end
   
   def str_crypt
     <<-CODE
-    POP(self, STRING);
+    OBJECT t1;
+
+    GUARD(STRING_P(msg->recv));
     POP(t1, STRING);
-    stack_push(string_new(state, crypt(string_byte_address(state, self),
+    RET(string_new(state, crypt(string_byte_address(state, msg->recv),
         string_byte_address(state, t1))));
     CODE
   end
@@ -2785,8 +3014,8 @@ class ShotgunPrimitives
   def env_get
     <<-CODE
     char *key;
+    OBJECT t1, t2;
 
-    (void)stack_pop();
     POP(t1, STRING);
 
     t2 = Qnil;
@@ -2800,15 +3029,15 @@ class ShotgunPrimitives
       }
     }
 
-    stack_push(t2);
+    RET(t2);
     CODE
   end
 
   def env_set
     <<-CODE
     char *key, *value;
+    OBJECT t1, t2;
 
-    (void)stack_pop();
     POP(t1, STRING);
     t2 = stack_pop();
 
@@ -2820,19 +3049,19 @@ class ShotgunPrimitives
       if(NIL_P(t2)) {
         value = getenv(key);
         if(value) {
-          stack_push(string_new(state, value));
           unsetenv(key);
+          RET(string_new(state, value));
         } else {
-          stack_push(Qnil);
+          RET(Qnil);
         }
       } else {
         GUARD(STRING_P(t2));
         value = string_byte_address(state, t2);
         if(value) {
           setenv(key, value, 1);
-          stack_push(t2);
+          RET(t2);
         } else {
-          stack_push(Qnil);
+          RET(Qnil);
         }
       }
     }
@@ -2862,27 +3091,28 @@ class ShotgunPrimitives
       hash_set(state, hash, key, val);
     } while(cur);
 
-    stack_push(hash);
+    RET(hash);
     CODE
   end
 
-  def bignum_size(_ = bignum)
+  def bignum_size
     <<-CODE
-    stack_push(bignum_size(state, self));
+    GUARD(BIGNUM_P(msg->recv));
+    RET(bignum_size(state, msg->recv));
     CODE
   end
 
   def iseq_compile
     <<-CODE
-    POP(self, CMETHOD); 
-    cpu_compile_method(state, self);
-    stack_push(Qtrue);
+    GUARD(CMETHOD_P(msg->recv));
+    cpu_compile_method(state, msg->recv);
+    RET(Qtrue);
     CODE
   end
 
   def reset_method_cache
     <<-CODE
-    (void)stack_pop(); /* self */
+    OBJECT t1;
     POP(t1, SYMBOL);
     cpu_clear_cache_for_method(state, c, t1, TRUE);
     CODE
@@ -2890,34 +3120,36 @@ class ShotgunPrimitives
   
   def bignum_from_float
     <<-CODE
-    (void)stack_pop(); /* we don't care */
+    OBJECT t1;
     POP(t1, FLOAT);
-    stack_push(bignum_from_double(state, FLOAT_TO_DOUBLE(t1)));
+    RET(bignum_from_double(state, FLOAT_TO_DOUBLE(t1)));
     CODE
   end
 
   def save_encloser_path
     <<-CODE
     cpu_set_encloser_path(state, c, state->global->object);
-    stack_push(Qnil);
+    RET(Qnil);
     CODE
   end
 
   def restore_encloser_path
     <<-CODE
     cpu_push_encloser(state, c);
-    stack_push(Qnil);
+    RET(Qnil);
     CODE
   end
   
   def array_aref
     <<-CODE
+    OBJECT t1, t3;
+    native_int j, k;
+
     GUARD(msg->args == 1);
-    self = stack_pop();
     t1 = stack_top();
     GUARD(FIXNUM_P(t1));
 
-    j = N2I(array_get_total(self));
+    j = N2I(array_get_total(msg->recv));
 
     k = N2I(t1);
 
@@ -2926,8 +3158,8 @@ class ShotgunPrimitives
     if(k < 0 || k >= j) {
       stack_set_top(Qnil);
     } else {
-      k += N2I(array_get_start(self));
-      t3 = array_get_tuple(self);
+      k += N2I(array_get_start(msg->recv));
+      t3 = array_get_tuple(msg->recv);
       GUARD(k < NUM_FIELDS(t3));
       
       stack_set_top(tuple_at(state, t3, k));
@@ -2937,23 +3169,25 @@ class ShotgunPrimitives
   
   def array_aset
     <<-CODE
+    OBJECT t1, t3;
+    native_int j, k;
+    
     GUARD(msg->args == 2);
-    self = stack_pop();
     t1 = stack_pop();
     GUARD(FIXNUM_P(t1));
 
-    j = N2I(array_get_total(self));    
+    j = N2I(array_get_total(msg->recv));    
     k = N2I(t1);
   
     if(k < 0) k += j;
     GUARD(k >= 0);
     
     if(k >= j - 1) {
-      array_set_total(self, I2N(k + 1));
+      array_set_total(msg->recv, I2N(k + 1));
     }
 
-    k += N2I(array_get_start(self));
-    t3 = array_get_tuple(self);
+    k += N2I(array_get_start(msg->recv));
+    t3 = array_get_tuple(msg->recv);
     GUARD(k < NUM_FIELDS(t3));
     
     tuple_put(state, t3, k, stack_top());
@@ -2962,43 +3196,45 @@ class ShotgunPrimitives
   
   def string_append
     <<-CODE
+    OBJECT t1;
+
     GUARD(msg->args == 1);
-    self = stack_pop();
-    t1 = stack_top();
-    GUARD(STRING_P(t1));
+    POP(t1, STRING);
     
-    string_append(state, self, t1);
-    cpu_stack_set_top(state, c, self);
+    string_append(state, msg->recv, t1);
+    RET(msg->recv);
     CODE
   end
   
   def string_dup
     <<-CODE
-    cpu_stack_set_top(state, c, string_dup(state, stack_top()));
+    RET(string_dup(state, msg->recv));
     CODE
   end
   
   def string_equal
     <<-CODE
-    self = stack_pop();
+    OBJECT t1, t2, t3;
+    native_int j, k, m;
+
     POP(t1, STRING);
     
-    if(self == t1) {
-      stack_push(Qtrue);
+    if(msg->recv == t1) {
+      RET(Qtrue);
     } else {
-      t2 = string_get_bytes(self);
+      t2 = string_get_bytes(msg->recv);
       t3 = string_get_bytes(t1);
       
       if(t2 != t3) {
-        stack_push(Qfalse);
+        RET(Qfalse);
       } else {
         j = N2I(t2);
         k = N2I(t3);
-        t2 = string_get_data(self);
+        t2 = string_get_data(msg->recv);
         t3 = string_get_data(t1);
 
         m = memcmp(BYTEARRAY_ADDRESS(t2), BYTEARRAY_ADDRESS(t3), j < k ? j : k);
-        stack_push(m == 0 ? Qtrue : Qfalse);
+        RET(m == 0 ? Qtrue : Qfalse);
       }
     }
     CODE
@@ -3006,7 +3242,7 @@ class ShotgunPrimitives
   
   def object_send
     <<-CODE
-    self = stack_pop();
+    OBJECT t1;
     GUARD(msg->args >= 1);
     t1 = stack_pop();
     if(!SYMBOL_P(t1)) {
@@ -3020,7 +3256,7 @@ class ShotgunPrimitives
     /* Send is allowed to call private methods. */
     c->call_flags = 1;
     
-    cpu_unified_send(state, c, self, t1, msg->args - 1, msg->block);
+    cpu_unified_send(state, c, msg->recv, t1, msg->args - 1, msg->block);
     CODE
   end
 
@@ -3034,7 +3270,6 @@ class ShotgunPrimitives
     machine m;
     environment e = environment_current();
 
-    (void)stack_pop(); /* class */
     POP(ary, ARRAY);
 
     argc = N2I(array_get_total(ary));
@@ -3058,41 +3293,41 @@ class ShotgunPrimitives
     tuple_put(state, ret, 1, io_new(state, pipes[0], "w"));
     tuple_put(state, ret, 2, io_new(state, pipes[1], "r"));
     tuple_put(state, ret, 3, io_new(state, pipes[2], "r"));
+
     stack_push(ret);
-
     environment_start_thread(e, m);
-
+    
+    DONE();
     CODE
   end
 
   def machine_join
     <<-CODE
-    (void)stack_pop(); /* class */
+    OBJECT t1;
     POP(t1, FIXNUM);
     if(environment_join_machine(environment_current(), N2I(t1))) {
-      stack_push(Qtrue);
+      RET(Qtrue);
     } else {
-      stack_push(Qfalse);
+      RET(Qfalse);
     }
     CODE
   end
 
   def machine_get_message
     <<-CODE
-    (void)stack_pop(); /* class */
-    stack_push(environment_get_message(environment_current(), current_machine->id));
+    RET(environment_get_message(environment_current(), current_machine->id));
     CODE
   end
 
   def machine_send_message
     <<-CODE
-    (void)stack_pop(); /* class */
+    OBJECT t1, t2;
     POP(t1, FIXNUM);
     t2 = stack_pop();
 
     environment_send_message(environment_current(), N2I(t1), t2);
 
-    stack_push(Qtrue);
+    RET(Qtrue);
     CODE
   end
 

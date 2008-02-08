@@ -974,7 +974,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
 #if defined(__amd64__) || defined(__x86_64__) || defined(X86_64)
   ptr = ffi_amd64_generate_c_shim(state, tot, arg_types, ret_type, ep);
   XFREE(arg_types);
-#elif defined(i386) && defined(__linux__)
+#elif defined(i386) // && defined(__linux__)
   ptr = ffi_x86_generate_c_shim(state, tot, arg_types, ret_type, ep);
   XFREE(arg_types);
 #else

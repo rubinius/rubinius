@@ -54,11 +54,6 @@ class RuntimePrimitive
   SerialNumber = 3
   ByteCodes = 4
 
-  SetIvar = 1024
-  GetIvar = 1025
-  SetIndex = 1026
-  GetIndex = 1027
-  DispatchAsMethod = 1028
 end
 
 class AccessVarMethod < RuntimePrimitive
@@ -66,7 +61,7 @@ class AccessVarMethod < RuntimePrimitive
 
   def self.get_ivar(name)
     obj = allocate()
-    obj.put RuntimePrimitive::PrimitiveIndex, RuntimePrimitive::GetIvar
+    obj.put RuntimePrimitive::PrimitiveIndex, :get_ivar
     obj.put RuntimePrimitive::RequiredArguments, 0
     obj.put RuntimePrimitive::SerialNumber, 0 # serial number
     obj.put RuntimePrimitive::ByteCodes, name
@@ -75,7 +70,7 @@ class AccessVarMethod < RuntimePrimitive
   
   def self.set_ivar(name)
     obj = allocate()
-    obj.put RuntimePrimitive::PrimitiveIndex, RuntimePrimitive::SetIvar
+    obj.put RuntimePrimitive::PrimitiveIndex, :set_ivar
     obj.put RuntimePrimitive::RequiredArguments, 1
     obj.put RuntimePrimitive::SerialNumber, 0 # serial number
     obj.put RuntimePrimitive::ByteCodes, name
@@ -84,7 +79,7 @@ class AccessVarMethod < RuntimePrimitive
   
   def self.get_index(idx)
     obj = allocate()
-    obj.put RuntimePrimitive::PrimitiveIndex, RuntimePrimitive::GetIndex
+    obj.put RuntimePrimitive::PrimitiveIndex, :get_index
     obj.put RuntimePrimitive::RequiredArguments, 0
     obj.put RuntimePrimitive::SerialNumber, 0 # serial number
     obj.put RuntimePrimitive::ByteCodes, idx
@@ -93,7 +88,7 @@ class AccessVarMethod < RuntimePrimitive
   
   def self.set_index(idx)
     obj = allocate()
-    obj.put RuntimePrimitive::PrimitiveIndex, RuntimePrimitive::SetIndex
+    obj.put RuntimePrimitive::PrimitiveIndex, :set_index
     obj.put RuntimePrimitive::RequiredArguments, 1
     obj.put RuntimePrimitive::SerialNumber, 0 # serial number
     obj.put RuntimePrimitive::ByteCodes, idx

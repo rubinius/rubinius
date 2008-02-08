@@ -56,7 +56,7 @@ int _object_stores_bytes(OBJECT self);
 
 #define ZLIB_CHUNK_SIZE 512
 
-#define INDEXED(obj) (RTEST(obj) && (REFERENCE_P(self) || !object_stores_bytes_p(state, obj)))
+#define INDEXED(obj) (RTEST(obj) && (REFERENCE_P(obj) || !object_stores_bytes_p(state, obj)))
 
 #define RTYPE(obj,type) (REFERENCE_P(obj) && obj->obj_type == type)
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
@@ -92,9 +92,9 @@ int _object_stores_bytes(OBJECT self);
 // defines a required arity for a primitive
 // return true because we want other handler code to ignore it
 // this is because it is raised directly in the primitive as an exception
-#define ARITY(required) if((required) != msg->args) { _ret = TRUE; cpu_raise_arg_error(state, c, msg->args, required); break; }
+#define ARITY(required) if((required) != msg->args) { cpu_raise_arg_error(state, c, msg->args, required); DONE(); }
 // for primitive protection
-#define GUARD(predicate_expression) if( ! (predicate_expression) ) { _ret = FALSE; break; }
+#define GUARD(predicate_expression) if( ! (predicate_expression) ) { FAIL(); }
 // popping with type checking -- a predicate function must be specified
 // i.e. if type is STRING then STRING_P must be specified
 #define POP(var, type) var = stack_pop(); GUARD( type##_P(var) )
@@ -106,17 +106,22 @@ int _object_stores_bytes(OBJECT self);
   })
 #define RAISE_FROM_ERRNO(msg) cpu_raise_from_errno(state, c, msg)
 
+#define PRIM_OK 1
+#define PRIM_FAIL 0
+
+#define RET(val) ({ stack_push(val); return PRIM_OK; })
+#define DONE() return PRIM_OK;
+#define FAIL() return PRIM_FAIL;
+
+
 void ffi_call(STATE, cpu c, OBJECT ptr);
+
+#include "shotgun/lib/primitive_implementation.gen"
 
 int cpu_perform_system_primitive(STATE, cpu c, int prim, struct message *msg) {
   int _ret = TRUE;
   int _orig_sp;
   OBJECT *_orig_sp_ptr;
-  OBJECT self, t1, t2, t3, t4;
-
-  native_int j, k, m;
-  int fds[2];
-  char *buf;
   
   _orig_sp_ptr = c->sp_ptr;
   _orig_sp = c->sp;
@@ -128,23 +133,4 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, struct message *msg) {
   }
   return _ret;
 }
-
-int cpu_perform_runtime_primitive(STATE, cpu c, int prim, struct message *msg) {
-  int _ret = TRUE;
-  OBJECT self, t1, t2, t3;
-  int _orig_sp;
-  native_int j;
-  OBJECT *_orig_sp_ptr;
-  
-  _orig_sp_ptr = c->sp_ptr;
-  _orig_sp = c->sp;
-  #include "shotgun/lib/runtime_primitives.gen"
-  
-  if(!_ret) {
-    c->sp_ptr = _orig_sp_ptr;
-    c->sp = _orig_sp;
-  }
-  return _ret;
-}
-
 

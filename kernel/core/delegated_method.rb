@@ -9,7 +9,7 @@ class DelegatedMethod < RuntimePrimitive
   
   def self.build(sym, receiver, pass_self)
     obj = allocate()
-    obj.put RuntimePrimitive::PrimitiveIndex, RuntimePrimitive::DispatchAsMethod
+    obj.put RuntimePrimitive::PrimitiveIndex, :dispatch_as_method
     obj.put RuntimePrimitive::RequiredArguments, -1
     obj.put RuntimePrimitive::SerialNumber, 0
     obj.put RuntimePrimitive::ByteCodes, sym

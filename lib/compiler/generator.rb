@@ -475,6 +475,10 @@ class Compiler
     def send_with_block(meth, count, priv=false)
       add :set_call_flags, 1 if priv
       
+      unless count.kind_of? Fixnum
+        raise Error, "count must be a number"
+      end
+      
       ss = SendSite.new meth
       idx = add_literal(ss)
 

@@ -152,7 +152,6 @@ module Bytecode
       :channel_send_on_readable,
       :channel_send_on_writable,
       :channel_send_on_signal,
-      :channel_receive_many,
       :sampler_activate,
       :sampler_stop,
       :replace_process,
@@ -190,18 +189,12 @@ module Bytecode
       :fastctx_set_iseq,
       :task_get_debug_context_change,
       :task_set_debug_context_change,
-      :scheduler_cancel
-    ]
-
-    FirstRuntimePrimitive = 1024
-
-    RuntimePrimitives = [
+      :scheduler_cancel,
       :set_ivar,
       :get_ivar,
       :set_index,
       :get_index,
       :dispatch_as_method
     ]
-    
   end
 end

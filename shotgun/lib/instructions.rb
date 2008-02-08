@@ -342,7 +342,7 @@ CODE
     msg.args = k;
     msg.method = Qnil;
     msg.module = Qnil;
-    if(!cpu_perform_primitive(state, c, j, &msg))
+    if(!cpu_perform_system_primitive(state, c, j, &msg))
     {
       cpu_raise_primitive_failure(state, c, j);
     }
@@ -839,7 +839,7 @@ CODE
 
     perform_send:
 
-    msg.name = _lit;
+    msg.send_site = _lit;
     msg.recv = t1;
     msg.block = t2;
     msg.args = j;
@@ -870,7 +870,7 @@ CODE
     
     perform_super_send:
     
-    msg.name = _lit;
+    msg.send_site = _lit;
     msg.recv = c->self;
     msg.block = stack_pop();
     msg.args = j;
@@ -924,7 +924,7 @@ CODE
       _lit = global->sym_plus;
       t2 = Qnil;
       j = 1;
-      goto perform_send;
+      goto perform_no_ss_send;
     }
     CODE
   end
@@ -939,7 +939,7 @@ CODE
       _lit = global->sym_minus;
       t2 = Qnil;
       j = 1;
-      goto perform_send;
+      goto perform_no_ss_send;
     }
     CODE
   end
@@ -955,7 +955,7 @@ CODE
       _lit = global->sym_equal;
       t2 = Qnil;
       j = 1;
-      goto perform_send;
+      goto perform_no_ss_send;
     }
     CODE
   end
@@ -971,7 +971,7 @@ CODE
       _lit = global->sym_nequal;
       t2 = Qnil;
       j = 1;
-      goto perform_send;
+      goto perform_no_ss_send;
     }
     CODE
   end
@@ -988,7 +988,7 @@ CODE
       _lit = global->sym_tequal;
       t2 = Qnil;
       j = 1;
-      goto perform_send;
+      goto perform_no_ss_send;
     }
     CODE
   end
@@ -1005,7 +1005,7 @@ CODE
       _lit = global->sym_lt;
       t2 = Qnil;
       j = 1;
-      goto perform_send;
+      goto perform_no_ss_send;
     }
     CODE
   end
@@ -1022,7 +1022,7 @@ CODE
       _lit = global->sym_gt;
       t2 = Qnil;
       j = 1;
-      goto perform_send;
+      goto perform_no_ss_send;
     }
     CODE
   end
@@ -1038,7 +1038,9 @@ CODE
       _lit = global->sym_call;
       t2 = Qnil;
       j = _int;
-      goto perform_send;
+
+perform_no_ss_send:
+      cpu_unified_send(state, c, t1, _lit, j, t2); 
     }
     CODE
   end

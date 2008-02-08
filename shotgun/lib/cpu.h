@@ -141,7 +141,7 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_current_sender(cpu) (cpu->sender)
 #define cpu_current_scope(state, cpu) cmethod_get_staticscope(FASTCTX(cpu->home_context)->method)
 
-#define cpu_flush_ip(cpu) (cpu->ip = (unsigned int)(*(cpu->ip_ptr) - cpu->data))
+#define cpu_flush_ip(cpu) (cpu->ip = (unsigned int)(*cpu->ip_ptr - cpu->data))
 #define cpu_flush_sp(cpu) (cpu->sp = (unsigned int)(cpu->sp_ptr - cpu->stack_top))
 
 #define cpu_cache_ip(cpu) (*(cpu->ip_ptr) = (cpu->data + cpu->ip))
@@ -281,22 +281,11 @@ OBJECT cpu_sampler_disable(STATE);
 #define cpu_stack_top(state, c) (*(c)->sp_ptr)
 #define cpu_stack_set_top(state, c, oop) (*(c)->sp_ptr = oop)
 
-#define MAX_SYSTEM_PRIM 2048
-
-#define FIRST_RUNTIME_PRIM 1024
-
+typedef int (*prim_func)(STATE, cpu c, struct message *msg);
+void cpu_patch_primitive(STATE, struct message *msg, prim_func func);
 int cpu_perform_system_primitive(STATE, cpu c, int prim, struct message *msg);
 
-int cpu_perform_runtime_primitive(STATE, cpu c, int prim, struct message *msg);
-
-static inline int cpu_perform_primitive(STATE, cpu c, int prim, struct message *msg) {
-  if(prim < FIRST_RUNTIME_PRIM) {
-    return cpu_perform_system_primitive(state, c, prim, msg);
-  } else {
-    return cpu_perform_runtime_primitive(state, c, prim, msg);
-  }
-}
-
-
+void cpu_patch_ffi(STATE, struct message *msg);
+void ffi_call(STATE, cpu c, OBJECT ptr);
 
 #endif /* RBS_CPU_H */

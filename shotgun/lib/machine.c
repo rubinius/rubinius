@@ -44,6 +44,8 @@ void machine_print_callstack_limited(machine m, int maxlev) {
 
   cpu_flush_ip(m->c);
   cpu_flush_sp(m->c);
+
+  FASTCTX(context)->ip = m->c->ip;
   
   while(RTEST(context) && maxlev--) {
     methctx_reference(m->s, context);
