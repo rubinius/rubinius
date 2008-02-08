@@ -244,8 +244,8 @@ class Moment
 
   def format(str)
     h = to_human()
-
-    str.gsub(/%([AaBbcCdDeFGgHhIjklMmnpRrSsTtUuVvWwXxYyZz+])/) do |which|
+    pattern = /%([#{FormatMethod.keys.join}])/o
+    str.gsub(pattern) do |which|
       h.__send__ FormatMethod[$1.to_sym]
     end
   end
