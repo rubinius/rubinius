@@ -455,7 +455,7 @@ class File::Stat
   
   def initialize(path, follow_links=true)
     @path = StringValue path
-    @struct = self.class.basic_stat @path, follow_links
+    @struct = self.class.stat @path, follow_links
     Errno.handle @path unless @struct
   end
   
@@ -499,11 +499,13 @@ class File::Stat
   end
   
   def dev_major
-    POSIX.major stat[:st_dev]
+    major = POSIX.major stat[:st_dev]
+    major < 0 ? nil : major
   end
   
   def dev_minor
-    POSIX.major stat[:st_dev]
+    minor = POSIX.major stat[:st_dev]
+    minor < 0 ? nil : minor
   end
 
   def directory?
@@ -595,11 +597,13 @@ class File::Stat
   end
   
   def rdev_major
-    POSIX.major stat[:st_rdev]
+    major = POSIX.major stat[:st_rdev]
+    major < 0 ? nil : major
   end
   
   def rdev_minor
-    POSIX.minor stat[:st_rdev]
+    minor = POSIX.minor stat[:st_rdev]
+    minor < 0 ? nil : minor
   end
   
   def readable?

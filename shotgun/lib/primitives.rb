@@ -1165,24 +1165,9 @@ class ShotgunPrimitives
       free(sb);
       stack_push(Qfalse);
     } else {
-      t2 = tuple_new(state, 3);
       t3 = ffi_new_pointer(state, sb);
       ffi_autorelease(t3, 1);
-      tuple_put(state, t2, 0, t3);
-
-      #ifdef major
-        tuple_put(state, t2, 1, ML2N(major(sb->st_dev)));
-      #else
-        tuple_put(state, t2, 1, Qnil);
-      #endif
-
-      #ifdef minor
-        tuple_put(state, t2, 2, ML2N(minor(sb->st_dev)));
-      #else
-        tuple_put(state, t2, 2, Qnil);
-      #endif
-
-      stack_push(t2);
+      stack_push(t3);
     }
     CODE
   end
