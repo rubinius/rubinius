@@ -1199,19 +1199,26 @@ inline void cpu_send_message(STATE, cpu c, struct message *msg) {
 
   msg->missing = 0;
 
-  ss = SENDSITE(msg->send_site);
-  msg->name = ss->name;
+  if(SENDSITE_P(msg->send_site)) {
 
-  /* If the send_site has a custom lookup function, use it. */
-  if(ss->lookup) {
-    switch(ss->lookup(state, c, ss, msg)) {
-    case SEND_SITE_DONE:     /* lookup did all the work, we're done. */
-      return;
-    case SEND_SITE_RESOLVED: /* lookup filled in msg with the details. */
-      goto dispatch;
-    case SEND_SITE_BYTECODE: /* same as resolved, but only run the bytecode */
-      goto bytecode;
+    ss = SENDSITE(msg->send_site);
+    msg->name = ss->name;
+
+    /* If the send_site has a custom lookup function, use it. */
+    if(ss->lookup) {
+      switch(ss->lookup(state, c, ss, msg)) {
+        case SEND_SITE_DONE:     /* lookup did all the work, we're done. */
+          return;
+        case SEND_SITE_RESOLVED: /* lookup filled in msg with the details. */
+          goto dispatch;
+        case SEND_SITE_BYTECODE: /* same as resolved, but only run the bytecode */
+          goto bytecode;
+      }
     }
+
+  } else {
+    msg->name = msg->send_site;
+    msg->send_site = Qnil;
   }
 
   /* We're here if SEND_SITE_ABORT was returned, or if there was no 
@@ -1223,7 +1230,7 @@ inline void cpu_send_message(STATE, cpu c, struct message *msg) {
   }
     
   /* If it's not method_missing, cache the details of msg in the send_site */
-  if(!msg->missing) cpu_initialize_sendsite(state, ss, msg);
+  if(!msg->missing && REFERENCE_P(msg->send_site)) cpu_initialize_sendsite(state, ss, msg);
 
 dispatch:
 

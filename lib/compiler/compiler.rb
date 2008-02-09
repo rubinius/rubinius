@@ -87,7 +87,7 @@ class Compiler
   def initialize(gen_class, binding=nil)
     @variables = {}
     @generator_class = gen_class
-    @call_plugins = []
+    @plugins = Hash.new { |h,k| h[k]= [] }
 
     @file = "(unknown)"
     @line = 0
@@ -156,7 +156,7 @@ class Compiler
     end
   end
 
-  attr_reader :call_plugins
+  attr_reader :plugins
   attr_accessor :generator_class
 
   def set_position(file, line)
@@ -182,6 +182,7 @@ class Compiler
     activate_default :inline
     activate_default :fastsystem
     activate_default :fastgeneric
+    activate_default :auto_primitive
   end
 
   def activate_default(name)
@@ -191,7 +192,7 @@ class Compiler
   def activate(name)
     cls = Compiler::Plugins.find_plugin(name)
     raise Error, "Unknown plugin '#{name}'" unless cls
-    @call_plugins << cls.new(self)
+    @plugins[cls.kind] << cls.new(self)
   end
 
   def inspect
