@@ -30,8 +30,8 @@ baker_gc baker_gc_new(int size) {
 }
 
 void baker_gc_describe(baker_gc g) {
-  printf("Size:    %lx (%ld)\n", g->current->size, g->current->size);
-  printf("Used:    %ld\n", g->used);
+  printf("Size:    %x (%d)\n", (unsigned int)g->current->size, (int)g->current->size);
+  printf("Used:    %d\n", (int)g->used);
   printf("Current: %p => %p\n", (void*)g->current->address, 
       (void*)g->current->last);
   printf("Next:    %p => %p\n", (void*)g->next->address, (void*)g->next->last);

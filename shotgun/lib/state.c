@@ -126,7 +126,7 @@ void state_collect(STATE, cpu c) {
     elapse += (((double)fin.tv_usec - start.tv_usec) / 1000000);
     printf("[GC Y %f secs, %ldK total, %3dK used, %4d tenured, %d]\n",
       elapse,
-      (state->om->gc->current->size / 1024),
+      (long int)(state->om->gc->current->size / 1024),
       (unsigned int)(((uintptr_t)state->om->gc->current->current - (uintptr_t)state->om->gc->current->address) / 1024),
       state->om->last_tenured,
       state->om->gc->num_collection

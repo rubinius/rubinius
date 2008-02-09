@@ -241,7 +241,7 @@ static void marshal_fixnum(STATE, OBJECT obj, bstring buf) {
   char buffer[1024];
   int i;
 
-  i = snprintf(buffer, 1023, "%ld", N2I(obj));
+  i = snprintf(buffer, 1023, "%ld", (long int)N2I(obj));
 
   append_c('B');
   append_sz(i);
