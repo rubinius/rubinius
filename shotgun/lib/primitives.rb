@@ -1122,6 +1122,46 @@ class ShotgunPrimitives
     CODE
   end
   
+  def basic_stat
+    <<-CODE
+    struct stat *sb = malloc(sizeof(struct stat));
+    POP(self, CLASS);
+    POP(t1, STRING);
+    t2 = stack_pop();
+
+    char *path = string_byte_address(state, t1);
+    if (RTEST(t2)) {
+      j = stat(path, sb);
+    } else {
+      j = lstat(path, sb);
+    }
+
+    if(j != 0) {
+      free(sb);
+      stack_push(Qfalse);
+    } else {
+      t2 = tuple_new(state, 3);
+      t3 = ffi_new_pointer(state, sb);
+      ffi_autorelease(t3, 1);
+      tuple_put(state, t2, 0, t3);
+
+      #ifdef major
+        tuple_put(state, t2, 1, ML2N(major(sb->st_dev)));
+      #else
+        tuple_put(state, t2, 1, Qnil);
+      #endif
+
+      #ifdef minor
+        tuple_put(state, t2, 2, ML2N(minor(sb->st_dev)));
+      #else
+        tuple_put(state, t2, 2, Qnil);
+      #endif
+
+      stack_push(t2);
+    }
+    CODE
+  end
+  
   def stat_file
     <<-CODE
     struct stat *sb = malloc(sizeof(struct stat));
@@ -1175,7 +1215,7 @@ class ShotgunPrimitives
           t3 = string_to_sym(state, string_new(state, "file"));
       }
 
-      tuple_put(state, t2, 2, t3);
+      tuple_put(state, t2, 2, Qnil);
       tuple_put(state, t2, 3, I2N((native_int)sb->st_uid));
       tuple_put(state, t2, 4, I2N((native_int)sb->st_gid));
       tuple_put(state, t2, 5, I2N((native_int)sb->st_size));

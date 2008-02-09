@@ -59,7 +59,7 @@ class File < IO
   # Class methods
 
   def self.atime(path)
-    Stat.basic_stat(path, true).atime
+    BasicStat.new(path).atime
   end
 
   def self.basename(path,ext = "")
@@ -69,12 +69,12 @@ class File < IO
   end
 
   def self.blockdev?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.blockdev? : false
   end
 
   def self.chardev?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.chardev? : false
   end
 
@@ -84,11 +84,11 @@ class File < IO
   end
 
   def self.ctime(path)
-    Stat.basic_stat(path, true).ctime
+    BasicStat.new(path).ctime
   end
 
   def self.directory?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.directory? : false
   end
 
@@ -98,17 +98,17 @@ class File < IO
   end
 
   def self.executable?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.executable? : false
   end
 
   def self.executable_real?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.executable_real? : false
   end
 
   def self.exist?(path)
-    Stat.basic_stat(path) ? true : false
+    BasicStat.stat?(path) ? true : false
   end
 
   def self.expand_path(path, dir_string = nil)
@@ -130,7 +130,7 @@ class File < IO
   end
 
   def self.file?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.file? : false
   end
 
@@ -236,25 +236,25 @@ class File < IO
   end
 
   def self.lstat(path)
-    Stat.basic_stat path, true, false
+    BasicStat.new path, false
   end
 
   def self.mtime(path)
-    Stat.basic_stat(path, true).mtime
+    BasicStat.new(path).mtime
   end
 
   def self.pipe?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.pipe? : false
   end
 
   def self.readable?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.readable? : false
   end
 
   def self.readable_real?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.readable_real? : false
   end
 
@@ -283,12 +283,12 @@ class File < IO
   end
 
   def self.size?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.size : nil
   end
 
   def self.socket?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.socket? : false
   end
 
@@ -298,7 +298,7 @@ class File < IO
   end
 
   def self.stat(path)
-    Stat.basic_stat path, true
+    BasicStat.new path
   end
 
   def self.symlink(from, to)
@@ -311,7 +311,7 @@ class File < IO
   end
 
   def self.symlink?(path)
-    st = Stat.basic_stat path, false, false
+    st = BasicStat.stat? path, false
     st ? st.symlink? : false
   end
 
@@ -375,17 +375,17 @@ class File < IO
   end
 
   def self.writable?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.writable? : false
   end
 
   def self.writable_real?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.writable_real? : false
   end
 
   def self.zero?(path)
-    st = Stat.basic_stat path
+    st = BasicStat.stat? path
     st ? st.zero? : false
   end
 
@@ -398,7 +398,7 @@ class File < IO
   # Instance methods
 
   def atime
-    Stat.basic_stat(@path).atime
+    BasicStat.new(@path).atime
   end
 
   def chmod(mode)
@@ -406,48 +406,24 @@ class File < IO
   end
 
   def ctime
-    Stat.basic_stat(@path).ctime
+    BasicStat.new(@path).ctime
   end
 
   def lstat
-    Stat.basic_stat @path, false
+    BasicStat.new @path, false
   end
   
   def mtime
-    Stat.basic_stat(@path).mtime
+    BasicStat.new(@path).mtime
   end
-
+  
   def stat
-    Stat.basic_stat @path
+    BasicStat.new @path
   end
 end       # File
 
-class File::Stat
-  self.instance_fields = 16
-  ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
-                :size => 5, :block => 6, :atime => 7, :mtime => 8,
-                :ctime => 9, :path => 10, :blksize => 11, :dev => 12,
-                :dev_major => 13, :dev_minor => 14, :struct => 15
-
-  def ino;        @inode;           end
-  def mode;       @mode;            end
-  def owner;      @owner;           end
-  def group;      @group;           end
-  def size;       @size;            end
-  def block;      @block;           end
-  def atime;      Time.at(@atime);  end
-  def mtime;      Time.at(@mtime);  end
-  def ctime;      Time.at(@ctime);  end
-  def path;       @path;            end
-  def blksize;    @blksize;         end
-  def dev;        @dev;             end
-  def dev_major;  @dev_major;       end
-  def dev_minor;  @dev_minor;       end
-
-  alias_method :gid, :group
-  alias_method :uid, :owner
-  
-  class StructStat < FFI::Struct
+class File::BasicStat
+  class Struct < FFI::Struct
     config "rbx.platform.stat", :st_dev, :st_ino, :st_mode, :st_nlink,
            :st_uid, :st_gid, :st_rdev, :st_size, :st_blksize, :st_blocks,
            :st_atime, :st_mtime, :st_ctime
@@ -477,45 +453,104 @@ class File::Stat
 
   POSIX    = Platform::POSIX
   
-  def self.basic_stat(path, complain=false, follow_links=true)
-    path = StringValue path
-    st = stat path, follow_links
-    Errno.handle path unless st or not complain
-    st
+  def initialize(path, follow_links=true)
+    @path = StringValue path
+    tuple = self.class.basic_stat @path, follow_links
+    Errno.handle @path unless tuple
+    @struct, @dev_major, @dev_minor = tuple
   end
   
-  def struct
-    @stat ||= StructStat.new @struct
+  def self.stat?(path, follow_links=true)
+    new path, follow_links
+  rescue Errno::ENOENT, Errno::ENOTDIR
+    nil
+  end
+  
+  def stat
+    @stat ||= Struct.new @struct
+  end
+  private :stat
+  
+  def ino
+    stat[:st_ino]
+  end
+  
+  def mode
+    stat[:st_mode]
+  end
+  
+  def uid
+    stat[:st_uid]
+  end
+  
+  def gid
+    stat[:st_gid]
+  end
+  
+  def blocks
+    stat[:st_blocks]
+  end
+  
+  def atime
+    Time.at stat[:st_atime]
+  end
+  
+  def ctime
+    Time.at stat[:st_ctime]
+  end
+  
+  def mtime
+    Time.at stat[:st_mtime]
+  end
+  
+  def path
+    @path
+  end
+  
+  def blksize
+    stat[:st_blksize]
+  end
+  
+  def dev
+    stat[:st_dev]
+  end
+  
+  def dev_major
+    @dev_major
+  end
+  
+  def dev_minor
+    @dev_minor
   end
 
   def blockdev?
-    @mode & S_IFMT == S_IFBLK
+    stat[:st_mode] & S_IFMT == S_IFBLK
   end
 
   def chardev?
-    @mode & S_IFMT == S_IFCHR
+    stat[:st_mode] & S_IFMT == S_IFCHR
   end
 
   def directory?
-    @mode & S_IFMT == S_IFDIR
+    stat[:st_mode] & S_IFMT == S_IFDIR
   end
 
   def executable?
     return true if superuser?
-    return @mode & S_IXUSR != 0 if owned?
-    return @mode & S_IXGRP != 0 if grpowned?
-    return @mode & S_IXOTH != 0
+    return stat[:st_mode] & S_IXUSR != 0 if owned?
+    return stat[:st_mode] & S_IXGRP != 0 if grpowned?
+    return stat[:st_mode] & S_IXOTH != 0
   end
 
   def executable_real?
     return true if rsuperuser?
-    return @mode & S_IXUSR != 0 if rowned?
-    return @mode & S_IXGRP != 0 if rgrpowned?
-    return @mode & S_IXOTH != 0
+    return stat[:st_mode] & S_IXUSR != 0 if rowned?
+    return stat[:st_mode] & S_IXGRP != 0 if rgrpowned?
+    return stat[:st_mode] & S_IXOTH != 0
   end
 
   def file?
-    @mode & S_IFMT == S_IFREG
+    stat[:st_mode] & S_IFMT == S_IFREG
   end
 
   def ftype
@@ -539,7 +574,8 @@ class File::Stat
   end
 
   def grpowned?
-    @group == POSIX.getegid
+    # @group == POSIX.getegid
+    stat[:st_gid] == POSIX.getegid
   end
 
   def inspect
@@ -547,67 +583,73 @@ class File::Stat
   end
 
   def owned?
-    @owner == POSIX.geteuid
+    # @owner == POSIX.geteuid
+    stat[:st_uid] == POSIX.geteuid
   end
 
   def pipe?
-    @mode & S_IFMT == S_IFIFO
+    stat[:st_mode] & S_IFMT == S_IFIFO
   end
 
   def readable?
     return true if superuser?
-    return @mode & S_IRUSR != 0 if owned?
-    return @mode & S_IRGRP != 0 if grpowned?
-    return @mode & S_IROTH != 0
+    return stat[:st_mode] & S_IRUSR != 0 if owned?
+    return stat[:st_mode] & S_IRGRP != 0 if grpowned?
+    return stat[:st_mode] & S_IROTH != 0
   end
 
   def readable_real?
     return true if rsuperuser?
-    return @mode & S_IRUSR != 0 if rowned?
-    return @mode & S_IRGRP != 0 if rgrpowned?
-    return @mode & S_IROTH != 0
+    return stat[:st_mode] & S_IRUSR != 0 if rowned?
+    return stat[:st_mode] & S_IRGRP != 0 if rgrpowned?
+    return stat[:st_mode] & S_IROTH != 0
   end
 
-  def size?
-    @size == 0 ? nil : @size
+  def size
+    stat[:st_size]
   end
-  alias_method :size, :size?
+  
+  def size?
+    size == 0 ? nil : size
+  end
 
   def socket?
-    @mode & S_IFMT == S_IFSOCK
+    stat[:st_mode] & S_IFMT == S_IFSOCK
   end
 
   def symlink?
-    @mode & S_IFMT == S_IFLNK
+    stat[:st_mode] & S_IFMT == S_IFLNK
   end
 
   def writable?
     return true if superuser?
-    return @mode & S_IWUSR != 0 if owned?
-    return @mode & S_IWGRP != 0 if grpowned?
-    return @mode & S_IWOTH != 0
+    return stat[:st_mode] & S_IWUSR != 0 if owned?
+    return stat[:st_mode] & S_IWGRP != 0 if grpowned?
+    return stat[:st_mode] & S_IWOTH != 0
   end
 
   def writable_real?
     return true if rsuperuser?
-    return @mode & S_IWUSR != 0 if rowned?
-    return @mode & S_IWGRP != 0 if rgrpowned?
-    return @mode & S_IWOTH != 0
+    return stat[:st_mode] & S_IWUSR != 0 if rowned?
+    return stat[:st_mode] & S_IWGRP != 0 if rgrpowned?
+    return stat[:st_mode] & S_IWOTH != 0
   end
 
   def zero?
-    @size == 0
+    stat[:st_size] == 0
   end
 
   # Internal methods
 
   def rgrpowned?
-    @group == POSIX.getgid
+    # @group == POSIX.getgid
+    stat[:st_gid] == POSIX.getgid
   end
   private :rgrpowned?
 
   def rowned?
-    @owner == POSIX.getuid
+    # @owner == POSIX.getuid
+    stat[:st_uid] == POSIX.getuid
   end
   private :rowned?
 
@@ -620,4 +662,4 @@ class File::Stat
     POSIX.geteuid == 0
   end
   private :superuser?
-end   # File::Stat
+end
