@@ -59,7 +59,7 @@ class File < IO
   # Class methods
 
   def self.atime(path)
-    BasicStat.new(path).atime
+    Stat.new(path).atime
   end
 
   def self.basename(path,ext = "")
@@ -69,12 +69,12 @@ class File < IO
   end
 
   def self.blockdev?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.blockdev? : false
   end
 
   def self.chardev?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.chardev? : false
   end
 
@@ -84,11 +84,11 @@ class File < IO
   end
 
   def self.ctime(path)
-    BasicStat.new(path).ctime
+    Stat.new(path).ctime
   end
 
   def self.directory?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.directory? : false
   end
 
@@ -98,17 +98,17 @@ class File < IO
   end
 
   def self.executable?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.executable? : false
   end
 
   def self.executable_real?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.executable_real? : false
   end
 
   def self.exist?(path)
-    BasicStat.stat?(path) ? true : false
+    Stat.stat?(path) ? true : false
   end
 
   def self.expand_path(path, dir_string = nil)
@@ -130,7 +130,7 @@ class File < IO
   end
 
   def self.file?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.file? : false
   end
 
@@ -236,25 +236,25 @@ class File < IO
   end
 
   def self.lstat(path)
-    BasicStat.new path, false
+    Stat.new path, false
   end
 
   def self.mtime(path)
-    BasicStat.new(path).mtime
+    Stat.new(path).mtime
   end
 
   def self.pipe?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.pipe? : false
   end
 
   def self.readable?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.readable? : false
   end
 
   def self.readable_real?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.readable_real? : false
   end
 
@@ -283,12 +283,12 @@ class File < IO
   end
 
   def self.size?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.size : nil
   end
 
   def self.socket?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.socket? : false
   end
 
@@ -298,7 +298,7 @@ class File < IO
   end
 
   def self.stat(path)
-    BasicStat.new path
+    Stat.new path
   end
 
   def self.symlink(from, to)
@@ -311,7 +311,7 @@ class File < IO
   end
 
   def self.symlink?(path)
-    st = BasicStat.stat? path, false
+    st = Stat.stat? path, false
     st ? st.symlink? : false
   end
 
@@ -375,17 +375,17 @@ class File < IO
   end
 
   def self.writable?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.writable? : false
   end
 
   def self.writable_real?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.writable_real? : false
   end
 
   def self.zero?(path)
-    st = BasicStat.stat? path
+    st = Stat.stat? path
     st ? st.zero? : false
   end
 
@@ -398,7 +398,7 @@ class File < IO
   # Instance methods
 
   def atime
-    BasicStat.new(@path).atime
+    Stat.new(@path).atime
   end
 
   def chmod(mode)
@@ -406,23 +406,23 @@ class File < IO
   end
 
   def ctime
-    BasicStat.new(@path).ctime
+    Stat.new(@path).ctime
   end
 
   def lstat
-    BasicStat.new @path, false
+    Stat.new @path, false
   end
   
   def mtime
-    BasicStat.new(@path).mtime
+    Stat.new(@path).mtime
   end
   
   def stat
-    BasicStat.new @path
+    Stat.new @path
   end
 end       # File
 
-class File::BasicStat
+class File::Stat
   class Struct < FFI::Struct
     config "rbx.platform.stat", :st_dev, :st_ino, :st_mode, :st_nlink,
            :st_uid, :st_gid, :st_rdev, :st_size, :st_blksize, :st_blocks,
@@ -455,7 +455,7 @@ class File::BasicStat
   
   def initialize(path, follow_links=true)
     @path = StringValue path
-    tuple = self.class.basic_stat @path, follow_links
+    tuple = self.class.stat @path, follow_links
     Errno.handle @path unless tuple
     @struct, @dev_major, @dev_minor = tuple
   end
