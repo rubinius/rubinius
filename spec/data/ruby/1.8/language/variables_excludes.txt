@@ -1,3 +1,2 @@
-Basic assignment allows assignment through lambda
 Assigning multiple values calls #to_ary on rhs arg if rhs has only a single arg
 Assigning multiple values allows complex parallel assignment

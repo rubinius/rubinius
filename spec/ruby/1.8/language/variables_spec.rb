@@ -79,20 +79,22 @@ describe "Basic assignment" do
     a,b,*c = *[*[1,2]]; [a,b,c].should == [1, 2, []]
   end
   
-  it "allows assignment through lambda" do
+  it "supports the {|r,| } form of block assignment" do
     f = lambda {|r,| r.should == []}
-    f.call([], *[])
-
+    f.call([], *[])   
+    
+    f = lambda{|x,| x}
+    f.call(42).should == 42
+    f.call([42]).should == [42]
+    f.call([[42]]).should == [[42]]
+    f.call([42,55]).should == [42,55]     
+  end
+  
+  it "allows assignment through lambda" do
     f = lambda {|r,*l| r.should == []; l.should == [1]}
     f.call([], *[1])
 
     f = lambda{|x| x}
-    f.call(42).should == 42
-    f.call([42]).should == [42]
-    f.call([[42]]).should == [[42]]
-    f.call([42,55]).should == [42,55]
-
-    f = lambda{|x,| x}
     f.call(42).should == 42
     f.call([42]).should == [42]
     f.call([[42]]).should == [[42]]
