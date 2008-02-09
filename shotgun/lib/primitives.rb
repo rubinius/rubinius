@@ -8,7 +8,7 @@ class ShotgunPrimitives
 
     File.open("primitive_implementation.gen", "w") do |f|
       order.each do |ins|
-        f.puts "int cpu_primitive_#{ins}(STATE, cpu c, struct message *msg) {"
+        f.puts "int cpu_primitive_#{ins}(STATE, cpu c, const struct message *msg) {"
         f.puts send(ins)
         f.puts "  DONE();\n}"
       end
@@ -616,6 +616,7 @@ class ShotgunPrimitives
   
   def gettimeofday
     <<-CODE
+    OBJECT t1;
     struct timeval tv;
 
     /* don't fill in the 2nd argument here. getting the timezone here
@@ -624,11 +625,11 @@ class ShotgunPrimitives
     gettimeofday(&tv, NULL);
 
     /* update Time::TIMEVAL_FIELDS when changing order of fields */
-    msg->recv = array_new(state, 2);
-    array_set(state, msg->recv, 0, ML2N(tv.tv_sec));
-    array_set(state, msg->recv, 1, ML2N(tv.tv_usec));
+    t1 = array_new(state, 2);
+    array_set(state, t1, 0, ML2N(tv.tv_sec));
+    array_set(state, t1, 1, ML2N(tv.tv_usec));
 
-    RET(msg->recv);
+    RET(t1);
     CODE
   end
 

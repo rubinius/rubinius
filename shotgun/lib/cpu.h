@@ -92,7 +92,7 @@ struct cpu_task {
 struct rubinius_cpu {
   /* Normal registers are saved and restored per new method call . */
   OBJECT self, sender;
-  OBJECT cache;
+  OBJECT locals;
   IP_TYPE *data;
   unsigned short type;
   unsigned short argcount;
@@ -281,11 +281,11 @@ OBJECT cpu_sampler_disable(STATE);
 #define cpu_stack_top(state, c) (*(c)->sp_ptr)
 #define cpu_stack_set_top(state, c, oop) (*(c)->sp_ptr = oop)
 
-typedef int (*prim_func)(STATE, cpu c, struct message *msg);
-void cpu_patch_primitive(STATE, struct message *msg, prim_func func);
-int cpu_perform_system_primitive(STATE, cpu c, int prim, struct message *msg);
+typedef int (*prim_func)(STATE, cpu c, const struct message *msg);
+void cpu_patch_primitive(STATE, const struct message *msg, prim_func func);
+int cpu_perform_system_primitive(STATE, cpu c, int prim, const struct message *msg);
 
-void cpu_patch_ffi(STATE, struct message *msg);
+void cpu_patch_ffi(STATE, const struct message *msg);
 void ffi_call(STATE, cpu c, OBJECT ptr);
 OBJECT ffi_new_pointer(STATE, void *ptr);
 
