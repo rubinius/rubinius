@@ -1124,25 +1124,83 @@ class ShotgunPrimitives
   
   def stat_file
     <<-CODE
-    struct stat *sb = malloc(sizeof(struct stat));
+    struct stat sb = {0};
     POP(self, CLASS);
     POP(t1, STRING);
     t2 = stack_pop();
 
     char *path = string_byte_address(state, t1);
     if (RTEST(t2)) {
-      j = stat(path, sb);
+      j = stat(path, &sb);
     } else {
-      j = lstat(path, sb);
+      j = lstat(path, &sb);
     }
 
     if(j != 0) {
-      free(sb);
       stack_push(Qfalse);
     } else {
-      t3 = ffi_new_pointer(state, sb);
-      ffi_autorelease(t3, 1);
-      stack_push(t3);
+      t2 = NEW_OBJECT(self, 15);
+      tuple_put(state, t2, 0, I2N((int)sb.st_ino));
+      tuple_put(state, t2, 1, I2N((int)sb.st_mode));
+
+      switch(sb.st_mode & S_IFMT) {
+        case S_IFIFO:     // named pipe
+          t3 = string_to_sym(state, string_new(state, "fifo"));
+          break;
+        case S_IFCHR:     // character special
+          t3 = string_to_sym(state, string_new(state, "char"));
+                break;
+        case S_IFDIR:     // directory
+          t3 = string_to_sym(state, string_new(state, "dir"));
+                break;
+        case S_IFBLK:     // block special
+          t3 = string_to_sym(state, string_new(state, "block"));
+                break;
+        case S_IFREG:     // regular file
+          t3 = string_to_sym(state, string_new(state, "file"));
+                break;
+        case S_IFLNK:     // symbolic link
+          t3 = string_to_sym(state, string_new(state, "link"));
+                break;
+        case S_IFSOCK:    // socket
+          t3 = string_to_sym(state, string_new(state, "socket"));
+                break;
+        #ifdef S_IFWHT
+        case S_IFWHT:     // whiteout
+          t3 = string_to_sym(state, string_new(state, "whiteout"));
+                break;
+        #endif
+        default:
+          t3 = string_to_sym(state, string_new(state, "file"));
+      }
+      
+      tuple_put(state, t2, 2, t3);
+      tuple_put(state, t2, 3, I2N((native_int)sb.st_uid));
+      tuple_put(state, t2, 4, I2N((native_int)sb.st_gid));
+      tuple_put(state, t2, 5, I2N((native_int)sb.st_size));
+      tuple_put(state, t2, 6, I2N((native_int)sb.st_blocks));
+      tuple_put(state, t2, 7, ML2N((long long)sb.st_atime));
+      tuple_put(state, t2, 8, ML2N((long long)sb.st_mtime));
+      tuple_put(state, t2, 9, ML2N((long long)sb.st_ctime));
+      tuple_put(state, t2, 10, t1);
+      tuple_put(state, t2, 11, UI2N((unsigned long)sb.st_blksize));
+      tuple_put(state, t2, 12, UI2N((unsigned long)sb.st_dev));
+      tuple_put(state, t2, 12, UI2N((unsigned long)sb.st_dev));
+      
+      OBJECT dev_major = Qnil, dev_minor = Qnil;
+
+      #ifdef major
+        dev_major = ML2N(major(sb.st_dev));
+      #endif
+
+      #ifdef minor
+        dev_minor = ML2N(minor(sb.st_dev));
+      #endif
+
+      tuple_put(state, t2, 13, dev_major);
+      tuple_put(state, t2, 14, dev_minor);
+
+      stack_push(t2);
     }
     CODE
   end

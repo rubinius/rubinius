@@ -134,9 +134,4 @@ module Platform::POSIX
   attach_function 'getppid', [], pid_t
   attach_function 'getpgrp', [], pid_t
   attach_function 'setsid', [], pid_t
-  
-  # related to stat()
-  dev_t = :int
-  attach_function 'ffi_major', :major, [dev_t], :long
-  attach_function 'ffi_minor', :minor, [dev_t], :long
 end

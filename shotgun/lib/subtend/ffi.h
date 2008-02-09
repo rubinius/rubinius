@@ -6,7 +6,6 @@ void* ffi_get_from_converter(int type);
 OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJECT ret);
 
 OBJECT ffi_new_pointer(STATE, void *ptr);
-void ffi_autorelease(OBJECT ptr, int ar);
 #define ffi_pointer(ptr) (*DATA_STRUCT(ptr, void**))
 
 #define FFI_TYPE_OBJECT  0
