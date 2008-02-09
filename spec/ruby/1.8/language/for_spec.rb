@@ -1,7 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-# TODO: break, redo, next, retry
-
 # for name[, name]... in expr [do]
 #   body
 # end
@@ -69,5 +67,62 @@ describe "The for expression" do
     $VERBOSE = v
     qs.should == [[1,2,3], [4,5,6]]
     q.should == [4,5,6]
+  end
+
+  it "returns expr" do
+    for i in 1..3; end.should == (1..3)
+    for i,j in { 1 => 10, 2 => 20 }; end.should == { 1 => 10, 2 => 20 }
+  end
+
+  it "breaks out of a loop upon 'break'" do
+    j = 0
+    for i in 1..3
+      j += i
+
+      break if i == 2
+    end
+    
+    j.should == 3
+  end
+  
+  it "allows 'break' to have an argument which becomes the value of the for expression" do
+    j = for i in 1..3
+      break 10 if i == 2
+    end
+
+    j.should == 10
+  end
+
+  it "starts the next iteration upon 'next'" do
+    j = 0
+    for i in 1..5
+      next if i == 2
+
+      j += i
+    end
+    
+    j.should == 13
+  end
+  
+  it "repeats current iteration upon 'redo'" do
+    j = 0
+    for i in 1..3
+      j += i
+      
+      redo if i == 2 && j < 4
+    end
+    
+    j.should == 8
+  end
+  
+  it "repeats the loop from the beginning starts upon 'retry'" do
+    j = 0
+    for i in 1..5
+      j += i
+      
+      retry if i == 3 && j < 7
+    end
+    
+    j.should == 21
   end
 end

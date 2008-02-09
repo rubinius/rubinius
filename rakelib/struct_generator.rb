@@ -3,36 +3,15 @@ require "rake/tasklib"
 require "tempfile"
 
 class StructGenerator
-  class Field
-    attr_reader :name
-    attr_reader :type
-    attr_reader :offset
-    attr_accessor :size
-
-    def initialize(name, type)
-      @name = name
-      @type = type
-      @offset = nil
-    end
-
-    def offset=(o)
-      @offset = o
-    end
-
-    def to_config(name)
-      buf = []
-      buf << "rbx.platform.#{name}.#{@name}.offset = #{@offset}"
-      buf << "rbx.platform.#{name}.#{@name}.size = #{@size}"
-      buf << "rbx.platform.#{name}.#{@name}.type = #{@type}" if @type
-      buf
-    end
-  end
+  attr_accessor :size
+  attr_reader   :fields
 
   def initialize
     @struct_name = nil
     @includes = []
     @fields = []
     @found = false
+    @size = nil
   end
 
   def found?
@@ -40,14 +19,8 @@ class StructGenerator
   end
 
   def get_field(name)
-    @fields.each do |f|
-      return f if name == f.name
-    end
-
-    return nil
+    @fields.find { |f| name == f.name }
   end
-
-  attr_reader :fields
 
   def self.generate_from_code(code)
     sg = StructGenerator.new
@@ -84,14 +57,17 @@ class StructGenerator
 
       f.puts "#include <stddef.h>\n\n"
       f.puts "int main(int argc, char **argv)\n{"
+      f.puts "  #{@struct_name} s;"
+      f.puts %[  printf("sizeof(#{@struct_name}) %u\\n", (unsigned int) sizeof(#{@struct_name}));]
 
       @fields.each do |field|
-        f.puts <<EOF
-  printf("%s %u %u\\n", "#{field.name}", (unsigned int)offsetof(#{@struct_name}, #{field.name}), (unsigned int)sizeof(((#{@struct_name}*)0)->#{field.name}));
+        f.puts <<-EOF
+  printf("#{field.name} %u %u\\n", (unsigned int) offsetof(#{@struct_name}, #{field.name}),
+         (unsigned int) sizeof(s.#{field.name}));
 EOF
       end
 
-      f.puts "\n\treturn 0;\n}"
+      f.puts "\n  return 0;\n}"
       f.flush
 
       if $verbose then
@@ -106,12 +82,17 @@ EOF
       end
     end
 
-    output = `./#{binary}`
+    output = `./#{binary}`.split "\n"
     File.unlink(binary)
-
+    
+    sizeof = output.shift
+    unless @size
+      m = /\s*sizeof\([^)]+\) (\d+)/.match sizeof
+      @size = m[1]
+    end
+    
     line_no = 0
-
-    output.each_line do |line|
+    output.each do |line|
       md = line.match(/.+ (\d+) (\d+)/)
       @fields[line_no].offset = md[1].to_i
       @fields[line_no].size   = md[2].to_i
@@ -122,8 +103,8 @@ EOF
   end
 
   def generate_config(name)
-    @fields.map do |field|
-      field.to_config name
+    @fields.inject(["rbx.platform.#{name}.sizeof = #{@size}"]) do |list, field|
+      list.concat field.to_config(name)
     end.join "\n"
   end
 
@@ -142,6 +123,31 @@ EOF
       end
     end
 
+    buf
+  end
+end
+
+class StructGenerator::Field
+  attr_reader :name
+  attr_reader :type
+  attr_reader :offset
+  attr_accessor :size
+
+  def initialize(name, type)
+    @name = name
+    @type = type
+    @offset = nil
+  end
+
+  def offset=(o)
+    @offset = o
+  end
+
+  def to_config(name)
+    buf = []
+    buf << "rbx.platform.#{name}.#{@name}.offset = #{@offset}"
+    buf << "rbx.platform.#{name}.#{@name}.size = #{@size}"
+    buf << "rbx.platform.#{name}.#{@name}.type = #{@type}" if @type
     buf
   end
 end

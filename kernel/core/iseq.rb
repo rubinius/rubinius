@@ -7,6 +7,30 @@ class InstructionSet
   #   - an array of the arguments required by the opcode, which may be of types
   #     :int, :literal, :local, :block_local, :field, :primitive, :ip,
   #     :depth, or :cache
+  #  - a 2 element array of codes indicating what changes the opcode makes to
+  #    the stack. The first code identifies the number of operands popped from
+  #    the stack, and the second the number of operands pushed back onto the
+  #    stack. If the code is zero or a positive value, it is the exact number of
+  #    operands pushed or popped. If the code is a negative value, it means the
+  #    number of operands consumed/produced is calculated based on another
+  #    value, and cannot be determined just from the opcode. Negative codes
+  #    consist of 3-digits, where:
+  #     - the first digit is a multiplier (normally 1, but make_hash has a value
+  #       of 2);
+  #     - the second digit is the where the arg to be multiplied comes from;
+  #       1 = first opcode arg, 2 = second opcode arg, 3 = arg register;
+  #     - the final digit is a constant number to be added to the result.
+  #    The value -999 is a special value, indicating that the result cannot be
+  #    calculated from the bytecode, since it is dependent on the number of
+  #    items in an array that will be on the stack when the opcode is
+  #    encountered.
+  #  - if the opcode can change the flow of execution, it will have a :flow key,
+  #    followed by a value indicating whether the opcode performs a :send, a
+  #    :goto, or a :return.
+  #  - an optional :vm_flags key whose value is an array of the vm_flags set
+  #    by the opcode. These flags are used when generating the opcode logic in
+  #    instructions.rb into C include files.
+  #
   # IMPORTANT: Do not change the order of opcodes! The position in this array
   # is the opcode's instuction bytecode.
   OpCodes = [
@@ -177,7 +201,8 @@ class InstructionSet
     {:opcode => :cast_for_multi_block_arg, :args => [], :stack => [1,1]},
     {:opcode => :set_call_info, :args => [:int, :cache], :stack => [0,0]},
     {:opcode => :check_serial, :args => [:literal, :int], :stack => [1,1]},
-    {:opcode => :meta_send_call, :args => [:int], :stack => [1,1]}
+    {:opcode => :meta_send_call, :args => [:int], :stack => [-111,1],
+      :flow => :send}
   ]
 
   InstructionSize = 4

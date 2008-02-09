@@ -36,6 +36,36 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
+  it "creates the file and returns writable descriptor when called with 'w' mode and r-o permissions" do
+    # it should be possible to write to such a file via returned descriptior,
+    # even though the file permissions are r-r-r.
+
+    File.delete(@file) if File.exists?(@file)
+    begin
+      f = File.new(@file, "w", 0444)
+      lambda { f.puts("test") }.should_not raise_error(IOError)
+    ensure
+      f.close
+    end
+    File.exist?(@file).should == true
+    File.read(@file).should == "test\n"
+  end
+  
+  it "opens the existing file, does not change permissions even when they are specified" do
+    File.chmod(0664, @file)           # r-w perms
+    orig_perms = File.stat(@file).mode.to_s(8)
+    begin
+      f = File.new(@file, "w", 0444)    # r-o perms, but they should be ignored
+      f.puts("test")
+    ensure
+      f.close
+    end
+    File.stat(@file).mode.to_s(8).should == orig_perms
+
+    # it should be still possible to read from the file
+    File.read(@file).should == "test\n"
+  end
+
   it "return a new File with modus fd " do 
     @fh = File.new(@file) 
     @fh = File.new(@fh.fileno) 

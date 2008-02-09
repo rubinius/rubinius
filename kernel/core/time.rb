@@ -192,12 +192,20 @@ class Time
     t.force_gmtime
   end
 
-  def self.at(secs_or_time, msecs = 0)
+  def self.at(secs_or_time, msecs = nil)
     if secs_or_time.kind_of? Time
       return secs_or_time.dup
     end
-
-    secs_or_time = Type.coerce_to secs_or_time, Integer, :to_i
+    
+    if secs_or_time.kind_of?(Integer) || msecs
+      secs_or_time = Type.coerce_to secs_or_time, Integer, :to_i
+      msecs      ||= 0
+    else
+      secs_or_time = Type.coerce_to secs_or_time, Float, :to_f
+      msecs        = (secs_or_time % 1) * 1000000
+      secs_or_time = secs_or_time.to_i
+    end
+      
     Time.allocate.at_gmt(secs_or_time, msecs, false)
   end
 
@@ -218,14 +226,27 @@ class Time
   end
 
   def +(other)
-    dup.at_gmt(seconds + other, usec, @is_gmt)
+    raise TypeError, 'time + time?' if other.kind_of?(Time)
+    other      = FloatValue(other) unless other.is_a?(Integer)
+    other_usec = 0
+    if other.kind_of?(Float) 
+      other_usec = (other % 1) * 1000000
+      other      = other.to_i
+    end
+    dup.at_gmt(seconds + other, usec + other_usec, @is_gmt)
   end
 
   def -(other)
     if other.kind_of? Time
       seconds - other.seconds + (usec - other.usec) * 0.000001
     else
-      dup.at_gmt(seconds - other, usec, @is_gmt)
+      other      = FloatValue(other) unless other.is_a?(Integer)
+      other_usec = 0
+      if other.kind_of?(Float) 
+        other_usec = (1 - other % 1) * 1000000
+        other      = other.ceil.to_i
+      end
+      dup.at_gmt(seconds - other, usec + other_usec, @is_gmt)
     end
   end
 
@@ -234,7 +255,11 @@ class Time
   end
 
   def <=>(other)
-    [self.seconds, self.usec] <=> [other.seconds, other.usec]
+    if other.kind_of? Time
+      [self.seconds, self.usec] <=> [other.seconds, other.usec]
+    else
+      nil
+    end
   end
 
   def eql?(other)

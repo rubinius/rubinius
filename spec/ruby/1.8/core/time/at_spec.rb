@@ -17,4 +17,17 @@ describe "Time.at" do
     t2 = Time.at(t1)
     t1.object_id.should_not == t2.object_id
   end
+  
+  it "is able to create a time object with a float" do
+    t = Time.at(10.5)
+    t.usec.should == 500000.0
+    t.should_not == Time.at(10)
+  end
+
+  it "is able to create a time object with a microseconds" do
+    t = Time.at(10, 500000)
+    t.usec.should == 500000.0
+    t.should_not == Time.at(10)
+  end
+
 end

@@ -123,6 +123,38 @@ describe "File.open" do
     end
   end
 
+  it "creates the file and returns writable descriptor when called with 'w' mode and r-o permissions" do
+    # it should be possible to write to such a file via returned descriptior,
+    # even though the file permissions are r-r-r.
+
+    File.delete(@file) if File.exists?(@file)
+    File.open(@file, "w", 0444){ |f|
+      lambda { f.puts("test") }.should_not raise_error(IOError)
+    }
+    File.exist?(@file).should == true
+    File.read(@file).should == "test\n"
+  end
+
+  it "opens the existing file, does not change permissions even when they are specified" do
+    File.chmod(0664, @file)           # r-w perms
+    orig_perms = File.stat(@file).mode.to_s(8)
+    File.open(@file, "w", 0444){ |f|  # r-o perms, but they should be ignored
+      lambda { f.puts("test") }.should_not raise_error(IOError)
+    }
+    # check that original permissions preserved
+    File.stat(@file).mode.to_s(8).should == orig_perms
+
+    # it should be still possible to read from the file
+    File.read(@file).should == "test\n"
+  end
+
+  it "crates a new write-only file when invoked with 'w' and '0222'" do
+    File.delete(@file) if File.exists?(@file)
+    File.open(@file, 'w', 0222) {}
+    File.readable?(@file).should == false
+    File.writable?(@file).should == true
+  end
+
   it "opens the file when call with fd" do
     @fh = File.open(@file)
     @fh = File.open(@fh.fileno) 

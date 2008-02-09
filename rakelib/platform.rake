@@ -1,4 +1,4 @@
-file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |task|
+file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct_generator.rb] do |task|
   addrinfo = StructGenerator.new
   addrinfo.include 'sys/socket.h'
   addrinfo.include 'netdb.h'
@@ -53,7 +53,26 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
   servent.field :s_port, :int
   servent.field :s_proto, :pointer
   servent.calculate
-
+  
+  stat = StructGenerator.new
+  stat.include "sys/types.h"
+  stat.include "sys/stat.h"
+  stat.name 'struct stat'
+  stat.field :st_dev
+  stat.field :st_ino
+  stat.field :st_mode, :ushort
+  stat.field :st_nlink
+  stat.field :st_uid
+  stat.field :st_gid
+  stat.field :st_rdev
+  stat.field :st_size
+  stat.field :st_blksize
+  stat.field :st_blocks
+  stat.field :st_atime
+  stat.field :st_mtime
+  stat.field :st_ctime
+  stat.calculate
+  
   # FIXME these constants don't have standard names.
   # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.
   # Binary doesn't exist at all in many non-Unix variants.
@@ -86,6 +105,17 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
     S_IROTH
     S_IWOTH
     S_IXOTH
+    S_IFMT
+    S_IFIFO
+    S_IFCHR
+    S_IFDIR
+    S_IFBLK
+    S_IFREG
+    S_IFLNK
+    S_IFSOCK
+    S_IFWHT
+    S_ISUID
+    S_ISGID
   }
 
   io_constants = %w{
@@ -465,6 +495,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/struct_generator.rb] do |tas
     f.puts sockaddr_in.generate_config('sockaddr_in')
     f.puts sockaddr_un.generate_config('sockaddr_un') if sockaddr_un.found?
     f.puts servent.generate_config('servent')
+    f.puts stat.generate_config('stat')
 
     file_constants.each do | name |
       const = cg.constants[name]

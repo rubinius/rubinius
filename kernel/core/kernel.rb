@@ -74,6 +74,20 @@ module Kernel
   end
   private :StringValue
 
+  # MRI uses a macro named NUM2DBL which has essentially
+  # the same semantics as Float(), with the difference that
+  # it raises a TypeError and not a ArgumentError. It is only
+  # used in a few places (in MRI and Rubinius). If we can, 
+  # we should probably get rid of this. 
+  def FloatValue(obj)
+    begin
+      Float(obj)
+    rescue
+      raise TypeError, 'no implicit conversion to float'
+    end
+  end
+  private :FloatValue
+
   # Reporting methods
 
   # HACK :: added due to broken constant lookup rules
