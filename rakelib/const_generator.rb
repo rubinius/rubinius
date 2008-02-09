@@ -2,13 +2,13 @@ require "tempfile"
 
 class ConstGenerator
   class Constant
-    attr_reader :name
-    attr_reader :format
+    attr_reader :name, :format, :cast
     attr_accessor :value
 
-    def initialize(name, format, converter=nil)
+    def initialize(name, format, cast, converter=nil)
       @name = name
       @format = format
+      @cast = cast
       @converter = converter
       @value = nil
     end
@@ -37,8 +37,8 @@ class ConstGenerator
     @includes << i
   end
 
-  def const(name, format="%d", &converter)
-    const = Constant.new(name, format, converter)
+  def const(name, format="%d", cast="", &converter)
+    const = Constant.new(name, format, cast, converter)
     @constants[name.to_s] = const
     return const
   end
@@ -59,14 +59,14 @@ class ConstGenerator
       @constants.each_value do |const|
         f.puts <<EOF
   #ifdef #{const.name}
-  printf("#{const.name} #{const.format}\\n", #{const.name});
+  printf("#{const.name} #{const.format}\\n", #{const.cast}#{const.name});
   #endif
 EOF
       end
 
       f.puts "\n\treturn 0;\n}"
       f.flush
-
+      
       `gcc -x c -Wall #{f.path} -o #{binary}`
     end
 

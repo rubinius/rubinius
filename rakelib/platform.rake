@@ -480,7 +480,9 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   fcntl_constants.each {|c| cg.const c }
   socket_constants.each { |c| cg.const c }
   process_constants.each { |c| cg.const c }
-  long_process_constants.each { |c| cg.const(c, "%llu") }
+  long_process_constants.each { |c|
+    cg.const c, "%llu", "(unsigned long long)"
+  }
   signal_constants.each { |c| cg.const c }
   fcntl_constants.each { |c| cg.const c }
 
