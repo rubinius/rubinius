@@ -75,7 +75,7 @@ EOF
         $stderr.puts f.read
       end
 
-      `gcc -x c -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 #{f.path} -o #{binary}`
+      `gcc -x c -Wall #{f.path} -o #{binary}`
       if $?.exitstatus == 1
         @found = false
         return
