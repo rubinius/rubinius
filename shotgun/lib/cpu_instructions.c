@@ -85,7 +85,7 @@ void cpu_show_lookup_time(STATE) {
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
 #define next_int_into(val) val = *ip_ptr++;
-#define next_int _int = *ip_ptr++;
+#define next_int next_int_into(_int);
 
 #if DIRECT_THREADED
 #include "shotgun/lib/instruction_funcs.gen"
