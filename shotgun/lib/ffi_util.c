@@ -289,7 +289,18 @@ void *ffi_add_ptr(char *ptr, int offset) {
   return (void*)(ptr + offset); 
 }
 
-/* FIXME: Kill these after the next rebuild of the stable RBAs */
-int ffi_seek_set() { return SEEK_SET; }
-int ffi_seek_cur() { return SEEK_CUR; }
-int ffi_seek_end() { return SEEK_END; }
+long ffi_major(dev_t n) {
+#ifdef major
+  return major(n);
+#else
+  return -1;
+#endif
+}
+
+long ffi_minor(dev_t n) {
+#ifdef minor
+  return minor(n);
+#else
+  return -1;
+#endif
+}

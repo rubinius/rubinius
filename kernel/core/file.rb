@@ -455,9 +455,8 @@ class File::Stat
   
   def initialize(path, follow_links=true)
     @path = StringValue path
-    tuple = self.class.stat @path, follow_links
-    Errno.handle @path unless tuple
-    @struct, @dev_major, @dev_minor = tuple
+    @struct = self.class.basic_stat @path, follow_links
+    Errno.handle @path unless @struct
   end
   
   def self.stat?(path, follow_links=true)
@@ -471,44 +470,28 @@ class File::Stat
   end
   private :stat
   
-  def ino
-    stat[:st_ino]
+  def atime
+    Time.at stat[:st_atime]
   end
   
-  def mode
-    stat[:st_mode]
-  end
-  
-  def uid
-    stat[:st_uid]
-  end
-  
-  def gid
-    stat[:st_gid]
+  def blksize
+    stat[:st_blksize]
   end
   
   def blocks
     stat[:st_blocks]
   end
   
-  def atime
-    Time.at stat[:st_atime]
+  def blockdev?
+    stat[:st_mode] & S_IFMT == S_IFBLK
   end
-  
+
+  def chardev?
+    stat[:st_mode] & S_IFMT == S_IFCHR
+  end
+
   def ctime
     Time.at stat[:st_ctime]
-  end
-  
-  def mtime
-    Time.at stat[:st_mtime]
-  end
-  
-  def path
-    @path
-  end
-  
-  def blksize
-    stat[:st_blksize]
   end
   
   def dev
@@ -516,19 +499,11 @@ class File::Stat
   end
   
   def dev_major
-    @dev_major
+    POSIX.major stat[:st_dev]
   end
   
   def dev_minor
-    @dev_minor
-  end
-
-  def blockdev?
-    stat[:st_mode] & S_IFMT == S_IFBLK
-  end
-
-  def chardev?
-    stat[:st_mode] & S_IFMT == S_IFCHR
+    POSIX.major stat[:st_dev]
   end
 
   def directory?
@@ -573,24 +548,60 @@ class File::Stat
     end
   end
 
+  def gid
+    stat[:st_gid]
+  end
+  
   def grpowned?
     # @group == POSIX.getegid
     stat[:st_gid] == POSIX.getegid
   end
 
+  def ino
+    stat[:st_ino]
+  end
+  
   def inspect
     "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{ftype}>"
   end
 
+  def nlink
+    stat[:st_nlink]
+  end
+  
+  def mtime
+    Time.at stat[:st_mtime]
+  end
+  
+  def mode
+    stat[:st_mode]
+  end
+  
   def owned?
     # @owner == POSIX.geteuid
     stat[:st_uid] == POSIX.geteuid
   end
 
+  def path
+    @path
+  end
+  
   def pipe?
     stat[:st_mode] & S_IFMT == S_IFIFO
   end
 
+  def rdev
+    stat[:st_rdev]
+  end
+  
+  def rdev_major
+    POSIX.major stat[:st_rdev]
+  end
+  
+  def rdev_minor
+    POSIX.minor stat[:st_rdev]
+  end
+  
   def readable?
     return true if superuser?
     return stat[:st_mode] & S_IRUSR != 0 if owned?
@@ -621,6 +632,10 @@ class File::Stat
     stat[:st_mode] & S_IFMT == S_IFLNK
   end
 
+  def uid
+    stat[:st_uid]
+  end
+  
   def writable?
     return true if superuser?
     return stat[:st_mode] & S_IWUSR != 0 if owned?
