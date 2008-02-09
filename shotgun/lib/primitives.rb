@@ -1122,31 +1122,6 @@ class ShotgunPrimitives
     CODE
   end
   
-  def basic_stat
-    <<-CODE
-    struct stat *sb = malloc(sizeof(struct stat));
-    POP(self, CLASS);
-    POP(t1, STRING);
-    t2 = stack_pop();
-
-    char *path = string_byte_address(state, t1);
-    if (RTEST(t2)) {
-      j = stat(path, sb);
-    } else {
-      j = lstat(path, sb);
-    }
-
-    if(j != 0) {
-      free(sb);
-      stack_push(Qfalse);
-    } else {
-      t3 = ffi_new_pointer(state, sb);
-      ffi_autorelease(t3, 1);
-      stack_push(t3);
-    }
-    CODE
-  end
-  
   def stat_file
     <<-CODE
     struct stat *sb = malloc(sizeof(struct stat));

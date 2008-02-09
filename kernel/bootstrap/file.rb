@@ -10,11 +10,6 @@ class File < IO
   end
 
   class Stat
-    def self.basic_stat(path, follow)
-      Ruby.primitive :basic_stat
-      raise PrimitiveFailure, "File::Stat.basic_stat: failed"
-    end
-
     def self.stat(path, follow)
       Ruby.primitive :stat_file
       raise PrimitiveFailure, "File::Stat.stat: failed"
