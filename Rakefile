@@ -26,7 +26,6 @@ task :stable_compiler do
     ENV['RBX_CORE'] = "runtime/stable/core.rba"
     ENV['RBX_LOADER'] = "runtime/stable/loader.rbc"
     ENV['RBX_PLATFORM'] = "runtime/stable/platform.rba"
-    ENV['RBX_PLATFORM_CONF'] = "runtime/stable/platform.conf"
   end
 end
 
@@ -56,10 +55,6 @@ end
 
 file 'runtime/stable/compiler.rba' => 'build:compiler' do
   sh "cd lib; zip -r ../runtime/stable/compiler.rba compiler -x \\*.rb"
-end
-
-file 'runtime/stable/platform.conf' => 'runtime/platform.conf' do
-  cp 'runtime/platform.conf', 'runtime/stable/platform.conf', :verbose => $verbose
 end
 
 Rake::StructGeneratorTask.new do |t|
@@ -128,7 +123,6 @@ namespace :build do
     runtime/stable/compiler.rba
     runtime/stable/loader.rbc
     runtime/stable/platform.rba
-    runtime/stable/platform.conf
   ]
 
   desc "Rebuild the .load_order.txt files"
