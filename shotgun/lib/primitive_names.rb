@@ -194,7 +194,11 @@ module Bytecode
       :get_ivar,
       :set_index,
       :get_index,
-      :dispatch_as_method
+      :dispatch_as_method,
+      :dir_open,
+      :dir_close,
+      :dir_read,
+      :dir_control
     ]
   end
 end

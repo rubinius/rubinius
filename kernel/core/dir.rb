@@ -1,10 +1,6 @@
 # depends on: array.rb class.rb fixnum.rb
 
 class Dir
-  class DirEntry < FFI::Struct
-    layout :d_name, :char_array, Rubinius::RUBY_CONFIG['rbx.platform.dir.d_name']
-  end
-
   include Enumerable
 
   GLOB_VERBOSE = 1 << (4 * 8 - 1) # HACK
@@ -427,15 +423,17 @@ class Dir
     nil
   end
 
+  def self.prim_open(path)
+    Ruby.primitive :dir_open
+  end
+
   def initialize(path)
-    @dirptr = Platform::POSIX.opendir(path)
+    @dirptr = Dir.prim_open(path)
 
     if @dirptr.nil?
       Errno.handle path
     end
 
-    @pos = 0
-    @seen_pos = [0]
     @path = path
   end
   
@@ -444,22 +442,29 @@ class Dir
 
     @path
   end
-  
+
+  def self.prim_close(dir)
+    Ruby.primitive :dir_close
+    raise PrimitiveFailure, "primitive failed"
+  end
+
   def close
     raise IOError, "closed directory" if @dirptr.nil?
 
-    Platform::POSIX.closedir(@dirptr)
+    Dir.prim_close(@dirptr)
+
     @dirptr = nil
+  end
+
+  def self.prim_read(dir)
+    Ruby.primitive :dir_read
+    raise PrimitiveFailure, "primitive failed"
   end
   
   def read
     raise IOError, "closed directory" if @dirptr.nil?
 
-    dir_entry_ptr = Platform::POSIX.readdir(@dirptr)
-    return nil if dir_entry_ptr.nil?
-    @pos += 1
-    @seen_pos << @pos unless @seen_pos.include? @pos
-    DirEntry.new(dir_entry_ptr)[:d_name]
+    return Dir.prim_read(@dirptr)
   end
 
   def each
@@ -472,9 +477,19 @@ class Dir
     self
   end
 
+  SeekKind = 0
+  RewindKind = 1
+  TellKind = 2
+
+  def self.prim_control(dir, kind, pos)
+    Ruby.primitive :dir_control
+    raise PrimitiveFailure, "primitive failed"
+  end
+
   def pos
     raise IOError, "closed directory" if @dirptr.nil?
-    @pos
+    
+    Dir.prim_control(@dirptr, TellKind, 0)
   end
 
   alias_method :tell, :pos
@@ -483,23 +498,23 @@ class Dir
     raise IOError, "closed directory" if @dirptr.nil?
 
     seek(position)
+
     position
   end
 
   def seek(position)
     raise IOError, "closed directory" if @dirptr.nil?
-    return unless @seen_pos.include? position
 
-    rewind
-    position.times { read }
+    Dir.prim_control(@dirptr, SeekKind, position)
+
     self
   end
 
   def rewind
     raise IOError, "closed directory" if @dirptr.nil?
-
-    Platform::POSIX.rewinddir(@dirptr)
-    @pos = 0
+    
+    Dir.prim_control(@dirptr, RewindKind, 0);
+    
     self
   end
   

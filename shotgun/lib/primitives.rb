@@ -3331,6 +3331,79 @@ class ShotgunPrimitives
     CODE
   end
 
+  def dir_open
+    <<-CODE
+    OBJECT t1;
+    DIR *dir;
+
+    POP(t1, STRING);
+
+    dir = opendir(string_byte_address(state, t1));
+    if(!dir) RAISE_FROM_ERRNO("Unable to open directory");
+
+    RET(ffi_new_pointer(state, dir));
+    CODE
+  end
+
+  def dir_close
+    <<-CODE
+    DIR *dir;
+    OBJECT t1;
+
+    POP(t1, POINTER); 
+
+    dir = *DATA_STRUCT(t1, void**);
+    if(dir) {
+      *DATA_STRUCT(t1, void**) = NULL;
+      closedir(dir);
+      RET(Qtrue);
+    } else {
+      RET(Qfalse);
+    }
+    CODE
+  end
+
+  def dir_read
+    <<-CODE
+    struct dirent *ent;
+    OBJECT t1;
+    POP(t1, POINTER); 
+    DIR *dir = *DATA_STRUCT(t1, void**);
+    ent = readdir(dir);
+
+    if(!ent) {
+      RET(Qnil);
+    } else {
+      RET(string_new(state, ent->d_name));
+    }
+    CODE
+  end
+
+  def dir_control
+    <<-CODE
+    OBJECT kind, pos;
+    OBJECT t1;
+    POP(t1, POINTER);
+    DIR *dir = *DATA_STRUCT(t1, void**);
+
+    POP(kind, FIXNUM);
+    POP(pos, FIXNUM);
+
+    switch(N2I(kind)) {
+    case 0:
+      seekdir(dir, N2I(pos));
+      RET(Qtrue);
+    case 1:
+      rewinddir(dir);
+      RET(Qtrue);
+    case 2:
+      RET(I2N(telldir(dir)));
+    default:
+      RET(Qnil);
+    }
+    CODE
+  end
+
 end
 
 prim = ShotgunPrimitives.new

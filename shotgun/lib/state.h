@@ -496,4 +496,6 @@ void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func);
 void state_run_cleanup(STATE, OBJECT obj);
 void state_setup_type(STATE, int type, struct type_info *info);
 
+#define POINTER_P(obj) RTYPE(obj, MemPtrType)
+
 #endif /* __STATE__ */
