@@ -134,7 +134,7 @@ module Compile
       end
     end
 
-    raise LoadError, "No such file: #{path}"
+    raise LoadError, "no such file to load -- #{path}"
   end
 
   def self.compile_feature(rb, requiring, &block)
