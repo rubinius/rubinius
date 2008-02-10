@@ -220,7 +220,7 @@ begin
   end
   
 rescue SystemExit => e
-  code = e.code
+  code = e.status
 rescue Object => e
   begin
     if e.kind_of? Exception or e.kind_of? ThrownValue
@@ -254,7 +254,7 @@ end
 begin
   Rubinius::AtExit.shift.call until Rubinius::AtExit.empty?
 rescue SystemExit => e
-  code = e.code
+  code = e.status
 rescue Object => e
   puts "An exception occurred inside an at_exit handler:"
   puts "    #{e.message} (#{e.class})"

@@ -758,14 +758,14 @@ module Kernel
 end
 
 class SystemExit < Exception
-  def initialize(code)
-    @code = code
+  def initialize(status)
+    @status = status
   end
 
-  attr_reader :code
+  attr_reader :status
 
   def message
-    "System is exiting with code '#{code}'"
+    "System is exiting with code '#{status}'"
   end
 end
 
