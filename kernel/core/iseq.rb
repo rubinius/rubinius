@@ -358,8 +358,14 @@ class InstructionSequence
       sz = stream.inject(0) { |acc, ele| acc + (ele.size * InstructionSet::InstructionSize) }
       @iseq = InstructionSequence.new(sz)
       @offset = 0
-      stream.each do |inst|
-        encode inst
+      begin
+        stream.each do |inst|
+          encode inst
+        end
+      rescue Exception => e
+        STDERR.puts "Unable to encode stream:"
+        STDERR.puts stream.inspect
+        raise e
       end
 
       return @iseq

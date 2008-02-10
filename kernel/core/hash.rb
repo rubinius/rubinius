@@ -445,7 +445,7 @@ class Hash
     hash = obj.hash
     hash = hash % HASH_MAX unless hash.kind_of? Fixnum
 
-    bin = hash % @bins
+    bin = hash & (@bins - 1)
 
     entry = @values.at bin
 

@@ -2,90 +2,22 @@
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/hash.h"
 
-/* Adapted from st.c in 1.8.5 */
-
-/*
-Table of prime numbers 2^n+a, 2<=n<=30.
-*/
-static const long primes[] = {
-        8 + 3,
-        16 + 3,
-        23,
-        32 + 5,
-        43,
-        53,
-        59,
-        64 + 3,
-        73,
-        83,
-        97,
-        109,
-        128 + 3,
-        137,
-        149,
-        157,
-        167,
-        179,
-        191,
-        197,
-        211,
-        229,
-        256 + 27,
-        512 + 9,
-        1024 + 9,
-        2048 + 5,
-        4096 + 3,
-        8192 + 27,
-        16384 + 43,
-        32768 + 3,
-        65536 + 45,
-        131072 + 29,
-        262144 + 3,
-        524288 + 21,
-        1048576 + 7,
-        2097152 + 17,
-        4194304 + 15,
-        8388608 + 9,
-        16777216 + 43,
-        33554432 + 35,
-        67108864 + 15,
-        134217728 + 29,
-        268435456 + 3,
-        536870912 + 11,
-        1073741824 + 85,
-        0
-};
-
 #define MINSIZE 8
 
-static int hash_new_size(int size) {
-  int i, p;
-  int newsize;
-
-  for (i = 0, newsize = MINSIZE;
-       i < sizeof(primes)/sizeof(primes[0]);
-       i++)
-  {
-    p = primes[i];
-    if(p > size) return p;
-  }
-  /* Ran out of polynomials */
-  return -1;                  /* should raise exception */
-}
-
-#define MAX_DENSITY 5
-
-/* end adaptation. */
+#define MAX_DENSITY 0.75
 
 #define Increments 16
+
+#define find_bin(hash, total) (hash & (total - 1))
 
 OBJECT hash_new(STATE) {
   OBJECT hsh;
   hsh = hash_allocate(state);
-  hash_setup(state, hsh, 0);
+  hash_setup(state, hsh, MINSIZE);
   return hsh;
 }
 
+/* size MUST be a power of 2 */
 OBJECT hash_new_sized(STATE, int size) {
   OBJECT hsh;
   hsh = hash_allocate(state);
@@ -95,7 +27,7 @@ OBJECT hash_new_sized(STATE, int size) {
 
 void hash_setup(STATE, OBJECT hsh, int size) {
   int sz;
-  sz = hash_new_size(size);
+  sz = size == 0 ? MINSIZE : size;
   hash_set_keys(hsh, tuple_new(state, sz));
   hash_set_values(hsh, tuple_new(state, sz));
   hash_set_bins(hsh, I2N(sz));
@@ -147,7 +79,7 @@ static void hash_rehash(STATE, OBJECT hsh, int _ents) {
   OBJECT tbl, tup, ent, next;
   
   old_bins = N2I(hash_get_bins(hsh));
-  new_bins = hash_new_size(old_bins + 1);
+  new_bins = old_bins * 2;
   tup = tuple_new(state, new_bins);
   tbl = hash_get_values(hsh);
   
@@ -159,7 +91,7 @@ static void hash_rehash(STATE, OBJECT hsh, int _ents) {
       next = tuple_at(state, ent, 3);
       hv = (unsigned int)N2I(tuple_at(state, ent, 0));
       
-      bin = hv % new_bins;
+      bin = find_bin(hv, new_bins);
       tuple_put(state, ent, 3, tuple_at(state, tup, (int)bin));
       tuple_put(state, tup, (int)bin, ent);
       
@@ -218,7 +150,7 @@ OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh) {
   OBJECT entry, th;
   
   bins = (unsigned int)N2I(hash_get_bins(h));
-  bin = hsh % bins;
+  bin = find_bin(hsh, bins);
   entry = tuple_at(state, hash_get_values(h), bin);
   
   // printf("start: %x, %ud, %d, %d\n", entry, hsh, bin, N2I(hash_get_bins(h)));
@@ -249,7 +181,7 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
   i = N2I(hash_get_entries(h));
   b = N2I(hash_get_bins(h));
   
-  if(i / b > MAX_DENSITY) {
+  if((double)i / (double)b > MAX_DENSITY) {
     hash_rehash(state, h, i);
   }
   
@@ -298,8 +230,8 @@ OBJECT hash_get_undef(STATE, OBJECT hash, unsigned int hsh) {
 OBJECT hash_delete(STATE, OBJECT self, unsigned int hsh) {
   unsigned int bin;
   OBJECT entry, th, lk, val, lst;
-  
-  bin = hsh % N2I(hash_get_bins(self));
+ 
+  bin = find_bin(hsh, N2I(hash_get_bins(self)));
   entry = tuple_at(state, hash_get_values(self), bin);
   
   lst = Qnil;

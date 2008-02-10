@@ -1,7 +1,10 @@
+#ifndef RBX_SENDSITE_H
+#define RBX_SENDSITE_H
+
 
 typedef struct send_site _send_site;
 
-typedef int (*send_site_lookup)(STATE, cpu c, _send_site *ss, struct message *msg);
+typedef void (*send_site_lookup)(STATE, cpu c, _send_site *ss, struct message *msg);
 
 struct send_site {
   OBJECT name;
@@ -19,11 +22,7 @@ struct send_site {
 
 #define SEND_SITE_OBJECT_FIELDS 5
 
-#define SEND_SITE_ABORT 0
-#define SEND_SITE_DONE 1
-#define SEND_SITE_RESOLVED 2
-#define SEND_SITE_BYTECODE 3
-
 void send_site_init(STATE);
 OBJECT send_site_create(STATE, OBJECT name, send_site_lookup func);
 
+#endif
