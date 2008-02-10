@@ -523,7 +523,7 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
   return ctx;
 }
 
-static inline OBJECT cpu_create_context(STATE, cpu c, const struct message *msg) {
+static inline OBJECT cpu_create_context(STATE, cpu c, struct message *msg) {
   OBJECT ctx;
   struct fast_context *fc;
   
@@ -568,6 +568,12 @@ OBJECT cpu_create_block_context(STATE, cpu c, OBJECT env, int sp) {
   fc->method_module = Qnil;
   fc->type = FASTCTX_BLOCK;
   
+  /* If post send is nil, that means we're not allowed to return directly to
+     the home context. */
+  if(NIL_P(blokenv_get_post_send(env))) {
+    fc->flags |= CTX_FLAG_NO_LONG_RETURN;
+  }
+  
   return ctx;
 }
 
@@ -606,7 +612,7 @@ void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
   cpu_raise_exception(state, c, primitive_failure);
 }
 
-static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
+static inline int cpu_try_primitive(STATE, cpu c, struct message *msg) {
   int prim, req;
   OBJECT prim_obj;
   
@@ -730,8 +736,12 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home)
 
   c->data = fc->data;
   c->type = fc->type;
- 
-  c->locals = FASTCTX(home)->locals;
+  
+  if(fc->type != FASTCTX_NMC) {
+    c->cache = fast_fetch(fc->method, CMETHOD_f_CACHE);
+  } else {
+    c->cache = Qnil;
+  }
 
   c->sender = fc->sender;
   c->sp = fc->sp;
@@ -909,6 +919,20 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
         printf("CTX: remote return from %p to %p\n", c->active_context, destination);
       }
       
+      /* If the current context is marked as not being allowed to
+         return long, raise an exception instead. */
+      if(FASTCTX(c->active_context)->flags & CTX_FLAG_NO_LONG_RETURN) {
+        OBJECT exc;
+        home = rbs_const_get(state, BASIC_CLASS(object), "IllegalLongReturn");
+        
+        exc = cpu_new_exception(state, c, home, "Unable to perform a long return");
+        object_set_ivar(state, exc, SYM("@return_value"), val);
+        
+        cpu_raise_exception(state, c, exc);
+          
+        return TRUE;
+      }
+      
       /* If we're making a non-local return to a stack context... */
       if(om_on_stack(state->om, destination)) {
         /* If we're returning to a reference'd context, reset the 
@@ -1055,70 +1079,14 @@ static inline void cpu_activate_method(STATE, cpu c, struct message *msg) {
   cpu_restore_context_with_home(state, c, ctx, ctx);
 }
 
-static inline void cpu_perform(STATE, cpu c, const struct message *msg) {
-  OBJECT ctx;
-
-  c->depth++;
-  if(c->depth == CPU_MAX_DEPTH) {
-    machine_handle_fire(FIRE_STACK);
-  }
-
-  ctx = cpu_create_context(state, c, msg);
-
-  /* If it was missing, setup some extra data in the MethodContext for
-     the method_missing method to check out, to see why it was missing. */
-  if(msg->missing && msg->priv) {
-    methctx_reference(state, ctx);
-    object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
-  }
- 
-  cpu_save_registers(state, c, msg->args);
-  cpu_restore_context_with_home(state, c, ctx, ctx);
-}
-
-
-static inline void
-cpu_patch_mono(STATE, struct send_site *ss, struct message *msg);
-
-static inline void
-cpu_patch_missing(STATE, struct send_site *ss, struct message *msg);
-
-static void 
-_cpu_ss_basic(STATE, cpu c, struct send_site *ss, struct message *msg) {
-  msg->missing = 0;
-  
-  sassert(cpu_locate_method(state, c, msg));
-  
-  /* If it's not method_missing, cache the details of msg in the send_site */
-  if(!msg->missing) { 
-    cpu_patch_mono(state, ss, msg);
-  } else {
-    cpu_patch_missing(state, ss, msg);
-    msg->args += 1;
-    stack_push(msg->name);
-  }
-    
-  if(cpu_try_primitive(state, c, msg)) return;
-
-  cpu_perform(state, c, msg);
-}
-
-void cpu_initialize_sendsite(STATE, struct send_site *ss) {
-  ss->lookup = _cpu_ss_basic;
-}
-
 /* Send Site specialization 1: execute a primitive directly. */
 
-static void _cpu_ss_mono_prim(STATE, cpu c, struct send_site *ss, 
-    struct message *msg) {
+static int _cpu_ss_mono_prim(STATE, cpu c, struct send_site *ss, struct message *msg) {
   prim_func func;
   int _orig_sp;
   OBJECT *_orig_sp_ptr;
 
-  if(_real_class(state, msg->recv) != ss->data1) {
-    _cpu_ss_basic(state, c, ss, msg);
-    return;
-  }
+  if(_real_class(state, msg->recv) != ss->data1) return SEND_SITE_ABORT;
   
   _orig_sp_ptr = c->sp_ptr;
   _orig_sp = c->sp;
@@ -1132,13 +1100,15 @@ static void _cpu_ss_mono_prim(STATE, cpu c, struct send_site *ss,
     c->sp_ptr = _orig_sp_ptr;
     c->sp = _orig_sp;
 
-    cpu_perform(state, c, msg);
+    return SEND_SITE_BYTECODE;
   }
+
+  return SEND_SITE_DONE;
 }
 
 /* Called before a primitive is run the slow way, allowing the send_site to be patch
  * to call the primitive directly. */
-void cpu_patch_primitive(STATE, const struct message *msg, prim_func func) {
+void cpu_patch_primitive(STATE, struct message *msg, prim_func func) {
   struct send_site *ss;
 
   if(!REFERENCE_P(msg->send_site)) return;
@@ -1154,29 +1124,27 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func) {
 }
 
 /* Send Site specialization 2: Run an ffi function directly. */
-static void _cpu_ss_mono_ffi(STATE, cpu c, struct send_site *ss, 
-    struct message *msg) {
+static int _cpu_ss_mono_ffi(STATE, cpu c, struct send_site *ss, struct message *msg) {
   rni_context *ctx;
   nf_stub_ffi func;
   
   func = (nf_stub_ffi)ss->c_data;
   // printf("mono-ffi: %p (%s)\n", func, _inspect(ss->name));
 
-  if(_real_class(state, msg->recv) != ss->data1) {
-    _cpu_ss_basic(state, c, ss, msg);
-    return;
-  }
+  if(_real_class(state, msg->recv) != ss->data1) return SEND_SITE_ABORT;
  
   ctx = subtend_retrieve_context();
   ctx->state = state;
   ctx->cpu = c;
 
   func();
+
+  return SEND_SITE_DONE;
 }
 
 /* Called before an FFI function is run the slow way, allowing the send_site to be patch
  * to call the function directly. */
-void cpu_patch_ffi(STATE, const struct message *msg) {
+void cpu_patch_ffi(STATE, struct message *msg) {
   struct send_site *ss;
 
   if(!REFERENCE_P(msg->send_site)) return;
@@ -1203,61 +1171,25 @@ void cpu_patch_ffi(STATE, const struct message *msg) {
 }
 
 /* Send Site specialzitation 3: simple monomorphic last implemenation cache. */
-static void _cpu_ss_mono(STATE, cpu c, struct send_site *ss, 
-    struct message *msg) {
-  
-  if(_real_class(state, msg->recv) != ss->data1) {
-    _cpu_ss_basic(state, c, ss, msg);
-    return;
-  }
-  
+static int _cpu_ss_mono(STATE, cpu c, struct send_site *ss, struct message *msg) {
+  if(_real_class(state, msg->recv) != ss->data1) return SEND_SITE_ABORT;
   msg->method = ss->data2;
   msg->module = ss->data3;
-    
-  if(cpu_try_primitive(state, c, msg)) return; 
 
-  cpu_perform(state, c, msg);
+  return SEND_SITE_RESOLVED;
 }
 
 /* Saves the details of +msg+ in +ss+ and install _cpu_ss_mono in +ss+, so 
  * that the next time +ss+ is used, it will try the cache details. */
 static inline void
-cpu_patch_mono(STATE, struct send_site *ss, struct message *msg) {
+cpu_initialize_sendsite(STATE, struct send_site *ss, struct message *msg) {
   ss->lookup = _cpu_ss_mono;
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
   SET_STRUCT_FIELD(msg->send_site, ss->data3, msg->module);
 }
 
-static void
-_cpu_ss_missing(STATE, cpu c, struct send_site *ss, struct message *msg) {
-  if(_real_class(state, msg->recv) != ss->data1) {
-    _cpu_ss_basic(state, c, ss, msg);
-    return;
-  }
-  
-  msg->method = ss->data2;
-  msg->module = ss->data3;
-
-  msg->args += 1;
-  stack_push(msg->name);
- 
-  if(cpu_try_primitive(state, c, msg)) return;
-
-  cpu_perform(state, c, msg);
-}
-
-/* Saves the details of +msg+ in +ss+ and install _cpu_ss_mono in +ss+, so 
- * that the next time +ss+ is used, it will try the cache details. */
-static inline void
-cpu_patch_missing(STATE, struct send_site *ss, struct message *msg) {
-  ss->lookup = _cpu_ss_missing;
-  SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
-  SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
-  SET_STRUCT_FIELD(msg->send_site, ss->data3, msg->module);
-}
-
-static void _cpu_on_no_method(STATE, cpu c, const struct message *msg) {
+static void _cpu_on_no_method(STATE, cpu c, struct message *msg) {
   char *str;
   OBJECT exc;
 
@@ -1273,56 +1205,60 @@ static void _cpu_on_no_method(STATE, cpu c, const struct message *msg) {
 
 /* Layer 4: send. Primary method calling function. */
 inline void cpu_send_message(STATE, cpu c, struct message *msg) {
+  OBJECT ctx;
   struct send_site *ss;
 
 #ifdef TIME_LOOKUP
   uint64_t start = measure_cpu_time();
 #endif
 
-  //if(SENDSITE_P(msg->send_site)) {
-    ss = SENDSITE(msg->send_site);
-    msg->name = ss->name;
-    ss->lookup(state, c, ss, msg);
-  /*
-  } else {
-    msg->name = msg->send_site;
-    msg->send_site = Qnil;
-
-    msg->missing = 0;
-
-    sassert(cpu_locate_method(state, c, msg));
-
-    if(msg->missing) { 
-      msg->args += 1;
-      stack_push(msg->name);
-    }
-
-    if(cpu_try_primitive(state, c, msg)) return;
-
-    cpu_perform(state, c, msg);
+#if ENABLE_DTRACE
+  if(RUBINIUS_VM_SEND_BEGIN_ENABLED()) {
+    RUBINIUS_VM_SEND_BEGIN();
   }
-  */
-
-#ifdef TIME_LOOKUP
-  state->lookup_time += (measure_cpu_time() - start);
 #endif
-}
 
-void cpu_send_message_external(STATE, cpu c, struct message *msg) {
-  OBJECT ctx;
-  
-  if(!cpu_locate_method(state, c, msg)) {
-    _cpu_on_no_method(state, c, msg);
-    return;
+  msg->missing = 0;
+
+  ss = SENDSITE(msg->send_site);
+  msg->name = ss->name;
+
+  /* If the send_site has a custom lookup function, use it. */
+  if(ss->lookup) {
+    switch(ss->lookup(state, c, ss, msg)) {
+    case SEND_SITE_DONE:     /* lookup did all the work, we're done. */
+      return;
+    case SEND_SITE_RESOLVED: /* lookup filled in msg with the details. */
+      goto dispatch;
+    case SEND_SITE_BYTECODE: /* same as resolved, but only run the bytecode */
+      goto bytecode;
+    }
   }
-  
+
+  /* We're here if SEND_SITE_ABORT was returned, or if there was no 
+   * ->lookup. locate method fills in msg with the details. */
+  if(!cpu_locate_method(state, c, msg)) {
+    /* Only happens if locate_method can't even find method_missing. */
+    _cpu_on_no_method(state, c, msg);
+    goto done;
+  }
+    
+  /* If it's not method_missing, cache the details of msg in the send_site */
+  if(!msg->missing) cpu_initialize_sendsite(state, ss, msg);
+
+dispatch:
+
+  /* If using method_missing, put the name of the method on the stack and
+   * add an argument. */
   if(msg->missing) {
     msg->args += 1;
     stack_push(msg->name);
   } else {
-    if(cpu_try_primitive(state, c, msg)) return;
+    /* Otherwise try and run this method as a primitive. */
+    if(cpu_try_primitive(state, c, msg)) goto done;
   }
- 
+
+bytecode:
   c->depth++;
   if(c->depth == CPU_MAX_DEPTH) {
     machine_handle_fire(FIRE_STACK);
@@ -1339,12 +1275,19 @@ void cpu_send_message_external(STATE, cpu c, struct message *msg) {
  
   cpu_save_registers(state, c, msg->args);
   cpu_restore_context_with_home(state, c, ctx, ctx);
-}
 
+done:
+#ifdef TIME_LOOKUP
+  state->lookup_time += (measure_cpu_time() - start);
+#endif
+
+  return;
+}
 
 /* A version used when there is no send_site. */
 void cpu_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
   struct message msg;
+  OBJECT ctx;
 
   msg.recv = recv;
   msg.name = sym;
@@ -1356,8 +1299,35 @@ void cpu_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
   msg.send_site = Qnil;
   
   c->call_flags = 0;
+  
+  if(!cpu_locate_method(state, c, &msg)) {
+    _cpu_on_no_method(state, c, &msg);
+    return;
+  }
+  
+  if(msg.missing) {
+    msg.args += 1;
+    stack_push(msg.name);
+  } else {
+    if(cpu_try_primitive(state, c, &msg)) return;
+  }
+ 
+  c->depth++;
+  if(c->depth == CPU_MAX_DEPTH) {
+    machine_handle_fire(FIRE_STACK);
+  }
 
-  cpu_send_message_external(state, c, &msg);
+  ctx = cpu_create_context(state, c, &msg);
+
+  /* If it was missing, setup some extra data in the MethodContext for
+     the method_missing method to check out, to see why it was missing. */
+  if(msg.missing && msg.priv) {
+    methctx_reference(state, ctx);
+    object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
+  }
+ 
+  cpu_save_registers(state, c, msg.args);
+  cpu_restore_context_with_home(state, c, ctx, ctx);
 }
 
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {

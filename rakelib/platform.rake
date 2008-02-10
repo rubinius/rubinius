@@ -14,12 +14,9 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   addrinfo.calculate
 
   dirent = StructGenerator.new
-  dirent.include "sys/types.h"
   dirent.include "dirent.h"
   dirent.name 'struct dirent'
-  dirent.field :d_ino
-  dirent.field :d_reclen
-  dirent.field :d_name, :char_array
+  dirent_d_name = dirent.field :d_name
   dirent.calculate
 
   timeval = StructGenerator.new
@@ -495,7 +492,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
 
   File.open task.name, "w" do |f|
     f.puts addrinfo.generate_config('addrinfo')
-    f.puts dirent.generate_config('dirent')
+    f.puts "rbx.platform.dir.d_name = #{dirent_d_name.offset}"
     f.puts timeval.generate_config('timeval')
     f.puts sockaddr_in.generate_config('sockaddr_in')
     f.puts sockaddr_un.generate_config('sockaddr_un') if sockaddr_un.found?

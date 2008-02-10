@@ -57,17 +57,17 @@ class InstructionSet
     {:opcode => :push_local, :args => [:local], :stack => [0,1]},
     {:opcode => :push_exception, :args => [], :stack => [0,1]},
     {:opcode => :make_array, :args => [:int], :stack => [-110,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :set_ivar, :args => [:literal], :stack => [1,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :push_ivar, :args => [:literal], :stack => [0,1]},
     {:opcode => :goto_if_defined, :args => [:ip], :stack => [1,0],
       :flow => :goto},
     {:opcode => :push_const, :args => [:literal], :stack => [0,1]},
     {:opcode => :set_const, :args => [:literal], :stack => [1,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :set_const_at, :args => [:literal], :stack => [2,0],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :find_const, :args => [:literal], :stack => [1,1]},
     {:opcode => :attach_method, :args => [:literal], :stack => [2,1],
       :vm_flags => [:check_interrupts]},
@@ -82,11 +82,11 @@ class InstructionSet
     {:opcode => :open_module_under, :args => [:literal], :stack => [1,1],
       :vm_flags => [:check_interrupts]},
     {:opcode => :unshift_tuple, :args => [], :stack => [1,2],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :cast_tuple, :args => [], :stack => [1,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :make_rest, :args => [:int], :stack => [-110,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :dup_top, :args => [], :stack => [0,1]},
     {:opcode => :pop, :args => [], :stack => [1,0]},
     {:opcode => :ret, :args => [], :stack => [1,0], :flow => :return,
@@ -105,7 +105,7 @@ class InstructionSet
       :vm_flags => [:terminator]},
     {:opcode => :push_array, :args => [], :stack => [1,-999]},
     {:opcode => :cast_array, :args => [], :stack => [1,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :make_hash, :args => [:int], :stack => [-210,1],
       :vm_flags => [:check_interrupts]},
     {:opcode => :raise_exc, :args => [], :stack => [1,0], :flow => :raise,
@@ -119,15 +119,15 @@ class InstructionSet
       :vm_flags => [:terminator]},
     {:opcode => :passed_arg, :args => [:int], :stack => [0,1]},
     {:opcode => :string_append, :args => [], :stack => [2,1],
-     :vm_flags => []},
+     :vm_flags => [:check_interrupts]},
     {:opcode => :string_dup, :args => [], :stack => [1,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :set_args, :args => [], :stack => [1,0]},
     {:opcode => :get_args, :args => [], :stack => [0,1]},
     {:opcode => :send_with_arg_register, :args => [:literal], :stack => [-132,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :cast_array_for_args, :args => [:int], :stack => [1,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :send_super_stack_with_block,  :args => [:literal, :int],
       :stack => [-121,1], :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :push_my_field, :args => [:field], :stack => [0,1]},
@@ -167,9 +167,9 @@ class InstructionSet
     {:opcode => :push_local_depth, :args => [:depth, :block_local],
       :stack => [0,1]},
     {:opcode => :set_local_depth, :args => [:depth, :block_local],
-      :stack => [1,1], :vm_flags => []},
+      :stack => [1,1], :vm_flags => [:check_interrupts]},
     {:opcode => :create_block, :args => [:int], :stack => [3,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :send_off_stack, :args => [], :stack => [-133,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :locate_method, :args => [], :stack => [3,1]},
@@ -181,7 +181,7 @@ class InstructionSet
     {:opcode => :from_fp, :args => [:int], :stack => [0,1]},
     {:opcode => :set_local_from_fp, :args => [:local, :int], :stack => [0,0]},
     {:opcode => :make_rest_fp, :args => [:int], :stack => [0,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :allocate_stack, :args => [:int], :stack => [0,-110]},
     {:opcode => :deallocate_stack, :args => [:int], :stack => [-110,0]},
     {:opcode => :set_local_fp, :args => [:int], :stack => [1,1]},
@@ -196,7 +196,7 @@ class InstructionSet
     {:opcode => :set_literal, :args => [:literal], :stack => [0,0]},
     {:opcode => :passed_blockarg, :args => [:int], :stack => [0,1]},
     {:opcode => :create_block2, :args => [], :stack => [1,1],
-      :vm_flags => []},
+      :vm_flags => [:check_interrupts]},
     {:opcode => :cast_for_single_block_arg, :args => [], :stack => [1,1]},
     {:opcode => :cast_for_multi_block_arg, :args => [], :stack => [1,1]},
     {:opcode => :set_call_info, :args => [:int, :cache], :stack => [0,0]},
@@ -358,14 +358,8 @@ class InstructionSequence
       sz = stream.inject(0) { |acc, ele| acc + (ele.size * InstructionSet::InstructionSize) }
       @iseq = InstructionSequence.new(sz)
       @offset = 0
-      begin
-        stream.each do |inst|
-          encode inst
-        end
-      rescue Exception => e
-        STDERR.puts "Unable to encode stream:"
-        STDERR.puts stream.inspect
-        raise e
+      stream.each do |inst|
+        encode inst
       end
 
       return @iseq

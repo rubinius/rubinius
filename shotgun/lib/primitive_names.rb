@@ -194,11 +194,7 @@ module Bytecode
       :get_ivar,
       :set_index,
       :get_index,
-      :dispatch_as_method,
-      :opt_push_literal,
-      :opt_push_self,
-      :opt_push_my_field,
-      :opt_push_ivar
+      :dispatch_as_method
     ]
   end
 end

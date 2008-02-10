@@ -50,7 +50,7 @@ void selector_clear(STATE, OBJECT self) {
 
   for(i = 0; i < sz; i++) {
     ss = array_get(state, ary, i);
-    cpu_initialize_sendsite(state, SENDSITE(ss));
+    SENDSITE(ss)->lookup = NULL;
   }
 }
 

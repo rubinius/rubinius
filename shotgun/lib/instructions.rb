@@ -237,12 +237,7 @@ CODE
   end
   
   def push_local
-    <<-CODE
-    next_int;
-    stack_push(fast_fetch(c->locals, _int));
-    CODE
-
-    # "next_int; stack_push(fast_fetch(cpu_current_locals(state, c), _int));"
+    "next_int; stack_push(fast_fetch(cpu_current_locals(state, c), _int));"
   end
   
   def push_local_depth
@@ -420,7 +415,7 @@ CODE
     next_int;
     t1 = stack_pop();
     // printf("Set local %d to %s\\n", _int, _inspect(t1));
-    t2 = c->locals;
+    t2 = cpu_current_locals(state, c);
     if(t2->gc_zone == 0) {
       sassert(_int < NUM_FIELDS(t2) && "locals tuple sized wrong");
       fast_unsafe_set(t2, _int, t1);

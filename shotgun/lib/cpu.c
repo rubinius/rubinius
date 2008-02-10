@@ -131,6 +131,7 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   ar(c->sender);
   
   ar(c->self);
+  ar(c->cache);
   ar(c->exception);
   ar(c->enclosing_class);
   ar(c->main);
@@ -141,7 +142,6 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   ar(c->debug_channel);
   ar(c->control_channel);
   ar(c->current_scope);
-  ar(c->locals);
   len = ptr_array_length(c->paths);
   ptr_array_append(roots, (xpointer)I2N(len));
   // printf("Paths: %d\n", len);
@@ -190,6 +190,7 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   ar(c->sender);
   
   ar(c->self);
+  ar(c->cache);
   ar(c->exception);
   ar(c->enclosing_class);
   ar(c->main);
@@ -200,7 +201,6 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   ar(c->debug_channel);
   ar(c->control_channel);
   ar(c->current_scope);
-  ar(c->locals);
   tmp = ptr_array_get_index(roots, start++);
   len = N2I((OBJECT)tmp);
   for(i = 0; i < len; start++, i++) {
@@ -247,9 +247,6 @@ OBJECT cpu_new_exception2(STATE, cpu c, OBJECT klass, const char *msg, ...) {
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   OBJECT cur, klass, start, hsh, val;
   OBJECT cref, cbase;
-  int sym_hash;
-
-  sym_hash = object_hash_int(state, sym);
 
   /* Look up the lexical scope first */
   
@@ -266,7 +263,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
       if(klass == state->global->object) break;
       
       hsh = module_get_constants(klass);
-      val = hash_get_undef(state, hsh, sym_hash);
+      val = hash_find_undef(state, hsh, sym);
       if(val != Qundef) return val;
           
       cbase = staticscope_get_parent(cbase);
@@ -277,7 +274,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
     while(!NIL_P(cur) && cur != state->global->object) {
     
       hsh = module_get_constants(cur);
-      val = hash_get_undef(state, hsh, sym_hash);
+      val = hash_find_undef(state, hsh, sym);
       if(val != Qundef) return val;
       cur = module_get_superclass(cur);
     }
@@ -285,7 +282,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   
   // As a last rescue, we search in Object's constants
   hsh = module_get_constants(state->global->object);
-  val = hash_get_undef(state, hsh, sym_hash);
+  val = hash_find_undef(state, hsh, sym);
   if(val != Qundef) return val;
 
   stack_push(sym);

@@ -28,8 +28,6 @@ OBJECT send_site_create(STATE, OBJECT name, send_site_lookup func) {
   ss->data1 = ss->data2 = ss->data3 = Qnil;
   ss->lookup = func;
 
-  cpu_initialize_sendsite(state, ss);
-
   selector_associate(state, ss->selector, ss_obj);
 
   return ss_obj;

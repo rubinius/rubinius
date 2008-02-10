@@ -2,7 +2,7 @@
 
 class Dir
   class DirEntry < FFI::Struct
-    config "rbx.platform.dirent", :d_ino, :d_reclen, :d_name
+    layout :d_name, :char_array, Rubinius::RUBY_CONFIG['rbx.platform.dir.d_name']
   end
 
   include Enumerable

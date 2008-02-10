@@ -54,9 +54,7 @@ ifeq ($(UNAME),SunOS)
   LIBS+= -lsocket
 endif
 
-ifdef PROF
-	OPTIMIZATIONS=-O2
-else ifdef DEV
+ifdef DEV
   OPTIMIZATIONS=
 else
   INLINE_OPTS=-Winline -finline-limit=2000 --param max-inline-insns-single=3500 --param large-function-growth=7000 --param inline-unit-growth=1500

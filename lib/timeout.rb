@@ -5,7 +5,6 @@
 #
 # = Copyright
 #
-# Copyright - (C) 2008  Evan Phoenix
 # Copyright:: (C) 2000  Network Applied Communication Laboratory, Inc.
 # Copyright:: (C) 2000  Information-technology Promotion Agency, Japan
 #
@@ -28,97 +27,12 @@
 #   }
 #
 
-require 'thread'
-
 module Timeout
 
   ##
   # Raised by Timeout#timeout when the block times out.
 
   class Error<Interrupt
-  end
-
-  # A mutex to protect @requests
-  @mutex = Mutex.new
-
-  # All the outstanding TimeoutRequests
-  @requests = []
-
-  # Represents +thr+ asking for it to be timeout at in +secs+
-  # seconds. At timeout, raise +exc+.
-  class TimeoutRequest
-    def initialize(secs, thr, exc)
-      @left = secs
-      @thread = thr
-      @exception = exc
-    end
-
-    attr_reader :thread, :left
-
-    # Called because +time+ seconds have gone by. Returns
-    # true if the request has no more time left to run.
-    def elapsed(time)
-      @left -= time
-      @left <= 0
-    end
-
-    # Raise @exception if @thread.
-    def cancel
-      if @thread and @thread.alive?
-        @thread.raise @exception, "execution expired"
-      end
-
-      @left = 0
-    end
-
-    # Abort this request, ie, we don't care about tracking
-    # the thread anymore.
-    def abort
-      @thread = nil
-      @left = 0
-    end
-  end
-
-  def self.add_timeout(time, exc)
-
-    @controller ||= Thread.new do
-      while true
-        if @requests.empty?
-          sleep
-          next
-        end
-
-        min = nil
-
-        @mutex.synchronize do
-          min = @requests.min { |a,b| a.left <=> b.left }
-        end
-
-        slept_for = sleep(min.left)
-
-        @mutex.synchronize do
-          @requests.delete_if do |r|
-            if r.elapsed(slept_for)
-              r.cancel
-              true
-            else
-              false
-            end
-          end
-        end
-
-      end
-    end
-
-    req = TimeoutRequest.new(time, Thread.current, exc)
-
-    @mutex.synchronize do
-      @requests << req
-    end
-
-    @controller.run
-
-    return req
   end
 
   ##
@@ -129,17 +43,20 @@ module Timeout
   # Note that this is both a method of module Timeout, so you can 'include
   # Timeout' into your classes so they have a #timeout method, as well as a
   # module method, so you can call it directly as Timeout.timeout().
-  
+
   def timeout(sec, exception=Error)
     return yield if sec == nil or sec.zero?
     raise ThreadError, "timeout within critical session" if Thread.critical
-
-    req = Timeout.add_timeout sec, exception
-    
     begin
+      x = Thread.current
+      y = Thread.start {
+        sleep sec
+        x.raise exception, "execution expired" if x.alive?
+      }
       yield sec
+      #    return true
     ensure
-      req.abort
+      y.kill if y and y.alive?
     end
   end
 

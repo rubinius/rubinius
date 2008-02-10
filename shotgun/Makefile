@@ -127,7 +127,7 @@ dtrace.h: rubinius.d
 	/usr/sbin/dtrace -h -s rubinius.d -o dtrace.h
 
 rubinius.bin: $(RBLIB) main.o
-	$(COMP) -o rubinius.bin main.o $(RBLIB) $(BIN_RPATH) $(LDFLAGS)
+	$(COMP) -o rubinius.bin main.o $(RBLIB) $(BIN_RPATH)
 
 test/test_state: test/test_state.c library
 	$(COMP) -c -o test/test_state.o test/test_state.c $(CFLAGS)

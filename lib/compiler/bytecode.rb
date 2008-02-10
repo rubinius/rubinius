@@ -1733,6 +1733,15 @@ class Node
   end
 
   # TESTED
+  class MethodCall
+    def use_plugin(g)
+      @compiler.call_plugins.find do |plug|
+        plug.handle(g, self)
+      end
+    end
+  end
+
+  # TESTED
   class FCall
     def allow_private?
       true
@@ -1820,7 +1829,7 @@ class Node
     end
 
     def bytecode(g)
-      return if use_plugin(g, :call)
+      return if use_plugin(g)
 
       emit_args(g)
 
@@ -2091,8 +2100,6 @@ class Node
 
       meth.sret
       meth.close
-
-      use_plugin g, :method, desc
 
       return desc
     end
