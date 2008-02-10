@@ -16,6 +16,8 @@ class EnvironmentVariables
   def include?(key)
     !self[key].nil?
   end
+  alias_method :has_key?, :include?
+  alias_method :key?, :include?
 
   def to_s
     "ENV"
