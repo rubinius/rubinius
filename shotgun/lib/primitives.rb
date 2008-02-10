@@ -1269,16 +1269,9 @@ class ShotgunPrimitives
   
   def stat_file
     <<-CODE
-<<<<<<< HEAD:shotgun/lib/primitives.rb
-=======
-    struct stat *sb = malloc(sizeof(struct stat));
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
     OBJECT t1, t2, t3;
     native_int j;
-<<<<<<< HEAD:shotgun/lib/primitives.rb
     struct stat sb = {0};
-=======
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
 
     GUARD(CLASS_P(msg->recv));
 
@@ -1293,13 +1286,8 @@ class ShotgunPrimitives
     }
 
     if(j != 0) {
-<<<<<<< HEAD:shotgun/lib/primitives.rb
-=======
-      free(sb);
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
       RET(Qfalse);
     } else {
-<<<<<<< HEAD:shotgun/lib/primitives.rb
       t2 = NEW_OBJECT(msg->recv, 15);
       tuple_put(state, t2, 0, I2N((int)sb.st_ino));
       tuple_put(state, t2, 1, I2N((int)sb.st_mode));
@@ -1362,11 +1350,6 @@ class ShotgunPrimitives
       tuple_put(state, t2, 14, dev_minor);
 
       RET(t2);
-=======
-      t3 = ffi_new_pointer(state, sb);
-      ffi_autorelease(t3, 1);
-      RET(t3);
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
     }
     CODE
   end
@@ -1511,45 +1494,20 @@ class ShotgunPrimitives
         RET(Qfalse);
       }
     }
-<<<<<<< HEAD:shotgun/lib/primitives.rb
-=======
 
     err = tcgetattr(STDOUT_FILENO, &ts);
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
-
-<<<<<<< HEAD:shotgun/lib/primitives.rb
-    err = tcgetattr(STDOUT_FILENO, &ts);
-=======
+    
     if(err == -1) { /* TODO: handle errno */
       RET(Qfalse);
     }
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
-
-<<<<<<< HEAD:shotgun/lib/primitives.rb
-    if(err == -1) { /* TODO: handle errno */
-      RET(Qfalse);
-    }
-=======
+    
     ts.c_lflag &= ~ICANON; /* -icanon */
     ts.c_lflag &= ~ISIG;   /* -isig */
     ts.c_lflag &= ~ECHO;   /* -echo */
     ts.c_cc[VMIN] = 1;     /* min 1 */
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
-
-<<<<<<< HEAD:shotgun/lib/primitives.rb
-    ts.c_lflag &= ~ICANON; /* -icanon */
-    ts.c_lflag &= ~ISIG;   /* -isig */
-    ts.c_lflag &= ~ECHO;   /* -echo */
-    ts.c_cc[VMIN] = 1;     /* min 1 */
-=======
+    
     err = tcsetattr(STDOUT_FILENO, TCSANOW, &ts);
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
-
-<<<<<<< HEAD:shotgun/lib/primitives.rb
-    err = tcsetattr(STDOUT_FILENO, TCSANOW, &ts);
-
-=======
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
+    
     if(err == -1) { /* TODO: handle errno */
       RET(Qfalse);
     }
@@ -1709,11 +1667,7 @@ class ShotgunPrimitives
       args++;
     }
 
-<<<<<<< HEAD:shotgun/lib/primitives.rb
     cpu_send(state, c, t2, t1, args, Qnil);
-=======
-    cpu_unified_send(state, c, t2, t1, args, Qnil);
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
     CODE
   end
   
@@ -3316,11 +3270,7 @@ class ShotgunPrimitives
     /* Send is allowed to call private methods. */
     c->call_flags = 1;
     
-<<<<<<< HEAD:shotgun/lib/primitives.rb
     cpu_send(state, c, msg->recv, t1, msg->args - 1, msg->block);
-=======
-    cpu_unified_send(state, c, msg->recv, t1, msg->args - 1, msg->block);
->>>>>>> Activate SendSite, fix ffi_x86 on darwin:shotgun/lib/primitives.rb
     CODE
   end
 

@@ -1279,9 +1279,29 @@ inline void cpu_send_message(STATE, cpu c, struct message *msg) {
   uint64_t start = measure_cpu_time();
 #endif
 
-  ss = SENDSITE(msg->send_site);
-  msg->name = ss->name;
-  ss->lookup(state, c, ss, msg);
+  //if(SENDSITE_P(msg->send_site)) {
+    ss = SENDSITE(msg->send_site);
+    msg->name = ss->name;
+    ss->lookup(state, c, ss, msg);
+  /*
+  } else {
+    msg->name = msg->send_site;
+    msg->send_site = Qnil;
+
+    msg->missing = 0;
+
+    sassert(cpu_locate_method(state, c, msg));
+
+    if(msg->missing) { 
+      msg->args += 1;
+      stack_push(msg->name);
+    }
+
+    if(cpu_try_primitive(state, c, msg)) return;
+
+    cpu_perform(state, c, msg);
+  }
+  */
 
 #ifdef TIME_LOOKUP
   state->lookup_time += (measure_cpu_time() - start);

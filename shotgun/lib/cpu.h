@@ -290,6 +290,7 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, const struct message *m
 
 void cpu_patch_ffi(STATE, const struct message *msg);
 void ffi_call(STATE, cpu c, OBJECT ptr);
+void ffi_autorelease(OBJECT ptr, int ar);
 OBJECT ffi_new_pointer(STATE, void *ptr);
 
 #endif /* RBS_CPU_H */
