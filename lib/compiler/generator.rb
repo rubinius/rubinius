@@ -37,8 +37,36 @@ class Compiler
       @exceptions = []
     end
     
-    attr_reader :ip, :cache_size, :exceptions
+    attr_reader :ip, :cache_size, :exceptions, :stream, :literals
     attr_accessor :break, :redo, :next, :retry, :ensure_return
+
+    def ===(pattern)
+
+      return false unless @stream.size == pattern.size
+
+      i = 0
+      @stream.each do |part|
+        pat = pattern[i]
+        j = 0
+
+        if pat == :any
+          j += 1
+          next
+        end
+
+        part.each do |e|
+          s = pat[j]
+          next if s == :any
+          return false unless e == s
+
+          j += 1
+        end
+
+        i += 1
+      end
+
+      return true
+    end
     
     def run(node)
       node.bytecode self

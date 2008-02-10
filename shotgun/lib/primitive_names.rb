@@ -198,7 +198,11 @@ module Bytecode
       :dir_open,
       :dir_close,
       :dir_read,
-      :dir_control
+      :dir_control,
+      :opt_push_literal,
+      :opt_push_self,
+      :opt_push_my_field,
+      :opt_push_ivar
     ]
   end
 end

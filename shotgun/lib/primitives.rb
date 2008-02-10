@@ -2,13 +2,21 @@ require File.dirname(__FILE__) + '/primitive_names'
 
 class ShotgunPrimitives
 
+  OldMap = {
+    :set_ivar => 1024,
+    :get_ivar => 1025,
+    :set_index => 1026,
+    :get_index => 1027,
+    :dispatch_as_method => 1028
+  }
+
   def generate_select(fd, op="prim")
     i = 1
     order = Bytecode::Compiler::Primitives
 
     File.open("primitive_implementation.gen", "w") do |f|
       order.each do |ins|
-        f.puts "int cpu_primitive_#{ins}(STATE, cpu c, struct message *msg) {"
+        f.puts "int cpu_primitive_#{ins}(STATE, cpu c, const struct message *msg) {"
         f.puts send(ins)
         f.puts "  DONE();\n}"
       end
@@ -30,6 +38,9 @@ class ShotgunPrimitives
     fd.puts "   // NOOP is 0 and signifies a method with no primitive"
     order.each do |ins|
       fd.puts "case #{i}: { // #{ins}"
+      if old = OldMap[ins]
+        fd.puts "case #{old}:"
+      end
       fd.puts "  cpu_patch_primitive(state, msg, cpu_primitive_#{ins});"
       fd.puts "  _ret = cpu_primitive_#{ins}(state, c, msg);"
       fd.puts "  break;\n}"
@@ -71,6 +82,8 @@ class ShotgunPrimitives
         for(i = 0; pi[i].name; i++) {
           if(!strcmp(target, pi[i].name)) return pi[i].index;
         }
+
+        printf("Unknown primitive %s\\n", target);
         
         return -1;
       }
@@ -616,6 +629,7 @@ class ShotgunPrimitives
   
   def gettimeofday
     <<-CODE
+    OBJECT t1;
     struct timeval tv;
 
     /* don't fill in the 2nd argument here. getting the timezone here
@@ -624,11 +638,11 @@ class ShotgunPrimitives
     gettimeofday(&tv, NULL);
 
     /* update Time::TIMEVAL_FIELDS when changing order of fields */
-    msg->recv = array_new(state, 2);
-    array_set(state, msg->recv, 0, ML2N(tv.tv_sec));
-    array_set(state, msg->recv, 1, ML2N(tv.tv_usec));
+    t1 = array_new(state, 2);
+    array_set(state, t1, 0, ML2N(tv.tv_sec));
+    array_set(state, t1, 1, ML2N(tv.tv_usec));
 
-    RET(msg->recv);
+    RET(t1);
     CODE
   end
 
@@ -1101,7 +1115,7 @@ class ShotgunPrimitives
     k = bytearray_bytes(state, msg->recv);
 
     GUARD( j >= 0 && j < k );
-
+    
     indexed = (unsigned char*)bytearray_byte_address(state, msg->recv);
     indexed += j;
     t2 = UI2N(*indexed = N2I(t2));
@@ -1482,18 +1496,18 @@ class ShotgunPrimitives
     }
 
     err = tcgetattr(STDOUT_FILENO, &ts);
-
+    
     if(err == -1) { /* TODO: handle errno */
       RET(Qfalse);
     }
-
+    
     ts.c_lflag &= ~ICANON; /* -icanon */
     ts.c_lflag &= ~ISIG;   /* -isig */
     ts.c_lflag &= ~ECHO;   /* -echo */
     ts.c_cc[VMIN] = 1;     /* min 1 */
-
+    
     err = tcsetattr(STDOUT_FILENO, TCSANOW, &ts);
-
+    
     if(err == -1) { /* TODO: handle errno */
       RET(Qfalse);
     }
@@ -3330,7 +3344,7 @@ class ShotgunPrimitives
     RET(Qtrue);
     CODE
   end
-
+  
   def dir_open
     <<-CODE
     OBJECT t1;
@@ -3344,7 +3358,7 @@ class ShotgunPrimitives
     RET(ffi_new_pointer(state, dir));
     CODE
   end
-
+  
   def dir_close
     <<-CODE
     DIR *dir;
@@ -3362,23 +3376,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-
-  def dir_read
-    <<-CODE
-    struct dirent *ent;
-    OBJECT t1;
-    POP(t1, POINTER); 
-    DIR *dir = *DATA_STRUCT(t1, void**);
-    ent = readdir(dir);
-
-    if(!ent) {
-      RET(Qnil);
-    } else {
-      RET(string_new(state, ent->d_name));
-    }
-    CODE
-  end
-
+  
   def dir_control
     <<-CODE
     OBJECT kind, pos;
@@ -3388,7 +3386,7 @@ class ShotgunPrimitives
 
     POP(kind, FIXNUM);
     POP(pos, FIXNUM);
-
+    
     switch(N2I(kind)) {
     case 0:
       seekdir(dir, N2I(pos));
@@ -3401,6 +3399,56 @@ class ShotgunPrimitives
     default:
       RET(Qnil);
     }
+    CODE
+  end
+  
+  def dir_read
+    <<-CODE
+    struct dirent *ent;
+    OBJECT t1;
+    POP(t1, POINTER); 
+    DIR *dir = *DATA_STRUCT(t1, void**);
+    ent = readdir(dir);
+    
+    if(!ent) {
+      RET(Qnil);
+    } else {
+      RET(string_new(state, ent->d_name));
+    }
+
+    CODE
+  end
+
+  def opt_push_literal
+    <<-CODE
+    OBJECT lits;
+    
+    lits = cmethod_get_literals(msg->method);
+    RET(fast_fetch(lits, 0));
+    CODE
+  end
+  
+  def opt_push_self
+    <<-CODE
+    RET(msg->recv);
+    CODE
+  end
+  
+  def opt_push_ivar
+    <<-CODE
+    OBJECT lits;
+    
+    lits = cmethod_get_literals(msg->method);
+    RET(object_get_ivar(state, msg->recv, fast_fetch(lits, 0)));
+    CODE
+  end
+
+  def opt_push_my_field
+    <<-CODE
+    OBJECT lits;
+    
+    lits = cmethod_get_literals(msg->method);
+    RET(NTH_FIELD(msg->recv, N2I(fast_fetch(lits, 0))));
     CODE
   end
 

@@ -87,6 +87,12 @@ class Node
     obj.nil? ? Nil.new(@compiler) : obj
   end
 
+  def use_plugin(g, kind, *args)
+    @compiler.plugins[kind].find do |plug|
+      plug.handle(g, self, *args)
+    end
+  end
+
   # Start of Node subclasses
 
   class ClosedScope < Node

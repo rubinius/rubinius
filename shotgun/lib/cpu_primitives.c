@@ -119,7 +119,7 @@ void ffi_call(STATE, cpu c, OBJECT ptr);
 
 #include "shotgun/lib/primitive_implementation.gen"
 
-int cpu_perform_system_primitive(STATE, cpu c, int prim, struct message *msg) {
+int cpu_perform_system_primitive(STATE, cpu c, int prim, const struct message *msg) {
   int _ret = TRUE;
   int _orig_sp;
   OBJECT *_orig_sp_ptr;

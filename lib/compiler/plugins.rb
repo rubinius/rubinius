@@ -17,8 +17,13 @@ module Compiler::Plugins
       @compiler = compiler
     end
 
-    def self.plugin(name)
+    def self.plugin(name, kind=:call)
+      @kind = kind
       Compiler::Plugins.add_plugin name, self
+    end
+
+    def self.kind
+      @kind
     end
 
     def call_match(c, const, method)
@@ -311,6 +316,62 @@ module Compiler::Plugins
       call.receiver_bytecode(g)
       g.add name
       return true
+    end
+
+  end
+
+  class AutoPrimitiveDetection < Plugin
+    plugin :auto_primitive, :method
+
+    SingleInt = [[:check_argcount, 0, 0], [:push_int, :any], [:sret]]
+    Literal = [[:check_argcount, 0, 0], [:push_literal, 0], [:sret]]
+    Self = [[:check_argcount, 0, 0], [:push_self], [:sret]]
+    Ivar = [[:check_argcount, 0, 0], [:push_ivar, 0], [:sret]]
+    Field = [[:check_argcount, 0, 0], [:push_my_field, :any], [:sret]]
+
+    def handle(g, obj, meth)
+      ss = meth.generator.stream
+
+      return true unless ss.size == 3
+
+      gen = meth.generator
+
+      if gen === SingleInt
+        meth.generator.literals[0] = ss[1][1]
+        meth.generator.as_primitive :opt_push_literal
+      elsif gen === Literal
+        # The value we want is already in literal 0
+        meth.generator.as_primitive :opt_push_literal
+      elsif gen === Self
+        meth.generator.as_primitive :opt_push_self
+      elsif gen === Ivar
+        meth.generator.as_primitive :opt_push_ivar
+      elsif gen === Field
+        meth.generator.literals[0] = ss[1][1]
+        meth.generator.as_primitive :opt_push_my_field
+      else
+        case ss[1].first
+        when :push_nil
+          lit = nil
+        when :push_true
+          lit = true
+        when :push_false
+          lit = false
+        when :meta_push_0
+          lit = 0
+        when :meta_push_1
+          lit = 1
+        when :meta_push_2
+          lit = 2
+        else
+          return true
+        end
+
+        meth.generator.literals[0] = lit
+        meth.generator.as_primitive :opt_push_literal
+      end
+
+      true
     end
 
   end
