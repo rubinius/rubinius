@@ -211,12 +211,19 @@ static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message 
 
   if(NIL_P(msg->method)) return FALSE;
 
-  /* false means to terminate method lookup. */
+  /* A 'false' method means to terminate method lookup. (e.g. undef_method) */
   if(FALSE_P(msg->method)) return TRUE;
 
-  if(msg->priv) return TRUE;
+  if(msg->priv) { 
+    if(TUPLE_P(msg->method)) { 
+      obj = tuple_at(state, msg->method, 1);
+      /* nil means that the actual method object is 'up' from here */
+      if(NIL_P(obj)) return FALSE;
+    } /* otherwise, bypass all visibility checks */
+    return TRUE;
+  } 
 
-  /* Check that unless we can look for private methods that method isn't private. */
+  /* Check that we are allowed to call this method */
   if(TUPLE_P(msg->method)) {
     vis = tuple_at(state, msg->method, 0);
     if(vis == state->global->sym_private) {
