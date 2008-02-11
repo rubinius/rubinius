@@ -18,8 +18,15 @@ describe "ERB#filename" do
       end
     }.should raise_error(SyntaxError)
     expected = filename
-    ex.file.should == expected
-    ex.line.should == 1
+    fails_on :rubinius do
+      ex.message =~ /^(.*?):(\d+): /
+      $1.should == expected
+      $2.to_i.should == 1
+    end
+    extended_on :rubinius do
+      ex.file.should == expected
+      ex.line.should == 1
+    end
   end
 
 
@@ -35,8 +42,15 @@ describe "ERB#filename" do
       end
     }.should raise_error(SyntaxError)
     expected = '(erb)'
-    ex.file.should == expected
-    ex.line.should == 1
+    fails_on :rubinius do
+      ex.message =~ /^(.*?):(\d+): /
+      $1.should == expected
+      $2.to_i.should == 1
+    end
+    extended_on :rubinius do
+      ex.file.should == expected
+      ex.line.should == 1
+    end
   end
 
 
