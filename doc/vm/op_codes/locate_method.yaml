@@ -17,8 +17,6 @@ description: >-
   method name, and the object to search from off the stack. If a matching method
   is located, it is pushed onto the stack; otherwise, nil is pushed onto the
   stack.
-questions:
-  - When is this opcode used?
 source: |-
     t1 = stack_pop(); // include_private
     t2 = stack_pop(); // meth

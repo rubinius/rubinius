@@ -14,11 +14,7 @@ stack_before:
   - value1
   - ...
 stack_after:
-  -
-    key1: value1
-    key2: value2
-    ...: ...
-    keyn: valuen
+  - "{ key1 => value1, key2 => value2, ..., keyN => valueN }"
   - ...
 description: >-
   Creates a new hash, populating its contents with the number of items

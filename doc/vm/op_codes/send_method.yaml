@@ -19,6 +19,10 @@ see:
   - send_with_arg_register
 notes: >-
   This form of send is for methods that take no arguments.
+  
+  Make primitives safer by having the opcode be aware of the number of args
+  sent.  This way we can remove the dependency of primitives being embedded
+  in methods.
 source: |-
     next_literal;
     t1 = stack_pop();

@@ -12,11 +12,7 @@ stack_before:
   - restn
   - ...
 stack_after:
-  -
-    - rest1
-    - rest2
-    - ...
-    - restn
+  - "[rest1, rest2, ..., restN]"
   - ...
 description: >-
   Pops 0 or more rest arguments from the top of the stack into an array to be

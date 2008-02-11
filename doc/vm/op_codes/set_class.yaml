@@ -6,7 +6,7 @@ format: set_class
 opcode: 5
 stack_before:
   - literal
-  - clazz
+  - class
   - ...
 stack_after:
   - literal

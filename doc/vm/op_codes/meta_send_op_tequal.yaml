@@ -16,6 +16,7 @@ description: >-
   (_value1_ === _value2_). If _value1_ and _value2_ are both fixnums or both
   symbols, the comparison is done directly; otherwise, the === method is called
   on _value1_, passing _value2_ as the argument.
+notes: "Exactly like equal, except calls === if it can't handle it directly."
 source: |-
     t1 = stack_pop();
     t2 = stack_back(0);

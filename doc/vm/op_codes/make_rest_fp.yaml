@@ -8,11 +8,7 @@ opcode: 96
 stack_before:
   - ...
 stack_after:
-  -
-    - rest1
-    - rest2
-    - ...
-    - restn
+  - "[rest1, rest2, ..., restN]"
   - ...
 description: >-
   Copies multiple individual arguments to a method from the caller's stack

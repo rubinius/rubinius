@@ -5,11 +5,7 @@ operation: >-
 format: push_array
 opcode: 47
 stack_before:
-  -
-    - value1
-    - value2
-    - ...
-    - valuen
+  - "[value1, value2, ..., valueN]"
   - ...
 stack_after:
   - value1

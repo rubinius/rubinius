@@ -30,8 +30,7 @@ description: >-
   stack and pushed into locals when the method starts executing.
 
   When the method returns, the return value will be on top of the stack.
-used:
-  - CompiledMethod#activate
+notes: Used by CompiledMethod#activate.
 source: |-
     next_int;
     t1 = stack_pop(); /* recv */

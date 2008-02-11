@@ -5,18 +5,11 @@ operation: >-
 format: unshift_tuple
 opcode: 34
 stack_before:
-  -
-    - value1
-    - value2
-    - ...
-    - valuen
+  - "[value1, value2, ..., valueN]"
   - ...
 stack_after:
   - value1
-  -
-    - value2
-    - ...
-    - valuen
+  - "[value2, ..., valueN]"
   - ...
 description: >-
   Pops a tuple off the top of the stack. If the tuple is empty, the tuple is

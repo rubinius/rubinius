@@ -11,11 +11,7 @@ stack_before:
   - value1
   - ...
 stack_after:
-  -
-    - value1
-    - value2
-    - ...
-    - valuen
+  - "[value1, value2, ..., valueN]"
   - ...
 description: >-
   Creates a new array, populating its contents with the number of items
