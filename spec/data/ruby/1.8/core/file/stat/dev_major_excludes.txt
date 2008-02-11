@@ -1,0 +1,1 @@
+File::Stat.dev_major returns the major part of File::Stat#dev
