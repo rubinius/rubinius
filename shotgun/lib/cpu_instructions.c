@@ -28,29 +28,6 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 
-/*
-static inline uint64_t measure_cpu_time() {
-  uint64_t x;
-  __asm__ __volatile__ ("rdtsc" : "=A" (x));
-  return x;
-}
-
-uint64_t get_cpu_frequency()
-{
-    uint64_t x, y;
-    time_t start;
-    static uint64_t result = 0;
-    if(result) return result;
-
-    start = time(NULL);
-    x = measure_cpu_time();
-    while(time(NULL) == start);
-    y = measure_cpu_time();
-    result = (y - x);
-    return result;
-}
-*/
-
 #define measure_cpu_time mach_absolute_time
 
 void cpu_show_lookup_time(STATE) {
