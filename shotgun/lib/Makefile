@@ -56,15 +56,17 @@ endif
 
 ifdef PROF
 	OPTIMIZATIONS=-O2
-else ifdef DEV
-  OPTIMIZATIONS=
-else
-  INLINE_OPTS=-Winline -finline-limit=2000 --param max-inline-insns-single=3500 --param large-function-growth=7000 --param inline-unit-growth=1500
-  FP_OPTS=
-  ifeq ($(CPU), powerpc)
-    OPTIMIZATIONS=-O2 -funroll-loops -finline-functions $(INLINE_OPTS)
+else 
+  ifdef DEV
+    OPTIMIZATIONS=
   else
-    OPTIMIZATIONS=-O2 -funroll-loops -finline-functions $(INLINE_OPTS) $(FP_OPTS)
+    INLINE_OPTS=-Winline -finline-limit=2000 --param max-inline-insns-single=3500 --param large-function-growth=7000 --param inline-unit-growth=1500
+    FP_OPTS=
+    ifeq ($(CPU), powerpc)
+      OPTIMIZATIONS=-O2 -funroll-loops -finline-functions $(INLINE_OPTS)
+    else
+      OPTIMIZATIONS=-O2 -funroll-loops -finline-functions $(INLINE_OPTS) $(FP_OPTS)
+    endif
   endif
 endif
 
