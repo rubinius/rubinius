@@ -202,8 +202,10 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
      
  */
  
+/* returns TRUE if we found a method object that should be considered
+ * returns FALSE if we need to keep looking 'up' for the method */
 static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message *msg) {
-  OBJECT vis;
+  OBJECT vis, obj;
 
   msg->method = hash_find(state, hsh, msg->name);
 
@@ -229,6 +231,16 @@ static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message 
         return TRUE;
       }
     }
+
+    obj = tuple_at(state, msg->method, 1);
+    if(NIL_P(obj)) {
+      /* The method was callable, but we need to keep looking 
+       * for the implementation, so make the invocation bypass all further
+       * visibility checks */
+      msg->priv = TRUE;
+      return FALSE;
+    }
+
   }
 
   return TRUE;

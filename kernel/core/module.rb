@@ -413,32 +413,29 @@ class Module
     out
   end
 
-  def set_visibility(meth, vis)
+  def set_visibility(meth, vis, where = nil)
     name = normalize_name(meth)
-    tup = find_method_in_hierarchy(name)
     vis = vis.to_sym
 
-    unless tup
-      raise NoMethodError, "Unknown method '#{name}' to make #{vis.to_s}"
-    end
-
-    method_table[name] = tup.dup
-    if tup.kind_of?(Tuple)
-      method_table[name][0] = vis
+    if entry = method_table[name] then
+      if entry.kind_of?(Tuple) then
+        entry = entry.dup
+        entry[0] = vis
+      else
+        entry = Tuple[vis, entry.dup]
+      end
+      method_table[name] = entry
+    elsif find_method_in_hierarchy(name) then
+      method_table[name] = Tuple[vis, nil]
     else
-      method_table[name] = Tuple[vis, tup]
+      raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s}"
     end
-
+    
     return name
   end
 
   def set_class_visibility(meth, vis)
-    # HACK this is called again in set_visibility
-    unless find_class_method_in_hierarchy meth.to_sym then
-      raise NoMethodError, "Unknown class method '#{name}' to make #{vis}"
-    end
-
-    metaclass.set_visibility meth, vis
+    metaclass.set_visibility meth, vis, "class "
   end
 
   # Same as include_cv above, don't call this private.
