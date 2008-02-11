@@ -77,6 +77,8 @@ class Compiler
     def inspect
       "#<#{self.class} #{@name} #{@on_stack.inspect}/#{@slot.inspect}/#{@stack_position.inspect}>"
     end
+
+    attr_reader :name
         
     def formalize!
       if @argument

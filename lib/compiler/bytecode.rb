@@ -15,7 +15,7 @@ class Compiler
     end
 
     attr_reader :generator, :locals
-    attr_accessor :required, :optional, :name
+    attr_accessor :required, :optional, :name, :args
 
     def run(container, body)
       @generator.run(body)
@@ -2088,6 +2088,11 @@ class Node
           desc.run self, @body
         end
       end
+
+      required =  @arguments.required.map {|x| x.name} if @arguments.required
+      optional =  @arguments.optional.map {|x| x.name} if @arguments.optional
+        
+      desc.args = [required, optional, @arguments.splat && @arguments.splat.name]
 
       meth.sret
       meth.close

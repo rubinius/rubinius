@@ -42,7 +42,7 @@ class StaticScope
 end
 
 class CompiledMethod
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :arguments => 9, :scope => 10, :exceptions => 11, :lines => 12, :path => 13, :cache => 14, :bonus => 15, :compiled => 16, :staticscope => 17
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :arguments => 9, :scope => 10, :exceptions => 11, :lines => 12, :path => 13, :cache => 14, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
   def __ivars__ ; @__ivars__  ; end
   def primitive ; @primitive  ; end
   def required  ; @required   ; end
@@ -61,6 +61,7 @@ class CompiledMethod
   def bonus     ; @bonus      ; end
   def compiled  ; @compiled   ; end
   def staticscope; @staticscope; end
+  def args      ; @args       ; end
 
   # This is runtime hints, added to the method by the VM to indicate how it's
   # being used.
@@ -139,6 +140,10 @@ class CompiledMethod
 
   def bonus=(tup)
     @bonus = tup
+  end
+  
+  def args=(ary)
+    @args = ary
   end
   
   def local_names

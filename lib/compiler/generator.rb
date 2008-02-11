@@ -155,6 +155,7 @@ class Compiler
       cm.serial = 0
       cm.cache = @cache_size
       cm.local_names = desc.locals.encoded_order
+      cm.args = desc.args
       return cm
     end
     
