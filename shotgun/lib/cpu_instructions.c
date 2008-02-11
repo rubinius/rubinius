@@ -104,34 +104,34 @@ DT_ADDRESSES;
 
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, OBJECT sym, int *created) {
   OBJECT val, s1, s2, s3, s4, sup_itr;
-    
+
   *created = FALSE;
-    
+
   val = module_const_get(state, under, sym);
   if(RTEST(val)) {
     if(ISA(val, BASIC_CLASS(class))) {
       if(!NIL_P(sup) && class_superclass(state, val) != sup) {
-        cpu_raise_exception(state, c, 
+        cpu_raise_exception(state, c,
           cpu_new_exception(state, c, state->global->exc_type, "superclass mismatch"));
         return Qundef;
       }
     } else {
-      cpu_raise_exception(state, c, 
+      cpu_raise_exception(state, c,
         cpu_new_exception(state, c, state->global->exc_type, "constant is not a class"));
       return Qundef;
     }
-    
+
     return val;
   } else {
     val = class_constitute(state, sup, under);
     if(NIL_P(val)) {
-      cpu_raise_exception(state, c, 
+      cpu_raise_exception(state, c,
         cpu_new_exception(state, c, state->global->exc_arg, "Invalid superclass"));
       return Qundef;
     }
-    
+
     *created = TRUE;
-    
+
     /*
     printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(under));
     */
@@ -147,7 +147,7 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, OBJECT sym, int *c
       module_set_name(val, sym);
     }
     module_const_set(state, under, sym, val);
-    sup_itr = sup;    
+    sup_itr = sup;
   }
   return val;
 }
@@ -195,15 +195,10 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
 
 /* Locate the method object for calling method +name+ on an instance of +klass+.
    +mod+ is updated to point to the Module that holds the method.
-   
-   
-   * The method is then looked for in the hash tables up the superclass
-     chain.
-     
- */
- 
-/* returns TRUE if we found a method object that should be considered
- * returns FALSE if we need to keep looking 'up' for the method */
+   The method is then looked for in the hash tables up the superclass chain.
+   returns TRUE if we found a method object that should be considered
+   returns FALSE if we need to keep looking 'up' for the method
+*/
 static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message *msg) {
   OBJECT vis, obj;
 
@@ -214,14 +209,14 @@ static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message 
   /* A 'false' method means to terminate method lookup. (e.g. undef_method) */
   if(FALSE_P(msg->method)) return TRUE;
 
-  if(msg->priv) { 
-    if(TUPLE_P(msg->method)) { 
+  if(msg->priv) {
+    if(TUPLE_P(msg->method)) {
       obj = tuple_at(state, msg->method, 1);
       /* nil means that the actual method object is 'up' from here */
       if(NIL_P(obj)) return FALSE;
     } /* otherwise, bypass all visibility checks */
     return TRUE;
-  } 
+  }
 
   /* Check that we are allowed to call this method */
   if(TUPLE_P(msg->method)) {
@@ -303,21 +298,21 @@ static inline int cpu_find_method(STATE, cpu c, struct message *msg) {
     if(!ISA(hsh, state->global->hash)) {
       printf("Warning: encountered invalid module (methods not a hash).\n");
       sassert(0);
-      return FALSE; 
+      return FALSE;
     }
 
     msg->module = klass;
     if(cpu_check_for_method(state, c, hsh, msg)) {
       goto cache;
     }
-    
+
     klass = class_get_superclass(klass);
     if(NIL_P(klass)) break;
 
   } while(1);
 
 cache:
-  
+
   if(!RTEST(msg->method)) return FALSE;
 
 #if USE_GLOBAL_CACHING
@@ -346,20 +341,20 @@ cache:
     UNVIS_METHOD(msg->method);
   }
 #endif
-  
+
   return TRUE;
 }
 
 OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod) {
   struct message msg;
-  
+
   msg.name = name;
   msg.klass = klass;
   msg.recv = Qnil;
   msg.priv = TRUE;
   msg.module = Qnil;
   msg.method = Qnil;
-  
+
   if(!cpu_find_method(state, c, &msg)) {
     *mod = Qnil;
     return Qnil;
@@ -399,9 +394,9 @@ static inline int cpu_locate_method(STATE, cpu c, struct message *msg) {
 #endif
 
   ret = TRUE;
-  
+
   if(cpu_find_method(state, c, msg)) goto done;
- 
+
   missing = *msg;
   missing.priv = TRUE;
   missing.name = state->global->method_missing;
@@ -420,7 +415,7 @@ done:
   }
 #endif
   // printf("Found method: %p\n", mo);
-  
+
   return ret;
 }
 
@@ -479,7 +474,7 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
       cmethod_set_cache(cm, cs);
     }
   }
-  
+
   return ba;
 }
 
@@ -499,7 +494,7 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
   OBJECT ctx, ins;
   struct fast_context *fc;
   int i;
-  
+
   ctx = object_memory_new_context(state->om, locals);
   if(ctx >= state->om->context_last) {
     state->om->collect_now |= OMCollectYoung;
@@ -522,7 +517,7 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
   fc->method = meth;
   fc->data = bytearray_byte_address(state, ins);
   fc->literals = fast_fetch(meth, CMETHOD_f_LITERALS);
-  
+
   if(locals > 0) {
     fc->locals = object_memory_context_locals(ctx);
     CLEAR_FLAGS(fc->locals);
@@ -533,7 +528,7 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
     for(i = 0; i < locals; i++) {
       SET_FIELD_DIRECT(fc->locals, i, Qnil);
     }
-    
+
   } else {
     fc->locals = Qnil;
   }
@@ -545,48 +540,48 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
 static inline OBJECT cpu_create_context(STATE, cpu c, const struct message *msg) {
   OBJECT ctx;
   struct fast_context *fc;
-  
+
   ctx = _allocate_context(state, c, msg->method, N2I(cmethod_get_locals(msg->method)));
   fc = FASTCTX(ctx);
-  
+
   fc->ip = 0;
   cpu_flush_sp(c);
   fc->sp = c->sp;
   /* fp points to the location on the stack as the context
      was being created. */
   fc->fp = c->sp;
-  
+
   fc->block = msg->block;
   fc->self = msg->recv;
   fc->argcount = msg->args;
   fc->name = msg->name;
   fc->method_module = msg->module;
   fc->type = FASTCTX_NORMAL;
-  
+
   return ctx;
 }
 
 OBJECT cpu_create_block_context(STATE, cpu c, OBJECT env, int sp) {
   OBJECT ctx;
   struct fast_context *fc;
-  
+
   ctx = _allocate_context(state, c, blokenv_get_method(env),
                       N2I(blokenv_get_local_count(env)));
   fc = FASTCTX(ctx);
-  
+
   fc->ip = N2I(blokenv_get_initial_ip(env));
   fc->sp = sp;
-  
+
   fc->block = Qnil;
   fc->self = Qnil;
   fc->argcount = 0;
-  
+
   /* env lives here */
   fc->name = env;
-  
+
   fc->method_module = Qnil;
   fc->type = FASTCTX_BLOCK;
-  
+
   return ctx;
 }
 
@@ -594,14 +589,14 @@ OBJECT cpu_create_block_context(STATE, cpu c, OBJECT env, int sp) {
 void cpu_raise_from_errno(STATE, cpu c, const char *msg) {
   OBJECT cls;
   char buf[32];
-  
+
   cls = hash_find(state, state->global->errno_mapping, I2N(errno));
   if(NIL_P(cls)) {
     cls = state->global->exc_arg;
     snprintf(buf, sizeof(buf), "Unknown errno %d", errno);
     msg = buf;
   }
-    
+
   cpu_raise_exception(state, c, cpu_new_exception(state, c, cls, msg));
 }
 
@@ -628,9 +623,9 @@ void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
 static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
   int prim, req;
   OBJECT prim_obj;
-  
+
   prim_obj = fast_fetch(msg->method, CMETHOD_f_PRIMITIVE);
-  
+
   if(!FIXNUM_P(prim_obj)) {
     if(SYMBOL_P(prim_obj)) {
       prim = calc_primitive_index(state, symbol_to_string(state, prim_obj));
@@ -639,13 +634,13 @@ static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
     }
     cmethod_set_primitive(msg->method, I2N(prim));
   } else {
-    prim = N2I(prim_obj); 
-  }  
-  
+    prim = N2I(prim_obj);
+  }
+
   if(prim < 0) return FALSE;
-      
+
   req = N2I(cmethod_get_required(msg->method));
-  
+
   if(msg->args == req || req < 0) {
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
@@ -661,16 +656,16 @@ static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
     RUBINIUS_FUNCTION_ENTRY(module_name, method_name, filename, line_number);
   }
 #endif
-    
+
     if(cpu_perform_system_primitive(state, c, prim, msg)) {
       /* Worked! */
-      
+
       if(EXCESSIVE_TRACING) {
         printf("%05d: Called prim %s => %s on %s.\n", c->depth,
           rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
           rbs_symbol_to_cstring(state, msg->name), _inspect(msg->recv));
       }
-      
+
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
     char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
@@ -690,16 +685,16 @@ static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
     if(EXCESSIVE_TRACING) {
       printf("[[ Primitive failed! -- %d ]]\n", prim);
     }
-    
+
     return FALSE;
   }
-    
+
   /* raise an exception about them not doing it right. */
   cpu_raise_arg_error(state, c, msg->args, req);
-  
+
   /* Return TRUE to indicate that the work for this primitive has
      been done. */
-  return TRUE;  
+  return TRUE;
 }
 
 /* Raw most functions for moving in a method. Adjusts register. */
@@ -708,7 +703,7 @@ static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
    removed from the stack */
 inline void cpu_save_registers(STATE, cpu c, int offset) {
   struct fast_context *fc;
-  
+
   cpu_flush_ip(c);
   cpu_flush_sp(c);
   fc = (struct fast_context*)BYTES_OF(c->active_context);
@@ -730,7 +725,7 @@ inline void cpu_yield_debugger_check(STATE, cpu c) {
 
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home) {
   struct fast_context *fc;
-    
+
   /* Home is actually the main context here because it's the method
      context that holds all the data. So if it's a fast, we restore
      it's data, then if ctx != home, we restore a little more */
@@ -738,10 +733,10 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home)
   fc = FASTCTX(home);
   CHECK_PTR(fc->self);
   CHECK_PTR(fc->method);
-  
+
   c->argcount = fc->argcount;
   c->self = fc->self;
-    
+
   /* Only happens if we're restoring a block. */
   if(ctx != home) {
     fc = FASTCTX(ctx);
@@ -749,7 +744,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home)
 
   c->data = fc->data;
   c->type = fc->type;
- 
+
   c->locals = FASTCTX(home)->locals;
 
   c->sender = fc->sender;
@@ -802,12 +797,12 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
     OBJECT module = cpu_current_module(state, c);
-    
+
     char *module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
     char *method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
-    
+
     cpu_flush_ip(c);
-    
+
     struct fast_context *fc = FASTCTX(c->active_context);
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
     char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
@@ -819,15 +814,15 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
   c->depth--;
 
   destination = cpu_current_sender(c);
-  
+
   // printf("Rtrnng frm %p (%d)\n", c->active_context, FASTCTX(c->active_context)->size);
-  
+
   if(destination == Qnil) {
     object_memory_retire_context(state->om, c->active_context);
-    
+
     c->active_context = Qnil;
-    
-    /* Thread exitting, reschedule.. */
+
+    /* Thread exiting, reschedule.. */
     if(c->current_thread != c->main_thread) {
       THDEBUG("%d: thread reached end, dead.\n", getpid());
       cpu_thread_exited(state, c);
@@ -842,7 +837,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
   } else {
     /* retire this one context. */
     object_memory_retire_context(state->om, c->active_context);      
-    
+
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
     if(blokctx_s_block_context_p(state, destination)) {
@@ -850,7 +845,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
     } else {
       home = destination;
     }
-    
+
     /*
     if(EXCESSIVE_TRACING) {
       if(stack_context_p(destination)) {
@@ -870,17 +865,17 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
       stack_push(val);
     }
   }
-  
+
   return TRUE;
 }
 
 inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception) {
   OBJECT destination, home;
   int is_block;
-  
+
   is_block = blokctx_s_block_context_p(state, c->active_context);
   destination = cpu_current_sender(c);
-  
+
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED() && !is_block) {
     OBJECT module = cpu_current_module(state, c);
@@ -889,7 +884,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     char *method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
 
     cpu_flush_ip(c);
-    
+
     struct fast_context *fc = FASTCTX(c->active_context);
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
     char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
@@ -899,12 +894,12 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
 #endif
 
   c->depth--;
-  
+
   if(destination == Qnil) {
     object_memory_retire_context(state->om, c->active_context);
-    
+
     c->active_context = Qnil;
-    
+
     /* Thread exitting, reschedule.. */
     if(c->current_thread != c->main_thread) {
       THDEBUG("%d: thread reached end, dead.\n", getpid());
@@ -918,7 +913,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     /* The return value of the script is passed on the stack. */
     stack_push(val);
   } else {
-    
+
     /* Implements a block causing the the context it was created in
        to return (IE, a non local return) */
     if(consider_block && is_block) {
@@ -927,18 +922,18 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
       if(EXCESSIVE_TRACING) {
         printf("CTX: remote return from %p to %p\n", c->active_context, destination);
       }
-      
+
       /* If we're making a non-local return to a stack context... */
       if(om_on_stack(state->om, destination)) {
-        /* If we're returning to a reference'd context, reset the 
+        /* If we're returning to a reference'd context, reset the
            context stack to the virtual bottom */
         if(om_context_referenced_p(state->om, destination)) {
-          state->om->contexts->current = state->om->context_bottom;          
+          state->om->contexts->current = state->om->context_bottom;
         /* Otherwise set it to just beyond where we're returning to */
         } else {
           state->om->contexts->current = (void*)AFTER_CTX(destination);
         }
-      
+
       /* It's a heap context, so reset the context stack to the virtual
          bottom. */
       } else {
@@ -947,9 +942,9 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     /* It's a normal return. */
     } else {
       /* retire this one context. */
-      object_memory_retire_context(state->om, c->active_context);      
+      object_memory_retire_context(state->om, c->active_context);
     }
-    
+
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
     if(blokctx_s_block_context_p(state, destination)) {
@@ -957,7 +952,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     } else {
       home = destination;
     }
-    
+
     if(EXCESSIVE_TRACING) {
       if(stack_context_p(destination)) {
         printf("Returning to a stack context %p / %p (%s).\n", c->active_context, destination, (uintptr_t)c->active_context - (uintptr_t)destination == CTX_SIZE ? "stack" : "REMOTE");
@@ -965,7 +960,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
         printf("Returning to %s.\n", _inspect(destination));
       }
     }
-    
+
     xassert(om_valid_context_p(state, destination));
     xassert(om_valid_context_p(state, home));
 
@@ -975,14 +970,14 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
 
        Commenting it out fixes that for now.
        Hopefully someone smarter than me knows a better fix for the future.
-    
-     Skip over NMCs for now. 
+
+     Skip over NMCs for now.
 
     if(exception && FASTCTX(destination)->type == FASTCTX_NMC) {
       c->active_context = destination;
-      return cpu_return_to_sender(state, c, val, FALSE, TRUE);      
+      return cpu_return_to_sender(state, c, val, FALSE, TRUE);
     }
-    
+
     */
 
     /* Ok, reason we'd be restoring a native context:
@@ -999,11 +994,11 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
       if(!exception) stack_push(val);
     }
   }
-  
+
   return TRUE;
 }
 
-/* Layer 3: goto. Basically jumps directly into the specificed method. 
+/* Layer 3: goto. Basically jumps directly into the specificed method.
    no lookup required. */
 
 inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
@@ -1067,7 +1062,7 @@ static inline void cpu_activate_method(STATE, cpu c, struct message *msg) {
   }
 
   if(cpu_try_primitive(state, c, msg)) return;
-  
+
   ctx = cpu_create_context(state, c, msg);
 
   cpu_save_registers(state, c, msg->args);
@@ -1102,21 +1097,21 @@ cpu_patch_mono(STATE, struct send_site *ss, struct message *msg);
 static inline void
 cpu_patch_missing(STATE, struct send_site *ss, struct message *msg);
 
-static void 
+static void
 _cpu_ss_basic(STATE, cpu c, struct send_site *ss, struct message *msg) {
   msg->missing = 0;
-  
+
   sassert(cpu_locate_method(state, c, msg));
-  
+
   /* If it's not method_missing, cache the details of msg in the send_site */
-  if(!msg->missing) { 
+  if(!msg->missing) {
     cpu_patch_mono(state, ss, msg);
   } else {
     cpu_patch_missing(state, ss, msg);
     msg->args += 1;
     stack_push(msg->name);
   }
-    
+
   if(cpu_try_primitive(state, c, msg)) return;
 
   cpu_perform(state, c, msg);
@@ -1128,7 +1123,7 @@ void cpu_initialize_sendsite(STATE, struct send_site *ss) {
 
 /* Send Site specialization 1: execute a primitive directly. */
 
-static void _cpu_ss_mono_prim(STATE, cpu c, struct send_site *ss, 
+static void _cpu_ss_mono_prim(STATE, cpu c, struct send_site *ss,
     struct message *msg) {
   prim_func func;
   int _orig_sp;
@@ -1138,12 +1133,12 @@ static void _cpu_ss_mono_prim(STATE, cpu c, struct send_site *ss,
     _cpu_ss_basic(state, c, ss, msg);
     return;
   }
-  
+
   _orig_sp_ptr = c->sp_ptr;
   _orig_sp = c->sp;
 
   func = (prim_func)ss->c_data;
-  
+
   msg->method = ss->data2;
   msg->module = ss->data3;
 
@@ -1163,21 +1158,21 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func) {
   if(!REFERENCE_P(msg->send_site)) return;
 
   ss = SENDSITE(msg->send_site);
-  
+
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
   SET_STRUCT_FIELD(msg->send_site, ss->data3, msg->module);
-  
+
   ss->c_data = (void*)func;
   ss->lookup = _cpu_ss_mono_prim;
 }
 
 /* Send Site specialization 2: Run an ffi function directly. */
-static void _cpu_ss_mono_ffi(STATE, cpu c, struct send_site *ss, 
+static void _cpu_ss_mono_ffi(STATE, cpu c, struct send_site *ss,
     struct message *msg) {
   rni_context *ctx;
   nf_stub_ffi func;
-  
+
   func = (nf_stub_ffi)ss->c_data;
   // printf("mono-ffi: %p (%s)\n", func, _inspect(ss->name));
 
@@ -1185,7 +1180,7 @@ static void _cpu_ss_mono_ffi(STATE, cpu c, struct send_site *ss,
     _cpu_ss_basic(state, c, ss, msg);
     return;
   }
- 
+
   ctx = subtend_retrieve_context();
   ctx->state = state;
   ctx->cpu = c;
@@ -1201,19 +1196,19 @@ void cpu_patch_ffi(STATE, const struct message *msg) {
   if(!REFERENCE_P(msg->send_site)) return;
 
   ss = SENDSITE(msg->send_site);
-  
+
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
   SET_STRUCT_FIELD(msg->send_site, ss->data3, msg->module);
-  
+
   ss->c_data = *DATA_STRUCT(nfunc_get_data(msg->method), void**);
   ss->lookup = _cpu_ss_mono_ffi;
 
   return;
   /*
-  
+
   if(!REFERENCE_P(msg->send_site)) return;
-  
+
   ss = SENDSITE(msg->send_site);
   SET_STRUCT_FIELD(msg->send_site, ss->data1, msg->recv);
   SET_STRUCT_FIELD(msg->send_site, ss->data2, nfunc_get_data(msg->method));
@@ -1222,23 +1217,23 @@ void cpu_patch_ffi(STATE, const struct message *msg) {
 }
 
 /* Send Site specialzitation 3: simple monomorphic last implemenation cache. */
-static void _cpu_ss_mono(STATE, cpu c, struct send_site *ss, 
+static void _cpu_ss_mono(STATE, cpu c, struct send_site *ss,
     struct message *msg) {
-  
+
   if(_real_class(state, msg->recv) != ss->data1) {
     _cpu_ss_basic(state, c, ss, msg);
     return;
   }
-  
+
   msg->method = ss->data2;
   msg->module = ss->data3;
-    
-  if(cpu_try_primitive(state, c, msg)) return; 
+
+  if(cpu_try_primitive(state, c, msg)) return;
 
   cpu_perform(state, c, msg);
 }
 
-/* Saves the details of +msg+ in +ss+ and install _cpu_ss_mono in +ss+, so 
+/* Saves the details of +msg+ in +ss+ and install _cpu_ss_mono in +ss+, so
  * that the next time +ss+ is used, it will try the cache details. */
 static inline void
 cpu_patch_mono(STATE, struct send_site *ss, struct message *msg) {
@@ -1254,19 +1249,19 @@ _cpu_ss_missing(STATE, cpu c, struct send_site *ss, struct message *msg) {
     _cpu_ss_basic(state, c, ss, msg);
     return;
   }
-  
+
   msg->method = ss->data2;
   msg->module = ss->data3;
 
   msg->args += 1;
   stack_push(msg->name);
- 
+
   if(cpu_try_primitive(state, c, msg)) return;
 
   cpu_perform(state, c, msg);
 }
 
-/* Saves the details of +msg+ in +ss+ and install _cpu_ss_mono in +ss+, so 
+/* Saves the details of +msg+ in +ss+ and install _cpu_ss_mono in +ss+, so
  * that the next time +ss+ is used, it will try the cache details. */
 static inline void
 cpu_patch_missing(STATE, struct send_site *ss, struct message *msg) {
@@ -1298,29 +1293,9 @@ inline void cpu_send_message(STATE, cpu c, struct message *msg) {
   uint64_t start = measure_cpu_time();
 #endif
 
-  //if(SENDSITE_P(msg->send_site)) {
-    ss = SENDSITE(msg->send_site);
-    msg->name = ss->name;
-    ss->lookup(state, c, ss, msg);
-  /*
-  } else {
-    msg->name = msg->send_site;
-    msg->send_site = Qnil;
-
-    msg->missing = 0;
-
-    sassert(cpu_locate_method(state, c, msg));
-
-    if(msg->missing) { 
-      msg->args += 1;
-      stack_push(msg->name);
-    }
-
-    if(cpu_try_primitive(state, c, msg)) return;
-
-    cpu_perform(state, c, msg);
-  }
-  */
+  ss = SENDSITE(msg->send_site);
+  msg->name = ss->name;
+  ss->lookup(state, c, ss, msg);
 
 #ifdef TIME_LOOKUP
   state->lookup_time += (measure_cpu_time() - start);
@@ -1329,19 +1304,19 @@ inline void cpu_send_message(STATE, cpu c, struct message *msg) {
 
 void cpu_send_message_external(STATE, cpu c, struct message *msg) {
   OBJECT ctx;
-  
+
   if(!cpu_locate_method(state, c, msg)) {
     _cpu_on_no_method(state, c, msg);
     return;
   }
-  
+
   if(msg->missing) {
     msg->args += 1;
     stack_push(msg->name);
   } else {
     if(cpu_try_primitive(state, c, msg)) return;
   }
- 
+
   c->depth++;
   if(c->depth == CPU_MAX_DEPTH) {
     machine_handle_fire(FIRE_STACK);
@@ -1355,7 +1330,7 @@ void cpu_send_message_external(STATE, cpu c, struct message *msg) {
     methctx_reference(state, ctx);
     object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
   }
- 
+
   cpu_save_registers(state, c, msg->args);
   cpu_restore_context_with_home(state, c, ctx, ctx);
 }
@@ -1373,7 +1348,7 @@ void cpu_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
   msg.priv = c->call_flags;
   msg.missing = 0;
   msg.send_site = Qnil;
-  
+
   c->call_flags = 0;
 
   cpu_send_message_external(state, c, &msg);
@@ -1384,36 +1359,36 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   int cur, total, target, idx, l, r, is_block;
   c->exception = exc;
   ctx = c->active_context;
-  
+
   if(INTERNAL_DEBUG && getenv("EXCHALT")) {
     printf("An exception has occured: %s\n", _inspect(exc));
     assert(0);
   }
-  
+
   cpu_flush_ip(c);
   cpu_save_registers(state, c, 0);
-  
+
   /* NOTE: using return_to_sender worries me a little because it can
      switch to a different task if you try to return off the top
      of a task.. */
-  
+
   while(!NIL_P(ctx)) {
     is_block = blokctx_s_block_context_p(state, ctx);
-    
+
     if(c->type == FASTCTX_NMC) {
       cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
       ctx = c->active_context;
       continue;
-    }    
-    
+    }
+
     table = cmethod_get_exceptions(cpu_current_method(state, c));
-    
+
     if(!table || NIL_P(table)) {
       cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
       ctx = c->active_context;
       continue;
     }
-    
+
     cur = c->ip;
     total = NUM_FIELDS(table);
     target = 0;
@@ -1437,14 +1412,14 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
         return;
       }
     }
-    
+
     cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
     ctx = c->active_context;
   }
-  
+
   /* Reset it because it can get overriden in the return_to_senders. */
   c->exception = exc;
-  
+
   // printf("Unable to find exception handler, i'm confused.\n");
   return;
 }
@@ -1518,31 +1493,31 @@ void cpu_run(STATE, cpu c, int setup) {
     return;
 #endif
   }
-  
+
   /* recache ip_ptr to make it valid. */
   cpu_cache_ip(c);
-  
+
   current_machine->g_use_firesuit = 1;
   current_machine->g_access_violation = 0;
   getcontext(&current_machine->g_firesuit);
-  
+
   /* Ok, we jumped back here because something went south. */
   if(current_machine->g_access_violation) {
     switch(current_machine->g_access_violation) {
     case FIRE_ACCESS:
-      cpu_raise_exception(state, c, 
-        cpu_new_exception(state, c, state->global->exc_arg, 
+      cpu_raise_exception(state, c,
+        cpu_new_exception(state, c, state->global->exc_arg,
             "Accessed outside bounds of object"));
       break;
     case FIRE_NULL:
-      cpu_raise_exception(state, c, 
-        cpu_new_exception(state, c, state->global->exc_arg, 
-            "Attempted to access field of non-reference (null pointer)")); 
+      cpu_raise_exception(state, c,
+        cpu_new_exception(state, c, state->global->exc_arg,
+            "Attempted to access field of non-reference (null pointer)"));
       break;
     case FIRE_ASSERT:
-      cpu_raise_exception(state, c, 
-        cpu_new_exception(state, c, 
-            rbs_const_get(state, BASIC_CLASS(object), "VMAssertion"), 
+      cpu_raise_exception(state, c,
+        cpu_new_exception(state, c,
+            rbs_const_get(state, BASIC_CLASS(object), "VMAssertion"),
             "An error has occured within the VM"));
       break;
     case FIRE_TYPE:
@@ -1550,17 +1525,17 @@ void cpu_run(STATE, cpu c, int setup) {
       cpu_raise_exception(state, c,
         cpu_new_exception2(state, c, global->exc_type,
             "Invalid type encountered %s: %s",
-	    current_machine->g_firesuit_message, firesuit_arg));
+      current_machine->g_firesuit_message, firesuit_arg));
       free(current_machine->g_firesuit_message);
       break;
     case FIRE_STACK:
-      cpu_raise_exception(state, c, 
-        cpu_new_exception(state, c, 
-            rbs_const_get(state, BASIC_CLASS(object), "SystemStackError"), 
+      cpu_raise_exception(state, c,
+        cpu_new_exception(state, c,
+            rbs_const_get(state, BASIC_CLASS(object), "SystemStackError"),
             "Maximum amount of stack space used"));
       break;
     default:
-      cpu_raise_exception(state, c, 
+      cpu_raise_exception(state, c,
         cpu_new_exception2(state, c, global->exc_type,
             "Unknown firesuit reason: %d", current_machine->g_access_violation));
       break;
@@ -1586,13 +1561,13 @@ next_op:
     if(EXCESSIVE_TRACING) {
     cpu_flush_ip(c);
     cpu_flush_sp(c);
-    printf("%-15s: OP: %s (%d/%d/%d)\n", 
+    printf("%-15s: OP: %s (%d/%d/%d)\n",
       rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),
       cpu_op_to_name(state, op), op, c->ip, c->sp);
     }
 
     #include "shotgun/lib/instructions.gen"
-    
+
 #endif
 check_interrupts:
     if(state->om->collect_now) {
@@ -1603,7 +1578,7 @@ check_interrupts:
       }
 #endif
       int cm = state->om->collect_now;
-      
+
       /* Collect the first generation. */
       if(cm & OMCollectYoung) {
         if(EXCESSIVE_TRACING) {
@@ -1616,7 +1591,7 @@ check_interrupts:
           printf("[[ Finished collect. ]]\n");
         }
       }
-      
+
       /* Collect the old generation. */
       if(cm & OMCollectMature) {
         if(EXCESSIVE_TRACING) {
@@ -1625,21 +1600,21 @@ check_interrupts:
         state_major_collect(state, c);
         // printf("Done with major collection.\n");
       }
-  
+
       /* If someone is reading the ON_GC channel, write to it to notify them. */
       if(cpu_channel_has_readers_p(state, state->global->on_gc_channel)) {
         cpu_channel_send(state, c, state->global->on_gc_channel, Qtrue);
       }
-      
+
       state->om->collect_now = 0;
 
 #if ENABLE_DTRACE
       if (RUBINIUS_GC_END_ENABLED()) {
         RUBINIUS_GC_END();
       }
-#endif      
+#endif
     }
-    
+
     if(state->check_events) {
       state->check_events = 0;
       if(state->pending_events) cpu_event_runonce(state);
@@ -1653,3 +1628,4 @@ void cpu_run_script(STATE, cpu c, OBJECT meth) {
   name = string_to_sym(state, string_new(state, "__script__"));
   cpu_goto_method(state, c, c->main, meth, 0, name, Qnil);
 }
+
