@@ -342,7 +342,7 @@ void machine_handle_type_error(OBJECT, const char *message);
 #define fast_inc(obj, idx) fast_unsafe_set(obj, idx, (void*)((uintptr_t)fast_fetch(obj, idx) + (1 << TAG_SHIFT)))
 
 #define ACCESS_MACROS 1
-#define EXTRA_PROTECTION 1
+#define EXTRA_PROTECTION 0
 
 #if ACCESS_MACROS
 

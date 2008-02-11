@@ -63,9 +63,9 @@ else
     INLINE_OPTS=-Winline -finline-limit=2000 --param max-inline-insns-single=3500 --param large-function-growth=7000 --param inline-unit-growth=1500
     FP_OPTS=
     ifeq ($(CPU), powerpc)
-      OPTIMIZATIONS=-O2 -funroll-loops -finline-functions $(INLINE_OPTS)
+      OPTIMIZATIONS=-O2 -finline-functions $(INLINE_OPTS)
     else
-      OPTIMIZATIONS=-O2 -funroll-loops -finline-functions $(INLINE_OPTS) $(FP_OPTS)
+      OPTIMIZATIONS=-O2 -finline-functions $(INLINE_OPTS) $(FP_OPTS)
     endif
   endif
 endif
