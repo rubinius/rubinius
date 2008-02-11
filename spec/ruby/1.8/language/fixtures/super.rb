@@ -148,4 +148,24 @@ module Super
       end
     end
   end  
+
+  module MS4
+    module Layer1
+      def example
+        5
+      end
+    end
+
+    module Layer2
+      include Layer1
+      def example
+        super
+      end
+    end
+
+    class A
+      include Layer2
+      public :example
+    end
+  end
 end

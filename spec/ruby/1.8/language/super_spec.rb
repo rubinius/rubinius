@@ -39,12 +39,16 @@ describe "The super keyword" do
     Super::MS2::C.new.foo([]).should == ["ModB#foo","C#baz","A#baz"]
   end
 
-  it "searche class methods including modules" do
+  it "searches class methods including modules" do
     Super::MS3::A.new.foo([]).should == ["A#foo"]
     Super::MS3::A.foo([]).should == ["ModA#foo"]
     Super::MS3::A.bar([]).should == ["ModA#bar","ModA#foo"]
     Super::MS3::B.new.foo([]).should == ["A#foo"]
     Super::MS3::B.foo([]).should == ["B::foo","ModA#foo"]
     Super::MS3::B.bar([]).should == ["B::bar","ModA#bar","B::foo","ModA#foo"]
+  end
+
+  it "calls the correct method when the method visibility is modified" do
+    Super::MS4::A.new.example.should == 5
   end
 end
