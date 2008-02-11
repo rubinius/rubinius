@@ -1,7 +1,7 @@
 require "#{File.dirname(__FILE__)}/../../kernel/core/iseq"
 
 class ShotgunInstructions
-    
+
   def generate_switch(fd, op="op")
     fd.puts "switch(#{op}) {"
     InstructionSet::OpCodes.each do |ins|
@@ -25,7 +25,7 @@ class ShotgunInstructions
     fd.puts "}"
     fd.puts
   end
-  
+
   def generate_threaded(fd, op="op")
     InstructionSet::OpCodes.each do |ins|
       code = send(ins.opcode) rescue nil
@@ -40,14 +40,14 @@ class ShotgunInstructions
           fd.puts "   NEXT_OP;"
         end
         fd.puts "   }"
-          
+
       else
         STDERR.puts "Problem with opcode: #{ins.opcode}"
       end
     end
     fd.puts
   end
-  
+
   def generate_dter
     code = "static int _ip_size(uint32_t bc) {\nswitch(bc) {\n"
     InstructionSet::OpCodes.each do |ins|
@@ -56,24 +56,24 @@ class ShotgunInstructions
       end
     end
     code << "    return 3;\n"
-    
+
     InstructionSet::OpCodes.each do |ins|
       if ins.arg_count == 1
         code << "  case #{ins.bytecode}:\n"
       end
     end
     code << "   return 2;\n"
-    
+
     code << "}\nreturn 1;\n}\n\n"
-    
+
     code << "#define DT_ADDRESSES static void* _dt_addresses[#{InstructionSet::OpCodes.size + 1}]; static int _dt_size = #{InstructionSet::OpCodes.size};\n"
     code << "#define SETUP_DT_ADDRESSES "
-    
+
     InstructionSet::OpCodes.each do |ins|
       code << "_dt_addresses[#{ins.bytecode}] = &&insn_#{ins.bytecode}; "
     end
     code << "\n"
-    
+
     code << <<-CODE
 
     static inline uint32_t read_int_from_be(uint8_t *str) {
@@ -82,20 +82,20 @@ class ShotgunInstructions
                       | (str[2] << 8 )
                       |  str[3]      );
     }
-    
+
     static void calculate_into_gotos(STATE, OBJECT iseq, OBJECT output, void* addrs[], int size) {
       uint8_t *insn;
       uint32_t op;
       uintptr_t *compiled;
 
       int i, f, offset, sz;
-      
+
       f = bytearray_bytes(state, iseq);
       insn = (uint8_t*)bytearray_byte_address(state, iseq);
       compiled = (uintptr_t*)bytearray_byte_address(state, output);
 
       offset = 0;
-      for(offset = 0; offset < f; offset += 4) { 
+      for(offset = 0; offset < f; offset += 4) {
 #if CONFIG_BIG_ENDIAN
         op = *((uint32_t*)(insn + offset));
 #else
@@ -117,19 +117,19 @@ class ShotgunInstructions
         }
       }
     }
-    
+
     CODE
-    
+
     code
   end
-  
+
   def generate_declarations(fd)
     fd.puts "int _int;"
     fd.puts "native_int j, k, m;"
     fd.puts "OBJECT _lit, t1, t2, t3, t4, t5;"
     fd.puts "struct message msg;"
   end
-  
+
   def generate_names
     str = "static const char instruction_names[] = {\n"
     InstructionSet::OpCodes.each do |ins|
@@ -157,64 +157,64 @@ CODE
     InstructionSet::OpCodes.each do |ins|
       str << "#define CPU_INSTRUCTION_#{ins.opcode.to_s.upcase} #{ins.bytecode}\n"
     end
-    
+
     str
   end
-  
+
   def noop
     ""
   end
-  
+
   def push_int
     <<-CODE
     next_int;
     stack_push(I2N(_int));
     CODE
   end
-  
+
   def meta_push_neg_1
     <<-CODE
     stack_push(I2N(-1));
     CODE
   end
-  
+
   def meta_push_0
     <<-CODE
     stack_push(I2N(0));
     CODE
   end
-  
+
   def meta_push_1
     <<-CODE
     stack_push(I2N(1));
     CODE
   end
-  
+
   def meta_push_2
     <<-CODE
     stack_push(I2N(2));
     CODE
   end
-  
+
   def push_nil
     "stack_push(Qnil);"
   end
-  
+
   def push_true
     "stack_push(Qtrue);"
   end
-  
+
   def push_false
     "stack_push(Qfalse);"
   end
-  
+
   def push_context
     <<-CODE
     methctx_reference(state, c->active_context);
     stack_push(c->active_context);
     CODE
   end
-  
+
   def push_literal
     <<-CODE
     next_int;
@@ -223,19 +223,18 @@ CODE
     stack_push(t2);
     CODE
   end
-  
+
   def set_literal
     <<-CODE
     next_int;
     tuple_put(state, cpu_current_literals(state, c), _int, stack_top());
     CODE
   end
-  
-  
+
   def push_self
     "stack_push(c->self);"
   end
-  
+
   def push_local
     <<-CODE
     next_int;
@@ -244,7 +243,7 @@ CODE
 
     # "next_int; stack_push(fast_fetch(cpu_current_locals(state, c), _int));"
   end
-  
+
   def push_local_depth
     <<-CODE
     next_int;
@@ -258,36 +257,35 @@ CODE
     stack_push(tuple_at(state, blokctx_locals(state, t1), _int));
     CODE
   end
-  
-  
+
   def push_exception
     "stack_push(c->exception);"
   end
-  
+
   def clear_exception
     <<-CODE
     c->exception = Qnil;
     CODE
   end
-  
+
   def push_block
     "stack_push(cpu_current_block(state, c));"
   end
-  
+
   def push_ivar
     <<-CODE
     next_literal;
     stack_push(object_get_ivar(state, c->self, _lit));
     CODE
   end
-  
+
   def allocate
     <<-CODE
     _lit = stack_pop();
     stack_push(NEW_OBJECT(Qnil, N2I(_lit)));
     CODE
   end
-  
+
   def set_class
     <<-CODE
     _lit = stack_pop();
@@ -296,7 +294,7 @@ CODE
     stack_push(_lit);
     CODE
   end
-  
+
   def store_field
     <<-CODE
     t1 = stack_pop();
@@ -306,7 +304,7 @@ CODE
     stack_push(t3);
     CODE
   end
-  
+
   def fetch_field
     <<-CODE
     t1 = stack_pop();
@@ -314,23 +312,21 @@ CODE
     stack_push(NTH_FIELD(t2, N2I(t1)));
     CODE
   end
-  
+
   def push_my_field
     <<-CODE
     next_int;
     stack_push(NTH_FIELD(c->self, _int));
     CODE
   end
-  
+
   def store_my_field
     <<-CODE
     next_int;
     SET_FIELD(c->self, _int, stack_top());
     CODE
   end
-  
-  # Make primitives safer by having the opcode be aware of the number of args sent.
-  # This way we can remove the dependency of primitives being embedded in methods.
+
   def send_primitive
     <<-CODE
     next_int;
@@ -339,10 +335,10 @@ CODE
     k = (native_int)_int; // num_args
 
     // Should the OBJECT parameter be removed since a primitive is not necesarily
-    // performed on an object? Or should we state that the semantics of a primitive 
+    // performed on an object? Or should we state that the semantics of a primitive
     // will always have an object or else it needs to be an opcode... ?
     // If the primitive fails raise an exception
-    
+
     msg.name = Qnil;
     msg.args = k;
     msg.method = Qnil;
@@ -353,7 +349,7 @@ CODE
     }
     CODE
   end
-  
+
   def goto
     <<-CODE
     next_int;
@@ -361,7 +357,7 @@ CODE
     cpu_cache_ip(c);
     CODE
   end
-  
+
   def goto_if_false
     <<-CODE
     next_int;
@@ -372,7 +368,7 @@ CODE
     }
     CODE
   end
-  
+
   def goto_if_true
     <<-CODE
     next_int;
@@ -383,7 +379,7 @@ CODE
     }
     CODE
   end
-  
+
   def goto_if_defined
     <<-CODE
     next_int;
@@ -394,7 +390,7 @@ CODE
     }
     CODE
   end
-  
+
   def swap_stack
     <<-CODE
     t1 = stack_pop();
@@ -403,18 +399,18 @@ CODE
     stack_push(t2);
     CODE
   end
-  
+
   def dup_top
     <<-CODE
     t1 = stack_top();
     stack_push(t1);
     CODE
   end
-  
+
   def pop
     "    (void)stack_pop();"
   end
-  
+
   def set_local
     <<-CODE
     next_int;
@@ -430,15 +426,15 @@ CODE
     stack_push(t1);
     CODE
   end
-  
+
   def set_local_from_fp
     <<-CODE
     next_int;
     k = (native_int)_int;
     next_int;
-    
+
     t1 = c->stack_top[c->fp - _int];
-    
+
     t2 = cpu_current_locals(state, c);
     if(t2->gc_zone == 0) {
       sassert(k < NUM_FIELDS(t2) && "locals tuple sized wrong");
@@ -448,7 +444,7 @@ CODE
     }
     CODE
   end
-  
+
   def set_local_depth
     <<-CODE
     next_int;
@@ -456,12 +452,12 @@ CODE
     next_int;
     t3 = stack_pop();
     t1 = c->active_context;
-        
+
     for(j = 0; j < k; j++) {
       t2 = blokctx_env(state, t1);
       t1 = blokenv_get_home_block(t2);
     }
-    
+
     t2 = blokctx_locals(state, t1);
     if(t2->gc_zone == 0) {
       sassert(_int < NUM_FIELDS(t2) && "locals tuple sized wrong");
@@ -470,10 +466,10 @@ CODE
       tuple_put(state, t2, _int, t3);
     }
     stack_push(t3);
-    
+
     CODE
   end
-  
+
   def make_array
     <<-CODE
     next_int;
@@ -483,13 +479,13 @@ CODE
       t2 = stack_pop();
       array_set(state, t1, j, t2);
     }
-    
-    cpu_perform_hook(state, c, BASIC_CLASS(array), 
+
+    cpu_perform_hook(state, c, BASIC_CLASS(array),
                      global->sym_from_literal, t1);
     stack_push(t1);
     CODE
   end
-  
+
   def push_array
     <<-CODE
     t1 = stack_pop();
@@ -499,7 +495,7 @@ CODE
     }
     CODE
   end
-  
+
   def cast_array
     <<-CODE
     t1 = stack_pop();
@@ -513,7 +509,7 @@ CODE
     stack_push(t1);
     CODE
   end
-  
+
   def cast_array_for_args
     <<-CODE
     next_int;
@@ -530,7 +526,7 @@ CODE
     c->args += N2I(array_get_total(t1));
     CODE
   end
-  
+
   def cast_tuple
     <<-CODE
     t1 = stack_pop();
@@ -550,7 +546,7 @@ CODE
     stack_push(t1);
     CODE
   end
-  
+
   def cast_for_single_block_arg
     <<-CODE
     t1 = stack_pop();
@@ -564,7 +560,7 @@ CODE
     }
     CODE
   end
-  
+
   def cast_for_multi_block_arg
     <<-CODE
     t1 = stack_top();
@@ -581,14 +577,14 @@ CODE
         for(k = 0; k < j; k++) {
           tuple_put(state, t2, k, array_get(state, t1, k));
         }
-        
+
         /* and put it on the top o the stack. */
         stack_set_top(t2);
       }
     }
     CODE
   end
-  
+
   def make_hash
     <<-CODE
     next_int;
@@ -600,14 +596,14 @@ CODE
       hash_set(state, t1, t2, t3);
       j -= 2;
     }
-    
-    cpu_perform_hook(state, c, BASIC_CLASS(hash), 
+
+    cpu_perform_hook(state, c, BASIC_CLASS(hash),
                      global->sym_from_literal, t1);
-    
+
     stack_push(t1);
     CODE
   end
-  
+
   def set_ivar
     <<-CODE
     next_literal;
@@ -616,7 +612,7 @@ CODE
     stack_push(t2);
     CODE
   end
-  
+
   def push_const
     <<-CODE
     next_literal;
@@ -624,7 +620,7 @@ CODE
     if(t1 != Qundef) stack_push(t1);
     CODE
   end
-  
+
   def find_const
     <<-CODE
     t1 = stack_pop();
@@ -633,7 +629,7 @@ CODE
     if(t2 != Qundef) stack_push(t2);
     CODE
   end
-  
+
   def set_const
     <<-CODE
     next_literal;
@@ -641,7 +637,7 @@ CODE
     stack_push(cpu_const_set(state, c, _lit, t1, c->enclosing_class));
     CODE
   end
-  
+
   def set_const_at
     <<-CODE
     next_literal;
@@ -650,24 +646,24 @@ CODE
     stack_push(cpu_const_set(state, c, _lit, t2, t3));
     CODE
   end
-  
+
   def push_cpath_top
     "stack_push(global->object);"
   end
-  
+
   def set_encloser
     <<-CODE
     t1 = stack_pop();
     cpu_set_encloser_path(state, c, t1);
     CODE
   end
-  
+
   def push_encloser
     <<-CODE
     cpu_push_encloser(state, c);
     CODE
   end
-  
+
   def open_class_under
     <<-CODE
     int created;
@@ -681,7 +677,7 @@ CODE
     }
     CODE
   end
-  
+
   def open_class
     <<-CODE
     int created;
@@ -695,7 +691,7 @@ CODE
     }
     CODE
   end
-  
+
   def open_module_under
     <<-CODE
     next_literal;
@@ -703,7 +699,7 @@ CODE
     stack_push(cpu_open_module(state, c, t1, _lit));
     CODE
   end
-  
+
   def open_module
     <<-CODE
     next_literal;
@@ -717,7 +713,7 @@ CODE
     stack_push(object_metaclass(state, t1));
     CODE
   end
-  
+
   def attach_method
     <<-CODE
     next_literal;
@@ -728,7 +724,7 @@ CODE
     cpu_perform_hook(state, c, t1, global->sym_s_method_added, _lit);
     CODE
   end
-  
+
   def add_method
     <<-CODE
     next_literal;
@@ -739,7 +735,7 @@ CODE
     cpu_perform_hook(state, c, t1, global->sym_method_added, _lit);
     CODE
   end
-  
+
   def activate_method
     <<-CODE
     next_int;
@@ -757,10 +753,10 @@ CODE
         cpu_set_locals(state, c, t3);
       }
     }
-    
+
     CODE
   end
-  
+
   def send_method
     <<-CODE
     next_literal_into(msg.send_site);
@@ -770,7 +766,7 @@ CODE
     goto perform_send;
     CODE
   end
-  
+
   def meta_send_stack_1
     <<-CODE
     next_literal_into(msg.send_site);
@@ -780,7 +776,7 @@ CODE
     goto perform_send;
     CODE
   end
-  
+
   def meta_send_stack_2
     <<-CODE
     next_literal_into(msg.send_site);
@@ -790,7 +786,7 @@ CODE
     goto perform_send;
     CODE
   end
-  
+
   def meta_send_stack_3
     <<-CODE
     next_literal_into(msg.send_site);
@@ -800,35 +796,35 @@ CODE
     goto perform_send;
     CODE
   end
-  
+
   def meta_send_stack_4
     <<-CODE
     next_literal_into(msg.send_site);
     msg.recv = stack_pop();
     msg.block = Qnil;
     msg.args = 4;
-    goto perform_send;    
+    goto perform_send;
     CODE
   end
-  
+
   def send_stack
     <<-CODE
     next_literal_into(msg.send_site);
     msg.recv = stack_pop();
     msg.block = Qnil;
     next_int_into(msg.args);
-    
+
     goto perform_send;
     CODE
   end
-  
+
   def send_stack_with_block
     <<-CODE
     next_literal_into(msg.send_site);
     msg.recv = stack_pop();
     msg.block = stack_pop();
     next_int_into(msg.args);
-    
+
     goto perform_send;
     CODE
   end
@@ -844,30 +840,30 @@ CODE
 
     msg.priv = c->call_flags;
     msg.klass = _real_class(state, msg.recv);
-   
+
     c->call_flags = 0;
 
     cpu_send_message(state, c, &msg);
     CODE
   end
-  
+
   def send_super_stack_with_block
     <<-CODE
     next_literal;
     next_int;
     j = _int;
-    
+
     goto perform_super_send;
     CODE
   end
-  
+
   def send_super_with_arg_register
     <<-CODE
     next_literal;
     j = c->args;
-    
+
     perform_super_send:
-    
+
     msg.send_site = _lit;
     msg.recv = c->self;
     msg.block = stack_pop();
@@ -875,11 +871,11 @@ CODE
     msg.priv = TRUE;
 
     msg.klass = class_get_superclass(cpu_current_module(state, c));
-    
+
     cpu_send_message(state, c, &msg);
     CODE
   end
-  
+
   def send_off_stack
     <<-CODE
     t3 = stack_pop();
@@ -902,7 +898,7 @@ CODE
     goto perform_send;
     CODE
   end
-  
+
   def locate_method
     <<-CODE
     t1 = stack_pop(); // include_private
@@ -911,7 +907,7 @@ CODE
     stack_push(cpu_locate_method_on(state, c, t3, t2, t1));
     CODE
   end
-  
+
   def meta_send_op_plus
     <<-CODE
     t1 = stack_pop();
@@ -926,7 +922,7 @@ CODE
     }
     CODE
   end
-  
+
   def meta_send_op_minus
     <<-CODE
     t1 = stack_pop();
@@ -941,7 +937,7 @@ CODE
     }
     CODE
   end
-  
+
   def meta_send_op_equal
     <<-CODE
     t1 = stack_pop();
@@ -957,7 +953,7 @@ CODE
     }
     CODE
   end
-  
+
   def meta_send_op_nequal
     <<-CODE
     t1 = stack_pop();
@@ -974,7 +970,6 @@ CODE
     CODE
   end
 
-  # Exactly like equal, except calls === if it can't handle it directly.
   def meta_send_op_tequal
     <<-CODE
     t1 = stack_pop();
@@ -990,7 +985,7 @@ CODE
     }
     CODE
   end
-  
+
   def meta_send_op_lt
     <<-CODE
     t1 = stack_pop();
@@ -1007,7 +1002,7 @@ CODE
     }
     CODE
   end
-  
+
   def meta_send_op_gt
     <<-CODE
     t1 = stack_pop();
@@ -1038,55 +1033,53 @@ CODE
       j = _int;
 
 perform_no_ss_send:
-      cpu_send(state, c, t1, _lit, j, t2); 
+      cpu_send(state, c, t1, _lit, j, t2);
     }
     CODE
   end
-  
+
   def soft_return
     <<-CODE
     t1 = stack_pop();
     cpu_simple_return(state, c, t1);
     CODE
   end
-  
+
   def caller_return
     <<-CODE
     /* this instruction is deprecated. */
     sassert(0);
     CODE
   end
-  
+
   def raise_exc
     <<-CODE
     t1 = stack_pop();
     cpu_raise_exception(state, c, t1);
     CODE
   end
-  
+
   def ret
     <<-CODE
     t1 = stack_pop();
     cpu_return_to_sender(state, c, t1, TRUE, FALSE);
     CODE
   end
-  
+
   def sret
     <<-CODE
     t1 = stack_pop();
     cpu_simple_return(state, c, t1);
     CODE
   end
-  
+
   def block_break
     <<-CODE
     /* This instruction is deprecated. */
     sassert(0);
     CODE
   end
-  
-  
-  # This actually shifts, not unshifts.
+
   def unshift_tuple
     <<-CODE
     t1 = stack_pop();
@@ -1104,7 +1097,7 @@ perform_no_ss_send:
     }
     CODE
   end
-  
+
   def make_rest
     <<-CODE
     next_int;
@@ -1117,7 +1110,7 @@ perform_no_ss_send:
     stack_push(t1);
     CODE
   end
-  
+
   def make_rest_fp
     <<-CODE
     next_int;
@@ -1125,18 +1118,18 @@ perform_no_ss_send:
     if(j < 0) j = 0;
     t1 = array_new(state, j);
     for(k = _int, m = 0; k < cpu_current_argcount(c); k++, m++) {
-      array_set(state, t1, m, c->stack_top[c->fp - k]);      
+      array_set(state, t1, m, c->stack_top[c->fp - k]);
     }
     stack_push(t1);
     CODE
   end
-  
+
   def check_argcount
     <<-CODE
     next_int; /* min */
     j = _int;
     next_int; /* max */
-    
+
     if(cpu_current_argcount(c) < (unsigned long int)j) {
       cpu_raise_arg_error(state, c, cpu_current_argcount(c), j);
     } else if(_int >= 0 && cpu_current_argcount(c) > (unsigned long int)_int) {
@@ -1144,7 +1137,7 @@ perform_no_ss_send:
     }
     CODE
   end
-  
+
   def passed_arg
     <<-CODE
     next_int;
@@ -1155,7 +1148,7 @@ perform_no_ss_send:
     }
     CODE
   end
-  
+
   def passed_blockarg
     <<-CODE
     next_int;
@@ -1166,7 +1159,7 @@ perform_no_ss_send:
     }
     CODE
   end
-  
+
   def string_append
     <<-CODE
     t1 = stack_pop();
@@ -1175,41 +1168,41 @@ perform_no_ss_send:
     stack_push(t1);
     CODE
   end
-  
+
   def string_dup
     <<-CODE
     t1 = stack_pop();
     stack_push(string_dup(state, t1));
     CODE
   end
-  
+
   def set_args
     <<-CODE
     t1 = stack_pop();
     c->args = N2I(t1);
     CODE
   end
-  
+
   def get_args
     <<-CODE
     stack_push(I2N(c->args));
     CODE
   end
-  
+
   def set_call_flags
     <<-CODE
     next_int;
     c->call_flags = _int;
     CODE
   end
-  
+
   def set_cache_index
     <<-CODE
     next_int;
     c->cache_index = _int;
     CODE
   end
-  
+
   def set_call_info
     <<-CODE
     next_int;
@@ -1230,7 +1223,7 @@ perform_no_ss_send:
       sassert(0 && "old-style block!!");
       t5 = Qnil;
     }
-    
+
     t4 = c->active_context;
 
     t3 = Qnil;
@@ -1239,10 +1232,10 @@ perform_no_ss_send:
     } else {
       t3 = t4;
     }
-    
+
     methctx_reference(state, t4);
     methctx_reference(state, t3);
-    
+
     cpu_flush_sp(c);
     cpu_flush_ip(c);
     j = c->ip + BS_JUMP;
@@ -1250,7 +1243,7 @@ perform_no_ss_send:
     stack_push(t2);
     CODE
   end
-  
+
   def create_block2
     <<-CODE
     t1 = stack_pop(); /* the method */
@@ -1262,10 +1255,10 @@ perform_no_ss_send:
     } else {
       t3 = t4;
     }
-    
+
     methctx_reference(state, t4);
     methctx_reference(state, t3);
-    
+
     cmethod_set_staticscope(t1,
                cmethod_get_staticscope(cpu_current_method(state, c)));
 
@@ -1273,7 +1266,7 @@ perform_no_ss_send:
     stack_push(t2);
     CODE
   end
-  
+
   def kind_of
     <<-CODE
     t1 = stack_pop();
@@ -1285,7 +1278,7 @@ perform_no_ss_send:
     }
     CODE
   end
-  
+
   def instance_of
     <<-CODE
     t1 = stack_pop();
@@ -1297,20 +1290,20 @@ perform_no_ss_send:
     }
     CODE
   end
-  
+
   def yield_debugger
     <<-CODE
     cpu_yield_debugger(state, c);
     CODE
   end
-  
+
   def from_fp
     <<-CODE
     next_int;
     stack_push(c->stack_top[c->fp - _int]);
     CODE
   end
-  
+
   def allocate_stack
     <<-CODE
     next_int;
@@ -1321,56 +1314,56 @@ perform_no_ss_send:
     }
     CODE
   end
-  
+
   def deallocate_stack
     <<-CODE
     next_int;
     c->sp_ptr -= _int;
     CODE
   end
-  
+
   def set_local_fp
     <<-CODE
     next_int;
     c->stack_top[c->fp + _int] = stack_top();
     CODE
   end
-  
+
   def get_local_fp
     <<-CODE
     next_int;
-    stack_push(c->stack_top[c->fp + _int]);    
+    stack_push(c->stack_top[c->fp + _int]);
     CODE
   end
-  
+
   def is_fixnum
     <<-CODE
     t1 = stack_pop();
     stack_push(FIXNUM_P(t1) ? Qtrue : Qfalse);
     CODE
   end
-  
+
   def is_symbol
     <<-CODE
     t1 = stack_pop();
     stack_push(SYMBOL_P(t1) ? Qtrue : Qfalse);
     CODE
   end
-  
+
   def is_nil
     <<-CODE
     t1 = stack_pop();
     stack_push(t1 == Qnil ? Qtrue : Qfalse);
     CODE
   end
-  
+
   def class
     <<-CODE
     t1 = stack_pop();
     stack_push(object_class(state, t1));
     CODE
   end
-  
+
   def equal
     <<-CODE
     t1 = stack_pop();
@@ -1387,7 +1380,7 @@ perform_no_ss_send:
     stack_push(cpu_check_serial(state, c, t1, _lit, _int));
     CODE
   end
-  
+
 end
 
 si = ShotgunInstructions.new
