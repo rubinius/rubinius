@@ -1,3 +1,9 @@
+def clear_compiler
+  ENV.delete 'RBX_BOOTSTRAP'
+  ENV.delete 'RBX_CORE'
+  ENV.delete 'RBX_LOADER'
+  ENV.delete 'RBX_PLATFORM'
+end
 
 def make(args = nil)
   if RUBY_PLATFORM =~ /bsd/
@@ -6,6 +12,12 @@ def make(args = nil)
     gmake = 'make'
   end
   "#{ENV['MAKE'] || gmake} #{args}"
+end
+
+def rbx(*args)
+  clear_compiler
+
+  sh('shotgun/rubinius', *args)
 end
 
 class Hash
