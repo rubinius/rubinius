@@ -47,7 +47,7 @@ static VALUE global_port_80;
 #define VALIDATE_MAX_LENGTH(len, N) if(len > MAX_##N##_LENGTH) { rb_raise(eHttpParserError, MAX_##N##_LENGTH_ERR); }
 
 /** Defines global strings in the init method. */
-#define DEF_GLOBAL(N, val)   global_##N = rb_obj_freeze(rb_str_new2(val)); rb_global_variable(&global_##N)
+#define DEF_GLOBAL(N, val)   global_##N = ID2SYM(rb_intern(val));
 
 
 /* Defines the maximum allowed lengths for various input elements.*/

@@ -2,6 +2,8 @@
  * top fields with what they want, and the bottom fields are filled
  * in by the lookup machinery */
 struct message {
+  STATE;
+  cpu c;
   OBJECT name;
   OBJECT recv;
   OBJECT klass;

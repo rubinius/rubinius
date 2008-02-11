@@ -223,6 +223,7 @@ A rubinius object can be followed by:
 #define BYTES_OF(obj)                   ((char*)obj->field)
 #define FIXNUM_NEG(obj)                 ((intptr_t)obj < 0)
 
+#define _real_class(state, obj) (REFERENCE_P(obj) ? obj->klass : object_class(state, obj))
 
 #ifdef Qfalse
 #undef Qfalse
@@ -295,6 +296,7 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
 #define RTYPE(obj, type) (REFERENCE_P(obj) && obj->obj_type == type)
 #define SENDSITE_P(obj) RTYPE(obj, SendSiteType)
 #define TUPLE_P(obj) RTYPE(obj, TupleType) 
+#define HASH_P(obj) (RISA(obj, hash))
 
 struct wraps_struct {
   void *ptr;

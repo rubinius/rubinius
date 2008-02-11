@@ -74,7 +74,6 @@ int _object_stores_bytes(OBJECT self);
 #define IO_P(obj) RISA(obj, io)
 #define STRING_P(obj) RTYPE(obj, StringType)
 // #define STRING_P(obj) RISA(obj, string)
-#define HASH_P(obj) (RISA(obj, hash))
 #define ARRAY_P(obj) RTYPE(obj, ArrayType)
 
 #define STRING_OR_NIL_P(obj) (STRING_P(obj) || NIL_P(obj))

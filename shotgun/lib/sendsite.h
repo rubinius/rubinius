@@ -4,7 +4,7 @@
 
 typedef struct send_site _send_site;
 
-typedef void (*send_site_lookup)(STATE, cpu c, _send_site *ss, struct message *msg);
+typedef void (*send_site_lookup)(struct message *msg);
 
 struct send_site {
   OBJECT name;

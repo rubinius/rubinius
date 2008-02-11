@@ -162,14 +162,6 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under, OBJECT sym) {
   return module;
 }
 
-static inline OBJECT _real_class(STATE, OBJECT obj) {
-  if(REFERENCE_P(obj)) {
-    return obj->klass;
-  } else {
-    return object_class(state, obj);
-  }
-}
-
 /* Locate the method object for calling method +name+ on an instance of +klass+.
    +mod+ is updated to point to the Module that holds the method.
    The method is then looked for in the hash tables up the superclass chain.
@@ -272,7 +264,7 @@ static inline int cpu_find_method(STATE, cpu c, struct message *msg) {
     /* Ok, rather than assert, i'm going to just bail. Makes the error
        a little strange, but handle-able in ruby land. */
 
-    if(!ISA(hsh, state->global->hash)) {
+    if(!HASH_P(hsh)) {
       printf("Warning: encountered invalid module (methods not a hash).\n");
       sassert(0);
       return FALSE;
@@ -1068,23 +1060,23 @@ static inline void cpu_perform(STATE, cpu c, const struct message *msg) {
 }
 
 
-static inline void
-cpu_patch_mono(STATE, struct send_site *ss, struct message *msg);
+static inline void cpu_patch_mono(struct message *msg);
 
-static inline void
-cpu_patch_missing(STATE, struct send_site *ss, struct message *msg);
+static inline void cpu_patch_missing(struct message *msg);
 
-static void
-_cpu_ss_basic(STATE, cpu c, struct send_site *ss, struct message *msg) {
+static void 
+_cpu_ss_basic(struct message *msg) {
   msg->missing = 0;
-
+  const STATE = msg->state;
+  const cpu c = msg->c;
+  
   sassert(cpu_locate_method(state, c, msg));
 
   /* If it's not method_missing, cache the details of msg in the send_site */
-  if(!msg->missing) {
-    cpu_patch_mono(state, ss, msg);
+  if(!msg->missing) { 
+    cpu_patch_mono(msg);
   } else {
-    cpu_patch_missing(state, ss, msg);
+    cpu_patch_missing(msg);
     msg->args += 1;
     stack_push(msg->name);
   }
@@ -1100,14 +1092,17 @@ void cpu_initialize_sendsite(STATE, struct send_site *ss) {
 
 /* Send Site specialization 1: execute a primitive directly. */
 
-static void _cpu_ss_mono_prim(STATE, cpu c, struct send_site *ss,
-    struct message *msg) {
+#define CHECK_CLASS(msg) (_real_class(msg->state, msg->recv) != SENDSITE(msg->send_site)->data1)
+
+static void _cpu_ss_mono_prim(struct message *msg) {
+  const struct send_site *ss = SENDSITE(msg->send_site);
   prim_func func;
   int _orig_sp;
   OBJECT *_orig_sp_ptr;
+  cpu c = msg->c;
 
-  if(_real_class(state, msg->recv) != ss->data1) {
-    _cpu_ss_basic(state, c, ss, msg);
+  if(CHECK_CLASS(msg)) {
+    _cpu_ss_basic(msg);
     return;
   }
 
@@ -1119,11 +1114,11 @@ static void _cpu_ss_mono_prim(STATE, cpu c, struct send_site *ss,
   msg->method = ss->data2;
   msg->module = ss->data3;
 
-  if(!func(state, c, msg)) {
+  if(!func(msg->state, msg->c, msg)) {
     c->sp_ptr = _orig_sp_ptr;
     c->sp = _orig_sp;
 
-    cpu_perform(state, c, msg);
+    cpu_perform(msg->state, msg->c, msg);
   }
 }
 
@@ -1145,22 +1140,21 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func) {
 }
 
 /* Send Site specialization 2: Run an ffi function directly. */
-static void _cpu_ss_mono_ffi(STATE, cpu c, struct send_site *ss,
-    struct message *msg) {
+static void _cpu_ss_mono_ffi(struct message *msg) {
+  const struct send_site *ss = SENDSITE(msg->send_site);
   rni_context *ctx;
   nf_stub_ffi func;
 
   func = (nf_stub_ffi)ss->c_data;
-  // printf("mono-ffi: %p (%s)\n", func, _inspect(ss->name));
 
-  if(_real_class(state, msg->recv) != ss->data1) {
-    _cpu_ss_basic(state, c, ss, msg);
+  if(CHECK_CLASS(msg)) {
+    _cpu_ss_basic(msg);
     return;
   }
 
   ctx = subtend_retrieve_context();
-  ctx->state = state;
-  ctx->cpu = c;
+  ctx->state = msg->state;
+  ctx->cpu = msg->c;
 
   func();
 }
@@ -1194,36 +1188,41 @@ void cpu_patch_ffi(STATE, const struct message *msg) {
 }
 
 /* Send Site specialzitation 3: simple monomorphic last implemenation cache. */
-static void _cpu_ss_mono(STATE, cpu c, struct send_site *ss,
-    struct message *msg) {
+static void _cpu_ss_mono(struct message *msg) {
+  const struct send_site *ss = SENDSITE(msg->send_site);
 
-  if(_real_class(state, msg->recv) != ss->data1) {
-    _cpu_ss_basic(state, c, ss, msg);
+  if(CHECK_CLASS(msg)) {
+    _cpu_ss_basic(msg);
     return;
   }
 
   msg->method = ss->data2;
   msg->module = ss->data3;
+ 
+  if(cpu_try_primitive(msg->state, msg->c, msg)) return; 
 
-  if(cpu_try_primitive(state, c, msg)) return;
-
-  cpu_perform(state, c, msg);
+  cpu_perform(msg->state, msg->c, msg);
 }
 
 /* Saves the details of +msg+ in +ss+ and install _cpu_ss_mono in +ss+, so
  * that the next time +ss+ is used, it will try the cache details. */
-static inline void
-cpu_patch_mono(STATE, struct send_site *ss, struct message *msg) {
+static inline void cpu_patch_mono(struct message *msg) {
+  STATE = msg->state;
+
+  struct send_site *ss = SENDSITE(msg->send_site);
+  
   ss->lookup = _cpu_ss_mono;
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
   SET_STRUCT_FIELD(msg->send_site, ss->data3, msg->module);
 }
 
-static void
-_cpu_ss_missing(STATE, cpu c, struct send_site *ss, struct message *msg) {
-  if(_real_class(state, msg->recv) != ss->data1) {
-    _cpu_ss_basic(state, c, ss, msg);
+static void _cpu_ss_missing(struct message *msg) {
+  const struct send_site *ss = SENDSITE(msg->send_site);
+  cpu c = msg->c;
+
+  if(CHECK_CLASS(msg)) {
+    _cpu_ss_basic(msg);
     return;
   }
 
@@ -1232,16 +1231,19 @@ _cpu_ss_missing(STATE, cpu c, struct send_site *ss, struct message *msg) {
 
   msg->args += 1;
   stack_push(msg->name);
+ 
+  if(cpu_try_primitive(msg->state, msg->c, msg)) return;
 
-  if(cpu_try_primitive(state, c, msg)) return;
-
-  cpu_perform(state, c, msg);
+  cpu_perform(msg->state, msg->c, msg);
 }
 
 /* Saves the details of +msg+ in +ss+ and install _cpu_ss_mono in +ss+, so
  * that the next time +ss+ is used, it will try the cache details. */
 static inline void
-cpu_patch_missing(STATE, struct send_site *ss, struct message *msg) {
+cpu_patch_missing(struct message *msg) {
+  STATE = msg->state;
+  struct send_site *ss = SENDSITE(msg->send_site);
+  
   ss->lookup = _cpu_ss_missing;
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
@@ -1271,8 +1273,10 @@ inline void cpu_send_message(STATE, cpu c, struct message *msg) {
 #endif
 
   ss = SENDSITE(msg->send_site);
+  msg->state = state;
+  msg->c = c;
   msg->name = ss->name;
-  ss->lookup(state, c, ss, msg);
+  ss->lookup(msg);
 
 #ifdef TIME_LOOKUP
   state->lookup_time += (measure_cpu_time() - start);

@@ -13,8 +13,11 @@
 
 #include "shotgun/config.h"
 #include "shotgun/lib/oop.h"
-#include "shotgun/lib/message.h"
+/* declare the message struct since it's used in state.h, but actually
+ * defined in message.h */
+struct message;
 #include "shotgun/lib/state.h"
+#include "shotgun/lib/message.h"
 #include "shotgun/lib/auto.h"
 #include "shotgun/lib/metaclass.h"
 #include "shotgun/lib/object.h"
