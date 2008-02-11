@@ -342,7 +342,7 @@ void machine_handle_type_error(OBJECT, const char *message);
 #define fast_inc(obj, idx) fast_unsafe_set(obj, idx, (void*)((uintptr_t)fast_fetch(obj, idx) + (1 << TAG_SHIFT)))
 
 #define ACCESS_MACROS 1
-#define EXTRA_PROTECTION 0
+#define EXTRA_PROTECTION 1
 
 #if ACCESS_MACROS
 
@@ -359,13 +359,6 @@ void machine_handle_type_error(OBJECT, const char *message);
 
 #else /*DISABLE_CHECKS*/
 
-static void _bad_reference(OBJECT in) {
-  printf("Attempted to access field of non-reference.\n");
-  if(current_machine->g_use_firesuit) {
-    machine_handle_fire(FIRE_NULL);
-  } 
-}
-
 static void _bad_reference2(OBJECT in, int fel) {
   printf("Attempted to access field %d in an object with %lu fields.\n", 
     fel, (unsigned long)NUM_FIELDS(in));
@@ -376,6 +369,13 @@ static void _bad_reference2(OBJECT in, int fel) {
 }
 
 #if EXTRA_PROTECTION
+
+static void _bad_reference(OBJECT in) {
+  printf("Attempted to access field of non-reference.\n");
+  if(current_machine->g_use_firesuit) {
+    machine_handle_fire(FIRE_NULL);
+  } 
+}
 
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
