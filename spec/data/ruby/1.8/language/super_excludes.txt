@@ -1,2 +1,0 @@
-The super keyword searches class methods including modules
-The super keyword calls the correct method when the method visibility is modified
