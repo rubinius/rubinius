@@ -357,7 +357,7 @@ void machine_handle_type_error(OBJECT, const char *message);
 
 #define rbs_get_field(obj, fel) NTH_FIELD_DIRECT(obj, fel)
 
-#else
+#else /*DISABLE_CHECKS*/
 
 static void _bad_reference(OBJECT in) {
   printf("Attempted to access field of non-reference.\n");
@@ -375,7 +375,7 @@ static void _bad_reference2(OBJECT in, int fel) {
   }
 }
 
-#ifdef EXTRA_PROTECTION
+#if EXTRA_PROTECTION
 
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
@@ -392,7 +392,7 @@ static void _bad_reference2(OBJECT in, int fel) {
   if(fel >= in->field_count) _bad_reference2(in, fel); \
   NTH_FIELD_DIRECT(in, fel); })
 
-#else
+#else /*EXTRA_PROTECTION*/
 
 /* These are the typically used versions. The don't check for ref, they
    the segfault handler do that. */
@@ -411,11 +411,11 @@ static void _bad_reference2(OBJECT in, int fel) {
   NTH_FIELD_DIRECT(in, fel); })
 
 
-#endif
+#endif /*EXTRA_PROTECTION*/
 
-#endif
+#endif /*DISABLE_CHECKS*/
 
-#else
+#else /*ACCESS_MACROS*/
 
 
 static inline OBJECT rbs_get_field(OBJECT in, unsigned int fel) {
@@ -445,7 +445,7 @@ static inline OBJECT rbs_get_field(OBJECT in, unsigned int fel) {
     
     assert(0);
   }
-#endif
+#endif /*DISABLE_CHECKS*/
   obj = NTH_FIELD_DIRECT(in, fel);
 #if INTERNAL_DEBUG
   CHECK_PTR(obj);
@@ -465,7 +465,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
     
     assert(0);
   }
-#endif
+#endif /*DISABLE_CHECKS*/
 
   if(obj->StoresBytes) {
     printf("Attempted to access field of byte addressed object.\n");
@@ -486,7 +486,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
   return val;
 } 
 
-#endif
+#endif /*ACCESS_MACROS*/
 
 #define SET_STRUCT_FIELD(obj, fel, val) ({ OBJECT _tmp = (val); RUN_WB(obj, _tmp); fel = _tmp; _tmp; })  
 
