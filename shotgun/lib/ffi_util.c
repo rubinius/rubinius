@@ -260,7 +260,7 @@ void *ffi_add_ptr(char *ptr, int offset) {
 }
 
 long ffi_major(dev_t n) {
-#ifdef major
+#if defined(major)
   return major(n);
 #else
   return -1;
@@ -268,14 +268,22 @@ long ffi_major(dev_t n) {
 }
 
 long ffi_minor(dev_t n) {
-#ifdef minor
+#if defined(minor)
   return minor(n);
 #else
   return -1;
 #endif
 }
 
-/* FIXME: Kill these after the next rebuild of the stable RBAs */
-int ffi_seek_set() { return SEEK_SET; }
-int ffi_seek_cur() { return SEEK_CUR; }
-int ffi_seek_end() { return SEEK_END; }
+/* FIXME: these are TEMPORARY until we determine how to
+ * have FFI resolve symbols that may be macros. This is
+ * used rather than a primitive so that it is easier to
+ * replace (unlike primitives).
+ */
+int ffi_stat(const char *path, struct stat *buf) {
+  return stat(path, buf);
+}
+
+int ffi_lstat(const char *path, struct stat *buf) {
+  return lstat(path, buf);
+}

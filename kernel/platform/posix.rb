@@ -134,4 +134,17 @@ module Platform::POSIX
   attach_function 'getppid', [], pid_t
   attach_function 'getpgrp', [], pid_t
   attach_function 'setsid', [], pid_t
+  
+  # related to stat()
+  dev_t = :int
+  attach_function 'ffi_major', :major, [dev_t], :long
+  attach_function 'ffi_minor', :minor, [dev_t], :long
+  
+  # stat
+  # FIXME: these are TEMPORARY until we determine how to
+  # have FFI resolve symbols that may be macros. This is
+  # used rather than a primitive so that it is easier to
+  # replace (unlike primitives).
+  attach_function 'ffi_stat',  :stat,  [:string, :pointer], :int
+  attach_function 'ffi_lstat', :lstat, [:string, :pointer], :int
 end

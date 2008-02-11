@@ -1267,6 +1267,7 @@ class ShotgunPrimitives
     CODE
   end
   
+  # TODO: Remove stat_file after rebuilding stables
   def stat_file
     <<-CODE
     OBJECT t1, t2, t3;

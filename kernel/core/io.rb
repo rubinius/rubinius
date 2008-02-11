@@ -118,16 +118,6 @@ class IO
     NONBLOCK = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NONBLOCK']
     SYNC     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_SYNC']
 
-    S_IRUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRUSR']
-    S_IWUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWUSR']
-    S_IXUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXUSR']
-    S_IRGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRGRP']
-    S_IWGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWGRP']
-    S_IXGRP  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXGRP']
-    S_IROTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IROTH']
-    S_IWOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWOTH']
-    S_IXOTH  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXOTH']
-
     # TODO: these flags should probably be imported from Platform
     LOCK_SH  = 0x01
     LOCK_EX  = 0x02
