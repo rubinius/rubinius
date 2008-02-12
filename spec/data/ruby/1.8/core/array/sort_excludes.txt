@@ -1,0 +1,1 @@
+Array#sort completes the sorting process even if the block lies

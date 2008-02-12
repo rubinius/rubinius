@@ -21,6 +21,11 @@ describe "Array#sort" do
     a.sort.should == [1, 2, 3, 4, 5]
     a.sort {|x, y| y <=> x}.should == [5, 4, 3, 2, 1]
   end
+
+  it "completes the sorting process even if the block lies" do
+    a = [2,1]
+    a.sort { 1 }.should == [1,2]
+  end
   
   it "returns subclass instance on Array subclasses" do
     ary = MyArray[1, 2, 3]
