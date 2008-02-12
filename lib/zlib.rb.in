@@ -40,6 +40,7 @@ module Zlib
   attach_function 'inflateEnd',     :inflateEnd,      [:pointer],       :int
 
   attach_function 'crc32',          :crc32_c,         [:ulong, :string, :uint], :ulong
+  attach_function 'adler32',        :adler32_c,       [:ulong, :string, :uint], :ulong  
   attach_function 'get_crc_table',  :get_crc_table_c, [], :pointer
 
   def self.do_checksum(string, vsum, type = :crc32_c)
@@ -64,6 +65,10 @@ module Zlib
 
   def self.crc32(string = "", sum = 0)
     do_checksum(string, sum)
+  end
+  
+  def self.adler32(string = "", sum = 1)
+    do_checksum(string, sum, :adler32_c)
   end
   
   def self.crc_table
