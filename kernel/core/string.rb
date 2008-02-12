@@ -734,7 +734,7 @@ class String
 
     if replacement
       tainted = replacement.tainted?
-      replacement = StringValue(replacement).replace_slashes
+      replacement = StringValue(replacement)
       tainted ||= replacement.tainted?
     end
 
@@ -1478,7 +1478,7 @@ class String
 
       if replacement
         out.taint if replacement.tainted?
-        replacement = StringValue(replacement).replace_slashes.to_sub_replacement(match)
+        replacement = StringValue(replacement).to_sub_replacement(match)
       else
         # We do this so that we always manipulate $~ in the context
         # of the passed block.
@@ -1839,19 +1839,42 @@ class String
   end
 
   def to_sub_replacement(match)
-    self.gsub(/\\[\d\&\`\'\+]/) do |x|
-      # x[-1,1] returns a character version of the last character
-      case cap = x[-1,1]
-      when "`"
-        match.pre_match
-      when "'"
-        match.post_match
-      when "+"
-        match.captures.compact[-1].to_s
-      else
-        match[cap.to_i]
+    index = 0
+    result = ""
+    while index < @bytes
+      current = index
+      while current < @bytes && @data[current] != ?\\
+        current += 1
       end
+      result << substring(index, current - index)
+      break if current == @bytes
+
+      # found backslash escape, looking next
+      if current == @bytes - 1
+        result << ?\\ # backslash at end of string
+        break
+      end
+      index = current + 1
+
+      result << case (cap = @data[index])
+        when ?&
+          match[0]
+        when ?`
+          match.pre_match
+        when ?'
+          match.post_match
+        when ?+
+          match.captures.compact[-1].to_s
+        when ?0..?9
+          match[cap - ?0].to_s
+        when ?\\ # escaped backslash
+          '\\'
+        else     # unknown escape
+          '\\' << cap
+      end
+      index += 1
     end
+    return result
   end
 
   def to_inum(base, check = false)
@@ -2210,20 +2233,6 @@ class String
     pattern = Regexp.quote(pattern) if quote && pattern.is_a?(String)
     pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
     pattern
-  end
-
-  # mini-gsub created purely to handle slashes because using gsub recursively was causing segfaults
-  # TODO: make it work correctly
-  def replace_slashes
-    start = 0
-    ret = ""
-    while(match = /\\\\/.match_from(self, start))
-      ret << match.pre_match_from(start)
-      ret << '\\'
-      start = match.end(0)
-    end
-    ret << self[start..-1]
-    ret
   end
 
   # def rindex(arg, finish = nil )

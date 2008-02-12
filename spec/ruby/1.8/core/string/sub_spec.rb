@@ -205,6 +205,19 @@ describe "String#sub with pattern, replacement" do
     'hello.'.sub(/not/, 'x')
     $~.should == nil
   end
+
+  it 'replaces \\\1 with \1' do
+    "ababa".sub(/(b)/, '\\\1').should == "a\\1aba"
+  end
+  
+  it 'replaces \\\\1 with \\1' do
+    "ababa".sub(/(b)/, '\\\\1').should == "a\\1aba"
+  end
+
+  it 'replaces \\\\\1 with \\' do
+    "ababa".sub(/(b)/, '\\\\\1').should == "a\\baba"
+  end
+
 end
 
 describe "String#sub with pattern and block" do
