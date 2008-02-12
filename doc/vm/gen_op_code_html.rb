@@ -3,6 +3,12 @@ require 'rdoc/generator'
 require 'rdoc/markup/to_html_hyperlink'
 require 'kernel/core/iseq'
 
+class RDoc::Generator::Method
+  def path
+    "op_codes/#{name}.html"
+  end
+end
+
 OP_CODE_TEMPLATE = <<-EOF
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
@@ -93,6 +99,17 @@ class ToRubiniusOpCode < RDoc::Markup::ToHtmlHyperlink
     end
   end
 
+  def gen_url(url, text)
+    super
+  end
+
+  ##
+  # This is a hack around a misfeature in RDoc for labeled list handling.
+
+  def handle_special_CODE(special)
+    ''
+  end
+
   def make_stack(am, name, stack)
     level = stack.first.level
 
@@ -109,13 +126,6 @@ class ToRubiniusOpCode < RDoc::Markup::ToHtmlHyperlink
         raise "Unknown fragment #{fragment.inspect}"
       end
     end
-  end
-
-  ##
-  # This is a hack around a misfeature in RDoc for labeled list handling.
-
-  def handle_special_CODE(special)
-    ''
   end
 
 end
