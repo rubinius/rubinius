@@ -1,6 +1,6 @@
 require 'rdoc/rdoc'
 require 'rdoc/generator'
-require 'rdoc/markup/to_html_hyperlink'
+require 'rdoc/markup/to_html_crossref'
 require 'kernel/core/iseq'
 
 class RDoc::Generator::Method
@@ -52,7 +52,7 @@ TOC_TEMPLATE = <<-EOF
 <html>
 EOF
 
-class ToRubiniusOpCode < RDoc::Markup::ToHtmlHyperlink
+class ToRubiniusOpCode < RDoc::Markup::ToHtmlCrossref
 
   def initialize(*args)
     super
@@ -138,6 +138,7 @@ options.inline_source = true
 rdoc = RDoc::RDoc.new
 
 toplevels = rdoc.parse_files options
+puts
 
 files, classes = RDoc::Generator::Context.build_indicies toplevels, options
 
