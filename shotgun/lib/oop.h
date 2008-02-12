@@ -297,6 +297,7 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
 #define SENDSITE_P(obj) RTYPE(obj, SendSiteType)
 #define TUPLE_P(obj) RTYPE(obj, TupleType) 
 #define HASH_P(obj) (RISA(obj, hash))
+#define MODULE_P(obj) (RTYPE(obj, ModuleType))
 
 struct wraps_struct {
   void *ptr;

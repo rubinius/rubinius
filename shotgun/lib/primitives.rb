@@ -3453,6 +3453,17 @@ class ShotgunPrimitives
     CODE
   end
 
+  def opt_kind_of
+    <<-CODE
+    OBJECT t1;
+
+    POP(t1, REFERENCE);
+    GUARD(CLASS_P(t1) || MODULE_P(t1));
+
+    RET(object_kind_of_p(state, msg->recv, t1) ? Qtrue : Qfalse);
+    CODE
+  end
+
 end
 
 prim = ShotgunPrimitives.new

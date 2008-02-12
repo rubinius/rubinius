@@ -202,7 +202,8 @@ module Bytecode
       :opt_push_literal,
       :opt_push_self,
       :opt_push_my_field,
-      :opt_push_ivar
+      :opt_push_ivar,
+      :opt_kind_of
     ]
   end
 end

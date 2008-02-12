@@ -54,6 +54,8 @@ module Kernel
   # object's class or one of its superclasses. Returns false otherwise. If the
   # argument is not a Class or Module, a TypeError is raised.
   def kind_of?(cls)
+    Ruby.primitive :opt_kind_of
+
     unless cls.class.equal?(Class) or cls.class.equal?(Module)
       raise TypeError, 'kind_of? requires a Class or Module argument'
     end
