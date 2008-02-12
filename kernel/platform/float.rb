@@ -13,36 +13,10 @@ class Platform::Float
   attach_function 'float_mant_dig',   :MANT_DIG, [], :int
   attach_function 'float_epsilon',    :EPSILON, [], :double
 
-  attach_function 'float_to_i', :to_i, [:double], :int
-  attach_function 'float_add',  :add, [:double, :double], :double
-  attach_function 'float_sub',  :sub, [:double, :double], :double
-  attach_function 'float_mul',  :mul, [:double, :double], :double
-  attach_function 'float_div',  :div, [:double, :double], :double
-  attach_function 'float_uminus',  :uminus,      [:double], :double
-  attach_function 'float_equal',   :value_equal, [:double, :double], :int
-  attach_function 'float_compare', :compare,     [:double, :double], :int
-  attach_function 'float_round',   :round,       [:double], :int
-  attach_function 'fmod',  [:double, :double], :double
-  attach_function 'pow',   [:double, :double], :double
-  attach_function 'isnan', [:double], :int
-  attach_function 'isinf', [:double], :int
-
   attach_function 'frexp', [:double, :pointer], :double
   attach_function 'ldexp', [:double, :int], :double
   attach_function 'modf', [:double, :pointer], :double
 
-  def self.eql?(a, b)
-    value_equal(a, b) == 1
-  end
-  
-  def self.nan?(value)
-    isnan(value) == 1
-  end
-  
-  def self.infinite?(value)
-    return (value < 0 ? -1 : 1) if isinf(value) != 0
-  end
-  
   def self.to_s_formatted(size, fmt, value)
     s, p = Platform::POSIX.sprintf_f value, size, fmt
     str = s.dup

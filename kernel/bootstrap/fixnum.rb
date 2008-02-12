@@ -128,10 +128,3 @@ class Fixnum < Integer
     raise PrimitiveFailure, "primitive failed"
   end
 end
-
-class Numeric
-  def coerce(other)
-    Ruby.primitive(:numeric_coerce) # try to keep bignum/fixnum precision
-    [Float(other), Float(self)]
-  end
-end

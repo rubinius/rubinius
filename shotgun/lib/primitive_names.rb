@@ -203,7 +203,25 @@ module Bytecode
       :opt_push_self,
       :opt_push_my_field,
       :opt_push_ivar,
-      :opt_kind_of
+      :opt_kind_of,
+      :float_add,
+      :float_sub,
+      :float_mul,
+      :float_div,
+      :float_uminus,
+      :float_equal,
+      :float_eql,
+      :float_compare,
+      :float_lt,
+      :float_le,
+      :float_gt,
+      :float_ge,
+      :float_to_i,
+      :float_round,
+      :float_divmod,
+      :float_pow,
+      :float_isnan,
+      :float_isinf
     ]
   end
 end

@@ -19,102 +19,141 @@ class Float < Numeric
   EPSILON    = Platform::Float.EPSILON
   STRLEN     = 32
   
-  alias_method :quo, :/
-  
   def self.induced_from(obj)
-    if [Float, Bignum, Fixnum].include?(obj.class)
+    case obj
+    when Float, Bignum, Fixnum
       obj.to_f
     else
       raise TypeError, "failed to convert #{obj.class} into Float"
     end
   end
   
+  def coerce(other)
+    return [other, self] if other.__kind_of__ Float
+    [Float(other), self]
+  end
+  
+  # unary operators
+
+  def -@
+    Ruby.primitive :float_uminus
+  end
+
+  # binary math operators
+  
   def +(other)
-    return super(other) unless other.is_a?(Float)
-    Platform::Float.add self, other
+    Ruby.primitive :float_add
+    b, a = math_coerce other
+    a + b
   end
   
   def -(other)
-    return super(other) unless other.is_a?(Float)
-    Platform::Float.sub self, other
+    Ruby.primitive :float_sub
+    b, a = math_coerce other
+    a - b
   end
   
   def *(other)
-    return super(other) unless other.is_a?(Float)
-    Platform::Float.mul self, other
+    Ruby.primitive :float_mul
+    b, a = math_coerce other
+    a * b
   end
   
   # see README-DEVELOPERS regarding safe math compiler plugin
   def divide(other)
-    return super(other) unless other.is_a?(Float)
-    Platform::Float.div self, other
+    Ruby.primitive :float_div
+    b, a = math_coerce other
+    a.divide b
   end
   alias_method :/, :divide
-  
-  def -@
-    Platform::Float.uminus self
+  alias_method :quo, :/
+
+  def divmod(other)
+    Ruby.primitive :float_divmod
+    b, a = math_coerce other
+    a.divmod b
   end
 
+  def **(other)
+    Ruby.primitive :float_pow
+    b, a = math_coerce other
+    a ** b
+  end
+
+  def %(other)
+    return 0 / 0.to_f if other == 0
+    self.divmod(Float(other))[1]
+  end
+  alias_method :modulo, :%
+
+  # comparison operators
+  
+  def <(other)
+    Ruby.primitive :float_lt
+    b, a = math_coerce other, :compare_error
+    a < b
+  end
+  
+  def <=(other)
+    Ruby.primitive :float_le
+    b, a = math_coerce other, :compare_error
+    a <= b
+  end
+  
+  def >(other)
+    Ruby.primitive :float_gt
+    b, a = math_coerce other, :compare_error
+    a > b
+  end
+  
+  def >=(other)
+    Ruby.primitive :float_ge
+    b, a = math_coerce other, :compare_error
+    a >= b
+  end
+  
   def <=>(other)
-    return super(other) unless other.is_a?(Float)
-    Platform::Float.compare self, other
+    Ruby.primitive :float_compare
+    b, a = math_coerce other, :compare_error
+    a <=> b
   end
 
   def ==(other)
-    return super(other) unless other.is_a?(Float)
-    Platform::Float.eql? self, other
+    Ruby.primitive :float_equal
+    begin
+      b, a = math_coerce(other)
+      return a == b
+    rescue TypeError
+      return other == self
+    end
   end
+
+  # predicates
 
   def eql?(other)
-    return false unless other.is_a?(Float)
-    Platform::Float.eql? self, other
+    Ruby.primitive :float_eql
   end
   
-  def divmod(other)
-    raise FloatDomainError, "divide by 0" if other == 0
-    return super(other) unless other.is_a?(Float)
-    div = (self / other).floor;
-    mod = Platform::Float.fmod self, other
-    
-    if (other * mod < 0)
-    	mod += other;
-    end
-    return [div.to_i, mod]
-  end
-
   def nan?
-    Platform::Float.nan? self
+    Ruby.primitive :float_isnan
   end
 
   def infinite?
-    Platform::Float.infinite? self
+    Ruby.primitive :float_isinf
   end
   
   def finite?
     not (nan? or infinite?) 
   end
-  
-  def **(other)
-    return super(other) unless other.is_a?(Float)
-    Platform::Float.pow self, other
-  end
+
+  # conversions
   
   def to_f
     self
   end
   
   def to_i
-    if infinite?
-      raise FloatDomainError, self < 0 ? "-Infinity" : "Infinity"
-    elsif nan?
-      return self
-    else
-      if self < Platform::Fixnum.MAX.to_f && self > Platform::Fixnum.MIN.to_f
-        Platform::Float.to_i self
-      else
-        Bignum.from_float self
-      end
-    end
+    Ruby.primitive :float_to_i
   end
   alias_method :to_int, :to_i
   alias_method :truncate, :to_i
@@ -138,19 +177,7 @@ class Float < Numeric
   end
   private :to_s_formatted
   
-  def %(other)
-    return 0 / 0.to_f if other == 0
-    self.divmod(Float(other))[1]
-  end
-  alias_method :modulo, :%
-  
   def round
-    if self < Platform::Fixnum.MAX.to_f && self > Platform::Fixnum.MIN.to_f
-      Platform::Float.round self
-    else
-      Bignum.from_float self
-    end
-  end
-  
+    Ruby.primitive :float_round
+  end  
 end
-

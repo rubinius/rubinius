@@ -17,42 +17,8 @@
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/array.h"
-
-/* use IEEE 64bit values if not defined */
-#ifndef FLT_RADIX
-#define FLT_RADIX 2
-#endif
-#ifndef FLT_ROUNDS
-#define FLT_ROUNDS 1
-#endif
-#ifndef DBL_MIN
-#define DBL_MIN 2.2250738585072014e-308
-#endif
-#ifndef DBL_MAX
-#define DBL_MAX 1.7976931348623157e+308
-#endif
-#ifndef DBL_MIN_EXP
-#define DBL_MIN_EXP (-1021)
-#endif
-#ifndef DBL_MAX_EXP
-#define DBL_MAX_EXP 1024
-#endif
-#ifndef DBL_MIN_10_EXP
-#define DBL_MIN_10_EXP (-307)
-#endif
-#ifndef DBL_MAX_10_EXP
-#define DBL_MAX_10_EXP 308
-#endif
-#ifndef DBL_DIG
-#define DBL_DIG 15
-#endif
-#ifndef DBL_MANT_DIG
-#define DBL_MANT_DIG 53
-#endif
-#ifndef DBL_EPSILON
-#define DBL_EPSILON 2.2204460492503131e-16
-#endif
-/* End borrowing from MRI 1.8.6 stable */
+#include "shotgun/lib/bignum.h"
+#include "shotgun/lib/float.h"
 
 int float_radix()      { return FLT_RADIX; }
 int float_rounds()     { return FLT_ROUNDS; }
@@ -86,6 +52,27 @@ void float_into_string(STATE, OBJECT self, char *buf, int sz) {
   snprintf(buf, sz, "%+.17e", FLOAT_TO_DOUBLE(self));
 }
 
+/* TODO: change float_to_i_prim name to float_to_i once
+ * the stables no longer depend on the FFI implementation
+ */
+OBJECT float_to_i_prim(STATE, double value) {
+  if (value > 0.0) value = floor(value);
+  if (value < 0.0) value = ceil(value);
+  return bignum_from_double(state, value);
+}
+
+OBJECT float_coerce(STATE, OBJECT value) {
+  if(FIXNUM_P(value)) {
+    return float_new(state, (double)N2I(value));
+  } else if(BIGNUM_P(value)) {
+    return float_new(state, bignum_to_double(state, value));
+  }
+  return value;
+}
+
+/* TODO: Remove all the following methods once the stables
+ * no longer depend on the FFI implementation of Float.
+ */
 double float_add(double a, double b) {
   return a + b;
 }
@@ -116,6 +103,22 @@ int float_compare(double a, double b) {
   else if (a > b)
     return 1;
   return 0;
+}
+
+OBJECT float_lt(double a, double b) {
+  return a < b ? Qtrue : Qfalse;
+}
+
+OBJECT float_lte(double a, double b) {
+  return a <= b ? Qtrue : Qfalse;
+}
+
+OBJECT float_gt(double a, double b) {
+  return a > b ? Qtrue : Qfalse;
+}
+
+OBJECT float_gte(double a, double b) {
+  return a >= b ? Qtrue : Qfalse;
 }
 
 int float_to_i(double value) {

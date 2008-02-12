@@ -3452,18 +3452,258 @@ class ShotgunPrimitives
     RET(NTH_FIELD(msg->recv, N2I(fast_fetch(lits, 0))));
     CODE
   end
+  
+  def float_add
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(float_new(state, a + FLOAT_TO_DOUBLE(t1)));
+    CODE
+  end
+
+  def float_sub
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(float_new(state, a - FLOAT_TO_DOUBLE(t1)));
+    CODE
+  end
+
+  def float_mul
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(float_new(state, a * FLOAT_TO_DOUBLE(t1)));
+    CODE
+  end
+
+  def float_div
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(float_new(state, a / FLOAT_TO_DOUBLE(t1)));
+    CODE
+  end
+
+  def float_uminus
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    RET(float_new(state, -a));
+    CODE
+  end
+
+  def float_equal
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(a == FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def float_eql
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    OBJECT t1 = stack_pop();
+    if(FLOAT_P(t1)) {
+      double a = FLOAT_TO_DOUBLE(msg->recv),
+             b = FLOAT_TO_DOUBLE(t1);
+      RET(a == b ? Qtrue : Qfalse);
+    } else {
+      RET(Qfalse);
+    }
+    CODE
+  end
+
+  def float_compare
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    double b = FLOAT_TO_DOUBLE(t1);
+    if(a < b) {
+      RET(I2N(-1));
+    } else if(a > b) {
+      RET(I2N(1));
+    } else {
+      RET(I2N(0));
+    }
+    CODE
+  end
+
+  def float_lt
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(a < FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
+    CODE
+  end
+
+  def float_le
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(a <= FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
+    CODE
+  end
+
+  def float_gt
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(a > FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
+    CODE
+  end
+
+  def float_ge
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(a >= FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
+    CODE
+  end
+
+  def float_to_i
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double b = FLOAT_TO_DOUBLE(msg->recv);
+    if(isinf(b)) {
+      RAISE("FloatDomainError", b < 0 ? "-Infinity" : "Infinity");
+    } else if(isnan(b)) {
+      RET(msg->recv);
+    } else {
+      RET(float_to_i_prim(state, b));
+    }
+    CODE
+  end
 
   def opt_kind_of
     <<-CODE
     OBJECT t1;
-
+  
     POP(t1, REFERENCE);
     GUARD(CLASS_P(t1) || MODULE_P(t1));
-
+  
     RET(object_kind_of_p(state, msg->recv, t1) ? Qtrue : Qfalse);
     CODE
   end
 
+  def float_round
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double value = FLOAT_TO_DOUBLE(msg->recv);
+    if (value > 0.0) value = floor(value+0.5);
+    if (value < 0.0) value = ceil(value-0.5);
+    RET(bignum_from_double(state, value));
+    CODE
+  end
+
+  def float_divmod
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    double b = FLOAT_TO_DOUBLE(t1);
+    if(b == 0.0) {
+      RAISE("FloatDomainError", "divide by 0");
+    } else {
+      double div = floor(a / b);
+      double mod = fmod(a, b);
+      if(b * mod < 0) {
+        mod += b;
+      }
+      OBJECT ary = array_new(state, 2);
+      array_set(state, ary, 0, float_to_i_prim(state, div));
+      array_set(state, ary, 1, float_new(state, mod));
+      RET(ary);
+    }
+    CODE
+  end
+
+  def float_pow
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double a = FLOAT_TO_DOUBLE(msg->recv);
+    OBJECT t1 = stack_pop();
+    if(!FLOAT_P(t1)) {
+      t1 = float_coerce(state, t1);
+      GUARD(FLOAT_P(t1));
+    }
+    RET(float_new(state, pow(a, FLOAT_TO_DOUBLE(t1))));
+    CODE
+  end
+
+  def float_isnan
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    RET(isnan(FLOAT_TO_DOUBLE(msg->recv)) == 1 ? Qtrue : Qfalse);
+    CODE
+  end
+
+  def float_isinf
+    <<-CODE
+    GUARD(FLOAT_P(msg->recv));
+    double value = FLOAT_TO_DOUBLE(msg->recv);
+    if(isinf(value) != 0) {
+      RET(value < 0 ? I2N(-1) : I2N(1));
+    } else {
+      RET(Qnil);
+    }
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new
