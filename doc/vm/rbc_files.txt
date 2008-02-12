@@ -104,7 +104,7 @@ following table specifies the values and formats for each tag:
   * 4 bytes that specify the size of the string representation of the Float
   * the string representation of the Float
   * a 0 byte to create a null-terminated string.
-[Object \(r)]
+[Object (r)]
   * 4 bytes that specify the number of fields in the object
   * the marshaled value of each field.
 [NilClass (n)]
