@@ -174,7 +174,7 @@ CODE
   #   stack.
   #   
   #   To consume an item from the stack, but otherwise do nothing, use
-  #   "pop":pop.html.
+  #   pop.
   # [See Also]
   #   * pop
 
@@ -364,15 +364,15 @@ CODE
   # [Operation]
   #   Pushes a literal from the current state onto the stack.
   # [Format]
-  #   \push_literal idx
+  #   \push_literal index
   # [Stack Before]
   #   * ...
   # [Stack After]
   #   * literal
   #   * ...
   # [Description]
-  #   The literal identified by the opcode argument (idx) in the current state
-  #   literals tuple is retrieved and placed onto the stack.
+  #   The literal identified by the opcode argument (+index+) in the current
+  #   state literals tuple is retrieved and placed onto the stack.
   #   
   #   The literals tuple is part of the machine state, and holds all literal
   #   objects defined or used within a particular scope.
@@ -437,11 +437,11 @@ CODE
   # [Stack Before]
   #   * ...
   # [Stack After]
-  #   * localval
+  #   * local_value
   #   * ...
   # [Description]
-  #   Retrieves the current value (_localval_) of the referenced local
-  #   variable (_local_), and pushes it onto the stack.
+  #   Retrieves the current value (+local_value+) of the referenced local
+  #   variable (+local+), and pushes it onto the stack.
 
   def push_local
     <<-CODE
@@ -494,7 +494,7 @@ CODE
   # [Stack Before]
   #   * ...
   # [Stack After]
-  #   * exc
+  #   * exception
   #   * ...
   # [Description]
   #   Pushes the current exception onto the stack, so that it can be used for
@@ -567,7 +567,7 @@ CODE
   #   * value
   #   * ...
   # [Description]
-  #   Pushes the instance variable identified by _lit_ onto the stack.
+  #   Pushes the instance variable identified by +lit+ onto the stack.
 
   def push_ivar
     <<-CODE
@@ -587,10 +587,10 @@ CODE
   #   * object
   #   * ...
   # [Description]
-  #   Pop a field _count_ and allocate space for an object with the
+  #   Pop a field +count+ and \allocate space for an object with the
   #   appropriate header and field space. The object created will be
-  #   uninitialized; it will have its parent class and all fields initialized
-  #   to the special value @nil@.
+  #   uninitialized; it will have its parent \class and all fields initialized
+  #   to +nil+.
 
   def allocate
     <<-CODE
@@ -600,7 +600,7 @@ CODE
   end
 
   # [Operation]
-  #   Sets a literal to reference the specified class
+  #   Sets a literal to reference the specified \class
   # [Format]
   #   \set_class
   # [Stack Before]
@@ -611,9 +611,9 @@ CODE
   #   * literal
   #   * ...
   # [Description]
-  #   Pops a literal reference and a class off the top of the stack, sets the
-  #   class of the literal to the new class, and then pushes it back onto the
-  #   stack.
+  #   Pops a literal reference and a \class off the top of the stack, sets the
+  #   \class of the literal to the new \class, and then pushes it back onto
+  #   the stack.
 
   def set_class
     <<-CODE
@@ -708,7 +708,7 @@ CODE
   #   * ...
   # [Description]
   #   Stores the value at the top of the stack into the field specified by
-  #   _fld_ on *self*.
+  #   +fld+ on +self+.
   #   
   #   The stack is left unmodified.
 
@@ -722,21 +722,21 @@ CODE
   # [Operation]
   #   Calls a primitive method
   # [Format]
-  #   \send_primitive primidx argc
+  #   \send_primitive primitive_index argc
   # [Stack Before]
-  #   * recv
+  #   * receiver
   #   * arg1
   #   * arg2
   #   * ...
-  #   * argn
+  #   * argN
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
-  #   Execute a primitive method on the receiver (_recv_). The index of the
-  #   primitive to  execute (_primidx_), and the number of arguments being
-  #   passed (_argc_) are  specified as paramters.
+  #   Execute a primitive method on the receiver (+receiver+). The index of the
+  #   primitive to execute (+primitive_index+), and the number of arguments
+  #   being passed (+argc+) are  specified as paramters.
   #   
   #   When the primitive returns, the return value will be on top of the
   #   stack.
@@ -803,7 +803,7 @@ CODE
   # [Stack After]
   #   * ...
   # [Description]
-  #   Remove the top item on the stack, and if *nil* or *false*, jump to the
+  #   Remove the top item on the stack, and if +nil+ or +false+, jump to the
   #   instruction following the specified label; otherwise, continue.
   # [See Also]
   #   * goto
@@ -832,7 +832,7 @@ CODE
   # [Stack After]
   #   * ...
   # [Description]
-  #   Remove the top item on the stack, and if not *nil* or *false*, jump to
+  #   Remove the top item on the stack, and if not +nil+ or +false+, jump to
   #   the instruction following the specified label; otherwise, continue.
   # [See Also]
   #   * goto
@@ -862,12 +862,12 @@ CODE
   #   * ...
   # [Description]
   #   Remove the top item on the stack, and if it is not the special value
-  #   *undefined*, jump to the instruction following the specified label;
+  #   +undefined+, jump to the instruction following the specified label;
   #   otherwise, continue.
   # [See Also]
   #   * goto
   #   * goto_if_true
-  #   * goto_if_False
+  #   * goto_if_false
 
   def goto_if_defined
     <<-CODE
@@ -949,7 +949,7 @@ CODE
   # [Operation]
   #   Sets the value of a local variable
   # [Format]
-  #   \set_local locl
+  #   \set_local local
   # [Stack Before]
   #   * value
   #   * ...
@@ -957,8 +957,8 @@ CODE
   #   * value
   #   * ...
   # [Description]
-  #   Pops _value_ off the stack, and uses it to set the value of the local
-  #   variable identified by the literal _locl_. The value is then pushed back
+  #   Pops +value+ off the stack, and uses it to set the value of the local
+  #   variable identified by the literal +local+. The value is then pushed back
   #   onto the stack, to represent the return value from the expression.
 
   def set_local
@@ -980,14 +980,14 @@ CODE
   # [Operation]
   #   Sets a method argument local from the caller's stack (deprecated)
   # [Format]
-  #   \set_local_from_fp locl arg
+  #   \set_local_from_fp local arg
   # [Stack Before]
   #   * ...
   # [Stack After]
   #   * ...
   # [Description]
-  #   Copies the value of method argument _arg_ into the local variable
-  #   _locl_. Method arguments are accessed from the caller's stack via
+  #   Copies the value of method argument +arg+ into the local variable
+  #   +local+. Method arguments are accessed from the caller's stack via
   #   negative offsets from the frame pointer, where 0 is the first argument,
   #   1 is the second, etc.
   #   
@@ -1036,8 +1036,8 @@ CODE
   #   * value
   #   * ...
   # [Description]
-  #   Uses the _value_ on the top of the stack to update the value of the
-  #   local variable _local_ in an enclosing scope. The value is then pushed
+  #   Uses the +value+ on the top of the stack to update the value of the
+  #   local variable +local+ in an enclosing scope. The value is then pushed
   #   back onto the stack, to represent the return value from the expression.
   # [Example]
   #   <code>
@@ -1078,7 +1078,7 @@ CODE
   # [Format]
   #   \make_array argc
   # [Stack Before]
-  #   * valuen
+  #   * valueN
   #   * ...
   #   * value2
   #   * value1
@@ -1088,7 +1088,7 @@ CODE
   #   * ...
   # [Description]
   #   Creates a new array, populating its contents with the number of items
-  #   (_argc_) specified in the opcode. The contents of the new array are
+  #   (+argc+) specified in the opcode. The contents of the new array are
   #   taken from the stack, with the top item on the stack becoming the last
   #   item in the array. The resulting array is added back to the stack.
 
@@ -1120,7 +1120,7 @@ CODE
   #   * value1
   #   * value2
   #   * ...
-  #   * valuen
+  #   * valueN
   #   * ...
   # [Description]
   #   Removes the array currently on top of the stack, and replaces it with
@@ -1202,13 +1202,12 @@ CODE
   #   the object as the value of the single element.
   #   
   #   The resulting array is then pushed back onto the stack, and the size of
-  #   the array is added to the argument _size_ that was specified with the
+  #   the array is added to the argument +size+ that was specified with the
   #   opcode, and saved as the current method argument count.
   #   
-  #   This opcode will always be followed by a "push_array":push_array.html
-  #   instruction that unpacks the array elements into discrete stack entries
-  #   prior to calling either send_with_arg_register or
-  #   send_super_with_arg_register.
+  #   This opcode will always be followed by a push_array instruction that
+  #   unpacks the array elements into discrete stack entries prior to calling
+  #   either send_with_arg_register or send_super_with_arg_register.
   # [See Also]
   #   * push_array
   #   * get_args
@@ -1358,8 +1357,8 @@ CODE
   # [Format]
   #   \make_hash argc
   # [Stack Before]
-  #   * keyn
-  #   * valuen
+  #   * keyN
+  #   * valueN
   #   * ...
   #   * key2
   #   * value2
@@ -1371,7 +1370,7 @@ CODE
   #   * ...
   # [Description]
   #   Creates a new hash, populating its contents with the number of items
-  #   (_argc_) specified in the opcode. The contents of the new hash are taken
+  #   (+argc+) specified in the opcode. The contents of the new hash are taken
   #   from the stack, with the top item on the stack becoming the last key in
   #   the hash, the second top item becoming the last value, and so on. The
   #   resulting hash is added back to the stack.
@@ -1407,7 +1406,7 @@ CODE
   #   * ...
   # [Description]
   #   Pops a value off the stack, and uses it to set the value of the instance
-  #   variable identifies by the literal _ivar_ on the current *self* object.
+  #   variable identifies by the literal +ivar+ on the current +self+ object.
   #   The value popped off the stack is then pushed back on again.
 
   def set_ivar
@@ -1422,17 +1421,17 @@ CODE
   # [Operation]
   #   Pushes a constant onto the stack
   # [Format]
-  #   \push_const konst
+  #   \push_const constant
   # [Stack Before]
   #   * ...
   # [Stack After]
   #   * const
   #   * ...
   # [Description]
-  #   Locates the constant indicated by the literal _konst_ from the current
-  #   context, and pushes it onto the stack. If the constant cannot be found
-  #   in the current context, nothing is pushed onto the stack, and a
-  #   @NameError@ exception is raised.
+  #   Locates the constant indicated by the literal +constant+ from the
+  #   current context, and pushes it onto the stack. If the constant cannot be
+  #   found in the current context, nothing is pushed onto the stack, and a
+  #   NameError exception is raised.
   # [Example]
   #   <code>
   #     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
@@ -1449,7 +1448,7 @@ CODE
   # [Operation]
   #   Finds a constant
   # [Format]
-  #   \find_const konst
+  #   \find_const constant
   # [Stack Before]
   #   * ns
   #   * ...
@@ -1457,10 +1456,10 @@ CODE
   #   * const
   #   * ...
   # [Description]
-  #   Pops the module or class _ns_ off the stack, and searches within it's
-  #   namespace for the constant identified by the literal _konst_. If found,
-  #   it is pushed onto the stack; otherwise, nothing is pushed onto the
-  #   stack, and a @NameError@ exception is raised.
+  #   Pops the module or \class +ns+ off the stack, and searches within it's
+  #   namespace for the constant identified by the literal +constant+. If
+  #   found, it is pushed onto the stack; otherwise, nothing is pushed onto
+  #   the stack, and a NameError exception is raised.
   # [Example]
   #   <code>
   #     str = "abc"
@@ -1510,8 +1509,8 @@ CODE
   # [Stack After]
   #   * ...
   # [Description]
-  #   Pops the new _value_ for a constant identified by the _lit_ index in the
-  #   literals tuple, in the scope of _module_, which is also popped from the
+  #   Pops the new +value+ for a constant identified by the +lit+ index in the
+  #   literals tuple, in the scope of +module+, which is also popped from the
   #   stack.
 
   def set_const_at
@@ -1549,13 +1548,13 @@ CODE
   # [Format]
   #   \set_encloser
   # [Stack Before]
-  #   * klass
+  #   * class
   #   * ...
   # [Stack After]
   #   * ...
   # [Description]
-  #   Pops the class _klass_ off the stack, and uses it as the enclosing scope
-  #   for subsequent class or module definitions.
+  #   Pops +\class+ off the stack, and uses it as the enclosing scope for
+  #   subsequent \class or module definitions.
   # [See Also]
   #   * push_encloser
   # [Example]
@@ -1582,9 +1581,9 @@ CODE
   # [Stack After]
   #   * ...
   # [Description]
-  #   Resets the current enclosing class or module to the parent class or
-  #   module in the enclosing scope path. Used when a class or module
-  #   definition ends, to pop up a level in the enclosure stack.
+  #   Resets the current enclosing \class or module to the parent \class or
+  #   module in the enclosing scope path. Used when a \class or module
+  #   definition ends, to \pop up a level in the enclosure stack.
   # [See Also]
   #   * set_encloser
   # [Example]
@@ -1602,23 +1601,23 @@ CODE
   end
 
   # [Operation]
-  #   Creates or re-opens a class.
+  #   Creates or re-opens a \class.
   # [Format]
-  #   \open_class_under cl
+  #   \open_class_under \class
   # [Stack Before]
   #   * super
-  #   * encls
+  #   * enclosing_class
   #   * ...
   # [Stack After]
   #   * class
   #   * ...
   # [Description]
-  #   Creates or re-opens a class, popping the superclass (or nil) and the
-  #   enclosing class from the stack. Upon return, the new class is pushed
+  #   Creates or re-opens a \class, popping the superclass (or nil) and the
+  #   enclosing \class from the stack. Upon return, the new \class is pushed
   #   onto the stack.
   #   
-  #   The _cl_ argument to the opcode is the class literal identifying the
-  #   class to be opened.
+  #   The +\class+ argument to the opcode is the \class literal identifying
+  #   the \class to be opened.
   # [See Also]
   #   * open_class
   # [Example]
@@ -1647,9 +1646,9 @@ CODE
   end
 
   # [Operation]
-  #   Creates or re-opens a class.
+  #   Creates or re-opens a \class.
   # [Format]
-  #   \open_class cl
+  #   \open_class class_name
   # [Stack Before]
   #   * super
   #   * ...
@@ -1657,18 +1656,18 @@ CODE
   #   * class
   #   * ...
   # [Description]
-  #   Creates or re-opens a class, taking the superclass (or nil) from the
-  #   stack. Upon return, the new class is pushed onto the stack.
+  #   Creates or re-opens a \class, taking the superclass (or nil) from the
+  #   stack. Upon return, the new \class is pushed onto the stack.
   #   
-  #   The _cl_ argument to the opcode is the class literal identifying the
-  #   class to be opened.
+  #   The +class_name+ argument to the opcode is the \class literal
+  #   identifying the \class to be opened.
   # [See Also]
   #   * push_encloser
   #   * open_class_under
   # [Notes]
-  #   The enclosing class (if any) will be the current enclosing class in the
-  #   current execution context. Typically, this will have been set by
-  #   executing the opcode "push_encloser":push_encloser.html.
+  #   The enclosing \class (if any) will be the current enclosing \class in
+  #   the current execution context. Typically, this will have been set by
+  #   executing the opcode push_encloser.
   # [Example]
   #   <code>
   #     class A
@@ -1704,8 +1703,8 @@ CODE
   #   * module
   #   * ...
   # [Description]
-  #   Pops an enclosing class or module from the stack, and creates or
-  #   re-opens the module identified by the literal _name_. The module is then
+  #   Pops an enclosing \class or module from the stack, and creates or
+  #   re-opens the module identified by the literal +name+. The module is then
   #   pushed onto the  stack.
   # [Example]
   #   <code>
@@ -1724,14 +1723,14 @@ CODE
   # [Operation]
   #   Creates or reopens a module
   # [Format]
-  #   \open_module mod
+  #   \open_module module
   # [Stack Before]
   #   * ...
   # [Stack After]
   #   * module
   #   * ...
   # [Description]
-  #   Creates or re-opens the module referenced by the literal _mod_, and
+  #   Creates or re-opens the module referenced by the literal +module+, and
   #   pushes it onto the stack.
   # [See Also]
   #   * open_class
@@ -1764,10 +1763,10 @@ CODE
   # [Notes]
   #   An object metaclass is it's singleton class, i.e. the class that is used
   #   to hold object specific methods. In Rubinius, any object can call the
-  #   *metaclass* method to obtain its metaclass.
+  #   +metaclass+ method to obtain its metaclass.
   # [Example]
   #   <code>
-  #     o.metclass   # returns object's metaclass
+  #     o.metclass   # returns o's metaclass
   #   </code>
 
   def open_metaclass
@@ -1778,11 +1777,11 @@ CODE
   end
 
   # [Operation]
-  #   Attaches a method definition to an object's singleton class
+  #   Attaches a method definition to an object's singleton \class
   # [Format]
   #   \attach_method name
   # [Stack Before]
-  #   * recv
+  #   * receiver
   #   * method
   #   * ...
   # [Stack After]
@@ -1790,16 +1789,16 @@ CODE
   #   * ...
   # [Description]
   #   Hooks up a compiled method to an object instance via it's singleton
-  #   class.
+  #   \class.
   #   
-  #   The object the method is to be added to (_recv_) and the compiled 
-  #   method object (_method_) are popped from the stack, while the name of
-  #   the  method is an argument to the opcode (_name_). On return, the
+  #   The object the method is to be added to (+receiver+) and the compiled
+  #   method object (+method+) are popped from the stack, while the name of
+  #   the  method is an argument to the opcode (+name+). On return, the
   #   compiled method is pushed back onto the stack.
   # [See Also]
   #   * add_method
   # [Notes]
-  #   Class/module methods are handled by "add_method":add_method.html.
+  #   Class/module methods are handled by add_method.
 
   def attach_method
     <<-CODE
@@ -1813,27 +1812,27 @@ CODE
   end
 
   # [Operation]
-  #   Adds a method to a class or module
+  #   Adds a method to a \class or module
   # [Format]
   #   \add_method name
   # [Stack Before]
-  #   * recv
+  #   * receiver
   #   * method
   #   * ...
   # [Stack After]
   #   * method
   #   * ...
   # [Description]
-  #   Hooks up a compiled method to a class or module.
+  #   Hooks up a compiled method to a \class or module.
   #   
-  #   The class or module the method is to be added to (_recv_) and the
-  #   compiled method object (_method_) are popped from the stack, while the
-  #   name of the method is an argument to the opcode (_name_). On return, the
+  #   The \class or module the method is to be added to (+receiver+) and the
+  #   compiled method object (+method+) are popped from the stack, while the
+  #   name of the method is an argument to the opcode (+name+). On return, the
   #   compiled method is pushed back onto the stack.
   # [See Also]
   #   * attach_method
   # [Notes]
-  #   Singleton methods are handled by "attach_method":attach_method.html.
+  #   Singleton methods are handled by attach_method.
 
   def add_method
     <<-CODE
@@ -1859,21 +1858,21 @@ CODE
   #   * arg1
   #   * arg2
   #   * ...
-  #   * argn
+  #   * argN
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
   #   Pops the top five items off the stack, using these to identify the
-  #   object on which to invoke the method (_recv_), the @CompiledMethod@
-  #   instance to execute (_method_, i.e. @self@), the number of argments the
-  #   method defines (_size_), the _locals_ currently in scope, and any
-  #   _block_ passed to the method.
+  #   object on which to invoke the method (+receiver+), the CompiledMethod
+  #   instance to execute (+method+, i.e. +self+), the number of argments the
+  #   method defines (+size+), the +locals+ currently in scope, and any
+  #   +block+ passed to the method.
   #   
   #   Additionally, the actual arguments to be passed to the method must also
   #   be on the stack as an array, with the number of actual arguments passed
-  #   (_argc_) specified alongside the opcode; these arguments will be
+  #   (+argc+) specified alongside the opcode; these arguments will be
   #   consumed from the stack and pushed into locals when the method starts
   #   executing.
   #   
@@ -1905,16 +1904,16 @@ CODE
   # [Operation]
   #   Sends a message with no args to a receiver
   # [Format]
-  #   \send_method methodname
+  #   \send_method method_name
   # [Stack Before]
-  #   * recv
+  #   * receiver
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
-  #   Pops an object off the top of the stack (_recv_), and sends it the no
-  #   arg message _methodname_.
+  #   Pops an object off the top of the stack (+receiver+), and sends it the no
+  #   arg message +method_name+.
   #   
   #   When the method returns, the return value will be on top of the stack.
   # [See Also]
@@ -1939,19 +1938,19 @@ CODE
   # [Operation]
   #   Optimised send for performing a method taking one parameter (deprecated)
   # [Format]
-  #   \meta_send_stack_1 mthd
+  #   \meta_send_stack_1 method
   # [Stack Before]
-  #   * recv
+  #   * receiver
   #   * arg
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
-  #   Pops the receiver _recv_ off the top of the stack, and sends it the
-  #   method identified by _mthd_. The single parameter _arg_ to be passed to
-  #   the method is left on the top of the stack, and is converted to a local
-  #   when the method is activated.
+  #   Pops the receiver +receiver+ off the top of the stack, and sends it the
+  #   method identified by +method+. The single parameter +arg+ to be passed
+  #   to the method is left on the top of the stack, and is converted to a
+  #   local when the method is activated.
   #   
   #   When the method returns, the return value will be on top of the stack.
   # [Notes]
@@ -1975,9 +1974,9 @@ CODE
   #   Optimised send for performing a method taking two parameters
   #   (deprecated)
   # [Format]
-  #   \meta_send_stack_2 mthd
+  #   \meta_send_stack_2 method
   # [Stack Before]
-  #   * recv
+  #   * receiver
   #   * arg1
   #   * arg2
   #   * ...
@@ -1985,10 +1984,10 @@ CODE
   #   * retval
   #   * ...
   # [Description]
-  #   Pops the receiver _recv_ off the top of the stack, and sends it the
-  #   method identified by _mthd_. The two parameters _arg1_ and _arg2_ to be
-  #   used by the method are left on the top of the stack to be converted to
-  #   locals as the method is activated.
+  #   Pops the receiver +receiver+ off the top of the stack, and sends it the
+  #   method identified by +method+. The two parameters +arg1+ and +arg2+ to
+  #   be used by the method are left on the top of the stack to be converted
+  #   to locals as the method is activated.
   #   
   #   When the method returns, the return value will be on top of the stack.
   # [Notes]
@@ -2012,9 +2011,9 @@ CODE
   #   Optimised send for performing a method taking three parameters
   #   (deprecated)
   # [Format]
-  #   \meta_send_stack_3 mthd
+  #   \meta_send_stack_3 method
   # [Stack Before]
-  #   * recv
+  #   * receiver
   #   * arg1
   #   * arg2
   #   * arg3
@@ -2023,8 +2022,8 @@ CODE
   #   * retval
   #   * ...
   # [Description]
-  #   Pops the receiver _recv_ off the top of the stack, and sends it the
-  #   method identified by _mthd_. The three parameters _arg1_ through _arg3_
+  #   Pops the receiver +receiver+ off the top of the stack, and sends it the
+  #   method identified by +method+. The three parameters +arg1+ through +arg3+
   #   to be used by the method are left on the top of the stack to be
   #   converted to locals as the method is activated.
   #   
@@ -2050,9 +2049,9 @@ CODE
   #   Optimised send for performing a method taking four parameters
   #   (deprecated)
   # [Format]
-  #   \meta_send_stack_4 mthd
+  #   \meta_send_stack_4 method
   # [Stack Before]
-  #   * recv
+  #   * receiver
   #   * arg1
   #   * arg2
   #   * arg3
@@ -2062,8 +2061,8 @@ CODE
   #   * retval
   #   * ...
   # [Description]
-  #   Pops the receiver _recv_ off the top of the stack, and sends it the
-  #   method identified by _mthd_. The four parameters _arg1_ through _arg4_
+  #   Pops the receiver +receiver+ off the top of the stack, and sends it the
+  #   method identified by +method+. The four parameters +arg1+ through +arg4+
   #   to be used by the method are left on the top of the stack to be
   #   converted to locals as the method is activated.
   #   
@@ -2088,20 +2087,20 @@ CODE
   # [Operation]
   #   Sends a message with arguments on the stack
   # [Format]
-  #   \send_stack mthd argc
+  #   \send_stack method argc
   # [Stack Before]
-  #   * recv
+  #   * receiver
   #   * arg1
   #   * arg2
   #   * ...
-  #   * argn
+  #   * argN
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
   #   Pops the receiver and the block to be passed off the stack, and sends
-  #   the message _mthd_ with _argc_ arguments. The arguments to the method
+  #   the message +method+ with +argc+ arguments. The arguments to the method
   #   remain on the stack, ready to be converted to locals when the method is
   #   activated.
   #   
@@ -2110,8 +2109,8 @@ CODE
   #   * send_stack_with_block
   # [Notes]
   #   This opcode does not pass a block to the receiver; see
-  #   "send_stack_with_block":send_stack_with_block.html for the equivalent op
-  #   code used when a block is to be passed.
+  #   send_stack_with_block for the equivalent op code used when a block is to
+  #   be passed.
 
   def send_stack
     <<-CODE
@@ -2127,31 +2126,30 @@ CODE
   # [Operation]
   #   Sends a message with arguments and a block on the stack
   # [Format]
-  #   \send_stack_with_block mthd argc
+  #   \send_stack_with_block method argc
   # [Stack Before]
-  #   * recv
-  #   * blck
+  #   * receiver
+  #   * block
   #   * arg1
   #   * arg2
   #   * ...
-  #   * argn
+  #   * argN
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
-  #   Pops the receiver _recv_ and a block off the stack, and sends the
-  #   message _mthd_ with _argc_ arguments. The arguments to the method remain
-  #   on the stack, ready to be converted to locals as part of method
+  #   Pops the receiver +receiver+ and a block off the stack, and sends the
+  #   message +method+ with +argc+ arguments. The arguments to the method
+  #   remain on the stack, ready to be converted to locals as part of method
   #   activation.
   #   
   #   When the method returns, the return value will be on top of the stack.
   # [See Also]
   #   * send_stack
   # [Notes]
-  #   This opcode passes a block to the receiver; see
-  #   "send_stack":send_stack.html for the equivalent op code used when no
-  #   block is to be passed.
+  #   This opcode passes a block to the receiver; see send_stack for the
+  #   equivalent op code used when no block is to be passed.
 
   def send_stack_with_block
     <<-CODE
@@ -2167,21 +2165,21 @@ CODE
   # [Operation]
   #   Sends a message with args to a receiver
   # [Format]
-  #   \send_with_arg_register mthd
+  #   \send_with_arg_register method
   # [Stack Before]
-  #   * recv
-  #   * blck
+  #   * receiver
+  #   * block
   #   * arg1
   #   * arg2
   #   * ...
-  #   * argn
+  #   * argN
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
-  #   Pops the receiver _recv_ and a block _blck_ off the top of the stack,
-  #   and sends the message _mthd_. The number of arguments taken by the
+  #   Pops the receiver +receiver+ and a block +block+ off the top of the stack,
+  #   and sends the message +method+. The number of arguments taken by the
   #   method must have previously been set in the args register, and the arg
   #   values themselves remain on the top of the stack, to be converted to
   #   locals as part of method activation.
@@ -2192,9 +2190,9 @@ CODE
   #   * set_args
   #   * cast_array_for_args
   # [Notes]
-  #   The number of arguments to be passed to the method in _args_ must have
-  #   been set previously via a call to either "set_args":set_args.html or
-  #   "cast_array_for_args":cast_array_for_args.html.
+  #   The number of arguments to be passed to the method in +args+ must have
+  #   been set previously via a call to either set_args or
+  #   cast_array_for_args.
 
   def send_with_arg_register
     <<-CODE
@@ -2217,19 +2215,19 @@ CODE
   # [Operation]
   #   Call a method on the superclass with a block
   # [Format]
-  #   \send_super_stack_with_block mthd argc
+  #   \send_super_stack_with_block method argc
   # [Stack Before]
-  #   * blck
+  #   * block
   #   * arg1
   #   * arg2
   #   * ...
-  #   * argn
+  #   * argN
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
-  #   Pops a block off the stack, and sends the message _mthd_ with _argc_
+  #   Pops a block off the stack, and sends the message +method+ with +argc+
   #   arguments. The arguments to the method remain on the stack, ready to be
   #   converted into locals when the method is activated.
   #   
@@ -2251,19 +2249,19 @@ CODE
   # [Operation]
   #   Call a method on the superclass, passing args plus a block
   # [Format]
-  #   \send_super_with_arg_register mthd
+  #   \send_super_with_arg_register method
   # [Stack Before]
-  #   * blck
+  #   * block
   #   * arg1
   #   * arg2
   #   * ...
-  #   * argn
+  #   * argN
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
-  #   Pops a block off the stack, and sends the message _mthd_ to the current
+  #   Pops a block off the stack, and sends the message +method+ to the current
   #   objects  superclass. The arguments to the method areleft on the top of
   #   the stack, ready to be converted into locals when the method is
   #   activated.
@@ -2274,8 +2272,8 @@ CODE
   #   * cast_array_for_args
   # [Notes]
   #   The args register must have previously been set to the count of the
-  #   number of arguments in _args_ via either "set_args":set_args.html or
-  #   "cast_array_for_args":cast_array_for_args.html.
+  #   number of arguments in +args+ via either set_args or
+  #   cast_array_for_args.
 
   def send_super_with_arg_register
     <<-CODE
@@ -2301,33 +2299,33 @@ CODE
   # [Format]
   #   \send_off_stack
   # [Stack Before]
-  #   * mthd
-  #   * blck
-  #   * recv
+  #   * method
+  #   * block
+  #   * receiver
   #   * arg1
   #   * arg2
   #   * ...
-  #   * argn
+  #   * argN
   #   * ...
   # [Stack After]
   #   * retval
   #   * ...
   # [Description]
-  #   Pops the name of the method _mthd_ to call off the stack, and if
-  #   necessary, converts it to a symbol. Then pops any block _blck_ and the
-  #   receiver _recv_ off the stack. Any arguments required by the method must
-  #   have been placed on the stack previously, and the number of arguments
-  #   set in the args register. The arguments will be popped from the stack
-  #   and converted to locals when the method is activated.
+  #   Pops the name of the method +method+ to call off the stack, and if
+  #   necessary, converts it to a symbol. Then pops +block+ and the receiver
+  #   +receiver+ off the stack. Any arguments required by the method must have
+  #   been placed on the stack previously, and the number of arguments set in
+  #   the args register. The arguments will be popped from the stack and
+  #   converted to locals when the method is activated.
   #   
   #   When the method returns, the return value will be on top of the stack.
   # [See Also]
   #   * set_args
   #   * cast_array_for_args
   # [Notes]
-  #   The number of arguments to be passed to the method in _args_ must have
-  #   been set previously via a call to either "set_args":set_args.html or
-  #   "cast_array_for_args":cast_array_for_args.html.
+  #   The number of arguments to be passed to the method in +args+ must have
+  #   been set previously via a call to either set_args or
+  #   cast_array_for_args.
 
   def send_off_stack
     <<-CODE
@@ -2353,17 +2351,17 @@ CODE
   end
 
   # [Operation]
-  #   Locates a method by searching the class hierarchy from a specified
+  #   Locates a method by searching the \class hierarchy from a specified
   #   object
   # [Format]
   #   \locate_method
   # [Stack Before]
-  #   * incprivate
-  #   * mthdname
+  #   * include_private
+  #   * method_name
   #   * self
   #   * ...
   # [Stack After]
-  #   * mthd
+  #   * method
   #   * ...
   # [Description]
   #   Pops a flag indicating whether or not to search in private methods, the
@@ -2392,10 +2390,10 @@ CODE
   #   * value1 + value2
   #   * ...
   # [Description]
-  #   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-  #   of (_value1_ - _value2_). If _value1_ and _value2_ are both fixnums, the
-  #   subtraction is done directly via the fixnum_sub primitive; otherwise,
-  #   the - method is called on _value1_, passing _value2_ as the argument.
+  #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+  #   of (+value1+ + +value2+). If +value1+ and +value2+ are both fixnums, the
+  #   addition is done directly via the fixnum_sub primitive; otherwise, the +
+  #   method is called on +value1+, passing +value2+ as the argument.
 
   def meta_send_op_plus
     <<-CODE
@@ -2424,10 +2422,10 @@ CODE
   #   * value1 - value2
   #   * ...
   # [Description]
-  #   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-  #   of (_value1_ - _value2_). If _value1_ and _value2_ are both fixnums, the
+  #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+  #   of (+value1+ - +value2+). If +value1+ and +value2+ are both fixnums, the
   #   subtraction is done directly via the fixnum_sub primitive; otherwise,
-  #   the - method is called on _value1_, passing _value2_ as the argument.
+  #   the - method is called on +value1+, passing +value2+ as the argument.
 
   def meta_send_op_minus
     <<-CODE
@@ -2456,10 +2454,10 @@ CODE
   #   * true | false
   #   * ...
   # [Description]
-  #   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-  #   of (_value1_ == _value2_). If _value1_ and _value2_ are both fixnums or
+  #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+  #   of (+value1+ == +value2+). If +value1+ and +value2+ are both fixnums or
   #   both symbols, the comparison is done directly; otherwise, the == method
-  #   is  called on _value1_, passing _value2_ as the argument.
+  #   is called on +value1+, passing +value2+ as the argument.
 
   def meta_send_op_equal
     <<-CODE
@@ -2489,10 +2487,10 @@ CODE
   #   * true | false
   #   * ...
   # [Description]
-  #   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-  #   of !(_value1_ == _value2_). If _value1_ and _value2_ are both fixnums or
+  #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+  #   of !(+value1+ == +value2+). If +value1+ and +value2+ are both fixnums or
   #   both symbols, the comparison is done directly; otherwise, the != method
-  #   is  called on _value1_, passing _value2_ as the argument.
+  #   is called on +value1+, passing +value2+ as the argument.
   # [Notes]
   #   Is this correct? Shouldn't the non-optimised case call ==, and negate
   #   the result?
@@ -2514,7 +2512,7 @@ CODE
   end
 
   # [Operation]
-  #   Implementation of === (triple equal) optimised for fixnums and symbols
+  #   Implementation of === (triple \equal) optimised for fixnums and symbols
   # [Format]
   #   \meta_send_op_tequal
   # [Stack Before]
@@ -2525,10 +2523,10 @@ CODE
   #   * true | false
   #   * ...
   # [Description]
-  #   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-  #   of (_value1_ === _value2_). If _value1_ and _value2_ are both fixnums or
+  #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+  #   of (+value1+ === +value2+). If +value1+ and +value2+ are both fixnums or
   #   both symbols, the comparison is done directly; otherwise, the === method
-  #   is called on _value1_, passing _value2_ as the argument.
+  #   is called on +value1+, passing +value2+ as the argument.
   # [Notes]
   #   Exactly like equal, except calls === if it can't handle it directly.
 
@@ -2560,10 +2558,10 @@ CODE
   #   * true | false
   #   * ...
   # [Description]
-  #   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-  #   of (_value1_ < _value2_). If _value1_ and _value2_ are both fixnums, the
+  #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+  #   of (+value1+ < +value2+). If +value1+ and +value2+ are both fixnums, the
   #   comparison is done directly; otherwise, the < method is called on
-  #   _value1_, passing _value2_ as the argument.
+  #   +value1+, passing +value2+ as the argument.
 
   def meta_send_op_lt
     <<-CODE
@@ -2594,10 +2592,10 @@ CODE
   #   * true | false
   #   * ...
   # [Description]
-  #   Pops _value1_ and _value2_ off the stack, and pushes the logical result
-  #   of (_value1_ > _value2_). If _value1_ and _value2_ are both fixnums, the
+  #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
+  #   of (+value1+ > +value2+). If +value1+ and +value2+ are both fixnums, the
   #   comparison is done directly; otherwise, the > method is called on
-  #   _value1_, passing _value2_ as the argument.
+  #   +value1+, passing +value2+ as the argument.
 
   def meta_send_op_gt
     <<-CODE
@@ -2652,10 +2650,10 @@ perform_no_ss_send:
   #   * ret
   #   * caller_return
   # [Notes]
-  #   Unlike "ret":ret.html, this return opcode does not consider non-local
-  #   returns. It simply returns to the calling block or method context. Thus,
-  #   it is used when, for example, breaking from a loop, or upon the normal
-  #   completion of a block.
+  #   Unlike ret, this return opcode does not consider non-local returns. It
+  #   simply returns to the calling block or method context. Thus, it is used
+  #   when, for example, breaking from a loop, or upon the normal completion
+  #   of a block.
 
   def soft_return
     <<-CODE
@@ -2692,13 +2690,13 @@ perform_no_ss_send:
   # [Format]
   #   \raise_exc
   # [Stack Before]
-  #   * exc
+  #   * exception
   #   * ...
   # [Stack After]
   #   * ...
   # [Description]
-  #   Pops an exception instance _exc_ off the stack, and uses it to raise an
-  #   exception in the machine.
+  #   Pops an exception instance +exception+ off the stack, and uses it to
+  #   raise an exception in the machine.
 
   def raise_exc
     <<-CODE
@@ -2747,8 +2745,8 @@ perform_no_ss_send:
   #   * soft_return
   #   * raise_exc
   # [Notes]
-  #   _sret_ is an optimised version of the more general "ret":ret. It works
-  #   only with method (MethodContext) returns, but as a result, can skip the
+  #   \sret is an optimised version of the more general ret. It works only
+  #   with method (MethodContext) returns, but as a result, can skip the
   #   extra work to figure out how to long return from a block.
 
   def sret
@@ -2838,7 +2836,7 @@ perform_no_ss_send:
   #   
   #   The number of arguments to place into the rest array is determined by
   #   how many actual args have been passed to the method, less the number of
-  #   arguments _argc_ defined by the method. If this is less than or equal to
+  #   arguments +argc+ defined by the method. If this is less than or \equal to
   #   0, an empty array is pushed onto the stack. If the number is greater
   #   than 0, arguments are popped from the stack so that the first rest arg
   #   is at the start of the array, and the last rest arg is at the end.
@@ -2890,7 +2888,7 @@ perform_no_ss_send:
   #   
   #   The number of arguments to place into the rest array is determined by
   #   how many actual args have been passed to the method, less the number of
-  #   arguments _argc_ defined by the method. If this is less than or equal to
+  #   arguments +argc+ defined by the method. If this is less than or \equal to
   #   0, an empty array is pushed onto the stack. If the number is greater
   #   than 0, arguments are copied from before the frame pointer into the
   #   array, so that the first rest arg is at the start of the array, and the
@@ -2929,8 +2927,8 @@ perform_no_ss_send:
   # [Stack After]
   #   * ...
   # [Description]
-  #   If the number of arguments is less than _min_, or greater than _max_, an
-  #   _ArgumentError_ is raised.
+  #   If the number of arguments is less than +min+, or greater than +max+, an
+  #   ArgumentError is raised.
 
   def check_argcount
     <<-CODE
@@ -2949,7 +2947,7 @@ perform_no_ss_send:
   # [Operation]
   #   Test to determine whether an argument was passed
   # [Format]
-  #   \passed_arg idx
+  #   \passed_arg index
   # [Stack Before]
   #   * ...
   # [Stack After]
@@ -2957,7 +2955,7 @@ perform_no_ss_send:
   #   * ...
   # [Description]
   #   Checks if the number of arguments passed to a method is greater than the
-  #   specified argument index _idx_ (0-based), and pushes the result of the
+  #   specified argument index +index+ (0-based), and pushes the result of the
   #   test onto the stack.
 
   def passed_arg
@@ -2974,7 +2972,7 @@ perform_no_ss_send:
   # [Operation]
   #   Test to determine whether a block argument was passed
   # [Format]
-  #   \passed_blockarg idx
+  #   \passed_blockarg index
   # [Stack Before]
   #   * ...
   # [Stack After]
@@ -3060,9 +3058,8 @@ perform_no_ss_send:
   #   * send_with_arg_register
   #   * send_super_with_arg_register
   # [Notes]
-  #   Used prior to "send_with_arg_register":send_with_arg_register.html and
-  #   "send_super_with_arg_register":send_super_with_arg_register.html to set
-  #   the number of arguments being passed to a method.
+  #   Used prior to send_with_arg_register and send_super_with_arg_register to
+  #   set the number of arguments being passed to a method.
 
   def set_args
     <<-CODE
@@ -3081,7 +3078,7 @@ perform_no_ss_send:
   #   * argc
   #   * ...
   # [Description]
-  #   Pushes the number of arguments _argc_ actually passed to a method onto
+  #   Pushes the number of arguments +argc+ actually passed to a method onto
   #   the stack.
   # [See Also]
   #   * set_args
@@ -3095,14 +3092,14 @@ perform_no_ss_send:
   # [Operation]
   #   Sets call flags prior to a send operation
   # [Format]
-  #   \set_call_flags flgs
+  #   \set_call_flags flags
   # [Stack Before]
   #   * ...
   # [Stack After]
   #   * ...
   # [Description]
   #   The call flags on the current execution context are set to the opcode
-  #   argument _flgs_.
+  #   argument +flags+.
   # [Notes]
   #   Currently, the only call flag is 1, which instructs the machine to
   #   include private methods when looking for a method that responds to a
@@ -3118,28 +3115,28 @@ perform_no_ss_send:
   # [Operation]
   #   Sets the cache index for a method from a call site
   # [Format]
-  #   \set_cache_index idx
+  #   \set_cache_index index
   # [Stack Before]
   #   * ...
   # [Stack After]
   #   * ...
   # [Description]
   #   Sets the cache index to be used in the polymorphic inline cache (PIC)
-  #   for the cache entry for a class, module, or method that is the subject
+  #   for the cache entry for a \class, module, or method that is the subject
   #   of one of the following op codes:
   #   
-  # 
-  #   
-  #       _open_class_, _find_const_, _add_method_, _attach_method_,
-  #   _send_method_,
-  #   
-  # 
-  #   
-  #   _open_class_under_, _open_module_, or _open_module_under_.
+  #   * open_class
+  #   * find_const
+  #   * add_method
+  #   * attach_method
+  #   * send_method
+  #   * open_class_under
+  #   * open_module
+  #   * open_module_under
   # [Notes]
   #   When the assembler encounters one of the above opcodes, it assigns the
   #   next index for a cache entry in the PIC for the opcode, and inserts a
-  #   *set_cache_index* operation into the byte code just before the op code
+  #   set_cache_index operation into the byte code just before the op code
   #   in question. The call site then retains a cache of the receiving object
   #   / method when the initial constant lookup or method dispatch occurs, so
   #   subsequent execution of the same byte code can perform a fast check to
@@ -3158,22 +3155,23 @@ perform_no_ss_send:
   # [Operation]
   #   Sets call flags and method cache index prior to a send operation
   # [Format]
-  #   \set_call_info flgs idx
+  #   \set_call_info flags index
   # [Stack Before]
   #   * ...
   # [Stack After]
   #   * ...
   # [Description]
   #   The call flags on the current execution context are set to the opcode
-  #   argument _flgs_, and the method cache index is set to the argument idx.
+  #   argument +flags+, and the method cache index is set to the argument
+  #   +index+.
   # [Notes]
   #   Currently, the only call flag is 1, which instructs the machine to
   #   include private methods when looking for a method that responds to a
   #   message.
   #   
-  #   This opcode is a combination of "set_call_flags":set_call_flags.html and
-  #   "set_cache_index":set_cache_index.html. It is used in place of the other
-  #   two opcodes if method caching is enabled in the compiler.
+  #   This opcode is a combination of set_call_flags and set_cache_index. It
+  #   is used in place of the other two opcodes if method caching is enabled
+  #   in the compiler.
 
   def set_call_info
     <<-CODE
@@ -3189,28 +3187,28 @@ perform_no_ss_send:
   # [Format]
   #   \create_block 255
   # [Stack Before]
-  #   * retip
-  #   * blockip
-  #   * blockargs
+  #   * return_ip
+  #   * block_ip
+  #   * block_args
   #   * ...
   # [Stack After]
-  #   * blockctxt
+  #   * block_context
   #   * ...
   # [Description]
   #   Pops instruction pointer addresses for where the block should return to
-  #   (_retip_), and the address where the block instructions start
-  #   (_blockip_) off of the stack. Then pops a tuple containing any block
-  #   arguments off the stack. The created block context _blockctxt_ is then
-  #   pushed back onto the stack.
+  #   (+return_ip+), and the address where the block instructions start
+  #   (+block_ip+) off of the stack. Then pops a tuple containing any block
+  #   arguments off the stack. The created block context +block_context+ is
+  #   then pushed back onto the stack.
   # [Notes]
   #   The opcode arg is hard-coded at 255 for the current version of
-  #   create_block. This indicates to the VM that the block args are on the
+  #   \create_block. This indicates to the VM that the block args are on the
   #   stack in a single (potentially empty) tuple; previously, the number of
   #   block args would be specified via this arg, but this is no longer
   #   supported. An arg value of anything other than 255 will raise an
   #   assertion.
   #   
-  #   create_block is deprecated under compiler2 in favour of create_block2.
+  #   \create_block is deprecated under compiler2 in favour of create_block2.
 
   def create_block
     <<-CODE
@@ -3249,22 +3247,21 @@ perform_no_ss_send:
   # [Format]
   #   \create_block2
   # [Stack Before]
-  #   * cm
+  #   * compiled_method
   #   * ...
   # [Stack After]
-  #   * blockenv
+  #   * block_env
   #   * ...
   # [Description]
-  #   Pops a compiled method _cm_ off of the stack, and converts it into a
-  #   block environment _blockenv_, which is then pushed back onto the stack.
+  #   Pops +compiled_method+ off of the stack, and converts it into a
+  #   block environment +block_env+, which is then pushed back onto the stack.
   # [See Also]
   #   * create_block
   # [Notes]
-  #   This opcode replaces "create_block":create_block.html, which is used
-  #   under compiler1, but deprecated under compiler2. Unlike create_block
-  #   which uses the same instruction sequence as the enclosing method
-  #   context, create_block2 takes its own instruction sequence in the form of
-  #   a compiled method.
+  #   This opcode replaces create_block, which is used under compiler1, but
+  #   deprecated under compiler2. Unlike create_block which uses the same
+  #   instruction sequence as the enclosing method context, \create_block2
+  #   takes its own instruction sequence in the form of a compiled method.
 
   def create_block2
     <<-CODE
@@ -3290,8 +3287,8 @@ perform_no_ss_send:
   end
 
   # [Operation]
-  #   Evaluate if _object_ is an instance of _class_ or of an ancestor of
-  #   _class_.
+  #   Evaluate if +object+ is an instance of +\class+ or of an ancestor of
+  #   +\class+.
   # [Format]
   #   \kind_of
   # [Stack Before]
@@ -3302,9 +3299,9 @@ perform_no_ss_send:
   #   * result
   #   * ...
   # [Description]
-  #   Evaluate if the object is created by _class_, its parent, or a further
-  #   ancestor. This differs from _instance_of_ in that the class heirarchy
-  #   will be evaluated rather than just the class object given.
+  #   Evaluate if the object is created by +\class+, its parent, or a further
+  #   ancestor. This differs from +instance_of+ in that the \class heirarchy
+  #   will be evaluated rather than just the \class object given.
   # [See Also]
   #   * instance_of
 
@@ -3321,7 +3318,7 @@ perform_no_ss_send:
   end
 
   # [Operation]
-  #   Evaluate if _object_ is an instance of _class_
+  #   Evaluate if +object+ is an instance of +class+
   # [Format]
   #   \instance_of
   # [Stack Before]
@@ -3332,10 +3329,10 @@ perform_no_ss_send:
   #   * result
   #   * ...
   # [Description]
-  #   If the object is an instance of _class_ return the special value _true_,
-  #   otherwise return _false_. This check is different than _kind_of_ in that
+  #   If the object is an instance of +\class+ return the special value +true+,
+  #   otherwise return +false+. This check is different than +kind_of+ in that
   #   it does not evaluate superclass relationships. Instance-specific
-  #   subtyping via metaclasses are ignored in computing the parent class.
+  #   subtyping via metaclasses are ignored in computing the parent \class.
   # [See Also]
   #   * kind_of
 
@@ -3360,19 +3357,19 @@ perform_no_ss_send:
   # [Stack After]
   #   * ...
   # [Description]
-  #   Pauses virtual machine execution at the yield_debugger instruction, and
+  #   Pauses virtual machine execution at the \yield_debugger instruction, and
   #   yields control to the debugger on the debug channel. If no debugger is
   #   registered, an error is raised.
   # [Notes]
-  #   The yield_debugger instruction is VM plumbing that exists to support
-  #   "full- speed" debugging. As such, it is not output by the compiler, but
+  #   The \yield_debugger instruction is VM plumbing that exists to support
+  #   "full-speed" debugging. As such, it is not output by the compiler, but
   #   rather is used by the debugger to replace an existing instruction at a
-  #   breakpoint. Prior to encountering a yield_debugger instruction, the VM
+  #   breakpoint. Prior to encountering a \yield_debugger instruction, the VM
   #   will execute normally, i.e. at full speed, and not be slowed
   #   significantly by the fact that a debugger is attached.
   #   
   #   When the debugger is yielded to by this instruction, it can examine the
-  #   execution context, stack, etc, or replace the yield_debugger instruction
+  #   execution context, stack, etc, or replace the \yield_debugger instruction
   #   with the original instruction at that point, and then step through the
   #   code.
 
@@ -3386,7 +3383,7 @@ perform_no_ss_send:
   #   Push an object from the caller's stack onto the current context's stack
   #   (deprecated)
   # [Format]
-  #   \from_fp idx
+  #   \from_fp index
   # [Stack Before]
   #   * ...
   # [Stack After]
@@ -3394,16 +3391,16 @@ perform_no_ss_send:
   #   * ...
   # [Description]
   #   Copies a method argument that was on the stack before the method call
-  #   and pushes it onto the stack in the current context. The argument _idx_
-  #   counts backwards from the frame pointer, with 0 referencing the first
-  #   argument to the mehod, 1 the  second argument, etc.
+  #   and pushes it onto the stack in the current context. The argument
+  #   +index+ counts backwards from the frame pointer, with 0 referencing the
+  #   first argument to the mehod, 1 the  second argument, etc.
   #   
   #   This opcode is now deprecated, and is not currently used under
   #   compiler2.
   # [See Also]
   #   * get_local_fp
   # [Notes]
-  #   The opcode *from_fp* exists as an optimisation in cases where arguments
+  #   The opcode \from_fp exists as an optimisation in cases where arguments
   #   to a method are not modified. Rather than copying the argument off the
   #   stack and into the locals tuple, it can be copied directly from a frame
   #   pointer offset as needed.
@@ -3433,8 +3430,8 @@ perform_no_ss_send:
   #   * nil
   #   * ...
   # [Description]
-  #   Allocate _count_ new slots for local variables on the stack. All
-  #   allocated slots will be initialized to the special value @nil@.
+  #   Allocate +count+ new slots for local variables on the stack. All
+  #   allocated slots will be initialized to the +nil+.
   #   
   #   This opcode is now deprecated, and is not currently used under
   #   compiler2.
@@ -3464,16 +3461,16 @@ perform_no_ss_send:
   #   * value1
   #   * value2
   #   * ...
-  #   * valuen
+  #   * valueN
   #   * ...
   # [Stack After]
   #   * ...
   # [Description]
-  #   Removes the number of items specified in _count_ from the stack.
+  #   Removes the number of items specified in +count+ from the stack.
   # [Notes]
   #   This opcode simply decrements the stack pointer; hence the
-  #   "allocate_stack":allocate_stack opcode initializes newly allocated slots
-  #   to _nil_, to ensure old values are cleared.
+  #   allocate_stack opcode initializes newly allocated slots to +nil+, to
+  #   ensure old values are cleared.
 
   def deallocate_stack
     <<-CODE
@@ -3485,7 +3482,7 @@ perform_no_ss_send:
   # [Operation]
   #   Updates the value of a stack allocated local variable (deprecated)
   # [Format]
-  #   \set_local_fp idx
+  #   \set_local_fp index
   # [Stack Before]
   #   * value
   #   * ...
@@ -3493,9 +3490,9 @@ perform_no_ss_send:
   #   * value
   #   * ...
   # [Description]
-  #   Uses the _value_ on the top of the stack to update the value of the
-  #   local variable allocated on the stack, identified by _idx_. The value is
-  #   left on the stack, to represent the return value from the expression.
+  #   Uses the +value+ on the top of the stack to update the value of the
+  #   local variable allocated on the stack, identified by +index+. The value
+  #   is left on the stack, to represent the return value from the expression.
   #   
   #   This opcode is now deprecated, and is not currently used under
   #   compiler2.
@@ -3516,7 +3513,7 @@ perform_no_ss_send:
   # [Operation]
   #   Get the value of a local and push it onto the stack (deprecated)
   # [Format]
-  #   \get_local_fp idx
+  #   \get_local_fp index
   # [Stack Before]
   #   * ...
   # [Stack After]
@@ -3608,7 +3605,7 @@ perform_no_ss_send:
   end
 
   # [Operation]
-  #   Get the class for the specified object
+  #   Get the \class for the specified object
   # [Format]
   #   \class
   # [Stack Before]
@@ -3619,7 +3616,7 @@ perform_no_ss_send:
   #   * ...
   # [Description]
   #   Consume the object reference on the stack, and push a reference to the
-  #   parent class in its place.
+  #   parent \class in its place.
 
   def class
     <<-CODE
@@ -3640,14 +3637,14 @@ perform_no_ss_send:
   #   * result
   #   * ...
   # [Description]
-  #   Performs a comparison of two objects, resulting in either _true_ or
-  #   _false_ being pushed onto the stack as a result. The comparison is done
+  #   Performs a comparison of two objects, resulting in either +true+ or
+  #   +false+ being pushed onto the stack as a result. The comparison is done
   #   without any method calls.
   #   
-  #   For two Fixnums, two Symbols, or two literals (_true_, _false_, _nil_),
-  #   return _true_ if the values are identical.
+  #   For two Fixnums, two Symbols, or two literals (+true+, +false+, +nil+),
+  #   return +true+ if the values are identical.
   #   
-  #   For two object references (including Bignum), return _true_ if value1
+  #   For two object references (including Bignum), return +true+ if value1
   #   and value2 point to the same instance.
 
   def equal
@@ -3661,7 +3658,7 @@ perform_no_ss_send:
   # [Operation]
   #   Checks if the specified method serial number matches an expected value
   # [Format]
-  #   \check_serial mthd serial
+  #   \check_serial method serial
   # [Stack Before]
   #   * obj
   #   * ...
@@ -3670,9 +3667,9 @@ perform_no_ss_send:
   #   * ...
   # [Description]
   #   Pops an object off the stack, and determines whether the serial number
-  #   of the method identified by the literal _mthd_ is the same as the
-  #   expected value _serial_. The result is pushed back on the stack as the
-  #   value *true* or *false*.
+  #   of the method identified by the literal +method+ is the same as the
+  #   expected value +serial+. The result is pushed back on the stack as the
+  #   value +true+ or +false+.
   # [Notes]
   #   This opcode is typically used to determine at runtime whether an
   #   optimisation can be performed. At compile time, two code paths are
