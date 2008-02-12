@@ -379,7 +379,7 @@ class Module
   # version while core loads (a violation of the core/bootstrap boundry)
   def include_cv(*modules)
     modules.reverse_each do |mod|
-      raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.class == Module
+      raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.kind_of?(Module) and not mod.kind_of?(Class)
       next if ancestors.include?(mod)
       mod.send(:append_features, self)
       mod.send(:included, self)
@@ -394,7 +394,7 @@ class Module
   end
 
   def include?(mod)
-    raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.class == Module
+    raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.kind_of?(Module) and not mod.kind_of?(Class)
     ancestors.include? mod
   end
 
@@ -727,7 +727,7 @@ class Module
       current = current.direct_superclass
     end
 
-    if self.class == Module
+    if self.kind_of?(Module) and not self.kind_of?(Class)
       return constant if constant = Object.constants_table[name]
     end
 
