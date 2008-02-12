@@ -1,10 +1,10 @@
 body, table {
-	font-family: sans-serif;
-	font-size: 0.9em;
+  font-family: sans-serif;
+  font-size: 0.9em;
 }
 
 :link, :visited {
-	color: blue;
+  color: blue;
 }
 
 dt {
@@ -12,21 +12,21 @@ dt {
 }
 
 ul#chapters {
-	padding-left: 0px;
-	font-size: 1em;
+  padding-left: 0px;
+  font-size: 1em;
 }
 
 ul.toc_subsection {
-	padding-left: 10px;
+  padding-left: 10px;
 }
 
 ul#chapters li, ul.toc_subsection li {
-	list-style-type: none;
+  list-style-type: none;
 }
 
 .todo {
-	color: red;
-	font-style: italic;
+  color: red;
+  font-style: italic;
 }
 
 .stack {
@@ -34,19 +34,20 @@ ul#chapters li, ul.toc_subsection li {
 }
 
 .stack td {
-	width: 60px;
-	border-width: 1px;
-	border-style: solid;
-	text-align: center;
+  width: 10em;
+  border-width: 1px;
+  border-style: solid;
+  text-align: center;
 }
 
 pre {
-	color: darkblue;
-	border-width: 1px;
-	border-style: solid;
-	border-color: black;
-	background-color: #ffffcc;
-	padding: 5px;
+  color: darkblue;
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
+  background-color: #ffffcc;
+  padding: 5px;
+  overflow: auto;
 }
 
 ul#op_codes li i :link { color: red; }
