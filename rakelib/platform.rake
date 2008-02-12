@@ -535,6 +535,9 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
       next if const.converted_value.nil?
       f.puts "rbx.platform.signal.#{name} = #{const.converted_value}"
     end
+    
+    f.puts TypesGenerator.generate
+    
   end
 end
 

@@ -109,7 +109,7 @@ module FFI
     8 => :long_long,
   }
 
-  TypeSizes[:long] = 8 if Rubinius::L64
+  TypeSizes[8] = :long if Rubinius::L64
 
   def self.size_to_type(size)
     if sz = TypeSizes[size]

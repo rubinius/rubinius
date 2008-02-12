@@ -10,6 +10,7 @@ require 'tsort'
 require 'rakelib/rubinius'
 require 'rakelib/struct_generator'
 require 'rakelib/const_generator'
+require 'rakelib/types_generator'
 
 task :default => :build
 
