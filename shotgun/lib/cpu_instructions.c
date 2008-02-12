@@ -1095,16 +1095,19 @@ void cpu_initialize_sendsite(STATE, struct send_site *ss) {
 #define CHECK_CLASS(msg) (_real_class(msg->state, msg->recv) != SENDSITE(msg->send_site)->data1)
 
 static void _cpu_ss_mono_prim(struct message *msg) {
-  const struct send_site *ss = SENDSITE(msg->send_site);
+  struct send_site *ss = SENDSITE(msg->send_site);
   prim_func func;
   int _orig_sp;
   OBJECT *_orig_sp_ptr;
   cpu c = msg->c;
 
   if(CHECK_CLASS(msg)) {
+    ss->misses++;
     _cpu_ss_basic(msg);
     return;
   }
+  
+  ss->hits++;
 
   _orig_sp_ptr = c->sp_ptr;
   _orig_sp = c->sp;
@@ -1141,16 +1144,19 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func) {
 
 /* Send Site specialization 2: Run an ffi function directly. */
 static void _cpu_ss_mono_ffi(struct message *msg) {
-  const struct send_site *ss = SENDSITE(msg->send_site);
+  struct send_site *ss = SENDSITE(msg->send_site);
   rni_context *ctx;
   nf_stub_ffi func;
 
   func = (nf_stub_ffi)ss->c_data;
 
   if(CHECK_CLASS(msg)) {
+    ss->misses++;
     _cpu_ss_basic(msg);
     return;
   }
+  
+  ss->hits++;
 
   ctx = subtend_retrieve_context();
   ctx->state = msg->state;
@@ -1189,12 +1195,15 @@ void cpu_patch_ffi(STATE, const struct message *msg) {
 
 /* Send Site specialzitation 3: simple monomorphic last implemenation cache. */
 static void _cpu_ss_mono(struct message *msg) {
-  const struct send_site *ss = SENDSITE(msg->send_site);
+  struct send_site *ss = SENDSITE(msg->send_site);
 
   if(CHECK_CLASS(msg)) {
+    ss->misses++;
     _cpu_ss_basic(msg);
     return;
   }
+  
+  ss->hits++;
 
   msg->method = ss->data2;
   msg->module = ss->data3;
@@ -1218,13 +1227,16 @@ static inline void cpu_patch_mono(struct message *msg) {
 }
 
 static void _cpu_ss_missing(struct message *msg) {
-  const struct send_site *ss = SENDSITE(msg->send_site);
+  struct send_site *ss = SENDSITE(msg->send_site);
   cpu c = msg->c;
 
   if(CHECK_CLASS(msg)) {
+    ss->misses++;
     _cpu_ss_basic(msg);
     return;
   }
+    
+  ss->hits++;
 
   msg->method = ss->data2;
   msg->module = ss->data3;

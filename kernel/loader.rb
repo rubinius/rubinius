@@ -106,6 +106,7 @@ Options:
   -e 'code'      Directly compile and execute code (no file provided).
   -Idir1[:dir2]  Add directories to $LOAD_PATH.
   -p             Run the profiler.
+  -ps            Run the Selector profiler.
   -rlibrary      Require library before execution.
   -w             Enable warnings. (currently does nothing--compatibility)
   -v             Display the version and set $VERBOSE to true.
@@ -114,6 +115,8 @@ END
 
 $VERBOSE = false
 code = 0
+
+show_selectors = false
 
 # Setup the proper staticscope
 MethodContext.current.method.staticscope = StaticScope.new(Object)
@@ -146,6 +149,9 @@ begin
       $DEBUG = true
     when '-p'
       require 'profile'
+    when '-ps'
+      count = (ARGV.shift or 30)
+      show_selectors = count.to_i
     when '-e'
       $0 = "(eval)"
       Compile.execute ARGV.shift
@@ -271,6 +277,19 @@ rescue Object => e
   puts "\nBacktrace:"
   puts e.awesome_backtrace.show
   code = 1
+end
+
+if show_selectors
+  ps = Sampler::Selectors.new
+  begin
+    ps.show_stats show_selectors
+  rescue Object => e
+    puts "An exception occured while running selector profiler:"
+    puts "    #{e.message} (#{e.class})"
+    puts "\nBacktrace:"
+    puts e.awesome_backtrace.show
+    code = 1
+  end
 end
 
 Process.exit(code || 0)

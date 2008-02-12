@@ -87,4 +87,25 @@ class Sampler
     end
     nil
   end
+
+  class Selectors
+    def show_stats(range=30)
+
+      count = Selector::ALL.size
+
+      entries = Selector::ALL.values.map { |s| [s, s.receives] }
+
+      entries.delete_if { |e| e.last < 10 }
+
+      sort = entries.sort { |a,b| b.last <=> a.last }
+
+      puts "\nTotal Selectors: #{count}"
+      puts "Top #{range}, by receives:"
+      puts "%-20s| %-20s| %s" % ["name", "receives", "send sites"]
+      puts "=========================================================="
+      sort[0,range].each do |entry|
+        puts "%-20s| %-20d| %d" % [entry.first.name, entry.last, entry.first.send_sites.size]
+      end
+    end
+  end
 end

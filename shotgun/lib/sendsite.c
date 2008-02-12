@@ -26,6 +26,7 @@ OBJECT send_site_create(STATE, OBJECT name, send_site_lookup func) {
   ss->name = name;
   SET_STRUCT_FIELD(ss_obj, ss->selector, selector_lookup(state, name));
   ss->data1 = ss->data2 = ss->data3 = Qnil;
+  ss->hits = ss->misses = 0;
   ss->lookup = func;
 
   cpu_initialize_sendsite(state, ss);
@@ -51,6 +52,10 @@ OBJECT send_site_at(STATE, OBJECT self, int position) {
     return SENDSITE(self)->data3;
   case 5:
     return ffi_new_pointer(state, SENDSITE(self)->c_data);
+  case 6:
+    return I2N(SENDSITE(self)->hits);
+  case 7:
+    return I2N(SENDSITE(self)->misses);
   default:
     return Qnil;
   }

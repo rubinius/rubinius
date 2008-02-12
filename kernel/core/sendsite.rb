@@ -15,6 +15,14 @@ class SendSite
     SendSite.at self, 1
   end
 
+  def hits
+    SendSite.at self, 6
+  end
+
+  def misses
+    SendSite.at self, 7
+  end
+
   def data(which)
     SendSite.at self, 2 + which
   end

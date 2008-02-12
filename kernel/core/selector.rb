@@ -5,6 +5,10 @@ class Selector
   attach_function 'selector_clear',  :clear_object,  [:state, :object], :void
   attach_function 'selector_clear_by_name', :clear, [:state, :object], :void
 
+  def name
+    @name
+  end
+
   def inspect
     "#<Selector name=#{@name} sites=#{@send_sites.size}>"
   end
@@ -15,5 +19,9 @@ class Selector
 
   def send_sites
     @send_sites
+  end
+
+  def receives
+    @send_sites.inject(0) { |acc, ss| acc + ss.hits + ss.misses }
   end
 end
