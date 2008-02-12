@@ -200,7 +200,7 @@ classes.each do |klass|
 end
 
 toc = toc.sort.map do |name|
-  "<li><a href=\"op_codes/#{name}.html\">#{name}</a></li>"
+  "<li><a href=\"op_codes/#{name}.html\" target=\"op_code\">#{name}</a></li>"
 end.join "\n"
 
 toc_path = File.join 'doc', 'vm', 'toc.html'
