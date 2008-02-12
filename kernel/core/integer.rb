@@ -64,7 +64,7 @@ class Integer < Numeric
     
     return 1 if exp == 0
     return self if exp == 1 || self == 0 || self == 1
-    return b % 2 == 0 ? 1 : -1 if self == -1
+    return exp % 2 == 0 ? 1 : -1 if self == -1
     
     if exp < 0
       Float(self) ** Float(exp)
