@@ -219,15 +219,16 @@ static inline OBJECT rbs_int_to_numeric(STATE, native_int num) {
   }
 }
 
+/* Do NOT use the APPLY_TAG/STRIP_TAG test in the unsigned cases.
+ * C doesn't let you cast from a unsigned to signed type and remove
+ * the sign bit, so for large unsigned ints, the test is a false
+ * positive for it fitting properly. */
 static inline OBJECT rbs_uint_to_numeric(STATE, unsigned int num) {
-  OBJECT ret;
-  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
-
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)STRIP_TAG(ret) != num) {
+  if(num > FIXNUM_MAX) {
     return bignum_new_unsigned(state, num);
   } else {
-    return ret;
+    return APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
 }
 
@@ -243,15 +244,13 @@ static inline OBJECT rbs_ll_to_numeric(STATE, long long num) {
   }
 }
 
+/* See comment before rbs_uint_to_numeric */
 static inline OBJECT rbs_ull_to_numeric(STATE, unsigned long long num) {
-  OBJECT ret;
-  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
-
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)STRIP_TAG(ret) != num) {
+  if(num > FIXNUM_MAX) {
     return bignum_from_ull(state, num);
   } else {
-    return ret;
+    return APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
 }
 

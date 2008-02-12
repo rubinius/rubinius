@@ -259,6 +259,10 @@ void *ffi_add_ptr(char *ptr, int offset) {
   return (void*)(ptr + offset); 
 }
 
+unsigned int ffi_cast(unsigned int val) {
+  return val;
+}
+
 long ffi_major(dev_t n) {
 #if defined(major)
   return major(n);
