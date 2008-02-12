@@ -8,6 +8,18 @@ module ClassVariableSpec
   end
 
   class B < A; end
+
+  module M
+    @@cvar = :value
+
+    def cvar
+      @@cvar
+    end
+  end
+
+  class C
+    extend M
+  end
 end
 
 describe "class variables" do
@@ -23,6 +35,10 @@ describe "class variables" do
     b.a_cvar = :new_val
 
     [a.a_cvar].should == [:new_val]
+  end
+
+  it "retrieves the value from the place it is defined" do
+    [ClassVariableSpec::C.cvar.should] == [:value]
   end
 
 end
