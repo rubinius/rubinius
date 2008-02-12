@@ -3,8 +3,12 @@ body, table {
 	font-size: 0.9em;
 }
 
-a, a:visited {
+:link, :visited {
 	color: blue;
+}
+
+dt {
+  font-weight: bold;
 }
 
 ul#chapters {
@@ -20,40 +24,23 @@ ul#chapters li, ul.toc_subsection li {
 	list-style-type: none;
 }
 
-table.formatted {
-	margin: 2px 0px;
-	border-style: solid;
-	border-color: silver;
-	border-width: 1px;
-	border-spacing: 1px;
-	border-collapse: collapse;
-}
-
-table.formatted th { padding: 2px 5px; color: #FFFFFF; background-color: silver; }
-
-table.formatted td { 
-	padding: 5px 3px;
-	border-style: solid;
-	border-color: silver;
-	border-width: 1px;
-}
-
-table#tags tr td:first-child { text-align: center; font-weight: bold; }
-
 .todo {
 	color: red;
 	font-style: italic;
 }
 
-.stack table table td {
+.stack {
+  border: 1px solid blue;
+}
+
+.stack td {
 	width: 60px;
 	border-width: 1px;
 	border-style: solid;
-	font-style: italic;
 	text-align: center;
 }
 
-div.source pre {
+pre {
 	color: darkblue;
 	border-width: 1px;
 	border-style: solid;
@@ -61,5 +48,7 @@ div.source pre {
 	background-color: #ffffcc;
 	padding: 5px;
 }
-ul#op_codes li i a:link { color: red; }
-ul#op_codes li i a:visited { color: red; }
+
+ul#op_codes li i :link { color: red; }
+ul#op_codes li i :visited { color: red; }
+

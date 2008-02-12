@@ -34,27 +34,9 @@ namespace "doc" do
       end
     end
 
-    desc "Generate HTML in doc/vm from YAML and Textile sources"
-    task "html"
-    
-    begin
-      # Define tasks for each opcode html file on the corresponding YAML file
-      require 'doc/vm/op_code_info'
-      OpCode::Info.op_codes.each do |op|
-        html = "doc/vm/op_codes/#{op}.html"
-        yaml = "doc/vm/op_codes/#{op}.yaml"
-        file html do
-          cd 'doc/vm' do
-            ruby "gen_op_code_html.rb #{op}"
-          end
-        end
-        file html => yaml if File.exists?("doc/vm/op_codes/#{op}.yaml")
-
-        task "html" => html
-      end
-
-    rescue LoadError
-
+    desc "Generate HTML in doc/vm"
+    task :html => :build do
+      rbx 'doc/vm/gen_op_code_html.rb'
     end
 
     # Define tasks for each section html file on the corresponding textile file
