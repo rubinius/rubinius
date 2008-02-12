@@ -35,7 +35,7 @@ namespace "doc" do
     end
 
     desc "Generate HTML in doc/vm"
-    task :html => :build do
+    task :html => %w[build shotgun/lib/instructions.rb] do
       rbx 'doc/vm/gen_op_code_html.rb'
     end
 
