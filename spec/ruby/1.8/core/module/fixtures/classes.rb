@@ -1,6 +1,12 @@
 module ModuleSpecs
   CONST = :plain_constant
 
+  class Subclass < Module
+  end
+
+  class SubclassSpec
+  end
+
   module LookupModInMod
     INCS = :ethereal
   end

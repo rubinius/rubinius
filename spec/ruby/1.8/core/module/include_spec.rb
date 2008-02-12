@@ -31,6 +31,10 @@ describe "Module#include" do
   it "raises a TypeError when the argument is not a Module" do
     lambda { ModuleSpecs::Basic.send(:include, Class.new) }.should raise_error(TypeError)
   end
+
+  it "does not raise a TypeError when the argument is an instance of a subclass of Module" do
+    lambda { ModuleSpecs::SubclassSpec.send(:include, ModuleSpecs::Subclass.new) }.should_not raise_error(TypeError)
+  end
   
   it "imports constants to modules and classes" do
     ModuleSpecs::A.constants.should include("CONSTANT_A")
