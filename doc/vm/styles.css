@@ -40,6 +40,10 @@ ul#chapters li, ul.toc_subsection li {
   text-align: center;
 }
 
+.stack td.rest {
+  background-color: lime;
+}
+
 pre {
   color: darkblue;
   border-width: 1px;

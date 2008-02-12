@@ -113,15 +113,15 @@ class ToRubiniusOpCode < RDoc::Markup::ToHtmlHyperlink
   def make_stack(am, name, stack)
     level = stack.first.level
 
-    stack.each do |fragment|
+    stack.each_with_index do |fragment, i|
       case fragment
       when RDoc::Markup::ListStart then
         @res << "<table class=\"stack\">\n"
-        #@res << "<caption>#{name}</caption>"
       when RDoc::Markup::ListEnd then
         @res << "</table>\n"
       when RDoc::Markup::ListItem then
-        @res << "<tr><td>#{fragment.txt}</td></tr>\n"
+        css_class = (i == stack.length - 2) ? ' class="rest"' : nil
+        @res << "<tr><td#{css_class}>#{fragment.txt}</td></tr>\n"
       else
         raise "Unknown fragment #{fragment.inspect}"
       end
@@ -170,6 +170,8 @@ classes.each do |klass|
     bytecode = InstructionSet[method.name.intern].bytecode rescue nil
 
     next if bytecode.nil?
+
+    content.gsub!(/\[Format\](\s+)(\\\w+)/m, '[Format]\1*\2*')
 
     content = <<-EOF
   = \\#{method.name}
