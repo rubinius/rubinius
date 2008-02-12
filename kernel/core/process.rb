@@ -539,13 +539,12 @@ module Kernel
   module_function :fork
   
   def system(prog, *args)
-    cmd = args.inject(prog.to_s) { |a,e| a << " #{e}" }
     pid = Process.fork
     if pid
       Process.waitpid(pid)
       return $?.exitstatus == 0
     else
-      Process.replace "/bin/sh", ["sh", "-c", cmd]
+      exec(prog, *args)
     end
   end
   module_function :system
@@ -553,7 +552,11 @@ module Kernel
   def exec(cmd, *args)
     if args.empty? and cmd.kind_of? String
       raise SystemCallError if cmd.empty?
-      Process.replace "/bin/sh", ["sh", "-c", cmd]
+      if /([*?{}\[\]<>()~&|$;'`"\n\s]|[^\w])/.match(cmd)
+        Process.replace "/bin/sh", ["sh", "-c", cmd]
+      else
+        Process.replace cmd, [cmd]
+      end
     else
       if cmd.kind_of? Array
         prog = cmd[0]
