@@ -28,8 +28,6 @@ module QuickGem
     if $DEBUG
       STDERR.puts "[Loaded gem #{name} with quickgem]"
     end
-
-    require name
   end
 end
 
