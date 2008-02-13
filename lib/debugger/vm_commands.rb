@@ -1,14 +1,80 @@
 # Defines debugger commands that inspect and manipulate the Rubinius VM directly
 class Debugger
 
-  # Steps to the next VM instruction
+  # Step in to the next VM instruction
+  class StepInInstruction < Command
+    def help
+      return "s[tep]i [+n|line]", "Step to the next, (or nth next) VM instruction, stepping into called methods"
+    end
+
+    def command_regexp
+      /^s(?:tep)?i(?:\s+(\+)?(\d+))?$/
+    end
+
+    def execute(dbg, md)
+      step_type = md[1]
+      n = md[2]
+      steps = nil
+      target_line = nil
+
+      selector = {:step_type => :in, :step_by => :ip}
+      if step_type
+        selector[:target] = n
+        output = "Stepping to IP[#{n}]"
+      else
+        n = selector[:steps] = n ? n.to_i : 1
+        output = "Stepping #{n} instruction#{'s' unless n.to_i == 1}"
+      end
+      dbg.step(selector)
+
+      # Instruct debugger to end session and resume debug thread
+      dbg.done!
+
+      return output
+    end
+  end
+
+  # Step next to the next VM instruction
   class StepNextInstruction < Command
     def help
-      return "n[ext] i[nstruction] [+n]", "Step to the next, (or nth next) VM instruction without stepping into called methods"
+      return "n[ext]i [+n|line]", "Step to the next, (or nth next) VM instruction, without stepping into called methods"
     end
 
     def command_regexp
       /^n(?:ext)?\s*i(?:nst(?:ruction)?)?(?:\s+(\+)?(\d+))?$/
+    end
+
+    def execute(dbg, md)
+      step_type = md[1]
+      n = md[2]
+      steps = nil
+      target_line = nil
+
+      selector = {:step_type => :next, :step_by => :ip}
+      if step_type
+        selector[:target] = n
+        output = "Stepping to IP[#{n}]"
+      else
+        n = selector[:steps] = n ? n.to_i : 1
+        output = "Stepping #{n} instruction#{'s' unless n.to_i == 1}"
+      end
+      dbg.step(selector)
+
+      # Instruct debugger to end session and resume debug thread
+      dbg.done!
+
+      return output
+    end
+  end
+
+  # Steps to the next VM instruction
+  class LegacyStepNextInstruction < Command
+    def help
+      return "ln[ext] i[nstruction] [+n]", "Step to the next, (or nth next) VM instruction without stepping into called methods (deprecated)"
+    end
+
+    def command_regexp
+      /^ln(?:ext)?\s*i(?:nst(?:ruction)?)?(?:\s+(\+)?(\d+))?$/
     end
 
     def execute(dbg, md)
@@ -167,32 +233,33 @@ class Debugger
   end
   
   
-  # Shows the contents of the method caches within a compiled method
-  class ShowMethodCaches < Command
+  # Shows info about the SendSites within the current method
+  class ShowSendSites < Command
     def help
-      return "v[m] m[ethod] c[ache]", "Display the method cache stats for each call site in the current method"
+      return "v[m] s[end] s[ites]", "Display send site info for each send site in the current method"
     end
     
     def command_regexp
-      /^v(?:m)?\s*m(?:ethod)?\s*c(?:ache(?:s)?)?$/
+      /^v(?:m)?\s*s(?:end)?\s*s(?:ite(?:s)?)?$/
     end
     
     def execute(dbg, md)
       cm = dbg.debug_context.method
-      cache = cm.cache
+      literals = cm.literals
 
-      if cache
+      i = 0
+      if literals
         output = Output.new
-        output << "VM Method Caches for #{cm.name}:"
+        output << "SendSites for #{cm.name}:"
         output.set_columns(['%d.', '%s', '%s', '%s', '%d', '%d', '%d'])
-        i = 0
-        cache.each do |ic|
-          output << [i, ic.at(2).name, ic.at(3), ic.at(1).name, ic.at(4), ic.at(5), ic.at(6)] if ic
-          i += 1
+        literals.each do |lit|
+          if lit.kind_of? SendSite
+            output << [i+1, lit.name, lit.data(1), lit.data(2) ? lit.data(2).name : nil, lit.data(3), lit.hits, lit.misses] if lit
+            i += 1
+          end
         end
-      else
-        output = "There are no call site method caches in #{cm.name}"
       end
+      output = "There are no send sites in method #{cm.name}" if i == 0
       output
     end
   end

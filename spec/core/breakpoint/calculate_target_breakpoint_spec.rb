@@ -8,12 +8,10 @@ describe "StepBreakpoint#calculate_step_breakpoint" do
   end
 
   def create_bp(selector, ip)
-    @ctxt = mock('ctxt')
-    @ctxt.should_receive(:method).and_return @cm
-    @ctxt.should_receive(:ip).and_return ip if ip
-    @task = mock('task')
-    @task.should_receive(:current_context).and_return @ctxt
+    @ctxt = ctxt = BreakpointSpecs::ContextStub.new(@cm, ip)
+    @task = BreakpointSpecs::TaskStub.new(@ctxt)
     @step_bp = StepBreakpoint.new(@task, selector) {}
+    @step_bp.instance_eval { @context = ctxt; @last_method = @cm; @last_ip = ip }
   end
 
   it "given a valid target IP within the method, returns the target IP" do

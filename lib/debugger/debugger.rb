@@ -88,6 +88,12 @@ class Debugger
     end
   end
 
+  def step(selector)
+    @breakpoint_tracker.step(selector) do |thread, ctxt, bp|
+      activate_debugger thread, ctxt, bp
+    end
+  end
+
   # Clears all breakpoints
   def clear_breakpoints
     @breakpoint_tracker.clear_breakpoints

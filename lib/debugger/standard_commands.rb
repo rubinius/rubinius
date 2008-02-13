@@ -94,14 +94,107 @@ class Debugger
   end
 
 
-  # Steps to the next line
+  # Step in to the next line
+  class StepIn < Command
+    def help
+      return "s[tep] [+n|line]", "Step to the next, (or nth next) line, stepping into called methods"
+    end
+
+    def command_regexp
+      /^s(?:tep)?(?:\s+(\+)?(\d+))?$/
+    end
+
+    def execute(dbg, md)
+      step_type = md[1]
+      n = md[2]
+      steps = nil
+      target_line = nil
+
+      selector = {:step_type => :in, :step_by => :line}
+      if step_type
+        selector[:target] = n
+        output = "Stepping to line #{n}"
+      else
+        n = selector[:steps] = n ? n.to_i : 1
+        output = "Stepping #{n} line#{'s' unless n.to_i == 1}"
+      end
+      dbg.step(selector)
+
+      # Instruct debugger to end session and resume debug thread
+      dbg.done!
+
+      return output
+    end
+  end
+
+  # Step next to the next line
   class StepNext < Command
     def help
-      return "n[ext] [+n]", "Step to the next, (or nth next) line without stepping into called methods"
+      return "n[ext] [+n|line]", "Step to the next, (or nth next) line, without stepping into called methods"
     end
 
     def command_regexp
       /^n(?:ext)?(?:\s+(\+)?(\d+))?$/
+    end
+
+    def execute(dbg, md)
+      step_type = md[1]
+      n = md[2]
+      steps = nil
+      target_line = nil
+
+      selector = {:step_type => :next, :step_by => :line}
+      if step_type
+        selector[:target] = n
+        output = "Stepping to line #{n}"
+      else
+        n = selector[:steps] = n ? n.to_i : 1
+        output = "Stepping #{n} line#{'s' unless n.to_i == 1}"
+      end
+      dbg.step(selector)
+
+      # Instruct debugger to end session and resume debug thread
+      dbg.done!
+
+      return output
+    end
+  end
+
+  # Step out to caller
+  class StepOut < Command
+    def help
+      return "o[ut] [+n]", "Step out to the calling method (or nth caller)"
+    end
+
+    def command_regexp
+      /^o(?:ut)?(?:\s+(\d+))?$/
+    end
+
+    def execute(dbg, md)
+      step_type = md[1]
+      n = md[1]
+      steps = nil
+
+      selector = {}
+      n = selector[:out] = n ? n.to_i : 1
+      output = "Stepping out #{n} frame#{'s' unless n.to_i == 1}"
+      dbg.step(selector)
+
+      # Instruct debugger to end session and resume debug thread
+      dbg.done!
+
+      return output
+    end
+  end
+
+  # Steps to the next line (without stepping in)
+  class LegacyStepNext < Command
+    def help
+      return "ln[ext] [+n]", "Step to the next, (or nth next) line without stepping into called methods (deprecated)"
+    end
+
+    def command_regexp
+      /^ln(?:ext)?(?:\s+(\+)?(\d+))?$/
     end
 
     def execute(dbg, md)
@@ -165,13 +258,13 @@ class Debugger
   end
 
 
-  class StepOut < Command
+  class LegacyStepOut < Command
     def help
-      return "o[ut]", "Return to caller and then break"
+      return "lo[ut]", "Return to caller and then break (deprecated)"
     end
 
     def command_regexp
-      /^o(?:ut)?$/
+      /^lo(?:ut)?$/
     end
 
     def execute(dbg, md)

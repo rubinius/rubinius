@@ -667,7 +667,7 @@ inline void cpu_save_registers(STATE, cpu c, int offset) {
 
   cpu_flush_ip(c);
   cpu_flush_sp(c);
-  fc = (struct fast_context*)BYTES_OF(c->active_context);
+  fc = FASTCTX(c->active_context);
   fc->sp = c->sp - offset;
   fc->ip = c->ip;
 }
