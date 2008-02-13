@@ -12,7 +12,7 @@ class MethodContext
       if method_module
         "#{method_module.name}##{name}"
       else
-        "MethodContext#method_module is nil! sent #{name}"
+        "#{receiver}.#{name}"
       end
     end
   end
@@ -49,7 +49,7 @@ class Sampler
     attr_accessor :slices
     attr_accessor :name
   end
-  
+
   def display(out=STDOUT)
     # "Clocks: #{@start_clock} / #{@last_clock}, Interval: #{@interval} useconds"
     calls = Hash.new { |h,k| h[k] = Call.new(k) }
@@ -57,15 +57,20 @@ class Sampler
 
     @results.each do |ent|
       next unless ent
-      
-      # FIXME: calls[name] += 1 always sets calls[name] to 1
-      call = calls[ent.normalized_name]
-      call.slices = call.slices + 1
-      if @show_parent
-        sender = ent.sender
-        if sender
-          sn = sender.normalized_name
-          call.parents[sn] = call.parents[sn] + 1
+
+      # a Fixnum means that a primitive was running
+      if ent.kind_of? Fixnum
+        calls["VM.primitive => #{Rubinius::Primitives[ent]}"].slices += 1
+      else
+        # FIXME: calls[name] += 1 always sets calls[name] to 1
+        call = calls[ent.normalized_name]
+        call.slices = call.slices + 1
+        if @show_parent
+          sender = ent.sender
+          if sender
+            sn = sender.normalized_name
+            call.parents[sn] = call.parents[sn] + 1
+          end
         end
       end
       total_slices += 1

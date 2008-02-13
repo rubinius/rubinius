@@ -13,6 +13,7 @@ struct send_site {
   OBJECT data2;
   OBJECT data3;
 
+  int data4;
   int hits, misses;
   send_site_lookup lookup;
   void *c_data;

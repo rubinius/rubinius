@@ -31,6 +31,16 @@ class ShotgunPrimitives
       f.puts "  };"
       f.puts "  return funcs[index];"
       f.puts "}"
+      
+      f.puts "OBJECT cpu_populate_prim_names(STATE) {"
+      f.puts "OBJECT hash = hash_new(state);"
+      i = 1
+      Bytecode::Compiler::Primitives.each do |name|
+        f.puts "hash_set(state, hash, I2N(#{i}), SYM(\"#{name}\"));"
+        f.puts "hash_set(state, hash, SYM(\"#{name}\"), I2N(#{i}));"
+        i += 1
+      end
+      f.puts "return hash;}"
     end
 
     i = 1
@@ -41,7 +51,7 @@ class ShotgunPrimitives
       if old = OldMap[ins]
         fd.puts "case #{old}:"
       end
-      fd.puts "  cpu_patch_primitive(state, msg, cpu_primitive_#{ins});"
+      fd.puts "  cpu_patch_primitive(state, msg, cpu_primitive_#{ins}, #{i});"
       fd.puts "  _ret = cpu_primitive_#{ins}(state, c, msg);"
       fd.puts "  break;\n}"
 
@@ -88,6 +98,7 @@ class ShotgunPrimitives
         return -1;
       }
       CODE
+
     end
     
   end

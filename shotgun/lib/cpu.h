@@ -104,6 +104,7 @@ struct rubinius_cpu {
   
   OBJECT current_task, main_task;
   OBJECT current_thread, main_thread;
+  int in_primitive;
   
   /* Task registers are saved and restored when tasks are switched. */
   CPU_TASK_REGISTERS;
@@ -285,9 +286,9 @@ OBJECT cpu_sampler_disable(STATE);
 
 void cpu_initialize_sendsite(STATE, struct send_site *ss);
 typedef int (*prim_func)(STATE, cpu c, const struct message *msg);
-void cpu_patch_primitive(STATE, const struct message *msg, prim_func func);
+void cpu_patch_primitive(STATE, const struct message *msg, prim_func func, int prim);
 int cpu_perform_system_primitive(STATE, cpu c, int prim, const struct message *msg);
-
+OBJECT cpu_populate_prim_names(STATE);
 void cpu_patch_ffi(STATE, const struct message *msg);
 void ffi_call(STATE, cpu c, OBJECT ptr);
 void ffi_autorelease(OBJECT ptr, int ar);

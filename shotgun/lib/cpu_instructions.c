@@ -626,31 +626,36 @@ static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
   }
 #endif
 
+    c->in_primitive = prim;
     if(cpu_perform_system_primitive(state, c, prim, msg)) {
       /* Worked! */
+      c->in_primitive = 0;
 
       if(EXCESSIVE_TRACING) {
         printf("%05d: Called prim %s => %s on %s.\n", c->depth,
-          rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
-          rbs_symbol_to_cstring(state, msg->name), _inspect(msg->recv));
+            rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
+            rbs_symbol_to_cstring(state, msg->name), _inspect(msg->recv));
       }
 
 #if ENABLE_DTRACE
-  if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
-    char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
-    char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
+      if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
+        char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
+        char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
 
-    cpu_flush_ip(c);
+        cpu_flush_ip(c);
 
-    struct fast_context *fc = FASTCTX(c->active_context);
-    int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+        struct fast_context *fc = FASTCTX(c->active_context);
+        int line_number = cpu_ip2line(state, fc->method, fc->ip);
+        char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
-    RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
-  }
+        RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+      }
 #endif
       return TRUE;
     }
+      
+    c->in_primitive = 0;
+    
     if(EXCESSIVE_TRACING) {
       printf("[[ Primitive failed! -- %d ]]\n", prim);
     }
@@ -1117,17 +1122,22 @@ static void _cpu_ss_mono_prim(struct message *msg) {
   msg->method = ss->data2;
   msg->module = ss->data3;
 
+  c->in_primitive = ss->data4;
+
   if(!func(msg->state, msg->c, msg)) {
+    c->in_primitive = 0;
     c->sp_ptr = _orig_sp_ptr;
     c->sp = _orig_sp;
 
     cpu_perform(msg->state, msg->c, msg);
+  } else {
+    c->in_primitive = 0;
   }
 }
 
 /* Called before a primitive is run the slow way, allowing the send_site to be patch
  * to call the primitive directly. */
-void cpu_patch_primitive(STATE, const struct message *msg, prim_func func) {
+void cpu_patch_primitive(STATE, const struct message *msg, prim_func func, int prim) {
   struct send_site *ss;
 
   if(!REFERENCE_P(msg->send_site)) return;
@@ -1138,6 +1148,7 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func) {
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
   SET_STRUCT_FIELD(msg->send_site, ss->data3, msg->module);
 
+  ss->data4 = prim;
   ss->c_data = (void*)func;
   ss->lookup = _cpu_ss_mono_prim;
 }

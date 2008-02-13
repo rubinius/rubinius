@@ -82,7 +82,11 @@ void _cpu_sampler_record_context(int sig) {
      this, we should tell the cpu to just disable all recycling while
      we sample. */
   methctx_reference(state, c->active_context);
-  state->samples[state->cur_sample++] = c->active_context;
+  if(c->in_primitive) {
+    state->samples[state->cur_sample++] = APPLY_TAG(c->in_primitive, TAG_FIXNUM);
+  } else {
+    state->samples[state->cur_sample++] = c->active_context;
+  }
   
   /* Add more space for samples. */
   if(state->cur_sample == state->max_samples) {
@@ -148,8 +152,6 @@ OBJECT cpu_sampler_disable(STATE) {
   if(!state->samples) return Qnil;
   tup = tuple_new(state, state->cur_sample);
   for(i = 0; i < state->cur_sample; i++) {
-    sassert(ISA(state->samples[i], state->global->fastctx) ||
-      ISA(state->samples[i], state->global->blokctx));
     tuple_put(state, tup, i, state->samples[i]);
   }
   

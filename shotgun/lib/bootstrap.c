@@ -170,6 +170,11 @@ void cpu_bootstrap(STATE) {
   regexp_init(state);
   selector_init(state);
   send_site_init(state);
+    
+  rbs_const_set(state, 
+        rbs_const_get(state, BASIC_CLASS(object), "Rubinius"),
+        "Primitives",
+        cpu_populate_prim_names(state));
   
   state->global->external_ivars = hash_new(state);
 
