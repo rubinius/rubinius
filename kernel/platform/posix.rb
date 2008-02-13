@@ -71,6 +71,10 @@ module Platform::POSIX
   #   writing
   attach_function 'fwrite',  [:string, :int, :int, :pointer], :int
   attach_function 'ungetc',  [:int, :pointer], :int
+  
+  #   truncating
+  attach_function 'truncate', [:string, :off_t], :int
+  attach_function 'ftruncate', [:int, :off_t], :int
 
   #   formatted strings
   attach_function 'ffi_sprintf_f', :sprintf_f, [:double, :int, :string], :strptr

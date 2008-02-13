@@ -13,7 +13,7 @@ describe "File.truncate" do
     @name = nil
   end  
  
-  it "truncate the a file" do 
+  it "truncate a file" do 
     File.open(@name, "w") { |f| f.puts "123456789" } 
     platform_is :mswin do
       File.size(@name).should == 11

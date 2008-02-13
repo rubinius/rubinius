@@ -332,6 +332,14 @@ class File < IO
     unless self.exist?(path)
       raise Errno::ENOENT, path
     end
+    
+    unless length.respond_to?(:to_int)
+      raise TypeError, "can't convert #{length.class} into Integer"
+    end
+    
+    n = POSIX.truncate(path, length)
+    Errno.handle if n == -1
+    n
   end
 
   def self.umask(mask = nil)
