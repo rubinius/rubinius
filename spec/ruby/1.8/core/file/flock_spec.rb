@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "File.flock" do 
+describe "File#flock" do 
   before :each do
     system "echo 'rubinius' > /tmp/flock_test"
   end
