@@ -67,10 +67,9 @@ static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
   }
 }
 
-static inline OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
-  OBJECT ary;
-  long div, mod;
+static inline long fixnum_div(STATE, OBJECT a, OBJECT b, long *mod) {
   native_int x, y;
+  long div;
 
   x = N2I(a);
   y = N2I(b);
@@ -87,11 +86,21 @@ static inline OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
     else
       div = x / y;
   }
-  mod = x - div*y;
-  if ((mod < 0 && y > 0) || (mod > 0 && y < 0)) {
-    mod += y;
+
+  *mod = x - div*y;
+  if ((*mod < 0 && y > 0) || (*mod > 0 && y < 0)) {
+    *mod += y;
     div -= 1;
   }
+  
+  return div;
+}
+
+static inline OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
+  OBJECT ary;
+  long div, mod;
+  
+  div = fixnum_div(state, a, b, &mod);
   
   ary = array_new(state, 2);
   array_set(state, ary, 0, I2N(div));

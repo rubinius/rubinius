@@ -94,56 +94,82 @@ class ShotgunPrimitives
 
   def add
     <<-CODE
-    OBJECT t1;
-    
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1, FIXNUM);
-    
-    RET(fixnum_add(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(FIXNUM_P(t1)) {
+      RET(fixnum_add(state, msg->recv, t1));
+    } else if(BIGNUM_P(t1)) {
+      RET(bignum_add(state, bignum_new(state, N2I(msg->recv)), t1));
+    } else if(FLOAT_P(t1)) {
+      OBJECT t2 = float_coerce(state, msg->recv);
+      RET(float_new(state, FLOAT_TO_DOUBLE(t2) + FLOAT_TO_DOUBLE(t1)));
+    } else {
+      FAIL();
+    }
     CODE
   end
   
   def bignum_add
     <<-CODE
-    OBJECT t1;
-    
     GUARD(BIGNUM_P(msg->recv));
-    POP(t1, BIGNUM);
-    
-    RET(bignum_add(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
+      RET(bignum_add(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      double a = bignum_to_double(state, msg->recv);
+      RET(float_new(state, a + FLOAT_TO_DOUBLE(t1)));
+    } else {
+      FAIL();
+    }
     CODE
   end
   
   def sub
     <<-CODE
-    OBJECT t1;
-    
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1, FIXNUM);
-
-    RET(fixnum_sub(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(FIXNUM_P(t1)) {
+      RET(fixnum_sub(state, msg->recv, t1));
+    } else if(BIGNUM_P(t1)) {
+      RET(bignum_sub(state, bignum_new(state, N2I(msg->recv)), t1));
+    } else if(FLOAT_P(t1)) {
+      OBJECT t2 = float_coerce(state, msg->recv);
+      RET(float_new(state, FLOAT_TO_DOUBLE(t2) - FLOAT_TO_DOUBLE(t1)));
+    } else {
+      FAIL();
+    }
     CODE
   end
   
   def bignum_sub
     <<-CODE
-    OBJECT t1;
-
     GUARD(BIGNUM_P(msg->recv));
-    POP(t1, INTEGER);
-
-    RET(bignum_sub(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
+      RET(bignum_sub(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      double a = bignum_to_double(state, msg->recv);
+      RET(float_new(state, a - FLOAT_TO_DOUBLE(t1)));
+    } else {
+      FAIL();
+    }
     CODE
   end
   
   def fixnum_mul
     <<-CODE
-    OBJECT t1;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1, FIXNUM);
-
-    RET(fixnum_mul(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(FIXNUM_P(t1)) {
+      RET(fixnum_mul(state, msg->recv, t1));
+    } else if(BIGNUM_P(t1)) {
+      RET(bignum_mul(state, bignum_new(state, N2I(msg->recv)), t1));
+    } else if(FLOAT_P(t1)) {
+      OBJECT t2 = float_coerce(state, msg->recv);
+      RET(float_new(state, FLOAT_TO_DOUBLE(t2) * FLOAT_TO_DOUBLE(t1)));
+    } else {
+      FAIL();
+    }
     CODE
   end
   
@@ -155,39 +181,55 @@ class ShotgunPrimitives
 
   def bignum_mul
     <<-CODE
-    OBJECT t1;
-
     GUARD(BIGNUM_P(msg->recv));
-    POP(t1, INTEGER);
-
-    RET(bignum_mul(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
+      RET(bignum_mul(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      double a = bignum_to_double(state, msg->recv);
+      RET(float_new(state, a * FLOAT_TO_DOUBLE(t1)));
+    } else {
+      FAIL();
+    }
     CODE
   end
   
   def fixnum_div
     <<-CODE
-    OBJECT t1, t3;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1, FIXNUM);
-
-    GUARD( N2I(t1) != 0 ) // no divide by zero
-
-    t3 = fixnum_divmod(state, msg->recv, t1);
-    RET(array_get(state, t3, 0));
+    OBJECT t1 = stack_pop();
+    if(FIXNUM_P(t1)) {
+      long mod;
+      GUARD(N2I(t1) != 0) // no divide by zero
+      RET(I2N(fixnum_div(state, msg->recv, t1, &mod)));
+    } else if(BIGNUM_P(t1)) {
+      GUARD(!bignum_is_zero(state, t1));    
+      RET(bignum_div(state, bignum_new(state, N2I(msg->recv)), t1));
+    } else if(FLOAT_P(t1)) {
+      OBJECT t2 = float_coerce(state, msg->recv);
+      RET(float_new(state, FLOAT_TO_DOUBLE(t2) / FLOAT_TO_DOUBLE(t1)));
+    } else {
+      FAIL();
+    }
     CODE
   end
   
   def bignum_div
     <<-CODE
-    OBJECT t1;
-
     GUARD(BIGNUM_P(msg->recv));
-    POP(t1, BIGNUM);
-
-    // Can this ever happen since bignum will always be > zero?
-    GUARD(!bignum_is_zero(state, t1));    
-    RET(bignum_div(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(BIGNUM_P(t1)) {
+      GUARD(!bignum_is_zero(state, t1));    
+      RET(bignum_div(state, msg->recv, t1));
+    } else if(FIXNUM_P(t1)) {
+      GUARD(N2I(t1) != 0) // no divide by zero
+      RET(bignum_div(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      double a = bignum_to_double(state, msg->recv);
+      RET(float_new(state, a / FLOAT_TO_DOUBLE(t1)));
+    } else {
+      FAIL();
+    }
     CODE
   end
 
@@ -1696,15 +1738,15 @@ class ShotgunPrimitives
 
   def fixnum_modulo
     <<-CODE
-    OBJECT t1, t3;
+    OBJECT t1;
 
     GUARD(FIXNUM_P(msg->recv));
     POP(t1, FIXNUM);
 
-    GUARD( N2I(t1) != 0 ) // no divide by zero
-
-    t3 = fixnum_divmod(state, msg->recv, t1);
-    RET(array_get(state, t3, 1));
+    GUARD(N2I(t1) != 0) // no divide by zero
+    long mod;
+    fixnum_div(state, msg->recv, t1, &mod);
+    RET(I2N(mod));
     CODE
   end
   
