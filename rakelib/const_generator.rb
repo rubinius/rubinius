@@ -67,7 +67,7 @@ EOF
       f.puts "\n\treturn 0;\n}"
       f.flush
       
-      `gcc -x c -Wall #{f.path} -o #{binary}`
+      `gcc -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -x c -Wall #{f.path} -o #{binary}`
     end
 
     output = `./#{binary}`
