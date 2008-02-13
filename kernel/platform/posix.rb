@@ -80,6 +80,9 @@ module Platform::POSIX
   #   formatted strings
   attach_function 'ffi_sprintf_f', :sprintf_f, [:double, :int, :string], :strptr
   attach_function 'ffi_sprintf_d', :sprintf_d, [:int, :int, :string], :strptr
+  
+  #   locking
+  attach_function 'flock', [:int, :int], :int
 
   # Time
   attach_function 'time', [:pointer], :long

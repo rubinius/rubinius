@@ -423,6 +423,12 @@ class File < IO
   def ctime
     Stat.new(@path).ctime
   end
+  
+  def flock(locking_constant)
+    result = POSIX.flock(@descriptor, locking_constant)
+    return false if result == -1
+    result
+  end
 
   def lstat
     Stat.new @path, false
