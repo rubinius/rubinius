@@ -1,6 +1,0 @@
-File.truncate truncate the a file
-File.truncate truncate to 0 a file
-File.truncate truncate to 5 a file
-File.truncate truncate to a larger size than the original file
-File.truncate raises an Errno::EINVAL if the length is not valid
-File.truncate raises a TypeError if not passed an Integer type for the second argument
