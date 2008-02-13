@@ -445,6 +445,16 @@ class File < IO
   def stat
     Stat.new @path
   end
+  
+  def truncate(length)
+    unless length.respond_to?(:to_int)
+      raise TypeError, "can't convert #{length.class} into Integer"
+    end
+    
+    n = POSIX.ftruncate(@descriptor, length)
+    Errno.handle if n == -1
+    n
+  end
 end     # File
 
 class File::Stat

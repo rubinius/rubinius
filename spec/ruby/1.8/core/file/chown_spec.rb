@@ -44,4 +44,3 @@ describe "File#chown" do
   end
   
 end
-
