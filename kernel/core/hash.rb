@@ -76,21 +76,40 @@ class Hash
     true
   end
 
-  def get_key_cv(key)
-    entry, hash, = hash_entry key
-
+  # looks for a key in a bin found by hash_entry
+  def search_bin(entry,hash,key)
     while entry
       cur_hash, cur_key, cur_val, nxt = *entry
 
-      return cur_val if cur_hash == hash and key.eql?(cur_key)
+      if cur_hash == hash and key.eql?(cur_key)
+        return entry
+      end
 
       entry = nxt
     end
+    return Undefined
+  end
+  private :search_bin
+  
+  def fetch(key, default = Undefined)
+    entry, hash, = hash_entry key
+    entry = search_bin(entry,hash,key)
+    return entry[2] if(entry != Undefined)
 
+    return yield(key) if block_given?
+    return default if !default.equal?(Undefined)
+    raise IndexError, 'Key not found'
+  end
+  
+  def get_key_cv(key)
+    entry, hash, = hash_entry key
+    entry = search_bin(entry,hash,key)
+    return entry[2] if(entry != Undefined)
+    
     return default(key) if @default
     nil
   end
-
+  
   def set_key_cv(key, val)
     key = key.dup if key.kind_of?(String)
     entry, hash, bin = hash_entry key
@@ -246,15 +265,6 @@ class Hash
 
   def empty?()
     @entries == 0
-  end
-
-  def fetch(key, default = Undefined)
-    found, val = find_unambiguous key
-    return val if found
-
-    return yield(key) if block_given?
-    return default if !default.equal?(Undefined)
-    raise IndexError, 'Key not found'
   end
 
   def index(val)
@@ -434,12 +444,6 @@ class Hash
   end
   alias_method :indexes, :values_at
   alias_method :indices, :values_at
-
-  def find_unambiguous(key)
-    code, hk, val, nxt = get_by_hash key.hash, key
-    return Tuple[true, val] if code
-    Tuple[false, nil]
-  end
 
   def hash_entry(obj)
     hash = obj.hash
