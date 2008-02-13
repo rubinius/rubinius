@@ -101,6 +101,8 @@ struct type_info {
 #include "shotgun/lib/object_memory.h"
 #include "shotgun/lib/subtend/handle.h"
 
+struct inter_proxy;
+
 struct rubinius_state {
   object_memory om;
   
@@ -152,6 +154,29 @@ struct rubinius_state {
   uint64_t system_start;
   uint64_t lookup_time;
 #endif
+
+  struct inter_proxy *proxy;
+};
+
+struct inter_proxy {
+  OBJECT (*bignum_new)(STATE, native_int);
+  void   (*methctx_reference)(STATE, OBJECT);
+  OBJECT (*open_module)(STATE, cpu, OBJECT, OBJECT);
+  void   (*attach_method)(STATE, cpu, OBJECT, OBJECT, OBJECT);
+  void   (*add_method)(STATE, cpu, OBJECT, OBJECT, OBJECT);
+  
+  void   (*perform_hook)(STATE, cpu, OBJECT, OBJECT, OBJECT);
+  void   (*activate_method)(STATE, cpu, struct message*);
+  OBJECT (*object_class)(STATE, OBJECT);
+  void   (*send_message)(STATE, cpu, struct message*);
+  OBJECT (*get_ivar)(STATE, OBJECT, OBJECT);
+  OBJECT (*set_ivar)(STATE, OBJECT, OBJECT, OBJECT);
+  int    (*send_primitive)(STATE, cpu, int, struct message*);
+
+  void   (*write_barrier)(object_memory, OBJECT, OBJECT);
+  int    (*simple_return)(STATE, cpu, OBJECT);
+  void   (*push_encloser)(STATE, cpu);
+  void   (*set_encloser)(STATE, cpu, OBJECT);
 };
 
 #ifdef TIME_LOOKUP
@@ -311,10 +336,12 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 #define SET_FIELD(obj, fel, val) rbs_set_field(state->om, obj, fel, val)
 #define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
 
-#define IS_REF_P(val) REFERENCE_P(val)
-#define RUN_WB(obj, val) if(IS_REF_P(val)) object_memory_write_barrier(state->om, obj, val)
+#define WB_FUNC object_memory_write_barrier
 
-#define rbs_set_class(om, obj, cls) ({ if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); obj->klass = cls; })
+#define RUN_WB2(om, obj, val) if(REFERENCE_P(val)) WB_FUNC(om, obj, val)
+#define RUN_WB(obj, val) RUN_WB2(state->om, obj, val)
+
+#define rbs_set_class(om, obj, cls) ({ RUN_WB2(om, obj, cls); obj->klass = cls; })
 #define SET_CLASS(obj, cls) ({ RUN_WB(obj, cls); obj->klass = cls; })
 
 void machine_handle_fire(int);
@@ -330,7 +357,7 @@ void machine_handle_type_error(OBJECT, const char *message);
 
 /* Only ever call this with constant arguments! */
 #define fast_set(obj, idx, val) ({ \
-  if(REFERENCE_P(val)) object_memory_write_barrier(state->om, obj, val); \
+  RUN_WB(obj, val); \
   SET_FIELD_DIRECT(obj, idx, val); \
   val; \
 })
@@ -349,9 +376,7 @@ void machine_handle_type_error(OBJECT, const char *message);
 
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
-  if(REFERENCE_P(_v)) { \
-    object_memory_write_barrier(om, _o, _v); \
-  } \
+  RUN_WB2(om, _o, _v); \
   SET_FIELD_DIRECT(_o, fel, _v); })
 
 #define rbs_get_field(obj, fel) NTH_FIELD_DIRECT(obj, fel)
@@ -380,9 +405,7 @@ static void _bad_reference(OBJECT in) {
   OBJECT _v = (val), _o = (obj); \
   if(!REFERENCE_P(obj)) _bad_reference(obj); \
   if(fel >= obj->field_count) _bad_reference2(obj, fel); \
-  if(REFERENCE_P(_v)) { \
-    object_memory_write_barrier(om, _o, _v); \
-  } \
+  RUN_WB2(om, _o, _v); \
   *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
 
 #define rbs_get_field(i_in, i_fel) ({ \
@@ -399,9 +422,7 @@ static void _bad_reference(OBJECT in) {
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
   if(fel >= obj->field_count) _bad_reference2(obj, fel); \
-  if(REFERENCE_P(_v)) { \
-    object_memory_write_barrier(om, _o, _v); \
-  } \
+  RUN_WB2(om, _o, _v); \
   *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
 
 #define rbs_get_field(i_in, i_fel) ({ \
@@ -476,9 +497,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
 #if INTERNAL_DEBUG
   /* Check that it's even, ie a ref, and above the special range. */
-  if(IS_REF_P(val)) {
-    object_memory_write_barrier(om, obj, val);
-  }
+  RUN_WB2(om, obj, val);
   CHECK_PTR(val);
 #endif
   *slot = val;

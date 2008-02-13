@@ -159,6 +159,10 @@ int cpu_simple_return(STATE, cpu c, OBJECT val);
 void cpu_save_registers(STATE, cpu c, int offset);
 void cpu_yield_debugger_check(STATE, cpu c);
 
+void cpu_activate_method(STATE, cpu c, struct message *msg);
+OBJECT cpu_open_module(STATE, cpu c, OBJECT under, OBJECT sym);
+void cpu_send_message(STATE, cpu c, struct message *msg);
+
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym);
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under);
 

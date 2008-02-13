@@ -66,7 +66,6 @@ void cpu_show_lookup_time(STATE) {
 
 #if DIRECT_THREADED
 #include "shotgun/lib/instruction_funcs.gen"
-DT_ADDRESSES;
 
 #ifdef SHOW_OPS
 #define NEXT_OP printf(" => %p\n", *ip_ptr); sassert(*ip_ptr); goto **ip_ptr++
@@ -407,6 +406,205 @@ static inline OBJECT cpu_check_serial(STATE, cpu c, OBJECT obj, OBJECT sym, int 
   return Qfalse;
 }
 
+const char *cpu_op_to_name(STATE, uint32_t op) {
+#include "shotgun/lib/instruction_names.h"
+  return get_instruction_name(op);
+}
+
+
+/* Functions to translating the bytecode into a macro op series. */
+#if DIRECT_THREADED
+
+struct ins2block {
+  int block;
+  int jump_target;
+  int first;
+};
+
+/* the noop instruction contains NEXT_OP(), so we used it to copy
+ * the code to just move to the next instruction. */
+#define INS_NEXT 0
+
+void calculate_macro_size(STATE, OBJECT comp, OBJECT exc_table,
+    int *out, struct ins2block *tbl) {
+  OBJECT ent;
+  uint32_t *bytecode;
+  uint32_t op;
+  int args, total, i, size, cur_block;
+  int block_size;
+
+  /* Pull in jump targets from the exception table */
+  total = NUM_FIELDS(exc_table);
+  for(i = 0; i < total; i++) {
+    ent = tuple_at(state, exc_table, i);
+    native_int target = N2I(tuple_at(state, ent, 2));
+    tbl[target].jump_target = TRUE;
+  }
+
+  bytecode = (uint32_t*)BYTES_OF(comp);
+  total = NUM_FIELDS(comp);
+
+  size = 0;
+
+  /* Step 1: find all the jump targets and mark them. */
+  
+  for(i = 0; i < total; i++) {
+    op = *bytecode++;
+    if(!op) continue;
+    args = _ip_size(op) - 1;
+
+    if(ins_info[op].jump) {
+      uint32_t target = *bytecode;
+      tbl[target].jump_target = TRUE;
+    }
+
+    i += args;
+    bytecode += args;
+  }
+
+  /* Step 2: calculate the block for each op */
+  bytecode = (uint32_t*)BYTES_OF(comp);
+
+  cur_block = 0;
+  block_size = 0;
+
+  for(i = 0; i < total; i++) {
+    op = *bytecode++;
+    if(!op) continue;
+    args = _ip_size(op) - 1;
+    size += ins_info[op].size;
+
+    if(tbl[i].jump_target) {
+      if(block_size > 1) {
+        cur_block++;
+        block_size = 0;
+      }
+    }
+
+    if(i > 0 && block_size == 0) tbl[i].first = TRUE;
+
+    block_size++;
+
+    tbl[i].block = cur_block;
+
+    if(ins_info[op].final) {
+      size += ins_info[INS_NEXT].size;
+      cur_block++;
+      block_size = 0;
+    }
+
+    i += args;
+    bytecode += args;
+  }
+
+  *out = size;
+}
+
+OBJECT create_macro(STATE, OBJECT exc_tbl, OBJECT in) {
+  OBJECT bc;
+  int macro_size;
+  int cur_block, total, i;
+
+  void *macro;
+  uint8_t *macro_ptr;
+  struct ins2block *tbl;
+  uint32_t *bytecode;
+  uint32_t op;
+  uintptr_t *macro_bc, *bc_ptr;
+
+  int bc_offset = 0;
+
+#if !CONFIG_BIG_ENDIAN
+  int target_size = BYTEARRAY_SIZE(in) * sizeof(uintptr_t);
+  bc = bytearray_new(state, target_size);
+  iseq_flip(state, in, bc);
+#else
+  bc = in;
+#endif
+  
+  bytecode = (uint32_t*)BYTES_OF(bc);
+  total = NUM_FIELDS(bc);
+  
+  tbl = (struct ins2block*)calloc(NUM_FIELDS(bc), sizeof(struct ins2block));
+
+  calculate_macro_size(state, bc, exc_tbl, &macro_size, tbl);
+  
+  /* we use one chunk of memory for both the new bytecode stream and the
+   * code for each macro. */
+
+  macro_size += sizeof(uintptr_t) * total;
+
+  macro_bc = (uintptr_t*)malloc(macro_size);
+  memset(macro_bc, 0, macro_size);
+
+  macro = (void*)(macro_bc + total);
+
+  cur_block = 0;
+
+  /* macro_bc is the converted instruction sequence. It's a mix of addresses and
+   * ints. The addresses are the start of a basic block, then ints are argumens
+   * to the instructions that make up the basic block. */
+
+  bc_ptr = macro_bc;
+  macro_ptr = (uint8_t*)macro;
+
+  /* Initialize the first block. */
+  *bc_ptr++ = (uintptr_t)macro;
+  bc_offset++;
+
+  printf("macro size: %d\n", macro_size);
+  printf("block 0: %p\n", macro_ptr);
+
+  for(i = 0; i < total; i++) {
+    op = *bytecode++;
+    if(!op) continue;
+
+    printf("[%3d] %3d (%20s), block %d (%d)\n", i, op, cpu_op_to_name(state, op), tbl[i].block, ins_info[op].size);
+
+    /* We've hit an instruction that must be the first instruction
+     * in a block. We fix up the current block and start a new one. */
+    if(tbl[i].first) {
+      /* Copy NEXT_OP into the end of the current block */
+      memcpy(macro_ptr, ins_info[INS_NEXT].start, ins_info[INS_NEXT].size);
+      macro_ptr += ins_info[INS_NEXT].size;
+
+      /* Stick the block number into instruction sequence. */
+      bc_offset += 2;
+      *bc_ptr++ = bc_offset;
+      *bc_ptr++ = (uintptr_t)macro_ptr;
+  
+      printf("block %d: %p\n", tbl[i].block, macro_ptr);
+    }
+
+    /* Copy the code for this operation into the macro */
+    memcpy(macro_ptr, ins_info[op].start, ins_info[op].size);
+    macro_ptr += ins_info[op].size;
+
+    /* Copy the args to this op into the instruction stream */
+
+    switch(_ip_size(op) - 1) {
+    case 2:
+      printf("  arg: %d\n", *bytecode);
+      *bc_ptr++ = (uintptr_t)(*bytecode++);
+      bc_offset++;
+      i++;
+      /* fallow through */
+    case 1:
+      printf("  arg: %d\n", *bytecode);
+      *bc_ptr++ = (uintptr_t)(*bytecode++);
+      bc_offset++;
+      i++;
+      break;
+    }
+  }
+
+  OBJECT ptr = ffi_new_pointer(state, macro_bc);
+  ffi_autorelease(ptr, 1);
+  return ptr;
+}
+
+#endif
+
 OBJECT cpu_compile_method(STATE, OBJECT cm) {
   OBJECT ba, bc;
   int target_size;
@@ -428,21 +626,13 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
     ba = bytearray_new(state, target_size);
   }
 
-  cpu_compile_instructions(state, bc, ba);
+#if DIRECT_THREADED
+  ba = create_macro(state, cmethod_get_exceptions(cm), bc);
   cmethod_set_compiled(cm, ba);
-
-  /* Allocate a tuple to hold the cache entries for method calls */
-  OBJECT cs;
-  cs = cmethod_get_cache(cm);
-  if(FIXNUM_P(cs)) {
-    native_int sz = N2I(cs);
-    if(sz > 0) {
-      cs = tuple_new(state, sz);
-      // Reserve field 0 for call sites that are not cached
-      fast_unsafe_set(cs, 0, Qfalse);
-      cmethod_set_cache(cm, cs);
-    }
-  }
+#else
+  cpu_compile_instructions(state, bc, ba);
+#endif
+  cmethod_set_compiled(cm, ba);
 
   return ba;
 }
@@ -484,7 +674,8 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
   fc->sender = c->active_context;
 
   fc->method = meth;
-  fc->data = bytearray_byte_address(state, ins);
+  fc->data = *DATA_STRUCT(ins, void**);
+  // fc->data = bytearray_byte_address(state, ins);
   fc->literals = fast_fetch(meth, CMETHOD_f_LITERALS);
 
   if(locals > 0) {
@@ -1022,7 +1213,7 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 
 /* Layer 4: direct activation. Used for calling a method thats already
    been looked up. */
-static inline void cpu_activate_method(STATE, cpu c, struct message *msg) {
+inline void cpu_activate_method(STATE, cpu c, struct message *msg) {
   OBJECT ctx;
 
   c->depth++;
@@ -1460,27 +1651,31 @@ void cpu_yield_debugger(STATE, cpu c) {
   }
 }
 
-const char *cpu_op_to_name(STATE, char op) {
-#include "shotgun/lib/instruction_names.h"
-  return get_instruction_name(op);
-}
-
 void state_collect(STATE, cpu c);
 void state_major_collect(STATE, cpu c);
 
 void cpu_run(STATE, cpu c, int setup) {
+  uint32_t _int;
+  native_int j, k, m;
+  OBJECT _lit, t1, t2, t3, t4, t5;
+  struct message msg;
   IP_TYPE op;
-  IP_TYPE *ip_ptr = NULL;
+  IP_TYPE *ip_ptr;
   const char *firesuit_arg;
+  struct rubinius_globals *global;
+  struct inter_proxy *proxy;
 
+  ip_ptr = NULL;
+  proxy = state->proxy;
+  global =  state->global;
   c->ip_ptr = &ip_ptr;
 
-  struct rubinius_globals *global = state->global;
 
   if(setup) {
     (void)op;
 #if DIRECT_THREADED
     SETUP_DT_ADDRESSES;
+    _populate_ins_info();
     return;
 #else
     return;
@@ -1544,8 +1739,14 @@ insn_start:
         rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),
         (void*)*ip_ptr);
     }
+jump_next:
     NEXT_OP;
+jump_next_end:
+    #undef WB_FUNC
+    #define WB_FUNC proxy->write_barrier
     #include "shotgun/lib/instruction_dt.gen"
+    #undef WB_FUNC
+    #define WB_FUNC object_memory_write_barrier
 #else
 
 next_op:

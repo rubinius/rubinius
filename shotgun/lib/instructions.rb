@@ -32,6 +32,7 @@ class ShotgunInstructions
       if code
         fd.puts "   insn_#{ins.bytecode}: {"
         fd.puts code
+        fd.puts "   insn_#{ins.bytecode}_end:"
         if ins.check_interrupts?
           fd.puts "   goto check_interrupts;"
         elsif ins.terminator?
@@ -66,13 +67,36 @@ class ShotgunInstructions
 
     code << "}\nreturn 1;\n}\n\n"
 
-    code << "#define DT_ADDRESSES static void* _dt_addresses[#{InstructionSet::OpCodes.size + 1}]; static int _dt_size = #{InstructionSet::OpCodes.size};\n"
+    code << "struct ins_info_t { int bytecode; uintptr_t size; void *start; int final; int jump; };\n"
+    code << "static void* _dt_addresses[#{InstructionSet::OpCodes.size + 1}];\n"
+    code << "static int _dt_size = #{InstructionSet::OpCodes.size};\n"
+    code << "static void *_dt_ends[#{InstructionSet::OpCodes.size + 1}];\n"
+    code << "static struct ins_info_t ins_info[#{InstructionSet::OpCodes.size + 1}];\n"
     code << "#define SETUP_DT_ADDRESSES "
 
     InstructionSet::OpCodes.each do |ins|
-      code << "_dt_addresses[#{ins.bytecode}] = &&insn_#{ins.bytecode}; "
+      if ins.bytecode == 0
+        code << "_dt_addresses[0] = &&jump_next; "
+        code << "_dt_ends[0] = &&jump_next_end; "
+      else
+        code << "_dt_addresses[#{ins.bytecode}] = &&insn_#{ins.bytecode}; "
+        code << "_dt_ends[#{ins.bytecode}] = &&insn_#{ins.bytecode}_end; "
+      end
     end
     code << "\n"
+
+    code << "static void _populate_ins_info() {\n"
+    InstructionSet::OpCodes.each do |ins|
+      idx = ins.bytecode
+
+      code << "ins_info[#{idx}].bytecode = #{idx};\n"
+      code << "ins_info[#{idx}].size = (uintptr_t)_dt_ends[#{idx}] - (uintptr_t)_dt_addresses[#{idx}];\n"
+      code << "ins_info[#{idx}].start = _dt_addresses[#{idx}];\n"
+      code << "ins_info[#{idx}].final = #{ins.final? ? 'TRUE' : 'FALSE'};\n"
+      code << "ins_info[#{idx}].jump = #{ins.goto? ? 'TRUE' : 'FALSE'};\n"
+    end
+
+    code << "}\n"
 
     code << <<-CODE
 
@@ -131,7 +155,7 @@ class ShotgunInstructions
   end
 
   def generate_names
-    str = "static const char instruction_names[] = {\n"
+    str = "#include <stdint.h>\nstatic const char instruction_names[] = {\n"
     InstructionSet::OpCodes.each do |ins|
       str << "  \"#{ins.opcode.to_s}\\0\"\n"
     end
@@ -145,14 +169,14 @@ class ShotgunInstructions
     end
     str << "\n};\n\n"
     str << <<CODE
-const char *get_instruction_name(int op) {
+const char *get_instruction_name(uint32_t op) {
   return instruction_names + instruction_name_offsets[op];
 }
 CODE
   end
 
   def generate_names_header
-    str = "const char *get_instruction_name(int op);\n"
+    str = "const char *get_instruction_name(uint32_t op);\n"
 
     InstructionSet::OpCodes.each do |ins|
       str << "#define CPU_INSTRUCTION_#{ins.opcode.to_s.upcase} #{ins.bytecode}\n"
@@ -179,7 +203,8 @@ CODE
   #   * pop
 
   def noop
-    ""
+    <<-CODE
+    CODE
   end
 
   # [Operation]
@@ -205,7 +230,14 @@ CODE
   def push_int
     <<-CODE
     next_int;
-    stack_push(I2N(_int));
+    /* hand inlined version of rbs_int_numeric. Don't remove this. */
+    t1 = APPLY_TAG((native_int)_int, TAG_FIXNUM);
+    
+    if((native_int)STRIP_TAG(t1) != (native_int)_int) {
+      t1 = proxy->bignum_new(state, (native_int)_int);
+    }
+
+    stack_push(t1);
     CODE
   end
 
@@ -226,7 +258,7 @@ CODE
 
   def meta_push_neg_1
     <<-CODE
-    stack_push(I2N(-1));
+    stack_push(APPLY_TAG(-1, TAG_FIXNUM));
     CODE
   end
 
@@ -247,7 +279,7 @@ CODE
 
   def meta_push_0
     <<-CODE
-    stack_push(I2N(0));
+    stack_push(APPLY_TAG(0, TAG_FIXNUM));
     CODE
   end
 
@@ -268,7 +300,7 @@ CODE
 
   def meta_push_1
     <<-CODE
-    stack_push(I2N(1));
+    stack_push(APPLY_TAG(1, TAG_FIXNUM));
     CODE
   end
 
@@ -289,7 +321,7 @@ CODE
 
   def meta_push_2
     <<-CODE
-    stack_push(I2N(2));
+    stack_push(APPLY_TAG(2, TAG_FIXNUM));
     CODE
   end
 
@@ -356,7 +388,7 @@ CODE
 
   def push_context
     <<-CODE
-    methctx_reference(state, c->active_context);
+    proxy->methctx_reference(state, c->active_context);
     stack_push(c->active_context);
     CODE
   end
@@ -379,10 +411,8 @@ CODE
 
   def push_literal
     <<-CODE
-    next_int;
-    t1 = cpu_current_literals(state, c);
-    t2 = fast_fetch(t1, _int);
-    stack_push(t2);
+    next_literal;
+    stack_push(_lit);
     CODE
   end
 
@@ -410,7 +440,7 @@ CODE
   def set_literal
     <<-CODE
     next_int;
-    tuple_put(state, cpu_current_literals(state, c), _int, stack_top());
+    SET_FIELD_DIRECT(cpu_current_literals(state, c), _int, stack_top());
     CODE
   end
 
@@ -483,7 +513,7 @@ CODE
       t2 = blokctx_env(state, t1);
       t1 = blokenv_get_home_block(t2);
     }
-    stack_push(tuple_at(state, blokctx_locals(state, t1), _int));
+    stack_push(fast_fetch(blokctx_locals(state, t1), _int));
     CODE
   end
 
@@ -572,7 +602,7 @@ CODE
   def push_ivar
     <<-CODE
     next_literal;
-    stack_push(object_get_ivar(state, c->self, _lit));
+    stack_push(proxy->get_ivar(state, c->self, _lit));
     CODE
   end
 
@@ -594,8 +624,7 @@ CODE
 
   def allocate
     <<-CODE
-    _lit = stack_pop();
-    stack_push(NEW_OBJECT(Qnil, N2I(_lit)));
+    sassert(0);
     CODE
   end
 
@@ -747,24 +776,7 @@ CODE
 
   def send_primitive
     <<-CODE
-    next_int;
-    j = (native_int)_int; // primitive index
-    next_int;
-    k = (native_int)_int; // num_args
-
-    // Should the OBJECT parameter be removed since a primitive is not necesarily
-    // performed on an object? Or should we state that the semantics of a primitive
-    // will always have an object or else it needs to be an opcode... ?
-    // If the primitive fails raise an exception
-
-    msg.name = Qnil;
-    msg.args = k;
-    msg.method = Qnil;
-    msg.module = Qnil;
-    if(!cpu_perform_system_primitive(state, c, j, &msg))
-    {
-      cpu_raise_primitive_failure(state, c, j);
-    }
+    sassert(0);
     CODE
   end
 
@@ -1568,7 +1580,7 @@ CODE
   def set_encloser
     <<-CODE
     t1 = stack_pop();
-    cpu_set_encloser_path(state, c, t1);
+    proxy->set_encloser(state, c, t1);
     CODE
   end
 
@@ -1596,7 +1608,7 @@ CODE
 
   def push_encloser
     <<-CODE
-    cpu_push_encloser(state, c);
+    proxy->push_encloser(state, c);
     CODE
   end
 
@@ -1743,7 +1755,8 @@ CODE
   def open_module
     <<-CODE
     next_literal;
-    stack_push(cpu_open_module(state, c, c->enclosing_class, _lit));
+    t1 = proxy->open_module(state, c, c->enclosing_class, _lit);
+    stack_push(t1);
     CODE
   end
 
@@ -1805,9 +1818,9 @@ CODE
     next_literal;
     t1 = stack_pop();
     t2 = stack_pop();
-    cpu_attach_method(state, c, t1, _lit, t2);
+    proxy->attach_method(state, c, t1, _lit, t2);
     stack_push(t2);
-    cpu_perform_hook(state, c, t1, global->sym_s_method_added, _lit);
+    proxy->perform_hook(state, c, t1, global->sym_s_method_added, _lit);
     CODE
   end
 
@@ -1839,9 +1852,9 @@ CODE
     next_literal;
     t1 = stack_pop();
     t2 = stack_pop();
-    cpu_add_method(state, c, t1, _lit, t2);
+    proxy->add_method(state, c, t1, _lit, t2);
     stack_push(t2);
-    cpu_perform_hook(state, c, t1, global->sym_method_added, _lit);
+    proxy->perform_hook(state, c, t1, global->sym_method_added, _lit);
     CODE
   end
 
@@ -1891,7 +1904,7 @@ CODE
     t3 = stack_pop(); /* locals */
     msg.block  = stack_pop();
 
-    cpu_activate_method(state, c, &msg);
+    proxy->activate_method(state, c, &msg);
     if(RTEST(t3)) {
       if(NIL_P(cpu_current_locals(state, c)) || NUM_FIELDS(t3) >= NUM_FIELDS(cpu_current_locals(state, c))) {
         cpu_set_locals(state, c, t3);
@@ -1928,10 +1941,20 @@ CODE
   def send_method
     <<-CODE
     next_literal_into(msg.send_site);
-    msg.recv = stack_pop();
+    t1 = msg.recv = stack_pop();
     msg.block = Qnil;
     msg.args = 0;
-    goto perform_send;
+    
+    if(REFERENCE_P(t1)) {
+      msg.klass = t1->klass;
+    } else {
+      msg.klass = proxy->object_class(state, t1);
+    }
+
+    msg.priv = c->call_flags;
+    c->call_flags = 0;
+
+    proxy->send_message(state, c, &msg);
     CODE
   end
 
@@ -2752,7 +2775,7 @@ perform_no_ss_send:
   def sret
     <<-CODE
     t1 = stack_pop();
-    cpu_simple_return(state, c, t1);
+    proxy->simple_return(state, c, t1);
     CODE
   end
 
@@ -3085,7 +3108,7 @@ perform_no_ss_send:
 
   def get_args
     <<-CODE
-    stack_push(I2N(c->args));
+    stack_push(APPLY_TAG(c->args, TAG_FIXNUM));
     CODE
   end
 
@@ -3697,7 +3720,6 @@ perform_no_ss_send:
 end
 
 si = ShotgunInstructions.new
-si.generate_declarations(STDOUT)
 si.generate_switch(STDOUT)
 
 File.open("instruction_names.c","w") do |f|
@@ -3713,7 +3735,6 @@ File.open("instruction_funcs.gen", "w") do |f|
 end
 
 File.open("instruction_dt.gen", "w") do |f|
-  si.generate_declarations(f)
   si.generate_threaded(f)
 end
 

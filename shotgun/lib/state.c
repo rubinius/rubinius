@@ -7,6 +7,8 @@
 #include "shotgun/lib/cleanup_hash.h"
 #include "shotgun/lib/config_hash.h"
 #include "shotgun/lib/machine.h"
+#include "shotgun/lib/bignum.h"
+#include "shotgun/lib/methctx.h"
 
 #ifdef TIME_LOOKUP
 #include <mach/mach_time.h>
@@ -54,6 +56,24 @@ rstate rubinius_state_new() {
   st->system_start = mach_absolute_time();
   st->lookup_time = 0;
 #endif
+  
+  st->proxy = (struct inter_proxy*)calloc(1, sizeof(struct inter_proxy));
+  st->proxy->bignum_new = bignum_new;
+  st->proxy->methctx_reference = methctx_reference;
+  st->proxy->open_module = cpu_open_module;
+  st->proxy->attach_method = cpu_attach_method;
+  st->proxy->add_method = cpu_add_method;
+  st->proxy->perform_hook = cpu_perform_hook;
+  st->proxy->activate_method = cpu_activate_method;
+  st->proxy->object_class = object_class;
+  st->proxy->send_message = cpu_send_message;
+  st->proxy->get_ivar = object_get_ivar;
+  st->proxy->set_ivar = object_set_ivar;
+  st->proxy->write_barrier = object_memory_write_barrier;
+  st->proxy->simple_return = cpu_simple_return;
+  st->proxy->set_encloser = cpu_set_encloser_path;
+  st->proxy->push_encloser = cpu_push_encloser;
+
   return st;
 }
 
@@ -64,6 +84,7 @@ void state_destroy(STATE) {
   ht_cleanup_destroy(state->cleanup);
   ht_config_destroy(state->config);
 
+  free(state->proxy);
   free(state);
 }
 

@@ -63,12 +63,12 @@ class InstructionSet
     {:opcode => :push_ivar, :args => [:literal], :stack => [0,1]},
     {:opcode => :goto_if_defined, :args => [:ip], :stack => [1,0],
       :flow => :goto},
-    {:opcode => :push_const, :args => [:literal], :stack => [0,1]},
+    {:opcode => :push_const, :args => [:literal], :stack => [0,1], :flow => :send},
     {:opcode => :set_const, :args => [:literal], :stack => [1,1],
       :vm_flags => []},
     {:opcode => :set_const_at, :args => [:literal], :stack => [2,0],
       :vm_flags => []},
-    {:opcode => :find_const, :args => [:literal], :stack => [1,1]},
+    {:opcode => :find_const, :args => [:literal], :stack => [1,1], :flow => :send},
     {:opcode => :attach_method, :args => [:literal], :stack => [2,1],
       :vm_flags => [:check_interrupts]},
     {:opcode => :add_method, :args => [:literal], :stack => [2,1],
@@ -286,6 +286,18 @@ class InstructionSet
     # may be one of :sequential, :send, :return, :goto, or :raise.
     def flow
       @opcode_info[:flow] || :sequential
+    end
+
+    # Indicates if this instruction terminates a basic block. Used
+    # for translating the bytecode into macro ops.
+    def final?
+      [:send, :return].include? @opcode_info[:flow]
+    end
+
+    # Indicates that this is a goto, and thus the target must be
+    # the first instruction in a basic block.
+    def goto?
+      @opcode_info[:flow] == :goto
     end
 
     def to_s
