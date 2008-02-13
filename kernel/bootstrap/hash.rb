@@ -59,5 +59,19 @@ class Hash
   def delete_by_hash(hsh, key)
     Ruby.primitive :hash_delete
     raise PrimitiveFailure, "primitive failed"
-  end  
+  end
+  
+  def keys()
+    out = []
+    i   = 0
+    while i < @values.fields
+      tup = @values[i]
+      while tup
+        out[out.size] = tup.at(1)
+        tup = tup.at(3)
+      end
+      i += 1
+    end
+    out
+  end
 end

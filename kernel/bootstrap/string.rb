@@ -38,4 +38,39 @@ class String
     self
   end
   
+  def substring(start, count)
+    return if count < 0 || start > @bytes || -start > @bytes
+
+    start += @bytes if start < 0
+
+    count = @bytes - start if start + count > @bytes
+    count = 0 if count < 0
+
+    str = self.class.allocate
+    str.taint if self.tainted?
+    if count == 0
+      ba = ByteArray.new(0)
+    else
+      ba = @data.fetch_bytes(start, count)
+    end
+
+    str.initialize_from count, ba
+
+    return str
+  end
+  
+  def initialize_from(count, ba)
+    @bytes = count
+    @characters = count
+    @data = ba
+  end
+  
+  def ==(other)
+    Ruby.primitive :string_equal
+  end
+  
+  def length
+    @bytes
+  end
+
 end
