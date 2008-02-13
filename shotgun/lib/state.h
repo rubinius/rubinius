@@ -224,12 +224,14 @@ static inline OBJECT rbs_int_to_numeric(STATE, native_int num) {
  * the sign bit, so for large unsigned ints, the test is a false
  * positive for it fitting properly. */
 static inline OBJECT rbs_uint_to_numeric(STATE, unsigned int num) {
-  /* Number is too big for Fixnum. Use Bignum. */
+  /* No need to check what 'num' is if it will always fit into a Fixnum */
+#if (CONFIG_WORDSIZE != 64)
   if(num > FIXNUM_MAX) {
+    /* Number is too big for Fixnum. Use Bignum. */
     return bignum_new_unsigned(state, num);
-  } else {
-    return APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
+#endif
+  return APPLY_TAG((native_int)num, TAG_FIXNUM);
 }
 
 static inline OBJECT rbs_ll_to_numeric(STATE, long long num) {
