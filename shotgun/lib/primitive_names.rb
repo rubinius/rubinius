@@ -221,7 +221,11 @@ module Bytecode
       :float_divmod,
       :float_pow,
       :float_isnan,
-      :float_isinf
+      :float_isinf,
+      :bignum_gt,
+      :bignum_ge,
+      :bignum_lt,
+      :bignum_le
     ]
   end
 end

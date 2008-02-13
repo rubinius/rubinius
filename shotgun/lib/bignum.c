@@ -367,6 +367,56 @@ OBJECT bignum_compare(STATE, OBJECT a, OBJECT b) {
   return I2N(0);
 }
 
+OBJECT bignum_gt(STATE, OBJECT a, OBJECT b) {
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, N2I(b));
+  }
+
+  if(mp_cmp(MP(a), MP(b)) == MP_GT) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+OBJECT bignum_ge(STATE, OBJECT a, OBJECT b) {
+  int r;
+  
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, N2I(b));
+  }
+
+  r = mp_cmp(MP(a), MP(b));
+  if(r == MP_GT || r == MP_EQ) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+OBJECT bignum_lt(STATE, OBJECT a, OBJECT b) {
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, N2I(b));
+  }
+
+  if(mp_cmp(MP(a), MP(b)) == MP_LT) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+OBJECT bignum_le(STATE, OBJECT a, OBJECT b) {
+  int r;
+  
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, N2I(b));
+  }
+
+  r = mp_cmp(MP(a), MP(b));
+  if(r == MP_LT || r == MP_EQ) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
 unsigned long bignum_to_int(STATE, OBJECT self) {
   return mp_get_int(MP(self));
 }
@@ -646,4 +696,3 @@ int mp_set_long (mp_int * a, unsigned long b)
   mp_clamp (a);
   return MP_OKAY;
 }
-

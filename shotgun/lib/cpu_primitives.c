@@ -27,6 +27,7 @@
 #include "shotgun/lib/hash.h"
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/object.h"
+#include "shotgun/lib/bignum.h"
 #include "shotgun/lib/bytearray.h"
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/regexp.h"

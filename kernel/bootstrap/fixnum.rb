@@ -1,9 +1,19 @@
 class Fixnum < Integer
-  def ==(o)
-    Ruby.primitive :equal
-    super(o)
+
+  # unary operators
+
+  def ~
+    Ruby.primitive :fixnum_invert
+    raise PrimitiveFailure, "Fixnum#~ primitive failed"
+  end
+
+  def -@
+    Ruby.primitive :fixnum_neg
+    raise PrimitiveFailure, "Fixnum#-@ primitive failed"
   end
   
+  # binary math operators
+
   def +(o)
     Ruby.primitive :add
     super(o)
@@ -31,6 +41,13 @@ class Fixnum < Integer
     super(o)
   end
   
+  def divmod(other)
+    Ruby.primitive :fixnum_divmod
+    super(other)
+  end
+  
+  # bitwise binary operators
+
   def &(o)
     Ruby.primitive :fixnum_and
     super(o)
@@ -46,19 +63,26 @@ class Fixnum < Integer
     super(o)
   end
 
-  def ~
-    Ruby.primitive :fixnum_invert
+  def __fixnum_left_shift__(c)
+    Ruby.primitive :fixnum_left_shift
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def -@
-    Ruby.primitive :fixnum_neg
+  def __fixnum_right_shift__(c)
+    Ruby.primitive :fixnum_right_shift
     raise PrimitiveFailure, "primitive failed"
   end
+
+  def __bignum_new__(value)
+    Ruby.primitive :bignum_new
+    raise PrimitiveFailure, "primitive failed"
+  end
+
+  # comparison operators
   
-  def divmod(other)
-    Ruby.primitive :fixnum_divmod
-    super(other)
+  def ==(o)
+    Ruby.primitive :equal
+    super(o)
   end
   
   def <=>(other)
@@ -86,45 +110,34 @@ class Fixnum < Integer
     super(o)
   end
   
+  # predicates
+
+  def zero?
+    self == 0
+  end
+
+  # conversions
+
   def to_s(base=10)
     based_to_s(base)
   end
   
   def based_to_s(base)
     Ruby.primitive :fixnum_to_s
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Fixnum#based_to_s primitive failed"
   end
   
   def to_f
     Ruby.primitive :fixnum_to_f
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Fixnum#to_f primitive failed"
   end
   
   def size
     Ruby.primitive :fixnum_size
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Fixnum#size primitive failed"
   end
 
   def inspect
     based_to_s(10)
-  end
-
-  def zero?
-    self == 0
-  end
-
-  def __fixnum_left_shift__(c)
-    Ruby.primitive :fixnum_left_shift
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def __fixnum_right_shift__(c)
-    Ruby.primitive :fixnum_right_shift
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def __bignum_new__(value)
-    Ruby.primitive :bignum_new
-    raise PrimitiveFailure, "primitive failed"
   end
 end

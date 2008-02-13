@@ -203,7 +203,7 @@ class ShotgunPrimitives
       GUARD(N2I(t1) != 0) // no divide by zero
       RET(I2N(fixnum_div(state, msg->recv, t1, &mod)));
     } else if(BIGNUM_P(t1)) {
-      GUARD(!bignum_is_zero(state, t1));    
+      GUARD(!bignum_is_zero(state, t1));
       RET(bignum_div(state, bignum_new(state, N2I(msg->recv)), t1));
     } else if(FLOAT_P(t1)) {
       OBJECT t2 = float_coerce(state, msg->recv);
@@ -219,7 +219,7 @@ class ShotgunPrimitives
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1)) {
-      GUARD(!bignum_is_zero(state, t1));    
+      GUARD(!bignum_is_zero(state, t1));
       RET(bignum_div(state, msg->recv, t1));
     } else if(FIXNUM_P(t1)) {
       GUARD(N2I(t1) != 0) // no divide by zero
@@ -313,56 +313,85 @@ class ShotgunPrimitives
   
   def fixnum_lt
     <<-CODE
-    OBJECT t1;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1,   FIXNUM);
-    
+    OBJECT t2 = stack_pop();
     native_int j = N2I(msg->recv);
-    native_int k = N2I(t1);
-    
-    RET(j < k ? Qtrue : Qfalse);
+
+    if(FIXNUM_P(t2)) {
+      native_int k = N2I(t2);
+      RET(j < k ? Qtrue : Qfalse);
+    } else if(BIGNUM_P(t2)) {
+      OBJECT t1 = bignum_new(state, j);
+      RET(bignum_lt(state, t1, t2));
+    } else if(FLOAT_P(t2)) {
+      OBJECT t1 = float_coerce(state, msg->recv);
+      RET(FLOAT_TO_DOUBLE(t1) < FLOAT_TO_DOUBLE(t2) ? Qtrue : Qfalse);
+    } else {
+      FAIL();
+    }
     CODE
   end
   
   def fixnum_le
     <<-CODE
-    OBJECT t1;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1,   FIXNUM);
-    
+    OBJECT t2 = stack_pop();
     native_int j = N2I(msg->recv);
-    native_int k = N2I(t1);
-    
-    RET(j <= k ? Qtrue : Qfalse);
+
+    if(FIXNUM_P(t2)) {
+      native_int k = N2I(t2);
+      RET(j <= k ? Qtrue : Qfalse);
+    } else if(BIGNUM_P(t2)) {
+      OBJECT t1 = bignum_new(state, j);
+      RET(bignum_le(state, t1, t2));
+    } else if(FLOAT_P(t2)) {
+      OBJECT t1 = float_coerce(state, msg->recv);
+      RET(FLOAT_TO_DOUBLE(t1) <= FLOAT_TO_DOUBLE(t2) ? Qtrue : Qfalse);
+    } else {
+      FAIL();
+    }
     CODE
   end
   
   def fixnum_gt
     <<-CODE
-    OBJECT t1;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1,   FIXNUM);
-    
+    OBJECT t2 = stack_pop();
     native_int j = N2I(msg->recv);
-    native_int k = N2I(t1);
-    
-    RET(j > k ? Qtrue : Qfalse);
+
+    if(FIXNUM_P(t2)) {
+      native_int k = N2I(t2);
+      RET(j > k ? Qtrue : Qfalse);
+    } else if(BIGNUM_P(t2)) {
+      OBJECT t1 = bignum_new(state, j);
+      RET(bignum_gt(state, t1, t2));
+    } else if(FLOAT_P(t2)) {
+      OBJECT t1 = float_coerce(state, msg->recv);
+      RET(FLOAT_TO_DOUBLE(t1) > FLOAT_TO_DOUBLE(t2) ? Qtrue : Qfalse);
+    } else {
+      FAIL();
+    }
     CODE
   end
   
   def fixnum_ge
     <<-CODE
-    OBJECT t1;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1,   FIXNUM);
+    OBJECT t2 = stack_pop();
     native_int j = N2I(msg->recv);
-    native_int k = N2I(t1);
-    
-    RET(j >= k ? Qtrue : Qfalse);
+
+    if(FIXNUM_P(t2)) {
+      native_int k = N2I(t2);
+      RET(j >= k ? Qtrue : Qfalse);
+    } else if(BIGNUM_P(t2)) {
+      OBJECT t1 = bignum_new(state, j);
+      RET(bignum_ge(state, t1, t2));
+    } else if(FLOAT_P(t2)) {
+      OBJECT t1 = float_coerce(state, msg->recv);
+      RET(FLOAT_TO_DOUBLE(t1) >= FLOAT_TO_DOUBLE(t2) ? Qtrue : Qfalse);
+    } else {
+      FAIL();
+    }
     CODE
   end
   
@@ -3743,6 +3772,66 @@ class ShotgunPrimitives
       RET(value < 0 ? I2N(-1) : I2N(1));
     } else {
       RET(Qnil);
+    }
+    CODE
+  end
+
+  def bignum_gt
+    <<-CODE
+    GUARD(BIGNUM_P(msg->recv));
+    OBJECT t1 = stack_pop();
+    if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
+      RET(bignum_gt(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      double a = bignum_to_double(state, msg->recv);
+      RET(a > FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
+    } else {
+      FAIL();
+    }
+    CODE
+  end
+
+  def bignum_ge
+    <<-CODE
+    GUARD(BIGNUM_P(msg->recv));
+    OBJECT t1 = stack_pop();
+    if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
+      RET(bignum_ge(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      double a = bignum_to_double(state, msg->recv);
+      RET(a >= FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
+    } else {
+      FAIL();
+    }
+    CODE
+  end
+
+  def bignum_lt
+    <<-CODE
+    GUARD(BIGNUM_P(msg->recv));
+    OBJECT t1 = stack_pop();
+    if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
+      RET(bignum_lt(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      double a = bignum_to_double(state, msg->recv);
+      RET(a < FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
+    } else {
+      FAIL();
+    }
+    CODE
+  end
+
+  def bignum_le
+    <<-CODE
+    GUARD(BIGNUM_P(msg->recv));
+    OBJECT t1 = stack_pop();
+    if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
+      RET(bignum_le(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      double a = bignum_to_double(state, msg->recv);
+      RET(a <= FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
+    } else {
+      FAIL();
     }
     CODE
   end

@@ -1,24 +1,19 @@
 class Bignum < Integer
-  def self.from_float(value)
-    Ruby.primitive :bignum_from_float
-    raise PrimitiveFailure, "primitive failed"
-  end
-  
-  def radix_to_s(radix)
-    Ruby.primitive :bignum_to_s
-    raise PrimitiveFailure, "primitive failed"
+
+  # unary operators
+
+  def ~
+    Ruby.primitive :bignum_invert
+    raise PrimitiveFailure, "Bignum#~ primitive failed"
   end
 
-  def to_s(radix=10)
-    raise ArgumentError, 'base must be between 2 and 36' unless
-      radix.between?(2, 36)
-    radix_to_s(radix)
+  def -@
+    Ruby.primitive :bignum_neg
+    raise PrimitiveFailure, "Bignum#-@ primitive failed"
   end
 
-  def inspect
-    radix_to_s(10)
-  end
-  
+  # binary math operators
+
   def +(o)
     Ruby.primitive :bignum_add
     super(o)
@@ -40,7 +35,19 @@ class Bignum < Integer
     Ruby.primitive :bignum_div
     super(o)
   end
-  
+
+  def divmod(other)
+    Ruby.primitive :bignum_divmod
+    super(other)
+  end
+
+  def mod_primitive(other)
+    Ruby.primitive :bignum_mod
+    raise PrimitiveFailure, "primitive failed"
+  end
+
+  # bitwise binary operators
+
   def &(o)
     Ruby.primitive :bignum_and
     super(o)
@@ -56,21 +63,6 @@ class Bignum < Integer
     super(o)
   end
 
-  def ~
-    Ruby.primitive :bignum_invert
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def -@
-    Ruby.primitive :bignum_neg
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def ==(o)
-    Ruby.primitive :bignum_equal
-    super(o)
-  end
-  
   def __bignum_left_shift__(s)
     Ruby.primitive :bignum_left_shift
     raise PrimitiveFailure, "primitive failed"
@@ -81,28 +73,67 @@ class Bignum < Integer
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def to_f
-    Ruby.primitive :bignum_to_float
-    raise PrimitiveFailure, "primitive failed"
+  # comparison operators
+
+  def <(o)
+    Ruby.primitive :bignum_lt
+    super(o)
+  end
+
+  def <=(o)
+    Ruby.primitive :bignum_le
+    super(o)
+  end
+
+  def >(o)
+    Ruby.primitive :bignum_gt
+    super(o)
+  end
+
+  def >=(o)
+    Ruby.primitive :bignum_ge
+    super(o)
+  end
+
+  def ==(o)
+    Ruby.primitive :bignum_equal
+    super(o)
   end
 
   def <=>(other)
     Ruby.primitive :bignum_compare
     super(other)
   end
-  
-  def divmod(other)
-    Ruby.primitive :bignum_divmod
-    super(other)
+
+  # conversions
+
+  def self.from_float(value)
+    Ruby.primitive :bignum_from_float
+    raise PrimitiveFailure, "Bignum.from_float primitive failed"
   end
 
-  def mod_primitive(other)
-    Ruby.primitive :bignum_mod
-    raise PrimitiveFailure, "primitive failed"
+  def to_f
+    Ruby.primitive :bignum_to_float
+    raise PrimitiveFailure, "Bignum#to_f primitive failed"
+  end
+
+  def radix_to_s(radix)
+    Ruby.primitive :bignum_to_s
+    raise PrimitiveFailure, "Bignum#radix_to_s primitive failed"
+  end
+
+  def to_s(radix=10)
+    raise ArgumentError, 'base must be between 2 and 36' unless
+      radix.between?(2, 36)
+    radix_to_s(radix)
+  end
+
+  def inspect
+    radix_to_s(10)
   end
 
   def size
     Ruby.primitive :bignum_size
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Bignum#size primitive failed"
   end
 end
