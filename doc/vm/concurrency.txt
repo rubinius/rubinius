@@ -4,7 +4,7 @@ Rubinius provides a number of concurrency techniques, significantly expanding
 upon that available in standard Ruby. As such, use of these additional
 primitives is non-standard.
 
-_Note:_ Currently, Rubinius achieves concurrency through the use of
+*Note:* Currently, Rubinius achieves concurrency through the use of
 green-threads. Native thread support is not implemented at present, although it
 is planned for the 2.0 release of Rubinius, and Shotgun has been constructed
 with thread-safety in mind.
@@ -31,7 +31,7 @@ The Actor class provides an implementation of the *Actor* concurrency pattern.
 Actor instances are threads that can be given work to do via message objects.
 Actor instances process messages according to filters, deciding what to do
 based on the type of message to be processed (where comparison of message types
-uses the same comparison logic as _case_, namely +===+).
+uses the same comparison logic as _case_, namely <tt>===</tt>).
 
 Unlike Channels, the read end of an Actor is fixed (to the thread owned by the
 Actor), and the Actor can prioritise handling of messages, and even postpone

@@ -5,10 +5,10 @@ Ruby implementation) 1.8.6, but contains some additional useful functionality,
 and also removes some less common and problematic behaviours. This document
 provides a summary of both the additions and subtractions from MRI 1.8.6.
 
-_Note:_ This document is not a complete list! Rubinius is still incomplete, and
+*Note:* This document is not a complete list! Rubinius is still incomplete, and
 changing rapidly. If you find a difference and have confirmed it is
 intentional, please help make this document more complete by updating it! You
-can find the source text at /doc/vm/rubinius_vs_mri.textile in your Rubinius
+can find the source text at doc/vm/rubinius_vs_mri.tx in your Rubinius
 directory.
 
 === Rubinius Extensions to MRI
@@ -37,23 +37,31 @@ portable to MRI:
   * Actor
   * Channel
 * Metaprogramming:
-  MetaClass::
+  [MetaClass]
     Object meta-classes are instances of +MetaClass+, which is a sub-class of
     +Class+.
 * Rubinius Runtime Introspection:
-  Globals:: Object containing a hash of all global variables.
-  CompiledMethod::
+  [Globals] Object containing a hash of all global variables.
+  [CompiledMethod]
     A +CompiledMethod+ object is used to represent each compiled method object
     in Rubinius. It holds much of the details of a method implementation,
     including the local variables and literals used in the method, the
     +InstructionSequence+ containing the bytecode of the method implementation,
     etc.
-  MethodContext::
-  BlockContext::
-  BlockEnvironment::
-  Backtrace::
-  InstructionSequence::
-  File#to_sexp, String#to_sexp::
+  [MethodContext]
+    Object created to store all information about a running method.
+  [BlockContext]
+    Object created to store all information about a running block.
+  [BlockEnvironment]
+    Object describing the environment a block was created in, used to create a
+    BlockContext.
+  [Backtrace]
+    Backtraces contain stack frame objects and have a colorized
+    #awesome_backtrace method.
+  [InstructionSequence]
+    The bytecode instructions for how to operform the operations of a
+    CompiledMethod.
+  [File#to_sexp, String#to_sexp]
     Converts the Ruby code in the file or string to an S-expression (sexp).
 
 === Rubinius Incompatibilities
@@ -73,6 +81,6 @@ Following is a list of known incompatibilities:
   left-to-right. This will only be noticeable if expressions on the RHS are
   dependent on one another, which is rarely the case.
 
-_Note_: This list is *not* final, and some of the current incompatibilities
+*Note:* This list is *not* final, and some of the current incompatibilities
 listed above are likely to be resolved as the project progresses.
 
