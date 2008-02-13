@@ -4,10 +4,12 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 module ModuleSpecs
   class NoInheritance
     def method_to_undef() 1 end
+    def another_method_to_undef() 1 end
   end
 
   class Parent
     def method_to_undef() 1 end
+    def another_method_to_undef() 1 end
   end
 
   class Child < Parent
@@ -15,13 +17,14 @@ module ModuleSpecs
 
   class Ancestor
     def method_to_undef() 1 end
+    def another_method_to_undef() 1 end
   end
 
   class Descendant < Ancestor
   end
 end
 
-describe "Module#undef_method" do
+describe "Module#undef_method with symbol" do
   it "removes a method defined in a class" do
     x = ModuleSpecs::NoInheritance.new
 
@@ -48,5 +51,35 @@ describe "Module#undef_method" do
     ModuleSpecs::Descendant.send :undef_method, :method_to_undef
 
     ancestor.method_to_undef.should == 1
+  end
+end
+
+describe "Module#undef_method with string" do
+  it "removes a method defined in a class" do
+    x = ModuleSpecs::NoInheritance.new
+
+    x.another_method_to_undef.should == 1
+
+    ModuleSpecs::NoInheritance.send :undef_method, 'another_method_to_undef'
+
+    lambda { x.another_method_to_undef }.should raise_error(NoMethodError)
+  end
+
+  it "removes a method defined in a super class" do
+    child = ModuleSpecs::Child.new
+    child.another_method_to_undef.should == 1
+
+    ModuleSpecs::Child.send :undef_method, 'another_method_to_undef'
+
+    lambda { child.another_method_to_undef }.should raise_error(NoMethodError)
+  end
+
+  it "does not remove a method defined in a super class when removed from a subclass" do
+    ancestor = ModuleSpecs::Ancestor.new
+    ancestor.another_method_to_undef.should == 1
+
+    ModuleSpecs::Descendant.send :undef_method, 'another_method_to_undef'
+
+    ancestor.another_method_to_undef.should == 1
   end
 end

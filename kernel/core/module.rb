@@ -243,6 +243,7 @@ class Module
 
   def undef_method(*names)
     names.each do |name|
+      name = normalize_name(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
       method_table[name] = false
@@ -256,6 +257,7 @@ class Module
 
   def remove_method(*names)
     names.each do |name|
+      name = normalize_name(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
       raise NameError, "method `#{name}' not defined in #{self.name}" unless
