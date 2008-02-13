@@ -55,7 +55,7 @@ class TypesGenerator
       else
         # Fallback to an ordinary pointer if we don't know the type
         if def_type =~ /\*/
-          code << "rbx.platform.typedef.#{final_type} = #{type}\n"
+          code << "rbx.platform.typedef.#{final_type} = pointer\n"
           type_map[final_type] = :pointer
         end
       end
