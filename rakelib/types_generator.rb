@@ -37,18 +37,49 @@ class TypesGenerator
     typedefs.each do |type|
       # Ignore unions or structs
       next if type =~ /union|struct/
-      # We don't handle typdefs like typedef unsigned int u_int16_t __attribute__ ((__mode__ (__HI__))); 
-      # that occur on linux
-      next if type =~ /\(.*\)/
-  
+      
       # strip off the starting typedef and ending ;
       type.gsub!(/^(.*typedef\s*)/, "")
       type.gsub!(/\s*;\s*$/,"")
   
       parts = type.split(/\s+/)
-      final_type = parts.pop
       def_type   = parts.join(" ")
-  
+      # GCC does mapping with __attribute__ stuf, also see 
+      # http://hal.cs.berkeley.edu/cil/cil016.html section 16.2.7. 
+      # Problem with this is that the __attribute__ stuff can either
+      # occur before or after the new type that is defined...
+      if type =~ /__attribute__/
+        if parts.last =~ /__QI__|__HI__|__SI__|__DI__|__word__/
+          # In this case, the new type is BEFORE __attribute__
+          # we need to find the final_type as the type before the
+          # part that starts with __attribute__
+          final_type = ""
+          parts.each do |p|
+            break if p =~ /__attribute__/
+            final_type = p
+          end
+        else
+          final_type = parts.pop
+		    end
+        
+		    def_type = "int"
+        if type =~ /__QI__/
+          def_type = "char"
+        elsif type =~ /__HI__/
+          def_type = "short"
+        elsif type =~ /__SI__/
+          def_type = "int"
+        elsif type =~ /__DI__/
+          def_type = "long long"
+        elsif type =~ /__word__/
+          def_type = "long"
+        end
+        def_type = "unsigned #{def_type}" if type =~ /unsigned/
+      else
+        final_type = parts.pop
+        def_type   = parts.join(" ")
+      end
+      
       if type = type_map[def_type]
         code << "rbx.platform.typedef.#{final_type} = #{type}\n"
         type_map[final_type] = type_map[def_type]
