@@ -83,6 +83,13 @@ class Tuple
     return t
   end
 
+  # Swap elements of the two indexes.
+  def swap(a, b)
+    temp = at(a)
+    put(a, at(b))
+    put(b, temp)
+  end
+
   def enlarge(size)
     if size > fields()
       t = Tuple.new(size)
