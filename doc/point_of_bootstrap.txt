@@ -1,10 +1,10 @@
 The point of the bootstrap step is to build up just enough functionality to:
 
-1) use alias
-2) run FFI (for platform code)
-3) provide basic error reporting (primary related to method_missing)
+1. use alias
+2. run FFI (for platform code)
+3. provide basic error reporting (primary related to method_missing)
 
-It also serves to attach all primitives. Primitives are ONLY allowed to be
+It also serves to attach all primitives. Primitives are *only* allowed to be
 attached in bootstrap.
 
 All functionality provided by bootstrap may be redefined in core to provide
@@ -12,5 +12,5 @@ a 'proper' implementation.
 
 Rules of bootstrap:
 
-1) limited to no metaprogramming. The bootstrap should be a container of code only.
-   if it runs code, then order starts to matter and things fall apart.
+1. Limited to no metaprogramming. The bootstrap should be a container of code
+   only. If it runs code, then order starts to matter and things fall apart.

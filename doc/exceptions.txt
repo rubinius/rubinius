@@ -1,20 +1,19 @@
-How exceptions are delivered.
+= How exceptions are delivered.
 
-There are 3 separate parts:
-1) The exception deliver table, one per compiled method.
-2) A translator that converts rescues into the exception table
-3) The exception deliverer, which searches tables and perform jumps.
+There are 3 separate parts
+1. The exception deliver table, one per compiled method.
+2. A translator that converts rescues into the exception table
+3. The exception deliverer, which searches tables and perform jumps.
 
-
-The exception table.
+== The exception table.
 
 This is the core of the exception deliver mechanism. The table
 is organized into rows, each row having 3 columns:
-  1) the start bytecode index
-  2) the end bytecode index
-  3) the bytecode index to jump to
+1. the start bytecode index
+2. the end bytecode index
+3. the bytecode index to jump to
 
-How they all work together:
+== How they all work together
 
 When an exception is raised, the deliverer takes the current 
 context's exception table and the current ip and searches
@@ -43,22 +42,20 @@ find someone to handle the exception, the cpu is trigger to handle it
 itself. This typically means informing the user in some way that an
 exception has reached the top and that the program is going to terminate.
 
-Algorithms:
+== Algorithms
 
 find an exception handler:
 
-I = @active_context.ip
-T = @active_context.exceptions
-
-while @active_context
-
-	T.each_row do |entry|
-	   if entry[0] <= I and entry[1] >= I
-	       @cpu.ip = entry[2]
-	       return
-	   end
-	end
-
-	@active_context = @active_context.sender
-	
-end
+  I = @active_context.ip
+  T = @active_context.exceptions
+  
+  while @active_context
+  	T.each_row do |entry|
+  		if entry[0] <= I and entry[1] >= I
+  		 	@cpu.ip = entry[2]
+  		 	return
+  		end
+  	end
+    
+  	@active_context = @active_context.sender
+  end
