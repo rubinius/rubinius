@@ -83,31 +83,28 @@ module Platform::POSIX
   attach_function 'gettimeofday', [:pointer, :pointer], :int
 
   # UID/GID
-  gid_t = :uint
-  uid_t = :uint
-  id_t = :uint
-  attach_function 'getuid', [], uid_t
-  attach_function 'getgid', [], gid_t
-  attach_function 'geteuid', [], uid_t
-  attach_function 'getegid', [], gid_t
+  attach_function 'getuid', [], :uid_t
+  attach_function 'getgid', [], :gid_t
+  attach_function 'geteuid', [], :uid_t
+  attach_function 'getegid', [], :gid_t
 
-  attach_function 'setgid', [gid_t], :int
-  attach_function 'setuid', [uid_t], :int
-  attach_function 'setegid', [gid_t], :int
-  attach_function 'seteuid', [uid_t], :int
+  attach_function 'setgid', [:gid_t], :int
+  attach_function 'setuid', [:uid_t], :int
+  attach_function 'setegid', [:gid_t], :int
+  attach_function 'seteuid', [:uid_t], :int
 
-  attach_function 'setregid', [gid_t, gid_t], :int
-  attach_function 'setreuid', [uid_t, uid_t], :int
+  attach_function 'setregid', [:gid_t, :gid_t], :int
+  attach_function 'setreuid', [:uid_t, :uid_t], :int
   # These are linux specific
   #attach_function 'setresgid', [gid_t, gid_t, gid_t], :int
   #attach_function 'setresuid', [uid_t, uid_t, uid_t], :int
 
-  attach_function 'getpriority', [:int, id_t], :int
-  attach_function 'setpriority', [:int, id_t, :int], :int
+  attach_function 'getpriority', [:int, :id_t], :int
+  attach_function 'setpriority', [:int, :id_t, :int], :int
 
   attach_function 'getgroups', [:int, :pointer], :int
   attach_function 'setgroups', [:int, :pointer], :int
-  attach_function 'initgroups', [:string, gid_t], :int
+  attach_function 'initgroups', [:string, :gid_t], :int
 
   attach_function 'setrlimit', [:int, :pointer], :int
   attach_function 'getrlimit', [:int, :pointer], :int
@@ -127,18 +124,17 @@ module Platform::POSIX
 
   # processes and signals
   pid_t = :int
-  attach_function 'kill', [pid_t, :int], :int
-  attach_function 'getpgid', [pid_t], pid_t
-  attach_function 'setpgid', [pid_t, pid_t], :int
-  attach_function 'getpid', [], pid_t
-  attach_function 'getppid', [], pid_t
-  attach_function 'getpgrp', [], pid_t
-  attach_function 'setsid', [], pid_t
+  attach_function 'kill', [:pid_t, :int], :int
+  attach_function 'getpgid', [:pid_t], :pid_t
+  attach_function 'setpgid', [:pid_t, :pid_t], :int
+  attach_function 'getpid', [], :pid_t
+  attach_function 'getppid', [], :pid_t
+  attach_function 'getpgrp', [], :pid_t
+  attach_function 'setsid', [], :pid_t
   
   # related to stat()
-  dev_t = :int
-  attach_function 'ffi_major', :major, [dev_t], :long
-  attach_function 'ffi_minor', :minor, [dev_t], :long
+  attach_function 'ffi_major', :major, [:dev_t], :dev_t
+  attach_function 'ffi_minor', :minor, [:dev_t], :dev_t
   
   # stat
   # FIXME: these are TEMPORARY until we determine how to
