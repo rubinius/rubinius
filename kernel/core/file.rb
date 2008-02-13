@@ -82,6 +82,13 @@ class File < IO
     paths.each { |path| POSIX.chmod(path, mode) }
     paths.size
   end
+  
+  def self.chown(owner_int, group_int, *paths)
+    owner_int = -1 if owner_int == nil
+    group_int = -1 if group_int == nil
+    paths.each { |path| POSIX.chown(path, owner_int, group_int) }
+    paths.size
+  end
 
   def self.ctime(path)
     Stat.new(path).ctime
