@@ -1319,49 +1319,29 @@ class Array
   # whether the first parameter is smaller, equal or larger than the
   # second parameter.
   def sort(&block)
-    return self.dup if self.size <= 1
-    
-    pivot, left, middle, right = at(0), [], [], []
-    
-    each { |elem| 
-      begin
-        if block_given?
-          result = yield(elem, pivot) || 0          
-        else
-          # Done the 'wrong' way around to keep comp with MRI        
-          result = pivot <=> elem
-        end
-        
-        # Done backward to keep comp with MRI when no block is given
-        if result == -1
-          (block_given? ? left : right) << elem
-        elsif result == 0
-          middle << elem
-        elsif result == 1
-          (block_given? ? right : left) << elem
-        else
-          raise ArgumentError, block_given? ? "Unknown result #{result} from block" \
-                                            : "Unable to <=> on candidate #{elem.inspect}"
-        end
+    dup.sort! &block
+  end
 
-      rescue TypeError
-        raise ArgumentError, "Unable to compare #{pivot.class} with #{elem.class}"
-      rescue
-        raise
-      end
-    }
-
-    left = left.sort(&block)
-    right = right.sort(&block)
-
-    self.class.new(left + middle + right) # MRI #+ always returns Array    
-  end                           
-
-  # Sorts self in place as #sort. See Array#sort for other details. 
+  # Sorts this Array in-place. See #sort.
   def sort!(&block)
-    res = sort(&block)
-    replace res
-  end   
+    return self unless @total > 1
+
+    if (@total - @start) < 6
+      if block
+        isort_block @start, (@total - 1), block
+      else
+        isort @start, (@total - 1)
+      end
+    else
+      if block
+        qsort_block block
+      else
+        qsort
+      end
+    end
+
+    self
+  end
 
   # Returns self except on subclasses which are converted
   # or 'upcast' to Arrays.
@@ -1580,4 +1560,176 @@ class Array
   end
 
   private :recursively_flatten
+
+  QSORT_THRESHOLD = 6
+  MEDIAN_THRESHOLD = 750
+
+  # In-place non-recursive sort between the given indexes.
+  def qsort()
+    # Stack stores the indexes that still need sorting
+    stack = []
+    left, right = @start, (@total - 1)
+
+    # We are either processing a 'new' partition or one that
+    # was saved to stack earlier.
+    while true
+      left_end, right_end = left, right
+
+      # Build a median with larger sets
+      # CAUTION: This may differ from block
+      if (right - left > MEDIAN_THRESHOLD)
+        middle = (right - left) / 2
+        low, mid, hi = @tuple.at(left), @tuple.at(middle), @tuple.at(right)
+
+        @tuple.swap(left, middle)   if (mid <=> low) < 0
+        @tuple.swap(left, right)    if (hi <=> low) < 0
+        @tuple.swap(middle, right)  if (hi <=> mid) < 0
+  
+        pivot = @tuple.at(middle)
+        @tuple.swap((right - 1), middle)
+      else
+        pivot = @tuple.at(rand((right - left) + left))
+      end
+
+      # Partition
+      while true
+        left += 1 while left < right_end and (@tuple.at(left) <=> pivot) <= 0
+        right -= 1 while right >= left_end and (@tuple.at(right) <=> pivot) >= 0
+
+        break if right <= left
+        @tuple.swap(left, right)
+      end
+
+      # left and right are already correct
+      left_size, right_size = (right - left_end), (right_end - (right + 1))
+
+      if left_size < QSORT_THRESHOLD
+        isort (right + 1), right_end
+
+        # If both partitions are too small, load up next stored one
+        if right_size < QSORT_THRESHOLD
+          isort (left_end, right)
+          left, right = stack.pop
+        end
+
+      elsif right_size < QSORT_THRESHOLD
+        isort left_end, right
+
+      # Save the larger partition and continue with smaller
+      else
+        if left_size > right_size
+          stack.push [left_end, right]
+          left, right = (right + 1), right_end
+        else
+          stack.push [(right + 1), right_end]   # Indexes already correct
+        end
+      end
+
+      # Completely done
+      break if stack.empty?
+    end
+  end
+
+  # In-place non-recursive sort between the given indexes using a block.
+  def qsort_block(block)
+    # Stack stores the indexes that still need sorting
+    stack = []
+    left, right = @start, (@total - 1)
+
+    # We are either processing a 'new' partition or one that
+    # was saved to stack earlier.
+    while true
+      left_end, right_end = left, right
+
+      # Build a median with larger sets
+      # CAUTION: This may differ from non-block!
+      if (right - left > MEDIAN_THRESHOLD)
+        middle = (right - left) / 2
+        low, mid, hi = @tuple.at(left), @tuple.at(middle), @tuple.at(right)
+
+        @tuple.swap(left, right)    if block.call(hi, low) < 0
+        @tuple.swap(left, middle)   if block.call(mid, low) < 0
+        @tuple.swap(middle, right)  if block.call(hi, mid) < 0
+  
+        pivot = @tuple.at(middle)
+        @tuple.swap((right - 1), middle)
+      else
+        pivot = @tuple.at(rand((right - left) + left))
+      end
+
+      # Partition
+      while true
+        left += 1 while left < right_end and block.call(@tuple.at(left), pivot) <= 0
+        right -= 1 while right >= left_end and block.call(@tuple.at(right), pivot) >= 0
+
+        break if right <= left
+        @tuple.swap(left, right)
+      end
+
+      # left and right are already correct
+      left_size, right_size = (right - left_end), (right_end - (right + 1))
+
+      if left_size < QSORT_THRESHOLD
+        isort (right + 1), right_end
+
+        # If both partitions are too small, load up next stored one
+        if right_size < QSORT_THRESHOLD
+          isort (left_end, right)
+          left, right = stack.pop
+        end
+
+      elsif right_size < QSORT_THRESHOLD
+        isort left_end, right
+
+      # Save the larger partition and continue with smaller
+      else
+        if left_size > right_size
+          stack.push [left_end, right]
+          left, right = (right + 1), right_end
+        else
+          stack.push [(right + 1), right_end]   # Indexes already correct
+        end
+      end
+
+      # Completely done
+      break if stack.empty?
+    end
+  end
+
+  # Insertion sort in-place between the given indexes.
+  def isort(left, right)
+    i = left + 1
+
+    while i <= right
+      j = i
+
+      while j > 0 and (@tuple.at(j - 1) <=> @tuple.at(j)) > 0
+        @tuple.swap(j, (j - 1))
+        j -= 1
+      end
+
+      i += 1
+    end
+  end
+
+  # Insertion sort in-place between the given indexes using a block.
+  def isort_block(left, right, block)
+    i = left + 1
+
+    while i <= right
+      j = i
+
+      while j > 0 and block.call(@tuple.at(j - 1), @tuple.at(j)) > 0
+        @tuple.swap(j, (j - 1))
+        j -= 1
+      end
+
+      i += 1
+    end
+  end
+
+  private :qsort
+  private :isort
+  private :qsort_block
+  private :isort_block
 end
