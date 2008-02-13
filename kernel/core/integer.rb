@@ -9,17 +9,6 @@ class Integer < Numeric
     raise TypeError, "can't convert #{o.class} into Integer"
   end
 
-  # We deviate from MRI behavior here because we ensure that
-  # Fixnum op Bignum => Bignum (possibly normalized to Fixnum)
-  #
-  # Note these differences on MRI, where a is a Fixnum, b is a Bignum
-  #   a.coerce b => [Float, Float]
-  #   b.coerce a => [Bignum, Bignum]
-  def coerce(other)
-    Ruby.primitive(:numeric_coerce)
-    [Float(other), Float(self)]
-  end
-
   def times
     i = 0
     while i < self

@@ -182,6 +182,17 @@ class Numeric
     end
   end
 
+  # We deviate from MRI behavior here because we ensure that
+  # Fixnum op Bignum => Bignum (possibly normalized to Fixnum)
+  #
+  # Note these differences on MRI, where a is a Fixnum, b is a Bignum
+  #   a.coerce b => [Float, Float]
+  #   b.coerce a => [Bignum, Bignum]
+  def coerce(other)
+    Ruby.primitive(:numeric_coerce)
+    [Float(other), Float(self)]
+  end
+
   # This method mimics the semantics of MRI's do_coerce function
   # in numeric.c. Note these differences between it and #coerce:
   #   1.2.coerce("2") => [2.0, 1.2]
