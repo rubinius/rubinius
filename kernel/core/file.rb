@@ -419,6 +419,10 @@ class File < IO
   def chmod(mode)
     POSIX.fchmod(@descriptor, mode)
   end
+  
+  def chown(owner_int, group_int)
+    POSIX.fchown(@descriptor, owner_int || -1, group_int || -1)
+  end
 
   def ctime
     Stat.new(@path).ctime

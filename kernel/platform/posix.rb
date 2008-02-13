@@ -24,6 +24,7 @@ module Platform::POSIX
   attach_function 'chmod',  [:string, :int], :int
   attach_function 'fchmod', [:int, :int], :int
   attach_function 'chown', [:string, :int, :int], :int
+  attach_function 'fchown', [:int, :int, :int], :int
   attach_function 'unlink', [:string], :int
   attach_function 'getcwd', [:string, :int], :string
   attach_function 'umask', [:int], :int
