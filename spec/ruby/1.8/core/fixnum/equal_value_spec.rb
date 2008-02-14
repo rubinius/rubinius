@@ -12,7 +12,9 @@ describe "Fixnum#==" do
     (10 == 0xffffffff).should == false
   end
   
-  it "calls 'other == self' if the given argument is no Fixnum" do
+  it "calls 'other == self' if the given argument is not a Fixnum" do
+    (1 == '*').should == false
+    
     obj = mock('one other')
     obj.should_receive(:==).any_number_of_times.and_return(false)
     1.should_not == obj

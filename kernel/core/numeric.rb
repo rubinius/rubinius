@@ -112,12 +112,7 @@ class Numeric
   end
 
   def ==(other)
-    begin
-      b, a = math_coerce other, :compare_error
-      return a == b
-    rescue ArgumentError
-      return other == self
-    end
+    other == self
   end
   
   def <=>(other)
