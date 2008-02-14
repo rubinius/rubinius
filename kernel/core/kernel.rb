@@ -104,8 +104,7 @@ module Kernel
 
     if $DEBUG and $VERBOSE != nil
       sender = MethodContext.current.sender
-      method = sender.method
-      STDERR.puts "Exception: `#{exc.class}' #{method.file}:#{sender.line} - #{exc.message}"
+      STDERR.puts "Exception: `#{exc.class}' #{sender.location} - #{exc.message}"
     end
 
     exc.set_backtrace MethodContext.current.sender unless exc.backtrace
