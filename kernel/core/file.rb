@@ -451,6 +451,8 @@ class File < IO
       raise TypeError, "can't convert #{length.class} into Integer"
     end
     
+    raise IOError, "file is closed" if closed?
+    
     n = POSIX.ftruncate(@descriptor, length)
     Errno.handle if n == -1
     n
