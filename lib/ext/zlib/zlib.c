@@ -7,6 +7,7 @@ z_streamp rbx_Zlib_z_stream_Alloc() {
 
   strm = (z_streamp)calloc(1, sizeof(z_stream));
   strm->avail_in = 0;
+  strm->avail_out = 0;
   strm->next_in = Z_NULL;
   strm->opaque = Z_NULL;
   strm->zalloc = Z_NULL;
