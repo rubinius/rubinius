@@ -14,16 +14,8 @@ if `whoami` == "root\n"
     end
   
     it "should change the ownerid and groupid of the file" do
-      not_compliant_on :jruby do
-        File.chown(nil, 0, 'chown_test').should == 1
-      end
-      # It seems JRuby doesn't allow nil to be passed instead of -1
-      platform_is :jruby do
-        File.chown(-1, 0, 'chown_test').should == 1
-      end
-      not_compliant_on :jruby do
-        File.stat('chown_test').gid.should == 0
-      end
+      File.chown(nil, 0, 'chown_test').should == 1
+      File.stat('chown_test').gid.should == 0
     end
   
   end
@@ -41,16 +33,9 @@ if `whoami` == "root\n"
   
     it "should change the ownerid and groupid of the file" do
       f = File.open('chown_test', 'r')
-      not_compliant_on :jruby do
-        f.chown(nil, 0).should == 0
-      end
-      platform_is :jruby do
-        f.chown(-1, 0).should == 0
-      end
+      f.chown(nil, 0).should == 0
       f.close
-      not_compliant_on :jruby do
-        File.stat('chown_test').gid.should == 0
-      end
+      File.stat('chown_test').gid.should == 0
     end
   
   end
