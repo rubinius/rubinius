@@ -983,6 +983,15 @@ class ShotgunPrimitives
     CODE
   end
 
+  def hash_rehash
+    <<-CODE
+    GUARD(HASH_P(msg->recv));
+
+    hash_rehash(state, msg->recv);
+    RET(msg->recv);
+    CODE
+  end
+  
   def hash_object
     <<-CODE
     OBJECT t1;

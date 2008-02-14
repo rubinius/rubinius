@@ -23,6 +23,7 @@ module Bytecode
       :object_id,
       :hash_set,
       :hash_get,
+      :hash_rehash,            
       :hash_object,
       :symbol_index,
       :symbol_lookup,

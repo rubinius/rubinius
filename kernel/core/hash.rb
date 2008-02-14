@@ -6,7 +6,8 @@ class Hash
   # The result of #hash is not allowed to be larger than this.
 
   HASH_MAX = 0x1fffffff
-
+  HASH_DENSITY = 0.75
+  
   include Enumerable
 
   def self.[](*args)
@@ -112,6 +113,9 @@ class Hash
   
   def set_key_cv(key, val)
     key = key.dup if key.kind_of?(String)
+
+    rehash_cv if(@entries >= (@bins*HASH_DENSITY).to_i)
+    
     entry, hash, bin = hash_entry key
     lst = nil
 

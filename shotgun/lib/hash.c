@@ -73,7 +73,7 @@ OBJECT hash_dup(STATE, OBJECT hsh) {
   return dup;
 }
 
-static void hash_rehash(STATE, OBJECT hsh, int _ents) {
+void hash_rehash(STATE, OBJECT hsh) {
   int new_bins, i, old_bins;
   unsigned int bin, hv;
   OBJECT tbl, tup, ent, next;
@@ -182,7 +182,7 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
   b = N2I(hash_get_bins(h));
   
   if((double)i / (double)b > MAX_DENSITY) {
-    hash_rehash(state, h, i);
+    hash_rehash(state, h);
   }
   
   entry = entry_new(state, hsh, key, data);

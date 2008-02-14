@@ -56,9 +56,14 @@ class Hash
     set_by_hash key.hash, key, val
   end
 
+  def rehash_cv
+    Ruby.primitive :hash_rehash
+    raise PrimitiveFailure, "Hash#rehash failed"
+  end
+  
   def delete_by_hash(hsh, key)
     Ruby.primitive :hash_delete
-    raise PrimitiveFailure, "primitive failed"
+    raise PrimitiveFailure, "Hash#delete_by_hash failed"
   end
   
   def keys()
