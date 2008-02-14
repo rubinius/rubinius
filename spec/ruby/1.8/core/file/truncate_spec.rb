@@ -152,10 +152,12 @@ describe "File#truncate" do
   it "raises an IOError if file is closed" do
     @file.close
     @file.closed?.should == true
-    lambda { @file.truncate(42) }.should raise_error(IOError)
+    not_compliant_on :jruby do
+      lambda { @file.truncate(42) }.should raise_error(IOError)
+    end
   end
   
-  not_compliant_on :rubinius do
+  compliant_on :ruby do
     it "raises an IOError if file is not opened for writing" do
       file = File.new(@name, 'r')
       lambda { file.truncate(42) }.should raise_error(IOError)
