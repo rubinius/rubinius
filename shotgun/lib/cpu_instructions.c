@@ -417,7 +417,7 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
   /* If we're direct threaded, the compiled version is an array of the pointer
    * size. */
 #if DIRECT_THREADED
-  target_size = BYTEARRAY_SIZE(bc) * sizeof(uintptr_t);
+  target_size = (BYTEARRAY_SIZE(bc) / sizeof(uint32_t)) * sizeof(uintptr_t);
 #else
   target_size = BYTEARRAY_SIZE(bc);
 #endif
@@ -430,19 +430,6 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
 
   cpu_compile_instructions(state, bc, ba);
   cmethod_set_compiled(cm, ba);
-
-  /* Allocate a tuple to hold the cache entries for method calls */
-  OBJECT cs;
-  cs = cmethod_get_cache(cm);
-  if(FIXNUM_P(cs)) {
-    native_int sz = N2I(cs);
-    if(sz > 0) {
-      cs = tuple_new(state, sz);
-      // Reserve field 0 for call sites that are not cached
-      fast_unsafe_set(cs, 0, Qfalse);
-      cmethod_set_cache(cm, cs);
-    }
-  }
 
   return ba;
 }
