@@ -285,7 +285,7 @@ void hash_assign(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl,
   b = N2I(hash_get_bins(tbl));
   
   if((double)i / (double)b > MAX_DENSITY) {
-    hash_rehash(state, tbl, i);
+    hash_rehash(state, tbl);
   }
 
   if(REFERENCE_P(base)) {  
