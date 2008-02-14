@@ -2434,7 +2434,8 @@ class ShotgunPrimitives
   def fastctx_set_iseq
     <<-CODE
     struct fast_context *fc;
-    OBJECT t1;
+    OBJECT t1, ba;
+    int target_size;
 
     GUARD(CTX_P(msg->recv));
 
@@ -2442,8 +2443,14 @@ class ShotgunPrimitives
 
     fc = FASTCTX(msg->recv);
     if(fc->method->obj_type == CMethodType) {
-      cpu_compile_method(state, fc->method);
-      fc->data = BYTEARRAY_ADDRESS(t1);
+#if DIRECT_THREADED
+      target_size = (BYTEARRAY_SIZE(t1) / sizeof(uint32_t)) * sizeof(uintptr_t);
+#else
+      target_size = BYTEARRAY_SIZE(t1);
+#endif
+      ba = bytearray_new(state, target_size);
+      cpu_compile_instructions(state, t1, ba);
+      fc->data = BYTEARRAY_ADDRESS(ba);
     }
 
     RET(Qtrue);
