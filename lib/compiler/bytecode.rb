@@ -1317,11 +1317,8 @@ class Node
       when :ivar
         ivar = expr.shift
         g.push_literal ivar
-        # instance vars as symbols, not strings
-        g.push :true
         g.push :self
-        g.send :instance_variables, 1
-        g.send :include?, 1
+        g.send :instance_variable_defined?, 1
       when :yield
         g.push_block
       when :const

@@ -497,8 +497,9 @@ module Kernel
   def instance_variables(symbols = false)
     vars = get_instance_variables
     return [] if vars.nil?
+
     # CSM awareness
-    if Tuple === vars
+    if vars.kind_of? Tuple
       out = []
       0.step(vars.size - 1, 2) do |i|
         k = vars[i]
@@ -513,6 +514,26 @@ module Kernel
     end
     return vars.keys if symbols
     return vars.keys.collect { |v| v.to_s }
+  end
+
+  def instance_variable_defined?(name)
+    vars = get_instance_variables
+    return false unless vars
+
+    name = name.to_sym unless name.kind_of? Symbol
+    
+    # CSM awareness
+    if vars.kind_of? Tuple
+      out = []
+      0.step(vars.size - 1, 2) do |i|
+        k = vars[i]
+        return true if k == name
+      end
+
+      return false
+    end
+
+    return vars.key?(name)
   end
 
   def singleton_method_added(name)
