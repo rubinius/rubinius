@@ -21,8 +21,6 @@ class Compiler
       @encoder = InstructionSequence::Encoder.new
       @literals = []
       @ip = 0
-      @cache_size = 0
-      @enable_method_cache = false
       @modstack = []
       @break = nil
       @redo = nil
@@ -153,7 +151,6 @@ class Compiler
       cm.lines = encode_lines()
       cm.exceptions = encode_exceptions()
       cm.serial = 0
-      cm.cache = @cache_size
       cm.local_names = desc.locals.encoded_order
       cm.args = desc.args
       return cm
@@ -296,14 +293,6 @@ class Compiler
       ex.start!
       @exceptions << ex
       yield ex
-    end
-
-    def next_cache_index
-      # Reserve first slot for call sites that are not cached
-      @cache_size = 1 if @cache_size == 0
-      i = @cache_size
-      @cache_size += 1
-      i
     end
 
     # Operations
