@@ -66,17 +66,16 @@ class Hash
     raise PrimitiveFailure, "Hash#delete_by_hash failed"
   end
   
-  def keys()
-    out = []
-    i   = 0
+  def each
+    i = 0
     while i < @values.fields
       tup = @values[i]
       while tup
-        out[out.size] = tup.at(1)
+        yield tup.at(1), tup.at(2)
         tup = tup.at(3)
       end
       i += 1
     end
-    out
+    self
   end
 end

@@ -6,4 +6,4 @@ class Integer
   end
 end
 
-8.times {5000.fact}
+100.times {5000.fact}

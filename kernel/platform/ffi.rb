@@ -113,14 +113,11 @@ module FFI
 
   
   # Load all the platform dependent types
-  i = 0
-  while i < ::RUBY_CONFIG.keys.size
-    key   = ::RUBY_CONFIG.keys[i]
-    value = ::RUBY_CONFIG[key]
+
+  ::RUBY_CONFIG.each do |key, value|
     if key.substring(0, 20) == "rbx.platform.typedef"
       add_typedef(find_type(value.to_sym), key.substring(21, key.length).to_sym)
     end
-    i += 1
   end
 
   def self.size_to_type(size)
