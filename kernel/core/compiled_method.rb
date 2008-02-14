@@ -42,7 +42,8 @@ class StaticScope
 end
 
 class CompiledMethod
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :arguments => 9, :scope => 10, :exceptions => 11, :lines => 12, :path => 13, :cache => 14, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
+  # TODO: Delete cache field (field 14) from C structure
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :arguments => 9, :scope => 10, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
   def __ivars__ ; @__ivars__  ; end
   def primitive ; @primitive  ; end
   def required  ; @required   ; end
@@ -57,7 +58,6 @@ class CompiledMethod
   def exceptions; @exceptions ; end
   def lines     ; @lines      ; end
   def path      ; @path       ; end
-  def cache     ; @cache      ; end
   def bonus     ; @bonus      ; end
   def compiled  ; @compiled   ; end
   def staticscope; @staticscope; end
@@ -128,10 +128,6 @@ class CompiledMethod
   
   def primitive=(idx)
     @primitive = idx
-  end
-  
-  def cache=(tup)
-    @cache = tup
   end
   
   def serial=(ser)
