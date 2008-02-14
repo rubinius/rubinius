@@ -1,6 +1,6 @@
 require 'benchmark'
 
-total = ENV['TOTAL'] || 1_000
+total = ENV['TOTAL'] || 1_000_000
 
 total = total.to_i
 

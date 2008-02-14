@@ -4,15 +4,19 @@
 # http://www.bagley.org/~doug/shootout/
 # with help from Paul Brannan
 
-input = open(File.join(File.dirname($0), 'wc.input'), 'rb')
+50.times do
 
-nl = nw = nc = 0
-while true
-  data = (input.read(4096) or break) << (input.gets || "")
-  nc += data.length
-  nl += data.count("\n")
-  ((data.strip! || data).tr!("\n", " ") || data).squeeze!
-  #nw += data.count(" ") + 1
+  input = open(File.join(File.dirname($0), 'wc.input'), 'rb')
+
+  nl = nw = nc = 0
+  while true
+    data = (input.read(4096) or break) << (input.gets || "")
+    nc += data.length
+    nl += data.count("\n")
+    ((data.strip! || data).tr!("\n", " ") || data).squeeze!
+    #nw += data.count(" ") + 1
+  end
+
 end
 # STDERR.puts "#{nl} #{nw} #{nc}"
 

@@ -6,9 +6,11 @@ def fact(n)
   end
 end
 
-fact(4000)
-fact(4000)
-fact(4000)
-fact(4000)
-fact(4000)
+20.times do
+  fact(4000)
+  fact(4000)
+  fact(4000)
+  fact(4000)
+  fact(4000)
+end
 
