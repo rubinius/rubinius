@@ -7,6 +7,16 @@
 #define StartSize 256
 #define Increments 32
 
+/*
+ *
+ * The case that prompted code the symbol table to check the key value.
+ * str:  __uint_fast64_t
+ * hash: 112644932
+ *
+ * str:  TkIF_MOD
+ * hash: 112644932
+ */ 
+
 OBJECT symtbl_new(STATE) {
   OBJECT tbl;
   tbl = symtbl_allocate(state);
@@ -22,17 +32,27 @@ OBJECT symtbl_lookup_cstr(STATE, OBJECT self, const char *str) {
 OBJECT symtbl_lookup_str_with_size(STATE, OBJECT self,
                                    const char *str, int size) {
   unsigned int hash;
-  OBJECT strs, idx, syms;
+  OBJECT strs, idx, syms, ent;
 
   hash = string_hash_str_with_size(state, str, size);
   strs = symtbl_get_strings(self);
   syms = symtbl_get_symbols(self);
   
-  idx = hash_get(state, strs, hash);
+  ent = hash_find_entry(state, strs, hash);
   
   /* If it wasn't present, use the longer, more correct version. */
-  if(NIL_P(idx) || idx == Qundef) {
+  if(NIL_P(ent) || ent == Qundef) {
     return symtbl_lookup(state, self, string_new2(state, str, size));
+  } else {
+    OBJECT key = tuple_at(state, ent, 1);
+    char *cur = string_byte_address(state, key);
+
+    /* Check that this is actually the right string. */
+    if(size != N2I(string_get_bytes(key)) || strncmp(cur, str, size)) {
+      return symtbl_lookup(state, self, string_new2(state, str, size));
+    }
+
+    idx = tuple_at(state, ent, 2);
   }
   
   return symbol_from_index(state, N2I(idx));
@@ -46,10 +66,10 @@ OBJECT symtbl_lookup(STATE, OBJECT self, OBJECT string) {
   strs = symtbl_get_strings(self);
   syms = symtbl_get_symbols(self);
   
-  idx = hash_get(state, strs, hash);
-  // printf("Looking up symbol: %od, %x\n", hash, idx);
-  
-  if(NIL_P(idx) || idx == Qundef) {
+ 
+  idx = Qnil;
+
+  if(!hash_lookup2(state, string_equal_p, strs, string, hash, &idx)) {
     idx = hash_get_entries(strs);
     sz = tuple_fields(state, syms);
     if(N2I(idx) == sz) {
@@ -58,12 +78,11 @@ OBJECT symtbl_lookup(STATE, OBJECT self, OBJECT string) {
       symtbl_set_symbols(self, ns);
       syms = ns;
     }
-    
+
     tuple_put(state, syms, N2I(idx), string);
-    // printf("Adding to symbol table: %d, %s\n", N2I(idx), string_byte_address(state, string));
-    hash_add(state, strs, hash, I2N(hash), idx);
+    hash_assign(state, string_equal_p, strs, string, hash, idx);
   }
-  
+
   obj = symbol_from_index(state, N2I(idx));
   return obj;
 }

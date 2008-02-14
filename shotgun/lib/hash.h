@@ -12,6 +12,12 @@ OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh);
 OBJECT hash_dup(STATE, OBJECT hsh);
 void hash_rehash(STATE, OBJECT hsh);
 
+
+int hash_lookup(STATE, OBJECT tbl, OBJECT key, unsigned int hash, OBJECT *value);
+int hash_lookup2(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl, OBJECT key, unsigned int hash, OBJECT *value);
+void hash_assign(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl, OBJECT key, unsigned int hash, OBJECT value);
+
+
 #define hash_find(state, hash, key) (hash_get(state, hash, object_hash_int(state, key)))
 
 #define hash_find_undef(state, hash, key) (hash_get_undef(state, hash, object_hash_int(state, key)))

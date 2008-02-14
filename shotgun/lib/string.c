@@ -223,3 +223,12 @@ OBJECT string_to_sym(STATE, OBJECT self) {
   xassert(STRING_P(self));
   return symtbl_lookup(state, state->global->symbols, self);
 }
+
+int string_equal_p(STATE, OBJECT self, OBJECT other) {
+  if(string_get_bytes(self) != string_get_bytes(other)) return FALSE;
+  if(strcmp(string_byte_address(state, self), string_byte_address(state, other))) {
+    return FALSE;
+  }
+
+  return TRUE;
+}

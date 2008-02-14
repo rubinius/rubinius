@@ -129,10 +129,13 @@ static OBJECT entry_append(STATE, OBJECT top, OBJECT nxt) {
 }
 
 static OBJECT add_entry(STATE, OBJECT h, unsigned int hsh, OBJECT ent) {
-  unsigned int bin;
+  unsigned int bin, bins;
   OBJECT entry;
-  
-  bin = hsh % N2I(hash_get_bins(h));
+
+
+  bins = (unsigned int)N2I(hash_get_bins(h));
+  bin = find_bin(hsh, bins);
+
   entry = tuple_at(state, hash_get_values(h), bin);
   
   if(NIL_P(entry)) {
@@ -172,7 +175,7 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
   
   // printf("hash_add: adding %od\n",hsh);
   entry = hash_find_entry(state, h, hsh);
-  
+
   if(RTEST(entry)) {
     tuple_put(state, entry, 2, data);
     return data;
@@ -209,6 +212,90 @@ OBJECT hash_get(STATE, OBJECT hash, unsigned int hsh) {
   }
   
   return Qnil;
+}
+
+/* Find the +value+ for +key+, having hash value +hash+. 
+ * Uses +==+ to verify the key in the table matches +key+.
+ * Return TRUE if key was found, and *value will be filled. */
+int hash_lookup(STATE, OBJECT tbl, OBJECT key, unsigned int hash, OBJECT *value) {
+  OBJECT ent, hk;
+
+  ent = hash_find_entry(state, tbl, hash);
+  if(REFERENCE_P(ent)) {
+    while(N2I(tuple_at(state, ent, 0)) == hash) {
+      hk = tuple_at(state, ent, 1);
+      if(hk == key) {
+        *value = tuple_at(state, ent, 2);
+        return TRUE;
+      }
+
+      ent = tuple_at(state, ent, 3);
+      if(NIL_P(ent)) break;
+    }
+  }
+
+  return FALSE;
+}
+
+/* Find the +value+ for +key+, having hash value +hash+. 
+ * Uses +compare+ to verify the key in the table matches +key+.
+ * Return TRUE if key was found, and *value will be filled. */
+int hash_lookup2(STATE, int (*compare)(STATE, OBJECT, OBJECT), 
+    OBJECT tbl, OBJECT key, unsigned int hash, OBJECT *value) {
+  OBJECT ent, hk;
+
+  ent = hash_find_entry(state, tbl, hash);
+  if(REFERENCE_P(ent)) {
+    while(N2I(tuple_at(state, ent, 0)) == hash) {
+      hk = tuple_at(state, ent, 1);
+      if(compare(state, hk, key)) {
+        *value = tuple_at(state, ent, 2);
+        return TRUE;
+      }
+
+      ent = tuple_at(state, ent, 3);
+      if(NIL_P(ent)) break;
+    }
+  }
+
+  return FALSE;
+}
+
+void hash_assign(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl,
+    OBJECT key, unsigned int hash, OBJECT value) {
+  OBJECT base, ent, hk;
+  int i, b;
+
+  base = ent = hash_find_entry(state, tbl, hash);
+  if(REFERENCE_P(ent)) {
+    while(N2I(tuple_at(state, ent, 0)) == hash) {
+      hk = tuple_at(state, ent, 1);
+      if(compare(state, hk, key)) {
+        tuple_put(state, ent, 2, value);
+        return;
+      }
+
+      ent = tuple_at(state, ent, 3);
+      if(NIL_P(ent)) break;
+    }
+
+  }
+
+  i = N2I(hash_get_entries(tbl));
+  b = N2I(hash_get_bins(tbl));
+  
+  if((double)i / (double)b > MAX_DENSITY) {
+    hash_rehash(state, tbl, i);
+  }
+
+  if(REFERENCE_P(base)) {  
+    ent = entry_new(state, hash, key, value);
+    entry_append(state, base, ent);
+    return;
+  }
+  
+  ent = entry_new(state, hash, key, value);
+  add_entry(state, tbl, hash, ent);
 }
 
 /* This version of hash_get returns Qundef if the entry was not found.
