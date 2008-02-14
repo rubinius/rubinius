@@ -22,10 +22,10 @@ class File < IO
     W_OK = 2 # test for write permission
     R_OK = 4 # test for read permission
 
-    FNM_NOESCAPE = 0x01;
-    FNM_PATHNAME = 0x02;
-    FNM_DOTMATCH = 0x04;
-    FNM_CASEFOLD = 0x08;
+    FNM_NOESCAPE = 0x01
+    FNM_PATHNAME = 0x02
+    FNM_DOTMATCH = 0x04
+    FNM_CASEFOLD = 0x08
   end
   include Constants
 
@@ -57,6 +57,15 @@ class File < IO
 
 
   # Class methods
+
+  def self.after_loaded
+    private_class_method :dirsep?, :next_path, :range, :name_match
+    
+    # these will be necessary when we run on Windows
+    const_set :DOSISH, RUBY_PLATFORM.match("mswin")
+    const_set :CASEFOLD_FILESYSTEM, DOSISH
+    const_set :FNM_SYSCASE, CASEFOLD_FILESYSTEM ? FNM_CASEFOLD : false
+  end
 
   def self.atime(path)
     Stat.new(path).atime
@@ -141,59 +150,137 @@ class File < IO
     st ? st.file? : false
   end
 
+  # File.fnmatch and helpers. This is a port of JRuby's code
+  
+  def self.dirsep?(char)
+    DOSISH ? (char == ?\\ || char == ?/) : char == ?/
+  end
+
+  def self.next_path(str, start, strend)
+    start += 1 while start < strend and !dirsep? str[start]
+    start
+  end
+
+  def self.range(pattern, pstart, pend, test, flags)
+    ok = false
+    escape = (flags & FNM_NOESCAPE) == 0
+  
+    neg = pattern[pstart] == ?! || pattern[pstart] == ?^
+    pstart += 1 if neg
+    test = test.tolower
+  
+    while pattern[pstart] != ?] do
+      pstart += 1 if escape && pattern[pstart] == ?\\
+      return -1 if pstart >= pend
+      cstart = cend = pattern[pstart]
+      pstart += 1
+      if pattern[pstart] == ?- && pattern[pstart+1] != ?]
+        pstart += 1
+        pstart += 1 if escape && pattern[pstart] == ?\\
+        return -1 if pstart >= pend
+        cend = pattern[pstart]
+        pstart += 1
+      end
+      ok = true if cstart.tolower <= test && test <= cend.tolower
+    end
+  
+    ok == neg ? -1 : pstart + 1
+  end
+  
+  def self.name_match(pattern, str, flags, patstart, patend, strstart, strend)
+    index = strstart
+    pstart = patstart
+    escape   = (flags & FNM_NOESCAPE) == 0
+    pathname = (flags & FNM_PATHNAME) != 0
+    period   = (flags & FNM_DOTMATCH) == 0
+    nocase   = (flags & FNM_CASEFOLD) != 0
+  
+    while pstart < patend do
+      char = pattern[pstart]
+      pstart += 1
+      case char
+      when ??
+        if (index >= strend || (pathname && dirsep?(str[index])) || 
+            (period && str[index] == ?. && (index == 0 || 
+            (pathname && dirsep?(str[index-1])))))
+          return false
+        end
+        index += 1
+      when ?*
+        while pstart < patend
+          char = pattern[pstart]
+          pstart += 1
+          break unless char == ?*
+        end
+        if (index < strend && (period && str[index] == ?. && 
+            (index == 0 || (pathname && dirsep?(str[index-1])))))
+          return false
+        end
+        if pstart > patend || (pstart == patend && char == ?*)
+          if pathname && next_path(str, index, strend) < strend
+            return false
+          else
+            return true
+          end
+        elsif pathname && dirsep?(char)
+          index = next_path(str, index, strend)
+          if index < strend
+            index += 1
+          else
+            return false
+          end
+        else
+          test = (escape && char == ?\\ && pstart < patend ? pattern[pstart] : char).tolower
+          pstart -= 1
+          while index < strend do
+            if ((char == ?? || char == ?[ || str[index].tolower == test) &&
+                name_match(pattern, str, flags | FNM_DOTMATCH, pstart, patend, index, strend))
+              return true
+            elsif (pathname && dirsep?(str[index]))
+              break
+            end
+            index += 1
+          end
+          return false
+        end
+      when ?[
+        if (index >= strend || (pathname && dirsep?(str[index]) || 
+            (period && str[index] == ?. && (index == 0 || (pathname && dirsep?(str[index-1]))))))
+          return false
+        end
+        pstart = range(pattern, pstart, patend, str[index], flags)
+        return false if pstart == -1
+        index += 1
+      else
+        if char == ?\\
+          if (escape && (!DOSISH || (pstart < patend && "*?[]\\".index(pattern[pstart]))))
+            char = pstart >= patend ? ?\\ : pattern[pstart]
+            pstart += 1
+          end
+        end
+        return false if index >= strend
+        
+        if DOSISH && (pathname && isdirsep?(char) && dirsep?(str[index]))
+          # TODO: invert this boolean expression
+        else
+          if nocase
+            return false if char.tolower != str[index].tolower
+          else
+            return false if char != str[index]
+          end
+        end
+        index += 1
+      end
+    end
+  
+    index >= strend ? true : false
+  end
+  
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern).dup
     path = StringValue(path).dup
-    escape = (flags & FNM_NOESCAPE) == 0
-    pathname = (flags & FNM_PATHNAME) != 0
-    nocase = (flags & FNM_CASEFOLD) != 0
-    period = (flags & FNM_DOTMATCH) == 0
-    subs = { /\{/ => '\{',
-             /\}/ => '\}',
-             /(^|([^\\]))\*{1,2}/ => '\1(.*)',
-             /(^|([^\\]))\?/ => '\1(.)',
-             /\\\?/ => '\\\\\?',
-             /\\\*/ => '\\\\\*',
-             # HACK /\+/   => '\\\+',
-             /(\+)/ => '\\\\\\\\\+', # HACK String#sub is broken
-           }
-
-    return false if path[0] == ?. and pattern[0] != ?. and period
-    pattern.gsub!('.', '\.')
-    pattern = pattern.split(/(?<b>\[(?:\\[\[\]]|[^\[\]]|\g<b>)*\])/).collect do |part|
-      if part[0] == ?[
-        part.gsub!(/\\([*?])/, '\1')
-        part.gsub(/\[!/, '[^')
-      else
-        subs.each { |p,s| part.gsub!(p, s) }
-        # Because this pattern anchors itself, we have to rerun by hand
-        subd = part.gsub!(/(^|([^\\]))\?/, '\1(.)')
-        subd = part.gsub!(/(^|([^\\]))\?/, '\1(.)') while subd
-        if escape
-          part.gsub(/\\([^.\[])/, '\1')
-        else
-          part.gsub(/(\\)([^*?\[\]])/, '\1\1\2')
-        end
-      end
-    end.join
-
-    re = Regexp.new("^#{pattern}$", nocase ? Regexp::IGNORECASE : 0)
-
-    m = re.match path
-    if m
-      return false unless m[0].size == path.size
-      if pathname
-        return false if m.captures.any? { |c| c.include?('/') }
-
-        a = StringValue(pattern).dup.split '/'
-        b = path.split '/'
-        return false unless a.size == b.size
-        return false unless a.zip(b).all? { |ary| ary[0][0] == ary[1][0] }
-      end
-      return true
-    else
-      return false
-    end
+    flags = Type.coerce_to(flags, Fixnum, :to_int) unless flags.__kind_of__ Fixnum
+    name_match(pattern, path, flags, 0, pattern.size, 0, path.size)
   end
 
   def self.ftype(path)

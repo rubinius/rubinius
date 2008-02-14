@@ -21,6 +21,7 @@ begin
   ObjectSpace.after_loaded
   IO.after_loaded
   Object.after_loaded
+  File.after_loaded
 
   ENV = EnvironmentVariables.new
 

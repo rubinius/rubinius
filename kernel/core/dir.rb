@@ -341,7 +341,7 @@ class Dir
   def self.join_path(p1, p2, dirsep)
     "#{p1}#{dirsep ? '/' : ''}#{p2}"
   end
-
+  
   def self.chdir(path = ENV['HOME'])
     if block_given?
       original_path = self.getwd

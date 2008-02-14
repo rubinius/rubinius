@@ -29,6 +29,7 @@ shared :file_fnmatch do |cmd|
   
     it "does not match characters outside of the range of the bracket expresion" do
       File.send(cmd, 'ca[x-z]', 'cat').should == false
+      File.send(cmd, '/ca[s][s-t]/rul[a-b]/[z]he/[x-Z]orld', '/cats/rule/the/World').should == false
     end
   
     it "matches ranges of characters using exclusive bracket expresions (e.g. [^t] or [!t])" do
@@ -69,6 +70,7 @@ shared :file_fnmatch do |cmd|
     it "matches '\\' characters in path when flags includes FNM_NOESACPE" do
       File.send(cmd, '\a', '\a', File::FNM_NOESCAPE).should == true
       File.send(cmd, '\a', 'a', File::FNM_NOESCAPE).should == false
+      File.send(cmd, '\[foo\]\[bar\]', '[foo][bar]', File::FNM_NOESCAPE).should == false
     end
   
     it "escapes special characters inside bracket expression" do
@@ -122,6 +124,17 @@ shared :file_fnmatch do |cmd|
       lambda { File.send(cmd, 1, 'some/thing') }.should raise_error(TypeError)
       lambda { File.send(cmd, 'some/thing', 1) }.should raise_error(TypeError)
       lambda { File.send(cmd, 1, 1) }.should raise_error(TypeError)
+    end
+    
+    it "raises a TypeError if the third argument is not an Integer" do
+      lambda { File.send(cmd, "*/place", "path/to/file", "flags") }.should raise_error(TypeError)
+      lambda { File.send(cmd, "*/place", "path/to/file", nil) }.should raise_error(TypeError)
+    end
+    
+    it "does not raise a TypeError if the third argument can be coerced to an Integer" do
+      flags = mock("flags")
+      flags.should_receive(:to_int).and_return(10)
+      lambda { File.send(cmd, "*/place", "path/to/file", flags) }.should_not raise_error
     end
   end
 end
