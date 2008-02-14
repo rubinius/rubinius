@@ -221,7 +221,7 @@ class Dir
             if (part[1] == :plain or part[1] == :magic) and
               File.fnmatch part[0], entry, flags then
               new_pattern << pattern[range.begin + i + 1]
-              copied += 1
+              copied += 2
             end
           end
 
