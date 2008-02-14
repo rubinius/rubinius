@@ -70,15 +70,19 @@ module ContextSpecs
   class Listener
     def initialize
       @debug_channel = Channel.new
+      @msg_channel = Channel.new
       Rubinius::VM.debug_channel = @debug_channel
     end
 
     def wait_for_breakpoint(&prc)
-      Thread.new do
+      @thread = Thread.new do
+        @msg_channel.send true
         thr = @debug_channel.receive
         prc.call thr.task.current_context if block_given?
         thr.control_channel.send nil
       end
+      @msg_channel.receive
+      Thread.pass until @thread.status == "sleep"
     end
   end
 
