@@ -236,41 +236,15 @@ module Zlib
 
   attach_function 'inflate',        :inflate,         [:pointer, :int], :int
   attach_function 'inflateEnd',     :inflateEnd,      [:pointer],       :int
+  attach_function 'inflateReset',   :inflateReset,    [:pointer],       :int
 
-  attach_function 'crc32',          :crc32_c,         [:ulong, :string, :uint],
-                  :ulong
   attach_function 'adler32',        :adler32_c,       [:ulong, :string, :uint],
+                  :ulong
+  attach_function 'crc32',          :crc32_c,         [:ulong, :string, :uint],
                   :ulong
   attach_function 'get_crc_table',  :get_crc_table_c, [], :pointer
 
   attach_function 'zError', :zError, [:int], :string
-
-  def self.do_checksum(string, vsum, type = :crc32_c)
-    if vsum
-      raise RangeError if vsum >= (2 ** 128)
-      raise "Explain why you did this: email ephoenix@engineyard.com" if vsum < 0
-      sum = vsum
-    elsif string.nil?
-      sum = 0
-    else
-      sum = send(type, 0, nil, 0)
-    end
-    send(type, sum, string, string ? string.size : 0)
-  end
-
-  def self.crc32(string = "", sum = 0)
-    do_checksum(string, sum)
-  end
-
-  def self.adler32(string = "", sum = 1)
-    do_checksum(string, sum, :adler32_c)
-  end
-
-  def self.crc_table
-    get_crc_table_c.read_array_of_long(256).map do |x|
-      x >= 0 ? x : 2 ** 32 + x
-    end
-  end
 
   # Chunk size for inflation and deflation
 
@@ -460,9 +434,8 @@ module Zlib
       unzipped = inflator.inflate data
 
       unzipped
-    # HACK
-    #ensure
-    #  inflator.end
+    ensure
+      inflator.end
     end
 
     def initialize(window_bits = Zlib::MAX_WBITS)
@@ -508,6 +481,34 @@ module Zlib
       unzipped
     end
 
+  end
+
+  def self.adler32(string = "", sum = 1)
+    do_checksum(string, sum, :adler32_c)
+  end
+
+  def self.crc_table
+    get_crc_table_c.read_array_of_long(256).map do |x|
+      x >= 0 ? x : 2 ** 32 + x # HACK convert back to unsigned
+    end
+  end
+
+  def self.crc32(string = "", sum = 0)
+    do_checksum(string, sum, :crc32_c)
+  end
+
+  def self.do_checksum(string, vsum, type)
+    if vsum
+      raise RangeError if vsum >= (2 ** 128)
+      raise "Explain why you did this: email ephoenix@engineyard.com" if vsum < 0
+      sum = vsum
+    elsif string.nil?
+      sum = 0
+    else
+      sum = send(type, 0, nil, 0)
+    end
+
+    send(type, sum, string, string ? string.size : 0)
   end
 
   def self.raise_error(error, message = nil)
