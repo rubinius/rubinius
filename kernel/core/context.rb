@@ -303,7 +303,7 @@ class BlockEnvironment
     @post_send = 0
     @home_block = home_block
     @method = cmethod
-    @local_count = cmethod.locals
+    @local_count = cmethod.local_count
     return self
   end
 

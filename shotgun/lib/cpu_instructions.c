@@ -497,7 +497,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, const struct message *msg)
   OBJECT ctx;
   struct fast_context *fc;
 
-  ctx = _allocate_context(state, c, msg->method, N2I(cmethod_get_locals(msg->method)));
+  ctx = _allocate_context(state, c, msg->method, N2I(cmethod_get_local_count(msg->method)));
   fc = FASTCTX(ctx);
 
   fc->ip = 0;

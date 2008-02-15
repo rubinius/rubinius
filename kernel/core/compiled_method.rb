@@ -46,23 +46,23 @@ end
 
 class CompiledMethod
   # TODO: Delete/reuse arguments (field 9), scope (field 10), and cache (field 14) fields from C structure
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
-  def __ivars__ ; @__ivars__  ; end
-  def primitive ; @primitive  ; end
-  def required  ; @required   ; end
-  def serial    ; @serial     ; end
-  def bytecodes ; @bytecodes  ; end
-  def name      ; @name       ; end
-  def file      ; @file       ; end
-  def locals    ; @locals     ; end
-  def literals  ; @literals   ; end
-  def exceptions; @exceptions ; end
-  def lines     ; @lines      ; end
-  def path      ; @path       ; end
-  def bonus     ; @bonus      ; end
-  def compiled  ; @compiled   ; end
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
+  def __ivars__  ; @__ivars__  ; end
+  def primitive  ; @primitive  ; end
+  def required   ; @required   ; end
+  def serial     ; @serial     ; end
+  def bytecodes  ; @bytecodes  ; end
+  def name       ; @name       ; end
+  def file       ; @file       ; end
+  def local_count; @local_count; end
+  def literals   ; @literals   ; end
+  def exceptions ; @exceptions ; end
+  def lines      ; @lines      ; end
+  def path       ; @path       ; end
+  def bonus      ; @bonus      ; end
+  def compiled   ; @compiled   ; end
   def staticscope; @staticscope; end
-  def args      ; @args       ; end
+  def args       ; @args       ; end
 
   ##
   # This is runtime hints, added to the method by the VM to indicate how it's
@@ -77,7 +77,7 @@ class CompiledMethod
   def from_string(bc, lcls, req)
     @bytecodes = bc
     @primitive = -1
-    @locals = lcls
+    @local_count = lcls
     @literals = Tuple.new(0)
     @exceptions = nil
     @lines = nil
