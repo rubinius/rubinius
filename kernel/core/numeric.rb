@@ -74,18 +74,6 @@ class Numeric
     end
   end
 
-  def &(other)
-    self & Type.coerce_to(other, Integer, :to_int)
-  end
-   
-  def |(other)
-    self | Type.coerce_to(other, Integer, :to_int)
-  end
-  
-  def ^(other)
-    self ^ Type.coerce_to(other, Integer, :to_int)
-  end
-
   def <(other)
     b, a = math_coerce other, :compare_error
     a < b

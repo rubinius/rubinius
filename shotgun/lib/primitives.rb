@@ -1951,66 +1951,78 @@ class ShotgunPrimitives
     CODE
   end  
   
-  # FIXME: get rid of bignum awareness and use coerce
-  # i.e. t1 = fixnum
   def fixnum_and
     <<-CODE
-    OBJECT t1;
-    native_int j, k, m;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1, INTEGER);
-
+    OBJECT t1 = stack_pop();
+    native_int j, k = 0;
+    
+    j = N2I(msg->recv);
     if(FIXNUM_P(t1)) {
-      j = N2I(msg->recv);
       k = N2I(t1);
-      m = j & k;
-      RET(I2N(m));
+    } else if(BIGNUM_P(t1)) {
+      k = (native_int)bignum_to_ll(state, t1);
+    } else if(FLOAT_P(t1)) {
+      double a = FLOAT_TO_DOUBLE(t1);
+      if(float_bounded_p(a)) {
+        k = (native_int)float_truncate(a);
+      } else {
+        FAIL();
+      }
     } else {
-      RET(bignum_and(state, bignum_new(state, N2I(msg->recv)), t1));
+      FAIL();
     }
+    RET(I2N(j & k));
     CODE
   end
 
-  # FIXME: get rid of bignum awareness and use coerce
-  # i.e. t1 = fixnum
   def fixnum_or
     <<-CODE
-    OBJECT t1;
-    native_int j, k, m;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1, INTEGER);
-
+    OBJECT t1 = stack_pop();
+    native_int j, k = 0;
+    
+    j = N2I(msg->recv);
     if(FIXNUM_P(t1)) {
-      j = N2I(msg->recv);
       k = N2I(t1);
-      m = j | k;
-      RET(I2N(m));
-    } else {
+    } else if(BIGNUM_P(t1)) {
       RET(bignum_or(state, bignum_new(state, N2I(msg->recv)), t1));
+    } else if(FLOAT_P(t1)) {
+      double a = FLOAT_TO_DOUBLE(t1);
+      if(float_bounded_p(a)) {
+        k = (native_int)float_truncate(a);
+      } else {
+        FAIL();
+      }
+    } else {
+      FAIL();
     }
+    RET(I2N(j | k));
     CODE
   end
 
-  # FIXME: get rid of bignum awareness and use coerce
-  # i.e. t1 = fixnum
   def fixnum_xor
     <<-CODE
-    OBJECT t1;
-    native_int j, k, m;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1, INTEGER);
-
+    OBJECT t1 = stack_pop();
+    native_int j, k = 0;
+    
+    j = N2I(msg->recv);
     if(FIXNUM_P(t1)) {
-      j = N2I(msg->recv);
       k = N2I(t1);
-      m = j ^ k;
-      RET(I2N(m));
-    } else {
+    } else if(BIGNUM_P(t1)) {
       RET(bignum_xor(state, bignum_new(state, N2I(msg->recv)), t1));
+    } else if(FLOAT_P(t1)) {
+      double a = FLOAT_TO_DOUBLE(t1);
+      if(float_bounded_p(a)) {
+        k = (native_int)float_truncate(a);
+      } else {
+        FAIL();
+      }
+    } else {
+      FAIL();
     }
+    RET(I2N(j ^ k));
     CODE
   end
 

@@ -9,6 +9,18 @@ class Integer < Numeric
     raise TypeError, "can't convert #{o.class} into Integer"
   end
 
+  def &(other)
+    self & Type.coerce_to(other, Integer, :to_int)
+  end
+   
+  def |(other)
+    self | Type.coerce_to(other, Integer, :to_int)
+  end
+  
+  def ^(other)
+    self ^ Type.coerce_to(other, Integer, :to_int)
+  end
+
   def times
     i = 0
     while i < self

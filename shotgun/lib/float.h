@@ -1,6 +1,8 @@
 #ifndef RBS_FLOAT_H
 #define RBS_FLOAT_H
 
+#include <math.h>
+
 /* use IEEE 64bit values if not defined */
 #ifndef FLT_RADIX
 #define FLT_RADIX 2
@@ -44,5 +46,21 @@ OBJECT float_coerce(STATE, OBJECT value);
 OBJECT float_to_i_prim(STATE, double value);
 OBJECT float_compare_prim(STATE, double a, double b);
 int float_to_i(double value);
+
+static inline int float_bounded_p(double value) {
+  if(value <= (double)FIXNUM_MAX && value >= (double)FIXNUM_MIN) {
+    return 1;
+  }
+  return 0;
+}
+
+static inline double float_truncate(double value) {
+  if(value > 0.0) {
+    return floor(value);
+  } else if(value < 0.0) {
+    return ceil(value);
+  }
+  return value;
+}
 
 #endif

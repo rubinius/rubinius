@@ -61,9 +61,7 @@ void float_into_string(STATE, OBJECT self, char *buf, int sz) {
  * the stables no longer depend on the FFI implementation
  */
 OBJECT float_to_i_prim(STATE, double value) {
-  if (value > 0.0) value = floor(value);
-  if (value < 0.0) value = ceil(value);
-  return bignum_from_double(state, value);
+  return bignum_from_double(state, float_truncate(value));
 }
 
 /* TODO: change float_compare_prim name to float_compare once
