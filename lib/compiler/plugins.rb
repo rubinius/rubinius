@@ -177,6 +177,31 @@ module Compiler::Plugins
     end
   end
 
+  class ConstantExpressions < Plugin
+
+    plugin :const_epxr
+
+    MathOps = [:+, :-, :*, :/, :**]
+
+    def handle(g, call)
+      op = call.method
+      return false unless MathOps.include? op and call.argcount == 1
+
+      obj = call.object
+      arg = call.arguments.first
+      if call.object.kind_of? Compiler::Node::NumberLiteral and call.arguments.first.kind_of? Compiler::Node::NumberLiteral
+        res = obj.value.__send__(op, arg.value)
+        if res.kind_of? Fixnum
+          g.push_int res
+        else
+          g.push_literal res
+        end
+        return true
+      end
+      return false
+    end
+  end
+
   class CompilerInlining < Plugin
     plugin :inline
 
