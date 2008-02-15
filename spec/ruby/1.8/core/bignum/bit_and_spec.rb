@@ -11,10 +11,11 @@ describe "Bignum#&" do
     (@bignum & 52).should == 4
     (@bignum & bignum_value(9921)).should == 9223372036854775809
 
-    (18446744073709551616 & 1).should == 0
-    (18446744073709551616 & -1).should == 18446744073709551616
-    (36893488147419103232 & -1).should == 36893488147419103232
-    (18446744073709551616 & 18446744073709551616).should == 18446744073709551616
+    ((2*bignum_value) & 1).should == 0
+    ((2*bignum_value) & -1).should == 18446744073709551616
+    ((4*bignum_value) & -1).should == 36893488147419103232
+    ((2*bignum_value) & (2*bignum_value)).should == 18446744073709551616
+    (bignum_value & bignum_value(0xffff).to_f).should == 9223372036854775808
   end
 
   it "tries to convert it's argument to an Integer using to_int" do

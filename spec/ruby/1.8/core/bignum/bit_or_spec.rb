@@ -9,6 +9,7 @@ describe "Bignum#|" do
     (@bignum | 2).should == 9223372036854775819
     (@bignum | 9).should == 9223372036854775819
     (@bignum | bignum_value).should == 9223372036854775819
+    (bignum_value | bignum_value(0xffff).to_f).should == 9223372036854841344
   end
 
   it "tries to convert the given argument to an Integer using to_int" do
