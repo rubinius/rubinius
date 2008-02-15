@@ -535,11 +535,10 @@ class File < IO
   end
   
   def truncate(length)
-    unless length.respond_to?(:to_int)
-      raise TypeError, "can't convert #{length.class} into Integer"
-    end
-    
-    raise IOError, "file is closed" if closed?
+    length = Type.coerce_to(length, Integer, :to_int)
+
+    raise Errno::EINVAL, "Can't truncate a file to a negative length" if length < 0
+    raise IOError, "File is closed" if closed?
     
     n = POSIX.ftruncate(@descriptor, length)
     Errno.handle if n == -1
