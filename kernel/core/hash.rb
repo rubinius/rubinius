@@ -119,7 +119,7 @@ class Hash
   def set_key_cv(key, val)
     key = key.dup if key.kind_of?(String)
 
-    rehash_cv if(@entries >= (@bins*HASH_DENSITY).to_i)
+    rehash_cv if @entries >= (@bins*HASH_DENSITY)
     
     entry, hash, bin = hash_entry key
     lst = nil
