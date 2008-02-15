@@ -20,6 +20,7 @@ module Process
     RLIM_INFINITY  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIM_INFINITY']
     RLIM_SAVED_MAX  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIM_SAVED_MAX']
     RLIM_SAVED_CUR  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIM_SAVED_CUR']
+    RLIMIT_SBSIZE  = Rubinius::RUBY_CONFIG['rbx.platform.process.RLIMIT_SBSIZE']
   end
   include Constants
 
