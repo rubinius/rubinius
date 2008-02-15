@@ -2,23 +2,43 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#sort" do
+  module ArraySpecs
+    class SortSame
+      def <=>(other); 0; end
+      def ==(other); true; end
+    end
+  end
+
   it "returns a new array sorted based on comparing elements with <=>" do
-    [1, 1, 5, -5, 2, -10, 14, 6].sort.should == [-10, -5, 1, 1, 2, 5, 6, 14]
+    a = [1, -2, 3, 9, 1, 5, -5, 1000, -5, 2, -10, 14, 6, 23, 0]
+    a.sort.should == [-10, -5, -5, -2, 0, 1, 1, 2, 3, 5, 6, 9, 14, 23, 1000]
   end
 
   it "does not affect the original Array" do
-    a = [1, 3, 2, 5]
+    a = [0, 15, 2, 3, 4, 6, 14, 5, 7, 12, 8, 9, 1, 10, 11, 13]
     b = a.sort
-    a.should == [1, 3, 2, 5]
-    b.should == [1, 2, 3, 5]
+    a.should == [0, 15, 2, 3, 4, 6, 14, 5, 7, 12, 8, 9, 1, 10, 11, 13]
+    b.should == (0..15).to_a
   end
 
   it "sorts already-sorted Arrays" do
-    [0, 1, 2, 3].sort.should == [0, 1, 2, 3]
+    (0..15).to_a.sort.should == (0..15).to_a
   end
 
   it "sorts reverse-sorted Arrays" do
-    [3, 2, 1, 0].sort.should == [0, 1, 2, 3]
+    (0..15).to_a.reverse.sort.should == (0..15).to_a
+  end
+
+  it "sorts Arrays that consist entirely of equal elements" do
+    a = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    a.sort.should == a
+    b = Array.new(15).map { ArraySpecs::SortSame.new }
+    b.sort.should == b
+  end
+
+  it "sorts Arrays that consist mostly of equal elements" do
+    a = [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    a.sort.should == [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
   end
 
   it "does not deal with failures from incorrect/incompatible use of <=>" do
@@ -52,15 +72,14 @@ end
 
 describe "Array#sort!" do
   it "sorts array in place using <=>" do
-    a = [1, 9, 7, 11, -1, -4]
+    a = [1, -2, 3, 9, 1, 5, -5, 1000, -5, 2, -10, 14, 6, 23, 0]
     a.sort!
-    a.should == [-4, -1, 1, 7, 9, 11]
+    a.should == [-10, -5, -5, -2, 0, 1, 1, 2, 3, 5, 6, 9, 14, 23, 1000]
   end
 
   it "sorts array in place using block value" do
-    a = [1, 3, 2, 5, 4]
-    a.sort! { |x, y| y <=> x }
-    a.should == [5, 4, 3, 2, 1]
+    a = [0, 15, 2, 3, 4, 6, 14, 5, 7, 12, 8, 9, 1, 10, 11, 13]
+    a.sort! { |x, y| y <=> x }.should == (0..15).to_a.reverse
   end
 
   compliant_on :ruby, :jruby do
