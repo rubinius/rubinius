@@ -1328,15 +1328,15 @@ class Array
 
     if (@total - @start) < 6
       if block
-        isort_block @start, (@total - 1), block
+        isort_block! @start, (@total - 1), block
       else
-        isort @start, (@total - 1)
+        isort! @start, (@total - 1)
       end
     else
       if block
-        qsort_block block
+        qsort_block! block
       else
-        qsort
+        qsort!
       end
     end
 
@@ -1561,143 +1561,233 @@ class Array
 
   private :recursively_flatten
 
-  QSORT_THRESHOLD = 6
-  MEDIAN_THRESHOLD = 750
+  ISORT_THRESHOLD   = 7
+  MEDIAN_THRESHOLD  = 11
 
   # In-place non-recursive sort between the given indexes.
-  def qsort()
+  def qsort!()
     # Stack stores the indexes that still need sorting
     stack = []
-    left, right = @start, (@total - 1)
+    left_end, right_end = @start, (@total - 1)
 
     # We are either processing a 'new' partition or one that
     # was saved to stack earlier.
     while true
-      left_end, right_end = left, right
+      left, right = left_end, (right_end - 1)   # Leave room for pivot
+      eqls_left, eqls_right = (left_end - 1), right_end
 
-      # Build a median with larger sets
-      # CAUTION: This may differ from block
-      if (right - left > MEDIAN_THRESHOLD)
-        middle = (right - left) / 2
-        low, mid, hi = @tuple.at(left), @tuple.at(middle), @tuple.at(right)
+      # Choose pivot from median
+      # CAUTION: This may differ from how block version works
+      middle = left_end + ((right_end - left_end) / 2)
+      low, mid, hi = @tuple.at(left_end), @tuple.at(middle), @tuple.at(right_end)
 
-        @tuple.swap(left, middle)   if (mid <=> low) < 0
-        @tuple.swap(left, right)    if (hi <=> low) < 0
-        @tuple.swap(middle, right)  if (hi <=> mid) < 0
-  
-        pivot = @tuple.at(middle)
-        @tuple.swap((right - 1), middle)
-      else
-        pivot = @tuple.at(rand((right - left) + left))
-      end
+      # These can be reordered which may help with sorting randomly
+      # distributed elements at the cost of presorted. Be sure to
+      # mark down the correct order though..
+      @tuple.swap(left_end, right_end)  if (hi <=> low) < 0
+      @tuple.swap(left_end, middle)     if (mid <=> low) < 0
+      @tuple.swap(middle, right_end)    if (hi <=> mid) < 0
+
+      pivot = @tuple.at(middle)
+      @tuple.swap(right_end, middle)  # Known position to help partition three ways
 
       # Partition
       while true
-        left += 1 while left < right_end and (@tuple.at(left) <=> pivot) <= 0
-        right -= 1 while right >= left_end and (@tuple.at(right) <=> pivot) >= 0
+        while left < right_end
+          case @tuple.at(left) <=> pivot
+          when -1
+            left += 1
+          when 0
+            @tuple.swap(left, (eqls_left += 1))
+            left += 1
+          else
+            break
+          end
+        end
 
-        break if right <= left
+        while right > left_end
+          case @tuple.at(right) <=> pivot
+          when 1
+            right -= 1
+          when 0
+            @tuple.swap(right, (eqls_right -= 1))
+            right -= 1
+          else
+            break
+          end
+        end
+
+        break if left >= right
         @tuple.swap(left, right)
       end
 
-      # left and right are already correct
-      left_size, right_size = (right - left_end), (right_end - (right + 1))
+      # Move pivot back to the middle
+      @tuple.swap(left, right_end)
+      left, right = (left - 1), (left + 1)
 
-      if left_size < QSORT_THRESHOLD
-        isort (right + 1), right_end
+      # Move the stashed == pivot elements back to the middle
+      while eqls_left >= left_end
+        @tuple.swap(eqls_left, left)
+        left -= 1
+        eqls_left -= 1
+      end
 
-        # If both partitions are too small, load up next stored one
-        if right_size < QSORT_THRESHOLD
-          isort (left_end, right)
-          left, right = stack.pop
-        end
-
-      elsif right_size < QSORT_THRESHOLD
-        isort left_end, right
-
-      # Save the larger partition and continue with smaller
-      else
-        if left_size > right_size
-          stack.push [left_end, right]
-          left, right = (right + 1), right_end
-        else
-          stack.push [(right + 1), right_end]   # Indexes already correct
+      unless right >= right_end
+        while eqls_right < right_end
+          @tuple.swap(eqls_right, right)
+          right += 1
+          eqls_right += 1
         end
       end
 
-      # Completely done
-      break if stack.empty?
+      # Continue processing the now smaller partitions or if
+      # done with this segment, restore a stored one from the
+      # stack until nothing remains either way.
+      left_size, right_size = (left - left_end), (right_end - right)
+
+      # Insertion sort is faster at anywhere below 7-9 elements
+      if left_size < ISORT_THRESHOLD
+        isort! left_end, left
+
+        # We can restore next saved if both of these are getting sorted
+        if right_size < ISORT_THRESHOLD
+          isort! right, right_end
+          break if stack.empty?       # Completely done, no stored ones left either
+          left_end, right_end = stack.pop
+        else
+          left_end = right
+        end
+
+      elsif right_size < ISORT_THRESHOLD
+        isort! right, right_end
+        right_end = left
+
+      # Save whichever is the larger partition and do the smaller first
+      else
+        if left_size > right_size
+          stack.push [left_end, left]
+          left_end = right
+        else
+          stack.push [right, right_end]
+          right_end = left
+        end
+      end
     end
   end
 
   # In-place non-recursive sort between the given indexes using a block.
-  def qsort_block(block)
+  def qsort_block!(block)
     # Stack stores the indexes that still need sorting
     stack = []
-    left, right = @start, (@total - 1)
+    left_end, right_end = @start, (@total - 1)
 
     # We are either processing a 'new' partition or one that
     # was saved to stack earlier.
     while true
-      left_end, right_end = left, right
+      left, right = left_end, (right_end - 1)   # Leave room for pivot
+      eqls_left, eqls_right = (left_end - 1), right_end
 
-      # Build a median with larger sets
-      # CAUTION: This may differ from non-block!
-      if (right - left > MEDIAN_THRESHOLD)
-        middle = (right - left) / 2
-        low, mid, hi = @tuple.at(left), @tuple.at(middle), @tuple.at(right)
+      # Choose pivot from median
+      # CAUTION: This may differ from how non-block version works
+      middle = left_end + ((right_end - left_end) / 2)
+      low, mid, hi = @tuple.at(left_end), @tuple.at(middle), @tuple.at(right_end)
 
-        @tuple.swap(left, right)    if block.call(hi, low) < 0
-        @tuple.swap(left, middle)   if block.call(mid, low) < 0
-        @tuple.swap(middle, right)  if block.call(hi, mid) < 0
-  
-        pivot = @tuple.at(middle)
-        @tuple.swap((right - 1), middle)
-      else
-        pivot = @tuple.at(rand((right - left) + left))
-      end
+      # These can be reordered which may help with sorting randomly
+      # distributed elements at the cost of presorted. Be sure to
+      # mark down the correct order though..
+      @tuple.swap(left_end, right_end)  if block.call(hi, low)  < 0
+      @tuple.swap(left_end, middle)     if block.call(mid, low) < 0
+      @tuple.swap(middle, right_end)    if block.call(hi, mid)  < 0
+
+      pivot = @tuple.at(middle)
+      @tuple.swap(right_end, middle)  # Known position to help partition three ways
 
       # Partition
       while true
-        left += 1 while left < right_end and block.call(@tuple.at(left), pivot) <= 0
-        right -= 1 while right >= left_end and block.call(@tuple.at(right), pivot) >= 0
+        while left < right_end
+          case block.call(@tuple.at(left), pivot)
+          when -1
+            left += 1
+          when 0
+            @tuple.swap(left, (eqls_left += 1))
+            left += 1
+          else
+            break
+          end
+        end
 
-        break if right <= left
+        while right > left_end
+          case block.call(@tuple.at(right), pivot)
+          when 1
+            right -= 1
+          when 0
+            @tuple.swap(right, (eqls_right -= 1))
+            right -= 1
+          else
+            break
+          end
+        end
+
+        break if left >= right
         @tuple.swap(left, right)
       end
 
-      # left and right are already correct
-      left_size, right_size = (right - left_end), (right_end - (right + 1))
+      # Move pivot back to the middle
+      @tuple.swap(left, right_end)
+      left, right = (left - 1), (left + 1)
 
-      if left_size < QSORT_THRESHOLD
-        isort (right + 1), right_end
+      # Move the stashed == pivot elements back to the middle
+      while eqls_left >= left_end
+        @tuple.swap(eqls_left, left)
+        left -= 1
+        eqls_left -= 1
+      end
 
-        # If both partitions are too small, load up next stored one
-        if right_size < QSORT_THRESHOLD
-          isort (left_end, right)
-          left, right = stack.pop
-        end
-
-      elsif right_size < QSORT_THRESHOLD
-        isort left_end, right
-
-      # Save the larger partition and continue with smaller
-      else
-        if left_size > right_size
-          stack.push [left_end, right]
-          left, right = (right + 1), right_end
-        else
-          stack.push [(right + 1), right_end]   # Indexes already correct
+      unless right >= right_end
+        while eqls_right < right_end
+          @tuple.swap(eqls_right, right)
+          right += 1
+          eqls_right += 1
         end
       end
 
-      # Completely done
-      break if stack.empty?
+      # Continue processing the now smaller partitions or if
+      # done with this segment, restore a stored one from the
+      # stack until nothing remains either way.
+      left_size, right_size = (left - left_end), (right_end - right)
+
+      # Insertion sort is faster at anywhere below 7-9 elements
+      if left_size < ISORT_THRESHOLD
+        isort_block! left_end, left, block
+
+        # We can restore next saved if both of these are getting sorted
+        if right_size < ISORT_THRESHOLD
+          isort_block! right, right_end, block
+          break if stack.empty?       # Completely done, no stored ones left either
+          left_end, right_end = stack.pop
+        else
+          left_end = right
+        end
+
+      elsif right_size < ISORT_THRESHOLD
+        isort_block! right, right_end, block
+        right_end = left
+
+      # Save whichever is the larger partition and do the smaller first
+      else
+        if left_size > right_size
+          stack.push [left_end, left]
+          left_end = right
+        else
+          stack.push [right, right_end]
+          right_end = left
+        end
+      end
     end
   end
 
   # Insertion sort in-place between the given indexes.
-  def isort(left, right)
+  def isort!(left, right)
     i = left + 1
 
     while i <= right
@@ -1713,7 +1803,7 @@ class Array
   end
 
   # Insertion sort in-place between the given indexes using a block.
-  def isort_block(left, right, block)
+  def isort_block!(left, right, block)
     i = left + 1
 
     while i <= right
