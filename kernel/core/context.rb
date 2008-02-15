@@ -299,7 +299,7 @@ class BlockEnvironment
 
     @home = home
     @initial_ip = 0
-    @last_ip = 2 ** 28
+    @last_ip = 0x10000000 # 2**28
     @post_send = 0
     @home_block = home_block
     @method = cmethod
