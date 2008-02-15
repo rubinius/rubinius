@@ -61,6 +61,18 @@ OBJECT float_to_i_prim(STATE, double value) {
   return bignum_from_double(state, value);
 }
 
+/* TODO: change float_compare_prim name to float_compare once
+ * the stables no longer depend on the FFI implementation
+ */
+OBJECT float_compare_prim(STATE, double a, double b) {
+  if(a < b) {
+    return I2N(-1);
+  } else if(a > b) {
+    return I2N(1);
+  }
+  return I2N(0);
+}
+
 OBJECT float_coerce(STATE, OBJECT value) {
   if(FIXNUM_P(value)) {
     return float_new(state, (double)N2I(value));

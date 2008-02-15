@@ -257,16 +257,18 @@ class ShotgunPrimitives
   
   def equal
     <<-CODE
-    OBJECT t1;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1, FIXNUM);
+    OBJECT t1 = stack_pop();
 
-    /* No need to shift them to be longs, the comparison is the same. */
-    if(msg->recv == t1) {
-      RET(Qtrue); 
+    if(FIXNUM_P(t1)) {
+      RET(msg->recv == t1 ? Qtrue : Qfalse);
+    } else if(BIGNUM_P(t1)) {
+      RET(bignum_equal(state, t1, msg->recv));
+    } else if(FLOAT_P(t1)) {
+      OBJECT t2 = float_coerce(state, msg->recv);
+      RET(FLOAT_TO_DOUBLE(t1) == FLOAT_TO_DOUBLE(t2) ? Qtrue : Qfalse);
     } else {
-      RET(Qfalse);
+      FAIL();
     }
     CODE
   end
@@ -301,27 +303,33 @@ class ShotgunPrimitives
   
   def compare
     <<-CODE
-    OBJECT t1;
-
     GUARD(FIXNUM_P(msg->recv));
-    POP(t1, FIXNUM);
-    
-    /* we can deduce == quickly and easily, so do it first. */
-    
-    if(msg->recv == t1) {
-      RET(I2N(0));
-    } else {
-      native_int j = N2I(msg->recv);
-      native_int k = N2I(t1);
+    OBJECT t1 = stack_pop();
 
-      if (j < k) {
-        RET(I2N(-1));
-      } else if (j > k) {
-        RET(I2N(1));
-      } else {
-        /* We shouldn't be here! */
+    if(FIXNUM_P(t1)) {
+      if(msg->recv == t1) {
         RET(I2N(0));
+      } else {
+        native_int j = N2I(msg->recv);
+        native_int k = N2I(t1);
+
+        if (j < k) {
+          RET(I2N(-1));
+        } else if (j > k) {
+          RET(I2N(1));
+        } else {
+          /* We shouldn't be here! */
+          FAIL();
+        }
       }
+    } else if(BIGNUM_P(t1)) {
+      OBJECT t2 = bignum_new(state, N2I(msg->recv));
+      RET(bignum_compare(state, t2, t1));
+    } else if(FLOAT_P(t1)) {
+      OBJECT t2 = float_coerce(state, msg->recv);
+      RET(float_compare_prim(state, FLOAT_TO_DOUBLE(t2), FLOAT_TO_DOUBLE(t1)));
+    } else {
+      FAIL();
     }
     CODE
   end
@@ -3652,13 +3660,7 @@ class ShotgunPrimitives
       GUARD(FLOAT_P(t1));
     }
     double b = FLOAT_TO_DOUBLE(t1);
-    if(a < b) {
-      RET(I2N(-1));
-    } else if(a > b) {
-      RET(I2N(1));
-    } else {
-      RET(I2N(0));
-    }
+    RET(float_compare_prim(state, a, b));
     CODE
   end
 

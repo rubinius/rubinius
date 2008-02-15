@@ -42,6 +42,7 @@ OBJECT float_from_string(STATE, char *str);
 void float_into_string(STATE, OBJECT self, char *buf, int sz);
 OBJECT float_coerce(STATE, OBJECT value);
 OBJECT float_to_i_prim(STATE, double value);
+OBJECT float_compare_prim(STATE, double a, double b);
 int float_to_i(double value);
 
 #endif

@@ -346,7 +346,6 @@ OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits) {
 }
 
 OBJECT bignum_equal(STATE, OBJECT a, OBJECT b) {
-  
   if(FIXNUM_P(b)) {
     b = bignum_new(state, N2I(b));
   }
@@ -358,6 +357,10 @@ OBJECT bignum_equal(STATE, OBJECT a, OBJECT b) {
 }
 
 OBJECT bignum_compare(STATE, OBJECT a, OBJECT b) {
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, N2I(b));
+  }
+
   switch(mp_cmp(MP(a), MP(b))) {
     case MP_LT:
       return I2N(-1);
