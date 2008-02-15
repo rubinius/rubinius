@@ -45,8 +45,8 @@ class StaticScope
 end
 
 class CompiledMethod
-  # TODO: Delete cache field (field 14) from C structure
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :arguments => 9, :scope => 10, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
+  # TODO: Delete/reuse arguments (field 9), scope (field 10), and cache (field 14) fields from C structure
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
   def __ivars__ ; @__ivars__  ; end
   def primitive ; @primitive  ; end
   def required  ; @required   ; end
@@ -56,8 +56,6 @@ class CompiledMethod
   def file      ; @file       ; end
   def locals    ; @locals     ; end
   def literals  ; @literals   ; end
-  def arguments ; @arguments  ; end
-  def scope     ; @scope      ; end
   def exceptions; @exceptions ; end
   def lines     ; @lines      ; end
   def path      ; @path       ; end
@@ -81,8 +79,6 @@ class CompiledMethod
     @primitive = -1
     @locals = lcls
     @literals = Tuple.new(0)
-    @required = 0
-    @arguments = Tuple.new(0)
     @exceptions = nil
     @lines = nil
     @file = nil

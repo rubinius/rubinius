@@ -372,7 +372,7 @@ static void marshal_cmethod2(STATE, OBJECT obj, bstring buf, struct marshal_stat
 
 static OBJECT unmarshal_cmethod2(STATE, struct marshal_state *ms) {
   int ver;
-  OBJECT cm, prim, o;
+  OBJECT cm, prim;
   
   ver = unmarshal_num_fields(ms);
   cm = cmethod_allocate(state);
@@ -387,11 +387,6 @@ static OBJECT unmarshal_cmethod2(STATE, struct marshal_state *ms) {
     cmethod_set_primitive(cm, I2N(idx));
   } else if(NIL_P(prim)) {
     cmethod_set_primitive(cm, I2N(-1));
-  }
-  
-  o = cmethod_get_cache(cm);
-  if(FIXNUM_P(o)) {
-    cmethod_set_cache(cm, tuple_new(state, N2I(o)));
   }
   
   return cm;
