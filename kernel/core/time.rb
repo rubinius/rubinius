@@ -1,16 +1,17 @@
 # depends on: comparable.rb class.rb module.rb
 
+#--
 # _load
 # parse
 # --------------------
 # _dump
 # marshal_dump
 # marshal_load
+#++
 
 class Time
   include Comparable
 
-  # Time Constants
   ZoneOffset =      { 'UTC' => 0, 'Z' => 0,  'UT' => 0, 'GMT' => 0,
                       'EST' => -5, 'EDT' => -4, 'CST' => -6, 'CDT' => -5,
                       'CET' => 1, 'CEST' => 2,
@@ -53,8 +54,6 @@ class Time
     :usec => 1,
   }
 
-  # Time methods
-
   def initialize
     @timeval = Time.gettimeofday
 
@@ -68,6 +67,7 @@ class Time
   #--
   # TODO: doesn't load nsec or ivars
   #++
+
   def self._load(data)
     raise TypeError, 'marshaled time format differ' unless data.length == 8
 
@@ -99,6 +99,7 @@ class Time
   #--
   # TODO: doesn't dump nsec or ivars
   #++
+
   def _dump(limit = nil)
     tm = time_switch @timeval.first, true
     year = tm[TM_FIELDS[:year]]
@@ -322,7 +323,10 @@ class Time
     seconds + (usec / 1000000.0)
   end
 
-  # [ sec, min, hour, day, month, year, wday, yday, isdst, zone ]
+  ##
+  # Returns:
+  #   [ sec, min, hour, day, month, year, wday, yday, isdst, zone ]
+
   def to_a
     [sec, min, hour, day, month, year, wday, yday, isdst, zone]
   end
@@ -380,10 +384,6 @@ class Time
     seconds ^ usec
   end
 
-  # internal
-
-  # private
-
   def force_localtime
     @tm = time_switch(@timeval.first, false)
     @is_gmt = false
@@ -424,9 +424,11 @@ class Time
     self
   end
 
-  # sec and usec are always given in gmt here.
-  # want_gmt says whether the caller wants a gmtime or
-  # local time object.
+  ##
+  # +sec+ and +usec+ are always given in gmt here.
+  #
+  # +want_gmt+ says whether the caller wants a gmtime or local time object.
+
   def at_gmt(sec, usec, want_gmt)
     @timeval = [sec, usec]
 
@@ -486,8 +488,6 @@ class Time
     end
     return year, mon, day, hour, min, sec
   end
-
-  # aliases
 
   public
 

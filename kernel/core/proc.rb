@@ -14,7 +14,10 @@ class Proc
     @check_args = other
   end
 
+  #--
   # An optimized version, used for the &block syntax
+  #++
+
   def self.__from_block__(env)
     if env.__kind_of__(BlockEnvironment)
       obj = allocate()

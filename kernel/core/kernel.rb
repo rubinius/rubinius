@@ -1,13 +1,15 @@
 # depends on: module.rb kernel.rb
 
 module Type
-  # Returns an object of given class. If given object already is
-  # one, it is returned. Otherwise tries obj.meth and returns
-  # the result if it is of the right kind. TypeErrors are 
-  # raised if the conversion method fails or the conversion
-  # result is wrong.
+
+  ##
+  # Returns an object of given class. If given object already is one, it is
+  # returned. Otherwise tries obj.meth and returns the result if it is of the
+  # right kind. TypeErrors are raised if the conversion method fails or the
+  # conversion result is wrong.
   #
   # Uses Type.obj_kind_of to bypass type check overrides.
+
   def self.coerce_to(obj, cls, meth)
     return obj if self.obj_kind_of?(obj, cls)
 
@@ -62,23 +64,30 @@ module Kernel
   end
   module_function :String
 
-  # MRI uses a macro named StringValue which has essentially
-  # the same semantics as obj.coerce_to(String, :to_str), but
-  # rather than using that long construction everywhere, we
-  # define a private method similar to String(). Another
-  # possibility would be to change String() as follows:
+  ##
+  # MRI uses a macro named StringValue which has essentially the same
+  # semantics as obj.coerce_to(String, :to_str), but rather than using that
+  # long construction everywhere, we define a private method similar to
+  # String().
+  #
+  # Another possibility would be to change String() as follows:
+  #
   #   String(obj, sym=:to_s)
+  #
   # and use String(obj, :to_str) instead of StringValue(obj)
+
   def StringValue(obj)
     Type.coerce_to(obj, String, :to_str)
   end
   private :StringValue
 
-  # MRI uses a macro named NUM2DBL which has essentially
-  # the same semantics as Float(), with the difference that
-  # it raises a TypeError and not a ArgumentError. It is only
-  # used in a few places (in MRI and Rubinius). If we can, 
-  # we should probably get rid of this. 
+  ##
+  # MRI uses a macro named NUM2DBL which has essentially the same semantics as
+  # Float(), with the difference that it raises a TypeError and not a
+  # ArgumentError. It is only used in a few places (in MRI and Rubinius).
+  #--
+  # If we can, we should probably get rid of this.
+
   def FloatValue(obj)
     begin
       Float(obj)
@@ -88,9 +97,11 @@ module Kernel
   end
   private :FloatValue
 
-  # Reporting methods
-
+  ##
+  #--
   # HACK :: added due to broken constant lookup rules
+  #++
+
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
       exc = exc.exception msg
@@ -142,7 +153,6 @@ module Kernel
   end
   module_function :abort
 
-  # Display methods
   def printf(target, *args)
     if target.kind_of? IO
       target.printf(*args)
@@ -195,9 +205,12 @@ module Kernel
   end
   module_function :open
 
-  # NOTE - this isn't quite MRI compatible.
-  # we don't seed the RNG by default with a combination
-  # of time, pid and sequence number
+  #--
+  # NOTE: This isn't quite MRI compatible.
+  # We don't seed the RNG by default with a combination of time, pid and
+  # sequence number
+  #++
+
   def srand(seed)
     cur = Kernel.current_srand
     Platform::POSIX.srand(seed.to_i)
@@ -274,7 +287,9 @@ module Kernel
   end
   module_function :loop
 
+  ##
   # Sleeps the current thread for +duration+ seconds.
+
   def sleep(duration = Undefined)
     start = Time.now
     chan = Channel.new
@@ -290,7 +305,6 @@ module Kernel
     return (Time.now - start).round
   end
   module_function :sleep
-
 
   def at_exit(&block)
     Rubinius::AtExit.unshift(block)
@@ -326,8 +340,10 @@ module Kernel
   alias_method :==,   :equal?
   alias_method :===,  :equal?
 
+  ##
   # Regexp matching fails by default but may be overridden by subclasses,
   # notably Regexp and String.
+
   def =~(other)
     false
   end
@@ -358,20 +374,24 @@ module Kernel
     return obj
   end
 
-  # __const_set__ is emitted by the compiler for const assignment
+  ##
+  # \_\_const_set__ is emitted by the compiler for const assignment
   # in userland.
   #
   # This is the catch-all version for unwanted values
+
   def __const_set__(name, obj)
     raise TypeError, "#{self} is not a class/module"
   end
 
-  # Activates the singleton +Debugger+ instance, and sets a breakpoint
+  ##
+  # Activates the singleton Debugger instance, and sets a breakpoint
   # immediately after the call site to this method.
   #--
   # TODO: Have method take an options hash to configure debugger behavior,
   # and perhaps a block containing debugger commands to be executed when the
   # breakpoint is hit.
+
   def debugger
     require 'debugger/debugger'
     dbg = Debugger.instance
@@ -443,32 +463,38 @@ module Kernel
     end
   end
 
-  #  call-seq:
-  #     obj.instance_exec(arg...) {|var...| block }                       => obj
+  ##
+  # :call-seq:
+  #   obj.instance_exec(arg, ...) { |var,...| block }  => obj
   #
-  #  Executes the given block within the context of the receiver
-  #  (_obj_). In order to set the context, the variable +self+ is set
-  #  to _obj_ while the code is executing, giving the code access to
-  #  _obj_'s instance variables.  Arguments are passed as block parameters.
+  # Executes the given block within the context of the receiver +obj+. In
+  # order to set the context, the variable +self+ is set to +obj+ while the
+  # code is executing, giving the code access to +obj+'s instance variables.
   #
-  #     class Klass
-  #       def initialize
-  #         @secret = 99
-  #       end
+  # Arguments are passed as block parameters.
+  #
+  #   class Klass
+  #     def initialize
+  #       @secret = 99
   #     end
-  #     k = Klass.new
-  #     k.instance_exec(5) {|x| @secret+x }   #=> 104
+  #   end
+  #   
+  #   k = Klass.new
+  #   k.instance_exec(5) {|x| @secret+x }   #=> 104
+
   def instance_exec(*args, &prc)
     raise ArgumentError, "Missing block" unless block_given?
     env = prc.block.redirect_to self
     env.call(*args)
   end
 
+  ##
   # Returns true if this object is an instance of the given class, otherwise
   # false. Raises a TypeError if a non-Class object given.
   #
   # Module objects can also be given for MRI compatibility but the result is
   # always false.
+
   def instance_of?(cls)
     if cls.class != Class and cls.class != Module
       # We can obviously compare against Modules but result is always false

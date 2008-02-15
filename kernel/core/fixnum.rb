@@ -1,10 +1,19 @@
 # depends on: integer.rb class.rb
 
+##
+#--
+# NOTE do not define to_sym or id2name. It's been deprecated for 5 years and
+# we've decided to remove it.
+#++
+
 class Fixnum < Integer
-  
+
   MAX = Platform::Fixnum.MAX
-  
+
+  #--
   # see README-DEVELOPERS regarding safe math compiler plugin
+  #++
+
   alias_method :/, :divide
   alias_method :modulo, :%
   
@@ -36,9 +45,6 @@ class Fixnum < Integer
   end
   private :base_to_s
  
-  # NOTE do NOT define to_sym or id2name. It's been deprecated for 5 years and we've
-  # decided to remove it.
-
   def b64_symbol_value
     if self >= 65 and self <= 90  # A-Z
       self - 65

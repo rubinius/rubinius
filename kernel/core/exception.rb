@@ -65,7 +65,9 @@ class Exception
   end
 end
 
-# primitive fails from opcode "send_primitive"
+##
+# Primitive fails from opcode "send_primitive"
+
 class PrimitiveFailure < Exception
 end
 

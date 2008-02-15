@@ -3,8 +3,6 @@
 class Numeric
   include Comparable
 
-  # unary operators
-
   def +@
     self
   end
@@ -12,8 +10,6 @@ class Numeric
   def -@
     0 - self
   end
-
-  # binary math operators
 
   def +(other)
     b, a = math_coerce other
@@ -35,8 +31,11 @@ class Numeric
     raise ZeroDivisionError, "divided by 0" unless b.__kind_of__(Float) or b != 0
     a % b
   end
-   
+
+  #--
   # see README-DEVELOPERS regarding safe math compiler plugin
+  #++
+
   def divide(other)
     b, a = math_coerce other
     raise ZeroDivisionError, "divided by 0" unless b.__kind_of__(Float) or b != 0
@@ -75,8 +74,6 @@ class Numeric
     end
   end
 
-  # bitwise binary operators
-
   def &(other)
     self & Type.coerce_to(other, Integer, :to_int)
   end
@@ -89,8 +86,6 @@ class Numeric
     self ^ Type.coerce_to(other, Integer, :to_int)
   end
 
-  # comparison operators
-  
   def <(other)
     b, a = math_coerce other, :compare_error
     a < b
@@ -123,8 +118,6 @@ class Numeric
       return nil
     end
   end
-  
-  # predicates
 
   def integer?
     false
@@ -137,8 +130,6 @@ class Numeric
   def nonzero?
     zero? ? nil : self
   end
-
-  # conversions
 
   def round
     self.to_f.round
@@ -177,26 +168,30 @@ class Numeric
     end
   end
 
-  # We deviate from MRI behavior here because we ensure that
-  # Fixnum op Bignum => Bignum (possibly normalized to Fixnum)
+  #--
+  # We deviate from MRI behavior here because we ensure that Fixnum op Bignum
+  # => Bignum (possibly normalized to Fixnum)
   #
   # Note these differences on MRI, where a is a Fixnum, b is a Bignum
+  #
   #   a.coerce b => [Float, Float]
   #   b.coerce a => [Bignum, Bignum]
+  #++
+
   def coerce(other)
     Ruby.primitive(:numeric_coerce)
     [Float(other), Float(self)]
   end
 
+  ##
   # This method mimics the semantics of MRI's do_coerce function
   # in numeric.c. Note these differences between it and #coerce:
+  #
   #   1.2.coerce("2") => [2.0, 1.2]
   #   1.2 + "2" => TypeError: String can't be coerced into Float
   #
-  # We do not attempt to produce the exact same exception message
-  # as MRI, so please do not edit it to match.
-  #
-  # See also our Integer#coerce
+  # See also Integer#coerce
+
   def math_coerce(other, error=:coerce_error)
     begin
       values = other.coerce(self)
@@ -221,8 +216,6 @@ class Numeric
     raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
   end
   private :compare_error
-
-  # operations
 
   def step(limit, step=1, &block)
     raise ArgumentError, "step cannot be 0" if step == 0

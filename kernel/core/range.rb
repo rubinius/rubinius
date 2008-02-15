@@ -1,64 +1,62 @@
 # depends on: class.rb enumerable.rb
 
 ##
-# Comments borrowed from MRI Implementation
+# A Range represents an interval, a set of values with a start and an end.
 #
-# A <code>Range</code> represents an interval---a set of values with a
-# start and an end. Ranges may be constructed using the
-#  <em>s</em><code>..</code><em>e</em> and
-#  <em>s</em><code>...</code><em>e</em> literals, or with
-#  <code>Range::new</code>. Ranges constructed using <code>..</code>
-#  run from the start to the end inclusively. Those created using
-#  <code>...</code> exclude the end value. When used as an iterator,
-#  ranges return each value in the sequence.
-#     
-#     (-1..-5).to_a      #=> []
-#     (-5..-1).to_a      #=> [-5, -4, -3, -2, -1]
-#     ('a'..'e').to_a    #=> ["a", "b", "c", "d", "e"]
-#     ('a'...'e').to_a   #=> ["a", "b", "c", "d"]
-#     
-#  Ranges can be constructed using objects of any type, as long as the
-#  objects can be compared using their <code><=></code> operator and
-#  they support the <code>succ</code> method to return the next object
-#  in sequence.
-#     
-#     class Xs                # represent a string of 'x's
-#       include Comparable
-#       attr :length
-#       def initialize(n)
-#         @length = n
-#       end
-#       def succ
-#         Xs.new(@length + 1)
-#       end
-#       def <=>(other)
-#         @length <=> other.length
-#       end
-#       def to_s
-#         sprintf "%2d #{inspect}", @length
-#       end
-#       def inspect
-#         'x'# @length
-#       end
+# Ranges may be constructed using the <tt>s..e</tt> and <tt>s...e</tt>
+# literals, or with Range::new.
+#
+# Ranges constructed using <tt>..</tt> run from the start to the end
+# inclusively. Those created using <tt>...</tt> exclude the end value. When
+# used as an iterator, ranges return each value in the sequence.
+#
+#   (-1..-5).to_a      #=> []
+#   (-5..-1).to_a      #=> [-5, -4, -3, -2, -1]
+#   ('a'..'e').to_a    #=> ["a", "b", "c", "d", "e"]
+#   ('a'...'e').to_a   #=> ["a", "b", "c", "d"]
+#
+# Ranges can be constructed using objects of any type, as long as the objects
+# can be compared using their <tt><=></tt> operator and they support the
+# <tt>succ</tt> method to return the next object in sequence.
+#
+#   class Xs # represent a string of 'x's
+#     include Comparable
+#     attr :length
+#     def initialize(n)
+#       @length = n
 #     end
-#     
-#     r = Xs.new(3)..Xs.new(6)   #=> xxx..xxxxxx
-#     r.to_a                     #=> [xxx, xxxx, xxxxx, xxxxxx]
-#     r.member?(Xs.new(5))       #=> true
-#     
-#  In the previous code example, class <code>Xs</code> includes the
-#  <code>Comparable</code> module. This is because
-#  <code>Enumerable#member?</code> checks for equality using
-#  <code>==</code>. Including <code>Comparable</code> ensures that the
-#  <code>==</code> method is defined in terms of the <code><=></code>
-#  method implemented in <code>Xs</code>.
+#     def succ
+#       Xs.new(@length + 1)
+#     end
+#     def <=>(other)
+#       @length <=> other.length
+#     end
+#     def to_s
+#       sprintf "%2d #{inspect}", @length
+#     end
+#     def inspect
+#       'x'# @length
+#     end
+#   end
+#   
+#   r = Xs.new(3)..Xs.new(6)   #=> xxx..xxxxxx
+#   r.to_a                     #=> [xxx, xxxx, xxxxx, xxxxxx]
+#   r.member?(Xs.new(5))       #=> true
+#
+# In the previous code example, class Xs includes the Comparable module. This
+# is because Enumerable#member? checks for equality using ==. Including
+# Comparable ensures that the == method is defined in terms of the <=> method
+# implemented in Xs.
+
 class Range
   include Enumerable
 
-  # Constructs a range using the given <em>start</em> and <em>end</em>.
-  # If the third parameter is omitted or is <tt>false</tt>, the
-  # <em>range</em> will include the end object; otherwise, it will be
-  # excluded.
+  ##
+  # Constructs a range using the given +start+ and +end+.
+  #
+  # If the third parameter is omitted or is false, the range will include the
+  # end object; otherwise, it will be excluded.
+
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if @begin
     
@@ -118,18 +116,23 @@ class Range
   alias_method :member?, :===
   alias_method :include?, :===
 
-  # Iterates over the elements <em>rng</em>, passing each in turn to the
-  # block. You can only iterate if the start object of the range
-  # supports the <tt>succ</tt> method (which means that you can't
-  # iterate over ranges of <tt>Float</tt> objects).
+  ##
+  # :call-seq:
+  #   rng.each { |i| block }  => rng
   #
-  #    (10..15).each do |n|
-  #       print n, ' '
-  #    end
+  # Iterates over the elements +rng+, passing each in turn to the block. You
+  # can only iterate if the start object of the range supports the
+  # succ method (which means that you can't iterate over ranges of
+  # Float objects).
   #
-  # <em>produces:</em>
+  #   (10..15).each do |n|
+  #      print n, ' '
+  #   end
   #
-  #    10 11 12 13 14 15
+  # produces:
+  #
+  #   10 11 12 13 14 15
+
   def each(&block)
     first, last = @begin, @end # dup?
     
@@ -160,12 +163,23 @@ class Range
     return self
   end
 
-  # Returns <tt>true</tt> if <em>rng</em> excludes its end value.
+  ##
+  # :call-seq:
+  #   rng.exclude_end?  => true or false
+  #
+  # Returns true if +rng+ excludes its end value.
+
   def exclude_end?
     @excl
   end
 
-  # Returns the first object in <em>rng</em>.
+  ##
+  # :call-seq:
+  #   rng.first  => obj
+  #   rng.begin  => obj
+  #
+  # Returns the first object in +rng+.
+
   def first
     @begin
   end
@@ -198,27 +212,31 @@ class Range
   end
   alias_method :end, :last
 
-  # Iterates over <em>rng</em>, passing each <em>n</em>th element to the
-  # block. If the range contains numbers or strings, natural ordering is
-  # used. Otherwise <tt>step</tt> invokes <tt>succ</tt> to iterate
-  # through range elements. The following code uses class <tt>Xs</tt>,
-  # which is defined in the class-level documentation.
+  ##
+  # :call-seq:
+  #   rng.step(n = 1) { |obj| block }  => rng
   #
-  #    range = Xs.new(1)..Xs.new(10)
-  #    range.step(2) {|x| puts x}
-  #    range.step(3) {|x| puts x}
+  # Iterates over +rng+, passing each +n+th element to the block. If the range
+  # contains numbers or strings, natural ordering is used. Otherwise
+  # +step+ invokes +succ+ to iterate through range elements. The following
+  # code uses class Xs, which is defined in the class-level documentation.
   #
-  # <em>produces:</em>
+  #   range = Xs.new(1)..Xs.new(10)
+  #   range.step(2) { |x| puts x }
+  #   range.step(3) { |x| puts x }
   #
-  #     1 x
-  #     3 xxx
-  #     5 xxxxx
-  #     7 xxxxxxx
-  #     9 xxxxxxxxx
-  #     1 x
-  #     4 xxxx
-  #     7 xxxxxxx
-  #    10 xxxxxxxxxx
+  # produces:
+  #
+  #    1 x
+  #    3 xxx
+  #    5 xxxxx
+  #    7 xxxxxxx
+  #    9 xxxxxxxxx
+  #    1 x
+  #    4 xxxx
+  #    7 xxxxxxx
+  #   10 xxxxxxxxxx
+
   def step(step_size = 1, &block) # :yields: object
     first, last = @begin, @end
     step_size = step_size.to_f #people might not pass numbers in. This stops them.
@@ -246,9 +264,12 @@ class Range
     return self
   end
 
+  ##
   # Convert this range object to a printable form.
+
   def to_s
     "#{@begin}#{@excl ? "..." : ".."}#{@end}"
   end
+
 end
 

@@ -4,6 +4,7 @@ class Hash
 
   #--
   # The result of #hash is not allowed to be larger than this.
+  #++
 
   HASH_MAX = 0x1fffffff
   HASH_DENSITY = 0.75
@@ -33,9 +34,11 @@ class Hash
     hash
   end
 
-  # Separate from #initialize to allow subclasses
-  # easier access to #initialize. Do not touch this,
-  # and do not touch .new
+  #--
+  # Separate from #initialize to allow subclasses easier access to
+  # #initialize. Do not touch this, and do not touch .new
+  #++
+
   def setup()
     @bins = 16
     @keys = Tuple.new(@bins)
@@ -77,7 +80,9 @@ class Hash
     true
   end
 
+  ##
   # looks for a key in a bin found by hash_entry
+
   def search_bin(entry,hash,key)
     while entry
       cur_hash, cur_key, cur_val, nxt = *entry
@@ -462,12 +467,13 @@ class Hash
 
 end
 
+##
 # Uses object identity (ie Object#equal?) as the key test. Much faster
 # than Hash (which uses Object#==), but still uses Object#hash to compute
 # the hash value, but requires the hash values to be unique.
 #
 # This is mainly good for if you have symbols as keys.
-#
+
 class LookupTable < Hash
 
   def self.from_hash(hash)

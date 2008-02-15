@@ -93,12 +93,18 @@ class Integer < Numeric
     true
   end
 
-  # returns minimum bit storage required for integer in (signed int) binary format
+  ##
+  # Returns the minimum number of bits required for integer in (signed int)
+  # binary format
+  #--
   # NOTE: rshift would probably be slightly more efficient but since i'm
   # probably going to use this to simplify the complex behavior of
   # ruby's << and >> it would defeat the purpose by creating a circular
   # dependency.
+  #
   # TODO: convert algorithm to primitive so no circular dependency?
+  #++
+
   def bits(int = self)
     if int.zero?
       1 # sign bit storage
@@ -109,7 +115,10 @@ class Integer < Numeric
     end
   end
 
+  ##
+  #--
   # assumes self is positive
+  #++
   def interpret_as_float()
     sign = (2**31 & self != 0) ? -1 : 1
     expo = ((0xFF * 2**23) & self) >> 23
@@ -127,7 +136,11 @@ class Integer < Numeric
     end
   end
 
+  ##
+  #--
   # assumes self is positive
+  #++
+
   def interpret_as_double()
     sign = (2**63 & self != 0) ? -1 : 1
     expo = ((0x7FF * 2**52) & self) >> 52

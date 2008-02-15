@@ -1,11 +1,18 @@
 # depends on: module.rb
 
 module Rubinius
+
+  ##
   # This const controls what the lowest version of compiled methods we can
   # allow is. This allows us to cut off compability at some point, or just
   # increment when major changes are made to the compiler.
+
   CompiledMethodVersion = 6
+
 end
+
+##
+# A module for selecting which Rubinius compiler to use.
 
 module Compile
 
@@ -304,6 +311,7 @@ module Kernel
 
   module_function :compile
 
+  ##
   # Loads the given file as executable code and returns true. If
   # the file cannot be found, cannot be compiled or some other
   # error occurs, LoadError is raised with an explanation.
@@ -313,14 +321,13 @@ module Kernel
   # Any other extensions (or no extension) are assumed to be plain
   # Ruby files. The only exceptions to this rule are:
   #
-  #   1.  if given a .rb or no/any-extensioned file and there is a
-  #       compiled version of the same file that is not older than
-  #       the source file (based on File.mtime), the compiled one
-  #       is loaded directly to avoid the compilation overhead.
-  #
-  #   2.  if a .rb file is given but it does not exist, the system
-  #       will try to load the corresponding .rbc instead (to allow
-  #       distributing just .rbc files.)
+  # 1.  if given a .rb or no/any-extensioned file and there is a
+  #     compiled version of the same file that is not older than
+  #     the source file (based on File.mtime), the compiled one
+  #     is loaded directly to avoid the compilation overhead.
+  # 2.  if a .rb file is given but it does not exist, the system
+  #     will try to load the corresponding .rbc instead (to allow
+  #     distributing just .rbc files.)
   #
   # If the path given starts with ./, ../, ~/ or /, it is treated
   # as a "qualified" file and will be loaded directly (after path
@@ -333,7 +340,7 @@ module Kernel
   # exist, LoadError is raised. Unqualified names may contain path
   # elements so directories are valid targets and can be used with
   # $LOAD_PATH.
-  #
+  #--
   # TODO: Support non-UNIX paths.
   #
   # TODO: The anonymous module wrapping is not implemented at all.
@@ -345,7 +352,7 @@ module Kernel
   #       if 'somefile.rb' does exist but 'somefile' does not, the
   #       load should fail. Currently it does not if 'somefile.rb'
   #       has been compiled to 'somefile.rbc'.
-  #
+
   def load(path, wrap = false)
     path = StringValue(path)
 
@@ -365,6 +372,7 @@ module Kernel
   end
   module_function :load
 
+  ##
   # Attempt to load the given file, returning true if successful.
   # If the file has already been successfully loaded and exists
   # in $LOADED_FEATURES, it will not be re-evaluated and false
@@ -373,10 +381,10 @@ module Kernel
   #
   # The file can have one of the following extensions:
   #
-  #   .rb                 Plain Ruby source file.
-  #   .rbc                Compiled Ruby source file.
-  #   .o|.so|.dylib|.dll  Shared library (platform-specific.)
-  #   <none>              Filename without extension.
+  # [.rb]                   Plain Ruby source file.
+  # [.rbc]                  Compiled Ruby source file.
+  # [.o, .so, .dylib, .dll] Shared library (platform-specific.)
+  # [<none>]                Filename without extension.
   #
   # (.rba files should be loaded using CodeArchive.load_everything.)
   #
@@ -396,7 +404,7 @@ module Kernel
   # exist, LoadError is raised. Unqualified names may contain path
   # elements so directories are valid targets and can be used with
   # $LOAD_PATH.
-  #
+  #--
   # TODO: Support non-UNIX paths.
   #
   # TODO: See if we can safely use 1.9 rules with $LOADED_FEATURES,
@@ -406,7 +414,7 @@ module Kernel
   # Each successfully loaded file is added to $LOADED_FEATURES
   # ($"), using the original unexpanded filename (with the
   # exception that the file extension is added.)
-  #
+
   def require(path)
     path = StringValue(path)
 

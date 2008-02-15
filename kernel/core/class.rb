@@ -1,5 +1,55 @@
 # depends on: object.rb
 
+##
+# Classes in Ruby are first-class objects, each is an instance of
+# class Class.
+#
+# When a new class is created (typically using <tt>class Name; ... end</tt>),
+# an object of type Class is created and assigned to a global constant (Name
+# in this case). When <tt>Name.new</tt> is called to create a new object, the
+# new method in Class is run by default.
+#
+# This can be demonstrated by overriding new in Class:
+#
+#   class Class
+#     alias old_new new
+#     def new(*args)
+#       puts "Creating a new #{self.name}"
+#       old_new(*args)
+#     end
+#   end
+#   
+#   class Name
+#   end
+#   
+#   n = Name.new
+#
+# *produces:*
+#
+#   Creating a new Name
+#
+# Classes, modules, and objects are interrelated. In the diagram that follows,
+# the vertical arrows represent inheritance, and the parentheses meta-classes.
+# All metaclasses are instances of the class Class.
+#
+#                            +------------------+
+#                            |                  |
+#              Object---->(Object)              |
+#               ^  ^        ^  ^                |
+#               |  |        |  |                |
+#               |  |  +-----+  +---------+      |
+#               |  |  |                  |      |
+#               |  +-----------+         |      |
+#               |     |        |         |      |
+#        +------+     |     Module--->(Module)  |
+#        |            |        ^         ^      |
+#   OtherClass-->(OtherClass)  |         |      |
+#                              |         |      |
+#                            Class---->(Class)  |
+#                              ^                |
+#                              |                |
+#                              +----------------+
+
 class Class
 
   protected :object_type
@@ -38,11 +88,22 @@ class Class
     self # FIXME: hook calls should preserve the stack
   end
 
-  # NOTE: The next two methods are not standard Ruby; JRuby implements them, but not public
+  ##
+  #--
+  # NOTE: This method is not standard Ruby; JRuby implements it, but not
+  # public
+  #++
+
   def add_subclass_cv(cls)
     @subclasses ||= []
     @subclasses << cls
   end
+
+  ##
+  #--
+  # NOTE: This method is not standard Ruby; JRuby implements it, but not
+  # public
+  #++
 
   def subclasses_cv(descend = false)
     if descend
@@ -58,9 +119,10 @@ class Class
     all
   end
 
-  # Returns the Class object that this Class inherits
-  # from. Included Modules are not considered for this
-  # purpose.
+  ##
+  # Returns the Class object that this Class inherits from. Included Modules
+  # are not considered for this purpose.
+
   def superclass()
     cls = direct_superclass
     return nil unless cls
@@ -84,7 +146,9 @@ class MetaClass
 
   ivar_as_index :superclass => 6
 
-  # Called when 'def obj.name' syntax is used in userland
+  ##
+  # Called when <tt>def obj.name</tt> syntax is used in userland
+
   def attach_method(name, object)
     # All userland added methods start out with a serial of 1.
     object.serial = 1

@@ -1,6 +1,8 @@
 # depends on: class.rb hash.rb
 
-# Class that allows global variables to have aliases
+##
+# Stores global variables and global variable aliases.
+
 class GlobalVariables
   def initialize
     load_path = ["lib", "stdlib", "."]

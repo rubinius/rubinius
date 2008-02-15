@@ -1,5 +1,9 @@
 # depends on: class.rb
 
+##
+# An array of bytes, used as a low-level data store for implementing various
+# other classes.
+
 class ByteArray
   alias_method :[], :get_byte
   alias_method :[]=, :set_byte

@@ -1,38 +1,47 @@
 # depends on: class.rb array.rb
 
 class InstructionSet
+
+  ##
   # List of Rubinius machine opcodes
-  # Each opcode consists of a hash identifying:
-  #   - the opcode symbol,
-  #   - an array of the arguments required by the opcode, which may be of types
-  #     :int, :literal, :local, :block_local, :field, :primitive, :ip,
-  #     :depth, or :cache
-  #  - a 2 element array of codes indicating what changes the opcode makes to
-  #    the stack. The first code identifies the number of operands popped from
-  #    the stack, and the second the number of operands pushed back onto the
-  #    stack. If the code is zero or a positive value, it is the exact number of
-  #    operands pushed or popped. If the code is a negative value, it means the
-  #    number of operands consumed/produced is calculated based on another
-  #    value, and cannot be determined just from the opcode. Negative codes
-  #    consist of 3-digits, where:
-  #     - the first digit is a multiplier (normally 1, but make_hash has a value
-  #       of 2);
-  #     - the second digit is the where the arg to be multiplied comes from;
-  #       1 = first opcode arg, 2 = second opcode arg, 3 = arg register;
-  #     - the final digit is a constant number to be added to the result.
-  #    The value -999 is a special value, indicating that the result cannot be
-  #    calculated from the bytecode, since it is dependent on the number of
-  #    items in an array that will be on the stack when the opcode is
-  #    encountered.
-  #  - if the opcode can change the flow of execution, it will have a :flow key,
-  #    followed by a value indicating whether the opcode performs a :send, a
-  #    :goto, or a :return.
-  #  - an optional :vm_flags key whose value is an array of the vm_flags set
-  #    by the opcode. These flags are used when generating the opcode logic in
-  #    instructions.rb into C include files.
   #
+  # Each opcode consists of a hash identifying:
+  # - The opcode symbol
+  # - An array of the arguments required by the opcode, which may be of types
+  #   :int, :literal, :local, :block_local, :field, :primitive, :ip,
+  #   :depth, or :cache
+  # - A 2 element array of codes indicating what changes the opcode makes to
+  #   the stack. The first code identifies the number of operands popped from
+  #   the stack, and the second the number of operands pushed back onto the
+  #   stack.
+  #   
+  #   If the code is zero or a positive value, it is the exact number of
+  #   operands pushed or popped. If the code is a negative value, it means the
+  #   number of operands consumed/produced is calculated based on another
+  #   value, and cannot be determined just from the opcode.
+  #   
+  #   Negative codes
+  #   consist of 3-digits, where:
+  #   - the first digit is a multiplier (normally 1, but make_hash has a value
+  #     of 2);
+  #   - the second digit is the where the arg to be multiplied comes from;
+  #     1 = first opcode arg, 2 = second opcode arg, 3 = arg register;
+  #   - the final digit is a constant number to be added to the result.
+  #   
+  #   The value -999 is a special value, indicating that the result cannot be
+  #   calculated from the bytecode, since it is dependent on the number of
+  #   items in an array that will be on the stack when the opcode is
+  #   encountered.
+  # - If the opcode can change the flow of execution, it will have a :flow key,
+  #   followed by a value indicating whether the opcode performs a :send, a
+  #   :goto, or a :return.
+  # - An optional :vm_flags key whose value is an array of the vm_flags set
+  #   by the opcode. These flags are used when generating the opcode logic in
+  #   instructions.rb into C include files.
+  #--
   # IMPORTANT: Do not change the order of opcodes! The position in this array
   # is the opcode's instuction bytecode.
+
   OpCodes = [
     {:opcode => :noop, :args => [], :stack => [0,0]},
     {:opcode => :push_nil, :args => [], :stack => [0,1]},
@@ -228,45 +237,62 @@ class InstructionSet
       @opcode_info[:args]
     end
 
+    ##
     # Returns the size of the opcode (including arguments)
+
     def size
       @opcode_info[:args].size + 1
     end
 
+    ##
     # Returns the width of the opcode (including arguments) in bytes
+
     def width
       (@opcode_info[:args].size + 1) * InstructionSize
     end
 
+    ##
     # Returns the number of items consumed off of the stack by this opcode.
+    #
     # If the value is positive, it is the exact number of items consumed.
-    # If the value is negative, it is a 3-digit number where
+    #
+    # If the value is negative, it is a 3-digit number where:
     # - first digit is a multiplier (1 or 2)
     # - second digit is the opcode arg to be multiplied (1 or 2), or the
-    # contents of the args register (3) at that point.
+    #   contents of the args register (3) at that point.
     # - third digit is a constant arg count to be added to the result
+    #
     # For example, the value -210 would indicate that the number of stack
     # items consumed by the opcode is 2 * the value of the first opcode arg.
-    # The special value -999 is reserved for cases where the number of arguments
-    # consumed cannot be determined from the bytecode itself. This is currently
-    # only the case with :push_array, although opcodes that use the args register
-    # may also be indeterminate if used with :cast_array_for_args.
+    #
+    # The special value -999 is reserved for cases where the number of
+    # arguments consumed cannot be determined from the bytecode itself. This
+    # is currently only the case with :push_array, although opcodes that use
+    # the args register may also be indeterminate if used with
+    # :cast_array_for_args.
+
     def stack_consumed
       @opcode_info[:stack].first
     end
 
+    ##
     # Returns the number of items produced off of the stack by this opcode.
+    #
     # If the value is positive, it is the exact number of items produced.
-    # If the value is negative, it is a 3-digit number where
+    #
+    # If the value is negative, it is a 3-digit number where:
     # - first digit is a multiplier (1 or 2)
     # - second digit is the opcode arg to be multiplied
     # - third digit is a constant arg count to be added to the result
+    #
     # For example, the value -110 would indicate that the number of stack
     # items produced by the opcode is 1 * the value of the first opcode arg.
-    # The special values -990 to -999 are reserved for cases where the number of
-    # arguments produced or consumed cannot be determined from the bytecode
+    #
+    # The special values -990 to -999 are reserved for cases where the number
+    # of arguments produced or consumed cannot be determined from the bytecode
     # itself. This is currently only the case with :push_array and
     # :send_with_arg_register.
+
     def stack_produced
       @opcode_info[:stack].last
     end
@@ -281,9 +307,11 @@ class InstructionSet
       flags and flags.include? :terminator
     end
 
+    ##
     # Returns a symbol specifying the effect of the symbol on the flow of
     # execution, or nil if the instruction does not effect flow. The symbol
     # may be one of :sequential, :send, :return, :goto, or :raise.
+
     def flow
       @opcode_info[:flow] || :sequential
     end
@@ -321,9 +349,12 @@ end
 class InstructionSequence
 
   class Encoder
-    # Decodes an +InstructionSequence+ (which is essentially a an array of ints)
+
+    ##
+    # Decodes an InstructionSequence (which is essentially a an array of ints)
     # into an array whose elements are arrays of opcode symbols and 0-2 args,
     # depending on the opcode.
+
     def decode_iseq(iseq)
       @iseq = iseq
       @offset = 0
@@ -350,10 +381,12 @@ class InstructionSequence
       return stream
     end
 
-    # Encodes a stream of instructions into an +InstructionSequence+. The stream
-    # supplied must be an array of arrays, with the inner array consisting of an
-    # instruction opcode (a symbol), followed by 0 to 2 integer arguments, whose
-    # meaning depends on the opcode.
+    ##
+    # Encodes a stream of instructions into an InstructionSequence. The stream
+    # supplied must be an array of arrays, with the inner array consisting of
+    # an instruction opcode (a symbol), followed by 0 to 2 integer arguments,
+    # whose meaning depends on the opcode.
+
     def encode_stream(stream)
       sz = stream.inject(0) { |acc, ele| acc + (ele.size * InstructionSet::InstructionSize) }
       @iseq = InstructionSequence.new(sz)
@@ -370,12 +403,16 @@ class InstructionSequence
 
       return @iseq
     end
-    
+
+    ##
     # Replaces the instruction at the specified instruction pointer with the
     # supplied instruction inst, which must be an array containing the new
-    # instruction opcode symbol, followed by any int args required by the opcode.
-    # Note: The new instruction must be the same width or smaller than the 
+    # instruction opcode symbol, followed by any int args required by the
+    # opcode.
+    #
+    # The new instruction must be the same width or smaller than the
     # instruction it replaces.
+
     def replace_instruction(iseq, ip, inst)
       @iseq = iseq
       @offset = start = ip * InstructionSet::InstructionSize
@@ -402,7 +439,10 @@ class InstructionSequence
       replaced
     end
 
-    # Decodes a single instruction at the specified instruction pointer address
+    ##
+    # Decodes a single instruction at the specified instruction pointer
+    # address.
+
     def decode_instruction(iseq, ip)
       @iseq = iseq
       @offset = ip * InstructionSet::InstructionSize
@@ -476,8 +516,9 @@ class InstructionSequence
     private :int2str
   end
 
+  ##
+  # Decodes the instruction sequence into an array of Instructions
 
-  # Decodes the instruction sequence into an array of +Instruction+s
   def decode
     enc = Encoder.new
     enc.decode_iseq(self)

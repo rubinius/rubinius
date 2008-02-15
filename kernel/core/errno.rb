@@ -1,5 +1,8 @@
 # depends on: module.rb
 
+##
+# Interface to the C errno integer.
+
 module Errno
   def self.handle(additional = nil)
     err = Platform::POSIX.errno

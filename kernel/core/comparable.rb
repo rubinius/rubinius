@@ -1,39 +1,39 @@
 # depends on: module.rb
 #
-#  The <code>Comparable</code> mixin is used by classes whose objects
-#  may be ordered. The class must define the <code><=></code> operator,
-#  which compares the receiver against another object, returning -1, 0,
-#  or +1 depending on whether the receiver is less than, equal to, or
-#  greater than the other object. <code>Comparable</code> uses
-#  <code><=></code> to implement the conventional comparison operators
-#  (<code><</code>, <code><=</code>, <code>==</code>, <code>>=</code>,
-#  and <code>></code>) and the method <code>between?</code>.
-#     
-#     class SizeMatters
-#       include Comparable
-#       attr :str
-#       def <=>(anOther)
-#         str.size <=> anOther.str.size
-#       end
-#       def initialize(str)
-#         @str = str
-#       end
-#       def inspect
-#         @str
-#       end
+# The Comparable mixin is used by classes whose objects may be ordered. The
+# class must define the <tt><=></tt> (spaceship) operator, which compares the
+# receiver against another object, returning -1, 0, or +1 depending on whether
+# the receiver is less than, equal to, or greater than the other object.
+#
+# Comparable uses <tt><=></tt> to implement the conventional comparison
+# operators (<tt><</tt>, <tt><=</tt>, <tt>==</tt>, <tt>>=</tt>, and
+# <tt>></tt>) and the method <tt>between?</tt>.
+#
+#   class SizeMatters
+#     include Comparable
+#     attr :str
+#     def <=>(other)
+#       str.size <=> other.str.size
 #     end
-#     
-#     s1 = SizeMatters.new("Z")
-#     s2 = SizeMatters.new("YY")
-#     s3 = SizeMatters.new("XXX")
-#     s4 = SizeMatters.new("WWWW")
-#     s5 = SizeMatters.new("VVVVV")
-#     
-#     s1 < s2                       #=> true
-#     s4.between?(s1, s3)           #=> false
-#     s4.between?(s3, s5)           #=> true
-#     [ s3, s2, s5, s4, s1 ].sort   #=> [Z, YY, XXX, WWWW, VVVVV]
-#     
+#     def initialize(str)
+#       @str = str
+#     end
+#     def inspect
+#       @str
+#     end
+#   end
+#   
+#   s1 = SizeMatters.new "Z"
+#   s2 = SizeMatters.new "YY"
+#   s3 = SizeMatters.new "XXX"
+#   s4 = SizeMatters.new "WWWW"
+#   s5 = SizeMatters.new "VVVVV"
+#   
+#   s1 < s2                       #=> true
+#   s4.between? s1, s3            #=> false
+#   s4.between? s3, s5            #=> true
+#   [ s3, s2, s5, s4, s1 ].sort   #=> [Z, YY, XXX, WWWW, VVVVV]
+
 module Comparable
 
   # Compares two objects based on the receiver's <code><=></code>

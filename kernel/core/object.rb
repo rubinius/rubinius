@@ -1,6 +1,9 @@
 class Object
 
-  # VERSION is deprecated in MRI 1.9
+  #--
+  # deprecated in MRI 1.9
+  #++
+
   VERSION = Rubinius::RUBY_VERSION
   RUBY_VERSION = Rubinius::RUBY_VERSION
   RUBY_PLATFORM = Rubinius::RUBY_PLATFORM

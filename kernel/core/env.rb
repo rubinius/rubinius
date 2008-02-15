@@ -1,5 +1,8 @@
 # depends on: class.rb
 
+##
+# Interface to process environment variables.
+
 class EnvironmentVariables
   def [](key)
     env_get(StringValue(key))

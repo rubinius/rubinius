@@ -166,16 +166,19 @@ class IO
     [[io], [], []]
   end
 
-  # Creates a new IO object to access the existing stream referenced
-  # by the descriptor given. The stream is not copied in any way so
-  # anything done on one IO will affect any other IOs accessing the
-  # same descriptor. The mode string given must be compatible with
-  # the original one so going 'r' from 'w' cannot be done but it is
-  # possible to go from 'w+' to 'r', for example (since the stream
-  # is not being "widened".) The initialization will verify that
-  # the descriptor given is a valid one. Errno::EBADF will be raised
-  # if that is not the case. If the mode is incompatible, it will
-  # raise Errno::EINVAL instead.
+  ##
+  # Creates a new IO object to access the existing stream referenced by the
+  # descriptor given. The stream is not copied in any way so anything done on
+  # one IO will affect any other IOs accessing the same descriptor.
+  #
+  # The mode string given must be compatible with the original one so going
+  # 'r' from 'w' cannot be done but it is possible to go from 'w+' to 'r', for
+  # example (since the stream is not being "widened".)
+  #
+  # The initialization will verify that the descriptor given is a valid one.
+  # Errno::EBADF will be raised if that is not the case. If the mode is
+  # incompatible, it will raise Errno::EINVAL instead.
+
   def initialize(fd, mode)
     fd = Type.coerce_to fd, Integer, :to_int
 
@@ -231,11 +234,10 @@ class IO
     return [lhs, rhs]
   end
 
+  ##
   # Obtains a new duplicate descriptor for the current one.
-  #
-  # Used internally by #dup and #clone. This is called on the new object after
-  # it has been copied normally.
-  def initialize_copy(original)
+
+  def initialize_copy(original) # :nodoc:
     @descriptor = Platform::POSIX.dup(@descriptor)
   end
 
@@ -351,9 +353,11 @@ class IO
     nil
   end
 
-  # Writes each given argument.to_s to the stream or $_ (the
-  # result of last IO#gets) if called without arguments. Appends 
-  # $\.to_s to output. Returns nil.
+  ##
+  # Writes each given argument.to_s to the stream or $_ (the result of last
+  # IO#gets) if called without arguments. Appends $\.to_s to output. Returns
+  # nil.
+
   def print(*args)
     if args.empty?
       write $_.to_s
@@ -503,8 +507,11 @@ class IO
     @descriptor == -1
   end
 
-  # The current implementation does no write buffering, so we're always
-  # in sync mode.
+  ##
+  #--
+  # The current implementation does no write buffering, so we're always in
+  # sync mode.
+
   def sync=(v)
   end
 
@@ -543,8 +550,10 @@ class IO
 
   alias_method :each_line, :each
 
-  # Several methods use similar rules for reading strings from IO, but
-  # differ slightly. This helper is an extraction of the code.
+  ##
+  #--
+  # Several methods use similar rules for reading strings from IO, but differ
+  # slightly. This helper is an extraction of the code.
 
   def gets_helper(sep=$/)
     return nil if @eof

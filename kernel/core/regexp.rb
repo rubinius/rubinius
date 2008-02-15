@@ -24,34 +24,30 @@ class Regexp
   KCODE_UTF8    = 64
   KCODE_MASK    = 112
 
-  # Constructs a new regular expression from the given
-  # pattern. The pattern may either be a String or a
-  # Regexp. If given a Regexp, options are copied from
-  # the pattern and any options given are not honoured.
-  # If the pattern is a String, additional options may
-  # be given.
+  ##
+  # Constructs a new regular expression from the given pattern. The pattern
+  # may either be a String or a Regexp. If given a Regexp, options are copied
+  # from the pattern and any options given are not honoured. If the pattern is
+  # a String, additional options may be given.
   #
-  # The first optional argument can either be a Fixnum
-  # representing one or more of the Regexp options ORed
-  # together (Regexp::IGNORECASE, EXTENDED and MULTILINE)
-  # or a flag to toggle case sensitivity. If opts is nil
-  # or false, the match is case sensitive. If opts is
-  # any non-nil, non-false and non-Fixnum object, its
-  # presence makes the regexp case insensitive (the obj
+  # The first optional argument can either be a Fixnum representing one or
+  # more of the Regexp options ORed together (Regexp::IGNORECASE, EXTENDED and
+  # MULTILINE) or a flag to toggle case sensitivity. If opts is nil or false,
+  # the match is case sensitive. If opts is any non-nil, non-false and
+  # non-Fixnum object, its presence makes the regexp case insensitive (the obj
   # is not used in any way.)
   #
-  # The second optional argument can be used to enable
-  # multibyte support (which is disabled by default.)
-  # The flag must be one of the following strings in
-  # any combination of upper- and lowercase:
+  # The second optional argument can be used to enable multibyte support
+  # (which is disabled by default.) The flag must be one of the following
+  # strings in any combination of upper- and lowercase:
   #
   # * 'e', 'euc'  for EUC
   # * 's', 'sjis' for SJIS
   # * 'u', 'utf8' for UTF-8
   #
-  # You may also explicitly pass in 'n', 'N' or 'none'
-  # to disable multibyte support. Any other values are
-  # ignored.
+  # You may also explicitly pass in 'n', 'N' or 'none' to disable multibyte
+  # support. Any other values are ignored.
+
   def self.new(pattern, opts = nil, lang = nil)
     if pattern.is_a?(Regexp)
       opts = pattern.options
@@ -79,8 +75,11 @@ class Regexp
     end
   end
 
+  #--
   # FIXME - Optimize me using String#[], String#chr, etc.
   # Do away with the control-character comparisons.
+  #++
+
   def self.escape(str)
     meta = %w![ ] { } ( ) | - * . \\ ? + ^ $ #!
     quoted = ""
@@ -105,8 +104,9 @@ class Regexp
     alias_method :quote, :escape
   end
 
-
+  ##
   # See Regexp.new. This may be overridden by subclasses.
+
   def initialize(arg, opts, lang)
     # Nothing to do
   end
@@ -127,9 +127,11 @@ class Regexp
     ctx = parent.sender
     ctx.last_match = match
   end
- 
-  # Different than last_match= because it sets the current last match,
-  # while last_match= sets the senders last match.
+
+  ##
+  # Different than last_match= because it sets the current last match, while
+  # last_match= sets the senders last match.
+
   def self.my_last_match=(match)
     # Set an ivar in the sender 
     ctx = MethodContext.current.sender
@@ -188,18 +190,6 @@ class Regexp
     end
     arr
   end
-
-  # def match_all_reverse(str)
-  #   arr = []
-  #   pos = str.size
-  #   while pos >= 0
-  #     match = match_region(str, pos, pos)
-  #     break unless match
-  #     arr << match
-  #     pos = match.collapsing? ? pos - 1 : match.begin(0)
-  #   end
-  #   arr
-  # end
 
   def ===(other)
     if !other.is_a?(String)
@@ -316,7 +306,6 @@ class Regexp
     string << ':' << pattern[idx..endpt] << ')'
   end
 
-  # private functions
   def get_option_string_length(string)
     idx = 0
     while idx < string.length do

@@ -1,14 +1,18 @@
 # depends on: class.rb
 
+##
+# Stores all the information about a running method.
+#--
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
 # you can get recursive exceptions being raised (THATS BAD, BTW).
+
 class MethodContext
 
   attr_accessor :last_match
 
+  ##
   # The Nth group of the last regexp match.
-  #
-  # Implemented to support Compiler.
+
   def nth_ref(n)
     if lm = @last_match
       return lm[n]
@@ -17,9 +21,9 @@ class MethodContext
     return nil
   end
 
+  ##
   # One of the special globals $&, $`, $' or $+.
-  #
-  # Implemented to support Compiler.
+
   def back_ref(kind)
     if lm = @last_match
       res = case kind
@@ -178,8 +182,10 @@ class MethodContext
     @send_private
   end
 
+  ##
   # Look up the staticscope chain to find the one with a Script object
   # attached to it. Return that object.
+
   def script_object
     if ss = method.staticscope
       while ss and !ss.script
@@ -192,9 +198,11 @@ class MethodContext
     return nil
   end
 
+  ##
   # Used to implement __FILE__ properly. kernel/core/compile.rb stashes
   # the path used to load this file in the Script object located in
   # the top staticscope.
+
   def active_path
     if script = script_object()
       if path = script.path
@@ -206,15 +214,24 @@ class MethodContext
     method.file.to_s
   end
 
+  ##
   # Used to set the module body toggles
+
   attr_accessor :method_scope
+
 end
+
+##
+# Stores all the information about a running NativeMethod.
 
 class NativeMethodContext
   def location
     "#{file}"
   end
 end
+
+##
+# Stores all information about a running Block.
 
 class BlockContext
 
@@ -255,6 +272,10 @@ class BlockContext
   end
 end
 
+##
+# Describes the environment a Block was created in.  BlockEnvironment is used
+# to create a BlockContext.
+
 class BlockEnvironment
   ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3,
     :post_send => 4, :home_block => 5, :local_count => 6, :bonus => 7, :method => 8
@@ -286,7 +307,9 @@ class BlockEnvironment
     return self
   end
 
+  ##
   # Holds a Tuple of local variable names to support eval
+
   def bonus=(tup)
     @bonus = tup
   end
@@ -300,14 +323,19 @@ class BlockEnvironment
     @bonus[0] = true
   end
 
+  ##
   # The CompiledMethod object that we were called from
+
   def method=(tup)
     @method = tup
   end
 
+  ##
+  #--
   # These should be safe since I'm unsure how you'd have a BlockContext
   # and have a nil CompiledMethod (something that can (and has) happened
   # with MethodContexts)
+
   def file
     method.file
   end
@@ -348,6 +376,9 @@ class BlockEnvironment
     method.required
   end
 end
+
+##
+# Contains stack frame objects
 
 class Backtrace
   include Enumerable

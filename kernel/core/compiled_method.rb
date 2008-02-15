@@ -1,5 +1,8 @@
 # depends on: class.rb array.rb
 
+##
+# A wrapper for a calling a function in a shared library.
+
 class NativeMethod
   def lines
     nil
@@ -63,8 +66,10 @@ class CompiledMethod
   def staticscope; @staticscope; end
   def args      ; @args       ; end
 
+  ##
   # This is runtime hints, added to the method by the VM to indicate how it's
   # being used.
+
   attr_accessor :hints
   
   def inspect
@@ -116,8 +121,10 @@ class CompiledMethod
     @name = val
   end
 
+  ##
   # Lines consists of an array of tuples, with each tuple representing a line.
   # The tuple for a line has fields for the first ip, last ip, and line number.
+
   def lines=(val)
     @lines = val
   end
@@ -164,8 +171,7 @@ class CompiledMethod
     @bonus[0] = names
     return names
   end
-    
-  
+
   def activate(recv, mod, args, locals=nil, &prc)
     sz = args.total
     if prc
@@ -207,8 +213,7 @@ class CompiledMethod
     activate_as_script
     Rubinius::VM.restore_encloser_path
   end
-  
-    
+
   def line_from_ip(i)
     @lines.each do |t|
       start = t.at(0)
@@ -242,9 +247,10 @@ class CompiledMethod
     
     return -1
   end
-  
+
+  ##
   # Decodes the instruction sequence that is represented by this compileed
-  # method. Delegates to +InstructionSequence+ to do the instruction decoding,
+  # method. Delegates to InstructionSequence to do the instruction decoding,
   # but then converts opcode literal arguments to their actual values by looking
   # them up in the literals tuple.
   def decode
@@ -263,10 +269,12 @@ class CompiledMethod
     end
   end
 
-  # Calculates the minimum stack size required for this method
+  ##
+  # Calculates the minimum stack size required for this method.
+  #
   # Returns two values:
-  # - The minimum size stack required
-  # - A flag indicating whether this is an exact size, or a minimum
+  # * The minimum size stack required
+  # * A flag indicating whether this is an exact size, or a minimum
   def min_stack_size
     dc = decode
     high_mark = 0
@@ -283,7 +291,6 @@ class CompiledMethod
     end
     return high_mark, exact
   end
-
 
   class Instruction
     def initialize(inst, cm, ip, args_reg)
@@ -313,17 +320,23 @@ class CompiledMethod
     attr_reader :ip
     attr_reader :line
 
+    ##
     # Returns the OpCode object
+
     def instruction
       @op
     end
 
+    ##
     # Returns the symbol representing the opcode for this instruction
+
     def opcode
       @op.opcode
     end
 
+    ##
     # Returns an array of 0 to 2 arguments, depending on the opcode
+
     def args
       @args
     end
@@ -332,19 +345,25 @@ class CompiledMethod
       @args.size + 1
     end
 
+    ##
     # Returns the stack operands consumed by this instruction, as well as a flag
     # indicating whether this is an exact value (true) or a minimum (false).
+
     def stack_consumed
       @stack_consumed
     end
 
+    ##
     # Returns the stack operands produced by this instruction, as well as a flag
     # indicating whether this is an exact value (true) or a minimum (false)..
+
     def stack_produced
       @stack_produced
     end
 
+    ##
     # Calculate the stack usage (pushes or pops) of this instruction.
+
     def calculate_stack_usage(code, args_reg=0)
       usage = code
       exact = true

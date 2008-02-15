@@ -1,19 +1,18 @@
 # depends on: class.rb proc.rb
 
-class Module
+##
+# Some terminology notes:
+#
+# [Encloser] The Class or Module inside which this one is defined or, in the
+#            event we are at top-level, Object.
+#
+# [Direct superclass] Whatever is next in the chain of superclass invocations.
+#                     This may be either an included Module, a Class or nil.
+#
+# [Superclass] The real semantic superclass and thus only applies to Class
+#              objects.
 
-  # Some terminology notes:
-  #
-  # * "Encloser" is the Class or Module inside which this
-  #   one is defined or, in the event we are at top-level,
-  #   Object.
-  #
-  # * "Direct superclass" is whatever is next in the chain
-  #   of @superclass invocations. This may be either an
-  #   included Module, a Class or nil.
-  #
-  # * "Superclass" is the real semantic superclass and thus
-  #   only applies to Class objects.
+class Module
 
   ivar_as_index :__ivars__ => 0, :method_table => 1, :method_cache => 2, :name => 3, :constants => 4, :encloser => 5, :superclass => 6
 
@@ -43,10 +42,13 @@ class Module
     instance_eval(&block) if block
   end
 
+  #--
   # HACK: This should work after after the bootstrap is loaded,
   # but it seems to blow things up, so it's only used after
   # core is loaded. I think it's because the bootstrap Class#new
   # doesn't use a privileged send.
+  #++
+
   def __method_added__cv(name)
     if name == :initialize
       private :initialize
@@ -205,7 +207,9 @@ class Module
     return new_name
   end
 
+  ##
   # Called when 'def name' is used in userland
+
   def __add_method__(name, obj)
     s = MethodContext.current.sender
     scope = s.method_scope || :public
@@ -295,13 +299,15 @@ class Module
     m ? [:public,:protected].include?(m.first) : false
   end
 
-  # Returns an UnboundMethod corresponding to the given name.
-  # The name will be searched for in this Module as well as
-  # any included Modules or superclasses. The UnboundMethod
-  # is populated with the method name and the Module that the
-  # method was located in. Raises a TypeError if the given
-  # name.to_sym fails and a NameError if the name cannot be
-  # located.
+  ##
+  # Returns an UnboundMethod corresponding to the given name. The name will be
+  # searched for in this Module as well as any included Modules or
+  # superclasses. The UnboundMethod is populated with the method name and the
+  # Module that the method was located in.
+  #
+  # Raises a TypeError if the given name.to_sym fails and a NameError if the
+  # name cannot be located.
+
   def instance_method(name)
     name = Type.coerce_to name, Symbol, :to_sym
 
@@ -377,8 +383,11 @@ class Module
     obj.metaclass.include self
   end
 
-  # Don't call this include, otherwise it will shadow the bootstrap
-  # version while core loads (a violation of the core/bootstrap boundry)
+  #--
+  # Don't call this include, otherwise it will shadow the bootstrap version
+  # while core loads (a violation of the core/bootstrap boundry)
+  #++
+
   def include_cv(*modules)
     modules.reverse_each do |mod|
       raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.kind_of?(Module) and not mod.kind_of?(Class)
@@ -440,7 +449,10 @@ class Module
     metaclass.set_visibility meth, vis, "class "
   end
 
+  #--
   # Same as include_cv above, don't call this private.
+  #++
+
   def private_cv(*args)
     if args.empty?
       MethodContext.current.sender.method_scope = :private
@@ -537,8 +549,10 @@ class Module
     return value
   end
 
-  # __const_set__ is emitted by the compiler for const assignment
-  # in userland.
+  ##
+  # \_\_const_set__ is emitted by the compiler for const assignment in
+  # userland.
+
   def __const_set__(name, value)
     if constants_table[normalize_const_name(name)]
       warn "already initialized constant #{name}"
@@ -546,12 +560,14 @@ class Module
     return const_set(name, value)
   end
 
+  ##
   # Return the named constant enclosed in this Module.
-  # Included Modules and, for Class objects, superclasses
-  # are also searched. Modules will in addition look in
-  # Object. The name is attempted to convert using #to_str.
-  # If the constant is not found, #const_missing is called
+  #
+  # Included Modules and, for Class objects, superclasses are also searched.
+  # Modules will in addition look in Object. The name is attempted to convert
+  # using #to_str. If the constant is not found, #const_missing is called
   # with the name.
+
   def const_get(name)
     recursive_const_get(name)
   end
@@ -673,9 +689,11 @@ class Module
     @name = parts.join("::").to_sym
   end
 
-  # A fixup, move the core versions in place now that everything
-  # is loaded.
-  def self.after_loaded
+  #--
+  # Move the core versions in place now that everything is loaded.
+  #++
+
+  def self.after_loaded # :nodoc:
     alias_method :__method_added__, :__method_added__cv
     alias_method :alias_method, :alias_method_cv
     alias_method :module_function, :module_function_cv
@@ -761,8 +779,11 @@ class Module
 
   private :normalize_const_name
 
+  #--
   # Modified to fit definition at:
   # http://docs.huihoo.com/ruby/ruby-man-1.4/syntax.html#variable
+  #++
+
   def valid_const_name?(name)
     name.to_s =~ /^((::)?[A-Z]\w*)+$/ ? true : false
   end

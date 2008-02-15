@@ -7,7 +7,11 @@ module Platform::POSIX
 end 
 
 class File < IO
+
+  #--
   # Internal class for accessing timevals
+  #++
+
   class FileError < Exception; end
   class NoFileError < FileError; end
   class UnableToStat < FileError; end
@@ -34,9 +38,6 @@ class File < IO
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
   POSIX = Platform::POSIX
 
-
-  # Creation
-
   def initialize(path_or_fd, mode = "r", perm = 0666)
     if path_or_fd.kind_of?(Integer)
       super(path_or_fd, mode)
@@ -54,9 +55,6 @@ class File < IO
   end
 
   attr_reader :path
-
-
-  # Class methods
 
   def self.after_loaded
     private_class_method :dirsep?, :next_path, :range, :name_match
@@ -150,8 +148,10 @@ class File < IO
     st ? st.file? : false
   end
 
+  #--
   # File.fnmatch and helpers. This is a port of JRuby's code
-  
+  #++
+
   def self.dirsep?(char)
     DOSISH ? (char == ?\\ || char == ?/) : char == ?/
   end
@@ -299,7 +299,10 @@ class File < IO
     true
   end
 
+  #--
   # FIXME: will fail a bunch if platfrom == :mswin
+  #++
+
   def self.join(*parts)
     path = ''
 
@@ -496,8 +499,6 @@ class File < IO
     alias_method :exists?,  :exist?
     alias_method :fnmatch?, :fnmatch
   end
-
-  # Instance methods
 
   def atime
     Stat.new(@path).atime
@@ -779,8 +780,6 @@ class File::Stat
   def zero?
     @stat[:st_size] == 0
   end
-
-  # Internal methods
 
   def rgrpowned?
     @stat[:st_gid] == POSIX.getgid

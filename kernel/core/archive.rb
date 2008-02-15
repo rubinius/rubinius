@@ -1,5 +1,8 @@
 # depends on: module.rb
 
+##
+# Retrieves files from a .rba file.
+
 module Archive
   # Allows giving non-compiled file names
   def self.get_object_fuzzy(path, name, version)

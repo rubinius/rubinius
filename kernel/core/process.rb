@@ -272,8 +272,12 @@ module Process
     }
   end
 
+  #--
   # TODO: Most of the fields aren't implemented yet.
-  # TODO: Also, these objects should only need to be constructed by Process.wait and family.
+  # TODO: Also, these objects should only need to be constructed by
+  # Process.wait and family.
+  #++
+
   class Status
     def initialize(pid, status)
       @pid = pid

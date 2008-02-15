@@ -1,6 +1,14 @@
 # depends on: class.rb enumerable.rb tuple.rb kernel.rb
 
-# Ruby's builtin dynamic array implementation
+##
+# Arrays are ordered, integer-indexed collections of any object.  Array
+# indexing starts at 0, as in C or Java.  A negative index is assumed to be
+# relative to the end of the array---that is, an index of -1 indicates the
+# last element of the array, -2 is the next to last element in the array, and
+# so on.
+#
+# Arrays can be created with the <tt>[]<tt> syntax, or via <tt>Array.new</tt>.
+
 class Array
   ivar_as_index :total => 0, :tuple => 1, :start => 2, :shared => 3
   

@@ -33,14 +33,10 @@ class Float < Numeric
     [Float(other), self]
   end
   
-  # unary operators
-
   def -@
     Ruby.primitive :float_uminus
   end
 
-  # binary math operators
-  
   def +(other)
     Ruby.primitive :float_add
     b, a = math_coerce other
@@ -59,7 +55,10 @@ class Float < Numeric
     a * b
   end
   
+  #--
   # see README-DEVELOPERS regarding safe math compiler plugin
+  #++
+
   def divide(other)
     Ruby.primitive :float_div
     b, a = math_coerce other
@@ -86,8 +85,6 @@ class Float < Numeric
   end
   alias_method :modulo, :%
 
-  # comparison operators
-  
   def <(other)
     Ruby.primitive :float_lt
     b, a = math_coerce other, :compare_error
@@ -128,8 +125,6 @@ class Float < Numeric
     end
   end
 
-  # predicates
-
   def eql?(other)
     Ruby.primitive :float_eql
   end
@@ -146,8 +141,6 @@ class Float < Numeric
     not (nan? or infinite?) 
   end
 
-  # conversions
-  
   def to_f
     self
   end

@@ -2,6 +2,37 @@
 #
 # The dependency is from #alias_method.
 
+##
+# Objects of class Binding encapsulate the execution context at some
+# particular place in the code and retain this context for future use. The
+# variables, methods, value of self, and possibly an iterator block that can
+# be accessed in this context are all retained. Binding objects can be created
+# using Kernel#binding, and are made available to the callback of
+# Kernel#set_trace_func.
+#
+# These binding objects can be passed as the second argument of the
+# Kernel#eval method, establishing an environment for the evaluation.
+#
+#   class Demo
+#     def initialize(n)
+#       @secret = n
+#     end
+#     def getBinding
+#       return binding()
+#     end
+#   end
+#   
+#   k1 = Demo.new(99)
+#   b1 = k1.getBinding
+#   k2 = Demo.new(-3)
+#   b2 = k2.getBinding
+#   
+#   eval("@secret", b1)   #=> 99
+#   eval("@secret", b2)   #=> -3
+#   eval("@secret")       #=> nil
+#
+# Binding objects have no class-specific methods.
+
 class Binding
   def self.setup(ctx)
     bind = allocate()
@@ -70,27 +101,28 @@ module Kernel
   end
   module_function :eval  
   private :eval
-  
-  #  call-seq:
-  #     obj.instance_eval(string [, filename [, lineno]] )   => obj
-  #     obj.instance_eval {| | block }                       => obj
-  #  
-  #  Evaluates a string containing Ruby source code, or the given block,
-  #  within the context of the receiver (_obj_). In order to set the
-  #  context, the variable +self+ is set to _obj_ while
-  #  the code is executing, giving the code access to _obj_'s
-  #  instance variables. In the version of <code>instance_eval</code>
-  #  that takes a +String+, the optional second and third
-  #  parameters supply a filename and starting line number that are used
-  #  when reporting compilation errors.
-  #     
-  #     class Klass
-  #       def initialize
-  #         @secret = 99
-  #       end
+
+  ##
+  # :call-seq:
+  #   obj.instance_eval(string [, filename [, lineno]] )   => obj
+  #   obj.instance_eval {| | block }                       => obj
+  #
+  # Evaluates a string containing Ruby source code, or the given block, within
+  # the context of the receiver +obj+. In order to set the context, the
+  # variable +self+ is set to +obj+ while the code is executing, giving the
+  # code access to +obj+'s instance variables. In the version of
+  # #instance_eval that takes a +String+, the optional second and third
+  # parameters supply a filename and starting line number that are used when
+  # reporting compilation errors.
+  #
+  #   class Klass
+  #     def initialize
+  #       @secret = 99
   #     end
-  #     k = Klass.new
-  #     k.instance_eval { @secret }   #=> 99
+  #   end
+  #   k = Klass.new
+  #   k.instance_eval { @secret }   #=> 99
+
   def instance_eval(string = nil, filename = "(eval)", line = 1, &prc)
     if prc
       if string
@@ -114,14 +146,19 @@ module Kernel
       raise ArgumentError, 'block not supplied'
     end
   end
-  
-  
+
 end
 
 class Module
+
+  #--
   # These have to be aliases, not methods that call instance eval, because we
-  # need to pull in the binding of the person that calls them, not the intermediate
-  # binding.
+  # need to pull in the binding of the person that calls them, not the
+  # intermediate binding.
+  #++
+
   alias_method :module_eval, :instance_eval
   alias_method :class_eval, :module_eval
+
 end
+
