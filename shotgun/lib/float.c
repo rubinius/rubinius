@@ -42,15 +42,15 @@ OBJECT float_new(STATE, double dbl) {
 }
 
 OBJECT float_from_string(STATE, char *str) {
-	char *endp;
-	double d;  
-	d = strtod(str, &endp);
-	if (str != endp && *endp == '\0') {
-  	return float_new(state, d);
-	}
-	/* HACK, this should not be possible, but we return something sane, so 
-	   we don't for example segfault or introduce other nastyness */
-	return Qnil;
+  char *endp;
+  double d;  
+  d = strtod(str, &endp);
+  if (str != endp && *endp == '\0') {
+    return float_new(state, d);
+  }
+  /* HACK, this should not be possible, but we return something sane, so 
+   we don't for example segfault or introduce other nastyness */
+  return Qnil;
 }
 
 void float_into_string(STATE, OBJECT self, char *buf, int sz) {
