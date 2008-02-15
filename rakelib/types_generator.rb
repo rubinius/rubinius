@@ -60,9 +60,9 @@ class TypesGenerator
           end
         else
           final_type = parts.pop
-		    end
+        end
         
-		    def_type = "int"
+        def_type = "int"
         if type =~ /__QI__/
           def_type = "char"
         elsif type =~ /__HI__/
