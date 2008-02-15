@@ -318,10 +318,6 @@ class Compiler
       push_literal what
     end
 
-    # The max value we use for inline ints. Above this, they're
-    # stored in the literals tuple.
-    InlineIntCutoff = (2 ** 27)
-    
     def push_int(int)
       case int
       when -1
@@ -333,7 +329,10 @@ class Compiler
       when 2
         add :meta_push_2
       else
-        if int.abs < InlineIntCutoff
+        # The max value we use for inline ints. Above this, they're
+        # stored in the literals tuple.
+        inline_cutoff = 0x8000000 # 2**27
+        if int.abs < inline_cutoff
           add :push_int, int
         else
           push_literal int
