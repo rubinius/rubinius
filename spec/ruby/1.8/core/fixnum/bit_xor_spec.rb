@@ -5,9 +5,14 @@ describe "Fixnum#^" do
     (3 ^ 5).should == 6
     (-7 ^ 15.2).should == -10
     (-2 ^ -255).should == 255
-    (5 ^ 0xffffffff).should == 4294967290
+    (5 ^ bignum_value + 0xffff_ffff).should == 0x8000_0000_ffff_fffa
   end
 
+  it "raises a RangeError if passed a Float out of Fixnum range" do
+    lambda { 1 & bignum_value.to_f }.should raise_error(RangeError)
+    lambda { 1 & -bignum_value.to_f }.should raise_error(RangeError)
+  end
+  
   it "tries to convert the given argument to an Integer using to_int" do
     (5 ^ 4.3).should == 1
     

@@ -1,9 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#^" do
   before(:each) do
-    @bignum = BignumHelper.sbm(18) 
+    @bignum = bignum_value(18) 
   end
   
   it "returns self bitwise EXCLUSIVE OR other" do

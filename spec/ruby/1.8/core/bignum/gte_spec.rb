@@ -1,9 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#>=" do
   before(:each) do
-    @bignum = BignumHelper.sbm(14)
+    @bignum = bignum_value(14)
   end
   
   it "returns true if self is greater than or equal to other" do

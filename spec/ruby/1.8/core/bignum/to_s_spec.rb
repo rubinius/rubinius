@@ -1,5 +1,4 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#to_s when given a base" do
   it "returns self converted to a String in the given base" do
@@ -20,8 +19,8 @@ end
 
 describe "Bignum#to_s when no base given" do
   it "returns self converted to a String using base 10" do
-    BignumHelper.sbm(9).to_s.should == "9223372036854775817"
-    BignumHelper.sbm.to_s.should == "9223372036854775808"
-    (-BignumHelper.sbm(675)).to_s.should == "-9223372036854776483"
+    bignum_value(9).to_s.should == "9223372036854775817"
+    bignum_value.to_s.should == "9223372036854775808"
+    (-bignum_value(675)).to_s.should == "-9223372036854776483"
   end
 end

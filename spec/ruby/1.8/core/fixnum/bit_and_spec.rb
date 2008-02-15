@@ -5,7 +5,12 @@ describe "Fixnum#&" do
     (256 & 16).should == 0
     (2010 & 5).should == 0
     (65535 & 1).should == 1
-    (0xffff & 0xffffffff).should == 65535
+    (0xffff & bignum_value + 0xffff_ffff).should == 65535
+  end
+  
+  it "raises a RangeError if passed a Float out of Fixnum range" do
+    lambda { 1 & bignum_value.to_f }.should raise_error(RangeError)
+    lambda { 1 & -bignum_value.to_f }.should raise_error(RangeError)
   end
   
   it "tries to convert it's argument to an Integer using to_int" do

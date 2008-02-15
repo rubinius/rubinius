@@ -1,9 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#**" do
   before(:each) do
-    @bignum = BignumHelper.sbm(47)
+    @bignum = bignum_value(47)
   end
   
   it "returns self raised to other power" do

@@ -1,7 +1,7 @@
 shared :bignum_modulo do |cmd|
   describe "Bignum##{cmd}" do
     before(:each) do
-      @bignum = BignumHelper.sbm
+      @bignum = bignum_value
     end
     
     it "returns the modulus obtained from dividing self by the given argument" do
@@ -9,7 +9,7 @@ shared :bignum_modulo do |cmd|
       @bignum.send(cmd, -5).should == -2
       @bignum.send(cmd, -100).should == -92
       @bignum.send(cmd, 2.22).should be_close(0.780180180180252, TOLERANCE)
-      @bignum.send(cmd, BignumHelper.sbm(10)).should == 9223372036854775808
+      @bignum.send(cmd, bignum_value(10)).should == 9223372036854775808
     end
 
     it "raises a ZeroDivisionError when the given argument is 0" do

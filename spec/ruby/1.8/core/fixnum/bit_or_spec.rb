@@ -6,8 +6,14 @@ describe "Fixnum#|" do
     (5 | 4).should == 5
     (5 | 6).should == 7
     (248 | 4096).should == 4344
+    (0xffff | bignum_value + 0xf0f0).should == 0x8000_0000_0000_ffff
   end
 
+  it "raises a RangeError if passed a Float out of Fixnum range" do
+    lambda { 1 & bignum_value.to_f }.should raise_error(RangeError)
+    lambda { 1 & -bignum_value.to_f }.should raise_error(RangeError)
+  end
+  
   it "tries to convert the given argument to an Integer using to_int" do
     (5 | 4.3).should == 5
     

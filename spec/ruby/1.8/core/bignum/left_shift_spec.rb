@@ -1,9 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#<<" do
   before(:each) do
-    @bignum = BignumHelper.sbm(9)
+    @bignum = bignum_value(9)
   end
   
   it "returns self shifted the given amount of bits to the left" do

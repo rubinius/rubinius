@@ -1,9 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#==" do
   before(:each) do
-    @bignum = BignumHelper.sbm
+    @bignum = bignum_value
   end
   
   it "returns true if self has the same value as the given argument" do

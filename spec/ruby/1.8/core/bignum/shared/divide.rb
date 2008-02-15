@@ -1,14 +1,14 @@
 shared :bignum_divide do |cmd|
   describe "Bignum##{cmd}" do
     before(:each) do
-      @bignum = BignumHelper.sbm(88)
+      @bignum = bignum_value(88)
     end
     
     it "returns self divided by other" do
       @bignum.send(cmd, 4).should == 2305843009213693974
 
       @bignum.send(cmd, 0xffff_ffff.to_f).should be_close(2147483648.5, TOLERANCE)
-      @bignum.send(cmd, BignumHelper.sbm(2)).should be_close(1, TOLERANCE)
+      @bignum.send(cmd, bignum_value(2)).should be_close(1, TOLERANCE)
     end
 
     it "raises a ZeroDivisionError if other is zero and not a Float" do

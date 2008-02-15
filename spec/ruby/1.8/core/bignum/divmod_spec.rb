@@ -1,9 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#divmod" do
   before(:each) do
-    @bignum = BignumHelper.sbm(55)
+    @bignum = bignum_value(55)
   end
   
   it "returns an Array containing quotient and modulus obtained from dividing self by the given argument" do

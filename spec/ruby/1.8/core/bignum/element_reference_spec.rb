@@ -1,9 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#[]" do
   before(:each) do
-    @bignum = BignumHelper.sbm(4996)
+    @bignum = bignum_value(4996)
   end
   
   it "returns the nth bit in the binary representation of self" do

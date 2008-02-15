@@ -1,15 +1,14 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#|" do
   before(:each) do
-    @bignum = BignumHelper.sbm(11) 
+    @bignum = bignum_value(11) 
   end
   
   it "returns self bitwise OR other" do
     (@bignum | 2).should == 9223372036854775819
     (@bignum | 9).should == 9223372036854775819
-    (@bignum | BignumHelper.sbm).should == 9223372036854775819
+    (@bignum | bignum_value).should == 9223372036854775819
   end
 
   it "tries to convert the given argument to an Integer using to_int" do

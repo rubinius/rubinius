@@ -1,16 +1,15 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#&" do
   before(:each) do
-    @bignum = BignumHelper.sbm(5)
+    @bignum = bignum_value(5)
   end
   
   it "returns self bitwise AND other" do
-    @bignum = BignumHelper.sbm(5)
+    @bignum = bignum_value(5)
     (@bignum & 3).should == 1
     (@bignum & 52).should == 4
-    (@bignum & BignumHelper.sbm(9921)).should == 9223372036854775809
+    (@bignum & bignum_value(9921)).should == 9223372036854775809
 
     (18446744073709551616 & 1).should == 0
     (18446744073709551616 & -1).should == 18446744073709551616
