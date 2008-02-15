@@ -2109,33 +2109,46 @@ class ShotgunPrimitives
 
   def bignum_and
     <<-CODE
-    OBJECT t1;
     GUARD(BIGNUM_P(msg->recv));
-    POP(t1, INTEGER);
-
-    RET(bignum_and(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(INTEGER_P(t1)) {
+      RET(bignum_and(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      RET(bignum_and(state, msg->recv, 
+                     bignum_from_double(state, FLOAT_TO_DOUBLE(t1))));
+    } else {
+      FAIL();
+    }
     CODE
   end
 
   def bignum_or
     <<-CODE
-    OBJECT t1;
     GUARD(BIGNUM_P(msg->recv));
-    
-    POP(t1, INTEGER);
-
-    RET(bignum_or(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(INTEGER_P(t1)) {
+      RET(bignum_or(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      RET(bignum_or(state, msg->recv, 
+                    bignum_from_double(state, FLOAT_TO_DOUBLE(t1))));
+    } else {
+      FAIL();
+    }
     CODE
   end
 
   def bignum_xor
     <<-CODE
-    OBJECT t1;
     GUARD(BIGNUM_P(msg->recv));
-    
-    POP(t1, INTEGER);
-
-    RET(bignum_xor(state, msg->recv, t1));
+    OBJECT t1 = stack_pop();
+    if(INTEGER_P(t1)) {
+      RET(bignum_xor(state, msg->recv, t1));
+    } else if(FLOAT_P(t1)) {
+      RET(bignum_xor(state, msg->recv, 
+                     bignum_from_double(state, FLOAT_TO_DOUBLE(t1))));
+    } else {
+      FAIL();
+    }
     CODE
   end
 
@@ -3737,7 +3750,7 @@ class ShotgunPrimitives
     } else if(isnan(b)) {
       RET(msg->recv);
     } else {
-      RET(float_to_i_prim(state, b));
+      RET(bignum_from_double(state, float_truncate(b)));
     }
     CODE
   end
@@ -3782,7 +3795,7 @@ class ShotgunPrimitives
         mod += b;
       }
       OBJECT ary = array_new(state, 2);
-      array_set(state, ary, 0, float_to_i_prim(state, div));
+      array_set(state, ary, 0, bignum_from_double(state, float_truncate(div)));
       array_set(state, ary, 1, float_new(state, mod));
       RET(ary);
     }
