@@ -11,6 +11,11 @@ describe "IO#eof?" do
     @file.close unless @file.closed?
   end
 
+  it "returns false when not at end of file" do
+    @file.read 1
+    @file.eof?.should == false
+  end
+
   it "returns true after reading with read with no parameters" do
     @file.read()
     @file.eof?.should == true

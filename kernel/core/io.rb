@@ -59,6 +59,10 @@ class IO
       return str
     end
 
+    def empty?
+      @bytes == 0
+    end
+
     # Indicates if the Buffer has no more room.
     def full?
       @total == @bytes
@@ -301,7 +305,7 @@ class IO
   def eof?
     raise IOError if closed? # HACK only for read
     read 0 # HACK force check
-    @eof
+    @eof and @buffer.empty?
   end
 
   def getc
