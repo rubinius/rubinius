@@ -9,15 +9,15 @@ class IO
   class Buffer < String
     ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3, :hash => 4, :shared => 5
 
-    # Create a buffer of size +size+ bytes. The buffer contains an internal
-    # Channel object it uses to fill itself.
+    # Create a buffer of +size+ bytes. The buffer contains an internal Channel
+    # object it uses to fill itself.
     def initialize(size)
       @data = ByteArray.new(size)
       @bytes = 0
       @characters = 0
       @encoding = :buffer
 
-      @total = size - 1
+      @total = size
       @channel = Channel.new
     end
 
@@ -30,7 +30,7 @@ class IO
 
     # Indicates how many bytes are left
     def unused
-      @total - @bytes + 1
+      @total - @bytes
     end
 
     # Remove +count+ bytes from the front of the buffer and return them.
@@ -86,6 +86,12 @@ class IO
       io.eof! unless obj
 
       return obj
+    end
+
+    def inspect # :nodoc:
+      "#<IO::Buffer:0x%x total=%p bytes=%p characters=%p data=%p>" % [
+        object_id, @total, @bytes, @characters, @data
+      ]
     end
 
     # Match the buffer against Regexp +reg+, and remove bytes starting
@@ -397,9 +403,10 @@ class IO
 
   alias_method :readpartial, :sysread
 
+  def breadall(buffer=nil)
+    return "" if @eof and @buffer.empty?
 
-  def breadall(output=nil)
-    return "" if @eof
+    output = ''
 
     buf = @buffer
 
@@ -407,26 +414,31 @@ class IO
       bytes = buf.fill_from(self)
 
       if !bytes or buf.full?
-        if output
-          output << buf
-          buf.reset!
-        else
-          output = buf.as_str
-        end
+        output << buf
+        buf.reset!
       end
 
       break unless bytes
     end
 
-    return output
+    if buffer then
+      buffer = StringValue buffer
+      buffer.replace output
+    else
+      buffer = output
+    end
+
+    buffer
   end
 
-  def read(size=nil, output=nil)
-    return breadall(output) unless size
+  def read(size=nil, buffer=nil)
+    return breadall(buffer) unless size
 
-    return nil if @eof
+    return nil if @eof and @buffer.empty?
 
     buf = @buffer
+
+    output = ''
 
     needed = size
 
@@ -434,25 +446,27 @@ class IO
       bytes = buf.fill_from(self)
 
       if bytes
-        needed -= bytes
-        done = (needed <= 0)
+        done = needed - bytes <= 0
       else
         done = true
       end
 
       if done or buf.full?
-        if output
-          output << buf.shift_front(size)
-          buf.reset!
-        else
-          output = buf.shift_front(size)
-        end
+        output << buf.shift_front(needed)
+        needed = size - output.length
       end
 
-      break if done
+      break if done or needed == 0
     end
 
-    return output
+    if buffer then
+      buffer = StringValue buffer
+      buffer.replace output
+    else
+      buffer = output
+    end
+
+    buffer
   end
 
   alias_method :prim_write, :write
@@ -564,7 +578,7 @@ class IO
   # slightly. This helper is an extraction of the code.
 
   def gets_helper(sep=$/)
-    return nil if @eof
+    return nil if @eof and @buffer.empty?
 
     return breadall() unless sep
 

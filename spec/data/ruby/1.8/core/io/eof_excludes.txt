@@ -1,2 +1,1 @@
 IO#eof? raises IOError on stream closed for reading by close_read
-IO#eof? returns false on receiving side of Pipe when writing side wrote some data

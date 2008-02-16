@@ -58,6 +58,44 @@ describe "IO#read" do
     File.delete(@fname) if File.exists?(@fname)
   end
 
+  it "can be read from consecutively" do
+    @io.read(1).should == '1'
+    @io.read(2).should == '23'
+    @io.read(3).should == '456'
+    @io.read(4).should == '7890'
+  end
+
+  it "can read lots of data" do
+    data = "\xaa" * (8096 * 2 + 1024) # HACK IO::BufferSize
+
+    File.open @fname, 'w' do |io| io.write data end
+
+    actual = nil
+
+    File.open @fname, 'r' do |io|
+      actual = io.read
+    end
+
+    actual.length.should == data.length
+    actual.split('').all? { |c| c == "\xaa" }.should == true
+  end
+
+  it "can read lots of data with length" do
+    read_length = 8096 * 2 + 1024 # HACK IO::BufferSize
+    data = "\xaa" * (read_length + 8096) # HACK same
+
+    File.open @fname, 'w' do |io| io.write data end
+
+    actual = nil
+
+    File.open @fname, 'r' do |io|
+      actual = io.read read_length
+    end
+
+    actual.length.should == read_length
+    actual.split('').all? { |c| c == "\xaa" }.should == true
+  end
+
   it "consumes zero bytes when reading zero bytes" do
     pre_pos = @io.pos
 
@@ -75,28 +113,46 @@ describe "IO#read" do
     @io.read.should == @contents
   end
 
-  it "reads the specified number of bytes from the file to the buffer" do
-    buf = "" # empty buffer
-    @io.read(10, buf).should == buf
+  it "places the specified number of bytes in the buffer" do
+    buf = ""
+    @io.read 5, buf
+
+    buf.should == "12345"
+  end
+
+  it "expands the buffer when too small" do
+    buf = "ABCDE"
+    @io.read nil, buf
+
     buf.should == @contents
+  end
 
-    @io.rewind
+  it "overwrites the buffer" do
+    buf = "ABCDEFGHIJ"
+    @io.read nil, buf
 
-    buf = "ABCDE" # small buffer
-    @io.read(10, buf).should == buf
     buf.should == @contents
+  end
 
-    @io.rewind
+  it "truncates the buffer when too big" do
+    buf = "ABCDEFGHIJKLMNO"
+    @io.read nil, buf
 
-    buf = "ABCDE" * 5 # large buffer
-    @io.read(10, buf).should == buf
     buf.should == @contents
+  end
+
+  it "returns the given buffer" do
+    buf = ""
+
+    @io.read(nil, buf).object_id.should == buf.object_id
   end
 
   it "coerces the second argument to string and uses it as a buffer" do
     buf = "ABCDE"
-    (obj = mock("buff")).should_receive(:to_str).any_number_of_times.and_return(buf)
-    @io.read(15, obj).should == buf
+    obj = mock("buff")
+    obj.should_receive(:to_str).any_number_of_times.and_return(buf)
+
+    @io.read(15, obj).object_id.should_not == obj.object_id
     buf.should == @contents
   end
 
