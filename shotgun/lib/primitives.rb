@@ -1001,10 +1001,12 @@ class ShotgunPrimitives
   # hash value for later lookup.
   def hash_rehash
     <<-CODE
+    /*
     GUARD(HASH_P(msg->recv));
 
     hash_rehash(state, msg->recv);
     RET(msg->recv);
+    */
     CODE
   end
   

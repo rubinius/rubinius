@@ -185,7 +185,7 @@ OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh) {
 }
 
 OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
-  OBJECT entry, keys;
+  OBJECT entry;
   int i;
   
   // printf("hash_add: adding %od\n",hsh);
