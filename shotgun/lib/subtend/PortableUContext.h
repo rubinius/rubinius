@@ -6,7 +6,7 @@
 #define HAS_UCONTEXT 1
 #endif
 
-#if defined(__FreeBSD__) || (defined(__APPLE__) && !__DARWIN_UNIX03)
+#if defined(__FreeBSD__) || (defined(__APPLE__) && __DARWIN_UNIX03) || defined(linux)
 
 #include <stdarg.h>
 #include <errno.h>
@@ -51,18 +51,7 @@ extern	void		makecontext(ucontext_t*, void(*)(), int, ...);
 #   define NEEDSWAPCONTEXT
 #endif
 
-#if defined(__OpenBSD__)
-#	define mcontext libthread_mcontext
-#	define mcontext_t libthread_mcontext_t
-#	define ucontext libthread_ucontext
-#	define ucontext_t libthread_ucontext_t
-#	if defined __i386__
-#		include "PortableUContext386.h"
-#	else
-#		include "PortableUContextPPC.h"
-#	endif
-extern pid_t rfork_thread(int, void*, int(*)(void*), void*);
-#endif
+
 
 #if 0 &&  defined(__sun__)
 #	define mcontext libthread_mcontext
@@ -86,7 +75,30 @@ void setmcontext(const mcontext_t*);
 #define NEEDSWAPCONTEXT
 #endif
 
-
 #endif
+
+#if defined(__OpenBSD__)
+#include <sys/types.h>
+#include <sys/time.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <inttypes.h>
+
+#	define mcontext libthread_mcontext
+#	define mcontext_t libthread_mcontext_t
+#	define ucontext libthread_ucontext
+#	define ucontext_t libthread_ucontext_t
+#	if defined(__i386__)
+#		include "PortableUContext386.h"
+#		define NEEDX86MAKECONTEXT
+#		define NEEDXSWAPCONTEXT
+#	else
+#		include "PortableUContextPPC.h"
+#	endif
+extern pid_t rfork_thread(int, void*, int(*)(void*), void*);
+#endif
+
+
 #endif
 

@@ -36,13 +36,15 @@ ifeq ($(UNAME),Darwin)
   CPPFLAGS+=-DHAVE_STRLCAT -DHAVE_STRLCPY
 endif
 
-# Darwin doesn't need -lcrypt or -lrt
-# BSD does not need -lrt
-ifneq ($(UNAME),Darwin)
-  LIBS+= -lcrypt
-ifneq ($(findstring BSD,$(UNAME)),BSD)
-  LIBS+= -lrt
+# Linux needs -lrt and -lcrypt
+# FreeBSD only needs -lcrypt
+# Darwin, OpenBSD and Solaris don't need any
+ifeq ($(UNAME),Linux)
+	LIBS+= -lrt -lcrypt
 endif
+
+ifeq ($(UNAME),FreeBSD)
+	LIBS+= -lcrypt
 endif
 
 # BSD needs special PThread handling

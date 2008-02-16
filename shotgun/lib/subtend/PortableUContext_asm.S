@@ -31,6 +31,12 @@ This software was developed as part of a project at MIT.
 #define GET getmcontext
 #endif
 
+#if defined(__OpenBSD__) && defined(__i386__)
+#define NEEDX86CONTEXT 1
+#define SET setmcontext
+#define GET getmcontext
+#endif
+
 #if defined(__APPLE__)
 #include "sys/cdefs.h"
 #endif

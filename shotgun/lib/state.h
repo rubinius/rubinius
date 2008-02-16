@@ -1,7 +1,6 @@
 #ifndef RBS_STATE_H
 #define RBS_STATE_H
 
-#include <ucontext.h>
 #include <hashtable.h>
 #include <ptr_array.h>
 
