@@ -299,8 +299,6 @@ class IO
   end
 
   def eof?
-    raise IOError if closed?
-    read 0
     @eof
   end
 
@@ -416,6 +414,11 @@ class IO
     return nil if @eof
 
     buf = @buffer
+
+    # If we already have the data, return it fast.
+    if size <= buf.size
+      return buf.shift_front(size)
+    end
 
     needed = size
 

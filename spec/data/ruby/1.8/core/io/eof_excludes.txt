@@ -1,3 +1,9 @@
+IO#eof? returns true after reading with read
+IO#eof? returns true after reading with sysread
+IO#eof? returns true on just opened empty stream
 IO#eof? should not consume the data from the stream
+IO#eof? raises IOError on closed stream
+IO#eof? raises IOError on stream not opened for reading
 IO#eof? raises IOError on stream closed for reading by close_read
-IO#eof? returns false on receiving side of Pipe when writing side wrote some data
+IO#eof? returns true on one-byte stream after single-byte read
+IO#eof? returns true on receiving side of Pipe when writing side is closed
