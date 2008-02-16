@@ -10,7 +10,7 @@ ifeq ($(UNAME),Linux)
 endif
 
 ifeq ($(UNAME),Darwin)
-  CPPFLAGS += -D_DARWIN_USE_64_BIT_INODE
+  CPPFLAGS += -D_XOPEN_SOURCE -D_DARWIN_USE_64_BIT_INODE
   SINGLE_MODULE=-Wl,-single_module
 else
   SINGLE_MODULE=
