@@ -40,9 +40,8 @@ class Hash
 
   def setup()
     @bins = 16
-    @keys = Tuple.new(@bins)
-    @values = Tuple.new(@bins)
     @entries = 0
+    @values = Tuple.new(@bins)
   end
   private :setup
 

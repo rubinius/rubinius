@@ -20,9 +20,8 @@ class Hash
   end
 
   def initialize
-    @keys = Tuple.new(16)
-    @values = Tuple.new(16)
     @bins = 16
+    @values = Tuple.new(@bins)
     @entries = 0
   end
 

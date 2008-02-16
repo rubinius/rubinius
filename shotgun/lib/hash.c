@@ -2,6 +2,7 @@
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/hash.h"
 
+/* MINSIZE MUST be a power of 2 */
 #define MINSIZE 16
 
 #define Increments 16
@@ -26,7 +27,8 @@ OBJECT hash_new_sized(STATE, int size) {
 void hash_setup(STATE, OBJECT hsh, int size) {
   int sz;
   sz = size == 0 ? MINSIZE : size;
-  hash_set_keys(hsh, tuple_new(state, sz));
+  // TODO: Remove @keys field
+  hash_set_keys(hsh, Qnil);
   hash_set_values(hsh, tuple_new(state, sz));
   hash_set_bins(hsh, I2N(sz));
   hash_set_entries(hsh, I2N(0));
@@ -44,7 +46,8 @@ OBJECT hash_dup(STATE, OBJECT hsh) {
   hash_set_bins(dup, I2N(sz));
   hash_set_entries(dup, hash_get_entries(hsh));
   hash_set_default(dup, hash_get_default(hsh));
-  hash_set_keys(dup, tuple_dup(state, hash_get_keys(hsh)));
+  // TODO: Remove @keys field
+  hash_set_keys(dup, Qnil);
 
   cv = hash_get_values(hsh);
 
@@ -200,12 +203,6 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
   i = N2I(hash_get_entries(h));
   entry = entry_new(state, hsh, key, data);
   add_entry(state, h, hsh, entry);
-  keys = hash_get_keys(h);
-  if(i == NUM_FIELDS(keys)) {
-    keys = tuple_enlarge(state, keys, 10);
-    hash_set_keys(h, keys);
-  }
-  //tuple_put(state, keys, i-1, key);
   return data;
 }
 

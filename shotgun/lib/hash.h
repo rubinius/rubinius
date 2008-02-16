@@ -10,8 +10,7 @@ OBJECT hash_s_from_tuple(STATE, OBJECT tup);
 OBJECT hash_get_undef(STATE, OBJECT hash, unsigned int hsh);
 OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh);
 OBJECT hash_dup(STATE, OBJECT hsh);
-void hash_rehash(STATE, OBJECT hsh);
-
+void hash_redistribute(STATE, OBJECT hsh);
 
 int hash_lookup(STATE, OBJECT tbl, OBJECT key, unsigned int hash, OBJECT *value);
 int hash_lookup2(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl, OBJECT key, unsigned int hash, OBJECT *value);
