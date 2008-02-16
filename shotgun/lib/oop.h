@@ -45,9 +45,9 @@ typedef intptr_t native_int;
 
 /* How many bits of data are available in fixnum, not including
    the sign. */
-enum { FIXNUM_WIDTH = ((8 * sizeof(native_int)) - TAG_SHIFT - 1) };
-enum { FIXNUM_MAX = (((native_int)1 << FIXNUM_WIDTH) - 1) };
-enum { FIXNUM_MIN = (-(FIXNUM_MAX)) - 1 };
+#define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_SHIFT - 1)
+#define FIXNUM_MAX (((native_int)1 << FIXNUM_WIDTH) - 1)
+#define FIXNUM_MIN (-(FIXNUM_MAX) - 1)
 
 /* rubinius_object types, takes up 3 bits */
 typedef enum
