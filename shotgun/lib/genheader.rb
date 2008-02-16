@@ -10,7 +10,6 @@ Compiler::Bootstrap::TYPES.each do |name, klass|
   prefix = "#{name}_"
   
   fields = Compiler::Bootstrap::HINTS[klass] || Hash.new
-  sz = 0
   fields.each do |field_as_ivar, field_index|
     if field_as_ivar == :@__ivars__
       field_name = "instance_variables" 
@@ -21,10 +20,9 @@ Compiler::Bootstrap::TYPES.each do |name, klass|
     fd.puts "#define #{func_name} #{field_index}"
     fd.puts "#define #{prefix}get_#{field_name}(obj) NTH_FIELD(obj, #{func_name})"
     fd.puts "#define #{prefix}set_#{field_name}(obj, val) SET_FIELD(obj, #{func_name}, val)"
-    sz = field_index if field_index > sz
   end
-  sz += 1
 
+  sz = fields.size
   puts "OBJECT #{prefix}allocate_with_extra(STATE, int extra) {"
   puts "  return NEW_OBJECT(BASIC_CLASS(#{name}), #{sz} + extra);"
   puts "}"
