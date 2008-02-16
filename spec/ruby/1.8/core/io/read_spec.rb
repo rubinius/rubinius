@@ -58,6 +58,14 @@ describe "IO#read" do
     File.delete(@fname) if File.exists?(@fname)
   end
 
+  it "consumes zero bytes when reading zero bytes" do
+    pre_pos = @io.pos
+
+    @io.read(0).should == ''
+
+    @io.getc.chr.should == '1'
+  end
+
   it "is at end-of-file when everything has been read" do
     @io.read
     @io.eof?.should == true

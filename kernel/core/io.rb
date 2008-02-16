@@ -299,7 +299,16 @@ class IO
   end
 
   def eof?
+    raise IOError if closed? # HACK only for read
+    read 0 # HACK force check
     @eof
+  end
+
+  def getc
+    raise IOError if closed? # HACK only for read
+    char = read 1
+    return nil if char.nil?
+    char[0]
   end
 
   def wait_til_readable
@@ -414,11 +423,6 @@ class IO
     return nil if @eof
 
     buf = @buffer
-
-    # If we already have the data, return it fast.
-    if size <= buf.size
-      return buf.shift_front(size)
-    end
 
     needed = size
 
