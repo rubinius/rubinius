@@ -19,7 +19,8 @@ two_vary  = Array.new(n).map! { rand 2 }
 three_set = Array.new(n).map! { rand 3 }
 
 mixed     = random.map {|o| rand(4) % 3 ? random.at(rand(random.size)) : o }
-strings   = ('Hello there how aaaa'..'Hello there how iiii').to_a[0...1462]
+s         = 'Hello there how aaaa'
+strings   = Array.new(150_000) { s = s.succ }
 
 puts "Numeric, #{n} of each, #{i} loops:"
 puts "  - Sorted:   [1, 2, 3, 4, 5]"
