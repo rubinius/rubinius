@@ -22,6 +22,11 @@ void hash_assign(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl, OBJEC
 
 #define hash_find_undef(state, hash, key) (hash_get_undef(state, hash, object_hash_int(state, key)))
 
+#define MAX_DENSITY 0.75
+
+/* TODO: fix to determine whether to redistribute both up and down */
+#define hash_redistribute_p(hash) (N2I(hash_get_entries(hash)) >= MAX_DENSITY * N2I(hash_get_bins(hash)))
+
 #define CSM_SIZE 12
 
 #define csm_new(st) tuple_new(st, CSM_SIZE)

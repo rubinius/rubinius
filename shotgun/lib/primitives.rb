@@ -995,11 +995,26 @@ class ShotgunPrimitives
     CODE
   end
 
+  # TODO: Remove this the next time stables are rebuilt
+  # Hash#rehash must be implemented in Ruby so that classes
+  # that redefine #hash (e.g. Array) will provide the correct
+  # hash value for later lookup.
   def hash_rehash
     <<-CODE
     GUARD(HASH_P(msg->recv));
 
     hash_rehash(state, msg->recv);
+    RET(msg->recv);
+    CODE
+  end
+  
+  def hash_redistribute
+    <<-CODE
+    GUARD(HASH_P(msg->recv));
+    
+    if(hash_redistribute_p(msg->recv)) {
+      hash_redistribute(state, msg->recv);
+    }
     RET(msg->recv);
     CODE
   end

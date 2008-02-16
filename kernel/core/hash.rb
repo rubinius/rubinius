@@ -7,7 +7,6 @@ class Hash
   #++
 
   HASH_MAX = 0x1fffffff
-  HASH_DENSITY = 0.75
   
   include Enumerable
 
@@ -119,7 +118,7 @@ class Hash
   def set_key_cv(key, val)
     key = key.dup if key.kind_of?(String)
 
-    rehash_cv if @entries >= (@bins*HASH_DENSITY)
+    redistribute
     
     entry, hash, bin = hash_entry key
     lst = nil
@@ -350,7 +349,12 @@ class Hash
   end
   alias_method :update, :merge!
 
-  def rehash()
+  # TODO: Improve the performance of this. NOTE, however
+  # that #rehash is fundamentally impossible to do via a
+  # primitive because classes (e.g. Array) can and do
+  # redefine the #hash method. That method is not available
+  # to primitive C code because we do not call back to Ruby
+  def rehash
     out = {}
     each_pair { |k, v| out[k] = v }
     replace out

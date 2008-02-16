@@ -56,9 +56,9 @@ class Hash
     set_by_hash key.hash, key, val
   end
 
-  def rehash_cv
-    Ruby.primitive :hash_rehash
-    raise PrimitiveFailure, "Hash#rehash failed"
+  def redistribute
+    Ruby.primitive :hash_redistribute
+    raise PrimitiveFailure, "Hash#redistribute failed"
   end
   
   def delete_by_hash(hsh, key)

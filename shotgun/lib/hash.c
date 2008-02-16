@@ -2,9 +2,7 @@
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/hash.h"
 
-#define MINSIZE 8
-
-#define MAX_DENSITY 0.75
+#define MINSIZE 16
 
 #define Increments 16
 
@@ -73,36 +71,6 @@ OBJECT hash_dup(STATE, OBJECT hsh) {
   return dup;
 }
 
-void hash_rehash(STATE, OBJECT hsh) {
-  int new_bins, i, old_bins;
-  unsigned int bin, hv;
-  OBJECT tbl, tup, ent, next;
-  
-  old_bins = N2I(hash_get_bins(hsh));
-  new_bins = old_bins * 2;
-  tup = tuple_new(state, new_bins);
-  tbl = hash_get_values(hsh);
-  
-  // printf("Rehash %p, %d => %d (%d)\n", hsh, old_bins, new_bins, N2I(hash_get_entries(hsh)));
-  
-  for(i = 0; i < old_bins; i++) {
-    ent = tuple_at(state, tbl, i);
-    while(!NIL_P(ent)) {
-      next = tuple_at(state, ent, 3);
-      hv = (unsigned int)N2I(tuple_at(state, ent, 0));
-      
-      bin = find_bin(hv, new_bins);
-      tuple_put(state, ent, 3, tuple_at(state, tup, (int)bin));
-      tuple_put(state, tup, (int)bin, ent);
-      
-      ent = next;
-    }
-  }
-  
-  hash_set_values(hsh, tup);
-  hash_set_bins(hsh, I2N(new_bins));
-}
-
 static OBJECT entry_new(STATE, unsigned int hsh, OBJECT key, OBJECT data) {
   OBJECT tup = tuple_new(state, 4);
   tuple_put(state, tup, 0, I2N(hsh));
@@ -148,6 +116,50 @@ static OBJECT add_entry(STATE, OBJECT h, unsigned int hsh, OBJECT ent) {
   return ent;
 }
 
+/* TODO: Why do we use signed int for bins and then use a
+ * loop like for(i = 0; i < bins; i++) ?
+ */
+void hash_redistribute(STATE, OBJECT hsh) {
+  int i, bins, size;
+  unsigned int bin, hash;
+  OBJECT values, new_values, entry, next, slot;
+  
+  bins = N2I(hash_get_bins(hsh));
+  values = hash_get_values(hsh);
+
+  /* TODO: calculate the size both up and down.
+   * i.e. don't assume we're only growing
+   */
+  size = bins * 2;
+  new_values = tuple_new(state, size);
+  
+  // printf("Hash redistribute %p, %d => %d (%d)\n", hsh, bins, size, N2I(hash_get_entries(hsh)));
+
+  for(i = 0; i < bins; i++) {
+    entry = tuple_at(state, values, i);
+    
+    while(!NIL_P(entry)) {
+      next = tuple_at(state, entry, 3);
+      tuple_put(state, entry, 3, Qnil);
+
+      hash = N2I(tuple_at(state, entry, 0));
+      bin = find_bin(hash, size);
+      slot = tuple_at(state, new_values, bin);
+      
+      if(NIL_P(slot)) {
+        tuple_put(state, new_values, bin, entry);
+      } else {
+        entry_append(state, slot, entry);
+      }
+      
+      entry = next;
+    }
+  }
+
+  hash_set_values(hsh, new_values);
+  hash_set_bins(hsh, I2N(size));
+}
+
 OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh) {
   unsigned int bin, bins;
   OBJECT entry, th;
@@ -171,7 +183,7 @@ OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh) {
 
 OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
   OBJECT entry, keys;
-  int i, b;
+  int i;
   
   // printf("hash_add: adding %od\n",hsh);
   entry = hash_find_entry(state, h, hsh);
@@ -181,13 +193,11 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
     return data;
   }
   
-  i = N2I(hash_get_entries(h));
-  b = N2I(hash_get_bins(h));
-  
-  if((double)i / (double)b > MAX_DENSITY) {
-    hash_rehash(state, h);
+  if(hash_redistribute_p(h)) {
+    hash_redistribute(state, h);
   }
   
+  i = N2I(hash_get_entries(h));
   entry = entry_new(state, hsh, key, data);
   add_entry(state, h, hsh, entry);
   keys = hash_get_keys(h);
@@ -264,7 +274,6 @@ int hash_lookup2(STATE, int (*compare)(STATE, OBJECT, OBJECT),
 void hash_assign(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl,
     OBJECT key, unsigned int hash, OBJECT value) {
   OBJECT base, ent, hk;
-  int i, b;
 
   base = ent = hash_find_entry(state, tbl, hash);
   if(REFERENCE_P(ent)) {
@@ -281,13 +290,10 @@ void hash_assign(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl,
 
   }
 
-  i = N2I(hash_get_entries(tbl));
-  b = N2I(hash_get_bins(tbl));
-  
-  if((double)i / (double)b > MAX_DENSITY) {
-    hash_rehash(state, tbl);
+  if(hash_redistribute_p(tbl)) {
+    hash_redistribute(state, tbl);
   }
-
+  
   if(REFERENCE_P(base)) {  
     ent = entry_new(state, hash, key, value);
     entry_append(state, base, ent);

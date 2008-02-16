@@ -226,7 +226,8 @@ module Bytecode
       :bignum_gt,
       :bignum_ge,
       :bignum_lt,
-      :bignum_le
+      :bignum_le,
+      :hash_redistribute
     ]
   end
 end
