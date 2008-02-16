@@ -9,8 +9,8 @@ describe "Fixnum#^" do
   end
 
   it "raises a RangeError if passed a Float out of Fixnum range" do
-    lambda { 1 & bignum_value.to_f }.should raise_error(RangeError)
-    lambda { 1 & -bignum_value.to_f }.should raise_error(RangeError)
+    lambda { 1 ^ bignum_value.to_f }.should raise_error(RangeError)
+    lambda { 1 ^ -bignum_value.to_f }.should raise_error(RangeError)
   end
   
   it "tries to convert the given argument to an Integer using to_int" do
