@@ -32,9 +32,11 @@ class TypesGenerator
       "void *" => :pointer
     }
     
-    typedefs = `echo "#include <sys/types.h>" | cpp -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 | grep typedef `
+    typedefs = `echo "#include <sys/types.h>" | cpp -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64`
     code = ""
     typedefs.each do |type|
+      # We only care about single line typedef
+      next unless type =~ /typedef/
       # Ignore unions or structs
       next if type =~ /union|struct/
       
