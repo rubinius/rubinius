@@ -9,8 +9,8 @@ describe "Fixnum#&" do
   end
   
   it "raises a RangeError if passed a Float out of Fixnum range" do
-    lambda { 1 & bignum_value.to_f }.should raise_error(RangeError)
-    lambda { 1 & -bignum_value.to_f }.should raise_error(RangeError)
+    lambda { 1 & bignum_value(10000).to_f }.should raise_error(RangeError)
+    lambda { 1 & -bignum_value(10000).to_f }.should raise_error(RangeError)
   end
   
   it "tries to convert it's argument to an Integer using to_int" do
@@ -26,5 +26,10 @@ describe "Fixnum#&" do
     
     obj.should_receive(:to_int).and_return("asdf")
     lambda { 3 & obj }.should raise_error(TypeError)
+  end
+
+  it "raises a RangeError when the given argument is out of range of Integer" do
+    (obj = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
+    lambda { 3 & obj }.should raise_error(RangeError)
   end
 end

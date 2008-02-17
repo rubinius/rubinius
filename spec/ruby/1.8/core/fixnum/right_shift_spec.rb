@@ -26,4 +26,12 @@ describe "Fixnum#>>" do
     obj.should_receive(:to_int).and_return("asdf")
     lambda { 3 >> obj }.should raise_error(TypeError)
   end
+
+  it "does not raise RangeError when the given argument is out of range of Integer" do
+    (obj = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
+    (3 >> obj).should == 0
+
+    obj = 8e19
+    (3 >> obj).should == 0
+  end
 end
