@@ -1267,7 +1267,7 @@ static void _cpu_on_no_method(STATE, cpu c, const struct message *msg) {
   exc = rbs_const_get(state, BASIC_CLASS(object), "RuntimeError");
 
   str = malloc(1024);
-  sprintf(str, "Unable to find any version of '%s' to run", _inspect(msg->name));
+  snprintf(str, 1024, "Unable to find any version of '%s' to run", _inspect(msg->name));
 
   cpu_raise_exception(state, c, cpu_new_exception(state, c, exc, str));
 

@@ -462,7 +462,7 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                     {
                         char buf[3];
 
-                        sprintf(buf, "$%c", (char)$3->nd_nth);
+                        snprintf(buf, sizeof(buf), "$%c", (char)$3->nd_nth);
                         $$ = NEW_VALIAS($2, rb_intern(buf));
                     }
                 | kALIAS tGVAR tNTH_REF
@@ -4086,7 +4086,7 @@ yylex(YYSTYPE *yylval, void *vstate)
             if (nondigit) {
                 char tmp[30];
               trailing_uc:
-                sprintf(tmp, "trailing `%c' in number", nondigit);
+                snprintf(tmp, sizeof(tmp), "trailing `%c' in number", nondigit);
                 yyerror(tmp);
             }
             if (is_float) {

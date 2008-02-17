@@ -365,7 +365,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
       {
         char msg[1024];
         OBJECT cur;
-        sprintf(msg, "Segfault detected in function %p (accessing %p)", 
+        snprintf(msg, sizeof(msg), "Segfault detected in function %p (accessing %p)", 
             n->method->entry, global_context->fault_address);
             
         /* We swap around the active_conetext so the exception thats created
