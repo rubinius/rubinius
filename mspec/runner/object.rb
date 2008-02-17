@@ -14,4 +14,7 @@ class Object
   def it(msg, &block)
     MSpec.current.it msg, &block
   end
+  
+  alias_method :context, :describe
+  alias_method :specify, :it
 end
