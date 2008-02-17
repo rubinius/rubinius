@@ -1,0 +1,2 @@
+fails:IO#seek can handle any numerical argument without breaking
+fails:IO#seek raises IOError on closed stream

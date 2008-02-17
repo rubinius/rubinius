@@ -1,2 +1,0 @@
-IO#gets returns tainted strings
-IO#gets updates $. with each invocation

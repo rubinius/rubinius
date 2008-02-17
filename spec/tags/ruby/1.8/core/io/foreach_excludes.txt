@@ -1,0 +1,2 @@
+fails:IO::foreach yields a single string with entire content when the separator is nil
+fails:IO::foreach updates $. with each yield

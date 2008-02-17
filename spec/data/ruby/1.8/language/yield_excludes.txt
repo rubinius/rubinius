@@ -1,1 +1,0 @@
-Assignment via yield assigns splatted objects to multiple block variables

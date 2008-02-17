@@ -1,0 +1,3 @@
+fails:Basic assignment supports the {|r,| } form of block assignment
+fails:Assigning multiple values calls #to_ary on rhs arg if rhs has only a single arg
+fails:Assigning multiple values allows complex parallel assignment

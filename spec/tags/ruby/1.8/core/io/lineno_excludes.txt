@@ -1,0 +1,5 @@
+fails:IO#lineno raises IOError on closed stream
+fails:IO#lineno= raises IOError on closed stream
+fails:IO#lineno= invokes to_int on non-numeric arguments
+fails:IO#lineno= raises TypeError on nil argument
+fails:IO#lineno= does not change $. until next read

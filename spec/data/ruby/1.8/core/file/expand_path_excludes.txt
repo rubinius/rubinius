@@ -1,2 +1,0 @@
-File.expand_path raises an ArgumentError if the path is not valid
-File.expand_path expands ~ENV['USER'] to the user's home directory

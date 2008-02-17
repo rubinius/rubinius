@@ -1,3 +1,0 @@
-The for expression executes code in containing variable scope
-The for expression executes code in containing variable scope with 'do'
-The for expression repeats the loop from the beginning with 'retry'

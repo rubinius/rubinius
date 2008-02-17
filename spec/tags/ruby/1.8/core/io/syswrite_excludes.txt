@@ -1,0 +1,1 @@
+fails:IO#syswrite on a file raises IOError on closed stream

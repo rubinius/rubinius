@@ -1,0 +1,1 @@
+fails:IO#for_fd raises IOError on closed stream

@@ -1,0 +1,3 @@
+fails:File.new raises an Errno::EINVAL error with File::APPEND
+fails:File.new raises an Errno::EINVAL error with File::RDONLY|File::APPEND
+fails:File.new can't alter mode or permissions when opening a file

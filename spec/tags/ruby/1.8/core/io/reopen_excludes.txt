@@ -1,0 +1,5 @@
+fails:IO#reopen raises IOError on closed stream
+fails:IO#reopen reassociates self with a new stream opened on path, when self in initial state
+fails:IO#reopen reassociates self with a new stream opened on path, after some reads
+fails:IO#reopen reassociates self with a new stream opened on path, after some writes
+fails:IO#reopen reassociates self with the I/O stream specified as an argument, after some reads

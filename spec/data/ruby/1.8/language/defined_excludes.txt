@@ -1,1 +1,0 @@
-A ruby environment returns false when defined?(DoesNotExist.puts) is sent
