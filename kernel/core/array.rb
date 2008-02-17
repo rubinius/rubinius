@@ -1126,7 +1126,24 @@ class Array
         end
 
         ret << str
+      elsif kind =~ /H|h/
+        remaining = if t.nil?
+                      0
+                    elsif t == "*"
+                      item.length
+                    else
+                      t.to_i
+                    end
+        str = ""
+        item.scan(/..?/).each do |byte|
+          byte.reverse! if kind == "h"
+          str << (remaining == 1 ? byte + "0" : byte).hex.chr
+          remaining -= 2
+          break if remaining < 1
+        end
 
+        arr_idx += 1
+        ret << str
       else
         raise ArgumentError, "Unknown kind #{kind}"
       end

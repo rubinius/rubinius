@@ -327,6 +327,28 @@ describe "Array#pack" do
     lambda { [1, 2].pack('c3') }.should raise_error(ArgumentError)
   end
 
+
+  it "encodes a high-nibble hexadecimal string with ('H')" do
+    ["41"].pack("H2").should == "A"
+    ["61"].pack("H2").should == "a"
+    ["7e"].pack("H2").should == "~"
+
+    %w(41 31 2a).pack("H2H2H2").should == "A1*"
+    %w(41312a).pack("H6").should == "A1*"
+    %w(41312a).pack("H*").should == "A1*"
+  end
+  
+  it "encodes a low-nibble hexadecimal string with ('h')" do
+    ["14"].pack("h2").should == "A"
+    ["16"].pack("h2").should == "a"
+    ["e7"].pack("h2").should == "~"
+
+    %w(14 13 a2).pack("h2h2h2").should == "A1*"
+    %w(1413a2).pack("h6").should == "A1*"
+    %w(1413a2).pack("h*").should == "A1*"
+  end
+
+
   it "encodes a positive integer with ('i')" do
     [0].pack('i').should == "\000\000\000\000"
     compliant_on :ruby, :rubinius do
