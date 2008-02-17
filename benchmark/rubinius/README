@@ -1,0 +1,49 @@
+Rubinius Benchmarks
+-------------------
+
+These benchmarks have all been written as a part of the Rubinius project.
+There are three categories of files in this directory: any that start with
+`bm_*` should contain only the code to be run as a part of the benchmark.
+The benchmarking itself is handled by `bin/bm` for those files (and they
+are automatically run as a part of that invocation.) Any that start with
+`standalone_*` are, somewhat obviously, standalone scripts and usually
+combine some of the smaller scripts into entities. Broadly, any benchmark
+that exists in a standalone should also have a `bm_*` file. Thirdly, any
+files that have neither specifier are usually helpers etc.
+
+
+Specific Benchmark Details
+--------------------------
+
+Array Benchmarks
+================
+
+* `standalone_array_sort.rb`
+  Combines the various `Array#sort` (and `#sort!`) benchmarks into one
+  script that can be invoked with specific iteration and element counts.
+
+* `bm_array_generate_{num,str}_<number>.rb`
+  Generating Arrays with `Array.new` and setting the elements to some
+  values using `Array#map!`. The elements are either numeric or then
+  strings and the number that appears is the Array size. So for example
+  the file `bm_array_generate_num_1000.rb` just creates an Array with
+  1000 numeric elements.
+
+* `bm_array_sort_<kind>_{num,str}_<number>[_block].rb`
+  `#sort` a numeric or string Array of the specified size. The `_block`
+  suffix indicates that a block is supplied for sorting (although it is
+  always just `a <=> b` to avoid any discrepancies based on that.) In
+  addition, a `kind` can be given to indicate how the Array is ordered
+  before the sort. The last two are of course usually the case but it
+  is useful to get figures for the others as well:
+
+  * sorted:     [1, 2, 3, 4, 5]
+  * reversed:   [5, 4, 3, 2, 1]
+  * same:       [1, 1, 1, 1, 1]
+  * two:        [1, 3, 1, 3, 3]
+  * three:      [2, 1, 3, 1, 2]
+  * random:     [3, 1, 5, 4, 2]
+  * mixed:      [1, 3, 5, 1, 4]
+
+* `bm_array_sort_in_place_<kind>_{num,str}_<number>[_block].rb`
+  Uses `#sort!` instead of `#sort` as the name implies.
