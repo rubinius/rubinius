@@ -10,7 +10,7 @@ require 'ostruct'
 
 # Benchmark test selector
 # BM_GLOB        = 'test/benchmark/*/bm*.rb'
-BM_GLOB        = File.expand_path(File.join(File.dirname(__FILE__),'../test/benchmark/*/bm*.rb'))
+BM_GLOB        = File.expand_path(File.join(File.dirname(__FILE__),'../benchmark/*/bm*.rb'))
 
 # Which Ruby runtimes to test: MRI should be first and Rubinius should be last
 $interpreters       = ['ruby','shotgun/rubinius']
