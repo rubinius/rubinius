@@ -1581,12 +1581,22 @@ class Array
       middle = left_end + ((right_end - left_end) / 2)
       low, mid, hi = @tuple.at(left_end), @tuple.at(middle), @tuple.at(right_end)
 
-      # "Heuristic" for reverse-sorted
+      # "Heuristic" to avoid problems with reverse-sorted
       if @total > 1000 and (low <=> mid) == 1 and (mid <=> hi) == 1
         semi_left = @tuple.at(left_end + ((middle - left_end) / 2))
         semi_right = @tuple.at(middle + ((right_end - middle) / 2))
-        reverse! if (low <=> semi_left) == 1 and (semi_left <=> middle) == 1 and
-                    (middle <=> semi_right) == 1 and (semi_right <=> hi) == 1
+
+        if (low <=> semi_left) == 1 and (semi_left <=> middle) == 1 and
+           (middle <=> semi_right) == 1 and (semi_right <=> hi) == 1
+        end
+
+        size = right_end - left_end
+        r = size / 4
+        while r > 0
+          @tuple.swap(rand(size), rand(size))
+          r -= 1
+        end
+
         middle += (right_end - middle) / 2
       end
 
@@ -1705,8 +1715,18 @@ class Array
       if @total > 1000 and (low <=> mid) == 1 and (mid <=> hi) == 1
         semi_left = @tuple.at(left_end + ((middle - left_end) / 2))
         semi_right = @tuple.at(middle + ((right_end - middle) / 2))
-        reverse! if (low <=> semi_left) == 1 and (semi_left <=> middle) == 1 and
-                    (middle <=> semi_right) == 1 and (semi_right <=> hi) == 1
+
+        if (low <=> semi_left) == 1 and (semi_left <=> middle) == 1 and
+           (middle <=> semi_right) == 1 and (semi_right <=> hi) == 1
+        end
+
+        size = right_end - left_end
+        r = size / 4
+        while r > 0
+          @tuple.swap(rand(size), rand(size))
+          r -= 1
+        end
+
         middle += (right_end - middle) / 2
       end
 
