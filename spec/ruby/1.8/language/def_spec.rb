@@ -1,7 +1,126 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 # Language-level method behaviour
+describe "Defining methods" do
+  it "one more time redefines a method" do
+    def barfoo; 100; end
 
+    barfoo.should == 100
+
+    def barfoo; 200; end
+
+    barfoo.should == 200
+  end
+end
+
+describe "Calling a method" do
+  it "just works" do
+    def foo(a,b,c); [a,b,c] end
+
+    foo(1,2,3).should == [1,2,3]
+  end
+  
+  it "with no arguments is ok" do
+    def mybar; 100 end
+
+    mybar.should == 100
+  end
+  
+  it "with block as block argument is ok" do
+    def foo(a,&b); [a,yield(b)] end
+
+    foo(10) do 200 end.should == [10,200]
+    foo(10) { 200 }.should == [10,200]
+  end
+  
+  it "with lambda as block argument is ok" do
+    def foo(a,&b); [a,yield(b)] end
+
+    l = lambda { 300 }
+    foo(10, &l).should == [10,300]
+  end
+  
+  it "with same names as existing variables is ok" do
+    foobar = 100
+
+    def foobar; 200; end
+
+    foobar.should == 100
+    foobar().should == 200
+  end
+
+  it "with splat operator * and literal array unpacks params" do
+    def foo(a,b,c); [a,b,c] end
+
+    foo(*[1,2,3]).should == [1,2,3]
+  end
+  
+  it "with splat operator * and referenced array unpacks params" do
+    def foo(a,b,c); [a,b,c] end
+
+    a = [1,2,3]
+    foo(*a).should == [1,2,3]
+  end
+
+  it "without parentheses works" do
+    def foo(a,b,c); [a,b,c] end
+
+    (foo 1,2,3).should == [1,2,3]
+  end
+  
+  it "with invalid argument count raises an ArgumentError" do
+    def foo(a,b,c); end
+
+    lambda { foo }.should raise_error(ArgumentError)
+    lambda { foo(1,2) }.should raise_error(ArgumentError)
+    lambda { foo(1,2,3,4) }.should raise_error(ArgumentError)
+  end
+  
+  it "allows to pass literal hashes without curly braces as the last parameter" do
+    def foo(a,b,c); [a,b,c] end
+
+    foo('abc', 456, 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'weh').should ==
+      ['abc', 456, { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'weh'}]
+    
+    (foo 'abc', 456, 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'weh').should ==
+      ['abc', 456, { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'weh'}]
+  end
+  
+  it "allows to literal hashes without curly braces as the only parameter" do
+    def foo(a); a end
+
+    foo(:rbx => :cool, :specs => :fail_sometimes).should == 
+      { :rbx => :cool, :specs => :fail_sometimes }
+        
+    (foo :rbx => :cool, :specs => :fail_sometimes).should == 
+      { :rbx => :cool, :specs => :fail_sometimes }
+  end
+  
+  it "allows to pass argument, a hash without curly braces and a block argument" do
+    def foo(a,b,&c); [a,b,yield(c)] end
+
+    foo(:abc, 'rbx' => 'cool', 'specs' => 'fail sometimes') { 500 }.should ==
+      [:abc, { 'rbx' => 'cool', 'specs' => 'fail sometimes'}, 500]
+    
+    foo(:abc, 'rbx' => 'cool', 'specs' => 'fail sometimes') do 500 end.should ==
+      [:abc, { 'rbx' => 'cool', 'specs' => 'fail sometimes'}, 500]
+
+    l = lambda { 500 }
+    
+    foo(:abc, 'rbx' => 'cool', 'specs' => 'fail sometimes', &l).should ==
+      [:abc, { 'rbx' => 'cool', 'specs' => 'fail sometimes'}, 500]
+  end
+
+  it "with range in () should give higher priority to range" do
+    def myfoo(x); end
+
+    def mybar(n)
+      foo (0..n).map { }
+    end
+
+    mybar(10).should == nil
+  end
+end
 
 describe "Defining methods with *" do
   it "If * by itself is the only param, method takes any number of args that are ignored" do
@@ -22,6 +141,30 @@ describe "Defining methods with *" do
   it "A * param may be preceded by any number of other parameter names" do
     def foo(a, b, c, d, e, *f); [a, b, c, d, e, f]; end
     foo(1, 2, 3, 4, 5, 6, 7, 8).should == [1, 2, 3, 4, 5, [6, 7, 8]]
+  end
+  
+  it "allows to pass hashes without curly braces and still use *param" do
+    def foo(a,b,*c); [a,b,c] end
+
+    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit', *[789, 'yeah']).
+      should ==
+      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit'}, [789, 'yeah']]
+  end
+  
+  it "allows to pass hashes without curly braces, a block argument and still use *param" do
+    def foo(a,b,*c,&d); [a,b,c,yield(d)] end
+
+    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit', *[789, 'yeah']) { 3 }.
+      should ==
+      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit'}, [789, 'yeah'], 3]
+    
+    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', *[789, 'yeah']) do 3 end.should ==
+      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes' }, [789, 'yeah'], 3]
+
+    l = lambda { 3 }
+    
+    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', *[789, 'yeah'], &l).should ==
+      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes' }, [789, 'yeah'], 3]
   end
 
   it "Only one *param may appear in a parameter list" do
