@@ -84,10 +84,15 @@ Get to know your way around the place!
 * bin/
   Various utility programs like bin/mspec and bin/ci.
 
+* benchmark/
+  All benchmarks live here. The rubinius/ subdirectory is not in
+  any way Rubinius-only, all those benchmarks were just written 
+  as part of this project (the rest are from somewhere else.)
+
 * spec/ and test/
   These contain the behaviour specification and verification files.
   See section 3 for information about specs. The test/ directory is
-  deprecated but some old test code and benchmarks live there.
+  deprecated but some old test code lives here.
 
 
 Notes: Occasionally working with kernel/ you may seem classes that
