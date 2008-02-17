@@ -86,11 +86,11 @@ const char *rbs_inspect(STATE, OBJECT obj) {
   
   if(NIL_P(kls)) {
     assert(RTEST(kls) && "class is nil");
-    sprintf(buf, "<(NilClass!!):%p>", (void*)obj);
+    snprintf(buf, sizeof(buf), "<(NilClass!!):%p>", (void*)obj);
   } else if(kls == state->global->class) {
-    sprintf(buf, "%s", rbs_symbol_to_cstring(state, module_get_name(obj)));
+    snprintf(buf, sizeof(buf), "%s", rbs_symbol_to_cstring(state, module_get_name(obj)));
   } else {
-    sprintf(buf, "<%s:%p>", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
+    snprintf(buf, sizeof(buf), "<%s:%p>", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
   }
   return buf;
 }
@@ -103,16 +103,16 @@ const char *rbs_inspect_verbose(STATE, OBJECT obj) {
   
   if(NIL_P(kls)) {
     assert(RTEST(kls) && "class is nil");
-    sprintf(buf, "<(NilClass!!):%p>", (void*)obj);
+    snprintf(buf, sizeof(buf), "<(NilClass!!):%p>", (void*)obj);
   } else if(kls == state->global->class) {
-    sprintf(buf, "<Class:%s>", rbs_symbol_to_cstring(state, module_get_name(obj)));
+    snprintf(buf, sizeof(buf), "<Class:%s>", rbs_symbol_to_cstring(state, module_get_name(obj)));
   } else if(kls == state->global->module) {
-    sprintf(buf, "<Module:%s>", rbs_symbol_to_cstring(state, module_get_name(obj)));
+    snprintf(buf, sizeof(buf), "<Module:%s>", rbs_symbol_to_cstring(state, module_get_name(obj)));
   } else if(kls == state->global->cmethod) {
-    sprintf(buf, "<CompiledMethod:%p %s>", (void*)obj, rbs_symbol_to_cstring(state, cmethod_get_name(obj)));
+    snprintf(buf, sizeof(buf), "<CompiledMethod:%p %s>", (void*)obj, rbs_symbol_to_cstring(state, cmethod_get_name(obj)));
   } else if(kls == state->global->symbol || kls == state->global->string) {
     const char *s = NULL;
-    sprintf(buf, "<%s:%p '", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
+    snprintf(buf, sizeof(buf), "<%s:%p '", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
     
     if (kls == state->global->symbol) {
       s = rbs_symbol_to_cstring(state, obj);
@@ -126,14 +126,14 @@ const char *rbs_inspect_verbose(STATE, OBJECT obj) {
       int l;
       if ((l = strlen(s)) > 40) {
           strncat(buf, s, 20);
-          strcat(buf, "...");
+          snprintf(buf, sizeof(buf), "%s...", buf);
           strncat(buf, s+l-20, 20);
       } else
           strncat(buf, s, 40);
     }
-    strcat(buf, "'>");
+    snprintf(buf, sizeof(buf), "%s'>", buf);
   } else {
-    sprintf(buf, "<%s:%p>", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
+    snprintf(buf, sizeof(buf), "<%s:%p>", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
   }
   return buf;
 }
