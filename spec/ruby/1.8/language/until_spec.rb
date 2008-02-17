@@ -1,14 +1,12 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-# TODO: break, redo, next, retry
-
 # until bool-expr [do]
 #   body
 # end
 # 
 # begin
 #   body
-# end while bool-expr
+# end until bool-expr
 # 
 # expr until bool-expr
 describe "The until expression" do
@@ -143,31 +141,21 @@ describe "The until modifier" do
   end
 
   it "skips to end of body with next" do
-    a = []
     i = 0
-    until (i+=1) >= 5
-      next if i==3
-      a << i
-    end
-    a.should == [1, 2, 4]
+    j = 0
+    ((i+=1) == 3 ? next : j+=i) until i > 10
+    j.should == 63
   end
 
   it "restarts the current iteration without reevaluating condition with redo" do
-    a = []
     i = 0
     j = 0
-    until (i+=1)>=3
-      a << i
-      j+=1
-      redo if j<3
-    end
-    a.should == [1, 1, 1, 2]
+    (i+=1) == 4 ? redo : j+=i until (i+=1) > 10
+    j.should == 34
   end
 end
 
-
 describe "The until modifier with begin .. end block" do
-  
   it "runs block while the expression is false" do
     i = 0
     begin

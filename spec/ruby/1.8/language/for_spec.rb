@@ -24,7 +24,7 @@ describe "The for expression" do
     k.should == 3
     l.should == 30
   end
-
+  
   it "iterates over any object responding to 'each'" do
     class XYZ
       def each
@@ -48,6 +48,17 @@ describe "The for expression" do
     @var.should == 3
     n.should == 3
   end
+  
+  # TODO: commented out due to a compiler error
+  #it "allows a class variable as an iterator name" do
+  #  m = [1,2,3]
+  #  n = 0
+  #  for @@var in m
+  #    n += 1
+  #  end
+  #  @@var.should == 3
+  #  n.should == 3
+  #end
 
   it "splats multiple arguments together if there are fewer arguments than values" do
     v = $VERBOSE
@@ -68,32 +79,61 @@ describe "The for expression" do
     qs.should == [[1,2,3], [4,5,6]]
     q.should == [4,5,6]
   end
+  
+  it "optionally takes a 'do' after the expression" do
+    j = 0
+    for i in 1..3 do
+      j += i
+    end
+    j.should == 6
+  end
+  
+  it "allows body begin on the same line if do is used" do
+    j = 0
+    for i in 1..3 do j += i
+    end
+    j.should == 6
+  end
+  
+  it "executes code in containing variable scope" do
+    for i in 1..2
+      a = 123
+    end
+    
+    a.should == 123
+  end
+  
+  it "executes code in containing variable scope with 'do'" do
+    for i in 1..2 do
+      a = 123
+    end
+    
+    a.should == 123
+  end
 
   it "returns expr" do
     for i in 1..3; end.should == (1..3)
     for i,j in { 1 => 10, 2 => 20 }; end.should == { 1 => 10, 2 => 20 }
   end
 
-  it "breaks out of a loop upon 'break'" do
+  it "breaks out of a loop upon 'break', returning nil" do
     j = 0
     for i in 1..3
       j += i
 
       break if i == 2
-    end
+    end.should == nil
     
     j.should == 3
   end
   
   it "allows 'break' to have an argument which becomes the value of the for expression" do
-    j = for i in 1..3
+    for i in 1..3
       break 10 if i == 2
-    end
-
-    j.should == 10
+    end.should == 10
   end
 
-  it "starts the next iteration upon 'next'" do
+  it "starts the next iteration with 'next'" do
     j = 0
     for i in 1..5
       next if i == 2
@@ -104,7 +144,7 @@ describe "The for expression" do
     j.should == 13
   end
   
-  it "repeats current iteration upon 'redo'" do
+  it "repeats current iteration with 'redo'" do
     j = 0
     for i in 1..3
       j += i
@@ -115,7 +155,7 @@ describe "The for expression" do
     j.should == 8
   end
   
-  it "repeats the loop from the beginning starts upon 'retry'" do
+  it "repeats the loop from the beginning with 'retry'" do
     j = 0
     for i in 1..5
       j += i

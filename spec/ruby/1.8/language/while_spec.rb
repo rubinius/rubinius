@@ -6,7 +6,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 #
 # begin
 #   body
-# end until bool-expr
+# end while bool-expr
 #
 # expr while bool-expr
 describe "The while expression" do
@@ -18,7 +18,7 @@ describe "The while expression" do
     i.should == 3
   end
   
-  it "optionally take a 'do' after the expression" do
+  it "optionally takes a 'do' after the expression" do
     i = 0
     while i < 3 do
       i += 1
@@ -140,32 +140,21 @@ describe "The while modifier" do
   end
 
   it "skips to end of body with next" do
-    a = []
     i = 0
-    while i < 5
-      i += 1
-      next if i == 3
-      a << i
-    end
-    a.should == [1, 2, 4, 5]
+    j = 0
+    ((i+=1) == 3 ? next : j+=i) while i <= 10
+    j.should == 63
   end
 
   it "restarts the current iteration without reevaluating condition with redo" do
-    a = []
     i = 0
     j = 0
-    while (i += 1) < 3
-      a << i
-      j += 1
-      redo if j < 3
-    end
-    a.should == [1, 1, 1, 2]
+    (i+=1) == 4 ? redo : j+=i while (i+=1) <= 10
+    j.should == 34
   end
 end
 
-
 describe "The while modifier with begin .. end block" do
-  
   it "runs block while the expression is true" do
     i = 0
     begin
