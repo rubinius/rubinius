@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../../matchers/base'
 require File.dirname(__FILE__) + '/../../runner/mspec'
 
 describe MSpec do
@@ -15,6 +16,17 @@ describe MSpec do
   it "provides .register_tags_path to record the path to tag files" do
     MSpec.register_tags_path "path/to/tags"
     MSpec.retrieve(:tags_path).should == "path/to/tags"
+  end
+  
+  it "provides .register_exit to record the exit code" do
+    MSpec.exit_code.should == 0
+    MSpec.register_exit 1
+    MSpec.exit_code.should == 1
+  end
+  
+  it "provides .exit_code to retrieve the code set with .register_exit" do
+    MSpec.register_exit 99
+    MSpec.exit_code.should == 99
   end
   
   it "provides .store to store data" do
@@ -65,13 +77,15 @@ describe MSpec, ".protect" do
   end
   
   it "writes a message to STDERR if current is nil" do
-    STDERR.should_receive(:write).with("An exception occurred in testing: Exception: Sharp!\n")
+    STDERR.stub!(:write)
+    STDERR.should_receive(:write).with("\nAn exception occurred in testing:\nException: \"Sharp!\"\n")
     MSpec.stack.clear
     MSpec.protect("testing") { raise @exception}
   end
   
   it "writes a message to STDERR if current.state is nil" do
-    STDERR.should_receive(:write).with("An exception occurred in testing: Exception: Sharp!\n")
+    STDERR.stub!(:write)
+    STDERR.should_receive(:write).with("\nAn exception occurred in testing:\nException: \"Sharp!\"\n")
     @rs.stub!(:state).and_return(nil)
     MSpec.stack.push @rs
     MSpec.protect("testing") { raise @exception}

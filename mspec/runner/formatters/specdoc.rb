@@ -8,7 +8,7 @@ class SpecdocFormatter < DottedFormatter
   end
   
   def enter(describe)
-    print "#{describe}\n"
+    print "\n#{describe}\n"
   end
   
   def after(state)
@@ -16,7 +16,7 @@ class SpecdocFormatter < DottedFormatter
     if state.exception?
       @states << state
       count = @tally.failures + @tally.errors - state.exceptions.size
-      state.exceptions.each do |exc|
+      state.exceptions.each do |msg, exc|
         outcome = state.failure?(exc) ? "FAILED" : "ERROR"
         print "#{desc} (#{outcome} - #{count += 1})\n"
       end

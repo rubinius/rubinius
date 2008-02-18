@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.dirname(__FILE__) + '/../../../runner/guards/guard'
 require File.dirname(__FILE__) + '/../../../runner/formatters/html'
 require File.dirname(__FILE__) + '/../../../runner/mspec'
 require File.dirname(__FILE__) + '/../../../runner/state'

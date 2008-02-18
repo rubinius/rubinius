@@ -34,6 +34,14 @@ module MSpec
     actions.each { |obj| obj.send action, *args } if actions
   end
   
+  def self.register_exit(code)
+    store :exit, code
+  end
+  
+  def self.exit_code
+    retrieve(:exit).to_i
+  end
+  
   def self.register_files(files)
     store :files, files
   end
@@ -93,10 +101,12 @@ module MSpec
     begin
       block.call
     rescue Exception => e
+      register_exit 1
       if current and current.state
         current.state.exceptions << [msg, e]
       else
-        STDERR.write "An exception occurred in #{msg}: #{e.class}: #{e.message}\n"
+        STDERR.write "\nAn exception occurred in #{msg}:\n#{e.class}: #{e.message.pretty_inspect}\n"
+        STDERR.write "#{e.backtrace.join "\n"}"
       end
     end
   end

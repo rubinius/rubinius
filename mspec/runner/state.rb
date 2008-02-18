@@ -32,7 +32,8 @@ class RunState
   end
   
   def it(desc, &block)
-    @spec << [desc, block]
+    state = SpecState.new @describe, desc
+    @spec << [desc, block, state] unless state.filtered?
   end
   
   def describe(mod, desc=nil, &block)
@@ -46,18 +47,18 @@ class RunState
   
   def process
     protect @describe, @block
+    return unless @spec.any? { |desc, spec, state| state.unfiltered? }
+    
     MSpec.actions :enter, @describe
     protect "before :all", @start
-    @spec.each do |desc, spec|
-      @state = SpecState.new @describe, desc
-      MSpec.actions :before, @state
-      if @state.unfiltered?
-        protect "before :each", @before
-        protect nil, spec
-        protect "after :each", @after
-        protect "Mock.cleanup", lambda { Mock.cleanup }
-      end
-      MSpec.actions :after, @state
+    @spec.each do |desc, spec, state|
+      @state = state
+      MSpec.actions :before, state
+      protect "before :each", @before
+      protect nil, spec
+      protect "after :each", @after
+      protect "Mock.cleanup", lambda { Mock.cleanup }
+      MSpec.actions :after, state
       @state = nil
     end
     protect "after :all", @finish

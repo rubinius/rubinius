@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../../matchers/base'
 require File.dirname(__FILE__) + '/../../runner/mspec'
 require File.dirname(__FILE__) + '/../../mocks/mock'
 require File.dirname(__FILE__) + '/../../runner/state'
@@ -31,7 +32,9 @@ describe RunState do
   
   it "records it blocks" do
     @state.it("message", &@proc)
-    @state.instance_variable_get(:@spec).should == [["message", @proc]]
+    msg, proc = @state.instance_variable_get(:@spec)[0]
+    msg.should == "message"
+    proc.should == @proc
   end
   
   it "records describe blocks" do
@@ -79,6 +82,8 @@ describe RunState, "#process" do
     MSpec.store :after, []
     
     @state = RunState.new
+    @state.describe("") { }
+
     @a = lambda { @record << :a }
     @b = lambda { @record << :b }
     @record = []
@@ -87,6 +92,7 @@ describe RunState, "#process" do
   it "calls each before(:all) block" do
     @state.before(:all, &@a)
     @state.before(:all, &@b)
+    @state.it("") { }
     @state.process
     @record.should == [:a, :b]
   end
@@ -94,6 +100,7 @@ describe RunState, "#process" do
   it "calls each after(:all) block" do
     @state.after(:all, &@a)
     @state.after(:all, &@b)
+    @state.it("") { }
     @state.process
     @record.should == [:a, :b]
   end
@@ -163,6 +170,11 @@ describe RunState, "#process" do
     @state.describe("") { }
     @state.it("") { }
   end
+  
+  after :each do
+    MSpec.store :before, nil
+    MSpec.store :after, nil
+  end
 
   it "calls registered before actions with the current SpecState instance" do
     before = mock("before")
@@ -196,6 +208,12 @@ describe RunState, "#process" do
     
     @state = RunState.new
     @state.describe("") { }
+    @state.it("") { }
+  end
+  
+  after :each do
+    MSpec.store :enter, nil
+    MSpec.store :leave, nil
   end
   
   it "calls registered enter actions with the current #describe string" do

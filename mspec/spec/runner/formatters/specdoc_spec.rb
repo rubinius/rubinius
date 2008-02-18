@@ -26,7 +26,7 @@ describe SpecdocFormatter, "#enter" do
   
   it "prints the #describe string" do
     @formatter.enter("describe")
-    @out.should == "describe\n"
+    @out.should == "\ndescribe\n"
   end
 end
 
@@ -54,8 +54,8 @@ describe SpecdocFormatter, "#after" do
     TallyAction.stub!(:new).and_return(tally)
     
     @formatter.register
-    @state.exceptions << ExpectationNotMetError.new("disappointing")
-    @state.exceptions << Exception.new("painful")
+    @state.exceptions << ["msg", ExpectationNotMetError.new("disappointing")]
+    @state.exceptions << ["msg", Exception.new("painful")]
     @formatter.after(@state)
     @out.should == "- it (FAILED - 1)\n- it (ERROR - 2)\n"
   end

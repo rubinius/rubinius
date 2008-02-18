@@ -21,7 +21,7 @@ describe UnitdiffFormatter, "#finish" do
   end
   
   it "prints a failure message for an exception" do
-    @state.exceptions << Exception.new("broken")
+    @state.exceptions << ["msg", Exception.new("broken")]
     @formatter.after @state
     @formatter.finish
     @out.should =~ /^1\)\ndescribe it ERROR$/
@@ -29,7 +29,7 @@ describe UnitdiffFormatter, "#finish" do
   
   it "prints a backtrace for an exception" do
     @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
-    @state.exceptions << Exception.new("broken")
+    @state.exceptions << ["msg", Exception.new("broken")]
     @formatter.after @state
     @formatter.finish
     @out.should =~ %r[path/to/some/file.rb:35:in method$]
@@ -48,7 +48,7 @@ describe UnitdiffFormatter, "#finish" do
   end
   
   it "prints errors, backtraces, elapsed time, and tallies" do
-    @state.exceptions << Exception.new("broken")
+    @state.exceptions << ["msg", Exception.new("broken")]
     @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
     @timer.should_receive(:format).and_return("Finished in 2.0 seconds")
     @tally.should_receive(:format).and_return("1 example, 0 failures")
@@ -61,6 +61,7 @@ Finished in 2.0 seconds
 
 1)
 describe it ERROR
+Exception occurred during: msg
 broken: 
 path/to/some/file.rb:35:in method
 
