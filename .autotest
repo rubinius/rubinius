@@ -14,7 +14,7 @@ end
 class Autotest
   alias :old_ruby :ruby
   def ruby
-    "bin/ci -fu"
+    "bin/mspec ci -fu"
   end
 
   alias :old_consolidate_failures :consolidate_failures
@@ -51,7 +51,7 @@ Autotest.add_hook :initialize do |at|
   at.add_exception(/\.rbc$/)
   at.add_exception(/shotgun\/external_libs/)
   at.add_exception(/README/)
-  at.add_exception(/spec.data.critical.txt/)
+  at.add_exception(/spec.tags.critical.txt/)
 
   at.find_directories.clear
   at.find_directories.push(
@@ -62,13 +62,13 @@ Autotest.add_hook :initialize do |at|
                            'spec/ruby/1.8/language',
                            'spec/compiler',
                            'spec/parser',
-                           'spec/data'
+                           'spec/tags'
                            )
 
   at.failed_results_re = /^\d+\)\n([^\n]*)(?:FAILED|ERROR)?\n(.*?)\n\n/m
   at.completed_re = /\Z/ # FIX: some sort of summary line at the end?
 
-  at.add_mapping %r%^spec/data/(.*)_excludes.txt$% do |_, m|
+  at.add_mapping %r%^spec/tags/(.*)_tags.txt$% do |_, m|
     Dir["spec/#{m[1]}_spec.rb"]
   end
 
