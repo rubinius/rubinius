@@ -11,7 +11,7 @@
 # See Base64 for documentation.
 #
 
-require "kconv"
+#require "kconv"
 
 
 # The Base64 module provides for the encoding (#encode64) and decoding
@@ -73,11 +73,11 @@ module Base64
     str.gsub!(/=\?ISO-2022-JP\?B\?([!->@-~]+)\?=/i) {
       decode64($1)
     }
-    str = Kconv::toeuc(str)
+    #str = Kconv::toeuc(str)
     str.gsub!(/=\?SHIFT_JIS\?B\?([!->@-~]+)\?=/i) {
       decode64($1)
     }
-    str = Kconv::toeuc(str)
+    #str = Kconv::toeuc(str)
     str.gsub!(/\n/, ' ') 
     str.gsub!(/\0/, '')
     str
@@ -110,24 +110,8 @@ module Base64
   #    UnVieQ==
 
   def b64encode(bin, len = 60)
-    encode64(bin).scan(/.{1,#{len}}/o) do
+    encode64(bin).scan(/.{1,#{len}}/) do
       print $&, "\n"
     end
   end 
-
-
-  module Deprecated # :nodoc:
-    include Base64
-
-    for m in Base64.private_instance_methods(false)
-      module_eval %{
-        def #{m}(*args)
-          warn("\#{caller(1)[0]}: #{m} is deprecated; use Base64.#{m} instead")
-          super
-        end
-      }
-    end
-  end
 end
-
-include Base64::Deprecated
