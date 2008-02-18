@@ -12,6 +12,10 @@ Currently most files are hardcoded for my box
   + matzbot/plugins/git.rb
   + repo/rubinius/HEAD [empty-dir]
 
+* bin/rubinius.zsh
+  + bin/pastie_client needs active_support!
+  + bin/nopaste is default for now
+
 * everything needs to be in ~/continious
 
 * continious/repo/rubinius/HEAD should contain a git checkout.

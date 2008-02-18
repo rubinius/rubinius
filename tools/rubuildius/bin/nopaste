@@ -1,0 +1,159 @@
+#!/usr/bin/ruby -w
+#
+# nopaste -- quick script in the spirit of eatpaste, to generate nopaste urls.
+# See http://www.rafb.net/paste/ for more information.
+#
+# Copyright 2005,2007 Aron Griffis <agriffis n01se.net>
+# Released under the GNU General Public License v2
+#
+
+require 'cgi'
+require 'net/http'
+require 'optparse'
+require 'ostruct'
+require 'uri'
+
+class CmdLine
+  def self.parse(args)
+    options = OpenStruct.new
+    options.lang = 'Plain Text'
+
+    opts = OptionParser.new do |opts|
+      opts.banner = "Usage: nopaste [options]"
+      opts.separator ""
+      opts.separator "Options:"
+
+      opts.on("-l", "--language LANG", 
+              "set language (defaults to \"Plain Text\")") do |x|
+        options.lang = x
+      end
+
+      opts.on("-d", "--description DESCRIPTION", 
+              "set description (defaults to \"stdin\" or filename)") do |x|
+        options.desc = x
+      end
+
+      opts.on("-n", "--nick NICK", 
+              "set nick (defaults to your username)") do |x|
+        options.nick = x
+      end
+
+      opts.on("-t", "--txturl",
+              "return url for the plain text file") do
+        options.txturl = true
+      end
+
+      opts.on("-x", "--xcut", 
+              "nopaste from X selection (using xclip or xcut)") do
+        options.xcut = true 
+      end
+
+      opts.on("--debug",
+              "enable debug output") do
+        options.debug = true
+      end
+
+      opts.on_tail("--help", "show this help") do
+        puts opts
+        exit 
+      end
+
+      opts.on_tail("--version", "show version information") do 
+        puts "nopaste " + $version
+        exit
+      end
+    end
+
+    opts.parse!(args)
+    options
+  end
+end
+
+def e(s)
+  return $zero+" error: "+s
+end
+
+def nopaste(nick, desc, text, lang = "Plain Text")
+  cxn = Net::HTTP::Proxy($proxy.host, $proxy.port, $proxy_user, $proxy_pass
+                        ).start($url.host, $url.port) { |cxn|
+    response = cxn.request_post($url.path, 
+      [ "cvt_tabs=No",
+        "lang=#{CGI::escape(lang)}",
+        "nick=#{CGI::escape(nick)}",
+        "desc=#{CGI::escape(desc)}",
+        "text=#{CGI::escape(text)}" ].join('&'),
+      { 'Content-Type' => 'application/x-www-form-urlencoded' })
+
+    if $options.debug
+      STDERR.puts response.inspect
+      response.each_header {|k,v| STDERR.printf "%s: %s\n", k, v}
+      STDERR.puts response.body
+    end
+
+    case response
+    when Net::HTTPRedirection
+      if response['location'] =~ /toofast.html/
+        return e("rafb.net says you're pasting too fast.  Try again in 10 seconds")
+      else
+        u = $url.merge(response['location'])
+        u.path = u.path.sub(/html$/, 'txt') if $options.txturl
+        return u
+      end
+    when Net::HTTPSuccess
+      # strange
+      return e("rafb.net sent an unexpected HTML response")
+    else
+      return e("rafb.net says #{response.code} #{response.message}")
+    end
+  }
+end
+
+$proxy = URI.parse(ENV['http_proxy'] || '')
+$proxy_user, $proxy_pass = nil, nil
+$proxy_user, $proxy_pass = $proxy.userinfo.split(/:/) if $proxy.userinfo
+$url = URI.parse("http://www.rafb.net/paste/paste.php")
+$version = '$Revision: 2835 $'.split(' ')[1]
+$zero = $0.sub(/.*\//, '')
+$options = CmdLine.parse(ARGV)
+urls = []
+
+if $options.desc.to_s.empty?
+  if $options.xcut
+    $options.desc = 'xcut'
+  elsif ARGV.empty?
+    $options.desc = 'stdin'
+  else
+    $options.desc = ARGV[0]
+  end
+end
+
+if $options.nick.to_s.empty?
+  $options.nick = ENV['USER'] || 'unknown'
+end
+
+begin
+  if $options.xcut
+    buf = %x{xclip -o 2>/dev/null || xcut -p 2>/dev/null}
+    urls << nopaste($options.nick, $options.desc, buf, $options.lang)
+  elsif ARGV.empty?
+    urls << nopaste($options.nick, $options.desc, gets(nil), $options.lang)
+  end
+
+  urls << nopaste($options.nick, $options.desc, gets(nil), $options.lang) until ARGV.empty?
+  begin
+    IO.popen("xclip 2>/dev/null", "w") {|p| p.print urls.map {|u| u.to_s}.join(' ') }
+  rescue Errno::EPIPE
+    begin
+      IO.popen("xcut 2>/dev/null", "w") {|p| p.print urls.map {|u| u.to_s}.join(' ') }
+    rescue Errno::EPIPE
+    end
+  end
+
+rescue
+  puts urls # whatever we've accumulated already
+  puts e("something bad happened, stack trace follows")
+  raise
+end
+
+puts urls
+exit 1 if urls.join("\n") =~ /^(?!http:)/

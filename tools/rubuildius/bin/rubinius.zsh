@@ -8,7 +8,7 @@ unset RUBYOPT      # so that rubinius builds
 
 root=~/continuous
 #pastie=$root/bin/pastie.rb
-pastie=nopaste
+pastie=$root/bin/nopaste
 rubinius=$root/repo/rubinius
 head=$rubinius/HEAD
 thischeckout=$rubinius/$1
