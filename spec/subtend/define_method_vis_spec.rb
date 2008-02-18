@@ -18,7 +18,7 @@ class SubtendMethodVisModuleTest
 end
 
 describe "SubtendMethodVisModule" do
-  setup do
+  before :each do
     @c = SubtendMethodVisModuleTest.new
   end
 
@@ -39,7 +39,7 @@ describe "SubtendMethodVisModule" do
 end
 
 describe "SubtendMethodVis" do
-  setup do
+  before :each do
     @c = SubtendMethodVis.new
   end
 

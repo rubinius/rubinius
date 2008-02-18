@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "ERB#filename" do
   # TODO: why does this fail on rubinius?
-  it "raises is reported when error raised" do
+  it "raises an exception if there are errors processing content" do
     filename = 'foobar.rhtml'
     erb = ERB.new('<% if true %>')   # will raise SyntaxError
     erb.filename = filename
@@ -29,7 +29,7 @@ describe "ERB#filename" do
   end
 
   # TODO: why does this fail on rubinius?
-  it "use '(erb)' as filename when filename is not set" do
+  it "uses '(erb)' as filename when filename is not set" do
     erb = ERB.new('<% if true %>')   # will raise SyntaxError
     lambda {
       begin
@@ -52,4 +52,3 @@ describe "ERB#filename" do
     end
   end
 end
-fails:ERB#filename uses '(erb)' as filename when filename is not set

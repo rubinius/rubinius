@@ -6,7 +6,7 @@ require File.dirname(__FILE__) + '/ext/subtend_object'
 
 describe "SubtendObject" do
   
-  setup do
+  before do
     @o = SubtendObject.new
   end
   

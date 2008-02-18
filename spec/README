@@ -17,7 +17,6 @@ spec
  |    +-- breakpoint
  |    +-- bytearray
  |    +-- ...
- |-- data
  |-- kernel
  |-- language
  |-- library
@@ -40,8 +39,9 @@ spec
  |                + -- ...
  |                + -- time
  |                + -- yaml
- +-- subtend
-       +-- ext
+ |-- subtend
+ |     +-- ext
+ +-- tags
 
 The specs for the reference implementation of the Ruby language (MRI) are
 under @spec/ruby@. Presently, these are mostly focused on version 1.8.x and

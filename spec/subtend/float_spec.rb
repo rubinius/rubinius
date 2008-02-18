@@ -5,7 +5,7 @@ compile_extension('subtend_float')
 require File.dirname(__FILE__) + '/ext/subtend_float'
 
 describe "SubtendFloat" do
-  setup do
+  before :each do
     @f = SubtendFloat.new
   end
   

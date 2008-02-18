@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Thread#key?" do
-  setup do
+  before :each do
     @th = Thread.new do
       Thread.current[:oliver] = "a"      
     end

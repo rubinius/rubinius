@@ -5,7 +5,7 @@ compile_extension('subtend_string')
 require File.dirname(__FILE__) + '/ext/subtend_string'
 
 describe "SubtendString" do
-  setup do
+  before :each do
     @s = SubtendString.new
   end
   

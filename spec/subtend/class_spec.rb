@@ -19,7 +19,7 @@ class SubtendClassTest
 end
 
 describe "SubtendClass" do
-  setup do
+  before :each do
     @s = SubtendClass.new
   end
 

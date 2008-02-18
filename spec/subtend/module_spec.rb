@@ -10,7 +10,7 @@ describe "Module" do
     BAR = 7
   end
 
-  setup do
+  before :each do
     @m = SubtendModule.new
   end
   

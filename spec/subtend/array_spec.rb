@@ -5,7 +5,7 @@ compile_extension('subtend_array')
 require File.dirname(__FILE__) + '/ext/subtend_array'
 
 describe "SubtendArray" do
-  setup do
+  before :each do
     @s = SubtendArray.new
   end
 

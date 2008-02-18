@@ -5,7 +5,7 @@ compile_extension('subtend_exception')
 require File.dirname(__FILE__) + '/ext/subtend_exception'
 
 describe "SubtendRaiser" do
-  setup do
+  before :each do
     @s = SubtendRaiser.new
   end
 

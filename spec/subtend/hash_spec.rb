@@ -5,7 +5,7 @@ compile_extension('subtend_hash')
 require File.dirname(__FILE__) + '/ext/subtend_hash'
 
 describe "SubtendHash" do
-  setup do
+  before :each do
     @s = SubtendHash.new
   end
   

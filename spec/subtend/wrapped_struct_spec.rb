@@ -5,7 +5,7 @@ compile_extension('subtend_wrapped_struct')
 require File.dirname(__FILE__) + '/ext/subtend_wrapped_struct'
 
 describe "SubtendWrappedStruct" do
-  setup do
+  before :each do
     @s = SubtendWrappedStruct.new
   end
   
