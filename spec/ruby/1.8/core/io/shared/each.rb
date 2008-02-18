@@ -40,10 +40,8 @@ shared :io_each do |cmd|
       end
     end
     
-    fails_on :rubinius do
-      it "raises IOError on closed stream" do
-        lambda { IOSpecs.closed_file.send(cmd) }.should raise_error(IOError)
-      end
+    it "raises IOError on closed stream" do
+      lambda { IOSpecs.closed_file.send(cmd) }.should raise_error(IOError)
     end
   end
 end

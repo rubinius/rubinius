@@ -2,8 +2,8 @@ require 'erb'
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "ERB#run" do
-
-
+  # TODO: what is this? why does it not use
+  # lambda { ... }.should output
   def _steal_stdout
     orig = $stdout
     s = ''
@@ -17,16 +17,15 @@ describe "ERB#run" do
     return s
   end
 
-
   it "print the result of compiled ruby code" do
-    input = <<'END'
+    input = <<END
 <ul>
 <% for item in list %>
   <li><%= item %>
 <% end %>
 </ul>
 END
-    expected = <<'END'
+    expected = <<END
 <ul>
 
   <li>AAA
@@ -43,7 +42,6 @@ END
     actual.should == expected
   end
 
-
   it "share local variables" do
     input = "<% var = 456 %>"
     expected = 456
@@ -52,14 +50,12 @@ END
     var.should == expected
   end
 
-
   it "is not able to h() or u() unless including ERB::Util" do
     input = "<%=h '<>' %>"
-    proc {
+    lambda {
       _steal_stdout { ERB.new(input).run() }
     }.should raise_error(NameError)
   end
-
 
   it "is able to h() or u() if ERB::Util is included" do
     class MyERB1
@@ -74,7 +70,6 @@ END
     actual.should == expected
   end
 
-
   it "use TOPLEVEL_BINDING if binding is not passed" do
     class MyERB2
       include ERB::Util
@@ -88,17 +83,15 @@ END
         return ERB.new(input).run()
       end
     end
-    #
+
     eval '_xxx_var_ = 123', TOPLEVEL_BINDING
     expected = '123'
     actual = _steal_stdout { MyERB2.new.main1() }
     actual.should == expected
-    #
-    proc {
+
+    lamda {
       _steal_stdout { MyERB2.new.main2() }
     }.should raise_error(NameError)
   end
-
-
 end
 

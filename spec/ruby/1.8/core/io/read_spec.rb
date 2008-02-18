@@ -175,11 +175,8 @@ describe "IO#read" do
     @io.read(1).should == nil
   end
   
-  fails_on :rubinius do
-    it "raises IOError on closed stream" do
-      lambda { IOSpecs.closed_file.read }.should raise_error(IOError)
-    end
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.read }.should raise_error(IOError)
   end
-
 end
 

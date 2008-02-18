@@ -5,9 +5,12 @@ shared :time_params do |cmd|
       Time.send(cmd, 2008, "dec").should == Time.send(cmd, 2008, 12)
       (obj = mock('12')).should_receive(:to_str).and_return("12")
       Time.send(cmd, 2008, obj).should == Time.send(cmd, 2008, 12)
-      fails_on(:ruby) do
-        # Exclude MRI 1.8.6 because it segfaults. :)
-        # But the problem is fixed in MRI repository already.
+    end
+    
+    ruby_bug do
+      # Exclude MRI 1.8.6 because it segfaults. :)
+      # But the problem is fixed in MRI repository already.
+      it "handles string-like second argument" do
         (obj = mock('dec')).should_receive(:to_str).and_return('dec')
         Time.send(cmd, 2008, obj).should == Time.send(cmd, 2008, 12)
       end

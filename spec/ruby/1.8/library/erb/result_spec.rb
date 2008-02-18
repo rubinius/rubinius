@@ -41,7 +41,7 @@ END
 
   it "is not able to h() or u() unless including ERB::Util" do
     input = "<%=h '<>' %>"
-    proc {
+    lambda { 
       ERB.new(input).result()
     }.should raise_error(NameError)
   end
@@ -74,12 +74,12 @@ END
         return ERB.new(input).result()
       end
     end
-    #
+
     eval '_xxx_var_ = 123', TOPLEVEL_BINDING
     expected = '123'
     MyERB2.new.main1().should == expected
-    #
-    proc {
+
+    lambda {
       actual = MyERB2.new.main2()
     }.should raise_error(NameError)
   end

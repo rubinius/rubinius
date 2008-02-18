@@ -56,25 +56,23 @@ describe "IO#reopen" do
     File.readlines(@name2_w).should == ["line1-F2\n"]
   end
 
-  fails_on :jruby do
-    # JRUBY-2071: File#reopen blows with IllegalArgumentException in some cases
-    it "reassociates self with the I/O stream specified as an argument, after some reads" do
-      length = 12 # length of first lines in numbered_lines.txt
+  # JRUBY-2071: File#reopen blows with IllegalArgumentException in some cases
+  it "reassociates self with the I/O stream specified as an argument, after some reads" do
+    length = 12 # length of first lines in numbered_lines.txt
 
-      # reade some first
-      @file1.gets
-      @file2.gets
+    # reade some first
+    @file1.gets
+    @file2.gets
 
-      pos = @file2.pos
-      @file1.reopen(@file2)
-      @file1.pos.should == pos
+    pos = @file2.pos
+    @file1.reopen(@file2)
+    @file1.pos.should == pos
 
-      # MRI behavior: after reopen the buffers are not corrected,
-      # so we need the following line, or next gets wourd return nil.
-      @file1.pos = pos
+    # MRI behavior: after reopen the buffers are not corrected,
+    # so we need the following line, or next gets wourd return nil.
+    @file1.pos = pos
 
-      @file1.gets.should == "Line 2: Two\n"
-    end
+    @file1.gets.should == "Line 2: Two\n"
   end
 
   it "reassociates self with the I/O stream specified as an argument, after some sysreads" do

@@ -75,9 +75,7 @@ describe "IO#sysread on a file" do
     end
   end
 
-  fails_on :rubinius do
-    it "raises IOError on closed stream" do
-      lambda { IOSpecs.closed_file.sysread(5) }.should raise_error(IOError)
-    end
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.sysread(5) }.should raise_error(IOError)
   end
 end

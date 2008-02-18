@@ -6,12 +6,10 @@ describe "IO#printf" do
     @io = IO.new STDOUT.fileno, 'w'
   end
 
-  fails_on :jruby do
-    it "writes the #sprintf formatted string to the file descriptor" do
-      lambda {
-        @io.printf "%s\n", "look ma, no hands"
-      }.should output_to_fd("look ma, no hands\n", @io)
-    end
+  it "writes the #sprintf formatted string to the file descriptor" do
+    lambda {
+      @io.printf "%s\n", "look ma, no hands"
+    }.should output_to_fd("look ma, no hands\n", @io)
   end
 
   it "raises IOError on closed stream" do

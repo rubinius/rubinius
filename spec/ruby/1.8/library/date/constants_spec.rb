@@ -11,14 +11,14 @@ describe "Date constants" do
     Date::ENGLAND.should == 2361222 # 1752-09-14
   end
   
-  it "should define JULIAN" do
-    fails_on(:ruby) do 
+  ruby_bug do 
+    it "should define JULIAN" do
       (Date::JULIAN <=> Date::Infinity.new).should == 0
     end
   end
 
-  it "should define GREGORIAN" do
-    fails_on(:ruby) do 
+  ruby_bug do 
+    it "should define GREGORIAN" do
       (Date::GREGORIAN <=> -Date::Infinity.new).should == 0
     end
   end

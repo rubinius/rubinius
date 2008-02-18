@@ -9,7 +9,8 @@ describe "StringIO#reopen" do
     @io = StringIO.new('hello','a')
   end
 
-  fails_on :ruby do
+  # TODO: find out if this is really a bug
+  ruby_bug do
     it "reopens a stream when given a String argument" do
       @io.reopen('goodbye').should == @io
       @io.string.should == 'goodbye'
@@ -37,18 +38,18 @@ describe "StringIO#reopen" do
       @io.string.should == ''
       str.should == ''
     end
+  end
 
-    compliant_on :ruby, :jruby do
-      it "denies access to prevent truncation of a frozen string" do
-        @io = StringIO.new("ice")
-        lambda { @io.reopen("burn".freeze, 'w') }.should raise_error(Errno::EACCES)
-        lambda { @io.reopen("burn".freeze, 'a') }.should raise_error(Errno::EACCES)
-      end
+  compliant_on :ruby, :jruby do
+    it "denies access to prevent truncation of a frozen string" do
+      @io = StringIO.new("ice")
+      lambda { @io.reopen("burn".freeze, 'w') }.should raise_error(Errno::EACCES)
+      lambda { @io.reopen("burn".freeze, 'a') }.should raise_error(Errno::EACCES)
+    end
 
-      it "does not raise IOError if a frozen string is passed in read mode" do
-        @io.reopen("burn".freeze, 'r')
-        @io.string.should == "burn"
-      end
+    it "does not raise IOError if a frozen string is passed in read mode" do
+      @io.reopen("burn".freeze, 'r')
+      @io.string.should == "burn"
     end
   end
 

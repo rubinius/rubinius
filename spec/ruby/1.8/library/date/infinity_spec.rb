@@ -36,12 +36,12 @@ describe "Date::Infinity" do
   end
 
   # These checks fail on MRI because of a bug in Date::Infinity#<=>
-  it "should be able to compare Infinity objects" do
-    i1 = Date::Infinity.new
-    i2 = Date::Infinity.new(-1)
-    i3 = Date::Infinity.new(0)
-    i4 = Date::Infinity.new
-    fails_on :ruby do
+  ruby_bug do
+    it "should be able to compare Infinity objects" do
+      i1 = Date::Infinity.new
+      i2 = Date::Infinity.new(-1)
+      i3 = Date::Infinity.new(0)
+      i4 = Date::Infinity.new
       (i4 <=> i1).should == 0
       (i3 <=> i1).should == -1
       (i2 <=> i1).should == -1
@@ -50,18 +50,18 @@ describe "Date::Infinity" do
   end
 
   # Also fails because of the same bug as the previous spec
-  it "should be able to return plus Infinity for abs" do
-    i1 = Date::Infinity.new
-    i2 = Date::Infinity.new(-1)
-    i3 = Date::Infinity.new(0)
-    fails_on :ruby do
+  ruby_bug do
+    it "should be able to return plus Infinity for abs" do
+      i1 = Date::Infinity.new
+      i2 = Date::Infinity.new(-1)
+      i3 = Date::Infinity.new(0)
       (i2.abs <=> i1).should == 0
       (i3.abs <=> i1).should == 0
     end
   end
   
-  it "should be able to use -@ and +@ for Date::Infinity" do
-    fails_on :ruby do
+  ruby_bug do
+    it "should be able to use -@ and +@ for Date::Infinity" do
       (Date::Infinity.new <=> +Date::Infinity.new).should == 0
       (Date::Infinity.new(-1) <=> -Date::Infinity.new).should == 0
     end

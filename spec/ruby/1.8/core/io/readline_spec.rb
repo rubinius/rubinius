@@ -10,9 +10,7 @@ describe "IO#readline" do
     end
   end
 
-  fails_on :rubinius do
-    it "raises IOError on closed stream" do
-      lambda { IOSpecs.closed_file.readline }.should raise_error(IOError)
-    end
+  it "raises IOError on closed stream" do
+    lambda { IOSpecs.closed_file.readline }.should raise_error(IOError)
   end
 end
