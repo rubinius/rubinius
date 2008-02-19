@@ -521,7 +521,7 @@ describe "String#%" do
     ("%04u" % 10).should == "0010"
     ("%*u" % [10, 4]).should == "         4"
 
-  platform_is :size => 64 do
+  platform_is :wordsize => 64 do
     ("%u" % -5).should == "..#{2**64 - 5}"
     ("%0u" % -5).should == (2**64 - 5).to_s
     ("%.1u" % -5).should == (2**64 - 5).to_s
@@ -529,7 +529,7 @@ describe "String#%" do
     ("%.10u" % -5).should == (2**64 - 5).to_s
   end  
     
-  platform_is_not :size => 64 do
+  platform_is_not :wordsize => 64 do
     ("%u" % -5).should == "..#{2**32 - 5}"
     ("%0u" % -5).should == (2**32 - 5).to_s
     ("%.1u" % -5).should == (2**32 - 5).to_s

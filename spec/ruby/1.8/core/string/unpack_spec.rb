@@ -236,7 +236,7 @@ describe "String#unpack with 'H' and 'h' directives" do
 end
 
 describe "String#unpack with 'IiLlSs' directives" do
-  platform_is :size => 32 do
+  platform_is :wordsize => 32 do
     it "returns an array by decoding self according to the format string" do
       "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('SLI').should == [755, 590496256, nil]
       "\xF3\x02".unpack('L*I*').should == []
