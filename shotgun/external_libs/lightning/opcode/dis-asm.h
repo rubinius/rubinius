@@ -10,6 +10,8 @@
 #define DIS_ASM_H
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "bfd.h"
 
 typedef int (*fprintf_ftype) PARAMS((FILE*, const char*, ...));
