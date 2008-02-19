@@ -1,6 +1,15 @@
 #ifndef RBS_STATE_H
 #define RBS_STATE_H
 
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+
 #include <hashtable.h>
 #include <ptr_array.h>
 
@@ -231,14 +240,11 @@ static inline OBJECT rbs_uint_to_numeric(STATE, unsigned int num) {
 }
 
 static inline OBJECT rbs_ll_to_numeric(STATE, long long num) {
-  OBJECT ret;
-  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
-
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)STRIP_TAG(ret) != num) {
+  if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
     return bignum_from_ll(state, num);
   } else {
-    return ret;
+    return APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
 }
 
@@ -253,14 +259,11 @@ static inline OBJECT rbs_ull_to_numeric(STATE, unsigned long long num) {
 }
 
 static inline OBJECT rbs_max_long_to_numeric(STATE, long long num) {
-  OBJECT ret;
-  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
-
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)STRIP_TAG(ret) != num) {
+  if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
     return bignum_from_ll(state, num);
   } else {
-    return ret;
+    return APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
 }
 
@@ -286,7 +289,6 @@ static inline double rbs_fixnum_to_double(OBJECT obj) {
 #define FLOAT_TO_DOUBLE(k) (*DATA_STRUCT(k, double*))
 
 void object_memory_check_ptr(void *ptr, OBJECT obj);
-static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);
 
 // #define XDEBUG 1
 
@@ -304,17 +306,6 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 // #define CHECK_PTR(obj) object_memory_check_ptr(current_machine->om, obj)
 #define CHECK_PTR(obj) 
 
-#include "shotgun/lib/object_memory-barrier.h"
-
-#define SET_FIELD(obj, fel, val) rbs_set_field(state->om, obj, fel, val)
-#define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
-
-#define IS_REF_P(val) REFERENCE_P(val)
-#define RUN_WB(obj, val) if(IS_REF_P(val)) object_memory_write_barrier(state->om, obj, val)
-
-#define rbs_set_class(om, obj, cls) ({ if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); obj->klass = cls; })
-#define SET_CLASS(obj, cls) ({ RUN_WB(obj, cls); obj->klass = cls; })
-
 void machine_handle_fire(int);
 void machine_handle_assert(const char *reason, const char *file, int line);
 void machine_handle_type_error(OBJECT, const char *message);
@@ -323,169 +314,6 @@ void machine_handle_type_error(OBJECT, const char *message);
 
 #define current_machine (environment_current_machine())
 
-/* No bounds checking! Be careful! */
-#define fast_fetch(obj, idx) NTH_FIELD_DIRECT(obj, idx)
-
-/* Only ever call this with constant arguments! */
-#define fast_set(obj, idx, val) ({ \
-  if(REFERENCE_P(val)) object_memory_write_barrier(state->om, obj, val); \
-  SET_FIELD_DIRECT(obj, idx, val); \
-  val; \
-})
-
-#define fast_unsafe_set(obj, idx, val) SET_FIELD_DIRECT(obj, idx, val)
-
-#define fast_set_int(obj, idx, int) fast_unsafe_set(obj, idx, I2N(int))
-#define fast_inc(obj, idx) fast_unsafe_set(obj, idx, (void*)((uintptr_t)fast_fetch(obj, idx) + (1 << TAG_SHIFT)))
-
-#define ACCESS_MACROS 1
-#define EXTRA_PROTECTION 0
-
-#if ACCESS_MACROS
-
-#if DISABLE_CHECKS
-
-#define rbs_set_field(om, obj, fel, val) ({ \
-  OBJECT _v = (val), _o = (obj); \
-  if(REFERENCE_P(_v)) { \
-    object_memory_write_barrier(om, _o, _v); \
-  } \
-  SET_FIELD_DIRECT(_o, fel, _v); })
-
-#define rbs_get_field(obj, fel) NTH_FIELD_DIRECT(obj, fel)
-
-#else /*DISABLE_CHECKS*/
-
-static void _bad_reference2(OBJECT in, int fel) {
-  printf("Attempted to access field %d in an object with %lu fields.\n", 
-    fel, (unsigned long)NUM_FIELDS(in));
-    
-  if(current_machine->g_use_firesuit) {
-    machine_handle_fire(FIRE_ACCESS);
-  }
-}
-
-#if EXTRA_PROTECTION
-
-static void _bad_reference(OBJECT in) {
-  printf("Attempted to access field of non-reference.\n");
-  if(current_machine->g_use_firesuit) {
-    machine_handle_fire(FIRE_NULL);
-  } 
-}
-
-#define rbs_set_field(om, obj, fel, val) ({ \
-  OBJECT _v = (val), _o = (obj); \
-  if(!REFERENCE_P(obj)) _bad_reference(obj); \
-  if(fel >= obj->field_count) _bad_reference2(obj, fel); \
-  if(REFERENCE_P(_v)) { \
-    object_memory_write_barrier(om, _o, _v); \
-  } \
-  *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
-
-#define rbs_get_field(i_in, i_fel) ({ \
-  OBJECT in = (i_in); unsigned int fel = (unsigned int)(i_fel); \
-  if(!REFERENCE_P(in)) _bad_reference(in); \
-  if(fel >= in->field_count) _bad_reference2(in, fel); \
-  NTH_FIELD_DIRECT(in, fel); })
-
-#else /*EXTRA_PROTECTION*/
-
-/* These are the typically used versions. The don't check for ref, they
-   the segfault handler do that. */
-
-#define rbs_set_field(om, obj, fel, val) ({ \
-  OBJECT _v = (val), _o = (obj); \
-  if(fel >= obj->field_count) _bad_reference2(obj, fel); \
-  if(REFERENCE_P(_v)) { \
-    object_memory_write_barrier(om, _o, _v); \
-  } \
-  *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
-
-#define rbs_get_field(i_in, i_fel) ({ \
-  OBJECT in = (i_in); unsigned int fel = (unsigned int)(i_fel); \
-  if(fel >= in->field_count) _bad_reference2(in, fel); \
-  NTH_FIELD_DIRECT(in, fel); })
-
-
-#endif /*EXTRA_PROTECTION*/
-
-#endif /*DISABLE_CHECKS*/
-
-#else /*ACCESS_MACROS*/
-
-
-static inline OBJECT rbs_get_field(OBJECT in, unsigned int fel) {
-  OBJECT obj;
-#if DISABLE_CHECKS
-  if(!REFERENCE_P(in)) {
-    printf("Attempted to access field of non-reference.\n");
-    if(current_machine->g_use_firesuit) {
-      machine_handle_fire(FIRE_NULL);
-    }
-  }
-  
-  if(in->StoresBytes) {
-    printf("Attempted to access field of byte addressed object.\n");
-    if(current_machine->g_use_firesuit) {
-      machine_handle_fire(FIRE_NULL);
-    }
-  }
-  
-  if(fel >= in->field_count) {
-    printf("Attempted to access field %d in an object with %lu fields.\n", 
-      fel, (unsigned long)NUM_FIELDS(in));
-      
-    if(current_machine->g_use_firesuit) {
-      machine_handle_fire(FIRE_ACCESS);
-    }
-    
-    assert(0);
-  }
-#endif /*DISABLE_CHECKS*/
-  obj = NTH_FIELD_DIRECT(in, fel);
-#if INTERNAL_DEBUG
-  CHECK_PTR(obj);
-#endif
-  return obj;
-}
-
-static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT val) {
-#if DISABLE_CHECKS
-  if(fel >= obj->field_count) {
-    printf("Attempted to access field %d in an object with %lu fields (%s).\n", 
-      fel, (unsigned long)NUM_FIELDS(obj), _inspect(obj));
-    
-    if(current_machine->g_use_firesuit) {
-      machine_handle_fire(1);
-    }
-    
-    assert(0);
-  }
-#endif /*DISABLE_CHECKS*/
-
-  if(obj->StoresBytes) {
-    printf("Attempted to access field of byte addressed object.\n");
-    if(current_machine->g_use_firesuit) {
-      machine_handle_fire(FIRE_NULL);
-    }
-  }
-
-  OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
-#if INTERNAL_DEBUG
-  /* Check that it's even, ie a ref, and above the special range. */
-  if(IS_REF_P(val)) {
-    object_memory_write_barrier(om, obj, val);
-  }
-  CHECK_PTR(val);
-#endif
-  *slot = val;
-  return val;
-} 
-
-#endif /*ACCESS_MACROS*/
-
-#define SET_STRUCT_FIELD(obj, fel, val) ({ OBJECT _tmp = (val); RUN_WB(obj, _tmp); fel = _tmp; _tmp; })  
 
 #include "shotgun/lib/object_memory-inline.h"
 
@@ -493,6 +321,5 @@ void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func);
 void state_run_cleanup(STATE, OBJECT obj);
 void state_setup_type(STATE, int type, struct type_info *info);
 
-#define POINTER_P(obj) RTYPE(obj, MemPtrType)
 
 #endif /* __STATE__ */
