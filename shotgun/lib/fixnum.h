@@ -7,19 +7,17 @@
 */
 
 static inline OBJECT fixnum_add(STATE, OBJECT a, OBJECT b) {
-  OBJECT r;
   native_int j, k, m;
   
   // + will never overflow an int because of the size of a Fixnum
   j = N2I(a);
   k = N2I(b);
   m = j + k;
-  r = I2N(m);
-  if(m != N2I(r)) {
-    r = bignum_add(state, bignum_new(state, j), bignum_new(state, k));
+  if(m > FIXNUM_MAX || m < FIXNUM_MIN) {
+    return bignum_new(state, m);
+  } else {
+    return APPLY_TAG(m, TAG_FIXNUM);
   }
-  
-  return r;
 }
 
 static inline OBJECT fixnum_sub(STATE, OBJECT a, OBJECT b) {

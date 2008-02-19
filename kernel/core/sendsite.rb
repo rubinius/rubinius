@@ -28,6 +28,6 @@ class SendSite
   end
 
   def inspect
-    "#<SendSite:0x#{object_id.to_s(16)} #{name}>"
+    "#<SendSite:0x#{object_id.to_s(16)} name=#{name} hits=#{hits} misses=#{misses}>"
   end
 end

@@ -61,7 +61,7 @@ ifdef PROF
 	OPTIMIZATIONS=-O2
 else 
   ifdef DEV
-    OPTIMIZATIONS=
+    OPTIMIZATIONS=-O0
   else
     OPTIMIZATIONS=-O2 -finline-functions
   endif

@@ -207,14 +207,11 @@ static inline native_int rbs_to_int(OBJECT obj) {
 }
 
 static inline OBJECT rbs_int_to_numeric(STATE, native_int num) {
-  OBJECT ret;
-  ret = APPLY_TAG((native_int)num, TAG_FIXNUM);
-
   /* Number is too big for Fixnum. Use Bignum. */
-  if((native_int)STRIP_TAG(ret) != num) {
+  if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
     return bignum_new(state, num);
   } else {
-    return ret;
+    return APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
 }
 
@@ -277,7 +274,7 @@ static inline double rbs_fixnum_to_double(OBJECT obj) {
  * These macros convert between native (C) types and Ruby types
  * 'N' means a Numeric (e.g. Fixnum), 'I' means native_int (C)
  */
-#define N2I(obj) rbs_to_int(obj)
+#define N2I(obj) ((native_int)STRIP_TAG(obj))
 #define I2N(i) rbs_int_to_numeric(state, i)
 #define UI2N(i) rbs_uint_to_numeric(state, i)
 #define ULL2N(i) rbs_ull_to_numeric(state, i)

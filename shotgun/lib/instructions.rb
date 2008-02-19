@@ -2372,7 +2372,7 @@ CODE
   # [Description]
   #   Pops +value1+ and +value2+ off the stack, and pushes the logical result
   #   of (+value1+ + +value2+). If +value1+ and +value2+ are both fixnums, the
-  #   addition is done directly via the fixnum_sub primitive; otherwise, the +
+  #   addition is done directly via the fixnum_add primitive; otherwise, the +
   #   method is called on +value1+, passing +value2+ as the argument.
 
   def meta_send_op_plus

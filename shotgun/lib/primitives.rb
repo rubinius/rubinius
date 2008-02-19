@@ -2,14 +2,6 @@ require File.dirname(__FILE__) + '/primitive_names'
 
 class ShotgunPrimitives
 
-  OldMap = {
-    :set_ivar => 1024,
-    :get_ivar => 1025,
-    :set_index => 1026,
-    :get_index => 1027,
-    :dispatch_as_method => 1028
-  }
-
   def generate_select(fd, op="prim")
     i = 1
     order = Bytecode::Compiler::Primitives
@@ -48,9 +40,6 @@ class ShotgunPrimitives
     fd.puts "   // NOOP is 0 and signifies a method with no primitive"
     order.each do |ins|
       fd.puts "case #{i}: { // #{ins}"
-      if old = OldMap[ins]
-        fd.puts "case #{old}:"
-      end
       fd.puts "  cpu_patch_primitive(state, msg, cpu_primitive_#{ins}, #{i});"
       fd.puts "  _ret = cpu_primitive_#{ins}(state, c, msg);"
       fd.puts "  break;\n}"
