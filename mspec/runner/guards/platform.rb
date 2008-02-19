@@ -18,12 +18,12 @@ class PlatformGuard < SpecGuard
     oses.any? do |os|
       host_os = Config::CONFIG['host_os'] || RUBY_PLATFORM
       host_os.downcase!
-      host_os.match(os.to_s)
+      host_os.match os.to_s
     end
   end
   
   def match?
-    match = platform? *@platforms
+    match = @platforms.empty? ? true : platform?(*@platforms)
     @options.each do |key, value|
       case key
       when :os
