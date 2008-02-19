@@ -52,6 +52,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Override the name used to determine the implementation") do |n|
     name = "RUBY_NAME = \"#{n}\";"
   end
+  opts.on("-X", "--tags-dir DIR", String,
+          "Use DIR as the path prefix for locating spec tag files") do |d|
+    ENV['TAGS_DIR'] = d
+  end
   opts.on("-D", "--gdb", "Run under gdb") do
     flags << '--gdb'
   end
