@@ -394,6 +394,7 @@ class IO
   end
 
   def sysread(size, buf=nil)
+    raise IOError if closed?
     buf = String.new(size) unless buf
     chan = Channel.new
     Scheduler.send_on_readable chan, self, buf, size
@@ -432,6 +433,7 @@ class IO
   end
 
   def read(size=nil, buffer=nil)
+    raise IOError if closed?
     return breadall(buffer) unless size
 
     return nil if @eof and @buffer.empty?
