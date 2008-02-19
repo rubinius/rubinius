@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 
-CI_FILE_SPECS = ['spec/ruby/1.8/core',
-                 'spec/ruby/1.8/language',
-                 'spec/compiler',
-                 'spec/parser']
-CI_EXCLUDES_DIR = File.expand_path('spec/data')
+puts "DEPRECATED and will be removed"
+puts "use: bin/mspec ci"
 
-require File.expand_path('mspec/scripts/ci')
+exec "bin/mspec ci"

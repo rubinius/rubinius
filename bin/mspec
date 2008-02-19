@@ -3,7 +3,11 @@
 ENV["CI_FILES"] = ['spec/ruby/1.8/core',
                    'spec/ruby/1.8/language',
                    'spec/compiler',
-                   'spec/parser'].join(" ")
+                   'spec/ruby/1.8/library',
+                   # parser specs cause odd problems with library
+                   # specs, so they go last
+                   'spec/parser',
+                   ].join(" ")
 ENV["TAGS_DIR"] = File.expand_path('spec/tags')
 
 load 'mspec/bin/mspec'

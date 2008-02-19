@@ -3,4 +3,18 @@
 require 'optparse'
 require 'spec/spec_helper'
 require 'mspec/bin/options'
-puts "mspec tag"
+
+puts <<-EOM
+'mspec tag' coming soon
+
+Meanwhile, you can manually add and remove tags from files
+in the spec/tags directory. Assume you have a spec at:
+
+  spec/ruby/1.8/core/class/method_spec.rb
+  
+To exclude a spec from the CI runner, add a line like:
+
+  fails:Class#method does this
+  
+to the file spec/tags/ruby/1.8/core/class/method_tags.txt
+EOM

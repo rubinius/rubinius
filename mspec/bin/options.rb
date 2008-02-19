@@ -69,6 +69,12 @@ class SpecConfig
   
   def register
     @formatter.new.register
+    MatchFilter.new(:include, *@includes).register unless @includes.empty?
+    MatchFilter.new(:exclude, *@excludes).register unless @excludes.empty?
+    RegexpFilter.new(:include, *@patterns).register unless @patterns.empty?
+    RegexpFilter.new(:exclude, *@xpatterns).register unless @xpatterns.empty?
+    TagFilter.new(:include, *@tags).register unless @tags.empty?
+    TagFilter.new(:exclude, *@xtags).register unless @xtags.empty?
   end
 end
 
@@ -81,82 +87,100 @@ class SpecOptions
     @options = OptionParser.new(*args) do |opts|
       opts.banner = "mspec #{command} [options] (FILE|DIRECTORY|GLOB)+"
       opts.separator ""
-
-      opts.on("-f", "--format FORMAT", String, 
-              "Formatter for reporting: s:specdoc|d:dotted|h:html|u:unitdiff") do |o|
-        case o
-        when 's', 'specdoc'
-          @config.formatter = SpecdocFormatter
-        when 'h', 'html'
-          @config.formatter = HtmlFormatter
-        when 'd', 'dot', 'dotted'
-          @config.formatter = DottedFormatter
-        when 'u', 'unit', 'unitdiff'
-          @config.formatter = UnitdiffFormatter
-        when 'm', 'summary'
-          @config.formatter = SummaryFormatter
-        else
-          puts "Unknown format: #{o}"
-          puts opts
-          exit
-        end
-      end
-      opts.on("-e", "--example STRING", String,
-              "Execute examples with descriptions matching STRING") do |o|
-        puts "I'm here! #{o}"
-        @config.includes << o
-      end
-      opts.on("-E", "--exclude STRING", String,
-              "Exclude examples with descriptions matching STRING") do |o|
-        @config.excludes << o
-      end
-      opts.on("-p", "--pattern PATTERN", Regexp,
-              "Execute examples with descriptions matching PATTERN") do |o|
-        @config.patterns << o
-      end
-      opts.on("-P", "--exclude-pattern PATTERN", Regexp,
-              "Exclude examples with descriptions matching PATTERN") do |o|
-        @config.xpatterns << o
-      end
-      opts.on("-g", "--tag TAG", String,
-              "Execute examples with descriptions matching ones tagged with TAG") do |o|
-        @config.tags << o
-      end
-      opts.on("-G", "--exclude-tag TAG", String,
-              "Exclude examples with descriptions matching ones tagged with TAG") do |o|
-        @config.xtags << o
-      end
-      opts.on("-V", "--verbose", "Output the name of each file processed") do
-        obj = Object.new
-        def obj.start
-          @width = MSpec.retrieve(:files).inject(0) { |max, f| f.size > max ? f.size : max }
-        end
-        def obj.load
-          print "\n#{file.ljust(@width)}"
-        end
-        MSpec.register :start, obj
-        MSpec.register :load, obj
-      end
-      opts.on("-m", "--marker MARKER", String,
-              "Outout MARKER for each file processed") do |o|
-        obj = Object.new
-        def obj.load
-          print o
-        end
-        MSpec.register :load, obj
-      end
-      opts.on("-v", "--version", "Show version") do
-        puts "MSpec #{MSpec::VERSION}"
-        exit
-      end
-      opts.on("-h", "--help", "Show this message") do
-        puts opts
+    end
+  end
+  
+  def add_formatters
+    @options.on("-f", "--format FORMAT", String, 
+                "Formatter for reporting: s:specdoc|d:dotted|h:html|u:unitdiff") do |o|
+      case o
+      when 's', 'specdoc'
+        @config.formatter = SpecdocFormatter
+      when 'h', 'html'
+        @config.formatter = HtmlFormatter
+      when 'd', 'dot', 'dotted'
+        @config.formatter = DottedFormatter
+      when 'u', 'unit', 'unitdiff'
+        @config.formatter = UnitdiffFormatter
+      when 'm', 'summary'
+        @config.formatter = SummaryFormatter
+      else
+        puts "Unknown format: #{o}"
+        puts @options
         exit
       end
     end
   end
   
+  def add_filters
+    @options.on("-e", "--example STRING", String,
+            "Execute examples with descriptions matching STRING") do |o|
+      @config.includes << o
+    end
+    @options.on("-E", "--exclude STRING", String,
+            "Exclude examples with descriptions matching STRING") do |o|
+      @config.excludes << o
+    end
+    @options.on("-p", "--pattern PATTERN", Regexp,
+            "Execute examples with descriptions matching PATTERN") do |o|
+      @config.patterns << o
+    end
+    @options.on("-P", "--exclude-pattern PATTERN", Regexp,
+            "Exclude examples with descriptions matching PATTERN") do |o|
+      @config.xpatterns << o
+    end
+    @options.on("-g", "--tag TAG", String,
+            "Execute examples with descriptions matching ones tagged with TAG") do |o|
+      @config.tags << o
+    end
+    @options.on("-G", "--exclude-tag TAG", String,
+            "Exclude examples with descriptions matching ones tagged with TAG") do |o|
+      @config.xtags << o
+    end
+  end
+  
+  def add_verbose
+    @options.on("-V", "--verbose", "Output the name of each file processed") do
+      obj = Object.new
+      def obj.start
+        @width = MSpec.retrieve(:files).inject(0) { |max, f| f.size > max ? f.size : max }
+      end
+      def obj.load
+        file = MSpec.retrieve :file
+        print "\n#{file.ljust(@width)}"
+      end
+      MSpec.register :start, obj
+      MSpec.register :load, obj
+    end
+    @options.on("-m", "--marker MARKER", String,
+            "Outout MARKER for each file processed") do |o|
+      obj = Object.new
+      obj.instance_variable_set :@marker, o
+      def obj.load
+        print @marker
+      end
+      MSpec.register :load, obj
+    end
+  end
+  
+  def add_verify
+    @options.on("-Y", "--verify", 
+               "Verify that guarded specs pass and fail as expected") { MSpec.set_mode :verify }
+    @options.on("-O", "--report", "Report guarded specs") { MSpec.set_mode :report } 
+  end
+
+  def add_help
+    @options.on("-v", "--version", "Show version") do
+      puts "MSpec #{MSpec::VERSION}"
+      exit
+    end
+    @options.on("-h", "--help", "Show this message") do
+      puts @options
+      exit
+    end
+  end
+  
   def parse
-    @options.parse ENV['MSPEC_OPTIONS'].split
+    @options.parse ENV['MSPEC_OPTIONS'].split("\n")
   end
 end

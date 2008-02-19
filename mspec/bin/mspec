@@ -85,7 +85,7 @@ options += opts.filter! ARGV
 opts.parse ARGV
 
 ENV['MSPEC_RUNNER'] = '1'
-ENV['MSPEC_OPTIONS'] = options.join(" ")
+ENV['MSPEC_OPTIONS'] = options.join("\n")
 exec %[#{target} \
   #{flags.join(" ")}    \
   #{includes.join(" ")} \
