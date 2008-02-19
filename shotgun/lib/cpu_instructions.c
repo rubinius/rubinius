@@ -1471,10 +1471,9 @@ void cpu_run(STATE, cpu c, int setup) {
   IP_TYPE op;
   IP_TYPE *ip_ptr = NULL;
   const char *firesuit_arg;
+  struct rubinius_globals *global = state->global;
 
   c->ip_ptr = &ip_ptr;
-
-  struct rubinius_globals *global = state->global;
 
   if(setup) {
     (void)op;

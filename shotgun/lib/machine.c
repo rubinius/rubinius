@@ -224,6 +224,8 @@ machine machine_new(environment e) {
   m->c = cpu_new(m->s);
   /* Initialize the instruction addresses. */
   cpu_run(m->s, m->c, TRUE);
+  m->c->ip_ptr = &m->s->external_ip;
+
   machine_setup_signals(m);
   machine_setup_events(m);
   cpu_initialize(m->s, m->c);
@@ -303,6 +305,8 @@ void machine_show_exception(machine m, OBJECT exc) {
 
 int machine_run(machine m) {
   cpu_run(m->s, m->c, 0);
+  m->c->ip_ptr = &m->s->external_ip;
+
   if(RTEST(m->c->exception)) {
     printf("Toplevel exception detected.\n");
     machine_show_exception(m, m->c->exception);
