@@ -89,7 +89,7 @@ END
     actual = _steal_stdout { MyERB2.new.main1() }
     actual.should == expected
 
-    lamda {
+    lambda {
       _steal_stdout { MyERB2.new.main2() }
     }.should raise_error(NameError)
   end

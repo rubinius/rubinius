@@ -17,7 +17,7 @@ describe "ERB#filename" do
     }.should raise_error(SyntaxError)
     expected = filename
 
-    ex.message =~ /^(.*?):(\d+): /
+    @ex.message =~ /^(.*?):(\d+): /
     $1.should == expected
     $2.to_i.should == 1
 
@@ -41,7 +41,7 @@ describe "ERB#filename" do
     }.should raise_error(SyntaxError)
     expected = '(erb)'
 
-    ex.message =~ /^(.*?):(\d+): /
+    @ex.message =~ /^(.*?):(\d+): /
     $1.should == expected
     $2.to_i.should == 1
 
