@@ -21,13 +21,13 @@ module Platform::POSIX
 
   # file system
   attach_function 'access', [:string, :int], :int
-  attach_function 'chmod',  [:string, :int], :int
-  attach_function 'fchmod', [:int, :int], :int
-  attach_function 'chown', [:string, :int, :int], :int
-  attach_function 'fchown', [:int, :int, :int], :int
+  attach_function 'chmod',  [:string, :mode_t], :int
+  attach_function 'fchmod', [:int, :mode_t], :int
+  attach_function 'chown', [:string, :uid_t, :gid_t], :int
+  attach_function 'fchown', [:int, :uid_t, :gid_t], :int
   attach_function 'unlink', [:string], :int
-  attach_function 'getcwd', [:string, :int], :string
-  attach_function 'umask', [:int], :int
+  attach_function 'getcwd', [:string, :size_t], :string
+  attach_function 'umask', [:mode_t], :int
   attach_function 'link', [:string, :string], :int
   attach_function 'symlink', [:string, :string], :int
   attach_function 'readlink', [:string, :string, :int], :int
@@ -66,12 +66,12 @@ module Platform::POSIX
   attach_function 'ftell',  [:pointer], :int
 
   #   reading
-  attach_function 'fread',   [:string, :int, :int, :pointer], :int
+  attach_function 'fread',   [:string, :size_t, :size_t, :pointer], :size_t
   attach_function 'fgets',   [:string, :int, :pointer], :void
   attach_function 'fgetc',   [:pointer], :int
 
   #   writing
-  attach_function 'fwrite',  [:string, :int, :int, :pointer], :int
+  attach_function 'fwrite',  [:string, :size_t, :size_t, :pointer], :size_t
   attach_function 'ungetc',  [:int, :pointer], :int
   
   #   truncating
@@ -86,8 +86,8 @@ module Platform::POSIX
   attach_function 'flock', [:int, :int], :int
 
   # Time
-  attach_function 'time', [:pointer], :long
-  attach_function 'ffi_timezone', :timezone, [], :long
+  attach_function 'time', [:pointer], :time_t
+  attach_function 'ffi_timezone', :timezone, [], :time_t
   attach_function 'ffi_tzname', :tzname, [:int], :string
   attach_function 'gettimeofday', [:pointer, :pointer], :int
 
@@ -126,13 +126,12 @@ module Platform::POSIX
   attach_function 'endpwent', [], :void
 
   attach_function 'getgrnam', [:string], :pointer
-  attach_function 'getgrgid', [:uint], :pointer
+  attach_function 'getgrgid', [:gid_t], :pointer
   attach_function 'setgrent', [], :void
   attach_function 'getgrent', [], :pointer
   attach_function 'endgrent', [], :void
 
   # processes and signals
-  pid_t = :int
   attach_function 'kill', [:pid_t, :int], :int
   attach_function 'getpgid', [:pid_t], :pid_t
   attach_function 'setpgid', [:pid_t, :pid_t], :int

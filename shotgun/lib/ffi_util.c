@@ -20,7 +20,7 @@ void ffi_set_errno(int n) {
   errno = n;
 }
 
-long ffi_timezone() {
+time_t ffi_timezone() {
   return timezone;
 }
 
