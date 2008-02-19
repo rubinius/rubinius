@@ -20,17 +20,8 @@ describe "The next statement" do
     lambda { 123; next; 456 }.call.should == nil
   end
 
-  # This seems like an MRI bug, not a feature or spec.
-  platform_is :version => '1.8.5' do
-    it "accepts argument but returns nil from blocks" do
-      lambda { 123; next 234; 345 }.call.should == nil
-    end
-  end
-  
-  platform_is :version => '1.8.6' do
-    it "returns the argument passed" do
-      lambda { 123; next 234; 345 }.call.should == 234
-    end
+  it "returns the argument passed" do
+    lambda { 123; next 234; 345 }.call.should == 234
   end
 end
 

@@ -366,12 +366,6 @@ describe "String#sub! with pattern and block" do
   end
   
   compliant_on :ruby do
-    platform_is :version => '1.8.5' do
-      it_behaves_like(:string_sub_bang_frozen_raises, TypeError)
-    end
-
-    platform_is :version => '1.8.6' do
-      it_behaves_like(:string_sub_bang_frozen_raises, RuntimeError)
-    end
+    it_behaves_like(:string_sub_bang_frozen_raises, RuntimeError)
   end
 end

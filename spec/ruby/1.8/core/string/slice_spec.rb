@@ -34,40 +34,18 @@ describe "String#slice! with index" do
     end
   end
   
-  platform_is :version => '1.8.6' do
-    it "calls to_int on index" do
-      "hello".slice!(0.5).should == ?h
+  it "calls to_int on index" do
+    "hello".slice!(0.5).should == ?h
 
-      obj = mock('1')
-      # MRI calls this twice so we can't use should_receive here.
-      def obj.to_int() 1 end
-      "hello".slice!(obj).should == ?e
+    obj = mock('1')
+    # MRI calls this twice so we can't use should_receive here.
+    def obj.to_int() 1 end
+    "hello".slice!(obj).should == ?e
 
-      obj = mock('1')
-      def obj.respond_to?(name) name == :to_int ? true : super; end
-      def obj.method_missing(name, *) name == :to_int ? 1 : super; end
-      "hello".slice!(obj).should == ?e
-    end
-  end
-  
-  platform_is :version => '1.8.5' do
-    it "raises an IndexError when passed other than a Fixnum" do
-      lambda { "hello".slice!(0.5).should == ?h }.should raise_error(IndexError)
-
-      obj = mock('1')
-      # MRI calls this twice so we can't use should_receive here.
-      def obj.to_int() 1 end
-      lambda { "hello".slice!(obj).should == ?e }.should raise_error(IndexError)
-
-      obj = mock('1')
-      def obj.respond_to?(name) name == :to_int ? true : super; end
-      def obj.method_missing(name, *) name == :to_int ? 1 : super; end
-      lambda { "hello".slice!(obj).should == ?e }.should raise_error(IndexError)
-    end
-    
-    it "returns nil when passed a String" do
-      "hello".slice!('1.5').should == nil
-    end
+    obj = mock('1')
+    def obj.respond_to?(name) name == :to_int ? true : super; end
+    def obj.method_missing(name, *) name == :to_int ? 1 : super; end
+    "hello".slice!(obj).should == ?e
   end
 end
 

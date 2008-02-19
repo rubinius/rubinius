@@ -30,17 +30,15 @@ describe "String#rindex with object" do
   end
   
   compliant_on :ruby, :jruby do
-    platform_is :version => "1.8.6" do
-      it "tries to convert obj to a string via to_str" do
-        obj = mock('lo')
-        def obj.to_str() "lo" end
-        lambda { "hello".rindex(obj) }.should raise_error(Exception)
+    it "tries to convert obj to a string via to_str" do
+      obj = mock('lo')
+      def obj.to_str() "lo" end
+      lambda { "hello".rindex(obj) }.should raise_error(Exception)
 
-        obj = mock('o')
-        def obj.respond_to?(arg) true end
-        def obj.method_missing(*args) "o" end
-        lambda { "hello".rindex(obj) }.should raise_error(Exception)
-      end
+      obj = mock('o')
+      def obj.respond_to?(arg) true end
+      def obj.method_missing(*args) "o" end
+      lambda { "hello".rindex(obj) }.should raise_error(Exception)
     end
   end
 end

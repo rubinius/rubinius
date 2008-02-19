@@ -48,39 +48,21 @@ describe "String#[]= with index" do
     lambda { ""[-1] = ?a }.should raise_error(IndexError)
   end
 
-  platform_is :version => '1.8.5' do
-    it "raises an IndexError when passed other than a Fixnum" do
-      str = "hello"
-      lambda { str[0.5] = ?c }.should raise_error(IndexError)
-    
-      obj = mock('-1')
-      obj.should_receive(:to_int).and_return(-1)
-      lambda { str[obj] = ?y }.should raise_error(IndexError)
-    
-      obj = mock('-1')
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
-      lambda { str[obj] = ?! }.should raise_error(IndexError)
-    end
-  end
+  it "calls to_int on index" do
+    str = "hello"
+    str[0.5] = ?c
+    str.should == "cello"
   
-  platform_is :version => '1.8.6' do
-    it "calls to_int on index" do
-      str = "hello"
-      str[0.5] = ?c
-      str.should == "cello"
-    
-      obj = mock('-1')
-      obj.should_receive(:to_int).and_return(-1)
-      str[obj] = ?y
-      str.should == "celly"
-    
-      obj = mock('-1')
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
-      str[obj] = ?!
-      str.should == "cell!"
-    end
+    obj = mock('-1')
+    obj.should_receive(:to_int).and_return(-1)
+    str[obj] = ?y
+    str.should == "celly"
+  
+    obj = mock('-1')
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(-1)
+    str[obj] = ?!
+    str.should == "cell!"
   end
   
   it "sets the code to char % 256" do
@@ -149,39 +131,21 @@ describe "String#[]= with String" do
     end
   end
 
-  platform_is :version => '1.8.5' do
-    it "raises an IndexError when passed other than a Fixnum" do
-      str = "hello"
-      lambda { str[0.5] = "hi " }.should raise_error(IndexError)
-    
-      obj = mock('-1')
-      obj.should_receive(:to_int).and_return(-1)
-      lambda { str[obj] = "!" }.should raise_error(IndexError)
-    
-      obj = mock('-1')
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
-      lambda { str[obj] = "e vator" }.should raise_error(IndexError)
-    end
-  end
+  it "calls to_int on index" do
+    str = "hello"
+    str[0.5] = "hi "
+    str.should == "hi ello"
   
-  platform_is :version => '1.8.6' do
-    it "calls to_int on index" do
-      str = "hello"
-      str[0.5] = "hi "
-      str.should == "hi ello"
-    
-      obj = mock('-1')
-      obj.should_receive(:to_int).and_return(-1)
-      str[obj] = "!"
-      str.should == "hi ell!"
-    
-      obj = mock('-1')
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
-      str[obj] = "e vator"
-      str.should == "hi elle vator"
-    end
+    obj = mock('-1')
+    obj.should_receive(:to_int).and_return(-1)
+    str[obj] = "!"
+    str.should == "hi ell!"
+  
+    obj = mock('-1')
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(-1)
+    str[obj] = "e vator"
+    str.should == "hi elle vator"
   end
   
   it "tries to convert other_str to a String using to_str" do

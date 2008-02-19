@@ -496,19 +496,17 @@ describe "String#%" do
     # ("%s" % obj).should == "obj"
   end
   
-  platform_is_not :version => '1.8.6', :patch => 0..36 do
-    it "taints result for %s when argument is tainted" do
-      ("%s" % "x".taint).tainted?.should == true
-      ("%s" % mock('x').taint).tainted?.should == true
-      ("%s" % 5.0.taint).tainted?.should == true
-    end
+  it "taints result for %s when argument is tainted" do
+    ("%s" % "x".taint).tainted?.should == true
+    ("%s" % mock('x').taint).tainted?.should == true
+    ("%s" % 5.0.taint).tainted?.should == true
+  end
 
-    # MRI crashes on this one.
-    # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
-    it "raises an ArgumentError for huge precisions for %s" do
-      block = lambda { "%.25555555555555555555555555555555555555s" % "hello world" }
-      block.should raise_error(ArgumentError)
-    end
+  # MRI crashes on this one.
+  # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
+  it "raises an ArgumentError for huge precisions for %s" do
+    block = lambda { "%.25555555555555555555555555555555555555s" % "hello world" }
+    block.should raise_error(ArgumentError)
   end
   
   # Note: %u has been changed to an alias for %d in MRI 1.9 trunk.
@@ -544,22 +542,10 @@ describe "String#%" do
       ("%+u" % -26).should == "-26"
     end
   end
-  
-  compliant_on :ruby do
-    platform_is :version => '1.8.6', :patch => 36..111 do
-      it "supports negative bignums by prefixing the value with zeros" do
-        ("%u" % -(2 ** 64 + 5)).should == "0079228162495817593519834398715"
-      end
-    end
-  end
-  
-  compliant_on :ruby do
-    # Something's odd for MRI here. For details see
-    # http://groups.google.com/group/ruby-core-google/msg/408e2ebc8426f449
-    platform_is :version => '1.8.5' do
-      it "supports negative bignums by prefixing the value with periods" do
-        ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
-      end
+
+  not_compliant_on :rubinius do
+    it "supports negative bignums by prefixing the value with zeros" do
+      ("%u" % -(2 ** 64 + 5)).should == "0079228162495817593519834398715"
     end
   end
   
