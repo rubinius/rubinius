@@ -578,6 +578,7 @@ class IO
   # slightly. This helper is an extraction of the code.
 
   def gets_helper(sep=$/)
+    raise IOError if closed?
     return nil if @eof and @buffer.empty?
 
     return breadall() unless sep
