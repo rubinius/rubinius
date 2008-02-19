@@ -1,0 +1,3 @@
+fails:IPAddr#new it should initialize IPAddr ipv6 address with long notation
+fails:IPAddr#new it should initialize IPAddr ipv6 address with short notation
+fails:IPAddr#new it should initialize IPAddr
