@@ -1049,6 +1049,7 @@ static inline void cpu_perform(STATE, cpu c, const struct message *msg) {
  
   cpu_save_registers(state, c, msg->args);
   cpu_restore_context_with_home(state, c, ctx, ctx);
+  cpu_yield_debugger_check(state, c);
 }
 
 

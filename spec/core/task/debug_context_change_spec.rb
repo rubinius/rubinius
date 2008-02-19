@@ -62,7 +62,6 @@ describe "Task#debug_context_change behavior" do
   it "yields to the debugger immediately following a method send" do
     @listener.wait_for_breakpoint
     @a.call_mthd false
-    @listener.get_breakpoint_method.should == nil
 
     @a.call_mthd true
     @listener.get_breakpoint_method.should == :simple_method
@@ -71,28 +70,9 @@ describe "Task#debug_context_change behavior" do
   it "yields to the debugger immediately following a block send" do
     @listener.wait_for_breakpoint
     @a.call_block(false) {}
-    @listener.get_breakpoint_method.should == nil
 
     @a.call_block(true) {}
     @listener.get_breakpoint_method.should == :__block__
-  end
-
-  it "yields to the debugger immediately following a method return" do
-    @listener.wait_for_breakpoint
-    @a.mthd_return false
-    @listener.get_breakpoint_method.should == nil
-
-    @a.mthd_return true
-    @listener.get_breakpoint_method.should == :mthd_return
-  end
-
-  it "yields to the debugger immediately following a block return" do
-    @listener.wait_for_breakpoint
-    @a.block_return false
-    @listener.get_breakpoint_method.should == nil
-
-    @a.block_return true
-    @listener.get_breakpoint_method.should == :each
   end
 
   it "yields to the debugger at the point an exception is raised" do
