@@ -5,9 +5,11 @@ require File.dirname(__FILE__) + '/../../../runner/filters/tag'
 
 describe TagFilter, "#load" do
   before :each do
+    @match = mock("match filter", :null_object => true)
     @filter = TagFilter.new :include, "tag", "key"
     @tag = SpecTag.new "tag(comment):description"
     MSpec.stub!(:read_tags).and_return([@tag])
+    MSpec.stub!(:register)
   end
   
   it "loads tags from the tag file" do
@@ -16,27 +18,26 @@ describe TagFilter, "#load" do
   end
   
   it "creates a MatchFilter from the descriptions matching the tags" do
-    match = mock("match filter", :null_object => true)
-    MatchFilter.should_receive(:new).with(:include, "description").and_return(match)
+    MatchFilter.should_receive(:new).with(:include, "description").and_return(@match)
     @filter.load
   end
   
-  it "does not create a MatchFilter if no tags were found" do
+  it "creates an empty MatchFilter if no tags were found" do
     MSpec.should_receive(:read_tags).and_return([])
-    MatchFilter.should_not_receive(:new)
+    MatchFilter.should_receive(:new).with(:include).and_return(@match)
     @filter.load
   end
   
   it "registers the MatchFilter if there were tags found in the tag file" do
-    match = mock("match filter")
-    match.should_receive(:register)
-    MatchFilter.should_receive(:new).with(:include, "description").and_return(match)
+    @match.should_receive(:register)
+    MatchFilter.should_receive(:new).with(:include, "description").and_return(@match)
     @filter.load
   end
   
-  it "does not register the MatchFilter if no tags were found" do
+  it "registers the empty MatchFilter if no tags were found" do
+    @match.should_receive(:register)
     MSpec.should_receive(:read_tags).and_return([])
-    MSpec.should_not_receive(:register)
+    MatchFilter.should_receive(:new).with(:include).and_return(@match)
     @filter.load
   end
 end
@@ -52,13 +53,6 @@ describe TagFilter, "#unload" do
     match = mock("match filter", :null_object => true)
     match.should_receive(:unregister)
     MatchFilter.stub!(:new).with(:include, "description").and_return(match)
-    @filter.load
-    @filter.unload
-  end
-  
-  it "does not unregister the MatchFilter if none was created" do
-    MSpec.should_receive(:read_tags).and_return([])
-    MSpec.should_not_receive(:unregister)
     @filter.load
     @filter.unload
   end

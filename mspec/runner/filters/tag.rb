@@ -8,7 +8,6 @@ class TagFilter
   
   def load
     desc = MSpec.read_tags(*@tags).map { |t| t.description }
-    return if desc.empty?
     
     @filter = MatchFilter.new(@what, *desc)
     @filter.register
