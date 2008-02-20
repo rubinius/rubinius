@@ -1,6 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
-require 'stringio'
 
 describe "IO#syswrite on a file" do
   before :each do
