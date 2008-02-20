@@ -295,7 +295,7 @@ describe MSpec, ".delete_tag" do
   before :each do
     FileUtils.cp File.dirname(__FILE__) + '/tags.txt', "/tmp/tags.txt"
     MSpec.stub!(:tags_file).and_return("/tmp/tags.txt")
-    @tag = SpecTag.new "fail(broken):Some#method works"
+    @tag = SpecTag.new "fail(Comments don't matter):Some#method works"
   end
   
   after :each do

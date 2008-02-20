@@ -18,7 +18,7 @@ end
 
 describe Object, "#platform_is" do
   before :each do
-    @guard = PlatformGuard.new
+    @guard = PlatformGuard.new :dummy
     PlatformGuard.stub!(:new).and_return(@guard)
   end
 
@@ -37,7 +37,7 @@ end
 
 describe Object, "#platform_is_not" do
   before :each do
-    @guard = PlatformGuard.new
+    @guard = PlatformGuard.new :dummy
     PlatformGuard.stub!(:new).and_return(@guard)
   end
   

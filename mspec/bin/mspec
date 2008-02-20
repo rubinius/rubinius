@@ -76,7 +76,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   where COMMAND is one of:
   
     run - Run the specified specs (default)
-    ci  - Run the known good spec
+    ci  - Run the known good specs
     tag - Add or remove tags
     
   mspec COMMAND -h for more options

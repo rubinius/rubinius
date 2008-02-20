@@ -4,13 +4,15 @@ require 'optparse'
 require 'spec/spec_helper'
 require 'mspec/bin/options'
 
-opts = SpecOptions.new "ci", "", 24, "   "
+opts = SpecOptions.new "ci", "", 28, "   "
 opts.add_formatters
+opts.add_action_filters
+opts.add_actions
 opts.add_verbose
 opts.add_help
 
 patterns = opts.parse
-config = opts.config
+opts.config.register
 
 patterns = ENV["CI_FILES"].split if patterns.empty?
 
@@ -23,8 +25,7 @@ end
 
 MSpec.register_tags_path ENV["TAGS_DIR"]
 MSpec.register_files files
-opts.config.register
 TagFilter.new(:exclude, "fails").register
 
 MSpec.process
-exit MSpec.retrieve(:exit).to_i
+exit MSpec.exit_code

@@ -173,12 +173,12 @@ module MSpec
   end
   
   def self.delete_tag(tag)
-    string = tag.to_s
+    pattern = /#{tag.tag}.*#{tag.description}/
     file = tags_file
     if File.exist? file
       lines = IO.readlines(file)
       File.open(file, "w") do |f|
-        lines.each { |line| f.puts line unless string == line.chomp }
+        lines.each { |line| f.puts line unless pattern =~ line.chomp }
       end
     end
   end

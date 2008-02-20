@@ -12,7 +12,7 @@ describe TagAction do
   it "creates an MatchFilter with its tag and desc arguments" do
     filter = mock('action filter', :null_object => true)
     MatchFilter.should_receive(:new).with(nil, "some", "thing").and_return(filter)
-    TagAction.new :all, nil, nil, ["tag", "key"], ["some", "thing"]
+    TagAction.new :add, :all, nil, nil, ["tag", "key"], ["some", "thing"]
   end
 end
 
@@ -24,35 +24,35 @@ describe TagAction, "#outcome?" do
   end
 
   it "returns true if outcome is :fail and the spec fails" do
-    action = TagAction.new :fail, nil, nil, nil, nil
+    action = TagAction.new :add, :fail, nil, nil, nil, nil
     @state.exceptions << @exception
     action.outcome?(@state).should == true
   end
   
   it "returns false if the outcome is :fail and the spec passes" do
-    action = TagAction.new :fail, nil, nil, nil, nil
+    action = TagAction.new :add, :fail, nil, nil, nil, nil
     action.outcome?(@state).should == false
   end
   
   it "returns true if the outcome is :pass and the spec passes" do
-    action = TagAction.new :pass, nil, nil, nil, nil
+    action = TagAction.new :del, :pass, nil, nil, nil, nil
     action.outcome?(@state).should == true
   end
   
   it "returns false if the outcome is :pass and the spec fails" do
-    action = TagAction.new :pass, nil, nil, nil, nil
+    action = TagAction.new :del, :pass, nil, nil, nil, nil
     @state.exceptions << @exception
     action.outcome?(@state).should == false
   end
   
   it "returns true if the outcome is :all" do
-    action = TagAction.new :all, nil, nil, nil, nil
+    action = TagAction.new :add, :all, nil, nil, nil, nil
     @state.exceptions << @exception
     action.outcome?(@state).should == true
   end
 end
 
-describe TagAction, "#after" do
+describe TagAction, "#after when action is :add" do
   before :each do
     MSpec.stub!(:read_tags).and_return([])
     @state = SpecState.new "Catch#me", "if you can"
@@ -63,47 +63,96 @@ describe TagAction, "#after" do
   
   it "does not write a tag if the description does not match" do
     MSpec.should_not_receive(:write_tag)
-    action = TagAction.new :all, "tag", "comment", nil, "match"
+    action = TagAction.new :add, :all, "tag", "comment", nil, "match"
     action.after @state
   end
   
   it "does not write a tag if outcome is :fail and the spec passed" do
     MSpec.should_not_receive(:write_tag)
-    action = TagAction.new :fail, "tag", "comment", nil, "can"
+    action = TagAction.new :add, :fail, "tag", "comment", nil, "can"
     action.after @state
   end
   
   it "writes a tag if the outcome is :fail and the spec failed" do
     MSpec.should_receive(:write_tag).with(@tag)
-    action = TagAction.new :fail, "tag", "comment", nil, "can"
+    action = TagAction.new :add, :fail, "tag", "comment", nil, "can"
     @state.exceptions << @exception
     action.after @state
   end
   
   it "does not write a tag if outcome is :pass and the spec failed" do
     MSpec.should_not_receive(:write_tag)
-    action = TagAction.new :pass, "tag", "comment", nil, "can"
+    action = TagAction.new :add, :pass, "tag", "comment", nil, "can"
     @state.exceptions << @exception
     action.after @state
   end
   
   it "writes a tag if the outcome is :pass and the spec passed" do
     MSpec.should_receive(:write_tag).with(@tag)
-    action = TagAction.new :pass, "tag", "comment", nil, "can"
+    action = TagAction.new :add, :pass, "tag", "comment", nil, "can"
     action.after @state
   end
   
   it "writes a tag if the outcome is :all" do
     MSpec.should_receive(:write_tag).with(@tag)
-    action = TagAction.new :all, "tag", "comment", nil, "can"
+    action = TagAction.new :add, :all, "tag", "comment", nil, "can"
+    action.after @state
+  end
+end
+
+describe TagAction, "#after when action is :del" do
+  before :each do
+    MSpec.stub!(:read_tags).and_return([])
+    @state = SpecState.new "Catch#me", "if you can"
+    @tag = SpecTag.new "tag(comment):Catch#me if you can"
+    SpecTag.stub!(:new).and_return(@tag)
+    @exception = [nil, Exception.new("failed")]
+  end
+  
+  it "does not delete a tag if the description does not match" do
+    MSpec.should_not_receive(:delete_tag)
+    action = TagAction.new :del, :all, "tag", "comment", nil, "match"
+    action.after @state
+  end
+  
+  it "does not write a tag if outcome is :fail and the spec passed" do
+    MSpec.should_not_receive(:delete_tag)
+    action = TagAction.new :del, :fail, "tag", "comment", nil, "can"
+    action.after @state
+  end
+  
+  it "writes a tag if the outcome is :fail and the spec failed" do
+    MSpec.should_receive(:delete_tag).with(@tag)
+    action = TagAction.new :del, :fail, "tag", "comment", nil, "can"
+    @state.exceptions << @exception
+    action.after @state
+  end
+  
+  it "does not write a tag if outcome is :pass and the spec failed" do
+    MSpec.should_not_receive(:delete_tag)
+    action = TagAction.new :del, :pass, "tag", "comment", nil, "can"
+    @state.exceptions << @exception
+    action.after @state
+  end
+  
+  it "writes a tag if the outcome is :pass and the spec passed" do
+    MSpec.should_receive(:delete_tag).with(@tag)
+    action = TagAction.new :del, :pass, "tag", "comment", nil, "can"
+    action.after @state
+  end
+  
+  it "writes a tag if the outcome is :all" do
+    MSpec.should_receive(:delete_tag).with(@tag)
+    action = TagAction.new :del, :all, "tag", "comment", nil, "can"
     action.after @state
   end
 end
 
 describe TagAction, "#register" do
   before :each do
+    MSpec.stub!(:register)
     MSpec.stub!(:read_tags).and_return([])
-    @action = TagAction.new :all, nil, nil, nil, nil
+    @action = TagAction.new :add, :all, nil, nil, nil, nil
   end
   
   it "registers itself with MSpec for the :after action" do
@@ -114,8 +163,9 @@ end
 
 describe TagAction, "#unregister" do
   before :each do
+    MSpec.stub!(:unregister)
     MSpec.stub!(:read_tags).and_return([])
-    @action = TagAction.new :all, nil, nil, nil, nil
+    @action = TagAction.new :add, :all, nil, nil, nil, nil
   end
   
   it "unregisters itself with MSpec for the :after action" do

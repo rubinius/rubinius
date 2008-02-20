@@ -4,17 +4,32 @@ require 'optparse'
 require 'spec/spec_helper'
 require 'mspec/bin/options'
 
-puts <<-EOM
-'mspec tag' coming soon
+opts = SpecOptions.new "tag", "", 28, "   "
+opts.add_formatters
+opts.add_filters
+opts.add_verbose
+opts.add_action_filters
+opts.add_tagging
+opts.add_help
 
-Meanwhile, you can manually add and remove tags from files
-in the spec/tags directory. Assume you have a spec at:
+patterns = opts.parse
+opts.config.register
 
-  spec/ruby/1.8/core/class/method_spec.rb
-  
-To exclude a spec from the CI runner, add a line like:
+if patterns.empty?
+  puts "No files specified."
+  puts opts.options
+  exit 1
+end
 
-  fails:Class#method does this
-  
-to the file spec/tags/ruby/1.8/core/class/method_tags.txt
-EOM
+files = []
+patterns.each do |item|
+  stat = File.stat(File.expand_path(item))
+  files << item if stat.file?
+  files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
+end
+
+MSpec.register_tags_path ENV["TAGS_DIR"]
+MSpec.register_files files
+
+MSpec.process
+exit MSpec.exit_code

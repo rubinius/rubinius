@@ -2,7 +2,7 @@ require 'mspec/runner/actions/filter'
 
 class DebugAction < ActionFilter
   def before(state)
-    Kernel.debugger if @filter === state.description
+    Kernel.debugger if self === state.description
   end
   
   def register

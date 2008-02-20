@@ -12,6 +12,7 @@ require 'mspec/runner/actions/filter'
 #
 # The arguments are:
 #
+#   action:  :add, :del
 #   outcome: :pass, :fail, :all
 #   tag:     the tag to create
 #   comment: the comment to create
@@ -21,20 +22,27 @@ require 'mspec/runner/actions/filter'
 #            spec description strings
 
 class TagAction < ActionFilter
-  def initialize(outcome, tag, comment, tags, desc)
-    super tags, desc
+  def initialize(action, outcome, tag, comment, tags=nil, descs=nil)
+    super tags, descs
+    @action = action
     @outcome = outcome
     @tag = tag
     @comment = comment
   end
   
   def after(state)
-    if @filter === state.description and outcome? state
+    if self === state.description and outcome? state
       tag = SpecTag.new
       tag.tag = @tag
       tag.comment = @comment
       tag.description = state.description
-      MSpec.write_tag tag
+
+      case @action
+      when :add
+        MSpec.write_tag tag
+      when :del
+        MSpec.delete_tag tag
+      end
     end
   end
   
@@ -45,10 +53,12 @@ class TagAction < ActionFilter
   end
   
   def register
+    super
     MSpec.register :after, self
   end
   
   def unregister
+    super
     MSpec.unregister :after, self
   end
 end

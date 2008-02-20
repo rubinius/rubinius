@@ -55,9 +55,12 @@ end
 
 class SpecConfig
   attr_accessor :formatter, :includes, :excludes, 
-                :patterns, :xpatterns, :tags, :xtags
+                :patterns, :xpatterns, :tags, :xtags,
+                :tagger, :outcome, :tag, :comment, :atags, :astrings,
+                :debugger, :gdb
   
-  def initialize
+  def initialize(options)
+    @options = options
     @formatter = DottedFormatter
     @includes = []
     @excludes = []
@@ -65,16 +68,36 @@ class SpecConfig
     @xpatterns = []
     @tags = []
     @xtags = []
+    @atags = []
+    @astrings = []
+    @outcome = :fail
   end
   
   def register
+    if (@tagger or @debugger or @gdb) and @atags.empty? and @astrings.empty?
+      puts "Missing --action-tag or --action-string."
+      puts @options
+      exit 1
+    end
+
     @formatter.new.register
+
     MatchFilter.new(:include, *@includes).register unless @includes.empty?
     MatchFilter.new(:exclude, *@excludes).register unless @excludes.empty?
     RegexpFilter.new(:include, *@patterns).register unless @patterns.empty?
     RegexpFilter.new(:exclude, *@xpatterns).register unless @xpatterns.empty?
     TagFilter.new(:include, *@tags).register unless @tags.empty?
     TagFilter.new(:exclude, *@xtags).register unless @xtags.empty?
+    
+    DebugAction.new(@atags, @astrings).register if @debugger
+    GdbAction.new(@atags, @astrings).register if @gdb
+    
+    if @tagger
+      tag = SpecTag.new(@tag)
+      p tag
+      tagger = TagAction.new(@tagger, @outcome, tag.tag, tag.comment, @atags, @astrings)
+      tagger.register
+    end
   end
 end
 
@@ -82,12 +105,12 @@ class SpecOptions
   attr_reader :options, :config
   
   def initialize(command, *args)
-    @config = SpecConfig.new
-    
     @options = OptionParser.new(*args) do |opts|
       opts.banner = "mspec #{command} [options] (FILE|DIRECTORY|GLOB)+"
       opts.separator ""
     end
+
+    @config = SpecConfig.new @options
   end
   
   def add_formatters
@@ -113,27 +136,27 @@ class SpecOptions
   end
   
   def add_filters
-    @options.on("-e", "--example STRING", String,
-            "Execute examples with descriptions matching STRING") do |o|
+    @options.on("-e", "--example STR", String,
+            "Run examples with descriptions matching STR") do |o|
       @config.includes << o
     end
-    @options.on("-E", "--exclude STRING", String,
-            "Exclude examples with descriptions matching STRING") do |o|
+    @options.on("-E", "--exclude STR", String,
+            "Exclude examples with descriptions matching STR") do |o|
       @config.excludes << o
     end
     @options.on("-p", "--pattern PATTERN", Regexp,
-            "Execute examples with descriptions matching PATTERN") do |o|
+            "Run examples with descriptions matching PATTERN") do |o|
       @config.patterns << o
     end
-    @options.on("-P", "--exclude-pattern PATTERN", Regexp,
+    @options.on("-P", "--excl-pattern PATTERN", Regexp,
             "Exclude examples with descriptions matching PATTERN") do |o|
       @config.xpatterns << o
     end
     @options.on("-g", "--tag TAG", String,
-            "Execute examples with descriptions matching ones tagged with TAG") do |o|
+            "Run examples with descriptions matching ones tagged with TAG") do |o|
       @config.tags << o
     end
-    @options.on("-G", "--exclude-tag TAG", String,
+    @options.on("-G", "--excl-tag TAG", String,
             "Exclude examples with descriptions matching ones tagged with TAG") do |o|
       @config.xtags << o
     end
@@ -167,6 +190,50 @@ class SpecOptions
     @options.on("-Y", "--verify", 
                "Verify that guarded specs pass and fail as expected") { MSpec.set_mode :verify }
     @options.on("-O", "--report", "Report guarded specs") { MSpec.set_mode :report } 
+  end
+  
+  def add_tagging
+    @options.on("-N", "--add TAG", String,
+                "Add TAG with format 'tag' or 'tag(comment)' (see -Q, -F, -L)") do |o|
+      @config.tagger = :add
+      @config.tag = "#{o}:"
+    end
+    @options.on("-R", "--del TAG", String,
+                "Delete TAG (see -Q, -F, -L)") do |o|
+      @config.tagger = :del
+      @config.tag = "#{o}:"
+    end
+    @options.on("-Q", "--pass", "Apply TAG to specs that pass") do
+      @config.outcome = :pass
+    end
+    @options.on("-F", "--fail", "Apply TAG to specs that fail (default)") do
+      @config.outcome = :fail
+    end
+    @options.on("-L", "--all", "Apply TAG to all specs") do
+      @config.outcome = :all
+    end
+  end
+  
+  def add_action_filters
+    @options.on("-K", "--action-tag TAG", String,
+                "Spec descriptions marked with TAG will trigger the specified action") do |o|
+      @config.atags << o
+    end
+    @options.on("-S", "--action-string STR", String,
+                "Spec descriptions matching STR will trigger the specified action") do |o|
+      @config.astrings << o
+    end
+  end
+  
+  def add_actions
+    @options.on("--spec-debug",
+                "Invoke the debugger when a spec description matches (see -K, -S)") do
+      @config.debugger = true
+    end
+    @options.on("--spec-gdb",
+                "Invoke Gdb when a spec description matches (see -K, -S)") do
+      @config.gdb = true
+    end
   end
 
   def add_help
