@@ -146,9 +146,11 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
   }
  
   /* Add a little extra to the stack to keep the call points aligned. */
-  extra = arg_stack_bytes % 16;
-  if(extra > 0) {
+  if(arg_stack_bytes % 16 != 0) {
+    extra = 16 - (arg_stack_bytes % 16);
     BYTE(0x83); BYTE(0xec); BYTE(extra);  /* subl extra, %esp */
+  } else {
+    extra = 0;
   }
 
   /* Load arguments from our stack and push them on the stack as the
