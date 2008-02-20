@@ -35,27 +35,3 @@ OBJECT send_site_create(STATE, OBJECT name) {
   return ss_obj;
 }
 
-OBJECT send_site_at(STATE, OBJECT self, int position) {
-  if(!SENDSITE_P(self)) return Qnil;
-
-  switch(position) {
-  case 0:
-    return SENDSITE(self)->name;
-  case 1:
-    return SENDSITE(self)->selector;
-  case 2:
-    return SENDSITE(self)->data1;
-  case 3:
-    return SENDSITE(self)->data2;
-  case 4:
-    return SENDSITE(self)->data3;
-  case 5:
-    return ffi_new_pointer(state, SENDSITE(self)->c_data);
-  case 6:
-    return I2N(SENDSITE(self)->hits);
-  case 7:
-    return I2N(SENDSITE(self)->misses);
-  default:
-    return Qnil;
-  }
-}

@@ -1,7 +1,16 @@
 class SendSite
+  def self.new(name)
+    SendSite.create name
+  end
+
+  def self.create(name)
+    Ruby.primitive :sendsite_create
+    raise PrimitiveFailure, "primitive failed"
+  end
 
   def at(index)
     Ruby.primitive :sendsite_at
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def name

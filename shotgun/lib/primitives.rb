@@ -3902,10 +3902,13 @@ class ShotgunPrimitives
 
   def sendsite_create
     <<-CODE
-    OBJECT t1;
-    GUARD(SENDSITE_P(msg->recv));
+    OBJECT t1, ss;
+
+    GUARD(CLASS_P(msg->recv));
     POP(t1, SYMBOL);
-    RET(send_site_create(state, t1));
+
+    ss = send_site_create(state, t1);
+    RET(ss);
     CODE
   end
 
