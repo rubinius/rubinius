@@ -5,7 +5,7 @@ describe "Fixnum#+" do
     (491 + 2).should == 493
     (90210 + 10).should == 90220
 
-    (9 + 0xffffffff).should == 4294967304
+    (9 + bignum_value).should == 9223372036854775817
     (1001 + 5.219).should == 1006.219
   end
 

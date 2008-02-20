@@ -9,7 +9,7 @@ describe "Fixnum#divmod" do
     4.divmod(13.0).should == [0, 4]
 
     1.divmod(2.0).should == [0, 1.0]
-    200.divmod(0xffffffff).should == [0, 200]
+    200.divmod(bignum_value).should == [0, 200]
   end
   
   it "raises a ZeroDivisionError when the given argument is 0" do

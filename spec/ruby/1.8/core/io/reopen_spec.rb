@@ -75,15 +75,17 @@ describe "IO#reopen" do
     @file1.gets.should == "Line 2: Two\n"
   end
 
-  it "reassociates self with the I/O stream specified as an argument, after some sysreads" do
-    length = 12 # length of first lines in numbered_lines.txt
+  platform_is_not :darwin do
+    it "reassociates self with the I/O stream specified as an argument, after some sysreads" do
+      length = 12 # length of first lines in numbered_lines.txt
 
-    # reade some first
-    @file1.sysread(length)
-    @file2.sysread(length)
+      # reade some first
+      @file1.sysread(length)
+      @file2.sysread(length)
 
-    @file1.reopen(@file2)
-    @file1.sysread(length).should == "Line 2: Two\n"
+      @file1.reopen(@file2)
+      @file1.sysread(length).should == "Line 2: Two\n"
+    end
   end
 
   it "reassociates self with the I/O stream specified as an argument, after some writes" do

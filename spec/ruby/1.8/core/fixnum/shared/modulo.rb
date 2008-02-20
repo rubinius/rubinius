@@ -8,7 +8,7 @@ shared :fixnum_modulo do |cmd|
       4.send(cmd, 13.0).should == 4
   
       1.send(cmd, 2.0).should == 1.0
-      200.send(cmd, 0xffffffff).should == 200
+      200.send(cmd, bignum_value).should == 200
     end
 
     it "raises a ZeroDivisionError when the given argument is 0" do

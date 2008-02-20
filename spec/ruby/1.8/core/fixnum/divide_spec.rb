@@ -17,7 +17,7 @@ describe "Fixnum#/" do
 
   it "coerces fixnum and return self divided by other" do
     (-1 / 50.4).should be_close(-0.0198412698412698, TOLERANCE)
-    (1 / 0xffffffff).should == 0
+    (1 / bignum_value).should == 0
   end
 
   it "raises a TypeError when given a non-Integer" do

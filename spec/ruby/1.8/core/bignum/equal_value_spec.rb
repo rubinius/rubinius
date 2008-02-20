@@ -13,7 +13,7 @@ describe "Bignum#==" do
     (@bignum == 9).should == false
     (@bignum == 9.01).should == false
     
-    (@bignum == 0xffffffff).should == false
+    (@bignum == bignum_value(10)).should == false
   end
 
   it "calls 'other == self' if the given argument is not an Integer" do

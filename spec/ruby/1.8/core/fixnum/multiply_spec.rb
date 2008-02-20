@@ -6,7 +6,7 @@ describe "Fixnum#*" do
     (1342177 * 800).should == 1073741600
     (65536 * 65536).should == 4294967296
 
-    (256 * 0xffffffff).should == 1099511627520
+    (256 * bignum_value).should == 2361183241434822606848
     (6712 * 0.25).should == 1678.0
   end
 

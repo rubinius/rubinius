@@ -8,9 +8,9 @@ describe "Float#divmod" do
     values = 2.8284.divmod(3.1415)
     values[0].should == 0
     values[1].should be_close(2.8284, TOLERANCE)
-    values = -1.0.divmod(0xffffffff)
+    values = -1.0.divmod(bignum_value)
     values[0].should == -1
-    values[1].should be_close(4294967294.0, TOLERANCE)
+    values[1].should be_close(9223372036854775808.000, TOLERANCE)
   end
 
   it "raises FloatDomainError if other is zero" do

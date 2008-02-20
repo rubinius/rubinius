@@ -6,9 +6,9 @@ describe "Bignum#*" do
   end
   
   it "returns self multiplied by the given Integer" do
-    (@bignum * (1/0xffff_ffff.to_f)).should be_close(2147483648.5, TOLERANCE)
-    (@bignum * 10).to_s.should == "92233720368547765800"
-    (@bignum * (@bignum - 40)).to_s.should == "85070591730234629737795195287525433200"
+    (@bignum * (1/bignum_value(0xffff).to_f)).should be_close(0.999999999999992894572642398998, 3e-29)
+    (@bignum * 10).should == 92233720368547765800
+    (@bignum * (@bignum - 40)).should == 85070591730234629737795195287525433200
   end
 
   it "raises a TypeError when given a non-Integer" do

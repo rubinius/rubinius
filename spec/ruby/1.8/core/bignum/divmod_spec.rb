@@ -13,7 +13,7 @@ describe "Bignum#divmod" do
     @bignum.divmod(13.0).should == [709490156681136640, 8.0]
 
     @bignum.divmod(2.0).should == [4611686018427387904, 0.0]
-    @bignum.divmod(0xffffffff).should == [2147483648,  2147483703]
+    @bignum.divmod(bignum_value).should == [1, 55]
     (-(10**50)).divmod(-(10**40 + 1)).should == [9999999999, -9999999999999999999999999999990000000001]
     (10**50).divmod(10**40 + 1).should == [9999999999, 9999999999999999999999999999990000000001]
   end

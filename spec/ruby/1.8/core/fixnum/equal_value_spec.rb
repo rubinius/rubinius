@@ -9,7 +9,7 @@ describe "Fixnum#==" do
     (9 == 9.0).should == true
     (9 == 9.01).should == false
     
-    (10 == 0xffffffff).should == false
+    (10 == bignum_value).should == false
   end
   
   it "calls 'other == self' if the given argument is not a Fixnum" do

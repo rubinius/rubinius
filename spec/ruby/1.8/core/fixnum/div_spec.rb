@@ -21,7 +21,7 @@ describe "Fixnum#div" do
     1.div(0.16).should == 6
     1.div(0.169).should == 5
     -1.div(50.4).should == -1
-    1.div(0xffffffff).should == 0
+    1.div(bignum_value).should == 0
   end
   
   it "raises a FloatDomainError when the given argument is 0 and a Float" do

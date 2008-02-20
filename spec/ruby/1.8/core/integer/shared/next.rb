@@ -3,7 +3,7 @@ shared :integer_next do |cmd|
     it "returns the Integer equal to self + 1" do
       0.send(cmd).should == 1 
       -1.send(cmd).should == 0
-      0xffffffff.send(cmd).should == 4294967296 
+      bignum_value.send(cmd).should == 9223372036854775809 
       20.send(cmd).should == 21
     end
   end

@@ -9,7 +9,7 @@ describe "Fixnum#<=" do
     (5 <= 5).should == true
     (-2 <= -2).should == true
     
-    (900 <= 0xffffffff).should == true
+    (900 <= bignum_value).should == true
     (5 <= 4.999).should == false
   end
 

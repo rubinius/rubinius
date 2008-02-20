@@ -6,7 +6,7 @@ describe "Fixnum#-" do
     (9237212 - 5_280).should == 9231932
     
     (781 - 0.5).should == 780.5
-    (2_560_496 - 0xfffffffff).should == -68716916239
+    (2_560_496 - bignum_value).should == -9223372036852215312
   end
   
   it "raises a TypeError when given a non-Integer" do
