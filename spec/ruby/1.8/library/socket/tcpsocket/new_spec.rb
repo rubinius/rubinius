@@ -30,11 +30,11 @@ describe "TCPSocket.new" do
     Thread.pass until thread.status == 'sleep'
     sock = TCPSocket.new('127.0.0.1', SocketSpecs.port)    
     sock.addr[0].should == "AF_INET"
+    sock.addr[1].should be_kind_of Fixnum
     # on some platforms (Mac), MRI
     # returns comma at the end.
     sock.addr[2].should =~ /^localhost,?$/
     sock.addr[3].should == "127.0.0.1"
-    sock.addr.be_kind_of Fixnum
     thread.join
   end
 end
