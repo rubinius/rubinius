@@ -1,0 +1,2 @@
+fails:IO.read treats second nil argument as no length limit
+fails:IO.read treats third nil argument as 0

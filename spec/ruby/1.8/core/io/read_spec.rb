@@ -15,7 +15,17 @@ describe "IO.read" do
   it "reads the contents of a file" do
     IO.read(@fname).should == @contents
   end
-  
+
+  it "treats second nil argument as no length limit" do
+    IO.read(@fname, nil).should == @contents
+    IO.read(@fname, nil, 5).should == IO.read(@fname, @contents.length, 5)
+  end
+
+  it "treats third nil argument as 0" do
+    IO.read(@fname, nil, nil).should == @contents
+    IO.read(@fname, 5, nil).should == IO.read(@fname, 5, 0)
+  end
+
   it "reads the contents of a file up to a certain size when specified" do
     IO.read(@fname, 5).should == @contents.slice(0..4)
   end
