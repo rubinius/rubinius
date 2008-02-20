@@ -36,10 +36,8 @@
 class Binding
   def self.setup(ctx)
     bind = allocate()
-    if ctx.kind_of? BlockContext
-      while ctx.env.from_eval?
-        ctx = ctx.env.home_block
-      end
+    while ctx.kind_of? BlockContext and ctx.env.from_eval?
+      ctx = ctx.env.home_block
     end
     
     bind.context = ctx
