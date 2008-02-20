@@ -4,31 +4,21 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Module#attr_accessor" do
   it "creates a getter and setter for each given attribute name" do
     c = Class.new do
-      attr_accessor :a, "c"
+      attr_accessor :a, "b"
     end
     
     o = c.new
     
-    ['a','c'].each do |x|
+    ['a','b'].each do |x|
       o.respond_to?(x).should == true
       o.respond_to?("#{x}=").should == true
     end
     
-    compliant_on :ruby do
-      o.respond_to?('b').should == true
-      o.respond_to?("b=").should == true
-    end
-
     o.a = "a"
     o.a.should == "a"
 
-    compliant_on :ruby do
-      o.b = "b"
-      o.b.should == "b"
-    end
-
-    o.c = "c"
-    o.c.should == "c"
+    o.b = "b"
+    o.b.should == "b"
   end
   
   it "converts non string/symbol/fixnum names to strings using to_str" do

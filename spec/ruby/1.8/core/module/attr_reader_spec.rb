@@ -4,33 +4,22 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Module#attr_reader" do
   it "creates a getter for each given attribute name" do
     c = Class.new do
-      attr_reader :a, "c"
+      attr_reader :a, "b"
       
       def initialize
         @a = "test"
         @b = "test2"
-        @c = "test3"
       end
     end
     
     o = c.new
-    %w{a c}.each do |x|
+    %w{a b}.each do |x|
       o.respond_to?(x).should == true
       o.respond_to?("#{x}=").should == false
     end
 
-    compliant_on :ruby do
-      o.respond_to?('b').should == true
-      o.respond_to?("b=").should == false
-    end
-
     o.a.should == "test"
-
-    compliant_on :ruby do
-      o.b.should == "test2"
-    end
-
-    o.c.should == "test3"
+    o.b.should == "test2"
   end
 
   it "converts non string/symbol/fixnum names to strings using to_str" do
