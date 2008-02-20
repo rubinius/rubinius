@@ -16,7 +16,7 @@ shared :pack_sockaddr_un do |cmd|
     describe "Socket##{cmd}" do
       it "packs and unpacks" do
         sockaddr_un = Socket.pack_sockaddr_un '/tmp/s'
-        Socket.pack_sockaddr_un(sockaddr_un).should == '/tmp/s'
+        Socket.unpack_sockaddr_un(sockaddr_un).should == '/tmp/s'
       end
     end
   end
