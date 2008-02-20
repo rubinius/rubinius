@@ -18,7 +18,7 @@ void send_site_init(STATE) {
   state_setup_type(state, SendSiteType, &info);
 }
 
-OBJECT send_site_create(STATE, OBJECT name, send_site_lookup func) {
+OBJECT send_site_create(STATE, OBJECT name) {
   OBJECT ss_obj;
   struct send_site *ss;
 
@@ -27,7 +27,6 @@ OBJECT send_site_create(STATE, OBJECT name, send_site_lookup func) {
   SET_STRUCT_FIELD(ss_obj, ss->selector, selector_lookup(state, name));
   ss->data1 = ss->data2 = ss->data3 = Qnil;
   ss->hits = ss->misses = 0;
-  ss->lookup = func;
 
   cpu_initialize_sendsite(state, ss);
 

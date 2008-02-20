@@ -25,6 +25,6 @@ struct send_site {
 #define SEND_SITE_OBJECT_FIELDS 5
 
 void send_site_init(STATE);
-OBJECT send_site_create(STATE, OBJECT name, send_site_lookup func);
+OBJECT send_site_create(STATE, OBJECT name);
 
 #endif

@@ -143,7 +143,7 @@ static OBJECT unmarshal_sendsite(STATE, struct marshal_state *ms) {
   sym = symtbl_lookup_str_with_size(state, state->global->symbols,
                                      (char *) ms->buf + 5, sz);
   
-  return send_site_create(state, sym, NULL);
+  return send_site_create(state, sym);
 }
 
 static void marshal_fields_as(STATE, OBJECT obj, bstring buf, char type, struct marshal_state *ms) {
