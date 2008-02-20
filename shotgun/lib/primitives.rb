@@ -3899,6 +3899,44 @@ class ShotgunPrimitives
     }
     CODE
   end
+
+  def sendsite_create
+    <<-CODE
+    OBJECT t1;
+    GUARD(SENDSITE_P(msg->recv));
+    POP(t1, SYMBOL);
+    RET(send_site_create(state, t1));
+    CODE
+  end
+
+  def sendsite_at
+    <<-CODE
+    OBJECT t1;
+    GUARD(SENDSITE_P(msg->recv));
+    POP(t1, FIXNUM);
+
+    switch(N2I(t1)) {
+    case 0:
+      RET(SENDSITE(msg->recv)->name);
+    case 1:
+      RET(SENDSITE(msg->recv)->selector);
+    case 2:
+      RET(SENDSITE(msg->recv)->data1);
+    case 3:
+      RET(SENDSITE(msg->recv)->data2);
+    case 4:
+      RET(SENDSITE(msg->recv)->data3);
+    case 5:
+      RET(ffi_new_pointer(state, SENDSITE(msg->recv)->c_data));
+    case 6:
+      RET(I2N(SENDSITE(msg->recv)->hits));
+    case 7:
+      RET(I2N(SENDSITE(msg->recv)->misses));
+    default:
+      RET(Qnil);
+    }
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new
