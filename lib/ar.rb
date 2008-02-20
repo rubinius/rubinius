@@ -90,7 +90,7 @@ class Ar
   def replace(name, mtime, uid, gid, mode, data)
     delete name if list.include? name
 
-    open @path, 'a' do |io|
+    open @path, 'ab' do |io|
       write_file io, name, mtime.to_i, uid, gid, mode, data
     end
 
@@ -113,11 +113,11 @@ class Ar
   def write_file(io, name, mtime, uid, gid, mode, data) # :nodoc:
     unless name.length > 16 then
       padding = nil
-      io.write name               .ljust(16)
+      io.write name.ljust(16)
     else
       padding = 4 - name.length % 4
       padding = 0 if padding > 3
-      io.write "#1/#{name.length + padding}" .ljust(16)
+      io.write "#1/#{name.length + padding}".ljust(16)
     end
 
     io.write mtime      .to_i.to_s.ljust(12)
