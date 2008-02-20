@@ -10,6 +10,7 @@ COMMIT
 CI-specs
 TAGS
 tags
+!spec/tags
 cscope.files
 cscope.out
 autom4te.cache
