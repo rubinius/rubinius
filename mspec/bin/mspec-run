@@ -32,4 +32,4 @@ MSpec.register_files files
 opts.config.register
 
 MSpec.process
-exit MSpec.retrieve(:exit)
+exit MSpec.retrieve(:exit).to_i
