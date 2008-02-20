@@ -3912,6 +3912,7 @@ class ShotgunPrimitives
   def sendsite_at
     <<-CODE
     OBJECT t1;
+
     GUARD(SENDSITE_P(msg->recv));
     POP(t1, FIXNUM);
 

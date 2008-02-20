@@ -1,33 +1,8 @@
 class SendSite
 
-  attach_function "send_site_at", :at, [:state, :object, :int], :object
   attach_function 'send_site_create', :create, [:state, :object], :object
 
   def self.new(name)
     SendSite.create name
-  end
-
-  def name
-    SendSite.at self, 0
-  end
-
-  def selector
-    SendSite.at self, 1
-  end
-
-  def hits
-    SendSite.at self, 6
-  end
-
-  def misses
-    SendSite.at self, 7
-  end
-
-  def data(which)
-    SendSite.at self, 2 + which
-  end
-
-  def inspect
-    "#<SendSite:0x#{object_id.to_s(16)} name=#{name} hits=#{hits} misses=#{misses}>"
   end
 end
