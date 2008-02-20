@@ -155,7 +155,7 @@ struct rubinius_state {
   struct termios *termios;
 
   /* Used to store the value of c->ip_ptr while cpu_run isn't running */
-  void *external_ip;
+  IP_TYPE* external_ip;
 
   struct type_info type_info[LastObjectType];
 
