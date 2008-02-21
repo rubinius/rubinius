@@ -126,6 +126,10 @@ module MSpec
   def self.report_mode?
     @mode == :report
   end
+  
+  def self.pretend_mode?
+    @mode == :pretend
+  end
 
   def self.tags_path
     retrieve(:tags_path) || ".tags"

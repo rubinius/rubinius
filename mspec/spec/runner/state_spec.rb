@@ -161,6 +161,81 @@ describe RunState, "#process" do
   end
 end
 
+describe RunState, "#process in pretend mode" do  
+  before :all do
+    MSpec.register_mode :pretend
+  end
+  
+  after :all do
+    MSpec.register_mode nil
+  end
+  
+  before :each do
+    MSpec.store :before, []
+    MSpec.store :after, []
+    
+    @state = RunState.new
+    @state.describe("") { }
+
+    @a = lambda { @record << :a }
+    @b = lambda { @record << :b }
+    @record = []
+  end
+  
+  it "does not call any before(:all) block" do
+    @state.before(:all, &@a)
+    @state.before(:all, &@b)
+    @state.it("") { }
+    @state.process
+    @record.should == []
+  end
+  
+  it "does not call any after(:all) block" do
+    @state.after(:all, &@a)
+    @state.after(:all, &@b)
+    @state.it("") { }
+    @state.process
+    @record.should == []
+  end
+  
+  it "does not call any it block" do
+    @state.it("one", &@a)
+    @state.it("two", &@b)
+    @state.process
+    @record.should == []
+  end
+  
+  it "does not call any before(:each) block" do
+    @state.before(:each, &@a)
+    @state.before(:each, &@b)
+    @state.it("") { }
+    @state.process
+    @record.should == []
+  end
+  
+  it "does not call any after(:each) block" do
+    @state.after(:each, &@a)
+    @state.after(:each, &@b)
+    @state.it("") { }
+    @state.process
+    @record.should == []
+  end
+  
+  it "does not call Mock.cleanup" do
+    @state.it("") { }
+    @state.it("") { }
+    Mock.should_not_receive(:cleanup)
+    @state.process
+  end
+  
+  it "calls the describe block" do
+    record = []
+    @state.describe(Object, "msg") { record << :a }
+    @state.process
+    record.should == [:a]
+  end
+end
+
 describe RunState, "#process" do
   before :each do
     MSpec.store :before, []
@@ -201,7 +276,95 @@ describe RunState, "#process" do
   end
 end
 
+describe RunState, "#process in pretend mode" do
+  before :all do
+    MSpec.register_mode :pretend
+  end
+  
+  after :all do
+    MSpec.register_mode nil
+  end
+  
+  before :each do
+    MSpec.store :before, []
+    MSpec.store :after, []
+    
+    @state = RunState.new
+    @state.describe("") { }
+    @state.it("") { }
+  end
+  
+  after :each do
+    MSpec.store :before, nil
+    MSpec.store :after, nil
+  end
+
+  it "calls registered before actions with the current SpecState instance" do
+    before = mock("before")
+    before.should_receive(:before).and_return { 
+      @record = :before
+      @spec_state = @state.state
+    }
+    MSpec.register :before, before
+    @state.process
+    @record.should == :before
+    @spec_state.should be_kind_of(SpecState)
+  end
+
+  it "calls registered after actions with the current SpecState instance" do
+    after = mock("after")
+    after.should_receive(:after).and_return {
+      @record = :after
+      @spec_state = @state.state
+    }
+    MSpec.register :after, after
+    @state.process
+    @record.should == :after
+    @spec_state.should be_kind_of(SpecState)
+  end
+end
+
 describe RunState, "#process" do
+  before :each do
+    MSpec.store :enter, []
+    MSpec.store :leave, []
+    
+    @state = RunState.new
+    @state.describe("") { }
+    @state.it("") { }
+  end
+  
+  after :each do
+    MSpec.store :enter, nil
+    MSpec.store :leave, nil
+  end
+  
+  it "calls registered enter actions with the current #describe string" do
+    enter = mock("enter")
+    enter.should_receive(:enter).and_return { @record = :enter }
+    MSpec.register :enter, enter
+    @state.process
+    @record.should == :enter
+  end
+  
+  it "calls registered leave actions" do
+    leave = mock("leave")
+    leave.should_receive(:leave).and_return { @record = :leave }
+    MSpec.register :leave, leave
+    @state.process
+    @record.should == :leave
+  end
+end
+
+describe RunState, "#process in pretend mode" do
+  before :all do
+    MSpec.register_mode :pretend
+  end
+  
+  after :all do
+    MSpec.register_mode nil
+  end
+  
   before :each do
     MSpec.store :enter, []
     MSpec.store :leave, []

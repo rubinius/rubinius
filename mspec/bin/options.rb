@@ -160,7 +160,14 @@ class SpecOptions
       @config.xtags << o
     end
   end
-  
+
+  def add_pretend
+    @options.on("-Z", "--dry-run",
+                "Invoke formatters and other actions, but don't execute the specs") do
+      MSpec.register_mode :pretend
+    end
+  end
+
   def add_verbose
     @options.on("-V", "--verbose", "Output the name of each file processed") do
       obj = Object.new

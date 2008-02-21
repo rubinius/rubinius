@@ -41,12 +41,13 @@ class RunState
     @block = block
   end
   
-  def protect(what, blocks)
+  def protect(what, blocks, check=true)
+    return if check and MSpec.pretend_mode?
     Array(blocks).each { |block| MSpec.protect what, &block }
   end
   
   def process
-    protect @describe, @block
+    protect @describe, @block, false
     return unless @spec.any? { |desc, spec, state| state.unfiltered? }
     
     MSpec.actions :enter, @describe
