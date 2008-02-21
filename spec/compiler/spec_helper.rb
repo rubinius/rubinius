@@ -121,7 +121,7 @@ class TestGenerator
     pop
   end
   
-  def passed_block(local=0)
+  def passed_block(local=0, in_block=false)
     g = self
     ok = g.new_label
     g.exceptions do |ex|
@@ -150,9 +150,11 @@ class TestGenerator
       g.send :is_return, 0
       
       g.gif leave
-     
-      g.send :value, 0
-      g.ret
+    
+      unless in_block
+        g.send :value, 0
+        g.sret
+      end
 
       after.set!
 

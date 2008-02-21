@@ -878,6 +878,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     /* Implements a block causing the the context it was created in
        to return (IE, a non local return) */
     if(consider_block && is_block) {
+      sassert(0);
       home = blokctx_home(state, c->active_context);
       destination = FASTCTX(home)->sender;
       if(EXCESSIVE_TRACING) {

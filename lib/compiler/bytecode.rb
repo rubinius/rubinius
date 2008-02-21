@@ -1484,7 +1484,13 @@ class Node
           g.gif after
           g.send :return_value, 0
           g.clear_exception
-          g.ret
+          
+          # Emit the special code for doing a return in a block.
+          if @in_block
+            Return.emit_lre(g, @check_var)
+          else
+            g.sret
+          end
 
           after.set!
         end
@@ -1523,17 +1529,21 @@ class Node
       end
 
       if @in_block
-        # Set the return value from @value above.
-        g.push_local @check_var.slot
-        g.send :return_value=, 1
-        g.pop
-
-        # Now raise it.
-        g.push_local @check_var.slot
-        g.raise_exc
+        Return.emit_lre(g, @check_var)
       else
         g.sret
       end
+    end
+
+    def self.emit_lre(g, var)
+      # Set the return value from @value above.
+      g.push_local var.slot
+      g.send :return_value=, 1
+      g.pop
+
+      # Now raise it.
+      g.push_local var.slot
+      g.raise_exc
     end
   end
 
@@ -1886,8 +1896,11 @@ class Node
         g.send :is_return, 0
         g.gif leave
 
-        g.send :value, 0
-        g.ret
+        # If this is occuring already in a block, keep it raising.
+        unless @in_block
+          g.send :value, 0
+          g.sret
+        end
 
         after.set!
 

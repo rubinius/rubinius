@@ -1412,6 +1412,10 @@ class Node
       @did_return = ret
       @outer_ensure = outer
 
+      if @in_block = get(:iter)
+        @check_var, _ = get(:scope).find_local :@lre
+      end
+
       # Handle a 'bug' in parsetree
       if @ensure == [:nil]
         @ensure = nil
@@ -1480,7 +1484,9 @@ class Node
 
     def consume(sexp)
       name, body = sexp
-      scope = super([body])
+      scope = set(:iter => false, :in_ensure => false) do
+        super([body])
+      end
 
       body = scope.block.body
       args = body.shift
@@ -1557,6 +1563,8 @@ class Node
 
     # Args could be an array, splat or argscat
     def collapse_args
+      @in_block = get(:iter)
+      
       return unless @arguments
 
       if @arguments.is? ArrayLiteral
@@ -1572,6 +1580,9 @@ class Node
 
       collapse_args()
     end
+    
+    attr_accessor :object, :method, :arguments, :argcount
+    attr_reader :in_block
 
     def no_args?
       @arguments.nil? or @arguments.empty?
@@ -1580,8 +1591,6 @@ class Node
     def static_args?
       @arguments.nil? or @arguments.kind_of? Array
     end
-
-    attr_accessor :object, :method, :arguments, :argcount
 
     def fcall?
       false
@@ -1667,6 +1676,8 @@ class Node
     def args(meth)
       @method = meth
       @arguments = nil
+
+      collapse_args()
     end
 
     attr_accessor :method

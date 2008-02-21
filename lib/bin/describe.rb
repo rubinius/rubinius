@@ -39,5 +39,16 @@ pp File.to_sexp(file)
 
 puts "\nBytecode:"
 
-puts Compiler.compile_file(file).decode
+top = Compiler.compile_file(file)
+
+puts top.decode
+
+extra = top.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+
+until extra.empty?
+  cm = extra.shift
+  puts "= #{cm.name} (0x#{cm.object_id.to_s(16)}) ======================"
+  puts cm.decode
+  extra += cm.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+end
 

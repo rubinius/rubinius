@@ -127,7 +127,7 @@ describe Compiler do
         d.push_literal i2
         d.create_block2
         d.push :self
-        d.passed_block do
+        d.passed_block(0, true) do
           d.send_with_block :go, 0, true
         end
         d.pop_modifiers
