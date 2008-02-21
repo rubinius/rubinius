@@ -32,7 +32,7 @@ describe "Socket#getaddrinfo" do
 
     addrinfo = Socket.getaddrinfo 'localhost', 'http'
 
-    addrinfo.should include(*expected)
+    addrinfo.each { |a| expected.should include(a) }
   end
 
 end
