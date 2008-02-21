@@ -2686,7 +2686,7 @@ perform_no_ss_send:
   end
 
   # [Operation]
-  #   Return from a method or block
+  #   Return from a method or block (deprecated)
   # [Format]
   #   \ret
   # [Stack Before]
@@ -2697,11 +2697,16 @@ perform_no_ss_send:
   # [Description]
   #   Pops the top value from the stack, and uses it as the return value from
   #   a method or block.
+  # [Notes]
+  #   This opcode has been deprecated, and is replaced by code that uses
+  #   LongReturnException to break out of a block whenever a block requests that
+  #   it's home context should return.
   # [See Also]
   #   * sret
 
   def ret
     <<-CODE
+    sassert(0 && "ret is deprecated");
     t1 = stack_pop();
     cpu_simple_return(state, c, t1);
     CODE
