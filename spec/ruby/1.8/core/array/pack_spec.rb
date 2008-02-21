@@ -351,28 +351,37 @@ describe "Array#pack" do
 
   it "encodes a positive integer with ('i')" do
     [0].pack('i').should == "\000\000\000\000"
-    compliant_on :ruby, :rubinius do
-      # little-endian
-      [1].pack('i').should == "\001\000\000\000"
-    end
-    compliant_on :jruby do
-      # JRuby is always big-endian
-      [1].pack('i').should == "\000\000\000\001"
-    end
     [2**32-1].pack('i').should == "\377\377\377\377"
   end
 
+  little_endian do
+    it "encodes a positive integer in little-endian order with ('i')" do
+      [1].pack('i').should == "\001\000\000\000"
+    end
+  end
+  
+  big_endian do
+    it "encodes a positive integer in big-endian order with ('i')" do
+      [1].pack('i').should == "\000\000\000\001"
+    end
+  end
+  
   it "raises a RangeError when the positive integer is too big with ('i')" do
     lambda { [2**32].pack('i') }.should raise_error(RangeError)
   end
 
   it "encodes a negative integer with ('i')" do
     [-1].pack('i').should == "\377\377\377\377"
-    compliant_on :ruby, :rubinius do
+  end
+
+  little_endian do
+    it "encodes a negative integer in little-endian order with ('i')" do
       [-2].pack('i').should == "\376\377\377\377"
     end
-    compliant_on :jruby do
-      # JRuby is always big-endian
+  end
+
+  big_endian do
+    it "encodes a negative integer in big-endian order with ('i')" do
       [-2].pack('i').should == "\377\377\377\376"
     end
   end
@@ -382,35 +391,45 @@ describe "Array#pack" do
   end
  
   it "encodes a positive integer with ('l')" do
-     [0].pack('l').should == "\000\000\000\000"
-     compliant_on :ruby, :rubinius do
-       [1].pack('l').should == "\001\000\000\000"
-     end
-     compliant_on :jruby do
-       # JRuby is always big-endian
-       [1].pack('l').should == "\000\000\000\001"
-     end
-     [2**32-1].pack('l').should == "\377\377\377\377"
-   end
+    [0].pack('l').should == "\000\000\000\000"
+    [2**32-1].pack('l').should == "\377\377\377\377"
+  end
 
-   it "raises a RangeError when the positive integer is too big with ('l')" do
-     lambda { [2**32].pack('l') }.should raise_error(RangeError)
-   end
-
-   it "encodes a negative integer with ('l')" do
-     [-1].pack('l').should == "\377\377\377\377"
-     compliant_on :ruby, :rubinius do
-       [-2].pack('l').should == "\376\377\377\377"
-     end
-     compliant_on :jruby do
-       # JRuby is always big-endian
-       [-2].pack('l').should == "\377\377\377\376"
+  little_endian do
+    it "encodes a positive integer in little-endian order with ('l')" do
+      [1].pack('l').should == "\001\000\000\000"
     end
-   end
+  end
 
-   it "raises a RangeError when the negative integer is too big with ('l')" do
-     lambda { [-2**32].pack('l') }.should raise_error(RangeError)
-   end 
+  big_endian do
+    it "encodes a positive integer in big-endian order with ('l')" do
+      [1].pack('l').should == "\000\000\000\001"
+    end
+  end
+
+  it "raises a RangeError when the positive integer is too big with ('l')" do
+    lambda { [2**32].pack('l') }.should raise_error(RangeError)
+  end
+
+  it "encodes a negative integer with ('l')" do
+    [-1].pack('l').should == "\377\377\377\377"
+  end
+
+  little_endian do
+    it "encodes a negative integer in little-endian order with ('l')" do
+      [-2].pack('l').should == "\376\377\377\377"
+    end
+  end
+
+  big_endian do
+    it "encodes a negative integer in big-endian order with ('l')" do
+      [-2].pack('l').should == "\377\377\377\376"
+    end
+  end
+
+  it "raises a RangeError when the negative integer is too big with ('l')" do
+    lambda { [-2**32].pack('l') }.should raise_error(RangeError)
+  end 
   
   it "enocdes string with Qouted Printable encoding with ('M')" do
     ["ABCDEF"].pack('M').should == "ABCDEF=\n"
@@ -541,14 +560,19 @@ describe "Array#pack" do
 
   it "encodes a positive integer with ('s')" do
     [0].pack('s').should == "\000\000"
-    compliant_on :ruby, :rubinius do
+    [2**32-1].pack('s').should == "\377\377"
+  end
+
+  little_endian do
+    it "encodes a positive integer in little-endian order with ('s')" do
       [1].pack('s').should == "\001\000"
     end
-    compliant_on :jruby do
-      # JRuby is always big-endian
+  end
+
+  big_endian do
+    it "encodes a positive integer in big-endian order with ('s')" do
       [1].pack('s').should == "\000\001"
     end
-    [2**32-1].pack('s').should == "\377\377"
   end
 
   it "raises a RangeError when the positive integer is too big with ('s')" do
@@ -557,11 +581,16 @@ describe "Array#pack" do
 
   it "encodes a negative integer with ('s')" do
     [-1].pack('s').should == "\377\377"
-    compliant_on :ruby, :rubinius do
+  end
+
+  little_endian do
+    it "encodes a negative integer in little-endian order with ('s')" do
       [-2].pack('s').should == "\376\377"
     end
-    compliant_on :jruby do
-      # JRuby is always big-endian
+  end
+
+  big_endian do
+    it "encodes a negative integer in big-endian order with ('s')" do
       [-2].pack('s').should == "\377\376"
     end
   end
@@ -569,8 +598,6 @@ describe "Array#pack" do
   it "raises a RangeError when the negative integer is too big with ('s')" do
     lambda { [-2**32].pack('s') }.should raise_error(RangeError)
   end
-
-
 
   it "converts integers into UTF-8 encoded byte sequences with ('U')" do
     compliant_on :ruby, :jruby do

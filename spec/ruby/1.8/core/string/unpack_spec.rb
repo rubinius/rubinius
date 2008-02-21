@@ -7,14 +7,20 @@ describe "String#unpack" do
     "abc \0\0".unpack('a3a3').should == ["abc", " \000\000"]
     "aa".unpack('b8B8').should == ["10000110", "01100001"]
     "aaa".unpack('h2H2c').should == ["16", "61", 97]
-    compliant_on :ruby do
-      # Note: The result depends on the platform the test
-      # is being executed (not good).
-      # Also, For JRuby, the byte order is always big-endian.
-      "\xfe\xff\xfe\xff".unpack('sS').should == [-2, 65534]
-    end
     "now=20is".unpack('M*').should == ["now is"]
     "whole".unpack('xax2aX2aX1aX2a').should == ["h", "e", "l", "l", "o"]
+  end
+
+  little_endian do
+    it "returns an array by decoding self in little-endian order according to the format string" do
+      "\xfe\xff\xfe\xff".unpack('sS').should == [-2, 65534]
+    end
+  end
+  
+  big_endian do
+    it "returns an array by decoding self in big-endian order according to the format string" do
+      "\xfe\xff\xfe\xff".unpack('sS').should == [-257, 65279]
+    end
   end
 end
 
@@ -142,62 +148,80 @@ describe "String#unpack with 'a', 'X' and 'x' directives" do
 end
 
 describe "String#unpack with 'DdEeFfGg' directives" do
+  before :each do
+    @precision_small = 1E-12
+    @precision_large = 1E+17
+  end
+  
   it "returns an array by decoding self according to the format string" do
-    precision_small = 1E-12
-    precision_large = 1E+17
+    res = "\xF3\x02\x00\x42\xF3\x02\x00\x42".unpack('eg')
+    res.length.should == 2
+    res[0].should be_close(32.0028800964355, @precision_small)
+    res[1].should be_close(-1.02997409159585e+31, @precision_large)
 
     res = "\xF3\x02\x00\x42\xF3\x02\x00\x42".unpack('eg')
     res.length.should == 2
-    res[0].should be_close(32.0028800964355, precision_small)
-    res[1].should be_close(-1.02997409159585e+31, precision_large)
-
-    res = "\xF3\x02\x00\x42\xF3\x02\x00\x42".unpack('eg')
-    res.length.should == 2
-    res[0].should be_close(32.0028800964355, precision_small)
-    res[1].should be_close(-1.02997409159585e+31, precision_large)
+    res[0].should be_close(32.0028800964355, @precision_small)
+    res[1].should be_close(-1.02997409159585e+31, @precision_large)
 
     "\xF3\x02".unpack('GD').should == [nil, nil]
 
-    # 'F2' pattern
-    res = "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('F2')
-    compliant_on :jruby do
-      # In JRuby, the "native" byte order is always big-endian.
-      res = "\xFF\xFF\xFF\xF3\x00\x02\x0B\x32".unpack('F2')
-    end
-    res.length.should == 2
-    res[0].nan?.should == true
-    res[1].should be_close(1.87687113714737e-40, precision_small)
-
-    # 'f*' pattern
-    res = "\xF3\x02\xC0\x42\x3A\x87\xF3\x00".unpack('f*')
-    compliant_on :jruby do
-      res = "\x42\xC0\x02\xF3\x00\xF3\x87\x3A".unpack('f*')
-    end
-    res.length.should == 2
-    res[0].should be_close(96.0057601928711, precision_small)
-    res[1].should be_close(2.23645357166299e-38, precision_small)
-
-    "\xFF\x80\x00\x00".unpack('g').to_s.should == "-Infinity"
-    "\x01\x62\xEE\x42".unpack('e-7e')[0].should  be_close(
-        119.191413879395, precision_small)
-    "\x00\x00\x00\x00".unpack('f5').should == [0.0, nil, nil, nil, nil]
-    "\xF3".unpack('E').should == [nil]
-
-    # 'd3' pattern
-    res = "\xF3\xFF\xFF\xFF\x32\x87\xF3\x00".unpack('d3')
-    compliant_on :jruby do
-      # In JRuby, the "native" byte order is always big-endian.
-      res = "\x00\xF3\x87\x32\xFF\xFF\xFF\xF3".unpack('d3')
-    end
-    res.length.should == 3
-    res[0].should be_close(4.44943499804409e-304, precision_small)
-    res[1].should == nil
-    res[2].should == nil
-
     "\xF3\x02\x00\x42\x32\x87\xF3\x00".unpack('E*')[0].should be_close(
-        4.44943241769783e-304, precision_small)
+        4.44943241769783e-304, @precision_small)
     "\x00\x00\x00\x42\x32\x87\xF3\x02".unpack('g0G*')[0].should be_close(
-        1.40470576419087e-312, precision_small)
+        1.40470576419087e-312, @precision_small)
+  end
+  
+  little_endian do
+    it "returns an array by decoding self in big-endian order according to the format string" do
+      # 'F2' pattern
+      res = "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('F2')
+      res.length.should == 2
+      res[0].nan?.should == true
+      res[1].should be_close(1.87687113714737e-40, @precision_small)
+
+      # 'f*' pattern
+      res = "\xF3\x02\xC0\x42\x3A\x87\xF3\x00".unpack('f*')
+      res.length.should == 2
+      res[0].should be_close(96.0057601928711, @precision_small)
+      res[1].should be_close(2.23645357166299e-38, @precision_small)
+
+      "\xFF\x80\x00\x00".unpack('g').to_s.should == "-Infinity"
+      "\x01\x62\xEE\x42".unpack('e-7e')[0].should  be_close(
+          119.191413879395, @precision_small)
+      "\x00\x00\x00\x00".unpack('f5').should == [0.0, nil, nil, nil, nil]
+      "\xF3".unpack('E').should == [nil]
+
+      # 'd3' pattern
+      res = "\xF3\xFF\xFF\xFF\x32\x87\xF3\x00".unpack('d3')
+      res.length.should == 3
+      res[0].should be_close(4.44943499804409e-304, @precision_small)
+      res[1].should == nil
+      res[2].should == nil
+    end
+  end
+  
+  big_endian do
+    it "returns an array by decoding self in big-endian order according to the format string" do
+      # 'F2' pattern
+      res = "\xFF\xFF\xFF\xF3\x00\x02\x0B\x32".unpack('F2')
+      res.length.should == 2
+      res[0].nan?.should == true
+      res[1].should be_close(1.87687113714737e-40, precision_small)
+
+      # 'f*' pattern
+      res = "\x42\xC0\x02\xF3\x00\xF3\x87\x3A".unpack('f*')
+      res.length.should == 2
+      res[0].should be_close(96.0057601928711, precision_small)
+      res[1].should be_close(2.23645357166299e-38, precision_small)
+
+      # 'd3' pattern
+      res = "\x00\xF3\x87\x32\xFF\xFF\xFF\xF3".unpack('d3')
+      res.length.should == 3
+      res[0].should be_close(4.44943499804409e-304, precision_small)
+      res[1].should == nil
+      res[2].should == nil
+    end
   end
 end
 
