@@ -229,7 +229,8 @@ module Bytecode
       :bignum_le,
       :hash_redistribute,
       :sendsite_create,
-      :sendsite_at
+      :sendsite_at,
+      :selector_clear
     ]
   end
 end

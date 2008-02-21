@@ -3941,6 +3941,16 @@ class ShotgunPrimitives
     }
     CODE
   end
+
+  def selector_clear
+    <<-CODE
+    GUARD(SELECTOR_P(msg->recv));
+
+    selector_clear(state, msg->recv);
+
+    RET(Qnil);
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

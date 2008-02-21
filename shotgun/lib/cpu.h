@@ -283,6 +283,7 @@ OBJECT cpu_sampler_disable(STATE);
 #define cpu_stack_set_top(state, c, oop) (*(c)->sp_ptr = oop)
 
 #include "shotgun/lib/sendsite.h"
+#include "shotgun/lib/selector.h"
 
 void cpu_initialize_sendsite(STATE, struct send_site *ss);
 typedef int (*prim_func)(STATE, cpu c, const struct message *msg);
