@@ -20,6 +20,7 @@
 #include "shotgun/lib/hash.h"
 #include "shotgun/lib/machine.h"
 #include "shotgun/lib/array.h"
+#include "shotgun/lib/ar.h"
 #include "shotgun/lib/archive.h"
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/config_hash.h"
@@ -761,13 +762,57 @@ int machine_load_directory(machine m, const char *prefix) {
   return TRUE;
 }
 
-OBJECT machine_load_archive(machine m, const char *path) {
+OBJECT machine_load_object(machine m, char *name, uint8_t *data, long length) {
+  OBJECT cm;
+
+  if(m->s->excessive_tracing) {
+    printf("[ Loading archived file %s]\n", name);
+  }
+
+  cm = cpu_unmarshal(m->s, data, length, 0);
+
+  if(!RTEST(cm)) {
+    return Qfalse;
+  }
+
+  /* We push this on the stack so it's properly seen by the GCs */
+  cpu_stack_push(m->s, m->c, cm, FALSE);
+  cpu_run_script(m->s, m->c, cm);
+  if(!machine_run(m)) {
+    printf("Unable to run '%s'\n", name);
+    return Qfalse;
+  }
+
+  /* Pop the return value and script object. */
+  (void)cpu_stack_pop(m->s, m->c);
+  (void)cpu_stack_pop(m->s, m->c);
+
+  return Qtrue;
+}
+
+OBJECT machine_load_ar(machine m, const char *path) {
+  OBJECT ret = Qfalse;
+
+  if(m->s->excessive_tracing) {
+    printf("[ Loading ar rba %s]\n", path);
+  }
+
+  ret = rubinius_ar_each_file(m, path, machine_load_object);
+
+  if(m->s->excessive_tracing) {
+    printf("[ Finished loading ar rba %s]\n", path);
+  }
+
+  return ret;
+}
+
+OBJECT machine_load_zip(machine m, const char *path) {
   OBJECT order, cm, ret = Qfalse;
   archive_handle archive;
   char *files, *nxt, *top;
   
   if(m->s->excessive_tracing) {
-    printf("[ Loading archive %s]\n", path);
+    printf("[ Loading zip rba %s]\n", path);
   }
 
   archive = archive_open(m->s, path);
@@ -817,9 +862,22 @@ OBJECT machine_load_archive(machine m, const char *path) {
 out:
   archive_close(m->s, archive);
   if(m->s->excessive_tracing) {
-    printf("[ Finished loading archive %s]\n", path);
+    printf("[ Finished loading zip rba %s]\n", path);
   }
   
+  return ret;
+}
+
+OBJECT machine_load_rba(machine m, const char *path) {
+  OBJECT ret = Qfalse;
+
+  ret = machine_load_ar(m, path);
+
+  /* this code is here for transition to ar(5) archives */
+  if(!RTEST(ret)) {
+    ret = machine_load_zip(m, path);
+  }
+
   return ret;
 }
 
@@ -832,7 +890,7 @@ int machine_load_bundle(machine m, const char *path) {
     return machine_load_directory(m, path);
   }
   
-  ret = machine_load_archive(m, path);
+  ret = machine_load_rba(m, path);
   if(!TRUE_P(ret)) return FALSE;
   return TRUE;
 }
