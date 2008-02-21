@@ -74,7 +74,7 @@ class SpecConfig
   end
   
   def register
-    if (@tagger or @debugger or @gdb) and @atags.empty? and @astrings.empty?
+    if (@debugger or @gdb) and @atags.empty? and @astrings.empty?
       puts "Missing --action-tag or --action-string."
       puts @options
       exit 1
@@ -94,7 +94,6 @@ class SpecConfig
     
     if @tagger
       tag = SpecTag.new(@tag)
-      p tag
       tagger = TagAction.new(@tagger, @outcome, tag.tag, tag.comment, @atags, @astrings)
       tagger.register
     end

@@ -28,10 +28,13 @@ class TagAction < ActionFilter
     @outcome = outcome
     @tag = tag
     @comment = comment
+    @report = []
   end
   
   def after(state)
     if self === state.description and outcome? state
+      @report << state.description
+      
       tag = SpecTag.new
       tag.tag = @tag
       tag.comment = @comment
@@ -52,9 +55,34 @@ class TagAction < ActionFilter
         (@outcome == :fail and state.exception?)
   end
   
+  def report
+    @report.join("\n") + "\n"
+  end
+  private :report
+  
+  def finish
+    case @action
+    when :add
+      if @report.empty?
+        print "\nTagAction: no specs were tagged with '#{@tag}'\n"
+      else
+        print "\nTagAction: specs tagged with '#{@tag}':\n\n"
+        print report
+      end
+    when :del
+      if @report.empty?
+        print "\nTagAction: no tags '#{@tag}' were deleted\n"
+      else
+        print "\nTagAction: tag '#{@tag}' deleted for specs:\n\n"
+        print report
+      end
+    end
+  end
+  
   def register
     super
     MSpec.register :after, self
+    MSpec.register :finish, self
   end
   
   def unregister

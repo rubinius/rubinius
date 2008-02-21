@@ -148,6 +148,61 @@ describe TagAction, "#after when action is :del" do
   end
 end
 
+describe TagAction, "#finish" do
+  before :each do
+    $stdout = @out = CaptureOutput.new
+    @state = SpecState.new "Catch#me", "if you can"
+    MSpec.stub!(:write_tag)
+    MSpec.stub!(:delete_tag)
+  end
+  
+  after :each do
+    $stdout = STDOUT
+  end
+  
+  it "reports no specs tagged if none where tagged" do
+    action = TagAction.new :add, :fail, "tag", "comment", nil, "can"
+    action.stub!(:outcome?).and_return(false)
+    action.after @state
+    action.finish
+    @out.should == "\nTagAction: no specs were tagged with 'tag'\n"
+  end
+
+  it "reports no specs tagged if none where tagged" do
+    action = TagAction.new :del, :fail, "tag", "comment", nil, "can"
+    action.stub!(:outcome?).and_return(false)
+    action.after @state
+    action.finish
+    @out.should == "\nTagAction: no tags 'tag' were deleted\n"
+  end
+  
+  it "reports the spec descriptions that were tagged" do
+    action = TagAction.new :add, :fail, "tag", "comment", nil, "can"
+    action.stub!(:outcome?).and_return(true)
+    action.after @state
+    action.finish
+    @out.should ==
+%[
+TagAction: specs tagged with 'tag':
+
+Catch#me if you can
+]
+  end
+  
+  it "reports the spec descriptions for the tags that were deleted" do
+    action = TagAction.new :del, :fail, "tag", "comment", nil, "can"
+    action.stub!(:outcome?).and_return(true)
+    action.after @state
+    action.finish
+    @out.should ==
+%[
+TagAction: tag 'tag' deleted for specs:
+
+Catch#me if you can
+]
+  end
+end
+
 describe TagAction, "#register" do
   before :each do
     MSpec.stub!(:register)
@@ -157,6 +212,7 @@ describe TagAction, "#register" do
   
   it "registers itself with MSpec for the :after action" do
     MSpec.should_receive(:register).with(:after, @action)
+    MSpec.should_receive(:register).with(:finish, @action)
     @action.register
   end
 end
