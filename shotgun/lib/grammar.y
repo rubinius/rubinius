@@ -4690,10 +4690,8 @@ block_append(parse_state, head, tail)
         h = h->nd_next;
         goto again;
       case NODE_STR:
-        bdestroy(h->nd_str);
       case NODE_LIT:
         parser_warning(parse_state, h, "unused literal ignored");
-        return tail;
       default:
         h = end = NEW_BLOCK(head);
         end->nd_end = end;

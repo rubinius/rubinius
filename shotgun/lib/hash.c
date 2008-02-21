@@ -294,6 +294,7 @@ void hash_assign(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl,
   if(REFERENCE_P(base)) {  
     ent = entry_new(state, hash, key, value);
     entry_append(state, base, ent);
+    hash_set_entries(tbl, I2N(N2I(hash_get_entries(tbl)) + 1));
     return;
   }
   
