@@ -30,19 +30,19 @@ typedef struct mcontext mcontext_t;
 typedef struct ucontext ucontext_t;
 struct mcontext
 {
-	ulong	pc;		/* lr */
-	ulong	cr;		/* mfcr */
-	ulong	ctr;		/* mfcr */
-	ulong	xer;		/* mfcr */
-	ulong	sp;		/* callee saved: r1 */
-	ulong	toc;		/* callee saved: r2 */
-	ulong	r3;		/* first arg to function, return register: r3 */
-	ulong	gpr[19];	/* callee saved: r13-r31 */
+	unsigned long	pc;		/* lr */
+	unsigned long	cr;		/* mfcr */
+	unsigned long	ctr;		/* mfcr */
+	unsigned long	xer;		/* mfcr */
+	unsigned long	sp;		/* callee saved: r1 */
+	unsigned long	toc;		/* callee saved: r2 */
+	unsigned long	r3;		/* first arg to function, return register: r3 */
+	unsigned long	gpr[19];	/* callee saved: r13-r31 */
 /*
 // XXX: currently do not save vector registers or floating-point state
-//	ulong	pad;
+//	unsigned long	pad;
 //	uvlong	fpr[18];	/ * callee saved: f14-f31 * /
-//	ulong	vr[4*12];	/ * callee saved: v20-v31, 256-bits each * /
+//	unsigned long	vr[4*12];	/ * callee saved: v20-v31, 256-bits each * /
 */
 };
 
@@ -50,7 +50,7 @@ struct ucontext
 {
 	struct {
 		void *ss_sp;
-		uint ss_size;
+		unsigned int ss_size;
 	} uc_stack;
 	sigset_t uc_sigmask;
 	mcontext_t mc;

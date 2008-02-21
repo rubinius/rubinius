@@ -31,7 +31,6 @@
 #include <sys/utsname.h>
 #include <inttypes.h>
 #include <ucontext.h>
-typedef unsigned long ulong;
 
 #if defined(__FreeBSD__) && __FreeBSD__ < 5
   extern  int    getmcontext(mcontext_t*);
@@ -77,7 +76,6 @@ typedef unsigned long ulong;
   #include <signal.h>
   #include <sys/utsname.h>
   #include <inttypes.h>
-  typedef unsigned long ulong;
 
   #if defined(__APPLE__)
     #define mcontext libthread_mcontext
