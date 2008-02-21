@@ -63,23 +63,38 @@ typedef unsigned long ulong;
 #endif
 
 #else // HAS_UCONTEXT == 0
+  #include <stdarg.h>
+  #include <errno.h>
+  #include <stdlib.h>
+  #include <unistd.h>
+  #include <string.h>
+  #include <assert.h>
+  #include <time.h>
+  #include <sys/time.h>
+  #include <sys/types.h>
+  #include <sys/wait.h>
+  #include <sched.h>
+  #include <signal.h>
+  #include <sys/utsname.h>
+  #include <inttypes.h>
+  typedef unsigned long ulong;
 
-#if defined(__APPLE__)
-  #define mcontext libthread_mcontext
-  #define mcontext_t libthread_mcontext_t
-  #define ucontext libthread_ucontext
-  #define ucontext_t libthread_ucontext_t
-  #if defined(__i386__)
-    #include "PortableUContext386.h"
-    #define NEEDX86MAKECONTEXT
-  #elif defined(__ppc__)
-    #include "PortableUContextPPC.h"
-    #define NEEDPOWERMAKECONTEXT
-  #else
-    #error Unsupported Apple platform
-  #endif
-  #define NEEDSWAPCONTEXT
-#endif // __APPLE__ without ucontext
+  #if defined(__APPLE__)
+    #define mcontext libthread_mcontext
+    #define mcontext_t libthread_mcontext_t
+    #define ucontext libthread_ucontext
+    #define ucontext_t libthread_ucontext_t
+    #if defined(__i386__)
+      #include "PortableUContext386.h"
+      #define NEEDX86MAKECONTEXT
+    #elif defined(__ppc__)
+      #include "PortableUContextPPC.h"
+      #define NEEDPOWERMAKECONTEXT
+    #else
+      #error Unsupported Apple platform
+    #endif
+    #define NEEDSWAPCONTEXT
+  #endif // __APPLE__ without ucontext
 
 #endif // HAS_UCONTEXT
 
