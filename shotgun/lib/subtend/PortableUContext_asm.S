@@ -24,6 +24,9 @@ This software was developed as part of a project at MIT.
  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#if defined(__APPLE__) && !defined(MAC_OS_X_VERSION_10_4)
+  #include "AvailabilityMacros.h"
+#endif
  
 #if defined(__FreeBSD__) && defined(__i386__) && __FreeBSD__ < 5
 #define NEEDX86CONTEXT 1
@@ -42,7 +45,7 @@ This software was developed as part of a project at MIT.
 #endif
 
 /* Mac OS 10.4 and earlier */
-#if defined(__APPLE__) && (__DARWIN_UNIX03 == 0)
+#if defined(__APPLE__) && !defined(MAC_OS_X_VERSION_10_5)
 
 #if defined(__i386__)
 #define NEEDX86CONTEXT 1
@@ -61,7 +64,7 @@ This software was developed as part of a project at MIT.
 #endif
 
 /* Mac OS 10.5 and later */
-#if defined(__APPLE__) && (__DARWIN_UNIX03 == 1)
+#if defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_5)
 #undef NEEDX86CONTEXT
 #undef NEEDPOWERCONTEXT
 #endif
