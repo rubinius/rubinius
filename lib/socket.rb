@@ -171,7 +171,12 @@ class Socket < BasicSocket
       hints.free if hints
 
       if res_p then
-        Socket::Foreign.freeaddrinfo res_p.read_pointer
+        ptr = res_p.read_pointer
+
+        # Be sure to feed a legit pointer to freeaddrinfo
+        if ptr and !ptr.null?
+          Socket::Foreign.freeaddrinfo ptr
+        end
         res_p.free
       end
     end
