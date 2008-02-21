@@ -1,5 +1,6 @@
 #include <string.h>
 #include <sys/stat.h>
+#include <dlfcn.h>
 
 #include "ltdl.h"
 
@@ -19,8 +20,22 @@
 #endif
 #endif
 
+#ifdef __FreeBSD__
+#define dlhandle void*
+#define xdlopen(name) dlopen(name, RTLD_NOW | RTLD_GLOBAL)
+#define xdlsym dlsym
+#define xdlsym2(name) dlsym(RTLD_DEFAULT, name)
+#define xdlerror dlerror
+#else
+#define dlhandle lt_dlhandle
+#define xdlopen(name) lt_dlopen(name)
+#define xdlsym lt_dlsym
+#define xdlsym2(name) lt_dlsym(NULL, name)
+#define xdlerror lt_dlerror
+#endif
+
 void* subtend_find_symbol(STATE, OBJECT path, OBJECT name) {
-  lt_dlhandle lib;
+  dlhandle lib;
   char *c_path, *c_name, *np;
   void *ep;
   char sys_name[128];
@@ -32,19 +47,22 @@ void* subtend_find_symbol(STATE, OBJECT path, OBJECT name) {
     strlcpy(sys_name, c_path, sizeof(sys_name));
     strlcat(sys_name, LIBSUFFIX, sizeof(sys_name));
     np = sys_name;
+  
   } else {
     np = NULL;
   }
   /* Open it up. If this fails, then we just pretend like
      the library isn't there. */
-  lib = lt_dlopen(np);
+  lib = xdlopen(np);
   if(!lib) {
     return NULL;
   }
   
   c_name = string_byte_address(state, name);
-  ep = lt_dlsym(lib, c_name);
-  
+  ep = xdlsym(lib, c_name);
+  if(!ep) {
+    ep = xdlsym2(c_name);
+  }
   return ep;
 }
 
@@ -52,7 +70,7 @@ void* subtend_find_symbol(STATE, OBJECT path, OBJECT name) {
    it's init function. */
 
 OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
-  lt_dlhandle lib;
+  dlhandle lib;
   char *c_path, *c_name;
   void (*ep)(void);
   char init[128] = "Init_";
@@ -87,10 +105,10 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   
   /* Open it up. If this fails, then we just pretend like
      the library isn't there. */
-  lib = lt_dlopen(sys_name);
+  lib = xdlopen(sys_name);
   if(!lib) {
     XFREE(sys_name);
-    printf("Couldnt open '%s': %s\n", sys_name, lt_dlerror());
+    printf("Couldnt open '%s': %s\n", sys_name, xdlerror());
     /* No need to raise an exception, it's not there. */
     return I2N(0);
   }
@@ -100,7 +118,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   strlcat(init, c_name, sizeof(init));
   
   /* Try and load the init function. */
-  ep = (void (*)(void))lt_dlsym(lib, init);
+  ep = (void (*)(void))xdlsym(lib, init);
   if(!ep) {
     XFREE(sys_name);
     /* TODO: raise an exception that the library is missing the function. */
