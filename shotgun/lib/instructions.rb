@@ -2703,7 +2703,7 @@ perform_no_ss_send:
   def ret
     <<-CODE
     t1 = stack_pop();
-    cpu_return_to_sender(state, c, t1, TRUE, FALSE);
+    cpu_simple_return(state, c, t1);
     CODE
   end
 

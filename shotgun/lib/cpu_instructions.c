@@ -830,15 +830,13 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
   return TRUE;
 }
 
-inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception) {
+/* Used by raise_exception to restore the previous context. */
+int cpu_unwind(STATE, cpu c) {
   OBJECT destination, home;
-  int is_block;
-
-  is_block = blokctx_s_block_context_p(state, c->active_context);
   destination = cpu_current_sender(c);
 
 #if ENABLE_DTRACE
-  if (RUBINIUS_FUNCTION_RETURN_ENABLED() && !is_block) {
+  if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
     OBJECT module = cpu_current_module(state, c);
 
     char *module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
@@ -871,41 +869,12 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
       cpu_task_select(state, c, c->main_task);
       return FALSE;
     }
-    /* The return value of the script is passed on the stack. */
-    stack_push(val);
+    stack_push(Qnil);
+    return FALSE;
+
   } else {
-
-    /* Implements a block causing the the context it was created in
-       to return (IE, a non local return) */
-    if(consider_block && is_block) {
-      sassert(0);
-      home = blokctx_home(state, c->active_context);
-      destination = FASTCTX(home)->sender;
-      if(EXCESSIVE_TRACING) {
-        printf("CTX: remote return from %p to %p\n", c->active_context, destination);
-      }
-
-      /* If we're making a non-local return to a stack context... */
-      if(om_on_stack(state->om, destination)) {
-        /* If we're returning to a reference'd context, reset the
-           context stack to the virtual bottom */
-        if(om_context_referenced_p(state->om, destination)) {
-          state->om->contexts->current = state->om->context_bottom;
-        /* Otherwise set it to just beyond where we're returning to */
-        } else {
-          state->om->contexts->current = (void*)AFTER_CTX(destination);
-        }
-
-      /* It's a heap context, so reset the context stack to the virtual
-         bottom. */
-      } else {
-        state->om->contexts->current = state->om->context_bottom;
-      }
-    /* It's a normal return. */
-    } else {
-      /* retire this one context. */
-      object_memory_retire_context(state->om, c->active_context);
-    }
+    /* retire this one context. */
+    object_memory_retire_context(state->om, c->active_context);
 
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
@@ -914,17 +883,6 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     } else {
       home = destination;
     }
-
-    if(EXCESSIVE_TRACING) {
-      if(stack_context_p(destination)) {
-        printf("Returning to a stack context %p / %p (%s).\n", c->active_context, destination, (uintptr_t)c->active_context - (uintptr_t)destination == CTX_SIZE ? "stack" : "REMOTE");
-      } else {
-        printf("Returning to %s.\n", _inspect(destination));
-      }
-    }
-
-    xassert(om_valid_context_p(state, destination));
-    xassert(om_valid_context_p(state, home));
 
     /* Commenting out 02.01.08 - Caleb Tennis.
        I don't know the purpose of this code, but if an exception is throws from
@@ -946,15 +904,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
        1) the native context used rb_funcall and we need to return
           it the result of the call.
     */
-    if(FASTCTX(home)->type == FASTCTX_NMC) {
-      nmc_activate(state, c, home, val, FALSE);
-      /* We return because nmc_activate will setup the cpu to do whatever
-         it needs to next. */
-      return TRUE;
-    } else {
-      cpu_restore_context_with_home(state, c, destination, home);
-      if(!exception) stack_push(val);
-    }
+    cpu_restore_context_with_home(state, c, destination, home);
   }
 
   return TRUE;
@@ -1348,15 +1298,10 @@ void cpu_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
 }
 
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
-  OBJECT ctx, table, ent, env;
-  int cur, total, target, idx, l, r, is_block;
+  OBJECT ctx, table, ent;
+  int cur, total, target, idx, l, r;
   c->exception = exc;
   ctx = c->active_context;
-
-  if(INTERNAL_DEBUG && getenv("EXCHALT")) {
-    printf("An exception has occured: %s\n", _inspect(exc));
-    assert(0);
-  }
 
   cpu_flush_ip(c);
   cpu_save_registers(state, c, 0);
@@ -1366,21 +1311,11 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
      of a task.. */
 
   while(!NIL_P(ctx)) {
-    is_block = blokctx_s_block_context_p(state, ctx);
-
-    if(c->type == FASTCTX_NMC) {
-      cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
-      ctx = c->active_context;
-      continue;
-    }
+    if(c->type == FASTCTX_NMC) goto skip;
 
     table = cmethod_get_exceptions(cpu_current_method(state, c));
 
-    if(!table || NIL_P(table)) {
-      cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
-      ctx = c->active_context;
-      continue;
-    }
+    if(!table || NIL_P(table)) goto skip;
 
     cur = c->ip;
     total = NUM_FIELDS(table);
@@ -1390,15 +1325,6 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
       l = N2I(tuple_at(state, ent, 0));
       r = N2I(tuple_at(state, ent, 1));
       if(cur >= l && cur <= r) {
-        /* Make sure the bounds are within the block, therwise, don't use
-           it. */
-        if(is_block) {
-          env = blokctx_env(state, ctx);
-          if(l < N2I(blokenv_get_initial_ip(env))
-                  || r > N2I(blokenv_get_last_ip(env))) {
-            continue;
-          }
-        }
         target = N2I(tuple_at(state, ent, 2));
         c->ip = target;
         cpu_cache_ip(c);
@@ -1406,7 +1332,9 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
       }
     }
 
-    cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
+skip:
+    /* unwind returns FALSE if we can't unwind anymore. */
+    if(!cpu_unwind(state, c)) break;
     ctx = c->active_context;
   }
 
