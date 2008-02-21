@@ -17,7 +17,6 @@ class ActionFilter
   end
   
   def ===(string)
-    return true unless @sfilter or @tfilter
     @sfilter === string or @tfilter === string
   end
 

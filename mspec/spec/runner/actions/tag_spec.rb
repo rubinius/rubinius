@@ -16,6 +16,28 @@ describe TagAction do
   end
 end
 
+describe TagAction, "#===" do
+  before :each do
+    MSpec.stub!(:read_tags).and_return(["match"])
+    @action = TagAction.new :add, :fail, nil, nil, nil, ["catch", "if you"]
+  end
+  
+  it "returns true if there are no filters" do
+    action = TagAction.new :add, :all, nil, nil
+    action.===("anything").should == true
+  end
+
+  it "returns true if the argument matches any of the descriptions" do
+    @action.===("catch").should == true
+    @action.===("if you can").should == true
+  end
+
+  it "returns false if the argument does not match any of the descriptions" do
+    @action.===("patch me").should == false
+    @action.===("if I can").should == false
+  end
+end
+
 describe TagAction, "#outcome?" do
   before :each do
     MSpec.stub!(:read_tags).and_return([])

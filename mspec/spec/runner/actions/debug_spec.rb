@@ -37,6 +37,7 @@ end
 describe DebugAction, "#register" do
   before :each do
     MSpec.stub!(:read_tags).and_return([])
+    MSpec.stub!(:register)
     @action = DebugAction.new nil, nil
   end
   
@@ -49,6 +50,7 @@ end
 describe DebugAction, "#unregister" do
   before :each do
     MSpec.stub!(:read_tags).and_return([])
+    MSpec.stub!(:unregister)
     @action = DebugAction.new nil, nil
   end
   

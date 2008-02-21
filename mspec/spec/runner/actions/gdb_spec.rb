@@ -37,6 +37,7 @@ end
 describe GdbAction, "#register" do
   before :each do
     MSpec.stub!(:read_tags).and_return([])
+    MSpec.stub!(:register)
     @action = GdbAction.new nil, nil
   end
   
@@ -49,6 +50,7 @@ end
 describe GdbAction, "#unregister" do
   before :each do
     MSpec.stub!(:read_tags).and_return([])
+    MSpec.stub!(:unregister)
     @action = GdbAction.new nil, nil
   end
   

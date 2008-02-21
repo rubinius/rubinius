@@ -26,9 +26,9 @@ describe ActionFilter, "#===" do
     @action = ActionFilter.new(nil, ["catch", "if you"])
   end
   
-  it "returns true if there are no filters" do
+  it "returns false if there are no filters" do
     action = ActionFilter.new
-    action.===("anything").should == true
+    action.===("anything").should == false
   end
   
   it "returns true if the argument matches any of the descriptions" do

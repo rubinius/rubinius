@@ -31,6 +31,11 @@ class TagAction < ActionFilter
     @report = []
   end
   
+  def ===(string)
+    return true unless @sfilter or @tfilter
+    @sfilter === string or @tfilter === string
+  end
+
   def after(state)
     if self === state.description and outcome? state
       @report << state.description
