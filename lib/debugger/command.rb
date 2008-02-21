@@ -206,16 +206,16 @@ class Debugger
 
     # Convenience method to set a new column structure
     def set_columns(formats, col_sep=' ', auto=true)
-      self.<< Columns.new(formats, col_sep, auto)
+      self << Columns.new(formats, col_sep, auto)
     end
 
     # Convenience method to set a new row color
     def set_color(color)
-      self.<< Color.new(color) unless @current_color and @current_color.color == color
+      self << Color.new(color) unless @current_color and @current_color.color == color
     end
 
     def set_line_marker(marker='=> ')
-      self.<< LineMarker.new(marker)
+      self << LineMarker.new(marker)
     end
 
     # Convert this output stream to a string

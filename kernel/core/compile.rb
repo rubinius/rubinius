@@ -218,6 +218,10 @@ module Compile
         begin
           cm.compile
           cm.hints = { :source => :rb }
+          if $DEBUGGER and !requiring
+            Debugger.instance.set_breakpoint cm, 0
+            $DEBUGGER = false
+          end
           cm.as_script do |script|
             script.path = rb_path
           end

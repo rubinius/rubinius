@@ -59,7 +59,7 @@ class Debugger
       # Remove all remaining breakpoints
       @breakpoint_tracker.clear_breakpoints
 
-      # De-register debugger on the to-be global debug channel
+      # De-register debugger on the global debug channel
       Rubinius::VM.debug_channel = nil
 
       if thrd
@@ -69,6 +69,7 @@ class Debugger
       end
       @breakpoint_tracker.release_waiting_threads
     end
+    Thread.pass until waiting_for_breakpoint?
   end
 
   # Sets a breakpoint on a +CompiledMethod+ at the specified address.

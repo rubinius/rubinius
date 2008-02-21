@@ -104,6 +104,7 @@ Options:
   -d             Enable debugging output and set $DEBUG to true.
   -dc            Display debugging information for the compiler.
   -dl            Display debugging information for the loader.
+  -debug         Launch the debugger.
   -e 'code'      Directly compile and execute code (no file provided).
   -Idir1[:dir2]  Add directories to $LOAD_PATH.
   -p             Run the profiler.
@@ -148,6 +149,9 @@ begin
       puts "[Code loading debugging enabled]"
     when '-d'
       $DEBUG = true
+    when '-debug'
+      require 'debugger/debugger'
+      $DEBUGGER = true
     when '-p'
       require 'profile'
     when '-ps'

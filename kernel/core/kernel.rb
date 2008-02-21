@@ -407,8 +407,6 @@ module Kernel
       dbg.set_breakpoint ctxt.method, ctxt.ip
       ctxt.reload_method
     end
-
-    Thread.pass until dbg.waiting_for_breakpoint?
   end
 
   alias_method :breakpoint, :debugger
