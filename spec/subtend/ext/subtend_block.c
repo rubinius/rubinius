@@ -6,7 +6,7 @@ static VALUE sb_test(VALUE self) {
 }
 
 static VALUE sb_yield(VALUE self) {
-  return rb_yield(5);
+  return rb_yield(INT2FIX(5));
 }
 
 void Init_subtend_block() {
