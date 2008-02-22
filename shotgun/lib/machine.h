@@ -38,7 +38,7 @@ machine machine_new(environment e);
 void machine_destroy(machine m);
 OBJECT machine_load_file(machine m, const char *path);
 int machine_run_file(machine m, const char *path);
-OBJECT machine_load_archive(machine m, const char *path);
+int machine_load_archive(machine m, const char *path);
 int machine_load_directory(machine m, const char *prefix);
 int machine_load_bundle(machine m, const char *path);
 void machine_set_const(machine m, const char *str, OBJECT val);

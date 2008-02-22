@@ -762,7 +762,7 @@ int machine_load_directory(machine m, const char *prefix) {
   return TRUE;
 }
 
-OBJECT machine_load_object(machine m, char *name, uint8_t *data, long length) {
+int machine_load_object(machine m, char *name, uint8_t *data, long length) {
   OBJECT cm;
 
   if(m->s->excessive_tracing) {
@@ -772,32 +772,33 @@ OBJECT machine_load_object(machine m, char *name, uint8_t *data, long length) {
   cm = cpu_unmarshal(m->s, data, length, 0);
 
   if(!RTEST(cm)) {
-    return Qfalse;
+    return FALSE;
   }
 
   /* We push this on the stack so it's properly seen by the GCs */
   cpu_stack_push(m->s, m->c, cm, FALSE);
   cpu_run_script(m->s, m->c, cm);
+
   if(!machine_run(m)) {
     printf("Unable to run '%s'\n", name);
-    return Qfalse;
+    return FALSE;
   }
 
   /* Pop the return value and script object. */
   (void)cpu_stack_pop(m->s, m->c);
   (void)cpu_stack_pop(m->s, m->c);
 
-  return Qtrue;
+  return TRUE;
 }
 
-OBJECT machine_load_ar(machine m, const char *path) {
-  OBJECT ret = Qfalse;
+int machine_load_ar(machine m, const char *path) {
+  int ret = FALSE;
 
   if(m->s->excessive_tracing) {
     printf("[ Loading ar rba %s]\n", path);
   }
 
-  ret = rubinius_ar_each_file(m, path, machine_load_object);
+  ret = ar_each_file(m, path, machine_load_object);
 
   if(m->s->excessive_tracing) {
     printf("[ Finished loading ar rba %s]\n", path);
@@ -806,10 +807,11 @@ OBJECT machine_load_ar(machine m, const char *path) {
   return ret;
 }
 
-OBJECT machine_load_zip(machine m, const char *path) {
-  OBJECT order, cm, ret = Qfalse;
+int machine_load_zip(machine m, const char *path) {
+  OBJECT order, cm;
   archive_handle archive;
   char *files, *nxt, *top;
+  int ret = FALSE;
   
   if(m->s->excessive_tracing) {
     printf("[ Loading zip rba %s]\n", path);
@@ -845,7 +847,7 @@ OBJECT machine_load_zip(machine m, const char *path) {
     cpu_run_script(m->s, m->c, cm);
     if(!machine_run(m)) {
       printf("Unable to run '%s'\n", files);
-      ret = Qfalse;
+      ret = FALSE;
       goto out;
     }
     /* Pop the scripts return value. */
@@ -857,7 +859,7 @@ OBJECT machine_load_zip(machine m, const char *path) {
   }
   
   XFREE(top);
-  ret = Qtrue;
+  ret = TRUE;
 
 out:
   archive_close(m->s, archive);
@@ -868,13 +870,13 @@ out:
   return ret;
 }
 
-OBJECT machine_load_rba(machine m, const char *path) {
-  OBJECT ret = Qfalse;
+int machine_load_rba(machine m, const char *path) {
+  int ret = FALSE;
 
   ret = machine_load_ar(m, path);
 
   /* this code is here for transition to ar(5) archives */
-  if(!RTEST(ret)) {
+  if(!ret) {
     ret = machine_load_zip(m, path);
   }
 
@@ -883,16 +885,14 @@ OBJECT machine_load_rba(machine m, const char *path) {
 
 int machine_load_bundle(machine m, const char *path) {
   struct stat sb;
-  OBJECT ret;
+
   if(stat(path, &sb) != 0) return FALSE;
-  
+
   if(S_ISDIR(sb.st_mode)) {
     return machine_load_directory(m, path);
   }
-  
-  ret = machine_load_rba(m, path);
-  if(!TRUE_P(ret)) return FALSE;
-  return TRUE;
+
+  return machine_load_rba(m, path);
 }
 
 void machine_setup_normal(machine m, int argc, char **argv) {
