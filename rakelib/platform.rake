@@ -36,7 +36,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   sockaddr_in.include "sys/stat.h"
   sockaddr_in.name 'struct sockaddr_in'
   sockaddr_in.field :sin_family, :sa_family_t
-  sockaddr_in.field :sin_port, :uint16_t
+  sockaddr_in.field :sin_port, :ushort
   sockaddr_in.field :sin_addr
   sockaddr_in.field :sin_zero, :char_array
   sockaddr_in.calculate
