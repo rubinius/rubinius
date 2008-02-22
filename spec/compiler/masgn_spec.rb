@@ -371,5 +371,25 @@ describe Compiler do
       g.push :true
     end
   end
+
+  it "compiles 'a, b = (@a = 1), @a'" do
+    sexp = [:masgn,
+      [:array, [:lasgn, :a], [:lasgn, :b]],
+      nil,
+      [:array,
+        [:newline, 1, "masgn_spec.rb", [:iasgn, :@a, [:lit, 1]]],
+        [:ivar, :@a]]]
+
+    gen(sexp) do |g|
+      g.push 1
+      g.set_ivar :@a
+      g.set_local 0
+      g.pop
+      g.push_ivar :@a
+      g.set_local 1
+      g.pop
+      g.push true
+    end
+  end
   
 end

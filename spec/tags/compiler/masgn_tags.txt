@@ -1,0 +1,1 @@
+fails:Compiler compiles 'a, b = (@a = 1), @a'
