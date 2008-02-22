@@ -5,6 +5,7 @@ describe "Time#-" do
   it "decrements the time by the specified amount" do
     (Time.at(100) - 100).should == Time.at(0)
     (Time.at(100) - Time.at(99)).should == 1.0
+    (Time.at(1.1) - 0.2).should == Time.at(0.9)
   end
 
   it "accepts arguments that can be coerced into Float" do

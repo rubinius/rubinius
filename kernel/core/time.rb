@@ -197,15 +197,6 @@ class Time
     if secs_or_time.kind_of? Time
       return secs_or_time.dup
     end
-    
-    if secs_or_time.kind_of?(Integer) || msecs
-      secs_or_time = Type.coerce_to secs_or_time, Integer, :to_i
-      msecs      ||= 0
-    else
-      secs_or_time = Type.coerce_to secs_or_time, Float, :to_f
-      msecs        = (secs_or_time % 1) * 1000000
-      secs_or_time = secs_or_time.to_i
-    end
       
     Time.allocate.at_gmt(secs_or_time, msecs, false)
   end
@@ -430,6 +421,18 @@ class Time
   # +want_gmt+ says whether the caller wants a gmtime or local time object.
 
   def at_gmt(sec, usec, want_gmt)
+    if sec.kind_of?(Integer) || usec
+      sec  = Type.coerce_to sec, Integer, :to_i
+      usec = usec ? usec.to_i : 0
+    else
+      sec  = Type.coerce_to sec, Float, :to_f
+      usec = ((sec % 1) * 1000000).to_i
+      sec  = sec.to_i
+    end
+    
+    sec  = sec + (usec / 1000000)
+    usec = usec % 1000000
+    
     @timeval = [sec, usec]
 
     if want_gmt

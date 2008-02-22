@@ -4,6 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/methods'
 describe "Time#+" do
   it "increments the time by the specified amount" do
     (Time.at(0) + 100).should == Time.at(100)
+    (Time.at(1.1) + 0.9).should == Time.at(2)
   end
 
   it "accepts arguments that can be coerced into Float" do
