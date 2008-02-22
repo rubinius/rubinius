@@ -78,6 +78,7 @@ environment environment_current() {
 machine environment_current_machine() {
   struct rubinius_global *global;
   global = (struct rubinius_global*)pthread_getspecific(global_key);
+  if(!global) return NULL;
   return global->m;
 }
 

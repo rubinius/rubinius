@@ -69,7 +69,8 @@ void Init_cpu_task(STATE) {
 }
 
 static void _cpu_task_preempt(int sig) {
-  current_machine->s->check_events = 1;
+  machine m = current_machine;
+  if(m) m->s->check_events = 1;
 }
 
 void cpu_task_configure_preemption(STATE) {
