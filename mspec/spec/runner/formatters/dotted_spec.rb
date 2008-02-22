@@ -48,20 +48,20 @@ describe DottedFormatter, "#after" do
   end
   
   it "prints an 'F' if there was an expectation failure" do
-    @state.exceptions << ExpectationNotMetError.new("failed")
+    @state.exceptions << ["msg", ExpectationNotMetError.new("failed")]
     @formatter.after(@state)
     @out.should == "F"
   end
   
   it "prints an 'E' if there was an exception other than expectation failure" do
-    @state.exceptions << Exception.new("boom!")
+    @state.exceptions << ["msg", Exception.new("boom!")]
     @formatter.after(@state)
     @out.should == "E"
   end
   
   it "prints an 'E' if there are mixed exceptions and exepctation failures" do
-    @state.exceptions << ExpectationNotMetError.new("failed")
-    @state.exceptions << Exception.new("boom!")
+    @state.exceptions << ["msg", ExpectationNotMetError.new("failed")]
+    @state.exceptions << ["msg", Exception.new("boom!")]
     @formatter.after(@state)
     @out.should == "E"
   end

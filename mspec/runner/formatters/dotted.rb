@@ -45,7 +45,7 @@ class DottedFormatter
   end
     
   def failure?(state)
-    state.exceptions.all? { |e| state.failure?(e) }
+    state.exceptions.all? { |msg, exc| state.failure?(exc) }
   end
   private :failure?
   
