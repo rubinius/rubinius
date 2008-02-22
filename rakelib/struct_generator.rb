@@ -75,7 +75,7 @@ EOF
         $stderr.puts f.read
       end
 
-      `gcc -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -x c -Wall #{f.path} -o #{binary}`
+      `gcc -D_XOPEN_SOURCE=500 -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -x c -Wall #{f.path} -o #{binary}`
       if $?.exitstatus == 1
         @found = false
         return
