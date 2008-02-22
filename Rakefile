@@ -268,7 +268,7 @@ namespace :spec do
 
     target = ENV['SPEC_TARGET'] || 'rbx'
     system %(shotgun/rubinius -e 'puts "rbx build: \#{Rubinius::BUILDREV}"') if target == 'rbx'
-    sh "bin/ci -t #{target}"
+    sh "bin/mspec ci -t #{target}"
   end
 
   spec_targets = %w(compiler core language library parser rubinius)
