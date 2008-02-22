@@ -26,6 +26,32 @@ ArSpec.new '#replace' do
     ]
   end
 
+  it 'creates an archive' do
+    name = 'a'
+    data = "apple\n"
+
+    Tempfile.open 'nonexistent_ar' do |io|
+      File.delete io.path
+
+      Ar.new(io.path).replace name, mtime, uid, gid, mode, data
+
+      Ar.new(io.path).extract('a').should == [
+        name, mtime, uid, gid, mode, data
+      ]
+    end
+  end
+
+  it 'raises on non-archives' do
+    archive = write_ar 'not an archive'
+
+    name = 'a'
+    data = "albatross\n"
+
+    lambda do
+      Ar.new(archive.path).replace name, mtime, uid, gid, mode, data
+    end.should raise_error(Ar::Error, "#{archive.path} is not an archive file")
+  end
+
   it 'replaces a file' do
     archive = write_ar ArSpec::ABC
 
@@ -39,17 +65,6 @@ ArSpec.new '#replace' do
     Ar.new(archive.path).extract('a').should == [
       name, mtime, uid, gid, mode, data
     ]
-  end
-
-  it 'raises on non-archives' do
-    archive = write_ar 'not an archive'
-
-    name = 'a'
-    data = "albatross\n"
-
-    lambda do
-      Ar.new(archive.path).replace name, mtime, uid, gid, mode, data
-    end.should raise_error(Ar::Error, "#{archive.path} is not an archive file")
   end
 
 end

@@ -88,7 +88,11 @@ class Ar
   # exists, it is moved to the end of the archive.
 
   def replace(name, mtime, uid, gid, mode, data)
-    delete name if list.include? name
+    if File.exist? @path then
+      delete name if list.include? name
+    else
+      open @path, 'ab' do |io| io.write "!<arch>\n" end
+    end
 
     open @path, 'ab' do |io|
       write_file io, name, mtime.to_i, uid, gid, mode, data
