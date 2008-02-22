@@ -14,4 +14,8 @@ describe "SubtendBlock" do
     (@f.block_given? { puts "FOO" } ).should == true
   end
 
+  it "correctly utilizes rb_yield" do
+    (@f.do_yield { |x| x+1 }).should == 6
+  end
+
 end
