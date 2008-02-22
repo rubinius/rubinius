@@ -10,7 +10,7 @@ module ObjectSpace
   end
   
   def self.emit_subclasses(start, prc)
-    subs = start.subclasses
+    subs = start.__subclasses__
     return 0 unless subs
     count = 0
     
