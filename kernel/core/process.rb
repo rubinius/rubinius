@@ -25,26 +25,22 @@ module Process
   include Constants
 
   class Rlimit < FFI::Struct
-    layout :rlim_cur, :ulong, 0, :rlim_max, :ulong, FFI.type_size(:ulong)
+    config "rbx.platform.rlimit", :rlim_cur, :rlim_max
   end
 
   def self.setrlimit(resource, cur_limit, max_limit=Undefined)
-    MemoryPointer.new(:ulong, 2) { |p|
-      rlimit = Rlimit.new(p)
-      rlimit[:rlim_cur] = cur_limit
-      rlimit[:rlim_max] = max_limit.equal?(Undefined) ? cur_limit : max_limit
-      Errno.handle if -1 == Platform::POSIX.setrlimit(resource, p)
-    }
+    rlimit = Rlimit.new
+    rlimit[:rlim_cur] = cur_limit
+    rlimit[:rlim_max] = max_limit.equal?(Undefined) ? cur_limit : max_limit
+    Errno.handle if -1 == Platform::POSIX.setrlimit(resource, rlimit.pointer)
     nil
   end
 
   def self.getrlimit(resource)
     lim_max = []
-    MemoryPointer.new(:ulong, 2) { |p|
-      Errno.handle if -1 == Platform::POSIX.getrlimit(resource, p)
-      rlimit = Rlimit.new(p)
-      lim_max = [rlimit[:rlim_cur], rlimit[:rlim_max]]
-    }
+    rlimit = Rlimit.new
+    Errno.handle if -1 == Platform::POSIX.getrlimit(resource, rlimit.pointer)
+    lim_max = [rlimit[:rlim_cur], rlimit[:rlim_max]]
     lim_max
   end
 

@@ -30,7 +30,10 @@ void ffi_autorelease(OBJECT ptr, int ar);
 #define FFI_TYPE_CHARARR 18
 
 typedef void (*nf_stub_ffi)(void);
-typedef long (*nf_converter)();
+
+/* It has to be able to hold the largest possible C type 
+   All results from these functions should be cast properly */
+typedef uint64_t (*nf_converter)();
 
 #define NFUNC_FIELDS 7
 

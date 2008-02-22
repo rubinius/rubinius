@@ -584,7 +584,7 @@ void* ffi_get_to_converter(int type) {
 
     /* FIXME: have a real converter */
     case FFI_TYPE_ULL:
-    return ffi_to_ll;
+    return ffi_to_ull;
 
     case FFI_TYPE_FLOAT:
     return ffi_to_float;
@@ -641,7 +641,7 @@ void* ffi_get_from_converter(int type) {
 
     /* FIXME: have a real converter */
     case FFI_TYPE_ULL:
-    return ffi_from_ll;
+    return ffi_from_ull;
 
     case FFI_TYPE_FLOAT:
     return ffi_from_float;

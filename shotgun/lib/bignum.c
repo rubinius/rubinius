@@ -439,7 +439,7 @@ unsigned int bignum_to_ui(STATE, OBJECT self) {
 unsigned long long bignum_to_ull(STATE, OBJECT self) {
   mp_int t;
   mp_int *s = MP(self);
-  long long out, tmp;
+  unsigned long long out, tmp;
 
   /* mp_get_int() gets only the lower 32 bits, on any platform. */
   out = mp_get_int(s);

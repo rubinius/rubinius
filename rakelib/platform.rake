@@ -17,16 +17,16 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   dirent.include "sys/types.h"
   dirent.include "dirent.h"
   dirent.name 'struct dirent'
-  dirent.field :d_ino
-  dirent.field :d_reclen
+  dirent.field :d_ino, :ino_t
+  dirent.field :d_reclen, :ushort
   dirent.field :d_name, :char_array
   dirent.calculate
 
   timeval = StructGenerator.new
   timeval.include "sys/time.h"
   timeval.name 'struct timeval'
-  timeval.field :tv_sec
-  timeval.field :tv_usec
+  timeval.field :tv_sec, :long
+  timeval.field :tv_usec, :long
   timeval.calculate
 
   sockaddr_in = StructGenerator.new
@@ -35,17 +35,17 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   sockaddr_in.include "sys/socket.h"
   sockaddr_in.include "sys/stat.h"
   sockaddr_in.name 'struct sockaddr_in'
-  sockaddr_in.field :sin_family
-  sockaddr_in.field :sin_port
+  sockaddr_in.field :sin_family, :sa_family_t
+  sockaddr_in.field :sin_port, :in_port_t
   sockaddr_in.field :sin_addr
-  sockaddr_in.field :sin_zero
+  sockaddr_in.field :sin_zero, :char_array
   sockaddr_in.calculate
 
   sockaddr_un = StructGenerator.new
   sockaddr_un.include "sys/un.h"
   sockaddr_un.name 'struct sockaddr_un'
-  sockaddr_un.field :sun_family
-  sockaddr_un.field :sun_path
+  sockaddr_un.field :sun_family, :sa_family_t
+  sockaddr_un.field :sun_path, :char_array
   sockaddr_un.calculate
 
   servent = StructGenerator.new
@@ -61,20 +61,29 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   stat.include "sys/types.h"
   stat.include "sys/stat.h"
   stat.name 'struct stat'
-  stat.field :st_dev
-  stat.field :st_ino
-  stat.field :st_mode, :ushort
-  stat.field :st_nlink
-  stat.field :st_uid
-  stat.field :st_gid
-  stat.field :st_rdev
-  stat.field :st_size
-  stat.field :st_blksize
-  stat.field :st_blocks
-  stat.field :st_atime
-  stat.field :st_mtime
-  stat.field :st_ctime
+  stat.field :st_dev, :dev_t
+  stat.field :st_ino, :ino_t
+  stat.field :st_mode, :mode_t
+  stat.field :st_nlink, :nlink_t
+  stat.field :st_uid, :uid_t
+  stat.field :st_gid, :gid_t
+  stat.field :st_rdev, :dev_t
+  stat.field :st_size, :off_t
+  stat.field :st_blksize, :blksize_t
+  stat.field :st_blocks, :blkcnt_t
+  stat.field :st_atime, :time_t
+  stat.field :st_mtime, :time_t
+  stat.field :st_ctime, :time_t
   stat.calculate
+  
+  rlimit = StructGenerator.new
+  rlimit.include "sys/types.h"
+  rlimit.include "sys/time.h"
+  rlimit.include "sys/resource.h"
+  rlimit.name 'struct rlimit'
+  rlimit.field :rlim_cur, :rlim_t
+  rlimit.field :rlim_max, :rlim_t
+  rlimit.calculate
   
   # FIXME these constants don't have standard names.
   # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.
@@ -502,6 +511,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
     f.puts sockaddr_un.generate_config('sockaddr_un') if sockaddr_un.found?
     f.puts servent.generate_config('servent')
     f.puts stat.generate_config('stat')
+    f.puts rlimit.generate_config('rlimit')
 
     file_constants.each do | name |
       const = cg.constants[name]
