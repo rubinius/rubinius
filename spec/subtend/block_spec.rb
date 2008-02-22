@@ -5,7 +5,7 @@ compile_extension('subtend_block')
 require File.dirname(__FILE__) + '/ext/subtend_block'
 
 describe "SubtendBlock" do
-  setup do
+  before :each do
     @f = SubtendBlock.new
   end
   
@@ -14,7 +14,4 @@ describe "SubtendBlock" do
     (@f.block_given? { puts "FOO" } ).should == true
   end
 
-  it "yields to the block using rb_yield" do
-    @f.do_yield { |x| x }
-  end
 end

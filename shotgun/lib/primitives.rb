@@ -2520,7 +2520,7 @@ class ShotgunPrimitives
     cpu_flush_ip(c);
     cpu_flush_sp(c);
     cpu_save_registers(state, c, msg->args);
-    t1 = nmc_new(state, msg->method, c->active_context, msg->recv, msg->name, msg->args);
+    t1 = nmc_new(state, msg->method, c->active_context, msg->recv, msg->name, msg->block, msg->args);
     nmc_activate(state, c, t1, Qnil, FALSE);
     CODE
   end

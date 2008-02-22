@@ -25,7 +25,7 @@ rni_context* subtend_retrieve_context() {
   return global_context;
 }
 
-OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, int args) {
+OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, OBJECT block, int args) {
   rni_nmc *n;
   OBJECT ctx, sys;
   struct fast_context *fc;
@@ -49,7 +49,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   fc->name = name;
   fc->self = recv;
   fc->method = nmethod;  
-  fc->block = (OBJECT)Qnil;
+  fc->block = block;
   fc->literals = (OBJECT)Qnil;
   fc->method_module = (OBJECT)Qnil;
   fc->locals = (OBJECT)Qnil;
