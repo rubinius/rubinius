@@ -1005,8 +1005,22 @@ void ffi_call(STATE, cpu c, OBJECT ptr) {
   func();
 }
 
+typedef void (*nf_take_8)(uint8_t);
+typedef void (*nf_take_16)(uint16_t);
+typedef void (*nf_take_32)(uint32_t);
+typedef void (*nf_take_64)(uint64_t);
+
+typedef uint8_t (*nf_return_8)();
+typedef uint16_t (*nf_return_16)();
+typedef uint32_t (*nf_return_32)();
+typedef uint64_t (*nf_return_64)();
+
+typedef unsigned long (*nf_return_long)();
+typedef unsigned long long (*nf_return_ll)();
+typedef float (*nf_return_float)();
+typedef double (*nf_return_double)();
+
 OBJECT ffi_get_field(char *ptr, int offset, int type) {
-  nf_converter conv = (nf_converter)ffi_get_from_converter(type);
   int sz;
   rni_context *ctx = subtend_retrieve_context();
 
@@ -1015,19 +1029,27 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
   sz = ffi_type_size(type);
 
   switch(sz) {
-  case 1:
-    (void)conv(*((uint8_t*)ptr));
+  case 1: {
+    nf_take_8 conv = (nf_take_8)ffi_get_from_converter(type);
+    conv(*((uint8_t*)ptr));
     break;
-  case 2:
-    (void)conv(*((uint16_t*)ptr));
+  }
+  case 2: {
+    nf_take_16 conv = (nf_take_16)ffi_get_from_converter(type);
+    conv(*((uint16_t*)ptr));
     break;
+  }
   default:
-  case 4:
-    (void)conv(*((uint32_t*)ptr));
+  case 4: {
+    nf_take_32 conv = (nf_take_32)ffi_get_from_converter(type);
+    conv(*((uint32_t*)ptr));
     break;
-  case 8:
-    (void)conv(*((uint64_t*)ptr));
+  }
+  case 8: {
+    nf_take_64 conv = (nf_take_64)ffi_get_from_converter(type);
+    conv(*((uint64_t*)ptr));
     break;
+  }
   }
 
   return cpu_stack_pop(ctx->state, ctx->cpu);
@@ -1039,34 +1061,97 @@ void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
   uint8_t u8;
   uint16_t u16;
   uint32_t u32;
-  uint64_t u64;
 
   rni_context *ctx = subtend_retrieve_context();
-  nf_converter conv = (nf_converter)ffi_get_to_converter(type);
   sz = ffi_type_size(type);
 
   cpu_stack_push(ctx->state, ctx->cpu, val, FALSE);
 
   ptr += offset;
-
-  switch(sz) {
-  case 1:
-    u8 = (uint8_t)conv();
+    
+  switch(type) {
+  case FFI_TYPE_CHAR:
+  case FFI_TYPE_UCHAR: {
+    nf_return_8 conv = (nf_return_8)ffi_get_to_converter(type);
+    u8 = conv();
     memcpy(ptr, &u8, sz);
     break;
-  case 2:
-    u16 = (uint16_t)conv();
+  }
+  case FFI_TYPE_SHORT:
+  case FFI_TYPE_USHORT: {
+    nf_return_16 conv = (nf_return_16)ffi_get_to_converter(type);
+    u16 = conv();
     memcpy(ptr, &u16, sz);
     break;
-  default:
-  case 4:
-    u32 = (uint32_t)conv();
+  }
+  case FFI_TYPE_INT:
+  case FFI_TYPE_UINT: {
+    nf_return_32 conv = (nf_return_32)ffi_get_to_converter(type);
+    u32 = conv();
     memcpy(ptr, &u32, sz);
     break;
-  case 8:
-    u64 = (uint64_t)conv();
+  }
+  case FFI_TYPE_LL:
+  case FFI_TYPE_ULL: {
+    nf_return_ll conv = (nf_return_ll)ffi_get_to_converter(type);
+    unsigned long long v = conv();
+    memcpy(ptr, &v, sizeof(long long));
+    break;
+  }
+  default:
+  case FFI_TYPE_OBJECT:
+  case FFI_TYPE_PTR:
+  case FFI_TYPE_STRING:
+  case FFI_TYPE_STATE:
+  case FFI_TYPE_LONG:
+  case FFI_TYPE_ULONG: {
+    nf_return_long conv = (nf_return_long)ffi_get_to_converter(type);
+    long v = conv();
+    memcpy(ptr, &v, sizeof(long));
+    break;
+  }
+  case FFI_TYPE_FLOAT: {
+    nf_return_float conv = (nf_return_float)ffi_get_to_converter(type);
+    float v = conv();
+    memcpy(ptr, &v, sizeof(float));
+    break;
+  }
+  case FFI_TYPE_DOUBLE: {
+    nf_return_double conv = (nf_return_double)ffi_get_to_converter(type);
+    double v = conv();
+    memcpy(ptr, &v, sizeof(double));
+    break;
+  }
+  }
+
+  /*
+  switch(sz) {
+  case 1: {
+    nf_return_8 conv = (nf_return_8)ffi_get_from_converter(type);
+    u8 = conv();
+    memcpy(ptr, &u8, sz);
+    break;
+  }
+  case 2: {
+    nf_return_16 conv = (nf_return_16)ffi_get_from_converter(type);
+    u16 = conv();
+    memcpy(ptr, &u16, sz);
+    break;
+  }
+  default:
+  case 4: {
+    nf_return_32 conv = (nf_return_32)ffi_get_from_converter(type);
+    u32 = conv();
+    memcpy(ptr, &u32, sz);
+    break;
+  }
+  case 8: {
+    nf_return_64 conv = (nf_return_64)ffi_get_from_converter(type);
+    u64 = conv();
     memcpy(ptr, &u64, sz);
     break;
-
   }
+  }
+
+  */
 }

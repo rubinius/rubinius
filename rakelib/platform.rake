@@ -25,8 +25,8 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   timeval = StructGenerator.new
   timeval.include "sys/time.h"
   timeval.name 'struct timeval'
-  timeval.field :tv_sec, :long
-  timeval.field :tv_usec, :long
+  timeval.field :tv_sec, :time_t
+  timeval.field :tv_usec, :suseconds_t
   timeval.calculate
 
   sockaddr_in = StructGenerator.new
