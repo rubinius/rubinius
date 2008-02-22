@@ -69,7 +69,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   stat.field :st_gid, :gid_t
   stat.field :st_rdev, :dev_t
   stat.field :st_size, :off_t
-  stat.field :st_blksize, :blksize_t
+  stat.field :st_blksize
   stat.field :st_blocks, :blkcnt_t
   stat.field :st_atime, :time_t
   stat.field :st_mtime, :time_t
