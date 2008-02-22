@@ -6,7 +6,7 @@ describe "Socket#getservbyname" do
   it "identifies service ports " do
     Socket.getservbyname('http').should == 80
     Socket.getservbyname('http', 'tcp').should == 80
-    Socket.getservbyname('http', 'udp').should == 80
+    Socket.getservbyname('domain', 'udp').should == 53
     Socket.getservbyname('daytime').should == 13
   end
 
