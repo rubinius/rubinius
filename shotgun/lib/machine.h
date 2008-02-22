@@ -25,7 +25,7 @@ struct rubinius_machine {
   int show_config;
   ucontext_t g_firesuit;
   /* work around a bug in 10.5's libc versus header files */
-#if __DARWIN_UNIX03
+#if defined(__APPLE__) && defined(HAS_UCONTEXT) /* patch for tiger */
   _STRUCT_MCONTEXT __system_mc;
 #endif
   int g_use_firesuit;
