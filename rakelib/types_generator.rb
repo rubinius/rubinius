@@ -32,7 +32,7 @@ class TypesGenerator
       "void *" => :pointer
     }
     
-    typedefs = `echo "#include <sys/types.h>\n#include <sys/socket.h>\n#include <netdb.h>\n#include <sys/resource.h>" | cpp -D_XOPEN_SOURCE=500 -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64`
+    typedefs = `echo "#include <sys/types.h>\n#include <sys/socket.h>\n#include <sys/resource.h>" | cpp -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64`
     code = ""
     typedefs.each do |type|
       # We only care about single line typedef
