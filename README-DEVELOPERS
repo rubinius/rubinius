@@ -488,5 +488,11 @@ Valgrind is a program for debugging, profiling and memory-checking
 programs. The invocation is just  `shotgun/rubinius --valgrind`.
 See http://valgrind.org for usage information.
 
+5.4 Tracing
+-----------
+
+Excessive tracing can rapidly fill your screen up with crap.  To enable it,
+
+  RBX=rbx.debug.trace shotgun/rubinius ...
 
 === END ===
