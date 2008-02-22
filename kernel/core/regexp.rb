@@ -92,6 +92,10 @@ class Regexp
       "\\r"
       elsif c == "\f"
       "\\f"
+      elsif c == "\t"
+      "\\t"
+      elsif c == " "
+      "\\ "
       else
         c
       end
