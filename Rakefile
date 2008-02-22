@@ -218,7 +218,7 @@ namespace :clean do
   desc "Remove all compile system ruby files"
   task :rbc do
     files_to_delete = []
-    files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"]
+    files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"] + Dir["**/.*.rbc"]
     files_to_delete += Dir["**/.load_order.txt"]
     files_to_delete += ["runtime/platform.conf"]
     files_to_delete -= ["runtime/stable/loader.rbc"] # never ever delete this
