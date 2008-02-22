@@ -78,7 +78,9 @@ OBJECT rubinius_ar_each_file(machine m, const char *path, OBJECT(*callback)(mach
 
   for(;;) {
     bytes = read(fd, name_data, 16);
-    if(bytes != 16) {
+    if(bytes == 0) { /* end of file */
+      break;
+    } else if(bytes != 16) {
       ret = Qfalse;
       break;
     }
