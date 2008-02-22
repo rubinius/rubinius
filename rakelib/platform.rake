@@ -477,6 +477,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   cg.include "sys/resource.h"
   cg.include "netinet/tcp.h"
   cg.include "signal.h"
+  cg.include "netinet/in.h"
 
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
