@@ -97,6 +97,7 @@ int rb_block_given_p();
 #define rb_eSystemCallError    subtend_get_exception(19)
 #define rb_mErrno              subtend_get_exception(20)
 #define rb_eIOError            subtend_get_exception(21)
+#define rb_eLocalJumpError     subtend_get_exception(22)
 
 void rb_raise(VALUE exc, const char *fmt, ...);
 

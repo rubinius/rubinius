@@ -16,6 +16,7 @@ describe "SubtendBlock" do
 
   it "correctly utilizes rb_yield" do
     (@f.do_yield { |x| x+1 }).should == 6
+    lambda { @f.do_yield }.should raise_error(LocalJumpError)
   end
 
 end

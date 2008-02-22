@@ -121,6 +121,10 @@ VALUE subtend_get_exception(int which) {
     case 21:
     val = rb_const_get(rb_cObject, rb_intern("IOError"));
     break;
+
+    case 22:
+    val = rb_const_get(rb_cObject, rb_intern("LocalJumpError"));
+    break;
   }
   
   return NEW_HANDLE(ctx, HNDL(val));
@@ -382,8 +386,7 @@ VALUE rb_yield(VALUE val) {
   CTX;
 
   if(!rb_block_given_p()) {
-    // Should throw a LocalJumpError
-    // See ruby eval.c line 4898
+    rb_raise(rb_eLocalJumpError, "no block given", 0);
   }
 
   VALUE obj = NEW_HANDLE(ctx, cpu_current_block(ctx->state, ctx->cpu));
