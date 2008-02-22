@@ -168,7 +168,7 @@ OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) 
   return ret;
 }
 
-OBJECT ffi_decode_sockaddr(STATE, struct sockaddr *addr, int len, int reverse_lookup) {
+OBJECT ffi_decode_sockaddr(STATE, struct sockaddr *addr, socklen_t len, int reverse_lookup) {
   OBJECT host;
   OBJECT address;
 
@@ -220,7 +220,7 @@ int ffi_bind(int s, char *host, char *port, int type) {
   return ret;
 }
 
-OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, int sockaddr_len,
+OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, socklen_t sockaddr_len,
                        int flags) {
   char node[NI_MAXHOST], service[NI_MAXSERV];
   OBJECT value, address, port, ip;

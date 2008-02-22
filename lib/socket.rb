@@ -12,7 +12,7 @@ class BasicSocket < IO
 
   def getsockopt(level, optname)
     MemoryPointer.new 256 do |val| # HACK magic number
-      MemoryPointer.new :int do |length|
+      MemoryPointer.new :socklen_t do |length|
         length.write_int 256 # HACK magic number
 
         err = Socket::Foreign.getsockopt descriptor, level, optname, val, length
@@ -32,7 +32,7 @@ class BasicSocket < IO
 
     case optval
     when Fixnum then
-      MemoryPointer.new :int do |val|
+      MemoryPointer.new :socklen_t do |val|
         val.write_int optval
         error = Socket::Foreign.setsockopt(descriptor, level, optname, val,
                                            val.size)
@@ -73,16 +73,16 @@ class Socket < BasicSocket
     end
 
     attach_function "accept", :accept, [:int, :pointer, :pointer], :int
-    attach_function "bind", :_bind, [:int, :pointer, :int], :int
+    attach_function "bind", :_bind, [:int, :pointer, :socklen_t], :int
     attach_function "close", :close, [:int], :int
-    attach_function "connect", :_connect, [:int, :pointer, :int], :int
+    attach_function "connect", :_connect, [:int, :pointer, :socklen_t], :int
     attach_function "listen", :listen, [:int, :int], :int
     attach_function "socket", :socket, [:int, :int, :int], :int
 
     attach_function "getsockopt", :getsockopt,
                     [:int, :int, :int, :pointer, :pointer], :int
     attach_function "setsockopt", :setsockopt,
-                    [:int, :int, :int, :pointer, :int], :int
+                    [:int, :int, :int, :pointer, :socklen_t], :int
 
     attach_function "gai_strerror", :gai_strerror, [:int], :string
 
@@ -97,22 +97,22 @@ class Socket < BasicSocket
     attach_function "socketpair", :socketpair,
                     [:int, :int, :int, :pointer], :int
 
-    attach_function "gethostname", :gethostname, [:pointer, :int], :int
+    attach_function "gethostname", :gethostname, [:pointer, :size_t], :int
     attach_function "getservbyname", :getservbyname,
                     [:pointer, :pointer], :pointer
 
-    attach_function "htons", :htons, [:short], :short
-    attach_function "ntohs", :ntohs, [:short], :short
+    attach_function "htons", :htons, [:u_int16_t], :u_int16_t
+    attach_function "ntohs", :ntohs, [:u_int16_t], :u_int16_t
 
     attach_function "ffi_getnameinfo", :_getnameinfo,
-                    [:state, :pointer, :int, :int], :object
+                    [:state, :pointer, :socklen_t, :int], :object
 
     #attach_function "ffi_pack_sockaddr_un", :pack_sa_unix,
     #                [:state, :string], :object
     attach_function "ffi_pack_sockaddr_in", :ffi_pack_sockaddr_in,
                     [:state, :string, :string, :int, :int], :object
     attach_function "ffi_decode_sockaddr", :ffi_decode_sockaddr,
-                    [:state, :string, :int, :int], :object
+                    [:state, :string, :socklen_t, :int], :object
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
 
     def self.bind(descriptor, sockaddr)
@@ -216,7 +216,7 @@ class Socket < BasicSocket
 
     def self.getpeername(descriptor)
       MemoryPointer.new :char, 128 do |sockaddr_storage_p|
-        MemoryPointer.new :int do |len_p|
+        MemoryPointer.new :socklen_t do |len_p|
           len_p.write_int 128
 
           err = _getpeername descriptor, sockaddr_storage_p, len_p
@@ -230,7 +230,7 @@ class Socket < BasicSocket
 
     def self.getsockname(descriptor)
       MemoryPointer.new :char, 128 do |sockaddr_storage_p|
-        MemoryPointer.new :int do |len_p|
+        MemoryPointer.new :socklen_t do |len_p|
           len_p.write_int 128
           
           err = _getsockname descriptor, sockaddr_storage_p, len_p
