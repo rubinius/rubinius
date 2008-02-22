@@ -499,10 +499,15 @@ char *ffi_to_string() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-
-  type_assert(obj, StringType, "converting to C string");
-
-  return string_byte_address(ctx->state, obj);
+  
+  /* We explicitly allow a NULL for a string, because
+     stuff like Socket.getaddrinfo needs it. */
+  if(obj == Qnil) {
+    return NULL;
+  } else {
+    type_assert(obj, StringType, "converting to C string");
+    return string_byte_address(ctx->state, obj);
+  }
 }
 
 void ffi_from_string(char *str) {

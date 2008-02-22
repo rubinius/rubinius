@@ -144,7 +144,7 @@ class Socket < BasicSocket
 
       raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
 
-      return [] if res_p.read_pointer.nil?
+      return [] if res_p.read_pointer.null?
 
       res = Socket::Foreign::AddrInfo.new res_p.read_pointer
 
@@ -299,10 +299,10 @@ class Socket < BasicSocket
     end
   end if (FFI.config("sockaddr_un.sun_family.offset") && Socket.const_defined?(:AF_UNIX))
 
-  def self.getaddrinfo(host, service, family = nil, socktype = nil,
+  def self.getaddrinfo(host, service = nil, family = nil, socktype = nil,
                        protocol = nil, flags = nil)
     host = '' if host.nil?
-    service = service.to_s
+    service = service.to_s if service
 
     family ||= 0
     socktype ||= 0
@@ -441,7 +441,7 @@ end
 class IPSocket < BasicSocket
 
   def self.getaddress(host)
-    addrinfos = Socket.getaddrinfo host, 0
+    addrinfos = Socket.getaddrinfo host
 
     addrinfos.first[3]
   end
