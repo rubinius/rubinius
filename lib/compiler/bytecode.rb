@@ -1302,6 +1302,18 @@ class Node
         g.push_literal msg
         receiver.bytecode(g)
         g.send :respond_to?, 1
+      when :vcall, :fcall
+        msg = expr.shift
+
+        # Make sure there are no args.
+        unless expr.empty?
+          reject(g)
+          return
+        end
+
+        g.push_literal msg
+        g.push :self
+        g.send :respond_to?, 1
       when :cvar
         cvar = expr.shift
         g.push_literal cvar
