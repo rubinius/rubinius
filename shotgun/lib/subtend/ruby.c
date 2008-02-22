@@ -382,6 +382,10 @@ ID rb_to_id(VALUE obj) {
   return SYM2ID(rb_funcall(obj, rb_intern("to_sym"), 0));
 }
 
+VALUE rb_each(VALUE obj) {
+  return rb_funcall(obj, rb_intern("each"), 0, 0);
+}
+
 VALUE rb_yield(VALUE val) {
   CTX;
 

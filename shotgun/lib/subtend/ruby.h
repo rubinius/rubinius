@@ -39,6 +39,7 @@ int SYMBOL_P(VALUE obj);
 extern VALUE rb_funcall(VALUE, ID, int cnt, ...);
 extern VALUE rb_funcall2(VALUE, ID, int cnt, VALUE*);
 
+
 extern VALUE subtend_get_global(int which);
 extern VALUE subtend_get_exception(int which);
 
@@ -69,6 +70,7 @@ void rb_define_attr(VALUE klass, ID id, int read, int write);
 VALUE rb_attr_get(VALUE obj, ID sym);
 
 int rb_block_given_p();
+VALUE rb_each(VALUE obj);
 
 #define rb_cObject (subtend_get_global(0))
 
