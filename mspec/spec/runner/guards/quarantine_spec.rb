@@ -8,8 +8,12 @@ describe QuarantineGuard, "#match?" do
 end
 
 describe Object, "#quarantine!" do
+  before :each do
+    ScratchPad.clear
+  end
+  
   it "does not yield" do
-    quarantine! { @record = :yield }
-    @record.should_not == :yield
+    quarantine! { ScratchPad.record :yield }
+    ScratchPad.recorded.should_not == :yield
   end
 end

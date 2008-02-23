@@ -46,11 +46,11 @@ end
 
 describe RunState, "#protect" do
   it "calls MSpec.protect" do
-    record = []
-    a = lambda { record << :a }
-    b = lambda { record << :b }
+    ScratchPad.record []
+    a = lambda { ScratchPad << :a }
+    b = lambda { ScratchPad << :b }
     RunState.new.protect("message", [a, b])
-    record.should == [:a, :b]
+    ScratchPad.recorded.should == [:a, :b]
   end
 end
 
@@ -67,12 +67,12 @@ describe RunState, "#state" do
   end
   
   it "returns a SpecState instance if a spec is being executed" do
-    record = nil
+    ScratchPad.record @state
     @state.describe("") { }
-    @state.it("") { record = @state.state }
+    @state.it("") { ScratchPad.record ScratchPad.recorded.state }
     @state.process
     @state.state.should == nil
-    record.should be_kind_of(SpecState)
+    ScratchPad.recorded.should be_kind_of(SpecState)
   end
 end
 
@@ -84,9 +84,9 @@ describe RunState, "#process" do
     @state = RunState.new
     @state.describe("") { }
 
-    @a = lambda { @record << :a }
-    @b = lambda { @record << :b }
-    @record = []
+    @a = lambda { ScratchPad << :a }
+    @b = lambda { ScratchPad << :b }
+    ScratchPad.record []
   end
   
   it "calls each before(:all) block" do
@@ -94,7 +94,7 @@ describe RunState, "#process" do
     @state.before(:all, &@b)
     @state.it("") { }
     @state.process
-    @record.should == [:a, :b]
+    ScratchPad.recorded.should == [:a, :b]
   end
   
   it "calls each after(:all) block" do
@@ -102,14 +102,14 @@ describe RunState, "#process" do
     @state.after(:all, &@b)
     @state.it("") { }
     @state.process
-    @record.should == [:a, :b]
+    ScratchPad.recorded.should == [:a, :b]
   end
   
   it "calls each it block" do
     @state.it("one", &@a)
     @state.it("two", &@b)
     @state.process
-    @record.should == [:a, :b]
+    ScratchPad.recorded.should == [:a, :b]
   end
   
   it "calls each before(:each) block" do
@@ -117,7 +117,7 @@ describe RunState, "#process" do
     @state.before(:each, &@b)
     @state.it("") { }
     @state.process
-    @record.should == [:a, :b]
+    ScratchPad.recorded.should == [:a, :b]
   end
   
   it "calls each after(:each) block" do
@@ -125,7 +125,7 @@ describe RunState, "#process" do
     @state.after(:each, &@b)
     @state.it("") { }
     @state.process
-    @record.should == [:a, :b]
+    ScratchPad.recorded.should == [:a, :b]
   end
   
   it "calls Mock.cleanup for each it block" do
@@ -136,28 +136,29 @@ describe RunState, "#process" do
   end
   
   it "calls the describe block" do
-    record = []
-    @state.describe(Object, "msg") { record << :a }
+    ScratchPad.record []
+    @state.describe(Object, "msg") { ScratchPad << :a }
     @state.process
-    record.should == [:a]
+    ScratchPad.recorded.should == [:a]
   end
   
   it "creates a new SpecState instance for each spec" do
+    ScratchPad.record @state
     @state.describe("desc") { }
-    @state.it("it") { @record = @state.state }
+    @state.it("it") { ScratchPad.record ScratchPad.recorded.state }
     @state.process
-    @record.should be_kind_of(SpecState)
+    ScratchPad.recorded.should be_kind_of(SpecState)
   end
   
   it "records exceptions that occur while running the spec" do
-    record = nil
+    ScratchPad.record @state
     exception = Exception.new("bump!")
     MSpec.stack.push @state
     @state.describe("describe") { }
     @state.it("it") { raise exception }
-    @state.after(:each) { record = @state.state.exceptions }
+    @state.after(:each) { ScratchPad.record ScratchPad.recorded.state.exceptions }
     @state.process
-    record.should == [[nil, exception]]
+    ScratchPad.recorded.should == [[nil, exception]]
   end
 end
 
@@ -177,9 +178,9 @@ describe RunState, "#process in pretend mode" do
     @state = RunState.new
     @state.describe("") { }
 
-    @a = lambda { @record << :a }
-    @b = lambda { @record << :b }
-    @record = []
+    @a = lambda { ScratchPad << :a }
+    @b = lambda { ScratchPad << :b }
+    ScratchPad.record []
   end
   
   it "does not call any before(:all) block" do
@@ -187,7 +188,7 @@ describe RunState, "#process in pretend mode" do
     @state.before(:all, &@b)
     @state.it("") { }
     @state.process
-    @record.should == []
+    ScratchPad.recorded.should == []
   end
   
   it "does not call any after(:all) block" do
@@ -195,14 +196,14 @@ describe RunState, "#process in pretend mode" do
     @state.after(:all, &@b)
     @state.it("") { }
     @state.process
-    @record.should == []
+    ScratchPad.recorded.should == []
   end
   
   it "does not call any it block" do
     @state.it("one", &@a)
     @state.it("two", &@b)
     @state.process
-    @record.should == []
+    ScratchPad.recorded.should == []
   end
   
   it "does not call any before(:each) block" do
@@ -210,7 +211,7 @@ describe RunState, "#process in pretend mode" do
     @state.before(:each, &@b)
     @state.it("") { }
     @state.process
-    @record.should == []
+    ScratchPad.recorded.should == []
   end
   
   it "does not call any after(:each) block" do
@@ -218,7 +219,7 @@ describe RunState, "#process in pretend mode" do
     @state.after(:each, &@b)
     @state.it("") { }
     @state.process
-    @record.should == []
+    ScratchPad.recorded.should == []
   end
   
   it "does not call Mock.cleanup" do
@@ -229,10 +230,10 @@ describe RunState, "#process in pretend mode" do
   end
   
   it "calls the describe block" do
-    record = []
-    @state.describe(Object, "msg") { record << :a }
+    ScratchPad.record []
+    @state.describe(Object, "msg") { ScratchPad << :a }
     @state.process
-    record.should == [:a]
+    ScratchPad.recorded.should == [:a]
   end
 end
 
@@ -254,24 +255,24 @@ describe RunState, "#process" do
   it "calls registered before actions with the current SpecState instance" do
     before = mock("before")
     before.should_receive(:before).and_return { 
-      @record = :before
+      ScratchPad.record :before
       @spec_state = @state.state
     }
     MSpec.register :before, before
     @state.process
-    @record.should == :before
+    ScratchPad.recorded.should == :before
     @spec_state.should be_kind_of(SpecState)
   end
 
   it "calls registered after actions with the current SpecState instance" do
     after = mock("after")
     after.should_receive(:after).and_return {
-      @record = :after
+      ScratchPad.record :after
       @spec_state = @state.state
     }
     MSpec.register :after, after
     @state.process
-    @record.should == :after
+    ScratchPad.recorded.should == :after
     @spec_state.should be_kind_of(SpecState)
   end
 end
@@ -302,24 +303,24 @@ describe RunState, "#process in pretend mode" do
   it "calls registered before actions with the current SpecState instance" do
     before = mock("before")
     before.should_receive(:before).and_return { 
-      @record = :before
+      ScratchPad.record :before
       @spec_state = @state.state
     }
     MSpec.register :before, before
     @state.process
-    @record.should == :before
+    ScratchPad.recorded.should == :before
     @spec_state.should be_kind_of(SpecState)
   end
 
   it "calls registered after actions with the current SpecState instance" do
     after = mock("after")
     after.should_receive(:after).and_return {
-      @record = :after
+      ScratchPad.record :after
       @spec_state = @state.state
     }
     MSpec.register :after, after
     @state.process
-    @record.should == :after
+    ScratchPad.recorded.should == :after
     @spec_state.should be_kind_of(SpecState)
   end
 end
@@ -341,18 +342,18 @@ describe RunState, "#process" do
   
   it "calls registered enter actions with the current #describe string" do
     enter = mock("enter")
-    enter.should_receive(:enter).and_return { @record = :enter }
+    enter.should_receive(:enter).and_return { ScratchPad.record :enter }
     MSpec.register :enter, enter
     @state.process
-    @record.should == :enter
+    ScratchPad.recorded.should == :enter
   end
   
   it "calls registered leave actions" do
     leave = mock("leave")
-    leave.should_receive(:leave).and_return { @record = :leave }
+    leave.should_receive(:leave).and_return { ScratchPad.record :leave }
     MSpec.register :leave, leave
     @state.process
-    @record.should == :leave
+    ScratchPad.recorded.should == :leave
   end
 end
 
@@ -381,18 +382,18 @@ describe RunState, "#process in pretend mode" do
   
   it "calls registered enter actions with the current #describe string" do
     enter = mock("enter")
-    enter.should_receive(:enter).and_return { @record = :enter }
+    enter.should_receive(:enter).and_return { ScratchPad.record :enter }
     MSpec.register :enter, enter
     @state.process
-    @record.should == :enter
+    ScratchPad.recorded.should == :enter
   end
   
   it "calls registered leave actions" do
     leave = mock("leave")
-    leave.should_receive(:leave).and_return { @record = :leave }
+    leave.should_receive(:leave).and_return { ScratchPad.record :leave }
     MSpec.register :leave, leave
     @state.process
-    @record.should == :leave
+    ScratchPad.recorded.should == :leave
   end
 end
 

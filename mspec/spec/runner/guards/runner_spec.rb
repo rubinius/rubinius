@@ -38,18 +38,19 @@ describe Object, "#runner_is" do
   before :each do
     @guard = RunnerGuard.new
     RunnerGuard.stub!(:new).and_return(@guard)
+    ScratchPad.clear
   end
   
   it "yields when #match? returns true" do
     @guard.stub!(:match?).and_return(true)
-    runner_is(:mspec) { @record = :yield }
-    @record.should == :yield
+    runner_is(:mspec) { ScratchPad.record :yield }
+    ScratchPad.recorded.should == :yield
   end
   
   it "does not yield when #match? returns false" do
     @guard.stub!(:match?).and_return(false)
-    runner_is(:mspec) { @record = :yield }
-    @record.should_not == :yield
+    runner_is(:mspec) { ScratchPad.record :yield }
+    ScratchPad.recorded.should_not == :yield
   end
 end
 
@@ -57,17 +58,18 @@ describe Object, "#runner_is_not" do
   before :each do
     @guard = RunnerGuard.new
     RunnerGuard.stub!(:new).and_return(@guard)
+    ScratchPad.clear
   end
   
   it "does not yield when #match? returns true" do
     @guard.stub!(:match?).and_return(true)
-    runner_is_not(:mspec) { @record = :yield }
-    @record.should_not == :yield
+    runner_is_not(:mspec) { ScratchPad.record :yield }
+    ScratchPad.recorded.should_not == :yield
   end
   
   it "yields when #match? returns false" do
     @guard.stub!(:match?).and_return(false)
-    runner_is_not(:mspec) { @record = :yield }
-    @record.should == :yield
+    runner_is_not(:mspec) { ScratchPad.record :yield }
+    ScratchPad.recorded.should == :yield
   end
 end

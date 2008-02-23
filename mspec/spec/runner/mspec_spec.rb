@@ -61,6 +61,7 @@ describe MSpec, ".protect" do
     @rs = mock('RunState')
     @rs.stub!(:state).and_return(@ss)
     @exception = Exception.new("Sharp!")
+    ScratchPad.record @exception
   end
   
   it "rescues any exceptions raised when executing the block argument" do
@@ -72,15 +73,15 @@ describe MSpec, ".protect" do
   
   it "records the exception in the current.state object's exceptions" do
     MSpec.stack.push @rs
-    MSpec.protect("testing") { raise @exception }
-    @ss.exceptions.should == [["testing", @exception]]
+    MSpec.protect("testing") { raise ScratchPad.recorded }
+    @ss.exceptions.should == [["testing", ScratchPad.recorded]]
   end
   
   it "writes a message to STDERR if current is nil" do
     STDERR.stub!(:write)
     STDERR.should_receive(:write).with("\nAn exception occurred in testing:\nException: \"Sharp!\"\n")
     MSpec.stack.clear
-    MSpec.protect("testing") { raise @exception}
+    MSpec.protect("testing") { raise ScratchPad.recorded }
   end
   
   it "writes a message to STDERR if current.state is nil" do
@@ -88,7 +89,7 @@ describe MSpec, ".protect" do
     STDERR.should_receive(:write).with("\nAn exception occurred in testing:\nException: \"Sharp!\"\n")
     @rs.stub!(:state).and_return(nil)
     MSpec.stack.push @rs
-    MSpec.protect("testing") { raise @exception}
+    MSpec.protect("testing") { raise ScratchPad.recorded }
   end
 end
 
@@ -110,11 +111,11 @@ end
 describe MSpec, ".actions" do
   before :each do
     MSpec.store :start, []
-    @record = []
+    ScratchPad.record []
     start_one = mock("one")
-    start_one.stub!(:start).and_return { @record << :one }
+    start_one.stub!(:start).and_return { ScratchPad << :one }
     start_two = mock("two")
-    start_two.stub!(:start).and_return { @record << :two }
+    start_two.stub!(:start).and_return { ScratchPad << :two }
     MSpec.register :start, start_one
     MSpec.register :start, start_two
   end
@@ -126,7 +127,7 @@ describe MSpec, ".actions" do
   
   it "runs each action registered as a start action" do
     MSpec.actions :start
-    @record.should == [:one, :two]
+    ScratchPad.recorded.should == [:one, :two]
   end
 end
 
@@ -157,14 +158,14 @@ end
 describe MSpec, ".describe" do
   it "pushes a new RunState instance on the stack" do
     MSpec.stack.clear
-    MSpec.describe(Object, "msg") { @record = MSpec.current }
-    @record.should be_kind_of(RunState)
+    MSpec.describe(Object, "msg") { ScratchPad.record MSpec.current }
+    ScratchPad.recorded.should be_kind_of(RunState)
   end
   
   it "pops the RunState instance off the stack when finished" do
     MSpec.stack.clear
-    MSpec.describe(Object, "msg") { @record = MSpec.current }
-    @record.should be_kind_of(RunState)
+    MSpec.describe(Object, "msg") { ScratchPad.record MSpec.current }
+    ScratchPad.recorded.should be_kind_of(RunState)
     MSpec.stack.should == []
   end
 end
@@ -178,18 +179,18 @@ describe MSpec, ".process" do
   
   it "calls all start actions" do
     start = mock("start")
-    start.stub!(:start).and_return { @record = :start }
+    start.stub!(:start).and_return { ScratchPad.record :start }
     MSpec.register :start, start
     MSpec.process
-    @record.should == :start
+    ScratchPad.recorded.should == :start
   end
   
   it "calls all finish actions" do
     finish = mock("finish")
-    finish.stub!(:finish).and_return { @record = :finish }
+    finish.stub!(:finish).and_return { ScratchPad.record :finish }
     MSpec.register :finish, finish
     MSpec.process
-    @record.should == :finish
+    ScratchPad.recorded.should == :finish
   end
   
   it "calls the files method" do
@@ -208,10 +209,10 @@ describe MSpec, ".files" do
   
   it "calls load actions before each file" do
     load = mock("load")
-    load.stub!(:load).and_return { @record = :load }
+    load.stub!(:load).and_return { ScratchPad.record :load }
     MSpec.register :load, load
     MSpec.files
-    @record.should == :load
+    ScratchPad.recorded.should == :load
   end
   
   it "registers the current file" do
