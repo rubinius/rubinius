@@ -25,10 +25,6 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Implementation to run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
     case t
     when 'r', 'ruby'
-      if command == 'ci'
-        puts "ruby is not a valid target for mspec ci"
-        exit 1
-      end
       target = 'ruby'
     when 'r19', 'ruby19'
       target = 'ruby19'
