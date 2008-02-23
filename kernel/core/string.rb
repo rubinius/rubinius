@@ -2401,9 +2401,7 @@ class String
                     end
         proc = Proc.new do
           case directive
-          #when /[CNn]/ then elements << extract_number(i, num_bytes, :big)
           when /[CILNnQS]/ then elements << extract_number(i, num_bytes, :big)
-          #when /[ILQSVv]/ then elements << extract_number(i, num_bytes, :little)
           when /[Vv]/ then elements << extract_number(i, num_bytes, :little)
           when 'c'
             n = extract_number(i, num_bytes, :big)
@@ -2413,10 +2411,6 @@ class String
             n = extract_number(i, num_bytes, :native)
             n = n >= 2**(num_bytes*8 - 1) ? -(2**(num_bytes*8) - n) : n
             elements << n
-          #when /[eFfg]/
-          #  endian = directive == 'g' ? :big : :little 
-          #  n = extract_number(i, num_bytes, endian)
-          #  elements << n.interpret_as_float
           when /[e]/
             n = extract_number(i, num_bytes, :little)
             elements << n.interpret_as_float
@@ -2426,10 +2420,6 @@ class String
           when /[g]/
             n = extract_number(i, num_bytes, :big)
             elements << n.interpret_as_float
-          #when /[DdEG]/
-          #  endian = directive == 'G' ? :big : :little
-          #  n = extract_number(i, num_bytes, endian)
-          #  elements << n.interpret_as_double
           when /[Dd]/
             n = extract_number(i, num_bytes, :native)
             elements << n.interpret_as_double
