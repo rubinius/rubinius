@@ -2368,7 +2368,7 @@ class String
   def extract_number(i, num_bytes, endian)
     result = exp = 0
     bytebits = 8
-    if endian == 'B'
+    if :big == endian || (:native == endian && endian?(:big))
       exp = bytebits * (num_bytes - 1)
       bytebits = -bytebits
     end
@@ -2401,23 +2401,43 @@ class String
                     end
         proc = Proc.new do
           case directive
-          when /[CNn]/ then elements << extract_number(i, num_bytes, 'B')
-          when /[ILQSVv]/ then elements << extract_number(i, num_bytes, 'L')
+          #when /[CNn]/ then elements << extract_number(i, num_bytes, :big)
+          when /[CILNnQS]/ then elements << extract_number(i, num_bytes, :big)
+          #when /[ILQSVv]/ then elements << extract_number(i, num_bytes, :little)
+          when /[Vv]/ then elements << extract_number(i, num_bytes, :little)
           when 'c'
-            n = extract_number(i, num_bytes, 'B')
+            n = extract_number(i, num_bytes, :big)
             n = n >= 2**(num_bytes*8 - 1) ? -(2**(num_bytes*8) - n) : n
             elements << n
           when /[ilqs]/
-            n = extract_number(i, num_bytes, 'L')
+            n = extract_number(i, num_bytes, :native)
             n = n >= 2**(num_bytes*8 - 1) ? -(2**(num_bytes*8) - n) : n
             elements << n
-          when /[eFfg]/
-            endian = directive == 'g' ? 'B' : 'L'
-            n = extract_number(i, num_bytes, endian)
+          #when /[eFfg]/
+          #  endian = directive == 'g' ? :big : :little 
+          #  n = extract_number(i, num_bytes, endian)
+          #  elements << n.interpret_as_float
+          when /[e]/
+            n = extract_number(i, num_bytes, :little)
             elements << n.interpret_as_float
-          when /[DdEG]/
-            endian = directive == 'G' ? 'B' : 'L'
-            n = extract_number(i, num_bytes, endian)
+          when /[Ff]/
+            n = extract_number(i, num_bytes, :native)
+            elements << n.interpret_as_float
+          when /[g]/
+            n = extract_number(i, num_bytes, :big)
+            elements << n.interpret_as_float
+          #when /[DdEG]/
+          #  endian = directive == 'G' ? :big : :little
+          #  n = extract_number(i, num_bytes, endian)
+          #  elements << n.interpret_as_double
+          when /[Dd]/
+            n = extract_number(i, num_bytes, :native)
+            elements << n.interpret_as_double
+          when /[E]/
+            n = extract_number(i, num_bytes, :little)
+            elements << n.interpret_as_double
+          when /[G]/
+            n = extract_number(i, num_bytes, :big)
             elements << n.interpret_as_double
           end
           i += num_bytes

@@ -244,6 +244,11 @@ module Kernel
   end
   module_function :rand
 
+  def endian?(order)
+    order == Rubinius::ENDIAN
+  end
+  module_function :endian?
+
   def block_given?
     if MethodContext.current.sender.block
       return true

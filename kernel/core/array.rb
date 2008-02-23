@@ -1114,18 +1114,30 @@ class Array
           raise RangeError, "bignum too big to convert into 'unsigned long'"
         end
 
-        if item < 0
-          item = 2**(8*bytes) + item
+        # pack these bytes according to the native byte ordering of the host platform
+        if endian?(:little)
+          if item < 0
+            item = 2**(8*bytes) + item
+          end
+          str = ""
+          str << " " * bytes
+
+          (0..bytes-1).each do |byte|
+            str[byte] = ( item >> ( byte * 8 ) ) & 0xFF
+          end
+          ret << str
+        else # endian?(:big)
+          obj = item
+          parts = []
+          bytes.times do
+            parts << (obj % 256)
+            obj = obj / 256
+          end
+          (bytes - 1).downto(0) do |j|
+            ret << parts[j].chr
+          end
         end
 
-        str = ""
-        str << " " * bytes
-
-        (0..bytes-1).each do |byte|
-          str[byte] = ( item >> ( byte * 8 ) ) & 0xFF
-        end
-
-        ret << str
       elsif kind =~ /H|h/
         remaining = if t.nil?
                       0
