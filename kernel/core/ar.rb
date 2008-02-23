@@ -1,12 +1,7 @@
-require 'fileutils'
-require 'tempfile'
-
 ##
 # Ar reads ar(5) formatted files.
 
 class Ar
-
-  include Enumerable
 
   class Error < RuntimeError; end
 
@@ -18,6 +13,9 @@ class Ar
   # Removes +files+ from the archive.
 
   def delete(*files)
+    require 'fileutils'
+    require 'tempfile'
+
     Tempfile.open "#{File.basename @path}.new" do |io|
       io.write "!<arch>\n"
 
@@ -141,6 +139,10 @@ class Ar
     io.write "\n" if data.length % 2 == 1
 
     self
+  end
+
+  def self.after_loaded # :nodoc:
+    include Enumerable
   end
 
 end

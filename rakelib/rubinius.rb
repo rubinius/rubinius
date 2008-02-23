@@ -1,4 +1,4 @@
-require 'lib/ar'
+require 'kernel/core/ar'
 
 def ar_add(ar_name, file_name)
   puts "ar_add #{ar_name} #{file_name}" if $verbose
