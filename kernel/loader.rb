@@ -7,7 +7,6 @@ STDIN.setup
 STDERR.setup
 
 begin
-  Ar.after_loaded
   Array.after_loaded
   Module.after_loaded
 
@@ -23,6 +22,8 @@ begin
   IO.after_loaded
   Object.after_loaded
   File.after_loaded
+
+  Ar.after_loaded
 
   ENV = EnvironmentVariables.new
 

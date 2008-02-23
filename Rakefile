@@ -55,15 +55,15 @@ file 'runtime/stable/loader.rbc' => 'runtime/loader.rbc' do
 end
 
 file 'runtime/stable/compiler.rba' => 'build:compiler' do |t|
-  sh "cd lib; zip -r ../runtime/stable/compiler.rba compiler -x \\*.rb"
-  #rm_f t.name
-  #rbc_files = Rake::FileList['compiler/**/*.rbc']
+  #sh "cd lib; zip -r ../runtime/stable/compiler.rba compiler -x \\*.rb"
+  rm_f t.name
+  rbc_files = Rake::FileList['compiler/**/*.rbc']
 
-  #Dir.chdir 'lib' do
-  #  rbc_files.each do |rbc_file|
-  #    ar_add "../#{t.name}", rbc_file
-  #  end
-  #end
+  Dir.chdir 'lib' do
+    rbc_files.each do |rbc_file|
+      ar_add "../#{t.name}", rbc_file
+    end
+  end
 end
 
 Rake::StructGeneratorTask.new do |t|

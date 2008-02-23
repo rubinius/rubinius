@@ -119,7 +119,16 @@ module Compile
     else
       $LOAD_PATH.each do |dir|
         if rbc and dir.suffix? '.rba' and File.file? dir
-          cm = Archive.get_object(dir, rbc, version_number)
+          begin
+            _, _, _, _, _, data = Ar.new(dir).extract rbc
+          rescue Ar::Error
+          end
+
+          cm = if data then
+                 unmarshal_object data, 0
+               else
+                 Archive.get_object dir, rbc, version_number
+               end
 
           if cm
             return false if requiring and $LOADED_FEATURES.include? rb
@@ -300,6 +309,10 @@ module Compile
     end
 
     Compile.single_load '', rb, rbc, ext, false
+  end
+
+  def self.unmarshal_object(data, version)
+    Ruby.primitive :unmarshal_object
   end
 
 end       # Compile
