@@ -37,11 +37,10 @@
  */
 
 /* Define if processor uses big-endian word */
-/*
 #ifdef __BIG_ENDIAN__
 #define WORDS_BIGENDIAN 
-#else */ /* !__BIG_ENDIAN__ */
+#else  /* !__BIG_ENDIAN__ */
 /* #undef WORDS_BIGENDIAN */
-/* #endif */ /* __BIG_ENDIAN__ */
+#endif  /* __BIG_ENDIAN__ */
 
 #endif /* DIGEST_DEFS_H */
