@@ -109,9 +109,6 @@ class Socket < BasicSocket
 
     #attach_function "ffi_pack_sockaddr_un", :pack_sa_unix,
     #                [:state, :string], :object
-    attach_function "ffi_pack_sockaddr_in", :ffi_pack_sockaddr_in,
-                    [:state, :string, :string, :int, :int], :object
-    attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
 
     def self.bind(descriptor, sockaddr)
       MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
@@ -242,17 +239,37 @@ class Socket < BasicSocket
       end
     end
 
-    def self.pack_sa_ip(name, port, type, flags)
-      result = ffi_pack_sockaddr_in name, port, type, flags
+    def self.pack_sockaddr_in(name, port, type, flags)
+      hints = Socket::Foreign::AddrInfo.new
+      hints[:ai_family] = Socket::AF_UNSPEC
+      hints[:ai_socktype] = type
+      hints[:ai_flags] = flags
 
-      ok, value = result.to_a
+      res_p = MemoryPointer.new :pointer
 
-      raise SocketError, value unless ok
+      err = _getaddrinfo host, service, hints.pointer, res_p
 
-      value
+      raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
+
+      return [] if res_p.read_pointer.null?
+
+      res = Socket::Foreign::AddrInfo.new res_p.read_pointer
+
+      return res[:ai_addr].read_string(res[:ai_addrlen])
+
+    ensure
+      hints.free if hints
+
+      if res_p then
+        ptr = res_p.read_pointer
+
+        freeaddrinfo ptr if ptr and not ptr.null?
+
+        res_p.free
+      end
     end
 
-    def self.unpack_sa_ip(sockaddr, reverse_lookup)
+    def self.unpack_sockaddr_in(sockaddr, reverse_lookup)
       _, port, host, ip = getnameinfo sockaddr, reverse_lookup
 
       return host, ip, port
@@ -312,7 +329,7 @@ class Socket < BasicSocket
       addrinfo = []
       addrinfo << Socket::Constants::AF_TO_FAMILY[ai[1]]
 
-      sockaddr = Socket::Foreign::unpack_sa_ip ai[4], true
+      sockaddr = Socket::Foreign::unpack_sockaddr_in ai[4], true
 
       addrinfo << sockaddr.pop # port
       addrinfo.concat sockaddr # hosts
@@ -362,11 +379,11 @@ class Socket < BasicSocket
 
   def self.pack_sockaddr_in(port, host, type = 0, flags = 0)
     host = "0.0.0.0" if host.empty?
-    Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, type, flags)
+    Socket::Foreign.pack_sockaddr_in host.to_s, port.to_s, type, flags
   end
 
   def self.unpack_sockaddr_in(sockaddr)
-    host, address, port = Socket::Foreign.unpack_sa_ip sockaddr, false
+    host, address, port = Socket::Foreign.unpack_sockaddr_in sockaddr, false
 
     return [port, address]
   rescue SocketError => e
@@ -464,7 +481,8 @@ class UDPSocket < IPSocket
     @port = port
     @host = host
 
-    ret = Socket::Foreign.bind_name descriptor, @host.to_s, @port.to_s, @type
+    sockaddr = Socket::Foreign.pack_sockaddr_in @host,to_s, @port.to_s, @type, 0
+    ret = Socket::Foreign.bind descriptor, sockaddr
     setup(fixnum)
 
     name, addr, port = Socket::Foreign.getpeername fixnum, false

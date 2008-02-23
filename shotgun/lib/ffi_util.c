@@ -136,60 +136,6 @@ OBJECT ffi_pack_sockaddr_un(STATE, char *path) {
   return string_new2(state, (char*) sa, sizeof(struct sockaddr_un) );
 }
 
-OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) {
-  OBJECT ret;
-  struct addrinfo hints;
-  struct addrinfo *res = NULL;
-  int error;
-
-  if (type == 0 && flags == 0) {
-    type = SOCK_DGRAM;
-  }
-
-  memset(&hints, 0, sizeof(struct addrinfo));
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = type;
-  hints.ai_flags = flags;
-
-  if(strlen(name) == 0) {
-    name = NULL;
-  }
-
-  error = getaddrinfo(name, port, &hints, &res);
-  if(error) {
-    return tuple_new2(state, 2, Qfalse, string_new(state, gai_strerror(error)));
-  }
-
-  ret = tuple_new2(state, 2, Qtrue,
-                   string_new2(state, (char *) res->ai_addr, res->ai_addrlen));
-
-  freeaddrinfo(res);
-
-  return ret;
-}
-
-int ffi_bind(int s, char *host, char *port, int type) {
-  struct addrinfo hints;
-  struct addrinfo *res = NULL;
-  int error;
-  int ret;
-  
-  memset(&hints, 0, sizeof(struct addrinfo));
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_DGRAM;
-  hints.ai_flags = 0;
-
-  if(strlen(host) == 0) host = NULL;
-  
-  error = getaddrinfo(NULL, "40011", &hints, &res);
-  if(error) {
-    printf("bind_local_socket ERROR: %s\n", gai_strerror(error));
-    return -1;
-  }
-  ret = bind(s, res->ai_addr, res->ai_addrlen);
-  return ret;
-}
-
 OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, socklen_t sockaddr_len,
                        int flags) {
   char node[NI_MAXHOST], service[NI_MAXSERV];
