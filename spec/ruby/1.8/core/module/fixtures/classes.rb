@@ -155,6 +155,10 @@ module ModuleSpecs
     include B
   end
 
+  module Z
+    MODULE_SPEC_TOPLEVEL_CONSTANT = 1
+  end
+
   class Aliasing
     def self.make_alias(*a)
       alias_method(*a)

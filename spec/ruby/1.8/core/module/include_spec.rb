@@ -54,6 +54,11 @@ describe "Module#include" do
     ModuleSpecs::C.instance_methods.should include("ma","mb")
   end
 
+  it "imports constants to the toplevel" do
+    eval "include ModuleSpecs::Z", TOPLEVEL_BINDING
+    MODULE_SPEC_TOPLEVEL_CONSTANT.should == 1
+  end
+
   it "does not import methods to modules and classes" do
     ModuleSpecs::A.methods.include?("cma").should == true
     ModuleSpecs::B.methods.include?("cma").should == false
