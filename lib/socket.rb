@@ -111,8 +111,6 @@ class Socket < BasicSocket
     #                [:state, :string], :object
     attach_function "ffi_pack_sockaddr_in", :ffi_pack_sockaddr_in,
                     [:state, :string, :string, :int, :int], :object
-    attach_function "ffi_decode_sockaddr", :ffi_decode_sockaddr,
-                    [:state, :string, :socklen_t, :int], :object
     attach_function "ffi_bind", :bind_name, [:int, :string, :string, :int], :int
 
     def self.bind(descriptor, sockaddr)
@@ -181,11 +179,12 @@ class Socket < BasicSocket
       end
     end
 
-    def self.getnameinfo(sockaddr)
+    def self.getnameinfo(sockaddr,
+                         reverse_lookup = !Socket.do_not_reverse_lookup)
       name_info = []
       value = nil
 
-      unless Socket.do_not_reverse_lookup then
+      if reverse_lookup then
         MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
           sockaddr_p.write_string sockaddr, sockaddr.length
 
@@ -200,7 +199,8 @@ class Socket < BasicSocket
       MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
         sockaddr_p.write_string sockaddr, sockaddr.length
 
-        success, value = _getnameinfo sockaddr_p, sockaddr.length, 0
+        success, value = _getnameinfo sockaddr_p, sockaddr.length,
+                         Socket::NI_NUMERICSERV
 
         raise SocketError, value unless success
 
@@ -253,13 +253,9 @@ class Socket < BasicSocket
     end
 
     def self.unpack_sa_ip(sockaddr, reverse_lookup)
-      reverse_lookup = reverse_lookup ? 1 : 0
+      _, port, host, ip = getnameinfo sockaddr, reverse_lookup
 
-      result = ffi_decode_sockaddr sockaddr, sockaddr.length, reverse_lookup
-
-      raise SocketError, result if String === result
-
-      result.to_a
+      return host, ip, port
     end
   end
 

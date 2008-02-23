@@ -168,36 +168,6 @@ OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) 
   return ret;
 }
 
-OBJECT ffi_decode_sockaddr(STATE, struct sockaddr *addr, socklen_t len, int reverse_lookup) {
-  OBJECT host;
-  OBJECT address;
-
-  int error = 0;
-
-  char hbuf[NI_MAXHOST];
-  char pbuf[NI_MAXSERV];
-
-  error = getnameinfo(addr, len, hbuf, sizeof(hbuf), pbuf, sizeof(pbuf),
-                      NI_NUMERICHOST | NI_NUMERICSERV);
-  if(error) {
-    return string_new(state, gai_strerror(error));
-  }
-
-  address = string_new(state, hbuf);
-
-  if(reverse_lookup) {
-    error = getnameinfo(addr, len, hbuf, sizeof(hbuf), NULL, 0, 0);
-
-    if(error) {
-      return string_new(state, gai_strerror(error));
-    }
-  }
-
-  host = string_new(state, hbuf);
-
-  return tuple_new2(state, 3, host, address, I2N(atoi(pbuf)));
-}
-
 int ffi_bind(int s, char *host, char *port, int type) {
   struct addrinfo hints;
   struct addrinfo *res = NULL;
@@ -223,20 +193,9 @@ int ffi_bind(int s, char *host, char *port, int type) {
 OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, socklen_t sockaddr_len,
                        int flags) {
   char node[NI_MAXHOST], service[NI_MAXSERV];
-  OBJECT value, address, port, ip;
+  OBJECT value, host, port, ip;
   int err;
 
-  err = getnameinfo(sockaddr, sockaddr_len, node, NI_MAXHOST,
-                    service, NI_MAXSERV, flags);
-
-  if(err != 0) {
-    return tuple_new2(state, 2, Qfalse,
-        string_new(state, gai_strerror(err)));
-  }
-
-  address = string_new2(state, node, strlen(node));
-  port = I2N(atoi(service));
-  
   err = getnameinfo(sockaddr, sockaddr_len, node, NI_MAXHOST,
                     service, NI_MAXSERV, flags | NI_NUMERICHOST);
 
@@ -244,12 +203,23 @@ OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, socklen_t sockaddr_len,
     return tuple_new2(state, 2, Qfalse,
         string_new(state, gai_strerror(err)));
   }
+
   ip = string_new2(state, node, strlen(node));
+  port = I2N(atoi(service));
+  
+  err = getnameinfo(sockaddr, sockaddr_len, node, NI_MAXHOST,
+                    NULL, 0, flags);
+
+  if(err != 0) {
+    return tuple_new2(state, 2, Qfalse,
+        string_new(state, gai_strerror(err)));
+  }
+  host = string_new2(state, node, strlen(node));
 
   value = array_new(state, 0);
   array_append(state, value, I2N(sockaddr->sa_family));
   array_append(state, value, port);
-  array_append(state, value, address);
+  array_append(state, value, host);
   array_append(state, value, ip);
 
   return tuple_new2(state, 2, Qtrue, value);
