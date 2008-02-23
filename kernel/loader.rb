@@ -7,6 +7,7 @@ STDIN.setup
 STDERR.setup
 
 begin
+  Ar.after_loaded
   Array.after_loaded
   Module.after_loaded
 
