@@ -13,7 +13,7 @@ describe "String#unpack" do
 
   little_endian do
     it "returns an array by decoding self in little-endian (native format) order according to the format string" do
-      "\xfe\xff\xfe\xff".unpack('sS').should == [-2, 65279]
+      "\xfe\xff\xfe\xff".unpack('sS').should == [-2, 65534]
     end
   end
   
