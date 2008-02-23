@@ -5,7 +5,7 @@ module SHA384Constants
   Contents = "Ipsum is simply dummy text of the printing and typesetting industry. \nLorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. \nIt has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. \nIt was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
   
   
-  Klass          = Digest::SHA384
+  Klass          = ::Digest::SHA384
   BlockLength    = 128
   DigestLength   = 48
   BlankDigest    = "8\260`\247Q\254\2268L\3312~\261\261\343j!\375\267\021\024\276\aCL\f\307\277c\366\341\332'N\336\277\347oe\373\325\032\322\361H\230\271["
