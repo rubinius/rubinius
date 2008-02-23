@@ -2401,7 +2401,8 @@ class String
                     end
         proc = Proc.new do
           case directive
-          when /[CILNnQS]/ then elements << extract_number(i, num_bytes, :big)
+          when /[Nn]/ then elements << extract_number(i, num_bytes, :big)
+          when /[CILQS]/ then elements << extract_number(i, num_bytes, :native)
           when /[Vv]/ then elements << extract_number(i, num_bytes, :little)
           when 'c'
             n = extract_number(i, num_bytes, :big)

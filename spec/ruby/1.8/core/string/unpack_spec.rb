@@ -12,13 +12,13 @@ describe "String#unpack" do
   end
 
   little_endian do
-    it "returns an array by decoding self in little-endian order according to the format string" do
-      "\xfe\xff\xfe\xff".unpack('sS').should == [-2, 65534]
+    it "returns an array by decoding self in little-endian (native format) order according to the format string" do
+      "\xfe\xff\xfe\xff".unpack('sS').should == [-2, 65279]
     end
   end
   
   big_endian do
-    it "returns an array by decoding self in big-endian order according to the format string" do
+    it "returns an array by decoding self in big-endian (native format) order according to the format string" do
       "\xfe\xff\xfe\xff".unpack('sS').should == [-257, 65279]
     end
   end
@@ -97,7 +97,7 @@ end
 
 describe "String#unpack with 'Q' and 'q' directives" do
   little_endian do
-    it "returns an array by decoding self according to the format string" do
+    it "returns an array in little-endian (native format) order by decoding self according to the format string" do
       "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q').should == [17344245288696546035]
       "\xF3\x02".unpack('Q*').should == []
       "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931]
@@ -115,7 +115,7 @@ describe "String#unpack with 'Q' and 'q' directives" do
   end
 
   big_endian do
-    it "returns an array by decoding self according to the format string" do
+    it "returns an array in big-endian (native format) order by decoding self according to the format string" do
       "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q').should == [17510558585478951920]
       "\xF3\x02".unpack('Q*').should == []
       "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [17582052941799031296]
@@ -133,7 +133,7 @@ describe "String#unpack with 'Q' and 'q' directives" do
   end
 
   little_endian do
-    it "returns Bignums for big numeric values" do
+    it "returns Bignums for big numeric values on little-endian platforms" do
       "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q')[0].class.should ==
         17344245288696546035.class
       "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE".unpack('q')[0].class.should == -72057594037927937.class
@@ -141,7 +141,7 @@ describe "String#unpack with 'Q' and 'q' directives" do
   end
 
   big_endian do
-    it "returns Bignums for big numeric values" do
+    it "returns Bignums for big numeric values on big-endian platforms" do
       "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q')[0].class.should ==
         17344245288696546035.class
       "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE".unpack('q')[0].class.should == Fixnum
@@ -202,7 +202,7 @@ describe "String#unpack with 'DdEeFfGg' directives" do
   end
   
   little_endian do
-    it "returns an array by decoding self in big-endian order according to the format string" do
+    it "returns an array by decoding self in little-endian order according to the format string" do
       # 'F2' pattern
       res = "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('F2')
       res.length.should == 2
