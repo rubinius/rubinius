@@ -96,35 +96,56 @@ describe "String#unpack with 'C' and 'c' directives" do
 end
 
 describe "String#unpack with 'Q' and 'q' directives" do
-  it "returns an array by decoding self according to the format string" do
-    #"\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q').should == [17344245288696546035]
-    "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q').should == [17510558585478951920]
-    "\xF3\x02".unpack('Q*').should == []
-    #"\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931]
-    "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [17582052941799031296]
-    #"\xF3\x02\xC0\x42\x3A\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('Q*').should ==
-    #  [68547103638422259, 17218254449219272698]
-    "\xF3\x02\xC0\x42\x3A\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('Q*').should ==
-      [17510769691852272384, 18086174637980906478]
-    "\xF3\x02\x00\x42".unpack('q').should == [nil]
-    "\x01\x62\xEE\x42".unpack('q-7q').should == [nil, nil]
-    "\xF3\x02\x00\x42".unpack('q5').should == [nil, nil, nil, nil, nil]
-    "\xF3".unpack('q').should == [nil]
-    #"\xF3\xFF\xFF\xFF\xFF\xFA\xF3\xFD".unpack('q3').should == [-147498385354522637, nil, nil]
-    "\xF3\xFF\xFF\xFF\xFF\xFA\xF3\xFD".unpack('q3').should == [-864691128455465987, nil, nil]
-    #"\x0A\x02\x00\x02\x32\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('q*').should ==
-    #  [68547068192358922, -1228489624490278918]
-    "\x0A\x02\x00\x02\x32\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('q*').should ==
-      [721138899770405632, -360569435728645138]
-    #"\x7F\x77\x77\x77\x77\x77\x77\x77".unpack('q0Q*').should == [8608480567731124095]
-    "\x7F\x77\x77\x77\x77\x77\x77\x77".unpack('q0Q*').should == [9184941320034547575]
+  little_endian do
+    it "returns an array by decoding self according to the format string" do
+      "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q').should == [17344245288696546035]
+      "\xF3\x02".unpack('Q*').should == []
+      "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [575263624658931]
+      "\xF3\x02\xC0\x42\x3A\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('Q*').should ==
+        [68547103638422259, 17218254449219272698]
+      "\xF3\x02\x00\x42".unpack('q').should == [nil]
+      "\x01\x62\xEE\x42".unpack('q-7q').should == [nil, nil]
+      "\xF3\x02\x00\x42".unpack('q5').should == [nil, nil, nil, nil, nil]
+      "\xF3".unpack('q').should == [nil]
+      "\xF3\xFF\xFF\xFF\xFF\xFA\xF3\xFD".unpack('q3').should == [-147498385354522637, nil, nil]
+      "\x0A\x02\x00\x02\x32\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('q*').should ==
+        [68547068192358922, -1228489624490278918]
+      "\x7F\x77\x77\x77\x77\x77\x77\x77".unpack('q0Q*').should == [8608480567731124095]
+    end
   end
 
-  it "returns Bignums for big numeric values" do
-    "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q')[0].class.should ==
-      17344245288696546035.class
-    #"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE".unpack('q')[0].class.should == -72057594037927937.class
-    "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE".unpack('q')[0].class.should == Fixnum
+  big_endian do
+    it "returns an array by decoding self according to the format string" do
+      "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q').should == [17510558585478951920]
+      "\xF3\x02".unpack('Q*').should == []
+      "\xF3\xFF\xFF\xFF\x32\x0B\x02\x00".unpack('Q2').should == [17582052941799031296]
+      "\xF3\x02\xC0\x42\x3A\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('Q*').should ==
+        [17510769691852272384, 18086174637980906478]
+      "\xF3\x02\x00\x42".unpack('q').should == [nil]
+      "\x01\x62\xEE\x42".unpack('q-7q').should == [nil, nil]
+      "\xF3\x02\x00\x42".unpack('q5').should == [nil, nil, nil, nil, nil]
+      "\xF3".unpack('q').should == [nil]
+      "\xF3\xFF\xFF\xFF\xFF\xFA\xF3\xFD".unpack('q3').should == [-864691128455465987, nil, nil]
+      "\x0A\x02\x00\x02\x32\x87\xF3\x00\xFA\xFF\x00\x02\x32\x87\xF3\xEE".unpack('q*').should ==
+        [721138899770405632, -360569435728645138]
+      "\x7F\x77\x77\x77\x77\x77\x77\x77".unpack('q0Q*').should == [9184941320034547575]
+    end
+  end
+
+  little_endian do
+    it "returns Bignums for big numeric values" do
+      "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q')[0].class.should ==
+        17344245288696546035.class
+      "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE".unpack('q')[0].class.should == -72057594037927937.class
+    end
+  end
+
+  big_endian do
+    it "returns Bignums for big numeric values" do
+      "\xF3\x02\x00\x42\x32\x23\xB3\xF0".unpack('Q')[0].class.should ==
+        17344245288696546035.class
+      "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFE".unpack('q')[0].class.should == Fixnum
+    end
   end
 
   it "returns Fixnums for small numeric values" do
