@@ -15,11 +15,11 @@ class IncludeMatcher
   end
   
   def failure_message
-    ["Expected #{@actual.inspect}", "to include #{@element}"]
+    ["Expected #{@actual.inspect}", "to include #{@element.inspect}"]
   end
   
   def negative_failure_message
-    ["Expected #{@actual.inspect}", "not to include #{@element}"]
+    ["Expected #{@actual.inspect}", "not to include #{@element.inspect}"]
   end
 end
 
