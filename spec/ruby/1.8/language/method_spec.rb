@@ -26,7 +26,14 @@ describe "Calling a method" do
     l = lambda { 300 }
     foo(10, &l).should == [10,300]
   end
-  
+ 
+  it "fails with both lambda and block argument" do
+    def foo(a,&b); [a,yield(b)] end
+
+    l = lambda { 300 }
+    lambda { eval "foo(10, &l){ 42}"}.should raise_error(SyntaxError)
+  end
+
   it "with same names as existing variables is ok" do
     foobar = 100
 
