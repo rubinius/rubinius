@@ -189,10 +189,18 @@ describe "File.open" do
   it "opens a file that no exists when use File::NONBLOCK mode" do 
     lambda { File.open("fake", File::NONBLOCK) }.should raise_error(Errno::ENOENT)
   end  
+
+  platform_is_not :openbsd do
+    it "opens a file that no exists when use File::TRUNC mode" do 
+      lambda { File.open("fake", File::TRUNC) }.should raise_error(Errno::ENOENT)
+    end  
+  end
   
-  it "opens a file that no exists when use File::TRUNC mode" do 
-    lambda { File.open("fake", File::TRUNC) }.should raise_error(Errno::ENOENT)
-  end  
+  platform_is :openbsd do
+    it "opens a file that no exists when use File::TRUNC mode" do 
+      lambda { File.open("fake", File::TRUNC) }.should raise_error(Errno::EINVAL)
+    end  
+  end
   
   it "opens a file that no exists when use File::NOCTTY mode" do 
     lambda { File.open("fake", File::NOCTTY) }.should raise_error(Errno::ENOENT)
@@ -383,17 +391,20 @@ describe "File.open" do
     }.should raise_error(Errno::EINVAL)
   end
   
-  it "truncates the file when passed File::TRUNC mode" do 
-    File.open(@file, File::RDWR) { |f| f.puts "hello file" }
-    @fh = File.open(@file, File::TRUNC)   
-    @fh.gets.should == nil
-  end 
-    
-  
-  it "can't read in a block when call open with File::TRUNC mode" do  
-    File.open(@file, File::TRUNC) do |f|  
-      f.gets.should == nil
+  platform_is_not :openbsd do
+
+    it "truncates the file when passed File::TRUNC mode" do 
+      File.open(@file, File::RDWR) { |f| f.puts "hello file" }
+      @fh = File.open(@file, File::TRUNC)   
+      @fh.gets.should == nil
     end 
+    
+    it "can't read in a block when call open with File::TRUNC mode" do  
+      File.open(@file, File::TRUNC) do |f|  
+        f.gets.should == nil
+      end 
+    end
+    
   end
     
   it "opens a file when use File::WRONLY|File::TRUNC mode" do
@@ -403,20 +414,40 @@ describe "File.open" do
     File.exist?(@file).should == true
   end
   
-  it "can't write in a block when call open with File::TRUNC mode" do 
-    lambda {
-      File.open(@file, File::TRUNC) do |f|  
-        f.puts("writing")
-      end
-    }.should raise_error(IOError)
-  end  
+  platform_is_not :openbsd do
+    it "can't write in a block when call open with File::TRUNC mode" do 
+      lambda {
+        File.open(@file, File::TRUNC) do |f|  
+          f.puts("writing")
+        end
+      }.should raise_error(IOError)
+    end  
       
-  it "raises an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC" do 
-    lambda {
-      File.open(@file, File::RDONLY|File::TRUNC) do |f|  
-        f.puts("writing").should == nil 
-      end
-    }.should raise_error(IOError)
+    it "raises an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC" do 
+      lambda {
+        File.open(@file, File::RDONLY|File::TRUNC) do |f|  
+          f.puts("writing").should == nil 
+        end
+      }.should raise_error(IOError)
+    end
+  end
+  
+  platform_is :openbsd do
+    it "can't write in a block when call open with File::TRUNC mode" do 
+      lambda {
+        File.open(@file, File::TRUNC) do |f|  
+          f.puts("writing")
+        end
+      }.should raise_error(Errno::EINVAL)
+    end  
+      
+    it "raises an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC" do 
+      lambda {
+        File.open(@file, File::RDONLY|File::TRUNC) do |f|  
+          f.puts("writing").should == nil 
+        end
+      }.should raise_error(Errno::EINVAL)
+    end
   end
   
   it "raises an Errno::EACCES when opening non-permitted file" do

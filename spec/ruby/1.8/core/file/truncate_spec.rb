@@ -72,8 +72,10 @@ describe "File.truncate" do
     lambda { File.truncate(@name) }.should raise_error(ArgumentError)
   end
   
-  it "raises an Errno::EINVAL if the length argument is not valid" do
-    lambda { File.truncate(@name, -1)  }.should raise_error(Errno::EINVAL) # May fail
+  platform_is_not :openbsd do
+    it "raises an Errno::EINVAL if the length argument is not valid" do
+      lambda { File.truncate(@name, -1)  }.should raise_error(Errno::EINVAL) # May fail
+    end
   end
   
   it "raises a TypeError if not passed a String type for the first argument" do
