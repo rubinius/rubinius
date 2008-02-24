@@ -8,7 +8,6 @@ task :extensions => %w[
   extension:digest_sha1
   extension:digest_sha2
 
-  extension:syck
   extension:zlib
   extension:readline
 ]
@@ -58,17 +57,6 @@ namespace :extension do
     compile 'lib/ext/digest/sha2'
   end
 
-  task :syck => "lib/ext/syck/rbxext.#{$dlext}"
-
-  file "lib/ext/syck/rbxext.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/ruby.h',
-    'lib/ext/syck/build.rb',
-    'lib/ext/syck/*.c',
-    'lib/ext/syck/*.h',
-  ] do
-    compile "lib/ext/syck"
-  end
-  
   task :mongrel => "lib/ext/mongrel/http11.#{$dlext}"
 
   file "lib/ext/mongrel/http11.#{$dlext}" => FileList[
