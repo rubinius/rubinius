@@ -57,7 +57,7 @@ describe "Process.setrlimit and Process.getrlimit" do
     Process.setrlimit(Process::RLIMIT_STACK, lim, max).should == nil
   end
 
-  platform_is_not :darwin do
+  platform_is_not :darwin, :openbsd do
     it "limit and get total available memory (bytes)" do
       lim, max = Process.getrlimit(Process::RLIMIT_AS)
       lim.kind_of?(Integer).should == true
