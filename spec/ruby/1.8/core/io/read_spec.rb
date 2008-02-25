@@ -147,8 +147,13 @@ describe "IO#read" do
   it "truncates the buffer when too big" do
     buf = "ABCDEFGHIJKLMNO"
     @io.read nil, buf
-
     buf.should == @contents
+
+    @io.rewind
+
+    buf = "ABCDEFGHIJKLMNO"
+    @io.read 5, buf
+    buf.should == @contents[0..4]
   end
 
   it "returns the given buffer" do
