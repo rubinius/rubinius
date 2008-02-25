@@ -1,15 +1,16 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/archives'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
-require 'ar'
-
-ArSpec.new '#write' do
+describe 'Ar#write' do
+  after :each do
+    @archive.close if @archive
+  end
 
   it 'writes a new ar file' do
-    archive = write_ar ArSpec::ABC
+    @archive = ArSpec.write_ar ArSpec::ABC
 
     Tempfile.open 'ABC.a' do |io|
-      Ar.new(archive.path).write io
+      Ar.new(@archive.path).write io
 
       io.rewind
 
@@ -18,17 +19,14 @@ ArSpec.new '#write' do
   end
 
   it 'handles long names' do
-    archive = write_ar ArSpec::LONG_NAME
+    @archive = ArSpec.write_ar ArSpec::LONG_NAME
 
     Tempfile.open 'ABC.a' do |io|
-      Ar.new(archive.path).write io
+      Ar.new(@archive.path).write io
 
       io.rewind
 
       io.read.should == ArSpec::LONG_NAME
     end
-
   end
-
 end
-
