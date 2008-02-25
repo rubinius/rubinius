@@ -1,1 +1,6 @@
 fails:SubtendMethodVisModule should inherit method function from mixin
+fails:SubtendMethodVis should have public method smv_test_public
+fails:SubtendMethodVis should have protected method smv_test_protected
+fails:SubtendMethodVis should have private method smv_test_private
+fails:SubtendMethodVisModule should have singleton method smv_test_singleton
+fails:SubtendMethodVisModule should not inherit singleton method from mixin

@@ -1,4 +1,5 @@
-load_spec_dynamic.rb
-load_spec_dynamic.rbc
+*.rba
 *.rbc
 *.old
+*dummy*
+*dynamic*

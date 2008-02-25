@@ -1,0 +1,2 @@
+fails:Kernel#load generates a .rbc but no .rb file if using a file with no extension (appends .rbc)
+fails:Kernel#load generates a .rbc file if using a file with an arbitrary extension (appends .rbc)

@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-$load_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/load')
+$load_fixture_dir = (File.dirname(__FILE__) + '/../../ruby/1.8/fixtures/load')
 $LOAD_PATH << $load_fixture_dir
-$LOAD_PATH << (File.dirname(__FILE__) + '/../../fixtures/load/load_spec_rba.rba')
+$LOAD_PATH << (File.dirname(__FILE__) + '/../../ruby/1.8/fixtures/load/load_spec_rba.rba')
 
 $load_spec_1 = nil
 $load_spec_2 = nil
@@ -29,12 +29,10 @@ describe "Kernel#load" do
       `rm -f ./*.rbc`
     end
 
-    compliant_on :rubinius do
-      Kernel.compile($load_fixture_dir + '/load_spec_10.rb')
+    Kernel.compile($load_fixture_dir + '/load_spec_10.rb')
 
-      Dir.chdir($load_fixture_dir) do |dir|
-        `zip load_spec_rba.rba load_spec_10.rbc`
-      end
+    Dir.chdir($load_fixture_dir) do |dir|
+      `zip load_spec_rba.rba load_spec_10.rbc`
     end
   end
 

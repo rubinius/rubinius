@@ -3,6 +3,9 @@
 ENV["CI_FILES"] = ['spec/ruby/1.8/core',
                    'spec/ruby/1.8/language',
                    'spec/compiler',
+                   'spec/core',
+                   'spec/debugger',
+                   'spec/subtend',
                    'spec/ruby/1.8/library',
                    # parser specs cause odd problems with library
                    # specs, so they go last

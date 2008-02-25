@@ -1,0 +1,1 @@
+fails:Task#debug_context_change behavior yields to the debugger at the point an exception is raised

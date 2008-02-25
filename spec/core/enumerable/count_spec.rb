@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Enumerable#count" do
-
   # Assuming array doesn't override count.  If this changes, use
   # EachDefiner from core/enumerable/fixtures/classes.rb
 
@@ -22,5 +21,4 @@ describe "Enumerable#count" do
     ary = [1, 2, 4, 2]
     ary.count{|x|x%2==0}.should == 3
   end
-
 end

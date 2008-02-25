@@ -49,19 +49,18 @@ describe "SubtendMethodVis" do
     m.include?("smv_test_protected").should == true  # note this is true..?
     m.include?("smv_test_private").should == false
   end
-
+  
   specify "should have protected method smv_test_protected" do
     m = @c.protected_methods
     m.include?("smv_test_public").should == false
     m.include?("smv_test_protected").should == true
     m.include?("smv_test_private").should == false
   end
-
-  specify "should have private method smb_test_private" do
+  
+  specify "should have private method smv_test_private" do
     m = @c.private_methods
     m.include?("smv_test_public").should == false
     m.include?("smv_test_protected").should == false
     m.include?("smv_test_private").should == true
-  end
-
+  end  
 end

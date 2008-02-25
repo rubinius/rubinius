@@ -1,0 +1,2 @@
+fails:CompiledMethod::Instruction #opcode returns a symbol representing the opcode for the corresponding instruction
+fails:CompiledMethod::Instruction #args returns an array containing the opcode arguments

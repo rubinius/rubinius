@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Rubinius::VM#coerce_to_array" do
   it "returns the Array passed to it" do

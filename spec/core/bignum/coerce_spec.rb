@@ -8,11 +8,14 @@ describe "Bignum#coerce" do
   end
 
   it "returns [Float, Float] if other is not a Bignum or Fixnum" do
-    a = bignum_value.coerce("2")
-    a.inspect.should == "[2.0, 9.22337203685478e+18]"
-    a.collect { |i| i.class }.should == [Float, Float]
-    b = bignum_value.coerce(1.5)
-    b.inspect.should == "[1.5, 9.22337203685478e+18]"
-    b.collect { |i| i.class }.should == [Float, Float]
+    a, b = c = bignum_value.coerce("2")
+    a.should be_close(2.0, TOLERANCE)
+    b.should be_close(9223372036854775808.000, TOLERANCE)
+    c.collect { |i| i.class }.should == [Float, Float]
+    
+    a, b = c = bignum_value.coerce(1.5)
+    a.should be_close(1.5, TOLERANCE)
+    b.should be_close(9223372036854775808.000, TOLERANCE)
+    c.collect { |i| i.class }.should == [Float, Float]
   end
 end
