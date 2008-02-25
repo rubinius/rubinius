@@ -1,0 +1,1 @@
+fails:SubtendMethodVisModule should inherit method function from mixin
