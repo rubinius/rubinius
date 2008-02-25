@@ -43,9 +43,7 @@ OBJECT float_new(STATE, double dbl);
 OBJECT float_from_string(STATE, char *str);
 void float_into_string(STATE, OBJECT self, char *buf, int sz);
 OBJECT float_coerce(STATE, OBJECT value);
-OBJECT float_to_i_prim(STATE, double value);
-OBJECT float_compare_prim(STATE, double a, double b);
-int float_to_i(double value);
+OBJECT float_compare(STATE, double a, double b);
 
 static inline int float_bounded_p(double value) {
   if(value <= (double)FIXNUM_MAX && value >= (double)FIXNUM_MIN) {
