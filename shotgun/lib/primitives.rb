@@ -94,6 +94,7 @@ class ShotgunPrimitives
 
   def add
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(FIXNUM_P(t1)) {
@@ -111,6 +112,7 @@ class ShotgunPrimitives
   
   def bignum_add
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
@@ -126,6 +128,7 @@ class ShotgunPrimitives
   
   def sub
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(FIXNUM_P(t1)) {
@@ -143,6 +146,7 @@ class ShotgunPrimitives
   
   def bignum_sub
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
@@ -158,6 +162,7 @@ class ShotgunPrimitives
   
   def fixnum_mul
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(FIXNUM_P(t1)) {
@@ -175,12 +180,14 @@ class ShotgunPrimitives
   
   def fixnum_size
     <<-CODE
+    ARITY(0);
     RET(I2N(sizeof(native_int)));
     CODE
   end
 
   def bignum_mul
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
@@ -196,6 +203,7 @@ class ShotgunPrimitives
   
   def fixnum_div
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(FIXNUM_P(t1)) {
@@ -216,6 +224,7 @@ class ShotgunPrimitives
   
   def bignum_div
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1)) {
@@ -235,6 +244,7 @@ class ShotgunPrimitives
 
   def bignum_mod
     <<-CODE
+    ARITY(1);
     OBJECT t1;
 
     GUARD(BIGNUM_P(msg->recv));
@@ -246,6 +256,7 @@ class ShotgunPrimitives
   
   def equal
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
 
@@ -264,6 +275,7 @@ class ShotgunPrimitives
   
   def object_equal
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     t1 = stack_pop();
     
@@ -277,6 +289,7 @@ class ShotgunPrimitives
   
   def bignum_equal
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
@@ -292,6 +305,7 @@ class ShotgunPrimitives
   
   def compare
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
 
@@ -325,6 +339,7 @@ class ShotgunPrimitives
   
   def fixnum_lt
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t2 = stack_pop();
     native_int j = N2I(msg->recv);
@@ -346,6 +361,7 @@ class ShotgunPrimitives
   
   def fixnum_le
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t2 = stack_pop();
     native_int j = N2I(msg->recv);
@@ -367,6 +383,7 @@ class ShotgunPrimitives
   
   def fixnum_gt
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t2 = stack_pop();
     native_int j = N2I(msg->recv);
@@ -388,6 +405,7 @@ class ShotgunPrimitives
   
   def fixnum_ge
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t2 = stack_pop();
     native_int j = N2I(msg->recv);
@@ -410,6 +428,7 @@ class ShotgunPrimitives
   
   def at
     <<-CODE
+    ARITY(1);
     OBJECT t1;
 
     GUARD(INDEXED(msg->recv));
@@ -425,6 +444,7 @@ class ShotgunPrimitives
   
   def put
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
 
     GUARD(INDEXED(msg->recv));
@@ -441,6 +461,7 @@ class ShotgunPrimitives
   
   def fields
     <<-CODE
+    ARITY(0);
     GUARD(REFERENCE_P(msg->recv));
 
     RET(I2N(NUM_FIELDS(msg->recv)));
@@ -449,6 +470,7 @@ class ShotgunPrimitives
   
   def allocate
     <<-CODE
+    ARITY(0);
     OBJECT t1, t2;
 
     GUARD(CLASS_P(msg->recv));
@@ -462,6 +484,7 @@ class ShotgunPrimitives
   
   def allocate_count
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2;
     
     GUARD(CLASS_P(msg->recv));
@@ -474,6 +497,7 @@ class ShotgunPrimitives
   
   def allocate_bytes
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2;
 
     GUARD(CLASS_P(msg->recv));
@@ -489,6 +513,7 @@ class ShotgunPrimitives
 
   def io_seek
     <<-CODE
+      ARITY(2);
       OBJECT t1, t2;
       native_int j;
       off_t position;
@@ -539,6 +564,7 @@ class ShotgunPrimitives
   
   def io_write
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2;
 
     GUARD(IO_P(msg->recv));
@@ -560,6 +586,7 @@ class ShotgunPrimitives
   
   def io_read
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2, t3;
     native_int j, k;
 
@@ -584,6 +611,7 @@ class ShotgunPrimitives
   
   def create_pipe
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
     int j;
     int fds[2];
@@ -603,6 +631,7 @@ class ShotgunPrimitives
   
   def io_open
     <<-CODE
+    ARITY(3);
     int fd, mode, perm;
     char *_path;
     OBJECT t1, t2, t3;
@@ -623,6 +652,7 @@ class ShotgunPrimitives
   
   def io_reopen
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     native_int j, k;
 
@@ -647,6 +677,7 @@ class ShotgunPrimitives
   
   def io_close
     <<-CODE
+    ARITY(0);
     native_int j;
     
     GUARD(IO_P(msg->recv));
@@ -666,6 +697,7 @@ class ShotgunPrimitives
   
   def io_operation
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     native_int k, j;
 
@@ -695,6 +727,7 @@ class ShotgunPrimitives
   
   def file_unlink
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     char *name;
     
@@ -712,6 +745,7 @@ class ShotgunPrimitives
   
   def gettimeofday
     <<-CODE
+    ARITY(0);
     OBJECT t1;
     struct timeval tv;
 
@@ -731,6 +765,7 @@ class ShotgunPrimitives
 
   def strftime
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2, t3;
 
     GUARD(REFERENCE_P(msg->recv));
@@ -772,6 +807,7 @@ class ShotgunPrimitives
 
   def time_switch
     <<-CODE
+    ARITY(2);
     time_t seconds;
     struct tm *tm;
     OBJECT t1, t2, t3;
@@ -823,6 +859,7 @@ class ShotgunPrimitives
 
   def mktime
     <<-CODE
+    ARITY(9);
     time_t seconds;
     struct tm tm;
     char *old_tz, old_tz_buf[128];
@@ -901,6 +938,7 @@ class ShotgunPrimitives
 
   def fixnum_to_s
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
     char buf[100];
@@ -937,6 +975,7 @@ class ShotgunPrimitives
 
   def bignum_to_s
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(BIGNUM_P(msg->recv));
     POP(t1, FIXNUM);
@@ -947,6 +986,7 @@ class ShotgunPrimitives
 
   def logical_class
     <<-CODE
+    ARITY(0);
     /* msg->recv is ANY object because object_class knows all. */
     RET(object_class(state, msg->recv));
     CODE
@@ -954,12 +994,14 @@ class ShotgunPrimitives
 
   def object_id
     <<-CODE
+    ARITY(0);
     RET(UI2N(object_get_id(state, msg->recv)));
     CODE
   end
 
   def hash_set
     <<-CODE
+    ARITY(3);
     OBJECT t1, t2, t3;
     GUARD(HASH_P(msg->recv));
 
@@ -974,6 +1016,7 @@ class ShotgunPrimitives
 
   def hash_get
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2, t3;
     GUARD(HASH_P(msg->recv));
     
@@ -1001,6 +1044,7 @@ class ShotgunPrimitives
   
   def hash_redistribute
     <<-CODE
+    ARITY(0);
     GUARD(HASH_P(msg->recv));
     
     if(hash_redistribute_p(msg->recv)) {
@@ -1012,6 +1056,7 @@ class ShotgunPrimitives
   
   def hash_object
     <<-CODE
+    ARITY(0);
     OBJECT t1;
     /* msg->recv is ANY object because object_class knows all. */    
     t1 = UI2N(object_hash_int(state, msg->recv));
@@ -1021,6 +1066,7 @@ class ShotgunPrimitives
   
   def hash_delete
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2;
     GUARD(HASH_P(msg->recv));
     
@@ -1043,6 +1089,7 @@ class ShotgunPrimitives
 
   def symbol_index
     <<-CODE
+    ARITY(0);
     GUARD(SYMBOL_P(msg->recv));
 
     RET(I2N(symbol_to_index(state, msg->recv)));
@@ -1051,6 +1098,7 @@ class ShotgunPrimitives
 
   def symbol_lookup
     <<-CODE
+    ARITY(0);
     GUARD(STRING_P(msg->recv));
     GUARD(N2I(string_get_bytes(msg->recv)) > 0);
     RET(string_to_sym(state, msg->recv));
@@ -1059,6 +1107,7 @@ class ShotgunPrimitives
 
   def dup_into
     <<-CODE
+    ARITY(3);
     OBJECT t1, t2, t3;
     native_int k, j;
 
@@ -1084,6 +1133,7 @@ class ShotgunPrimitives
     
   def bytes_dup_into
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     native_int k, j;
 
@@ -1108,6 +1158,7 @@ class ShotgunPrimitives
 
   def object_dup
     <<-CODE
+    ARITY(0);
     OBJECT t2;
     native_int j, k;
     
@@ -1136,6 +1187,7 @@ class ShotgunPrimitives
   
   def object_clone
     <<-CODE
+    ARITY(0);
     native_int k, j;
     OBJECT t2;
 
@@ -1164,6 +1216,7 @@ class ShotgunPrimitives
   
   def fastctx_dup
     <<-CODE
+    ARITY(0);
     GUARD(RISA(msg->recv, fastctx));
     
     RET(methctx_dup(state, msg->recv));
@@ -1172,6 +1225,7 @@ class ShotgunPrimitives
 
   def tuple_shifted
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2;
     native_int j;
 
@@ -1192,6 +1246,7 @@ class ShotgunPrimitives
 
   def get_byte
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     native_int j, k;
 
@@ -1212,6 +1267,7 @@ class ShotgunPrimitives
 
   def set_byte
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
     native_int j, k;
 
@@ -1235,6 +1291,7 @@ class ShotgunPrimitives
     
   def fetch_bytes
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2, t3;
     native_int j, k, m;
 
@@ -1267,6 +1324,7 @@ class ShotgunPrimitives
   
   def move_bytes
     <<-CODE
+    ARITY(3);
     OBJECT t1, t2, t3;
     char *data, *source, *dest;
     native_int total, offset, start, count;
@@ -1302,6 +1360,7 @@ class ShotgunPrimitives
 
   def compare_bytes
     <<-CODE
+    ARITY(3);
     OBJECT t1, t2, t3;
     native_int j, k, m;
     native_int len, a, b, n, cmp;
@@ -1344,6 +1403,7 @@ class ShotgunPrimitives
 
   def bytearray_size
     <<-CODE
+    ARITY(0);
     native_int j;
     GUARD( object_stores_bytes_p(state, msg->recv) )
 
@@ -1355,6 +1415,7 @@ class ShotgunPrimitives
   
   def load_file
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
 
     POP(t1, STRING);
@@ -1369,6 +1430,7 @@ class ShotgunPrimitives
   
   def activate_as_script
     <<-CODE
+    ARITY(0);
     GUARD(CMETHOD_P(msg->recv));
 
     cpu_run_script(state, c, msg->recv);
@@ -1379,6 +1441,7 @@ class ShotgunPrimitives
   # TODO: Remove stat_file after rebuilding stables
   def stat_file
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2, t3;
     native_int j;
     struct stat sb = {0};
@@ -1466,6 +1529,7 @@ class ShotgunPrimitives
   
   def process_exit
     <<-CODE
+    ARITY(1);
     OBJECT t1;
 
     POP(t1, FIXNUM);
@@ -1488,6 +1552,7 @@ class ShotgunPrimitives
   
   def micro_sleep
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2;
     native_int j;
     struct timespec ts;
@@ -1523,6 +1588,7 @@ class ShotgunPrimitives
   
   def context_sender
     <<-CODE
+    ARITY(0);
     OBJECT t1;
     GUARD(CTX_P(msg->recv));
 
@@ -1538,6 +1604,7 @@ class ShotgunPrimitives
   
   def string_to_sexp
     <<-CODE
+    ARITY(3);
     bstring contents;
     const char *name;
     OBJECT t1, t2, t3;
@@ -1559,6 +1626,7 @@ class ShotgunPrimitives
   
   def file_to_sexp
     <<-CODE
+    ARITY(2);
     FILE *file;
     char *name;
     OBJECT t1, t2;
@@ -1581,6 +1649,7 @@ class ShotgunPrimitives
 
   def terminal_raw
     <<-CODE
+    ARITY(0);
     struct termios ts;
     int err;
     OBJECT t3;
@@ -1633,6 +1702,7 @@ class ShotgunPrimitives
 
   def terminal_normal
     <<-CODE
+    ARITY(0);
     if(NULL == state->termios) {
       RET(Qfalse);
     } else if (isatty(STDOUT_FILENO)) {
@@ -1653,6 +1723,7 @@ class ShotgunPrimitives
 
   def regexp_new
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2, t3;
     char err_buf[1024];
     
@@ -1673,6 +1744,7 @@ class ShotgunPrimitives
 
   def regexp_match
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(REGEXP_P(msg->recv));
 
@@ -1684,6 +1756,7 @@ class ShotgunPrimitives
 
   def regexp_match_start
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
     GUARD(REGEXP_P(msg->recv));
 
@@ -1696,6 +1769,7 @@ class ShotgunPrimitives
 
   def regexp_match_region
     <<-CODE
+    ARITY(4);
     OBJECT t1, t2, t3, t4, t5;
     GUARD(REGEXP_P(msg->recv));
 
@@ -1712,6 +1786,7 @@ class ShotgunPrimitives
 
   def regexp_scan
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(REGEXP_P(msg->recv));
     
@@ -1723,6 +1798,7 @@ class ShotgunPrimitives
 
   def regexp_options
     <<-CODE
+    ARITY(0);
     GUARD(REGEXP_P(msg->recv));
     
     RET(regexp_options(state, msg->recv));
@@ -1731,6 +1807,7 @@ class ShotgunPrimitives
   
   def gc_start
     <<-CODE
+    ARITY(1);
     OBJECT t1 = stack_pop();
     if(RTEST(t1)) {
       state->om->collect_now = OMCollectYoung;
@@ -1743,6 +1820,7 @@ class ShotgunPrimitives
     
   def get_ivar
     <<-CODE
+    ARITY(0);
     OBJECT t1 = NTH_FIELD(msg->method, 4);
     RET(object_get_ivar(state, msg->recv, t1));
     CODE
@@ -1750,6 +1828,7 @@ class ShotgunPrimitives
   
   def set_ivar
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2;
     
     t1 = NTH_FIELD(msg->method, 4);
@@ -1783,6 +1862,7 @@ class ShotgunPrimitives
   
   def set_index
     <<-CODE
+    ARITY(1);
     native_int j;
     GUARD(INDEXED(msg->recv));
 
@@ -1795,6 +1875,7 @@ class ShotgunPrimitives
   
   def get_index
     <<-CODE
+    ARITY(0);
     native_int j;
     GUARD(INDEXED(msg->recv));
 
@@ -1805,6 +1886,7 @@ class ShotgunPrimitives
 
   def fixnum_modulo
     <<-CODE
+    ARITY(1);
     OBJECT t1;
 
     GUARD(FIXNUM_P(msg->recv));
@@ -1819,6 +1901,7 @@ class ShotgunPrimitives
   
   def marshal_object
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
     t1 = stack_pop();
     POP(t2, FIXNUM);
@@ -1829,6 +1912,7 @@ class ShotgunPrimitives
   
   def unmarshal_object
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2, t3;
     POP(t1, STRING);
     POP(t2, FIXNUM);
@@ -1842,6 +1926,7 @@ class ShotgunPrimitives
   
   def marshal_to_file
     <<-CODE
+    ARITY(3);
     OBJECT t1, t2, t3;
 
     char *_path;
@@ -1856,6 +1941,7 @@ class ShotgunPrimitives
   
   def unmarshal_from_file
     <<-CODE
+    ARITY(2);
     char *_path;
     OBJECT t1, t2;
 
@@ -1869,6 +1955,7 @@ class ShotgunPrimitives
   
   def archive_files
     <<-CODE
+    ARITY(1);
     char *path;
     OBJECT t1;
     POP(t1, STRING);
@@ -1880,6 +1967,7 @@ class ShotgunPrimitives
   
   def archive_get_file
     <<-CODE
+    ARITY(2);
     char *path, *file;
     OBJECT t1, t2;
     
@@ -1895,6 +1983,7 @@ class ShotgunPrimitives
   
   def archive_get_object
     <<-CODE
+    ARITY(3);
     char *path, *file;
     OBJECT t1, t2, t3;
     
@@ -1911,6 +2000,7 @@ class ShotgunPrimitives
   
   def archive_add_file
     <<-CODE
+    ARITY(3);
     char *path, *file, *data;
     OBJECT t1, t2, t3;
     
@@ -1929,6 +2019,7 @@ class ShotgunPrimitives
   
   def archive_add_object
     <<-CODE
+    ARITY(4);
     char *path, *file;
     OBJECT t1, t2, t3, t4;
     
@@ -1947,6 +2038,7 @@ class ShotgunPrimitives
   
   def archive_delete_file
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2, t3;
 
     POP(t1, STRING);
@@ -1959,6 +2051,7 @@ class ShotgunPrimitives
   
   def fixnum_and
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     native_int j, k = 0;
@@ -1984,6 +2077,7 @@ class ShotgunPrimitives
 
   def fixnum_or
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     native_int j, k = 0;
@@ -2009,6 +2103,7 @@ class ShotgunPrimitives
 
   def fixnum_xor
     <<-CODE
+    ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     native_int j, k = 0;
@@ -2034,6 +2129,7 @@ class ShotgunPrimitives
 
   def fixnum_invert
     <<-CODE
+    ARITY(0);
     native_int j;
     GUARD(FIXNUM_P(msg->recv));
 
@@ -2044,6 +2140,7 @@ class ShotgunPrimitives
 
   def fixnum_neg
     <<-CODE
+    ARITY(0);
     native_int j;
     GUARD(FIXNUM_P(msg->recv));
     
@@ -2054,6 +2151,7 @@ class ShotgunPrimitives
 
   def fixnum_right_shift
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2;
     native_int value, width;
     
@@ -2082,6 +2180,7 @@ class ShotgunPrimitives
 
   def fixnum_left_shift
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2;
     native_int value, width;
     
@@ -2099,6 +2198,7 @@ class ShotgunPrimitives
 
   def bignum_new
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     POP(t1, FIXNUM);
     RET(bignum_new(state, N2I(t1)));
@@ -2107,6 +2207,7 @@ class ShotgunPrimitives
   
   def bignum_to_float
     <<-CODE
+    ARITY(0);
     GUARD(BIGNUM_P(msg->recv));
 
     RET(float_new(state, bignum_to_double(state, msg->recv)));
@@ -2115,6 +2216,7 @@ class ShotgunPrimitives
 
   def bignum_and
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(INTEGER_P(t1)) {
@@ -2130,6 +2232,7 @@ class ShotgunPrimitives
 
   def bignum_or
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(INTEGER_P(t1)) {
@@ -2145,6 +2248,7 @@ class ShotgunPrimitives
 
   def bignum_xor
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(INTEGER_P(t1)) {
@@ -2160,6 +2264,7 @@ class ShotgunPrimitives
 
   def bignum_neg
     <<-CODE
+    ARITY(0);
     GUARD(BIGNUM_P(msg->recv));
 
     RET(bignum_neg(state, msg->recv));
@@ -2168,6 +2273,7 @@ class ShotgunPrimitives
 
   def bignum_invert
     <<-CODE
+    ARITY(0);
     GUARD(BIGNUM_P(msg->recv));
 
     RET(bignum_invert(state, msg->recv));
@@ -2176,6 +2282,7 @@ class ShotgunPrimitives
   
   def numeric_coerce
     <<-CODE
+    ARITY(1);
     OBJECT t1, t3;
 
     GUARD(INTEGER_P(msg->recv));
@@ -2204,6 +2311,7 @@ class ShotgunPrimitives
   
   def bignum_compare
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(BIGNUM_P(msg->recv));
     POP(t1, BIGNUM);
@@ -2214,6 +2322,7 @@ class ShotgunPrimitives
   
   def fixnum_to_f
     <<-CODE
+    ARITY(0);
     GUARD(FIXNUM_P(msg->recv));
 
     RET(float_new(state, FIXNUM_TO_DOUBLE(msg->recv)));
@@ -2222,6 +2331,7 @@ class ShotgunPrimitives
   
   def string_to_f
     <<-CODE
+    ARITY(0);
     GUARD(STRING_P(msg->recv));
 
     RET(float_new(state, string_to_double(state, msg->recv)));
@@ -2230,6 +2340,7 @@ class ShotgunPrimitives
   
   def fixnum_divmod
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(FIXNUM_P(msg->recv));
     POP(t1, FIXNUM);
@@ -2241,6 +2352,7 @@ class ShotgunPrimitives
   
   def bignum_left_shift
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(BIGNUM_P(msg->recv));
     
@@ -2252,6 +2364,7 @@ class ShotgunPrimitives
 
   def bignum_right_shift
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(BIGNUM_P(msg->recv));
     
@@ -2263,6 +2376,7 @@ class ShotgunPrimitives
 
   def find_method
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2, t3;
     POP(t1, SYMBOL);
     t1 = exported_cpu_find_method(state, c, msg->recv, t1, &t2);
@@ -2277,6 +2391,7 @@ class ShotgunPrimitives
   
   def bignum_divmod
     <<-CODE
+    ARITY(1);
     OBJECT t1;
 
     GUARD(BIGNUM_P(msg->recv));
@@ -2292,6 +2407,7 @@ class ShotgunPrimitives
   
   def object_taint
     <<-CODE
+    ARITY(0);
     GUARD(REFERENCE_P(msg->recv));
     object_set_tainted(state, msg->recv);
     RET(msg->recv);
@@ -2300,6 +2416,7 @@ class ShotgunPrimitives
   
   def object_tainted_p
     <<-CODE
+    ARITY(0);
     GUARD(REFERENCE_P(msg->recv));
     RET(object_tainted_p(state, msg->recv) ? Qtrue : Qfalse);
     CODE
@@ -2307,6 +2424,7 @@ class ShotgunPrimitives
   
   def object_untaint
     <<-CODE
+    ARITY(0);
     GUARD(REFERENCE_P(msg->recv));
     object_set_untainted(state, msg->recv);
     RET(msg->recv);
@@ -2315,6 +2433,7 @@ class ShotgunPrimitives
   
   def object_freeze
     <<-CODE
+    ARITY(0);
     GUARD(REFERENCE_P(msg->recv));
     object_set_frozen(state, msg->recv);
     RET(msg->recv);
@@ -2323,6 +2442,7 @@ class ShotgunPrimitives
   
   def object_frozen_p
     <<-CODE
+    ARITY(0);
     GUARD(REFERENCE_P(msg->recv));
     RET(object_frozen_p(state, msg->recv) ? Qtrue : Qfalse);
     CODE
@@ -2330,6 +2450,7 @@ class ShotgunPrimitives
   
   def fastctx_get_field
     <<-CODE
+    ARITY(1);
     native_int i;
     struct fast_context *fc;
     OBJECT t1;
@@ -2391,6 +2512,7 @@ class ShotgunPrimitives
   
   def fastctx_set_field
     <<-CODE
+    ARITY(2);
     native_int i;
     struct fast_context *fc;
     OBJECT t2;
@@ -2458,6 +2580,7 @@ class ShotgunPrimitives
 
   def fastctx_reload_method
     <<-CODE
+    ARITY(0);
     struct fast_context *fc;
     GUARD(CTX_P(msg->recv));
 
@@ -2472,6 +2595,7 @@ class ShotgunPrimitives
 
   def fastctx_set_iseq
     <<-CODE
+    ARITY(1);
     struct fast_context *fc;
     OBJECT t1, ba;
     int target_size;
@@ -2498,6 +2622,7 @@ class ShotgunPrimitives
 
   def vm_stats
     <<-CODE
+    ARITY(0);
 #ifdef TRACK_STATS
     OBJECT t1 = tuple_new(state, 7);
     tuple_put(state, t1, 0, I2N(state->cache_hits));
@@ -2548,6 +2673,7 @@ class ShotgunPrimitives
   
   def nfunc_add
     <<-CODE
+    ARITY(4);
     OBJECT t1, t2, t3, t4;
 
     POP(t1, STRING_OR_NIL);
@@ -2560,6 +2686,7 @@ class ShotgunPrimitives
   
   def load_library
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
     
     POP(t1, STRING);
@@ -2570,6 +2697,7 @@ class ShotgunPrimitives
   
   def dir_glob
     <<-CODE
+    ARITY(2);
     glob_t gd;
     char *pat;
     int flags = GLOB_NOSORT | GLOB_BRACE;
@@ -2594,6 +2722,7 @@ class ShotgunPrimitives
   
   def dir_chdir
     <<-CODE
+    ARITY(1);
     char *path;
     OBJECT t1;
 
@@ -2610,6 +2739,7 @@ class ShotgunPrimitives
 
   def yield_gdb
     <<-CODE
+    ARITY(1);
     OBJECT t1 = stack_pop();
     *((OBJECT*)4) = t1; /* cause a SIGBUS */
     RET(Qtrue);
@@ -2618,6 +2748,7 @@ class ShotgunPrimitives
   
   def make_weak_ref
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     POP(t1, REFERENCE);
     
@@ -2627,6 +2758,7 @@ class ShotgunPrimitives
   
   def gc_collect_references
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     POP(t1, REFERENCE);
     
@@ -2636,6 +2768,7 @@ class ShotgunPrimitives
 
   def task_dup
     <<-CODE
+    ARITY(0);
     OBJECT t1;
     /* This is a little contrived so the dup'd task has
        it stack setup properly. */
@@ -2654,6 +2787,7 @@ class ShotgunPrimitives
   
   def task_set_current
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     POP(t1, TASK);
     
@@ -2664,6 +2798,7 @@ class ShotgunPrimitives
   
   def task_associate
     <<-CODE
+    ARITY(1);
     OBJECT t1;
 
     GUARD(TASK_P(msg->recv));
@@ -2675,12 +2810,14 @@ class ShotgunPrimitives
   
   def task_current
     <<-CODE
+    ARITY(0);
     RET(c->current_task);
     CODE
   end
   
   def task_at
     <<-CODE
+    ARITY(1);
     struct cpu_task *task;
     OBJECT t1, t2;
     native_int k;
@@ -2709,6 +2846,7 @@ class ShotgunPrimitives
   
   def task_set_debugging
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
     GUARD(TASK_P(msg->recv));
 
@@ -2730,6 +2868,7 @@ class ShotgunPrimitives
 
   def task_debug_channel
     <<-CODE
+    ARITY(0);
     struct cpu_task *task;
     GUARD(TASK_P(msg->recv));
     
@@ -2741,6 +2880,7 @@ class ShotgunPrimitives
   
   def task_control_channel
     <<-CODE
+    ARITY(0);
     struct cpu_task *task;
     GUARD(TASK_P(msg->recv));
     
@@ -2752,6 +2892,7 @@ class ShotgunPrimitives
 
   def task_get_debug_context_change
     <<-CODE
+    ARITY(0);
     struct cpu_task *task;
     GUARD(TASK_P(msg->recv));
     
@@ -2766,6 +2907,7 @@ class ShotgunPrimitives
   
   def task_set_debug_context_change
     <<-CODE
+    ARITY(1);
     struct cpu_task *task;
     GUARD(TASK_P(msg->recv));
     OBJECT t1 = stack_pop();
@@ -2791,6 +2933,7 @@ class ShotgunPrimitives
   
   def task_stack_size
     <<-CODE
+    ARITY(0);
     struct cpu_task *task;
     GUARD(TASK_P(msg->recv));
 
@@ -2803,6 +2946,7 @@ class ShotgunPrimitives
 
   def task_get_stack_value
     <<-CODE
+    ARITY(0);
     struct cpu_task *task;
     OBJECT t1, t2;
     
@@ -2821,6 +2965,7 @@ class ShotgunPrimitives
 
   def task_raise
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(TASK_P(msg->recv));
     
@@ -2841,6 +2986,7 @@ class ShotgunPrimitives
   
   def thread_raise
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(THREAD_P(msg->recv));
     
@@ -2866,12 +3012,14 @@ class ShotgunPrimitives
   
   def channel_new
     <<-CODE
+    ARITY(0);
     RET(cpu_channel_new(state));
     CODE
   end
   
   def channel_send
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     GUARD(CHANNEL_P(msg->recv));
     
@@ -2882,6 +3030,7 @@ class ShotgunPrimitives
   
   def channel_receive
     <<-CODE
+    ARITY(0);
     GUARD(CHANNEL_P(msg->recv));
     
     cpu_channel_receive(state, c, msg->recv, c->current_thread);
@@ -2893,6 +3042,7 @@ class ShotgunPrimitives
   
   def channel_send_in_microseconds
     <<-CODE
+    ARITY(2);
     double seconds;
     OBJECT t2, t1;
     native_int k;
@@ -2914,6 +3064,7 @@ class ShotgunPrimitives
 
   def channel_send_in_seconds
     <<-CODE
+    ARITY(2);
     double seconds;
     OBJECT t2, t1;
 
@@ -2928,6 +3079,7 @@ class ShotgunPrimitives
 
   def channel_send_on_readable
     <<-CODE
+    ARITY(4);
     OBJECT t1, t2, t3, t4;
     native_int j;
 
@@ -2953,6 +3105,7 @@ class ShotgunPrimitives
   
   def channel_send_on_writable
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
     native_int j;
 
@@ -2966,6 +3119,7 @@ class ShotgunPrimitives
   
   def channel_send_on_signal
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
 
     POP(t2, CHANNEL);
@@ -2977,6 +3131,7 @@ class ShotgunPrimitives
   
   def channel_send_on_stopped
     <<-CODE
+    ARITY(3);
     OBJECT t1, t2, t3;
 
     POP(t3, CHANNEL);
@@ -2989,6 +3144,7 @@ class ShotgunPrimitives
 
   def scheduler_cancel
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     POP(t1, FIXNUM);
 
@@ -2998,12 +3154,14 @@ class ShotgunPrimitives
   
   def thread_new
     <<-CODE
+    ARITY(0);
     RET(cpu_thread_new(state, c));
     CODE
   end
   
   def thread_run
     <<-CODE
+    ARITY(0);
     GUARD(THREAD_P(msg->recv));
     
     GUARD(cpu_thread_alive_p(state, msg->recv));
@@ -3017,6 +3175,7 @@ class ShotgunPrimitives
   
   def thread_schedule
     <<-CODE
+    ARITY(0);
     GUARD(THREAD_P(msg->recv));
     
     cpu_thread_schedule(state, msg->recv);
@@ -3026,6 +3185,7 @@ class ShotgunPrimitives
   
   def thread_yield
     <<-CODE
+    ARITY(0);
     /* Same reason as thread_run */
     stack_push(Qnil);
     cpu_thread_schedule(state, c->current_thread);
@@ -3036,6 +3196,7 @@ class ShotgunPrimitives
   
   def thread_dequeue
     <<-CODE
+    ARITY(0);
     THDEBUG("%d: dequeue thread.\\n", getpid());
     cpu_thread_exited(state, c);
     CODE
@@ -3043,12 +3204,14 @@ class ShotgunPrimitives
   
   def thread_current
     <<-CODE
+    ARITY(0);
     RET(c->current_thread);
     CODE
   end
   
   def object_become
     <<-CODE
+    ARITY(2);
     void state_object_become(STATE, cpu c, OBJECT from, OBJECT to);
     OBJECT t1, t2;
 
@@ -3061,6 +3224,7 @@ class ShotgunPrimitives
   
   def sampler_activate
     <<-CODE
+    ARITY(0);
     OBJECT t1;
 
     POP(t1, FIXNUM);
@@ -3071,6 +3235,7 @@ class ShotgunPrimitives
   
   def sampler_stop
     <<-CODE
+    ARITY(0);
     OBJECT t1 = cpu_sampler_disable(state);
     RET(t1);
     CODE
@@ -3078,6 +3243,7 @@ class ShotgunPrimitives
   
   def fork_process
     <<-CODE
+    ARITY(0);
     native_int k = fork();
     if(k == -1) {
       RAISE_FROM_ERRNO("Unable to fork");
@@ -3093,6 +3259,7 @@ class ShotgunPrimitives
   # aka execve().
   def replace_process
     <<-CODE
+    ARITY(2);
     native_int i, j, k;
     char *tmp, *file;
     char **argv;
@@ -3134,6 +3301,7 @@ class ShotgunPrimitives
 
   def ivar_get
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     POP(t1, SYMBOL);
     RET(object_get_ivar(state, msg->recv, t1));
@@ -3142,6 +3310,7 @@ class ShotgunPrimitives
   
   def ivar_set
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
     POP(t1, SYMBOL);
     t2 = stack_pop();
@@ -3152,12 +3321,14 @@ class ShotgunPrimitives
   
   def ivars_get
     <<-CODE
+    ARITY(0);
     RET(object_get_ivars(state, msg->recv));
     CODE
   end
   
   def str_crypt
     <<-CODE
+    ARITY(1);
     OBJECT t1;
 
     GUARD(STRING_P(msg->recv));
@@ -3169,6 +3340,7 @@ class ShotgunPrimitives
     
   def env_get
     <<-CODE
+    ARITY(1);
     char *key;
     OBJECT t1, t2;
 
@@ -3191,6 +3363,7 @@ class ShotgunPrimitives
 
   def env_set
     <<-CODE
+    ARITY(2);
     char *key, *value;
     OBJECT t1, t2;
 
@@ -3226,6 +3399,7 @@ class ShotgunPrimitives
 
   def env_as_hash
     <<-CODE
+    ARITY(0);
     char *cur, **total = environ;
   
     OBJECT hash = hash_new(state);
@@ -3253,6 +3427,7 @@ class ShotgunPrimitives
 
   def bignum_size
     <<-CODE
+    ARITY(0);
     GUARD(BIGNUM_P(msg->recv));
     RET(bignum_size(state, msg->recv));
     CODE
@@ -3260,6 +3435,7 @@ class ShotgunPrimitives
 
   def iseq_compile
     <<-CODE
+    ARITY(0);
     GUARD(CMETHOD_P(msg->recv));
     cpu_compile_method(state, msg->recv);
     RET(Qtrue);
@@ -3268,6 +3444,7 @@ class ShotgunPrimitives
 
   def reset_method_cache
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     POP(t1, SYMBOL);
     cpu_clear_cache_for_method(state, c, t1, TRUE);
@@ -3276,6 +3453,7 @@ class ShotgunPrimitives
   
   def bignum_from_float
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     POP(t1, FLOAT);
     RET(bignum_from_double(state, FLOAT_TO_DOUBLE(t1)));
@@ -3284,6 +3462,7 @@ class ShotgunPrimitives
 
   def save_encloser_path
     <<-CODE
+    ARITY(0);
     cpu_set_encloser_path(state, c, state->global->object);
     RET(Qnil);
     CODE
@@ -3291,6 +3470,7 @@ class ShotgunPrimitives
 
   def restore_encloser_path
     <<-CODE
+    ARITY(0);
     cpu_push_encloser(state, c);
     RET(Qnil);
     CODE
@@ -3364,12 +3544,14 @@ class ShotgunPrimitives
   
   def string_dup
     <<-CODE
+    ARITY(0);
     RET(string_dup(state, msg->recv));
     CODE
   end
   
   def string_equal
     <<-CODE
+    ARITY(1);
     OBJECT t1, t2, t3;
     native_int j, k, m;
 
@@ -3418,6 +3600,7 @@ class ShotgunPrimitives
 
   def machine_new
     <<-CODE
+    ARITY(1);
     int *pipes;
     int argc;
     char **argv;
@@ -3459,6 +3642,7 @@ class ShotgunPrimitives
 
   def machine_join
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     POP(t1, FIXNUM);
     if(environment_join_machine(environment_current(), N2I(t1))) {
@@ -3471,12 +3655,14 @@ class ShotgunPrimitives
 
   def machine_get_message
     <<-CODE
+    ARITY(0);
     RET(environment_get_message(environment_current(), current_machine->id));
     CODE
   end
 
   def machine_send_message
     <<-CODE
+    ARITY(2);
     OBJECT t1, t2;
     POP(t1, FIXNUM);
     t2 = stack_pop();
@@ -3489,6 +3675,7 @@ class ShotgunPrimitives
   
   def dir_open
     <<-CODE
+    ARITY(1);
     OBJECT t1;
     DIR *dir;
 
@@ -3503,6 +3690,7 @@ class ShotgunPrimitives
   
   def dir_close
     <<-CODE
+    ARITY(1);
     DIR *dir;
     OBJECT t1;
 
@@ -3521,6 +3709,7 @@ class ShotgunPrimitives
   
   def dir_control
     <<-CODE
+    ARITY(3);
     OBJECT kind, pos;
     OBJECT t1;
     POP(t1, POINTER);
@@ -3546,6 +3735,7 @@ class ShotgunPrimitives
   
   def dir_read
     <<-CODE
+    ARITY(1);
     struct dirent *ent;
     OBJECT t1;
     POP(t1, POINTER); 
@@ -3563,6 +3753,7 @@ class ShotgunPrimitives
 
   def opt_push_literal
     <<-CODE
+    ARITY(0);
     OBJECT lits;
     
     lits = cmethod_get_literals(msg->method);
@@ -3572,12 +3763,14 @@ class ShotgunPrimitives
   
   def opt_push_self
     <<-CODE
+    ARITY(0);
     RET(msg->recv);
     CODE
   end
   
   def opt_push_ivar
     <<-CODE
+    ARITY(0);
     OBJECT lits;
     
     lits = cmethod_get_literals(msg->method);
@@ -3587,6 +3780,7 @@ class ShotgunPrimitives
 
   def opt_push_my_field
     <<-CODE
+    ARITY(0);
     OBJECT lits;
     
     lits = cmethod_get_literals(msg->method);
@@ -3594,8 +3788,21 @@ class ShotgunPrimitives
     CODE
   end
   
+  def opt_kind_of
+    <<-CODE
+    ARITY(1);
+    OBJECT t1;
+  
+    POP(t1, REFERENCE);
+    GUARD(CLASS_P(t1) || MODULE_P(t1));
+  
+    RET(object_kind_of_p(state, msg->recv, t1) ? Qtrue : Qfalse);
+    CODE
+  end
+
   def float_add
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3609,6 +3816,7 @@ class ShotgunPrimitives
 
   def float_sub
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3622,6 +3830,7 @@ class ShotgunPrimitives
 
   def float_mul
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3635,6 +3844,7 @@ class ShotgunPrimitives
 
   def float_div
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3648,6 +3858,7 @@ class ShotgunPrimitives
 
   def float_uminus
     <<-CODE
+    ARITY(0);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     RET(float_new(state, -a));
@@ -3656,6 +3867,7 @@ class ShotgunPrimitives
 
   def float_equal
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3669,6 +3881,7 @@ class ShotgunPrimitives
   
   def float_eql
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(FLOAT_P(t1)) {
@@ -3683,6 +3896,7 @@ class ShotgunPrimitives
 
   def float_compare
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3697,6 +3911,7 @@ class ShotgunPrimitives
 
   def float_lt
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3710,6 +3925,7 @@ class ShotgunPrimitives
 
   def float_le
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3723,6 +3939,7 @@ class ShotgunPrimitives
 
   def float_gt
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3736,6 +3953,7 @@ class ShotgunPrimitives
 
   def float_ge
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3749,6 +3967,7 @@ class ShotgunPrimitives
 
   def float_to_i
     <<-CODE
+    ARITY(0);
     GUARD(FLOAT_P(msg->recv));
     double b = FLOAT_TO_DOUBLE(msg->recv);
     if(isinf(b)) {
@@ -3761,19 +3980,9 @@ class ShotgunPrimitives
     CODE
   end
 
-  def opt_kind_of
-    <<-CODE
-    OBJECT t1;
-  
-    POP(t1, REFERENCE);
-    GUARD(CLASS_P(t1) || MODULE_P(t1));
-  
-    RET(object_kind_of_p(state, msg->recv, t1) ? Qtrue : Qfalse);
-    CODE
-  end
-
   def float_round
     <<-CODE
+    ARITY(0);
     GUARD(FLOAT_P(msg->recv));
     double value = FLOAT_TO_DOUBLE(msg->recv);
     if (value > 0.0) value = floor(value+0.5);
@@ -3784,6 +3993,7 @@ class ShotgunPrimitives
 
   def float_divmod
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3810,6 +4020,7 @@ class ShotgunPrimitives
 
   def float_pow
     <<-CODE
+    ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
     OBJECT t1 = stack_pop();
@@ -3823,6 +4034,7 @@ class ShotgunPrimitives
 
   def float_isnan
     <<-CODE
+    ARITY(0);
     GUARD(FLOAT_P(msg->recv));
     RET(isnan(FLOAT_TO_DOUBLE(msg->recv)) == 1 ? Qtrue : Qfalse);
     CODE
@@ -3830,6 +4042,7 @@ class ShotgunPrimitives
 
   def float_isinf
     <<-CODE
+    ARITY(0);
     GUARD(FLOAT_P(msg->recv));
     double value = FLOAT_TO_DOUBLE(msg->recv);
     if(isinf(value) != 0) {
@@ -3842,6 +4055,7 @@ class ShotgunPrimitives
 
   def bignum_gt
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
@@ -3857,6 +4071,7 @@ class ShotgunPrimitives
 
   def bignum_ge
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
@@ -3872,6 +4087,7 @@ class ShotgunPrimitives
 
   def bignum_lt
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
@@ -3887,6 +4103,7 @@ class ShotgunPrimitives
 
   def bignum_le
     <<-CODE
+    ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
@@ -3902,6 +4119,7 @@ class ShotgunPrimitives
 
   def sendsite_create
     <<-CODE
+    ARITY(1);
     OBJECT t1, ss;
 
     GUARD(CLASS_P(msg->recv));
@@ -3914,6 +4132,7 @@ class ShotgunPrimitives
 
   def sendsite_at
     <<-CODE
+    ARITY(1);
     OBJECT t1;
 
     GUARD(SENDSITE_P(msg->recv));

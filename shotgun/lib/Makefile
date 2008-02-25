@@ -58,12 +58,16 @@ ifeq ($(UNAME),SunOS)
 endif
 
 ifdef PROF
-	OPTIMIZATIONS=-O2
+  OPTIMIZATIONS=-O2
 else 
   ifdef DEV
     OPTIMIZATIONS=-O0
   else
-    OPTIMIZATIONS=-O2 -finline-functions
+    ifdef TURBO
+      OPTIMIZATIONS=-O3 -falign-loops -momit-leaf-frame-pointer -fno-tree-pre
+    else
+      OPTIMIZATIONS=-O2 -finline-functions -Winline
+    endif
   endif
 endif
 

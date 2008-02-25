@@ -576,28 +576,8 @@ void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
   cpu_raise_exception(state, c, primitive_failure);
 }
 
-static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
-  int prim, req;
-  OBJECT prim_obj;
+static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int prim) {
 
-  prim_obj = fast_fetch(msg->method, CMETHOD_f_PRIMITIVE);
-
-  if(!FIXNUM_P(prim_obj)) {
-    if(SYMBOL_P(prim_obj)) {
-      prim = calc_primitive_index(state, symbol_to_string(state, prim_obj));
-    } else {
-      prim = -1;
-    }
-    cmethod_set_primitive(msg->method, I2N(prim));
-  } else {
-    prim = N2I(prim_obj);
-  }
-
-  if(prim < 0) return FALSE;
-
-  req = N2I(cmethod_get_required(msg->method));
-
-  if(msg->args == req || req < 0) {
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
     char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
@@ -613,49 +593,69 @@ static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
   }
 #endif
 
-    c->in_primitive = prim;
-    if(cpu_perform_system_primitive(state, c, prim, msg)) {
-      /* Worked! */
-      c->in_primitive = 0;
+  c->in_primitive = prim;
+  if(cpu_perform_system_primitive(state, c, prim, msg)) {
+    /* Worked! */
+    c->in_primitive = 0;
 
-      if(EXCESSIVE_TRACING) {
-        printf("%05d: Called prim %s => %s on %s.\n", c->depth,
-            rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
-            rbs_symbol_to_cstring(state, msg->name), _inspect(msg->recv));
-      }
+    if(EXCESSIVE_TRACING) {
+      printf("%05d: Called prim %s => %s on %s.\n", c->depth,
+          rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
+          rbs_symbol_to_cstring(state, msg->name), _inspect(msg->recv));
+    }
 
 #if ENABLE_DTRACE
-      if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
-        char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
-        char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
+    if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
+      char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
+      char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
 
-        cpu_flush_ip(c);
+      cpu_flush_ip(c);
 
-        struct fast_context *fc = FASTCTX(c->active_context);
-        int line_number = cpu_ip2line(state, fc->method, fc->ip);
-        char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+      struct fast_context *fc = FASTCTX(c->active_context);
+      int line_number = cpu_ip2line(state, fc->method, fc->ip);
+      char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
-        RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
-      }
+      RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+    }
 #endif
-      return TRUE;
-    }
-      
-    c->in_primitive = 0;
-    
-    if(EXCESSIVE_TRACING) {
-      printf("[[ Primitive failed! -- %d ]]\n", prim);
-    }
+    return TRUE;
+  }
 
+  c->in_primitive = 0;
+
+  if(EXCESSIVE_TRACING) {
+    printf("[[ Primitive failed! -- %d ]]\n", prim);
+  }
+
+  return FALSE;
+}
+
+
+static inline int cpu_try_primitive(STATE, cpu c, const struct message *msg) {
+  int prim;
+  OBJECT prim_obj;
+
+  prim_obj = fast_fetch(msg->method, CMETHOD_f_PRIMITIVE);
+
+  if(NIL_P(prim_obj)) {
+    return FALSE;
+  } else if(!FIXNUM_P(prim_obj)) {
+    if(SYMBOL_P(prim_obj)) {
+      prim = calc_primitive_index(state, symbol_to_string(state, prim_obj));
+    } else {
+      prim = -1;
+    }
+    cmethod_set_primitive(msg->method, I2N(prim));
+  } else {
+    prim = N2I(prim_obj);
+  }
+
+  if(prim < 0) {
+    cmethod_set_primitive(msg->method, Qnil);
     return FALSE;
   }
 
-  /* raise an exception about them not doing it right. */
-  cpu_raise_arg_error(state, c, msg->args, req);
-
-  /* Return TRUE to indicate that the work for this primitive has
-     been done. */
-  return TRUE;
+  return cpu_execute_primitive(state, c, msg, prim);
 }
 
 /* Raw most functions for moving in a method. Adjusts register. */
