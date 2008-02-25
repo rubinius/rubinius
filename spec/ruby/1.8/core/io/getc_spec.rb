@@ -27,7 +27,7 @@ describe "IO#getc" do
   end
 
   it "returns nil on empty stream" do
-    File.open(File.dirname(__FILE__) + '/fixtures/empty.txt') { |empty|
+    File.open('/tmp/empty.txt') { |empty|
       empty.getc.should == nil
     }
   end

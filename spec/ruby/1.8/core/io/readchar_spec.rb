@@ -32,7 +32,7 @@ describe "IO#readchar" do
 
   it "raises EOFError on empty stream" do
     lambda {
-      File.open(File.dirname(__FILE__) + '/fixtures/empty.txt') { |empty|
+      File.open('/tmp/empty.txt') { |empty|
         empty.readchar
       }
     }.should raise_error(EOFError)
