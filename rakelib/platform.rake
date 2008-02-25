@@ -96,6 +96,46 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
     LOCK_UN
     BINARY
   }
+  
+  syslog_constants = %w{
+    LOG_PID
+    LOG_EMERG
+    LOG_ALERT
+    LOG_ERR
+    LOG_CRIT
+    LOG_WARNING
+    LOG_NOTICE
+    LOG_INFO
+    LOG_DEBUG
+    LOG_CONS
+    LOG_ODELAY
+    LOG_NODELAY
+    LOG_NOWAIT
+    LOG_PERROR
+    LOG_AUTH
+    LOG_AUTHPRIV
+    LOG_CONSOLE
+    LOG_CRON
+    LOG_DAEMON
+    LOG_FTP
+    LOG_KERN
+    LOG_LPR
+    LOG_MAIL
+    LOG_NEWS
+    LOG_NTP
+    LOG_SECURITY
+    LOG_SYSLOG
+    LOG_USER
+    LOG_UUCP
+    LOG_LOCAL0
+    LOG_LOCAL1
+    LOG_LOCAL2
+    LOG_LOCAL3
+    LOG_LOCAL4
+    LOG_LOCAL5
+    LOG_LOCAL6
+    LOG_LOCAL7
+  }
 
   file_constants = %w{
     O_RDONLY
@@ -487,6 +527,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   cg.include "netinet/tcp.h"
   cg.include "signal.h"
   cg.include "netinet/in.h"
+  cg.include "syslog.h"
 
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
@@ -498,6 +539,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   }
   signal_constants.each { |c| cg.const c }
   fcntl_constants.each { |c| cg.const c }
+  syslog_constants.each { |c| cg.const c }
 
   cg.calculate
 
@@ -545,6 +587,11 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
       const = cg.constants[name]
       next if const.converted_value.nil?
       f.puts "rbx.platform.signal.#{name} = #{const.converted_value}"
+    end
+    
+    syslog_constants.each do |name|
+      const = cg.constants[name]
+      f.puts "rbx.platform.syslog.#{name} = #{const.converted_value}"
     end
     
     f.puts TypesGenerator.generate
