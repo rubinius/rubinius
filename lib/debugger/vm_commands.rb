@@ -251,7 +251,7 @@ class Debugger
       if literals
         output = Output.new
         output << "SendSites for #{cm.name}:"
-        output.set_columns(['%d.', '%s', '%s', '%s', '%d', '%d', '%d'])
+        output.set_columns(['%-3d.', '%-s', '%-s', '%-s', '%-s', '%d', '%d'])
         literals.each do |lit|
           if lit.kind_of? SendSite
             output << [i+1, lit.name, lit.data(1), lit.data(2) ? lit.data(2).name : nil, lit.data(3), lit.hits, lit.misses] if lit
