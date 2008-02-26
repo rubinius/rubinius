@@ -3,7 +3,7 @@ class Debugger
 
   class Help < Command
     def help
-      return "h[elp]", "Display this list of commands"
+      return "h[elp]", "Display this list of commands."
     end
 
     def command_regexp
@@ -13,6 +13,7 @@ class Debugger
     def execute(dbg, md)
       output = Output.new
       output << "Available commands:"
+      output.set_columns(["%-25s", "%-50s"], '  ', false)
       cmds = dbg.commands
       cmds.each do |cmd|
         c,h = cmd.help if cmd.respond_to? :help
@@ -25,7 +26,7 @@ class Debugger
 
   class ShowBreakpoints < Command
     def help
-      return "b[reak]", "List breakpoints"
+      return "b[reak]", "List breakpoints."
     end
 
     def command_regexp
@@ -51,7 +52,7 @@ class Debugger
 
   class AddBreakpoint < Command
     def help
-      return "b[reak] <Method>[:<line>]", "Set a breakpoint at the start or specified line of <Method>"
+      return "b[reak] <Method>[:<line>]", "Set a breakpoint at the start or specified line of <Method>."
     end
 
     def command_regexp
@@ -80,7 +81,7 @@ class Debugger
 
   class Continue < Command
     def help
-      return "c[ont]", "Continue execution to next breakpoint, or end of program (whichever comes first)"
+      return "c[ont]", "Continue execution to next breakpoint, or end of program (whichever comes first)."
     end
 
     def command_regexp
@@ -97,7 +98,7 @@ class Debugger
   # Step in to the next line
   class StepIn < Command
     def help
-      return "s[tep] [+n|line]", "Step to the next, (or nth next) line, stepping into called methods"
+      return "s[tep] [+n|line]", "Step to the next, (or nth next) line, stepping into called methods."
     end
 
     def command_regexp
@@ -130,7 +131,7 @@ class Debugger
   # Step next to the next line
   class StepNext < Command
     def help
-      return "n[ext] [+n|line]", "Step to the next, (or nth next) line, without stepping into called methods"
+      return "n[ext] [+n|line]", "Step to the next, (or nth next) line, without stepping into called methods."
     end
 
     def command_regexp
@@ -163,7 +164,7 @@ class Debugger
   # Step out to caller
   class StepOut < Command
     def help
-      return "o[ut] [+n]", "Step out to the calling method (or nth caller)"
+      return "o[ut] [+n]", "Step out to the calling method (or nth caller)."
     end
 
     def command_regexp
@@ -190,7 +191,7 @@ class Debugger
   # Steps to the next line (without stepping in)
   class LegacyStepNext < Command
     def help
-      return "ln[ext] [+n]", "Step to the next, (or nth next) line without stepping into called methods (deprecated)"
+      return "ln[ext] [+n]", "Step to the next, (or nth next) line without stepping into called methods (deprecated)."
     end
 
     def command_regexp
@@ -260,7 +261,7 @@ class Debugger
 
   class LegacyStepOut < Command
     def help
-      return "lo[ut]", "Return to caller and then break (deprecated)"
+      return "lo[ut]", "Return to caller and then break (deprecated)."
     end
 
     def command_regexp
@@ -286,7 +287,7 @@ class Debugger
 
   class Quit < Command
     def help
-      return "q[uit]", "Remove all breakpoints, quit the debugger, and resume program"
+      return "q[uit]", "Remove all breakpoints, quit the debugger, and resume program."
     end
 
     def command_regexp
@@ -301,7 +302,7 @@ class Debugger
 
   class ListSource < Command
     def help
-      return "l[ist]   [start [end]]", "List source code lines around breakpoint or between start/end"
+      return "l[ist] [start [end]]", "List source code lines around breakpoint or between start/end."
     end
 
     def command_regexp
@@ -353,7 +354,7 @@ class Debugger
 
   class ShowLocals < Command
     def help
-      return "v[ars]", "Show local variables and their values"
+      return "v[ars]", "Show local variables and their values."
     end
 
     def command_regexp
@@ -384,7 +385,7 @@ class Debugger
 
   class ShowBacktrace < Command
     def help
-      return "w[here]", "Show execution backtrace"
+      return "w[here]", "Show execution backtrace."
     end
 
     def command_regexp

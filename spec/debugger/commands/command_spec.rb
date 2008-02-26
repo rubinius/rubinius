@@ -50,22 +50,22 @@ end
 describe "Command::Output::Columns#format_str" do
   it "aligns columns according to a left or right justification specification" do
     @cols = Debugger::Output::Columns.new(["%-5s"], nil, false)
-    @cols.format_str(["a"]).should == "a    "
+    @cols.format_str(["a"]).should == ["a    "]
     @cols = Debugger::Output::Columns.new(["%5s"], nil, false)
-    @cols.format_str(["a"]).should == "    a"
+    @cols.format_str(["a"]).should == ["    a"]
     @cols = Debugger::Output::Columns.new(["%5s", "%5s"],"|", false)
-    @cols.format_str(["a","b"]).should == "    a|    b"
+    @cols.format_str(["a","b"]).should == ["    a|    b"]
   end
 
   it "wraps a cell value onto multiple lines if the content of a cell is wider than the cell width" do
     @cols = Debugger::Output::Columns.new(["%10s"], nil, false)
-    @cols.format_str(["abcdefghij"]).should == "abcdefghij"
-    @cols.format_str(["abcdefghijklmnop"]).should == "abcdefghij\n    klmnop"
+    @cols.format_str(["abcdefghij"]).should == ["abcdefghij"]
+    @cols.format_str(["abcdefghijklmnop"]).should == ["abcdefghij","    klmnop"]
 
     @cols = Debugger::Output::Columns.new(["%-5s","%10s"],"|", false)
-    @cols.format_str(["a", "abcdefghijklmnop"]).should == "a    |abcdefghij\n     |    klmnop"
+    @cols.format_str(["a", "abcdefghijklmnop"]).should == ["a    |abcdefghij", "     |    klmnop"]
     @cols = Debugger::Output::Columns.new(["%-5s","%10s"],"|", true)
     @cols.update_widths(["a", "abcdefghijklmnop"])
-    @cols.format_str(["a", "abcdefghijklmnop"]).should == "a    |abcdefghijklmnop"
+    @cols.format_str(["a", "abcdefghijklmnop"]).should == ["a    |abcdefghijklmnop"]
   end
 end

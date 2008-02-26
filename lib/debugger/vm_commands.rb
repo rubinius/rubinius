@@ -4,7 +4,7 @@ class Debugger
   # Step in to the next VM instruction
   class StepInInstruction < Command
     def help
-      return "s[tep]i [+n|line]", "Step to the next, (or nth next) VM instruction, stepping into called methods"
+      return "s[tep]i [+n|line]", "Step to the next, (or nth next) VM instruction, stepping into called methods."
     end
 
     def command_regexp
@@ -37,7 +37,7 @@ class Debugger
   # Step next to the next VM instruction
   class StepNextInstruction < Command
     def help
-      return "n[ext]i [+n|line]", "Step to the next, (or nth next) VM instruction, without stepping into called methods"
+      return "n[ext]i [+n|line]", "Step to the next, (or nth next) VM instruction, without stepping into called methods."
     end
 
     def command_regexp
@@ -70,7 +70,7 @@ class Debugger
   # Steps to the next VM instruction
   class LegacyStepNextInstruction < Command
     def help
-      return "ln[ext] i[nstruction] [+n]", "Step to the next, (or nth next) VM instruction without stepping into called methods (deprecated)"
+      return "ln[ext] i[nstruction] [+n]", "Step to the next, (or nth next) VM instruction without stepping into called methods (deprecated)."
     end
 
     def command_regexp
@@ -142,7 +142,7 @@ class Debugger
   # TODO: Should bytecode listing remember last window displayed and show next?
   class ListBytecode < Command
     def help
-      return "d[ecode] [start [end]]", "Decode bytecode around breakpoint or between start/end"
+      return "d[ecode] [start [end]]", "Decode bytecode around breakpoint or between start/end."
     end
 
     def command_regexp
@@ -190,7 +190,7 @@ class Debugger
   # Shows the contents of the VM stack
   class ShowStack < Command
     def help
-      return "v[m] s[tack]", "Display the current objects on the VM stack"
+      return "v[m] s[tack]", "Display the current objects on the VM stack."
     end
 
     def command_regexp
@@ -236,7 +236,7 @@ class Debugger
   # Shows info about the SendSites within the current method
   class ShowSendSites < Command
     def help
-      return "v[m] s[end] s[ites]", "Display send site info for each send site in the current method"
+      return "v[m] s[end] s[ites]", "Display send site info for each send site in the current method."
     end
     
     def command_regexp

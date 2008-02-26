@@ -110,7 +110,7 @@ class Debugger
       end
 
       # Format an array of cells into a string
-      # TODO: Handle wrapping
+      # TODO: Handle line_width arg to limit line overall length
       def format_str(row, line_width=nil)
         cells = []
         cum_width = 0
@@ -148,7 +148,7 @@ class Debugger
           str << line_cells.join(@col_separator)
           line += 1
         end
-        str.join("\n")
+        str
       end
 
       # Splits the supplied string at logical breaks to ensure that no line is
@@ -324,7 +324,7 @@ class Debugger
           str << '  '
           str << color.escape if color
           str << output_marker(marker)
-          str << column.format_str(item).rstrip
+          str << column.format_str(item).join("\n  ").rstrip
           str << color.clear if color
           str << "\n"
           marker = nil
