@@ -2847,7 +2847,7 @@ class ShotgunPrimitives
 
   def task_get_stack_value
     <<-CODE
-    ARITY(1);
+    ARITY(0);
     struct cpu_task *task;
     OBJECT t1, t2;
     
