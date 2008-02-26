@@ -16,16 +16,14 @@
 
 module Syslog
   class << self
-    include Constants
-
     module Foreign
       # methods
-      attach_function "openLog", :open, [:string, :int, :int], :void
-      attach_function "closeLog", :close, [], :void
+      attach_function "openlog", :open, [:string, :int, :int], :void
+      attach_function "closelog", :close, [], :void
       attach_function "syslog", :write, [:int, :string, :string], :void
       attach_function "setlogmask", :set_mask, [:int], :void
-      attach_function "LOG_UPTO", :LOG_UPTO, [:int], :int
-      attach_function "LOG_MASK", :LOG_MASK, [:int], :int
+#      attach_function "LOG_UPTO", :LOG_UPTO, [:int], :int
+#      attach_function "LOG_MASK", :LOG_MASK, [:int], :int
     end
 
     module Constants
@@ -72,6 +70,7 @@ module Syslog
           const_set(c, Rubinius::RUBY_CONFIG['rbx.platform.syslog.' + c])
         end
       end
+      include Constants
 
       ##
       # returns the ident of the last open call
@@ -209,6 +208,8 @@ module Syslog
       #  
       # Creates a mask for one priority.
       def LOG_MASK
+        raise "Not Yet Implemented"
+        
         Foreign.LOG_MASK(pri)
       end
 
@@ -217,6 +218,8 @@ module Syslog
       #  
       # Creates a mask for all priorities up to pri.
       def LOG_UPTO pri
+        raise "Not Yet Implemented"
+        
         Foreign.LOG_UPTO(pri)
       end
 
