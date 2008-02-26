@@ -1065,10 +1065,7 @@ class String
     i = 0
     j = @bytes - 1
     while i < j
-      a = @data[i]
-      b = @data[j]
-      @data[j] = a
-      @data[i] = b
+      @data[i], @data[j] = @data[j], @data[i]
       i += 1
       j -= 1
     end
