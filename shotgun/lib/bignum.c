@@ -121,15 +121,73 @@ OBJECT bignum_mul(STATE, OBJECT a, OBJECT b) {
   return bignum_normalize(state, n_obj);
 }
 
-OBJECT bignum_div(STATE, OBJECT a, OBJECT b) {
+OBJECT bignum_div(STATE, OBJECT a, OBJECT b, mp_int *mod) {
   NMP;
+  mp_int m, x, y, z;
 
   if(FIXNUM_P(b)) {
     b = bignum_new(state, N2I(b));
   }
 
-  mp_div(MP(a), MP(b), n, NULL);
+  mp_init(&m);
+  mp_init(&x);
+  mp_init(&y);
+  mp_init(&z);
+  
+  if(mp_cmp_d(MP(b), 0) == MP_LT) {
+    if(mp_cmp_d(MP(a), 0) == MP_LT) {
+      mp_neg(MP(a), &x);
+      mp_neg(MP(b), &y);
+      mp_div(&x, &y, &z, NULL);
+    } else {
+      mp_neg(MP(b), &x);
+      mp_div(MP(a), &x, &y, NULL);
+      mp_neg(&y, &z);
+    }
+  } else {
+    if (mp_cmp_d(MP(a), 0) == MP_LT) {
+      mp_neg(MP(a), &x);
+      mp_div(&x, MP(b), &y, NULL);
+      mp_neg(&y, &z);
+    } else {
+      mp_div(MP(a), MP(b), &z, NULL);
+    }
+  }
+
+  mp_mul(&z, MP(b), &x);
+  mp_sub(MP(a), &x, &y);
+
+  if((mp_cmp_d(&y, 0) == MP_LT && mp_cmp_d(MP(b), 0) == MP_GT)
+      || (mp_cmp_d(&y, 0) == MP_GT && mp_cmp_d(MP(b), 0) == MP_LT)) {
+    mp_add(&y, MP(b), &m);
+    mp_sub_d(&z, 1, n);
+  } else {
+    mp_copy(&z, n);
+    mp_copy(&y, &m);
+  }
+  
+  if(mod) {
+    mp_copy(&m, mod);
+  }
+
+  mp_clear(&m);
+  mp_clear(&x);
+  mp_clear(&y);
+  mp_clear(&z);
+
   return bignum_normalize(state, n_obj);
+}
+
+OBJECT bignum_divmod(STATE, OBJECT a, OBJECT b) {
+  MMP;
+  OBJECT div, ary;
+
+  div = bignum_div(state, a, b, m);
+  
+  ary = array_new(state, 2);
+  array_set(state, ary, 0, div);
+  array_set(state, ary, 1, bignum_normalize(state, m_obj));
+  return ary;
 }
 
 OBJECT bignum_mod(STATE, OBJECT a, OBJECT b) {
@@ -141,18 +199,6 @@ OBJECT bignum_mod(STATE, OBJECT a, OBJECT b) {
 
   mp_mod(MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
-}
-
-OBJECT bignum_divmod(STATE, OBJECT a, OBJECT b) {
-  NMP;
-  MMP;
-  OBJECT ary;
-
-  mp_div(MP(a), MP(b), n, m);
-  ary = array_new(state, 2);
-  array_set(state, ary, 0, bignum_normalize(state, n_obj));
-  array_set(state, ary, 1, bignum_normalize(state, m_obj));
-  return ary;
 }
 
 int bignum_is_zero(STATE, OBJECT a) {

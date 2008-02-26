@@ -5,6 +5,11 @@ describe "Bignum#divmod" do
     @bignum = bignum_value(55)
   end
   
+  # Based on MRI's test/test_integer.rb (test_divmod),
+  # MRI maintains the following property:
+  # if q, r = a.divmod(b) ==>
+  # assert(0 < b ? (0 <= r && r < b) : (b < r && r <= 0))
+  # So, r is always between 0 and b.
   it "returns an Array containing quotient and modulus obtained from dividing self by the given argument" do
     @bignum.divmod(4).should == [2305843009213693965, 3]
     @bignum.divmod(13).should == [709490156681136604, 11]
@@ -14,28 +19,12 @@ describe "Bignum#divmod" do
 
     @bignum.divmod(2.0).should == [4611686018427387904, 0.0]
     @bignum.divmod(bignum_value).should == [1, 55]
+
     (-(10**50)).divmod(-(10**40 + 1)).should == [9999999999, -9999999999999999999999999999990000000001]
     (10**50).divmod(10**40 + 1).should == [9999999999, 9999999999999999999999999999990000000001]
-  end
 
-  # Based on MRI's test/test_integer.rb (test_divmod),
-  # MRI maintains the following property:
-  # if q, r = a.divmod(b) ==>
-  # assert(0 < b ? (0 <= r && r < b) : (b < r && r <= 0))
-  # So, r is always between 0 and b.
-  compliant_on :ruby, :jruby do
-    it "correctly handles negative values for x or y in x.divmod(y)" do
-      (-10**50).divmod(10**40 + 1).should == [-10000000000, 10000000000]
-      (10**50).divmod(-(10**40 + 1)).should == [-10000000000, -10000000000]
-    end
-  end
-
-  # see http://rubyforge.org/tracker/index.php?func=detail&aid=16988&group_id=426&atid=1698
-  deviates_on :rubinius do
-    it "correctly handles negative values for x or y in x.divmod(y)" do
-      (-10**50).divmod(10**40 + 1).should == [-9999999999, -9999999999999999999999999999990000000001]
-      (10**50).divmod(-(10**40 + 1)).should == [-9999999999, 9999999999999999999999999999990000000001]
-    end
+    (-10**50).divmod(10**40 + 1).should == [-10000000000, 10000000000]
+    (10**50).divmod(-(10**40 + 1)).should == [-10000000000, -10000000000]
   end
   
   it "raises a ZeroDivisionError when the given argument is 0" do

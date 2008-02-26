@@ -212,7 +212,7 @@ class ShotgunPrimitives
       RET(I2N(fixnum_div(state, msg->recv, t1, &mod)));
     } else if(BIGNUM_P(t1)) {
       GUARD(!bignum_is_zero(state, t1));
-      RET(bignum_div(state, bignum_new(state, N2I(msg->recv)), t1));
+      RET(bignum_div(state, bignum_new(state, N2I(msg->recv)), t1, NULL));
     } else if(FLOAT_P(t1)) {
       OBJECT t2 = float_coerce(state, msg->recv);
       RET(float_new(state, FLOAT_TO_DOUBLE(t2) / FLOAT_TO_DOUBLE(t1)));
@@ -229,10 +229,10 @@ class ShotgunPrimitives
     OBJECT t1 = stack_pop();
     if(BIGNUM_P(t1)) {
       GUARD(!bignum_is_zero(state, t1));
-      RET(bignum_div(state, msg->recv, t1));
+      RET(bignum_div(state, msg->recv, t1, NULL));
     } else if(FIXNUM_P(t1)) {
       GUARD(N2I(t1) != 0) // no divide by zero
-      RET(bignum_div(state, msg->recv, t1));
+      RET(bignum_div(state, msg->recv, t1, NULL));
     } else if(FLOAT_P(t1)) {
       double a = bignum_to_double(state, msg->recv);
       RET(float_new(state, a / FLOAT_TO_DOUBLE(t1)));
@@ -2291,11 +2291,16 @@ class ShotgunPrimitives
     OBJECT t1;
 
     GUARD(BIGNUM_P(msg->recv));
-    
-    POP(t1, BIGNUM); 
+    t1 = stack_pop();
     
     // no divide by zero
-    GUARD(!bignum_is_zero(state, t1));
+    if(FIXNUM_P(t1)) {
+      GUARD(N2I(t1) != 0);
+    } else if(BIGNUM_P(t1)) {
+      GUARD(!bignum_is_zero(state, t1));
+    } else {
+      FAIL();
+    }
 
     RET(bignum_divmod(state, msg->recv, t1));
     CODE

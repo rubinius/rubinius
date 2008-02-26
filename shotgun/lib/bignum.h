@@ -8,7 +8,7 @@ OBJECT bignum_new_unsigned(STATE, unsigned int num);
 OBJECT bignum_add(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_sub(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_mul(STATE, OBJECT a, OBJECT b);
-OBJECT bignum_div(STATE, OBJECT a, OBJECT b);
+OBJECT bignum_div(STATE, OBJECT a, OBJECT b, mp_int *mod);
 OBJECT bignum_mod(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_equal(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_compare(STATE, OBJECT a, OBJECT b);

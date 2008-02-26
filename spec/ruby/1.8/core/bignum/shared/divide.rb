@@ -9,6 +9,12 @@ shared :bignum_divide do |cmd|
 
       @bignum.send(cmd, 0xffff_ffff.to_f).should be_close(2147483648.5, TOLERANCE)
       @bignum.send(cmd, bignum_value(2)).should be_close(1, TOLERANCE)
+      
+      (-(10**50)).send(cmd, -(10**40 + 1)).should == 9999999999
+      (10**50).send(cmd, 10**40 + 1).should == 9999999999
+
+      (-10**50).send(cmd, 10**40 + 1).should == -10000000000
+      (10**50).send(cmd, -(10**40 + 1)).should == -10000000000
     end
 
     it "raises a ZeroDivisionError if other is zero and not a Float" do
