@@ -1,0 +1,1 @@
+fails:Array#dup produces a copy with taint the same as the original and frozen false
