@@ -58,15 +58,37 @@ class Debugger
   class Output
     # Class for defining columns of output.
     class Columns
+      # Defines a new Columns block for an output.
+      # Takes the following arguments:
+      # - formats: Either a fixnum specifying the number of columns, or an array
+      #   of format specifications (one per column). If an array is passed, the
+      #   format specifications are as handled by String#%.
+      # - An optional column separator string that will be inserted between
+      #   columns when converting a row of cells to a string; defaults to a
+      #   single space
+      # - A flag indicating whether to calculate the required widths for each
+      #   column, or use the fixed widths specified in the formats arg.
       def initialize(formats, col_sep=' ', auto=true)
         if formats.kind_of? Array
           @formats = formats
         elsif formats.kind_of? Fixnum
           @formats = Array.new(formats, '%-s')
+        else
+          raise ArgumentError, "The formats arg must be an Array or a Fixnum (got #{formats.class})"
         end
         @widths = Array.new(@formats.size, 0)
         @col_separator = col_sep
         @auto = auto
+
+        unless @auto
+          re = /%([|-])?(\d*)([sd])/
+          @formats.each_with_index do |fmt, i|
+            fmt =~ re
+            if $2.length > 0
+              @widths[i] = $2.to_i + $`.length + $'.length
+            end
+          end
+        end
       end
 
       # Update the column widths required based on the row content
@@ -89,28 +111,93 @@ class Debugger
 
       # Format an array of cells into a string
       # TODO: Handle wrapping
-      def format_str(row)
+      def format_str(row, line_width=nil)
         cells = []
+        cum_width = 0
         re = /%([|-])?(\d*)([sd])/
         @formats.each_with_index do |fmt, i|
           if row[i]
+            # Format cell ignoring width and alignment, wrapping if necessary
             fmt =~ re
-            if $2.length > 0
-              width = $2
-            else
-              width = @widths[i] - $`.length - $'.length if @auto and i < @formats.size-1
+            cell = "#{$`}%#{$3}#{$'}" % row[i]
+            align = case $1
+            when '-' then :left
+            when '|' then :center
+            else :right
             end
-            cells << "#{$`}%#{$1 if $1 == '-'}#{width}#{$3}#{$'}" % row[i]
+            lines = wrap(cell, @widths[i], align)
+            cells << lines
           else
-            cells << ' ' * @widths[i]
+            cells << []
           end
         end
-        cells.join(@col_separator)
+
+        line, last_line = 0, 1
+        str = []
+        while line < last_line do
+          line_cells = []
+          cells.each_with_index do |cell, i|
+            last_line = cell.size if line == 0 and cell.size > last_line
+            if line < cell.size
+              line_cells << cell[line]
+            else
+              # Cell does not wrap onto current line, so just output spaces
+              line_cells << ' ' * @widths[i]
+            end
+          end
+          str << line_cells.join(@col_separator)
+          line += 1
+        end
+        str.join("\n")
+      end
+
+      # Splits the supplied string at logical breaks to ensure that no line is
+      # longer than the spcecified width. Returns an array of lines.
+      def wrap(str, width, align=:none)
+        raise ArgumentError, "Invalid wrap length specified (#{width})" if width < 1
+
+        return [nil] unless str
+
+        str.strip!
+        lines = []
+        until str.length <= width do
+          if pos = str[0, width].rindex(/[\s\-,]/)
+            # Found a break on whitespace or dash
+            line, str = str[0..pos].strip, str[pos+1..-1].strip
+          elsif pos = str[0, width-1].rindex(/[^\w]/)
+            # Found a non-word character to break on
+            line, str = str[0...pos].strip, str[pos..-1].strip
+          else
+            # Force break at width
+            line, str = str[0...width].strip, str[width..-1].strip
+          end
+
+          # Pad with spaces to requested width if an alignment is specified
+          lines << align(line, width, align)
+        end
+        lines << align(str, width, align) if str
+        lines
+      end
+
+      # Aligns 
+      def align(line, width, align)
+        case align
+        when :left
+          line = line + ' ' * (width - line.length)
+        when :right
+          line = ' ' * (width - line.length) + line
+        when :center
+          line = line.center(width, ' ')
+        else
+          line
+        end
       end
     end
 
 
+    ##
     # Class for colorizing output lines
+
     class Color
       def initialize(color=:clear)
         @color = color
