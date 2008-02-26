@@ -16,7 +16,6 @@ unless Socket.const_defined? "AF_INET6"
   class Socket
     AF_INET6 = Object.new
   end
-end
 
   class << IPSocket
     def valid_v4?(addr)
@@ -54,7 +53,7 @@ end
       end
     end
   end
-# end
+end
 
 # IPAddr provides a set of methods to manipulate an IP address.  Both IPv4 and
 # IPv6 are supported.
@@ -401,7 +400,6 @@ class IPAddr
   # specified address, you can specify an address family explicitly by
   # the optional second argument.
   def initialize(addr = '::', family = Socket::AF_UNSPEC)
-    addr.downcase!
     if !addr.kind_of?(String)
       if family != Socket::AF_INET6 && family != Socket::AF_INET
 	raise ArgumentError, "unsupported address family"
