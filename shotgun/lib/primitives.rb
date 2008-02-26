@@ -3125,7 +3125,7 @@ class ShotgunPrimitives
   
   def sampler_activate
     <<-CODE
-    ARITY(0);
+    ARITY(1);
     OBJECT t1;
 
     POP(t1, FIXNUM);
