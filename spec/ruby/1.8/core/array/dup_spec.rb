@@ -13,4 +13,18 @@ describe "Array#dup" do
     b.first.object_id.should == a.first.object_id
     b.last.object_id.should == a.last.object_id
   end
+  
+  it "produces a copy with taint the same as the original and frozen false" do
+    for taint in [ false, true ]
+      for frozen in [ false, true ]
+        a = [1, 2, 3, 4]
+        a.taint  if taint
+        a.freeze if frozen
+        b = a.dup
+
+        b.frozen?.should == false
+        b.tainted?.should == a.tainted?
+      end
+    end
+  end
 end

@@ -8,6 +8,8 @@ describe "Array.[]" do
     a = MyArray.[](5, true, nil, 'a', "Ruby")
     a.class.should == MyArray
     a.inspect.should == [5, true, nil, "a", "Ruby"].inspect
+    
+    Array.[]().should == []
   end
 end
 
@@ -18,5 +20,7 @@ describe "Array[]" do
     a = MyArray[5, true, nil, 'a', "Ruby"]
     a.class.should == MyArray
     a.inspect.should == [5, true, nil, "a", "Ruby"].inspect
+    
+    Array[].should == []
   end
 end

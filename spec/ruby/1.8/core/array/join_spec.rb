@@ -12,11 +12,10 @@ describe "Array#join" do
     def obj.to_s() 'foo' end
     [1, 2, 3, 4, obj].join(' | ').should == '1 | 2 | 3 | 4 | foo'
 
-# undef is not implemented -rue
-#    obj = mock('o')
-#    class << obj; undef :to_s; end
-#    obj.should_receive(:method_missing).with(:to_s).and_return("o")
-#    [1, obj].join(":").should == "1:o"
+    obj = mock('o')
+    class << obj; undef :to_s; end
+    obj.should_receive(:method_missing).with(:to_s).and_return("o")
+    [1, obj].join(":").should == "1:o"
   end
   
   it "uses the same separator with nested arrays" do

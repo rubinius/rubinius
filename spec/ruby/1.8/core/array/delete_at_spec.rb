@@ -16,9 +16,12 @@ describe "Array#delete_at" do
     a.delete_at(-1).should == 4
   end
   
-  it "returns nil if the index is out of range" do
+  it "returns nil and makes no modification if the index is out of range" do
     a = [1, 2]
     a.delete_at(3).should == nil
+    a.should == [1, 2]
+    a.delete_at(-3).should == nil
+    a.should == [1, 2]
   end
 
   it "calls to_int on its argument" do

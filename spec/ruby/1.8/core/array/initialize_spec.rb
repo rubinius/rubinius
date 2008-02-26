@@ -18,8 +18,11 @@ describe "Array#initialize" do
     ary.should == [1, 2, 3]
   end
   
-  it "sets the array to size objects when passed size, object" do
-    [].instance_eval { initialize(2, [3]) }.should == [[3], [3]]
+  it "sets the array to size and fills with the object when passed size, object" do
+    a = []
+    a.instance_eval { initialize(2, [3]) }
+    a.should == [[3], [3]]
+    a[0].__id__.should == a[1].__id__
     [].instance_eval { initialize(1) }.should == [nil]
   end
   

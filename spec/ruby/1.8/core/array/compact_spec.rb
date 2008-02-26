@@ -3,7 +3,13 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#compact" do
   it "returns a copy of array with all nil elements removed" do
-    a = [1, nil, 2, nil, 4, nil]
+    a = [1, 2, 4]
+    a.compact.should == [1, 2, 4]
+    a = [1, nil, 2, 4]
+    a.compact.should == [1, 2, 4]
+    a = [1, 2, 4, nil]
+    a.compact.should == [1, 2, 4]
+    a = [nil, 1, 2, 4]
     a.compact.should == [1, 2, 4]
   end
 
@@ -14,7 +20,13 @@ end
 
 describe "Array#compact!" do
   it "removes all nil elements" do
-    a = ['a', nil, 'b', nil, nil, false, 'c', nil]
+    a = ['a', nil, 'b', false, 'c']
+    a.compact!.equal?(a).should == true
+    a.should == ["a", "b", false, "c"]
+    a = [nil, 'a', 'b', false, 'c']
+    a.compact!.equal?(a).should == true
+    a.should == ["a", "b", false, "c"]
+    a = ['a', 'b', false, 'c', nil]
     a.compact!.equal?(a).should == true
     a.should == ["a", "b", false, "c"]
   end
