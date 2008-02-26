@@ -316,7 +316,7 @@ class Debugger
       last = last.to_i if last
       file = dbg.debug_context.file.to_s
 
-      lines = source_for(file)
+      lines = dbg.source_for(file)
       if lines.nil?
         return "No source code available for #{file}"
       end
@@ -344,11 +344,6 @@ class Debugger
       output
     end
 
-    def source_for(file)
-      if File.exists?(file)
-        File.readlines(file)
-      end
-    end
   end
 
 

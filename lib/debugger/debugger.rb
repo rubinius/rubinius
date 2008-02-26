@@ -160,9 +160,22 @@ class Debugger
     # Load debugger commands if we haven't already
     load_commands unless @commands
 
+    file = @debug_context.file.to_s
+    line = bp.line
     @prompt = "\nrbx:debug> "
     puts ""
-    puts "#{@debug_context.file}:#{bp.line} (#{@debug_context.method.name}) [IP:#{@debug_context.ip}]"
+    puts "#{file}:#{line} (#{@debug_context.method.name}) [IP:#{@debug_context.ip}]"
+    lines = source_for(file)
+    unless lines.nil?
+      output = Output.new
+      output.set_columns(['%d:', '%-s'])
+      output.set_line_marker
+      output.set_color :cyan
+      output << [line, lines[line-1].chomp]
+      output.set_color(:clear)
+      puts output
+    end
+
     until @done do
       inp = Readline.readline(@prompt)
       inp.strip!
@@ -199,6 +212,15 @@ class Debugger
     puts "An exception has occurred:\n    #{e.message} (#{e.class})"
     puts "Backtrace:"
     puts e.awesome_backtrace.show
+  end
+
+  # Retrieves the source code for the specified file, if it exists
+  def source_for(file)
+    return @last_lines if file == @last_file
+    @last_file, @last_lines = file, nil
+    if File.exists?(file)
+      @last_lines = File.readlines(file)
+    end
   end
 end
 
