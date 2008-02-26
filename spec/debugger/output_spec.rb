@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + "/../spec_helper.rb"
+require File.dirname(__FILE__) + "/spec_helper.rb"
 
-describe "Command::Output::Columns#wrap" do
+describe "Output::Columns#wrap" do
   before :each do
     @cols = Debugger::Output::Columns.new 1
   end
@@ -47,7 +47,7 @@ describe "Command::Output::Columns#wrap" do
 end
 
 
-describe "Command::Output::Columns#format_str" do
+describe "Output::Columns#format_str" do
   it "aligns columns according to a left or right justification specification" do
     @cols = Debugger::Output::Columns.new(["%-5s"], nil, false)
     @cols.format_str(["a"]).should == ["a    "]
