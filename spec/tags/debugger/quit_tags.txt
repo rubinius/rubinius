@@ -1,1 +1,0 @@
-fails:Debugger#quit! clears the Debugger singleton instance

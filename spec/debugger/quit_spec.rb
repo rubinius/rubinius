@@ -19,9 +19,9 @@ describe "Debugger#quit!" do
   end
 
   it "clears the Debugger singleton instance" do
-    @dbg.instance_eval { @@instance.should_not == nil }
+    Debugger.instance_eval { @instance.should_not == nil }
     @dbg.quit!
-    @dbg.instance_eval { @@instance.should == nil }
+    Debugger.instance_eval { @instance.should == nil }
   end
 
   it "interrupts the Debugger thread if it is sleeping" do
