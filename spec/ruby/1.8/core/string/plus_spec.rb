@@ -22,17 +22,17 @@ describe "String#+" do
   end
 
   it "doesn't return subclass instances" do
-    (MyString.new("hello") + "").class.should == String
-    (MyString.new("hello") + "foo").class.should == String
-    (MyString.new("hello") + MyString.new("foo")).class.should == String
-    (MyString.new("hello") + MyString.new("")).class.should == String
-    (MyString.new("") + MyString.new("")).class.should == String
-    ("hello" + MyString.new("foo")).class.should == String
-    ("hello" + MyString.new("")).class.should == String
+    (StringSpecs::MyString.new("hello") + "").class.should == String
+    (StringSpecs::MyString.new("hello") + "foo").class.should == String
+    (StringSpecs::MyString.new("hello") + StringSpecs::MyString.new("foo")).class.should == String
+    (StringSpecs::MyString.new("hello") + StringSpecs::MyString.new("")).class.should == String
+    (StringSpecs::MyString.new("") + StringSpecs::MyString.new("")).class.should == String
+    ("hello" + StringSpecs::MyString.new("foo")).class.should == String
+    ("hello" + StringSpecs::MyString.new("")).class.should == String
   end
 
   it "taints the result when self or other is tainted" do
-    strs = ["", "OK", MyString.new(""), MyString.new("OK")]
+    strs = ["", "OK", StringSpecs::MyString.new(""), StringSpecs::MyString.new("OK")]
     strs += strs.map { |s| s.dup.taint }
 
     strs.each do |str|

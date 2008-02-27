@@ -29,8 +29,8 @@ describe "String#initialize" do
   end
   
   it "returns an instance of a subclass" do
-    a = MyString.new("blah")
-    a.should be_kind_of(MyString)
+    a = StringSpecs::MyString.new("blah")
+    a.should be_kind_of(StringSpecs::MyString)
   end
   
   compliant_on :ruby, :jruby do

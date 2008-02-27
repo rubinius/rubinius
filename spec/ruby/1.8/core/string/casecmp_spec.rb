@@ -60,7 +60,7 @@ describe "String#casecmp" do
   
   it "ignores subclass differences" do
     str = "abcdef"
-    my_str = MyString.new(str)
+    my_str = StringSpecs::MyString.new(str)
     
     str.casecmp(my_str).should == 0
     my_str.casecmp(str).should == 0

@@ -20,8 +20,8 @@ describe "String#swapcase" do
   end
   
   it "returns subclass instances when called on a subclass" do
-    MyString.new("").swapcase.class.should == MyString
-    MyString.new("hello").swapcase.class.should == MyString
+    StringSpecs::MyString.new("").swapcase.class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("hello").swapcase.class.should == StringSpecs::MyString
   end
 end
 

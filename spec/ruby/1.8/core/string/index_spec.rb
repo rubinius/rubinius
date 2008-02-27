@@ -143,9 +143,9 @@ describe "String#index with String" do
   end
 
   it "ignores string subclasses" do
-    "blablabla".index(MyString.new("bla")).should == 0
-    MyString.new("blablabla").index("bla").should == 0
-    MyString.new("blablabla").index(MyString.new("bla")).should == 0
+    "blablabla".index(StringSpecs::MyString.new("bla")).should == 0
+    StringSpecs::MyString.new("blablabla").index("bla").should == 0
+    StringSpecs::MyString.new("blablabla").index(StringSpecs::MyString.new("bla")).should == 0
   end
   
   it "starts the search at the given offset" do

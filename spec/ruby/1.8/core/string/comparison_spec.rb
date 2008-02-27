@@ -37,7 +37,7 @@ describe "String#<=> with String" do
   
   it "ignores subclass differences" do
     a = "hello"
-    b = MyString.new("hello")
+    b = StringSpecs::MyString.new("hello")
     
     (a <=> b).should == 0
     (b <=> a).should == 0

@@ -11,7 +11,7 @@ shared :string_equal_value do |cmd|
     
     it "ignores subclass differences" do
       a = "hello"
-      b = MyString.new("hello")
+      b = StringSpecs::MyString.new("hello")
       
       a.send(cmd, b).should == true
       b.send(cmd, a).should == true

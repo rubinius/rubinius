@@ -77,7 +77,7 @@ describe "String#squeeze" do
   end
   
   it "returns subclass instances when called on a subclass" do
-    MyString.new("oh no!!!").squeeze("!").class.should == MyString
+    StringSpecs::MyString.new("oh no!!!").squeeze("!").class.should == StringSpecs::MyString
   end
 end
 

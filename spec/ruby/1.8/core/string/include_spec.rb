@@ -8,9 +8,9 @@ describe "String#include? with String" do
   end
   
   it "ignores subclass differences" do
-    "hello".include?(MyString.new("lo")).should == true
-    MyString.new("hello").include?("lo").should == true
-    MyString.new("hello").include?(MyString.new("lo")).should == true
+    "hello".include?(StringSpecs::MyString.new("lo")).should == true
+    StringSpecs::MyString.new("hello").include?("lo").should == true
+    StringSpecs::MyString.new("hello").include?(StringSpecs::MyString.new("lo")).should == true
   end
   
   it "tries to convert other to string using to_str" do

@@ -26,7 +26,7 @@ describe "String#upcase" do
   end
   
   it "returns a subclass instance for subclasses" do
-    MyString.new("fooBAR").upcase.class.should == MyString
+    StringSpecs::MyString.new("fooBAR").upcase.class.should == StringSpecs::MyString
   end
 end
 
