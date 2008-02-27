@@ -185,7 +185,19 @@ class Debugger
         output.set_columns(['%-3d.', '%-s', '%-s', '%-s', '%-s', '%d', '%d'])
         literals.each do |lit|
           if lit.kind_of? SendSite
-            output << [i+1, lit.name, lit.data(1), lit.data(2) ? lit.data(2).name : nil, lit.data(3), lit.hits, lit.misses] if lit
+            runnable_name = nil
+            case runnable = lit.data(2)
+            when CompiledMethod
+              runnable_name = runnable.name
+            when RuntimePrimitive
+              runnable_name = runnable.at RuntimePrimitive::PrimitiveIndex
+              runnable_name = Rubinius::Primitives[runnable_name] if runnable_name.kind_of? Fixnum
+            when NilClass
+              # Do nothing - SendSite data2 not set
+            else
+              puts "Unrecognized runnable type: #{runnable.class}"
+            end
+            output << [i+1, lit.name, lit.data(1), runnable_name, lit.data(3), lit.hits, lit.misses] if lit
             i += 1
           end
         end
