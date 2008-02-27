@@ -6,8 +6,8 @@ module StringSpecs
   class SubString < String
     attr_reader :special
     
-    def initialize(size=0)
-      @special = size
+    def initialize(str=nil)
+      @special = str
     end
   end
 end

@@ -50,6 +50,7 @@ class Array
     @total = 0
     @tuple = Tuple.new 2
   end
+  private :setup
 
   # Creates a new Array. Without arguments, an empty
   # Array is returned. If the only argument is an object

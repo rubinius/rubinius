@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#initialize" do
   it "is private" do
-    [].private_methods.map { |m| m.to_s }.include?("initialize").should == true
+    [].private_methods.should include("initialize")
   end
   
   it "replaces self with the other array" do

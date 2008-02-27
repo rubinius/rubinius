@@ -15,8 +15,23 @@ class String
   def data      ; @data       ; end
   def __ivars__ ; nil         ; end
 
+  def self.new(arg=nil)
+    str = allocate
+    str.__send__ :setup
+    str.__send__ :initialize, arg
+    str
+  end
+  
+  def setup
+    @data = ByteArray.new(1)
+    @bytes = 0
+    @characters = 0
+    @encoding = nil
+  end
+  private :setup
+  
   def initialize(arg=nil)
-    if arg.kind_of?(Fixnum)
+    if arg.__kind_of__ Fixnum
       # + 1 for the null on the end.
       @data = ByteArray.new(arg+1)
       @bytes = arg
@@ -24,14 +39,9 @@ class String
       @encoding = nil
     elsif !arg.nil?
       replace(StringValue(arg))
-    elsif @data.nil?
-      @data = ByteArray.new(1)
-      @bytes = 0
-      @characters = 0
-      @encoding = nil
     end
 
-    return self
+    self
   end
   private :initialize
 
