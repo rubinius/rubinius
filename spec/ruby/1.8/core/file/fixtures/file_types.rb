@@ -4,8 +4,8 @@ module FileSpecs
     @file   = "test.txt"
     @dir    = Dir.pwd
     @fifo   = "test_fifo"
-    @block  = `find /dev -type b 2> /dev/null`.split("\n").first
-    @char   = `find /dev -type c 2> /dev/null`.split("\n").first
+    @block  = `find /dev /devices -type b 2> /dev/null`.split("\n").first
+    @char   = `find /dev /devices -type c 2> /dev/null`.split("\n").first
 
     %w[/dev /usr/bin /usr/local/bin].each do |dir|
       links = `find #{dir} -type l 2> /dev/null`.split("\n")
