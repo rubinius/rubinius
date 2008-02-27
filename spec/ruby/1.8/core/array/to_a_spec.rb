@@ -9,7 +9,7 @@ describe "Array#to_a" do
   end
   
   it "does not return subclass instance on Array subclasses" do
-    e = MyArray.new
+    e = ArraySpecs::MyArray.new
     e << 1
     e.to_a.class.should == Array
     e.to_a.should == [1]

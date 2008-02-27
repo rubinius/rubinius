@@ -22,13 +22,4 @@ describe "Array.[]" do
     splatted_array = Array[3, 4, 5]
     Array[1, 2, *splatted_array].should == [1, 2, 3, 4, 5]
   end
-
-  it "raises a RangeError when the given argument is out of range of Integer" do
-    array = [1, 2, 3, 4, 5, 6]
-    (obj = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
-    lambda { array[obj] }.should raise_error(RangeError)
-
-    obj = 8e19
-    lambda { array[obj] }.should raise_error(RangeError)
-  end
 end

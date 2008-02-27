@@ -12,17 +12,17 @@ describe "Array#reject" do
     ary.reject { |i| i % 2 == 0 }.should == [1, 3, 5]
   end
   
-  # Returns MyArray on MRI 1.8 which is inconsistent with select.
+  # Returns ArraySpecs::MyArray on MRI 1.8 which is inconsistent with select.
   # It has been changed on 1.9 however.
   compliant_on(:ruby, :jruby) do
     it "returns subclass instance on Array subclasses" do
-      MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == MyArray
+      ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == ArraySpecs::MyArray
     end
   end
   
   deviates_on(:r19, :rubinius) do
     it "does not return subclass instance on Array subclasses" do
-      MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == Array
+      ArraySpecs::MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == Array
     end
   end
 end

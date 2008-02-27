@@ -1,2 +1,0 @@
-fails:Array#=== returns true if each element is == to the corresponding element in the other array
-fails:Array#=== ignores array class differences

@@ -173,7 +173,7 @@ describe "Array#[]=" do
   
   it "does not call to_ary on rhs array subclasses for multi-element sets" do
     ary = []
-    ary[0, 0] = ToAryArray[5, 6, 7]
+    ary[0, 0] = ArraySpecs::ToAryArray[5, 6, 7]
     ary.should == [5, 6, 7]
   end
 
@@ -442,8 +442,8 @@ describe "Array#[]= with [m..n]" do
   
   it "accepts Range subclasses" do
     a = [1, 2, 3, 4]
-    range_incl = MyRange.new(1, 2)
-    range_excl = MyRange.new(-3, -1, true)
+    range_incl = ArraySpecs::MyRange.new(1, 2)
+    range_excl = ArraySpecs::MyRange.new(-3, -1, true)
 
     a[range_incl] = ["a", "b"]
     a.should == [1, "a", "b", 4]

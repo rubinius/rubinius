@@ -29,10 +29,10 @@ describe "Array#flatten" do
   end
   
   it "returns subclass instance for Array subclasses" do
-    MyArray[].flatten.class.should == MyArray
-    MyArray[1, 2, 3].flatten.class.should == MyArray
-    MyArray[1, [2], 3].flatten.class.should == MyArray
-    [MyArray[1, 2, 3]].flatten.class.should == Array
+    ArraySpecs::MyArray[].flatten.class.should == ArraySpecs::MyArray
+    ArraySpecs::MyArray[1, 2, 3].flatten.class.should == ArraySpecs::MyArray
+    ArraySpecs::MyArray[1, [2], 3].flatten.class.should == ArraySpecs::MyArray
+    [ArraySpecs::MyArray[1, 2, 3]].flatten.class.should == Array
   end
 end  
 

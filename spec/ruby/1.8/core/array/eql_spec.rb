@@ -22,8 +22,8 @@ describe "Array#eql?" do
   end
 
   it "ignores array class differences" do
-    MyArray[1, 2, 3].eql?([1, 2, 3]).should == true
-    MyArray[1, 2, 3].eql?(MyArray[1, 2, 3]).should == true
-    [1, 2, 3].eql?(MyArray[1, 2, 3]).should == true
+    ArraySpecs::MyArray[1, 2, 3].eql?([1, 2, 3]).should == true
+    ArraySpecs::MyArray[1, 2, 3].eql?(ArraySpecs::MyArray[1, 2, 3]).should == true
+    [1, 2, 3].eql?(ArraySpecs::MyArray[1, 2, 3]).should == true
   end
 end

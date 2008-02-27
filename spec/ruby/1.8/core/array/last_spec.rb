@@ -41,10 +41,10 @@ describe "Array#last" do
   end
 
   it "does not return subclass instance on Array subclasses" do
-    MyArray[].last(0).class.should == Array
-    MyArray[].last(2).class.should == Array
-    MyArray[1, 2, 3].last(0).class.should == Array
-    MyArray[1, 2, 3].last(1).class.should == Array
-    MyArray[1, 2, 3].last(2).class.should == Array
+    ArraySpecs::MyArray[].last(0).class.should == Array
+    ArraySpecs::MyArray[].last(2).class.should == Array
+    ArraySpecs::MyArray[1, 2, 3].last(0).class.should == Array
+    ArraySpecs::MyArray[1, 2, 3].last(1).class.should == Array
+    ArraySpecs::MyArray[1, 2, 3].last(2).class.should == Array
   end
 end

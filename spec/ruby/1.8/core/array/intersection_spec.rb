@@ -42,12 +42,12 @@ describe "Array#&" do
   end
   
   it "does return subclass instances for Array subclasses" do
-    (MyArray[1, 2, 3] & []).class.should == Array
-    (MyArray[1, 2, 3] & MyArray[1, 2, 3]).class.should == Array
-    ([] & MyArray[1, 2, 3]).class.should == Array
+    (ArraySpecs::MyArray[1, 2, 3] & []).class.should == Array
+    (ArraySpecs::MyArray[1, 2, 3] & ArraySpecs::MyArray[1, 2, 3]).class.should == Array
+    ([] & ArraySpecs::MyArray[1, 2, 3]).class.should == Array
   end
 
   it "does not call to_ary on array subclasses" do
-    ([5, 6] & ToAryArray[1, 2, 5, 6]).should == [5, 6]
+    ([5, 6] & ArraySpecs::ToAryArray[1, 2, 5, 6]).should == [5, 6]
   end  
 end

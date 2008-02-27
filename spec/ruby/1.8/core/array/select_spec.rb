@@ -7,6 +7,6 @@ describe "Array#select" do
   end
 
   it "does not return subclass instance on Array subclasses" do
-    MyArray[1, 2, 3].select { true }.class.should == Array
+    ArraySpecs::MyArray[1, 2, 3].select { true }.class.should == Array
   end
 end

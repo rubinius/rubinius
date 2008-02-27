@@ -27,7 +27,7 @@ describe "Array#concat" do
   end
   
   it "does not call to_ary on array subclasses" do
-    [].concat(ToAryArray[5, 6, 7]).should == [5, 6, 7]
+    [].concat(ArraySpecs::ToAryArray[5, 6, 7]).should == [5, 6, 7]
   end
   
   compliant_on :ruby, :jruby do

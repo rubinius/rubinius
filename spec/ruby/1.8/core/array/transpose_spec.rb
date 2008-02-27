@@ -28,7 +28,7 @@ describe "Array#transpose" do
   end
   
   it "does not call to_ary on array subclass elements" do
-    ary = [ToAryArray[1, 2], ToAryArray[4, 6]]
+    ary = [ArraySpecs::ToAryArray[1, 2], ArraySpecs::ToAryArray[4, 6]]
     ary.transpose.should == [[1, 4], [2, 6]]
   end
 
@@ -37,7 +37,7 @@ describe "Array#transpose" do
   end
   
   it "does not return subclass instance on Array subclasses" do
-    result = MyArray[MyArray[1, 2, 3], MyArray[4, 5, 6]].transpose
+    result = ArraySpecs::MyArray[ArraySpecs::MyArray[1, 2, 3], ArraySpecs::MyArray[4, 5, 6]].transpose
     result.class.should == Array
     result[0].class.should == Array
     result[1].class.should == Array

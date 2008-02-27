@@ -6,10 +6,29 @@ describe "Array#initialize" do
     [].private_methods.map { |m| m.to_s }.include?("initialize").should == true
   end
   
-  it "does nothing when passed an object equal to self" do
-    ary = [1, 2, 3]
-    ary.instance_eval { initialize([1, 2, 3]) }
-    ary.should == [1, 2, 3]
+  it "replaces self with the other array" do
+    o = [2]
+    def o.special() size end
+    a = [1, o, 3]
+    ary = Array.new a
+    ary[1].special.should == 1
+    
+    b = [1, [2], 3]
+    ary.send :initialize, b
+    
+    b.==(ary).should == true
+    lambda { b[1].special }.should raise_error(NoMethodError)
+    lambda { ary[1].special }.should raise_error(NoMethodError)
+  end
+  
+  it "is called on subclasses" do
+    a = ArraySpecs::SubArray.new 10
+    a.special.should == 10
+    a.should == []
+    
+    b = ArraySpecs::SubArray.new [1,2,3]
+    b.special.should == [1,2,3]
+    b.should == []
   end
   
   it "does nothing when passed self" do

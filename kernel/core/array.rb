@@ -7,7 +7,7 @@
 # last element of the array, -2 is the next to last element in the array, and
 # so on.
 #
-# Arrays can be created with the <tt>[]<tt> syntax, or via <tt>Array.new</tt>.
+# Arrays can be created with the <tt>[]</tt> syntax, or via <tt>Array.new</tt>.
 
 class Array
   ivar_as_index :total => 0, :tuple => 1, :start => 2, :shared => 3
@@ -28,9 +28,28 @@ class Array
 
   # Returns a new Array populated with the given objects
   def self.[](*args)
-    new.push(*args)
+    new args
   end
 
+  def self.new(*args, &block)
+    raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
+    
+    ary = allocate
+    ary.__send__ :setup
+    ary.__send__ :initialize, *args, &block
+    ary
+  end
+  
+  # At present, @tuple.kind_of?(Tuple) is essentially an invariant for Array.
+  # If we relax this and ensure that every method behaves correctly if 
+  # @tuple == nil, then we can omit initializing @tuple here. We cannot
+  # easily know whether #initialize is defined in a subclass when this
+  # method is called.
+  def setup
+    @start = 0
+    @total = 0
+    @tuple = Tuple.new 2
+  end
 
   # Creates a new Array. Without arguments, an empty
   # Array is returned. If the only argument is an object
@@ -44,29 +63,22 @@ class Array
   # result. The block supercedes any object given. If
   # neither is provided, the Array is filled with nil.
   def initialize(*args)
-    raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
-    
-    @start = 0
-    
-    if args.empty?
-      @tuple = Tuple.new 2
-      @total = 0
-    else      
-      if (args.first.kind_of? Array or args.first.respond_to? :to_ary) and args.size == 1
+    unless args.empty?
+      if args.size == 1 and (args.first.__kind_of__ Array or args.first.respond_to? :to_ary)
         ary = Type.coerce_to args.first, Array, :to_ary
-        return self if self == ary
-      
-        @tuple = Tuple.new(ary.size + 10)
+    
+        tuple = Tuple.new(ary.size + 10)
         @total = ary.size
-        @tuple.copy_from ary.tuple, ary.start, 0
+        tuple.copy_from ary.tuple, ary.start, 0
+        @tuple = tuple
       else
         count = Type.coerce_to args.first, Fixnum, :to_int
-        obj   = args[1]
         raise ArgumentError, "Size must be positive" if count < 0
+        obj = args[1]
 
         @tuple = Tuple.new(count + 10)
         @total = count
-      
+    
         if block_given?
           count.times { |i| @tuple.put i, yield(i) }
         else
@@ -118,6 +130,7 @@ class Array
       return nil
     end
 
+    
     finish = Type.coerce_to finish, Fixnum, :to_int if finish
     finish = (start + count - 1) if count    # For non-ranges
 
@@ -471,7 +484,7 @@ class Array
     ary = Type.coerce_to(other, Array, :to_ary)
     size = @total + ary.size
     tuple = Tuple.new size
-    tuple.copy_from @tuple, @start, 0
+    tuple.copy_from @tuple, @start, 0 if @total > 0
     tuple.copy_from ary.tuple, ary.start, @total
     @tuple = tuple
     @start = 0
@@ -1268,7 +1281,7 @@ class Array
     @start = other.start
     self
   end
-  
+
   # Returns a new Array or subclass populated from self 
   # but in reverse order.
   def reverse()
@@ -1531,19 +1544,23 @@ class Array
     self
   end
 
-  def dup
-    self.class.new.replace self
+  # This method copies frozen status, but dup does not.
+  # We don't implement #freeze/#frozen? yet.
+  def clone
+    ary = self.class.new self
+    ary.taint if self.tainted?
+    ary
   end
-
+  
+  def dup
+    ary = self.class.new self
+    ary.taint if self.tainted?
+    ary
+  end
 
   # Exactly the same as #replace but private
   def initialize_copy(other)
-    other = Type.coerce_to other, Array, :to_ary
-
-    @tuple = other.tuple.dup
-    @total = other.total
-    @start = other.start
-    self 
+    replace other
   end
 
   private :initialize_copy

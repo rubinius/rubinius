@@ -65,8 +65,8 @@ describe "Array#sort" do
   end
 
   it "returns subclass instance on Array subclasses" do
-    ary = MyArray[1, 2, 3]
-    ary.sort.class.should == MyArray
+    ary = ArraySpecs::MyArray[1, 2, 3]
+    ary.sort.class.should == ArraySpecs::MyArray
   end
 end
 
