@@ -906,6 +906,7 @@ class Array
     BASE_64_ALPHA[63] = ?/
   end
 
+
   # TODO fill out pack.
   def pack(schema)
     # The schema is an array of arrays like [["A", "6"], ["u", "*"], ["X", ""]]. It represents the parsed
@@ -1169,6 +1170,47 @@ class Array
 
         arr_idx += 1
         ret << str
+
+      elsif kind == 'U'
+        #converts the number passed, or all for * or 1 if missing
+        count = !t ? 1 : (t == "*" ? self.size-arr_idx : t.to_i)
+        raise ArgumentError, "too few array elements" if arr_idx + count > self.length
+        
+        count.times do
+          item = Type.coerce_to(self[arr_idx], Integer, :to_i)
+          raise RangeError, "pack(U): value out of range" if item < 0
+          #handle the simple case and move on
+          if item < 0x80
+            ret << item
+            i=0
+          #else count the bytes needed
+          elsif item < 0x800
+            i = bytes = 2
+          elsif item < 0x10000
+            i = bytes = 3
+          elsif item < 0x200000
+            i = bytes = 4
+          elsif item < 0x4000000
+            i = bytes = 5
+          elsif item <= 0x7FFFFFFF
+            i = bytes = 6
+          else
+            raise RangeError, "pack(U): value out of range"
+          end
+          if i>0
+            #make room 
+            ret<<' '*bytes
+            #fill backwards: put the least significant bits at the end
+            #  shift the next set down, and repeat
+            while 0 < i-=1
+              ret[i-bytes] = (item | 0x80) & 0xBF
+              item >>= 6
+            end
+            #catch the highest bits - the mask depends on the byte count
+            ret[-bytes] =  (item | ((0x3F00>>bytes)) & 0xFC)
+            end
+            arr_idx += 1
+        end
       else
         raise ArgumentError, "Unknown kind #{kind}"
       end
@@ -1907,3 +1949,5 @@ class Array
   private :qsort_block
   private :isort_block
 end
+
+
