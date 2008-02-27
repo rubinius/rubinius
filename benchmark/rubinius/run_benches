@@ -6,3 +6,4 @@ echo "Running MRI" 1>&2
 ruby benchmark/rubinius/bm_string.rb -x "String#unpack" > mri_times
 echo "Executing compare" 1>&2
 benchmark/rubinius/compare.rb -MRI ./mri_times -RBX ./rbx_times
+rm rbx_times mri_times
