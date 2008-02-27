@@ -54,6 +54,16 @@ class RuntimePrimitive
   SerialNumber = 3
   ByteCodes = 4
 
+  def put(idx, val)
+    Ruby.primitive :put
+    raise InvalidIndexError, "Object#put failed."
+  end
+
+  def at(idx)
+    Ruby.primitive :at
+    raise InvalidIndexError, "RuntimePrimitive#at failed."
+  end
+
 end
 
 class AccessVarMethod < RuntimePrimitive

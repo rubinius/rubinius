@@ -3,12 +3,6 @@ end
 
 class Object
 
-  # TODO move to Tuple, needed by AccessVarMethod
-  def put(idx, val)
-    Ruby.primitive :put
-    raise InvalidIndexError, "Object#put failed."
-  end
-
   def __find_method__(meth)
     meth = meth.to_sym
     cm = Rubinius.asm(meth) do |m|
