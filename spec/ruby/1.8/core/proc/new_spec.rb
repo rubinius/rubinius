@@ -1,3 +1,4 @@
+require File.dirname(__FILE__) + '/fixtures/procs.rb'
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Proc.new" do
@@ -18,6 +19,10 @@ describe "Proc.new" do
     res = some_method(&a_proc)
 
     raise_error(LocalJumpError) { res.call }
+  end
+
+  it "returns from within a method" do
+    ProcSpecs.returner
   end
 
   it "raises an ArgumentError when called without a block inside a method without an attached block" do
