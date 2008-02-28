@@ -230,6 +230,41 @@ module ModuleSpecs
 
   class InstanceMethChild < InstanceMeth
   end
+  
+  module ClassVars
+    class A
+      @@a_cvar = :a_cvar
+    end
+
+    module M
+      @@m_cvar = :m_cvar
+    end
+
+    class B < A
+      include M
+
+      @@b_cvar = :b_cvar
+    end
+  end
+
+  class CVars
+    @@cls = :class
+    
+    class << self
+      def cls
+        @@cls
+      end
+      @@meta = :meta
+    end
+    
+    def self.meta
+      @@meta
+    end
+    
+    def meta
+      @@meta
+    end
+  end
 end
 
 ModuleSpecs::Nesting[:root_level] = Module.nesting

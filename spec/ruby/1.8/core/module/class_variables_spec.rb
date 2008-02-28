@@ -1,28 +1,14 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-
-module ModuleClassVariablesSpec
-  class A
-    @@a_cvar = :a_cvar
-  end
-
-  module M
-    @@m_cvar = :m_cvar
-  end
-
-  class B < A
-    include M
-
-    @@b_cvar = :b_cvar
-  end
-end
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#class_variables" do
   it "returns an Array with the names of class variables of self and self's ancestors" do
-    ModuleClassVariablesSpec::A.class_variables.should == %w[@@a_cvar]
-
-    ModuleClassVariablesSpec::M.class_variables.should == %w[@@m_cvar]
-
-    ModuleClassVariablesSpec::B.class_variables.sort.should == \
-      %w[@@a_cvar @@b_cvar @@m_cvar]
+    ModuleSpecs::ClassVars::A.class_variables.should include("@@a_cvar")
+    ModuleSpecs::ClassVars::M.class_variables.should include("@@m_cvar")
+    ModuleSpecs::ClassVars::B.class_variables.should include("@@a_cvar", "@@b_cvar", "@@m_cvar")
+  end
+  
+  it "returns an Array with names of class variables defined in metaclasses" do
+    ModuleSpecs::CVars.class_variables.should include("@@cls", "@@meta")
   end
 end
