@@ -25,7 +25,7 @@ describe "Kernel#system" do
       result = false
 
       File.exist?("happy").should == false
-      result = system("echo woot &> happy")
+      result = system("echo woot > happy")
       result.should == true
       File.exist?("happy").should == true
     ensure
