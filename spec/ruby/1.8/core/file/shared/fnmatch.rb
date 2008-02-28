@@ -27,6 +27,12 @@ shared :file_fnmatch do |cmd|
       File.send(cmd, 'ca[a-z]', 'cat').should == true
     end  
   
+    it "matches ranges of characters using bracket expresions, taking case into account" do
+      File.send(cmd, '[a-z]', 'D').should == false
+      File.send(cmd, '[^a-z]', 'D').should == true
+      File.send(cmd, '[a-z]', 'D', File::FNM_CASEFOLD).should == true
+    end
+    
     it "does not match characters outside of the range of the bracket expresion" do
       File.send(cmd, 'ca[x-z]', 'cat').should == false
       File.send(cmd, '/ca[s][s-t]/rul[a-b]/[z]he/[x-Z]orld', '/cats/rule/the/World').should == false
