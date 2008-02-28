@@ -48,7 +48,7 @@ class Array
   def setup
     @start = 0
     @total = 0
-    @tuple = Tuple.new 2
+    @tuple = Tuple.new 8
   end
   private :setup
 
@@ -1612,7 +1612,7 @@ class Array
   def reallocate(at_least)
     return if at_least < @tuple.size
 
-    new_size = ((3 * @tuple.size) / 2) + 1
+    new_size = @tuple.size * 2
     
     if new_size < at_least
       new_size = at_least

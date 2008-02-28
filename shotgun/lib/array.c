@@ -5,7 +5,7 @@
 // TODO - Support >32bit counts?
 OBJECT array_new(STATE, size_t count) {
   OBJECT tup, obj;
-  tup = tuple_new(state, count);
+  tup = tuple_new(state, count < 8 ? 8 : count);
   obj = array_allocate(state);
   array_set_total(obj, I2N(0));
   array_set_start(obj, I2N(0));
