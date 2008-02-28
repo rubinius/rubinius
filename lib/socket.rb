@@ -218,7 +218,7 @@ class Socket < BasicSocket
 
           err = _getpeername descriptor, sockaddr_storage_p, len_p
 
-          Error.handle 'getpeername(2)' unless err == 0
+          Errno.handle 'getpeername(2)' unless err == 0
 
           sockaddr_storage_p.read_string len_p.read_int
         end
@@ -232,7 +232,7 @@ class Socket < BasicSocket
           
           err = _getsockname descriptor, sockaddr_storage_p, len_p
 
-          Error.handle 'getsockname(2)' unless err == 0
+          Errno.handle 'getsockname(2)' unless err == 0
 
           sockaddr_storage_p.read_string len_p.read_int
         end
@@ -440,15 +440,66 @@ class Socket < BasicSocket
 end
 
 class UNIXSocket < BasicSocket
+  attr_accessor :path
 
   def initialize(path)
-    super(Socket::Constants::AF_UNIX, Socket::Constants::SOCK_STREAM, 0)
     @path = path
+    unix_setup
+  end
+  private :initialize
+
+  def unix_setup(server = false)
+    syscall = 'socket(2)'
+    status = nil
+    sock = Socket::Foreign.socket Socket::Constants::AF_UNIX, Socket::Constants::SOCK_STREAM, 0
+
+    # TODO - Do we need to sync = true here?
+    setup sock, 'rw'
+
+    Errno.handle syscall if descriptor < 0
+
+    sockaddr = Socket.pack_sockaddr_un(@path)
+
+    if server then
+      syscall = 'bind(2)'
+      status = Socket::Foreign.bind descriptor, sockaddr
+    else
+      syscall = 'connect(2)'
+      status = Socket::Foreign.connect descriptor, sockaddr
+    end
+
+    if status < 0 then
+      Socket::Foreign.close descriptor
+      Errno.handle syscall
+    end
+
+    if server then
+      syscall = 'listen(2)'
+      status = Socket::Foreign.listen descriptor, 5
+      Errno.handle syscall if status < 0
+    end
+
+    return sock
+  end
+  private :unix_setup
+
+  def addr
+    ["AF_UNIX", path]
+  end
+
+  # TODO - Figure out why this is broken
+  def peeraddr
+    sockaddr = Socket::Foreign.getpeername descriptor
+    Socket::Foreign.getnameinfo sockaddr
   end
 end
 
 class UNIXServer < UNIXSocket
-
+  def initialize(path)
+    @path = path
+    unix_setup(true)
+  end
+  private :initialize
 end
 
 class IPSocket < BasicSocket
@@ -635,7 +686,7 @@ class TCPServer < TCPSocket
 
     err = Socket::Foreign.listen descriptor, backlog
 
-    Error.handle 'listen(2)' unless err == 0
+    Errno.handle 'listen(2)' unless err == 0
 
     err
   end
