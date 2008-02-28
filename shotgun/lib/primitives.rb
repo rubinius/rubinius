@@ -2487,6 +2487,7 @@ class ShotgunPrimitives
 
     fc = FASTCTX(msg->recv);
     if(fc->method->obj_type == CMethodType) {
+      fc->custom_iseq = Qnil;
       fc->data = BYTEARRAY_ADDRESS(cmethod_get_compiled(fc->method));
     }
 
@@ -2502,20 +2503,20 @@ class ShotgunPrimitives
     int target_size;
 
     GUARD(CTX_P(msg->recv));
-
     POP(t1, BYTEARRAY);
-
     fc = FASTCTX(msg->recv);
-    if(fc->method->obj_type == CMethodType) {
+    GUARD(fc->method->obj_type == CMethodType);
+
 #if DIRECT_THREADED
-      target_size = (BYTEARRAY_SIZE(t1) / sizeof(uint32_t)) * sizeof(uintptr_t);
+    target_size = (BYTEARRAY_SIZE(t1) / sizeof(uint32_t)) * sizeof(uintptr_t);
 #else
-      target_size = BYTEARRAY_SIZE(t1);
+    target_size = BYTEARRAY_SIZE(t1);
 #endif
-      ba = bytearray_new(state, target_size);
-      cpu_compile_instructions(state, t1, ba);
-      fc->data = BYTEARRAY_ADDRESS(ba);
-    }
+
+    ba = bytearray_new(state, target_size);
+    cpu_compile_instructions(state, t1, ba);
+    fc->custom_iseq = ba;
+    fc->data = BYTEARRAY_ADDRESS(ba);
 
     RET(Qtrue);
     CODE

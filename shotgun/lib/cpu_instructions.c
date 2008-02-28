@@ -471,6 +471,7 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
   fc->sender = c->active_context;
 
   fc->method = meth;
+  fc->custom_iseq = Qnil;
   fc->data = bytearray_byte_address(state, ins);
   fc->literals = fast_fetch(meth, CMETHOD_f_LITERALS);
 

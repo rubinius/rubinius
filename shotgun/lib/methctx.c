@@ -34,6 +34,7 @@ OBJECT methctx_dup(STATE, OBJECT self) {
   SET_STRUCT_FIELD(ctx, cur->method_module, old->method_module);
   cur->opaque_data = old->opaque_data;
   SET_STRUCT_FIELD(ctx, cur->self, old->self);
+  SET_STRUCT_FIELD(ctx, cur->custom_iseq, old->custom_iseq);
   cur->data = old->data;
   cur->type = old->type;
   cur->ip = old->ip;
@@ -126,6 +127,7 @@ void blokenv_call(STATE, cpu c, OBJECT self, int num_args) {
 
 void methctx_reference(STATE, OBJECT ctx) {
   struct fast_context *fc;
+
   /* Don't do it again. */
   if(!stack_context_p(ctx)) return;
   

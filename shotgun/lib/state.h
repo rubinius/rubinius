@@ -100,7 +100,7 @@ struct type_info {
 };
 
 
-#define FASTCTX_FIELDS 18
+#define FASTCTX_FIELDS 19
 #define FASTCTX_NORMAL 1
 #define FASTCTX_BLOCK  3
 #define FASTCTX_NMC    4

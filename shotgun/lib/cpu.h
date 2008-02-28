@@ -38,6 +38,7 @@
   OBJECT method_module; \
   void *opaque_data; \
   OBJECT self; \
+  OBJECT custom_iseq; \
   IP_TYPE *data; \
   unsigned char type; \
   unsigned char flags; \
