@@ -523,7 +523,7 @@ module Kernel
   end
   private :remove_instance_variable
 
-  def instance_variables(symbols = false)
+  def instance_variables
     vars = get_instance_variables
     return [] if vars.nil?
 
@@ -533,7 +533,7 @@ module Kernel
       0.step(vars.size - 1, 2) do |i|
         k = vars[i]
         if k
-          k = k.to_s unless symbols
+          k = k.to_s
           out << k
         else
           return out
@@ -541,7 +541,6 @@ module Kernel
       end
       return out
     end
-    return vars.keys if symbols
     return vars.keys.collect { |v| v.to_s }
   end
 

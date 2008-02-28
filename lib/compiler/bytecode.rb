@@ -1274,7 +1274,8 @@ class Node
       # if !something is undefined, then so is something.
       expr.shift if expr[0] == :not
 
-       # grouped expression == evil
+      # grouped expression == evil
+      # TODO - Verify that this is still a sane way to detect such things
       if expr.flatten.include?(:newline)
         reject(g)
         return
