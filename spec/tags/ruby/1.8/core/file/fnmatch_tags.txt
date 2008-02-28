@@ -1,0 +1,2 @@
+fails:File.fnmatch matches multiple directories with ** when flags includes File::FNM_PATHNAME
+fails:File.fnmatch? matches multiple directories with ** when flags includes File::FNM_PATHNAME
