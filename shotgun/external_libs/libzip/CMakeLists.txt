@@ -1,4 +1,4 @@
-set(soversion 1.0.0)
+#set(soversion 1.0.0)
 
 find_package(ZLIB)
 CHECK_INCLUDE_FILE(unistd.h HAVE_UNISTD_H)
@@ -35,5 +35,5 @@ if(NOT HAVE_MKSTEMP)
   set(sources ${sources} lib/mkstemp.c)
 endif(NOT HAVE_MKSTEMP)
 
-add_library(zip SHARED ${sources})
-set_target_properties(zip PROPERTIES SOVERSION ${soversion})
+add_library(zip ${sources})
+#set_target_properties(zip PROPERTIES SOVERSION ${soversion})

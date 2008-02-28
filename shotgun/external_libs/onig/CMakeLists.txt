@@ -15,8 +15,7 @@ set(HAVE_STDARG_PROTOTYPES 1)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake 
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-include_directories(.)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 set(src 
   regerror.c regparse.c regext.c regcomp.c regexec.c reggnu.c regenc.c
@@ -28,6 +27,5 @@ set(src
   enc/iso8859_11.c enc/iso8859_13.c enc/iso8859_14.c enc/iso8859_15.c
   enc/iso8859_16.c enc/euc_tw.c enc/euc_kr.c enc/big5.c enc/gb18030.c
   enc/koi8_r.c enc/cp1251.c)
-
 
 add_library(onig ${src})

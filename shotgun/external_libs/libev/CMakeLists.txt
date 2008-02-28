@@ -1,4 +1,4 @@
-set(soversion 2)
+#set(soversion 2)
 
 CHECK_INCLUDE_FILE(sys/inotify.h HAVE_SYS_INOTIFY_H)
 CHECK_INCLUDE_FILE(sys/epoll.h   HAVE_SYS_EPOLL_H)
@@ -42,5 +42,5 @@ CHECK_LIBRARY_EXISTS(m ceil "" HAVE_LIBM)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake 
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-add_library(ev SHARED ev.c event.c)
-set_target_properties(ev PROPERTIES SOVERSION ${soversion})
+add_library(ev ev.c event.c)
+#set_target_properties(ev PROPERTIES SOVERSION ${soversion})

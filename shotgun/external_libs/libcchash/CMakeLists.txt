@@ -1,5 +1,4 @@
-set(version 1)
-
-add_library(cchash SHARED hashtable.c hashtable_itr.c hashtable_utility.c)
-set_target_properties(cchash PROPERTIES SOVERSION ${version})
+#set(version 1)
+add_library(cchash hashtable.c hashtable_itr.c hashtable_utility.c)
+#set_target_properties(cchash PROPERTIES SOVERSION ${version})
 

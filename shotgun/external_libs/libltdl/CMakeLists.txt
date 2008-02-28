@@ -1,4 +1,4 @@
-set(soversion 4.0.1)
+#set(soversion 4.0.1)
 
 CHECK_INCLUDE_FILE(argz.h        HAVE_ARGZ_H)
 CHECK_INCLUDE_FILE(assert.h      HAVE_ASSERT_H)
@@ -123,5 +123,5 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_definitions(-DHAVE_CONFIG_H)
 
-add_library(ltdl SHARED ltdl.c)
-set_target_properties(ltdl PROPERTIES SOVERSION ${soversion})
+add_library(ltdl ltdl.c)
+#set_target_properties(ltdl PROPERTIES SOVERSION ${soversion})

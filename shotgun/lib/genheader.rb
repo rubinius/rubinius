@@ -4,7 +4,7 @@ klasses = []
 
 fd = File.open("auto.h", "w")
 
-puts "#include \"shotgun.h\""
+puts "#include \"shotgun/lib/shotgun.h\""
 
 Compiler::Bootstrap::TYPES.each do |name, klass|
   prefix = "#{name}_"
