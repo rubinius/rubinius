@@ -29,7 +29,7 @@ class Dir
 
     list = glob_pattern root, flags
 
-    glob_helper path, false, :unknown, :unknown, list, 0...1, flags, matches
+    glob_helper path, false, :unknown, :unknown, list, 0, 1, flags, matches
   end
 
   def self.find_dirsep(pattern, flags)
@@ -121,14 +121,14 @@ class Dir
   # +exist+:: Does 'path' indicate an existing entry?
   # +isdir+:: Does 'path' indicate a directory or a symlink to a directory?
 
-  def self.glob_helper(path, dirsep, exist, isdir, pattern, range, flags, matches)
+  def self.glob_helper(path, dirsep, exist, isdir, pattern, start, stop, flags, matches)
     status = nil
     plain = magic = recursive = match_all = match_dir = false
     escape = (flags & File::FNM_NOESCAPE) == 0
 
     last_type = nil
 
-    pattern[range].each_with_index do |part, i|
+    pattern[start, stop].each_with_index do |part, i|
       if part[1] == :recursive then
         recursive = true
         part = pattern[i + 1]
@@ -194,7 +194,7 @@ class Dir
           buf = join_path path, entry, dirsep
           new_isdir = :unknown
           new_pattern = []
-          copied = range.begin
+          copied = start
 
           if recursive and not %w[. ..].include?(entry) and
             File.fnmatch('*', entry, flags) then
@@ -208,28 +208,28 @@ class Dir
                         end
           end
 
-          pattern[range].each_with_index do |part, i|
+          pattern[start, stop].each_with_index do |part, i|
             if part[1] == :recursive then
               if new_isdir == :yes then
                 new_pattern << part
                 copied += 1
               end
-              part = pattern[range.begin + i + 1]
+              part = pattern[start + i + 1]
               i += 1
             end
 
             if (part[1] == :plain or part[1] == :magic) and
               File.fnmatch part[0], entry, flags then
-              new_pattern << pattern[range.begin + i + 1]
+              new_pattern << pattern[start + i + 1]
               copied += 2
             end
           end
 
           length = new_pattern.length
 
-          new_pattern.concat pattern[copied..-1]
+          new_pattern.concat pattern[copied, pattern.size-copied]
 
-          glob_helper(buf, true, :yes, new_isdir, new_pattern, (0...length),
+          glob_helper(buf, true, :yes, new_isdir, new_pattern, 0, length,
                       flags, matches)
         end
       rescue Errno::ENOTDIR
@@ -240,11 +240,11 @@ class Dir
       copy_end = 0
       copy_pattern = pattern.dup
 
-      pattern[range].each_with_index do |part, i|
+      pattern[start, stop].each_with_index do |part, i|
         copy_pattern[i] = nil unless part[1] == :plain
       end
 
-      copy_pattern[range].each_with_index do |part, i|
+      copy_pattern[start, stop].each_with_index do |part, i|
         next unless part
 
         new_pattern = []
@@ -257,7 +257,7 @@ class Dir
         new_pattern << copy_pattern[next_offset]
         copied += 1
 
-        copy_pattern[(i + 1)...range.end].each_with_index do |part2, j|
+        copy_pattern[(i+1), stop-(i+1)].each_with_index do |part2, j|
           if part2 and not File.fnmatch part2[0], name, flags then
             new_pattern << copy_pattern[next_offset + j]
             copied += 1
@@ -273,7 +273,7 @@ class Dir
         buf = join_path path, name, dirsep
 
         glob_helper(buf, true, :unknown, :unknown, new_pattern,
-                    0...length, flags, matches)
+                    0, length, flags, matches)
       end
     end
   end
@@ -319,7 +319,7 @@ class Dir
 
         unless pattern.length == m then
           dirsep = true
-          pattern = pattern[(m+1)..-1]
+          pattern = pattern[(m+1), pattern.size-m]
         else
           dirsep = false
           pattern = ''

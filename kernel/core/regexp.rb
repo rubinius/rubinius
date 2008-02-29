@@ -377,7 +377,7 @@ class MatchData
         out << nil
       else  
         y = tup.at(1)
-        out << @source[x...y]
+        out << @source[x, y-x]
       end
     end
     return out
@@ -386,13 +386,13 @@ class MatchData
   def pre_match
     return "" if full.at(0) == 0
     nd = full.at(0) - 1
-    @source[0..nd]
+    @source[0, nd+1]
   end
   
   def pre_match_from(idx)
     return "" if full.at(0) == 0
     nd = full.at(0) - 1
-    @source[idx..nd]    
+    @source[idx, nd-idx+1]    
   end
   
   def collapsing?
@@ -402,7 +402,7 @@ class MatchData
   def post_match
     nd = @source.size - 1
     st = full.at(1)
-    @source[st..nd]
+    @source[st, nd-st+1]
   end
 
   def [](idx, len = nil)
@@ -463,7 +463,7 @@ class MatchData
   def matched_area
     x = full[0]
     y = full[1]
-    @source[x...y]
+    @source[x, y-x]
   end
   
   private :matched_area
@@ -472,7 +472,7 @@ class MatchData
     x, y = @region[num]
     return nil if !y or x == -1
     
-    return @source[x...y]
+    return @source[x, y-x]
   end
 
   private :get_capture
@@ -480,7 +480,7 @@ class MatchData
   def each_capture
     @region.each do |tup|
       x, y = *tup
-      yield @source[x...y]
+      yield @source[x, y-x]
     end
   end
 

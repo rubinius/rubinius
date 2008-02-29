@@ -791,7 +791,8 @@ class String
 
     Regexp.last_match = last_match
 
-    ret << self[last_end..-1] if self[last_end..-1]
+    str = substring(last_end, @bytes-last_end+1)
+    ret << str if str
 
     str = ret.join
     str = self.class.new(str) unless self.instance_of?(String)
