@@ -20,6 +20,9 @@ class Module
   def method_cache    ; @method_cache ; end
   def constants_table ; @constants    ; end
   def encloser        ; @encloser  ; end
+  
+  def constants_table=(c) ; @constants = c    ; end
+  def method_table=(m)    ; @method_table = m ; end
 
   def self.nesting
     mod  = MethodContext.current.sender.receiver
@@ -33,11 +36,15 @@ class Module
     end
     nesting
   end
+  
+  def self.allocate
+    mod = __allocate__
+    mod.constants_table = Hash.new
+    mod.method_table = MethodTable.new
+    mod
+  end
 
   def initialize
-    @constants = Hash.new
-    @method_table = MethodTable.new
-
     block = block_given?
     instance_eval(&block) if block
   end

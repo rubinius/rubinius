@@ -265,6 +265,13 @@ module ModuleSpecs
       @@meta
     end
   end
+  
+  class SubModule < Module
+    attr_reader :special
+    def initialize
+      @special = 10
+    end
+  end
 end
 
 ModuleSpecs::Nesting[:root_level] = Module.nesting
