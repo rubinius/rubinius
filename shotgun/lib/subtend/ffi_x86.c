@@ -115,22 +115,22 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
     BYTE(0xe8); DWORD(rel_addr);
 
     switch (arg_types[i]) {
-      case FFI_TYPE_FLOAT:
+      case RBX_FFI_TYPE_FLOAT:
         arg_stack_bytes += 4;
 
         /* fstp offset(%ebp) */
         offset += 4;
         BYTE(0xd9); BYTE(0x5d); BYTE(-offset);
         break;
-      case FFI_TYPE_DOUBLE:
+      case RBX_FFI_TYPE_DOUBLE:
         arg_stack_bytes += 8;
         
         /* fstpl offset(%ebp) */
         offset += 8;
         BYTE(0xdd); BYTE(0x5d); BYTE(-offset);
         break;
-      case FFI_TYPE_LL:
-      case FFI_TYPE_ULL:
+      case RBX_FFI_TYPE_LL:
+      case RBX_FFI_TYPE_ULL:
         arg_stack_bytes += 4;
         
         offset += 4;
@@ -184,9 +184,9 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
 
   /* Add some alignment padding. */
   switch(ret_type) {
-  case FFI_TYPE_DOUBLE:
-  case FFI_TYPE_LL:
-  case FFI_TYPE_ULL:
+  case RBX_FFI_TYPE_DOUBLE:
+  case RBX_FFI_TYPE_LL:
+  case RBX_FFI_TYPE_ULL:
     extra = 8;
     break;
   default:
@@ -197,17 +197,17 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
 
   /* Set up return value processing */
   switch (ret_type) {
-    case FFI_TYPE_VOID:
+    case RBX_FFI_TYPE_VOID:
       BYTE(0x6a); BYTE(0x01); /* push $1 ; dummy */
       break;
-    case FFI_TYPE_FLOAT:
+    case RBX_FFI_TYPE_FLOAT:
       /* fstp offset(%ebp) */
       offset += 4;
       BYTE(0xd9); BYTE(0x5d); BYTE(-offset);
 
       BYTE(0xff); BYTE(0x75); BYTE(-offset);     /* push offset(%ebp) */
       break;
-    case FFI_TYPE_DOUBLE:
+    case RBX_FFI_TYPE_DOUBLE:
       /* fstpl offset(%ebp) */
       offset += 8;
       BYTE(0xdd); BYTE(0x5d); BYTE(-offset);
@@ -215,8 +215,8 @@ OBJECT ffi_x86_generate_c_shim(STATE, int arg_count, int *arg_types,
       BYTE(0xff); BYTE(0x75); BYTE(-offset + 4); /* push (offset+4)(%ebp) */
       BYTE(0xff); BYTE(0x75); BYTE(-offset);     /* push offset(%ebp) */
       break;
-    case FFI_TYPE_LL:
-    case FFI_TYPE_ULL:
+    case RBX_FFI_TYPE_LL:
+    case RBX_FFI_TYPE_ULL:
       BYTE(0x50 + EDX); /* push %edx */
       /* fall through */
     default:

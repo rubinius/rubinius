@@ -1,0 +1,47 @@
+-- "TO DO" list for next release -------------------
+
+1. Update README file with new release info.
+
+2. Add closure documentation.
+
+3. Review copyright headers.
+
+4. Rewrite web page.
+
+5. Test the following....
+
+   alpha-linux
+   arm-linux
+   cris-linux
+   frv-elf
+   frv-linux
+   hppa-linux
+   hppa64-linux
+   i386-cygwin
+   i386-mingw
+   i386-darwin
+   i386-solaris2.1*
+   i386-elf
+   ia64-linux
+   m32r-linux
+   m68k-linux
+   mips-sgi-irix5
+   mips-sgi-irix6
+   mips-linux
+   mips64-linux
+   powerpc-linux
+   powerpc-beos
+   powerpc-darwin
+   powerpc-aix
+   powerpc-freebsd
+   powerpc-rtems
+   s390-linux
+   s390x-linux
+   sh-elf
+   sh-linux
+   sh64-elf
+   sparc-linux
+   x86_64-darwin
+   x86_64-cygwin
+   x86_64-mingw
+   x86_64-linux

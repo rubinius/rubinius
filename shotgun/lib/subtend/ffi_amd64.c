@@ -78,14 +78,14 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
     BYTE(0xff); BYTE(0xd2);                      /* callq *%rdx */ 
 
     switch (arg_types[i]) { 
-      case FFI_TYPE_FLOAT:
+      case RBX_FFI_TYPE_FLOAT:
         /* movss %xmm0, offset(%rbp) */
         offset -= 4; 
         BYTE(0xf3); BYTE(0x0f); BYTE(0x11); BYTE(0x45); BYTE(offset); 
         ++xmm_count; 
         break; 
         
-      case FFI_TYPE_DOUBLE:
+      case RBX_FFI_TYPE_DOUBLE:
         /* movsd %xmm0, offset(%rbp) */
         offset -= 8; 
         BYTE(0xf2); BYTE(0x0f); BYTE(0x11); BYTE(0x45); BYTE(offset);
@@ -103,13 +103,13 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
   /* Load arguments back from the stack to the appropriate registers */
   for (i = arg_count - 1; i >= 0; --i) {
     switch (arg_types[i]) { 
-      case FFI_TYPE_FLOAT:
+      case RBX_FFI_TYPE_FLOAT:
         /* movss offset(%rbp), %xmmN ; each %xmmN increment is + 8 */
         BYTE(0xf3); BYTE(0x0f); BYTE(0x10); BYTE(0x45 + (--xmm_count * 8)); BYTE(offset);
         offset += 4; 
         break; 
         
-      case FFI_TYPE_DOUBLE:
+      case RBX_FFI_TYPE_DOUBLE:
         /* movsd offset(%rbp), %xmmN */
         BYTE(0xf2); BYTE(0x0f); BYTE(0x10); BYTE(0x45 + (--xmm_count * 8)); BYTE(offset);
         offset += 8; 
@@ -128,13 +128,13 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
 
   /* Set up return value processing */
   switch (ret_type) {
-    case FFI_TYPE_VOID:
+    case RBX_FFI_TYPE_VOID:
       BYTE(0x48); BYTE(0xbf); QWORD(1);          /* mov $1, %rdi ; dummy */
       break; 
 
     /* Floats and doubles are already in %xmm0 */
-    case FFI_TYPE_FLOAT:
-    case FFI_TYPE_DOUBLE:
+    case RBX_FFI_TYPE_FLOAT:
+    case RBX_FFI_TYPE_DOUBLE:
       break;
 
     default:

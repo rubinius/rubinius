@@ -139,9 +139,11 @@ class Socket < BasicSocket
 
       raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
 
-      return [] if res_p.read_pointer.null?
+      ptr = res_p.read_pointer
+      
+      return [] unless ptr
 
-      res = Socket::Foreign::AddrInfo.new res_p.read_pointer
+      res = Socket::Foreign::AddrInfo.new ptr
 
       addrinfos = []
 
