@@ -69,8 +69,6 @@ module Syslog
     attach_function "closelog", :close, [], :void
     attach_function "syslog", :write, [:int, :string, :string], :void
     attach_function "setlogmask", :set_mask, [:int], :void
-    # attach_function "LOG_UPTO", :LOG_UPTO, [:int], :int
-    # attach_function "LOG_MASK", :LOG_MASK, [:int], :int
   end
   
   class << self
@@ -208,22 +206,19 @@ module Syslog
 
     ##
     #   LOG_MASK(pri)
-    #  
+    #
+    # HACK
     # Creates a mask for one priority.
-    def LOG_MASK
-      raise "Not Yet Implemented"
-
-      Foreign.LOG_MASK(pri)
+    def LOG_MASK(pri)
+      1 << pri
     end
 
     ##
     #   LOG_UPTO(pri)
-    #  
+    # HACK
     # Creates a mask for all priorities up to pri.
-    def LOG_UPTO pri
-      raise "Not Yet Implemented"
-
-      Foreign.LOG_UPTO(pri)
+    def LOG_UPTO(pri)
+      (1 << ((pri)+1)) - 1
     end
 
     def inspect
