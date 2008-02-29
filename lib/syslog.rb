@@ -207,7 +207,7 @@ module Syslog
     ##
     #   LOG_MASK(pri)
     #
-    # HACK
+    # HACK copied from macro
     # Creates a mask for one priority.
     def LOG_MASK(pri)
       1 << pri
@@ -215,7 +215,7 @@ module Syslog
 
     ##
     #   LOG_UPTO(pri)
-    # HACK
+    # HACK copied from macro
     # Creates a mask for all priorities up to pri.
     def LOG_UPTO(pri)
       (1 << ((pri)+1)) - 1
