@@ -3,6 +3,15 @@ require 'mspec/runner/tag'
 require 'fileutils'
 
 module MSpec
+
+  @before  = nil
+  @enter   = nil
+  @exclude = nil
+  @include = nil
+  @leave   = nil
+  @mode    = nil
+  @unload  = nil
+
   def self.describe(mod, msg, &block)
     stack.push RunState.new
     
