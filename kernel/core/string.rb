@@ -15,20 +15,19 @@ class String
   def data      ; @data       ; end
   def __ivars__ ; nil         ; end
 
-  def self.new(arg=nil)
-    str = allocate
-    str.__send__ :setup
-    str.__send__ :initialize, arg
+  def bytes=(b)     ; @bytes = b      ; end
+  def characters=(c); @characters = c ; end
+  def encoding=(e)  ; @encoding = e   ; end
+  def data=(d)      ; @data = d       ; end
+
+  def self.allocate
+    str = __allocate__
+    str.data = ByteArray.new(1)
+    str.bytes = 0
+    str.characters = 0
+    str.encoding = nil
     str
   end
-  
-  def setup
-    @data = ByteArray.new(1)
-    @bytes = 0
-    @characters = 0
-    @encoding = nil
-  end
-  private :setup
   
   def initialize(arg=nil)
     if arg.__kind_of__ Fixnum
