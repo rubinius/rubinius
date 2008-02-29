@@ -17,6 +17,10 @@ class Array
   def start    ; @start ; end
   def __ivars__; nil    ; end
   
+  def total=(n) ; @total = n ; end
+  def tuple=(t) ; @tuple = t ; end
+  def start=(s) ; @start = s ; end
+  
   include Enumerable
 
   # The flow control for many of these methods is
@@ -30,27 +34,14 @@ class Array
   def self.[](*args)
     new args
   end
-
-  def self.new(*args, &block)
-    raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
-    
-    ary = allocate
-    ary.__send__ :setup
-    ary.__send__ :initialize, *args, &block
+  
+  def self.allocate
+    ary = __allocate__
+    ary.start = 0
+    ary.total = 0
+    ary.tuple = Tuple.new 8
     ary
   end
-  
-  # At present, @tuple.kind_of?(Tuple) is essentially an invariant for Array.
-  # If we relax this and ensure that every method behaves correctly if 
-  # @tuple == nil, then we can omit initializing @tuple here. We cannot
-  # easily know whether #initialize is defined in a subclass when this
-  # method is called.
-  def setup
-    @start = 0
-    @total = 0
-    @tuple = Tuple.new 8
-  end
-  private :setup
 
   # Creates a new Array. Without arguments, an empty
   # Array is returned. If the only argument is an object
@@ -64,6 +55,8 @@ class Array
   # result. The block supercedes any object given. If
   # neither is provided, the Array is filled with nil.
   def initialize(*args)
+    raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
+
     unless args.empty?
       if args.size == 1 and (args.first.__kind_of__ Array or args.first.respond_to? :to_ary)
         ary = Type.coerce_to args.first, Array, :to_ary
