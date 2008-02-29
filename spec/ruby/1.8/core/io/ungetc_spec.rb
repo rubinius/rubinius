@@ -33,6 +33,12 @@ describe "IO#ungetc" do
     @file.ungetc(100)
     @file.getc.should == 100
   end
+  
+  it "pushes back one character when invoked at the start of the stream" do
+    @file.read(0)
+    @file.ungetc(100)
+    @file.getc.should == 100
+  end
 
   it "pushes back one character when invoked on empty stream" do
     File.open('/tmp/empty.txt') { |empty|
@@ -49,6 +55,22 @@ describe "IO#ungetc" do
       empty.ungetc(100)
       empty.eof?.should == false
     }
+  end
+
+  it "adjusts the stream position" do
+    @file.pos.should == 0
+
+    # read one char
+    c = @file.getc
+    @file.pos.should == 1
+    @file.ungetc(c)
+    @file.pos.should == 0
+
+    # read all
+    @file.read
+    pos = @file.pos
+    @file.ungetc(98)
+    @file.pos.should == pos - 1
   end
 
   # TODO: file MRI bug
