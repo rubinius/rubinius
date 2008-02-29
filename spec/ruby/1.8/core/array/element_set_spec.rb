@@ -272,6 +272,10 @@ describe "Array#[]= with [index, count]" do
     a = [1, 2, 3, 4, 5]
     a[3, 0] = [7, 8]
     a.should == [1, 2, 3, 7, 8, 4, 5]
+
+    b = [1, 2, 3, 4, 5]
+    b[1, 0] = b
+    b.should == [1, 1, 2, 3, 4, 5, 2, 3, 4, 5]
   end
   
   it "raises an IndexError when passed start and negative length" do
