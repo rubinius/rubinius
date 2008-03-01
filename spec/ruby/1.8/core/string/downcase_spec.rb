@@ -26,7 +26,7 @@ describe "String#downcase" do
   end
   
   it "returns a subclass instance for subclasses" do
-    MyString.new("FOObar").downcase.class.should == MyString
+    StringSpecs::MyString.new("FOObar").downcase.class.should == StringSpecs::MyString
   end
 end
 

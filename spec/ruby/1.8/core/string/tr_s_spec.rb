@@ -55,7 +55,7 @@ describe "String#tr_s" do
   end
   
   it "returns subclass instances when called on a subclass" do
-    MyString.new("hello").tr_s("e", "a").class.should == MyString
+    StringSpecs::MyString.new("hello").tr_s("e", "a").class.should == StringSpecs::MyString
   end
   
   it "taints the result when self is tainted" do

@@ -83,11 +83,11 @@ describe "String#rjust with length, padding" do
   end
   
   it "returns subclass instances when called on subclasses" do
-    MyString.new("").rjust(10).class.should == MyString
-    MyString.new("foo").rjust(10).class.should == MyString
-    MyString.new("foo").rjust(10, MyString.new("x")).class.should == MyString
+    StringSpecs::MyString.new("").rjust(10).class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("foo").rjust(10).class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("foo").rjust(10, StringSpecs::MyString.new("x")).class.should == StringSpecs::MyString
     
-    "".rjust(10, MyString.new("x")).class.should == String
-    "foo".rjust(10, MyString.new("x")).class.should == String
+    "".rjust(10, StringSpecs::MyString.new("x")).class.should == String
+    "foo".rjust(10, StringSpecs::MyString.new("x")).class.should == String
   end
 end

@@ -40,8 +40,8 @@ describe "Array#hash" do
   end
   
   it "ignores array class differences" do
-    MyArray[].hash.should == [].hash
-    MyArray[1, 2].hash.should == [1, 2].hash
+    ArraySpecs::MyArray[].hash.should == [].hash
+    ArraySpecs::MyArray[1, 2].hash.should == [1, 2].hash
   end
 
   it "returns same hash code for arrays with the same content" do

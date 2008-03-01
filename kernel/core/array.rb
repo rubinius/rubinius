@@ -7,7 +7,7 @@
 # last element of the array, -2 is the next to last element in the array, and
 # so on.
 #
-# Arrays can be created with the <tt>[]<tt> syntax, or via <tt>Array.new</tt>.
+# Arrays can be created with the <tt>[]</tt> syntax, or via <tt>Array.new</tt>.
 
 class Array
   ivar_as_index :total => 0, :tuple => 1, :start => 2, :shared => 3
@@ -16,6 +16,10 @@ class Array
   def tuple    ; @tuple ; end
   def start    ; @start ; end
   def __ivars__; nil    ; end
+  
+  def total=(n) ; @total = n ; end
+  def tuple=(t) ; @tuple = t ; end
+  def start=(s) ; @start = s ; end
   
   include Enumerable
 
@@ -28,9 +32,16 @@ class Array
 
   # Returns a new Array populated with the given objects
   def self.[](*args)
-    new.push(*args)
+    new args
   end
-
+  
+  def self.allocate
+    ary = __allocate__
+    ary.start = 0
+    ary.total = 0
+    ary.tuple = Tuple.new 8
+    ary
+  end
 
   # Creates a new Array. Without arguments, an empty
   # Array is returned. If the only argument is an object
@@ -45,28 +56,23 @@ class Array
   # neither is provided, the Array is filled with nil.
   def initialize(*args)
     raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
-    
-    @start = 0
-    
-    if args.empty?
-      @tuple = Tuple.new 2
-      @total = 0
-    else      
-      if (args.first.kind_of? Array or args.first.respond_to? :to_ary) and args.size == 1
+
+    unless args.empty?
+      if args.size == 1 and (args.first.__kind_of__ Array or args.first.respond_to? :to_ary)
         ary = Type.coerce_to args.first, Array, :to_ary
-        return self if self == ary
-      
-        @tuple = Tuple.new(ary.size + 10)
+    
+        tuple = Tuple.new(ary.size + 10)
         @total = ary.size
-        @tuple.copy_from ary.tuple, ary.start, 0
+        tuple.copy_from ary.tuple, ary.start, 0
+        @tuple = tuple
       else
         count = Type.coerce_to args.first, Fixnum, :to_int
-        obj   = args[1]
         raise ArgumentError, "Size must be positive" if count < 0
+        obj = args[1]
 
         @tuple = Tuple.new(count + 10)
         @total = count
-      
+    
         if block_given?
           count.times { |i| @tuple.put i, yield(i) }
         else
@@ -118,6 +124,7 @@ class Array
       return nil
     end
 
+    
     finish = Type.coerce_to finish, Fixnum, :to_int if finish
     finish = (start + count - 1) if count    # For non-ranges
 
@@ -471,7 +478,7 @@ class Array
     ary = Type.coerce_to(other, Array, :to_ary)
     size = @total + ary.size
     tuple = Tuple.new size
-    tuple.copy_from @tuple, @start, 0
+    tuple.copy_from @tuple, @start, 0 if @total > 0
     tuple.copy_from ary.tuple, ary.start, @total
     @tuple = tuple
     @start = 0
@@ -893,6 +900,7 @@ class Array
     BASE_64_ALPHA[63] = ?/
   end
 
+
   # TODO fill out pack.
   def pack(schema)
     # The schema is an array of arrays like [["A", "6"], ["u", "*"], ["X", ""]]. It represents the parsed
@@ -1156,6 +1164,47 @@ class Array
 
         arr_idx += 1
         ret << str
+
+      elsif kind == 'U'
+        #converts the number passed, or all for * or 1 if missing
+        count = !t ? 1 : (t == "*" ? self.size-arr_idx : t.to_i)
+        raise ArgumentError, "too few array elements" if arr_idx + count > self.length
+        
+        count.times do
+          item = Type.coerce_to(self[arr_idx], Integer, :to_i)
+          raise RangeError, "pack(U): value out of range" if item < 0
+          #handle the simple case and move on
+          if item < 0x80
+            ret << item
+            i=0
+          #else count the bytes needed
+          elsif item < 0x800
+            i = bytes = 2
+          elsif item < 0x10000
+            i = bytes = 3
+          elsif item < 0x200000
+            i = bytes = 4
+          elsif item < 0x4000000
+            i = bytes = 5
+          elsif item <= 0x7FFFFFFF
+            i = bytes = 6
+          else
+            raise RangeError, "pack(U): value out of range"
+          end
+          if i>0
+            #make room 
+            ret<<' '*bytes
+            #fill backwards: put the least significant bits at the end
+            #  shift the next set down, and repeat
+            while 0 < i-=1
+              ret[i-bytes] = (item | 0x80) & 0xBF
+              item >>= 6
+            end
+            #catch the highest bits - the mask depends on the byte count
+            ret[-bytes] =  (item | ((0x3F00>>bytes)) & 0xFC)
+            end
+            arr_idx += 1
+        end
       else
         raise ArgumentError, "Unknown kind #{kind}"
       end
@@ -1268,7 +1317,7 @@ class Array
     @start = other.start
     self
   end
-  
+
   # Returns a new Array or subclass populated from self 
   # but in reverse order.
   def reverse()
@@ -1531,19 +1580,23 @@ class Array
     self
   end
 
-  def dup
-    self.class.new.replace self
+  # This method copies frozen status, but dup does not.
+  # We don't implement #freeze/#frozen? yet.
+  def clone
+    ary = self.class.new self
+    ary.taint if self.tainted?
+    ary
   end
-
+  
+  def dup
+    ary = self.class.new self
+    ary.taint if self.tainted?
+    ary
+  end
 
   # Exactly the same as #replace but private
   def initialize_copy(other)
-    other = Type.coerce_to other, Array, :to_ary
-
-    @tuple = other.tuple.dup
-    @total = other.total
-    @start = other.start
-    self 
+    replace other
   end
 
   private :initialize_copy
@@ -1552,7 +1605,7 @@ class Array
   def reallocate(at_least)
     return if at_least < @tuple.size
 
-    new_size = ((3 * @tuple.size) / 2) + 1
+    new_size = @tuple.size * 2
     
     if new_size < at_least
       new_size = at_least
@@ -1890,3 +1943,5 @@ class Array
   private :qsort_block
   private :isort_block
 end
+
+

@@ -8,6 +8,18 @@ describe "Module#class_variable_get" do
     c.send(:class_variable_get, "@@class_var").should == "test"
   end
   
+  it "returns class variables defined in the class body and accessed in the metaclass" do
+    ModuleSpecs::CVars.cls.should == :class
+  end
+  
+  it "returns class variables defined in the metaclass and accessed by class methods" do
+    ModuleSpecs::CVars.meta.should == :meta
+  end
+  
+  it "returns class variables defined in the metaclass and accessed by instance methods" do
+    ModuleSpecs::CVars.new.meta.should == :meta
+  end
+  
   not_compliant_on :rubinius do
     it "accepts Fixnums for class variables" do
       c = Class.new { class_variable_set :@@class_var, "test" }

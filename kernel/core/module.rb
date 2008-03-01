@@ -20,6 +20,9 @@ class Module
   def method_cache    ; @method_cache ; end
   def constants_table ; @constants    ; end
   def encloser        ; @encloser  ; end
+  
+  def constants_table=(c) ; @constants = c    ; end
+  def method_table=(m)    ; @method_table = m ; end
 
   def self.nesting
     mod  = MethodContext.current.sender.receiver
@@ -33,11 +36,15 @@ class Module
     end
     nesting
   end
+  
+  def self.allocate
+    mod = __allocate__
+    mod.constants_table = Hash.new
+    mod.method_table = MethodTable.new
+    mod
+  end
 
   def initialize
-    @constants = Hash.new
-    @method_table = MethodTable.new
-
     block = block_given?
     instance_eval(&block) if block
   end
@@ -76,12 +83,21 @@ class Module
 
     current = direct_superclass
     while current
-      vars = current.send :class_variables_table
+      if current.__kind_of__ MetaClass
+        vars = current.attached_instance.send :class_variables_table
+      else
+        vars = current.send :class_variables_table
+      end
       return vars[name] = val if vars.key? name
       current = current.direct_superclass
     end
 
-    class_variables_table[name] = val
+    if self.__kind_of__ MetaClass
+      table = self.attached_instance.send :class_variables_table
+    else
+      table = class_variables_table
+    end
+    table[name] = val
   end
 
   def class_variable_get(name)
@@ -89,7 +105,11 @@ class Module
 
     current = self
     while current
-      vars = current.send :class_variables_table
+      if current.__kind_of__ MetaClass
+        vars = current.attached_instance.send :class_variables_table
+      else
+        vars = current.send :class_variables_table
+      end
       return vars[name] if vars.key? name
       current = current.direct_superclass
     end
@@ -119,16 +139,11 @@ class Module
   end
 
   def name
-    return @name.to_s if @name
-    ""
+    @name ? @name.to_s : ""
   end
 
   def to_s
-    if @name
-      @name.to_s
-    else
-      super
-    end
+    @name ? @name.to_s : super
   end
 
   alias_method :inspect, :to_s

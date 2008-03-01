@@ -32,13 +32,13 @@ describe "String#*" do
   end
   
   it "returns subclass instances" do
-    (MyString.new("cool") * 0).class.should == MyString
-    (MyString.new("cool") * 1).class.should == MyString
-    (MyString.new("cool") * 2).class.should == MyString
+    (StringSpecs::MyString.new("cool") * 0).class.should == StringSpecs::MyString
+    (StringSpecs::MyString.new("cool") * 1).class.should == StringSpecs::MyString
+    (StringSpecs::MyString.new("cool") * 2).class.should == StringSpecs::MyString
   end
   
   it "always taints the result when self is tainted" do
-    ["", "OK", MyString.new(""), MyString.new("OK")].each do |str|
+    ["", "OK", StringSpecs::MyString.new(""), StringSpecs::MyString.new("OK")].each do |str|
       str.taint
 
       [0, 1, 2].each do |arg|

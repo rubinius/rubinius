@@ -34,13 +34,13 @@ shared :array_equal do |cmd|
     end
 
     it "does not call to_ary on array subclasses" do
-      ([5, 6, 7] == ToAryArray[5, 6, 7]).should == true
+      ([5, 6, 7] == ArraySpecs::ToAryArray[5, 6, 7]).should == true
     end
 
     it "ignores array class differences" do
-      MyArray[1, 2, 3].send(cmd, [1, 2, 3]).should == true
-      MyArray[1, 2, 3].send(cmd, MyArray[1, 2, 3]).should == true
-      [1, 2, 3].send(cmd, MyArray[1, 2, 3]).should == true
+      ArraySpecs::MyArray[1, 2, 3].send(cmd, [1, 2, 3]).should == true
+      ArraySpecs::MyArray[1, 2, 3].send(cmd, ArraySpecs::MyArray[1, 2, 3]).should == true
+      [1, 2, 3].send(cmd, ArraySpecs::MyArray[1, 2, 3]).should == true
     end
   end
 end

@@ -57,8 +57,8 @@ shared :string_each do |cmd|
     
     it "yields subclass instances for subclasses" do
       a = []
-      MyString.new("hello\nworld").send(cmd) { |s| a << s.class }
-      a.should == [MyString, MyString]
+      StringSpecs::MyString.new("hello\nworld").send(cmd) { |s| a << s.class }
+      a.should == [StringSpecs::MyString, StringSpecs::MyString]
     end
     
     it "returns self" do

@@ -179,9 +179,9 @@ describe "String#rindex with String" do
   end
   
   it "ignores string subclasses" do
-    "blablabla".rindex(MyString.new("bla")).should == 6
-    MyString.new("blablabla").rindex("bla").should == 6
-    MyString.new("blablabla").rindex(MyString.new("bla")).should == 6
+    "blablabla".rindex(StringSpecs::MyString.new("bla")).should == 6
+    StringSpecs::MyString.new("blablabla").rindex("bla").should == 6
+    StringSpecs::MyString.new("blablabla").rindex(StringSpecs::MyString.new("bla")).should == 6
   end
   
   it "starts the search at the given offset" do

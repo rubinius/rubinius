@@ -5,8 +5,8 @@ describe "Array.new" do
   it "returns a new array when not passed arguments" do
     a = Array.new
     a.class.should == Array
-    b = MyArray.new
-    b.class.should == MyArray
+    b = ArraySpecs::MyArray.new
+    b.class.should == ArraySpecs::MyArray
   end
   
   it "raises an ArgumentError when passed a negative size" do
@@ -15,8 +15,8 @@ describe "Array.new" do
   
   it "returns a new array of size with nil elements" do
     Array.new(5).should == [nil, nil, nil, nil, nil]
-    a = MyArray.new(5)
-    a.class.should == MyArray
+    a = ArraySpecs::MyArray.new(5)
+    a.class.should == ArraySpecs::MyArray
     a.inspect.should == [nil, nil, nil, nil, nil].inspect
   end
 
@@ -41,8 +41,8 @@ describe "Array.new" do
     str << "y"
     ary.should == [str, str, str, str]
 
-    a = MyArray.new(4, true)
-    a.class.should == MyArray
+    a = ArraySpecs::MyArray.new(4, true)
+    a.class.should == ArraySpecs::MyArray
     a.inspect.should == [true, true, true, true].inspect
   end
   
@@ -51,8 +51,8 @@ describe "Array.new" do
     def obj.to_ary() [:foo] end
     Array.new(obj).should == [:foo]
     
-    a = MyArray.new(obj)
-    a.class.should == MyArray
+    a = ArraySpecs::MyArray.new(obj)
+    a.class.should == ArraySpecs::MyArray
     a.inspect.should == [:foo].inspect
 
     obj = mock('[:foo]')
@@ -62,7 +62,7 @@ describe "Array.new" do
   end
   
   it "does not call to_ary on Array subclasses when passed an array-like argument" do
-    Array.new(ToAryArray[5, 6, 7]).should == [5, 6, 7]
+    Array.new(ArraySpecs::ToAryArray[5, 6, 7]).should == [5, 6, 7]
   end
   
   it "calls to_ary on an argument before to_int" do
@@ -76,8 +76,8 @@ describe "Array.new" do
   it "returns an array of size elements from the result of passing each index to block" do
     Array.new(5) { |i| i + 1 }.should == [1, 2, 3, 4, 5]
     
-    a = MyArray.new(5) { |i| i + 1 }
-    a.class.should == MyArray
+    a = ArraySpecs::MyArray.new(5) { |i| i + 1 }
+    a.class.should == ArraySpecs::MyArray
     a.inspect.should == [1, 2, 3, 4, 5].inspect
   end  
 

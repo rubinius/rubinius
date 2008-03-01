@@ -7,6 +7,6 @@ describe "String#empty?" do
     " ".empty?.should == false
     "\x00".empty?.should == false
     "".empty?.should == true
-    MyString.new("").empty?.should == true
+    StringSpecs::MyString.new("").empty?.should == true
   end
 end

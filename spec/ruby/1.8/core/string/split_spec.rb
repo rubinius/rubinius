@@ -115,11 +115,11 @@ describe "String#split with String" do
     ["", "x.y.z.", "  x  y  "].each do |str|
       ["", ".", " "].each do |pat|
         [-1, 0, 1, 2].each do |limit|
-          MyString.new(str).split(pat, limit).each do |x|
-            x.class.should == MyString
+          StringSpecs::MyString.new(str).split(pat, limit).each do |x|
+            x.class.should == StringSpecs::MyString
           end
           
-          str.split(MyString.new(pat), limit).each do |x|
+          str.split(StringSpecs::MyString.new(pat), limit).each do |x|
             x.class.should == String 
           end
         end
@@ -264,8 +264,8 @@ describe "String#split with Regexp" do
     ["", "x:y:z:", "  x  y  "].each do |str|
       [//, /:/, /\s+/].each do |pat|
         [-1, 0, 1, 2].each do |limit|
-          MyString.new(str).split(pat, limit).each do |x|
-            x.class.should == MyString
+          StringSpecs::MyString.new(str).split(pat, limit).each do |x|
+            x.class.should == StringSpecs::MyString
           end
         end
       end

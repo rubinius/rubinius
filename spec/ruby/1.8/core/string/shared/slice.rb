@@ -147,10 +147,10 @@ shared :string_slice do |cmd|
     end
 
     it "returns subclass instances" do
-      s = MyString.new("hello")
-      s.send(cmd, 0,0).class.should == MyString
-      s.send(cmd, 0,4).class.should == MyString
-      s.send(cmd, 1,4).class.should == MyString
+      s = StringSpecs::MyString.new("hello")
+      s.send(cmd, 0,0).class.should == StringSpecs::MyString
+      s.send(cmd, 0,4).class.should == StringSpecs::MyString
+      s.send(cmd, 1,4).class.should == StringSpecs::MyString
     end
   end
 
@@ -220,10 +220,10 @@ shared :string_slice do |cmd|
     end
 
     it "returns subclass instances" do
-      s = MyString.new("hello")
-      s.send(cmd, 0...0).class.should == MyString
-      s.send(cmd, 0..4).class.should == MyString
-      s.send(cmd, 1..4).class.should == MyString
+      s = StringSpecs::MyString.new("hello")
+      s.send(cmd, 0...0).class.should == StringSpecs::MyString
+      s.send(cmd, 0..4).class.should == StringSpecs::MyString
+      s.send(cmd, 1..4).class.should == StringSpecs::MyString
     end
 
     it "calls to_int on range arguments" do
@@ -256,8 +256,8 @@ shared :string_slice do |cmd|
 
     it "works with Range subclasses" do
       a = "GOOD"
-      range_incl = MyRange.new(1, 2)
-      range_excl = MyRange.new(-3, -1, true)
+      range_incl = StringSpecs::MyRange.new(1, 2)
+      range_excl = StringSpecs::MyRange.new(-3, -1, true)
 
       a.send(cmd, range_incl).should == "OO"
       a.send(cmd, range_excl).should == "OO"
@@ -290,9 +290,9 @@ shared :string_slice do |cmd|
     end
 
     it "returns subclass instances" do
-      s = MyString.new("hello")
-      s.send(cmd, //).class.should == MyString
-      s.send(cmd, /../).class.should == MyString
+      s = StringSpecs::MyString.new("hello")
+      s.send(cmd, //).class.should == StringSpecs::MyString
+      s.send(cmd, /../).class.should == StringSpecs::MyString
     end
     
     it "sets $~ to MatchData when there is a match and nil when there's none" do
@@ -375,9 +375,9 @@ shared :string_slice do |cmd|
     end
 
     it "returns subclass instances" do
-      s = MyString.new("hello")
-      s.send(cmd, /(.)(.)/, 0).class.should == MyString
-      s.send(cmd, /(.)(.)/, 1).class.should == MyString
+      s = StringSpecs::MyString.new("hello")
+      s.send(cmd, /(.)(.)/, 0).class.should == StringSpecs::MyString
+      s.send(cmd, /(.)(.)/, 1).class.should == StringSpecs::MyString
     end
     
     it "sets $~ to MatchData when there is a match and nil when there's none" do
@@ -430,10 +430,10 @@ shared :string_slice do |cmd|
     end
 
     it "returns a subclass instance when given a subclass instance" do
-      s = MyString.new("el")
+      s = StringSpecs::MyString.new("el")
       r = "hello".send(cmd, s)
       r.should == "el"
-      r.class.should == MyString
+      r.class.should == StringSpecs::MyString
     end
   end
 end

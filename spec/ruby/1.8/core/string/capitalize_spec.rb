@@ -23,8 +23,8 @@ describe "String#capitalize" do
   end
   
   it "returns subclass instances when called on a subclass" do
-    MyString.new("hello").capitalize.class.should == MyString
-    MyString.new("Hello").capitalize.class.should == MyString
+    StringSpecs::MyString.new("hello").capitalize.class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("Hello").capitalize.class.should == StringSpecs::MyString
   end
 end
 

@@ -38,6 +38,7 @@
   OBJECT method_module; \
   void *opaque_data; \
   OBJECT self; \
+  OBJECT custom_iseq; \
   IP_TYPE *data; \
   unsigned char type; \
   unsigned char flags; \
@@ -291,7 +292,9 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func, int p
 int cpu_perform_system_primitive(STATE, cpu c, int prim, const struct message *msg);
 OBJECT cpu_populate_prim_names(STATE);
 void cpu_patch_ffi(STATE, const struct message *msg);
-void ffi_call(STATE, cpu c, OBJECT ptr);
+void ffi_call_stub(STATE, cpu c, OBJECT ptr);
+void ffi_call_libffi(STATE, cpu c, OBJECT ptr);
+#define ffi_call ffi_call_libffi
 void ffi_autorelease(OBJECT ptr, int ar);
 OBJECT ffi_new_pointer(STATE, void *ptr);
 

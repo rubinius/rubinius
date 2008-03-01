@@ -48,10 +48,10 @@ describe "Array#first" do
   end
   
   it "does not return subclass instance when passed count on Array subclasses" do
-    MyArray[].first(0).class.should == Array
-    MyArray[].first(2).class.should == Array
-    MyArray[1, 2, 3].first(0).class.should == Array
-    MyArray[1, 2, 3].first(1).class.should == Array
-    MyArray[1, 2, 3].first(2).class.should == Array
+    ArraySpecs::MyArray[].first(0).class.should == Array
+    ArraySpecs::MyArray[].first(2).class.should == Array
+    ArraySpecs::MyArray[1, 2, 3].first(0).class.should == Array
+    ArraySpecs::MyArray[1, 2, 3].first(1).class.should == Array
+    ArraySpecs::MyArray[1, 2, 3].first(2).class.should == Array
   end
 end

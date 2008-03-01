@@ -278,8 +278,8 @@ shared :array_slice do |cmd|
   
     it "returns the same elements as [m..n] and [m...n] with Range subclasses" do
       a = [1, 2, 3, 4]
-      range_incl = MyRange.new(1, 2)
-      range_excl = MyRange.new(-3, -1, true)
+      range_incl = ArraySpecs::MyRange.new(1, 2)
+      range_excl = ArraySpecs::MyRange.new(-3, -1, true)
 
       a[range_incl].should == [2, 3]
       a[range_excl].should == [2, 3]
@@ -374,10 +374,54 @@ shared :array_slice do |cmd|
     end
   
     it "returns a subclass instance when called on a subclass of Array" do
-      ary = MyArray[1, 2, 3]
-      ary.send(cmd, 0, 0).class.should == MyArray
-      ary.send(cmd, 0, 2).class.should == MyArray
-      ary.send(cmd, 0..10).class.should == MyArray
+      ary = ArraySpecs::MyArray[1, 2, 3]
+      ary.send(cmd, 0, 0).class.should == ArraySpecs::MyArray
+      ary.send(cmd, 0, 2).class.should == ArraySpecs::MyArray
+      ary.send(cmd, 0..10).class.should == ArraySpecs::MyArray
+    end
+
+    not_compliant_on :rubinius do
+      it "raises a RangeError when the start index is out of range of Fixnum" do
+        array = [1, 2, 3, 4, 5, 6]
+        obj = mock('large value')
+        obj.should_receive(:to_int).and_return(0x8000_0000_0000_0000_0000)
+        lambda { array.send(cmd, obj) }.should raise_error(RangeError)
+
+        obj = 8e19
+        lambda { array.send(cmd, obj) }.should raise_error(RangeError)
+      end
+
+      it "raises a RangeError when the length is out of range of Fixnum" do
+        array = [1, 2, 3, 4, 5, 6]
+        obj = mock('large value')
+        obj.should_receive(:to_int).and_return(0x8000_0000_0000_0000_0000)
+        lambda { array.send(cmd, 1, obj) }.should raise_error(RangeError)
+
+        obj = 8e19
+        lambda { array.send(cmd, 1, obj) }.should raise_error(RangeError)
+      end
+    end
+    
+    deviates_on :rubinius do
+      it "raises a TypeError when the start index is out of range of Fixnum" do
+        array = [1, 2, 3, 4, 5, 6]
+        obj = mock('large value')
+        obj.should_receive(:to_int).and_return(0x8000_0000_0000_0000_0000)
+        lambda { array.send(cmd, obj) }.should raise_error(TypeError)
+
+        obj = 8e19
+        lambda { array.send(cmd, obj) }.should raise_error(TypeError)
+      end
+
+      it "raises a TypeError when the length is out of range of Fixnum" do
+        array = [1, 2, 3, 4, 5, 6]
+        obj = mock('large value')
+        obj.should_receive(:to_int).and_return(0x8000_0000_0000_0000_0000)
+        lambda { array.send(cmd, 1, obj) }.should raise_error(TypeError)
+
+        obj = 8e19
+        lambda { array.send(cmd, 1, obj) }.should raise_error(TypeError)
+      end
     end
   end
 end

@@ -79,8 +79,8 @@ describe "String#crypt" do
   end
   
   it "doesn't return subclass instances" do
-    MyString.new("hello").crypt("aa").class.should == String
-    "hello".crypt(MyString.new("aa")).class.should == String
-    MyString.new("hello").crypt(MyString.new("aa")).class.should == String
+    StringSpecs::MyString.new("hello").crypt("aa").class.should == String
+    "hello".crypt(StringSpecs::MyString.new("aa")).class.should == String
+    StringSpecs::MyString.new("hello").crypt(StringSpecs::MyString.new("aa")).class.should == String
   end
 end

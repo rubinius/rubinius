@@ -150,9 +150,9 @@ describe "String#%" do
   end
 
   it "always interprets an array subclass argument as a list of argument parameters" do
-    lambda { "%p" % MyArray[] }.should raise_error(ArgumentError)
-    ("%p" % MyArray[1]).should == "1"
-    ("%p %p" % MyArray[1, 2]).should == "1 2"
+    lambda { "%p" % StringSpecs::MyArray[] }.should raise_error(ArgumentError)
+    ("%p" % StringSpecs::MyArray[1]).should == "1"
+    ("%p %p" % StringSpecs::MyArray[1, 2]).should == "1 2"
   end
   
   it "allows positional arguments for width star and precision star arguments" do
@@ -197,7 +197,7 @@ describe "String#%" do
       "%f", "%g", "%G", "%i", "%o", "%p",
       "%s", "%u", "%x", "%X"
     ].each do |format|
-      (MyString.new(format) % universal).class.should == String
+      (StringSpecs::MyString.new(format) % universal).class.should == String
     end
   end
 
@@ -213,7 +213,7 @@ describe "String#%" do
       "%f", "%g", "%G", "%i", "%o", "%p",
       "%s", "%u", "%x", "%X"
     ].each do |format|
-      subcls_format = MyString.new(format)
+      subcls_format = StringSpecs::MyString.new(format)
       subcls_format.taint
       format.taint
       

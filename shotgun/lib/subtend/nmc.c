@@ -48,6 +48,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, O
   fc->sp = 0;
   fc->name = name;
   fc->self = recv;
+  fc->custom_iseq = (OBJECT)Qnil;
   fc->method = nmethod;  
   fc->block = block;
   fc->literals = (OBJECT)Qnil;

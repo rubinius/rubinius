@@ -1564,7 +1564,7 @@ class Node
     # Args could be an array, splat or argscat
     def collapse_args
       @in_block = get(:iter)
-      
+
       return unless @arguments
 
       if @arguments.is? ArrayLiteral
@@ -1580,7 +1580,7 @@ class Node
 
       collapse_args()
     end
-    
+
     attr_accessor :object, :method, :arguments, :argcount
     attr_reader :in_block
 

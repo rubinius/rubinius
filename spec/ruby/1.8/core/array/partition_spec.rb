@@ -18,7 +18,7 @@ describe "Array#partition" do
   end
   
   it "does not return subclass instances on Array subclasses" do
-    result = MyArray[1, 2, 3].partition { |x| x % 2 == 0 }
+    result = ArraySpecs::MyArray[1, 2, 3].partition { |x| x % 2 == 0 }
     result.class.should == Array
     result[0].class.should == Array
     result[1].class.should == Array

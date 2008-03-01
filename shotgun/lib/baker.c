@@ -206,6 +206,7 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       fc_mutate(method);
       fc_mutate(literals);
       fc_mutate(self);
+      fc_mutate(custom_iseq);
       fc_mutate(locals);
       fc_mutate(method_module);
       fc_mutate(name);
@@ -216,7 +217,12 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
         OBJECT ba;
         ba = cmethod_get_compiled(fc->method);
         ba = baker_gc_maybe_mutate(state, g, ba);
-      
+        if(!NIL_P(fc->custom_iseq)) {
+          /* A context can be set to use a custom instruction sequence
+             by the debugger; if this is the case, we need to preserve
+             the context's use of that custom iseq. */
+          ba = fc->custom_iseq;
+        }
         fc->data = BYTEARRAY_ADDRESS(ba);
       }
     } else if(iobj->obj_type == TaskType) {
@@ -331,6 +337,7 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
   fc_mutate(block);
   fc_mutate(literals);
   fc_mutate(self);
+  fc_mutate(custom_iseq);
   if(!NIL_P(fc->locals) && fc->locals->gc_zone == 0) {
     int i, fields;
     OBJECT mut, tmp;
@@ -357,7 +364,12 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
     OBJECT ba;
     ba = cmethod_get_compiled(fc->method);
     ba = baker_gc_mutate_from(state, g, ba);
-
+    if(!NIL_P(fc->custom_iseq)) {
+      /* A context can be set to use a custom instruction sequence
+         by the debugger; if this is the case, we need to preserve
+         the context's use of that custom iseq. */
+      ba = fc->custom_iseq;
+    }
     fc->data = BYTEARRAY_ADDRESS(ba);
   }
 #undef fc_mutate

@@ -37,9 +37,9 @@ describe "String#chop" do
   end
   
   it "returns subclass instances when called on a subclass" do
-    MyString.new("hello\n").chop.class.should == MyString
-    MyString.new("hello").chop.class.should == MyString
-    MyString.new("").chop.class.should == MyString
+    StringSpecs::MyString.new("hello\n").chop.class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("hello").chop.class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("").chop.class.should == StringSpecs::MyString
   end
 end
 

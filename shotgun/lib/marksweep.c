@@ -329,6 +329,7 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       fc_mutate(method);
       fc_mutate(literals);
       fc_mutate(self);
+      fc_mutate(custom_iseq);
       fc_mutate(locals);
       fc_mutate(method_module);
       fc_mutate(name);
@@ -336,8 +337,15 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       if(!NIL_P(fc->method) && fc->method->obj_type == CMethodType) {
         /* We cache the bytecode in a char*, so adjust it. */
         OBJECT ba;
-        ba = cmethod_get_compiled(fc->method);
-        fc->data = BYTEARRAY_ADDRESS(ba);
+        if(NIL_P(fc->custom_iseq)) {
+          ba = cmethod_get_compiled(fc->method);
+          fc->data = BYTEARRAY_ADDRESS(ba);
+        } else {
+          /* A context can be set to use a custom instruction sequence
+             by the debugger; if this is the case, we need to preserve
+             the context's use of that custom iseq. */
+          fc->data = BYTEARRAY_ADDRESS(fc->custom_iseq);
+        }
       }
     } else if(iobj->obj_type == TaskType) {
       struct cpu_task *fc = (struct cpu_task*)BYTES_OF(iobj);
@@ -413,6 +421,7 @@ void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj) {
   fc_mutate(block);
   fc_mutate(literals);
   fc_mutate(self);
+  fc_mutate(custom_iseq);
   fc_mutate(locals);
   fc_mutate(method_module);
   fc_mutate(name);
@@ -421,8 +430,15 @@ void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj) {
   if(!NIL_P(fc->method) && fc->method->obj_type == CMethodType) {
     /* We cache the bytecode in a char*, so adjust it. */
     OBJECT ba;
-    ba = cmethod_get_compiled(fc->method);
-    fc->data = BYTEARRAY_ADDRESS(ba);
+    if(NIL_P(fc->custom_iseq)) {
+      ba = cmethod_get_compiled(fc->method);
+      fc->data = BYTEARRAY_ADDRESS(ba);
+    } else {
+      /* A context can be set to use a custom instruction sequence
+         by the debugger; if this is the case, we need to preserve
+         the context's use of that custom iseq. */
+      fc->data = BYTEARRAY_ADDRESS(fc->custom_iseq);
+    }
   }
 #undef fc_mutate
 }

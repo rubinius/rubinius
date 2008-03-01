@@ -36,7 +36,7 @@ shared :string_concat do |cmd|
     
     it "works when given a subclass instance" do
       a = "hello"
-      a << MyString.new(" world")
+      a << StringSpecs::MyString.new(" world")
       a.should == "hello world"
     end
     

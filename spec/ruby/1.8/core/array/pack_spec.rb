@@ -600,20 +600,35 @@ describe "Array#pack" do
   end
 
   it "converts integers into UTF-8 encoded byte sequences with ('U')" do
+    numbers = [0, 1, 15, 16, 127,
+        128, 255, 256, 1024]
+    numbers.each do |n|
+      [n].pack('U').unpack('U').should == [n]
+    end
+    [0x7F, 0x7F].pack('U*').should == "\x7F\x7F"
+    [262193, 4736, 191, 12, 107].pack('U*').should == "\xF1\x80\x80\xB1\xE1\x8A\x80\xC2\xBF\x0C\x6B"
+    [2**16+1, 2**30].pack('U2').should == "\360\220\200\201\375\200\200\200\200\200"
+
+    lambda { [].pack('U') }.should raise_error(ArgumentError)
+    lambda { [1].pack('UU') }.should raise_error(ArgumentError)
+    lambda { [2**32].pack('U') }.should raise_error(RangeError)
+    lambda { [-1].pack('U') }.should raise_error(RangeError)
+    lambda { [-5].pack('U') }.should raise_error(RangeError)
+    lambda { [-2**32].pack('U') }.should raise_error(RangeError)
+  end
+
+  it "only takes as many elements as specified after ('U')" do
+    [?a,?b,?c].pack('U2').should == "ab"
+  end
+
+  it "converts big integers into UTF-8 encoded byte sequences with ('U')" do 
+    #these are actually failing on String#unpack
+    #  they are not passing the 'utf8_regex_strict' test
     compliant_on :ruby, :jruby do
-      numbers = [0, 1, 15, 16, 127,
-          128, 255, 256, 1024, 2048, 4096, 2**16 -1, 2**16, 2**16 + 1, 2**30]
+      numbers = [ 2048, 4096, 2**16 -1, 2**16, 2**16 + 1, 2**30]
       numbers.each do |n|
         [n].pack('U').unpack('U').should == [n]
       end
-      [0x7F, 0x7F].pack('U*').should == "\x7F\x7F"
-      [262193, 4736, 191, 12, 107].pack('U*').should == "\xF1\x80\x80\xB1\xE1\x8A\x80\xC2\xBF\x0C\x6B"
-      lambda { [].pack('U') }.should raise_error(ArgumentError)
-      lambda { [1].pack('UU') }.should raise_error(ArgumentError)
-      lambda { [2**32].pack('U') }.should raise_error(RangeError)
-      lambda { [-1].pack('U') }.should raise_error(RangeError)
-      lambda { [-5].pack('U') }.should raise_error(RangeError)
-      lambda { [-2**32].pack('U') }.should raise_error(RangeError)
     end
   end
 

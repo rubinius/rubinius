@@ -7,11 +7,7 @@ shared :array_collect do |cmd|
     end
 
     it "does not return subclass instance" do
-      MyArray[1, 2, 3].send(cmd) { |x| x + 1 }.class.should == Array
-    end
-    
-    it "returns an empty array when called on an empty array" do
-      [].collect { 1 }.should == []
+      ArraySpecs::MyArray[1, 2, 3].send(cmd) { |x| x + 1 }.class.should == Array
     end
   end
 end
@@ -22,11 +18,6 @@ shared :array_collect_b do |cmd|
       a = [7, 9, 3, 5]
       a.send(cmd) { |i| i - 1 }.equal?(a).should == true
       a.should == [6, 8, 2, 4]
-    end
-    
-    it "makes no changes when called on an empty array" do
-      a = []
-      a.collect { 1 }.should == a
     end
 
     compliant_on :ruby, :jruby do

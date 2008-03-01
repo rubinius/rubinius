@@ -74,7 +74,7 @@ module Kernel
 
   def throw(sym, value = nil)
     unless ThrownValue.available? sym
-      raise NameError, "Unknown catch label '#{sym}'"
+      raise NameError.new("uncaught throw `#{sym}'", sym.to_sym)
     end
     
     exc = ThrownValue.new(sym, value, MethodContext.current.sender)

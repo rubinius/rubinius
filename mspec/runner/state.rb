@@ -71,6 +71,7 @@ class SpecState
   def initialize(describe, it)
     @describe = describe
     @it = it
+    @unfiltered = nil
   end
   
   def describe

@@ -67,75 +67,6 @@ class Debugger
     end
   end
 
-  # Steps to the next VM instruction
-  class LegacyStepNextInstruction < Command
-    def help
-      return "ln[ext] i[nstruction] [+n]", "Step to the next, (or nth next) VM instruction without stepping into called methods (deprecated)."
-    end
-
-    def command_regexp
-      /^ln(?:ext)?\s*i(?:nst(?:ruction)?)?(?:\s+(\+)?(\d+))?$/
-    end
-
-    def execute(dbg, md)
-      # Determine how many instructions to step ahead
-      step_type = md[1]
-      n = md[2]
-      steps = nil
-      target_ip = nil
-
-      # Find IP of instruction to step to
-      ctxt = dbg.debug_context
-      cm = ctxt.method
-      bc = cm.decode
-
-      if n.nil?
-        steps = 1
-      elsif step_type.nil?
-        target_ip = n.to_i
-      else
-        steps = n.to_i
-        steps = 1 if steps < 1
-      end
-
-      # Locate the IP at n steps past the current IP
-      bp_ip = nil
-      bc.each do |op|
-        if steps
-          steps -= 1 if op.ip > ctxt.ip
-          if steps == 0
-            bp_ip = op.ip
-            break
-          end
-        else
-          # Ensure target_ip is valid
-          if op.ip >= target_ip
-            bp_ip = op.ip
-            break
-          end
-        end
-      end
-
-      if bp_ip
-        # Set new breakpoint
-        dbg.set_breakpoint cm, bp_ip
-        ctxt.reload_method
-        output = "Stepping to IP:#{bp_ip}"
-      else
-        # Stepping past end of method, so set breakpoint at caller
-        ctxt = ctxt.sender
-        dbg.set_breakpoint ctxt.method, ctxt.ip
-        ctxt.reload_method
-        output = "Stepping out to caller (#{ctxt.method.name}) [IP:#{ctxt.ip}]"
-      end
-
-      # Instruct debugger to end session and resume debug thread
-      dbg.done!
-
-      return output
-    end
-  end
-
 
   # Lists the VM bytecode
   # TODO: Add ability to list bytecode for a specified method
@@ -254,7 +185,19 @@ class Debugger
         output.set_columns(['%-3d.', '%-s', '%-s', '%-s', '%-s', '%d', '%d'])
         literals.each do |lit|
           if lit.kind_of? SendSite
-            output << [i+1, lit.name, lit.data(1), lit.data(2) ? lit.data(2).name : nil, lit.data(3), lit.hits, lit.misses] if lit
+            runnable_name = nil
+            case runnable = lit.data(2)
+            when CompiledMethod
+              runnable_name = runnable.name
+            when RuntimePrimitive
+              runnable_name = runnable.at RuntimePrimitive::PrimitiveIndex
+              runnable_name = Rubinius::Primitives[runnable_name] if runnable_name.kind_of? Fixnum
+            when NilClass
+              # Do nothing - SendSite data2 not set
+            else
+              puts "Unrecognized runnable type: #{runnable.class}"
+            end
+            output << [i+1, lit.name, lit.data(1), runnable_name, lit.data(3), lit.hits, lit.misses] if lit
             i += 1
           end
         end

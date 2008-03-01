@@ -90,9 +90,9 @@ describe "String#chomp with separator" do
   end
   
   it "returns subclass instances when called on a subclass" do
-    MyString.new("hello\n").chomp.class.should == MyString
-    MyString.new("hello").chomp.class.should == MyString
-    MyString.new("").chomp.class.should == MyString
+    StringSpecs::MyString.new("hello\n").chomp.class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("hello").chomp.class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("").chomp.class.should == StringSpecs::MyString
   end
 end
 

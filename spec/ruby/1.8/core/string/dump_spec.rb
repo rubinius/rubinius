@@ -27,6 +27,6 @@ describe "String#dump" do
   end
   
   it "returns a subclass instance for subclasses" do
-    MyString.new("hi!").dump.class.should == MyString
+    StringSpecs::MyString.new("hi!").dump.class.should == StringSpecs::MyString
   end
 end

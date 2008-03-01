@@ -42,7 +42,7 @@ class Sprintf
         ret << "%"
         start += 1
         next
-      elsif @fmt[start..(start + 2)] =~ /[1-9]\$/ && !@fmt[start + 2]
+      elsif @fmt[start, 3] =~ /[1-9]\$/ && !@fmt[start + 2]
         ret << "%"
         start = @fmt.size
         break

@@ -15,8 +15,22 @@ class String
   def data      ; @data       ; end
   def __ivars__ ; nil         ; end
 
+  def bytes=(b)     ; @bytes = b      ; end
+  def characters=(c); @characters = c ; end
+  def encoding=(e)  ; @encoding = e   ; end
+  def data=(d)      ; @data = d       ; end
+
+  def self.allocate
+    str = __allocate__
+    str.data = ByteArray.new(1)
+    str.bytes = 0
+    str.characters = 0
+    str.encoding = nil
+    str
+  end
+  
   def initialize(arg=nil)
-    if arg.kind_of?(Fixnum)
+    if arg.__kind_of__ Fixnum
       # + 1 for the null on the end.
       @data = ByteArray.new(arg+1)
       @bytes = arg
@@ -24,14 +38,9 @@ class String
       @encoding = nil
     elsif !arg.nil?
       replace(StringValue(arg))
-    elsif @data.nil?
-      @data = ByteArray.new(1)
-      @bytes = 0
-      @characters = 0
-      @encoding = nil
     end
 
-    return self
+    self
   end
   private :initialize
 
@@ -782,7 +791,8 @@ class String
 
     Regexp.last_match = last_match
 
-    ret << self[last_end..-1] if self[last_end..-1]
+    str = substring(last_end, @bytes-last_end+1)
+    ret << str if str
 
     str = ret.join
     str = self.class.new(str) unless self.instance_of?(String)
@@ -1065,10 +1075,7 @@ class String
     i = 0
     j = @bytes - 1
     while i < j
-      a = @data[i]
-      b = @data[j]
-      @data[j] = a
-      @data[i] = b
+      @data[i], @data[j] = @data[j], @data[i]
       i += 1
       j -= 1
     end

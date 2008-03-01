@@ -71,7 +71,7 @@ describe "Array#uniq" do
   end
   
   it "returns subclass instance on Array subclasses" do
-    MyArray[1, 2, 3].uniq.class.should == MyArray
+    ArraySpecs::MyArray[1, 2, 3].uniq.class.should == ArraySpecs::MyArray
   end
 end
 

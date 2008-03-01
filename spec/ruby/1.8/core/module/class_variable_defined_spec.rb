@@ -8,6 +8,11 @@ describe "Module#class_variable_defined?" do
     c.class_variable_defined?("@@class_var").should == true
     c.class_variable_defined?(:@@no_class_var).should == false
     c.class_variable_defined?("@@no_class_var").should == false
+    ModuleSpecs::CVars.class_variable_defined?("@@cls").should == true
+  end
+  
+  it "returns true if a class variable with the given name is defined in the metaclass" do
+    ModuleSpecs::CVars.class_variable_defined?("@@meta").should == true
   end
   
   not_compliant_on :rubinius do

@@ -27,25 +27,25 @@ void Init_ffi(STATE) {
   BASIC_CLASS(ffi_func) = rbs_class_new(state, "NativeFunction", 0, BASIC_CLASS(object));
 
   mod = rbs_module_new(state, "FFI", BASIC_CLASS(object));
-  rbs_const_set(state, mod, "TYPE_OBJECT",   I2N(FFI_TYPE_OBJECT));
-  rbs_const_set(state, mod, "TYPE_CHAR",     I2N(FFI_TYPE_CHAR));
-  rbs_const_set(state, mod, "TYPE_UCHAR",    I2N(FFI_TYPE_UCHAR));
-  rbs_const_set(state, mod, "TYPE_SHORT",    I2N(FFI_TYPE_SHORT));
-  rbs_const_set(state, mod, "TYPE_USHORT",   I2N(FFI_TYPE_USHORT));
-  rbs_const_set(state, mod, "TYPE_INT",      I2N(FFI_TYPE_INT));
-  rbs_const_set(state, mod, "TYPE_UINT",     I2N(FFI_TYPE_UINT));
-  rbs_const_set(state, mod, "TYPE_LONG",     I2N(FFI_TYPE_LONG));
-  rbs_const_set(state, mod, "TYPE_ULONG",    I2N(FFI_TYPE_ULONG));
-  rbs_const_set(state, mod, "TYPE_LL",       I2N(FFI_TYPE_LL));
-  rbs_const_set(state, mod, "TYPE_ULL",      I2N(FFI_TYPE_ULL));
-  rbs_const_set(state, mod, "TYPE_FLOAT",    I2N(FFI_TYPE_FLOAT));
-  rbs_const_set(state, mod, "TYPE_DOUBLE",   I2N(FFI_TYPE_DOUBLE));
-  rbs_const_set(state, mod, "TYPE_PTR",      I2N(FFI_TYPE_PTR));
-  rbs_const_set(state, mod, "TYPE_VOID",     I2N(FFI_TYPE_VOID));
-  rbs_const_set(state, mod, "TYPE_STRING",   I2N(FFI_TYPE_STRING));
-  rbs_const_set(state, mod, "TYPE_STATE",    I2N(FFI_TYPE_STATE));
-  rbs_const_set(state, mod, "TYPE_STRPTR",   I2N(FFI_TYPE_STRPTR));
-  rbs_const_set(state, mod, "TYPE_CHARARR",  I2N(FFI_TYPE_CHARARR));
+  rbs_const_set(state, mod, "TYPE_OBJECT",   I2N(RBX_FFI_TYPE_OBJECT));
+  rbs_const_set(state, mod, "TYPE_CHAR",     I2N(RBX_FFI_TYPE_CHAR));
+  rbs_const_set(state, mod, "TYPE_UCHAR",    I2N(RBX_FFI_TYPE_UCHAR));
+  rbs_const_set(state, mod, "TYPE_SHORT",    I2N(RBX_FFI_TYPE_SHORT));
+  rbs_const_set(state, mod, "TYPE_USHORT",   I2N(RBX_FFI_TYPE_USHORT));
+  rbs_const_set(state, mod, "TYPE_INT",      I2N(RBX_FFI_TYPE_INT));
+  rbs_const_set(state, mod, "TYPE_UINT",     I2N(RBX_FFI_TYPE_UINT));
+  rbs_const_set(state, mod, "TYPE_LONG",     I2N(RBX_FFI_TYPE_LONG));
+  rbs_const_set(state, mod, "TYPE_ULONG",    I2N(RBX_FFI_TYPE_ULONG));
+  rbs_const_set(state, mod, "TYPE_LL",       I2N(RBX_FFI_TYPE_LL));
+  rbs_const_set(state, mod, "TYPE_ULL",      I2N(RBX_FFI_TYPE_ULL));
+  rbs_const_set(state, mod, "TYPE_FLOAT",    I2N(RBX_FFI_TYPE_FLOAT));
+  rbs_const_set(state, mod, "TYPE_DOUBLE",   I2N(RBX_FFI_TYPE_DOUBLE));
+  rbs_const_set(state, mod, "TYPE_PTR",      I2N(RBX_FFI_TYPE_PTR));
+  rbs_const_set(state, mod, "TYPE_VOID",     I2N(RBX_FFI_TYPE_VOID));
+  rbs_const_set(state, mod, "TYPE_STRING",   I2N(RBX_FFI_TYPE_STRING));
+  rbs_const_set(state, mod, "TYPE_STATE",    I2N(RBX_FFI_TYPE_STATE));
+  rbs_const_set(state, mod, "TYPE_STRPTR",   I2N(RBX_FFI_TYPE_STRPTR));
+  rbs_const_set(state, mod, "TYPE_CHARARR",  I2N(RBX_FFI_TYPE_CHARARR));
 }
 
 #ifdef RBS_DISASS
@@ -153,37 +153,37 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
 
 int ffi_type_size(int type) {
   switch(type) {
-    case FFI_TYPE_CHAR:
-    case FFI_TYPE_UCHAR:
+    case RBX_FFI_TYPE_CHAR:
+    case RBX_FFI_TYPE_UCHAR:
     return sizeof(char);
 
-    case FFI_TYPE_SHORT:
-    case FFI_TYPE_USHORT:
+    case RBX_FFI_TYPE_SHORT:
+    case RBX_FFI_TYPE_USHORT:
     return sizeof(short);
 
-    case FFI_TYPE_INT:
-    case FFI_TYPE_UINT:
+    case RBX_FFI_TYPE_INT:
+    case RBX_FFI_TYPE_UINT:
     return sizeof(int);
 
-    case FFI_TYPE_LONG:
-    case FFI_TYPE_ULONG:
+    case RBX_FFI_TYPE_LONG:
+    case RBX_FFI_TYPE_ULONG:
     return sizeof(long);
 
-    case FFI_TYPE_LL:
-    case FFI_TYPE_ULL:
+    case RBX_FFI_TYPE_LL:
+    case RBX_FFI_TYPE_ULL:
     return sizeof(long long);
 
-    case FFI_TYPE_FLOAT:
+    case RBX_FFI_TYPE_FLOAT:
     return sizeof(float);
 
-    case FFI_TYPE_DOUBLE:
+    case RBX_FFI_TYPE_DOUBLE:
     return sizeof(double);
 
-    case FFI_TYPE_PTR:
-    case FFI_TYPE_STRING:
-    case FFI_TYPE_STATE:
-    case FFI_TYPE_STRPTR:
-    case FFI_TYPE_OBJECT:
+    case RBX_FFI_TYPE_PTR:
+    case RBX_FFI_TYPE_STRING:
+    case RBX_FFI_TYPE_STATE:
+    case RBX_FFI_TYPE_STRPTR:
+    case RBX_FFI_TYPE_OBJECT:
     return sizeof(void*);
 
     default:
@@ -552,53 +552,53 @@ void ffi_from_strptr(char *str) {
 
 void* ffi_get_to_converter(int type) {
   switch(type) {
-    case FFI_TYPE_OBJECT:
+    case RBX_FFI_TYPE_OBJECT:
     return ffi_to_object;
 
-    case FFI_TYPE_CHAR:
+    case RBX_FFI_TYPE_CHAR:
     return ffi_to_char;
 
-    case FFI_TYPE_UCHAR:
+    case RBX_FFI_TYPE_UCHAR:
     return ffi_to_uchar;
 
-    case FFI_TYPE_SHORT:
+    case RBX_FFI_TYPE_SHORT:
     return ffi_to_short;
 
-    case FFI_TYPE_USHORT:
+    case RBX_FFI_TYPE_USHORT:
     return ffi_to_ushort;
 
-    case FFI_TYPE_INT:
+    case RBX_FFI_TYPE_INT:
     return ffi_to_int;
 
-    case FFI_TYPE_UINT:
+    case RBX_FFI_TYPE_UINT:
     return ffi_to_uint;
 
-    case FFI_TYPE_LONG:
+    case RBX_FFI_TYPE_LONG:
     return ffi_to_long;
 
-    case FFI_TYPE_ULONG:
+    case RBX_FFI_TYPE_ULONG:
     return ffi_to_ulong;
 
-    case FFI_TYPE_LL:
+    case RBX_FFI_TYPE_LL:
     return ffi_to_ll;
 
     /* FIXME: have a real converter */
-    case FFI_TYPE_ULL:
+    case RBX_FFI_TYPE_ULL:
     return ffi_to_ull;
 
-    case FFI_TYPE_FLOAT:
+    case RBX_FFI_TYPE_FLOAT:
     return ffi_to_float;
 
-    case FFI_TYPE_DOUBLE:
+    case RBX_FFI_TYPE_DOUBLE:
     return ffi_to_double;
 
-    case FFI_TYPE_PTR:
+    case RBX_FFI_TYPE_PTR:
     return ffi_to_ptr;
 
-    case FFI_TYPE_STRING:
+    case RBX_FFI_TYPE_STRING:
     return ffi_to_string;
 
-    case FFI_TYPE_STATE:
+    case RBX_FFI_TYPE_STATE:
     return ffi_to_state;
 
     default:
@@ -609,56 +609,56 @@ void* ffi_get_to_converter(int type) {
 
 void* ffi_get_from_converter(int type) {
   switch(type) {
-    case FFI_TYPE_OBJECT:
+    case RBX_FFI_TYPE_OBJECT:
     return ffi_from_object;
 
-    case FFI_TYPE_CHAR:
+    case RBX_FFI_TYPE_CHAR:
     return ffi_from_char;
 
-    case FFI_TYPE_UCHAR:
+    case RBX_FFI_TYPE_UCHAR:
     return ffi_from_uchar;
 
-    case FFI_TYPE_SHORT:
+    case RBX_FFI_TYPE_SHORT:
     return ffi_from_short;
 
-    case FFI_TYPE_USHORT:
+    case RBX_FFI_TYPE_USHORT:
     return ffi_from_ushort;
 
-    case FFI_TYPE_INT:
+    case RBX_FFI_TYPE_INT:
     return ffi_from_int;
 
-    case FFI_TYPE_UINT:
+    case RBX_FFI_TYPE_UINT:
     return ffi_from_uint;
 
-    case FFI_TYPE_LONG:
+    case RBX_FFI_TYPE_LONG:
     return ffi_from_long;
 
-    case FFI_TYPE_ULONG:
+    case RBX_FFI_TYPE_ULONG:
     return ffi_from_ulong;
 
-    case FFI_TYPE_LL:
+    case RBX_FFI_TYPE_LL:
     return ffi_from_ll;
 
     /* FIXME: have a real converter */
-    case FFI_TYPE_ULL:
+    case RBX_FFI_TYPE_ULL:
     return ffi_from_ull;
 
-    case FFI_TYPE_FLOAT:
+    case RBX_FFI_TYPE_FLOAT:
     return ffi_from_float;
 
-    case FFI_TYPE_DOUBLE:
+    case RBX_FFI_TYPE_DOUBLE:
     return ffi_from_double;
 
-    case FFI_TYPE_PTR:
+    case RBX_FFI_TYPE_PTR:
     return ffi_from_ptr;
 
-    case FFI_TYPE_VOID:
+    case RBX_FFI_TYPE_VOID:
     return ffi_from_void;
 
-    case FFI_TYPE_STRING:
+    case RBX_FFI_TYPE_STRING:
     return ffi_from_string;
 
-    case FFI_TYPE_STRPTR:
+    case RBX_FFI_TYPE_STRPTR:
     return ffi_from_strptr;
 
     default:
@@ -700,11 +700,11 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     for(i = 0; i < args; i++) {
       conv = ffi_get_to_converter(arg_types[i]);
       switch(arg_types[i]) {
-      case FFI_TYPE_FLOAT:
+      case RBX_FFI_TYPE_FLOAT:
         reg = JIT_FPR5;
         float_count++;
         break;
-      case FFI_TYPE_DOUBLE:
+      case RBX_FFI_TYPE_DOUBLE:
         reg = JIT_FPR5;
         double_count++;
         break;
@@ -717,38 +717,38 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
 #define call_conv(kind) jit_prepare(0); (void)(jit_calli(conv)); jit_retval_ ## kind (reg); ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
 
       switch(arg_types[i]) {
-      case FFI_TYPE_CHAR:
-      case FFI_TYPE_UCHAR:
+      case RBX_FFI_TYPE_CHAR:
+      case RBX_FFI_TYPE_UCHAR:
         call_conv(c);
         jit_stxi_c(ids[i], JIT_FP, reg);
         break;
-      case FFI_TYPE_SHORT:
-      case FFI_TYPE_USHORT:
+      case RBX_FFI_TYPE_SHORT:
+      case RBX_FFI_TYPE_USHORT:
         call_conv(s);
         jit_stxi_s(ids[i], JIT_FP, reg);
         break;
-      case FFI_TYPE_INT:
-      case FFI_TYPE_UINT:
+      case RBX_FFI_TYPE_INT:
+      case RBX_FFI_TYPE_UINT:
         call_conv(i);
         jit_stxi_i(ids[i], JIT_FP, reg);
         break;
-      case FFI_TYPE_LONG:
-      case FFI_TYPE_ULONG:
+      case RBX_FFI_TYPE_LONG:
+      case RBX_FFI_TYPE_ULONG:
         call_conv(l);
         jit_stxi_l(ids[i], JIT_FP, reg);
         break;
-      case FFI_TYPE_FLOAT:
+      case RBX_FFI_TYPE_FLOAT:
         call_conv(f);
         jit_stxi_f(ids[i], JIT_FP, reg);
         break;
-      case FFI_TYPE_DOUBLE:
+      case RBX_FFI_TYPE_DOUBLE:
         call_conv(d);
         jit_stxi_d(ids[i], JIT_FP, reg);
         break;
-      case FFI_TYPE_OBJECT:
-      case FFI_TYPE_PTR:
-      case FFI_TYPE_STRING:
-      case FFI_TYPE_STATE:
+      case RBX_FFI_TYPE_OBJECT:
+      case RBX_FFI_TYPE_PTR:
+      case RBX_FFI_TYPE_STRING:
+      case RBX_FFI_TYPE_STATE:
         call_conv(p);
         jit_stxi_p(ids[i], JIT_FP, reg);
       }
@@ -760,44 +760,44 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
 
     for(i = args - 1; i >= 0; i--) {
       switch(arg_types[i]) {
-      case FFI_TYPE_CHAR:
-      case FFI_TYPE_UCHAR:
+      case RBX_FFI_TYPE_CHAR:
+      case RBX_FFI_TYPE_UCHAR:
         jit_ldxi_c(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_c(JIT_R2);
         break;
 
-      case FFI_TYPE_SHORT:
-      case FFI_TYPE_USHORT:
+      case RBX_FFI_TYPE_SHORT:
+      case RBX_FFI_TYPE_USHORT:
         jit_ldxi_s(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_s(JIT_R2);
         break;
 
-      case FFI_TYPE_INT:
-      case FFI_TYPE_UINT:
+      case RBX_FFI_TYPE_INT:
+      case RBX_FFI_TYPE_UINT:
         jit_ldxi_i(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_i(JIT_R2);
         break;
 
-      case FFI_TYPE_LONG:
-      case FFI_TYPE_ULONG:
+      case RBX_FFI_TYPE_LONG:
+      case RBX_FFI_TYPE_ULONG:
         jit_ldxi_l(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_l(JIT_R2);
         break;
 
-      case FFI_TYPE_FLOAT:
+      case RBX_FFI_TYPE_FLOAT:
         jit_ldxi_f(JIT_FPR5, JIT_FP, ids[i]);
         jit_pusharg_f(JIT_FPR5);
         break;
 
-      case FFI_TYPE_DOUBLE:
+      case RBX_FFI_TYPE_DOUBLE:
         jit_ldxi_d(JIT_FPR5, JIT_FP, ids[i]);
         jit_pusharg_d(JIT_FPR5);
         break;
 
-      case FFI_TYPE_OBJECT:
-      case FFI_TYPE_PTR:
-      case FFI_TYPE_STRING:
-      case FFI_TYPE_STATE:
+      case RBX_FFI_TYPE_OBJECT:
+      case RBX_FFI_TYPE_PTR:
+      case RBX_FFI_TYPE_STRING:
+      case RBX_FFI_TYPE_STATE:
       default:
         jit_ldxi_p(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_p(JIT_R2);
@@ -820,8 +820,8 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   jit_finish(func);
 
   switch(ret_type) {
-  case FFI_TYPE_FLOAT:
-  case FFI_TYPE_DOUBLE:
+  case RBX_FFI_TYPE_FLOAT:
+  case RBX_FFI_TYPE_DOUBLE:
     reg = JIT_FPR0;
     break;
   default:
@@ -829,56 +829,56 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   }
 
   switch(ret_type) {
-  case FFI_TYPE_CHAR:
-  case FFI_TYPE_UCHAR:
+  case RBX_FFI_TYPE_CHAR:
+  case RBX_FFI_TYPE_UCHAR:
     jit_retval_c(reg);
     jit_prepare_i(1);
     jit_pusharg_c(reg);
     break;
 
-  case FFI_TYPE_SHORT:
-  case FFI_TYPE_USHORT:
+  case RBX_FFI_TYPE_SHORT:
+  case RBX_FFI_TYPE_USHORT:
     jit_retval_s(reg);
     jit_prepare_i(1);
     jit_pusharg_s(reg);
     break;
 
-  case FFI_TYPE_INT:
-  case FFI_TYPE_UINT:
+  case RBX_FFI_TYPE_INT:
+  case RBX_FFI_TYPE_UINT:
     jit_retval_i(reg);
     jit_prepare_i(1);
     jit_pusharg_i(reg);
     break;
 
-  case FFI_TYPE_LONG:
-  case FFI_TYPE_ULONG:
+  case RBX_FFI_TYPE_LONG:
+  case RBX_FFI_TYPE_ULONG:
     jit_retval_l(reg);
     jit_prepare_i(1);
     jit_pusharg_l(reg);
     break;
 
-  case FFI_TYPE_FLOAT:
+  case RBX_FFI_TYPE_FLOAT:
     jit_retval_f(reg);
     jit_prepare_f(1);
     jit_pusharg_f(reg);
     break;
 
-  case FFI_TYPE_DOUBLE:
+  case RBX_FFI_TYPE_DOUBLE:
     jit_retval_d(reg);
     jit_prepare_d(1);
     jit_pusharg_d(reg);
     break;
 
-  case FFI_TYPE_VOID:
+  case RBX_FFI_TYPE_VOID:
     jit_prepare_i(1);
     jit_movi_i(reg, 1);
     jit_pusharg_i(reg);
     break;
 
-  case FFI_TYPE_OBJECT:
-  case FFI_TYPE_PTR:
-  case FFI_TYPE_STRING:
-  case FFI_TYPE_STRPTR:
+  case RBX_FFI_TYPE_OBJECT:
+  case RBX_FFI_TYPE_PTR:
+  case RBX_FFI_TYPE_STRING:
+  case RBX_FFI_TYPE_STRPTR:
   default:
     jit_retval_p(reg);
     jit_prepare_i(1);
@@ -931,6 +931,8 @@ OBJECT ffi_function_new(STATE, OBJECT ptr, OBJECT name, int args) {
   return nf;
 }
 
+OBJECT ffi_libffi_generate(STATE, int arg_count, int *arg_types, int ret_type, void *func);
+
 /* The main interface function, handles looking up the pointer in the library,
  * generating the stub, wrapping it up and attaching it to the module.
  */
@@ -960,7 +962,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
       /* State can only be passed as the first arg, and it's invisible,
          ie doesn't get seen as in onbound arg by ruby. But it can ONLY
          be the first arg. */
-      if(arg_types[i] == FFI_TYPE_STATE) {
+      if(arg_types[i] == RBX_FFI_TYPE_STATE) {
         if(i == 0) {
           arg_count--;
         } else {
@@ -976,6 +978,10 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
 
   ret_type = N2I(ret);
 
+  ptr = ffi_libffi_generate(state, tot, arg_types, ret_type, ep);
+
+#if 0
+
 #if defined(__amd64__) || defined(__x86_64__) || defined(X86_64)
   ptr = ffi_amd64_generate_c_shim(state, tot, arg_types, ret_type, ep);
   XFREE(arg_types);
@@ -986,13 +992,15 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   ptr = ffi_generate_typed_c_stub(state, tot, arg_types, ret_type, ep);
 #endif
 
+#endif
+
   sym = string_to_sym(state, name);
   func = ffi_function_new(state, ptr, sym, arg_count);
 
   return func;
 }
 
-void ffi_call(STATE, cpu c, OBJECT ptr) {
+void ffi_call_stub(STATE, cpu c, OBJECT ptr) {
   nf_stub_ffi func;
   rni_context *ctx;
 
@@ -1022,136 +1030,213 @@ typedef double (*nf_return_double)();
 
 OBJECT ffi_get_field(char *ptr, int offset, int type) {
   int sz;
-  rni_context *ctx = subtend_retrieve_context();
+  OBJECT ret;
+  STATE = current_machine->s;
 
   ptr += offset;
 
-  sz = ffi_type_size(type);
-
-  switch(sz) {
-  case 1: {
-    nf_take_8 conv = (nf_take_8)ffi_get_from_converter(type);
-    conv(*((uint8_t*)ptr));
+#define READ(type) (*((type*)(ptr)))
+  
+  switch(type) {
+  case RBX_FFI_TYPE_CHAR:
+    ret = I2N(READ(char));
+    break;
+  case RBX_FFI_TYPE_UCHAR:
+    ret = I2N(READ(unsigned char));
+    break;
+  case RBX_FFI_TYPE_SHORT:
+    ret = I2N(READ(short));
+    break;
+  case RBX_FFI_TYPE_USHORT:
+    ret = I2N(READ(unsigned short));
+    break;
+  case RBX_FFI_TYPE_INT:
+    ret = I2N(READ(int));
+    break;
+  case RBX_FFI_TYPE_UINT:
+    ret = I2N(READ(unsigned int));
+    break;
+  case RBX_FFI_TYPE_LONG:
+    ret = I2N(READ(long));
+    break;
+  case RBX_FFI_TYPE_ULONG:
+    ret = I2N(READ(unsigned long));
+    break;
+  case RBX_FFI_TYPE_FLOAT:
+    ret = float_new(state, (double)READ(float));
+    break;
+  case RBX_FFI_TYPE_DOUBLE:
+    ret = float_new(state, READ(double));
+    break;
+  case RBX_FFI_TYPE_LL:
+    ret = LL2N(READ(long long));
+    break;
+  case RBX_FFI_TYPE_ULL:
+    ret = ULL2N(READ(unsigned long long));
+    break;
+  case RBX_FFI_TYPE_OBJECT:
+    ret = READ(OBJECT);
+    break;
+  case RBX_FFI_TYPE_PTR: {
+    void *lptr = READ(void*);
+    if(!lptr) {
+      ret = Qnil;
+    } else {
+      ret = ffi_new_pointer(state, lptr);
+    }
     break;
   }
-  case 2: {
-    nf_take_16 conv = (nf_take_16)ffi_get_from_converter(type);
-    conv(*((uint16_t*)ptr));
+  case RBX_FFI_TYPE_STRING: {
+    char* result = READ(char*);
+    if(result == NULL) {
+      ret = Qnil;
+    } else {
+      ret = string_new(state, result);
+    }
+    break;
+  }
+  case RBX_FFI_TYPE_STRPTR: {
+    char* result;
+    OBJECT s, p;
+
+    result = READ(char*);
+    
+    if(result == NULL) {
+      s = p = Qnil;
+    } else {
+      p = ffi_new_pointer(state, result);
+      s = string_new(state, result);
+    }
+    
+    ret = array_new(state, 2);
+    array_set(state, ret, 0, s);
+    array_set(state, ret, 1, p);
     break;
   }
   default:
-  case 4: {
-    nf_take_32 conv = (nf_take_32)ffi_get_from_converter(type);
-    conv(*((uint32_t*)ptr));
+  case RBX_FFI_TYPE_VOID:
+    ret = Qnil;
     break;
-  }
-  case 8: {
-    nf_take_64 conv = (nf_take_64)ffi_get_from_converter(type);
-    conv(*((uint64_t*)ptr));
-    break;
-  }
   }
 
-  return cpu_stack_pop(ctx->state, ctx->cpu);
+  return ret;
 }
 
 void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
   int sz;
-  /* STATE; */
+  STATE = current_machine->s;
   uint8_t u8;
   uint16_t u16;
   uint32_t u32;
 
-  rni_context *ctx = subtend_retrieve_context();
-  sz = ffi_type_size(type);
-
-  cpu_stack_push(ctx->state, ctx->cpu, val, FALSE);
-
   ptr += offset;
-    
+  
+#define WRITE(type, val) *((type*)ptr) = (type)val
+
   switch(type) {
-  case FFI_TYPE_CHAR:
-  case FFI_TYPE_UCHAR: {
-    nf_return_8 conv = (nf_return_8)ffi_get_to_converter(type);
-    u8 = conv();
-    memcpy(ptr, &u8, sz);
+  case RBX_FFI_TYPE_CHAR:
+    type_assert(val, FixnumType, "converting to char");
+    WRITE(char, N2I(val));
     break;
-  }
-  case FFI_TYPE_SHORT:
-  case FFI_TYPE_USHORT: {
-    nf_return_16 conv = (nf_return_16)ffi_get_to_converter(type);
-    u16 = conv();
-    memcpy(ptr, &u16, sz);
+  case RBX_FFI_TYPE_UCHAR:
+    type_assert(val, FixnumType, "converting to unsigned char");
+    WRITE(unsigned char, N2I(val));
     break;
-  }
-  case FFI_TYPE_INT:
-  case FFI_TYPE_UINT: {
-    nf_return_32 conv = (nf_return_32)ffi_get_to_converter(type);
-    u32 = conv();
-    memcpy(ptr, &u32, sz);
+  case RBX_FFI_TYPE_SHORT:
+    type_assert(val, FixnumType, "converting to short");
+    WRITE(short, N2I(val));
     break;
-  }
-  case FFI_TYPE_LL:
-  case FFI_TYPE_ULL: {
-    nf_return_ll conv = (nf_return_ll)ffi_get_to_converter(type);
-    unsigned long long v = conv();
-    memcpy(ptr, &v, sizeof(long long));
+  case RBX_FFI_TYPE_USHORT:
+    type_assert(val, FixnumType, "converting to unsigned short");
+    WRITE(unsigned short, N2I(val));
+    break;
+  case RBX_FFI_TYPE_INT:
+    if(FIXNUM_P(val)) {
+      WRITE(int, N2I(val));
+    } else {
+      type_assert(val, BignumType, "converting to int");
+      WRITE(int, bignum_to_i(state, val));
+    }
+    break;
+  case RBX_FFI_TYPE_UINT:
+    if(FIXNUM_P(val)) {
+      WRITE(unsigned int, N2I(val));
+    } else {
+      type_assert(val, BignumType, "converting to unsigned int");
+      WRITE(unsigned int, bignum_to_i(state, val));
+    }
+    break;
+  case RBX_FFI_TYPE_LONG:
+    if(FIXNUM_P(val)) {
+      WRITE(long, N2I(val));
+    } else {
+      type_assert(val, BignumType, "converting to long");
+      if(sizeof(long) == sizeof(long long)) {
+        WRITE(long, bignum_to_ll(state, val));
+      } else {
+        WRITE(long, bignum_to_i(state, val));
+      }
+    }
+    break;
+  case RBX_FFI_TYPE_ULONG:
+    if(FIXNUM_P(val)) {
+      WRITE(unsigned long, N2I(val));
+    } else {
+      type_assert(val, BignumType, "converting to long");
+      if(sizeof(long) == sizeof(long long)) {
+        WRITE(unsigned long, bignum_to_ll(state, val));
+      } else {
+        WRITE(unsigned long, bignum_to_i(state, val));
+      }
+    }
+    break;
+  case RBX_FFI_TYPE_FLOAT:
+    type_assert(val, FloatType, "converting to float");
+    WRITE(float, FLOAT_TO_DOUBLE(val));
+    break;
+  case RBX_FFI_TYPE_DOUBLE:
+    type_assert(val, FloatType, "converting to double");
+    WRITE(double, FLOAT_TO_DOUBLE(val));
+    break;
+  case RBX_FFI_TYPE_LL:
+    if(FIXNUM_P(val)) {
+      WRITE(long long, N2I(val));
+    } else {
+      type_assert(val, BignumType, "converting to long long");
+      WRITE(long long, bignum_to_ll(state, val));
+    }
+    break;
+  case RBX_FFI_TYPE_ULL:
+    if(FIXNUM_P(val)) {
+      WRITE(unsigned long long, N2I(val));
+    } else {
+      type_assert(val, BignumType, "converting to unsigned long long");
+      WRITE(unsigned long long, bignum_to_ll(state, val));
+    }
+    break;
+  case RBX_FFI_TYPE_OBJECT:
+    WRITE(OBJECT, val);
+    break;
+  case RBX_FFI_TYPE_PTR:
+    if(NIL_P(val)) {
+      WRITE(void*, NULL);
+    } else {
+      type_assert(val, MemPtrType, "converting to pointer");
+      WRITE(void*, *DATA_STRUCT(val, void**));
+    }
+    break;
+  case RBX_FFI_TYPE_STRING: {
+    char* result;
+    if(NIL_P(val)) {
+      result = NULL;
+    } else {
+      type_assert(val, StringType, "converting to C string");
+      result = string_byte_address(state, val);
+    }
+    WRITE(char*, result);
     break;
   }
   default:
-  case FFI_TYPE_OBJECT:
-  case FFI_TYPE_PTR:
-  case FFI_TYPE_STRING:
-  case FFI_TYPE_STATE:
-  case FFI_TYPE_LONG:
-  case FFI_TYPE_ULONG: {
-    nf_return_long conv = (nf_return_long)ffi_get_to_converter(type);
-    long v = conv();
-    memcpy(ptr, &v, sizeof(long));
-    break;
+    sassert(0);
   }
-  case FFI_TYPE_FLOAT: {
-    nf_return_float conv = (nf_return_float)ffi_get_to_converter(type);
-    float v = conv();
-    memcpy(ptr, &v, sizeof(float));
-    break;
-  }
-  case FFI_TYPE_DOUBLE: {
-    nf_return_double conv = (nf_return_double)ffi_get_to_converter(type);
-    double v = conv();
-    memcpy(ptr, &v, sizeof(double));
-    break;
-  }
-  }
-
-  /*
-  switch(sz) {
-  case 1: {
-    nf_return_8 conv = (nf_return_8)ffi_get_from_converter(type);
-    u8 = conv();
-    memcpy(ptr, &u8, sz);
-    break;
-  }
-  case 2: {
-    nf_return_16 conv = (nf_return_16)ffi_get_from_converter(type);
-    u16 = conv();
-    memcpy(ptr, &u16, sz);
-    break;
-  }
-  default:
-  case 4: {
-    nf_return_32 conv = (nf_return_32)ffi_get_from_converter(type);
-    u32 = conv();
-    memcpy(ptr, &u32, sz);
-    break;
-  }
-  case 8: {
-    nf_return_64 conv = (nf_return_64)ffi_get_from_converter(type);
-    u64 = conv();
-    memcpy(ptr, &u64, sz);
-    break;
-  }
-  }
-
-  */
 }

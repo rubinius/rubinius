@@ -533,19 +533,19 @@ module Process
 end
 
 module Kernel
-  
+
   def fork(&block)
     Process.fork(&block)
   end
   module_function :fork
-  
+
   def system(prog, *args)
     pid = Process.fork
     if pid
       Process.waitpid(pid)
-      return $?.exitstatus == 0
+      $?.exitstatus == 0
     else
-      exec(prog, *args)
+      exec(prog, *args) rescue exit! 1
     end
   end
   module_function :system
@@ -565,17 +565,17 @@ module Kernel
       else
         name = prog = cmd
       end
-      
+
       argv = [name]
       args.each do |arg|
         argv << arg.to_s
       end
-      
+
       Process.replace prog, argv
     end
   end
   module_function :exec
-  
+
   def `(str) #`
     str = StringValue(str)
     read, write = IO.pipe

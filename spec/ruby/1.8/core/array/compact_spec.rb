@@ -14,7 +14,7 @@ describe "Array#compact" do
   end
 
   it "returns subclass instance for Array subclasses" do
-    MyArray[1, 2, 3, nil].compact.class.should == MyArray
+    ArraySpecs::MyArray[1, 2, 3, nil].compact.class.should == ArraySpecs::MyArray
   end
 end
 

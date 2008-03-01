@@ -1,7 +1,8 @@
 class RaiseErrorMatcher
-  def initialize(exception, message)
+  def initialize(exception, message, &block)
     @exception = exception
     @message = message
+    @block = block
   end
 
   def matches?(proc)
@@ -17,6 +18,9 @@ class RaiseErrorMatcher
         return false if @message !~ @actual.message
       end
     end
+
+    @block[@actual] if @block
+
     return true
   end
 
@@ -38,7 +42,7 @@ class RaiseErrorMatcher
 end
 
 class Object
-  def raise_error(exception=Exception, message=nil)
-    RaiseErrorMatcher.new(exception, message)
+  def raise_error(exception=Exception, message=nil, &block)
+    RaiseErrorMatcher.new(exception, message, &block)
   end
 end

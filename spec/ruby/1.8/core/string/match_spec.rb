@@ -11,7 +11,7 @@ describe "String#=~" do
 
   it "raises a TypeError if a obj is a string" do
     lambda { "some string" =~ "another string" }.should raise_error(TypeError)
-    lambda { "a" =~ MyString.new("b")          }.should raise_error(TypeError)
+    lambda { "a" =~ StringSpecs::MyString.new("b")          }.should raise_error(TypeError)
   end
   
   it "invokes obj.=~ with self if obj is neither a string nor regexp" do

@@ -186,10 +186,10 @@ describe "String#sub with pattern, replacement" do
   end
   
   it "returns subclass instances when called on a subclass" do
-    MyString.new("").sub(//, "").class.should == MyString
-    MyString.new("").sub(/foo/, "").class.should == MyString
-    MyString.new("foo").sub(/foo/, "").class.should == MyString
-    MyString.new("foo").sub("foo", "").class.should == MyString
+    StringSpecs::MyString.new("").sub(//, "").class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("").sub(/foo/, "").class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("foo").sub(/foo/, "").class.should == StringSpecs::MyString
+    StringSpecs::MyString.new("foo").sub("foo", "").class.should == StringSpecs::MyString
   end
   
   it "sets $~ to MatchData of match and nil when there's none" do

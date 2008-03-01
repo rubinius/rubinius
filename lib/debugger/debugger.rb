@@ -1,4 +1,5 @@
 require 'debugger/command'
+require 'debugger/output'
 require 'thread'
 
 # A debugger, providing a CLI for debugging Ruby code running under Rubinius.

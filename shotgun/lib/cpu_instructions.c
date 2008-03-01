@@ -471,6 +471,7 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
   fc->sender = c->active_context;
 
   fc->method = meth;
+  fc->custom_iseq = Qnil;
   fc->data = bytearray_byte_address(state, ins);
   fc->literals = fast_fetch(meth, CMETHOD_f_LITERALS);
 
@@ -1095,24 +1096,16 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func, int p
 /* Send Site specialization 2: Run an ffi function directly. */
 static void _cpu_ss_mono_ffi(struct message *msg) {
   struct send_site *ss = SENDSITE(msg->send_site);
-  rni_context *ctx;
-  nf_stub_ffi func;
-
-  func = (nf_stub_ffi)ss->c_data;
 
   if(CHECK_CLASS(msg)) {
     ss->misses++;
     _cpu_ss_basic(msg);
     return;
   }
-  
+
   ss->hits++;
-
-  ctx = subtend_retrieve_context();
-  ctx->state = msg->state;
-  ctx->cpu = msg->c;
-
-  func();
+  
+  ffi_call(msg->state, msg->c, nfunc_get_data(ss->data2));
 }
 
 /* Called before an FFI function is run the slow way, allowing the send_site to be patch

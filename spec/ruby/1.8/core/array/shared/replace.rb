@@ -32,7 +32,7 @@ shared :array_replace do |cmd|
 
     it "does not call to_ary on array subclasses" do
       ary = []
-      ary.send(cmd, ToAryArray[5, 6, 7])
+      ary.send(cmd, ArraySpecs::ToAryArray[5, 6, 7])
       ary.should == [5, 6, 7]
     end
 

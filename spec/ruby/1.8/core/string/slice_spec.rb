@@ -114,9 +114,9 @@ describe "String#slice! with index, length" do
   end
   
   it "returns subclass instances" do
-    s = MyString.new("hello")
-    s.slice!(0, 0).class.should == MyString
-    s.slice!(0, 4).class.should == MyString
+    s = StringSpecs::MyString.new("hello")
+    s.slice!(0, 0).class.should == StringSpecs::MyString
+    s.slice!(0, 4).class.should == StringSpecs::MyString
   end
 end
 
@@ -153,9 +153,9 @@ describe "String#slice! Range" do
   end
 
   it "returns subclass instances" do
-    s = MyString.new("hello")
-    s.slice!(0...0).class.should == MyString
-    s.slice!(0..4).class.should == MyString
+    s = StringSpecs::MyString.new("hello")
+    s.slice!(0...0).class.should == StringSpecs::MyString
+    s.slice!(0..4).class.should == StringSpecs::MyString
   end
 
   it "calls to_int on range arguments" do
@@ -187,7 +187,7 @@ describe "String#slice! Range" do
   
   it "works with Range subclasses" do
     a = "GOOD"
-    range_incl = MyRange.new(1, 2)
+    range_incl = StringSpecs::MyRange.new(1, 2)
 
     a.slice!(range_incl).should == "OO"
   end
@@ -243,9 +243,9 @@ describe "String#slice! with Regexp" do
   end
   
   it "returns subclass instances" do
-    s = MyString.new("hello")
-    s.slice!(//).class.should == MyString
-    s.slice!(/../).class.should == MyString
+    s = StringSpecs::MyString.new("hello")
+    s.slice!(//).class.should == StringSpecs::MyString
+    s.slice!(/../).class.should == StringSpecs::MyString
   end
 
   # This currently fails, but passes in a pure Rubinius environment (without mspec)
@@ -326,9 +326,9 @@ describe "String#slice! with Regexp, index" do
   end
   
   it "returns subclass instances" do
-    s = MyString.new("hello")
-    s.slice!(/(.)(.)/, 0).class.should == MyString
-    s.slice!(/(.)(.)/, 1).class.should == MyString
+    s = StringSpecs::MyString.new("hello")
+    s.slice!(/(.)(.)/, 0).class.should == StringSpecs::MyString
+    s.slice!(/(.)(.)/, 1).class.should == StringSpecs::MyString
   end
 
   it "sets $~ to MatchData when there is a match and nil when there's none" do
@@ -400,10 +400,10 @@ describe "String#slice! with String" do
   end
 
   it "returns a subclass instance when given a subclass instance" do
-    s = MyString.new("el")
+    s = StringSpecs::MyString.new("el")
     r = "hello".slice!(s)
     r.should == "el"
-    r.class.should == MyString
+    r.class.should == StringSpecs::MyString
   end
 
   compliant_on :ruby, :jruby do

@@ -62,9 +62,9 @@ describe "Array#*" do
   end
 
   it "returns subclass instance with Array subclasses" do
-    (MyArray[1, 2, 3] * 0).class.should == MyArray
-    (MyArray[1, 2, 3] * 1).class.should == MyArray
-    (MyArray[1, 2, 3] * 2).class.should == MyArray
+    (ArraySpecs::MyArray[1, 2, 3] * 0).class.should == ArraySpecs::MyArray
+    (ArraySpecs::MyArray[1, 2, 3] * 1).class.should == ArraySpecs::MyArray
+    (ArraySpecs::MyArray[1, 2, 3] * 2).class.should == ArraySpecs::MyArray
   end
 
   it "raises a TypeError if the argument can neither be converted to a string nor an integer" do

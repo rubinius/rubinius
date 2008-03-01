@@ -5,7 +5,7 @@ describe "Array#to_ary" do
   it "returns self" do
     a = [1, 2, 3]
     a.equal?(a.to_ary).should == true
-    a = MyArray[1, 2, 3]
+    a = ArraySpecs::MyArray[1, 2, 3]
     a.equal?(a.to_ary).should == true
   end
 end

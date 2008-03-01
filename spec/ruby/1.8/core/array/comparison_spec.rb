@@ -42,6 +42,6 @@ describe "Array#<=>" do
   end
 
   it "does not call to_ary on array subclasses" do
-    ([5, 6, 7] <=> ToAryArray[5, 6, 7]).should == 0
+    ([5, 6, 7] <=> ArraySpecs::ToAryArray[5, 6, 7]).should == 0
   end
 end

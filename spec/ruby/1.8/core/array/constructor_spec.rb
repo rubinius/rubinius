@@ -5,11 +5,9 @@ describe "Array.[]" do
   it "returns a new array populated with the given elements" do
     Array.[](5, true, nil, 'a', "Ruby").should == [5, true, nil, "a", "Ruby"]
 
-    a = MyArray.[](5, true, nil, 'a', "Ruby")
-    a.class.should == MyArray
+    a = ArraySpecs::MyArray.[](5, true, nil, 'a', "Ruby")
+    a.class.should == ArraySpecs::MyArray
     a.inspect.should == [5, true, nil, "a", "Ruby"].inspect
-    
-    Array.[]().should == []
   end
 end
 
@@ -17,10 +15,8 @@ describe "Array[]" do
   it "is a synonym for .[]" do
     Array[5, true, nil, 'a', "Ruby"].should == Array.[](5, true, nil, "a", "Ruby")
 
-    a = MyArray[5, true, nil, 'a', "Ruby"]
-    a.class.should == MyArray
+    a = ArraySpecs::MyArray[5, true, nil, 'a', "Ruby"]
+    a.class.should == ArraySpecs::MyArray
     a.inspect.should == [5, true, nil, "a", "Ruby"].inspect
-    
-    Array[].should == []
   end
 end
