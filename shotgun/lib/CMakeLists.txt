@@ -1,4 +1,3 @@
-find_package(Ruby)
 find_program(BISON bison)
 
 if(NOT BISON)
@@ -63,7 +62,6 @@ add_custom_command(
   DEPENDS ${primitives}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-
 #### generate auto.h and auto.c
 
 set(genheader ${CMAKE_CURRENT_SOURCE_DIR}/genheader.rb)
@@ -99,15 +97,10 @@ add_custom_command(
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/../..)
 
-foreach(d libbstring libcchash libev libmpa libmquark libtommath libzip/lib 
-    lightning onig)
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../external_libs/${d})
-  include_directories(${CMAKE_CURRENT_BINARY_DIR}/../external_libs/${d})
-endforeach(d)
-
 add_library(rubinius SHARED 
   ${lib_src} 
   ${subtend_src} 
+  ${strl_src}
   ${inames_c} ${inames_h} ${i_gen} ${idt_gen} ${ifunc_gen}
 
   ${p_sysgen} ${p_implgen} ${p_indexes_h} ${p_util_h}
@@ -117,6 +110,14 @@ add_library(rubinius SHARED
 
 target_link_libraries(rubinius 
   bstring cchash ev ltdl ptr_array mquark tommath zip onig)
+
+target_link_libraries(rubinius ${LIBDL} ${ZLIB_LIBRARY} m)
+
+if(LINUX)
+  target_link_libraries(rubinius pthread crypt)
+endif(LINUX)
+
+set_target_properties(rubinius PROPERTIES SOVERSION ${LIBVER})
 
 #grammar.o:
 #        $(COMP) $(CFLAGS) -c grammar.c

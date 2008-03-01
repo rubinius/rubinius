@@ -11,6 +11,8 @@ set(HAVE_LIBZ ${ZLIB_FOUND})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake 
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 set(sources
   lib/zip_add.c lib/zip_close.c lib/zip_delete.c
   lib/zip_dirent.c lib/zip_entry_free.c lib/zip_entry_new.c
@@ -29,7 +31,7 @@ set(sources
   lib/zip_source_filep.c lib/zip_source_free.c
   lib/zip_source_function.c lib/zip_source_zip.c
   lib/zip_set_name.c lib/zip_stat.c lib/zip_stat_index.c
-  lib/zip_strerror.c lib/zip_unchange.c)
+  lib/zip_strerror.c lib/zip_unchange.c lib/zip_unchange_data.c)
 
 if(NOT HAVE_MKSTEMP)
   set(sources ${sources} lib/mkstemp.c)

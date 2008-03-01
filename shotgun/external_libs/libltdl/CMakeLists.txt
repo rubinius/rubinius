@@ -124,4 +124,5 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_definitions(-DHAVE_CONFIG_H)
 
 add_library(ltdl ltdl.c)
-#set_target_properties(ltdl PROPERTIES SOVERSION ${soversion})
+
+set(LIBDL ${libadd_dl} CACHE INTERNAL "Dynamic load library")

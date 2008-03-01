@@ -42,5 +42,7 @@ CHECK_LIBRARY_EXISTS(m ceil "" HAVE_LIBM)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake 
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/..)
+
 add_library(ev ev.c event.c)
 #set_target_properties(ev PROPERTIES SOVERSION ${soversion})
