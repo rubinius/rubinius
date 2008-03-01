@@ -116,7 +116,7 @@ external_libs/libmquark/libmquark.a:
 	cd external_libs/libmquark; $(MAKE)
 
 external_libs/libffi/.libs/libffi.a:
-	cd external_libs/libffi; ./configure && $(MAKE)
+	cd external_libs/libffi; CFLAGS=-fPIC ./configure && $(MAKE)
 
 $(RBLIB): config.h $(DTRACE_H) $(ALIBS) external_libs/lightning/config.h 
 	cd lib; $(MAKE) library; 
