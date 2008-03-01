@@ -24,7 +24,8 @@ describe "Marshal::load" do
 
     new_obj.should == obj
     new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-    new_obj_metaclass_ancestors.first.should == UserHashInitParams
+    new_obj_metaclass_ancestors[0].should == Meths
+    new_obj_metaclass_ancestors[1].should == UserHashInitParams
   end
 
   it "loads a user-marshaled extended object" do
