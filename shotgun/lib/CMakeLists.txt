@@ -96,6 +96,7 @@ add_custom_command(
   DEPENDS ${grammar_y})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/../..)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../external_libs/libltdl)
 
 add_library(rubinius SHARED 
   ${lib_src} 
@@ -114,7 +115,7 @@ target_link_libraries(rubinius
 target_link_libraries(rubinius ${LIBDL} ${ZLIB_LIBRARY} m)
 
 if(LINUX)
-  target_link_libraries(rubinius pthread crypt)
+  target_link_libraries(rubinius pthread crypt rt)
 endif(LINUX)
 
 set_target_properties(rubinius PROPERTIES SOVERSION ${LIBVER})
