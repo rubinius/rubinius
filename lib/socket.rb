@@ -486,13 +486,15 @@ class UNIXSocket < BasicSocket
   private :unix_setup
 
   def addr
-    ["AF_UNIX", path]
+    sockaddr = Socket::Foreign.getsockname descriptor
+    _, sock_path = sockaddr.unpack('SZ*')
+    ["AF_UNIX", sock_path]
   end
 
-  # TODO - Figure out why this is broken
   def peeraddr
     sockaddr = Socket::Foreign.getpeername descriptor
-    Socket::Foreign.getnameinfo sockaddr
+    _, sock_path = sockaddr.unpack('SZ*')
+    ["AF_UNIX", sock_path]
   end
 end
 
