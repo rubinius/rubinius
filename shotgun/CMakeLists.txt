@@ -12,9 +12,15 @@ find_package(Ruby)
 
 option(DTRACE "enable DTRACE")
 
+if(WIN32)
+  set(GIT cmd.exe /c git)
+else(WIN32)
+  set(GIT git)
+endif(WIN32)
+
 if(BUILDREV STREQUAL git)
   execute_process(
-    COMMAND git rev-list --all -n 1
+    COMMAND ${GIT} rev-list --all -n 1
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE res
     OUTPUT_VARIABLE out)
