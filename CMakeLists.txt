@@ -12,8 +12,13 @@ if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86)
   set(CMAKE_SYSTEM_PROCESSOR i386)
 endif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL x86)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(CMAKE_SYSTEM_NAME mswin32)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+if(WIN32)
+  if(MINGW)
+    set(CMAKE_SYSTEM_NAME mingw32)
+  else(MINGW)
+    set(CMAKE_SYSTEM_NAME mswin32)
+  endif(MINGW)
+  # TODO: cygwin?
+endif(WIN32)
 
 add_subdirectory(shotgun)

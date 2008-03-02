@@ -70,7 +70,9 @@ message(STATUS "This is a ${WORDSIZE}-bit system")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake 
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-add_definitions(-fPIC)
+if(NOT MINGW)
+  add_definitions(-fPIC)
+endif(NOT MINGW)
 
 # external stuff
 

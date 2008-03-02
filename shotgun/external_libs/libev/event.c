@@ -41,7 +41,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifndef WIN32
+#if !defined(WIN32) || defined(__MINGW32__)
 # include <sys/time.h>
 #endif
 
