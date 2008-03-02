@@ -24,12 +24,6 @@ OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *
   sys_nm->entry = func;
   sys_nm->args = args;
 
-  if(args >= 0) {
-    sys_nm->stub = (nm_stub_ffi)ffi_generate_c_stub(state, args, func);
-  } else {
-    sys_nm->stub = NULL;
-  }
-  
   nm = nmethod_allocate(state);
   cmethod_set_primitive(nm, I2N(CPU_PRIMITIVE_NMETHOD_CALL));
   cmethod_set_required(nm, I2N(args));
