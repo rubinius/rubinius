@@ -17,6 +17,17 @@ describe "Marshal::load" do
     Marshal.load("\004\bI\"\ahi\006:\n@self@\000").should == obj
   end
 
+  it "loads an extended_user_hash with a parameter to initialize" do
+    obj = UserHashInitParams.new(:abc).extend(Meths)
+
+    new_obj = Marshal.load "\004\bIe:\nMethsC:\027UserHashInitParams{\000\006:\a@a:\babc"
+
+    new_obj.should == obj
+    new_obj_metaclass_ancestors = class << new_obj; ancestors; end
+    new_obj_metaclass_ancestors[0].should == Meths
+    new_obj_metaclass_ancestors[1].should == UserHashInitParams
+  end
+
   it "loads a user-marshaled extended object" do
     obj = UserMarshal.new.extend(Meths)
 

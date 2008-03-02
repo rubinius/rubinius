@@ -93,6 +93,12 @@ describe "Marshal.dump" do
     Marshal.dump(h).should == "#{mv+nv}e:\x0AMethsC:\x0DUserHash}\x06\"\x0Athreei\x08;\x00"
   end
 
+  it "dumps an extended_user_hash with a parameter to initialize" do
+    h = UserHashInitParams.new(:abc).extend(Meths)
+    h['three'] = 3
+    Marshal.dump(h).should == "\004\bIe:\nMethsC:\027UserHashInitParams{\006\"\nthreei\b\006:\a@a:\babc"
+  end
+
   it "dumps an array containing objects having _dump method" do
     o1 = UserDefined.new
     o2 = UserDefinedWithIvar.new

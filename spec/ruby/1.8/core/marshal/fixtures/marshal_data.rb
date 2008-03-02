@@ -107,6 +107,12 @@ end
 class UserHash < Hash
 end
 
+class UserHashInitParams < Hash
+  def initialize(a)
+    @a = a
+  end
+end
+
 class UserObject
 end
 
