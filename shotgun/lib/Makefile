@@ -135,7 +135,7 @@ grammar.c: grammar.y
 	bison -o grammar.c grammar.y
 
 clean:
-	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h *.d *.d.* instruction_names.c instruction_names.h node_types.c node_types.h
+	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo subtend/*.d *.gen *.a auto.c auto.h *.d *.d.* instruction_names.c instruction_names.h node_types.c node_types.h
 	rm -rf .libs subtend/.libs librubinius-*
 	rm -rf *.dylib
 
