@@ -1,7 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require 'syslog'
 
 describe "Syslog::Constants" do
+  before :all do
+    require 'syslog'
+  end
+
   it 'should be included' do
     Syslog::Constants::LOG_USER.should == Syslog::LOG_USER
     Syslog::Constants::LOG_EMERG.should == Syslog::LOG_EMERG

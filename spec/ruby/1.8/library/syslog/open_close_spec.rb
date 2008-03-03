@@ -1,7 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require 'syslog'
 
 describe "Syslog::open" do
+  before :all do
+    require 'syslog'
+  end
+
   it 'should return Syslog' do
     Syslog.open.should == Syslog
     Syslog.close    # Closing the log
