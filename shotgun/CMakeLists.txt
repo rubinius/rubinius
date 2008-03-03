@@ -84,14 +84,13 @@ add_subdirectory(external_libs/libmpa)
 add_subdirectory(external_libs/libmquark)
 add_subdirectory(external_libs/libtommath)
 add_subdirectory(external_libs/libzip)
-add_subdirectory(external_libs/lightning)
 add_subdirectory(external_libs/onig)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/..)
 
 foreach(d libbstring libcchash libev libmpa libmquark libtommath libzip/lib 
-    lightning onig)
+    onig)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libs/${d})
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/external_libs/${d})
 endforeach(d)

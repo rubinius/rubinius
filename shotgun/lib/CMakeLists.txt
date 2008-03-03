@@ -17,10 +17,9 @@ set(lib_src
   sha1.c state.c string.c symbol.c tuple.c var_table.c)
 
 set(subtend_src
-  subtend/ffi_amd64.c subtend/ffi.c subtend/ffi_x86.c subtend/handle.c
-  subtend/library.c subtend/nmc.c subtend/nmethod.c subtend/PortableUContext.c
-  subtend/ruby.c subtend/setup.c subtend/PortableUContext_asm.S)
-
+  subtend/ffi.c subtend/handle.c subtend/library.c subtend/nmc.c
+  subtend/nmethod.c subtend/PortableUContext.c subtend/ruby.c subtend/setup.c
+  subtend/PortableUContext_asm.S)
 
 if(NOT HAVE_STRLCAT)
   set(strl_src ${strl_src} strlcat.c)
@@ -29,7 +28,6 @@ endif(NOT HAVE_STRLCAT)
 if(NOT HAVE_STRLCPY)
   set(strl_src ${strl_src} strlcpy.c)
 endif(NOT HAVE_STRLCPY)
-
 
 #### generate instruction_names.c, instruction_names.h, instructions.gen,
 ####          instruction_dt.gen, instruction_funcs.gen
@@ -118,7 +116,7 @@ if(LINUX)
   target_link_libraries(rubinius pthread crypt rt)
 endif(LINUX)
 
-set_target_properties(rubinius PROPERTIES SOVERSION ${LIBVER})
+set_target_properties(rubinius PROPERTIES SOVERSION ${VERSION})
 
 #grammar.o:
 #        $(COMP) $(CFLAGS) -c grammar.c
