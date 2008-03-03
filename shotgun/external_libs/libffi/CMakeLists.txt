@@ -146,6 +146,9 @@ if(NOT HIDDEN_TESTED)
   endif(asm)
 endif(NOT HIDDEN_TESTED)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fficonfig.h.cmake
+               ${CMAKE_CURRENT_BINARY_DIR}/fficonfig.h)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/ffi.h.in 
                ${CMAKE_CURRENT_BINARY_DIR}/ffi.h)
 
