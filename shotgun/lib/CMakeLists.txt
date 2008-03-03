@@ -120,13 +120,3 @@ if(LINUX)
 endif(LINUX)
 
 set_target_properties(rubinius PROPERTIES SOVERSION ${VERSION})
-
-#grammar.o:
-#        $(COMP) $(CFLAGS) -c grammar.c
-
-
-#subtend/ffi.o: subtend/ffi.c
-#        $(COMP) $(CFLAGS) $(OPTIMIZATIONS) -Wno-unused-variable -Wno-unused-value -c $< -o $@
-
-#grammar.c: grammar.y
-#        bison -o grammar.c grammar.y

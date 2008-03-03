@@ -20,7 +20,11 @@ unless prefix[0] == ?/
   prefix = File.expand_path File.join(Dir.getwd, prefix)
 end
 
-real = File.join(prefix, 'shotgun/rubinius.bin')
+@bindir = ENV['RBXDEV'] ? "build/dev" : "build/norm"
+
+real = File.join(prefix, "#{@bindir}/shotgun/rubinius.bin")
+
+print real
 
 # Setup all the crazy library path stuff so that librubinus is picked
 # up properly.
@@ -28,7 +32,7 @@ real = File.join(prefix, 'shotgun/rubinius.bin')
 @prefix = prefix
 
 def set_env(name)
-  addition = "#{@prefix}/shotgun/lib"
+  addition = "#{@prefix}/#{@bindir}/shotgun/lib"
   
   if cur = ENV[name]
     ENV[name] = "#{addition}:#{cur}"

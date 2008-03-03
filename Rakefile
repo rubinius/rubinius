@@ -6,6 +6,10 @@ $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
 $compiler = nil
 
+$DEV = !!ENV['RBXDEV']
+$build = $DEV ? "build/dev" : "build/norm"
+$mainbinary = $build + "/rubinius.bin"
+
 require 'tsort'
 require 'rakelib/rubinius'
 require 'rakelib/struct_generator'
@@ -95,26 +99,23 @@ namespace :build do
   rule '^shotgun/.+'
 
   c_source = FileList[
-    "shotgun/config.h",
     "shotgun/lib/*.[chy]",
     "shotgun/lib/*.rb",
     "shotgun/lib/subtend/*.[chS]",
     "shotgun/main.c",
-  ].exclude(/auto/, /instruction_names/, /node_types/, /grammar.c/)
+  ]
 
-  file "shotgun/rubinius.bin" => c_source do
-    sh make('vm')
+  file "#{$build}/Makefile" do
+    mkdir_p $build
+    sh "cd #{$build}; cmake ../.."
   end
 
-  file 'shotgun/mkconfig.sh' => 'configure'
-  file 'shotgun/config.mk' => %w[shotgun/config.h shotgun/mkconfig.sh shotgun/vars.mk]
-  file 'shotgun/config.h' => %w[shotgun/mkconfig.sh shotgun/vars.mk] do
-    sh "./configure"
-    raise 'Failed to configure Rubinius' unless $?.success?
+  file $mainbinary => c_source + ["#{$build}/Makefile"] do
+    sh "cd #{$build}; #{make}"
   end
 
   desc "Compiles shotgun (the C-code VM)"
-  task :shotgun => %w[configure shotgun/rubinius.bin]
+  task :shotgun => $mainbinary
 
   task :setup_rbc => :stable_compiler
 
@@ -139,21 +140,11 @@ namespace :build do
     # Note: Steps to rebuild load_order were defined above
   end
 
-  namespace :vm do
-    task "clean" do
-      sh "cd shotgun/lib; #{make "clean"}"
-    end
-
-    task "dev" do
-      sh "cd shotgun/lib; #{make "DEV=1"}"
-    end
-  end
-
   task :platform => 'runtime/platform.conf'
 end
 
 # INSTALL TASKS
-
+<<INSTALLNOTWORKINGNOW
 desc "Install rubinius as rbx"
 task :install => :config_env do
   sh "cd shotgun; #{make "install"}"
@@ -183,12 +174,10 @@ task :uninstall => :config_env do
   rm Dir[File.join(ENV['BINPATH'], 'rbx*')]
   rm_r Dir[File.join(ENV['LIBPATH'], '*rubinius*')]
 end
+INSTALLNOTWORKINGNOW
 
-task :config_env => 'shotgun/config.mk' do
-  File.foreach 'shotgun/config.mk' do |line|
-    next unless line =~ /(.*?)=(.*)/
-    ENV[$1] = $2
-  end
+task :config_env => "#{$build}/shotgun/environment.rb" do
+  load "#{$build}/shotgun/environment.rb"
 end
 
 task :compiledir => :stable_compiler do
@@ -210,7 +199,7 @@ task :distclean => "clean:distclean"
 
 namespace :clean do
   desc "Clean everything but third-party libs"
-  task :all => %w[clean:rbc clean:extensions clean:shotgun clean:generated clean:crap]
+  task :all => %w[clean:rbc clean:extensions clean:shotgun clean:crap]
 
   desc "Clean everything including third-party libs"
   task :distclean => %w[clean:all clean:external]
@@ -237,17 +226,12 @@ namespace :clean do
 
   desc "Cleans up VM building site"
   task :shotgun do
-    sh make('clean')
-  end
-
-  desc "Cleans up generated files"
-  task :generated do
-    rm_f Dir["shotgun/lib/grammar.c"], :verbose => $verbose
+    sh "cd #{$build}; #{make('clean')}"
   end
 
   desc "Cleans up VM and external libs"
   task :external do
-    sh "cd shotgun; #{make('distclean')}"
+    rm_rf $build
   end
 
   desc "Cleans up editor files and other misc crap"

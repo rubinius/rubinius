@@ -24,11 +24,11 @@ if(BUILDREV STREQUAL git)
     COMMAND ${GIT} rev-list --all -n 1
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     RESULT_VARIABLE res
-    OUTPUT_VARIABLE out)
+    OUTPUT_VARIABLE out
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
 
   if(NOT res)
-    string(REGEX REPLACE "[\n\r\t ]" "" BUILDREV ${out})
-    #set(BUILDREV ${out})
+    set(BUILDREV ${out})
   endif(NOT res)
 endif(BUILDREV STREQUAL git)
 
@@ -52,6 +52,8 @@ message(STATUS "Release date: ${RELDATE}")
 set(CODEPATH "${PREFIX}/lib/rubinius/${LIBVER}")
 set(RBAPATH  "${PREFIX}/lib/rubinius/${LIBVER}/runtime")
 set(EXTPATH  "${PREFIX}/lib/rubinius/${LIBVER}/${RUBY_PLATFORM}")
+set(BINPATH  "${PREFIX}/bin")
+set(LIBPATH  "${PREFIX}/lib")
 
 TEST_BIG_ENDIAN(BIG_ENDIAN)
 
@@ -70,6 +72,9 @@ message(STATUS "This is a ${WORDSIZE}-bit system")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake 
                ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/environment.rb.cmake 
+               ${CMAKE_CURRENT_BINARY_DIR}/environment.rb)
 
 if(NOT MINGW)
   add_definitions(-fPIC)
