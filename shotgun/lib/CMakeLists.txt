@@ -17,9 +17,12 @@ set(lib_src
   sha1.c state.c string.c symbol.c tuple.c var_table.c)
 
 set(subtend_src
-  subtend/ffi.c subtend/handle.c subtend/library.c subtend/nmc.c
-  subtend/nmethod.c subtend/PortableUContext.c subtend/ruby.c subtend/setup.c
-  subtend/PortableUContext_asm.S)
+  subtend/ffi.c subtend/ffi_libffi.c subtend/handle.c subtend/library.c
+  subtend/nmc.c subtend/nmethod.c subtend/PortableUContext.c subtend/ruby.c
+  subtend/setup.c subtend/PortableUContext_asm.S)
+
+# this to enable .S compiling
+set_source_files_properties(subtend/PortableUContext_asm.S PROPERTIES LANGUAGE C)
 
 if(NOT HAVE_STRLCAT)
   set(strl_src ${strl_src} strlcat.c)
@@ -108,7 +111,7 @@ add_library(rubinius SHARED
   ${grammar_c})
 
 target_link_libraries(rubinius 
-  bstring cchash ev ltdl ptr_array mquark tommath zip onig)
+  bstring cchash ev ltdl ptr_array mquark tommath zip onig ffi)
 
 target_link_libraries(rubinius ${LIBDL} ${ZLIB_LIBRARY} m)
 

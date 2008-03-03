@@ -1,6 +1,7 @@
 include(vars.cmake)
 message(STATUS "Configuring Rubinius version ${VERSION}")
 
+include(CheckCSourceCompiles)
 include(CheckIncludeFile)
 include(CheckFunctionExists)
 include(CheckLibraryExists)
@@ -78,6 +79,7 @@ endif(NOT MINGW)
 
 add_subdirectory(external_libs/libbstring)
 add_subdirectory(external_libs/libcchash)
+add_subdirectory(external_libs/libffi)
 add_subdirectory(external_libs/libev)
 add_subdirectory(external_libs/libltdl)
 add_subdirectory(external_libs/libmpa)
