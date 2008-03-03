@@ -92,7 +92,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/..)
 
 foreach(d libbstring libcchash libev libmpa libmquark libtommath libzip/lib 
-    onig)
+    onig libffi)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libs/${d})
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/external_libs/${d})
 endforeach(d)
