@@ -26,7 +26,19 @@ describe "Calling a method" do
     l = lambda { 300 }
     foo(10, &l).should == [10,300]
   end
- 
+
+  it "with an object that responds to 'to_proc' as a block argument coerces it to a proc" do
+    x = "my proc"
+    class << x
+      def to_proc; Proc.new {|y| self + y}; end
+    end
+
+    def foo(&b); b.call(" called"); end
+    def foo2; yield(" yielded"); end
+    
+    foo(&x).should == "my proc called"
+    foo2(&x).should == "my proc yielded"
+  end
   it "fails with both lambda and block argument" do
     def foo(a,&b); [a,yield(b)] end
 

@@ -28,12 +28,6 @@ ifeq ($(MARCH),amd64)
 	CFLAGS+=-fPIC
 endif
 
-# No disass support for 64
-ifneq ($(findstring 64,$(MARCH)),64)
-	RBS_LIGHTNING_DISASS='--enable-disassembling'
-	ALIBS+=external_libs/lightning/opcode/libdisass.a
-endif
-
 ifeq ($(UNAME),SunOS)
   LDFLAGS+=-lrt
 endif
@@ -65,12 +59,6 @@ config.h:
 
 %.o: %.c
 	$(COMP) $(CFLAGS) -c $< 
-
-external_libs/lightning/config.h:
-	cd external_libs/lightning; CFLAGS=-fPIC ./configure $(RBS_LIGHTNING_DISASS)
-
-external_libs/lightning/opcode/libdisass.a: external_libs/lightning/config.h
-	cd external_libs/lightning; $(MAKE)
 
 external_libs/libtommath/libtommath.a:
 	cd external_libs/libtommath; $(MAKE)
@@ -118,7 +106,7 @@ external_libs/libmquark/libmquark.a:
 external_libs/libffi/.libs/libffi.a:
 	cd external_libs/libffi; CFLAGS=-fPIC ./configure && $(MAKE)
 
-$(RBLIB): config.h $(DTRACE_H) $(ALIBS) external_libs/lightning/config.h 
+$(RBLIB): config.h $(DTRACE_H) $(ALIBS)
 	cd lib; $(MAKE) library; 
 
 .PHONY: $(RBLIB)
@@ -164,7 +152,6 @@ distclean: clean
 	rm -f external_libs/libev/config.h
 	rm -f external_libs/libltdl/config.h
 	rm -f external_libs/libzip/config.h
-	rm -f external_libs/lightning/config.h
 	rm -f external_libs/onig/config.h
 	-cd external_libs/libbstring; $(MAKE) clean
 	-cd external_libs/libcchash; $(MAKE) clean
@@ -174,7 +161,6 @@ distclean: clean
 	-cd external_libs/libmquark; $(MAKE) clean
 	-cd external_libs/libtommath; $(MAKE) clean
 	-cd external_libs/libzip; $(MAKE) clean
-	-cd external_libs/lightning; $(MAKE) clean
 	-cd external_libs/onig; $(MAKE) clean
 	-cd external_libs/libffi; $(MAKE) clean
 

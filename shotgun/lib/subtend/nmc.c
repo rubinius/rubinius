@@ -160,15 +160,6 @@ void _nmc_start() {
   va = NULL;
   args = NULL;
   
-  /*
-  #ifndef __i386__
-  if(n->method->stub) {
-    retval = n->method->stub(recv);
-    goto done;
-  }
-  #endif
-  */
-  
   rni_handle* (*func)() = (rni_handle* (*)())(n->method->entry);
   int hs, ch;
   if(n->method->args == -2) {
@@ -246,15 +237,22 @@ void _nmc_start() {
       retval = (*func)(recv, rh(0), rh(1), rh(2), rh(3), rh(4), rh(5));
       break;
     case 7:
+      retval = (*func)(recv, rh(0), rh(1), rh(2), rh(3), rh(4), rh(5), rh(6));
+      break;
+    case 8:
+      retval = (*func)(recv, rh(0), rh(1), rh(2), rh(3), rh(4), rh(5), rh(6), rh(7));
+      break;
+    case 9:
+      retval = (*func)(recv, rh(0), rh(1), rh(2), rh(3), rh(4), rh(5), rh(6), rh(7), rh(8));
+      break;
+    case 10:
+      retval = (*func)(recv, rh(0), rh(1), rh(2), rh(3), rh(4), rh(5), rh(6), rh(7), rh(8), rh(9));
+      break;
+    default:
+    case 11: 
       abort();
     }
   }
-  
-  /*
-  #ifndef __i386__
-    done:
-  #endif
-  */
   
   /*
   if(args) XFREE(args);

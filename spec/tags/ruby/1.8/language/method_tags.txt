@@ -1,2 +1,3 @@
 fails:Calling a method with range in () should give higher priority to range
 fails:Calling a method fails with both lambda and block argument
+fails:Calling a method with an object that responds to 'to_proc' as a block argument coerces it to a proc
