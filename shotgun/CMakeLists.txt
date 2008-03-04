@@ -16,7 +16,7 @@ option(DTRACE "enable DTRACE")
 if(WIN32)
   set(GIT cmd.exe /c git)
 else(WIN32)
-  set(GIT git)
+  find_program(GIT git)
 endif(WIN32)
 
 if(BUILDREV STREQUAL git)
@@ -76,9 +76,33 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/environment.rb.cmake 
                ${CMAKE_CURRENT_BINARY_DIR}/environment.rb)
 
+# flags flags flags
+add_definitions(-D_GNU_SOURCE)
+add_definitions(-Wall -Wwrite-strings)  # warnings
+add_definitions(-g -ggdb3)
+
+if(LINUX)
+  add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64)
+endif(LINUX)
+
+if(DARWIN)
+  add_definitions(-D_XOPEN_SOURCE -D_DARWIN_USE_64_BIT_INODE)
+endif(DARWIN)
+
 if(NOT MINGW)
   add_definitions(-fPIC)
 endif(NOT MINGW)
+
+set(CMAKE_C_FLAGS_PROF  "-O2")
+set(CMAKE_C_FLAGS_DEV   "-O0")
+set(CMAKE_C_FLAGS_TURBO "-O3 -falign-loops -momit-leaf-frame-pointer -fno-tree-pre")
+set(CMAKE_C_FLAGS_REGULAR "-O2 -finline-functions -Winline")
+
+# TODO: this
+#ifeq ($(CPU), powerpc)
+#  OPTIMIZATIONS+=-falign-loops=16
+#endif
+
 
 # external stuff
 
@@ -107,3 +131,8 @@ add_subdirectory(lib)
 
 add_executable(rubinius.bin main.c)
 target_link_libraries(rubinius.bin rubinius)
+
+if(FREEBSD)
+  target_link_libraries(rubinius.bin crypt pthread)
+endif(FREEBSD)
+

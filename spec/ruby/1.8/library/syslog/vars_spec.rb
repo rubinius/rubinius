@@ -1,7 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require 'syslog'
 
 describe "Syslog::ident" do
+  before :all do
+    require 'syslog'
+  end
+
   it 'should return the value of the last ident passed to open' do
     Syslog.open {|s| s.ident.should == nil }
     Syslog.open("Rubinius") {|s| s.ident.should == "Rubinius" }
@@ -12,6 +15,10 @@ describe "Syslog::ident" do
 end
 
 describe "Syslog::options" do
+  before :all do
+    require 'syslog'
+  end
+
   it 'should return the value of the last "option" passed to open' do
     Syslog.open {|s| s.options.should == nil }
     Syslog.open("Rubinius", 90) {|s| s.options.should == 90 }
@@ -20,6 +27,10 @@ describe "Syslog::options" do
 end
 
 describe "Syslog::facility" do
+  before :all do
+    require 'syslog'
+  end
+
   it 'should return the value of the last "facility" passed to open' do
     Syslog.open {|s| s.facility.should == nil }
     Syslog.open("Rubinius", 5, 10) {|s| s.facility.should == 10 }

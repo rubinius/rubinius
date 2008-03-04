@@ -86,7 +86,11 @@ class File < IO
   end
 
   def self.chmod(mode, *paths)
-    paths.each { |path| POSIX.chmod(path, mode) }
+    mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
+    paths.each do |path|
+      path = Type.coerce_to(path, String, :to_str) unless path.is_a? String
+      POSIX.chmod(path, mode)
+    end
     paths.size
   end
   
@@ -505,6 +509,7 @@ class File < IO
   end
 
   def chmod(mode)
+    mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
     POSIX.fchmod(@descriptor, mode)
   end
   

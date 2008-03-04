@@ -147,6 +147,11 @@ if(NOT t AND WIN32)
   set(td x86)
 endif(NOT t AND WIN32)
 
+if(NOT t AND X86 AND FREEBSD)
+  set(t X86_FREEBSD)
+  set(td x86)
+endif(NOT t AND X86 AND FREEBSD)
+
 # X86 fallback
 if(NOT t AND X86)
   set(t X86)
