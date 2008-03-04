@@ -105,6 +105,10 @@ namespace :build do
   file "shotgun/rubinius.bin" => c_source do
     sh make('vm')
   end
+  
+  file "shotgun/rubinius.local.bin" => c_source do
+    sh make('vm')
+  end
 
   file 'shotgun/mkconfig.sh' => 'configure'
   file 'shotgun/config.mk' => %w[shotgun/config.h shotgun/mkconfig.sh shotgun/vars.mk]
@@ -114,7 +118,7 @@ namespace :build do
   end
 
   desc "Compiles shotgun (the C-code VM)"
-  task :shotgun => %w[configure shotgun/rubinius.bin]
+  task :shotgun => %w[configure shotgun/rubinius.bin shotgun/rubinius.local.bin]
 
   task :setup_rbc => :stable_compiler
 

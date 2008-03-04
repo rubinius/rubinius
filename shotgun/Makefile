@@ -117,8 +117,11 @@ main.c: $(RBLIB)
 dtrace.h: rubinius.d
 	/usr/sbin/dtrace -h -s rubinius.d -o dtrace.h
 
-rubinius.bin: $(RBLIB) main.o
+rubinius.bin: $(RBLIB) main.o rubinius.local.bin
 	$(COMP) -o rubinius.bin main.o $(RBLIB) $(BIN_RPATH) $(LDFLAGS)
+
+rubinius.local.bin: $(RBLIB) main.o
+	$(COMP) -o rubinius.local.bin main.o lib/$(RBXLIBLOCAL) $(BIN_RPATHLOCAL) $(LDFLAGS)
 
 test/test_state: test/test_state.c library
 	$(COMP) -c -o test/test_state.o test/test_state.c $(CFLAGS)

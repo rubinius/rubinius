@@ -20,7 +20,7 @@ unless prefix[0] == ?/
   prefix = File.expand_path File.join(Dir.getwd, prefix)
 end
 
-real = File.join(prefix, 'shotgun/rubinius.bin')
+real = File.join(prefix, 'shotgun/rubinius.local.bin')
 
 # Setup all the crazy library path stuff so that librubinus is picked
 # up properly.
