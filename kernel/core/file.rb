@@ -87,7 +87,7 @@ class File < IO
 
   def self.chmod(mode, *paths)
     mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
-    paths.each do |path| POSIX.chmod(path, mode) 
+    paths.each do |path|
       path = Type.coerce_to(path, String, :to_str) unless path.is_a? String
       POSIX.chmod(path, mode)
     end
