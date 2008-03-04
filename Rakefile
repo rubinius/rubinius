@@ -6,8 +6,8 @@ $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
 $compiler = nil
 
-$DEV = !!ENV['RBXDEV']
-$build = $DEV ? "build/dev" : "build/norm"
+$buildtype = ENV['SHOTGUN'] || 'regular'
+$build = "build/" + $buildtype
 $mainbinary = $build + "/rubinius.bin"
 
 require 'tsort'
@@ -107,9 +107,9 @@ namespace :build do
 
   file "#{$build}/Makefile" do
     mkdir_p $build
-    sh "cd #{$build}; cmake ../.."
+    sh "cd #{$build}; cmake -D CMAKE_BUILD_TYPE=#{$buildtype} ../.."
   end
-
+  
   file $mainbinary => c_source + ["#{$build}/Makefile"] do
     sh "cd #{$build}; #{make}"
   end
