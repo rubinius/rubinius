@@ -182,6 +182,26 @@ class Module
 
 end
 
+# MemoryPointer is Rubinius's "fat" pointer class. It represents an actual
+# pointer, in C language terms, to an address in memory. They're called
+# fat pointers because the MemoryPointer object is an wrapper around
+# the actual pointer, the Rubinius runtime doesn't have direct access
+# to the raw address.
+#
+# This class is used extensively in FFI usage to interface with various
+# parts of the underlying system. It provides a number of operations
+# for operating on the memory that is pointed to. These operations effectively
+# give Rubinius the cast/read capabilities available in C, but using
+# high level methods.
+#
+# MemoryPointer objects can be put in autorelease mode. In this mode, 
+# when the GC cleans up a MemoryPointer object, the memory it points
+# to is passed to free(3), releasing the memory back to the OS.
+#
+# NOTE: MemoryPointer exposes direct, unmanaged operations on any
+# memory. It therefore MUST be used carefully. Reading or writing to
+# invalid address will cause bus errors and segmentation faults.
+#
 class MemoryPointer
 
   # call-seq:
@@ -240,32 +260,54 @@ class MemoryPointer
     end
   end
 
+  # Indicates how many bytes the chunk of memory that is pointed to takes up.
   attr_accessor :total
+
+  # Indicates how many bytes the type that the pointer is cast as uses.
   attr_accessor :type_size
 
+  # Access the MemoryPointer like a C array, accessing the +which+ number
+  # element in memory. The position of the element is calculate from
+  # +@type_size+ and +which+. A new MemoryPointer object is returned, which
+  # points to the address of the element.
+  # 
+  # Example:
+  #   ptr = MemoryPointer.new(:int, 20)
+  #   new_ptr = ptr[9]
+  #
+  # c-equiv: 
+  #   int *ptr = (int*)malloc(sizeof(int) * 20);
+  #   int *new_ptr; 
+  #   new_ptr = &ptr[9];
+  #
   def [](which)
     raise ArgumentError, "unknown type size" unless @type_size
     self + (which * @type_size)
   end
 
+  # Release the memory pointed to back to the OS.
   def free
     self.autorelease = false
     Platform::POSIX.free(self) unless null?
     self.class.set_address self, nil
   end
 
+  # Write +obj+ as a C int at the memory pointed to.
   def write_int(obj)
     self.class.write_int self, Integer(obj)
   end
 
+  # Read a C int from the memory pointed to.
   def read_int
     self.class.read_int self
   end
 
+  # Write +obj+ as a C long at the memory pointed to.
   def write_long(obj)
     self.class.write_long self, Integer(obj)
   end
 
+  # Read a C long from the memory pointed to.
   def read_long
     self.class.read_long self
   end
