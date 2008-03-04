@@ -27,8 +27,9 @@ scratch
 !runtime/stable/loader.rbc
 runtime/pristine*
 runtime/platform.conf
-
-*.d
+.*.d
+shotgun/lib/*.d
+shotgun/lib/subtend/*.d
 *.o
 *.lo
 *.a

@@ -99,8 +99,11 @@ RUBY=ruby
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-$(RBXLIB): $(DEPS) $(OBJS) 
+$(RBXLIB): $(RBXLIBLOCAL)
 	$(LINKER) -o $(RBXLIB) $(OBJS) $(SONAME) $(LIBS)
+
+$(RBXLIBLOCAL): $(DEPS) $(OBJS) 
+	$(LINKER) -o $(RBXLIBLOCAL) $(OBJS) $(SONAMELOCAL) $(LIBS)
 
 library: $(RBXLIB)
 

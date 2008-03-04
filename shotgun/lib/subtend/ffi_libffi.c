@@ -180,7 +180,12 @@ void ffi_call_libffi(STATE, cpu c, OBJECT ptr) {
     case RBX_FFI_TYPE_SHORT: {
       short *tmp = (short*)alloca(sizeof(short));
       obj = stack_pop();
-      type_assert(obj, FixnumType, "converting to short");
+      if(FIXNUM_P(obj)) {
+        *tmp = (short)N2I(obj);
+      } else {
+        type_assert(obj, BignumType, "converting to short");
+        *tmp = (short)bignum_to_i(state, obj);
+      }
       *tmp = (short)N2I(obj);
       values[i] = tmp;
       break;
@@ -188,7 +193,12 @@ void ffi_call_libffi(STATE, cpu c, OBJECT ptr) {
     case RBX_FFI_TYPE_USHORT: {
       unsigned short *tmp = (unsigned short*)alloca(sizeof(short));
       obj = stack_pop();
-      type_assert(obj, FixnumType, "converting to unsigned short");
+      if(FIXNUM_P(obj)) {
+        *tmp = (unsigned short)N2I(obj);
+      } else {
+        type_assert(obj, BignumType, "converting to unsigned short");
+        *tmp = (unsigned short)bignum_to_i(state, obj);
+      }
       *tmp = (unsigned short)N2I(obj);
       values[i] = tmp;
       break;

@@ -102,9 +102,7 @@ object_memory object_memory_new() {
   om->context_bottom = (OBJECT)(om->contexts->address);
   om->context_last = (OBJECT)((uintptr_t)om->contexts->address + CONTEXT_SIZE - (CTX_SIZE * 10));
   
-  // Start the values up a bit higher so they don't collide
-  // with the hashs of symbols right off the bat.
-  om->last_object_id = 0x10000;
+  om->last_object_id = 0;
   // om->enlarge_new = 0;
   // om->new_size = 0;
   return om;

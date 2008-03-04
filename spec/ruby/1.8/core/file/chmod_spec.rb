@@ -89,10 +89,21 @@ describe "File.chmod" do
     }
   end
 
+  it "throws a TypeError if the given path is not coercable into a string" do
+    lambda { File.chmod(0, @file.to_sym) }.should raise_error(TypeError)
+  end
+
   it "invokes to_int on non-integer argument" do
     mode = File.stat(@file).mode
     (obj = mock('mode')).should_receive(:to_int).and_return(mode)
     File.chmod(obj, @file)
+    File.stat(@file).mode.should == mode
+  end
+
+  it "invokes to_str on non-string file names" do
+    mode = File.stat(@file).mode
+    (obj = mock('path')).should_receive(:to_str).and_return(@file)
+    File.chmod(mode, obj)
     File.stat(@file).mode.should == mode
   end
 
