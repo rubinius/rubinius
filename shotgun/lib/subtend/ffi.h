@@ -1,8 +1,5 @@
-char *ffi_generate_c_stub(STATE, int args, void *func);
 int ffi_type_size(int type);
 void Init_ffi(STATE);
-void* ffi_get_to_converter(int type);
-void* ffi_get_from_converter(int type);
 OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJECT ret);
 
 OBJECT ffi_new_pointer(STATE, void *ptr);
@@ -28,12 +25,6 @@ void ffi_autorelease(OBJECT ptr, int ar);
 #define RBX_FFI_TYPE_STATE   16
 #define RBX_FFI_TYPE_STRPTR  17
 #define RBX_FFI_TYPE_CHARARR 18
-
-typedef void (*nf_stub_ffi)(void);
-
-/* It has to be able to hold the largest possible C type 
-   All results from these functions should be cast properly */
-typedef uint64_t (*nf_converter)();
 
 #define NFUNC_FIELDS 7
 
