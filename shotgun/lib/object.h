@@ -64,13 +64,16 @@ static inline uintptr_t object_get_id(STATE, OBJECT self) {
                   
     /* Lazy allocate object's ids, since most don't need them. */
     if(NIL_P(id)) {
-      id = I2N(state->om->last_object_id++);
+      /* All references have an even object_id. last_object_id starts out at 0
+       * but we don't want to use 0 as an object_id, so we just add before using */
+      id = I2N(state->om->last_object_id += 2);
       object_set_ivar(state, meta, state->global->sym_object_id, id);
     }
     
     return (uintptr_t)id;
   } else {
-    return (uintptr_t)(self);
+    /* All non-references have an odd object_id */
+    return (((uintptr_t)self << 1) | 1);
   }
 }
 
