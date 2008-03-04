@@ -131,3 +131,8 @@ add_subdirectory(lib)
 
 add_executable(rubinius.bin main.c)
 target_link_libraries(rubinius.bin rubinius)
+
+if(FREEBSD)
+  target_link_libraries(rubinius.bin crypt pthread)
+endif(FREEBSD)
+
