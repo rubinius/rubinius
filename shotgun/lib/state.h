@@ -13,7 +13,9 @@
 #include <hashtable.h>
 #include <ptr_array.h>
 
-#include <termios.h>
+#ifndef _WIN32
+#  include <termios.h>
+#endif
 
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/memutil.h"
@@ -152,7 +154,9 @@ struct rubinius_state {
   int excessive_tracing, gc_stats;
   int check_events, pending_threads, pending_events;
 
+#ifndef _WIN32
   struct termios *termios;
+#endif
 
   /* Used to store the value of c->ip_ptr while cpu_run isn't running */
   IP_TYPE* external_ip;

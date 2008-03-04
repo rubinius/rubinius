@@ -142,7 +142,10 @@ endif(NOT t AND X86_64)
 
 # TODO: X86_FREEBSD
 # TODO: X86_DARWIN
-# TODO: X86_WIN32
+if(NOT t AND WIN32)
+  set(t X86_WIN32)
+  set(td x86)
+endif(NOT t AND WIN32)
 
 # X86 fallback
 if(NOT t AND X86)

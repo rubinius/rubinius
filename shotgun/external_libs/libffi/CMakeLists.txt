@@ -155,7 +155,13 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/ffi.h.in
 set(tsrc ${CMAKE_CURRENT_SOURCE_DIR}/src/${TARGETDIR}/ffitarget.h)
 set(tdst ${CMAKE_CURRENT_BINARY_DIR}/ffitarget.h)
 
-execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${tsrc} ${tdst})
+if(WIN32)
+  set(cmd copy)
+else(WIN32)
+  set(cmd create_symlink)
+endif(WIN32)
+
+execute_process(COMMAND ${CMAKE_COMMAND} -E ${cmd} ${tsrc} ${tdst})
 
 #############################
 
