@@ -31,10 +31,10 @@ class GlobalVariables
       :$= => false, # ignore case, whatever that is
     }
 
-    @internal = LookupTable.from_hash defaults
+    @internal = defaults
 
-    @alias = LookupTable.new
-    @hooks = LookupTable.new
+    @alias = {}
+    @hooks = {}
   end
 
   def key?(key)

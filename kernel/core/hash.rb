@@ -469,34 +469,3 @@ class Hash
   end
 
 end
-
-##
-# Uses object identity (ie Object#equal?) as the key test. Much faster
-# than Hash (which uses Object#==), but still uses Object#hash to compute
-# the hash value, but requires the hash values to be unique.
-#
-# This is mainly good for if you have symbols as keys.
-
-class LookupTable < Hash
-
-  def self.from_hash(hash)
-    tbl = new()
-    hash.each do |k,v|
-      tbl[k] = v
-    end
-
-    return tbl
-  end
-
-  def [](key)
-    code, hk, val, nxt = get_by_hash(key.hash, key)
-    return nil unless code
-    return val
-  end
-
-  def []=(key, val)
-    set_by_hash key.hash, key, val
-  end
-
-  alias_method :store, :[]=
-end
