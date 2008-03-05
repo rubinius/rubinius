@@ -4032,6 +4032,19 @@ class ShotgunPrimitives
     CODE
   end
 
+  def sendsite_set_sender
+    <<-CODE
+    ARITY(1);
+    OBJECT cm, ss;
+
+    GUARD(SENDSITE_P(msg->recv));
+    POP(cm, CMETHOD);
+
+    send_site_set_sender(state, msg->recv, cm);
+    RET(Qnil);
+    CODE
+  end
+
   def sendsite_at
     <<-CODE
     ARITY(1);
@@ -4057,6 +4070,8 @@ class ShotgunPrimitives
       RET(I2N(SENDSITE(msg->recv)->hits));
     case 7:
       RET(I2N(SENDSITE(msg->recv)->misses));
+    case 8:
+      RET(SENDSITE(msg->recv)->sender);
     default:
       RET(Qnil);
     }

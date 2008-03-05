@@ -35,3 +35,9 @@ OBJECT send_site_create(STATE, OBJECT name) {
   return ss_obj;
 }
 
+void send_site_set_sender(STATE, OBJECT self, OBJECT cm) {
+  struct send_site *ss;
+
+  ss = SENDSITE(self);
+  ss->sender = cm;
+}

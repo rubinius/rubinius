@@ -371,8 +371,8 @@ static void marshal_cmethod2(STATE, OBJECT obj, bstring buf, struct marshal_stat
 
 
 static OBJECT unmarshal_cmethod2(STATE, struct marshal_state *ms) {
-  int ver;
-  OBJECT cm, prim, o;
+  int ver, i;
+  OBJECT cm, prim, o, l;
   
   ver = unmarshal_num_fields(ms);
   cm = cmethod_allocate(state);
@@ -392,6 +392,18 @@ static OBJECT unmarshal_cmethod2(STATE, struct marshal_state *ms) {
   o = cmethod_get_cache(cm);
   if(FIXNUM_P(o)) {
     cmethod_set_cache(cm, tuple_new(state, N2I(o)));
+  }
+
+  /* Set the compiled method field on each SendSite */
+  l = cmethod_get_literals(cm);
+  if(TUPLE_P(l)) {
+    int sz = tuple_fields(state, l);
+    for(i = 0; i < sz; i++) {
+      o = tuple_at(state, l, i);
+      if(SENDSITE_P(o)) {
+        send_site_set_sender(state, o, cm);
+      }
+    }
   }
   
   return cm;
