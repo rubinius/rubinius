@@ -30,4 +30,18 @@ describe "TCPServer.new" do
       addr[3].should == '::1'
     end
   end
+
+  it "coerces port to string, then determines port from that number or service name" do
+    t = Object.new
+    lambda { TCPServer.new('localhost', t) }.should raise_error(TypeError)
+
+    def t.to_str; SocketSpecs.port.to_s; end
+    
+    @server = TCPServer.new('localhost', t)
+    addr = @server.addr
+    addr[1].should == SocketSpecs.port
+
+    # TODO: This should also accept strings like 'https', but I don't know how to
+    # pick such a service port that will be able to reliably bind...
+  end
 end
