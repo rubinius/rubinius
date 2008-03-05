@@ -4035,7 +4035,7 @@ class ShotgunPrimitives
   def sendsite_set_sender
     <<-CODE
     ARITY(1);
-    OBJECT cm, ss;
+    OBJECT cm;
 
     GUARD(SENDSITE_P(msg->recv));
     POP(cm, CMETHOD);
