@@ -111,6 +111,7 @@ Options:
   -Idir1[:dir2]  Add directories to $LOAD_PATH.
   -p             Run the profiler.
   -ps            Run the Selector profiler.
+  -pss           Run the SendSite profiler.
   -rlibrary      Require library before execution.
   -w             Enable warnings. (currently does nothing--compatibility)
   -v             Display the version and set $VERBOSE to true.
@@ -121,6 +122,7 @@ $VERBOSE = false
 code = 0
 
 show_selectors = false
+show_sendsites = false
 
 # Setup the proper staticscope
 MethodContext.current.method.staticscope = StaticScope.new(Object)
@@ -159,6 +161,9 @@ begin
     when '-ps'
       count = (ARGV.shift or 30)
       show_selectors = count.to_i
+    when '-pss'
+      count = (ARGV.shift or 30)
+      show_sendsites = count.to_i
     when '-e'
       $0 = "(eval)"
       Compile.execute ARGV.shift
@@ -292,6 +297,19 @@ if show_selectors
     ps.show_stats show_selectors
   rescue Object => e
     puts "An exception occured while running selector profiler:"
+    puts "    #{e.message} (#{e.class})"
+    puts "\nBacktrace:"
+    puts e.awesome_backtrace.show
+    code = 1
+  end
+end
+
+if show_sendsites
+  ps = Sampler::SendSites.new
+  begin
+    ps.show_stats show_sendsites
+  rescue Object => e
+    puts "An exception occured while running sendsite profiler:"
     puts "    #{e.message} (#{e.class})"
     puts "\nBacktrace:"
     puts e.awesome_backtrace.show

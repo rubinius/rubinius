@@ -113,4 +113,24 @@ class Sampler
       end
     end
   end
+
+  class SendSites
+    def show_stats(range=30)
+      send_sites = Selector::ALL.values.inject([]) { |acc,s| acc.concat(s.send_sites) }
+      count = send_sites.size
+
+      send_sites.delete_if { |e| (e.hits + e.misses) < 10 }
+
+      sort = send_sites.sort { |a,b| (b.hits + b.misses) <=> (a.hits + a.misses) }
+
+      puts "\nTotal SendSites: #{count}"
+      puts "Top #{range}, by sends:"
+      puts "%-32s| %-18s| %-10s| %s" % ["sender", "name", "hits", "misses"]
+      puts "========================================================================"
+      sort[0,range].each do |entry|
+        sender = "#{entry.sender.staticscope.module}##{entry.sender.name}"
+        puts "%-32s| %-18s| %-10d| %d" % [sender, entry.name, entry.hits, entry.misses]
+      end
+    end
+  end
 end
