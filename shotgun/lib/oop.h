@@ -83,6 +83,7 @@ typedef enum
   ModuleType      ,
   SendSiteType    ,
   SelectorType    ,
+  LookupTableType ,
 
   LastObjectType   // must remain at end
 } object_type;
@@ -142,6 +143,9 @@ typedef enum
     break; \
   case NilType: \
     type = "nil"; \
+    break; \
+  case LookupTableType: \
+    type = "LookupTable"; \
     break; \
   default: \
     type = "unknown"; \
@@ -410,6 +414,7 @@ static void _bad_reference(OBJECT in) {
 #define IO_P(obj) RISA(obj, io)
 #define STRING_P(obj) RTYPE(obj, StringType)
 #define HASH_P(obj) (RISA(obj, hash))
+#define LOOKUPTABLE_P(obj) RTYPE(obj, LookupTableType)
 #define ARRAY_P(obj) RTYPE(obj, ArrayType)
 
 #define STRING_OR_NIL_P(obj) (STRING_P(obj) || NIL_P(obj))

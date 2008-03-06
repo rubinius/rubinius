@@ -21,7 +21,8 @@ class Compiler
     :Exception => {:@__ivars__ => 0, :@message => 1, :@context => 2 },
     :InlineCache => {:@__ivars__ => 0, :@method => 1, :@class => 2, :@module => 3, :@serial => 4, :@hotness => 5, :@trip => 6 },
     :StaticScope => {:@__ivars__ => 0, :@module => 1, :@parent => 2 },
-    :Selector => {:@name => 0, :@send_sites => 1 }
+    :Selector => {:@name => 0, :@send_sites => 1 },
+    :LookupTable => {:@values=>1, :@bins=>2, :@entries=>3}
     }
 
     TYPES = {
@@ -35,7 +36,7 @@ class Compiler
       :blokenv=>:BlockEnvironment, :symbol => :Symbol,
       :methctx => :MethodContext, :exception => :Exception,
       :icache => :InlineCache, :staticscope => :StaticScope,
-      :selector => :Selector
+      :selector => :Selector, :lookuptable => :LookupTable
     }
   end
 end

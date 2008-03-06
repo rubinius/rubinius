@@ -4091,12 +4091,12 @@ class ShotgunPrimitives
   def dtrace_fire_ruby_probe
     <<-CODE
     ARITY(2);
-    
+
     OBJECT t1, t2;
-    
+
     POP(t1, STRING);
     POP(t2, STRING);
-    
+
 #if ENABLE_DTRACE
     if (RUBINIUS_RUBY_PROBE_ENABLED()) {
       RUBINIUS_RUBY_PROBE(string_byte_address(state, t1), string_byte_address(state, t2));
@@ -4106,7 +4106,95 @@ class ShotgunPrimitives
     RET(Qnil);
     CODE
   end
-  
+
+  def allocate_table
+    <<-CODE
+    ARITY(0);
+    GUARD(CLASS_P(msg->recv));
+    OBJECT t1;
+
+    t1 = lookuptable_new(state, 0);
+    SET_CLASS(t1, msg->recv); 
+    RET(t1);
+    CODE
+  end
+
+  def lookuptable_store
+    <<-CODE
+    ARITY(2);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    OBJECT t1, t2, t3;
+
+    t1 = stack_pop();
+    t2 = stack_pop();
+    t3 = lookuptable_store(state, msg->recv, t1, t2);
+    if(t3 == Qundef) {
+      FAIL();
+    }
+    RET(t2);
+    CODE
+  end
+
+  def lookuptable_fetch
+    <<-CODE
+    ARITY(1);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    OBJECT t1, t2;
+
+    t1 = stack_pop();
+    t2 = lookuptable_fetch(state, msg->recv, t1);
+    if(t2 == Qundef) {
+      FAIL();
+    }
+    RET(t2);
+    CODE
+  end
+
+  def lookuptable_delete
+    <<-CODE
+    ARITY(1);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    OBJECT t1, t2;
+
+    t1 = stack_pop();
+    t2 = lookuptable_delete(state, msg->recv, t1);
+    if(t2 == Qundef) {
+      FAIL();
+    }
+    RET(t2);
+    CODE
+  end
+
+  def lookuptable_has_key
+    <<-CODE
+    ARITY(1);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    OBJECT t1, t2;
+
+    t1 = stack_pop();
+    t2 = lookuptable_has_key(state, msg->recv, t1);
+    if(t2 == Qundef) {
+      FAIL();
+    }
+    RET(t2);
+    CODE
+  end
+
+  def lookuptable_keys
+    <<-CODE
+    ARITY(0);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    RET(lookuptable_keys(state, msg->recv));
+    CODE
+  end
+
+  def lookuptable_values
+    <<-CODE
+    ARITY(0);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    RET(lookuptable_values(state, msg->recv));
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

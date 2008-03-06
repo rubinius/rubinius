@@ -25,6 +25,7 @@
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/object.h"
 #include "shotgun/lib/bignum.h"

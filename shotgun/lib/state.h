@@ -35,7 +35,7 @@ struct rubinius_globals {
   OBJECT string, symbol, io, metaclass, symtbl;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
   OBJECT floatpoint, fastctx, data, nmethod, nmc, task, list, list_node;
-  OBJECT channel, thread, staticscope, send_site, selector;
+  OBJECT channel, thread, staticscope, send_site, selector, lookuptable;
   
   /* the primary symbol table */
   OBJECT symbols;

@@ -229,7 +229,14 @@ module Bytecode
       :sendsite_at,
       :selector_clear,
       :sendsite_set_sender,
-      :dtrace_fire_ruby_probe
+      :dtrace_fire_ruby_probe,
+      :allocate_table,
+      :lookuptable_store,
+      :lookuptable_fetch,
+      :lookuptable_delete,
+      :lookuptable_has_key,
+      :lookuptable_keys,
+      :lookuptable_values
     ]
   end
 end
