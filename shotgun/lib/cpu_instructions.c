@@ -773,7 +773,7 @@ inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) 
 void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise);
 
 inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
-  OBJECT destination, home;
+  OBJECT current, destination, home;
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
@@ -794,14 +794,14 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
 
   c->depth--;
 
+  current = c->active_context;
+  c->active_context = Qnil;
   destination = cpu_current_sender(c);
 
-  // printf("Rtrnng frm %p (%d)\n", c->active_context, FASTCTX(c->active_context)->size);
+  // printf("Rtrnng frm %p (%d)\n", current, FASTCTX(current)->size);
 
   if(destination == Qnil) {
-    object_memory_retire_context(state->om, c->active_context);
-
-    c->active_context = Qnil;
+    object_memory_retire_context(state->om, current);
 
     /* Thread exiting, reschedule.. */
     if(c->current_thread != c->main_thread) {
@@ -817,7 +817,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
     stack_push(val);
   } else {
     /* retire this one context. */
-    object_memory_retire_context(state->om, c->active_context);      
+    object_memory_retire_context(state->om, current);
 
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
@@ -852,7 +852,9 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
 
 /* Used by raise_exception to restore the previous context. */
 int cpu_unwind(STATE, cpu c) {
-  OBJECT destination, home;
+  OBJECT current, destination, home;
+  current = c->active_context;
+  c->active_context = Qnil;
   destination = cpu_current_sender(c);
 
 #if ENABLE_DTRACE
@@ -864,7 +866,7 @@ int cpu_unwind(STATE, cpu c) {
 
     cpu_flush_ip(c);
 
-    struct fast_context *fc = FASTCTX(c->active_context);
+    struct fast_context *fc = FASTCTX(current);
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
     char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
@@ -875,9 +877,7 @@ int cpu_unwind(STATE, cpu c) {
   c->depth--;
 
   if(destination == Qnil) {
-    object_memory_retire_context(state->om, c->active_context);
-
-    c->active_context = Qnil;
+    object_memory_retire_context(state->om, current);
 
     /* Thread exitting, reschedule.. */
     if(c->current_thread != c->main_thread) {
@@ -894,7 +894,7 @@ int cpu_unwind(STATE, cpu c) {
 
   } else {
     /* retire this one context. */
-    object_memory_retire_context(state->om, c->active_context);
+    object_memory_retire_context(state->om, current);
 
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
@@ -1028,8 +1028,7 @@ static inline void cpu_patch_mono(struct message *msg);
 
 static inline void cpu_patch_missing(struct message *msg);
 
-static void 
-_cpu_ss_basic(struct message *msg) {
+static void _cpu_ss_basic(struct message *msg) {
   msg->missing = 0;
   const STATE = msg->state;
   const cpu c = msg->c;
@@ -1054,6 +1053,36 @@ void cpu_initialize_sendsite(STATE, struct send_site *ss) {
   ss->lookup = _cpu_ss_basic;
 }
 
+static void _cpu_ss_disabled(struct message *msg) {
+  msg->missing = 0;
+  const STATE = msg->state;
+  const cpu c = msg->c;
+  
+  sassert(cpu_locate_method(state, c, msg));
+
+  /* If it's not method_missing, cache the details of msg in the send_site */
+  if(msg->missing) { 
+    msg->args += 1;
+    stack_push(msg->name);
+  }
+
+  if(cpu_try_primitive(state, c, msg)) return;
+
+  cpu_perform(state, c, msg);
+}
+
+void cpu_patch_disabled(struct message *msg, struct send_site *ss) {
+  ss->data1 = ss->data2 = ss->data3 = Qnil;
+  ss->data4 = 0;
+  ss->c_data = NULL;
+  ss->lookup = _cpu_ss_disabled;
+  
+  _cpu_ss_disabled(msg);
+}
+
+#define SS_DISABLE_THRESHOLD 10000
+#define SS_MISSES(ss) if(++ss->misses > SS_DISABLE_THRESHOLD) { cpu_patch_disabled(msg, ss); } else
+
 /* Send Site specialization 1: execute a primitive directly. */
 
 #define CHECK_CLASS(msg) (_real_class(msg->state, msg->recv) != SENDSITE(msg->send_site)->data1)
@@ -1066,8 +1095,9 @@ static void _cpu_ss_mono_prim(struct message *msg) {
   cpu c = msg->c;
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
   
@@ -1102,6 +1132,9 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func, int p
   if(!REFERENCE_P(msg->send_site)) return;
 
   ss = SENDSITE(msg->send_site);
+  
+  /* If this sendsite is disabled, leave it disabled. */
+  if(ss->lookup == _cpu_ss_disabled) return;
 
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
@@ -1117,8 +1150,9 @@ static void _cpu_ss_mono_ffi(struct message *msg) {
   struct send_site *ss = SENDSITE(msg->send_site);
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
 
@@ -1160,8 +1194,9 @@ static void _cpu_ss_mono(struct message *msg) {
   struct send_site *ss = SENDSITE(msg->send_site);
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
   
@@ -1181,7 +1216,7 @@ static inline void cpu_patch_mono(struct message *msg) {
   STATE = msg->state;
 
   struct send_site *ss = SENDSITE(msg->send_site);
-  
+
   ss->lookup = _cpu_ss_mono;
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
@@ -1193,8 +1228,9 @@ static void _cpu_ss_missing(struct message *msg) {
   cpu c = msg->c;
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
     
