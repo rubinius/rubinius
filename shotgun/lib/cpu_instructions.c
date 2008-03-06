@@ -515,6 +515,25 @@ static inline OBJECT cpu_create_context(STATE, cpu c, const struct message *msg)
   fc->method_module = msg->module;
   fc->type = FASTCTX_NORMAL;
 
+#if ENABLE_DTRACE
+  if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
+    char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
+    char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
+
+    cpu_flush_ip(c);
+
+    if (!NIL_P(c->active_context)) {
+      struct fast_context *fc = FASTCTX(c->active_context);
+      int line_number = cpu_ip2line(state, fc->method, fc->ip);
+      char *filename = (char*)rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
+
+      RUBINIUS_FUNCTION_ENTRY(module_name, method_name, filename, line_number);
+    } else {
+      RUBINIUS_FUNCTION_ENTRY(module_name, method_name, (char*)"-", 0); // in cases where there's no active context, ie. bootup
+    }
+  }
+#endif
+
   return ctx;
 }
 
@@ -1222,7 +1241,7 @@ static void _cpu_on_no_method(STATE, cpu c, const struct message *msg) {
 /* Layer 4: send. Primary method calling function. */
 inline void cpu_send_message(STATE, cpu c, struct message *msg) {
   struct send_site *ss;
-
+  
 #ifdef TIME_LOOKUP
   uint64_t start = measure_cpu_time();
 #endif
@@ -1236,6 +1255,7 @@ inline void cpu_send_message(STATE, cpu c, struct message *msg) {
 #ifdef TIME_LOOKUP
   state->lookup_time += (measure_cpu_time() - start);
 #endif
+
 }
 
 void cpu_send_message_external(STATE, cpu c, struct message *msg) {
