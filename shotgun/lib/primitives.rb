@@ -4087,6 +4087,26 @@ class ShotgunPrimitives
     RET(Qnil);
     CODE
   end
+  
+  def dtrace_fire_ruby_probe
+    <<-CODE
+    ARITY(2);
+    
+    OBJECT t1, t2;
+    
+    POP(t1, STRING);
+    POP(t2, STRING);
+    
+#if ENABLE_DTRACE
+    if (RUBINIUS_RUBY_PROBE_ENABLED()) {
+      RUBINIUS_RUBY_PROBE(string_byte_address(state, t1), string_byte_address(state, t2));
+    }
+#endif
+
+    RET(Qnil);
+    CODE
+  end
+  
 end
 
 prim = ShotgunPrimitives.new

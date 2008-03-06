@@ -228,7 +228,8 @@ module Bytecode
       :sendsite_create,
       :sendsite_at,
       :selector_clear,
-      :sendsite_set_sender
+      :sendsite_set_sender,
+      :dtrace_fire_ruby_probe
     ]
   end
 end

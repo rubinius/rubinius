@@ -4,8 +4,8 @@ provider rubinius {
     probe function__return(char*, char*, char*, int);
     
     /* Primitive operations entry/exit probes */
-    probe function__primitive_entry(char*, char*, char*, int);
-    probe function__primitive_return(char*, char*, char*, int);
+    probe function__primitive__entry(char*, char*, char*, int);
+    probe function__primitive__return(char*, char*, char*, int);
     
     /* gc probes */
     probe gc__begin();
@@ -22,6 +22,9 @@ provider rubinius {
     probe vm__send__end();
     probe vm__context__create__begin();
     probe vm__context__create__end();
+    
+    /* ruby application probe */
+    probe ruby__probe(char*, char*);
 };
 
 #pragma D attributes Evolving/Evolving/Common provider rubinius provider

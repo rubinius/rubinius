@@ -47,6 +47,13 @@
 # define HAVE_STRUCT_TM_TM_ZONE
 #endif
 
+#if CONFIG_ENABLE_DTRACE
+#include "shotgun/dtrace.h"
+#define ENABLE_DTRACE 1
+#else
+#define ENABLE_DTRACE 0
+#endif
+
 extern char **environ;
 
 OBJECT math_sqrt(STATE, OBJECT a);
