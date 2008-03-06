@@ -1009,8 +1009,7 @@ static inline void cpu_patch_mono(struct message *msg);
 
 static inline void cpu_patch_missing(struct message *msg);
 
-static void 
-_cpu_ss_basic(struct message *msg) {
+static void _cpu_ss_basic(struct message *msg) {
   msg->missing = 0;
   const STATE = msg->state;
   const cpu c = msg->c;
@@ -1035,6 +1034,36 @@ void cpu_initialize_sendsite(STATE, struct send_site *ss) {
   ss->lookup = _cpu_ss_basic;
 }
 
+static void _cpu_ss_disabled(struct message *msg) {
+  msg->missing = 0;
+  const STATE = msg->state;
+  const cpu c = msg->c;
+  
+  sassert(cpu_locate_method(state, c, msg));
+
+  /* If it's not method_missing, cache the details of msg in the send_site */
+  if(msg->missing) { 
+    msg->args += 1;
+    stack_push(msg->name);
+  }
+
+  if(cpu_try_primitive(state, c, msg)) return;
+
+  cpu_perform(state, c, msg);
+}
+
+void cpu_patch_disabled(struct message *msg, struct send_site *ss) {
+  ss->data1 = ss->data2 = ss->data3 = Qnil;
+  ss->data4 = 0;
+  ss->c_data = NULL;
+  ss->lookup = _cpu_ss_disabled;
+  
+  _cpu_ss_disabled(msg);
+}
+
+#define SS_DISABLE_THRESHOLD 10000
+#define SS_MISSES(ss) if(++ss->misses > SS_DISABLE_THRESHOLD) { cpu_patch_disabled(msg, ss); } else
+
 /* Send Site specialization 1: execute a primitive directly. */
 
 #define CHECK_CLASS(msg) (_real_class(msg->state, msg->recv) != SENDSITE(msg->send_site)->data1)
@@ -1047,8 +1076,9 @@ static void _cpu_ss_mono_prim(struct message *msg) {
   cpu c = msg->c;
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
   
@@ -1083,6 +1113,9 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func, int p
   if(!REFERENCE_P(msg->send_site)) return;
 
   ss = SENDSITE(msg->send_site);
+  
+  /* If this sendsite is disabled, leave it disabled. */
+  if(ss->lookup == _cpu_ss_disabled) return;
 
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
@@ -1098,8 +1131,9 @@ static void _cpu_ss_mono_ffi(struct message *msg) {
   struct send_site *ss = SENDSITE(msg->send_site);
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
 
@@ -1141,8 +1175,9 @@ static void _cpu_ss_mono(struct message *msg) {
   struct send_site *ss = SENDSITE(msg->send_site);
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
   
@@ -1162,7 +1197,7 @@ static inline void cpu_patch_mono(struct message *msg) {
   STATE = msg->state;
 
   struct send_site *ss = SENDSITE(msg->send_site);
-  
+
   ss->lookup = _cpu_ss_mono;
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
@@ -1174,8 +1209,9 @@ static void _cpu_ss_missing(struct message *msg) {
   cpu c = msg->c;
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
     

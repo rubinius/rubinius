@@ -1,4 +1,8 @@
 class MethodContext
+  def self.new
+    raise TypeError, "MethodContext doesn't support #new"
+  end
+
   def self.current
     cur = Rubinius.asm { push_context }
     return cur.sender
