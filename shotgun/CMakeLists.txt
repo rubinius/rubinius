@@ -77,10 +77,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/environment.rb.cmake
                ${CMAKE_CURRENT_BINARY_DIR}/environment.rb)
 
 # flags flags flags
-add_definitions(-D_GNU_SOURCE)
-add_definitions(-Wall -Wwrite-strings)  # warnings
-add_definitions(-g -ggdb3)
-
 if(LINUX)
   add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64)
 endif(LINUX)
@@ -103,7 +99,6 @@ set(CMAKE_C_FLAGS_REGULAR "-O2 -finline-functions -Winline")
 #  OPTIMIZATIONS+=-falign-loops=16
 #endif
 
-
 # external stuff
 
 add_subdirectory(external_libs/libbstring)
@@ -116,6 +111,12 @@ add_subdirectory(external_libs/libmquark)
 add_subdirectory(external_libs/libtommath)
 add_subdirectory(external_libs/libzip)
 add_subdirectory(external_libs/onig)
+
+# rbx stuff
+
+add_definitions(-D_GNU_SOURCE)
+add_definitions(-Wall -Wwrite-strings)  # warnings
+add_definitions(-g -ggdb3)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/..)
