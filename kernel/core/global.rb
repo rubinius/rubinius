@@ -1,4 +1,4 @@
-# depends on: class.rb hash.rb
+# depends on: class.rb
 
 ##
 # Stores global variables and global variable aliases.
@@ -8,7 +8,7 @@ class GlobalVariables
     load_path = ["lib", "stdlib", "."]
     loaded_features = []
 
-    defaults = {
+    @internal = LookupTable.new(
       :$; => nil,
       :$/ => "\n",                # Input record separator
       :$\ => nil,                 # Output record separator
@@ -24,17 +24,15 @@ class GlobalVariables
       :$CONSOLE => STDOUT,
       :$DEBUG => false,
       :$SAFE => 0,
-      :$. => 0,    # no clue what this one is.
+      :$. => 0,    # TODO: Last line number of IO read.
       :$_ => nil,  # HACK: bunk for now.
       :$< => nil,  # HACK: should be ARGF
       :$? => nil,  # Process status. nil until set
-      :$= => false, # ignore case, whatever that is
-    }
+      :$= => false # ignore case, whatever that is
+    )
 
-    @internal = defaults
-
-    @alias = {}
-    @hooks = {}
+    @alias = LookupTable.new
+    @hooks = LookupTable.new
   end
 
   def key?(key)
@@ -46,11 +44,11 @@ class GlobalVariables
   end
 
   def [](key)
-    if @internal.key? key then
+    if @internal.key? key
       @internal[key]
-    elsif @hooks.key? key then
+    elsif @hooks.key? key
       @hooks[key][0].call
-    else
+    elsif @alias.key? key
       @internal[@alias[key]]
     end
   end
