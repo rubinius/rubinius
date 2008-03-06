@@ -24,6 +24,7 @@ OBJECT send_site_create(STATE, OBJECT name) {
 
   NEW_STRUCT(ss_obj, ss, BASIC_CLASS(send_site), struct send_site);
   ss->name = name;
+  ss->sender = Qnil;
   SET_STRUCT_FIELD(ss_obj, ss->selector, selector_lookup(state, name));
   ss->data1 = ss->data2 = ss->data3 = Qnil;
   ss->hits = ss->misses = 0;
@@ -39,5 +40,5 @@ void send_site_set_sender(STATE, OBJECT self, OBJECT cm) {
   struct send_site *ss;
 
   ss = SENDSITE(self);
-  ss->sender = cm;
+  SET_STRUCT_FIELD(self, ss->sender, cm);
 }
