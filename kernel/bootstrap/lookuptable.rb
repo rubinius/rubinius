@@ -8,14 +8,22 @@ class LookupTable
     Ruby.primitive :allocate_table
     raise PrimitiveFailure, "LookupTable.allocate primitive failed"
   end
-  
+
   def initialize(hash=nil)
     return unless hash
     hash.each do |k,v|
       self[k] = v
     end
   end
-  
+
+  # This method is required by MethodTable until
+  # that can be fixed, then this can be removed.
+  def setup
+    @values = Tuple.new 16
+    @bins = 16
+    @entries = 0
+  end
+
   def __key_error__(key)
     raise TypeError, "LookupTable keys must be strings or symbols: #{key.inspect}"
   end
@@ -29,7 +37,7 @@ class LookupTable
     Ruby.primitive :lookuptable_store
     __key_error__ key
   end
-  
+
   def key?(key)
     Ruby.primitive :lookuptable_has_key
     __key_error__ key

@@ -13,11 +13,11 @@ class LookupTable
   end
   
   def to_s
-    "#<LookupTable:0x#{object_id.to_s(16)} #{entries} entries>"
+    "#<#{self.class}:0x#{object_id.to_s(16)} #{entries} entries>"
   end
 
   def inspect
     ents = collect { |k,v| " #{k.inspect}=>#{v}" }.join(",")
-    "#<LookupTable" + ents + ">" 
+    "#<#{self.class}" + ents + ">" 
   end
 end
