@@ -754,7 +754,7 @@ inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) 
 void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise);
 
 inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
-  OBJECT destination, home;
+  OBJECT current, destination, home;
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
@@ -775,14 +775,14 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
 
   c->depth--;
 
+  current = c->active_context;
+  c->active_context = Qnil;
   destination = cpu_current_sender(c);
 
-  // printf("Rtrnng frm %p (%d)\n", c->active_context, FASTCTX(c->active_context)->size);
+  // printf("Rtrnng frm %p (%d)\n", current, FASTCTX(current)->size);
 
   if(destination == Qnil) {
-    object_memory_retire_context(state->om, c->active_context);
-
-    c->active_context = Qnil;
+    object_memory_retire_context(state->om, current);
 
     /* Thread exiting, reschedule.. */
     if(c->current_thread != c->main_thread) {
@@ -798,7 +798,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
     stack_push(val);
   } else {
     /* retire this one context. */
-    object_memory_retire_context(state->om, c->active_context);      
+    object_memory_retire_context(state->om, current);
 
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
@@ -833,7 +833,9 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
 
 /* Used by raise_exception to restore the previous context. */
 int cpu_unwind(STATE, cpu c) {
-  OBJECT destination, home;
+  OBJECT current, destination, home;
+  current = c->active_context;
+  c->active_context = Qnil;
   destination = cpu_current_sender(c);
 
 #if ENABLE_DTRACE
@@ -845,7 +847,7 @@ int cpu_unwind(STATE, cpu c) {
 
     cpu_flush_ip(c);
 
-    struct fast_context *fc = FASTCTX(c->active_context);
+    struct fast_context *fc = FASTCTX(current);
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
     char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
@@ -856,9 +858,7 @@ int cpu_unwind(STATE, cpu c) {
   c->depth--;
 
   if(destination == Qnil) {
-    object_memory_retire_context(state->om, c->active_context);
-
-    c->active_context = Qnil;
+    object_memory_retire_context(state->om, current);
 
     /* Thread exitting, reschedule.. */
     if(c->current_thread != c->main_thread) {
@@ -875,7 +875,7 @@ int cpu_unwind(STATE, cpu c) {
 
   } else {
     /* retire this one context. */
-    object_memory_retire_context(state->om, c->active_context);
+    object_memory_retire_context(state->om, current);
 
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
