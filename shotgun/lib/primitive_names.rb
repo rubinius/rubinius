@@ -227,7 +227,8 @@ module Bytecode
       :hash_redistribute,
       :sendsite_create,
       :sendsite_at,
-      :selector_clear
+      :selector_clear,
+      :sendsite_set_sender
     ]
   end
 end

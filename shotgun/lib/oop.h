@@ -427,7 +427,6 @@ static void _bad_reference(OBJECT in) {
 #define RTYPE(obj, type) (REFERENCE_P(obj) && obj->obj_type == type)
 #define SENDSITE_P(obj) RTYPE(obj, SendSiteType)
 #define SELECTOR_P(obj) RTYPE(obj, SelectorType)
-#define TUPLE_P(obj) RTYPE(obj, TupleType) 
 #define HASH_P(obj) (RISA(obj, hash))
 #define MODULE_P(obj) (RTYPE(obj, ModuleType))
 #define POINTER_P(obj) RTYPE(obj, MemPtrType)
