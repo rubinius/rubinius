@@ -60,7 +60,7 @@ else
     ifdef TURBO
       OPTIMIZATIONS=-O3 -falign-loops -momit-leaf-frame-pointer -fno-tree-pre
     else
-      OPTIMIZATIONS=-O2 -finline-functions -Winline
+      OPTIMIZATIONS=-O2 -finline-functions -Winline --param inline-unit-growth=100
     endif
   endif
 endif
