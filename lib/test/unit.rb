@@ -1,280 +1,327 @@
-require 'test/unit/testcase'
-require 'test/unit/autorunner'
+#
+# Totally minimal (hopefully) drop-in replacement for test/unit
+#
 
-module Test # :nodoc:
-  #
-  # = Test::Unit - Ruby Unit Testing Framework
-  # 
-  # == Introduction
-  # 
-  # Unit testing is making waves all over the place, largely due to the
-  # fact that it is a core practice of XP. While XP is great, unit testing
-  # has been around for a long time and has always been a good idea. One
-  # of the keys to good unit testing, though, is not just writing tests,
-  # but having tests. What's the difference? Well, if you just _write_ a
-  # test and throw it away, you have no guarantee that something won't
-  # change later which breaks your code. If, on the other hand, you _have_
-  # tests (obviously you have to write them first), and run them as often
-  # as possible, you slowly build up a wall of things that cannot break
-  # without you immediately knowing about it. This is when unit testing
-  # hits its peak usefulness.
-  # 
-  # Enter Test::Unit, a framework for unit testing in Ruby, helping you to
-  # design, debug and evaluate your code by making it easy to write and
-  # have tests for it.
-  # 
-  # 
-  # == Notes
-  # 
-  # Test::Unit has grown out of and superceded Lapidary.
-  # 
-  # 
-  # == Feedback
-  # 
-  # I like (and do my best to practice) XP, so I value early releases,
-  # user feedback, and clean, simple, expressive code. There is always
-  # room for improvement in everything I do, and Test::Unit is no
-  # exception. Please, let me know what you think of Test::Unit as it
-  # stands, and what you'd like to see expanded/changed/improved/etc. If
-  # you find a bug, let me know ASAP; one good way to let me know what the
-  # bug is is to submit a new test that catches it :-) Also, I'd love to
-  # hear about any successes you have with Test::Unit, and any
-  # documentation you might add will be greatly appreciated. My contact
-  # info is below.
-  # 
-  # 
-  # == Contact Information
-  # 
-  # A lot of discussion happens about Ruby in general on the ruby-talk
-  # mailing list (http://www.ruby-lang.org/en/ml.html), and you can ask
-  # any questions you might have there. I monitor the list, as do many
-  # other helpful Rubyists, and you're sure to get a quick answer. Of
-  # course, you're also welcome to email me (Nathaniel Talbott) directly
-  # at mailto:testunit@talbott.ws, and I'll do my best to help you out.
-  # 
-  # 
-  # == Credits
-  # 
-  # I'd like to thank...
-  # 
-  # Matz, for a great language!
-  # 
-  # Masaki Suketa, for his work on RubyUnit, which filled a vital need in
-  # the Ruby world for a very long time. I'm also grateful for his help in
-  # polishing Test::Unit and getting the RubyUnit compatibility layer
-  # right. His graciousness in allowing Test::Unit to supercede RubyUnit
-  # continues to be a challenge to me to be more willing to defer my own
-  # rights.
-  # 
-  # Ken McKinlay, for his interest and work on unit testing, and for his
-  # willingness to dialog about it. He was also a great help in pointing
-  # out some of the holes in the RubyUnit compatibility layer.
-  # 
-  # Dave Thomas, for the original idea that led to the extremely simple
-  # "require 'test/unit'", plus his code to improve it even more by
-  # allowing the selection of tests from the command-line. Also, without
-  # RDoc, the documentation for Test::Unit would stink a lot more than it
-  # does now.
-  # 
-  # Everyone who's helped out with bug reports, feature ideas,
-  # encouragement to continue, etc. It's a real privilege to be a part of
-  # the Ruby community.
-  # 
-  # The guys at RoleModel Software, for putting up with me repeating, "But
-  # this would be so much easier in Ruby!" whenever we're coding in Java.
-  # 
-  # My Creator, for giving me life, and giving it more abundantly.
-  # 
-  # 
-  # == License
-  # 
-  # Test::Unit is copyright (c) 2000-2003 Nathaniel Talbott. It is free
-  # software, and is distributed under the Ruby license. See the COPYING
-  # file in the standard Ruby distribution for details.
-  # 
-  # 
-  # == Warranty
-  # 
-  # This software is provided "as is" and without any express or
-  # implied warranties, including, without limitation, the implied
-  # warranties of merchantibility and fitness for a particular
-  # purpose.
-  # 
-  # 
-  # == Author
-  # 
-  # Nathaniel Talbott.
-  # Copyright (c) 2000-2003, Nathaniel Talbott
-  #
-  # ----
-  #
-  # = Usage
-  #
-  # The general idea behind unit testing is that you write a _test_
-  # _method_ that makes certain _assertions_ about your code, working
-  # against a _test_ _fixture_. A bunch of these _test_ _methods_ are
-  # bundled up into a _test_ _suite_ and can be run any time the
-  # developer wants. The results of a run are gathered in a _test_
-  # _result_ and displayed to the user through some UI. So, lets break
-  # this down and see how Test::Unit provides each of these necessary
-  # pieces.
-  #
-  #
-  # == Assertions
-  #
-  # These are the heart of the framework. Think of an assertion as a
-  # statement of expected outcome, i.e. "I assert that x should be equal
-  # to y". If, when the assertion is executed, it turns out to be
-  # correct, nothing happens, and life is good. If, on the other hand,
-  # your assertion turns out to be false, an error is propagated with
-  # pertinent information so that you can go back and make your
-  # assertion succeed, and, once again, life is good. For an explanation
-  # of the current assertions, see Test::Unit::Assertions.
-  #
-  #
-  # == Test Method & Test Fixture
-  #
-  # Obviously, these assertions have to be called within a context that
-  # knows about them and can do something meaningful with their
-  # pass/fail value. Also, it's handy to collect a bunch of related
-  # tests, each test represented by a method, into a common test class
-  # that knows how to run them. The tests will be in a separate class
-  # from the code they're testing for a couple of reasons. First of all,
-  # it allows your code to stay uncluttered with test code, making it
-  # easier to maintain. Second, it allows the tests to be stripped out
-  # for deployment, since they're really there for you, the developer,
-  # and your users don't need them. Third, and most importantly, it
-  # allows you to set up a common test fixture for your tests to run
-  # against.
-  #
-  # What's a test fixture? Well, tests do not live in a vacuum; rather,
-  # they're run against the code they are testing. Often, a collection
-  # of tests will run against a common set of data, also called a
-  # fixture. If they're all bundled into the same test class, they can
-  # all share the setting up and tearing down of that data, eliminating
-  # unnecessary duplication and making it much easier to add related
-  # tests.
-  #
-  # Test::Unit::TestCase wraps up a collection of test methods together
-  # and allows you to easily set up and tear down the same test fixture
-  # for each test. This is done by overriding #setup and/or #teardown,
-  # which will be called before and after each test method that is
-  # run. The TestCase also knows how to collect the results of your
-  # assertions into a Test::Unit::TestResult, which can then be reported
-  # back to you... but I'm getting ahead of myself. To write a test,
-  # follow these steps:
-  #
-  # * Make sure Test::Unit is in your library path.
-  # * require 'test/unit' in your test script.
-  # * Create a class that subclasses Test::Unit::TestCase.
-  # * Add a method that begins with "test" to your class.
-  # * Make assertions in your test method.
-  # * Optionally define #setup and/or #teardown to set up and/or tear
-  #   down your common test fixture.
-  # * You can now run your test as you would any other Ruby
-  #   script... try it and see!
-  #
-  # A really simple test might look like this (#setup and #teardown are
-  # commented out to indicate that they are completely optional):
-  #
-  #     require 'test/unit'
-  #     
-  #     class TC_MyTest < Test::Unit::TestCase
-  #       # def setup
-  #       # end
-  #     
-  #       # def teardown
-  #       # end
-  #     
-  #       def test_fail
-  #         assert(false, 'Assertion was false.')
-  #       end
-  #     end
-  #
-  #
-  # == Test Runners
-  #
-  # So, now you have this great test class, but you still need a way to
-  # run it and view any failures that occur during the run. This is
-  # where Test::Unit::UI::Console::TestRunner (and others, such as
-  # Test::Unit::UI::GTK::TestRunner) comes into play. The console test
-  # runner is automatically invoked for you if you require 'test/unit'
-  # and simply run the file. To use another runner, or to manually
-  # invoke a runner, simply call its run class method and pass in an
-  # object that responds to the suite message with a
-  # Test::Unit::TestSuite. This can be as simple as passing in your
-  # TestCase class (which has a class suite method). It might look
-  # something like this:
-  #
-  #    require 'test/unit/ui/console/testrunner'
-  #    Test::Unit::UI::Console::TestRunner.run(TC_MyTest)
-  #
-  #
-  # == Test Suite
-  #
-  # As more and more unit tests accumulate for a given project, it
-  # becomes a real drag running them one at a time, and it also
-  # introduces the potential to overlook a failing test because you
-  # forget to run it. Suddenly it becomes very handy that the
-  # TestRunners can take any object that returns a Test::Unit::TestSuite
-  # in response to a suite method. The TestSuite can, in turn, contain
-  # other TestSuites or individual tests (typically created by a
-  # TestCase). In other words, you can easily wrap up a group of
-  # TestCases and TestSuites like this:
-  #
-  #  require 'test/unit/testsuite'
-  #  require 'tc_myfirsttests'
-  #  require 'tc_moretestsbyme'
-  #  require 'ts_anothersetoftests'
-  #
-  #  class TS_MyTests
-  #    def self.suite
-  #      suite = Test::Unit::TestSuite.new
-  #      suite << TC_MyFirstTests.suite
-  #      suite << TC_MoreTestsByMe.suite
-  #      suite << TS_AnotherSetOfTests.suite
-  #      return suite
-  #    end
-  #  end
-  #  Test::Unit::UI::Console::TestRunner.run(TS_MyTests)
-  #
-  # Now, this is a bit cumbersome, so Test::Unit does a little bit more
-  # for you, by wrapping these up automatically when you require
-  # 'test/unit'. What does this mean? It means you could write the above
-  # test case like this instead:
-  #
-  #  require 'test/unit'
-  #  require 'tc_myfirsttests'
-  #  require 'tc_moretestsbyme'
-  #  require 'ts_anothersetoftests'
-  #
-  # Test::Unit is smart enough to find all the test cases existing in
-  # the ObjectSpace and wrap them up into a suite for you. It then runs
-  # the dynamic suite using the console TestRunner.
-  #
-  #
-  # == Questions?
-  #
-  # I'd really like to get feedback from all levels of Ruby
-  # practitioners about typos, grammatical errors, unclear statements,
-  # missing points, etc., in this document (or any other).
-  #
+# NOTE: this list might be slightly out of date - I'm trying to automate...
+#
+# Minimal methods needed to run full miniunit + assert:
+#
+# Array: each, grep, join, size, <<, empty?, shift, first, dup
+# Class: new, inherited
+# Enumerable: find, reject
+# Exception: backtrace, message
+# File: dirname
+# Fixnum: +, ==
+# Hash: keys
+# Kernel: at_exit
+# Module: ===, public_instance_methods
+# NilClass: ==
+# Object: __send__, class, inspect
+# String: sub, %, index, ===
+# Regexp: =~, new, ===
 
-  module Unit
-    # If set to false Test::Unit will not automatically run at exit.
-    def self.run=(flag)
-      @run = flag
+# Only needed for specific assertions:
+#
+# Array.last
+# Enumerable.include?
+# Float: abs
+# Object: ==, inspect, equal?, kind_of?, nil?, respond_to?
+# Numeric: to_f, <, -
+
+$TESTING_MINIUNIT ||= false
+
+at_exit {
+  exit_code = MiniTest::Unit.new.run(ARGV)
+  exit exit_code if exit_code
+} unless $TESTING_MINIUNIT
+
+module MiniTest
+  class Assertion < Exception; end
+
+  file = if __FILE__ =~ /^[^\.]/ then # OMG ruby 1.9 is so lame (rubinius too)
+           require 'pathname'
+           pwd = Pathname.new(Dir.pwd)
+           pn = Pathname.new(File.expand_path(__FILE__))
+           pn = File.join(".", pn.relative_path_from(pwd)) unless pn.relative?
+           pn.to_s
+         else
+           __FILE__
+         end
+
+  MINIUNIT_DIR = File.dirname(File.dirname(file))
+
+  ##
+  # Filters a backtrace to include only relevant calls.
+
+  def self.filter_backtrace(bt)
+    return ["No backtrace"] unless bt
+
+    new_bt = []
+    bt.each do |line|
+      break if line.index(MINIUNIT_DIR) == 0
+      new_bt << line
     end
 
-    # Automatically run tests at exit?
-    def self.run?
-      @run ||= false
-    end
-  end
-end
+    new_bt = bt.reject { |line| line.index(MINIUNIT_DIR) == 0 } if
+      new_bt.empty?
+    new_bt = bt.dup if new_bt.empty?
 
-at_exit do
-  unless $! || Test::Unit.run?
-    exit Test::Unit::AutoRunner.run
+    new_bt
   end
-end
+
+  class Unit
+    VERSION = "1.1.0"
+
+    attr_reader :report
+
+    @@out = $stdout
+
+    def self.output= stream
+      @@out = stream
+    end
+
+    def puke(klass, meth, e)
+      if MiniTest::Assertion === e then
+        @results[:failures] += 1
+
+        loc = e.backtrace.find { |s| s !~ /in .(assert|flunk|raise)/ }
+        loc.sub!(/:in .*$/, '')
+
+        @report << "Failure:\n#{meth}(#{klass}) [#{loc}]:\n#{e.message}\n"
+        'F'
+      else
+        @results[:errors] += 1
+        bt = MiniTest::filter_backtrace(e.backtrace).join("\n    ")
+        e = "Error:\n#{meth}(#{klass}):\n#{e.class}: #{e.message}\n    #{bt}\n"
+        @report << e
+        'E'
+      end
+    end
+
+    def initialize
+      @report = []
+      @results = {:errors => 0, :failures => 0}
+    end
+
+    ##
+    # Top level driver, controls all output and filtering.
+
+    def run args
+      filter = if args.first =~ /^(-n|--name)$/ then
+                 args.shift
+                 arg = args.shift
+                 arg =~ /\/(.*)\// ? Regexp.new($1) : arg
+               else
+                 /./ # anything - ^test_ already filtered by #tests
+               end
+
+      @@out.puts "Loaded suite #{$0.sub(/\.rb$/, '')}\nStarted"
+
+      start = Time.now
+      run_test_suites filter
+
+      @@out.puts
+      @@out.puts "Finished in #{'%.6f' % (Time.now - start)} seconds."
+
+      @report.each_with_index do |msg, i|
+        @@out.puts "\n%3d) %s" % [i + 1, msg]
+      end
+
+      @@out.puts
+
+      format = "%d tests, %d assertions, %d failures, %d errors"
+      @@out.puts format % [@test_count, @assertion_count, failures, errors]
+
+      return failures + errors if @test_count > 0 # or return nil...
+    end
+
+    def run_test_suites filter = /^test/
+      @test_count, @assertion_count = 0, 0
+      TestCase.test_suites.each do |suite|
+        inst = suite.new
+        inst._assertions = 0
+        suite.tests.grep(filter).each do |test|
+          @@out.puts "\n#{test}: " if $DEBUG
+          result = '.'
+          begin
+            inst.setup
+            inst.__send__ test
+          rescue Exception => e
+            result = puke(suite, test, e)
+          ensure
+            begin
+              inst.teardown
+            rescue Exception => e
+              result = puke(suite, test, e)
+            end
+          end
+          @@out.print result
+          @@out.puts if $DEBUG
+          @test_count += 1
+        end
+        @assertion_count += inst._assertions
+      end
+      [@test_count, @assertion_count]
+    end
+
+    def failures
+      @results[:failures]
+    end
+
+    def errors
+      @results[:errors]
+    end
+
+    class TestCase
+      def self.reset
+        @@test_suites = {}
+      end
+
+      reset
+
+      def self.inherited klass
+        @@test_suites[klass] = true
+      end
+
+      def self.test_suites
+        @@test_suites.keys.sort_by { |ts| ts.name }
+      end
+
+      def self.tests
+        public_instance_methods(true).grep(/^test/).sort.map { |m|
+          m.to_s
+        }
+      end
+
+      attr_accessor :_assertions
+      def initialize
+        self._assertions = 0
+      end
+
+      def setup; end
+      def teardown; end
+
+      def assert test, msg = "failed assertion (no message given)."
+        self._assertions += 1
+        raise MiniTest::Assertion, msg unless test
+      end
+
+      def deny test, msg = "failed deny (no message given)."
+        assert !test, msg
+      end
+
+      def assert_block msg = "assert_block failed."
+        assert yield, msg
+      end
+
+      def assert_equal exp, act, msg = ""
+        msg += '.' unless msg.empty?
+        assert exp == act, "#{msg}\n<#{exp.inspect}> expected, not\n<#{act.inspect}>.".strip
+      end
+
+      def assert_in_delta(exp, act, delta,
+                          msg="Expected #{exp} to be within #{delta} of #{act}")
+        assert delta.to_f > (exp.to_f - act.to_f).abs, msg
+      end
+
+      def assert_instance_of cls, obj, msg = "Expected #{obj.inspect} to be an instance of #{cls}"
+        assert cls === obj, msg
+      end
+
+      def assert_kind_of cls, obj, msg = "Expected #{obj.inspect} to be a kind of #{cls}"
+        assert obj.kind_of?(cls), msg
+      end
+
+      def assert_match exp, act, msg = "Expected #{act.inspect} to match #{exp.inspect}"
+        assert act =~ exp, msg
+      end
+
+      def assert_nil obj, msg = "Expected #{obj.inspect} to be nil"
+        assert obj.nil?, msg
+      end
+
+      def assert_no_match exp, act, msg = "Expected #{act.inspect} to not match #{exp.inspect}"
+        assert act !~ exp, msg
+      end
+
+      def assert_not_equal exp, act, msg = "Expected #{act.inspect} to not be equal to #{exp.inspect}"
+        assert exp != act, msg
+       end
+
+      def assert_not_nil obj, msg = "Expected #{obj.inspect} to not be nil"
+        assert ! obj.nil?, msg
+      end
+
+      def assert_not_same exp, act, msg = "Expected #{act.inspect} to not be the same as #{exp.inspect}"
+        assert ! exp.equal?(act), msg
+      end
+
+      def assert_nothing_raised
+        self._assertions += 1
+        yield
+      rescue => e
+        raise MiniTest::Assertion, exception_details(e, "Exception raised:")
+      end
+
+      alias :assert_nothing_thrown :assert_nothing_raised
+
+      def assert_operator o1, op, o2, msg = "<#{o1.inspect}> expected to be\n#{op.inspect}\n<#{o2.inspect}>."
+        assert o1.__send__(op, o2), msg
+      end
+
+      def exception_details e, msg
+        "#{msg}\nClass: <#{e.class}>\nMessage: <#{e.message.inspect}>\n---Backtrace---\n#{MiniTest::filter_backtrace(e.backtrace).join("\n")}\n---------------"
+      end
+
+      def assert_raises *exp
+        msg = String === exp.last ? exp.pop : nil
+        exp = exp.first if exp.size == 1
+        begin
+          yield
+          raise MiniTest::Assertion, "<#{exp.inspect}> exception expected but none was thrown."
+        rescue Exception => e
+          assert((Array === exp ? exp.include?(e) : exp === e),
+                 exception_details(e,
+                                   "<#{exp.inspect}> exception expected, not"))
+          return e
+        end
+      end
+      alias :assert_raise :assert_raises
+
+      def assert_respond_to obj, meth, msg = "Expected #{obj.inspect} of type #{obj.class} to respond_to? #{meth.inspect}"
+        assert obj.respond_to?(meth), msg
+      end
+
+      def assert_same exp, act, msg = "Expected #{act.inspect} to be the same as #{exp.inspect}."
+        assert exp.equal?(act), msg
+      end
+
+      def assert_send send, msg = nil
+        recv, meth, *args = send
+        assert(recv.__send__(meth, *args),
+               msg || "<#{recv.inspect}> expected to respond to\n<#{meth.inspect}> with a true value.")
+      end
+
+      def assert_throws sym, msg = "<#{sym.inspect}> should have been thrown"
+        caught = true
+        catch(sym) do
+          begin
+            yield
+          rescue ArgumentError => e     # 1.9 exception
+            msg += ", not <#{e.message.split(/ /).last}>"
+          rescue NameError => e         # 1.8 exception
+            msg += ", not <#{e.name.inspect}>"
+          end
+          caught = false
+        end
+        assert caught, msg + "."
+      end
+
+      def flunk msg = "Flunked"
+        assert false, msg
+      end
+    end # class TestCase
+  end # class Unit
+end # module MiniTest
+
+Test = MiniTest unless defined? Test

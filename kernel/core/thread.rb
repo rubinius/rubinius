@@ -37,7 +37,7 @@ class Thread
     @result = nil
     @exception = nil
     @critical = false
-    @locals = LookupTable.new
+    @locals = {}
     @lock = Channel.new
     @lock.send nil if prime_lock
   end

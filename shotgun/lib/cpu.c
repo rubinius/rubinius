@@ -25,8 +25,6 @@ void cpu_destroy(cpu c) {
   free(c);
 }
 
-#define FC_STACK_SIZE    3000
-
 void cpu_initialize(STATE, cpu c) {
   state->global->tuple = Qnil;
   state->global->hash = Qnil;

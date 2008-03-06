@@ -11,9 +11,9 @@ else
 endif
 
 ifeq ($(DTRACE),1)
-	DTRACE_H=dtrace.h
+  DTRACE_H=dtrace.h
 else
-	DTRACE_H=
+  DTRACE_H=
 endif
 
 CFLAGS += -I.. $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa -Iexternal_libs/libmquark -Iexternal_libs/libev -Iexternal_libs/libtommath

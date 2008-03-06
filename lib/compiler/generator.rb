@@ -101,12 +101,14 @@ class Compiler
       return tup
     end
     
-    def encode_literals
+    def encode_literals(cm)
       tup = Tuple.new(@literals.size)
       i = 0
       @literals.each do |lit|
         if lit.kind_of? Compiler::MethodDescription
           lit = lit.to_cmethod
+        elsif lit.kind_of? SendSite
+          lit.sender = cm
         end
         tup[i] = lit
         i += 1
@@ -147,7 +149,7 @@ class Compiler
         cm.primitive = -1
       end
       
-      cm.literals = encode_literals()
+      cm.literals = encode_literals(cm)
       cm.lines = encode_lines()
       cm.exceptions = encode_exceptions()
       cm.serial = 0
