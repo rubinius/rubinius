@@ -1,6 +1,11 @@
 provider rubinius {
+    /* Method entry/exit probes*/
     probe function__entry(char*, char*, char*, int);
     probe function__return(char*, char*, char*, int);
+    
+    /* Primitive operations entry/exit probes */
+    probe function__primitive_entry(char*, char*, char*, int);
+    probe function__primitive_return(char*, char*, char*, int);
     
     /* gc probes */
     probe gc__begin();

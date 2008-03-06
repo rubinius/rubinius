@@ -580,7 +580,7 @@ void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
 static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int prim) {
 
 #if ENABLE_DTRACE
-  if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
+  if (RUBINIUS_FUNCTION_PRIMITIVE_ENTRY_ENABLED()) {
     char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
     char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
 
@@ -590,7 +590,7 @@ static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int pr
     int line_number = cpu_ip2line(state, fc->method, fc->ip);
     char *filename = (char*)rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
-    RUBINIUS_FUNCTION_ENTRY(module_name, method_name, filename, line_number);
+    RUBINIUS_FUNCTION_PRIMITIVE_ENTRY(module_name, method_name, filename, line_number);
   }
 #endif
 
@@ -606,7 +606,7 @@ static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int pr
     }
 
 #if ENABLE_DTRACE
-    if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
+    if (RUBINIUS_FUNCTION_PRIMITIVE_RETURN_ENABLED()) {
       char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
       char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
 
@@ -616,7 +616,7 @@ static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int pr
       int line_number = cpu_ip2line(state, fc->method, fc->ip);
       char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
 
-      RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+      RUBINIUS_FUNCTION_PRIMITIVE_RETURN(module_name, method_name, filename, line_number);
     }
 #endif
     return TRUE;
