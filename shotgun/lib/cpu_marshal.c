@@ -389,11 +389,6 @@ static OBJECT unmarshal_cmethod2(STATE, struct marshal_state *ms) {
     cmethod_set_primitive(cm, I2N(-1));
   }
   
-  o = cmethod_get_cache(cm);
-  if(FIXNUM_P(o)) {
-    cmethod_set_cache(cm, tuple_new(state, N2I(o)));
-  }
-
   /* Set the compiled method field on each SendSite */
   l = cmethod_get_literals(cm);
   if(TUPLE_P(l)) {
