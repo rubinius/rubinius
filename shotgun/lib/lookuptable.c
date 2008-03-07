@@ -1,4 +1,5 @@
 #include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/object.h"
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/array.h"
 #include "shotgun/lib/symbol.h"
@@ -16,7 +17,7 @@
 #define get_values(tbl) lookuptable_get_values(tbl)
 #define get_entries(tbl) lookuptable_get_entries(tbl)
 #define max_density_p(ents,bins) (ents >= LOOKUPTABLE_MAX_DENSITY * bins)
-#define min_density_p(ents,bins) (ents > LOOKUPTABLE_MIN_SIZE && ents < LOOKUPTABLE_MIN_DENSITY * bins)
+#define min_density_p(ents,bins) (ents < LOOKUPTABLE_MIN_DENSITY * bins)
 #define key_to_sym(key) \
   if(SYMBOL_P(key)) { \
     ; /* short circuit conditional */ \
@@ -28,14 +29,39 @@
 
 OBJECT lookuptable_new(STATE, int size) {
   OBJECT tbl;
+  tbl = lookuptable_allocate(state);
+  lookuptable_setup(state, tbl, size);
+  return tbl;
+}
+
+OBJECT lookuptable_setup(STATE, OBJECT tbl, int size) {
   int sz;
 
   sz = size == 0 ? LOOKUPTABLE_MIN_SIZE : size;
-  tbl = lookuptable_allocate(state);
   lookuptable_set_values(tbl, tuple_new(state, sz));
   lookuptable_set_bins(tbl, I2N(sz));
   lookuptable_set_entries(tbl, I2N(0));
   return tbl;
+}
+
+OBJECT lookuptable_dup(STATE, OBJECT tbl) {
+  unsigned int i, bins, num;
+  OBJECT new_tbl, entries, entry, key, value;
+
+  bins = N2I(get_bins(tbl));
+  num = N2I(get_entries(tbl));
+  
+  new_tbl = lookuptable_new(state, bins);
+  SET_CLASS(new_tbl, object_class(state, tbl));
+
+  entries = lookuptable_entries(state, tbl);
+  for(i = 0; i < num; i++) {
+    entry = array_get(state, entries, i);
+    key = tuple_at(state, entry, 0);
+    value = tuple_at(state, entry, 1);
+    lookuptable_store(state, new_tbl, key, value);
+  }
+  return new_tbl;
 }
 
 static OBJECT new_entry(STATE, OBJECT key, OBJECT val) {
@@ -149,7 +175,7 @@ OBJECT lookuptable_fetch(STATE, OBJECT tbl, OBJECT key) {
 
 OBJECT lookuptable_delete(STATE, OBJECT tbl, OBJECT key) {
   unsigned int entries, bins, bin;
-  OBJECT cur, entry, val, values;
+  OBJECT cur, next, entry, val, values;
 
   // returns from this function if key is not a symbol or string
   key_to_sym(key);
@@ -171,18 +197,21 @@ OBJECT lookuptable_delete(STATE, OBJECT tbl, OBJECT key) {
   cur = entry = tuple_at(state, values, bin);
 
   while(!NIL_P(entry)) {
+    next = tuple_at(state, entry, 2);
+
     if(tuple_at(state, entry, 0) == key) {
       val = tuple_at(state, entry, 1);
-      if(cur == entry) {
-        tuple_put(state, values, bin, Qnil);
+      if(entry == cur) {
+        tuple_put(state, values, bin, next);
       } else {
-        tuple_put(state, cur, 2, tuple_at(state, entry, 2));
+        tuple_put(state, cur, 2, next);
       }
       lookuptable_set_entries(tbl, I2N(N2I(get_entries(tbl)) - 1));
       return val;
     }
+
     cur = entry;
-    entry = tuple_at(state, entry, 2);
+    entry = next;
   }
   return Qnil;
 }
@@ -206,7 +235,7 @@ OBJECT lookuptable_has_key(STATE, OBJECT tbl, OBJECT key) {
   return Qfalse;
 }
 
-OBJECT lookuptable_keys(STATE, OBJECT tbl) {
+static OBJECT collect(STATE, OBJECT tbl, OBJECT (*action)(STATE, OBJECT)) {
   unsigned int i, j, bins;
   OBJECT ary, values, entry;
 
@@ -218,28 +247,33 @@ OBJECT lookuptable_keys(STATE, OBJECT tbl) {
     entry = tuple_at(state, values, i);
 
     while(!NIL_P(entry)) {
-      array_set(state, ary, j++, tuple_at(state, entry, 0));
+      array_set(state, ary, j++, action(state, entry));
       entry = tuple_at(state, entry, 2);
     }
   }
   return ary;
 }
 
+static OBJECT get_key(STATE, OBJECT entry) {
+  return tuple_at(state, entry, 0);
+}
+
+OBJECT lookuptable_keys(STATE, OBJECT tbl) {
+  return collect(state, tbl, get_key);
+}
+
+static OBJECT get_value(STATE, OBJECT entry) {
+  return tuple_at(state, entry, 1);
+}
+
 OBJECT lookuptable_values(STATE, OBJECT tbl) {
-  unsigned int i, j, bins;
-  OBJECT ary, values, entry;
+  return collect(state, tbl, get_value);
+}
 
-  ary = array_new(state, N2I(get_entries(tbl)));
-  bins = N2I(get_bins(tbl));
-  values = get_values(tbl);
+static OBJECT get_entry(STATE, OBJECT entry) {
+  return entry;
+}
 
-  for(i = j = 0; i < bins; i++) {
-    entry = tuple_at(state, values, i);
-
-    while(!NIL_P(entry)) {
-      array_set(state, ary, j++, tuple_at(state, entry, 1));
-      entry = tuple_at(state, entry, 2);
-    }
-  }
-  return ary;
+OBJECT lookuptable_entries(STATE, OBJECT tbl) {
+  return collect(state, tbl, get_entry);
 }

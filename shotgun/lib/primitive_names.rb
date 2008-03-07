@@ -236,7 +236,9 @@ module Bytecode
       :lookuptable_delete,
       :lookuptable_has_key,
       :lookuptable_keys,
-      :lookuptable_values
+      :lookuptable_values,
+      :lookuptable_entries,
+      :lookuptable_dup
     ]
   end
 end

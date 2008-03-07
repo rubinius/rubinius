@@ -4195,6 +4195,22 @@ class ShotgunPrimitives
     RET(lookuptable_values(state, msg->recv));
     CODE
   end
+  
+  def lookuptable_entries
+    <<-CODE
+    ARITY(0);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    RET(lookuptable_entries(state, msg->recv));
+    CODE
+  end
+
+  def lookuptable_dup
+    <<-CODE
+    ARITY(0);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    RET(lookuptable_dup(state, msg->recv));
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

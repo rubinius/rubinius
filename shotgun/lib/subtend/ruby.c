@@ -695,8 +695,7 @@ VALUE rb_gv_get(const char *name)
 }
 
 VALUE rb_require(const char* name) {
-  CTX;
-  return rb_funcall((VALUE)Qnil, rb_intern("require"), 1, rb_str_new2(name) );
+  return rb_funcall((VALUE)Qnil, rb_intern("require"), 1, rb_str_new2(name));
 }
 
 int FIX2INT(VALUE val) {
