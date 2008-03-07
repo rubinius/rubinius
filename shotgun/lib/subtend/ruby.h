@@ -117,6 +117,13 @@ ID rb_to_id(VALUE obj);
 
 VALUE rb_yield(VALUE val);
 
+int rb_safe_level();
+void rb_secure(int level);
+void rb_set_safe_level(int newlevel);
+
+VALUE rb_gv_set(const char *name, VALUE value);
+VALUE rb_gv_get(const char *name);
+
 VALUE rb_check_array_type(VALUE ary);
 VALUE rb_check_string_type(VALUE str);
 VALUE rb_check_convert_type(VALUE val, int type, const char* tname, const char* method);

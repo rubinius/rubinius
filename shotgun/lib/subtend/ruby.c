@@ -13,6 +13,8 @@
 
 #define RBX_SYMBOL_P(obj) (DATA_TAG(obj) == DATA_TAG_SYMBOL)
 
+/* I picked this value arbitrarily because I don't know any better - CT */
+#define SAFE_LEVEL_MAX 4096 
 
 OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *func, int args);
 #define AS_HNDL(obj) ((rni_handle*)obj)
@@ -379,10 +381,6 @@ void rb_thread_schedule() {
   rb_funcall2(rb_const_get(rb_cObject, rb_intern("Thread")), rb_intern("pass"), 0, NULL);
 }
 
-void rb_secure(int level) {
-  return;
-}
-
 int rb_ary_size(VALUE self) {
   OBJECT ary;
   CTX;
@@ -644,6 +642,56 @@ void rb_raise(VALUE exc, const char *fmt, ...) {
   ctx->nmc->value = NEW_HANDLE(ctx, cpu_new_exception(ctx->state, ctx->cpu, HNDL(exc), buf));
   ctx->nmc->jump_val = RAISED_EXCEPTION;
   setcontext(&ctx->nmc->system);
+}
+
+int rb_safe_level() {
+  VALUE safe = rb_gv_get("$SAFE");
+  return FIX2INT(safe);
+}
+
+void rb_set_safe_level(int newlevel)
+{
+  int safe_level = rb_safe_level();
+
+  if(newlevel > safe_level && newlevel < SAFE_LEVEL_MAX)
+  {
+    rb_gv_set("$SAFE", INT2FIX(newlevel) );
+  }
+}
+
+void rb_secure(int level) {
+  int safe_level = rb_safe_level();
+  if(level <= safe_level)
+  {
+    rb_raise(rb_eSecurityError, "Insecure operation at level %d", safe_level);
+  }
+}
+
+static VALUE make_into_global_variable(const char *name)
+{
+  VALUE gvstr = rb_str_new2(name);
+
+  // Make sure the string has a $ at the front.  MRI makes it optional
+  if(name[0] != '$') {
+    gvstr = rb_funcall( rb_str_new2("$"), rb_intern("+"), 1, gvstr);
+  }
+
+  return gvstr;
+}
+
+VALUE rb_gv_set(const char *name, VALUE val)
+{
+  VALUE varname = make_into_global_variable(name);
+  VALUE gob = rb_const_get(rb_cObject, rb_intern("Globals"));
+  rb_funcall(gob, rb_intern("[]="), 2, rb_to_id(varname), val);
+  return val;
+}
+
+VALUE rb_gv_get(const char *name)
+{
+  VALUE varname = make_into_global_variable(name);
+  VALUE gob = rb_const_get(rb_cObject, rb_intern("Globals"));
+  return rb_funcall(gob, rb_intern("[]"), 1, rb_to_id(varname) );
 }
 
 VALUE rb_require(const char* name) {
