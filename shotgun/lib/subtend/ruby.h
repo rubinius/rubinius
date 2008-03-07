@@ -73,6 +73,7 @@ int rb_block_given_p();
 VALUE rb_each(VALUE obj);
 
 #define rb_cObject (subtend_get_global(0))
+#define rb_mKernel rb_const_get(rb_cObject, rb_intern("Kernel") )
 
 /* TODO: Pull these into an enum */
 #define rb_eException          subtend_get_exception(0)

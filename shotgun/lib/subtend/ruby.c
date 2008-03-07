@@ -337,6 +337,10 @@ void rb_define_module_function(VALUE vmod, const char *name, void *func, int arg
   rb_define_singleton_method(vmod, name, func, args);
 }
 
+void rb_define_global_function(const char *name, void *func, int args) {
+  rb_define_module_function(rb_mKernel, name, func, args);
+}
+
 const char *rb_id2name(ID sym) {
   OBJECT obj;
   CTX;
