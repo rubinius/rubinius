@@ -46,6 +46,8 @@ extern VALUE subtend_get_exception(int which);
 void rb_define_method_(const char *file, VALUE vmod, const char *name, void *func, int args, int kind);
 void rb_define_module_function(VALUE vmod, const char *name, void *func, int args);
 
+void rb_include_module(VALUE parent, VALUE module);
+
 #define rb_define_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 0)
 #define rb_define_private_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 1)
 #define rb_define_protected_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 2)
