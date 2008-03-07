@@ -11,5 +11,5 @@ OBJECT bytearray_dup(STATE, OBJECT self);
 #define bytearray_byte_address(st, self) BYTEARRAY_ADDRESS(self)
 #define bytearray_bytes(st, self) BYTEARRAY_SIZE(self)
 
-OBJECT iseq_new(STATE, unsigned int fields);
+OBJECT iseq_new(STATE, unsigned int sz);
 void iseq_flip(STATE, OBJECT self, OBJECT output);
