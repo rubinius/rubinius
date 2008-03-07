@@ -4,18 +4,18 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Module#autoload" do
   it "registers the given filename to be loaded the first time that the Module with the given name is accessed" do
     begin
-      $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/fixtures/autoload.rb") }
+      $m = Module.new { autoload(:AAA, File.dirname(__FILE__) + "/fixtures/autoload.rb") }
 
-      # $m::A is set in module_spec.autoload.rb
-      $m.const_get(:A).should == "test"
+      # $m::AAA is set in module_spec.autoload.rb
+      $m.const_get(:AAA).should == "test"
 
       # I know this is bad...
-      $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/../module/fixtures/autoload.rb") }
-      $m.const_get(:A).should == "test"
+      $m = Module.new { autoload(:AAA, File.dirname(__FILE__) + "/../module/fixtures/autoload.rb") }
+      $m.const_get(:AAA).should == "test"
 
       # And this is no better...
-      $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/../module/../module/fixtures/autoload.rb") }
-      $m.const_get(:A).should == "test"
+      $m = Module.new { autoload(:AAA, File.dirname(__FILE__) + "/../module/../module/fixtures/autoload.rb") }
+      $m.const_get(:AAA).should == "test"
     ensure
       $m = nil
     end
@@ -23,9 +23,9 @@ describe "Module#autoload" do
 
   it "does not autoload when the specified constant was already set" do
     begin
-      $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/../core/../core/../core/fixtures/autoload.rb") }
-      $m.const_set(:A, "testing!")
-      $m.const_get(:A).should == "testing!"
+      $m = Module.new { autoload(:AAA, File.dirname(__FILE__) + "/../core/../core/../core/fixtures/autoload.rb") }
+      $m.const_set(:AAA, "testing!")
+      $m.const_get(:AAA).should == "testing!"
     ensure
       $m = nil
     end
@@ -52,8 +52,8 @@ end
 
 describe "Module#autoload?" do
   it "returns the name of the file that will be autoloaded" do
-    m = Module.new { autoload :A, "module_a" }
-    m.autoload?(:A).should == "module_a"
+    m = Module.new { autoload :AAA, "module_a" }
+    m.autoload?(:AAA).should == "module_a"
     m.autoload?(:B).should == nil
   end
 end
