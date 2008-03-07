@@ -580,17 +580,19 @@ class TCPSocket < IPSocket
                 local_service = nil, server = false)
     status = nil
     syscall = nil
+    remote_host    = remote_host.to_s    if remote_host
+    remote_service = remote_service.to_s if remote_service
 
     flags = server ? Socket::AI_PASSIVE : 0
-    @remote_addrinfo = Socket::Foreign.getaddrinfo(remote_host.to_s,
-                                                   remote_service.to_s,
+    @remote_addrinfo = Socket::Foreign.getaddrinfo(remote_host,
+                                                   remote_service,
                                                    Socket::AF_UNSPEC,
                                                    Socket::SOCK_STREAM, 0,
                                                    flags)
 
     if server == false and (local_host or local_service) then
-      @local_addrinfo = Socket::Foreign.getaddrinfo(local_host.to_s,
-                                                    local_service.to_s, 
+      @local_addrinfo = Socket::Foreign.getaddrinfo(local_host,
+                                                    local_service, 
                                                     Socket::AF_UNSPEC,
                                                     Socket::SOCK_STREAM, 0, 0)
     end
