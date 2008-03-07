@@ -56,10 +56,11 @@ Autotest.add_hook :initialize do |at|
   at.find_directories.clear
   at.find_directories.push(
                            'kernel',
-                           # 'lib', # TODO: port mri tests to specs?
+                           'lib',
                            'shotgun',
                            'spec/ruby/1.8/core',
                            'spec/ruby/1.8/language',
+                           'spec/ruby/1.8/library',
                            'spec/compiler',
                            'spec/parser',
                            'spec/tags'
