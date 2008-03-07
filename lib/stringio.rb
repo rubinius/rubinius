@@ -226,7 +226,8 @@ class StringIO
     return nil if @pos == 0
 
     @eof = false
-    @string[@pos -= 1] = chr
+    @pos -= 1
+    @string[@pos] = chr
     return nil
   end
 
@@ -330,17 +331,19 @@ class StringIO
 
   def putc(chr)
     if chr.kind_of? String
-      write chr
+      write chr[0..0]
       return chr
     end
 
     @pos = @string.size if @append
 
-    if @pos = @string.size - 1
+    if @pos >= @string.size - 1 then
       @string << chr.chr
+      @pos += 1
     else
       @string[@pos] = chr
     end
+
     return chr
   end
 
