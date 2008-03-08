@@ -51,4 +51,11 @@ describe "IO.new" do
       io.close
     }.should complain(/IO::new.*does not take block.*IO::open.*instead/)
   end
+  
+  it "accepts only one argument" do
+    # By default, IO.new without an arg assumes RO
+    @file.close
+    @file = File.open @filename, 'r'
+    lambda { IO.new(@file.fileno) }.should_not raise_error()
+  end
 end
