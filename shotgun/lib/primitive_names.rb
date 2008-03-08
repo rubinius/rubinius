@@ -232,7 +232,8 @@ module Bytecode
       :lookuptable_keys,
       :lookuptable_values,
       :lookuptable_entries,
-      :lookuptable_dup
+      :lookuptable_dup,
+      :allocate_module
     ]
   end
 end

@@ -1,20 +1,14 @@
 class Module
   ivar_as_index :method_table => 1, :name => 3, :constants => 4, :encloser => 5, :superclass => 6
 
-  def method_table
-    @method_table
-  end
+  def method_table   ; @method_table ; end
+  def constant_table ; @constants    ; end
+  def encloser       ; @encloser     ; end
+  def name           ; @name.to_s    ; end
 
-  def constant_table
-    @constants
-  end
-
-  def encloser
-    @encloser
-  end
-
-  def name
-    @name.to_s
+  def self.allocate
+    Ruby.primitive :allocate_module
+    raise PrimitiveFailure, "Module.allocate primitive failed"
   end
 
   # Ultra simple private

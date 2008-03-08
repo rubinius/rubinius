@@ -4101,6 +4101,19 @@ class ShotgunPrimitives
     RET(lookuptable_dup(state, msg->recv));
     CODE
   end
+  
+  def allocate_module
+    <<-CODE
+    ARITY(0);
+    GUARD(CLASS_P(msg->recv));
+    OBJECT t1, t2;
+    
+    t1 = class_get_instance_fields(msg->recv);
+    t2 = NEW_OBJECT(msg->recv, N2I(t1));
+    module_setup_fields(state, t2);
+    RET(t2);
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

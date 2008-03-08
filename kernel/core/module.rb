@@ -37,13 +37,6 @@ class Module
     nesting
   end
   
-  def self.allocate
-    mod = __allocate__
-    mod.constants_table = Hash.new
-    mod.method_table = MethodTable.new
-    mod
-  end
-
   def initialize
     block = block_given?
     instance_eval(&block) if block
