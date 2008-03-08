@@ -70,11 +70,13 @@ void cpu_event_run(STATE) {
     ev_loop(state->event_base, EVLOOP_ONESHOT);
     ev_loop(e->sig_event_base, EVLOOP_NONBLOCK);  // HACK
   }
+
 }
 
 void cpu_event_runonce(STATE) {
   environment e;
   e = environment_current();
+  
   ev_loop(e->sig_event_base, EVLOOP_NONBLOCK);  // HACK
   ev_loop(state->event_base, EVLOOP_ONESHOT | EVLOOP_NONBLOCK);
 }

@@ -88,6 +88,7 @@ struct cpu_task_shared {
 struct cpu_task {
   CPU_TASK_REGISTERS;
   unsigned int active;
+  int saved_errno;
 };
 
 struct rubinius_cpu {
