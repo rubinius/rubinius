@@ -574,25 +574,12 @@ describe "Array#pack" do
     ["ABC", "DEF", "GHI"].pack('m*').should == ["ABC"].pack('m')
   end
   
-  # intel is little
-  little_endian do
-    it "encodes an integer in network order with ('n')" do
-      [1234].pack('n').should == "\004\322"
-    end
-    
-    it "encodes 4 integers in network order with ('n4')" do
-      [1234,5678,9876,5432].pack('n4').should == "\004\322\026.&\224\0258"
-    end
+  it "encodes an integer in network order with ('n')" do
+    [1234].pack('n').should == "\004\322"
   end
   
-  big_endian do
-    it "encodes an integer in network order with ('n')" do
-      [1234].pack('n').should == "\322\004"
-    end
-    
-    it "encodes 4 integers in network order with ('n4')" do
-      [1234,5678,9876,5432].pack('n4').should == "\322\004.\026\224&8\025"
-    end
+  it "encodes 4 integers in network order with ('n4')" do
+    [1234,5678,9876,5432].pack('n4').should == "\004\322\026.&\224\0258"
   end
   
   it "encodes a positive integer with ('s')" do
