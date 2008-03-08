@@ -235,6 +235,7 @@ describe "String#%" do
     
     ("%b" % -5).should == "..1011"
     ("%0b" % -5).should == "1011"
+    ("%.4b" % 2).should == "0010"
     ("%.1b" % -5).should == "1011"
     ("%.7b" % -5).should == "1111011"
     ("%.10b" % -5).should == "1111111011"
@@ -435,6 +436,7 @@ describe "String#%" do
     # These are incredibly wrong. -05 == -5, not 7177777...whatever
     ("%o" % -5).should == "..73"
     ("%0o" % -5).should == "73"
+    ("%.4o" % 20).should == "0024"
     ("%.1o" % -5).should == "73"
     ("%.7o" % -5).should == "7777773"
     ("%.10o" % -5).should == "7777777773"
@@ -578,6 +580,7 @@ describe "String#%" do
 
     ("%x" % -5).should == "..fb"
     ("%0x" % -5).should == "fb"
+    ("%.4x" % 20).should == "0014"
     ("%.1x" % -5).should == "fb"
     ("%.7x" % -5).should == "ffffffb"
     ("%.10x" % -5).should == "fffffffffb"
