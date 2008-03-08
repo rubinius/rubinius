@@ -31,11 +31,17 @@ baker_gc baker_gc_new(int size) {
 
 void baker_gc_describe(baker_gc g) {
   printf("Size:    %x (%d)\n", (unsigned int)g->current->size, (int)g->current->size);
-  printf("Used:    %d\n", (int)g->used);
-  printf("Current: %p => %p\n", (void*)g->current->address, 
-      (void*)g->current->last);
+  printf("Current: %p => %p\n", (void*)g->current->address, (void*)g->current->last);
   printf("Next:    %p => %p\n", (void*)g->next->address, (void*)g->next->last);
   printf("RS Size: %zd\n", ptr_array_length(g->remember_set));
+}
+
+int baker_gc_memory_allocated(baker_gc g) {
+  return g->current->size * 2;
+}
+
+int baker_gc_memory_in_use(baker_gc g) {
+  return g->current->current - g->current->address;
 }
 
 int baker_gc_enlarge_next(baker_gc g, size_t sz) {
@@ -62,6 +68,10 @@ size_t baker_gc_used(baker_gc g) {
   return g->used;
 }
 
+void baker_gc_reset_used(baker_gc g) {
+  g->used = 0;
+}
+
 int baker_gc_swap(baker_gc g) {
   rheap tmp;
   
@@ -74,7 +84,7 @@ int baker_gc_swap(baker_gc g) {
   
   heap_reset(tmp);
   /* Reset used to the what the current has used. */
-  g->used = (uintptr_t)g->current->current - (uintptr_t)g->current->address;
+  /* g->used = (uintptr_t)g->current->current - (uintptr_t)g->current->address; */
   return TRUE;
 }
 
@@ -407,6 +417,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
     if(heap_enough_fields_p(g->next, NUM_FIELDS(obj))) {
       xassert(obj->klass != Qnil);
       dest = heap_copy_object(g->next, obj);
+      g->used++;
       baker_gc_set_forwarding_address(obj, dest);
       if(!obj->ForeverYoung) INCREMENT_AGE(dest);
       if(obj->obj_type == WrapsStructType) MARK_WRAPPED_STRUCT(obj);
@@ -629,10 +640,12 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
     baker_gc_enlarge_next(g, g->current->size);
   }
 
+/*
   if(g->used > g->current->size * 0.90) {
     DEBUG("Enlarging next!\n");
     baker_gc_enlarge_next(g, g->current->size * 1.5);
   }
+*/
   
   // printf("Saved %d contexts.\n", saved_contexts);
   ptr_array_free(rs);

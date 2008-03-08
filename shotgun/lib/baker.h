@@ -41,6 +41,9 @@ OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT iobj);
 unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots);
 void baker_gc_clear_marked(baker_gc g);
 void baker_gc_describe(baker_gc g);
+int baker_gc_memory_allocated(baker_gc g);
+int baker_gc_memory_in_use(baker_gc g);
+void baker_gc_reset_used(baker_gc g);
 void baker_gc_find_lost_souls(STATE, baker_gc g);
 void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, ptr_array refs);
 void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int top);
@@ -62,8 +65,8 @@ static inline int baker_gc_forwarded_p(OBJECT obj) {
 
 #else
 
-#define baker_gc_allocate(g, size) baker_gc_allocate_ultra(g, size);
-#define baker_gc_allocate_spilled(g, size) baker_gc_allocate_spilled_ultra(g, size);
+#define baker_gc_allocate(g, size) baker_gc_allocate_ultra(g, size); g->used++;
+#define baker_gc_allocate_spilled(g, size) baker_gc_allocate_spilled_ultra(g, size); g->used++;
 
 #endif
 
