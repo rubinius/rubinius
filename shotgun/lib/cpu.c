@@ -273,7 +273,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   
     start = cur = staticscope_get_module(cref);
   
-    while(!NIL_P(cur) && cur != state->global->object) {
+    while(!NIL_P(cur)) {
     
       hsh = module_get_constants(cur);
       val = hash_get_undef(state, hsh, sym_hash);
