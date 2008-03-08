@@ -34,6 +34,7 @@ class File < IO
   include Constants
 
   SEPARATOR = Platform::File::SEPARATOR
+  Separator = Platform::File::SEPARATOR
   ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
   POSIX = Platform::POSIX
