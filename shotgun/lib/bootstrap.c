@@ -6,6 +6,7 @@
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/module.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/regexp.h"
 #include "shotgun/lib/subtend/ffi.h"
 #include "shotgun/lib/selector.h"
@@ -232,7 +233,7 @@ void cpu_bootstrap_exceptions(STATE) {
 
   OBJECT ern = rbs_module_new(state, "Errno", state->global->object);
 
-  state->global->errno_mapping = hash_new(state);
+  state->global->errno_mapping = lookuptable_new(state, 0);
 
   rbs_const_set(state, ern, "Mapping", state->global->errno_mapping);
   
@@ -241,7 +242,7 @@ void cpu_bootstrap_exceptions(STATE) {
 #define set_syserr(num, name) ({ \
   OBJECT _cls = rbs_class_new_with_namespace(state, name, sz, sce, ern); \
   rbs_const_set(state, _cls, "Errno", I2N(num)); \
-  hash_set(state, state->global->errno_mapping, I2N(num), _cls); \
+  lookuptable_store(state, state->global->errno_mapping, I2N(num), _cls); \
   })
 
 /*

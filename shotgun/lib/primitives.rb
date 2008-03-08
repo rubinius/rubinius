@@ -4123,15 +4123,11 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(2);
     GUARD(LOOKUPTABLE_P(msg->recv));
-    OBJECT t1, t2, t3;
+    OBJECT t1, t2;
 
     t1 = stack_pop();
     t2 = stack_pop();
-    t3 = lookuptable_store(state, msg->recv, t1, t2);
-    if(t3 == Qundef) {
-      FAIL();
-    }
-    RET(t2);
+    RET(lookuptable_store(state, msg->recv, t1, t2));
     CODE
   end
 
@@ -4143,10 +4139,7 @@ class ShotgunPrimitives
 
     t1 = stack_pop();
     t2 = lookuptable_fetch(state, msg->recv, t1);
-    if(t2 == Qundef) {
-      FAIL();
-    }
-    RET(t2);
+    RET(t2 == Qundef ? Qnil : t2);
     CODE
   end
 
@@ -4158,10 +4151,7 @@ class ShotgunPrimitives
 
     t1 = stack_pop();
     t2 = lookuptable_delete(state, msg->recv, t1);
-    if(t2 == Qundef) {
-      FAIL();
-    }
-    RET(t2);
+    RET(t2 == Qundef ? Qnil : t2);
     CODE
   end
 
@@ -4169,14 +4159,10 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(LOOKUPTABLE_P(msg->recv));
-    OBJECT t1, t2;
+    OBJECT t1;
 
     t1 = stack_pop();
-    t2 = lookuptable_has_key(state, msg->recv, t1);
-    if(t2 == Qundef) {
-      FAIL();
-    }
-    RET(t2);
+    RET(lookuptable_has_key(state, msg->recv, t1));
     CODE
   end
 

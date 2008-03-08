@@ -567,7 +567,7 @@ void cpu_raise_from_errno(STATE, cpu c, const char *msg) {
   OBJECT cls;
   char buf[32];
 
-  cls = hash_find(state, state->global->errno_mapping, I2N(errno));
+  cls = lookuptable_fetch(state, state->global->errno_mapping, I2N(errno));
   if(NIL_P(cls)) {
     cls = state->global->exc_arg;
     snprintf(buf, sizeof(buf), "Unknown errno %d", errno);

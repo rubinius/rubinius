@@ -19,13 +19,9 @@
 #define max_density_p(ents,bins) (ents >= LOOKUPTABLE_MAX_DENSITY * bins)
 #define min_density_p(ents,bins) (ents < LOOKUPTABLE_MIN_DENSITY * bins)
 #define key_to_sym(key) \
-  if(SYMBOL_P(key)) { \
-    ; /* short circuit conditional */ \
-  } else if(STRING_P(key)) { \
+  if(STRING_P(key)) { \
     key = symtbl_lookup(state, state->global->symbols, key); \
-  } else { \
-    return Qundef; \
-  }
+  } \
 
 OBJECT lookuptable_new(STATE, int size) {
   OBJECT tbl;
@@ -116,14 +112,11 @@ static void redistribute(STATE, OBJECT tbl, unsigned int size) {
   lookuptable_set_bins(tbl, I2N(size));
 }
 
-
 OBJECT lookuptable_store(STATE, OBJECT tbl, OBJECT key, OBJECT val) {
   unsigned int entries, bins, bin;
   OBJECT cur, entry, new_ent, values;
 
-  // returns from this function if key is not a symbol or string
   key_to_sym(key);
-
   entries = N2I(get_entries(tbl));
   bins = N2I(get_bins(tbl));
 
@@ -158,9 +151,7 @@ OBJECT lookuptable_fetch(STATE, OBJECT tbl, OBJECT key) {
   unsigned int bin;
   OBJECT entry;
 
-  // returns from this function if key is not a symbol or string
   key_to_sym(key);
-
   bin = find_bin(key_hash(key), N2I(get_bins(tbl)));
   entry = tuple_at(state, get_values(tbl), bin);
 
@@ -177,9 +168,7 @@ OBJECT lookuptable_delete(STATE, OBJECT tbl, OBJECT key) {
   unsigned int entries, bins, bin;
   OBJECT cur, next, entry, val, values;
 
-  // returns from this function if key is not a symbol or string
   key_to_sym(key);
-
   entries = N2I(get_entries(tbl));
   bins = N2I(get_bins(tbl));
 
@@ -220,9 +209,7 @@ OBJECT lookuptable_has_key(STATE, OBJECT tbl, OBJECT key) {
   unsigned int bin;
   OBJECT entry;
 
-  // returns from this function if key is not a symbol or string
   key_to_sym(key);
-
   bin = find_bin(key_hash(key), N2I(get_bins(tbl)));
   entry = tuple_at(state, get_values(tbl), bin);
 

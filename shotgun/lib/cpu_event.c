@@ -21,6 +21,7 @@
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/list.h"
 
@@ -262,7 +263,7 @@ static void _cpu_wake_channel_and_read(EV_P_ struct ev_io *ev, int revents) {
            It might be better to re-schedule this in libev and try again,
            but libev just said SOMETHING was there... */
         if(errno == EINTR) continue;
-        ret = hash_find(state, state->global->errno_mapping, I2N(errno));
+        ret = lookuptable_fetch(state, state->global->errno_mapping, I2N(errno));
       } else {
         buf[i] = 0;
         string_set_bytes(ti->buffer, I2N(i + offset));
