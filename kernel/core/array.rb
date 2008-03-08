@@ -1120,15 +1120,9 @@ class Array
           bytes = 4 if(kind =~ /l/i)
         end
 
-
-
         # pack these bytes according to the native byte ordering of the host platform
-        little_endian = endian?(:little)
-        
-        # reverse the sense if we're converting to network order
-        if(kind =~ /n/i)
-          little_endian = !little_endian
-        end
+        # We need big endian if we're converting to network order
+        little_endian = kind =~ /n/i ? false : endian?(:little)
         
         0.upto(size-1) do |i|
           item = Type.coerce_to(self[arr_idx], Integer, :to_i)
