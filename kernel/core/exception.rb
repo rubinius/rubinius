@@ -172,6 +172,10 @@ class SyntaxError < ScriptError
     @line = l
     @code = code
   end
+  
+  def message
+    "#{file}:#{@line}: #{super}"
+  end
 end
 
 class SystemCallError < StandardError

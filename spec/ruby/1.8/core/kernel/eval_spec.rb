@@ -113,4 +113,21 @@ describe "Kernel#eval" do
     lambda { eval("k", proc_binding)  }.should raise_error(NameError)
     eval("k", inner_binding).should == 6
   end
+  
+  it "should include file and line information in syntax error" do
+    expected = 'speccing.rb'
+    lambda {
+      begin
+        eval('if true',TOPLEVEL_BINDING,expected)
+      rescue Exception => e
+        @ex = e
+        raise e
+      end
+    }.should raise_error SyntaxError
+    
+    @ex.message =~ /^(.*?):(\d+): (.*)/
+    $1.should == expected
+    $2.to_i.should == 1
+    $3.strip.length.should_not == 0
+  end
 end
