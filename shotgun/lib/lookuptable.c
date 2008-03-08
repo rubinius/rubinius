@@ -23,15 +23,15 @@
     key = symtbl_lookup(state, state->global->symbols, key); \
   } \
 
-OBJECT lookuptable_new(STATE, int size) {
+OBJECT lookuptable_new_sized(STATE, size_t size) {
   OBJECT tbl;
   tbl = lookuptable_allocate(state);
   lookuptable_setup(state, tbl, size);
   return tbl;
 }
 
-OBJECT lookuptable_setup(STATE, OBJECT tbl, int size) {
-  int sz;
+OBJECT lookuptable_setup(STATE, OBJECT tbl, size_t size) {
+  size_t sz;
 
   sz = size == 0 ? LOOKUPTABLE_MIN_SIZE : size;
   lookuptable_set_values(tbl, tuple_new(state, sz));
@@ -47,7 +47,7 @@ OBJECT lookuptable_dup(STATE, OBJECT tbl) {
   bins = N2I(get_bins(tbl));
   num = N2I(get_entries(tbl));
   
-  new_tbl = lookuptable_new(state, bins);
+  new_tbl = lookuptable_new_sized(state, bins);
   SET_CLASS(new_tbl, object_class(state, tbl));
 
   entries = lookuptable_entries(state, tbl);

@@ -161,9 +161,9 @@ OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
   /* Implements the external ivars table for objects that don't
      have their own space for ivars. */
   if(!REFERENCE_P(self)) {
-    tbl = hash_find(state, state->global->external_ivars, self);
+    tbl = lookuptable_fetch(state, state->global->external_ivars, self);
     if(RTEST(tbl)) {
-      return hash_find(state, tbl, sym);
+      return lookuptable_fetch(state, tbl, sym);
     }
     return Qnil;
   } else if(!object_has_ivars(state, self)) {
@@ -173,7 +173,7 @@ OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
 
     if(NIL_P(tbl)) return Qnil;
 
-    return hash_find(state, tbl, sym);
+    return lookuptable_fetch(state, tbl, sym);
   }
   
   tbl = object_get_instance_variables(self);
@@ -187,7 +187,7 @@ OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
   }
   
   /* It's a normal hash, no problem. */
-  val = hash_find(state, tbl, sym);
+  val = lookuptable_fetch(state, tbl, sym);
   return val;
 }
 
@@ -197,14 +197,14 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
   /* Implements the external ivars table for objects that don't
      have their own space for ivars. */
   if(!REFERENCE_P(self)) {
-    tbl = hash_find(state, state->global->external_ivars, self);
+    tbl = lookuptable_fetch(state, state->global->external_ivars, self);
 
     if(NIL_P(tbl)) {
-      t2 = hash_new(state);
-      hash_set(state, state->global->external_ivars, self, t2);
+      t2 = lookuptable_new(state);
+      lookuptable_store(state, state->global->external_ivars, self, t2);
       tbl = t2;
     }
-    hash_set(state, tbl, sym, val);
+    lookuptable_store(state, tbl, sym, val);
     return val;
   } else if(!object_has_ivars(state, self)) {
     OBJECT meta;
@@ -212,12 +212,12 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
     tbl = metaclass_get_has_ivars(meta);
 
     if(NIL_P(tbl)) {
-      t2 = hash_new(state);
+      t2 = lookuptable_new(state);
       metaclass_set_has_ivars(meta, t2);
       tbl = t2;
     }
 
-    hash_set(state, tbl, sym, val);
+    lookuptable_store(state, tbl, sym, val);
     return val;
   }
   
@@ -237,16 +237,16 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
     }
     /* csm_add said false, meaning there is no room. We convert
        the csm into a normal hash and use it from now on. */
-    tbl = csm_into_hash(state, tbl);
+    tbl = csm_into_lookuptable(state, tbl);
     object_set_instance_variables(self, tbl);
   }
-  hash_set(state, tbl, sym, val);
+  lookuptable_store(state, tbl, sym, val);
   return val;
 }
 
 OBJECT object_get_ivars(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) {
-    return hash_find(state, state->global->external_ivars, self);
+    return lookuptable_fetch(state, state->global->external_ivars, self);
   } else if(!object_has_ivars(state, self)) {
     return metaclass_get_has_ivars(object_metaclass(state, self));
   }
@@ -257,7 +257,7 @@ OBJECT object_get_ivars(STATE, OBJECT self) {
 void object_copy_ivars(STATE, OBJECT self, OBJECT dest) {
   OBJECT tbl;
   if(!REFERENCE_P(self)) {
-    tbl = hash_find(state, state->global->external_ivars, self);
+    tbl = lookuptable_fetch(state, state->global->external_ivars, self);
   } else if(!object_has_ivars(state, self)) {
     if(metaclass_s_metaclass_p(state, self->klass)) {
       tbl = metaclass_get_has_ivars(self->klass);
@@ -273,11 +273,11 @@ void object_copy_ivars(STATE, OBJECT self, OBJECT dest) {
   if(ISA(tbl, state->global->tuple)) {
     tbl = tuple_dup(state, tbl);
   } else {
-    tbl = hash_dup(state, tbl);
+    tbl = lookuptable_dup(state, tbl);
   }
   
   if(!REFERENCE_P(dest)) {
-    hash_set(state, state->global->external_ivars, dest, tbl);
+    lookuptable_store(state, state->global->external_ivars, dest, tbl);
   } else if(!object_has_ivars(state, dest)) {
     metaclass_set_has_ivars(object_metaclass(state, dest), tbl);
   } else {

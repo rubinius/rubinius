@@ -4113,7 +4113,7 @@ class ShotgunPrimitives
     GUARD(CLASS_P(msg->recv));
     OBJECT t1;
 
-    t1 = lookuptable_new(state, 0);
+    t1 = lookuptable_new(state);
     SET_CLASS(t1, msg->recv); 
     RET(t1);
     CODE

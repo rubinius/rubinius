@@ -182,7 +182,7 @@ void cpu_bootstrap(STATE) {
         "Primitives",
         cpu_populate_prim_names(state));
   
-  state->global->external_ivars = hash_new(state);
+  state->global->external_ivars = lookuptable_new(state);
 
 }
 
@@ -233,7 +233,7 @@ void cpu_bootstrap_exceptions(STATE) {
 
   OBJECT ern = rbs_module_new(state, "Errno", state->global->object);
 
-  state->global->errno_mapping = lookuptable_new(state, 0);
+  state->global->errno_mapping = lookuptable_new(state);
 
   rbs_const_set(state, ern, "Mapping", state->global->errno_mapping);
   

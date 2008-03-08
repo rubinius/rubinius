@@ -1,8 +1,10 @@
 #ifndef RBS_LOOKUPTABLE_H
 #define RBS_LOOKUPTABLE_H
 
-OBJECT lookuptable_new(STATE, int size);
-OBJECT lookuptable_setup(STATE, OBJECT tbl, int size);
+#define lookuptable_new(s) lookuptable_new_sized(s, 0)
+
+OBJECT lookuptable_new_sized(STATE, size_t size);
+OBJECT lookuptable_setup(STATE, OBJECT tbl, size_t size);
 OBJECT lookuptable_store(STATE, OBJECT tbl, OBJECT key, OBJECT val);
 OBJECT lookuptable_fetch(STATE, OBJECT tbl, OBJECT key);
 OBJECT lookuptable_delete(STATE, OBJECT tbl, OBJECT key);
