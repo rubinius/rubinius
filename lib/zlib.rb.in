@@ -121,11 +121,15 @@ module Zlib
     end
 
     def finished?
-      (@flags & FINISHED) == 1
+      (@flags & FINISHED) == FINISHED
     end
 
     def in_stream?
       (@flags & IN_STREAM) == 1
+    end
+
+    def input_empty?
+      @input.nil? or @input.empty?
     end
 
     def ready
@@ -359,6 +363,7 @@ module Zlib
 
   class GzipFile
     class Error < Zlib::Error; end
+
   end
 
   class GzipReader < GzipFile # HACK usa a buffer class
@@ -367,21 +372,38 @@ module Zlib
       @io = io
       window_bits = Zlib::MAX_WBITS + 16 # gzip header
 
-      @inflator = Zlib::Inflate.new window_bits
+      @zstream = Zlib::Inflate.new window_bits
+
+      @buffer = ''
     end
 
     def close
+    end
+
+    def eof?
+      @zstream.finished? and @zstream.input_empty?
     end
 
     def finish
       true
     end
 
-    def read
-      data = ''
+    def pos
+      @zstream[:total_out] - @buffer.length
+    end
+
+    def read(length = nil)
+      data = @buffer
 
       while chunk = @io.read(CHUNK) do
-        data << @inflator.inflate(chunk)
+        data << @zstream.inflate(chunk)
+        break if length and data.length > length
+      end
+
+      if length then
+        @buffer = data.slice! length..-1
+      else
+        @buffer = ''
       end
 
       data
@@ -398,7 +420,7 @@ module Zlib
       @io = io
       window_bits = Zlib::MAX_WBITS + 16 # gzip header
 
-      @deflator = Zlib::Deflate.new level, window_bits, nil, strategy
+      @zstream = Zlib::Deflate.new level, window_bits, nil, strategy
 
       @buffer = ''
     end
@@ -410,7 +432,7 @@ module Zlib
     end
 
     def finish
-      @io.write @deflator.deflate(@buffer)
+      @io.write @zstream.deflate(@buffer)
     rescue Zlib::Error => e
       raise GzipFile::Error, e.message
     end
@@ -473,7 +495,7 @@ module Zlib
 
         unzipped = detatch_output
 
-        if finished? and not input.nil? then
+        if finished? and not @input.nil? then
           expand_output
         end
       end
