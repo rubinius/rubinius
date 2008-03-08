@@ -86,6 +86,30 @@ describe "A ruby environment" do
     !!defined?(x).should == false
   end
 
+  it "returns true when defined?(:File) is sent" do
+    !!defined?(:File).should == true
+  end
+
+  it "returns true when defined?('File::Separator') is sent" do
+    !!defined?(File::SEPARATOR).should == true
+  end
+
+  it "returns 'constant' when defined?(File) is sent" do
+    defined?(File).should == "constant"
+  end
+
+  it "returns 'constant' when defined?('File::SEPARATOR') is sent" do
+    defined?('File::SEPARATOR').should == "constant"
+  end
+
+  it "returns 'method' when defined?(Object.nil?) is sent" do
+    defined?(Object.nil?).should == "method"
+  end
+
+  it "returns 'expression' when defined?(0) is sent" do
+    defined?(0).should == "expression"
+  end
+
   # I (Evan) am not certain we'll support defined?(super) ever.
   # for now, i'm marking these as compliant.
 
