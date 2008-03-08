@@ -103,6 +103,7 @@ object_memory object_memory_new() {
   om->context_last = (OBJECT)((uintptr_t)om->contexts->address + CONTEXT_SIZE - (CTX_SIZE * 10));
   
   om->last_object_id = 0;
+  om->bootstrap_loaded = 0;
   // om->enlarge_new = 0;
   // om->new_size = 0;
   return om;

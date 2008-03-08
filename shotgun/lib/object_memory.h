@@ -24,6 +24,7 @@ struct object_memory_struct {
   baker_gc gc;
   mark_sweep_gc ms;
   int last_tenured;
+  int bootstrap_loaded;
   
   rheap contexts;
   /* The first not referenced stack context */

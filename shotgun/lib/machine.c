@@ -238,6 +238,8 @@ machine machine_new(environment e) {
   machine_set_const(m, "MAIN", m->c->main);
   cpu_task_configure_preemption(m->s);
   environment_add_machine(e, m);
+  
+  m->s->om->bootstrap_loaded = 1;
 
   return m;
 }
