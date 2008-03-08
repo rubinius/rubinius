@@ -328,6 +328,12 @@ namespace :spec do
     end
   end
 
+  desc "Run the rspec specs for mspec"
+  task :mspec do
+    # Use the rspec spec runner (see mspec/README; gem install rspec)
+    sh 'spec ./mspec/spec'
+  end
+
   task :r2r do
     puts ARGV.inspect
   end
