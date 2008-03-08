@@ -4,6 +4,7 @@
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/metaclass.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/class.h"
@@ -292,7 +293,7 @@ void object_copy_metaclass(STATE, OBJECT self, OBJECT dest) {
   if(!metaclass_s_metaclass_p(state, meta)) return;
   
   new_meta = object_metaclass(state, dest);
-  module_set_method_table(new_meta, hash_dup(state, module_get_method_table(meta)));
+  module_set_method_table(new_meta, lookuptable_dup(state, module_get_method_table(meta)));
 }
 
 int object_stores_bytes_p(STATE, OBJECT self) {

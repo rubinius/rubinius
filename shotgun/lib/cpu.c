@@ -11,6 +11,7 @@
 #include "shotgun/lib/module.h"
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/symbol.h"
 
 cpu cpu_new(STATE) {
@@ -368,7 +369,7 @@ static void cpu_increment_serials(STATE, OBJECT module, OBJECT sym) {
   
   while(!NIL_P(module)) {
     hsh = module_get_method_table(module);
-    meth = hash_find(state, hsh, sym);
+    meth = lookuptable_fetch(state, hsh, sym);
     
     if(REFERENCE_P(meth)) {
       if(CLASS_OBJECT(meth) == BASIC_CLASS(tuple)) { 
@@ -427,7 +428,7 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
     cmethod_set_staticscope(method, cpu_current_scope(state, c));
   }
   
-  hash_set(state, meths, sym, tuple_new2(state, 2, vis, method));
+  lookuptable_store(state, meths, sym, tuple_new2(state, 2, vis, method));
   c->call_flags = 0;
 }
 

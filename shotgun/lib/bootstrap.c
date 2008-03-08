@@ -43,7 +43,7 @@ void cpu_bootstrap(STATE) {
   BC(tuple) = _tuple_basic_class(state, obj);
   BC(hash) =  _hash_basic_class(state, obj);
   BC(lookuptable) = _lookuptable_basic_class(state, obj);
-  BC(methtbl) = _methtbl_basic_class(state, BC(hash));
+  BC(methtbl) = _methtbl_basic_class(state, BC(lookuptable));
   
   object_create_metaclass(state, obj, cls);
   object_create_metaclass(state, BC(module), object_metaclass(state, obj));
