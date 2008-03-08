@@ -3,7 +3,7 @@ module FFI
   class TypeError < RuntimeError
   end
 
-  TypeDefs = {}
+  TypeDefs = LookupTable.new
 
   class << self
 
