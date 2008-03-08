@@ -491,6 +491,7 @@ class IO
     unless @buffer.empty?
       prim_seek -@buffer.size, SEEK_CUR
       @buffer.reset!
+      @eof = false
     end
 
     prim_seek amount, whence

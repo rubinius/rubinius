@@ -29,6 +29,7 @@ describe "IO#pos" do
   it "resets #eof?" do
     open @fname do |io|
       io.read 1
+      io.read 1
       io.pos
       io.eof?.should == false
     end
