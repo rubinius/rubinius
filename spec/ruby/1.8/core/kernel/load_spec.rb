@@ -191,16 +191,16 @@ describe "Kernel#load" do
 
   runner_is_not :rspec do
     it "allows wrapping the code in the file in an anonymous module" do
-      lambda { LoadSpecWrap }.should raise_error NameError
-      lambda { LoadSpecWrapTwo }.should raise_error NameError
-   
+      defined?(LoadSpecWrap).should == false
+      defined?(LoadSpecWrapTwo).should == false
+
       load('load_spec_wrap.rb').should == true
       $load_spec_wrap.nil?.should == false
-      LoadSpecWrap.lsw.should == :lsw 
+      LoadSpecWrap.lsw.should == :lsw
 
       load('load_spec_wrap2.rb', true).should == true
       $load_spec_wrap2.nil?.should == false
-      lambda { LoadSpecWrapTwo }.should raise_error NameError
+      defined?(LoadSpecWrapTwo).should == false
     end
   end
 end

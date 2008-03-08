@@ -32,7 +32,6 @@
 #include "shotgun/lib/bytearray.h"
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/regexp.h"
-#include "shotgun/lib/archive.h"
 #include "shotgun/lib/machine.h"
 #include "shotgun/lib/grammar.h"
 #include "shotgun/lib/subtend.h"

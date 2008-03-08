@@ -32,7 +32,7 @@ describe "Kernel#load" do
     Kernel.compile($load_fixture_dir + '/load_spec_10.rb')
 
     Dir.chdir($load_fixture_dir) do |dir|
-      `zip load_spec_rba.rba load_spec_10.rbc`
+      `ar r load_spec_rba.rba load_spec_10.rbc`
     end
   end
 
@@ -134,4 +134,5 @@ describe "Kernel#load" do
     load('load_spec_10.rb').should == true
     $load_spec_10.nil?.should == false
   end
-end     
+end
+

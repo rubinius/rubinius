@@ -31,7 +31,7 @@ describe "Kernel#require" do
     Kernel.compile("#{$require_fixture_dir}/require_spec_10.rb")
 
     Dir.chdir($require_fixture_dir) {
-      `zip require_spec_rba.rba require_spec_10.rbc`
+      `ar r require_spec_rba.rba require_spec_10.rbc`
     }
   end
 

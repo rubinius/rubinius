@@ -127,7 +127,8 @@ module Compile
           cm = if data then
                  unmarshal_object data, 0
                else
-                 Archive.get_object dir, rbc, version_number
+                 data = Ar.new(dir).extract rbc
+                 unmarshal_object data, version_number
                end
 
           if cm
