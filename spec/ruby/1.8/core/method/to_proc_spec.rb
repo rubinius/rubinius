@@ -26,4 +26,14 @@ describe "Method#to_proc" do
       @m.method(m).to_proc.arity.should == @m.method(m).arity
     end
   end
+
+  it "returns a proc that can be used by define_method" do
+    x = 'test'
+    to_s = class << x
+      define_method :foo, method(:to_s).to_proc
+      to_s
+    end
+
+    x.foo.should == to_s
+  end
 end
