@@ -189,7 +189,7 @@ class IO
   # Errno::EBADF will be raised if that is not the case. If the mode is
   # incompatible, it will raise Errno::EINVAL instead.
 
-  def initialize(fd, mode)
+  def initialize(fd, mode = 'r')
     fd = Type.coerce_to fd, Integer, :to_int
 
     # Descriptor must be an open and valid one
