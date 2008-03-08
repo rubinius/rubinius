@@ -1,2 +1,0 @@
-fails:IPAddr#new_ntoh should be able to create a new IPAddr using hton notation
-fails:IPAddr#hton should be able to convert IPAddr to network byte order

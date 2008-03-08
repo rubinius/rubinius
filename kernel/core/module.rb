@@ -293,24 +293,28 @@ class Module
   def public_method_defined?(sym)
     sym = StringValue(sym) unless sym.is_a? Symbol
     m = find_method_in_hierarchy sym
+    m &&= Tuple[:public, m] unless m.is_a? Tuple
     m ? m.first == :public : false
   end
 
   def private_method_defined?(sym)
     sym = StringValue(sym) unless sym.is_a? Symbol
     m = find_method_in_hierarchy sym
+    m &&= Tuple[:public, m] unless m.is_a? Tuple
     m ? m.first == :private : false
   end
 
   def protected_method_defined?(sym)
     sym = StringValue(sym) unless sym.is_a? Symbol
     m = find_method_in_hierarchy sym
+    m &&= Tuple[:public, m] unless m.is_a? Tuple
     m ? m.first == :protected : false
   end
 
   def method_defined?(sym)
     sym = normalize_name(sym)
     m = find_method_in_hierarchy sym
+    m &&= Tuple[:public, m] unless m.is_a? Tuple
     m ? [:public,:protected].include?(m.first) : false
   end
 

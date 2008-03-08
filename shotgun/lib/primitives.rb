@@ -25,14 +25,14 @@ class ShotgunPrimitives
       f.puts "}"
       
       f.puts "OBJECT cpu_populate_prim_names(STATE) {"
-      f.puts "OBJECT hash = hash_new(state);"
+      f.puts "OBJECT tbl = lookuptable_new(state);"
       i = 1
       Bytecode::Compiler::Primitives.each do |name|
-        f.puts "hash_set(state, hash, I2N(#{i}), SYM(\"#{name}\"));"
-        f.puts "hash_set(state, hash, SYM(\"#{name}\"), I2N(#{i}));"
+        f.puts "lookuptable_store(state, tbl, I2N(#{i}), SYM(\"#{name}\"));"
+        f.puts "lookuptable_store(state, tbl, SYM(\"#{name}\"), I2N(#{i}));"
         i += 1
       end
-      f.puts "return hash;}"
+      f.puts "return tbl;}"
     end
 
     i = 1

@@ -208,7 +208,8 @@ class Sprintf
       val = get_number(val)
       unless flags[:space] || flags[:plus]
         ret = Number.new(val, RADIXES[@type.downcase]).rep
-        ret = pad(ret, width, precision, (RADIXES[@type.downcase] - 1).to_s(RADIXES[@type.downcase]))
+        chr = val < 0 ? (RADIXES[@type.downcase] - 1).to_s(RADIXES[@type.downcase]) : 0.to_s
+        ret = pad(ret, width, precision, chr)
         ret = ALTERNATIVES[@type].to_s + ret if flags[:alternative]
       else
         flags[:plus] = nil if val < 0

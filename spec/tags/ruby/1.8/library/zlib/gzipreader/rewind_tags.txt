@@ -1,0 +1,2 @@
+fails:GzipReader#rewind resets the position of the file pointer
+fails:GzipReader#rewind invokes seek method on the associated IO object

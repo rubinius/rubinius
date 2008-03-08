@@ -135,6 +135,13 @@ describe RunState, "#process" do
     @state.process
   end
   
+  it "calls Mock.verify_count for each it block" do
+    @state.it("") { }
+    @state.it("") { }
+    Mock.should_receive(:verify_count).twice
+    @state.process
+  end
+  
   it "calls the describe block" do
     ScratchPad.record []
     @state.describe(Object, "msg") { ScratchPad << :a }

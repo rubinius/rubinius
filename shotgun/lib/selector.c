@@ -1,11 +1,12 @@
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/array.h"
 #include "shotgun/lib/module.h"
 #include "shotgun/lib/sendsite.h"
 
 void selector_init(STATE) {
-  state->global->selectors = hash_new(state);
+  state->global->selectors = lookuptable_new(state);
   BASIC_CLASS(selector) = _selector_class(state, BASIC_CLASS(object));
   module_setup(state, BASIC_CLASS(selector), "Selector");
   class_set_object_type(BASIC_CLASS(selector), I2N(SelectorType));
@@ -24,11 +25,11 @@ OBJECT selector_new(STATE, OBJECT name) {
 
 OBJECT selector_lookup(STATE, OBJECT name) {
   OBJECT sel;
-  sel = hash_find(state, state->global->selectors, name);
+  sel = lookuptable_fetch(state, state->global->selectors, name);
   if(!NIL_P(sel)) return sel;
 
   sel = selector_new(state, name);
-  hash_set(state, state->global->selectors, name, sel);
+  lookuptable_store(state, state->global->selectors, name, sel);
   return sel;
 }
 
@@ -56,7 +57,7 @@ void selector_clear(STATE, OBJECT self) {
 
 void selector_clear_by_name(STATE, OBJECT name) {
   OBJECT sel;
-  sel = hash_find(state, state->global->selectors, name);
+  sel = lookuptable_fetch(state, state->global->selectors, name);
   if(NIL_P(sel)) return;
 
   selector_clear(state, sel);

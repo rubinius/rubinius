@@ -6,6 +6,7 @@ describe "Module#method_defined?" do
     # Defined in Child
     ModuleSpecs::Child.method_defined?(:public_child).should == true
     ModuleSpecs::Child.method_defined?("private_child").should == false
+    ModuleSpecs::Child.method_defined?(:accessor_method).should == true
 
     # Defined in Parent
     ModuleSpecs::Child.method_defined?("public_parent").should == true
