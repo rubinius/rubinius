@@ -8,8 +8,8 @@ provider rubinius {
     probe function__primitive__return(char*, char*, char*, int);
     
     /* gc probes */
-    probe gc__begin();
-    probe gc__end();
+    probe gc__begin(int, int, int);
+    probe gc__end(int, int, int);
     
     /* Some initial memory type probes */
     probe object__create__start(char*, char*, int);

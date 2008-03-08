@@ -1544,7 +1544,16 @@ check_interrupts:
 
 #if ENABLE_DTRACE
       if (RUBINIUS_GC_BEGIN_ENABLED()) {
-        RUBINIUS_GC_BEGIN();
+        // Young generation stats
+        int young_allocated = baker_gc_memory_allocated(state->om->gc);
+        int young_in_use    = baker_gc_memory_in_use(state->om->gc);
+        int young_obj_count = baker_gc_used(state->om->gc);
+        
+        // Mature generations stats
+        
+        RUBINIUS_GC_BEGIN(young_allocated, young_in_use, young_obj_count);
+        
+        baker_gc_reset_used(state->om->gc);
       }
 #endif
       int cm = state->om->collect_now;
@@ -1580,7 +1589,14 @@ check_interrupts:
 
 #if ENABLE_DTRACE
       if (RUBINIUS_GC_END_ENABLED()) {
-        RUBINIUS_GC_END();
+        // Young generation stats
+        int young_allocated = baker_gc_memory_allocated(state->om->gc);
+        int young_in_use    = baker_gc_memory_in_use(state->om->gc);
+        int young_obj_count = baker_gc_used(state->om->gc);
+        
+        // Mature generations stats
+        
+        RUBINIUS_GC_END(young_allocated, young_in_use, young_obj_count);
       }
 #endif
     }
