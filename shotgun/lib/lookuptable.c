@@ -147,7 +147,7 @@ OBJECT lookuptable_store(STATE, OBJECT tbl, OBJECT key, OBJECT val) {
   return val;
 }
 
-OBJECT lookuptable_fetch(STATE, OBJECT tbl, OBJECT key) {
+static inline OBJECT find_entry(STATE, OBJECT tbl, OBJECT key) {
   unsigned int bin;
   OBJECT entry;
 
@@ -157,11 +157,36 @@ OBJECT lookuptable_fetch(STATE, OBJECT tbl, OBJECT key) {
 
   while(!NIL_P(entry)) {
     if(tuple_at(state, entry, 0) == key) {
-      return tuple_at(state, entry, 1);
+      return entry;
     }
     entry = tuple_at(state, entry, 2);
   }
   return Qnil;
+}
+
+OBJECT lookuptable_fetch(STATE, OBJECT tbl, OBJECT key) {
+  OBJECT entry;
+
+  entry = find_entry(state, tbl, key);
+  if(!NIL_P(entry)) {
+    return tuple_at(state, entry, 1);
+  }
+  return Qnil;
+}
+
+/* lookuptable_find returns Qundef if there is not entry
+ * referenced by 'key' in the LookupTable. This is useful
+ * to distinguish x = {} from x = {:a => nil} and is used
+ * in cpu.c in e.g. cpu_const_get_in_context.
+ */
+OBJECT lookuptable_find(STATE, OBJECT tbl, OBJECT key) {
+  OBJECT entry;
+
+  entry = find_entry(state, tbl, key);
+  if(!NIL_P(entry)) {
+    return tuple_at(state, entry, 1);
+  }
+  return Qundef;
 }
 
 OBJECT lookuptable_delete(STATE, OBJECT tbl, OBJECT key) {
@@ -206,18 +231,11 @@ OBJECT lookuptable_delete(STATE, OBJECT tbl, OBJECT key) {
 }
 
 OBJECT lookuptable_has_key(STATE, OBJECT tbl, OBJECT key) {
-  unsigned int bin;
   OBJECT entry;
 
-  key_to_sym(key);
-  bin = find_bin(key_hash(key), N2I(get_bins(tbl)));
-  entry = tuple_at(state, get_values(tbl), bin);
-
-  while(!NIL_P(entry)) {
-    if(tuple_at(state, entry, 0) == key) {
-      return Qtrue;
-    }
-    entry = tuple_at(state, entry, 2);
+  entry = find_entry(state, tbl, key);
+  if(!NIL_P(entry)) {
+    return Qtrue;
   }
   return Qfalse;
 }

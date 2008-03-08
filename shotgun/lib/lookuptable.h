@@ -11,5 +11,6 @@ OBJECT lookuptable_keys(STATE, OBJECT tbl);
 OBJECT lookuptable_values(STATE, OBJECT tbl);
 OBJECT lookuptable_entries(STATE, OBJECT tbl);
 OBJECT lookuptable_dup(STATE, OBJECT tbl);
+OBJECT lookuptable_find(STATE, OBJECT tbl, OBJECT key);
 
 #endif
