@@ -242,6 +242,7 @@ int cpu_task_select(STATE, cpu c, OBJECT nw) {
     cur_task = (struct cpu_task*)BYTES_OF(cur);
   
     memcpy(cur_task, ct, sizeof(struct cpu_task_shared));
+    cur_task->saved_errno = errno;
     cpu_task_run_wb(state, cur);
   
     assert(cur_task->sp_ptr >= cur_task->stack_top);
@@ -266,6 +267,8 @@ int cpu_task_select(STATE, cpu c, OBJECT nw) {
   cpu_restore_context_with_home(state, c, c->active_context, home);
   c->current_task = nw;
   
+  errno = new_task->saved_errno;
+
   return TRUE;
 }
 
@@ -463,6 +466,12 @@ void cpu_thread_dequeue(STATE, OBJECT thr) {
 }
 
 void cpu_thread_force_run(STATE, cpu c, OBJECT thr) {
+  /* Clear any events this thread was waiting on. */
+  OBJECT chan = thread_get_channel(thr);
+  if(!NIL_P(chan)) {
+    cpu_event_clear_channel(state, chan);
+  }
+
   cpu_thread_dequeue(state, thr);
   cpu_thread_switch(state, c, thr);
 }

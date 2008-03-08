@@ -21,6 +21,7 @@
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/list.h"
 
@@ -69,11 +70,13 @@ void cpu_event_run(STATE) {
     ev_loop(state->event_base, EVLOOP_ONESHOT);
     ev_loop(e->sig_event_base, EVLOOP_NONBLOCK);  // HACK
   }
+
 }
 
 void cpu_event_runonce(STATE) {
   environment e;
   e = environment_current();
+  
   ev_loop(e->sig_event_base, EVLOOP_NONBLOCK);  // HACK
   ev_loop(state->event_base, EVLOOP_ONESHOT | EVLOOP_NONBLOCK);
 }
@@ -262,7 +265,7 @@ static void _cpu_wake_channel_and_read(EV_P_ struct ev_io *ev, int revents) {
            It might be better to re-schedule this in libev and try again,
            but libev just said SOMETHING was there... */
         if(errno == EINTR) continue;
-        ret = hash_find(state, state->global->errno_mapping, I2N(errno));
+        ret = lookuptable_fetch(state, state->global->errno_mapping, I2N(errno));
       } else {
         buf[i] = 0;
         string_set_bytes(ti->buffer, I2N(i + offset));

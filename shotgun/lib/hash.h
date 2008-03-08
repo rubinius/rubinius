@@ -34,4 +34,5 @@ void hash_assign(STATE, int (*compare)(STATE, OBJECT, OBJECT), OBJECT tbl, OBJEC
 OBJECT csm_find(STATE, OBJECT csm, OBJECT key);
 OBJECT csm_add(STATE, OBJECT csm, OBJECT key, OBJECT val);
 OBJECT csm_into_hash(STATE, OBJECT csm);
+OBJECT csm_into_lookuptable(STATE, OBJECT csm);
 

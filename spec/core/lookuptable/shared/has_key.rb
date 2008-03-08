@@ -16,10 +16,5 @@ shared :lookuptable_has_key do |cmd|
     it "converts a String key argument to a Symbol" do
       @lt.send(cmd, "c").should == true
     end
-
-    it "raises a TypeError if passed other than a Symbol or String" do
-      key = mock("lookuptable key")
-      lambda { @lt.send(cmd, key) }.should raise_error(TypeError)
-    end
   end
 end

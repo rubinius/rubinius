@@ -1,6 +1,7 @@
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 
 /* MINSIZE MUST be a power of 2 */
 #define MINSIZE 16
@@ -416,4 +417,20 @@ OBJECT csm_into_hash(STATE, OBJECT csm) {
   }
   
   return hsh;
+}
+
+OBJECT csm_into_lookuptable(STATE, OBJECT csm) {
+  int i;
+  OBJECT k, tbl;
+  
+  tbl = lookuptable_new(state);
+  
+  for(i = 0; i < CSM_SIZE; i += 2) {
+    k = tuple_at(state, csm, i);
+    if(!NIL_P(k)) {
+      lookuptable_store(state, tbl, k, tuple_at(state, csm, i + 1));
+    }
+  }
+  
+  return tbl;
 }

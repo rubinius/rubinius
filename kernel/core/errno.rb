@@ -12,7 +12,7 @@ module Errno
     if exc
       msg = Platform::POSIX.strerror(err)
 
-      unless additional.nil?
+      if additional
         msg << " - " << additional
       end
 

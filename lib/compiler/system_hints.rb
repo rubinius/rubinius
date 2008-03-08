@@ -3,7 +3,7 @@ class Compiler
     HINTS = {
     :MatchData=>{:@__ivars__=>0, :@source=>1, :@regexp=>2, :@full=>3, :@region=>4},
     :Regexp=>{:@__ivars__=>0, :@source=>1, :@data => 2, :@names=>3},
-    :MethodTable=>{:@__ivars__=>0, :@keys=>1, :@values=>2, :@bins=>3, :@entries=>4, :@default=>5, :@default_proc=>6,},
+    :MethodTable=>{:@values=>1, :@bins=>2, :@entries=>3},
     :MetaClass=>{:@__ivars__=>0, :@method_table=>1, :@method_cache=>2, :@name=>3, :@constants=>4, :@encloser=>5, :@superclass=>6, :@instance_fields=>7, :@has_ivars=>8, :@needs_cleanup=>9, :@object_type=>10, :@attached_instance=>11},
     :Class=>{:@__ivars__=>0, :@method_table=>1, :@method_cache=>2, :@name=>3, :@constants=>4, :@encloser=>5, :@superclass=>6, :@instance_fields=>7, :@has_ivars=>8, :@needs_cleanup=>9, :@object_type=>10},
     :BlockContext=>{},

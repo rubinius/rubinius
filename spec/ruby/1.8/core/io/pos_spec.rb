@@ -26,6 +26,15 @@ describe "IO#pos" do
     lambda { IOSpecs.closed_file.pos }.should raise_error(IOError)
   end
 
+  it "resets #eof?" do
+    open @fname do |io|
+      io.read 1
+      io.read 1
+      io.pos
+      io.eof?.should == false
+    end
+  end
+
 end
 
 describe "IO#pos=" do

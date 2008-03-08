@@ -17,9 +17,4 @@ describe "LookupTable#[]=" do
     @lt["c"] = 3
     @lt["c"].should == 3
   end
-
-  it "raises a TypeError if passed other than a Symbol or String" do
-    key = mock("lookuptable key")
-    lambda { @lt[key] = 1 }.should raise_error(TypeError)
-  end
 end

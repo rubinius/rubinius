@@ -1,6 +1,15 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
+class A
+  eval "class B; end"
+  def c
+    eval "class C; end"
+  end
+end
+
+A.new.c
+
 describe "Kernel#eval" do
   it "is a private method" do
     Kernel.private_instance_methods.should include("eval")
@@ -9,7 +18,19 @@ describe "Kernel#eval" do
   it "is a module function" do
     Kernel.respond_to?(:eval).should == true
   end
-  
+
+  it "evaluates the code within" do
+    eval("2 + 3").should == 5
+  end
+
+  it "evaluates within the scope of the eval" do
+    A::B.name.should == "A::B"
+  end
+
+  it "evaluates such that consts are scoped to the class of the eval" do
+    A::C.name.should == "A::C"
+  end
+
   it "accepts a Proc object as a binding" do
     x = 1
     bind = proc {}

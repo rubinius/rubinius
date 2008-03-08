@@ -324,11 +324,7 @@ static OBJECT unmarshal_iseq(STATE, struct marshal_state *ms) {
   ms->consumed += 6;
   ms->consumed += sz;
 
-#ifdef __amd64__
-  obj = iseq_new(state, (sz / SIZE_OF_OBJECT + 1));
-#else
-  obj = iseq_new(state, (sz / SIZE_OF_OBJECT));
-#endif
+  obj = iseq_new(state, sz);
   
   memcpy(bytearray_byte_address(state, obj), ms->buf + 6, sz);
   

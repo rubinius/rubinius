@@ -7,6 +7,7 @@
 #include "shotgun/lib/module.h"
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/methctx.h"
 #include "shotgun/lib/array.h"
 #include "shotgun/lib/string.h"
@@ -168,10 +169,10 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under, OBJECT sym) {
    returns TRUE if we found a method object that should be considered
    returns FALSE if we need to keep looking 'up' for the method
 */
-static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message *msg) {
+static inline int cpu_check_for_method(STATE, cpu c, OBJECT tbl, struct message *msg) {
   OBJECT vis, obj;
 
-  msg->method = hash_find(state, hsh, msg->name);
+  msg->method = lookuptable_fetch(state, tbl, msg->name);
 
   if(NIL_P(msg->method)) return FALSE;
 
@@ -220,7 +221,7 @@ static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message 
 #define UNVIS_METHOD(var) if(TUPLE_P(var)) { var = tuple_at(state, var, 1); }
 
 static inline int cpu_find_method(STATE, cpu c, struct message *msg) {
-  OBJECT hsh, klass;
+  OBJECT tbl, klass;
   struct method_cache *ent;
   
 #if USE_GLOBAL_CACHING
@@ -259,19 +260,19 @@ static inline int cpu_find_method(STATE, cpu c, struct message *msg) {
       return FALSE;
     }
 
-    hsh = module_get_method_table(klass);
+    tbl = module_get_method_table(klass);
 
     /* Ok, rather than assert, i'm going to just bail. Makes the error
        a little strange, but handle-able in ruby land. */
 
-    if(!HASH_P(hsh)) {
-      printf("Warning: encountered invalid module (methods not a hash).\n");
+    if(!LOOKUPTABLE_P(tbl)) {
+      printf("Warning: encountered invalid module (methods not a LookupTable).\n");
       sassert(0);
       return FALSE;
     }
 
     msg->module = klass;
-    if(cpu_check_for_method(state, c, hsh, msg)) {
+    if(cpu_check_for_method(state, c, tbl, msg)) {
       goto cache;
     }
 
@@ -566,7 +567,7 @@ void cpu_raise_from_errno(STATE, cpu c, const char *msg) {
   OBJECT cls;
   char buf[32];
 
-  cls = hash_find(state, state->global->errno_mapping, I2N(errno));
+  cls = lookuptable_fetch(state, state->global->errno_mapping, I2N(errno));
   if(NIL_P(cls)) {
     cls = state->global->exc_arg;
     snprintf(buf, sizeof(buf), "Unknown errno %d", errno);

@@ -62,9 +62,14 @@ char *bytearray_as_string(STATE, OBJECT self) {
   return out;
 }
 
-OBJECT iseq_new(STATE, unsigned int fields) {
+OBJECT iseq_new(STATE, unsigned int sz) {
   OBJECT obj;
-  
+  int fields;
+
+  fields = sz / SIZE_OF_OBJECT;
+  if(sz % SIZE_OF_OBJECT != 0) {
+    fields += 1;
+  }
   obj = NEW_OBJECT(state->global->iseq, fields);
   object_make_byte_storage(state, obj);
   

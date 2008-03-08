@@ -22,9 +22,4 @@ describe "LookupTable#delete" do
     @lt.size.should == 2
     @lt[:c].should == nil
   end
-
-  it "raises a TypeError if passed other than a Symbol or String" do
-    key = mock("lookuptable key")
-    lambda { @lt.delete(key) }.should raise_error(TypeError)
-  end
 end
