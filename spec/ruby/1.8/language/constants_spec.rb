@@ -55,6 +55,19 @@ describe "Constant lookup rule" do
   it "is bound in blocks, then singletons properly" do
     ConstantSpecs::Foo.foo2.should == 47
   end
+  
+  # This expectation leaves the 'LeftoverConstant' laying around in
+  # the Object class.  Unfortunately, due to the nature of includes,
+  # you can't remove constants from included modules.
+  it "looks up in modules included in Object" do
+    begin
+      module M; LeftoverConstant = 42; end
+      Object.send(:include, M)
+      lambda { Object::LeftoverConstant }.should_not raise_error()
+    ensure
+      Object.send :remove_const, :M
+    end
+  end
 end
 
 describe "Constant declaration" do
