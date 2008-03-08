@@ -25,10 +25,15 @@ class Hash
     end
     hsh
   end
+  
+  def self.allocate
+    hash = __allocate__
+    hash.send :setup
+    hash
+  end
 
   def self.new(*args, &block)
     hash = allocate
-    hash.send :setup
     hash.send :initialize, *args, &block
     hash
   end
