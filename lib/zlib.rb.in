@@ -432,7 +432,7 @@ module Zlib
     end
 
     def finish
-      @io.write @zstream.deflate(@buffer)
+      @io.write @zstream.deflate(@buffer, Zlib::FINISH)
     rescue Zlib::Error => e
       raise GzipFile::Error, e.message
     end
