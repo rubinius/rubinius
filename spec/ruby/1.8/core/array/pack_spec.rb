@@ -372,6 +372,14 @@ describe "Array#pack" do
     it "encodes a positive integer in big-endian order with ('i')" do
       [1].pack('i').should == "\000\000\000\001"
     end
+    
+    it "encodes 4 positive integers in big-endian order with ('i4')" do
+      [1,1234,2,2345].pack('i4').should == "\000\000\000\001\000\000\004\322\000\000\000\002\000\000\t)"
+    end
+    
+    it "encodes remaining integers in big-endian order with ('i*')" do
+      [1,1234,2].pack('i*').should == "\000\000\000\001\000\000\004\322\000\000\000\002"
+    end
   end
   
   it "raises a RangeError when the positive integer is too big with ('i')" do
@@ -580,6 +588,10 @@ describe "Array#pack" do
   big_endian do
     it "encodes an integer in network order with ('n')" do
       [1234].pack('n').should == "\322\004"
+    end
+    
+    it "encodes 4 integers in network order with ('n4')" do
+      [1234,5678,9876,5432].pack('n4').should == "\322\004.\026\224&8\025"
     end
   end
   
