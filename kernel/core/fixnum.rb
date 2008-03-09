@@ -18,7 +18,8 @@ class Fixnum < Integer
   alias_method :modulo, :%
   
   def <<(c)
-    c = Type.coerce_to(c, Fixnum, :to_int)
+    c = Type.coerce_to(c, Integer, :to_int)
+    raise RangeError, "Object is out of range for a Fixnum" unless c.is_a?(Fixnum)
     return self >> -c if c < 0
 
     bits = self.size * 8 - 1
@@ -29,8 +30,12 @@ class Fixnum < Integer
   end
 
   def >>(c)
-    c = Type.coerce_to(c, Fixnum, :to_int)
+    c = Type.coerce_to(c, Integer, :to_int)
     return self << -c if c < 0
+    if c > self.abs
+      return  0 if self >= 0
+      return -1 if self <  0
+    end
     
     if c.kind_of?(Bignum)
       return __bignum_new__(self) >> c

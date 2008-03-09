@@ -38,12 +38,19 @@ class Bignum < Integer
   end
 
   def >>(s)
-    s = Type.coerce_to(s, Fixnum, :to_int)
-    s < 0 ? __bignum_left_shift__(-s) : __bignum_right_shift__(s) 
+    s = Type.coerce_to(s, Integer, :to_int)
+    return self << -s if s < 0
+    if s > self.abs
+      return  0 if self >= 0
+      return -1 if self <  0
+    end
+
+    __bignum_right_shift__(s) 
   end
 
   def <<(s)
-    s = Type.coerce_to(s, Fixnum, :to_int)
+    s = Type.coerce_to(s, Integer, :to_int)
+    raise RangeError, "Object is out of range for a Fixnum" unless s.is_a?(Fixnum)
     s < 0 ? __bignum_right_shift__(-s) : __bignum_left_shift__(s) 
   end
 

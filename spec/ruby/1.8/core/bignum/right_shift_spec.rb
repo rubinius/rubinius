@@ -30,21 +30,21 @@ describe "Bignum#>>" do
     lambda { @bignum >> obj }.should raise_error(TypeError)
   end
 
-  compliant_on :ruby do
-    it "return the right shift alignment" do
-      ((1 - 2**31) >> 31).should == -1
-      ((1 - 2**32) >> 32).should == -1
-      ((1 - 2**63) >> 63).should == -1 
-      ((1 - 2**64) >> 64).should == -1 
-    end
+  it "does not raise RangeError when the given argument is out of range of Integer" do
+    (obj1 = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
+    (obj2 = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
+    (@bignum >> obj1).should == 0
+    (-@bignum >> obj2).should == -1
+
+    obj = 8e19
+    (@bignum >> obj).should == 0
+    (-@bignum >> obj).should == -1
   end
 
-  platform_is_not :darwin do
-    it "return the right shift alignment" do
-      ((1 - 2**31) >> 31).should == -1
-      ((1 - 2**32) >> 32).should == -1
-      ((1 - 2**63) >> 63).should == -1 
-      ((1 - 2**64) >> 64).should == -1 
-    end
+  it "return the right shift alignment" do
+    ((1 - 2**31) >> 31).should == -1
+    ((1 - 2**32) >> 32).should == -1
+    ((1 - 2**63) >> 63).should == -1 
+    ((1 - 2**64) >> 64).should == -1 
   end
 end
