@@ -10,13 +10,6 @@
 # Arrays can be created with the <tt>[]</tt> syntax, or via <tt>Array.new</tt>.
 
 class Array
-  ivar_as_index :total => 0, :tuple => 1, :start => 2, :shared => 3
-  
-  def total    ; @total ; end
-  def tuple    ; @tuple ; end
-  def start    ; @start ; end
-  def __ivars__; nil    ; end
-  
   def total=(n) ; @total = n ; end
   def tuple=(t) ; @tuple = t ; end
   def start=(s) ; @start = s ; end

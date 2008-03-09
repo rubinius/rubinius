@@ -96,8 +96,13 @@ class LookupTable
   def each
     raise LocalJumpError, "no block given" unless block_given? or @entries == 0
 
-    entries.each do |entry|
+    ents = entries
+    i = ents.start
+    total = ents.start + ents.total
+    while i < total
+      entry = ents[i]
       yield [entry.at(0), entry.at(1)]
+      i += 1
     end
     self
   end
