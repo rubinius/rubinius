@@ -636,6 +636,16 @@ class Node
   class BlockPass
     def bytecode(g)
       @block.bytecode(g)
+      nil_block = g.new_label
+      g.dup
+      g.is_nil
+      g.git nil_block
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.send :__from_block__, 1
+      
+      nil_block.set!
     end
   end
 
@@ -1864,26 +1874,10 @@ class Node
         g.send_with_register @method, allow_private?
       elsif @block
         # Only BlockPass currently
-        proc_from_block(g)
         g.send_with_block @method, @argcount, allow_private?
       else
         g.send @method, @argcount, allow_private?
       end
-    end
-
-    def proc_from_block(g)
-      nil_block = g.new_label
-      g.swap
-      g.dup
-      g.is_nil
-      g.git nil_block
-
-      g.push_cpath_top
-      g.find_const :Proc
-      g.send :__from_block__, 1
-      
-      nil_block.set!
-      g.swap
     end
 
     def block_bytecode(g)
