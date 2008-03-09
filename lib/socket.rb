@@ -184,11 +184,11 @@ class Socket < BasicSocket
     end
     
     def self.getnameinfo(sockaddr,
-                         reverse_lookup = !Socket.do_not_reverse_lookup)
+                         reverse_lookup = !BasicSocket.do_not_reverse_lookup)
       name_info = []
       value = nil
       flags = 0
-      flags |= NI_NUMERICHOST unless reverse_lookup
+      flags |= Socket::NI_NUMERICHOST unless reverse_lookup
       
       MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
         sockaddr_p.write_string sockaddr, sockaddr.length
@@ -243,7 +243,7 @@ class Socket < BasicSocket
 
       res_p = MemoryPointer.new :pointer
 
-      err = _getaddrinfo host, service, hints.pointer, res_p
+      err = _getaddrinfo name, port, hints.pointer, res_p
 
       raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
 
