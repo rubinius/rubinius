@@ -182,24 +182,13 @@ class Socket < BasicSocket
                          reverse_lookup = !Socket.do_not_reverse_lookup)
       name_info = []
       value = nil
-
-      if reverse_lookup then
-        MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
-          sockaddr_p.write_string sockaddr, sockaddr.length
-
-          success, value = _getnameinfo sockaddr_p, sockaddr.length, 0
-
-          raise SocketError, value unless success
-
-          name_info[2] = value[2]
-        end
-      end
-
+      flags = 0
+      flags |= NI_NUMERICHOST unless reverse_lookup
+      
       MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
         sockaddr_p.write_string sockaddr, sockaddr.length
 
-        success, value = _getnameinfo sockaddr_p, sockaddr.length,
-                         Socket::NI_NUMERICSERV
+        success, value = _getnameinfo sockaddr_p, sockaddr.length, flags
 
         raise SocketError, value unless success
 

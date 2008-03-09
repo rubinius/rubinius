@@ -141,9 +141,20 @@ OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, socklen_t sockaddr_len,
   char node[NI_MAXHOST], service[NI_MAXSERV];
   OBJECT value, host, port, ip;
   int err;
+  
+  host = Qnil;
+  if(!(flags & NI_NUMERICHOST)) {
+    err = getnameinfo(sockaddr, sockaddr_len, node, NI_MAXHOST, NULL, 0, 0);
+
+    if(err != 0) {
+      return tuple_new2(state, 2, Qfalse,
+          string_new(state, gai_strerror(err)));
+    }
+    host = string_new2(state, node, strlen(node));
+  }
 
   err = getnameinfo(sockaddr, sockaddr_len, node, NI_MAXHOST,
-                    service, NI_MAXSERV, flags | NI_NUMERICHOST);
+                    service, NI_MAXSERV, flags | NI_NUMERICHOST | NI_NUMERICSERV);
 
   if(err != 0) {
     return tuple_new2(state, 2, Qfalse,
@@ -153,14 +164,6 @@ OBJECT ffi_getnameinfo(STATE, struct sockaddr *sockaddr, socklen_t sockaddr_len,
   ip = string_new2(state, node, strlen(node));
   port = I2N(atoi(service));
   
-  err = getnameinfo(sockaddr, sockaddr_len, node, NI_MAXHOST,
-                    NULL, 0, flags);
-
-  if(err != 0) {
-    return tuple_new2(state, 2, Qfalse,
-        string_new(state, gai_strerror(err)));
-  }
-  host = string_new2(state, node, strlen(node));
 
   value = array_new(state, 0);
   array_append(state, value, I2N(sockaddr->sa_family));
