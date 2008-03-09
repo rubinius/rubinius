@@ -101,10 +101,13 @@
 #define THREAD_ATOMIC_START     /* depend on thread system */
 #define THREAD_ATOMIC_END       /* depend on thread system */
 #define THREAD_PASS             /* depend on thread system */
-#define xmalloc     malloc
-#define xrealloc    realloc
-#define xcalloc     calloc
-#define xfree       free
+
+/* For rubinius */
+
+#define xmalloc     XMALLOC
+#define xrealloc    XREALLOC
+#define xcalloc     XCALLOC
+#define xfree       XFREE
 
 #define CHECK_INTERRUPT_IN_MATCH_AT
 
@@ -168,6 +171,7 @@
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#include <stdint.h>
 #endif
 
 #if defined(HAVE_ALLOCA_H) && !defined(__GNUC__)
@@ -231,13 +235,13 @@
 
 #define GET_ALIGNMENT_PAD_SIZE(addr,pad_size) do {\
   (pad_size) = WORD_ALIGNMENT_SIZE \
-               - ((unsigned int )(addr) % WORD_ALIGNMENT_SIZE);\
+               - ((uintptr_t)(addr) % WORD_ALIGNMENT_SIZE);\
   if ((pad_size) == WORD_ALIGNMENT_SIZE) (pad_size) = 0;\
 } while (0)
 
 #define ALIGNMENT_RIGHT(addr) do {\
   (addr) += (WORD_ALIGNMENT_SIZE - 1);\
-  (addr) -= ((unsigned int )(addr) % WORD_ALIGNMENT_SIZE);\
+  (addr) -= ((uintptr_t)(addr) % WORD_ALIGNMENT_SIZE);\
 } while (0)
 
 #endif /* PLATFORM_UNALIGNED_WORD_ACCESS */
@@ -805,5 +809,11 @@ extern int onigenc_property_list_add_property P_((UChar* name, const OnigCodePoi
 typedef int (*ONIGENC_INIT_PROPERTY_LIST_FUNC_TYPE)(void);
 
 extern int onigenc_property_list_init P_((ONIGENC_INIT_PROPERTY_LIST_FUNC_TYPE));
+
+/* Add extern definitions for rubinius */
+extern void *XMALLOC(size_t n);
+extern void *XREALLOC(void *p, size_t n);
+extern void *XCALLOC(size_t n, size_t s);
+extern void XFREE(void *p);
 
 #endif /* REGINT_H */
