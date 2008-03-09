@@ -49,9 +49,6 @@
 
 #if CONFIG_ENABLE_DTRACE
 #include "shotgun/dtrace.h"
-#define ENABLE_DTRACE 1
-#else
-#define ENABLE_DTRACE 0
 #endif
 
 extern char **environ;

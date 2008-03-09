@@ -20,6 +20,10 @@
 #include "shotgun/lib/subtend/ffi.h"
 #include "shotgun/lib/subtend/nmc.h"
 
+#if CONFIG_ENABLE_DTRACE
+#include "shotgun/lib/dtrace_probes.h"
+#endif
+
 #include <sys/time.h>
 
 #if TIME_LOOKUP
@@ -51,13 +55,6 @@ void cpu_show_lookup_time(STATE) {
   printf("Percent:     % 3.3f\n", (seconds / total) * 100);
 }
 
-#endif
-
-#if CONFIG_ENABLE_DTRACE
-#include "shotgun/dtrace.h"
-#define ENABLE_DTRACE 1
-#else
-#define ENABLE_DTRACE 0
 #endif
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
@@ -518,20 +515,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, const struct message *msg)
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
-    char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
-    char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
-
-    cpu_flush_ip(c);
-
-    if (!NIL_P(c->active_context)) {
-      struct fast_context *fc = FASTCTX(c->active_context);
-      int line_number = cpu_ip2line(state, fc->method, fc->ip);
-      char *filename = (char*)rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-      RUBINIUS_FUNCTION_ENTRY(module_name, method_name, filename, line_number);
-    } else {
-      RUBINIUS_FUNCTION_ENTRY(module_name, method_name, (char*)"-", 0); // in cases where there's no active context, ie. bootup
-    }
+    dtrace_function_entry(state, c, msg);
   }
 #endif
 
@@ -601,16 +585,7 @@ static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int pr
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_PRIMITIVE_ENTRY_ENABLED()) {
-    char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
-    char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
-
-    cpu_flush_ip(c);
-
-    struct fast_context *fc = FASTCTX(c->active_context);
-    int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    char *filename = (char*)rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-    RUBINIUS_FUNCTION_PRIMITIVE_ENTRY(module_name, method_name, filename, line_number);
+    dtrace_function_primitive_entry(state, c, msg);
   }
 #endif
 
@@ -627,18 +602,10 @@ static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int pr
 
 #if ENABLE_DTRACE
     if (RUBINIUS_FUNCTION_PRIMITIVE_RETURN_ENABLED()) {
-      char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
-      char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
-
-      cpu_flush_ip(c);
-
-      struct fast_context *fc = FASTCTX(c->active_context);
-      int line_number = cpu_ip2line(state, fc->method, fc->ip);
-      char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-      RUBINIUS_FUNCTION_PRIMITIVE_RETURN(module_name, method_name, filename, line_number);
+      dtrace_function_primitive_return(state, c, msg);
     }
 #endif
+
     return TRUE;
   }
 
@@ -778,18 +745,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
-    OBJECT module = cpu_current_module(state, c);
-
-    char *module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
-    char *method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
-
-    cpu_flush_ip(c);
-
-    struct fast_context *fc = FASTCTX(c->active_context);
-    int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-    RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+    dtrace_function_return(state, c);
   }
 #endif
 
@@ -860,18 +816,7 @@ int cpu_unwind(STATE, cpu c) {
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
-    OBJECT module = cpu_current_module(state, c);
-
-    char *module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
-    char *method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
-
-    cpu_flush_ip(c);
-
-    struct fast_context *fc = FASTCTX(current);
-    int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-    RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+    dtrace_function_return(state, c);
   }
 #endif
 
@@ -1544,16 +1489,7 @@ check_interrupts:
 
 #if ENABLE_DTRACE
       if (RUBINIUS_GC_BEGIN_ENABLED()) {
-        // Young generation stats
-        int young_allocated = baker_gc_memory_allocated(state->om->gc);
-        int young_in_use    = baker_gc_memory_in_use(state->om->gc);
-        int young_obj_count = baker_gc_used(state->om->gc);
-        
-        // Mature generations stats
-        
-        RUBINIUS_GC_BEGIN(young_allocated, young_in_use, young_obj_count);
-        
-        baker_gc_reset_used(state->om->gc);
+        dtrace_gc_begin(state);
       }
 #endif
       int cm = state->om->collect_now;
@@ -1589,14 +1525,7 @@ check_interrupts:
 
 #if ENABLE_DTRACE
       if (RUBINIUS_GC_END_ENABLED()) {
-        // Young generation stats
-        int young_allocated = baker_gc_memory_allocated(state->om->gc);
-        int young_in_use    = baker_gc_memory_in_use(state->om->gc);
-        int young_obj_count = baker_gc_used(state->om->gc);
-        
-        // Mature generations stats
-        
-        RUBINIUS_GC_END(young_allocated, young_in_use, young_obj_count);
+        dtrace_gc_end(state);
       }
 #endif
     }

@@ -1,10 +1,7 @@
 #include "shotgun/lib/auto.h"
 
 #if CONFIG_ENABLE_DTRACE
-#include "shotgun/dtrace.h"
-#define ENABLE_DTRACE 1
-#else
-#define ENABLE_DTRACE 0
+#include "shotgun/lib/dtrace_probes.h"
 #endif
 
 static inline void _om_apply_class_flags(OBJECT obj, OBJECT cls) {
@@ -68,7 +65,7 @@ static inline OBJECT _om_inline_new_object_init(object_memory om, OBJECT cls, un
 
 #if ENABLE_DTRACE
   if (RUBINIUS_OBJECT_CREATE_START_ENABLED() && om->bootstrap_loaded == 1) {
-    RUBINIUS_OBJECT_CREATE_START((char*)_inspect(cls), (char*)"unknown.rb", 1);
+    object_create_start(cls);
   }
 #endif
 
@@ -77,7 +74,7 @@ static inline OBJECT _om_inline_new_object_init(object_memory om, OBJECT cls, un
 
 #if ENABLE_DTRACE
   if (RUBINIUS_OBJECT_CREATE_DONE_ENABLED() && om->bootstrap_loaded == 1) {
-    RUBINIUS_OBJECT_CREATE_DONE((char*)_inspect(cls), (char*)"unknown.rb", 1);
+    object_create_done(cls);
   }
 #endif
   
