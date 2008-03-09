@@ -1,2 +1,0 @@
-fails(This spec runs way too slow):IPAddr#reverse should be able to generate the reverse DNS lookup entry
-fails(This spec runs way too slow):IPAddr#ip6_arpa should be able to convert an IPv6 address into the reverse DNS lookup representation according to RFC3172
