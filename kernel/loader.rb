@@ -40,7 +40,7 @@ end
 # code. We read out of ARGV to figure out what the user is
 # trying to do.
 
-Signal.action("INT") do |thr|  
+Signal.action("INT") do |thr|
   # We can't raise on ourselves, we raise on main.
   if thr == Thread.current
     thr = Thread.main
@@ -66,15 +66,6 @@ Signal.action("INT") do |thr|
 end
 
 # Setup $LOAD_PATH.
-
-# If there is a prefix set, then adjust lib and stdlib to be
-# relative to it.
-if ENV['RBX_PREFIX']
-  ["lib", "stdlib"].each do |lib|
-    idx = $LOAD_PATH.index(lib)
-    $LOAD_PATH[idx] = File.join ENV['RBX_PREFIX'], lib
-  end
-end
 
 additions = []
 

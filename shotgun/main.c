@@ -10,7 +10,6 @@
 
 /* TODO incorporate system paths calculated at compile time. */
 static const char *search_path[] = {
-  "runtime",
 #ifdef CONFIG_RBAPATH
   CONFIG_RBAPATH,
 #endif

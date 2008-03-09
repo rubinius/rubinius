@@ -5,7 +5,7 @@
 
 class GlobalVariables
   def initialize
-    load_path = ["lib", "stdlib", "."]
+    load_path = %w[.]
     loaded_features = []
 
     @internal = LookupTable.new(
