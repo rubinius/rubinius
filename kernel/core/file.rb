@@ -169,11 +169,9 @@ class File < IO
   def self.range(pattern, pstart, pend, test, flags)
     ok = false
     escape = (flags & FNM_NOESCAPE) == 0
-  
+    case_sensitive = (flags & FNM_CASEFOLD) == 0 
     neg = pattern[pstart] == ?! || pattern[pstart] == ?^
     pstart += 1 if neg
-    test = test.tolower
-  
     while pattern[pstart] != ?] do
       pstart += 1 if escape && pattern[pstart] == ?\\
       return -1 if pstart >= pend
@@ -186,7 +184,11 @@ class File < IO
         cend = pattern[pstart]
         pstart += 1
       end
-      ok = true if cstart.tolower <= test && test <= cend.tolower
+      if case_sensitive
+        ok = true if cstart <= test && test <= cend
+      else
+        ok = true if cstart.tolower <= test.tolower && test.tolower <= cend.tolower
+      end
     end
   
     ok == neg ? -1 : pstart + 1
@@ -199,7 +201,7 @@ class File < IO
     pathname = (flags & FNM_PATHNAME) != 0
     period   = (flags & FNM_DOTMATCH) == 0
     nocase   = (flags & FNM_CASEFOLD) != 0
-  
+    
     while pstart < patend do
       char = pattern[pstart]
       pstart += 1

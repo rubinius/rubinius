@@ -30,6 +30,8 @@ shared :file_fnmatch do |cmd|
     it "matches ranges of characters using bracket expresions, taking case into account" do
       File.send(cmd, '[a-z]', 'D').should == false
       File.send(cmd, '[^a-z]', 'D').should == true
+      File.send(cmd, '[A-Z]', 'd').should == false
+      File.send(cmd, '[^A-Z]', 'd').should == true
       File.send(cmd, '[a-z]', 'D', File::FNM_CASEFOLD).should == true
     end
     
