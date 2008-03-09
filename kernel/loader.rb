@@ -106,7 +106,9 @@ Options:
   -rlibrary      Require library before execution.
   -w             Enable warnings. (currently does nothing--compatibility)
   -v             Display the version and set $VERBOSE to true.
-
+  --shark        Wait for Shark to start after loading Rubinius.
+  --valgrind     Execute under the watchful eyes of Valgrind.
+  --dtrace       Wait for DTrace to start after loading Rubinius.
 END
 
 $VERBOSE = false
