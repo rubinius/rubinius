@@ -18,7 +18,15 @@ endif
 
 CFLAGS += -I.. $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa -Iexternal_libs/libmquark -Iexternal_libs/libev -Iexternal_libs/libtommath
 
-ALIBS=external_libs/libffi/.libs/libffi.a external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libev/.libs/libev.a external_libs/libbstring/libbstring.a external_libs/libcchash/libcchash.a external_libs/libmpa/libptr_array.a external_libs/libmquark/libmquark.a
+ALIBS= external_libs/libffi/.libs/libffi.a \
+       external_libs/libtommath/libtommath.a \
+       external_libs/onig/.libs/libonig.a \
+       external_libs/libltdl/.libs/libltdl.a \
+       external_libs/libev/.libs/libev.a \
+       external_libs/libbstring/libbstring.a \
+       external_libs/libcchash/libcchash.a \
+       external_libs/libmpa/libptr_array.a \
+       external_libs/libmquark/libmquark.a
 
 LIBS=$(ALIBS) -lz -lm shotgun/lib
 LDFLAGS=
@@ -68,12 +76,6 @@ external_libs/onig/config.h:
 
 external_libs/onig/.libs/libonig.a:	external_libs/onig/config.h
 	cd external_libs/onig; $(MAKE)
-
-external_libs/libzip/config.h:
-	cd external_libs/libzip; CFLAGS=-fPIC ./configure
-
-external_libs/libzip/lib/.libs/libzip.a:	external_libs/libzip/config.h
-	cd external_libs/libzip; $(MAKE)
 
 # cinvoke doesn't produce a config.h
 external_libs/cinvoke/lib/libcinvoke.a:
@@ -154,7 +156,6 @@ distclean: clean
 	rm -f config/isbigendian
 	rm -f external_libs/libev/config.h
 	rm -f external_libs/libltdl/config.h
-	rm -f external_libs/libzip/config.h
 	rm -f external_libs/onig/config.h
 	-cd external_libs/libbstring; $(MAKE) clean
 	-cd external_libs/libcchash; $(MAKE) clean
@@ -163,7 +164,6 @@ distclean: clean
 	-cd external_libs/libmpa; $(MAKE) clean
 	-cd external_libs/libmquark; $(MAKE) clean
 	-cd external_libs/libtommath; $(MAKE) clean
-	-cd external_libs/libzip; $(MAKE) clean
 	-cd external_libs/onig; $(MAKE) clean
 	-cd external_libs/libffi; $(MAKE) clean
 
