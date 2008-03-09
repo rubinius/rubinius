@@ -18,6 +18,7 @@
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/io.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/machine.h"
 #include "shotgun/lib/array.h"
 #include "shotgun/lib/ar.h"
@@ -342,10 +343,9 @@ int machine_run_file(machine m, const char *path) {
 }
 
 void machine_set_const_under(machine m, const char *str, OBJECT val, OBJECT under) {
-  OBJECT con, sym;
-  con = module_get_constants(under);
-  sym = string_to_sym(m->s, string_new(m->s, str));
-  hash_set(m->s, con, sym, val);
+  OBJECT tbl;
+  tbl = module_get_constants(under);
+  lookuptable_store(m->s, tbl, string_new(m->s, str), val);
 }
 
 void machine_set_const(machine m, const char *str, OBJECT val) {
@@ -511,7 +511,7 @@ void machine_migrate_config(machine m) {
   struct hashtable_itr iter;
   rstate state = m->s;
   
-  m->s->global->config = hash_new(m->s);
+  m->s->global->config = hash_new_sized(m->s, 500);
     
   if(hashtable_count(m->s->config) > 0) {
   
