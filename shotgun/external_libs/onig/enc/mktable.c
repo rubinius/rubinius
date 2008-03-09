@@ -2,7 +2,7 @@
   mktable.c
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2006  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <locale.h>
+
+#define __USE_ISOC99
+#include <ctype.h>
 
 #include "regenc.h"
 
@@ -339,7 +342,7 @@ static int IsCntrl(int enc, int c)
   return 0;
 }
 
-static int IsDigit(int enc, int c)
+static int IsDigit(int enc ARG_UNUSED, int c)
 {
   if (c >= 0x30 && c <= 0x39) return 1;
   return 0;
@@ -1088,13 +1091,13 @@ static int IsWord(int enc, int c)
   return 0;
 }
 
-static int IsAscii(int enc, int c)
+static int IsAscii(int enc ARG_UNUSED, int c)
 {
   if (c >= 0x00 && c <= 0x7f) return 1;
   return 0;
 }
 
-static int IsNewline(int enc, int c)
+static int IsNewline(int enc ARG_UNUSED, int c)
 {
   if (c == 0x0a) return 1;
   return 0;
@@ -1140,7 +1143,7 @@ static int exec(FILE* fp, ENC_INFO* einfo)
   return 0;
 }
 
-extern int main(int argc, char* argv[])
+extern int main(int argc ARG_UNUSED, char* argv[] ARG_UNUSED)
 {
   int i;
   FILE* fp = stdout;
@@ -1151,7 +1154,9 @@ extern int main(int argc, char* argv[])
   /* setlocale(LC_ALL, "de_BE.iso88591"); */
   /* setlocale(LC_ALL, "fr_FR.iso88591"); */
 
-  for (i = 0; i < sizeof(Info)/sizeof(ENC_INFO); i++) {
+  for (i = 0; i < (int )(sizeof(Info)/sizeof(ENC_INFO)); i++) {
     exec(fp, &Info[i]);
   }
+
+  return 0;
 }

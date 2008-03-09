@@ -51,19 +51,19 @@
     (defined(__ppc__) && defined(__APPLE__)) || \
     defined(__x86_64) || defined(__x86_64__) || \
     defined(__mc68020__)
-/* #define PLATFORM_UNALIGNED_WORD_ACCESS */
+#define PLATFORM_UNALIGNED_WORD_ACCESS
 #endif
 
 /* config */
 /* spec. config */
 #define USE_NAMED_GROUP
 #define USE_SUBEXP_CALL
-#define USE_BACKREF_AT_LEVEL        /* \k<name+n>, \k<name-n> */
-#define USE_INFINITE_REPEAT_MONOMANIAC_MEM_STATUS_CHECK /* /(?:()|())*\2/ */
+#define USE_BACKREF_WITH_LEVEL        /* \k<name+n>, \k<name-n> */
+#define USE_MONOMANIAC_CHECK_CAPTURES_IN_ENDLESS_REPEAT  /* /(?:()|())*\2/ */
 #define USE_NEWLINE_AT_END_OF_STRING_HAS_EMPTY_LINE     /* /\n$/ =~ "\n" */
 #define USE_WARNING_REDUNDANT_NESTED_REPEAT_OPERATOR
 /* #define USE_RECOMPILE_API */
-/* #define USE_CRNL_AS_LINE_TERMINATOR */   /* moved to regenc.h. */
+/* !!! moved to regenc.h. */ /* #define USE_CRNL_AS_LINE_TERMINATOR */
 
 /* internal config */
 #define USE_PARSE_TREE_NODE_RECYCLE
@@ -75,32 +75,36 @@
 #define INIT_MATCH_STACK_SIZE                     160
 #define DEFAULT_MATCH_STACK_LIMIT_SIZE              0 /* unlimited */
 
+#if defined(__GNUC__)
+#  define ARG_UNUSED  __attribute__ ((unused))
+#else
+#  define ARG_UNUSED
+#endif
+
 /* */
 /* escape other system UChar definition */
 #include "config.h"
 #ifdef ONIG_ESCAPE_UCHAR_COLLISION
 #undef ONIG_ESCAPE_UCHAR_COLLISION
 #endif
-// #define USE_MATCH_RANGE_IS_COMPLETE_RANGE
+
+#define USE_WORD_BEGIN_END        /* "\<", "\>" */
 #define USE_CAPTURE_HISTORY
 #define USE_VARIABLE_META_CHARS
-#define USE_WORD_BEGIN_END          /* "\<": word-begin, "\>": word-end */
-#define USE_POSIX_REGION_OPTION     /* needed for POSIX API support */
+#define USE_POSIX_API_REGION_OPTION
 #define USE_FIND_LONGEST_SEARCH_ALL_OF_RANGE
 /* #define USE_COMBINATION_EXPLOSION_CHECK */     /* (X*)* */
+
 /* #define USE_MULTI_THREAD_SYSTEM */
 #define THREAD_SYSTEM_INIT      /* depend on thread system */
 #define THREAD_SYSTEM_END       /* depend on thread system */
 #define THREAD_ATOMIC_START     /* depend on thread system */
 #define THREAD_ATOMIC_END       /* depend on thread system */
 #define THREAD_PASS             /* depend on thread system */
-
-/* For rubinius */
-
-#define xmalloc     XMALLOC
-#define xrealloc    XREALLOC
-#define xcalloc     XCALLOC
-#define xfree       XFREE
+#define xmalloc     malloc
+#define xrealloc    realloc
+#define xcalloc     calloc
+#define xfree       free
 
 #define CHECK_INTERRUPT_IN_MATCH_AT
 
@@ -164,7 +168,6 @@
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#include <stdint.h>
 #endif
 
 #if defined(HAVE_ALLOCA_H) && !defined(__GNUC__)
@@ -209,7 +212,6 @@
 #define CHECK_NULL_RETURN_MEMERR(p)   if (IS_NULL(p)) return ONIGERR_MEMORY
 #define NULL_UCHARP                   ((UChar* )0)
 
-
 #ifdef PLATFORM_UNALIGNED_WORD_ACCESS
 
 #define PLATFORM_GET_INC(val,p,type) do{\
@@ -229,13 +231,13 @@
 
 #define GET_ALIGNMENT_PAD_SIZE(addr,pad_size) do {\
   (pad_size) = WORD_ALIGNMENT_SIZE \
-               - ((uintptr_t)(addr) % WORD_ALIGNMENT_SIZE);\
+               - ((unsigned int )(addr) % WORD_ALIGNMENT_SIZE);\
   if ((pad_size) == WORD_ALIGNMENT_SIZE) (pad_size) = 0;\
 } while (0)
 
 #define ALIGNMENT_RIGHT(addr) do {\
   (addr) += (WORD_ALIGNMENT_SIZE - 1);\
-  (addr) -= ((uintptr_t)(addr) % WORD_ALIGNMENT_SIZE);\
+  (addr) -= ((unsigned int )(addr) % WORD_ALIGNMENT_SIZE);\
 } while (0)
 
 #endif /* PLATFORM_UNALIGNED_WORD_ACCESS */
@@ -260,17 +262,17 @@ typedef unsigned int  BitStatusType;
 #define BIT_STATUS_CLEAR(stats)      (stats) = 0
 #define BIT_STATUS_ON_ALL(stats)     (stats) = ~((BitStatusType )0)
 #define BIT_STATUS_AT(stats,n) \
-  ((n) < BIT_STATUS_BITS_NUM  ?  ((stats) & (1 << n)) : ((stats) & 1))
+  ((n) < (int )BIT_STATUS_BITS_NUM  ?  ((stats) & (1 << n)) : ((stats) & 1))
 
 #define BIT_STATUS_ON_AT(stats,n) do {\
-  if ((n) < BIT_STATUS_BITS_NUM)\
+    if ((n) < (int )BIT_STATUS_BITS_NUM)	\
     (stats) |= (1 << (n));\
   else\
     (stats) |= 1;\
 } while (0)
 
 #define BIT_STATUS_ON_AT_SIMPLE(stats,n) do {\
-  if ((n) < BIT_STATUS_BITS_NUM)\
+    if ((n) < (int )BIT_STATUS_BITS_NUM)\
     (stats) |= (1 << (n));\
 } while (0)
 
@@ -326,7 +328,7 @@ typedef Bits*          BitSetRef;
 
 #define BITSET_CLEAR(bs) do {\
   int i;\
-  for (i = 0; i < BITSET_SIZE; i++) { (bs)[i] = 0; }\
+  for (i = 0; i < (int )BITSET_SIZE; i++) { (bs)[i] = 0; }	\
 } while (0)
 
 #define BS_ROOM(bs,pos)            (bs)[pos / BITS_IN_ROOM]
@@ -493,7 +495,7 @@ enum OpCode {
   OP_BACKREFN_IC,
   OP_BACKREF_MULTI,
   OP_BACKREF_MULTI_IC,
-  OP_BACKREF_AT_LEVEL,    /* \k<xxx+n>, \k<xxx-n> */
+  OP_BACKREF_WITH_LEVEL,    /* \k<xxx+n>, \k<xxx-n> */
 
   OP_MEMORY_START,
   OP_MEMORY_START_PUSH,   /* push back-tracker to stack */
@@ -799,12 +801,9 @@ extern int onig_st_insert_strend P_((hash_table_type* table, const UChar* str_ke
   }
 
 extern int onigenc_property_list_add_property P_((UChar* name, const OnigCodePoint* prop, hash_table_type **table, const OnigCodePoint*** plist, int *pnum, int *psize));
-extern int onigenc_property_list_init P_((int (*f)()));
 
-/* Add extern definitions for rubinius */
-extern void *XMALLOC(size_t n);
-extern void *XREALLOC(void *p, size_t n);
-extern void *XCALLOC(size_t n, size_t s);
-extern void XFREE(void *p);
+typedef int (*ONIGENC_INIT_PROPERTY_LIST_FUNC_TYPE)(void);
+
+extern int onigenc_property_list_init P_((ONIGENC_INIT_PROPERTY_LIST_FUNC_TYPE));
 
 #endif /* REGINT_H */

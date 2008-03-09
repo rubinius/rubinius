@@ -2,7 +2,7 @@
   iso8859_9.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2006  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,8 +104,8 @@ static const unsigned short EncISO_8859_9_CtypeTable[256] = {
 };
 
 static int
-iso_8859_9_mbc_case_fold(OnigCaseFoldType flag,
-                         const UChar** pp, const UChar* end, UChar* lower)
+mbc_case_fold(OnigCaseFoldType flag,
+	      const UChar** pp, const UChar* end ARG_UNUSED, UChar* lower)
 {
   const UChar* p = *pp;
 
@@ -123,8 +123,7 @@ iso_8859_9_mbc_case_fold(OnigCaseFoldType flag,
 
 #if 0
 static int
-iso_8859_9_is_mbc_ambiguous(OnigCaseFoldType flag,
-			    const UChar** pp, const UChar* end)
+is_mbc_ambiguous(OnigCaseFoldType flag, const UChar** pp, const UChar* end)
 {
   int v;
   const UChar* p = *pp;
@@ -149,7 +148,7 @@ iso_8859_9_is_mbc_ambiguous(OnigCaseFoldType flag,
 #endif
 
 static int
-iso_8859_9_is_code_ctype(OnigCodePoint code, unsigned int ctype)
+is_code_ctype(OnigCodePoint code, unsigned int ctype)
 {
   if (code < 256)
     return ENC_IS_ISO_8859_9_CTYPE(code, ctype);
@@ -192,8 +191,8 @@ static const OnigPairCaseFoldCodes CaseFoldMap[] = {
 };
 
 static int
-iso_8859_9_apply_all_case_fold(OnigCaseFoldType flag,
-			       OnigApplyAllCaseFoldFunc f, void* arg)
+apply_all_case_fold(OnigCaseFoldType flag,
+		    OnigApplyAllCaseFoldFunc f, void* arg)
 {
   return onigenc_apply_all_case_fold_with_map(
              sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 1,
@@ -201,7 +200,7 @@ iso_8859_9_apply_all_case_fold(OnigCaseFoldType flag,
 }
 
 static int
-iso_8859_9_get_case_fold_codes_by_str(OnigCaseFoldType flag,
+get_case_fold_codes_by_str(OnigCaseFoldType flag,
     const OnigUChar* p, const OnigUChar* end, OnigCaseFoldCodeItem items[])
 {
   return onigenc_get_case_fold_codes_by_str_with_map(
@@ -218,11 +217,11 @@ OnigEncodingType OnigEncodingISO_8859_9 = {
   onigenc_single_byte_mbc_to_code,
   onigenc_single_byte_code_to_mbclen,
   onigenc_single_byte_code_to_mbc,
-  iso_8859_9_mbc_case_fold,
-  iso_8859_9_apply_all_case_fold,
-  iso_8859_9_get_case_fold_codes_by_str,
+  mbc_case_fold,
+  apply_all_case_fold,
+  get_case_fold_codes_by_str,
   onigenc_minimum_property_name_to_ctype,
-  iso_8859_9_is_code_ctype,
+  is_code_ctype,
   onigenc_not_support_get_ctype_code_range,
   onigenc_single_byte_left_adjust_char_head,
   onigenc_always_true_is_allowed_reverse_match

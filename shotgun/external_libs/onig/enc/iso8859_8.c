@@ -2,7 +2,7 @@
   iso8859_8.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2006  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ static const unsigned short EncISO_8859_8_CtypeTable[256] = {
 };
 
 static int
-iso_8859_8_is_code_ctype(OnigCodePoint code, unsigned int ctype)
+is_code_ctype(OnigCodePoint code, unsigned int ctype)
 {
   if (code < 256)
     return ENC_IS_ISO_8859_8_CTYPE(code, ctype);
@@ -89,7 +89,7 @@ OnigEncodingType OnigEncodingISO_8859_8 = {
   onigenc_ascii_apply_all_case_fold,
   onigenc_ascii_get_case_fold_codes_by_str,
   onigenc_minimum_property_name_to_ctype,
-  iso_8859_8_is_code_ctype,
+  is_code_ctype,
   onigenc_not_support_get_ctype_code_range,
   onigenc_single_byte_left_adjust_char_head,
   onigenc_always_true_is_allowed_reverse_match

@@ -1,4 +1,4 @@
-Oniguruma Regular Expressions Version 5.6.0    2007/04/03
+Oniguruma Regular Expressions Version 5.9.1    2007/09/05
 
 syntax: ONIG_SYNTAX_RUBY (default)
 
@@ -246,6 +246,10 @@ syntax: ONIG_SYNTAX_RUBY (default)
 8. Back reference
 
   \n          back reference by group number (n >= 1)
+  \k<n>       back reference by group number (n >= 1)
+  \k'n'       back reference by group number (n >= 1)
+  \k<-n>      back reference by relative group number (n >= 1)
+  \k'-n'      back reference by relative group number (n >= 1)
   \k<name>    back reference by group name
   \k'name'    back reference by group name
 
@@ -259,10 +263,17 @@ syntax: ONIG_SYNTAX_RUBY (default)
 
   back reference with nest level
 
-    \k<name+n>     n: 0, 1, 2, ...
-    \k<name-n>     n: 0, 1, 2, ...
-    \k'name+n'     n: 0, 1, 2, ...
-    \k'name-n'     n: 0, 1, 2, ...
+    level: 0, 1, 2, ...
+
+    \k<n+level>     (n >= 1)
+    \k<n-level>     (n >= 1)
+    \k'n+level'     (n >= 1)
+    \k'n-level'     (n >= 1)
+
+    \k<name+level>
+    \k<name-level>
+    \k'name+level'
+    \k'name-level'
 
     Destinate relative nest level from back reference position.    
 
@@ -291,6 +302,8 @@ syntax: ONIG_SYNTAX_RUBY (default)
   \g'name'    call by group name
   \g<n>       call by group number (n >= 1)
   \g'n'       call by group number (n >= 1)
+  \g<-n>      call by relative group number (n >= 1)
+  \g'-n'      call by relative group number (n >= 1)
 
   * left-most recursive call is not allowed.
      ex. (?<name>a|\g<name>b)   => error
@@ -423,7 +436,9 @@ A-5. Disabled functions by default syntax
 
 A-6. Problems
 
-   + Invalid encoding byte sequence is not checked in UTF-8.
+   + Invalid encoding byte sequence is not checked.
+
+     ex. UTF-8
 
      * Invalid first byte is treated as a character.
        /./u =~ "\xa3"

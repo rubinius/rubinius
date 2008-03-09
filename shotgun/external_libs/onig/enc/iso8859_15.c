@@ -2,7 +2,7 @@
   iso8859_15.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2006  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,8 +104,8 @@ static const unsigned short EncISO_8859_15_CtypeTable[256] = {
 };
 
 static int
-iso_8859_15_mbc_case_fold(OnigCaseFoldType flag,
-			  const UChar** pp, const UChar* end, UChar* lower)
+mbc_case_fold(OnigCaseFoldType flag,
+	      const UChar** pp, const UChar* end ARG_UNUSED, UChar* lower)
 {
   const UChar* p = *pp;
 
@@ -123,8 +123,8 @@ iso_8859_15_mbc_case_fold(OnigCaseFoldType flag,
 
 #if 0
 static int
-iso_8859_15_is_mbc_ambiguous(OnigCaseFoldType flag,
-			     const UChar** pp, const UChar* end)
+is_mbc_ambiguous(OnigCaseFoldType flag,
+		 const UChar** pp, const UChar* end)
 {
   int v;
   const UChar* p = *pp;
@@ -149,7 +149,7 @@ iso_8859_15_is_mbc_ambiguous(OnigCaseFoldType flag,
 #endif
 
 static int
-iso_8859_15_is_code_ctype(OnigCodePoint code, unsigned int ctype)
+is_code_ctype(OnigCodePoint code, unsigned int ctype)
 {
   if (code < 256)
     return ENC_IS_ISO_8859_15_CTYPE(code, ctype);
@@ -158,48 +158,48 @@ iso_8859_15_is_code_ctype(OnigCodePoint code, unsigned int ctype)
 }
 
 static const OnigPairCaseFoldCodes CaseFoldMap[] = {
-  { 0xa6, 0xa8 },
+ { 0xa6, 0xa8 },
 
-  { 0xb4, 0xb8 },
-  { 0xbc, 0xbd },
-  { 0xbe, 0xff },
+ { 0xb4, 0xb8 },
+ { 0xbc, 0xbd },
+ { 0xbe, 0xff },
 
-  { 0xc0, 0xe0 },
-  { 0xc1, 0xe1 },
-  { 0xc2, 0xe2 },
-  { 0xc3, 0xe3 },
-  { 0xc4, 0xe4 },
-  { 0xc5, 0xe5 },
-  { 0xc6, 0xe6 },
-  { 0xc7, 0xe7 },
-  { 0xc8, 0xe8 },
-  { 0xc9, 0xe9 },
-  { 0xca, 0xea },
-  { 0xcb, 0xeb },
-  { 0xcc, 0xec },
-  { 0xcd, 0xed },
-  { 0xce, 0xee },
-  { 0xcf, 0xef },
+ { 0xc0, 0xe0 },
+ { 0xc1, 0xe1 },
+ { 0xc2, 0xe2 },
+ { 0xc3, 0xe3 },
+ { 0xc4, 0xe4 },
+ { 0xc5, 0xe5 },
+ { 0xc6, 0xe6 },
+ { 0xc7, 0xe7 },
+ { 0xc8, 0xe8 },
+ { 0xc9, 0xe9 },
+ { 0xca, 0xea },
+ { 0xcb, 0xeb },
+ { 0xcc, 0xec },
+ { 0xcd, 0xed },
+ { 0xce, 0xee },
+ { 0xcf, 0xef },
 
-  { 0xd0, 0xf0 },
-  { 0xd1, 0xf1 },
-  { 0xd2, 0xf2 },
-  { 0xd3, 0xf3 },
-  { 0xd4, 0xf4 },
-  { 0xd5, 0xf5 },
-  { 0xd6, 0xf6 },
-  { 0xd8, 0xf8 },
-  { 0xd9, 0xf9 },
-  { 0xda, 0xfa },
-  { 0xdb, 0xfb },
-  { 0xdc, 0xfc },
-  { 0xdd, 0xfd },
-  { 0xde, 0xfe }
+ { 0xd0, 0xf0 },
+ { 0xd1, 0xf1 },
+ { 0xd2, 0xf2 },
+ { 0xd3, 0xf3 },
+ { 0xd4, 0xf4 },
+ { 0xd5, 0xf5 },
+ { 0xd6, 0xf6 },
+ { 0xd8, 0xf8 },
+ { 0xd9, 0xf9 },
+ { 0xda, 0xfa },
+ { 0xdb, 0xfb },
+ { 0xdc, 0xfc },
+ { 0xdd, 0xfd },
+ { 0xde, 0xfe }
 };
 
 static int
-iso_8859_15_apply_all_case_fold(OnigCaseFoldType flag,
-			       OnigApplyAllCaseFoldFunc f, void* arg)
+apply_all_case_fold(OnigCaseFoldType flag,
+		    OnigApplyAllCaseFoldFunc f, void* arg)
 {
   return onigenc_apply_all_case_fold_with_map(
              sizeof(CaseFoldMap)/sizeof(OnigPairCaseFoldCodes), CaseFoldMap, 1,
@@ -207,7 +207,7 @@ iso_8859_15_apply_all_case_fold(OnigCaseFoldType flag,
 }
 
 static int
-iso_8859_15_get_case_fold_codes_by_str(OnigCaseFoldType flag,
+get_case_fold_codes_by_str(OnigCaseFoldType flag,
     const OnigUChar* p, const OnigUChar* end, OnigCaseFoldCodeItem items[])
 {
   return onigenc_get_case_fold_codes_by_str_with_map(
@@ -224,11 +224,11 @@ OnigEncodingType OnigEncodingISO_8859_15 = {
   onigenc_single_byte_mbc_to_code,
   onigenc_single_byte_code_to_mbclen,
   onigenc_single_byte_code_to_mbc,
-  iso_8859_15_mbc_case_fold,
-  iso_8859_15_apply_all_case_fold,
-  iso_8859_15_get_case_fold_codes_by_str,
+  mbc_case_fold,
+  apply_all_case_fold,
+  get_case_fold_codes_by_str,
   onigenc_minimum_property_name_to_ctype,
-  iso_8859_15_is_code_ctype,
+  is_code_ctype,
   onigenc_not_support_get_ctype_code_range,
   onigenc_single_byte_left_adjust_char_head,
   onigenc_always_true_is_allowed_reverse_match

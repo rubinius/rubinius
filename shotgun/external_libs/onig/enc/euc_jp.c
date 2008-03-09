@@ -62,7 +62,7 @@ mbc_to_code(const UChar* p, const UChar* end)
   int c, i, len;
   OnigCodePoint n;
 
-  len = enc_len(ONIG_ENCODING_EUC_JP, p);
+  len = enclen(ONIG_ENCODING_EUC_JP, p);
   n = (OnigCodePoint )*p++;
   if (len == 1) return n;
 
@@ -80,7 +80,8 @@ code_to_mbclen(OnigCodePoint code)
   if (ONIGENC_IS_CODE_ASCII(code)) return 1;
   else if ((code & 0xff0000) != 0) return 3;
   else if ((code &   0xff00) != 0) return 2;
-  else return 0;
+  else
+    return ONIGERR_INVALID_CODE_POINT_VALUE;
 }
 
 #if 0
@@ -112,15 +113,15 @@ code_to_mbc(OnigCodePoint code, UChar *buf)
   *p++ = (UChar )(code & 0xff);
 
 #if 1
-  if (enc_len(ONIG_ENCODING_EUC_JP, buf) != (p - buf))
-    return ONIGENC_ERR_INVALID_WIDE_CHAR_VALUE;
+  if (enclen(ONIG_ENCODING_EUC_JP, buf) != (p - buf))
+    return ONIGERR_INVALID_CODE_POINT_VALUE;
 #endif  
   return p - buf;
 }
 
 static int
-mbc_case_fold(OnigCaseFoldType flag,
-	      const UChar** pp, const UChar* end, UChar* lower)
+mbc_case_fold(OnigCaseFoldType flag ARG_UNUSED,
+	      const UChar** pp, const UChar* end ARG_UNUSED, UChar* lower)
 {
   int len;
   const UChar* p = *pp;
@@ -133,7 +134,7 @@ mbc_case_fold(OnigCaseFoldType flag,
   else {
     int i;
 
-    len = enc_len(ONIG_ENCODING_EUC_JP, p);
+    len = enclen(ONIG_ENCODING_EUC_JP, p);
     for (i = 0; i < len; i++) {
       *lower++ = *p++;
     }
@@ -155,14 +156,14 @@ left_adjust_char_head(const UChar* start, const UChar* s)
   p = s;
 
   while (!eucjp_islead(*p) && p > start) p--;
-  len = enc_len(ONIG_ENCODING_EUC_JP, p);
+  len = enclen(ONIG_ENCODING_EUC_JP, p);
   if (p + len > s) return (UChar* )p;
   p += len;
   return (UChar* )(p + ((s - p) & ~1));
 }
 
 static int
-is_allowed_reverse_match(const UChar* s, const UChar* end)
+is_allowed_reverse_match(const UChar* s, const UChar* end ARG_UNUSED)
 {
   const UChar c = *s;
   if (c <= 0x7e || c == 0x8e || c == 0x8f)
@@ -234,7 +235,7 @@ is_code_ctype(OnigCodePoint code, unsigned int ctype)
 
     ctype -= (ONIGENC_MAX_STD_CTYPE + 1);
     if (ctype >= (unsigned int )PropertyListNum)
-      return ONIGENC_ERR_TYPE_BUG;
+      return ONIGERR_TYPE_BUG;
 
     return onig_is_in_code_range((UChar* )PropertyList[ctype], code);
   }
@@ -243,7 +244,7 @@ is_code_ctype(OnigCodePoint code, unsigned int ctype)
 }
 
 static int
-get_ctype_code_range(int ctype, OnigCodePoint* sb_out,
+get_ctype_code_range(OnigCtype ctype, OnigCodePoint* sb_out,
 		     const OnigCodePoint* ranges[])
 {
   if (ctype <= ONIGENC_MAX_STD_CTYPE) {
@@ -255,8 +256,8 @@ get_ctype_code_range(int ctype, OnigCodePoint* sb_out,
     PROPERTY_LIST_INIT_CHECK;
 
     ctype -= (ONIGENC_MAX_STD_CTYPE + 1);
-    if (ctype >= PropertyListNum)
-      return ONIGENC_ERR_TYPE_BUG;
+    if (ctype >= (OnigCtype )PropertyListNum)
+      return ONIGERR_TYPE_BUG;
 
     *ranges = PropertyList[ctype];
     return 0;

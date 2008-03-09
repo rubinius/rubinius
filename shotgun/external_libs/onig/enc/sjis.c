@@ -89,7 +89,7 @@ code_to_mbclen(OnigCodePoint code)
     return 2;
   }
   else
-    return 0;
+    return ONIGERR_INVALID_CODE_POINT_VALUE;
 }
 
 static OnigCodePoint
@@ -98,7 +98,7 @@ mbc_to_code(const UChar* p, const UChar* end)
   int c, i, len;
   OnigCodePoint n;
 
-  len = enc_len(ONIG_ENCODING_SJIS, p);
+  len = enclen(ONIG_ENCODING_SJIS, p);
   c = *p++;
   n = c;
   if (len == 1) return n;
@@ -120,15 +120,15 @@ code_to_mbc(OnigCodePoint code, UChar *buf)
   *p++ = (UChar )(code & 0xff);
 
 #if 0
-  if (enc_len(ONIG_ENCODING_SJIS, buf) != (p - buf))
-    return REGERR_INVALID_WIDE_CHAR_VALUE;
+  if (enclen(ONIG_ENCODING_SJIS, buf) != (p - buf))
+    return REGERR_INVALID_CODE_POINT_VALUE;
 #endif
   return p - buf;
 }
 
 static int
-mbc_case_fold(OnigCaseFoldType flag,
-	      const UChar** pp, const UChar* end, UChar* lower)
+mbc_case_fold(OnigCaseFoldType flag ARG_UNUSED,
+	      const UChar** pp, const UChar* end ARG_UNUSED, UChar* lower)
 {
   const UChar* p = *pp;
 
@@ -139,7 +139,7 @@ mbc_case_fold(OnigCaseFoldType flag,
   }
   else {
     int i;
-    int len = enc_len(ONIG_ENCODING_SJIS, p);
+    int len = enclen(ONIG_ENCODING_SJIS, p);
 
     for (i = 0; i < len; i++) {
       *lower++ = *p++;
@@ -192,14 +192,14 @@ left_adjust_char_head(const UChar* start, const UChar* s)
       }
     } 
   }
-  len = enc_len(ONIG_ENCODING_SJIS, p);
+  len = enclen(ONIG_ENCODING_SJIS, p);
   if (p + len > s) return (UChar* )p;
   p += len;
   return (UChar* )(p + ((s - p) & ~1));
 }
 
 static int
-is_allowed_reverse_match(const UChar* s, const UChar* end)
+is_allowed_reverse_match(const UChar* s, const UChar* end ARG_UNUSED)
 {
   const UChar c = *s;
   return (SJIS_ISMB_TRAIL(c) ? FALSE : TRUE);
@@ -269,7 +269,7 @@ is_code_ctype(OnigCodePoint code, unsigned int ctype)
 
     ctype -= (ONIGENC_MAX_STD_CTYPE + 1);
     if (ctype >= (unsigned int )PropertyListNum)
-      return ONIGENC_ERR_TYPE_BUG;
+      return ONIGERR_TYPE_BUG;
 
     return onig_is_in_code_range((UChar* )PropertyList[ctype], code);
   }
@@ -278,7 +278,7 @@ is_code_ctype(OnigCodePoint code, unsigned int ctype)
 }
 
 static int
-get_ctype_code_range(int ctype, OnigCodePoint* sb_out,
+get_ctype_code_range(OnigCtype ctype, OnigCodePoint* sb_out,
 		     const OnigCodePoint* ranges[])
 {
   if (ctype <= ONIGENC_MAX_STD_CTYPE) {
@@ -290,8 +290,8 @@ get_ctype_code_range(int ctype, OnigCodePoint* sb_out,
     PROPERTY_LIST_INIT_CHECK;
 
     ctype -= (ONIGENC_MAX_STD_CTYPE + 1);
-    if (ctype >= PropertyListNum)
-      return ONIGENC_ERR_TYPE_BUG;
+    if (ctype >= (OnigCtype )PropertyListNum)
+      return ONIGERR_TYPE_BUG;
 
     *ranges = PropertyList[ctype];
     return 0;

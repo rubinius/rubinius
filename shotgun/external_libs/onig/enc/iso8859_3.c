@@ -104,8 +104,8 @@ static const unsigned short EncISO_8859_3_CtypeTable[256] = {
 };
 
 static int
-mbc_case_fold(OnigCaseFoldType flag,
-	      const UChar** pp, const UChar* end, UChar* lower)
+mbc_case_fold(OnigCaseFoldType flag, const UChar** pp,
+	      const UChar* end ARG_UNUSED, UChar* lower)
 {
   const UChar* p = *pp;
 

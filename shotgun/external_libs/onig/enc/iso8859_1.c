@@ -111,8 +111,9 @@ apply_all_case_fold(OnigCaseFoldType flag,
 }
 
 static int
-get_case_fold_codes_by_str(OnigCaseFoldType flag, const OnigUChar* p,
-			   const OnigUChar* end, OnigCaseFoldCodeItem items[])
+get_case_fold_codes_by_str(OnigCaseFoldType flag ARG_UNUSED,
+			   const OnigUChar* p, const OnigUChar* end,
+			   OnigCaseFoldCodeItem items[])
 {
   if (0x41 <= *p && *p <= 0x5a) {
     items[0].byte_len = 1;
@@ -198,8 +199,8 @@ get_case_fold_codes_by_str(OnigCaseFoldType flag, const OnigUChar* p,
 }
 
 static int
-mbc_case_fold(OnigCaseFoldType flag, const UChar** pp, const UChar* end,
-	      UChar* lower)
+mbc_case_fold(OnigCaseFoldType flag, const UChar** pp,
+	      const UChar* end ARG_UNUSED, UChar* lower)
 {
   const UChar* p = *pp;
 

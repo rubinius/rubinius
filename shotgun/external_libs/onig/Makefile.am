@@ -7,7 +7,7 @@ libname = libonig.la
 AM_CFLAGS =
 INCLUDES  = -I$(top_srcdir) -I$(includedir)
 
-SUBDIRS = .
+SUBDIRS = . sample
 
 include_HEADERS = oniguruma.h oniggnu.h onigposix.h
 lib_LTLIBRARIES = $(libname)
