@@ -32,7 +32,8 @@ describe "Kernel#load" do
     Kernel.compile($load_fixture_dir + '/load_spec_10.rb')
 
     Dir.chdir($load_fixture_dir) do |dir|
-      `ar r load_spec_rba.rba load_spec_10.rbc`
+      system "rm -f load_spec_rba.rba"
+      system "ar r load_spec_rba.rba load_spec_10.rbc 2>/dev/null"
     end
   end
 
