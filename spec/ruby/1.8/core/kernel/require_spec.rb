@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 $require_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/require')
 $LOAD_PATH << $require_fixture_dir
-$LOAD_PATH << (File.dirname(__FILE__) + '/../../fixtures/require/require_spec_rba.rba')
 
 $require_spec   = nil
 $require_spec_1 = nil
@@ -28,8 +27,8 @@ describe "Kernel#require" do
       Kernel.private_instance_methods.should include("require")
     end
   end
-  
-  # Avoid storing .rbc and .rba in repo
+
+  # Avoid storing .rbc in repo
   before :all do
     Dir.chdir($require_fixture_dir) {
       `rm -f ./*.rbc`

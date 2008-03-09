@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 $load_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/load')
 $LOAD_PATH << $load_fixture_dir
-$LOAD_PATH << (File.dirname(__FILE__) + '/../../fixtures/load/load_spec_rba.rba')
 
 $load_spec_1 = nil
 $load_spec_2 = nil
@@ -32,7 +31,7 @@ describe "Kernel#load" do
     Kernel.private_instance_methods.should include("load")
   end
 
-  # Avoid storing .rbc and .rba in repo
+  # Avoid storing .rbc in repo
   before :all do
     Dir.chdir($load_fixture_dir) do |dir|
       `rm -f ./*.rbc`
