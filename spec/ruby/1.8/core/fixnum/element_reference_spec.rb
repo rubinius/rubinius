@@ -25,11 +25,27 @@ describe "Fixnum#[]" do
     lambda { 3[obj] }.should raise_error(TypeError)
   end
 
-  it "raises a RangeError when the given argument is out of range of Integer" do
-    (obj = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
-    lambda { 3[obj] }.should raise_error(RangeError)
+  # On Rubinius this works ok. This failure is actually a bug in MRI, because there is
+  # no reason it should fail, especially because it can do & on a fixnum and bignum.
+  # See http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/15838
+  not_compliant_on :rubinius do
+    it "raises a RangeError when the given argument is out of range of Integer" do
+      (obj = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
+      lambda { 3[obj] }.should raise_error(RangeError)
 
-    obj = 8e19
-    lambda { 3[obj] }.should raise_error(RangeError)
+      obj = 8e19
+      lambda { 3[obj] }.should raise_error(RangeError)
+    end
   end
+  
+  deviates_on :rubinius do
+    it "coerces arguments correctly even if it is a Bignum" do
+      (obj = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
+      3[obj].should == 0
+      obj = 8e19
+      
+      3[obj].should == 0
+    end
+  end
+
 end
