@@ -1,13 +1,19 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "Array#sort" do
-  module ArraySpecs
-    class SortSame
-      def <=>(other); 0; end
-      def ==(other); true; end
-    end
+module ArraySpecs
+  class SortSame
+    def <=>(other); 0; end
+    def ==(other); true; end
   end
+
+  class UFOSceptic
+    def <=>(other); raise "N-uh, UFO:s do not exist!"; end
+  end
+end
+
+
+describe "Array#sort" do
 
   it "returns a new array sorted based on comparing elements with <=>" do
     a = [1, -2, 3, 9, 1, 5, -5, 1000, -5, 2, -10, 14, 6, 23, 0]
@@ -41,7 +47,7 @@ describe "Array#sort" do
     a.sort.should == [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
   end
 
-  it "does not deal with failures from incorrect/incompatible use of <=>" do
+  it "does not deal with exceptions raised by unimplemented or incorrect #<=>" do
     o = Object.new
 
     lambda { [o, 1].sort }.should raise_error
@@ -55,6 +61,20 @@ describe "Array#sort" do
     a = [5, 1, 4, 3, 2]
     a.sort.should == [1, 2, 3, 4, 5]
     a.sort {|x, y| y <=> x}.should == [5, 4, 3, 2, 1]
+  end
+
+  it "does not call #<=> on contained objects when invoked with a block" do
+    a = Array.new(25)
+    (0...25).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
+
+    a.sort { -1 }.class.should == Array
+  end
+
+  it "does not call #<=> on elements when invoked with a block even if Array is large (Rubinius #412)" do
+    a = Array.new(1500)
+    (0...1500).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
+
+    a.sort { -1 }.class.should == Array
   end
 
   it "completes when supplied a block that always returns the same result" do
@@ -80,6 +100,20 @@ describe "Array#sort!" do
   it "sorts array in place using block value" do
     a = [0, 15, 2, 3, 4, 6, 14, 5, 7, 12, 8, 9, 1, 10, 11, 13]
     a.sort! { |x, y| y <=> x }.should == (0..15).to_a.reverse
+  end
+
+  it "does not call #<=> on contained objects when invoked with a block" do
+    a = Array.new(25)
+    (0...25).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
+
+    a.sort! { -1 }.class.should == Array
+  end
+
+  it "does not call #<=> on elements when invoked with a block even if Array is large (Rubinius #412)" do
+    a = Array.new(1500)
+    (0...1500).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
+
+    a.sort! { -1 }.class.should == Array
   end
 
   compliant_on :ruby, :jruby do
