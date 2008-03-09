@@ -1860,7 +1860,7 @@ class ShotgunPrimitives
     if(FIXNUM_P(t1)) {
       k = N2I(t1);
     } else if(BIGNUM_P(t1)) {
-      k = (native_int)bignum_to_ll(state, t1);
+      RET(bignum_and(state, bignum_new(state, N2I(msg->recv)), t1));
     } else if(FLOAT_P(t1)) {
       double a = FLOAT_TO_DOUBLE(t1);
       if(float_bounded_p(a)) {
