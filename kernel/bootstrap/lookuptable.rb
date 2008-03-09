@@ -1,3 +1,5 @@
+# depends on: module.rb
+
 ##
 # A LookupTable is similar to a Hash in that keys are used to set and
 # reference values. However, unlike Hash, whether a key matches an
@@ -106,4 +108,10 @@ class LookupTable
     end
     self
   end
+
+  alias_method :length,   :size
+  alias_method :has_key?, :key?
+  alias_method :include?, :key?
+  alias_method :member?,  :key?
+  alias_method :clone,    :dup
 end

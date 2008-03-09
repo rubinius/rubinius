@@ -1,3 +1,5 @@
+# depends on: vm.rb
+
 class Module
   ivar_as_index :method_table => 1, :name => 3, :constants => 4, :encloser => 5, :superclass => 6
 

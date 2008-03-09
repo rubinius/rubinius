@@ -3,12 +3,6 @@
 class LookupTable
   include Enumerable
 
-  alias_method :length,   :size
-  alias_method :has_key?, :key?
-  alias_method :include?, :key?
-  alias_method :member?,  :key?
-  alias_method :clone,    :dup
-
   def empty?
     @entries == 0
   end
