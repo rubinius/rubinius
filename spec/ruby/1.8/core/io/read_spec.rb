@@ -34,6 +34,31 @@ describe "IO.read" do
     IO.read(@fname, 5, 3).should == @contents.slice(3, 5)
   end
   
+  it "returns nil at end-of-file with a length" do
+    IO.read(@fname, 1, 10).should == nil
+  end
+  
+  describe "on empty file" do
+    
+    before :each do
+      @fname = 'empty_test.txt'
+      File.open(@fname, 'w') {|f| 1 }
+    end
+    
+    it "returns nil when length provided" do
+      IO.read(@fname, 1).should == nil
+    end
+    
+    it "returns empty string when no length provided" do
+      IO.read(@fname).should == ""
+    end
+    
+    after :each do
+      File.delete(@fname) if File.exists?(@fname)
+    end
+    
+  end
+  
   it "raises an Errno::ENOENT when the requested file does not exist" do
     File.delete(@fname) if File.exists?(@fname)
     lambda { IO.read @fname }.should raise_error(Errno::ENOENT)
