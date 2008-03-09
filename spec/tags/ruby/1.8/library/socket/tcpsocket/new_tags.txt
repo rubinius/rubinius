@@ -1,2 +1,0 @@
-fails(Hangs on ubuntu gutsy at least):TCPSocket.new
-
