@@ -64,17 +64,17 @@ end
 #   
 #   ipaddr1 = IPAddr.new "3ffe:505:2::1"
 #   
-#   p ipaddr1			#=> #<IPAddr: IPv6:3ffe:0505:0002:0000:0000:0000:0000:0001/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff>
+#   p ipaddr1                   #=> #<IPAddr: IPv6:3ffe:0505:0002:0000:0000:0000:0000:0001/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff>
 #   
-#   p ipaddr1.to_s		#=> "3ffe:505:2::1"
+#   p ipaddr1.to_s              #=> "3ffe:505:2::1"
 #   
-#   ipaddr2 = ipaddr1.mask(48)	#=> #<IPAddr: IPv6:3ffe:0505:0002:0000:0000:0000:0000:0000/ffff:ffff:ffff:0000:0000:0000:0000:0000>
+#   ipaddr2 = ipaddr1.mask(48)  #=> #<IPAddr: IPv6:3ffe:0505:0002:0000:0000:0000:0000:0000/ffff:ffff:ffff:0000:0000:0000:0000:0000>
 #   
-#   p ipaddr2.to_s		#=> "3ffe:505:2::"
+#   p ipaddr2.to_s              #=> "3ffe:505:2::"
 #   
 #   ipaddr3 = IPAddr.new "192.168.2.0/24"
 #   
-#   p ipaddr3			#=> #<IPAddr: IPv4:192.168.2.0/255.255.255.0>
+#   p ipaddr3                   #=> #<IPAddr: IPv4:192.168.2.0/255.255.255.0>
 
 class IPAddr
 
@@ -149,13 +149,13 @@ class IPAddr
   # e.g.:
   #   require 'ipaddr'
   #   net1 = IPAddr.new("192.168.2.0/24")
-  #   p net1.include?(IPAddr.new("192.168.2.0"))	#=> true
-  #   p net1.include?(IPAddr.new("192.168.2.255"))	#=> true
-  #   p net1.include?(IPAddr.new("192.168.3.0"))	#=> false
+  #   p net1.include?(IPAddr.new("192.168.2.0"))        #=> true
+  #   p net1.include?(IPAddr.new("192.168.2.255"))      #=> true
+  #   p net1.include?(IPAddr.new("192.168.3.0"))        #=> false
   def include?(other)
     if ipv4_mapped?
       if (@mask_addr >> 32) != 0xffffffffffffffffffffffff
-	return false
+        return false
       end
       mask_addr = (@mask_addr & IN4MASK)
       addr = (@addr & IN4MASK)
@@ -167,11 +167,11 @@ class IPAddr
     end
     if other.kind_of?(IPAddr)
       if other.ipv4_mapped?
-	other_addr = (other.to_i & IN4MASK)
-	other_family = Socket::AF_INET
+        other_addr = (other.to_i & IN4MASK)
+        other_family = Socket::AF_INET
       else
-	other_addr = other.to_i
-	other_family = other.family
+        other_addr = other.to_i
+        other_family = other.family
       end
     else # Not IPAddr - assume integer in same family as us
       other_addr   = other.to_i
@@ -228,7 +228,7 @@ class IPAddr
       return [@addr].pack('N')
     when Socket::AF_INET6
       return (0..7).map { |i|
-	(@addr >> (112 - 16 * i)) & 0xffff
+        (@addr >> (112 - 16 * i)) & 0xffff
       }.pack('n8')
     else
       raise "unsupported address family"
@@ -328,7 +328,7 @@ class IPAddr
       raise "unsupported address family"
     end
     return sprintf("#<%s: %s:%s/%s>", self.class.name,
-		   af, _to_string(@addr), _to_string(@mask_addr))
+                   af, _to_string(@addr), _to_string(@mask_addr))
   end
 
   protected
@@ -337,11 +337,11 @@ class IPAddr
     case family[0] ? family[0] : @family
     when Socket::AF_INET
       if addr < 0 || addr > IN4MASK
-	raise ArgumentError, "invalid address"
+        raise ArgumentError, "invalid address"
       end
     when Socket::AF_INET6
       if addr < 0 || addr > IN6MASK
-	raise ArgumentError, "invalid address"
+        raise ArgumentError, "invalid address"
       end
     else
       raise ArgumentError, "unsupported address family"
@@ -356,15 +356,15 @@ class IPAddr
   def mask!(mask)
     if mask.kind_of?(String)
       if mask =~ /^\d+$/
-	prefixlen = mask.to_i
+        prefixlen = mask.to_i
       else
-	m = IPAddr.new(mask)
-	if m.family != @family
-	  raise ArgumentError, "address family is not same"
-	end
-	@mask_addr = m.to_i
-	@addr &= @mask_addr
-	return self
+        m = IPAddr.new(mask)
+        if m.family != @family
+          raise ArgumentError, "address family is not same"
+        end
+        @mask_addr = m.to_i
+        @addr &= @mask_addr
+        return self
       end
     else
       prefixlen = mask
@@ -372,13 +372,13 @@ class IPAddr
     case @family
     when Socket::AF_INET
       if prefixlen < 0 || prefixlen > 32
-	raise ArgumentError, "invalid length"
+        raise ArgumentError, "invalid length"
       end
       masklen = 32 - prefixlen
       @mask_addr = ((IN4MASK >> masklen) << masklen)
     when Socket::AF_INET6
       if prefixlen < 0 || prefixlen > 128
-	raise ArgumentError, "invalid length"
+        raise ArgumentError, "invalid length"
       end
       masklen = 128 - prefixlen
       @mask_addr = ((IN6MASK >> masklen) << masklen)
@@ -402,7 +402,7 @@ class IPAddr
   def initialize(addr = '::', family = Socket::AF_UNSPEC)
     if !addr.kind_of?(String)
       if family != Socket::AF_INET6 && family != Socket::AF_INET
-	raise ArgumentError, "unsupported address family"
+        raise ArgumentError, "unsupported address family"
       end
       set(addr, family)
       @mask_addr = (family == Socket::AF_INET) ? IN4MASK : IN6MASK
@@ -415,9 +415,9 @@ class IPAddr
     end
     # It seems AI_NUMERICHOST doesn't do the job.
     #Socket.getaddrinfo(left, nil, Socket::AF_INET6, Socket::SOCK_STREAM, nil,
-    #		       Socket::AI_NUMERICHOST)
+    #                  Socket::AI_NUMERICHOST)
     begin
-      IPSocket.getaddress(prefix)		# test if address is vaild
+      IPSocket.getaddress(prefix)               # test if address is vaild
     rescue
       raise ArgumentError, "invalid address"
     end
@@ -425,7 +425,7 @@ class IPAddr
     if family == Socket::AF_UNSPEC || family == Socket::AF_INET
       @addr = in_addr(prefix)
       if @addr
-	@family = Socket::AF_INET
+        @family = Socket::AF_INET
       end
     end
     if !@addr && (family == Socket::AF_UNSPEC || family == Socket::AF_INET6)
@@ -446,8 +446,8 @@ class IPAddr
     if addr =~ /^\d+\.\d+\.\d+\.\d+$/
       n = 0
       addr.split('.').each { |i|
-	n <<= 8
-	n += i.to_i
+        n <<= 8
+        n += i.to_i
       }
       return n
     end
@@ -498,7 +498,7 @@ class IPAddr
     case @family
     when Socket::AF_INET
       return (0..3).map { |i|
-	(@addr >> (8 * i)) & 0xff
+        (@addr >> (8 * i)) & 0xff
       }.join('.')
     when Socket::AF_INET6
       return ("%.32x" % @addr).reverse!.gsub!(/.(?!$)/, '\&.')
@@ -511,7 +511,7 @@ class IPAddr
     case @family
     when Socket::AF_INET
       return (0..3).map { |i|
-	(addr >> (24 - 8 * i)) & 0xff
+        (addr >> (24 - 8 * i)) & 0xff
       }.join('.')
     when Socket::AF_INET6
       return (("%.32x" % addr).gsub!(/.{4}(?!$)/, '\&:'))
@@ -599,7 +599,7 @@ class TC_IPAddr < Test::Unit::TestCase
       ["[192.168.1.2]/120"],
     ].each { |args|
       assert_raises(ArgumentError) {
-	IPAddr.new(*args)
+        IPAddr.new(*args)
       }
     }
   end
@@ -700,7 +700,7 @@ class TC_Operator < Test::Unit::TestCase
     assert_equal("3ffe:505:2:1::", a.to_s)
     assert_equal("3ffe:505:2::", @a.to_s)
     assert_equal("3ffe:505:2:1::",
-		 (@a | 0x00000000000000010000000000000000).to_s)
+                 (@a | 0x00000000000000010000000000000000).to_s)
   end
 
   def test_and
