@@ -178,6 +178,11 @@ class Socket < BasicSocket
       end
     end
 
+    def self.getaddress(host)
+      addrinfos = Socket::Foreign.getaddrinfo(host, nil, 0, 0, 0, Socket::NI_NUMERICHOST)
+      addrinfos.first[3]
+    end
+    
     def self.getnameinfo(sockaddr,
                          reverse_lookup = !Socket.do_not_reverse_lookup)
       name_info = []
@@ -498,9 +503,7 @@ end
 class IPSocket < BasicSocket
 
   def self.getaddress(host)
-    addrinfos = Socket.getaddrinfo host
-
-    addrinfos.first[3]
+    Socket::Foreign.getaddress host
   end
 
   def addr
