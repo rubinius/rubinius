@@ -1663,7 +1663,7 @@ class Array
       eqls_left, eqls_right = (left_end - 1), right_end
 
       # Choose pivot from median
-      # CAUTION: This may differ from how block version works
+      # CAUTION: This is NOT the same as #qsort_block!
       middle = left_end + ((right_end - left_end) / 2)
       low, mid, hi = @tuple.at(left_end), @tuple.at(middle), @tuple.at(right_end)
 
@@ -1793,17 +1793,17 @@ class Array
       eqls_left, eqls_right = (left_end - 1), right_end
 
       # Choose pivot from median
-      # CAUTION: This may differ from how non-block version works
+      # CAUTION: This is NOT the same as #qsort!
       middle = left_end + ((right_end - left_end) / 2)
       low, mid, hi = @tuple.at(left_end), @tuple.at(middle), @tuple.at(right_end)
 
       # "Heuristic" for reverse-sorted
-      if @total > 1000 and (low <=> mid) == 1 and (mid <=> hi) == 1
+      if @total > 1000 and block.call(low, mid) == 1 and block.call(mid, hi) == 1
         semi_left = @tuple.at(left_end + ((middle - left_end) / 2))
         semi_right = @tuple.at(middle + ((right_end - middle) / 2))
 
-        if (low <=> semi_left) == 1 and (semi_left <=> middle) == 1 and
-           (middle <=> semi_right) == 1 and (semi_right <=> hi) == 1
+        if block.call(low, semi_left) == 1 and block.call(semi_left, middle) == 1 and
+           block.call(middle, semi_right) == 1 and block.call(semi_right, hi) == 1
         end
 
         size = right_end - left_end
