@@ -1854,8 +1854,8 @@ class Node
 
       receiver_bytecode(g)
 
-      # @block might be BlockPass, and we don't generate the LRE detection
-      # code for that.
+      # @block might be BlockPass, and we don't generate the
+      # LongReturnException detection code for that.
       if @block and @block.is? Iter
         block_bytecode(g)
       elsif @dynamic
@@ -1864,10 +1864,26 @@ class Node
         g.send_with_register @method, allow_private?
       elsif @block
         # Only BlockPass currently
+        proc_from_block(g)
         g.send_with_block @method, @argcount, allow_private?
       else
         g.send @method, @argcount, allow_private?
       end
+    end
+
+    def proc_from_block(g)
+      nil_block = g.new_label
+      g.swap
+      g.dup
+      g.is_nil
+      g.git nil_block
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.send :__from_block__, 1
+      
+      nil_block.set!
+      g.swap
     end
 
     def block_bytecode(g)
