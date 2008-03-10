@@ -141,11 +141,19 @@ class Node
     end
   end
 
+  # REFACTOR See if there is a sane way to call 'super' here
+  # We need to call 'push_encloser' before 'sret', hence the copy-and-paste
   class EvalExpression
     def bytecode(g)
-      ret = super(g)
+      set(:scope, self) do
+        push_self_or_class(g)
+        g.set_encloser
+        prelude(nil, g)
+        @body.bytecode(g)
+        g.push_encloser
+        g.sret
+      end
       enlarge_context
-      return ret
     end
   end
 
