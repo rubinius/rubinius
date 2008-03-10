@@ -233,7 +233,8 @@ module Bytecode
       :lookuptable_values,
       :lookuptable_entries,
       :lookuptable_dup,
-      :allocate_module
+      :allocate_module,
+      :allocate_hash
     ]
   end
 end

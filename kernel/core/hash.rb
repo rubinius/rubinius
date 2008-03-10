@@ -25,30 +25,6 @@ class Hash
     end
     hsh
   end
-  
-  def self.allocate
-    hash = __allocate__
-    hash.send :setup
-    hash
-  end
-
-  def self.new(*args, &block)
-    hash = allocate
-    hash.send :initialize, *args, &block
-    hash
-  end
-
-  #--
-  # Separate from #initialize to allow subclasses easier access to
-  # #initialize. Do not touch this, and do not touch .new
-  #++
-
-  def setup()
-    @bins = 16
-    @entries = 0
-    @values = Tuple.new(@bins)
-  end
-  private :setup
 
   def initialize(default = Undefined, &block)
     if !default.equal?(Undefined) and block
