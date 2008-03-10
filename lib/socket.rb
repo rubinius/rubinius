@@ -624,12 +624,13 @@ class TCPSocket < IPSocket
       end
 
       break if status >= 0
-
-      Socket::Foreign.close descriptor
     end
 
-    Errno.handle syscall if status < 0
-
+    if status < 0
+      Errno.handle getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
+      Socket::Foreign.close descriptor
+    end
+    
     if server then
       err = Socket::Foreign.listen descriptor, 5
       Errno.handle syscall unless err == 0
