@@ -1540,7 +1540,7 @@ CODE
   end
 
   # [Operation]
-  #   Sets the enclosing class/module when creating a class/module
+  #   Sets the enclosing class/module when opening a class/module
   # [Format]
   #   \set_encloser
   # [Stack Before]

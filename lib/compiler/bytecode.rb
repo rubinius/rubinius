@@ -50,7 +50,7 @@ class Node
       Compiler::MethodDescription.new(@compiler.generator_class, self.locals)
     end
 
-    def to_description(name=nil)
+    def to_description(name = nil)
       desc = new_description()
       desc.name = name if name
       gen = desc.generator
@@ -66,6 +66,18 @@ class Node
       [0, 0]
     end
 
+    def push_self_or_class(meth)
+      is_module = meth.new_label
+      meth.push :self
+      meth.push_cpath_top
+      meth.find_const :Module
+      meth.push :self
+      meth.send :kind_of?, 1
+      meth.git is_module
+      meth.send :class, 0
+      is_module.set!
+    end
+
     def attach_and_call(g, name)
       # If the body is empty, then don't bother with it.
       return if @body.empty?
@@ -75,7 +87,7 @@ class Node
 
       prelude(g, meth)
 
-      meth.push :self
+      push_self_or_class(meth)
       meth.set_encloser
 
       set(:scope, self) do

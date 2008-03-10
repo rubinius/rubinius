@@ -1,0 +1,7 @@
+fails:Compiler compiles 'class << x; 12; end'
+fails:Compiler compiles a class with no superclass
+fails:Compiler compiles a class declared at a path
+fails:Compiler compiles a class with superclass
+fails:Compiler compiles a class with space allocated for locals
+fails:Compiler compiles a normal module
+fails:Compiler compiles a module declared at a path
