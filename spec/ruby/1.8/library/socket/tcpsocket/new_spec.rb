@@ -32,8 +32,10 @@ describe "TCPSocket.new" do
     sock.addr[0].should == "AF_INET"
     sock.addr[1].should be_kind_of Fixnum
     # on some platforms (Mac), MRI
-    # returns comma at the end.
-    sock.addr[2].should =~ /^localhost,?$/
+    # returns comma at the end. Other
+    # platforms such as OpenBSD setup the 
+    # localhost as localhost.domain.com
+    sock.addr[2].should =~ /^localhost/
     sock.addr[3].should == "127.0.0.1"
     thread.join
   end

@@ -632,11 +632,12 @@ class TCPSocket < IPSocket
       end
 
       break if status >= 0
-
-      Socket::Foreign.close descriptor
     end
 
-    Errno.handle if status < 0
+    if status < 0
+      Errno.handle syscall 
+      Socket::Foreign.close descriptor
+    end
     
     if server then
       err = Socket::Foreign.listen descriptor, 5
