@@ -1,11 +1,6 @@
 # depends on: class.rb
 
 class MethodTable
-
-  def initialize()
-    setup
-  end
-
   def public_names
     filter_names :public
   end
@@ -28,6 +23,4 @@ class MethodTable
       end
     end.compact
   end
-
 end
-

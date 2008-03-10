@@ -47,14 +47,6 @@ class LookupTable
     end
   end
 
-  # This method is required by MethodTable until
-  # that can be fixed, then this can be removed.
-  def setup
-    @values = Tuple.new 16
-    @bins = 16
-    @entries = 0
-  end
-
   def dup
     Ruby.primitive :lookuptable_dup
     raise PrimitiveFailure, "LookupTable#dup primitive failed"
