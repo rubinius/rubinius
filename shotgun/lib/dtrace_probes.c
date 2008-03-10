@@ -20,13 +20,6 @@
 #include "shotgun/lib/dtrace_probes.h"
 
 /*
- * Helper prototype
- */
-
-void dtrace_source_context(STATE, cpu c, int*, const char**);
-
-
-/*
  * Function entry/exit probe implementations
  */
 
@@ -37,7 +30,7 @@ void dtrace_function_primitive_entry(STATE, cpu c, const struct message *msg) {
   cpu_flush_ip(c);
 
   int line_number; const char *filename;
-  dtrace_source_context(state, c, &line_number, &filename);
+  _source_location(&line_number, &filename);
 
   RUBINIUS_FUNCTION_PRIMITIVE_ENTRY((char*)module_name, (char*)method_name, (char*)filename, line_number);
 }
@@ -49,7 +42,7 @@ void dtrace_function_primitive_return(STATE, cpu c, const struct message *msg) {
   cpu_flush_ip(c);
 
   int line_number; const char *filename;
-  dtrace_source_context(state, c, &line_number, &filename);
+  _source_location(&line_number, &filename);
 
   RUBINIUS_FUNCTION_PRIMITIVE_RETURN((char*)module_name, (char*)method_name, (char*)filename, line_number);  
 }
@@ -62,7 +55,7 @@ void dtrace_function_entry(STATE, cpu c, const struct message *msg) {
 
   if (!NIL_P(c->active_context)) {
     int line_number; const char *filename;
-    dtrace_source_context(state, c, &line_number, &filename);
+    _source_location(&line_number, &filename);
 
     RUBINIUS_FUNCTION_ENTRY((char*)module_name, (char*)method_name, (char*)filename, line_number);
   } else {
@@ -79,7 +72,7 @@ void dtrace_function_return(STATE, cpu c) {
   cpu_flush_ip(c);
 
   int line_number; const char *filename;
-  dtrace_source_context(state, c, &line_number, &filename);
+  _source_location(&line_number, &filename);
 
   RUBINIUS_FUNCTION_RETURN((char*)module_name, (char*)method_name, (char*)filename, line_number);
 }
@@ -119,17 +112,6 @@ void object_create_start(OBJECT cls) {
 
 void object_create_done(OBJECT cls) {
   RUBINIUS_OBJECT_CREATE_DONE((char*)_inspect(cls), (char*)"unknown.rb", 1);
-}
-
-
-/*
- * Helpers
- */
-
-void dtrace_source_context(STATE, cpu c, int *line_number, const char **filename) {
-  struct fast_context *fc = FASTCTX(c->active_context);
-  *line_number = cpu_ip2line(state, fc->method, fc->ip);
-  *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));  
 }
 
 #endif
