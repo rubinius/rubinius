@@ -375,7 +375,7 @@ class Socket < BasicSocket
     end
   end
 
-  def self.pack_sockaddr_in(port, host, type = 0, flags = 0)
+  def self.pack_sockaddr_in(port, host, type = Socket::SOCK_DGRAM, flags = 0)
     host = "0.0.0.0" if host.empty?
     Socket::Foreign.pack_sockaddr_in host.to_s, port.to_s, type, flags
   end
@@ -388,7 +388,7 @@ class Socket < BasicSocket
     if e.message =~ /ai_family not supported/ then # HACK platform specific?
       raise ArgumentError, 'not an AF_INET/AF_INET6 sockaddr'
     else
-      raise
+      raise e
     end
   end
 
