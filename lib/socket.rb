@@ -11,17 +11,7 @@ class BasicSocket < IO
   end
 
   def getsockopt(level, optname)
-    MemoryPointer.new 256 do |val| # HACK magic number
-      MemoryPointer.new :socklen_t do |length|
-        length.write_int 256 # HACK magic number
-
-        err = Socket::Foreign.getsockopt descriptor, level, optname, val, length
-
-        Errno.handle "Unable to get socket option" unless err == 0
-
-        return val.read_string(length.read_int)
-      end
-    end
+    Socket::Foreign.getsockopt descriptor, level, optname
   end
 
   def setsockopt(level, optname, optval)
@@ -79,7 +69,7 @@ class Socket < BasicSocket
     attach_function "listen", :listen, [:int, :int], :int
     attach_function "socket", :socket, [:int, :int, :int], :int
 
-    attach_function "getsockopt", :getsockopt,
+    attach_function "getsockopt", :_getsockopt,
                     [:int, :int, :int, :pointer, :pointer], :int
     attach_function "setsockopt", :setsockopt,
                     [:int, :int, :int, :pointer, :socklen_t], :int
@@ -119,10 +109,28 @@ class Socket < BasicSocket
     end
 
     def self.connect(descriptor, sockaddr)
+      err = 0
       MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
         sockaddr_p.write_string sockaddr, sockaddr.length
 
-        _connect descriptor, sockaddr_p, sockaddr.length
+        err = _connect descriptor, sockaddr_p, sockaddr.length
+      end
+      
+      getsockopt(descriptor, Socket::SOL_SOCKET, Socket::SO_ERROR) if err < 0
+      err
+    end
+
+    def self.getsockopt(descriptor, level, optname)
+      MemoryPointer.new 256 do |val| # HACK magic number
+        MemoryPointer.new :socklen_t do |length|
+          length.write_int 256 # HACK magic number
+
+          err = Socket::Foreign._getsockopt descriptor, level, optname, val, length
+
+          Errno.handle "Unable to get socket option" unless err == 0
+
+          return val.read_string(length.read_int)
+        end
       end
     end
 
@@ -624,12 +632,11 @@ class TCPSocket < IPSocket
       end
 
       break if status >= 0
-    end
 
-    if status < 0
-      Errno.handle getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
       Socket::Foreign.close descriptor
     end
+
+    Errno.handle if status < 0
     
     if server then
       err = Socket::Foreign.listen descriptor, 5
