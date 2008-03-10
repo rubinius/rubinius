@@ -17,13 +17,13 @@ describe "TCPSocket.new" do
       server.close
     end
     Thread.pass until thread.status == 'sleep'
-    lambda { TCPSocket.new('127.0.0.1', SocketSpecs.port) }.should_not raise_error(Errno::ECONNREFUSED)
+    lambda { TCPSocket.new('localhost', SocketSpecs.port) }.should_not raise_error(Errno::ECONNREFUSED)
     thread.join
   end
 
   it "has an address once it has connected to a listening server" do
     thread = Thread.new do
-      server = TCPServer.new(SocketSpecs.port)
+      server = TCPServer.new('127.0.0.1', SocketSpecs.port)
       server.accept
       server.close
     end
