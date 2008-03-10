@@ -266,8 +266,10 @@ class Socket < BasicSocket
     end
 
     def self.unpack_sockaddr_in(sockaddr, reverse_lookup)
-      _, port, host, ip = getnameinfo sockaddr, reverse_lookup
-
+      family, port, host, ip = getnameinfo sockaddr, reverse_lookup
+      # On some systems this doesn't fail for families other than AF_INET(6)
+      # so we raise manually here.
+      raise ArgumentError, 'not an AF_INET/AF_INET6 sockaddr' unless family =~ /AF_INET/
       return host, ip, port
     end
   end
