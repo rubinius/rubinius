@@ -7,10 +7,12 @@ describe "Singleton._instantiate?" do
     lambda { SingletonSpecs::MyClass._instantiate? }.should raise_error(NoMethodError)
   end
 
-  it "returns nil until it is instantiated" do
-    SingletonSpecs::NotInstantiated.send(:_instantiate?).should == nil
-    SingletonSpecs::NotInstantiated.instance
-    SingletonSpecs::NotInstantiated.send(:_instantiate?).eql?(SingletonSpecs::NotInstantiated.instance).should == true
+  # JRuby doesn't support "_instantiate?" intentionally (JRUBY-2239)
+  not_compliant_on :jruby do
+    it "returns nil until it is instantiated" do
+      SingletonSpecs::NotInstantiated.send(:_instantiate?).should == nil
+      SingletonSpecs::NotInstantiated.instance
+      SingletonSpecs::NotInstantiated.send(:_instantiate?).eql?(SingletonSpecs::NotInstantiated.instance).should == true
+    end
   end
-
 end
