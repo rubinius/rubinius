@@ -4,20 +4,20 @@ class ShotgunPrimitives
 
   def generate_select(fd, op="prim")
     i = 1
-    order = Bytecode::Compiler::Primitives
+    primitives = Bytecode::Compiler::Primitives
 
     File.open("primitive_implementation.gen", "w") do |f|
-      order.each do |ins|
-        f.puts "int cpu_primitive_#{ins}(STATE, cpu c, const struct message *msg) {"
-        f.puts send(ins)
+      primitives.each do |prim_name|
+        f.puts "int cpu_primitive_#{prim_name}(STATE, cpu c, const struct message *msg) {"
+        f.puts send(prim_name)
         f.puts "  DONE();\n}"
       end
 
       f.puts "\nprim_func cpu_lookup_primitive(int index) {"
       f.puts "  static prim_func funcs[] = { NULL, "
       
-      order.each do |ins|
-        f.puts "    cpu_primitive_#{ins},"
+      primitives.each do |prim_name|
+        f.puts "    cpu_primitive_#{prim_name},"
       end
 
       f.puts "  };"
@@ -26,25 +26,20 @@ class ShotgunPrimitives
       
       f.puts "OBJECT cpu_populate_prim_names(STATE) {"
       f.puts "OBJECT tbl = lookuptable_new(state);"
-      i = 1
-      Bytecode::Compiler::Primitives.each do |name|
-        f.puts "lookuptable_store(state, tbl, I2N(#{i}), SYM(\"#{name}\"));"
-        f.puts "lookuptable_store(state, tbl, SYM(\"#{name}\"), I2N(#{i}));"
-        i += 1
+      primitives.each_with_index do |prim_name,i|
+        f.puts "lookuptable_store(state, tbl, I2N(#{i+1}), SYM(\"#{prim_name}\"));"
+        f.puts "lookuptable_store(state, tbl, SYM(\"#{prim_name}\"), I2N(#{i+1}));"
       end
       f.puts "return tbl;}"
     end
 
-    i = 1
     fd.puts "switch(#{op}) {"
     fd.puts "   // NOOP is 0 and signifies a method with no primitive"
-    order.each do |ins|
-      fd.puts "case #{i}: { // #{ins}"
-      fd.puts "  cpu_patch_primitive(state, msg, cpu_primitive_#{ins}, #{i});"
-      fd.puts "  _ret = cpu_primitive_#{ins}(state, c, msg);"
+    primitives.each_with_index do |prim_name,i|
+      fd.puts "case #{i+1}: { // #{prim_name}"
+      fd.puts "  cpu_patch_primitive(state, msg, cpu_primitive_#{prim_name}, #{i+1});"
+      fd.puts "  _ret = cpu_primitive_#{prim_name}(state, c, msg);"
       fd.puts "  break;\n}"
-
-      i += 1
     end
 
     fd.puts "default:"
@@ -54,28 +49,24 @@ class ShotgunPrimitives
     fd.puts
 
     File.open("primitive_indexes.h", "w") do |f|
-      i = 1
-      Bytecode::Compiler::Primitives.each do |name|
-        f.puts "#define CPU_PRIMITIVE_#{name.to_s.upcase} #{i}"
-        i += 1
+      primitives.each_with_index do |prim_name,i|
+        f.puts "#define CPU_PRIMITIVE_#{prim_name.to_s.upcase} #{i+1}"
       end
     end
     
     File.open("primitive_util.h", "w") do |f|
-      size = Bytecode::Compiler::Primitives.size
+      size = primitives.size
       f.puts "struct prim2index { const char *name; int index; };"
       f.puts
       f.puts "static int calc_primitive_index(STATE, OBJECT str) {"
       f.puts "  static struct prim2index pi[] = {"
       
-      i = 1
-      Bytecode::Compiler::Primitives.each do |name|
-        f.puts %Q!  { "#{name}", #{i} },!
-        i += 1
+      primitives.each_with_index do |prim_name,i|
+        f.puts %Q!    { "#{prim_name}", #{i+1} },!
       end
       
-      f.puts "  { NULL, 0 } };"
-      f.puts <<-CODE
+      f.puts "    { NULL, 0 } };"
+      f.puts <<-CODE.gsub(/^\s{6}/,'')
         int i;
         char *target = string_byte_address(state, str);
         for(i = 0; pi[i].name; i++) {
