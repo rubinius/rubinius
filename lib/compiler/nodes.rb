@@ -1683,6 +1683,15 @@ class Node
     attr_accessor :method
   end
 
+  class PostExe < FCall
+    kind :postexe
+    # Treat a :postexe node as if it were a call to at_exit
+    def self.create(compiler, sexp)
+      sexp = [:fcall, :at_exit]
+      super(compiler, sexp)
+    end
+  end
+
   class AttrAssign < Call
     kind :attrasgn
 

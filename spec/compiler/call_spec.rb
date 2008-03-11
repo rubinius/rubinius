@@ -438,4 +438,27 @@ describe Compiler do
       g.send_with_block :foo, 0, true 
     end
   end
+
+  it "compiles 'END { 666 }'" do
+    gen [:iter, [:postexe], nil, [:lit, 666]] do |g|
+      desc = description do |d|
+        d.pop
+        d.push_modifiers
+        redo_label = d.new_label
+        redo_label.set!
+        d.push 666
+        d.pop_modifiers
+        d.soft_return
+      end
+      desc.name = :__block__
+      desc.required = -1
+
+      g.push_literal desc
+      g.create_block2
+      g.push :self
+      g.passed_block do
+        g.send_with_block :at_exit, 0, true
+      end
+    end
+  end
 end
