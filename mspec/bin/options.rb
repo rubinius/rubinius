@@ -70,6 +70,8 @@ class SpecConfig
     @xtags = []
     @atags = []
     @astrings = []
+    @tagger = :add
+    @tag = 'fails:'
     @outcome = :fail
   end
   
