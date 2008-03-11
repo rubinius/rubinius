@@ -92,7 +92,7 @@ endif(NOT MINGW)
 set(CMAKE_C_FLAGS_PROF  "-O2")
 set(CMAKE_C_FLAGS_DEV   "-O0")
 set(CMAKE_C_FLAGS_TURBO "-O3 -falign-loops -momit-leaf-frame-pointer -fno-tree-pre")
-set(CMAKE_C_FLAGS_REGULAR "-O2 -finline-functions -Winline")
+set(CMAKE_C_FLAGS_REGULAR "-O2 -finline-functions")
 
 # TODO: this
 #ifeq ($(CPU), powerpc)
@@ -109,7 +109,6 @@ add_subdirectory(external_libs/libltdl)
 add_subdirectory(external_libs/libmpa)
 add_subdirectory(external_libs/libmquark)
 add_subdirectory(external_libs/libtommath)
-add_subdirectory(external_libs/libzip)
 add_subdirectory(external_libs/onig)
 
 # rbx stuff
@@ -121,8 +120,7 @@ add_definitions(-g -ggdb3)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/..)
 
-foreach(d libbstring libcchash libev libmpa libmquark libtommath libzip/lib 
-    onig libffi)
+foreach(d libbstring libcchash libev libmpa libmquark libtommath onig libffi)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libs/${d})
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/external_libs/${d})
 endforeach(d)
@@ -136,4 +134,3 @@ target_link_libraries(rubinius.bin rubinius)
 if(FREEBSD)
   target_link_libraries(rubinius.bin crypt pthread)
 endif(FREEBSD)
-

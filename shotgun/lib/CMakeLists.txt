@@ -1,4 +1,5 @@
 find_program(BISON bison)
+find_package(ZLIB)
 
 if(NOT BISON)
   message(SEND_ERROR "Bison not found")
@@ -8,11 +9,11 @@ CHECK_FUNCTION_EXISTS(strlcat HAVE_STRLCAT)
 CHECK_FUNCTION_EXISTS(strlcpy HAVE_STRLCPY)
 
 set(lib_src
-  ar.c archive.c array.c baker.c bignum.c bootstrap.c bytearray.c class.c
+  ar.c array.c baker.c bignum.c bootstrap.c bytearray.c class.c
   compress.c config_hash.c cpu.c cpu_cache.c cpu_event.c cpu_instructions.c
   cpu_marshal.c cpu_primitives.c cpu_sample.c cpu_task.c environment.c
   ffi_util.c float.c grammar_runtime.c hash.c heap.c io.c list.c
-  log.c machine.c marksweep.c metaclass.c methctx.c methtbl.c module.c
+  log.c lookuptable.c machine.c marksweep.c metaclass.c methctx.c methtbl.c module.c
   numeric.c object.c object_memory.c regexp.c rubinius.c selector.c sendsite.c
   sha1.c state.c string.c symbol.c tuple.c var_table.c)
 
@@ -111,7 +112,7 @@ add_library(rubinius SHARED
   ${grammar_c})
 
 target_link_libraries(rubinius 
-  bstring cchash ev ltdl ptr_array mquark tommath zip onig ffi)
+  bstring cchash ev ltdl ptr_array mquark tommath onig ffi)
 
 target_link_libraries(rubinius ${LIBDL} ${ZLIB_LIBRARY} m)
 
