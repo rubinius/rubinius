@@ -175,7 +175,10 @@ clean:
 	      instruction_names.c \
 	      instruction_names.h \
 	      node_types.c \
-	      node_types.h
+	      node_types.h \
+	      primitive_indexes.h \
+	      primitive_util.h
+
 	rm -rf .libs \
 	       subtend/.libs \
 	       librubinius-* \

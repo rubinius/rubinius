@@ -144,7 +144,7 @@ test: test/test_state test/test_instructions
 .PHONY: test
 
 clean:
-	rm -f *.o *.lo *.gen rubinius.bin
+	rm -f *.o *.lo *.gen rubinius.bin rubinius.local.bin
 	rm -rf .libs
 	cd lib; $(MAKE) clean
 .PHONY: clean
