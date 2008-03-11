@@ -59,7 +59,7 @@ class SpecConfig
                 :tagger, :outcome, :tag, :comment, :atags, :astrings,
                 :debugger, :gdb
   
-  def initialize(options)
+  def initialize(command, options)
     @options = options
     @formatter = DottedFormatter
     @includes = []
@@ -70,9 +70,11 @@ class SpecConfig
     @xtags = []
     @atags = []
     @astrings = []
-    @tagger = :add
-    @tag = 'fails:'
-    @outcome = :fail
+    if command == 'tag'
+      @tagger = :add
+      @tag = 'fails:'
+      @outcome = :fail
+    end
   end
   
   def register
@@ -111,7 +113,7 @@ class SpecOptions
       opts.separator ""
     end
 
-    @config = SpecConfig.new @options
+    @config = SpecConfig.new command, @options
   end
   
   def add_formatters
