@@ -149,7 +149,6 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
 }
 
 OBJECT ffi_get_field(char *ptr, int offset, int type) {
-  int sz;
   OBJECT ret;
   STATE = current_machine->s;
 
@@ -243,11 +242,7 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
 }
 
 void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
-  int sz;
   STATE = current_machine->s;
-  uint8_t u8;
-  uint16_t u16;
-  uint32_t u32;
 
   ptr += offset;
   
