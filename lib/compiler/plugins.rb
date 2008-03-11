@@ -250,39 +250,54 @@ module Compiler::Plugins
 
         top = sub.new_label
         fin = sub.new_label
+        nxt = sub.new_label
 
-        sub.next = top
+        sub.next = nxt
+        # TODO: break needs to be handled differently. See the specs for
+        # a nested while with a complex break expression in the Integer#times specs.
         sub.break = fin
         sub.redo = sub.new_label
 
         # Get rid of the block args.
         sub.unshift_tuple
+        sub.dup
 
-        # To the times logic now, calling block.body
+        # Create the loop counter
+        sub.dup
+        sub.push 1
+        sub.meta_send_op_plus
+        sub.push :nil
 
+        # Loop starts here
         top.set!
 
-        # Check if the value is 0
-        sub.dup
-        sub.push 0
-        sub.equal
-        sub.git fin
-
-        sub.redo.set!
-
-        call.block.body.bytecode(sub)
-
-        # Subtract 1 from the value
+        # Descrement the loop counter
         sub.pop
         sub.push 1
         sub.swap
         sub.meta_send_op_minus
 
+        # Check if the loop counter is 0
+        sub.dup
+        sub.push 0
+        sub.equal
+        sub.git fin
+
+        # To the times logic now, calling block.body
+        sub.redo.set!
+
+        call.block.body.bytecode(sub)
+
+        # Loop ends here
+        sub.goto top
+
+        nxt.set!
+        sub.push :nil
         sub.goto top
 
         sub.pop_modifiers
         fin.set!
-        sub.push :self
+        sub.pop
         sub.soft_return
         sub.close
       end
