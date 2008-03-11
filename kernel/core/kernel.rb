@@ -433,7 +433,7 @@ module Kernel
 
     return self.to_s unless iv
 
-    if (iv.is_a?(Hash) or iv.is_a?(Tuple)) and iv.empty?
+    if (iv.kind_of?(LookupTable) or iv.kind_of?(Tuple)) and iv.empty?
       return self.to_s
     end
 
@@ -442,7 +442,7 @@ module Kernel
 
     RecursionGuard.inspect(self) do
 
-      if iv.is_a?(Hash)
+      if iv.is_a?(LookupTable)
         iv.each do |k,v|
           next if vars and !vars.include?(k)
           parts << "#{k}=#{v.inspect}"
