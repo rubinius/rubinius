@@ -18,10 +18,10 @@
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/io.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/machine.h"
 #include "shotgun/lib/array.h"
 #include "shotgun/lib/ar.h"
-#include "shotgun/lib/archive.h"
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/config_hash.h"
 #include "shotgun/lib/methctx.h"
@@ -238,6 +238,8 @@ machine machine_new(environment e) {
   machine_set_const(m, "MAIN", m->c->main);
   cpu_task_configure_preemption(m->s);
   environment_add_machine(e, m);
+  
+  m->s->om->bootstrap_loaded = 1;
 
   return m;
 }
@@ -341,10 +343,9 @@ int machine_run_file(machine m, const char *path) {
 }
 
 void machine_set_const_under(machine m, const char *str, OBJECT val, OBJECT under) {
-  OBJECT con, sym;
-  con = module_get_constants(under);
-  sym = string_to_sym(m->s, string_new(m->s, str));
-  hash_set(m->s, con, sym, val);
+  OBJECT tbl;
+  tbl = module_get_constants(under);
+  lookuptable_store(m->s, tbl, string_new(m->s, str), val);
 }
 
 void machine_set_const(machine m, const char *str, OBJECT val) {
@@ -510,7 +511,7 @@ void machine_migrate_config(machine m) {
   struct hashtable_itr iter;
   rstate state = m->s;
   
-  m->s->global->config = hash_new(m->s);
+  m->s->global->config = hash_new_sized(m->s, 500);
     
   if(hashtable_count(m->s->config) > 0) {
   
@@ -807,80 +808,8 @@ int machine_load_ar(machine m, const char *path) {
   return ret;
 }
 
-int machine_load_zip(machine m, const char *path) {
-  OBJECT order, cm;
-  archive_handle archive;
-  char *files, *nxt, *top;
-  int ret = FALSE;
-  
-  if(m->s->excessive_tracing) {
-    printf("[ Loading zip rba %s]\n", path);
-  }
-
-  archive = archive_open(m->s, path);
-  if(!archive) {
-    fprintf(stderr, "cannot load archive '%s'\n", path);
-    return ret;
-  }
-
-  order = archive_get_file2(m->s, archive, ".load_order.txt");
-  if(!RTEST(order)) {
-    printf("Unable to find .load_order.txt\n");
-    goto out;
-  }
-  top = files = strdup(string_byte_address(m->s, order));
-  nxt = strchr(files, '\n');
-  
-  while(nxt) {
-    *nxt++ = 0;
-    cm = archive_get_object2(m->s, archive, files, 0);
-    if(!RTEST(cm)) {
-      printf("Unable to find '%s'\n", files); 
-      goto out;
-    }
-    if(m->s->excessive_tracing) {
-      printf("[ Loading archived file %s]\n", files);
-    }
-    
-    /* We push this on the stack so it's properly seen by the GCs */
-    cpu_stack_push(m->s, m->c, cm, FALSE);
-    cpu_run_script(m->s, m->c, cm);
-    if(!machine_run(m)) {
-      printf("Unable to run '%s'\n", files);
-      ret = FALSE;
-      goto out;
-    }
-    /* Pop the scripts return value. */
-    (void)cpu_stack_pop(m->s, m->c);
-    /* Pop the script object. */
-    (void)cpu_stack_pop(m->s, m->c);
-    files = nxt;
-    nxt = strchr(nxt, '\n');
-  }
-  
-  XFREE(top);
-  ret = TRUE;
-
-out:
-  archive_close(m->s, archive);
-  if(m->s->excessive_tracing) {
-    printf("[ Finished loading zip rba %s]\n", path);
-  }
-  
-  return ret;
-}
-
 int machine_load_rba(machine m, const char *path) {
-  int ret = FALSE;
-
-  ret = machine_load_ar(m, path);
-
-  /* this code is here for transition to ar(5) archives */
-  if(!ret) {
-    ret = machine_load_zip(m, path);
-  }
-
-  return ret;
+  return machine_load_ar(m, path);
 }
 
 int machine_load_bundle(machine m, const char *path) {

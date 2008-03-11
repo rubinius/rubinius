@@ -50,7 +50,7 @@ class Node
       Compiler::MethodDescription.new(@compiler.generator_class, self.locals)
     end
 
-    def to_description(name=nil)
+    def to_description(name = nil)
       desc = new_description()
       desc.name = name if name
       gen = desc.generator
@@ -66,6 +66,18 @@ class Node
       [0, 0]
     end
 
+    def push_self_or_class(meth)
+      is_module = meth.new_label
+      meth.push :self
+      meth.push_cpath_top
+      meth.find_const :Module
+      meth.push :self
+      meth.send :kind_of?, 1
+      meth.git is_module
+      meth.send :class, 0
+      is_module.set!
+    end
+
     def attach_and_call(g, name)
       # If the body is empty, then don't bother with it.
       return if @body.empty?
@@ -75,7 +87,7 @@ class Node
 
       prelude(g, meth)
 
-      meth.push :self
+      push_self_or_class(meth)
       meth.set_encloser
 
       set(:scope, self) do
@@ -129,11 +141,19 @@ class Node
     end
   end
 
+  # REFACTOR See if there is a sane way to call 'super' here
+  # We need to call 'push_encloser' before 'sret', hence the copy-and-paste
   class EvalExpression
     def bytecode(g)
-      ret = super(g)
+      set(:scope, self) do
+        push_self_or_class(g)
+        g.set_encloser
+        prelude(nil, g)
+        @body.bytecode(g)
+        g.push_encloser
+        g.sret
+      end
       enlarge_context
-      return ret
     end
   end
 
@@ -636,6 +656,16 @@ class Node
   class BlockPass
     def bytecode(g)
       @block.bytecode(g)
+      nil_block = g.new_label
+      g.dup
+      g.is_nil
+      g.git nil_block
+
+      g.push_cpath_top
+      g.find_const :Proc
+      g.send :__from_block__, 1
+      
+      nil_block.set!
     end
   end
 
@@ -1854,8 +1884,8 @@ class Node
 
       receiver_bytecode(g)
 
-      # @block might be BlockPass, and we don't generate the LRE detection
-      # code for that.
+      # @block might be BlockPass, and we don't generate the
+      # LongReturnException detection code for that.
       if @block and @block.is? Iter
         block_bytecode(g)
       elsif @dynamic

@@ -27,6 +27,7 @@
  * SUCH DAMAGE.
  */
 
+#include "config.h"
 #include "oniguruma.h"
 #include <stdio.h>
 

@@ -1,1 +1,0 @@
-fails:Fixnum#<< raises a RangeError when the given argument is out of range of Integer

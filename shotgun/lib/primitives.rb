@@ -1,23 +1,25 @@
-require File.dirname(__FILE__) + '/primitive_names'
-
 class ShotgunPrimitives
+  @@primitives = []
 
+  def self.defprim(symbol)
+    @@primitives << symbol
+  end
+  
   def generate_select(fd, op="prim")
-    i = 1
-    order = Bytecode::Compiler::Primitives
+    primitives = @@primitives
 
     File.open("primitive_implementation.gen", "w") do |f|
-      order.each do |ins|
-        f.puts "int cpu_primitive_#{ins}(STATE, cpu c, const struct message *msg) {"
-        f.puts send(ins)
+      primitives.each do |prim_name|
+        f.puts "int cpu_primitive_#{prim_name}(STATE, cpu c, const struct message *msg) {"
+        f.puts send(prim_name)
         f.puts "  DONE();\n}"
       end
 
       f.puts "\nprim_func cpu_lookup_primitive(int index) {"
       f.puts "  static prim_func funcs[] = { NULL, "
       
-      order.each do |ins|
-        f.puts "    cpu_primitive_#{ins},"
+      primitives.each do |prim_name|
+        f.puts "    cpu_primitive_#{prim_name},"
       end
 
       f.puts "  };"
@@ -25,26 +27,21 @@ class ShotgunPrimitives
       f.puts "}"
       
       f.puts "OBJECT cpu_populate_prim_names(STATE) {"
-      f.puts "OBJECT hash = hash_new(state);"
-      i = 1
-      Bytecode::Compiler::Primitives.each do |name|
-        f.puts "hash_set(state, hash, I2N(#{i}), SYM(\"#{name}\"));"
-        f.puts "hash_set(state, hash, SYM(\"#{name}\"), I2N(#{i}));"
-        i += 1
+      f.puts "OBJECT tbl = lookuptable_new(state);"
+      primitives.each_with_index do |prim_name,i|
+        f.puts "lookuptable_store(state, tbl, I2N(#{i+1}), SYM(\"#{prim_name}\"));"
+        f.puts "lookuptable_store(state, tbl, SYM(\"#{prim_name}\"), I2N(#{i+1}));"
       end
-      f.puts "return hash;}"
+      f.puts "return tbl;}"
     end
 
-    i = 1
     fd.puts "switch(#{op}) {"
     fd.puts "   // NOOP is 0 and signifies a method with no primitive"
-    order.each do |ins|
-      fd.puts "case #{i}: { // #{ins}"
-      fd.puts "  cpu_patch_primitive(state, msg, cpu_primitive_#{ins}, #{i});"
-      fd.puts "  _ret = cpu_primitive_#{ins}(state, c, msg);"
+    primitives.each_with_index do |prim_name,i|
+      fd.puts "case #{i+1}: { // #{prim_name}"
+      fd.puts "  cpu_patch_primitive(state, msg, cpu_primitive_#{prim_name}, #{i+1});"
+      fd.puts "  _ret = cpu_primitive_#{prim_name}(state, c, msg);"
       fd.puts "  break;\n}"
-
-      i += 1
     end
 
     fd.puts "default:"
@@ -54,28 +51,24 @@ class ShotgunPrimitives
     fd.puts
 
     File.open("primitive_indexes.h", "w") do |f|
-      i = 1
-      Bytecode::Compiler::Primitives.each do |name|
-        f.puts "#define CPU_PRIMITIVE_#{name.to_s.upcase} #{i}"
-        i += 1
+      primitives.each_with_index do |prim_name,i|
+        f.puts "#define CPU_PRIMITIVE_#{prim_name.to_s.upcase} #{i+1}"
       end
     end
     
     File.open("primitive_util.h", "w") do |f|
-      size = Bytecode::Compiler::Primitives.size
+      size = primitives.size
       f.puts "struct prim2index { const char *name; int index; };"
       f.puts
       f.puts "static int calc_primitive_index(STATE, OBJECT str) {"
       f.puts "  static struct prim2index pi[] = {"
       
-      i = 1
-      Bytecode::Compiler::Primitives.each do |name|
-        f.puts %Q!  { "#{name}", #{i} },!
-        i += 1
+      primitives.each_with_index do |prim_name,i|
+        f.puts %Q!    { "#{prim_name}", #{i+1} },!
       end
       
-      f.puts "  { NULL, 0 } };"
-      f.puts <<-CODE
+      f.puts "    { NULL, 0 } };"
+      f.puts <<-CODE.gsub(/^\s{6}/,'')
         int i;
         char *target = string_byte_address(state, str);
         for(i = 0; pi[i].name; i++) {
@@ -92,6 +85,7 @@ class ShotgunPrimitives
     
   end
 
+  defprim :add
   def add
     <<-CODE
     ARITY(1);
@@ -109,7 +103,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :bignum_add
   def bignum_add
     <<-CODE
     ARITY(1);
@@ -125,7 +120,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :sub
   def sub
     <<-CODE
     ARITY(1);
@@ -143,7 +139,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :bignum_sub
   def bignum_sub
     <<-CODE
     ARITY(1);
@@ -159,7 +156,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :fixnum_mul
   def fixnum_mul
     <<-CODE
     ARITY(1);
@@ -177,7 +175,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :fixnum_size
   def fixnum_size
     <<-CODE
     ARITY(0);
@@ -185,6 +184,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_mul
   def bignum_mul
     <<-CODE
     ARITY(1);
@@ -200,7 +200,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :fixnum_div
   def fixnum_div
     <<-CODE
     ARITY(1);
@@ -221,7 +222,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :bignum_div
   def bignum_div
     <<-CODE
     ARITY(1);
@@ -242,6 +244,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_mod
   def bignum_mod
     <<-CODE
     ARITY(1);
@@ -253,7 +256,8 @@ class ShotgunPrimitives
     RET(bignum_mod(state, msg->recv, t1));
     CODE
   end
-  
+
+  defprim :equal
   def equal
     <<-CODE
     ARITY(1);
@@ -272,7 +276,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :object_equal
   def object_equal
     <<-CODE
     ARITY(1);
@@ -286,7 +291,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :bignum_equal
   def bignum_equal
     <<-CODE
     ARITY(1);
@@ -302,7 +308,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :compare
   def compare
     <<-CODE
     ARITY(1);
@@ -336,7 +343,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :fixnum_lt
   def fixnum_lt
     <<-CODE
     ARITY(1);
@@ -358,7 +366,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :fixnum_le
   def fixnum_le
     <<-CODE
     ARITY(1);
@@ -380,7 +389,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :fixnum_gt
   def fixnum_gt
     <<-CODE
     ARITY(1);
@@ -402,7 +412,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :fixnum_ge
   def fixnum_ge
     <<-CODE
     ARITY(1);
@@ -425,7 +436,8 @@ class ShotgunPrimitives
     CODE
   end
   
-  
+
+  defprim :at
   def at
     <<-CODE
     ARITY(1);
@@ -441,7 +453,8 @@ class ShotgunPrimitives
     RET(NTH_FIELD(msg->recv, j));
     CODE
   end
-  
+
+  defprim :put
   def put
     <<-CODE
     ARITY(2);
@@ -458,7 +471,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :fields
   def fields
     <<-CODE
     ARITY(0);
@@ -467,7 +481,8 @@ class ShotgunPrimitives
     RET(I2N(NUM_FIELDS(msg->recv)));
     CODE
   end
-  
+
+  defprim :allocate
   def allocate
     <<-CODE
     ARITY(0);
@@ -481,7 +496,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :allocate_count
   def allocate_count
     <<-CODE
     ARITY(1);
@@ -494,7 +510,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :allocate_bytes
   def allocate_bytes
     <<-CODE
     ARITY(1);
@@ -511,6 +528,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :io_seek
   def io_seek
     <<-CODE
       ARITY(2);
@@ -540,6 +558,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :block_given
   def block_given
     <<-CODE
     ARITY(0)
@@ -553,7 +572,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :block_call
   def block_call
     <<-CODE
     GUARD(BLOCKENV_P(msg->recv));
@@ -561,7 +581,8 @@ class ShotgunPrimitives
     blokenv_call(state, c, msg->recv, msg->args);
     CODE
   end
-  
+
+  defprim :io_write
   def io_write
     <<-CODE
     ARITY(1);
@@ -583,7 +604,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :io_read
   def io_read
     <<-CODE
     ARITY(1);
@@ -608,7 +630,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :create_pipe
   def create_pipe
     <<-CODE
     ARITY(2);
@@ -628,7 +651,8 @@ class ShotgunPrimitives
     RET(I2N(j));
     CODE
   end
-  
+
+  defprim :io_open
   def io_open
     <<-CODE
     ARITY(3);
@@ -649,7 +673,8 @@ class ShotgunPrimitives
     RET(I2N(fd));
     CODE
   end
-  
+
+  defprim :io_reopen
   def io_reopen
     <<-CODE
     ARITY(1);
@@ -674,7 +699,8 @@ class ShotgunPrimitives
     
     CODE
   end
-  
+
+  defprim :io_close
   def io_close
     <<-CODE
     ARITY(0);
@@ -694,7 +720,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :io_operation
   def io_operation
     <<-CODE
     ARITY(1);
@@ -724,7 +751,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :file_unlink
   def file_unlink
     <<-CODE
     ARITY(1);
@@ -742,7 +770,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :gettimeofday
   def gettimeofday
     <<-CODE
     ARITY(0);
@@ -763,6 +792,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :strftime
   def strftime
     <<-CODE
     ARITY(2);
@@ -805,6 +835,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :time_switch
   def time_switch
     <<-CODE
     ARITY(2);
@@ -857,6 +888,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :mktime
   def mktime
     <<-CODE
     ARITY(9);
@@ -936,6 +968,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fixnum_to_s
   def fixnum_to_s
     <<-CODE
     ARITY(1);
@@ -973,6 +1006,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_to_s
   def bignum_to_s
     <<-CODE
     ARITY(1);
@@ -984,6 +1018,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :logical_class
   def logical_class
     <<-CODE
     ARITY(0);
@@ -992,6 +1027,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :object_id
   def object_id
     <<-CODE
     ARITY(0);
@@ -999,6 +1035,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :hash_set
   def hash_set
     <<-CODE
     ARITY(3);
@@ -1014,6 +1051,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :hash_get
   def hash_get
     <<-CODE
     ARITY(2);
@@ -1027,6 +1065,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :hash_redistribute
   def hash_redistribute
     <<-CODE
     ARITY(0);
@@ -1038,7 +1077,8 @@ class ShotgunPrimitives
     RET(msg->recv);
     CODE
   end
-  
+
+  defprim :hash_object
   def hash_object
     <<-CODE
     ARITY(0);
@@ -1048,7 +1088,8 @@ class ShotgunPrimitives
     RET(t1);
     CODE
   end
-  
+
+  defprim :hash_delete
   def hash_delete
     <<-CODE
     ARITY(1);
@@ -1061,7 +1102,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :hash_value_set
   def hash_value_set
     <<-CODE
     OBJECT t1;
@@ -1072,6 +1114,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :symbol_index
   def symbol_index
     <<-CODE
     ARITY(0);
@@ -1081,6 +1124,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :symbol_lookup
   def symbol_lookup
     <<-CODE
     ARITY(0);
@@ -1090,6 +1134,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :dup_into
   def dup_into
     <<-CODE
     ARITY(3);
@@ -1115,7 +1160,8 @@ class ShotgunPrimitives
     RET(t1);
     CODE
   end
-    
+
+  defprim :bytes_dup_into
   def bytes_dup_into
     <<-CODE
     ARITY(1);
@@ -1141,6 +1187,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :object_dup
   def object_dup
     <<-CODE
     ARITY(0);
@@ -1169,7 +1216,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :object_clone
   def object_clone
     <<-CODE
     ARITY(0);
@@ -1198,7 +1246,8 @@ class ShotgunPrimitives
     CODE
   end
   
-  
+
+  defprim :fastctx_dup
   def fastctx_dup
     <<-CODE
     ARITY(0);
@@ -1208,6 +1257,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :tuple_shifted
   def tuple_shifted
     <<-CODE
     ARITY(1);
@@ -1229,6 +1279,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :get_byte
   def get_byte
     <<-CODE
     ARITY(1);
@@ -1250,6 +1301,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :set_byte
   def set_byte
     <<-CODE
     ARITY(2);
@@ -1273,7 +1325,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-    
+
+  defprim :fetch_bytes
   def fetch_bytes
     <<-CODE
     ARITY(2);
@@ -1306,7 +1359,8 @@ class ShotgunPrimitives
     RET(t3);
     CODE
   end
-  
+
+  defprim :move_bytes
   def move_bytes
     <<-CODE
     ARITY(3);
@@ -1343,6 +1397,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :compare_bytes
   def compare_bytes
     <<-CODE
     ARITY(3);
@@ -1386,6 +1441,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bytearray_size
   def bytearray_size
     <<-CODE
     ARITY(0);
@@ -1397,7 +1453,8 @@ class ShotgunPrimitives
     RET(I2N(j));
     CODE
   end
-  
+
+  defprim :load_file
   def load_file
     <<-CODE
     ARITY(2);
@@ -1412,7 +1469,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :activate_as_script
   def activate_as_script
     <<-CODE
     ARITY(0);
@@ -1422,7 +1480,8 @@ class ShotgunPrimitives
     DONE();
     CODE
   end
-  
+
+  defprim :process_exit
   def process_exit
     <<-CODE
     ARITY(1);
@@ -1445,7 +1504,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :micro_sleep
   def micro_sleep
     <<-CODE
     ARITY(1);
@@ -1467,7 +1527,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :activate_context
   def activate_context
     <<-CODE
     OBJECT t1;
@@ -1481,7 +1542,8 @@ class ShotgunPrimitives
     cpu_activate_context(state, c, msg->recv, t1, 0);
     CODE
   end
-  
+
+  defprim :context_sender
   def context_sender
     <<-CODE
     ARITY(0);
@@ -1497,7 +1559,8 @@ class ShotgunPrimitives
     RET(t1);
     CODE
   end
-  
+
+  defprim :string_to_sexp
   def string_to_sexp
     <<-CODE
     ARITY(3);
@@ -1519,7 +1582,8 @@ class ShotgunPrimitives
     RET(t1);
     CODE
   end
-  
+
+  defprim :file_to_sexp
   def file_to_sexp
     <<-CODE
     ARITY(2);
@@ -1543,6 +1607,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :terminal_raw
   def terminal_raw
     <<-CODE
     ARITY(0);
@@ -1596,6 +1661,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :terminal_normal
   def terminal_normal
     <<-CODE
     ARITY(0);
@@ -1617,6 +1683,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :regexp_new
   def regexp_new
     <<-CODE
     ARITY(2);
@@ -1638,6 +1705,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :regexp_match
   def regexp_match
     <<-CODE
     ARITY(1);
@@ -1650,6 +1718,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :regexp_match_start
   def regexp_match_start
     <<-CODE
     ARITY(2);
@@ -1663,6 +1732,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :regexp_match_region
   def regexp_match_region
     <<-CODE
     ARITY(4);
@@ -1680,6 +1750,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :regexp_scan
   def regexp_scan
     <<-CODE
     ARITY(1);
@@ -1692,6 +1763,7 @@ class ShotgunPrimitives
     CODE
   end  
 
+  defprim :regexp_options
   def regexp_options
     <<-CODE
     ARITY(0);
@@ -1700,7 +1772,8 @@ class ShotgunPrimitives
     RET(regexp_options(state, msg->recv));
     CODE
   end
-  
+
+  defprim :gc_start
   def gc_start
     <<-CODE
     ARITY(1);
@@ -1713,7 +1786,8 @@ class ShotgunPrimitives
     RET(Qtrue);
     CODE
   end
-    
+
+  defprim :get_ivar
   def get_ivar
     <<-CODE
     ARITY(0);
@@ -1721,7 +1795,8 @@ class ShotgunPrimitives
     RET(object_get_ivar(state, msg->recv, t1));
     CODE
   end
-  
+
+  defprim :set_ivar
   def set_ivar
     <<-CODE
     ARITY(1);
@@ -1738,6 +1813,7 @@ class ShotgunPrimitives
   # field 4: method to call
   # field 5: object to call method on
   # field 6: whether or not we need to retain 'msg->recv'
+  defprim :dispatch_as_method
   def dispatch_as_method
     <<-CODE
     OBJECT t1, t2, t3; 
@@ -1755,7 +1831,8 @@ class ShotgunPrimitives
     cpu_send(state, c, t2, t1, args, Qnil);
     CODE
   end
-  
+
+  defprim :set_index
   def set_index
     <<-CODE
     ARITY(1);
@@ -1768,7 +1845,8 @@ class ShotgunPrimitives
     RET(NTH_FIELD(msg->recv, j));  
     CODE
   end
-  
+
+  defprim :get_index
   def get_index
     <<-CODE
     ARITY(0);
@@ -1780,6 +1858,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fixnum_modulo
   def fixnum_modulo
     <<-CODE
     ARITY(1);
@@ -1794,7 +1873,8 @@ class ShotgunPrimitives
     RET(I2N(mod));
     CODE
   end
-  
+
+  defprim :marshal_object
   def marshal_object
     <<-CODE
     ARITY(2);
@@ -1805,7 +1885,8 @@ class ShotgunPrimitives
     RET(cpu_marshal(state, t1, N2I(t2)));
     CODE
   end
-  
+
+  defprim :unmarshal_object
   def unmarshal_object
     <<-CODE
     ARITY(2);
@@ -1819,7 +1900,8 @@ class ShotgunPrimitives
     RET(t3);
     CODE
   end
-  
+
+  defprim :marshal_to_file
   def marshal_to_file
     <<-CODE
     ARITY(3);
@@ -1834,7 +1916,8 @@ class ShotgunPrimitives
     RET(cpu_marshal_to_file(state, t1, _path, N2I(t3)));
     CODE
   end
-  
+
+  defprim :unmarshal_from_file
   def unmarshal_from_file
     <<-CODE
     ARITY(2);
@@ -1848,103 +1931,8 @@ class ShotgunPrimitives
     RET(cpu_unmarshal_file(state, _path, N2I(t2)));
     CODE
   end
-  
-  def archive_files
-    <<-CODE
-    ARITY(1);
-    char *path;
-    OBJECT t1;
-    POP(t1, STRING);
 
-    path = string_byte_address(state, t1);
-    RET(archive_list_files(state, path));
-    CODE
-  end
-  
-  def archive_get_file
-    <<-CODE
-    ARITY(2);
-    char *path, *file;
-    OBJECT t1, t2;
-    
-    POP(t1, STRING);
-    POP(t2, STRING);
-
-    path = string_byte_address(state, t1);
-    file = string_byte_address(state, t2);
-    
-    RET(archive_get_file(state, path, file));
-    CODE
-  end
-  
-  def archive_get_object
-    <<-CODE
-    ARITY(3);
-    char *path, *file;
-    OBJECT t1, t2, t3;
-    
-    POP(t1, STRING);
-    POP(t2, STRING);
-    POP(t3, FIXNUM);
-
-    path = string_byte_address(state, t1);
-    file = string_byte_address(state, t2);
-    
-    RET(archive_get_object(state, path, file, N2I(t3)));
-    CODE
-  end
-  
-  def archive_add_file
-    <<-CODE
-    ARITY(3);
-    char *path, *file, *data;
-    OBJECT t1, t2, t3;
-    
-    POP(t1, STRING);
-    POP(t2, STRING);
-    POP(t3, STRING);
-    
-    path = string_byte_address(state, t1);
-    file = string_byte_address(state, t2);
-    data = string_byte_address(state, t3);
-    
-    t1 = archive_add_file(state, path, file, data);
-    RET(t1);
-    CODE
-  end
-  
-  def archive_add_object
-    <<-CODE
-    ARITY(4);
-    char *path, *file;
-    OBJECT t1, t2, t3, t4;
-    
-    POP(t1, STRING);
-    POP(t2, STRING);
-    t3 = stack_pop();
-    POP(t4, FIXNUM);
-    
-    path = string_byte_address(state, t1);
-    file = string_byte_address(state, t2);
-    
-    t1 = archive_add_object(state, path, file, t3, N2I(t4));
-    RET(t1);
-    CODE
-  end
-  
-  def archive_delete_file
-    <<-CODE
-    ARITY(2);
-    OBJECT t1, t2, t3;
-
-    POP(t1, STRING);
-    POP(t2, FIXNUM);
-
-    t3 = archive_delete_file(state, string_byte_address(state, t1), N2I(t2));
-    RET(t3);
-    CODE
-  end  
-  
+  defprim :fixnum_and
   def fixnum_and
     <<-CODE
     ARITY(1);
@@ -1956,7 +1944,7 @@ class ShotgunPrimitives
     if(FIXNUM_P(t1)) {
       k = N2I(t1);
     } else if(BIGNUM_P(t1)) {
-      k = (native_int)bignum_to_ll(state, t1);
+      RET(bignum_and(state, bignum_new(state, N2I(msg->recv)), t1));
     } else if(FLOAT_P(t1)) {
       double a = FLOAT_TO_DOUBLE(t1);
       if(float_bounded_p(a)) {
@@ -1971,6 +1959,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fixnum_or
   def fixnum_or
     <<-CODE
     ARITY(1);
@@ -1997,6 +1986,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fixnum_xor
   def fixnum_xor
     <<-CODE
     ARITY(1);
@@ -2023,6 +2013,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fixnum_invert
   def fixnum_invert
     <<-CODE
     ARITY(0);
@@ -2034,6 +2025,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fixnum_neg
   def fixnum_neg
     <<-CODE
     ARITY(0);
@@ -2045,6 +2037,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fixnum_right_shift
   def fixnum_right_shift
     <<-CODE
     ARITY(1);
@@ -2074,6 +2067,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fixnum_left_shift
   def fixnum_left_shift
     <<-CODE
     ARITY(1);
@@ -2092,6 +2086,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_new
   def bignum_new
     <<-CODE
     ARITY(1);
@@ -2100,7 +2095,8 @@ class ShotgunPrimitives
     RET(bignum_new(state, N2I(t1)));
     CODE
   end
-  
+
+  defprim :bignum_to_float
   def bignum_to_float
     <<-CODE
     ARITY(0);
@@ -2110,6 +2106,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_and
   def bignum_and
     <<-CODE
     ARITY(1);
@@ -2126,6 +2123,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_or
   def bignum_or
     <<-CODE
     ARITY(1);
@@ -2142,6 +2140,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_xor
   def bignum_xor
     <<-CODE
     ARITY(1);
@@ -2158,6 +2157,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_neg
   def bignum_neg
     <<-CODE
     ARITY(0);
@@ -2167,6 +2167,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_invert
   def bignum_invert
     <<-CODE
     ARITY(0);
@@ -2175,7 +2176,8 @@ class ShotgunPrimitives
     RET(bignum_invert(state, msg->recv));
     CODE
   end
-  
+
+  defprim :numeric_coerce
   def numeric_coerce
     <<-CODE
     ARITY(1);
@@ -2204,7 +2206,8 @@ class ShotgunPrimitives
     RET(t3);
     CODE
   end
-  
+
+  defprim :bignum_compare
   def bignum_compare
     <<-CODE
     ARITY(1);
@@ -2215,7 +2218,8 @@ class ShotgunPrimitives
     RET(bignum_compare(state, msg->recv, t1));
     CODE
   end
-  
+
+  defprim :fixnum_to_f
   def fixnum_to_f
     <<-CODE
     ARITY(0);
@@ -2224,7 +2228,8 @@ class ShotgunPrimitives
     RET(float_new(state, FIXNUM_TO_DOUBLE(msg->recv)));
     CODE
   end
-  
+
+  defprim :string_to_f
   def string_to_f
     <<-CODE
     ARITY(0);
@@ -2233,7 +2238,8 @@ class ShotgunPrimitives
     RET(float_new(state, string_to_double(state, msg->recv)));
     CODE
   end
-  
+
+  defprim :fixnum_divmod
   def fixnum_divmod
     <<-CODE
     ARITY(1);
@@ -2245,7 +2251,8 @@ class ShotgunPrimitives
     RET(fixnum_divmod(state, msg->recv, t1));
     CODE
   end
-  
+
+  defprim :bignum_left_shift
   def bignum_left_shift
     <<-CODE
     ARITY(1);
@@ -2258,6 +2265,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_right_shift
   def bignum_right_shift
     <<-CODE
     ARITY(1);
@@ -2270,6 +2278,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :find_method
   def find_method
     <<-CODE
     ARITY(1);
@@ -2284,7 +2293,8 @@ class ShotgunPrimitives
     RET(t3);
     CODE
   end
-  
+
+  defprim :bignum_divmod
   def bignum_divmod
     <<-CODE
     ARITY(1);
@@ -2305,7 +2315,8 @@ class ShotgunPrimitives
     RET(bignum_divmod(state, msg->recv, t1));
     CODE
   end
-  
+
+  defprim :object_taint
   def object_taint
     <<-CODE
     ARITY(0);
@@ -2314,7 +2325,8 @@ class ShotgunPrimitives
     RET(msg->recv);
     CODE
   end
-  
+
+  defprim :object_tainted_p
   def object_tainted_p
     <<-CODE
     ARITY(0);
@@ -2322,7 +2334,8 @@ class ShotgunPrimitives
     RET(object_tainted_p(state, msg->recv) ? Qtrue : Qfalse);
     CODE
   end
-  
+
+  defprim :object_untaint
   def object_untaint
     <<-CODE
     ARITY(0);
@@ -2331,7 +2344,8 @@ class ShotgunPrimitives
     RET(msg->recv);
     CODE
   end
-  
+
+  defprim :object_freeze
   def object_freeze
     <<-CODE
     ARITY(0);
@@ -2340,7 +2354,8 @@ class ShotgunPrimitives
     RET(msg->recv);
     CODE
   end
-  
+
+  defprim :object_frozen_p
   def object_frozen_p
     <<-CODE
     ARITY(0);
@@ -2348,7 +2363,8 @@ class ShotgunPrimitives
     RET(object_frozen_p(state, msg->recv) ? Qtrue : Qfalse);
     CODE
   end
-  
+
+  defprim :fastctx_get_field
   def fastctx_get_field
     <<-CODE
     ARITY(1);
@@ -2410,7 +2426,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :fastctx_set_field
   def fastctx_set_field
     <<-CODE
     ARITY(2);
@@ -2479,6 +2496,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fastctx_reload_method
   def fastctx_reload_method
     <<-CODE
     ARITY(0);
@@ -2495,6 +2513,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :fastctx_set_iseq
   def fastctx_set_iseq
     <<-CODE
     ARITY(1);
@@ -2522,6 +2541,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :vm_stats
   def vm_stats
     <<-CODE
     ARITY(0);
@@ -2540,7 +2560,8 @@ class ShotgunPrimitives
 #endif
     CODE
   end
-  
+
+  defprim :nmethod_call
   def nmethod_call
     <<-CODE
     OBJECT t1;
@@ -2552,6 +2573,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :nfunc_call
   def nfunc_call
     <<-CODE
     /* The definition of beauty. Simplicity. To call a native function, there is no work 
@@ -2562,7 +2584,8 @@ class ShotgunPrimitives
     ffi_call(state, c, nfunc_get_data(msg->method));
     CODE
   end
-  
+
+  defprim :nfunc_call_object
   def nfunc_call_object
     <<-CODE
     /* The definition of beauty. Simplicity. To call a native function, there is no work 
@@ -2572,7 +2595,8 @@ class ShotgunPrimitives
     ffi_call(state, c, nfunc_get_data(msg->recv));
     CODE
   end
-  
+
+  defprim :nfunc_add
   def nfunc_add
     <<-CODE
     ARITY(4);
@@ -2585,7 +2609,8 @@ class ShotgunPrimitives
     RET(ffi_function_create(state, t1, t2, t3, t4));
     CODE
   end
-  
+
+  defprim :load_library
   def load_library
     <<-CODE
     ARITY(2);
@@ -2596,7 +2621,8 @@ class ShotgunPrimitives
     RET(subtend_load_library(state, c, t1, t2));
     CODE
   end
-  
+
+  defprim :dir_glob
   def dir_glob
     <<-CODE
     ARITY(2);
@@ -2621,7 +2647,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :dir_chdir
   def dir_chdir
     <<-CODE
     ARITY(1);
@@ -2639,6 +2666,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :yield_gdb
   def yield_gdb
     <<-CODE
     ARITY(1);
@@ -2647,7 +2675,8 @@ class ShotgunPrimitives
     RET(Qtrue);
     CODE
   end
-  
+
+  defprim :make_weak_ref
   def make_weak_ref
     <<-CODE
     ARITY(1);
@@ -2657,7 +2686,8 @@ class ShotgunPrimitives
     RET(object_make_weak_ref(state, t1));
     CODE
   end
-  
+
+  defprim :gc_collect_references
   def gc_collect_references
     <<-CODE
     ARITY(1);
@@ -2668,6 +2698,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :task_dup
   def task_dup
     <<-CODE
     ARITY(0);
@@ -2686,7 +2717,8 @@ class ShotgunPrimitives
     cpu_stack_set_top(state, c, t1);
     CODE
   end
-  
+
+  defprim :task_set_current
   def task_set_current
     <<-CODE
     ARITY(1);
@@ -2697,7 +2729,8 @@ class ShotgunPrimitives
     cpu_task_select(state, c, t1);
     CODE
   end
-  
+
+  defprim :task_associate
   def task_associate
     <<-CODE
     ARITY(1);
@@ -2709,14 +2742,16 @@ class ShotgunPrimitives
     RET(cpu_task_associate(state, c, msg->recv, t1));
     CODE
   end
-  
+
+  defprim :task_current
   def task_current
     <<-CODE
     ARITY(0);
     RET(c->current_task);
     CODE
   end
-  
+
+  defprim :task_at
   def task_at
     <<-CODE
     ARITY(1);
@@ -2745,7 +2780,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :task_set_debugging
   def task_set_debugging
     <<-CODE
     ARITY(2);
@@ -2768,6 +2804,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :task_debug_channel
   def task_debug_channel
     <<-CODE
     ARITY(0);
@@ -2779,7 +2816,8 @@ class ShotgunPrimitives
     RET(task->debug_channel);
     CODE
   end
-  
+
+  defprim :task_control_channel
   def task_control_channel
     <<-CODE
     ARITY(0);
@@ -2792,6 +2830,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :task_get_debug_context_change
   def task_get_debug_context_change
     <<-CODE
     ARITY(0);
@@ -2806,7 +2845,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :task_set_debug_context_change
   def task_set_debug_context_change
     <<-CODE
     ARITY(1);
@@ -2832,7 +2872,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :task_stack_size
   def task_stack_size
     <<-CODE
     ARITY(0);
@@ -2846,6 +2887,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :task_get_stack_value
   def task_get_stack_value
     <<-CODE
     ARITY(1);
@@ -2865,6 +2907,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :task_raise
   def task_raise
     <<-CODE
     ARITY(1);
@@ -2885,7 +2928,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :thread_raise
   def thread_raise
     <<-CODE
     ARITY(1);
@@ -2911,14 +2955,16 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :channel_new
   def channel_new
     <<-CODE
     ARITY(0);
     RET(cpu_channel_new(state));
     CODE
   end
-  
+
+  defprim :channel_send
   def channel_send
     <<-CODE
     ARITY(1);
@@ -2929,7 +2975,8 @@ class ShotgunPrimitives
     RET(cpu_channel_send(state, c, msg->recv, t1));
     CODE
   end
-  
+
+  defprim :channel_receive
   def channel_receive
     <<-CODE
     ARITY(0);
@@ -2941,7 +2988,8 @@ class ShotgunPrimitives
        is written to and the task restored. */
     CODE
   end
-  
+
+  defprim :channel_send_in_microseconds
   def channel_send_in_microseconds
     <<-CODE
     ARITY(2);
@@ -2964,6 +3012,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :channel_send_in_seconds
   def channel_send_in_seconds
     <<-CODE
     ARITY(2);
@@ -2979,6 +3028,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :channel_send_on_readable
   def channel_send_on_readable
     <<-CODE
     ARITY(4);
@@ -3004,7 +3054,8 @@ class ShotgunPrimitives
     RET(cpu_event_wait_readable(state, c, t4, j, t2, N2I(t3)));
     CODE
   end
-  
+
+  defprim :channel_send_on_writable
   def channel_send_on_writable
     <<-CODE
     ARITY(2);
@@ -3018,7 +3069,8 @@ class ShotgunPrimitives
     RET(cpu_event_wait_writable(state, c, t2, j));
     CODE
   end
-  
+
+  defprim :channel_send_on_signal
   def channel_send_on_signal
     <<-CODE
     ARITY(2);
@@ -3030,7 +3082,8 @@ class ShotgunPrimitives
     RET(cpu_event_wait_signal(state, c, t2, N2I(t1)));
     CODE
   end
-  
+
+  defprim :channel_send_on_stopped
   def channel_send_on_stopped
     <<-CODE
     ARITY(3);
@@ -3044,6 +3097,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :scheduler_cancel
   def scheduler_cancel
     <<-CODE
     ARITY(1);
@@ -3053,14 +3107,16 @@ class ShotgunPrimitives
     RET(cpu_event_cancel_event(state, t1) ? Qtrue : Qfalse);
     CODE
   end
-  
+
+  defprim :thread_new
   def thread_new
     <<-CODE
     ARITY(0);
     RET(cpu_thread_new(state, c));
     CODE
   end
-  
+
+  defprim :thread_run
   def thread_run
     <<-CODE
     ARITY(0);
@@ -3074,7 +3130,8 @@ class ShotgunPrimitives
     cpu_thread_force_run(state, c, msg->recv);
     CODE
   end
-  
+
+  defprim :thread_schedule
   def thread_schedule
     <<-CODE
     ARITY(0);
@@ -3084,7 +3141,8 @@ class ShotgunPrimitives
     RET(Qnil);
     CODE
   end
-  
+
+  defprim :thread_yield
   def thread_yield
     <<-CODE
     ARITY(0);
@@ -3095,7 +3153,8 @@ class ShotgunPrimitives
     cpu_thread_run_best(state, c);
     CODE
   end
-  
+
+  defprim :thread_dequeue
   def thread_dequeue
     <<-CODE
     ARITY(0);
@@ -3103,14 +3162,16 @@ class ShotgunPrimitives
     cpu_thread_exited(state, c);
     CODE
   end
-  
+
+  defprim :thread_current
   def thread_current
     <<-CODE
     ARITY(0);
     RET(c->current_thread);
     CODE
   end
-  
+
+  defprim :object_become
   def object_become
     <<-CODE
     ARITY(2);
@@ -3123,7 +3184,8 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :sampler_activate
   def sampler_activate
     <<-CODE
     ARITY(1);
@@ -3134,7 +3196,8 @@ class ShotgunPrimitives
     RET(ML2N(clock()));
     CODE
   end
-  
+
+  defprim :sampler_stop
   def sampler_stop
     <<-CODE
     ARITY(0);
@@ -3142,7 +3205,8 @@ class ShotgunPrimitives
     RET(t1);
     CODE
   end
-  
+
+  defprim :fork_process
   def fork_process
     <<-CODE
     ARITY(0);
@@ -3158,7 +3222,8 @@ class ShotgunPrimitives
     CODE
   end
   
-  # aka execve().
+
+  defprim :replace_process# aka execve().
   def replace_process
     <<-CODE
     ARITY(2);
@@ -3201,6 +3266,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :ivar_get
   def ivar_get
     <<-CODE
     ARITY(1);
@@ -3209,7 +3275,8 @@ class ShotgunPrimitives
     RET(object_get_ivar(state, msg->recv, t1));
     CODE
   end
-  
+
+  defprim :ivar_set
   def ivar_set
     <<-CODE
     ARITY(2);
@@ -3220,14 +3287,16 @@ class ShotgunPrimitives
     RET(t2);
     CODE
   end
-  
+
+  defprim :ivars_get
   def ivars_get
     <<-CODE
     ARITY(0);
     RET(object_get_ivars(state, msg->recv));
     CODE
   end
-  
+
+  defprim :str_crypt
   def str_crypt
     <<-CODE
     ARITY(1);
@@ -3239,7 +3308,8 @@ class ShotgunPrimitives
         string_byte_address(state, t1))));
     CODE
   end
-    
+
+  defprim :env_get
   def env_get
     <<-CODE
     ARITY(1);
@@ -3263,6 +3333,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :env_set
   def env_set
     <<-CODE
     ARITY(2);
@@ -3299,6 +3370,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :env_as_hash
   def env_as_hash
     <<-CODE
     ARITY(0);
@@ -3327,6 +3399,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_size
   def bignum_size
     <<-CODE
     ARITY(0);
@@ -3335,6 +3408,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :iseq_compile
   def iseq_compile
     <<-CODE
     ARITY(0);
@@ -3344,6 +3418,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :reset_method_cache
   def reset_method_cache
     <<-CODE
     ARITY(1);
@@ -3352,7 +3427,8 @@ class ShotgunPrimitives
     cpu_clear_cache_for_method(state, c, t1, TRUE);
     CODE
   end
-  
+
+  defprim :bignum_from_float
   def bignum_from_float
     <<-CODE
     ARITY(1);
@@ -3362,6 +3438,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :save_encloser_path
   def save_encloser_path
     <<-CODE
     ARITY(0);
@@ -3370,6 +3447,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :restore_encloser_path
   def restore_encloser_path
     <<-CODE
     ARITY(0);
@@ -3377,7 +3455,8 @@ class ShotgunPrimitives
     RET(Qnil);
     CODE
   end
-  
+
+  defprim :array_aref
   def array_aref
     <<-CODE
     OBJECT t1, t3;
@@ -3404,7 +3483,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :array_aset
   def array_aset
     <<-CODE
     OBJECT t1, t3;
@@ -3431,7 +3511,8 @@ class ShotgunPrimitives
     tuple_put(state, t3, k, stack_top());
     CODE
   end
-  
+
+  defprim :string_append
   def string_append
     <<-CODE
     OBJECT t1;
@@ -3443,14 +3524,16 @@ class ShotgunPrimitives
     RET(msg->recv);
     CODE
   end
-  
+
+  defprim :string_dup
   def string_dup
     <<-CODE
     ARITY(0);
     RET(string_dup(state, msg->recv));
     CODE
   end
-  
+
+  defprim :string_equal
   def string_equal
     <<-CODE
     ARITY(1);
@@ -3479,7 +3562,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :object_send
   def object_send
     <<-CODE
     OBJECT t1;
@@ -3500,6 +3584,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :machine_new
   def machine_new
     <<-CODE
     ARITY(1);
@@ -3542,6 +3627,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :machine_join
   def machine_join
     <<-CODE
     ARITY(1);
@@ -3555,6 +3641,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :machine_get_message
   def machine_get_message
     <<-CODE
     ARITY(0);
@@ -3562,6 +3649,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :machine_send_message
   def machine_send_message
     <<-CODE
     ARITY(2);
@@ -3574,7 +3662,8 @@ class ShotgunPrimitives
     RET(Qtrue);
     CODE
   end
-  
+
+  defprim :dir_open
   def dir_open
     <<-CODE
     ARITY(1);
@@ -3589,7 +3678,8 @@ class ShotgunPrimitives
     RET(ffi_new_pointer(state, dir));
     CODE
   end
-  
+
+  defprim :dir_close
   def dir_close
     <<-CODE
     ARITY(1);
@@ -3608,7 +3698,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :dir_control
   def dir_control
     <<-CODE
     ARITY(3);
@@ -3634,7 +3725,8 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
+  defprim :dir_read
   def dir_read
     <<-CODE
     ARITY(1);
@@ -3653,6 +3745,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :opt_push_literal
   def opt_push_literal
     <<-CODE
     ARITY(0);
@@ -3662,14 +3755,16 @@ class ShotgunPrimitives
     RET(fast_fetch(lits, 0));
     CODE
   end
-  
+
+  defprim :opt_push_self
   def opt_push_self
     <<-CODE
     ARITY(0);
     RET(msg->recv);
     CODE
   end
-  
+
+  defprim :opt_push_ivar
   def opt_push_ivar
     <<-CODE
     ARITY(0);
@@ -3680,6 +3775,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :opt_push_my_field
   def opt_push_my_field
     <<-CODE
     ARITY(0);
@@ -3689,7 +3785,8 @@ class ShotgunPrimitives
     RET(NTH_FIELD(msg->recv, N2I(fast_fetch(lits, 0))));
     CODE
   end
-  
+
+  defprim :opt_kind_of
   def opt_kind_of
     <<-CODE
     ARITY(1);
@@ -3702,6 +3799,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_add
   def float_add
     <<-CODE
     ARITY(1);
@@ -3716,6 +3814,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_sub
   def float_sub
     <<-CODE
     ARITY(1);
@@ -3730,6 +3829,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_mul
   def float_mul
     <<-CODE
     ARITY(1);
@@ -3744,6 +3844,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_div
   def float_div
     <<-CODE
     ARITY(1);
@@ -3758,6 +3859,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_uminus
   def float_uminus
     <<-CODE
     ARITY(0);
@@ -3767,6 +3869,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_equal
   def float_equal
     <<-CODE
     ARITY(1);
@@ -3780,7 +3883,8 @@ class ShotgunPrimitives
     RET(a == FLOAT_TO_DOUBLE(t1) ? Qtrue : Qfalse);
     CODE
   end
-  
+
+  defprim :float_eql
   def float_eql
     <<-CODE
     ARITY(1);
@@ -3796,6 +3900,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_compare
   def float_compare
     <<-CODE
     ARITY(1);
@@ -3811,6 +3916,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_lt
   def float_lt
     <<-CODE
     ARITY(1);
@@ -3825,6 +3931,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_le
   def float_le
     <<-CODE
     ARITY(1);
@@ -3839,6 +3946,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_gt
   def float_gt
     <<-CODE
     ARITY(1);
@@ -3853,6 +3961,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_ge
   def float_ge
     <<-CODE
     ARITY(1);
@@ -3867,6 +3976,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_to_i
   def float_to_i
     <<-CODE
     ARITY(0);
@@ -3882,6 +3992,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_round
   def float_round
     <<-CODE
     ARITY(0);
@@ -3893,6 +4004,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_divmod
   def float_divmod
     <<-CODE
     ARITY(1);
@@ -3920,6 +4032,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_pow
   def float_pow
     <<-CODE
     ARITY(1);
@@ -3934,6 +4047,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_isnan
   def float_isnan
     <<-CODE
     ARITY(0);
@@ -3942,6 +4056,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :float_isinf
   def float_isinf
     <<-CODE
     ARITY(0);
@@ -3955,6 +4070,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_gt
   def bignum_gt
     <<-CODE
     ARITY(1);
@@ -3971,6 +4087,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_ge
   def bignum_ge
     <<-CODE
     ARITY(1);
@@ -3987,6 +4104,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_lt
   def bignum_lt
     <<-CODE
     ARITY(1);
@@ -4003,6 +4121,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :bignum_le
   def bignum_le
     <<-CODE
     ARITY(1);
@@ -4019,6 +4138,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :sendsite_create
   def sendsite_create
     <<-CODE
     ARITY(1);
@@ -4032,6 +4152,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :sendsite_set_sender
   def sendsite_set_sender
     <<-CODE
     ARITY(1);
@@ -4045,6 +4166,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :sendsite_at
   def sendsite_at
     <<-CODE
     ARITY(1);
@@ -4078,6 +4200,7 @@ class ShotgunPrimitives
     CODE
   end
 
+  defprim :selector_clear
   def selector_clear
     <<-CODE
     GUARD(SELECTOR_P(msg->recv));
@@ -4085,6 +4208,153 @@ class ShotgunPrimitives
     selector_clear(state, msg->recv);
 
     RET(Qnil);
+    CODE
+  end
+
+  defprim :dtrace_fire_ruby_probe
+  def dtrace_fire_ruby_probe
+    <<-CODE
+    ARITY(2);
+
+    OBJECT t1, t2;
+
+    POP(t1, STRING);
+    POP(t2, STRING);
+
+#if ENABLE_DTRACE
+    if (RUBINIUS_RUBY_PROBE_ENABLED()) {
+      RUBINIUS_RUBY_PROBE(string_byte_address(state, t1), string_byte_address(state, t2));
+    }
+#endif
+
+    RET(Qnil);
+    CODE
+  end
+
+  defprim :allocate_table
+  def allocate_table
+    <<-CODE
+    ARITY(0);
+    GUARD(CLASS_P(msg->recv));
+    OBJECT t1;
+
+    t1 = lookuptable_new(state);
+    SET_CLASS(t1, msg->recv); 
+    RET(t1);
+    CODE
+  end
+
+  defprim :lookuptable_store
+  def lookuptable_store
+    <<-CODE
+    ARITY(2);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    OBJECT t1, t2;
+
+    t1 = stack_pop();
+    t2 = stack_pop();
+    RET(lookuptable_store(state, msg->recv, t1, t2));
+    CODE
+  end
+
+  defprim :lookuptable_fetch
+  def lookuptable_fetch
+    <<-CODE
+    ARITY(1);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    OBJECT t1, t2;
+
+    t1 = stack_pop();
+    t2 = lookuptable_fetch(state, msg->recv, t1);
+    RET(t2 == Qundef ? Qnil : t2);
+    CODE
+  end
+
+  defprim :lookuptable_delete
+  def lookuptable_delete
+    <<-CODE
+    ARITY(1);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    OBJECT t1, t2;
+
+    t1 = stack_pop();
+    t2 = lookuptable_delete(state, msg->recv, t1);
+    RET(t2 == Qundef ? Qnil : t2);
+    CODE
+  end
+
+  defprim :lookuptable_has_key
+  def lookuptable_has_key
+    <<-CODE
+    ARITY(1);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    OBJECT t1;
+
+    t1 = stack_pop();
+    RET(lookuptable_has_key(state, msg->recv, t1));
+    CODE
+  end
+
+  defprim :lookuptable_keys
+  def lookuptable_keys
+    <<-CODE
+    ARITY(0);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    RET(lookuptable_keys(state, msg->recv));
+    CODE
+  end
+
+  defprim :lookuptable_values
+  def lookuptable_values
+    <<-CODE
+    ARITY(0);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    RET(lookuptable_values(state, msg->recv));
+    CODE
+  end
+
+  defprim :lookuptable_entries
+  def lookuptable_entries
+    <<-CODE
+    ARITY(0);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    RET(lookuptable_entries(state, msg->recv));
+    CODE
+  end
+
+  defprim :lookuptable_dup
+  def lookuptable_dup
+    <<-CODE
+    ARITY(0);
+    GUARD(LOOKUPTABLE_P(msg->recv));
+    RET(lookuptable_dup(state, msg->recv));
+    CODE
+  end
+
+  defprim :allocate_module
+  def allocate_module
+    <<-CODE
+    ARITY(0);
+    GUARD(CLASS_P(msg->recv));
+    OBJECT t1, t2;
+
+    t1 = class_get_instance_fields(msg->recv);
+    t2 = NEW_OBJECT(msg->recv, N2I(t1));
+    module_setup_fields(state, t2);
+    RET(t2);
+    CODE
+  end
+
+  defprim :allocate_hash
+  def allocate_hash
+    <<-CODE
+    ARITY(0);
+    GUARD(CLASS_P(msg->recv));
+    OBJECT t1;
+
+    t1 = hash_new(state);
+    SET_CLASS(t1, msg->recv); 
+    RET(t1);
     CODE
   end
 end

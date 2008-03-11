@@ -1,9 +1,15 @@
 class Array
-  
+  ivar_as_index :total => 0, :tuple => 1, :start => 2, :shared => 3
+
+  def total    ; @total ; end
+  def tuple    ; @tuple ; end
+  def start    ; @start ; end
+  def __ivars__; nil    ; end
+
   def size
     @total
   end
-        
+
   # THIS MUST NOT BE REMOVED. the kernel requires a simple
   # Array#[] to work while parts of the kernel boot.
   def [](idx)    
@@ -13,7 +19,7 @@ class Array
 
     @tuple.at(@start + idx)
   end
-  
+
   def []=(idx, ent)
     if idx >= @tuple.fields
       nt = Tuple.new(idx + 10)

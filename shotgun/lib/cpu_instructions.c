@@ -7,6 +7,7 @@
 #include "shotgun/lib/module.h"
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/methctx.h"
 #include "shotgun/lib/array.h"
 #include "shotgun/lib/string.h"
@@ -18,6 +19,10 @@
 #include "shotgun/lib/sendsite.h"
 #include "shotgun/lib/subtend/ffi.h"
 #include "shotgun/lib/subtend/nmc.h"
+
+#if CONFIG_ENABLE_DTRACE
+#include "shotgun/lib/dtrace_probes.h"
+#endif
 
 #include <sys/time.h>
 
@@ -50,13 +55,6 @@ void cpu_show_lookup_time(STATE) {
   printf("Percent:     % 3.3f\n", (seconds / total) * 100);
 }
 
-#endif
-
-#if CONFIG_ENABLE_DTRACE
-#include "shotgun/dtrace.h"
-#define ENABLE_DTRACE 1
-#else
-#define ENABLE_DTRACE 0
 #endif
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
@@ -168,10 +166,10 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under, OBJECT sym) {
    returns TRUE if we found a method object that should be considered
    returns FALSE if we need to keep looking 'up' for the method
 */
-static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message *msg) {
+static inline int cpu_check_for_method(STATE, cpu c, OBJECT tbl, struct message *msg) {
   OBJECT vis, obj;
 
-  msg->method = hash_find(state, hsh, msg->name);
+  msg->method = lookuptable_fetch(state, tbl, msg->name);
 
   if(NIL_P(msg->method)) return FALSE;
 
@@ -220,7 +218,7 @@ static inline int cpu_check_for_method(STATE, cpu c, OBJECT hsh, struct message 
 #define UNVIS_METHOD(var) if(TUPLE_P(var)) { var = tuple_at(state, var, 1); }
 
 static inline int cpu_find_method(STATE, cpu c, struct message *msg) {
-  OBJECT hsh, klass;
+  OBJECT tbl, klass;
   struct method_cache *ent;
   
 #if USE_GLOBAL_CACHING
@@ -259,19 +257,19 @@ static inline int cpu_find_method(STATE, cpu c, struct message *msg) {
       return FALSE;
     }
 
-    hsh = module_get_method_table(klass);
+    tbl = module_get_method_table(klass);
 
     /* Ok, rather than assert, i'm going to just bail. Makes the error
        a little strange, but handle-able in ruby land. */
 
-    if(!HASH_P(hsh)) {
-      printf("Warning: encountered invalid module (methods not a hash).\n");
+    if(!LOOKUPTABLE_P(tbl)) {
+      printf("Warning: encountered invalid module (methods not a LookupTable).\n");
       sassert(0);
       return FALSE;
     }
 
     msg->module = klass;
-    if(cpu_check_for_method(state, c, hsh, msg)) {
+    if(cpu_check_for_method(state, c, tbl, msg)) {
       goto cache;
     }
 
@@ -515,6 +513,12 @@ static inline OBJECT cpu_create_context(STATE, cpu c, const struct message *msg)
   fc->method_module = msg->module;
   fc->type = FASTCTX_NORMAL;
 
+#if ENABLE_DTRACE
+  if (RUBINIUS_FUNCTION_ENTRY_ENABLED()) {
+    dtrace_function_entry(state, c, msg);
+  }
+#endif
+
   return ctx;
 }
 
@@ -547,7 +551,7 @@ void cpu_raise_from_errno(STATE, cpu c, const char *msg) {
   OBJECT cls;
   char buf[32];
 
-  cls = hash_find(state, state->global->errno_mapping, I2N(errno));
+  cls = lookuptable_fetch(state, state->global->errno_mapping, I2N(errno));
   if(NIL_P(cls)) {
     cls = state->global->exc_arg;
     snprintf(buf, sizeof(buf), "Unknown errno %d", errno);
@@ -581,16 +585,7 @@ static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int pr
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_PRIMITIVE_ENTRY_ENABLED()) {
-    char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
-    char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
-
-    cpu_flush_ip(c);
-
-    struct fast_context *fc = FASTCTX(c->active_context);
-    int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    char *filename = (char*)rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-    RUBINIUS_FUNCTION_PRIMITIVE_ENTRY(module_name, method_name, filename, line_number);
+    dtrace_function_primitive_entry(state, c, msg);
   }
 #endif
 
@@ -607,18 +602,10 @@ static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int pr
 
 #if ENABLE_DTRACE
     if (RUBINIUS_FUNCTION_PRIMITIVE_RETURN_ENABLED()) {
-      char *module_name = msg->module == Qnil ? "<unknown>" : (char*)rbs_symbol_to_cstring(state, module_get_name(msg->module));
-      char *method_name = (char*)rbs_symbol_to_cstring(state, msg->name);
-
-      cpu_flush_ip(c);
-
-      struct fast_context *fc = FASTCTX(c->active_context);
-      int line_number = cpu_ip2line(state, fc->method, fc->ip);
-      char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-      RUBINIUS_FUNCTION_PRIMITIVE_RETURN(module_name, method_name, filename, line_number);
+      dtrace_function_primitive_return(state, c, msg);
     }
 #endif
+
     return TRUE;
   }
 
@@ -754,35 +741,24 @@ inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) 
 void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise);
 
 inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
-  OBJECT destination, home;
+  OBJECT current, destination, home;
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
-    OBJECT module = cpu_current_module(state, c);
-
-    char *module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
-    char *method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
-
-    cpu_flush_ip(c);
-
-    struct fast_context *fc = FASTCTX(c->active_context);
-    int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-    RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+    dtrace_function_return(state, c);
   }
 #endif
 
   c->depth--;
 
+  current = c->active_context;
+  c->active_context = Qnil;
   destination = cpu_current_sender(c);
 
-  // printf("Rtrnng frm %p (%d)\n", c->active_context, FASTCTX(c->active_context)->size);
+  // printf("Rtrnng frm %p (%d)\n", current, FASTCTX(current)->size);
 
   if(destination == Qnil) {
-    object_memory_retire_context(state->om, c->active_context);
-
-    c->active_context = Qnil;
+    object_memory_retire_context(state->om, current);
 
     /* Thread exiting, reschedule.. */
     if(c->current_thread != c->main_thread) {
@@ -798,7 +774,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
     stack_push(val);
   } else {
     /* retire this one context. */
-    object_memory_retire_context(state->om, c->active_context);      
+    object_memory_retire_context(state->om, current);
 
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
@@ -833,32 +809,21 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
 
 /* Used by raise_exception to restore the previous context. */
 int cpu_unwind(STATE, cpu c) {
-  OBJECT destination, home;
+  OBJECT current, destination, home;
+  current = c->active_context;
+  c->active_context = Qnil;
   destination = cpu_current_sender(c);
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_RETURN_ENABLED()) {
-    OBJECT module = cpu_current_module(state, c);
-
-    char *module_name = (module == Qnil) ? "<unknown>" : rbs_symbol_to_cstring(state, module_get_name(module));
-    char *method_name = rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c)));
-
-    cpu_flush_ip(c);
-
-    struct fast_context *fc = FASTCTX(c->active_context);
-    int line_number = cpu_ip2line(state, fc->method, fc->ip);
-    char *filename = rbs_symbol_to_cstring(state, cmethod_get_file(fc->method));
-
-    RUBINIUS_FUNCTION_RETURN(module_name, method_name, filename, line_number);
+    dtrace_function_return(state, c);
   }
 #endif
 
   c->depth--;
 
   if(destination == Qnil) {
-    object_memory_retire_context(state->om, c->active_context);
-
-    c->active_context = Qnil;
+    object_memory_retire_context(state->om, current);
 
     /* Thread exitting, reschedule.. */
     if(c->current_thread != c->main_thread) {
@@ -875,7 +840,7 @@ int cpu_unwind(STATE, cpu c) {
 
   } else {
     /* retire this one context. */
-    object_memory_retire_context(state->om, c->active_context);
+    object_memory_retire_context(state->om, current);
 
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
@@ -1009,8 +974,7 @@ static inline void cpu_patch_mono(struct message *msg);
 
 static inline void cpu_patch_missing(struct message *msg);
 
-static void 
-_cpu_ss_basic(struct message *msg) {
+static void _cpu_ss_basic(struct message *msg) {
   msg->missing = 0;
   const STATE = msg->state;
   const cpu c = msg->c;
@@ -1035,6 +999,36 @@ void cpu_initialize_sendsite(STATE, struct send_site *ss) {
   ss->lookup = _cpu_ss_basic;
 }
 
+static void _cpu_ss_disabled(struct message *msg) {
+  msg->missing = 0;
+  const STATE = msg->state;
+  const cpu c = msg->c;
+  
+  sassert(cpu_locate_method(state, c, msg));
+
+  /* If it's not method_missing, cache the details of msg in the send_site */
+  if(msg->missing) { 
+    msg->args += 1;
+    stack_push(msg->name);
+  }
+
+  if(cpu_try_primitive(state, c, msg)) return;
+
+  cpu_perform(state, c, msg);
+}
+
+void cpu_patch_disabled(struct message *msg, struct send_site *ss) {
+  ss->data1 = ss->data2 = ss->data3 = Qnil;
+  ss->data4 = 0;
+  ss->c_data = NULL;
+  ss->lookup = _cpu_ss_disabled;
+  
+  _cpu_ss_disabled(msg);
+}
+
+#define SS_DISABLE_THRESHOLD 10000
+#define SS_MISSES(ss) if(++ss->misses > SS_DISABLE_THRESHOLD) { cpu_patch_disabled(msg, ss); } else
+
 /* Send Site specialization 1: execute a primitive directly. */
 
 #define CHECK_CLASS(msg) (_real_class(msg->state, msg->recv) != SENDSITE(msg->send_site)->data1)
@@ -1047,8 +1041,9 @@ static void _cpu_ss_mono_prim(struct message *msg) {
   cpu c = msg->c;
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
   
@@ -1083,6 +1078,9 @@ void cpu_patch_primitive(STATE, const struct message *msg, prim_func func, int p
   if(!REFERENCE_P(msg->send_site)) return;
 
   ss = SENDSITE(msg->send_site);
+  
+  /* If this sendsite is disabled, leave it disabled. */
+  if(ss->lookup == _cpu_ss_disabled) return;
 
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
@@ -1098,8 +1096,9 @@ static void _cpu_ss_mono_ffi(struct message *msg) {
   struct send_site *ss = SENDSITE(msg->send_site);
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
 
@@ -1141,8 +1140,9 @@ static void _cpu_ss_mono(struct message *msg) {
   struct send_site *ss = SENDSITE(msg->send_site);
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
   
@@ -1162,7 +1162,7 @@ static inline void cpu_patch_mono(struct message *msg) {
   STATE = msg->state;
 
   struct send_site *ss = SENDSITE(msg->send_site);
-  
+
   ss->lookup = _cpu_ss_mono;
   SET_STRUCT_FIELD(msg->send_site, ss->data1, _real_class(state, msg->recv));
   SET_STRUCT_FIELD(msg->send_site, ss->data2, msg->method);
@@ -1174,8 +1174,9 @@ static void _cpu_ss_missing(struct message *msg) {
   cpu c = msg->c;
 
   if(CHECK_CLASS(msg)) {
-    ss->misses++;
-    _cpu_ss_basic(msg);
+    SS_MISSES(ss) {
+      _cpu_ss_basic(msg);
+    }
     return;
   }
     
@@ -1222,7 +1223,7 @@ static void _cpu_on_no_method(STATE, cpu c, const struct message *msg) {
 /* Layer 4: send. Primary method calling function. */
 inline void cpu_send_message(STATE, cpu c, struct message *msg) {
   struct send_site *ss;
-
+  
 #ifdef TIME_LOOKUP
   uint64_t start = measure_cpu_time();
 #endif
@@ -1236,6 +1237,7 @@ inline void cpu_send_message(STATE, cpu c, struct message *msg) {
 #ifdef TIME_LOOKUP
   state->lookup_time += (measure_cpu_time() - start);
 #endif
+
 }
 
 void cpu_send_message_external(STATE, cpu c, struct message *msg) {
@@ -1487,7 +1489,7 @@ check_interrupts:
 
 #if ENABLE_DTRACE
       if (RUBINIUS_GC_BEGIN_ENABLED()) {
-        RUBINIUS_GC_BEGIN();
+        dtrace_gc_begin(state);
       }
 #endif
       int cm = state->om->collect_now;
@@ -1523,7 +1525,7 @@ check_interrupts:
 
 #if ENABLE_DTRACE
       if (RUBINIUS_GC_END_ENABLED()) {
-        RUBINIUS_GC_END();
+        dtrace_gc_end(state);
       }
 #endif
     }

@@ -1,12 +1,13 @@
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/methtbl.h"
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/module.h"
 
 void module_setup_fields(STATE, OBJECT module) {
   if(NIL_P(module_get_constants(module))) {
-    module_set_constants(module, hash_new(state));
+    module_set_constants(module, lookuptable_new(state));
   }
   if(NIL_P(module_get_method_table(module))) {
     module_set_method_table(module, methtbl_new(state));
@@ -36,15 +37,15 @@ void module_setup(STATE, OBJECT module, const char *name) {
 }
 
 void module_const_set(STATE, OBJECT self, OBJECT sym, OBJECT obj) {
-  OBJECT cnt;
+  OBJECT tbl;
   
-  cnt = module_get_constants(self);
-  hash_add(state, cnt, object_hash_int(state, sym), sym, obj);
+  tbl = module_get_constants(self);
+  lookuptable_store(state, tbl, sym, obj);
 }
 
 OBJECT module_const_get(STATE, OBJECT self, OBJECT sym) {
-  OBJECT cnt, obj;
-  cnt = module_get_constants(self);
-  obj = hash_get(state, cnt, object_hash_int(state, sym));
+  OBJECT tbl, obj;
+  tbl = module_get_constants(self);
+  obj = lookuptable_fetch(state, tbl, sym);
   return obj;
 }

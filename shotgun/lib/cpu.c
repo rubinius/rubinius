@@ -11,6 +11,7 @@
 #include "shotgun/lib/module.h"
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/symbol.h"
 
 cpu cpu_new(STATE) {
@@ -243,11 +244,8 @@ OBJECT cpu_new_exception2(STATE, cpu c, OBJECT klass, const char *msg, ...) {
 
 
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
-  OBJECT cur, klass, start, hsh, val;
+  OBJECT cur, klass, start, tbl, val;
   OBJECT cref, cbase;
-  int sym_hash;
-
-  sym_hash = object_hash_int(state, sym);
 
   /* Look up the lexical scope first */
   
@@ -263,8 +261,8 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
       /* If we hit Object in the chain, we stop there. */
       if(klass == state->global->object) break;
       
-      hsh = module_get_constants(klass);
-      val = hash_get_undef(state, hsh, sym_hash);
+      tbl = module_get_constants(klass);
+      val = lookuptable_find(state, tbl, sym);
       if(val != Qundef) return val;
           
       cbase = staticscope_get_parent(cbase);
@@ -272,18 +270,18 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   
     start = cur = staticscope_get_module(cref);
   
-    while(!NIL_P(cur) && cur != state->global->object) {
+    while(!NIL_P(cur)) {
     
-      hsh = module_get_constants(cur);
-      val = hash_get_undef(state, hsh, sym_hash);
+      tbl = module_get_constants(cur);
+      val = lookuptable_find(state, tbl, sym);
       if(val != Qundef) return val;
       cur = module_get_superclass(cur);
     }
   }
   
   // As a last rescue, we search in Object's constants
-  hsh = module_get_constants(state->global->object);
-  val = hash_get_undef(state, hsh, sym_hash);
+  tbl = module_get_constants(state->global->object);
+  val = lookuptable_find(state, tbl, sym);
   if(val != Qundef) return val;
 
   stack_push(sym);
@@ -292,7 +290,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
 }
 
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
-  OBJECT cur, hsh, val;
+  OBJECT cur, tbl, val;
   
   // printf("Looking for %s under %s.\n", rbs_symbol_to_cstring(state, sym), rbs_symbol_to_cstring(state, module_get_name(under)));
   
@@ -301,8 +299,8 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
   while(!NIL_P(cur)) {
     // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
     
-    hsh = module_get_constants(cur);
-    val = hash_find_undef(state, hsh, sym);
+    tbl = module_get_constants(cur);
+    val = lookuptable_find(state, tbl, sym);
     if(val != Qundef) { 
       // printf("   found!\n");
       return val;
@@ -315,8 +313,8 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
   
   if(object_kind_of_p(state, under, state->global->module)) {
     // printf("Looking directly in Object.\n");
-    hsh = module_get_constants(state->global->object);
-    val = hash_find_undef(state, hsh, sym);
+    tbl = module_get_constants(state->global->object);
+    val = lookuptable_find(state, tbl, sym);
     if(val != Qundef) { 
       // printf("   found!\n");
       return val;
@@ -335,10 +333,10 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
 }
 
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under) {
-  OBJECT hsh;
+  OBJECT tbl;
   
-  hsh = module_get_constants(under);
-  hash_set(state, hsh, sym, val);
+  tbl = module_get_constants(under);
+  lookuptable_store(state, tbl, sym, val);
   return val;
 }
 
@@ -364,11 +362,11 @@ void cpu_push_encloser(STATE, cpu c) {
 
 /* Increments serial numbers up the superclass chain. */
 static void cpu_increment_serials(STATE, OBJECT module, OBJECT sym) {
-  OBJECT hsh, meth;
+  OBJECT tbl, meth;
   
   while(!NIL_P(module)) {
-    hsh = module_get_method_table(module);
-    meth = hash_find(state, hsh, sym);
+    tbl = module_get_method_table(module);
+    meth = lookuptable_fetch(state, tbl, sym);
     
     if(REFERENCE_P(meth)) {
       if(CLASS_OBJECT(meth) == BASIC_CLASS(tuple)) { 
@@ -427,7 +425,7 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
     cmethod_set_staticscope(method, cpu_current_scope(state, c));
   }
   
-  hash_set(state, meths, sym, tuple_new2(state, 2, vis, method));
+  lookuptable_store(state, meths, sym, tuple_new2(state, 2, vis, method));
   c->call_flags = 0;
 }
 

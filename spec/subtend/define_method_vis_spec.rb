@@ -22,17 +22,17 @@ describe "SubtendMethodVisModule" do
     @c = SubtendMethodVisModuleTest.new
   end
 
-  specify "should have singleton method smv_test_singleton" do
+  it "should have singleton method smv_test_singleton" do
     m = SubtendMethodVisModule.singleton_methods
     m.include?("smv_test_singleton").should == true
     m.include?("smv_test_module_function").should == true
   end
 
-  specify "should inherit method function from mixin" do
+  it "should inherit method function from mixin" do
     @c.test_mf.should == "test"
   end
 
-  specify "should not inherit singleton method from mixin" do
+  it "should not inherit singleton method from mixin" do
     lambda { @c.test_s }.should raise_error(NameError)
   end
 
@@ -43,24 +43,28 @@ describe "SubtendMethodVis" do
     @c = SubtendMethodVis.new
   end
 
-  specify "should have public method smv_test_public" do
+  it "should have public method smv_test_public" do
     m = @c.methods
     m.include?("smv_test_public").should == true
     m.include?("smv_test_protected").should == true  # note this is true..?
     m.include?("smv_test_private").should == false
   end
   
-  specify "should have protected method smv_test_protected" do
+  it "should have protected method smv_test_protected" do
     m = @c.protected_methods
     m.include?("smv_test_public").should == false
     m.include?("smv_test_protected").should == true
     m.include?("smv_test_private").should == false
   end
   
-  specify "should have private method smv_test_private" do
+  it "should have private method smv_test_private" do
     m = @c.private_methods
     m.include?("smv_test_public").should == false
     m.include?("smv_test_protected").should == false
     m.include?("smv_test_private").should == true
   end  
+  
+  it "should have global method smv_test_global_function" do
+    Kernel.methods.include?("smv_test_global_function").should == true
+  end
 end

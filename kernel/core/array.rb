@@ -10,13 +10,6 @@
 # Arrays can be created with the <tt>[]</tt> syntax, or via <tt>Array.new</tt>.
 
 class Array
-  ivar_as_index :total => 0, :tuple => 1, :start => 2, :shared => 3
-  
-  def total    ; @total ; end
-  def tuple    ; @tuple ; end
-  def start    ; @start ; end
-  def __ivars__; nil    ; end
-  
   def total=(n) ; @total = n ; end
   def tuple=(t) ; @tuple = t ; end
   def start=(s) ; @start = s ; end
@@ -1097,8 +1090,9 @@ class Array
         # add \n to the end of each line (including the last line)
         ret << lines.join
         arr_idx += 1
-      elsif kind =~ /i|s|l/i
-        item = Type.coerce_to(item, Integer, :to_i)
+      elsif kind =~ /i|s|l|n/i
+        size = !t ? 1 : (t == "*" ? self.size : t.to_i)
+        
         # Either convert to short, integer, or long
         # If _ is passed (like s_) then we use the native representation.
         # Otherwise, use the platform independent version
@@ -1108,42 +1102,52 @@ class Array
 
         # My 32 bit machine doesn't show any difference, but maybe a 64 bit machine will turn one up.
         if(!native)
+          bytes = 2 if(kind =~ /n/i)
           bytes = 2 if(kind =~ /s/i)
           bytes = 4 if(kind =~ /i/i)
           bytes = 4 if(kind =~ /l/i)
         else
+          bytes = 2 if(kind =~ /n/i)
           bytes = 2 if(kind =~ /s/i)
           bytes = 4 if(kind =~ /i/i)
           bytes = 4 if(kind =~ /l/i)
         end
 
-        # MRI seems only only raise RangeError at 2**32 and above, even for shorts
-        if item.abs >= 2**32
-          raise RangeError, "bignum too big to convert into 'unsigned long'"
-        end
-
         # pack these bytes according to the native byte ordering of the host platform
-        if endian?(:little)
-          if item < 0
-            item = 2**(8*bytes) + item
-          end
-          str = ""
-          str << " " * bytes
+        # We need big endian if we're converting to network order
+        little_endian = kind =~ /n/i ? false : endian?(:little)
+        
+        0.upto(size-1) do |i|
+          item = Type.coerce_to(self[arr_idx], Integer, :to_i)
+          
+          # MRI seems only only raise RangeError at 2**32 and above, even for shorts
+          if item.abs >= 2**32
+            raise RangeError, "bignum too big to convert into 'unsigned long'"
+          end          
+          
+          if little_endian
+            if item < 0
+              item = 2**(8*bytes) + item
+            end
+            str = ""
+            str << " " * bytes
 
-          (0..bytes-1).each do |byte|
-            str[byte] = ( item >> ( byte * 8 ) ) & 0xFF
+            (0..bytes-1).each do |byte|
+              str[byte] = ( item >> ( byte * 8 ) ) & 0xFF
+            end
+            ret << str
+          else # endian?(:big)
+            obj = item
+            parts = []
+            bytes.times do
+              parts << (obj % 256)
+              obj = obj / 256
+            end
+            (bytes - 1).downto(0) do |j|
+              ret << parts[j].chr
+            end
           end
-          ret << str
-        else # endian?(:big)
-          obj = item
-          parts = []
-          bytes.times do
-            parts << (obj % 256)
-            obj = obj / 256
-          end
-          (bytes - 1).downto(0) do |j|
-            ret << parts[j].chr
-          end
+          arr_idx += 1
         end
 
       elsif kind =~ /H|h/
@@ -1659,7 +1663,7 @@ class Array
       eqls_left, eqls_right = (left_end - 1), right_end
 
       # Choose pivot from median
-      # CAUTION: This may differ from how block version works
+      # CAUTION: This is NOT the same as #qsort_block!
       middle = left_end + ((right_end - left_end) / 2)
       low, mid, hi = @tuple.at(left_end), @tuple.at(middle), @tuple.at(right_end)
 
@@ -1789,17 +1793,17 @@ class Array
       eqls_left, eqls_right = (left_end - 1), right_end
 
       # Choose pivot from median
-      # CAUTION: This may differ from how non-block version works
+      # CAUTION: This is NOT the same as #qsort!
       middle = left_end + ((right_end - left_end) / 2)
       low, mid, hi = @tuple.at(left_end), @tuple.at(middle), @tuple.at(right_end)
 
       # "Heuristic" for reverse-sorted
-      if @total > 1000 and (low <=> mid) == 1 and (mid <=> hi) == 1
+      if @total > 1000 and block.call(low, mid) == 1 and block.call(mid, hi) == 1
         semi_left = @tuple.at(left_end + ((middle - left_end) / 2))
         semi_right = @tuple.at(middle + ((right_end - middle) / 2))
 
-        if (low <=> semi_left) == 1 and (semi_left <=> middle) == 1 and
-           (middle <=> semi_right) == 1 and (semi_right <=> hi) == 1
+        if block.call(low, semi_left) == 1 and block.call(semi_left, middle) == 1 and
+           block.call(middle, semi_right) == 1 and block.call(semi_right, hi) == 1
         end
 
         size = right_end - left_end

@@ -426,6 +426,14 @@ describe Compiler do
     gen [:block_pass, [:vcall, :blah], [:fcall, :foo]] do |g|
       g.push :self
       g.send :blah, 0, true
+      g.dup
+      g.is_nil
+      lbl = g.new_label
+      g.git lbl
+      g.push_cpath_top
+      g.find_const :Proc
+      g.send :__from_block__, 1
+      lbl.set!
       g.push :self
       g.send_with_block :foo, 0, true 
     end

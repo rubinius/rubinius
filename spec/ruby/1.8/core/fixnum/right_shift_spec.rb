@@ -12,6 +12,11 @@ describe "Fixnum#>>" do
     (4095 >> -3).should == (4095 << 3)
   end
   
+  it "performs a right-shift if given a negative value" do
+    (-7 >> 1).should == -4
+    (-4095 >> 3).should == -512
+  end
+  
   it "tries to convert it's argument to an Integer using to_int" do
     (7 >> 1.3).should == 3
     
@@ -28,10 +33,15 @@ describe "Fixnum#>>" do
   end
 
   it "does not raise RangeError when the given argument is out of range of Integer" do
-    (obj = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
-    (3 >> obj).should == 0
+    (obj1 = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
+    (obj2 = mock('large value')).should_receive(:to_int).and_return(8000_0000_0000_0000_0000)
+    (3 >> obj1).should == 0
+    (-3 >> obj2).should == -1
 
     obj = 8e19
     (3 >> obj).should == 0
+    (-3 >> obj).should == -1
   end
+
+
 end

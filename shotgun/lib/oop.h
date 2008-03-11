@@ -83,6 +83,7 @@ typedef enum
   ModuleType      ,
   SendSiteType    ,
   SelectorType    ,
+  LookupTableType ,
 
   LastObjectType   // must remain at end
 } object_type;
@@ -142,6 +143,9 @@ typedef enum
     break; \
   case NilType: \
     type = "nil"; \
+    break; \
+  case LookupTableType: \
+    type = "LookupTable"; \
     break; \
   default: \
     type = "unknown"; \
@@ -409,7 +413,8 @@ static void _bad_reference(OBJECT in) {
 #define TUPLE_P(obj) RTYPE(obj, TupleType)
 #define IO_P(obj) RISA(obj, io)
 #define STRING_P(obj) RTYPE(obj, StringType)
-#define HASH_P(obj) (RISA(obj, hash))
+#define LOOKUPTABLE_P(obj) RISA(obj, lookuptable)
+#define METHODTABLE_P(obj) RTYPE(obj, MTType)
 #define ARRAY_P(obj) RTYPE(obj, ArrayType)
 
 #define STRING_OR_NIL_P(obj) (STRING_P(obj) || NIL_P(obj))
@@ -424,7 +429,6 @@ static void _bad_reference(OBJECT in) {
 #define CHANNEL_P(obj) RTYPE(obj, ChannelType)
 #define BLOCKENV_P(obj) RTYPE(obj, BlockEnvType)
 #define THREAD_P(obj) RTYPE(obj, ThreadType)
-#define RTYPE(obj, type) (REFERENCE_P(obj) && obj->obj_type == type)
 #define SENDSITE_P(obj) RTYPE(obj, SendSiteType)
 #define SELECTOR_P(obj) RTYPE(obj, SelectorType)
 #define HASH_P(obj) (RISA(obj, hash))

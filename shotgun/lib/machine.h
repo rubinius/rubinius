@@ -58,6 +58,7 @@ void machine_parse_config_file(machine m, const char *path);
 void machine_setup_normal(machine m, int argc, char **argv);
 int *machine_setup_thread(machine m, int argc, char **argv);
 const char *_inspect(OBJECT obj);
+void _source_location(int *line_number, const char **filename);
 void machine_print_callstack(machine m);
 void machine_print_callstack_limited(machine m, int maxlev);
 

@@ -6,6 +6,7 @@
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/module.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/regexp.h"
 #include "shotgun/lib/subtend/ffi.h"
 #include "shotgun/lib/selector.h"
@@ -42,7 +43,8 @@ void cpu_bootstrap(STATE) {
   
   BC(tuple) = _tuple_basic_class(state, obj);
   BC(hash) =  _hash_basic_class(state, obj);
-  BC(methtbl) = _methtbl_basic_class(state, BC(hash));
+  BC(lookuptable) = _lookuptable_basic_class(state, obj);
+  BC(methtbl) = _methtbl_basic_class(state, BC(lookuptable));
   
   object_create_metaclass(state, obj, cls);
   object_create_metaclass(state, BC(module), object_metaclass(state, obj));
@@ -50,6 +52,7 @@ void cpu_bootstrap(STATE) {
   
   object_create_metaclass(state, BC(tuple), (OBJECT)0);
   object_create_metaclass(state, BC(hash), (OBJECT)0);
+  object_create_metaclass(state, BC(lookuptable), (OBJECT)0);
   object_create_metaclass(state, BC(methtbl), (OBJECT)0);
   
   module_setup_fields(state, object_metaclass(state, obj));
@@ -57,6 +60,7 @@ void cpu_bootstrap(STATE) {
   module_setup_fields(state, object_metaclass(state, BC(class)));
   module_setup_fields(state, object_metaclass(state, BC(tuple)));
   module_setup_fields(state, object_metaclass(state, BC(hash)));
+  module_setup_fields(state, object_metaclass(state, BC(lookuptable)));
   module_setup_fields(state, object_metaclass(state, BC(methtbl)));
   BC(symbol) = _symbol_class(state, obj);
   BC(array) = _array_class(state, obj);
@@ -74,6 +78,7 @@ void cpu_bootstrap(STATE) {
   class_set_object_type(BC(methtbl), I2N(MTType));
   class_set_object_type(BC(tuple), I2N(TupleType));
   class_set_object_type(BC(hash), I2N(HashType));
+  class_set_object_type(BC(lookuptable), I2N(LookupTableType));
   
   /* The symbol table */
   state->global->symbols = symtbl_new(state);
@@ -87,6 +92,7 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(array), "Array");
   module_setup(state, BC(bytearray), "ByteArray");
   module_setup(state, BC(hash), "Hash");
+  module_setup(state, BC(lookuptable), "LookupTable");
   module_setup(state, BC(string), "String");
   module_setup(state, BC(symtbl), "SymbolTable");
   module_setup(state, BC(methtbl), "MethodTable");
@@ -176,7 +182,7 @@ void cpu_bootstrap(STATE) {
         "Primitives",
         cpu_populate_prim_names(state));
   
-  state->global->external_ivars = hash_new(state);
+  state->global->external_ivars = lookuptable_new(state);
 
 }
 
@@ -227,7 +233,7 @@ void cpu_bootstrap_exceptions(STATE) {
 
   OBJECT ern = rbs_module_new(state, "Errno", state->global->object);
 
-  state->global->errno_mapping = hash_new(state);
+  state->global->errno_mapping = lookuptable_new(state);
 
   rbs_const_set(state, ern, "Mapping", state->global->errno_mapping);
   
@@ -236,7 +242,7 @@ void cpu_bootstrap_exceptions(STATE) {
 #define set_syserr(num, name) ({ \
   OBJECT _cls = rbs_class_new_with_namespace(state, name, sz, sce, ern); \
   rbs_const_set(state, _cls, "Errno", I2N(num)); \
-  hash_set(state, state->global->errno_mapping, I2N(num), _cls); \
+  lookuptable_store(state, state->global->errno_mapping, I2N(num), _cls); \
   })
 
 /*

@@ -58,6 +58,7 @@ class RunState
       protect "before :each", @before
       protect nil, spec
       protect "after :each", @after
+      protect "Mock.verify_count", lambda { Mock.verify_count }
       protect "Mock.cleanup", lambda { Mock.cleanup }
       MSpec.actions :after, state
       @state = nil

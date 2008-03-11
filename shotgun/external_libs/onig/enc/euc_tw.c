@@ -2,7 +2,7 @@
   euc_tw.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2006  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,14 +104,14 @@ euctw_left_adjust_char_head(const UChar* start, const UChar* s)
   p = s;
 
   while (!euctw_islead(*p) && p > start) p--;
-  len = enc_len(ONIG_ENCODING_EUC_TW, p);
+  len = enclen(ONIG_ENCODING_EUC_TW, p);
   if (p + len > s) return (UChar* )p;
   p += len;
   return (UChar* )(p + ((s - p) & ~1));
 }
 
 static int
-euctw_is_allowed_reverse_match(const UChar* s, const UChar* end)
+euctw_is_allowed_reverse_match(const UChar* s, const UChar* end ARG_UNUSED)
 {
   const UChar c = *s;
   if (c <= 0x7e) return TRUE;

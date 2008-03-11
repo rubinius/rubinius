@@ -1,5 +1,9 @@
 #include "shotgun/lib/auto.h"
 
+#if CONFIG_ENABLE_DTRACE
+#include "shotgun/lib/dtrace_probes.h"
+#endif
+
 static inline void _om_apply_class_flags(OBJECT obj, OBJECT cls) {
   obj->CanStoreIvars = (class_get_has_ivars(cls) == Qtrue);
   obj->RequiresCleanup = (class_get_needs_cleanup(cls) == Qtrue);
@@ -58,8 +62,21 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, unsigne
 
 static inline OBJECT _om_inline_new_object_init(object_memory om, OBJECT cls, unsigned int fields) {
   OBJECT obj;
+
+#if ENABLE_DTRACE
+  if (RUBINIUS_OBJECT_CREATE_START_ENABLED() && om->bootstrap_loaded == 1) {
+    object_create_start(cls);
+  }
+#endif
+
   obj = _om_inline_new_object(om, cls, fields);
   fast_memfill((void*)BYTES_OF(obj), (uintptr_t)Qnil, fields);
+
+#if ENABLE_DTRACE
+  if (RUBINIUS_OBJECT_CREATE_DONE_ENABLED() && om->bootstrap_loaded == 1) {
+    object_create_done(cls);
+  }
+#endif
   
   return obj;
 }

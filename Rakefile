@@ -255,7 +255,7 @@ namespace :spec do
   end
 
   desc "Run continuous integration examples"
-  task :ci do
+  task :ci => :build do
     clear_compiler
 
     target = ENV['SPEC_TARGET'] || 'rbx'

@@ -82,6 +82,7 @@ module ModuleSpecs
     class << self
       include Internal
     end
+    attr_accessor :accessor_method
 
     def public_child() end
 

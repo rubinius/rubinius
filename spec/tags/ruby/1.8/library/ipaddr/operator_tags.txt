@@ -1,4 +1,0 @@
-fails:IPAddr Operator should be able to invert
-fails:IPAddr Operator should be able to bitshift left
-fails:IPAddr Operator should be able to bitshift right
-fails(this spec is way too slow on linux):IPAddr Operator should be able to check whether an addres is included in a range

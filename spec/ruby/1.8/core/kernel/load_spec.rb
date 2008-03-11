@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 $load_fixture_dir = (File.dirname(__FILE__) + '/../../fixtures/load')
 $LOAD_PATH << $load_fixture_dir
-$LOAD_PATH << (File.dirname(__FILE__) + '/../../fixtures/load/load_spec_rba.rba')
 
 $load_spec_1 = nil
 $load_spec_2 = nil
@@ -32,7 +31,7 @@ describe "Kernel#load" do
     Kernel.private_instance_methods.should include("load")
   end
 
-  # Avoid storing .rbc and .rba in repo
+  # Avoid storing .rbc in repo
   before :all do
     Dir.chdir($load_fixture_dir) do |dir|
       `rm -f ./*.rbc`
@@ -191,16 +190,16 @@ describe "Kernel#load" do
 
   runner_is_not :rspec do
     it "allows wrapping the code in the file in an anonymous module" do
-      lambda { LoadSpecWrap }.should raise_error NameError
-      lambda { LoadSpecWrapTwo }.should raise_error NameError
-   
+      defined?(LoadSpecWrap).should == false
+      defined?(LoadSpecWrapTwo).should == false
+
       load('load_spec_wrap.rb').should == true
       $load_spec_wrap.nil?.should == false
-      LoadSpecWrap.lsw.should == :lsw 
+      LoadSpecWrap.lsw.should == :lsw
 
       load('load_spec_wrap2.rb', true).should == true
       $load_spec_wrap2.nil?.should == false
-      lambda { LoadSpecWrapTwo }.should raise_error NameError
+      defined?(LoadSpecWrapTwo).should == false
     end
   end
 end

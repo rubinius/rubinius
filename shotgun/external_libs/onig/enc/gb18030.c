@@ -2,7 +2,7 @@
   gb18030.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2005-2006  KUBO Takehiro <kubo AT jiubao DOT org>
+ * Copyright (c) 2005-2007  KUBO Takehiro <kubo AT jiubao DOT org>
  *                          K.Kosako <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
@@ -470,7 +470,7 @@ gb18030_left_adjust_char_head(const UChar* start, const UChar* s)
 }
 
 static int
-gb18030_is_allowed_reverse_match(const UChar* s, const UChar* end)
+gb18030_is_allowed_reverse_match(const UChar* s, const UChar* end ARG_UNUSED)
 {
   return GB18030_MAP[*s] == C1 ? TRUE : FALSE;
 }

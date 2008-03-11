@@ -451,8 +451,13 @@ st_delete_safe(table, key, value, never)
 }
 
 static int
+#if defined(__GNUC__)
+delete_never(st_data_t key __attribute__ ((unused)), st_data_t value,
+	     st_data_t never)
+#else
 delete_never(key, value, never)
     st_data_t key, value, never;
+#endif
 {
     if (value == never) return ST_DELETE;
     return ST_CONTINUE;

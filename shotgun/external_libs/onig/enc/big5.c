@@ -2,7 +2,7 @@
   big5.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2006  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,14 +128,14 @@ big5_left_adjust_char_head(const UChar* start, const UChar* s)
       }
     } 
   }
-  len = enc_len(ONIG_ENCODING_BIG5, p);
+  len = enclen(ONIG_ENCODING_BIG5, p);
   if (p + len > s) return (UChar* )p;
   p += len;
   return (UChar* )(p + ((s - p) & ~1));
 }
 
 static int
-big5_is_allowed_reverse_match(const UChar* s, const UChar* end)
+big5_is_allowed_reverse_match(const UChar* s, const UChar* end ARG_UNUSED)
 {
   const UChar c = *s;
 

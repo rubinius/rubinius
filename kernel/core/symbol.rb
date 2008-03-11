@@ -40,4 +40,10 @@ class Symbol
   end
 
   alias_method :id2name, :to_s
+
+  # Slightly modified from ActiveSupport to avoid a reliance on left-to-right
+  # evaluation order
+  def to_proc
+    Proc.new { |rec, *args| rec.__send__(self, *args) }
+  end
 end

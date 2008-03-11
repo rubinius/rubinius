@@ -46,6 +46,8 @@ extern VALUE subtend_get_exception(int which);
 void rb_define_method_(const char *file, VALUE vmod, const char *name, void *func, int args, int kind);
 void rb_define_module_function(VALUE vmod, const char *name, void *func, int args);
 
+void rb_include_module(VALUE parent, VALUE module);
+
 #define rb_define_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 0)
 #define rb_define_private_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 1)
 #define rb_define_protected_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 2)
@@ -73,6 +75,7 @@ int rb_block_given_p();
 VALUE rb_each(VALUE obj);
 
 #define rb_cObject (subtend_get_global(0))
+#define rb_mKernel rb_const_get(rb_cObject, rb_intern("Kernel") )
 
 /* TODO: Pull these into an enum */
 #define rb_eException          subtend_get_exception(0)
@@ -113,6 +116,13 @@ int rb_respond_to(VALUE obj, ID sym);
 ID rb_to_id(VALUE obj);
 
 VALUE rb_yield(VALUE val);
+
+int rb_safe_level();
+void rb_secure(int level);
+void rb_set_safe_level(int newlevel);
+
+VALUE rb_gv_set(const char *name, VALUE value);
+VALUE rb_gv_get(const char *name);
 
 VALUE rb_check_array_type(VALUE ary);
 VALUE rb_check_string_type(VALUE str);

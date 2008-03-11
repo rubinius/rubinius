@@ -370,13 +370,15 @@ class InstructionSequence
           last_good = [op, stream.size] unless op.opcode == :noop
         end
       rescue InstructionSet::InvalidOpCode => ex
-        # If direct-threading is not used, we can get junk at the end of the iseq
+        # Because bytearrays and iseqs are allocated in chunks of 4 or 8 bytes,
+        # we can get junk at the end of the iseq
         unless last_good.first and last_good.first.flow == :return
           ex.message << " at byte #{@offset} of #{@iseq.size} [IP:#{@offset / InstructionSet::InstructionSize}]"
           raise ex
         end
-        stream.slice! last_good.last, stream.size
       end
+      # Remove any noops or other junk at the end of the iseq
+      stream.slice! last_good.last, stream.size
 
       return stream
     end

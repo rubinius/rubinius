@@ -71,9 +71,12 @@ unless ENV['RBX_PLATFORM_CONF']
   ENV['RBX_PLATFORM_CONF'] = "#{prefix}/runtime/platform.conf"
 end
 
+base = File.dirname(File.dirname(File.expand_path(__FILE__)))
+ENV['RUBYLIB'] = %w(lib stdlib).map { |dir| File.join(base, dir) }.join(":")
+
 if ARGV[0] == "--gdb"
   ARGV.shift
-    
+
   ENV['PATH'] = "#{prefix}/shotgun:#{ENV['PATH']}"
   args = ['-x', "#{prefix}/shotgun/gdbcommands"]
   if `uname -s` == "Darwin" and `uname -r`.split(".")[0].to_i < 9

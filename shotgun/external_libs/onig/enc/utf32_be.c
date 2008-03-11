@@ -30,7 +30,7 @@
 #include "regenc.h"
 
 static int
-utf32be_mbc_enc_len(const UChar* p)
+utf32be_mbc_enc_len(const UChar* p ARG_UNUSED)
 {
   return 4;
 }
@@ -58,13 +58,13 @@ utf32be_is_mbc_newline(const UChar* p, const UChar* end)
 }
 
 static OnigCodePoint
-utf32be_mbc_to_code(const UChar* p, const UChar* end)
+utf32be_mbc_to_code(const UChar* p, const UChar* end ARG_UNUSED)
 {
   return (OnigCodePoint )(((p[0] * 256 + p[1]) * 256 + p[2]) * 256 + p[3]);
 }
 
 static int
-utf32be_code_to_mbclen(OnigCodePoint code)
+utf32be_code_to_mbclen(OnigCodePoint code ARG_UNUSED)
 {
   return 4;
 }

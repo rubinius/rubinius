@@ -25,13 +25,13 @@
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/string.h"
 #include "shotgun/lib/hash.h"
+#include "shotgun/lib/lookuptable.h"
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/object.h"
 #include "shotgun/lib/bignum.h"
 #include "shotgun/lib/bytearray.h"
 #include "shotgun/lib/tuple.h"
 #include "shotgun/lib/regexp.h"
-#include "shotgun/lib/archive.h"
 #include "shotgun/lib/machine.h"
 #include "shotgun/lib/grammar.h"
 #include "shotgun/lib/subtend.h"
@@ -45,6 +45,10 @@
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 # define HAVE_STRUCT_TM_TM_GMTOFF
 # define HAVE_STRUCT_TM_TM_ZONE
+#endif
+
+#if CONFIG_ENABLE_DTRACE
+#include "shotgun/dtrace.h"
 #endif
 
 extern char **environ;

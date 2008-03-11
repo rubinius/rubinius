@@ -114,7 +114,7 @@ class SpecOptions
   
   def add_formatters
     @options.on("-f", "--format FORMAT", String, 
-                "Formatter for reporting: s:specdoc|d:dotted|h:html|u:unitdiff") do |o|
+                "Formatter for reporting: s:specdoc|d:dotted|h:html|u:unitdiff|a:*:spin") do |o|
       case o
       when 's', 'specdoc'
         @config.formatter = SpecdocFormatter
@@ -126,6 +126,8 @@ class SpecOptions
         @config.formatter = UnitdiffFormatter
       when 'm', 'summary'
         @config.formatter = SummaryFormatter
+      when 'a', '*', 'spin'
+        @config.formatter = SpinnerFormatter
       else
         puts "Unknown format: #{o}"
         puts @options

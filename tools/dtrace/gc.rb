@@ -1,0 +1,11 @@
+GC.start
+GC.start
+GC.start
+GC.start
+GC.start
+GC.start
+GC.start
+GC.start
+Object.new
+GC.start
+GC.start

@@ -15,4 +15,6 @@ void Init_subtend_define_method_vis() {
 
   rb_define_singleton_method(mod, "smv_test_singleton", smv_test, 0);
   rb_define_module_function(mod, "smv_test_module_function", smv_test, 0);
+
+  rb_define_global_function("smv_test_global_function", smv_test, 0);
 }

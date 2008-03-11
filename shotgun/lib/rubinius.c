@@ -171,3 +171,8 @@ const char *_inspect(OBJECT obj) {
   return rbs_inspect_verbose(current_machine->s, obj);
 }
 
+void _source_location(int *line_number, const char **filename) {
+  struct fast_context *fc = FASTCTX(current_machine->c->active_context);
+  *line_number = cpu_ip2line(current_machine->s, fc->method, fc->ip);
+  *filename = rbs_symbol_to_cstring(current_machine->s, cmethod_get_file(fc->method));  
+}

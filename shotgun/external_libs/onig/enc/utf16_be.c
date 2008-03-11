@@ -78,7 +78,7 @@ utf16be_is_mbc_newline(const UChar* p, const UChar* end)
 }
 
 static OnigCodePoint
-utf16be_mbc_to_code(const UChar* p, const UChar* end)
+utf16be_mbc_to_code(const UChar* p, const UChar* end ARG_UNUSED)
 {
   OnigCodePoint code;
 
