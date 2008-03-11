@@ -69,7 +69,8 @@ unless ENV['RBX_PLATFORM_CONF']
   ENV['RBX_PLATFORM_CONF'] = "#{prefix}/runtime/platform.conf"
 end
 
-ENV['RUBYLIB'] = 'lib:stdlib'
+base = File.dirname(File.dirname(File.expand_path(__FILE__)))
+ENV['RUBYLIB'] = %w(lib stdlib).map { |dir| File.join(base, dir) }.join(":")
 
 if ARGV[0] == "--gdb"
   ARGV.shift
