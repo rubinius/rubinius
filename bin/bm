@@ -16,7 +16,7 @@ BM_GLOB        = File.expand_path(File.join(File.dirname(__FILE__),'../benchmark
 $interpreters       = ['ruby','shotgun/rubinius']
 
 # WIDTH of test labels, required for nice formating
-WIDTH          = 44
+WIDTH          = 50
 
 REPORT_WIDTH   = WIDTH - 6
 COLUMN_WIDTH   = 12
@@ -130,9 +130,12 @@ class RbxBenchmarkFile
   end
 
   def run
+    spaces = WIDTH - label.length
+    spaces = spaces < 0 ? 0 : spaces
+
     @result = if OPTIONS.warmup then
                 Benchmark.bmbm do |x|
-                  x.report(label + ' ' * (WIDTH - label.length)) do
+                  x.report(label + ' ' * spaces) do
                     if system quiet_command then
                       @pass = true
                     else
@@ -143,7 +146,7 @@ class RbxBenchmarkFile
                 end.first
               else
                 Benchmark.bm do |x|
-                  x.report(label + ' ' * (WIDTH - label.length)) do
+                  x.report(label + ' ' * spaces) do
                     if system quiet_command then
                       @pass = true
                     else
