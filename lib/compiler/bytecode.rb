@@ -8,7 +8,6 @@ class Compiler
     def initialize(gen_class, locals)
       @generator = gen_class.new
       @locals = locals
-      @name = nil
       @required = 0
       @optional = 0
       @name = :__unknown__
