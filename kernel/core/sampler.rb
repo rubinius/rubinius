@@ -19,9 +19,12 @@ class MethodContext
 end
 
 class Sampler
-  def initialize(freq=100)
-    @frequency = freq
-    @show_parent = ENV['PROFILE_FULL']
+  def initialize(freq=nil)
+    @frequency = freq 
+    @frequency ||= ENV['PROFILE_FREQ'].to_i
+    @frequency = 100 if @frequency == 0
+
+    @call_graph = ENV['PROFILE_FULL']
   end
   
   def start
@@ -35,62 +38,119 @@ class Sampler
   end
   
   class Call
+    attr_accessor :slices
+    attr_accessor :descendants_slices
+    attr_accessor :name
+    attr_accessor :parents
+    attr_accessor :children
+    
     def initialize(name)
       @name = name
-      @parents = Hash.new { |h,k| h[k] = 0 }
       @slices = 0
+      @descendants_slices = 0
+
+      @parents = Hash.new { |h,k| h[k] = 0 }
+      @children = Hash.new { |h,k| h[k] = 0 }
     end
-    
-    def slices=(obj)
-      @slices = obj
+
+    def total_slices
+      @slices + @descendants_slices
     end
-    
-    attr_accessor :parents
-    attr_accessor :slices
-    attr_accessor :name
+
+    def count_parent(call)
+      if call
+        @parents[call] += 1
+        call.children[self] += 1
+      end
+    end
   end
-
+  
   def display(out=STDOUT)
-    # "Clocks: #{@start_clock} / #{@last_clock}, Interval: #{@interval} useconds"
-    calls = Hash.new { |h,k| h[k] = Call.new(k) }
-    total_slices = 0
-
+    @total_slices = 0
+    @calls = Hash.new { |h,k| h[k] = Call.new(k) }
+  
     @results.each do |ent|
       next unless ent
+      
+      @total_slices += 1
 
-      # a Fixnum means that a primitive was running
-      if ent.kind_of? Fixnum
-        calls["VM.primitive => #{Rubinius::Primitives[ent]}"].slices += 1
-      else
-        # FIXME: calls[name] += 1 always sets calls[name] to 1
-        call = calls[ent.normalized_name]
-        call.slices = call.slices + 1
-        if @show_parent
-          sender = ent.sender
-          if sender
-            sn = sender.normalized_name
-            call.parents[sn] = call.parents[sn] + 1
+      call = find_call(ent)
+      call.slices += 1
+
+      # skip context unwinding for a primitive
+      next if ent.kind_of? Fixnum
+
+      if @call_graph
+        # count parents and children
+        call.count_parent(find_call(ent.sender))
+
+        # calc descendants
+        seen_calls = { call => 1 }
+
+        while true
+          ent = ent.sender
+          break unless ent
+          
+          c = find_call(ent)
+
+          # unwind to the root, but count each call only once
+          unless seen_calls[c]
+            seen_calls[c] = 1
+
+            c.descendants_slices += 1
           end
         end
-      end
-      total_slices += 1
+      end 
     end
 
-    # FIXME: [[:a,1],[:b,2]].each { |a, b| ... } => a == [:a, 1], b == nil
-    out << "Total slices: #{total_slices}, #{@last_clock - @start_clock} clocks\n"
-    out.printf " %% time   slices   name\n"
-    calls.sort { |a, b| b[1].slices <=> a[1].slices }.each do |entry|
-      percent_time = 100.0 * entry[1].slices / total_slices
-      out.printf " %6.2f %8d   %s\n", percent_time, entry[1].slices, entry[0]
-      if @show_parent
-        top_parents = entry[1].parents.sort { |a,b| b[1] <=> a[1] }
-        top_parents[0,3].each do |par|
-          out << "                      #{par[0]} (#{par[1]})\n"
-        end
-      end
-      
+    out << "Total slices: #{@total_slices}, #{@last_clock - @start_clock} clocks\n\n"
+    out << "=== FLAT PROFILE ===\n\n"
+    out << " % time   slices   name\n"
+    
+    @calls.sort { |a, b| b[1].slices <=> a[1].slices }.each do |name, call|
+      out.printf " %6.2f %8d    %s\n", percent(call.slices), call.slices, name
     end
+   
+    if @call_graph
+      out << "\n=== CALL GRAPH ===\n\n"
+      out << " % time   slices % self   slices  name\n"
+      @calls.sort { |a, b| b[1].total_slices <=> a[1].total_slices }.each do |name, call|
+        print_relatives(out, call.parents.sort { |a,b| a[1] <=> b[1] })
+        
+        out.printf " %6.2f %8d %6.2f %8d   %s\n", 
+          percent(call.total_slices), call.total_slices, 
+          percent(call.slices), call.slices, 
+          name
+        
+        print_relatives(out, call.children.sort { |a,b| b[1] <=> a[1] })
+
+        out << "----------------------------------------------------------------------\n"
+      end
+    end 
     nil
+  end
+  
+  def context_name(entry)
+    # a Fixnum means that a primitive was running
+    if entry.kind_of? Fixnum
+      "VM.primitive => #{Rubinius::Primitives[entry]}"
+    else
+      entry.normalized_name
+    end
+  end
+  
+  def find_call(entry)
+    @calls[context_name(entry)]
+  end
+
+  def percent(slices)
+    100.0 * slices / @total_slices
+  end
+
+  def print_relatives(out, rels)
+    rels[0,5].each do |rel|
+      out << "                                       #{rel[0].name} (#{rel[1]})\n"
+    end
   end
 
   class Selectors
