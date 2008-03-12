@@ -8,7 +8,8 @@ describe TallyAction do
   before :each do
     @tally = TallyAction.new
     @state = SpecState.new("describe", "it")
-    @state.exceptions << [nil, Exception.new("it broke")]
+    @state.exceptions << ["msg", Exception.new("it broke")]
+    @state.exceptions << ["msg", ExpectationNotMetError.new("disappointment")]
   end
   
   it "responds to #load by incrementing the file count" do
@@ -24,7 +25,7 @@ describe TallyAction do
   it "responds to #after by incrementing examples, failures, errors counts" do
     @tally.after @state
     @tally.examples.should == 1
-    @tally.failures.should == 0
+    @tally.failures.should == 1
     @tally.errors.should == 1
   end
   
@@ -33,7 +34,7 @@ describe TallyAction do
     @tally.after @state
     @tally.expectation @state
     @tally.expectation @state
-    @tally.format.should == "1 file, 1 example, 2 expectations, 0 failures, 1 error"
+    @tally.format.should == "1 file, 1 example, 2 expectations, 1 failure, 1 error"
   end
   
   it "responds to #register by registering itself with MSpec for appropriate actions" do

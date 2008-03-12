@@ -27,8 +27,8 @@ class TallyAction
   
   def after(state)
     @examples += 1
-    state.exceptions.each do |e|
-      state.failure?(e) ? @failures += 1 : @errors += 1
+    state.exceptions.each do |msg, exc|
+      state.failure?(exc) ? @failures += 1 : @errors += 1
     end
   end
   

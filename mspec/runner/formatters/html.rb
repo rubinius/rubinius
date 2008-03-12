@@ -43,7 +43,7 @@ EOH
     if state.exception?
       @states << state
       count = @tally.failures + @tally.errors - state.exceptions.size
-      state.exceptions.each do |exc|
+      state.exceptions.each do |msg, exc|
         outcome = state.failure?(exc) ? "FAILED" : "ERROR"
         print %[<li class="fail">#{desc} (#{outcome} - #{count += 1})</li>\n]
       end
@@ -56,7 +56,7 @@ EOH
     success = @states.empty?
     print "<ol>" unless success
     @states.each do |state|
-      state.exceptions.each do |exc|
+      state.exceptions.each do |msg, exc|
         outcome = failure?(state) ? "FAILED" : "ERROR"
         print "\n<li><p>#{state.description} #{outcome}</p>\n<p>"
         print (exc.message.empty? ? "<No message>" : exc.message)
