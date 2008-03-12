@@ -103,9 +103,9 @@ class Debugger
       # Splits the supplied string at logical breaks to ensure that no line is
       # longer than the spcecified width. Returns an array of lines.
       def wrap(str, width, align=:none, pad=' ')
-        raise ArgumentError, "Invalid wrap length specified (#{width})" if width < 1
+        raise ArgumentError, "Invalid wrap length specified (#{width})" if width < 0
 
-        return [nil] unless str
+        return [nil] unless str and width > 0
 
         str.strip!
         lines = []
