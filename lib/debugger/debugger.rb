@@ -164,20 +164,27 @@ class Debugger
 
     file = @debug_context.file.to_s
     line = bp.line
-    @prompt = "\nrbx:debug> "
     puts ""
     puts "#{file}:#{line} (#{@debug_context.method.name}) [IP:#{@debug_context.ip}]"
-    lines = source_for(file)
-    unless lines.nil?
-      output = Output.new
-      output.set_columns(['%d:', '%-s'])
-      output.set_line_marker
-      output.set_color :cyan
-      output << [line, lines[line-1].chomp]
-      output.set_color(:clear)
-      puts output
+    output = Output.new
+    output.set_line_marker
+    output.set_color :cyan
+    if bp.kind_of? StepBreakpoint and bp.step_by == :ip
+      bc = @debug_context.method.decode
+      inst = bc[bc.ip_to_index(@debug_context.ip)]
+      output.set_columns(["%04d:", "%-s ", "%-s"])
+      output << [inst.ip, inst.opcode, inst.args.map{|a| a.inspect}.join(', ')]
+    else
+      lines = source_for(file)
+      unless lines.nil?
+        output.set_columns(['%d:', '%-s'])
+        output << [line, lines[line-1].chomp]
+      end
     end
+    output.set_color :clear
+    puts output
 
+    @prompt = "\nrbx:debug> "
     until @done do
       inp = Readline.readline(@prompt)
       inp.strip!
