@@ -1,10 +1,3 @@
-class Object
-  # Aliasing WILL break.
-  def pretty_inspect
-    inspect
-  end
-end
-
 class PositiveOperatorMatcher
   def initialize(actual)
     @actual = actual
