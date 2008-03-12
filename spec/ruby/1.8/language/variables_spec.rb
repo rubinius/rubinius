@@ -710,13 +710,6 @@ describe "Multiple assignments with splats" do
     j.should == [[1,2,3]]
     k.should == [1,2,3]
   end
-  
-  it "* on a range should act like array expansion" do
-    a,b,c = *[0..2]
-    a.should = 0
-    b.should = 1
-    c.should = 2
-  end
 end
 
 describe "Multiple assignments with grouping" do
