@@ -93,7 +93,7 @@ class Debugger
 
       output = Output.new
       output << "Bytecode instructions [#{first}-#{last}] in compiled method #{dbg.debug_context.method.name}:"
-      output.set_columns(["%04d:", "%-s ", "%s"])
+      output.set_columns(["%04d:", "%-s ", "%-s"])
       output << [nil, '...', nil] if first > 0
       line = 0
       asm.each do |inst|
