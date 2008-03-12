@@ -16,11 +16,24 @@ class TestGenerator
   def run(node)
     node.bytecode(self)
   end
-  
+
   def inspect
     [:test_generator, @stream].inspect
   end
-  
+
+# TODO:
+#   def pretty_print(pp)
+#     pp.group(1, '[:test_generator, ', ']') {
+#       pp.seplist(@stream) {|v|
+#         pp.pp v
+#       }
+#     }
+#   end
+
+#   def pretty_print_cycle(pp)
+#     pp.text(empty? ? '[xxx]' : '[xxx...]')
+#   end
+
   def add(*args)
     @stream << args
     @ip += 1
@@ -209,6 +222,19 @@ def gen_iter x
     g.passed_block do
       g.send_with_block :each, 0, false
     end
+  end
+end
+
+class Compiler::MethodDescription
+  def push_self_or_class
+    lbl = self.new_label
+    self.push_cpath_top
+    self.find_const :Module
+    self.push :self
+    self.send :kind_of?, 1
+    self.git lbl
+    self.send :class, 0
+    self.set_label lbl
   end
 end
 
