@@ -1,6 +1,7 @@
 require 'compiler/execute'
 
-module Compiler::Plugins
+class Compiler
+module Plugins
 
   @plugins = {}
 
@@ -19,7 +20,7 @@ module Compiler::Plugins
 
     def self.plugin(name, kind=:call)
       @kind = kind
-      Compiler::Plugins.add_plugin name, self
+      Plugins.add_plugin name, self
     end
 
     def self.kind
@@ -29,7 +30,7 @@ module Compiler::Plugins
     def call_match(c, const, method)
       return false unless c.call?
       return false unless c.method == method
-      return false unless c.object.kind_of? Compiler::Node::ConstFind
+      return false unless c.object.kind_of? Node::ConstFind
       return false unless c.object.name == const
       return true
     end
@@ -74,7 +75,7 @@ module Compiler::Plugins
       return false unless call_match(call, :Rubinius, :asm)
       return false unless call.block
 
-      exc = Compiler::ExecuteContext.new(g)
+      exc = ExecuteContext.new(g)
       i = 0
       args = call.arguments
 
@@ -95,7 +96,7 @@ module Compiler::Plugins
     plugin :current_method
 
     def handle(g, call)
-      return false unless call.kind_of? Compiler::Node::VCall
+      return false unless call.kind_of? Node::VCall
       if call.method == :__METHOD__
         g.push_context
         g.send :method, 0
@@ -189,7 +190,7 @@ module Compiler::Plugins
 
       obj = call.object
       arg = call.arguments.first
-      if call.object.kind_of? Compiler::Node::NumberLiteral and call.arguments.first.kind_of? Compiler::Node::NumberLiteral
+      if call.object.kind_of? Node::NumberLiteral and call.arguments.first.kind_of? Node::NumberLiteral
         res = obj.value.__send__(op, arg.value)
         if res.kind_of? Fixnum
           g.push_int res
@@ -210,7 +211,7 @@ module Compiler::Plugins
     }
 
     def handle(g, call)
-      return false unless call.block.kind_of? Compiler::Node::Iter
+      return false unless call.block.kind_of? Node::Iter
       if handler = Methods[call.method]
         return __send__(handler, g, call)
       end
@@ -238,7 +239,7 @@ module Compiler::Plugins
 
       done = g.new_label
 
-      desc = Compiler::MethodDescription.new @compiler.generator_class, call.block.locals
+      desc = MethodDescription.new @compiler.generator_class, call.block.locals
       desc.name = :__inlined_block__
       desc.required, desc.optional = call.block.argument_info
       sub = desc.generator
@@ -415,4 +416,5 @@ module Compiler::Plugins
     end
 
   end
-end
+end # Plugins
+end # Compiler

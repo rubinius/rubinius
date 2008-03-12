@@ -46,7 +46,7 @@ class Node
   class ClosedScope
 
     def new_description
-      Compiler::MethodDescription.new(@compiler.generator_class, self.locals)
+      MethodDescription.new(@compiler.generator_class, self.locals)
     end
 
     def to_description(name = nil)
@@ -620,7 +620,7 @@ class Node
     end
 
     def bytecode(g)
-      desc = Compiler::MethodDescription.new @compiler.generator_class, @locals
+      desc = MethodDescription.new @compiler.generator_class, @locals
       desc.name = :__block__
       desc.required, desc.optional = argument_info
       sub = desc.generator

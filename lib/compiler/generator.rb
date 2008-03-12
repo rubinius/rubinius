@@ -105,7 +105,7 @@ class Compiler
       tup = Tuple.new(@literals.size)
       i = 0
       @literals.each do |lit|
-        if lit.kind_of? Compiler::MethodDescription
+        if lit.kind_of? MethodDescription
           lit = lit.to_cmethod
         elsif lit.kind_of? SendSite
           lit.sender = cm
@@ -262,15 +262,15 @@ class Compiler
         
         # Make sure that the 2 blocks are valid
         if os == @start and oe == @end
-          raise Compiler::Error, "Invalid exception blocking detected"
+          raise Error, "Invalid exception blocking detected"
         end
         
         if @start < os and @end >= os and @end <= oe
-          raise Compiler::Error, "Overlapping exception ranges"
+          raise Error, "Overlapping exception ranges"
         end
         
         if os < @start and oe >= @start and oe <= @end
-          raise Compiler::Error, "Overlapping exception ranges"
+          raise Error, "Overlapping exception ranges"
         end
         
         # Now, they're either disjoined or one is a subrange.
