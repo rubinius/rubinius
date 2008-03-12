@@ -7,7 +7,7 @@ class Debugger
     end
 
     def command_regexp
-      /^(?:h(?:elp)?)|\?$/
+      /^(?:(?:h(?:elp)?)|\?)$/
     end
 
     def execute(dbg, md)
