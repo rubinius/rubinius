@@ -6,7 +6,7 @@ describe "Syslog::ident" do
   end
 
   it 'should return the value of the last ident passed to open' do
-    Syslog.open {|s| s.ident.should == nil }
+    Syslog.open {|s| s.ident.should == $0 }
     Syslog.open("Rubinius") {|s| s.ident.should == "Rubinius" }
     Syslog.open("4") {|s| s.ident.should == "4" }
     Syslog.open("google") {|s| s.ident.should == "google" }
@@ -19,8 +19,11 @@ describe "Syslog::options" do
     require 'syslog'
   end
 
+  it 'should default to (LOG_PID | LOG_CONS)' do
+    Syslog.open {|s| s.options.should == (Syslog::LOG_PID | Syslog::LOG_CONS) }
+  end
+
   it 'should return the value of the last "option" passed to open' do
-    Syslog.open {|s| s.options.should == nil }
     Syslog.open("Rubinius", 90) {|s| s.options.should == 90 }
     Syslog.open("Rubinius", 5) {|s| s.options.should == 5 }
   end
@@ -31,8 +34,11 @@ describe "Syslog::facility" do
     require 'syslog'
   end
 
+  it 'should default to LOG_USER' do
+    Syslog.open {|s| s.facility.should == Syslog::LOG_USER }
+  end
+
   it 'should return the value of the last "facility" passed to open' do
-    Syslog.open {|s| s.facility.should == nil }
     Syslog.open("Rubinius", 5, 10) {|s| s.facility.should == 10 }
     Syslog.open("monkey", 99, 1) {|s| s.facility.should == 1 }
   end

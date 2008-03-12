@@ -112,13 +112,13 @@ module Syslog
     def open(ident=nil, opt=nil, fac=nil)
       raise "Syslog already open" unless not @opened
 
+      ident ||= $0
+      opt ||= Constants::LOG_PID | Constants::LOG_CONS
+      fac ||= Constants::LOG_USER
+
       @ident = ident
       @options = opt
       @facility = fac
-
-      ident ||= $0
-      opt = Constants::LOG_PID | Constants::LOG_CONS
-      fac = Constants::LOG_USER
 
       Foreign.open(ident, opt, fac)
 
