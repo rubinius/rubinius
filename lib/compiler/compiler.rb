@@ -29,7 +29,7 @@ class Compiler
     process_flags(flags)
     sexp = File.to_sexp(path, true)
 
-    comp = new(Compiler::Generator)
+    comp = new(Generator)
     node = comp.into_script(sexp)
     return node.to_description(:__script__).to_cmethod
   end
@@ -43,7 +43,7 @@ class Compiler
       binding = nil
     end
 
-    comp = new(Compiler::Generator, binding)
+    comp = new(Generator, binding)
     node = comp.convert_sexp([:eval_expression, sexp])
     cm = node.to_description(:__eval_script__).to_cmethod
     cm.file = filename.to_sym
@@ -112,7 +112,7 @@ class Compiler
       block_scopes = []
       
       while ctx.kind_of? BlockContext
-        scope = Compiler::LocalScope.new(nil)
+        scope = LocalScope.new(nil)
         scope.from_eval = true
         block_scopes.unshift scope
         all_scopes << scope
@@ -128,7 +128,7 @@ class Compiler
         ctx = ctx.env.home_block
       end
       
-      scope = Compiler::LocalScope.new(nil)
+      scope = LocalScope.new(nil)
       scope.from_eval = true
       all_scopes << scope
       
@@ -142,7 +142,7 @@ class Compiler
       
       return [scope, block_scopes, all_scopes, @binding.context]
     else
-      scope = Compiler::LocalScope.new(nil)
+      scope = LocalScope.new(nil)
       scope.from_eval = true
       i = 0
       if names = ctx.method.local_names
@@ -192,7 +192,7 @@ class Compiler
   end
 
   def activate(name)
-    cls = Compiler::Plugins.find_plugin(name)
+    cls = Plugins.find_plugin(name)
     raise Error, "Unknown plugin '#{name}'" unless cls
     @plugins[cls.kind] << cls.new(self)
   end
@@ -204,7 +204,7 @@ class Compiler
   def convert_sexp(sexp)
     return nil if sexp.nil?
 
-    klass = Compiler::Node::Mapping[sexp.first]
+    klass = Node::Mapping[sexp.first]
 
     raise Error, "Unable to resolve #{sexp.first}" unless klass
 
