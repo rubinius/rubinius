@@ -14,7 +14,7 @@ end
 class Autotest
   alias :old_ruby :ruby
   def ruby
-    "bin/mspec ci -fu"
+    ENV["RUBY"] || "bin/mspec ci -fu"
   end
 
   alias :old_consolidate_failures :consolidate_failures
