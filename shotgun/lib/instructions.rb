@@ -126,7 +126,7 @@ class ShotgunInstructions
   def generate_declarations(fd)
     fd.puts "int _int;"
     fd.puts "native_int j, k, m;"
-    fd.puts "OBJECT _lit, t1, t2, t3, t4, t5;"
+    fd.puts "OBJECT _lit, t1, t2, t3, t4;"
     fd.puts "struct message msg;"
   end
 
@@ -155,7 +155,7 @@ CODE
     str = "const char *get_instruction_name(int op);\n"
 
     InstructionSet::OpCodes.each do |ins|
-      str << "#define CPU_INSTRUCTION_#{ins.opcode.to_s.upcase} #{ins.bytecode}\n"
+      str << "#define CPU_INSTRUCTION_#{ins.opcode.to_s.upcase} #{ins.bytecode}\n" unless ins.opcode == :unused
     end
 
     str
@@ -1932,135 +1932,26 @@ CODE
   end
 
   # [Operation]
-  #   Optimised send for performing a method taking one parameter (deprecated)
+  #   Placeholder for a removed opcode
   # [Format]
-  #   \meta_send_stack_1 method
+  #   \unused
   # [Stack Before]
-  #   * receiver
-  #   * arg
   #   * ...
   # [Stack After]
-  #   * retval
   #   * ...
   # [Description]
-  #   Pops the receiver +receiver+ off the top of the stack, and sends it the
-  #   method identified by +method+. The single parameter +arg+ to be passed
-  #   to the method is left on the top of the stack, and is converted to a
-  #   local when the method is activated.
-  #   
-  #   When the method returns, the return value will be on top of the stack.
+  #    Raises an assert failure if used.
   # [Notes]
-  #   This is an optimised send for methods taking a single parameter and no
-  #   block.
-  #   
-  #   This opcode has been deprecated, since it makes no noticeable difference
-  #   to performance.
+  #   This opcode is used wherever a previously used opcode has been removed.
+  #   It ensures that removing an opcode does not change the numbering of
+  #   succeeding opcodes.
+  #
+  #   The same opcode symbol (:unused) and instruction body can be used anywhere
+  #   an opcode has been removed.
 
-  def meta_send_stack_1
+  def unused
     <<-CODE
-    sassert(0 && "meta_send_stack_1 is deprecated!");
-    CODE
-  end
-
-  # [Operation]
-  #   Optimised send for performing a method taking two parameters
-  #   (deprecated)
-  # [Format]
-  #   \meta_send_stack_2 method
-  # [Stack Before]
-  #   * receiver
-  #   * arg1
-  #   * arg2
-  #   * ...
-  # [Stack After]
-  #   * retval
-  #   * ...
-  # [Description]
-  #   Pops the receiver +receiver+ off the top of the stack, and sends it the
-  #   method identified by +method+. The two parameters +arg1+ and +arg2+ to
-  #   be used by the method are left on the top of the stack to be converted
-  #   to locals as the method is activated.
-  #   
-  #   When the method returns, the return value will be on top of the stack.
-  # [Notes]
-  #   This is an optimised send for methods taking two parameters and no
-  #   block.
-  #   
-  #   This opcode has been deprecated, since it makes no noticeable difference
-  #   to performance.
-
-  def meta_send_stack_2
-    <<-CODE
-    sassert(0 && "meta_send_stack_1 is deprecated!");
-    CODE
-  end
-
-  # [Operation]
-  #   Optimised send for performing a method taking three parameters
-  #   (deprecated)
-  # [Format]
-  #   \meta_send_stack_3 method
-  # [Stack Before]
-  #   * receiver
-  #   * arg1
-  #   * arg2
-  #   * arg3
-  #   * ...
-  # [Stack After]
-  #   * retval
-  #   * ...
-  # [Description]
-  #   Pops the receiver +receiver+ off the top of the stack, and sends it the
-  #   method identified by +method+. The three parameters +arg1+ through +arg3+
-  #   to be used by the method are left on the top of the stack to be
-  #   converted to locals as the method is activated.
-  #   
-  #   When the method returns, the return value will be on top of the stack.
-  # [Notes]
-  #   This is an optimised send for methods taking three parameters and no
-  #   block.
-  #   
-  #   This opcode has been deprecated, since it makes no noticeable difference
-  #   to performance.
-
-  def meta_send_stack_3
-    <<-CODE
-    sassert(0 && "meta_send_stack_1 is deprecated!");
-    CODE
-  end
-
-  # [Operation]
-  #   Optimised send for performing a method taking four parameters
-  #   (deprecated)
-  # [Format]
-  #   \meta_send_stack_4 method
-  # [Stack Before]
-  #   * receiver
-  #   * arg1
-  #   * arg2
-  #   * arg3
-  #   * arg4
-  #   * ...
-  # [Stack After]
-  #   * retval
-  #   * ...
-  # [Description]
-  #   Pops the receiver +receiver+ off the top of the stack, and sends it the
-  #   method identified by +method+. The four parameters +arg1+ through +arg4+
-  #   to be used by the method are left on the top of the stack to be
-  #   converted to locals as the method is activated.
-  #   
-  #   When the method returns, the return value will be on top of the stack.
-  # [Notes]
-  #   This is an optimised send for methods taking a single parameter and no
-  #   block.
-  #   
-  #   This opcode has been deprecated, since it makes no noticeable difference
-  #   to performance.
-
-  def meta_send_stack_4
-    <<-CODE
-    sassert(0 && "meta_send_stack_1 is deprecated!");
+    sassert(0 && "deprecated opcode was encountered!");
     CODE
   end
 
@@ -2643,29 +2534,6 @@ perform_no_ss_send:
   end
 
   # [Operation]
-  #   Returns from the caller of the current method (deprecated)
-  # [Format]
-  #   \caller_return
-  # [Stack Before]
-  #   * retval
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Pops the return value from the top of the stack, and then returns to the
-  #   sender of the sender, i.e. returns two levels instead of one.
-  # [Notes]
-  #   This opcode has been deprecated; break from a block is now handled using
-  #   LongReturnException.
-
-  def caller_return
-    <<-CODE
-    /* this instruction is deprecated. */
-    sassert(0 && "caller_return is deprecated!");
-    CODE
-  end
-
-  # [Operation]
   #   Raises an exception
   # [Format]
   #   \raise_exc
@@ -2682,33 +2550,6 @@ perform_no_ss_send:
     <<-CODE
     t1 = stack_pop();
     cpu_raise_exception(state, c, t1);
-    CODE
-  end
-
-  # [Operation]
-  #   Return from a method or block (deprecated)
-  # [Format]
-  #   \ret
-  # [Stack Before]
-  #   * retval
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Pops the top value from the stack, and uses it as the return value from
-  #   a method or block.
-  # [Notes]
-  #   This opcode has been deprecated, and is replaced by code that uses
-  #   LongReturnException to break out of a block whenever a block requests that
-  #   it's home context should return.
-  # [See Also]
-  #   * sret
-
-  def ret
-    <<-CODE
-    sassert(0 && "ret is deprecated");
-    t1 = stack_pop();
-    cpu_simple_return(state, c, t1);
     CODE
   end
 
@@ -2738,27 +2579,6 @@ perform_no_ss_send:
     <<-CODE
     t1 = stack_pop();
     cpu_simple_return(state, c, t1);
-    CODE
-  end
-
-  # [Operation]
-  #   Breaks out of a block (deprecated)
-  # [Format]
-  #   \block_break
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Breaks out of a block immediately, returning to the parent context.
-  # [Notes]
-  #   This opcode has been deprecated, and is replaced by code that uses
-  #   LongReturnException to break out of a block.
-
-  def block_break
-    <<-CODE
-    /* This instruction is deprecated. */
-    sassert(0 && "block_break is deprecated");
     CODE
   end
 
@@ -3098,134 +2918,6 @@ perform_no_ss_send:
   end
 
   # [Operation]
-  #   Sets the cache index for a method from a call site
-  # [Format]
-  #   \set_cache_index index
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Sets the cache index to be used in the polymorphic inline cache (PIC)
-  #   for the cache entry for a \class, module, or method that is the subject
-  #   of one of the following op codes:
-  #   
-  #   * open_class
-  #   * find_const
-  #   * add_method
-  #   * attach_method
-  #   * send_method
-  #   * open_class_under
-  #   * open_module
-  #   * open_module_under
-  # [Notes]
-  #   When the assembler encounters one of the above opcodes, it assigns the
-  #   next index for a cache entry in the PIC for the opcode, and inserts a
-  #   set_cache_index operation into the byte code just before the op code
-  #   in question. The call site then retains a cache of the receiving object
-  #   / method when the initial constant lookup or method dispatch occurs, so
-  #   subsequent execution of the same byte code can perform a fast check to
-  #   confirm the validity of the cache, and then return the constant or
-  #   dispatch the method immediately if the cache is valid. This greatly
-  #   speeds constant lookup and method dispatch, since the search step can be
-  #   skipped.
-
-  def set_cache_index
-    <<-CODE
-    sassert(0 && "set_cache_index is deprecated!");
-    CODE
-  end
-
-  # [Operation]
-  #   Sets call flags and method cache index prior to a send operation
-  # [Format]
-  #   \set_call_info flags index
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   The call flags on the current execution context are set to the opcode
-  #   argument +flags+, and the method cache index is set to the argument
-  #   +index+.
-  # [Notes]
-  #   Currently, the only call flag is 1, which instructs the machine to
-  #   include private methods when looking for a method that responds to a
-  #   message.
-  #   
-  #   This opcode is a combination of set_call_flags and set_cache_index. It
-  #   is used in place of the other two opcodes if method caching is enabled
-  #   in the compiler.
-
-  def set_call_info
-    <<-CODE
-    sassert(0 && "set_call_info is deprecated!");
-    CODE
-  end
-
-  # [Operation]
-  #   Creates a compiler1 style block (deprecated)
-  # [Format]
-  #   \create_block 255
-  # [Stack Before]
-  #   * return_ip
-  #   * block_ip
-  #   * block_args
-  #   * ...
-  # [Stack After]
-  #   * block_context
-  #   * ...
-  # [Description]
-  #   Pops instruction pointer addresses for where the block should return to
-  #   (+return_ip+), and the address where the block instructions start
-  #   (+block_ip+) off of the stack. Then pops a tuple containing any block
-  #   arguments off the stack. The created block context +block_context+ is
-  #   then pushed back onto the stack.
-  # [Notes]
-  #   The opcode arg is hard-coded at 255 for the current version of
-  #   \create_block. This indicates to the VM that the block args are on the
-  #   stack in a single (potentially empty) tuple; previously, the number of
-  #   block args would be specified via this arg, but this is no longer
-  #   supported. An arg value of anything other than 255 will raise an
-  #   assertion.
-  #   
-  #   \create_block is deprecated under compiler2 in favour of create_block2.
-
-  def create_block
-    <<-CODE
-    sassert(0 && "create_block is deprecated!");
-
-    next_int;
-    t1 = stack_pop();
-    t2 = stack_pop();
-    if(_int == 255) {
-      t5 = stack_pop();
-    } else {
-      sassert(0 && "old-style block!!");
-      t5 = Qnil;
-    }
-
-    t4 = c->active_context;
-
-    t3 = Qnil;
-    if(blokctx_s_block_context_p(state, t4)) {
-      t3 = blokctx_home(state, t4);
-    } else {
-      t3 = t4;
-    }
-
-    methctx_reference(state, t4);
-    methctx_reference(state, t3);
-
-    cpu_flush_sp(c);
-    cpu_flush_ip(c);
-    j = c->ip + BS_JUMP;
-    t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, t5);
-    stack_push(t2);
-    CODE
-  end
-
-  # [Operation]
   #   Creates a compiler2 style block
   # [Format]
   #   \create_block2
@@ -3359,178 +3051,6 @@ perform_no_ss_send:
   def yield_debugger
     <<-CODE
     cpu_yield_debugger(state, c);
-    CODE
-  end
-
-  # [Operation]
-  #   Push an object from the caller's stack onto the current context's stack
-  #   (deprecated)
-  # [Format]
-  #   \from_fp index
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * value
-  #   * ...
-  # [Description]
-  #   Copies a method argument that was on the stack before the method call
-  #   and pushes it onto the stack in the current context. The argument
-  #   +index+ counts backwards from the frame pointer, with 0 referencing the
-  #   first argument to the mehod, 1 the  second argument, etc.
-  #   
-  #   This opcode is now deprecated, and is not currently used under
-  #   compiler2.
-  # [See Also]
-  #   * get_local_fp
-  # [Notes]
-  #   The opcode \from_fp exists as an optimisation in cases where arguments
-  #   to a method are not modified. Rather than copying the argument off the
-  #   stack and into the locals tuple, it can be copied directly from a frame
-  #   pointer offset as needed.
-  #   
-  #   Under compiler2, all local variables are now allocated in the locals
-  #   tuple, which simplifies local variable management and ensures the
-  #   correct results when continuations are used. As such, this opcode is now
-  #   deprecated.
-
-  def from_fp
-    <<-CODE
-    sassert(0 && "from_fp is deprecated!");
-
-    next_int;
-    stack_push(c->stack_top[c->fp - _int]);
-    CODE
-  end
-
-  # [Operation]
-  #   Allocate space for local variables on the stack (deprecated)
-  # [Format]
-  #   \allocate_stack count
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * nil
-  #   * nil
-  #   * ...
-  #   * nil
-  #   * ...
-  # [Description]
-  #   Allocate +count+ new slots for local variables on the stack. All
-  #   allocated slots will be initialized to the +nil+.
-  #   
-  #   This opcode is now deprecated, and is not currently used under
-  #   compiler2.
-  # [Notes]
-  #   Previously, if a local variable is defined in a method and not captured
-  #   by a block (i.e. a closure), it's storage could be allocated on the
-  #   stack. Although more efficient than storing such locals in the locals
-  #   tuple, this complicated local variable management, and as such, its use
-  #   has been deprecated under compiler2.
-
-  def allocate_stack
-    <<-CODE
-    sassert(0 && "allocate_stack is deprecated!");
-
-    next_int;
-    /* The stack must be initialized to nil because any refers that
-       were there are probably bad. */
-    for(k = 0; k <= _int; k++) {
-      *++c->sp_ptr = Qnil;
-    }
-    CODE
-  end
-
-  # [Operation]
-  #   Removes a specified number of items from the stack
-  # [Format]
-  #   \deallocate_stack count
-  # [Stack Before]
-  #   * value1
-  #   * value2
-  #   * ...
-  #   * valueN
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Removes the number of items specified in +count+ from the stack.
-  # [Notes]
-  #   This opcode simply decrements the stack pointer; hence the
-  #   allocate_stack opcode initializes newly allocated slots to +nil+, to
-  #   ensure old values are cleared.
-
-  def deallocate_stack
-    <<-CODE
-    sassert(0 && "deallocate_stack is deprecated!");
-
-    next_int;
-    c->sp_ptr -= _int;
-    CODE
-  end
-
-  # [Operation]
-  #   Updates the value of a stack allocated local variable (deprecated)
-  # [Format]
-  #   \set_local_fp index
-  # [Stack Before]
-  #   * value
-  #   * ...
-  # [Stack After]
-  #   * value
-  #   * ...
-  # [Description]
-  #   Uses the +value+ on the top of the stack to update the value of the
-  #   local variable allocated on the stack, identified by +index+. The value
-  #   is left on the stack, to represent the return value from the expression.
-  #   
-  #   This opcode is now deprecated, and is not currently used under
-  #   compiler2.
-  # [See Also]
-  #   * get_local_fp
-  # [Notes]
-  #   Local variables that are used within a method/block and not captured
-  #   were previously allocated on the stack. This operation updates such a
-  #   local from the current top of the stack.
-
-  def set_local_fp
-    <<-CODE
-    sassert(0 && "set_local_fp is deprecated!");
-
-    next_int;
-    c->stack_top[c->fp + _int] = stack_top();
-    CODE
-  end
-
-  # [Operation]
-  #   Get the value of a local and push it onto the stack (deprecated)
-  # [Format]
-  #   \get_local_fp index
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * value
-  #   * ...
-  # [Description]
-  #   Retrieves the current value of a local allocated on the stack, and
-  #   pushes it onto the top of the stack.
-  #   
-  #   This opcode is now deprecated, and is not currently used under
-  #   compiler2.
-  # [See Also]
-  #   * allocate_stack
-  #   * set_local_fp
-  # [Notes]
-  #   Local variables that are used within a method and not captured were
-  #   previously allocated on the stack. This operation retrieves such a
-  #   local, and places it on the stack. However, stack locals are no longer
-  #   used under compiler2, and so this opcode is now deprecated.
-
-  def get_local_fp
-    <<-CODE
-    sassert(0 && "get_local_fp is deprecated!");
-
-    next_int;
-    stack_push(c->stack_top[c->fp + _int]);
     CODE
   end
 
