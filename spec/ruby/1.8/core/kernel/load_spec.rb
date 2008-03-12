@@ -190,8 +190,8 @@ describe "Kernel#load" do
 
   runner_is_not :rspec do
     it "allows wrapping the code in the file in an anonymous module" do
-      defined?(LoadSpecWrap).should == false
-      defined?(LoadSpecWrapTwo).should == false
+      !!defined?(LoadSpecWrap).should == false
+      !!defined?(LoadSpecWrapTwo).should == false
 
       load('load_spec_wrap.rb').should == true
       $load_spec_wrap.nil?.should == false
@@ -199,7 +199,7 @@ describe "Kernel#load" do
 
       load('load_spec_wrap2.rb', true).should == true
       $load_spec_wrap2.nil?.should == false
-      defined?(LoadSpecWrapTwo).should == false
+      !!defined?(LoadSpecWrapTwo).should == false
     end
   end
 end
