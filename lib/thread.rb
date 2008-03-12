@@ -40,26 +40,60 @@ end
 class Mutex
   def initialize
     @lock = Channel.new
-    @lock << self
+    @available = Channel.new
+    @lock << nil
+  end
+
+  def locked?
+    owner = @lock.receive
+    !!owner
+  ensure
+    @lock << owner
   end
 
   def try_lock
-    raise NotImplementedError, "#{ self.class }#try_lock not implemented"
+    owner = @lock.receive
+    unless owner
+      owner = Thread.current
+      true
+    else
+      false
+    end
+  ensure
+    @lock << owner
   end
 
   def lock
-    @lock.receive
+    owner = @lock.receive
+    while owner
+      @lock << owner
+      @available.receive
+      owner = @lock.receive
+    end
+    owner = Thread.current
+    self
+  ensure
+    @lock << owner
   end
 
   def unlock
-    @lock << self
+    owner = @lock.receive
+    if owner == Thread.current
+      owner = nil 
+      @available << nil
+    else
+      raise ThreadError, "Not owner"
+    end
+    self
+  ensure
+    @lock << owner
   end
 
   def synchronize
-    @lock.receive
+    lock
     yield
   ensure
-    @lock << self
+    unlock
   end
 end
 
