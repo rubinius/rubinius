@@ -4,7 +4,7 @@
 # http://www.bagley.org/~doug/shootout/
 # with help from Paul Brannan
 
-50.times do
+500.times do
 
   input = open(File.join(File.dirname($0), 'wc.input'), 'rb')
 
@@ -16,6 +16,8 @@
     ((data.strip! || data).tr!("\n", " ") || data).squeeze!
     #nw += data.count(" ") + 1
   end
+
+  input.close
 
 end
 # STDERR.puts "#{nl} #{nw} #{nc}"
