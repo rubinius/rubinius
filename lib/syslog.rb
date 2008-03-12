@@ -68,7 +68,7 @@ module Syslog
     attach_function "openlog", :open, [:string, :int, :int], :void
     attach_function "closelog", :close, [], :void
     attach_function "syslog", :write, [:int, :string, :string], :void
-    attach_function "setlogmask", :set_mask, [:int], :void
+    attach_function "setlogmask", :set_mask, [:int], :int
   end
   
   class << self
@@ -123,7 +123,10 @@ module Syslog
       Foreign.open(ident, opt, fac)
 
       @opened = true
+
+      # Calling set_mask twice is the standard way to set the 'default' mask
       @mask = Foreign.set_mask(0)
+      Foreign.set_mask(@mask)
 
       if block_given?
         begin

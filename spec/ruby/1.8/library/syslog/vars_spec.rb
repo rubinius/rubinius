@@ -43,3 +43,15 @@ describe "Syslog::facility" do
     Syslog.open("monkey", 99, 1) {|s| s.facility.should == 1 }
   end
 end
+
+describe "Syslog::mask" do
+  before :all do
+    require 'syslog'
+  end
+
+  # TODO - This spec doesn't really check much. Figure out how to check the
+  # real mask value set in the OS for this syslog
+  it 'should default to 255' do
+    Syslog.open { |s| s.mask.should == 255 }
+  end
+end
