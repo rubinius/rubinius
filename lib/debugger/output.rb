@@ -62,18 +62,19 @@ class Debugger
       def format_str(row, line_width=nil)
         cells = []
         cum_width = 0
-        re = /%([|-])?(\d*)([sd])/
+        re = /%([|-])?(0)?(\d*)([sd])/
         @formats.each_with_index do |fmt, i|
           if row[i]
             # Format cell ignoring width and alignment, wrapping if necessary
             fmt =~ re
-            cell = "#{$`}%#{$3}#{$'}" % row[i]
+            cell = "#{$`}%#{$4}#{$'}" % row[i]
             align = case $1
             when '-' then :left
             when '|' then :center
             else :right
             end
-            lines = wrap(cell, @widths[i], align)
+            pad = $2 || ' '
+            lines = wrap(cell, @widths[i], align, pad)
             cells << lines
           else
             cells << []
@@ -101,7 +102,7 @@ class Debugger
 
       # Splits the supplied string at logical breaks to ensure that no line is
       # longer than the spcecified width. Returns an array of lines.
-      def wrap(str, width, align=:none)
+      def wrap(str, width, align=:none, pad=' ')
         raise ArgumentError, "Invalid wrap length specified (#{width})" if width < 1
 
         return [nil] unless str
@@ -121,21 +122,21 @@ class Debugger
           end
 
           # Pad with spaces to requested width if an alignment is specified
-          lines << align(line, width, align)
+          lines << align(line, width, align, pad)
         end
-        lines << align(str, width, align) if str
+        lines << align(str, width, align, pad) if str
         lines
       end
 
       # Aligns 
-      def align(line, width, align)
+      def align(line, width, align, pad=' ')
         case align
         when :left
-          line = line + ' ' * (width - line.length)
+          line = line + pad * (width - line.length)
         when :right
-          line = ' ' * (width - line.length) + line
+          line = pad * (width - line.length) + line
         when :center
-          line = line.center(width, ' ')
+          line = line.center(width, pad)
         else
           line
         end
