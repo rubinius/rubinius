@@ -581,6 +581,14 @@ describe "Array#pack" do
   it "encodes 4 integers in network order with ('n4')" do
     [1234,5678,9876,5432].pack('n4').should == "\004\322\026.&\224\0258"
   end
+
+  it "encodes an integer in little-endian order with ('v')" do
+    [1000].pack('v').should == "\350\003"
+    [-1000].pack('v').should == "\030\374"
+
+    [65536].pack('v').should == "\000\000"
+    [-65536].pack('v').should == "\000\000"
+  end
   
   it "encodes a positive integer with ('s')" do
     [0].pack('s').should == "\000\000"
