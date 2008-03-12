@@ -245,6 +245,7 @@ describe Compiler do
     gen x do |g|
       desc = description do |d|
         d.push :self
+        d.push_self_or_class
         d.set_encloser
         d.push_literal :blah
         d.push :self

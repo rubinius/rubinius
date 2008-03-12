@@ -253,6 +253,7 @@ describe Compiler do
     gen x do |g|
       meth = description do |d|
         d.push :self
+        d.push_self_or_class
         d.set_encloser
         d.push 12
         d.sret
@@ -280,6 +281,7 @@ describe Compiler do
     gen x do |g|
       desc = description do |d|
         d.push :self
+        d.push_self_or_class
         d.set_encloser
         d.push 12
         d.sret
@@ -303,6 +305,7 @@ describe Compiler do
     gen x do |g|
       desc = description do |d|
         d.push :self
+        d.push_self_or_class
         d.set_encloser
         d.push 12
         d.sret
@@ -327,6 +330,7 @@ describe Compiler do
     gen x do |g|
       desc = description do |d|
         d.push :self
+        d.push_self_or_class
         d.set_encloser
         d.push 12
         d.sret
@@ -351,6 +355,7 @@ describe Compiler do
     gen x do |g|
       desc = description do |d|
         d.push :self
+        d.push_self_or_class
         d.set_encloser
         d.push 1
         d.set_local 0
@@ -369,18 +374,19 @@ describe Compiler do
       
     end
   end
-  
+
   it "compiles a normal module" do
     x = [:module, [:colon2, :A], [:scope, [:lit, 12], []]]
-    
+
     gen x do |g|
       desc = description do |d|
         d.push :self
+        d.push_self_or_class
         d.set_encloser
         d.push 12
         d.sret
       end
-      
+
       g.open_module :A
       g.dup
       g.push_literal desc
@@ -391,18 +397,19 @@ describe Compiler do
       g.push_encloser
     end
   end
-  
+
   it "compiles a module declared at a path" do
     x = [:module, [:colon2, [:const, :B], :A], [:scope, [:lit, 12], []]]
-    
+
     gen x do |g|
       desc = description do |d|
         d.push :self
+        d.push_self_or_class
         d.set_encloser
         d.push 12
         d.sret
       end
-      
+
       g.push_const :B
       g.open_module_under :A
       g.dup
@@ -414,6 +421,4 @@ describe Compiler do
       g.push_encloser
     end
   end
-  
-  
 end
