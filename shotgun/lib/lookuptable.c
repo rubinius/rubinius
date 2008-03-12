@@ -197,13 +197,8 @@ OBJECT lookuptable_delete(STATE, OBJECT tbl, OBJECT key) {
   entries = N2I(get_entries(tbl));
   bins = N2I(get_bins(tbl));
 
-  if(min_density_p(entries, bins)) {
-    unsigned int new_bins = LOOKUPTABLE_MIN_SIZE;
-    while(max_density_p(entries, new_bins)) {
-      new_bins <<= 1;
-    }
-    redistribute(state, tbl, new_bins);
-    bins = new_bins;
+  if(min_density_p(entries, bins) && (bins >> 1) >= LOOKUPTABLE_MIN_SIZE) {
+    redistribute(state, tbl, bins >>= 1);
   }
 
   bin = find_bin(key_hash(key), bins);
