@@ -550,6 +550,7 @@ class IO
   # sync mode.
 
   def sync=(v)
+    raise IOError if closed?
   end
 
   def sync
