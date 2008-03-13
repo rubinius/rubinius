@@ -52,16 +52,16 @@ describe "Kernel#eval" do
     outer_binding = binding
     level1 = eval("binding", outer_binding)
     level2 = eval("binding", level1)
-    
+
     eval("w = 1")
     eval("x = 2", outer_binding)
     eval("y = 3", level1)
-    
+
     eval("w").should == 1
     eval("w", outer_binding).should == 1
     eval("w", level1).should == 1
     eval("w", level2).should == 1
-    
+
     eval("x").should == 2
     eval("x", outer_binding).should == 2
     eval("x", level1).should == 2
@@ -113,21 +113,13 @@ describe "Kernel#eval" do
     lambda { eval("k", proc_binding)  }.should raise_error(NameError)
     eval("k", inner_binding).should == 6
   end
-  
+
   it "should include file and line information in syntax error" do
     expected = 'speccing.rb'
     lambda {
-      begin
-        eval('if true',TOPLEVEL_BINDING,expected)
-      rescue Exception => e
-        @ex = e
-        raise e
-      end
-    }.should raise_error SyntaxError
-    
-    @ex.message =~ /^(.*?):(\d+): (.*)/
-    $1.should == expected
-    $2.to_i.should == 1
-    $3.strip.length.should_not == 0
+      eval('if true',TOPLEVEL_BINDING,expected)
+    }.should raise_error(SyntaxError) { |e|
+      e.message.should =~ /^#{expected}:1:.+/
+    }
   end
 end
