@@ -334,6 +334,7 @@ class IO
   end
 
   def fileno
+    raise IOError if closed?
     @descriptor
   end
 
