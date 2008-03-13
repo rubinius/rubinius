@@ -1200,7 +1200,7 @@ class Node
       name = convert(sexp[0])
       sym = name.name
 
-      if name.is? ConstFind
+      if name.is? ConstFind or name.is? ConstAtTop
         parent = nil
       else
         parent = name.parent
