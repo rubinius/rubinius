@@ -1,1 +1,2 @@
 fails:IO#syswrite on a file raises IOError on closed stream
+fails:IO#syswrite on a file checks if the file is writable if writing more than zero bytes

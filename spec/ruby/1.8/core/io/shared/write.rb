@@ -48,6 +48,16 @@ shared :io_write do |cmd|
       end
     end
 
+    it "does not warn if called after IO#read" do
+      @file.read(5)
+      lambda { @file.send(cmd, "fghij") }.should_not complain
+    end
+
+    it "advances the file position by the count of given bytes" do
+      @file.send(cmd, "abcde")
+      @file.sysread(10).should == "5678901234"
+    end
+
     it "raises IOError on closed stream" do
       lambda { IOSpecs.closed_file.send(cmd, "hello") }.should raise_error(IOError)
     end
