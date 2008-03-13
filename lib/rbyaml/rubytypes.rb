@@ -351,8 +351,8 @@ class Numeric
   end
 end
 
-class Fixnum
-  yaml_as "tag:yaml.org,2002:int"
+class Integer
+  yaml_as "tag:yaml.org,2002:int", false
 end
 
 class Float
