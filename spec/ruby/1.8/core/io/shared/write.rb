@@ -26,10 +26,6 @@ shared :io_write do |cmd|
       lambda { @readonly_file.send(cmd, "abcde") }.should raise_error(IOError)
     end
 
-    it "does not check if the file is writable if writing zero bytes" do
-      lambda { @readonly_file.send(cmd, "") }.should_not raise_error
-    end
-
     it "returns the number of bytes written" do
       written = @file.send(cmd, "abcde")
       written.should == 5
@@ -41,17 +37,6 @@ shared :io_write do |cmd|
       @file.send(cmd, obj)
       @file.seek(0)
       @file.read(data.length).should == data
-    end
-
-    it "writes all of the string's bytes but buffers them" do
-      written = @file.send(cmd, "abcde")
-      written.should == 5
-      File.open(@filename) do |file|
-        file.sysread(10).should_not == "abcde56789"
-        file.seek(0)
-        @file.fsync
-        file.sysread(10).should == "abcde56789"
-      end
     end
 
     it "writes all of the string's bytes without buffering if mode is sync" do
@@ -66,5 +51,5 @@ shared :io_write do |cmd|
     it "raises IOError on closed stream" do
       lambda { IOSpecs.closed_file.send(cmd, "hello") }.should raise_error(IOError)
     end
-  end  
+  end
 end
