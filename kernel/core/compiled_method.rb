@@ -45,8 +45,9 @@ class StaticScope
 end
 
 class CompiledMethod
-  # TODO: Delete/reuse arguments (field 9), scope (field 10), and cache (field 14) fields from C structure
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
+  # TODO: Delete/reuse cache (field 14) fields from C structure
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :total_args => 9, :splat => 10, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
+
   def __ivars__  ; @__ivars__  ; end
   def primitive  ; @primitive  ; end
   def required   ; @required   ; end
@@ -64,6 +65,8 @@ class CompiledMethod
   def compiled   ; @compiled   ; end
   def staticscope; @staticscope; end
   def args       ; @args       ; end
+  def total_args ; @total_args ; end
+  def splat      ; @splat      ; end
 
   ##
   # This is runtime hints, added to the method by the VM to indicate how it's
@@ -144,6 +147,14 @@ class CompiledMethod
   
   def args=(ary)
     @args = ary
+  end
+
+  def total_args=(val)
+    @total_args = val.to_i
+  end
+
+  def splat=(val)
+    @splat = val.to_i
   end
   
   def local_names
