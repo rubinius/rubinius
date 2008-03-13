@@ -479,6 +479,11 @@ class IO
     buffer
   end
 
+  def read_nonblock(size, buffer = nil)
+    raise IOError if closed?
+    prim_read(size, buffer)
+  end
+
   alias_method :prim_write, :write
 
   def write(data)

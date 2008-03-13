@@ -9,6 +9,11 @@ class IO
     raise PrimitiveFailure, "IO#write failed. Might not have passed a string."
   end
 
+  def prim_read(size, buffer)
+    Ruby.primitive :io_read
+    raise PrimitiveFailure, "primitive failed"
+  end
+
   def prim_seek(amount, whence)
     Ruby.primitive :io_seek
     raise PrimitiveFailure, "primitive failed"
