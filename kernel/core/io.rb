@@ -693,7 +693,8 @@ class IO
     end
   end
 
-  def self.foreach(name, sep_string = $/,&block)
+  def self.foreach(name, sep_string = $/, &block)
+    sep_string ||= ''
     io = File.open(StringValue(name), 'r')
     sep = StringValue(sep_string)
     begin
