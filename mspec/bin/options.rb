@@ -198,7 +198,7 @@ class SpecOptions
     end
 
     @options.on("-m", "--marker MARKER", String,
-            "Outout MARKER for each file processed") do |o|
+            "Output MARKER for each file processed") do |o|
       obj = Object.new
       obj.instance_variable_set :@marker, o
       def obj.load
