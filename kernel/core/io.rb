@@ -553,6 +553,7 @@ class IO
   end
 
   def sync
+    raise IOError if closed?
     true
   end
 
