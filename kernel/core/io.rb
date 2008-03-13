@@ -475,6 +475,7 @@ class IO
   alias_method :prim_write, :write
   
   def write(data)
+    raise IOError if closed?
     # If we have buffered data, rewind.
     unless @buffer.empty?
       seek 0, SEEK_CUR
