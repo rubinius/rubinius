@@ -6,7 +6,7 @@ shared :time_params do |cmd|
       (obj = mock('12')).should_receive(:to_str).and_return("12")
       Time.send(cmd, 2008, obj).should == Time.send(cmd, 2008, 12)
     end
-    
+
     ruby_bug do
       # Exclude MRI 1.8.6 because it segfaults. :)
       # But the problem is fixed in MRI repository already.
@@ -27,23 +27,18 @@ shared :time_params do |cmd|
     end
 
     it "should accept various year ranges" do
-      lambda { Time.send(cmd, 1901, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
-      lambda { Time.send(cmd, 2037, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
-      
-      lambda { Time.send(cmd, 1901, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
-      lambda { Time.send(cmd, 1901, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
-      
-      
-      if defined? Rubinius && Rubinius::WORDSIZE == 32
+      Time.send(cmd, 1901, 12, 31, 23, 59, 59, 0).wday.should == 2
+      Time.send(cmd, 2037, 12, 31, 23, 59, 59, 0).wday.should == 4
+
+      platform_is :wordsize => 32 do
         lambda { Time.send(cmd, 1900, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
         lambda { Time.send(cmd, 2038, 12, 31, 23, 59, 59, 0) }.should raise_error(ArgumentError) # mon
       end
-      
-      if defined? Rubinius && Rubinius::WORDSIZE == 64
-        lambda { Time.send(cmd, 1900, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
-        lambda { Time.send(cmd, 2038, 12, 31, 23, 59, 59, 0) }.should_not raise_error(ArgumentError) # mon
+
+      platform_is :wordsize => 64 do
+        Time.send(cmd, 1900, 12, 31, 23, 59, 59, 0).wday.should == 1
+        Time.send(cmd, 2038, 12, 31, 23, 59, 59, 0).wday.should == 5
       end
-      
     end
 
     it "throws ArgumentError for out of range values" do
@@ -72,16 +67,19 @@ shared :time_params do |cmd|
 
     it "throws ArgumentError for invalid number of arguments" do
       # Time.local only takes either 1-8, or 10 arguments
-      lambda { Time.send(cmd, 59, 1, 2, 3, 4, 2008, 0, 0, 0) }.should raise_error(ArgumentError) # 9 go boom
+      lambda {
+        Time.send(cmd, 59, 1, 2, 3, 4, 2008, 0, 0, 0)
+      }.should raise_error(ArgumentError) # 9 go boom
 
-      lambda { Time.send(cmd, 2008)                                                         }.should_not raise_error(ArgumentError)
-      lambda { Time.send(cmd, 2008, 12)                                                     }.should_not raise_error(ArgumentError)
-      lambda { Time.send(cmd, 2008, 12, 31)                                                 }.should_not raise_error(ArgumentError)
-      lambda { Time.send(cmd, 2008, 12, 31, 23)                                             }.should_not raise_error(ArgumentError)
-      lambda { Time.send(cmd, 2008, 12, 31, 23, 59)                                         }.should_not raise_error(ArgumentError)
-      lambda { Time.send(cmd, 2008, 12, 31, 23, 59, 59)                                     }.should_not raise_error(ArgumentError)
-      lambda { Time.send(cmd, 2008, 12, 31, 23, 59, 59, 0)                                  }.should_not raise_error(ArgumentError)
-      lambda { Time.send(cmd, 59, 1, 2, 3, 4, 2008, :ignored, :ignored, :ignored, :ignored) }.should_not raise_error(ArgumentError)
+      # please stop using should_not raise_error... it is implied
+      Time.send(cmd, 2008).wday.should == 2
+      Time.send(cmd, 2008, 12).wday.should == 1
+      Time.send(cmd, 2008, 12, 31).wday.should == 3
+      Time.send(cmd, 2008, 12, 31, 23).wday.should == 3
+      Time.send(cmd, 2008, 12, 31, 23, 59).wday.should == 3
+      Time.send(cmd, 2008, 12, 31, 23, 59, 59).wday.should == 3
+      Time.send(cmd, 2008, 12, 31, 23, 59, 59, 0).wday.should == 3
+      Time.send(cmd, 59, 1, 2, 3, 4, 2008, :x, :x, :x, :x).wday.should == 4
     end
   end
 end
