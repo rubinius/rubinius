@@ -136,7 +136,7 @@ class IO
     BINARY   = 0x04
   end
   include Constants
-  
+
   def self.select(read_array, write_array = nil, error_array = nil,
                   timeout = nil)
     chan = Channel.new
@@ -480,7 +480,7 @@ class IO
   end
 
   alias_method :prim_write, :write
-  
+
   def write(data)
     raise IOError if closed?
     # If we have buffered data, rewind.
@@ -492,7 +492,7 @@ class IO
 
     prim_write(data)
   end
-  
+
   alias_method :syswrite, :write
   alias_method :write_nonblock, :write
 
@@ -537,7 +537,7 @@ class IO
   def sysseek(amount, whence=SEEK_SET)
     Platform::POSIX.lseek(@descriptor, amount, whence)
   end
-    
+
   def closed?
     @descriptor == -1
   end
@@ -601,7 +601,7 @@ class IO
     if sep.empty?
       return gets_stripped($/ + $/)
     end
-    
+
     reg = /#{sep}/m
 
     if str = buf.clip_to(reg)
@@ -673,7 +673,7 @@ class IO
     end
     return ary
   end
-  
+
   def self.readlines(name, sep_string = $/)
     io = File.open(StringValue(name), 'r')
     return if io.nil?
@@ -758,7 +758,7 @@ class IO
     else
       raise ArgumentError, "invalid mode -- #{mode}"
     end
-  
+
     return ret if mode.length == 2
 
     case mode[2]
@@ -773,7 +773,11 @@ class IO
 
     ret
   end
-  
+
+  def to_io
+    self
+  end
+
   private :io_close
 
   def self.after_loaded()
