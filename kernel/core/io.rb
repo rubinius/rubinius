@@ -735,6 +735,7 @@ class IO
   end
 
   def fcntl(command, arg)
+    raise IOError if closed?
     if arg.kind_of? Fixnum then
       Platform::POSIX.fcntl(descriptor, command, arg)
     else
