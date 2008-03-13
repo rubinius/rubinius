@@ -266,7 +266,7 @@ class IO
   alias_method :prim_tty?, :tty?
 
   def tty?
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     prim_tty?
   end
 
@@ -339,7 +339,7 @@ class IO
   end
 
   def fileno
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     @descriptor
   end
 
@@ -400,7 +400,7 @@ class IO
   end
 
   def sysread(size, buf=nil)
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     buf = String.new(size) unless buf
     chan = Channel.new
     Scheduler.send_on_readable chan, self, buf, size
@@ -439,7 +439,7 @@ class IO
   end
 
   def read(size=nil, buffer=nil)
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     return breadall(buffer) unless size
 
     return nil if @eof and @buffer.empty?
@@ -478,14 +478,14 @@ class IO
   end
 
   def read_nonblock(size, buffer = nil)
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     prim_read(size, buffer)
   end
 
   alias_method :prim_write, :write
 
   def write(data)
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     # If we have buffered data, rewind.
     unless @buffer.empty?
       seek 0, SEEK_CUR
@@ -500,7 +500,7 @@ class IO
   alias_method :write_nonblock, :write
 
   def seek(amount, whence=SEEK_SET)
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     # Unseek the still buffered amount
     unless @buffer.empty?
       prim_seek -@buffer.size, SEEK_CUR
@@ -539,7 +539,7 @@ class IO
   end
 
   def sysseek(amount, whence=SEEK_SET)
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     Platform::POSIX.lseek(@descriptor, amount, whence)
   end
 
@@ -553,16 +553,16 @@ class IO
   # sync mode.
 
   def sync=(v)
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
   end
 
   def sync
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     true
   end
 
   def flush
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     true
   end
 
@@ -599,7 +599,7 @@ class IO
   # slightly. This helper is an extraction of the code.
 
   def gets_helper(sep=$/)
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     return nil if @eof and @buffer.empty?
 
     return breadall() unless sep
@@ -737,7 +737,7 @@ class IO
   end
 
   def fcntl(command, arg)
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     if arg.kind_of? Fixnum then
       Platform::POSIX.fcntl(descriptor, command, arg)
     else
@@ -791,7 +791,7 @@ class IO
   end
 
   def dup
-    raise IOError if closed?
+    raise IOError, "closed stream" if closed?
     super
   end
 
