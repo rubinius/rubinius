@@ -187,6 +187,16 @@ class TestGenerator
     self.send :__add_method__, 2
   end
 
+  def push_self_or_class
+    lbl = self.new_label
+    self.push_cpath_top
+    self.find_const :Module
+    self.push :self
+    self.send :kind_of?, 1
+    self.git lbl
+    self.send :class, 0
+    lbl.set!
+  end
 end
 
 def gen(sexp, plugins=[])
@@ -222,19 +232,6 @@ def gen_iter x
     g.passed_block do
       g.send_with_block :each, 0, false
     end
-  end
-end
-
-class Compiler::MethodDescription
-  def push_self_or_class
-    lbl = self.new_label
-    self.push_cpath_top
-    self.find_const :Module
-    self.push :self
-    self.send :kind_of?, 1
-    self.git lbl
-    self.send :class, 0
-    self.set_label lbl
   end
 end
 
