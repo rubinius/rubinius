@@ -536,6 +536,7 @@ class IO
   end
 
   def sysseek(amount, whence=SEEK_SET)
+    raise IOError if closed?
     Platform::POSIX.lseek(@descriptor, amount, whence)
   end
 
