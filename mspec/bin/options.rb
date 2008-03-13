@@ -25,7 +25,7 @@ class OptionParser
       end
     end
   end
-  
+
   def filter!(argv)
     @stack.inject(options=[]) do |list, entry|
       entry.list.each do |switch|
@@ -54,11 +54,11 @@ class OptionParser
 end
 
 class SpecConfig
-  attr_accessor :formatter, :includes, :excludes, 
+  attr_accessor :formatter, :includes, :excludes,
                 :patterns, :xpatterns, :tags, :xtags,
                 :tagger, :outcome, :tag, :comment, :atags, :astrings,
                 :debugger, :gdb, :full_abort
-  
+
   def initialize(command, options)
     @options = options
     @formatter = DottedFormatter
@@ -72,7 +72,7 @@ class SpecConfig
     @astrings = []
     @full_abort = true
   end
-  
+
   def register
     if (@debugger or @gdb) and @atags.empty? and @astrings.empty?
       puts "Missing --action-tag or --action-string."
@@ -88,10 +88,10 @@ class SpecConfig
     RegexpFilter.new(:exclude, *@xpatterns).register unless @xpatterns.empty?
     TagFilter.new(:include, *@tags).register unless @tags.empty?
     TagFilter.new(:exclude, *@xtags).register unless @xtags.empty?
-    
+
     DebugAction.new(@atags, @astrings).register if @debugger
     GdbAction.new(@atags, @astrings).register if @gdb
-    
+
     if @tagger
       tag = SpecTag.new(@tag)
       tagger = TagAction.new(@tagger, @outcome, tag.tag, tag.comment, @atags, @astrings)
@@ -109,7 +109,7 @@ end
 
 class SpecOptions
   attr_reader :options, :config
-  
+
   def initialize(command, *args)
     @options = OptionParser.new(*args) do |opts|
       opts.banner = "mspec #{command} [options] (FILE|DIRECTORY|GLOB)+"
@@ -118,9 +118,9 @@ class SpecOptions
 
     @config = SpecConfig.new command, @options
   end
-  
+
   def add_formatters
-    @options.on("-f", "--format FORMAT", String, 
+    @options.on("-f", "--format FORMAT", String,
                 "Formatter for reporting: s:specdoc|d:dotted|h:html|u:unitdiff|a:*:spin") do |o|
       case o
       when 's', 'specdoc'
@@ -142,7 +142,7 @@ class SpecOptions
       end
     end
   end
-  
+
   def add_filters
     @options.on("-e", "--example STR", String,
             "Run examples with descriptions matching STR") do |o|
@@ -200,18 +200,20 @@ class SpecOptions
       end
       MSpec.register :load, obj
     end
+  end
 
+  def add_interrupt
     @options.on("--int-spec", "Control-C interupts the current spec only") do
       @config.full_abort = false
     end
   end
-  
+
   def add_verify
-    @options.on("-Y", "--verify", 
+    @options.on("-Y", "--verify",
                "Verify that guarded specs pass and fail as expected") { MSpec.set_mode :verify }
-    @options.on("-O", "--report", "Report guarded specs") { MSpec.set_mode :report } 
+    @options.on("-O", "--report", "Report guarded specs") { MSpec.set_mode :report }
   end
-  
+
   def add_tagging
     @options.on("-N", "--add TAG", String,
                 "Add TAG with format 'tag' or 'tag(comment)' (see -Q, -F, -L)") do |o|
@@ -234,7 +236,7 @@ class SpecOptions
       @config.outcome = :all
     end
   end
-  
+
   def add_action_filters
     @options.on("-K", "--action-tag TAG", String,
                 "Spec descriptions marked with TAG will trigger the specified action") do |o|
@@ -245,7 +247,7 @@ class SpecOptions
       @config.astrings << o
     end
   end
-  
+
   def add_actions
     @options.on("--spec-debug",
                 "Invoke the debugger when a spec description matches (see -K, -S)") do
@@ -267,7 +269,7 @@ class SpecOptions
       exit
     end
   end
-  
+
   def parse
     @options.parse ENV['MSPEC_OPTIONS'].split("\n")
   end

@@ -10,13 +10,34 @@ config.tagger = :add
 config.tag = 'fails:'
 config.outcome = :fail
 
-opts.add_formatters
+options = opts.options
+options.separator " Ask yourself:"
+options.separator "  1. What specs to run?"
+options.separator "  2. How to display the output?"
+options.separator "  3. What tag action to perform?"
+options.separator "  4. When to perform it?"
+
+options.separator "\n What specs to run"
 opts.add_filters
 opts.add_pretend
+opts.add_interrupt
+
+options.separator "\n How to display their output"
+opts.add_formatters
 opts.add_verbose
-opts.add_action_filters
+
+options.separator "\n What action to perform and when to perform it"
 opts.add_tagging
+
+options.separator "\n Help!"
 opts.add_help
+
+options.separator "\n How might this work in the real world?"
+options.separator "\n   1. To add the 'fails' tag to failing specs"
+options.separator "\n     mspec tag path/to/the_file_spec.rb"
+options.separator "\n   2. To remove the 'fails' tag from passing specs"
+options.separator "\n     mspec tag --del fails path/to/the_file_spec.rb"
+options.separator ""
 
 patterns = opts.parse
 config.register

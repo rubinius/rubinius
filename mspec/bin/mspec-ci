@@ -5,11 +5,39 @@ require 'spec/spec_helper'
 require 'mspec/bin/options'
 
 opts = SpecOptions.new "ci", "", 28, "   "
+
+options = opts.options
+options.separator " Ask yourself:"
+options.separator "  1. How to run the specs?"
+options.separator "  2. How to display the output?"
+options.separator "  3. What action to perform?"
+options.separator "  4. When to perform it?"
+
+options.separator "\n How to run the specs"
+opts.add_pretend
+opts.add_interrupt
+
+options.separator "\n How to display their output"
 opts.add_formatters
-opts.add_action_filters
-opts.add_actions
 opts.add_verbose
+
+options.separator "\n What action to perform"
+opts.add_actions
+
+options.separator "\n When to perform it"
+opts.add_action_filters
+
+options.separator "\n Help!"
 opts.add_help
+
+options.separator "\n How might this work in the real world?"
+options.separator "\n   1. To simply run the known good specs"
+options.separator "\n     mspec ci"
+options.separator "\n   2. To run a subset of the known good specs"
+options.separator "\n     mspec ci path/to/specs"
+options.separator "\n   3. To start the debugger before the spec matching 'this crashes'"
+options.separator "\n     mspec ci --spec-debug -S 'this crashes'"
+options.separator ""
 
 patterns = opts.parse
 opts.config.register

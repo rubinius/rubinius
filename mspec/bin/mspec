@@ -20,6 +20,9 @@ end
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "mspec [COMMAND] [options] (FILE|DIRECTORY|GLOB)+"
   opts.separator ""
+  opts.separator "  The mspec command sets up and invokes the sub-commands"
+  opts.separator "  (see below) to enable, for instance, running the specs"
+  opts.separator "  with different implementations like ruby, jruby, rbx, etc.\n"
 
   opts.on("-t", "--target TARGET", String, 
           "Implementation to run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
@@ -74,12 +77,13 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     puts opts
     puts %[
   where COMMAND is one of:
-  
+
     run - Run the specified specs (default)
     ci  - Run the known good specs
     tag - Add or remove tags
     
   mspec COMMAND -h for more options
+
 ]
     exit
   end
