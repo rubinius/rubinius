@@ -413,7 +413,8 @@ class InstructionSequence
 
       old_inst = iseq2int
       old_op = InstructionSet[old_inst]
-      new_op = InstructionSet[inst.first]
+      new_op = inst.first
+      new_op = InstructionSet[inst.first] unless new_op.kind_of? InstructionSet::OpCode
       old_op.size.upto(new_op.size-1) do
         next_inst = iseq2int
         unless next_inst == 0

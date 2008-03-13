@@ -11,42 +11,23 @@
 # Breakpoint is a superclass to a number of subclasses used for different
 # breakpoint scenarios.
 class Breakpoint
-
-  ##
-  # Creates a breakpoint in the supplied CompiledMethod object.
-  #
-  # The instruction pointer within the method that is to be the location of the
-  # breakpoint is optional; if not specified, the breakpoint is inserted at the
-  # start of the method.
-  #
-  # A block that is to be executed when the breakpoint is hit must be supplied.
-  # It will be called with three parameters: the Thread that hit the
-  # breakpoint, the MethodContext active when the breakpoint was hit, and this
-  # Breakpoint instance.
-
-  def initialize(cm, selector={}, &prc)
-    unless block_given?
-      raise ArgumentError, "A block must be supplied to be executed when the breakpoint is hit"
-    end
-
-    selector = {:ip => selector} if selector.kind_of? Fixnum
-    if line = selector[:line]
-      ip = cm.first_ip_on_line(line)
-    elsif op = selector[:ip]
-      ip = op
-    end
-
-    @method = cm
-    @ip = ip || 0
-    @handler = prc
-    @enabled = false
-    @encoder = InstructionSequence::Encoder.new
-
-    validate_breakpoint_ip @ip
-  end
+  # This class is an abstract class; only subclasses ought to be instantiated.
+  self.private_class_method :new
 
   attr_reader :method
   attr_reader :ip
+
+  # Returns the source file line that the breakpoint is on
+  def line
+    @method.line_from_ip(@ip)
+  end
+
+  # Provide a way for BreakpointTracker to set the proper original instruction
+  # to be used when removing a breakpoint. This is necessary when multiple
+  # breakpoints are set at the same location; all but the first registered
+  # breakpoint will find a yield_debugger instruction instead of the actual
+  # original instruction.
+  attr_accessor :original_instruction
 
   # Verifies that the specified instruction pointer is a valid instruction
   # pointer address for the compiled method.
@@ -69,46 +50,30 @@ class Breakpoint
     end
   end
 
-  # Returns the source file line that the breakpoint is on
-  def line
-    @method.line_from_ip(@ip)
-  end
-
-  def enabled?
-    @enabled
-  end
-
   ##
   # Makes the breakpoint active by inserting a yield_debugger instruction at the
   # breakpoint.
-
-  def enable(ctxt=nil)
-    unless @enabled
-      @original_instruction = @encoder.replace_instruction(@method.bytecodes, @ip, [:yield_debugger])
-      modify_iseq ctxt
-      @enabled = true
-    end
-    @ip
+  def install(ctxt=nil, bytecodes=@method.bytecodes)
+    @encoder.replace_instruction(bytecodes, @ip, [:yield_debugger])
+    modify_iseq ctxt
   end
 
   ##
-  # Makes the breakpoint inactive by removing the yield_debugger instruction at
-  # the breakpoint. Returns the address of the breakpoint, so that the context
-  # IP can be reset and execution can proceed following the breakpoint.
-
-  def disable(ctxt=nil)
-    if @enabled and @original_instruction.first != :yield_debugger
-      @encoder.replace_instruction(@method.bytecodes, @ip, @original_instruction)
-      modify_iseq ctxt
-      @enabled = false
-    end
+  # Removes the breakpoint by removing the yield_debugger instruction at the
+  # breakpoint. Returns the address of the breakpoint, so that the context IP
+  # can be reset and execution can proceed following the breakpoint.
+  def remove(ctxt=nil, bytecodes=@method.bytecodes)
+    @encoder.replace_instruction bytecodes, @ip, @original_instruction
+    modify_iseq ctxt
     @ip
   end
 
-  ##
-  # Provide an accessor to set the original instruction in cases where a
-  # breakpoint is set at a location that already has a breakpoint enabled.
-  attr_accessor :original_instruction
+  # Returns true if a :yield_debugger instruction is currently installed at the
+  # breakpoint target.
+  def installed?
+    op = @encoder.decode_instruction(@method.bytecodes, @ip)
+    op.first.opcode == :yield_debugger
+  end
 
   # Modifies an instruction sequence on either the compiled method (for a
   # global change), or a single context.
@@ -123,11 +88,10 @@ class Breakpoint
   protected :modify_iseq
 
   ##
-  # Disables the breakpoint, and reloads the instruction sequence on the
+  # Disables the breakpoint, and resets the original instruction sequence on the
   # supplied MethodContext object.
-
   def restore_into(ctx)
-    ctx.ip = disable(ctx)
+    ctx.ip = remove(ctx)
   end
 
   # Executes the callback block that was provided for when a breakpoint was hit.
@@ -137,7 +101,50 @@ class Breakpoint
 end
 
 
+class GlobalBreakpoint < Breakpoint
+  self.public_class_method :new
+
+  ##
+  # Creates a global breakpoint in the supplied CompiledMethod object.
+  #
+  # The instruction pointer within the method that is to be the location of the
+  # breakpoint is optional; if not specified, the breakpoint is inserted at the
+  # start of the method.
+  #
+  # A block that is to be executed when the breakpoint is hit must be supplied.
+  # It will be called with three parameters: the Thread that hit the
+  # breakpoint, the MethodContext active when the breakpoint was hit, and this
+  # Breakpoint instance.
+  def initialize(cm, selector={}, &prc)
+    unless block_given?
+      raise ArgumentError, "A block must be supplied to be executed when the breakpoint is hit"
+    end
+
+    selector = {:ip => selector} if selector.kind_of? Fixnum
+    if line = selector[:line]
+      ip = cm.first_ip_on_line(line)
+    elsif op = selector[:ip]
+      ip = op
+    end
+
+    @method = cm
+    @ip = ip || 0
+    @handler = prc
+
+    validate_breakpoint_ip @ip
+
+    @encoder = InstructionSequence::Encoder.new
+    @original_instruction = @encoder.decode_instruction(@method.bytecodes, @ip)
+  end
+end
+
+
+##
+# A breakpoint subclass that only registers breakpoints on a single task.
 class TaskBreakpoint < Breakpoint
+  # This class is an abstract class; only subclasses ought to be instantiated.
+  self.private_class_method :new
+
   # Initializes a new instance of a step breakpoint
   def initialize(task, &prc)
     unless block_given?
@@ -148,6 +155,7 @@ class TaskBreakpoint < Breakpoint
     @encoder = InstructionSequence::Encoder.new
   end
   attr_reader :task
+
 end
 
 
@@ -155,6 +163,7 @@ end
 # A breakpoint that is to be triggered once only in a certain number of steps
 # (either lines or instructions) or at a specified IP address or line number.
 class StepBreakpoint < TaskBreakpoint
+  self.public_class_method :new
 
   ##
   # Initializes a step breakpoint. Takes the following parameters:
@@ -238,11 +247,25 @@ class StepBreakpoint < TaskBreakpoint
       # Set new breakpoint
       # TODO: Need to ensure this handles multiple breakpoints being set at the same location
       @method = @context.method
-      enable(@context)
+      @original_instruction = @encoder.decode_instruction(@method.bytecodes, @ip)
+      install(@context)
     elsif @break_type == :context_change
       # Stepping into method, so set breakpoint on context change
       @task.debug_context_change = true
     end
+  end
+
+  ##
+  # Makes the breakpoint inactive by removing the yield_debugger instruction at
+  # the breakpoint. Returns the address of the breakpoint, so that the context
+  # IP can be reset and execution can proceed following the breakpoint.
+  def remove(ctxt)
+    if @break_type == :context_change
+      @task.debug_context_change = false
+    else
+      super(ctxt)
+    end
+    @ip
   end
 
   # Calculates a target breakpoint, i.e. one where the final step destination
@@ -381,9 +404,10 @@ class StepBreakpoint < TaskBreakpoint
     @ip
   end
 
-  # Determines if the current execution context represented by ctxt is a
+  # Determines if the current execution context of the specified task is a
   # location where this breakpoint should fire.
-  def trigger?(ctxt)
+  def trigger?(task)
+    ctxt = task.current_context
     if @break_type == :opcode_replacement
       ctxt == @context and ctxt.ip == (@ip + 1)
     elsif @break_type == :context_change
@@ -391,10 +415,13 @@ class StepBreakpoint < TaskBreakpoint
     end
   end
 
+  # Calls the handler block registered for callbacks when a breakpoint is hit.
+  # For StepBreakpoints, the handler is only called when the steps counter
+  # reaches 0.
   def call_handler(thread, ctx)
     # Reset original opcode
+    # TODO: Make sure the correct original instruction is used
     restore_into(ctx) if @break_type == :opcode_replacement
-
     if @target or @steps == 0
       # Final step destination reached
       @handler.call(thread, ctx, self)
@@ -404,6 +431,38 @@ class StepBreakpoint < TaskBreakpoint
     end
   end
 end
+
+
+##
+# A TaskBreakpoint subclass that is used to restore a persistent breakpoint once
+# execution has been resumed after the persistent breakpoint was hit.
+class BreakpointRestorer < TaskBreakpoint
+  # BreakpointRestorer will always trigger if the task matches
+  def trigger?(task)
+    task == @task
+  end
+end
+
+
+##
+# A breakpoint subclass that is persistent, i.e. it remains in place and enabled
+# until it is removed or disabled. PersistentBreakpoint extends Breakpoint with
+# functionality for temporarily removing the breakpoint to enable execution to
+# continue.
+# TODO: Needs to handle case when breakpoint has been removed; should therefore
+# only setup the breakpoint restorer task when execution is to be continued.
+class PersistentBreakpoint < GlobalBreakpoint
+  def initialize(cm, selector={}, &prc)
+    super(cm, selector, &prc)
+    @enabled = true
+  end
+
+  def enabled?
+    @enabled
+  end
+
+end
+
 
 
 ##
@@ -464,59 +523,59 @@ class BreakpointTracker
   # handling breakpoints encountered by ANY thread without the need for pre-
   # registering a debug channel on any and every thread that might encounter a
   # breakpoint.
-
   def debug_thread(thr)
     thr.set_debugging @debug_channel, thr.control_channel
   end
 
   ##
-  # Adds a breakpoint to the specified Method or CompiledMethod.
+  # Adds a persistent, global breakpoint to the specified Method or
+  # CompiledMethod.
+  #
   # An options hash is used to specify various breakpoint settings:
   # - line: Set the breakpoint at the first instruction on or after the 
-  # specified line number in the method source.
+  #   specified line number in the method source.
   # - ip: Set the breakpoint at the specified instruction pointer address.
   # - disabled: Create the breakpoint but do not enable it. This registers a
-  # breakpoint, but does not insert the yield_debugger instruction in the
-  # compiled method.
+  #   breakpoint, but does not insert the yield_debugger instruction in the
+  #   compiled method.
   def on(method, selector={}, &prc)
     cm = method
     if method.kind_of? Method or method.kind_of? UnboundMethod
       cm = method.compiled_method
     end
 
-    bp = Breakpoint.new(cm, selector, &prc)
+    bp = PersistentBreakpoint.new(cm, selector, &prc)
     if @global_breakpoints[cm][bp.ip]
       raise ArgumentError, "A breakpoint is already set for #{cm.name} at IP:#{bp.ip}"
     end
 
+
     @global_breakpoints[cm][bp.ip] = bp
     unless selector[:disabled]
-      bp.enable
+      bp.install
     end
 
     return bp
   end
 
+  # Removes a global breakpoint, making sure the original instruction is restored
+  # TODO: Do we need to consider RestoreBreakpoint? Shouldn't, I think...????
+  # But other tasks could complicate???
   def remove_breakpoint(bp)
-    bp.disable if bp.enabled?
+    # TODO: Make sure original instruction is correct
+    bp.remove if bp.installed?
     @global_breakpoints[bp.method].delete(bp.ip)
   end
 
-  def get_breakpoint(cm, ip)
-    @global_breakpoints[cm][ip]
-  end
-
   ##
-  # Locates the Breakpoint for the specified execution context
-
-  def find_breakpoint(ctx)
-    cm = ctx.method
-    ip = ctx.ip - 1
+  # Returns the global breakpoint at the specified location
+  def get_breakpoint(cm, ip)
     @global_breakpoints[cm][ip] if @global_breakpoints[cm]
   end
 
   ##
-  # Sets a step breakpoint from the current debug task
+  # Sets a step breakpoint from the current debug task.
+  # +selector+ is a hash that specifies the step settings.
   def step(selector, &prc)
     raise RuntimeError, "Can only step from a breakpoint" unless @thread
     task = @thread.task
@@ -526,6 +585,26 @@ class BreakpointTracker
     step_bp
   end
 
+  # Finds all the breakpoints that are set on the specified task and compiled
+  # method.
+  def find_breakpoints(task, cm, ip)
+    # First, find any task-specific breakpoints
+    bp_list = []
+    if task
+      if task_bps = @task_breakpoints[task]
+        task_bps.each do |bp|
+          bp_list << bp if bp.trigger?(task)
+        end
+      end
+    end
+
+    # Next, check for global breakpoints
+    if cm
+      bp = @global_breakpoints[cm][ip] if @global_breakpoints[cm]
+      bp_list << bp if bp
+    end
+    bp_list
+  end
 
   # Processes a breakpoint that has been triggered. A breakpoint listener thread
   # should call this method when it wants to wait for another thread to hit a
@@ -536,32 +615,25 @@ class BreakpointTracker
     if @thread = @debug_channel.receive
       task = @thread.task
       ctx = task.current_context
-      bc = ctx.method.decode
+      cm = ctx.method
+      ip = ctx.ip - 1
 
-      # First, find any task-specific breakpoints
-      bp_list = []
-      if task_bps = @task_breakpoints[task]
-        task_bps.each do |bp|
-          if bp.trigger?(ctx)
-            bp_list << bp
-            @task_breakpoints[task].delete(bp) if bp.steps == 0
-          end
-        end
-      end
-
-      # Next, check for global breakpoints
-      bp = find_breakpoint(ctx)
-      bp_list << bp if bp
+      bp_list = find_breakpoints(task, cm, ip)
       unless bp_list.size > 0
         thread.raise "Unable to find breakpoint for #{ctx.inspect}"
       end
 
-      if bp and bp.enabled?
+      bp = bp_list.last
+      if bp and bp.kind_of? PersistentBreakpoint and bp.enabled?
+        # TODO: Make sure the correct original instruction is used
         bp.restore_into(ctx)
       end
 
       begin
         bp_list.each do |bp|
+          if bp.kind_of? StepBreakpoint and bp.steps == 0
+            @task_breakpoints[task].delete(bp)
+          end
           bp.call_handler(@thread, ctx)
         end
       rescue RuntimeError => e
@@ -573,8 +645,7 @@ class BreakpointTracker
   end
 
   ##
-  # Wakes the debuggee thread and continues execution until the next breakpoint
-
+  # Wakes the debuggee thread and continues execution until the next breakpoint.
   def wake_target(thrd)
     @thread = nil if thrd == @thread
     thrd.control_channel.send nil
@@ -583,14 +654,20 @@ class BreakpointTracker
   ##
   # Returns an array of +Breakpoint+ objects that correspond to the breakpoints
   # currently set.
-
-  def breakpoints
+  def global_breakpoints
     @global_breakpoints.values.map!{|h| h.values}.flatten
   end
 
-  # Clears all breakpoints
+  # Clears all breakpoints, both global and task; once this has been called,
+  # code should execute without hitting any breakpoints.
   def clear_breakpoints
-    breakpoints.each {|bp| remove_breakpoint bp}
+    bp_list = global_breakpoints
+    bp_list.concat @task_breakpoints.values.flatten
+    bp_list.each do |bp|
+      bp.remove if bp.installed?
+    end
+    @global_breakpoints.clear
+    @task_breakpoints.clear
   end
 
   # Release any threads that have hit breakpoints, but not yet had their

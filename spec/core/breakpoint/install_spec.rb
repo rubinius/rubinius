@@ -10,23 +10,23 @@ describe "Breakpoint#enable" do
   it "inserts a yield_debugger instruction at the location specified by @ip" do
     dc = @cm.bytecodes.decode
     dc[0].first.opcode.should_not == :yield_debugger
-    bp = Breakpoint.new(@cm) {}
-    bp.enable
+    bp = GlobalBreakpoint.new(@cm) {}
+    bp.install
     dc = @cm.bytecodes.decode
     dc[0].first.opcode.should == :yield_debugger
-    bp.disable
+    bp.remove
 
     dc[4].first.opcode.should_not == :yield_debugger
-    bp = Breakpoint.new(@cm,8) {}  # The fifth instruction has an IP of 8
-    bp.enable
+    bp = GlobalBreakpoint.new(@cm,8) {}  # The fifth instruction has an IP of 8
+    bp.install
     dc = @cm.bytecodes.decode
     dc[4].first.opcode.should == :yield_debugger
   end
 
   it "sets the enabled flag to true" do
-    bp = Breakpoint.new(@cm,8) {}
-    bp.enabled?.should == false
-    bp.enable
-    bp.enabled?.should == true
+    bp = GlobalBreakpoint.new(@cm,8) {}
+    bp.installed?.should == false
+    bp.install
+    bp.installed?.should == true
   end
 end
