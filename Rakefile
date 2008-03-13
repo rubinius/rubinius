@@ -94,13 +94,26 @@ namespace :build do
   # (obviously) does nothing, but it makes rake happy.
   rule '^shotgun/.+'
 
+  # These files must be excluded from the c_source FileList
+  # because they are build products (i.e. there is no rule
+  # to build them, they will be built) and the c_source list
+  # list gets created before they are deleted by the clean task.
+  exclude_source = [
+    /auto/,
+    /instruction_names/,
+    /node_types/,
+    /grammar.c/,
+    'primitive_indexes.h',
+    'primitive_util.h'
+  ]
+
   c_source = FileList[
     "shotgun/config.h",
     "shotgun/lib/*.[chy]",
     "shotgun/lib/*.rb",
     "shotgun/lib/subtend/*.[chS]",
     "shotgun/main.c",
-  ].exclude(/auto/, /instruction_names/, /node_types/, /grammar.c/)
+  ].exclude(*exclude_source)
 
   file "shotgun/rubinius.bin" => c_source do
     sh make('vm')
