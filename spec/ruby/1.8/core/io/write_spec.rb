@@ -18,7 +18,7 @@ describe "IO#write on a file" do
   end
 
   it "coerces the argument to a string using to_s" do
-    (obj = mock('test')).should_receive(:to_s)
+    (obj = mock('test')).should_receive(:to_s).and_return('a string')
     @file.write(obj)
   end
 
