@@ -263,6 +263,13 @@ class IO
 
   attr_accessor :lineno
 
+  alias_method :prim_tty?, :tty?
+
+  def tty?
+    raise IOError if closed?
+    prim_tty?
+  end
+
   alias_method :isatty, :tty?
 
   def self.popen(str, mode = "r")
