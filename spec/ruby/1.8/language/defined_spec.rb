@@ -90,16 +90,12 @@ describe "A ruby environment" do
     !!defined?(:File).should == true
   end
 
-  it "returns true when defined?('File::Separator') is sent" do
-    !!defined?(File::SEPARATOR).should == true
-  end
-
   it "returns 'constant' when defined?(File) is sent" do
     defined?(File).should == "constant"
   end
 
-  it "returns 'constant' when defined?('File::SEPARATOR') is sent" do
-    defined?('File::SEPARATOR').should == "constant"
+  it "returns 'constant' when defined?(File::SEPARATOR) is sent" do
+    defined?(File::SEPARATOR).should == "constant"
   end
 
   it "returns 'method' when defined?(Object.nil?) is sent" do
