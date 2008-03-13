@@ -562,6 +562,7 @@ class IO
   end
 
   def flush
+    raise IOError if closed?
     true
   end
 
