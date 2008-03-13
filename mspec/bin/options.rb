@@ -57,7 +57,7 @@ class SpecConfig
   attr_accessor :formatter, :includes, :excludes, 
                 :patterns, :xpatterns, :tags, :xtags,
                 :tagger, :outcome, :tag, :comment, :atags, :astrings,
-                :debugger, :gdb
+                :debugger, :gdb, :full_abort
   
   def initialize(command, options)
     @options = options
@@ -75,6 +75,8 @@ class SpecConfig
       @tag = 'fails:'
       @outcome = :fail
     end
+
+    @full_abort = true
   end
   
   def register
@@ -100,6 +102,13 @@ class SpecConfig
       tag = SpecTag.new(@tag)
       tagger = TagAction.new(@tagger, @outcome, tag.tag, tag.comment, @atags, @astrings)
       tagger.register
+    end
+
+    if @full_abort
+      Signal.trap "INT" do
+        puts "\nSpec process aborted!"
+        exit! 1
+      end
     end
   end
 end
@@ -187,6 +196,7 @@ class SpecOptions
       MSpec.register :start, obj
       MSpec.register :load, obj
     end
+
     @options.on("-m", "--marker MARKER", String,
             "Outout MARKER for each file processed") do |o|
       obj = Object.new
@@ -195,6 +205,10 @@ class SpecOptions
         print @marker
       end
       MSpec.register :load, obj
+    end
+
+    @options.on("--int-spec", "Control-C interupts the current spec only") do
+      @config.full_abort = false
     end
   end
   

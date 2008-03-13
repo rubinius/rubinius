@@ -11,6 +11,10 @@ class SpinnerFormatter < DottedFormatter
     @which = 0
     @count = 0
     self.length = 40
+    term = ENV['TERM']
+    @color = (term != "dumb")
+    @fail_color  = "32"
+    @error_color = "32"
   end
 
   def register
@@ -36,8 +40,13 @@ class SpinnerFormatter < DottedFormatter
 
   def spin
     @which = (@which + 1) % Spins.size
-    print "\r    [%s] \033[0;31m%6dF \033[0;33m%6dE\033[0m [%s]" %
-          [Spins[@which], @tally.failures, @tally.errors, percentage]
+    if @color
+      print "\r[%s | %s] \033[0;#{@fail_color}m%6dF \033[0;#{@error_color}m%6dE\033[0m" %
+          [Spins[@which], percentage, @tally.failures, @tally.errors]
+    else
+      print "\r[%s | %s] %6dF %6dE" %
+          [Spins[@which], percentage, @tally.failures, @tally.errors]
+    end
   end
 
   def start
@@ -50,6 +59,8 @@ class SpinnerFormatter < DottedFormatter
 
   def after(state)
     if state.exception?
+      @fail_color =  "31" if @tally.failures > 0
+      @error_color = "33" if @tally.errors > 0
       @states << state
     end
 
