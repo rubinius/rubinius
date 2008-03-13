@@ -70,12 +70,6 @@ class SpecConfig
     @xtags = []
     @atags = []
     @astrings = []
-    if command == 'tag'
-      @tagger = :add
-      @tag = 'fails:'
-      @outcome = :fail
-    end
-
     @full_abort = true
   end
   
@@ -228,14 +222,15 @@ class SpecOptions
                 "Delete TAG (see -Q, -F, -L)") do |o|
       @config.tagger = :del
       @config.tag = "#{o}:"
-    end
-    @options.on("-Q", "--pass", "Apply TAG to specs that pass") do
       @config.outcome = :pass
     end
-    @options.on("-F", "--fail", "Apply TAG to specs that fail (default)") do
+    @options.on("-Q", "--pass", "Apply action to specs that pass (default for --del)") do
+      @config.outcome = :pass
+    end
+    @options.on("-F", "--fail", "Apply action to specs that fail (default for --add)") do
       @config.outcome = :fail
     end
-    @options.on("-L", "--all", "Apply TAG to all specs") do
+    @options.on("-L", "--all", "Apply action to all specs") do
       @config.outcome = :all
     end
   end

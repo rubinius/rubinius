@@ -5,6 +5,11 @@ require 'spec/spec_helper'
 require 'mspec/bin/options'
 
 opts = SpecOptions.new "tag", "", 28, "   "
+config = opts.config
+config.tagger = :add
+config.tag = 'fails:'
+config.outcome = :fail
+
 opts.add_formatters
 opts.add_filters
 opts.add_pretend
@@ -14,7 +19,7 @@ opts.add_tagging
 opts.add_help
 
 patterns = opts.parse
-opts.config.register
+config.register
 
 if patterns.empty?
   puts "No files specified."

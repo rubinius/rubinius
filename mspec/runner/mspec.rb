@@ -179,20 +179,30 @@ module MSpec
     FileUtils.mkdir_p(path) unless File.exist?(path)
     if File.exist? file
       File.open(file, "r") do |f|
-        f.each_line { |line| return if line.chomp == string }
+        f.each_line { |line| return false if line.chomp == string }
       end
     end
     File.open(file, "a") { |f| f.puts string }
+    return true
   end
   
   def self.delete_tag(tag)
-    pattern = /#{tag.tag}.*#{tag.description}/
+    deleted = false
+    pattern = /#{tag.tag}.*#{Regexp.escape tag.description}/
     file = tags_file
     if File.exist? file
       lines = IO.readlines(file)
       File.open(file, "w") do |f|
-        lines.each { |line| f.puts line unless pattern =~ line.chomp }
+        lines.each do |line|
+          unless pattern =~ line.chomp
+            f.puts line
+          else
+            deleted = true
+          end
+        end
       end
+      File.delete file unless File.size? file
     end
+    return deleted
   end
 end

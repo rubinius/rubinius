@@ -137,33 +137,33 @@ describe TagAction, "#after when action is :del" do
     action.after @state
   end
   
-  it "does not write a tag if outcome is :fail and the spec passed" do
+  it "does not delete a tag if outcome is :fail and the spec passed" do
     MSpec.should_not_receive(:delete_tag)
     action = TagAction.new :del, :fail, "tag", "comment", nil, "can"
     action.after @state
   end
   
-  it "writes a tag if the outcome is :fail and the spec failed" do
+  it "deletes a tag if the outcome is :fail and the spec failed" do
     MSpec.should_receive(:delete_tag).with(@tag)
     action = TagAction.new :del, :fail, "tag", "comment", nil, "can"
     @state.exceptions << @exception
     action.after @state
   end
   
-  it "does not write a tag if outcome is :pass and the spec failed" do
+  it "does not delete a tag if outcome is :pass and the spec failed" do
     MSpec.should_not_receive(:delete_tag)
     action = TagAction.new :del, :pass, "tag", "comment", nil, "can"
     @state.exceptions << @exception
     action.after @state
   end
   
-  it "writes a tag if the outcome is :pass and the spec passed" do
+  it "deletes a tag if the outcome is :pass and the spec passed" do
     MSpec.should_receive(:delete_tag).with(@tag)
     action = TagAction.new :del, :pass, "tag", "comment", nil, "can"
     action.after @state
   end
   
-  it "writes a tag if the outcome is :all" do
+  it "deletes a tag if the outcome is :all" do
     MSpec.should_receive(:delete_tag).with(@tag)
     action = TagAction.new :del, :all, "tag", "comment", nil, "can"
     action.after @state
@@ -174,8 +174,8 @@ describe TagAction, "#finish" do
   before :each do
     $stdout = @out = CaptureOutput.new
     @state = SpecState.new "Catch#me", "if you can"
-    MSpec.stub!(:write_tag)
-    MSpec.stub!(:delete_tag)
+    MSpec.stub!(:write_tag).and_return(true)
+    MSpec.stub!(:delete_tag).and_return(true)
   end
   
   after :each do

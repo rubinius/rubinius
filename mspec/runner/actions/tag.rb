@@ -14,7 +14,7 @@ require 'mspec/runner/actions/filter'
 #
 #   action:  :add, :del
 #   outcome: :pass, :fail, :all
-#   tag:     the tag to create
+#   tag:     the tag to create/delete
 #   comment: the comment to create
 #   tags:    zero or more tags to get matching
 #            spec description strings from
@@ -30,7 +30,7 @@ class TagAction < ActionFilter
     @comment = comment
     @report = []
   end
-  
+
   def ===(string)
     return true unless @sfilter or @tfilter
     @sfilter === string or @tfilter === string
@@ -38,8 +38,6 @@ class TagAction < ActionFilter
 
   def after(state)
     if self === state.description and outcome? state
-      @report << state.description
-      
       tag = SpecTag.new
       tag.tag = @tag
       tag.comment = @comment
@@ -47,24 +45,26 @@ class TagAction < ActionFilter
 
       case @action
       when :add
-        MSpec.write_tag tag
+        changed = MSpec.write_tag tag
       when :del
-        MSpec.delete_tag tag
+        changed = MSpec.delete_tag tag
       end
+
+      @report << state.description if changed
     end
   end
-  
+
   def outcome?(state)
     @outcome == :all or
         (@outcome == :pass and not state.exception?) or
         (@outcome == :fail and state.exception?)
   end
-  
+
   def report
     @report.join("\n") + "\n"
   end
   private :report
-  
+
   def finish
     case @action
     when :add
@@ -83,13 +83,13 @@ class TagAction < ActionFilter
       end
     end
   end
-  
+
   def register
     super
     MSpec.register :after, self
     MSpec.register :finish, self
   end
-  
+
   def unregister
     super
     MSpec.unregister :after, self

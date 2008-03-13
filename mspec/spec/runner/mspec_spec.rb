@@ -7,28 +7,28 @@ describe MSpec do
     MSpec.register_files [:one, :two, :three]
     MSpec.retrieve(:files).should == [:one, :two, :three]
   end
-  
+
   it "provides .register_mode for setting execution mode flags" do
     MSpec.register_mode :verify
     MSpec.retrieve(:mode).should == :verify
   end
-  
+
   it "provides .register_tags_path to record the path to tag files" do
     MSpec.register_tags_path "path/to/tags"
     MSpec.retrieve(:tags_path).should == "path/to/tags"
   end
-  
+
   it "provides .register_exit to record the exit code" do
     MSpec.exit_code.should == 0
     MSpec.register_exit 1
     MSpec.exit_code.should == 1
   end
-  
+
   it "provides .exit_code to retrieve the code set with .register_exit" do
     MSpec.register_exit 99
     MSpec.exit_code.should == 99
   end
-  
+
   it "provides .store to store data" do
     MSpec.store :anything, :value
     MSpec.retrieve(:anything).should == :value
@@ -38,7 +38,7 @@ describe MSpec do
     MSpec.register :action, :first
     MSpec.retrieve(:action).should == [:first]
   end
-  
+
   it "provides .register as the gateway behind the register(symbol, action) facility" do
     MSpec.register :bonus, :first
     MSpec.register :bonus, :second
@@ -63,27 +63,27 @@ describe MSpec, ".protect" do
     @exception = Exception.new("Sharp!")
     ScratchPad.record @exception
   end
-  
+
   it "rescues any exceptions raised when executing the block argument" do
     MSpec.stack.push @rs
     lambda {
       MSpec.protect("") { raise Exception, "Now you see me..." }
     }.should_not raise_error
   end
-  
+
   it "records the exception in the current.state object's exceptions" do
     MSpec.stack.push @rs
     MSpec.protect("testing") { raise ScratchPad.recorded }
     @ss.exceptions.should == [["testing", ScratchPad.recorded]]
   end
-  
+
   it "writes a message to STDERR if current is nil" do
     STDERR.stub!(:write)
     STDERR.should_receive(:write).with("\nAn exception occurred in testing:\nException: \"Sharp!\"\n")
     MSpec.stack.clear
     MSpec.protect("testing") { raise ScratchPad.recorded }
   end
-  
+
   it "writes a message to STDERR if current.state is nil" do
     STDERR.stub!(:write)
     STDERR.should_receive(:write).with("\nAn exception occurred in testing:\nException: \"Sharp!\"\n")
@@ -119,12 +119,12 @@ describe MSpec, ".actions" do
     MSpec.register :start, start_one
     MSpec.register :start, start_two
   end
-  
+
   it "does not attempt to run any actions if none have been registered" do
     MSpec.store :finish, nil
     lambda { MSpec.actions :finish }.should_not raise_error
   end
-  
+
   it "runs each action registered as a start action" do
     MSpec.actions :start
     ScratchPad.recorded.should == [:one, :two]
@@ -135,7 +135,7 @@ describe MSpec, ".verify_mode?" do
   before :each do
     MSpec.store :mode, nil
   end
-  
+
   it "returns true if register_mode(:verify) is called" do
     MSpec.verify_mode?.should == false
     MSpec.register_mode :verify
@@ -147,7 +147,7 @@ describe MSpec, ".report_mode?" do
   before :each do
     MSpec.store :mode, nil
   end
-  
+
   it "returns true if register_mode(:report) is called" do
     MSpec.report_mode?.should == false
     MSpec.register_mode :report
@@ -161,7 +161,7 @@ describe MSpec, ".describe" do
     MSpec.describe(Object, "msg") { ScratchPad.record MSpec.current }
     ScratchPad.recorded.should be_kind_of(RunState)
   end
-  
+
   it "pops the RunState instance off the stack when finished" do
     MSpec.stack.clear
     MSpec.describe(Object, "msg") { ScratchPad.record MSpec.current }
@@ -176,7 +176,7 @@ describe MSpec, ".process" do
     MSpec.store :start, []
     MSpec.store :finish, []
   end
-  
+
   it "calls all start actions" do
     start = mock("start")
     start.stub!(:start).and_return { ScratchPad.record :start }
@@ -184,7 +184,7 @@ describe MSpec, ".process" do
     MSpec.process
     ScratchPad.recorded.should == :start
   end
-  
+
   it "calls all finish actions" do
     finish = mock("finish")
     finish.stub!(:finish).and_return { ScratchPad.record :finish }
@@ -192,7 +192,7 @@ describe MSpec, ".process" do
     MSpec.process
     ScratchPad.recorded.should == :finish
   end
-  
+
   it "calls the files method" do
     MSpec.should_receive(:files)
     MSpec.process
@@ -206,7 +206,7 @@ describe MSpec, ".files" do
     MSpec.register_files [:one, :two, :three]
     Kernel.stub!(:load)
   end
-  
+
   it "calls load actions before each file" do
     load = mock("load")
     load.stub!(:load).and_return { ScratchPad.record :load }
@@ -214,7 +214,7 @@ describe MSpec, ".files" do
     MSpec.files
     ScratchPad.recorded.should == :load
   end
-  
+
   it "registers the current file" do
     MSpec.should_receive(:store).with(:file, :one)
     MSpec.should_receive(:store).with(:file, :two)
@@ -227,11 +227,11 @@ describe MSpec, ".tags_path" do
   before :each do
     MSpec.store :tags_path, nil
   end
-  
+
   it "returns '.tags' if no tags path has been registered" do
     MSpec.tags_path.should == ".tags"
   end
-  
+
   it "returns the registered tags path" do
     MSpec.register_tags_path "/path/to/tags"
     MSpec.tags_path.should == "/path/to/tags"
@@ -243,11 +243,11 @@ describe MSpec, ".tags_file" do
     MSpec.store :file, "/path/to/spec/something/some_spec.rb"
     MSpec.store :tags_path, nil
   end
-  
+
   it "returns the tags file for the current spec file" do
     MSpec.tags_file.should == "/path/to/spec/something/.tags/some_tags.txt"
   end
-  
+
   it "returns the tags file for the current spec file with custom tags_path" do
     MSpec.register_tags_path "/path/to/tags"
     MSpec.tags_file.should == "/path/to/tags/something/some_tags.txt"
@@ -258,12 +258,12 @@ describe MSpec, ".read_tags" do
   before :each do
     MSpec.stub!(:tags_file).and_return(File.dirname(__FILE__) + '/tags.txt')
   end
-  
+
   it "returns a list of tag instances for matching tag names found" do
-    one = SpecTag.new "fail(broken):Some#method works"
+    one = SpecTag.new "fail(broken):Some#method? works"
     MSpec.read_tags("fail", "pass").should == [one]
   end
-  
+
   it "returns [] if no tags names match" do
     MSpec.read_tags("super").should == []
   end
@@ -275,16 +275,16 @@ describe MSpec, ".write_tag" do
     MSpec.stub!(:tags_file).and_return("/tmp/tags.txt")
     @tag = SpecTag.new "fail(broken):Some#method works"
   end
-  
+
   after :all do
     File.delete "/tmp/tags.txt" rescue nil
   end
-  
+
   it "writes a tag to the tags file for the current spec file" do
     MSpec.write_tag @tag
     IO.read("/tmp/tags.txt").should == "fail(broken):Some#method works\n"
   end
-  
+
   it "does not write a duplicate tag" do
     File.open("/tmp/tags.txt", "w") { |f| f.puts @tag }
     MSpec.write_tag @tag
@@ -296,26 +296,33 @@ describe MSpec, ".delete_tag" do
   before :each do
     FileUtils.cp File.dirname(__FILE__) + '/tags.txt', "/tmp/tags.txt"
     MSpec.stub!(:tags_file).and_return("/tmp/tags.txt")
-    @tag = SpecTag.new "fail(Comments don't matter):Some#method works"
+    @tag = SpecTag.new "fail(Comments don't matter):Some#method? works"
   end
-  
+
   after :each do
     File.delete "/tmp/tags.txt" rescue nil
   end
-  
+
   it "deletes the tag if it exists" do
-    MSpec.delete_tag @tag
+    MSpec.delete_tag(@tag).should == true
     IO.read("/tmp/tags.txt").should == %[incomplete(20%):The#best method ever
 benchmark(0.01825):The#fastest method today
 ]
   end
-  
+
   it "does not change the tags file contents if the tag doesn't exist" do
     @tag.tag = "failed"
-    MSpec.delete_tag @tag
-    IO.read("/tmp/tags.txt").should == %[fail(broken):Some#method works
+    MSpec.delete_tag(@tag).should == false
+    IO.read("/tmp/tags.txt").should == %[fail(broken):Some#method? works
 incomplete(20%):The#best method ever
 benchmark(0.01825):The#fastest method today
 ]
+  end
+
+  it "deletes the tag file if it is empty" do
+    MSpec.delete_tag(@tag).should == true
+    MSpec.delete_tag(SpecTag.new("incomplete:The#best method ever")).should == true
+    MSpec.delete_tag(SpecTag.new("benchmark:The#fastest method today")).should == true
+    File.exist?("/tmp/tags.txt").should == false
   end
 end
