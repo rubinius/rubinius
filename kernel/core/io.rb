@@ -316,13 +316,11 @@ class IO
   end
 
   def eof?
-    raise IOError if closed? # HACK only for read
     read 0 # HACK force check
     @eof and @buffer.empty?
   end
 
   def getc
-    raise IOError if closed? # HACK only for read
     char = read 1
     return nil if char.nil?
     char[0]
@@ -514,7 +512,6 @@ class IO
   end
 
   def pos
-    raise IOError if closed?
     seek 0, SEEK_CUR
   end
 
