@@ -703,6 +703,8 @@ class IO
 
   def self.read(name, length = Undefined, offset = 0)
     name = StringValue(name)
+    length ||= Undefined
+    offset ||= 0
 
     offset = Type.coerce_to(offset, Fixnum, :to_int)
 
