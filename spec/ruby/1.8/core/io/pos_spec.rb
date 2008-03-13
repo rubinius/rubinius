@@ -1,40 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/pos'
 
 describe "IO#pos" do
-
-  before :each do
-    @fname = 'test.txt'
-    File.open @fname, 'w' do |f| f.write "123" end
-  end
-
-  after :each do
-    File.unlink @fname
-  end
-
-  it "gets the offset" do
-    File.open @fname do |f|
-      f.pos.should == 0
-      f.read 1
-      f.pos.should == 1
-      f.read 2
-      f.pos.should == 3
-    end
-  end
-
-  it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.pos }.should raise_error(IOError)
-  end
-
-  it "resets #eof?" do
-    open @fname do |io|
-      io.read 1
-      io.read 1
-      io.pos
-      io.eof?.should == false
-    end
-  end
-
+  it_behaves_like(:io_pos, :pos)
 end
 
 describe "IO#pos=" do

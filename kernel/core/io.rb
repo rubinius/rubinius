@@ -508,6 +508,7 @@ class IO
   end
 
   def pos
+    raise IOError if closed?
     seek 0, SEEK_CUR
   end
 

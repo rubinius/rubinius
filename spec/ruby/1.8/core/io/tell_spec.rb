@@ -1,8 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/shared/pos'
 
 describe "IO#tell" do
-  it "raises IOError on closed stream" do
-    lambda { IOSpecs.closed_file.tell }.should raise_error(IOError)
-  end
+  it_behaves_like(:io_pos, :tell)
 end
