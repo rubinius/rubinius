@@ -487,6 +487,7 @@ class IO
   end
   
   alias_method :syswrite, :write
+  alias_method :write_nonblock, :write
 
   def seek(amount, whence=SEEK_SET)
     # Unseek the still buffered amount
