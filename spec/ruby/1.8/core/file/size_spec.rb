@@ -18,4 +18,5 @@ end
 
 describe "File.size?" do
   it_behaves_like :file_size, :size?, File
+  it_behaves_like :file_size_missing, :size?, File
 end

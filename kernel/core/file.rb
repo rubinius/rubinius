@@ -386,7 +386,7 @@ class File < IO
 
   def self.size?(path)
     st = Stat.stat? path
-    st ? st.size : nil
+    st && st.size > 0 ? st.size : nil
   end
 
   def self.socket?(path)
