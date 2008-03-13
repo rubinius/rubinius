@@ -38,33 +38,13 @@ class TestGenerator
     @stream << args
     @ip += 1
   end
-  
-  def method_missing(*args)
-    add *args
-  end
-  
+
   def set_line(line, file)
     @file, @line = file, line
   end
   
   def set_label(lbl)
     @stream << [:set_label, lbl]
-  end
-  
-  def send(*stuff)
-    add :send, *stuff
-  end
-
-  def send_with_block(*stuff)
-    add :send_with_block, *stuff
-  end
-  
-  def dup
-    add :dup
-  end
-  
-  def class
-    add :class
   end
   
   attr_accessor :redo, :break, :next, :retry, :ensure_return
@@ -80,7 +60,20 @@ class TestGenerator
   def ==(tg)
     tg.stream == @stream
   end
-  
+
+  opcodes = InstructionSet::OpCodes.map { |desc| desc.opcode }
+  stupids = [:add_literal, :gif, :git, :pop_modifiers, :push,
+             :push_literal_at, :push_modifiers, :push_unique_literal, :send,
+             :send_super, :send_with_block, :send_with_register, :swap,]
+
+  (opcodes + stupids - [:class]).each do |name|
+    class_eval <<-CODE
+      def #{name}(*args)
+        add :#{name}, *args
+      end
+    CODE
+  end
+
   class Label
     def initialize(gen)
       @generator = gen
