@@ -787,6 +787,11 @@ class IO
     self
   end
 
+  def dup
+    raise IOError if closed?
+    super
+  end
+
   private :io_close
 
   def self.after_loaded()
