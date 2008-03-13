@@ -502,6 +502,7 @@ class IO
   alias_method :write_nonblock, :write
 
   def seek(amount, whence=SEEK_SET)
+    raise IOError if closed?
     # Unseek the still buffered amount
     unless @buffer.empty?
       prim_seek -@buffer.size, SEEK_CUR
