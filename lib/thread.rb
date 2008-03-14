@@ -40,7 +40,8 @@ end
 class Mutex
   def initialize
     @lock = Channel.new
-    @available = Channel.new
+    @n_waiters = 0
+    @unlocked = Channel.new
     @lock << nil
   end
 
@@ -66,9 +67,11 @@ class Mutex
   def lock
     owner = @lock.receive
     while owner
+      @n_waiters += 1
       @lock << owner
-      @available.receive
+      @unlocked.receive
       owner = @lock.receive
+      @n_waiters -= 1
     end
     owner = Thread.current
     self
@@ -78,12 +81,9 @@ class Mutex
 
   def unlock
     owner = @lock.receive
-    if owner == Thread.current
-      owner = nil 
-      @available << nil
-    else
-      raise ThreadError, "Not owner"
-    end
+    raise ThreadError, "Not owner" unless owner == Thread.current
+    owner = nil 
+    @unlocked << self if @n_waiters.nonzero?
     self
   ensure
     @lock << owner
