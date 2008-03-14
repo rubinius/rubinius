@@ -189,7 +189,7 @@ class IO
   # Errno::EBADF will be raised if that is not the case. If the mode is
   # incompatible, it will raise Errno::EINVAL instead.
 
-  def initialize(fd, mode = 'r')
+  def initialize(fd, mode = nil)
     fd = Type.coerce_to fd, Integer, :to_int
 
     # Descriptor must be an open and valid one
@@ -198,16 +198,18 @@ class IO
     cur_mode = Platform::POSIX.fcntl(fd, F_GETFL, 0)
     raise Errno::EBADF, "Invalid descriptor #{fd}" if cur_mode < 0
 
-    # Must support the desired mode.
-    # O_ACCMODE is /undocumented/ for fcntl() on some platforms
-    # but it should work. If there is a problem, check it though.
-    new_mode = IO.parse_mode(mode) & ACCMODE
-    cur_mode = cur_mode & ACCMODE
+    unless mode.nil?
+      # Must support the desired mode.
+      # O_ACCMODE is /undocumented/ for fcntl() on some platforms
+      # but it should work. If there is a problem, check it though.
+      new_mode = IO.parse_mode(mode) & ACCMODE
+      cur_mode = cur_mode & ACCMODE
 
-    if cur_mode != RDWR and cur_mode != new_mode
-      raise Errno::EINVAL, "Invalid mode '#{mode}' for existing descriptor #{fd}"
+      if cur_mode != RDWR and cur_mode != new_mode
+        raise Errno::EINVAL, "Invalid mode '#{mode}' for existing descriptor #{fd}"
+      end
     end
-
+      
     setup fd, mode
   end
 
