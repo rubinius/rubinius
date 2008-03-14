@@ -42,7 +42,7 @@ ulpdown(double *d)
 	ULong *L = (ULong*)d;
 
 	u = ulp(*d);
-	if (!(L[_1] | L[_0] & 0xfffff)
+	if (!(L[_1] | (L[_0] & 0xfffff))
 	 && (L[_0] & 0x7ff00000) > 0x00100000)
 		u *= 0.5;
 	return u;

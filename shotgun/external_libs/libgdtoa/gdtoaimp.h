@@ -180,11 +180,6 @@ THIS SOFTWARE.
 #include "limits.h"
 #include "stdlib.h"
 #include "string.h"
-#include "libc_private.h"
-
-#include "namespace.h"
-#include <pthread.h>
-#include "un-namespace.h"
 
 #ifdef KR_headers
 #define Char char
@@ -461,16 +456,13 @@ extern double rnd_prod(double, double), rnd_quot(double, double);
 #define ALL_ON 0xffff
 #endif
 
-#define MULTIPLE_THREADS
-extern pthread_mutex_t __gdtoa_locks[2];
-#define ACQUIRE_DTOA_LOCK(n)	do {				\
-	if (__isthreaded)					\
-		_pthread_mutex_lock(&__gdtoa_locks[n]);		\
-} while(0)
-#define FREE_DTOA_LOCK(n)	do {				\
-	if (__isthreaded)					\
-		_pthread_mutex_unlock(&__gdtoa_locks[n]);	\
-} while(0)
+/* Copied from ruby1.9 util.c r15761
+ * http://svn.ruby-lang.org/repos/ruby/trunk
+ */
+#ifndef MULTIPLE_THREADS
+#define ACQUIRE_DTOA_LOCK(n)	/*nothing*/
+#define FREE_DTOA_LOCK(n)	/*nothing*/
+#endif
 
 #define Kmax 15
 
@@ -493,11 +485,12 @@ extern void memcpy_D2A ANSI((void*, const void*, size_t));
 #define Bcopy(x,y) memcpy(&x->sign,&y->sign,y->wds*sizeof(ULong) + 2*sizeof(int))
 #endif /* NO_STRING_H */
 
+#ifdef GDTOA_PARANOIA
 /*
  * Paranoia: Protect exported symbols, including ones in files we don't
  * compile right now.  The standard strtof and strtod survive.
  */
-#define	dtoa		__dtoa
+#define  dtoa    __dtoa
 #define	gdtoa		__gdtoa
 #define	freedtoa	__freedtoa
 #define	strtodg		__strtodg
@@ -526,6 +519,7 @@ extern void memcpy_D2A ANSI((void*, const void*, size_t));
 #define	strtopQ		__strtopQ
 #define	strtopx		__strtopx
 #define	strtopxL	__strtopxL
+#endif
 
 /* Protect gdtoa-internal symbols */
 #define	Balloc		__Balloc_D2A

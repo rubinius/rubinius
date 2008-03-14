@@ -211,7 +211,7 @@ gethex( CONST char **sp, FPI *fpi, Long *exp, Bigint **bp, int sign)
 			break;
 		  case FPI_Round_near:
 			if (lostbits & 2
-			 && (lostbits & 1) | x[0] & 1)
+			 && (lostbits & 1) | (x[0] & 1))
 				up = 1;
 			break;
 		  case FPI_Round_up:
@@ -230,8 +230,8 @@ gethex( CONST char **sp, FPI *fpi, Long *exp, Bigint **bp, int sign)
 					irv =  STRTOG_Normal;
 				}
 			else if (b->wds > k
-			 || (n = nbits & kmask) !=0
-			     && hi0bits(x[k-1]) < 32-n) {
+			 || ((n = nbits & kmask) !=0
+			     && hi0bits(x[k-1]) < 32-n)) {
 				rshift(b,1);
 				if (++e > fpi->emax)
 					goto ovfl;

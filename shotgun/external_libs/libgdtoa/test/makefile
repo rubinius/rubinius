@@ -26,7 +26,7 @@
 .SUFFIXES: .c .o
 CC = cc
 CFLAGS = -g -I..
-A = ../gdtoa.a
+A = ../libgdtoa.a
 L = -lm
 INFFIX = | sed 's/[Ii][Nn][Ff][intyINTY]*/Infinity/g'
 

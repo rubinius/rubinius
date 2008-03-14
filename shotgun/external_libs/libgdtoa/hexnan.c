@@ -71,7 +71,7 @@ hexnan( CONST char **sp, FPI *fpi, ULong *x0)
 	x1 = xe = x;
 	havedig = hd0 = i = 0;
 	s = *sp;
-	while(c = *(CONST unsigned char*)++s) {
+	while((c = *(CONST unsigned char*)++s)) {
 		if (!(h = hexdig[c])) {
 			if (c <= ' ') {
 				if (hd0 < havedig) {
@@ -101,7 +101,7 @@ hexnan( CONST char **sp, FPI *fpi, ULong *x0)
 			i = 1;
 			*--x = 0;
 			}
-		*x = (*x << 4) | h & 0xf;
+		*x = (*x << 4) | (h & 0xf);
 		}
 	if (!havedig)
 		return STRTOG_NaN;

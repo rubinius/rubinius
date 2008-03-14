@@ -75,7 +75,7 @@ strtod
 	double aadj, aadj1, adj, rv, rv0;
 	Long L;
 	ULong y, z;
-	Bigint *bb, *bb1, *bd, *bd0, *bs, *delta;
+	Bigint *bb, *bb1, *bd = NULL, *bd0, *bs = NULL, *delta = NULL;
 #ifdef SET_INEXACT
 	int inexact, oldinexact;
 #endif
@@ -471,7 +471,7 @@ strtod
 					if (j >= 53)
 					 word0(rv) = (P+2)*Exp_msk1;
 					else
-					 word0(rv) &= 0xffffffff << j-32;
+					 word0(rv) &= 0xffffffff << (j-32);
 					}
 				else
 					word1(rv) &= 0xffffffff << j;

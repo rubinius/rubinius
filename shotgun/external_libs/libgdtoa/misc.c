@@ -630,16 +630,16 @@ b2d
 	*e = 32 - k;
 #ifdef Pack_32
 	if (k < Ebits) {
-		d0 = Exp_1 | y >> Ebits - k;
+		d0 = Exp_1 | (y >> (Ebits - k));
 		w = xa > xa0 ? *--xa : 0;
-		d1 = y << (32-Ebits) + k | w >> Ebits - k;
+		d1 = (y << ((32-Ebits) + k)) | (w >> (Ebits - k));
 		goto ret_d;
 		}
 	z = xa > xa0 ? *--xa : 0;
 	if (k -= Ebits) {
-		d0 = Exp_1 | y << k | z >> 32 - k;
+		d0 = Exp_1 | (y << k) | (z >> (32 - k));
 		y = xa > xa0 ? *--xa : 0;
-		d1 = z << k | y >> 32 - k;
+		d1 = (z << k) | (y >> (32 - k));
 		}
 	else {
 		d0 = Exp_1 | y;
@@ -715,7 +715,7 @@ d2b
 #ifdef Pack_32
 	if ( (y = d1) !=0) {
 		if ( (k = lo0bits(&y)) !=0) {
-			x[0] = y | z << 32 - k;
+			x[0] = y | (z << (32 - k));
 			z >>= k;
 			}
 		else
@@ -841,7 +841,7 @@ strcp_D2A(a, b) char *a; char *b;
 strcp_D2A(char *a, CONST char *b)
 #endif
 {
-	while(*a = *b++)
+	while((*a = *b++))
 		a++;
 	return a;
 	}
