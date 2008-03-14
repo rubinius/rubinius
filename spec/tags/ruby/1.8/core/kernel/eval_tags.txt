@@ -1,1 +1,0 @@
-fails:Kernel#eval evaluates such that consts are scoped to the class of the eval

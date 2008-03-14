@@ -1,5 +1,3 @@
-fails:File::Constants match mode constants
-fails:File::Constants the separator constant
 fails:File::Constants File::RDONLY
 fails:File::Constants File::WRONLY
 fails:File::Constants File::CREAT

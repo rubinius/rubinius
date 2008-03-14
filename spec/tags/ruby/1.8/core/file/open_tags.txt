@@ -7,5 +7,3 @@ fails:File.open can't read in a block when call open with File::EXCL mode
 fails:File.open raises an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND
 fails:File.open can't write in a block when call open with File::TRUNC mode
 fails:File.open raises an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC
-fails:File.open opens a file for read-write and truncate the file
-fails:File.open opens a file for binary read-write and truncate the file
