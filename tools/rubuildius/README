@@ -16,9 +16,9 @@ Currently most files are hardcoded for my box
   + bin/pastie_client needs active_support!
   + bin/nopaste is default for now
 
-* everything needs to be in ~/continious
+* everything needs to be in ~/continuous
 
-* continious/repo/rubinius/HEAD should contain a git checkout.
+* continuous/repo/rubinius/HEAD should contain a git checkout.
   + this one will be updated and then cloned to speed things up and not eat bandwidth
 
 * I launch it like this:
