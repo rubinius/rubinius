@@ -257,7 +257,7 @@ class Debugger
     end
 
     def command_regexp
-      /^v(ars)?$/
+      /^v(?:ars)?$/
     end
 
     def execute(dbg, inp)
@@ -277,6 +277,37 @@ class Debugger
         return output
       else
         return "There are no local variables defined in #{cm.name}"
+      end
+    end
+  end
+
+
+  class ShowIVars < Command
+    def help
+      return "iv[ars]", "Show instance variables and their values."
+    end
+
+    def command_regexp
+      /^iv(?:ars)?$/
+    end
+
+    def execute(dbg, inp)
+      cm = dbg.debug_context.method
+
+      # Output ivars on the current self
+      bind = Binding.setup(dbg.debug_context)
+      instance = eval("self", bind)
+      ivars = instance.instance_variables
+      if ivars.size > 0
+        output = Output.new
+        output << "Instance variables for #{instance}:"
+        output.set_columns(['%-s', '%s', '%-s'])
+        ivars.each do |ivar|
+          output << [ivar, '=>', instance.instance_variable_get(ivar).inspect]
+        end
+        return output
+      else
+        return "There are no instance variables defined for #{instance}"
       end
     end
   end
