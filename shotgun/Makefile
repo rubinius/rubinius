@@ -16,9 +16,12 @@ else
   DTRACE_H=
 endif
 
-CFLAGS += -I.. $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa -Iexternal_libs/libmquark -Iexternal_libs/libev -Iexternal_libs/libtommath
+CFLAGS += -I.. $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash \
+          -Iexternal_libs/libmpa -Iexternal_libs/libmquark -Iexternal_libs/libev \
+          -Iexternal_libs/libtommath -Iexternal_libs/libgdtoa
 
 ALIBS= external_libs/libffi/.libs/libffi.a \
+       external_libs/libgdtoa/libgdtoa.a \
        external_libs/libtommath/libtommath.a \
        external_libs/onig/.libs/libonig.a \
        external_libs/libltdl/.libs/libltdl.a \
@@ -108,6 +111,9 @@ external_libs/libmquark/libmquark.a:
 external_libs/libffi/.libs/libffi.a:
 	cd external_libs/libffi; CFLAGS=-fPIC ./configure && $(MAKE)
 
+external_libs/libgdtoa/libgdtoa.a:
+	cd external_libs/libgdtoa; $(MAKE)
+
 $(RBLIB): config.h $(DTRACE_H) $(ALIBS)
 	cd lib; $(MAKE) library; 
 
@@ -166,5 +172,6 @@ distclean: clean
 	-cd external_libs/libtommath; $(MAKE) clean
 	-cd external_libs/onig; $(MAKE) clean
 	-cd external_libs/libffi; $(MAKE) clean
+	-cd external_libs/libgdtoa; $(MAKE) clean
 
 .PHONY: distclean

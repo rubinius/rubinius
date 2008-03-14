@@ -16,6 +16,7 @@
 /* declare the message struct since it's used in state.h, but actually
  * defined in message.h */
 struct message;
+#include "shotgun/lib/strtod.h"
 #include "shotgun/lib/state.h"
 #include "shotgun/lib/message.h"
 #include "shotgun/lib/auto.h"

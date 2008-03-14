@@ -2,19 +2,21 @@
 include ../common.mk
 
 CPPFLAGS += -I.. -I../.. -I../../.. \
-	    -I../external_libs/libffi/include \
-	    -I../external_libs/libev \
-	    -I../external_libs/onig \
-	    -I../external_libs/libtommath \
-	    -I../external_libs/libltdl \
-	    -I../external_libs/libbstring \
-	    -I../external_libs/libcchash \
-	    -I../external_libs/libmpa \
-	    -I../external_libs/libmquark \
-	    -D_GNU_SOURCE
+            -I../external_libs/libffi/include \
+            -I../external_libs/libev \
+            -I../external_libs/onig \
+            -I../external_libs/libgdtoa \
+            -I../external_libs/libtommath \
+            -I../external_libs/libltdl \
+            -I../external_libs/libbstring \
+            -I../external_libs/libcchash \
+            -I../external_libs/libmpa \
+            -I../external_libs/libmquark \
+            -D_GNU_SOURCE
 
 LIBS= -lz \
       ../external_libs/libffi/.libs/libffi.a \
+      ../external_libs/libgdtoa/libgdtoa.a \
       ../external_libs/libtommath/libtommath.a \
       ../external_libs/onig/.libs/libonig.a \
       $(SINGLE_MODULE) \
