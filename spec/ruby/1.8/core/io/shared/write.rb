@@ -55,7 +55,7 @@ shared :io_write do |cmd|
 
     it "advances the file position by the count of given bytes" do
       @file.send(cmd, "abcde")
-      @file.sysread(10).should == "5678901234"
+      @file.read(10).should == "5678901234"
     end
 
     it "raises IOError on closed stream" do
