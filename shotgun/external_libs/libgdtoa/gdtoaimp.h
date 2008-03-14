@@ -625,7 +625,7 @@ extern void memcpy_D2A ANSI((void*, const void*, size_t));
  extern int strtoIQ ANSI((CONST char *, char **, void *, void *));
  extern int strtoIx ANSI((CONST char *, char **, void *, void *));
  extern int strtoIxL ANSI((CONST char *, char **, void *, void *));
- extern double strtod ANSI((const char *s00, char **se));
+ extern double ruby_strtod ANSI((const char *s00, char **se));
  extern int strtopQ ANSI((CONST char *, char **, Void *));
  extern int strtopf ANSI((CONST char *, char **, float *));
  extern int strtopd ANSI((CONST char *, char **, double *));

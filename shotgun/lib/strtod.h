@@ -4,5 +4,6 @@
 #undef strtod
 
 #include "gdtoa.h"
+#define strtod ruby_strtod
 
 #endif
