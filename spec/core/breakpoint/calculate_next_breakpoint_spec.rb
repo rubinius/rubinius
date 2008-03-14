@@ -6,6 +6,7 @@ describe "StepBreakpoint#calculate_next_breakpoint" do
   before :all do
     @cm = BreakpointSpecs::Debuggee.instance_method(:step_method).compiled_method
     @block_cm = @cm.literals.at(0)
+    @if_cm = BreakpointSpecs::Debuggee.instance_method(:if_method).compiled_method
   end
 
   def create_bp(cm, selector, ip)
@@ -121,6 +122,21 @@ describe "StepBreakpoint#calculate_next_breakpoint" do
     @step_bp.break_type.should == :opcode_replacement
     @ctxt.ip = 50
     @step_bp.calculate_next_breakpoint.should == 51
+    @step_bp.steps.should == 0
+    @step_bp.break_type.should == :opcode_replacement
+
+    # Test case where stepping over goto and condition is false
+    create_bp(@if_cm, {:step_by => :line, :steps =>1}, 3)
+    @step_bp.calculate_next_breakpoint.should == 4
+    @step_bp.steps.should == 1
+    @step_bp.break_type.should == :opcode_replacement
+    @ctxt.ip = 4
+    @task.stack_value = false
+    @step_bp.calculate_next_breakpoint.should == 11
+    @step_bp.steps.should == 1
+    @step_bp.break_type.should == :opcode_replacement
+    @ctxt.ip = 11
+    @step_bp.calculate_next_breakpoint.should == 11
     @step_bp.steps.should == 0
     @step_bp.break_type.should == :opcode_replacement
   end

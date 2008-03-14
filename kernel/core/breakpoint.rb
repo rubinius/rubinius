@@ -225,8 +225,6 @@ class StepBreakpoint < TaskBreakpoint
   def set_next_breakpoint
     # Record location of last step position
     @context = @task.current_context
-    @last_method = @context.method
-    @last_ip = @context.ip
 
     if @step_type == :target  # Stepping to a fixed location
       calculate_target_breakpoint
@@ -307,8 +305,8 @@ class StepBreakpoint < TaskBreakpoint
     # Determine if we have started a new line
     if @step_by == :line
       line = bc[i].line
-      if @last_method.file != mthd.file or @last_method.line_from_ip(@last_ip) != line
-        @steps -= 1
+      if @last_method and @last_ip
+        @steps -= 1 if  @last_method.file != mthd.file or @last_method.line_from_ip(@last_ip) != line
       end
     end
     @last_method = mthd
