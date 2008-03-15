@@ -34,12 +34,12 @@ THIS SOFTWARE.
 
 #include "arith.h"
 
-#ifndef Long
+#undef Long
+#undef ULong
 #define Long int
-#endif
-#ifndef ULong
-typedef unsigned Long ULong;
-#endif
+#define ULong unsigned int
+#define NO_LONG_LONG
+
 #ifndef UShort
 typedef unsigned short UShort;
 #endif
