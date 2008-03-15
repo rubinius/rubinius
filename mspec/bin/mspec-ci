@@ -54,6 +54,7 @@ end
 MSpec.register_tags_path ENV["TAGS_DIR"]
 MSpec.register_files files
 TagFilter.new(:exclude, "fails").register
+TagFilter.new(:exclude, "unstable").register
 
 MSpec.process
 exit MSpec.exit_code
