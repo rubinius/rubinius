@@ -27,7 +27,7 @@ class PlatformGuard < SpecGuard
     @options.each do |key, value|
       case key
       when :os
-        match &&= os? *value
+        match &&= os?(*value)
       when :wordsize
         match &&= wordsize? value
       end
@@ -38,13 +38,13 @@ end
 
 class Object
   def platform_is(*args)
-    g = PlatformGuard.new *args
+    g = PlatformGuard.new(*args)
     yield if g.yield?
     g.unregister
   end
   
   def platform_is_not(*args)
-    g = PlatformGuard.new *args
+    g = PlatformGuard.new(*args)
     yield if g.yield? true
     g.unregister
   end

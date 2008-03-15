@@ -29,6 +29,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     case t
     when 'r', 'ruby'
       target = 'ruby'
+      flags << '-v'
     when 'r19', 'ruby19'
       target = 'ruby19'
     when 'x', 'rbx', 'rubinius'
@@ -41,7 +42,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-T", "--target-opt OPT", String,
           "Pass OPT as a flag to the target implementation") do |t|
-    flags <<  t
+    flags << t
   end
   opts.on("-I", "--include DIR", String,
           "Pass DIR through as the -I option to the target") do |d|

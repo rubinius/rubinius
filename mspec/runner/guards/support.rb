@@ -5,7 +5,7 @@ end
 
 class Object
   def not_supported_on(*args)
-    g = SupportedGuard.new *args
+    g = SupportedGuard.new(*args)
     yield if g.yield? true
     g.unregister
   end

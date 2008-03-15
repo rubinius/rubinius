@@ -59,7 +59,7 @@ EOH
       state.exceptions.each do |msg, exc|
         outcome = failure?(state) ? "FAILED" : "ERROR"
         print "\n<li><p>#{state.description} #{outcome}</p>\n<p>"
-        print (exc.message.empty? ? "<No message>" : exc.message)
+        print(exc.message.empty? ? "<No message>" : exc.message)
         print "</p>\n<pre>\n"
         print backtrace(exc)
         print "</pre>\n</li>\n"

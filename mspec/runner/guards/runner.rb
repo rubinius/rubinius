@@ -17,13 +17,13 @@ end
 
 class Object
   def runner_is(*args)
-    g = RunnerGuard.new *args
+    g = RunnerGuard.new(*args)
     yield if g.yield?
     g.unregister
   end
   
   def runner_is_not(*args)
-    g = RunnerGuard.new *args
+    g = RunnerGuard.new(*args)
     yield if g.yield? true
     g.unregister
   end

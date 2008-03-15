@@ -10,7 +10,7 @@ class UnitdiffFormatter < DottedFormatter
         outcome = failure?(state) ? "FAILED" : "ERROR"
         print "\n#{count += 1})\n#{state.description} #{outcome}\n"
         print "Exception occurred during: #{msg}\n" if msg
-        print (exc.message.empty? ? "<No message>" : exc.message) + ": \n"
+        print((exc.message.empty? ? "<No message>" : exc.message) + ": \n")
         print backtrace(exc)
         print "\n"
       end

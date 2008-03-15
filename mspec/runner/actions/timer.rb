@@ -1,6 +1,4 @@
 class TimerAction
-  attr_reader :start, :stop
-  
   def register
     MSpec.register :start, self
     MSpec.register :finish, self
