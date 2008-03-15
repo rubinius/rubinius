@@ -64,8 +64,7 @@ ifdef DEV
   OPTIMIZATIONS=
 else
   INLINE_OPTS=
-  # NOTE: -O2 has been observed to cause segfaults in strtod on Gentoo 64 systems
-  OPTIMIZATIONS=-funroll-loops -finline-functions $(INLINE_OPTS)
+  OPTIMIZATIONS=-O2 -funroll-loops -finline-functions $(INLINE_OPTS)
 endif
 
 ifeq ($(CPU), powerpc)
