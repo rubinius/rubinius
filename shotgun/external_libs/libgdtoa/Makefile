@@ -21,19 +21,6 @@ CFLAGS = $(WARNINGS) $(DEBUG)
 NAME=libgdtoa
 VERSION = 1
 COMP=$(CC)
-ifeq ($(UNAME),Darwin)
-  LDOPT=-dynamiclib
-  LINKER=$(CC) $(LDOPT)
-  SUFFIX=dylib
-  BIN_RPATH=
-  SONAME=-current_version $(VERSION) -compatibility_version $(VERSION)
-else
-  LDOPT=-shared
-  LINKER=$(CC) -shared
-  BIN_RPATH=
-  SUFFIX=so
-  SONAME=-Wl,-soname,$(NAME)-$(VERSION).$(SUFFIX)
-endif
 RANLIB = ranlib
 
 ifndef VERBOSE
@@ -41,8 +28,6 @@ ifndef VERBOSE
   LINKER=@echo LINK $@;$(CC) $(LDOPT)
 endif
 
-LIBS = -lpthread
-OUTPUT_LIB = $(NAME).$(VERSION).$(SUFFIX)
 OUTPUT_A = $(NAME).a
 
 ifeq ($(UNAME),Darwin)
@@ -111,10 +96,7 @@ gd_qnan.h: arith.h qnan.c
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-library: $(OUTPUT_LIB) $(OUTPUT_A)
-
-$(OUTPUT_LIB): $(DEPS) $(OBJS)
-	$(LINKER) -o $(OUTPUT_LIB) $(OBJS) $(SONAME) $(LIBS)
+library: $(OUTPUT_A)
 
 $(OUTPUT_A): $(DEPS) $(OBJS)
 	$(AR) cru $(OUTPUT_A) $(OBJS)
@@ -128,7 +110,7 @@ test: library
 .PHONY: test
 
 clean:
-	rm -f *.o *.lo *.la *.so *.dylib *.a
+	rm -f *.o *.lo *.la *.so *.a
 	-cd test; $(MAKE) clean
 
 .PHONY: clean
