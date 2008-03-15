@@ -40,60 +40,69 @@ end
 class Mutex
   def initialize
     @lock = Channel.new
-    @n_waiters = 0
-    @unlocked = Channel.new
+    @waiters = []
     @lock << nil
   end
 
   def locked?
     owner = @lock.receive
-    !!owner
-  ensure
-    @lock << owner
+    begin
+      !!owner
+    ensure
+      @lock << owner
+    end
   end
 
   def try_lock
     owner = @lock.receive
-    unless owner
-      owner = Thread.current
-      true
-    else
-      false
+    begin
+      if owner
+        false
+      else
+        owner = Thread.current
+        true
+      end
+    ensure
+      @lock << owner
     end
-  ensure
-    @lock << owner
   end
 
   def lock
     owner = @lock.receive
-    while owner
-      @n_waiters += 1
+    begin
+      while owner
+        wchan = Channel.new
+        @waiters.push wchan
+        @lock << owner
+        wchan.receive
+        owner = @lock.receive
+      end
+      owner = Thread.current
+      self
+    ensure
       @lock << owner
-      @unlocked.receive
-      owner = @lock.receive
-      @n_waiters -= 1
     end
-    owner = Thread.current
-    self
-  ensure
-    @lock << owner
   end
 
   def unlock
     owner = @lock.receive
-    raise ThreadError, "Not owner" unless owner == Thread.current
-    owner = nil 
-    @unlocked << self if @n_waiters.nonzero?
-    self
-  ensure
-    @lock << owner
+    begin
+      raise ThreadError, "Not owner" unless owner == Thread.current
+      owner = nil
+      @waiters.shift << nil unless @waiters.empty?
+      self
+    ensure
+      @lock << owner
+    end
   end
 
   def synchronize
     lock
-    yield
-  ensure
-    unlock
+    begin
+      yield
+    ensure
+      unlock
+    end
   end
 end
 
@@ -129,17 +138,43 @@ class ConditionVariable
   # Creates a new ConditionVariable
   #
   def initialize
+    @lock = Channel.new
     @waiters = []
+    @lock << nil
   end
   
   #
   # Releases the lock held in +mutex+ and waits; reacquires the lock on wakeup.
   #
-  def wait(mutex)
+  def wait(mutex, timeout=nil)
+    @lock.receive
     begin
-      # TODO: mutex should not be used
-      @waiters.push(Thread.current)
-      mutex.sleep
+      wchan = Channel.new
+      mutex.unlock
+      @waiters.push wchan
+      @lock << nil
+      if timeout
+        timeout_ms = (timeout*1000000).to_i
+        timeout_id = Scheduler.send_in_microseconds(wchan, timeout_ms)
+      else
+        timeout_id = nil
+      end
+      signaled = wchan.receive
+      Scheduler.cancel(timeout_id) if timeout
+      mutex.lock
+      @lock.receive
+      unless signaled or @waiters.delete wchan
+        # we timed out, but got signaled afterwards (e.g. while waiting to
+        # acquire @lock), so pass that signal on to the next waiter
+        @waiters.shift << true unless @waiters.empty?
+      end
+      if timeout
+        !!signaled
+      else
+        nil
+      end
+    ensure
+      @lock << nil
     end
   end
   
@@ -147,30 +182,20 @@ class ConditionVariable
   # Wakes up the first thread in line waiting for this lock.
   #
   def signal
-    begin
-      t = @waiters.shift
-      t.run if t
-    rescue ThreadError
-      retry
-    end
+    @lock.receive
+    @waiters.shift << true unless @waiters.empty?
+    @lock << nil
+    nil
   end
-    
+
   #
   # Wakes up all threads waiting for this lock.
   #
   def broadcast
-    # TODO: imcomplete
-    waiters0 = nil
-    Thread.exclusive do
-      waiters0 = @waiters.dup
-      @waiters.clear
-    end
-    for t in waiters0
-      begin
-	t.run
-      rescue ThreadError
-      end
-    end
+    @lock.receive
+    @waiters.shift << true until @waiters.empty?
+    @lock << nil
+    nil
   end
 end
 
