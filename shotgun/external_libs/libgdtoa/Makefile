@@ -45,6 +45,10 @@ ifeq ($(UNAME),SunOS)
   CFLAGS+=-D__C99FEATURES__
 endif
 
+ifeq ($(UNAME),OpenBSD)
+  CFLAGS+=-DNO_FENV_H
+endif
+
 ifdef DEV
   OPTIMIZATIONS=
 else
