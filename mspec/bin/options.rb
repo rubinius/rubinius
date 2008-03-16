@@ -177,6 +177,13 @@ class SpecOptions
     end
   end
 
+  def add_randomize
+    @options.on("-H", "--random",
+                "Randomize the list of spec files") do
+      MSpec.randomize
+    end
+  end
+
   def add_verbose
     @options.on("-V", "--verbose", "Output the name of each file processed") do
       obj = Object.new

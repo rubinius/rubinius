@@ -14,22 +14,23 @@ module MSpec
 
   def self.describe(mod, msg, &block)
     stack.push RunState.new
-    
+
     current.describe(mod, msg, &block)
     current.process
-    
+
     stack.pop
   end
-  
+
   def self.process
     actions :start
     files
     actions :finish
   end
-  
+
   def self.files
     return unless files = retrieve(:files)
 
+    shuffle files if randomize?
     files.each do |file|
       store :file, file
       actions :load
@@ -37,40 +38,40 @@ module MSpec
       actions :unload
     end
   end
-  
+
   def self.actions(action, *args)
     actions = retrieve(action)
     actions.each { |obj| obj.send action, *args } if actions
   end
-  
+
   def self.register_exit(code)
     store :exit, code
   end
-  
+
   def self.exit_code
     retrieve(:exit).to_i
   end
-  
+
   def self.register_files(files)
     store :files, files
   end
-  
+
   def self.register_tags_path(path)
     store :tags_path, path
   end
-  
+
   def self.register_mode(mode)
     store :mode, mode
   end
-  
+
   def self.retrieve(symbol)
     instance_variable_get :"@#{symbol}"
   end
-  
+
   def self.store(symbol, value)
     instance_variable_set :"@#{symbol}", value
   end
-  
+
   # This method is used for registering actions that are
   # run at particular points in the spec cycle:
   #   :start        before any specs are run
@@ -88,7 +89,7 @@ module MSpec
   # is registered as a :start action, it should respond to
   # a #start method call.
   #
-  # Additionally, there are two "action" lists for 
+  # Additionally, there are two "action" lists for
   # filtering specs:
   #   :include  return true if the spec should be run
   #   :exclude  return true if the spec should NOT be run
@@ -99,13 +100,13 @@ module MSpec
     end
     value << action unless value.include? action
   end
-  
+
   def self.unregister(symbol, action)
     if value = retrieve(symbol)
       value.delete action
     end
   end
-  
+
   def self.protect(msg, &block)
     begin
       block.call
@@ -119,36 +120,54 @@ module MSpec
       end
     end
   end
-  
+
   def self.stack
     @stack ||= []
   end
-  
+
   def self.current
     stack.last
   end
-  
+
   def self.verify_mode?
     @mode == :verify
   end
-  
+
   def self.report_mode?
     @mode == :report
   end
-  
+
   def self.pretend_mode?
     @mode == :pretend
+  end
+
+  def self.randomize(flag=true)
+    @randomize = flag
+  end
+
+  def self.randomize?
+    @randomize == true
+  end
+
+  def self.shuffle(ary)
+    return if ary.empty?
+
+    size = ary.size
+    size.times do |i|
+      r = rand(size - i - 1)
+      ary[i], ary[r] = ary[r], ary[i]
+    end
   end
 
   def self.tags_path
     retrieve(:tags_path) || ".tags"
   end
-  
+
   def self.tags_file
     path = tags_path
     file = retrieve :file
     tags_file = File.basename(file, '.*').sub(/_spec$/, '_tags') + '.txt'
-    
+
     if path[0] == ?/
       m = file.match %r[.*spec/(.*)/.*_spec.rb]
       tags_path = m ? File.join(path, m[1]) : path
@@ -157,7 +176,7 @@ module MSpec
     end
     File.join tags_path, tags_file
   end
-  
+
   def self.read_tags(*keys)
     tags = []
     file = tags_file
@@ -171,7 +190,7 @@ module MSpec
     end
     tags
   end
-  
+
   def self.write_tag(tag)
     string = tag.to_s
     file = tags_file
@@ -185,7 +204,7 @@ module MSpec
     File.open(file, "a") { |f| f.puts string }
     return true
   end
-  
+
   def self.delete_tag(tag)
     deleted = false
     pattern = /#{tag.tag}.*#{Regexp.escape tag.description}/

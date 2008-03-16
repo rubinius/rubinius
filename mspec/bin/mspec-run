@@ -9,12 +9,16 @@ opts = SpecOptions.new "run", "", 28, "   "
 options = opts.options
 options.separator " Ask yourself:"
 options.separator "  1. What specs to run?"
-options.separator "  2. How to display the output?"
-options.separator "  3. What action to perform?"
-options.separator "  4. When to perform it?"
+options.separator "  2. How to modify the execution?"
+options.separator "  3. How to display the output?"
+options.separator "  4. What action to perform?"
+options.separator "  5. When to perform it?"
 
 options.separator "\n What specs to run"
 opts.add_filters
+
+options.separator "\n How to modify the execution"
+opts.add_randomize
 opts.add_pretend
 opts.add_interrupt
 

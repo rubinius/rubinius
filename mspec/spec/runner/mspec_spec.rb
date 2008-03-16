@@ -39,6 +39,14 @@ describe MSpec do
     MSpec.retrieve(:action).should == [:first]
   end
 
+  it "provides .randomize/.randomize? to record/return the flag to randomize spec execution order" do
+    MSpec.randomize?.should == false
+    MSpec.randomize
+    MSpec.randomize?.should == true
+    MSpec.randomize false
+    MSpec.randomize?.should == false
+  end
+
   it "provides .register as the gateway behind the register(symbol, action) facility" do
     MSpec.register :bonus, :first
     MSpec.register :bonus, :second
@@ -215,11 +223,38 @@ describe MSpec, ".files" do
     ScratchPad.recorded.should == :load
   end
 
+  it "shuffles the file list if .randomize? is true" do
+    MSpec.randomize
+    MSpec.should_receive(:shuffle)
+    MSpec.files
+    MSpec.randomize false
+  end
+
   it "registers the current file" do
     MSpec.should_receive(:store).with(:file, :one)
     MSpec.should_receive(:store).with(:file, :two)
     MSpec.should_receive(:store).with(:file, :three)
     MSpec.files
+  end
+end
+
+describe MSpec, ".shuffle" do
+  before :each do
+    @base = (0..100).to_a
+    @list = @base.clone
+    MSpec.shuffle @list
+  end
+
+  it "does not alter the elements in the list" do
+    @base.each do |elt|
+      @list.should include(elt)
+    end
+  end
+
+  it "changes the order of the list" do
+    # obviously, this spec has a certain probability
+    # of failing. If it fails, run it again.
+    @list.should_not == @base
   end
 end
 

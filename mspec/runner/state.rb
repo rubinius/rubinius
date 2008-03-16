@@ -49,7 +49,8 @@ class RunState
   def process
     protect @describe, @block, false
     return unless @spec.any? { |desc, spec, state| state.unfiltered? }
-    
+
+    MSpec.shuffle @spec if MSpec.randomize?
     MSpec.actions :enter, @describe
     protect "before :all", @start
     @spec.each do |desc, spec, state|

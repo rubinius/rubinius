@@ -167,6 +167,14 @@ describe RunState, "#process" do
     @state.process
     ScratchPad.recorded.should == [[nil, exception]]
   end
+
+  it "shuffles the spec list if MSpec.randomize? is true" do
+    MSpec.randomize
+    MSpec.should_receive(:shuffle)
+    @state.it("") { }
+    @state.process
+    MSpec.randomize false
+  end
 end
 
 describe RunState, "#process in pretend mode" do  
