@@ -20,7 +20,7 @@ module FileSpecs
 
   # TODO: This is probably too volatile
   def self.find_socket()
-    %w[/tmp /var].each do |dir|
+    %w[/tmp /var/run].each do |dir|
       socks = `find #{dir} -type s 2> /dev/null`.split("\n")
       next if socks.empty?
       @sock = socks.first
