@@ -27,8 +27,12 @@ describe "IO#close_write" do
   end
 
   it "raises an IOError if the stream is not duplexed." do
-     @io = IO.popen("ls", "r")
-     lambda { @io.close_write }.should raise_error(IOError)
+    begin
+     io_r = IO.popen("ls", "r")
+     lambda { io_r.close_write }.should raise_error(IOError)
+    ensure
+      io_r.close
+    end
   end
 
   it "flushes and closes the write stream" do

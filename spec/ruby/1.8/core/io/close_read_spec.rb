@@ -27,8 +27,12 @@ describe "IO#close_read" do
   end
 
   it "raises an IOError if the stream is not duplexed." do
-     @io = IO.popen(RUBY_NAME, "w")
-     lambda { @io.close_read }.should raise_error(IOError)
+    begin
+      io_w = IO.popen(RUBY_NAME, "w")
+      lambda { io_w.close_read }.should raise_error(IOError)
+    ensure
+      io_w.close
+    end
   end
   
   it "raises IOError on closed stream" do
