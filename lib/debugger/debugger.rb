@@ -155,7 +155,6 @@ class Debugger
   # Activates the debugger after a breakpoint has been hit, and responds to
   # debgging commands until a continue command is recevied.
   def activate_debugger(thread, ctxt, bp)
-puts "Activating debugger"
     puts "[Debugger activated]" unless bp.kind_of? StepBreakpoint
     @debug_thread = thread
     @eval_context = @debug_context = ctxt

@@ -155,7 +155,6 @@ class TaskBreakpoint < Breakpoint
     @encoder = InstructionSequence::Encoder.new
   end
   attr_reader :task
-
 end
 
 
@@ -220,7 +219,6 @@ class StepBreakpoint < TaskBreakpoint
   end
 
   attr_reader :context    # Context in which the next step breakpoint is to occur
-  attr_reader :ip         # IP at which the next step breakpoint is to occur
   attr_reader :step_type
   attr_reader :step_by
   attr_reader :target
@@ -230,7 +228,7 @@ class StepBreakpoint < TaskBreakpoint
   # Determines where to set the next breakpoint for this step breakpoint, and
   # then sets it using the appropriate method. When we know where execution will
   # go, we set a yield_debugger at the appropriate point; when we don't (i.e.
-  # because we are calling a method, or TODO: raising an exception, we set a
+  # because we are calling a method, or TODO: raising an exception), we set a
   # flag on the task so that the VM calls us when the context change is complete.
   def set_next_breakpoint
     # Record location of last step position
@@ -582,6 +580,10 @@ class BreakpointTracker
     step_bp = StepBreakpoint.new(task, selector, &prc)
     step_bp.set_next_breakpoint
     @task_breakpoints[task] << step_bp
+    if step_bp.break_type == :opcode_replacement and step_bp.original_instruction.first.opcode == :yield_debugger
+      # Step breakpoint has set its next breakpoint at same location as an existing breakpoint
+      step_bp.original_instruction = @global_breakpoints[step_bp.method][step_bp.ip].original_instruction
+    end
     step_bp
   end
 
@@ -635,6 +637,11 @@ class BreakpointTracker
             @task_breakpoints[task].delete(bp)
           end
           bp.call_handler(@thread, ctx)
+          if bp.kind_of? StepBreakpoint and bp.break_type == :opcode_replacement and
+              bp.original_instruction.first.opcode == :yield_debugger
+            # Step breakpoint has set its next breakpoint at same location as an existing breakpoint
+            bp.original_instruction = @global_breakpoints[bp.method][bp.ip].original_instruction
+          end
         end
       rescue RuntimeError => e
         puts "An exception occured in a breakpoint handler:"
