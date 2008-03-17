@@ -596,6 +596,10 @@ class ShotgunPrimitives
     native_int k = N2I(string_get_bytes(t1));
     
     k = write(j, buf, k);
+    if (k == -1) {
+      RAISE_FROM_ERRNO("Unable to write");
+    }
+
     t2 = I2N(k);
     if(k != N2I(t2)) {
       t2 = bignum_new(state, k);
