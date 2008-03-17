@@ -94,11 +94,18 @@ class File < IO
     end
     paths.size
   end
-  
+
   def self.chown(owner_int, group_int, *paths)
     owner_int = -1 if owner_int == nil
     group_int = -1 if group_int == nil
     paths.each { |path| POSIX.chown(path, owner_int, group_int) }
+    paths.size
+  end
+
+  def self.lchown(owner_int, group_int, *paths)
+    owner_int = -1 if owner_int == nil
+    group_int = -1 if group_int == nil
+    paths.each { |path| POSIX.lchown(path, owner_int, group_int) }
     paths.size
   end
 

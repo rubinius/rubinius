@@ -25,6 +25,7 @@ module Platform::POSIX
   attach_function 'fchmod', [:int, :mode_t], :int
   attach_function 'chown', [:string, :uid_t, :gid_t], :int
   attach_function 'fchown', [:int, :uid_t, :gid_t], :int
+  attach_function 'lchown', [:string, :uid_t, :gid_t], :int
   attach_function 'unlink', [:string], :int
   attach_function 'getcwd', [:string, :size_t], :string
   attach_function 'umask', [:mode_t], :int
