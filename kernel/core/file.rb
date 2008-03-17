@@ -169,14 +169,17 @@ class File < IO
   def self.range(pattern, pstart, pend, test, flags)
     ok = false
     escape = (flags & FNM_NOESCAPE) == 0
-    case_sensitive = (flags & FNM_CASEFOLD) == 0 
+    case_sensitive = (flags & FNM_CASEFOLD) == 0
     neg = pattern[pstart] == ?! || pattern[pstart] == ?^
+
     pstart += 1 if neg
+
     while pattern[pstart] != ?] do
       pstart += 1 if escape && pattern[pstart] == ?\\
       return -1 if pstart >= pend
       cstart = cend = pattern[pstart]
       pstart += 1
+
       if pattern[pstart] == ?- && pattern[pstart+1] != ?]
         pstart += 1
         pstart += 1 if escape && pattern[pstart] == ?\\
@@ -184,16 +187,18 @@ class File < IO
         cend = pattern[pstart]
         pstart += 1
       end
+
       if case_sensitive
         ok = true if cstart <= test && test <= cend
       else
-        ok = true if cstart.tolower <= test.tolower && test.tolower <= cend.tolower
+        ok = true if cstart.tolower <= test.tolower &&
+          test.tolower <= cend.tolower
       end
     end
-  
+
     ok == neg ? -1 : pstart + 1
   end
-  
+
   def self.name_match(pattern, str, flags, patstart, patend, strstart, strend)
     index = strstart
     pstart = patstart
