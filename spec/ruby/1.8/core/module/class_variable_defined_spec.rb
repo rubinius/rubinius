@@ -10,11 +10,22 @@ describe "Module#class_variable_defined?" do
     c.class_variable_defined?("@@no_class_var").should == false
     ModuleSpecs::CVars.class_variable_defined?("@@cls").should == true
   end
-  
+
   it "returns true if a class variable with the given name is defined in the metaclass" do
     ModuleSpecs::CVars.class_variable_defined?("@@meta").should == true
   end
-  
+
+  it "returns true if a class variables with the given name is defined in an included module" do
+    c = Class.new { include ModuleSpecs::MVars }
+    c.class_variable_defined?("@@mvar").should == true
+  end
+
+  it "returns false if a class variables with the given name is defined in an extended module" do
+    c = Class.new
+    c.extend ModuleSpecs::MVars
+    c.class_variable_defined?("@@mvar").should == false
+  end
+
   not_compliant_on :rubinius do
     it "accepts Fixnums for class variables" do
       c = Class.new { class_variable_set :@@class_var, "test" }
@@ -22,14 +33,14 @@ describe "Module#class_variable_defined?" do
       c.class_variable_defined?(:@@no_class_var.to_i).should == false
     end
   end
-  
+
   it "raises a NameError when the given name is not allowed" do
     c = Class.new
-    
+
     lambda {
       c.class_variable_defined?(:invalid_name)
     }.should raise_error(NameError)
-    
+
     lambda {
       c.class_variable_defined?("@invalid_name")
     }.should raise_error(NameError)
@@ -47,7 +58,7 @@ describe "Module#class_variable_defined?" do
     lambda {
       c.class_variable_defined?(o)
     }.should raise_error(TypeError)
-    
+
     o.should_receive(:to_str).and_return(123)
     lambda {
       c.class_variable_defined?(o)

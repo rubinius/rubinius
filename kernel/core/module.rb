@@ -78,6 +78,8 @@ class Module
     while current
       if current.__kind_of__ MetaClass
         vars = current.attached_instance.send :class_variables_table
+      elsif current.__kind_of__ IncludedModule
+        vars = current.module.send :class_variables_table
       else
         vars = current.send :class_variables_table
       end
@@ -100,6 +102,8 @@ class Module
     while current
       if current.__kind_of__ MetaClass
         vars = current.attached_instance.send :class_variables_table
+      elsif current.__kind_of__ IncludedModule
+        vars = current.module.send :class_variables_table
       else
         vars = current.send :class_variables_table
       end
@@ -115,7 +119,11 @@ class Module
 
     current = self
     while current
-      vars = current.send :class_variables_table
+      if current.__kind_of__ IncludedModule
+        vars = current.module.send :class_variables_table
+      else
+        vars = current.send :class_variables_table
+      end
       return true if vars.key? name
       current = current.direct_superclass
     end

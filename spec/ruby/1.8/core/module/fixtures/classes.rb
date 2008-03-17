@@ -231,7 +231,7 @@ module ModuleSpecs
 
   class InstanceMethChild < InstanceMeth
   end
-  
+
   module ClassVars
     class A
       @@a_cvar = :a_cvar
@@ -250,23 +250,27 @@ module ModuleSpecs
 
   class CVars
     @@cls = :class
-    
+
     class << self
       def cls
         @@cls
       end
       @@meta = :meta
     end
-    
+
     def self.meta
       @@meta
     end
-    
+
     def meta
       @@meta
     end
   end
-  
+
+  module MVars
+    @@mvar = :mvar
+  end
+
   class SubModule < Module
     attr_reader :special
     def initialize
