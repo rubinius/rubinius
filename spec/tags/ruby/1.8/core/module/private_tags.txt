@@ -1,0 +1,1 @@
+fails:Module#private should make the target method uncallable from other types
