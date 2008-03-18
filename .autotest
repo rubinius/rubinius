@@ -5,6 +5,8 @@ require 'autotest/timestamp'
 $f = true # quickstart
 $q = ! $v # don't print all the files unless we run -v
 
+# TODO: puke if Autotest::Rspec is seen
+
 ENV['PRETTY'] = "1"
 
 Autotest.add_hook :run_command do |at|
@@ -73,7 +75,7 @@ Autotest.add_hook :initialize do |at|
     Dir["spec/#{m[1]}_spec.rb"]
   end
 
-  at.add_mapping %r%^spec/.*([^/]+)/(shared|fixtures)/% do |_, m|
+  at.add_mapping %r%^spec/(.*)/(shared|fixtures)/% do |_, m|
     at.files_matching(%r%^spec/.*#{m[1]}/.*_spec.rb$%)
   end
 
@@ -83,10 +85,6 @@ Autotest.add_hook :initialize do |at|
 
   at.add_mapping %r%^spec/compiler/spec_helper.rb% do
     at.files_matching(%r%^spec/compiler/.*_spec.rb$%)
-  end
-
-  at.add_mapping %r%^spec/parser/sexp_expectations.rb% do
-    at.files_matching(%r%^spec/parser/.*_spec.rb$%)
   end
 
   at.add_mapping %r%^spec/.*_spec\.rb$% do |filename, _|
