@@ -34,13 +34,23 @@ unless file
   exit 0
 end
 
+sexp = if File.exist? file then
+         File.to_sexp file
+       else
+         file.to_sexp
+       end
+
 puts "Sexp:"
-pp File.to_sexp(file)
+pp sexp
+
+top = if File.exist? file then
+        Compiler.compile_file file
+      else
+        exit # HACK - Can't figure out compile_string problems
+        # Compiler.compile_string file
+      end
 
 puts "\nBytecode:"
-
-top = Compiler.compile_file(file)
-
 puts top.decode
 
 extra = top.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
