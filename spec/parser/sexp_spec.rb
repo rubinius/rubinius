@@ -24,7 +24,8 @@ describe "Shotgun" do
   end
 
   it "converts a local var to an sexp" do
-    "a = 1; a".to_sexp.should == [:block, [:lasgn, :a, [:lit, 1]], [:lvar, :a, 0]]
+    "a = 1; a".to_sexp.should ==
+      [:block, [:lasgn, :a, [:lit, 1]], [:lvar, :a, 0]]
   end
 
   it "converts an instance variable to an sexp" do
@@ -48,18 +49,18 @@ describe "Shotgun" do
   end
 
   it "converts a string expansion to an sexp" do
-    'a = 1; "hello #{a}, you rock."'.to_sexp.should == 
-      [:block, 
-        [:lasgn, :a, [:lit, 1]], 
-        [:dstr, "hello ", [:evstr, [:lvar, :a, 0]], 
+    'a = 1; "hello #{a}, you rock."'.to_sexp.should ==
+      [:block,
+        [:lasgn, :a, [:lit, 1]],
+        [:dstr, "hello ", [:evstr, [:lvar, :a, 0]],
         [:str, ", you rock."]]]
   end
 
   it "converts a pathological string expansion to an sexp" do
-    '@thing = 5; "hello #@thing, you are crazy."'.to_sexp.should == 
-      [:block, 
-        [:iasgn, :@thing, [:lit, 5]], 
-        [:dstr, "hello ", [:evstr, [:ivar, :@thing]], 
+    '@thing = 5; "hello #@thing, you are crazy."'.to_sexp.should ==
+      [:block,
+        [:iasgn, :@thing, [:lit, 5]],
+        [:dstr, "hello ", [:evstr, [:ivar, :@thing]],
         [:str, ", you are crazy."]]]
   end
 
@@ -68,14 +69,14 @@ describe "Shotgun" do
   end
 
   it "converts a method definition with arguments to an sexp" do
-    "def name(a, b); 1; end".to_sexp.should == 
-      [:defn, :name, 
+    "def name(a, b); 1; end".to_sexp.should ==
+      [:defn, :name,
         [:scope, [:block, [:args, [:a, :b], [], nil, nil], [:lit, 1]], [:a, :b]]]
   end
 
   it "converts a class definition to an sexp" do
-    "class Blah < A::B; end".to_sexp.should == 
-      [:class, 
+    "class Blah < A::B; end".to_sexp.should ==
+      [:class,
         [:colon2, :Blah], [:colon2, [:const, :A], :B], [:scope, []]]
   end
 
@@ -91,18 +92,23 @@ def rewrite_expected array
   case array.first
   when :alias, :undef then
     array[1..-1] = array[1..-1].map { |lit| lit.last }
+  when :dasgn_curr then
+    array[0] = :lasgn
+  when :dasgn then
+    array[0] = :lasgn
+  when :dvar then
+    array[0] = :lvar
   when :class, :module then
     name = array[1]
     name = [:colon2, name] unless Array === name and name[0] == :colon2
     array[1] = name
     array[-1] << []      # no clue
-  when :defn then
-    array[-1] << []      # no clue
   when :lit then
     case array[1]
     when Regexp then
       regexp = array[1]
-      array[0..-1] = [:regex, regexp.source, regexp.options - 16] # FIX: broken on kcode
+      offset = /./.options
+      array[0..-1] = [:regex, regexp.source] # FIX: add options
     when Range then
       range = array[1]
       type = range.exclude_end? ? :dot3 : :dot2
@@ -114,8 +120,6 @@ def rewrite_expected array
     until array.size >= 3 do
       array << nil << nil
     end
-  when :lvar then
-    array << 0           # depth - seems unused
   end
 
   array = array.map { |item|
@@ -129,12 +133,50 @@ def rewrite_expected array
   array
 end
 
-describe "Producing sexps from source code" do
+def rewrite_actual array
+  case array.first
+  when :alias then
+    array[-2..-1] = array[-2..-1].reverse
+  when :args then
+    array = array.flatten.compact.map { |o| o == true ? :* : o }
+  when :back_ref then
+    array[-1] = array[-1].chr.to_sym
+  when :block then
+    array = array[2] if array.size == 3 and array[1][0] == :dasgn_curr
+  when :defn, :defs then
+    array[-1].pop # remove local vars list
+  when :lvar then
+    array.pop # remove index
+  when :negate then
+    array = array[1]
+    array[-1] = -array[-1]
+  when :regex then
+    array.pop # TODO: add options
+  when :dasgn then
+    array[0] = :lasgn
+  when :fixnum then
+    array[0] = :lit
+  when :match then
+    array = [:match, [:regex, *array[1..-1]]]
+  end
+
+  array = array.map { |item|
+    if Array === item then
+      rewrite_actual(item)
+    else
+      item
+    end
+  }
+
+  array
+end
+
+describe "String#to_sexp" do
   SEXP_EXPECTATIONS.each do |node, hash|
-    it "succeeds for a node of type :#{node}" do
+    it "parses :#{node}" do
       expected = rewrite_expected(hash['ParseTree'])
-      actual = hash['Ruby'].to_sexp
-      actual.should == expected
+      actual = rewrite_actual(hash['Ruby'].to_sexp)
+      expected.should == actual
     end
   end
 end

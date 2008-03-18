@@ -1,113 +1,89 @@
 fails:Shotgun converts a class definition to an sexp
-fails:Producing sexps from source code succeeds for a node of type :alias
-fails:Producing sexps from source code succeeds for a node of type :alias_ugh
-fails:Producing sexps from source code succeeds for a node of type :attrasgn
-fails:Producing sexps from source code succeeds for a node of type :back_ref
-fails:Producing sexps from source code succeeds for a node of type :begin_rescue_twice
-fails:Producing sexps from source code succeeds for a node of type :block_mystery_block
-fails:Producing sexps from source code succeeds for a node of type :block_pass_args_and_splat
-fails:Producing sexps from source code succeeds for a node of type :block_pass_omgwtf
-fails:Producing sexps from source code succeeds for a node of type :block_pass_splat
-fails:Producing sexps from source code succeeds for a node of type :block_stmt_after
-fails:Producing sexps from source code succeeds for a node of type :block_stmt_before
-fails:Producing sexps from source code succeeds for a node of type :block_stmt_both
-fails:Producing sexps from source code succeeds for a node of type :call_arglist_hash
-fails:Producing sexps from source code succeeds for a node of type :call_arglist_norm_hash
-fails:Producing sexps from source code succeeds for a node of type :call_arglist_norm_hash_splat
-fails:Producing sexps from source code succeeds for a node of type :case
-fails:Producing sexps from source code succeeds for a node of type :case_nested
-fails:Producing sexps from source code succeeds for a node of type :case_nested_inner_no_expr
-fails:Producing sexps from source code succeeds for a node of type :case_no_expr
-fails:Producing sexps from source code succeeds for a node of type :case_splat
-fails:Producing sexps from source code succeeds for a node of type :cdecl
-fails:Producing sexps from source code succeeds for a node of type :class_super_array
-fails:Producing sexps from source code succeeds for a node of type :class_super_expr
-fails:Producing sexps from source code succeeds for a node of type :class_super_object
-fails:Producing sexps from source code succeeds for a node of type :conditional1
-fails:Producing sexps from source code succeeds for a node of type :conditional2
-fails:Producing sexps from source code succeeds for a node of type :conditional3
-fails:Producing sexps from source code succeeds for a node of type :conditional4
-fails:Producing sexps from source code succeeds for a node of type :cvasgn_cls_method
-fails:Producing sexps from source code succeeds for a node of type :dasgn_0
-fails:Producing sexps from source code succeeds for a node of type :dasgn_1
-fails:Producing sexps from source code succeeds for a node of type :dasgn_2
-fails:Producing sexps from source code succeeds for a node of type :dasgn_curr
-fails:Producing sexps from source code succeeds for a node of type :dasgn_icky
-fails:Producing sexps from source code succeeds for a node of type :dasgn_mixed
-fails:Producing sexps from source code succeeds for a node of type :defn_args_mand_opt_block
-fails:Producing sexps from source code succeeds for a node of type :defn_args_mand_opt_splat
-fails:Producing sexps from source code succeeds for a node of type :defn_args_mand_opt_splat_block
-fails:Producing sexps from source code succeeds for a node of type :defn_args_mand_opt_splat_no_name
-fails:Producing sexps from source code succeeds for a node of type :defn_args_opt_block
-fails:Producing sexps from source code succeeds for a node of type :defn_args_opt_splat_no_name
-fails:Producing sexps from source code succeeds for a node of type :defn_empty_args
-fails:Producing sexps from source code succeeds for a node of type :defn_lvar_boundary
-fails:Producing sexps from source code succeeds for a node of type :defn_optargs
-fails:Producing sexps from source code succeeds for a node of type :defn_or
-fails:Producing sexps from source code succeeds for a node of type :defn_rescue
-fails:Producing sexps from source code succeeds for a node of type :defn_splat_no_name
-fails:Producing sexps from source code succeeds for a node of type :defn_zarray
-fails:Producing sexps from source code succeeds for a node of type :defs
-fails:Producing sexps from source code succeeds for a node of type :defs_args_mand_opt_splat_block
-fails:Producing sexps from source code succeeds for a node of type :defs_empty
-fails:Producing sexps from source code succeeds for a node of type :defs_empty_args
-fails:Producing sexps from source code succeeds for a node of type :dregx
-fails:Producing sexps from source code succeeds for a node of type :dregx_interp
-fails:Producing sexps from source code succeeds for a node of type :dregx_once
-fails:Producing sexps from source code succeeds for a node of type :dstr_heredoc_yet_again
-fails:Producing sexps from source code succeeds for a node of type :dstr_str_lit_start
-fails:Producing sexps from source code succeeds for a node of type :dstr_the_revenge
-fails:Producing sexps from source code succeeds for a node of type :dsym
-fails:Producing sexps from source code succeeds for a node of type :ensure
-fails:Producing sexps from source code succeeds for a node of type :fcall_arglist_hash
-fails:Producing sexps from source code succeeds for a node of type :fcall_arglist_norm_hash
-fails:Producing sexps from source code succeeds for a node of type :fcall_arglist_norm_hash_splat
-fails:Producing sexps from source code succeeds for a node of type :flip2
-fails:Producing sexps from source code succeeds for a node of type :flip3
-fails:Producing sexps from source code succeeds for a node of type :hash_rescue
-fails:Producing sexps from source code succeeds for a node of type :iteration2
-fails:Producing sexps from source code succeeds for a node of type :iteration3
-fails:Producing sexps from source code succeeds for a node of type :iteration4
-fails:Producing sexps from source code succeeds for a node of type :iteration6
-fails:Producing sexps from source code succeeds for a node of type :iteration7
-fails:Producing sexps from source code succeeds for a node of type :iteration8
-fails:Producing sexps from source code succeeds for a node of type :iteration9
-fails:Producing sexps from source code succeeds for a node of type :iteration_dasgn_curr_dasgn_madness
-fails:Producing sexps from source code succeeds for a node of type :iteration_double_var
-fails:Producing sexps from source code succeeds for a node of type :iteration_masgn
-fails:Producing sexps from source code succeeds for a node of type :lit_long_negative
-fails:Producing sexps from source code succeeds for a node of type :lit_regexp_n
-fails:Producing sexps from source code succeeds for a node of type :lvar_def_boundary
-fails:Producing sexps from source code succeeds for a node of type :masgn
-fails:Producing sexps from source code succeeds for a node of type :masgn_attrasgn
-fails:Producing sexps from source code succeeds for a node of type :masgn_iasgn
-fails:Producing sexps from source code succeeds for a node of type :masgn_masgn
-fails:Producing sexps from source code succeeds for a node of type :masgn_splat_no_name_to_ary
-fails:Producing sexps from source code succeeds for a node of type :masgn_splat_no_name_trailing
-fails:Producing sexps from source code succeeds for a node of type :match
-fails:Producing sexps from source code succeeds for a node of type :match2
-fails:Producing sexps from source code succeeds for a node of type :match3
-fails:Producing sexps from source code succeeds for a node of type :op_asgn1
-fails:Producing sexps from source code succeeds for a node of type :op_asgn2
-fails:Producing sexps from source code succeeds for a node of type :op_asgn2_self
-fails:Producing sexps from source code succeeds for a node of type :op_asgn_and
-fails:Producing sexps from source code succeeds for a node of type :op_asgn_or
-fails:Producing sexps from source code succeeds for a node of type :op_asgn_or_block
-fails:Producing sexps from source code succeeds for a node of type :proc_args_1
-fails:Producing sexps from source code succeeds for a node of type :proc_args_2
-fails:Producing sexps from source code succeeds for a node of type :rescue
-fails:Producing sexps from source code succeeds for a node of type :rescue_block_body
-fails:Producing sexps from source code succeeds for a node of type :rescue_exceptions
-fails:Producing sexps from source code succeeds for a node of type :sclass
-fails:Producing sexps from source code succeeds for a node of type :sclass_trailing_class
-fails:Producing sexps from source code succeeds for a node of type :splat
-fails:Producing sexps from source code succeeds for a node of type :str_interp_file
-fails:Producing sexps from source code succeeds for a node of type :structure_extra_block_for_dvar_scoping
-fails:Producing sexps from source code succeeds for a node of type :structure_remove_begin_1
-fails:Producing sexps from source code succeeds for a node of type :structure_remove_begin_2
-fails:Producing sexps from source code succeeds for a node of type :structure_unused_literal_wwtt
-fails:Producing sexps from source code succeeds for a node of type :to_ary
-fails:Producing sexps from source code succeeds for a node of type :undef_block_wtf
-fails:Producing sexps from source code succeeds for a node of type :valias
-fails:Producing sexps from source code succeeds for a node of type :yield
-fails:Producing sexps from source code succeeds for a node of type :yield_arg
+fails:String#to_sexp parses :attrasgn
+fails:String#to_sexp parses :begin_rescue_twice
+fails:String#to_sexp parses :block_mystery_block
+fails:String#to_sexp parses :block_pass_args_and_splat
+fails:String#to_sexp parses :block_pass_omgwtf
+fails:String#to_sexp parses :block_pass_splat
+fails:String#to_sexp parses :block_stmt_after
+fails:String#to_sexp parses :block_stmt_before
+fails:String#to_sexp parses :block_stmt_both
+fails:String#to_sexp parses :call_arglist_hash
+fails:String#to_sexp parses :call_arglist_norm_hash
+fails:String#to_sexp parses :call_arglist_norm_hash_splat
+fails:String#to_sexp parses :cdecl
+fails:String#to_sexp parses :class_super_array
+fails:String#to_sexp parses :class_super_expr
+fails:String#to_sexp parses :class_super_object
+fails:String#to_sexp parses :cvasgn_cls_method
+fails:String#to_sexp parses :dasgn_2
+fails:String#to_sexp parses :dasgn_curr
+fails:String#to_sexp parses :dasgn_icky
+fails:String#to_sexp parses :dasgn_mixed
+fails:String#to_sexp parses :defn_args_mand_opt_block
+fails:String#to_sexp parses :defn_args_mand_opt_splat
+fails:String#to_sexp parses :defn_args_mand_opt_splat_block
+fails:String#to_sexp parses :defn_args_mand_opt_splat_no_name
+fails:String#to_sexp parses :defn_args_opt_block
+fails:String#to_sexp parses :defn_args_opt_splat_no_name
+fails:String#to_sexp parses :defn_empty_args
+fails:String#to_sexp parses :defn_lvar_boundary
+fails:String#to_sexp parses :defn_optargs
+fails:String#to_sexp parses :defn_rescue
+fails:String#to_sexp parses :defn_splat_no_name
+fails:String#to_sexp parses :defs_args_mand_opt_splat_block
+fails:String#to_sexp parses :dregx
+fails:String#to_sexp parses :dregx_interp
+fails:String#to_sexp parses :dregx_once
+fails:String#to_sexp parses :dstr_heredoc_yet_again
+fails:String#to_sexp parses :dstr_str_lit_start
+fails:String#to_sexp parses :dstr_the_revenge
+fails:String#to_sexp parses :dsym
+fails:String#to_sexp parses :ensure
+fails:String#to_sexp parses :fcall_arglist_hash
+fails:String#to_sexp parses :fcall_arglist_norm_hash
+fails:String#to_sexp parses :fcall_arglist_norm_hash_splat
+fails:String#to_sexp parses :hash_rescue
+fails:String#to_sexp parses :iteration6
+fails:String#to_sexp parses :iteration7
+fails:String#to_sexp parses :iteration8
+fails:String#to_sexp parses :iteration9
+fails:String#to_sexp parses :iteration_dasgn_curr_dasgn_madness
+fails:String#to_sexp parses :iteration_double_var
+fails:String#to_sexp parses :iteration_masgn
+fails:String#to_sexp parses :lvar_def_boundary
+fails:String#to_sexp parses :masgn
+fails:String#to_sexp parses :masgn_attrasgn
+fails:String#to_sexp parses :masgn_iasgn
+fails:String#to_sexp parses :masgn_masgn
+fails:String#to_sexp parses :masgn_splat_no_name_to_ary
+fails:String#to_sexp parses :masgn_splat_no_name_trailing
+fails:String#to_sexp parses :op_asgn1
+fails:String#to_sexp parses :op_asgn2
+fails:String#to_sexp parses :op_asgn2_self
+fails:String#to_sexp parses :op_asgn_and
+fails:String#to_sexp parses :op_asgn_or
+fails:String#to_sexp parses :op_asgn_or_block
+fails:String#to_sexp parses :proc_args_1
+fails:String#to_sexp parses :proc_args_2
+fails:String#to_sexp parses :rescue
+fails:String#to_sexp parses :rescue_block_body
+fails:String#to_sexp parses :rescue_exceptions
+fails:String#to_sexp parses :sclass
+fails:String#to_sexp parses :sclass_trailing_class
+fails:String#to_sexp parses :splat
+fails:String#to_sexp parses :str_interp_file
+fails:String#to_sexp parses :structure_extra_block_for_dvar_scoping
+fails:String#to_sexp parses :structure_remove_begin_1
+fails:String#to_sexp parses :structure_remove_begin_2
+fails:String#to_sexp parses :structure_unused_literal_wwtt
+fails:String#to_sexp parses :to_ary
+fails:String#to_sexp parses :undef_block_wtf
+fails:String#to_sexp parses :valias
+fails:String#to_sexp parses :yield
+fails:String#to_sexp parses :yield_arg
+fails:String#to_sexp parses :case_no_expr
+fails:String#to_sexp parses :case_nested
+fails:String#to_sexp parses :case
+fails:String#to_sexp parses :case_splat
+fails:String#to_sexp parses :case_nested_inner_no_expr
