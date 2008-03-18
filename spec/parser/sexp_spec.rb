@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
-require File.dirname(__FILE__) + '/sexp_expectations'
+require File.dirname(__FILE__) + '/fixtures/sexp_expectations'
 
 class String
   alias :old_to_sexp :to_sexp
