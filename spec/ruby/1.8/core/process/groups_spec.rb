@@ -7,7 +7,7 @@ describe "Process.groups" do
 
   it "gets an Array of the gids of groups in the supplemental group access list" do
     groups = `id -G`.scan(/\d+/).map {|i| i.to_i}
-    Process.groups.sort.should == groups.sort
+    Process.groups.uniq.sort.should == groups.uniq.sort
   end
 
   # NOTE: This is kind of sketchy.
