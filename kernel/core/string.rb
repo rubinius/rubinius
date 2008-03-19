@@ -590,11 +590,14 @@ class String
 
     modified = false
 
-    @bytes.times do |i|
-      if (c = @data[i]).isupper
+    i = 0
+    while i < @bytes
+      c = @data[i]
+      if c.isupper
         @data[i] = c.tolower!
         modified = true
       end
+      i += 1
     end
 
     modified ? self : nil
@@ -1646,7 +1649,8 @@ class String
 
     modified = false
 
-    @bytes.times do |i|
+    i = 0
+    while i < @bytes
       c = @data[i]
       if c.islower
         @data[i] = c.toupper!
@@ -1655,6 +1659,7 @@ class String
         @data[i] = c.tolower!
         modified = true
       end
+      i += 1
     end
 
     modified ? self : nil
@@ -1767,11 +1772,14 @@ class String
 
     modified = false
 
-    @bytes.times do |i|
-      if (c = @data[i]).islower
+    i = 0
+    while i < @bytes
+      c = @data[i]
+      if c.islower
         @data[i] = c.toupper!
         modified = true
       end
+      i += 1
     end
 
     modified ? self : nil
@@ -2165,8 +2173,10 @@ class String
   # FIXME - Make Unicode-safe
   def codepoints
     chars = []
-    @bytes.times do |pos|
-      chars << self.substring(pos, 1)
+    i = 0
+    while i < @bytes
+      chars << self.substring(i, 1)
+      i += 1
     end
     chars
   end
@@ -2388,7 +2398,8 @@ class String
       exp = bytebits * (num_bytes - 1)
       bytebits = -bytebits
     end
-    num_bytes.times do
+    num = i + num_bytes
+    while i < num
       result += (self[i] * 2**exp)
       exp += bytebits
       i += 1
@@ -2452,12 +2463,15 @@ class String
         if repeat == '*'
           proc.call while i + num_bytes <= self.length
         else
-          repeat.to_i.times do
+          j = 0
+          num = repeat.to_i
+          while j < num
             if i + num_bytes > self.length
               elements << nil if directive != 'Q'
             else
               proc.call
             end
+            j += 1
           end
         end
       when / \A (Z) (.*) \Z /x
