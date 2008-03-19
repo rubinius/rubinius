@@ -1146,6 +1146,12 @@ end",
                       [:lit, :c]],
   },
 
+  "fcall_index_space" => {
+    "Ruby"        => "a [ 42 ]",
+    "ParseTree"   => [:fcall, :a, [:array, [:array, [:lit, 42]]]],
+    "RubyToRuby"  => "a[42]",
+  },
+
   "fcall_keyword"  => {
     "Ruby"        => "42 if block_given?",
     "ParseTree"   => [:if, [:fcall, :block_given?], [:lit, 42], nil],
