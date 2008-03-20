@@ -271,8 +271,8 @@ class Debugger
         output << "Local variables for #{cm.name}:"
         output.set_columns(['%-s', '%s', '%-s'])
         0.upto(local_vals.size-1) do |i|
-          lvar = locals ? locals[i].inspect : '?'
-          output << [lvar, '=>', local_vals.at(i).inspect]
+          lvar = locals ? locals[i].to_s : '?'
+          output << [lvar, '=>', local_vals.at(i).inspect] unless lvar[0] == ?@
         end
         return output
       else
