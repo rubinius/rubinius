@@ -7,3 +7,11 @@ describe "CType#toupper" do
     a.should == [77, 69, 78, 84, 65, 76, 71, 85, 89]
   end
 end
+
+describe "CType#toupper!" do
+  it "unconditionally subtracts 32 from self (use only if previously testing isupper or islower)" do
+    a = []
+    "MenTaLguY".each_byte { |b| a << b.toupper! }
+    a.should == [45, 69, 78, 52, 65, 44, 71, 85, 57]
+  end
+end

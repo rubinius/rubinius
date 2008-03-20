@@ -385,21 +385,25 @@ class String
   #   a               #=> "Hello"
   #   a.capitalize!   #=> nil
   def capitalize!
-    self.modify!
     return if @bytes == 0
+    self.modify!
 
     modified = false
 
-    if @data[0].islower
-      @data[0] = @data[0].toupper
+    c = data[0]
+    if c.islower
+      @data[0] = c.toupper
       modified = true
     end
 
-    1.upto(@bytes - 1) do |i|
-      if @data[i].isupper
-        @data[i] = @data[i].tolower
+    i = 1
+    while i < @bytes
+      c = @data[i]
+      if c.isupper
+        @data[i] = c.tolower
         modified = true
       end
+      i += 1
     end
 
     modified ? self : nil
@@ -412,7 +416,30 @@ class String
   #   "abcdef".casecmp("abcdefg")   #=> -1
   #   "abcdef".casecmp("ABCDEF")    #=> 0
   def casecmp(to)
-    self.upcase <=> to.upcase
+    order = @bytes - to.bytes
+    size = order < 0 ? @bytes : to.bytes
+
+    i = 0
+    while i < size
+      a = @data[i]
+      b = to.data[i]
+      i += 1
+
+      r = a - b
+      next if r == 0
+
+      if (a.islower or a.isupper) and (b.islower or b.isupper)
+        r += r < 0 ? ?\s : -?\s
+      end
+
+      next if r == 0
+      return -1 if r < 0
+      return 1
+    end
+
+    return 0 if order == 0
+    return -1 if order < 0
+    return 1
   end
 
   # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
