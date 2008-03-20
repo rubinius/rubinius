@@ -95,13 +95,14 @@ class MarshalEmitter
     return body
   end
 
-  def process_bignum
+  def process_num
     body = process_string
     @index += 1  # Discard trailing \0
     body
   end
 
-  alias :process_float     :process_string
+  alias :process_float     :process_num
+  alias :process_bignum    :process_num
   alias :process_symbol    :process_string
   alias :process_bytes     :process_string
   alias :process_send_site :process_string
@@ -145,7 +146,7 @@ class MarshalEmitter
   end
 end
 
-# If file is run, dump content of 
+# If file is run, dump content of .rbc to STDOUT
 if __FILE__ == $0
   if ARGV.size > 0
     require 'pp'
