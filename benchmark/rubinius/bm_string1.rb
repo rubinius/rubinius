@@ -273,11 +273,11 @@ Benchmark.bmbm do |x|
 
   run("String#insert"){
     a = rand(STRING.size/2)
-    MAX.times{ STRING.insert(a, "world") }
+    MAX.times{ STRING.dup.insert(a, "world") }
   }
 
   run("String#intern"){
-    string = STRING.dup
+    string = STRING * ((MAX / STRING.size) + 1)
     MAX.times{ string.chop!.intern }
   }
 
@@ -542,7 +542,7 @@ Benchmark.bmbm do |x|
   }
 
   run("String#to_sym"){
-    string = STRING
+    string = STRING.reverse * ((MAX / STRING.size) + 1)
     MAX.times{ string.chop!.to_sym }
   }
 
