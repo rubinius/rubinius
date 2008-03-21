@@ -109,6 +109,7 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   return self;
 }
 
+/* returns pointer to bytearray string based on */
 char *string_byte_address(STATE, OBJECT self) {
   OBJECT data;
 

@@ -207,6 +207,7 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
   return data;
 }
 
+/* Sets key/value pair to hash */
 OBJECT hash_set(STATE, OBJECT hash, OBJECT key, OBJECT val) {
   return hash_add(state, hash, object_hash_int(state, key), key, val);
 }

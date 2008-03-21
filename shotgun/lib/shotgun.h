@@ -2,7 +2,7 @@
 #define RBS_SHOTGUN_H
 
 #define INTERNAL_DEBUG 0
-
+/* whether tracking various VM stats */
 #define TRACK_STATS 0
 #define DISABLE_CHECKS 1
 // #define TIME_LOOKUP 1

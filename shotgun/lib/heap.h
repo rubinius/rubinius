@@ -3,6 +3,12 @@
 
 typedef void* address;
 
+/*
+ address : lower heap bound address
+ curret  : current tip of the heap
+ last    : upper heap bound address
+ scan    : GC scanner position
+ */
 struct heap {
   size_t size;
   address address;
@@ -27,6 +33,7 @@ int heap_fully_scanned_p(rheap h);
 OBJECT heap_next_unscanned(rheap h);
 int heap_enough_fields_p(rheap h, int fields);
 
+/* controls fast heap allocation using inline functions on and off */
 #define FAST_HEAP 1
 
 #ifdef FAST_HEAP
@@ -68,4 +75,3 @@ unsigned int heap_enough_space_p(rheap h, unsigned int size);
 #endif
 
 #endif
-

@@ -20,7 +20,9 @@ typedef intptr_t native_int;
 
 #define TAG_REF     0x0
 #define TAG_FIXNUM  0x1
+/* literals are numbers, symbols, ranges, regexp */
 #define TAG_LITERAL 0x2
+
 #define TAG_DATA    0x3
 
 #define TAG(v) (((intptr_t)v) & TAG_MASK)
@@ -213,16 +215,18 @@ A rubinius object can be followed by:
 
 /* Object access, lowest level. These read and set fields of an OBJECT
  * directly. They're built on to integrate with the GC properly. */
-
 #define CLASS_OBJECT(obj) (obj->klass)
 #define SIZE_OF_OBJECT ((unsigned int)(sizeof(OBJECT)))
-
 #define NUM_FIELDS(obj)                 (obj->field_count)
 #define SET_NUM_FIELDS(obj, fel)        (obj->field_count = fel)
+/* size of rubinius_object_t plus size of fields (all in bytes) */
 #define SIZE_IN_BYTES_FIELDS(fel)       ((unsigned int)(sizeof(struct rubinius_object_t) + \
                                          fel*SIZE_OF_OBJECT))
+/* size of rubinius_object_t and fields in words */
 #define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(struct rubinius_object_t)/SIZE_OF_OBJECT + fel)
+/* size of object in bytes */
 #define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->field_count)
+/* size of fields only */
 #define SIZE_OF_BODY(obj)               (obj->field_count * SIZE_OF_OBJECT)
 #define ADDRESS_OF_FIELD(obj, fel)      (&obj->field[fel])
 #define NTH_FIELD_DIRECT(obj, fel)      (obj->field[fel])
@@ -259,18 +263,24 @@ to be a simple test for that bit pattern.
 #define Qtrue  ((OBJECT)10L)
 #define Qundef ((OBJECT)18L)
 
+/* returns TRUE when v is Ruby false, FALSE otherwise */
 #define FALSE_P(v) ((OBJECT)(v) == (OBJECT)Qfalse)
+/* returns TRUE when v is Ruby true, FALSE otherwise */
 #define TRUE_P(v) ((OBJECT)(v) == (OBJECT)Qtrue)
+/* returns TRUE if v is Ruby nil, FALSE otherwise */
 #define NIL_P(v) ((OBJECT)(v) == (OBJECT)Qnil)
+/* returns TRUE when  value of v is undefined, FALSE otherwise */
 #define UNDEF_P(v) ((OBJECT)(v) == (OBJECT)Qundef)
+/* returns TRUE when  v is not nil, FALSE otherwise */
 #define RTEST(v) (((uintptr_t)(v) & 0x7) != 0x6)
-
+/* returns TRUE when  v is a reference, FALSE otherwise */
 #define REFERENCE_P(v) (TAG(v) == TAG_REF)
-
+/* same as REFERENCE_P but checks v value first */
 #define REFERENCE2_P(v) (v && REFERENCE_P(v))
 
 #define INDEXED(obj) (REFERENCE_P(obj) && !obj->StoresBytes)
 
+/* copy flags not used by garbage collector */
 static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
 {
   target->obj_type        = source->obj_type;
@@ -282,17 +292,21 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
 }
 
 #define CLEAR_FLAGS(obj)     (obj)->all_flags = 0
+/* stack context has GC zone unspecified */
 #define stack_context_p(obj) ((obj)->gc_zone == UnspecifiedZone)
+/* use this to check forwarded pointer on object:
+ * when object is copied from space to space by GC,
+ * forwarding pointer is left in old location
+ */
 #define SET_FORWARDED(obj)   (obj)->Forwarded = TRUE
 #define FORWARDED_P(obj)     ((obj)->Forwarded)
 
+/* objects are getting old as they survive GC tracing */
 #define AGE(obj)           (obj->copy_count)
 #define CLEAR_AGE(obj)     (obj->copy_count = 0)
 #define INCREMENT_AGE(obj) (obj->copy_count++)
 
 /* Object access. */
-
-/* Setting the class of an object */
 #define rbs_set_class(om, obj, cls) ({ \
     OBJECT _o = (obj), _c = (cls); \
     RUN_WB2(om, _o, _c); _o->klass = _c; })
@@ -300,7 +314,6 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
 #define SET_CLASS(o,v) rbs_set_class(state->om, o, v)
 
 /* Accessing and assigning the fields of an object */
-
 #define SET_FIELD(obj, fel, val) rbs_set_field(state->om, obj, fel, val)
 #define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
 
@@ -331,10 +344,12 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
   RUN_WB2(om, _o, _v); \
   SET_FIELD_DIRECT(_o, fel, _v); })
 
+/* alias macro for obtaining object field directly by position */
 #define rbs_get_field(obj, fel) NTH_FIELD_DIRECT(obj, fel)
 
 #else /*DISABLE_CHECKS*/
 
+/* compared to _bad_reference prints more verbose error message */
 static void _bad_reference2(OBJECT in, int fel) {
   printf("Attempted to access field %d in an object with %lu fields.\n",
     fel, (unsigned long)NUM_FIELDS(in));
@@ -346,8 +361,10 @@ static void _bad_reference2(OBJECT in, int fel) {
 
 #if EXTRA_PROTECTION
 
+/* versions that check for reference */
 static void _bad_reference(OBJECT in) {
   printf("Attempted to access field of non-reference.\n");
+	/* handle segfault */
   if(current_machine->g_use_firesuit) {
     machine_handle_fire(FIRE_NULL);
   }
@@ -369,7 +386,7 @@ static void _bad_reference(OBJECT in) {
 
 #else /*EXTRA_PROTECTION*/
 
-/* These are the typically used versions. The don't check for ref, they
+/* These are the typically used versions. They don't check for ref, they
    the segfault handler do that. */
 
 #define rbs_set_field(om, obj, fel, val) ({ \
@@ -400,8 +417,10 @@ static void _bad_reference(OBJECT in) {
 
 /* Type tests. */
 #define RTYPE(obj,type) (REFERENCE_P(obj) && obj->obj_type == type)
+/* shortcut, doing what Ruby's is_a? does */
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
+/* Type predicates */
 #define BIGNUM_P(obj) (RTYPE(obj, BignumType))
 #define FLOAT_P(obj) (RTYPE(obj, FloatType))
 #define COMPLEX_P(obj) (FALSE)
@@ -424,6 +443,7 @@ static void _bad_reference(OBJECT in) {
 
 #define CTX_P(obj) RISA(obj, fastctx)
 #define BYTEARRAY_P(obj) RTYPE(obj, ByteArrayType)
+/* iseq is instruction sequence */
 #define ISEQ_P(obj) RTYPE(obj, ISeqType)
 #define TASK_P(obj) RTYPE(obj, TaskType)
 #define CHANNEL_P(obj) RTYPE(obj, ChannelType)

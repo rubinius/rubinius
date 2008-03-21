@@ -9,8 +9,13 @@
 #include "shotgun/lib/baker.h"
 #include "shotgun/lib/tuple.h"
 
+/* how many times object should be traced before tenuring */
 #define DEFAULT_TENURE_AGE 6
 
+/*
+creates and initializes new copying GC instance
+it start with space A as "from" space and B as "to" space
+*/
 baker_gc baker_gc_new(int size) {
   baker_gc g;
   g = (baker_gc)calloc(1, sizeof(struct baker_gc_struct));
@@ -29,27 +34,32 @@ baker_gc baker_gc_new(int size) {
   return g;
 }
 
+/* prints various garbage collector information */
 void baker_gc_describe(baker_gc g) {
-  printf("Size:    %x (%d)\n", (unsigned int)g->current->size, (int)g->current->size);
-  printf("Current: %p => %p\n", (void*)g->current->address, (void*)g->current->last);
-  printf("Next:    %p => %p\n", (void*)g->next->address, (void*)g->next->last);
-  printf("RS Size: %zd\n", ptr_array_length(g->remember_set));
+  printf("Size :    %x (%d)\n", (unsigned int)g->current->size, (int)g->current->size);
+  printf("Current (\"from\") heap space address: %p => %p\n", (void*)g->current->address, (void*)g->current->last);
+  printf("Next (\"to\") heap space address:    %p => %p\n", (void*)g->next->address, (void*)g->next->last);
+  printf("Remember set size: %zd\n", ptr_array_length(g->remember_set));
 }
 
+/* baker GC uses two heap spaces of the same size */
 int baker_gc_memory_allocated(baker_gc g) {
   return g->current->size * 2;
 }
 
+/* returns how much memory is used by "from" heap space */
 int baker_gc_memory_in_use(baker_gc g) {
   return g->current->current - g->current->address;
 }
 
+/* enlarges "to" space of the heap (where new objects are allocated) by value of sz */
 int baker_gc_enlarge_next(baker_gc g, size_t sz) {
   rheap h;
   h = heap_new(sz);
   return baker_gc_set_next(g, h);
 }
 
+/* sets "to" heap space, always returns TRUE */
 int baker_gc_set_next(baker_gc g, rheap h) {
   if(g->next == g->space_a) {
     g->space_a = h;
@@ -60,21 +70,24 @@ int baker_gc_set_next(baker_gc g, rheap h) {
   return TRUE;
 }
 
+/* gets start address of current "from" heap space */
 address baker_gc_start_address(baker_gc g) {
   return g->current->address;
 }
 
+/* total baker GC memory usage */
 size_t baker_gc_used(baker_gc g) {
   return g->used;
 }
 
+/* reset memory usage info */
 void baker_gc_reset_used(baker_gc g) {
   g->used = 0;
 }
 
+/* performs flip operation on heap spaces */
 int baker_gc_swap(baker_gc g) {
   rheap tmp;
-
   tmp = g->current;
   g->current = g->next;
   g->next = tmp;
@@ -83,8 +96,6 @@ int baker_gc_swap(baker_gc g) {
   g->last_end =   (char*)tmp->current;
 
   heap_reset(tmp);
-  /* Reset used to the what the current has used. */
-  /* g->used = (uintptr_t)g->current->current - (uintptr_t)g->current->address; */
   return TRUE;
 }
 
@@ -95,6 +106,7 @@ int baker_gc_destroy(baker_gc g) {
   return TRUE;
 }
 
+/* sets forwarding pointer on object */
 void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest) {
   SET_FORWARDED(obj);
   obj->klass = dest;
@@ -118,25 +130,6 @@ OBJECT baker_gc_forwarded_object(OBJECT obj) {
   }                                           \
   ret; })
 
-/*
-static inline OBJECT baker_gc_maybe_mutate(baker_gc g, OBJECT iobj) {
-  OBJECT ret;
-
-  if(baker_gc_forwarded_p(iobj)) {
-    ret = baker_gc_forwarded_object(iobj);
-  } else if(baker_gc_contains_p(g, iobj)) {
-    ret = baker_gc_mutate_object(g, iobj);
-  } else {
-    ret = iobj;
-  }
-
-  // assert(baker_gc_contains_spill_p(g, ret));
-
-  CHECK_PTR(ret);
-
-  return ret;
-}
-*/
 
 int _object_stores_bytes(OBJECT self);
 static int depth = 0;
@@ -191,11 +184,12 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   //printf("%d: Mutating references of %p\n", depth, iobj);
 
   if(!_object_stores_bytes(iobj)) {
+		/* follow object field references and mutate them */
     fields = NUM_FIELDS(iobj);
     for(i = 0; i < fields; i++) {
       tmp = NTH_FIELD(iobj, i);
       if(!REFERENCE_P(tmp)) continue;
-
+			/* TODO: duplicated in other places: extract to separate function? */
       if(FORWARDED_P(tmp)) {
         mut = tmp->klass;
       } else if(heap_contains_p(g->current, tmp) || heap_contains_p(state->om->contexts, tmp)) {
@@ -203,8 +197,9 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       } else {
         mut = tmp;
       }
-
+      /* update field reference */
       SET_FIELD_DIRECT(iobj, i, mut);
+			/* update remember set, set "remembered" flag on iobj */
       RUN_WB2(om, iobj, mut);
     }
   } else {
@@ -341,8 +336,6 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
     assert(NIL_P(fc->sender) || fc->sender->obj_type == MContextType || fc->sender->obj_type == BContextType);
   }
 
-
-
   fc_mutate(method);
   fc_mutate(block);
   fc_mutate(literals);
@@ -418,6 +411,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
       xassert(obj->klass != Qnil);
       dest = heap_copy_object(g->next, obj);
       g->used++;
+			/* when object is moved to new heap forwarded pointer is left in new generation ("from") heap */
       baker_gc_set_forwarding_address(obj, dest);
       if(!obj->ForeverYoung) INCREMENT_AGE(dest);
       if(obj->obj_type == WrapsStructType) MARK_WRAPPED_STRUCT(obj);
@@ -480,10 +474,11 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   size_t i, sz;
   OBJECT tmp, root;
   struct method_cache *end, *ent;
+  /* rs for remember set */
   ptr_array rs;
 
   saved_contexts = 0;
-
+  /* increase number of GC cycles passed */
   g->num_collection++;
 
   /* empty it out. */
@@ -491,8 +486,7 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   ptr_array_clear(g->tenured_objects);
 
   // printf("Running garbage collector...\n");
-
-
+  /* start tracing from root set */
   sz = ptr_array_length(roots);
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(ptr_array_get_index(roots, i));
@@ -522,7 +516,7 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   }
 
 
-  /* Now the stack. */
+  /* Now the stack, sp is for stack pointer. */
   OBJECT *sp;
 
   sp = state->current_stack;

@@ -3,6 +3,38 @@
 
 #include "shotgun/lib/heap.h"
 
+/*
+ Rubinius uses Henry Baker's generational GC that divides heap into spaces:
+ notably "from" space and "to" space. After tracing live objects are
+ moved from "from" space to "to"
+ space leaving forwarding address that points to new object location in "to"
+ space at the old object location. When object moved (also referenced as
+ "evacuated") it may point to objects in "from" heap space. So these
+ referenced objects are copied as well and pointers are updates.
+ This is called scavenging. Then "from" space can be reused and
+ heap spaces flipped.
+
+ Objects tenured to old generation after surviving certain number of
+ GC cycles.
+
+ Pros of this alrogithm is that it does not stop the world for too long
+ and leaves much much less heap fragmentation than naive mark and sweep
+ algorithm.
+
+ Overview of Baker's algorithm is available online at
+ http://web.media.mit.edu/~lieber/Lieberary/GC/Realtime/Realtime.html
+
+ space_a and space_b are two heap spaces used
+ current is "from" heap space
+ next is "to" heap space
+ used is how much memory overall heap uses
+ (offset = current heap peak position - heap bottom)
+
+ tenure_age is how many times object should be traced before
+ tenuring: may vary between GC instances
+ num_collection is how many GC cycles passed
+
+*/
 struct baker_gc_struct {
   rheap space_a;
   rheap space_b;

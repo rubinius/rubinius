@@ -34,19 +34,21 @@ int heap_allocate_memory(rheap h) {
   h->last = (void*)((uintptr_t)h->address + h->size - 1);
   return heap_reset(h);
 }
-
+/* make current and scan position point to heap bottom */
 int heap_reset(rheap h) {
   h->current = h->address;
   h->scan = h->current;
   return TRUE;
 }
 
+/* heap allocation predicate */
 int heap_allocated_p(rheap h) {
   return h->address > 0;
 }
 
 #ifndef FAST_HEAP
 
+/* whether given address is between heap bottom and heap top */
 int heap_contains_p(rheap h, address addr) {
 
   if(addr < h->address) return FALSE;
@@ -65,6 +67,7 @@ address heap_allocate(rheap h, int size) {
   return addr;
 }
 
+/* whether SIZE bytes fit the heap without calling for heap enlarge */
 int heap_enough_space_p(rheap h, int size) {
   if (size < 0) abort();
   if(h->current + size > h->last + 1) return FALSE;
@@ -73,6 +76,7 @@ int heap_enough_space_p(rheap h, int size) {
 
 #endif
 
+/* whether number of fields fit the heap without calling for heap enlarge */
 int heap_enough_fields_p(rheap h, int fields) {
   int size;
 
@@ -85,6 +89,7 @@ int heap_enough_fields_p(rheap h, int fields) {
 OBJECT heap_copy_object(rheap h, OBJECT obj) {
   address out;
   int size;
+  /* avoid copying what's already on the heap */
   if(heap_contains_p(h, obj)) return obj;
   size = SIZE_IN_BYTES(obj);
 
@@ -94,7 +99,11 @@ OBJECT heap_copy_object(rheap h, OBJECT obj) {
   return (OBJECT)out;
 }
 
-/* Functions to support the cheney scan algorithm. */
+/*
+ * Shotgun uses very slight variation Cheney's algorithm for young generation.
+ *
+ * See http://en.wikipedia.org/wiki/Cheney_algorithm
+ */
 
 OBJECT heap_next_object(rheap h) {
   return (OBJECT)(h->current);
@@ -104,6 +113,7 @@ int heap_fully_scanned_p(rheap h) {
   return h->scan == h->current;
 }
 
+/* makes scan point to next object location */
 OBJECT heap_next_unscanned(rheap h) {
   OBJECT obj;
   if(heap_fully_scanned_p(h)) return 0;

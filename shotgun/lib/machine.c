@@ -32,23 +32,30 @@
 
 static int _recursive_reporting = 0;
 
+/* use this to convert symbol into Ruby string
+ * st is for state
+ */
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
 
+/*
+ outputs limited number of lines of VM call stack
+ current active machine used unless explicitly given
+*/
 void machine_print_callstack_limited(machine m, int maxlev) {
   OBJECT context, tmp;
   const char *modname, *methname, *filename;
   struct fast_context *fc;
-
   if(!m) m = current_machine;
-
   context = m->c->active_context;
 
+  /* flush stack and instruction pointers */
   cpu_flush_ip(m->c);
   cpu_flush_sp(m->c);
 
   FASTCTX(context)->ip = m->c->ip;
 
   while(RTEST(context) && maxlev--) {
+
     methctx_reference(m->s, context);
     fc = FASTCTX(context);
 
@@ -81,24 +88,29 @@ void machine_print_callstack_limited(machine m, int maxlev) {
       filename = "<unknown>";
     }
 
+    /* execution logging */
     fprintf(stderr, "%10p %s#%s+%d in %s:%d\n",
       (void*)context, modname, methname,
       fc->ip,
       filename,
       cpu_ip2line(m->s, fc->method, fc->ip)
     );
+    /* transfer control back to message sender */
     context = fc->sender;
   }
 }
 
+/* prints the whole VM call stack */
 void machine_print_callstack(machine m) {
     machine_print_callstack_limited(m, -1);
 }
 
+/* prints of given VM stack trace */
 void machine_print_stack(machine m) {
   unsigned int i, start, end;
   cpu_flush_sp(m->c);
   i = m->c->sp;
+  /* TODO: document these magic numbers */
   start = (i < 5 ? 0 : i - 5);
   end =   (i + 5 > m->c->stack_size) ? m->c->stack_size : i + 5;
   for(i = start; i < end; i++) {
@@ -112,6 +124,7 @@ void machine_print_stack(machine m) {
 
 }
 
+/* prints VM registers content */
 void machine_print_registers(machine m) {
   cpu_flush_sp(m->c);
   cpu_flush_ip(m->c);
@@ -123,6 +136,7 @@ void machine_print_registers(machine m) {
   }
 }
 
+/* handles error reporting */
 void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   const char *signame;
   rni_context *rni_ctx;
@@ -130,11 +144,13 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
 
   /* See if the error happened during the running of a C function.
      If so, we raise an exception about the error. */
+  /* Grab Subtend context first */
   rni_ctx = subtend_retrieve_context();
   if(rni_ctx->nmc && rni_ctx->nmc->system_set) {
     /* TODO: generate the C backtrace as a string array and pass it
        via the nmc or global_context so that the exception can include
        it. */
+    /* Set RNI faulting instruction and switch to system context */
     rni_ctx->fault_address = info->si_addr;
     rni_ctx->nmc->jump_val = SEGFAULT_DETECTED;
     setcontext(&rni_ctx->nmc->system);
@@ -192,21 +208,29 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   exit(-2);
 }
 
+/* initialize signals handling and errors reporting */
 void machine_setup_signals(machine m) {
-        m->error_report.sa_sigaction = _machine_error_reporter;
-        sigemptyset(&m->error_report.sa_mask);
-        m->error_report.sa_flags = SA_SIGINFO;
-        sigaction(SIGSEGV, &m->error_report, NULL);
-        sigaction(SIGBUS, &m->error_report, NULL);
-        sigaction(SIGABRT, &m->error_report, NULL);
+  m->error_report.sa_sigaction = _machine_error_reporter;
+  sigemptyset(&m->error_report.sa_mask);
+  m->error_report.sa_flags = SA_SIGINFO;
+  sigaction(SIGSEGV, &m->error_report, NULL);
+  sigaction(SIGBUS, &m->error_report, NULL);
+  sigaction(SIGABRT, &m->error_report, NULL);
 }
 
+/* initialize event base used by libevent */
 static void machine_setup_events(machine m) {
   /* libev will not "autodetect" kqueue because it is broken on darwin */
   m->s->event_base = ev_loop_new(EVFLAG_FORKCHECK);
   m->s->thread_infos = NULL;
 }
 
+/* Creates and initializes Rubinius VM.
+ * Sets up the VM CPU, machine message buckets,
+ * subtend, event handling, context and state,
+ * universe and everything.
+ *
+ */
 machine machine_new(environment e) {
   machine m;
   int pipes[2];
@@ -217,24 +241,23 @@ machine machine_new(environment e) {
   m->sub = 0;
   pipe(pipes);
 
-  /* Setup pipes used for message notification. */
+
   m->message_read_fd =  pipes[0];
   m->message_write_fd = pipes[1];
-
   m->s = rubinius_state_new();
   m->c = cpu_new(m->s);
-  /* Initialize the instruction addresses. */
   cpu_run(m->s, m->c, TRUE);
   m->c->ip_ptr = &m->s->external_ip;
 
   machine_setup_signals(m);
   machine_setup_events(m);
+
   cpu_initialize(m->s, m->c);
   cpu_bootstrap(m->s);
   subtend_setup(m->s);
   cpu_setup_top_scope(m->s, m->c);
   cpu_initialize_context(m->s, m->c);
-
+  /* make MAIN Ruby contant point to main routine of the application*/
   machine_set_const(m, "MAIN", m->c->main);
   cpu_task_configure_preemption(m->s);
   environment_add_machine(e, m);
@@ -250,11 +273,15 @@ void machine_destroy(machine m) {
   free(m);
 }
 
+/* handles errors gracefully */
 void machine_handle_fire(int kind) {
+  /* store type of violation */
   current_machine->g_access_violation = kind;
+  /* then switch to special context to handle it gracefully */
   setcontext(&current_machine->g_firesuit);
 }
 
+/* handles type errors in the VM: error message and type are preserved */
 void machine_handle_type_error(OBJECT obj, const char *message) {
   current_machine->g_firesuit_message = strdup(message);
 
@@ -269,10 +296,10 @@ void machine_handle_type_error(OBJECT obj, const char *message) {
   } else {
     current_machine->g_firesuit_arg = 0;
   }
-
   machine_handle_fire(FIRE_TYPE);
 }
 
+/* handles failed assertions in the VM code */
 void machine_handle_assert(const char *reason, const char *file, int line) {
   fprintf(stderr, "VM Assertion: %s (%s:%d)\n", reason, file, line);
 
@@ -284,6 +311,7 @@ void machine_handle_assert(const char *reason, const char *file, int line) {
   setcontext(&current_machine->g_firesuit);
 }
 
+/* returns unmarshalled file */
 OBJECT machine_load_file(machine m, const char *path) {
   return cpu_unmarshal_file(m->s, path, 0);
 }
@@ -306,6 +334,9 @@ void machine_show_exception(machine m, OBJECT exc) {
   puts("");
 }
 
+/* initializes VM globals, clears instruction pointer, op, firesuit and so forth.
+   returns FALSE on exception
+ */
 int machine_run(machine m) {
   cpu_run(m->s, m->c, 0);
   m->c->ip_ptr = &m->s->external_ip;
@@ -318,6 +349,7 @@ int machine_run(machine m) {
   return TRUE;
 }
 
+/* loads and executes a script. Returns FALSE if load failed. */
 int machine_run_file(machine m, const char *path) {
   OBJECT meth;
   int out;
@@ -332,6 +364,7 @@ int machine_run_file(machine m, const char *path) {
     return FALSE;
   }
 
+  /* re-init cpu stack */
   m->c->depth = 0;
   cpu_stack_push(m->s, m->c, meth, FALSE);
   cpu_run_script(m->s, m->c, meth);
@@ -342,16 +375,19 @@ int machine_run_file(machine m, const char *path) {
   return out;
 }
 
+/* sets contstand under given module or class */
 void machine_set_const_under(machine m, const char *str, OBJECT val, OBJECT under) {
   OBJECT tbl;
   tbl = module_get_constants(under);
   lookuptable_store(m->s, tbl, string_new(m->s, str), val);
 }
 
+/* Sets constant under Object class */
 void machine_set_const(machine m, const char *str, OBJECT val) {
   machine_set_const_under(m, str, val, m->s->global->object);
 }
 
+/* stores Ruby VM launch arguments */
 void machine_save_args(machine m, int argc, char **argv) {
   char **na;
   na = calloc(argc, sizeof(char*));
@@ -363,6 +399,7 @@ void machine_save_args(machine m, int argc, char **argv) {
   machine_setup_argv(m, argc, argv);
 }
 
+/* Sets standard IO streams (stdin, stdout, stderr) to Ruby constants */
 void machine_setup_standard_io(machine m) {
   machine_set_const(m, "STDIN", io_new(m->s, 0, "r"));
   machine_set_const(m, "STDOUT", io_new(m->s, 1, "w"));
@@ -391,6 +428,7 @@ int *machine_setup_piped_io(machine m) {
   return pipes;
 }
 
+/* sets up RUBY_BIN_PATH Ruby constant and VM interpreter name */
 void machine_setup_ruby(machine m, char *name) {
   char buf[MAXPATHLEN];
   char wd[MAXPATHLEN];
@@ -407,6 +445,7 @@ void machine_setup_ruby(machine m, char *name) {
   m->interpreter = strdup(name);
 }
 
+/* sets ARGV and ARG0 Ruby constants */
 void machine_setup_argv(machine m, int argc, char **argv) {
   OBJECT ary;
   int i;
@@ -421,6 +460,7 @@ void machine_setup_argv(machine m, int argc, char **argv) {
   machine_set_const(m, "ARGV", ary);
 }
 
+/* utility: checks whether string contains only digits */
 int is_number(char *str) {
   while(*str) {
     if(!isdigit(*str)) return FALSE;
@@ -430,6 +470,7 @@ int is_number(char *str) {
   return TRUE;
 }
 
+/* utility: strips trailing non-alnum chars from string */
 static char *trim_str(char *str) {
   int i;
   while(*str && !isalnum(*str)) str++;
@@ -508,19 +549,22 @@ void machine_parse_config_file(machine m, const char *path) {
 }
 
 void machine_migrate_config(machine m) {
+  /* hash table iterator */
   struct hashtable_itr iter;
   rstate state = m->s;
 
+  /* initialize new hash for environment global configuration */
   m->s->global->config = hash_new_sized(m->s, 500);
 
   if(hashtable_count(m->s->config) > 0) {
-
     hashtable_iterator_init(&iter, m->s->config);
 
     do {
+      /* Key, value */
       OBJECT ok, ov;
       bstring k = (bstring)hashtable_iterator_key(&iter);
       bstring v = (bstring)hashtable_iterator_value(&iter);
+      /* object key: Ruby string created from bstring library C string */
       ok = string_newfrombstr(m->s, k);
       if(is_number(bdata(v))) {
         ov = LL2N(strtoll(bdatae(v,""), NULL, 10));
@@ -532,11 +576,12 @@ void machine_migrate_config(machine m) {
     } while (hashtable_iterator_advance(&iter));
 
   }
-
+  /* Make RUBY_CONFIG point to global configuration */
   machine_set_const(m, "RUBY_CONFIG", m->s->global->config);
   machine_setup_from_config(m);
 }
 
+/* applies debug configuraiton options to VM state */
 void machine_setup_from_config(machine m) {
   bstring s;
 
@@ -555,6 +600,7 @@ void machine_setup_from_config(machine m) {
   bdestroy (s);
 }
 
+/* initializes platform and arc related Ruby constants like RUBY_PLATFORM, OS and L64 */
 void machine_setup_config(machine m) {
   OBJECT mod;
   STATE;
@@ -698,6 +744,7 @@ void machine_setup_config(machine m) {
   machine_set_const_under(m, "MESSAGE_IO", io_new(m->s, m->message_read_fd, "r"), mod);
 }
 
+/* sets up debugging flags */
 void machine_config_env(machine m) {
   char *config;
   if(getenv("RDEBUG")) {
@@ -719,6 +766,7 @@ void machine_config_env(machine m) {
   }
 }
 
+/* loads files in the directory, respects load order hint file .load_order.txt */
 int machine_load_directory(machine m, const char *prefix) {
   char *path;
   char *file;
@@ -792,6 +840,12 @@ int machine_load_object(machine m, char *name, uint8_t *data, long length) {
   return TRUE;
 }
 
+/*
+ * loads and executes Rubinius bytecode archive (*.rba, similar to *.jar or *.elc)
+ *
+ * Rubinius' rba files are essentialy zip archived bytecode. .load_order file
+ * must be loaded first to respect bytecode dependencies.
+ */
 int machine_load_ar(machine m, const char *path) {
   int ret = FALSE;
 
@@ -815,6 +869,7 @@ int machine_load_rba(machine m, const char *path) {
 int machine_load_bundle(machine m, const char *path) {
   struct stat sb;
 
+  /* return false if file does no exist */
   if(stat(path, &sb) != 0) return FALSE;
 
   if(S_ISDIR(sb.st_mode)) {
@@ -824,6 +879,11 @@ int machine_load_bundle(machine m, const char *path) {
   return machine_load_rba(m, path);
 }
 
+/* 1. saves the command line arguments used to invoke the VM.
+ * 2. initializes platform and arc related Ruby constants
+ * 3. sets up debugging flags from configuration
+ * 4. sets standard IO streams (stdin, stdout, stderr) to Ruby constants STDIN, STDOUT and STDERR
+ */
 void machine_setup_normal(machine m, int argc, char **argv) {
   machine_save_args(m, argc, argv);
   machine_setup_config(m);
@@ -831,6 +891,13 @@ void machine_setup_normal(machine m, int argc, char **argv) {
   machine_setup_standard_io(m);
 }
 
+/*
+ * 1. sets inferior machine flag to true (inferior machine is one spawned by another, a "child")
+ * 2. saves the command line arguments used to invoke the VM.
+ * 3. initializes platform and arc related Ruby constants
+ * 4. sets up debugging flags from configuration
+ * 5. sets up piped IO streams (stdin, stdout, stderr) to Ruby constants STDIN, STDOUT and STDERR
+ */
 int *machine_setup_thread(machine m, int argc, char **argv) {
   m->sub = TRUE;
   machine_save_args(m, argc, argv);
@@ -838,4 +905,3 @@ int *machine_setup_thread(machine m, int argc, char **argv) {
   machine_config_env(m);
   return machine_setup_piped_io(m);
 }
-

@@ -27,7 +27,30 @@
 #define BS_JUMP 2
 
 #define CTX_FLAG_NO_LONG_RETURN (1<<0)
+/*
+literals: literals frame
 
+literal frame stores items that cannot be referenced
+by bytecodes, such as class variables, most of
+literal constants (numbers, strings, symbols, method call sites) and
+message selectors other than special
+TODO: describe those specials in Rubinius
+
+locals: local variables frame
+
+local variables frame stores compiled method's
+local variables
+
+argcount: method's arity
+TODO: investigate and document negative arities
+
+self: message receiver
+ip  : instruction pointer, position of next bytecode to be executed in CompiledMethod
+sp  : stack pointer, current position on the stack
+fp  : execution frame (current context) pointer
+
+method_module: module or class that holds the method
+*/
 #define CPU_REGISTERS OBJECT sender; \
   OBJECT block; \
   OBJECT method; \
@@ -46,11 +69,12 @@
   unsigned int sp; \
   unsigned int fp;
 
+/* optimisation: context with direct access to size */
 struct fast_context {
   CPU_REGISTERS
   unsigned int size;
 };
-
+/* fast context treats OBJECT as series of bytes instead of normal object */
 #define FASTCTX(ctx) ((struct fast_context*)BYTES_OF(ctx))
 
 /* 1Meg of stack */
@@ -62,6 +86,27 @@ struct fast_context {
 #define TASK_SET_FLAG(task, flag) (task->flags |= flag)
 #define TASK_CLEAR_FLAG(task, flag) (task->flags ^= flag)
 
+/*
+ * stack_slave: when tasks are duplicated they share the same stack (TODO: clarify)
+ * cache_index is deprecated after SendSite introduction
+ * exception
+ * stack_top: pointer to top of the stack
+ * stack_size: obviously the size of the stack
+ * enclosing_class
+ * active_context represents current state of the interpreter
+ * home_context: home context of BlockContext is MethodContext which CompiledMethod contained the block
+ * main
+ * paths
+ * depth: stack depth
+ * current_scope: current visibility scope
+ * ip_ptr: instruction pointer, position of next bytecode to be executed in CompiledMethod
+ * sp_ptr: stack pointer, current position on the stack
+ * call_flags
+ * debug_channel
+ * flags
+ * control_channel
+ * blockargs is list of arguments passed to the block of executed method
+ */
 #define CPU_TASK_REGISTERS long int args; \
   unsigned long int stack_slave; \
   long int cache_index; \
@@ -85,14 +130,41 @@ struct cpu_task_shared {
   CPU_TASK_REGISTERS;
 };
 
+/*
+ Each Shotgun task maintains an operand stack (Shotgun is a
+ stack-based VM though it uses so called spaghetti stack)
+ and a reference to the current execution context.
+ Tasks are very similar to threads, but lack pre-emption or
+ scheduling. In practice, they are similar to Ruby 1.9
+ fibres, although unlike fibres, there is currently no way
+ to co-operatively multi-task (or yield to a co-routine)
+ using Rubinius tasks.
+
+ active     : true for active tasks
+ saved_errno: error code saved when the trouble strikes
+*/
 struct cpu_task {
   CPU_TASK_REGISTERS;
   unsigned int active;
   int saved_errno;
 };
 
+/*
+ Normal registers are saved and restored per new method call.
+ Task registers are saved and restored when tasks are switched.
+
+ self  : current object which self pseudo variable points to
+ sender: message sender
+ locals: list of local variables of the scope
+ IP    : instruction pointer
+ SP    : stack pointer
+ FP    : frame pointer
+
+ these point to different locations on the stack
+ see http://en.wikipedia.org/wiki/Call_stack for more details
+
+ */
 struct rubinius_cpu {
-  /* Normal registers are saved and restored per new method call . */
   OBJECT self, sender;
   OBJECT locals;
   IP_TYPE *data;
@@ -108,7 +180,6 @@ struct rubinius_cpu {
   OBJECT current_thread, main_thread;
   int in_primitive;
 
-  /* Task registers are saved and restored when tasks are switched. */
   CPU_TASK_REGISTERS;
 };
 

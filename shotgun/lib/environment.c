@@ -182,6 +182,7 @@ int environment_load_machine(environment e, machine m) {
   return TRUE;
 }
 
+/* NOTE: this duplicates rubinius_global from environment.h */
 struct thread_args {
   environment e;
   machine m;

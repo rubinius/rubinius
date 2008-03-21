@@ -4,6 +4,17 @@
 #include <ev.h>
 #include "shotgun/lib/machine.h"
 
+/*
+ Rubinius environment stores load paths,
+ platform configuration, list of spawned machines,
+ event loop
+ and synchronization mutex.
+
+ One environment is automatically created on
+ VM start.
+
+ Each environment lives in it's own pthread
+ */
 struct rubinius_environment {
   pthread_mutex_t mutex;
   struct hashtable *machines;
@@ -12,6 +23,7 @@ struct rubinius_environment {
   char *platform_path;
   char *core_path;
   char *loader_path;
+
   int machine_id;
 
   struct hashtable *messages;

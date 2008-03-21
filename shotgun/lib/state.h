@@ -137,6 +137,7 @@ struct rubinius_state {
 
   rni_handle_table *handle_tbl;
 
+  /* pointer to bottom of the stack  */
   unsigned long *stack_bottom;
 
   struct hashtable *cleanup;
@@ -146,9 +147,10 @@ struct rubinius_state {
   void *thread_infos;
   unsigned int event_id;
 
+  /* Stuff sampling profiler uses, not critical for VM operations */
   OBJECT *samples;
   int max_samples, cur_sample;
-
+  /* again, profiler stats */
   int excessive_tracing, gc_stats;
   int check_events, pending_threads, pending_events;
 

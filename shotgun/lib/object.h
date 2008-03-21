@@ -52,7 +52,7 @@ static inline void object_copy_body(STATE, OBJECT self, OBJECT dest) {
   memcpy(object_byte_start(state, dest), object_byte_start(state, self), s1);
 }
 
-
+/* Ruby's is_a? */
 #define ISA(o, c) object_kind_of_p(state, o, c)
 
 static inline uintptr_t object_get_id(STATE, OBJECT self) {

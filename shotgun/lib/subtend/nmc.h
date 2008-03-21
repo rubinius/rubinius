@@ -4,7 +4,7 @@
 
 #include "shotgun/lib/cpu.h"
 #include "shotgun/lib/subtend/nmethod.h"
-
+/* Rubinius native interface: native method context */
 struct rni_nmc {
   int num_handles;
   int used;

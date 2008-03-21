@@ -15,17 +15,26 @@
 #define OMCollectYoung  0x1
 #define OMCollectMature 0x2
 
+/* set of flags */
 struct object_memory_struct {
+  /*  */
   int collect_now;
+  /*  */
   int enlarge_now;
+  /*  */
   int tenure_now;
+  /*  */
   int new_size;
+  /*  */
   int last_object_id;
+  /* Rubinius uses Baker's generational GC as well asm marking and sweeping */
   baker_gc gc;
   mark_sweep_gc ms;
+  /*  */
   int last_tenured;
+	/* */
   int bootstrap_loaded;
-
+	/* */
   rheap contexts;
   /* The first not referenced stack context */
   OBJECT context_bottom;

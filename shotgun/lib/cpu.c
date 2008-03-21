@@ -66,6 +66,7 @@ OBJECT cpu_scope_pop(STATE, cpu c) {
   return c->current_scope;
 }
 
+/* initializes VM core: from global methods, main routine to current scope, thread and so forth */
 void cpu_initialize_context(STATE, cpu c) {
   c->active_context = Qnil;
   c->depth = 0;
