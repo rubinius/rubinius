@@ -28,7 +28,9 @@ runtime/pristine*
 runtime/platform.conf
 .*.d
 shotgun/lib/*.d
+shotgun/lib/*.d.*
 shotgun/lib/subtend/*.d
+shotgun/lib/subtend/*.d.*
 *.o
 *.lo
 *.a
