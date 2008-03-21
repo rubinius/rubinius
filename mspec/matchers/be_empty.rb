@@ -9,7 +9,7 @@ class BeEmptyMatcher
   end
 
   def negative_failure_message
-    ["Expected #{@actual}", "not to be empty"]
+    ["Expected <#{@actual.class}>", "not to be empty"]
   end
 end
 
