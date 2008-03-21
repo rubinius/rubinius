@@ -47,7 +47,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
   cpu_flush_sp(m->c);
 
   FASTCTX(context)->ip = m->c->ip;
-  
+
   while(RTEST(context) && maxlev--) {
     methctx_reference(m->s, context);
     fc = FASTCTX(context);
@@ -69,7 +69,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
     } else {
       methname = "<none>";
     }
-    
+
     if(fc->method && RTEST(fc->method)) {
       tmp = cmethod_get_file(fc->method);
       if(SYMBOL_P(tmp)) {
@@ -80,7 +80,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
     } else {
       filename = "<unknown>";
     }
-    
+
     fprintf(stderr, "%10p %s#%s+%d in %s:%d\n",
       (void*)context, modname, methname,
       fc->ip,
@@ -109,7 +109,7 @@ void machine_print_stack(machine m) {
     }
     printf("%s\n", rbs_inspect_verbose(m->s, m->c->stack_top[i]));
   }
-  
+
 }
 
 void machine_print_registers(machine m) {
@@ -127,7 +127,7 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   const char *signame;
   rni_context *rni_ctx;
   OBJECT addr;
-  
+
   /* See if the error happened during the running of a C function.
      If so, we raise an exception about the error. */
   rni_ctx = subtend_retrieve_context();
@@ -139,9 +139,9 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     rni_ctx->nmc->jump_val = SEGFAULT_DETECTED;
     setcontext(&rni_ctx->nmc->system);
   }
-  
+
   /* This is really nice. We don't have to do this check at every
-     fetch, instead, let it segfault and handle it here. 
+     fetch, instead, let it segfault and handle it here.
      The check for - 4 is because the bounds checks grabs the number
      of fields from a ref right away, which is where it will segfault
      if it's not a ref. The fields are 4 bytes into the header.
@@ -157,10 +157,10 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
       }
     }
   }
-  
+
   if(_recursive_reporting) exit(-2);
   _recursive_reporting++;
-  
+
   switch(sig) {
     case SIGSEGV:
       signame = "Segmentation fault (SIGSEGV)";
@@ -174,7 +174,7 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     default:
       signame = "<UNKNOWN>";
   }
-  
+
   printf("\nAn error has occured: %s (%d)\n\n", signame, sig);
 
   if(getenv("CRASH_WAIT")) {
@@ -185,10 +185,10 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
 
   printf("Ruby backtrace:\n");
   machine_print_callstack(current_machine);
-  
+
   printf("\nVM Registers:\n");
   machine_print_registers(current_machine);
-  
+
   exit(-2);
 }
 
@@ -210,7 +210,7 @@ static void machine_setup_events(machine m) {
 machine machine_new(environment e) {
   machine m;
   int pipes[2];
-  
+
   m = calloc(1, sizeof(struct rubinius_machine));
   m->g_use_firesuit = 0;
   m->g_access_violation = 0;
@@ -238,7 +238,7 @@ machine machine_new(environment e) {
   machine_set_const(m, "MAIN", m->c->main);
   cpu_task_configure_preemption(m->s);
   environment_add_machine(e, m);
-  
+
   m->s->om->bootstrap_loaded = 1;
 
   return m;
@@ -261,7 +261,7 @@ void machine_handle_type_error(OBJECT obj, const char *message) {
   if(FIXNUM_P(obj)) {
     current_machine->g_firesuit_arg = FixnumType;
   } else if(SYMBOL_P(obj)) {
-    current_machine->g_firesuit_arg = SymbolType;    
+    current_machine->g_firesuit_arg = SymbolType;
   } else if(REFERENCE_P(obj)) {
     current_machine->g_firesuit_arg = obj->obj_type;
   } else if(NIL_P(obj)) {
@@ -275,10 +275,10 @@ void machine_handle_type_error(OBJECT obj, const char *message) {
 
 void machine_handle_assert(const char *reason, const char *file, int line) {
   fprintf(stderr, "VM Assertion: %s (%s:%d)\n", reason, file, line);
-  
+
   printf("\nRuby backtrace:\n");
   machine_print_callstack(current_machine);
-  
+
   if(!current_machine->g_use_firesuit) abort();
   current_machine->g_access_violation = FIRE_ASSERT;
   setcontext(&current_machine->g_firesuit);
@@ -331,7 +331,7 @@ int machine_run_file(machine m, const char *path) {
     printf("Unable to load '%s'.\n", path);
     return FALSE;
   }
- 
+
   m->c->depth = 0;
   cpu_stack_push(m->s, m->c, meth, FALSE);
   cpu_run_script(m->s, m->c, meth);
@@ -358,7 +358,7 @@ void machine_save_args(machine m, int argc, char **argv) {
   memcpy(na, argv, argc);
   m->argc = argc;
   m->argv = na;
-  
+
   machine_setup_ruby(m, argv[0]);
   machine_setup_argv(m, argc, argv);
 }
@@ -394,8 +394,8 @@ int *machine_setup_piped_io(machine m) {
 void machine_setup_ruby(machine m, char *name) {
   char buf[MAXPATHLEN];
   char wd[MAXPATHLEN];
-  /* 
-    HACK: this should be replaced by normal ruby code.  
+  /*
+    HACK: this should be replaced by normal ruby code.
       C sucks - Ryan Davis
   */
   if(name[0] != '/') {
@@ -410,14 +410,14 @@ void machine_setup_ruby(machine m, char *name) {
 void machine_setup_argv(machine m, int argc, char **argv) {
   OBJECT ary;
   int i;
-  
+
   machine_set_const(m, "ARG0", string_new(m->s, argv[0]));
-  
+
   ary = array_new(m->s, argc - 1);
   for(i = 0; i < argc - 1; i++) {
     array_set(m->s, ary, i, string_new(m->s, argv[i+1]));
   }
-  
+
   machine_set_const(m, "ARGV", ary);
 }
 
@@ -426,51 +426,51 @@ int is_number(char *str) {
     if(!isdigit(*str)) return FALSE;
     str++;
   }
-  
+
   return TRUE;
 }
 
 static char *trim_str(char *str) {
   int i;
   while(*str && !isalnum(*str)) str++;
-  
+
   for(i = strlen(str) - 1; str[i] && !isalnum(str[i]); i++) {
     str[i] = 0;
   }
-  
+
   return str;
 }
 
 static void machine_parse_config_var(machine m, const char *input) {
   char *name, *val, *var, *eq;
-  
+
   var = strdup(input);
   eq = strchr(var, '=');
-  
+
   if(eq) {
     *eq++ = 0;
-    
+
     name = trim_str(var);
     val =  trim_str(eq);
-    
+
     if(!strcmp("include", name)) {
       machine_parse_config_file(m, val);
-    } else {    
+    } else {
       if(m->show_config) {
         printf("[config] '%s' => '%s'\n", name, val);
       }
-    
+
       ht_config_insert(m->s->config, cstr2bstr(name), cstr2bstr(val));
     }
   } else {
     if(m->show_config) {
       printf("[config] '%s' => '1'\n", var);
     }
-    
+
     name = trim_str(var);
     ht_config_insert(m->s->config, cstr2bstr(name), cstr2bstr("1"));
   }
-  
+
   XFREE(var);
 }
 
@@ -487,14 +487,14 @@ void machine_parse_configs(machine m, const char *config) {
     config += (sz + 1);
     semi = strstr(config, ";");
   }
-  
+
   machine_parse_config_var(m, config);
 }
 
 void machine_parse_config_file(machine m, const char *path) {
   FILE *fo;
   char line[1024];
-  
+
   fo = fopen(path, "r");
   if(!fo) return;
 
@@ -510,11 +510,11 @@ void machine_parse_config_file(machine m, const char *path) {
 void machine_migrate_config(machine m) {
   struct hashtable_itr iter;
   rstate state = m->s;
-  
+
   m->s->global->config = hash_new_sized(m->s, 500);
-    
+
   if(hashtable_count(m->s->config) > 0) {
-  
+
     hashtable_iterator_init(&iter, m->s->config);
 
     do {
@@ -530,9 +530,9 @@ void machine_migrate_config(machine m) {
 
       hash_set(m->s, m->s->global->config, ok, ov);
     } while (hashtable_iterator_advance(&iter));
-  
+
   }
-  
+
   machine_set_const(m, "RUBY_CONFIG", m->s->global->config);
   machine_setup_from_config(m);
 }
@@ -547,7 +547,7 @@ void machine_setup_from_config(machine m) {
   }
 
   bassigncstr (s, "rbx.debug.gc");
-  
+
   if(ht_config_search(m->s->config, s)) {
     m->s->gc_stats = 1;
   }
@@ -558,9 +558,9 @@ void machine_setup_from_config(machine m) {
 void machine_setup_config(machine m) {
   OBJECT mod;
   STATE;
-  
+
   state = m->s;
-  
+
   mod = rbs_const_get(m->s, m->s->global->object, "Rubinius");
   machine_set_const(m, "RUBY_PLATFORM", string_new(m->s, CONFIG_HOST));
   machine_set_const(m, "RUBY_RELEASE_DATE", string_new(m->s, CONFIG_RELDATE));
@@ -575,7 +575,7 @@ void machine_setup_config(machine m) {
   machine_set_const_under(m, "RBA_PATH", string_new(m->s, CONFIG_RBAPATH), mod);
 
   machine_set_const_under(m, "WORDSIZE", I2N(CONFIG_WORDSIZE), mod);
-  
+
 #if defined(__ppc__) || defined(__POWERPC__) || defined(_POWER)
   machine_set_const_under(m, "PLATFORM", SYM("ppc"), mod);
 #elif defined(__amd64__)
@@ -597,7 +597,7 @@ void machine_setup_config(machine m) {
 #else
   machine_set_const_under(m, "PLATFORM", SYM("unknown"), mod);
 #endif
-  
+
 #if defined(__APPLE__) || defined(__MACH__)
   machine_set_const_under(m, "OS", SYM("darwin"), mod);
 #elif defined(__linux__) || defined(linux) || defined(__linux)
@@ -641,9 +641,9 @@ void machine_setup_config(machine m) {
 #endif
 
 #if defined(_MSC_VER)
-  machine_set_const_under(m, "COMPILER", SYM("microsoft"), mod);  
+  machine_set_const_under(m, "COMPILER", SYM("microsoft"), mod);
 #elif defined(__DECC) || defined(VAXC)
-  machine_set_const_under(m, "COMPILER", SYM("digital"), mod);  
+  machine_set_const_under(m, "COMPILER", SYM("digital"), mod);
 #elif defined(__BORLANDC__)
   machine_set_const_under(m, "COMPILER", SYM("borland"), mod);
 #elif defined(__WATCOMC__)
@@ -670,7 +670,7 @@ void machine_setup_config(machine m) {
     machine_set_const_under(m, "L64", Qtrue, mod);
   } else {
     machine_set_const_under(m, "L64", Qfalse, mod);
-  }  
+  }
 
 #if defined(_WIN32) || defined(__NT__) || defined(WIN32) || defined(__WIN32__)
 #define LIBSUFFIX "dll"
@@ -682,13 +682,13 @@ void machine_setup_config(machine m) {
 
   machine_set_const_under(m, "LIBSUFFIX", string_new(m->s, LIBSUFFIX), mod);
   machine_set_const_under(m, "COMPILER_PATH", string_new(m->s, CONFIG_CC), mod);
-  
+
   if(isatty(0)) {
     machine_set_const_under(m, "Terminal", string_new(m->s, ttyname(0)), mod);
   } else {
-    machine_set_const_under(m, "Terminal", Qfalse, mod);    
+    machine_set_const_under(m, "Terminal", Qfalse, mod);
   }
-  
+
   machine_set_const_under(m, "DEBUG_INST", I2N(CPU_INSTRUCTION_YIELD_DEBUGGER), mod);
 
   machine_set_const_under(m, "VM_ID", I2N(m->id), mod);
@@ -703,20 +703,20 @@ void machine_config_env(machine m) {
   if(getenv("RDEBUG")) {
     debug_enable();
   }
-  
+
   if(getenv("RBX_CONFIG")) {
     m->show_config = 1;
   }
-  
+
   config = getenv("RBX");
   if(config) {
-    machine_parse_configs(m, config); 
+    machine_parse_configs(m, config);
   }
-  
+
   config = getenv("RBX_CONFFILE");
   if(config) {
     machine_parse_config_file(m, config);
-  }  
+  }
 }
 
 int machine_load_directory(machine m, const char *prefix) {
@@ -731,7 +731,7 @@ int machine_load_directory(machine m, const char *prefix) {
   path = ALLOC_N(char, buf_siz);
   memcpy(path, prefix, prefix_len);
   strcpy(path + prefix_len, "/.load_order.txt");
-  
+
   fp = fopen(path, "r");
   if(!fp) {
     printf("Unable to open directory '%s'\n", prefix);
@@ -740,7 +740,7 @@ int machine_load_directory(machine m, const char *prefix) {
   }
 
   file = &path[prefix_len + 1];
-  
+
   while (fgets(file, buf_siz - prefix_len, fp)) {
     size_t file_len;
 
@@ -756,10 +756,10 @@ int machine_load_directory(machine m, const char *prefix) {
       return FALSE;
     }
   }
-  
+
   fclose(fp);
   XFREE(path);
-  
+
   return TRUE;
 }
 

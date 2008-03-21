@@ -48,7 +48,7 @@ static inline void object_copy_body(STATE, OBJECT self, OBJECT dest) {
   size_t s1 = object_size(state, self);
   size_t s2 = object_size(state, dest);
   assert(s1 <= s2);
-  
+
   memcpy(object_byte_start(state, dest), object_byte_start(state, self), s1);
 }
 
@@ -58,10 +58,10 @@ static inline void object_copy_body(STATE, OBJECT self, OBJECT dest) {
 static inline uintptr_t object_get_id(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {
     OBJECT meta, id;
-    
+
     meta =  object_metaclass(state, self);
     id =    object_get_ivar(state, meta, state->global->sym_object_id);
-                  
+
     /* Lazy allocate object's ids, since most don't need them. */
     if(NIL_P(id)) {
       /* All references have an even object_id. last_object_id starts out at 0
@@ -69,7 +69,7 @@ static inline uintptr_t object_get_id(STATE, OBJECT self) {
       id = I2N(state->om->last_object_id += 2);
       object_set_ivar(state, meta, state->global->sym_object_id, id);
     }
-    
+
     return (uintptr_t)id;
   } else {
     /* All non-references have an odd object_id */
@@ -80,7 +80,7 @@ static inline uintptr_t object_get_id(STATE, OBJECT self) {
 static inline int object_copy_fields_shifted(STATE, OBJECT self, OBJECT dest, int dist) {
   int count;
   int i;
-  
+
   count = NUM_FIELDS(self);
 
   for(i = 0; i < count; i++) {
@@ -92,20 +92,20 @@ static inline int object_copy_fields_shifted(STATE, OBJECT self, OBJECT dest, in
 static inline int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int count) {
   int i, j;
   int max = NUM_FIELDS(self);
-  
+
   for(i = first, j = 0; j < count && i < max; i++, j++) {
     SET_FIELD(dest, j, NTH_FIELD(self, i));
   }
-  return TRUE;  
+  return TRUE;
 }
 
 static inline void object_copy_fields(STATE, OBJECT self, OBJECT dest) {
   int i, max, j;
-  
+
   max = NUM_FIELDS(self);
   j = NUM_FIELDS(dest);
   if(max < j) max = j;
-  
+
   for(i = 0; i < max; i++) {
     SET_FIELD(dest, i, NTH_FIELD(self, i));
   }

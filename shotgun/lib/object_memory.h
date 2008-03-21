@@ -25,12 +25,12 @@ struct object_memory_struct {
   mark_sweep_gc ms;
   int last_tenured;
   int bootstrap_loaded;
-  
+
   rheap contexts;
   /* The first not referenced stack context */
   OBJECT context_bottom;
   OBJECT context_last;
-  
+
   int context_offset;
 };
 
@@ -77,25 +77,25 @@ void object_memory_reset_contexts(STATE, object_memory om);
 static inline OBJECT object_memory_new_context(object_memory om, unsigned int locals) {
   unsigned int size;
   OBJECT ctx;
-  
+
   if(locals > 0) {
     size = (unsigned int)(CTX_SIZE + SIZE_IN_BYTES_FIELDS(locals) + 4);
   } else {
     size = (unsigned int)CTX_SIZE;
   }
-  
+
   ctx = ((OBJECT)heap_allocate_dirty(om->contexts, size));
   // memset(ctx, 0, size);
-  
+
   /* not really the number of fields, rather the number of bytes
      this context is using. */
   FASTCTX(ctx)->size = size;
-  
+
   return ctx;
 }
 
 #define object_memory_context_locals(ctx) ((OBJECT)BYTES_PAST(ctx, CTX_SIZE))
-  
+
 #define om_on_stack(om, ctx) heap_contains_p(om->contexts, ctx)
 #define om_in_heap(om, ctx) heap_contains_p(om->gc->current, ctx)
 
@@ -126,19 +126,19 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
 #define EACH_CTX(om, addr) \
   addr = (OBJECT)om->contexts->address; \
   while(addr < (OBJECT) om->contexts->current) {
-    
+
 #define DONE_EACH_CTX(addr) addr = (address)AFTER_CTX(addr); }
 
 #define EACH_REFD_CTX(om, addr) \
   addr = (OBJECT)om->contexts->address; \
   while(addr < (OBJECT) om->context_bottom) {
-    
+
 #define DONE_EACH_REFD_CTX(addr) addr = (address)AFTER_CTX(addr); }
 
 #define EACH_STACK_CTX(om, addr) \
   addr = (OBJECT)om->context_bottom; \
   while(addr < (OBJECT) om->contexts->current) {
-    
+
 #define DONE_EACH_STACK_CTX(addr) addr = (address)AFTER_CTX(addr); }
 
 #define om_no_referenced_ctxs_p(om) (om->context_bottom == (OBJECT)om->contexts->address)

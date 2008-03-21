@@ -38,7 +38,7 @@ static inline address heap_allocate(rheap h, unsigned int size) {
   addr = (address)h->current;
   memset((void*)addr, 0, size);
   h->current = (address)((uintptr_t)h->current +  size);
-  
+
   return addr;
 }
 

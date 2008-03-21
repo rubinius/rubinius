@@ -133,7 +133,7 @@ void environment_exit_machine() {
   state = m->s;
 
   if(m->parent_id) {
-    environment_send_message(e, m->parent_id, 
+    environment_send_message(e, m->parent_id,
         tuple_new2(state, 2, SYM("machine_exited"), I2N(m->id)));
   }
 
@@ -190,9 +190,9 @@ struct thread_args {
 void *_environment_spawn(void *input) {
   sigset_t set;
   struct thread_args *args = (struct thread_args*)input;
-  
+
   environment_setup_thread(args->e, args->m);
-  
+
   /* For now, we mask all signals except VTALRM in sub machines. */
   sigfillset(&set);
   //sigdelset(&set, SIGVTALRM);
@@ -223,7 +223,7 @@ void environment_send_message(environment e, int id, OBJECT msg) {
   /* Marshal the data before the lock. */
   m = environment_current_machine();
   data = cpu_marshal_to_bstring(m->s, msg, 0);
-  
+
   lock(e);
 
   cur = ht_vconfig_search(e->messages, &id);
@@ -235,7 +235,7 @@ void environment_send_message(environment e, int id, OBJECT msg) {
   }
 
   ptr_array_append(cur, (xpointer)data);
-  
+
   m = ht_vconfig_search(e->machines, &id);
 
   /* write the magic byte, to let the machine know there are
@@ -257,7 +257,7 @@ OBJECT environment_get_message(environment e, int id) {
   if(ptr_array_length(cur) == 0) goto error;
   data = ptr_array_remove_index_ordered(cur, 0);
   if(!data) goto error;
-  
+
   /* Now that we're sure we've got what we need, we unlock.. */
   unlock(e);
 

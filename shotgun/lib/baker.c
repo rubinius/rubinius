@@ -17,7 +17,7 @@ baker_gc baker_gc_new(int size) {
   g->remember_set = ptr_array_new(8);
   g->seen_weak_refs = ptr_array_new(8);
   g->tenured_objects = ptr_array_new(8);
-  
+
   g->space_a = heap_new(size);
   g->space_b = heap_new(size);
   g->current = g->space_a;
@@ -74,14 +74,14 @@ void baker_gc_reset_used(baker_gc g) {
 
 int baker_gc_swap(baker_gc g) {
   rheap tmp;
-  
+
   tmp = g->current;
   g->current = g->next;
   g->next = tmp;
-  
+
   g->last_start = (char*)tmp->address;
   g->last_end =   (char*)tmp->current;
-  
+
   heap_reset(tmp);
   /* Reset used to the what the current has used. */
   /* g->used = (uintptr_t)g->current->current - (uintptr_t)g->current->address; */
@@ -129,11 +129,11 @@ static inline OBJECT baker_gc_maybe_mutate(baker_gc g, OBJECT iobj) {
   } else {
     ret = iobj;
   }
-  
+
   // assert(baker_gc_contains_spill_p(g, ret));
-    
+
   CHECK_PTR(ret);
-  
+
   return ret;
 }
 */
@@ -159,37 +159,37 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   int i, fields;
 
   void *om = g->om;
-  
+
 #if 0
   if(_track_refs) {
     if (ptr_array_contains(_track_refs, (xpointer)iobj))
         printf("Found2 %p!\n", (void*)iobj);
   }
 #endif
-  
+
   //printf("%d: Mutating class of %p\n", ++depth, iobj);
- 
+
   /* CLASS_OBJECT() gets the object directly in the klass field
-   * of iobj, which is very likely it's metaclass, not it's 
+   * of iobj, which is very likely it's metaclass, not it's
    * formal class. FYI. */
   cls = CLASS_OBJECT(iobj);
   if(REFERENCE_P(cls)) {
     cls = baker_gc_maybe_mutate(state, g, cls);
   }
-  
+
   SET_CLASS(iobj, cls);
-  
+
   xassert(!FORWARDED_P(iobj));
-  
+
   if(iobj->RefsAreWeak) {
     // printf("%p has weak refs.\n", (void*)iobj);
     ptr_array_append(g->seen_weak_refs, (xpointer)iobj);
     depth--;
     return;
   }
-    
+
   //printf("%d: Mutating references of %p\n", depth, iobj);
-  
+
   if(!_object_stores_bytes(iobj)) {
     fields = NUM_FIELDS(iobj);
     for(i = 0; i < fields; i++) {
@@ -203,7 +203,7 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       } else {
         mut = tmp;
       }
-        
+
       SET_FIELD_DIRECT(iobj, i, mut);
       RUN_WB2(om, iobj, mut);
     }
@@ -222,7 +222,7 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       fc_mutate(name);
 
       if(!NIL_P(fc->method) && fc->method->obj_type == CMethodType) {
-        /* We cache the bytecode in a char*, so adjust it. 
+        /* We cache the bytecode in a char*, so adjust it.
            We mutate the data first so we cache the newest address. */
         OBJECT ba;
         ba = cmethod_get_compiled(fc->method);
@@ -244,17 +244,17 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
           assert(fc->active_context->obj_type == MContextType ||
                 fc->active_context->obj_type == BContextType);
         }
-        
+
         if(REFERENCE_P(fc->home_context)) {
           assert(fc->home_context->obj_type == MContextType ||
                 fc->home_context->obj_type == BContextType);
         }
-        
+
         fc_mutate(exception);
         fc_mutate(enclosing_class);
         fc_mutate(active_context);
         fc_mutate(home_context);
-        fc_mutate(main);  
+        fc_mutate(main);
         fc_mutate(debug_channel);
         fc_mutate(control_channel);
         fc_mutate(current_scope);
@@ -262,16 +262,16 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
 
         // printf("marking %p, %p (%p, %d)\n", iobj, fc->stack_top, fc->sp_ptr, fc->sp_ptr - fc->stack_top);
         sp = fc->stack_top;
-        
+
         assert(fc->sp_ptr >= sp);
-        
+
         while(sp <= fc->sp_ptr) {
           if(*sp && REFERENCE_P(*sp)) {
             *sp = baker_gc_maybe_mutate(state, g, *sp);
           }
           sp++;
         }
-      
+
         int i;
         for(i = 0; i < ptr_array_length(fc->paths); i++) {
           ptr_array_set_index(fc->paths, i,
@@ -281,7 +281,7 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
     } else {
       /* Handle the generic type_info prefix fields */
       fields = state->type_info[iobj->obj_type].object_fields;
-      
+
       for(i = 0; i < fields; i++) {
         tmp = NTH_FIELD(iobj, i);
         if(!REFERENCE_P(tmp)) continue;
@@ -298,21 +298,21 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
         RUN_WB2(om, iobj, mut);
       }
     }
-    
+
 #undef fc_mutate
   }
-  
+
   depth--;
 }
 
 void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int top) {
   #define fc_mutate(field) if(fc->field && REFERENCE_P(fc->field)) fc->field = baker_gc_mutate_from(state, g, fc->field)
-  
+
   struct fast_context *fc = FASTCTX(iobj);
   OBJECT old_sender;
 
   old_sender = fc->sender;
-  
+
   if(REFERENCE_P(fc->sender)) {
     /* This is the top most stack context, handle it differently */
     if(top) {
@@ -336,13 +336,13 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
       */
     }
   }
-  
+
   if(top) {
     assert(NIL_P(fc->sender) || fc->sender->obj_type == MContextType || fc->sender->obj_type == BContextType);
   }
-  
-  
-  
+
+
+
   fc_mutate(method);
   fc_mutate(block);
   fc_mutate(literals);
@@ -351,14 +351,14 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
   if(!NIL_P(fc->locals) && fc->locals->gc_zone == 0) {
     int i, fields;
     OBJECT mut, tmp;
-    
+
     fc->locals = object_memory_context_locals(iobj);
     fields = NUM_FIELDS(fc->locals);
-    
+
     for(i = 0; i < fields; i++) {
       tmp = NTH_FIELD(fc->locals, i);
       if(!REFERENCE_P(tmp)) continue;
-    
+
       mut = baker_gc_mutate_from(state, g, tmp);
       fast_unsafe_set(fc->locals, i, mut);
     }
@@ -369,7 +369,7 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
   fc_mutate(name);
 
   if(!NIL_P(fc->method) && fc->method->obj_type == CMethodType) {
-    /* We cache the bytecode in a char*, so adjust it. 
+    /* We cache the bytecode in a char*, so adjust it.
        We mutate the data first so we cache the newest address. */
     OBJECT ba;
     ba = cmethod_get_compiled(fc->method);
@@ -392,7 +392,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
   if(obj == g->become_from) {
     return baker_gc_maybe_mutate(state, g, g->become_to);
   }
-  
+
   if(heap_contains_p(state->om->contexts, obj)) {
     saved_contexts++;
   }
@@ -403,7 +403,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
       printf("Found %p!\n", (void*)obj);
   }
 #endif
-  
+
   if((AGE(obj) == g->tenure_age)) {
     xassert(obj->klass != state->global->fastctx);
     CLEAR_AGE(obj);
@@ -450,17 +450,17 @@ int baker_gc_contains_spill_p(baker_gc g, OBJECT obj) {
 OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT orig) {
   OBJECT ret, iobj;
   int count = 0;
-    
+
   ret = baker_gc_maybe_mutate(state, g, orig);
-  
+
   iobj = ret;
-  
+
   while(iobj) {
     _mutate_references(state, g, iobj);
     iobj = heap_next_unscanned(g->next);
     count++;
   }
-  
+
   return ret;
 }
 
@@ -481,18 +481,18 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   OBJECT tmp, root;
   struct method_cache *end, *ent;
   ptr_array rs;
-  
+
   saved_contexts = 0;
-  
+
   g->num_collection++;
-  
+
   /* empty it out. */
   ptr_array_clear(g->seen_weak_refs);
   ptr_array_clear(g->tenured_objects);
-  
+
   // printf("Running garbage collector...\n");
-  
-  
+
+
   sz = ptr_array_length(roots);
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(ptr_array_get_index(roots, i));
@@ -503,15 +503,15 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
     tmp = baker_gc_mutate_from(state, g, root);
     ptr_array_set_index(roots, i, (xpointer) tmp);
   }
-  
+
   /* To maintain the remember set, we setup a totally new
      set before do any walking of objects, so that only objects
      which truely still contain pointers to this generation
      are added back to the new rs. */
-  
+
   rs = g->remember_set;
   g->remember_set = ptr_array_new(8);
-  
+
   sz = ptr_array_length(rs);
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(ptr_array_get_index(rs, i));
@@ -520,11 +520,11 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
     tmp = baker_gc_mutate_from(state, g, root);
     // ptr_array_set_index(g->remember_set, i, tmp);
   }
-          
-  
+
+
   /* Now the stack. */
   OBJECT *sp;
-  
+
   sp = state->current_stack;
   while(sp <= state->current_sp) {
     tmp = *sp;
@@ -533,20 +533,20 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
     }
     sp++;
   }
-  
+
   /* Now the handle table. */
   for(i = 0; i < state->handle_tbl->total; i++) {
     if(state->handle_tbl->entries[i]) {
-      state->handle_tbl->entries[i]->object = 
+      state->handle_tbl->entries[i]->object =
             baker_gc_mutate_from(state, g, state->handle_tbl->entries[i]->object);
     }
   }
-  
+
   cpu_event_each_channel(state,
       (cpu_event_each_channel_cb) baker_gc_mutate_from, g);
   cpu_sampler_collect(state,
       (cpu_sampler_collect_cb) baker_gc_mutate_from, g);
-  
+
   /* This is a little odd, so I should explain. As we encounter
      objects which should be tenured while scanning, we put them
      into the tenured_objects array. We finish the normal scan, and
@@ -558,22 +558,22 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
 
   i = 0;
   while(!heap_fully_scanned_p(g->next) || i < ptr_array_length(g->tenured_objects)) {
-    
+
     baker_gc_mutate_rest(state, g);
-    
+
     for(; i < ptr_array_length(g->tenured_objects); i++) {
       tmp = (OBJECT)ptr_array_get_index(g->tenured_objects, i);
       _mutate_references(state, g, tmp);
     }
-  
+
   }
-  
+
   /* We handle the method cache a little differently. We treat it like every
    * ref is weak so that it doesn't cause objects to live longer than they should. */
 
   ent = state->method_cache;
   end = ent + CPU_CACHE_SIZE;
-  
+
   while(ent < end) {
     if(ent->klass) {
       if(ent->klass->gc_zone == YoungObjectZone) {
@@ -584,7 +584,7 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
         }
       }
     }
-    
+
     if(ent->module) {
       if(ent->module->gc_zone == YoungObjectZone) {
         if(baker_gc_forwarded_p(ent->module)) {
@@ -594,7 +594,7 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
         }
       }
     }
-    
+
     if(ent->method) {
       if(ent->method->gc_zone == YoungObjectZone) {
         if(baker_gc_forwarded_p(ent->method)) {
@@ -611,11 +611,11 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
       ent->module = 0;
       ent->method = 0;
     }
-      
+
     ent++;
   }
-  
-  
+
+
   int j;
   OBJECT t2, ref;
   for(i = 0; i < ptr_array_length(g->seen_weak_refs); i++) {
@@ -632,10 +632,10 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
       }
     }
   }
-  
+
   assert(heap_fully_scanned_p(g->next));
   baker_gc_swap(g);
-  
+
   if(g->current->size != g->next->size) {
     baker_gc_enlarge_next(g, g->current->size);
   }
@@ -646,7 +646,7 @@ unsigned int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
     baker_gc_enlarge_next(g, g->current->size * 1.5);
   }
 */
-  
+
   // printf("Saved %d contexts.\n", saved_contexts);
   ptr_array_free(rs);
   return TRUE;
@@ -655,34 +655,34 @@ void baker_gc_clear_marked(baker_gc g) {
   int osz;
   char *end, *cur;
   OBJECT obj;
-  
+
   cur = (char*)g->current->address;
   end = (char*)g->current->current;
-  
+
   while(cur < end) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(obj);
     obj->Marked = FALSE;
     cur += osz;
-  }  
+  }
 }
 
 void baker_gc_find_lost_souls(STATE, baker_gc g) {
   int osz, bs;
   char *end, *cur;
   OBJECT obj, cls;
-  
+
   cur = (char*)g->last_start;
   end = (char*)g->last_end;
   // printf("Looking for lost souls between %p and %p\n", cur, end);
-  
+
   while(cur < end) {
     obj = (OBJECT)cur;
     osz = NUM_FIELDS(obj);
-        
+
     if(!baker_gc_forwarded_p(obj)) {
       cls = CLASS_OBJECT(obj);
-      
+
       //printf("%p is dead: %d, %p, %s.\n", obj, obj->RequiresCleanup);
       //  cls, cls ? _inspect(cls) : "(NULL)");
       if(obj->RequiresCleanup) {
@@ -695,13 +695,13 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
         }
         obj->RequiresCleanup = 0;
       }
-      
+
       if(obj->obj_type == WrapsStructType) FREE_WRAPPED_STRUCT(obj);
     }
     bs = SIZE_IN_BYTES_FIELDS(osz);
     // fast_memfill(cur, 0, SIZE_IN_WORDS_FIELDS(osz));
     // memset(cur, 0, bs);
-    
+
     cur += bs;
 
   }
@@ -720,15 +720,15 @@ void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, ptr_array refs)
   size_t sz;
   char *end, *cur;
   OBJECT obj;
-  
+
   sz = baker_gc_used(g);
   cur = (char*)g->current->address;
   end = cur + sz;
-    
+
   while(cur < end) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(obj);
-    
+
     if(!_object_stores_bytes(obj)) {
       for(i = 0; i < NUM_FIELDS(obj); i++) {
         if(NTH_FIELD(obj, i) == mark) {
@@ -736,7 +736,7 @@ void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, ptr_array refs)
         }
       }
     }
-    
+
     cur += osz;
   }
 }

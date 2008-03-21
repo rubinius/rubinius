@@ -25,12 +25,12 @@ struct rni_nmc {
 #if defined(__APPLE__) && defined(HAS_UCONTEXT)
   _STRUCT_MCONTEXT __cont_mc;
 #endif
-  
+
   int setup_context;
-  
+
   void *stack;
   int stack_size;
-  
+
   void *local_data;
 };
 

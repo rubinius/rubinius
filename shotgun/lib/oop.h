@@ -12,7 +12,7 @@ typedef intptr_t native_int;
  * if tag == 00, the whole thing is a pointer to a memory location.
  * if tag == 01, the data is a fixnum
  * if tag == 10, the data is a literal
- * if tag == 11, the data is any data, using the DATA_* macros 
+ * if tag == 11, the data is any data, using the DATA_* macros
  */
 
 #define TAG_MASK    0x3
@@ -154,14 +154,14 @@ typedef enum
 
 /* rubinius_object gc zone, takes up two bits */
 typedef enum
-{ 
+{
   UnspecifiedZone  = 0,
   MatureObjectZone = 1,
   YoungObjectZone  = 2,
   LargeObjectZone  = 3,
 } gc_zone;
 
-/* the sizeof(struct rubinius_object) must an increment of the platform 
+/* the sizeof(struct rubinius_object) must an increment of the platform
    pointer size, so that the bytes located directly after a
    struct rubinius_object can hold a pointer which can be
    dereferenced. (an 32 bit platforms, pointers must be aligned
@@ -190,7 +190,7 @@ struct rubinius_object_t {
       unsigned int RequiresCleanup        : 1;
       unsigned int IsBlockContext         : 1;
       unsigned int IsMeta                 : 1;
-      
+
       unsigned int CTXFast                : 1;
       unsigned int IsTainted              : 1;
       unsigned int IsFrozen               : 1;
@@ -204,12 +204,12 @@ struct rubinius_object_t {
   OBJECT field[];
 };
 
-/* 
+/*
 A rubinius object can be followed by:
  - a series of fields, possibly including an ivar
  - a series of bytes (ByteArray)
  - a fast_context pointer
-*/ 
+*/
 
 /* Object access, lowest level. These read and set fields of an OBJECT
  * directly. They're built on to integrate with the GC properly. */
@@ -243,7 +243,7 @@ A rubinius object can be followed by:
 /* Standard Rubinius Representation
 
 Bit layout of special literals:
-             
+
  6:false    110   % 6 = 6
 14:nil     1110   % 6 = 6
 10:true    1010   % 6 = 2
@@ -336,9 +336,9 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
 #else /*DISABLE_CHECKS*/
 
 static void _bad_reference2(OBJECT in, int fel) {
-  printf("Attempted to access field %d in an object with %lu fields.\n", 
+  printf("Attempted to access field %d in an object with %lu fields.\n",
     fel, (unsigned long)NUM_FIELDS(in));
-    
+
   if(current_machine->g_use_firesuit) {
     machine_handle_fire(FIRE_ACCESS);
   }
@@ -350,7 +350,7 @@ static void _bad_reference(OBJECT in) {
   printf("Attempted to access field of non-reference.\n");
   if(current_machine->g_use_firesuit) {
     machine_handle_fire(FIRE_NULL);
-  } 
+  }
 }
 
 #define rbs_set_field(om, obj, fel, val) ({ \
@@ -390,10 +390,10 @@ static void _bad_reference(OBJECT in) {
 
 #endif /*DISABLE_CHECKS*/
 
-/* A kind of odd one. Use this when assigning an OBJECT into a 'managed' 
- * structed, ie a struct that is contained in the rubinius heap. This 
+/* A kind of odd one. Use this when assigning an OBJECT into a 'managed'
+ * structed, ie a struct that is contained in the rubinius heap. This
  * allows the GC to run the write barrier and keep things sane. */
-#define SET_STRUCT_FIELD(obj, fel, val) ({ OBJECT _o = (obj), _tmp = (val); RUN_WB(_o, _tmp); fel = _tmp; _tmp; })  
+#define SET_STRUCT_FIELD(obj, fel, val) ({ OBJECT _o = (obj), _tmp = (val); RUN_WB(_o, _tmp); fel = _tmp; _tmp; })
 
 /* Return the OBJECT for the class of +obj+. Works for all OBJECTs. */
 #define _real_class(state, obj) (REFERENCE_P(obj) ? obj->klass : object_class(state, obj))
@@ -452,4 +452,4 @@ struct wraps_struct {
     if(s->free != NULL) { s->free(s->ptr); } \
   } while (0)
 
-#endif 
+#endif

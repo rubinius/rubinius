@@ -12,7 +12,7 @@
 OBJECT string_new2(STATE, const char *str, int sz) {
   OBJECT obj, data;
   char *ba;
-  
+
   xassert(sz >= 0);
   obj = string_allocate(state);
   string_set_bytes(obj, I2N(sz));
@@ -22,18 +22,18 @@ OBJECT string_new2(STATE, const char *str, int sz) {
   data = bytearray_new_dirty(state, sz+1);
   ba = bytearray_byte_address(state, data);
   memset(ba, 0, SIZE_OF_BODY(data));
-  
+
   if(str != NULL && sz > 0) {
     memcpy(ba, str, sz);
     ba[sz] = 0;
   }
-  
+
   string_set_data(obj, data);
   return obj;
 }
 
 OBJECT string_new(STATE, const char *str) {
-  int sz;  
+  int sz;
 
   if(str == NULL) {
     return string_new2(state, str, 0);
@@ -45,12 +45,12 @@ OBJECT string_new(STATE, const char *str) {
 
 OBJECT string_new_shared(STATE, OBJECT cur) {
   OBJECT obj;
- 
+
   obj = string_allocate(state);
   string_set_bytes(obj, string_get_bytes(cur));
   string_set_characters(obj, string_get_bytes(cur));
   string_set_encoding(obj, Qnil);
-  
+
   string_set_data(obj, string_get_data(cur));
   string_set_shared(obj, Qtrue);
   string_set_shared(cur, Qtrue);
@@ -79,17 +79,17 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   OBJECT cur, obs, nd;
   int cur_sz, oth_sz, ns, tmp, extra;
   char *ba;
-  
+
   xassert(STRING_P(self));
   xassert(STRING_P(other));
-  
+
   string_unshare(state, self);
-  
+
   cur = string_get_data(self);
   obs = string_get_data(other);
   cur_sz = N2I(string_get_bytes(self));
   oth_sz = N2I(string_get_bytes(other));
-  
+
   ns = cur_sz + oth_sz;
   tmp = bytearray_bytes(state, cur);
   if(ns+1 > tmp) {
@@ -117,7 +117,7 @@ char *string_byte_address(STATE, OBJECT self) {
   if(NIL_P(data)) {
     return (char*)"";
   }
-  
+
   return bytearray_byte_address(state, data);
 }
 
@@ -126,14 +126,14 @@ double string_to_double(STATE, OBJECT self) {
   char *p, *n, *ba, *rest;
   int e_seen = 0;
   xassert(STRING_P(self));
-  
+
   // We'll modify the buffer, so we need our own copy.
   ba = bytearray_as_string(state, string_get_data(self));
-  
+
   p = ba;
   while (ISSPACE(*p)) p++;
   n = p;
-    
+
   while (*p) {
     if (*p == '_') {
       p++;
@@ -148,12 +148,12 @@ double string_to_double(STATE, OBJECT self) {
         *n = 0;
         break;
       }
-      
-      *n++ = *p++;      
+
+      *n++ = *p++;
     }
   }
   *n = 0;
-  
+
   /* Some implementations of strtod() don't guarantee to
    * set errno, so we need to reset it ourselves.
    */
@@ -163,10 +163,10 @@ double string_to_double(STATE, OBJECT self) {
   if (errno == ERANGE) {
 	  printf("Float %s out of range\n", ba);
   }
-    
+
   free(ba);
-  
-  
+
+
   return value;
 }
 
@@ -176,17 +176,17 @@ double string_to_double(STATE, OBJECT self) {
 unsigned int string_hash_str(unsigned char *bp, unsigned int sz) {
   unsigned char *be;
   unsigned int hv;
-  
+
   be = bp + sz;
-  
+
   hv = 0;
-  
-  while(bp < be) {  
+
+  while(bp < be) {
     hv *= HashPrime;
     hv ^= *bp++;
   }
   hv = (hv>>28) ^ (hv & MASK_28);
-    
+
   return hv;
 }
 
@@ -194,7 +194,7 @@ unsigned int string_hash_int(STATE, OBJECT self) {
   unsigned char *bp;
   unsigned int sz, h;
   OBJECT data, hsh;
-  
+
   xassert(STRING_P(self));
   data = string_get_data(self);
   hsh = string_get_hash(self);
@@ -203,10 +203,10 @@ unsigned int string_hash_int(STATE, OBJECT self) {
   }
   bp = (unsigned char*)bytearray_byte_address(state, data);
   sz = N2I(string_get_bytes(self));
-  
+
   h = string_hash_str(bp, sz);
   string_set_hash(self, UI2N(h));
-  
+
   return h;
 }
 

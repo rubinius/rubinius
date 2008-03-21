@@ -56,7 +56,7 @@ OBJECT cpu_scope_push(STATE, cpu c, OBJECT mod) {
   OBJECT scope = staticscope_allocate(state);
   staticscope_set_module(scope, mod);
   staticscope_set_parent(scope, c->current_scope);
-  
+
   c->current_scope = scope;
   return scope;
 }
@@ -74,19 +74,19 @@ void cpu_initialize_context(STATE, cpu c) {
   c->exception = Qnil;
   c->main = object_new(state);
   rbs_const_set(state, state->global->object, "MAIN", c->main);
-  
-  state->global->method_missing = string_to_sym(state, 
+
+  state->global->method_missing = string_to_sym(state,
         string_new(state, "method_missing"));
-  
-  state->global->sym_inherited = string_to_sym(state, 
+
+  state->global->sym_inherited = string_to_sym(state,
         string_new(state, "inherited"));
 
-  state->global->sym_method_added = string_to_sym(state, 
+  state->global->sym_method_added = string_to_sym(state,
         string_new(state, "__method_added__"));
-        
+
   state->global->sym_s_method_added = string_to_sym(state,
         string_new(state, "singleton_method_added"));
-        
+
   state->global->sym_plus =  symbol_from_cstr(state, "+");
   state->global->sym_minus = symbol_from_cstr(state, "-");
   state->global->sym_equal = symbol_from_cstr(state, "==");
@@ -113,7 +113,7 @@ void cpu_initialize_context(STATE, cpu c) {
   c->main_thread = c->current_thread;
   c->current_task = cpu_thread_get_task(state, c->current_thread);
   c->main_task = c->current_task;
-  
+
   cpu_scope_push(state, c, BASIC_CLASS(object));
   state->global->top_scope = c->current_scope;
 }
@@ -124,11 +124,11 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   #define ar(obj) if(REFERENCE_P(obj)) { \
     ptr_array_append(roots, (xpointer)obj); \
   }
-  
+
   ar(c->active_context);
   ar(c->home_context);
   ar(c->sender);
-  
+
   ar(c->self);
   ar(c->exception);
   ar(c->enclosing_class);
@@ -150,14 +150,14 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
     ar(t);
   }
   //printf("Paths should be empty: %d\n", c->paths->len);
-  
+
   #undef ar
 }
 
 int cpu_ip2line(STATE, OBJECT meth, int ip) {
   OBJECT lines, tup;
   int l, total, start, nd, op;
-  
+
   if(meth->obj_type != CMethodType) return 0;
 
   lines = cmethod_get_lines(meth);
@@ -183,11 +183,11 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
     tmp = ptr_array_get_index(roots, start++); \
     obj = (OBJECT)tmp; \
   }
-  
+
   ar(c->active_context);
   ar(c->home_context);
   ar(c->sender);
-  
+
   ar(c->self);
   ar(c->exception);
   ar(c->enclosing_class);
@@ -209,13 +209,13 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   }
   //printf("Paths is %d\n", c->paths->len);
   #undef ar
-  
+
   cpu_flush_ip(c);
 }
 
 OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg) {
   OBJECT obj, str;
-  
+
   obj = class_new_instance(state, klass);
   str = string_new(state, msg);
   exception_set_message(obj, str);
@@ -229,11 +229,11 @@ OBJECT cpu_new_exception2(STATE, cpu c, OBJECT klass, const char *msg, ...) {
   static char buffer[1024];
   int count;
   va_list ap;
-  
+
   va_start(ap, msg);
   count = vsnprintf(buffer, 1024, msg, ap);
   va_end(ap);
-  
+
   obj = class_new_instance(state, klass);
   str = string_new2(state, buffer, count);
   exception_set_message(obj, str);
@@ -248,7 +248,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   OBJECT cref, cbase;
 
   /* Look up the lexical scope first */
-  
+
   cref = cpu_current_scope(state, c);
   if(NIL_P(cref)) {
     start = state->global->object;
@@ -257,28 +257,28 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
 
     while(!NIL_P(cbase)) {
       klass = staticscope_get_module(cbase);
-      
+
       /* If we hit Object in the chain, we stop there. */
       if(klass == state->global->object) break;
-      
+
       tbl = module_get_constants(klass);
       val = lookuptable_find(state, tbl, sym);
       if(val != Qundef) return val;
-          
+
       cbase = staticscope_get_parent(cbase);
     }
-  
+
     start = cur = staticscope_get_module(cref);
-  
+
     while(!NIL_P(cur)) {
-    
+
       tbl = module_get_constants(cur);
       val = lookuptable_find(state, tbl, sym);
       if(val != Qundef) return val;
       cur = module_get_superclass(cur);
     }
   }
-  
+
   // As a last rescue, we search in Object's constants
   tbl = module_get_constants(state->global->object);
   val = lookuptable_find(state, tbl, sym);
@@ -291,17 +291,17 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
 
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
   OBJECT cur, tbl, val;
-  
+
   // printf("Looking for %s under %s.\n", rbs_symbol_to_cstring(state, sym), rbs_symbol_to_cstring(state, module_get_name(under)));
-  
+
   cur = under;
-  
+
   while(!NIL_P(cur)) {
     // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
-    
+
     tbl = module_get_constants(cur);
     val = lookuptable_find(state, tbl, sym);
-    if(val != Qundef) { 
+    if(val != Qundef) {
       // printf("   found!\n");
       return val;
     }
@@ -310,19 +310,19 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
     if(cur == state->global->object) break;
     cur = class_get_superclass(cur);
   }
-  
+
   if(object_kind_of_p(state, under, state->global->module)) {
     // printf("Looking directly in Object.\n");
     tbl = module_get_constants(state->global->object);
     val = lookuptable_find(state, tbl, sym);
-    if(val != Qundef) { 
+    if(val != Qundef) {
       // printf("   found!\n");
       return val;
     }
   }
-  
+
   // printf("Still unable to find, firing const_missing.\n");
-  
+
   stack_push(sym);
   cpu_send(state, c, under, state->global->sym_const_missing, 1, Qnil);
   return Qundef;
@@ -334,7 +334,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
 
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under) {
   OBJECT tbl;
-  
+
   tbl = module_get_constants(under);
   lookuptable_store(state, tbl, sym, val);
   return val;
@@ -345,9 +345,9 @@ void cpu_set_encloser_path(STATE, cpu c, OBJECT cls) {
   len = ptr_array_length(c->paths);
   ptr_array_append(c->paths, (xpointer)c->enclosing_class);
 
-  cmethod_set_staticscope(cpu_current_method(state, c), 
+  cmethod_set_staticscope(cpu_current_method(state, c),
                           cpu_scope_push(state, c, cls));
-  
+
   c->enclosing_class = cls;
 }
 
@@ -363,25 +363,25 @@ void cpu_push_encloser(STATE, cpu c) {
 /* Increments serial numbers up the superclass chain. */
 static void cpu_increment_serials(STATE, OBJECT module, OBJECT sym) {
   OBJECT tbl, meth;
-  
+
   while(!NIL_P(module)) {
     tbl = module_get_method_table(module);
     meth = lookuptable_fetch(state, tbl, sym);
-    
+
     if(REFERENCE_P(meth)) {
-      if(CLASS_OBJECT(meth) == BASIC_CLASS(tuple)) { 
+      if(CLASS_OBJECT(meth) == BASIC_CLASS(tuple)) {
         meth = tuple_at(state, meth, 1);
       }
       fast_inc(meth, CMETHOD_f_SERIAL);
     }
-    
+
     module = class_get_superclass(module);
   }
 }
 
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   OBJECT meths, vis, cref;
-  
+
   if(!ISA(target, BASIC_CLASS(module))) {
     cref = cmethod_get_staticscope(cpu_current_method(state, c));
     if(NIL_P(cref)) {
@@ -390,12 +390,12 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
       target = staticscope_get_module(cref);
     }
   }
-  
+
   cpu_clear_cache_for_method(state, c, sym, FALSE);
-  
+
   cpu_increment_serials(state, target, sym);
   meths = module_get_method_table(target);
-  
+
   switch(c->call_flags) {
   default:
   case 0:
@@ -413,18 +413,18 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   if(sym == state->global->sym_initialize) {
     vis = state->global->sym_private;
   }
-  
+
   if(EXCESSIVE_TRACING) {
     printf("=> Adding method %s to %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(target));
   }
-  
+
   // HACK. the 10 sucks, it protects things that go in a method table, but
   // aren't exactly CompiledMethods.
   // A method inherits the static scope of the method that that add/attaches it.
   if(NUM_FIELDS(method) > 10 && NIL_P(cmethod_get_staticscope(method))) {
     cmethod_set_staticscope(method, cpu_current_scope(state, c));
   }
-  
+
   lookuptable_store(state, meths, sym, tuple_new2(state, 2, vis, method));
   c->call_flags = 0;
 }
@@ -442,12 +442,12 @@ void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
    These get out of sync when the GC runs. */
 void cpu_hard_cache(STATE, cpu c) {
   struct fast_context *fc;
-  
+
   cpu_flush_ip(c);
-  
+
   fc = (struct fast_context*)BYTES_OF(c->active_context);
   c->data = fc->data;
-  
-  cpu_cache_ip(c);  
+
+  cpu_cache_ip(c);
 }
 

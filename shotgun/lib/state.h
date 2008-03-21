@@ -27,7 +27,7 @@
 #define SPECIAL_CLASS_SIZE 32
 
 struct rubinius_globals {
-  
+
   /* classes for the core 'types' */
   OBJECT blokctx, cmethod, tuple, module, object, array;
   OBJECT class, hash, methtbl, bytearray, methctx, blank;
@@ -36,7 +36,7 @@ struct rubinius_globals {
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
   OBJECT floatpoint, fastctx, data, nmethod, nmc, task, list, list_node;
   OBJECT channel, thread, staticscope, send_site, selector, lookuptable;
-  
+
   /* the primary symbol table */
   OBJECT symbols;
   OBJECT method_missing;
@@ -47,7 +47,7 @@ struct rubinius_globals {
   OBJECT exc_loe, exc_type, exc_rex;
   OBJECT exc_stack_explosion;
   OBJECT exc_primitive_failure, sym_initialize;
-  
+
   OBJECT external_ivars, scheduled_threads, errno_mapping;
   OBJECT config, ffi_ptr, ffi_func, sym_send;
   OBJECT sym_public, sym_private, sym_protected, sym_const_missing;
@@ -55,7 +55,7 @@ struct rubinius_globals {
   OBJECT exception, iseq, icache;
   OBJECT top_scope, on_gc_channel;
   OBJECT selectors;
-  
+
   OBJECT special_classes[SPECIAL_CLASS_SIZE];
 };
 
@@ -111,9 +111,9 @@ struct type_info {
 
 struct rubinius_state {
   object_memory om;
-  
+
   struct method_cache method_cache[CPU_CACHE_SIZE + CPU_CACHE_TOLERANCE];
-  
+
 #ifdef TRACK_STATS
   int cache_hits;
   int cache_misses;
@@ -125,7 +125,7 @@ struct rubinius_state {
 #endif
 
   struct rubinius_globals *global;
-  
+
   /* Used to pass information down to the garbage collectors */
   OBJECT *current_stack;
   OBJECT *current_sp;
@@ -136,19 +136,19 @@ struct rubinius_state {
 #endif
 
   rni_handle_table *handle_tbl;
-  
+
   unsigned long *stack_bottom;
-  
+
   struct hashtable *cleanup;
   struct hashtable *config;
-  
+
   void *event_base;
   void *thread_infos;
   unsigned int event_id;
-  
+
   OBJECT *samples;
   int max_samples, cur_sample;
-  
+
   int excessive_tracing, gc_stats;
   int check_events, pending_threads, pending_events;
 
@@ -176,7 +176,7 @@ uint64_t get_cpu_frequency();
   obj = object_memory_new_opaque(state, kls, sizeof(kind)); \
   str = (kind * )BYTES_OF(obj)
 
-#define NEW_OBJECT_MATURE(kls, size) object_memory_new_object_mature(state->om, kls, size)  
+#define NEW_OBJECT_MATURE(kls, size) object_memory_new_object_mature(state->om, kls, size)
 
 #define DATA_STRUCT(obj, kind) ((kind)BYTES_OF(obj))
 #define BYTES2FIELDS(bytes) (bytes % 4 == 0 ? bytes : ((bytes + 4) - ((bytes + 4) % 4)))
@@ -301,13 +301,13 @@ void object_memory_check_ptr(void *ptr, OBJECT obj);
 #define xassert_message(str, file, line) \
   (printf("%s:%u: failed assertion '%s'\n", file, line, str), abort(), 0)
 #else
-#define xassert(cond) 
+#define xassert(cond)
 #endif
 
 #define sassert(cond) ((void)((cond) ? 0 : machine_handle_assert(#cond, __FILE__, __LINE__)))
 
 // #define CHECK_PTR(obj) object_memory_check_ptr(current_machine->om, obj)
-#define CHECK_PTR(obj) 
+#define CHECK_PTR(obj)
 
 void machine_handle_fire(int);
 void machine_handle_assert(const char *reason, const char *file, int line);

@@ -61,7 +61,7 @@ address heap_allocate(rheap h, int size) {
   addr = (address)h->current;
   memset((void*)addr, 0, size);
   h->current += size;
-  
+
   return addr;
 }
 
@@ -75,9 +75,9 @@ int heap_enough_space_p(rheap h, int size) {
 
 int heap_enough_fields_p(rheap h, int fields) {
   int size;
-  
+
   size = SIZE_IN_BYTES_FIELDS(fields);
-  
+
   if((uintptr_t)h->current + size > (uintptr_t)h->last + 1) return FALSE;
   return TRUE;
 }
@@ -87,7 +87,7 @@ OBJECT heap_copy_object(rheap h, OBJECT obj) {
   int size;
   if(heap_contains_p(h, obj)) return obj;
   size = SIZE_IN_BYTES(obj);
-  
+
   out = heap_allocate(h, size);
   if(!out) return 0;
   memcpy((void*)out, (void*)obj, size);
@@ -109,5 +109,5 @@ OBJECT heap_next_unscanned(rheap h) {
   if(heap_fully_scanned_p(h)) return 0;
   obj = (OBJECT)(h->scan);
   h->scan = (void*)((uintptr_t)h->scan + SIZE_IN_BYTES(obj));
-  return obj;  
+  return obj;
 }

@@ -101,13 +101,13 @@ struct rubinius_cpu {
   unsigned int ip;
   unsigned int sp;
   unsigned int fp;
-  
+
   // CPU_REGISTERS;
-  
+
   OBJECT current_task, main_task;
   OBJECT current_thread, main_thread;
   int in_primitive;
-  
+
   /* Task registers are saved and restored when tasks are switched. */
   CPU_TASK_REGISTERS;
 };
