@@ -4361,6 +4361,88 @@ class ShotgunPrimitives
     RET(t1);
     CODE
   end
+
+  defprim :string_tr_expand
+  def string_tr_expand
+    <<-CODE
+    ARITY(1);
+    GUARD(STRING_P(msg->recv));
+    OBJECT t1;
+    t1 = stack_pop();
+    RET(string_tr_expand(state, msg->recv, t1));
+    CODE
+  end
+
+  defprim :string_template
+  def string_template
+    <<-CODE
+    ARITY(2);
+    GUARD(CLASS_P(msg->recv));
+    OBJECT t1, t2, t3;
+    int k;
+    char *data;
+
+    POP(t1, FIXNUM);
+    k = N2I(t1);
+    t3 = string_new2(state, NULL, k);
+    data = string_byte_address(state, t3);
+
+    t2 = stack_pop();
+    if(FIXNUM_P(t2)) {
+      memset(data, N2I(t2), k);
+    } else if(STRING_P(t2)) {
+      int bytes;
+      char *str;
+
+      SET_CLASS(t3, object_class(state, t2));
+      t3->IsTainted = t2->IsTainted;
+
+      bytes = N2I(string_get_bytes(t2));
+      str = string_byte_address(state, t2);
+      if(bytes == 1) {
+        memset(data, str[0], k);
+      } else if(bytes > 1) {
+        int i, j, n, size;
+
+        size = k / bytes;
+        for(n = i = 0; i < size; i++) {
+          for(j = 0; j < bytes; j++, n++) {
+            data[n] = str[j];
+          }
+        }
+        for(i = n, j = 0; i < k; i++, j++) {
+          data[i] = str[j];
+        }
+      }
+    } else {
+      FAIL();
+    }
+    RET(t3);
+    CODE
+  end
+
+  defprim :string_apply_and
+  def string_apply_and
+    <<-CODE
+    ARITY(1);
+    GUARD(STRING_P(msg->recv));
+    OBJECT t1;
+    int i, j, k, size;
+    char *a, *b;
+
+    POP(t1, STRING);
+    a = string_byte_address(state, msg->recv);
+    b = string_byte_address(state, t1);
+    j = N2I(string_get_bytes(msg->recv));
+    k = N2I(string_get_bytes(t1));
+    size = j < k ? j : k;
+
+    for(i = 0; i < size; i++) {
+      a[i] = a[i] && b[i];
+    }
+    RET(Qnil);
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

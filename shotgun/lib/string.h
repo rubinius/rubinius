@@ -31,6 +31,7 @@ double string_to_double(STATE, OBJECT self);
 unsigned int string_hash_str(unsigned char *bp, unsigned int sz);
 OBJECT string_newfrombstr(STATE, bstring output);
 int string_equal_p(STATE, OBJECT self, OBJECT other);
+OBJECT string_tr_expand(STATE, OBJECT string, OBJECT limit);
 
 #define string_unshare(state, cur) \
 if(string_get_shared(cur) == Qtrue) { string_set_data(cur, bytearray_dup(state, string_get_data(cur))); string_set_shared(cur, Qnil); }

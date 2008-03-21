@@ -28,7 +28,12 @@ class String
     str.encoding = nil
     str
   end
-  
+
+  def self.template(size, str)
+    Ruby.primitive :string_template
+    raise PrimitiveFailure, "String.template primitive failed"
+  end
+
   def initialize(arg=nil)
     if arg.__kind_of__ Fixnum
       # + 1 for the null on the end.
@@ -72,9 +77,10 @@ class String
     raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
-    str = self.class.new
-    num.times { str.append(self) }
-    str.taint if self.tainted?
+    str = String.template num * @bytes, self
+    # str = self.class.new
+    # num.times { str.append(self) }
+    # str.taint if self.tainted?
     return str
   end
 
@@ -544,12 +550,12 @@ class String
     raise ArgumentError, "wrong number of Arguments" if strings.empty?
     return 0 if @bytes == 0
 
-    pattern = tr_regex(strings)
-    count = start = 0
+    table = count_table(*strings).data
 
-    while start < @bytes and match = pattern.match_from(self, start)
-      start = match.begin(0) + 1
-      count += 1
+    count = i = 0
+    while i < @bytes
+      count += 1 if table[@data[i]] == 1
+      i += 1
     end
 
     count
@@ -584,20 +590,25 @@ class String
   # <code>nil</code> if <i>self</i> was not modified.
   def delete!(*strings)
     raise ArgumentError, "wrong number of arguments" if strings.empty?
-    new = []
+    self.modify!
 
-    last_end = 0
-    last_match = nil
-    pattern = tr_regex(strings)
+    table = count_table(*strings).data
 
-    while match = pattern.match_from(self, last_end)
-      new << match.pre_match_from(last_end)
-      last_end = match.begin(0) + 1
+    i, j = 0, -1
+    while i < @bytes
+      c = @data[i]
+      unless table[c] == 1
+        @data[j+=1] = c
+      end
+      i += 1
     end
 
-    new << self[last_end..-1] if self[last_end..-1]
-    new = new.join
-    new != self ? replace(new) : nil
+    if (j += 1) < @bytes
+      @bytes = j
+      self
+    else
+      nil
+    end
   end
 
   # Returns a copy of <i>self</i> with all uppercase letters replaced with their
@@ -1436,33 +1447,26 @@ class String
   # Squeezes <i>self</i> in place, returning either <i>self</i>, or
   # <code>nil</code> if no changes were made.
   def squeeze!(*strings)
-    self.modify!
     return if @bytes == 0
+    self.modify!
 
-    new = []
-    save = nil
+    table = count_table(*strings).data
 
-    if strings.empty?
-      each_byte do |c|
-        new << (save = c).chr unless save == c
+    i, j, last = 1, 0, @data[0]
+    while i < @bytes
+      c = @data[i]
+      unless c == last and table[c] == 1
+        @data[j+=1] = last = c
       end
-    else
-      last_end = 0
-      last_match = nil
-      pattern = tr_regex(strings)
-
-      while match = pattern.match_from(self, last_end)
-        unless save == match[0] && match.begin(0) == last_end
-          new << match.pre_match_from(last_end) << (save = match[0])
-        end
-        last_end = match.begin(0) + 1
-      end
-
-      new << self[last_end..-1] if self[last_end..-1]
+      i += 1
     end
 
-    new = new.join
-    new != self ? replace(new) : nil
+    if (j += 1) < @bytes
+      @bytes = j
+      self
+    else
+      nil
+    end
   end
 
   # Returns a copy of <i>self</i> with leading and trailing whitespace removed.
@@ -2036,24 +2040,38 @@ class String
     return negative ? -result : result
   end
 
-  def tr_regex(strings)
-    strings = strings.map do |string|
-      string = StringValue(string)
-      if string.empty?
-        "[.]"
-      elsif string == "^"
-        "[\\^]"
+  def apply_and!(other)
+    Ruby.primitive :string_apply_and
+    raise PrimitiveFailure, "String#apply_and! primitive failed"
+  end
+
+  def count_table(*strings)
+    table = String.template 256, 1
+
+    i, size = 0, strings.size
+    while i < size
+      str = StringValue(strings[i]).dup
+      if str.size > 1 && str[0] == ?^
+        pos, neg = 0, 1
       else
-        if string.size > 1 && string.data[0] == ?^
-          string = "^" << string[1..-1].gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
-        else
-          string = string.gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
-        end
-        string = "[#{string.gsub(/[\[\]\/\\]/) {|x| "\\#{x}"}}]"
-        string.gsub(/(.)-(.)-/, '\\1-\\2\-')
+        pos, neg = 1, 0
       end
+
+      set = String.template 256, neg
+      str.tr_expand! nil
+      j, chars = -1, str.size
+      set[str[j]] = pos while (j += 1) < chars
+
+      table.apply_and! set
+
+      i += 1
     end
-    /[#{strings.join("&&")}]/
+    table
+  end
+
+  def tr_expand!(limit)
+    Ruby.primitive :string_tr_expand
+    raise PrimitiveFailure, "String#tr_flatten primitive failed"
   end
 
   def to_expanded_tr_string
@@ -2427,7 +2445,7 @@ class String
     end
     num = i + num_bytes
     while i < num
-      result += (self[i] * 2**exp)
+      result += (@data[i] * 2**exp)
       exp += bytebits
       i += 1
     end

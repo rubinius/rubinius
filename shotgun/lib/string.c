@@ -5,6 +5,7 @@
 
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/bytearray.h"
+#include "shotgun/lib/tuple.h"
 #include "shotgun/lib/object.h"
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/string.h"
@@ -162,13 +163,96 @@ double string_to_double(STATE, OBJECT self) {
 
   value = strtod(ba, &rest);
   if (errno == ERANGE) {
-	  printf("Float %s out of range\n", ba);
+    printf("Float %s out of range\n", ba);
   }
 
   free(ba);
 
 
   return value;
+}
+
+static OBJECT tr_replace(STATE, OBJECT string, int bytes, unsigned char *str,
+                         unsigned char *data, int size, int steps) {
+  if(size > bytes || RTEST(string_get_shared(string))) {
+    OBJECT ba;
+
+    ba = bytearray_new_dirty(state, size+1);
+    str = bytearray_byte_address(state, ba);
+    memset(str, 0, SIZE_OF_BODY(ba));
+    string_set_data(string, ba);
+    string_set_shared(string, Qnil);
+  }
+
+  memcpy(str, data, size);
+  str[size] = 0;
+
+  string_set_bytes(string, I2N(size));
+  string_set_characters(string, I2N(size));
+
+  return I2N(steps);
+}
+
+#define tr_assign(set, tr, last, c) { \
+  int _j, _i = set[c]; \
+\
+  if(lim >= 0 && steps >= lim) { \
+    return tr_replace(state, string, bytes, str, tr, last, steps); \
+  } \
+\
+  if(_i < 0) { \
+    tr[last] = c; \
+  } else { \
+    last--; \
+    for(_j = _i+1; _j <= last; _j++) { \
+      set[tr[_j]]--; \
+      tr[_j-1] = tr[_j]; \
+    } \
+    tr[last] = c; \
+  } \
+  set[c] = last++; \
+  steps++; \
+}
+
+OBJECT string_tr_expand(STATE, OBJECT string, OBJECT limit) {
+  int i, start, bytes,
+      steps = 0, lim = -1,
+      last = 0, c, seq, max, set[256];
+  unsigned char *str, tr[256];
+
+  if(!NIL_P(limit)) {
+    lim = N2I(limit);
+  }
+
+  str = (unsigned char *)string_byte_address(state, string);
+  bytes = N2I(string_get_bytes(string));
+  start = bytes > 1 && str[0] == '^' ? 1 : 0;
+  memset(set, -1, sizeof(int) * 256);
+
+  for(i = start; i < bytes;) {
+    c = str[i];
+    seq = ++i < bytes ? str[i] : -1;
+
+    if(seq == '-') {
+      max = ++i < bytes ? str[i] : -1;
+      if(max >= 0) {
+        while(c <= max) {
+          tr_assign(set, tr, last, c);
+          c++;
+        }
+        i++;
+      } else {
+        tr_assign(set, tr, last, c);
+        tr_assign(set, tr, last, seq);
+      }
+    } else if(c == '\\' && seq >= 0) {
+      continue;
+    } else {
+      tr_assign(set, tr, last, c);
+    }
+  }
+
+  return tr_replace(state, string, bytes, str, tr, last, steps);
 }
 
 #define HashPrime 16777619
