@@ -129,7 +129,7 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
 #define om_valid_context_p(state, ctx) ( \
   (om_stack_context_p(state->om, ctx) && stack_context_p(ctx)) || \
   (om_context_referenced_p(state->om, ctx)) || \
-  (om_in_heap(state->om, ctx) && (methctx_is_fast_p(state, ctx) ||  blokctx_s_block_context_p(state, ctx))) \
+  (om_in_heap(state->om, ctx) && (methctx_is_fast_p(state, ctx) ||  block_context_p(state, ctx))) \
 )
 
 #define EACH_CTX(om, addr) \

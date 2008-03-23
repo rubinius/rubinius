@@ -28,7 +28,7 @@ void _describe(OBJECT ptr) {
   printf("context_refd_p:  %d\n", om_context_referenced_p(om, ptr));
   printf("in_heap:         %d\n", om_in_heap(om, ptr));
   printf("methctx_fast:    %d\n", methctx_is_fast_p(current_machine->s, ptr));
-  printf("blokctx_p:       %d\n", blokctx_s_block_context_p(current_machine->s, ptr));
+  printf("blokctx_p:       %d\n", block_context_p(current_machine->s, ptr));
   printf("valid_ctx_p:     %d\n", om_valid_context_p(current_machine->s, ptr));
 }
 

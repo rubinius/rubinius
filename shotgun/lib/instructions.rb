@@ -172,7 +172,7 @@ CODE
   # [Description]
   #   The classic no-op operator; performs no actions, and does not modify the
   #   stack.
-  #   
+  #
   #   To consume an item from the stack, but otherwise do nothing, use
   #   pop.
   # [See Also]
@@ -373,7 +373,7 @@ CODE
   # [Description]
   #   The literal identified by the opcode argument (+index+) in the current
   #   state literals tuple is retrieved and placed onto the stack.
-  #   
+  #
   #   The literals tuple is part of the machine state, and holds all literal
   #   objects defined or used within a particular scope.
 
@@ -709,7 +709,7 @@ CODE
   # [Description]
   #   Stores the value at the top of the stack into the field specified by
   #   +fld+ on +self+.
-  #   
+  #
   #   The stack is left unmodified.
 
   def store_my_field
@@ -737,7 +737,7 @@ CODE
   #   Execute a primitive method on the receiver (+receiver+). The index of the
   #   primitive to execute (+primitive_index+), and the number of arguments
   #   being passed (+argc+) are  specified as paramters.
-  #   
+  #
   #   When the primitive returns, the return value will be on top of the
   #   stack.
   # [Notes]
@@ -990,7 +990,7 @@ CODE
   #   +local+. Method arguments are accessed from the caller's stack via
   #   negative offsets from the frame pointer, where 0 is the first argument,
   #   1 is the second, etc.
-  #   
+  #
   #   This opcode is now deprecated, and is not currently used under
   #   compiler2.
   # [See Also]
@@ -1151,15 +1151,15 @@ CODE
   #   * ...
   # [Description]
   #   Removes the object on the top of the stack, and:
-  #   
+  #
   #   If the input is a tuple, a new array object is created based on the
   #   tuple data.
-  #   
+  #
   #   If the input is an array, it is unmodified.
-  #   
+  #
   #   If the input is any other type, that type is wrapped within a new array
   #   of length one.
-  #   
+  #
   #   The resulting array is then pushed back onto the stack.
 
   def cast_array
@@ -1189,18 +1189,18 @@ CODE
   #   * ...
   # [Description]
   #   Removes the object on the top of the stack, and:
-  #   
+  #
   #   If the object is a tuple, it is cast to an array.
-  #   
+  #
   #   If the object is already an array, it is left unmodified.
-  #   
+  #
   #   If the object is any other type, it is wrapped in a 1-element array with
   #   the object as the value of the single element.
-  #   
+  #
   #   The resulting array is then pushed back onto the stack, and the size of
   #   the array is added to the argument +size+ that was specified with the
   #   opcode, and saved as the current method argument count.
-  #   
+  #
   #   This opcode will always be followed by a push_array instruction that
   #   unpacks the array elements into discrete stack entries prior to calling
   #   either send_with_arg_register or send_super_with_arg_register.
@@ -1240,9 +1240,9 @@ CODE
   #   * ...
   # [Description]
   #   If stack object is an array, create a new tuple from the array data
-  #   
+  #
   #   If the stack value is a tuple, leave the stack unmodified
-  #   
+  #
   #   Otherwise, create a unary tuple from the value on the stack
 
   def cast_tuple
@@ -1278,14 +1278,14 @@ CODE
   #   * ...
   # [Description]
   #   The item on the top of the stack is popped, and:
-  #   
+  #
   #   If it has no fields, the result is nil
-  #   
+  #
   #   If the item contains a single field, the result is the value in the
   #   first field
-  #   
+  #
   #   If the item is a tuple, the result is an array created from the tuple.
-  #   
+  #
   #   The result is then pushed onto the stack.
 
   def cast_for_single_block_arg
@@ -1611,7 +1611,7 @@ CODE
   #   Creates or re-opens a \class, popping the superclass (or nil) and the
   #   enclosing \class from the stack. Upon return, the new \class is pushed
   #   onto the stack.
-  #   
+  #
   #   The +\class+ argument to the opcode is the \class literal identifying
   #   the \class to be opened.
   # [See Also]
@@ -1620,7 +1620,7 @@ CODE
   #   <code>
   #     class A
   #     end
-  #     
+  #
   #     class A::B < C
   #     end
   #     # Stack transition:
@@ -1654,7 +1654,7 @@ CODE
   # [Description]
   #   Creates or re-opens a \class, taking the superclass (or nil) from the
   #   stack. Upon return, the new \class is pushed onto the stack.
-  #   
+  #
   #   The +class_name+ argument to the opcode is the \class literal
   #   identifying the \class to be opened.
   # [See Also]
@@ -1786,7 +1786,7 @@ CODE
   # [Description]
   #   Hooks up a compiled method to an object instance via it's singleton
   #   \class.
-  #   
+  #
   #   The object the method is to be added to (+receiver+) and the compiled
   #   method object (+method+) are popped from the stack, while the name of
   #   the  method is an argument to the opcode (+name+). On return, the
@@ -1820,7 +1820,7 @@ CODE
   #   * ...
   # [Description]
   #   Hooks up a compiled method to a \class or module.
-  #   
+  #
   #   The \class or module the method is to be added to (+receiver+) and the
   #   compiled method object (+method+) are popped from the stack, while the
   #   name of the method is an argument to the opcode (+name+). On return, the
@@ -1865,13 +1865,13 @@ CODE
   #   instance to execute (+method+, i.e. +self+), the number of argments the
   #   method defines (+size+), the +locals+ currently in scope, and any
   #   +block+ passed to the method.
-  #   
+  #
   #   Additionally, the actual arguments to be passed to the method must also
   #   be on the stack as an array, with the number of actual arguments passed
   #   (+argc+) specified alongside the opcode; these arguments will be
   #   consumed from the stack and pushed into locals when the method starts
   #   executing.
-  #   
+  #
   #   When the method returns, the return value will be on top of the stack.
   # [Notes]
   #   Used by CompiledMethod#activate.
@@ -1910,13 +1910,13 @@ CODE
   # [Description]
   #   Pops an object off the top of the stack (+receiver+), and sends it the no
   #   arg message +method_name+.
-  #   
+  #
   #   When the method returns, the return value will be on top of the stack.
   # [See Also]
   #   * send_with_arg_register
   # [Notes]
   #   This form of send is for methods that take no arguments.
-  #   
+  #
   #   Make primitives safer by having the opcode be aware of the number of
   #   args sent.  This way we can remove the dependency of primitives being
   #   embedded in methods.
@@ -1974,7 +1974,7 @@ CODE
   #   the message +method+ with +argc+ arguments. The arguments to the method
   #   remain on the stack, ready to be converted to locals when the method is
   #   activated.
-  #   
+  #
   #   When the method returns, the return value will be on top of the stack.
   # [See Also]
   #   * send_stack_with_block
@@ -2014,7 +2014,7 @@ CODE
   #   message +method+ with +argc+ arguments. The arguments to the method
   #   remain on the stack, ready to be converted to locals as part of method
   #   activation.
-  #   
+  #
   #   When the method returns, the return value will be on top of the stack.
   # [See Also]
   #   * send_stack
@@ -2054,7 +2054,7 @@ CODE
   #   method must have previously been set in the args register, and the arg
   #   values themselves remain on the top of the stack, to be converted to
   #   locals as part of method activation.
-  #   
+  #
   #   When the method returns, the return value will be on top of the stack.
   # [See Also]
   #   * send_method
@@ -2101,7 +2101,7 @@ CODE
   #   Pops a block off the stack, and sends the message +method+ with +argc+
   #   arguments. The arguments to the method remain on the stack, ready to be
   #   converted into locals when the method is activated.
-  #   
+  #
   #   When the method returns, the return value will be on top of the stack.
   # [Notes]
   #   The receiver is not specified for a call to super; it is the superclass
@@ -2136,7 +2136,7 @@ CODE
   #   objects  superclass. The arguments to the method areleft on the top of
   #   the stack, ready to be converted into locals when the method is
   #   activated.
-  #   
+  #
   #   When the method returns, the return value will be on top of the stack.
   # [See Also]
   #   * set_args
@@ -2188,7 +2188,7 @@ CODE
   #   been placed on the stack previously, and the number of arguments set in
   #   the args register. The arguments will be popped from the stack and
   #   converted to locals when the method is activated.
-  #   
+  #
   #   When the method returns, the return value will be on top of the stack.
   # [See Also]
   #   * set_args
@@ -2638,7 +2638,7 @@ perform_no_ss_send:
   #   Pops 0 or more rest arguments from the top of the stack into an array to
   #   be used as a rest argument to a method whose last (non-block) parameter
   #   is a splat.
-  #   
+  #
   #   The number of arguments to place into the rest array is determined by
   #   how many actual args have been passed to the method, less the number of
   #   arguments +argc+ defined by the method. If this is less than or \equal to
@@ -2655,9 +2655,9 @@ perform_no_ss_send:
   #     def foo(a,b,*c)
   #       ...
   #     end
-  #     
+  #
   #     foo(1,2,3,4,5)
-  #     
+  #
   #     # In foo, c = [3,4,5]
   #     # On the top of the stack after this opcode is [3,4,5]
   #   </code>
@@ -2690,7 +2690,7 @@ perform_no_ss_send:
   #   into an array to be used as a rest argument. Used when the method to be
   #   called has a rest argument (i.e. the last defined method parameter is a
   #   splat).
-  #   
+  #
   #   The number of arguments to place into the rest array is determined by
   #   how many actual args have been passed to the method, less the number of
   #   arguments +argc+ defined by the method. If this is less than or \equal to
@@ -2703,9 +2703,9 @@ perform_no_ss_send:
   #     def foo(a,b,*c)
   #       ...
   #     end
-  #     
+  #
   #     foo(1,2,3,4,5)
-  #     
+  #
   #     # In foo, c = [3,4,5]
   #     # On the top of the stack after this opcode is [3,4,5]
   #   </code>
@@ -2944,7 +2944,7 @@ perform_no_ss_send:
     t4 = c->active_context;
 
     t3 = Qnil;
-    if(blokctx_s_block_context_p(state, t4)) {
+    if(block_context_p(state, t4)) {
       t3 = blokctx_home(state, t4);
     } else {
       t3 = t4;
@@ -3042,7 +3042,7 @@ perform_no_ss_send:
   #   breakpoint. Prior to encountering a \yield_debugger instruction, the VM
   #   will execute normally, i.e. at full speed, and not be slowed
   #   significantly by the fact that a debugger is attached.
-  #   
+  #
   #   When the debugger is yielded to by this instruction, it can examine the
   #   execution context, stack, etc, or replace the \yield_debugger instruction
   #   with the original instruction at that point, and then step through the
@@ -3153,10 +3153,10 @@ perform_no_ss_send:
   #   Performs a comparison of two objects, resulting in either +true+ or
   #   +false+ being pushed onto the stack as a result. The comparison is done
   #   without any method calls.
-  #   
+  #
   #   For two Fixnums, two Symbols, or two literals (+true+, +false+, +nil+),
   #   return +true+ if the values are identical.
-  #   
+  #
   #   For two object references (including Bignum), return +true+ if value1
   #   and value2 point to the same instance.
 
@@ -3189,7 +3189,7 @@ perform_no_ss_send:
   #   generated: a slow, but guaranteed correct path, and a fast path that
   #   uses certain optimisations. The serial number check is then performed at
   #   runtime to determine which code path is executed.
-  #   
+  #
   #   For example, a method such as Fixnum#times can be optimised at compile
   #   time, but we can't know until runtime whether or not the Fixnum#times
   #   method has been overridden. The serial number check is used to determine

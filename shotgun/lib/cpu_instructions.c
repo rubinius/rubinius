@@ -778,7 +778,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
 
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
-    if(blokctx_s_block_context_p(state, destination)) {
+    if(block_context_p(state, destination)) {
       home = blokctx_home(state, destination);
     } else {
       home = destination;
@@ -844,7 +844,7 @@ int cpu_unwind(STATE, cpu c) {
 
     /* Now, figure out if the destination is a block, so we pass the correct
        home to restore_context */
-    if(blokctx_s_block_context_p(state, destination)) {
+    if(block_context_p(state, destination)) {
       home = blokctx_home(state, destination);
     } else {
       home = destination;
