@@ -1,0 +1,2 @@
+fails:Range#step raises TypeError if the argument is non-numeric
+fails:Range#step coerces the argument to intger by invoking to_int

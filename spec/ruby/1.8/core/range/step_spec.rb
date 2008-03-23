@@ -35,4 +35,16 @@ describe "Range#step" do
   it "returns self" do
     (1..10).step(1) {}.should == (1..10)
   end
+
+  it "raises TypeError if the argument is non-numeric" do
+    obj = mock("mock")
+    lambda { (1..10).step(obj) }.should raise_error(TypeError)
+  end
+
+  it "coerces the argument to intger by invoking to_int" do
+    (obj = mock("2")).should_receive(:to_int).and_return(2)
+    res = []
+    (1..10).step(obj) {|x| res << x}
+    res.should == [1, 3, 5, 7, 9]
+  end
 end
