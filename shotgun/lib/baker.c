@@ -204,7 +204,7 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
     }
   } else {
 #define fc_mutate(field) if(fc->field && REFERENCE_P(fc->field)) SET_STRUCT_FIELD(iobj, fc->field, baker_gc_maybe_mutate(state, g, fc->field))
-    if(methctx_is_context_p(state, iobj)) {
+    if(context_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
       fc_mutate(sender);
       fc_mutate(block);

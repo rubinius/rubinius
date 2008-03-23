@@ -321,7 +321,7 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     if(BCM_P(fc->field)) { fc->field = BCM_TO; \
     } else { mark_sweep_mark_object(state, ms, fc->field); } }
     
-    if(methctx_is_context_p(state, iobj)) {
+    if(context_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
       fc_mutate(sender);
       

@@ -9,7 +9,7 @@ void blokenv_call(STATE, cpu c, OBJECT self, int num_args);
 OBJECT methctx_dup(STATE, OBJECT self);
 OBJECT methctx_dup_chain(STATE, OBJECT ctx, OBJECT *also);
 
-#define methctx_is_context_p(st, ctx) (ctx->obj_type == MContextType || ctx->obj_type == BContextType)
+#define context_p(st, ctx) (ctx->obj_type == MContextType || ctx->obj_type == BContextType)
 #define block_context_p(state, ctx) (FASTCTX(ctx)->type == FASTCTX_BLOCK)
 
 #define methctx_is_fast_p(st, ctx) (ctx->obj_type == MContextType)
