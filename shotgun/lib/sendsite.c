@@ -18,6 +18,14 @@ void send_site_init(STATE) {
   state_setup_type(state, SendSiteType, &info);
 }
 
+/* 
+ send site created with the following information:
+
+ * message name symbol
+ * method lookup function reference
+ * reference to CompiledMethod containing send site
+*/
+
 OBJECT send_site_create(STATE, OBJECT name) {
   OBJECT ss_obj;
   struct send_site *ss;
@@ -36,6 +44,7 @@ OBJECT send_site_create(STATE, OBJECT name) {
   return ss_obj;
 }
 
+/* cm is CompiledMethod that holds send site */
 void send_site_set_sender(STATE, OBJECT self, OBJECT cm) {
   struct send_site *ss;
 
