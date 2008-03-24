@@ -2,10 +2,9 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'socket'
 
 describe "Socket#getaddrinfo" do
-
   it "gets the address information" do
     expected = []
-
+    host = Socket.gethostname
     # The check for AP_INET6's class is needed because ipaddr.rb adds
     # fake AP_INET6 even in case when IPv6 is not really supported.
     # Without such check, this test might fail when ipaddr was required
@@ -25,14 +24,13 @@ describe "Socket#getaddrinfo" do
     end
 
     expected.concat [
-      ['AF_INET', 80, 'localhost', '127.0.0.1', Socket::AF_INET,
+      ['AF_INET', 80, host, '127.0.0.1', Socket::AF_INET,
         Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
-      ['AF_INET', 80, 'localhost', '127.0.0.1', Socket::AF_INET,
+      ['AF_INET', 80, host, '127.0.0.1', Socket::AF_INET,
         Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
     ]
 
-    addrinfo = Socket.getaddrinfo 'localhost', 'http'
-
+    addrinfo = Socket.getaddrinfo Socket.gethostname, 'http'
     addrinfo.each { |a| expected.should include(a) }
   end
 

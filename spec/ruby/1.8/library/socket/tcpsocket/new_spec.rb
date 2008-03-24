@@ -17,7 +17,7 @@ describe "TCPSocket.new" do
       server.close
     end
     Thread.pass until thread.status == 'sleep'
-    lambda { TCPSocket.new('localhost', SocketSpecs.port) }.should_not raise_error(Errno::ECONNREFUSED)
+    lambda { TCPSocket.new(Socket.gethostname, SocketSpecs.port) }.should_not raise_error(Errno::ECONNREFUSED)
     thread.join
   end
 
@@ -35,7 +35,7 @@ describe "TCPSocket.new" do
     # returns comma at the end. Other
     # platforms such as OpenBSD setup the 
     # localhost as localhost.domain.com
-    sock.addr[2].should =~ /^localhost/
+    sock.addr[2].should =~ /^#{Socket.gethostname}/
     sock.addr[3].should == "127.0.0.1"
     thread.join
   end
