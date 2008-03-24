@@ -172,9 +172,11 @@ class SyntaxError < ScriptError
     @line = l
     @code = code
   end
-  
+
   def message
-    "#{file}:#{@line}: #{super}"
+    msg = super
+    msg = "#{file}:#{@line}: #{msg}" if file && @line
+    msg
   end
 end
 
