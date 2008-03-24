@@ -4,7 +4,7 @@ require 'socket'
 describe "Socket#getaddrinfo" do
   it "gets the address information" do
     expected = []
-    host = Socket.gethostname
+    host = Socket.getaddrinfo("127.0.0.1", 0)[0][2]
     # The check for AP_INET6's class is needed because ipaddr.rb adds
     # fake AP_INET6 even in case when IPv6 is not really supported.
     # Without such check, this test might fail when ipaddr was required
@@ -12,13 +12,13 @@ describe "Socket#getaddrinfo" do
     if (Socket.constants.include? 'AF_INET6') &&
         (Socket::AF_INET6.class != Object) then
       expected.concat [
-        ['AF_INET6', 80, 'localhost', '::1', Socket::AF_INET6,
+        ['AF_INET6', 80, host, '::1', Socket::AF_INET6,
           Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
-        ['AF_INET6', 80, 'localhost', '::1', Socket::AF_INET6,
+        ['AF_INET6', 80, host, '::1', Socket::AF_INET6,
           Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
-        ['AF_INET6', 80, 'localhost', '::1', Socket::AF_INET6,
+        ['AF_INET6', 80, host, '::1', Socket::AF_INET6,
           Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
-        ['AF_INET6', 80, 'localhost', '::1', Socket::AF_INET6,
+        ['AF_INET6', 80, host, '::1', Socket::AF_INET6,
           Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
       ]
     end
@@ -30,7 +30,7 @@ describe "Socket#getaddrinfo" do
         Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
     ]
 
-    addrinfo = Socket.getaddrinfo Socket.gethostname, 'http'
+    addrinfo = Socket.getaddrinfo host, 'http'
     addrinfo.each { |a| expected.should include(a) }
   end
 
