@@ -2,6 +2,9 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "TCPSocket.new" do
+  before :each do
+    @hostname = Socket.getaddrinfo("127.0.0.1", 0)[0][2]
+  end
   it "requires a hostname and a port as arguments" do
     lambda { TCPSocket.new }.should raise_error(ArgumentError)
   end
@@ -17,7 +20,7 @@ describe "TCPSocket.new" do
       server.close
     end
     Thread.pass until thread.status == 'sleep'
-    lambda { TCPSocket.new(Socket.gethostname, SocketSpecs.port) }.should_not raise_error(Errno::ECONNREFUSED)
+    lambda { TCPSocket.new(@hostname, SocketSpecs.port) }.should_not raise_error(Errno::ECONNREFUSED)
     thread.join
   end
 
@@ -35,7 +38,7 @@ describe "TCPSocket.new" do
     # returns comma at the end. Other
     # platforms such as OpenBSD setup the 
     # localhost as localhost.domain.com
-    sock.addr[2].should =~ /^#{Socket.gethostname}/
+    sock.addr[2].should =~ /^#{@hostname}/
     sock.addr[3].should == "127.0.0.1"
     thread.join
   end

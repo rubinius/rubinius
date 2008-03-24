@@ -2,6 +2,9 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "TCPServer.new" do
+  before(:each) do
+    @hostname = Socket.getaddrinfo("127.0.0.1", 0)[0][2]
+  end
   after(:each) do
     @server.close if @server && !@server.closed?
   end
@@ -13,20 +16,20 @@ describe "TCPServer.new" do
     addr[1].be_kind_of Fixnum
     # on some platforms (Mac), MRI
     # returns comma at the end.
-    addr[2].should =~ /^#{Socket.gethostname}\b/
+    addr[2].should =~ /^#{@hostname}\b/
     addr[3].should == '127.0.0.1'
   end
 
   it "binds to localhost and a port with either IPv4 or IPv6" do
-    @server = TCPServer.new(Socket.gethostname, SocketSpecs.port)
+    @server = TCPServer.new("localhost", SocketSpecs.port)
     addr = @server.addr
     if addr[0] == 'AF_INET'
       addr[1].be_kind_of Fixnum
-      addr[2].should =~ /^#{Socket.gethostname}\b/
+      addr[2].should =~ /^#{@hostname}\b/
       addr[3].should == '127.0.0.1'
     else
       addr[1].be_kind_of Fixnum
-      addr[2].should =~ /^#{Socket.gethostname}\b/
+      addr[2].should =~ /^#{@hostname}\b/
       addr[3].should == '::1'
     end
   end
@@ -37,7 +40,7 @@ describe "TCPServer.new" do
 
     def t.to_str; SocketSpecs.port.to_s; end
     
-    @server = TCPServer.new(Socket.gethostname, t)
+    @server = TCPServer.new(@hostname, t)
     addr = @server.addr
     addr[1].should == SocketSpecs.port
 
