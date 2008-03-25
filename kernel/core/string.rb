@@ -942,18 +942,32 @@ class String
   #   "abcd".insert(4, 'X')    #=> "abcdX"
   #   "abcd".insert(-3, 'X')   #=> "abXcd"
   #   "abcd".insert(-1, 'X')   #=> "abcdX"
-  def insert(index, other_string)
-    other_string = StringValue(other_string)
+  def insert(index, other)
+    other = StringValue(other)
+    index = Type.coerce_to(index, Integer, :to_int) unless index.__kind_of__ Fixnum
 
-    index = Integer(index)
+    osize = other.size
+    size = @bytes + osize
+    str = self.class.new size
 
-    if index == -1
-      return self << other_string
-    elsif index < 0
-      index += 1
+    index = @bytes + 1 + index if index < 0
+    raise IndexError, "index #{index} out of string" if index > @bytes or index < 0
+
+    if index == 0
+      str.copy_from other, 0, other.size, 0
+      str.copy_from self, 0, @bytes, other.size
+    elsif index < @bytes
+      str.copy_from self, 0, index, 0
+      str.copy_from other, 0, osize, index
+      str.copy_from self, index, @bytes - index, index + osize
+    else
+      str.copy_from self, 0, @bytes, 0
+      str.copy_from other, 0, other.size, @bytes
     end
+    @bytes = size
+    @data = str.data
+    taint if other.tainted?
 
-    self[index, 0] = other_string
     self
   end
 
