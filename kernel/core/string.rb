@@ -479,31 +479,42 @@ class String
   # NOTE: TypeError is raised in String#replace and not in String#chomp! when
   # self is frozen. This is intended behaviour.
   #+++
-  def chomp!(separator = $/)
-    return nil if separator.nil? || @bytes == 0
+  def chomp!(sep = $/)
+    return if sep.nil? || @bytes == 0
+    sep = StringValue sep
 
-    if separator == $/ && separator == DEFAULT_RECORD_SEPARATOR
-      return smart_chomp!
-    end
-
-    separator = StringValue(separator)
-    length = @bytes - 1
-
-    if separator.length == 0
-      while length > 0 && @data[length] == ?\n
-        length -= 1
-        length -= 1 if length > 0 && @data[length] == ?\r
+    if (sep == $/ && sep == DEFAULT_RECORD_SEPARATOR) || sep == "\n"
+      c = @data[@bytes-1]
+      if c == ?\n
+        @bytes -= 1 if @bytes > 1 && @data[@bytes-2] == ?\r
+      elsif c != ?\r
+        return
       end
 
-      return replace(substring(0, length + 1)) if length + 1 < @bytes
-      return nil
-    elsif separator.length > @bytes
-      return nil
-    elsif separator.length == 1 && separator == "\n"
-      return self.smart_chomp!
-    elsif @data[length].chr == separator || self[-separator.length, separator.length] == separator
-      return replace(substring(0, length + 1 - separator.length))
+      modify!
+      @bytes = @characters = @bytes - 1
+    elsif sep.size == 0
+      size = @bytes
+      while size > 0 && @data[size-1] == ?\n
+        if size > 1 && @data[size-2] == ?\r
+          size -= 2
+        else
+          size -= 1
+        end
+      end
+
+      return if size == @bytes
+      modify!
+      @bytes = @characters = size
+    else
+      size = sep.size
+      return if size > @bytes || sep.compare_substring(self, -size, size) != 0
+
+      modify!
+      @bytes = @characters = @bytes - size
     end
+
+    return self
   end
 
   # Returns a new <code>String</code> with the last character removed.  If the
@@ -527,10 +538,14 @@ class String
   def chop!
     return if @bytes == 0
 
-    length = @bytes - 1
-    length -= 1 if @data[length] == ?\n && @data[length - 1] == ?\r
+    self.modify!
+    if @bytes > 1 and @data[@bytes-1] == ?\n and @data[@bytes-2] == ?\r
+      @bytes = @characters = @bytes - 2
+    else
+      @bytes = @characters = @bytes - 1
+    end
 
-    replace(substring(0, length))
+    self
   end
 
   # Each <i>other_string</i> parameter defines a set of characters to count.  The
@@ -2060,6 +2075,14 @@ class String
     raise PrimitiveFailure, "String#apply_and! primitive failed"
   end
 
+  def compare_substring(other, start, size)
+    Ruby.primitive :string_compare_substring
+    if start > @bytes || start + @bytes < 0
+      raise IndexError, "index #{start} out of string"
+    end
+    raise PrimitiveFailure, "String#compare_substring primitive failed"
+  end
+
   def copy_from(other, start, size, dest)
     Ruby.primitive :string_copy_from
     raise PrimitiveFailure, "String#copy_from primitive failed"
@@ -2092,20 +2115,6 @@ class String
   def tr_expand!(limit)
     Ruby.primitive :string_tr_expand
     raise PrimitiveFailure, "String#tr_flatten primitive failed"
-  end
-
-  def smart_chomp!
-    length = @bytes - 1
-    if @data[length] == ?\n
-      length -= 1
-      length -= 1 if length > 0 && @data[length] == ?\r
-    elsif @data[length] == ?\r
-      length -= 1
-    else
-      return nil
-    end
-
-    return replace(substring(0, length + 1))
   end
 
   def justify(width, direction, padstr=" ")

@@ -310,8 +310,11 @@ OBJECT string_to_sym(STATE, OBJECT self) {
 }
 
 int string_equal_p(STATE, OBJECT self, OBJECT other) {
-  if(string_get_bytes(self) != string_get_bytes(other)) return FALSE;
-  if(strcmp(string_byte_address(state, self), string_byte_address(state, other))) {
+  OBJECT bytes;
+
+  bytes = string_get_bytes(self);
+  if(bytes != string_get_bytes(other)) return FALSE;
+  if(strncmp(string_byte_address(state, self), string_byte_address(state, other), N2I(bytes))) {
     return FALSE;
   }
 

@@ -4498,6 +4498,43 @@ class ShotgunPrimitives
     RET(msg->recv);
     CODE
   end
+
+  defprim :string_compare_substring
+  def string_compare_substring
+    <<-CODE
+    ARITY(3);
+    GUARD(STRING_P(msg->recv));
+    OBJECT t1, t2, t3;
+    native_int bytes, start, size, cmp;
+    char *a, *b;
+
+    POP(t1, STRING);
+    POP(t2, FIXNUM);
+    POP(t3, FIXNUM);
+
+    start = N2I(t2);
+    size = N2I(t3);
+
+    bytes = N2I(string_get_bytes(t1));
+    if(start < 0) { start = bytes + start; }
+    if(start >= bytes || start < 0) { FAIL(); }
+    if(start + size > bytes) { size = bytes - start; }
+
+    bytes = N2I(string_get_bytes(msg->recv));
+    if(size > bytes) { size = bytes; }
+
+    a = string_byte_address(state, msg->recv);
+    b = string_byte_address(state, t1);
+    cmp = memcmp(a, b + start, size);
+    if(cmp < 0) {
+      RET(I2N(-1));
+    } else if(cmp > 0) {
+      RET(I2N(1));
+    } else {
+      RET(I2N(0));
+    }
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new
