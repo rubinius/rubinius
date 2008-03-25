@@ -78,9 +78,6 @@ class String
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
     str = String.template num * @bytes, self
-    # str = self.class.new
-    # num.times { str.append(self) }
-    # str.taint if self.tainted?
     return str
   end
 
@@ -396,7 +393,7 @@ class String
 
     modified = false
 
-    c = data[0]
+    c = @data[0]
     if c.islower
       @data[0] = c.toupper
       modified = true
@@ -1817,36 +1814,40 @@ class String
   end
 
   def tr_trans(source, replacement, squeeze)
-    source = StringValue(source).to_expanded_tr_string
-    replacement = StringValue(replacement).to_expanded_tr_string
+    source = StringValue(source).dup
+    replacement = StringValue(replacement).dup
 
     self.modify!
 
     return self.delete!(source) if replacement.empty?
     return if @bytes == 0
 
-    if replacement.length < source.length
-      replacement << (replacement.empty? ? " " : replacement[-1,1]) * (source.length - replacement.length)
-    end
+    invert = source[0] == ?^ && source.length > 1
+    expanded = source.tr_expand! nil
+    size = source.size
+    src = source.data
 
-    if source[0] == ?^ && source.length > 1
-      trans = Array.new(256, 1)
+    if invert
+      replacement.tr_expand! nil
+      r = replacement.data[replacement.size-1]
+      table = Tuple.template 256, r
 
-      (1...source.size).each do |i|
-        c = source[i]
-        trans[c] = -1
-      end
-
-      c = replacement[-1]
-
-      trans.each_index do |i|
-        trans[i] = c if trans[i] >= 0
+      i = 0
+      while i < size
+        table[src[i]] = -1
+        i += 1
       end
     else
-      trans = Array.new(256, -1)
-      (0...source.size).each do |i|
-        c = source[i]
-        trans[c] = replacement[i]
+      table = Tuple.template 256, -1
+
+      replacement.tr_expand! expanded
+      repl = replacement.data
+      rsize = replacement.size
+      i = 0
+      while i < size
+        r = repl[i] if i < rsize
+        table[src[i]] = r
+        i += 1
       end
     end
 
@@ -1854,34 +1855,34 @@ class String
     modified = false
 
     if squeeze
-      new = []
-      last = nil
-
-      (0...@bytes).each do |i|
+      i, j, last = -1, -1, nil
+      while (i += 1) < @bytes
         s = @data[i]
-        if (c = trans[s]) >= 0
+        c = table[s]
+        if c >= 0
           next if last == c
-          new << c.chr
-          last = c
+          @data[j+=1] = last = c
+          modified = true
         else
-          new << s.chr
+          @data[j+=1] = s
           last = nil
         end
       end
 
-      new = new.join
-      return new != self ? replace(new) : nil
+      @bytes = j if (j += 1) < @bytes
     else
-      (0...@bytes).each do |i|
-        s = @data[i]
-        if (c = trans[s]) >= 0
+      i = 0
+      while i < @bytes
+        c = table[@data[i]]
+        if c >= 0
           @data[i] = c
           modified = true
         end
+        i += 1
       end
-
-      return modified ? self : nil
     end
+
+    return modified ? self : nil
   end
 
   def to_sub_replacement(match)
@@ -2072,16 +2073,6 @@ class String
   def tr_expand!(limit)
     Ruby.primitive :string_tr_expand
     raise PrimitiveFailure, "String#tr_flatten primitive failed"
-  end
-
-  def to_expanded_tr_string
-    return self unless self =~ /.-./
-
-    if @bytes > 1 && @data[0] == ?^
-      "^" << self[1..-1].gsub(/.-./) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
-    else
-      self.gsub(/.-./) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
-    end
   end
 
   def smart_chomp!

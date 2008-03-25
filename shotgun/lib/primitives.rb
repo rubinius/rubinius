@@ -4443,6 +4443,25 @@ class ShotgunPrimitives
     RET(Qnil);
     CODE
   end
+
+  defprim :tuple_template
+  def tuple_template
+    <<-CODE
+    ARITY(2)
+    GUARD(CLASS_P(msg->recv));
+    OBJECT t1, t2, t3;
+    int i, k;
+
+    POP(t1, FIXNUM);
+    k = N2I(t1);
+    t2 = stack_pop();
+    t3 = tuple_new(state, k);
+    for(i = 0; i < k; i++) {
+      tuple_put(state, t3, i, t2);
+    }
+    RET(t3);
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new
