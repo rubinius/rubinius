@@ -37,547 +37,550 @@ Benchmark.bmbm do |x|
     end
   end
 
-  run("base"){
-    MAX.times{ STRING }
+  run("base") {
+    MAX.times { STRING }
   }
 
-  run("String.new"){
-    MAX.times{ String.new(STRING) }
+  run("String.new") {
+    MAX.times { String.new(STRING) }
   }
 
-  run("String#%"){
+  run("String#%") {
     string = "%05d"
     number = 123
-    MAX.times{ string % number }
+    MAX.times { string % number }
   }
 
-  run("String#*"){
-    MAX.times{ STRING * 3 }
+  run("String#*") {
+    MAX.times { STRING * 3 }
   }
 
-  run("String#+"){
-    MAX.times{ STRING + STRING }
+  run("String#+") {
+    MAX.times { STRING + STRING }
   }
 
-  run("String#<<"){
+  run("String#<<") {
     string = STRING.dup
     a = rand(STRING.size/2)
     string1 = string[a, STRING.size/2]
-    MAX.times{ string << string1 }
+    MAX.times { string << string1 }
   }
 
-  run("String#<=>"){
+  run("String#<=>") {
     string1 = STRING
     string2 = STRING.reverse
-    MAX.times{ string1 <=> string2 }
+    MAX.times { string1 <=> string2 }
   }
 
-  run("String#=="){
+  run("String#==") {
     string1 = STRING
     string2 = STRING.reverse
-    MAX.times{ string1 == string2 }
+    MAX.times { string1 == string2 }
   }
 
-  run("String#==="){
+  run("String#===") {
     string1 = STRING
     string2 = STRING.reverse
-    MAX.times{ string1 === string2 }
+    MAX.times { string1 === string2 }
   }
 
-  run("String#=~"){
-    MAX.times{ STRING =~ /\w+/ }
+  run("String#=~") {
+    MAX.times { STRING =~ /\w+/ }
   }
 
-  run("String#[int]"){
-    MAX.times{ STRING[rand(STRING.size)] }
+  run("String#[int]") {
+    MAX.times { STRING[rand(STRING.size)] }
   }
 
-  run("String#[int,int]"){
+  run("String#[int,int]") {
     a = rand(STRING.size/2)
-    MAX.times{ STRING[a, 15] }
+    MAX.times { STRING[a, 15] }
   }
 
-  run("String#[range]"){
+  run("String#[range]") {
     a = rand(STRING.size/2)
     b = a + 15
-    MAX.times{ STRING[a..b] }
+    MAX.times { STRING[a..b] }
   }
 
-  run("String#[regexp]"){
-    MAX.times{ STRING[/\w+/] }
+  run("String#[regexp]") {
+    MAX.times { STRING[/\w+/] }
   }
 
-  run("String#[regexp,int]"){
+  run("String#[regexp,int]") {
     string = "hello"
     a = rand(10)
-    MAX.times{ STRING[/\w+/, a] }
+    MAX.times { STRING[/\w+/, a] }
   }
 
-  run("String#[string]"){
-    MAX.times{ STRING["lo"] }
+  run("String#[string]") {
+    MAX.times { STRING["lo"] }
   }
 
   # TODO: Fix
-  #run("String#~"){
+  #run("String#~") {
   #  string = "hello"
-  #  MAX.times{ ~ string }
+  #  MAX.times { ~ string }
   #}
 
-  run("String#capitalize"){
-    MAX.times{ STRING.capitalize }
+  run("String#capitalize") {
+    MAX.times { STRING.capitalize }
   }
 
-  run("String#capitalize!"){
+  run("String#capitalize!") {
     string = STRING
-    MAX.times{ string.dup.capitalize! }
+    MAX.times { string.dup.capitalize! }
   }
 
-  run("String#casecmp"){
+  run("String#casecmp") {
     string1 = STRING
     string2 = STRING.reverse
-    MAX.times{ string1.casecmp(string2) }
+    MAX.times { string1.casecmp(string2) }
   }
 
-  run("String#center"){
+  run("String#center") {
     a = rand(STRING.size*2)
-    MAX.times{ STRING.center(a) }
+    MAX.times { STRING.center(a) }
   }
 
-  run("String#chomp"){
+  run("String#chomp") {
     string = STRING + "\n"
-    MAX.times{ string.chomp }
+    MAX.times { string.chomp }
   }
 
-  run("String#chomp!"){
+  run("String#chomp!") {
     string = STRING + "\n"
-    MAX.times{ string.dup.chomp! }
+    MAX.times { string.dup.chomp! }
   }
 
-  run("String#chop"){
-    MAX.times{ STRING.chop }
+  run("String#chop") {
+    MAX.times { STRING.chop }
   }
 
-  run("String#chop!"){
+  run("String#chop!") {
     string = STRING
-    MAX.times{ string.dup.chop! }
+    MAX.times { string.dup.chop! }
   }
 
-  run("String#count(string)"){
+  run("String#count(string)") {
     a = rand(STRING.size/2)
     string = STRING[a,5]
-    MAX.times{ STRING.count(string) }
+    MAX.times { STRING.count(string) }
   }
 
-  run("String#count(^string)"){
+  run("String#count(^string)") {
     a = rand(STRING.size/2)
     string = "^" + STRING[a,5]
-    MAX.times{ STRING.count(string) }
+    MAX.times { STRING.count(string) }
   }
 
-  run("String#crypt"){
-    MAX.times{ STRING.crypt("sh") }
+  run("String#crypt") {
+    MAX.times { STRING.crypt("sh") }
   }
 
-  run("String#delete"){
+  run("String#delete") {
     string = "hello"
-    MAX.times{ string.delete("lo") }
+    MAX.times { string.delete("lo") }
   }
 
-  run("String#delete!"){
+  run("String#delete!") {
     string = "hello"
-    MAX.times{ string.delete!("lo") }
+    MAX.times { string.delete!("lo") }
   }
 
-  run("String#downcase"){
+  run("String#downcase") {
     string = "HELLO"
-    MAX.times{ string.downcase }
+    MAX.times { string.downcase }
   }
 
-  run("String#downcase!"){
-    MAX.times{ STRING.dup.downcase! }
+  run("String#downcase!") {
+    MAX.times { STRING.dup.downcase! }
   }
 
-  run("String#dump"){
+  run("String#dump") {
     string = "hello&%"
-    MAX.times{ string.dump }
+    MAX.times { string.dump }
   }
 
-  run("String#each"){
-    MAX.times{ STRING.each{ |e| } }
+  run("String#dup") {
+    MAX.times { STRING.dup }
+  }
+  run("String#each") {
+    MAX.times { STRING.each { |e| } }
   }
 
-  run("String#each_byte"){
-    MAX.times{ STRING.each_byte{ |e| } }
+  run("String#each_byte") {
+    MAX.times { STRING.each_byte { |e| } }
   }
 
-  run("String#empty?"){
-    MAX.times{ STRING.empty? }
+  run("String#empty?") {
+    MAX.times { STRING.empty? }
   }
 
-  run("String#eql?"){
+  run("String#eql?") {
     string1= STRING
     string2= STRING.reverse
-    MAX.times{ string1.eql?(string2) }
+    MAX.times { string1.eql?(string2) }
   }
 
-  run("String#gsub(regexp, repl)"){
-    MAX.times{ STRING.dup.gsub(/[aeiou]/, '*') }
+  run("String#gsub(regexp, repl)") {
+    MAX.times { STRING.dup.gsub(/[aeiou]/, '*') }
   }
 
-  run("String#gsub(regexp){ block }"){
-    MAX.times{ STRING.dup.gsub(/./){ |s| } }
+  run("String#gsub(regexp) { block }") {
+    MAX.times { STRING.dup.gsub(/./) { |s| } }
   }
 
-  run("String#gsub!(regexp){ block }"){
-    MAX.times{ STRING.dup.gsub!(/./){ |s| } }
+  run("String#gsub!(regexp) { block }") {
+    MAX.times { STRING.dup.gsub!(/./) { |s| } }
   }
 
-  run("String#hex"){
+  run("String#hex") {
     string = "0x"
-    8.times { string << rand(16).to_s(16) }
-    MAX.times{ string.hex }
+    8.times  { string << rand(16).to_s(16) }
+    MAX.times { string.hex }
   }
 
-  run("String#include?"){
-    MAX.times{ STRING.include?("lo") }
+  run("String#include?") {
+    MAX.times { STRING.include?("lo") }
   }
 
-  run("String#index(string)"){
-    MAX.times{ STRING.index("e") }
+  run("String#index(string)") {
+    MAX.times { STRING.index("e") }
   }
 
-  run("String#index(string, offset)"){
+  run("String#index(string, offset)") {
     a = rand(STRING.size/2)
-    MAX.times{ STRING.index("e", -a) }
+    MAX.times { STRING.index("e", -a) }
   }
 
-  run("String#index(int)"){
+  run("String#index(int)") {
     a = rand(STRING.size)
-    MAX.times{ STRING.index(a) }
+    MAX.times { STRING.index(a) }
   }
 
-  run("String#index(int, offset)"){
+  run("String#index(int, offset)") {
     a = rand(STRING.size/2)
     b = rand(STRING.size/2)
-    MAX.times{ STRING.index(a, -b) }
+    MAX.times { STRING.index(a, -b) }
   }
 
-  run("String#index(regexp)"){
-    MAX.times{ STRING.index(/[aeiou]/) }
+  run("String#index(regexp)") {
+    MAX.times { STRING.index(/[aeiou]/) }
   }
 
-  run("String#index(regexp, offset)"){
+  run("String#index(regexp, offset)") {
     a = rand(STRING.size/2)
-    MAX.times{ STRING.index(/[aeiou]/, -a) }
+    MAX.times { STRING.index(/[aeiou]/, -a) }
   }
 
-  run("String#insert"){
+  run("String#insert") {
     a = rand(STRING.size/2)
-    MAX.times{ STRING.dup.insert(a, "world") }
+    MAX.times { STRING.dup.insert(a, "world") }
   }
 
-  run("String#intern"){
+  run("String#intern") {
     string = STRING * ((MAX / STRING.size) + 1)
-    MAX.times{ string.chop!.intern }
+    MAX.times { string.chop!.intern }
   }
 
-  run("String#length"){
-    MAX.times{ STRING.length }
+  run("String#length") {
+    MAX.times { STRING.length }
   }
 
-  run("String#ljust"){
+  run("String#ljust") {
     a = rand(STRING.size*2)
-    MAX.times{ STRING.ljust(a) }
+    MAX.times { STRING.ljust(a) }
   }
 
-  run("String#lstrip"){
+  run("String#lstrip") {
     string = (" " * rand(10)) + STRING
-    MAX.times{ string.lstrip }
+    MAX.times { string.lstrip }
   }
 
-  run("String#lstrip!"){
+  run("String#lstrip!") {
     string = (" " * rand(10)) + STRING
-    MAX.times{ string.lstrip! }
+    MAX.times { string.lstrip! }
   }
 
-  run("String#match(regexp)"){
-    MAX.times{ STRING.match(/lo/) }
+  run("String#match(regexp)") {
+    MAX.times { STRING.match(/lo/) }
   }
 
-  run("String#match(string)"){
-    MAX.times{ STRING.match("lo") }
+  run("String#match(string)") {
+    MAX.times { STRING.match("lo") }
   }
 
-  run("String#oct"){
+  run("String#oct") {
     string = "0"
-    8.times { string << rand(8).to_s }
-    MAX.times{ string.oct }
+    8.times  { string << rand(8).to_s }
+    MAX.times { string.oct }
   }
 
-  run("String#replace"){
+  run("String#replace") {
     string = ""
-    8.times { string << STRING[rand(STRING.size)] }
-    MAX.times{ STRING.dup.replace(string) }
+    8.times  { string << STRING[rand(STRING.size)] }
+    MAX.times { STRING.dup.replace(string) }
   }
 
-  run("String#reverse"){
-    MAX.times{ STRING.reverse }
+  run("String#reverse") {
+    MAX.times { STRING.reverse }
   }
 
-  run("String#reverse!"){
-    MAX.times{ STRING.dup.reverse! }
+  run("String#reverse!") {
+    MAX.times { STRING.dup.reverse! }
   }
 
-  run("String#rindex(string)"){
-    MAX.times{ STRING.rindex("e") }
+  run("String#rindex(string)") {
+    MAX.times { STRING.rindex("e") }
   }
 
-  run("String#rindex(string, int)"){
+  run("String#rindex(string, int)") {
     a = rand(STRING.size/2)
-    MAX.times{ STRING.rindex("e",a) }
+    MAX.times { STRING.rindex("e",a) }
   }
 
-  run("String#rindex(int, int)"){
+  run("String#rindex(int, int)") {
     a = rand(STRING.size/2)
     b = rand(STRING.size/2)
-    MAX.times{ STRING.rindex(a, b) }
+    MAX.times { STRING.rindex(a, b) }
   }
 
-  run("String#rindex(regexp)"){
-    MAX.times{ STRING.rindex(/[aeiou]/) }
+  run("String#rindex(regexp)") {
+    MAX.times { STRING.rindex(/[aeiou]/) }
   }
 
-  run("String#rindex(regexp, int)"){
+  run("String#rindex(regexp, int)") {
     a = rand(STRING.size/2)
-    MAX.times{ STRING.rindex(/[aeiou]/, a) }
+    MAX.times { STRING.rindex(/[aeiou]/, a) }
   }
 
-  run("String#rjust(width)"){
+  run("String#rjust(width)") {
     a = rand(STRING.size*2)
-    MAX.times{ STRING.rjust(a) }
+    MAX.times { STRING.rjust(a) }
   }
 
-  run("String#rjust(width, padding)"){
+  run("String#rjust(width, padding)") {
     a = rand(STRING.size*2)
-    MAX.times{ STRING.rjust(a, "-") }
+    MAX.times { STRING.rjust(a, "-") }
   }
 
-  run("String#rstrip"){
+  run("String#rstrip") {
     string = STRING + (" " * rand(10))
-    MAX.times{ string.rstrip }
+    MAX.times { string.rstrip }
   }
 
-  run("String#rstrip!"){
+  run("String#rstrip!") {
     string = STRING + (" " * rand(10))
-    MAX.times{ string.rstrip! }
+    MAX.times { string.rstrip! }
   }
 
-  run("String#scan"){
-    MAX.times{ STRING.scan(/\w+/) }
+  run("String#scan") {
+    MAX.times { STRING.scan(/\w+/) }
   }
 
-  run("String#scan{ block }"){
-    MAX.times{ STRING.scan(/\w+/){ |w| } }
+  run("String#scan { block }") {
+    MAX.times { STRING.scan(/\w+/) { |w| } }
   }
 
-  run("String#slice(int)"){
+  run("String#slice(int)") {
     a = rand(STRING.size/2)
-    MAX.times{ STRING.dup.slice(a) }
+    MAX.times { STRING.dup.slice(a) }
   }
 
-  run("String#slice(int, int)"){
+  run("String#slice(int, int)") {
     a = rand(STRING.size/2)
     b = rand(STRING.size/2)
-    MAX.times{ STRING.slice(a, b) }
+    MAX.times { STRING.slice(a, b) }
   }
 
-  run("String#slice(range)"){
+  run("String#slice(range)") {
     a = rand(STRING.size/2)
     b = rand(STRING.size/2)
-    MAX.times{ STRING.slice(a..b) }
+    MAX.times { STRING.slice(a..b) }
   }
 
-  run("String#slice(regexp)"){
-    MAX.times{ STRING.slice(/ell/) }
+  run("String#slice(regexp)") {
+    MAX.times { STRING.slice(/ell/) }
   }
 
-  run("String#slice(string)"){
-    MAX.times{ STRING.slice("lo") }
+  run("String#slice(string)") {
+    MAX.times { STRING.slice("lo") }
   }
 
-  run("String#split"){
-    MAX.times{ STRING.split }
+  run("String#split") {
+    MAX.times { STRING.split }
   }
 
-  run("String#split(string)"){
+  run("String#split(string)") {
     string = STRING.dup
-    10.times { string[rand(STRING.size)] = "-" }
-    MAX.times{ string.split("-") }
+    10.times  { string[rand(STRING.size)] = "-" }
+    MAX.times { string.split("-") }
   }
 
-  run("String#split(string, limit)"){
+  run("String#split(string, limit)") {
     string = STRING.dup
-    10.times { string[rand(STRING.size)] = "-" }
+    10.times  { string[rand(STRING.size)] = "-" }
     a = rand(5)
-    MAX.times{ string.split("-", a) }
+    MAX.times { string.split("-", a) }
   }
 
-  run("String#split(regexp)"){
+  run("String#split(regexp)") {
     string = STRING.dup
-    10.times { string[rand(STRING.size)] = "-" }
-    MAX.times{ string.split(/\w+/) }
+    10.times  { string[rand(STRING.size)] = "-" }
+    MAX.times { string.split(/\w+/) }
   }
 
-  run("String#split(regexp, limit)"){
+  run("String#split(regexp, limit)") {
     string = STRING.dup
-    10.times { string[rand(STRING.size)] = "-" }
+    10.times  { string[rand(STRING.size)] = "-" }
     a = rand(5)
-    MAX.times{ string.split(/\w+/, a) }
+    MAX.times { string.split(/\w+/, a) }
   }
 
-  run("String#squeeze"){
+  run("String#squeeze") {
     string = STRING.dup
-    20.times { string[rand(STRING.size)] = " " }
-    MAX.times{ string.squeeze }
+    20.times  { string[rand(STRING.size)] = " " }
+    MAX.times { string.squeeze }
   }
 
-  run("String#squeeze(char)"){
+  run("String#squeeze(char)") {
     string = STRING.dup
-    20.times { string[rand(STRING.size)] = " " }
-    MAX.times{ string.squeeze(" ") }
+    20.times  { string[rand(STRING.size)] = " " }
+    MAX.times { string.squeeze(" ") }
   }
 
-  run("String#squeeze('m-n')"){
+  run("String#squeeze('m-n')") {
     string = STRING.dup
-    MAX.times{ string.squeeze("m-z") }
+    MAX.times { string.squeeze("m-z") }
   }
 
-  run("String#squeeze!"){
+  run("String#squeeze!") {
     string = STRING.dup
-    20.times { string[rand(STRING.size)] = " " }
-    MAX.times{ string.dup.squeeze! }
+    20.times  { string[rand(STRING.size)] = " " }
+    MAX.times { string.dup.squeeze! }
   }
 
-  run("String#squeeze!(char)"){
+  run("String#squeeze!(char)") {
     string = STRING.dup
-    20.times { string[rand(STRING.size)] = " " }
-    MAX.times{ string.dup.squeeze!(" ") }
+    20.times  { string[rand(STRING.size)] = " " }
+    MAX.times { string.dup.squeeze!(" ") }
   }
 
-  run("String#squeeze!('m-n')"){
-    MAX.times{ STRING.dup.squeeze!("m-z") }
+  run("String#squeeze!('m-n')") {
+    MAX.times { STRING.dup.squeeze!("m-z") }
   }
 
-  run("String#strip"){
+  run("String#strip") {
     string = (" " * rand(10)) + STRING + (" " * rand(10))
-    MAX.times{ string.strip }
+    MAX.times { string.strip }
   }
 
-  run("String#strip!"){
+  run("String#strip!") {
     string = (" " * rand(10)) + STRING + (" " * rand(10))
-    MAX.times{ string.strip! }
+    MAX.times { string.strip! }
   }
 
-  run("String#sub(pattern, repl)"){
-    MAX.times{ STRING.sub(/[aeiou]/, '*') }
+  run("String#sub(pattern, repl)") {
+    MAX.times { STRING.sub(/[aeiou]/, '*') }
   }
 
-  run("String#sub(pattern){ block }"){
-    MAX.times{ STRING.sub(/./){ |s| } }
+  run("String#sub(pattern) { block }") {
+    MAX.times { STRING.sub(/./) { |s| } }
   }
 
-  run("String#sub!(pattern, repl)"){
-    MAX.times{ STRING.dup.sub!(/[aeiou]/, '*') }
+  run("String#sub!(pattern, repl)") {
+    MAX.times { STRING.dup.sub!(/[aeiou]/, '*') }
   }
 
-  run("String#sub!(pattern){ block }"){
-    MAX.times{ STRING.dup.sub!(/./){ |s| } }
+  run("String#sub!(pattern) { block }") {
+    MAX.times { STRING.dup.sub!(/./) { |s| } }
   }
 
-  run("String#succ"){
-    MAX.times{ STRING.succ }
+  run("String#succ") {
+    MAX.times { STRING.succ }
   }
 
-  run("String#succ!"){
-    MAX.times{ STRING.dup.succ! }
+  run("String#succ!") {
+    MAX.times { STRING.dup.succ! }
   }
 
-  run("String#sum"){
-    MAX.times{ STRING.sum }
+  run("String#sum") {
+    MAX.times { STRING.sum }
   }
 
-  run("String#sum(int)"){
-    MAX.times{ STRING.sum(8) }
+  run("String#sum(int)") {
+    MAX.times { STRING.sum(8) }
   }
 
-  run("String#swapcase"){
-    MAX.times{ STRING.swapcase }
+  run("String#swapcase") {
+    MAX.times { STRING.swapcase }
   }
 
-  run("String#swapcase!"){
-    MAX.times{ STRING.dup.swapcase! }
+  run("String#swapcase!") {
+    MAX.times { STRING.dup.swapcase! }
   }
 
-  run("String#to_f"){
+  run("String#to_f") {
     string = "123.45"
-    MAX.times{ string.to_f }
+    MAX.times { string.to_f }
   }
 
-  run("String#to_i"){
+  run("String#to_i") {
     string = "12345"
-    MAX.times{ string.to_i }
+    MAX.times { string.to_i }
   }
 
-  run("String#to_i(base)"){
+  run("String#to_i(base)") {
     string = "12345"
-    MAX.times{ string.to_i(8) }
+    MAX.times { string.to_i(8) }
   }
 
-  run("String#to_s"){
-    MAX.times{ STRING.to_s }
+  run("String#to_s") {
+    MAX.times { STRING.to_s }
   }
 
-  run("String#to_str"){
-    MAX.times{ STRING.to_str }
+  run("String#to_str") {
+    MAX.times { STRING.to_str }
   }
 
-  run("String#to_sym"){
+  run("String#to_sym") {
     string = STRING.reverse * ((MAX / STRING.size) + 1)
-    MAX.times{ string.chop!.to_sym }
+    MAX.times { string.chop!.to_sym }
   }
 
-  run("String#tr"){
-    MAX.times{ STRING.tr("el","ip") }
+  run("String#tr") {
+    MAX.times { STRING.tr("el","ip") }
   }
 
-  run("String#tr!"){
-    MAX.times{ STRING.dup.tr!("el","ip") }
+  run("String#tr!") {
+    MAX.times { STRING.dup.tr!("el","ip") }
   }
 
-  run("String#tr_s"){
-    MAX.times{ STRING.tr_s("l","r") }
+  run("String#tr_s") {
+    MAX.times { STRING.tr_s("l","r") }
   }
 
-  run("String#tr_s!"){
+  run("String#tr_s!") {
     string = "hello"
-    MAX.times{ STRING.dup.tr_s!("l","r") }
+    MAX.times { STRING.dup.tr_s!("l","r") }
   }
 
   # TODO: Add more variations for String#unpack
-  run("String#unpack"){
-    MAX.times{ STRING.unpack("A5") }
+  run("String#unpack") {
+    MAX.times { STRING.unpack("A5") }
   }
 
-  run("String#upcase"){
-    MAX.times{ STRING.upcase }
+  run("String#upcase") {
+    MAX.times { STRING.upcase }
   }
 
-  run("String#upcase!"){
-    MAX.times{ STRING.dup.upcase! }
+  run("String#upcase!") {
+    MAX.times { STRING.dup.upcase! }
   }
 
-  run("String#upto"){
+  run("String#upto") {
     string = "a1"
-    MAX.times{ string.upto("b6"){ |s| } }
+    MAX.times { string.upto("b6") { |s| } }
   }
 end
