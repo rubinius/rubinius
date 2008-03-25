@@ -452,8 +452,8 @@ class String
   #    "hello".center(4)         #=> "hello"
   #    "hello".center(20)        #=> "       hello        "
   #    "hello".center(20, '123') #=> "1231231hello12312312"
-  def center(integer, padstr = " ")
-    justify(integer, :center, padstr)
+  def center(width, padstr = " ")
+    justify(width, :center, padstr)
   end
 
   # Returns a new <code>String</code> with the given record separator removed
@@ -1012,8 +1012,8 @@ class String
   #   "hello".ljust(4)            #=> "hello"
   #   "hello".ljust(20)           #=> "hello               "
   #   "hello".ljust(20, '1234')   #=> "hello123412341234123"
-  def ljust(integer, padstr = " ")
-    justify(integer, :left, padstr)
+  def ljust(width, padstr = " ")
+    justify(width, :left, padstr)
   end
 
   # Returns a copy of <i>self</i> with leading whitespace removed. See also
@@ -1162,8 +1162,8 @@ class String
   #   "hello".rjust(4)            #=> "hello"
   #   "hello".rjust(20)           #=> "               hello"
   #   "hello".rjust(20, '1234')   #=> "123412341234123hello"
-  def rjust(integer, padstr = " ")
-    justify(integer, :right, padstr)
+  def rjust(width, padstr = " ")
+    justify(width, :right, padstr)
   end
 
   # Returns a copy of <i>self</i> with trailing whitespace removed. See also
@@ -2046,6 +2046,11 @@ class String
     raise PrimitiveFailure, "String#apply_and! primitive failed"
   end
 
+  def copy_from(other, start, size, dest)
+    Ruby.primitive :string_copy_from
+    raise PrimitiveFailure, "String#copy_from primitive failed"
+  end
+
   def count_table(*strings)
     table = String.template 256, 1
 
@@ -2089,33 +2094,41 @@ class String
     return replace(substring(0, length + 1))
   end
 
-  def justify(integer, direction, padstr = " ")
-    integer = Type.coerce_to(integer, Integer, :to_int) unless integer.is_a?(Fixnum)
+  def justify(width, direction, padstr=" ")
     padstr = StringValue(padstr)
+    raise ArgumentError, "zero width padding" if padstr.size == 0
 
-    raise ArgumentError, "zero width padding" if padstr.length == 0
+    width = Type.coerce_to(width, Integer, :to_int) unless width.__kind_of__ Fixnum
+    if width > @bytes
+      padsize = width - @bytes
+    else
+      return dup
+    end
 
-    padsize = integer - self.size
-    padsize = padsize > 0 ? padsize : 0
+    str = self.class.new padsize + @bytes
+    str.taint if tainted? or padstr.tainted?
+
     case direction
     when :right
-      dup.insert(0, padstr.to_padding(padsize))
+      pad = String.template padsize, padstr
+      str.copy_from pad, 0, padsize, 0
+      str.copy_from self, 0, @bytes, padsize
     when :left
-      dup.insert(-1, padstr.to_padding(padsize))
+      pad = String.template padsize, padstr
+      str.copy_from self, 0, @bytes, 0
+      str.copy_from pad, 0, padsize, @bytes
     when :center
-      lpad = padstr.to_padding((padsize / 2.0).floor)
-      rpad = padstr.to_padding((padsize / 2.0).ceil)
-      dup.insert(0, lpad).insert(-1, rpad)
+      half = padsize / 2.0
+      lsize = half.floor
+      rsize = half.ceil
+      lpad = String.template lsize, padstr
+      rpad = String.template rsize, padstr
+      str.copy_from lpad, 0, lsize, 0
+      str.copy_from self, 0, @bytes, lsize
+      str.copy_from rpad, 0, rsize, lsize + @bytes
     end
-  end
 
-  # Convert this string to a padstring for use in String#justify.
-  def to_padding(padsize)
-    if padsize != 0
-      (self * ((padsize / self.size) + 1)).slice(0, padsize)
-    else
-      ""
-    end
+    str
   end
 
   # Unshares shared strings.
@@ -2160,33 +2173,6 @@ class String
     start  = match.begin(capture)
     length = match.end(capture) - start
     self.splice(start, length, replacement)
-  end
-
-  def substring(start, count)
-    return if count < 0 || start > @bytes || -start > @bytes
-
-    start += @bytes if start < 0
-
-    count = @bytes - start if start + count > @bytes
-    count = 0 if count < 0
-
-    str = self.class.allocate
-    str.taint if self.tainted?
-    if count == 0
-      ba = ByteArray.new(0)
-    else
-      ba = @data.fetch_bytes(start, count)
-    end
-
-    str.initialize_from count, ba
-
-    return str
-  end
-
-  def initialize_from(count, ba)
-    @bytes = count
-    @characters = count
-    @data = ba
   end
 
   def splice(start, count, replacement)

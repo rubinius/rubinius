@@ -4379,7 +4379,7 @@ class ShotgunPrimitives
     ARITY(2);
     GUARD(CLASS_P(msg->recv));
     OBJECT t1, t2, t3;
-    int k;
+    native_int k;
     char *data;
 
     POP(t1, FIXNUM);
@@ -4427,7 +4427,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(STRING_P(msg->recv));
     OBJECT t1;
-    int i, j, k, size;
+    native_int i, j, k, size;
     char *a, *b;
 
     POP(t1, STRING);
@@ -4450,7 +4450,7 @@ class ShotgunPrimitives
     ARITY(2)
     GUARD(CLASS_P(msg->recv));
     OBJECT t1, t2, t3;
-    int i, k;
+    native_int i, k;
 
     POP(t1, FIXNUM);
     k = N2I(t1);
@@ -4460,6 +4460,42 @@ class ShotgunPrimitives
       tuple_put(state, t3, i, t2);
     }
     RET(t3);
+    CODE
+  end
+
+  defprim :string_copy_from
+  def string_copy_from
+    <<-CODE
+    ARITY(4);
+    GUARD(STRING_P(msg->recv));
+    OBJECT t1, t2, t3, t4;
+    native_int n, start, size, dest;
+    char *a, *b;
+
+    POP(t1, STRING);
+    POP(t2, FIXNUM);
+    POP(t3, FIXNUM);
+    POP(t4, FIXNUM);
+
+    start = N2I(t2);
+    size = N2I(t3);
+    dest = N2I(t4);
+
+    if(start < 0) { start = 0; }
+    n = N2I(string_get_bytes(t1));
+    if(start >= n) { RET(msg->recv); }
+    if(size > n - start) { size = n - start; }
+
+    n = N2I(string_get_bytes(msg->recv));
+    if(dest < 0) { dest = 0; }
+    if(dest >= n) { RET(msg->recv); }
+    if(size > n - dest) { size = n - dest; }
+
+    a = string_byte_address(state, msg->recv);
+    b = string_byte_address(state, t1);
+    memcpy(a + dest, b + start, size);
+
+    RET(msg->recv);
     CODE
   end
 end
