@@ -105,7 +105,7 @@ class Debugger
   # Returns details of all breakpoints that are being managed by the debugger.
   # Note: This excludes transitory step breakpoints.
   def breakpoints
-    @breakpoint_tracker.global_breakpoints
+    @breakpoint_tracker.breakpoints
   end
 
   # Returns the breakpoint for the specified compiled method and IP
