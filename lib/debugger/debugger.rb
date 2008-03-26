@@ -105,7 +105,7 @@ class Debugger
   # Returns details of all breakpoints that are being managed by the debugger.
   # Note: This excludes transitory step breakpoints.
   def breakpoints
-    @breakpoint_tracker.breakpoints
+    @breakpoint_tracker.global_breakpoints
   end
 
   # Returns the breakpoint for the specified compiled method and IP
@@ -188,7 +188,12 @@ class Debugger
     until @done do
       inp = Readline.readline(@prompt)
       inp.strip!
-      process_command(inp)
+      if inp.length > 0
+        process_command(inp)
+        @last_inp = inp
+      elsif @last_inp
+        process_command(@last_inp)
+      end
     end
 
     # Clear any references to the debuggee thread and context
