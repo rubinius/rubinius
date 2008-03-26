@@ -1,0 +1,2080 @@
+#!/usr/bin/perl -w
+#
+#   Copyright (c) International Business Machines  Corp., 2002,2007
+#
+#   This program is free software;  you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or (at
+#   your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY;  without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#   General Public License for more details.                 
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program;  if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+#
+# geninfo
+#
+#   This script generates .info files from data files as created by code
+#   instrumented with gcc's built-in profiling mechanism. Call it with
+#   --help and refer to the geninfo man page to get information on usage
+#   and available options.
+#
+#
+# Authors:
+#   2002-08-23 created by Peter Oberparleiter <Peter.Oberparleiter@de.ibm.com>
+#                         IBM Lab Boeblingen
+#        based on code by Manoj Iyer <manjo@mail.utexas.edu> and
+#                         Megan Bock <mbock@us.ibm.com>
+#                         IBM Austin
+#   2002-09-05 / Peter Oberparleiter: implemented option that allows file list
+#   2003-04-16 / Peter Oberparleiter: modified read_gcov so that it can also
+#                parse the new gcov format which is to be introduced in gcc 3.3
+#   2003-04-30 / Peter Oberparleiter: made info write to STDERR, not STDOUT
+#   2003-07-03 / Peter Oberparleiter: added line checksum support, added
+#                --no-checksum
+#   2003-09-18 / Nigel Hinds: capture branch coverage data from GCOV
+#   2003-12-11 / Laurent Deniel: added --follow option
+#                workaround gcov (<= 3.2.x) bug with empty .da files
+#   2004-01-03 / Laurent Deniel: Ignore empty .bb files
+#   2004-02-16 / Andreas Krebbel: Added support for .gcno/.gcda files and
+#                gcov versioning
+#   2004-08-09 / Peter Oberparleiter: added configuration file support
+#
+
+use strict;
+use File::Basename; 
+use Getopt::Long;
+use Digest::MD5 qw(md5_base64);
+
+
+# Constants
+our $lcov_version	= "LTP GCOV extension version 1.6";
+our $lcov_url		= "http://ltp.sourceforge.net/coverage/lcov.php";
+our $gcov_tool		= "gcov";
+
+our $GCOV_VERSION_3_4_0	= 0x30400;
+our $GCOV_VERSION_3_3_0	= 0x30300;
+our $GCNO_FUNCTION_TAG	= 0x01000000;
+our $GCNO_LINES_TAG	= 0x01450000;
+our $GCNO_FILE_MAGIC	= 0x67636e6f;
+our $BBG_FILE_MAGIC	= 0x67626267;
+
+our $COMPAT_HAMMER	= "hammer";
+
+our $ERROR_GCOV		= 0;
+our $ERROR_SOURCE	= 1;
+
+# Prototypes
+sub print_usage(*);
+sub gen_info($);
+sub process_dafile($);
+sub match_filename($@);
+sub solve_ambiguous_match($$$);
+sub split_filename($);
+sub solve_relative_path($$);
+sub get_dir($);
+sub read_gcov_header($);
+sub read_gcov_file($);
+sub read_bb_file($$);
+sub read_string(*$);
+sub read_gcno_file($$);
+sub read_gcno_string(*$);
+sub read_hammer_bbg_file($$);
+sub read_hammer_bbg_string(*$);
+sub unpack_int32($$);
+sub info(@);
+sub get_gcov_version();
+sub system_no_output($@);
+sub read_config($);
+sub apply_config($);
+sub gen_initial_info($);
+sub process_graphfile($);
+
+# Global variables
+our $gcov_version;
+our $graph_file_extension;
+our $data_file_extension;
+our @data_directory;
+our $test_name = "";
+our $quiet;
+our $help;
+our $output_filename;
+our $base_directory;
+our $version;
+our $follow;
+our $checksum;
+our $no_checksum;
+our $preserve_paths;
+our $compat_libtool;
+our $no_compat_libtool;
+our $adjust_testname;
+our $config;		# Configuration file contents
+our $compatibility;	# Compatibility version flag - used to indicate
+			# non-standard GCOV data format versions
+our @ignore_errors;	# List of errors to ignore (parameter)
+our @ignore;		# List of errors to ignore (array)
+our $initial;
+
+our $cwd = `pwd`;
+chomp($cwd);
+
+
+#
+# Code entry point
+#
+
+# Register handler routine to be called when interrupted
+$SIG{"INT"} = \&int_handler;
+
+# Read configuration file if available
+if (-r $ENV{"HOME"}."/.lcovrc")
+{
+	$config = read_config($ENV{"HOME"}."/.lcovrc");
+}
+elsif (-r "/etc/lcovrc")
+{
+	$config = read_config("/etc/lcovrc");
+}
+
+if ($config)
+{
+	# Copy configuration file values to variables
+	apply_config({
+		"geninfo_gcov_tool"		=> \$gcov_tool,
+		"geninfo_adjust_testname"	=> \$adjust_testname,
+		"geninfo_checksum"		=> \$checksum,
+		"geninfo_no_checksum"		=> \$no_checksum, # deprecated
+		"geninfo_compat_libtool"	=> \$compat_libtool});
+
+	# Merge options
+	if (defined($no_checksum))
+	{
+		$checksum = ($no_checksum ? 0 : 1);
+		$no_checksum = undef;
+	}
+}
+
+# Parse command line options
+if (!GetOptions("test-name=s" => \$test_name,
+		"output-filename=s" => \$output_filename,
+		"checksum" => \$checksum,
+		"no-checksum" => \$no_checksum,
+		"base-directory=s" => \$base_directory,
+		"version" =>\$version,
+		"quiet" => \$quiet,
+		"help" => \$help,
+		"follow" => \$follow,
+		"compat-libtool" => \$compat_libtool,
+		"no-compat-libtool" => \$no_compat_libtool,
+		"gcov-tool=s" => \$gcov_tool,
+		"ignore-errors=s" => \@ignore_errors,
+		"initial|i" => \$initial
+		))
+{
+	print_usage(*STDERR);
+	exit(1);
+}
+else
+{
+	# Merge options
+	if (defined($no_checksum))
+	{
+		$checksum = ($no_checksum ? 0 : 1);
+		$no_checksum = undef;
+	}
+
+	if (defined($no_compat_libtool))
+	{
+		$compat_libtool = ($no_compat_libtool ? 0 : 1);
+		$no_compat_libtool = undef;
+	}
+}
+
+@data_directory = @ARGV;
+
+# Check for help option
+if ($help)
+{
+	print_usage(*STDOUT);
+	exit(0);
+}
+
+# Check for version option
+if ($version)
+{
+	print($lcov_version."\n");
+	exit(0);
+}
+
+# Make sure test names only contain valid characters
+if ($test_name =~ s/\W/_/g)
+{
+	warn("WARNING: invalid characters removed from testname!\n");
+}
+
+# Adjust test name to include uname output if requested
+if ($adjust_testname)
+{
+	$test_name .= "__".`uname -a`;
+	$test_name =~ s/\W/_/g;
+}
+
+# Make sure base_directory contains an absolute path specification
+if ($base_directory)
+{
+	$base_directory = solve_relative_path($cwd, $base_directory);
+}
+
+# Check for follow option
+if ($follow)
+{
+	$follow = "-follow"
+}
+else
+{
+	$follow = "";
+}
+
+# Determine checksum mode
+if (defined($checksum))
+{
+	# Normalize to boolean
+	$checksum = ($checksum ? 1 : 0);
+}
+else
+{
+	# Default is off
+	$checksum = 0;
+}
+
+# Determine libtool compatibility mode
+if (defined($compat_libtool))
+{
+	$compat_libtool = ($compat_libtool? 1 : 0);
+}
+else
+{
+	# Default is on
+	$compat_libtool = 1;
+}
+
+# Check for directory name
+if (!@data_directory)
+{
+	print(STDERR "No directory specified\n");
+	print_usage(*STDERR);
+	exit(1);
+}
+else
+{
+	foreach (@data_directory)
+	{
+		stat($_);
+		if (!-r _)
+		{
+			die("ERROR: cannot read $_!\n");
+		}
+	}
+}
+
+if (@ignore_errors)
+{
+	my @expanded;
+	my $error;
+
+	# Expand comma-separated entries
+	foreach (@ignore_errors) {
+		if (/,/)
+		{
+			push(@expanded, split(",", $_));
+		}
+		else
+		{
+			push(@expanded, $_);
+		}
+	}
+
+	foreach (@expanded)
+	{
+		/^gcov$/ && do { $ignore[$ERROR_GCOV] = 1; next; } ;
+		/^source$/ && do { $ignore[$ERROR_SOURCE] = 1; next; };
+		die("ERROR: unknown argument for --ignore-errors: $_\n");
+	}
+}
+
+if (system_no_output(3, $gcov_tool, "--help") == -1)
+{
+	die("ERROR: need tool $gcov_tool!\n");
+}
+
+$gcov_version = get_gcov_version();
+
+if ($gcov_version < $GCOV_VERSION_3_4_0)
+{
+	if (defined($compatibility) && $compatibility eq $COMPAT_HAMMER)
+	{
+		$data_file_extension = ".da";
+		$graph_file_extension = ".bbg";
+	}
+	else
+	{
+		$data_file_extension = ".da";
+		$graph_file_extension = ".bb";
+	}
+}
+else
+{
+	$data_file_extension = ".gcda";
+	$graph_file_extension = ".gcno";
+}	
+
+# Check for availability of --preserve-paths option of gcov
+if (`$gcov_tool --help` =~ /--preserve-paths/)
+{
+	$preserve_paths = "--preserve-paths";
+}
+
+# Check output filename
+if (defined($output_filename) && ($output_filename ne "-"))
+{
+	# Initially create output filename, data is appended
+	# for each data file processed
+	local *DUMMY_HANDLE;
+	open(DUMMY_HANDLE, ">$output_filename")
+		or die("ERROR: cannot create $output_filename!\n");
+	close(DUMMY_HANDLE);
+
+	# Make $output_filename an absolute path because we're going
+	# to change directories while processing files
+	if (!($output_filename =~ /^\/(.*)$/))
+	{
+		$output_filename = $cwd."/".$output_filename;
+	}
+}
+
+# Do something
+if ($initial)
+{
+	foreach (@data_directory)
+	{
+		gen_initial_info($_);
+	}
+}
+else
+{
+	foreach (@data_directory)
+	{
+		gen_info($_);
+	}
+}
+info("Finished .info-file creation\n");
+
+exit(0);
+
+
+
+#
+# print_usage(handle)
+#
+# Print usage information.
+#
+
+sub print_usage(*)
+{
+	local *HANDLE = $_[0];
+	my $tool_name = basename($0);
+
+	print(HANDLE <<END_OF_USAGE);
+Usage: $tool_name [OPTIONS] DIRECTORY
+
+Traverse DIRECTORY and create a .info file for each data file found. Note
+that you may specify more than one directory, all of which are then processed
+sequentially.
+
+  -h, --help                        Print this help, then exit
+  -v, --version                     Print version number, then exit
+  -q, --quiet                       Do not print progress messages
+  -i, --initial                     Capture initial zero coverage data
+  -t, --test-name NAME              Use test case name NAME for resulting data
+  -o, --output-filename OUTFILE     Write data only to OUTFILE
+  -f, --follow                      Follow links when searching .da/.gcda files
+  -b, --base-directory DIR          Use DIR as base directory for relative paths
+      --(no-)checksum               Enable (disable) line checksumming
+      --(no-)compat-libtool         Enable (disable) libtool compatibility mode
+      --gcov-tool TOOL              Specify gcov tool location
+      --ignore-errors ERROR         Continue after ERROR (gcov, source)
+
+See $lcov_url for more information about this tool.
+END_OF_USAGE
+	;
+}
+
+
+#
+# gen_info(directory)
+#
+# Traverse DIRECTORY and create a .info file for each data file found.
+# The .info file contains TEST_NAME in the following format:
+#
+#   TN:<test name>
+#
+# For each source file name referenced in the data file, there is a section
+# containing source code and coverage data:
+#
+#   SF:<absolute path to the source file>
+#   FN:<line number of function start>,<function name> for each function
+#   DA:<line number>,<execution count> for each instrumented line
+#   LH:<number of lines with an execution count> greater than 0
+#   LF:<number of instrumented lines>
+#
+# Sections are separated by:
+#
+#   end_of_record
+#
+# In addition to the main source code file there are sections for each
+# #included file containing executable code. Note that the absolute path
+# of a source file is generated by interpreting the contents of the respective
+# graph file. Relative filenames are prefixed with the directory in which the
+# graph file is found. Note also that symbolic links to the graph file will be
+# resolved so that the actual file path is used instead of the path to a link.
+# This approach is necessary for the mechanism to work with the /proc/gcov
+# files.
+#
+# Die on error.
+#
+
+sub gen_info($)
+{
+	my $directory = $_[0];
+	my @file_list;
+
+	if (-d $directory)
+	{
+		info("Scanning $directory for $data_file_extension ".
+		     "files ...\n");	
+
+		@file_list = `find $directory $follow -name \\*$data_file_extension -type f 2>/dev/null`;
+		chomp(@file_list);
+		@file_list or die("ERROR: no $data_file_extension files found ".
+				  "in $directory!\n");
+		info("Found %d data files in %s\n", $#file_list+1, $directory);
+	}
+	else
+	{
+		@file_list = ($directory);
+	}
+
+	# Process all files in list
+	foreach (@file_list) { process_dafile($_); }
+}
+
+
+#
+# process_dafile(da_filename)
+#
+# Create a .info file for a single data file.
+#
+# Die on error.
+#
+
+sub process_dafile($)
+{
+	info("Processing %s\n", $_[0]);
+
+	my $da_filename;	# Name of data file to process
+	my $da_dir;		# Directory of data file
+	my $source_dir;		# Directory of source file
+	my $da_basename;	# data filename without ".da/.gcda" extension
+	my $bb_filename;	# Name of respective graph file
+	my %bb_content;		# Contents of graph file
+	my $gcov_error;		# Error code of gcov tool
+	my $object_dir;		# Directory containing all object files
+	my $source_filename;	# Name of a source code file
+	my $gcov_file;		# Name of a .gcov file
+	my @gcov_content;	# Content of a .gcov file
+	my @gcov_branches;	# Branch content of a .gcov file
+	my @gcov_list;		# List of generated .gcov files
+	my $line_number;	# Line number count
+	my $lines_hit;		# Number of instrumented lines hit
+	my $lines_found;	# Number of instrumented lines found
+	my $source;		# gcov source header information
+	my $object;		# gcov object header information
+	my @matches;		# List of absolute paths matching filename
+	my @unprocessed;	# List of unprocessed source code files
+	my $base_dir;		# Base directory for current file
+	my @result;
+	my $index;
+	my $da_renamed;		# If data file is to be renamed
+	local *INFO_HANDLE;
+
+	# Get path to data file in absolute and normalized form (begins with /,
+	# contains no more ../ or ./)
+	$da_filename = solve_relative_path($cwd, $_[0]);
+
+	# Get directory and basename of data file
+	($da_dir, $da_basename) = split_filename($da_filename);
+
+	# avoid files from .libs dirs 	 
+	if ($compat_libtool && $da_dir =~ m/(.*)\/\.libs$/) {
+		$source_dir = $1;
+	} else {
+		$source_dir = $da_dir;
+	}
+
+	if (-z $da_filename)
+	{
+		$da_renamed = 1;
+	}
+	else
+	{
+		$da_renamed = 0;
+	}
+
+	# Construct base_dir for current file
+	if ($base_directory)
+	{
+		$base_dir = $base_directory;
+	}
+	else
+	{
+		$base_dir = $source_dir;
+	}
+
+	# Check for writable $base_dir (gcov will try to write files there)
+	stat($base_dir);
+	if (!-w _)
+	{
+		die("ERROR: cannot write to directory $base_dir!\n");
+	}
+
+	# Construct name of graph file
+	$bb_filename = $da_dir."/".$da_basename.$graph_file_extension;
+
+	# Find out the real location of graph file in case we're just looking at
+	# a link
+	while (readlink($bb_filename))
+	{
+		my $last_dir = dirname($bb_filename);
+
+		$bb_filename = readlink($bb_filename);
+		$bb_filename = solve_relative_path($last_dir, $bb_filename);
+	}
+
+	# Ignore empty graph file (e.g. source file with no statement)
+	if (-z $bb_filename)
+	{
+		warn("WARNING: empty $bb_filename (skipped)\n");
+		return;
+	}
+
+	# Read contents of graph file into hash. We need it later to find out
+	# the absolute path to each .gcov file created as well as for
+	# information about functions and their source code positions.
+	if ($gcov_version < $GCOV_VERSION_3_4_0)
+	{
+		if (defined($compatibility) && $compatibility eq $COMPAT_HAMMER)
+		{
+			%bb_content = read_hammer_bbg_file($bb_filename,
+							   $base_dir);
+		}
+		else
+		{
+			%bb_content = read_bb_file($bb_filename, $base_dir);
+		}
+	} 
+	else
+	{
+		%bb_content = read_gcno_file($bb_filename, $base_dir);
+	} 
+
+	# Set $object_dir to real location of object files. This may differ
+	# from $da_dir if the graph file is just a link to the "real" object
+	# file location.
+	$object_dir = dirname($bb_filename);
+
+	# Is the data file in a different directory? (this happens e.g. with
+	# the gcov-kernel patch)
+	if ($object_dir ne $da_dir)
+	{
+		# Need to create link to data file in $object_dir
+		system("ln", "-s", $da_filename, 
+		       "$object_dir/$da_basename$data_file_extension")
+			and die ("ERROR: cannot create link $object_dir/".
+				 "$da_basename$data_file_extension!\n");
+	}
+
+	# Change to directory containing data files and apply GCOV
+        chdir($base_dir);
+
+	if ($da_renamed)
+	{
+		# Need to rename empty data file to workaround
+	        # gcov <= 3.2.x bug (Abort)
+		system_no_output(3, "mv", "$da_filename", "$da_filename.ori")
+			and die ("ERROR: cannot rename $da_filename\n");
+	}
+
+	# Execute gcov command and suppress standard output
+	if ($preserve_paths)
+	{
+		$gcov_error = system_no_output(1, $gcov_tool, $da_filename,
+					       "-o", $object_dir,
+					       "--preserve-paths",
+					       "-b");
+	}
+	else
+	{
+		$gcov_error = system_no_output(1, $gcov_tool, $da_filename,
+					       "-o", $object_dir,
+					       "-b");
+	}
+
+	if ($da_renamed)
+	{
+		system_no_output(3, "mv", "$da_filename.ori", "$da_filename")
+			and die ("ERROR: cannot rename $da_filename.ori");
+	}
+
+	# Clean up link
+	if ($object_dir ne $da_dir)
+	{
+		unlink($object_dir."/".$da_basename.$data_file_extension);
+	}
+
+	if ($gcov_error)
+	{
+		if ($ignore[$ERROR_GCOV])
+		{
+			warn("WARNING: GCOV failed for $da_filename!\n");
+			return;
+		}
+		die("ERROR: GCOV failed for $da_filename!\n");
+	}
+
+	# Collect data from resulting .gcov files and create .info file
+	@gcov_list = glob("*.gcov");
+
+	# Check for files
+	if (!@gcov_list)
+	{
+		warn("WARNING: gcov did not create any files for ".
+		     "$da_filename!\n");
+	}
+
+	# Check whether we're writing to a single file
+	if ($output_filename)
+	{
+		if ($output_filename eq "-")
+		{
+			*INFO_HANDLE = *STDOUT;
+		}
+		else
+		{
+			# Append to output file
+			open(INFO_HANDLE, ">>$output_filename")
+				or die("ERROR: cannot write to ".
+				       "$output_filename!\n");
+		}
+	}
+	else
+	{
+		# Open .info file for output
+		open(INFO_HANDLE, ">$da_filename.info")
+			or die("ERROR: cannot create $da_filename.info!\n");
+	}
+
+	# Write test name
+	printf(INFO_HANDLE "TN:%s\n", $test_name);
+
+	# Traverse the list of generated .gcov files and combine them into a
+	# single .info file
+	@unprocessed = keys(%bb_content);
+	foreach $gcov_file (@gcov_list)
+	{
+		($source, $object) = read_gcov_header($gcov_file);
+		if (!defined($source))
+		{
+			next;
+		}
+
+		if ($source)
+		{
+			$source = solve_relative_path($base_dir, $source);
+		}
+
+		# gcov will happily create output even if there's no source code
+		# available - this interferes with checksum creation so we need
+		# to pull the emergency brake here.
+		if (defined($source) && ! -r $source && $checksum)
+		{
+			if ($ignore[$ERROR_SOURCE])
+			{
+				warn("WARNING: could not read source file ".
+				     "$source\n");
+				next;
+			}
+			die("ERROR: could not read source file $source\n");
+		}
+
+		@matches = match_filename(defined($source) ? $source :
+					  $gcov_file, keys(%bb_content));
+
+		# Skip files that are not mentioned in the graph file
+		if (!@matches)
+		{
+			warn("WARNING: cannot find an entry for ".$gcov_file.
+			     " in $graph_file_extension file, skipping ".
+			     "file!\n");
+			unlink($gcov_file);
+			next;
+		}
+
+		# Read in contents of gcov file
+		@result = read_gcov_file($gcov_file);
+		@gcov_content = @{$result[0]};
+		@gcov_branches = @{$result[1]};
+
+		# Skip empty files
+		if (!@gcov_content)
+		{
+			warn("WARNING: skipping empty file ".$gcov_file."\n");
+			unlink($gcov_file);
+			next;
+		}
+
+		if (scalar(@matches) == 1)
+		{
+			# Just one match
+			$source_filename = $matches[0];
+		}
+		else
+		{
+			# Try to solve the ambiguity
+			$source_filename = solve_ambiguous_match($gcov_file,
+						\@matches, \@gcov_content);
+		}
+
+		# Remove processed file from list
+		for ($index = scalar(@unprocessed) - 1; $index >= 0; $index--)
+		{
+			if ($unprocessed[$index] eq $source_filename)
+			{
+				splice(@unprocessed, $index, 1);
+				last;
+			}
+		}
+
+		# Write absolute path of source file
+		printf(INFO_HANDLE "SF:%s\n", $source_filename);
+
+		# Write function-related information
+		if (defined($bb_content{$source_filename}))
+		{
+			foreach (split(",",$bb_content{$source_filename}))
+			{
+				my ($fn, $line) = split("=", $_);
+
+				if ($fn ne "")
+				{
+					print(INFO_HANDLE "FN:$line,$fn\n");
+				}
+			}
+		}
+
+		# Reset line counters
+		$line_number = 0;
+		$lines_found = 0;
+		$lines_hit = 0;
+
+		# Write coverage information for each instrumented line
+		# Note: @gcov_content contains a list of (flag, count, source)
+		# tuple for each source code line
+		while (@gcov_content)
+		{
+			$line_number++;
+
+			# Check for instrumented line
+			if ($gcov_content[0])
+			{
+				$lines_found++;
+				printf(INFO_HANDLE "DA:".$line_number.",".
+				       $gcov_content[1].($checksum ?
+				       ",". md5_base64($gcov_content[2]) : "").
+				       "\n");
+
+				# Increase $lines_hit in case of an execution
+				# count>0
+				if ($gcov_content[1] > 0) { $lines_hit++; }
+			}
+
+			# Remove already processed data from array
+			splice(@gcov_content,0,3);
+		}
+
+		#--
+		#-- BA: <code-line>, <branch-coverage>
+		#--
+		#-- print one BA line for every branch of a
+		#-- conditional.  <branch-coverage> values
+		#-- are:
+		#--     0 - not executed
+		#--     1 - executed but not taken
+		#--     2 - executed and taken
+		#--
+		while (@gcov_branches)
+		{
+			if ($gcov_branches[0])
+			{
+				printf(INFO_HANDLE "BA:%s,%s\n",
+				       $gcov_branches[0],
+				       $gcov_branches[1]);
+			}
+			splice(@gcov_branches,0,2);
+		}
+
+		# Write line statistics and section separator
+		printf(INFO_HANDLE "LF:%s\n", $lines_found);
+		printf(INFO_HANDLE "LH:%s\n", $lines_hit);
+		print(INFO_HANDLE "end_of_record\n");
+
+		# Remove .gcov file after processing
+		unlink($gcov_file);
+	}
+
+	# Check for files which show up in the graph file but were never
+	# processed
+	if (@unprocessed && @gcov_list)
+	{
+		foreach (@unprocessed)
+		{
+			warn("WARNING: no data found for $_\n");
+		}
+	}
+
+	if (!($output_filename && ($output_filename eq "-")))
+	{
+		close(INFO_HANDLE);
+	}
+
+	# Change back to initial directory
+	chdir($cwd);
+}
+
+
+#
+# solve_relative_path(path, dir)
+#
+# Solve relative path components of DIR which, if not absolute, resides in PATH.
+#
+
+sub solve_relative_path($$)
+{
+	my $path = $_[0];
+	my $dir = $_[1];
+	my $result;
+
+	$result = $dir;
+	# Prepend path if not absolute
+	if ($dir =~ /^[^\/]/)
+	{
+		$result = "$path/$result";
+	}
+
+	# Remove //
+	$result =~ s/\/\//\//g;
+
+	# Remove .
+	$result =~ s/\/\.\//\//g;
+
+	# Solve ..
+	while ($result =~ s/\/[^\/]+\/\.\.\//\//)
+	{
+	}
+
+	# Remove preceding ..
+	$result =~ s/^\/\.\.\//\//g;
+
+	return $result;
+}
+
+
+#
+# match_filename(gcov_filename, list)
+#
+# Return a list of those entries of LIST which match the relative filename
+# GCOV_FILENAME.
+#
+
+sub match_filename($@)
+{
+	my $filename = shift;
+	my @list = @_;
+	my @result;
+
+	$filename =~ s/^(.*).gcov$/$1/;
+
+	if ($filename =~ /^\/(.*)$/)
+	{
+		$filename = "$1";
+	}
+
+	foreach (@list)
+	{
+		if (/\/\Q$filename\E(.*)$/ && $1 eq "")
+		{
+			@result = (@result, $_);
+		}
+	}
+	return @result;
+}
+
+
+#
+# solve_ambiguous_match(rel_filename, matches_ref, gcov_content_ref)
+#
+# Try to solve ambiguous matches of mapping (gcov file) -> (source code) file
+# by comparing source code provided in the GCOV file with that of the files
+# in MATCHES. REL_FILENAME identifies the relative filename of the gcov
+# file.
+# 
+# Return the one real match or die if there is none.
+#
+
+sub solve_ambiguous_match($$$)
+{
+	my $rel_name = $_[0];
+	my $matches = $_[1];
+	my $content = $_[2];
+	my $filename;
+	my $index;
+	my $no_match;
+	local *SOURCE;
+
+	# Check the list of matches
+	foreach $filename (@$matches)
+	{
+
+		# Compare file contents
+		open(SOURCE, $filename)
+			or die("ERROR: cannot read $filename!\n");
+
+		$no_match = 0;
+		for ($index = 2; <SOURCE>; $index += 3)
+		{
+			chomp;
+
+			if ($_ ne @$content[$index])
+			{
+				$no_match = 1;
+				last;
+			}
+		}
+
+		close(SOURCE);
+
+		if (!$no_match)
+		{
+			info("Solved source file ambiguity for $rel_name\n");
+			return $filename;
+		}
+	}
+
+	die("ERROR: could not match gcov data for $rel_name!\n");
+}
+
+
+#
+# split_filename(filename)
+#
+# Return (path, filename, extension) for a given FILENAME.
+#
+
+sub split_filename($)
+{
+	my @path_components = split('/', $_[0]);
+	my @file_components = split('\.', pop(@path_components));
+	my $extension = pop(@file_components);
+
+	return (join("/",@path_components), join(".",@file_components),
+		$extension);
+}
+
+
+#
+# get_dir(filename);
+#
+# Return the directory component of a given FILENAME.
+#
+
+sub get_dir($)
+{
+	my @components = split("/", $_[0]);
+	pop(@components);
+
+	return join("/", @components);
+}
+
+
+#
+# read_gcov_header(gcov_filename)
+#
+# Parse file GCOV_FILENAME and return a list containing the following
+# information:
+#
+#   (source, object)
+#
+# where:
+#
+# source: complete relative path of the source code file (gcc >= 3.3 only)
+# object: name of associated graph file
+#
+# Die on error.
+#
+
+sub read_gcov_header($)
+{
+	my $source;
+	my $object;
+	local *INPUT;
+
+	if (!open(INPUT, $_[0]))
+	{
+		if ($ignore_errors[$ERROR_GCOV])
+		{
+			warn("WARNING: cannot read $_[0]!\n");
+			return (undef,undef);
+		}
+		die("ERROR: cannot read $_[0]!\n");
+	}
+
+	while (<INPUT>)
+	{
+		chomp($_);
+
+		if (/^\s+-:\s+0:Source:(.*)$/)
+		{
+			# Source: header entry
+			$source = $1;
+		}
+		elsif (/^\s+-:\s+0:Object:(.*)$/)
+		{
+			# Object: header entry
+			$object = $1;
+		}
+		else
+		{
+			last;
+		}
+	}
+
+	close(INPUT);
+
+	return ($source, $object);
+}
+
+
+#
+# read_gcov_file(gcov_filename)
+#
+# Parse file GCOV_FILENAME (.gcov file format) and return the list:
+# (reference to gcov_content, reference to gcov_branch)
+#
+# gcov_content is a list of 3 elements
+# (flag, count, source) for each source code line:
+#
+# $result[($line_number-1)*3+0] = instrumentation flag for line $line_number
+# $result[($line_number-1)*3+1] = execution count for line $line_number
+# $result[($line_number-1)*3+2] = source code text for line $line_number
+#
+# gcov_branch is a list of 2 elements
+# (linenumber, branch result) for each branch
+#
+# Die on error.
+#
+
+sub read_gcov_file($)
+{
+	my $filename = $_[0];
+	my @result = ();
+	my @branches = ();
+	my $number;
+	local *INPUT;
+
+	open(INPUT, $filename)
+		or die("ERROR: cannot read $filename!\n");
+
+	if ($gcov_version < $GCOV_VERSION_3_3_0)
+	{
+		# Expect gcov format as used in gcc < 3.3
+		while (<INPUT>)
+		{
+			chomp($_);
+
+			if (/^\t\t(.*)$/)
+			{
+				# Uninstrumented line
+				push(@result, 0);
+				push(@result, 0);
+				push(@result, $1);
+			}
+			elsif (/^branch/)
+			{
+				# Branch execution data
+				push(@branches, scalar(@result) / 3);
+				if (/^branch \d+ never executed$/)
+				{
+					push(@branches, 0);
+				}
+				elsif (/^branch \d+ taken = 0%/)
+				{
+					push(@branches, 1);
+				}
+				else
+				{
+					push(@branches, 2);
+				}
+			}
+			elsif (/^call/ || /^function/)
+			{
+				# Function call return data
+			}
+			else
+			{
+				# Source code execution data
+				$number = (split(" ",substr($_, 0, 16)))[0];
+
+				# Check for zero count which is indicated
+				# by ######
+				if ($number eq "######") { $number = 0;	}
+
+				push(@result, 1);
+				push(@result, $number);
+				push(@result, substr($_, 16));
+			}
+		}
+	}
+	else
+	{
+		# Expect gcov format as used in gcc >= 3.3
+		while (<INPUT>)
+		{
+			chomp($_);
+
+			if (/^branch\s+\d+\s+(\S+)\s+(\S+)/)
+			{
+				# Branch execution data
+				push(@branches, scalar(@result) / 3);
+				if ($1 eq "never")
+				{
+					push(@branches, 0);
+				}
+				elsif ($2 eq "0%")
+				{
+					push(@branches, 1);
+				}
+				else
+				{
+					push(@branches, 2);
+				}
+			}
+			elsif (/^call/)
+			{
+				# Function call return data
+			}
+			elsif (/^\s*([^:]+):\s*([^:]+):(.*)$/)
+			{
+				# <exec count>:<line number>:<source code>
+				if ($2 eq "0")
+				{
+					# Extra data
+				}
+				elsif ($1 eq "-")
+				{
+					# Uninstrumented line
+					push(@result, 0);
+					push(@result, 0);
+					push(@result, $3);
+				}
+				else
+				{
+					# Source code execution data
+					$number = $1;
+
+					# Check for zero count
+					if ($number eq "#####")	{ $number = 0; }
+
+					push(@result, 1);
+					push(@result, $number);
+					push(@result, $3);
+				}
+			}
+		}
+	}
+
+	close(INPUT);
+	return(\@result, \@branches);
+}
+
+
+#
+# read_bb_file(bb_filename, base_dir)
+#
+# Read .bb file BB_FILENAME and return a hash containing the following
+# mapping:
+#
+#   filename -> comma-separated list of pairs (function name=starting
+#               line number) to indicate the starting line of a function or
+#               =name to indicate an instrumented line
+#
+# for each entry in the .bb file. Filenames are absolute, i.e. relative
+# filenames are prefixed with BASE_DIR.
+#
+# Die on error.
+#
+
+sub read_bb_file($$)
+{
+	my $bb_filename		= $_[0];
+	my $base_dir = $_[1];
+	my %result;
+	my $filename;
+	my $function_name;
+	my $minus_one		= sprintf("%d", 0x80000001);
+	my $minus_two		= sprintf("%d", 0x80000002);
+	my $value;
+	my $packed_word;
+	local *INPUT;
+
+	open(INPUT, $bb_filename)
+		or die("ERROR: cannot read $bb_filename!\n");
+
+	binmode(INPUT);
+
+	# Read data in words of 4 bytes
+	while (read(INPUT, $packed_word, 4) == 4)
+	{
+		# Decode integer in intel byteorder
+		$value = unpack_int32($packed_word, 0);
+
+		# Note: the .bb file format is documented in GCC info pages
+		if ($value == $minus_one)
+		{
+			# Filename follows
+			$filename = read_string(*INPUT, $minus_one)
+				or die("ERROR: incomplete filename in ".
+				       "$bb_filename!\n");
+
+			# Make path absolute
+			$filename = solve_relative_path($base_dir, $filename);
+
+			# Insert into hash if not yet present.
+			# This is necessary because functions declared as
+			# "inline" are not listed as actual functions in
+			# .bb files
+			if (!$result{$filename})
+			{
+				$result{$filename}="";
+			}
+		}
+		elsif ($value == $minus_two)
+		{
+			# Function name follows
+			$function_name = read_string(*INPUT, $minus_two)
+				 or die("ERROR: incomplete function ".
+					"name in $bb_filename!\n");
+		}
+		elsif ($value > 0)
+		{
+			if (defined($filename))
+			{
+				$result{$filename} .=
+					($result{$filename} ? "," : "").
+					"=$value";
+			}
+			else
+			{
+				warn("WARNING: unassigned line".
+				     " number in .bb file ".
+				     "$bb_filename\n");
+			}
+			if ($function_name)
+			{
+				# Got a full entry filename, funcname, lineno
+				# Add to resulting hash
+
+				$result{$filename}.=
+				  ($result{$filename} ? "," : "").
+				  join("=",($function_name,$value));
+				undef($function_name);
+			}
+		}
+	}
+	close(INPUT);
+
+	if (!scalar(keys(%result)))
+	{
+		die("ERROR: no data found in $bb_filename!\n");
+	}
+	return %result;
+}
+
+
+#
+# read_string(handle, delimiter);
+#
+# Read and return a string in 4-byte chunks from HANDLE until DELIMITER
+# is found.
+#
+# Return empty string on error.
+#
+
+sub read_string(*$)
+{
+	my $HANDLE	= $_[0];
+	my $delimiter	= $_[1];
+	my $string	= "";
+	my $packed_word;
+	my $value;
+
+	while (read($HANDLE,$packed_word,4) == 4)
+	{
+		$value = unpack_int32($packed_word, 0);
+
+		if ($value == $delimiter)
+		{
+			# Remove trailing nil bytes
+			$/="\0";
+			while (chomp($string)) {};
+			$/="\n";
+			return($string);
+		}
+
+		$string = $string.$packed_word;
+	}
+	return("");
+}
+
+
+#
+# read_gcno_file(bb_filename, base_dir)
+#
+# Read .gcno file BB_FILENAME and return a hash containing the following
+# mapping:
+#
+#   filename -> comma-separated list of pairs (function name=starting
+#               line number) to indicate the starting line of a function or
+#               =name to indicate an instrumented line
+#
+# for each entry in the .gcno file. Filenames are absolute, i.e. relative
+# filenames are prefixed with BASE_DIR.
+#
+# Die on error.
+#
+
+sub read_gcno_file($$)
+{
+	my $gcno_filename	= $_[0];
+	my $base_dir = $_[1];
+	my %result;
+	my $filename;
+	my $function_name;
+	my $lineno;
+	my $length;
+	my $value;
+	my $endianness;
+	my $blocks;
+	my $packed_word;
+	my $string;
+	local *INPUT;
+
+	open(INPUT, $gcno_filename)
+		or die("ERROR: cannot read $gcno_filename!\n");
+
+	binmode(INPUT);
+	
+	read(INPUT, $packed_word, 4) == 4
+		or die("ERROR: Invalid gcno file format\n");
+
+	$value = unpack_int32($packed_word, 0);
+	$endianness = !($value == $GCNO_FILE_MAGIC);
+
+	unpack_int32($packed_word, $endianness) == $GCNO_FILE_MAGIC
+		or die("ERROR: gcno file magic does not match\n");
+
+	seek(INPUT, 8, 1);
+
+	# Read data in words of 4 bytes
+	while (read(INPUT, $packed_word, 4) == 4)
+	{
+		# Decode integer in intel byteorder
+		$value = unpack_int32($packed_word, $endianness);
+
+		if ($value == $GCNO_FUNCTION_TAG)
+		{
+			# skip length, ident and checksum
+			seek(INPUT, 12, 1);
+			(undef, $function_name) =
+				read_gcno_string(*INPUT, $endianness);
+			(undef, $filename) =
+				read_gcno_string(*INPUT, $endianness);
+			$filename = solve_relative_path($base_dir, $filename);
+
+			read(INPUT, $packed_word, 4);
+			$lineno = unpack_int32($packed_word, $endianness);
+
+			$result{$filename}.=
+			    ($result{$filename} ? "," : "").
+				join("=",($function_name,$lineno));
+		}
+		elsif ($value == $GCNO_LINES_TAG)
+		{
+			# Check for names of files containing inlined code
+			# included in this file
+			read(INPUT, $packed_word, 4);
+			$length = unpack_int32($packed_word, $endianness);
+			if ($length > 0)
+			{
+				# Block number
+				read(INPUT, $packed_word, 4);
+				$length--;
+			}
+			while ($length > 0)
+			{
+				read(INPUT, $packed_word, 4);
+				$lineno = unpack_int32($packed_word,
+						       $endianness);
+				$length--;
+				if ($lineno != 0)
+				{
+					if (defined($filename))
+					{
+						$result{$filename} .=
+							($result{$filename} ? "," : "").
+							"=$lineno";
+					}
+					else
+					{
+						warn("WARNING: unassigned line".
+						     " number in .gcno file ".
+						     "$gcno_filename\n");
+					}
+					next;
+				}
+				($blocks, $string) =
+					read_gcno_string(*INPUT, $endianness);
+				if (defined($string))
+				{
+					$filename = $string;
+				}
+				if ($blocks > 1)
+				{
+					$filename = solve_relative_path(
+							$base_dir, $filename);
+					if (!defined($result{$filename}))
+					{
+						$result{$filename} = "";
+					}
+				}
+				$length -= $blocks;
+			}
+		}
+		else
+		{
+			read(INPUT, $packed_word, 4);
+			$length = unpack_int32($packed_word, $endianness);
+			seek(INPUT, 4 * $length, 1);
+		}
+	}
+	close(INPUT);
+
+	if (!scalar(keys(%result)))
+	{
+		die("ERROR: no data found in $gcno_filename!\n");
+	}
+	return %result;
+}
+
+
+#
+# read_gcno_string(handle, endianness);
+#
+# Read a string in 4-byte chunks from HANDLE.
+#
+# Return (number of 4-byte chunks read, string).
+#
+
+sub read_gcno_string(*$)
+{
+	my $handle		= $_[0];
+	my $endianness		= $_[1];
+	my $number_of_blocks	= 0;
+	my $string		= "";
+	my $packed_word;
+
+	read($handle, $packed_word, 4) == 4
+		or die("ERROR: reading string\n");
+
+	$number_of_blocks = unpack_int32($packed_word, $endianness);
+
+	if ($number_of_blocks == 0)
+	{
+		return (1, undef);
+	}
+
+	read($handle, $packed_word, 4 * $number_of_blocks) ==
+		4 * $number_of_blocks or die("ERROR: reading string\n");
+	
+	$string = $string . $packed_word;
+	
+	# Remove trailing nil bytes
+	$/="\0";
+	while (chomp($string)) {};
+	$/="\n";
+
+	return(1 + $number_of_blocks, $string);
+}
+
+
+#
+# read_hammer_bbg_file(bb_filename, base_dir)
+#
+# Read .bbg file BB_FILENAME and return a hash containing the following
+# mapping:
+#
+#   filename -> comma-separated list of pairs (function name=starting
+#               line number) to indicate the starting line of a function or
+#               =name to indicate an instrumented line
+#
+# for each entry in the .bbg file. Filenames are absolute, i.e. relative
+# filenames are prefixed with BASE_DIR.
+#
+# Die on error.
+#
+
+sub read_hammer_bbg_file($$)
+{
+	my $bbg_filename = $_[0];
+	my $base_dir = $_[1];
+	my %result;
+	my $filename;
+	my $function_name;
+	my $first_line;
+	my $lineno;
+	my $length;
+	my $value;
+	my $endianness;
+	my $blocks;
+	my $packed_word;
+	local *INPUT;
+
+	open(INPUT, $bbg_filename)
+		or die("ERROR: cannot read $bbg_filename!\n");
+
+	binmode(INPUT);
+	
+	# Read magic
+	read(INPUT, $packed_word, 4) == 4
+		or die("ERROR: invalid bbg file format\n");
+
+	$endianness = 1;
+
+	unpack_int32($packed_word, $endianness) == $BBG_FILE_MAGIC
+		or die("ERROR: bbg file magic does not match\n");
+
+	# Skip version
+	seek(INPUT, 4, 1);
+
+	# Read data in words of 4 bytes
+	while (read(INPUT, $packed_word, 4) == 4)
+	{
+		# Get record tag
+		$value = unpack_int32($packed_word, $endianness);
+
+		# Get record length
+		read(INPUT, $packed_word, 4);
+		$length = unpack_int32($packed_word, $endianness);
+
+		if ($value == $GCNO_FUNCTION_TAG)
+		{
+			# Get function name
+			($value, $function_name) =
+				read_hammer_bbg_string(*INPUT, $endianness);
+			$filename = undef;
+			$first_line = undef;
+
+			seek(INPUT, $length - $value * 4, 1);
+		}
+		elsif ($value == $GCNO_LINES_TAG)
+		{
+			# Get linenumber and filename
+			# Skip block number
+			seek(INPUT, 4, 1);
+			$length -= 4;
+
+			while ($length > 0)
+			{
+				read(INPUT, $packed_word, 4);
+				$lineno = unpack_int32($packed_word,
+						       $endianness);
+				$length -= 4;
+				if ($lineno != 0)
+				{
+					if (!defined($first_line))
+					{
+						$first_line = $lineno;
+					}
+					if (defined($filename))
+					{
+						$result{$filename} .=
+							($result{$filename} ? "," : "").
+							"=$lineno";
+					}
+					else
+					{
+						warn("WARNING: unassigned line".
+						     " number in .bbg file ".
+						     "$bbg_filename\n");
+					}
+					next;
+				}
+				($blocks, $value) =
+					read_hammer_bbg_string(
+						*INPUT, $endianness);
+				# Add all filenames to result list
+				if (defined($value))
+				{
+					$value = solve_relative_path(
+							$base_dir, $value);
+					if (!defined($result{$value}))
+					{
+						$result{$value} = undef;
+					}
+					if (!defined($filename))
+					{
+						$filename = $value;
+					}
+				}
+				$length -= $blocks * 4;
+
+				# Got a complete data set?
+				if (defined($filename) &&
+				    defined($first_line) &&
+				    defined($function_name))
+				{
+					# Add it to our result hash
+					if (defined($result{$filename}))
+					{
+						$result{$filename} .=
+						",$function_name=$first_line";
+					}
+					else
+					{
+						$result{$filename} =
+						"$function_name=$first_line";
+					}
+					$function_name = undef;
+					$filename = undef;
+					$first_line = undef;
+				}
+			}
+		}
+		else
+		{
+			# Skip other records
+			seek(INPUT, $length, 1);
+		}
+	}
+	close(INPUT);
+
+	if (!scalar(keys(%result)))
+	{
+		die("ERROR: no data found in $bbg_filename!\n");
+	}
+	return %result;
+}
+
+
+#
+# read_hammer_bbg_string(handle, endianness);
+#
+# Read a string in 4-byte chunks from HANDLE.
+#
+# Return (number of 4-byte chunks read, string).
+#
+
+sub read_hammer_bbg_string(*$)
+{
+	my $handle		= $_[0];
+	my $endianness		= $_[1];
+	my $length		= 0;
+	my $string		= "";
+	my $packed_word;
+	my $pad;
+
+	read($handle, $packed_word, 4) == 4
+		or die("ERROR: reading string\n");
+
+	$length = unpack_int32($packed_word, $endianness);
+	$pad = 4 - $length % 4;
+
+	if ($length == 0)
+	{
+		return (1, undef);
+	}
+
+	read($handle, $string, $length) ==
+		$length or die("ERROR: reading string\n");
+	seek($handle, $pad, 1);
+
+	return(1 + ($length + $pad) / 4, $string);
+}
+
+#
+# unpack_int32(word, endianness)
+#
+# Interpret 4-byte binary string WORD as signed 32 bit integer in
+# endian encoding defined by ENDIANNESS (0=little, 1=big) and return its
+# value.
+#
+
+sub unpack_int32($$)
+{
+	return sprintf("%d", unpack($_[1] ? "N" : "V",$_[0]));
+}
+
+
+#
+# Get the GCOV tool version. Return an integer number which represents the
+# GCOV version. Version numbers can be compared using standard integer
+# operations.
+#
+
+sub get_gcov_version()
+{
+	local *HANDLE;
+	my $version_string;
+	my $result;
+
+	open(GCOV_PIPE, "$gcov_tool -v |")
+		or die("ERROR: cannot retrieve gcov version!\n");
+	$version_string = <GCOV_PIPE>;
+	close(GCOV_PIPE);
+
+	$result = 0;
+	if ($version_string =~ /(\d+)\.(\d+)(\.(\d+))?/)
+	{
+		if (defined($4))
+		{
+			info("Found gcov version: $1.$2.$4\n");
+			$result = $1 << 16 | $2 << 8 | $4;
+		}
+		else
+		{
+			info("Found gcov version: $1.$2\n");
+			$result = $1 << 16 | $2 << 8;
+		}
+	}
+        if ($version_string =~ /suse/i && $result == 0x30303 ||
+            $version_string =~ /mandrake/i && $result == 0x30302)
+	{
+		info("Using compatibility mode for GCC 3.3 (hammer)\n");
+		$compatibility = $COMPAT_HAMMER;
+	}
+	return $result;
+}
+
+
+#
+# info(printf_parameter)
+#
+# Use printf to write PRINTF_PARAMETER to stdout only when the $quiet flag
+# is not set.
+#
+
+sub info(@)
+{
+	if (!$quiet)
+	{
+		# Print info string
+		if (defined($output_filename) && ($output_filename eq "-"))
+		{
+			# Don't interfere with the .info output to STDOUT
+			printf(STDERR @_);
+		}
+		else
+		{
+			printf(@_);
+		}
+	}
+}
+
+
+#
+# int_handler()
+#
+# Called when the script was interrupted by an INT signal (e.g. CTRl-C)
+#
+
+sub int_handler()
+{
+	if ($cwd) { chdir($cwd); }
+	info("Aborted.\n");
+	exit(1);
+}
+
+
+#
+# system_no_output(mode, parameters)
+#
+# Call an external program using PARAMETERS while suppressing depending on
+# the value of MODE:
+#
+#   MODE & 1: suppress STDOUT
+#   MODE & 2: suppress STDERR
+#
+# Return 0 on success, non-zero otherwise.
+#
+
+sub system_no_output($@)
+{
+	my $mode = shift;
+	my $result;
+	local *OLD_STDERR;
+	local *OLD_STDOUT;
+
+	# Save old stdout and stderr handles
+	($mode & 1) && open(OLD_STDOUT, ">>&STDOUT");
+	($mode & 2) && open(OLD_STDERR, ">>&STDERR");
+
+	# Redirect to /dev/null
+	($mode & 1) && open(STDOUT, ">/dev/null");
+	($mode & 2) && open(STDERR, ">/dev/null");
+ 
+	system(@_);
+	$result = $?;
+
+	# Close redirected handles
+	($mode & 1) && close(STDOUT);
+	($mode & 2) && close(STDERR);
+
+	# Restore old handles
+	($mode & 1) && open(STDOUT, ">>&OLD_STDOUT");
+	($mode & 2) && open(STDERR, ">>&OLD_STDERR");
+ 
+	return $result;
+}
+
+
+#
+# read_config(filename)
+#
+# Read configuration file FILENAME and return a reference to a hash containing
+# all valid key=value pairs found.
+#
+
+sub read_config($)
+{
+	my $filename = $_[0];
+	my %result;
+	my $key;
+	my $value;
+	local *HANDLE;
+
+	if (!open(HANDLE, "<$filename"))
+	{
+		warn("WARNING: cannot read configuration file $filename\n");
+		return undef;
+	}
+	while (<HANDLE>)
+	{
+		chomp;
+		# Skip comments
+		s/#.*//;
+		# Remove leading blanks
+		s/^\s+//;
+		# Remove trailing blanks
+		s/\s+$//;
+		next unless length;
+		($key, $value) = split(/\s*=\s*/, $_, 2);
+		if (defined($key) && defined($value))
+		{
+			$result{$key} = $value;
+		}
+		else
+		{
+			warn("WARNING: malformed statement in line $. ".
+			     "of configuration file $filename\n");
+		}
+	}
+	close(HANDLE);
+	return \%result;
+}
+
+
+#
+# apply_config(REF)
+#
+# REF is a reference to a hash containing the following mapping:
+#
+#   key_string => var_ref
+#
+# where KEY_STRING is a keyword and VAR_REF is a reference to an associated
+# variable. If the global configuration hash CONFIG contains a value for
+# keyword KEY_STRING, VAR_REF will be assigned the value for that keyword. 
+#
+
+sub apply_config($)
+{
+	my $ref = $_[0];
+
+	foreach (keys(%{$ref}))
+	{
+		if (defined($config->{$_}))
+		{
+			${$ref->{$_}} = $config->{$_};
+		}
+	}
+}
+
+
+sub gen_initial_info($)
+{
+	my $directory = $_[0];
+	my @file_list;
+
+	if (-d $directory)
+	{
+		info("Scanning $directory for $graph_file_extension ".
+		     "files ...\n");	
+
+		@file_list = `find $directory $follow -name \\*$graph_file_extension -type f 2>/dev/null`;
+		chomp(@file_list);
+		@file_list or die("ERROR: no $graph_file_extension files ".
+				  "found in $directory!\n");
+		info("Found %d graph files in %s\n", $#file_list+1, $directory);
+	}
+	else
+	{
+		@file_list = ($directory);
+	}
+
+	# Process all files in list
+	foreach (@file_list) { process_graphfile($_); }
+}
+
+sub process_graphfile($)
+{
+	my $graph_filename = $_[0];
+	my $graph_dir;
+	my $graph_basename;
+	my $source_dir;
+	my $base_dir;
+	my %graph_data;
+	my $filename;
+	local *INFO_HANDLE;
+
+	info("Processing $_[0]\n");
+
+	# Get path to data file in absolute and normalized form (begins with /,
+	# contains no more ../ or ./)
+	$graph_filename = solve_relative_path($cwd, $graph_filename);
+
+	# Get directory and basename of data file
+	($graph_dir, $graph_basename) = split_filename($graph_filename);
+
+	# avoid files from .libs dirs 	 
+	if ($compat_libtool && $graph_dir =~ m/(.*)\/\.libs$/) {
+		$source_dir = $1;
+	} else {
+		$source_dir = $graph_dir;
+	}
+
+	# Construct base_dir for current file
+	if ($base_directory)
+	{
+		$base_dir = $base_directory;
+	}
+	else
+	{
+		$base_dir = $source_dir;
+	}
+
+	if ($gcov_version < $GCOV_VERSION_3_4_0)
+	{
+		if (defined($compatibility) && $compatibility eq $COMPAT_HAMMER)
+		{
+			%graph_data = read_hammer_bbg_file($graph_filename,
+							   $base_dir);
+		}
+		else
+		{
+			%graph_data = read_bb_file($graph_filename, $base_dir);
+		}
+	} 
+	else
+	{
+		%graph_data = read_gcno_file($graph_filename, $base_dir);
+	}
+
+	# Check whether we're writing to a single file
+	if ($output_filename)
+	{
+		if ($output_filename eq "-")
+		{
+			*INFO_HANDLE = *STDOUT;
+		}
+		else
+		{
+			# Append to output file
+			open(INFO_HANDLE, ">>$output_filename")
+				or die("ERROR: cannot write to ".
+				       "$output_filename!\n");
+		}
+	}
+	else
+	{
+		# Open .info file for output
+		open(INFO_HANDLE, ">$graph_filename.info")
+			or die("ERROR: cannot create $graph_filename.info!\n");
+	}
+
+	# Write test name
+	printf(INFO_HANDLE "TN:%s\n", $test_name);
+	foreach $filename (keys(%graph_data))
+	{
+		my %lines;
+		my $count = 0;
+
+		print(INFO_HANDLE "SF:$filename\n");
+		foreach (split(",",$graph_data{$filename}))
+		{
+			my ($fn, $line) = split("=", $_);
+
+			if ($fn eq "")
+			{
+				$lines{$line} = "";
+			}
+			else
+			{
+				print(INFO_HANDLE "FN:$line,$fn\n");
+			}
+		}
+		foreach (sort {$a <=> $b } keys(%lines))
+		{
+			print(INFO_HANDLE "DA:$_,0\n");
+			$count++;
+		}
+		print(INFO_HANDLE "LH:0\n");
+		print(INFO_HANDLE "LF:$count\n");
+		print(INFO_HANDLE "end_of_record\n");
+	}
+	if (!($output_filename && ($output_filename eq "-")))
+	{
+		close(INFO_HANDLE);
+	}
+}
