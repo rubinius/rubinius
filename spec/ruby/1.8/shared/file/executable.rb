@@ -11,10 +11,10 @@ shared :file_executable do |cmd, klass, name|
     end
 
     after :each do
-      File.delete(@file1) if File.exist?(@file1)    
+      File.delete(@file1) if File.exist?(@file1)
       File.delete(@file2) if File.exist?(@file2)
 
-      @file1 =  nil
+      @file1 = nil
       @file2 = nil
     end
 
