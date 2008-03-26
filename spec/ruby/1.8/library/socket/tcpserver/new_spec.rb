@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "TCPServer.new" do
   before(:each) do
-    @hostname = Socket.getaddrinfo("127.0.0.1", 0)[0][2]
+    @hostname = Socket.getaddrinfo("127.0.0.1", nil)[0][2]
   end
   after(:each) do
     @server.close if @server && !@server.closed?

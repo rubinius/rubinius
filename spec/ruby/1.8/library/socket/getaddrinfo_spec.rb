@@ -4,7 +4,7 @@ require 'socket'
 describe "Socket#getaddrinfo" do
   it "gets the address information" do
     expected = []
-    host = Socket.getaddrinfo("127.0.0.1", 0)[0][2]
+    host = Socket.getaddrinfo("127.0.0.1", nil)[0][2]
     # The check for AP_INET6's class is needed because ipaddr.rb adds
     # fake AP_INET6 even in case when IPv6 is not really supported.
     # Without such check, this test might fail when ipaddr was required
