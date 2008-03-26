@@ -30,6 +30,8 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       target = 'ruby19'
     when 'x', 'rbx', 'rubinius'
       target = 'shotgun/rubinius'
+    when 'X'
+      target = "rbx"
     when 'j', 'jruby'
       target = 'jruby'
     else

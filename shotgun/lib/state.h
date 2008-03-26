@@ -191,6 +191,7 @@ uint64_t get_cpu_frequency();
 #define FIRE_STACK  3
 #define FIRE_ASSERT 4
 #define FIRE_TYPE   5
+#define FIRE_UNWIND 6
 
 OBJECT rbs_const_set(STATE, OBJECT module, const char *name, OBJECT obj);
 OBJECT rbs_const_get(STATE, OBJECT module, const char *name);

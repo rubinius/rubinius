@@ -1924,9 +1924,11 @@ CODE
   def send_method
     <<-CODE
     next_literal_into(msg.send_site);
-    msg.recv = stack_pop();
+    msg.recv = stack_top();
     msg.block = Qnil;
+    msg.splat = Qnil;
     msg.args = 0;
+    msg.stack = 1;
     goto perform_send;
     CODE
   end
@@ -1986,9 +1988,12 @@ CODE
   def send_stack
     <<-CODE
     next_literal_into(msg.send_site);
-    msg.recv = stack_pop();
-    msg.block = Qnil;
     next_int_into(msg.args);
+    msg.recv = stack_back(msg.args);
+    msg.splat = Qnil;
+    msg.block = Qnil;
+    
+    msg.stack = msg.args + 1;
 
     goto perform_send;
     CODE
@@ -2025,9 +2030,11 @@ CODE
   def send_stack_with_block
     <<-CODE
     next_literal_into(msg.send_site);
-    msg.recv = stack_pop();
-    msg.block = stack_pop();
     next_int_into(msg.args);
+    msg.block = stack_pop();
+    msg.splat = Qnil;
+    msg.recv = stack_back(msg.args);
+    msg.stack = msg.args + 2;
 
     goto perform_send;
     CODE
@@ -2068,13 +2075,22 @@ CODE
   def send_with_arg_register
     <<-CODE
     next_literal_into(msg.send_site);
-    msg.recv = stack_pop();
-    msg.block = stack_pop();
+
+    /* TODO change this opcode to pass the arguments as an operand */
     msg.args = c->args;
+
+    msg.block = stack_pop();
+    t1 = stack_pop();
+   
+    _combine_args_into_splat(state, c, t1, &msg, c->call_flags & 3);
+
+    msg.recv = stack_pop();
+    
+    msg.stack = msg.args + 3;
 
     perform_send:
 
-    msg.priv = c->call_flags;
+    msg.priv = c->call_flags & 1;
     msg.klass = _real_class(state, msg.recv);
 
     c->call_flags = 0;
@@ -2109,9 +2125,12 @@ CODE
 
   def send_super_stack_with_block
     <<-CODE
-    next_literal;
-    next_int;
-    j = _int;
+    next_literal_into(msg.send_site);
+    next_int_into(msg.args);
+    msg.block = stack_pop();
+    msg.splat = Qnil;
+    msg.recv = stack_back(msg.args);
+    msg.stack = msg.args + 2;
 
     goto perform_super_send;
     CODE
@@ -2148,16 +2167,20 @@ CODE
 
   def send_super_with_arg_register
     <<-CODE
-    next_literal;
-    j = c->args;
+    next_literal_into(msg.send_site);
+    msg.args = c->args;
+    msg.block = stack_pop();
+    t1 = stack_pop();
+    
+    _combine_args_into_splat(state, c, t1, &msg, c->call_flags & 3);
+
+    msg.recv = stack_pop();
+    msg.stack = msg.args + 3;
 
     perform_super_send:
 
-    msg.send_site = _lit;
-    msg.recv = c->self;
-    msg.block = stack_pop();
-    msg.args = j;
     msg.priv = TRUE;
+    c->call_flags = 0;
 
     msg.klass = class_get_superclass(cpu_current_module(state, c));
 
@@ -2200,6 +2223,8 @@ CODE
 
   def send_off_stack
     <<-CODE
+    sassert(0 && "deprecated");
+
     t3 = stack_pop();
     if(!SYMBOL_P(t3)) {
       if(RISA(t3, string)) {
@@ -2268,9 +2293,10 @@ CODE
 
   def meta_send_op_plus
     <<-CODE
-    t1 = stack_pop();
+    t1 = stack_back(1);
     t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
+      stack_pop();
       stack_set_top(fixnum_add(state, t1, t2));
     } else {
       _lit = global->sym_plus;
@@ -2300,9 +2326,10 @@ CODE
 
   def meta_send_op_minus
     <<-CODE
-    t1 = stack_pop();
+    t1 = stack_back(1);
     t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
+      stack_pop();
       stack_set_top(fixnum_sub(state, t1, t2));
     } else {
       _lit = global->sym_minus;
@@ -2332,10 +2359,11 @@ CODE
 
   def meta_send_op_equal
     <<-CODE
-    t1 = stack_pop();
+    t1 = stack_back(1);
     t2 = stack_back(0);
     /* If both are not references, compare them directly. */
     if(!REFERENCE_P(t1) && !REFERENCE_P(t2)) {
+      stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
       _lit = global->sym_equal;
@@ -2368,10 +2396,11 @@ CODE
 
   def meta_send_op_nequal
     <<-CODE
-    t1 = stack_pop();
+    t1 = stack_back(1);
     t2 = stack_back(0);
     /* If both are not references, compare them directly. */
     if(!REFERENCE_P(t1) && !REFERENCE_P(t2)) {
+      stack_pop();
       stack_set_top((t1 == t2) ? Qfalse : Qtrue);
     } else {
       _lit = global->sym_nequal;
@@ -2403,10 +2432,11 @@ CODE
 
   def meta_send_op_tequal
     <<-CODE
-    t1 = stack_pop();
+    t1 = stack_back(1);
     t2 = stack_back(0);
     /* If both are fixnums, or both are symbols, compare the ops directly. */
     if((FIXNUM_P(t1) && FIXNUM_P(t2)) || (SYMBOL_P(t1) && SYMBOL_P(t2))) {
+      stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
     } else {
       _lit = global->sym_tequal;
@@ -2436,11 +2466,12 @@ CODE
 
   def meta_send_op_lt
     <<-CODE
-    t1 = stack_pop();
+    t1 = stack_back(1);
     t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
       j = N2I(t1);
       k = N2I(t2);
+      stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
     } else {
       _lit = global->sym_lt;
@@ -2470,11 +2501,12 @@ CODE
 
   def meta_send_op_gt
     <<-CODE
-    t1 = stack_pop();
+    t1 = stack_back(1);
     t2 = stack_back(0);
     if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
       j = N2I(t1);
       k = N2I(t2);
+      stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
     } else {
       _lit = global->sym_gt;
@@ -2488,9 +2520,10 @@ CODE
   def meta_send_call
     <<-CODE
     next_int;
-    t1 = stack_pop();
+    t1 = stack_top();
 
     if(REFERENCE_P(t1) && t1->obj_type == BlockEnvType) {
+      stack_pop();
       blokenv_call(state, c, t1, _int);
     } else {
       _lit = global->sym_call;

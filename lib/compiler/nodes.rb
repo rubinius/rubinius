@@ -589,6 +589,17 @@ class Node
         sexp[2] = sexp[2].first
       end
 
+      scope = get(:scope)
+      # Allocate the required locals first, so they go in the first set 
+      # of slots.
+      i = 0
+      sexp[0].each do |var|
+        var, depth = scope.find_local(var)
+        var.argument!(i)
+        i += 1
+        var
+      end
+
       defaults = sexp[3]
 
       if defaults
@@ -634,10 +645,6 @@ class Node
     attr_accessor :required, :optional, :splat, :defaults, :block_arg
 
     def arity
-      if !@optional.empty? or @splat
-        return -(@required.size + 1)
-      end
-
       return @required.size
     end
 
@@ -889,6 +896,12 @@ class Node
     kind :op_asgn_and
   end
 
+  # h[:a] &&= 3 (special case)
+  # h[:a] ||= 3 (special case)
+  # h[:a] +=  3
+  # h[:a] -=  3
+  # ....
+  # all binary message plus = variants
   class OpAssign1 < Node
     kind :op_asgn1
 
@@ -911,6 +924,12 @@ class Node
     attr_accessor :object, :kind, :value, :index
   end
 
+  # h.a ||= 3 (special case)
+  # h.a &&= 3 (special case)
+  # h.a +=  3
+  # h.a -=  3
+  # ....
+  # all binary message plus = variants
   class OpAssign2 < Node
     kind :op_asgn2
 
@@ -969,6 +988,12 @@ class Node
   class DynamicArguments < Node
   end
 
+  # Example: m(*a)
+  #            ^^
+  # The arguments sexp will be of type splat
+  # 
+  # [:fcall, :m, [:splat, [:vcall, :a]]]
+  # 
   class Splat < DynamicArguments
     kind :splat
 
@@ -980,6 +1005,16 @@ class Node
 
   end
 
+  # Example: m(1, *a)
+  #            ^^^^^
+  # The arguments sexp will be of type argscat
+  #
+  # [:fcall, :m,
+  #   [:argscat, [:array, [:lit, 1]],
+  #     [:vcall, :a]
+  #   ]
+  # ]
+  # 
   class ConcatArgs < DynamicArguments
     kind :argscat
 
@@ -996,6 +1031,36 @@ class Node
     attr_accessor :array, :rest
   end
 
+  # Example: h[*a] = 1
+  #            ^^    ^
+  # The arguments sexp of the call will be of type argspush.
+  # The RHS is always a single item, even if there are commas
+  # on the RHS of the =.
+  #
+  # The value inside [] will by of type :splat, with the real
+  # sexp as it's sole argument.
+  #
+  # For: h[*a] = 1
+  #
+  # [:attrasgn, [:vcall, :h], :[]=, 
+  #   [:argspush, 
+  #     [:splat, [:vcall, :a]]], 
+  #     [:lit, 1]
+  #   ]
+  # ]
+  # 
+  # For: h[*a] = 1, 2
+  #
+  # [:attrasgn, [:vcall, :h], :[]=, 
+  #  [:argspush, 
+  #    [:splat, [:vcall, :a]]], 
+  #    [:svalue, [:array, [:lit, 1], [:lit, 2]]]
+  #  ]
+  # ]
+  #
+  # In this case, given a = [:blah], the []= method will be given 2 arguments:
+  # :blah and [1,2]
+  # 
   class PushArgs < DynamicArguments
     kind :argspush
 

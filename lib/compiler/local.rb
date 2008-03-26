@@ -18,7 +18,7 @@ class Compiler
       unless @locals.key? name
         @names << name        # Maintain insertion order
       end
-        
+
       return @locals[name]
     end
     
@@ -71,15 +71,15 @@ class Compiler
       @slot = nil
       @on_block = false
     end
-    
+
     attr_reader :name
-    
+
     def inspect
       "#<#{self.class} #{@name} #{@on_stack.inspect}/#{@slot.inspect}/#{@stack_position.inspect}>"
     end
 
     attr_reader :name
-        
+
     def formalize!
       if @argument
         return if @on_stack

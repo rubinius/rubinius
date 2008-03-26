@@ -492,12 +492,125 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
   return ctx;
 }
 
+/*
+ * Signature:
+ *
+ * def perform(a, b, c, d=1, e=2, *f)
+ *
+ * required_args = 3
+ * total_args = 5
+ * splat = 5 (0 indexed, the position to put the splat)
+ *
+ */
+
+static void _combine_args_into_splat(STATE, cpu c, OBJECT ary,
+                                     struct message *msg, int concat) {
+  OBJECT tup;
+  int k, j, m;
+
+  k = N2I(array_get_total(ary));
+  j = k + msg->args;
+  msg->splat = tup = tuple_new(state, j);
+
+  /* call_flags has the 2nd bit set if this was an args_push, ie:
+     h[*a] = :blah */
+
+  if(concat) {
+    for(m = 0; m < k; m++) {
+      tuple_put(state, tup, m, array_get(state, ary, m));
+    }
+
+    for(k = j - 1; k >= m; k--) {
+      tuple_put(state, tup, k, stack_pop());
+    }
+  } else {
+    for(k = msg->args - 1; k >= 0; k--) {
+      tuple_put(state, tup, k, stack_pop());
+    }
+
+    for(k = msg->args, m = 0; k < j; k++, m++) {
+      tuple_put(state, tup, k, array_get(state, ary, m));
+    }
+  }
+}
+
 static inline OBJECT cpu_create_context(STATE, cpu c, const struct message *msg) {
-  OBJECT ctx;
+  OBJECT ctx, splat_obj;
   struct fast_context *fc;
+  int required, total, i, splat;
+
+  required = N2I(cmethod_get_required(msg->method));
+  total = N2I(cmethod_get_total_args(msg->method));
+  splat_obj = cmethod_get_splat(msg->method);
+
+  /* Raise an ArgumentError */
+  if(msg->args < required || (NIL_P(splat_obj) && msg->args > total)) {
+    cpu_raise_arg_error(state, c, msg->args, required);
+    machine_handle_fire(FIRE_UNWIND);
+  }
 
   ctx = _allocate_context(state, c, msg->method, N2I(cmethod_get_local_count(msg->method)));
   fc = FASTCTX(ctx);
+
+  /* The idea here is that the arguments for the new context need to put
+   * into locals, and those arguments can come from 2 places.
+   *
+   * This simple case (1) is that they're currently located on the stack, 
+   * with the right most argument at the top of the stack (ie, pushed
+   * on the stack in left to right order).
+   *
+   * The other case (2) is that the arguments are located in msg.splat.
+   * The primary case for this is 2 syntax elements, call splat and args_push.
+   * Example:
+   *   call splat:: do_thing(a,b,*d)
+   *   args_push::  h[*a] = :blah
+   *
+   * 
+   * The arguments are then distributed into the locals 1-to-1 up to +total+.
+   * Then, if the method is marked as wanted splat (ie, any number of args),
+   * an array is created and the rest of the arguments are put in the array, 
+   * and the array is assigned to the splat local slot. */
+
+  /* case 1 */
+  if(NIL_P(msg->splat)) {
+    for(i = required - 1; i >= 0; i--) {
+      fc->locals->field[i] = stack_pop();
+    }
+
+    if(!NIL_P(splat_obj)) {
+      int count = msg->args - total;
+      splat = N2I(splat_obj);
+      splat_obj = array_new(state, count);
+      for(i = count - 1; i >= 0; i--) {
+        array_set(state, splat_obj, i, stack_pop());
+      }
+
+      fc->locals->field[splat] = splat_obj;
+    }
+
+    /* The receiver. We read it directly earlier, we just need to clear it
+    * from the stack now. */
+    stack_pop();
+
+  /* case 2 */
+  } else {
+    for(i = 0; i < required; i++) {
+      fc->locals->field[i] = tuple_at(state, msg->splat, i);
+    }
+
+    if(!NIL_P(splat_obj)) {
+      for(i = required; i < msg->args; i++) {
+        int count = msg->args - total;
+        splat = N2I(splat_obj);
+        splat_obj = array_new(state, count);
+        for(i = total; i < msg->args; i++) {
+          array_set(state, splat_obj, i, tuple_at(state, msg->splat, total + i));
+        }
+
+        fc->locals->field[splat] = splat_obj;
+      }
+    }
+  }
 
   fc->ip = 0;
   cpu_flush_sp(c);
@@ -582,6 +695,8 @@ void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
 }
 
 static int cpu_execute_primitive(STATE, cpu c, const struct message *msg, int prim) {
+
+  sassert(NIL_P(msg->splat) && "splat call not supported to primitives");
 
 #if ENABLE_DTRACE
   if (RUBINIUS_FUNCTION_PRIMITIVE_ENTRY_ENABLED()) {
@@ -963,7 +1078,7 @@ static inline void cpu_perform(STATE, cpu c, const struct message *msg) {
     methctx_reference(state, ctx);
     object_set_ivar(state, ctx, SYM("@send_private"), Qtrue);
   }
- 
+
   cpu_save_registers(state, c, msg->args);
   cpu_restore_context_with_home(state, c, ctx, ctx);
   cpu_yield_debugger_check(state, c);
@@ -985,6 +1100,7 @@ static void _cpu_ss_basic(struct message *msg) {
   if(!msg->missing) { 
     cpu_patch_mono(msg);
   } else {
+    /* FIXME */
     cpu_patch_missing(msg);
     msg->args += 1;
     stack_push(msg->name);
@@ -1419,6 +1535,11 @@ void cpu_run(STATE, cpu c, int setup) {
   /* Ok, we jumped back here because something went south. */
   if(current_machine->g_access_violation) {
     switch(current_machine->g_access_violation) {
+    case FIRE_UNWIND:
+      /* this is used when something deep inside manipulates the state of 
+       * things and wants to continue from there, without concerning
+       * the C control between cpu_run and itself. */
+      break;
     case FIRE_ACCESS:
       cpu_raise_exception(state, c,
         cpu_new_exception(state, c, state->global->exc_arg,

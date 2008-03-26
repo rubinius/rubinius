@@ -1,3 +1,9 @@
+
+if ARGV[0].prefix? "-I"
+  extra = ARGV.shift[2..-1].split(":")
+  extra.each { |n| $:.unshift n }
+end
+
 require 'compiler/text'
 
 # "Interactive" mode
@@ -33,6 +39,8 @@ unless file
   interactive()
   exit 0
 end
+
+puts "File: #{file}"
 
 puts "Sexp:"
 pp File.to_sexp(file)

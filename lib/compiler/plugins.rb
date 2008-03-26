@@ -125,8 +125,8 @@ module Plugins
       name = MetaMath[call.method]
 
       if name and call.argcount == 1
-        call.emit_args(g)
         call.receiver_bytecode(g)
+        call.emit_args(g)
         g.add name
         return true
       end

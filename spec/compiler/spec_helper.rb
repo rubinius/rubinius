@@ -1,8 +1,11 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 require File.dirname(__FILE__) + '/../../lib/compiler/compiler'
+require File.dirname(__FILE__) + '/../../lib/compiler/nodes'
 require File.dirname(__FILE__) + '/../../lib/compiler/generator'
 require File.dirname(__FILE__) + '/../../lib/compiler/bytecode'
+require File.dirname(__FILE__) + '/../../lib/compiler/plugins'
+require File.dirname(__FILE__) + '/../../lib/compiler/local'
 require File.dirname(__FILE__) + '/../../lib/compiler/text'
 
 class TestGenerator
@@ -182,9 +185,9 @@ class TestGenerator
 
   def push_self_or_class
     lbl = self.new_label
+    self.push :self
     self.push_cpath_top
     self.find_const :Module
-    self.push :self
     self.send :kind_of?, 1
     self.git lbl
     self.send :class, 0

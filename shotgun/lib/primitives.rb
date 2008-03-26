@@ -11,8 +11,11 @@ class ShotgunPrimitives
     File.open("primitive_implementation.gen", "w") do |f|
       primitives.each do |prim_name|
         f.puts "int cpu_primitive_#{prim_name}(STATE, cpu c, const struct message *msg) {"
+        f.puts "  int cur_arg = msg->args - 1;"
         f.puts send(prim_name)
-        f.puts "  DONE();\n}"
+        # This crap at the end quiets the compiler from reporting cur_arg is unused
+        # if the prim doesn't take any args.
+        f.puts "  (void)(cur_arg + 1); }"
       end
 
       f.puts "\nprim_func cpu_lookup_primitive(int index) {"
@@ -55,18 +58,18 @@ class ShotgunPrimitives
         f.puts "#define CPU_PRIMITIVE_#{prim_name.to_s.upcase} #{i+1}"
       end
     end
-    
+
     File.open("primitive_util.h", "w") do |f|
       size = primitives.size
       f.puts "struct prim2index { const char *name; int index; };"
       f.puts
       f.puts "static int calc_primitive_index(STATE, OBJECT str) {"
       f.puts "  static struct prim2index pi[] = {"
-      
+
       primitives.each_with_index do |prim_name,i|
         f.puts %Q!    { "#{prim_name}", #{i+1} },!
       end
-      
+
       f.puts "    { NULL, 0 } };"
       f.puts <<-CODE.gsub(/^\s{6}/,'')
         int i;
@@ -76,13 +79,13 @@ class ShotgunPrimitives
         }
 
         printf("Unknown primitive %s\\n", target);
-        
+
         return -1;
       }
       CODE
 
     end
-    
+
   end
 
   defprim :add
@@ -90,7 +93,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(FIXNUM_P(t1)) {
       RET(fixnum_add(state, msg->recv, t1));
     } else if(BIGNUM_P(t1)) {
@@ -109,7 +112,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
       RET(bignum_add(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -126,7 +129,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(FIXNUM_P(t1)) {
       RET(fixnum_sub(state, msg->recv, t1));
     } else if(BIGNUM_P(t1)) {
@@ -145,7 +148,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
       RET(bignum_sub(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -162,7 +165,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(FIXNUM_P(t1)) {
       RET(fixnum_mul(state, msg->recv, t1));
     } else if(BIGNUM_P(t1)) {
@@ -189,7 +192,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
       RET(bignum_mul(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -206,7 +209,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(FIXNUM_P(t1)) {
       long mod;
       GUARD(N2I(t1) != 0) // no divide by zero
@@ -228,7 +231,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(BIGNUM_P(t1)) {
       GUARD(!bignum_is_zero(state, t1));
       RET(bignum_div(state, msg->recv, t1, NULL));
@@ -262,7 +265,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
 
     if(FIXNUM_P(t1)) {
       RET(msg->recv == t1 ? Qtrue : Qfalse);
@@ -282,7 +285,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     OBJECT t1;
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     
     if(msg->recv == t1) {
       RET(Qtrue); 
@@ -297,7 +300,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
       RET(bignum_equal(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -314,7 +317,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
 
     if(FIXNUM_P(t1)) {
       if(msg->recv == t1) {
@@ -349,7 +352,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t2 = stack_pop();
+    OBJECT t2 = NEXT_ARG();
     native_int j = N2I(msg->recv);
 
     if(FIXNUM_P(t2)) {
@@ -372,7 +375,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t2 = stack_pop();
+    OBJECT t2 = NEXT_ARG();
     native_int j = N2I(msg->recv);
 
     if(FIXNUM_P(t2)) {
@@ -395,7 +398,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t2 = stack_pop();
+    OBJECT t2 = NEXT_ARG();
     native_int j = N2I(msg->recv);
 
     if(FIXNUM_P(t2)) {
@@ -418,7 +421,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t2 = stack_pop();
+    OBJECT t2 = NEXT_ARG();
     native_int j = N2I(msg->recv);
 
     if(FIXNUM_P(t2)) {
@@ -463,7 +466,7 @@ class ShotgunPrimitives
     GUARD(INDEXED(msg->recv));
     POP(t1, FIXNUM);
 
-    t2 = stack_pop(); // We do not care about the type
+    t2 = NEXT_ARG(); // We do not care about the type
     native_int j = N2I(t1);
     GUARD(j >= 0 && j < NUM_FIELDS(msg->recv));
 
@@ -846,7 +849,7 @@ class ShotgunPrimitives
     GUARD(REFERENCE_P(msg->recv));
 
     POP(t1, INTEGER);
-    t2 = stack_pop();
+    t2 = NEXT_ARG();
 
     if(FIXNUM_P(t1)) {
       seconds = N2I(t1);
@@ -909,7 +912,7 @@ class ShotgunPrimitives
     POP(t6, FIXNUM);
     POP(t7, FIXNUM);
     POP(t8, FIXNUM);
-    t9 = stack_pop();
+    t9 = NEXT_ARG();
 
     tm.tm_sec = N2I(t1);
     GUARD(tm.tm_sec >= 0 && tm.tm_sec <= 60);
@@ -1043,8 +1046,8 @@ class ShotgunPrimitives
     GUARD(HASH_P(msg->recv));
 
     POP(t1, FIXNUM);
-    t2 = stack_pop(); // some type of object
-    t3 = stack_pop(); // some type of object can we do an object guard?
+    t2 = NEXT_ARG(); // some type of object
+    t3 = NEXT_ARG(); // some type of object can we do an object guard?
 
     hash_add(state, msg->recv, N2I(t1), t2, t3);
     RET(t3);
@@ -1059,7 +1062,7 @@ class ShotgunPrimitives
     GUARD(HASH_P(msg->recv));
     
     POP(t1, FIXNUM);
-    t2 = stack_pop();
+    t2 = NEXT_ARG();
     t3 = hash_find_entry(state, msg->recv, N2I(t1));
     RET(t3);
     CODE
@@ -1207,7 +1210,7 @@ class ShotgunPrimitives
         }
       }
       
-      stack_push(t2);
+      RET_VAL(t2);
       object_copy_ivars(state, msg->recv, t2);
       cpu_perform_hook(state, c, t2, state->global->sym_init_copy, msg->recv);
       DONE();
@@ -1238,7 +1241,7 @@ class ShotgunPrimitives
       }
     }
     
-    stack_push(t2);
+    RET_VAL(t2);
     object_copy_ivars(state, msg->recv, t2);
     object_copy_metaclass(state, msg->recv, t2);
     cpu_perform_hook(state, c, t2, state->global->sym_init_copy, msg->recv);
@@ -1406,7 +1409,7 @@ class ShotgunPrimitives
     native_int len, a, b, n, cmp;
     
     GUARD(object_stores_bytes_p(state, msg->recv));
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     GUARD(object_stores_bytes_p(state, t1));
     POP(t2, FIXNUM);
     POP(t3, FIXNUM);
@@ -1477,7 +1480,7 @@ class ShotgunPrimitives
     GUARD(CMETHOD_P(msg->recv));
 
     cpu_run_script(state, c, msg->recv);
-    DONE();
+    CONT();
     CODE
   end
 
@@ -1540,6 +1543,7 @@ class ShotgunPrimitives
     }
     
     cpu_activate_context(state, c, msg->recv, t1, 0);
+    CONT();
     CODE
   end
 
@@ -1572,7 +1576,7 @@ class ShotgunPrimitives
 
     POP(t1, STRING);
     POP(t2, FIXNUM);
-    t3 = stack_pop();
+    t3 = NEXT_ARG();
 
     contents = cstr2bstr(string_byte_address(state, msg->recv));
     name = string_byte_address(state, t1);
@@ -1592,7 +1596,7 @@ class ShotgunPrimitives
     OBJECT t1, t2;
 
     POP(t1, STRING); /* The filename */
-    t2 = stack_pop();
+    t2 = NEXT_ARG();
 
     name = string_byte_address(state, t1);
     file = fopen(name, "r");
@@ -1692,7 +1696,7 @@ class ShotgunPrimitives
     
     GUARD(CLASS_P(msg->recv));
     POP(t1, STRING);
-    t2 = stack_pop();
+    t2 = NEXT_ARG();
     t3 = regexp_new(state, t1, t2, err_buf);
     
     if(NIL_P(t3)) {
@@ -1742,7 +1746,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
     POP(t3, FIXNUM);
-    t4 = stack_pop();
+    t4 = NEXT_ARG();
     
     t5 = regexp_match_region(state, msg->recv, t1, t2, t3, t4);
     
@@ -1777,7 +1781,7 @@ class ShotgunPrimitives
   def gc_start
     <<-CODE
     ARITY(1);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(RTEST(t1)) {
       state->om->collect_now = OMCollectYoung;
     } else {
@@ -1803,7 +1807,7 @@ class ShotgunPrimitives
     OBJECT t1, t2;
     
     t1 = NTH_FIELD(msg->method, 4);
-    t2 = stack_pop();
+    t2 = NEXT_ARG();
     object_set_ivar(state, msg->recv, t1, t2);
 
     RET(t2);
@@ -1816,19 +1820,20 @@ class ShotgunPrimitives
   defprim :dispatch_as_method
   def dispatch_as_method
     <<-CODE
-    OBJECT t1, t2, t3; 
+    OBJECT meth, recv, pass_old_recv; 
     int args = msg->args;
     
-    t1 = NTH_FIELD(msg->method, 4);
-    t2 = NTH_FIELD(msg->method, 5);
-    t3 = NTH_FIELD(msg->method, 6);
+    meth = NTH_FIELD(msg->method, 4);
+    recv = NTH_FIELD(msg->method, 5);
+    pass_old_recv = NTH_FIELD(msg->method, 6);
     
-    if(Qtrue == t3) {
+    if(Qtrue == pass_old_recv) {
       stack_push(msg->recv);
       args++;
     }
 
     cpu_send(state, c, t2, t1, args, Qnil);
+    CONT();
     CODE
   end
 
@@ -1840,7 +1845,7 @@ class ShotgunPrimitives
     GUARD(INDEXED(msg->recv));
 
     j = N2I(NTH_FIELD(msg->method, 4));
-    SET_FIELD(msg->recv, j, stack_pop());
+    SET_FIELD(msg->recv, j, NEXT_ARG());
     
     RET(NTH_FIELD(msg->recv, j));  
     CODE
@@ -1879,7 +1884,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(2);
     OBJECT t1, t2;
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     POP(t2, FIXNUM);
 
     RET(cpu_marshal(state, t1, N2I(t2)));
@@ -1908,7 +1913,7 @@ class ShotgunPrimitives
     OBJECT t1, t2, t3;
 
     char *_path;
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     POP(t2, STRING);
     POP(t3, FIXNUM);
 
@@ -1937,7 +1942,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     native_int j, k = 0;
     
     j = N2I(msg->recv);
@@ -1964,7 +1969,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     native_int j, k = 0;
     
     j = N2I(msg->recv);
@@ -1991,7 +1996,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     native_int j, k = 0;
     
     j = N2I(msg->recv);
@@ -2111,7 +2116,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(INTEGER_P(t1)) {
       RET(bignum_and(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -2128,7 +2133,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(INTEGER_P(t1)) {
       RET(bignum_or(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -2145,7 +2150,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(INTEGER_P(t1)) {
       RET(bignum_xor(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -2301,7 +2306,7 @@ class ShotgunPrimitives
     OBJECT t1;
 
     GUARD(BIGNUM_P(msg->recv));
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     
     // no divide by zero
     if(FIXNUM_P(t1)) {
@@ -2440,7 +2445,7 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
     i = N2I(t2);
     
-    t2 = stack_pop();
+    t2 = NEXT_ARG();
     fc = FASTCTX(msg->recv);
     
     switch(i) {
@@ -2670,7 +2675,7 @@ class ShotgunPrimitives
   def yield_gdb
     <<-CODE
     ARITY(1);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     *((OBJECT*)4) = t1; /* cause a SIGBUS */
     RET(Qtrue);
     CODE
@@ -2788,8 +2793,8 @@ class ShotgunPrimitives
     OBJECT t1, t2;
     GUARD(TASK_P(msg->recv));
 
-    t1 = stack_pop();
-    t2 = stack_pop();
+    t1 = NEXT_ARG();
+    t2 = NEXT_ARG();
 
     GUARD(t1 == Qnil || CHANNEL_P(t1));
     GUARD(t2 == Qnil || CHANNEL_P(t2));
@@ -2852,7 +2857,7 @@ class ShotgunPrimitives
     ARITY(1);
     struct cpu_task *task;
     GUARD(TASK_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     
     task = (struct cpu_task*)BYTES_OF(msg->recv);
     if(RTEST(t1)) {
@@ -2914,7 +2919,7 @@ class ShotgunPrimitives
     OBJECT t1;
     GUARD(TASK_P(msg->recv));
     
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     
     /* The return value */
     stack_push(Qnil);
@@ -2936,7 +2941,7 @@ class ShotgunPrimitives
     OBJECT t1;
     GUARD(THREAD_P(msg->recv));
     
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
 
     if(!cpu_thread_alive_p(state, msg->recv)) {
       RET(Qfalse);
@@ -2971,7 +2976,7 @@ class ShotgunPrimitives
     OBJECT t1;
     GUARD(CHANNEL_P(msg->recv));
     
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     RET(cpu_channel_send(state, c, msg->recv, t1));
     CODE
   end
@@ -3036,9 +3041,9 @@ class ShotgunPrimitives
     native_int j;
 
     POP(t4, CHANNEL);
-    t1 = stack_pop();
-    t2 = stack_pop();
-    t3 = stack_pop();
+    t1 = NEXT_ARG();
+    t2 = NEXT_ARG();
+    t3 = NEXT_ARG();
     
     GUARD(STRING_P(t2) || NIL_P(t2));
     GUARD(FIXNUM_P(t3) || NIL_P(t3));
@@ -3282,7 +3287,7 @@ class ShotgunPrimitives
     ARITY(2);
     OBJECT t1, t2;
     POP(t1, SYMBOL);
-    t2 = stack_pop();
+    t2 = NEXT_ARG();
     object_set_ivar(state, msg->recv, t1, t2);
     RET(t2);
     CODE
@@ -3341,7 +3346,7 @@ class ShotgunPrimitives
     OBJECT t1, t2;
 
     POP(t1, STRING);
-    t2 = stack_pop();
+    t2 = NEXT_ARG();
 
     key = string_byte_address(state, t1);
     if(key) {
@@ -3491,7 +3496,7 @@ class ShotgunPrimitives
     native_int j, k;
     
     GUARD(msg->args == 2);
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     GUARD(FIXNUM_P(t1));
 
     j = N2I(array_get_total(msg->recv));    
@@ -3567,8 +3572,9 @@ class ShotgunPrimitives
   def object_send
     <<-CODE
     OBJECT t1;
+    int i;
     GUARD(msg->args >= 1);
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     if(!SYMBOL_P(t1)) {
       if(STRING_P(t1)) {
         t1 = string_to_sym(state, t1);
@@ -3577,10 +3583,18 @@ class ShotgunPrimitives
       }
     }
 
+    /* Shift the args to discard the method name */
+    for(i = msg->args - 2; i >= 0; i--) {
+      c->sp_ptr[i - 1] = c->sp_ptr[i];
+    }
+
+    stack_pop(); /* remove the extra spot we have at the end now */
+
     /* Send is allowed to call private methods. */
     c->call_flags = 1;
     
     cpu_send(state, c, msg->recv, t1, msg->args - 1, msg->block);
+    CONT();
     CODE
   end
 
@@ -3620,7 +3634,7 @@ class ShotgunPrimitives
     tuple_put(state, ret, 2, io_new(state, pipes[1], "r"));
     tuple_put(state, ret, 3, io_new(state, pipes[2], "r"));
 
-    stack_push(ret);
+    RET_VAL(ret);
     environment_start_thread(e, m);
     
     DONE();
@@ -3655,7 +3669,7 @@ class ShotgunPrimitives
     ARITY(2);
     OBJECT t1, t2;
     POP(t1, FIXNUM);
-    t2 = stack_pop();
+    t2 = NEXT_ARG();
 
     environment_send_message(environment_current(), N2I(t1), t2);
 
@@ -3805,7 +3819,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -3820,7 +3834,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -3835,7 +3849,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -3850,7 +3864,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -3875,7 +3889,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -3889,7 +3903,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(FLOAT_P(t1)) {
       double a = FLOAT_TO_DOUBLE(msg->recv),
              b = FLOAT_TO_DOUBLE(t1);
@@ -3906,7 +3920,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -3922,7 +3936,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -3937,7 +3951,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -3952,7 +3966,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -3967,7 +3981,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -4010,7 +4024,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -4038,7 +4052,7 @@ class ShotgunPrimitives
     ARITY(1);
     GUARD(FLOAT_P(msg->recv));
     double a = FLOAT_TO_DOUBLE(msg->recv);
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(!FLOAT_P(t1)) {
       t1 = float_coerce(state, t1);
       GUARD(FLOAT_P(t1));
@@ -4075,7 +4089,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
       RET(bignum_gt(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -4092,7 +4106,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
       RET(bignum_ge(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -4109,7 +4123,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
       RET(bignum_lt(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -4126,7 +4140,7 @@ class ShotgunPrimitives
     <<-CODE
     ARITY(1);
     GUARD(BIGNUM_P(msg->recv));
-    OBJECT t1 = stack_pop();
+    OBJECT t1 = NEXT_ARG();
     if(BIGNUM_P(t1) || FIXNUM_P(t1)) {
       RET(bignum_le(state, msg->recv, t1));
     } else if(FLOAT_P(t1)) {
@@ -4251,8 +4265,8 @@ class ShotgunPrimitives
     GUARD(LOOKUPTABLE_P(msg->recv));
     OBJECT t1, t2;
 
-    t1 = stack_pop();
-    t2 = stack_pop();
+    t1 = NEXT_ARG();
+    t2 = NEXT_ARG();
     RET(lookuptable_store(state, msg->recv, t1, t2));
     CODE
   end
@@ -4264,7 +4278,7 @@ class ShotgunPrimitives
     GUARD(LOOKUPTABLE_P(msg->recv));
     OBJECT t1, t2;
 
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     t2 = lookuptable_fetch(state, msg->recv, t1);
     RET(t2 == Qundef ? Qnil : t2);
     CODE
@@ -4277,7 +4291,7 @@ class ShotgunPrimitives
     GUARD(LOOKUPTABLE_P(msg->recv));
     OBJECT t1, t2;
 
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     t2 = lookuptable_delete(state, msg->recv, t1);
     RET(t2 == Qundef ? Qnil : t2);
     CODE
@@ -4290,7 +4304,7 @@ class ShotgunPrimitives
     GUARD(LOOKUPTABLE_P(msg->recv));
     OBJECT t1;
 
-    t1 = stack_pop();
+    t1 = NEXT_ARG();
     RET(lookuptable_has_key(state, msg->recv, t1));
     CODE
   end

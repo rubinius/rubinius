@@ -20,7 +20,7 @@ desc "Build everything that needs to be built"
 task :build => 'build:all'
 
 task :stable_compiler do
-  if ENV['USE_CURRENT']
+  if ENV['USE_CURRENT'] or ENV['SYSTEM']
     puts "Use current versions, not stable."
   else
     ENV['RBX_BOOTSTRAP'] = "runtime/stable/bootstrap.rba"

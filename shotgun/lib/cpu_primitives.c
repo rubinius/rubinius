@@ -62,6 +62,8 @@ int _object_stores_bytes(OBJECT self);
 
 #define ZLIB_CHUNK_SIZE 512
 
+#define NEXT_ARG() stack_back(cur_arg--)
+
 // defines a required arity for a primitive
 // return true because we want other handler code to ignore it
 // this is because it is raised directly in the primitive as an exception
@@ -70,7 +72,7 @@ int _object_stores_bytes(OBJECT self);
 #define GUARD(predicate_expression) if( ! (predicate_expression) ) { FAIL(); }
 // popping with type checking -- a predicate function must be specified
 // i.e. if type is STRING then STRING_P must be specified
-#define POP(var, type) var = stack_pop(); GUARD( type##_P(var) )
+#define POP(var, type) var = NEXT_ARG(); GUARD( type##_P(var) )
 // raise an exception of the specified type and msg
 #define RAISE(exc_class, msg) ({ \
   OBJECT _cls = rbs_const_get(state, BASIC_CLASS(object), exc_class); \
@@ -82,7 +84,10 @@ int _object_stores_bytes(OBJECT self);
 #define PRIM_OK 1
 #define PRIM_FAIL 0
 
-#define RET(val) ({ stack_push(val); return PRIM_OK; })
+#define RET_VAL(val) ({ stack_clear(msg->args + 1); stack_push(val);})
+
+#define RET(val) ({ RET_VAL(val); return PRIM_OK; })
+#define CONT() ({ stack_clear(msg->stack); return PRIM_OK; })
 #define DONE() return PRIM_OK;
 #define FAIL() return PRIM_FAIL;
 
@@ -98,8 +103,9 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, const struct message *m
   
   _orig_sp_ptr = c->sp_ptr;
   _orig_sp = c->sp;
+
   #include "shotgun/lib/system_primitives.gen"
-  
+
   if(!_ret) {
     c->sp_ptr = _orig_sp_ptr;
     c->sp = _orig_sp;

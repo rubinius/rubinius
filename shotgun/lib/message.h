@@ -10,7 +10,9 @@ struct message {
   OBJECT block;
   int args;
   int priv;
+  int stack;
   OBJECT send_site;
+  OBJECT splat;
 
   OBJECT module;
   OBJECT method;

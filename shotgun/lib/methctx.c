@@ -113,7 +113,7 @@ void blokenv_call(STATE, cpu c, OBJECT self, int num_args) {
   c->blockargs = num_args;
 
   t3 = tuple_new(state, num_args);
-  for(j = 0; j < num_args; j++) {
+  for(j = num_args - 1; j >= 0; j--) {
     t1 = stack_pop();
     tuple_put(state, t3, j, t1);
   }

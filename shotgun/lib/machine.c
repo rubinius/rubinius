@@ -47,7 +47,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
   cpu_flush_sp(m->c);
 
   FASTCTX(context)->ip = m->c->ip;
-  
+
   while(RTEST(context) && maxlev--) {
     methctx_reference(m->s, context);
     fc = FASTCTX(context);
@@ -69,7 +69,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
     } else {
       methname = "<none>";
     }
-    
+
     if(fc->method && RTEST(fc->method)) {
       tmp = cmethod_get_file(fc->method);
       if(SYMBOL_P(tmp)) {
@@ -80,7 +80,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
     } else {
       filename = "<unknown>";
     }
-    
+
     fprintf(stderr, "%10p %s#%s+%d in %s:%d\n",
       (void*)context, modname, methname,
       fc->ip,
@@ -109,7 +109,7 @@ void machine_print_stack(machine m) {
     }
     printf("%s\n", rbs_inspect_verbose(m->s, m->c->stack_top[i]));
   }
-  
+
 }
 
 void machine_print_registers(machine m) {
@@ -127,7 +127,7 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   const char *signame;
   rni_context *rni_ctx;
   OBJECT addr;
-  
+
   /* See if the error happened during the running of a C function.
      If so, we raise an exception about the error. */
   rni_ctx = subtend_retrieve_context();
@@ -139,7 +139,7 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     rni_ctx->nmc->jump_val = SEGFAULT_DETECTED;
     setcontext(&rni_ctx->nmc->system);
   }
-  
+
   /* This is really nice. We don't have to do this check at every
      fetch, instead, let it segfault and handle it here. 
      The check for - 4 is because the bounds checks grabs the number
@@ -157,10 +157,10 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
       }
     }
   }
-  
+
   if(_recursive_reporting) exit(-2);
   _recursive_reporting++;
-  
+
   switch(sig) {
     case SIGSEGV:
       signame = "Segmentation fault (SIGSEGV)";
@@ -174,7 +174,7 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     default:
       signame = "<UNKNOWN>";
   }
-  
+
   printf("\nAn error has occured: %s (%d)\n\n", signame, sig);
 
   if(getenv("CRASH_WAIT")) {
@@ -185,10 +185,10 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
 
   printf("Ruby backtrace:\n");
   machine_print_callstack(current_machine);
-  
+
   printf("\nVM Registers:\n");
   machine_print_registers(current_machine);
-  
+
   exit(-2);
 }
 
@@ -210,7 +210,7 @@ static void machine_setup_events(machine m) {
 machine machine_new(environment e) {
   machine m;
   int pipes[2];
-  
+
   m = calloc(1, sizeof(struct rubinius_machine));
   m->g_use_firesuit = 0;
   m->g_access_violation = 0;
@@ -238,7 +238,7 @@ machine machine_new(environment e) {
   machine_set_const(m, "MAIN", m->c->main);
   cpu_task_configure_preemption(m->s);
   environment_add_machine(e, m);
-  
+
   m->s->om->bootstrap_loaded = 1;
 
   return m;
@@ -261,7 +261,7 @@ void machine_handle_type_error(OBJECT obj, const char *message) {
   if(FIXNUM_P(obj)) {
     current_machine->g_firesuit_arg = FixnumType;
   } else if(SYMBOL_P(obj)) {
-    current_machine->g_firesuit_arg = SymbolType;    
+    current_machine->g_firesuit_arg = SymbolType;
   } else if(REFERENCE_P(obj)) {
     current_machine->g_firesuit_arg = obj->obj_type;
   } else if(NIL_P(obj)) {
@@ -275,10 +275,10 @@ void machine_handle_type_error(OBJECT obj, const char *message) {
 
 void machine_handle_assert(const char *reason, const char *file, int line) {
   fprintf(stderr, "VM Assertion: %s (%s:%d)\n", reason, file, line);
-  
+
   printf("\nRuby backtrace:\n");
   machine_print_callstack(current_machine);
-  
+
   if(!current_machine->g_use_firesuit) abort();
   current_machine->g_access_violation = FIRE_ASSERT;
   setcontext(&current_machine->g_firesuit);

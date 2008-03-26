@@ -146,9 +146,16 @@ class Compiler
       if @primitive
         cm.primitive = @primitive
       else
-        cm.primitive = -1
+        cm.primitive = nil
       end
       
+      if desc.splat
+        cm.splat = desc.splat.slot
+      else
+        cm.splat = nil
+      end
+
+      cm.total_args = desc.required + desc.optional
       cm.literals = encode_literals(cm)
       cm.lines = encode_lines()
       cm.exceptions = encode_exceptions()
@@ -503,20 +510,25 @@ class Compiler
 
       add :send_stack_with_block, idx, count
     end
-    
-    def send_with_register(meth, priv=false)
-      add :set_call_flags, 1 if priv
-      
+
+    def send_with_register(meth, priv=false, concat=false)
+      if priv or concat
+        val = 0
+        val |= 1 if priv
+        val |= 3 if concat
+        add :set_call_flags, val
+      end
+
       ss = SendSite.new meth
       idx = add_literal(ss)
 
-      add :send_with_arg_register, idx      
+      add :send_with_arg_register, idx
     end
-    
+
     def send_super(meth, args=nil)
       ss = SendSite.new meth
       idx = add_literal(ss)
-      
+
       if args
         add :send_super_stack_with_block, idx, args
       else
