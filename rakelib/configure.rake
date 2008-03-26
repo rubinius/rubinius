@@ -99,7 +99,7 @@ def write_config
         f.puts "#define CONFIG_ENABLE_DTRACE 1"
       end
 
-      if system "config/run is64bit &> /dev/null" then
+      if system "config/run is64bit > /dev/null" then
         f.puts "#define CONFIG_WORDSIZE 64"
         f.puts "#define CONFIG_ENABLE_DT 0"
       else
@@ -107,7 +107,7 @@ def write_config
         f.puts "#define CONFIG_ENABLE_DT 1"
       end
 
-      if system "config/run isbigendian &> /dev/null" then
+      if system "config/run isbigendian > /dev/null" then
         f.puts "#define CONFIG_BIG_ENDIAN 1"
       else
         f.puts "#define CONFIG_BIG_ENDIAN 0"
