@@ -30,9 +30,9 @@ ifeq ($(UNAME),Darwin)
   SONAMELOCAL=-current_version $(VERSION) -compatibility_version $(VERSION) -install_name `pwd`/librubinius-local-dev.$(SUFFIX)
   ifeq ($(CPU),powerpc)
     ifeq ($(OSVER),9.1.0)
-      export MACOSX_DEPLOYMENT_TARGET=10.5
+      MACOSX_DEPLOYMENT_TARGET=10.5
     else
-      export MACOSX_DEPLOYMENT_TARGET=10.4
+      MACOSX_DEPLOYMENT_TARGET=10.4
     endif
   endif
 else
