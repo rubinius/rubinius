@@ -152,10 +152,10 @@ begin
     when '-p'
       require 'profile'
     when '-ps'
-      count = (ARGV.first and ARGV.first.kind_of? Fixnum) ? ARGV.shift : 30
+      count = (ARGV.first =~ /^\d+$/) ? ARGV.shift : '30'
       show_selectors = count.to_i
     when '-pss'
-      count = (ARGV.first and ARGV.first.kind_of? Fixnum) ? ARGV.shift : 30
+      count = (ARGV.first =~ /^\d+$/) ? ARGV.shift : '30'
       show_sendsites = count.to_i
     when '-e'
       $0 = "(eval)"
