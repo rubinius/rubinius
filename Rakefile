@@ -6,6 +6,8 @@ $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
 $compiler = nil
 
+RUBINIUS_BASE = File.dirname(__FILE__)
+
 require 'tsort'
 require 'rakelib/rubinius'
 require 'rakelib/struct_generator'
@@ -123,13 +125,6 @@ namespace :build do
     sh make('vm')
   end
 
-  file 'shotgun/mkconfig.sh' => 'configure'
-  file 'shotgun/config.mk' => %w[shotgun/config.h shotgun/mkconfig.sh shotgun/vars.mk]
-  file 'shotgun/config.h' => %w[shotgun/mkconfig.sh shotgun/vars.mk] do
-    sh "./configure"
-    raise 'Failed to configure Rubinius' unless $?.success?
-  end
-
   desc "Compiles shotgun (the C-code VM)"
   task :shotgun => %w[configure shotgun/rubinius.bin shotgun/rubinius.local.bin]
 
@@ -199,13 +194,6 @@ desc "Uninstall rubinius and libraries. Helps with build problems."
 task :uninstall => :config_env do
   rm Dir[File.join(ENV['BINPATH'], 'rbx*')]
   rm_r Dir[File.join(ENV['LIBPATH'], '*rubinius*')]
-end
-
-task :config_env => 'shotgun/config.mk' do
-  File.foreach 'shotgun/config.mk' do |line|
-    next unless line =~ /(.*?)=(.*)/
-    ENV[$1] = $2
-  end
 end
 
 task :compiledir => :stable_compiler do
