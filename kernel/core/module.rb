@@ -177,6 +177,48 @@ class Module
     return out
   end
 
+  # Create a wrapper to a function in a C-linked library that
+  # exists somewhere in the system. If a specific library is
+  # not given, the function is assumed to exist in the Rubinius
+  # executable (which contains many linked libraries, libc of
+  # course the most prominent.) The wrapper method is added to
+  # the Module itself, not as an instance method.
+  #
+  # The function is specified like a declaration: the first
+  # argument is the type symbol for the return type (see FFI
+  # documentation for types), the second argument is the name
+  # of the function and the third argument is an Array of the
+  # types of the function's arguments. Currently at most 6
+  # arguments can be given.
+  #
+  #   # If you want to wrap this function:
+  #   int foobar(double arg_one, const char* some_string);
+  #
+  #   # The arguments to #attach_foreign look like this:
+  #   :int, 'foobar', [:double, :string]
+  #
+  # If the function is from an external library such as, say,
+  # libpcre, libcurl etc. you can give the name or path of
+  # the library. The fourth argument is an option hash and
+  # the library name should be given in the +:from+ key of
+  # the hash. The name may (and for portable code, should)
+  # omit the file extension. The library is looked for in
+  # the system library paths but if necessary, the full
+  # absolute or relative path can be given.
+  #
+  # By default, the new method's name is the same as the
+  # function it wraps but in some cases it is desirable to
+  # change this. You can specify the method name in the +:as+
+  # key of the option hash.
+  def attach_foreign(ret_type, name, arg_types, opts = {})
+    raise ArgumentError, 'FFI: Max 6 arguments!' if arg_types.size > 6
+
+    func = FFI.create_function(opts[:from], name, arg_types, ret_type)
+    raise ArgumentError, "FFI: Unable to find or wrap '#{name}'" unless func
+
+    metaclass.method_table[(opts[:as] || name).to_sym] = func
+  end
+
   def find_class_method_in_hierarchy(sym)
     self.metaclass.find_method_in_hierarchy(sym)
   end
