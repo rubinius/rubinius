@@ -87,3 +87,4 @@ fails:String#to_sexp parses :case_nested
 fails:String#to_sexp parses :case
 fails:String#to_sexp parses :case_splat
 fails:String#to_sexp parses :case_nested_inner_no_expr
+fails:String#to_sexp parses :fcall_index_space_suck
