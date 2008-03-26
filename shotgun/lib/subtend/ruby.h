@@ -11,6 +11,12 @@
 typedef void * VALUE;
 #define ID uintptr_t
 
+#ifdef __cplusplus
+#define ANYARGS ...
+#else
+#define ANYARGS
+#endif
+
 /* We need to redefine those to casts to VALUE */
 #undef Qfalse
 #undef Qtrue
@@ -177,6 +183,9 @@ char rb_str_get_char(VALUE arg, int index);
 void rb_string_value(VALUE *obj);
 #define StringValue(v) rb_string_value(&v)
 #define SafeStringValue StringValue
+
+/* HACK ? */
+#define STR2CSTR StringValuePtr
 
 /* Hash */
 VALUE rb_hash_new(void);
