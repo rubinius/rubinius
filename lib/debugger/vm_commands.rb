@@ -85,6 +85,8 @@ class Debugger
       first = first.to_i if first
       last = last.to_i if last
 
+      file = dbg.eval_context.file.to_s
+      lines = dbg.source_for(file)
       asm = dbg.eval_context.method.decode
       first = dbg.eval_context.ip - 10 unless first
       last = first + 20 unless last
@@ -99,9 +101,11 @@ class Debugger
       asm.each do |inst|
         if inst.ip >= first and inst.ip <= last
           if inst.line != line
-            output << [nil, "# line #{inst.line}", nil]
             line = inst.line
-          end 
+            output.set_color :green
+            output << [nil, "# line #{line}:", lines[line-1]]
+            output.set_color :clear
+          end
           if inst.ip == dbg.eval_context.ip
             output.set_line_marker
             output.set_color :cyan
