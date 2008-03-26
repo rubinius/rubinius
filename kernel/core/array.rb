@@ -1812,8 +1812,8 @@ class Array
         semi_left = @tuple.at(left_end + ((middle - left_end) / 2))
         semi_right = @tuple.at(middle + ((right_end - middle) / 2))
 
-        if block.call(low, semi_left) == 1 and block.call(semi_left, middle) == 1 and
-           block.call(middle, semi_right) == 1 and block.call(semi_right, hi) == 1
+        if block.call(low, semi_left) == 1 and block.call(semi_left, mid) == 1 and
+           block.call(mid, semi_right) == 1 and block.call(semi_right, hi) == 1
         end
 
         size = right_end - left_end
