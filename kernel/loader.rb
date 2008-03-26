@@ -129,7 +129,7 @@ begin
     case arg
     when '--'
       break
-    when '-h'
+    when '-h', '--help'
       puts RBS_USAGE
       exit 1
     when "-v"
@@ -182,6 +182,7 @@ begin
         Compile.execute STDIN.read
       elsif arg.prefix? "-"
         puts "Invalid switch '#{arg}'"
+        puts RBS_USAGE
         exit! 1
       else
         if File.exists?(arg)
