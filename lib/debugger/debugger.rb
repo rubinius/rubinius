@@ -157,7 +157,7 @@ class Debugger
   def activate_debugger(thread, ctxt, bp)
     puts "[Debugger activated]" unless bp.kind_of? StepBreakpoint
     @debug_thread = thread
-    @debug_context = ctxt
+    @eval_context = @debug_context = ctxt
 
     # Load debugger commands if we haven't already
     load_commands unless @commands
@@ -194,10 +194,12 @@ class Debugger
     # Clear any references to the debuggee thread and context
     @debug_thread = nil
     @debug_context = nil
+    @eval_context = nil
   end
 
   attr_accessor :prompt
   attr_reader :debug_thread, :debug_context
+  attr_accessor :eval_context
 
   # Processes a debugging command by finding a Command subclass that can handle
   # the input, and delegating to it.

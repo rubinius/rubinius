@@ -85,14 +85,14 @@ class Debugger
       first = first.to_i if first
       last = last.to_i if last
 
-      asm = dbg.debug_context.method.decode
-      first = dbg.debug_context.ip - 10 unless first
+      asm = dbg.eval_context.method.decode
+      first = dbg.eval_context.ip - 10 unless first
       last = first + 20 unless last
       first, last = last, first if first > last
       first = 0 if first < 0
 
       output = Output.new
-      output << "Bytecode instructions [#{first}-#{last}] in compiled method #{dbg.debug_context.method.name}:"
+      output << "Bytecode instructions [#{first}-#{last}] in compiled method #{dbg.eval_context.method.name}:"
       output.set_columns(["%04d:", "%-s ", "%-s"])
       output << [nil, '...', nil] if first > 0
       line = 0
@@ -102,12 +102,12 @@ class Debugger
             output << [nil, "# line #{inst.line}", nil]
             line = inst.line
           end 
-          if inst.ip == dbg.debug_context.ip
+          if inst.ip == dbg.eval_context.ip
             output.set_line_marker
             output.set_color :cyan
           end
           output << [inst.ip, inst.opcode, inst.args.map{|a| a.inspect}.join(', ')]
-          output.set_color(:clear) if inst.ip == dbg.debug_context.ip
+          output.set_color(:clear) if inst.ip == dbg.eval_context.ip
         end
         break if inst.ip >= last
       end
@@ -175,7 +175,7 @@ class Debugger
     end
     
     def execute(dbg, md)
-      cm = dbg.debug_context.method
+      cm = dbg.eval_context.method
       literals = cm.literals
 
       i = 0

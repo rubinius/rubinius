@@ -218,14 +218,14 @@ class Debugger
       first, last = md[1], md[2]
       first = first.to_i if first
       last = last.to_i if last
-      file = dbg.debug_context.file.to_s
+      file = dbg.eval_context.file.to_s
 
       lines = dbg.source_for(file)
       if lines.nil?
         return "No source code available for #{file}"
       end
 
-      line = dbg.debug_context.method.line_from_ip(dbg.debug_context.ip)
+      line = dbg.eval_context.method.line_from_ip(dbg.eval_context.ip)
       first = line - 10 unless first
       last = first + 20 unless last
       first, last = last, first if first > last
@@ -261,11 +261,11 @@ class Debugger
     end
 
     def execute(dbg, inp)
-      cm = dbg.debug_context.method
+      cm = dbg.eval_context.method
 
       # Output locals stored in the method context locals tuple
       locals = cm.local_names
-      local_vals = dbg.debug_context.locals
+      local_vals = dbg.eval_context.locals
       if local_vals
         output = Output.new
         output << "Local variables for #{cm.name}:"
@@ -292,10 +292,10 @@ class Debugger
     end
 
     def execute(dbg, inp)
-      cm = dbg.debug_context.method
+      cm = dbg.eval_context.method
 
       # Output ivars on the current self
-      bind = Binding.setup(dbg.debug_context)
+      bind = Binding.setup(dbg.eval_context)
       instance = eval("self", bind)
       ivars = instance.instance_variables
       if ivars.size > 0
@@ -329,8 +329,10 @@ class Debugger
       output.set_columns(['%s', '%|s', '%-s'])
       bt.frames.each_with_index do |frame,i|
         recv, loc = frame.first, frame.last
-        if i == 0
+        if recv == dbg.eval_context.describe and loc == dbg.eval_context.location
           output.set_line_marker
+        end
+        if i == 0
           output.set_color :green
         elsif loc =~ /kernel/
           output.set_color bt.kernel_color
@@ -369,7 +371,7 @@ class Debugger
     def execute(dbg, md)
       @expr += md.string
       begin
-        bind = Binding.setup(dbg.debug_context)
+        bind = Binding.setup(dbg.eval_context)
         result = eval(@expr, bind)
         output = Output.new
         output.set_line_marker
@@ -390,6 +392,77 @@ class Debugger
         end
       end
  
+      output
+    end
+  end
+
+
+  class UpFrame < Command
+    def help
+      return "up [n]", "Change the eval context by moving up 1 (or n) call frames."
+    end
+
+    def command_regexp
+      /^up(?:\s+(\d+))?$/
+    end
+
+    def execute(dbg, md)
+      n = (md[1] or "1").to_i
+      ctxt = dbg.eval_context
+      n.downto(1) { ctxt = ctxt.sender if ctxt.sender }
+      dbg.eval_context = ctxt
+      output = Output.new
+      output << "Evaluation context now at:"
+      output.set_columns(['%s', '%|s', '%-s'])
+      output.set_line_marker
+      loc = ctxt.location
+      bt = Backtrace.new
+      if ctxt == dbg.debug_context
+        output.set_color :green
+      elsif loc =~ /kernel/
+        output.set_color bt.kernel_color
+      elsif loc =~ /\(eval\)/
+        output.set_color bt.eval_color
+      end
+      output << [ctxt.describe, 'at', loc]
+      output
+    end
+  end
+
+
+  class DownFrame < Command
+    def help
+      return "down [n]", "Change the eval context by moving down 1 (or n) call frames."
+    end
+
+    def command_regexp
+      /^down(?:\s+(\d+))?$/
+    end
+
+    def execute(dbg, md)
+      n = (md[1] or "1").to_i
+      ctxt = dbg.debug_context
+      frames = [ctxt]
+      while ctxt != dbg.eval_context
+        ctxt = ctxt.sender
+        frames.unshift ctxt
+      end
+      n.downto(0) { ctxt = frames.shift if frames.size > 0 }
+      dbg.eval_context = ctxt
+      output = Output.new
+      output << "Evaluation context now at:"
+      output.set_columns(['%s', '%|s', '%-s'])
+      output.set_line_marker
+      loc = ctxt.location
+      bt = Backtrace.new
+      if ctxt == dbg.debug_context
+        output.set_color :green
+      elsif loc =~ /kernel/
+        output.set_color bt.kernel_color
+      elsif loc =~ /\(eval\)/
+        output.set_color bt.eval_color
+      end
+      output << [ctxt.describe, 'at', loc]
       output
     end
   end
