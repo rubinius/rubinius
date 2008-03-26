@@ -102,8 +102,9 @@ class Debugger
         if inst.ip >= first and inst.ip <= last
           if inst.line != line
             line = inst.line
+            src = lines[line-1] if lines
             output.set_color :green
-            output << [nil, "# line #{line}:", lines[line-1]]
+            output << [nil, "# line #{line}:", src]
             output.set_color :clear
           end
           if inst.ip == dbg.eval_context.ip
