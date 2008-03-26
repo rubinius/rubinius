@@ -188,7 +188,8 @@ class Sampler
       puts "%-32s| %-18s| %-10s| %s" % ["sender", "name", "hits", "misses"]
       puts "========================================================================"
       sort[0,range].each do |entry|
-        sender = "#{entry.sender.staticscope.module}##{entry.sender.name}"
+        mod = entry.sender.staticscope.module if entry.sender.staticscope
+        sender = "#{mod}##{entry.sender.name}"
         puts "%-32s| %-18s| %-10d| %d" % [sender, entry.name, entry.hits, entry.misses]
       end
     end
