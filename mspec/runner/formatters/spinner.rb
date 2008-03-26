@@ -5,12 +5,17 @@ class SpinnerFormatter < DottedFormatter
   attr_reader :length
 
   Spins = %w!| / - \\!
+  HOUR = 3600
+  MIN = 60
   
   def initialize
     @states = []
     @which = 0
     @count = 0
     self.length = 40
+    @percent = 0
+    @start = Time.now
+
     term = ENV['TERM']
     @color = (term != "dumb")
     @fail_color  = "32"
@@ -30,10 +35,23 @@ class SpinnerFormatter < DottedFormatter
     @position = length / 2 - 2
   end
 
+  def etr
+    return "00:00:00" if @percent == 0
+    elapsed = Time.now - @start
+    remain = (100 * elapsed / @percent) - elapsed
+
+    hour = remain >= HOUR ? (remain / HOUR).to_i : 0
+    remain -= hour * HOUR
+    min = remain >= MIN ? (remain / MIN).to_i : 0
+    sec = remain - min * MIN
+
+    "%02d:%02d:%02d" % [hour, min, sec]
+  end
+
   def percentage
-    percent = @count * 100 / @total
-    bar = ("=" * (percent / @ratio)).ljust @length
-    label = "%d%%" % percent
+    @percent = @count * 100 / @total
+    bar = ("=" * (@percent / @ratio)).ljust @length
+    label = "%d%%" % @percent
     bar[@position, label.size] = label
     bar
   end
@@ -41,11 +59,11 @@ class SpinnerFormatter < DottedFormatter
   def spin
     @which = (@which + 1) % Spins.size
     if @color
-      print "\r[%s | %s] \033[0;#{@fail_color}m%6dF \033[0;#{@error_color}m%6dE\033[0m" %
-          [Spins[@which], percentage, @tally.failures, @tally.errors]
+      print "\r[%s | %s | %s] \033[0;#{@fail_color}m%6dF \033[0;#{@error_color}m%6dE\033[0m" %
+          [Spins[@which], percentage, etr, @tally.failures, @tally.errors]
     else
-      print "\r[%s | %s] %6dF %6dE" %
-          [Spins[@which], percentage, @tally.failures, @tally.errors]
+      print "\r[%s | %s | %s] %6dF %6dE" %
+          [Spins[@which], percentage, etr, @tally.failures, @tally.errors]
     end
   end
 
