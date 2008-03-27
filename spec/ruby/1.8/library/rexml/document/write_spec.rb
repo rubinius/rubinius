@@ -1,4 +1,5 @@
 require 'rexml/document'
+require 'rexml/formatters/transitive'
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
 # Maybe this can be cleaned
@@ -17,14 +18,21 @@ describe "REXML::Document#write" do
     @str.should == "<Springfield><EvergreenTerrace><House742/></EvergreenTerrace></Springfield>"
   end
 
-  it "returns document indented" do 
-    @d.write(@str, 2) 
-    @str.should == "    <Springfield>\n      <EvergreenTerrace>\n        <House742/>\n      </EvergreenTerrace>\n    </Springfield>"
+  it "returns document indented" do
+    @d.write(@str, 2)
+    @str.should =~ /\s*<Springfield>\s*<EvergreenTerrace>\s*<House742\/>\s*<\/EvergreenTerrace>\s*<\/Springfield>/
   end
 
-  it "returns document with transitive support" do
-    @d.write(@str, 2, true)
-    @str.should ==  "    <Springfield\n      ><EvergreenTerrace\n        ><House742\n        /></EvergreenTerrace\n    ></Springfield\n  >"
+  # REXML in p114 is screwed up:
+  # Document#write uses wrong arity for Formatters::Transitive#initialize
+  #
+  # In branch_1_8 in rev 15833 REXML is organized completely differently.
+  # So we are waiting for further changes to REXML in 1.8.x branch.
+  ruby_bug do
+    it "returns document with transitive support" do
+      @d.write(@str, 2, true)
+      @str.should =~  "\s*<Springfield\s*><EvergreenTerrace\s*><House742\s*\/><\/EvergreenTerrace\s*><\/Springfield\s*>"
+    end
   end
 
   it "returns document with support for IE" do
