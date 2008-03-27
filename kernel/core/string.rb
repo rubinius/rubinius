@@ -29,11 +29,6 @@ class String
     str
   end
 
-  def self.template(size, str)
-    Ruby.primitive :string_template
-    raise PrimitiveFailure, "String.template primitive failed"
-  end
-
   def initialize(arg=nil)
     if arg.__kind_of__ Fixnum
       # + 1 for the null on the end.
@@ -77,7 +72,7 @@ class String
     raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
-    str = String.template num * @bytes, self
+    str = self.class.template num * @bytes, self
     return str
   end
 
@@ -2081,11 +2076,6 @@ class String
       raise IndexError, "index #{start} out of string"
     end
     raise PrimitiveFailure, "String#compare_substring primitive failed"
-  end
-
-  def copy_from(other, start, size, dest)
-    Ruby.primitive :string_copy_from
-    raise PrimitiveFailure, "String#copy_from primitive failed"
   end
 
   def count_table(*strings)

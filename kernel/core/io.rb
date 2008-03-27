@@ -38,23 +38,20 @@ class IO
     def shift_front(count)
       count = @bytes if count > @bytes
 
-      str = String.allocate
-      str.initialize_from count, @data.fetch_bytes(0, count)
+      str = String.new count
+      str.copy_from self, 0, count, 0
 
       rest = @bytes - count
-
       @data.move_bytes count, rest, 0
-
-      @bytes -= count
+      @bytes = rest
 
       return str
     end
 
     # Empty the contents of the Buffer into a String object and return it.
     def as_str
-      str = String.allocate
-      str.initialize_from @bytes, @data
-      @data = ByteArray.new(@total)
+      str = String.new @bytes
+      str.copy_from self, 0, @bytes, 0
       @bytes = 0
       return str
     end

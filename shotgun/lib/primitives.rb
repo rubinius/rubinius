@@ -4385,6 +4385,8 @@ class ShotgunPrimitives
     POP(t1, FIXNUM);
     k = N2I(t1);
     t3 = string_new2(state, NULL, k);
+    SET_CLASS(t3, msg->recv);
+    t3->IsTainted = msg->recv->IsTainted;
     data = string_byte_address(state, t3);
 
     t2 = stack_pop();
@@ -4394,9 +4396,7 @@ class ShotgunPrimitives
       int bytes;
       char *str;
 
-      SET_CLASS(t3, object_class(state, t2));
-      t3->IsTainted = t2->IsTainted;
-
+      t3->IsTainted |= t2->IsTainted;
       bytes = N2I(string_get_bytes(t2));
       str = string_byte_address(state, t2);
       if(bytes == 1) {
