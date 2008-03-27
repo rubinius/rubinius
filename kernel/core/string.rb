@@ -305,9 +305,9 @@ class String
   def []=(*args)
     if args.size == 3
       if args.first.is_a? Regexp
-        self.subpattern_set(args[0], Type.coerce_to(args[1], Integer, :to_int), args[2])
+        subpattern_set args[0], Type.coerce_to(args[1], Integer, :to_int), args[2]
       else
-        self.splice(Type.coerce_to(args[0], Integer, :to_int), Type.coerce_to(args[1], Integer, :to_int), args[2])
+        splice! Type.coerce_to(args[0], Integer, :to_int), Type.coerce_to(args[1], Integer, :to_int), args[2]
       end
 
       return args.last
@@ -320,13 +320,13 @@ class String
 
     case index
     when Regexp
-      self.subpattern_set(index, 0, replacement)
+      subpattern_set index, 0, replacement
     when String
       unless start = self.index(index)
         raise IndexError, "string not matched"
       end
 
-      self.splice(start, index.length, replacement)
+      splice! start, index.length, replacement
     when Range
       start   = Type.coerce_to(index.first, Integer, :to_int)
       length  = Type.coerce_to(index.last, Integer, :to_int)
@@ -343,7 +343,7 @@ class String
       length = length - start
       length = 0 if length < 0
 
-      self.splice(start, length, replacement)
+      splice! start, length, replacement
     else
       index = Type.coerce_to(index, Integer, :to_int)
       raise IndexError, "index #{index} out of string" if @bytes <= index
@@ -354,10 +354,10 @@ class String
       end
 
       if replacement.is_a?(Fixnum)
-        self.modify!
+        modify!
         @data[index] = replacement
       else
-        self.splice(index, 1, replacement)
+        splice! index, 1, replacement
       end
     end
     return replacement
@@ -1069,7 +1069,11 @@ class String
     end
 
     return if start == 0
-    replace(substring(start, @bytes - start))
+
+    modify!
+    @bytes = @characters = @bytes - start
+    @data.move_bytes start, @bytes, 0
+    self
   end
 
   # Converts <i>pattern</i> to a <code>Regexp</code> (if it isn't already one),
@@ -1218,8 +1222,11 @@ class String
       end
     end
 
-    return if stop + 1 == @bytes
-    replace(substring(0, stop + 1))
+    return if (stop += 1) == @bytes
+
+    modify!
+    @bytes = @characters = stop
+    self
   end
 
 
@@ -1663,7 +1670,7 @@ class String
     end
 
     if start < 0
-      self.splice(last_alnum, 1, carry.chr + @data[last_alnum].chr)
+      splice! last_alnum, 1, carry.chr + @data[last_alnum].chr
     end
 
     return self
@@ -2185,24 +2192,29 @@ class String
 
     start  = match.begin(capture)
     length = match.end(capture) - start
-    self.splice(start, length, replacement)
+    splice! start, length, replacement
   end
 
-  def splice(start, count, replacement)
-    raise IndexError, "negative length #{count}" if count < 0
-    self.modify!
-    raise IndexError, "index #{start} out of string" if @bytes < start || -start > @bytes
-
+  def splice!(start, count, replacement)
     start += @bytes if start < 0
+    raise IndexError, "index #{start} out of string" if start > @bytes || start < 0
+    raise IndexError, "negative length #{count}" if count < 0
+    replacement = StringValue replacement
+    modify!
+
     count = @bytes - start if start + count > @bytes
+    size = start < @bytes ? @bytes - count : @bytes
+    rsize = replacement.size
 
-    # TODO: Optimize this by using the @data ByteArray directly?
-    output = ""
-    output << substring(0, start) if start != 0
-    output << StringValue(replacement)
-    output << substring(start + count, @bytes - (start + count)) if start + count < @bytes
+    str = self.class.new size + rsize
+    str.taint if tainted? || replacement.tainted?
 
-    replace(output)
+    last = start + count
+    str.copy_from self, 0, start, 0 if start > 0
+    str.copy_from replacement, 0, rsize, start
+    str.copy_from self, last, @bytes - last, start + rsize if last < @bytes
+
+    replace str
   end
 
   # FIXME - Make Unicode-safe
@@ -2216,15 +2228,16 @@ class String
     chars
   end
 
-  def prefix?(pre)
-    return false if pre.size > @bytes
-    sub = substring(0, pre.size)
-    pre == sub
+  def prefix?(other)
+    size = other.size
+    return false if size > @bytes
+    other.compare_substring(self, 0, size) == 0
   end
 
   def suffix?(other)
-    return false if other.size > @bytes
-    other == substring(@bytes - other.size, other.size)
+    size = other.size
+    return false if size > @bytes
+    other.compare_substring(self, -size, size) == 0
   end
 
   # TODO: inspect is NOT dump!
@@ -2262,18 +2275,6 @@ class String
     @shared = true
   end
 
-  # Replaces the contents and taintedness of <i>string</i> with the corresponding
-  # values in <i>other</i> if they differ.
-  #
-  #   s = "hello"           #=> "hello"
-  #   s.replace_if "hello"  #=> nil
-  #   s                     #=> "hello"
-  #   s.replace_if "world"  #=> "world"
-  #   s                     #=> "world"
-  def replace_if(other)
-    self == other ? nil : replace(other)
-  end
-
   def get_pattern(pattern, quote = false)
     unless pattern.is_a?(String) || pattern.is_a?(Regexp)
       if pattern.respond_to?(:to_str)
@@ -2286,53 +2287,6 @@ class String
     pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
     pattern
   end
-
-  # def rindex(arg, finish = nil )
-  #   arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
-  #   return (finish || self.size) if arg.is_a?(String) && arg.empty?
-  #
-  #   arg_finish = finish
-  #   if finish
-  #     at_end = 0
-  #     finish = finish.coerce_to(Integer, :to_int)
-  #     finish += @bytes if finish < 0
-  #     return nil if finish < 0
-  #     finish, at_end = @bytes - 1, 1 if finish >= @bytes
-  #   else
-  #     finish, at_end = @bytes - 1, 1
-  #   end
-  #
-  #   arg = arg[0] if arg.is_a?(String) && arg.size == 1
-  #
-  #   if arg.is_a?(Fixnum)
-  #     finish.step(0, -1) do |idx|
-  #       return idx if @data[idx] == arg
-  #     end
-  #   elsif arg.is_a? String
-  #     # return nil if arg.length > finish + at_end
-  #     len   = arg.length
-  #     start = finish - len + at_end
-  #     start = 0 if start < 0 && finish >= 0
-  #     start.step(0, -1) do |idx|
-  #       if @data[idx] == arg.data[0]
-  #         return idx if substring(idx,len) == arg
-  #       end
-  #     end
-  #   elsif arg.is_a? Regexp
-  #     mstr = self[0..finish]
-  #     offset = nil
-  #     while m = arg.match(mstr)
-  #       break if m.begin(0) == m.end(0)
-  #       offset = offset ? offset += m.begin(0) + len : m.begin(0)
-  #       len = m.end(0) - m.begin(0)
-  #       mstr = m.post_match
-  #     end
-  #     return offset
-  #   else
-  #     raise TypeError.new("String#index cannot accept #{arg.class} objects")
-  #   end
-  #   return nil
-  # end
 
   def full_to_i
     err = "invalid value for Integer: #{self.inspect}"
