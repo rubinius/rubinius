@@ -170,30 +170,30 @@ desc "Install rubinius as rbx"
 task :install => :config_env do
   sh "cd shotgun; #{make "install"}"
 
-  mkdir_p ENV['RBAPATH'], :verbose => true
-  mkdir_p ENV['CODEPATH'], :verbose => true
+  mkdir_p RBAPATH, :verbose => true
+  mkdir_p CODEPATH, :verbose => true
 
   rba_files = Rake::FileList.new('runtime/platform.conf',
                                  'runtime/**/*.rb{a,c}',
                                  'runtime/**/.load_order.txt')
 
-  install_files rba_files, ENV['RBAPATH']
+  install_files rba_files, RBAPATH
 
   lib_files = Rake::FileList.new 'lib/**/*'
 
-  install_files lib_files, ENV['CODEPATH']
+  install_files lib_files, CODEPATH
 
-  mkdir_p File.join(ENV['CODEPATH'], 'bin'), :verbose => true
+  mkdir_p File.join(CODEPATH, 'bin'), :verbose => true
 
-  Rake::FileList.new("#{ENV['CODEPATH']}/**/*.rb").sort.each do |rb_file|
-    sh File.join(ENV['BINPATH'], 'rbx'), 'compile', rb_file, :verbose => true
+  Rake::FileList.new("#{CODEPATH}/**/*.rb").sort.each do |rb_file|
+    sh File.join(BINPATH, 'rbx'), 'compile', rb_file, :verbose => true
   end
 end
 
 desc "Uninstall rubinius and libraries. Helps with build problems."
 task :uninstall => :config_env do
-  rm Dir[File.join(ENV['BINPATH'], 'rbx*')]
-  rm_r Dir[File.join(ENV['LIBPATH'], '*rubinius*')]
+  rm Dir[File.join(BINPATH, 'rbx*')]
+  rm_r Dir[File.join(LIBPATH, '*rubinius*')]
 end
 
 task :compiledir => :stable_compiler do
