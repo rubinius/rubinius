@@ -1,5 +1,5 @@
-require 'csv' 
 require File.dirname(__FILE__) + '/../../../../../spec_helper'
+require 'csv' 
 
 describe CSV::Reader, ".parse" do
   
@@ -13,7 +13,7 @@ describe CSV::Reader, ".parse" do
   end
   
   it "calls block once for one row of input" do
-    input_stream = File.open('./tmp/csv/one_line.csv', 'rb')
+    input_stream = File.open(File.dirname(__FILE__) + '/../fixtures/one_line.csv', 'rb')
     count = 0
     CSV::Reader.parse(input_stream) do |row|
       count += 1
