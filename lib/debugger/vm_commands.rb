@@ -172,42 +172,58 @@ class Debugger
   # Shows info about the SendSites within the current method
   class ShowSendSites < Command
     def help
-      return "v[m] s[end] s[ites]", "Display send site info for each send site in the current method."
+      return "v[m] s[end] s[ites] [<selector>]", "Display send site info for each send site in the current method, or for the specified selector."
     end
     
     def command_regexp
-      /^v(?:m)?\s*s(?:end)?\s*s(?:ite(?:s)?)?$/
+      /^v(?:m)?\s*s(?:end)?\s*s(?:ite(?:s)?)?(?:\s+([\w!?\[\]=+\-*\/%\^]+))?$/
     end
     
     def execute(dbg, md)
-      cm = dbg.eval_context.method
-      literals = cm.literals
-
-      i = 0
-      if literals
-        output = Output.new
-        output << "SendSites for #{cm.name}:"
-        output.set_columns(['%-3d.', '%-s', '%-s', '%-s', '%-s', '%d', '%d'])
-        literals.each do |lit|
-          if lit.kind_of? SendSite
-            runnable_name = nil
-            case runnable = lit.data(2)
-            when CompiledMethod
-              runnable_name = runnable.name
-            when RuntimePrimitive
-              runnable_name = runnable.at RuntimePrimitive::PrimitiveIndex
-              runnable_name = Rubinius::Primitives[runnable_name] if runnable_name.kind_of? Fixnum
-            when NilClass
-              # Do nothing - SendSite data2 not set
-            else
-              puts "Unrecognized runnable type: #{runnable.class}"
-            end
-            output << [i+1, lit.name, lit.data(1), runnable_name, lit.data(3), lit.hits, lit.misses] if lit
-            i += 1
-          end
+      selector = md[1]
+      if selector
+        source = Selector::ALL[selector.intern]
+        if source
+          send_sites = source.send_sites
+          output = output(source, send_sites)
+        else
+          output = "No selector found with name '#{selector}'"
+        end
+      else
+        source = dbg.eval_context.method
+        if literals = source.literals
+          send_sites = literals.select {|lit| lit.kind_of? SendSite}
+        end
+        if send_sites and send_sites.size > 0
+          output = output(source, send_sites)
+        else
+          output = "There are no send sites in method #{source.name}"
         end
       end
-      output = "There are no send sites in method #{cm.name}" if i == 0
+      output
+    end
+
+    def output(source, send_sites)
+      i = 1
+      output = Output.new
+      output << "SendSites for #{'selector ' if source.kind_of? Selector}#{source.name}:"
+      output.set_columns(['%-3d.', '%-s', '%-s', '%-s', '%-s', '%-s', '%-s', '%d', '%d'])
+      send_sites.each do |ss|
+        runnable_name = nil
+        case runnable = ss.data(2)
+        when CompiledMethod
+          runnable_name = runnable.name
+        when RuntimePrimitive
+          runnable_name = runnable.at RuntimePrimitive::PrimitiveIndex
+          runnable_name = Rubinius::Primitives[runnable_name] if runnable_name.kind_of? Fixnum
+        when NilClass
+          # Do nothing - SendSite data2 not set
+        else
+          puts "Unrecognized runnable type: #{runnable.class}"
+        end
+        output << [i, ss.sender.file, ss.sender.name, ss.name, ss.data(1), runnable_name, ss.data(3), ss.hits, ss.misses]
+        i += 1
+      end
       output
     end
   end
