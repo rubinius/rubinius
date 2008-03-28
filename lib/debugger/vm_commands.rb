@@ -69,32 +69,41 @@ class Debugger
 
 
   # Lists the VM bytecode
-  # TODO: Add ability to list bytecode for a specified method
   # TODO: Should bytecode listing remember last window displayed and show next?
   class ListBytecode < Command
+    @@re = Regexp.new('^d(?:ecode)?(?:\s+' + MODULE_METHOD_RE + ')?(?:\s+(\d+))?(?:(?:\s+|-)(\d+))?$')
     def help
-      return "d[ecode] [start [end]]", "Decode bytecode around breakpoint or between start/end."
+      return "d[ecode] [<method>] [start [end]]", "Decode bytecode around breakpoint or between start/end."
     end
 
     def command_regexp
-      /^d(?:ecode)?(?:\s+(\d+))?(?:\s+(\d+))?$/
+      @@re
     end
 
     def execute(dbg, md)
-      first,last = md[1], md[2]
-      first = first.to_i if first
-      last = last.to_i if last
+      mod, mthd_type, mthd = md[1], md[2], md[3]
+      first, last = md[4], md[5]
 
-      file = dbg.eval_context.file.to_s
+      if mthd
+        cm = get_method(mod, mthd_type, mthd).compiled_method
+        first = 0 unless first
+      else
+        # Decode current method
+        cm = dbg.eval_context.method
+        first = dbg.eval_context.ip - 10 unless first
+      end
+      file = cm.file.to_s
       lines = dbg.source_for(file)
-      asm = dbg.eval_context.method.decode
-      first = dbg.eval_context.ip - 10 unless first
+      asm = cm.decode
+
+      first = first.to_i
+      last = last.to_i if last
       last = first + 20 unless last
       first, last = last, first if first > last
       first = 0 if first < 0
 
       output = Output.new
-      output << "Bytecode instructions [#{first}-#{last}] in compiled method #{dbg.eval_context.method.name}:"
+      output << "Bytecode instructions [#{first}-#{last}] in compiled method #{cm.name}:"
       output.set_columns(["%04d:", "%-s ", "%-s"])
       output << [nil, '...', nil] if first > 0
       line = 0
@@ -107,7 +116,7 @@ class Debugger
             output << [nil, "# line #{line}:", src]
             output.set_color :clear
           end
-          if inst.ip == dbg.eval_context.ip
+          if !mthd and inst.ip == dbg.eval_context.ip
             output.set_line_marker
             output.set_color :cyan
           end
@@ -171,12 +180,14 @@ class Debugger
   
   # Shows info about the SendSites within the current method
   class ShowSendSites < Command
+    @@re = Regexp.new('^v(?:m)?\s*s(?:end)?\s*s(?:ite(?:s)?)?(?:\s+' + METHOD_RE + ')?$')
+
     def help
       return "v[m] s[end] s[ites] [<selector>]", "Display send site info for each send site in the current method, or for the specified selector."
     end
     
     def command_regexp
-      /^v(?:m)?\s*s(?:end)?\s*s(?:ite(?:s)?)?(?:\s+([\w!?\[\]=+\-*\/%\^]+))?$/
+      @@re
     end
     
     def execute(dbg, md)
