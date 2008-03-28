@@ -18,11 +18,14 @@ end
 
 
 class MarshalEmitter
-  def initialize(str, start=0)
+  def initialize(ver, str, start=0)
+    @rbc_version = ver
     @string = str
     @index = start
     @decoder = InstructionSequence::Encoder.new
   end
+
+  attr_reader :rbc_version
 
   TagNames = {
     ?n => :nil,
@@ -53,8 +56,8 @@ class MarshalEmitter
     end
     raise "Not a Rubinius compiled file" unless 'RBIX' == str[0..3]
     ver = str[4..7].unpack_int
-    #raise "Unsupported .rbc version #{ver}" unless 5 == ver
-    new(str, 28)
+
+    return new(ver, str, 28)
   end
 
   def process
