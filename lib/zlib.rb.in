@@ -364,6 +364,18 @@ module Zlib
   class GzipFile
     class Error < Zlib::Error; end
 
+    def self.wrap(*args)
+      obj = new(*args)
+
+      if block_given? then
+        begin
+          yield obj
+        ensure
+          obj.close
+        end
+      end
+    end
+
   end
 
   class GzipReader < GzipFile # HACK usa a buffer class
@@ -427,7 +439,7 @@ module Zlib
 
     def close
       finish
-      @io.close
+      @io.close if @io.respond_to? :close
       nil
     end
 
