@@ -19,6 +19,18 @@ class Debugger
   # TODO: Add a command to load extension commands after debugger is
   # instantiated
   class Command
+    # Regular expression for matching a Ruby module or class name
+    MODULE_RE = '((?:(?:[A-Z]\w*)(?:::)?)*(?:[A-Z]\w*))'
+
+    # Regular expression for matching a Ruby method name
+    METHOD_RE = '((?:[a-zA-Z_][\w!?=]*)|[+\-*\/%\^]|\[\]|==|===|&&|\|\|)'
+
+    # Regular expression for matching a module and method name; defines three groups:
+    # 1. The module/class (optional)
+    # 2. The separator (a . or #)
+    # 3. The method name
+    MODULE_METHOD_RE = '(?:' + MODULE_RE + '([.#]))?' + METHOD_RE
+
     @commands = []
 
     def self.available_commands
@@ -46,6 +58,25 @@ class Debugger
         return order
       else
         return nil
+      end
+    end
+
+    # Returns a Method or UnboundMethod object, given strings that identify:
+    # - the class/module (optional, defaults to MAIN if not specified)
+    # - the method type (# for an instance method, . for a class method)
+    #   (optional, default is to assume instance method)
+    # - the method name
+    # Note: The three strings can be obtained from user input via the use of the
+    # MODULE_METHOD_RE constant defined on this class.
+    def get_method(mod, mthd_type, mthd)
+      clazz = MAIN.class
+      unless mod.nil?
+        clazz = Module.const_lookup(mod.to_sym)
+      end
+      if mthd_type.nil? || mthd_type == '#'
+        cm = clazz.instance_method(mthd.to_sym)
+      else
+        cm = clazz.method(mthd.to_sym)
       end
     end
   end
