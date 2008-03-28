@@ -700,43 +700,45 @@ class String
   #   Example three
   #   "hello\n\n\n"
   #   "world"
-  def each(separator = $/)
-    if separator.nil?
+  def each(sep = $/)
+    if sep.nil?
       yield self
       return self
     end
 
-    separator = StringValue(separator)
-
+    sep = StringValue sep
     raise LocalJumpError, "no block given" unless block_given?
 
-    newline = separator.empty? ? ?\n : separator[separator.length - 1]
+    id = @data.object_id
+    size = @bytes
+    ssize = sep.size
+    newline = ssize == 0 ? ?\n : sep[ssize-1]
 
-    last_index = 0
-    index = separator.length
-
-    old_str = self.dup
-
-    while index < self.length
-      if separator.empty?
-        index += 1 while (self.size > index + 2) && self[(index + 1)..(index + 2)] =~ /[^\n]/
-        index += 1 while (self.size > index + 1) && self[index + 1] == ?\n
+    last, i = 0, ssize
+    while i < size
+      if ssize == 0 && @data[i] == ?\n
+        if @data[i+=1] != ?\n
+          i += 1
+          next
+        end
+        i += 1 while i < size && @data[i] == ?\n
       end
 
-      if self[index] == newline && self[-separator.length, separator.length]
-        line = self[last_index..index]
-        line.taint if self.tainted?
+      if i > 0 && @data[i-1] == newline && 
+          (ssize < 2 || sep.compare_substring(self, i-ssize, ssize) == 0)
+        line = substring last, i-last
+        line.taint if tainted?
         yield line
-        raise RuntimeError, "You modified the string while running each" if old_str != self
-        last_index = index + 1
+        modified? id, size
+        last = i
       end
 
-      index += 1
+      i += 1
     end
 
-    unless last_index == self.length
-      line = self[last_index..self.length]
-      line.taint if self.tainted?
+    unless last == size
+      line = substring last, size-last+1
+      line.taint if tainted?
       yield line
     end
 
@@ -1685,9 +1687,9 @@ class String
   # <i>self</i> modulo <code>2n - 1</code>. This is not a particularly good
   # checksum.
   def sum(bits = 16)
-    bits = Type.coerce_to(bits, Integer, :to_int)
-    sum = 0
-    each_byte { |b| sum += b }
+    bits = Type.coerce_to bits, Integer, :to_int unless bits.__kind_of__ Fixnum
+    i, sum = -1, 0
+    sum += @data[i] while (i += 1) < @bytes
     sum & ((1 << bits) - 1)
   end
 
@@ -2156,6 +2158,14 @@ class String
     if @shared
       @data = @data.dup
       @shared = nil
+    end
+  end
+
+  # Returns true if either the ByteArray object_id
+  # or the size has changed.
+  def modified?(id, size)
+    if id != @data.object_id or size != @bytes
+      raise RuntimeError, "string has been modified"
     end
   end
 
