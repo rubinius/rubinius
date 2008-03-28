@@ -15,7 +15,7 @@ end
 task :configure => %w[shotgun/config.mk lib/rbconfig.rb shotgun/config.h]
 
 task :config_env => %W[rakelib/configure.rake] do
-  libtool = system("which glibtool &> /dev/null") ? "glibtool" : "libtool"
+  libtool = system("which glibtool > /dev/null") ? "glibtool" : "libtool"
 
   DTRACE              = ENV['DTRACE']
   ENGINE              = "rbx"
