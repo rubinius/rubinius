@@ -19,7 +19,8 @@ module Platform::File
     end
   end
 
-  def self.basename(path,ext)
+  def self.basename(path,ext)      
+    path.gsub!(/([^#{SEPARATOR}])#{SEPARATOR}\z/, "\\1")
     basename = if(m = path.match(/#{SEPARATOR}+([^#{SEPARATOR}]*)#{SEPARATOR}*$/))
                  m[1] == '' ? SEPARATOR : m[1]
                else

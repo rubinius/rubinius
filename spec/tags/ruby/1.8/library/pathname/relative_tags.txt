@@ -1,1 +1,0 @@
-fails:Pathname#relative? should return true for a dir not starting with a slash

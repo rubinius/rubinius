@@ -75,7 +75,8 @@ describe "File.basename" do
     File.basename(".").should == "."
     File.basename("..").should == ".."
     File.basename("//foo/").should == "foo"
-    File.basename("//foo//").should == "foo"
+    File.basename("//foo//").should == "foo"   
+    File.basename("foo/").should == "foo"
   end
       
   it "return the basename for unix suffix" do
