@@ -54,7 +54,7 @@ class Debugger
     @@re = Regexp.new('^b(?:reak)?\s+' + MODULE_METHOD_RE + '(?:(?::|\s+)(\d+))?$')
 
     def help
-      return "b[reak] <Method>[:<line>]", "Set a breakpoint at the start or specified line of <Method>."
+      return "b[reak] <method>[:<line>]", "Set a breakpoint at the start or specified line of <method>."
     end
 
     def command_regexp
@@ -199,28 +199,43 @@ class Debugger
 
 
   class ListSource < Command
+    @@re = Regexp.new('^l(?:ist)?(?:\s+' + MODULE_METHOD_RE + ')?(?:\s+(\d+))?(?:(?:\s+|-)(\d+))?$')
+
     def help
-      return "l[ist] [start [end]]", "List source code lines around breakpoint or between start/end."
+      return "l[ist] [<method>] [start [end]]", "List source code lines around breakpoint or <method>, and between start/end."
     end
 
     def command_regexp
-      /^l(?:ist)?(?:\s+(\d+))?(?:\s+(\d+))?$/
+      @@re
     end
 
     # Lists source code around the specified line
     def execute(dbg, md)
-      first, last = md[1], md[2]
-      first = first.to_i if first
-      last = last.to_i if last
-      file = dbg.eval_context.file.to_s
+      mod, mthd_type, mthd = md[1], md[2], md[3]
+      first, last = md[4], md[5]
 
+      if mthd
+        cm = get_method(mod, mthd_type, mthd).compiled_method
+        ip = 0
+      else
+        # Decode current method
+        cm = dbg.eval_context.method
+        ip = dbg.eval_context.ip
+      end
+
+      file = cm.file.to_s
       lines = dbg.source_for(file)
       if lines.nil?
         return "No source code available for #{file}"
       end
 
-      line = dbg.eval_context.method.line_from_ip(dbg.eval_context.ip)
-      first = line - 10 unless first
+      first = first.to_i if first
+      last = last.to_i if last
+      line = cm.line_from_ip(ip)
+      unless first
+        first = line
+        first -= 10 unless mthd
+      end
       last = first + 20 unless last
       first, last = last, first if first > last
       first = 1 if first < 1
@@ -231,7 +246,7 @@ class Debugger
       output.set_columns(['%d:', '%-s'])
       output << [nil, '...'] if first > 1
       first.upto(last) do |l|
-        if l == line
+        if !mthd and l == line
           output.set_line_marker
           output.set_color :cyan
         end
