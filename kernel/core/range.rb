@@ -239,7 +239,7 @@ class Range
 
   def step(step_size = 1, &block) # :yields: object
     first, last = @begin, @end
-    step_size = step_size.to_f #people might not pass numbers in. This stops them.
+    step_size = (Float === first) ? Float(step_size) : Integer(step_size)
 
     raise ArgumentError, "step can't be negative" if step_size < 0
     raise ArgumentError, "step can't be 0" if step_size == 0
