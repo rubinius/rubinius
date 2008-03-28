@@ -21,4 +21,15 @@ describe "The ensure keyword" do
     t.do_test.should == :did_test
     t.values.should == [:start, :in_block, :end]
   end
+  
+  it "propagates the original exception even when exceptions are caught inside the ensure block" do
+    code = lambda do
+      begin
+        raise EOFError, "foo"
+      ensure
+        "".size rescue nil
+      end
+    end
+    code.should raise_error(EOFError)
+  end
 end
