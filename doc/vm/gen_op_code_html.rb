@@ -190,8 +190,10 @@ classes.each do |klass|
       method.name,
       formatter.convert(content)
     ]
-
-    file = File.join 'doc', 'vm', 'op_codes', "#{method.name}.html"
+    
+    dir = File.join 'doc', 'vm', 'op_codes'
+    Dir.mkdir dir unless File.exist? dir
+    file = File.join dir, "#{method.name}.html"
     File.open file, 'w' do |fp|
       fp.puts html
     end
