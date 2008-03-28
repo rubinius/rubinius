@@ -795,6 +795,9 @@ module Marshal
       data = obj.to_s
     elsif obj.respond_to? :read
       data = obj.read
+      if data.empty?
+        raise EOFError, "end of file reached"
+      end
     elsif obj.respond_to? :getc  # FIXME - don't read all of it upfront
       data = ''
       data << c while (c = obj.getc.chr)
