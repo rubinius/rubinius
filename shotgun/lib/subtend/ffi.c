@@ -1,3 +1,9 @@
+#include <string.h>
+#include <dlfcn.h>
+#include "ltdl.h"
+
+#include <stdio.h>
+
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/symbol.h"
 #include "shotgun/lib/object.h"
@@ -9,6 +15,67 @@
 #include "shotgun/lib/subtend/nmethod.h"
 #include "shotgun/lib/subtend/nmc.h"
 #include "shotgun/lib/subtend/ffi.h"
+
+#include "shotgun/lib/strlcpy.h"
+#include "shotgun/lib/strlcat.h"
+
+
+/* Accessor for the default library handle */
+extern const ffi_dlhandle_t* const ffi_this_process;
+
+
+/*
+ * Uses dynamic loading to obtain a handle to the symbol from the
+ * named shared library. For Mach-O, both .dylib and .bundle are
+ * supported. Windows has .dll and any other platform is assumed
+ * to use .so.
+ *
+ * The library name or path should never have a file extension and
+ * it is always assumed to be no longer than FFI_MAX_PATH. 
+ */
+static const void* ffi_load_function_from_dso(STATE, const OBJECT library, const OBJECT symbol)
+{
+  const ffi_dlhandle_t* lib = ffi_this_process;
+
+  /*
+   * If no library name/path is given, we already have the correct
+   * default "handle." Otherwise attempt to load the named library.
+   */
+  if(!NIL_P(library)) {
+    char        dso_name[FFI_MAX_PATH];
+    const char* c_library = string_byte_address(state, library);
+    const char* suffix    = (const char*) FFI_DSO_EXT;
+
+  #ifdef __APPLE_CC__
+    try_other_suffix:
+  #endif
+
+    bzero(dso_name, FFI_MAX_PATH);
+
+    (void) strlcpy(dso_name, c_library, sizeof(dso_name));
+    (void) strlcat(dso_name, suffix, sizeof(dso_name));
+
+    const ffi_dlhandle_t l = ffi_dlopen(dso_name);
+    lib = &l;
+
+    /* This name not found or unable to open. Error in ffi_dlerror(). */
+    if(!lib) {
+      #ifdef __APPLE_CC__
+        if(suffix != FFI_DSO_ALT_EXT) {
+          suffix = FFI_DSO_ALT_EXT;
+          goto try_other_suffix;
+        }
+      #endif
+      return NULL;
+    }
+  }
+  
+  /* Now locate the symbol in the library (or this process.)
+   * We may return NULL if not found, user can check ffi_dlerror().
+   */
+  return((void*) ffi_dlsym(*lib, string_byte_address(state, symbol)));
+}
+
 
 void Init_ffi(STATE) {
   OBJECT mod;
@@ -95,18 +162,20 @@ OBJECT ffi_function_new(STATE, OBJECT ptr, OBJECT name, int args) {
 
 OBJECT ffi_libffi_generate(STATE, int arg_count, int *arg_types, int ret_type, void *func);
 
+
 /* The main interface function, handles looking up the pointer in the library,
  * generating the stub, wrapping it up and attaching it to the module.
  */
 OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJECT ret) {
-  void *ep;
+  void *handle;
   int *arg_types;
   int ret_type;
   int i, tot, arg_count;
   OBJECT ptr, func, sym, type; /* meths; */
 
-  ep = subtend_find_symbol(state, library, name);
-  if(!ep) return Qnil;
+  handle = (void*) ffi_load_function_from_dso(state, library, name);
+
+  if(!handle) return Qnil;
 
   tot = N2I(array_get_total(args));
   arg_count = tot;
@@ -140,7 +209,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
 
   ret_type = N2I(ret);
 
-  ptr = ffi_libffi_generate(state, tot, arg_types, ret_type, ep);
+  ptr = ffi_libffi_generate(state, tot, arg_types, ret_type, handle);
 
   sym = string_to_sym(state, name);
   func = ffi_function_new(state, ptr, sym, arg_count);

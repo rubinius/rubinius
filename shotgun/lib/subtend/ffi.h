@@ -1,3 +1,6 @@
+#ifndef __RBX_FFI_H__
+#define __RBX_FFI_H__
+
 int ffi_type_size(int type);
 void Init_ffi(STATE);
 OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJECT ret);
@@ -31,3 +34,46 @@ void ffi_autorelease(OBJECT ptr, int ar);
 #define nfunc_allocate(st) (object_memory_new_object_mature(st->om, st->global->ffi_func, NFUNC_FIELDS))
 #define nfunc_get_data(obj) cmethod_get_bytecodes(obj)
 #define nfunc_set_data(obj, data) cmethod_set_bytecodes(obj, data)
+
+/*
+ * On OS X both .bundle and .dylib are supported for FFI.
+ * Subtend only supports .bundle so we reimplement this
+ * here. If a bug is found, please also cross-check it.
+ * shotgun/lib/subtend/library.c
+ */
+#ifdef _WIN32
+  #define FFI_DSO_EXT ".dll"
+#else
+  #ifdef __APPLE_CC__
+    #define FFI_DSO_EXT  ".dylib"
+    #define FFI_DSO_ALT_EXT ".bundle"
+  #else  /* POSIX */
+    #define FFI_DSO_EXT ".so"
+  #endif
+#endif
+
+/* Fake an API. FBSD uses dlfcn.h directly, elsewhere we can rely on libltdl. */
+#ifdef __FreeBSD__
+  #define ffi_dlhandle_t      void*
+
+  #define ffi_dlinit()        /* No expansion */
+  #define ffi_dlopen(lib)     dlopen((lib), RTLD_NOW | RTLD_GLOBAL)
+  #define ffi_dlsym(lib, sym) dlsym((lib), (sym))
+  #define ffi_dlclose(lib)    dlclose((lib))
+  #define ffi_dlerror()       dlerror()
+
+#else
+  #define ffi_dlhandle_t      lt_dlhandle
+
+  #define ffi_dlinit()        lt_dlinit()
+  #define ffi_dlopen(lib)     lt_dlopen((lib))
+  #define ffi_dlsym(lib, sym) lt_dlsym((lib), (sym))
+  #define ffi_dlclose(lib)    lt_dlclose((lib))
+  #define ffi_dlerror()       lt_dlerror()
+#endif
+
+/* Internal defs */
+#define FFI_MAX_PATH 128
+
+
+#endif                      /* __RBX_FFI_H__ */
