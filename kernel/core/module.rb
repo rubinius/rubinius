@@ -221,7 +221,7 @@ class Module
       lib.chomp! ".#{Rubinius::ALT_LIBSUFFIX}" rescue nil     # .defined? is broken anyway
     end
 
-    func = FFI.create_function lib, name, arg_types, ret_type
+    func = FFI.create_function lib, name.to_s, arg_types, ret_type
     metaclass.method_table[(opts[:as] || name).to_sym] = func
   end
 

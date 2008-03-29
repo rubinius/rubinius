@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 module FFISpecs
   LIB_EXTS   = [Rubinius::LIBSUFFIX]
-  LIB_EXTS  << Rubinius::ALT_LIBSUFFIX if Rubinius::ALT_LIBSUFFIX
+  LIB_EXTS  << Rubinius::ALT_LIBSUFFIX rescue nil
 
   # To deterministically verify behaviour, we use relatively common
   # libraries and the likely paths in which they would reside. This
@@ -71,6 +71,16 @@ describe "Module#attach_foreign" do
   end
 
   it "creates class method named as the function if function found in current process" do
+    @mod.attach_foreign :string, 'ffi_tzname', [:int]
+    @mod.methods.include?('ffi_tzname').should == true
+  end
+
+  it "accepts function name given as a Symbol" do
+    @mod.attach_foreign :string, :ffi_tzname, [:int]
+    @mod.methods.include?('ffi_tzname').should == true
+  end
+
+  it "accepts function name given as a String" do
     @mod.attach_foreign :string, 'ffi_tzname', [:int]
     @mod.methods.include?('ffi_tzname').should == true
   end
