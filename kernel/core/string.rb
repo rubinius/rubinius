@@ -993,36 +993,16 @@ class String
   #   str[3] = 8
   #   str.inspect       #=> "hel\010o"
   def inspect
-    return "\"#{self}\"".copy_properties(self) if $KCODE == "UTF-8"
-    res = escaped("\"")
-    res << "\""
-    return res.copy_properties(self)
-  end
-
-  def escaped(res="")
-    self.each_byte do |char|
-      if ci = ControlCharacters.index(char)
-        res << ControlPrintValue[ci]
-      elsif char == ?"
-        res << "\\\""
-      elsif char == ?\\
-        res << "\\\\"
-      elsif char == ?#
-         res << "\\#"
-      elsif char < 32 or char > 126
-        v = char.to_s(8)
-        if v.size == 1
-          res << "\\00#{v}"
-        elsif v.size == 2
-          res << "\\0#{v}"
-        else
-          res << "\\#{v}"
-        end
-      else
-        res << char.chr
-      end
+    if $KCODE == "UTF-8"
+      str = "\"#{self}\""
+    else
+      str = "\""
+      i = -1
+      str << @data[i].toprint while (i += 1) < @bytes
+      str << "\""
     end
-    return res
+    str.taint if tainted?
+    str
   end
 
   # Returns the length of <i>self</i>.
@@ -2161,7 +2141,7 @@ class String
     end
   end
 
-  # Returns true if either the ByteArray object_id
+  # Raises RuntimeError if either the ByteArray object_id
   # or the size has changed.
   def modified?(id, size)
     if id != @data.object_id or size != @bytes
@@ -2254,18 +2234,10 @@ class String
   def dump
     kcode = $KCODE
     $KCODE = "NONE"
-    ret = self.inspect.copy_properties(self)
-    $KCODE = $KCODE
-    ret
-  end
-
-  def copy_properties(original)
-    ret = self.dup
-    ret.taint if original.tainted?
-    unless original.instance_of?(String)
-      ret = original.class.new(ret)
-    end
-    ret
+    str = self.class.new self.inspect
+    $KCODE = kcode
+    str.taint if tainted?
+    str
   end
 
   def to_sexp(name="(eval)",line=1,newlines=true)

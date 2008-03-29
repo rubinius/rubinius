@@ -37,4 +37,11 @@ describe "String#inspect" do
     "foo".taint.inspect.tainted?.should == true
     "foo\n".taint.inspect.tainted?.should == true
   end
+
+  it "does not return subclass instances" do
+    str = StringSpecs::MyString.new
+    str << "test"
+    str.should == "test"
+    str.inspect.class.should_not == StringSpecs::MyString
+  end
 end

@@ -280,6 +280,10 @@ Benchmark.bmbm do |x|
     (MAX*4.8).to_i.times { STRING.dup.insert(a, "world") }
   }
 
+  run("String#inspect") {
+    (MAX*1.2).to_i.times { STRING.inspect }
+  }
+
   run("String#intern") {
     string = STRING * (((MAX*11.6).to_i / STRING.size) + 2)
     (MAX*0.1).to_i.times { string.chop!.intern }

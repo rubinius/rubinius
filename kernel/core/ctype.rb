@@ -6,6 +6,10 @@
 # See specs in spec/shotgun/ctype_spec.rb
 
 module CType
+  def isctrl
+    self == ?\n or self == ?\r or self == ?\t or self == ?\f or
+    self == ?\v or self == ?\a or self == ?\e or self == ?\b
+  end
 
   def isspace
     self == ?\s or self == ?\n or self == ?\t or self == ?\r or self == ?\f or self == ?\v
@@ -41,5 +45,34 @@ module CType
 
   def tolower
     self.isupper ? self.tolower! : self
+  end
+
+  def toprint
+    if self == ?"
+      "\\\""
+    elsif self == ?\\
+      "\\\\"
+    elsif self == ?#
+      "\\#"
+    elsif isctrl
+      case self
+      when ?\n: "\\n"
+      when ?\t: "\\t"
+      when ?\a: "\\a"
+      when ?\v: "\\v"
+      when ?\f: "\\f"
+      when ?\r: "\\r"
+      when ?\e: "\\e"
+      when ?\b: "\\b"
+      end
+    elsif self < 32 || self > 126
+      str = "\\000"
+      str.modify!
+
+      c = self.to_s 8
+      str.copy_from c, 0, c.size, 4-c.size
+    else
+      self.chr
+    end
   end
 end
