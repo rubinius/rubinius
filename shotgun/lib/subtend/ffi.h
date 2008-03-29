@@ -1,6 +1,9 @@
 #ifndef __RBX_FFI_H__
 #define __RBX_FFI_H__
 
+#include "ltdl.h"
+#include <dlfcn.h>
+
 int ffi_type_size(int type);
 void Init_ffi(STATE);
 OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJECT ret);
@@ -57,8 +60,9 @@ void ffi_autorelease(OBJECT ptr, int ar);
   #define ffi_dlhandle_t      void*
 
   #define ffi_dlinit()        /* No expansion */
+  #define ffi_dldefault()     RTLD_DEFAULT
   #define ffi_dlopen(lib)     dlopen((lib), RTLD_NOW | RTLD_GLOBAL)
-  #define ffi_dlsym(lib, sym) dlsym((lib), (sym))
+  #define ffi_dlsym(lib, sym) dlsym((ffi_dlhandle_t)(lib), (sym))
   #define ffi_dlclose(lib)    dlclose((lib))
   #define ffi_dlerror()       dlerror()
 
@@ -66,8 +70,9 @@ void ffi_autorelease(OBJECT ptr, int ar);
   #define ffi_dlhandle_t      lt_dlhandle
 
   #define ffi_dlinit()        lt_dlinit()
+  #define ffi_dldefault()     lt_dlopen(NULL)
   #define ffi_dlopen(lib)     lt_dlopen((lib))
-  #define ffi_dlsym(lib, sym) lt_dlsym((lib), (sym))
+  #define ffi_dlsym(lib, sym) lt_dlsym((ffi_dlhandle_t)(lib), (sym))
   #define ffi_dlclose(lib)    lt_dlclose((lib))
   #define ffi_dlerror()       lt_dlerror()
 #endif

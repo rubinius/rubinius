@@ -20,7 +20,7 @@ rni_handle_table *handle_table_new();
  * function pointing to a static inlined so variables it is.
  */
 static ffi_dlhandle_t __ffi_handle_to_self;
-const ffi_dlhandle_t* const ffi_this_process = &__ffi_handle_to_self;
+const ffi_dlhandle_t* const ffi_this_process = (const ffi_dlhandle_t*) &__ffi_handle_to_self;
 
 
 void subtend_setup(STATE) {
@@ -35,7 +35,7 @@ void subtend_setup(STATE) {
   class_set_object_type(BASIC_CLASS(nmethod), I2N(NMethodType));
 
   ffi_dlinit();
-  __ffi_handle_to_self = ffi_dlopen(NULL);  /* Obtain a handle to *this process* for default */
+  __ffi_handle_to_self = ffi_dldefault();  /* Obtain a handle to *this process* for default */
 
   subtend_setup_global();
 
