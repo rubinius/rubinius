@@ -721,17 +721,17 @@ void machine_setup_config(machine m) {
 /* Shared library file extension */
 #if defined(_WIN32) || defined(__NT__) || defined(WIN32) || defined(__WIN32__)
   #define LIBSUFFIX "dll"
-  #define ALT_LIBSUFFIX Qnil
 #elif defined(__APPLE__)
   #define LIBSUFFIX "bundle"
   #define ALT_LIBSUFFIX "dylib"
 #else
   #define LIBSUFFIX "so"
-  #define ALT_LIBSUFFIX Qnil
 #endif
 
   machine_set_const_under(m, "LIBSUFFIX", string_new(m->s, LIBSUFFIX), mod);
+#ifdef ALT_LIBSUFFIX
   machine_set_const_under(m, "ALT_LIBSUFFIX", string_new(m->s, ALT_LIBSUFFIX), mod);
+#endif
 
   machine_set_const_under(m, "COMPILER_PATH", string_new(m->s, CONFIG_CC), mod);
 

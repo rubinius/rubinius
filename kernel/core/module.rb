@@ -218,7 +218,7 @@ class Module
     lib = opts[:from]
 
     if lib and !lib.chomp! ".#{Rubinius::LIBSUFFIX}"
-      lib.chomp! ".#{Rubinius::ALT_LIBSUFFIX}"
+      lib.chomp! ".#{Rubinius::ALT_LIBSUFFIX}" rescue nil     # .defined? is broken anyway
     end
 
     func = FFI.create_function lib, name, arg_types, ret_type
