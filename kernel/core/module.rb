@@ -179,10 +179,12 @@ class Module
 
   # Create a wrapper to a function in a C-linked library that
   # exists somewhere in the system. If a specific library is
-  # not given, the function is assumed to exist in the Rubinius
-  # executable (which contains many linked libraries, libc of
-  # course the most prominent.) The wrapper method is added to
-  # the Module itself, not as an instance method.
+  # not given, the function is assumed to exist in the running
+  # process, the Rubinius executable. The process contains many
+  # linked libraries in addition to Rubinius' codebase, libc of
+  # course the most prominent on the system side. The wrapper
+  # method is added to the Module as a singleton method or a
+  # "class method."
   #
   # The function is specified like a declaration: the first
   # argument is the type symbol for the return type (see FFI
@@ -202,20 +204,24 @@ class Module
   # the library. The fourth argument is an option hash and
   # the library name should be given in the +:from+ key of
   # the hash. The name may (and for portable code, should)
-  # omit the file extension. The library is looked for in
-  # the system library paths but if necessary, the full
-  # absolute or relative path can be given.
+  # omit the file extension. If the extension is present,
+  # it must be the correct one for the runtime platform.
+  # The library is searched for in the system library paths
+  # but if necessary, the full absolute or relative path can
+  # be given.
   #
   # By default, the new method's name is the same as the
   # function it wraps but in some cases it is desirable to
   # change this. You can specify the method name in the +:as+
   # key of the option hash.
   def attach_foreign(ret_type, name, arg_types, opts = {})
-    raise ArgumentError, 'FFI: Max 6 arguments!' if arg_types.size > 6
+    lib = opts[:from]
 
-    func = FFI.create_function(opts[:from], name, arg_types, ret_type)
-    raise ArgumentError, "FFI: Unable to find or wrap '#{name}'" unless func
+    if lib and !lib.chomp! ".#{Rubinius::LIBSUFFIX}"
+      lib.chomp! ".#{Rubinius::ALT_LIBSUFFIX}"
+    end
 
+    func = FFI.create_function lib, name, arg_types, ret_type
     metaclass.method_table[(opts[:as] || name).to_sym] = func
   end
 
