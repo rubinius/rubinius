@@ -123,6 +123,18 @@ char *string_byte_address(STATE, OBJECT self) {
   return bytearray_byte_address(state, data);
 }
 
+/* Direct pointer to underlying string: handle with care! */
+char* rbx_string_as_cstr(STATE, OBJECT self)
+{
+  xassert(STRING_P(self));
+
+  /* Terminator may be incorrect due to explicit length being used usually */
+  char* cstr = string_byte_address(state, self);
+  cstr[((size_t)N2I(string_get_bytes(self)))] = '\0';
+
+  return cstr;
+}
+
 double string_to_double(STATE, OBJECT self) {
   double value;
   char *p, *n, *ba, *rest;

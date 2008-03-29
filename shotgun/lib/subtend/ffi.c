@@ -33,7 +33,7 @@ extern const ffi_dlhandle_t* const ffi_this_process;
  * The library name or path should never have a file extension and
  * it is always assumed to be no longer than FFI_MAX_PATH. 
  */
-static const void* ffi_load_function_from_dso(STATE, const OBJECT library, const OBJECT symbol)
+static void* ffi_load_function_from_dso(STATE, const OBJECT library, const OBJECT symbol)
 {
   const ffi_dlhandle_t* lib = ffi_this_process;
 
@@ -43,7 +43,7 @@ static const void* ffi_load_function_from_dso(STATE, const OBJECT library, const
    */
   if(!NIL_P(library)) {
     char        dso_name[FFI_MAX_PATH];
-    const char* c_library = string_byte_address(state, library);
+    const char* c_library = rbx_string_as_cstr(state, library);
     const char* suffix    = (const char*) FFI_DSO_EXT;
 
   #ifdef __APPLE_CC__
@@ -73,7 +73,7 @@ static const void* ffi_load_function_from_dso(STATE, const OBJECT library, const
   /* Now locate the symbol in the library (or this process.)
    * We may return NULL if not found, user can check ffi_dlerror().
    */
-  return((void*) ffi_dlsym(*lib, string_byte_address(state, symbol)));
+  return((void*) ffi_dlsym(*lib, rbx_string_as_cstr(state, symbol)));
 }
 
 
@@ -415,7 +415,7 @@ void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
       result = NULL;
     } else {
       type_assert(val, StringType, "converting to C string");
-      result = string_byte_address(state, val);
+      result = rbx_string_as_cstr(state, val);
     }
     WRITE(char*, result);
     break;

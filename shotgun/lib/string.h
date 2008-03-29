@@ -22,7 +22,10 @@ OBJECT string_new(STATE, const char *str);
 OBJECT string_new2(STATE, const char *str, int sz);
 OBJECT string_dup(STATE, OBJECT self);
 OBJECT string_append(STATE, OBJECT self, OBJECT other);
+
+char* rbx_string_as_cstr(STATE, OBJECT self);
 char *string_byte_address(STATE, OBJECT self);
+
 unsigned int string_hash_int(STATE, OBJECT self);
 unsigned int string_hash_cstr(STATE, const char *bp);
 unsigned int string_hash_str_with_size(STATE, const char *bp, int size);
