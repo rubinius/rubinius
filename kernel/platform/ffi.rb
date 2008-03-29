@@ -1,7 +1,16 @@
 module FFI
 
-  class TypeError < RuntimeError
+  #  Specialised error classes
+  class TypeError < RuntimeError; end
+
+  class SignatureError < RuntimeError; end
+
+  class NotFoundError < RuntimeError
+    def initialize(function, library)
+      super("Function '#{function}' not found! (Looking in '#{library or 'this process'}')")
+    end
   end
+
 
   TypeDefs = LookupTable.new
 
@@ -28,9 +37,18 @@ module FFI
       Ruby.primitive :nfunc_add
     end
 
+    # Internal function, should not be used directly.
+    # See Module#attach_foreign.
+    #
+    # TODO: Is this necessary at all? When would we ever
+    #       create an unattached method (not a Method)?
     def create_function(library, name, args, ret)
       i = 0
       tot = args.size
+
+      # Current artificial limitation
+      raise SignatureError, 'FFI functions may take max 6 arguments!' if tot > 6
+
       # We use this instead of map or each because it's really early, map
       # isn't yet available.
       while i < tot
@@ -39,7 +57,9 @@ module FFI
       end
       cret = find_type(ret)
 
-      create_backend(library, name, args, cret)
+      func = create_backend(library, name, args, cret)
+      raise NotFoundError.new(name, library) unless func
+      func
     end
 
   end
