@@ -47,17 +47,19 @@ class MethodContext
     "#<#{self.class}:0x#{self.object_id.to_s(16)} #{receiver}##{name} #{file}:#{line}>"
   end
   alias_method :inspect, :to_s
-
+  # File in which associated method defined.
   def file
     return "(unknown)" unless self.method
     method.file
   end
 
+  # See CompiledMethod#lines
   def lines
     return [] unless self.method
     method.lines
   end
 
+  # Current line being executed by the VM.
   def line
     return 0 unless self.method
     # We subtract 1 because the ip is actually set to what it should do
@@ -65,6 +67,9 @@ class MethodContext
     return self.method.line_from_ip(self.ip - 1)
   end
 
+  # Copies context. If locals is true
+  # local variable values are also
+  # copied into new context.
   def copy(locals=false)
     d = self.dup
     return d unless locals
@@ -232,7 +237,12 @@ end
 
 ##
 # Stores all information about a running Block.
-
+#
+# Block context has no own receiver,
+# static lexical scope and is unnamed
+# so it uses receiver, scope and name
+# of home method context, that is,
+# method context that started it's execution.
 class BlockContext
 
   def last_match
@@ -251,22 +261,30 @@ class BlockContext
     home.back_ref(idx)
   end
 
+  # Active context (instance of MethodContext) that started
+  # execution of this block context.
   def home
     env.home
   end
 
+  # Name of home method.
   def name
     home.name
   end
 
+  # Block context has no receiver thus uses
+  # receiver from it's home method context.
   def receiver
     home.receiver
   end
 
+  # Block context has no own module thus uses
+  # module from it's home method context.
   def method_module
     home.method_module
   end
 
+  # Static scope of home method context.
   def current_scope
     home.current_scope
   end

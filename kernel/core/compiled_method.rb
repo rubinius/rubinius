@@ -1,26 +1,58 @@
 # depends on: class.rb array.rb
 
-##
 # A wrapper for a calling a function in a shared library.
-
 class NativeMethod
   def lines
     nil
   end
-  
+
   def exceptions
     nil
   end
-  
+
   def literals
     nil
   end
-  
+
   def line_from_ip(i)
     0
   end
 end
 
+# A linked list that details the static,
+# lexical scope the method was created in.
+#
+# You can access it this way:
+#
+#   MethodContext.current.method.staticscope
+#
+# Here is a simple example:
+#
+# module Fruits
+#   class Pineapple
+#     attr_reader :initialize_scope
+#
+#     def initialize(weight)
+#       @initialize_scope = MethodContext.current.method.staticscope
+#       @weight = weight
+#     end
+#   end
+# end
+#
+# Static scope members are shown below:
+#
+# irb(main):> pineapple.initialize_scope.script
+# => nil
+# irb(main):> pineapple.initialize_scope.parent
+# => #<StaticScope:0x1c9>
+# irb(main):> pineapple.initialize_scope.module
+# => Fruits::Pineapple
+# irb(main):> pineapple.initialize_scope.parent.module
+# => Fruits
+# irb(main):> pineapple.initialize_scope.parent.parent.module
+# => Object
+# irb(main):> pineapple.initialize_scope.parent.parent.parent.module
+# => Object
 class StaticScope
   ivar_as_index :__ivars__ => 0, :module => 1, :parent => 2
 
@@ -31,38 +63,122 @@ class StaticScope
 
   attr_accessor :script
 
+  # Source code of this scope.
   def script
     @script
   end
 
+  # Module or class this lexical scope enclosed into.
   def module
     @module
   end
-  
+
+  # Static scope object this scope enclosed into.
   def parent
     @parent
-  end  
+  end
+
+  def inspect
+    "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent} module=#{@module}>"
+  end
+
+  def to_s
+    self.inspect
+  end
 end
 
+# CompiledMethod represents source code method compiled into VM bytecodes.
+# It's instruction set is then executed by Shotgun's abstraction of CPU.
+# CompiledMethods are not just sets of instructions though. They carry
+# a lot of information about method: it's lexical scope (static scope),
+# name, file it has been defined in and so forth.
+#
+#
 class CompiledMethod
   # TODO: Delete/reuse arguments (field 9), scope (field 10), and cache (field 14) fields from C structure
   ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
   def __ivars__  ; @__ivars__  ; end
+
+  # true if this method is primitive, false otherwise
   def primitive  ; @primitive  ; end
+
+  # number of arguments required by method
   def required   ; @required   ; end
+
+  # Version of method: an incrementing integer.
+  # When you redefine method via re-opening
+  # a class this number is increased.
+  #
+  # Kernel methods have serial of 0
+  # %99.9 of the time.
   def serial     ; @serial     ; end
+
+  # instructions set that VM executes
+  # instance of InstructionSequence
   def bytecodes  ; @bytecodes  ; end
+
+  # method name as Symbol
   def name       ; @name       ; end
+
+  # file in which this method has been defined
   def file       ; @file       ; end
+
+  # number of local variables method uses
+  # note that locals are stored in slots
+  # in the context this CompiledMethod
+  # is executed in.
   def local_count; @local_count; end
+
+  # literals tuple stores literals from
+  # source code like string literals and
+  # some extra stuff like SendSites,
+  # RegExp objects created from
+  # regexp literals and CompiledMethods
+  # of inner methods.
   def literals   ; @literals   ; end
+
+  # Tuple of tuples. Inner tuples contain
+  # low IP, high IP and IP of exception
+  # handler.
+  #
+  # When exception is raised this tuple is
+  # looked up by VM using context IP:
+  #
+  # Tuple which low/high IP fit in context
+  # IP is picked up and handling continues.
+  #
+  # TODO: double check this statement.
   def exceptions ; @exceptions ; end
+
+  # Tuple of Tuples. Each inner Tuple
+  # stores the following information:
+  #
+  # low IP, high IP and line number as integer.
   def lines      ; @lines      ; end
+
+  # These two are no longer used it seems.
+  # TODO: investigate it
   def path       ; @path       ; end
   def cache      ; @cache      ; end
+
+  # local variable names
   def bonus      ; @bonus      ; end
+
+  # ByteArray of pointers to optcodes.
+  # This is only populated when CompiledMethod
+  # is loaded into VM and platform specific.
+  #
+  # You can think of it as of internal
+  # bytecode representation optimized
+  # for platform Rubinius runs on.
   def compiled   ; @compiled   ; end
+
+  # lexical scope of method in source
+  # instance of StaticScope
   def staticscope; @staticscope; end
+
+  # method arguments
+  # TODO: clarify this statement
   def args       ; @args       ; end
 
   ##
@@ -70,11 +186,11 @@ class CompiledMethod
   # being used.
 
   attr_accessor :hints
-  
+
   def inspect
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} file=#{@file}>"
   end
-  
+
   def from_string(bc, lcls, req)
     @bytecodes = bc
     @primitive = -1
@@ -88,7 +204,7 @@ class CompiledMethod
     @required = req
     return self
   end
-  
+
   def inherit_scope(other)
     if ss = other.staticscope
       @staticscope = ss
@@ -101,39 +217,35 @@ class CompiledMethod
     raise TypeError, "not a static scope: #{val.inspect}" unless val.kind_of? StaticScope
     @staticscope = val
   end
-  
+
   def exceptions=(tup)
     @exceptions = tup
   end
-  
+
   def literals=(tup)
     @literals = tup
   end
-  
+
   def file=(val)
     @file = val
   end
-  
+
   def name=(val)
     @name = val
   end
 
-  ##
-  # Lines consists of an array of tuples, with each tuple representing a line.
-  # The tuple for a line has fields for the first ip, last ip, and line number.
-
   def lines=(val)
     @lines = val
   end
-  
+
   def path=(val)
     @path = val
   end
-  
+
   def primitive=(idx)
     @primitive = idx
   end
-  
+
   def serial=(ser)
     @serial = ser
   end
@@ -141,29 +253,30 @@ class CompiledMethod
   def bonus=(tup)
     @bonus = tup
   end
-  
+
   def args=(ary)
     @args = ary
   end
-  
+
+  # Local variable names
   def local_names
     return nil unless @bonus
     @bonus[0]
   end
-  
+
   def local_names=(names)
     return if names.nil?
-    
+
     unless names.kind_of? Tuple
       raise ArgumentError, "only accepts a Tuple"
     end
-    
+
     names.each do |n|
       unless n.kind_of? Symbol
         raise ArgumentError, "must be a tuple of symbols: #{n.inspect}"
       end
     end
-    
+
     @bonus = Tuple.new(1) unless @bonus
     @bonus[0] = names
     return names
@@ -176,7 +289,7 @@ class CompiledMethod
     else
       block = nil
     end
-    
+
     out = Rubinius.asm(args, block, locals, sz, mod, recv) do |a,b,l,s,m,r|
       run a
       push_array
@@ -188,20 +301,20 @@ class CompiledMethod
       run r
       activate_method 0
     end
-        
+
     return out
   end
 
   class Script
     attr_accessor :path
   end
-  
+
   def as_script(script=nil)
     script ||= CompiledMethod::Script.new
     yield script if block_given?
 
     Rubinius::VM.save_encloser_path
-   
+
     # Setup the scoping.
     ss = StaticScope.new(Object)
     ss.script = script
@@ -222,33 +335,33 @@ class CompiledMethod
     end
     return 0
   end
-  
+
   def first_ip_on_line(line)
     @lines.each do |t|
       if t.at(2) >= line
         return t.at(0)
       end
     end
-    
+
     return -1
   end
-  
+
   def bytecodes=(other)
     @bytecodes = other
   end
-  
+
   def first_line
     @lines.each do |ent|
       return ent[2] if ent[2] > 0
     end
-    
+
     return -1
   end
 
   def is_block?
     @name =~ /__(?:(?:\w|_)+)?block__/
   end
-  
+
   ##
   # Decodes the instruction sequence that is represented by this compileed
   # method. Delegates to InstructionSequence to do the instruction decoding,
@@ -305,6 +418,13 @@ class CompiledMethod
     return high_mark, exact
   end
 
+  # Represents virtual machine's CPU instruction.
+  # Instructions are organized into instruction
+  # sequences known as iSeq, forming body
+  # of CompiledMethods.
+  #
+  # To generate VM optcodes documentation
+  # use rake doc:vm task.
   class Instruction
     def initialize(inst, cm, ip, args_reg)
       @op = inst[0]
@@ -330,25 +450,27 @@ class CompiledMethod
       @stack_produced = calculate_stack_usage(@op.stack_produced)
     end
 
+    # Instruction pointer
     attr_reader :ip
     attr_reader :line
 
     ##
     # Returns the OpCode object
 
+    # Associated OptCode instance.
     def instruction
       @op
     end
 
     ##
-    # Returns the symbol representing the opcode for this instruction
+    # Returns the symbol representing the opcode for this instruction.
 
     def opcode
       @op.opcode
     end
 
     ##
-    # Returns an array of 0 to 2 arguments, depending on the opcode
+    # Returns an array of 0 to 2 arguments, depending on the opcode.
 
     def args
       @args
@@ -368,7 +490,7 @@ class CompiledMethod
 
     ##
     # Returns the stack operands produced by this instruction, as well as a flag
-    # indicating whether this is an exact value (true) or a minimum (false)..
+    # indicating whether this is an exact value (true) or a minimum (false).
 
     def stack_produced
       @stack_produced
