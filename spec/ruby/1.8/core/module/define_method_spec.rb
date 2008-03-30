@@ -61,4 +61,16 @@ describe "Module#define_method" do
       Class.new { define_method(:test, 1234) }
     }.should raise_error(TypeError)
   end
+  
+  it "should maintain the Proc's scope" do
+    class DefineMethodByProcClass
+      in_scope = true
+      method_proc = proc { in_scope }
+      
+      define_method(:proc_test, &method_proc)
+    end
+    
+    o = DefineMethodByProcClass.new
+    o.proc_test.should == true
+  end
 end
