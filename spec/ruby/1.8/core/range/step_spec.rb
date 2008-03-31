@@ -40,17 +40,8 @@ describe "Range#step" do
     obj = mock("mock")
     lambda { (1..10).step(obj) }.should raise_error(TypeError)
   end
-                                                                         
-  # The behavior for floats and ints is consistent with MRI for the cases shown.
-  # Add specs as necessary if there are other cases.                
-  it "coerces the argument to float if begin is a float" do
-    (obj = mock("0.1")).should_receive(:to_f).and_return(0.1)
-    res = []
-    (1.0..1.2).step(obj) {|x| res << x}
-    res.should == [1.0, 1.1]
-  end
 
-  it "coerces the argument to int if begin is anything other than a float" do
+  it "coerces the argument to intger by invoking to_int" do
     (obj = mock("2")).should_receive(:to_int).and_return(2)
     res = []
     (1..10).step(obj) {|x| res << x}
