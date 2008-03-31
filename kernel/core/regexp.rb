@@ -167,6 +167,9 @@ class Regexp
     return res.nil? ? nil : res.begin(0)
   end
 
+  # Returns the index of the first character in the region that
+  # matched or nil if there was no match. See #match for returning
+  # the MatchData instead.
   def =~(str)
     # unless str.nil? because it's nil and only nil, not false.
     str = StringValue(str) unless str.nil?
@@ -251,7 +254,9 @@ class Regexp
     return nil
   end
 
+  # Performs normal match and returns MatchData object from $~ or nil.
   def match(str)
+    return nil if str.nil?
     Regexp.last_match = match_region(str, 0, str.size, true)
   end
   
