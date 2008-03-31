@@ -603,8 +603,10 @@ class Node
       g.next = g.redo = top = g.new_label
       top.set!
 
-      @body.bytecode(g)
-      g.pop
+      if @body              # Empty loop
+        @body.bytecode(g)
+        g.pop
+      end
 
       g.goto top
 
