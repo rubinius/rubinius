@@ -1,17 +1,15 @@
 shared :regexp_match do |cmd|
   describe "Regexp##{cmd}" do
     it "returns the first position of the match" do
-      (/(.)(.)(.)/ =~ "abc").should == 0
-      $~.begin(0).should == 0
+      /(.)(.)(.)/.send(cmd, "abc").should == 0
     end
 
     it "returns nil if there is no match" do
-      /xyz/ =~ "abxyc"
-      $~.should == nil
+      /xyz/.send(cmd,"abxyc").should == nil
     end
 
-    it "can match nil" do
-      (// =~ nil).should == nil
+    it "returns nil if the object is nil" do
+      /\w+/.send(cmd, nil).should == nil
     end
   end
 end
