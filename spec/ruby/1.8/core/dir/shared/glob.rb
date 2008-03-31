@@ -20,6 +20,10 @@ shared :dir_glob do |cmd|
       Dir.send(cmd,'*').sort.should == expected
     end
 
+    it "returns empty array when empty pattern provided" do
+      Dir.send(cmd, '').should == []
+    end
+
     it "matches regexp special +" do
       Dir.send(cmd, 'special/+').should == ['special/+']
     end
