@@ -360,7 +360,7 @@ describe Compiler do
     end
   end
   
-  it "compiles loop {} directly" do
+  it "compiles loop directly" do
     gen [:iter, [:fcall, :loop], nil, [:fixnum, 12]] do |g|
       g.push_modifiers
       
@@ -374,7 +374,18 @@ describe Compiler do
       g.pop_modifiers
     end
   end
-  
+
+  it "compiles empty loop directly" do
+    gen [:iter, [:fcall, :loop], nil] do |g|
+      g.push_modifiers
+      top = g.new_label
+      top.set!
+      # No body, no stack manipulation
+      g.goto top
+      g.new_label.set!  # break takes here
+      g.pop_modifiers
+    end
+  end
   
   it "compiles break in a control" do
     gen [:while, [:true], [:block, [:fixnum, 12], [:break]], true] do |g|
