@@ -122,6 +122,18 @@ describe "String#[]= with String" do
     lambda { ""[-1] = "bam" }.should raise_error(IndexError)
   end
 
+  it "raises IndexError if the string index doesn't match a position in the string" do
+    str = "hello"
+    lambda { str['y'] = "bam" }.should raise_error(IndexError)
+    str.should == "hello"
+  end
+
+  it "raises IndexError if the regexp index doesn't match a position in the string" do
+    str = "hello"
+    lambda { str[/y/] = "bam" }.should raise_error(IndexError)
+    str.should == "hello"
+  end
+
   compliant_on :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       a = "hello"
