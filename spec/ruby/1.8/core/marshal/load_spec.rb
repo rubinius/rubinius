@@ -209,13 +209,15 @@ describe "Marshal::load" do
   it "raises EOFError on loading an empty file" do
     temp_file = "marshal.rubinius.tmp.#{Process.pid}"
     file = File.new(temp_file, "w+")
-    
-    # TODO: This should be in an ensure block, but because of a bug in
-    # Rubinius that can't be done yet.
-    File.unlink(temp_file)
-    
-    lambda { Marshal.load(file) }.should raise_error(EOFError)
-    file.close
+    begin
+      # TODO: This should be in an ensure block, but because of a bug in
+      # Rubinius that can't be done yet.
+      File.unlink(temp_file)
+
+      lambda { Marshal.load(file) }.should raise_error(EOFError)
+    ensure
+      file.close
+    end
   end
 
   MarshalSpec::DATA.each do |description, (object, marshal, attributes)|
