@@ -90,7 +90,7 @@ static void marshal_str(STATE, OBJECT obj, bstring buf) {
   i = N2I(string_get_bytes(obj));
   append_c('s');
   append_sz(i);
-  append_str(string_byte_address(state, obj), i);
+  append_str(rbx_string_as_cstr(state, obj), i);
 }
 
 static OBJECT unmarshal_str(STATE, struct marshal_state *ms) {
@@ -108,7 +108,7 @@ static void marshal_sym(STATE, OBJECT obj, bstring buf) {
   i = N2I(string_get_bytes(str));
   append_c('x');
   append_sz(i);
-  append_str(string_byte_address(state, str), i);
+  append_str(rbx_string_as_cstr(state, str), i);
 }
 
 static OBJECT unmarshal_sym(STATE, struct marshal_state *ms) {
@@ -129,7 +129,7 @@ static void marshal_sendsite(STATE, OBJECT obj, bstring buf) {
   i = N2I(string_get_bytes(str));
   append_c('S');
   append_sz(i);
-  append_str(string_byte_address(state, str), i);
+  append_str(rbx_string_as_cstr(state, str), i);
 }
 
 static OBJECT unmarshal_sendsite(STATE, struct marshal_state *ms) {

@@ -45,7 +45,7 @@ OBJECT symtbl_lookup_str_with_size(STATE, OBJECT self,
     return symtbl_lookup(state, self, string_new2(state, str, size));
   } else {
     OBJECT key = tuple_at(state, ent, 1);
-    char *cur = string_byte_address(state, key);
+    char *cur = rbx_string_as_cstr(state, key);
 
     /* Check that this is actually the right string. */
     if(size != N2I(string_get_bytes(key)) || strncmp(cur, str, size)) {

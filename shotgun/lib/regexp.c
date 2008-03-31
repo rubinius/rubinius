@@ -100,7 +100,7 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options, char *err_buf) {
   OnigEncoding enc;
   int err, num_names, kcode;
   
-  pat = (UChar*)string_byte_address(state, pattern);
+  pat = (UChar*)rbx_string_as_cstr(state, pattern);
   end = pat + N2I(string_get_bytes(pattern));
 
   /* Ug. What I hate about the onig API is that there is no way
@@ -180,7 +180,7 @@ OBJECT regexp_scan(STATE, OBJECT regexp, OBJECT string) {
   OBJECT matches;
   
   max = N2I(string_get_bytes(string));
-  str = (UChar*)string_byte_address(state, string);
+  str = (UChar*)rbx_string_as_cstr(state, string);
   end = str + max;
   
   matches = array_new(state, 0);
@@ -220,7 +220,7 @@ OBJECT regexp_match_start(STATE, OBJECT regexp, OBJECT string, OBJECT start) {
   region = onig_region_new();
   
   max = N2I(string_get_bytes(string));
-  str = (UChar*)string_byte_address(state, string);
+  str = (UChar*)rbx_string_as_cstr(state, string);
   
   beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(start), str + max, region, ONIG_OPTION_NONE);
   
@@ -242,7 +242,7 @@ OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OB
   region = onig_region_new();
   
   max = N2I(string_get_bytes(string));
-  str = (UChar*)string_byte_address(state, string);
+  str = (UChar*)rbx_string_as_cstr(state, string);
   
   if(!RTEST(forward)) {
     beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(end), str + N2I(start), region, ONIG_OPTION_NONE);  
@@ -270,7 +270,7 @@ OBJECT regexp_match(STATE, OBJECT regexp, OBJECT string) {
   region = onig_region_new();
   
   max = N2I(string_get_bytes(string));
-  str = (UChar*)string_byte_address(state, string);
+  str = (UChar*)rbx_string_as_cstr(state, string);
   end = str + max;
   start = str;
   range = end;

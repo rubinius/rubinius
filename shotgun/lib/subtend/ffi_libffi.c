@@ -327,9 +327,7 @@ void ffi_call_libffi(STATE, cpu c, OBJECT ptr) {
       if(NIL_P(obj)) {
         *tmp = NULL;
       } else {
-        int len = N2I(string_get_bytes(obj));
-        *tmp = string_byte_address(state, obj);
-        (*tmp)[len] = 0;
+        *tmp = rbx_string_as_cstr(state, obj);
       }
       values[i] = tmp;
       break;

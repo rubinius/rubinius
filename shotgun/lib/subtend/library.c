@@ -43,7 +43,7 @@ void* subtend_find_symbol(STATE, OBJECT path, OBJECT name) {
   if(!NIL_P(path)) {
     /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
        or whatever the library suffix is. */
-    c_path = string_byte_address(state, path);
+    c_path = rbx_string_as_cstr(state, path);
     strlcpy(sys_name, c_path, sizeof(sys_name));
     strlcat(sys_name, LIBSUFFIX, sizeof(sys_name));
     np = sys_name;
@@ -58,7 +58,7 @@ void* subtend_find_symbol(STATE, OBJECT path, OBJECT name) {
     return NULL;
   }
   
-  c_name = string_byte_address(state, name);
+  c_name = rbx_string_as_cstr(state, name);
   ep = xdlsym(lib, c_name);
   if(!ep) {
     ep = xdlsym2(c_name);
@@ -89,7 +89,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   
   /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
      or whatever the library suffix is. */
-  c_path = string_byte_address(state, path);
+  c_path = rbx_string_as_cstr(state, path);
   strlcpy(sys_name, c_path, len);
   end = strrchr(sys_name, '.');
   
@@ -114,7 +114,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   }
   
   /* name is like 'gzip', we want 'Init_gzip' */
-  c_name = string_byte_address(state, name);
+  c_name = rbx_string_as_cstr(state, name);
   strlcat(init, c_name, sizeof(init));
   
   /* Try and load the init function. */

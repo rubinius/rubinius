@@ -35,7 +35,7 @@ static int _recursive_reporting = 0;
 /* use this to convert symbol into Ruby string
  * st is for state
  */
-#define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
+#define SYM2STR(st, sym) rbx_string_as_cstr(st, rbs_symbol_to_string(st, sym))
 
 /*
  outputs limited number of lines of VM call stack
@@ -322,7 +322,7 @@ void machine_show_exception(machine m, OBJECT exc) {
   printf("\nError: An unhandled exception has terminated this VM.\n");
   msg = exception_get_message(exc);
   if(REFERENCE_P(msg)) {
-    buf = string_byte_address(m->s, msg);
+    buf = rbx_string_as_cstr(m->s, msg);
   } else {
     buf = "<no message>";
   }

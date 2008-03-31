@@ -96,13 +96,13 @@ char *ffi_read_string(char *ptr) {
 OBJECT ffi_read_string_length(STATE, void *ptr, int len) {
   OBJECT str = string_new2(state, NULL, len);
   
-  memcpy(string_byte_address(state, str), ptr, len);
+  memcpy(rbx_string_as_cstr(state, str), ptr, len);
   
   return str;
 }
 
 int ffi_write_string_length(STATE, void *ptr, void* str, int len) {
-  void *src = string_byte_address(state, str);
+  void *src = rbx_string_as_cstr(state, str);
   
   memcpy(ptr, src, len);
   

@@ -580,7 +580,7 @@ VALUE rb_str_substr(VALUE str, long beg, long len) {
 
 char *StringValuePtr(VALUE str) {
   CTX;
-  return (char*)string_byte_address(ctx->state, HNDL(str));
+  return (char*)rbx_string_as_cstr(ctx->state, HNDL(str));
 }
 
 VALUE rb_obj_as_string(VALUE val) {
@@ -718,7 +718,7 @@ char* rb_str_get_char_ptr(VALUE arg) {
   CTX;
   OBJECT str = HNDL(arg);
   
-  return strdup(string_byte_address(ctx->state, str));
+  return strdup(rbx_string_as_cstr(ctx->state, str));
 }
 
 void rb_str_flush_char_ptr(VALUE arg, char* ptr) {
@@ -735,7 +735,7 @@ void rb_str_flush_char_ptr(VALUE arg, char* ptr) {
 int rb_str_get_char_len(VALUE arg) {
   CTX;
   OBJECT str = HNDL(arg);
-  return strlen(string_byte_address(ctx->state, str));
+  return strlen(rbx_string_as_cstr(ctx->state, str));
 }
 
 char rb_str_get_char(VALUE arg, int index) {
@@ -744,7 +744,7 @@ char rb_str_get_char(VALUE arg, int index) {
   
   OBJECT str = HNDL(arg);
   
-  data = string_byte_address(ctx->state, str);
+  data = rbx_string_as_cstr(ctx->state, str);
   
   return data[index];
 }

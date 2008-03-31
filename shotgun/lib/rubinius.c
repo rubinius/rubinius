@@ -53,8 +53,8 @@ OBJECT rbs_symbol_to_string(STATE, OBJECT sym) {
   return str;
 }
 
-const char *rbs_symbol_to_cstring(STATE, OBJECT sym) {
-  return string_byte_address(state, rbs_symbol_to_string(state, sym));
+const char* rbs_symbol_to_cstring(STATE, OBJECT sym) {
+  return rbx_string_as_cstr(state, rbs_symbol_to_string(state, sym));
 }
 
 OBJECT rbs_get_field_raw(OBJECT obj, int fel) {
@@ -119,7 +119,7 @@ const char *rbs_inspect_verbose(STATE, OBJECT obj) {
     }
     
     if (kls == state->global->string) {
-      s = string_byte_address(state, obj);
+      s = rbx_string_as_cstr(state, obj);
     }
     
     if (s) {

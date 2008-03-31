@@ -70,7 +70,7 @@ class ShotgunPrimitives
       f.puts "    { NULL, 0 } };"
       f.puts <<-CODE.gsub(/^\s{6}/,'')
         int i;
-        char *target = string_byte_address(state, str);
+        char *target = rbx_string_as_cstr(state, str);
         for(i = 0; pi[i].name; i++) {
           if(!strcmp(target, pi[i].name)) return pi[i].index;
         }
@@ -592,7 +592,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
 
     native_int j = io_to_fd(msg->recv);
-    char *buf = string_byte_address(state, t1);
+    char *buf = rbx_string_as_cstr(state, t1);
     native_int k = N2I(string_get_bytes(t1));
 
     k = write(j, buf, k);
@@ -622,12 +622,12 @@ class ShotgunPrimitives
 
     t2 = string_new2(state, NULL, N2I(t1));
     j = io_to_fd(msg->recv);
-    k = read(j, string_byte_address(state, t2), N2I(t1));
+    k = read(j, rbx_string_as_cstr(state, t2), N2I(t1));
     if(k == 0) {
       t2 = Qnil;
     } else if(k != N2I(t1)) {
       t3 = string_new2(state, NULL, k);
-      memcpy(string_byte_address(state, t3), string_byte_address(state, t2), k);
+      memcpy(rbx_string_as_cstr(state, t3), rbx_string_as_cstr(state, t2), k);
       t2 = t3;
     }
 
@@ -668,7 +668,7 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
     POP(t3, FIXNUM);
 
-    _path = string_byte_address(state, t1);
+    _path = rbx_string_as_cstr(state, t1);
     mode = N2I(t2);
     perm = N2I(t3);
 
@@ -765,7 +765,7 @@ class ShotgunPrimitives
 
     POP(t1, STRING);
 
-    name = string_byte_address(state, t1);
+    name = rbx_string_as_cstr(state, t1);
     if(unlink(name) == 0) {
       RET(Qtrue);
     } else {
@@ -826,10 +826,10 @@ class ShotgunPrimitives
 #endif
 
 #ifdef HAVE_STRUCT_TM_TM_ZONE
-    tm.tm_zone = string_byte_address(state, array_get(state, t1, 10));
+    tm.tm_zone = rbx_string_as_cstr(state, array_get(state, t1, 10));
 #endif
 
-    format = string_byte_address(state, t2);
+    format = rbx_string_as_cstr(state, t2);
 
     out = strftime(str, MAX_STRFTIME_OUTPUT-1, format, &tm);
 
@@ -1467,7 +1467,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
-    char *path = string_byte_address(state, t1);
+    char *path = rbx_string_as_cstr(state, t1);
     t2 = cpu_unmarshal_file(state, path, N2I(t2));
 
     RET(t2);
@@ -1578,8 +1578,8 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
     t3 = stack_pop();
 
-    contents = cstr2bstr(string_byte_address(state, msg->recv));
-    name = string_byte_address(state, t1);
+    contents = cstr2bstr(rbx_string_as_cstr(state, msg->recv));
+    name = rbx_string_as_cstr(state, t1);
     t1 = syd_compile_string(state, name, contents, N2I(t2), RTEST(t3));
     bdestroy(contents);
 
@@ -1598,7 +1598,7 @@ class ShotgunPrimitives
     POP(t1, STRING); /* The filename */
     t2 = stack_pop();
 
-    name = string_byte_address(state, t1);
+    name = rbx_string_as_cstr(state, t1);
     file = fopen(name, "r");
 
     if(!file) {
@@ -1898,7 +1898,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
     t3 = cpu_unmarshal(state,
-                       (uint8_t*)string_byte_address(state, t1),
+                       (uint8_t*)rbx_string_as_cstr(state, t1),
                        N2I(string_get_bytes(t1)),
                        N2I(t2));
     RET(t3);
@@ -1916,7 +1916,7 @@ class ShotgunPrimitives
     POP(t2, STRING);
     POP(t3, FIXNUM);
 
-    _path = string_byte_address(state, t2);
+    _path = rbx_string_as_cstr(state, t2);
     RET(cpu_marshal_to_file(state, t1, _path, N2I(t3)));
     CODE
   end
@@ -1931,7 +1931,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
-    _path = string_byte_address(state, t1);
+    _path = rbx_string_as_cstr(state, t1);
     RET(cpu_unmarshal_file(state, _path, N2I(t2)));
     CODE
   end
@@ -2641,7 +2641,7 @@ class ShotgunPrimitives
 
     /* TODO: use t2. */
 
-    pat = string_byte_address(state, t1);
+    pat = rbx_string_as_cstr(state, t1);
     k = glob(pat, flags, NULL, &gd);
     t2 = array_new(state, gd.gl_pathc);
     for(j = 0; j < gd.gl_pathc; j++) {
@@ -2661,7 +2661,7 @@ class ShotgunPrimitives
 
     POP(t1, STRING);
 
-    path = string_byte_address(state, t1);
+    path = rbx_string_as_cstr(state, t1);
     if(!chdir(path)) {
       RET(Qtrue);
     } else {
@@ -3251,13 +3251,13 @@ class ShotgunPrimitives
         return FALSE;
       }
 
-      tmp = string_byte_address(state, t3);
+      tmp = rbx_string_as_cstr(state, t3);
       argv[j] = tmp ? strdup(tmp) : NULL;
     }
 
     argv[k] = NULL;
 
-    tmp = string_byte_address(state, t1);
+    tmp = rbx_string_as_cstr(state, t1);
     file = tmp ? strdup(tmp) : NULL;
 
     cpu_task_disable_preemption(state);
@@ -3308,8 +3308,8 @@ class ShotgunPrimitives
 
     GUARD(STRING_P(msg->recv));
     POP(t1, STRING);
-    RET(string_new(state, crypt(string_byte_address(state, msg->recv),
-        string_byte_address(state, t1))));
+    RET(string_new(state, crypt(rbx_string_as_cstr(state, msg->recv),
+        rbx_string_as_cstr(state, t1))));
     CODE
   end
 
@@ -3324,7 +3324,7 @@ class ShotgunPrimitives
 
     t2 = Qnil;
 
-    key = string_byte_address(state, t1);
+    key = rbx_string_as_cstr(state, t1);
     if (key) {
       char *value = getenv(key);
 
@@ -3347,7 +3347,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     t2 = stack_pop();
 
-    key = string_byte_address(state, t1);
+    key = rbx_string_as_cstr(state, t1);
     if(key) {
       /* if t2 is nil, we need to delete the variable
        * and return its value.
@@ -3362,7 +3362,7 @@ class ShotgunPrimitives
         }
       } else {
         GUARD(STRING_P(t2));
-        value = string_byte_address(state, t2);
+        value = rbx_string_as_cstr(state, t2);
         if(value) {
           setenv(key, value, 1);
           RET(t2);
@@ -3607,7 +3607,7 @@ class ShotgunPrimitives
     for(i = 0; i < argc; i++) {
       str = array_get(state, ary, i);
       if(STRING_P(str)) {
-        argv[i] = strdup(string_byte_address(state, str));
+        argv[i] = strdup(rbx_string_as_cstr(state, str));
       } else {
         argv[i] = strdup("");
       }
@@ -3676,7 +3676,7 @@ class ShotgunPrimitives
 
     POP(t1, STRING);
 
-    dir = opendir(string_byte_address(state, t1));
+    dir = opendir(rbx_string_as_cstr(state, t1));
     if(!dir) RAISE_FROM_ERRNO("Unable to open directory");
 
     RET(ffi_new_pointer(state, dir));
@@ -4227,7 +4227,7 @@ class ShotgunPrimitives
 
 #if ENABLE_DTRACE
     if (RUBINIUS_RUBY_PROBE_ENABLED()) {
-      RUBINIUS_RUBY_PROBE(string_byte_address(state, t1), string_byte_address(state, t2));
+      RUBINIUS_RUBY_PROBE(rbx_string_as_cstr(state, t1), rbx_string_as_cstr(state, t2));
     }
 #endif
 
@@ -4387,7 +4387,7 @@ class ShotgunPrimitives
     t3 = string_new2(state, NULL, k);
     SET_CLASS(t3, msg->recv);
     t3->IsTainted = msg->recv->IsTainted;
-    data = string_byte_address(state, t3);
+    data = rbx_string_as_cstr(state, t3);
 
     t2 = stack_pop();
     if(FIXNUM_P(t2)) {
@@ -4398,7 +4398,7 @@ class ShotgunPrimitives
 
       t3->IsTainted |= t2->IsTainted;
       bytes = N2I(string_get_bytes(t2));
-      str = string_byte_address(state, t2);
+      str = rbx_string_as_cstr(state, t2);
       if(bytes == 1) {
         memset(data, str[0], k);
       } else if(bytes > 1) {
@@ -4431,8 +4431,8 @@ class ShotgunPrimitives
     char *a, *b;
 
     POP(t1, STRING);
-    a = string_byte_address(state, msg->recv);
-    b = string_byte_address(state, t1);
+    a = rbx_string_as_cstr(state, msg->recv);
+    b = rbx_string_as_cstr(state, t1);
     j = N2I(string_get_bytes(msg->recv));
     k = N2I(string_get_bytes(t1));
     size = j < k ? j : k;
@@ -4491,8 +4491,8 @@ class ShotgunPrimitives
     if(dest >= n) { RET(msg->recv); }
     if(size > n - dest) { size = n - dest; }
 
-    a = string_byte_address(state, msg->recv);
-    b = string_byte_address(state, t1);
+    a = rbx_string_as_cstr(state, msg->recv);
+    b = rbx_string_as_cstr(state, t1);
     memcpy(a + dest, b + start, size);
 
     RET(msg->recv);
@@ -4523,8 +4523,8 @@ class ShotgunPrimitives
     bytes = N2I(string_get_bytes(msg->recv));
     if(size > bytes) { size = bytes; }
 
-    a = string_byte_address(state, msg->recv);
-    b = string_byte_address(state, t1);
+    a = rbx_string_as_cstr(state, msg->recv);
+    b = rbx_string_as_cstr(state, t1);
     cmp = memcmp(a, b + start, size);
     if(cmp < 0) {
       RET(I2N(-1));
