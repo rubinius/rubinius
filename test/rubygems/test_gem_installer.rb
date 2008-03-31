@@ -109,7 +109,7 @@ load 'my_exec'
     @installer.gem_dir = '/nonexistent'
     expanded_gem_dir = @installer.send(:expand_and_validate_gem_dir)
     if win_platform?
-      expected = File.join(Config::CONFIG['bindir'][0..2], 'nonexistent').downcase
+      expected = File.expand_path('/nonexistent').downcase
       expanded_gem_dir = expanded_gem_dir.downcase
     else
       expected = '/nonexistent'
@@ -715,7 +715,7 @@ load 'my_exec'
     @installer.env_shebang = true
 
     shebang = @installer.shebang 'my_exec'
-    assert_equal "#!/usr/bin/env ruby", shebang
+    assert_equal "#!/usr/bin/env #{Gem::ConfigMap[:RUBY_INSTALL_NAME]}", shebang
   end
 
   def test_shebang_nested

@@ -126,7 +126,7 @@ class Gem::Commands::InstallCommand < Gem::Command
       end
     end
 
-    exit exit_code
+    raise Gem::SystemExitException, exit_code
   end
 
 end

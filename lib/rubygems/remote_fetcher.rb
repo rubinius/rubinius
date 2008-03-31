@@ -226,9 +226,14 @@ class Gem::RemoteFetcher
         request.basic_auth(uri.user, uri.password)
       end
 
-      request.add_field('User-Agent', "RubyGems/#{Gem::RubyGemsVersion} #{Gem::Platform.local}")
-      request.add_field('Connection', 'keep-alive')
-      request.add_field('Keep-Alive', '300')
+      ua = "RubyGems/#{Gem::RubyGemsVersion} #{Gem::Platform.local}"
+      ua << " Ruby/#{RUBY_VERSION} (#{RUBY_RELEASE_DATE}"
+      ua << " patchlevel #{RUBY_PATCHLEVEL}" if defined? RUBY_PATCHLEVEL
+      ua << ")"
+
+      request.add_field 'User-Agent', ua
+      request.add_field 'Connection', 'keep-alive'
+      request.add_field 'Keep-Alive', '30'
 
       # HACK work around EOFError bug in Net::HTTP
       retried = false
@@ -259,7 +264,7 @@ class Gem::RemoteFetcher
         open_uri_or_path(response['Location'], depth + 1, &block)
       else
         raise Gem::RemoteFetcher::FetchError,
-              "bad response #{response.status}"
+              "bad response #{response.message} #{response.code}"
       end
     end
   end

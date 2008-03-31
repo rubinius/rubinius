@@ -228,7 +228,7 @@ class TestGem < RubyGemTestCase
     install_gem foo
     Gem.source_index = nil
 
-    Gem.activate 'foo', false
+    Gem.activate 'foo'
 
     assert_equal true, Gem.loaded_specs.keys.include?('foo')
   end
@@ -327,6 +327,13 @@ class TestGem < RubyGemTestCase
                  Gem.required_location("a", "code.rb", "< 2")
     assert_equal File.join(@tempdir, *%w[gemhome gems a-2 lib code.rb]),
                  Gem.required_location("a", "code.rb", "= 2")
+  end
+
+  def test_self_ruby_version
+    version = RUBY_VERSION.dup
+    version << ".#{RUBY_PATCHLEVEL}" if defined? RUBY_PATCHLEVEL
+
+    assert_equal Gem::Version.new(version), Gem.ruby_version
   end
 
   def test_self_searcher
