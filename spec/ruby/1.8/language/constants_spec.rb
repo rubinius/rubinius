@@ -68,6 +68,10 @@ describe "Constant lookup rule" do
       Object.send :remove_const, :M
     end
   end
+  
+  it "can't lookup a constant on something other than a Module or Class" do
+    lambda { :File::TEST }.should raise_error()
+  end
 end
 
 describe "Constant declaration" do
