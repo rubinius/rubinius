@@ -69,8 +69,8 @@ describe "Constant lookup rule" do
     end
   end
   
-  it "can't lookup a constant on something other than a Module or Class" do
-    lambda { :File::TEST }.should raise_error()
+  it "only searches a Module or Class" do
+    lambda { :File::TEST }.should raise_error(TypeError)
   end
 end
 

@@ -292,8 +292,18 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
 
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
   OBJECT cur, tbl, val;
+  char *str;
 
   // printf("Looking for %s under %s.\n", rbs_symbol_to_cstring(state, sym), rbs_symbol_to_cstring(state, module_get_name(under)));
+
+  if(!(RISA(under, class) || RISA(under, module))) {
+    str = malloc(256);
+    snprintf(str, 256, "%s is not a class/module", _inspect(under));
+    cpu_raise_exception(state, c,
+      cpu_new_exception(state, c, state->global->exc_type, str));
+    free(str);
+    return Qundef;
+  }
 
   cur = under;
 

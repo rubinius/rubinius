@@ -1,2 +1,1 @@
 fails:Constant lookup rule looks up in modules included in Object
-fails:Constant lookup rule can't lookup a constant on something other than a Module or Class
