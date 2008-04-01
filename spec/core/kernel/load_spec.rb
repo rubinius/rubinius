@@ -22,7 +22,6 @@ $load_spec_rooby = nil
 require 'rbconfig'
 
 describe "Kernel#load" do
-
   # Avoid storing .rbc and .rba in repo
   before :all do
     Dir.chdir($load_fixture_dir) do |dir|
@@ -42,7 +41,7 @@ describe "Kernel#load" do
     load('load_spec_2.rbc').should == true
   end
 
-  it "compiles a new .rbc file whenever using the source file" do
+  it "compiles a new .rbc file if one does not exist" do
     `rm -f #{$load_fixture_dir}/load_spec_2.rbc`
 
     load('load_spec_2.rb').should == true
@@ -135,5 +134,35 @@ describe "Kernel#load" do
     load('load_spec_10.rb').should == true
     $load_spec_10.nil?.should == false
   end
+
+  it "recompiles the file each time if the second parameter is a Hash with non-false :recompile" do
+    File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", "w+") do |f|
+      f.puts "$load_spec_dynamic = :first_write" 
+    end
+
+    load("load_spec_dynamic.rb").should == true
+    $load_spec_dynamic.should == :first_write
+
+    load("load_spec_dynamic.rb").should == true
+    $load_spec_dynamic.should == :first_write
+
+    File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", "w+") do |f|
+      f.puts "$load_spec_dynamic = :second_write" 
+    end
+
+    system "touch #{$load_fixture_dir}/load_spec_dynamic.rbc"
+
+    load("load_spec_dynamic.rb").should == true
+    $load_spec_dynamic.should == :first_write
+
+    load("load_spec_dynamic.rb", :recompile => true).should == true
+    $load_spec_dynamic.should == :second_write
+    
+    load("load_spec_dynamic.rb").should == true
+    $load_spec_dynamic.should == :second_write
+
+    Dir.glob("#{$load_fixture_dir}/load_dynamic.rb*") {|f| File.delete f }
+  end
 end
+
 
