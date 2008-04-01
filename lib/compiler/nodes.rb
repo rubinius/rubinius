@@ -9,22 +9,39 @@ class Node
   end
 
   def self.create(compiler, sexp)
-    sexp.shift
+    kind = sexp.shift
 
     node = new(compiler)
-    args = node.consume(sexp)
 
-    begin
-      if node.respond_to? :normalize
-        node = node.normalize(*args)
-      else
-        node.args(*args)
+    # Anywhere within, a piece of code may throw the symbol for the
+    # node type that it wishes to unwind the processing branch to.
+    # If this happens, then the thrown substitute value (defaulting
+    # to nil) is returned instead of the normal node product.
+    # 
+    # For example, Call#consume can detect the Rubinius.compile_if
+    # construct and throw :newline which causes this method's return
+    # value to be nil. So this Newline and the entire rest of the
+    # expression are replaced by a nil output, which should be
+    # then handled or optimized away by the node upstream (usually
+    # a Block.)
+    #
+    # Whoever uses the throw MUST ensure that the sexp and the AST
+    # are in a sane state. We do not worry about it here.
+    catch(kind) {
+      args = node.consume(sexp)
+
+      begin
+        if node.respond_to? :normalize
+          node = node.normalize(*args)
+        else
+          node.args(*args)
+        end
+      rescue ArgumentError => e
+        raise ArgumentError, "#{kind} (#{self}) takes #{args.size} argument(s): passed #{args.inspect} (#{e.message})", e.context
       end
-    rescue ArgumentError => e
-      raise ArgumentError, "#{kind} (#{self}) takes #{args.size} argument(s): passed #{args.inspect} (#{e.message})", e.context
-    end
 
-    return node
+      node
+    }
   end
 
   def initialize(compiler)
@@ -1575,6 +1592,15 @@ class Node
       end
     end
 
+    # Rubinius.compile_if is easiest to detect here; if it is found,
+    # we throw immediately to unwind this processing branch back to
+    # wherever it is that the conditional compiler wants us to go.
+    # See plugins.rb.
+    def consume(sexp)
+      use_plugin self, :conditional_compilation, sexp
+      super(sexp)
+    end
+
     def args(object, meth, args=nil)
       @object, @method, @arguments = object, meth, args
 
@@ -1841,8 +1867,18 @@ class Node
     kind :iter
 
     def consume(sexp)
-      c = convert(sexp[0])
-      sexp[0] = c
+      # Conditional compilation support. If a conditional section is
+      # matched as compilable, :iter is thrown to be caught here. We
+      # strip out this unnecessary surrounding block including its
+      # Newline and replace it with our contents. The condition may
+      # seem a bit strange but it is because the catch returns nil
+      # if :iter _is_ thrown, otherwise it returns the block value
+      # as normal.
+      unless catch(:iter) { sexp[0] = convert(sexp[0]) }
+        throw :newline, convert(sexp[2])
+      end
+
+      c = sexp[0]
 
       # Get rid of the linked list of dasgn_curr's at the top
       # of a block in at iter.

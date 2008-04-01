@@ -1,7 +1,5 @@
 require File.dirname(__FILE__) + "/spec_helper"
 
-require 'compiler/graph'
-
 # This is just:
 #   Rubinius.compile_if($CompilerSpecsConditional) { $stderr.puts "Conditional" }
 
@@ -73,12 +71,5 @@ describe Compiler, "conditional compilation with Rubinius.compile_if given an ar
     a.body.child.method.should == b.body.child.method
     a.body.child.object.name.should == b.body.child.object.name
   end
-
-#  it "produces the code contained within its block normally in the bytecode output" do
-#    $CompilerSpecsConditional = true
-#    
-#    c = Compiler.new Compiler::Generator
-#    c.into_script(@full_sexp.dup).should == c.convert_sexp(@included_sexp.dup)
-#  end
 end
 

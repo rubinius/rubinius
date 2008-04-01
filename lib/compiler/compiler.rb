@@ -184,6 +184,7 @@ class Compiler
     activate_default :fastsystem
     activate_default :fastgeneric
     activate_default :auto_primitive
+    activate_default :conditional_compilation
   end
 
   def activate_default(name)
