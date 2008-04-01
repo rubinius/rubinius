@@ -70,7 +70,7 @@ class MkSpec
     @base = base
   end
 
-  def create_file(dir, name)
+  def create_file(dir, name, mod, meth)
     file = File.join dir, name
 
     unless File.exist? file then
@@ -80,6 +80,12 @@ class MkSpec
 
       File.open file, 'w' do |f|
         f.puts "require File.dirname(__FILE__) + '/#{parent_dirs}spec_helper'"
+        f.puts
+        f.puts "describe '#{mod}##{meth}' do"
+        f.puts "  it 'should spec something' do"
+        f.puts "    raise 'not yet'"
+        f.puts "  end"
+        f.puts "end"
       end
 
       puts file
@@ -107,7 +113,7 @@ class MkSpec
 
       methods.each do |method|
         name = NameMap.get_spec_name method, mod.name
-        create_file subdir, name unless File.exist? name
+        create_file subdir, name, mod, method unless File.exist? name
       end
 
       sub_mods = mod.constants.sort.map do |constant_name|
