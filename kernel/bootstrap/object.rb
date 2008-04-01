@@ -47,4 +47,8 @@ class Object
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def become!(obj)
+    Ruby.primitive :object_become
+    raise PrimitiveFailure, "primitive failed"
+  end
 end

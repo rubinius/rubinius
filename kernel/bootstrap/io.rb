@@ -4,6 +4,11 @@ class IO
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def self.create_pipe(lhs, rhs)
+    Ruby.primitive :create_pipe
+    raise PrimitiveFailure, "primitive failed"
+  end
+
   def write(str)
     Ruby.primitive :io_write
     raise PrimitiveFailure, "IO#write failed. Might not have passed a string."
@@ -30,5 +35,20 @@ class IO
 
   def ttyname
     prim_operation(1)
+  end
+
+  def reopen(other)
+    Ruby.primitive :io_reopen
+    raise ArgumentError, "only accepts an IO object"
+  end
+
+  def io_close
+    Ruby.primitive :io_close
+    raise PrimitiveFailure, "primitive failed"
+  end
+
+  def close
+    Ruby.primitive :io_close_ng
+    raise PrimitiveFailure, "IO#close primitive failed"
   end
 end

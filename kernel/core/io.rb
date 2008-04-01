@@ -529,13 +529,6 @@ class IO
     return 0
   end
 
-  def close()
-    raise IOError, "Instance of IO already closed" if closed?
-
-    io_close or raise SystemCallError, "Invalid file descriptor"
-    nil
-  end
-
   def descriptor
     @descriptor
   end
