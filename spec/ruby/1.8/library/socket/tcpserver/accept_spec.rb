@@ -2,33 +2,28 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "TCPServer#accept" do
-  before(:each) do
-    @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
-    @thread = Thread.new do
-      client = @server.accept
-      @data = client.read(5)
+  it "accepts what is written by the client" do
+    server = TCPServer.new('127.0.0.1', SocketSpecs.port)
+    data = nil
+    t = Thread.new do
+      client = server.accept
+      data = client.read(5)
       client << "goodbye"
       client.close
     end
-  end
-
-  after(:each) do
-    @server.close if @server
-    @server = nil
-    @socket.close if @socket
-    @socket = nil
-  end
-
-  it "accepts what is written by the client" do
-    @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
-    @socket.write('hello')
-    @socket.read(7).should == 'goodbye'
-    @thread.join
-    @data.should == 'hello'
+    Thread.pass until t.status == "sleep"
+    
+    socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
+    socket.write('hello')
+    socket.read.should == 'goodbye'
+    t.join
+    data.should == 'hello'
+    server.close
+    socket.close
   end
 
   it "can be interrupted by Thread#kill" do
-    server = TCPServer.new(nil, SocketSpecs.port + 1)
+    server = TCPServer.new(nil, SocketSpecs.port)
     t = Thread.new {
       server.accept
     }
@@ -47,7 +42,7 @@ describe "TCPServer#accept" do
   end
 
   it "can be interrupted by Thread#raise" do
-    server = TCPServer.new(nil, SocketSpecs.port + 1)
+    server = TCPServer.new(nil, SocketSpecs.port)
     t = Thread.new {
       server.accept
     }

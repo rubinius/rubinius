@@ -533,6 +533,7 @@ class IO
     raise IOError, "Instance of IO already closed" if closed?
 
     io_close or raise SystemCallError, "Invalid file descriptor"
+    nil
   end
 
   def descriptor
