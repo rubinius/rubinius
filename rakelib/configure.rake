@@ -123,6 +123,10 @@ def write_rbconfig
     f.puts "#++"
     f.puts
     f.puts "module Config"
+    f.puts "  unless defined? RUBY_ENGINE then"
+    f.puts "    raise \"looks like you loaded rubinius' rbconfig from ruby\""
+    f.puts "  end"
+    f.puts
     f.puts "  prefix = File.dirname(File.dirname(__FILE__))"
     f.puts
     f.puts "  CONFIG = {}"
@@ -142,6 +146,8 @@ def write_rbconfig
     f.puts "  CONFIG['wordsize']          = Rubinius::WORDSIZE"
 
     f.puts "  CONFIG['rubyhdrdir']        = File.join(prefix,'shotgun/lib/subtend')"
+    # HACK: we need something equivalent, but I'm cheating for now - zenspider
+    f.puts "  CONFIG['LDSHARED']          = 'cc -dynamic -bundle -undefined suppress -flat_namespace'"
 
     f.puts "end"
     f.puts
