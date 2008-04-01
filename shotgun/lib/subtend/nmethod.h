@@ -20,4 +20,7 @@ typedef struct native_method native_method;
 #define nmethod_get_data(obj) cmethod_get_bytecodes(obj)
 #define nmethod_set_data(obj, data) cmethod_set_bytecodes(obj, data)
 
+#define nmethod_get_args(obj) ((native_method*) BYTES_OF(nmethod_get_data((obj))))->args
+#define nmethod_set_args(obj,val) (((native_method*) BYTES_OF(nmethod_get_data((nm))))->args = val)
+
 #endif
