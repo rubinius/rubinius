@@ -1,12 +1,13 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-describe "Using the literal form to create Symbols" do
-  it 'Colon followed by a valid series of characters creates a Symbol' do
+describe "A Symbol literal" do
+  it "is a ':' followed by any number of valid characters" do
     a = :foo
-    [a.class == Symbol, a.inspect == ':foo', a == :foo].all? {|x| x == true}.should == true
+    a.should be_kind_of(Symbol)
+    a.inspect.should == ':foo'
   end
 
-  it 'Anything that would be a valid variable, method or constant name can be used in a literal Symbol' do
+  it "is a ':' followed by any valid variable, method, or constant name" do
     # Add more of these?
     [ :Foo,
       :foo,
@@ -20,23 +21,25 @@ describe "Using the literal form to create Symbols" do
       :_Foo,
       :&,
       :_9
-    ].all? {|x| Symbol === x}.should == true
+    ].each { |s| s.should be_kind_of(Symbol) }
   end
 
-  it 'Colon followed by a single- or double-quoted String creates a Symbol which may contain nonvalid characters' do
-    [ :'foo bar'.class, :'foo bar'.inspect,
-      :'++'.class, :'++'.inspect,
-      :'9'.class, :'9'.inspect,
-      :"foo #{1 + 1}".class, :"foo #{1 + 1}".inspect
-    ].should == 
-      [ Symbol, ':"foo bar"',
-        Symbol, ':"++"',
-        Symbol, ':"9"',
-        Symbol, ':"foo 2"'
-      ]
+  it "is a ':' followed by a single- or double-quoted string that may contain otherwise invalid characters" do
+    [ [:'foo bar',      ':"foo bar"'],
+      [:'++',           ':"++"'],
+      [:'9',            ':"9"'],
+      [:"foo #{1 + 1}", ':"foo 2"'],
+    ].each { |sym, str| 
+      sym.should be_kind_of(Symbol)
+      sym.inspect.should == str
+    }
   end
 
-  it 'If the String consists of valid characters only, the representation is converted to a plain literal' do
+  it "may contain '::' in the string" do
+    :'Some::Class'.should be_kind_of(Symbol)
+  end
+
+  it "is converted to a literal, unquoted representation if the symbol contains only valid characters" do
     a, b, c = :'foo', :'+', :'Foo__9'
     a.class.should == Symbol
     a.inspect.should == ':foo'
@@ -46,27 +49,24 @@ describe "Using the literal form to create Symbols" do
     c.inspect.should == ':Foo__9'
   end
 
-  it 'The string may not be empty' do
+  it "must not be an empty string" do
     lambda { eval ":''" }.should raise_error(SyntaxError)
   end
 
-  it '%s general-delimited expression creates Symbols like a single-quoted String' do
+  it "can be created by the %s-delimited expression" do
     a, b = :'foo bar', %s{foo bar}
     b.class.should == Symbol
     b.inspect.should == ':"foo bar"'
     b.should == a
   end
 
-  it 'Each time a Symbol is constructed, the same object is returned' do
-    var = 'foo'
-    a, b, c = :foo, :foo, :foo 
-    d, e, f = :'foo', :'foo', :'foo'
-    g, h, i = :"#{var}", :"#{var}", :"#{var}"
-
-    ( a.equal? b and b.equal? c and
-      c.equal? d and d.equal? e and
-      e.equal? f and f.equal? g and
-      g.equal? h and h.equal? i
-    ).should == true
+  it "is the same object when created from identical strings" do
+    var = "@@var"
+    [ [:symbol, :symbol],
+      [:'a string', :'a string'],
+      [:"#{var}", :"#{var}"]
+    ].each { |a, b|
+      a.equal?(b).should == true
+    }
   end
 end
