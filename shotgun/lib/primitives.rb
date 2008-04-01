@@ -4538,6 +4538,28 @@ class ShotgunPrimitives
     }
     CODE
   end
+
+  defprim :io_close_ng
+  def io_close_ng
+    <<-CODE
+    ARITY(0);
+    native_int j;
+
+    GUARD(IO_P(msg->recv));
+
+    j = io_to_fd(msg->recv);
+
+    if(j == -1) {
+      RAISE("IOError", "instance of IO already closed");
+    } else if(close(j)) {
+      RAISE_FROM_ERRNO("Unable to close IO object");
+    } else {
+      cpu_event_clear(state, j);
+      io_set_descriptor(msg->recv, I2N(-1));
+      RET(Qnil);
+    }
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new
