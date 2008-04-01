@@ -31,6 +31,13 @@ describe "IO#reopen" do
     }
   end
 
+  it "reassociates self to another file/descriptor but returns self" do
+    @file1.reopen(@file2).should == @file1
+    @file2.reopen(@file1).should == @file2
+    @file1.reopen(@name2).should == @file1
+    @file2.reopen(@name2).should == @file2
+  end
+  
   it "reassociates self with a new stream opened on path, when self in initial state" do
     @file1.reopen(@name2)
     @file1.gets.should == "Line 1: One\n"
