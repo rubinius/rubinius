@@ -157,7 +157,7 @@ describe "File#truncate" do
     lambda { @file.truncate(42) }.should raise_error(IOError)
   end
   
-  compliant_on :ruby do
+  compliant_on :ruby, :jruby do
     it "raises an IOError if file is not opened for writing" do
       file = File.new(@name, 'r')
       lambda { file.truncate(42) }.should raise_error(IOError)
