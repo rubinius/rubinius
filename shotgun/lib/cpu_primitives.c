@@ -65,7 +65,14 @@ int _object_stores_bytes(OBJECT self);
 // defines a required arity for a primitive
 // return true because we want other handler code to ignore it
 // this is because it is raised directly in the primitive as an exception
-#define ARITY(required) if((required) != msg->args) { cpu_raise_arg_error(state, c, msg->args, required); DONE(); }
+#define ARITY(required) { \
+  native_int req = (required); \
+  if(req >= 0 && req != msg->args) { \
+    cpu_raise_arg_error(state, c, msg->args, req); \
+    DONE(); \
+  } \
+}
+
 // for primitive protection
 #define GUARD(predicate_expression) if( ! (predicate_expression) ) { FAIL(); }
 // popping with type checking -- a predicate function must be specified
