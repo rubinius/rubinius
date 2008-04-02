@@ -1,7 +1,6 @@
 #!/usr/bin/env rubinius
 
-require 'bytecode/compiler'
-require 'bytecode/rubinius'
+require 'compiler/bytecode'
 require 'codearchive'
 
 until ARGV.empty?
