@@ -217,6 +217,7 @@ class Debugger
       if mthd
         cm = get_method(mod, mthd_type, mthd).compiled_method
         ip = 0
+        last = cm.lines.last.last + 1 unless last
       else
         # Decode current method
         cm = dbg.eval_context.method
