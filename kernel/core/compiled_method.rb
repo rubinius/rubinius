@@ -96,7 +96,7 @@ end
 #
 class CompiledMethod
   # TODO: Delete/reuse arguments (field 9), scope (field 10), and cache (field 14) fields from C structure
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :args => 9, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17
   def __ivars__  ; @__ivars__  ; end
 
   # true if this method is primitive, false otherwise
@@ -137,6 +137,13 @@ class CompiledMethod
   # of inner methods.
   def literals   ; @literals   ; end
 
+  # Tuple holding the arguments defined on a method.
+  # Consists of 3 values:
+  # - a tuple of symbols naming required args (or nil if none)
+  # - a tuple of symbols naming optional args (or nil if none)
+  # - the symbol for any splat arg (or nil if none)
+  def args       ; @args       ; end
+
   # Tuple of tuples. Inner tuples contain
   # low IP, high IP and IP of exception
   # handler.
@@ -156,8 +163,8 @@ class CompiledMethod
   # low IP, high IP and line number as integer.
   def lines      ; @lines      ; end
 
-  # These two are no longer used it seems.
-  # TODO: investigate it
+  # Holds the path of a script CompiledMethod created using eval.
+  # Required for the proper functioning of __FILE__ under eval.
   def path       ; @path       ; end
 
   # local variable names
@@ -219,6 +226,10 @@ class CompiledMethod
 
   def literals=(tup)
     @literals = tup
+  end
+
+  def args=(tup)
+    @args = tup
   end
 
   def file=(val)
