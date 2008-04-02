@@ -704,27 +704,6 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :io_close
-  def io_close
-    <<-CODE
-    ARITY(0);
-    native_int j;
-
-    GUARD(IO_P(msg->recv));
-
-    j = io_to_fd(msg->recv);
-    GUARD(j >= 0);
-
-    if(close(j)) {
-      RET(Qfalse);
-    } else {
-      cpu_event_clear(state, j);
-      io_set_descriptor(msg->recv, I2N(-1));
-      RET(Qtrue);
-    }
-    CODE
-  end
-
   defprim :io_operation
   def io_operation
     <<-CODE
