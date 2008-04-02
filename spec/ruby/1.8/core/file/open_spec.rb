@@ -455,6 +455,12 @@ describe "File.open" do
     @fh.chmod(000)
     lambda { File.open(@file) }.should raise_error(Errno::EACCES)
   end
+
+  it "raises an Errno::EACCES when opening read-only file" do
+    @fh = File.open(@file, "w")
+    @fh.chmod(0444)
+    lambda { File.open(@file, "w") }.should raise_error(Errno::EACCES)
+  end
   
   it "opens a file for binary read" do
     @fh = File.open(@file, "rb")
