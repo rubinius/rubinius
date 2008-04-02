@@ -107,18 +107,18 @@ class Debugger
 
         return [nil] unless str and width > 0
 
-        str.strip!
+        str.rstrip!
         lines = []
         until str.length <= width do
           if pos = str[0, width].rindex(/[\s\-,]/)
             # Found a break on whitespace or dash
-            line, str = str[0..pos].strip, str[pos+1..-1].strip
+            line, str = str[0..pos].rstrip, str[pos+1..-1].strip
           elsif pos = str[0, width-1].rindex(/[^\w]/)
             # Found a non-word character to break on
-            line, str = str[0...pos].strip, str[pos..-1].strip
+            line, str = str[0...pos].rstrip, str[pos..-1].strip
           else
             # Force break at width
-            line, str = str[0...width].strip, str[width..-1].strip
+            line, str = str[0...width].rstrip, str[width..-1].strip
           end
 
           # Pad with spaces to requested width if an alignment is specified

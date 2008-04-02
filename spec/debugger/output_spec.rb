@@ -40,8 +40,8 @@ describe "Output::Columns#wrap" do
   end
 
   it "trims leading and trailing whitespace from split lines" do
-    @cols.wrap("  45  ", 2).should == ["45"]
-    @cols.wrap("  45  54    63 ", 2).should == ["45", "54", "63"]
+    @cols.wrap("  45  ", 2).should == ["","45"]
+    @cols.wrap("  45  54    63 ", 2).should == ["","45", "54", "63"]
   end
 
   it "pads lines with spaces if an alignment is specified" do
