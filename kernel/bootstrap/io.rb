@@ -42,11 +42,6 @@ class IO
     raise ArgumentError, "only accepts an IO object"
   end
 
-  def io_close
-    Ruby.primitive :io_close
-    raise PrimitiveFailure, "primitive failed"
-  end
-
   def close
     Ruby.primitive :io_close_ng
     raise PrimitiveFailure, "IO#close primitive failed"
