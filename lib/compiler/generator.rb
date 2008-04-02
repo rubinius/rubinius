@@ -154,7 +154,7 @@ class Compiler
       cm.exceptions = encode_exceptions()
       cm.serial = 0
       cm.local_names = desc.locals.encoded_order
-      cm.args = desc.args
+      #cm.args = desc.args
       return cm
     end
     

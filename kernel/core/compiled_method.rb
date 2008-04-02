@@ -96,7 +96,7 @@ end
 #
 class CompiledMethod
   # TODO: Delete/reuse arguments (field 9), scope (field 10), and cache (field 14) fields from C structure
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17
   def __ivars__  ; @__ivars__  ; end
 
   # true if this method is primitive, false otherwise
@@ -159,7 +159,6 @@ class CompiledMethod
   # These two are no longer used it seems.
   # TODO: investigate it
   def path       ; @path       ; end
-  def cache      ; @cache      ; end
 
   # local variable names
   def bonus      ; @bonus      ; end
@@ -176,10 +175,6 @@ class CompiledMethod
   # lexical scope of method in source
   # instance of StaticScope
   def staticscope; @staticscope; end
-
-  # method arguments
-  # TODO: clarify this statement
-  def args       ; @args       ; end
 
   ##
   # This is runtime hints, added to the method by the VM to indicate how it's

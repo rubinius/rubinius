@@ -2143,10 +2143,19 @@ class Node
         end
       end
 
-      required =  @arguments.required.map {|x| x.name} if @arguments.required
-      optional =  @arguments.optional.map {|x| x.name} if @arguments.optional
-        
-      desc.args = [required, optional, @arguments.splat && @arguments.splat.name]
+      args = Tuple.new(3)
+      if @arguments.required and @arguments.required.size > 0
+        required =  Tuple.new(@arguments.required.size)
+        @arguments.required.each_with_index {|x,i| required.put(i, x.name)}
+        args.put(0, required)
+      end
+      if @arguments.optional and @arguments.optional.size > 0
+        optional = Tuple.new(@arguments.optional.size)
+        @arguments.optional.each_with_index {|x,i| optional.put(i, x.name)}
+        args.put(1, optional)
+      end
+      args.put(2, @arguments.splat.name) if @arguments.splat
+      desc.args = args
 
       meth.sret
       meth.close
