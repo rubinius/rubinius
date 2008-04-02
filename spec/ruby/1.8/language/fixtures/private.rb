@@ -44,4 +44,16 @@ module Private
    class E
      include D
    end
+
+   class F
+     def foo
+       "foo"
+     end
+   end
+
+   class G
+     def foo
+       "foo"
+     end
+   end
 end

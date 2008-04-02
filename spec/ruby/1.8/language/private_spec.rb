@@ -26,4 +26,29 @@ describe "The private keyword" do
     b.methods.should include("foo")
     b.foo
   end
+
+  it "changes visibility of previously called method" do
+    f = Private::F.new
+    f.foo
+    module Private
+      class F
+        private :foo
+      end
+    end
+    lambda { f.foo }.should raise_error(NoMethodError)
+  end
+
+  it "changes visiblity of previously called methods with same send/call site" do
+    g = Private::G.new
+    lambda {
+      2.times do
+        g.foo
+        module Private
+          class G
+            private :foo
+          end
+        end
+      end
+    }.should raise_error(NoMethodError)
+  end
 end
