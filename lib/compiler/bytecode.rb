@@ -71,7 +71,7 @@ class Node
       meth.push_cpath_top
       meth.find_const :Module
       meth.push :self
-      meth.send :kind_of?, 1
+      meth.kind_of
       meth.git is_module
       meth.send :class, 0
       is_module.set!

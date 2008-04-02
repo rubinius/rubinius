@@ -185,7 +185,7 @@ class TestGenerator
     self.push_cpath_top
     self.find_const :Module
     self.push :self
-    self.send :kind_of?, 1
+    self.kind_of
     self.git lbl
     self.send :class, 0
     lbl.set!
