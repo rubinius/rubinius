@@ -257,7 +257,46 @@ class Debugger
       output << [nil, '...'] if last < lines.size
       output
     end
+  end
 
+
+  class ListSexp < Command
+    @@re = Regexp.new('^sexp(?:\s+' + MODULE_METHOD_RE + ')?$')
+
+    def help
+      return "sexp [<method>]", "List S-expression for current or specified method."
+    end
+
+    def command_regexp
+      @@re
+    end
+
+    # Lists source code around the specified line
+    # TODO: Change to stored Sexp on CompiledMethod once this is available
+    def execute(dbg, md)
+      mod, mthd_type, mthd = md[1], md[2], md[3]
+
+      if mthd
+        cm = get_method(mod, mthd_type, mthd).compiled_method
+      else
+        # Decode current method
+        cm = dbg.eval_context.method
+      end
+      first = cm.lines.first.last - 1
+      last = cm.lines.last.last + 1
+
+      file = cm.file.to_s
+      lines = dbg.source_for(file)
+      if lines.nil?
+        return "No source code available for #{file}"
+      end
+
+      output = Output.new
+      output << "S-expression for source lines [#{first+1}-#{last+1}] in #{file}:"
+      sexp = lines[first..last].join().to_sexp.indented_inspect
+      output << sexp
+      output
+    end
   end
 
 
