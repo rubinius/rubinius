@@ -790,8 +790,6 @@ class IO
     super
   end
 
-  private :io_close
-
   def self.after_loaded()
     # Nothing to do right now
   end
