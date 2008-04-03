@@ -53,26 +53,41 @@ OBJECT object_make_weak_ref(STATE, OBJECT self) {
   return tup;
 }
 
-int object_kind_of_p(STATE, OBJECT self, OBJECT cls) {
+/*
+ * Object#kind_of?
+ *   True if given Module is obj's class or one of object's ancestors,
+ *   a module included in class or in an ancestor or obj extended by
+ *   the module. False otherwise.
+ */
+int object_kind_of_p(STATE, OBJECT self, OBJECT mod) {
   OBJECT found;
-  
-  found = object_class(state, self);
-  if(found == cls) {
+
+  if(REFERENCE_P(self)) {       /* object_class() skips metaclasses */
+    found = self->klass;
+  }
+  else {
+    found = state->global->special_classes[((uintptr_t)self) & SPECIAL_CLASS_MASK];
+  }
+
+  if(found == mod) {
     return TRUE;
   }
-  
-  /* Normal class inheritence checking. */
-  
+
   while(RTEST(found)) {
     found = class_get_superclass(found);
-    if(found == cls) { return TRUE; }
-    
-    if(REFERENCE_P(found) && found->obj_type == IncModType) {
-      if(included_module_get_module(found) == cls) { return TRUE; }
+
+    if(found == mod) {
+      return TRUE;
     }
-    
+
+    /* IncludedModule is a wrapper around, well, an #included Module */
+    if(REFERENCE_P(found) && found->obj_type == IncModType) {
+      if(included_module_get_module(found) == mod) {
+        return TRUE;
+      }
+    }
   }
-  
+
   return FALSE;
 }
 
