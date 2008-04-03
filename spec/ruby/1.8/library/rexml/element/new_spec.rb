@@ -3,18 +3,18 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 
 describe "REXML::Element#new" do
 
-  it "creates an element from tag name" do
+  it "creates element from tag name" do
     REXML::Element.new("foo").name.should == "foo"
   end
 
-  it "creates an element with the default attributes" do
+  it "creates element with default attributes" do
     e = REXML::Element.new
     e.name.should == REXML::Element::UNDEFINED
     e.context.should == nil
     e.parent.should == nil
   end
 
-  it "creates an element from another element" do
+  it "creates element from another element" do
     e = REXML::Element.new "foo"
     f = REXML::Element.new e
     e.name.should == f.name
