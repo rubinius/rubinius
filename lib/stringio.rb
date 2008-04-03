@@ -148,6 +148,7 @@ class StringIO
   def rewind
     @pos = 0
     @lineno = 0
+    @eof = false
   end
 
   def seek(amount, whence=nil)
