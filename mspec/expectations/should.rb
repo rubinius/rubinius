@@ -3,7 +3,7 @@ class Object
     MSpec.actions :expectation, MSpec.current.state
     if matcher
       unless matcher.matches?(self)
-        raise Expectation.fail_with(*matcher.failure_message)
+        Expectation.fail_with(*matcher.failure_message)
       end
     else
       PositiveOperatorMatcher.new(self)
@@ -14,7 +14,7 @@ class Object
     MSpec.actions :expectation, MSpec.current.state
     if matcher
       if matcher.matches?(self)
-        raise Expectation.fail_with(*matcher.negative_failure_message)
+        Expectation.fail_with(*matcher.negative_failure_message)
       end
     else
       NegativeOperatorMatcher.new(self)
