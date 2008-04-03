@@ -19,4 +19,12 @@ describe "StringIO#rewind" do
     @io.rewind
     @io.lineno.should == 0
   end
+
+  it "should make the contents of the stream accessible again when stream was read beyond its end" do
+    str = @io.string
+
+    @io.read(@io.string.length + 1).should == str
+    @io.rewind
+    @io.read(@io.string.length + 1).should == str
+  end
 end
