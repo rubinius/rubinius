@@ -8,6 +8,7 @@
 require 'rubygems/rubygems_version'
 require 'rubygems/defaults'
 require 'thread'
+require 'rbconfig'
 
 module Gem
   class LoadError < ::LoadError
@@ -57,22 +58,22 @@ end
 module Gem
 
   ConfigMap = {} unless defined?(ConfigMap)
-  require 'rbconfig'
   RbConfig = Config unless defined? ::RbConfig
 
-  ConfigMap.merge!(
-    :BASERUBY => RbConfig::CONFIG["BASERUBY"],
-    :EXEEXT => RbConfig::CONFIG["EXEEXT"],
+  ConfigMap.merge!({
+    :BASERUBY          => RbConfig::CONFIG["BASERUBY"],
+    :EXEEXT            => RbConfig::CONFIG["EXEEXT"],
     :RUBY_INSTALL_NAME => RbConfig::CONFIG["RUBY_INSTALL_NAME"],
-    :RUBY_SO_NAME => RbConfig::CONFIG["RUBY_SO_NAME"],
-    :arch => RbConfig::CONFIG["arch"],
-    :bindir => RbConfig::CONFIG["bindir"],
-    :libdir => RbConfig::CONFIG["libdir"],
+    :RUBY_SO_NAME      => RbConfig::CONFIG["RUBY_SO_NAME"],
+    :arch              => RbConfig::CONFIG["arch"],
+    :bindir            => RbConfig::CONFIG["bindir"],
+    :datadir           => RbConfig::CONFIG["datadir"],
+    :libdir            => RbConfig::CONFIG["libdir"],
     :ruby_install_name => RbConfig::CONFIG["ruby_install_name"],
-    :ruby_version => RbConfig::CONFIG["ruby_version"],
-    :sitedir => RbConfig::CONFIG["sitedir"],
-    :sitelibdir => RbConfig::CONFIG["sitelibdir"]
-  )
+    :ruby_version      => RbConfig::CONFIG["ruby_version"],
+    :sitedir           => RbConfig::CONFIG["sitedir"],
+    :sitelibdir        => RbConfig::CONFIG["sitelibdir"],
+  })
 
   DIRECTORIES = %w[cache doc gems specifications] unless defined?(DIRECTORIES)
 
@@ -263,8 +264,11 @@ module Gem
 
   def self.datadir(gem_name)
     spec = @loaded_specs[gem_name]
-    return nil if spec.nil?
-    File.join(spec.full_gem_path, 'data', gem_name)
+    if spec.nil? then
+      File.join(ConfigMap[:datadir], gem_name)
+    else
+      File.join(spec.full_gem_path, 'data', gem_name)
+    end
   end
 
   ##
@@ -661,21 +665,9 @@ module Gem
 
 end
 
-# Modify the non-gem version of datadir to handle gem package names.
-
-require 'rbconfig/datadir'
-
-module Config # :nodoc:
-  class << self
-    alias gem_original_datadir datadir
-
-    # Return the path to the data directory associated with the named
-    # package.  If the package is loaded as a gem, return the gem
-    # specific data directory.  Otherwise return a path to the share
-    # area as define by "#{ConfigMap[:datadir]}/#{package_name}".
-    def datadir(package_name)
-      Gem.datadir(package_name) || Config.gem_original_datadir(package_name)
-    end
+module Config
+  def self.datadir(package_name) # :nodoc:
+    Gem.datadir(package_name)
   end
 end
 
