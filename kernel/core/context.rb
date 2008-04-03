@@ -296,7 +296,7 @@ end
 
 class BlockEnvironment
   ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3,
-    :post_send => 4, :home_block => 5, :local_count => 6, :bonus => 7, :method => 8
+    :post_send => 4, :home_block => 5, :local_count => 6, :metadata_container => 7, :method => 8
   def __ivars__   ; @__ivars__   ; end
   def home        ; @home        ; end
   def initial_ip  ; @initial_ip  ; end
@@ -304,8 +304,11 @@ class BlockEnvironment
   def post_send   ; @post_send   ; end
   def home_block  ; @home_block  ; end
   def local_count ; @local_count ; end
-  def bonus       ; @bonus       ; end
   def method      ; @method      ; end
+
+  def metadata_container
+    @metadata_container
+  end
 
   def under_context(home, cmethod)
     if home.kind_of? BlockContext
@@ -328,17 +331,17 @@ class BlockEnvironment
   ##
   # Holds a Tuple of local variable names to support eval
 
-  def bonus=(tup)
-    @bonus = tup
+  def metadata_container=(tup)
+    @metadata_container = tup
   end
 
   def from_eval?
-    @bonus and @bonus[0]
+    @metadata_container and @metadata_container[0]
   end
 
   def from_eval!
-    @bonus = Tuple.new(1) unless @bonus
-    @bonus[0] = true
+    @metadata_container = Tuple.new(1) unless @metadata_container
+    @metadata_container[0] = true
   end
 
   ##

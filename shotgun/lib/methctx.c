@@ -84,7 +84,7 @@ OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, O
   } else {
     blokenv_set_local_count(obj, I2N(NUM_FIELDS(locals)));
   }
-  blokenv_set_bonus(obj, locals);
+  blokenv_set_metadata_container(obj, locals);
   return obj;
 }
 

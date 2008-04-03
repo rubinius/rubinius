@@ -96,7 +96,7 @@ end
 #
 class CompiledMethod
   # TODO: Delete/reuse arguments (field 9), scope (field 10), and cache (field 14) fields from C structure
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :args => 9, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :args => 9, :exceptions => 11, :lines => 12, :path => 13, :metadata_container => 15, :compiled => 16, :staticscope => 17
   def __ivars__  ; @__ivars__  ; end
 
   # true if this method is primitive, false otherwise
@@ -167,8 +167,10 @@ class CompiledMethod
   # Required for the proper functioning of __FILE__ under eval.
   def path       ; @path       ; end
 
-  # local variable names
-  def bonus      ; @bonus      ; end
+  # Separate object for storing metadata; this way
+  # the metadata can change without changes to the
+  # CM itself.
+  def metadata_container      ; @metadata_container      ; end
 
   # ByteArray of pointers to optcodes.
   # This is only populated when CompiledMethod
@@ -256,8 +258,8 @@ class CompiledMethod
     @serial = ser
   end
 
-  def bonus=(tup)
-    @bonus = tup
+  def metadata_container=(tup)
+    @metadata_container = tup
   end
 
   def args=(ary)
@@ -266,8 +268,8 @@ class CompiledMethod
 
   # Local variable names
   def local_names
-    return nil unless @bonus
-    @bonus[0]
+    return nil unless @metadata_container
+    @metadata_container[0]
   end
 
   def local_names=(names)
@@ -283,8 +285,8 @@ class CompiledMethod
       end
     end
 
-    @bonus = Tuple.new(1) unless @bonus
-    @bonus[0] = names
+    @metadata_container = Tuple.new(1) unless @metadata_container
+    @metadata_container[0] = names
     return names
   end
 

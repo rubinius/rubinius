@@ -72,7 +72,7 @@ following table specifies the values and formats for each tag:
     1. lines
     1. path
     1. cache
-    1. bonus
+    1. metadata_container
 [CompiledMethod (m)]
   <b>Note: This tag has been deprecated, in favour of 'M' (see above).</b> The
   tag is followed by:
@@ -95,7 +95,7 @@ following table specifies the values and formats for each tag:
     1. lines
     1. path
     1. cache
-    1. bonus
+    1. metadata_container
 [Bignum (B)]
   * 4 bytes that specify the size of the string representation of the Bignum
   * the string representation of the Bignum
