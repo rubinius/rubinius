@@ -17,20 +17,20 @@ shared :each_element do |klass, cmd|
  
     it "iterates through element" do
       str = ""
-      @e.each_element { |elem| str << elem.name << " " }
+        @e.each_element { |elem| str << elem.name << " " }
       str.should == "node1 node2 node3 sub_node "
     end
  
     it "iterates through element filtering with XPath" do
       str = ""
-      @e.each_element("/*"){ |e| str << e.name << " "}
-      str.should == "node1 node2 node3 sub_node "
+       @e.each_element("/*"){ |e| str << e.name << " "}
+       str.should == "node1 node2 node3 sub_node "
     end
   end
 end
  
 describe "REXML::Element#each_element" do
-  it_behaves_like(:each_element, "Element", :each_element)
+ it_behaves_like(:each_element, "Element", :each_element)
 end
  
 describe "REXML::Elements#each" do
