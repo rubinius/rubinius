@@ -1,0 +1,1 @@
+fails:Object#kind_of? returns true if given a Module that object has been extended with

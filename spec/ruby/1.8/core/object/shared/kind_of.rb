@@ -2,6 +2,7 @@ module ObjectSpecs
   module SomeOtherModule; end
   module AncestorModule; end
   module MyModule; end
+  module MyExtensionModule; end
 
   class AncestorClass < String 
     include AncestorModule 
@@ -9,6 +10,9 @@ module ObjectSpecs
 
   class KindaClass < AncestorClass
     include MyModule
+    def initialize
+      self.extend MyExtensionModule
+    end
   end
 end
 
@@ -38,6 +42,10 @@ shared :object_kind_of do |cmd|
 
     it "returns true if given a Module that is included one of object's ancestors only" do
       @o.send(cmd, ObjectSpecs::AncestorModule).should == true
+    end
+    
+    it "returns true if given a Module that object has been extended with" do
+      @o.send(cmd, ObjectSpecs::MyExtensionModule).should == true
     end
 
     it "returns false if given a Module not included in object's class nor ancestors" do
