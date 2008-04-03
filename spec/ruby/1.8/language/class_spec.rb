@@ -17,7 +17,14 @@ describe "A class definition" do
     ClassSpecs::A.class_variables.should == []
   end
 
-  it "raises TypeError error if nesting constant is not a Module" do
+  it "raises TypeError if constant given as class name exists and is not a Module" do
+    lambda {
+      class ClassSpecsNumber
+      end
+    }.should raise_error(TypeError)
+  end
+
+  it "raises TypeError if any constant qualifying the class is not a Module" do
     lambda {
       class ClassSpecs::Number::MyClass
       end
