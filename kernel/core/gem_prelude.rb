@@ -17,15 +17,15 @@ if defined?(Gem::Enable) && Gem::Enable then
   module Gem
 
     ConfigMap = {
-      :sitedir => RbConfig::CONFIG["sitedir"],
-      :ruby_version => RbConfig::CONFIG["ruby_version"],
-      :libdir => RbConfig::CONFIG["libdir"],
-      :sitelibdir => RbConfig::CONFIG["sitelibdir"],
-      :arch => RbConfig::CONFIG["arch"],
-      :bindir => RbConfig::CONFIG["bindir"],
-      :EXEEXT => RbConfig::CONFIG["EXEEXT"],
-      :RUBY_SO_NAME => RbConfig::CONFIG["RUBY_SO_NAME"],
+      :EXEEXT            => RbConfig::CONFIG["EXEEXT"],
+      :RUBY_SO_NAME      => RbConfig::CONFIG["RUBY_SO_NAME"],
+      :arch              => RbConfig::CONFIG["arch"],
+      :bindir            => RbConfig::CONFIG["bindir"],
+      :libdir            => RbConfig::CONFIG["libdir"],
       :ruby_install_name => RbConfig::CONFIG["ruby_install_name"]
+      :ruby_version      => RbConfig::CONFIG["ruby_version"],
+      :sitedir           => RbConfig::CONFIG["sitedir"],
+      :sitelibdir        => RbConfig::CONFIG["sitelibdir"],
     }
 
     class << self
