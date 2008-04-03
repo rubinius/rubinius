@@ -329,8 +329,9 @@ class BlockEnvironment
   end
 
   ##
-  # Holds a Tuple of local variable names to support eval
-
+  # Holds a Tuple of additional metadata.
+  # First field of the tuple holds a boolean indicating if the context is from
+  # eval
   def metadata_container=(tup)
     @metadata_container = tup
   end

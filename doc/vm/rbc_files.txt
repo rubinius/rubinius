@@ -66,12 +66,12 @@ following table specifies the values and formats for each tag:
     1. file
     1. locals
     1. literals
-    1. arguments
-    1. scope
+    1. args
+    1. local_names
     1. exceptions
     1. lines
     1. path
-    1. cache
+    1. _not currently used_
     1. metadata_container
 [CompiledMethod (m)]
   <b>Note: This tag has been deprecated, in favour of 'M' (see above).</b> The
@@ -89,12 +89,12 @@ following table specifies the values and formats for each tag:
     1. file
     1. locals
     1. literals
-    1. arguments
-    1. scope
+    1. args
+    1. local_names
     1. exceptions
     1. lines
     1. path
-    1. cache
+    1. _not currently used_
     1. metadata_container
 [Bignum (B)]
   * 4 bytes that specify the size of the string representation of the Bignum

@@ -95,8 +95,8 @@ end
 #
 #
 class CompiledMethod
-  # TODO: Delete/reuse arguments (field 9), scope (field 10), and cache (field 14) fields from C structure
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :args => 9, :exceptions => 11, :lines => 12, :path => 13, :metadata_container => 15, :compiled => 16, :staticscope => 17
+  # TODO: Delete/reuse cache (field 14) field from C structure
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :args => 9, :local_names => 10, :exceptions => 11, :lines => 12, :path => 13, :metadata_container => 15, :compiled => 16, :staticscope => 17
   def __ivars__  ; @__ivars__  ; end
 
   # true if this method is primitive, false otherwise
@@ -143,6 +143,9 @@ class CompiledMethod
   # - a tuple of symbols naming optional args (or nil if none)
   # - the symbol for any splat arg (or nil if none)
   def args       ; @args       ; end
+
+  # Tuple holding the symbols for all local variable names used in the method.
+  def local_names; @local_names; end
 
   # Tuple of tuples. Inner tuples contain
   # low IP, high IP and IP of exception
@@ -266,12 +269,6 @@ class CompiledMethod
     @args = ary
   end
 
-  # Local variable names
-  def local_names
-    return nil unless @metadata_container
-    @metadata_container[0]
-  end
-
   def local_names=(names)
     return if names.nil?
 
@@ -285,9 +282,7 @@ class CompiledMethod
       end
     end
 
-    @metadata_container = Tuple.new(1) unless @metadata_container
-    @metadata_container[0] = names
-    return names
+    @local_names = names
   end
 
   def activate(recv, mod, args, locals=nil, &prc)

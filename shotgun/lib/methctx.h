@@ -2,7 +2,6 @@
 #define RBS_METHCTX_H
 
 OBJECT blokctx_s_under_context(STATE, OBJECT ctx);
-OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, OBJECT locals);
 OBJECT blokenv_s_under_context2(STATE, OBJECT cmethod, OBJECT ctx, OBJECT ctx_block);
 void blokenv_call(STATE, cpu c, OBJECT self, int num_args);
 

@@ -69,25 +69,6 @@ OBJECT methctx_dup_chain(STATE, OBJECT ctx, OBJECT *also) {
   return top;
 }
 
-OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, OBJECT locals) {
-  OBJECT obj;
-    
-  obj = blokenv_allocate(state);
-  blokenv_set_home(obj, ctx);
-  blokenv_set_initial_ip(obj, I2N(start));
-  blokenv_set_last_ip(obj, lst);
-  blokenv_set_post_send(obj, vlst);
-  blokenv_set_home_block(obj, ctx_block);
-  blokenv_set_method(obj, FASTCTX(ctx)->method); // Calling method's CompiledMethod
-  if(NIL_P(locals)) {
-    blokenv_set_local_count(obj, I2N(0));
-  } else {
-    blokenv_set_local_count(obj, I2N(NUM_FIELDS(locals)));
-  }
-  blokenv_set_metadata_container(obj, locals);
-  return obj;
-}
-
 OBJECT blokenv_s_under_context2(STATE, OBJECT cmethod, OBJECT ctx, OBJECT ctx_block) {
   OBJECT obj;
   int num_lcls = N2I(cmethod_get_local_count(cmethod));
