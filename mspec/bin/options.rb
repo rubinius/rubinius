@@ -53,139 +53,107 @@ class OptionParser
   end
 end
 
-class SpecConfig
-  attr_accessor :formatter, :includes, :excludes,
-                :patterns, :xpatterns, :tags, :xtags,
-                :tagger, :outcome, :tag, :comment, :atags, :astrings,
-                :debugger, :gdb, :full_abort
 
-  def initialize(command, options)
-    @options = options
-    @formatter = DottedFormatter
-    @includes = []
-    @excludes = []
-    @patterns = []
-    @xpatterns = []
-    @tags = []
-    @xtags = []
-    @atags = []
-    @astrings = []
-    @full_abort = true
-  end
+# MSpecOptions wraps OptionParser and provides a composable set of
+# options that the runner scripts pick from.
+class MSpecOptions
+  attr_reader :parser
 
-  def register
-    if (@debugger or @gdb) and @atags.empty? and @astrings.empty?
-      puts "Missing --action-tag or --action-string."
-      puts @options
-      exit 1
-    end
-
-    @formatter.new.register
-
-    MatchFilter.new(:include, *@includes).register unless @includes.empty?
-    MatchFilter.new(:exclude, *@excludes).register unless @excludes.empty?
-    RegexpFilter.new(:include, *@patterns).register unless @patterns.empty?
-    RegexpFilter.new(:exclude, *@xpatterns).register unless @xpatterns.empty?
-    TagFilter.new(:include, *@tags).register unless @tags.empty?
-    TagFilter.new(:exclude, *@xtags).register unless @xtags.empty?
-
-    DebugAction.new(@atags, @astrings).register if @debugger
-    GdbAction.new(@atags, @astrings).register if @gdb
-
-    if @tagger
-      tag = SpecTag.new(@tag)
-      tagger = TagAction.new(@tagger, @outcome, tag.tag, tag.comment, @atags, @astrings)
-      tagger.register
-    end
-
-    if @full_abort
-      Signal.trap "INT" do
-        puts "\nSpec process aborted!"
-        exit! 1
-      end
-    end
-  end
-end
-
-class SpecOptions
-  attr_reader :options, :config
-
-  def initialize(command, *args)
-    @options = OptionParser.new(*args) do |opts|
+  def initialize(config, command, *args)
+    @parser = OptionParser.new(*args) do |opts|
       opts.banner = "mspec #{command} [options] (FILE|DIRECTORY|GLOB)+"
       opts.separator ""
     end
 
-    @config = SpecConfig.new command, @options
+    @config = config
+  end
+
+  def add_config(&block)
+    on("-B", "--config FILE", String,
+            "Load FILE containing configuration options", &block)
+  end
+
+  def add_name
+    on("-n", "--name RUBY_NAME", String,
+            "Set the value of RUBY_NAME (used to determine the implementation)") do |n|
+      Object.const_set :RUBY_NAME, n
+    end
+  end
+
+  def add_tags_dir
+    on("-X", "--tags-dir DIR", String,
+            "Use DIR as the path prefix for locating spec tag files") do |d|
+      Config[:tags_dir] = d
+    end
   end
 
   def add_formatters
-    @options.on("-f", "--format FORMAT", String,
+    on("-f", "--format FORMAT", String,
                 "Formatter for reporting: s:specdoc|d:dotted|h:html|u:unitdiff|a:*:spin") do |o|
       case o
       when 's', 'specdoc'
-        @config.formatter = SpecdocFormatter
+        @config[:formatter] = SpecdocFormatter
       when 'h', 'html'
-        @config.formatter = HtmlFormatter
+        @config[:formatter] = HtmlFormatter
       when 'd', 'dot', 'dotted'
-        @config.formatter = DottedFormatter
+        @config[:formatter] = DottedFormatter
       when 'u', 'unit', 'unitdiff'
-        @config.formatter = UnitdiffFormatter
+        @config[:formatter] = UnitdiffFormatter
       when 'm', 'summary'
-        @config.formatter = SummaryFormatter
+        @config[:formatter] = SummaryFormatter
       when 'a', '*', 'spin'
-        @config.formatter = SpinnerFormatter
+        @config[:formatter] = SpinnerFormatter
       else
         puts "Unknown format: #{o}"
-        puts @options
+        puts @parser
         exit
       end
     end
   end
 
   def add_filters
-    @options.on("-e", "--example STR", String,
+    on("-e", "--example STR", String,
             "Run examples with descriptions matching STR") do |o|
-      @config.includes << o
+      @config[:includes] << o
     end
-    @options.on("-E", "--exclude STR", String,
+    on("-E", "--exclude STR", String,
             "Exclude examples with descriptions matching STR") do |o|
-      @config.excludes << o
+      @config[:excludes] << o
     end
-    @options.on("-p", "--pattern PATTERN", Regexp,
+    on("-p", "--pattern PATTERN", Regexp,
             "Run examples with descriptions matching PATTERN") do |o|
-      @config.patterns << o
+      @config[:patterns] << o
     end
-    @options.on("-P", "--excl-pattern PATTERN", Regexp,
+    on("-P", "--excl-pattern PATTERN", Regexp,
             "Exclude examples with descriptions matching PATTERN") do |o|
-      @config.xpatterns << o
+      @config[:xpatterns] << o
     end
-    @options.on("-g", "--tag TAG", String,
+    on("-g", "--tag TAG", String,
             "Run examples with descriptions matching ones tagged with TAG") do |o|
-      @config.tags << o
+      @config[:tags] << o
     end
-    @options.on("-G", "--excl-tag TAG", String,
+    on("-G", "--excl-tag TAG", String,
             "Exclude examples with descriptions matching ones tagged with TAG") do |o|
-      @config.xtags << o
+      @config[:xtags] << o
     end
   end
 
   def add_pretend
-    @options.on("-Z", "--dry-run",
+    on("-Z", "--dry-run",
                 "Invoke formatters and other actions, but don't execute the specs") do
       MSpec.register_mode :pretend
     end
   end
 
   def add_randomize
-    @options.on("-H", "--random",
+    on("-H", "--random",
                 "Randomize the list of spec files") do
       MSpec.randomize
     end
   end
 
   def add_verbose
-    @options.on("-V", "--verbose", "Output the name of each file processed") do
+    on("-V", "--verbose", "Output the name of each file processed") do
       obj = Object.new
       def obj.start
         @width = MSpec.retrieve(:files).inject(0) { |max, f| f.size > max ? f.size : max }
@@ -198,7 +166,7 @@ class SpecOptions
       MSpec.register :load, obj
     end
 
-    @options.on("-m", "--marker MARKER", String,
+    on("-m", "--marker MARKER", String,
             "Output MARKER for each file processed") do |o|
       obj = Object.new
       obj.instance_variable_set :@marker, o
@@ -210,74 +178,100 @@ class SpecOptions
   end
 
   def add_interrupt
-    @options.on("--int-spec", "Control-C interupts the current spec only") do
-      @config.full_abort = false
+    on("--int-spec", "Control-C interupts the current spec only") do
+      @config[:abort] = false
     end
   end
 
   def add_verify
-    @options.on("-Y", "--verify",
-               "Verify that guarded specs pass and fail as expected") { MSpec.set_mode :verify }
-    @options.on("-O", "--report", "Report guarded specs") { MSpec.set_mode :report }
+    on("-Y", "--verify",
+               "Verify that guarded specs pass and fail as expected") do
+      MSpec.set_mode :verify
+    end
+    on("-O", "--report", "Report guarded specs") do
+      MSpec.set_mode :report
+    end
   end
 
   def add_tagging
-    @options.on("-N", "--add TAG", String,
+    on("-N", "--add TAG", String,
                 "Add TAG with format 'tag' or 'tag(comment)' (see -Q, -F, -L)") do |o|
-      @config.tagger = :add
-      @config.tag = "#{o}:"
+      @config[:tagger] = :add
+      @config[:tag] = "#{o}:"
     end
-    @options.on("-R", "--del TAG", String,
+    on("-R", "--del TAG", String,
                 "Delete TAG (see -Q, -F, -L)") do |o|
-      @config.tagger = :del
-      @config.tag = "#{o}:"
-      @config.outcome = :pass
+      @config[:tagger] = :del
+      @config[:tag] = "#{o}:"
+      @config[:outcome] = :pass
     end
-    @options.on("-Q", "--pass", "Apply action to specs that pass (default for --del)") do
-      @config.outcome = :pass
+    on("-Q", "--pass", "Apply action to specs that pass (default for --del)") do
+      @config[:outcome] = :pass
     end
-    @options.on("-F", "--fail", "Apply action to specs that fail (default for --add)") do
-      @config.outcome = :fail
+    on("-F", "--fail", "Apply action to specs that fail (default for --add)") do
+      @config[:outcome] = :fail
     end
-    @options.on("-L", "--all", "Apply action to all specs") do
-      @config.outcome = :all
+    on("-L", "--all", "Apply action to all specs") do
+      @config[:outcome] = :all
     end
   end
 
   def add_action_filters
-    @options.on("-K", "--action-tag TAG", String,
+    on("-K", "--action-tag TAG", String,
                 "Spec descriptions marked with TAG will trigger the specified action") do |o|
-      @config.atags << o
+      @config[:atags] << o
     end
-    @options.on("-S", "--action-string STR", String,
+    on("-S", "--action-string STR", String,
                 "Spec descriptions matching STR will trigger the specified action") do |o|
-      @config.astrings << o
+      @config[:astrings] << o
     end
   end
 
   def add_actions
-    @options.on("--spec-debug",
+    on("--spec-debug",
                 "Invoke the debugger when a spec description matches (see -K, -S)") do
-      @config.debugger = true
+      @config[:debugger] = true
     end
-    @options.on("--spec-gdb",
+    on("--spec-gdb",
                 "Invoke Gdb when a spec description matches (see -K, -S)") do
-      @config.gdb = true
+      @config[:gdb] = true
     end
   end
 
   def add_help
-    @options.on("-v", "--version", "Show version") do
+    on("-v", "--version", "Show version") do
       puts "MSpec #{MSpec::VERSION}"
       exit
     end
-    @options.on("-h", "--help", "Show this message") do
-      puts @options
+    on("-h", "--help", "Show this message") do
+      puts @parser
       exit
     end
   end
 
-  def parse
-    @options.parse ENV['MSPEC_OPTIONS'].split("\n")
+  def on(*args, &block)
+    @parser.on *args, &block
+  end
+
+  def separator(str)
+    @parser.separator str
+  end
+
+  def parse(argv=ARGV)
+    result = @parser.parse argv
+
+    if (@config[:debugger] || @config[:gdb]) &&
+        @config[:atags].empty? && @config[:astrings].empty?
+      puts "Missing --action-tag or --action-string."
+      puts @parser
+      exit 1
+    end
+
+    result
+  rescue OptionParser::ParseError => e
+    puts @parser
+    puts
+    puts e
+    exit 1
   end
 end
