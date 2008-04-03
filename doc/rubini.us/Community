@@ -1,0 +1,30 @@
+Places to be:
+
+* Tracker: [On Lighthouse](http://rubinius.lighthouseapp.com/projects/5089-rubinius/overview)
+* Wiki: See above.
+* IRC: #rubinius on irc.freenode.net
+* ML: rubinius-dev at [Google Groups](http://groups.google.com/group/rubinius-dev)
+
+ Communication
+---------------
+
+The primary way that Rubinius developers communicate with each other
+is IRC. Yes, we know it is the 21st century now--but give it a try. It
+is even at this late date the best means of communication for a large
+distributed project. IRC clients are available for any imaginable OS.
+If it can access the Internet, it has an IRC client. More on IRC, a
+list of clients and a nick list can be found [here](http://rubinius.lighthouseapp.com/projects/5089/irc-info-and-who-s-who).
+[IRC logs](http://donttreadonme.co.uk/rubinius-irc) are also available.
+
+If you cannot (or prefer not to) use IRC, feel free to ask questions
+or submit patches via the mailing list as well. The mailing list *is*
+relatively quiet currently because of the heavy emphasis on IRC but
+rest assured, you will find yourself in a discussion on the ML as
+well if you send the first e-mail.
+
+If you are just starting with Rubinius feel free to ask for help! We
+try to make sure that there is documentation available and someone
+will always be able to answer questions--all we ask in return is
+that you bring an inquisitive mind and are willing to do proactively
+poke around the code or research otherwise also.
+
