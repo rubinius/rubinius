@@ -82,6 +82,13 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, OBJECT sym, int *c
 
   *created = FALSE;
 
+  /* Evil people could do   A = 12; class A::B; end  */
+  if(!ISA(under, BASIC_CLASS(module))) {
+    cpu_raise_exception(state, c,
+      cpu_new_exception(state, c, state->global->exc_type, "Nesting constant is not a Module"));
+    return Qundef;
+  }
+
   val = module_const_get(state, under, sym);
   if(RTEST(val)) {
     if(ISA(val, BASIC_CLASS(class))) {
