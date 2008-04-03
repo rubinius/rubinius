@@ -1,6 +1,12 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/class'
 
+ClassSpecsNumber = 12
+
+module ClassSpecs
+  Number = 12
+end
+
 describe "A class definition" do
   it "creates a new class" do
     ClassSpecs::A.class.should == Class
@@ -9,6 +15,18 @@ describe "A class definition" do
   
   it "has no class variables" do
     ClassSpecs::A.class_variables.should == []
+  end
+
+  it "raises TypeError error if nesting constant is not a Module" do
+    lambda {
+      class ClassSpecs::Number::MyClass
+      end
+    }.should raise_error(TypeError)
+
+    lambda {
+      class ClassSpecsNumber::MyClass
+      end
+    }.should raise_error(TypeError)
   end
   
 #  # I do not think this is a valid spec   -- rue
