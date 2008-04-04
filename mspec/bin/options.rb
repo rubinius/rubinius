@@ -89,7 +89,7 @@ class MSpecOptions
 
   def add_formatters
     on("-f", "--format FORMAT", String,
-                "Formatter for reporting: s:specdoc|d:dotted|h:html|u:unitdiff|a:*:spin") do |o|
+                "Formatter for reporting: s:specdoc|d:dotted|h:html|m:summary|u:unitdiff|a:*:spin") do |o|
       case o
       when 's', 'specdoc'
         @config[:formatter] = SpecdocFormatter
