@@ -196,6 +196,7 @@ class StepBreakpoint < TaskBreakpoint
       @step_by = selector[:step_by] || :line
       @target = selector[:target]
       if @target
+        @step_type = :target
         @steps = nil
       else
         @steps = selector[:steps] || 1

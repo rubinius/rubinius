@@ -92,22 +92,21 @@ class Debugger
   # Step in to the next line
   class StepIn < Command
     def help
-      return "s[tep] [+n|line]", "Step to the next, (or nth next) line, stepping into called methods."
+      return "s[tep] [to] [n]", "Step to the next, (or nth next, or specified) line, stepping into called methods."
     end
 
     def command_regexp
-      /^s(?:tep)?(?:\s+(\+)?(\d+))?$/
+      /^s(?:tep)?(?:\s+(?:(to)\s+)?(\d+))?$/
     end
 
     def execute(dbg, md)
       step_type = md[1]
       n = md[2]
       steps = nil
-      target_line = nil
 
       selector = {:step_type => :in, :step_by => :line}
       if step_type
-        selector[:target] = n
+        selector[:target] = n.to_i
         output = "Stepping to line #{n}"
       else
         n = selector[:steps] = n ? n.to_i : 1
@@ -125,22 +124,21 @@ class Debugger
   # Step next to the next line
   class StepNext < Command
     def help
-      return "n[ext] [+n|line]", "Step to the next, (or nth next) line, without stepping into called methods."
+      return "n[ext] [to] [n]", "Step to the next, (or nth next, or specified) line, without stepping into called methods."
     end
 
     def command_regexp
-      /^n(?:ext)?(?:\s+(\+)?(\d+))?$/
+      /^n(?:ext)?(?:\s+(?:(to)\s+)?(\d+))?$/
     end
 
     def execute(dbg, md)
       step_type = md[1]
       n = md[2]
       steps = nil
-      target_line = nil
 
       selector = {:step_type => :next, :step_by => :line}
       if step_type
-        selector[:target] = n
+        selector[:target] = n.to_i
         output = "Stepping to line #{n}"
       else
         n = selector[:steps] = n ? n.to_i : 1

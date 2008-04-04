@@ -4,22 +4,21 @@ class Debugger
   # Step in to the next VM instruction
   class StepInInstruction < Command
     def help
-      return "s[tep]i [+n|line]", "Step to the next, (or nth next) VM instruction, stepping into called methods."
+      return "s[tep]i [to] [n]", "Step to the next, (or nth next, or target IP) VM instruction, stepping into called methods."
     end
 
     def command_regexp
-      /^s(?:tep)?i(?:\s+(\+)?(\d+))?$/
+      /^s(?:tep)?\s*i(?:nst(?:ruction)?)?(?:\s+(?:(to)\s+)?(\d+))?$/
     end
 
     def execute(dbg, md)
       step_type = md[1]
       n = md[2]
       steps = nil
-      target_line = nil
 
       selector = {:step_type => :in, :step_by => :ip}
       if step_type
-        selector[:target] = n
+        selector[:target] = n.to_i
         output = "Stepping to IP[#{n}]"
       else
         n = selector[:steps] = n ? n.to_i : 1
@@ -37,22 +36,21 @@ class Debugger
   # Step next to the next VM instruction
   class StepNextInstruction < Command
     def help
-      return "n[ext]i [+n|line]", "Step to the next, (or nth next) VM instruction, without stepping into called methods."
+      return "n[ext]i [to] [n]", "Step to the next, (or nth next, or target IP) VM instruction, without stepping into called methods."
     end
 
     def command_regexp
-      /^n(?:ext)?\s*i(?:nst(?:ruction)?)?(?:\s+(\+)?(\d+))?$/
+      /^n(?:ext)?\s*i(?:nst(?:ruction)?)?(?:\s+(?:(to)\s+)?(\d+))?$/
     end
 
     def execute(dbg, md)
       step_type = md[1]
       n = md[2]
       steps = nil
-      target_line = nil
 
       selector = {:step_type => :next, :step_by => :ip}
       if step_type
-        selector[:target] = n
+        selector[:target] = n.to_i
         output = "Stepping to IP[#{n}]"
       else
         n = selector[:steps] = n ? n.to_i : 1
