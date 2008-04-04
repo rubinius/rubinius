@@ -104,10 +104,10 @@ module Compile
     # ./ ../ ~/ /
     if path =~ %r{\A(?:(\.\.?)|(~))?/}
       if $2    # ~ 
-        rb.slice! '~/'
-        rbc.slice! '~/'
-        ext.slice! '~/'
-        res = Compile.single_load "#{ENV['HOME']}/", rb, rbc, ext, requiring
+        rb.slice! '~/' if rb
+        rbc.slice! '~/' if rbc
+        ext.slice! '~/' if ext
+        res = Compile.single_load "#{ENV['HOME']}/", rb, rbc, ext, requiring, options
 
       else
         res = Compile.single_load '', rb, rbc, ext, requiring, options
