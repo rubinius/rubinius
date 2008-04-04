@@ -83,7 +83,7 @@ class MSpecOptions
   def add_tags_dir
     on("-X", "--tags-dir DIR", String,
             "Use DIR as the path prefix for locating spec tag files") do |d|
-      Config[:tags_dir] = d
+      @config[:tags_dir] = d
     end
   end
 
