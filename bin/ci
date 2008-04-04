@@ -3,4 +3,4 @@
 puts "DEPRECATED and will be removed"
 puts "use: bin/mspec ci"
 
-exec "bin/mspec ci"
+exec "bin/mspec", *ARGV.unshift("ci")
