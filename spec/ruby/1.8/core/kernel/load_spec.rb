@@ -203,3 +203,27 @@ describe "Kernel#load" do
     end
   end
 end
+
+describe "Shell expansion in Kernel#load" do
+  before :all do
+    @rs_home = ENV["HOME"]
+    ENV["HOME"] = $load_fixture_dir
+    @rs_short = "~/load_spec_1.rb"
+    @rs_long  = "#{$load_fixture_dir}/load_spec_1.rb"
+  end
+
+  after :all do
+    ENV["HOME"] = @rs_home
+  end
+
+  before :each do
+    $LOADED_FEATURES.delete @rs_long
+    $LOADED_FEATURES.delete @rs_short
+  end
+
+  it "expands a preceding ~/ to the user's home directory to use as path" do
+    $load_spec_1 = nil
+    load(@rs_short).should == true
+    $load_spec_1.nil?.should == false
+  end
+end

@@ -243,3 +243,35 @@ describe "Kernel#require" do
     $require_spec_recursive.nil?.should == false
   end
 end
+
+describe "Shell expansion in Kernel#require" do
+  before :all do
+    @rs_home = ENV["HOME"]
+    ENV["HOME"] = $require_fixture_dir
+    @rs_short = "~/require_spec_1.rb"
+    @rs_long  = "#{$require_fixture_dir}/require_spec_1.rb"
+  end
+
+  after :all do
+    ENV["HOME"] = @rs_home
+  end
+
+  before :each do
+    $LOADED_FEATURES.delete @rs_long
+    $LOADED_FEATURES.delete @rs_short
+  end
+
+  it "expands a preceding ~/ to the user's home directory for building the path to search" do
+    $require_spec_1 = nil
+    require(@rs_short).should == true
+    $require_spec_1.nil?.should == false
+  end
+
+  it "adds the path to $LOADED_FEATURES" do
+    $require_spec_1 = nil
+    require(@rs_short).should == true
+    $require_spec_1.nil?.should == false
+
+    $LOADED_FEATURES.find {|f| f == @rs_short || f == @rs_long }.nil?.should == false
+  end
+end
