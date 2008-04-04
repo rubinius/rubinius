@@ -3,13 +3,15 @@ require File.dirname(__FILE__) + '/../../expectations'
 require File.dirname(__FILE__) + '/../../matchers/base'
 
 class Object
-  alias_method :spec_should, :should
-  alias_method :spec_should_not, :should_not
+  alias_method :rspec_should,     :should
+  alias_method :rspec_should_not, :should_not
 end
 require File.dirname(__FILE__) + '/../../expectations/should'
 class Object
-  alias_method :mspec_should, :should
+  alias_method :mspec_should,     :should
   alias_method :mspec_should_not, :should_not
+  alias_method :should,           :rspec_should
+  alias_method :should_not,       :rspec_should_not
 end
 
 # Adapted from RSpec 1.0.8
@@ -24,7 +26,7 @@ describe Object, "#should" do
   end
   
   after :each do
-    class Object; alias_method :should, :spec_should; end
+    class Object; alias_method :should, :rspec_should; end
   end
   
   it "accepts and interacts with a matcher" do
@@ -48,14 +50,14 @@ describe Object, "#should" do
   
   it "returns a PostiveOperatorMatcher instance when not passed a matcher" do
     matcher = should
-    class Object; alias_method :should, :spec_should; end
+    class Object; alias_method :should, :rspec_should; end
     matcher.should be_instance_of(PositiveOperatorMatcher)
   end
 end
 
 describe Object, "#should_not" do
   before :each do
-    class Object; alias_method :should, :mspec_should; end
+    class Object; alias_method :should,     :mspec_should; end
     class Object; alias_method :should_not, :mspec_should_not; end
     MSpec.stub!(:actions)
     MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
@@ -65,8 +67,8 @@ describe Object, "#should_not" do
   end
   
   after :each do
-    class Object; alias_method :should, :spec_should; end
-    class Object; alias_method :should_not, :spec_should_not; end
+    class Object; alias_method :should,     :rspec_should; end
+    class Object; alias_method :should_not, :rspec_should_not; end
   end
   
   it "accepts and interacts with a matcher" do
@@ -90,7 +92,7 @@ describe Object, "#should_not" do
   
   it "returns a NegativeOperatorMatcher instance when not passed a matcher" do
     matcher = should_not
-    class Object; alias_method :should, :spec_should; end
+    class Object; alias_method :should, :rspec_should; end
     matcher.should be_instance_of(NegativeOperatorMatcher)
   end
 end
