@@ -60,6 +60,15 @@ class MSpecTag < MSpecScript
     end
   end
 
+  def register
+    super
+
+    tag = SpecTag.new Config[:tag]
+    tagger = TagAction.new(Config[:tagger], Config[:outcome], tag.tag, tag.comment,
+                           Config[:atags], Config[:astrings])
+    tagger.register
+  end
+
   def run
     files = []
     @patterns.each do |item|
