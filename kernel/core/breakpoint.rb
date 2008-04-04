@@ -434,7 +434,15 @@ end
 ##
 # A TaskBreakpoint subclass that is used to restore a persistent breakpoint once
 # execution has been resumed after the persistent breakpoint was hit.
-class BreakpointRestorer < TaskBreakpoint
+class BreakpointRestorer < StepBreakpoint
+  def initialize(task, bp)
+    @context = task.current_context
+    super(task, :step_type => :in, :step_by => :ip, :steps => 1) do
+      @context.reload_method
+    end
+    set_next_breakpoint
+  end
+
   # BreakpointRestorer will always trigger if the task matches
   def trigger?(task)
     task == @task
@@ -458,7 +466,6 @@ class PersistentBreakpoint < GlobalBreakpoint
   def enabled?
     @enabled
   end
-
 end
 
 
@@ -580,9 +587,12 @@ class BreakpointTracker
     step_bp = StepBreakpoint.new(task, selector, &prc)
     step_bp.set_next_breakpoint
     @task_breakpoints[task] << step_bp
-    if step_bp.break_type == :opcode_replacement and step_bp.original_instruction.first.opcode == :yield_debugger
-      # Step breakpoint has set its next breakpoint at same location as an existing breakpoint
-      step_bp.original_instruction = @global_breakpoints[step_bp.method][step_bp.ip].original_instruction
+    if step_bp.break_type == :opcode_replacement and
+       step_bp.original_instruction.first.opcode == :yield_debugger
+      # Step breakpoint has set its next breakpoint at same location as an
+      # existing breakpoint
+      bp_list = find_breakpoints(task, step_bp.method, step_bp.ip)
+      step_bp.original_instruction = bp_list.first.original_instruction
     end
     step_bp
   end
@@ -627,8 +637,13 @@ class BreakpointTracker
 
       bp = bp_list.last
       if bp and bp.kind_of? PersistentBreakpoint and bp.enabled?
-        # TODO: Make sure the correct original instruction is used
+        # Restore the original instruction for the current context only
         bp.restore_into(ctx)
+        # Create a BreakpointRestorer breakpoint to restore the globabl
+        # breakpoint on the current context
+        # TODO: hmmm... if we've broken on a return instruction, current context
+        # will expire on next step, and we won't need to restore BP
+        #@task_breakpoints[task] << BreakpointRestorer.new(task, bp)
       end
 
       begin
