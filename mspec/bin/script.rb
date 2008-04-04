@@ -25,7 +25,8 @@ class MSpecScript
   end
 
   def config(name)
-    return load(name) if File.exist? name
+    return load(name) if File.exist?(File.expand_path(name))
+
     Config[:path].each do |dir|
       file = File.join dir, name
       return load(file) if File.exist? file
@@ -58,7 +59,7 @@ class MSpecScript
   def self.main
     script = new
     script.config 'default.mspec'
-    script.config File.expand_path('~/.mspecrc')
+    script.config '~/.mspecrc'
     script.options
     script.signals
     script.register
