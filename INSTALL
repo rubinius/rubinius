@@ -40,14 +40,6 @@ Rake may be obtained with the `gem install` command. See `gem help` and
 http://www.rubygems.org for more information.
 
 
-=== System-dependent requirements
-
-
-==== FreeBSD, OpenBSD
-
-* "libexecinfo (backtrace utilities)":http://www.freshports.org/devel/libexecinfo
-
-
 == Rubinius itself
 
 You need to check Rubinius out through Git (which we just installed). The
