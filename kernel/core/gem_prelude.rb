@@ -22,7 +22,7 @@ if defined?(Gem::Enable) && Gem::Enable then
       :arch              => RbConfig::CONFIG["arch"],
       :bindir            => RbConfig::CONFIG["bindir"],
       :libdir            => RbConfig::CONFIG["libdir"],
-      :ruby_install_name => RbConfig::CONFIG["ruby_install_name"]
+      :ruby_install_name => RbConfig::CONFIG["ruby_install_name"],
       :ruby_version      => RbConfig::CONFIG["ruby_version"],
       :sitedir           => RbConfig::CONFIG["sitedir"],
       :sitelibdir        => RbConfig::CONFIG["sitelibdir"],
