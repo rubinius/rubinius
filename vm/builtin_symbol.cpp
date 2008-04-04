@@ -16,13 +16,15 @@ namespace rubinius {
     return tbl;
   }
 
-  OBJECT SymbolTable::lookup(STATE, const unsigned char* str, size_t size) {
-    hashval hash = String::hash_str(str, size);
-    OBJECT ent = strings->get(state, hash);
+  OBJECT SymbolTable::lookup(STATE, const char* str, size_t size) {
+    if(!size) size = std::strlen(str);
+
+    hashval hash = String::hash_str((unsigned char*)str, size);
+    OBJECT ent = strings->find_entry(state, hash);
 
     /* If it wasn't present, use the longer, more correct version. */
     if(ent->nil_p() || ent == Qundef) {
-      return lookup(state, String::create(state, (char*)str, size));
+      return lookup(state, String::create(state, str, size));
     }
 
     String* key = (String*)ent->at(1);
@@ -30,8 +32,8 @@ namespace rubinius {
     char* cur =  key->byte_address(state);
 
     /* Check that this is actually the right string. */
-    if(size != (size_t)key->bytes->n2i() || strncmp(cur, (const char*)str, size)) {
-      return lookup(state, String::create(state, (char*)str, size));
+    if(size != (size_t)key->size(state) || strncmp(cur, str, size)) {
+      return lookup(state, String::create(state, str, size));
     }
 
     return Symbol::from_index(state, ent->at(2)->n2i());

@@ -1,15 +1,21 @@
 TESTS=$(wildcard test_*.hpp)
 IMP=$(wildcard ../*.cpp) $(wildcard ../*.hpp)
 
-runner.cpp: $(TESTS) $(IMP)
-	@cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o runner.cpp $(TESTS)
+EX_INC=-I../external_libs/libtommath -I../external_libs/onig
+EX_LIBS=../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a
+
+external_libs:
+	cd ../; ln -sf ../shotgun/external_libs external_libs
+
+runner.cpp: external_libs $(TESTS) $(IMP)
+	cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o runner.cpp $(TESTS)
 
 runner: runner.cpp
-	@g++ -Wall -Icxxtest -I../ -ggdb -o runner runner.cpp ../*.cpp
+	g++ -Wall -Icxxtest -I../ $(EX_INC) -ggdb -o runner runner.cpp ../*.cpp $(EX_LIBS)
 
 coverage/runner: runner.cpp
 	@mkdir -p coverage
-	@g++ -fprofile-arcs -ftest-coverage -Wall -Icxxtest -I../ -ggdb -o coverage/runner runner.cpp ../*.cpp
+	g++ -fprofile-arcs -ftest-coverage -Wall -Icxxtest -I../ $(EX_INC) -ggdb -o coverage/runner runner.cpp ../*.cpp $(EX_LIBS)
 
 .PHONY: coverage/runner
 

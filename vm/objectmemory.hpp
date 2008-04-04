@@ -136,6 +136,17 @@ class ObjectMemory {
 #define SET(obj, field, val) ({ \
     typeof(obj) _o = (obj); OBJECT  _v = (val); _o->field = (typeof(_o->field))_v; state->om->write_barrier(_o, _v); })
 
+#define FREE(obj) free(obj)
+#define ALLOC_N(type, size) ((type*)calloc(size, sizeof(type)))
+
 };
+
+
+extern "C" {
+  void* XMALLOC(size_t bytes);
+  void  XFREE(void* ptr);
+  void* XREALLOC(void* ptr, size_t bytes);
+  void* XCALLOC(size_t items, size_t bytes);
+}
 
 #endif

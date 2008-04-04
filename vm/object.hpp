@@ -268,6 +268,7 @@ class Object {
     }
   }
 
+  static OBJECT i2n(STATE, native_int num);
   static OBJECT ui2n(STATE, unsigned int num);
 
   native_int n2i() {
@@ -363,6 +364,14 @@ class Object {
 
   bool undef_p() {
     return this == Qundef;
+  }
+
+  bool true_p() {
+    return this == Qtrue;
+  }
+
+  bool false_p() {
+    return this == Qfalse;
   }
 
   bool has_ivars_p() {

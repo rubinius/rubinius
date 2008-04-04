@@ -18,6 +18,14 @@ namespace rubinius {
 #endif
     return APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
+  
+  OBJECT Object::i2n(STATE, native_int num) {
+    if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
+      return Bignum::create(state, num);
+    } else {
+      return APPLY_TAG(num, TAG_FIXNUM);
+    }
+  }
 
   OBJECT Object::class_object() {
     OBJECT cls = klass;
@@ -199,7 +207,7 @@ namespace rubinius {
     /* Lazy creation of hash to store instance variables. */
     if(tbl->nil_p()) {
       Tuple* tup = (Tuple*)Hash::csm_new(state);
-      SET((NormalObject*)this, instance_variables, tbl);
+      SET((NormalObject*)this, instance_variables, tup);
       Hash::csm_add(state, tup, sym, val);
       return val;
     }

@@ -16,24 +16,27 @@ namespace rubinius {
     Class *nil_class, *true_class, *false_class, *fixnum_class, *undef_class;
     Class *floatpoint, *fastctx, *data, *nmethod, *nmc, *task, *list, *list_node;
     Class *channel, *thread, *staticscope, *send_site, *selector, *lookuptable;
+    Class *iseq;
 
     /* the primary symbol table */
     SymbolTable* symbols;
     OBJECT method_missing;
-    OBJECT sym_inherited, sym_opened_class;
-    OBJECT sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
-    OBJECT sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
+    SYMBOL sym_inherited, sym_opened_class;
+    SYMBOL sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
+    SYMBOL sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
     OBJECT exc_arg, exc_segfault;
     OBJECT exc_loe, exc_type, exc_rex;
     OBJECT exc_stack_explosion;
     OBJECT exc_primitive_failure, sym_initialize;
 
     LookupTable* external_ivars;
-    OBJECT scheduled_threads, errno_mapping;
-    OBJECT config, ffi_ptr, ffi_func, sym_send;
-    OBJECT sym_public, sym_private, sym_protected, sym_const_missing;
-    OBJECT sym_object_id, sym_call;
-    OBJECT exception, iseq, icache;
+    LookupTable* scheduled_threads;
+    LookupTable* errno_mapping;
+    OBJECT config, ffi_ptr, ffi_func;
+    SYMBOL sym_send;
+    SYMBOL sym_public, sym_private, sym_protected, sym_const_missing;
+    SYMBOL sym_object_id, sym_call;
+    OBJECT exception;
     OBJECT top_scope, on_gc_channel;
     OBJECT selectors;
 

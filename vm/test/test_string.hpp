@@ -21,13 +21,15 @@ class TestString : public CxxTest::TestSuite {
   }
 
   void test_create() {
+    TS_ASSERT(state->globals.string->has_ivars->false_p());
     str = String::create(state, "blah");
-    TS_ASSERT_EQUALS(str->bytes->n2i(), 4);
+    TS_ASSERT(!str->CanStoreIvars);
+    TS_ASSERT_EQUALS(str->size(state), 4);
   }
 
   void test_create2() {
     str = String::create(state, "blah", 2);
-    TS_ASSERT_EQUALS(str->bytes->n2i(), 2);
+    TS_ASSERT_EQUALS(str->size(state), 2);
   }
 
   void test_hash_string() {
@@ -38,5 +40,12 @@ class TestString : public CxxTest::TestSuite {
     hashval again = str->hash_string(state);
 
     TS_ASSERT_EQUALS(hash, again);
+  }
+
+  void test_to_sym() {
+    str = String::create(state, "blah");
+    OBJECT sym = str->to_sym(state);
+
+    TS_ASSERT(sym->symbol_p());
   }
 };

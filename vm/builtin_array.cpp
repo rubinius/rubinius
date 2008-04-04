@@ -63,4 +63,9 @@ namespace rubinius {
     }
     return val;
   }
+
+  OBJECT Array::append(STATE, OBJECT val) {
+    set(state, (size_t)total->n2i(), val);
+    return val;
+  }
 }

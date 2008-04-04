@@ -9,14 +9,18 @@ namespace rubinius {
     public:
     const static size_t fields = 7;
     OBJECT instance_variables;
-    OBJECT method_table;
+    LookupTable* method_table;
     OBJECT method_cache;
     OBJECT name;
-    OBJECT constants;
+    LookupTable* constants;
     OBJECT encloser;
     OBJECT superclass;
 
     void setup(STATE);
+    void setup(STATE, char* name, Module* under = NULL);
+    void set_const(STATE, OBJECT sym, OBJECT val);
+    OBJECT get_const(STATE, OBJECT sym);
+    OBJECT get_const(STATE, char* sym);
   };
 
   class Class : public Module {

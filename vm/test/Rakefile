@@ -1,0 +1,130 @@
+$verbose = Rake.application.options.trace
+
+def x(cmd)
+  sh cmd, :verbose => $verbose
+end
+
+class CCompile
+  def initialize
+    @includes = []
+    @flags = []
+    @linker = "gcc"
+  end
+
+  attr_accessor :includes, :flags
+
+  def cpp!
+    @linker = "g++"
+  end
+
+  def compile(input, output=nil)
+    output = input.gsub(/\.[^\.]+$/, ".o") unless output
+
+    includes = @includes.map { |i| "-I#{i}" }.join(" ")
+    flags =    @flags.join(" ")
+    od = File.dirname(output)
+    Dir.mkdir od unless File.directory? od
+
+    x "#{compiler(input)} #{includes} #{flags} -c -o #{output} #{input}"
+  end
+
+  def compiler(file)
+    if File.basename(file) == "c"
+      "gcc"
+    else
+      "g++"
+    end
+  end
+  
+  def <<(pattern)
+    list = FileList[pattern]
+    objects = []
+
+    list.each do |name|
+      headers = extract_headers(name)
+
+      output = name.gsub(/\.[^.]+$/, ".o")
+      objects << output
+
+      file output => headers + [name] do
+        compile(name, output)
+      end
+    end
+
+    return objects
+  end
+  
+  def extract_headers(path)
+    dir = File.dirname(path)
+    h = File.read(path).scan(/#include\s*.([^\n]*)./).map do |i| 
+      File.join(dir, i[0])
+    end
+
+    h.find_all do |name|
+      File.exists?(name) and /\.h(?:pp)?/.match(name)
+    end
+  end
+
+  def link(name, opts)
+    x "#{@linker} -o #{name} #{opts[:objects].join(' ')} #{opts[:libs].join(' ')}"
+  end
+
+end
+
+compiler = CCompile.new
+
+rule ".h"
+rule ".hpp"
+
+ex_libs = %w!../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a!
+ex_inc  = "-I../external_libs/libtommath -I../external_libs/onig"
+
+tests = FileList["test_*.hpp"]
+
+compiler.cpp!
+
+compiler.includes << "../external_libs/libtommath"
+compiler.includes << "../external_libs/onig"
+compiler.includes << "cxxtest"
+compiler.includes << ".."
+
+compiler.flags << "-Wall" << "-ggdb"
+
+objs = compiler << "../*.cpp"
+
+file "runner.cpp" => tests + objs do
+	x "cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o runner.cpp #{tests}"
+end
+
+file "runner.o" => "runner.cpp" do
+  compiler.compile "runner.cpp"
+end
+
+file "runner" => "runner.o" do
+  compiler.link "runner", :objects => objs + ["runner.o"], :libs => ex_libs
+end
+
+task :test => "runner" do
+  x "./runner"
+end
+
+task :default => :test
+
+file 'coverage/runner' do
+  FileUtils.mkdir_p "coverage"
+  compiler.link "coverage/runner", :objects => total, :libs => ex_libs, 
+end
+
+task :coverage => :clean do
+  compiler.flags << '-fprofile-arcs' <<  '-ftest-coverage'
+  Rake::Task['coverage/runner'].invoke
+
+	x "./coverage/runner"
+	x "lcov/bin/lcov --directory . --capture --output-file coverage/app.info"
+	x "cd coverage; ../lcov/bin/genhtml app.info"
+	x "rm -f *.gcno *.gcda"
+end
+
+task :clean do
+  x "rm -rf *.gcda *.gcno *.gcov *.dSYM *.o ../*.o runner coverage"
+end

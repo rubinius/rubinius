@@ -10,7 +10,7 @@ namespace rubinius {
 }
 
 namespace rubinius {
-  class Staticscope : public BuiltinType {
+  class StaticScope : public BuiltinType {
     public:
     const static size_t fields = 3;
     OBJECT instance_variables;
@@ -34,7 +34,7 @@ namespace rubinius {
     Hash*  strings;
 
     static SymbolTable* create(STATE);
-    OBJECT lookup(STATE, const unsigned char* str, size_t size);
+    OBJECT lookup(STATE, const char* str, size_t size = 0);
     OBJECT lookup(STATE, String* str);
     OBJECT find_string(STATE, Symbol* sym);
   };
@@ -117,14 +117,14 @@ namespace rubinius {
 };
 
 namespace rubinius {
-  class Regexpdata : public BuiltinType {
+  class RegexpData : public BuiltinType {
     public:
     const static size_t fields = 0;
   };
 };
 
 namespace rubinius {
-  class Matchdata : public BuiltinType {
+  class MatchData : public BuiltinType {
     public:
     const static size_t fields = 5;
     OBJECT instance_variables;
@@ -156,6 +156,7 @@ namespace rubinius {
     void   setup(STATE, size_t size);
     OBJECT get(STATE, size_t idx);
     OBJECT set(STATE, size_t idx, OBJECT val);
+    OBJECT append(STATE, OBJECT val);
   };
 };
 
@@ -170,7 +171,7 @@ namespace rubinius {
 };
 
 namespace rubinius {
-  class Blockenvironment : public BuiltinType {
+  class BlockEnvironment : public BuiltinType {
     public:
     const static size_t fields = 9;
     OBJECT instance_variables;
@@ -186,7 +187,7 @@ namespace rubinius {
 };
 
 namespace rubinius {
-  class Io : public BuiltinType {
+  class IO : public BuiltinType {
     public:
     const static size_t fields = 4;
     OBJECT instance_variables;
@@ -204,6 +205,15 @@ namespace rubinius {
     OBJECT source;
     OBJECT data;
     OBJECT names;
+
+    static void cleanup(STATE, OBJECT data);
+    static void init(STATE);
+    static Regexp* create(STATE, String* pattern, OBJECT options, char* err_buf = NULL);
+    static char*  version(STATE);
+
+    OBJECT options(STATE);
+    OBJECT match_region(STATE, String* string, OBJECT start, OBJECT end, OBJECT forward);
+
   };
 };
 
@@ -212,6 +222,51 @@ namespace rubinius {
     public:
     const static size_t fields = 0;
 
+    static bool is_a(OBJECT obj) {
+      return obj->obj_type == BignumType;
+    }
+
+    static void cleanup(STATE, OBJECT obj);
+    static void init(STATE);
+    static Bignum* create(STATE, native_int num);
+    static Bignum* new_unsigned(STATE, unsigned int num);
+    static OBJECT  normalize(STATE, Bignum* obj);
+    static Bignum* from_ull(STATE, unsigned long long val);
+    static Bignum* from_ll(STATE, long long val);
+    static OBJECT from_string_detect(STATE, char* str);
+    static OBJECT from_string(STATE, const char* str, size_t radix);
+    static OBJECT from_double(STATE, double d);
+    
+    void   debug(STATE);
+    OBJECT add(STATE, OBJECT b);
+    OBJECT sub(STATE, OBJECT b);
+    OBJECT mul(STATE, OBJECT b);
+    OBJECT div(STATE, OBJECT b, OBJECT mod);
+    OBJECT divmod(STATE, OBJECT b);
+    OBJECT mod(STATE, OBJECT b);
+    OBJECT bit_and(STATE, OBJECT b);
+    OBJECT bit_or(STATE, OBJECT b);
+    OBJECT bit_xor(STATE, OBJECT b);
+    OBJECT invert(STATE);
+    OBJECT neg(STATE);
+    OBJECT left_shift(STATE, OBJECT bits);
+    OBJECT right_shift(STATE, OBJECT bits);
+    OBJECT equal(STATE, OBJECT b);
+    OBJECT compare(STATE, OBJECT b);
+    OBJECT gt(STATE, OBJECT b);
+    OBJECT ge(STATE, OBJECT b);
+    OBJECT lt(STATE, OBJECT b);
+    OBJECT le(STATE, OBJECT b);
+    bool   is_zero(STATE);
+    unsigned long to_int(STATE);
+    int    to_i(STATE);
+    unsigned int to_ui(STATE);
+    unsigned long long to_ull(STATE);
+    long long to_ll(STATE);
+    OBJECT to_s(STATE, OBJECT radix);
+    void   into_string(STATE, size_t radix, char* buf, size_t sz);
+    double to_double(STATE);
+    OBJECT size(STATE);
     hashval hash_bignum(STATE);
   };
 };
@@ -231,30 +286,38 @@ namespace rubinius {
 
     OBJECT to_str(STATE);
   };
+
+  typedef Symbol* SYMBOL;
 };
 
 namespace rubinius {
   class String : public BuiltinType {
     public:
     const static size_t fields = 6;
-    OBJECT bytes;
+    OBJECT num_bytes;
     OBJECT characters;
     OBJECT encoding;
     OBJECT data;
     OBJECT hash;
     OBJECT shared;
 
-    static String* create(STATE, char* str, size_t bytes = 0);
-
-    hashval hash_string(STATE);
+    static String* create(STATE, const char* str, size_t bytes = 0);
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
-    OBJECT to_sym(STATE);
-    char* byte_address(STATE);
     static int string_equal_p(STATE, OBJECT self, OBJECT other);
-
+    
     static bool is_a(OBJECT obj) {
       return obj->reference_p() && obj->obj_type == StringType;
     }
+
+    size_t size(STATE) {
+      return num_bytes->n2i();
+    }
+
+    hashval hash_string(STATE);
+    OBJECT to_sym(STATE);
+    char* byte_address(STATE);
+    String* string_dup(STATE);
+
   };
 };
 
@@ -270,7 +333,7 @@ namespace rubinius {
   class LookupTable : public BuiltinType {
     public:
     const static size_t fields = 4;
-    OBJECT field0;
+    OBJECT instance_variables;
     Tuple* values;
     OBJECT bins;
     OBJECT entries;

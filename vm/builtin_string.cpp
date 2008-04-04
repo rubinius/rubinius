@@ -9,15 +9,15 @@
 
 namespace rubinius {
 
-  String* String::create(STATE, char* str, size_t bytes) {
+  String* String::create(STATE, const char* str, size_t bytes) {
     String *so;
 
     if(!bytes) bytes = strlen(str);
 
     so = (String*)state->om->new_object(state->globals.string, String::fields);
 
-    so->bytes = Object::i2n(bytes);
-    so->characters = so->bytes;
+    so->num_bytes = Object::i2n(bytes);
+    so->characters = so->num_bytes;
     so->encoding = Qnil;
 
     size_t fields = (bytes + 1) / 4;
@@ -40,7 +40,7 @@ namespace rubinius {
       return (hashval)hash->n2i();
     }
     bp = (unsigned char*)(data->bytes);
-    size_t sz = bytes->n2i();
+    size_t sz = size(state);
 
     hashval h = hash_str(bp, sz);
     hash = Object::ui2n(state, h);
@@ -66,7 +66,7 @@ namespace rubinius {
   }
 
   OBJECT String::to_sym(STATE) {
-    return Qnil;
+    return state->globals.symbols->lookup(state, this);
   }
 
   char* String::byte_address(STATE) {
@@ -83,6 +83,18 @@ namespace rubinius {
     }
 
     return TRUE;
+  }
+
+  String* String::string_dup(STATE) {
+    String* ns;
+
+    ns = (String*)dup(state);
+    ns->shared = Qtrue;
+    shared = Qtrue;
+
+    state->om->set_class(ns, class_object());
+
+    return ns;
   }
 
 }

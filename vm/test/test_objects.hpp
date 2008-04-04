@@ -8,10 +8,13 @@ using namespace rubinius;
 class TestObjects : public CxxTest::TestSuite {
   public:
 
+#define check_const(obj, name) TS_ASSERT_EQUALS(vm.globals.object->get_const(&vm,name), vm.globals.obj)
+
   void test_object() {
     VM vm(1024);
     TS_ASSERT_EQUALS(vm.globals.object->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(vm.globals.object->superclass, Qnil);
+    check_const(object, "Object");
   }
 
   void test_class() {
@@ -21,6 +24,7 @@ class TestObjects : public CxxTest::TestSuite {
     cls = (Class*)vm.globals.klass;
     TS_ASSERT_EQUALS(cls->class_object(), cls);
     TS_ASSERT_EQUALS(cls->superclass, vm.globals.module);
+    check_const(klass, "Class");
   }
 
   void test_metaclass_is_completely_setup() {
@@ -42,6 +46,7 @@ class TestObjects : public CxxTest::TestSuite {
     mod = (Class*)vm.globals.module;
     TS_ASSERT_EQUALS(mod->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(mod->superclass, vm.globals.object);
+    check_const(module, "Module");
   }
 
   void test_metaclass() {
@@ -53,6 +58,7 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(meta->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(meta->superclass, vm.globals.klass);
     TS_ASSERT_EQUALS(meta->object_type, Object::i2n(MetaclassType));
+    check_const(metaclass, "MetaClass");
   }
 
   void test_tuple() {
@@ -64,6 +70,7 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(tup->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(tup->superclass, vm.globals.object);
     TS_ASSERT_EQUALS(tup->object_type, Object::i2n(TupleType));
+    check_const(tuple, "Tuple");
   }
 
   void test_lookuptable() {
@@ -75,6 +82,7 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(lt->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(lt->superclass, vm.globals.object);
     TS_ASSERT_EQUALS(lt->object_type, Object::i2n(LookupTableType));
+    check_const(lookuptable, "LookupTable");
   }
 
   void test_methtbl() {
@@ -87,16 +95,18 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cls->superclass, vm.globals.lookuptable);
 
     TS_ASSERT_EQUALS((object_type)cls->object_type->n2i(), MTType);
+    check_const(methtbl, "MethodTable");
   }
 
   void test_symbol() {
     VM vm(1024);
     Class *cls;
 
-    cls = vm.globals.lookuptable;
+    cls = vm.globals.symbol;
 
     TS_ASSERT_EQUALS(cls->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(cls->superclass, vm.globals.object);
+    check_const(symbol, "Symbol");
   }
 
   void test_array() {
@@ -107,6 +117,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(cls->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(cls->superclass, vm.globals.object);
+    check_const(array, "Array");
   }
 
   void test_bytearray() {
@@ -118,6 +129,7 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cls->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(cls->superclass, vm.globals.object);
     TS_ASSERT_EQUALS((object_type)cls->object_type->n2i(), ByteArrayType);
+    check_const(bytearray, "ByteArray");
   }
 
   void test_string() {
@@ -129,6 +141,7 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cls->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(cls->superclass, vm.globals.object);
     TS_ASSERT_EQUALS((object_type)cls->object_type->n2i(), StringType);
+    check_const(string, "String");
   }
 
   void test_symtbl() {
@@ -139,6 +152,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(cls->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(cls->superclass, vm.globals.object);
+    check_const(symtbl, "SymbolTable");
   }
 
   void test_cmethod() {
@@ -149,5 +163,6 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(cls->class_object(), vm.globals.klass);
     TS_ASSERT_EQUALS(cls->superclass, vm.globals.object);
+    check_const(cmethod, "CompiledMethod");
   }
 };

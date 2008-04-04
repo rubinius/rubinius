@@ -50,3 +50,20 @@ namespace rubinius {
     young.clear_marks();
   }
 };
+
+void* XMALLOC(size_t bytes) {
+  return malloc(bytes);
+}
+
+void XFREE(void* ptr) {
+  free(ptr);
+}
+
+void* XREALLOC(void* ptr, size_t bytes) {
+  return realloc(ptr, bytes);
+}
+
+void* XCALLOC(size_t items, size_t bytes) {
+  return calloc(items, bytes);
+}
+
