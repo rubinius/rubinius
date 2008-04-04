@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'spec/spec_helper'
+require 'mspec/complete'
 require 'mspec/bin/options'
 require 'mspec/bin/script'
 
@@ -40,6 +40,7 @@ class MSpecRun < MSpecScript
     options.add_action_filters
 
     options.separator "\n Help!"
+    options.add_version
     options.add_help
 
     options.separator "\n How might this work in the real world?"

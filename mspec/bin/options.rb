@@ -80,6 +80,37 @@ class MSpecOptions
     end
   end
 
+  def add_targets
+    on("-t", "--target TARGET", String,
+            "Implementation to run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
+      case t
+      when 'r', 'ruby'
+        @config[:target] = 'ruby'
+        @config[:flags] << '-v'
+      when 'r19', 'ruby19'
+        @config[:target] = 'ruby19'
+      when 'x', 'rbx', 'rubinius'
+        @config[:target] = 'shotgun/rubinius'
+      when 'j', 'jruby'
+        @config[:target] = 'jruby'
+      else
+        @config[:target] = t
+      end
+    end
+    on("-T", "--target-opt OPT", String,
+            "Pass OPT as a flag to the target implementation") do |t|
+      @config[:flags] << t
+    end
+    on("-I", "--include DIR", String,
+            "Pass DIR through as the -I option to the target") do |d|
+      @config[:includes] << "-I#{d}"
+    end
+    on("-r", "--require LIBRARY", String,
+            "Pass LIBRARY through as the -r option to the target") do |f|
+      @config[:requires] << "-r#{f}"
+    end
+  end
+
   def add_tags_dir
     on("-X", "--tags-dir DIR", String,
             "Use DIR as the path prefix for locating spec tag files") do |d|
@@ -238,11 +269,14 @@ class MSpecOptions
     end
   end
 
-  def add_help
+  def add_version
     on("-v", "--version", "Show version") do
-      puts "MSpec #{MSpec::VERSION}"
+      puts "#{File.basename $0} #{MSpec::VERSION}"
       exit
     end
+  end
+
+  def add_help
     on("-h", "--help", "Show this message") do
       puts @parser
       exit
@@ -250,7 +284,7 @@ class MSpecOptions
   end
 
   def on(*args, &block)
-    @parser.on *args, &block
+    @parser.on(*args, &block)
   end
 
   def separator(str)

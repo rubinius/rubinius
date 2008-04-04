@@ -1,3 +1,5 @@
+require 'mspec/runner/formatters/dotted'
+
 # MSpecScript provides a skeleton for all the MSpec runner scripts.
 # The front script, 'mspec', just overrides a couple methods in
 # MSpecScript. It could subclass, but there is no real advantage

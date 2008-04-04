@@ -4,13 +4,20 @@ require 'fileutils'
 
 module MSpec
 
-  @before  = nil
+  @start   = nil
   @enter   = nil
+  @before  = nil
+  @after   = nil
+  @leave   = nil
+  @finish  = nil
   @exclude = nil
   @include = nil
   @leave   = nil
   @mode    = nil
+  @load    = nil
   @unload  = nil
+  @randomize   = nil
+  @expectation = nil
 
   def self.describe(mod, msg, &block)
     stack.push RunState.new

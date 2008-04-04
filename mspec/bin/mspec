@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'mspec/version'
 require 'mspec/bin/options'
 require 'mspec/bin/script'
 
@@ -10,14 +9,15 @@ class MSpecScript
   def initialize
     Config[:includes] = []
     Config[:requires] = []
-    Config[:target] = 'ruby'
-    Config[:flags] = []
-    Config[:command] = nil
-    Config[:options] = []
+    Config[:target]   = 'ruby'
+    Config[:flags]    = []
+    Config[:command]  = nil
+    Config[:options]  = []
 
     if ["ci", "run", "tag"].include? ARGV[0]
       Config[:command] = ARGV.shift
       Config[:options] << "-h" if ARGV.delete("-h") || ARGV.delete("--help")
+      Config[:options] << "-v" if ARGV.delete("-v") || ARGV.delete("--version")
     end
   end
 
@@ -34,34 +34,8 @@ class MSpecScript
       config f
     end
 
-    options.on("-t", "--target TARGET", String,
-            "Implementation to run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
-      case t
-      when 'r', 'ruby'
-        Config[:target] = 'ruby'
-        Config[:flags] << '-v'
-      when 'r19', 'ruby19'
-        Config[:target] = 'ruby19'
-      when 'x', 'rbx', 'rubinius'
-        Config[:target] = 'shotgun/rubinius'
-      when 'j', 'jruby'
-        Config[:target] = 'jruby'
-      else
-        Config[:target] = t
-      end
-    end
-    options.on("-T", "--target-opt OPT", String,
-            "Pass OPT as a flag to the target implementation") do |t|
-      Config[:flags] << t
-    end
-    options.on("-I", "--include DIR", String,
-            "Pass DIR through as the -I option to the target") do |d|
-      Config[:includes] << "-I#{d}"
-    end
-    options.on("-r", "--require LIBRARY", String,
-            "Pass LIBRARY through as the -r option to the target") do |f|
-      Config[:requires] << "-r#{f}"
-    end
+    options.add_targets
+
     options.on("-D", "--gdb", "Run under gdb") do
       Config[:flags] << '--gdb'
     end
@@ -72,10 +46,7 @@ class MSpecScript
       Config[:flags] << '-w'
       ENV['OUTPUT_WARNINGS'] = '1'
     end
-    options.on("-v", "--version", "Show version") do
-      puts "MSpec #{MSpec::VERSION}"
-      exit
-    end
+    options.add_version
     options.on("-h", "--help", <<-EOH) do
 Show this message
 
