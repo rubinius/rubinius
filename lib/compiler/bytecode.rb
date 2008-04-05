@@ -2066,7 +2066,8 @@ class Node
 
       min = @required.size
       if @splat
-        max = 1024
+        # There is no upper bound, check is in instructions.gen 
+        max = -1
       else
         max = min + @optional.size
       end
