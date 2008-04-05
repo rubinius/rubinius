@@ -14,15 +14,17 @@ class Symbol
   end
 
   def inspect
-    str = to_s
+    str = self.to_s
+
     case str
-    when /^\"$/
+    when /^\"$/ then
       ":\"\\\"\""
-    when /^(!|!=|!~|&&|'|,|\.|\.\.|\.\.\.|:|::|;|=>|\?|\|\||\d|\+\+)/, /^(\$|@|=)$/, / /
-      ":\"#{str}\""
-    when /^(-@|\+@|%|&|\*|\*\*|\/|<|<=|<=>|==|===|=~|>|>=|\[\]|\[\]=|<<|^|`|~)/
+# TODO: the default case should be UNquoted and the logic should be flipped
+#   when /^(&&|\.\.\.?|::|=>|\|\||\+\+|![=~]|[\d!$,.:;=?@])$| / then
+#     ":\"#{str}\""
+    when /^([-+~]@|\*\*?|<=>|===?|=~|\[]=?|<<|>>|[<>]=|[%&\/<>^`|~+-])$/ then
       ":#{str}"
-    when /^($-?|@@?)?[a-z_]+[?!]?/ then # TODO: verify this is correct
+    when /^(\$-?|@@?)?[a-z_][a-z_\d]*[?!]?$/i then
       ":#{str}"
     else
       ":\"#{str}\""
