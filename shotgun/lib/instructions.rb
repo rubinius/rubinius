@@ -2641,7 +2641,7 @@ perform_no_ss_send:
   #
   #   The number of arguments to place into the rest array is determined by
   #   how many actual args have been passed to the method, less the number of
-  #   arguments +argc+ defined by the method. If this is less than or \equal to
+  #   arguments +argc+ required by the method. If this is less than or \equal to
   #   0, an empty array is pushed onto the stack. If the number is greater
   #   than 0, arguments are popped from the stack so that the first rest arg
   #   is at the start of the array, and the last rest arg is at the end.
@@ -2693,7 +2693,7 @@ perform_no_ss_send:
   #
   #   The number of arguments to place into the rest array is determined by
   #   how many actual args have been passed to the method, less the number of
-  #   arguments +argc+ defined by the method. If this is less than or \equal to
+  #   arguments +argc+ required by the method. If this is less than or \equal to
   #   0, an empty array is pushed onto the stack. If the number is greater
   #   than 0, arguments are copied from before the frame pointer into the
   #   array, so that the first rest arg is at the start of the array, and the
