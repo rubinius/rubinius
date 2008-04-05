@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::HtmlExtension#popup_menu should spec something

@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::HtmlExtension#image_button should spec something

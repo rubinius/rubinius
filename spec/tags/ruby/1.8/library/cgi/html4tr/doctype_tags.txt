@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::Html4Tr#doctype should spec something

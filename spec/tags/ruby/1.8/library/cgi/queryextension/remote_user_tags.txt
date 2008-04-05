@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#remote_user should spec something

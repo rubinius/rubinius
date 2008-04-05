@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#path_info should spec something

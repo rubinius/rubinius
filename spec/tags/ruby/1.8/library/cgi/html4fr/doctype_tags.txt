@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::Html4Fr#doctype should spec something

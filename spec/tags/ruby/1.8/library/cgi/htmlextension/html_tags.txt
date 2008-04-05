@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::HtmlExtension#html should spec something

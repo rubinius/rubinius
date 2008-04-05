@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::HtmlExtension#multipart_form should spec something

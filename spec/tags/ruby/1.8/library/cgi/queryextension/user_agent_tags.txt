@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#user_agent should spec something

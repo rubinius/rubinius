@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#gateway_interface should spec something

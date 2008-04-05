@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#accept_charset should spec something

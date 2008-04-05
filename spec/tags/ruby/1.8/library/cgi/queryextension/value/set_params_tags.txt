@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension::Value#set_params should spec something

@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension::Value#[] should spec something

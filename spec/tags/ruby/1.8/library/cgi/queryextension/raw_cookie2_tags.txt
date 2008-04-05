@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#raw_cookie2 should spec something

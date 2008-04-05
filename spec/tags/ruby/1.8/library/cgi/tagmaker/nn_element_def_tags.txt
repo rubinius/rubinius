@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::TagMaker#nn_element_def should spec something

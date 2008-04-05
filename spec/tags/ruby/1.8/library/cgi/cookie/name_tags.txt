@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::Cookie#name should spec something

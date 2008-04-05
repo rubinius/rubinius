@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::Html4Tr#element_init should spec something

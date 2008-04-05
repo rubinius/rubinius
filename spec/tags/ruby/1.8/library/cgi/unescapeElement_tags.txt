@@ -1,0 +1,1 @@
+fails(unimplemented):CGI#unescapeElement should spec something

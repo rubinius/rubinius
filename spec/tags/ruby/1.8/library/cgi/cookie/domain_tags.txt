@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::Cookie#domain should spec something

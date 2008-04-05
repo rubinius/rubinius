@@ -1,0 +1,1 @@
+fails(unimplemented):CGI#escapeElement should spec something

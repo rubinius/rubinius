@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#multipart? should spec something

@@ -1,0 +1,1 @@
+fails(unimplemented):CGI#env_table should spec something

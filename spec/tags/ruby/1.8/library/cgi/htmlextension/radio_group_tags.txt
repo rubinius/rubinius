@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::HtmlExtension#radio_group should spec something

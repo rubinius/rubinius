@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::HtmlExtension#blockquote should spec something

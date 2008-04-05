@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#has_key? should spec something

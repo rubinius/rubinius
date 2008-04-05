@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::HtmlExtension#reset should spec something

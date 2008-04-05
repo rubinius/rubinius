@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#request_method should spec something

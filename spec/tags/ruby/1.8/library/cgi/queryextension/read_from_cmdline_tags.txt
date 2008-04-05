@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::QueryExtension#read_from_cmdline should spec something

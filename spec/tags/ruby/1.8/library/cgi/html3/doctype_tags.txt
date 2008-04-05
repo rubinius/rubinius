@@ -1,0 +1,1 @@
+fails(unimplemented):CGI::Html3#doctype should spec something
