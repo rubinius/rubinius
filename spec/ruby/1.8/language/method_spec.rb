@@ -81,6 +81,17 @@ describe "Calling a method" do
     lambda { foo(1,2) }.should raise_error(ArgumentError)
     lambda { foo(1,2,3,4) }.should raise_error(ArgumentError)
   end
+
+  # "Allows infinite arguments" is kinda hard to spec
+  it "allows any number of args beyond required to method with a splat" do
+    def foo(a, b, *c); end
+
+    lambda { foo 1 }.should raise_error(ArgumentError)
+
+    lambda { foo 1, 2 }.should_not raise_error
+    lambda { foo 1, 2, 3 }.should_not raise_error
+    lambda { foo 1, 2, 3, *Array.new(2500) }.should_not raise_error
+  end
   
   it "allows to pass literal hashes without curly braces as the last parameter" do
     def foo(a,b,c); [a,b,c] end

@@ -133,7 +133,7 @@ describe Compiler do
     end
   end
   
-  it "compiles 'def a(*b); nil; end'" do
+  it "compiles 'def a(*b); nil; end' with no max argument count" do
     x = [:defn, :a, 
       [:scope, 
         [:block, [:args, [], [], [:b, 1], nil], 
@@ -145,7 +145,7 @@ describe Compiler do
     
     gen x do |g|
       meth = description do |d|
-        d.check_argcount 0, 1024
+        d.check_argcount 0, -1
         d.make_rest_fp 0
         d.set_local 0
         d.pop

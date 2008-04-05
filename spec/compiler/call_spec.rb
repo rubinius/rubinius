@@ -398,7 +398,7 @@ describe Compiler do
     
     gen x do |g|
       desc = description do |d|
-        d.check_argcount 1, 1024
+        d.check_argcount 1, -1
         d.set_local_from_fp 0, 0
         d.make_rest_fp 1
         d.set_local 1
