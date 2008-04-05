@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../expectations'
 require File.dirname(__FILE__) + '/../../expectations/flunk'
+require File.dirname(__FILE__) + '/../../runner/mspec'
 
 describe Object, "#flunk" do
   before :each do

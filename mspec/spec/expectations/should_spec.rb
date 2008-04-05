@@ -1,6 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../expectations'
 require File.dirname(__FILE__) + '/../../matchers/base'
+require File.dirname(__FILE__) + '/../../runner/mspec'
 
 class Object
   alias_method :rspec_should,     :should
