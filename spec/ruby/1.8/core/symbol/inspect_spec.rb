@@ -1,66 +1,73 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Symbol#inspect" do
-  it "returns self as a symbol literal" do
-    :fred.inspect.should   == ":fred"
-    :fred?.inspect.should  == ":fred?"
-    :fred!.inspect.should  == ":fred!"
-    :[].inspect.should     == ":[]"
-    :$-w.inspect.should    == ":$-w"
-    :@ruby.inspect.should  == ":@ruby"
-    :@@ruby.inspect.should == ":@@ruby"
+  symbols = {
+    :fred      => ":fred",
+    :fred?     => ":fred?",
+    :fred!     => ":fred!",
+    :[]        => ":[]",
+    :$-w       => ":$-w",
+    :@ruby     => ":@ruby",
+    :@@ruby    => ":@@ruby",
 
-    :-@.inspect.should == ":-@"
-    :+@.inspect.should == ":+@"
-    :%.inspect.should == ":%"
-    :&.inspect.should == ":&"
-    :*.inspect.should == ":*"
-    :**.inspect.should == ":**"
-    :/.inspect.should == ":/"
-    :<.inspect.should == ":<"
-    :<=.inspect.should == ":<="
-    :<=>.inspect.should == ":<=>"
-    :==.inspect.should == ":=="
-    :===.inspect.should == ":==="
-    :=~.inspect.should == ":=~"
-    :>.inspect.should == ":>"
-    :>=.inspect.should == ":>="
-    :>>.inspect.should == ":>>"
-    :[].inspect.should == ":[]"
-    :[]=.inspect.should == ":[]="
-    :<<.inspect.should == ":<<"
-    :^.inspect.should == ":^"
-    :`.inspect.should == ":`"
-    :~.inspect.should == ":~"
-    :|.inspect.should == ":|"
+    :-@        => ":-@",
+    :+@        => ":+@",
+    :%         => ":%",
+    :&         => ":&",
+    :*         => ":*",
+    :**        => ":**",
+    :"/"       => ":/",     # lhs quoted for emacs happiness
+    :<         => ":<",
+    :<=        => ":<=",
+    :<=>       => ":<=>",
+    :==        => ":==",
+    :===       => ":===",
+    :=~        => ":=~",
+    :>         => ":>",
+    :>=        => ":>=",
+    :>>        => ":>>",
+    :[]        => ":[]",
+    :[]=       => ":[]=",
+    :"\<\<"    => ":\<\<",
+    :^         => ":^",
+    :"`"       => ":`",     # for emacs, and justice!
+    :~         => ":~",
+    :|         => ":|",
 
-    :"!".inspect.should == ":\"!\""
-    :"!=".inspect.should == ":\"!=\""
-    :"!~".inspect.should == ":\"!~\""
-    :"$".inspect.should == ":\"$\""
-    :"&&".inspect.should == ":\"&&\""
-    :"'".inspect.should == ":\"\'\""
-    :",".inspect.should == ":\",\""
-    :".".inspect.should == ":\".\""
-    :"..".inspect.should == ":\"..\""
-    :"...".inspect.should == ":\"...\""
-    :":".inspect.should == ":\":\""
-    :"::".inspect.should == ":\"::\""
-    :";".inspect.should == ":\";\""
-    :"=".inspect.should == ":\"=\""
-    :"=>".inspect.should == ":\"=>\""
-    :"?".inspect.should == ":\"?\""
-    :"@".inspect.should == ":\"@\""
-    :"||".inspect.should == ":\"||\""
-    :"|||".inspect.should == ":\"|||\""
-    :"++".inspect.should == ":\"++\""
+    :"!"       => ":\"!\"",
+    :"!="      => ":\"!=\"",
+    :"!~"      => ":\"!~\"",
+    :"\$"      => ":\"$\"", # for justice!
+    :"&&"      => ":\"&&\"",
+    :"'"       => ":\"\'\"",
+    :","       => ":\",\"",
+    :"."       => ":\".\"",
+    :".."      => ":\"..\"",
+    :"..."     => ":\"...\"",
+    :":"       => ":\":\"",
+    :"::"      => ":\"::\"",
+    :";"       => ":\";\"",
+    :"="       => ":\"=\"",
+    :"=>"      => ":\"=>\"",
+    :"\?"      => ":\"?\"", # rawr!
+    :"@"       => ":\"@\"",
+    :"||"      => ":\"||\"",
+    :"|||"     => ":\"|||\"",
+    :"++"      => ":\"++\"",
 
-    :"\"".inspect.should == ":\"\\\"\""
-    
-    :"9".inspect.should == ":\"9\""
-    :"foo bar".inspect.should == ":\"foo bar\""
-    :"foo ".inspect.should == ":\"foo \""
-    :" foo".inspect.should == ":\" foo\""
-    :" ".inspect.should == ":\" \""
+    :"\""      => ":\"\\\"\"",
+
+    :"9"       => ":\"9\"",
+    :"foo bar" => ":\"foo bar\"",
+    :"*foo"    => ":\"*foo\"",
+    :"foo "    => ":\"foo \"",
+    :" foo"    => ":\" foo\"",
+    :" "       => ":\" \"",
+  }
+
+  symbols.each do |input, expected|
+    it "returns self as a symbol literal for #{expected}" do
+      input.inspect.should   == expected
+    end
   end
 end
