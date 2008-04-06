@@ -531,35 +531,35 @@ end
 
 class UDPSocket < IPSocket
   def initialize
-    super Socket::Constants::SOCK_DGRAM
+    status = Socket::Foreign.socket Socket::AF_INET, Socket::SOCK_DGRAM, 0
+    Errno.handle 'socket(2)' if status < 0
+    setup status
   end
   
   def bind(host, port)
-    @port = port
-    @host = host
+    @host = host.to_s if host
+    @port = port.to_s if port
 
-    sockaddr = Socket::Foreign.pack_sockaddr_in @host,to_s, @port.to_s, @type, 0
-    ret = Socket::Foreign.bind descriptor, sockaddr
-    setup(fixnum)
+    addrinfos = Socket::Foreign.getaddrinfo(@host,
+                                           @port,
+                                           Socket::AF_UNSPEC,
+                                           Socket::SOCK_DGRAM, 0, 0)
 
-    name, addr, port = Socket::Foreign.getpeername fixnum, false
+    status = -1
 
-    initialize(addr, port)
+    addrinfos.each do |addrinfo|
+      flags, family, socket_type, protocol, sockaddr, canonname = addrinfo
 
-    return self
-    Errno.handle unless ret == 0 # HACK needs name
+      status = Socket::Foreign.bind descriptor, sockaddr
+      syscall = 'bind(2)'
 
-    return
-
-    @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
-    sockaddr_p = MemoryPointer.new :char, @sockaddr.length
-    sockaddr_p.write_string @sockaddr, @sockaddr.length
-
-    ret = Socket::Foreign.bind descriptor, sockaddr_p, @sockaddr.size
-
-    Errno.handle 'bind(2)' unless ret == 0
-  ensure
-    sockaddr_p.free if sockaddr_p
+      break if status >= 0
+    end
+    if status < 0
+      Errno.handle syscall 
+      Socket::Foreign.close descriptor
+    end
+    
   end
   
   def inspect
