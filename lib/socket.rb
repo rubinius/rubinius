@@ -559,7 +559,7 @@ class UDPSocket < IPSocket
       Errno.handle syscall 
       Socket::Foreign.close descriptor
     end
-    
+    status
   end
   
   def inspect
