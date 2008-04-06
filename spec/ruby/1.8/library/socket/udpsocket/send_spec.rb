@@ -19,16 +19,14 @@ describe "UDPSocket.send" do
       msg1[1][1].should be_kind_of(Fixnum)
       msg1[1][3].should == "127.0.0.1"
 
-      msg2 = @server.recvfrom(64)
-      msg2[0].should == "connection-based"
-      msg2[1][0].should == "AF_INET"
-      msg2[1][1].should be_kind_of(Fixnum)
-      msg2[1][3].should == "127.0.0.1"
+      @server.close
     end
 
     Thread.pass while server_thread.status and !@ready
 
-    UDPSocket.open.send("ad hoc", 0, 'localhost',SocketSpecs.port)
+    @socket = UDPSocket.open
+    @socket.send("ad hoc", 0, 'localhost',SocketSpecs.port)
+    @socket.close
 
     server_thread.join
   end
@@ -45,16 +43,12 @@ describe "UDPSocket.send" do
       end
       @ready = true
       msg1 = @server.recvfrom(64)
-      msg1[0].should == "ad hoc"
+      msg1[0].should == "connection-based"
       msg1[1][0].should == "AF_INET"
       msg1[1][1].should be_kind_of(Fixnum)
       msg1[1][3].should == "127.0.0.1"
 
-      msg2 = @server.recvfrom(64)
-      msg2[0].should == "connection-based"
-      msg2[1][0].should == "AF_INET"
-      msg2[1][1].should be_kind_of(Fixnum)
-      msg2[1][3].should == "127.0.0.1"
+      @server.close
     end
 
     Thread.pass while server_thread.status and !@ready
@@ -62,6 +56,7 @@ describe "UDPSocket.send" do
     @socket = UDPSocket.open
     @socket.connect('localhost',SocketSpecs.port)
     @socket.send("connection-based", 0)
+    @socket.close
 
     server_thread.join
   end
