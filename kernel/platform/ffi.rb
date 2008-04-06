@@ -458,7 +458,7 @@ class FFI::Struct
   def self.layout(*spec)
     return @layout if spec.size == 0
 
-    cspec = {}
+    cspec = LookupTable.new
     i = 0
 
     @size = 0
@@ -483,7 +483,7 @@ class FFI::Struct
 
   def self.config(base, *fields)
     @size = Rubinius::RUBY_CONFIG["#{base}.sizeof"]
-    cspec = {}
+    cspec = LookupTable.new
 
     fields.each do |field|
       offset = Rubinius::RUBY_CONFIG["#{base}.#{field}.offset"]
@@ -572,7 +572,7 @@ class NativeFunction
 
       @library = library
       @name = name
-      @functions = {}
+      @functions = LookupTable.new
     end
 
     def find_function(at)
