@@ -1,7 +1,7 @@
 class MSpecScript
   # An ordered list of the directories containing specs to run
   # as the CI process.
-  Config[:ci_files] = [
+  set :ci_files, [
     'spec/ruby/1.8/core',
     'spec/ruby/1.8/language',
     'spec/compiler',
@@ -18,8 +18,8 @@ class MSpecScript
   # processed. The directory is relative to the directory
   # in which the spec runner is invoked, in this case,
   # the rubinius root.
-  Config[:tags_dir] = File.expand_path('spec/tags')
+  set :tags_dir, File.expand_path('spec/tags')
 
   # The default implementation to run the specs.
-  Config[:target] = 'shotgun/rubinius'
+  set :target, 'shotgun/rubinius'
 end
