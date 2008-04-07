@@ -89,8 +89,10 @@ class MSpecOptions
         @config[:flags] << '-v'
       when 'r19', 'ruby19'
         @config[:target] = 'ruby19'
-      when 'x', 'rbx', 'rubinius'
+      when 'x', 'rubinius'
         @config[:target] = 'shotgun/rubinius'
+      when 'X', 'rbx'
+        @config[:target] = 'rbx'
       when 'j', 'jruby'
         @config[:target] = 'jruby'
       else

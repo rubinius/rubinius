@@ -279,8 +279,8 @@ namespace :spec do
   task :ci => :build do
     clear_compiler
 
-    target = ENV['SPEC_TARGET'] || 'rbx'
-    system %(shotgun/rubinius -e 'puts "rbx build: \#{Rubinius::BUILDREV}"') if target == 'rbx'
+    target = ENV['SPEC_TARGET'] || 'rubinius'
+    system %(shotgun/rubinius -e 'puts "rubinius build: \#{Rubinius::BUILDREV}"') if target == 'rubinius'
     sh "bin/mspec ci -t #{target}"
   end
 
