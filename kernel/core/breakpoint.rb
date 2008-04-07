@@ -14,6 +14,17 @@ class Breakpoint
   # This class is an abstract class; only subclasses ought to be instantiated.
   self.private_class_method :new
 
+  # Create a single Encoder instance for all breakpoints to use
+  def initialize
+    @@encoder = InstructionSequence::Encoder.new
+  end
+
+  # TODO: Figure out why setting a class variable in the class script blows up
+  #@@encoder = InstructionSequence::Encoder.new
+  def self.encoder
+    @@encoder
+  end
+
   attr_reader :method
   attr_reader :ip
 
@@ -54,7 +65,7 @@ class Breakpoint
   # Makes the breakpoint active by inserting a yield_debugger instruction at the
   # breakpoint.
   def install(ctxt=nil, bytecodes=@method.bytecodes)
-    @encoder.replace_instruction(bytecodes, @ip, [:yield_debugger])
+    @@encoder.replace_instruction(bytecodes, @ip, [:yield_debugger])
     modify_iseq ctxt
   end
 
@@ -63,7 +74,7 @@ class Breakpoint
   # breakpoint. Returns the address of the breakpoint, so that the context IP
   # can be reset and execution can proceed following the breakpoint.
   def remove(ctxt=nil, bytecodes=@method.bytecodes)
-    @encoder.replace_instruction bytecodes, @ip, @original_instruction
+    @@encoder.replace_instruction bytecodes, @ip, @original_instruction
     modify_iseq ctxt
     @ip
   end
@@ -71,7 +82,7 @@ class Breakpoint
   # Returns true if a :yield_debugger instruction is currently installed at the
   # breakpoint target.
   def installed?
-    op = @encoder.decode_instruction(@method.bytecodes, @ip)
+    op = @@encoder.decode_instruction(@method.bytecodes, @ip)
     op.first.opcode == :yield_debugger
   end
 
@@ -116,6 +127,7 @@ class GlobalBreakpoint < Breakpoint
   # breakpoint, the MethodContext active when the breakpoint was hit, and this
   # Breakpoint instance.
   def initialize(cm, selector={}, &prc)
+    super()
     unless block_given?
       raise ArgumentError, "A block must be supplied to be executed when the breakpoint is hit"
     end
@@ -133,8 +145,7 @@ class GlobalBreakpoint < Breakpoint
 
     validate_breakpoint_ip @ip
 
-    @encoder = InstructionSequence::Encoder.new
-    @original_instruction = @encoder.decode_instruction(@method.bytecodes, @ip)
+    @original_instruction = @@encoder.decode_instruction(@method.bytecodes, @ip)
   end
 end
 
@@ -147,12 +158,12 @@ class TaskBreakpoint < Breakpoint
 
   # Initializes a new instance of a step breakpoint
   def initialize(task, &prc)
+    super()
     unless block_given?
       raise ArgumentError, "A block must be supplied to be executed when the breakpoint is hit"
     end
     @task = task
     @handler = prc
-    @encoder = InstructionSequence::Encoder.new
   end
   attr_reader :task
 end
@@ -245,8 +256,15 @@ class StepBreakpoint < TaskBreakpoint
       # Set new breakpoint
       # TODO: Need to ensure this handles multiple breakpoints being set at the same location
       @method = @context.method
-      @original_instruction = @encoder.decode_instruction(@method.bytecodes, @ip)
-      install(@context)
+      @original_instruction = @@encoder.decode_instruction(@method.bytecodes, @ip)
+    end
+  end
+
+  def install
+    if @break_type == :opcode_replacement
+      # Set new breakpoint
+      # TODO: Need to ensure this handles multiple breakpoints being set at the same location
+      super(@context)
     elsif @break_type == :context_change
       # Stepping into method, so set breakpoint on context change
       @task.debug_context_change = true
@@ -433,7 +451,10 @@ end
 
 ##
 # A TaskBreakpoint subclass that is used to restore a persistent breakpoint once
-# execution has been resumed after the persistent breakpoint was hit.
+# execution has been resumed after the persistent breakpoint was hit. It is a
+# subclass of StepBreakpoint since it requires the same smarts to determine
+# where the next instruction will be so that it can set the breakpoint that will
+# re-set the original breakpoint in the right spot.
 class BreakpointRestorer < StepBreakpoint
   def initialize(task, bp)
     @context = task.current_context
@@ -503,7 +524,6 @@ class BreakpointTracker
     # Context breakpoints are tracked by task
     @task_breakpoints = Hash.new {|h,k| h[k] = []}
     @debug_channel = Channel.new
-    @encoder = InstructionSequence::Encoder.new
   end
   
   attr_accessor :debug_channel
@@ -643,7 +663,7 @@ class BreakpointTracker
         # breakpoint on the current context
         # TODO: hmmm... if we've broken on a return instruction, current context
         # will expire on next step, and we won't need to restore BP
-        #@task_breakpoints[task] << BreakpointRestorer.new(task, bp)
+        @task_breakpoints[task] << BreakpointRestorer.new(task, bp)
       end
 
       begin
@@ -669,7 +689,17 @@ class BreakpointTracker
   ##
   # Wakes the debuggee thread and continues execution until the next breakpoint.
   def wake_target(thrd)
-    @thread = nil if thrd == @thread
+    if thrd == @thread
+      # Activate any task breakpoints; since these modify the global method
+      # bytecode, it is easiest to only set the task breakpoints once any
+      # changes to global breakpoints are finalised.
+      task = thrd.task
+      ctx = task.current_context
+      @task_breakpoints[task].each do |bp|
+        bp.install
+      end
+      @thread = nil
+    end
     thrd.control_channel.send nil
   end
 

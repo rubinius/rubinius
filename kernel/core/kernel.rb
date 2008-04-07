@@ -402,16 +402,22 @@ module Kernel
     dbg = Debugger.instance
 
     ctxt = MethodContext.current.sender
-    bp = dbg.get_breakpoint(ctxt.method, ctxt.ip)
+    cm = ctxt.method
+    ip = ctxt.ip
+    bp = dbg.get_breakpoint(cm, ip)
     if bp
-      unless bp.enabled?
-        bp.enable
-        ctxt.reload_method
-      end
+      bp.enable unless bp.enabled?
     else
-      dbg.set_breakpoint ctxt.method, ctxt.ip
-      ctxt.reload_method
+      bp = dbg.set_breakpoint(cm, ip)
     end
+
+    # Modify send site not to call this method again
+    bc = ctxt.method.bytecodes
+    
+    Breakpoint.encoder.replace_instruction(bc, ip-4, [:noop])
+    Breakpoint.encoder.replace_instruction(bc, ip-2, [:noop])
+
+    ctxt.reload_method
   end
 
   alias_method :breakpoint, :debugger
