@@ -17,6 +17,7 @@ class Breakpoint
   # Create a single Encoder instance for all breakpoints to use
   def initialize
     @@encoder = InstructionSequence::Encoder.new
+    @hits = 0
   end
 
   # TODO: Figure out why setting a class variable in the class script blows up
@@ -27,6 +28,7 @@ class Breakpoint
 
   attr_reader :method
   attr_reader :ip
+  attr_reader :hits
 
   # Returns the source file line that the breakpoint is on
   def line
@@ -107,6 +109,7 @@ class Breakpoint
 
   # Executes the callback block that was provided for when a breakpoint was hit.
   def call_handler(thread, ctx)
+    @hits += 1
     @handler.call(thread, ctx, self)
   end
 end

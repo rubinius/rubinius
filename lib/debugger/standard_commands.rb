@@ -36,14 +36,14 @@ class Debugger
     def execute(dbg, md)
       output = Output.new
       output << "Breakpoints:"
-      output.set_columns(["%d.", "%-s", " %s ", "[IP:%d]", "%s"])
+      output.set_columns(["%d.", "%-s", " %s ", "[IP:%d]", "%4d", "%s"])
       dbg.breakpoints.each_with_index do |bp, i|
         if bp.enabled?
           output.set_color :white
         else
           output.set_color :yellow
         end
-        output << [i+1, "#{bp.method.file}:#{bp.line}", bp.method.name, bp.ip, "#{'(disabled)' unless bp.enabled?}"]
+        output << [i+1, "#{bp.method.file}:#{bp.line}", bp.method.name, bp.ip, bp.hits, "#{'(disabled)' unless bp.enabled?}"]
       end
       output
     end
