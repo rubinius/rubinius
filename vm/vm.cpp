@@ -12,6 +12,10 @@ namespace rubinius {
     delete om;
   }
 
+  OBJECT VM::new_object(Class *cls) {
+    return om->new_object(cls, cls->instance_fields->n2i());
+  }
+
   Symbol* VM::symbol(const char* str, size_t size) {
     return (Symbol*)globals.symbols->lookup(this, str, size);
   }

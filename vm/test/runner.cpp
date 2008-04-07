@@ -813,4 +813,10 @@ public:
  void runTest() { suite_TestVM.test_symbol(); }
 } testDescription_TestVM_test_symbol;
 
+static class TestDescription_TestVM_test_new_object_uses_field_count_from_class : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestVM_test_new_object_uses_field_count_from_class() : CxxTest::RealTestDescription( Tests_TestVM, suiteDescription_TestVM, 30, "test_new_object_uses_field_count_from_class" ) {}
+ void runTest() { suite_TestVM.test_new_object_uses_field_count_from_class(); }
+} testDescription_TestVM_test_new_object_uses_field_count_from_class;
+
 #include <cxxtest/Root.cpp>

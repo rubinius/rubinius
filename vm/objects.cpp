@@ -29,6 +29,14 @@ namespace rubinius {
     return cls;
   }
 
+  Class* VM::new_class(char* name) {
+    return new_class(name, globals.object, globals.object->instance_fields->n2i());
+  }
+
+  Class* VM::new_class(char* name, size_t fields) {
+    return new_class(name, globals.object, fields);
+  }
+
   Class* VM::new_class(char* name, OBJECT sup, size_t fields) {
     return new_class(name, sup, fields, globals.object);
   }
@@ -191,6 +199,8 @@ namespace rubinius {
     new_module("Rubinius");
 
     bootstrap_exceptions();
+
+    globals.external_ivars = LookupTable::create(state);
 
   }
 

@@ -1,0 +1,24 @@
+VM: a C++ VM for running ruby code
+(Could probably use a better name than VM)
+
+TASKS in test/:
+
+make test:
+  Runs all tests defined by test_*.hpp
+
+make coverage:
+  Generates a code coverage report, coverage/index.html, by running
+  the tests.
+
+NOTES:
+
+*) classes defined in objects.hpp and builtin_*.hpp are C++ classes mapped
+directly to ruby objects. 
+
+*) Because of the previous point, NO virtual functions are allowed in these
+classes. C++ inserts a pointer into every object which has virtual functions
+and we must have complete control over the body of an object.
+
+*) Similarly, only use single inheritance. This keeps the order of data
+members consistent.
+

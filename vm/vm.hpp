@@ -14,6 +14,7 @@ namespace rubinius {
     Globals globals;
     ObjectMemory *om;
 
+    /* Inline methods */
     /* Prototypes */
     VM(size_t bytes);
     ~VM();
@@ -22,8 +23,11 @@ namespace rubinius {
     void bootstrap_symbol();
     void bootstrap_exceptions();
 
+    OBJECT new_object(Class* cls);
     Class* new_basic_class(OBJECT sup, size_t fields);
     Class* new_class(OBJECT sup, size_t fields);
+    Class* new_class(char* name);
+    Class* new_class(char* name, size_t fields);
     Class* new_class(char* name, OBJECT sup, size_t fields);
     Class* new_class(char* name, OBJECT sup, size_t fields, Module* under);
     Module* new_module(char* name, Module* under = NULL);
