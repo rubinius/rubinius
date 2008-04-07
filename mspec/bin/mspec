@@ -5,24 +5,24 @@ require 'mspec/bin/options'
 require 'mspec/bin/script'
 
 
-class MSpecScript
+class MSpecMain < MSpecScript
   def initialize
-    Config[:includes] = []
-    Config[:requires] = []
-    Config[:target]   = 'ruby'
-    Config[:flags]    = []
-    Config[:command]  = nil
-    Config[:options]  = []
+    config[:includes] = []
+    config[:requires] = []
+    config[:target]   = 'ruby'
+    config[:flags]    = []
+    config[:command]  = nil
+    config[:options]  = []
 
     if ["ci", "run", "tag"].include? ARGV[0]
-      Config[:command] = ARGV.shift
-      Config[:options] << "-h" if ARGV.delete("-h") || ARGV.delete("--help")
-      Config[:options] << "-v" if ARGV.delete("-v") || ARGV.delete("--version")
+      config[:command] = ARGV.shift
+      config[:options] << "-h" if ARGV.delete("-h") || ARGV.delete("--help")
+      config[:options] << "-v" if ARGV.delete("-v") || ARGV.delete("--version")
     end
   end
 
   def options(argv=ARGV)
-    options = MSpecOptions.new Config, "[COMMAND]", "", 28, "   "
+    options = MSpecOptions.new config, "[COMMAND]", "", 28, "   "
 
     options.separator ""
     options.separator "  The mspec command sets up and invokes the sub-commands"
@@ -30,20 +30,20 @@ class MSpecScript
     options.separator "  with different implementations like ruby, jruby, rbx, etc.\n"
 
     options.add_config do |f|
-      Config[:options] << '-B' << f
+      config[:options] << '-B' << f
       config f
     end
 
     options.add_targets
 
     options.on("-D", "--gdb", "Run under gdb") do
-      Config[:flags] << '--gdb'
+      config[:flags] << '--gdb'
     end
     options.on("-A", "--valgrind", "Run under valgrind") do
-      Config[:flags] << '--valgrind'
+      config[:flags] << '--valgrind'
     end
     options.on("-w", "--warnings", "Don't supress warnings") do
-      Config[:flags] << '-w'
+      config[:flags] << '-w'
       ENV['OUTPUT_WARNINGS'] = '1'
     end
     options.add_version
@@ -62,8 +62,8 @@ EOH
       exit
     end
 
-    Config[:options] += options.parser.filter! argv
-    options.parse
+    config[:options] += options.parser.filter! argv
+    options.parse argv
   end
 
   def register; end
@@ -71,14 +71,14 @@ EOH
   def run
     ENV['MSPEC_RUNNER'] = '1'
 
-    argv = Config[:flags]
-    argv.concat Config[:includes]
-    argv.concat Config[:requires]
-    argv << "mspec/bin/mspec-#{ Config[:command] || "run" }"
-    argv.concat Config[:options]
+    argv = config[:flags]
+    argv.concat config[:includes]
+    argv.concat config[:requires]
+    argv << "mspec/bin/mspec-#{ config[:command] || "run" }"
+    argv.concat config[:options]
 
-    exec Config[:target], *argv
+    exec config[:target], *argv
   end
 end
 
-MSpecScript.main if __FILE__ == $0
+MSpecMain.main if __FILE__ == $0

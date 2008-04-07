@@ -8,7 +8,7 @@ class NameMap
     '*'   => 'multiply',
     '/'   => 'divide',
     '%'   => 'modulo',
-    '<<'  => {'Bignum' => 'left_shift', 
+    '<<'  => {'Bignum' => 'left_shift',
               'Fixnum' => 'left_shift',
               'IO'     => 'output',
               :default => 'append' },
@@ -36,7 +36,7 @@ class NameMap
               'Fixnum'     => 'bit_and',
               'Array'      => 'intersection',
               'TrueClass'  => 'and',
-              'FalseClass' => 'and', 
+              'FalseClass' => 'and',
               'NilClass'   => 'and',
               'Set'        => 'intersection' },
     '|'   => {'Bignum'     => 'bit_or',
@@ -60,7 +60,7 @@ class NameMap
   def self.const_lookup(c)
     c.split('::').inject(Object) { |k,n| k.const_get n }
   end
-    
+
   def self.get_class_or_module(c)
     const = const_lookup(c)
 

@@ -9,48 +9,57 @@ require 'mspec/runner/formatters/dotted'
 # would be just as simple.
 
 class MSpecScript
-  Config = {}
-  Config[:path] = ['.', 'spec']
-
-  def initialize
-    Config[:tags_dir]  = 'spec/tags'
-    Config[:formatter] = DottedFormatter
-    Config[:includes]  = []
-    Config[:excludes]  = []
-    Config[:patterns]  = []
-    Config[:xpatterns] = []
-    Config[:tags]      = []
-    Config[:xtags]     = []
-    Config[:atags]     = []
-    Config[:astrings]  = []
-    Config[:abort]     = true
+  def self.config
+    @config ||= { :path => ['.', 'spec'] }
   end
 
-  def config(name)
-    return load(name) if File.exist?(File.expand_path(name))
+  def self.set(key, value)
+    config[key] = value
+  end
 
-    Config[:path].each do |dir|
+  def initialize
+    config[:tags_dir]  = 'spec/tags'
+    config[:formatter] = DottedFormatter
+    config[:includes]  = []
+    config[:excludes]  = []
+    config[:patterns]  = []
+    config[:xpatterns] = []
+    config[:tags]      = []
+    config[:xtags]     = []
+    config[:atags]     = []
+    config[:astrings]  = []
+    config[:abort]     = true
+  end
+
+  def config
+    MSpecScript.config
+  end
+
+  def load(name)
+    return Kernel.load(name) if File.exist?(File.expand_path(name))
+
+    config[:path].each do |dir|
       file = File.join dir, name
-      return load(file) if File.exist? file
+      return Kernel.load(file) if File.exist? file
     end
   end
 
   def register
-    Config[:formatter].new.register
+    config[:formatter].new.register
 
-    MatchFilter.new(:include, *Config[:includes]).register   unless Config[:includes].empty?
-    MatchFilter.new(:exclude, *Config[:excludes]).register   unless Config[:excludes].empty?
-    RegexpFilter.new(:include, *Config[:patterns]).register  unless Config[:patterns].empty?
-    RegexpFilter.new(:exclude, *Config[:xpatterns]).register unless Config[:xpatterns].empty?
-    TagFilter.new(:include, *Config[:tags]).register         unless Config[:tags].empty?
-    TagFilter.new(:exclude, *Config[:xtags]).register        unless Config[:xtags].empty?
+    MatchFilter.new(:include, *config[:includes]).register   unless config[:includes].empty?
+    MatchFilter.new(:exclude, *config[:excludes]).register   unless config[:excludes].empty?
+    RegexpFilter.new(:include, *config[:patterns]).register  unless config[:patterns].empty?
+    RegexpFilter.new(:exclude, *config[:xpatterns]).register unless config[:xpatterns].empty?
+    TagFilter.new(:include, *config[:tags]).register         unless config[:tags].empty?
+    TagFilter.new(:exclude, *config[:xtags]).register        unless config[:xtags].empty?
 
-    DebugAction.new(Config[:atags], Config[:astrings]).register if Config[:debugger]
-    GdbAction.new(Config[:atags], Config[:astrings]).register   if Config[:gdb]
+    DebugAction.new(config[:atags], config[:astrings]).register if config[:debugger]
+    GdbAction.new(config[:atags], config[:astrings]).register   if config[:gdb]
   end
 
   def signals
-    if Config[:abort]
+    if config[:abort]
       Signal.trap "INT" do
         puts "\nSpec process aborted!"
         exit! 1
@@ -60,8 +69,8 @@ class MSpecScript
 
   def self.main
     script = new
-    script.config 'default.mspec'
-    script.config '~/.mspecrc'
+    script.load 'default.mspec'
+    script.load '~/.mspecrc'
     script.options
     script.signals
     script.register

@@ -1,14 +1,13 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'mspec/complete'
 require 'mspec/bin/options'
 require 'mspec/bin/script'
 
 
 class MSpecRun < MSpecScript
   def options
-    options = MSpecOptions.new Config, "run", "", 28, "   "
+    options = MSpecOptions.new config, "run", "", 28, "   "
 
     options.separator " Ask yourself:"
     options.separator "  1. What specs to run?"
@@ -69,7 +68,7 @@ class MSpecRun < MSpecScript
       files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
     end
 
-    MSpec.register_tags_path Config[:tags_dir]
+    MSpec.register_tags_path config[:tags_dir]
     MSpec.register_files files
 
     MSpec.process
@@ -77,4 +76,7 @@ class MSpecRun < MSpecScript
   end
 end
 
-MSpecRun.main if __FILE__ == $0
+if __FILE__ == $0
+  require 'mspec/complete'
+  MSpecRun.main
+end

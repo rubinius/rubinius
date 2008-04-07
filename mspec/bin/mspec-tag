@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'mspec/complete'
 require 'mspec/bin/options'
 require 'mspec/bin/script'
 
@@ -10,13 +9,13 @@ class MSpecTag < MSpecScript
   def initialize
     super
 
-    Config[:tagger]  = :add
-    Config[:tag]     = 'fails:'
-    Config[:outcome] = :fail
+    config[:tagger]  = :add
+    config[:tag]     = 'fails:'
+    config[:outcome] = :fail
   end
 
   def options
-    options = MSpecOptions.new Config, "tag", "", 28, "   "
+    options = MSpecOptions.new config, "tag", "", 28, "   "
 
     options.separator " Ask yourself:"
     options.separator "  1. What specs to run?"
@@ -64,9 +63,9 @@ class MSpecTag < MSpecScript
   def register
     super
 
-    tag = SpecTag.new Config[:tag]
-    tagger = TagAction.new(Config[:tagger], Config[:outcome], tag.tag, tag.comment,
-                           Config[:atags], Config[:astrings])
+    tag = SpecTag.new config[:tag]
+    tagger = TagAction.new(config[:tagger], config[:outcome], tag.tag, tag.comment,
+                           config[:atags], config[:astrings])
     tagger.register
   end
 
@@ -78,7 +77,7 @@ class MSpecTag < MSpecScript
       files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
     end
 
-    MSpec.register_tags_path Config[:tags_dir]
+    MSpec.register_tags_path config[:tags_dir]
     MSpec.register_files files
 
     MSpec.process
@@ -86,4 +85,7 @@ class MSpecTag < MSpecScript
   end
 end
 
-MSpecTag.main if __FILE__ == $0
+if __FILE__ == $0
+  require 'mspec/complete'
+  MSpecTag.main
+end
