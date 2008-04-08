@@ -152,7 +152,7 @@ double string_to_double(STATE, OBJECT self) {
     if (*p == '_') {
       p++;
     } else {
-      if(*p == 'e') {
+      if(*p == 'e' || *p == 'E') {
         if(e_seen) {
           *n = 0;
           break;
