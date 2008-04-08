@@ -7,6 +7,12 @@ module ArraySpecs
 
   class MyArray < Array; end
 
+  class Sexp < Array
+    def initialize(*args)
+      super(args)
+    end
+  end
+
   class ToAryArray < Array
     def to_ary() ["to_ary", "was", "called!"] end
   end
