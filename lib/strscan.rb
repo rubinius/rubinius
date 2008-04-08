@@ -20,6 +20,7 @@ class StringScanner
 
   def concat str
     self.string << str
+    self
   end
 
   def eos?
@@ -82,6 +83,7 @@ class StringScanner
     self.pos = 0
     @match = nil
     @prev_pos = nil
+    self
   end
 
   def scan pattern
@@ -124,12 +126,14 @@ class StringScanner
   def terminate
     @match = nil
     self.pos = string.size
+    self
   end
 
   def unscan
     self.pos = @prev_pos
     @prev_pos = nil
     @match = nil
+    self
   end
 
 #   rb_define_method(StringScanner, "reset",       strscan_reset,       0);
