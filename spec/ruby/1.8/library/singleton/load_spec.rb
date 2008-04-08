@@ -27,3 +27,13 @@ describe "Singleton._load" do
   end
 
 end
+
+describe "Marshal.load on serialized singleton objects" do
+  ruby_bug do
+    # http://rubyforge.org/tracker/index.php?func=detail&aid=19377&group_id=426&atid=1698
+    it "returns the singleton instance" do
+      instance = SingletonSpecs::MyClass.instance
+      instance.equal?(Marshal.load(Marshal.dump(instance))).should == true
+    end
+  end
+end
