@@ -17,17 +17,13 @@ class Symbol
     str = self.to_s
 
     case str
-    when /^\"$/ then
-      ":\"\\\"\""
-# TODO: the default case should be UNquoted and the logic should be flipped
-#   when /^(&&|\.\.\.?|::|=>|\|\||\+\+|![=~]|[\d!$,.:;=?@])$| / then
-#     ":\"#{str}\""
-    when /^([-+~]@|\*\*?|<=>|===?|=~|\[]=?|<<|>>|[<>]=|[%&\/<>^`|~+-])$/ then
-      ":#{str}"
-    when /^(\$-?|@@?)?[a-z_][a-z_\d]*[?!]?$/i then
+    when /^(\$|@@?)[a-z_][a-z_\d]*$/i,                     # Variable names
+         /^[a-z_][a-z_\d]*[?!]?$/i,                        # Method names
+         /^\$(-[a-z_\d]|[+~:?<_\/'"$.,`!;\\=*>&@]|\d+)$/i, # Special global variables
+         /^([|^&\/%~`]|<<|>>|<=>|===?|=~|[<>]=?|[+-]@?|\*\*?|\[\]=?)$/ # Operators
       ":#{str}"
     else
-      ":\"#{str}\""
+      ":#{str.inspect}"
     end
   end
 
