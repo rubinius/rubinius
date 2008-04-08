@@ -26,10 +26,12 @@ namespace rubinius {
     Node* first;
     Node* last;
 
+    /* Returns true if the List is empty, contains no elements. */
     bool empty_p() {
       return count->n2i() == 0;
     }
 
+    /* Returns the number of elements in the List. */
     size_t size() {
       return count->n2i();
     }

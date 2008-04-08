@@ -2,6 +2,7 @@
 
 namespace rubinius {
 
+  /* Register the List and List::Node classes as globals */
   void List::init(STATE) {
     Class* cls;
     cls = state->globals.list = state->new_class("List", List::fields);
@@ -9,6 +10,7 @@ namespace rubinius {
                                                 List::Node::fields, cls);
   }
 
+  /* Create a new List object, containing no elements. */
   List* List::create(STATE) {
     List* list = (List*)state->new_object(state->globals.list);
     list->count = Object::i2n(0);
@@ -16,6 +18,7 @@ namespace rubinius {
     return list;
   }
 
+  /* Append +obj+ to the current List. */
   void List::append(STATE, OBJECT obj) {
     List::Node* node = (List::Node*)state->new_object(state->globals.list_node);
     SET(node, object, obj);
@@ -34,6 +37,7 @@ namespace rubinius {
     count = Object::i2n(state, count->n2i() + 1);
   }
 
+  /* Return the +index+ numbered element from the beginning. */
   OBJECT List::locate(STATE, size_t index) {
     Node* cur = first;
 
@@ -48,6 +52,8 @@ namespace rubinius {
     return cur->object;
   }
 
+  /* Return the first element in the list and remove it, moving all
+   * other elements forward. */
   OBJECT List::shift(STATE) {
     if(empty_p()) return Qnil;
 
@@ -62,6 +68,9 @@ namespace rubinius {
     return n->object;
   }
 
+  /* Search the List for +obj+ and remove all instances of it.
+   *
+   * Returns the number of elements removed. */
   size_t List::remove(STATE, OBJECT obj) {
     if(empty_p()) return 0;
 
