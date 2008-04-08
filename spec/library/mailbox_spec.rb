@@ -35,5 +35,41 @@ describe "Mailbox#receive" do
       f.when Foo do |msg| msg.item end
     end.should == "aaaa"
   end
+
+  it "times out using filter#after with [seconds]" do
+    complete = 0
+    @mbox.receive do |f|
+      f.when Object do |value| value end
+      f.after(0.001) do
+        complete += 1
+      end
+    end
+    complete.should == 1
+
+    items = [:foo, "bar", 100]
+    items.each {|v| @mbox.send v }
+    (items.size + 10).times do
+      @mbox.receive do |f|
+        f.when Object do |value| value end
+        f.after(0) do
+          complete += 1
+        end
+      end
+    end
+    complete.should == 11
+  end
 end
 
+describe "Mailbox#clear" do
+  it "removes all messages" do
+    @mbox = Mailbox.new
+    (0..9).to_a.each {|v| @mbox.send v }
+    @mbox.clear
+    msg = @mbox.receive do |f|
+      f.when(Object) do |msg| msg end
+      f.after(0) do end
+    end
+
+    msg.should == nil
+  end
+end
