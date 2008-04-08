@@ -5,8 +5,6 @@
 require 'strscan'
 require 'test/unit'
 
-RUBINIUS = defined? RUBY_ENGINE and RUBY_ENGINE == "rbx"
-
 class TestStringScanner < Test::Unit::TestCase
   UNINIT_ERROR = ArgumentError
 
@@ -60,16 +58,11 @@ class TestStringScanner < Test::Unit::TestCase
     assert_nil           s[0]
 
 
-    # HACK: rubinius currently doesn't do KCODE at all
-    kc_backup = $KCODE
-    begin
-      $KCODE = 'EUC'
+    with_kcode do
       s = StringScanner.new("\244\242")
       s.getch
       assert_equal "\244\242", s[0]
-    ensure
-      $KCODE = kc_backup
-    end unless RUBINIUS
+    end
 
     str = 'test'
     str.taint
@@ -213,17 +206,12 @@ class TestStringScanner < Test::Unit::TestCase
     assert_equal true, s.get_byte.tainted?
     assert_nil s.get_byte
 
-    # HACK: rubinius currently doesn't do KCODE at all
-    kc_backup = $KCODE
-    begin
-      $KCODE = 'EUC'
+    with_kcode do
       s = StringScanner.new("\244\242")
       assert_equal "\244", s.get_byte
       assert_equal "\242", s.get_byte
       assert_nil s.get_byte
-    ensure
-      $KCODE = kc_backup
-    end unless RUBINIUS
+    end
 
     s = StringScanner.new('test')
     assert_equal 'te', s.scan(/te/)
@@ -249,16 +237,11 @@ class TestStringScanner < Test::Unit::TestCase
     assert_equal true, s.getch.tainted?
     assert_nil s.getch
 
-    # HACK: rubinius currently doesn't do KCODE at all
-    kc_backup = $KCODE
-    begin
-      $KCODE = 'EUC'
+    with_kcode do
       s = StringScanner.new("\244\242")
       assert_equal "\244\242", s.getch
       assert_nil s.getch
-    ensure
-      $KCODE = kc_backup
-    end unless RUBINIUS
+    end
 
     s = StringScanner.new('test')
     assert_equal 'te', s.scan(/te/)
@@ -528,18 +511,14 @@ class TestStringScanner < Test::Unit::TestCase
     assert_equal "", s.scan(//)
 
     # [ruby-dev:29914]
-    # HACK: rubinius currently doesn't do KCODE at all
     %w( NONE EUC SJIS UTF8 ).each do |kcode|
-      begin
-        $KCODE = kcode
+      with_kcode kcode do
         assert_equal "a", StringScanner.new("a:b").scan(/[^\x01\:]+/n)
         assert_equal "a", StringScanner.new("a:b").scan(/[^\x01\:]+/e)
         assert_equal "a", StringScanner.new("a:b").scan(/[^\x01\:]+/s)
         assert_equal "a", StringScanner.new("a:b").scan(/[^\x01\:]+/u)
-      ensure
-        $KCODE = 'NONE'
       end
-    end unless RUBINIUS
+    end
   end
 
   def test_skip
@@ -586,5 +565,14 @@ class TestStringScanner < Test::Unit::TestCase
 
     assert_equal s, s.terminate
     assert_equal true, s.eos?
+  end
+
+  def with_kcode kcode = 'EUC'
+    # HACK rubinius currently doesn't do KCODE at all
+    return if defined? RUBY_ENGINE and RUBY_ENGINE == "rbx"
+    $KCODE = kcode
+    yield
+  ensure
+    $KCODE = 'NONE'
   end
 end
