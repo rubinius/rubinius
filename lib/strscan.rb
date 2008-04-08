@@ -32,6 +32,10 @@ class StringScanner
   end
   alias :beginning_of_line? :bol?
 
+  def check pattern
+    _scan pattern, false, true, true
+  end
+
   def concat str
     self.string << str
     self
@@ -150,9 +154,12 @@ class StringScanner
 
     return nil if match.nil?
 
-    @prev_pos = pos
-    m = string[@prev_pos...match.end(0)]
-    self.pos += m.size
+    m = string[pos...match.end(0)]
+
+    if succptr then
+      @prev_pos = pos
+      self.pos += m.size
+    end
 
     if getstr then
       m

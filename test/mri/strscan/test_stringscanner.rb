@@ -105,6 +105,17 @@ class TestStringScanner < Test::Unit::TestCase
     assert_equal false, s.bol?
   end
 
+  def test_check
+    s = StringScanner.new("Fri Dec 12 1975 14:39")
+
+    assert_equal "Fri", s.check(/Fri/)
+    assert_equal 0, s.pos
+    assert_equal "Fri", s.matched
+
+    assert_nil s.check(/12/)
+    assert_nil s.matched
+  end
+
   def test_concat
     s = StringScanner.new('a')
     assert_equal 'a', s.scan(/a/)
