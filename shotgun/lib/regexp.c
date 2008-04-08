@@ -244,10 +244,10 @@ OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OB
   max = N2I(string_get_bytes(string));
   str = (UChar*)rbx_string_as_cstr(state, string);
   
-  if(!RTEST(forward)) {
-    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(end), str + N2I(start), region, ONIG_OPTION_NONE);  
-  } else {
+  if(RTEST(forward)) {
     beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(start), str + N2I(end), region, ONIG_OPTION_NONE);
+  } else {
+    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(end), str + N2I(start), region, ONIG_OPTION_NONE);  
   }
 
   if(beg == ONIG_MISMATCH) {
