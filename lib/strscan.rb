@@ -1,23 +1,13 @@
-# TODO: check these to see if they're aliases or not
-#   "get_byte",           strscan_get_byte,     0);
-#   "getbyte",            strscan_getbyte,      0);
-#   "matched_size",       strscan_matched_size, 0);
-#   "matchedsize",        strscan_matchedsize,  0);
-#   "rest_size",          strscan_rest_size,    0);
-#   "restsize",           strscan_restsize,     0);
 
 # TODO: write these - they don't have tests at all (rest_size above as well)
 #   "check",              strscan_check,        1);
 #   "check_until",        strscan_check_until,  1);
-#   "clear",              strscan_clear,        0);
-#   "empty?",             strscan_empty_p,      0);
 #   "exist?",             strscan_exist_p,      1);
-#   "string",             strscan_get_string,   0);
 #   "match?",             strscan_match_p,      1);
 #   "peek",               strscan_peek,         1);
-#   "peep",               strscan_peep,         1);
 #   "rest",               strscan_rest,         0);
 #   "rest?",              strscan_rest_p,       0);
+#   "rest_size",          strscan_rest_size,    0);
 #   "scan_full",          strscan_scan_full,    3);
 #   "search_full",        strscan_search_full,  3);
 #   "skip",               strscan_skip,         1);
@@ -101,41 +91,21 @@ class StringScanner
   end
 
   def pre_match
-    string[0...@prev_pos] if matched?
+    string[0, match.begin(0)] if matched?
   end
 
   def reset
-    self.pos = 0
+    @prev_pos = self.pos = 0
     @match = nil
-    @prev_pos = nil
     self
   end
 
   def scan pattern
-    _lame_guard
-
-    @prev_pos = pos
-    @match = pattern.match_start(string, pos)
-    if match then
-      s = match.to_s
-      self.pos += s.size
-      s
-    end
+    _scan pattern, true, true, true
   end
 
   def scan_until pattern
-    return scan Regexp.new("((?m-ix:.*?))" + pattern.to_s)
-
-    # TODO: make this work
-    _lame_guard
-
-    @prev_pos = pos
-    @match = pattern.search_region(string, pos, string.size, true)
-    if match then
-      s = match.to_s
-      self.pos += s.size
-      s
-    end
+    _scan pattern, true, true, false
   end
 
   def self.must_C_version
@@ -164,6 +134,33 @@ class StringScanner
     @match = nil
     self
   end
+
+  def _scan pattern, succptr, getstr, headonly
+    _lame_guard
+
+    @match = nil
+
+    return nil if (string.size - pos) < 0 # TODO: make more elegant
+
+    @match = if headonly then
+               pattern.match_start(string, pos)
+             else
+               pattern.search_region(string, pos, string.size, true)
+             end
+
+    return nil if match.nil?
+
+    @prev_pos = pos
+    m = string[@prev_pos...match.end(0)]
+    self.pos += m.size
+
+    if getstr then
+      m
+    else
+      len
+    end
+  end
+  private :_scan
 
   def _lame_guard
     raise ArgumentError unless defined? @string
