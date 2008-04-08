@@ -1727,7 +1727,7 @@ class ShotgunPrimitives
     POP(t3, FIXNUM);
     t4 = stack_pop();
 
-    t5 = regexp_match_region(state, msg->recv, t1, t2, t3, t4);
+    t5 = regexp_search_region(state, msg->recv, t1, t2, t3, t4);
 
     RET(t5);
     CODE

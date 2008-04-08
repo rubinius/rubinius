@@ -233,7 +233,7 @@ OBJECT regexp_match_start(STATE, OBJECT regexp, OBJECT string, OBJECT start) {
   return md;
 }
 
-OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OBJECT end, OBJECT forward) {
+OBJECT regexp_search_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OBJECT end, OBJECT forward) {
   int beg, max;
   const UChar *str;
   OnigRegion *region;
