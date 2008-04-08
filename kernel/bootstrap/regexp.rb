@@ -9,6 +9,11 @@ class Regexp
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def match_region(str, offset) # equiv to MRI's re_match
+    Ruby.primitive :regexp_match_region
+    raise PrimitiveFailure, "primitive failed"
+  end
+
   def options
     Ruby.primitive :regexp_options
     raise PrimitiveFailure, "primitive failed"
