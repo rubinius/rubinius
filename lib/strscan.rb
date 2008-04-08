@@ -1,3 +1,27 @@
+# TODO: check these to see if they're aliases or not
+#   "get_byte",           strscan_get_byte,     0);
+#   "getbyte",            strscan_getbyte,      0);
+#   "matched_size",       strscan_matched_size, 0);
+#   "matchedsize",        strscan_matchedsize,  0);
+#   "rest_size",          strscan_rest_size,    0);
+#   "restsize",           strscan_restsize,     0);
+
+# TODO: write these - they don't have tests at all (rest_size above as well)
+#   "check",              strscan_check,        1);
+#   "check_until",        strscan_check_until,  1);
+#   "clear",              strscan_clear,        0);
+#   "empty?",             strscan_empty_p,      0);
+#   "exist?",             strscan_exist_p,      1);
+#   "string",             strscan_get_string,   0);
+#   "match?",             strscan_match_p,      1);
+#   "peek",               strscan_peek,         1);
+#   "peep",               strscan_peep,         1);
+#   "rest",               strscan_rest,         0);
+#   "rest?",              strscan_rest_p,       0);
+#   "scan_full",          strscan_scan_full,    3);
+#   "search_full",        strscan_search_full,  3);
+#   "skip",               strscan_skip,         1);
+#   "skip_until",         strscan_skip_until,   1);
 
 class StringScanner
   Id = "bite me $Id".freeze
@@ -6,9 +30,8 @@ class StringScanner
   attr_accessor :pos
   attr_reader :match, :string
 
-  def self.must_C_version
-    # do nothing
-  end
+  alias :pointer :pos
+  alias :pointer= :pos=
 
   def [] n
     match.to_a[n]
@@ -17,11 +40,13 @@ class StringScanner
   def bol?
     pos == 0 or string[pos-1..pos-1] == "\n"
   end
+  alias :beginning_of_line? :bol?
 
   def concat str
     self.string << str
     self
   end
+  alias :<< :concat # TODO: reverse
 
   def eos?
     _lame_guard
@@ -113,6 +138,10 @@ class StringScanner
     end
   end
 
+  def self.must_C_version
+    # do nothing
+  end
+
   def skip pattern
     s = scan pattern
     s.size if s
@@ -135,58 +164,6 @@ class StringScanner
     @match = nil
     self
   end
-
-#   rb_define_method(StringScanner, "reset",       strscan_reset,       0);
-#   rb_define_method(StringScanner, "terminate",   strscan_terminate,   0);
-#   rb_define_method(StringScanner, "clear",       strscan_clear,       0);
-#   rb_define_method(StringScanner, "string",      strscan_get_string,  0);
-#   rb_define_method(StringScanner, "string=",     strscan_set_string,  1);
-#   rb_define_method(StringScanner, "concat",      strscan_concat,      1);
-#   rb_define_method(StringScanner, "<<",          strscan_concat,      1);
-#   rb_define_method(StringScanner, "pos",         strscan_get_pos,     0);
-#   rb_define_method(StringScanner, "pos=",        strscan_set_pos,     1);
-#   rb_define_method(StringScanner, "pointer",     strscan_get_pos,     0);
-#   rb_define_method(StringScanner, "pointer=",    strscan_set_pos,     1);
-
-#   rb_define_method(StringScanner, "scan",        strscan_scan,        1);
-#   rb_define_method(StringScanner, "skip",        strscan_skip,        1);
-#   rb_define_method(StringScanner, "match?",      strscan_match_p,     1);
-#   rb_define_method(StringScanner, "check",       strscan_check,       1);
-#   rb_define_method(StringScanner, "scan_full",   strscan_scan_full,   3);
-
-#   rb_define_method(StringScanner, "scan_until",  strscan_scan_until,  1);
-#   rb_define_method(StringScanner, "skip_until",  strscan_skip_until,  1);
-#   rb_define_method(StringScanner, "exist?",      strscan_exist_p,     1);
-#   rb_define_method(StringScanner, "check_until", strscan_check_until, 1);
-#   rb_define_method(StringScanner, "search_full", strscan_search_full, 3);
-
-#   rb_define_method(StringScanner, "getch",       strscan_getch,       0);
-#   rb_define_method(StringScanner, "get_byte",    strscan_get_byte,    0);
-#   rb_define_method(StringScanner, "getbyte",     strscan_getbyte,     0);
-#   rb_define_method(StringScanner, "peek",        strscan_peek,        1);
-#   rb_define_method(StringScanner, "peep",        strscan_peep,        1);
-
-#   rb_define_method(StringScanner, "unscan",      strscan_unscan,      0);
-
-#   rb_define_method(StringScanner, "beginning_of_line?", strscan_bol_p, 0);
-#   rb_alias(StringScanner, rb_intern("bol?"), rb_intern("beginning_of_line?"));
-#   rb_define_method(StringScanner, "eos?",        strscan_eos_p,       0);
-#   rb_define_method(StringScanner, "empty?",      strscan_empty_p,     0);
-#   rb_define_method(StringScanner, "rest?",       strscan_rest_p,      0);
-
-#   rb_define_method(StringScanner, "matched?",    strscan_matched_p,   0);
-#   rb_define_method(StringScanner, "matched",     strscan_matched,     0);
-#   rb_define_method(StringScanner, "matched_size", strscan_matched_size, 0);
-#   rb_define_method(StringScanner, "matchedsize", strscan_matchedsize, 0);
-#   rb_define_method(StringScanner, "[]",          strscan_aref,        1);
-#   rb_define_method(StringScanner, "pre_match",   strscan_pre_match,   0);
-#   rb_define_method(StringScanner, "post_match",  strscan_post_match,  0);
-
-#   rb_define_method(StringScanner, "rest",        strscan_rest,        0);
-#   rb_define_method(StringScanner, "rest_size",   strscan_rest_size,   0);
-#   rb_define_method(StringScanner, "restsize",    strscan_restsize,    0);
-
-#   rb_define_method(StringScanner, "inspect",     strscan_inspect,     0);
 
   def _lame_guard
     raise ArgumentError unless defined? @string
