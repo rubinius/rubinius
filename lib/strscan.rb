@@ -90,7 +90,7 @@ p :pre_match => [string, pos, @prev_pos, match.pre_match, match.to_s]
     _lame_guard
 
     @prev_pos = pos
-    @match = pattern.match_region(string, pos, string.size, true)
+    @match = pattern.search_region(string, pos, string.size, true) # FIX: need a match_region
     if match then
       s = match.to_s
       self.pos += s.size
@@ -99,7 +99,7 @@ p :pre_match => [string, pos, @prev_pos, match.pre_match, match.to_s]
   end
 
   def scan_until pattern
-    scan Regexp.new("(?m-ix:.*?)" + pattern.to_s)
+    scan Regexp.new("((?m-ix:.*?))" + pattern.to_s)
   end
 
   def skip pattern

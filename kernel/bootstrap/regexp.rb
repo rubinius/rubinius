@@ -4,8 +4,8 @@ class Regexp
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def match_region(str, start, finish, forward) # equiv to MRI's re_search
-    Ruby.primitive :regexp_match_region
+  def search_region(str, start, finish, forward) # equiv to MRI's re_search
+    Ruby.primitive :regexp_search_region
     raise PrimitiveFailure, "primitive failed"
   end
 

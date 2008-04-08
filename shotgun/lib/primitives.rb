@@ -1715,8 +1715,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :regexp_match_region
-  def regexp_match_region
+  defprim :regexp_search_region
+  def regexp_search_region
     <<-CODE
     ARITY(4);
     OBJECT t1, t2, t3, t4, t5;
