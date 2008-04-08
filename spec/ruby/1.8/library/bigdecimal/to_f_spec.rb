@@ -1,5 +1,5 @@
-require 'bigdecimal'
 require File.dirname(__FILE__) + '/../../spec_helper'
+require 'bigdecimal'
 
 describe "BigDecimal#to_f" do
 
