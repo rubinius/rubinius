@@ -385,21 +385,21 @@ class TestStringScanner < Test::Unit::TestCase
   def test_pre_match
     s = StringScanner.new('a b c d e')
     assert_equal 'a', s.scan(/\w/)
-    assert_equal '', s.pre_match                        # xxx
+    assert_equal '', s.pre_match
     assert_equal false, s.pre_match.tainted?
     assert_equal 1, s.skip(/\s/)
-    assert_equal 'a', s.pre_match                       # xxx
+    assert_equal 'a', s.pre_match
     assert_equal false, s.pre_match.tainted?
     assert_equal 'b', s.scan(/\w/)
-    assert_equal 'a ', s.pre_match                      # xxx
+    assert_equal 'a ', s.pre_match
     assert_equal ' c', s.scan_until(/c/)
-    assert_equal 'a b ', s.pre_match                    # xxx
+    assert_equal 'a b ', s.pre_match
     assert_equal ' ', s.getch
-    assert_equal 'a b c', s.pre_match                   # xxx
+    assert_equal 'a b c', s.pre_match
     assert_equal 'd', s.get_byte
-    assert_equal 'a b c ', s.pre_match                  # xxx
+    assert_equal 'a b c ', s.pre_match
     assert_equal ' ', s.get_byte
-    assert_equal 'a b c d', s.pre_match                 # xxx
+    assert_equal 'a b c d', s.pre_match
     assert_nil s.scan(/never match/)
     assert_nil s.pre_match
 
@@ -424,6 +424,22 @@ class TestStringScanner < Test::Unit::TestCase
     assert_equal 0, s.pos
     assert_equal s, s.reset
     assert_equal 0, s.pos
+  end
+
+  def test_rest
+    s = StringScanner.new('test string')
+
+    assert_equal 'test string', s.rest
+
+    assert_equal 'test', s.scan(/\w+/)
+    assert_equal ' string', s.rest
+
+    assert_equal ' ', s.scan(/\s+/)
+    assert_equal 'string', s.rest
+
+    assert_equal 'string', s.scan(/\w+/)
+    assert_equal true, s.eos?
+    assert_equal '', s.rest
   end
 
   def test_s_allocate

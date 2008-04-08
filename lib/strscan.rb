@@ -104,6 +104,10 @@ class StringScanner
     self
   end
 
+  def rest
+    string[pos..-1]
+  end
+
   def scan pattern
     _scan pattern, true, true, true
   end
