@@ -3,15 +3,14 @@ class Regexp
     Ruby.primitive :regexp_new
     raise PrimitiveFailure, "primitive failed"
   end
-  
-  def match_region(str, start, finish, forward)
+
+  def match_region(str, start, finish, forward) # equiv to MRI's re_search
     Ruby.primitive :regexp_match_region
     raise PrimitiveFailure, "primitive failed"
   end
-  
+
   def options
     Ruby.primitive :regexp_options
     raise PrimitiveFailure, "primitive failed"
   end
-  
 end
