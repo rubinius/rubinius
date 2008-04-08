@@ -59,10 +59,19 @@ class Mailbox
       end
       @skipped.delete_at found_at if found_at
 
+      if filter.timeout?
+        timeout_id = Scheduler.send_in_microseconds(@channel, 
+                                                    (filter.timeout * 1_000_000).to_i)
+      end
+
       until action
         value = @channel.receive
-        action = filter.action_for value
-        @skipped.push value unless action
+        if value
+          action = filter.action_for value
+          @skipped.push value unless action
+        else
+          action = filter.timeout_action
+        end
       end
 
       action.call value
@@ -75,14 +84,43 @@ class Mailbox
     end
   end
 
+  # NOTE: If there is a way to do this more efficiently by using a
+  # built-in mechanism of Channel that would probably be better.
+  def clear
+    done = false
+    until done
+      receive do |f|
+        f.when(Object) do end
+        f.after(0) do
+          done = true
+        end
+      end
+    end
+  end
+
   class Filter
+    attr_reader :timeout
+    attr_reader :timeout_action
+
     def initialize
       @pairs = []
+      @timeout = nil
+      @timeout_action = nil
+    end
+
+    def timeout?
+      @timeout != nil
     end
 
     def when(pattern, &action)
       raise ArgumentError, "no block given" unless action
       @pairs.push [pattern, action]
+    end
+
+    def after(seconds, &action)
+      raise Argument Error, "no timeout given" unless seconds
+      @timeout = seconds
+      @timeout_action = action
     end
 
     def action_for(value)

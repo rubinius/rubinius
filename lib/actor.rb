@@ -34,17 +34,10 @@ class Actor
   class << self
     alias_method :private_new, :new
     private :private_new
-  
-    def spawn(*args, &prc)
-      channel = Channel.new
-      Thread.new do
-        channel << current
-        prc.call *args
-      end
-      channel.receive
-    end
-    alias_method :new, :spawn
 
+    @@registered = {}
+  
+    # Get the currently executing Actor
     def current
       Thread.current[:__current_actor__] ||= private_new(current_mailbox)
     end
@@ -54,13 +47,71 @@ class Actor
     end
     private :current_mailbox
 
-    def receive(&prc)
-      current_mailbox.receive(&prc)
+    # Receive a message from the current Actor's mailbox
+    def receive(&block)
+      current_mailbox.receive(&block)
+    end
+
+    # Spawn a new Actor that will run in its own thread
+    def spawn(*args, &block)
+      raise ArgumentError, "no block given" unless block
+
+      channel = Channel.new
+      Thread.new do
+        channel << current
+
+        begin
+          block.call *args
+          current.handle_error(:exit_clean)
+        rescue => e
+          current.handle_error(e)
+        end
+      end
+      channel.receive
+    end
+    alias_method :new, :spawn
+
+    # Spawn an Actor and immediately link it to the current one
+    def spawn_link(*args, &block)
+      actor = spawn(*args, &block)
+      Actor.current.link actor
+      actor
+    end
+    
+    # Link the current Actor to another one
+    def link(actor)
+      Actor.current.link actor
+    end
+    
+    # Unlink the current Actor from another one
+    def unlink(actor)
+      Actor.current.unlink actor
+    end
+
+    # Lookup a locally named service
+    def lookup(name)
+      @@registered[name]
+    end
+
+    # Register an Actor locally as a named service
+    def register(name, actor)
+      unless actor.is_a?(Actor)
+        raise ArgumentError, "only actors may be registered"
+      end
+
+      @@registered[name] = actor
+    end
+
+    # Unregister the named service
+    def unregister(name)
+      @@registered.delete(name)
     end
   end
 
   def initialize(mailbox)
     @mailbox = mailbox
+    @links = []
+    @trap_exit = true
   end
 
   def send(value)
@@ -68,4 +119,72 @@ class Actor
     self
   end
   alias_method :<<, :send
+ 
+  # Establish a bidirectional link to the given Actor 
+  def link(actor)
+    actor.notify_link self
+    self.notify_link actor
+  end
+  
+  # Unestablish a link with the given actor
+  def unlink(actor)
+    actor.notify_unlink self
+    self.notify_unlink actor
+  end
+  
+  # Notify this actor that it's now linked to the given one
+  def notify_link(actor)
+    raise ArgumentError, "can only link to Actors" unless actor.is_a? Actor
+    
+    # Ignore circular links
+    return true if actor == self
+    
+    # Ignore duplicate links
+    return true if @links.include? actor
+    
+    @links << actor
+    true
+  end
+  
+  # Notify this actor that it's now unlinked from the given one
+  def notify_unlink(actor)
+    @links.delete(actor)
+    true
+  end
+  
+  # Notify this actor that one of the Actors it's linked to has exited
+  def notify_exited(actor, reason)
+    event = [:exit, actor, reason]
+
+    if @trap_exit
+      send event
+    elsif ex
+      # Need to raise the error in the context of the actor thread itself,
+      # or else kill the actor thread and notify its linked actors.
+      #raise ex
+    end
+  end
+
+  # Notify all the linked actors that this actor has exited with an
+  # error
+  def handle_error(reason)
+    @links.each {|actor| actor.notify_exited(self, reason) }
+  end
+  
+  # Actors trapping exit do not die when an error occurs in an Actor they
+  # are linked to.  Instead the exit message is sent to their regular
+  # mailbox in the form [:exit, actor, reason].  This allows certain
+  # Actors to supervise sets of others and restart them in the event
+  # of an error.
+  
+  #NOTE: For now we only support trap_exit mode so it is always true
+  def trap_exit=(value)
+    raise ArgumentError, "must be true or false" unless value == true or value == false
+    #@trap_exit = value
+  end
+  
+  # Is the Actor trapping exit?
+  def trap_exit?
+    @trap_exit
+  end
 end
