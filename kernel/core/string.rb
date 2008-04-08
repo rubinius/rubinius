@@ -1160,7 +1160,7 @@ class String
       arg = Regexp.new(Regexp.quote(arg))
     end
 
-    ret = arg.match_region(self, 0, finish, false)
+    ret = arg.search_region(self, 0, finish, false)
     Regexp.last_match = ret if original_klass == Regexp
     ret && ret.begin(0)
   end

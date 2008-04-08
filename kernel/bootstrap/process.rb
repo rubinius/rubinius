@@ -10,7 +10,7 @@ class Process
   end
 
   def self.fork_prim
-    Ruby.primitive(:fork_process)
+    Ruby.primitive :fork_process
     raise PrimitiveFailure, "primitive failed"
   end
 

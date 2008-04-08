@@ -16,12 +16,9 @@ needed and then any platform-specific requirements.
 * "GCC version 4.x":http://gcc.gnu.org/
 * "GNU Bison":http://www.gnu.org/software/bison/
 * "gmake (GNU Make)":http://savannah.gnu.org/projects/make/
-* "pkg-config (configuration tool)":http://pkgconfig.freedesktop.org/
-* "libtool version >= 1.5":http://www.gnu.org/software/libtool/
 * "Ruby version >= 1.8.4 (the Ruby language)":http://www.ruby-lang.org/
 * "RubyGems (Ruby package manager)":http://www.rubygems.org/
 * "Git (source control used by rubinius)":http://git.or.cz/
-* "zip and unzip commands (archiving)":http://www.info-zip.org
 
 Each package may have requirements of its own, of course.
 
@@ -50,6 +47,9 @@ invocation looks like this:
 For more information on rubinius' best practices for git, see "using
 git":http://rubinius.lighthouseapp.com/projects/5089/using-git
 
+Rubinius can also be cloned via github:
+
+  git clone git://github.com/evanphx/rubinius.git rubinius
 
 == Compiling Rubinius
 

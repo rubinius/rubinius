@@ -256,7 +256,7 @@ module MiniTest
         assert ! exp.equal?(act), msg
       end
 
-      def assert_nothing_raised
+      def assert_nothing_raised _ = :ignored
         self._assertions += 1
         yield
       rescue => e

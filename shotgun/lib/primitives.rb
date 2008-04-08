@@ -1715,8 +1715,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :regexp_match_region
-  def regexp_match_region
+  defprim :regexp_search_region
+  def regexp_search_region
     <<-CODE
     ARITY(4);
     OBJECT t1, t2, t3, t4, t5;
@@ -1727,22 +1727,9 @@ class ShotgunPrimitives
     POP(t3, FIXNUM);
     t4 = stack_pop();
 
-    t5 = regexp_match_region(state, msg->recv, t1, t2, t3, t4);
+    t5 = regexp_search_region(state, msg->recv, t1, t2, t3, t4);
 
     RET(t5);
-    CODE
-  end
-
-  defprim :regexp_scan
-  def regexp_scan
-    <<-CODE
-    ARITY(1);
-    OBJECT t1;
-    GUARD(REGEXP_P(msg->recv));
-
-    POP(t1, STRING);
-
-    RET(regexp_scan(state, msg->recv, t1));
     CODE
   end
 

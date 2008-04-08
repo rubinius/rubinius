@@ -26,7 +26,7 @@ ifeq ($(UNAME),Darwin)
   SUFFIX=dylib
   BIN_RPATH=
   BIN_RPATHLOCAL=
-  SONAME=-current_version $(VERSION) -compatibility_version $(VERSION) -install_name /usr/local/lib/librubinius-$(VERSION).$(SUFFIX)
+  SONAME=-current_version $(VERSION) -compatibility_version $(VERSION) -install_name $(PREFIX)/lib/librubinius-$(VERSION).$(SUFFIX)
   SONAMELOCAL=-current_version $(VERSION) -compatibility_version $(VERSION) -install_name `pwd`/librubinius-local-dev.$(SUFFIX)
   ifeq ($(CPU),powerpc)
     ifeq ($(OSVER),9.1.0)

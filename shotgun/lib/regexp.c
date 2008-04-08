@@ -170,38 +170,6 @@ OBJECT _md_region_to_tuple(STATE, OnigRegion *region, int max) {
   return tup;
 }
 
-OBJECT regexp_scan(STATE, OBJECT regexp, OBJECT string) {
-  int beg, max;
-  size_t region_end = 0;
-  const UChar *str, *end;
-  OnigRegion *region = onig_region_new();
-  OnigEncoding enc;
-  regex_t *reg;
-  OBJECT matches;
-  
-  max = N2I(string_get_bytes(string));
-  str = (UChar*)rbx_string_as_cstr(state, string);
-  end = str + max;
-  
-  matches = array_new(state, 0);
-  reg = REG(regexp_get_data(regexp));
-  enc = onig_get_encoding(reg);
-
-  while((beg = onig_search(reg, str, end, str + region_end, end, region, ONIG_OPTION_NONE)) > 0) {
-    array_append(state, matches, get_match_data(state, region, string, regexp, max));
-
-    region_end = region->end[0];
-    if(region_end == beg) {
-      if(max <= region_end) break;
-      region_end += ONIGENC_MBC_ENC_LEN(enc, str + region_end);
-    }
-  }
-  
-  onig_region_free(region, 1);
-  
-  return matches;
-}
-
 OBJECT get_match_data(STATE, OnigRegion *region, OBJECT string, OBJECT regexp, int max) {
   OBJECT md = matchdata_allocate(state); 
   matchdata_set_source(md, string_dup(state, string));
@@ -215,47 +183,44 @@ OBJECT regexp_match_start(STATE, OBJECT regexp, OBJECT string, OBJECT start) {
   int beg, max;
   const UChar *str;
   OnigRegion *region;
-  OBJECT md;
+  OBJECT md = Qnil;
   
   region = onig_region_new();
   
   max = N2I(string_get_bytes(string));
   str = (UChar*)rbx_string_as_cstr(state, string);
   
-  beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(start), str + max, region, ONIG_OPTION_NONE);
-  
-  if(beg == ONIG_MISMATCH) {
-    onig_region_free(region, 1);
-    return Qnil;
+  beg = onig_match(REG(regexp_get_data(regexp)), str, str + max, str + N2I(start), region, ONIG_OPTION_NONE);
+
+  if(beg != ONIG_MISMATCH) {
+    md = get_match_data(state, region, string, regexp, max);
   }
-  
-  md = get_match_data(state, region, string, regexp, max);
+
+  onig_region_free(region, 1);
   return md;
 }
 
-OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OBJECT end, OBJECT forward) {
+OBJECT regexp_search_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OBJECT end, OBJECT forward) {
   int beg, max;
   const UChar *str;
   OnigRegion *region;
-  OBJECT md;
+  OBJECT md = Qnil;
   
   region = onig_region_new();
   
   max = N2I(string_get_bytes(string));
   str = (UChar*)rbx_string_as_cstr(state, string);
   
-  if(!RTEST(forward)) {
-    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(end), str + N2I(start), region, ONIG_OPTION_NONE);  
-  } else {
+  if (RTEST(forward)) {
     beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(start), str + N2I(end), region, ONIG_OPTION_NONE);
+  } else {
+    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + N2I(end), str + N2I(start), region, ONIG_OPTION_NONE);  
   }
 
-  if(beg == ONIG_MISMATCH) {
-    onig_region_free(region, 1);
-    return Qnil;
+  if (beg != ONIG_MISMATCH) {
+    md = get_match_data(state, region, string, regexp, max);
   }
   
-  md = get_match_data(state, region, string, regexp, max);
   onig_region_free(region, 1);
   return md;
 }

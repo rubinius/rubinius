@@ -82,7 +82,7 @@ class MSpecOptions
 
   def add_targets
     on("-t", "--target TARGET", String,
-            "Implementation to run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
+            "Implementation to run the specs, where:") do |t|
       case t
       when 'r', 'ruby'
         @config[:target] = 'ruby'
@@ -99,6 +99,14 @@ class MSpecOptions
         @config[:target] = t
       end
     end
+
+    separator ""
+    separator "   'r' or 'ruby'     invokes ruby in PATH"
+    separator "   'r19' or 'ruby19' invokes ruby19 in PATH"
+    separator "   'x' or 'rubinius' invokes ./shotgun/rubinius"
+    separator "   'X' or 'rbx'      invokes rbx in PATH"
+    separator "   'j' or 'jruby'    invokes jruby in PATH\n"
+
     on("-T", "--target-opt OPT", String,
             "Pass OPT as a flag to the target implementation") do |t|
       @config[:flags] << t

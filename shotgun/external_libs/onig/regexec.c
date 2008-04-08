@@ -3048,8 +3048,8 @@ map_search_backward(OnigEncoding enc, UChar map[],
 }
 
 extern int
-onig_match(regex_t* reg, const UChar* str, const UChar* end, const UChar* at, OnigRegion* region,
-	    OnigOptionType option)
+onig_match(regex_t* reg, const UChar* str, const UChar* end, const UChar* at,
+           OnigRegion* region, OnigOptionType option)
 {
   int r;
   UChar *prev;
@@ -3350,7 +3350,8 @@ backward_search_range(regex_t* reg, const UChar* str, const UChar* end,
 
 extern int
 onig_search(regex_t* reg, const UChar* str, const UChar* end,
-	    const UChar* start, const UChar* range, OnigRegion* region, OnigOptionType option)
+            const UChar* start, const UChar* range,
+            OnigRegion* region, OnigOptionType option)
 {
   int r;
   UChar *s, *prev;

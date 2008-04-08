@@ -257,12 +257,12 @@ class Regexp
   # Performs normal match and returns MatchData object from $~ or nil.
   def match(str)
     return nil if str.nil?
-    Regexp.last_match = match_region(str, 0, str.size, true)
+    Regexp.last_match = search_region(str, 0, str.size, true)
   end
   
   def match_from(str, count)
     return nil if str.nil?
-    match_region(str, count, str.size, true)
+    search_region(str, count, str.size, true)
   end
 
   def to_s
