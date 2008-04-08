@@ -47,20 +47,17 @@ class MSpecMain < MSpecScript
       ENV['OUTPUT_WARNINGS'] = '1'
     end
     options.add_version
-    options.on("-h", "--help", <<-EOH) do
-Show this message
-
-   where COMMAND is one of:
-
-     run - Run the specified specs (default)
-     ci  - Run the known good specs
-     tag - Add or remove tags
-
-   mspec COMMAND -h for more options
-EOH
+    options.on("-h", "--help", "Show this message") do
       puts options.parser
       exit
     end
+
+    # The rest of the help output
+    options.separator "\n  where COMMAND is one of:\n"
+    options.separator "    run - Run the specified specs (default)"
+    options.separator "    ci  - Run the known good specs"
+    options.separator "    tag - Add or remove tags\n"
+    options.separator "  mspec COMMAND -h for more options\n"
 
     config[:options] += options.parser.filter! argv
     options.parse argv
