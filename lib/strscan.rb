@@ -75,9 +75,7 @@ class StringScanner
   end
 
   def pre_match
-p :pre_match => [string, pos, @prev_pos, match.pre_match, match.to_s]
     string[0...@prev_pos] if matched?
-#    match.pre_match if matched?
   end
 
   def reset
@@ -90,7 +88,7 @@ p :pre_match => [string, pos, @prev_pos, match.pre_match, match.to_s]
     _lame_guard
 
     @prev_pos = pos
-    @match = pattern.search_region(string, pos, string.size, true) # FIX: need a match_region
+    @match = pattern.match_start(string, pos)
     if match then
       s = match.to_s
       self.pos += s.size
@@ -99,7 +97,18 @@ p :pre_match => [string, pos, @prev_pos, match.pre_match, match.to_s]
   end
 
   def scan_until pattern
-    scan Regexp.new("((?m-ix:.*?))" + pattern.to_s)
+    return scan Regexp.new("((?m-ix:.*?))" + pattern.to_s)
+
+    # TODO: make this work
+    _lame_guard
+
+    @prev_pos = pos
+    @match = pattern.search_region(string, pos, string.size, true)
+    if match then
+      s = match.to_s
+      self.pos += s.size
+      s
+    end
   end
 
   def skip pattern
