@@ -34,6 +34,8 @@ describe "String#to_f" do
   it "allows for varying signs" do
     "+123.45e1".to_f.should == +123.45e1
     "-123.45e1".to_f.should == -123.45e1
+    "123.45e+1".to_f.should == 123.45e+1
+    "123.45e-1".to_f.should == 123.45e-1
     "+123.45e+1".to_f.should == +123.45e+1
     "+123.45e-1".to_f.should == +123.45e-1
     "-123.45e+1".to_f.should == -123.45e+1
