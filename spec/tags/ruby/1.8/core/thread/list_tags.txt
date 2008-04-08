@@ -1,0 +1,3 @@
+fails:Thread::list includes the current and main thread
+fails:Thread::list does not include deceased threads
+fails:Thread::list includes waiting threads
