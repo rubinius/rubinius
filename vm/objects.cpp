@@ -202,6 +202,8 @@ namespace rubinius {
 
     globals.external_ivars = LookupTable::create(state);
 
+    List::init(state);
+
   }
 
   void VM::bootstrap_symbol() {

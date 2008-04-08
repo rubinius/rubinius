@@ -30,9 +30,15 @@ namespace rubinius {
       return count->n2i() == 0;
     }
 
+    size_t size() {
+      return count->n2i();
+    }
+
+    static void init(STATE);
     static List* create(STATE);
     void append(STATE, OBJECT obj);
     OBJECT shift(STATE);
+    OBJECT locate(STATE, size_t index);
     size_t remove(STATE, OBJECT obj);
   };
 

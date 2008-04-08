@@ -412,5 +412,6 @@ namespace rubinius {
 };
 
 #include "builtin_class.hpp"
+#include "builtin_list.hpp"
 
 #endif

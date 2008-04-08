@@ -277,6 +277,43 @@ public:
  void runTest() { suite_TestHash.test_csm_into_lookuptable(); }
 } testDescription_TestHash_test_csm_into_lookuptable;
 
+#include "test_list.hpp"
+
+static TestList suite_TestList;
+
+static CxxTest::List Tests_TestList = { 0, 0 };
+CxxTest::StaticSuiteDescription suiteDescription_TestList( "test_list.hpp", 10, "TestList", suite_TestList, Tests_TestList );
+
+static class TestDescription_TestList_test_classes : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestList_test_classes() : CxxTest::RealTestDescription( Tests_TestList, suiteDescription_TestList, 27, "test_classes" ) {}
+ void runTest() { suite_TestList.test_classes(); }
+} testDescription_TestList_test_classes;
+
+static class TestDescription_TestList_test_create : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestList_test_create() : CxxTest::RealTestDescription( Tests_TestList, suiteDescription_TestList, 32, "test_create" ) {}
+ void runTest() { suite_TestList.test_create(); }
+} testDescription_TestList_test_create;
+
+static class TestDescription_TestList_test_append : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestList_test_append() : CxxTest::RealTestDescription( Tests_TestList, suiteDescription_TestList, 37, "test_append" ) {}
+ void runTest() { suite_TestList.test_append(); }
+} testDescription_TestList_test_append;
+
+static class TestDescription_TestList_test_shift : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestList_test_shift() : CxxTest::RealTestDescription( Tests_TestList, suiteDescription_TestList, 53, "test_shift" ) {}
+ void runTest() { suite_TestList.test_shift(); }
+} testDescription_TestList_test_shift;
+
+static class TestDescription_TestList_test_remove : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestList_test_remove() : CxxTest::RealTestDescription( Tests_TestList, suiteDescription_TestList, 65, "test_remove" ) {}
+ void runTest() { suite_TestList.test_remove(); }
+} testDescription_TestList_test_remove;
+
 #include "test_lookuptable.hpp"
 
 static TestLookupTable suite_TestLookupTable;

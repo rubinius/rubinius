@@ -2,7 +2,7 @@
 
 namespace rubinius {
 
-  void init(STATE) {
+  void List::init(STATE) {
     Class* cls;
     cls = state->globals.list = state->new_class("List", List::fields);
     state->globals.list_node = state->new_class("Node", state->globals.object,
@@ -34,6 +34,20 @@ namespace rubinius {
     count = Object::i2n(state, count->n2i() + 1);
   }
 
+  OBJECT List::locate(STATE, size_t index) {
+    Node* cur = first;
+
+    while(index > 0) {
+      if(cur->nil_p()) return Qnil;
+
+      cur = cur->next;
+      index--;
+    }
+
+    if(cur->nil_p()) return Qnil;
+    return cur->object;
+  }
+
   OBJECT List::shift(STATE) {
     if(empty_p()) return Qnil;
 
@@ -58,6 +72,8 @@ namespace rubinius {
     Node* nxt =  (Node*)Qnil;
 
     while(!node->nil_p()) {
+      nxt = node->next;
+
       if(node->object == obj) {
         deleted++;
         if(lst->nil_p()) {
@@ -69,11 +85,13 @@ namespace rubinius {
         if(last == node) {
           SET(this, last, lst);
         }
+
+        lst = (Node*)Qnil;
       } else {
         counted++;
+        lst = node;
       }
 
-      lst = node;
       node = nxt;
     }
 
