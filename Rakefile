@@ -215,7 +215,7 @@ task :distclean => "clean:distclean"
 
 namespace :clean do
   desc "Clean everything but third-party libs"
-  task :all => %w[clean:rbc clean:extensions clean:shotgun clean:generated clean:crap]
+  task :all => %w[clean:rbc clean:extensions clean:shotgun clean:generated clean:crap clean:config]
 
   desc "Clean everything including third-party libs"
   task :distclean => %w[clean:all clean:external]
@@ -258,6 +258,12 @@ namespace :clean do
   desc "Cleans up editor files and other misc crap"
   task :crap do
     rm_f Dir["*~"] + Dir["**/*~"], :verbose => $verbose
+  end
+  
+  desc "Cleans up config files (so they can be regenerated when you change PREFIX)"
+  task :config do
+    rm "shotgun/config.h", :verbose => $verbose
+    rm "shotgun/config.mk", :verbose => $verbose
   end
 end
 
