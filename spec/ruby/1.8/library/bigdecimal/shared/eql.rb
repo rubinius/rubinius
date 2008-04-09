@@ -19,7 +19,6 @@ shared :bigdecimal_eql do |cmd|
       @a.send(cmd, @b).should == false
       @bg6543_21.send(cmd, @a).should == false
       @bigint.send(cmd, 1000).should == true
-      @bigint.send(cmd, 1000.0).should == false
     end
 
     it "NaN is never equal to any number" do

@@ -13,7 +13,7 @@ shared :bigdecimal_power do |cmd|
       e = BigDecimal("1.00000000000000000000123456789")
       one = BigDecimal("1")
       ten = BigDecimal("10")
-      tolerance = BigDecimal("1E-115")
+      tolerance = BigDecimal("1E-95")
       ten_powers = BigDecimal("1E10000")
       pi = BigDecimal("3.14159265358979")
       e3_minus.send(cmd, 2).should == e3_minus_power_2
