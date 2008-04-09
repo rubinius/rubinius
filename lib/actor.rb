@@ -140,8 +140,10 @@ class Actor
 
   def initialize(mailbox)
     @mailbox = mailbox
+    @lock = Channel.new
     @links = []
     @trap_exit = true
+    @lock << nil
   end
 
   def send(value)
@@ -157,16 +159,26 @@ class Actor
     # Ignore circular links
     return true if actor == self
     
-    # Ignore duplicate links
-    return true if @links.include? actor
+    @lock.receive
+    begin
+      # Ignore duplicate links
+      return true if @links.include? actor
     
-    @links << actor
+      @links << actor
+    ensure
+      @lock << nil
+    end
     true
   end
   
   # Notify this actor that it's now unlinked from the given one
   def notify_unlink(actor)
-    @links.delete(actor)
+    @lock.receive
+    begin
+      @links.delete(actor)
+    ensure
+      @lock << nil
+    end
     true
   end
   
@@ -186,7 +198,19 @@ class Actor
   # Notify all the linked actors that this actor has exited with an
   # error
   def handle_error(reason)
-    @links.each {|actor| actor.notify_exited(self, reason) }
+    links = nil
+    @lock.receive
+    begin
+      links, @links = @links, []
+    ensure
+      @lock << nil
+    end
+    links.each do |actor|
+      begin
+        actor.notify_exited(self, reason)
+      rescue Exception
+      end
+    end
   end
   
   # Actors trapping exit do not die when an error occurs in an Actor they
