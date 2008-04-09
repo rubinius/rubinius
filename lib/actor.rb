@@ -35,7 +35,8 @@ class Actor
     alias_method :private_new, :new
     private :private_new
 
-    @@registered = {}
+    @@registered = Channel.new
+    @@registered << {}
   
     # Get the currently executing Actor
     def current
@@ -104,7 +105,12 @@ class Actor
 
     # Lookup a locally named service
     def lookup(name)
-      @@registered[name]
+      registered = @@registered.receive
+      begin
+        registered[name]
+      ensure
+        @@registered << registered
+      end
     end
 
     # Register an Actor locally as a named service
@@ -113,12 +119,22 @@ class Actor
         raise ArgumentError, "only actors may be registered"
       end
 
-      @@registered[name] = actor
+      registered = @@registered.receive
+      begin
+        registered[name] = actor
+      ensure
+        @@registered << registered
+      end
     end
 
     # Unregister the named service
     def unregister(name)
-      @@registered.delete(name)
+      registered = @@registered.receive
+      begin
+        registered.delete(name)
+      ensure
+        @@registered << registered
+      end
     end
   end
 
