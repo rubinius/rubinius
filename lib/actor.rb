@@ -80,12 +80,18 @@ class Actor
     
     # Link the current Actor to another one
     def link(actor)
-      Actor.current.link actor
+      current = Actor.current
+      actor.notify_link current
+      current.notify_link actor
+      self
     end
     
     # Unlink the current Actor from another one
     def unlink(actor)
-      Actor.current.unlink actor
+      current = Actor.current
+      current.notify_unlink actor
+      actor.notify_unlink current
+      self
     end
 
     # Lookup a locally named service
@@ -120,18 +126,6 @@ class Actor
   end
   alias_method :<<, :send
  
-  # Establish a bidirectional link to the given Actor 
-  def link(actor)
-    actor.notify_link self
-    self.notify_link actor
-  end
-  
-  # Unestablish a link with the given actor
-  def unlink(actor)
-    actor.notify_unlink self
-    self.notify_unlink actor
-  end
-  
   # Notify this actor that it's now linked to the given one
   def notify_link(actor)
     raise ArgumentError, "can only link to Actors" unless actor.is_a? Actor
