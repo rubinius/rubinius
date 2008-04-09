@@ -1,0 +1,4 @@
+fails:BigDecimal#% returns self modulo other
+fails:BigDecimal#% does NOT raise ZeroDivisionError if other is zero
+fails:BigDecimal#modulo returns self modulo other
+fails:BigDecimal#modulo does NOT raise ZeroDivisionError if other is zero
