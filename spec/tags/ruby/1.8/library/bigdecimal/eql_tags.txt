@@ -1,0 +1,2 @@
+fails:BigDecimal#eql? test for equality
+fails:BigDecimal#eql? NaN is never equal to any number

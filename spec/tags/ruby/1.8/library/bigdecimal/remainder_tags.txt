@@ -1,0 +1,4 @@
+fails:BigDecimal#remainder if both values are of same sign it equals modulo
+fails:BigDecimal#remainder Otherwise, it is the modulus minus the value divided by
+fails:BigDecimal#remainder returns NaN used with zero
+fails:BigDecimal#remainder returns zero if used on zero
