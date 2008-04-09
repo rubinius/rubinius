@@ -7,12 +7,17 @@ describe Compiler do
           [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
-      g.push 2
       g.push 1
-      g.set_local 0
+      g.push 2
+
+      g.make_array 2
+      g.cast_tuple
+
+      g.lvar_set 0
+      g.lvar_set 1
+
       g.pop
-      g.set_local 1
-      g.pop
+
       g.push :true
     end
   end
@@ -24,19 +29,23 @@ describe Compiler do
         ]
 
     gen x do |g|
-      g.push :true
       g.push :self
       g.send :b, 0, true
       g.send :c, 0, false
+      g.push :true
 
-      g.set_local 0
-      g.pop
+      g.make_array 2
+      g.cast_tuple
 
+      g.lvar_set 0
+
+      g.unshift_tuple
       g.push :self
       g.send :b, 0, true
       g.send :c=, 1, false
 
       g.pop
+
       g.push :true
     end
   end
@@ -47,14 +56,18 @@ describe Compiler do
           [:array, [:fixnum, 1], [:fixnum, 2], [:fixnum, 3]]]
 
     gen x do |g|
-      g.push 3
-      g.push 2
       g.push 1
-      g.set_local 0
+      g.push 2
+      g.push 3
+
+      g.make_array 3
+      g.cast_tuple
+
+      g.lvar_set 0
+      g.lvar_set 1
+
       g.pop
-      g.set_local 1
-      g.pop
-      g.pop
+
       g.push :true
     end
   end
@@ -65,15 +78,18 @@ describe Compiler do
           [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
-      g.push :nil
-      g.push 2
       g.push 1
-      g.set_local 0
+      g.push 2
+
+      g.make_array 2
+      g.cast_tuple
+
+      g.lvar_set 0
+      g.lvar_set 1
+      g.lvar_set 2
+
       g.pop
-      g.set_local 1
-      g.pop
-      g.set_local 2
-      g.pop
+
       g.push :true
     end
   end
@@ -87,11 +103,16 @@ describe Compiler do
       g.push 1
       g.push 2
       g.push 3
-      g.make_array 2
+
+      g.make_array 3
+      g.cast_tuple
+
+      g.lvar_set 0
+
+      g.cast_array
       g.set_local 1
       g.pop
-      g.set_local 0
-      g.pop
+
       g.push :true
     end
   end
@@ -105,13 +126,16 @@ describe Compiler do
       g.push 1
       g.push 2
       g.push 3
-      g.make_array 1
+
+      g.make_array 3
+
+      g.lvar_set 0
+      g.lvar_set 1
+
+      g.cast_array
       g.set_local 2
       g.pop
-      g.set_local 1
-      g.pop
-      g.set_local 0
-      g.pop
+
       g.push :true
     end
   end
@@ -124,19 +148,13 @@ describe Compiler do
     gen x do |g|
       g.push :self
       g.send :d, 0, true
+
+      g.make_array 1
       g.cast_tuple
 
-      g.unshift_tuple
-      g.set_local 0
-      g.pop
-
-      g.unshift_tuple
-      g.set_local 1
-      g.pop
-
-      g.unshift_tuple
-      g.set_local 2
-      g.pop
+      g.lvar_set 0
+      g.lvar_set 1
+      g.lvar_set 2
 
       g.pop
       g.push :true
@@ -153,22 +171,16 @@ describe Compiler do
       g.push :self
       g.send :d, 0, true
       g.cast_array
+
       g.push 1
       g.make_array 1
+
       g.send :+, 1
       g.cast_tuple
 
-      g.unshift_tuple
-      g.set_local 0
-      g.pop
-
-      g.unshift_tuple
-      g.set_local 1
-      g.pop
-
-      g.unshift_tuple
-      g.set_local 2
-      g.pop
+      g.lvar_set 0
+      g.lvar_set 1
+      g.lvar_set 2
 
       g.pop
       g.push :true
@@ -185,22 +197,18 @@ describe Compiler do
     gen x do |g|
       g.push :self
       g.send :d, 0, true
+
+      g.make_array 1
       g.cast_tuple
 
-      g.unshift_tuple
-      g.set_local 0
-      g.pop
-
-      g.unshift_tuple
-      g.set_local 1
-      g.pop
+      g.lvar_set 0
+      g.lvar_set 1
 
       g.cast_array
       g.set_local 2
       g.pop
 
       g.push :true
-
     end
   end
 
@@ -374,22 +382,25 @@ describe Compiler do
 
   it "compiles 'a, b = (@a = 1), @a'" do
     sexp = [:masgn,
-      [:array, [:lasgn, :a], [:lasgn, :b]],
-      nil,
-      [:array,
-        [:newline, 1, "masgn_spec.rb", [:iasgn, :@a, [:lit, 1]]],
-        [:ivar, :@a]]]
+            [:array, [:lasgn, :a], [:lasgn, :b]],
+            nil,
+            [:array,
+             [:iasgn, :@a, [:lit, 1]],
+             [:ivar, :@a]]]
 
     gen(sexp) do |g|
       g.push 1
       g.set_ivar :@a
-      g.set_local 0
-      g.pop
       g.push_ivar :@a
-      g.set_local 1
+
+      g.make_array 2
+      g.cast_tuple
+
+      g.lvar_set 0
+      g.lvar_set 1
+
       g.pop
       g.push true
     end
   end
-
 end

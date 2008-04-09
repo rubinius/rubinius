@@ -120,13 +120,19 @@ class TestGenerator
     eb.start.set!
     yield eb
   end
-  
+
+  def lvar_set slot
+    unshift_tuple
+    set_local slot
+    pop
+  end
+
   def lvar_at slot
     unshift_tuple
     set_local_depth 0, slot
     pop
   end
-  
+
   def passed_block(local=0, in_block=false)
     g = self
     ok = g.new_label
