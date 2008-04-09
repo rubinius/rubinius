@@ -221,8 +221,7 @@ class Actor
   
   #NOTE: For now we only support trap_exit mode so it is always true
   def trap_exit=(value)
-    raise ArgumentError, "must be true or false" unless value == true or value == false
-    #@trap_exit = value
+    #@trap_exit = !!value
   end
   
   # Is the Actor trapping exit?
