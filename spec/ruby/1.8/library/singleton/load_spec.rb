@@ -28,7 +28,7 @@ describe "Singleton._load" do
 
 end
 
-describe "Marshal.load on serialized singleton objects" do
+describe "Marshal.load on singleton object previously serialised in this process" do
   ruby_bug do
     # http://rubyforge.org/tracker/index.php?func=detail&aid=19377&group_id=426&atid=1698
     it "returns the singleton instance" do
