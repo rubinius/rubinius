@@ -347,7 +347,7 @@ class InstructionSequence
     # into an array whose elements are arrays of opcode symbols and 0-2 args,
     # depending on the opcode.
 
-    def decode_iseq(iseq)
+    def decode_iseq(iseq, symbols_only=true)
       @iseq = iseq
       @offset = 0
       stream = []
@@ -371,6 +371,9 @@ class InstructionSequence
       end
       # Remove any noops or other junk at the end of the iseq
       stream.slice! last_good.last, stream.size
+      if symbols_only
+        stream.each {|i| i[0] = i[0].opcode}
+      end
 
       return stream
     end
@@ -514,8 +517,8 @@ class InstructionSequence
   ##
   # Decodes the instruction sequence into an array of Instructions
 
-  def decode
+  def decode(symbols_only=true)
     enc = Encoder.new
-    enc.decode_iseq(self)
+    enc.decode_iseq(self, symbols_only)
   end
 end

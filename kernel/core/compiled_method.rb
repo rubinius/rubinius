@@ -371,7 +371,7 @@ class CompiledMethod
   # but then converts opcode literal arguments to their actual values by looking
   # them up in the literals tuple.
   def decode
-    stream = @bytecodes.decode
+    stream = @bytecodes.decode(false)
     ip = 0
     args_reg = 0
     stream.map! do |inst|

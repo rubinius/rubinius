@@ -13,10 +13,10 @@ describe "Breakpoint#disable" do
 
   it "removes the yield_debugger instruction at the location specified by @ip" do
     dc = @cm.bytecodes.decode
-    dc[4].first.opcode.should == :yield_debugger
+    dc[4].first.should == :yield_debugger
     @bp.remove
     dc = @cm.bytecodes.decode
-    dc[4].first.opcode.should_not == :yield_debugger
+    dc[4].first.should_not == :yield_debugger
     dc[4].should == @orig
   end
 

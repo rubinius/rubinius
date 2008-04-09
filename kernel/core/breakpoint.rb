@@ -46,7 +46,7 @@ class Breakpoint
   # Verifies that the specified instruction pointer is a valid instruction
   # pointer address for the compiled method.
   def validate_breakpoint_ip(ip)
-    bc = @method.bytecodes.decode
+    bc = @method.bytecodes.decode(false)
     i = 0
     bc.each do |op|
       return true if i == ip
