@@ -75,7 +75,7 @@ class NameMap
     const = const_lookup(c)
 
     if Module === const and not EXCLUDED.include? const.name
-      return const 
+      return const
     end
   rescue NameError
   end
