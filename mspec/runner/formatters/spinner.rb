@@ -4,17 +4,9 @@ require 'mspec/runner/formatters/dotted'
 class SpinnerFormatter < DottedFormatter
   attr_reader :length
 
-  # This bit of conditional cruft results from MRI
-  # requiring a file more than once if the path
-  # component differs, causing a redefinition warning
-  # when running the MSpec specs. The formatter
-  # constants are needed in different specs and there
-  # is not a useful way to mock constants in RSpec.
-  unless const_defined? :Spins
-    Spins = %w!| / - \\!
-    HOUR = 3600
-    MIN = 60
-  end
+  Spins = %w!| / - \\!
+  HOUR = 3600
+  MIN = 60
   
   def initialize
     @states = []
