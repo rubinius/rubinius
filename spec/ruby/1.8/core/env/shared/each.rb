@@ -2,11 +2,17 @@ shared :env_each do |cmd|
   describe "ENV##{cmd}" do
 
     it "returns each pair" do
+      orig = ENV.to_hash
       e = []
-      ENV.send(cmd) { |k, v| e << [k, v] }
-      env = `env`.split("\n").map { |l| [l.gsub(/=.*$/, ''), l.gsub(/^.*=/,'')] }
-      e.size.should == env.size
-      e.sort == env.sort
+      begin
+        ENV.clear
+        ENV["foo"] = "bar"
+        ENV["baz"] = "boo"
+        ENV.send(cmd) { |k, v| e << [k, v] }
+        e.should == [["foo", "bar"], ["baz", "boo"]]
+      ensure
+        ENV.replace orig
+      end
     end
 
     it "raises LocalJumpError if no block given" do
