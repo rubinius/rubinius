@@ -1,4 +1,5 @@
 require 'rexml/document'
+require File.dirname(__FILE__) + '/../../../spec_helper'
 
 shared :elements_to_a do |klass, cmd| 
   describe "REXML::#{klass}##{cmd}" do
