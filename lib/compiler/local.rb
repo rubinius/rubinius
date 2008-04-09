@@ -4,7 +4,7 @@ class Compiler
     def initialize(scope)
       @scope = scope
       @names = []
-      @locals = Hash.new { |h,k| h[k] = Compiler::Local.new(@scope, k) }
+      @locals = Hash.new { |h,k| h[k] = Local.new(@scope, k) }
       @from_eval = false
     end
     

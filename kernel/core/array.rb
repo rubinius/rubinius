@@ -1567,7 +1567,6 @@ class Array
     out
   end
   
-  
   def size
     @total
   end
@@ -1575,7 +1574,6 @@ class Array
   def length
     @total
   end
-  
   
   def unshift(*values)
     while values.size > 0 && @start > 0
@@ -1592,20 +1590,6 @@ class Array
 
     @total += values.size
     self
-  end
-
-  # This method copies frozen status, but dup does not.
-  # We don't implement #freeze/#frozen? yet.
-  def clone
-    ary = self.class.new self
-    ary.taint if self.tainted?
-    ary
-  end
-  
-  def dup
-    ary = self.class.new self
-    ary.taint if self.tainted?
-    ary
   end
 
   # Exactly the same as #replace but private

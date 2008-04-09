@@ -22,7 +22,7 @@ describe "Array#slice!" do
     a.slice!(0).should == nil
     a.should == []
   end
-  
+
   it "removes and returns length elements beginning at start" do
     a = [1, 2, 3, 4, 5, 6]
     a.slice!(2, 3).should == [3, 4, 5]
@@ -42,7 +42,7 @@ describe "Array#slice!" do
   it "calls to_int on start and length arguments" do
     obj = mock('2')
     def obj.to_int() 2 end
-      
+
     a = [1, 2, 3, 4, 5]
     a.slice!(obj).should == 3
     a.should == [1, 2, 4, 5]
@@ -50,12 +50,12 @@ describe "Array#slice!" do
     a.should == [1, 2]
     a.slice!(0, obj).should == [1, 2]
     a.should == []
-    
+
     obj = mock('2')
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(2)
     a = [1, 2, 3, 4, 5]
-    a.slice!(obj).should == 3    
+    a.slice!(obj).should == 3
   end
 
   it "removes and return elements in range" do
@@ -71,32 +71,32 @@ describe "Array#slice!" do
     a.slice!(0..0).should == [1]
     a.should == []
   end
-  
+
   it "calls to_int on range arguments" do
     from = mock('from')
     to = mock('to')
-    
+
     # So we can construct a range out of them...
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
 
     def from.to_int() 1 end
     def to.to_int() -2 end
-      
+
     a = [1, 2, 3, 4, 5]
-      
+
     a.slice!(from .. to).should == [2, 3, 4]
     a.should == [1, 5]
-  
+
     lambda { a.slice!("a" .. "b")  }.should raise_error(TypeError)
     lambda { a.slice!(from .. "b") }.should raise_error(TypeError)
-    
+
     from = mock('from')
     to = mock('to')
-    
+
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
-      
+
     from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     from.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(1)
     to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
@@ -105,7 +105,7 @@ describe "Array#slice!" do
     a = [1, 2, 3, 4, 5]
     a.slice!(from .. to).should == [2, 3, 4]
   end
-  
+
   # TODO: MRI behaves inconsistently here. I'm trying to find out what it should
   # do at ruby-core right now. -- flgr
   # See http://groups.google.com/group/ruby-core-google/t/af70e3d0e9b82f39

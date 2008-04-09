@@ -211,12 +211,24 @@ end
  
 rbx_flags = []
 ext_flags = []
+flags = []
+
 while ARGV[0] and ARGV[0].prefix? "-f"
-  if ARGV[0][2..4] == 'rbx'
-    rbx_flags << ARGV.shift[2..-1]
-  else
-    ext_flags << ARGV.shift[2..-1]
+  body = ARGV.shift[2..-1]
+  if body.empty?
+    flags << '-f'
+    next
   end
+
+  if body.prefix? 'rbx'
+    rbx_flags << body
+  else
+    ext_flags << body
+  end
+end
+
+while ARGV[0] and ARGV[0].prefix? "-"
+  flags << ARGV.shift
 end
 
 file = ARGV.shift
@@ -242,8 +254,26 @@ elsif file.suffix?(".c")
   ext.compile
 else
   if File.exists?(file)
-    puts "Compiling #{file}..."
-    compile(file, ARGV.shift, rbx_flags)
+
+    out = ARGV.shift || "#{file}c"
+
+    unless flags.include? '-f'
+      if File.exists?(out) and File.mtime(out) > File.mtime(file)
+        puts "Output '#{out}' is newer, no compile needed."
+        exit 0
+      end
+    end
+
+    if flags.include? "-e"
+      puts "Compiling (external) #{file}..."
+      require 'compiler/compiler'
+      cm = Compiler.compile_file file, rbx_flags
+      puts "Unable to compile '#{file}'" unless cm
+      Marshal.dump_to_file cm, out, Compile.version_number
+    else
+      puts "Compiling #{file}..."
+      compile(file, out, rbx_flags)
+    end
   else
     puts "Unable to compile '#{file}'"
   end

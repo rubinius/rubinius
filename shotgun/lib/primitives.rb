@@ -1190,6 +1190,10 @@ class ShotgunPrimitives
         }
       }
 
+      if (object_tainted_p(state, msg->recv)) {
+        object_set_tainted(state, t2);
+      }
+
       stack_push(t2);
       object_copy_ivars(state, msg->recv, t2);
       cpu_perform_hook(state, c, t2, state->global->sym_init_copy, msg->recv);
@@ -1219,6 +1223,10 @@ class ShotgunPrimitives
       for(k = 0; k < j; k++) {
         SET_FIELD(t2, k, NTH_FIELD(msg->recv, k));
       }
+    }
+
+    if (object_tainted_p(state, msg->recv)) {
+      object_set_tainted(state, t2);
     }
 
     stack_push(t2);

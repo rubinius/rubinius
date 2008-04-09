@@ -34,17 +34,11 @@ class Actor
   class << self
     alias_method :private_new, :new
     private :private_new
-  
-    def spawn(*args, &prc)
-      channel = Channel.new
-      Thread.new do
-        channel << current
-        prc.call *args
-      end
-      channel.receive
-    end
-    alias_method :new, :spawn
 
+    @@registered = Channel.new
+    @@registered << {}
+  
+    # Get the currently executing Actor
     def current
       Thread.current[:__current_actor__] ||= private_new(current_mailbox)
     end
@@ -54,13 +48,102 @@ class Actor
     end
     private :current_mailbox
 
-    def receive(&prc)
-      current_mailbox.receive(&prc)
+    # Receive a message from the current Actor's mailbox
+    def receive(&block)
+      current_mailbox.receive(&block)
+    end
+
+    # Spawn a new Actor that will run in its own thread
+    def spawn(*args, &block)
+      raise ArgumentError, "no block given" unless block
+
+      channel = Channel.new
+      Thread.new do
+        channel << current
+
+        begin
+          block.call *args
+          current.handle_error(:exit_clean)
+        rescue => e
+          current.handle_error(e)
+        end
+      end
+      channel.receive
+    end
+    alias_method :new, :spawn
+
+    # Spawn an Actor and immediately link it to the current one
+    def spawn_link(*args, &block)
+      current = Actor.current
+      link_complete = Channel.new
+      spawn do
+        begin
+          Actor.link(current)
+        ensure
+          link_complete << Actor.current
+        end
+        block.call *args
+      end
+      link_complete.receive
+    end
+    
+    # Link the current Actor to another one
+    def link(actor)
+      current = Actor.current
+      actor.notify_link current
+      current.notify_link actor
+      self
+    end
+    
+    # Unlink the current Actor from another one
+    def unlink(actor)
+      current = Actor.current
+      current.notify_unlink actor
+      actor.notify_unlink current
+      self
+    end
+
+    # Lookup a locally named service
+    def lookup(name)
+      registered = @@registered.receive
+      begin
+        registered[name]
+      ensure
+        @@registered << registered
+      end
+    end
+
+    # Register an Actor locally as a named service
+    def register(name, actor)
+      unless actor.is_a?(Actor)
+        raise ArgumentError, "only actors may be registered"
+      end
+
+      registered = @@registered.receive
+      begin
+        registered[name] = actor
+      ensure
+        @@registered << registered
+      end
+    end
+
+    # Unregister the named service
+    def unregister(name)
+      registered = @@registered.receive
+      begin
+        registered.delete(name)
+      ensure
+        @@registered << registered
+      end
     end
   end
 
   def initialize(mailbox)
     @mailbox = mailbox
+    @lock = Channel.new
+    @links = []
+    @trap_exit = true
+    @lock << nil
   end
 
   def send(value)
@@ -68,4 +151,81 @@ class Actor
     self
   end
   alias_method :<<, :send
+ 
+  # Notify this actor that it's now linked to the given one
+  def notify_link(actor)
+    raise ArgumentError, "can only link to Actors" unless actor.is_a? Actor
+    
+    # Ignore circular links
+    return true if actor == self
+    
+    @lock.receive
+    begin
+      # Ignore duplicate links
+      return true if @links.include? actor
+    
+      @links << actor
+    ensure
+      @lock << nil
+    end
+    true
+  end
+  
+  # Notify this actor that it's now unlinked from the given one
+  def notify_unlink(actor)
+    @lock.receive
+    begin
+      @links.delete(actor)
+    ensure
+      @lock << nil
+    end
+    true
+  end
+  
+  # Notify this actor that one of the Actors it's linked to has exited
+  def notify_exited(actor, reason)
+    event = [:exit, actor, reason]
+
+    if @trap_exit
+      send event
+    elsif ex
+      # Need to raise the error in the context of the actor thread itself,
+      # or else kill the actor thread and notify its linked actors.
+      #raise ex
+    end
+  end
+
+  # Notify all the linked actors that this actor has exited with an
+  # error
+  def handle_error(reason)
+    links = nil
+    @lock.receive
+    begin
+      links, @links = @links, []
+    ensure
+      @lock << nil
+    end
+    links.each do |actor|
+      begin
+        actor.notify_exited(self, reason)
+      rescue Exception
+      end
+    end
+  end
+  
+  # Actors trapping exit do not die when an error occurs in an Actor they
+  # are linked to.  Instead the exit message is sent to their regular
+  # mailbox in the form [:exit, actor, reason].  This allows certain
+  # Actors to supervise sets of others and restart them in the event
+  # of an error.
+  
+  #NOTE: For now we only support trap_exit mode so it is always true
+  def trap_exit=(value)
+    #@trap_exit = !!value
+  end
+  
+  # Is the Actor trapping exit?
+  def trap_exit?
+    @trap_exit
+  end
 end

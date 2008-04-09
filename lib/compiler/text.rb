@@ -1,3 +1,5 @@
+require 'compiler/compiler'
+
 class Compiler
   class TextGenerator
     
@@ -105,7 +107,7 @@ class Compiler
     end
     
     def push_literal(lit)
-      if lit.kind_of? Compiler::MethodDescription
+      if lit.kind_of? MethodDescription
         @text << "push_literal #<Method #{@@method_id}>\n"
         
         @other_methods[@@method_id] = lit

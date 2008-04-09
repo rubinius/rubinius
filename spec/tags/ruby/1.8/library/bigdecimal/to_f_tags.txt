@@ -1,0 +1,2 @@
+fails:BigDecimal#to_f returns number of type float
+fails:BigDecimal#to_f Floating point rounding occurs

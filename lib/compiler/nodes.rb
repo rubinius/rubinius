@@ -129,7 +129,7 @@ class Node
     attr_accessor :visibility
 
     def create_scope
-      Compiler::LocalScope.new(self)
+      LocalScope.new(self)
     end
 
     attr_accessor :use_eval
@@ -745,7 +745,7 @@ class Node
       if cond.is? ArrayLiteral
         cond.body.each do |c|
           # Inner when means splat.
-          if c.is? Compiler::Node::When
+          if c.is? Node::When
             if c.splat
               @splat = c.splat
             else
@@ -1249,10 +1249,10 @@ class Node
       if slot
         return slot
       elsif !@namespace
-        if tbl = Compiler::Bootstrap::HINTS[@name]
+        if tbl = Bootstrap::HINTS[@name]
           return tbl[name]
         elsif @superclass_name
-          if tbl = Compiler::Bootstrap::HINTS[@superclass_name]
+          if tbl = Bootstrap::HINTS[@superclass_name]
             return tbl[name]
           end
         end
