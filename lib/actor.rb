@@ -73,9 +73,17 @@ class Actor
 
     # Spawn an Actor and immediately link it to the current one
     def spawn_link(*args, &block)
-      actor = spawn(*args, &block)
-      Actor.current.link actor
-      actor
+      current = Actor.current
+      link_complete = Channel.new
+      spawn do
+        begin
+          Actor.link(current)
+        ensure
+          link_complete << Actor.current
+        end
+        block.call *args
+      end
+      link_complete.receive
     end
     
     # Link the current Actor to another one
