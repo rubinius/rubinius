@@ -34,3 +34,8 @@ describe "IO::readlines" do
                      "es.\nIst hier"," Linie vier",".\nEst\303\241 aqui a linha cinco.\nHer","e is line six.\n"]
   end
 end
+
+describe "IO.readlines" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

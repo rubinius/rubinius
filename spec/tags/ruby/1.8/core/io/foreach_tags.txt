@@ -1,1 +1,2 @@
 fails:IO::foreach updates $. with each yield
+incomplete:IO.foreach needs to be reviewed for spec completeness

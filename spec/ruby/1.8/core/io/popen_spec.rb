@@ -8,3 +8,8 @@ describe "IO#popen" do
     @io.closed?.should == true
   end
 end
+
+describe "IO.popen" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

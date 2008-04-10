@@ -52,3 +52,8 @@ describe IO, "#print" do
     lambda { IOSpecs.closed_file.print("stuff") }.should raise_error(IOError)
   end
 end
+
+describe "IO#print" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

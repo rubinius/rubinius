@@ -59,3 +59,8 @@ describe "IO.new" do
     lambda { IO.new(@file.fileno) }.should_not raise_error()
   end
 end
+
+describe "IO#initialize" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

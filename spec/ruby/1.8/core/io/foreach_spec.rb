@@ -109,3 +109,8 @@ describe "IO::foreach" do
     lines.should == @content_with_r
   end
 end
+
+describe "IO.foreach" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end
