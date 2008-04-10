@@ -1,5 +1,5 @@
-require 'matrix'
 require File.dirname(__FILE__) + '/../../spec_helper'
+require 'matrix'
 
 describe "Matrix#column" do
   before :all do

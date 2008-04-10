@@ -1,0 +1,1 @@
+incomplete:Matrix#trace needs to be reviewed for spec completeness
