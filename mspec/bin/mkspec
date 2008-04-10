@@ -92,7 +92,7 @@ class MkSpec
   def write_spec(file, meth, exists)
     if exists
       out = `mspec/bin/mspec-run --dry-run -fs -e '#{meth}' #{file}`
-      return if out =~ /#{meth}/
+      return if out =~ /#{Regexp.escape meth}/
     end
 
     File.open file, 'a' do |f|

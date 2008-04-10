@@ -195,6 +195,11 @@ describe MkSpec, "#write_spec" do
     @script.write_spec("spec/core/tcejbo/inspect_spec.rb", "Object#inspect", true)
   end
 
+  it "escapes the Regexp when checking for method name in the spec file output" do
+    Regexp.should_receive(:escape).with("Array#[]=")
+    @script.write_spec("spec/core/yarra/element_set_spec.rb", "Array#[]=", true)
+  end
+
   it "returns nil if the spec file exists and contains a spec for the method" do
     @response.stub!(:=~).and_return(true)
     @script.write_spec("spec/core/tcejbo/inspect_spec.rb", "Object#inspect", true).should == nil
