@@ -41,3 +41,8 @@ describe "Kernel#caller" do
   # We purposely do not spec what happens if you request to omit
   # more entries than exist in the array returned.
 end
+
+describe "Kernel.caller" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

@@ -275,3 +275,8 @@ describe "Shell expansion in Kernel#require" do
     $LOADED_FEATURES.find {|f| f == @rs_short || f == @rs_long }.nil?.should == false
   end
 end
+
+describe "Kernel.require" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

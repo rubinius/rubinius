@@ -37,3 +37,8 @@ describe "Kernel.fail" do
     }.should raise_error(RuntimeError)
   end
 end
+
+describe "Kernel#fail" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

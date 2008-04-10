@@ -1,0 +1,1 @@
+incomplete:Kernel.throw needs to be reviewed for spec completeness

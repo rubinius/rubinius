@@ -34,3 +34,8 @@ describe "Kernel.rand" do
     end
   end
 end
+
+describe "Kernel#rand" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

@@ -6,3 +6,8 @@ describe "Kernel#iterator?" do
     Kernel.private_instance_methods.should include("iterator?")
   end
 end
+
+describe "Kernel.iterator?" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

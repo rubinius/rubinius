@@ -12,3 +12,13 @@ describe "Kernel#gsub!" do
     Kernel.private_instance_methods.should include("gsub!")
   end
 end
+
+describe "Kernel.gsub" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end
+
+describe "Kernel.gsub!" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

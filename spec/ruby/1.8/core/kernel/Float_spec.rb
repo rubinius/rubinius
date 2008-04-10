@@ -38,3 +38,8 @@ describe "Kernel.Float" do
     lambda { Kernel.Float(obj) }.should raise_error(TypeError)
   end
 end
+
+describe "Kernel#Float" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

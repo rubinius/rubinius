@@ -12,3 +12,13 @@ describe "Kernel#chomp!" do
     Kernel.private_instance_methods.should include("chomp!")
   end
 end
+
+describe "Kernel.chomp" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end
+
+describe "Kernel.chomp!" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

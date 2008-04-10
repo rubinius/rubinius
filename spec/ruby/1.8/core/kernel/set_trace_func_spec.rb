@@ -6,3 +6,8 @@ describe "Kernel#set_trace_func" do
     Kernel.private_instance_methods.should include("set_trace_func")
   end
 end
+
+describe "Kernel.set_trace_func" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

@@ -37,3 +37,8 @@ describe "Kernel#`" do
     $?.success?.should == false
   end
 end
+
+describe "Kernel.`" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

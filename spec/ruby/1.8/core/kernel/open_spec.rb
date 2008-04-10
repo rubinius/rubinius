@@ -45,3 +45,8 @@ describe "Kernel#open" do
     lambda { open(mock('x')) }.should raise_error(TypeError)
   end
 end
+
+describe "Kernel.open" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

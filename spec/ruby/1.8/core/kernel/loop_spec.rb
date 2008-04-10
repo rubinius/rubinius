@@ -32,3 +32,8 @@ describe "Kernel.loop" do
     lambda { loop }.should raise_error(LocalJumpError)
   end
 end
+
+describe "Kernel#loop" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

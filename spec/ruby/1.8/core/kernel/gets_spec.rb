@@ -6,3 +6,8 @@ describe "Kernel#gets" do
     Kernel.private_instance_methods.should include("gets")
   end
 end
+
+describe "Kernel.gets" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

@@ -6,3 +6,8 @@ describe "Kernel#raise" do
     Kernel.private_instance_methods.should include("raise")
   end
 end
+
+describe "Kernel.raise" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

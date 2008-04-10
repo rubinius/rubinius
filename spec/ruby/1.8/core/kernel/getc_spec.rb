@@ -6,3 +6,8 @@ describe "Kernel#getc" do
     Kernel.private_instance_methods.should include("getc")
   end
 end
+
+describe "Kernel.getc" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

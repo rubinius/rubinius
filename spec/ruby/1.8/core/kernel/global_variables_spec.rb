@@ -15,3 +15,8 @@ describe "Kernel.global_variables" do
     global_variables.should include("$foolish_global_var")
   end
 end
+
+describe "Kernel#global_variables" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

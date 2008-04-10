@@ -13,3 +13,13 @@ describe "Kernel#exit!" do
   end
 end
 
+
+describe "Kernel.exit" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end
+
+describe "Kernel.exit!" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

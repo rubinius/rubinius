@@ -36,3 +36,8 @@ describe "Kernel#sleep" do
     t.value.should == 5
   end
 end
+
+describe "Kernel.sleep" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

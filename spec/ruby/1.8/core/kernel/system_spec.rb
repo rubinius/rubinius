@@ -37,3 +37,8 @@ describe "Kernel#system" do
     Kernel.private_instance_methods.should include("system")
   end
 end
+
+describe "Kernel.system" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

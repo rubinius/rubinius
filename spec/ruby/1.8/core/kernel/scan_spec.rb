@@ -6,3 +6,8 @@ describe "Kernel#scan" do
     Kernel.private_instance_methods.should include("scan")
   end
 end
+
+describe "Kernel.scan" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

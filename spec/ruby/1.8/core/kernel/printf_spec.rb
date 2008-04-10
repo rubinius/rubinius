@@ -6,3 +6,8 @@ describe "Kernel#printf" do
     Kernel.private_instance_methods.should include("printf")
   end
 end
+
+describe "Kernel.printf" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

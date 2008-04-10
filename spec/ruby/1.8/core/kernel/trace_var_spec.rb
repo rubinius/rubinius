@@ -6,3 +6,8 @@ describe "Kernel#trace_var" do
     Kernel.private_instance_methods.should include("trace_var")
   end
 end
+
+describe "Kernel.trace_var" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

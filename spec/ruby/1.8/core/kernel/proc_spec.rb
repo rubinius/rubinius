@@ -9,3 +9,8 @@ describe "Kernel.proc" do
   
   it_behaves_like(:kernel_lambda, :proc)
 end
+
+describe "Kernel#proc" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

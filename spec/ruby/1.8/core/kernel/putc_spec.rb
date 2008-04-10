@@ -6,3 +6,8 @@ describe "Kernel#putc" do
     Kernel.private_instance_methods.should include("putc")
   end
 end
+
+describe "Kernel.putc" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

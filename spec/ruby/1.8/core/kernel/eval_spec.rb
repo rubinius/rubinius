@@ -123,3 +123,8 @@ describe "Kernel#eval" do
     }
   end
 end
+
+describe "Kernel.eval" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

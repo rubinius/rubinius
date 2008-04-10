@@ -32,3 +32,8 @@ describe "Kernel#catch" do
     Kernel.private_instance_methods.should include("catch")
   end
 end
+
+describe "Kernel.catch" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

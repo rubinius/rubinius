@@ -6,3 +6,8 @@ describe "Kernel#print" do
     Kernel.private_instance_methods.should include("print")
   end
 end
+
+describe "Kernel.print" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

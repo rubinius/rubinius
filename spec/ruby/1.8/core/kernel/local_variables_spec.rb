@@ -23,3 +23,8 @@ describe "Kernel.local_variables" do
     res.should include("a", "b")
   end
 end
+
+describe "Kernel#local_variables" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

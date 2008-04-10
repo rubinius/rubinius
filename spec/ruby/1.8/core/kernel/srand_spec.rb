@@ -18,3 +18,8 @@ describe "Kernel.srand" do
     rand.should == x
   end
 end
+
+describe "Kernel#srand" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

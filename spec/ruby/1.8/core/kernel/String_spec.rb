@@ -34,3 +34,8 @@ describe "Kernel.String" do
     lambda { Kernel.String(obj) }.should raise_error(TypeError)
   end
 end
+
+describe "Kernel#String" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

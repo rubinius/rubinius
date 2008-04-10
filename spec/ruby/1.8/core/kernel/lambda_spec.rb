@@ -9,3 +9,8 @@ describe "Kernel.lambda" do
   
   it_behaves_like(:kernel_lambda, :lambda)
 end
+
+describe "Kernel#lambda" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

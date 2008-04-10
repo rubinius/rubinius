@@ -16,3 +16,8 @@ describe "Kernel.at_exit" do
     #result.should == '6754'
   end
 end
+
+describe "Kernel#at_exit" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

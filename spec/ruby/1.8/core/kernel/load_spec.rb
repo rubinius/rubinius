@@ -227,3 +227,8 @@ describe "Shell expansion in Kernel#load" do
     $load_spec_1.nil?.should == false
   end
 end
+
+describe "Kernel.load" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

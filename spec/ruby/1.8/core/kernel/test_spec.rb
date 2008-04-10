@@ -23,3 +23,8 @@ describe "Kernel#test" do
     Kernel.test(?d, @dir).should == true
   end
 end
+
+describe "Kernel.test" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

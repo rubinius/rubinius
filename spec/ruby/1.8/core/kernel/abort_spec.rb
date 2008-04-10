@@ -6,3 +6,8 @@ describe "Kernel#abort" do
     Kernel.private_instance_methods.should include("abort")
   end
 end
+
+describe "Kernel.abort" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

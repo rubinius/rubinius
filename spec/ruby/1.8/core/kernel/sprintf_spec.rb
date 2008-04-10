@@ -14,3 +14,8 @@ describe "Kernel#sprintf" do
     sprintf("%d%d%s%s", nil, 4, 'a', 'b').should == '04ab'
   end
 end
+
+describe "Kernel.sprintf" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

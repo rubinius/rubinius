@@ -46,3 +46,8 @@ describe "Kernel.Integer" do
     lambda { Integer(obj) }.should raise_error(TypeError)
   end
 end
+
+describe "Kernel#Integer" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

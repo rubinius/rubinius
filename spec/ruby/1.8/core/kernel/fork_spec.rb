@@ -6,3 +6,8 @@ describe "Kernel#fork" do
     Kernel.private_instance_methods.should include("fork")
   end
 end
+
+describe "Kernel.fork" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

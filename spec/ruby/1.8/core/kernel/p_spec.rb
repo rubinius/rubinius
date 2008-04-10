@@ -32,3 +32,8 @@ describe "Kernel#p" do
   end 
 =end
 end
+
+describe "Kernel.p" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

@@ -6,3 +6,8 @@ describe "Kernel#split" do
     Kernel.private_instance_methods.should include("split")
   end
 end
+
+describe "Kernel.split" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

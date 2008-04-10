@@ -13,3 +13,8 @@ describe "Kernel#block_given?" do
     KernelSpecs::BlockGiven::accept_block_as_argument.should_not == true
   end
 end
+
+describe "Kernel.block_given?" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

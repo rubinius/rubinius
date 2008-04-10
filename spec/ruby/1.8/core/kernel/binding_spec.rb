@@ -31,3 +31,8 @@ describe "Kernel#binding" do
     lambda { eval("a_fake_variable", @b1) }.should raise_error(NameError)
   end
 end
+
+describe "Kernel.binding" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

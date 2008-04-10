@@ -6,3 +6,8 @@ describe "Kernel#throw" do
     Kernel.private_instance_methods.should include("throw")
   end
 end
+
+describe "Kernel.throw" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

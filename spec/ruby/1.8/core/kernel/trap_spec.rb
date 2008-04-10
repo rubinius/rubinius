@@ -6,3 +6,8 @@ describe "Kernel#trap" do
     Kernel.private_instance_methods.should include("trap")
   end
 end
+
+describe "Kernel.trap" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

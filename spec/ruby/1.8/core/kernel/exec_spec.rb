@@ -10,3 +10,8 @@ describe "Kernel#exec" do
     lambda { exec "" }.should raise_error(SystemCallError)
   end  
 end
+
+describe "Kernel.exec" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

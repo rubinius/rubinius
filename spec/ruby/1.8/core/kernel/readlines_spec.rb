@@ -6,3 +6,8 @@ describe "Kernel#readlines" do
     Kernel.private_instance_methods.should include("readlines")
   end
 end
+
+describe "Kernel.readlines" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

@@ -6,3 +6,8 @@ describe "Kernel#syscall" do
     Kernel.private_instance_methods.should include("syscall")
   end
 end
+
+describe "Kernel.syscall" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

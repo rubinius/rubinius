@@ -62,3 +62,8 @@ describe "Kernel#callcc" do
 
   end
 end
+
+describe "Kernel.callcc" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

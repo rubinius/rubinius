@@ -6,3 +6,8 @@ describe "Kernel#select" do
     Kernel.private_instance_methods.should include("select")
   end
 end
+
+describe "Kernel.select" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

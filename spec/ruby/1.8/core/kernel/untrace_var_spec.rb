@@ -6,3 +6,8 @@ describe "Kernel#untrace_var" do
     Kernel.private_instance_methods.should include("untrace_var")
   end
 end
+
+describe "Kernel.untrace_var" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

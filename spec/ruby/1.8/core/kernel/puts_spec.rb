@@ -79,3 +79,8 @@ describe "Kernel#puts" do
     $/ = "\n"
   end
 end
+
+describe "Kernel.puts" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

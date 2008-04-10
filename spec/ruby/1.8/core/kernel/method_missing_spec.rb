@@ -54,3 +54,8 @@ describe "When Kernel#method_missing is undefined" do
     lambda { KernelSpecs::NoMethodMissingC.new.nonexistent }.should raise_error(NoMethodError)
   end
 end
+
+describe "Kernel.method_missing" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end
