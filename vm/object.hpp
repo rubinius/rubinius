@@ -226,6 +226,9 @@ to be a simple test for that bit pattern.
      on 64 bit platform,
      4 + 4 + 8 = 16 bytes.
      */
+
+  class Class;
+
   class Object {
   public:
     union {
@@ -253,7 +256,7 @@ to be a simple test for that bit pattern.
       uint32_t all_flags;
     };
     uint32_t field_count;
-    OBJECT klass;
+    Class* klass;
 
     union {
       OBJECT field[];
@@ -341,11 +344,11 @@ to be a simple test for that bit pattern.
 
     void set_forward(OBJECT fwd) {
       Forwarded = 1;
-      klass = fwd;
+      klass = (Class*)fwd;
     }
 
     OBJECT forward() {
-      return klass;
+      return (OBJECT)klass;
     }
 
     bool marked_p() {
@@ -385,7 +388,7 @@ to be a simple test for that bit pattern.
     }
 
     bool kind_of_p(OBJECT cls);
-    OBJECT class_object();
+    Class* class_object();
     OBJECT dup(STATE);
     hashval hash(STATE);
     uintptr_t id(STATE);
@@ -393,6 +396,7 @@ to be a simple test for that bit pattern.
 
     OBJECT get_ivar(STATE, OBJECT sym);
     OBJECT set_ivar(STATE, OBJECT sym, OBJECT val);
+    void inspect(STATE);
   };
 
   class VMException { };

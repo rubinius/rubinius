@@ -4,18 +4,12 @@
 
 namespace rubinius {
   VM::VM(size_t bytes) {
-    for(size_t i = 0; i < LastObjectType; i++) {
-      type_info[i] = NULL;
-    }
     om = new ObjectMemory(bytes);
     bootstrap_ontology();
   }
 
   VM::~VM() {
     delete om;
-    for(size_t i = 0; i < LastObjectType; i++) {
-      if(type_info[i]) delete type_info[i];
-    }
   }
 
   OBJECT VM::new_object(Class *cls) {
@@ -33,22 +27,17 @@ namespace rubinius {
     return om->new_object_bytes(cls, fields);
   }
 
-  TypeInfo* VM::get_type_info(Class* cls) {
-    TypeInfo *ti = new TypeInfo(cls);
-    type_info[cls->object_type->n2i()] = ti;
-    return ti;
-  }
-
-  TypeInfo::TypeInfo(Class *cls) {
-    type = (object_type)cls->object_type->n2i();
-    cleanup = NULL;
-  }
-  
   void type_assert(OBJECT obj, object_type type, char* reason) {
     if(obj->reference_p() && obj->obj_type != type) {
       throw new TypeError(type, obj, reason);
     } else if(type == FixnumType && !obj->fixnum_p()) {
       throw new TypeError(type, obj, reason);
     }
+  }
+
+  TypeInfo* VM::get_type_info(Class* cls) {
+    TypeInfo* ti = om->get_type_info(cls);
+    ti->state = this;
+    return ti;
   }
 };

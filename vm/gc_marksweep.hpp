@@ -2,7 +2,7 @@
 #define RBX_MARKSWEEP_H
 
 #include "object.hpp"
-#include "gc.h"
+#include "gc.hpp"
 
 #include <list>
 
@@ -72,6 +72,7 @@ namespace rubinius {
 
     MarkSweepGC(ObjectMemory *om);
     virtual ~MarkSweepGC();
+    void   free_objects();
     OBJECT allocate(size_t fields, bool *collect_now);
     OBJECT copy_object(OBJECT obj);
     Entry *find_entry(OBJECT obj);

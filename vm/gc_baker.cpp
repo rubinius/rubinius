@@ -99,7 +99,14 @@ namespace rubinius {
       }
     }
 
+    /* We've seeded next with all the roots, we now just move down next
+     * against the scan pointer until there are no more objects. */
     copy_unscanned();
+
+    /* Another than is going to be found is found now, so we go back and
+     * look at everything in current and call delete_object() on anything
+     * thats not been forwarded. */
+    find_lost_souls();
 
     /* Swap the 2 halves */
     BakerGC::Heap *x = next;
@@ -122,6 +129,28 @@ namespace rubinius {
     obj = next->first_object();
     while(obj <= next->current) {
       obj->clear_mark();
+      obj = next_object(obj);
+    }
+  }
+
+  void BakerGC::free_objects() {
+    OBJECT obj = current->first_object();
+    while(obj <= current->current) {
+      delete_object(obj);
+      obj = next_object(obj);
+    }
+
+    obj = next->first_object();
+    while(obj <= next->current) {
+      delete_object(obj);
+      obj = next_object(obj);
+    }
+  }
+
+  void BakerGC::find_lost_souls() {
+    OBJECT obj = current->first_object();
+    while(obj <= current->current) {
+      if(!obj->forwarded_p()) delete_object(obj);
       obj = next_object(obj);
     }
   }

@@ -1,7 +1,7 @@
 #ifndef RBX_GC_BAKER_H
 #define RBX_GC_BAKER_H
 
-#include "gc.h"
+#include "gc.hpp"
 #include <iostream>
 
 namespace rubinius {
@@ -110,11 +110,13 @@ namespace rubinius {
     /* Prototypes */
     BakerGC(ObjectMemory *om, size_t size);
     virtual ~BakerGC();
+    void free_objects();
     virtual OBJECT saw_object(OBJECT obj);
     void    copy_unscanned();
     void    collect(ObjectArray &roots);
     void    clear_marks();
     OBJECT  next_object(OBJECT obj);
+    void    find_lost_souls();
   };
 };
 

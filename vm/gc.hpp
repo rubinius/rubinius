@@ -19,6 +19,7 @@ namespace rubinius {
     virtual ~GarbageCollector()  { }
     GarbageCollector(ObjectMemory *om);
     void scan_object(OBJECT obj);
+    void delete_object(OBJECT obj);
   };
 }
 

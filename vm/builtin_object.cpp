@@ -42,10 +42,10 @@ namespace rubinius {
     }
   }
 
-  OBJECT Object::class_object() {
-    OBJECT cls = klass;
+  Class* Object::class_object() {
+    Class* cls = klass;
     while(cls->reference_p() && (MetaClass::is_a(cls) || !Class::is_a(cls))) {
-      cls = ((Class*)cls)->superclass;
+      cls = (Class*)cls->superclass;
     }
 
     return cls;
@@ -238,5 +238,10 @@ namespace rubinius {
     }
     tbl->store(state, sym, val);
     return val;
+  }
+
+  void Object::inspect(STATE) {
+    String* name = class_object()->name->to_str(state);
+    std::cout << "#<" << (char*)*name << ":" << (void*)this << ">\n";
   }
 }

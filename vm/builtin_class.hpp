@@ -8,10 +8,12 @@ namespace rubinius {
   class Module : public BuiltinType {
     public:
     const static size_t fields = 7;
+    const static object_type type = ClassType;
+
     OBJECT instance_variables;
     LookupTable* method_table;
     OBJECT method_cache;
-    OBJECT name;
+    SYMBOL name;
     LookupTable* constants;
     OBJECT encloser;
     OBJECT superclass;

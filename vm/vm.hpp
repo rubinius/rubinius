@@ -7,21 +7,13 @@
 namespace rubinius {
 
   class ObjectMemory;
-
-  class TypeInfo {
-    public:
-    object_type type;
-    cleanup_function cleanup;
-
-    TypeInfo(Class* cls);
-  };
+  class TypeInfo;
 
   class VM {
     public:
     /* Data members */
     Globals globals;
     ObjectMemory *om;
-    TypeInfo* type_info[(int)LastObjectType];
 
     static const size_t default_bytes = 10240;
 

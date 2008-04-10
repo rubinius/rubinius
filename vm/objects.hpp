@@ -36,7 +36,7 @@ namespace rubinius {
     static SymbolTable* create(STATE);
     OBJECT lookup(STATE, const char* str, size_t size = 0);
     OBJECT lookup(STATE, String* str);
-    OBJECT find_string(STATE, Symbol* sym);
+    String* find_string(STATE, Symbol* sym);
   };
 };
 
@@ -283,7 +283,7 @@ namespace rubinius {
       return DATA_APPLY_TAG(index, DATA_TAG_SYMBOL);
     }
 
-    OBJECT to_str(STATE);
+    String* to_str(STATE);
   };
 
   typedef Symbol* SYMBOL;

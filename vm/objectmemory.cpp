@@ -18,10 +18,22 @@ namespace rubinius {
     large_object_threshold = 2700;
     young.lifetime = 6;
     last_object_id = 0;
+
+    for(size_t i = 0; i < LastObjectType; i++) {
+      type_info[i] = NULL;
+    }
   }
 
   ObjectMemory::~ObjectMemory() {
+
+    young.free_objects();
+    mature.free_objects();
+
     delete remember_set;
+
+    for(size_t i = 0; i < LastObjectType; i++) {
+      if(type_info[i]) delete type_info[i];
+    }
   }
 
   void ObjectMemory::set_young_lifetime(size_t age) {
@@ -62,6 +74,27 @@ namespace rubinius {
     mature.collect(roots);
     young.clear_marks();
   }
+
+  TypeInfo* ObjectMemory::get_type_info(Class* cls) {
+    TypeInfo *ti = new TypeInfo(cls);
+    type_info[cls->object_type->n2i()] = ti;
+    return ti;
+  }
+
+  TypeInfo* ObjectMemory::find_type_info(OBJECT obj) {
+    return type_info[obj->obj_type];
+  }
+
+  TypeInfo::TypeInfo(Class *cls) {
+    type = (object_type)cls->object_type->n2i();
+    cleanup = NULL;
+    state = NULL;
+  }
+
+  void TypeInfo::delete_object(OBJECT obj) {
+    if(cleanup) cleanup(state, obj);
+  }
+
 };
 
 void* XMALLOC(size_t bytes) {

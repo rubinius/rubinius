@@ -1,4 +1,4 @@
-#include "gc.h"
+#include "gc.hpp"
 #include "gc_marksweep.hpp"
 #include "objectmemory.hpp"
 
@@ -25,8 +25,15 @@ namespace rubinius {
     std::list<Entry*>::iterator i;
 
     for(i = entries.begin(); i != entries.end(); i++) {
-      free((*i)->header);
       delete *i;
+    }
+  }
+
+  void MarkSweepGC::free_objects() {
+    std::list<Entry*>::iterator i;
+
+    for(i = entries.begin(); i != entries.end(); i++) {
+      free_object(*i);
     }
   }
 
@@ -61,6 +68,9 @@ namespace rubinius {
   }
 
   void MarkSweepGC::free_object(Entry *entry) {
+
+    delete_object(entry->header->to_object());
+
     allocated_objects--;
     allocated_bytes -= entry->bytes;
 

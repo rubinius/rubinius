@@ -63,11 +63,11 @@ namespace rubinius {
     return Symbol::from_index(state, idx->n2i());
   }
 
-  OBJECT SymbolTable::find_string(STATE, Symbol* sym) {
-    return symbols->at(sym->index());
+  String* SymbolTable::find_string(STATE, Symbol* sym) {
+    return as<String>(symbols->at(sym->index()));
   }
 
-  OBJECT Symbol::to_str(STATE) {
+  String* Symbol::to_str(STATE) {
     return state->globals.symbols->find_string(state, this);
   }
 }
