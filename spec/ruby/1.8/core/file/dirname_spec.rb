@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "File.dirname" do   
+describe "File.dirname" do
   it "dirname should return all the components of filename except the last one" do
     File.dirname('/home/jason').should == '/home'
     File.dirname('/home/jason/poot.txt').should == '/home/jason'

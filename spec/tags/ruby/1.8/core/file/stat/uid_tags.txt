@@ -1,0 +1,1 @@
+incomplete:File::Stat#uid needs to be reviewed for spec completeness

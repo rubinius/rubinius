@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "File::join" do
+describe "File.join" do
 
   it "does nothing to empty strings" do
     File.join("").should == ""
@@ -71,4 +71,3 @@ describe "File::join" do
   end
 
 end
-

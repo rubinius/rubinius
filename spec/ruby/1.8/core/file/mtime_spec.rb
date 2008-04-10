@@ -19,3 +19,8 @@ describe "File.mtime" do
     lambda { File.mtime('bogus') }.should raise_error(Errno::ENOENT)
   end
 end
+
+describe "File#mtime" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

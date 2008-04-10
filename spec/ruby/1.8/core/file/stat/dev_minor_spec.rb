@@ -5,3 +5,8 @@ describe "File::Stat.dev_minor" do
     File.stat('/dev/null').dev_minor.should be_kind_of(Integer)
   end
 end
+
+describe "File::Stat#dev_minor" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

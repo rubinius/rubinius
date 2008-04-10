@@ -49,4 +49,3 @@ end
 describe "File.symlink?" do
   it_behaves_like :file_symlink, :symlink?, File
 end
-

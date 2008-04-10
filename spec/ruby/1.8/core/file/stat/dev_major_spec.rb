@@ -5,3 +5,8 @@ describe "File::Stat.dev_major" do
     File.stat('/dev/null').dev_major.should be_kind_of(Integer)
   end
 end
+
+describe "File::Stat#dev_major" do
+  it "needs to be reviewed for spec completeness" do
+  end
+end

@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 as_superuser do
-  describe "File::chown" do
+  describe "File.chown" do
     before :each do
       @fname = '/tmp/file_chown_test'
       File.open(@fname, 'w') { }
