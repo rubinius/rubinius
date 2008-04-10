@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'vmactor'
 
-describe "VMActor#spawn_actor" do
+describe "VMActor::Container#spawn_actor" do
   before :each do
     @container = VMActor::Container.new "-rspec/library/fixtures/pingpong"
   end
@@ -29,4 +29,3 @@ describe "VMActor#spawn_actor" do
     end.should == :pong
   end
 end
-
