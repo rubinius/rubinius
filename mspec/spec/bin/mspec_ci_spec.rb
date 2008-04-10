@@ -99,14 +99,23 @@ describe MSpecCI, "#run" do
   end
 
   it "registers a tag filter for 'fails'" do
-    TagFilter.should_receive(:new).with(:exclude, 'fails').and_return(@filter)
-    @filter.should_receive(:register).twice
+    filter = mock("fails filter")
+    TagFilter.should_receive(:new).with(:exclude, 'fails').and_return(filter)
+    filter.should_receive(:register)
     @script.run
   end
 
   it "registers a tag filter for 'unstable'" do
-    TagFilter.should_receive(:new).with(:exclude, 'unstable').and_return(@filter)
-    @filter.should_receive(:register).twice
+    filter = mock("unstable filter")
+    TagFilter.should_receive(:new).with(:exclude, 'unstable').and_return(filter)
+    filter.should_receive(:register)
+    @script.run
+  end
+
+  it "registers a tag filter for 'incomplete'" do
+    filter = mock("incomplete filter")
+    TagFilter.should_receive(:new).with(:exclude, 'incomplete').and_return(filter)
+    filter.should_receive(:register)
     @script.run
   end
 

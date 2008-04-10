@@ -61,6 +61,7 @@ class MSpecCI < MSpecScript
     MSpec.register_files files
     TagFilter.new(:exclude, "fails").register
     TagFilter.new(:exclude, "unstable").register
+    TagFilter.new(:exclude, "incomplete").register
 
     MSpec.process
     exit MSpec.exit_code
