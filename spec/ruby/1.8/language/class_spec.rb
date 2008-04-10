@@ -24,6 +24,14 @@ describe "A class definition" do
     }.should raise_error(TypeError)
   end
 
+  # test case known to be detecting bugs (JRuby, MRI 1.9)
+  it "raises TypeError if the constant qualifying the class is nil" do
+    lambda {
+      class nil::Foo
+      end
+    }.should raise_error(TypeError)
+  end
+
   it "raises TypeError if any constant qualifying the class is not a Module" do
     lambda {
       class ClassSpecs::Number::MyClass
