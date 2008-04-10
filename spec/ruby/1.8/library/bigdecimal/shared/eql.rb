@@ -11,6 +11,8 @@ shared :bigdecimal_eql do |cmd|
       @b = BigDecimal("1.00000000000000000000000000000000000000000005")
       @bigint = BigDecimal("1000.0")
       @nan = BigDecimal("NaN")
+      @infinity = BigDecimal("Infinity")
+      @infinity_minus = BigDecimal("-Infinity")
     end
 
     it "test for equality" do
@@ -24,7 +26,34 @@ shared :bigdecimal_eql do |cmd|
     it "NaN is never equal to any number" do
       @nan.send(cmd, @nan).should_not == true
       @a.send(cmd, @nan).should_not == true
+      @nan.send(cmd, @a).should_not == true
+      @nan.send(cmd, @infinity).should_not == true
+      @nan.send(cmd, @infinity_minus).should_not == true
+      @infinity.send(cmd, @nan).should_not == true
+      @infinity_minus.send(cmd, @nan).should_not == true
     end
 
+    it "returns true for infinity values with the same sign" do
+      @infinity.send(cmd, @infinity).should == true
+      @infinity.send(cmd, BigDecimal("Infinity")).should == true
+      BigDecimal("Infinity").send(cmd, @infinity).should == true
+
+      @infinity_minus.send(cmd, @infinity_minus).should == true
+      @infinity_minus.send(cmd, BigDecimal("-Infinity")).should == true
+      BigDecimal("-Infinity").send(cmd, @infinity_minus).should == true
+    end
+
+    it "does not return true for infinity values with different signs" do
+      @infinity.send(cmd, @infinity_minus).should_not == true
+      @infinity_minus.send(cmd, @infinity).should_not == true
+    end
+
+    it "does not return true when ininite value compared to finite one" do
+      @infinity.send(cmd, @a).should_not == true
+      @infinity_minus.send(cmd, @a).should_not == true
+
+      @a.send(cmd, @infinity).should_not == true
+      @a.send(cmd, @infinity_minus).should_not == true
+    end
   end
 end

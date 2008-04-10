@@ -33,11 +33,31 @@ describe "BigDecimal#add" do
   it "returns Infinity or -Infinity if these are involved" do
     @zero.add(@infinity, 1).should == @infinity
     @frac_2.add(@infinity, 1).should == @infinity
-    @two.add(@infinity_minus,1).should == @infinity_minus
+    @one_minus.add(@infinity, 1).should == @infinity
+    @two.add(@infinity, 1).should == @infinity
+
+    @zero.add(@infinity_minus, 1).should == @infinity_minus
+    @frac_2.add(@infinity_minus, 1).should == @infinity_minus
+    @one_minus.add(@infinity_minus, 1).should == @infinity_minus
+    @two.add(@infinity_minus, 1).should == @infinity_minus
+
+    @infinity.add(@zero, 1).should == @infinity
+    @infinity.add(@frac_2, 1).should == @infinity
+    @infinity.add(@one_minus, 1).should == @infinity
+    @infinity.add(@two, 1).should == @infinity
+
+    @infinity_minus.add(@zero, 1).should == @infinity_minus
+    @infinity_minus.add(@frac_2, 1).should == @infinity_minus
+    @infinity_minus.add(@one_minus, 1).should == @infinity_minus
+    @infinity_minus.add(@two, 1).should == @infinity_minus
+
+    @infinity.add(@infinity, 10000) == @infinity
+    @infinity_minus.add(@infinity_minus, 10000) == @infinity_minus
   end
 
   it "returns NaN if Infinity + (- Infinity)" do
     @infinity.add(@infinity_minus, 10000).to_s.should == "NaN"
+    @infinity_minus.add(@infinity, 10000).to_s.should == "NaN"
     # to_s needed because BigDecimal("NaN") never equals its self.
   end
 
