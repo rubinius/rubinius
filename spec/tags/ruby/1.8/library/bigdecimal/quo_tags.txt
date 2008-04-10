@@ -1,0 +1,5 @@
+fails:BigDecimal#quo returns a / b
+fails:BigDecimal#quo returns NaN if NaN is involved
+fails:BigDecimal#quo returns 0 if divided by Infinity
+fails:BigDecimal#quo returns (+|-) Infinity if (+|-) Infinity divided by one
+fails:BigDecimal#quo returns NaN if Infinity / ((+|-) Infinity)

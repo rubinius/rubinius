@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'bigdecimal'
 
-describe "BigDecimal#mult" do
+describe "BigDecimal#*" do
   before(:each) do
     @e3_minus = BigDecimal("3E-20001")
     @e3_plus = BigDecimal("3E20001")

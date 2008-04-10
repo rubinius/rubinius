@@ -1,1 +1,1 @@
-fails:BigDecimal#mult multiply self with other
+fails:BigDecimal#* multiply self with other

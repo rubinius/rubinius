@@ -1,0 +1,7 @@
+fails:BigDecimal#div returns a / b with optional precision
+fails:BigDecimal#div returns NaN if NaN is involved
+fails:BigDecimal#div returns NaN if divided by Infinity and no precision given
+fails:BigDecimal#div returns 0 if divided by Infinity with given precision
+fails:BigDecimal#div returns NaN if (+|-) Infinity divided by 1 and no precision given
+fails:BigDecimal#div returns (+|-)Infinity if (+|-)Infinity by 1 and precision given
+fails:BigDecimal#div returns NaN if Infinity / ((+|-) Infinity)

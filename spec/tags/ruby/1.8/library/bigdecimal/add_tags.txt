@@ -1,0 +1,4 @@
+fails:BigDecimal#add returns a + b with given precision
+fails:BigDecimal#add returns NaN if NaN is involved
+fails:BigDecimal#add returns Infinity or -Infinity if these are involved
+fails:BigDecimal#add returns NaN if Infinity + (- Infinity)
