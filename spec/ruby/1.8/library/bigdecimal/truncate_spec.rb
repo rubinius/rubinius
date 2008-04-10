@@ -6,6 +6,9 @@ describe "BigDecimal#truncate" do
   before(:each) do
       @arr = ['3.14159', '8.7', "0.314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593014782083152134043E1"]
       @big = BigDecimal("123456.789")
+      @nan = BigDecimal('NaN')
+      @infinity = BigDecimal('Infinity')
+      @infinity_negative = BigDecimal('-Infinity')
   end
 
   it "returns value of type Bigdecimal." do
@@ -18,10 +21,24 @@ describe "BigDecimal#truncate" do
     BigDecimal(@arr[0]).truncate == 3
     BigDecimal(@arr[1]).truncate == 8
     BigDecimal(@arr[2]).truncate == 3
+    BigDecimal('0').truncate == 0
+    BigDecimal('0.1').truncate == 0
+    BigDecimal('-0.1').truncate == 0
+    BigDecimal('1.5').truncate == -1
+    BigDecimal('-1.5').truncate == -1
+    BigDecimal('1E10').truncate == BigDecimal('1E10')
+    BigDecimal('-1E10').truncate == BigDecimal('-1E10')
+    BigDecimal('1.8888E10').truncate == BigDecimal('1E10')
   end
 
   it "returns value of given precision otherwise" do
+    BigDecimal('-1.55').truncate(1) == -1.5
+    BigDecimal('1.55').truncate == 1.5
     BigDecimal(@arr[0]).truncate(2).should == BigDecimal("3.14")
+    BigDecimal('123.456').truncate(2).should == BigDecimal("123.45")
+    BigDecimal('123.456789').truncate(4).should == BigDecimal("123.4567")
+    BigDecimal('0.456789').truncate(10).should == BigDecimal("0.456789")
+
     BigDecimal(@arr[1]).truncate(1).should == BigDecimal("8.7")
     BigDecimal(@arr[2]).truncate(100).should == BigDecimal(\
       "3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679")
@@ -33,6 +50,22 @@ describe "BigDecimal#truncate" do
     BigDecimal(@arr[2]).truncate(-1).should == 0
   end
 
+  it "returns NaN if self is NaN" do
+    @nan.truncate(-1).nan?.should == true
+    @nan.truncate(+1).nan?.should == true
+    @nan.truncate(0).nan?.should == true
+    @nan.truncate.nan?.should == true
+  end
+
+  it "returns Infinity if self is infinite" do
+    @infinity.truncate(-1).should == @infinity
+    @infinity.truncate(+1).should == @infinity
+    @infinity.truncate(0).should == @infinity
+    @infinity.truncate.should == @infinity
+
+    @infinity_negative.truncate(-1).should == @infinity_negative
+    @infinity_negative.truncate(+1).should == @infinity_negative
+    @infinity_negative.truncate(0).should == @infinity_negative
+    @infinity_negative.truncate.should == @infinity_negative
+  end
 end
-
-
