@@ -1,0 +1,2 @@
+incomplete:Mailbox::Filter#timeout needs to be reviewed for spec completeness
+incomplete:Mailbox::Filter#timeout? needs to be reviewed for spec completeness
