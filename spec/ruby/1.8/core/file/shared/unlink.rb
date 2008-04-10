@@ -36,7 +36,7 @@ shared :file_unlink do |cmd|
     it "raises an TypeError if not passed a String type" do
       lambda { File.send(cmd, 1) }.should raise_error(TypeError)
     end
-    
+
     it "raises an Errno::ENOENT when the given file doesn't exist" do
       lambda { File.send(cmd, 'bogus') }.should raise_error(Errno::ENOENT)
     end

@@ -5,17 +5,17 @@ describe "File.atime" do
     @file = File.join('test.txt')
     File.open(@file, "w") {} # touch
   end
-  
-  after :each do 
-    File.delete(@file) if File.exist?(@file) 
+
+  after :each do
+    File.delete(@file) if File.exist?(@file)
   end
 
-  it "returns the last access time for the named file as a Time object" do      
+  it "returns the last access time for the named file as a Time object" do
     File.atime(@file)
     File.atime(@file).should be_kind_of(Time)
   end
 
-  it "raises an Errno::ENOENT exception if the file is not found" do 
+  it "raises an Errno::ENOENT exception if the file is not found" do
     lambda { File.atime('a_fake_file') }.should raise_error(Errno::ENOENT)
   end
 end
@@ -31,7 +31,7 @@ describe "File#atime" do
   end
 
   it "returns the last access time to self" do
-    @file.atime  
+    @file.atime
     @file.atime.should be_kind_of(Time)
   end
 end

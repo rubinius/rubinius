@@ -9,15 +9,15 @@ describe "File.ctime" do
     @file = nil
   end
 
-  it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do 
-    File.ctime(@file)  
+  it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do
+    File.ctime(@file)
     File.ctime(@file).class.should == Time
   end
 
-  it "raises an Errno::ENOENT exception if the file is not found" do    
+  it "raises an Errno::ENOENT exception if the file is not found" do
     lambda { File.ctime('bogus') }.should raise_error(Errno::ENOENT)
   end
-end 
+end
 
 describe "File#ctime" do
   before :each do
@@ -29,8 +29,8 @@ describe "File#ctime" do
     @file = nil
   end
 
-  it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do 
+  it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do
     @file.ctime
     @file.ctime.class.should == Time
-  end 
-end 
+  end
+end

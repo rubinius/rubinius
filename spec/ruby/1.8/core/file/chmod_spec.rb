@@ -5,12 +5,12 @@ describe "File#chmod" do
     @filename = File.dirname(__FILE__) + '/fixtures/i_exist'
     @file = File.open(@filename, 'w')
   end
-    
+
   after :each do
     @file.close
     File.delete(@filename) if File.exist?(@filename)
   end
-  
+
   it "returns 0 if successful" do
     @file.chmod(0755).should == 0
   end
@@ -72,10 +72,10 @@ describe "File.chmod" do
     File.open(@file, 'w') {}
     @count = File.chmod(0755, @file)
   end
-  
+
   after :each do
     File.delete(@file) if File.exist?(@file)
-  end  
+  end
 
   it "returns the number of files modified" do
     @count.should == 1

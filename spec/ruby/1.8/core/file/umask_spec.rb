@@ -15,7 +15,7 @@ describe "File.umask" do
 
   it "return a Fixnum" do
     File.umask.class.should == Fixnum
-  end    
+  end
 
   it "umask should return the current umask value for the process" do
     File.umask(022)
@@ -40,22 +40,22 @@ describe "File.umask" do
   it "raises ArgumentError when more than one argument is provided" do
     lambda { File.umask(022, 022) }.should raise_error(ArgumentError)
   end
-  
+
   platform_is :mswin do
-    it "Returns the current umask value for this process. (basic)" do   
+    it "Returns the current umask value for this process. (basic)" do
       File.umask.should == 0
     end
 
     # The value used here is the value of _S_IWRITE.
-    it "Returns the current umask value for this process." do 
-      File.umask(0000200) 
+    it "Returns the current umask value for this process." do
+      File.umask(0000200)
       File.umask.should == 0000200
     end
 
     # FIXME: wtf?
-    it "raises an exception if the arguments are wrong type or are the incorect number of arguments " do  
-      File.umask(0006)  
+    it "raises an exception if the arguments are wrong type or are the incorect number of arguments " do
+      File.umask(0006)
       File.umask.should == 0
     end
   end
-end 
+end

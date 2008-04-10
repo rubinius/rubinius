@@ -1,14 +1,14 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "File#flock" do 
+describe "File#flock" do
   before :each do
     system "echo 'rubinius' > flock_test"
   end
-  
+
   after :each do
     File.delete('flock_test') if File.exist?('flock_test')
   end
-  
+
   it "should lock a file" do
     f = File.open('flock_test', "r")
     f.flock(File::LOCK_EX).should == 0

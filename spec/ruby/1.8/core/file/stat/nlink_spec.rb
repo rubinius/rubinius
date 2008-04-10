@@ -6,12 +6,12 @@ describe "File::Stat#nlink" do
     @link = @file + ".lnk"
     File.open(@file, "w") {}
   end
-  
+
   after :each do
     File.delete(@file) rescue nil
     File.delete(@link) rescue nil
   end
-  
+
   it "returns the number of links to a file" do
     File::Stat.new(@file).nlink.should == 1
     File.link(@file, @link)

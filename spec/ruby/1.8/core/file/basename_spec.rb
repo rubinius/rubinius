@@ -1,18 +1,18 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "File.basename" do  
-  before :each do     
-    @name = "test.txt"  
+describe "File.basename" do
+  before :each do
+    @name = "test.txt"
     File.delete(@name) if File.exist? @name
-    @file = File.open(@name,"w+") 
+    @file = File.open(@name,"w+")
   end
-  
+
   after :each do
     @file.close
     File.delete(@name) if File.exist?(@name)
   end
-  
-  it "return the basename of a path (basic cases)" do     
+
+  it "return the basename of a path (basic cases)" do
     File.basename(@name).should == "test.txt"
     File.basename(File.join("/tmp")).should == "tmp"
     File.basename(File.join(*%w( g f d s a b))).should == "b"
@@ -40,7 +40,7 @@ describe "File.basename" do
     File.basename("dir//base.c/", ".*").should == "base"
     #end
   end
-  
+
   it "return the last component of the filename" do
     File.basename('a').should == 'a'
     File.basename('/a').should == 'a'
@@ -50,35 +50,35 @@ describe "File.basename" do
     File.basename('/').should == '/'
     File.basename('/foo/bar/baz.rb', '.rb').should == 'baz'
     File.basename('baz.rb', 'z.rb').should == 'ba'
-  end 
-  
-  it "return an string" do 
+  end
+
+  it "return an string" do
     File.basename("foo").class.should == String
   end
 
-  it "return the basename for unix format" do 
+  it "return the basename for unix format" do
     File.basename("/foo/bar").should == "bar"
     File.basename("/foo/bar.txt").should == "bar.txt"
     File.basename("bar.c").should == "bar.c"
     File.basename("/bar").should == "bar"
     File.basename("/bar/").should == "bar"
-      
+
     # Considered UNC paths on Windows
-    platform_is :mswin do 
+    platform_is :mswin do
       File.basename("baz//foo").should =="foo"
       File.basename("//foo/bar/baz").should == "baz"
     end
   end
 
-  it "return the basename for edge cases" do  
+  it "return the basename for edge cases" do
     File.basename("").should == ""
     File.basename(".").should == "."
     File.basename("..").should == ".."
     File.basename("//foo/").should == "foo"
-    File.basename("//foo//").should == "foo"   
+    File.basename("//foo//").should == "foo"
     File.basename("foo/").should == "foo"
   end
-      
+
   it "return the basename for unix suffix" do
     File.basename("bar.c", ".c").should == "bar"
     File.basename("bar.txt", ".txt").should == "bar"
@@ -101,14 +101,14 @@ describe "File.basename" do
     lambda { File.basename("bar.txt", 1) }.should raise_error(TypeError)
     lambda { File.basename(true)         }.should raise_error(TypeError)
   end
-  
+
   it "raises an ArgumentError if passed more than two arguments" do
     lambda { File.basename('bar.txt', '.txt', '.txt') }.should raise_error(ArgumentError)
   end
 
   # specific to MS Windows
   platform_is :mswin do
-    it "return the basename for windows" do  
+    it "return the basename for windows" do
       File.basename("C:\\foo\\bar\\baz.txt").should == "baz.txt"
       File.basename("C:\\foo\\bar").should == "baz"
       File.basename("C:\\foo\\bar\\").should == "baz"
@@ -116,14 +116,14 @@ describe "File.basename" do
       File.basename("C:\\").should == "C:\\"
     end
 
-    it "return basename windows unc" do 
+    it "return basename windows unc" do
       File.basename("\\\\foo\\bar\\baz.txt").shoould == "baz.txt"
       File.basename("\\\\foo\\bar\\baz").shoould =="baz"
       File.basename("\\\\foo").should == "\\\\foo"
       File.basename("\\\\foo\\bar").shoould == "\\\\foo\\bar"
     end
-         
-    it "return basename windows forward slash" do  
+
+    it "return basename windows forward slash" do
       File.basename("C:/").should == "C:/"
       File.basename("C:/foo").should == "foo"
       File.basename("C:/foo/bar").should == "bar"
@@ -141,4 +141,4 @@ describe "File.basename" do
       File.basename("c:\\bar.txt.exe", ".*").should == "bar.txt"
     end
   end
-end 
+end

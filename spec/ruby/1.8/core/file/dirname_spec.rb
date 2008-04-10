@@ -9,8 +9,8 @@ describe "File.dirname" do
     File.dirname('').should == '.'
     File.dirname('/').should == '/'
     File.dirname('/////').should == '/'
-  end 
-  
+  end
+
   it "return a String" do
     File.dirname("foo").class.should == String
   end
@@ -39,7 +39,7 @@ describe "File.dirname" do
       File.dirname("../").should == "."
       File.dirname("/").should == "/"
       File.dirname("/.").should == "/"
-      File.dirname("/foo/").should == "/"    
+      File.dirname("/foo/").should == "/"
       File.dirname("//foo//").should == "/"
       File.dirname("/foo/.").should == "/foo"
       File.dirname("/foo/./").should == "/foo"
@@ -47,7 +47,7 @@ describe "File.dirname" do
       File.dirname("foo/../").should == "foo"
     end
   end
-  
+
   platform_is :mswin do
     it "return all the components of filename except the last one (edge cases)" do
       File.dirname("//foo").should == "/"
@@ -63,7 +63,7 @@ describe "File.dirname" do
 
   # Windows specific tests
   platform_is :mswin do
-    it "return the return all the components of filename except the last one (Windows format)" do 
+    it "return the return all the components of filename except the last one (Windows format)" do
       File.dirname("C:\\foo\\bar\\baz.txt").should =="C:\\foo\\bar"
       File.dirname("C:\\foo\\bar").should =="C:\\foo"
       File.dirname("C:\\foo\\bar\\").should == "C:\\foo"
@@ -77,13 +77,13 @@ describe "File.dirname" do
       File.dirname("\\\\foo").should =="\\\\foo"
       File.dirname("\\\\foo\\bar").should =="\\\\foo\\bar"
     end
-         
-    it "return the return all the components of filename except the last one (forward_slash)" do 
+
+    it "return the return all the components of filename except the last one (forward_slash)" do
       File.dirname("C:/").should == "C:/"
       File.dirname("C:/foo").should == "C:/"
       File.dirname("C:/foo/bar").should == "C:/foo"
       File.dirname("C:/foo/bar/").should == "C:/foo"
       File.dirname("C:/foo/bar//").should == "C:/foo"
     end
-  end 
+  end
 end

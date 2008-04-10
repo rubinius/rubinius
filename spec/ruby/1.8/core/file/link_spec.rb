@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.link" do
-  before :each do   
+  before :each do
     @file = "test.txt"
-    @link = "test.lnk"     
+    @link = "test.lnk"
     File.delete(@link) if File.exist?(@link)
     File.delete(@file) if File.exist?(@file)
-    File.open(@file,"w+") 
-  end 
+    File.open(@file,"w+")
+  end
 
   after :each do
     File.unlink(@link) if File.exist?(@link)
@@ -23,7 +23,7 @@ describe "File.link" do
     end
 
     it "raises an Errno::EEXIST if the target already exists" do
-      File.link(@file, @link)  
+      File.link(@file, @link)
       lambda { File.link(@file, @link) }.should raise_error(Errno::EEXIST)
     end
 
@@ -32,7 +32,7 @@ describe "File.link" do
       lambda { File.link(@file)               }.should raise_error(ArgumentError)
       lambda { File.link(@file, @link, @file) }.should raise_error(ArgumentError)
     end
-    
+
     it "raises a TypeError if not passed String types" do
       lambda { File.link(@file, nil) }.should raise_error(TypeError)
       lambda { File.link(@file, 1)   }.should raise_error(TypeError)
