@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV.[]" do
+describe "ENV#[]" do
   it "returns the specified environment variable" do
     ENV["USER"].should == `whoami`.strip
   end
