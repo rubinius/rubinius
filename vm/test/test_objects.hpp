@@ -162,7 +162,7 @@ class TestObjects : public CxxTest::TestSuite {
     cls = vm.globals.cmethod;
 
     TS_ASSERT_EQUALS(cls->class_object(), vm.globals.klass);
-    TS_ASSERT_EQUALS(cls->superclass, vm.globals.object);
+    TS_ASSERT_EQUALS(cls->superclass, vm.globals.executable);
     check_const(cmethod, "CompiledMethod");
   }
 };

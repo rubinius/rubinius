@@ -8,15 +8,26 @@ namespace rubinius {
 
   class ObjectMemory;
 
+  class TypeInfo {
+    public:
+    object_type type;
+    cleanup_function cleanup;
+
+    TypeInfo(Class* cls);
+  };
+
   class VM {
     public:
     /* Data members */
     Globals globals;
     ObjectMemory *om;
+    TypeInfo* type_info[(int)LastObjectType];
+
+    static const size_t default_bytes = 10240;
 
     /* Inline methods */
     /* Prototypes */
-    VM(size_t bytes);
+    VM(size_t bytes = default_bytes);
     ~VM();
 
     void bootstrap_ontology();
@@ -34,7 +45,10 @@ namespace rubinius {
     SYMBOL symbol(const char *str, size_t len = 0);
     OBJECT new_struct(Class* cls, size_t bytes);
 
-    void add_cleanup(Class* cls, void (*func)(STATE, OBJECT obj));
+    TypeInfo* get_type_info(Class* cls);
+
+    void init_ffi();
+
   };
 };
 

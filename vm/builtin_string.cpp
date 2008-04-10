@@ -72,7 +72,7 @@ namespace rubinius {
   char* String::byte_address(STATE) {
     return (char*)data->bytes;
   }
-
+  
   int String::string_equal_p(STATE, OBJECT a, OBJECT b) {
     String* self = (String*)a;
     String* other = (String*)b;

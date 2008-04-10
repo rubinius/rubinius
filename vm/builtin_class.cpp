@@ -21,6 +21,10 @@ namespace rubinius {
     constants->store(state, sym, val);
   }
 
+  void Module::set_const(STATE, char* name, OBJECT val) {
+    constants->store(state, state->symbol(name), val);
+  }
+
   OBJECT Module::get_const(STATE, OBJECT sym) {
     return constants->fetch(state, sym);
   }

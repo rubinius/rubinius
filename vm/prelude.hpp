@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include <vector>
 
+#define STATE rubinius::VM *state
+#define G(whatever) state->globals.whatever
+
 namespace rubinius {
   typedef intptr_t native_int;
 
@@ -15,8 +18,10 @@ namespace rubinius {
   class Object;
   typedef Object* OBJECT;
   typedef std::vector<OBJECT> ObjectArray;
+
+  typedef void (*cleanup_function)(STATE, OBJECT);
+
 };
 
-#define STATE rubinius::VM *state
 
 #endif

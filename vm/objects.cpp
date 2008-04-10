@@ -110,7 +110,9 @@ namespace rubinius {
 
     globals.symtbl    = new_class(object, SymbolTable::fields);
 
-    globals.cmethod   = new_class(object, CompiledMethod::fields);
+    globals.executable = new_class(object, Executable::fields);
+
+    globals.cmethod   = new_class(globals.executable, CompiledMethod::fields);
     globals.cmethod->object_type = Object::i2n(CMethodType);
 
     globals.hash      = new_class(object, Hash::fields);
@@ -138,6 +140,7 @@ namespace rubinius {
     globals.string->setup(this, "String");
     globals.symtbl->setup(this, "SymbolTable");
     globals.methtbl->setup(this, "MethodTable");
+    globals.executable->setup(this, "Executable");
     globals.cmethod->setup(this, "CompiledMethod");
     globals.io->setup(this, "IO");
     globals.blokenv->setup(this, "BlockEnvironment");
@@ -187,14 +190,7 @@ namespace rubinius {
     globals.special_classes[(uintptr_t)Qnil  ] = globals.nil_class;
     globals.special_classes[(uintptr_t)Qtrue ] = globals.true_class;
 
-    globals.regexp = new_class("Regexp", object, 0);
-    globals.regexp->object_type = Object::i2n(RegexpType);
     Regexp::init(this);
-
-    globals.regexpdata = new_class("RegexpData", object, 0);
-    globals.regexpdata->object_type = Object::i2n(RegexpDataType);
-
-    globals.matchdata = new_class("MatchData", object, 0);
 
     new_module("Rubinius");
 
@@ -203,7 +199,9 @@ namespace rubinius {
     globals.external_ivars = LookupTable::create(state);
 
     List::init(state);
-
+    SendSite::init(state);
+    Selector::init(state);
+    init_ffi();
   }
 
   void VM::bootstrap_symbol() {

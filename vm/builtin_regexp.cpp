@@ -20,7 +20,7 @@
 
 #define REG(k) (*((regex_t**)((k)->bytes)))
 
-#define BASIC_CLASS(blah) state->globals.blah
+#define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \
   obj = (typeof(obj))state->new_struct(kls, sizeof(kind)); \
   str = (kind *)BYTES_OF(obj)
@@ -34,7 +34,16 @@ namespace rubinius {
 
   void Regexp::init(STATE) {
     onig_init();
-    state->add_cleanup(BASIC_CLASS(regexpdata), Regexp::cleanup);
+    G(regexp) = state->new_class("Regexp", G(object), 0);
+    G(regexp)->object_type = Object::i2n(RegexpType);
+
+    G(regexpdata) = state->new_class("RegexpData", G(object), 0);
+    G(regexpdata)->object_type = Object::i2n(RegexpDataType);
+    
+    G(matchdata) = state->new_class("MatchData", G(object), 0);
+    
+    TypeInfo* ti = state->get_type_info(G(regexpdata));
+    ti->cleanup = Regexp::cleanup;
   }
 
   char *Regexp::version(STATE) {
@@ -128,7 +137,7 @@ namespace rubinius {
       return (Regexp*)Qnil;
     }
 
-    Regexp* o_reg = (Regexp*)state->om->new_object(state->globals.regexp, Regexp::fields);
+    Regexp* o_reg = (Regexp*)state->om->new_object(G(regexp), Regexp::fields);
     SET(o_reg, source, pattern);
     SET(o_reg, data, o_regdata);
     
@@ -173,7 +182,7 @@ namespace rubinius {
   }
 
   static OBJECT get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int max) {
-    MatchData* md = (MatchData*)state->om->new_object(state->globals.matchdata, MatchData::fields);
+    MatchData* md = (MatchData*)state->om->new_object(G(matchdata), MatchData::fields);
     SET(md, source, string->string_dup(state));
     SET(md, regexp, regexp);
     Tuple* tup = Tuple::create(state, 2);

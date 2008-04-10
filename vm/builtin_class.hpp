@@ -19,6 +19,7 @@ namespace rubinius {
     void setup(STATE);
     void setup(STATE, char* name, Module* under = NULL);
     void set_const(STATE, OBJECT sym, OBJECT val);
+    void set_const(STATE, char* name, OBJECT val);
     OBJECT get_const(STATE, OBJECT sym);
     OBJECT get_const(STATE, char* sym);
   };
@@ -33,6 +34,10 @@ namespace rubinius {
 
     static bool is_a(OBJECT obj) {
       return obj->obj_type == ClassType;
+    }
+
+    void set_object_type(size_t type) {
+      object_type = Object::i2n(type);
     }
   };
 

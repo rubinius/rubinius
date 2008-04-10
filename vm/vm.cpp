@@ -27,7 +27,22 @@ namespace rubinius {
     return om->new_object_bytes(cls, fields);
   }
 
-  void VM::add_cleanup(Class*, void (*func)(STATE, OBJECT obj)) {
+  TypeInfo* VM::get_type_info(Class* cls) {
+    TypeInfo *ti = new TypeInfo(cls);
+    type_info[cls->object_type->n2i()] = ti;
+    return ti;
+  }
 
+  TypeInfo::TypeInfo(Class *cls) {
+    type = (object_type)cls->object_type->n2i();
+    cleanup = NULL;
+  }
+  
+  void type_assert(OBJECT obj, object_type type, char* reason) {
+    if(obj->reference_p() && obj->obj_type != type) {
+      throw new TypeError(type, obj, reason);
+    } else if(type == FixnumType && !obj->fixnum_p()) {
+      throw new TypeError(type, obj, reason);
+    }
   }
 };

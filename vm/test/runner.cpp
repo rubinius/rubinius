@@ -21,17 +21,17 @@ int main() {
 static TestArray suite_TestArray;
 
 static CxxTest::List Tests_TestArray = { 0, 0 };
-CxxTest::StaticSuiteDescription suiteDescription_TestArray( "test_array.hpp", 9, "TestArray", suite_TestArray, Tests_TestArray );
+CxxTest::StaticSuiteDescription suiteDescription_TestArray( "test_array.hpp", 10, "TestArray", suite_TestArray, Tests_TestArray );
 
 static class TestDescription_TestArray_test_get : public CxxTest::RealTestDescription {
 public:
- TestDescription_TestArray_test_get() : CxxTest::RealTestDescription( Tests_TestArray, suiteDescription_TestArray, 23, "test_get" ) {}
+ TestDescription_TestArray_test_get() : CxxTest::RealTestDescription( Tests_TestArray, suiteDescription_TestArray, 24, "test_get" ) {}
  void runTest() { suite_TestArray.test_get(); }
 } testDescription_TestArray_test_get;
 
 static class TestDescription_TestArray_test_set_resizes : public CxxTest::RealTestDescription {
 public:
- TestDescription_TestArray_test_set_resizes() : CxxTest::RealTestDescription( Tests_TestArray, suiteDescription_TestArray, 32, "test_set_resizes" ) {}
+ TestDescription_TestArray_test_set_resizes() : CxxTest::RealTestDescription( Tests_TestArray, suiteDescription_TestArray, 33, "test_set_resizes" ) {}
  void runTest() { suite_TestArray.test_set_resizes(); }
 } testDescription_TestArray_test_set_resizes;
 
@@ -149,6 +149,19 @@ public:
  TestDescription_TestBignum_test_hash_bignum() : CxxTest::RealTestDescription( Tests_TestBignum, suiteDescription_TestBignum, 154, "test_hash_bignum" ) {}
  void runTest() { suite_TestBignum.test_hash_bignum(); }
 } testDescription_TestBignum_test_hash_bignum;
+
+#include "test_float.hpp"
+
+static TestFloat suite_TestFloat;
+
+static CxxTest::List Tests_TestFloat = { 0, 0 };
+CxxTest::StaticSuiteDescription suiteDescription_TestFloat( "test_float.hpp", 9, "TestFloat", suite_TestFloat, Tests_TestFloat );
+
+static class TestDescription_TestFloat_test_create : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestFloat_test_create() : CxxTest::RealTestDescription( Tests_TestFloat, suiteDescription_TestFloat, 23, "test_create" ) {}
+ void runTest() { suite_TestFloat.test_create(); }
+} testDescription_TestFloat_test_create;
 
 #include "test_hash.hpp"
 
@@ -416,6 +429,314 @@ public:
  TestDescription_TestLookupTable_test_all_values() : CxxTest::RealTestDescription( Tests_TestLookupTable, suiteDescription_TestLookupTable, 265, "test_all_values" ) {}
  void runTest() { suite_TestLookupTable.test_all_values(); }
 } testDescription_TestLookupTable_test_all_values;
+
+#include "test_memorypointer.hpp"
+
+static TestMemoryPointer suite_TestMemoryPointer;
+
+static CxxTest::List Tests_TestMemoryPointer = { 0, 0 };
+CxxTest::StaticSuiteDescription suiteDescription_TestMemoryPointer( "test_memorypointer.hpp", 11, "TestMemoryPointer", suite_TestMemoryPointer, Tests_TestMemoryPointer );
+
+static class TestDescription_TestMemoryPointer_test_create : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_create() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 25, "test_create" ) {}
+ void runTest() { suite_TestMemoryPointer.test_create(); }
+} testDescription_TestMemoryPointer_test_create;
+
+static class TestDescription_TestMemoryPointer_test_get_field_char : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_char() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 31, "test_get_field_char" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_char(); }
+} testDescription_TestMemoryPointer_test_get_field_char;
+
+static class TestDescription_TestMemoryPointer_test_get_field_uchar : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_uchar() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 40, "test_get_field_uchar" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_uchar(); }
+} testDescription_TestMemoryPointer_test_get_field_uchar;
+
+static class TestDescription_TestMemoryPointer_test_get_field_short : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_short() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 49, "test_get_field_short" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_short(); }
+} testDescription_TestMemoryPointer_test_get_field_short;
+
+static class TestDescription_TestMemoryPointer_test_get_field_ushort : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_ushort() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 58, "test_get_field_ushort" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_ushort(); }
+} testDescription_TestMemoryPointer_test_get_field_ushort;
+
+static class TestDescription_TestMemoryPointer_test_get_field_int : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_int() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 67, "test_get_field_int" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_int(); }
+} testDescription_TestMemoryPointer_test_get_field_int;
+
+static class TestDescription_TestMemoryPointer_test_get_field_uint : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_uint() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 76, "test_get_field_uint" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_uint(); }
+} testDescription_TestMemoryPointer_test_get_field_uint;
+
+static class TestDescription_TestMemoryPointer_test_get_field_long : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_long() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 85, "test_get_field_long" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_long(); }
+} testDescription_TestMemoryPointer_test_get_field_long;
+
+static class TestDescription_TestMemoryPointer_test_get_field_ulong : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_ulong() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 94, "test_get_field_ulong" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_ulong(); }
+} testDescription_TestMemoryPointer_test_get_field_ulong;
+
+static class TestDescription_TestMemoryPointer_test_get_field_float : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_float() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 103, "test_get_field_float" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_float(); }
+} testDescription_TestMemoryPointer_test_get_field_float;
+
+static class TestDescription_TestMemoryPointer_test_get_field_double : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_double() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 112, "test_get_field_double" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_double(); }
+} testDescription_TestMemoryPointer_test_get_field_double;
+
+static class TestDescription_TestMemoryPointer_test_get_field_ll : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_ll() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 121, "test_get_field_ll" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_ll(); }
+} testDescription_TestMemoryPointer_test_get_field_ll;
+
+static class TestDescription_TestMemoryPointer_test_get_field_ull : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_ull() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 130, "test_get_field_ull" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_ull(); }
+} testDescription_TestMemoryPointer_test_get_field_ull;
+
+static class TestDescription_TestMemoryPointer_test_get_field_object : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_object() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 139, "test_get_field_object" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_object(); }
+} testDescription_TestMemoryPointer_test_get_field_object;
+
+static class TestDescription_TestMemoryPointer_test_get_field_ptr : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_ptr() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 148, "test_get_field_ptr" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_ptr(); }
+} testDescription_TestMemoryPointer_test_get_field_ptr;
+
+static class TestDescription_TestMemoryPointer_test_get_field_ptr_thats_null : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_ptr_thats_null() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 160, "test_get_field_ptr_thats_null" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_ptr_thats_null(); }
+} testDescription_TestMemoryPointer_test_get_field_ptr_thats_null;
+
+static class TestDescription_TestMemoryPointer_test_get_field_string : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_string() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 169, "test_get_field_string" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_string(); }
+} testDescription_TestMemoryPointer_test_get_field_string;
+
+static class TestDescription_TestMemoryPointer_test_get_field_string_thats_null : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_string_thats_null() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 182, "test_get_field_string_thats_null" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_string_thats_null(); }
+} testDescription_TestMemoryPointer_test_get_field_string_thats_null;
+
+static class TestDescription_TestMemoryPointer_test_get_field_strptr : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_strptr() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 191, "test_get_field_strptr" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_strptr(); }
+} testDescription_TestMemoryPointer_test_get_field_strptr;
+
+static class TestDescription_TestMemoryPointer_test_get_field_strptr_thats_null : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_strptr_thats_null() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 211, "test_get_field_strptr_thats_null" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_strptr_thats_null(); }
+} testDescription_TestMemoryPointer_test_get_field_strptr_thats_null;
+
+static class TestDescription_TestMemoryPointer_test_get_field_void : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_get_field_void() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 226, "test_get_field_void" ) {}
+ void runTest() { suite_TestMemoryPointer.test_get_field_void(); }
+} testDescription_TestMemoryPointer_test_get_field_void;
+
+static class TestDescription_TestMemoryPointer_test_set_field_char : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_char() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 234, "test_set_field_char" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_char(); }
+} testDescription_TestMemoryPointer_test_set_field_char;
+
+static class TestDescription_TestMemoryPointer_test_set_field_uchar : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_uchar() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 245, "test_set_field_uchar" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_uchar(); }
+} testDescription_TestMemoryPointer_test_set_field_uchar;
+
+static class TestDescription_TestMemoryPointer_test_set_field_short : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_short() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 256, "test_set_field_short" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_short(); }
+} testDescription_TestMemoryPointer_test_set_field_short;
+
+static class TestDescription_TestMemoryPointer_test_set_field_ushort : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_ushort() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 267, "test_set_field_ushort" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_ushort(); }
+} testDescription_TestMemoryPointer_test_set_field_ushort;
+
+static class TestDescription_TestMemoryPointer_test_set_field_int : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_int() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 278, "test_set_field_int" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_int(); }
+} testDescription_TestMemoryPointer_test_set_field_int;
+
+static class TestDescription_TestMemoryPointer_test_set_field_int_bignum : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_int_bignum() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 289, "test_set_field_int_bignum" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_int_bignum(); }
+} testDescription_TestMemoryPointer_test_set_field_int_bignum;
+
+static class TestDescription_TestMemoryPointer_test_set_field_uint : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_uint() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 300, "test_set_field_uint" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_uint(); }
+} testDescription_TestMemoryPointer_test_set_field_uint;
+
+static class TestDescription_TestMemoryPointer_test_set_field_uint_bignum : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_uint_bignum() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 311, "test_set_field_uint_bignum" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_uint_bignum(); }
+} testDescription_TestMemoryPointer_test_set_field_uint_bignum;
+
+static class TestDescription_TestMemoryPointer_test_set_field_long : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_long() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 322, "test_set_field_long" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_long(); }
+} testDescription_TestMemoryPointer_test_set_field_long;
+
+static class TestDescription_TestMemoryPointer_test_set_field_long_bignum : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_long_bignum() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 333, "test_set_field_long_bignum" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_long_bignum(); }
+} testDescription_TestMemoryPointer_test_set_field_long_bignum;
+
+static class TestDescription_TestMemoryPointer_test_set_field_ulong : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_ulong() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 344, "test_set_field_ulong" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_ulong(); }
+} testDescription_TestMemoryPointer_test_set_field_ulong;
+
+static class TestDescription_TestMemoryPointer_test_set_field_ulong_bignum : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_ulong_bignum() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 355, "test_set_field_ulong_bignum" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_ulong_bignum(); }
+} testDescription_TestMemoryPointer_test_set_field_ulong_bignum;
+
+static class TestDescription_TestMemoryPointer_test_set_field_float : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_float() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 366, "test_set_field_float" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_float(); }
+} testDescription_TestMemoryPointer_test_set_field_float;
+
+static class TestDescription_TestMemoryPointer_test_set_field_double : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_double() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 377, "test_set_field_double" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_double(); }
+} testDescription_TestMemoryPointer_test_set_field_double;
+
+static class TestDescription_TestMemoryPointer_test_set_field_ll : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_ll() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 388, "test_set_field_ll" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_ll(); }
+} testDescription_TestMemoryPointer_test_set_field_ll;
+
+static class TestDescription_TestMemoryPointer_test_set_field_ll_bignum : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_ll_bignum() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 399, "test_set_field_ll_bignum" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_ll_bignum(); }
+} testDescription_TestMemoryPointer_test_set_field_ll_bignum;
+
+static class TestDescription_TestMemoryPointer_test_set_field_ull : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_ull() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 410, "test_set_field_ull" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_ull(); }
+} testDescription_TestMemoryPointer_test_set_field_ull;
+
+static class TestDescription_TestMemoryPointer_test_set_field_ull_bignum : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_ull_bignum() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 421, "test_set_field_ull_bignum" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_ull_bignum(); }
+} testDescription_TestMemoryPointer_test_set_field_ull_bignum;
+
+static class TestDescription_TestMemoryPointer_test_set_field_object : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_object() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 432, "test_set_field_object" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_object(); }
+} testDescription_TestMemoryPointer_test_set_field_object;
+
+static class TestDescription_TestMemoryPointer_test_set_field_ptr : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_ptr() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 443, "test_set_field_ptr" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_ptr(); }
+} testDescription_TestMemoryPointer_test_set_field_ptr;
+
+static class TestDescription_TestMemoryPointer_test_set_field_ptr_null : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_ptr_null() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 455, "test_set_field_ptr_null" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_ptr_null(); }
+} testDescription_TestMemoryPointer_test_set_field_ptr_null;
+
+static class TestDescription_TestMemoryPointer_test_set_field_string : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_string() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 466, "test_set_field_string" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_string(); }
+} testDescription_TestMemoryPointer_test_set_field_string;
+
+static class TestDescription_TestMemoryPointer_test_set_field_string_null : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestMemoryPointer_test_set_field_string_null() : CxxTest::RealTestDescription( Tests_TestMemoryPointer, suiteDescription_TestMemoryPointer, 476, "test_set_field_string_null" ) {}
+ void runTest() { suite_TestMemoryPointer.test_set_field_string_null(); }
+} testDescription_TestMemoryPointer_test_set_field_string_null;
+
+#include "test_nativefunction.hpp"
+
+static TestNativeFunction suite_TestNativeFunction;
+
+static CxxTest::List Tests_TestNativeFunction = { 0, 0 };
+CxxTest::StaticSuiteDescription suiteDescription_TestNativeFunction( "test_nativefunction.hpp", 11, "TestNativeFunction", suite_TestNativeFunction, Tests_TestNativeFunction );
+
+static class TestDescription_TestNativeFunction_test_type_size : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestNativeFunction_test_type_size() : CxxTest::RealTestDescription( Tests_TestNativeFunction, suiteDescription_TestNativeFunction, 25, "test_type_size" ) {}
+ void runTest() { suite_TestNativeFunction.test_type_size(); }
+} testDescription_TestNativeFunction_test_type_size;
+
+static class TestDescription_TestNativeFunction_test_find_symbol : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestNativeFunction_test_find_symbol() : CxxTest::RealTestDescription( Tests_TestNativeFunction, suiteDescription_TestNativeFunction, 45, "test_find_symbol" ) {}
+ void runTest() { suite_TestNativeFunction.test_find_symbol(); }
+} testDescription_TestNativeFunction_test_find_symbol;
+
+static class TestDescription_TestNativeFunction_test_find_symbol_in_library : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestNativeFunction_test_find_symbol_in_library() : CxxTest::RealTestDescription( Tests_TestNativeFunction, suiteDescription_TestNativeFunction, 57, "test_find_symbol_in_library" ) {}
+ void runTest() { suite_TestNativeFunction.test_find_symbol_in_library(); }
+} testDescription_TestNativeFunction_test_find_symbol_in_library;
+
+static class TestDescription_TestNativeFunction_test_create : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestNativeFunction_test_create() : CxxTest::RealTestDescription( Tests_TestNativeFunction, suiteDescription_TestNativeFunction, 70, "test_create" ) {}
+ void runTest() { suite_TestNativeFunction.test_create(); }
+} testDescription_TestNativeFunction_test_create;
+
+static class TestDescription_TestNativeFunction_test_bind : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestNativeFunction_test_bind() : CxxTest::RealTestDescription( Tests_TestNativeFunction, suiteDescription_TestNativeFunction, 76, "test_bind" ) {}
+ void runTest() { suite_TestNativeFunction.test_bind(); }
+} testDescription_TestNativeFunction_test_bind;
 
 #include "test_object.hpp"
 
@@ -762,6 +1083,62 @@ public:
  TestDescription_TestRegexp_test_match_region_with_captures() : CxxTest::RealTestDescription( Tests_TestRegexp, suiteDescription_TestRegexp, 76, "test_match_region_with_captures" ) {}
  void runTest() { suite_TestRegexp.test_match_region_with_captures(); }
 } testDescription_TestRegexp_test_match_region_with_captures;
+
+#include "test_selector.hpp"
+
+static TestSelector suite_TestSelector;
+
+static CxxTest::List Tests_TestSelector = { 0, 0 };
+CxxTest::StaticSuiteDescription suiteDescription_TestSelector( "test_selector.hpp", 10, "TestSelector", suite_TestSelector, Tests_TestSelector );
+
+static class TestDescription_TestSelector_test_init : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestSelector_test_init() : CxxTest::RealTestDescription( Tests_TestSelector, suiteDescription_TestSelector, 24, "test_init" ) {}
+ void runTest() { suite_TestSelector.test_init(); }
+} testDescription_TestSelector_test_init;
+
+static class TestDescription_TestSelector_test_create : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestSelector_test_create() : CxxTest::RealTestDescription( Tests_TestSelector, suiteDescription_TestSelector, 31, "test_create" ) {}
+ void runTest() { suite_TestSelector.test_create(); }
+} testDescription_TestSelector_test_create;
+
+static class TestDescription_TestSelector_test_lookup : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestSelector_test_lookup() : CxxTest::RealTestDescription( Tests_TestSelector, suiteDescription_TestSelector, 38, "test_lookup" ) {}
+ void runTest() { suite_TestSelector.test_lookup(); }
+} testDescription_TestSelector_test_lookup;
+
+static class TestDescription_TestSelector_test_clear : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestSelector_test_clear() : CxxTest::RealTestDescription( Tests_TestSelector, suiteDescription_TestSelector, 43, "test_clear" ) {}
+ void runTest() { suite_TestSelector.test_clear(); }
+} testDescription_TestSelector_test_clear;
+
+static class TestDescription_TestSelector_test_clear_by_name : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestSelector_test_clear_by_name() : CxxTest::RealTestDescription( Tests_TestSelector, suiteDescription_TestSelector, 55, "test_clear_by_name" ) {}
+ void runTest() { suite_TestSelector.test_clear_by_name(); }
+} testDescription_TestSelector_test_clear_by_name;
+
+#include "test_sendsite.hpp"
+
+static TestSendSite suite_TestSendSite;
+
+static CxxTest::List Tests_TestSendSite = { 0, 0 };
+CxxTest::StaticSuiteDescription suiteDescription_TestSendSite( "test_sendsite.hpp", 10, "TestSendSite", suite_TestSendSite, Tests_TestSendSite );
+
+static class TestDescription_TestSendSite_test_init : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestSendSite_test_init() : CxxTest::RealTestDescription( Tests_TestSendSite, suiteDescription_TestSendSite, 24, "test_init" ) {}
+ void runTest() { suite_TestSendSite.test_init(); }
+} testDescription_TestSendSite_test_init;
+
+static class TestDescription_TestSendSite_test_create : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestSendSite_test_create() : CxxTest::RealTestDescription( Tests_TestSendSite, suiteDescription_TestSendSite, 29, "test_create" ) {}
+ void runTest() { suite_TestSendSite.test_create(); }
+} testDescription_TestSendSite_test_create;
 
 #include "test_string.hpp"
 

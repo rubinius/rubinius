@@ -16,7 +16,7 @@ namespace rubinius {
     Class *nil_class, *true_class, *false_class, *fixnum_class, *undef_class;
     Class *floatpoint, *fastctx, *data, *nmethod, *nmc, *task, *list, *list_node;
     Class *channel, *thread, *staticscope, *send_site, *selector, *lookuptable;
-    Class *iseq;
+    Class *iseq, *executable, *ffi_ptr, *ffi_func;
 
     /* the primary symbol table */
     SymbolTable* symbols;
@@ -32,13 +32,13 @@ namespace rubinius {
     LookupTable* external_ivars;
     LookupTable* scheduled_threads;
     LookupTable* errno_mapping;
-    OBJECT config, ffi_ptr, ffi_func;
+    LookupTable* selectors;
+    OBJECT config;
     SYMBOL sym_send;
     SYMBOL sym_public, sym_private, sym_protected, sym_const_missing;
     SYMBOL sym_object_id, sym_call;
     OBJECT exception;
     OBJECT top_scope, on_gc_channel;
-    OBJECT selectors;
 
     OBJECT special_classes[SPECIAL_CLASS_SIZE];
   };

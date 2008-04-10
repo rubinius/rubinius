@@ -108,15 +108,6 @@ namespace rubinius {
 };
 
 namespace rubinius {
-  class Selector : public BuiltinType {
-    public:
-    const static size_t fields = 2;
-    OBJECT name;
-    OBJECT send_sites;
-  };
-};
-
-namespace rubinius {
   class RegexpData : public BuiltinType {
     public:
     const static size_t fields = 0;
@@ -147,16 +138,23 @@ namespace rubinius {
   class Array : public BuiltinType {
     public:
     const static size_t fields = 4;
+    const static object_type type = ArrayType;
+
     OBJECT total;
     Tuple* tuple;
     OBJECT start;
     OBJECT shared;
+
+    size_t size() {
+      return total->n2i();
+    }
 
     static Array* create(STATE, size_t size);
     void   setup(STATE, size_t size);
     OBJECT get(STATE, size_t idx);
     OBJECT set(STATE, size_t idx, OBJECT val);
     OBJECT append(STATE, OBJECT val);
+    bool   includes_p(STATE, OBJECT val);
   };
 };
 
@@ -221,6 +219,7 @@ namespace rubinius {
   class Bignum : public BuiltinType {
     public:
     const static size_t fields = 0;
+    const static object_type type = BignumType;
 
     static bool is_a(OBJECT obj) {
       return obj->obj_type == BignumType;
@@ -294,6 +293,12 @@ namespace rubinius {
   class String : public BuiltinType {
     public:
     const static size_t fields = 6;
+    const static object_type type = StringType;
+
+    static bool is_a(OBJECT obj) {
+      return obj->reference_p() && obj->obj_type == StringType;
+    }
+
     OBJECT num_bytes;
     OBJECT characters;
     OBJECT encoding;
@@ -305,12 +310,23 @@ namespace rubinius {
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
     static int string_equal_p(STATE, OBJECT self, OBJECT other);
     
-    static bool is_a(OBJECT obj) {
-      return obj->reference_p() && obj->obj_type == StringType;
-    }
-
     size_t size(STATE) {
       return num_bytes->n2i();
+    }
+    
+    /* Allows the String object to be cast as a char* */
+    operator const char *() {
+      return (const char*)(data->bytes);
+    }
+
+    /* TODO: since we're technically say it's ok to change this, we might
+     * want to copy it first. */
+    operator char *() {
+      return (char*)(data->bytes);
+    }
+  
+    char* String::byte_address() {
+      return (char*)data->bytes;
     }
 
     hashval hash_string(STATE);
@@ -379,13 +395,19 @@ namespace rubinius {
 };
 
 namespace rubinius {
-  class CompiledMethod : public BuiltinType {
+
+  class Executable : public BuiltinType {
     public:
-    const static size_t fields = 19;
+    const static size_t fields = 4;
     OBJECT instance_variables;
     OBJECT primitive;
     OBJECT required;
     OBJECT serial;
+  };
+
+  class CompiledMethod : public Executable {
+    public:
+    const static size_t fields = 19;
     OBJECT bytecodes;
     OBJECT name;
     OBJECT file;
@@ -408,10 +430,21 @@ namespace rubinius {
   class Float : public BuiltinType {
     public:
     const static size_t fields = 0;
+    const static object_type type = FloatType;
+
+    static bool is_a(OBJECT obj) {
+      return obj->obj_type == FloatType;
+    }
+    
+    double val;
+
+    static Float* create(STATE, double val);
+    double to_double(STATE) { return val; }
   };
 };
 
 #include "builtin_class.hpp"
 #include "builtin_list.hpp"
+#include "builtin_selector.hpp"
 
 #endif

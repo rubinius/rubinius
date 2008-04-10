@@ -68,4 +68,14 @@ namespace rubinius {
     set(state, (size_t)total->n2i(), val);
     return val;
   }
+
+  bool Array::includes_p(STATE, OBJECT val) {
+    size_t max = size();
+
+    for(size_t i = 0; i < max; i++) {
+      if(tuple->at(i) == val) return true;
+    }
+
+    return false;
+  }
 }

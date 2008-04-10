@@ -169,7 +169,8 @@ namespace rubinius {
   }
 
   void Bignum::init(STATE) {
-    state->add_cleanup(BASIC_CLASS(bignum), Bignum::cleanup);
+    TypeInfo *ti = state->get_type_info(state->globals.bignum);
+    ti->cleanup = Bignum::cleanup;
   }
 
   Bignum* Bignum::create(STATE, native_int num) {

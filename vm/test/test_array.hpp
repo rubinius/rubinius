@@ -1,6 +1,7 @@
 #include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "ffi.hpp"
 
 #include <cxxtest/TestSuite.h>
 
