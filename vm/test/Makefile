@@ -1,17 +1,18 @@
 TESTS=$(wildcard test_*.hpp)
 IMP=$(wildcard ../*.cpp) $(wildcard ../*.hpp)
 
+SYSLIBS=-ldl
 EX_INC=-I../external_libs/libtommath -I../external_libs/onig -I../external_libs/libffi/include -I../external_libs/libltdl
-EX_LIBS=../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libffi/.libs/libffi.a ../external_libs/libltdl/.libs/libltdl.a
+EX_LIBS=../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libffi/.libs/libffi.a ../external_libs/libltdl/.libs/libltdl.a $(SYSLIBS)
 
-external_libs:
+../external_libs:
 	cd ../; ln -sf ../shotgun/external_libs external_libs
 
-runner.cpp: external_libs $(TESTS) $(IMP)
+runner.cpp: ../external_libs $(TESTS) $(IMP)
 	cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o runner.cpp $(TESTS)
 
 runner: runner.cpp
-	g++ -Wall -Icxxtest -I../ $(EX_INC) -ggdb -o runner runner.cpp ../*.cpp $(EX_LIBS)
+	g++ -Wall -Wno-write-strings -Wno-sign-compare -Icxxtest -I../ $(EX_INC) -ggdb -o runner runner.cpp ../*.cpp ../*.c $(EX_LIBS)
 
 coverage/runner: runner.cpp
 	@mkdir -p coverage

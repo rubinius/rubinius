@@ -17,10 +17,23 @@ namespace rubinius {
     collect_mature_now = false;
     large_object_threshold = 2700;
     young.lifetime = 6;
+    last_object_id = 0;
+  }
+
+  ObjectMemory::~ObjectMemory() {
+    delete remember_set;
   }
 
   void ObjectMemory::set_young_lifetime(size_t age) {
     young.lifetime = age;
+  }
+
+  void ObjectMemory::debug_marksweep(bool val) {
+    if(val) {
+      mature.free_entries = false;
+    } else {
+      mature.free_entries = true;
+    }
   }
 
   bool ObjectMemory::valid_object_p(OBJECT obj) {

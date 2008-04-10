@@ -2,6 +2,8 @@
 #include "gc_marksweep.hpp"
 #include "objectmemory.hpp"
 
+#include <iostream>
+
 namespace rubinius {
 
   MarkSweepGC::Entry::Entry(Header* h, size_t b, size_t f) {
@@ -16,12 +18,14 @@ namespace rubinius {
     allocated_objects = 0;
     allocated_bytes = 0;
     next_collection_bytes = MS_COLLECTION_BYTES;
+    free_entries = true;
   }
 
   MarkSweepGC::~MarkSweepGC() {
     std::list<Entry*>::iterator i;
 
     for(i = entries.begin(); i != entries.end(); i++) {
+      free((*i)->header);
       delete *i;
     }
   }
@@ -31,6 +35,8 @@ namespace rubinius {
     OBJECT obj;
 
     bytes = sizeof(Header) + SIZE_IN_BYTES_FIELDS(fields);
+
+    // std::cout << "ms: " << bytes << ", fields: " << fields << "\n";
 
     Header *header = (Header*)calloc(1, bytes);
     Entry *entry = new Entry(header, bytes, fields);
@@ -114,12 +120,14 @@ namespace rubinius {
   void MarkSweepGC::sweep_objects() {
     std::list<Entry*>::iterator i;
 
-    for(i = entries.begin(); i != entries.end(); i++) {
+    for(i = entries.begin(); i != entries.end();) {
       if((*i)->unmarked_p()) {
         free_object(*i);
-        entries.erase(i);
+        if(free_entries) delete *i;
+        i = entries.erase(i);
       } else {
         (*i)->clear();
+        i++;
       }
     }
   }

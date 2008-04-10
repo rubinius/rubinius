@@ -36,7 +36,8 @@ namespace rubinius {
     return tbl;
   }
 
-  void LookupTable::setup(STATE, size_t sz = LOOKUPTABLE_MIN_SIZE) {
+  void LookupTable::setup(STATE, size_t sz = 0) {
+    if(!sz) sz = LOOKUPTABLE_MIN_SIZE;
     SET(this, values, Tuple::create(state, sz));
     SET(this, bins, Object::i2n(sz));
     SET(this, entries, Object::i2n(0));

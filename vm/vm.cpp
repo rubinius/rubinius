@@ -4,12 +4,18 @@
 
 namespace rubinius {
   VM::VM(size_t bytes) {
+    for(size_t i = 0; i < LastObjectType; i++) {
+      type_info[i] = NULL;
+    }
     om = new ObjectMemory(bytes);
     bootstrap_ontology();
   }
 
   VM::~VM() {
     delete om;
+    for(size_t i = 0; i < LastObjectType; i++) {
+      if(type_info[i]) delete type_info[i];
+    }
   }
 
   OBJECT VM::new_object(Class *cls) {

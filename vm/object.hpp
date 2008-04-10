@@ -85,12 +85,12 @@ to be a simple test for that bit pattern.
 #define INDEXED(obj) (REFERENCE_P(obj) && !obj->StoresBytes)
 
 #define CLASS_OBJECT(obj) (obj->klass)
-#define SIZE_OF_OBJECT ((unsigned int)(sizeof(OBJECT)))
+#define SIZE_OF_OBJECT ((size_t)(sizeof(OBJECT)))
 
 #define NUM_FIELDS(obj)                 (obj->field_count)
 #define SET_NUM_FIELDS(obj, fel)        (obj->field_count = fel)
-#define SIZE_IN_BYTES_FIELDS(fel)       ((unsigned int)(sizeof(Object) + \
-      fel*SIZE_OF_OBJECT))
+#define SIZE_IN_BYTES_FIELDS(fel)       ((size_t)(sizeof(Object) + \
+      (fel*SIZE_OF_OBJECT)))
 #define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(Object)/SIZE_OF_OBJECT + fel)
 #define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->field_count)
 #define SIZE_OF_BODY(obj)               (obj->field_count * SIZE_OF_OBJECT)
@@ -400,7 +400,7 @@ to be a simple test for that bit pattern.
   public:
     char *reason;
 
-    Assertion::Assertion(char* reason) : reason(reason) { };
+    Assertion(char* reason) : reason(reason) { };
   };
 
   class TypeError : public VMException {
@@ -409,7 +409,7 @@ to be a simple test for that bit pattern.
     OBJECT object;
     char* reason;
 
-    TypeError::TypeError(object_type type, OBJECT obj, char* reason = NULL)
+    TypeError(object_type type, OBJECT obj, char* reason = NULL)
       : type(type), object(obj), reason(reason) { };
   };
 

@@ -904,43 +904,43 @@ public:
 
 static class TestDescription_TestObjectMemory_test_collect_mature_marks_young_objects : public CxxTest::RealTestDescription {
 public:
- TestDescription_TestObjectMemory_test_collect_mature_marks_young_objects() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 333, "test_collect_mature_marks_young_objects" ) {}
+ TestDescription_TestObjectMemory_test_collect_mature_marks_young_objects() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 339, "test_collect_mature_marks_young_objects" ) {}
  void runTest() { suite_TestObjectMemory.test_collect_mature_marks_young_objects(); }
 } testDescription_TestObjectMemory_test_collect_mature_marks_young_objects;
 
 static class TestDescription_TestObjectMemory_test_collect_mature_stops_at_already_marked_objects : public CxxTest::RealTestDescription {
 public:
- TestDescription_TestObjectMemory_test_collect_mature_stops_at_already_marked_objects() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 354, "test_collect_mature_stops_at_already_marked_objects" ) {}
+ TestDescription_TestObjectMemory_test_collect_mature_stops_at_already_marked_objects() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 360, "test_collect_mature_stops_at_already_marked_objects" ) {}
  void runTest() { suite_TestObjectMemory.test_collect_mature_stops_at_already_marked_objects(); }
 } testDescription_TestObjectMemory_test_collect_mature_stops_at_already_marked_objects;
 
 static class TestDescription_TestObjectMemory_test_collect_young_stops_at_already_marked_objects : public CxxTest::RealTestDescription {
 public:
- TestDescription_TestObjectMemory_test_collect_young_stops_at_already_marked_objects() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 377, "test_collect_young_stops_at_already_marked_objects" ) {}
+ TestDescription_TestObjectMemory_test_collect_young_stops_at_already_marked_objects() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 383, "test_collect_young_stops_at_already_marked_objects" ) {}
  void runTest() { suite_TestObjectMemory.test_collect_young_stops_at_already_marked_objects(); }
 } testDescription_TestObjectMemory_test_collect_young_stops_at_already_marked_objects;
 
 static class TestDescription_TestObjectMemory_test_collect_young_tells_objectmemory_about_collection : public CxxTest::RealTestDescription {
 public:
- TestDescription_TestObjectMemory_test_collect_young_tells_objectmemory_about_collection() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 401, "test_collect_young_tells_objectmemory_about_collection" ) {}
+ TestDescription_TestObjectMemory_test_collect_young_tells_objectmemory_about_collection() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 407, "test_collect_young_tells_objectmemory_about_collection" ) {}
  void runTest() { suite_TestObjectMemory.test_collect_young_tells_objectmemory_about_collection(); }
 } testDescription_TestObjectMemory_test_collect_young_tells_objectmemory_about_collection;
 
 static class TestDescription_TestObjectMemory_test_new_young_spills_to_mature : public CxxTest::RealTestDescription {
 public:
- TestDescription_TestObjectMemory_test_new_young_spills_to_mature() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 416, "test_new_young_spills_to_mature" ) {}
+ TestDescription_TestObjectMemory_test_new_young_spills_to_mature() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 422, "test_new_young_spills_to_mature" ) {}
  void runTest() { suite_TestObjectMemory.test_new_young_spills_to_mature(); }
 } testDescription_TestObjectMemory_test_new_young_spills_to_mature;
 
 static class TestDescription_TestObjectMemory_test_collect_mature_tells_objectmemory_about_collection : public CxxTest::RealTestDescription {
 public:
- TestDescription_TestObjectMemory_test_collect_mature_tells_objectmemory_about_collection() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 430, "test_collect_mature_tells_objectmemory_about_collection" ) {}
+ TestDescription_TestObjectMemory_test_collect_mature_tells_objectmemory_about_collection() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 436, "test_collect_mature_tells_objectmemory_about_collection" ) {}
  void runTest() { suite_TestObjectMemory.test_collect_mature_tells_objectmemory_about_collection(); }
 } testDescription_TestObjectMemory_test_collect_mature_tells_objectmemory_about_collection;
 
 static class TestDescription_TestObjectMemory_test_valid_object_p : public CxxTest::RealTestDescription {
 public:
- TestDescription_TestObjectMemory_test_valid_object_p() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 448, "test_valid_object_p" ) {}
+ TestDescription_TestObjectMemory_test_valid_object_p() : CxxTest::RealTestDescription( Tests_TestObjectMemory, suiteDescription_TestObjectMemory, 454, "test_valid_object_p" ) {}
  void runTest() { suite_TestObjectMemory.test_valid_object_p(); }
 } testDescription_TestObjectMemory_test_valid_object_p;
 

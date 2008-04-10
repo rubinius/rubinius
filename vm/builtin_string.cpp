@@ -20,11 +20,16 @@ namespace rubinius {
     so->characters = so->num_bytes;
     so->encoding = Qnil;
 
-    size_t fields = (bytes + 1) / 4;
-    if(fields % sizeof(OBJECT) != 0) fields++;
+    const size_t mag = sizeof(OBJECT);
+    size_t fields;
+    size_t needed = bytes + 1;
+    if(needed <= mag) {
+      fields =  1;
+    } else {
+      fields = (needed + (mag - (needed & mag - 1))) / mag;
+    }
 
-    OBJECT ba = state->om->new_object(state->globals.bytearray, fields);
-    memset(ba->bytes, 0, ba->size_in_bytes());
+    OBJECT ba = state->om->new_object_bytes(state->globals.bytearray, fields);
     memcpy(ba->bytes, str, bytes);
     ba->bytes[bytes] = 0;
 

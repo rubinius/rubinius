@@ -90,7 +90,7 @@ class TestLookupTable : public CxxTest::TestSuite {
       tbl->store(state, Object::i2n(i), Object::i2n(i));
     }
 
-    TS_ASSERT_EQUALS(i, tbl->entries->n2i());
+    TS_ASSERT_EQUALS(i, (size_t)tbl->entries->n2i());
 
     TS_ASSERT((size_t)(tbl->bins->n2i()) > bins);
 

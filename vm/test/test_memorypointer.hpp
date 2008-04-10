@@ -349,7 +349,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_ULONG, one);
-    TS_ASSERT_EQUALS(*buffer, 1);
+    TS_ASSERT_EQUALS(*buffer, (unsigned long)1);
   }
   
   void test_set_field_ulong_bignum() {
@@ -360,7 +360,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_ULONG, one);
-    TS_ASSERT_EQUALS(*buffer, 1);
+    TS_ASSERT_EQUALS(*buffer, (unsigned long)1);
   }
 
   void test_set_field_float() {

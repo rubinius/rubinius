@@ -314,6 +314,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT mature;
 
+    om.debug_marksweep(true);
+
     om.large_object_threshold = 10;
 
     mature = om.new_object(Qnil, 20);
@@ -328,6 +330,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(om.mature.allocated_objects, 0);
     TS_ASSERT(entry->unmarked_p());
+
+    /* debug_marksweep() causes it to not free any Entry's, so
+     * we have to do it now. */
+    delete entry;
   }
 
   void test_collect_mature_marks_young_objects() {

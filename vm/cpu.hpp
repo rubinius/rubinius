@@ -7,7 +7,7 @@ namespace rubinius {
     Array* arguments;
     STATE;
     
-    Message::Message(STATE, Array* ary);
+    Message(STATE, Array* ary);
     OBJECT get_argument(size_t index);
     
   };

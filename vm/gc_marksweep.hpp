@@ -66,6 +66,7 @@ namespace rubinius {
     size_t allocated_bytes;
     size_t allocated_objects;
     int    next_collection_bytes;
+    bool   free_entries;
 
     /* Prototypes */
 

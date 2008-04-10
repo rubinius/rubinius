@@ -2,6 +2,7 @@
 #define RBX_GC_BAKER_H
 
 #include "gc.h"
+#include <iostream>
 
 namespace rubinius {
   typedef void *address;
@@ -49,7 +50,7 @@ namespace rubinius {
       }
 
       bool enough_space_p(size_t size) {
-        if((uintptr_t)current + size > (uintptr_t)last + 1) return FALSE;
+        if((uintptr_t)current + size >= (uintptr_t)last + 1) return FALSE;
         return TRUE;
       }
 

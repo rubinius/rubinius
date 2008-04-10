@@ -126,11 +126,13 @@ class ObjectMemory {
 
   /* Prototypes */
   ObjectMemory(size_t young_bytes);
+  ~ObjectMemory();
   void set_young_lifetime(size_t age);
   void collect_young(ObjectArray &roots);
   void collect_mature(ObjectArray &roots);
   OBJECT promote_object(OBJECT obj);
   bool valid_object_p(OBJECT obj);
+  void debug_marksweep(bool val);
 };
 
 #define SET(obj, field, val) ({ \

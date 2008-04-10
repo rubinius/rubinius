@@ -84,6 +84,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
 
     NativeFunction *func = NativeFunction::bind(state, lib, name, args, ret);
 
+    TS_ASSERT(!func->nil_p());
     TS_ASSERT(func->data->check_type(MemPtrType));
 
     Array* input = Array::create(state, 1);

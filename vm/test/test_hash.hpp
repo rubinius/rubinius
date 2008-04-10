@@ -195,7 +195,7 @@ class TestHash : public CxxTest::TestSuite {
 
   void test_csm_new() {
     Tuple *tup = Hash::csm_new(state);
-    TS_ASSERT_EQUALS(tup->field_count % 1, 0);
+    TS_ASSERT_EQUALS(tup->field_count % 1, (size_t)0);
   }
 
   void test_csm_add_and_find() {

@@ -325,7 +325,7 @@ namespace rubinius {
       return (char*)(data->bytes);
     }
   
-    char* String::byte_address() {
+    char* byte_address() {
       return (char*)data->bytes;
     }
 

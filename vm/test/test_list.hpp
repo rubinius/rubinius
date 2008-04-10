@@ -36,18 +36,18 @@ class TestList : public CxxTest::TestSuite {
 
   void test_append() {
     List* lst = List::create(state);
-    TS_ASSERT_EQUALS(lst->size(), 0);
+    TS_ASSERT_EQUALS(lst->size(), (size_t)0);
     lst->append(state, one);
     TS_ASSERT_EQUALS(lst->locate(state, 0), one);
-    TS_ASSERT_EQUALS(lst->size(), 1);
+    TS_ASSERT_EQUALS(lst->size(), (size_t)1);
 
     lst->append(state, one);
     TS_ASSERT_EQUALS(lst->locate(state, 1), one);
-    TS_ASSERT_EQUALS(lst->size(), 2);
+    TS_ASSERT_EQUALS(lst->size(), (size_t)2);
     
     lst->append(state, two);
     TS_ASSERT_EQUALS(lst->locate(state, 2), two);
-    TS_ASSERT_EQUALS(lst->size(), 3);
+    TS_ASSERT_EQUALS(lst->size(), (size_t)3);
   }
 
   void test_shift() {
@@ -56,10 +56,10 @@ class TestList : public CxxTest::TestSuite {
     lst->append(state, two);
 
     TS_ASSERT_EQUALS(lst->shift(state), one);
-    TS_ASSERT_EQUALS(lst->size(), 1);
+    TS_ASSERT_EQUALS(lst->size(), (size_t)1);
     
     TS_ASSERT_EQUALS(lst->shift(state), two);
-    TS_ASSERT_EQUALS(lst->size(), 0);
+    TS_ASSERT_EQUALS(lst->size(), (size_t)0);
   }
 
   void test_remove() {
@@ -69,11 +69,11 @@ class TestList : public CxxTest::TestSuite {
     lst->append(state, one);
     lst->append(state, two);
 
-    TS_ASSERT_EQUALS(lst->remove(state, one), 2);
-    TS_ASSERT_EQUALS(lst->size(), 2);
+    TS_ASSERT_EQUALS(lst->remove(state, one), (size_t)2);
+    TS_ASSERT_EQUALS(lst->size(), (size_t)2);
     
-    TS_ASSERT_EQUALS(lst->remove(state, two), 2);
-    TS_ASSERT_EQUALS(lst->size(), 0);
+    TS_ASSERT_EQUALS(lst->remove(state, two), (size_t)2);
+    TS_ASSERT_EQUALS(lst->size(), (size_t)0);
   }
 
 };

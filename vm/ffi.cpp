@@ -14,6 +14,9 @@
 #include "ffi.hpp"
 #include "cpu.hpp"
 
+#include "strlcpy.h"
+#include "strlcat.h"
+
 #ifdef _WIN32
 #define LIBSUFFIX ".dll"
 #else
@@ -354,6 +357,7 @@ namespace rubinius {
 
       /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
          or whatever the library suffix is. */
+      memset(sys_name, 0, 128);
       strlcpy(sys_name, *path, sizeof(sys_name));
       strlcat(sys_name, LIBSUFFIX, sizeof(sys_name));
 
