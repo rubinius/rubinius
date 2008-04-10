@@ -52,7 +52,6 @@ class NameMap
               'FalseClass' => 'xor',
               'NilClass'   => 'xor',
               'Set'        => 'exclusion'},
-    'initialize' => 'new'
   }
 
   EXCLUDED = %w[
