@@ -8,8 +8,10 @@ describe "BigDecimal#nonzero?" do
     e2_plus = BigDecimal("2E40001")
     e3_minus = BigDecimal("3E-20001")
     infinity = BigDecimal("Infinity")
+    infinity_minus = BigDecimal("-Infinity")
     nan = BigDecimal("NaN")
     infinity.nonzero?.should == infinity
+    infinity_minus.nonzero?.should == infinity_minus
     nan.nonzero?.to_s.should == 'NaN'
     # NaN never equals, not even it self.
     e3_minus.nonzero?.should == e3_minus

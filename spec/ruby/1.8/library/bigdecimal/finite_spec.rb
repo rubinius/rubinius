@@ -5,6 +5,7 @@ describe "BigDecimal#finite?" do
 
   it "is false if Infinity or NaN" do
     BigDecimal("Infinity").finite?.should == false
+    BigDecimal("-Infinity").finite?.should == false
     BigDecimal("NaN").finite?.should == false
   end
 
