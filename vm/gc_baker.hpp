@@ -50,7 +50,7 @@ namespace rubinius {
       }
 
       bool enough_space_p(size_t size) {
-        if((uintptr_t)current + size >= (uintptr_t)last + 1) return FALSE;
+        if((uintptr_t)current + size > (uintptr_t)last) return FALSE;
         return TRUE;
       }
 

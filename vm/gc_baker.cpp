@@ -121,13 +121,13 @@ namespace rubinius {
 
   void BakerGC::clear_marks() {
     OBJECT obj = current->first_object();
-    while(obj <= current->current) {
+    while(obj < current->current) {
       obj->clear_mark();
       obj = next_object(obj);
     }
 
     obj = next->first_object();
-    while(obj <= next->current) {
+    while(obj < next->current) {
       obj->clear_mark();
       obj = next_object(obj);
     }
@@ -135,13 +135,14 @@ namespace rubinius {
 
   void BakerGC::free_objects() {
     OBJECT obj = current->first_object();
-    while(obj <= current->current) {
+    while(obj < current->current) {
       delete_object(obj);
       obj = next_object(obj);
     }
 
+    assert(next->current < next->last);
     obj = next->first_object();
-    while(obj <= next->current) {
+    while(obj < next->current) {
       delete_object(obj);
       obj = next_object(obj);
     }
@@ -149,7 +150,7 @@ namespace rubinius {
 
   void BakerGC::find_lost_souls() {
     OBJECT obj = current->first_object();
-    while(obj <= current->current) {
+    while(obj < current->current) {
       if(!obj->forwarded_p()) delete_object(obj);
       obj = next_object(obj);
     }
