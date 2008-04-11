@@ -151,7 +151,7 @@ module Compile
       end
     end
 
-    raise LoadError, "Did not find file to load: #{path}"
+    raise LoadError, "no such file to load -- #{path}"
   end
 
   def self.compile_feature(rb, requiring, &block)

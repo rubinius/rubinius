@@ -8,7 +8,6 @@
 require 'rubygems/rubygems_version'
 require 'rubygems/defaults'
 require 'thread'
-require 'rbconfig'
 
 module Gem
   class LoadError < ::LoadError
@@ -58,22 +57,22 @@ end
 module Gem
 
   ConfigMap = {} unless defined?(ConfigMap)
+  require 'rbconfig'
   RbConfig = Config unless defined? ::RbConfig
 
-  ConfigMap.merge!({
-    :BASERUBY          => RbConfig::CONFIG["BASERUBY"],
-    :EXEEXT            => RbConfig::CONFIG["EXEEXT"],
+  ConfigMap.merge!(
+    :BASERUBY => RbConfig::CONFIG["BASERUBY"],
+    :EXEEXT => RbConfig::CONFIG["EXEEXT"],
     :RUBY_INSTALL_NAME => RbConfig::CONFIG["RUBY_INSTALL_NAME"],
-    :RUBY_SO_NAME      => RbConfig::CONFIG["RUBY_SO_NAME"],
-    :arch              => RbConfig::CONFIG["arch"],
-    :bindir            => RbConfig::CONFIG["bindir"],
-    :datadir           => RbConfig::CONFIG["datadir"],
-    :libdir            => RbConfig::CONFIG["libdir"],
+    :RUBY_SO_NAME => RbConfig::CONFIG["RUBY_SO_NAME"],
+    :arch => RbConfig::CONFIG["arch"],
+    :bindir => RbConfig::CONFIG["bindir"],
+    :libdir => RbConfig::CONFIG["libdir"],
     :ruby_install_name => RbConfig::CONFIG["ruby_install_name"],
-    :ruby_version      => RbConfig::CONFIG["ruby_version"],
-    :sitedir           => RbConfig::CONFIG["sitedir"],
-    :sitelibdir        => RbConfig::CONFIG["sitelibdir"],
-  })
+    :ruby_version => RbConfig::CONFIG["ruby_version"],
+    :sitedir => RbConfig::CONFIG["sitedir"],
+    :sitelibdir => RbConfig::CONFIG["sitelibdir"]
+  )
 
   DIRECTORIES = %w[cache doc gems specifications] unless defined?(DIRECTORIES)
 
@@ -98,7 +97,7 @@ module Gem
 
   @configuration = nil
   @loaded_specs = {}
-  @platforms = nil
+  @platforms = []
   @ruby = nil
   @sources = []
 
@@ -216,7 +215,7 @@ module Gem
 
   def self.bindir(install_dir=Gem.dir)
     return File.join(install_dir, 'bin') unless
-    install_dir.to_s == Gem.default_dir
+      install_dir.to_s == Gem.default_dir
     Gem.default_bindir
   end
 
@@ -264,11 +263,8 @@ module Gem
 
   def self.datadir(gem_name)
     spec = @loaded_specs[gem_name]
-    if spec.nil? then
-      File.join(ConfigMap[:datadir], gem_name)
-    else
-      File.join(spec.full_gem_path, 'data', gem_name)
-    end
+    return nil if spec.nil?
+    File.join(spec.full_gem_path, 'data', gem_name)
   end
 
   ##
@@ -455,10 +451,21 @@ module Gem
   end
 
   ##
-  # Array of platforms this RubyGems supports.
+  # Set array of platforms this RubyGems supports (primarily for testing).
 
+  def self.platforms=(platforms)
+    @platforms = platforms
+  end
+
+  ##
+  # Array of platforms this RubyGems supports.
+  
   def self.platforms
-    @platforms ||= [Gem::Platform::RUBY, Gem::Platform.local]
+    @platforms ||= []
+    if @platforms.empty?
+      @platforms = [Gem::Platform::RUBY, Gem::Platform.local]
+    end
+    @platforms
   end
 
   ##
@@ -467,10 +474,23 @@ module Gem
   def self.prefix
     prefix = File.dirname File.expand_path(__FILE__)
 
-    if prefix == File.expand_path(ConfigMap[:sitelibdir]) then
+    if File.dirname(prefix) == File.expand_path(ConfigMap[:sitelibdir]) or
+       File.dirname(prefix) == File.expand_path(ConfigMap[:libdir]) or
+       'lib' != File.basename(prefix) then
       nil
     else
       File.dirname prefix
+    end
+  end
+
+  ##
+  # Refresh source_index from disk and clear searcher.
+
+  def self.refresh
+    source_index.refresh!
+
+    MUTEX.synchronize do
+      @searcher = nil
     end
   end
 
@@ -665,9 +685,21 @@ module Gem
 
 end
 
-module Config
-  def self.datadir(package_name) # :nodoc:
-    Gem.datadir(package_name)
+# Modify the non-gem version of datadir to handle gem package names.
+
+require 'rbconfig/datadir'
+
+module Config # :nodoc:
+  class << self
+    alias gem_original_datadir datadir
+
+    # Return the path to the data directory associated with the named
+    # package.  If the package is loaded as a gem, return the gem
+    # specific data directory.  Otherwise return a path to the share
+    # area as define by "#{ConfigMap[:datadir]}/#{package_name}".
+    def datadir(package_name)
+      Gem.datadir(package_name) || Config.gem_original_datadir(package_name)
+    end
   end
 end
 
