@@ -34,7 +34,7 @@ class Breakpoint
 
   # Returns the source file line that the breakpoint is on, provided the
   # breakpoint is set at a particular location. Can return nil for
-  # TaskBreakpoint subclasses when a brekapoint is set on context change.
+  # StepBreakpoint subclasses when a brekapoint is set on context change.
   def line
     @method.line_from_ip(@ip) if @ip
   end
@@ -112,7 +112,7 @@ end
 
 # A GlobalBreakpoint represents a breakpoint that is installed on the master
 # copy of the bytecode of a CompiledMethod. This ensures it will be hit by any
-# thread that executes that method, unlike a TaskBreakpoint which will only be
+# thread that executes that method, unlike a StepBreakpoint which will only be
 # hit by a thread running a specific task.
 class GlobalBreakpoint < Breakpoint
   self.public_class_method :new
@@ -158,28 +158,9 @@ end
 
 
 ##
-# A breakpoint subclass that only registers breakpoints on a single task.
-class TaskBreakpoint < Breakpoint
-  # This class is an abstract class; only subclasses ought to be instantiated.
-  self.private_class_method :new
-
-  # Initializes a new instance of a step breakpoint
-  def initialize(task, &prc)
-    super()
-    unless block_given?
-      raise ArgumentError, "A block must be supplied to be executed when the breakpoint is hit"
-    end
-    @task = task
-    @handler = prc
-  end
-  attr_reader :task
-end
-
-
-##
 # A breakpoint that is to be triggered once only in a certain number of steps
 # (either lines or instructions) or at a specified IP address or line number.
-class StepBreakpoint < TaskBreakpoint
+class StepBreakpoint < Breakpoint
   self.public_class_method :new
 
   ##
@@ -197,7 +178,12 @@ class StepBreakpoint < TaskBreakpoint
   #     specified. Defaults to 1.
   # A block containing the action(s) to be performed when the step is complete.
   def initialize(task, selector, &prc)
-    super(task, &prc)
+    super()
+    unless block_given?
+      raise ArgumentError, "A block must be supplied to be executed when the breakpoint is hit"
+    end
+    @task = task
+    @handler = prc
 
     if selector[:line]
       # Shortcut selector to step to a line
@@ -236,6 +222,7 @@ class StepBreakpoint < TaskBreakpoint
     raise ArgumentError, "Steps must be >= 1" if @steps and @steps < 1
   end
 
+  attr_reader :task
   attr_reader :context    # Context in which the next step breakpoint is to occur
   attr_reader :step_type
   attr_reader :step_by
@@ -453,7 +440,7 @@ end
 
 
 ##
-# A TaskBreakpoint subclass that is used to restore a persistent breakpoint once
+# A StepBreakpoint subclass that is used to restore a persistent breakpoint once
 # execution has been resumed after the persistent breakpoint was hit. It is a
 # subclass of StepBreakpoint since it requires the same smarts to determine
 # where the next instruction will be so that it can set a breakpoint immediately
@@ -582,7 +569,6 @@ class BreakpointTracker
   ##
   # Sets a step breakpoint from the current debug task.
   # +selector+ is a hash that specifies the step settings.
-  # TODO: Should take task on which to step as a param?
   def step(selector, &prc)
     raise RuntimeError, "Can only step from a breakpoint" unless @thread
     task = @thread.task
@@ -627,41 +613,30 @@ class BreakpointTracker
       ctx.ip -= 1 unless ctx.ip == 0    # Need to reset IP to original instruction
       ip = ctx.ip
       do_yield = false
-#puts "Breakpoint hit at #{ip}"
+
+      Rubinius.compile_if($DEBUG) { puts "Breakpoint hit at #{ip}" }
 
       @bp_list = find_breakpoints(task, cm, ip)
       unless @bp_list.size > 0
         raise "Unable to find breakpoint for #{ctx.inspect}"
       end
 
-#puts "A. Global bytecode:"
-#puts cm.bytecodes.decode.inspect
       @bp_list.each do |bp|
-#puts "B. Breakpoint class is #{bp.class}"
-
         if bp.kind_of? StepBreakpoint and bp.steps == 0
-#puts "Deleting completed step breakpoint"
           # Delete expired task breakpoints
           @task_breakpoints[task].delete(bp)
           do_yield = true unless bp.kind_of? BreakpointRestorer
-#elsif bp.kind_of? StepBreakpoint and bp.steps > 0
-#puts "Steps remaining = #{bp.steps}"
         end
       end
-#puts "C"
+
       if (bp = @bp_list.last) and bp.kind_of? GlobalBreakpoint and bp.enabled?
         do_yield = true
         # Create a BreakpointRestorer breakpoint to restore the globabl
         # breakpoint on the current context
-#puts "Creating BreakpointRestorer"
         @task_breakpoints[task] << BreakpointRestorer.new(task)
       end
 
-#puts "D"
       begin
-#puts @thread
-#puts ctx
-#puts @bp_list.first
         @callback.call(@thread, ctx, @bp_list.first) if do_yield
       rescue RuntimeError => e
         puts "An exception occured in a breakpoint handler:"
@@ -682,45 +657,32 @@ class BreakpointTracker
       ctx = task.current_context
       mthd = ctx.method
       bc = mthd.bytecodes.dup
-#puts @bp_list.inspect
+
       @bp_list.each do |bp|
         if bp.kind_of? GlobalBreakpoint
           # Ensure global breakpoint is removed from current context so we can resume
           bp.remove(ctx, bc)
-#puts "E. With breakpoint removed bytecode:"
-#puts bc.decode.inspect
         end
       end
-#puts "G"
-      @task_breakpoints[task].each do |bp|
-        if bp.kind_of? StepBreakpoint
-          if bp.trigger?(task) or bp.break_type.nil?
-#puts "H. Installing breakpoint #{bp}"
-            bp.set_next_breakpoint bc
-#puts "I"
-            if bp.break_type == :opcode_replacement and
-              bp.original_instruction.first.opcode == :yield_debugger
-              # Step breakpoint has set its next breakpoint at same location as an
-              # existing breakpoint, so get the actual original instruction
-              bp.original_instruction = find_breakpoints(task, bp.method, bp.ip).first.original_instruction
-            end
-          end
 
-          if bp.method == mthd
-            bp.install bc
-          elsif bp.method
-            bp.install (bc2 = bp.method.bytecodes.dup)
-#puts bc2.decode.inspect
-          else
-            bp.install nil
+      # Define a hash of task-specific bytecodes for use when installing
+      ctxt_bc = Hash.new {|h,mthd| h[mthd] = mthd ? mthd.bytecodes.dup : nil}
+      ctxt_bc[mthd] = bc
+      @task_breakpoints[task].each do |bp|
+        if bp.trigger?(task) or bp.break_type.nil?
+          # Locate next step breakpoint location
+          bp.set_next_breakpoint bc
+          if bp.break_type == :opcode_replacement and
+            bp.original_instruction.first.opcode == :yield_debugger
+            # Step breakpoint has set its next breakpoint at same location as an
+            # existing breakpoint, so get the actual original instruction
+            bp.original_instruction = find_breakpoints(task, bp.method, bp.ip).first.original_instruction
           end
-        else
-#puts "Shouldn't get here"
-          bp.install ctx, bc
         end
+        # Install the yield_debugger / debug_on_ctxt_change
+        bp.install ctxt_bc[bp.method]
       end
-#puts "Z. Final bytecode to be resumed at #{ctx.ip}:"
-#puts bc.decode.inspect
+
       @thread = nil
     end
     thrd.control_channel.send nil
