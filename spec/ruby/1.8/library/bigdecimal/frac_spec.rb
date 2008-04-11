@@ -1,9 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'bigdecimal'
 
-
 describe "BigDecimal#frac" do
-
   before(:each) do
     @zero = BigDecimal("0")
     @mixed = BigDecimal("1.23456789")
@@ -11,6 +9,12 @@ describe "BigDecimal#frac" do
     @neg_int = BigDecimal("-2E5555")
     @pos_frac = BigDecimal("2E-9999")
     @neg_frac = BigDecimal("-2E-9999")
+
+    @infinity = BigDecimal("Infinity")
+    @infinity_neg = BigDecimal("-Infinity")
+    @nan = BigDecimal("NaN")
+    @zero_pos = BigDecimal("+0")
+    @zero_neg = BigDecimal("-0")
   end
 
   it "returns a BigDecimal" do
@@ -33,6 +37,12 @@ describe "BigDecimal#frac" do
   it "returns 0 if the value is an integer" do
     @pos_int.frac.should == @zero
     @neg_int.frac.should == @zero
+  end
+
+  it "correctly handles special values" do
+    @infinity.frac.should == @infinity
+    @infinity_neg.frac.should == @infinity_neg
+    @nan.fix.nan?.should == true
   end
 
 end
