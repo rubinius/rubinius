@@ -30,7 +30,7 @@ class Breakpoint
 
   attr_reader :method
   attr_reader :ip
-  attr_reader :hits
+  attr_accessor :hits
 
   # Returns the source file line that the breakpoint is on, provided the
   # breakpoint is set at a particular location. Can return nil for
@@ -631,6 +631,7 @@ class BreakpointTracker
 
       if (bp = @bp_list.last) and bp.kind_of? GlobalBreakpoint and bp.enabled?
         do_yield = true
+        bp.hits += 1
         # Create a BreakpointRestorer breakpoint to restore the globabl
         # breakpoint on the current context
         @task_breakpoints[task] << BreakpointRestorer.new(task)
