@@ -370,8 +370,13 @@ class CompiledMethod
   # method. Delegates to InstructionSequence to do the instruction decoding,
   # but then converts opcode literal arguments to their actual values by looking
   # them up in the literals tuple.
-  def decode
-    stream = @bytecodes.decode(false)
+  # Takes an optional bytecodes argument representing the bytecode that is to
+  # be decoded using this CompiledMethod's locals and literals. This is provided
+  # for use by the debugger, where the bytecode sequence to be decoded may not
+  # exactly match the bytecode currently held by the CompiledMethod, typically
+  # as a result of substituting yield_debugger instructions into the bytecode.
+  def decode(bytecodes = @bytecodes)
+    stream = bytecodes.decode(false)
     ip = 0
     args_reg = 0
     stream.map! do |inst|

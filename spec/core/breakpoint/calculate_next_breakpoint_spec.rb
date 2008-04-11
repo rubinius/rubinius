@@ -17,6 +17,8 @@ describe "StepBreakpoint#calculate_next_breakpoint" do
   end
 
   it "given an step ip with no intervening flow opcodes, returns the IP at the specified increment" do
+    create_bp(@cm, {:step_by => :ip, :steps => 1}, 0)
+    @step_bp.calculate_next_breakpoint.should == 3
     create_bp(@cm, {:step_by => :ip, :steps => 1}, 5)
     @step_bp.calculate_next_breakpoint.should == 7
     create_bp(@cm, {:step_by => :ip, :steps => 7}, 5)

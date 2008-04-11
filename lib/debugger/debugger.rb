@@ -37,9 +37,11 @@ class Debugger
     # HACK readline causes `rake spec` to hang in ioctl()
     require 'readline-native'
 
-    @breakpoint_tracker = BreakpointTracker.new
+    @breakpoint_tracker = BreakpointTracker.new do |thread, ctxt, bp|
+      activate_debugger thread, ctxt, bp
+    end
 
-    # Register this debugger as the default debug
+    # Register this debugger as the default debug channel listener
     Rubinius::VM.debug_channel = @breakpoint_tracker.debug_channel
 
     @quit = false
@@ -76,9 +78,7 @@ class Debugger
 
   # Sets a breakpoint on a +CompiledMethod+ at the specified address.
   def set_breakpoint(cm, ip)
-    @breakpoint_tracker.on(cm, :ip => ip) do |thread, ctxt, bp|
-      activate_debugger thread, ctxt, bp
-    end
+    @breakpoint_tracker.on(cm, :ip => ip)
   end
 
   # Removes the breakpoint(s) specified
@@ -92,9 +92,7 @@ class Debugger
   end
 
   def step(selector)
-    @breakpoint_tracker.step(selector) do |thread, ctxt, bp|
-      activate_debugger thread, ctxt, bp
-    end
+    @breakpoint_tracker.step(selector)
   end
 
   # Clears all breakpoints
@@ -163,7 +161,8 @@ class Debugger
     load_commands unless @commands
 
     file = @debug_context.file.to_s
-    line = bp.line
+    line = @debug_context.line
+
     puts ""
     puts "#{file}:#{line} (#{@debug_context.method.name}) [IP:#{@debug_context.ip}]"
     output = Output.new
