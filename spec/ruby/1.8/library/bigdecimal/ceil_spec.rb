@@ -1,10 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'bigdecimal'
 
-
-
 describe "BigDecimal#ceil" do
-
   before(:each) do
     @zero = BigDecimal("0")
     @mixed = BigDecimal("1.23456789")
@@ -13,6 +10,12 @@ describe "BigDecimal#ceil" do
     @neg_int = BigDecimal("-2E5555")
     @pos_frac = BigDecimal("2E-9999")
     @neg_frac = BigDecimal("-2E-9999")
+
+    @infinity = BigDecimal("Infinity")
+    @infinity_neg = BigDecimal("-Infinity")
+    @nan = BigDecimal("NaN")
+    @zero_pos = BigDecimal("+0")
+    @zero_neg = BigDecimal("-0")
   end
 
   it "returns the smallest integer greater or equal to self" do
@@ -20,6 +23,19 @@ describe "BigDecimal#ceil" do
     @neg_int.ceil.should == @neg_int
     @pos_frac.ceil.should == BigDecimal("1")
     @neg_frac.ceil.should == @zero
+    @infinity.ceil.should == @infinity
+    @infinity_neg.ceil.should == @infinity_neg
+    @nan.ceil.nan?.should == true
+    @zero.ceil.should == 0
+    @zero_pos.ceil.should == @zero_pos
+    @zero_neg.ceil.should == @zero_neg
+
+    BigDecimal('2.3').ceil.should == 3
+    BigDecimal('2.5').ceil.should == 3
+    BigDecimal('2.9999').ceil.should == 3
+    BigDecimal('-2.3').ceil.should == -2
+    BigDecimal('-2.5').ceil.should == -2
+    BigDecimal('-2.9999').ceil.should == -2
   end
 
   it "returns n digits right of the decimal point if given n > 0" do
