@@ -53,6 +53,18 @@ shared :bigdecimal_power do |cmd|
       zero.send(cmd, 1).should == 0
       zero.send(cmd, 10).should == 0
     end
+    
+    it "returns NaN if self is NaN" do
+      BigDecimal("NaN").send(cmd, -5).nan?.should == true
+      BigDecimal("NaN").send(cmd, 5).nan?.should == true
+    end
+
+    it "returns NaN if self is infinite" do
+      BigDecimal("Infinity").send(cmd, -5).nan?.should == true
+      BigDecimal("-Infinity").send(cmd, -5).nan?.should == true
+      BigDecimal("Infinity").send(cmd, 5).nan?.should == true
+      BigDecimal("-Infinity").send(cmd, 5).nan?.should == true
+    end
 
   end
 

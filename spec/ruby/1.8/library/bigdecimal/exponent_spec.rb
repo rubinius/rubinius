@@ -23,4 +23,10 @@ describe "BigDecimal#exponent" do
     BigDecimal("-5E-999999999999999").exponent.should == 0
   end
 
+  it "returns 0 if self is 0" do
+    BigDecimal("0").exponent.should == 0
+    BigDecimal("+0").exponent.should == 0
+    BigDecimal("-0").exponent.should == 0
+  end
+
 end
