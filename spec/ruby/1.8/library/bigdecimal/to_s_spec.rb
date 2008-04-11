@@ -34,6 +34,10 @@ describe "BigDecimal#to_s" do
     @bigdec.to_s(3).should == str
     str1 = '-123.45678 90123 45678 9'
     BigDecimal.new("-123.45678901234567890").to_s('5F').should ==  str1
+    # trailing zeroes removed
+    BigDecimal.new("1.00000000000").to_s('1F').should == "1.0"
+    # 0 is treated as no spaces
+    BigDecimal.new("1.2345").to_s('0F').should == "1.2345"
   end
 
   it "can return a leading space for values > 0" do

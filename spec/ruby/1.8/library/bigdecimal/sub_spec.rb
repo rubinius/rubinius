@@ -36,9 +36,15 @@ describe "BigDecimal#sub" do
     @one.sub(@nan, 1).to_s.should == 'NaN'
     @nan.sub(@one, 1).to_s.should == 'NaN'
   end
+  
+  it "returns NaN if both values are infinite with the same signs" do
+    @infinity.sub(@infinity, 1).nan?.should == true
+    @infinity_minus.sub(@infinity_minus, 1).nan?.should == true
+  end
 
   it "returns Infinity or -Infinity if these are involved" do
     @infinity.sub(@infinity_minus, 1).should == @infinity
+    @infinity_minus.sub(@infinity, 1).should == @infinity_minus
     @zero.sub(@infinity, 1).should == @infinity_minus
     @frac_2.sub( @infinity, 1).should == @infinity_minus
     @two.sub(@infinity, 1).should == @infinity_minus
