@@ -35,4 +35,16 @@ describe "Kernel#instance_eval" do
     KernelSpecs::IncludesInstEval.class_variables.should include("@@count")
     KernelSpecs::IncludesInstEval.send(:class_variable_get, :@@count).should == 2
   end
+
+  it "raises an error when defining methods on an immediate value" do
+    lambda do
+      1.instance_eval { def foo; end }
+    end.should raise_error(TypeError)
+    lambda do
+      (1.0).instance_eval { def foo; end }
+    end.should raise_error(TypeError)
+    lambda do
+      (1 << 64).instance_eval { def foo; end }
+    end.should raise_error(TypeError)
+  end
 end
