@@ -26,8 +26,3 @@ describe "File.stat" do
     st.symlink?.should == false
   end
 end
-
-describe "File#stat"
-  it "needs to be reviewed for spec completeness" do
-  end
-end

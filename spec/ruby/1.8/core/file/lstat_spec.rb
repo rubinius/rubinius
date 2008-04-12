@@ -26,8 +26,3 @@ describe "File.lstat" do
     st.file?.should == false
   end
 end
-
-describe "File#lstat"
-  it "needs to be reviewed for spec completeness" do
-  end
-end
