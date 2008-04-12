@@ -27,8 +27,8 @@ shared :bigdecimal_quo do |cmd|
     end
 
     it "returns NaN if NaN is involved" do
-      @one.send(cmd, @nan).to_s.should == 'NaN'
-      @nan.send(cmd ,@one).to_s.should == 'NaN'
+      @one.send(cmd, @nan).nan?.should == true
+      @nan.send(cmd ,@one).nan?.should == true
     end
 
     it "returns 0 if divided by Infinity" do
@@ -43,9 +43,8 @@ shared :bigdecimal_quo do |cmd|
     end
 
     it "returns NaN if Infinity / ((+|-) Infinity)" do
-      @infinity.send(cmd, @infinity_minus).to_s.should == "NaN"
-      @infinity_minus.send(cmd, @infinity).to_s.should == 'NaN'
-      # to_s needed because BigDecimal("NaN") never equals its self.
+      @infinity.send(cmd, @infinity_minus).nan?.should == true
+      @infinity_minus.send(cmd, @infinity).nan?.should == true
     end
 
   end

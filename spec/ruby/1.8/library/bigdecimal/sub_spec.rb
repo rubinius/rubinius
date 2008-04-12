@@ -33,8 +33,8 @@ describe "BigDecimal#sub" do
   end
 
   it "returns NaN if NaN is involved" do
-    @one.sub(@nan, 1).to_s.should == 'NaN'
-    @nan.sub(@one, 1).to_s.should == 'NaN'
+    @one.sub(@nan, 1).nan?.should == true
+    @nan.sub(@one, 1).nan?.should == true
   end
   
   it "returns NaN if both values are infinite with the same signs" do

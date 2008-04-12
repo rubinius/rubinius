@@ -26,8 +26,8 @@ describe "BigDecimal#add" do
   end
 
   it "returns NaN if NaN is involved" do
-    @one.add(@nan, 10000).to_s.should == 'NaN'
-    @nan.add(@one, 1).to_s.should == 'NaN'
+    @one.add(@nan, 10000).nan?.should == true
+    @nan.add(@one, 1).nan?.should == true
   end
 
   it "returns Infinity or -Infinity if these are involved" do
@@ -56,9 +56,8 @@ describe "BigDecimal#add" do
   end
 
   it "returns NaN if Infinity + (- Infinity)" do
-    @infinity.add(@infinity_minus, 10000).to_s.should == "NaN"
-    @infinity_minus.add(@infinity, 10000).to_s.should == "NaN"
-    # to_s needed because BigDecimal("NaN") never equals its self.
+    @infinity.add(@infinity_minus, 10000).nan?.should == true
+    @infinity_minus.add(@infinity, 10000).nan?.should == true
   end
 
 end

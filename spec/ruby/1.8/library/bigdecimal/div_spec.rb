@@ -28,13 +28,13 @@ describe "BigDecimal#div" do
   end
 
   it "returns NaN if NaN is involved" do
-    @one.div(@nan).to_s.should == 'NaN'
-    @nan.div(@one).to_s.should == 'NaN'
+    @one.div(@nan).nan?.should == true
+    @nan.div(@one).nan?.should == true
   end
 
   it "returns NaN if divided by Infinity and no precision given" do
-    @zero.div(@infinity).to_s.should == 'NaN'
-    @frac_2.div(@infinity).to_s.should == 'NaN'
+    @zero.div(@infinity).nan?.should == true
+    @frac_2.div(@infinity).nan?.should == true
   end
 
   it "returns 0 if divided by Infinity with given precision" do
@@ -45,9 +45,9 @@ describe "BigDecimal#div" do
   end
 
   it "returns NaN if (+|-) Infinity divided by 1 and no precision given" do
-    @infinity_minus.div(@one).to_s.should == 'NaN'
-    @infinity.div(@one).to_s.should == 'NaN'
-    @infinity_minus.div(@one_minus).to_s.should == 'NaN'
+    @infinity_minus.div(@one).nan?.should == true
+    @infinity.div(@one).nan?.should == true
+    @infinity_minus.div(@one_minus).nan?.should == true
   end
 
   it "returns (+|-)Infinity if (+|-)Infinity by 1 and precision given" do
@@ -57,9 +57,8 @@ describe "BigDecimal#div" do
   end
 
   it "returns NaN if Infinity / ((+|-) Infinity)" do
-    @infinity.div(@infinity_minus, 100000).to_s.should == "NaN"
-    @infinity_minus.div(@infinity, 1).to_s.should == 'NaN'
-    # to_s needed because BigDecimal("NaN") never equals its self.
+    @infinity.div(@infinity_minus, 100000).nan?.should == true
+    @infinity_minus.div(@infinity, 1).nan?.should == true
   end
 
 

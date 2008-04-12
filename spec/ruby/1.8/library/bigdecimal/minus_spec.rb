@@ -26,8 +26,8 @@ describe "BigDecimal#-" do
   end
 
   it "returns NaN if NaN is involved" do
-    (@one - @nan).to_s.should == 'NaN'
-    (@nan - @one).to_s.should == 'NaN'
+    (@one - @nan).nan?.should == true
+    (@nan - @one).nan?.should == true
   end
 
   it "returns Infinity or -Infinity if these are involved" do

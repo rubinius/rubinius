@@ -28,10 +28,9 @@ shared :bigdecimal_modulo do |cmd|
       a = BigDecimal("1.0000000000000000000000000000000000000000005")
       b = BigDecimal("1.00000000000000000000000000000000000000000005")
 
-      bd5667.send(cmd, 0).to_s.should == 'NaN'
-      bd5667.send(cmd, 0.0).to_s.should == 'NaN'
-      bd5667.send(cmd, BigDecimal("0")).to_s.should == 'NaN'
-      # to_s because: NaN isn't even equal to its self.
+      bd5667.send(cmd, 0).nan?.should == true
+      bd5667.send(cmd, 0.0).nan?.should == true
+      bd5667.send(cmd, BigDecimal("0")).nan?.should == true
     end
   end
 end

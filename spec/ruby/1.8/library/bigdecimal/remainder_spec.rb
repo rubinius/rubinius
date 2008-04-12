@@ -29,9 +29,8 @@ describe "BigDecimal#remainder" do
   end
 
   it "returns NaN used with zero" do
-    @mixed.remainder(@zero).to_s.should == 'NaN'
-    @zero.remainder(@zero).to_s.should == 'NaN'
-    # to_s because: NaN isn't even equal to its self.
+    @mixed.remainder(@zero).nan?.should == true
+    @zero.remainder(@zero).nan?.should == true
   end
 
   it "returns zero if used on zero" do
