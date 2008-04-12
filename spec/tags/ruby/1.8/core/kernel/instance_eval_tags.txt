@@ -1,1 +1,4 @@
 fails:Kernel#instance_eval raises an error when defining methods on an immediate value
+fails:Kernel#instance_eval raises a TypeError when defining methods on an immediate
+fails:Kernel#instance_eval scopes class var accesses in the caller when called on a Fixnum
+fails:Kernel#instance_eval raises a TypeError when defining methods on numerics
