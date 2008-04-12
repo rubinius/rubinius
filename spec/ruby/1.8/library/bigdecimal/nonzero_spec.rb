@@ -10,12 +10,11 @@ describe "BigDecimal#nonzero?" do
     infinity = BigDecimal("Infinity")
     infinity_minus = BigDecimal("-Infinity")
     nan = BigDecimal("NaN")
-    infinity.nonzero?.should == infinity
-    infinity_minus.nonzero?.should == infinity_minus
-    nan.nonzero?.to_s.should == 'NaN'
-    # NaN never equals, not even it self.
-    e3_minus.nonzero?.should == e3_minus
-    e2_plus.nonzero?.should == e2_plus
+    infinity.nonzero?.should.equal?(infinity)
+    infinity_minus.nonzero?.should.equal?(infinity_minus)
+    nan.nonzero?.should.equal?(nan)
+    e3_minus.nonzero?.should.equal?(e3_minus)
+    e2_plus.nonzero?.should.equal?(e2_plus)
   end
 
   it "returns nil otherwise" do
