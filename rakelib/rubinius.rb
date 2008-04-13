@@ -26,7 +26,7 @@ def clear_compiler
 end
 
 def make(args = nil)
-  if RUBY_PLATFORM =~ /bsd/
+  if RUBY_PLATFORM =~ /bsd|solaris/
     gmake = 'gmake'
   else
     gmake = 'make'
