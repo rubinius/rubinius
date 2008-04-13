@@ -84,20 +84,6 @@ class Mailbox
     end
   end
 
-  # NOTE: If there is a way to do this more efficiently by using a
-  # built-in mechanism of Channel that would probably be better.
-  def clear
-    done = false
-    until done
-      receive do |f|
-        f.when(Object) do end
-        f.after(0) do
-          done = true
-        end
-      end
-    end
-  end
-
   class Filter
     attr_reader :timeout
     attr_reader :timeout_action
