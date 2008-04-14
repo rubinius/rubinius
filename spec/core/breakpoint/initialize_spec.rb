@@ -23,10 +23,6 @@ describe "GlobalBreakpoint#initalize" do
     lambda { GlobalBreakpoint.new(@cm, 14) {} }.should raise_error(ArgumentError)
   end
 
-  it "throws an ArgumentError if no block is given" do
-    lambda { GlobalBreakpoint.new(@cm) }.should raise_error(ArgumentError)
-  end
-
   it "does not modify the compiled method instruction sequence" do
     pre = @cm.bytecodes.decode
     bp = GlobalBreakpoint.new(@cm) {}
