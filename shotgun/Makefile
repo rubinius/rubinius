@@ -43,11 +43,6 @@ ifeq ($(UNAME),SunOS)
   LDFLAGS+=-lrt
 endif
 
-# Support *BSD libexecinfo for backtrace etc.
-ifeq ($(findstring BSD,$(UNAME)),BSD)
-  LIBS+=-lexecinfo
-endif
-
 ifeq ($(UNAME),Linux)
 	LIBS+=-ldl
 endif
