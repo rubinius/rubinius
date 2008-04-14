@@ -9,7 +9,8 @@ shared :env_each do |cmd|
         ENV["foo"] = "bar"
         ENV["baz"] = "boo"
         ENV.send(cmd) { |k, v| e << [k, v] }
-        e.should == [["foo", "bar"], ["baz", "boo"]]
+        e.should include(["foo", "bar"])
+        e.should include(["baz", "boo"])
       ensure
         ENV.replace orig
       end

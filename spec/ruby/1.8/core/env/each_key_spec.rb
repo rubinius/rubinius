@@ -10,7 +10,8 @@ describe "ENV#each_key" do
       ENV["1"] = "3"
       ENV["2"] = "4"
       ENV.each_key { |k| e << k }
-      e.should == ["1", "2"]
+      e.should include("1")
+      e.should include("2")
     ensure
       ENV.replace orig
     end

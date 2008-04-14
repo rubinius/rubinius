@@ -10,14 +10,15 @@ describe "ENV#each_value" do
       ENV["1"] = "3"
       ENV["2"] = "4"
       ENV.each_value { |v| e << v }
-      e.should == ["3", "4"]
+      e.should include("3")
+      e.should include("4")
     ensure
       ENV.replace orig
     end
   end
 
   it "raises LocalJumpError if no block given" do
-    lambda { ENV.each_key }.should raise_error(LocalJumpError)
+    lambda { ENV.each_value }.should raise_error(LocalJumpError)
   end
 
 end

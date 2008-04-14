@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "ENV#clear" do
 
@@ -6,7 +7,7 @@ describe "ENV#clear" do
     orig = ENV.to_hash
     begin
       ENV.clear
-      `env`.should == ""
+      EnvSpecs.get_env.should == {}
     ensure
       ENV.replace orig
     end
