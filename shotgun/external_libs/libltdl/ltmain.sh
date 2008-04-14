@@ -313,7 +313,8 @@ if test -z "$show_help"; then
     # For darwin, separate arch arguments and apply them to all compile/link
     # commands
     doarch=
-    for arg; do
+    for arg
+    do
       if test -n "$doarch"; then
         archargs="$archargs -arch $arg"
         doarch=
