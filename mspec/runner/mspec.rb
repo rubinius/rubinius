@@ -167,7 +167,7 @@ module MSpec
   end
 
   def self.tags_path
-    retrieve(:tags_path) || ".tags"
+    retrieve(:tags_path) || "spec/tags"
   end
 
   def self.tags_file
@@ -175,13 +175,9 @@ module MSpec
     file = retrieve :file
     tags_file = File.basename(file, '.*').sub(/_spec$/, '_tags') + '.txt'
 
-    if path[0] == ?/
-      m = file.match %r[.*spec/(.*)/.*_spec.rb]
-      tags_path = m ? File.join(path, m[1]) : path
-    else
-      tags_path = File.join(File.dirname(file), path)
-    end
-    File.join tags_path, tags_file
+    m = file.match %r[.*spec/(.*)/.*_spec.rb]
+    path = File.join(path, m[1]) if m
+    File.join path, tags_file
   end
 
   def self.read_tags(*keys)
