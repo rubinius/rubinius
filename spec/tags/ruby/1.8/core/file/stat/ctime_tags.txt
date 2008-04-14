@@ -1,1 +1,0 @@
-incomplete:File::Stat#ctime needs to be reviewed for spec completeness

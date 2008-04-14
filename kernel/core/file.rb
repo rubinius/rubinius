@@ -805,6 +805,11 @@ class File::Stat
   def zero?
     @stat[:st_size] == 0
   end
+  
+  def <=> (other)
+    return nil unless other.is_a?(File::Stat)
+    self.mtime <=> other.mtime
+  end
 
   def rgrpowned?
     @stat[:st_gid] == POSIX.getgid

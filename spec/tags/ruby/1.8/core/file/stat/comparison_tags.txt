@@ -1,1 +1,0 @@
-incomplete:File::Stat#<=> needs to be reviewed for spec completeness
