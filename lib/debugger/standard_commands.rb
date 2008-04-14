@@ -409,6 +409,11 @@ class Debugger
       /\w+/
     end
 
+    # Eval commands can extend over more than one line
+    def multiline?
+      true
+    end
+
     # This command should have the very lowest priority, as it evaluates the
     # command as a Ruby expression.
     def <=>(other)
@@ -416,7 +421,8 @@ class Debugger
     end
 
     def execute(dbg, md)
-      @expr += md.string
+      @expr += md.kind_of?(MatchData) ? md.string : md
+      @expr += "\n"
       begin
         bind = Binding.setup(dbg.eval_context)
         result = eval(@expr, bind)
@@ -425,7 +431,6 @@ class Debugger
         output << result.inspect
 
         @expr = ''
-        dbg.prompt = "\nrbx:debug> "
       rescue SystemExit => e
         raise
       rescue Exception => e
@@ -433,9 +438,8 @@ class Debugger
         unless SyntaxError === e and e.message =~ /unexpected \$end|unterminated string/
           dbg.handle_exception e
           @expr = ''
-          dbg.prompt = "\nrbx:debug> "
         else
-          dbg.prompt = "rbx:debug*> "
+          dbg.more_input!
         end
       end
  

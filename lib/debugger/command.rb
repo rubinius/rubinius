@@ -41,6 +41,13 @@ class Debugger
       @commands << klass
     end
 
+    # Indicates whether command may take (require) multiple lines of input.
+    # If this is true, a command must indicate to the debugger when additional
+    # input is required, by calling the Debugger#more_input! method.
+    def multiline?
+      false
+    end
+
     # By default commands are processed in alphabetic order of the first item of
     # the help string. By overriding this method, commands can order themselves
     # in relation to other commands they need to precede or follow.

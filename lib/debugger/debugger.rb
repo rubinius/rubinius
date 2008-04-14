@@ -1,4 +1,5 @@
 require 'debugger/command'
+require 'debugger/interface'
 require 'debugger/output'
 require 'thread'
 
@@ -34,12 +35,10 @@ class Debugger
 
   # Initializes a new +Debugger+ instance
   def initialize
-    # HACK readline causes `rake spec` to hang in ioctl()
-    require 'readline-native'
-
     @breakpoint_tracker = BreakpointTracker.new do |thread, ctxt, bp|
       activate_debugger thread, ctxt, bp
     end
+    @interface = CmdLineInterface.new
 
     # Register this debugger as the default debug channel listener
     Rubinius::VM.debug_channel = @breakpoint_tracker.debug_channel
@@ -121,6 +120,11 @@ class Debugger
     @done = true
   end
 
+  # Returns true if execution is about to be resumed
+  def done?
+    @done
+  end
+
   # Sets the quit flag to true, so that the debugger shuts down.
   def quit!
     @done = true
@@ -152,49 +156,14 @@ class Debugger
 
   # Activates the debugger after a breakpoint has been hit, and responds to
   # debgging commands until a continue command is recevied.
-  def activate_debugger(thread, ctxt, bp)
-    bp = bp.last if bp.kind_of? Array
-    puts "[Debugger activated]" unless bp.kind_of? StepBreakpoint
+  def activate_debugger(thread, ctxt, bp_list)
     @debug_thread = thread
     @eval_context = @debug_context = ctxt
 
     # Load debugger commands if we haven't already
     load_commands unless @commands
 
-    file = @debug_context.file.to_s
-    line = @debug_context.line
-
-    puts ""
-    puts "#{file}:#{line} (#{@debug_context.method.name}) [IP:#{@debug_context.ip}]"
-    output = Output.new
-    output.set_line_marker
-    output.set_color :cyan
-    if bp.kind_of? StepBreakpoint and bp.step_by == :ip
-      bc = @debug_context.method.decode
-      inst = bc[bc.ip_to_index(@debug_context.ip)]
-      output.set_columns(["%04d:", "%-s ", "%-s"])
-      output << [inst.ip, inst.opcode, inst.args.map{|a| a.inspect}.join(', ')]
-    else
-      lines = source_for(file)
-      unless lines.nil?
-        output.set_columns(['%d:', '%-s'])
-        output << [line, lines[line-1].chomp]
-      end
-    end
-    output.set_color :clear
-    puts output
-
-    @prompt = "\nrbx:debug> "
-    until @done do
-      inp = Readline.readline(@prompt)
-      inp.strip!
-      if inp.length > 0
-        process_command(inp)
-        @last_inp = inp
-      elsif @last_inp
-        process_command(@last_inp)
-      end
-    end
+    @interface.process_commands(self, thread, ctxt, bp_list)
 
     # Clear any references to the debuggee thread and context
     @debug_thread = nil
@@ -202,44 +171,50 @@ class Debugger
     @eval_context = nil
   end
 
-  attr_accessor :prompt
+  attr_reader :interface
+  attr_reader :commands
   attr_reader :debug_thread, :debug_context
+  # The current eval context, i.e. the context in which most commands will be
+  # executed. By default, this is the same as the debug context, but it can be
+  # changed via the Up/Down commands.
   attr_accessor :eval_context
+
+  # Flags to the debugger that a command requires more input
+  def more_input!
+    @more_input = true
+  end
+
+  def more_input?
+    @more_input
+  end
 
   # Processes a debugging command by finding a Command subclass that can handle
   # the input, and delegating to it.
   def process_command(inp)
-    @commands.each do |cmd|
-      if inp =~ cmd.command_regexp
-        begin
-          output = cmd.execute self, $~
-          puts output if output
-        rescue StandardError => e
-          handle_exception e
+    if @more_input and @last_command
+      @more_input = false
+      output = @last_command.execute(self, inp)
+    else
+      @more_input = false
+      @commands.each do |cmd|
+        if inp =~ cmd.command_regexp
+          begin
+            @last_command = cmd.multiline? ? cmd : nil
+            output = cmd.execute(self, $~)
+          rescue StandardError => e
+            handle_exception e
+          end
+          break
         end
-        break
       end
     end
+    output
   end
 
-  # Handles any exceptions raised by a Command subclass during a debug session.
+  # Handles any exceptions raised by a Command subclass during a debug session;
+  # delegates to the debugger interface implementation.
   def handle_exception(e)
-    puts ""
-    puts "An exception has occurred:\n    #{e.message} (#{e.class})"
-    puts "Backtrace:"
-    output = Output.new
-    output.set_columns(['%s', '%-s'], ' at ')
-    bt = e.awesome_backtrace
-    first = true
-    bt.frames.each do |fr|
-      recv = fr[0]
-      loc = fr[1]
-      break if recv =~ /Debugger#process_command/
-      output.set_color(bt.color_from_loc(loc, first))
-      first = false # special handling for first line
-      output << [recv, loc]
-    end
-    puts output
+    @interface.handle_exception e
   end
 
   # Retrieves the source code for the specified file, if it exists
