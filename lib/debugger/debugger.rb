@@ -38,7 +38,6 @@ class Debugger
     @breakpoint_tracker = BreakpointTracker.new do |thread, ctxt, bp|
       activate_debugger thread, ctxt, bp
     end
-    @interface = CmdLineInterface.new
 
     # Register this debugger as the default debug channel listener
     Rubinius::VM.debug_channel = @breakpoint_tracker.debug_channel
@@ -162,6 +161,11 @@ class Debugger
     @commands
   end
 
+  # Sets the interface to be used for the debugger
+  def interface=(interface)
+    @interface = interface
+  end
+
   # Activates the debugger after a breakpoint has been hit, and responds to
   # debgging commands until a continue command is recevied.
   def activate_debugger(thread, ctxt, bp_list)
@@ -170,6 +174,8 @@ class Debugger
 
     # Load debugger commands if we haven't already
     load_commands unless @commands
+    # Default to command-line interface if none configured
+    self.interface = CmdLineInterface.new unless @interface
 
     @interface.process_commands(self, thread, ctxt, bp_list)
 
@@ -179,8 +185,7 @@ class Debugger
     @eval_context = nil
   end
 
-  attr_reader :interface
-  attr_reader :commands
+  # The current thread and context being debugged
   attr_reader :debug_thread, :debug_context
   # The current eval context, i.e. the context in which most commands will be
   # executed. By default, this is the same as the debug context, but it can be

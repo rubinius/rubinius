@@ -98,6 +98,7 @@ Options:
   -dc            Display debugging information for the compiler.
   -dl            Display debugging information for the loader.
   -debug         Launch the debugger.
+  -remote-debug  Run the program under the control of a remote debugger.
   -e 'code'      Directly compile and execute code (no file provided).
   -Idir1[:dir2]  Add directories to $LOAD_PATH.
   -p             Run the profiler.
@@ -149,6 +150,15 @@ begin
     when '-debug'
       require 'debugger/debugger'
       $DEBUGGER = true
+    when '-remote-debug'
+      require 'debugger/debug_server'
+      $DEBUGGER = true
+      if port = (ARGV.first =~ /^\d+$/ and ARGV.shift)
+        $DEBUG_SERVER = Debugger::Server.new(port.to_i)
+      else
+        $DEBUG_SERVER = Debugger::Server.new
+      end
+      $DEBUG_SERVER.listen
     when '-p'
       require 'profile'
     when '-ps'
