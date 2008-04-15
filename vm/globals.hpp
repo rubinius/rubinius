@@ -16,7 +16,7 @@ namespace rubinius {
     Class *nil_class, *true_class, *false_class, *fixnum_class, *undef_class;
     Class *floatpoint, *fastctx, *data, *nmethod, *nmc, *task, *list, *list_node;
     Class *channel, *thread, *staticscope, *send_site, *selector, *lookuptable;
-    Class *iseq, *executable, *ffi_ptr, *ffi_func;
+    Class *iseq, *executable, *ffi_ptr, *ffi_func, *iobuffer;
 
     /* the primary symbol table */
     SymbolTable* symbols;
@@ -30,7 +30,7 @@ namespace rubinius {
     OBJECT exc_primitive_failure, sym_initialize;
 
     LookupTable* external_ivars;
-    LookupTable* scheduled_threads;
+    Tuple* scheduled_threads;
     LookupTable* errno_mapping;
     LookupTable* selectors;
     OBJECT config;

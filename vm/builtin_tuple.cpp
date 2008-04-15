@@ -3,9 +3,24 @@
 #include "objects.hpp"
 #include "objectmemory.hpp"
 
+#include <cstdarg>
+
 namespace rubinius {
   Tuple* Tuple::create(STATE, size_t fields) {
     return (Tuple*)state->om->new_object(state->globals.tuple, fields);
+  }
+
+  Tuple* Tuple::from(STATE, size_t fields, ...) {
+    va_list ar;
+    Tuple* tup = create(state, fields);
+
+    va_start(ar, fields);
+    for(size_t i = 0; i < fields; i++) {
+      tup->put(state, i, va_arg(ar, OBJECT));
+    }
+    va_end(ar);
+
+    return tup;
   }
 
   OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {

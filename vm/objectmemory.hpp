@@ -91,7 +91,16 @@ namespace rubinius {
       return obj;
     }
 
-    OBJECT new_object_bytes(OBJECT cls, size_t fields) {
+    OBJECT new_object_bytes(OBJECT cls, size_t bytes) {
+      const size_t mag = sizeof(OBJECT);
+      size_t fields;
+      size_t needed = bytes + 1;
+      if(needed <= mag) {
+        fields =  1;
+      } else {
+        fields = (needed + (mag - (needed & mag - 1))) / mag;
+      }
+
       OBJECT obj = create_object(cls, fields);
 
       obj->init_bytes();

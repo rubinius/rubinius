@@ -2,8 +2,18 @@ TESTS=$(wildcard test_*.hpp)
 IMP=$(wildcard ../*.cpp) $(wildcard ../*.hpp)
 
 SYSLIBS=-ldl
-EX_INC=-I../external_libs/libtommath -I../external_libs/onig -I../external_libs/libffi/include -I../external_libs/libltdl
-EX_LIBS=../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libffi/.libs/libffi.a ../external_libs/libltdl/.libs/libltdl.a $(SYSLIBS)
+EX_INC=-I../external_libs/libtommath \
+			 -I../external_libs/onig \
+			 -I../external_libs/libffi/include \
+			 -I../external_libs/libltdl \
+			 -I../external_libs/libev
+
+EX_LIBS=../external_libs/libtommath/libtommath.a \
+				../external_libs/onig/.libs/libonig.a \
+				../external_libs/libffi/.libs/libffi.a \
+				../external_libs/libltdl/.libs/libltdl.a \
+				../external_libs/libev/.libs/libev.a \
+				$(SYSLIBS)
 
 ../external_libs:
 	cd ../; ln -sf ../shotgun/external_libs external_libs

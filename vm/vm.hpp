@@ -3,6 +3,7 @@
 
 #include "object.hpp"
 #include "globals.hpp"
+#include "event.hpp"
 
 namespace rubinius {
 
@@ -14,6 +15,7 @@ namespace rubinius {
     /* Data members */
     Globals globals;
     ObjectMemory *om;
+    event::Loop *events;
 
     static const size_t default_bytes = 10240;
 
@@ -40,6 +42,7 @@ namespace rubinius {
     TypeInfo* get_type_info(Class* cls);
 
     void init_ffi();
+    OBJECT current_thread();
 
   };
 };

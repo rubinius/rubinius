@@ -9,6 +9,10 @@
 
 namespace rubinius {
 
+  ByteArray* ByteArray::create(STATE, size_t bytes) {
+    return (ByteArray*)state->om->new_object_bytes(G(bytearray), bytes);
+  }
+
   String* String::create(STATE, const char* str, size_t bytes) {
     String *so;
 
@@ -20,16 +24,7 @@ namespace rubinius {
     so->characters = so->num_bytes;
     so->encoding = Qnil;
 
-    const size_t mag = sizeof(OBJECT);
-    size_t fields;
-    size_t needed = bytes + 1;
-    if(needed <= mag) {
-      fields =  1;
-    } else {
-      fields = (needed + (mag - (needed & mag - 1))) / mag;
-    }
-
-    OBJECT ba = state->om->new_object_bytes(state->globals.bytearray, fields);
+    OBJECT ba = ByteArray::create(state, bytes);
     memcpy(ba->bytes, str, bytes);
     ba->bytes[bytes] = 0;
 

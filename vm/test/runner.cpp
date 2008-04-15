@@ -150,6 +150,37 @@ public:
  void runTest() { suite_TestBignum.test_hash_bignum(); }
 } testDescription_TestBignum_test_hash_bignum;
 
+#include "test_event.hpp"
+
+static TestEventLoop suite_TestEventLoop;
+
+static CxxTest::List Tests_TestEventLoop = { 0, 0 };
+CxxTest::StaticSuiteDescription suiteDescription_TestEventLoop( "test_event.hpp", 27, "TestEventLoop", suite_TestEventLoop, Tests_TestEventLoop );
+
+static class TestDescription_TestEventLoop_test_timer : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestEventLoop_test_timer() : CxxTest::RealTestDescription( Tests_TestEventLoop, suiteDescription_TestEventLoop, 41, "test_timer" ) {}
+ void runTest() { suite_TestEventLoop.test_timer(); }
+} testDescription_TestEventLoop_test_timer;
+
+static class TestDescription_TestEventLoop_test_io_read : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestEventLoop_test_io_read() : CxxTest::RealTestDescription( Tests_TestEventLoop, suiteDescription_TestEventLoop, 54, "test_io_read" ) {}
+ void runTest() { suite_TestEventLoop.test_io_read(); }
+} testDescription_TestEventLoop_test_io_read;
+
+static class TestDescription_TestEventLoop_test_io_read_into_buffer : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestEventLoop_test_io_read_into_buffer() : CxxTest::RealTestDescription( Tests_TestEventLoop, suiteDescription_TestEventLoop, 74, "test_io_read_into_buffer" ) {}
+ void runTest() { suite_TestEventLoop.test_io_read_into_buffer(); }
+} testDescription_TestEventLoop_test_io_read_into_buffer;
+
+static class TestDescription_TestEventLoop_test_signal : public CxxTest::RealTestDescription {
+public:
+ TestDescription_TestEventLoop_test_signal() : CxxTest::RealTestDescription( Tests_TestEventLoop, suiteDescription_TestEventLoop, 107, "test_signal" ) {}
+ void runTest() { suite_TestEventLoop.test_signal(); }
+} testDescription_TestEventLoop_test_signal;
+
 #include "test_float.hpp"
 
 static TestFloat suite_TestFloat;

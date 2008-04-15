@@ -135,6 +135,7 @@ to be a simple test for that bit pattern.
     SendSiteType    ,
     SelectorType    ,
     LookupTableType ,
+    IOBufferType    ,
 
     LastObjectType   // must remain at end
   } object_type;

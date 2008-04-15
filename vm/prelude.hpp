@@ -23,5 +23,6 @@ namespace rubinius {
 
 };
 
+#include "virtual.hpp"
 
 #endif

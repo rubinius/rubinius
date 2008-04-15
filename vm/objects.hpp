@@ -46,6 +46,7 @@ namespace rubinius {
     const static size_t fields = 0;
 
     static Tuple* create(STATE, size_t fields);
+    static Tuple* from(STATE, size_t fields, ...);
     static bool is_a(OBJECT obj) {
       return obj->obj_type == TupleType;
     }
@@ -188,10 +189,47 @@ namespace rubinius {
   class IO : public BuiltinType {
     public:
     const static size_t fields = 4;
+
     OBJECT instance_variables;
     OBJECT descriptor;
     OBJECT buffer;
     OBJECT mode;
+
+    static void init(STATE);
+
+    class Buffer : public BuiltinType {
+    public:
+      const static size_t fields = 4;
+      const static object_type type = IOBufferType;
+
+      OBJECT instance_variables;
+      OBJECT storage;
+      OBJECT total;
+      OBJECT used;
+
+      static Buffer* create(STATE, size_t bytes);
+      void reset(STATE);
+      String* drain(STATE);
+
+      char* byte_address() {
+        return (char*)storage->bytes;
+      }
+
+      size_t left() {
+        return total->n2i() - used->n2i();
+      }
+
+      char* at_unused() {
+        char* start = (char*)storage->bytes;
+        start += used->n2i();
+        return start;
+      }
+
+      void read_bytes(size_t bytes) {
+        used = Object::i2n(used->n2i() + bytes);
+      }
+
+    };
   };
 };
 
@@ -341,6 +379,8 @@ namespace rubinius {
   class ByteArray : public BuiltinType {
     public:
     const static size_t fields = 0;
+
+    static ByteArray* create(STATE, size_t bytes);
   };
 };
 

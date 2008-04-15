@@ -3,6 +3,7 @@
 #include "objects.hpp"
 #include "objectmemory.hpp"
 #include "vm.hpp"
+#include "task.hpp"
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
@@ -198,10 +199,12 @@ namespace rubinius {
 
     globals.external_ivars = LookupTable::create(state);
 
+    IO::init(state);
     List::init(state);
     SendSite::init(state);
     Selector::init(state);
     init_ffi();
+    Task::init(state);
   }
 
   void VM::bootstrap_symbol() {
