@@ -306,6 +306,11 @@ class File < IO
     lstat(path).ftype
   end
 
+  def self.grpowned?(path)
+    lstat(path).grpowned?
+  end
+
+
   def self.identical?(orig, copy)
     st_o = stat(StringValue(orig))
     st_c = stat(StringValue(copy))
