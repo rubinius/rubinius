@@ -45,6 +45,7 @@ describe "Kernel#instance_eval" do
     end.should raise_error(TypeError)
   end
 
+quarantine! do # Not clean, leaves cvars lying around to break other specs
   it "scopes class var accesses in the caller when called on a Fixnum" do
     # Fixnum can take instance vars
     Fixnum.class_eval "@@__tmp_instance_eval_spec = 1"
@@ -54,6 +55,7 @@ describe "Kernel#instance_eval" do
     1.instance_eval { @@__tmp_instance_eval_spec }.should == 2
     Fixnum.__send__(:remove_class_variable, :@@__tmp_instance_eval_spec)
   end
+end
 
   it "raises a TypeError when defining methods on numerics" do
     lambda do
