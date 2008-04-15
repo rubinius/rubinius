@@ -632,7 +632,7 @@ class BreakpointTracker
       ctx.ip -= 1 unless ctx.ip == 0    # Need to reset IP to original instruction
       ip = ctx.ip
 
-      Rubinius.compile_if($DEBUG) { puts "Breakpoint hit at #{ip}" }
+      Rubinius.compile_if($DEBUG) { STDOUT.puts "Breakpoint hit at #{ip}" }
 
       @bp_list = find_breakpoints(task, cm, ip)
       unless @bp_list.size > 0
@@ -661,9 +661,10 @@ class BreakpointTracker
 
       begin
         @callback.call(@thread, ctx, @bp_list) if do_yield
-      rescue RuntimeError => e
-        puts "An exception occured in a breakpoint handler:"
-        puts e
+      rescue Exception => e
+        STDERR.puts "An exception occured in a breakpoint handler:"
+        STDERR.puts e.to_s
+        STDERR.puts e.awesome_backtrace
       end
     end
     @thread

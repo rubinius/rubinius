@@ -51,9 +51,13 @@ class Debugger
         begin
           thrd = @breakpoint_tracker.wait_for_breakpoint
           @breakpoint_tracker.wake_target(thrd) unless @quit  # defer wake until we cleanup
-        rescue Error => e
-          puts "An exception occured while processing a breakpoint:"
-          puts e
+        rescue Exception => e
+          # An exception has occurred in the breakpoint or debugger code
+          STDERR.puts "An exception occured while processing a breakpoint:"
+          STDERR.puts e.to_s
+          STDERR.puts e.awesome_backtrace
+          # Attempt to resume blocked thread
+          thrd.control_channel.send nil
         end
       end
       # Release singleton, since our loop thread is exiting
@@ -67,7 +71,6 @@ class Debugger
 
       if thrd
         # thrd will be nil if debugger was quit from other than a debug thread
-        puts "[Debugger exiting]"
         @breakpoint_tracker.wake_target(thrd)
       end
       @breakpoint_tracker.release_waiting_threads
@@ -136,6 +139,11 @@ class Debugger
       @breakpoint_tracker.debug_channel.send nil
       @breakpoint_listener.join
     end
+  end
+
+  # Returns true if the debugger is shutting down
+  def quit?
+    @quit
   end
 
   # (Re-)loads the available commands from all registered sub-classes of

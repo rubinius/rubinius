@@ -61,6 +61,7 @@ class Debugger
         output = dbg.process_command(@last_inp)
         @out.puts output if output
       end
+      @out.puts "[Debugger exiting]" if dbg.quit?
     end
 
     # Handles any exceptions raised by a Command subclass during a debug session.
