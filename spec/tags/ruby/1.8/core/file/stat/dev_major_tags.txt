@@ -1,1 +1,0 @@
-incomplete:File::Stat#dev_major needs to be reviewed for spec completeness

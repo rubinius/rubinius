@@ -1,1 +1,0 @@
-incomplete:File::Stat#dev_minor needs to be reviewed for spec completeness
