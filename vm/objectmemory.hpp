@@ -5,21 +5,9 @@
 #include "gc_marksweep.hpp"
 #include "gc_baker.hpp"
 #include "objects.hpp"
+#include "type_info.hpp"
 
 namespace rubinius {
-
-  class VM;
-
-  /* TypeInfo contains varies operations that are registered by types */
-  class TypeInfo {
-    public:
-    VM* state;
-    object_type type;
-    cleanup_function cleanup;
-
-    TypeInfo(Class* cls);
-    void delete_object(OBJECT obj);
-  };
 
   /* ObjectMemory is the primary API that the rest of the VM uses to interact
    * with actions such as allocating objects, storing data in objects, and
@@ -155,7 +143,7 @@ namespace rubinius {
     OBJECT promote_object(OBJECT obj);
     bool valid_object_p(OBJECT obj);
     void debug_marksweep(bool val);
-    TypeInfo* get_type_info(Class* cls);
+    void add_type_info(TypeInfo* ti);
     TypeInfo* find_type_info(OBJECT obj);
 
   };

@@ -11,7 +11,7 @@
 #define BASIC_CLASS(blah) state->globals.blah
 #define NEW_STRUCT(obj, str, kls, kind) \
   obj = (typeof(obj))state->new_struct(kls, sizeof(kind)); \
-  str = (kind *)BYTES_OF(obj)
+  str = (kind *)(obj->bytes)
 #define DATA_STRUCT(obj, type) ((type)(obj->bytes))
 
 #define NMP mp_int *n; Bignum* n_obj; \
@@ -163,21 +163,20 @@ namespace rubinius {
     mp_clear(&b);
   }
 
-  void Bignum::cleanup(STATE, OBJECT obj) {
+  void Bignum::Info::cleanup(OBJECT obj) {
     mp_int *n = MP(obj);
     mp_clear(n);
   }
 
   void Bignum::init(STATE) {
-    TypeInfo *ti = state->get_type_info(state->globals.bignum);
-    ti->cleanup = Bignum::cleanup;
+    state->add_type_info(new Bignum::Info(G(bignum)));
   }
 
   Bignum* Bignum::create(STATE, native_int num) {
     mp_int *a;
     Bignum* o;
     o = (Bignum*)state->new_struct(state->globals.bignum, sizeof(mp_int));
-    a = (mp_int*)BYTES_OF(o);
+    a = (mp_int*)(o->bytes);
 
     if(num < 0) {
       mp_init_set_long(a, (unsigned long)-num);

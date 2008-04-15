@@ -7,6 +7,75 @@
 #include <cstring>
 
 namespace rubinius {
+
+  const char* Object::type_to_name(object_type t) {
+    const char* type;
+
+    switch(t) { 
+    case ObjectType: 
+      type = "Object"; 
+      break; 
+    case MContextType: 
+      type = "MethodContext"; 
+      break; 
+    case BContextType: 
+      type = "BlockContext"; 
+      break; 
+    case ClassType: 
+      type = "Class"; 
+      break; 
+    case MetaclassType: 
+      type = "Metaclass"; 
+      break; 
+    case MTType: 
+      type = "MethodTable"; 
+      break; 
+    case WrapsStructType:
+      type = "SubtendCStructure"; 
+      break; 
+    case IncModType: 
+      type = "included Module"; 
+      break; 
+    case TaskType: 
+      type = "Task"; 
+      break; 
+    case FixnumType: 
+      type = "Fixnum"; 
+      break; 
+    case BignumType: 
+      type = "Bignum"; 
+      break; 
+    case FloatType: 
+      type = "Float"; 
+      break; 
+    case MemPtrType: 
+      type = "MemoryPointer"; 
+      break; 
+    case StringType: 
+      type = "String"; 
+      break; 
+    case SymbolType: 
+      type = "Symbol"; 
+      break; 
+    case CMethodType: 
+      type = "CompiledMethod"; 
+      break; 
+    case NMethodType: 
+      type = "NativeMethod"; 
+      break; 
+    case NilType: 
+      type = "nil"; 
+      break; 
+    case LookupTableType: 
+      type = "LookupTable"; 
+      break; 
+    default: 
+      type = "unknown"; 
+      break;
+    }
+    return type;
+  }
+
   OBJECT Object::ui2n(STATE, unsigned int num) {
     /* No need to check what 'num' is if it will always fit into a Fixnum */
 #if (CONFIG_WORDSIZE != 64)
@@ -17,7 +86,7 @@ namespace rubinius {
 #endif
     return APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
-  
+
   OBJECT Object::i2n(STATE, native_int num) {
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       return Bignum::create(state, num);
@@ -33,7 +102,7 @@ namespace rubinius {
       return APPLY_TAG(num, TAG_FIXNUM);
     }
   }
-  
+
   OBJECT Object::ull2n(STATE, unsigned long long num) {
     if(num > FIXNUM_MAX) {
       return Bignum::from_ull(state, num);
@@ -104,7 +173,7 @@ namespace rubinius {
       } else if(kind_of_p(state->globals.bignum)) {
         hsh = ((Bignum*)this)->hash_bignum(state);
       } else if(kind_of_p(state->globals.floatpoint)) {
-        hsh = String::hash_str((unsigned char *)BYTES_OF(this), sizeof(double));
+        hsh = String::hash_str((unsigned char *)(this->bytes), sizeof(double));
       } else {
         hsh = id(state);
       }

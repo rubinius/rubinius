@@ -75,24 +75,12 @@ namespace rubinius {
     young.clear_marks();
   }
 
-  TypeInfo* ObjectMemory::get_type_info(Class* cls) {
-    TypeInfo *ti = new TypeInfo(cls);
-    type_info[cls->object_type->n2i()] = ti;
-    return ti;
+  void ObjectMemory::add_type_info(TypeInfo* ti) {
+    type_info[ti->type] = ti;
   }
 
   TypeInfo* ObjectMemory::find_type_info(OBJECT obj) {
     return type_info[obj->obj_type];
-  }
-
-  TypeInfo::TypeInfo(Class *cls) {
-    type = (object_type)cls->object_type->n2i();
-    cleanup = NULL;
-    state = NULL;
-  }
-
-  void TypeInfo::delete_object(OBJECT obj) {
-    if(cleanup) cleanup(state, obj);
   }
 
 };

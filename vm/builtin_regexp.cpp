@@ -23,12 +23,12 @@
 #define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \
   obj = (typeof(obj))state->new_struct(kls, sizeof(kind)); \
-  str = (kind *)BYTES_OF(obj)
+  str = (kind *)(obj->bytes)
 #define DATA_STRUCT(obj, type) ((type)(obj->bytes))
 
 namespace rubinius {
 
-  void Regexp::cleanup(STATE, OBJECT data) {
+  void RegexpData::Info::cleanup(OBJECT data) {
     onig_free(REG(data));
   }
 
@@ -41,9 +41,8 @@ namespace rubinius {
     G(regexpdata)->object_type = Object::i2n(RegexpDataType);
     
     G(matchdata) = state->new_class("MatchData", G(object), 0);
-    
-    TypeInfo* ti = state->get_type_info(G(regexpdata));
-    ti->cleanup = Regexp::cleanup;
+   
+    state->add_type_info(new RegexpData::Info(G(regexpdata)));
   }
 
   char *Regexp::version(STATE) {

@@ -35,10 +35,9 @@ namespace rubinius {
     }
   }
 
-  TypeInfo* VM::get_type_info(Class* cls) {
-    TypeInfo* ti = om->get_type_info(cls);
+  void VM::add_type_info(TypeInfo* ti) {
+    om->add_type_info(ti);
     ti->state = this;
-    return ti;
   }
 
   OBJECT VM::current_thread() {

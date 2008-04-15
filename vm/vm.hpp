@@ -39,7 +39,7 @@ namespace rubinius {
     SYMBOL symbol(const char *str, size_t len = 0);
     OBJECT new_struct(Class* cls, size_t bytes);
 
-    TypeInfo* get_type_info(Class* cls);
+    void add_type_info(TypeInfo* ti);
 
     void init_ffi();
     OBJECT current_thread();
