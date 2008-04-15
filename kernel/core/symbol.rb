@@ -42,6 +42,9 @@ class Symbol
   # Slightly modified from ActiveSupport to avoid a reliance on left-to-right
   # evaluation order
   def to_proc
-    Proc.new { |rec, *args| rec.__send__(self, *args) }
+    Proc.new { |*args| 
+          obj = args.shift
+          args.empty? ? obj.__send__(self) : obj.__send__(self, *args)
+        }
   end
 end
