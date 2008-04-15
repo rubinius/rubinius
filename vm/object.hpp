@@ -129,6 +129,12 @@ to be a simple test for that bit pattern.
     SelectorType    ,
     LookupTableType ,
     IOBufferType    ,
+    StaticScopeType ,
+    SymbolTableType ,
+    MatchDataType   ,
+    ExceptionType   ,
+    IOType          ,
+    ExecutableType  ,
 
     LastObjectType   // must remain at end
   } object_type;
@@ -244,6 +250,10 @@ to be a simple test for that bit pattern.
       return SIZE_IN_BYTES(this);
     }
 
+    size_t body_in_bytes() {
+      return field_count * sizeof(OBJECT);
+    }
+
     bool reference_p() {
       return REFERENCE_P(this);
     }
@@ -316,6 +326,8 @@ to be a simple test for that bit pattern.
     bool check_type(object_type type) {
       return reference_p() && obj_type == type;
     }
+
+    void cleanup(STATE);
 
     bool kind_of_p(OBJECT cls);
     Class* class_object();

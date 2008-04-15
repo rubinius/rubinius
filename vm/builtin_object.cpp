@@ -313,4 +313,8 @@ namespace rubinius {
     String* name = class_object()->name->to_str(state);
     std::cout << "#<" << (char*)*name << ":" << (void*)this << ">\n";
   }
+    
+  void Object::cleanup(STATE) {
+    state->om->find_type_info(this)->cleanup(this);
+  }
 }

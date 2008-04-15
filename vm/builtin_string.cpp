@@ -25,8 +25,10 @@ namespace rubinius {
     so->encoding = Qnil;
 
     OBJECT ba = ByteArray::create(state, bytes);
-    memcpy(ba->bytes, str, bytes);
-    ba->bytes[bytes] = 0;
+    if(str) {
+      memcpy(ba->bytes, str, bytes);
+      ba->bytes[bytes] = 0;
+    }
 
     SET(so, data, ba);
 

@@ -134,6 +134,10 @@ namespace rubinius {
       return obj;
     }
 
+    TypeInfo* find_type_info(OBJECT obj) {
+      return type_info[obj->obj_type];
+    }
+
     /* Prototypes */
     ObjectMemory(size_t young_bytes);
     ~ObjectMemory();
@@ -144,7 +148,6 @@ namespace rubinius {
     bool valid_object_p(OBJECT obj);
     void debug_marksweep(bool val);
     void add_type_info(TypeInfo* ti);
-    TypeInfo* find_type_info(OBJECT obj);
 
   };
 

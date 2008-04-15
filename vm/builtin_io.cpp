@@ -17,4 +17,10 @@ namespace rubinius {
 
     return buf;
   }
+
+  IO* IO::create(STATE, int fd) {
+    IO* io = (IO*)state->new_object(G(io));
+    SET(io, descriptor, Object::i2n(state, fd));
+    return io;
+  }
 };

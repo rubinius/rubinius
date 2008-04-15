@@ -16,7 +16,7 @@ namespace rubinius {
     return tbl;
   }
 
-  OBJECT SymbolTable::lookup(STATE, const char* str, size_t size) {
+  SYMBOL SymbolTable::lookup(STATE, const char* str, size_t size) {
     if(!size) size = std::strlen(str);
 
     hashval hash = String::hash_str((unsigned char*)str, size);
@@ -39,7 +39,7 @@ namespace rubinius {
     return Symbol::from_index(state, ent->at(2)->n2i());
   }
 
-  OBJECT SymbolTable::lookup(STATE, String* str) {
+  SYMBOL SymbolTable::lookup(STATE, String* str) {
     hashval hash = str->hash_string(state);
 
     OBJECT idx = Qnil;

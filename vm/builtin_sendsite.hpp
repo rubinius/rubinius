@@ -13,8 +13,9 @@ namespace rubinius {
     public:
 
     static const size_t object_fields = 6;
+    static const object_type type = SendSiteType;
 
-    OBJECT name;
+    SYMBOL name;
     OBJECT sender;
     Selector* selector;
     OBJECT data1;

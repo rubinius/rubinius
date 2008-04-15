@@ -79,10 +79,6 @@ namespace rubinius {
     type_info[ti->type] = ti;
   }
 
-  TypeInfo* ObjectMemory::find_type_info(OBJECT obj) {
-    return type_info[obj->obj_type];
-  }
-
 };
 
 void* XMALLOC(size_t bytes) {

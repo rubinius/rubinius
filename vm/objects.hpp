@@ -14,6 +14,8 @@ namespace rubinius {
   class StaticScope : public BuiltinType {
     public:
     const static size_t fields = 3;
+    const static object_type type = StaticScopeType;
+
     OBJECT instance_variables;
     OBJECT module;
     OBJECT parent;
@@ -23,20 +25,39 @@ namespace rubinius {
 namespace rubinius {
 
   class String;
-  class Symbol;
   class Hash;
   class Tuple;
+  
+  class Symbol : public BuiltinType {
+    public:
+    const static size_t fields = 0;
+    const static object_type type = SymbolType;
+
+    native_int index() {
+      return DATA_STRIP_TAG(this);
+    }
+
+    static Symbol* from_index(STATE, size_t index) {
+      return (Symbol*)DATA_APPLY_TAG(index, DATA_TAG_SYMBOL);
+    }
+
+    String* to_str(STATE);
+  };
+
+  typedef Symbol* SYMBOL;
 
   class SymbolTable : public BuiltinType {
     public:
     const static size_t fields = 3;
+    const static object_type type = SymbolTableType;
+
     OBJECT instance_variables;
     Tuple* symbols;
     Hash*  strings;
 
     static SymbolTable* create(STATE);
-    OBJECT lookup(STATE, const char* str, size_t size = 0);
-    OBJECT lookup(STATE, String* str);
+    SYMBOL lookup(STATE, const char* str, size_t size = 0);
+    SYMBOL lookup(STATE, String* str);
     String* find_string(STATE, Symbol* sym);
   };
 };
@@ -45,6 +66,7 @@ namespace rubinius {
   class Tuple : public BuiltinType {
     public:
     const static size_t fields = 0;
+    const static object_type type = TupleType;
 
     static Tuple* create(STATE, size_t fields);
     static Tuple* from(STATE, size_t fields, ...);
@@ -65,6 +87,8 @@ namespace rubinius {
   class Hash : public BuiltinType {
     public:
     const static size_t fields = 7;
+    const static object_type type = HashType;
+
     OBJECT instance_variables;
     OBJECT keys;
     Tuple* values;
@@ -106,6 +130,7 @@ namespace rubinius {
   class Blockcontext : public BuiltinType {
     public:
     const static size_t fields = 0;
+    const static object_type type = BContextType;
   };
 };
 
@@ -113,6 +138,7 @@ namespace rubinius {
   class RegexpData : public BuiltinType {
     public:
     const static size_t fields = 0;
+    const static object_type type = RegexpDataType;
 
     class Info : public TypeInfo {
     public:
@@ -126,6 +152,8 @@ namespace rubinius {
   class MatchData : public BuiltinType {
     public:
     const static size_t fields = 5;
+    const static object_type type = MatchDataType;
+
     OBJECT instance_variables;
     OBJECT source;
     OBJECT regexp;
@@ -138,6 +166,8 @@ namespace rubinius {
   class NormalObject : public BuiltinType {
     public:
     const static size_t fields = 1;
+    const static object_type type = ObjectType;
+
     OBJECT instance_variables;
   };
 };
@@ -170,6 +200,8 @@ namespace rubinius {
   class Exception : public BuiltinType {
     public:
     const static size_t fields = 3;
+    const static object_type type = ExceptionType;
+    
     OBJECT instance_variables;
     OBJECT message;
     OBJECT context;
@@ -180,6 +212,8 @@ namespace rubinius {
   class BlockEnvironment : public BuiltinType {
     public:
     const static size_t fields = 9;
+    const static object_type type = BlockEnvType;
+    
     OBJECT instance_variables;
     OBJECT home;
     OBJECT initial_ip;
@@ -196,6 +230,7 @@ namespace rubinius {
   class IO : public BuiltinType {
     public:
     const static size_t fields = 4;
+    const static object_type type = IOType;
 
     OBJECT instance_variables;
     OBJECT descriptor;
@@ -203,6 +238,7 @@ namespace rubinius {
     OBJECT mode;
 
     static void init(STATE);
+    static IO* create(STATE, int fd);
 
     class Buffer : public BuiltinType {
     public:
@@ -244,6 +280,8 @@ namespace rubinius {
   class Regexp : public BuiltinType {
     public:
     const static size_t fields = 4;
+    const static object_type type = RegexpType;
+    
     OBJECT instance_variables;
     OBJECT source;
     OBJECT data;
@@ -258,26 +296,6 @@ namespace rubinius {
     OBJECT match_region(STATE, String* string, OBJECT start, OBJECT end, OBJECT forward);
 
   };
-};
-
-namespace rubinius {
-  class Symbol : public BuiltinType {
-    public:
-    const static size_t fields = 0;
-    const static object_type type = SymbolType;
-
-    native_int index() {
-      return DATA_STRIP_TAG(this);
-    }
-
-    static OBJECT from_index(STATE, size_t index) {
-      return DATA_APPLY_TAG(index, DATA_TAG_SYMBOL);
-    }
-
-    String* to_str(STATE);
-  };
-
-  typedef Symbol* SYMBOL;
 };
 
 namespace rubinius {
@@ -302,6 +320,10 @@ namespace rubinius {
     static int string_equal_p(STATE, OBJECT self, OBJECT other);
     
     size_t size(STATE) {
+      return num_bytes->n2i();
+    }
+    
+    size_t size() {
       return num_bytes->n2i();
     }
     
@@ -332,6 +354,7 @@ namespace rubinius {
   class ByteArray : public BuiltinType {
     public:
     const static size_t fields = 0;
+    const static object_type type = ByteArrayType;
 
     static ByteArray* create(STATE, size_t bytes);
   };
@@ -342,6 +365,8 @@ namespace rubinius {
   class LookupTable : public BuiltinType {
     public:
     const static size_t fields = 4;
+    const static object_type type = LookupTableType;
+    
     OBJECT instance_variables;
     Tuple* values;
     OBJECT bins;
@@ -376,6 +401,7 @@ namespace rubinius {
 
   class MethodTable : public LookupTable {
     public:
+    const static object_type type = MTType;
     static MethodTable* create(STATE);
   };
 };
@@ -383,6 +409,7 @@ namespace rubinius {
 namespace rubinius {
   class MethodContext : public BuiltinType {
     public:
+    const static object_type type = MContextType;
     const static size_t fields = 0;
   };
 };
@@ -392,6 +419,8 @@ namespace rubinius {
   class Executable : public BuiltinType {
     public:
     const static size_t fields = 4;
+    const static object_type type = ExecutableType;
+
     OBJECT instance_variables;
     OBJECT primitive;
     OBJECT required;
@@ -401,6 +430,9 @@ namespace rubinius {
   class CompiledMethod : public Executable {
     public:
     const static size_t fields = 19;
+    const static object_type type = CMethodType;
+    const static size_t saved_fields = 16;
+
     OBJECT bytecodes;
     OBJECT name;
     OBJECT file;
@@ -416,6 +448,9 @@ namespace rubinius {
     OBJECT compiled;
     OBJECT staticscope;
     OBJECT args;
+
+    static CompiledMethod* create(STATE);
+    void post_marshal(STATE);
   };
 };
 
@@ -426,6 +461,7 @@ namespace rubinius {
   };
 }
 
+#include "builtin_iseq.hpp"
 #include "builtin_bignum.hpp"
 #include "builtin_float.hpp"
 #include "builtin_class.hpp"
