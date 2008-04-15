@@ -307,7 +307,11 @@ class File < IO
   end
 
   def self.grpowned?(path)
-    lstat(path).grpowned?
+    begin 
+      lstat(path).grpowned?
+    rescue
+      false
+    end
   end
 
   def self.identical?(orig, copy)

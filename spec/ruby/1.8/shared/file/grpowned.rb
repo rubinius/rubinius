@@ -13,7 +13,6 @@ shared :file_grpowned do |cmd, klass, name|
     
     it "return true if the file exist" do
       klass.send(cmd, @file).should == true
-      lambda { klass.send(cmd, 'a_fake_file')}.should raise_error
     end
   end
 end
