@@ -1,1 +1,0 @@
-incomplete:File::Stat#grpowned? needs to be reviewed for spec completeness
