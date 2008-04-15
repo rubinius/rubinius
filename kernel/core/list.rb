@@ -2,6 +2,9 @@
 
 class List
   ivar_as_index :count => 0, :first => 1, :last => 2
+
+  # List does not have ivars
+  def __ivars__ ; nil         ; end
   
   def count
     @count
@@ -57,6 +60,10 @@ class List
 
   class Node
     ivar_as_index :object => 0, :next => 1
+
+    # Node does not have ivars
+    def __ivars__ ; nil         ; end
+
     
     def object
       @object

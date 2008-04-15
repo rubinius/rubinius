@@ -4,8 +4,6 @@ class Float < Numeric
 
   include Precision
 
-  def __ivars__; nil; end
-  
   RADIX      = Platform::Float.RADIX
   ROUNDS     = Platform::Float.ROUNDS
   MIN        = Platform::Float.MIN

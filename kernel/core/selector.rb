@@ -1,6 +1,13 @@
 class Selector
   ivar_as_index :name => 0, :send_sites => 1
 
+  # Selector does not have ivars
+  def __ivars__ ; nil         ; end
+
+  def self.new
+    raise TypeError, "Selector doesn't support #new"
+  end
+
   def name
     @name
   end

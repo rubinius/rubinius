@@ -3,6 +3,9 @@
 class Numeric
   include Comparable
 
+  # Numeric and sub-classes do not have ivars
+  def __ivars__ ; nil  ; end
+
   def +@
     self
   end
