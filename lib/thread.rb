@@ -40,59 +40,60 @@ end
 class Mutex
   def initialize
     @lock = Channel.new
+    @owner = nil
     @waiters = []
     @lock << nil
   end
 
   def locked?
-    owner = @lock.receive
+    @lock.receive
     begin
-      !!owner
+      !!@owner
     ensure
-      @lock << owner
+      @lock << nil
     end
   end
 
   def try_lock
-    owner = @lock.receive
+    @lock.receive
     begin
-      if owner
+      if @owner
         false
       else
-        owner = Thread.current
+        @owner = Thread.current
         true
       end
     ensure
-      @lock << owner
+      @lock << nil
     end
   end
 
   def lock
-    owner = @lock.receive
+    @lock.receive
     begin
-      while owner
+      while @owner
         wchan = Channel.new
         @waiters.push wchan
-        @lock << owner
+        @lock << nil
         wchan.receive
-        owner = @lock.receive
+        @lock.receive
       end
-      owner = Thread.current
+      @owner = Thread.current
       self
     ensure
-      @lock << owner
+      @lock << nil
     end
   end
 
   def unlock
-    owner = @lock.receive
+    @lock.receive
     begin
-      raise ThreadError, "Not owner" unless owner == Thread.current
-      owner = nil
+      raise ThreadError, "Not owner" unless @owner == Thread.current
+      @owner = nil
       @waiters.shift << nil unless @waiters.empty?
       self
     ensure
-      @lock << owner
+      @lock << nil
     end
   end
 
