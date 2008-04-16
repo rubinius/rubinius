@@ -580,12 +580,7 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
     save_value:
     written = channel_get_value(self);
     if(NIL_P(written)) {
-      if(NIL_P(obj)) {
-        written = I2N(0);
-      } else {
-        written = list_new(state);
-        channel_set_value(self, written);
-      }
+      written = I2N(0);
     }
     if(FIXNUM_P(written)) {
       long int count = N2I(written);
