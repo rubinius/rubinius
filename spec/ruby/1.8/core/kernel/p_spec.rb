@@ -2,6 +2,14 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#p" do
+  before :all do
+    @rs_f, @rs_b, @rs_c = $/, $\, $,
+  end
+
+  after :each do
+    $/, $\, $, = @rs_f, @rs_b, @rs_c
+  end
+
   it "is a private method" do
     Kernel.private_instance_methods.should include("p")
   end
@@ -25,6 +33,38 @@ describe "Kernel#p" do
     ensure
       File.delete(filename) rescue nil
     end
+  end
+
+  it "prints obj.inspect followed by system record separator (usually \\n) for each argument given" do
+    o = mock("Inspector Gadget")
+    o.should_receive(:inspect).any_number_of_times.and_return "Next time, Gadget, NEXT TIME!"
+
+    lambda { p(o) }.should output("Next time, Gadget, NEXT TIME!\n")
+    lambda { p(*[o]) }.should output("Next time, Gadget, NEXT TIME!\n")
+    lambda { p(*[o, o]) }.should output("Next time, Gadget, NEXT TIME!\nNext time, Gadget, NEXT TIME!\n")
+    lambda { p([o])}.should output("[#{o.inspect}]\n")
+  end
+
+  it "is not affected by setting $\\, $/ or $," do
+    o = mock("Inspector Gadget")
+    o.should_receive(:inspect).any_number_of_times.and_return "Next time, Gadget, NEXT TIME!"
+
+    $, = " *helicopter sound*\n"
+    lambda { p(o) }.should output_to_fd("Next time, Gadget, NEXT TIME!\n")
+
+    $\ = " *helicopter sound*\n"
+    lambda { p(o) }.should output_to_fd("Next time, Gadget, NEXT TIME!\n")
+
+    $/ = " *helicopter sound*\n"
+    lambda { p(o) }.should output_to_fd("Next time, Gadget, NEXT TIME!\n")
+  end
+
+  it "prints nothing if no argument is given" do
+    lambda { p }.should output("")
+  end
+
+  it "prints nothing if called splatting an empty Array" do
+    lambda { p(*[]) }.should output("")
   end
 
 =begin Not sure how to spec this, but wanted to note the behavior here  
