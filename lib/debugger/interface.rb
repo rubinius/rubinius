@@ -23,7 +23,7 @@ class Debugger
     def process_commands(dbg, thread, ctxt, bp_list)
       bp = bp_list.last
       file = ctxt.file.to_s
-      line = ctxt.line
+      line = ctxt.method.line_from_ip(ctxt.ip)
       @out.puts "[Debugger activated]" unless bp.kind_of? StepBreakpoint
       @out.puts ""
       @out.puts "#{file}:#{line} (#{ctxt.method.name}) [IP:#{ctxt.ip}]"
