@@ -1,29 +1,28 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-# FIXME: this awful wording
 describe "Numeric#div" do  
-  it "div right  integers" do 
+  it "returns the integer quotient of two Integers" do 
     13.div(4).should == 3
     4.div(13).should == 0
   end
   
-  it "div right  integers and floats" do 
+  it "returns the integer quotient of an Integer and a Float" do 
     13.div(4.0).should == 3
-    4.div(13).should == 0
+    4.div(13.0).should == 0
   end
   
-  it "div right the integers and floats" do 
-    13.div(4.0).should == 3
-    4.div(13).should == 0
+  it "returns the integer quotient of a Float and an Integer" do 
+    (13.0).div(4).should == 3
+    (4.0).div(13).should == 0
   end
   
-  it "div right  floats" do 
-    13.0.div(4.0).should == 3
-    4.0.div(13).should == 0
+  it "returns the integer quotient of two Floats" do 
+    (13.0).div(4.0).should == 3
+    (4.0).div(13.0).should == 0
   end
   
-  it "returns self divided by other" do
-    (3**33).div(100).should == 55590605665555
+  it "returns the integer quotient of a Bignum and an Integer" do
+    bignum_value(0).div(100).should == 92233720368547758
   end
   
   it "raises an ArgumentError if not passed one argument" do
