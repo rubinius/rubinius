@@ -179,8 +179,11 @@ module Kernel
   end
   module_function :puts
 
+  # For each object given, prints obj.inspect followed by the
+  # system record separator to standard output (thus, separator
+  # cannot be overridden.) Prints nothing if no objects given.
   def p(*a)
-    a = [nil] if a.empty?
+    return nil if a.empty?
     a.each { |obj| $stdout.puts obj.inspect }
     nil
   end
