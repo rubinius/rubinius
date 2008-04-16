@@ -34,16 +34,20 @@ class Debugger
     end
 
     def execute(dbg, md)
-      output = Output.new
-      output << "Breakpoints:"
-      output.set_columns(["%d.", "%-s", " %s ", "[IP:%d]", "%4d", "%s"])
-      dbg.breakpoints.each_with_index do |bp, i|
-        if bp.enabled?
-          output.set_color :white
-        else
-          output.set_color :yellow
+      if bp_list = dbg.breakpoints and bp_list.size > 0
+        output = Output.new
+        output << "Breakpoints:"
+        output.set_columns(["%d.", "%-s", " %s ", "[IP:%d]", "%4d", "%s"])
+        dbg.breakpoints.each_with_index do |bp, i|
+          if bp.enabled?
+            output.set_color :white
+          else
+            output.set_color :yellow
+          end
+          output << [i+1, "#{bp.method.file}:#{bp.line}", bp.method.name, bp.ip, bp.hits, "#{'(disabled)' unless bp.enabled?}"]
         end
-        output << [i+1, "#{bp.method.file}:#{bp.line}", bp.method.name, bp.ip, bp.hits, "#{'(disabled)' unless bp.enabled?}"]
+      else
+        output = "No breakpoints currently defined"
       end
       output
     end
@@ -51,7 +55,7 @@ class Debugger
 
 
   class AddBreakpoint < Command
-    @@re = Regexp.new('^b(?:reak)?\s+' + MODULE_METHOD_RE + '(?:(?::|\s+)(\d+))?$')
+    @@re = Regexp.new('^b(?:reak)?\s+' + MODULE_METHOD_RE + '(?::(\d+))?$')
 
     def help
       return "b[reak] <method>[:<line>]", "Set a breakpoint at the start or specified line of <method>."
@@ -69,6 +73,28 @@ class Debugger
 
       bp = dbg.set_breakpoint cm, ip
       return "Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}"
+    end
+  end
+
+
+  class DeleteBreakpoint < Command
+    def help
+      return "b[reak] d[el] <n>", "Delete breakpoint <n>."
+    end
+
+    def command_regexp
+      /^b(?:reak)?\s+d(?:el(?:ete)?)?\s+(\d+)$/
+    end
+
+    def execute(dbg, md)
+      n = md[1].to_i
+      bp = dbg.breakpoints[n-1]
+      if bp
+        dbg.remove_breakpoint bp
+        return "Deleted breakpoint #{n} from #{bp.method.file}:#{bp.line}"
+      else
+        return "No such breakpoint"
+      end
     end
   end
 
