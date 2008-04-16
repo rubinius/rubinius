@@ -643,7 +643,7 @@ class BreakpointTracker
       @bp_list.each do |bp|
         case bp
         when StepBreakpoint
-          if bp.steps == 0 then
+          if bp.steps.nil? or bp.steps == 0 then
             # Delete expired task breakpoints
             @task_breakpoints[task].delete(bp)
             do_yield = true unless bp.kind_of? BreakpointRestorer
