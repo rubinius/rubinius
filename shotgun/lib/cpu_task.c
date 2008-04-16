@@ -580,10 +580,29 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
     save_value:
     written = channel_get_value(self);
     if(NIL_P(written)) {
-      written = list_new(state);
-      channel_set_value(self, written);
+      if(NIL_P(obj)) {
+        written = I2N(0);
+      } else {
+        written = list_new(state);
+        channel_set_value(self, written);
+      }
     }
-    list_append(state, written, obj);
+    if(FIXNUM_P(written)) {
+      long int count = N2I(written);
+      if(NIL_P(obj)) {
+        written = I2N(count+1);
+      } else {
+        long int i;
+        written = list_new(state);
+        for (i = 0; i < count; ++i) {
+          list_append(state, written, Qnil);
+        }
+        list_append(state, written, obj);
+      }
+      channel_set_value(self, written);
+    } else {
+      list_append(state, written, obj);
+    }
   } else {
     reader = list_shift(state, readers);
     /* Edge case. After going all around, we've decided that the current
@@ -631,7 +650,14 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
   OBJECT written, obj, readers;
   
   written = channel_get_value(self);
-  if(!NIL_P(written) && !list_empty_p(written)) {
+  if(FIXNUM_P(written)) {
+    long int count = N2I(written);
+    if (count > 0) {
+      channel_set_value(self, I2N(count-1));
+      stack_push(Qnil);
+      return;
+    }
+  } else if(!NIL_P(written) && !list_empty_p(written)) {
     obj = list_shift(state, written);
     stack_push(obj);
     return;
