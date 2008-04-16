@@ -209,7 +209,7 @@ static void _cpu_wake_channel_for_timer(EV_P_ struct ev_timer *ev, int revents) 
   
   ti->state->pending_events--;
 
-  cpu_channel_send(ti->state, ti->c, ti->channel, Qnil);
+  cpu_channel_send(ti->state, ti->c, ti->channel, ti->buffer);
   _cpu_event_unregister_info(ti->state, ti);
 }
 
@@ -291,7 +291,7 @@ static void _cpu_wake_channel_for_signal(EV_P_ struct ev_signal *ev, int revents
   cpu_channel_send(ti->state, ti->c, ti->channel, ti->c->current_thread);
 }
 
-OBJECT cpu_event_wake_channel(STATE, cpu c, OBJECT channel, double seconds) {
+OBJECT cpu_event_wake_channel(STATE, cpu c, OBJECT channel, double seconds, OBJECT tag) {
   struct thread_info *ti;
   OBJECT id;
 
@@ -300,6 +300,7 @@ OBJECT cpu_event_wake_channel(STATE, cpu c, OBJECT channel, double seconds) {
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
+  ti->buffer = tag;
   ti->stopper = (stopper_cb)ev_timer_stop;
   
   state->pending_events++;

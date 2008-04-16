@@ -2989,7 +2989,7 @@ class ShotgunPrimitives
 
     seconds = k / 1000000.0;
 
-    RET(cpu_event_wake_channel(state, c, t2, seconds));
+    RET(cpu_event_wake_channel(state, c, t2, seconds, Qnil));
     CODE
   end
 
@@ -3005,7 +3005,7 @@ class ShotgunPrimitives
 
     seconds = FLOAT_TO_DOUBLE(t1);
 
-    RET(cpu_event_wake_channel(state, c, t2, seconds));
+    RET(cpu_event_wake_channel(state, c, t2, seconds, Qnil));
     CODE
   end
 

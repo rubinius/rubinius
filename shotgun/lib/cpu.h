@@ -319,7 +319,7 @@ void cpu_event_runonce(STATE);
 void cpu_event_init(STATE);
 void cpu_event_run(STATE);
 void cpu_event_each_channel(STATE, cpu_event_each_channel_cb, void *cb_data);
-OBJECT cpu_event_wake_channel(STATE, cpu c, OBJECT channel, double seconds);
+OBJECT cpu_event_wake_channel(STATE, cpu c, OBJECT channel, double seconds, OBJECT tag);
 OBJECT cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer, int count);
 OBJECT cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd);
 OBJECT cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig);
