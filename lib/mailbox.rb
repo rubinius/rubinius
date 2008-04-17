@@ -32,9 +32,33 @@ class Mailbox
   def initialize
     @channel = Channel.new
     @skipped = []
+    @interrupt_lock = Channel.new
+    @interrupts = []
+    @interrupt_lock << nil
   end
 
   class TimeoutEvent ; end
+
+  def interrupt(interrupt)
+    @interrupt_lock.receive
+    begin
+      @interrupts.push interrupt
+    ensure
+      @interrupt_lock << nil
+    end
+    self
+  end
+
+  def check_interrupt
+    @interrupt_lock.receive
+    begin
+      interrupt = @interrupts.shift
+      raise interrupt if interrupt
+    ensure
+      @interrupt_lock << nil
+    end
+    self
+  end
 
   def send(value)
     @channel.send value

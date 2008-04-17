@@ -31,6 +31,15 @@
 require 'mailbox'
 
 class Actor
+  class DeadActorError < RuntimeError
+    attr_reader :actor
+    attr_reader :reason
+    def initialize(actor, reason)
+      @actor = actor
+      @reason = reason
+    end
+  end
+
   class << self
     alias_method :private_new, :new
     private :private_new
@@ -49,6 +58,11 @@ class Actor
     end
     private :current_mailbox
 
+    def check_interrupt
+      current_mailbox.check_interrupt
+      self
+    end
+
     # Receive a message from the current Actor's mailbox
     def receive(&block)
       current_mailbox.receive(&block)
@@ -64,9 +78,9 @@ class Actor
 
         begin
           block.call *args
-          current.handle_error(:exit_clean)
+          current._shutdown(:exit_clean)
         rescue => e
-          current.handle_error(e)
+          current._shutdown(e)
         end
       end
       channel.receive
@@ -146,7 +160,9 @@ class Actor
     @mailbox = mailbox
     @lock = Channel.new
     @links = []
-    @trap_exit = true
+    @alive = true
+    @exit_reason = nil
+    @trap_exit = false
     @lock << nil
   end
 
@@ -158,13 +174,13 @@ class Actor
  
   # Notify this actor that it's now linked to the given one
   def notify_link(actor)
-    raise ArgumentError, "can only link to Actors" unless actor.is_a? Actor
-    
     # Ignore circular links
     return true if actor == self
     
     @lock.receive
     begin
+      raise DeadActorError.new(self, @exit_reason) unless @alive
+
       # Ignore duplicate links
       return true if @links.include? actor
     
@@ -172,7 +188,7 @@ class Actor
     ensure
       @lock << nil
     end
-    true
+    self
   end
   
   # Notify this actor that it's now unlinked from the given one
@@ -183,28 +199,31 @@ class Actor
     ensure
       @lock << nil
     end
-    true
+    self
   end
   
   # Notify this actor that one of the Actors it's linked to has exited
   def notify_exited(actor, reason)
-    event = [:exit, actor, reason]
-
-    if @trap_exit
-      send event
-    elsif ex
-      # Need to raise the error in the context of the actor thread itself,
-      # or else kill the actor thread and notify its linked actors.
-      #raise ex
+    @lock.receive
+    begin
+      @links.delete(actor)
+      if @trap_exit
+        send [:exit, actor, reason]
+      elsif reason != :exit_clean
+        @mailbox.interrupt DeadActorError.new(actor, reason)
+      end
+    ensure
+      @lock << nil
     end
+    self
   end
 
-  # Notify all the linked actors that this actor has exited with an
-  # error
-  def handle_error(reason)
+  def _shutdown(reason)
     links = nil
     @lock.receive
     begin
+      @alive = false
+      @exit_reason = reason
       links, @links = @links, []
     ensure
       @lock << nil
@@ -223,13 +242,22 @@ class Actor
   # Actors to supervise sets of others and restart them in the event
   # of an error.
   
-  #NOTE: For now we only support trap_exit mode so it is always true
   def trap_exit=(value)
-    #@trap_exit = !!value
+    @lock.receive
+    begin
+      @trap_exit = !!value
+    ensure
+      @lock << nil
+    end
   end
   
   # Is the Actor trapping exit?
   def trap_exit?
-    @trap_exit
+    @lock.receive
+    begin
+      @trap_exit
+    ensure
+      @lock << nil
+    end
   end
 end
