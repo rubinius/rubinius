@@ -97,58 +97,37 @@ describe MkSpec, "#options" do
   end
 end
 
-module MkSpecs
-  class A; end
-  class B; end
-end
-
-describe MkSpec, "#map_constants" do
-  before :each do
-    @script = MkSpec.new
-  end
-
-  it "returns a list of class/module constants from a list of names" do
-    @script.map_constants(["Object", "Kernel", "Float"]).should == [
-      Object, Kernel, Float
-    ]
-  end
-
-  it "returns a list of class/module constants from a list of constants" do
-    @script.map_constants([Object, Kernel, Float]).should == [
-      Object, Kernel, Float
-    ]
-  end
-
-  it "prepends the module to the name if the module is provided" do
-    @script.map_constants(["A", "B"], "MkSpecs").should == [
-      MkSpecs::A, MkSpecs::B
-    ]
-  end
-
-  it "prints a warning if the name is not a class or module" do
-    @script.should_receive(:puts).with("Float::MAX is not a class or module, ignoring")
-    @script.map_constants(["MAX"], "Float")
-  end
-end
-
 describe MkSpec, "#create_directory" do
   before :each do
     @script = MkSpec.new
+    @script.config[:base] = "spec"
   end
 
   it "prints a warning if a file with the directory name exists" do
     File.should_receive(:exist?).and_return(true)
     File.should_receive(:directory?).and_return(false)
-    Dir.should_not_receive(:mkdir)
+    FileUtils.should_not_receive(:mkdir_p)
     @script.should_receive(:puts).with("spec/class already exists and is not a directory.")
-    @script.create_directory(Class, "spec").should == "spec/class"
+    @script.create_directory("Class").should == nil
   end
 
-  it "returns the name of the directory if it already exists" do
+  it "does nothing if the directory already exists" do
     File.should_receive(:exist?).and_return(true)
     File.should_receive(:directory?).and_return(true)
-    Dir.should_not_receive(:mkdir)
-    @script.create_directory(Class, "spec").should == "spec/class"
+    FileUtils.should_not_receive(:mkdir_p)
+    @script.create_directory("Class").should == "spec/class"
+  end
+
+  it "creates the directory if it does not exist" do
+    File.should_receive(:exist?).and_return(false)
+    FileUtils.should_receive(:mkdir_p).with("spec/class")
+    @script.create_directory("Class").should == "spec/class"
+  end
+
+  it "creates the directory for a namespaced module if it does not exist" do
+    File.should_receive(:exist?).and_return(false)
+    FileUtils.should_receive(:mkdir_p).with("spec/struct/tms")
+    @script.create_directory("Struct::Tms").should == "spec/struct/tms"
   end
 end
 
@@ -242,85 +221,26 @@ describe MkSpec, "#create_file" do
   it "generates a file name based on the directory, class/module, and method" do
     File.should_receive(:join).with("spec/tcejbo", "inspect_spec.rb"
         ).and_return("spec/tcejbo/inspect_spec.rb")
-    @script.create_file("spec/tcejbo", Object, "inspect")
+    @script.create_file("spec/tcejbo", "Object", "inspect", "Object#inspect")
   end
 
   it "does not call #write_requires if the spec file already exists" do
     File.should_receive(:exist?).and_return(true)
     @script.should_not_receive(:write_requires)
-    @script.create_file("spec/tcejbo", Object, "inspect")
+    @script.create_file("spec/tcejbo", "Object", "inspect", "Object#inspect")
   end
 
   it "calls #write_requires if the spec file does not exist" do
     File.should_receive(:exist?).and_return(false)
     @script.should_receive(:write_requires).with(
         "spec/tcejbo", "spec/tcejbo/inspect_spec.rb")
-    @script.create_file("spec/tcejbo", Object, "inspect")
+    @script.create_file("spec/tcejbo", "Object", "inspect", "Object#inspect")
   end
 
-  it "calls #write_spec with the file, method name (Class#name) if instance is true" do
+  it "calls #write_spec with the file, method name" do
     @script.should_receive(:write_spec).with(
         "spec/tcejbo/inspect_spec.rb", "Object#inspect", false)
-    @script.create_file("spec/tcejbo", Object, "inspect")
-  end
-
-  it "calls #write_spec with the file, method name (Class.name) if instance is false" do
-    @script.should_receive(:write_spec).with(
-        "spec/tcejbo/inspect_spec.rb", "Object.inspect", false)
-    @script.create_file("spec/tcejbo", Object, "inspect", false)
-  end
-end
-
-describe MkSpec, "#generate" do
-  before :each do
-    @script = MkSpec.new
-    @script.stub!(:create_directory).and_return("subdir")
-    @script.stub!(:create_file)
-    @script.stub!(:map_constants).and_return([])
-
-    @mod = mock("class/module", :null_object => true)
-    @modules = [@mod]
-  end
-
-  it "creates a directory for each module" do
-    @script.should_receive(:create_directory).with(@mod, "spec")
-    @script.generate @modules, "spec"
-  end
-
-  it "gets a list of each module's methods" do
-    @mod.should_receive(:methods).with(false).and_return([])
-    @script.generate @modules, "spec"
-  end
-
-  it "calls #create_file for each module's methods" do
-    @mod.should_receive(:methods).with(false).and_return(["method"])
-    @script.should_receive(:create_file).with("subdir", @mod, "method", false)
-    @script.generate @modules, "spec"
-  end
-
-  it "gets a list of each module's public_instance_methods" do
-    @mod.should_receive(:public_instance_methods).with(false).and_return([])
-    @script.generate @modules, "spec"
-  end
-
-  it "gets a list of each module's protected_instance_methods" do
-    @mod.should_receive(:protected_instance_methods).with(false).and_return([])
-    @script.generate @modules, "spec"
-  end
-
-  it "gets a list of each module's private_instance_methods" do
-    @mod.should_receive(:private_instance_methods).with(false).and_return([])
-    @script.generate @modules, "spec"
-  end
-
-  it "calls #create_file for each module's public, protected, and private instance methods" do
-    @mod.stub!(:public_instance_methods).and_return(["public"])
-    @mod.stub!(:protected_instance_methods).and_return(["protected"])
-    @mod.stub!(:private_instance_methods).and_return(["private"])
-    @script.should_receive(:create_file).with("subdir", @mod, "public")
-    @script.should_receive(:create_file).with("subdir", @mod, "protected")
-    @script.should_receive(:create_file).with("subdir", @mod, "private")
-    @script.generate @modules, "spec"
+    @script.create_file("spec/tcejbo", "Object", "inspect", "Object#inspect")
   end
 end
 
@@ -328,9 +248,10 @@ describe MkSpec, "#run" do
   before :each do
     @options = OptionParser.new
     OptionParser.stub!(:new).and_return(@options)
+    @map = NameMap.new
+    NameMap.stub!(:new).and_return(@map)
     @script = MkSpec.new
-    @script.stub!(:generate)
-    @script.stub!(:map_constants).and_return([Object])
+    @script.config[:constants] = [MkSpec]
   end
 
   it "loads files in the requires list" do
@@ -341,25 +262,15 @@ describe MkSpec, "#run" do
     @script.run
   end
 
-  it "calls #map_constants with a list of constants" do
-    @script.config[:base] = "spec"
-    @script.config[:constants] = [Object]
-    @script.should_receive(:map_constants).with([Object])
+  it "creates a map of constants to methods" do
+    @map.should_receive(:map).with({}, @script.config[:constants]).and_return({})
     @script.run
   end
 
-  it "calls #map_constants with Object's constants if the list of constants is empty" do
-    @script.config[:base] = "spec"
-    @script.config[:constants] = []
-    @script.should_receive(:map_constants).with(Object.constants)
-    @script.run
+  it "calls #create_directory for each class/module in the map" do
   end
 
-  it "calls #generate with the results of map_constants and the base directory" do
-    @script.config[:base] = "spec"
-    @script.should_receive(:map_constants).and_return(["Object"])
-    @script.should_receive(:generate).with(["Object"], "spec")
-    @script.run
+  it "calls #create_file for each method on each class/module in the map" do
   end
 end
 
@@ -367,6 +278,12 @@ describe MkSpec, ".main" do
   before :each do
     @script = mock("MkSpec", :null_object => true)
     MkSpec.stub!(:new).and_return(@script)
+  end
+
+  it "sets MSPEC_RUNNER = '1' in the environment" do
+    ENV["MSPEC_RUNNER"] = "0"
+    MkSpec.main
+    ENV["MSPEC_RUNNER"].should == "1"
   end
 
   it "creates an instance of MSpecScript" do
@@ -384,4 +301,3 @@ describe MkSpec, ".main" do
     MkSpec.main
   end
 end
-

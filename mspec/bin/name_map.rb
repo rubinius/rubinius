@@ -55,18 +55,23 @@ class NameMap
   }
 
   EXCLUDED = %w[
+    MSpecScript
     MkSpec
     DTracer
     NameMap
     OptionParser
-    SystemExit
   ]
+
+  def initialize
+    @seen = {}
+  end
 
   def const_lookup(c)
     c.split('::').inject(Object) { |k,n| k.const_get n }
   end
 
-  def exception?(c)
+  def exception?(name)
+    return false unless c = get_class_or_module(name)
     c == Errno or c.ancestors.include? Exception
   end
 
@@ -79,24 +84,46 @@ class NameMap
   rescue NameError
   end
 
-  def get_dir_name(c, base)
-    name = c.name.split('::').last
-
-    case
-    when exception?(c)
-      dir = 'exception'
-    when c == Class
-      dir = name.downcase
-    else
-      dir = name.gsub(/Class/, '').downcase
-    end
-
-    File.join base, dir
+  def namespace(mod, const)
+    return const.to_s if mod.nil? or %w[Object Class Module].include? mod
+    "#{mod}::#{const}"
   end
 
-  def get_spec_name(m, c)
+  def map(hash, constants, mod=nil)
+    @seen = {} unless mod
+
+    constants.each do |const|
+      name = namespace mod, const
+      m = get_class_or_module name
+      next unless m and not @seen[m]
+      @seen[m] = true
+
+      ms = m.methods false
+      hash["#{name}."] = ms unless ms.empty?
+
+      ms = m.public_instance_methods(false) +
+           m.private_instance_methods(false) +
+           m.protected_instance_methods(false)
+      hash["#{name}#"] = ms unless ms.empty?
+
+      map hash, m.constants, name
+    end
+
+    hash
+  end
+
+  def get_dir_name(c, base)
+    return File.join(base, 'exception') if exception? c
+
+    c.split('::').inject(base) do |dir, name|
+      name.gsub!(/Class/, '') unless name == 'Class'
+      File.join dir, name.downcase
+    end
+  end
+
+  def get_file_name(m, c)
     if MAP.key?(m)
-      name = MAP[m].is_a?(Hash) ? MAP[m][c] || MAP[m][:default] : MAP[m]
+      name = MAP[m].is_a?(Hash) ? MAP[m][c.split('::').last] || MAP[m][:default] : MAP[m]
     else
       name = m.gsub(/[?!=]/, '')
     end

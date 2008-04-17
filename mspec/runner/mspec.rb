@@ -4,6 +4,7 @@ require 'fileutils'
 
 module MSpec
 
+  @exit    = nil
   @start   = nil
   @enter   = nil
   @before  = nil

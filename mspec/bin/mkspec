@@ -2,6 +2,7 @@
 #
 # mkspec - utility to create spec stubs
 
+require 'fileutils'
 require 'optparse'
 require 'mspec/version'
 require 'mspec/bin/name_map'
@@ -54,24 +55,16 @@ class MkSpec
     exit 1
   end
 
-  def map_constants(constants, mod=nil)
-    constants.inject([]) do |list, const|
-      name = mod ? "#{mod}::#{const}" : const.to_s
-      m = @map.get_class_or_module name
-      puts "#{name} is not a class or module, ignoring" unless m
-      list << m
-    end.compact
-  end
-
-  def create_directory(mod, dir)
-    subdir = @map.get_dir_name mod, dir
+  def create_directory(mod)
+    subdir = @map.get_dir_name mod, config[:base]
 
     if File.exist? subdir
       unless File.directory? subdir
         puts "#{subdir} already exists and is not a directory."
+        return nil
       end
     else
-      Dir.mkdir subdir
+      FileUtils.mkdir_p subdir
     end
 
     subdir
@@ -108,46 +101,29 @@ EOS
     puts file
   end
 
-  def create_file(dir, mod, meth, instance=true)
-    file = File.join(dir, @map.get_spec_name(meth, mod.name))
+  def create_file(dir, mod, meth, name)
+    file = File.join dir, @map.get_file_name(meth, mod)
     exists = File.exist? file
 
     write_requires dir, file unless exists
-
-    name = "#{mod}#{instance ? '#' : '.'}#{meth}"
     write_spec file, name, exists
-  end
-
-  def generate(modules, dir)
-    modules.each do |mod|
-      subdir = create_directory mod, dir
-
-      mod.methods(false).sort.each do |method|
-        create_file subdir, mod, method, false
-      end
-
-      methods = [
-        mod.public_instance_methods(false),
-        mod.private_instance_methods(false),
-        mod.protected_instance_methods(false),
-      ].flatten.uniq.sort
-
-      methods.each do |method|
-        create_file subdir, mod, method
-      end
-
-      generate map_constants(mod.constants, mod), subdir
-    end
   end
 
   def run
     config[:requires].each { |lib| require lib }
-
     constants = config[:constants].empty? ? Object.constants : config[:constants]
-    generate map_constants(constants), config[:base]
+
+    @map.map({}, constants).each do |mod, methods|
+      name = mod.chop
+      next unless dir = create_directory(name)
+
+      methods.each { |method| create_file dir, name, method, mod + method }
+    end
   end
 
   def self.main
+    ENV['MSPEC_RUNNER'] = '1'
+
     script = new
     script.options
     script.run
