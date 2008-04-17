@@ -83,7 +83,7 @@ ex_libs = %w!
 	../external_libs/libffi/.libs/libffi.a
 	../external_libs/libltdl/.libs/libltdl.a
 	../external_libs/libev/.libs/libev.a
-  -ldl!
+  -ldl -lrt!
 
 ex_inc  = %w!
   ../external_libs/libtommath
@@ -100,9 +100,10 @@ compiler.includes += ex_inc
 compiler.includes << "cxxtest"
 compiler.includes << ".."
 
-compiler.flags << "-Wall" << "-ggdb"
+compiler.flags << "-Wall" << "-Wno-write-strings" << "-Wno-sign-compare" << "-ggdb"
 
 objs = compiler << "../*.cpp"
+objs += compiler << "../*.c"
 
 file "../instructions.c.gen" => "../instructions.rb" do
   x "ruby ../instructions.rb > ../instructions.c.gen"

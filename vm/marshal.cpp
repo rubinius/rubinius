@@ -36,7 +36,7 @@ namespace rubinius {
     size_t count;
 
     stream >> count;
-    String* str = String::create(state, NULL, count);
+    String* str = String::create(state, NULL, count + 1);
 
     stream >> (char*)*str;
 
