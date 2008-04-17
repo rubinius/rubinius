@@ -6,7 +6,7 @@
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
-#define CUSTOM_CLASS Qnil
+#define CUSTOM_CLASS globals.object
 
 namespace rubinius {
 
@@ -166,7 +166,10 @@ namespace rubinius {
     globals.floatpoint->instance_type = Object::i2n(FloatType);
 
     globals.methctx = new_class("MethodContext", object, 0);
+    globals.methctx->set_object_type(MContextType);
+
     globals.blokctx = new_class("BlockContext", globals.methctx, 0);
+    globals.blokctx->set_object_type(BContextType);
 
     globals.task = new_class("Task", object, 0);
     globals.task->instance_type = Object::i2n(TaskType);
@@ -175,9 +178,9 @@ namespace rubinius {
     globals.iseq->instance_type = Object::i2n(ISeqType);
 
     for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
-      globals.special_classes[i + 0] = Qnil;
+      globals.special_classes[i + 0] = globals.object; /* unused slot */
       globals.special_classes[i + 1] = globals.fixnum_class;
-      globals.special_classes[i + 2] = Qnil;
+      globals.special_classes[i + 2] = globals.object; /* unused slot */
       if(((i + 3) & 0x7) == 0x3) {
         globals.special_classes[i + 3] = globals.symbol;
       } else {
@@ -185,7 +188,7 @@ namespace rubinius {
       }
     }
 
-    globals.special_classes[(uintptr_t)Qundef] = Qnil;
+    globals.special_classes[(uintptr_t)Qundef] = globals.object; /* unused slot */
     globals.special_classes[(uintptr_t)Qfalse] = globals.false_class;
     globals.special_classes[(uintptr_t)Qnil  ] = globals.nil_class;
     globals.special_classes[(uintptr_t)Qtrue ] = globals.true_class;
