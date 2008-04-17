@@ -92,6 +92,16 @@ class Debugger
     end
   end
 
+  # Temporarily removes a breakpoint, but does not delete it
+  def disable_breakpoint(bp)
+    @breakpoint_tracker.disable_breakpoint bp
+  end
+
+  # Temporarily removes a breakpoint, but does not delete it
+  def enable_breakpoint(bp)
+    @breakpoint_tracker.enable_breakpoint bp
+  end
+
   def step(selector)
     @breakpoint_tracker.step(selector)
   end

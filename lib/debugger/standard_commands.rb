@@ -99,6 +99,34 @@ class Debugger
   end
 
 
+  class EnableBreakpoint < Command
+    def help
+      return "b[reak] (en|dis)[able] <n>", "Enable or disable breakpoint <n>."
+    end
+
+    def command_regexp
+      /^b(?:reak)?\s+(en|dis)(?:able)?\s+(\d+)$/
+    end
+
+    def execute(dbg, md)
+      enable = md[1] == "en"
+      n = md[2].to_i
+      bp = dbg.breakpoints[n-1]
+      if bp
+        if enable
+          dbg.enable_breakpoint(bp)
+          return "Enabled breakpoint #{n} at #{bp.method.file}:#{bp.line}"
+        else
+          dbg.disable_breakpoint(bp)
+          return "Disabled breakpoint #{n} at #{bp.method.file}:#{bp.line}"
+        end
+      else
+        return "No such breakpoint"
+      end
+    end
+  end
+
+
   class Continue < Command
     def help
       return "c[ont]", "Continue execution to next breakpoint, or end of program (whichever comes first)."
