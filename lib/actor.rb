@@ -35,8 +35,9 @@ class Actor
     alias_method :private_new, :new
     private :private_new
 
-    @@registered = Channel.new
-    @@registered << {}
+    @@registered_lock = Channel.new
+    @@registered = {}
+    @@registered_lock << nil
   
     # Get the currently executing Actor
     def current
@@ -105,35 +106,38 @@ class Actor
 
     # Lookup a locally named service
     def lookup(name)
-      registered = @@registered.receive
+      raise ArgumentError, "name must be a symbol" unless Symbol === name
+      @@registered_lock.receive
       begin
-        registered[name]
+        @@registered[name]
       ensure
-        @@registered << registered
+        @@registered_lock << nil
       end
     end
 
     # Register an Actor locally as a named service
     def register(name, actor)
+      raise ArgumentError, "name must be a symbol" unless Symbol === name
       unless actor.is_a?(Actor)
         raise ArgumentError, "only actors may be registered"
       end
 
-      registered = @@registered.receive
+      @@registered_lock.receive
       begin
-        registered[name] = actor
+        @@registered[name] = actor
       ensure
-        @@registered << registered
+        @@registered_lock << nil
       end
     end
 
     # Unregister the named service
     def unregister(name)
-      registered = @@registered.receive
+      raise ArgumentError, "name must be a symbol" unless Symbol === name
+      @@registered_lock.receive
       begin
-        registered.delete(name)
+        @@registered.delete(name)
       ensure
-        @@registered << registered
+        @@registered_lock << nil
       end
     end
   end
