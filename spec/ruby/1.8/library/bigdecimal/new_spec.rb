@@ -5,6 +5,16 @@ describe "BigDecimal.new" do
 
   it "creates a new object of class BigDecimal" do
     BigDecimal.new("3.14159").class.should == BigDecimal
+    (0..9).each {|i|
+      BigDecimal.new("1#{i}").should == 10 + i
+      BigDecimal.new("-1#{i}").should == -10 - i
+      BigDecimal.new("1E#{i}").should == 10**i
+      BigDecimal.new("1000000E-#{i}").should == 10**(6-i)
+    }
+    (1..9).each {|i|
+      BigDecimal.new("100.#{i}").to_s.should == "0.100#{i}E3"
+      BigDecimal.new("-100.#{i}").to_s.should == "-0.100#{i}E3"
+    }
   end
 
   it "Number of significant digits >= given precision" do
@@ -19,12 +29,17 @@ describe "BigDecimal.new" do
 
   it "ignores leading whitespace" do
     BigDecimal.new("  \t\n \r1234").should == BigDecimal.new("1234")
+    BigDecimal.new("  \t\n \rNaN   \n").nan?.should == true
+    BigDecimal.new("  \t\n \rInfinity   \n").infinite?.should == 1
+    BigDecimal.new("  \t\n \r-Infinity   \n").infinite?.should == -1
+    BigDecimal.new("  \t\n \r-\t\t\tInfinity   \n").should == 0.0
   end
 
   it "ignores trailing garbage" do
     BigDecimal.new("123E45ruby").should == BigDecimal.new("123E45")
     BigDecimal.new("123x45").should == BigDecimal.new("123")
     BigDecimal.new("123.4%E5").should == BigDecimal.new("123.4")
+    BigDecimal.new("1E2E3E4E5E").should == BigDecimal.new("100")
   end
 
   it "treats invalid strings as 0.0" do
