@@ -34,7 +34,7 @@ namespace rubinius {
 
     size = bins->n2i();
     dup = Hash::create(state, size);
-    state->om->set_class(dup, class_object());
+    state->om->set_class(dup, class_object(state));
 
     SET(dup, bins, Object::i2n(size));
     SET(dup, entries, entries);

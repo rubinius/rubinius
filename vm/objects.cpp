@@ -3,7 +3,6 @@
 #include "objects.hpp"
 #include "objectmemory.hpp"
 #include "vm.hpp"
-#include "task.hpp"
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
@@ -18,7 +17,7 @@ namespace rubinius {
     Class *cls = (Class*)om->new_object(globals.klass, Class::fields);
     cls->instance_fields = Object::i2n(fields);
     cls->has_ivars = Qtrue;
-    cls->object_type = Object::i2n(ObjectType);
+    cls->instance_type = Object::i2n(ObjectType);
     SET(cls, superclass, sup);
 
     return cls;
@@ -64,7 +63,7 @@ namespace rubinius {
 
     cls->instance_fields = Object::i2n(Class::fields);
     cls->has_ivars = Qtrue;
-    cls->object_type = Object::i2n(ClassType);
+    cls->instance_type = Object::i2n(ClassType);
     cls->obj_type = ClassType;
 
     globals.klass = cls;
@@ -76,17 +75,17 @@ namespace rubinius {
     cls->superclass = globals.module;
 
     globals.metaclass = new_basic_class(cls, MetaClass::fields);
-    globals.metaclass->object_type = Object::i2n(MetaclassType);
+    globals.metaclass->instance_type = Object::i2n(MetaclassType);
 
     globals.tuple = new_basic_class(object, Tuple::fields);
-    globals.tuple->object_type = Object::i2n(TupleType);
+    globals.tuple->instance_type = Object::i2n(TupleType);
     globals.tuple->has_ivars = Qfalse;
 
     globals.lookuptable = new_basic_class(object, LookupTable::fields);
-    globals.lookuptable->object_type = Object::i2n(LookupTableType);
+    globals.lookuptable->instance_type = Object::i2n(LookupTableType);
 
     globals.methtbl = new_basic_class(globals.lookuptable, MethodTable::fields);
-    globals.methtbl->object_type = Object::i2n(MTType);
+    globals.methtbl->instance_type = Object::i2n(MTType);
 
     OBJECT mc = MetaClass::attach(this, object, cls);
     mc = MetaClass::attach(this, globals.module, mc);
@@ -99,14 +98,14 @@ namespace rubinius {
 
     globals.symbol    = new_class(object, 0);
     globals.array     = new_class(object, Array::fields);
-    globals.array->object_type = Object::i2n(ArrayType);
+    globals.array->instance_type = Object::i2n(ArrayType);
     globals.array->has_ivars = Qfalse;
 
     globals.bytearray = new_class(object, 0);
-    globals.bytearray->object_type = Object::i2n(ByteArrayType);
+    globals.bytearray->instance_type = Object::i2n(ByteArrayType);
 
     globals.string    = new_class(object, String::fields);
-    globals.string->object_type = Object::i2n(StringType);
+    globals.string->instance_type = Object::i2n(StringType);
     globals.string->has_ivars = Qfalse;
 
     globals.symtbl    = new_class(object, SymbolTable::fields);
@@ -114,15 +113,15 @@ namespace rubinius {
     globals.executable = new_class(object, Executable::fields);
 
     globals.cmethod   = new_class(globals.executable, CompiledMethod::fields);
-    globals.cmethod->object_type = Object::i2n(CMethodType);
+    globals.cmethod->instance_type = Object::i2n(CMethodType);
 
     globals.hash      = new_class(object, Hash::fields);
-    globals.hash->object_type = Object::i2n(HashType);
+    globals.hash->instance_type = Object::i2n(HashType);
 
     globals.io         = new_class(object, IO::fields);
 
     globals.blokenv    = new_class(object, BlockEnvironment::fields);
-    globals.blokenv->object_type = Object::i2n(BlockEnvType);
+    globals.blokenv->instance_type = Object::i2n(BlockEnvType);
 
     globals.staticscope = new_class(object, StaticScope::fields);
 
@@ -157,23 +156,23 @@ namespace rubinius {
     Class* numeric = new_class("Numeric", object, 0);
     Class* integer = new_class("Integer", numeric, 0);
     globals.fixnum_class = new_class("Fixnum", integer, 0);
-    globals.fixnum_class->object_type = Object::i2n(FixnumType);
+    globals.fixnum_class->instance_type = Object::i2n(FixnumType);
 
     globals.bignum = new_class("Bignum", integer, 0);
-    globals.bignum->object_type = Object::i2n(BignumType);
+    globals.bignum->instance_type = Object::i2n(BignumType);
     Bignum::init(this);
 
     globals.floatpoint = new_class("Float", numeric, 0);
-    globals.floatpoint->object_type = Object::i2n(FloatType);
+    globals.floatpoint->instance_type = Object::i2n(FloatType);
 
     globals.methctx = new_class("MethodContext", object, 0);
     globals.blokctx = new_class("BlockContext", globals.methctx, 0);
 
     globals.task = new_class("Task", object, 0);
-    globals.task->object_type = Object::i2n(TaskType);
+    globals.task->instance_type = Object::i2n(TaskType);
 
     globals.iseq = new_class("InstructionSequence", globals.bytearray, 0);
-    globals.iseq->object_type = Object::i2n(ISeqType);
+    globals.iseq->instance_type = Object::i2n(ISeqType);
 
     for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
       globals.special_classes[i + 0] = Qnil;

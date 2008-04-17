@@ -8,7 +8,7 @@ namespace rubinius {
   class Module : public BuiltinType {
     public:
     const static size_t fields = 7;
-    const static object_type type = ClassType;
+    const static object_type type = ModuleType;
 
     OBJECT instance_variables;
     LookupTable* method_table;
@@ -16,7 +16,7 @@ namespace rubinius {
     SYMBOL name;
     LookupTable* constants;
     OBJECT encloser;
-    OBJECT superclass;
+    Class* superclass;
 
     void setup(STATE);
     void setup(STATE, char* name, Module* under = NULL);
@@ -29,23 +29,35 @@ namespace rubinius {
   class Class : public Module {
     public:
     const static size_t fields = 11;
+    const static object_type type = ClassType;
+
     OBJECT instance_fields;
     OBJECT has_ivars;
     OBJECT needs_cleanup;
-    OBJECT object_type;
+    OBJECT instance_type;
 
     static bool is_a(OBJECT obj) {
       return obj->obj_type == ClassType;
     }
 
     void set_object_type(size_t type) {
-      object_type = Object::i2n(type);
+      instance_type = Object::i2n(type);
     }
   };
+
+  /* See t1 */
+  template <>
+    static bool kind_of<Module>(OBJECT obj) {
+      return obj->reference_p() &&
+        (obj->obj_type == Module::type ||
+         kind_of<Class>(obj));
+    }
 
   class MetaClass : public Class {
     public:
     const static size_t fields = 12;
+    const static object_type type = MetaclassType;
+
     OBJECT attached_instance;
 
     static bool is_a(OBJECT obj) {

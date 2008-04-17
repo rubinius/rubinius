@@ -35,10 +35,10 @@ namespace rubinius {
   void Regexp::init(STATE) {
     onig_init();
     G(regexp) = state->new_class("Regexp", G(object), 0);
-    G(regexp)->object_type = Object::i2n(RegexpType);
+    G(regexp)->set_object_type(RegexpType);
 
     G(regexpdata) = state->new_class("RegexpData", G(object), 0);
-    G(regexpdata)->object_type = Object::i2n(RegexpDataType);
+    G(regexpdata)->set_object_type(RegexpDataType);
     
     G(matchdata) = state->new_class("MatchData", G(object), 0);
    

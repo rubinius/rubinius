@@ -65,7 +65,7 @@ namespace rubinius {
         write_barrier(target, obj);
 
         Class *cls = (Class*)obj;
-        target->obj_type = (object_type)cls->object_type->n2i();
+        target->obj_type = (object_type)cls->instance_type->n2i();
         target->CanStoreIvars = (cls->has_ivars == Qtrue);
         target->RequiresCleanup = (cls->needs_cleanup == Qtrue);
       }

@@ -2,14 +2,6 @@
 #define RBX_TASK_HPP
 
 namespace rubinius {
-  class Task : public BuiltinType {
-  public:
-    const static size_t fields = 0;
-    const static object_type type = TaskType;
-
-    static void init(STATE);
-  };
-
   class Channel : public BuiltinType {
   public:
     const static size_t fields = 3;

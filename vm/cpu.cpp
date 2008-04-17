@@ -13,7 +13,12 @@ namespace rubinius {
     arguments = ary;
   }
 
+  Message::Message(STATE) : state(state), arguments((Array*)Qnil) { }
+
   OBJECT Message::get_argument(size_t index) {
     return arguments->get(state, index);
+  }
+
+  void Message::combine_with_splat(OBJECT, int i) {
   }
 }

@@ -25,6 +25,7 @@ class CCompile
     od = File.dirname(output)
     Dir.mkdir od unless File.directory? od
 
+    puts "CC #{input}"
     x "#{compiler(input)} #{includes} #{flags} -c -o #{output} #{input}"
   end
 
@@ -35,7 +36,7 @@ class CCompile
       "g++"
     end
   end
-  
+
   def <<(pattern)
     list = FileList[pattern]
     objects = []
@@ -53,7 +54,7 @@ class CCompile
 
     return objects
   end
-  
+
   def extract_headers(path)
     dir = File.dirname(path)
     h = File.read(path).scan(/#include\s*.([^\n]*)./).map do |i| 
@@ -76,21 +77,38 @@ compiler = CCompile.new
 rule ".h"
 rule ".hpp"
 
-ex_libs = %w!../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a!
-ex_inc  = "-I../external_libs/libtommath -I../external_libs/onig"
+ex_libs = %w!
+  ../external_libs/libtommath/libtommath.a
+  ../external_libs/onig/.libs/libonig.a
+	../external_libs/libffi/.libs/libffi.a
+	../external_libs/libltdl/.libs/libltdl.a
+	../external_libs/libev/.libs/libev.a
+  -ldl!
+
+ex_inc  = %w!
+  ../external_libs/libtommath
+  ../external_libs/onig
+  ../external_libs/libffi/include
+  ../external_libs/libltdl
+  ../external_libs/libev!
 
 tests = FileList["test_*.hpp"]
 
 compiler.cpp!
 
-compiler.includes << "../external_libs/libtommath"
-compiler.includes << "../external_libs/onig"
+compiler.includes += ex_inc
 compiler.includes << "cxxtest"
 compiler.includes << ".."
 
 compiler.flags << "-Wall" << "-ggdb"
 
 objs = compiler << "../*.cpp"
+
+file "../instructions.c.gen" => "../instructions.rb" do
+  x "ruby ../instructions.rb > ../instructions.c.gen"
+end
+
+file "../builtin_task.cpp" => "../instructions.c.gen"
 
 file "runner.cpp" => tests + objs do
 	x "cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o runner.cpp #{tests}"
@@ -109,21 +127,6 @@ task :test => "runner" do
 end
 
 task :default => :test
-
-file 'coverage/runner' do
-  FileUtils.mkdir_p "coverage"
-  compiler.link "coverage/runner", :objects => total, :libs => ex_libs, 
-end
-
-task :coverage => :clean do
-  compiler.flags << '-fprofile-arcs' <<  '-ftest-coverage'
-  Rake::Task['coverage/runner'].invoke
-
-	x "./coverage/runner"
-	x "lcov/bin/lcov --directory . --capture --output-file coverage/app.info"
-	x "cd coverage; ../lcov/bin/genhtml app.info"
-	x "rm -f *.gcno *.gcda"
-end
 
 task :clean do
   x "rm -rf *.gcda *.gcno *.gcov *.dSYM *.o ../*.o runner coverage"

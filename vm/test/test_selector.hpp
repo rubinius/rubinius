@@ -22,17 +22,17 @@ class TestSelector : public CxxTest::TestSuite {
   }
 
   void test_init() {
-    TS_ASSERT(state->globals.selector->kind_of_p(state->globals.klass));
-    TS_ASSERT_EQUALS(state->globals.selector->object_type->n2i(), SelectorType);
+    TS_ASSERT(state->globals.selector->kind_of_p(state, state->globals.klass));
+    TS_ASSERT_EQUALS(state->globals.selector->instance_type->n2i(), SelectorType);
 
-    TS_ASSERT(state->globals.selector->get_const(state, "ALL")->kind_of_p(state->globals.lookuptable));
+    TS_ASSERT(state->globals.selector->get_const(state, "ALL")->kind_of_p(state, state->globals.lookuptable));
   }
 
   void test_create() {
     OBJECT sym = state->symbol("blah");
     Selector* sel = Selector::create(state, sym);
     TS_ASSERT_EQUALS(sel->name, sym);
-    TS_ASSERT(sel->send_sites->kind_of_p(state->globals.array));
+    TS_ASSERT(sel->send_sites->kind_of_p(state, state->globals.array));
   }
 
   void test_lookup() {

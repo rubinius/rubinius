@@ -6,7 +6,7 @@
 
 #include "prelude.hpp"
 #include "objects.hpp"
-#include "task.hpp"
+#include "builtin_task.hpp"
 
 namespace rubinius {
   namespace event {

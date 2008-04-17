@@ -25,13 +25,13 @@ class TestList : public CxxTest::TestSuite {
   }
 
   void test_classes() {
-    TS_ASSERT(state->globals.list->kind_of_p(state->globals.klass));
-    TS_ASSERT(state->globals.list_node->kind_of_p(state->globals.klass));
+    TS_ASSERT(state->globals.list->kind_of_p(state, state->globals.klass));
+    TS_ASSERT(state->globals.list_node->kind_of_p(state, state->globals.klass));
   }
 
   void test_create() {
     List* lst = List::create(state);
-    TS_ASSERT(lst->kind_of_p(state->globals.list));
+    TS_ASSERT(lst->kind_of_p(state, state->globals.list));
   }
 
   void test_append() {

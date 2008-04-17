@@ -329,8 +329,9 @@ to be a simple test for that bit pattern.
 
     void cleanup(STATE);
 
-    bool kind_of_p(OBJECT cls);
-    Class* class_object();
+    bool kind_of_p(STATE, OBJECT cls);
+    Class* lookup_begin(STATE);
+    Class* class_object(STATE);
     OBJECT dup(STATE);
     hashval hash(STATE);
     uintptr_t id(STATE);
@@ -360,10 +361,10 @@ to be a simple test for that bit pattern.
     TypeError(object_type type, OBJECT obj, char* reason = NULL)
       : type(type), object(obj), reason(reason) { };
   };
- 
+
   /* Given builtin-class +T+, return true if +obj+ is of class +T+ */
   template <class T>
-    bool kind_of(OBJECT obj) {
+    static bool kind_of(OBJECT obj) {
       if(obj->reference_p()) {
         return obj->obj_type == T::type;
       }
@@ -376,15 +377,15 @@ to be a simple test for that bit pattern.
    * +obj+ is not of type +T+, throw's a TypeError exception.
    * */
   template <class T>
-    T* as(OBJECT obj) {
-      if(obj->reference_p() && obj->obj_type == T::type) return (T*)obj;
+    static T* as(OBJECT obj) {
+      if(kind_of<T>(obj)) return (T*)obj;
       throw new TypeError(T::type, obj);
     }
 
   void type_assert(OBJECT obj, object_type type, char* reason);
 #define sassert(cond) if(!(cond)) throw new Assertion(#cond);
 
-  /* 
+  /*
    * A rubinius object can be followed by:
    * - a series of fields, possibly including an ivar
    * - a series of bytes (ByteArray)

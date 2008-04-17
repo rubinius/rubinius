@@ -40,7 +40,7 @@ namespace rubinius {
     OBJECT exception;
     OBJECT top_scope, on_gc_channel;
 
-    OBJECT special_classes[SPECIAL_CLASS_SIZE];
+    Class* special_classes[SPECIAL_CLASS_SIZE];
   };
 
   const static size_t num_globals = ((size_t)(sizeof(struct Globals) / sizeof(OBJECT)));

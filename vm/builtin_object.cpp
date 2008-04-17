@@ -11,66 +11,66 @@ namespace rubinius {
   const char* Object::type_to_name(object_type t) {
     const char* type;
 
-    switch(t) { 
-    case ObjectType: 
-      type = "Object"; 
-      break; 
-    case MContextType: 
-      type = "MethodContext"; 
-      break; 
-    case BContextType: 
-      type = "BlockContext"; 
-      break; 
-    case ClassType: 
-      type = "Class"; 
-      break; 
-    case MetaclassType: 
-      type = "Metaclass"; 
-      break; 
-    case MTType: 
-      type = "MethodTable"; 
-      break; 
+    switch(t) {
+    case ObjectType:
+      type = "Object";
+      break;
+    case MContextType:
+      type = "MethodContext";
+      break;
+    case BContextType:
+      type = "BlockContext";
+      break;
+    case ClassType:
+      type = "Class";
+      break;
+    case MetaclassType:
+      type = "Metaclass";
+      break;
+    case MTType:
+      type = "MethodTable";
+      break;
     case WrapsStructType:
-      type = "SubtendCStructure"; 
-      break; 
-    case IncModType: 
-      type = "included Module"; 
-      break; 
-    case TaskType: 
-      type = "Task"; 
-      break; 
-    case FixnumType: 
-      type = "Fixnum"; 
-      break; 
-    case BignumType: 
-      type = "Bignum"; 
-      break; 
-    case FloatType: 
-      type = "Float"; 
-      break; 
-    case MemPtrType: 
-      type = "MemoryPointer"; 
-      break; 
-    case StringType: 
-      type = "String"; 
-      break; 
-    case SymbolType: 
-      type = "Symbol"; 
-      break; 
-    case CMethodType: 
-      type = "CompiledMethod"; 
-      break; 
-    case NMethodType: 
-      type = "NativeMethod"; 
-      break; 
-    case NilType: 
-      type = "nil"; 
-      break; 
-    case LookupTableType: 
-      type = "LookupTable"; 
-      break; 
-    default: 
-      type = "unknown"; 
+      type = "SubtendCStructure";
+      break;
+    case IncModType:
+      type = "included Module";
+      break;
+    case TaskType:
+      type = "Task";
+      break;
+    case FixnumType:
+      type = "Fixnum";
+      break;
+    case BignumType:
+      type = "Bignum";
+      break;
+    case FloatType:
+      type = "Float";
+      break;
+    case MemPtrType:
+      type = "MemoryPointer";
+      break;
+    case StringType:
+      type = "String";
+      break;
+    case SymbolType:
+      type = "Symbol";
+      break;
+    case CMethodType:
+      type = "CompiledMethod";
+      break;
+    case NMethodType:
+      type = "NativeMethod";
+      break;
+    case NilType:
+      type = "nil";
+      break;
+    case LookupTableType:
+      type = "LookupTable";
+      break;
+    default:
+      type = "unknown";
       break;
     }
     return type;
@@ -111,19 +111,28 @@ namespace rubinius {
     }
   }
 
-  Class* Object::class_object() {
-    Class* cls = klass;
-    while(cls->reference_p() && (MetaClass::is_a(cls) || !Class::is_a(cls))) {
-      cls = (Class*)cls->superclass;
+  Class* Object::class_object(STATE) {
+    if(reference_p()) {
+      Class* cls = klass;
+      while(!cls->nil_p() && !kind_of<Class>(cls)) {
+        cls = (Class*)cls->superclass;
+      }
+
+      return cls;
     }
 
-    return cls;
+    return G(special_classes)[((uintptr_t)this) & SPECIAL_CLASS_MASK];
+  }
+
+  Class* Object::lookup_begin(STATE) {
+    if(reference_p()) return klass;
+    return class_object(state);
   }
 
   OBJECT Object::dup(STATE) {
     OBJECT dup;
 
-    dup = state->om->new_object(class_object(), field_count);
+    dup = state->om->new_object(class_object(state), field_count);
     dup->all_flags = all_flags;
 
     if(stores_bytes_p()) {
@@ -137,8 +146,8 @@ namespace rubinius {
     return dup;
   }
 
-  bool Object::kind_of_p(OBJECT cls) {
-    Class* found = (Class*)class_object();
+  bool Object::kind_of_p(STATE, OBJECT cls) {
+    Class* found = class_object(state);
     if(found == cls) return true;
 
     while(!found->nil_p()) {
@@ -168,11 +177,11 @@ namespace rubinius {
       }
       hsh = hsh >> 2;
     } else {
-      if(kind_of_p(state->globals.string)) {
+      if(kind_of_p(state, state->globals.string)) {
         hsh = ((String*)this)->hash_string(state);
-      } else if(kind_of_p(state->globals.bignum)) {
+      } else if(kind_of_p(state, state->globals.bignum)) {
         hsh = ((Bignum*)this)->hash_bignum(state);
-      } else if(kind_of_p(state->globals.floatpoint)) {
+      } else if(kind_of_p(state, state->globals.floatpoint)) {
         hsh = String::hash_str((unsigned char *)(this->bytes), sizeof(double));
       } else {
         hsh = id(state);
@@ -206,7 +215,7 @@ namespace rubinius {
 
   OBJECT Object::metaclass(STATE) {
     if(reference_p()) {
-      if(MetaClass::is_a(klass)) {
+      if(kind_of<MetaClass>(klass)) {
         return klass;
       }
       return MetaClass::attach(state, this);
@@ -216,7 +225,7 @@ namespace rubinius {
       return state->globals.nil_class;
     } else if(this == Qtrue) {
       return state->globals.true_class;
-    } else if(this == Qfalse) { 
+    } else if(this == Qfalse) {
       return state->globals.false_class;
     }
 
@@ -250,7 +259,7 @@ namespace rubinius {
     if(tbl->nil_p()) return Qnil;
 
     /* It's a tuple, use csm */
-    if(Tuple::is_a(tbl)) {
+    if(kind_of<Tuple>(tbl)) {
       return Hash::csm_find(state, (Tuple*)tbl, sym);
     }
 
@@ -296,7 +305,7 @@ namespace rubinius {
       return val;
     }
 
-    if(Tuple::is_a(tbl)) {
+    if(kind_of<Tuple>(tbl)) {
       if(Hash::csm_add(state, (Tuple*)tbl, sym, val) == Qtrue) {
         return val;
       }
@@ -310,10 +319,10 @@ namespace rubinius {
   }
 
   void Object::inspect(STATE) {
-    String* name = class_object()->name->to_str(state);
+    String* name = class_object(state)->name->to_str(state);
     std::cout << "#<" << (char*)*name << ":" << (void*)this << ">\n";
   }
-    
+
   void Object::cleanup(STATE) {
     state->om->find_type_info(this)->cleanup(this);
   }

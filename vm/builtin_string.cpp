@@ -94,9 +94,13 @@ namespace rubinius {
     ns->shared = Qtrue;
     shared = Qtrue;
 
-    state->om->set_class(ns, class_object());
+    state->om->set_class(ns, class_object(state));
 
     return ns;
+  }
+
+  void String::append(STATE, String* other) {
+
   }
 
 }

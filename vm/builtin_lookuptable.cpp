@@ -49,7 +49,7 @@ namespace rubinius {
 
     size = bins->n2i();
     dup = (LookupTable*)LookupTable::create(state, size);
-    state->om->set_class(dup, class_object());
+    state->om->set_class(dup, class_object(state));
     size_t num = entries->n2i();
 
     Array* entries = (Array*)all_entries(state);

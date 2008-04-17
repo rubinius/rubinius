@@ -28,7 +28,7 @@ class TestBignum : public CxxTest::TestSuite {
 
   void test_create() {
     Bignum* obj = Bignum::create(state, 13);
-    TS_ASSERT_EQUALS(obj->class_object(), state->globals.bignum);
+    TS_ASSERT_EQUALS(obj->class_object(state), state->globals.bignum);
     TS_ASSERT_EQUALS(obj->obj_type, BignumType);
   }
 

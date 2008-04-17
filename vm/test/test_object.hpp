@@ -58,8 +58,8 @@ class TestObject : public CxxTest::TestSuite {
   void test_kind_of_p() {
     String* str = String::create(state, "blah");
 
-    TS_ASSERT(str->kind_of_p(state->globals.string));
-    TS_ASSERT(!str->kind_of_p(state->globals.tuple));
+    TS_ASSERT(str->kind_of_p(state, state->globals.string));
+    TS_ASSERT(!str->kind_of_p(state, state->globals.tuple));
   }
 
   void test_hash() {
@@ -109,5 +109,27 @@ class TestObject : public CxxTest::TestSuite {
 
     uintptr_t id4 = Object::i2n(33)->id(state);
     TS_ASSERT_EQUALS(id3, id4);
+  }
+
+  void test_nil_class() {
+    TS_ASSERT_EQUALS(Qnil->class_object(state), G(nil_class));
+  }
+
+  void test_true_class() {
+    TS_ASSERT_EQUALS(Qtrue->class_object(state), G(true_class));
+  }
+
+  void test_false_class() {
+    TS_ASSERT_EQUALS(Qfalse->class_object(state), G(false_class));
+  }
+
+  void test_fixnum_class() {
+    for(size_t i = 0; i < SPECIAL_CLASS_MASK; i++) {
+      TS_ASSERT_EQUALS(Object::i2n(i)->class_object(state), G(fixnum_class));
+    }
+  }
+
+  void test_symbol_class() {
+    TS_ASSERT_EQUALS(state->symbol("blah")->class_object(state), G(symbol));
   }
 };

@@ -15,6 +15,10 @@ namespace rubinius {
     return ary;
   }
 
+  Array* Array::from_tuple(STATE, Tuple* tup) {
+
+  }
+
   void Array::setup(STATE, size_t size) {
     SET(this, tuple, Tuple::create(state, size));
     SET(this, start, Object::i2n(0));

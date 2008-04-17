@@ -3,7 +3,7 @@
 
 namespace rubinius {
   TypeInfo::TypeInfo(Class *cls) {
-    type = (object_type)cls->object_type->n2i();
+    type = (object_type)cls->instance_type->n2i();
     state = NULL;
   }
 }

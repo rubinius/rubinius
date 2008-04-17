@@ -8,6 +8,31 @@ namespace rubinius {
   class BuiltinType : public Object {
 
   };
+
+  class NilClass : public BuiltinType { };
+  /* NOTE(t1):
+   * This looks scary, but it's pretty simple. We're specializing
+   * the kind_of when passed NilClass to just test using nil_p().
+   * This makes kind_of smarter, letting us use it everywhere for
+   * type checks. */
+  template <>
+    static bool kind_of<NilClass>(OBJECT obj) {
+      return obj == Qnil;
+    }
+
+  class TrueClass : public BuiltinType { };
+  /* See t1 */
+  template <>
+    static bool kind_of<TrueClass>(OBJECT obj) {
+      return obj == Qtrue;
+    }
+
+  class FalseClass : public BuiltinType { };
+  /* See t1 */
+  template <>
+    static bool kind_of<FalseClass>(OBJECT obj) {
+      return obj == Qfalse;
+    }
 }
 
 namespace rubinius {
@@ -27,7 +52,7 @@ namespace rubinius {
   class String;
   class Hash;
   class Tuple;
-  
+
   class Symbol : public BuiltinType {
     public:
     const static size_t fields = 0;
@@ -43,6 +68,12 @@ namespace rubinius {
 
     String* to_str(STATE);
   };
+
+  /* See t1 */
+  template <>
+    static bool kind_of<Symbol>(OBJECT obj) {
+      return obj->symbol_p();
+    }
 
   typedef Symbol* SYMBOL;
 
@@ -75,6 +106,7 @@ namespace rubinius {
     }
 
     OBJECT put(STATE, size_t idx, OBJECT val);
+    void copy_from(STATE, Tuple* other, int start, int end);
 
   };
 };
@@ -123,14 +155,6 @@ namespace rubinius {
     static Hash*  csm_into_hash(STATE, Tuple* csm);
     static LookupTable* csm_into_lookuptable(STATE, Tuple* csm);
 
-  };
-};
-
-namespace rubinius {
-  class Blockcontext : public BuiltinType {
-    public:
-    const static size_t fields = 0;
-    const static object_type type = BContextType;
   };
 };
 
@@ -188,6 +212,7 @@ namespace rubinius {
     }
 
     static Array* create(STATE, size_t size);
+    static Array* from_tuple(STATE, Tuple* tup);
     void   setup(STATE, size_t size);
     OBJECT get(STATE, size_t idx);
     OBJECT set(STATE, size_t idx, OBJECT val);
@@ -209,13 +234,16 @@ namespace rubinius {
 };
 
 namespace rubinius {
+  class CompiledMethod;
+  class MethodContext;
+
   class BlockEnvironment : public BuiltinType {
     public:
     const static size_t fields = 9;
     const static object_type type = BlockEnvType;
-    
+
     OBJECT instance_variables;
-    OBJECT home;
+    MethodContext* home;
     OBJECT initial_ip;
     OBJECT last_ip;
     OBJECT post_send;
@@ -223,6 +251,11 @@ namespace rubinius {
     OBJECT local_count;
     OBJECT bonus;
     OBJECT method;
+
+    static BlockEnvironment* under_context(STATE, CompiledMethod* cm,
+        MethodContext* parent, MethodContext* active);
+
+    void call(STATE, size_t args);
   };
 };
 
@@ -318,15 +351,15 @@ namespace rubinius {
     static String* create(STATE, const char* str, size_t bytes = 0);
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
     static int string_equal_p(STATE, OBJECT self, OBJECT other);
-    
+
     size_t size(STATE) {
       return num_bytes->n2i();
     }
-    
+
     size_t size() {
       return num_bytes->n2i();
     }
-    
+
     /* Allows the String object to be cast as a char* */
     operator const char *() {
       return (const char*)(data->bytes);
@@ -337,7 +370,7 @@ namespace rubinius {
     operator char *() {
       return (char*)(data->bytes);
     }
-  
+
     char* byte_address() {
       return (char*)data->bytes;
     }
@@ -346,6 +379,7 @@ namespace rubinius {
     OBJECT to_sym(STATE);
     char* byte_address(STATE);
     String* string_dup(STATE);
+    void append(STATE, String* other);
 
   };
 };
@@ -407,14 +441,6 @@ namespace rubinius {
 };
 
 namespace rubinius {
-  class MethodContext : public BuiltinType {
-    public:
-    const static object_type type = MContextType;
-    const static size_t fields = 0;
-  };
-};
-
-namespace rubinius {
 
   class Executable : public BuiltinType {
     public:
@@ -427,17 +453,19 @@ namespace rubinius {
     OBJECT serial;
   };
 
+  class ISeq;
+
   class CompiledMethod : public Executable {
     public:
     const static size_t fields = 19;
     const static object_type type = CMethodType;
     const static size_t saved_fields = 16;
 
-    OBJECT bytecodes;
-    OBJECT name;
+    ISeq*  iseq;
+    SYMBOL name;
     OBJECT file;
     OBJECT local_count;
-    OBJECT literals;
+    Tuple* literals;
     OBJECT total_args;
     OBJECT splat;
     OBJECT exceptions;
@@ -446,26 +474,44 @@ namespace rubinius {
     OBJECT field14;
     OBJECT bonus;
     OBJECT compiled;
-    OBJECT staticscope;
+    StaticScope* scope;
     OBJECT args;
 
     static CompiledMethod* create(STATE);
     void post_marshal(STATE);
+    size_t stack_size();
+    size_t number_of_locals();
+    void set_scope(StaticScope*);
   };
 };
 
 namespace rubinius {
   class Fixnum {
+  public:
     const static size_t fields = 0;
     const static object_type type = FixnumType;
+
+    OBJECT add(STATE, OBJECT obj);
+    OBJECT sub(STATE, OBJECT obj);
   };
+
+  typedef Fixnum* FIXNUM;
+
+  /* See t1 */
+  template <>
+    static bool kind_of<Fixnum>(OBJECT obj) {
+      return obj->fixnum_p();
+    }
 }
 
+#include "builtin_class.hpp"
+#include "builtin_contexts.hpp"
 #include "builtin_iseq.hpp"
 #include "builtin_bignum.hpp"
 #include "builtin_float.hpp"
-#include "builtin_class.hpp"
 #include "builtin_list.hpp"
 #include "builtin_selector.hpp"
+#include "builtin_task.hpp"
+#include "builtin_iseq.hpp"
 
 #endif

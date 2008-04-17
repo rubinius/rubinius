@@ -23,6 +23,10 @@ namespace rubinius {
     return tup;
   }
 
+  void Tuple::copy_from(STATE, Tuple* other, int start, int end) {
+
+  }
+
   OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {
     state->om->store_object(this, idx, val);
     return val;

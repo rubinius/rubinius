@@ -17,6 +17,7 @@ namespace rubinius {
     TypeInfo(Class* cls);
     virtual ~TypeInfo() { }
     virtual void cleanup(OBJECT obj) { }
+    virtual void mark(OBJECT obj) { }
   };
 }
 
