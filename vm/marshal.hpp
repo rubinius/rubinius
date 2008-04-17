@@ -18,8 +18,7 @@ namespace rubinius {
     STATE;
     std::ostream& stream;
 
-    Marshaller::Marshaller(STATE, std::ostream& stream) :
-      state(state), stream(stream) { }
+    Marshaller(STATE, std::ostream& stream) : state(state), stream(stream) { }
 
     void marshal(OBJECT obj);
 
