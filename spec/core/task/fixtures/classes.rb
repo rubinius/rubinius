@@ -60,7 +60,7 @@ module TaskSpecs
     def wait_for_breakpoint(&prc)
       @thread = Thread.new do
         @msg_channel.send true
-        id = Scheduler.send_in_microseconds @debug_channel, 1_000_000
+        id = Scheduler.send_in_microseconds @debug_channel, 1_000_000, nil
         thr = @debug_channel.receive
         if thr
           Scheduler.cancel(id)
@@ -77,7 +77,7 @@ module TaskSpecs
     attr_reader :thread
 
     def get_breakpoint_method
-      id = Scheduler.send_in_microseconds @debug_channel, 1_000_000
+      id = Scheduler.send_in_microseconds @debug_channel, 1_000_000, nil
       mthd = @msg_channel.receive
       Scheduler.cancel(id) if mthd
       mthd

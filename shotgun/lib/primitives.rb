@@ -2973,39 +2973,41 @@ class ShotgunPrimitives
   defprim :channel_send_in_microseconds
   def channel_send_in_microseconds
     <<-CODE
-    ARITY(2);
+    ARITY(3);
     double seconds;
-    OBJECT t2, t1;
+    OBJECT channel, usec_r, tag;
     native_int k;
 
-    POP(t2, CHANNEL);
-    POP(t1, INTEGER);
+    POP(channel, CHANNEL);
+    POP(usec_r, INTEGER);
+    tag = stack_pop();
 
-    if(FIXNUM_P(t1)) {
-      k = (long)N2I(t1);
+    if(FIXNUM_P(usec_r)) {
+      k = (long)N2I(usec_r);
     } else {
-      k = (long)bignum_to_int(state, t1);
+      k = (long)bignum_to_int(state, usec_r);
     }
 
     seconds = k / 1000000.0;
 
-    RET(cpu_event_wake_channel(state, c, t2, seconds, Qnil));
+    RET(cpu_event_wake_channel(state, c, channel, seconds, tag));
     CODE
   end
 
   defprim :channel_send_in_seconds
   def channel_send_in_seconds
     <<-CODE
-    ARITY(2);
+    ARITY(3);
     double seconds;
-    OBJECT t2, t1;
+    OBJECT channel, seconds_r, tag;
 
-    POP(t2, CHANNEL);
-    POP(t1, FLOAT);
+    POP(channel, CHANNEL);
+    POP(seconds_r, FLOAT);
+    tag = stack_pop();
 
-    seconds = FLOAT_TO_DOUBLE(t1);
+    seconds = FLOAT_TO_DOUBLE(seconds_r);
 
-    RET(cpu_event_wake_channel(state, c, t2, seconds, Qnil));
+    RET(cpu_event_wake_channel(state, c, channel, seconds, tag));
     CODE
   end
 

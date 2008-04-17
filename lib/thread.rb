@@ -156,7 +156,7 @@ class ConditionVariable
       @lock << nil
       if timeout
         timeout_ms = (timeout*1000000).to_i
-        timeout_id = Scheduler.send_in_microseconds(wchan, timeout_ms)
+        timeout_id = Scheduler.send_in_microseconds(wchan, timeout_ms, nil)
       else
         timeout_id = nil
       end

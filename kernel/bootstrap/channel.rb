@@ -46,12 +46,12 @@ class Channel
 end
 
 class Scheduler
-  def self.send_in_microseconds(chan, microseconds)
+  def self.send_in_microseconds(chan, microseconds, tag)
     Ruby.primitive :channel_send_in_microseconds
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def self.send_in_seconds(chan, seconds)
+  def self.send_in_seconds(chan, seconds, tag)
     Ruby.primitive :channel_send_in_seconds
     raise PrimitiveFailure, "primitive failed"
   end

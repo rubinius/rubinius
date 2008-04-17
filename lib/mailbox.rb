@@ -61,7 +61,7 @@ class Mailbox
 
       if filter.timeout?
         timeout_id = Scheduler.send_in_microseconds(@channel, 
-                                                    (filter.timeout * 1_000_000).to_i)
+                                                    (filter.timeout * 1_000_000).to_i, nil)
       end
 
       until action

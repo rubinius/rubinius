@@ -160,7 +160,7 @@ class IO
     #  end
     #end
 
-    Scheduler.send_in_microseconds chan, (timeout * 1_000_000).to_i if timeout
+    Scheduler.send_in_microseconds chan, (timeout * 1_000_000).to_i, nil if timeout
 
     value = chan.receive
 

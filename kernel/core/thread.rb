@@ -186,7 +186,7 @@ class Thread
         @lock.send nil
         begin
           unless timeout.equal?(Undefined)
-            Scheduler.send_in_seconds(jc, timeout.to_f)
+            Scheduler.send_in_seconds(jc, timeout.to_f, nil)
           end
           jc.receive
         ensure
