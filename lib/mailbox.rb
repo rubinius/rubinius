@@ -95,18 +95,22 @@ class Mailbox
     end
 
     def timeout?
-      @timeout != nil
+      not @timeout.nil?
     end
 
     def when(pattern, &action)
       raise ArgumentError, "no block given" unless action
       @pairs.push [pattern, action]
+      self
     end
 
     def after(seconds, &action)
-      raise Argument Error, "no timeout given" unless seconds
-      @timeout = seconds
-      @timeout_action = action
+      raise ArgumentError, "no timeout given" unless seconds
+      if seconds < @timeout
+        @timeout = seconds
+        @timeout_action = action
+      end
+      self
     end
 
     def action_for(value)
