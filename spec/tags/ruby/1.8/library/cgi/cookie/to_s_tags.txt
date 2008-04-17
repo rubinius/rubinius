@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::Cookie#to_s should spec something
+incomplete:CGI::Cookie#to_s needs to be reviewed for spec completeness

@@ -1,1 +1,2 @@
-fails(unimplemented):CGI::Cookie#path should spec something
+incomplete:CGI::Cookie#path needs to be reviewed for spec completeness
+incomplete:CGI::Cookie#path= needs to be reviewed for spec completeness

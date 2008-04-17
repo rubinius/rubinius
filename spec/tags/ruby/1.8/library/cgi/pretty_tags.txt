@@ -1,1 +1,1 @@
-fails(unimplemented):CGI#pretty should spec something
+incomplete:CGI.pretty needs to be reviewed for spec completeness

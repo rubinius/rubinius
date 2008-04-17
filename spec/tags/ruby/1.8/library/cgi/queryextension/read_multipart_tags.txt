@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#read_multipart should spec something
+incomplete:CGI::QueryExtension#read_multipart needs to be reviewed for spec completeness

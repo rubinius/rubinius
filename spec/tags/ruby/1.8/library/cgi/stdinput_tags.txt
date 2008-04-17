@@ -1,1 +1,1 @@
-fails(unimplemented):CGI#stdinput should spec something
+incomplete:CGI#stdinput needs to be reviewed for spec completeness

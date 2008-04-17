@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::HtmlExtension#blockquote should spec something
+incomplete:CGI::HtmlExtension#blockquote needs to be reviewed for spec completeness

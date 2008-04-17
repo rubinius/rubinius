@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#remote_ident should spec something
+incomplete:CGI::QueryExtension#remote_ident needs to be reviewed for spec completeness

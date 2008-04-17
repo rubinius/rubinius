@@ -1,1 +1,1 @@
-fails(unimplemented):CGI#stdoutput should spec something
+incomplete:CGI#stdoutput needs to be reviewed for spec completeness

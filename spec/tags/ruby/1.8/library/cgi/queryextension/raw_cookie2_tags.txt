@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#raw_cookie2 should spec something
+incomplete:CGI::QueryExtension#raw_cookie2 needs to be reviewed for spec completeness

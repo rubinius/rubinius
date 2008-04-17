@@ -1,1 +1,1 @@
-fails(unimplemented):CGI#header should spec something
+incomplete:CGI#header needs to be reviewed for spec completeness

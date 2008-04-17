@@ -1,8 +1,7 @@
-require 'cgi'
 require File.dirname(__FILE__) + '/../../spec_helper'
+require 'cgi'
 
-
-describe "CGI::escape" do
+describe "CGI.escape" do
 
   it "encode characters" do
     #input  = (0x20..0x7E).to_a.collect{|ch| ch.chr}.join

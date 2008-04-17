@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension::Value#first should spec something
+incomplete:CGI::QueryExtension::Value#first needs to be reviewed for spec completeness

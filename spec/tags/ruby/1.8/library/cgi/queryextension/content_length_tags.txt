@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#content_length should spec something
+incomplete:CGI::QueryExtension#content_length needs to be reviewed for spec completeness

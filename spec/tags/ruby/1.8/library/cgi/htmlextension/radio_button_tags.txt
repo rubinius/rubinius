@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::HtmlExtension#radio_button should spec something
+incomplete:CGI::HtmlExtension#radio_button needs to be reviewed for spec completeness

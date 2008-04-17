@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#path_info should spec something
+incomplete:CGI::QueryExtension#path_info needs to be reviewed for spec completeness

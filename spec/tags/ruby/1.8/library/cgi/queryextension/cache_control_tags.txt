@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#cache_control should spec something
+incomplete:CGI::QueryExtension#cache_control needs to be reviewed for spec completeness

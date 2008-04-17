@@ -1,1 +1,1 @@
-fails(unimplemented):CGI#out should spec something
+incomplete:CGI#out needs to be reviewed for spec completeness

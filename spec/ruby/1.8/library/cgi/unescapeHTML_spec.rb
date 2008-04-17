@@ -1,8 +1,7 @@
-require 'cgi'
 require File.dirname(__FILE__) + '/../../spec_helper'
+require 'cgi'
 
-
-describe "CGI::unescapeHTML" do
+describe "CGI.unescapeHTML" do
 
   it "unescape '&amp; &lt; &gt; &quot;' to '& < > \"'" do
     input = '&amp; &lt; &gt; &quot;'

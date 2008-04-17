@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::HtmlExtension#reset should spec something
+incomplete:CGI::HtmlExtension#reset needs to be reviewed for spec completeness
