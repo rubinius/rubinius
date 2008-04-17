@@ -34,6 +34,8 @@ class Mailbox
     @skipped = []
   end
 
+  class TimeoutEvent ; end
+
   def send(value)
     @channel.send value
     self
@@ -60,18 +62,26 @@ class Mailbox
       @skipped.delete_at found_at if found_at
 
       if filter.timeout?
-        timeout_id = Scheduler.send_in_microseconds(@channel, 
-                                                    (filter.timeout * 1_000_000).to_i, nil)
+        timeout_message = TimeoutEvent.new
+        timeout_id = Scheduler.send_in_seconds(@channel, filter.timeout, timeout_message)
+      else
+        timeout_message = nil
+        timeout_id = nil
       end
 
-      until action
-        value = @channel.receive
-        if value
-          action = filter.action_for value
-          @skipped.push value unless action
-        else
-          action = filter.timeout_action
+      begin
+        until action
+          value = @channel.receive
+          case value
+          when TimeoutEvent
+            action = filter.timeout_action if timeout_message == value
+          else
+            action = filter.action_for value
+            @skipped.push value unless action
+          end
         end
+      ensure
+        Scheduler.cancel(timeout_id) if timeout_id
       end
 
       action.call value
@@ -79,7 +89,10 @@ class Mailbox
       unless @skipped.empty?
         @skipped.shift
       else
-        @channel.receive
+        loop do
+          value = @channel.receive
+          return value unless TimeoutEvent === value
+        end
       end
     end
   end
@@ -106,6 +119,7 @@ class Mailbox
 
     def after(seconds, &action)
       raise ArgumentError, "no timeout given" unless seconds
+      seconds = seconds.to_f
       if seconds < @timeout
         @timeout = seconds
         @timeout_action = action
@@ -115,7 +129,7 @@ class Mailbox
 
     def action_for(value)
       pair = @pairs.find { |pattern, action| pattern === value }
-      pair ? pair[1] : nil
+      pair ? pair.last : nil
     end
   end
 end
