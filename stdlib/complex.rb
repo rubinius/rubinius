@@ -359,17 +359,17 @@ class Complex < Numeric
   def to_s
     if @real != 0
       if defined?(Rational) and @image.kind_of?(Rational) and @image.denominator != 1
-	if @image >= 0
-	  @real.to_s+"+("+@image.to_s+")i"
-	else
-	  @real.to_s+"-("+(-@image).to_s+")i"
-	end
+        if @image >= 0
+          @real.to_s+"+("+@image.to_s+")i"
+        else
+          @real.to_s+"-("+(-@image).to_s+")i"
+        end
       else
-	if @image >= 0
-	  @real.to_s+"+"+@image.to_s+"i"
-	else
-	  @real.to_s+"-"+(-@image).to_s+"i"
-	end
+        if @image >= 0
+          @real.to_s+"+"+@image.to_s+"i"
+        else
+          @real.to_s+"-"+(-@image).to_s+"i"
+        end
       end
     else
       if defined?(Rational) and @image.kind_of?(Rational) and @image.denominator != 1
