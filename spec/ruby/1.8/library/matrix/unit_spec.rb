@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require 'matrix'
+require File.dirname(__FILE__) + '/shared/identity'
 
 describe "Matrix.unit" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it_behaves_like(:matrix_identity, :unit)
 end
