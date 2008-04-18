@@ -1,1 +1,0 @@
-incomplete:File::Stat#mode needs to be reviewed for spec completeness
