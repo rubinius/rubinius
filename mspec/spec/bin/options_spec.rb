@@ -325,7 +325,7 @@ describe "The -e, --example STR" do
   end
 end
 
-describe "The -E", "--exclude STR" do
+describe "The -E, --exclude STR" do
   before :each do
     @options, @config = new_option
     @options.add_filters
@@ -347,7 +347,7 @@ describe "The -E", "--exclude STR" do
   end
 end
 
-describe "The -p", "--pattern PATTERN" do
+describe "The -p, --pattern PATTERN" do
   before :each do
     @options, @config = new_option
     @options.add_filters
@@ -369,7 +369,7 @@ describe "The -p", "--pattern PATTERN" do
   end
 end
 
-describe "The -P", "--excl-pattern PATTERN" do
+describe "The -P, --excl-pattern PATTERN" do
   before :each do
     @options, @config = new_option
     @options.add_filters
@@ -391,7 +391,7 @@ describe "The -P", "--excl-pattern PATTERN" do
   end
 end
 
-describe "The -g", "--tag TAG" do
+describe "The -g, --tag TAG" do
   before :each do
     @options, @config = new_option
     @options.add_filters
@@ -413,7 +413,7 @@ describe "The -g", "--tag TAG" do
   end
 end
 
-describe "The -G", "--excl-tag TAG" do
+describe "The -G, --excl-tag TAG" do
   before :each do
     @options, @config = new_option
     @options.add_filters
@@ -435,7 +435,51 @@ describe "The -G", "--excl-tag TAG" do
   end
 end
 
-describe "The -Z", "--dry-run" do
+describe "The -w, --profile FILE option" do
+  before :each do
+    @options, @config = new_option
+    @options.add_filters
+  end
+
+  it "is enabled with #add_filters" do
+    @options.stub!(:on)
+    @options.should_receive(:on).with("-w", "--profile FILE",
+        String, an_instance_of(String))
+    @options.add_filters
+  end
+
+  it "adds FILE to the included profiles list" do
+    ["-w", "--profile"].each do |opt|
+      @config[:profiles] = []
+      @options.parse [opt, "spec/profiles/rails.yaml"]
+      @config[:profiles].should include("spec/profiles/rails.yaml")
+    end
+  end
+end
+
+describe "The -W, --excl-profile FILE option" do
+  before :each do
+    @options, @config = new_option
+    @options.add_filters
+  end
+
+  it "is enabled with #add_filters" do
+    @options.stub!(:on)
+    @options.should_receive(:on).with("-W", "--excl-profile FILE",
+        String, an_instance_of(String))
+    @options.add_filters
+  end
+
+  it "adds FILE to the excluded profiles list" do
+    ["-W", "--excl-profile"].each do |opt|
+      @config[:xprofiles] = []
+      @options.parse [opt, "spec/profiles/rails.yaml"]
+      @config[:xprofiles].should include("spec/profiles/rails.yaml")
+    end
+  end
+end
+
+describe "The -Z", "--dry-run option" do
   before :each do
     @options, @config = new_option
     @options.add_pretend
@@ -454,7 +498,7 @@ describe "The -Z", "--dry-run" do
   end
 end
 
-describe "The -H", "--random" do
+describe "The -H, --random option" do
   before :each do
     @options, @config = new_option
     @options.add_randomize
@@ -473,7 +517,7 @@ describe "The -H", "--random" do
   end
 end
 
-describe "The -V", "--verbose" do
+describe "The -V, --verbose option" do
   before :each do
     @options, @config = new_option
     @options.add_verbose
@@ -494,7 +538,7 @@ describe "The -V", "--verbose" do
   end
 end
 
-describe "The -m", "--marker MARKER" do
+describe "The -m, --marker MARKER option" do
   before :each do
     @options, @config = new_option
     @options.add_verbose
@@ -515,7 +559,7 @@ describe "The -m", "--marker MARKER" do
   end
 end
 
-describe "The --int-spec" do
+describe "The --int-spec option" do
   before :each do
     @options, @config = new_option
     @options.add_interrupt
@@ -533,7 +577,7 @@ describe "The --int-spec" do
   end
 end
 
-describe "The -Y", "--verify" do
+describe "The -Y, --verify option" do
   before :each do
     @options, @config = new_option
     @options.add_verify
@@ -553,7 +597,7 @@ describe "The -Y", "--verify" do
   end
 end
 
-describe "The -O", "--report" do
+describe "The -O, --report option" do
   before :each do
     @options, @config = new_option
     @options.add_verify
@@ -573,7 +617,7 @@ describe "The -O", "--report" do
   end
 end
 
-describe "The -N", "--add TAG" do
+describe "The -N, --add TAG option" do
   before :each do
     @options, @config = new_option
     @options.add_tagging
@@ -597,7 +641,7 @@ describe "The -N", "--add TAG" do
   end
 end
 
-describe "The -R", "--del TAG option" do
+describe "The -R, --del TAG option" do
   before :each do
     @options, @config = new_option
     @options.add_tagging
@@ -623,7 +667,7 @@ describe "The -R", "--del TAG option" do
   end
 end
 
-describe "The -Q", "--pass option" do
+describe "The -Q, --pass option" do
   before :each do
     @options, @config = new_option
     @options.add_tagging
@@ -644,7 +688,7 @@ describe "The -Q", "--pass option" do
   end
 end
 
-describe "The -F", "--fail option" do
+describe "The -F, --fail option" do
   before :each do
     @options, @config = new_option
     @options.add_tagging
@@ -665,7 +709,7 @@ describe "The -F", "--fail option" do
   end
 end
 
-describe "The -L", "--all option" do
+describe "The -L, --all option" do
   before :each do
     @options, @config = new_option
     @options.add_tagging
@@ -686,7 +730,7 @@ describe "The -L", "--all option" do
   end
 end
 
-describe "The -K", "--action-tag TAG option" do
+describe "The -K, --action-tag TAG option" do
   before :each do
     @options, @config = new_option
     @options.add_action_filters
@@ -708,7 +752,7 @@ describe "The -K", "--action-tag TAG option" do
   end
 end
 
-describe "The -S", "--action-string STR option" do
+describe "The -S, --action-string STR option" do
   before :each do
     @options, @config = new_option
     @options.add_action_filters
@@ -774,7 +818,7 @@ describe "The --spec-gdb option" do
   end
 end
 
-describe "The -v", "--version option" do
+describe "The -v, --version option" do
   before :each do
     @options, @config = new_option
     @options.add_version
@@ -795,7 +839,7 @@ describe "The -v", "--version option" do
   end
 end
 
-describe "The -h", "--help option" do
+describe "The -h, --help option" do
   before :each do
     @options, @config = new_option
     @options.add_help

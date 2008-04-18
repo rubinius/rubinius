@@ -20,6 +20,8 @@ class MSpecScript
     config[:xpatterns] = []
     config[:tags]      = []
     config[:xtags]     = []
+    config[:profiles]  = []
+    config[:xprofiles] = []
     config[:atags]     = []
     config[:astrings]  = []
     config[:abort]     = true
