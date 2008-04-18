@@ -1661,23 +1661,24 @@ class Array
       middle = left_end + ((right_end - left_end) / 2)
       low, mid, hi = @tuple.at(left_end), @tuple.at(middle), @tuple.at(right_end)
 
+      segment_size = right_end - left_end
+
       # "Heuristic" to avoid problems with reverse-sorted
-      if @total > 1000 and (low <=> mid) == 1 and (mid <=> hi) == 1
+      if segment_size > 1000 and (low <=> mid) == 1 and (mid <=> hi) == 1
         semi_left = @tuple.at(left_end + ((middle - left_end) / 2))
         semi_right = @tuple.at(middle + ((right_end - middle) / 2))
 
         if (low <=> semi_left) == 1 and (semi_left <=> mid) == 1 and
            (mid <=> semi_right) == 1 and (semi_right <=> hi) == 1
-        end
 
-        size = right_end - left_end
-        r = size / 4
-        while r > 0
-          @tuple.swap(rand(size), rand(size))
-          r -= 1
-        end
+          r = segment_size / 4
+          while r > 0
+            @tuple.swap(rand(segment_size), rand(segment_size))
+            r -= 1
+          end
 
-        middle += (right_end - middle) / 2
+          middle += (right_end - middle) / 2
+        end
       end
 
       # These can be reordered which may help with sorting randomly
@@ -1791,23 +1792,24 @@ class Array
       middle = left_end + ((right_end - left_end) / 2)
       low, mid, hi = @tuple.at(left_end), @tuple.at(middle), @tuple.at(right_end)
 
+      segment_size = right_end - left_end
+
       # "Heuristic" for reverse-sorted
-      if @total > 1000 and block.call(low, mid) == 1 and block.call(mid, hi) == 1
+      if segment_size > 1000 and block.call(low, mid) == 1 and block.call(mid, hi) == 1
         semi_left = @tuple.at(left_end + ((middle - left_end) / 2))
         semi_right = @tuple.at(middle + ((right_end - middle) / 2))
 
         if block.call(low, semi_left) == 1 and block.call(semi_left, mid) == 1 and
            block.call(mid, semi_right) == 1 and block.call(semi_right, hi) == 1
-        end
 
-        size = right_end - left_end
-        r = size / 4
-        while r > 0
-          @tuple.swap(rand(size), rand(size))
-          r -= 1
-        end
+          r = segment_size / 4
+          while r > 0
+            @tuple.swap(rand(segment_size), rand(segment_size))
+            r -= 1
+          end
 
-        middle += (right_end - middle) / 2
+          middle += (right_end - middle) / 2
+        end
       end
 
       # These can be reordered which may help with sorting randomly

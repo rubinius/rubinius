@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension::Value#to_ary should spec something
+incomplete:CGI::QueryExtension::Value#to_ary needs to be reviewed for spec completeness

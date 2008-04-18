@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension::Value#set_params should spec something
+incomplete:CGI::QueryExtension::Value#set_params needs to be reviewed for spec completeness

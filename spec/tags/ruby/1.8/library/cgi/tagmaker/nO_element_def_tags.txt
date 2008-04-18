@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::TagMaker#nO_element_def should spec something
+incomplete:CGI::TagMaker#nO_element_def needs to be reviewed for spec completeness

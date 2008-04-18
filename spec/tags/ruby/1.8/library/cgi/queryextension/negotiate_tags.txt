@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#negotiate should spec something
+incomplete:CGI::QueryExtension#negotiate needs to be reviewed for spec completeness

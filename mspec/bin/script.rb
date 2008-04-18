@@ -1,12 +1,6 @@
 require 'mspec/runner/formatters/dotted'
 
 # MSpecScript provides a skeleton for all the MSpec runner scripts.
-# The front script, 'mspec', just overrides a couple methods in
-# MSpecScript. It could subclass, but there is no real advantage
-# to doing so. The rest of the scripts do subclass MSpecScript,
-# mostly for uniformity. At this time, only mspec-tag needs special
-# code in #initialize. If not for this, the approach used by 'mspec'
-# would be just as simple.
 
 class MSpecScript
   def self.config
@@ -61,7 +55,7 @@ class MSpecScript
   def signals
     if config[:abort]
       Signal.trap "INT" do
-        puts "\nSpec process aborted!"
+        puts "\nProcess aborted!"
         exit! 1
       end
     end

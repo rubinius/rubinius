@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::HtmlExtension#checkbox_group should spec something
+incomplete:CGI::HtmlExtension#checkbox_group needs to be reviewed for spec completeness

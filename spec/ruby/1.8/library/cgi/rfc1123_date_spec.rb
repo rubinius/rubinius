@@ -1,8 +1,7 @@
-require 'cgi'
 require File.dirname(__FILE__) + '/../../spec_helper'
+require 'cgi'
 
-
-describe "CGI::rfc1123_date" do
+describe "CGI.rfc1123_date" do
 
   it "convert Time object into RFC1123 format such as 'Sat, 01 Dec 2007 15:56:42 GMT'" do
     sec = 1196524602

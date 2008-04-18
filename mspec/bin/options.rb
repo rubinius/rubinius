@@ -70,19 +70,19 @@ class MSpecOptions
 
   def add_config(&block)
     on("-B", "--config FILE", String,
-            "Load FILE containing configuration options", &block)
+       "Load FILE containing configuration options", &block)
   end
 
   def add_name
     on("-n", "--name RUBY_NAME", String,
-            "Set the value of RUBY_NAME (used to determine the implementation)") do |n|
+       "Set the value of RUBY_NAME (used to determine the implementation)") do |n|
       Object.const_set :RUBY_NAME, n
     end
   end
 
   def add_targets
     on("-t", "--target TARGET", String,
-            "Implementation to run the specs, where:") do |t|
+       "Implementation to run the specs, where:") do |t|
       case t
       when 'r', 'ruby'
         @config[:target] = 'ruby'
@@ -108,29 +108,29 @@ class MSpecOptions
     separator "   'j' or 'jruby'    invokes jruby in PATH\n"
 
     on("-T", "--target-opt OPT", String,
-            "Pass OPT as a flag to the target implementation") do |t|
+       "Pass OPT as a flag to the target implementation") do |t|
       @config[:flags] << t
     end
     on("-I", "--include DIR", String,
-            "Pass DIR through as the -I option to the target") do |d|
+       "Pass DIR through as the -I option to the target") do |d|
       @config[:includes] << "-I#{d}"
     end
     on("-r", "--require LIBRARY", String,
-            "Pass LIBRARY through as the -r option to the target") do |f|
+       "Pass LIBRARY through as the -r option to the target") do |f|
       @config[:requires] << "-r#{f}"
     end
   end
 
   def add_tags_dir
     on("-X", "--tags-dir DIR", String,
-            "Use DIR as the path prefix for locating spec tag files") do |d|
+       "Use DIR as the path prefix for locating spec tag files") do |d|
       @config[:tags_dir] = d
     end
   end
 
   def add_formatters
     on("-f", "--format FORMAT", String,
-                "Formatter for reporting: s:specdoc|d:dotted|h:html|m:summary|u:unitdiff|a:*:spin") do |o|
+       "Formatter for reporting: s:specdoc|d:dotted|h:html|m:summary|u:unitdiff|a:*:spin") do |o|
       case o
       when 's', 'specdoc'
         @config[:formatter] = SpecdocFormatter
@@ -154,41 +154,41 @@ class MSpecOptions
 
   def add_filters
     on("-e", "--example STR", String,
-            "Run examples with descriptions matching STR") do |o|
+       "Run examples with descriptions matching STR") do |o|
       @config[:includes] << o
     end
     on("-E", "--exclude STR", String,
-            "Exclude examples with descriptions matching STR") do |o|
+       "Exclude examples with descriptions matching STR") do |o|
       @config[:excludes] << o
     end
     on("-p", "--pattern PATTERN", Regexp,
-            "Run examples with descriptions matching PATTERN") do |o|
+       "Run examples with descriptions matching PATTERN") do |o|
       @config[:patterns] << o
     end
     on("-P", "--excl-pattern PATTERN", Regexp,
-            "Exclude examples with descriptions matching PATTERN") do |o|
+       "Exclude examples with descriptions matching PATTERN") do |o|
       @config[:xpatterns] << o
     end
     on("-g", "--tag TAG", String,
-            "Run examples with descriptions matching ones tagged with TAG") do |o|
+       "Run examples with descriptions matching ones tagged with TAG") do |o|
       @config[:tags] << o
     end
     on("-G", "--excl-tag TAG", String,
-            "Exclude examples with descriptions matching ones tagged with TAG") do |o|
+       "Exclude examples with descriptions matching ones tagged with TAG") do |o|
       @config[:xtags] << o
     end
   end
 
   def add_pretend
     on("-Z", "--dry-run",
-                "Invoke formatters and other actions, but don't execute the specs") do
+       "Invoke formatters and other actions, but don't execute the specs") do
       MSpec.register_mode :pretend
     end
   end
 
   def add_randomize
     on("-H", "--random",
-                "Randomize the list of spec files") do
+       "Randomize the list of spec files") do
       MSpec.randomize
     end
   end
@@ -208,7 +208,7 @@ class MSpecOptions
     end
 
     on("-m", "--marker MARKER", String,
-            "Output MARKER for each file processed") do |o|
+       "Output MARKER for each file processed") do |o|
       obj = Object.new
       obj.instance_variable_set :@marker, o
       def obj.load
@@ -226,7 +226,7 @@ class MSpecOptions
 
   def add_verify
     on("-Y", "--verify",
-               "Verify that guarded specs pass and fail as expected") do
+       "Verify that guarded specs pass and fail as expected") do
       MSpec.set_mode :verify
     end
     on("-O", "--report", "Report guarded specs") do
@@ -236,12 +236,12 @@ class MSpecOptions
 
   def add_tagging
     on("-N", "--add TAG", String,
-                "Add TAG with format 'tag' or 'tag(comment)' (see -Q, -F, -L)") do |o|
+       "Add TAG with format 'tag' or 'tag(comment)' (see -Q, -F, -L)") do |o|
       @config[:tagger] = :add
       @config[:tag] = "#{o}:"
     end
     on("-R", "--del TAG", String,
-                "Delete TAG (see -Q, -F, -L)") do |o|
+       "Delete TAG (see -Q, -F, -L)") do |o|
       @config[:tagger] = :del
       @config[:tag] = "#{o}:"
       @config[:outcome] = :pass
@@ -259,22 +259,22 @@ class MSpecOptions
 
   def add_action_filters
     on("-K", "--action-tag TAG", String,
-                "Spec descriptions marked with TAG will trigger the specified action") do |o|
+       "Spec descriptions marked with TAG will trigger the specified action") do |o|
       @config[:atags] << o
     end
     on("-S", "--action-string STR", String,
-                "Spec descriptions matching STR will trigger the specified action") do |o|
+       "Spec descriptions matching STR will trigger the specified action") do |o|
       @config[:astrings] << o
     end
   end
 
   def add_actions
     on("--spec-debug",
-                "Invoke the debugger when a spec description matches (see -K, -S)") do
+       "Invoke the debugger when a spec description matches (see -K, -S)") do
       @config[:debugger] = true
     end
     on("--spec-gdb",
-                "Invoke Gdb when a spec description matches (see -K, -S)") do
+       "Invoke Gdb when a spec description matches (see -K, -S)") do
       @config[:gdb] = true
     end
   end

@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#referer should spec something
+incomplete:CGI::QueryExtension#referer needs to be reviewed for spec completeness

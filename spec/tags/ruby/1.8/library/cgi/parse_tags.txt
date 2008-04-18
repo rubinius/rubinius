@@ -1,1 +1,1 @@
-fails(unimplemented):CGI#parse should spec something
+incomplete:CGI.parse needs to be reviewed for spec completeness

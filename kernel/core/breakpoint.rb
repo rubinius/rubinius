@@ -580,6 +580,18 @@ class BreakpointTracker
     @global_breakpoints.delete(bp.method) if @global_breakpoints[bp.method].size == 0
   end
 
+  # Removes a global breakpoint without deleting it
+  def disable_breakpoint(bp)
+    bp.remove
+    bp.disable
+  end
+
+  # Re-installs a previously disabled breakpoint
+  def enable_breakpoint(bp)
+    bp.enable
+    bp.install
+  end
+
   ##
   # Returns the global breakpoint at the specified location
   def get_breakpoint(cm, ip)

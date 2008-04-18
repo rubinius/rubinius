@@ -263,8 +263,8 @@ describe MSpec, ".tags_path" do
     MSpec.store :tags_path, nil
   end
 
-  it "returns '.tags' if no tags path has been registered" do
-    MSpec.tags_path.should == ".tags"
+  it "returns 'spec/tags' if no tags path has been registered" do
+    MSpec.tags_path.should == "spec/tags"
   end
 
   it "returns the registered tags path" do
@@ -279,8 +279,8 @@ describe MSpec, ".tags_file" do
     MSpec.store :tags_path, nil
   end
 
-  it "returns the tags file for the current spec file" do
-    MSpec.tags_file.should == "/path/to/spec/something/.tags/some_tags.txt"
+  it "returns the tags file for the current spec file with default tags_path" do
+    MSpec.tags_file.should == "spec/tags/something/some_tags.txt"
   end
 
   it "returns the tags file for the current spec file with custom tags_path" do

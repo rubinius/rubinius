@@ -1,1 +1,0 @@
-fails(unimplemented):CGI::Cookie#initialize should spec something

@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#remote_host should spec something
+incomplete:CGI::QueryExtension#remote_host needs to be reviewed for spec completeness

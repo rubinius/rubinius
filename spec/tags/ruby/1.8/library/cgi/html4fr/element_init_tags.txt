@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::Html4Fr#element_init should spec something
+incomplete:CGI::Html4Fr#element_init needs to be reviewed for spec completeness

@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::HtmlExtension#form should spec something
+incomplete:CGI::HtmlExtension#form needs to be reviewed for spec completeness

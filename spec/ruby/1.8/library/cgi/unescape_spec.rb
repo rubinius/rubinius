@@ -1,8 +1,7 @@
-require 'cgi'
 require File.dirname(__FILE__) + '/../../spec_helper'
+require 'cgi'
 
-
-describe "CGI::unescape" do
+describe "CGI.unescape" do
 
   it "decode '%' format string" do
     input = '%a4%Aa'

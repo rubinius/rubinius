@@ -1,1 +1,2 @@
-fails(unimplemented):CGI::QueryExtension#cookies should spec something
+incomplete:CGI::QueryExtension#cookies needs to be reviewed for spec completeness
+incomplete:CGI::QueryExtension#cookies= needs to be reviewed for spec completeness

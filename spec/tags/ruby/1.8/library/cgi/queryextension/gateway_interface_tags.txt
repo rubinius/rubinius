@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#gateway_interface should spec something
+incomplete:CGI::QueryExtension#gateway_interface needs to be reviewed for spec completeness

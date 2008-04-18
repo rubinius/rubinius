@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::Html4Fr#doctype should spec something
+incomplete:CGI::Html4Fr#doctype needs to be reviewed for spec completeness

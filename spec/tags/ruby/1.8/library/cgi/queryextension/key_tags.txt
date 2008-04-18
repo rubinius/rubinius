@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::QueryExtension#key? should spec something
+incomplete:CGI::QueryExtension#key? needs to be reviewed for spec completeness

@@ -1,1 +1,1 @@
-fails(unimplemented):CGI::HtmlExtension#file_field should spec something
+incomplete:CGI::HtmlExtension#file_field needs to be reviewed for spec completeness

@@ -1,1 +1,1 @@
-fails(unimplemented):CGI#env_table should spec something
+incomplete:CGI#env_table needs to be reviewed for spec completeness
