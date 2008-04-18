@@ -1,6 +1,3 @@
 fails:BigDecimal#=== test for equality
 fails:BigDecimal#=== NaN is never equal to any number
 fails:BigDecimal#=== returns true for infinity values with the same sign
-fails:BigDecimal#=== does not return true for infinity values with different signs
-fails:BigDecimal#=== does not return true when ininite value compared to finite one
-fails:BigDecimal#=== does not return true for infinity values with different signs
