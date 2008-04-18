@@ -723,7 +723,11 @@ class File::Stat
   end
   
   def inspect
-    "#<File::Stat dev=0x#{self.dev.to_s(16)}, ino=#{self.ino}, mode=#{sprintf("%07d", self.mode.to_s(8).to_i)}, nlink=#{self.nlink}, uid=#{self.uid}, gid=#{self.gid}, rdev=0x#{self.rdev.to_s(16)}, size=#{self.size}, blksize=#{self.blksize}, blocks=#{self.blocks}, atime=#{self.atime}, mtime=#{self.mtime}, ctime=#{self.ctime}>"
+    "#<File::Stat dev=0x#{self.dev.to_s(16)}, ino=#{self.ino}, " \
+    "mode=#{sprintf("%07d", self.mode.to_s(8).to_i)}, nlink=#{self.nlink}, " \
+    "uid=#{self.uid}, gid=#{self.gid}, rdev=0x#{self.rdev.to_s(16)}, " \
+    "size=#{self.size}, blksize=#{self.blksize}, blocks=#{self.blocks}, " \
+    "atime=#{self.atime}, mtime=#{self.mtime}, ctime=#{self.ctime}>"
   end
 
   def nlink
