@@ -17,7 +17,7 @@ class BigDecimal < Numeric
     @frac = '0'
     @exp = '0'
     @special = nil # 'n' for NaN, 'i' for Infinity, nil otherwise
-    
+
     v = _val.strip
     if v == "NaN"
       @special = 'n'
@@ -36,7 +36,7 @@ class BigDecimal < Numeric
     @precs = [self.to_s.length, _precs].max
     end
   end
-  
+
   # As for Float.finite? .
   # call-seq:
   #   BigDecimal.new("Infinity").finite?  => false
@@ -44,7 +44,7 @@ class BigDecimal < Numeric
   def finite?
     @special != 'i'
   end
-  
+
   # As for Float.nan? .
   # call-seq:
   #   BigDecimal.new("NaN").nan?  => true
@@ -52,31 +52,31 @@ class BigDecimal < Numeric
   def nan?
     @special == 'n'
   end
-  
+
   def precs
     [nil, @precs]
   end
-  
+
   def to_s
     radix = '.'
     e = 'E'
     nan = 'NaN'
     infinity = 'Infinity'
-  
+
     if self.nan?
       return nan
     end
-    
+
     if @sign == '+'
       str = ''
     else
       str = '-'
     end
-    
+
     if self.finite?
       str << @int
       if @frac != '0'
-        str << radix 
+        str << radix
         str << @frac
       end
       if @exp != '0'
@@ -93,33 +93,33 @@ class BigDecimal < Numeric
     Ruby.primitive :numeric_coerce
     [BigDecimal(other.to_s), self]
   end
-  
+
   #########################
   # Arithmetic operations #
   #########################
-  
+
   # These are stubbed out until we implement them so that their respective specfiles don't crash.
-  
+
   def +(other)
   end
-  
+
   def -(other)
   end
-  
+
   def quo(other)
   end
   alias / quo
-  
+
   def remainder(other)
   end
   alias % remainder
-  
+
   def >=(other)
   end
-  
+
   def <=(other)
   end
-  
+
   # This will need to be refactored
   def <=>(other)
     if other != 0 or self.nan?
@@ -135,11 +135,11 @@ class BigDecimal < Numeric
       end
     end
   end
-  
+
   def <(other)
     return self.<=>(other) == -1
   end
-  
+
   def ==(other)
     self.to_s == other.to_s and self.precs == other.precs
   end
