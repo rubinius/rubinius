@@ -25,5 +25,20 @@ describe "File::Stat#<=>" do
     File.delete("/tmp/i_exist") if File.exist?("/tmp/i_exist")
     File.delete("/tmp/i_exist_too") if File.exist?("/tmp/i_exist_too")
   end
+  
+  it "should also include Comparable and thus == shows mtime equality between two File::Stat objects" do
+    f1 = File.new("/tmp/i_exist", "w")
+    f2 = File.new("/tmp/i_exist_too", "w")
+    
+    (f1.stat == f2.stat).should == true
+    (f1.stat == f1.stat).should == true
+    (f2.stat == f2.stat).should == true
+    
+    File.utime(Time.now, Time.now + 100, "/tmp/i_exist_too")
+    
+    (f1.stat == f2.stat).should == false
+    (f1.stat == f1.stat).should == true
+    (f2.stat == f2.stat).should == true
+  end
 
 end

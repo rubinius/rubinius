@@ -587,6 +587,8 @@ class File::Stat
            :st_atime, :st_mtime, :st_ctime
   end
 
+  include Comparable
+
   S_IRUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IRUSR']
   S_IWUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IWUSR']
   S_IXUSR  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_IXUSR']
@@ -721,7 +723,11 @@ class File::Stat
   end
   
   def inspect
-    "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{ftype}>"
+    "#<File::Stat dev=0x#{self.dev.to_s(16)}, ino=#{self.ino}, " \
+    "mode=#{sprintf("%07d", self.mode.to_s(8).to_i)}, nlink=#{self.nlink}, " \
+    "uid=#{self.uid}, gid=#{self.gid}, rdev=0x#{self.rdev.to_s(16)}, " \
+    "size=#{self.size}, blksize=#{self.blksize}, blocks=#{self.blocks}, " \
+    "atime=#{self.atime}, mtime=#{self.mtime}, ctime=#{self.ctime}>"
   end
 
   def nlink
