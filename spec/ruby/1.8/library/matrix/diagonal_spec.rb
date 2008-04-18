@@ -2,11 +2,11 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'matrix'
 
 describe "Matrix.diagonal" do
-  it "needs to be reviewed for spec completeness" do
-  end
-  
   before(:each) do
     @m = Matrix.diagonal(10, 11, 12, 13, 14)
+  end
+  
+  it "needs to be reviewed for spec completeness" do
   end
   
   it "returns an object of type Matrix" do
