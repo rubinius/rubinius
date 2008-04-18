@@ -1,5 +1,10 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../bin/script'
+require File.dirname(__FILE__) + '/../../runner/mspec'
+require File.dirname(__FILE__) + '/../../runner/filters'
+require File.dirname(__FILE__) + '/../../runner/actions/filter'
+require File.dirname(__FILE__) + '/../../runner/actions/debug'
+require File.dirname(__FILE__) + '/../../runner/actions/gdb'
 
 describe MSpecScript, ".config" do
   it "returns a Hash" do
@@ -90,11 +95,125 @@ describe MSpecScript, "#initialize" do
 end
 
 describe MSpecScript, "#load" do
-  # TODO: specs
+  before :each do
+    File.stub!(:exist?).and_return(false)
+    @script = MSpecScript.new
+    @file = "default.mspec"
+  end
+
+  it "attempts to locate the file through the expanded path name" do
+    File.should_receive(:expand_path).with(@file).and_return(@file)
+    File.should_receive(:exist?).with(@file).and_return(true)
+    Kernel.should_receive(:load).with(@file).and_return(:loaded)
+    @script.load(@file).should == :loaded
+  end
+
+  it "attemps to locate the file in '.'" do
+    path = File.join ".", @file
+    File.should_receive(:exist?).with(path).and_return(true)
+    Kernel.should_receive(:load).with(path).and_return(:loaded)
+    @script.load(@file).should == :loaded
+  end
+
+  it "attemps to locate the file in 'spec'" do
+    path = File.join "spec", @file
+    File.should_receive(:exist?).with(path).and_return(true)
+    Kernel.should_receive(:load).with(path).and_return(:loaded)
+    @script.load(@file).should == :loaded
+  end
 end
 
 describe MSpecScript, "#register" do
-  # TODO: specs
+  before :each do
+    @script = MSpecScript.new
+
+    @formatter = mock("formatter", :null_object => true)
+    @script.config[:formatter] = @formatter
+  end
+
+  it "creates and registers the formatter" do
+    @formatter.should_receive(:new).and_return(@formatter)
+    @formatter.should_receive(:register)
+    @script.register
+  end
+end
+
+describe MSpecScript, "#register" do
+  before :each do
+    @script = MSpecScript.new
+
+    @formatter = mock("formatter", :null_object => true)
+    @script.config[:formatter] = @formatter
+
+    @filter = mock("filter")
+    @filter.should_receive(:register)
+
+    @ary = ["some", "spec"]
+  end
+
+  it "creates and registers a MatchFilter for include specs" do
+    MatchFilter.should_receive(:new).with(:include, *@ary).and_return(@filter)
+    @script.config[:includes] = @ary
+    @script.register
+  end
+
+  it "creates and registers a MatchFilter for excluded specs" do
+    MatchFilter.should_receive(:new).with(:exclude, *@ary).and_return(@filter)
+    @script.config[:excludes] = @ary
+    @script.register
+  end
+
+  it "creates and registers a RegexpFilter for include specs" do
+    RegexpFilter.should_receive(:new).with(:include, *@ary).and_return(@filter)
+    @script.config[:patterns] = @ary
+    @script.register
+  end
+
+  it "creates and registers a RegexpFilter for excluded specs" do
+    RegexpFilter.should_receive(:new).with(:exclude, *@ary).and_return(@filter)
+    @script.config[:xpatterns] = @ary
+    @script.register
+  end
+
+  it "creates and registers a TagFilter for include specs" do
+    TagFilter.should_receive(:new).with(:include, *@ary).and_return(@filter)
+    @script.config[:tags] = @ary
+    @script.register
+  end
+
+  it "creates and registers a TagFilter for excluded specs" do
+    TagFilter.should_receive(:new).with(:exclude, *@ary).and_return(@filter)
+    @script.config[:xtags] = @ary
+    @script.register
+  end
+
+  it "creates and registers a ProfileFilter for include specs" do
+    ProfileFilter.should_receive(:new).with(:include, *@ary).and_return(@filter)
+    @script.config[:profiles] = @ary
+    @script.register
+  end
+
+  it "creates and registers a ProfileFilter for excluded specs" do
+    ProfileFilter.should_receive(:new).with(:exclude, *@ary).and_return(@filter)
+    @script.config[:xprofiles] = @ary
+    @script.register
+  end
+
+  it "creates and registers a DebugAction for excluded specs" do
+    @script.config[:atags] = ["some"]
+    @script.config[:astrings] = ["string"]
+    DebugAction.should_receive(:new).with(["some"], ["string"]).and_return(@filter)
+    @script.config[:debugger] = true
+    @script.register
+  end
+
+  it "creates and registers a GdbAction for excluded specs" do
+    @script.config[:atags] = ["some"]
+    @script.config[:astrings] = ["string"]
+    GdbAction.should_receive(:new).with(["some"], ["string"]).and_return(@filter)
+    @script.config[:gdb] = true
+    @script.register
+  end
 end
 
 describe MSpecScript, "#signals" do

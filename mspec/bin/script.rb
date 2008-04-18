@@ -43,12 +43,14 @@ class MSpecScript
   def register
     config[:formatter].new.register
 
-    MatchFilter.new(:include, *config[:includes]).register   unless config[:includes].empty?
-    MatchFilter.new(:exclude, *config[:excludes]).register   unless config[:excludes].empty?
-    RegexpFilter.new(:include, *config[:patterns]).register  unless config[:patterns].empty?
-    RegexpFilter.new(:exclude, *config[:xpatterns]).register unless config[:xpatterns].empty?
-    TagFilter.new(:include, *config[:tags]).register         unless config[:tags].empty?
-    TagFilter.new(:exclude, *config[:xtags]).register        unless config[:xtags].empty?
+    MatchFilter.new(:include, *config[:includes]).register    unless config[:includes].empty?
+    MatchFilter.new(:exclude, *config[:excludes]).register    unless config[:excludes].empty?
+    RegexpFilter.new(:include, *config[:patterns]).register   unless config[:patterns].empty?
+    RegexpFilter.new(:exclude, *config[:xpatterns]).register  unless config[:xpatterns].empty?
+    TagFilter.new(:include, *config[:tags]).register          unless config[:tags].empty?
+    TagFilter.new(:exclude, *config[:xtags]).register         unless config[:xtags].empty?
+    ProfileFilter.new(:include, *config[:profiles]).register  unless config[:profiles].empty?
+    ProfileFilter.new(:exclude, *config[:xprofiles]).register unless config[:xprofiles].empty?
 
     DebugAction.new(config[:atags], config[:astrings]).register if config[:debugger]
     GdbAction.new(config[:atags], config[:astrings]).register   if config[:gdb]
