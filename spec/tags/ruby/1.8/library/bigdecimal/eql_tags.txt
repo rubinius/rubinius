@@ -1,6 +1,3 @@
 fails:BigDecimal#eql? test for equality
 fails:BigDecimal#eql? NaN is never equal to any number
 fails:BigDecimal#eql? returns true for infinity values with the same sign
-fails:BigDecimal#eql? does not return true for infinity values with different signs
-fails:BigDecimal#eql? does not return true when ininite value compared to finite one
-fails:BigDecimal#eql? does not return true for infinity values with different signs
