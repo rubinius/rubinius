@@ -14,8 +14,8 @@ describe "Matrix#clone" do
     b.class.should == Matrix
     b.should == @a
     b.should_not === @a
-    0.upto(2) do |i|
-      0.upto(1) do |j|
+    0.upto(@a.row_size - 1) do |i|
+      0.upto(@a.column_size - 1) do |j|
         b[i, j].should == @a[i, j]
         b[i, j].should_not === @a[i, j]
       end
