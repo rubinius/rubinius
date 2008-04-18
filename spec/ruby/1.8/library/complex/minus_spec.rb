@@ -10,13 +10,13 @@ describe "Complex#- with [Complex]" do
     b = 2
     c = 10
     d = 20
-    (Complex.new(a, b) - Complex.new(c, d)).should == Complex.new(a - c, b - d)
+    (Complex(a, b) - Complex(c, d)).should == Complex(a - c, b - d)
     
     e = 1.5
     f = 2.1
     g = 100.2
     h = -30.3
-    (Complex.new(e, f) - Complex.new(g, h)).should == Complex.new(e - g, f - h)
+    (Complex(e, f) - Complex(g, h)).should == Complex(e - g, f - h)
   end
 end
 
@@ -25,7 +25,7 @@ describe "Complex#- with [real]" do
   end
   
   it "subtracts the real number from the real part of the complex number" do
-    (Complex.new(1, 2) - 50).should == Complex.new(-49, 2)
-    (Complex.new(1, 2) - 50.5).should == Complex.new(-49.5, 2)
+    (Complex(1, 2) - 50).should == Complex(-49, 2)
+    (Complex(1, 2) - 50.5).should == Complex(-49.5, 2)
   end
 end
