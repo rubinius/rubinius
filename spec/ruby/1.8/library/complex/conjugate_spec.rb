@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require 'complex'
+require File.dirname(__FILE__) + '/shared/conjugate.rb'
 
 describe "Complex#conjugate" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it_behaves_like(:complex_conjugate, :conjugate)
 end
