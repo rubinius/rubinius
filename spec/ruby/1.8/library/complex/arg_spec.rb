@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require 'complex'
+require File.dirname(__FILE__) + '/shared/arg.rb'
 
 describe "Complex#arg" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it_behaves_like(:complex_arg, :arg)
 end
