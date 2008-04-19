@@ -346,7 +346,35 @@ module Kernel
   alias_method :__id__, :object_id
 
   alias_method :==,   :equal?
-  alias_method :===,  :equal?
+
+  # The "sorta" operator, also known as the case equality operator.
+  # Generally while #eql? and #== are stricter, #=== is often used
+  # to denote an acceptable match or inclusion. It returns true if
+  # the match is considered to be valid and false otherwise. It has
+  # one special purpose: it is the operator used by the case expression.
+  # So in this expression:
+  #
+  #   case obj
+  #   when /Foo/
+  #     ...
+  #   when "Hi"
+  #     ...
+  #   end
+  #
+  # What really happens is that `/Foo/ === obj` is attempted and so
+  # on down until a match is found or the expression ends. The use
+  # by Regexp is very illustrative: while obj may satisfy the pattern,
+  # it may not be the only option.
+  #
+  # The default #=== operator checks if the other object is #equal?
+  # to this one (i.e., is the same object) or if #== returns true.
+  # If neither is true, false is returned instead. Many classes opt
+  # to override this behaviour to take advantage of its use in a
+  # case expression and to implement more relaxed matching semantics.
+  # Notably, the above Regexp as well as String, Module and many others.
+  def ===(other)
+    equal?(other) || self == other
+  end
 
   ##
   # Regexp matching fails by default but may be overridden by subclasses,
