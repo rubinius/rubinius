@@ -1,0 +1,4 @@
+OpenSSL::Digest::Digest#:
+- initialize
+OpenSSL::HMAC.:
+- hexdigest

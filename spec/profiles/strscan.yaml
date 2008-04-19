@@ -1,0 +1,5 @@
+StringScanner#:
+- "[]"
+- eos?
+- initialize
+- scan

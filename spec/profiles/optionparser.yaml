@@ -1,0 +1,32 @@
+OptionParser::Arguable.:
+- extend_object
+OptionParser::Arguable#:
+- options
+OptionParser::List#:
+- accept
+- append
+- initialize
+- search
+- update
+OptionParser::Switch::NoArgument.:
+- incompatible_argument_styles
+- pattern
+OptionParser::Switch.:
+- guess
+OptionParser.:
+- accept
+- top
+OptionParser#:
+- add_officious
+- base
+- define
+- make_switch
+- notwice
+- on
+- order!
+- parse!
+- parse_in_order
+- permute!
+- search
+- separator
+- visit
