@@ -6,16 +6,12 @@ describe "Matrix#clone" do
     @a = Matrix[[1, 2], [3, 4], [5, 6]]
   end
   
-  it "returns a copy of the matrix values" do
+  it "returns a shallow copy of the matrix" do
     b = @a.clone
     b.class.should == Matrix
     b.should == @a
-    b.should_not === @a
     0.upto(@a.row_size - 1) do |i|
-      0.upto(@a.column_size - 1) do |j|
-        b[i, j].should == @a[i, j]
-        b[i, j].should_not === @a[i, j]
-      end
+      @a.row(i).object_id.should_not == b.row(i).object_id
     end
   end
 end
