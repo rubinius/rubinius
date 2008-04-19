@@ -1,4 +1,4 @@
-# depends on: io.rb class.rb module.rb
+# depends on: io.rb class.rb module.rb enumerable.rb
 
 module Platform::POSIX
   class TimeVal < FFI::Struct
@@ -7,6 +7,8 @@ module Platform::POSIX
 end 
 
 class File < IO
+
+  include Enumerable
 
   #--
   # Internal class for accessing timevals
