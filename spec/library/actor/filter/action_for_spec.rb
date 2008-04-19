@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
-require 'mailbox'
+require 'actor'
 
-describe "Mailbox::Filter.__class_init__" do
+describe "Actor::Filter#action_for" do
   it "needs to be reviewed for spec completeness" do
   end
 end

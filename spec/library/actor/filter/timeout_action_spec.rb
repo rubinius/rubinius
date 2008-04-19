@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
-require 'mailbox'
+require 'actor'
 
-describe "Mailbox::Filter#timeout_action" do
+describe "Actor::Filter#timeout_action" do
   it "needs to be reviewed for spec completeness" do
   end
 end
