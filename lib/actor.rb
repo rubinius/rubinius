@@ -351,7 +351,7 @@ class Actor
       @links.delete(actor)
       if @trap_exit
         send [:exit, actor, reason]
-      elsif :exit_clean != reason
+      elsif reason
         @interrupts << DeadActorError.new(actor, reason)
         if @filter
           @filter = nil
@@ -365,7 +365,7 @@ class Actor
   end
 
   def watchdog
-    reason = :exit_clean
+    reason = nil
     begin
       yield
     rescue Exception => reason
