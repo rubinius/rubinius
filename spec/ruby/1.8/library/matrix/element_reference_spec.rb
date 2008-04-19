@@ -20,6 +20,11 @@ describe "Matrix.[]" do
     @m.row(1).to_a.should == @b
     @m.row(2).to_a.should == @c
   end
+
+  it "references the original arguments" do
+    @a << 4
+    @m.row(0).should.equal?(@a)
+  end
 end
 
 describe "Matrix#[]" do
