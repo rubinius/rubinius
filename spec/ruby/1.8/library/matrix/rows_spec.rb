@@ -20,15 +20,15 @@ describe "Matrix.rows" do
   it "copies the original rows by default" do
     @a << 3
     @b << 6
-    @m.row(0).should_not.equal?(@a)
-    @m.row(1).should_not.equal?(@b)
+    @m.row(0).equal?(@a).should == false
+    @m.row(1).equal?(@b).should == false
   end
 
   it "references the original rows if copy is false" do
     @m_ref = Matrix.rows([@a, @b], false)
     @a << 3
     @b << 6
-    @m_ref.row(0).should.equal?(@a)
-    @m_ref.row(1).should.equal?(@b)
+    @m_ref.row(0).to_a.should == @a
+    @m_ref.row(1).to_a.should == @b
   end
 end
