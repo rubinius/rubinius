@@ -108,17 +108,15 @@ class Actor
     # Send a "fake" exit notification to another actor, as if the current
     # actor had exited with +reason+
     def send_exit(recipient, reason)
-      recipient.notify_exit(current, reason)
+      recipient.notify_exited(current, reason)
       self
     end
     
-    # Link the current Actor to another one; may be interrupted by exit
-    # notifications.
+    # Link the current Actor to another one.
     def link(actor)
       current = self.current
-      current._check_for_interrupt
-      actor.notify_link current
       current.notify_link actor
+      actor.notify_link current
       self
     end
     
@@ -315,16 +313,16 @@ class Actor
   #
   def notify_link(actor)
     @lock.receive
+    alive = nil
+    exit_reason = nil
     begin
-      raise DeadActorError.new(self, @exit_reason) unless @alive
-
-      # Ignore duplicate links
-      return true if @links.include? actor
-    
-      @links << actor
+      alive = @alive
+      exit_reason = @exit_reason
+      @links << actor if alive and not @links.include? actor
     ensure
       @lock << nil
     end
+    actor.notify_exited(self, exit_reason) unless alive
     self
   end
   
