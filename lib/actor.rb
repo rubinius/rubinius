@@ -143,7 +143,6 @@ class Actor
     # Is the Actor trapping exit?
     def trap_exit
       current._trap_exit
-      self
     end
     alias_method :trap_exit?, :trap_exit
 
