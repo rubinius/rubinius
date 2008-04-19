@@ -2,8 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'matrix'
 
 describe "Matrix.scalar" do
-  it "needs to be reviewed for spec completeness" do
-  end
   
   before(:each) do
     @side = 3
@@ -15,18 +13,18 @@ describe "Matrix.scalar" do
     @a.class.should == Matrix
   end
   
-  it "returns a square matrix, where the first argument specifies the side of the square" do
+  it "returns a n x n matrix" do
     @a.row_size.should == @side
     @a.column_size.should == @side
   end
   
-  it "puts the second argument in all diagonal values" do
+  it "initializes diagonal to value" do
     (0...@a.row_size).each do |i|
       @a[i, i].should == @value
     end
   end
   
-  it "fills all values not on the main diagonal with 0" do
+  it "initializes all non-diagonal values to 0" do
     (0...@a.row_size).each do |i|
       (0...@a.column_size).each do |j|
         if i != j
