@@ -418,12 +418,14 @@ class InstructionSequence
       old_op = InstructionSet[old_inst]
       new_op = inst.first
       new_op = InstructionSet[inst.first] unless new_op.kind_of? InstructionSet::OpCode
+      @offset += old_op.arg_count * InstructionSet::InstructionSize
       old_op.size.upto(new_op.size-1) do
         next_inst = iseq2int
         unless next_inst == 0
           raise ArgumentError, "Cannot replace an instruction with a larger instruction (existing #{old_op.opcode} / new #{new_op.opcode})"
         end
       end
+      @offset = start + InstructionSet::InstructionSize
       replaced = [old_op.opcode]
 
       1.upto(old_op.arg_count) do
