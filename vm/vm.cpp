@@ -1,6 +1,8 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "objects.hpp"
+#include "event.hpp"
+#include "global_cache.hpp"
 
 namespace rubinius {
   VM::VM(size_t bytes) {
@@ -8,11 +10,13 @@ namespace rubinius {
     bootstrap_ontology();
 
     events = new event::Loop(EVFLAG_FORKCHECK);
+    global_cache = new GlobalCache;
   }
 
   VM::~VM() {
     delete om;
     delete events;
+    delete global_cache;
   }
 
   OBJECT VM::new_object(Class *cls) {

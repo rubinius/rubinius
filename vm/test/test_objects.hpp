@@ -37,8 +37,8 @@ class TestObjects : public CxxTest::TestSuite {
     cls = (Class*)vm.globals.klass;
     meta = (MetaClass*)cls->klass;
     TS_ASSERT(MetaClass::is_a(vm.globals.object->klass));
-    TS_ASSERT(LookupTable::is_a(meta->method_table));
-    TS_ASSERT(LookupTable::is_a(meta->constants));
+    TS_ASSERT(kind_of<LookupTable>(meta->method_table));
+    TS_ASSERT(kind_of<LookupTable>(meta->constants));
   }
 
   void test_module() {

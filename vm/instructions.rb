@@ -1428,8 +1428,13 @@ CODE
   def push_const
     <<-CODE
     next_literal;
-    t1 = const_get_in_context(_lit);
-    if(t1 != Qundef) stack_push(t1);
+    bool found;
+    t1 = const_get(as<Symbol>(_lit), &found);
+    if(found) {
+      stack_push(t1);
+    } else {
+      /* TODO const_missing call */
+    }
     CODE
   end
 
@@ -1438,7 +1443,7 @@ CODE
   # [Format]
   #   \find_const constant
   # [Stack Before]
-  #   * ns
+  #   * parent
   #   * ...
   # [Stack After]
   #   * const
@@ -1458,8 +1463,13 @@ CODE
     <<-CODE
     t1 = stack_pop();
     next_literal;
-    t2 = const_get_from(_lit, t1);
-    if(t2 != Qundef) stack_push(t2);
+    bool found;
+    t2 = const_get(as<Module>(t1), as<Symbol>(_lit), &found);
+    if(found) {
+      stack_push(t2);
+    } else {
+      /* TODO call const_missing */
+    }
     CODE
   end
 
@@ -1481,8 +1491,8 @@ CODE
   def set_const
     <<-CODE
     next_literal;
-    t1 = stack_pop();
-    stack_push(const_set(_lit, t1));
+    t1 = stack_top();
+    const_set(as<Symbol>(_lit), t1);
     CODE
   end
 
@@ -1506,7 +1516,10 @@ CODE
     next_literal;
     t2 = stack_pop();
     t3 = stack_pop();
-    stack_push(const_set(_lit, t2, t3));
+
+    const_set(as<Module>(t3), as<Symbol>(_lit), t2);
+
+    stack_push(t2);
     CODE
   end
 
@@ -1622,16 +1635,13 @@ CODE
 
   def open_class_under
     <<-CODE
-    int created;
+    bool created;
 
     t1 = stack_pop();
-    check(kind_of<Class>(t1) || t1->nil_p());
-
     t2 = stack_pop();
-    check(kind_of<Module>(t2) || kind_of<Class>(t2));
 
     next_literal;
-    t3 = open_class(t2, t1, _lit, &created);
+    t3 = open_class(as<Module>(t2), t1, as<Symbol>(_lit), &created);
     if(t3 != Qundef) {
       stack_push(t3);
       if(created) perform_hook(t3, G(sym_opened_class), t1);
@@ -1674,13 +1684,11 @@ CODE
 
   def open_class
     <<-CODE
-    int created;
+    bool created;
 
     t1 = stack_pop();
-    check(kind_of<Module>(t1) || kind_of<Class>(t1));
-
     next_literal;
-    t3 = open_class(t1, _lit, &created);
+    t3 = open_class(t1, as<Symbol>(_lit), &created);
     if(t3 != Qundef) {
       stack_push(t3);
       if(created) perform_hook(t3, G(sym_opened_class), t1);
@@ -1712,8 +1720,7 @@ CODE
     <<-CODE
     next_literal;
     t1 = stack_pop();
-    check(kind_of<Module>(t1) || kind_of<Class>(t1));
-    stack_push(open_module(_lit, t1));
+    stack_push(open_module(as<Module>(t1), as<Symbol>(_lit)));
     CODE
   end
 
@@ -1740,7 +1747,7 @@ CODE
   def open_module
     <<-CODE
     next_literal;
-    stack_push(open_module(_lit));
+    stack_push(open_module(as<Symbol>(_lit)));
     CODE
   end
 
@@ -1802,7 +1809,7 @@ CODE
     next_literal;
     t1 = stack_pop();
     t2 = stack_pop();
-    attach_method(t1, _lit, as<CompiledMethod>(t2));
+    attach_method(t1, as<Symbol>(_lit), as<CompiledMethod>(t2));
     stack_push(t2);
     perform_hook(t1, G(sym_s_method_added), _lit);
     CODE
@@ -1836,7 +1843,7 @@ CODE
     next_literal;
     t1 = stack_pop();
     t2 = stack_pop();
-    add_method(t1, _lit, as<CompiledMethod>(t2));
+    add_method(as<Module>(t1), as<Symbol>(_lit), as<CompiledMethod>(t2));
     stack_push(t2);
     perform_hook(t1, G(sym_method_added), _lit);
     CODE
@@ -2076,7 +2083,7 @@ CODE
     msg.block = stack_pop();
     t1 = stack_pop();
 
-    msg.combine_with_splat(t1, call_flags & 3);
+    msg.combine_with_splat(state, this, as<Array>(t1)); /* call_flags & 3 */
 
     msg.recv = stack_pop();
 
@@ -2163,7 +2170,7 @@ CODE
     msg.block = stack_pop();
     t1 = stack_pop();
 
-    msg.combine_with_splat(t1, call_flags & 3);
+    msg.combine_with_splat(state, this, as<Array>(t1)); /* call_flags & 3 */
 
     msg.recv = stack_pop();
     msg.stack = msg.args + 3;
@@ -2258,10 +2265,9 @@ CODE
   def locate_method
     <<-CODE
     t1 = stack_pop(); // include_private
-    t2 = stack_pop(); // meth
-    check(t2->symbol_p());
+    SYMBOL name = as<Symbol>(stack_pop()); // meth
     t3 = stack_pop(); // self
-    stack_push(locate_method_on(t3, t2, t1));
+    stack_push(locate_method_on(t3, name, t1));
     CODE
   end
 
@@ -2288,7 +2294,7 @@ CODE
     t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
       stack_pop();
-      stack_set_top(as<Fixnum>(t1)->add(state, t2));
+      stack_set_top(as<Fixnum>(t1)->add(state, as<Fixnum>(t2)));
     } else {
       _lit = G(sym_plus);
       t2 = Qnil;
@@ -2321,7 +2327,7 @@ CODE
     t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
       stack_pop();
-      stack_set_top(as<Fixnum>(t1)->sub(state, t2));
+      stack_set_top(as<Fixnum>(t1)->sub(state, as<Fixnum>(t2)));
     } else {
       _lit = G(sym_minus);
       t2 = Qnil;
@@ -2511,7 +2517,7 @@ CODE
   def meta_send_call
     <<-CODE
     next_int;
-    t1 = stack_top();
+    t1 = stack_back(_int);
 
     if(kind_of<BlockEnvironment>(t1)) {
       stack_pop();
@@ -2522,7 +2528,12 @@ CODE
       j = _int;
 
 perform_no_ss_send:
-      send(t1, _lit, j, t2);
+      msg.recv = t1;
+      msg.import_arguments(state, this, j);
+      msg.name = as<Symbol>(_lit);
+      msg.block = t2;
+      stack_pop(); /* remove receiver */
+      send_message_slowly(msg);
     }
     CODE
   end
@@ -3049,7 +3060,7 @@ perform_no_ss_send:
 
   def yield_debugger
     <<-CODE
-    yield_debugger();
+    yield_debugger(Qtrue);
     CODE
   end
 
@@ -3202,7 +3213,12 @@ perform_no_ss_send:
     t1 = stack_pop();
     next_literal;
     next_int;
-    stack_push(check_serial(t1, _lit, _int));
+
+    if(check_serial(t1, as<Symbol>(_lit), _int)) {
+      stack_push(Qtrue);
+    } else {
+      stack_push(Qfalse);
+    }
     CODE
   end
 

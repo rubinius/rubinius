@@ -23,7 +23,7 @@ namespace rubinius {
     Tuple* stack;
 
     size_t ip;
-    size_t sp;
+    int    sp;
     size_t args;
     BlockEnvironment *block;
     SYMBOL name;

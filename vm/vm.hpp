@@ -1,21 +1,24 @@
 #ifndef RBX_VM_H
 #define RBX_VM_H
 
-#include "object.hpp"
+#include "prelude.hpp"
 #include "globals.hpp"
-#include "event.hpp"
 
 namespace rubinius {
 
-  class ObjectMemory;
-  class TypeInfo;
+  namespace event {
+    class Loop;
+  }
+
+  class GlobalCache;
 
   class VM {
     public:
     /* Data members */
     Globals globals;
-    ObjectMemory *om;
-    event::Loop *events;
+    ObjectMemory* om;
+    event::Loop* events;
+    GlobalCache* global_cache;
 
     static const size_t default_bytes = 10240;
 
@@ -46,7 +49,5 @@ namespace rubinius {
 
   };
 };
-
-#define STATE rubinius::VM *state
 
 #endif

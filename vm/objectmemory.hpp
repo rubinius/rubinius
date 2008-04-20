@@ -55,6 +55,10 @@ namespace rubinius {
     }
 
     void store_object(OBJECT target, size_t index, OBJECT val) {
+      if(target->field_count <= index) {
+        throw new ObjectBoundsExceeded(target, index);
+      }
+
       target->field[index] = val;
       if(val->reference_p()) write_barrier(target, val);
     }

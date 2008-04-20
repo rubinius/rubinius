@@ -1,13 +1,19 @@
 #ifndef RBX_BUILTIN_TASK_HPP
 #define RBX_BUILTIN_TASK_HPP
 
-#include "prelude.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 #include "objects.hpp"
-#include "cpu.hpp"
+#include "message.hpp"
 
 namespace rubinius {
+
+  class ArgumentError : public VMException {
+  public:
+    size_t expected;
+    size_t given;
+
+    ArgumentError(size_t e, size_t g) : expected(e), given(g) { }
+  };
+
   class Task;
 
   class Task : public BuiltinType {
@@ -17,7 +23,7 @@ namespace rubinius {
 
     /* 'registers' */
     size_t ip;
-    size_t sp;
+    int    sp;
 
     OBJECT self;
     Tuple* literals;
@@ -37,33 +43,40 @@ namespace rubinius {
 
     static void init(STATE);
     static Task* create(STATE, OBJECT recv, CompiledMethod* meth);
+    static Task* create(STATE);
 
-    MethodContext* generate_context(STATE, OBJECT recv, CompiledMethod* meth);
+    MethodContext* generate_context(OBJECT recv, CompiledMethod* meth);
+    void make_active(MethodContext* ctx);
     void execute();
+    void import_arguments(MethodContext* ctx, Message& msg);
+    bool passed_arg_p(size_t pos);
+
     void methctx_reference(MethodContext* ctx);
     void cache_ip();
-    OBJECT const_get_in_context(OBJECT obj);
-    OBJECT const_set(OBJECT sym, OBJECT val);
-    OBJECT const_set(OBJECT sym, OBJECT val, OBJECT under);
-    OBJECT const_get_from(OBJECT sym, OBJECT under);
-    OBJECT attach_method(OBJECT obj, OBJECT name, CompiledMethod* meth);
-    OBJECT add_method(OBJECT obj, OBJECT name, CompiledMethod* meth);
+
+    OBJECT const_get(Module* under, SYMBOL name, bool* found);
+    OBJECT const_get(SYMBOL name, bool* found);
+    void   const_set(Module* under, SYMBOL sym, OBJECT val);
+    void   const_set(SYMBOL sym, OBJECT val);
+
+    void attach_method(OBJECT obj, SYMBOL name, CompiledMethod* meth);
+    void add_method(Module* obj, SYMBOL name, CompiledMethod* meth);
     OBJECT perform_hook(OBJECT obj, OBJECT name, OBJECT val);
-    Class* open_class(OBJECT super, OBJECT name, int* created);
-    Class* open_class(OBJECT under, OBJECT super, OBJECT name, int* created);
-    Module* open_module(OBJECT name, OBJECT parent);
-    Module* open_module(OBJECT name);
+    Class* open_class(OBJECT super, SYMBOL name, bool* created);
+    Class* open_class(Module* under, OBJECT super, SYMBOL name, bool* created);
+    Module* open_module(Module* under, SYMBOL name);
+    Module* open_module(SYMBOL name);
 
     void raise_exception(Exception *exc);
     void activate_method(Message& msg);
     void send_message(Message& msg);
-    void send(OBJECT recv, OBJECT name, size_t args, OBJECT block);
+    void send_message_slowly(Message& msg);
     Module* current_module();
 
-    Executable* locate_method_on(OBJECT obj, OBJECT name, OBJECT priv);
+    Executable* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
     void simple_return(OBJECT val);
-    void yield_debugger();
-    OBJECT check_serial(OBJECT obj, OBJECT name, int ser);
+    void yield_debugger(OBJECT val);
+    bool check_serial(OBJECT obj, SYMBOL sel, int ser);
     void check_interrupts();
 
     class Info : public TypeInfo {

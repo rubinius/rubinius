@@ -46,7 +46,7 @@ class TestSelector : public CxxTest::TestSuite {
 
     sel->associate(state, ss);
     TS_ASSERT(ss->basic_p(state));
-    ss->data1 = Object::i2n(1);
+    ss->specialized = true;
     TS_ASSERT(!ss->basic_p(state));
     sel->clear(state);
     TS_ASSERT(ss->basic_p(state));
@@ -58,7 +58,7 @@ class TestSelector : public CxxTest::TestSuite {
 
     sel->associate(state, ss);
     TS_ASSERT(ss->basic_p(state));
-    ss->data1 = Object::i2n(1);
+    ss->specialized = true;
     TS_ASSERT(!ss->basic_p(state));
     Selector::clear_by_name(state, state->symbol("foo"));
     TS_ASSERT(ss->basic_p(state));

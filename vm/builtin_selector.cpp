@@ -1,4 +1,4 @@
-#include "builtin_selector.hpp"
+#include "builtin.hpp"
 
 namespace rubinius {
   void Selector::init(STATE) {

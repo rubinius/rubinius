@@ -1,8 +1,7 @@
 #ifndef RBX_BUILTIN_CLASS_HPP
 #define RBX_BUILTIN_CLASS_HPP
 
-#include "prelude.hpp"
-#include "object.hpp"
+#include "objects.hpp"
 
 namespace rubinius {
   class Module : public BuiltinType {
@@ -18,12 +17,17 @@ namespace rubinius {
     OBJECT encloser;
     Class* superclass;
 
+    static Module* create(STATE);
     void setup(STATE);
     void setup(STATE, char* name, Module* under = NULL);
+    void setup(STATE, SYMBOL name, Module* under = NULL);
     void set_const(STATE, OBJECT sym, OBJECT val);
     void set_const(STATE, char* name, OBJECT val);
-    OBJECT get_const(STATE, OBJECT sym);
+    OBJECT get_const(STATE, SYMBOL sym);
+    OBJECT get_const(STATE, SYMBOL sym, bool* found);
     OBJECT get_const(STATE, char* sym);
+
+    void set_name(STATE, Module* under, SYMBOL name);
   };
 
   class Class : public Module {
@@ -36,13 +40,11 @@ namespace rubinius {
     OBJECT needs_cleanup;
     OBJECT instance_type;
 
-    static bool is_a(OBJECT obj) {
-      return obj->obj_type == ClassType;
-    }
-
     void set_object_type(size_t type) {
       instance_type = Object::i2n(type);
     }
+
+    static Class* create(STATE, Class* super);
   };
 
   /* See t1 */
@@ -64,7 +66,7 @@ namespace rubinius {
       return obj->obj_type == MetaclassType;
     }
 
-    static OBJECT attach(STATE, OBJECT obj, OBJECT sup = NULL);
+    static MetaClass* attach(STATE, OBJECT obj, OBJECT sup = NULL);
   };
 
   class IncludedModule : public Module {

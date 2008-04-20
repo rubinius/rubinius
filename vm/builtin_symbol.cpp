@@ -27,7 +27,7 @@ namespace rubinius {
       return lookup(state, String::create(state, str, size));
     }
 
-    String* key = (String*)ent->at(1);
+    String* key = as<String>(ent->at(1));
     /* TODO: validate that key is a String */
     char* cur =  key->byte_address(state);
 
@@ -36,7 +36,7 @@ namespace rubinius {
       return lookup(state, String::create(state, str, size));
     }
 
-    return Symbol::from_index(state, ent->at(2)->n2i());
+    return Symbol::from_index(state, as<Fixnum>(ent->at(2))->n2i());
   }
 
   SYMBOL SymbolTable::lookup(STATE, String* str) {
@@ -63,7 +63,7 @@ namespace rubinius {
     return Symbol::from_index(state, idx->n2i());
   }
 
-  String* SymbolTable::find_string(STATE, Symbol* sym) {
+  String* SymbolTable::find_string(STATE, SYMBOL sym) {
     return as<String>(symbols->at(sym->index()));
   }
 

@@ -1,4 +1,4 @@
-#include "objects.hpp"
+#include "builtin.hpp"
 
 namespace rubinius {
   ISeq* ISeq::create(STATE, size_t bytes) {

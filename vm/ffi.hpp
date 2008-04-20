@@ -24,7 +24,7 @@
 #include <ffi.h>
 #include "prelude.hpp"
 #include "object.hpp"
-#include "cpu.hpp"
+#include "message.hpp"
 
 namespace rubinius {
   class MemoryPointer : public BuiltinType {

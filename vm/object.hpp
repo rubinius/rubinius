@@ -16,7 +16,7 @@ namespace rubinius {
    * if tag == 00, the whole thing is a pointer to a memory location.
    * if tag == 01, the data is a fixnum
    * if tag == 10, the data is a literal
-   * if tag == 11, the data is any data, using the DATA_* macros 
+   * if tag == 11, the data is any data, using the DATA_* macros
    */
 
 #define TAG_MASK    0x3
@@ -135,6 +135,7 @@ to be a simple test for that bit pattern.
     ExceptionType   ,
     IOType          ,
     ExecutableType  ,
+    CMVisibilityType,
 
     LastObjectType   // must remain at end
   } object_type;
@@ -163,7 +164,34 @@ to be a simple test for that bit pattern.
      4 + 4 + 8 = 16 bytes.
      */
 
+  class VMException { };
+  class Assertion : public VMException {
+  public:
+    char *reason;
+
+    Assertion(char* reason) : reason(reason) { };
+  };
+
+  class TypeError : public VMException {
+  public:
+    object_type type;
+    OBJECT object;
+    char* reason;
+
+    TypeError(object_type type, OBJECT obj, char* reason = NULL)
+      : type(type), object(obj), reason(reason) { };
+  };
+
+  class ObjectBoundsExceeded : public VMException {
+  public:
+    OBJECT obj;
+    size_t index;
+
+    ObjectBoundsExceeded(OBJECT o, size_t i) : obj(o), index(i) { }
+  };
+
   class Class;
+  class MetaClass;
 
   class Object {
   public:
@@ -239,7 +267,7 @@ to be a simple test for that bit pattern.
       }
     }
 
-    /* Initialize the object as storing bytes, by setting the flag then clearing the 
+    /* Initialize the object as storing bytes, by setting the flag then clearing the
      * body of the object, by setting the entire body as bytes to 0 */
     void init_bytes() {
       this->StoresBytes = 1;
@@ -275,6 +303,9 @@ to be a simple test for that bit pattern.
     }
 
     OBJECT at(size_t index) {
+      if(field_count <= index) {
+        throw new ObjectBoundsExceeded(this, index);
+      }
       return field[index];
     }
 
@@ -335,32 +366,17 @@ to be a simple test for that bit pattern.
     OBJECT dup(STATE);
     hashval hash(STATE);
     uintptr_t id(STATE);
-    OBJECT metaclass(STATE);
+    Class* metaclass(STATE);
 
     OBJECT get_ivar(STATE, OBJECT sym);
     OBJECT set_ivar(STATE, OBJECT sym, OBJECT val);
-    void inspect(STATE);
 
     static const char* type_to_name(object_type type);
   };
 
-  class VMException { };
-  class Assertion : public VMException {
-  public:
-    char *reason;
 
-    Assertion(char* reason) : reason(reason) { };
-  };
-
-  class TypeError : public VMException {
-  public:
-    object_type type;
-    OBJECT object;
-    char* reason;
-
-    TypeError(object_type type, OBJECT obj, char* reason = NULL)
-      : type(type), object(obj), reason(reason) { };
-  };
+  void inspect(STATE, OBJECT);
+  void inspect(STATE, SYMBOL);
 
   /* Given builtin-class +T+, return true if +obj+ is of class +T+ */
   template <class T>
@@ -378,8 +394,20 @@ to be a simple test for that bit pattern.
    * */
   template <class T>
     static T* as(OBJECT obj) {
-      if(kind_of<T>(obj)) return (T*)obj;
+      /* The 'obj &&' gives us additional saftey, checking for
+       * NULL objects. */
+      if(obj && kind_of<T>(obj)) return (T*)obj;
       throw new TypeError(T::type, obj);
+    }
+
+  /* Similar to as<>, but returns NULL if the type is invalid. ONLY
+   * use this when doing a conditional cast. */
+  template <class T>
+    static T* try_as(OBJECT obj) {
+      /* The 'obj &&' gives us additional saftey, checking for
+       * NULL objects. */
+      if(obj && kind_of<T>(obj)) return (T*)obj;
+      return NULL;
     }
 
   void type_assert(OBJECT obj, object_type type, char* reason);

@@ -1,6 +1,7 @@
 #ifndef RBX_OBJECTS_HPP
 #define RBX_OBJECTS_HPP
 
+#include "vm.hpp"
 #include "object.hpp"
 #include "type_info.hpp"
 
@@ -42,8 +43,10 @@ namespace rubinius {
     const static object_type type = StaticScopeType;
 
     OBJECT instance_variables;
-    OBJECT module;
-    OBJECT parent;
+    Module* module;
+    StaticScope* parent;
+
+    static StaticScope* create(STATE);
   };
 };
 
@@ -226,7 +229,7 @@ namespace rubinius {
     public:
     const static size_t fields = 3;
     const static object_type type = ExceptionType;
-    
+
     OBJECT instance_variables;
     OBJECT message;
     OBJECT context;
@@ -314,7 +317,7 @@ namespace rubinius {
     public:
     const static size_t fields = 4;
     const static object_type type = RegexpType;
-    
+
     OBJECT instance_variables;
     OBJECT source;
     OBJECT data;
@@ -375,11 +378,15 @@ namespace rubinius {
       return (char*)data->bytes;
     }
 
+    void unshare(STATE);
     hashval hash_string(STATE);
-    OBJECT to_sym(STATE);
+    SYMBOL to_sym(STATE);
     char* byte_address(STATE);
     String* string_dup(STATE);
-    void append(STATE, String* other);
+    String* append(STATE, String* other);
+    String* append(STATE, char* other);
+    String* add(STATE, String* other);
+    String* add(STATE, char* other);
 
   };
 };
@@ -400,22 +407,18 @@ namespace rubinius {
     public:
     const static size_t fields = 4;
     const static object_type type = LookupTableType;
-    
+
     OBJECT instance_variables;
     Tuple* values;
     OBJECT bins;
     OBJECT entries;
-
-    /* Inline methods */
-    static bool is_a(OBJECT obj) {
-      return obj->obj_type == LookupTableType;
-    }
 
     /* Prototypes */
     static LookupTable* create(STATE, size_t sz = LOOKUPTABLE_MIN_SIZE);
     void setup(STATE, size_t sz);
     OBJECT store(STATE, OBJECT key, OBJECT val);
     OBJECT fetch(STATE, OBJECT key);
+    OBJECT fetch(STATE, OBJECT key, bool* found);
     LookupTable* dup(STATE);
     static OBJECT entry_new(STATE, OBJECT key, OBJECT val);
     static OBJECT entry_append(STATE, OBJECT top, OBJECT nxt);
@@ -453,7 +456,10 @@ namespace rubinius {
     OBJECT serial;
   };
 
+
   class ISeq;
+  class MemoryPointer;
+  class VMMethod;
 
   class CompiledMethod : public Executable {
     public:
@@ -461,38 +467,78 @@ namespace rubinius {
     const static object_type type = CMethodType;
     const static size_t saved_fields = 16;
 
-    ISeq*  iseq;
     SYMBOL name;
-    OBJECT file;
+    ISeq*  iseq;
+    OBJECT stack_size;
     OBJECT local_count;
-    Tuple* literals;
+    OBJECT required_args;
     OBJECT total_args;
     OBJECT splat;
+    Tuple* literals;
     OBJECT exceptions;
     OBJECT lines;
+    OBJECT file;
     OBJECT path;
-    OBJECT field14;
+    OBJECT serial;
     OBJECT bonus;
-    OBJECT compiled;
+    MemoryPointer* compiled;
     StaticScope* scope;
-    OBJECT args;
 
     static CompiledMethod* create(STATE);
     void post_marshal(STATE);
-    size_t stack_size();
     size_t number_of_locals();
     void set_scope(StaticScope*);
+    VMMethod* vmmethod(STATE);
+
+    class Visibility : public Executable {
+    public:
+      const static size_t fields = 3;
+      const static object_type type = CMVisibilityType;
+
+      LookupTable* instance_variables;
+      SYMBOL visibility;
+      Executable* method;
+
+      static Visibility* create(STATE);
+
+      bool public_p(STATE) {
+        return visibility == G(sym_public);
+      }
+
+      bool private_p(STATE) {
+        return visibility == G(sym_private);
+      }
+
+      bool protected_p(STATE) {
+        return visibility == G(sym_protected);
+      }
+    };
   };
+
+  template <>
+    static bool kind_of<Executable>(OBJECT obj) {
+      if(obj->obj_type == Executable::type ||
+         obj->obj_type == CompiledMethod::type) {
+        return true;
+      }
+
+      return false;
+    }
 };
 
 namespace rubinius {
-  class Fixnum {
+  class Fixnum : public BuiltinType {
   public:
     const static size_t fields = 0;
     const static object_type type = FixnumType;
 
-    OBJECT add(STATE, OBJECT obj);
-    OBJECT sub(STATE, OBJECT obj);
+    OBJECT add(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() + other->n2i());
+    }
+
+    OBJECT sub(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() - other->n2i());
+    }
   };
 
   typedef Fixnum* FIXNUM;

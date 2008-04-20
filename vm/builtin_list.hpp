@@ -1,9 +1,6 @@
 #ifndef RBX_BUILTIN_LIST_HPP
 #define RBX_BUILTIN_LIST_HPP
 
-#include "prelude.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 #include "objects.hpp"
 
 namespace rubinius {

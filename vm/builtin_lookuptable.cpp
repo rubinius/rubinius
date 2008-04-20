@@ -176,6 +176,19 @@ namespace rubinius {
     return Qnil;
   }
 
+  OBJECT LookupTable::fetch(STATE, OBJECT key, bool* found) {
+    OBJECT entry;
+
+    entry = find_entry(state, key);
+    if(!entry->nil_p()) {
+      *found = true;
+      return entry->at(1);
+    }
+
+    *found = false;
+    return Qnil;
+  }
+
   /* lookuptable_find returns Qundef if there is not entry
    * referenced by 'key' in the LookupTable. This is useful
    * to distinguish x = {} from x = {:a => nil} and is used

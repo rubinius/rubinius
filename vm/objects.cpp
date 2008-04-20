@@ -72,6 +72,8 @@ namespace rubinius {
     globals.object = object;
 
     globals.module = new_basic_class(object, Module::fields);
+    globals.module->set_object_type(ModuleType);
+
     cls->superclass = globals.module;
 
     globals.metaclass = new_basic_class(cls, MetaClass::fields);
@@ -194,6 +196,10 @@ namespace rubinius {
     globals.special_classes[(uintptr_t)Qtrue ] = globals.true_class;
 
     Regexp::init(this);
+
+    G(cmethod_vis) = new_class("CompiledMethod::Visibility", G(object),
+        CompiledMethod::Visibility::fields, G(cmethod));
+    G(cmethod_vis)->set_object_type(CMVisibilityType);
 
     new_module("Rubinius");
 

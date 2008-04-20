@@ -48,4 +48,51 @@ class TestString : public CxxTest::TestSuite {
 
     TS_ASSERT(sym->symbol_p());
   }
+
+  void test_string_dup() {
+    str = String::create(state, "blah");
+    String* str2 = str->string_dup(state);
+
+    TS_ASSERT_EQUALS(str->shared, Qtrue);
+    TS_ASSERT_EQUALS(str2->shared, Qtrue);
+
+    TS_ASSERT_EQUALS(str->data, str2->data);
+  }
+
+  void test_unshare() {
+    str = String::create(state, "blah");
+    String* str2 = str->string_dup(state);
+
+    str->unshare(state);
+
+    TS_ASSERT(str->data != str2->data);
+    TS_ASSERT_EQUALS(std::string("blah"), (char*)*str);
+  }
+
+  void test_append() {
+    str = String::create(state, "blah");
+    str->to_sym(state);
+    TS_ASSERT(str->hash != Qnil);
+
+    str->append(state, String::create(state, " foo"));
+    TS_ASSERT_EQUALS(str->hash, Qnil);
+
+    TS_ASSERT_EQUALS(std::string("blah foo"), (char*)*str);
+  }
+
+  void test_append_with_charstar() {
+    str = String::create(state, "blah");
+    str->append(state, " foo");
+
+    TS_ASSERT_EQUALS(std::string("blah foo"), (char*)*str);
+  }
+
+  void test_add() {
+    str = String::create(state, "blah");
+    String* str2 = str->add(state, String::create(state, " foo"));
+
+    TS_ASSERT_EQUALS(std::string("blah foo"), (char*)*str2);
+    TS_ASSERT_EQUALS(std::string("blah"), (char*)*str);
+
+  }
 };

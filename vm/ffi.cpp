@@ -12,7 +12,7 @@
 #include "objectmemory.hpp"
 
 #include "ffi.hpp"
-#include "cpu.hpp"
+#include "message.hpp"
 
 #include "strlcpy.h"
 #include "strlcat.h"

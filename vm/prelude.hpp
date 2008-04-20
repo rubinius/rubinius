@@ -1,7 +1,8 @@
 #ifndef RBX_PRELUDE_H
 #define RBX_PRELUDE_H
-#define FALSE 0
-#define TRUE 1
+
+#define FALSE false
+#define TRUE true
 
 #include <stdint.h>
 #include <vector>
@@ -19,8 +20,19 @@ namespace rubinius {
   typedef Object* OBJECT;
   typedef std::vector<OBJECT> ObjectArray;
 
-  typedef void (*cleanup_function)(STATE, OBJECT);
+  class ObjectMemory;
+  class TypeInfo;
+  class Class;
+  class Module;
+  class SymbolTable;
+  class LookupTable;
+  class Tuple;
 
+  class Symbol;
+  typedef Symbol* SYMBOL;
+
+  class Fixnum;
+  typedef Fixnum* FIXNUM;
 };
 
 #include "virtual.hpp"

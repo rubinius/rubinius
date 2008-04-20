@@ -193,9 +193,9 @@ namespace rubinius {
 
   uintptr_t Object::id(STATE) {
     if(reference_p()) {
-      OBJECT meta, id;
+      OBJECT id;
 
-      meta = metaclass(state);
+      Class* meta = metaclass(state);
       id =   meta->get_ivar(state, state->globals.sym_object_id);
 
       /* Lazy allocate object's ids, since most don't need them. */
@@ -213,23 +213,15 @@ namespace rubinius {
     }
   }
 
-  OBJECT Object::metaclass(STATE) {
+ Class* Object::metaclass(STATE) {
     if(reference_p()) {
       if(kind_of<MetaClass>(klass)) {
-        return klass;
+        return as<MetaClass>(klass);
       }
       return MetaClass::attach(state, this);
     }
 
-    if(nil_p()) {
-      return state->globals.nil_class;
-    } else if(this == Qtrue) {
-      return state->globals.true_class;
-    } else if(this == Qfalse) {
-      return state->globals.false_class;
-    }
-
-    return Qnil;
+    return class_object(state);
   }
 
   OBJECT Object::get_ivar(STATE, OBJECT sym) {
@@ -318,9 +310,14 @@ namespace rubinius {
     return val;
   }
 
-  void Object::inspect(STATE) {
-    String* name = class_object(state)->name->to_str(state);
-    std::cout << "#<" << (char*)*name << ":" << (void*)this << ">\n";
+  void inspect(STATE, OBJECT obj) {
+    String* name = obj->class_object(state)->name->to_str(state);
+    std::cout << "#<" << (char*)*name << ":" << (void*)obj << ">\n";
+  }
+
+  void inspect(STATE, SYMBOL sym) {
+    String* name = sym->to_str(state);
+    std::cout << ":" << (char*)*name << "\n";
   }
 
   void Object::cleanup(STATE) {

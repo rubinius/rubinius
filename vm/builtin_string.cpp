@@ -67,14 +67,14 @@ namespace rubinius {
     return hv;
   }
 
-  OBJECT String::to_sym(STATE) {
+  SYMBOL String::to_sym(STATE) {
     return state->globals.symbols->lookup(state, this);
   }
 
   char* String::byte_address(STATE) {
     return (char*)data->bytes;
   }
-  
+
   int String::string_equal_p(STATE, OBJECT a, OBJECT b) {
     String* self = (String*)a;
     String* other = (String*)b;
@@ -99,8 +99,54 @@ namespace rubinius {
     return ns;
   }
 
-  void String::append(STATE, String* other) {
+  void String::unshare(STATE) {
+    data = data->dup(state);
+    shared = Qfalse;
+  }
 
+  String* String::append(STATE, String* other) {
+    if(shared) unshare(state);
+
+    size_t new_size = size() + other->size();
+
+    ByteArray *d2 = ByteArray::create(state, new_size + 1);
+    std::memcpy(d2->bytes, data->bytes, size());
+    std::memcpy(d2->bytes + size(), other->data->bytes, other->size());
+
+    d2->bytes[new_size] = 0;
+
+    num_bytes = Object::i2n(state, new_size);
+    data = d2;
+    hash = Qnil;
+
+    return this;
+  }
+
+  String* String::append(STATE, char* other) {
+    if(shared) unshare(state);
+
+    size_t len = strlen(other);
+    size_t new_size = size() + len;
+
+    ByteArray *d2 = ByteArray::create(state, new_size + 1);
+    std::memcpy(d2->bytes, data->bytes, size());
+    std::memcpy(d2->bytes + size(), other, len);
+
+    d2->bytes[new_size] = 0;
+
+    num_bytes = Object::i2n(state, new_size);
+    data = d2;
+    hash = Qnil;
+
+    return this;
+  }
+
+  String* String::add(STATE, String* other) {
+    return string_dup(state)->append(state, other);
+  }
+
+  String* String::add(STATE, char* other) {
+    return string_dup(state)->append(state, other);
   }
 
 }

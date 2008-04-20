@@ -1,6 +1,4 @@
-#include "prelude.hpp"
-#include "object.hpp"
-#include "objects.hpp"
+#include "builtin.hpp"
 #include "marshal.hpp"
 
 namespace rubinius {

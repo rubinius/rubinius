@@ -9,9 +9,10 @@ class CCompile
     @includes = []
     @flags = []
     @linker = "gcc"
+    @deps = {}
   end
 
-  attr_accessor :includes, :flags
+  attr_accessor :includes, :flags, :deps
 
   def cpp!
     @linker = "g++"
@@ -26,7 +27,7 @@ class CCompile
     Dir.mkdir od unless File.directory? od
 
     puts "CC #{input}"
-    x "#{compiler(input)} #{includes} #{flags} -c -o #{output} #{input}"
+    x "#{compiler(input)} #{includes} #{flags} -c -o #{output} #{input} 2>&1 | ruby nicer.rb"
   end
 
   def compiler(file)
@@ -57,13 +58,31 @@ class CCompile
 
   def extract_headers(path)
     dir = File.dirname(path)
-    h = File.read(path).scan(/#include\s*.([^\n]*)./).map do |i| 
+    h = File.read(path).scan(/#include\s*.([^\n]*)./).map do |i|
       File.join(dir, i[0])
     end
 
-    h.find_all do |name|
+    deps = h.find_all do |name|
       File.exists?(name) and /\.h(?:pp)?/.match(name)
     end
+
+    subdeps = []
+
+    @deps[path] = deps
+
+    # Process the headers themselves now.
+    deps.each do |dep|
+      if @deps[dep]
+        subdeps += @deps[dep]
+        next
+      end
+
+      @deps[dep] = true # place holder, to prevent unchecked recursion.
+      subdeps += extract_headers(dep)
+    end
+
+    @deps[path] = deps
+    return deps
   end
 
   def link(name, opts)
@@ -83,7 +102,9 @@ ex_libs = %w!
 	../external_libs/libffi/.libs/libffi.a
 	../external_libs/libltdl/.libs/libltdl.a
 	../external_libs/libev/.libs/libev.a
-  -ldl -lrt!
+  -ldl!
+
+ex_libs << "-rt" if RUBY_PLATFORM =~ /linux/
 
 ex_inc  = %w!
   ../external_libs/libtommath

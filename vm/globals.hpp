@@ -4,8 +4,6 @@
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
 
-#include "objects.hpp"
-
 namespace rubinius {
   struct Globals {
     /* classes for the core 'types' */
@@ -17,10 +15,11 @@ namespace rubinius {
     Class *floatpoint, *fastctx, *data, *nmethod, *nmc, *task, *list, *list_node;
     Class *channel, *thread, *staticscope, *send_site, *selector, *lookuptable;
     Class *iseq, *executable, *ffi_ptr, *ffi_func, *iobuffer;
+    Class *cmethod_vis;
 
     /* the primary symbol table */
     SymbolTable* symbols;
-    OBJECT method_missing;
+    SYMBOL sym_method_missing;
     SYMBOL sym_inherited, sym_opened_class;
     SYMBOL sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
     SYMBOL sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
