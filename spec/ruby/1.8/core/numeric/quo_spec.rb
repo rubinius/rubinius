@@ -31,7 +31,7 @@ describe "Numeric#quo" do
     4.0.quo(13.0).should be_close(0.307692307692308, TOLERANCE)
   end
 
-  it "returns the floating_point result if dividing a Bignum by a Fixnum" do
+  it "returns the floating_point result of dividing a Bignum by a Fixnum" do
     bignum_value.quo(100).should == 92233720368547760.0
   end
 
