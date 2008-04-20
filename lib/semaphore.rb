@@ -1,6 +1,6 @@
 # semaphore.rb - efficient implementation of Fukumoto's semaphore
 #
-# Copyright 2007-2008  MenTaLguY <mental@rydia.net>
+# Copyright 2008  MenTaLguY <mental@rydia.net>
 #
 # All rights reserved.
 # 
