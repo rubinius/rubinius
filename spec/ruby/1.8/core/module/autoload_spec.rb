@@ -48,6 +48,16 @@ describe "Module#autoload" do
   it "raises an ArgumentError when an empty filename is given" do
     lambda { Module.new { autoload("A", "") } }.should raise_error(ArgumentError)
   end
+
+  it "respects the surrounding scope at the autoload send site" do
+    class ModuleSpecs::AutoLoadParent
+      autoload(:AutoLoadSubject, File.dirname(__FILE__) + "/fixtures/autoload_nested.rb")
+    end
+
+    class ModuleSpecs::AutoLoadChild < ModuleSpecs::AutoLoadParent
+      ModuleSpecs::AutoLoadParent::AutoLoadSubject.message.should == "success"
+    end
+  end
 end
 
 describe "Module#autoload?" do
