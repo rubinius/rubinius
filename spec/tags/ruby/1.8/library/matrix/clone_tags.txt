@@ -1,1 +1,2 @@
 incomplete:Matrix#clone needs to be reviewed for spec completeness
+fails:Matrix#clone returns a copy of the matrix, but with all the references different
