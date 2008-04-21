@@ -175,7 +175,10 @@ html = Tagz do
             a_(hash[0..7], :href => "#{GIT_URL}#{hash}")
           end
 
-          th_ "#{Time.now.strftime("%m-%d %H:%M")}" # HACK
+          times = (all_data[true][hash].map { |run| run[:time] } +
+                   all_data[false][hash].map { |run| run[:time] })
+
+          th_ "#{times.max.strftime("%m-%d %H:%M")}"
 
           build_row all_data[true][hash], platforms
           td_ "&nbsp;"
