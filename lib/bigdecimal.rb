@@ -17,7 +17,11 @@ class BigDecimal < Numeric
     @frac = '0'
     @exp = '0'
     @special = nil # 'n' for NaN, 'i' for Infinity, nil otherwise
+<<<<<<< HEAD:lib/bigdecimal.rb
     
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
     v = _val.strip
     if v == "NaN"
       @special = 'n'
@@ -36,7 +40,11 @@ class BigDecimal < Numeric
     @precs = [self.to_s.length, _precs].max
     end
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   # As for Float.finite? .
   # call-seq:
   #   BigDecimal.new("Infinity").finite?  => false
@@ -44,7 +52,11 @@ class BigDecimal < Numeric
   def finite?
     @special != 'i'
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   # As for Float.nan? .
   # call-seq:
   #   BigDecimal.new("NaN").nan?  => true
@@ -52,31 +64,55 @@ class BigDecimal < Numeric
   def nan?
     @special == 'n'
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def precs
     [nil, @precs]
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def to_s
     radix = '.'
     e = 'E'
     nan = 'NaN'
     infinity = 'Infinity'
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
     if self.nan?
       return nan
     end
+<<<<<<< HEAD:lib/bigdecimal.rb
     
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
     if @sign == '+'
       str = ''
     else
       str = '-'
     end
+<<<<<<< HEAD:lib/bigdecimal.rb
     
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
     if self.finite?
       str << @int
       if @frac != '0'
+<<<<<<< HEAD:lib/bigdecimal.rb
         str << radix 
+=======
+        str << radix
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
         str << @frac
       end
       if @exp != '0'
@@ -93,33 +129,69 @@ class BigDecimal < Numeric
     Ruby.primitive :numeric_coerce
     [BigDecimal(other.to_s), self]
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   #########################
   # Arithmetic operations #
   #########################
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   # These are stubbed out until we implement them so that their respective specfiles don't crash.
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def +(other)
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def -(other)
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def quo(other)
   end
   alias / quo
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def remainder(other)
   end
   alias % remainder
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def >=(other)
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def <=(other)
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   # This will need to be refactored
   def <=>(other)
     if other != 0 or self.nan?
@@ -135,11 +207,19 @@ class BigDecimal < Numeric
       end
     end
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def <(other)
     return self.<=>(other) == -1
   end
+<<<<<<< HEAD:lib/bigdecimal.rb
   
+=======
+
+>>>>>>> 991c6e6133839b18ba8390a8e4859818431aa156:lib/bigdecimal.rb
   def ==(other)
     self.to_s == other.to_s and self.precs == other.precs
   end

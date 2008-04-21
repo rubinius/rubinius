@@ -7,7 +7,7 @@ describe "Fixnum#quo" do
     45.quo(bignum_value).should be_close(1.04773789668636e-08, TOLERANCE)
   end
 
-  runner_is_not :rspec do
+  conflicts_with :Rational do
     it "does not raise a ZeroDivisionError when the given Integer is 0" do
       0.quo(0).to_s.should == "NaN"
       10.quo(0).to_s.should == "Infinity"
@@ -21,7 +21,7 @@ describe "Fixnum#quo" do
     -10.quo(0.0).to_s.should == "-Infinity"
   end
 
-  runner_is_not :rspec do
+  conflicts_with :Rational do
     it "raises a TypeError when given a non-Integer" do
       lambda {
         (obj = mock('x')).should_not_receive(:to_int)

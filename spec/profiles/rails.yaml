@@ -1,0 +1,400 @@
+Array#:
+- "&"
+- "*"
+- +
+- "-"
+- "<<"
+- "[]"
+- "[]="
+- assoc
+- clear
+- collect
+- collect!
+- compact
+- concat
+- delete_if
+- each
+- empty?
+- eql?
+- first
+- flatten
+- flatten!
+- hash
+- include?
+- index
+- initialize
+- initialize_copy
+- insert
+- inspect
+- join
+- last
+- length
+- map
+- map!
+- pack
+- pop
+- push
+- reverse!
+- reverse_each
+- select
+- shift
+- size
+- slice!
+- sort
+- sort!
+- to_ary
+- uniq
+- uniq!
+- unshift
+- "|"
+Class.:
+- inherited
+- new
+Class#:
+- initialize
+- superclass
+Comparable#:
+- <
+- ==
+- >=
+Dir.:
+- "[]"
+- chdir
+- entries
+- glob
+- mkdir
+- open
+Dir#:
+- each
+ENV.:
+- "[]"
+- "[]="
+- include?
+Enumerable#:
+- any?
+- collect
+- each_with_index
+- find
+- grep
+- inject
+- map
+- max
+- member?
+- sort_by
+- to_a
+- to_set
+Exception.:
+- exception
+Exception#:
+- backtrace
+- initialize
+- message
+- set_backtrace
+- to_s
+File::Stat#:
+- mtime
+File.:
+- basename
+- directory?
+- dirname
+- exist?
+- expand_path
+- file?
+- fnmatch
+- join
+- stat
+File#:
+- initialize
+Fixnum#:
+- "*"
+- +
+- "-"
+- -@
+- /
+- <
+- <=
+- <=>
+- ==
+- >
+- >=
+- to_f
+- to_s
+- zero?
+- "|"
+Float#:
+- "*"
+- +
+- "-"
+- -@
+- /
+- <=
+- <=>
+- >
+- coerce
+- floor
+- to_i
+Hash#:
+- ==
+- "[]"
+- "[]="
+- blank?
+- clear
+- default
+- default=
+- delete
+- delete_if
+- each
+- each_pair
+- each_value
+- empty?
+- fetch
+- has_key?
+- include?
+- initialize
+- initialize_copy
+- inspect
+- invert
+- key?
+- keys
+- merge
+- merge!
+- size
+- update
+- values
+- values_at
+IO.:
+- new
+IO#:
+- "<<"
+- close
+- eof?
+- fcntl
+- gets
+- read
+- select
+- sync=
+- write
+Integer#:
+- chr
+- next
+- times
+- to_i
+- to_int
+Kernel#:
+- ==
+- ===
+- =~
+- Array
+- String
+- __send__
+- binding
+- block_given?
+- caller
+- catch
+- class
+- clone
+- dup
+- eql?
+- equal?
+- eval
+- extend
+- format
+- freeze
+- hash
+- initialize_copy
+- inspect
+- instance_eval
+- instance_of?
+- instance_variable_set
+- is_a?
+- kind_of?
+- lambda
+- load
+- method_added
+- nil?
+- object_id
+- open
+- proc
+- puts
+- raise
+- require
+- respond_to?
+- send
+- send!
+- silence_warnings
+- singleton_method_added
+- sleep
+- sprintf
+- trap
+Marshal.:
+- dump
+- load
+MatchData#:
+- "[]"
+- captures
+- post_match
+Module.:
+- constants
+Module#:
+- ==
+- ===
+- >=
+- alias_method
+- alias_method_chain
+- ancestors
+- append_features
+- attr
+- attr_accessor
+- attr_reader
+- attr_writer
+- class_eval
+- const_defined?
+- const_get
+- const_missing
+- const_set
+- define_method
+- delegate
+- extend_object
+- extended
+- include
+- included
+- initialize
+- initialize_copy
+- instance_method
+- instance_methods
+- local_constants
+- method_added
+- method_defined?
+- method_removed
+- method_undefined
+- module_eval
+- module_function
+- name
+- private
+- private_class_method
+- private_instance_methods
+- private_method_defined?
+- protected
+- protected_method_defined?
+- public
+- public_instance_methods
+- public_method_defined?
+- remove_const
+- remove_method
+- to_s
+- undef_method
+NilClass#:
+- inspect
+- nil?
+- to_i
+- to_s
+Numeric#:
+- nonzero?
+ObjectSpace.:
+- define_finalizer
+Proc.:
+- new
+- "[]"
+- call
+Process.:
+- times
+Range.:
+- ===
+- each
+Regexp.:
+- escape
+- quote
+Regexp#:
+- ===
+- =~
+- hash
+- initialize
+- inspect
+- match
+- source
+String#:
+- "%"
+- "*"
+- +
+- "<<"
+- <=>
+- ==
+- =~
+- "[]"
+- chop
+- concat
+- delete
+- downcase
+- downcase!
+- dump
+- each
+- empty?
+- gsub
+- gsub!
+- hash
+- initialize_copy
+- inspect
+- length
+- match
+- replace
+- scan
+- size
+- split
+- strip
+- strip!
+- sub
+- sub!
+- to_i
+- to_s
+- to_str
+- to_sym
+- tr
+- unpack
+- upcase
+- upcase!
+Struct::Tms#:
+- cstime
+- cutime
+- stime
+- utime
+Struct#:
+- initialize
+Struct.:
+- new
+Symbol#:
+- ===
+- inspect
+- to_proc
+- to_s
+- to_sym
+Thread#:
+- "[]"
+- "[]="
+- alive?
+- kill
+Thread.:
+- critical
+- current
+- kill
+- start
+ThreadGroup#:
+- add
+- list
+Time.:
+- gm
+- now
+- utc
+Time#:
+- <=>
+- day
+- hour
+- initialize
+- initialize_copy
+- min
+- mon
+- sec
+- strftime
+- to_f
+- utc
+- wday
+- year

@@ -1,0 +1,29 @@
+CGI::Cookie#:
+- initialize
+- parse
+CGI::QueryExtension#:
+- initialize_query
+- key?
+- query_string
+CGI::Session::CookieStore#:
+- close
+- ensure_secret_secure
+- generate_digest
+- initialize
+- marshal
+- read_cookie
+- restore
+- unmarshal
+CGI::Session.:
+- callback
+CGI::Session#:
+- "[]"
+- close
+- initialize
+- initialize_without_cgi_reader
+CGI.:
+- env_table
+- escape
+- header
+- initialize
+- unescape

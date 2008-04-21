@@ -6,14 +6,11 @@ describe "Matrix.diagonal" do
     @m = Matrix.diagonal(10, 11, 12, 13, 14)
   end
   
-  it "needs to be reviewed for spec completeness" do
-  end
-  
   it "returns an object of type Matrix" do
     @m.class.should == Matrix
   end
   
-  it "puts its arguments on the diagonal of a matrix" do
+  it "sets the diagonal to the arguments" do
     (0..4).each do |i|
       @m[i, i].should == i + 10
     end

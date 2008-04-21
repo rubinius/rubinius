@@ -60,10 +60,12 @@ class NameMap
     DTracer
     NameMap
     OptionParser
+    YAML
   ]
 
-  def initialize
+  def initialize(filter=false)
     @seen = {}
+    @filter = filter
   end
 
   def const_lookup(c)
@@ -71,16 +73,14 @@ class NameMap
   end
 
   def exception?(name)
-    return false unless c = get_class_or_module(name)
+    return false unless c = class_or_module(name)
     c == Errno or c.ancestors.include? Exception
   end
 
-  def get_class_or_module(c)
+  def class_or_module(c)
     const = const_lookup(c)
-
-    if Module === const and not EXCLUDED.include? const.name
-      return const
-    end
+    filtered = @filter && EXCLUDED.include?(const.name)
+    return const if Module === const and not filtered
   rescue NameError
   end
 
@@ -94,7 +94,7 @@ class NameMap
 
     constants.each do |const|
       name = namespace mod, const
-      m = get_class_or_module name
+      m = class_or_module name
       next unless m and not @seen[m]
       @seen[m] = true
 
@@ -112,7 +112,7 @@ class NameMap
     hash
   end
 
-  def get_dir_name(c, base)
+  def dir_name(c, base)
     return File.join(base, 'exception') if exception? c
 
     c.split('::').inject(base) do |dir, name|
@@ -121,7 +121,7 @@ class NameMap
     end
   end
 
-  def get_file_name(m, c)
+  def file_name(m, c)
     if MAP.key?(m)
       name = MAP[m].is_a?(Hash) ? MAP[m][c.split('::').last] || MAP[m][:default] : MAP[m]
     else

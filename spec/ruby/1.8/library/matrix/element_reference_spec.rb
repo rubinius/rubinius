@@ -3,7 +3,7 @@ require 'matrix'
 
 describe "Matrix.[]" do
   # Matrix.[] is really a constructor, not an element reference function...
-  
+
   before(:each) do
     @a = [1, 2, 3]
     @b = [4, 5, 6]
@@ -11,14 +11,11 @@ describe "Matrix.[]" do
     @m = Matrix[@a, @b, @c]
   end
   
-  it "needs to be reviewed for spec completeness" do
-  end
-  
   it "returns an object of type Matrix" do
     @m.class.should == Matrix
   end
   
-  it "makes each argument into a row in the newly created Matrix" do
+  it "makes each argument into a row" do
     @m.row(0).to_a.should == @a
     @m.row(1).to_a.should == @b
     @m.row(2).to_a.should == @c
@@ -26,10 +23,7 @@ describe "Matrix.[]" do
 end
 
 describe "Matrix#[]" do
-  it "needs to be reviewed for spec completeness" do
-  end
-  
-  it "returns element (i, j) of the matrix" do
+  it "returns element at (i, j)" do
     m = Matrix[[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]]
     (0..3).each do |i|
       (0..2).each do |j|

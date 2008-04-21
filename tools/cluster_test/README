@@ -1,0 +1,44 @@
+Rubinius Cluster Test
+---------------------
+
+This is a quick and dirty continuous build / test system for rubinius
+(and really, anything in git--the rubinius specific stuff is fairly
+minimal). It contains the following files:
+
++ ci.rb - the client side script. It polls the git repo using
+          ls-remote to see if anything has been pushed to head. If it
+          has, then it updates the HEAD checkout and clones a build
+          directory off of that.
+
+          Takes two optional args and two options:
+
+          ci.rb [-v] [-i] [base_dir] [git_repo]
+
+          -v is verbose and just for debugging.
+          -i is incremental and builds into base_dir/builds/incremental
+
+          The rest is minutia and can be discovered by reading the source.
+
++ ci_submit.cgi - server side build result submission CGI. Has a
+                  third-party dependency on safecat (essentially cat +
+                  maildir). Tweak BASE_DIR and SAFE_CAT as necessary.
+
+                  http://jeenyus.net/~budney/linux/software/safecat.html
+
++ ci_cron.rb - server side cron script. Gathers up the files from
+               ci_submit.cgi and generates a nice html report.
+
+               Takes two optional args:
+
+               ci_cron.rb [base_dir] [html_dir]
+
+               Has a dependency on the tagz gem.
+
+TODO:
+
++ ci_cron.rb - should archive off results in a YAML format so that
+               other scripts can trigger actions off of that (like
+               email and irc notification scripts).
+
++ ci_cron.rb - should prune data files (into the archive or otherwise)
+               or at least have an age based filter.

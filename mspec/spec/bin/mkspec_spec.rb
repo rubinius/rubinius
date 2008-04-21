@@ -248,9 +248,13 @@ describe MkSpec, "#run" do
   before :each do
     @options = OptionParser.new
     OptionParser.stub!(:new).and_return(@options)
+
     @map = NameMap.new
     NameMap.stub!(:new).and_return(@map)
+
     @script = MkSpec.new
+    @script.stub!(:create_directory).and_return("spec/mkspec")
+    @script.stub!(:create_file)
     @script.config[:constants] = [MkSpec]
   end
 
@@ -267,10 +271,23 @@ describe MkSpec, "#run" do
     @script.run
   end
 
+  it "creates a map of Object.constants if not constants are specified" do
+    @script.config[:constants] = []
+    Object.stub!(:constants).and_return(["Object"])
+    @map.should_receive(:filter).with(["Object"]).and_return(["Object"])
+    @map.should_receive(:map).with({}, ["Object"]).and_return({})
+    @script.run
+  end
+
   it "calls #create_directory for each class/module in the map" do
+    @script.should_receive(:create_directory).with("MkSpec").twice
+    @script.run
   end
 
   it "calls #create_file for each method on each class/module in the map" do
+    @map.should_receive(:map).with({}, @script.config[:constants]).and_return({"MkSpec#" => "run"})
+    @script.should_receive(:create_file).with("spec/mkspec", "MkSpec", "run", "MkSpec#run")
+    @script.run
   end
 end
 

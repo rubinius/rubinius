@@ -106,7 +106,7 @@ describe "The -A, --valgrind option" do
   end
 end
 
-describe "The -w, --warnings option" do
+describe "The --warnings option" do
   before :each do
     @options, @config = new_option
     MSpecOptions.stub!(:new).and_return(@options)
@@ -116,24 +116,20 @@ describe "The -w, --warnings option" do
 
   it "is enabled by #options" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-w", "--warnings", an_instance_of(String))
+    @options.should_receive(:on).with("--warnings", an_instance_of(String))
     @script.options
   end
 
   it "sets flags to -w" do
-    ["-w", "--warnings"].each do |opt|
-      @config[:flags] = []
-      @script.options [opt]
-      @config[:flags].should include("-w")
-    end
+    @config[:flags] = []
+    @script.options ["--warnings"]
+    @config[:flags].should include("-w")
   end
 
   it "set OUTPUT_WARNINGS = '1' in the environment" do
-    ["-w", "--warnings"].each do |opt|
-      ENV['OUTPUT_WARNINGS'] = '0'
-      @script.options [opt]
-      ENV['OUTPUT_WARNINGS'].should == '1'
-    end
+    ENV['OUTPUT_WARNINGS'] = '0'
+    @script.options ["--warnings"]
+    ENV['OUTPUT_WARNINGS'].should == '1'
   end
 end
 

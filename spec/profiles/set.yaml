@@ -1,0 +1,13 @@
+Set#:
+- "-"
+- "<<"
+- ==
+- add
+- clear
+- delete
+- include?
+- initialize
+- initialize_copy
+- merge
+- size
+- subtract

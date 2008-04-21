@@ -61,6 +61,11 @@ class TestGenerator
     tg.stream == @stream
   end
 
+  # Hack to provide expected semantics
+  def ===(other)
+    equal? other
+  end
+
   opcodes = InstructionSet::OpCodes.map { |desc| desc.opcode }
   stupids = [:add_literal, :gif, :git, :pop_modifiers, :push,
              :push_literal_at, :push_modifiers, :push_unique_literal, :send,

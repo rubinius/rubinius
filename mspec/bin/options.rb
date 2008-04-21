@@ -177,6 +177,14 @@ class MSpecOptions
        "Exclude examples with descriptions matching ones tagged with TAG") do |o|
       @config[:xtags] << o
     end
+    on("-w", "--profile FILE", String,
+       "Run examples for methods listed in the profile FILE") do |f|
+      @config[:profiles] << f
+    end
+    on("-W", "--excl-profile FILE", String,
+       "Exclude examples for methods listed in the profile FILE") do |f|
+      @config[:xprofiles] << f
+    end
   end
 
   def add_pretend

@@ -649,7 +649,7 @@ class ShotgunPrimitives
     j = pipe(fds);
     if(!j) {
       io_wrap(state, t1, fds[0], "r");
-      io_wrap(state, t2, fds[1], "r");
+      io_wrap(state, t2, fds[1], "w");
     }
 
     RET(I2N(j));

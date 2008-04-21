@@ -64,21 +64,21 @@ describe NameMap, "#exception?" do
   end
 end
 
-describe NameMap, "#get_class_or_module" do
+describe NameMap, "#class_or_module" do
   before :each do
-    @map = NameMap.new
+    @map = NameMap.new true
   end
 
   it "returns the constant specified by the string" do
-    @map.get_class_or_module("NameMapSpecs").should == NameMapSpecs
+    @map.class_or_module("NameMapSpecs").should == NameMapSpecs
   end
 
   it "returns the constant specified by the 'A::B' string" do
-    @map.get_class_or_module("NameMapSpecs::A").should == NameMapSpecs::A
+    @map.class_or_module("NameMapSpecs::A").should == NameMapSpecs::A
   end
 
   it "returns nil if the constant is not a class or module" do
-    @map.get_class_or_module("Float::MAX").should == nil
+    @map.class_or_module("Float::MAX").should == nil
   end
 
   it "returns nil if the constant is in the set of excluded constants" do
@@ -88,72 +88,73 @@ describe NameMap, "#get_class_or_module" do
       DTracer
       NameMap
       OptionParser
+      YAML
     ]
 
     excluded.each do |const|
-      @map.get_class_or_module(const).should == nil
+      @map.class_or_module(const).should == nil
     end
   end
 
   it "returns nil if the constant does not exist" do
-    @map.get_class_or_module("Heaven").should == nil
-    @map.get_class_or_module("Hell").should == nil
-    @map.get_class_or_module("Bush::Brain").should == nil
+    @map.class_or_module("Heaven").should == nil
+    @map.class_or_module("Hell").should == nil
+    @map.class_or_module("Bush::Brain").should == nil
   end
 end
 
-describe NameMap, "#get_dir_name" do
+describe NameMap, "#dir_name" do
   before :each do
     @map = NameMap.new
   end
 
   it "returns a directory name from the base name and constant" do
-    @map.get_dir_name("NameMapSpecs", 'spec/core').should == 'spec/core/namemapspecs'
+    @map.dir_name("NameMapSpecs", 'spec/core').should == 'spec/core/namemapspecs'
   end
 
   it "returns a directory name from the components in the constants name" do
-    @map.get_dir_name("NameMapSpecs::A", 'spec').should == 'spec/namemapspecs/a'
-    @map.get_dir_name("NameMapSpecs::A::B", 'spec').should == 'spec/namemapspecs/a/b'
+    @map.dir_name("NameMapSpecs::A", 'spec').should == 'spec/namemapspecs/a'
+    @map.dir_name("NameMapSpecs::A::B", 'spec').should == 'spec/namemapspecs/a/b'
   end
 
   it "returns a directory name without 'class' for constants like TrueClass" do
-    @map.get_dir_name("TrueClass", 'spec').should == 'spec/true'
-    @map.get_dir_name("FalseClass", 'spec').should == 'spec/false'
+    @map.dir_name("TrueClass", 'spec').should == 'spec/true'
+    @map.dir_name("FalseClass", 'spec').should == 'spec/false'
   end
 
   it "returns 'exception' for the directory name of any Exception subclass" do
-    @map.get_dir_name("SystemExit", 'spec').should == 'spec/exception'
-    @map.get_dir_name("Errno::EBADF", 'spec').should == 'spec/exception'
+    @map.dir_name("SystemExit", 'spec').should == 'spec/exception'
+    @map.dir_name("Errno::EBADF", 'spec').should == 'spec/exception'
   end
 
   it "returns 'class' for Class" do
-    @map.get_dir_name("Class", 'spec').should == 'spec/class'
+    @map.dir_name("Class", 'spec').should == 'spec/class'
   end
 end
 
 # These specs do not cover all the mappings, but only describe how the
 # name is derived when the hash item maps to a single value, a hash with
 # a specific item, or a hash with a :default item.
-describe NameMap, "#get_file_name" do
+describe NameMap, "#file_name" do
   before :each do
     @map = NameMap.new
   end
 
   it "returns the name of the spec file based on the constant and method" do
-    @map.get_file_name("[]=", "Array").should == "element_set_spec.rb"
+    @map.file_name("[]=", "Array").should == "element_set_spec.rb"
   end
 
   it "returns the name of the spec file based on the special entry for the method" do
-    @map.get_file_name("~", "Regexp").should == "match_spec.rb"
-    @map.get_file_name("~", "Fixnum").should == "complement_spec.rb"
+    @map.file_name("~", "Regexp").should == "match_spec.rb"
+    @map.file_name("~", "Fixnum").should == "complement_spec.rb"
   end
 
   it "returns the name of the spec file based on the default entry for the method" do
-    @map.get_file_name("<<", "NameMapSpecs").should == "append_spec.rb"
+    @map.file_name("<<", "NameMapSpecs").should == "append_spec.rb"
   end
 
   it "uses the last component of the constant to look up the method name" do
-    @map.get_file_name("^", "NameMapSpecs::Fixnum").should == "bit_xor_spec.rb"
+    @map.file_name("^", "NameMapSpecs::Fixnum").should == "bit_xor_spec.rb"
   end
 end
 
