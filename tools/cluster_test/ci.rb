@@ -30,7 +30,8 @@ $i ||= false # use -i to turn on incremental builds
 BASE_DIR  = File.expand_path(ARGV.shift || "/tmp/ci")
 GIT_REPO  = ARGV.shift || 'git@git.rubini.us:code'
 CGI_URI   = (ARGV.shift ||
-             GIT_REPO.sub(/git@(.*):\w+$/, 'http://\1/cgi-bin/ci_submit.cgi')
+             GIT_REPO.sub(/git@git\.(.*):\w+$/,
+                          'http://ci.\1/cgi-bin/ci_submit.cgi'))
 
 # don't modify these:
 HEAD_DIR  = File.join(BASE_DIR, "HEAD")
@@ -83,9 +84,9 @@ end
 def build hash
   warn "building #{hash}" if $v
   dir = $i ? "incremental" : hash
-  cmd "git clone -l #{HEAD_DIR} #{dir}" unless File.directory? dir # TODO: -q
+  cmd "git clone -q -l #{HEAD_DIR} #{dir}" unless File.directory? dir
   Dir.chdir dir do
-    cmd "git reset --hard #{hash}" # TODO: -q
+    cmd "git reset --hard #{hash}"
     system "rake -t spec &> ../#{hash}.log"
   end
 ensure
