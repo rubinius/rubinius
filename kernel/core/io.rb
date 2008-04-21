@@ -444,26 +444,31 @@ class IO
     return nil if @eof and @buffer.empty?
 
     buf = @buffer
+    done = false
 
     output = ''
 
     needed = size
 
-    while true
-      bytes = buf.fill_from(self)
+    if needed > 0 and buf.size >= needed
+      output << buf.shift_front(needed)
+    else
+      while true
+        bytes = buf.fill_from(self)
 
-      if bytes
-        done = needed - bytes <= 0
-      else
-        done = true
+        if bytes
+          done = needed - bytes <= 0
+        else
+          done = true
+        end
+
+        if done or buf.full?
+          output << buf.shift_front(needed)
+          needed = size - output.length
+        end
+
+        break if done or needed == 0
       end
-
-      if done or buf.full?
-        output << buf.shift_front(needed)
-        needed = size - output.length
-      end
-
-      break if done or needed == 0
     end
 
     if buffer then
