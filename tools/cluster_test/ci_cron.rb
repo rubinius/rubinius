@@ -12,12 +12,16 @@ CI_DIR = File.join HTML_DIR, "ci"
 
 GIT_URL = "http://git.rubini.us/?p=code;a=commit;h="
 
-ABBR = {
-  "x86-freebsd-6" => "f",
-  "x86-linux"     => "l",
-  "x86_64-linux"  => "l6",
-  "x86-darwin-9"  => "d",
-}
+def abbreviate_platform(arch)
+  plat = Gem::Platform.new(arch)
+  cpu, os, _ = plat.to_a
+  o, c = os[0..0], cpu[0..0] rescue "?"
+
+  c = "i" if c == "x"
+  x = "6" if cpu =~ /64/
+
+  "#{o}#{c}#{x}"
+end
 
 class HashHash < Hash
   def initialize
@@ -158,13 +162,13 @@ html = Tagz do
         th_ "Time"
 
         platforms.each do |platform|
-          th_ ABBR[platform]
+          th_ abbreviate_platform(platform)
         end
 
         th_ "&nbsp;"
 
         platforms.each do |platform|
-          th_ ABBR[platform]
+          th_ abbreviate_platform(platform)
         end
       end
 
@@ -189,8 +193,8 @@ html = Tagz do
 
     table_ do
       tr_ { th_ "Legend", :colspan => 2 }
-      ABBR.each do |k,v|
-        tr_ { th_ v; td_ k }
+      platforms.each do |plat|
+        tr_ { th_ abbreviate_platform(plat); td_ plat }
       end
     end
   end
