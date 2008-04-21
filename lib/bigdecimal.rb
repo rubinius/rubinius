@@ -76,7 +76,7 @@ class BigDecimal < Numeric
     if self.finite?
       str << @int
       if @frac != '0'
-
+        str << radix
         str << @frac
       end
       if @exp != '0'
