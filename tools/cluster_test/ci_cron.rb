@@ -1,8 +1,8 @@
-#!/usr/bin/env ruby -ws
+#!/usr/bin/env ruby -w
 
 require 'yaml'
 require 'rubygems'
-
+require 'fileutils'
 require 'tagz'
 
 BASE_DIR = File.expand_path(ARGV.shift || "/tmp/ci")
@@ -144,7 +144,7 @@ html = Tagz do
     h1_ "Rubinius CI Dashboard"
     h3_ Time.now.strftime("%m-%d %H:%M")
 
-    table_ id => "data" do
+    table_ :id => "data" do
       tr_ :id => "first" do
         th_ "&nbsp;"
         th_ "&nbsp;"
@@ -197,8 +197,6 @@ html = Tagz do
 end
 
 
-File.open File.join(HTML_DIR, "ci.html"), "w" do |f|
+File.open File.join(HTML_DIR, "index.html"), "w" do |f|
   f.puts html
 end
-
-system "open ci.html"
