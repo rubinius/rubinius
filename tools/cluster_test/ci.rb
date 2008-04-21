@@ -39,6 +39,9 @@ BUILD_DIR = File.join(BASE_DIR, "builds")
 GIT_HASH  = GIT_REPO.sub(/git@/, 'git://').sub(/:(\w+)$/, '/\1')
 HASH_PATH = File.join(BASE_DIR, 'latest_hash.txt')
 
+# ARGH
+ENV["RBX"] = "rbx.colorize_backtraces=no"
+
 def cmd cmd
   puts "cmd = #{cmd}"
   raise "cmd #{cmd.inspect} failed with #{$?}" unless system cmd
@@ -96,7 +99,7 @@ end
 def submit hash
   warn "submitting #{hash}" if $v
   data = {
-    :platform    => RUBY_PLATFORM,
+    :platform    => Gem::Platform.local.to_s,
     :incremental => $i,
     :hash        => hash,
     :log         => File.read("#{hash}.log"),
