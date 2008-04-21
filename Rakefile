@@ -186,6 +186,9 @@ task :install => :config_env do
   mkdir_p File.join(CODEPATH, 'bin'), :verbose => true
 
   Rake::FileList.new("#{CODEPATH}/**/*.rb").sort.each do |rb_file|
+    if File.exists? "#{rb_file}c"
+      next if File.mtime("#{rb_file}c") > File.mtime(rb_file)
+    end
     sh File.join(BINPATH, 'rbx'), 'compile', rb_file, :verbose => true
   end
 end
