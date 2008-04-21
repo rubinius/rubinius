@@ -277,10 +277,15 @@ module ModuleSpecs
       @special = 10
     end
   end
+
 end
 
 ModuleSpecs::Nesting[:root_level] = Module.nesting
 
 class TopLevelConst
+end
+
+module AutoLoadSubject
+  def self.message; "failure"; end
 end
 

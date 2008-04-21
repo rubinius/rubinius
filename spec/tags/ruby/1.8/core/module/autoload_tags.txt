@@ -1,0 +1,1 @@
+fails:Module#autoload respects the surrounding scope at the autoload send site
