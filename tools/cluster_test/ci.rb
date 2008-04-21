@@ -29,12 +29,13 @@ $i ||= false # use -i to turn on incremental builds
 # tweakables, preferably through cmdline:
 BASE_DIR  = File.expand_path(ARGV.shift || "/tmp/ci")
 GIT_REPO  = ARGV.shift || 'git@git.rubini.us:code'
+CGI_URI   = (ARGV.shift ||
+             GIT_REPO.sub(/git@(.*):\w+$/, 'http://\1/cgi-bin/ci_submit.cgi')
 
 # don't modify these:
 HEAD_DIR  = File.join(BASE_DIR, "HEAD")
 BUILD_DIR = File.join(BASE_DIR, "builds")
 GIT_HASH  = GIT_REPO.sub(/git@/, 'git://').sub(/:(\w+)$/, '/\1')
-CGI_URI   = GIT_REPO.sub(/git@/, 'http://').sub(/:\w+$/, '/cgi-bin/ci_submit.cgi')
 HASH_PATH = File.join(BASE_DIR, 'latest_hash.txt')
 
 def cmd cmd
@@ -44,13 +45,6 @@ end
 
 def build_dir_structures
   FileUtils::mkdir_p BUILD_DIR unless File.directory? BUILD_DIR
-
-  # HACK: to speed up my testing
-  if File.exist?("/tmp/rubinius-git") && ! File.exist?(HEAD_DIR) then
-    warn "cheating by copying .git"
-    FileUtils.mkdir_p HEAD_DIR
-    system "cp -r /tmp/rubinius-git #{HEAD_DIR}/.git"
-  end
 
   Dir.chdir BASE_DIR do
     cmd "git clone -n #{GIT_REPO} HEAD"

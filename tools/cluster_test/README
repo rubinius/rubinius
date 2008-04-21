@@ -10,9 +10,9 @@ minimal). It contains the following files:
           has, then it updates the HEAD checkout and clones a build
           directory off of that.
 
-          Takes two optional args and two options:
+          Takes three optional args and two options:
 
-          ci.rb [-v] [-i] [base_dir] [git_repo]
+          ci.rb [-v] [-i] [base_dir] [git_repo] [cgi_url]
 
           -v is verbose and just for debugging.
           -i is incremental and builds into base_dir/builds/incremental
