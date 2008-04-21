@@ -1,13 +1,14 @@
 #!/usr/bin/env ruby -w
 
 require 'yaml'
-require 'rubygems'
 require 'fileutils'
+require 'rubygems'
 require 'tagz'
 
 BASE_DIR = File.expand_path(ARGV.shift || "/tmp/ci")
-HTML_DIR = File.expand_path(ARGV.shift || "~/Sites")
+HTML_DIR = File.expand_path(ARGV.shift || File.join(BASE_DIR, "html"))
 DATA_DIR = File.join BASE_DIR, "data"
+CI_DIR = File.join HTML_DIR, "ci"
 
 GIT_URL = "http://git.rubini.us/?p=code;a=commit;h="
 
@@ -24,8 +25,8 @@ class HashHash < Hash
   end
 end
 
-FileUtils.rm_rf "ci"
-Dir.mkdir "ci"
+FileUtils.rm_rf CI_DIR
+FileUtils.mkdir_p CI_DIR
 
 all_data = HashHash.new
 
@@ -33,7 +34,6 @@ flat_data = Dir[File.join(DATA_DIR, "*")].select { |f| File.file? f }.map { |f|
   h = YAML.load(File.read(f))
   h[:id] = File.basename(f)
   h[:time] = File.mtime f
-
 
   log = h[:log]
   h[:status] = if log =~ /(\d+) failures?, (\d+) errors?$/ then
@@ -175,8 +175,8 @@ html = Tagz do
             a_(hash[0..7], :href => "#{GIT_URL}#{hash}")
           end
 
-          times = (all_data[true][hash].map { |run| run[:time] } +
-                   all_data[false][hash].map { |run| run[:time] })
+          times = (all_data[true][hash].map { |_,run| run[:time] } +
+                   all_data[false][hash].map { |_,run| run[:time] })
 
           th_ "#{times.max.strftime("%m-%d %H:%M")}"
 
