@@ -34,10 +34,8 @@ GIT_REPO  = ARGV.shift || 'git@git.rubini.us:code'
 HEAD_DIR  = File.join(BASE_DIR, "HEAD")
 BUILD_DIR = File.join(BASE_DIR, "builds")
 GIT_HASH  = GIT_REPO.sub(/git@/, 'git://').sub(/:(\w+)$/, '/\1')
-# CGI_URI   = GIT_REPO.sub(/git@/, 'http://').sub(/:\w+$/, '/cgi-bin/ci_submit.cgi')
+CGI_URI   = GIT_REPO.sub(/git@/, 'http://').sub(/:\w+$/, '/cgi-bin/ci_submit.cgi')
 HASH_PATH = File.join(BASE_DIR, 'latest_hash.txt')
-
-CGI_URI = "http://localhost/cgi-bin/ci_submit.cgi"
 
 def cmd cmd
   puts "cmd = #{cmd}"
