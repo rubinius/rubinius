@@ -33,9 +33,11 @@ class BigDecimal < Numeric
     v = _val.strip
     if v == "NaN"
       @special = 'n'
+      @precs = 0
     elsif v =~ /[-+]?Infinity/
       @special = 'i'
       @sign = '-' if v =~ /-/
+      @precs = 0
     else
       v = _val.gsub('_', '')
       m = /^\s*(([-+]?)(\d*)(?:\.(\d*))?(?:[EeDd](\d+))?).*$/.match(v)
@@ -45,7 +47,7 @@ class BigDecimal < Numeric
         @frac = m[4] unless m[4].to_s.empty?
         @exp = m[5] unless m[5].to_s.empty?
       end
-    @precs = [self.to_s.length, _precs].max
+      @precs = [self.to_s.length, _precs].max
     end
   end
 
@@ -74,7 +76,7 @@ class BigDecimal < Numeric
   end
 
   def precs
-    [nil, @precs]
+    [@precs, @precs]
   end
 
   def to_s
