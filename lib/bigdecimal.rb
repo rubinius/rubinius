@@ -147,4 +147,20 @@ class BigDecimal < Numeric
   def >(other)
     return self.<=>(other) == 1
   end
+  
+  ####################
+  # Other operations #
+  ####################
+  
+  # I'm trying to keep these in alphabetical order unless a good reason develops to do otherwise.
+  
+  def abs
+    if self.nan? or @sign == '+'
+      return self
+    else
+      s = self.to_s.sub(/^-/, '') # strip minus sign
+      BigDecimal(s)
+    end
+  end
+  
 end
