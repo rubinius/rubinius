@@ -22,6 +22,7 @@
 require 'fileutils'
 require 'net/http'
 require 'yaml'
+require 'rubygems'
 
 $v ||= false
 $i ||= false # use -i to turn on incremental builds
@@ -37,7 +38,7 @@ CGI_URI   = (ARGV.shift ||
 HEAD_DIR  = File.join(BASE_DIR, "HEAD")
 BUILD_DIR = File.join(BASE_DIR, "builds")
 GIT_HASH  = GIT_REPO.sub(/git@/, 'git://').sub(/:(\w+)$/, '/\1')
-HASH_PATH = File.join(BASE_DIR, 'latest_hash.txt')
+HASH_PATH = File.join(BASE_DIR, "latest_#{"incremental_" if $i}hash.txt")
 
 # ARGH
 ENV["RBX"] = "rbx.colorize_backtraces=no"
