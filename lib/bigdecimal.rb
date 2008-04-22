@@ -183,10 +183,8 @@ class BigDecimal < Numeric
       return false
     elsif other.respond_to?(:nan?) and other.nan?
       return false
-    elsif self.zero?
-      if other.respond_to?(:zero?)
-        return other.zero?
-      end
+    elsif self.zero? and other.respond_to?(:zero?)
+      return other.zero?
     elsif self.to_s == other.to_s
       return true
     elsif !other.kind_of?(BigDecimal)
