@@ -180,6 +180,25 @@ namespace rubinius {
     if(push_value) stack->put(state, ++sp, value);
   }
 
+  void Task::raise_exception(Exception* exc) {
+    for(;;) {
+      Tuple* table = active->cm->exceptions;
+
+      if(!table->nil_p()) {
+        for(size_t i = 0; i < table->field_count; i++) {
+          Tuple* entry = as<Tuple>(table->at(i));
+          if(entry->at(0)->n2i() <= ip && entry->at(1)->n2i() >= ip) {
+            ip = entry->at(2)->n2i();
+            return;
+          }
+        }
+      }
+
+      if(active->sender->nil_p()) break;
+      make_active(active->sender);
+    }
+  }
+
   Executable* Task::locate_method_on(OBJECT recv, SYMBOL sel, OBJECT priv_p) {
     Message msg(state);
 
@@ -394,17 +413,6 @@ namespace rubinius {
     return mod;
   }
 
-  void Task::raise_exception(Exception* exc) {
-    Tuple* table = active->cm->exceptions;
-
-    for(size_t i = 0; i < table->field_count; i++) {
-      Tuple* entry = as<Tuple>(table->at(i));
-      if(entry->at(0)->n2i() <= ip && entry->at(1)->n2i() >= ip) {
-        ip = entry->at(2)->n2i();
-        return;
-      }
-    }
-  }
 
   void Task::activate_method(Message&) { }
 

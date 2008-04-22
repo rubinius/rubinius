@@ -828,6 +828,44 @@ class TestTask : public CxxTest::TestSuite {
   void test_raise_exception() {
     CompiledMethod* cm = CompiledMethod::create(state);
     cm->iseq = ISeq::create(state, 40);
+    cm->total_args = Object::i2n(0);
+    cm->stack_size = Object::i2n(1);
+    cm->exceptions = Tuple::from(state, 1,
+        Tuple::from(state, 3, Object::i2n(0), Object::i2n(3), Object::i2n(5)));
+
+    Task* task = Task::create(state, Qnil, cm);
+
+    MethodContext* top = task->active;
+    task->ip = 3;
+
+    /* Call a method ... */
+    CompiledMethod* cm2 = CompiledMethod::create(state);
+    cm2->iseq = ISeq::create(state, 40);
+    cm2->total_args = Object::i2n(0);
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm2);
+
+    Message msg(state);
+    msg.recv = Qtrue;
+    msg.lookup_from = G(true_class);
+    msg.name = state->symbol("blah");
+    msg.send_site = SendSite::create(state, state->symbol("blah"));
+    msg.args = 0;
+
+    task->send_message(msg);
+    TS_ASSERT(task->active != top);
+
+    Exception* exc = Exception::create(state);
+
+    task->raise_exception(exc);
+
+    TS_ASSERT_EQUALS(task->active, top);
+    TS_ASSERT_EQUALS(task->ip, 5);
+  }
+
+  void test_raise_exception_into_sender() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->iseq = ISeq::create(state, 40);
     cm->stack_size = Object::i2n(1);
     cm->exceptions = Tuple::from(state, 1,
         Tuple::from(state, 3, Object::i2n(0), Object::i2n(3), Object::i2n(5)));
