@@ -20,6 +20,16 @@ namespace rubinius {
 
     struct cache_entry entries[CPU_CACHE_SIZE];
 
+    GlobalCache() {
+      for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
+        entries[i].klass = 0;
+        entries[i].name  = 0;
+        entries[i].module = 0;
+        entries[i].method= 0;
+        entries[i].is_public = true;
+      }
+    }
+
     struct cache_entry* lookup(Module* cls, SYMBOL name) {
       struct cache_entry* entry;
 

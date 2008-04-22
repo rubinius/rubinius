@@ -7,14 +7,22 @@
 
 namespace rubinius {
 
-  Message::Message(STATE, Array* ary) : task(NULL) {
+  Message::Message(STATE, Array* ary) : 
+      task(NULL), argument_start(0), send_site(NULL), name(NULL),
+      recv(Qnil), block(Qnil), splat(Qnil), current_self(Qnil),
+      args(0), stack(0), priv(false), lookup_from(NULL), method(Qnil),
+      module(NULL) {
     this->state = state;
     arguments = ary;
     args = arguments->size();
   }
 
   Message::Message(STATE) :
-    state(state), arguments(NULL), task(NULL) { }
+      state(state), arguments(NULL), task(NULL),
+      argument_start(0), send_site(NULL), name(NULL),
+      recv(Qnil), block(Qnil), splat(Qnil), current_self(Qnil),
+      args(0), stack(0), priv(false), lookup_from(NULL), method(Qnil),
+      module(NULL) { }
 
   OBJECT Message::get_argument(size_t index) {
     if(arguments) {

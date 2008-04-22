@@ -248,7 +248,7 @@ namespace rubinius {
   }
 
   void Task::yield_debugger(OBJECT val) {
-    kill(getpid(), SIGEMT);
+    kill(getpid(), SIGTRAP);
   }
 
   Module* Task::current_module() {

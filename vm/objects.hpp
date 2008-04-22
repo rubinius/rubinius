@@ -463,7 +463,7 @@ namespace rubinius {
 
   class CompiledMethod : public Executable {
     public:
-    const static size_t fields = 19;
+    const static size_t fields = 20;
     const static object_type type = CMethodType;
     const static size_t saved_fields = 16;
 
@@ -490,7 +490,7 @@ namespace rubinius {
     void set_scope(StaticScope*);
     VMMethod* vmmethod(STATE);
 
-    class Visibility : public Executable {
+    class Visibility : public BuiltinType {
     public:
       const static size_t fields = 3;
       const static object_type type = CMVisibilityType;

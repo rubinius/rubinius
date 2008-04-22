@@ -27,7 +27,7 @@ class CCompile
     Dir.mkdir od unless File.directory? od
 
     puts "CC #{input}"
-    x "#{compiler(input)} #{includes} #{flags} -c -o #{output} #{input} 2>&1 | ruby nicer.rb"
+    x "#{compiler(input)} #{includes} #{flags} -c -o #{output} #{input} 2>&1"
   end
 
   def compiler(file)
@@ -104,7 +104,7 @@ ex_libs = %w!
 	../external_libs/libev/.libs/libev.a
   -ldl!
 
-ex_libs << "-rt" if RUBY_PLATFORM =~ /linux/
+ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
 
 ex_inc  = %w!
   ../external_libs/libtommath
