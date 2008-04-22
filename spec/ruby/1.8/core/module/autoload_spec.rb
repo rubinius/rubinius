@@ -49,7 +49,7 @@ describe "Module#autoload" do
     lambda { Module.new { autoload("A", "") } }.should raise_error(ArgumentError)
   end
 
-  it "respects the surrounding scope at the autoload send site" do
+  it "triggers an autoload before using a toplevel constant" do
     class ModuleSpecs::AutoLoadParent
       autoload(:AutoLoadSubject, File.dirname(__FILE__) + "/fixtures/autoload_nested.rb")
     end
