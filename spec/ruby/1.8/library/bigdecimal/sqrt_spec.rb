@@ -29,6 +29,9 @@ describe "BigDecimal#sqrt" do
       @one.sqrt
     }.should raise_error(ArgumentError)
     lambda {
+      @one.sqrt(nil)
+    }.should raise_error(TypeError)
+    lambda {
       @one.sqrt("stuff")
     }.should raise_error(TypeError)
     lambda {
