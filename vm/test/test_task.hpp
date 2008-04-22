@@ -44,6 +44,7 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_send_message() {
     CompiledMethod* cm = CompiledMethod::create(state);
+    cm->total_args = Object::i2n(0);
     cm->iseq = ISeq::create(state, 40);
     Task* task = Task::create(state, Qnil, cm);
 
@@ -125,6 +126,87 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(task->stack->field[0], Object::i2n(3));
     TS_ASSERT_EQUALS(task->stack->field[1], Object::i2n(4));
   }
+
+  void test_send_message_throws_argerror_on_too_few() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->iseq = ISeq::create(state, 40);
+    cm->required_args = Object::i2n(2);
+    cm->total_args = cm->required_args;
+    cm->local_count = cm->required_args;
+    cm->stack_size =  cm->required_args;
+    cm->splat = Qnil;
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    Task* task = Task::create(state, Qnil, cm);
+
+    MethodContext* top = task->active;
+
+    Tuple* input_stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
+    task->stack = input_stack;
+    task->sp = 1;
+
+    Message msg(state);
+    msg.recv = Qtrue;
+    msg.lookup_from = G(true_class);
+    msg.name = state->symbol("blah");
+    msg.send_site = SendSite::create(state, state->symbol("blah"));
+    msg.use_from_task(task, 1);
+
+    bool thrown = false;
+    try {
+      task->send_message(msg);
+    } catch(ArgumentError* error) {
+      TS_ASSERT_EQUALS(1, error->given);
+      TS_ASSERT_EQUALS(2, error->expected);
+      thrown = true;
+    }
+
+    TS_ASSERT(thrown);
+
+    TS_ASSERT_EQUALS(task->active, top);
+  }
+
+  void test_send_message_throws_argerror_on_too_many() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->iseq = ISeq::create(state, 40);
+    cm->required_args = Object::i2n(2);
+    cm->total_args = cm->required_args;
+    cm->local_count = cm->required_args;
+    cm->stack_size =  cm->required_args;
+    cm->splat = Qnil;
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    Task* task = Task::create(state, Qnil, cm);
+
+    MethodContext* top = task->active;
+
+    Tuple* input_stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
+    task->stack = input_stack;
+    task->sp = 1;
+
+    Message msg(state);
+    msg.recv = Qtrue;
+    msg.lookup_from = G(true_class);
+    msg.name = state->symbol("blah");
+    msg.send_site = SendSite::create(state, state->symbol("blah"));
+    msg.use_from_task(task, 3);
+
+    bool thrown = false;
+    try {
+      task->send_message(msg);
+    } catch(ArgumentError* error) {
+      TS_ASSERT_EQUALS(3, error->given);
+      TS_ASSERT_EQUALS(2, error->expected);
+      thrown = true;
+    }
+
+    TS_ASSERT(thrown);
+
+    TS_ASSERT_EQUALS(task->active, top);
+  }
+
 
   void test_send_message_sets_up_fixed_locals_with_optionals() {
     CompiledMethod* cm = CompiledMethod::create(state);
@@ -242,8 +324,43 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(splat->get(state, 1), Object::i2n(6));
   }
 
+  void test_send_message_throws_argerror_on_too_many_with_splat() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->iseq = ISeq::create(state, 40);
+    cm->required_args = Object::i2n(2);
+    cm->total_args = cm->required_args;
+    cm->local_count = Object::i2n(3);
+    cm->stack_size =  Object::i2n(3);
+    cm->splat = Object::i2n(2);
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    Task* task = Task::create(state, Qnil, cm);
+
+    Tuple* input_stack = Tuple::from(state, 3, Object::i2n(3), Object::i2n(4), Object::i2n(5));
+    task->stack = input_stack;
+    task->sp = 2;
+
+    Message msg(state);
+    msg.recv = Qtrue;
+    msg.lookup_from = G(true_class);
+    msg.name = state->symbol("blah");
+    msg.send_site = SendSite::create(state, state->symbol("blah"));
+    msg.use_from_task(task, 3);
+
+    bool thrown = false;
+    try {
+      task->send_message(msg);
+    } catch(ArgumentError* error) {
+      thrown = true;
+    }
+
+    TS_ASSERT(!thrown);
+  }
+
   void test_simple_return() {
     CompiledMethod* cm = CompiledMethod::create(state);
+    cm->total_args = Object::i2n(0);
     cm->iseq = ISeq::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
@@ -263,7 +380,7 @@ class TestTask : public CxxTest::TestSuite {
     Tuple* outer_stack = task->stack;
 
     task->send_message(msg);
-    
+
     Tuple* inner_stack = task->stack;
 
     TS_ASSERT(outer_stack != inner_stack);
@@ -271,6 +388,66 @@ class TestTask : public CxxTest::TestSuite {
     task->simple_return(Object::i2n(3));
     TS_ASSERT_EQUALS(task->active, top);
     TS_ASSERT_EQUALS(task->sp, 0);
+  }
+
+  void test_simple_return_with_no_value_flag() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->total_args = Object::i2n(0);
+    cm->iseq = ISeq::create(state, 40);
+    cm->stack_size = Object::i2n(1);
+
+    Task* task = Task::create(state, Qnil, cm);
+
+    MethodContext* top = task->active;
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    Message msg(state);
+    msg.recv = Qtrue;
+    msg.lookup_from = G(true_class);
+    msg.name = state->symbol("blah");
+    msg.send_site = SendSite::create(state, state->symbol("blah"));
+    msg.args = 0;
+
+    Tuple* outer_stack = task->stack;
+
+    task->stack->put(state, ++task->sp, Qtrue);
+
+    /* call the thing that we're going to ignore the return value of */
+    task->send_message(msg);
+    task->active->no_value = true;
+
+    Tuple* inner_stack = task->stack;
+
+    TS_ASSERT(outer_stack != inner_stack);
+
+    task->simple_return(Object::i2n(3));
+    TS_ASSERT_EQUALS(task->active, top);
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(task->stack->at(0), Qtrue);
+  }
+
+  void test_perform_hook() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->iseq = ISeq::create(state, 40);
+    cm->stack_size = Object::i2n(1);
+
+    Task* task = Task::create(state, Qnil, cm);
+
+    MethodContext* top = task->active;
+
+    TS_ASSERT(!task->perform_hook(Qtrue, state->symbol("blah"), Qtrue));
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+
+    task->stack->put(state, ++task->sp, Qfalse);
+    TS_ASSERT(task->perform_hook(Qtrue, state->symbol("blah"), Qtrue));
+
+    /* The hook'd method returning. */
+    task->simple_return(Object::i2n(3));
+    TS_ASSERT_EQUALS(task->active, top);
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(task->stack->at(0), Qfalse);
   }
 
   void test_locate_method_on() {
@@ -646,5 +823,24 @@ class TestTask : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(mod->name, state->symbol("Person"));
     TS_ASSERT_EQUALS(G(object)->get_const(state, "Person"), mod);
+  }
+
+  void test_raise_exception() {
+    CompiledMethod* cm = CompiledMethod::create(state);
+    cm->iseq = ISeq::create(state, 40);
+    cm->stack_size = Object::i2n(1);
+    cm->exceptions = Tuple::from(state, 1,
+        Tuple::from(state, 3, Object::i2n(0), Object::i2n(3), Object::i2n(5)));
+
+    Task* task = Task::create(state, Qnil, cm);
+
+    task->ip = 3;
+
+    Exception* exc = Exception::create(state);
+
+    task->raise_exception(exc);
+
+    TS_ASSERT_EQUALS(task->ip, 5);
+
   }
 };

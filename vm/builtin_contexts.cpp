@@ -3,7 +3,10 @@
 
 namespace rubinius {
   MethodContext* MethodContext::create(STATE) {
-    return (MethodContext*)state->new_struct(G(methctx), sizeof(MethodContext));
+    MethodContext* ctx;
+    ctx = (MethodContext*)state->new_struct(G(methctx), sizeof(MethodContext));
+    ctx->no_value = false;
+    return ctx;
   }
 
   void MethodContext::reference(STATE) {

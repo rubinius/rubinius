@@ -27,6 +27,7 @@ namespace rubinius {
     size_t args;
     BlockEnvironment *block;
     SYMBOL name;
+    bool   no_value;
 
     static MethodContext* create(STATE);
     void reference(STATE);

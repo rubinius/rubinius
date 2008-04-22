@@ -247,8 +247,8 @@ namespace rubinius {
     int sz;
     sz = 3;
 
-    OBJECT exc, scp, std, arg, nam, loe, rex, stk, sxp, sce, type, lje, vm;
-    OBJECT fce;
+    Class *exc, *scp, *std, *arg, *nam, *loe, *rex, *stk, *sxp, *sce, *type, *lje, *vm;
+    Class* fce;
 
 #define dexc(name, sup) new_class(#name, sup, sz)
 

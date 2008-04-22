@@ -230,6 +230,7 @@ namespace rubinius {
     const static size_t fields = 3;
     const static object_type type = ExceptionType;
 
+    static Exception* create(STATE);
     OBJECT instance_variables;
     OBJECT message;
     OBJECT context;
@@ -475,7 +476,7 @@ namespace rubinius {
     OBJECT total_args;
     OBJECT splat;
     Tuple* literals;
-    OBJECT exceptions;
+    Tuple* exceptions;
     OBJECT lines;
     OBJECT file;
     OBJECT path;

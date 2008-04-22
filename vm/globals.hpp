@@ -23,10 +23,13 @@ namespace rubinius {
     SYMBOL sym_inherited, sym_opened_class;
     SYMBOL sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
     SYMBOL sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
-    OBJECT exc_arg, exc_segfault;
-    OBJECT exc_loe, exc_type, exc_rex;
-    OBJECT exc_stack_explosion;
-    OBJECT exc_primitive_failure, sym_initialize;
+    SYMBOL sym_initialize;
+
+    Class* exception;
+    Class *exc_arg, *exc_segfault;
+    Class *exc_loe, *exc_type, *exc_rex;
+    Class *exc_stack_explosion;
+    Class *exc_primitive_failure;
 
     LookupTable* external_ivars;
     Tuple* scheduled_threads;
@@ -36,7 +39,6 @@ namespace rubinius {
     SYMBOL sym_send;
     SYMBOL sym_public, sym_private, sym_protected, sym_const_missing;
     SYMBOL sym_object_id, sym_call;
-    OBJECT exception;
     OBJECT top_scope, on_gc_channel;
 
     Class* special_classes[SPECIAL_CLASS_SIZE];

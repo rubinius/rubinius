@@ -68,22 +68,37 @@ namespace rubinius {
   }
 
   void Task::import_arguments(MethodContext* ctx, Message& msg) {
-    ctx->args = msg.args;
-    if(msg.args == 0) return;
+    size_t total = ctx->cm->total_args->n2i();
+    size_t required = ctx->cm->required_args->n2i();
 
-    size_t tot = ctx->cm->total_args->n2i();
-    size_t fixed = tot;
-    if(msg.args < tot) fixed = msg.args;
+    ctx->args = msg.args;
+
+    /* No input args and no expected args. Done. */
+    if(total == 0 && msg.args == 0) return;
+
+    /* If too few args were passed in, throw an exception */
+    if(msg.args < required) {
+      throw new ArgumentError(required, msg.args);
+    }
+
+    /* If too many args were passed in, throw an exception.
+     * * If there is a splat, this check is disabled.*/
+    if(ctx->cm->splat == Qnil && msg.args > total) {
+      throw new ArgumentError(required, msg.args);
+    }
+
+    size_t fixed = total;
+    if(msg.args < total) fixed = msg.args;
 
     for(size_t i = 0; i < fixed; i++) {
       ctx->stack->put(msg.state, i, msg.get_argument(i));
     }
 
     if(ctx->cm->splat != Qnil) {
-      size_t splat_size = msg.args - tot;
+      size_t splat_size = msg.args - total;
       Array* ary = Array::create(state, splat_size);
 
-      for(size_t i = 0, n = tot; i < splat_size; i++, n++) {
+      for(size_t i = 0, n = total; i < splat_size; i++, n++) {
         ary->set(state, i, msg.get_argument(n));
       }
 
@@ -127,15 +142,42 @@ namespace rubinius {
     make_active(ctx);
   }
 
+ bool Task::perform_hook(OBJECT obj, SYMBOL name, OBJECT arg) {
+    Message msg(state);
+    msg.recv = obj;
+    msg.lookup_from = obj->lookup_begin(state);
+    msg.name = name;
+    msg.args = 1;
+
+    GlobalCacheResolver res;
+
+    /* If we can't find it, give up. */
+    if(!res.resolve(state, msg)) return false;
+
+    MethodContext* ctx = generate_context(obj, as<CompiledMethod>(msg.method));
+    /* Make sure we discard the return value */
+    ctx->no_value = true;
+
+    active->ip = ip;
+    active->sp = sp;
+
+    ctx->sender = active;
+
+    make_active(ctx);
+
+    return true;
+  }
+
   bool Task::passed_arg_p(size_t pos) {
     return active->args >= pos;
   }
 
   void Task::simple_return(OBJECT value) {
     MethodContext *target = active->sender;
+    bool push_value = !active->no_value;
 
     make_active(target);
-    stack->put(state, ++sp, value);
+    if(push_value) stack->put(state, ++sp, value);
   }
 
   Executable* Task::locate_method_on(OBJECT recv, SYMBOL sel, OBJECT priv_p) {
@@ -352,11 +394,18 @@ namespace rubinius {
     return mod;
   }
 
-  OBJECT Task::perform_hook(OBJECT, OBJECT, OBJECT) {
-    return Qnil;
+  void Task::raise_exception(Exception* exc) {
+    Tuple* table = active->cm->exceptions;
+
+    for(size_t i = 0; i < table->field_count; i++) {
+      Tuple* entry = as<Tuple>(table->at(i));
+      if(entry->at(0)->n2i() <= ip && entry->at(1)->n2i() >= ip) {
+        ip = entry->at(2)->n2i();
+        return;
+      }
+    }
   }
 
-  void Task::raise_exception(Exception* exc) { }
   void Task::activate_method(Message&) { }
 
   void Task::cache_ip() { }
