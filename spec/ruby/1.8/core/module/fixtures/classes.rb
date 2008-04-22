@@ -289,3 +289,4 @@ module AutoLoadSubject
   def self.message; "failure"; end
 end
 
+autoload :ModuleSpecAutoloadToplevel, File.join(File.dirname(__FILE__), "autoload_toplevel.rb")

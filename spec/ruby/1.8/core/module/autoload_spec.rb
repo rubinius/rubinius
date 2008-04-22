@@ -48,6 +48,10 @@ describe "Module#autoload" do
   it "raises an ArgumentError when an empty filename is given" do
     lambda { Module.new { autoload("A", "") } }.should raise_error(ArgumentError)
   end
+  
+  it "loads constants that are registered at toplevel" do
+    ModuleSpecAutoloadToplevel.message.should == "success"
+  end
 
   it "triggers an autoload before using a toplevel constant" do
     class ModuleSpecs::AutoLoadParent

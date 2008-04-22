@@ -1,1 +1,2 @@
 fails:Module#autoload triggers an autoload before using a toplevel constant
+fails:Module#autoload loads constants that are registered at toplevel
