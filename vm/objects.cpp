@@ -217,8 +217,30 @@ namespace rubinius {
 
   void VM::bootstrap_symbol() {
     globals.symbols = SymbolTable::create(this);
-
-    globals.sym_object_id = symbol("object_id");
+#define add_sym(name) globals.sym_ ## name = symbol(#name)
+    add_sym(object_id);
+    add_sym(method_missing);
+    add_sym(inherited);
+    add_sym(opened_class);
+    add_sym(from_literal);
+    add_sym(method_added);
+    add_sym(send);
+    add_sym(public);
+    add_sym(private);
+    add_sym(protected);
+    add_sym(const_missing);
+    add_sym(object_id);
+    add_sym(call);
+#undef add_sym
+    globals.sym_s_method_added = symbol("singleton_method_added");
+    globals.sym_init_copy = symbol("initialize_copy");
+    globals.sym_plus = symbol("+");
+    globals.sym_minus = symbol("-");
+    globals.sym_equal = symbol("==");
+    globals.sym_nequal = symbol("!=");
+    globals.sym_tequal = symbol("===");
+    globals.sym_lt = symbol("<");
+    globals.sym_gt = symbol(">");
   }
 
   void VM::bootstrap_exceptions() {

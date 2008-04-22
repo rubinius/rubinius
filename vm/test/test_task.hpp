@@ -535,7 +535,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_yield_debugger() {
-    signal(SIGEMT, debugger_check);
+    signal(SIGTRAP, debugger_check);
     Task* task = Task::create(state);
 
     task->yield_debugger(Qtrue);
