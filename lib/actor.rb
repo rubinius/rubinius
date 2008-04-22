@@ -161,7 +161,7 @@ class Actor
     # Register an Actor locally as a named service
     def register(name, actor)
       raise ArgumentError, "name must be a symbol" unless Symbol === name
-      unless actor.is_a?(Actor)
+      unless actor.nil? or actor.is_a?(Actor)
         raise ArgumentError, "only actors may be registered"
       end
 
