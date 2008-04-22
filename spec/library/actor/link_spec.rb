@@ -7,11 +7,13 @@ describe "Actor.link" do
     chan = Channel.new
 
     a = Actor.spawn do
+      Actor.trap_exit = true
       msg = Actor.receive
       chan.send msg
     end
 
     b = Actor.spawn(Actor.current) do |master|
+      Actor.trap_exit = true
       Actor.link(master)
       Actor.link(a)
 
