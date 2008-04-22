@@ -22,7 +22,7 @@ describe "BigDecimal#abs" do
     neg_frac.abs.should == pos_frac
     pos_inf.abs.should == pos_inf
     neg_inf.abs.should == pos_inf
-    nan.abs.should == nan
+    nan.abs.to_s.should == nan.to_s # have to do it this way, since == doesn't work on NaN
   end
 
 end

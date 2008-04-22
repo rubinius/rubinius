@@ -1,2 +1,0 @@
-fails:BigDecimal#== test for equality
-fails:BigDecimal#== NaN is never equal to any number

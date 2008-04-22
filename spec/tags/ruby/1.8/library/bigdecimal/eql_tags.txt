@@ -1,3 +1,0 @@
-fails:BigDecimal#eql? test for equality
-fails:BigDecimal#eql? NaN is never equal to any number
-fails:BigDecimal#eql? returns true for infinity values with the same sign

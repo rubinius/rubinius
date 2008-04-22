@@ -38,7 +38,7 @@ class BigDecimal < Numeric
       @sign = '-' if v =~ /-/
     else
       v = _val.gsub('_', '')
-      m = /^\s*(([-+]?)0*(\d*)(?:\.(\d*?)0*)?(?:[EeDd](\d+))?).*$/.match(v)
+      m = /^\s*(([-+]?)(\d*)(?:\.(\d*))?(?:[EeDd](\d+))?).*$/.match(v)
       if !m.nil?
         @sign = m[2] unless m[2].to_s.empty?
         @int = m[3] unless m[3].to_s.empty?
@@ -108,6 +108,13 @@ class BigDecimal < Numeric
     end
     return str
   end
+  
+  def inspect
+    str = '#<,'
+    str << self.to_s
+    str << ',>'
+    return str
+  end
 
   def coerce(other)
     Ruby.primitive :numeric_coerce
@@ -163,9 +170,22 @@ class BigDecimal < Numeric
     return self.<=>(other) == -1
   end
 
-  def ==(other)
-    self.to_s == other.to_s and (other.respond_to?(:precs) ? self.precs == other.precs : true)
+  def eql?(other)
+    if self.nan?
+      return false
+    elsif other.respond_to?(:nan?) and other.nan?
+      return false
+    elsif self.to_s == other.to_s
+      if other.respond_to?(:precs)
+        return self.precs == other.precs
+      else
+        return true
+      end
+    else
+      return false
+    end
   end
+  alias == eql?
 
   def >(other)
     return self.<=>(other) == 1
