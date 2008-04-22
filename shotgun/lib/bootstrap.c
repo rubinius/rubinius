@@ -45,6 +45,7 @@ void cpu_bootstrap(STATE) {
   BC(hash) =  _hash_basic_class(state, obj);
   BC(lookuptable) = _lookuptable_basic_class(state, obj);
   BC(methtbl) = _methtbl_basic_class(state, BC(lookuptable));
+  BC(autoload) = _autoload_basic_class(state, obj);
   
   object_create_metaclass(state, obj, cls);
   object_create_metaclass(state, BC(module), object_metaclass(state, obj));
@@ -54,6 +55,7 @@ void cpu_bootstrap(STATE) {
   object_create_metaclass(state, BC(hash), (OBJECT)0);
   object_create_metaclass(state, BC(lookuptable), (OBJECT)0);
   object_create_metaclass(state, BC(methtbl), (OBJECT)0);
+  object_create_metaclass(state, BC(autoload), (OBJECT)0);
   
   module_setup_fields(state, object_metaclass(state, obj));
   module_setup_fields(state, object_metaclass(state, BC(module)));
@@ -62,6 +64,8 @@ void cpu_bootstrap(STATE) {
   module_setup_fields(state, object_metaclass(state, BC(hash)));
   module_setup_fields(state, object_metaclass(state, BC(lookuptable)));
   module_setup_fields(state, object_metaclass(state, BC(methtbl)));
+  module_setup_fields(state, object_metaclass(state, BC(autoload)));
+
   BC(symbol) = _symbol_class(state, obj);
   BC(array) = _array_class(state, obj);
   BC(bytearray) = _bytearray_class(state, obj);
@@ -79,6 +83,7 @@ void cpu_bootstrap(STATE) {
   class_set_object_type(BC(tuple), I2N(TupleType));
   class_set_object_type(BC(hash), I2N(HashType));
   class_set_object_type(BC(lookuptable), I2N(LookupTableType));
+  class_set_object_type(BC(autoload), I2N(AutoloadType));
   
   /* The symbol table */
   state->global->symbols = symtbl_new(state);
@@ -101,6 +106,7 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(blokenv), "BlockEnvironment");
   module_setup(state, BC(icache), "InlineCache");
   module_setup(state, BC(staticscope), "StaticScope");
+  module_setup(state, BC(autoload), "Autoload");
  
   class_set_object_type(BC(array), I2N(ArrayType));
   class_set_object_type(BC(cmethod), I2N(CMethodType));

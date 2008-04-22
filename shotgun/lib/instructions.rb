@@ -1437,7 +1437,11 @@ CODE
     <<-CODE
     next_literal;
     t1 = cpu_const_get_in_context(state, c, _lit);
-    if(t1 != Qundef) stack_push(t1);
+    if(AUTOLOAD_P(t1)) {
+      cpu_send(state, c, t1, state->global->sym_call, 0, Qnil);
+    } else if(t1 != Qundef) {
+      stack_push(t1);
+    }
     CODE
   end
 
@@ -1467,7 +1471,11 @@ CODE
     t1 = stack_pop();
     next_literal;
     t2 = cpu_const_get_from(state, c, _lit, t1);
-    if(t2 != Qundef) stack_push(t2);
+    if(AUTOLOAD_P(t2)) {
+      cpu_send(state, c, t2, state->global->sym_call, 0, Qnil);
+    } else if(t2 != Qundef) {
+      stack_push(t2);
+    }
     CODE
   end
 

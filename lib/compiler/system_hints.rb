@@ -22,7 +22,8 @@ class Compiler
     :InlineCache => {:@__ivars__ => 0, :@method => 1, :@class => 2, :@module => 3, :@serial => 4, :@hotness => 5, :@trip => 6 },
     :StaticScope => {:@__ivars__ => 0, :@module => 1, :@parent => 2 },
     :Selector => {:@name => 0, :@send_sites => 1 },
-    :LookupTable => {:@values=>1, :@bins=>2, :@entries=>3}
+    :LookupTable => {:@values=>1, :@bins=>2, :@entries=>3},
+    :Autoload => {},
     }
 
     TYPES = {
@@ -36,7 +37,7 @@ class Compiler
       :blokenv=>:BlockEnvironment, :symbol => :Symbol,
       :methctx => :MethodContext, :exception => :Exception,
       :icache => :InlineCache, :staticscope => :StaticScope,
-      :selector => :Selector, :lookuptable => :LookupTable
+      :selector => :Selector, :lookuptable => :LookupTable, :autoload => :Autoload
     }
   end
 end

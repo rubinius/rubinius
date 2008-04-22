@@ -86,6 +86,7 @@ typedef enum
   SendSiteType    ,
   SelectorType    ,
   LookupTableType ,
+  AutoloadType    ,
 
   LastObjectType   // must remain at end
 } object_type;
@@ -148,6 +149,9 @@ typedef enum
     break; \
   case LookupTableType: \
     type = "LookupTable"; \
+    break; \
+  case AutoloadType: \
+    type = "Autoload"; \
     break; \
   default: \
     type = "unknown"; \
@@ -435,6 +439,7 @@ static void _bad_reference(OBJECT in) {
 #define LOOKUPTABLE_P(obj) RISA(obj, lookuptable)
 #define METHODTABLE_P(obj) RTYPE(obj, MTType)
 #define ARRAY_P(obj) RTYPE(obj, ArrayType)
+#define AUTOLOAD_P(obj) RTYPE(obj, AutoloadType)
 
 #define STRING_OR_NIL_P(obj) (STRING_P(obj) || NIL_P(obj))
 

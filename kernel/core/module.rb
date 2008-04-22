@@ -1,4 +1,4 @@
-# depends on: class.rb proc.rb
+# depends on: class.rb proc.rb autoload.rb
 
 ##
 # Some terminology notes:
@@ -650,16 +650,6 @@ class Module
   end
 
   def const_missing(name)
-    # Check for autoloads here because this is called no matter how
-    # the constant was attempted to be accessed (ie, const_get or VM)
-    #
-    if @autoloads and path = @autoloads[name]
-      # Do the delete first in case the require bombs out.
-      @autoloads.delete(name)
-      require path
-      return recursive_const_get(name)
-    end
-
     raise NameError, "Missing or uninitialized constant: #{name}"
   end
 
@@ -778,12 +768,17 @@ class Module
   def autoload(name, path)
     name = normalize_const_name(name)
     raise ArgumentError, "empty file name" if path.empty?
-    @autoloads ||= Hash.new
-    @autoloads[name] = path
+    trigger = Autoload.new(name, self, path)
+    constants_table[name] = trigger
+    return nil
   end
 
   def autoload?(name)
-    @autoloads[name] if @autoloads
+    name = name.to_sym
+    return unless constants_table.key?(name)
+    trigger = constants_table[name]
+    return unless trigger.kind_of?(Autoload)
+    trigger.path
   end
 
   def remove_const(name)
@@ -811,12 +806,16 @@ class Module
     current, constant = self, nil
 
     while current
-      return constant if constant = current.constants_table[name]
+      constant = current.constants_table[name]
+      constant = constant.call if constant.kind_of?(Autoload)
+      return constant if constant
       current = current.direct_superclass
     end
 
     if self.kind_of?(Module) and not self.kind_of?(Class)
-      return constant if constant = Object.constants_table[name]
+      constant = Object.constants_table[name]
+      constant = constant.call if constant.kind_of?(Autoload)
+      return constant if constant
     end
 
     const_missing(name)

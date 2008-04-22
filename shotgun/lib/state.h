@@ -32,7 +32,7 @@ struct rubinius_globals {
   OBJECT blokctx, cmethod, tuple, module, object, array;
   OBJECT class, hash, methtbl, bytearray, methctx, blank;
   OBJECT blokenv, bignum, regexp, regexpdata, matchdata;
-  OBJECT string, symbol, io, metaclass, symtbl;
+  OBJECT string, symbol, io, metaclass, symtbl, autoload;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
   OBJECT floatpoint, fastctx, data, nmethod, nmc, task, list, list_node;
   OBJECT channel, thread, staticscope, send_site, selector, lookuptable;
