@@ -6,6 +6,18 @@ end
 
 class BigDecimal < Numeric
   # See stdlib/ext/bigdecimal for MatzRuby implementation.
+  
+  #############
+  # Constants #
+  #############
+  
+  SIGN_POSITIVE_ZERO = 1
+  SIGN_NEGATIVE_ZERO = -1
+  SIGN_POSITIVE_FINITE = 2
+  SIGN_NEGATIVE_FINITE = -2
+  SIGN_POSITIVE_INFINITE = 3
+  SIGN_NEGATIVE_INFINITE = -3
+  SIGN_NaN = 0 # is this correct?
 
   # call-seq:
   #   BigDecimal("3.14159")   => big_decimal
@@ -26,7 +38,7 @@ class BigDecimal < Numeric
       @sign = '-' if v =~ /-/
     else
       v = _val.gsub('_', '')
-      m = /^\s*(([-+]?)(\d*)(?:\.(\d*))?(?:[EeDd](\d+))?).*$/.match(v)
+      m = /^\s*(([-+]?)0*(\d*)(?:\.(\d*?)0*)?(?:[EeDd](\d+))?).*$/.match(v)
       if !m.nil?
         @sign = m[2] unless m[2].to_s.empty?
         @int = m[3] unless m[3].to_s.empty?
@@ -51,6 +63,14 @@ class BigDecimal < Numeric
   #   BigDecimal.new("123").nan?  => false
   def nan?
     @special == 'n'
+  end
+  
+  # True if positive or negative zero; false otherwise.
+  # call-seq:
+  #   BigDecimal.new("0").zero?   =>true
+  #   BigDecimal.new("-0").zero?  =>true
+  def zero
+    @int == '0' and @frac == '0' and !self.nan? and self.finite?
   end
 
   def precs
@@ -101,6 +121,9 @@ class BigDecimal < Numeric
   # These are stubbed out until we implement them so that their respective specfiles don't crash.
 
   def +(other)
+    if self.nan? or other.nan?
+      return BigDecimal('NaN')
+    end
   end
 
   def -(other)
@@ -141,7 +164,7 @@ class BigDecimal < Numeric
   end
 
   def ==(other)
-    self.to_s == other.to_s and self.precs == other.precs
+    self.to_s == other.to_s and (other.respond_to?(:precs) ? self.precs == other.precs : true)
   end
 
   def >(other)
@@ -163,4 +186,15 @@ class BigDecimal < Numeric
     end
   end
   
+  def sign
+    if self.nan?
+      SIGN_NaN
+    elsif self.zero?
+      @sign == '+' ? SIGN_POSITIVE_ZERO : SIGN_NEGATIVE_ZERO
+    elsif self.finite?
+      @sign == '+' ? SIGN_POSITIVE_FINITE : SIGN_NEGATIVE_FINITE
+    else # infinite
+      @sign == '+' ? SIGN_POSITIVE_INFINITE : SIGN_NEGATIVE_INFINITE
+    end
+  end
 end
