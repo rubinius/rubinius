@@ -11,7 +11,7 @@ class Debugger
       /^s(?:tep)?\s*i(?:nst(?:ruction)?)?(?:\s+(?:(to)\s+)?(\d+))?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       step_type = md[1]
       n = md[2]
       steps = nil
@@ -27,7 +27,7 @@ class Debugger
       dbg.step(selector)
 
       # Instruct debugger to end session and resume debug thread
-      dbg.done!
+      interface.done!
 
       return output
     end
@@ -43,7 +43,7 @@ class Debugger
       /^n(?:ext)?\s*i(?:nst(?:ruction)?)?(?:\s+(?:(to)\s+)?(\d+))?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       step_type = md[1]
       n = md[2]
       steps = nil
@@ -59,7 +59,7 @@ class Debugger
       dbg.step(selector)
 
       # Instruct debugger to end session and resume debug thread
-      dbg.done!
+      interface.done!
 
       return output
     end
@@ -78,7 +78,7 @@ class Debugger
       @@re
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       mod, mthd_type, mthd = md[1], md[2], md[3]
       first, last = md[4], md[5]
 
@@ -87,12 +87,12 @@ class Debugger
         first = 0 unless first
       else
         # Decode current method
-        cm = dbg.eval_context.method
-        first = dbg.eval_context.ip - 10 unless first
+        cm = interface.eval_context.method
+        first = interface.eval_context.ip - 10 unless first
       end
       file = cm.file.to_s
       lines = dbg.source_for(file)
-      asm = cm.decode
+      asm = dbg.asm_for(cm)
 
       first = first.to_i
       last = last.to_i if last
@@ -114,12 +114,12 @@ class Debugger
             output << [nil, "# line #{line}:", src]
             output.set_color :clear
           end
-          if !mthd and inst.ip == dbg.eval_context.ip
+          if !mthd and inst.ip == interface.eval_context.ip
             output.set_line_marker
             output.set_color :cyan
           end
           output << [inst.ip, inst.opcode, inst.args.map{|a| a.inspect}.join(', ')]
-          output.set_color(:clear) if inst.ip == dbg.eval_context.ip
+          output.set_color(:clear) if inst.ip == interface.eval_context.ip
         end
         break if inst.ip >= last
       end
@@ -140,7 +140,7 @@ class Debugger
       /^v(?:m)?\s*s(?:tack)?(?:\s+(\d+))?(?:\s+(\d+))?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       first, last = md[1], md[2]
       first = first.to_i if first
       last = last.to_i if last
@@ -148,9 +148,9 @@ class Debugger
       last = first+5 unless last
       first, last = last, first if first > last
 
-      task = dbg.debug_thread.task
-      fp = dbg.debug_context.fp
-      top = dbg.debug_context.sp
+      task = interface.debug_thread.task
+      fp = interface.debug_context.fp
+      top = interface.debug_context.sp
 
       output = Output.new
       output << "VM stack [#{first}-#{last}]:"
@@ -188,7 +188,7 @@ class Debugger
       @@re
     end
     
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       selector = md[1]
       if selector
         source = Selector::ALL[selector.intern]
@@ -199,7 +199,7 @@ class Debugger
           output = "No selector found with name '#{selector}'"
         end
       else
-        source = dbg.eval_context.method
+        source = interface.eval_context.method
         if literals = source.literals
           send_sites = literals.select {|lit| lit.kind_of? SendSite}
         end

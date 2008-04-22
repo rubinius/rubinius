@@ -1,6 +1,3 @@
-require 'debugger/command'
-require 'debugger/interface'
-require 'debugger/output'
 require 'thread'
 
 # A debugger, providing a CLI for debugging Ruby code running under Rubinius.
@@ -44,19 +41,17 @@ class Debugger
 
     @quit = false
     @breakpoint_listener = Thread.new do
-      thrd = nil
       until @quit do
-        @done = false
         begin
-          thrd = @breakpoint_tracker.wait_for_breakpoint
-          @breakpoint_tracker.wake_target(thrd) unless @quit  # defer wake until we cleanup
+          @breakpoint_tracker.wait_for_breakpoint
+          @breakpoint_tracker.wake_target(@debug_thread) unless @quit  # defer wake until we cleanup
         rescue Exception => e
           # An exception has occurred in the breakpoint or debugger code
           STDERR.puts "An exception occured while processing a breakpoint:"
           STDERR.puts e.to_s
           STDERR.puts e.awesome_backtrace
           # Attempt to resume blocked thread
-          thrd.control_channel.send nil
+          @debug_thread.control_channel.send nil
         end
       end
       # Release singleton, since our loop thread is exiting
@@ -68,9 +63,9 @@ class Debugger
       # De-register debugger on the global debug channel
       Rubinius::VM.debug_channel = nil
 
-      if thrd
-        # thrd will be nil if debugger was quit from other than a debug thread
-        @breakpoint_tracker.wake_target(thrd)
+      if @debug_thread
+        # @debug_thread will be nil if debugger was quit from other than this thread
+        @breakpoint_tracker.wake_target(@debug_thread)
       end
       @breakpoint_tracker.release_waiting_threads
     end
@@ -127,19 +122,8 @@ class Debugger
     @breakpoint_listener.status == 'sleep'
   end
 
-  # Sets the done flag to true, so that the debugger resumes the debug thread.
-  def done!
-    @done = true
-  end
-
-  # Returns true if execution is about to be resumed
-  def done?
-    @done
-  end
-
   # Sets the quit flag to true, so that the debugger shuts down.
   def quit!
-    @done = true
     @quit = true
 
     # If quit! is called from other than a command, we need to interrupt the
@@ -155,98 +139,52 @@ class Debugger
     @quit
   end
 
-  # (Re-)loads the available commands from all registered sub-classes of
-  # Debugger::Command.
-  def load_commands
-    @commands = Debugger::Command.available_commands.map do |cmd_class|
-      cmd_class.new
-    end
-    @commands.sort!
-  end
-
-  # Returns the available debugger commands, which are instances of all loaded
-  # Debugger::Command subclasses.
-  def commands
-    load_commands unless @commands
-    @commands
-  end
-
-  # Sets the interface to be used for the debugger
-  def interface=(interface)
-    @interface = interface
-  end
+  # The interface used to interact with the debugger. A debugger interface must
+  # implement a #process_commands method taking the following arguments:
+  # - A reference to the Debugger instance
+  # - The thread that has hit the breakpoint
+  # - The context in which the breakpoint was hit
+  # - An array of Breakpoint instances representing each of the breakpoints that
+  #   were triggered at the current breakpoint location
+  attr_accessor :interface
 
   # Activates the debugger after a breakpoint has been hit, and responds to
   # debgging commands until a continue command is recevied.
   def activate_debugger(thread, ctxt, bp_list)
     @debug_thread = thread
-    @eval_context = @debug_context = ctxt
-
-    # Load debugger commands if we haven't already
-    load_commands unless @commands
-    # Default to command-line interface if none configured
-    self.interface = CmdLineInterface.new unless @interface
-
-    @interface.process_commands(self, thread, ctxt, bp_list)
-
-    # Clear any references to the debuggee thread and context
-    @debug_thread = nil
-    @debug_context = nil
-    @eval_context = nil
-  end
-
-  # The current thread and context being debugged
-  attr_reader :debug_thread, :debug_context
-  # The current eval context, i.e. the context in which most commands will be
-  # executed. By default, this is the same as the debug context, but it can be
-  # changed via the Up/Down commands.
-  attr_accessor :eval_context
-
-  # Flags to the debugger that a command requires more input
-  def more_input!
-    @more_input = true
-  end
-
-  def more_input?
-    @more_input
-  end
-
-  # Processes a debugging command by finding a Command subclass that can handle
-  # the input, and delegating to it.
-  def process_command(inp)
-    if @more_input and @last_command
-      @more_input = false
-      output = @last_command.execute(self, inp)
-    else
-      @more_input = false
-      @commands.each do |cmd|
-        if inp =~ cmd.command_regexp
-          begin
-            @last_command = cmd.multiline? ? cmd : nil
-            output = cmd.execute(self, $~)
-          rescue StandardError => e
-            handle_exception e
-          end
-          break
-        end
-      end
-    end
-    output
-  end
-
-  # Handles any exceptions raised by a Command subclass during a debug session;
-  # delegates to the debugger interface implementation.
-  def handle_exception(e)
-    @interface.handle_exception e
+    @interface.at_breakpoint(self, thread, ctxt, bp_list)
   end
 
   # Retrieves the source code for the specified file, if it exists
   def source_for(file)
     return @last_lines if file == @last_file
+
     @last_file, @last_lines = file, nil
     if File.exists?(file)
       @last_lines = File.readlines(file)
     end
+    @last_lines
+  end
+
+  # Returns the decoded instruction sequence for the specified CompiledMethod.
+  # This should be used in preference to calling #decode directly on the method,
+  # since it returns the original instruction sequence, not the current iseq
+  # which may contain yield_debugger instructions.
+  def asm_for(cm)
+    return @last_asm if cm == @last_cm
+
+    # Remove yield_debugger instructions (if any)
+    if bp_list = @breakpoint_tracker.get_breakpoints_on(cm)
+      @last_cm, @last_asm = cm, cm.decode
+      bc = cm.bytecodes.dup
+      bp_list.each do |bp|
+        Breakpoint.encoder.replace_instruction(bc, bp.ip, bp.original_instruction)
+      end
+      @last_cm, @last_asm = cm, cm.decode(bc)
+    else
+      @last_cm, @last_asm = cm, cm.decode
+    end
+    @last_asm
   end
 end
 

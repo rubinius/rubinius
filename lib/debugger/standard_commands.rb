@@ -10,11 +10,11 @@ class Debugger
       /^(?:(?:h(?:elp)?)|\?)$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       output = Output.new
       output << "Available commands:"
-      output.set_columns(["%-25s", "%-50s"], '  ', false)
-      cmds = dbg.commands
+      output.set_columns(["%-32s", "%-45s"], '  ', false)
+      cmds = interface.commands
       cmds.each do |cmd|
         c,h = cmd.help if cmd.respond_to? :help
         output << [c,h]
@@ -33,7 +33,7 @@ class Debugger
       /^b(?:reak)?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       if bp_list = dbg.breakpoints and bp_list.size > 0
         output = Output.new
         output << "Breakpoints:"
@@ -65,7 +65,7 @@ class Debugger
       @@re
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       mod, mthd_type, mthd, line = md[1], md[2], md[3], md[4]
       cm = get_method(mod, mthd_type, mthd).compiled_method
       ip = 0
@@ -86,7 +86,7 @@ class Debugger
       /^b(?:reak)?\s+d(?:el(?:ete)?)?\s+(\d+)$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       n = md[1].to_i
       bp = dbg.breakpoints[n-1]
       if bp
@@ -108,7 +108,7 @@ class Debugger
       /^b(?:reak)?\s+(en|dis)(?:able)?\s+(\d+)$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       enable = md[1] == "en"
       n = md[2].to_i
       bp = dbg.breakpoints[n-1]
@@ -136,8 +136,8 @@ class Debugger
       /^(?:c(ont(inue)?)?|r(un)?)$/
     end
 
-    def execute(dbg, md)
-      dbg.done!
+    def execute(dbg, interface, md)
+      interface.done!
       return "[Resuming program]"
     end
   end
@@ -153,7 +153,7 @@ class Debugger
       /^s(?:tep)?(?:\s+(?:(to)\s+)?(\d+))?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       step_type = md[1]
       n = md[2]
       steps = nil
@@ -169,7 +169,7 @@ class Debugger
       dbg.step(selector)
 
       # Instruct debugger to end session and resume debug thread
-      dbg.done!
+      interface.done!
 
       return output
     end
@@ -185,7 +185,7 @@ class Debugger
       /^n(?:ext)?(?:\s+(?:(to)\s+)?(\d+))?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       step_type = md[1]
       n = md[2]
       steps = nil
@@ -201,7 +201,7 @@ class Debugger
       dbg.step(selector)
 
       # Instruct debugger to end session and resume debug thread
-      dbg.done!
+      interface.done!
 
       return output
     end
@@ -217,7 +217,7 @@ class Debugger
       /^o(?:ut)?(?:\s+(\d+))?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       step_type = md[1]
       n = md[1]
       steps = nil
@@ -228,7 +228,7 @@ class Debugger
       dbg.step(selector)
 
       # Instruct debugger to end session and resume debug thread
-      dbg.done!
+      interface.done!
 
       return output
     end
@@ -244,7 +244,8 @@ class Debugger
       /^q(?:uit)?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
+      interface.done!
       dbg.quit!
     end
   end
@@ -262,7 +263,7 @@ class Debugger
     end
 
     # Lists source code around the specified line
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       mod, mthd_type, mthd = md[1], md[2], md[3]
       first, last = md[4], md[5]
 
@@ -272,8 +273,8 @@ class Debugger
         last = cm.lines.last.last + 1 unless last
       else
         # Decode current method
-        cm = dbg.eval_context.method
-        ip = dbg.eval_context.ip
+        cm = interface.eval_context.method
+        ip = interface.eval_context.ip
       end
 
       file = cm.file.to_s
@@ -325,14 +326,14 @@ class Debugger
 
     # Lists source code around the specified line
     # TODO: Change to stored Sexp on CompiledMethod once this is available
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       mod, mthd_type, mthd = md[1], md[2], md[3]
 
       if mthd
         cm = get_method(mod, mthd_type, mthd).compiled_method
       else
         # Decode current method
-        cm = dbg.eval_context.method
+        cm = interface.eval_context.method
       end
       first = cm.lines.first.last - 1
       last = cm.lines.last.last + 1
@@ -361,12 +362,12 @@ class Debugger
       /^v(?:ars)?$/
     end
 
-    def execute(dbg, inp)
-      cm = dbg.eval_context.method
+    def execute(dbg, interface, inp)
+      cm = interface.eval_context.method
 
       # Output locals stored in the method context locals tuple
       locals = cm.local_names
-      local_vals = dbg.eval_context.locals
+      local_vals = interface.eval_context.locals
       if local_vals
         output = Output.new
         output << "Local variables for #{cm.name}:"
@@ -392,11 +393,11 @@ class Debugger
       /^iv(?:ars)?$/
     end
 
-    def execute(dbg, inp)
-      cm = dbg.eval_context.method
+    def execute(dbg, interface, inp)
+      cm = interface.eval_context.method
 
       # Output ivars on the current self
-      bind = Binding.setup(dbg.eval_context)
+      bind = Binding.setup(interface.eval_context)
       instance = eval("self", bind)
       ivars = instance.instance_variables
       if ivars.size > 0
@@ -423,14 +424,14 @@ class Debugger
       /^w(?:here)?|b(?:ack)?t(?:race)?$/
     end
 
-    def execute(dbg, inp)
-      bt = Backtrace.backtrace(dbg.debug_context)
+    def execute(dbg, interface, inp)
+      bt = Backtrace.backtrace(interface.debug_context)
       output = Output.new
       output << "Backtrace:"
       output.set_columns(['%s', '%|s', '%-s'])
       bt.frames.each_with_index do |frame,i|
         recv, loc = frame.first, frame.last
-        if recv == dbg.eval_context.describe and loc == dbg.eval_context.location
+        if recv == interface.eval_context.describe and loc == interface.eval_context.location
           output.set_line_marker
         end
         if i == 0
@@ -474,11 +475,11 @@ class Debugger
       return 1
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       @expr += md.kind_of?(MatchData) ? md.string : md
       @expr += "\n"
       begin
-        bind = Binding.setup(dbg.eval_context)
+        bind = Binding.setup(interface.eval_context)
         result = eval(@expr, bind)
         output = Output.new
         output.set_line_marker
@@ -490,10 +491,10 @@ class Debugger
       rescue Exception => e
         # Processing may continue with incomplete expressions
         unless SyntaxError === e and e.message =~ /unexpected \$end|unterminated string/
-          dbg.handle_exception e
+          interface.handle_exception e
           @expr = ''
         else
-          dbg.more_input!
+          interface.more_input!
         end
       end
  
@@ -511,18 +512,18 @@ class Debugger
       /^up(?:\s+(\d+))?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       n = (md[1] or "1").to_i
-      ctxt = dbg.eval_context
+      ctxt = interface.eval_context
       n.downto(1) { ctxt = ctxt.sender if ctxt.sender }
-      dbg.eval_context = ctxt
+      interface.eval_context = ctxt
       output = Output.new
       output << "Evaluation context now at:"
       output.set_columns(['%s', '%|s', '%-s'])
       output.set_line_marker
       loc = ctxt.location
       bt = Backtrace.new
-      if ctxt == dbg.debug_context
+      if ctxt == interface.debug_context
         output.set_color :green
       elsif loc =~ /kernel/
         output.set_color bt.kernel_color
@@ -544,23 +545,23 @@ class Debugger
       /^down(?:\s+(\d+))?$/
     end
 
-    def execute(dbg, md)
+    def execute(dbg, interface, md)
       n = (md[1] or "1").to_i
-      ctxt = dbg.debug_context
+      ctxt = interface.debug_context
       frames = [ctxt]
-      while ctxt != dbg.eval_context
+      while ctxt != interface.eval_context
         ctxt = ctxt.sender
         frames.unshift ctxt
       end
       n.downto(0) { ctxt = frames.shift if frames.size > 0 }
-      dbg.eval_context = ctxt
+      interface.eval_context = ctxt
       output = Output.new
       output << "Evaluation context now at:"
       output.set_columns(['%s', '%|s', '%-s'])
       output.set_line_marker
       loc = ctxt.location
       bt = Backtrace.new
-      if ctxt == dbg.debug_context
+      if ctxt == interface.debug_context
         output.set_color :green
       elsif loc =~ /kernel/
         output.set_color bt.kernel_color

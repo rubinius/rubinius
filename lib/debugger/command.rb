@@ -23,7 +23,7 @@ class Debugger
     MODULE_RE = '((?:(?:[A-Z]\w*)(?:::)?)*(?:[A-Z]\w*))'
 
     # Regular expression for matching a Ruby method name
-    METHOD_RE = '((?:[a-zA-Z_][\w!?=]*)|[+\-*\/%\^]|\[\]|==|===|&&|\|\|)'
+    METHOD_RE = '((?:[a-zA-Z_]*[!?]?=?)|[+\-*\/%\^<>]|\*\*|\[\]=?|==|===|>=|<=|<=>|!=|<<|>>|&&|\|\|)'
 
     # Regular expression for matching a module and method name; defines three groups:
     # 1. The module/class (optional)
