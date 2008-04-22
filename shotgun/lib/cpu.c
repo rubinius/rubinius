@@ -313,7 +313,6 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
     tbl = module_get_constants(cur);
     val = lookuptable_find(state, tbl, sym);
     if(val != Qundef) {
-      // printf("   found!\n");
       return val;
     }
     /* Object's superclass MUST be nil, but we check directly just
@@ -322,18 +321,7 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
     cur = class_get_superclass(cur);
   }
 
-  if(object_kind_of_p(state, under, state->global->module)) {
-    // printf("Looking directly in Object.\n");
-    tbl = module_get_constants(state->global->object);
-    val = lookuptable_find(state, tbl, sym);
-    if(val != Qundef) {
-      // printf("   found!\n");
-      return val;
-    }
-  }
-
-  // printf("Still unable to find, firing const_missing.\n");
-
+  // Didn't find it, so fire const_missing
   stack_push(sym);
   cpu_send(state, c, under, state->global->sym_const_missing, 1, Qnil);
   return Qundef;

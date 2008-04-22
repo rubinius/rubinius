@@ -134,7 +134,7 @@ module FFI
   
   # Load all the platform dependent types
 
-  ::RUBY_CONFIG.each do |key, value|
+  Rubinius::RUBY_CONFIG.each do |key, value|
     if key.substring(0, 20) == "rbx.platform.typedef"
       add_typedef(find_type(value.to_sym), key.substring(21, key.length).to_sym)
     end
@@ -150,12 +150,12 @@ module FFI
   end
 
   def self.config(name)
-    ::RUBY_CONFIG["rbx.platform.#{name}"]
+    Rubinius::RUBY_CONFIG["rbx.platform.#{name}"]
   end
 
   def self.config_hash(name)
     vals = { }
-    ::RUBY_CONFIG.each do |key,value|
+    Rubinius::RUBY_CONFIG.each do |key,value|
       if(key =~ /rbx\.platform\.#{name}\.(.+)/)
         vals[$1] = value
       end

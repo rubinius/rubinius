@@ -288,7 +288,7 @@ class Socket < BasicSocket
     config("rbx.platform.sockaddr_in", :sin_family, :sin_port, :sin_addr, :sin_zero)
 
     def initialize(sockaddrin)
-      @p = FFI::MemoryPointer.new sockaddrin.size
+      @p = MemoryPointer.new sockaddrin.size
       @p.write_string(sockaddrin)
       super(@p)
     end
@@ -308,7 +308,7 @@ class Socket < BasicSocket
       if(filename.length > maxfnsize )
         raise ArgumentError, "too long unix socket path (max: #{fnsize}bytes)"
       end
-      @p = FFI::MemoryPointer.new self.size
+      @p = MemoryPointer.new self.size
       @p.write_string( [Socket::AF_UNIX].pack("s") + filename )
       super(@p)
     end
@@ -357,7 +357,7 @@ class Socket < BasicSocket
     config("rbx.platform.servent", :s_name, :s_aliases, :s_port, :s_proto)
 
     def initialize(data)
-      @p = FFI::MemoryPointer.new data.size
+      @p = MemoryPointer.new data.size
       @p.write_string(data)
       super(@p)
     end

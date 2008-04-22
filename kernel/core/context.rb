@@ -425,7 +425,7 @@ class Backtrace
 
   def show(sep="\n", colorize = true)
     first = true
-    color_config = RUBY_CONFIG["rbx.colorize_backtraces"]
+    color_config = Rubinius::RUBY_CONFIG["rbx.colorize_backtraces"]
     if color_config == "no" or color_config == "NO"
       colorize = false
       color = ""

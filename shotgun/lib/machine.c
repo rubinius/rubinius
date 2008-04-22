@@ -552,6 +552,7 @@ void machine_migrate_config(machine m) {
   /* hash table iterator */
   struct hashtable_itr iter;
   rstate state = m->s;
+  OBJECT rbx_module;
 
   /* initialize new hash for environment global configuration */
   m->s->global->config = hash_new_sized(m->s, 500);
@@ -576,8 +577,9 @@ void machine_migrate_config(machine m) {
     } while (hashtable_iterator_advance(&iter));
 
   }
-  /* Make RUBY_CONFIG point to global configuration */
-  machine_set_const(m, "RUBY_CONFIG", m->s->global->config);
+  /* Make Rubinius::RUBY_CONFIG point to global configuration */
+  rbx_module = rbs_const_get(m->s, m->s->global->object, "Rubinius");
+  machine_set_const_under(m, "RUBY_CONFIG", m->s->global->config, rbx_module);
   machine_setup_from_config(m);
 }
 

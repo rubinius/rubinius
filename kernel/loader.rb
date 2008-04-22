@@ -134,7 +134,7 @@ begin
       puts RBS_USAGE
       exit 1
     when "-v"
-      puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{Rubinius::RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+      puts "rubinius #{RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
       version_requested = true
     when "-w"
