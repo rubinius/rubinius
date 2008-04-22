@@ -58,8 +58,8 @@ class TestObject : public CxxTest::TestSuite {
   void test_kind_of_p() {
     String* str = String::create(state, "blah");
 
-    TS_ASSERT(str->kind_of_p(state, state->globals.string));
-    TS_ASSERT(!str->kind_of_p(state, state->globals.tuple));
+    TS_ASSERT(str->kind_of_p(state, G(string)));
+    TS_ASSERT(!str->kind_of_p(state, G(tuple)));
   }
 
   void test_hash() {
@@ -68,10 +68,10 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_metaclass() {
-    TS_ASSERT(MetaClass::is_a(state->globals.object->metaclass(state)));
-    TS_ASSERT_EQUALS(Qnil->metaclass(state), state->globals.nil_class);
-    TS_ASSERT_EQUALS(Qtrue->metaclass(state), state->globals.true_class);
-    TS_ASSERT_EQUALS(Qfalse->metaclass(state), state->globals.false_class);
+    TS_ASSERT(MetaClass::is_a(G(object)->metaclass(state)));
+    TS_ASSERT_EQUALS(Qnil->metaclass(state), G(nil_class));
+    TS_ASSERT_EQUALS(Qtrue->metaclass(state), G(true_class));
+    TS_ASSERT_EQUALS(Qfalse->metaclass(state), G(false_class));
 
     Tuple *tup = Tuple::create(state, 1);
     TS_ASSERT(!MetaClass::is_a(tup->klass));
@@ -81,9 +81,9 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_get_ivar() {
-    OBJECT sym = state->globals.symbols->lookup(state, "@test");
+    OBJECT sym = G(symbols)->lookup(state, "@test");
     OBJECT val = Object::i2n(33);
-    OBJECT obj = state->om->new_object(state->globals.object, NormalObject::fields);
+    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
 
     TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, sym));
 

@@ -8,7 +8,7 @@
 #include <math.h>
 #include "tommath.h"
 
-#define BASIC_CLASS(blah) state->globals.blah
+#define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \
   obj = (typeof(obj))state->new_struct(kls, sizeof(kind)); \
   str = (kind *)(obj->bytes)
@@ -164,7 +164,8 @@ namespace rubinius {
   }
 
   void Bignum::Info::cleanup(OBJECT obj) {
-    mp_int *n = MP(obj);
+    Bignum* big = as<Bignum>(obj);
+    mp_int *n = MP(big);
     mp_clear(n);
   }
 
@@ -175,7 +176,7 @@ namespace rubinius {
   Bignum* Bignum::create(STATE, native_int num) {
     mp_int *a;
     Bignum* o;
-    o = (Bignum*)state->new_struct(state->globals.bignum, sizeof(mp_int));
+    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
     a = (mp_int*)(o->bytes);
 
     if(num < 0) {
@@ -189,7 +190,7 @@ namespace rubinius {
 
   Bignum* Bignum::new_unsigned(STATE, unsigned int num) {
     Bignum* o;
-    o = (Bignum*)state->new_struct(state->globals.bignum, sizeof(mp_int));
+    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
     mp_init_set_int(MP(o), num);
     return o;
   }

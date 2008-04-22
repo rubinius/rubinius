@@ -66,11 +66,11 @@ namespace rubinius {
     return copy;
   }
 
-  void ObjectMemory::collect_young(ObjectArray &roots) {
+  void ObjectMemory::collect_young(Roots &roots) {
     young.collect(roots);
   }
 
-  void ObjectMemory::collect_mature(ObjectArray &roots) {
+  void ObjectMemory::collect_mature(Roots &roots) {
     mature.collect(roots);
     young.clear_marks();
   }

@@ -18,7 +18,7 @@ namespace rubinius {
       STATE;
       ObjectCallback* channel;
       size_t id;
-      IO::Buffer* buffer;
+      TypedRoot<IO::Buffer*> buffer;
       Loop* loop;
 
       Event(STATE, ObjectCallback* chan);
@@ -92,7 +92,7 @@ namespace rubinius {
       Child(STATE, ObjectCallback* chan, pid_t pid, int opts);
       bool poll();
     };
-  
+
     class Loop {
     public:
       struct ev_loop *base;
@@ -110,7 +110,6 @@ namespace rubinius {
       void start(Event* ev);
       void poll();
       void run_and_wait();
-      void each_object(ObjectCallback* iter);
       void clear_by_fd(int fd);
       void clear_by_channel(OBJECT chan);
       void clear_by_id(size_t id);

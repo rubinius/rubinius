@@ -6,7 +6,7 @@
 
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
-#define CUSTOM_CLASS globals.object
+#define CUSTOM_CLASS GO(object)
 
 namespace rubinius {
 
@@ -14,7 +14,7 @@ namespace rubinius {
   #define state this
 
   Class *VM::new_basic_class(OBJECT sup, size_t fields) {
-    Class *cls = (Class*)om->new_object(globals.klass, Class::fields);
+    Class *cls = (Class*)om->new_object(G(klass), Class::fields);
     cls->instance_fields = Object::i2n(fields);
     cls->has_ivars = Qtrue;
     cls->instance_type = Object::i2n(ObjectType);
@@ -30,15 +30,15 @@ namespace rubinius {
   }
 
   Class* VM::new_class(char* name) {
-    return new_class(name, globals.object, globals.object->instance_fields->n2i());
+    return new_class(name, G(object), G(object)->instance_fields->n2i());
   }
 
   Class* VM::new_class(char* name, size_t fields) {
-    return new_class(name, globals.object, fields);
+    return new_class(name, G(object), fields);
   }
 
   Class* VM::new_class(char* name, OBJECT sup, size_t fields) {
-    return new_class(name, sup, fields, globals.object);
+    return new_class(name, sup, fields, G(object));
   }
 
   Class* VM::new_class(char* name, OBJECT sup, size_t fields, Module* under) {
@@ -48,7 +48,7 @@ namespace rubinius {
   }
 
   Module* VM::new_module(char* name, Module* under) {
-    Module *mod = (Module*)om->new_object(globals.module, Module::fields);
+    Module *mod = (Module*)om->new_object(G(module), Module::fields);
     mod->setup(this, name, under);
     return mod;
   }
@@ -57,6 +57,10 @@ namespace rubinius {
   void VM::bootstrap_ontology() {
     /* Class is created first by hand, and twittle to setup the internal
        recursion. */
+#undef G
+#undef GO
+#define G(whatever) globals.whatever.get()
+#define GO(whatever) globals.whatever
 
     Class *cls = (Class*)om->new_object(Qnil, Class::fields);
     cls->klass = cls;
@@ -66,146 +70,146 @@ namespace rubinius {
     cls->instance_type = Object::i2n(ClassType);
     cls->obj_type = ClassType;
 
-    globals.klass = cls;
+    GO(klass).set(cls);
 
     Class *object = new_basic_class(Qnil, NormalObject::fields);
-    globals.object = object;
+    GO(object).set(object);
 
-    globals.module = new_basic_class(object, Module::fields);
-    globals.module->set_object_type(ModuleType);
+    GO(module).set(new_basic_class(object, Module::fields));
+    G(module)->set_object_type(ModuleType);
 
-    cls->superclass = globals.module;
+    cls->superclass = G(module);
 
-    globals.metaclass = new_basic_class(cls, MetaClass::fields);
-    globals.metaclass->instance_type = Object::i2n(MetaclassType);
+    GO(metaclass).set(new_basic_class(cls, MetaClass::fields));
+    G(metaclass)->instance_type = Object::i2n(MetaclassType);
 
-    globals.tuple = new_basic_class(object, Tuple::fields);
-    globals.tuple->instance_type = Object::i2n(TupleType);
-    globals.tuple->has_ivars = Qfalse;
+    GO(tuple).set(new_basic_class(object, Tuple::fields));
+    G(tuple)->instance_type = Object::i2n(TupleType);
+    G(tuple)->has_ivars = Qfalse;
 
-    globals.lookuptable = new_basic_class(object, LookupTable::fields);
-    globals.lookuptable->instance_type = Object::i2n(LookupTableType);
+    GO(lookuptable).set(new_basic_class(object, LookupTable::fields));
+    G(lookuptable)->instance_type = Object::i2n(LookupTableType);
 
-    globals.methtbl = new_basic_class(globals.lookuptable, MethodTable::fields);
-    globals.methtbl->instance_type = Object::i2n(MTType);
+    GO(methtbl).set(new_basic_class(G(lookuptable), MethodTable::fields));
+    G(methtbl)->instance_type = Object::i2n(MTType);
 
     OBJECT mc = MetaClass::attach(this, object, cls);
-    mc = MetaClass::attach(this, globals.module, mc);
+    mc = MetaClass::attach(this, G(module), mc);
     MetaClass::attach(this, cls, mc);
 
-    MetaClass::attach(this, globals.metaclass);
-    MetaClass::attach(this, globals.tuple);
-    MetaClass::attach(this, globals.lookuptable);
-    MetaClass::attach(this, globals.methtbl);
+    MetaClass::attach(this, G(metaclass));
+    MetaClass::attach(this, G(tuple));
+    MetaClass::attach(this, G(lookuptable));
+    MetaClass::attach(this, G(methtbl));
 
-    globals.symbol    = new_class(object, 0);
-    globals.array     = new_class(object, Array::fields);
-    globals.array->instance_type = Object::i2n(ArrayType);
-    globals.array->has_ivars = Qfalse;
+    GO(symbol).set(new_class(object, 0));
+    GO(array).set(new_class(object, Array::fields));
+    G(array)->instance_type = Object::i2n(ArrayType);
+    G(array)->has_ivars = Qfalse;
 
-    globals.bytearray = new_class(object, 0);
-    globals.bytearray->instance_type = Object::i2n(ByteArrayType);
+    GO(bytearray).set(new_class(object, 0));
+    G(bytearray)->instance_type = Object::i2n(ByteArrayType);
 
-    globals.string    = new_class(object, String::fields);
-    globals.string->instance_type = Object::i2n(StringType);
-    globals.string->has_ivars = Qfalse;
+    GO(string).set(new_class(object, String::fields));
+    G(string)->instance_type = Object::i2n(StringType);
+    G(string)->has_ivars = Qfalse;
 
-    globals.symtbl    = new_class(object, SymbolTable::fields);
+    GO(symtbl).set(new_class(object, SymbolTable::fields));
 
-    globals.executable = new_class(object, Executable::fields);
+    GO(executable).set(new_class(object, Executable::fields));
 
-    globals.cmethod   = new_class(globals.executable, CompiledMethod::fields);
-    globals.cmethod->instance_type = Object::i2n(CMethodType);
+    GO(cmethod).set(new_class(G(executable), CompiledMethod::fields));
+    G(cmethod)->instance_type = Object::i2n(CMethodType);
 
-    globals.hash      = new_class(object, Hash::fields);
-    globals.hash->instance_type = Object::i2n(HashType);
+    GO(hash).set(new_class(object, Hash::fields));
+    G(hash)->instance_type = Object::i2n(HashType);
 
-    globals.io         = new_class(object, IO::fields);
+    GO(io).set(new_class(object, IO::fields));
 
-    globals.blokenv    = new_class(object, BlockEnvironment::fields);
-    globals.blokenv->instance_type = Object::i2n(BlockEnvType);
+    GO(blokenv).set(new_class(object, BlockEnvironment::fields));
+    G(blokenv)->instance_type = Object::i2n(BlockEnvType);
 
-    globals.staticscope = new_class(object, StaticScope::fields);
+    GO(staticscope).set(new_class(object, StaticScope::fields));
 
     bootstrap_symbol();
 
-    globals.object->setup(this, "Object");
-    globals.klass->setup(this, "Class");
-    globals.module->setup(this, "Module");
-    globals.metaclass->setup(this, "MetaClass");
-    globals.symbol->setup(this, "Symbol");
-    globals.tuple->setup(this, "Tuple");
-    globals.array->setup(this, "Array");
-    globals.bytearray->setup(this, "ByteArray");
-    globals.hash->setup(this, "Hash");
-    globals.lookuptable->setup(this, "LookupTable");
-    globals.string->setup(this, "String");
-    globals.symtbl->setup(this, "SymbolTable");
-    globals.methtbl->setup(this, "MethodTable");
-    globals.executable->setup(this, "Executable");
-    globals.cmethod->setup(this, "CompiledMethod");
-    globals.io->setup(this, "IO");
-    globals.blokenv->setup(this, "BlockEnvironment");
-    globals.staticscope->setup(this, "StaticScope");
-    globals.symbol->setup(this, "Symbol");
+    G(object)->setup(this, "Object");
+    G(klass)->setup(this, "Class");
+    G(module)->setup(this, "Module");
+    G(metaclass)->setup(this, "MetaClass");
+    G(symbol)->setup(this, "Symbol");
+    G(tuple)->setup(this, "Tuple");
+    G(array)->setup(this, "Array");
+    G(bytearray)->setup(this, "ByteArray");
+    G(hash)->setup(this, "Hash");
+    G(lookuptable)->setup(this, "LookupTable");
+    G(string)->setup(this, "String");
+    G(symtbl)->setup(this, "SymbolTable");
+    G(methtbl)->setup(this, "MethodTable");
+    G(executable)->setup(this, "Executable");
+    G(cmethod)->setup(this, "CompiledMethod");
+    G(io)->setup(this, "IO");
+    G(blokenv)->setup(this, "BlockEnvironment");
+    G(staticscope)->setup(this, "StaticScope");
+    G(symbol)->setup(this, "Symbol");
 
-    globals.object->set_const(this, symbol("Symbols"), globals.symbols);
+    G(object)->set_const(this, symbol("Symbols"), G(symbols));
 
-    globals.nil_class = new_class("NilClass", object, 0);
-    globals.true_class = new_class("TrueClass", object, 0);
-    globals.false_class = new_class("FalseClass", object, 0);
+    GO(nil_class).set(new_class("NilClass", object, 0));
+    GO(true_class).set(new_class("TrueClass", object, 0));
+    GO(false_class).set(new_class("FalseClass", object, 0));
 
     Class* numeric = new_class("Numeric", object, 0);
     Class* integer = new_class("Integer", numeric, 0);
-    globals.fixnum_class = new_class("Fixnum", integer, 0);
-    globals.fixnum_class->instance_type = Object::i2n(FixnumType);
+    GO(fixnum_class).set(new_class("Fixnum", integer, 0));
+    G(fixnum_class)->instance_type = Object::i2n(FixnumType);
 
-    globals.bignum = new_class("Bignum", integer, 0);
-    globals.bignum->instance_type = Object::i2n(BignumType);
+    GO(bignum).set(new_class("Bignum", integer, 0));
+    G(bignum)->instance_type = Object::i2n(BignumType);
     Bignum::init(this);
 
-    globals.floatpoint = new_class("Float", numeric, 0);
-    globals.floatpoint->instance_type = Object::i2n(FloatType);
+    GO(floatpoint).set(new_class("Float", numeric, 0));
+    G(floatpoint)->instance_type = Object::i2n(FloatType);
 
-    globals.methctx = new_class("MethodContext", object, 0);
-    globals.methctx->set_object_type(MContextType);
+    GO(methctx).set(new_class("MethodContext", object, 0));
+    G(methctx)->set_object_type(MContextType);
 
-    globals.blokctx = new_class("BlockContext", globals.methctx, 0);
-    globals.blokctx->set_object_type(BContextType);
+    GO(blokctx).set(new_class("BlockContext", G(methctx), 0));
+    G(blokctx)->set_object_type(BContextType);
 
-    globals.task = new_class("Task", object, 0);
-    globals.task->instance_type = Object::i2n(TaskType);
+    GO(task).set(new_class("Task", object, 0));
+    G(task)->instance_type = Object::i2n(TaskType);
 
-    globals.iseq = new_class("InstructionSequence", globals.bytearray, 0);
-    globals.iseq->instance_type = Object::i2n(ISeqType);
+    GO(iseq).set(new_class("InstructionSequence", G(bytearray), 0));
+    G(iseq)->instance_type = Object::i2n(ISeqType);
 
     for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
-      globals.special_classes[i + 0] = globals.object; /* unused slot */
-      globals.special_classes[i + 1] = globals.fixnum_class;
-      globals.special_classes[i + 2] = globals.object; /* unused slot */
+      globals.special_classes[i + 0] = GO(object); /* unused slot */
+      globals.special_classes[i + 1] = GO(fixnum_class);
+      globals.special_classes[i + 2] = GO(object); /* unused slot */
       if(((i + 3) & 0x7) == 0x3) {
-        globals.special_classes[i + 3] = globals.symbol;
+        globals.special_classes[i + 3] = GO(symbol);
       } else {
         globals.special_classes[i + 3] = CUSTOM_CLASS;
       }
     }
 
-    globals.special_classes[(uintptr_t)Qundef] = globals.object; /* unused slot */
-    globals.special_classes[(uintptr_t)Qfalse] = globals.false_class;
-    globals.special_classes[(uintptr_t)Qnil  ] = globals.nil_class;
-    globals.special_classes[(uintptr_t)Qtrue ] = globals.true_class;
+    globals.special_classes[(uintptr_t)Qundef] = GO(object); /* unused slot */
+    globals.special_classes[(uintptr_t)Qfalse] = GO(false_class);
+    globals.special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
+    globals.special_classes[(uintptr_t)Qtrue ] = GO(true_class);
 
     Regexp::init(this);
 
-    G(cmethod_vis) = new_class("CompiledMethod::Visibility", G(object),
-        CompiledMethod::Visibility::fields, G(cmethod));
+    GO(cmethod_vis).set(new_class("CompiledMethod::Visibility", G(object),
+        CompiledMethod::Visibility::fields, G(cmethod)));
     G(cmethod_vis)->set_object_type(CMVisibilityType);
 
     new_module("Rubinius");
 
     bootstrap_exceptions();
 
-    globals.external_ivars = LookupTable::create(state);
+    GO(external_ivars).set(LookupTable::create(state));
 
     IO::init(state);
     List::init(state);
@@ -216,8 +220,8 @@ namespace rubinius {
   }
 
   void VM::bootstrap_symbol() {
-    globals.symbols = SymbolTable::create(this);
-#define add_sym(name) globals.sym_ ## name = symbol(#name)
+    GO(symbols).set(SymbolTable::create(this));
+#define add_sym(name) GO(sym_ ## name).set(symbol(#name))
     add_sym(object_id);
     add_sym(method_missing);
     add_sym(inherited);
@@ -232,15 +236,15 @@ namespace rubinius {
     add_sym(object_id);
     add_sym(call);
 #undef add_sym
-    globals.sym_s_method_added = symbol("singleton_method_added");
-    globals.sym_init_copy = symbol("initialize_copy");
-    globals.sym_plus = symbol("+");
-    globals.sym_minus = symbol("-");
-    globals.sym_equal = symbol("==");
-    globals.sym_nequal = symbol("!=");
-    globals.sym_tequal = symbol("===");
-    globals.sym_lt = symbol("<");
-    globals.sym_gt = symbol(">");
+    GO(sym_s_method_added).set(symbol("singleton_method_added"));
+    GO(sym_init_copy).set(symbol("initialize_copy"));
+    GO(sym_plus).set(symbol("+"));
+    GO(sym_minus).set(symbol("-"));
+    GO(sym_equal).set(symbol("=="));
+    GO(sym_nequal).set(symbol("!="));
+    GO(sym_tequal).set(symbol("==="));
+    GO(sym_lt).set(symbol("<"));
+    GO(sym_gt).set(symbol(">"));
   }
 
   void VM::bootstrap_exceptions() {
@@ -252,8 +256,8 @@ namespace rubinius {
 
 #define dexc(name, sup) new_class(#name, sup, sz)
 
-    exc = dexc(Exception, globals.object);
-    globals.exception = exc;
+    exc = dexc(Exception, G(object));
+    GO(exception).set(exc);
     dexc(fatal, exc);
     vm = dexc(VMError, exc);
     dexc(VMAssertion, vm);
@@ -278,28 +282,28 @@ namespace rubinius {
     dexc(ReturnException, fce);
     dexc(LongReturnException, fce);
 
-    globals.exc_type = type;
-    globals.exc_arg = arg;
-    globals.exc_loe = loe;
-    globals.exc_rex = rex;
+    GO(exc_type).set(type);
+    GO(exc_arg).set(arg);
+    GO(exc_loe).set(loe);
+    GO(exc_rex).set(rex);
 
-    globals.exc_stack_explosion = sxp;
-    globals.exc_primitive_failure = dexc(PrimitiveFailure, exc);
+    GO(exc_stack_explosion).set(sxp);
+    GO(exc_primitive_failure).set(dexc(PrimitiveFailure, exc));
 
-    globals.exc_segfault = dexc(MemorySegmentionError, exc);
+    GO(exc_segfault).set(dexc(MemorySegmentionError, exc));
 
     Module* ern = new_module("Errno");
 
-    globals.errno_mapping = LookupTable::create(state);
+    GO(errno_mapping).set(LookupTable::create(state));
 
-    ern->set_const(state, symbol("Mapping"), globals.errno_mapping);
+    ern->set_const(state, symbol("Mapping"), G(errno_mapping));
 
     sz = 4;
 
 #define set_syserr(num, name) ({ \
     Class* _cls = new_class(name, sce, sz, ern); \
     _cls->set_const(state, symbol("Errno"), Object::i2n(num)); \
-    globals.errno_mapping->store(state, Object::i2n(num), _cls); \
+    G(errno_mapping)->store(state, Object::i2n(num), _cls); \
     })
 
     /*

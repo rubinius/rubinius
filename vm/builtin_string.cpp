@@ -18,7 +18,7 @@ namespace rubinius {
 
     if(!bytes) bytes = strlen(str);
 
-    so = (String*)state->om->new_object(state->globals.string, String::fields);
+    so = (String*)state->om->new_object(G(string), String::fields);
 
     so->num_bytes = Object::i2n(bytes);
     so->characters = so->num_bytes;
@@ -68,7 +68,7 @@ namespace rubinius {
   }
 
   SYMBOL String::to_sym(STATE) {
-    return state->globals.symbols->lookup(state, this);
+    return G(symbols)->lookup(state, this);
   }
 
   char* String::byte_address(STATE) {

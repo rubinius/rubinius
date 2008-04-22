@@ -67,11 +67,6 @@ false and nil share the same base bit pattern, allowing RTEST
 to be a simple test for that bit pattern.
 */
 
-#define Qfalse ((OBJECT)6L)
-#define Qnil   ((OBJECT)14L)
-#define Qtrue  ((OBJECT)10L)
-#define Qundef ((OBJECT)18L)
-
 #define FALSE_P(v) ((OBJECT)(v) == (OBJECT)Qfalse)
 #define TRUE_P(v) ((OBJECT)(v) == (OBJECT)Qtrue)
 #define NIL_P(v) ((OBJECT)(v) == (OBJECT)Qnil)

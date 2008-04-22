@@ -2,17 +2,17 @@
 
 namespace rubinius {
   void Selector::init(STATE) {
-    state->globals.selectors = LookupTable::create(state);
+    GO(selectors).set(LookupTable::create(state));
     Class* cls = state->new_class("Selector", Selector::fields);
     cls->set_object_type(SelectorType);
 
-    state->globals.selector = cls;
+    GO(selector).set(cls);
 
-    cls->set_const(state, state->symbol("ALL"), state->globals.selectors);
+    cls->set_const(state, state->symbol("ALL"), G(selectors));
   }
 
   Selector* Selector::create(STATE, OBJECT name) {
-    Selector* sel = (Selector*)state->new_object(state->globals.selector);
+    Selector* sel = (Selector*)state->new_object(G(selector));
     SET(sel, name, name);
     SET(sel, send_sites, Array::create(state, 1));
 
@@ -20,11 +20,11 @@ namespace rubinius {
   }
 
   Selector* Selector::lookup(STATE, OBJECT name) {
-    Selector* sel = (Selector*)state->globals.selectors->fetch(state, name);
+    Selector* sel = (Selector*)G(selectors)->fetch(state, name);
     if(!sel->nil_p()) return sel;
 
     sel = Selector::create(state, name);
-    state->globals.selectors->store(state, name, sel);
+    G(selectors)->store(state, name, sel);
 
     return sel;
   }
@@ -49,7 +49,7 @@ namespace rubinius {
   }
 
   void Selector::clear_by_name(STATE, OBJECT name) {
-    Selector* sel = (Selector*)state->globals.selectors->fetch(state, name);
+    Selector* sel = (Selector*)G(selectors)->fetch(state, name);
     if(sel->nil_p()) return;
 
     sel->clear(state);

@@ -6,7 +6,7 @@
 
 namespace rubinius {
   void IO::init(STATE) {
-    G(iobuffer) = state->new_class("Buffer", G(object), IO::Buffer::fields, G(io));
+    GO(iobuffer).set(state->new_class("Buffer", G(object), IO::Buffer::fields, G(io)));
   }
 
   IO::Buffer* IO::Buffer::create(STATE, size_t bytes) {

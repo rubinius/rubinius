@@ -8,7 +8,7 @@
 
 namespace rubinius {
   SymbolTable* SymbolTable::create(STATE) {
-    SymbolTable *tbl = (SymbolTable*)state->om->new_object(state->globals.symtbl,
+    SymbolTable *tbl = (SymbolTable*)state->om->new_object(G(symtbl),
                                                            SymbolTable::fields);
     SET(tbl, symbols, Tuple::create(state, StartSize));
     SET(tbl, strings, Hash::create(state, StartSize));
@@ -68,6 +68,6 @@ namespace rubinius {
   }
 
   String* Symbol::to_str(STATE) {
-    return state->globals.symbols->find_string(state, this);
+    return G(symbols)->find_string(state, this);
   }
 }

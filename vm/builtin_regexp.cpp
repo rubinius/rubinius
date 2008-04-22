@@ -34,14 +34,14 @@ namespace rubinius {
 
   void Regexp::init(STATE) {
     onig_init();
-    G(regexp) = state->new_class("Regexp", G(object), 0);
+    GO(regexp).set(state->new_class("Regexp", G(object), 0));
     G(regexp)->set_object_type(RegexpType);
 
-    G(regexpdata) = state->new_class("RegexpData", G(object), 0);
+    GO(regexpdata).set(state->new_class("RegexpData", G(object), 0));
     G(regexpdata)->set_object_type(RegexpDataType);
-    
-    G(matchdata) = state->new_class("MatchData", G(object), 0);
-   
+
+    GO(matchdata).set(state->new_class("MatchData", G(object), 0));
+
     state->add_type_info(new RegexpData::Info(G(regexpdata)));
   }
 

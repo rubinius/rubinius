@@ -115,10 +115,12 @@ namespace rubinius {
     return NULL;
   }
 
-  void MarkSweepGC::collect(ObjectArray &roots) {
+  void MarkSweepGC::collect(Roots &roots) {
     OBJECT tmp;
-    for(size_t i = 0; i < roots.size(); i++) {
-      tmp = roots[i];
+
+    Roots::iterator i;
+    for(i = roots.begin(); i != roots.end(); i++) {
+      tmp = (*i)->get();
       if(tmp->reference_p()) {
         saw_object(tmp);
       }

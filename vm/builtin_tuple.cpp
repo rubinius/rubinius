@@ -7,7 +7,7 @@
 
 namespace rubinius {
   Tuple* Tuple::create(STATE, size_t fields) {
-    return (Tuple*)state->om->new_object(state->globals.tuple, fields);
+    return (Tuple*)state->om->new_object(G(tuple), fields);
   }
 
   Tuple* Tuple::from(STATE, size_t fields, ...) {

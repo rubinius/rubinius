@@ -12,7 +12,7 @@ namespace rubinius {
   Hash* Hash::create(STATE, size_t size) {
     Hash *tbl;
 
-    tbl = (Hash*)state->om->new_object(state->globals.hash, Hash::fields);
+    tbl = (Hash*)state->om->new_object(G(hash), Hash::fields);
     tbl->setup(state, size);
 
     return tbl;

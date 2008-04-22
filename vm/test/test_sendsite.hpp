@@ -22,8 +22,8 @@ class TestSendSite : public CxxTest::TestSuite {
   }
 
   void test_init() {
-    TS_ASSERT(state->globals.send_site->kind_of_p(state, state->globals.klass));
-    TS_ASSERT_EQUALS(state->globals.send_site->instance_type->n2i(), SendSiteType);
+    TS_ASSERT(G(send_site)->kind_of_p(state, G(klass)));
+    TS_ASSERT_EQUALS(G(send_site)->instance_type->n2i(), SendSiteType);
   }
 
   void test_create() {

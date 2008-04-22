@@ -28,10 +28,14 @@ class TestVM : public CxxTest::TestSuite {
   }
 
   void test_new_object_uses_field_count_from_class() {
-    Class* cls = state->new_class("Blah", state->globals.object, 3);
+    Class* cls = state->new_class("Blah", G(object), 3);
 
     OBJECT blah = state->new_object(cls);
 
     TS_ASSERT_EQUALS(blah->field_count, 3);
+  }
+
+  void test_globals() {
+    TS_ASSERT_EQUALS(state->globals.roots.size(), 117);
   }
 };

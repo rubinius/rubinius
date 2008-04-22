@@ -5,14 +5,16 @@ namespace rubinius {
   /* Register the List and List::Node classes as globals */
   void List::init(STATE) {
     Class* cls;
-    cls = state->globals.list = state->new_class("List", List::fields);
-    state->globals.list_node = state->new_class("Node", state->globals.object,
-                                                List::Node::fields, cls);
+    cls = state->new_class("List", List::fields);
+    GO(list).set(cls);
+
+    GO(list_node).set(state->new_class("Node", G(object),
+                                                List::Node::fields, cls));
   }
 
   /* Create a new List object, containing no elements. */
   List* List::create(STATE) {
-    List* list = (List*)state->new_object(state->globals.list);
+    List* list = (List*)state->new_object(G(list));
     list->count = Object::i2n(0);
 
     return list;
@@ -20,7 +22,7 @@ namespace rubinius {
 
   /* Append +obj+ to the current List. */
   void List::append(STATE, OBJECT obj) {
-    List::Node* node = (List::Node*)state->new_object(state->globals.list_node);
+    List::Node* node = (List::Node*)state->new_object(G(list_node));
     SET(node, object, obj);
     List::Node* cur_last = last;
 

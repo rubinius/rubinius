@@ -879,6 +879,13 @@ class TestTask : public CxxTest::TestSuite {
     task->raise_exception(exc);
 
     TS_ASSERT_EQUALS(task->ip, 5);
+  }
 
+  void test_check_interrupts() {
+    Task* task = Task::create(state);
+
+    task->check_interrupts();
+    TS_ASSERT(!state->om->collect_young_now);
+    TS_ASSERT(!state->om->collect_mature_now);
   }
 };

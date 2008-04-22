@@ -28,22 +28,22 @@ namespace rubinius {
           obj->loop->remove_event(obj);
         }
 
-        if(obj->tracked()) { 
+        if(obj->tracked()) {
           delete obj;
         } else {
           obj->stop();
         }
       }
     }
-    
+
     template <typename S>
       void tramp(EV_P_ S* ev, int revents) {
         event::dispatch((Event*)ev->data);
       }
 
     Event::Event(STATE, ObjectCallback* chan) :
-      state(state), channel(chan), id(0), 
-      buffer((rubinius::IO::Buffer*)Qnil), loop(NULL) { }
+      state(state), channel(chan), id(0),
+      buffer(state), loop(NULL) { }
 
     void IO::stop() {
       ev_io_stop(loop->base, &ev);
@@ -68,7 +68,7 @@ namespace rubinius {
       return true;
     }
 
-    Read::Read(STATE, ObjectCallback* chan, int ifd) : 
+    Read::Read(STATE, ObjectCallback* chan, int ifd) :
         IO(state, chan), count(0) {
       fd = ifd;
       ev_io_init(&ev, event::tramp<struct ev_io>, fd, EV_READ);
@@ -76,8 +76,8 @@ namespace rubinius {
     }
 
     void Read::into_buffer(rubinius::IO::Buffer *buf, size_t bytes) {
-      count = bytes; 
-      buffer = buf;
+      count = bytes;
+      buffer.set(buf);
     }
 
     bool Read::activated() {
@@ -234,13 +234,6 @@ namespace rubinius {
 
     void Loop::run_and_wait() {
       ev_loop(base, EVLOOP_ONESHOT);
-    }
-
-    void Loop::each_object(ObjectCallback* iter) {
-      for(size_t i = 0; i < events.size(); i++) {
-        iter->call(events[i]->channel->object());
-        iter->call(events[i]->buffer);
-      }
     }
 
     void Loop::clear_by_fd(int fd) {

@@ -3,12 +3,12 @@
 
 namespace rubinius {
   void SendSite::init(STATE) {
-    state->globals.send_site = state->new_class("SendSite", 0);
-    state->globals.send_site->set_object_type(SendSiteType);
+    GO(send_site).set(state->new_class("SendSite", 0));
+    G(send_site)->set_object_type(SendSiteType);
   }
 
   SendSite* SendSite::create(STATE, OBJECT name) {
-    SendSite* ss = (SendSite*)state->new_struct(state->globals.send_site, sizeof(SendSite));
+    SendSite* ss = (SendSite*)state->new_struct(G(send_site), sizeof(SendSite));
     SET(ss, name, name);
     SET(ss, sender, Qnil);
     SET(ss, selector, Selector::lookup(state, name));

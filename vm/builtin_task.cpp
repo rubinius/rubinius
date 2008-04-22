@@ -11,15 +11,15 @@ namespace rubinius {
         List::create(state), List::create(state), List::create(state),
         List::create(state), List::create(state));
 
-    G(scheduled_threads) = tup;
+    GO(scheduled_threads).set(tup);
 
     Class* cls = state->new_class("Task", Task::fields);
     cls->set_const(state, "ScheduledThreads", tup);
 
-    G(channel) = state->new_class("Channel", Channel::fields);
+    GO(channel).set(state->new_class("Channel", Channel::fields));
     G(channel)->set_object_type(Channel::type);
 
-    G(thread) =  state->new_class("Thread",  Thread::fields);
+    GO(thread).set(state->new_class("Thread",  Thread::fields));
     G(thread)->set_object_type(Thread::type);
   }
 
@@ -417,7 +417,15 @@ namespace rubinius {
   void Task::activate_method(Message&) { }
 
   void Task::cache_ip() { }
-  void Task::check_interrupts() { }
+  void Task::check_interrupts() {
+    if(state->om->collect_young_now) {
+      state->om->collect_young(state->globals.roots);
+    }
+
+    if(state->om->collect_mature_now) {
+      state->om->collect_mature(state->globals.roots);
+    }
+  }
 
   void Task::execute() {
 

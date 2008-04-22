@@ -80,22 +80,24 @@ namespace rubinius {
   }
 
   /* Perform garbage collection on the young objects. */
-  void BakerGC::collect(ObjectArray &roots) {
+  void BakerGC::collect(Roots &roots) {
     OBJECT tmp;
     ObjectArray *current_rs = object_memory->remember_set;
 
     object_memory->remember_set = new ObjectArray(0);
-    for(size_t i = 0; i < current_rs->size(); i++) {
-      tmp = current_rs->operator[](i);
-      scan_object(tmp);
+
+    ObjectArray::iterator oi;
+    for(oi = current_rs->begin(); oi != current_rs->end(); oi++) {
+      scan_object(*oi);
     }
 
     delete current_rs;
 
-    for(size_t i = 0; i < roots.size(); i++) {
-      tmp = roots[i];
+    Roots::iterator i;
+    for(i = roots.begin(); i != roots.end(); i++) {
+      tmp = (*i)->get();
       if(tmp->reference_p() && tmp->young_object_p()) {
-        roots[i] = saw_object(tmp);
+        (*i)->set(saw_object(tmp));
       }
     }
 

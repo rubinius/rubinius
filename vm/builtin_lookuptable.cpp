@@ -19,7 +19,7 @@ namespace rubinius {
   LookupTable* LookupTable::create(STATE, size_t size) {
     LookupTable *tbl;
 
-    tbl = (LookupTable*)state->om->new_object(state->globals.lookuptable,
+    tbl = (LookupTable*)state->om->new_object(G(lookuptable),
                                               LookupTable::fields);
     tbl->setup(state, size);
 
@@ -29,7 +29,7 @@ namespace rubinius {
   MethodTable* MethodTable::create(STATE) {
     MethodTable *tbl;
 
-    tbl = (MethodTable*)state->om->new_object(state->globals.lookuptable,
+    tbl = (MethodTable*)state->om->new_object(G(lookuptable),
                                               LookupTable::fields);
     tbl->setup(state, 0);
 

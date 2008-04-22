@@ -121,7 +121,7 @@ namespace rubinius {
       return cls;
     }
 
-    return G(special_classes)[((uintptr_t)this) & SPECIAL_CLASS_MASK];
+    return state->globals.special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
   Class* Object::lookup_begin(STATE) {
@@ -177,11 +177,11 @@ namespace rubinius {
       }
       hsh = hsh >> 2;
     } else {
-      if(kind_of_p(state, state->globals.string)) {
+      if(kind_of_p(state, G(string))) {
         hsh = ((String*)this)->hash_string(state);
-      } else if(kind_of_p(state, state->globals.bignum)) {
+      } else if(kind_of_p(state, G(bignum))) {
         hsh = ((Bignum*)this)->hash_bignum(state);
-      } else if(kind_of_p(state, state->globals.floatpoint)) {
+      } else if(kind_of_p(state, G(floatpoint))) {
         hsh = String::hash_str((unsigned char *)(this->bytes), sizeof(double));
       } else {
         hsh = id(state);
@@ -196,14 +196,14 @@ namespace rubinius {
       OBJECT id;
 
       Class* meta = metaclass(state);
-      id =   meta->get_ivar(state, state->globals.sym_object_id);
+      id =   meta->get_ivar(state, G(sym_object_id));
 
       /* Lazy allocate object's ids, since most don't need them. */
       if(id->nil_p()) {
         /* All references have an even object_id. last_object_id starts out at 0
          * but we don't want to use 0 as an object_id, so we just add before using */
         id = Object::i2n(state->om->last_object_id += 2);
-        meta->set_ivar(state, state->globals.sym_object_id, id);
+        meta->set_ivar(state, G(sym_object_id), id);
       }
 
       return (uintptr_t)id;
@@ -231,7 +231,7 @@ namespace rubinius {
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {
-      LookupTable* tbl = (LookupTable*)state->globals.external_ivars->fetch(state, this);
+      LookupTable* tbl = (LookupTable*)G(external_ivars)->fetch(state, this);
       if(!tbl->nil_p()) {
         return tbl->fetch(state, sym);
       }
@@ -266,11 +266,11 @@ namespace rubinius {
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {
-      tbl = (LookupTable*)state->globals.external_ivars->fetch(state, this);
+      tbl = (LookupTable*)G(external_ivars)->fetch(state, this);
 
       if(tbl->nil_p()) {
         tbl = (LookupTable*)LookupTable::create(state);
-        state->globals.external_ivars->store(state, this, tbl);
+        G(external_ivars)->store(state, this, tbl);
       }
       tbl->store(state, sym, val);
       return val;

@@ -8,7 +8,8 @@
 #include <vector>
 
 #define STATE rubinius::VM *state
-#define G(whatever) state->globals.whatever
+#define G(whatever) state->globals.whatever.get()
+#define GO(whatever) state->globals.whatever
 
 namespace rubinius {
   typedef intptr_t native_int;
@@ -33,6 +34,12 @@ namespace rubinius {
 
   class Fixnum;
   typedef Fixnum* FIXNUM;
+
+#define Qfalse ((OBJECT)6L)
+#define Qnil   ((OBJECT)14L)
+#define Qtrue  ((OBJECT)10L)
+#define Qundef ((OBJECT)18L)
+
 };
 
 #include "virtual.hpp"

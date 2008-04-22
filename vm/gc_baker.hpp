@@ -2,6 +2,7 @@
 #define RBX_GC_BAKER_H
 
 #include "gc.hpp"
+#include "gc_root.hpp"
 #include <iostream>
 
 namespace rubinius {
@@ -113,7 +114,7 @@ namespace rubinius {
     void free_objects();
     virtual OBJECT saw_object(OBJECT obj);
     void    copy_unscanned();
-    void    collect(ObjectArray &roots);
+    void    collect(Roots &roots);
     void    clear_marks();
     OBJECT  next_object(OBJECT obj);
     void    find_lost_souls();

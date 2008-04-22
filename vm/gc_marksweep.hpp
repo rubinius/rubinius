@@ -3,6 +3,7 @@
 
 #include "object.hpp"
 #include "gc.hpp"
+#include "gc_root.hpp"
 
 #include <list>
 
@@ -79,7 +80,7 @@ namespace rubinius {
     void   sweep_objects();
     void   free_object(Entry *entry);
     virtual OBJECT saw_object(OBJECT obj);
-    void   collect(ObjectArray &roots);
+    void   collect(Roots &roots);
   };
 };
 

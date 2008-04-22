@@ -39,7 +39,7 @@ namespace rubinius {
   }
 
   void Module::setup(STATE, SYMBOL name, Module* under) {
-    if(!under) under = state->globals.object;
+    if(!under) under = G(object);
 
     SET(this, constants, LookupTable::create(state));
     SET(this, method_table, MethodTable::create(state));
@@ -78,7 +78,7 @@ namespace rubinius {
   MetaClass* MetaClass::attach(STATE, OBJECT obj, OBJECT sup) {
     MetaClass *meta;
 
-    meta = (MetaClass*)state->om->new_object(state->globals.metaclass,
+    meta = (MetaClass*)state->om->new_object(G(metaclass),
                                              MetaClass::fields);
     if(!sup) { sup = obj->klass; }
     meta->IsMeta = TRUE;
