@@ -20,7 +20,10 @@ module ImmediateValue
   def frozen?
     false
   end
-  
+
+  def dup
+    raise TypeError, "can't dup #{self.class.name}"
+  end
 end
 
 class NilClass
