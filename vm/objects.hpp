@@ -540,6 +540,18 @@ namespace rubinius {
     OBJECT sub(STATE, FIXNUM other) {
       return Object::i2n(state, n2i() - other->n2i());
     }
+
+    OBJECT multiply(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() * other->n2i());
+    }
+
+    OBJECT divide(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() / other->n2i());
+    }
+
+    OBJECT modulo(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() % other->n2i());
+    }
   };
 
   typedef Fixnum* FIXNUM;
