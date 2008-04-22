@@ -44,6 +44,5 @@ describe "BigDecimal#precs" do
       value.precs[1].should <= 8
     end
   end
-
 end
 

@@ -76,7 +76,14 @@ class BigDecimal < Numeric
   end
 
   def precs
-    [@precs, @precs]
+    if !self.finite? or self.nan?
+      sigfigs = 0
+    else
+      # get current number of significant figures by stripping decimal point, exponent, and leading and trailing zeros
+      s = self.to_s.gsub(/[ED][-+]?\d*$/, '').gsub('.', '').gsub(/^0*/, '').gsub(/0*$/, '')
+      sigfigs = s.length
+    end
+    [sigfigs, @precs]
   end
 
   def to_s
