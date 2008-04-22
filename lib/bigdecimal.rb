@@ -71,8 +71,8 @@ class BigDecimal < Numeric
   # call-seq:
   #   BigDecimal.new("0").zero?   =>true
   #   BigDecimal.new("-0").zero?  =>true
-  def zero
-    @int == '0' and @frac == '0' and !self.nan? and self.finite?
+  def zero?
+    self.precs[0] == 0 and !self.nan? and self.finite?
   end
 
   def precs
@@ -80,7 +80,7 @@ class BigDecimal < Numeric
       sigfigs = 0
     else
       # get current number of significant figures by stripping decimal point, exponent, and leading and trailing zeros
-      s = self.to_s.gsub(/[ED][-+]?\d*$/, '').gsub('.', '').gsub(/^0*/, '').gsub(/0*$/, '')
+      s = self.to_s.gsub(/[ED][-+]?\d*$/i, '').gsub('.', '').gsub(/^[-+]?0*/, '').gsub(/0*$/, '')
       sigfigs = s.length
     end
     [sigfigs, @precs]
