@@ -18,17 +18,18 @@ VERSION = 1
 COMP=$(CC)
 ifeq ($(UNAME),Darwin)
   LDOPT=-dynamiclib
-  LINKER=$(CC) $(LDOPT)
   SUFFIX=dylib
-  BIN_RPATH=
   SONAME=-current_version $(VERSION) -compatibility_version $(VERSION)
 else
   LDOPT=-shared
-  LINKER=$(CC) -shared
-  BIN_RPATH=
   SUFFIX=so
-  SONAME=-Wl,-soname,libcchash-$(VERSION).$(SUFFIX)
+  ifneq ($(UNAME),SunOS)
+    SONAME=-Wl,-soname,libcchash-$(VERSION).$(SUFFIX)
+  endif
 endif
+
+BIN_RPATH=
+LINKER=$(CC) $(LDOPT)
 RANLIB = ranlib
 
 ifndef VERBOSE
