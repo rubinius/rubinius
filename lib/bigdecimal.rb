@@ -110,9 +110,9 @@ class BigDecimal < Numeric
   end
   
   def inspect
-    str = '#<,'
-    str << self.to_s
-    str << ',>'
+    str = '#<BigDecimal:'
+    str << [nil, self.to_s, "(#{@precs})"].join(',')
+    str << '>'
     return str
   end
 

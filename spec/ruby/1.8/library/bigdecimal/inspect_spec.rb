@@ -27,7 +27,7 @@ describe "BigDecimal#inspect" do
     @bigdec.inspect.split(",")[1].should == "\'0.12345678E4\'"
   end
 
-  it "last part is number of signifikant digits" do
+  it "last part is number of significant digits" do
     signific_string = "#{@bigdec.precs[0]}(#{@bigdec.precs[1]})"
     @bigdec.inspect.split(",")[2].should == signific_string + ">"
   end
