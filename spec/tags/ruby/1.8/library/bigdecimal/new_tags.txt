@@ -1,4 +1,2 @@
-fails:BigDecimal.new creates a new object of class BigDecimal
 fails:BigDecimal.new ignores leading whitespace
-fails:BigDecimal.new ignores trailing garbage
 fails:BigDecimal.new allows for varying signs

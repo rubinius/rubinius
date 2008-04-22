@@ -25,9 +25,8 @@ class BigDecimal < Numeric
   def initialize(_val, _precs=0)
     # set up defaults
     @sign = '+'
-    @int = '0'
-    @frac = '0'
-    @exp = '0'
+    @digits = 0 # decimal point is assumed at beginning; exp is assigned on this basis
+    @exp = 0
     @special = nil # 'n' for NaN, 'i' for Infinity, nil otherwise
 
     v = _val.strip
@@ -40,14 +39,19 @@ class BigDecimal < Numeric
       @precs = 0
     else
       v = _val.gsub('_', '')
-      m = /^\s*(([-+]?)(\d*)(?:\.(\d*))?(?:[EeDd](\d+))?).*$/.match(v)
+      m = /^\s*(([-+]?)(\d*)(?:\.(\d*))?(?:[EeDd]([-+]?\d+))?).*$/.match(v)
       if !m.nil?
         @sign = m[2] unless m[2].to_s.empty?
-        @int = m[3] unless m[3].to_s.empty?
-        @frac = m[4] unless m[4].to_s.empty?
-        @exp = m[5] unless m[5].to_s.empty?
+        int = m[3].to_s.gsub(/^0*/, '')
+        frac = m[4].to_s
+        fraczeros = /^0*/.match(frac)[0]
+        @exp = m[5].to_i + int.length
+        if int.to_i == 0 
+          @exp -= fraczeros.length
+        end
+        @digits = (int + frac).gsub(/0*$/, '').to_i
       end
-      @precs = [self.to_s.length, _precs].max
+      @precs = [v.length, _precs].max
     end
   end
 
@@ -72,16 +76,14 @@ class BigDecimal < Numeric
   #   BigDecimal.new("0").zero?   =>true
   #   BigDecimal.new("-0").zero?  =>true
   def zero?
-    self.precs[0] == 0 and !self.nan? and self.finite?
+    @digits.to_i == 0 and !self.nan? and self.finite?
   end
 
   def precs
     if !self.finite? or self.nan?
       sigfigs = 0
     else
-      # get current number of significant figures by stripping decimal point, exponent, and leading and trailing zeros
-      s = self.to_s.gsub(/[ED][-+]?\d*$/i, '').gsub('.', '').gsub(/^[-+]?0*/, '').gsub(/0*$/, '')
-      sigfigs = s.length
+      sigfigs = @digits.to_s.length
     end
     [sigfigs, @precs]
   end
@@ -103,14 +105,11 @@ class BigDecimal < Numeric
     end
 
     if self.finite?
-      str << @int
-      if @frac != '0'
-        str << radix
-        str << @frac
-      end
-      if @exp != '0'
+      str << "0#{radix}"
+      str << @digits.to_s
+      if @exp != 0
         str << e
-        str << @exp
+        str << @exp.to_s
       end
     else
       str << infinity
@@ -184,12 +183,14 @@ class BigDecimal < Numeric
       return false
     elsif other.respond_to?(:nan?) and other.nan?
       return false
-    elsif self.to_s == other.to_s
-      if other.respond_to?(:precs)
-        return self.precs == other.precs
-      else
-        return true
+    elsif self.zero?
+      if other.respond_to?(:zero?)
+        return other.zero?
       end
+    elsif self.to_s == other.to_s
+      return true
+    elsif !other.kind_of?(BigDecimal)
+      return self == BigDecimal(other.to_s)
     else
       return false
     end
