@@ -47,4 +47,9 @@ namespace rubinius {
   OBJECT VM::current_thread() {
     return Qnil;
   }
+
+  void VM::collect() {
+    om->collect_young(globals.roots);
+    om->collect_mature(globals.roots);
+  }
 };

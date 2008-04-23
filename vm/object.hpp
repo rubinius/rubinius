@@ -309,6 +309,7 @@ to be a simple test for that bit pattern.
     }
 
     void set_forward(OBJECT fwd) {
+      assert(zone == YoungObjectZone);
       Forwarded = 1;
       klass = (Class*)fwd;
     }

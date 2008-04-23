@@ -46,6 +46,7 @@ namespace rubinius {
 
     void init_ffi();
     OBJECT current_thread();
+    void collect();
 
   };
 };

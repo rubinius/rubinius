@@ -148,6 +148,12 @@ task :test => "runner" do
   x "./runner"
 end
 
+simple = objs + (compiler << "simple.cpp")
+
+task :simple => simple do
+  compiler.link "simple", :objects => simple, :libs => ex_libs
+end
+
 task :default => :test
 
 task :clean do

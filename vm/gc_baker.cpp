@@ -58,12 +58,16 @@ namespace rubinius {
   OBJECT BakerGC::saw_object(OBJECT obj) {
     OBJECT copy;
 
+    if(obj->zone != YoungObjectZone) return obj;
+
     if(obj->forwarded_p()) return obj->forward();
 
     if(obj->age++ >= lifetime) {
       copy = object_memory->promote_object(obj);
-    } else {
+    } else if(next->enough_space_p(obj->size_in_bytes())) {
       copy = next->copy_object(obj);
+    } else {
+      copy = object_memory->promote_object(obj);
     }
 
     obj->set_forward(copy);
@@ -74,7 +78,8 @@ namespace rubinius {
     OBJECT iobj = next->next_unscanned();
 
     while(iobj) {
-      scan_object(iobj);
+      assert(iobj->zone == YoungObjectZone);
+      if(!iobj->forwarded_p()) scan_object(iobj);
       iobj = next->next_unscanned();
     }
   }
@@ -88,6 +93,8 @@ namespace rubinius {
 
     ObjectArray::iterator oi;
     for(oi = current_rs->begin(); oi != current_rs->end(); oi++) {
+      assert((*oi)->zone == MatureObjectZone);
+      assert(!(*oi)->forwarded_p());
       scan_object(*oi);
     }
 
