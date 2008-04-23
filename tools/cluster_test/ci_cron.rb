@@ -100,8 +100,9 @@ flat_data.each do |data|
 end
 
 hash_times = hashes.map { |hash|
-  (all_data[true][hash].map { |_,run| run[:time] } +
-   all_data[false][hash].map { |_,run| run[:time] }).max
+  # incrementals and fall back to fulls if the sky is falling
+  (all_data[true][hash].map { |_,run| run[:time] }.max ||
+   all_data[false][hash].map { |_,run| run[:time] }.max)
 }
 
 hashes = Hash[*hashes.zip(hash_times).flatten]
