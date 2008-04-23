@@ -18,17 +18,18 @@ CFLAGS = $(WARNINGS) $(DEBUG)
 COMP=$(CC)
 ifeq ($(UNAME),Darwin)
   LDOPT=-dynamiclib 
-  LINKER=$(CC) $(LDOPT)
   SUFFIX=dylib
-  BIN_RPATH=
   SONAME=-current_version $(VERSION) -compatibility_version $(VERSION)
 else
   LDOPT=-shared
-  LINKER=$(CC) -shared
-  BIN_RPATH=
   SUFFIX=so
-  SONAME=-Wl,-soname,libmquark-$(VERSION).$(SUFFIX)
+  ifneq ($(UNAME),SunOS)
+    SONAME=-Wl,-soname,libmquark-$(VERSION).$(SUFFIX)
+  endif
 endif
+
+BIN_RPATH=
+LINKER=$(CC) $(LDOPT)
 RANLIB = ranlib
 
 ifndef VERBOSE
@@ -68,7 +69,7 @@ ifeq ($(CPU), powerpc)
   OPTIMIZATIONS+=-falign-loops=16
 endif
 
-CPPFLAGS += -I../libcchash -I../libmpa
+CPPFLAGS += -I../libcchash -I../libmpa -std=c99
 CFLAGS += -fPIC $(CPPFLAGS)
 DEPS=quark.h
 
