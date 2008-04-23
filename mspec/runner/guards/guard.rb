@@ -88,7 +88,14 @@ class SpecGuard
   end
   
   def platform?(*args)
-    args.any? { |platform| RUBY_PLATFORM.match(platform.to_s) }
+    args.any? do |platform|
+      case platform
+      when :windows
+        ['mswin', 'mingw'].any? { |p| RUBY_PLATFORM.match p }
+      else
+        RUBY_PLATFORM.match platform.to_s
+      end
+    end
   end
 
   def match?
