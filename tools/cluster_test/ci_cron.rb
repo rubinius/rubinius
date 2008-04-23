@@ -99,6 +99,13 @@ flat_data.each do |data|
   all_data[data[:incremental]][data[:hash]][data[:platform]] = data
 end
 
+hash_times = hashes.map { |hash|
+  (all_data[true][hash].map { |_,run| run[:time] } +
+   all_data[false][hash].map { |_,run| run[:time] }).max
+}
+
+hashes = Hash[*hashes.zip(hash_times).flatten]
+
 def build_row runs, platforms
   platforms.each do |platform|
     run = runs[platform]
@@ -172,17 +179,13 @@ html = Tagz do
         end
       end
 
-      hashes.each do |hash|
+      hashes.sort_by {|_,t| -t.to_i }.each do |hash, time|
         tr_ do
-
           th_ do
             a_(hash[0..7], :href => "#{GIT_URL}#{hash}")
           end
 
-          times = (all_data[true][hash].map { |_,run| run[:time] } +
-                   all_data[false][hash].map { |_,run| run[:time] })
-
-          th_ "#{times.max.strftime("%m-%d %H:%M")}"
+          th_ "#{time.strftime("%m-%d %H:%M")}"
 
           build_row all_data[true][hash], platforms
           td_ "&nbsp;"
