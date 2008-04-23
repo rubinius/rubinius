@@ -19,7 +19,13 @@ describe "BigDecimal#sqrt" do
 
   it "returns sqrt of self with at least the given precision" do
     string = "1.41421356237309504880168872420969807856967187537694807317667973799073247846210703885038753432764157"
-    @two.sqrt(100).to_s("F")[0, 100].should == string
+    (1..100).each { |idx|
+      @two.sqrt(idx).to_s("F")[0, idx].should == string[0, idx]
+    }
+    sqrt_3 = "1.732050807568877293527446341505872366942805253810380628055806979451933016908800037081146186757248575"
+    (1..100).each { |idx|
+      @three.sqrt(idx).to_s("F")[0, idx].should == sqrt_3[0, idx]
+    }
     BigDecimal('121').sqrt(5).should be_close(11, 0.00001)
     @frac_2.sqrt(1).to_s.should == "0.3E-49999"
   end
@@ -44,6 +50,7 @@ describe "BigDecimal#sqrt" do
       @one.sqrt(Object.new)
     }.should raise_error(TypeError)
     @one.sqrt(1).should == 1
+    @one.sqrt(0).should == 1
   end
 
   it "raises FloatDomainError on negative values" do
