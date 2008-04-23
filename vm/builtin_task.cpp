@@ -419,10 +419,12 @@ namespace rubinius {
   void Task::cache_ip() { }
   void Task::check_interrupts() {
     if(state->om->collect_young_now) {
+      state->om->collect_young_now = false;
       state->om->collect_young(state->globals.roots);
     }
 
     if(state->om->collect_mature_now) {
+      state->om->collect_mature_now = false;
       state->om->collect_mature(state->globals.roots);
     }
   }

@@ -11,10 +11,11 @@ class TestIso : public CxxTest::TestSuite {
 
 #undef state
 
-  void test_isolated() {
+  void test_gc_cycle() {
     VM* state = new VM();
-    Task* task = Task::create(state);
-
-    task->check_interrupts();
+    state->collect();
+    state->collect();
+    state->collect();
+    state->collect();
   }
 };
