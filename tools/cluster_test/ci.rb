@@ -90,6 +90,7 @@ def build hash
   dir = $i ? "incremental" : hash
   cmd "git clone -q -l #{HEAD_DIR} #{dir}" unless File.directory? dir
   Dir.chdir dir do
+    cmd "git pull" if $i
     cmd "git reset --hard #{hash}"
     system "rake -t spec &> ../#{hash}.log"
   end
