@@ -21,6 +21,7 @@ class BigDecimal < Numeric
   
   PLUS = '+'
   MINUS = '-'
+  RADIX = '.'
   
   # call-seq:
   #   BigDecimal("3.14159")   => big_decimal
@@ -101,7 +102,6 @@ class BigDecimal < Numeric
     format = arg =~ /F/ ? :float : :eng
     spacing = arg.to_i
     
-    radix = '.'
     e = 'E'
     nan = 'NaN'
     infinity = 'Infinity'
@@ -121,21 +121,21 @@ class BigDecimal < Numeric
       if format == :float
         # get the decimal point in place
         if @exp >= value.length
-          value << ('0' * (@exp - value.length)) + radix + '0'
+          value << ('0' * (@exp - value.length)) + RADIX + '0'
         elsif @exp > 0
-          value = value[0, @exp] + radix + value[@exp..-1]
+          value = value[0, @exp] + RADIX + value[@exp..-1]
         elsif @exp <= 0
-          value = '0' + radix + ('0' * -@exp) + value
+          value = '0' + RADIX + ('0' * -@exp) + value
         end
       elsif format == :eng
-        value = '0' + radix + value
+        value = '0' + RADIX + value
         if @exp != 0
           value << e + @exp.to_s
         end
       end
       
       if spacing != 0
-        m = /^(\d*)(?:(#{radix})(\d*)(.*))?$/.match(value)
+        m = /^(\d*)(?:(#{RADIX})(\d*)(.*))?$/.match(value)
         left, myradix, right, extra = m[1, 4].collect{|s| s.to_s}
         right_frags = []
         0.step(right.length, spacing) do |n|
@@ -275,6 +275,14 @@ class BigDecimal < Numeric
       s = self.to_s.sub(/^-/, '') # strip minus sign
       BigDecimal(s)
     end
+  end
+  
+  def frac
+    if self.nan? or !self.finite?
+      return self
+    end
+    s = self.to_s("F").split(RADIX)[1] # the part after the decimal point
+    BigDecimal(@sign + RADIX + s)
   end
   
   def sign
