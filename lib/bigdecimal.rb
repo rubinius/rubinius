@@ -88,7 +88,16 @@ class BigDecimal < Numeric
     [sigfigs, @precs]
   end
 
-  def to_s
+  def to_s(arg='')
+    # parse the argument for format specs
+    positive = case arg
+      when /\+/ then '+'
+      when / / then ' '
+      else ''
+    end
+    format = arg =~ /F/ ? :float : :eng
+    spacing = arg.to_i
+    
     radix = '.'
     e = 'E'
     nan = 'NaN'
@@ -99,18 +108,48 @@ class BigDecimal < Numeric
     end
 
     if @sign == '+'
-      str = ''
+      str = positive
     else
       str = '-'
     end
 
     if self.finite?
-      str << "0#{radix}"
-      str << @digits.to_s
-      if @exp != 0
-        str << e
-        str << @exp.to_s
+      value = @digits.to_s
+      if format == :float
+        # get the decimal point in place
+        if @exp >= value.length
+          value << ('0' * (@exp - value.length)) + radix + '0'
+        elsif @exp > 0
+          value = value[0, @exp] + radix + value[@exp..-1]
+        elsif @exp <= 0
+          value = '0' + radix + ('0' * -@exp) + value
+        end
+      elsif format == :eng
+        value = '0' + radix + value
+        if @exp != 0
+          value << e + @exp.to_s
+        end
       end
+      
+      if spacing != 0
+        m = /^(\d*)(?:(#{radix})(\d*)(.*))?$/.match(value)
+        left, myradix, right, extra = m[1, 4].collect{|s| s.to_s}
+        right_frags = []
+        0.step(right.length, spacing) do |n|
+          right_frags.push right[n, spacing]
+        end
+        
+        left_frags = []
+        tfel = left.reverse
+        0.step(left.length, spacing) do |n|
+          left_frags.unshift tfel[n, spacing].reverse
+        end
+        
+        right = right_frags.join(' ').strip
+        left = left_frags.join(' ').strip
+        value = left.to_s + myradix.to_s + right.to_s + extra.to_s
+      end
+      str << value
     else
       str << infinity
     end
@@ -166,10 +205,8 @@ class BigDecimal < Numeric
       return 0
     else
       case @sign
-      when '+'
-        return 1
-      when '-'
-        return -1
+        when '+' then return 1
+        when '-' then return -1
       end
     end
   end
