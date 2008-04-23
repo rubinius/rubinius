@@ -23,7 +23,7 @@ class OutputToFDMatcher
 
   def matches?(block)
     old_to = @to.dup
-    out = File.open("/tmp/mspec_output_to_#{$$}_#{Time.now.to_i}", 'w+')
+    out = File.open(tmp("mspec_output_to_#{$$}_#{Time.now.to_i}"), 'w+')
 
     # Replacing with a file handle so that Readline etc. work
     @to.reopen out
