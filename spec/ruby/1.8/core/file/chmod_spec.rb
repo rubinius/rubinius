@@ -58,7 +58,7 @@ describe "File#chmod" do
     File.executable?(@filename).should == true
   end
 
-  platform_is_not :mswin do
+  platform_is_not :windows do
     it "modifies the permission bits of the files specified" do
       @file.chmod(0755)
       File.stat(@filename).mode.should == 33261
@@ -135,7 +135,7 @@ describe "File.chmod" do
     File.executable?(@file).should == true
   end
 
-  platform_is_not :mswin do
+  platform_is_not :windows do
     it "modifies the permission bits of the files specified" do
       File.stat(@file).mode.should == 33261
     end

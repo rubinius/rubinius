@@ -18,7 +18,7 @@ shared :file_executable_real do |cmd, klass, name|
       @file2 = nil
     end 
 
-    platform_is_not :mswin do
+    platform_is_not :windows do
       it "returns true if the file its an executable" do 
         klass.send(cmd, @file1).should == true
         klass.send(cmd, @file2).should == false

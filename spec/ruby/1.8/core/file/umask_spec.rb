@@ -41,7 +41,7 @@ describe "File.umask" do
     lambda { File.umask(022, 022) }.should raise_error(ArgumentError)
   end
 
-  platform_is :mswin do
+  platform_is :windows do
     it "Returns the current umask value for this process. (basic)" do
       File.umask.should == 0
     end

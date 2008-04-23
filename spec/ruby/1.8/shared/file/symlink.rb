@@ -14,7 +14,7 @@ shared :file_symlink do |cmd, klass, name|
       @link = nil
     end
 
-    platform_is_not :mswin do
+    platform_is_not :windows do
       it "returns true if the file is a link" do
         File.symlink(@file, @link)
         klass.send(cmd, @link).should == true
