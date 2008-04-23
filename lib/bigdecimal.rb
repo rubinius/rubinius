@@ -18,13 +18,16 @@ class BigDecimal < Numeric
   SIGN_POSITIVE_INFINITE = 3
   SIGN_NEGATIVE_INFINITE = -3
   SIGN_NaN = 0 # is this correct?
-
+  
+  PLUS = '+'
+  MINUS = '-'
+  
   # call-seq:
   #   BigDecimal("3.14159")   => big_decimal
   #   BigDecimal("3.14159", 10)   => big_decimal
   def initialize(_val, _precs=0)
     # set up defaults
-    @sign = '+'
+    @sign = PLUS
     @digits = 0 # decimal point is assumed at beginning; exp is assigned on this basis
     @exp = 0
     @special = nil # 'n' for NaN, 'i' for Infinity, nil otherwise
@@ -35,7 +38,7 @@ class BigDecimal < Numeric
       @precs = 0
     elsif v =~ /[-+]?Infinity/
       @special = 'i'
-      @sign = '-' if v =~ /-/
+      @sign = MINUS if v =~ /-/
       @precs = 0
     else
       v = _val.gsub('_', '')
@@ -91,7 +94,7 @@ class BigDecimal < Numeric
   def to_s(arg='')
     # parse the argument for format specs
     positive = case arg
-      when /\+/ then '+'
+      when /\+/ then PLUS.clone
       when / / then ' '
       else ''
     end
@@ -107,10 +110,10 @@ class BigDecimal < Numeric
       return nan
     end
 
-    if @sign == '+'
+    if @sign == PLUS
       str = positive
     else
-      str = '-'
+      str = MINUS.clone
     end
 
     if self.finite?
@@ -176,11 +179,21 @@ class BigDecimal < Numeric
 
   def +(other)
     if self.nan? or other.nan?
-      return BigDecimal('NaN')
+      return BigDecimal("NaN")
+    elsif !self.finite? and !other.finite? and self.sign != other.sign
+      # infinity + -infinity
+      return BigDecimal("NaN")
+    elsif !self.finite?
+      return self
+    elsif !other.finite?
+      return other
+    else
+      # we need int and frac for this, I think
     end
   end
 
   def -(other)
+    self + -other
   end
 
   def quo(other)
@@ -190,6 +203,19 @@ class BigDecimal < Numeric
   def remainder(other)
   end
   alias % remainder
+  
+  # Unary minus
+  def -@
+    if self.nan?
+      return self
+    end
+    s = self.to_s
+    if s[0, 1] == MINUS
+      BigDecimal(s[1..-1])
+    else
+      BigDecimal(MINUS + s)
+    end
+  end
 
   def >=(other)
   end
@@ -205,8 +231,8 @@ class BigDecimal < Numeric
       return 0
     else
       case @sign
-        when '+' then return 1
-        when '-' then return -1
+        when PLUS then return 1
+        when MINUS then return -1
       end
     end
   end
@@ -243,7 +269,7 @@ class BigDecimal < Numeric
   # I'm trying to keep these in alphabetical order unless a good reason develops to do otherwise.
   
   def abs
-    if self.nan? or @sign == '+'
+    if self.nan? or @sign == PLUS
       return self
     else
       s = self.to_s.sub(/^-/, '') # strip minus sign
@@ -255,11 +281,11 @@ class BigDecimal < Numeric
     if self.nan?
       SIGN_NaN
     elsif self.zero?
-      @sign == '+' ? SIGN_POSITIVE_ZERO : SIGN_NEGATIVE_ZERO
+      @sign == PLUS ? SIGN_POSITIVE_ZERO : SIGN_NEGATIVE_ZERO
     elsif self.finite?
-      @sign == '+' ? SIGN_POSITIVE_FINITE : SIGN_NEGATIVE_FINITE
+      @sign == PLUS ? SIGN_POSITIVE_FINITE : SIGN_NEGATIVE_FINITE
     else # infinite
-      @sign == '+' ? SIGN_POSITIVE_INFINITE : SIGN_NEGATIVE_INFINITE
+      @sign == PLUS ? SIGN_POSITIVE_INFINITE : SIGN_NEGATIVE_INFINITE
     end
   end
 end
