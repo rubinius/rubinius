@@ -1,5 +1,22 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/shared/quo'
 require 'bigdecimal'
+
+describe "BigDecimal#div with precision set to 0" do
+  # BigDecimal#div with precision set to 0 behaves exactly like / or quo
+  begin
+    class BigDecimal
+      def div_with_zero_precision(arg)
+        div(arg, 0)
+      end
+    end
+    it_behaves_like(:bigdecimal_quo, :div_with_zero_precision)
+  ensure
+    class BigDecimal
+      undef div_with_zero_precision
+    end
+  end
+end
 
 describe "BigDecimal#div" do
 
@@ -25,6 +42,11 @@ describe "BigDecimal#div" do
     @one_minus.div(@one_minus).should == @one
     @frac_2.div(@frac_1, 1).should == BigDecimal("0.9")
     @frac_1.div(@frac_1).should == @one
+
+    res = "0." + "3" * 1000
+    (1..100).each { |idx|
+      @one.div(@three, idx).to_s("F").should == "0." + res[2, idx]
+    }
   end
 
   it "returns NaN if NaN is involved" do
