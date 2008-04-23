@@ -7,8 +7,10 @@ class SpinnerFormatter < DottedFormatter
   Spins = %w!| / - \\!
   HOUR = 3600
   MIN = 60
-  
-  def initialize
+
+  def initialize(out=nil)
+    @out = $stdout
+
     @states = []
     @which = 0
     @count = 0
@@ -24,7 +26,7 @@ class SpinnerFormatter < DottedFormatter
 
   def register
     super
-    
+
     MSpec.register :start, self
     MSpec.register :load, self
   end
