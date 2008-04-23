@@ -5,6 +5,7 @@ if ENV['MSPEC_RUNNER'] == '1'
   require 'mspec/mocks'
   require 'pp'
 else
+  require 'mspec/helpers'
   require 'mspec/runner/guards'
   require 'mspec/runner/shared'
   require 'mspec/matchers/be_ancestor_of'
