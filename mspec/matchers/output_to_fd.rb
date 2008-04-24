@@ -3,7 +3,7 @@ require 'fileutils'
 # Lower-level output speccing mechanism for a single
 # output stream. Unlike OutputMatcher which provides
 # methods to capture the output, we actually replace
-# the FD itself so that there is no reliance on a 
+# the FD itself so that there is no reliance on a
 # certain method being used.
 class OutputToFDMatcher
   def initialize(expected, to)

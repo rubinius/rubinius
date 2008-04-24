@@ -15,7 +15,7 @@ describe OutputToFDMatcher do
   it "defaults to matching against STDOUT" do
     output_to_fd("Hi\n").matches?(lambda { $stdout.print "Hi\n" }).should == true
   end
-  
+
   it "accepts any IO instance" do
     io = IO.new STDOUT.fileno
     output_to_fd("Hi\n", io).matches?(lambda { io.print "Hi\n" }).should == true

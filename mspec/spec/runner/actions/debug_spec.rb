@@ -7,7 +7,7 @@ describe DebugAction do
   before :each do
     MSpec.stub!(:read_tags).and_return([])
   end
-  
+
   it "creates an MatchFilter with its tag and desc arguments" do
     filter = mock('action filter', :null_object => true)
     MatchFilter.should_receive(:new).with(nil, "some", "thing").and_return(filter)
@@ -20,13 +20,13 @@ describe DebugAction, "#before" do
     MSpec.stub!(:read_tags).and_return([])
     @state = SpecState.new "Catch#me", "if you can"
   end
-  
+
   it "does not invoke the debugger if the description does not match" do
     Kernel.should_not_receive(:debugger)
     action = DebugAction.new nil, "match"
     action.before @state
   end
-  
+
   it "invokes the debugger if the description matches" do
     Kernel.should_receive(:debugger)
     action = DebugAction.new nil, "can"
@@ -40,7 +40,7 @@ describe DebugAction, "#register" do
     MSpec.stub!(:register)
     @action = DebugAction.new nil, nil
   end
-  
+
   it "registers itself with MSpec for the :before action" do
     MSpec.should_receive(:register).with(:before, @action)
     @action.register
@@ -53,7 +53,7 @@ describe DebugAction, "#unregister" do
     MSpec.stub!(:unregister)
     @action = DebugAction.new nil, nil
   end
-  
+
   it "unregisters itself with MSpec for the :before action" do
     MSpec.should_receive(:unregister).with(:before, @action)
     @action.unregister

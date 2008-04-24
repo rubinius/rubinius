@@ -15,7 +15,7 @@ class ActionFilter
     descs = Array(descs)
     @sfilter = MatchFilter.new(nil, *descs) unless descs.empty?
   end
-  
+
   def ===(string)
     @sfilter === string or @tfilter === string
   end
@@ -23,17 +23,17 @@ class ActionFilter
   def load
     @tfilter = nil
     return if @tags.empty?
-    
+
     desc = MSpec.read_tags(*@tags).map { |t| t.description }
     return if desc.empty?
-    
+
     @tfilter = MatchFilter.new(nil, *desc)
   end
-  
+
   def register
     MSpec.register :load, self
   end
-  
+
   def unregister
     MSpec.unregister :load, self
   end

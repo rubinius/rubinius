@@ -21,7 +21,7 @@ class Object
     yield if g.yield?
     g.unregister
   end
-  
+
   def runner_is_not(*args)
     g = RunnerGuard.new(*args)
     yield if g.yield? true

@@ -4,15 +4,15 @@ class ComplainMatcher
   def initialize(complaint)
     @complaint = complaint
   end
-  
+
   def matches?(proc)
     @saved_err = $stderr
     @stderr = $stderr = CaptureOutput.new
     @verbose = $VERBOSE
     $VERBOSE = false
-    
+
     proc.call
-    
+
     unless @complaint.nil?
       case @complaint
       when Regexp
@@ -27,7 +27,7 @@ class ComplainMatcher
     $VERBOSE = @verbose
     $stderr = @saved_err
   end
-  
+
   def failure_message
     if @complaint.nil?
       ["Expected a warning", "but received none"]
@@ -37,7 +37,7 @@ class ComplainMatcher
       ["Expected warning: #{@complaint.inspect}", "but got: #{@stderr.chomp.inspect}"]
     end
   end
-  
+
   def negative_failure_message
     if @complaint.nil?
       ["Unexpected warning: ", @stderr.chomp.inspect]

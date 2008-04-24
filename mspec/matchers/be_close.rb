@@ -5,16 +5,16 @@ class BeCloseMatcher
     @expected = expected
     @tolerance = tolerance
   end
-  
+
   def matches?(actual)
     @actual = actual
     (@actual - @expected).abs < @tolerance
   end
-  
+
   def failure_message
     ["Expected #{@expected}", "to be within +/- #{@tolerance} of #{@actual}"]
   end
-  
+
   def negative_failure_message
     ["Expected #{@expected}", "not to be within +/- #{@tolerance} of #{@actual}"]
   end

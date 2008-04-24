@@ -17,7 +17,7 @@ class UnitdiffFormatter < DottedFormatter
     end
     print "\n#{@tally.format}\n"
   end
-  
+
   def backtrace(exc)
     exc.backtrace && exc.backtrace.join("\n")
   end

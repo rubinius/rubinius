@@ -6,7 +6,7 @@ describe MatchFilter, "#to_regexp" do
   before :each do
     @filter = MatchFilter.new nil
   end
-  
+
   it "converts its arguments to Regexp instances" do
     @filter.to_regexp('a', 'b', 'c').should == [/a/, /b/, /c/]
   end
@@ -16,12 +16,12 @@ describe MatchFilter, "#===" do
   before :each do
     @filter = MatchFilter.new nil, 'a', 'b', 'c'
   end
-  
+
   it "returns true if the argument matches any of the #initialize strings" do
     @filter.===('aaa').should == true
     @filter.===('bccb').should == true
   end
-  
+
   it "returns false if the argument matches none of the #initialize strings" do
     @filter.===('d').should == false
   end

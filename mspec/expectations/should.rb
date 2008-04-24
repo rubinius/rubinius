@@ -9,7 +9,7 @@ class Object
       PositiveOperatorMatcher.new(self)
     end
   end
-  
+
   def should_not(matcher=nil)
     MSpec.actions :expectation, MSpec.current.state
     if matcher

@@ -9,7 +9,7 @@ class Object
     yield if g.yield?
     g.unregister
   end
-  
+
   def not_compliant_on(*args)
     g = ComplianceGuard.new(*args)
     yield if g.yield? true

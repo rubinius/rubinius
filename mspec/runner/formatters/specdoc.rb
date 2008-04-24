@@ -6,11 +6,11 @@ class SpecdocFormatter < DottedFormatter
     super
     MSpec.register :enter, self
   end
-  
+
   def enter(describe)
     print "\n#{describe}\n"
   end
-  
+
   def after(state)
     desc = "- #{state.it}"
     if state.exception?

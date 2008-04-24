@@ -7,7 +7,7 @@ describe Object, "#not_supported_on" do
     SupportedGuard.stub!(:new).and_return(@guard)
     ScratchPad.clear
   end
-  
+
   it "does not yield when #implementation? returns true" do
     @guard.stub!(:implementation?).and_return(true)
     not_supported_on(:rbx) { ScratchPad.record :yield }

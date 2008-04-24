@@ -8,7 +8,7 @@ class BigEndianGuard < SpecGuard
     [1].pack('L')
   end
   private :pattern
-  
+
   def match?
     pattern[-1] == 1
   end
@@ -19,7 +19,7 @@ class LittleEndianGuard < SpecGuard
     [1].pack('L')
   end
   private :pattern
-  
+
   def match?
     pattern[-1] == 0
   end

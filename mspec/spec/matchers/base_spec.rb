@@ -9,7 +9,7 @@ describe PositiveOperatorMatcher, "== operator" do
       PositiveOperatorMatcher.new(1) == 2
     }.should raise_error(ExpectationNotMetError, "Expected 1 to equal 2")
   end
-  
+
   it "does not raise an exception when expected == actual returns true" do
     lambda {
       PositiveOperatorMatcher.new(1) == 1
@@ -23,7 +23,7 @@ describe PositiveOperatorMatcher, "=~ operator" do
       PositiveOperatorMatcher.new('real') =~ /fake/
     }.should raise_error(ExpectationNotMetError, %(Expected "real" to match /fake/))
   end
-  
+
   it "does not raise an exception when expected =~ actual returns true" do
     lambda {
       PositiveOperatorMatcher.new('real') =~ /real/
@@ -37,7 +37,7 @@ describe PositiveOperatorMatcher, "> operator" do
       PositiveOperatorMatcher.new(4) > 5
     }.should raise_error(ExpectationNotMetError, "Expected 4 to be greater than 5")
   end
-  
+
   it "does not raise an exception when expected > actual returns true" do
     lambda {
       PositiveOperatorMatcher.new(5) > 4
@@ -51,7 +51,7 @@ describe PositiveOperatorMatcher, ">= operator" do
       PositiveOperatorMatcher.new(4) >= 5
     }.should raise_error(ExpectationNotMetError, "Expected 4 to be greater than or equal to 5")
   end
-  
+
   it "does not raise an exception when expected > actual returns true" do
     lambda {
       PositiveOperatorMatcher.new(5) >= 4
@@ -66,7 +66,7 @@ describe PositiveOperatorMatcher, "< operater" do
       PositiveOperatorMatcher.new(5) < 4
     }.should raise_error(ExpectationNotMetError, "Expected 5 to be less than 4")
   end
-  
+
   it "does not raise an exception when expected < actual returns true" do
     lambda {
       PositiveOperatorMatcher.new(4) < 5
@@ -80,7 +80,7 @@ describe PositiveOperatorMatcher, "<= operater" do
       PositiveOperatorMatcher.new(5) <= 4
     }.should raise_error(ExpectationNotMetError, "Expected 5 to be less than or equal to 4")
   end
-  
+
   it "does not raise an exception when expected < actual returns true" do
     lambda {
       PositiveOperatorMatcher.new(4) <= 5
@@ -95,7 +95,7 @@ describe NegativeOperatorMatcher, "== operator" do
       NegativeOperatorMatcher.new(1) == 1
     }.should raise_error(ExpectationNotMetError, "Expected 1 not to equal 1")
   end
-  
+
   it "does not raise an exception when expected == actual returns false" do
     lambda {
       NegativeOperatorMatcher.new(1) == 2
@@ -109,7 +109,7 @@ describe NegativeOperatorMatcher, "=~ operator" do
       NegativeOperatorMatcher.new('real') =~ /real/
     }.should raise_error(ExpectationNotMetError, %(Expected "real" not to match /real/))
   end
-  
+
   it "does not raise an exception when expected =~ actual returns false" do
     lambda {
       NegativeOperatorMatcher.new('real') =~ /fake/
@@ -123,7 +123,7 @@ describe NegativeOperatorMatcher, "< operator" do
       NegativeOperatorMatcher.new(4) < 5
     }.should raise_error(ExpectationNotMetError, "Expected 4 not to be less than 5")
   end
-  
+
   it "does not raise an exception when expected < actual returns false" do
     lambda {
       NegativeOperatorMatcher.new(5) < 4
@@ -140,7 +140,7 @@ describe NegativeOperatorMatcher, "<= operator" do
       NegativeOperatorMatcher.new(5) <= 5
     }.should raise_error(ExpectationNotMetError, "Expected 5 not to be less than or equal to 5")
   end
-  
+
   it "does not raise an exception when expected <= actual returns false" do
     lambda {
       NegativeOperatorMatcher.new(5) <= 4
@@ -154,7 +154,7 @@ describe NegativeOperatorMatcher, "> operator" do
       NegativeOperatorMatcher.new(5) > 4
     }.should raise_error(ExpectationNotMetError, "Expected 5 not to be greater than 4")
   end
-  
+
   it "does not raise an exception when expected > actual returns false" do
     lambda {
       NegativeOperatorMatcher.new(4) > 5
@@ -171,7 +171,7 @@ describe NegativeOperatorMatcher, ">= operator" do
       NegativeOperatorMatcher.new(5) >= 5
     }.should raise_error(ExpectationNotMetError, "Expected 5 not to be greater than or equal to 5")
   end
-  
+
   it "does not raise an exception when expected >= actual returns false" do
     lambda {
       NegativeOperatorMatcher.new(4) >= 5

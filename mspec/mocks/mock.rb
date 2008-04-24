@@ -4,18 +4,18 @@ module Mock
   def self.reset
     @expects = nil
   end
-  
+
   def self.expects
     @expects ||= Hash.new { |h,k| h[k] = [] }
   end
-  
+
   def self.replaced_name(sym)
     :"__ms_#{sym}__"
   end
-  
+
   def self.install_method(obj, sym)
     meta = class << obj; self; end
-    
+
     if (sym.to_sym == :respond_to? or obj.respond_to?(sym)) and !meta.instance_methods.include?(replaced_name(sym).to_s)
       meta.__send__ :alias_method, replaced_name(sym), sym.to_sym
     end
@@ -25,7 +25,7 @@ module Mock
         Mock.verify_call self, :#{sym}, *args, &block
       end
     END
-    
+
     MSpec.actions :expectation, MSpec.current.state
     proxy = MockProxy.new
     expects[[obj, sym]] << proxy
@@ -35,7 +35,7 @@ module Mock
   def self.verify_count
     expects.each do |key, proxies|
       obj, sym = key.first, key.last
-      
+
       proxies.each do |proxy|
         qualifier, count = proxy.count
         pass = case qualifier
@@ -86,7 +86,7 @@ module Mock
   def self.cleanup
     expects.keys.each do |obj, sym|
       meta = class << obj; self; end
-      
+
       replaced = replaced_name(sym)
       if meta.instance_methods.include?(replaced.to_s)
         meta.__send__ :alias_method, sym.to_sym, replaced
@@ -96,5 +96,5 @@ module Mock
       end
     end
     reset
-  end  
+  end
 end

@@ -3,7 +3,7 @@ class BeEmptyMatcher
     @actual = actual
     @actual.empty?
   end
-  
+
   def failure_message
     ["Expected #{@actual}", "to be empty"]
   end

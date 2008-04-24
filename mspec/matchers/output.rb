@@ -5,15 +5,15 @@ class OutputMatcher
     @out = stdout
     @err = stderr
   end
-  
+
   def matches?(proc)
     @saved_out = $stdout
     @saved_err = $stderr
     @stdout = $stdout = CaptureOutput.new
     @stderr = $stderr = CaptureOutput.new
-    
+
     proc.call
-    
+
     unless @out.nil?
       case @out
       when Regexp
@@ -22,7 +22,7 @@ class OutputMatcher
         return false unless $stdout == @out
       end
     end
-    
+
     unless @err.nil?
       case @err
       when Regexp
@@ -37,7 +37,7 @@ class OutputMatcher
     $stdout = @saved_out
     $stderr = @saved_err
   end
-  
+
   def failure_message
     expected_out = "\n"
     actual_out = "\n"
@@ -51,7 +51,7 @@ class OutputMatcher
     end
     ["Expected:#{expected_out}", "     got:#{actual_out}"]
   end
-  
+
   def negative_failure_message
     out = ""
     out << "  $stdout: #{@stdout.chomp.dump}\n" unless @out.nil?

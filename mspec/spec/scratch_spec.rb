@@ -5,14 +5,14 @@ describe ScratchPad do
     ScratchPad.record :this
     ScratchPad.recorded.should == :this
   end
-  
+
   it "clears the recorded object" do
     ScratchPad.record :that
     ScratchPad.recorded.should == :that
     ScratchPad.clear
     ScratchPad.recorded.should == nil
   end
-  
+
   it "provides a convenience shortcut to append to a previously recorded object" do
     ScratchPad.record []
     ScratchPad << :new

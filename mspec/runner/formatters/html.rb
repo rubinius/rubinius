@@ -8,7 +8,7 @@ class HtmlFormatter < DottedFormatter
     MSpec.register :enter, self
     MSpec.register :leave, self
   end
-  
+
   def start
     print <<-EOH
 <html>
@@ -29,11 +29,11 @@ ul {
 <body>
 EOH
   end
-  
+
   def enter(describe)
     print "<div><p>#{describe}</p>\n<ul>\n"
   end
-  
+
   def leave
     print "</ul>\n</div>\n"
   end

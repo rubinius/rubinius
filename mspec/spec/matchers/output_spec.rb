@@ -10,7 +10,7 @@ describe OutputMatcher do
     OutputMatcher.new(/bang/, nil).matches?(proc).should == true
     OutputMatcher.new(/po/, nil).matches?(proc).should == false
   end
-  
+
   it "matches when executing the proc results in the expected output to $stderr" do
     proc = Proc.new { $stderr.write "boom!" }
     OutputMatcher.new(nil, "boom!").matches?(proc).should == true
@@ -18,22 +18,22 @@ describe OutputMatcher do
     OutputMatcher.new(nil, /boom/).matches?(proc).should == true
     OutputMatcher.new(nil, /fizzl/).matches?(proc).should == false
   end
-  
+
   it "provides a useful failure message" do
     proc = Proc.new { puts "unexpected"; $stderr.puts "unerror" }
     matcher = OutputMatcher.new("expected", "error")
     matcher.matches?(proc)
-    matcher.failure_message.should == 
-      ["Expected:\n  $stdout: \"expected\"\n  $stderr: \"error\"\n", 
+    matcher.failure_message.should ==
+      ["Expected:\n  $stdout: \"expected\"\n  $stderr: \"error\"\n",
        "     got:\n  $stdout: \"unexpected\"\n  $stderr: \"unerror\"\n"]
     matcher = OutputMatcher.new("expected", nil)
     matcher.matches?(proc)
-    matcher.failure_message.should == 
+    matcher.failure_message.should ==
       ["Expected:\n  $stdout: \"expected\"\n",
        "     got:\n  $stdout: \"unexpected\"\n"]
     matcher = OutputMatcher.new(nil, "error")
     matcher.matches?(proc)
-    matcher.failure_message.should == 
+    matcher.failure_message.should ==
       ["Expected:\n  $stderr: \"error\"\n",
        "     got:\n  $stderr: \"unerror\"\n"]
     matcher = OutputMatcher.new(/base/, nil)
@@ -47,20 +47,20 @@ describe OutputMatcher do
       ["Expected:\n  $stderr: /octave/\n",
        "     got:\n  $stderr: \"unerror\"\n"]
   end
-  
+
   it "provides a useful negative failure message" do
     proc = Proc.new { puts "expected"; $stderr.puts "error" }
     matcher = OutputMatcher.new("expected", "error")
     matcher.matches?(proc)
-    matcher.negative_failure_message.should == 
+    matcher.negative_failure_message.should ==
       ["Expected output not to be:\n", "  $stdout: \"expected\"\n  $stderr: \"error\"\n"]
     matcher = OutputMatcher.new("expected", nil)
     matcher.matches?(proc)
-    matcher.negative_failure_message.should == 
+    matcher.negative_failure_message.should ==
       ["Expected output not to be:\n", "  $stdout: \"expected\"\n"]
     matcher = OutputMatcher.new(nil, "error")
     matcher.matches?(proc)
-    matcher.negative_failure_message.should == 
+    matcher.negative_failure_message.should ==
       ["Expected output not to be:\n", "  $stderr: \"error\"\n"]
     matcher = OutputMatcher.new(/expect/, nil)
     matcher.matches?(proc)
@@ -70,5 +70,5 @@ describe OutputMatcher do
     matcher.matches?(proc)
     matcher.negative_failure_message.should ==
       ["Expected output not to be:\n", "  $stderr: \"error\"\n"]
-  end    
+  end
 end

@@ -8,11 +8,11 @@ class RunState
     @finish = []
     @spec = []
   end
-  
+
   def state
     @state
   end
-  
+
   def before(at=:each, &block)
     case at
     when :each
@@ -21,7 +21,7 @@ class RunState
       @start << block
     end
   end
-  
+
   def after(at=:each, &block)
     case at
     when :each
@@ -30,22 +30,22 @@ class RunState
       @finish << block
     end
   end
-  
+
   def it(desc, &block)
     state = SpecState.new @describe, desc
     @spec << [desc, block, state] unless state.filtered?
   end
-  
+
   def describe(mod, desc=nil, &block)
     @describe = desc ? "#{mod} #{desc}" : mod.to_s
     @block = block
   end
-  
+
   def protect(what, blocks, check=true)
     return if check and MSpec.pretend_mode?
     Array(blocks).each { |block| MSpec.protect what, &block }
   end
-  
+
   def process
     protect @describe, @block, false
     return unless @spec.any? { |desc, spec, state| state.unfiltered? }
@@ -75,27 +75,27 @@ class SpecState
     @it = it
     @unfiltered = nil
   end
-  
+
   def describe
     @describe
   end
-  
+
   def it
     @it
   end
-  
+
   def description
     @description ||= "#{@describe} #{@it}"
   end
-  
+
   def exceptions
     @exceptions ||= []
   end
-  
+
   def exception?
     not exceptions.empty?
   end
-  
+
   def unfiltered?
     unless @unfiltered
       incl = MSpec.retrieve(:include) || []
@@ -105,11 +105,11 @@ class SpecState
     end
     @unfiltered
   end
-  
+
   def filtered?
     not unfiltered?
   end
-  
+
   def failure?(exception)
     exception.is_a?(ExpectationNotMetError)
   end

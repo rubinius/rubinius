@@ -11,7 +11,7 @@ describe Object, "#quarantine!" do
   before :each do
     ScratchPad.clear
   end
-  
+
   it "does not yield" do
     quarantine! { ScratchPad.record :yield }
     ScratchPad.recorded.should_not == :yield

@@ -25,19 +25,19 @@ class SpecGuard
       @registered = true
     end
   end
-  
+
   def self.unregister
     @tally.unregister if @tally
   end
-  
+
   def self.finish
     print "\n#{self.class}\n#{@tally.format}\n"
   end
-  
+
   def initialize(*args)
     @args = args
   end
-  
+
   def yield?(invert=false)
     if MSpec.report_mode?
       self.class.register
@@ -50,24 +50,24 @@ class SpecGuard
     end
     return match? ^ invert
   end
-  
+
   def ===(other)
     true
   end
-  
+
   def before(state)
   end
-  
+
   def after(state)
   end
-  
+
   def unregister
     MSpec.unregister :before, self
     MSpec.unregister :after, self
     MSpec.unregister :exclude, self
     self.class.unregister
   end
-  
+
   def implementation?(*args)
     args.any? do |name|
       !!case name
@@ -86,7 +86,7 @@ class SpecGuard
       end
     end
   end
-  
+
   def platform?(*args)
     args.any? do |platform|
       case platform

@@ -17,7 +17,7 @@ class Object
     # return nil so that further chained calls will raise
     nil
   end
-  
+
   def mock(name)
     MockObject.new(name)
   end

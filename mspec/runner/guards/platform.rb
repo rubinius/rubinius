@@ -8,11 +8,11 @@ class PlatformGuard < SpecGuard
       @options, @platforms = {}, args
     end
   end
-  
+
   def wordsize?(size)
     size == 8 * 1.size
   end
-  
+
   def os?(*oses)
     require 'rbconfig'
     oses.any? do |os|
@@ -21,7 +21,7 @@ class PlatformGuard < SpecGuard
       host_os.match os.to_s
     end
   end
-  
+
   def match?
     match = @platforms.empty? ? true : platform?(*@platforms)
     @options.each do |key, value|
@@ -42,7 +42,7 @@ class Object
     yield if g.yield?
     g.unregister
   end
-  
+
   def platform_is_not(*args)
     g = PlatformGuard.new(*args)
     yield if g.yield? true

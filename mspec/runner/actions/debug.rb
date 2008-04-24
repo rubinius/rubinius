@@ -4,12 +4,12 @@ class DebugAction < ActionFilter
   def before(state)
     Kernel.debugger if self === state.description
   end
-  
+
   def register
     super
     MSpec.register :before, self
   end
-  
+
   def unregister
     super
     MSpec.unregister :before, self
