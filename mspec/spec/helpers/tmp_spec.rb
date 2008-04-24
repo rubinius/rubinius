@@ -4,6 +4,7 @@ require File.dirname(__FILE__) + '/../../helpers/tmp'
 describe Object, "#tmp" do
   before :each do
     File.stub!(:directory?).and_return(false)
+    File.stub!(:symlink?).and_return(false)
     ENV.stub!(:[]).and_return(nil)
   end
 
@@ -49,5 +50,15 @@ describe Object, "#tmp" do
     File.should_receive(:writable?).with(dir).and_return(true)
     File.should_receive(:expand_path).with(dir).and_return(dir)
     tmp("test.txt").should == dir + "/test.txt"
+  end
+
+  it "returns the actual file name if the file is a symlink" do
+    dir = "/tmp"
+    File.should_receive(:directory?).with(dir).and_return(true)
+    File.should_receive(:writable?).with(dir).and_return(true)
+    File.should_receive(:expand_path).with(dir).and_return(dir)
+    File.should_receive(:symlink?).with(dir).and_return(true)
+    File.should_receive(:readlink).with(dir).and_return("/ponies"+dir)
+    tmp("test.txt").should == "/ponies" + dir + "/test.txt"
   end
 end
