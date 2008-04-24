@@ -9,12 +9,27 @@ describe "Module#included" do
           $included_by = o
         end
       end
-      
+
       c = Class.new { include m }
-      
+
       $included_by.should == c
     ensure
       $included_by = nil
     end
+  end
+
+  it "allows extending self with the object into which it is being included" do
+    m = Module.new do
+      def self.included(o)
+        o.extend(self)
+      end
+
+      def test
+        :passed
+      end
+    end
+
+    c = Class.new{ include(m) }
+    c.test.should == :passed
   end
 end
