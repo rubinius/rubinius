@@ -1,4 +1,15 @@
-#!/usr/bin/env ruby -ws
+#!/usr/bin/env ruby
+
+while flag = ARGV.shift
+  case flag
+  when "-i"
+    $i = true
+  when "-v"
+    $v = true
+  end
+end
+
+$VERBOSE = true
 
 ##
 # Build dir structure:
@@ -29,10 +40,8 @@ $i ||= false # use -i to turn on incremental builds
 
 # tweakables, preferably through cmdline:
 BASE_DIR  = File.expand_path(ARGV.shift || "/tmp/ci")
-GIT_REPO  = ARGV.shift || 'git@git.rubini.us:code'
-CGI_URI   = (ARGV.shift ||
-             GIT_REPO.sub(/git@git\.(.*):\w+$/,
-                          'http://ci.\1/cgi-bin/ci_submit.cgi'))
+GIT_REPO  = ARGV.shift || 'git://git.rubini.us/code'
+CGI_URI   = (ARGV.shift || 'http://ci.rubini.us/cgi-bin/ci_submit.cgi')
 
 # don't modify these:
 HEAD_DIR  = File.join(BASE_DIR, "HEAD")
@@ -92,14 +101,14 @@ def build hash
   Dir.chdir dir do
     cmd "git pull" if $i
     cmd "git reset --hard #{hash}"
-    system "rake -t spec &> ../#{hash}.log"
+    system "rake -t spec > ../#{hash}.log 2>&1"
   end
 ensure
   FileUtils::rm_rf hash # not dir, hash... incremental stays as a result
 end
 
 def submit hash
-  warn "submitting #{hash}" if $v
+  warn "submitting #{hash} to #{CGI_URI}" if $v
   data = {
     :platform    => Gem::Platform.local.to_s,
     :incremental => $i,

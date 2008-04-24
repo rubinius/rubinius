@@ -28,16 +28,18 @@ shared :dir_glob do |cmd|
       Dir.send(cmd, 'special/+').should == ['special/+']
     end
 
-    it "matches regexp special *" do
-      Dir.send(cmd, 'special/\*').should == ['special/*']
-    end
+    platform_is_not :windows do
+      it "matches regexp special *" do
+        Dir.send(cmd, 'special/\*').should == ['special/*']
+      end
 
-    it "matches regexp special ?" do
-      Dir.send(cmd, 'special/\?').should == ['special/?']
-    end
+      it "matches regexp special ?" do
+        Dir.send(cmd, 'special/\?').should == ['special/?']
+      end
 
-    it "matches regexp special |" do
-      Dir.send(cmd, 'special/|').should == ['special/|']
+      it "matches regexp special |" do
+        Dir.send(cmd, 'special/|').should == ['special/|']
+      end
     end
 
     it "matches regexp special ^" do

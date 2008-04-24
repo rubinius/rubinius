@@ -175,6 +175,10 @@ class MethodContext
     return current_scope.class_variable_set(name, val)
   end
 
+  def class_variable_defined?(name)
+    return current_scope.class_variable_defined?(name)
+  end
+
   def current_scope
     if ss = method.staticscope
       return ss.module

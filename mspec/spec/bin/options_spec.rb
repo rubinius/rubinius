@@ -209,7 +209,7 @@ describe "The -r, --require LIBRARY option" do
   end
 end
 
-describe "The -X, --tags-dir DIR" do
+describe "The -X, --tags-dir DIR option" do
   before :each do
     @options, @config = new_option
     @options.add_tags_dir
@@ -230,13 +230,14 @@ describe "The -X, --tags-dir DIR" do
   end
 end
 
-describe "The -f, --format FORMAT" do
+describe "The -f, --format FORMAT option" do
   before :each do
     @options, @config = new_option
     @options.add_formatters
   end
 
-  it "is enabled with #add_tags_dir" do
+  it "is enabled with #add_formatters" do
+    @options.stub!(:on)
     @options.should_receive(:on).with("-f", "--format FORMAT",
         String, an_instance_of(String))
     @options.add_formatters
@@ -299,6 +300,28 @@ describe "The -f, --format FORMAT" do
         @options.parse [opt, f]
         @config[:formatter].should == SpinnerFormatter
       end
+    end
+  end
+end
+
+describe "The -o, --output FILE option" do
+  before :each do
+    @options, @config = new_option
+    @options.add_formatters
+  end
+
+  it "is enabled with #add_formatters" do
+    @options.stub!(:on)
+    @options.should_receive(:on).with("-o", "--output FILE",
+        String, an_instance_of(String))
+    @options.add_formatters
+  end
+
+  it "sets the output to FILE" do
+    ["-o", "--output"].each do |opt|
+      @config[:output] = nil
+      @options.parse [opt, "some/file"]
+      @config[:output].should == "some/file"
     end
   end
 end

@@ -4,21 +4,26 @@ require 'mspec/runner/actions/tally'
 
 class DottedFormatter
   attr_reader :timer, :tally
-  
-  def initialize
+
+  def initialize(out=nil)
     @states = []
+    if out.nil?
+      @out = $stdout
+    else
+      @out = File.open out, "w"
+    end
   end
-  
+
   def register
     @timer = TimerAction.new
     @timer.register
     @tally = TallyAction.new
     @tally.register
-    
+
     MSpec.register :after, self
     MSpec.register :finish, self
   end
-  
+
   def after(state)
     unless state.exception?
       print "."
@@ -27,7 +32,7 @@ class DottedFormatter
       print failure?(state) ? "F" : "E"
     end
   end
-  
+
   def finish
     print "\n"
     count = 0
@@ -43,12 +48,16 @@ class DottedFormatter
     end
     print "\n#{@timer.format}\n\n#{@tally.format}\n"
   end
-    
+
+  def print(*args)
+    @out.print(*args)
+  end
+
   def failure?(state)
     state.exceptions.all? { |msg, exc| state.failure?(exc) }
   end
   private :failure?
-  
+
   def backtrace(exc)
     begin
       return exc.awesome_backtrace.show
