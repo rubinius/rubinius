@@ -277,9 +277,22 @@ class BigDecimal < Numeric
     end
   end
   
+  def fix
+    d = @digits.to_s.length
+    if self.nan? or !self.finite? or d <= @exp
+      return self
+    elsif @exp < 0
+      return BigDecimal("#{@sign}0")
+    end
+    s = self.to_s("F").split(RADIX)[0] # this includes the sign
+    BigDecimal(s)
+  end
+  
   def frac
     if self.nan? or !self.finite?
       return self
+    elsif @digits.to_s.length <= @exp
+      return BigDecimal("0")
     end
     s = self.to_s("F").split(RADIX)[1] # the part after the decimal point
     BigDecimal(@sign + RADIX + s)
