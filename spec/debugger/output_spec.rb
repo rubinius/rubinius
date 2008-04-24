@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + "/spec_helper.rb"
+require 'debugger/output'
 
 describe "Output::Columns#wrap" do
   before :each do

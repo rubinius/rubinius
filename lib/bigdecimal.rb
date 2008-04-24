@@ -18,13 +18,17 @@ class BigDecimal < Numeric
   SIGN_POSITIVE_INFINITE = 3
   SIGN_NEGATIVE_INFINITE = -3
   SIGN_NaN = 0 # is this correct?
-
+  
+  PLUS = '+'
+  MINUS = '-'
+  RADIX = '.'
+  
   # call-seq:
   #   BigDecimal("3.14159")   => big_decimal
   #   BigDecimal("3.14159", 10)   => big_decimal
   def initialize(_val, _precs=0)
     # set up defaults
-    @sign = '+'
+    @sign = PLUS
     @digits = 0 # decimal point is assumed at beginning; exp is assigned on this basis
     @exp = 0
     @special = nil # 'n' for NaN, 'i' for Infinity, nil otherwise
@@ -35,7 +39,7 @@ class BigDecimal < Numeric
       @precs = 0
     elsif v =~ /[-+]?Infinity/
       @special = 'i'
-      @sign = '-' if v =~ /-/
+      @sign = MINUS if v =~ /-/
       @precs = 0
     else
       v = _val.gsub('_', '')
@@ -88,8 +92,16 @@ class BigDecimal < Numeric
     [sigfigs, @precs]
   end
 
-  def to_s
-    radix = '.'
+  def to_s(arg='')
+    # parse the argument for format specs
+    positive = case arg
+      when /\+/ then PLUS.clone
+      when / / then ' '
+      else ''
+    end
+    format = arg =~ /F/ ? :float : :eng
+    spacing = arg.to_i
+    
     e = 'E'
     nan = 'NaN'
     infinity = 'Infinity'
@@ -98,19 +110,49 @@ class BigDecimal < Numeric
       return nan
     end
 
-    if @sign == '+'
-      str = ''
+    if @sign == PLUS
+      str = positive
     else
-      str = '-'
+      str = MINUS.clone
     end
 
     if self.finite?
-      str << "0#{radix}"
-      str << @digits.to_s
-      if @exp != 0
-        str << e
-        str << @exp.to_s
+      value = @digits.to_s
+      if format == :float
+        # get the decimal point in place
+        if @exp >= value.length
+          value << ('0' * (@exp - value.length)) + RADIX + '0'
+        elsif @exp > 0
+          value = value[0, @exp] + RADIX + value[@exp..-1]
+        elsif @exp <= 0
+          value = '0' + RADIX + ('0' * -@exp) + value
+        end
+      elsif format == :eng
+        value = '0' + RADIX + value
+        if @exp != 0
+          value << e + @exp.to_s
+        end
       end
+      
+      if spacing != 0
+        m = /^(\d*)(?:(#{RADIX})(\d*)(.*))?$/.match(value)
+        left, myradix, right, extra = m[1, 4].collect{|s| s.to_s}
+        right_frags = []
+        0.step(right.length, spacing) do |n|
+          right_frags.push right[n, spacing]
+        end
+        
+        left_frags = []
+        tfel = left.reverse
+        0.step(left.length, spacing) do |n|
+          left_frags.unshift tfel[n, spacing].reverse
+        end
+        
+        right = right_frags.join(' ').strip
+        left = left_frags.join(' ').strip
+        value = left.to_s + myradix.to_s + right.to_s + extra.to_s
+      end
+      str << value
     else
       str << infinity
     end
@@ -137,11 +179,21 @@ class BigDecimal < Numeric
 
   def +(other)
     if self.nan? or other.nan?
-      return BigDecimal('NaN')
+      return BigDecimal("NaN")
+    elsif !self.finite? and !other.finite? and self.sign != other.sign
+      # infinity + -infinity
+      return BigDecimal("NaN")
+    elsif !self.finite?
+      return self
+    elsif !other.finite?
+      return other
+    else
+      # we need int and frac for this, I think
     end
   end
 
   def -(other)
+    self + -other
   end
 
   def quo(other)
@@ -151,6 +203,19 @@ class BigDecimal < Numeric
   def remainder(other)
   end
   alias % remainder
+  
+  # Unary minus
+  def -@
+    if self.nan?
+      return self
+    end
+    s = self.to_s
+    if s[0, 1] == MINUS
+      BigDecimal(s[1..-1])
+    else
+      BigDecimal(MINUS + s)
+    end
+  end
 
   def >=(other)
   end
@@ -166,10 +231,8 @@ class BigDecimal < Numeric
       return 0
     else
       case @sign
-      when '+'
-        return 1
-      when '-'
-        return -1
+        when PLUS then return 1
+        when MINUS then return -1
       end
     end
   end
@@ -206,7 +269,7 @@ class BigDecimal < Numeric
   # I'm trying to keep these in alphabetical order unless a good reason develops to do otherwise.
   
   def abs
-    if self.nan? or @sign == '+'
+    if self.nan? or @sign == PLUS
       return self
     else
       s = self.to_s.sub(/^-/, '') # strip minus sign
@@ -214,15 +277,23 @@ class BigDecimal < Numeric
     end
   end
   
+  def frac
+    if self.nan? or !self.finite?
+      return self
+    end
+    s = self.to_s("F").split(RADIX)[1] # the part after the decimal point
+    BigDecimal(@sign + RADIX + s)
+  end
+  
   def sign
     if self.nan?
       SIGN_NaN
     elsif self.zero?
-      @sign == '+' ? SIGN_POSITIVE_ZERO : SIGN_NEGATIVE_ZERO
+      @sign == PLUS ? SIGN_POSITIVE_ZERO : SIGN_NEGATIVE_ZERO
     elsif self.finite?
-      @sign == '+' ? SIGN_POSITIVE_FINITE : SIGN_NEGATIVE_FINITE
+      @sign == PLUS ? SIGN_POSITIVE_FINITE : SIGN_NEGATIVE_FINITE
     else # infinite
-      @sign == '+' ? SIGN_POSITIVE_INFINITE : SIGN_NEGATIVE_INFINITE
+      @sign == PLUS ? SIGN_POSITIVE_INFINITE : SIGN_NEGATIVE_INFINITE
     end
   end
 end

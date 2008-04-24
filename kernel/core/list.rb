@@ -58,6 +58,10 @@ class List
     return nil
   end
 
+  def inspect
+    "#<List:0x%x @count=%p>" % [object_id, count]
+  end
+
   class Node
     ivar_as_index :object => 0, :next => 1
 

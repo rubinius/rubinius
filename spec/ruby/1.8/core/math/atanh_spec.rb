@@ -23,7 +23,7 @@ describe "Math.atanh" do
     end
   end
 
-  platform_is :mswin, :linux, :openbsd do
+  platform_is :windows, :linux, :openbsd do
     it "raises an Errno::EDOM if x = 1.0" do
       lambda { Math.atanh(1.0) }.should raise_error(Errno::EDOM)
     end

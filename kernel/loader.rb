@@ -148,8 +148,9 @@ begin
     when '-d'
       $DEBUG = true
     when '-debug'
-      require 'debugger/debugger'
+      require 'debugger/interface'
       $DEBUGGER = true
+      Debugger::CmdLineInterface.new
     when '-remote-debug'
       require 'debugger/debug_server'
       $DEBUGGER = true

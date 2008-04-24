@@ -1,4 +1,4 @@
-require 'debugger/debugger'
+require 'debugger/interface'
 require 'socket'
 require 'cgi'
 
@@ -12,6 +12,7 @@ class Debugger
       @port = port
       @host = host
       Debugger.instance.interface = self
+      load_commands
     end
 
     # Begins listening on the configured host/port for debugger commands
@@ -32,15 +33,15 @@ class Debugger
     # Debugger callback implementation for getting debug commands from a user
     def process_commands(dbg, thread, ctxt, bp_list)
       begin
-        until dbg.done? do
+        until @done do
           while line = @client.gets # read a line at a time
             line.chomp!
             line.strip!
             STDOUT.puts "[#{Time.now}]: #{line}"
-            output = dbg.process_command(line)
+            output = process_command(dbg, line)
             @client.puts CGI::escape(output.to_s)
             @client.flush
-            break if dbg.done?
+            break if @done
           end
 
           unless line

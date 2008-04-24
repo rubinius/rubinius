@@ -9,7 +9,7 @@ describe "Regexp#options" do
   it "allows checking for presence of a certain option with bitwise &" do
     (/cat/.options & Regexp::IGNORECASE).should == 0
     (/cat/i.options & Regexp::IGNORECASE).should_not == 0
-    (/cat/.options & Regexp::MULTILINE) == 0
+    (/cat/.options & Regexp::MULTILINE).should == 0
     (/cat/m.options & Regexp::MULTILINE).should_not == 0
     (/cat/.options & Regexp::EXTENDED).should == 0
     (/cat/x.options & Regexp::EXTENDED).should_not == 0

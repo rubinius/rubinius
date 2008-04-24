@@ -5,3 +5,8 @@ fails:BigDecimal#div returns 0 if divided by Infinity with given precision
 fails:BigDecimal#div returns NaN if (+|-) Infinity divided by 1 and no precision given
 fails:BigDecimal#div returns (+|-)Infinity if (+|-)Infinity by 1 and precision given
 fails:BigDecimal#div returns NaN if Infinity / ((+|-) Infinity)
+fails:BigDecimal#div_with_zero_precision returns a / b
+fails:BigDecimal#div_with_zero_precision returns NaN if NaN is involved
+fails:BigDecimal#div_with_zero_precision returns 0 if divided by Infinity
+fails:BigDecimal#div_with_zero_precision returns (+|-) Infinity if (+|-) Infinity divided by one
+fails:BigDecimal#div_with_zero_precision returns NaN if Infinity / ((+|-) Infinity)

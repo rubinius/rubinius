@@ -65,7 +65,7 @@ describe "Array#uniq" do
       obj
     end
 
-    a.uniq.size == 1
+    a.uniq.size.should == 1
     a[0].tainted?.should == true
     a[1].tainted?.should == true
   end

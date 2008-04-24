@@ -599,6 +599,14 @@ class BreakpointTracker
   end
 
   ##
+  # Returns the global breakpoints for the specified CompiledMethod.
+  # If no global breakpoints are set on the CM, returns nil.
+  def get_breakpoints_on(cm)
+    bp_list = @global_breakpoints[cm]
+    bp_list &&= bp_list.values
+  end
+
+  ##
   # Sets a step breakpoint from the current debug task.
   # +selector+ is a hash that specifies the step settings.
   def step(selector)
@@ -663,9 +671,6 @@ class BreakpointTracker
         when GlobalBreakpoint
           if bp.enabled?
             do_yield = true
-            # Create a BreakpointRestorer breakpoint to restore the globabl
-            # breakpoint on the current context
-            @task_breakpoints[task] << BreakpointRestorer.new(task)
           end
         end
         bp.call_handler(@thread, ctx)
@@ -698,6 +703,9 @@ class BreakpointTracker
         if bp.kind_of? GlobalBreakpoint
           # Ensure global breakpoint is removed from current context so we can resume
           bp.remove(ctx, bc)
+          # Create a BreakpointRestorer breakpoint to restore the globabl
+          # breakpoint on the current context
+          @task_breakpoints[task] << BreakpointRestorer.new(task) if get_breakpoint(mthd, ctx.ip)
         end
       end
 

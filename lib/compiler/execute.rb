@@ -5,9 +5,10 @@ class Compiler::ExecuteContext
     @file = nil
     @line = 0
     @locals = {}
+    @metadata = nil
   end
   
-  attr_accessor :self, :file, :line
+  attr_accessor :self, :file, :line, :metadata
   
   def execute(node)
     node.execute self
@@ -186,13 +187,13 @@ class Compiler::Node
   
   class LocalVariable
     def execute(e)
-      e.get_local @name      
+      e.get_local @name
     end
   end
   
   class LocalAssignment
     def execute(e)
-      e.set_local e, @value.execute(e)
+      e.set_local @name, @value.execute(e)
     end
   end
   
@@ -217,13 +218,21 @@ class Compiler::Node
   
   class IVar
     def execute(e)
-      e.self.instance_variable_get @name
+      if md = e.metadata
+        md[@name]
+      else
+        e.self.instance_variable_get @name
+      end
     end
   end
   
   class IVarAssign
     def execute(e)
-      e.self.instance_variable_set @name, @value.execute(e)
+      if md = e.metadata
+        md[@name] = @value.execute(e)
+      else
+        e.self.instance_variable_set @name, @value.execute(e)
+      end
     end
   end
   
@@ -260,14 +269,32 @@ class Compiler::Node
   
   class Call
     def execute(e)
-      args = @arguments.map { |a| a.execute(e) }
+      if @arguments
+        args = @arguments.map { |a| a.execute(e) }
+      else
+        args = []
+      end
       @object.execute(e).__send__ @method, *args
+    end
+  end
+
+  class AttrAssign
+    def execute(e)
+      args = @arguments.map { |a| a.execute(e) }
+      rhs  = @rhs_expression.execute(e)
+      args << rhs
+      @object.execute(e).__send__ @method, *args
+      return rhs
     end
   end
   
   class FCall
     def execute(e)
-      args = @arguments.map { |a| a.execute(e) }
+      if @arguments
+        args = @arguments.map { |a| a.execute(e) }
+      else
+        args = []
+      end
       e.self.__send__ @method, *args
     end
   end

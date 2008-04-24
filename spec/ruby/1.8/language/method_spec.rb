@@ -149,3 +149,14 @@ describe "Calling a method" do
     mybar(10).should == nil
   end
 end
+
+describe "Calling a private setter method" do
+  it "permits self as a receiver" do
+    class << self
+      attr_writer :foo
+      private :foo=
+    end
+    
+    self.foo = 42
+  end
+end

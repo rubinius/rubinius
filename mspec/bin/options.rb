@@ -130,9 +130,9 @@ class MSpecOptions
 
   def add_formatters
     on("-f", "--format FORMAT", String,
-       "Formatter for reporting: s:specdoc|d:dotted|h:html|m:summary|u:unitdiff|a:*:spin") do |o|
+       "Formatter for reporting, where FORMAT is one of:") do |o|
       case o
-      when 's', 'specdoc'
+      when 's', 'spec', 'specdoc'
         @config[:formatter] = SpecdocFormatter
       when 'h', 'html'
         @config[:formatter] = HtmlFormatter
@@ -144,11 +144,25 @@ class MSpecOptions
         @config[:formatter] = SummaryFormatter
       when 'a', '*', 'spin'
         @config[:formatter] = SpinnerFormatter
+      when 'y', 'yaml'
+        @config[:formatter] = YamlFormatter
       else
         puts "Unknown format: #{o}"
         puts @parser
         exit
       end
+    end
+    separator("")
+    separator("       s, spec, specdoc         SpecdocFormatter")
+    separator("       h, html,                 HtmlFormatter")
+    separator("       d, dot, dotted           DottedFormatter")
+    separator("       u, unit, unitdiff        UnitdiffFormatter")
+    separator("       m, summary               SummaryFormatter")
+    separator("       a, *, spin               SpinnerFormatter")
+    separator("       y, yaml                  YamlFormatter\n")
+    on("-o", "--output FILE", String,
+       "Write formatter output to FILE") do |f|
+      @config[:output] = f
     end
   end
 

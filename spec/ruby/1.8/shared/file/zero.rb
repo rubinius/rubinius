@@ -20,13 +20,13 @@ shared :file_zero do |cmd, klass, name|
       klass.send(cmd, @nonzero_file).should == false
     end
 
-    platform_is :mswin do
+    platform_is :windows do
       it "returns true for NUL" do
         klass.send(cmd, 'NUL').should == true
       end
     end
 
-    platform_is_not :mswin do
+    platform_is_not :windows do
       it "returns true for /dev/null" do
         klass.send(cmd, '/dev/null').should == true
       end

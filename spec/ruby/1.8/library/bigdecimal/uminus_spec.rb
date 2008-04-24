@@ -16,10 +16,3 @@ describe "BigDecimal#-@" do
   end
 
 end
-
-
-
-
-
-
-

@@ -3,24 +3,29 @@ require File.dirname(__FILE__) + '/../../../runner/formatters/dotted'
 require File.dirname(__FILE__) + '/../../../runner/mspec'
 require File.dirname(__FILE__) + '/../../../runner/state'
 
-describe DottedFormatter do
+describe DottedFormatter, "#initialize" do
+  it "permits zero arguments" do
+    DottedFormatter.new
+  end
+
+  it "accepts one argument" do
+    DottedFormatter.new nil
+  end
+end
+
+describe DottedFormatter, "#register" do
   before :each do
-    $stdout = @out = CaptureOutput.new
     @formatter = DottedFormatter.new
   end
-  
-  after :each do
-    $stdout = STDOUT
-  end
-  
-  it "responds to #register by registering itself with MSpec for appropriate actions" do
+
+  it "registers self with MSpec for appropriate actions" do
     MSpec.stub!(:register)
     MSpec.should_receive(:register).with(:after, @formatter)
     MSpec.should_receive(:register).with(:finish, @formatter)
     @formatter.register
   end
-  
-  it "responds to #register by creating TimerAction and TallyAction" do
+
+  it "creates TimerAction and TallyAction" do
     timer = mock("timer")
     tally = mock("tally")
     timer.should_receive(:register)
@@ -31,34 +36,55 @@ describe DottedFormatter do
   end
 end
 
+describe DottedFormatter, "#print" do
+  after :each do
+    $stdout = STDOUT
+  end
+
+  it "writes to $stdout by default" do
+    $stdout = CaptureOutput.new
+    formatter = DottedFormatter.new
+    formatter.print "begonias"
+    $stdout.should == "begonias"
+  end
+
+  it "writes to the file specified when the formatter was created" do
+    out = CaptureOutput.new
+    File.should_receive(:open).with("some/file", "w").and_return(out)
+    formatter = DottedFormatter.new "some/file"
+    formatter.print "begonias"
+    out.should == "begonias"
+  end
+end
+
 describe DottedFormatter, "#after" do
   before :each do
     $stdout = @out = CaptureOutput.new
     @formatter = DottedFormatter.new
     @state = SpecState.new("describe", "it")
   end
-  
+
   after :each do
     $stdout = STDOUT
   end
-  
+
   it "prints a '.' if there was no exception raised" do
     @formatter.after(@state)
     @out.should == "."
   end
-  
+
   it "prints an 'F' if there was an expectation failure" do
     @state.exceptions << ["msg", ExpectationNotMetError.new("failed")]
     @formatter.after(@state)
     @out.should == "F"
   end
-  
+
   it "prints an 'E' if there was an exception other than expectation failure" do
     @state.exceptions << ["msg", Exception.new("boom!")]
     @formatter.after(@state)
     @out.should == "E"
   end
-  
+
   it "prints an 'E' if there are mixed exceptions and exepctation failures" do
     @state.exceptions << ["msg", ExpectationNotMetError.new("failed")]
     @state.exceptions << ["msg", Exception.new("boom!")]
@@ -73,25 +99,25 @@ describe DottedFormatter, "#finish" do
     TallyAction.stub!(:new).and_return(@tally)
     @timer = mock("timer", :null_object => true)
     TimerAction.stub!(:new).and_return(@timer)
-    
+
     $stdout = @out = CaptureOutput.new
     @state = SpecState.new("describe", "it")
     MSpec.stub!(:register)
     @formatter = DottedFormatter.new
     @formatter.register
   end
-  
+
   after :each do
     $stdout = STDOUT
   end
-  
+
   it "prints a failure message for an exception" do
     @state.exceptions << ["msg", Exception.new("broken")]
     @formatter.after @state
     @formatter.finish
     @out.should =~ /^1\)\ndescribe it ERROR$/
   end
-  
+
   it "prints a backtrace for an exception" do
     @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
     @state.exceptions << ["msg", Exception.new("broken")]
@@ -105,13 +131,13 @@ describe DottedFormatter, "#finish" do
     @formatter.finish
     @out.should =~ /^Finished in 2.0 seconds$/
   end
-  
+
   it "prints a tally of counts" do
     @tally.should_receive(:format).and_return("1 example, 0 failures")
     @formatter.finish
     @out.should =~ /^1 example, 0 failures$/
   end
-  
+
   it "prints errors, backtraces, elapsed time, and tallies" do
     @state.exceptions << ["msg", Exception.new("broken")]
     @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
@@ -119,7 +145,7 @@ describe DottedFormatter, "#finish" do
     @tally.should_receive(:format).and_return("1 example, 0 failures")
     @formatter.after @state
     @formatter.finish
-    @out.should == 
+    @out.should ==
 %[E
 
 1)

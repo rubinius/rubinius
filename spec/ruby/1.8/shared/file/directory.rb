@@ -1,12 +1,12 @@
 shared :file_directory do |cmd, klass, name|
   describe "#{name || "#{klass}.#{cmd}"}" do
     before :each do
-      platform_is :mswin do
+      platform_is :windows do
         @dir  = "C:\\"
         @file = "C:\\winnt\\notepad.exe"
       end
 
-      platform_is_not :mswin do
+      platform_is_not :windows do
         @dir  = "/"
         @file = "/bin/ls"
       end

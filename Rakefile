@@ -341,3 +341,14 @@ end
 desc "Build task for CruiseControl"
 task :ccrb => [:build, 'spec:ci']
 
+namespace :test do
+  desc "Run CI client daemon in incremental mode."
+  task :daemon do
+    sh "tools/cluster_test/ci.rb -i"
+  end
+
+  desc "Run CI client daemon in full build mode."
+  task :daemon_full do
+    sh "tools/cluster_test/ci.rb"
+  end
+end

@@ -922,7 +922,11 @@ class Node
   # TESTED
   class OpAssignOr
     def bytecode(g, use_gif=false)
-      @left.bytecode(g)
+      if @left.is? CVar then
+        @left.check_first_bytecode(g)
+      else
+        @left.bytecode(g)
+      end
       lbl = g.new_label
       g.dup
       if use_gif
@@ -2234,14 +2238,33 @@ class Node
   end
 
   class CVar
-    def bytecode(g)
+    def prepare_receiver(g)
       g.push_literal @name
       if @in_module
         g.push :self
       else
         g.push_context
       end
+    end
+
+    def bytecode(g)
+      prepare_receiver(g)
       g.send :class_variable_get, 1
+    end
+
+    def check_first_bytecode(g)
+      prepare_receiver(g)
+      g.dup
+      g.push_literal @name
+      g.swap
+
+      no_cvar = g.new_label
+      g.send :class_variable_defined?, 1
+      g.dup
+      g.gif no_cvar
+      g.pop
+      g.send :class_variable_get, 1
+      no_cvar.set!
     end
   end
 

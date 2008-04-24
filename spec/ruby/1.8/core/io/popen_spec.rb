@@ -7,7 +7,7 @@ describe "IO#popen" do
     end
   end
 
-  platform_is_not :mswin, :mingw do
+  platform_is_not :windows do
     it "writes to a read/write pipe" do
       IO.popen("cat", "r+") do |pipe|
         pipe.write("bar")

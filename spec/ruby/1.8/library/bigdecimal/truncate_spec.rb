@@ -29,7 +29,7 @@ describe "BigDecimal#truncate" do
     BigDecimal('1E10').truncate.should == BigDecimal('1E10')
     BigDecimal('-1E10').truncate.should == BigDecimal('-1E10')
     BigDecimal('1.8888E10').truncate.should == BigDecimal('1.8888E10')
-    BigDecimal('-1E-1').truncate == 0
+    BigDecimal('-1E-1').truncate.should == 0
   end
 
   it "returns value of given precision otherwise" do
@@ -39,9 +39,12 @@ describe "BigDecimal#truncate" do
     BigDecimal('123.456').truncate(2).should == BigDecimal("123.45")
     BigDecimal('123.456789').truncate(4).should == BigDecimal("123.4567")
     BigDecimal('0.456789').truncate(10).should == BigDecimal("0.456789")
-    BigDecimal('-1E-1').truncate(1) == 0
-    BigDecimal('-1E-1').truncate(2) == BigDecimal('0.1E0')
-    BigDecimal('-1E-1').truncate(-2) == BigDecimal('0')
+    BigDecimal('-1E-1').truncate(1).should == BigDecimal('-0.1')
+    BigDecimal('-1E-1').truncate(2).should == BigDecimal('-0.1E0')
+    BigDecimal('-1E-1').truncate.should == BigDecimal('0')
+    BigDecimal('-1E-1').truncate(0).should == BigDecimal('0')
+    BigDecimal('-1E-1').truncate(-1).should == BigDecimal('0')
+    BigDecimal('-1E-1').truncate(-2).should == BigDecimal('0')
 
     BigDecimal(@arr[1]).truncate(1).should == BigDecimal("8.7")
     BigDecimal(@arr[2]).truncate(100).should == BigDecimal(\

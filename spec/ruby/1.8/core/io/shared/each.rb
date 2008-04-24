@@ -41,7 +41,10 @@ shared :io_each do |cmd|
     end
     
     it "raises IOError on closed stream" do
-      lambda { IOSpecs.closed_file.send(cmd) }.should raise_error(IOError)
+        # method must have a block in order to raise the IOError.
+	# MRI 1.8.7 returns enumerator if block is not provided.
+	# See [ruby-core:16557].
+      lambda { IOSpecs.closed_file.send(cmd){} }.should raise_error(IOError)
     end
   end
 end

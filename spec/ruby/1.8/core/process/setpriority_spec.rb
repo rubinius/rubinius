@@ -27,9 +27,9 @@ describe "Process.setpriority" do
   end
   end
 
-  # Darwin doesn't seem to handle these at all, getting all out of
+  # Darwin and FreeBSD don't seem to handle these at all, getting all out of
   # whack with either permission errors or just the wrong value
-  platform_is_not :os => :darwin do
+  platform_is_not :os => [:darwin, :freebsd] do
   it "sets the scheduling priority for a specified process group" do
     pr = Process.getpriority(Process::PRIO_PGRP, 0)
 

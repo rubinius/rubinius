@@ -35,7 +35,7 @@ describe "Array#hash" do
       obj.instance_variable_set(:@hash, hash)
       def obj.hash() @hash end
       
-      [obj].hash == [0].hash
+      [obj].hash.should == [0].hash
     end
   end
   

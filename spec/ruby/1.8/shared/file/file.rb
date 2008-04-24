@@ -1,12 +1,12 @@
 shared :file_file do |cmd, klass, name|
   describe "#{name || "#{klass}.#{cmd}"}" do
     before :each do 
-      platform_is :mswin do
+      platform_is :windows do
         @null = "NUL"
         @dir  = "C:\\"
       end
 
-      platform_is_not :mswin do
+      platform_is_not :windows do
         @null = "/dev/null"
         @dir  = "/bin"
       end
