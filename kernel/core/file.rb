@@ -335,6 +335,23 @@ class File < IO
   def self.join(*parts)
     path = ''
 
+    parts.map! do |part|
+      if part.kind_of? Array
+        recursive_index = part.find_index { |e| e.__id__ == part.__id__ }
+        
+        clean_part = part.dup
+        
+        if recursive_index
+          clean_part[recursive_index] = '[...]'
+          clean_part[recursive_index] = clean_part.dup
+        end
+        
+        clean_part
+      else
+        part
+      end
+    end
+
     parts.flatten.each_with_index do |part, i|
       part = StringValue part
 
