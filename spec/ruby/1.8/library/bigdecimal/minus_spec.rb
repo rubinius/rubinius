@@ -29,6 +29,10 @@ describe "BigDecimal#-" do
     (@one - @nan).nan?.should == true
     (@nan - @one).nan?.should == true
     (@nan - @nan).nan?.should == true
+    (@nan - @infinity).nan?.should == true
+    (@nan - @infinity_minus).nan?.should == true
+    (@infinity - @nan).nan?.should == true
+    (@infinity_minus - @nan).nan?.should == true
   end
 
   it "returns NaN both operands are infinite with the same sign" do
