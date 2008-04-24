@@ -180,7 +180,7 @@ namespace rubinius {
     GO(task).set(new_class("Task", object, 0));
     G(task)->instance_type = Object::i2n(TaskType);
 
-    GO(iseq).set(new_class("InstructionSequence", G(bytearray), 0));
+    GO(iseq).set(new_class("InstructionSequence", G(object), ISeq::fields));
     G(iseq)->instance_type = Object::i2n(ISeqType);
 
     for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {

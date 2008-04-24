@@ -34,6 +34,60 @@ class Instructions
     fd.puts
   end
 
+  def generate_tests(fd)
+    pt = ParseTree.new(true)
+
+    fd.puts <<-CODE
+#include "objects.hpp"
+#include "builtin_list.hpp"
+#include "vm.hpp"
+#include "objectmemory.hpp"
+
+#include <cxxtest/TestSuite.h>
+
+using namespace rubinius;
+
+class TestInstructions : public CxxTest::TestSuite {
+  public:
+
+#undef state
+  VM* state;
+
+  void setUp() {
+    state = new VM();
+  }
+
+  void tearDown() {
+    delete state;
+  }
+    CODE
+
+    InstructionSet::OpCodes.each do |ins|
+      meth = "test_#{ins.opcode}".to_sym
+      code = send(meth) rescue nil
+      if code
+        sexp = pt.parse_tree_for_method(Instructions, meth).flatten
+        line = sexp[sexp.index(:newline) + 1] + 1
+
+        fd.puts "void #{meth}() {"
+        fd.puts "Task* task = Task::create(state);"
+        fd.puts "Tuple* stack;"
+        fd.puts "CompiledMethod* cm = CompiledMethod::create(state);"
+        fd.puts "cm->iseq = ISeq::create(state, 10);"
+        fd.puts "task->active = task->generate_context(Qnil, cm);"
+        fd.puts "stack = task->stack = task->active->stack = Tuple::create(state, 10);"
+        fd.puts "opcode stream[100];"
+        fd.puts "stream[0] = ISeq::insn_#{ins.opcode};"
+        fd.puts "#define run(val) task->execute_stream(stream)"
+        fd.puts "#line #{line} \"instructions.rb\""
+        fd.puts code
+        fd.puts "#undef run"
+        fd.puts "}"
+      end
+    end
+    fd.puts "  };"
+  end
+
   def generate_threaded(fd, op="op")
     InstructionSet::OpCodes.each do |ins|
       code = send(ins.opcode) rescue nil
@@ -57,7 +111,8 @@ class Instructions
   end
 
   def generate_dter
-    code = "static int _ip_size(uint32_t bc) {\nswitch(bc) {\n"
+    code = ""
+    code << "static int _ip_size(uint32_t bc) {\nswitch(bc) {\n"
     InstructionSet::OpCodes.each do |ins|
       if ins.arg_count == 2
         code << "  case #{ins.bytecode}:\n"
@@ -139,13 +194,14 @@ class Instructions
   end
 
   def generate_names
-    str = "static const char instruction_names[] = {\n"
+    str =  "const char *rubinius::ISeq::get_instruction_name(int op) {\n"
+    str << "static const char instruction_names[] = {\n"
     InstructionSet::OpCodes.each do |ins|
       str << "  \"#{ins.opcode.to_s}\\0\"\n"
     end
     str << "};\n\n"
     offset = 0
-    str << "static const unsigned short instruction_name_offsets[] = {\n"
+    str << "static const unsigned int instruction_name_offsets[] = {\n"
     InstructionSet::OpCodes.each_with_index do |ins, index|
       str << ",\n" if index > 0
       str << "  #{offset}"
@@ -153,7 +209,6 @@ class Instructions
     end
     str << "\n};\n\n"
     str << <<CODE
-const char *get_instruction_name(int op) {
   return instruction_names + instruction_name_offsets[op];
 }
 CODE
@@ -162,9 +217,11 @@ CODE
   def generate_names_header
     str = "const char *get_instruction_name(int op);\n"
 
+    str << "typedef enum {\n"
     InstructionSet::OpCodes.each do |ins|
-      str << "#define CPU_INSTRUCTION_#{ins.opcode.to_s.upcase} #{ins.bytecode}\n" unless ins.opcode == :unused
+      str << "insn_#{ins.opcode.to_s} = #{ins.bytecode},\n"
     end
+    str << "} instruction_names;\n"
 
     str
   end
@@ -180,7 +237,7 @@ CODE
   # [Description]
   #   The classic no-op operator; performs no actions, and does not modify the
   #   stack.
-  #   
+  #
   #   To consume an item from the stack, but otherwise do nothing, use
   #   pop.
   # [See Also]
@@ -188,6 +245,13 @@ CODE
 
   def noop
     ""
+  end
+
+  def test_noop
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->sp, -1);
+    CODE
   end
 
   # [Operation]
@@ -217,6 +281,16 @@ CODE
     CODE
   end
 
+  def test_push_int
+    <<-CODE
+    stream[1] = (opcode)47;
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
+    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), 47);
+    CODE
+  end
+
   # [Operation]
   #   Pushes -1 onto the stack
   # [Format]
@@ -235,6 +309,15 @@ CODE
   def meta_push_neg_1
     <<-CODE
     stack_push(Object::i2n(-1));
+    CODE
+  end
+
+  def test_meta_push_neg_1
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
+    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), -1);
     CODE
   end
 
@@ -259,6 +342,15 @@ CODE
     CODE
   end
 
+  def test_meta_push_0
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
+    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), 0);
+    CODE
+  end
+
   # [Operation]
   #   Pushes 1 onto the stack
   # [Format]
@@ -277,6 +369,15 @@ CODE
   def meta_push_1
     <<-CODE
     stack_push(Object::i2n(1));
+    CODE
+  end
+
+  def test_meta_push_1
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
+    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), 1);
     CODE
   end
 
@@ -301,6 +402,15 @@ CODE
     CODE
   end
 
+  def test_meta_push_2
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
+    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), 2);
+    CODE
+  end
+
   # [Operation]
   #   Puts nil on the stack
   # [Format]
@@ -316,6 +426,14 @@ CODE
   def push_nil
     <<-CODE
     stack_push(Qnil);
+    CODE
+  end
+
+  def test_push_nil
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qnil);
     CODE
   end
 
@@ -337,6 +455,14 @@ CODE
     CODE
   end
 
+  def test_push_true
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    CODE
+  end
+
   # [Operation]
   #   Pushes false onto the stack
   # [Format]
@@ -352,6 +478,14 @@ CODE
   def push_false
     <<-CODE
     stack_push(Qfalse);
+    CODE
+  end
+
+  def test_push_false
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qfalse);
     CODE
   end
 
@@ -375,6 +509,14 @@ CODE
     CODE
   end
 
+  def test_push_context
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), task->active);
+    CODE
+  end
+
   # [Operation]
   #   Pushes a literal from the current state onto the stack.
   # [Format]
@@ -387,7 +529,7 @@ CODE
   # [Description]
   #   The literal identified by the opcode argument (+index+) in the current
   #   state literals tuple is retrieved and placed onto the stack.
-  #   
+  #
   #   The literals tuple is part of the machine state, and holds all literal
   #   objects defined or used within a particular scope.
 
@@ -397,6 +539,16 @@ CODE
     check_bounds(literals, _int);
     t2 = literals->field[_int];
     stack_push(t2);
+    CODE
+  end
+
+  def test_push_literal
+    <<-CODE
+    task->literals = Tuple::from(state, 1, Qtrue);
+    stream[1] = (opcode)0;
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
     CODE
   end
 
@@ -429,6 +581,18 @@ CODE
     CODE
   end
 
+  def test_set_literal
+    <<-CODE
+    task->literals = Tuple::from(state, 1, Qtrue);
+    stream[1] = (opcode)0;
+    stack->put(state, ++task->sp, Qtrue);
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(task->literals->at(0), Qtrue);
+    CODE
+  end
+
   # [Operation]
   #   Pushes a reference to the current self object onto the stack.
   # [Format]
@@ -444,6 +608,15 @@ CODE
   def push_self
     <<-CODE
     stack_push(self);
+    CODE
+  end
+
+  def test_push_self
+    <<-CODE
+    task->self = Qtrue;
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
     CODE
   end
 
@@ -465,6 +638,16 @@ CODE
     next_int;
     check_bounds(locals, _int);
     stack_push(fast_fetch(locals, _int));
+    CODE
+  end
+
+  def test_push_local
+    <<-CODE
+    stack->put(state, ++task->sp, Qtrue);
+    stream[1] = (opcode)0;
+    run();
+    TS_ASSERT_EQUALS(task->sp, 1);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
     CODE
   end
 
@@ -3225,23 +3408,31 @@ perform_no_ss_send:
 end
 
 si = Instructions.new
-si.generate_declarations(STDOUT)
-si.generate_switch(STDOUT)
 
-File.open("instruction_names.c","w") do |f|
+Dir.mkdir "gen" unless File.directory?("gen")
+
+File.open("gen/task_instructions_switch.c", "w") do |f|
+  si.generate_declarations(f)
+  si.generate_switch(f)
+end
+
+File.open("gen/iseq_instruction_names.cpp","w") do |f|
   f.puts si.generate_names
 end
 
-File.open("instruction_names.h","w") do |f|
+File.open("gen/iseq_instruction_names.hpp","w") do |f|
   f.puts si.generate_names_header
 end
 
-File.open("instruction_funcs.gen", "w") do |f|
+File.open("gen/iseq_instruction_dt_helper.cpp", "w") do |f|
   f.puts si.generate_dter
 end
 
-File.open("instruction_dt.gen", "w") do |f|
+File.open("gen/task_instruction_dt.cpp", "w") do |f|
   si.generate_declarations(f)
   si.generate_threaded(f)
 end
 
+File.open("test/test_instructions.hpp", "w") do |f|
+  si.generate_tests(f)
+end

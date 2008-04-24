@@ -13,6 +13,7 @@ namespace rubinius {
     CompiledMethod* original;
 
     VMMethod(CompiledMethod* meth);
+    VMMethod(size_t fields);
     ~VMMethod();
   };
 };

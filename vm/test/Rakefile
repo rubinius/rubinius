@@ -48,7 +48,7 @@ class CCompile
       output = name.gsub(/\.[^.]+$/, ".o")
       objects << output
 
-      file output => headers + [name] do
+      file output => [name] + headers do
         compile(name, output)
       end
     end
@@ -126,13 +126,15 @@ compiler.flags << "-Wall" << "-Wno-write-strings" << "-Wno-sign-compare" << "-gg
 objs = compiler << "../*.cpp"
 objs += compiler << "../*.c"
 
-file "../instructions.c.gen" => "../instructions.rb" do
-  x "ruby ../instructions.rb > ../instructions.c.gen"
+file "../gen/task_instructions_switch.c" => "../instructions.rb" do
+  puts "GEN instructions.rb"
+  x "cd ..; ruby instructions.rb"
 end
 
-file "../builtin_task.cpp" => "../instructions.c.gen"
+file "../builtin_task.o" => "../gen/task_instructions_switch.c"
 
 file "runner.cpp" => tests + objs do
+  puts "GEN runner.cpp"
 	x "cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o runner.cpp #{tests}"
 end
 

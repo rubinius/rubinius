@@ -79,6 +79,8 @@ namespace rubinius {
     bool check_serial(OBJECT obj, SYMBOL sel, int ser);
     void check_interrupts();
 
+    void execute_stream(opcode* stream);
+
     class Info : public TypeInfo {
     public:
       virtual void mark(Task* obj);

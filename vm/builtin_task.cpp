@@ -26,7 +26,7 @@ namespace rubinius {
   Task* Task::create(STATE, OBJECT recv, CompiledMethod* meth) {
     Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
     task->ip = 0;
-    task->sp = 0;
+    task->sp = -1;
     task->state = state;
     task->make_active(task->generate_context(recv, meth));
     return task;
@@ -35,7 +35,7 @@ namespace rubinius {
   Task* Task::create(STATE) {
     Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
     task->ip = 0;
-    task->sp = 0;
+    task->sp = -1;
     task->state = state;
     return task;
   }
@@ -440,15 +440,15 @@ namespace rubinius {
 #define check_bounds(obj, index)
 #define check(expr)
 #define next_op() *ip_ptr++
-#define locals (active->stack)
+#define locals (stack)
 #define current_block  (active->block)
 #define argcount (active->args)
 #define fast_fetch(obj, index) (obj->at(index))
 #define current_scope (active->cm->scope)
 
 #define next_literal_into(val) next_int; val = literals->at(_int)
-#define next_int_into(val) val = (int)(*ip_ptr++)
-#define next_int _int = (int)(*ip_ptr++)
+#define next_int_into(val) val = (int)(next_op())
+#define next_int _int = (int)(next_op())
 #define next_literal next_int; _lit = literals->at(_int)
 
 insn_start:
@@ -457,9 +457,20 @@ insn_start:
     for(;;) {
 next_op:
       opcode op = next_op();
-#include "instructions.c.gen"
+#include "gen/task_instructions_switch.c"
 check_interrupts:
       check_interrupts();
     }
+  }
+
+#undef next_op
+#define next_op() *stream++
+  void Task::execute_stream(opcode* stream) {
+    opcode op = next_op();
+#include "gen/task_instructions_switch.c"
+insn_start:
+next_op:
+check_interrupts:
+    return;
   }
 }
