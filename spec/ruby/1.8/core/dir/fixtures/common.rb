@@ -3,9 +3,7 @@ require 'fileutils'
 module DirSpecs
   def DirSpecs.mock_dir
     unless defined? @mock_dir then
-      root_dir = File.dirname(__FILE__).sub(/spec.ruby.*/, '')
-      tmp_dir = File.join(root_dir, 'tmp', 'mock')
-      @mock_dir = File.expand_path(tmp_dir)
+      @mock_dir = File.expand_path(tmp('mock'))
     end
 
     @mock_dir
@@ -53,10 +51,6 @@ module DirSpecs
                 #{mock_dir}/subdir_two/nondotfile.ext
 
                 #{mock_dir}/special/+
-                #{mock_dir}/special/*
-                #{mock_dir}/special/?
-
-                #{mock_dir}/special/|
 
                 #{mock_dir}/special/^
                 #{mock_dir}/special/$
@@ -69,6 +63,14 @@ module DirSpecs
                 #{mock_dir}/special/}
               ]
 
+    platform_is_not :windows do
+      files += %W[  #{mock_dir}/special/*
+                    #{mock_dir}/special/?
+
+                    #{mock_dir}/special/|
+                  ]
+    end
+    
     FileUtils.rm_rf mock_dir
     files.each do |file|
       FileUtils.mkdir_p File.dirname(file)
