@@ -11,9 +11,9 @@ describe "File.join" do
   end
 
   platform_is :windows do
-    it "joins parts using File::ALT_SEPARATOR on mswin" do
+    it "joins parts using File::ALT_SEPARATOR on windows" do
       File.join("C:\\", 'windows').should == "C:\\windows"
-      File.join("\\\\", "usr").should = "\\\\usr"
+      File.join("\\\\", "usr").should == "\\\\usr"
     end
   end
 
