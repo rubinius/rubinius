@@ -432,6 +432,12 @@ module Kernel
     require 'debugger/debugger'
     dbg = Debugger.instance
 
+    unless dbg.interface
+      # Default to command-line interface if nothing registered
+      require 'debugger/interface'
+      Debugger::CmdLineInterface.new
+    end
+
     ctxt = MethodContext.current.sender
     cm = ctxt.method
     ip = ctxt.ip
