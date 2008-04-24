@@ -31,8 +31,7 @@ describe "An instance method definition with a splat" do
     def foo(a, b, c, d, e, *f); [a, b, c, d, e, f]; end
     foo(1, 2, 3, 4, 5, 6, 7, 8).should == [1, 2, 3, 4, 5, [6, 7, 8]]
   end
-  
-  # TODO - Move this elsewhere
+
   it "creates a method that can be invoked with an inline hash argument" do
     def foo(a,b,*c); [a,b,c] end
 
@@ -40,19 +39,19 @@ describe "An instance method definition with a splat" do
       should ==
       ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit'}, [789, 'yeah']]
   end
-  
+
   it "creates a method that can be invoked with an inline hash and a block" do
     def foo(a,b,*c,&d); [a,b,c,yield(d)] end
 
     foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit', *[789, 'yeah']) { 3 }.
       should ==
       ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit'}, [789, 'yeah'], 3]
-    
+
     foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', *[789, 'yeah']) do 3 end.should ==
       ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes' }, [789, 'yeah'], 3]
 
     l = lambda { 3 }
-    
+
     foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', *[789, 'yeah'], &l).should ==
       ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes' }, [789, 'yeah'], 3]
   end
@@ -161,6 +160,7 @@ describe "A method defined with extreme default arguments" do
     class DefSpecs
       def foo(x = (def foo; "hello"; end;1));x;end
     end
+
     d = DefSpecs.new
     d.foo(42).should == 42
     d.foo.should == 1
@@ -199,6 +199,7 @@ describe "A singleton method defined with extreme default arguments" do
   it "may use a method definition as a default" do
     $__a = "hi"
     def $__a.foo(x = (def $__a.foo; "hello"; end;1));x;end
+
     $__a.foo(42).should == 42
     $__a.foo.should == 1
     $__a.foo.should == 'hello'
@@ -236,4 +237,170 @@ describe "A singleton method defined with extreme default arguments" do
   end
 end
 
+describe "A method definition inside a metaclass scope" do
+  it "can create a class method" do
+    class DefSpecSingleton
+      class << self
+        def a_class_method;self;end
+      end
+    end
 
+    DefSpecSingleton.a_class_method.should == DefSpecSingleton
+    lambda { Object.a_class_method }.should raise_error(NoMethodError)
+  end
+
+  it "can create a singleton method" do
+    obj = Object.new
+    class << obj
+      def a_singleton_method;self;end
+    end
+
+    obj.a_singleton_method.should == obj
+    lambda { Object.new.a_singleton_method }.should raise_error(NoMethodError)
+  end
+end
+
+describe "A nested method definition" do
+  it "creates an instance method when evaluated in an instance method" do
+    class DefSpecNested
+      def create_instance_method
+        def an_instance_method;self;end
+        an_instance_method
+      end
+    end
+
+    obj = DefSpecNested.new
+    obj.create_instance_method.should == obj
+    obj.an_instance_method.should == obj
+
+    other = DefSpecNested.new
+    other.an_instance_method.should == other
+
+    DefSpecNested.instance_methods.should include("an_instance_method")
+  end
+
+  it "creates a class method when evaluated in a class method" do
+    class DefSpecNested
+      class << self
+        def create_class_method
+          def a_class_method;self;end
+          a_class_method
+        end
+      end
+    end
+
+    lambda { DefSpecNested.a_class_method }.should raise_error(NoMethodError)
+    DefSpecNested.create_class_method.should == DefSpecNested
+    DefSpecNested.a_class_method.should == DefSpecNested
+    lambda { Object.a_class_method }.should raise_error(NoMethodError)
+    lambda { DefSpecNested.new.a_class_method }.should raise_error(NoMethodError)
+  end
+
+  it "creates a singleton method when evaluated in the metaclass of an instance" do
+    class DefSpecNested
+      def create_singleton_method
+        class << self
+          def a_singleton_method;self;end
+        end
+        a_singleton_method
+      end
+    end
+
+    obj = DefSpecNested.new
+    obj.create_singleton_method.should == obj
+    obj.a_singleton_method.should == obj
+
+    other = DefSpecNested.new
+    lambda { other.a_singleton_method }.should raise_error(NoMethodError)
+  end
+end
+
+describe "A method definition inside an instance_eval" do
+  it "creates a singleton method" do
+    obj = Object.new
+    obj.instance_eval do
+      def an_instance_eval_method;self;end
+    end
+    obj.an_instance_eval_method.should == obj
+
+    other = Object.new
+    lambda { other.an_instance_eval_method }.should raise_error(NoMethodError)
+  end
+
+  it "creates a singleton method when evaluated inside a metaclass" do
+    obj = Object.new
+    obj.instance_eval do
+      class << self
+        def a_metaclass_eval_method;self;end
+      end
+    end
+    obj.a_metaclass_eval_method.should == obj
+
+    other = Object.new
+    lambda { other.a_metaclass_eval_method }.should raise_error(NoMethodError)
+  end
+
+  it "creates a class method when the receiver is a class" do
+    DefSpecNested.instance_eval do
+      def an_instance_eval_class_method;self;end
+    end
+
+    DefSpecNested.an_instance_eval_class_method.should == DefSpecNested
+    lambda { Object.an_instance_eval_class_method }.should raise_error(NoMethodError)
+  end
+end
+
+describe "A method definition in an eval" do
+  it "creates an instance method" do
+    class DefSpecNested
+      def eval_instance_method
+        eval "def an_eval_instance_method;self;end", binding
+        an_eval_instance_method
+      end
+    end
+
+    obj = DefSpecNested.new
+    obj.eval_instance_method.should == obj
+    obj.an_eval_instance_method.should == obj
+
+    other = DefSpecNested.new
+    other.an_eval_instance_method.should == other
+
+    lambda { Object.new.an_eval_instance_method }.should raise_error(NoMethodError)
+  end
+
+  it "creates a class method" do
+    class DefSpecNested
+      class << self
+        def eval_class_method
+          eval "def an_eval_class_method;self;end", binding
+          an_eval_class_method
+        end
+      end
+    end
+
+    DefSpecNested.eval_class_method.should == DefSpecNested
+    DefSpecNested.an_eval_class_method.should == DefSpecNested
+
+    lambda { Object.an_eval_class_method }.should raise_error(NoMethodError)
+    lambda { DefSpecNested.new.an_eval_class_method}.should raise_error(NoMethodError)
+  end
+
+  it "creates a singleton method" do
+    class DefSpecNested
+      def eval_singleton_method
+        class << self
+          eval "def an_eval_singleton_method;self;end", binding
+        end
+        an_eval_singleton_method
+      end
+    end
+
+    obj = DefSpecNested.new
+    obj.eval_singleton_method.should == obj
+    obj.an_eval_singleton_method.should == obj
+
+    other = DefSpecNested.new
+    lambda { other.an_eval_singleton_method }.should raise_error(NoMethodError)
+  end
+end
