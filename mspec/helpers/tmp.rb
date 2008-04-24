@@ -13,7 +13,9 @@ class Object
       [ "/tmp", ENV["TMPDIR"], ENV["TMP"],
         ENV["TEMP"], ENV["USERPROFILE"] ].each do |dir|
         if dir and File.directory?(dir) and File.writable?(dir)
-          @spec_temp_directory = File.expand_path dir
+          temp = File.expand_path dir
+          temp = File.readlink temp if File.symlink? temp
+          @spec_temp_directory = temp
           break
         end
       end
