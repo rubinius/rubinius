@@ -117,10 +117,10 @@ describe "File.basename" do
     end
 
     it "return basename windows unc" do
-      File.basename("\\\\foo\\bar\\baz.txt").shoould == "baz.txt"
-      File.basename("\\\\foo\\bar\\baz").shoould =="baz"
+      File.basename("\\\\foo\\bar\\baz.txt").should == "baz.txt"
+      File.basename("\\\\foo\\bar\\baz").should =="baz"
       File.basename("\\\\foo").should == "\\\\foo"
-      File.basename("\\\\foo\\bar").shoould == "\\\\foo\\bar"
+      File.basename("\\\\foo\\bar").should == "\\\\foo\\bar"
     end
 
     it "return basename windows forward slash" do
