@@ -5,12 +5,14 @@ describe "BigDecimal#nan?" do
 
   it "returns true if self is not a number" do
     BigDecimal("NaN").nan?.should == true
-    # BigDecimal("Infinity").nan?.should == true
-    # This fails.
-    # Is infinity really a number?
   end
 
-  it "returns false otherwise" do
+  it "returns false if self is not a NaN" do
+    BigDecimal("Infinity").nan?.should == false
+    BigDecimal("-Infinity").nan?.should == false
+    BigDecimal("0").nan?.should == false
+    BigDecimal("+0").nan?.should == false
+    BigDecimal("-0").nan?.should == false
     BigDecimal("2E40001").nan?.should == false
     BigDecimal("3E-20001").nan?.should == false
     BigDecimal("0E-200000000").nan?.should == false
@@ -19,4 +21,3 @@ describe "BigDecimal#nan?" do
   end
 
 end
-
