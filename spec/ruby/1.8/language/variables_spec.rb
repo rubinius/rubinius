@@ -336,6 +336,13 @@ describe "Conditional assignment" do
     cc &&=44
     cc.should == 44
   end
+
+  it "checks for class variable definition before fetching its value" do
+    class VariableSpecCVarSpec
+      @@cvarspec ||= 5
+      @@cvarspec.should == 5
+    end
+  end
 end
 
 describe "Operator assignment 'var op= expr'" do
