@@ -10,6 +10,6 @@ describe "Process.egid" do
   end
 
   it "also goes by Process::Sys.getegid" do
-    Process::Sys.getegid == Process.egid
+    Process::Sys.getegid.should == Process.egid
   end
 end

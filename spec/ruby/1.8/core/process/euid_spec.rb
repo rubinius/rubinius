@@ -10,6 +10,6 @@ describe "Process.euid" do
   end
 
   it "also goes by Process::Sys.geteuid" do
-    Process::Sys.geteuid == Process.euid
+    Process::Sys.geteuid.should == Process.euid
   end
 end
