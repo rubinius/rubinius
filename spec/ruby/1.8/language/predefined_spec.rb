@@ -65,17 +65,21 @@ describe "Predefined global $~" do
   it "is set at the method-scoped level rather than block-scoped" do
     obj = Object.new
     def obj.foo; yield; end
+    def obj.foo2(&proc); proc.call; end
 
-    match1 = /foo/.match "foo"
+    match = /foo/.match "foo"
 
-    match2 = nil
-    obj.foo { match2 = /bar/.match("bar") }
+    obj.foo { match = /bar/.match("bar") }
 
-    $~.should == match2
+    $~.should == match
 
-    eval 'match2 = /baz/.match("baz")'
+    eval 'match = /baz/.match("baz")'
 
-    $~.should == match2
+    $~.should == match
+
+    obj.foo2 { match = /qux/.match("qux") }
+
+    $~.should == match
   end
 
   it "raises an error if assigned an object not nil or instanceof MatchData" do
@@ -185,24 +189,29 @@ describe "Predefined global $_" do
     $_.should == read
   end
 
-=begin
   it "is set at the method-scoped level rather than block-scoped" do
     obj = Object.new
     def obj.foo; yield; end
+    def obj.foo2; yield; end
 
-    stdin = StringIO.new("foo\nbar\nbaz\n", "r")
-    match1 = in.gets
+    stdin = StringIO.new("foo\nbar\nbaz\nqux\n", "r")
+    match = stdin.gets
 
-    match2 = nil
-    obj.foo { match2 = stdin.gets }
+    obj.foo { match = stdin.gets }
 
-    $_.should == match2
+    match.should == "bar\n"
+    $_.should == match
 
-    eval 'match2 = stdin.gets'
+    eval 'match = stdin.gets'
 
-    $_.should == match2
+    match.should == "baz\n"
+    $_.should == match
+
+    obj.foo2 { match = stdin.gets }
+
+    match.should == "qux\n"
+    $_.should == match
   end
-=end
 
   it "can be assigned any value" do
     lambda { $_ = nil }.should_not raise_error
