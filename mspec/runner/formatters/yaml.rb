@@ -32,10 +32,11 @@ class YamlFormatter < DottedFormatter
       end
     end
 
-    print "time: ",         @timer.elapsed,      "\n"
-    print "examples: ",     @tally.examples,     "\n"
-    print "expectations: ", @tally.expectations, "\n"
-    print "failures: ",     @tally.failures,     "\n"
-    print "errors: ",       @tally.errors,       "\n"
+    print "time: ",         @timer.elapsed,              "\n"
+    print "files: ",        @tally.counter.files,        "\n"
+    print "examples: ",     @tally.counter.examples,     "\n"
+    print "expectations: ", @tally.counter.expectations, "\n"
+    print "failures: ",     @tally.counter.failures,     "\n"
+    print "errors: ",       @tally.counter.errors,       "\n"
   end
 end
