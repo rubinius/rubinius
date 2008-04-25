@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../../../../../spec_helper'
-require 'csv' 
+require 'csv'
 
-describe CSV::Reader, ".parse" do
-  
+describe "CSV::Reader.parse" do
+
   it "processes empty input without calling block" do
     empty_input = mock('empty file')
     empty_input.should_receive(:read).once.and_return(nil)
@@ -11,7 +11,7 @@ describe CSV::Reader, ".parse" do
     end
     Mock.verify_count
   end
-  
+
   it "calls block once for one row of input" do
     input_stream = File.open(File.dirname(__FILE__) + '/../fixtures/one_line.csv', 'rb')
     count = 0
@@ -20,5 +20,5 @@ describe CSV::Reader, ".parse" do
     end
     count.should == 1
   end
-     
+
 end
