@@ -1642,7 +1642,10 @@ CODE
     t2 = stack_pop();
     next_literal;
     t3 = cpu_open_class(state, c, t2, t1, _lit, &created);
-    if(t3 != Qundef) {
+
+    if(AUTOLOAD_P(t3)) {
+      cpu_send(state, c, t3, state->global->sym_call, 0, Qnil);
+    } else if(t3 != Qundef) {
       stack_push(t3);
       if(created) cpu_perform_hook(state, c, t3, global->sym_opened_class, t1);
     }
@@ -1689,7 +1692,10 @@ CODE
     t2 = c->enclosing_class;
     next_literal;
     t3 = cpu_open_class(state, c, t2, t1, _lit, &created);
-    if(t3 != Qundef) {
+
+    if(AUTOLOAD_P(t3)) {
+      cpu_send(state, c, t3, state->global->sym_call, 0, Qnil);
+    } else if(t3 != Qundef) {
       stack_push(t3);
       if(created) cpu_perform_hook(state, c, t3, global->sym_opened_class, t1);
     }
@@ -1720,7 +1726,13 @@ CODE
     <<-CODE
     next_literal;
     t1 = stack_pop();
-    stack_push(cpu_open_module(state, c, t1, _lit));
+    t2 = cpu_open_module(state, c, t1, _lit);
+
+    if(AUTOLOAD_P(t2)) {
+      cpu_send(state, c, t2, state->global->sym_call, 0, Qnil);
+    } else {
+      stack_push(t2);
+    }
     CODE
   end
 
@@ -1747,7 +1759,12 @@ CODE
   def open_module
     <<-CODE
     next_literal;
-    stack_push(cpu_open_module(state, c, c->enclosing_class, _lit));
+    t1 = cpu_open_module(state, c, c->enclosing_class, _lit);
+    if(AUTOLOAD_P(t1)) {
+      cpu_send(state, c, t1, state->global->sym_call, 0, Qnil);
+    } else {
+      stack_push(t1);
+    }
     CODE
   end
 

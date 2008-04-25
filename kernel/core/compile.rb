@@ -446,7 +446,7 @@ module Kernel
     else
       rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
     end
-
+    Autoload.remove(rb)
     Compile.unified_load path, rb, rbc, ext, true
   end
   module_function :require

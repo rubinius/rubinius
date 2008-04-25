@@ -63,7 +63,7 @@ describe "Module#autoload" do
     end
   end
 
-  it "should not interfer when file is required in the meantime" do
+  it "should not fail when the load path is manually required" do
     module ModuleSpecs::AutoloadRequire
       fixture = File.dirname(__FILE__) + "/fixtures/autoload_require.rb"
 

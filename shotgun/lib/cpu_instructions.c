@@ -91,6 +91,7 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, OBJECT sym, int *c
 
   val = module_const_get(state, under, sym);
   if(RTEST(val)) {
+    if(AUTOLOAD_P(val)) { return val; }
     if(ISA(val, BASIC_CLASS(class))) {
       if(!NIL_P(sup) && class_superclass(state, val) != sup) {
         cpu_raise_exception(state, c,
