@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require 'stringio'
 
 # The following tables are excerpted from Programming Ruby: The Pragmatic Programmer's Guide'
 # Second Edition by Dave Thomas, Chad Fowler, and Andy Hunt, page 319-22.
@@ -165,6 +166,51 @@ $stdin           IO              The current standard input.
 $stdout          IO              The current standard output. Assignment to $stdout is deprecated: use 
                                  $stdout.reopen instead. 
 =end
+
+
+describe "Predefined global $_" do
+  it "is set to the last line read by e.g. StringIO#gets" do
+    stdin = StringIO.new("foo\nbar\n", "r")
+
+    read = stdin.gets
+    read.should == "foo\n"
+    $_.should == read
+
+    read = stdin.gets
+    read.should == "bar\n"
+    $_.should == read
+
+    read = stdin.gets
+    read.should == nil
+    $_.should == read
+  end
+
+=begin
+  it "is set at the method-scoped level rather than block-scoped" do
+    obj = Object.new
+    def obj.foo; yield; end
+
+    stdin = StringIO.new("foo\nbar\nbaz\n", "r")
+    match1 = in.gets
+
+    match2 = nil
+    obj.foo { match2 = stdin.gets }
+
+    $_.should == match2
+
+    eval 'match2 = stdin.gets'
+
+    $_.should == match2
+  end
+=end
+
+  it "can be assigned any value" do
+    lambda { $_ = nil }.should_not raise_error
+    lambda { $_ = "foo" }.should_not raise_error
+    lambda { $_ = Object.new }.should_not raise_error
+    lambda { $_ = 1 }.should_not raise_error
+  end
+end
 
 =begin
 Execution Environment Variables 
