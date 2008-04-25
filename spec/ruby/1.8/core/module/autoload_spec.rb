@@ -62,6 +62,17 @@ describe "Module#autoload" do
       ModuleSpecs::AutoLoadParent::AutoLoadSubject.message.should == "success"
     end
   end
+
+  it "should not interfer when file is required in the meantime" do
+    module ModuleSpecs::AutoloadRequire
+      fixture = File.dirname(__FILE__) + "/fixtures/autoload_require.rb"
+
+      autoload(:ModuleSpecAutoloadRequire, fixture)
+      require fixture
+    end
+
+    ModuleSpecs::AutoloadRequire::ModuleSpecAutoloadRequire.hello.should == "Hello, World!"
+  end
 end
 
 describe "Module#autoload?" do
