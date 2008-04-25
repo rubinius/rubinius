@@ -20,16 +20,17 @@ class Autoload
   end
 
   class << self
-    def add(al)
+    def autoloads
       @autoloads ||= {}
-      @autoloads[al.path] = al
+    end
+
+    def add(al)
+      autoloads[al.path] = al
     end
 
     def remove(path)
-      @autoloads ||= {}
-      return unless @autoloads.key?(path)
-      al = @autoloads.delete(path)
-      al.discard
+      al = autoloads.delete(path)
+      al.discard if al
     end
   end
 end
