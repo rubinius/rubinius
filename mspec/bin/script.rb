@@ -41,7 +41,7 @@ class MSpecScript
   end
 
   def register
-    config[:formatter].new.register
+    config[:formatter].new(config[:output]).register
 
     MatchFilter.new(:include, *config[:includes]).register    unless config[:includes].empty?
     MatchFilter.new(:exclude, *config[:excludes]).register    unless config[:excludes].empty?
