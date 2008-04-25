@@ -60,6 +60,29 @@ describe "Predefined global $~" do
     /foo/ =~ 'bar'
     $~.nil?.should == true
   end
+
+  it "is set at the method-scoped level rather than block-scoped" do
+    obj = Object.new
+    def obj.foo; yield; end
+
+    match1 = /foo/.match "foo"
+
+    match2 = nil
+    obj.foo { match2 = /bar/.match("bar") }
+
+    $~.should == match2
+
+    eval 'match2 = /baz/.match("baz")'
+
+    $~.should == match2
+  end
+
+  it "raises an error if assigned an object not nil or instanceof MatchData" do
+    lambda { $~ = nil }.should_not raise_error
+    lambda { $~ = /foo/.match("foo") }.should_not raise_error
+    lambda { $~ = Object.new }.should raise_error(TypeError)
+    lambda { $~ = 1 }.should raise_error(TypeError)
+  end
 end
 
 describe "Predefined global $&" do
