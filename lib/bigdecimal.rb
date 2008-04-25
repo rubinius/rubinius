@@ -91,6 +91,17 @@ class BigDecimal < Numeric
     end
     [sigfigs, @precs]
   end
+  
+  ###############
+  # Conversions #
+  ###############
+  
+  def to_i
+    if self.nan? or !self.finite?
+      return nil
+    end
+    self.fix.to_s("F").to_i
+  end
 
   def to_s(arg='')
     # parse the argument for format specs
