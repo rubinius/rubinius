@@ -11,7 +11,6 @@ class Autoload
   end
 
   def call
-    Autoload.remove(path)
     require(path)
     scope.const_get(name)
   end
