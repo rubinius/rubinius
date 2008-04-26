@@ -73,6 +73,17 @@ describe "Module#autoload" do
 
     ModuleSpecs::AutoloadRequire::ModuleSpecAutoloadRequire.hello.should == "Hello, World!"
   end
+
+  it "should correctly match paths with and without ruby file extensions" do
+    module ModuleSpecs::AutoloadExtension
+      with_rb = File.dirname(__FILE__) + "/fixtures/autoload_extension.rb"
+      without_rb = with_rb[0..-4]
+
+      autoload(:Constant, without_rb)
+      require with_rb
+    end
+    ModuleSpecs::AutoloadExtension::Constant.message.should == "success"
+  end
 end
 
 describe "Module#autoload?" do
