@@ -97,6 +97,11 @@ class BigDecimal < Numeric
   # Conversions #
   ###############
   
+  def to_f
+    self.to_s("F").to_f
+    # Are there more cases we need to trap for?  This seems too easy.
+  end
+  
   def to_i
     if self.nan? or !self.finite?
       return nil
