@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
-require 'bin/options'
+require 'mspec/utils/options'
 require 'mspec/version'
 require 'mspec/runner/mspec'
 require 'mspec/runner/formatters'

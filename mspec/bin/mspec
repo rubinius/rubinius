@@ -1,9 +1,11 @@
 #!/usr/bin/env ruby
 
+$:.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
+
 require 'yaml'
 require 'optparse'
-require 'mspec/bin/options'
-require 'mspec/bin/script'
+require 'mspec/utils/options'
+require 'mspec/utils/script'
 require 'mspec/helpers/tmp'
 require 'mspec/runner/actions/timer'
 

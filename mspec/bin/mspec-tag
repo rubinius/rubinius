@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
 
+$:.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
+
 require 'optparse'
-require 'mspec/bin/options'
-require 'mspec/bin/script'
+require 'mspec/utils/options'
+require 'mspec/utils/script'
 
 
 class MSpecTag < MSpecScript
@@ -86,6 +88,6 @@ class MSpecTag < MSpecScript
 end
 
 if __FILE__ == $0
-  require 'mspec/complete'
+  require 'mspec'
   MSpecTag.main
 end

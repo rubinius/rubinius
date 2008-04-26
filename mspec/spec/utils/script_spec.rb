@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
-require 'bin/script'
+require 'mspec/utils/script'
 require 'mspec/runner/mspec'
 require 'mspec/runner/filters'
 require 'mspec/runner/actions/filter'

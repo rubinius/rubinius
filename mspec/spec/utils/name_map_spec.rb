@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
-require 'bin/name_map'
+require 'mspec/utils/name_map'
 
 module NameMapSpecs
   class A
