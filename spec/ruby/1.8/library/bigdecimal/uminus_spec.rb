@@ -13,6 +13,10 @@ describe "BigDecimal#-@" do
     @one_minus = BigDecimal("-1")
     @frac_1 = BigDecimal("1E-99999")
     @frac_2 = BigDecimal("0.9E-99999")
+    @big = BigDecimal("333E99999")
+    @big_neg = BigDecimal("-333E99999")
+    @values = [@one, @zero, @zero_pos, @zero_neg, @infinity,
+      @infinity_minus, @one_minus, @frac_1, @frac_2, @big, @big_neg]
   end
 
   it "negates self" do
@@ -20,6 +24,8 @@ describe "BigDecimal#-@" do
     @one_minus.send(:-@).should == @one
     @frac_1.send(:-@).should == BigDecimal("-1E-99999")
     @frac_2.send(:-@).should == BigDecimal("-0.9E-99999")
+    @big.send(:-@).should == @big_neg
+    @big_neg.send(:-@).should == @big
     BigDecimal("2.221").send(:-@).should == BigDecimal("-2.221")
     BigDecimal("2E10000").send(:-@).should == BigDecimal("-2E10000")
     some_number = BigDecimal("2455999221.5512")
@@ -29,6 +35,9 @@ describe "BigDecimal#-@" do
     another_number = BigDecimal("-8.551551551551551551")
     another_number_pos = BigDecimal("8.551551551551551551")
     another_number.send(:-@).should == another_number_pos
+    @values.each do |val|
+      (val.send(:-@).send(:-@)).should == val
+    end
   end
 
   it "properly handles special values" do
