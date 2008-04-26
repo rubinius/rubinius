@@ -17,7 +17,7 @@ describe "BigDecimal#truncate" do
     end
   end
 
-  it "returns the nearest Integer if no precision given" do
+  it "returns the integer part as a BigDecimal if no precision given" do
     BigDecimal(@arr[0]).truncate.should == 3
     BigDecimal(@arr[1]).truncate.should == 8
     BigDecimal(@arr[2]).truncate.should == 3
