@@ -22,6 +22,7 @@ class BigDecimal < Numeric
   PLUS = '+'
   MINUS = '-'
   RADIX = '.'
+  EXP = 'E'
   
   # call-seq:
   #   BigDecimal("3.14159")   => big_decimal
@@ -113,7 +114,6 @@ class BigDecimal < Numeric
     format = arg =~ /F/ ? :float : :eng
     spacing = arg.to_i
     
-    e = 'E'
     nan = 'NaN'
     infinity = 'Infinity'
 
@@ -141,7 +141,7 @@ class BigDecimal < Numeric
       elsif format == :eng
         value = '0' + RADIX + value
         if @exp != 0
-          value << e + @exp.to_s
+          value << EXP + @exp.to_s
         end
       end
       
@@ -318,6 +318,19 @@ class BigDecimal < Numeric
       @sign == PLUS ? SIGN_POSITIVE_FINITE : SIGN_NEGATIVE_FINITE
     else # infinite
       @sign == PLUS ? SIGN_POSITIVE_INFINITE : SIGN_NEGATIVE_INFINITE
+    end
+  end
+  
+  def truncate(prec = nil)
+    if self.nan? or !self.finite?
+      return self
+    elsif prec.nil?
+      self.fix
+    else
+      e = [0, @exp + prec].max
+      s = @digits.to_s[0, e]
+      sign = self.to_s[0, 1] == MINUS ? MINUS : PLUS
+      BigDecimal(sign + '0' + RADIX + s + EXP + @exp.to_s)
     end
   end
 end
