@@ -778,7 +778,7 @@ class Module
     return unless constants_table.key?(name)
     trigger = constants_table[name]
     return unless trigger.kind_of?(Autoload)
-    trigger.path
+    trigger.original_path
   end
 
   def remove_const(name)

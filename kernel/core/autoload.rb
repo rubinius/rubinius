@@ -2,11 +2,13 @@ class Autoload
   attr_reader :name
   attr_reader :scope
   attr_reader :path
+  attr_reader :original_path
 
   def initialize(name, scope, path)
     @name = name
     @scope = scope
-    @path = path
+    @original_path = path
+    @path, = __split_path__(path)
     Autoload.add(self)
   end
 
