@@ -60,7 +60,7 @@ describe "String#%" do
       old_debug = $DEBUG
       $DEBUG = true
       s = $stderr
-      $stderr = CaptureOutput.new
+      $stderr = IOStub.new
 
       lambda { "" % [1, 2, 3]   }.should raise_error(ArgumentError)
       lambda { "%s" % [1, 2, 3] }.should raise_error(ArgumentError)
