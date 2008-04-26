@@ -184,7 +184,11 @@ class BigDecimal < Numeric
 
   def coerce(other)
     Ruby.primitive :numeric_coerce
-    [BigDecimal(other.to_s), self]
+    if other.kind_of?(BigDecimal)
+      [other, self]
+    else
+      [BigDecimal(other.to_s), self]
+    end
   end
 
   #########################
