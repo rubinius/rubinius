@@ -63,8 +63,9 @@ class MethodContext
   def line
     return 0 unless self.method
     # We subtract 1 because the ip is actually set to what it should do
-    # next, not what it's currently doing.
-    return self.method.line_from_ip(self.ip - 1)
+    # next, not what it's currently doing (unless we are at the start of
+    # a new context).
+    return self.method.line_from_ip(self.ip == 0 ? self.ip : self.ip - 1)
   end
 
   # Copies context. If locals is true
