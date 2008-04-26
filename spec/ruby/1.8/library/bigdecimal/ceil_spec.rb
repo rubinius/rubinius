@@ -17,8 +17,13 @@ describe "BigDecimal#ceil" do
     @zero_pos = BigDecimal("+0")
     @zero_neg = BigDecimal("-0")
   end
+  
+  it "returns a BigDecimal" do
+    @mixed.ceil.kind_of?(BigDecimal).should == true
+    @pos_int.ceil(2).kind_of?(BigDecimal).should == true
+  end
 
-  it "returns the smallest integer greater or equal to self" do
+  it "returns the smallest integer greater or equal to self, if n is unspecified" do
     @pos_int.ceil.should == @pos_int
     @neg_int.ceil.should == @neg_int
     @pos_frac.ceil.should == BigDecimal("1")
