@@ -1,1 +1,0 @@
-fails:BigDecimal#truncate returns the nearest Integer if no precision given
