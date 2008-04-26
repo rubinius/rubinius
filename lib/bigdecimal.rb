@@ -177,7 +177,7 @@ class BigDecimal < Numeric
   
   def inspect
     str = '#<BigDecimal:'
-    str << [nil, self.to_s, "#{precs[0]}(#{precs[1]})"].join(',')
+    str << [nil, "'#{self.to_s}'", "#{precs[0]}(#{precs[1]})"].join(',')
     str << '>'
     return str
   end
