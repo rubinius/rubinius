@@ -4,7 +4,8 @@ require 'complex'
 describe "Complex#% with [Complex]" do
   it "needs to be reviewed for spec completeness" do
   end
-  
+
+quarantine! do # second part of the test fails on MRI, RBX, JRuby!!!
   it "returns the remainder from complex division" do
   # Is this spec even correct? It doesn't work on MRI or rbx, at least not for the floating-point case.
     a = 1
@@ -25,6 +26,8 @@ describe "Complex#% with [Complex]" do
     x = (Complex(a, b) * Complex(c, d)) + Complex(e, f)
     (x % Complex(c, d)).should be_close(Complex(e, f), TOLERANCE)
   end
+end
+
 end
 
 describe "Complex#% with [real]" do

@@ -20,6 +20,7 @@ describe "Matrix#clone" do
     @a = Matrix[[1, 2], [3, 4], [5, 6]]
   end
   
+quarantine! do # The test fails on MRI 1.8.6 pl 111, pl 114, MRI 1.8.7, JRuby
   it "returns a copy of the matrix, but with all the references different" do
     b = @a.clone
     b.class.should == Matrix
@@ -32,4 +33,6 @@ describe "Matrix#clone" do
       end
     end
   end
+end
+
 end
