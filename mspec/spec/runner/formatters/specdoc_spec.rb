@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/formatters/specdoc'
-require File.dirname(__FILE__) + '/../../../runner/state'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/formatters/specdoc'
+require 'mspec/runner/state'
 
 describe SpecdocFormatter do
   before :each do
@@ -16,7 +16,7 @@ end
 
 describe SpecdocFormatter, "#enter" do
   before :each do
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @formatter = SpecdocFormatter.new
   end
 
@@ -32,7 +32,7 @@ end
 
 describe SpecdocFormatter, "#after" do
   before :each do
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @formatter = SpecdocFormatter.new
     @state = SpecState.new("describe", "it")
   end

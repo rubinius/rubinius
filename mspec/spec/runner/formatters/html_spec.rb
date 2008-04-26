@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/guards/guard'
-require File.dirname(__FILE__) + '/../../../runner/formatters/html'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/state'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/guards/guard'
+require 'mspec/runner/formatters/html'
+require 'mspec/runner/mspec'
+require 'mspec/runner/state'
 
 describe HtmlFormatter do
   before :each do
@@ -20,7 +20,7 @@ end
 
 describe HtmlFormatter, "#start" do
   before :each do
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @formatter = HtmlFormatter.new
   end
 
@@ -53,7 +53,7 @@ end
 
 describe HtmlFormatter, "#enter" do
   before :each do
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @formatter = HtmlFormatter.new
   end
 
@@ -69,7 +69,7 @@ end
 
 describe HtmlFormatter, "#leave" do
   before :each do
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @formatter = HtmlFormatter.new
   end
 
@@ -85,7 +85,7 @@ end
 
 describe HtmlFormatter, "#after" do
   before :each do
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @formatter = HtmlFormatter.new
     @state = SpecState.new("describe", "it")
   end
@@ -121,7 +121,7 @@ describe HtmlFormatter, "#finish" do
     @timer = mock("timer", :null_object => true)
     TimerAction.stub!(:new).and_return(@timer)
 
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @state = SpecState.new("describe", "it")
     MSpec.stub!(:register)
     @formatter = HtmlFormatter.new

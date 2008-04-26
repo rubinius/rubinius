@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/formatters/yaml'
-require File.dirname(__FILE__) + '/../../../runner/state'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/formatters/yaml'
+require 'mspec/runner/state'
 
 describe YamlFormatter, "#initialize" do
   it "permits zero arguments" do
@@ -14,8 +14,8 @@ end
 
 describe YamlFormatter, "#print" do
   before :each do
-    $stdout = CaptureOutput.new
-    @out = CaptureOutput.new
+    $stdout = IOStub.new
+    @out = IOStub.new
     File.stub!(:open).and_return(@out)
     @formatter = YamlFormatter.new "some/file"
   end
@@ -56,7 +56,7 @@ describe YamlFormatter, "#finish" do
     @timer = mock("timer", :null_object => true)
     TimerAction.stub!(:new).and_return(@timer)
 
-    $stdout = CaptureOutput.new
+    $stdout = IOStub.new
     @state = SpecState.new("describe", "it")
     @state.exceptions << ["msg", Exception.new("broken")]
 

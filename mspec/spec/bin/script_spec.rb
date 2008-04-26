@@ -1,10 +1,10 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../bin/script'
-require File.dirname(__FILE__) + '/../../runner/mspec'
-require File.dirname(__FILE__) + '/../../runner/filters'
-require File.dirname(__FILE__) + '/../../runner/actions/filter'
-require File.dirname(__FILE__) + '/../../runner/actions/debug'
-require File.dirname(__FILE__) + '/../../runner/actions/gdb'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'bin/script'
+require 'mspec/runner/mspec'
+require 'mspec/runner/filters'
+require 'mspec/runner/actions/filter'
+require 'mspec/runner/actions/debug'
+require 'mspec/runner/actions/gdb'
 
 describe MSpecScript, ".config" do
   it "returns a Hash" do

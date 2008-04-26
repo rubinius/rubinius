@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../expectations'
-require File.dirname(__FILE__) + '/../../../runner/actions/tally'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/state'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/expectations/expectations'
+require 'mspec/runner/actions/tally'
+require 'mspec/runner/mspec'
+require 'mspec/runner/state'
 
 describe Tally do
   before :each do

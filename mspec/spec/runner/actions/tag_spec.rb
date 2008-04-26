@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/actions/tag'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/state'
-require File.dirname(__FILE__) + '/../../../runner/tag'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/actions/tag'
+require 'mspec/runner/mspec'
+require 'mspec/runner/state'
+require 'mspec/runner/tag'
 
 describe TagAction do
   before :each do
@@ -172,7 +172,7 @@ end
 
 describe TagAction, "#finish" do
   before :each do
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @state = SpecState.new "Catch#me", "if you can"
     MSpec.stub!(:write_tag).and_return(true)
     MSpec.stub!(:delete_tag).and_return(true)

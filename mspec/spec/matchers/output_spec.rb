@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../expectations'
-require File.dirname(__FILE__) + '/../../matchers/output'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/expectations/expectations'
+require 'mspec/matchers/output'
 
 describe OutputMatcher do
   it "matches when executing the proc results in the expected output to $stdout" do

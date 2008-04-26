@@ -1,13 +1,13 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../expectations'
-require File.dirname(__FILE__) + '/../../matchers/base'
-require File.dirname(__FILE__) + '/../../runner/mspec'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/expectations/expectations'
+require 'mspec/matchers/base'
+require 'mspec/runner/mspec'
 
 class Object
   alias_method :rspec_should,     :should
   alias_method :rspec_should_not, :should_not
 end
-require File.dirname(__FILE__) + '/../../expectations/should'
+require 'mspec/expectations/should'
 class Object
   alias_method :mspec_should,     :should
   alias_method :mspec_should_not, :should_not

@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-load File.dirname(__FILE__) + '/../../bin/mspec'
+require File.dirname(__FILE__) + '/../spec_helper'
+load 'bin/mspec'
 
 class MMConfig < Hash
   def initialize
@@ -102,7 +102,7 @@ end
 
 describe MSpecMain, "#report" do
   before :each do
-    @stdout, $stdout = $stdout, CaptureOutput.new
+    @stdout, $stdout = $stdout, IOStub.new
 
     @timer = mock("timer", :null_object => true)
     @timer.stub!(:format).and_return("Finished in 42 seconds")

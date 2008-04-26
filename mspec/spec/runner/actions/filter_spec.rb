@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/actions/filter'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/tag'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/actions/filter'
+require 'mspec/runner/mspec'
+require 'mspec/runner/tag'
 
 describe ActionFilter do
   it "creates a filter when not passed a description" do

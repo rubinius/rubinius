@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/formatters/unit'
-require File.dirname(__FILE__) + '/../../../runner/state'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/formatters/unit'
+require 'mspec/runner/state'
 
 describe UnitdiffFormatter, "#finish" do
   before :each do
@@ -9,7 +9,7 @@ describe UnitdiffFormatter, "#finish" do
     @timer = mock("timer", :null_object => true)
     TimerAction.stub!(:new).and_return(@timer)
 
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @state = SpecState.new("describe", "it")
     MSpec.stub!(:register)
     @formatter = UnitdiffFormatter.new

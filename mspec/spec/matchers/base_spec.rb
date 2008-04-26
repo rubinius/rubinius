@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../expectations'
-require File.dirname(__FILE__) + '/../../matchers/base'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/expectations/expectations'
+require 'mspec/matchers/base'
 require 'time'
 
 describe PositiveOperatorMatcher, "== operator" do

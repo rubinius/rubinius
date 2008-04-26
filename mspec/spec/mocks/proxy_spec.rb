@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../mocks/proxy'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/mocks/proxy'
 
 describe MockProxy, "reporting method" do
   before :each do

@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/formatters/spinner'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/state'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/formatters/spinner'
+require 'mspec/runner/mspec'
+require 'mspec/runner/state'
 
 describe SpinnerFormatter, "#initialize" do
   it "permits zero arguments" do
@@ -44,7 +44,7 @@ describe SpinnerFormatter, "#print" do
   end
 
   it "ignores the argument to #initialize and writes to $stdout" do
-    $stdout = CaptureOutput.new
+    $stdout = IOStub.new
     formatter = SpinnerFormatter.new "some/file"
     formatter.print "begonias"
     $stdout.should == "begonias"

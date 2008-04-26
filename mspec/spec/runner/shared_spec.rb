@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../runner/shared'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/runner/shared'
 
 describe Object, "#shared" do
   it "stores the passed block in the MSpec module" do

@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/filters/regexp'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/mspec'
+require 'mspec/runner/filters/regexp'
 
 describe RegexpFilter, "#to_regexp" do
   before :each do

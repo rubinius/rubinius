@@ -1,10 +1,10 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../runner/mspec'
-load File.dirname(__FILE__) + '/../../bin/mspec-run'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/runner/mspec'
+load 'bin/mspec-run'
 
 describe MSpecRun, "#options" do
   before :each do
-    @stdout, $stdout = $stdout, CaptureOutput.new
+    @stdout, $stdout = $stdout, IOStub.new
 
     @options = mock("MSpecOptions", :null_object => true)
     @options.stub!(:parse).and_return(["blocked!"])

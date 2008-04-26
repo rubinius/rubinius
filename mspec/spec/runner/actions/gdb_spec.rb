@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/actions/gdb'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/state'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/actions/gdb'
+require 'mspec/runner/mspec'
+require 'mspec/runner/state'
 
 describe GdbAction do
   before :each do

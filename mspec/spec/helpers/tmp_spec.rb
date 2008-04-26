@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../helpers/tmp'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/helpers/tmp'
 
 describe Object, "#tmp" do
   before :each do

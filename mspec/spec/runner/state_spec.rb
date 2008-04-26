@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../matchers/base'
-require File.dirname(__FILE__) + '/../../runner/mspec'
-require File.dirname(__FILE__) + '/../../mocks/mock'
-require File.dirname(__FILE__) + '/../../runner/state'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/matchers/base'
+require 'mspec/runner/mspec'
+require 'mspec/mocks/mock'
+require 'mspec/runner/state'
 
 describe RunState do
   before :each do

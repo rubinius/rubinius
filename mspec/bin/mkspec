@@ -5,7 +5,7 @@
 require 'fileutils'
 require 'optparse'
 require 'mspec/version'
-require 'mspec/bin/name_map'
+require 'bin/name_map'
 
 class MkSpec
   attr_reader :config

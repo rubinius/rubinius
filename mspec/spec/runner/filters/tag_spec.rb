@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/filters/match'
-require File.dirname(__FILE__) + '/../../../runner/filters/tag'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/mspec'
+require 'mspec/runner/filters/match'
+require 'mspec/runner/filters/tag'
 
 describe TagFilter, "#load" do
   before :each do

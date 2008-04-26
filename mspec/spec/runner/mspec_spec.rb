@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../matchers/base'
-require File.dirname(__FILE__) + '/../../runner/mspec'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/matchers/base'
+require 'mspec/runner/mspec'
 
 describe MSpec do
   it "provides .register_files to record which spec files to run" do

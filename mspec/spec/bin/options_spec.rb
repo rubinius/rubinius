@@ -1,8 +1,8 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../bin/options'
-require File.dirname(__FILE__) + '/../../version'
-require File.dirname(__FILE__) + '/../../runner/mspec'
-require File.dirname(__FILE__) + '/../../runner/formatters'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'bin/options'
+require 'mspec/version'
+require 'mspec/runner/mspec'
+require 'mspec/runner/formatters'
 
 class MOSConfig < Hash
   def initialize
