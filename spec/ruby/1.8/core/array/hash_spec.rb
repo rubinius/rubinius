@@ -28,14 +28,13 @@ describe "Array#hash" do
       ary.each { |obj| obj.frozen?.should == true }
     
       hash = mock('1')
-      hash.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      hash.should_receive(:method_missing).with(:to_int).and_return(1)
+      hash.should_receive(:to_int).and_return(1.hash)
     
       obj = mock('@hash')
       obj.instance_variable_set(:@hash, hash)
       def obj.hash() @hash end
       
-      [obj].hash.should == [0].hash
+      [obj].hash.should == [1].hash
     end
   end
   
