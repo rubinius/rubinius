@@ -2,12 +2,17 @@
 module Mongrel
   class HttpParserError < IOError; end
   
-# line 51 "http11_parser.rb.rl"
+# line 63 "http11_parser.rb.rl"
 
 
-  class HttpParser
+  class HttpParser  
+    SERVER_SOFTWARE   = 'Mongrel (Rubinius)'
+    SERVER_PROTOCOL   = 'HTTP/1.1'
+    GATEWAY_INTERFACE = 'CGI/1.2'
+    HTTP_PREFIX       = 'HTTP_'
     
-# line 11 "http11.rb"
+    
+# line 16 "http11_pre.rb"
 
 HTTP_PARSER_ACTIONS = [
 	0, 1, 0, 1, 2, 1, 3, 1, 
@@ -28,18 +33,10 @@ HTTP_PARSER_ERROR = 0;
 
 HTTP_PARSER_EN_MAIN = 1;
 
-# line 55 "http11_parser.rb.rl"
+# line 72 "http11_parser.rb.rl"
     
     def initialize
-      
-      @cs = HTTP_PARSER_START
-      
-      @body_start = 0
-      @content_len = 0
-      @mark = 0
-      @nread = 0
-      @field_len = 0
-      @field_start = 0
+      reset
     end
 
     def execute(params, data, nparsed)
@@ -53,7 +50,7 @@ HTTP_PARSER_EN_MAIN = 1;
       raise ArgumentError, "offset past end of buffer" if nparsed > len
 
       
-# line 68 "http11.rb"
+# line 65 "http11_pre.rb"
 	begin
  _acts, _nacts = nil
 
@@ -4215,7 +4212,7 @@ Rubinius.asm {
 	when 2 then
 # line 9 "http11_parser.rb.rl"
 		begin
- snake_upcase_char p 		end
+ p 		end
 # line 9 "http11_parser.rb.rl"
 	when 3 then
 # line 10 "http11_parser.rb.rl"
@@ -4235,63 +4232,75 @@ Rubinius.asm {
       field = data.slice(@field_start, @field_len).split('-').map { |f| f.upcase }.join('_')
       value = data.slice(@mark, p - @mark)
       
-      params['HTTP_' + field] = value
-      params['SERVER_NAME'] = value if field == 'HOST'
+      params[HTTP_PREFIX + field] = value
     end
   		end
 # line 12 "http11_parser.rb.rl"
 	when 6 then
-# line 21 "http11_parser.rb.rl"
+# line 20 "http11_parser.rb.rl"
 		begin
 
     params['REQUEST_METHOD'] = data.slice @mark, p - @mark
   		end
-# line 21 "http11_parser.rb.rl"
+# line 20 "http11_parser.rb.rl"
 	when 7 then
-# line 24 "http11_parser.rb.rl"
+# line 23 "http11_parser.rb.rl"
 		begin
 
     params['REQUEST_URI'] = data.slice @mark, p - @mark
   		end
-# line 24 "http11_parser.rb.rl"
+# line 23 "http11_parser.rb.rl"
 	when 8 then
-# line 27 "http11_parser.rb.rl"
+# line 26 "http11_parser.rb.rl"
 		begin
 
     params['FRAGMENT'] = data.slice @mark, p - @mark
   		end
-# line 27 "http11_parser.rb.rl"
+# line 26 "http11_parser.rb.rl"
 	when 9 then
-# line 31 "http11_parser.rb.rl"
+# line 30 "http11_parser.rb.rl"
 		begin
  @query_start = p 		end
-# line 31 "http11_parser.rb.rl"
+# line 30 "http11_parser.rb.rl"
 	when 10 then
-# line 33 "http11_parser.rb.rl"
+# line 32 "http11_parser.rb.rl"
 		begin
 
     params['QUERY_STRING'] = data.slice @query_start, p - @query_start
   		end
-# line 33 "http11_parser.rb.rl"
+# line 32 "http11_parser.rb.rl"
 	when 11 then
-# line 37 "http11_parser.rb.rl"
+# line 36 "http11_parser.rb.rl"
 		begin
 
     params['SERVER_PROTOCOL'] = data.slice @mark, p - @mark
   		end
-# line 37 "http11_parser.rb.rl"
+# line 36 "http11_parser.rb.rl"
 	when 12 then
-# line 41 "http11_parser.rb.rl"
+# line 40 "http11_parser.rb.rl"
 		begin
 
     params['REQUEST_PATH'] = data.slice @mark, p - @mark
   		end
-# line 41 "http11_parser.rb.rl"
+# line 40 "http11_parser.rb.rl"
 	when 13 then
-# line 45 "http11_parser.rb.rl"
+# line 44 "http11_parser.rb.rl"
 		begin
 
+    params['SERVER_SOFTWARE']   = SERVER_SOFTWARE
+    params['SERVER_PROTOCOL']   = SERVER_PROTOCOL
+    params['GATEWAY_INTERFACE'] = GATEWAY_INTERFACE
+    
+    params['CONTENT_LENGTH'] = params['HTTP_CONTENT_LENGTH'] if params['HTTP_CONTENT_LENGTH']
+    params['CONTENT_TYPE']   = params['HTTP_CONTENT_TYPE']   if params['HTTP_CONTENT_TYPE']
+
+    if params['HTTP_HOST']
+      params['SERVER_NAME'], params['SERVER_PORT'] = params['HTTP_HOST'].split ':'
+      params['SERVER_PORT'] ||= '80'
+    end
+    
     @body_start = p + 1    
+    params.http_body = data.slice(p + 1, pe - p - 1) if params.respond_to? :http_body=
     Rubinius.asm { 
  @labels = Hash.new if @labels.nil?; tbl = @labels;
  unless lbl = tbl[:_http_parser__out]
@@ -4301,12 +4310,12 @@ Rubinius.asm {
 }	
   begin
 		p += 1
-		0x108774
+		0x108804
 	end
 
   		end
-# line 45 "http11_parser.rb.rl"
-# line 4320 "http11.rb"
+# line 44 "http11_parser.rb.rl"
+# line 4329 "http11_pre.rb"
 		end
 	end 
 Rubinius.asm { 
@@ -4350,7 +4359,7 @@ Rubinius.asm {
  lbl.set!
 }
 	end
-# line 79 "http11_parser.rb.rl"
+# line 88 "http11_parser.rb.rl"
 
       @cs = cs
       @nread += (p - nparsed)
@@ -4372,6 +4381,18 @@ Rubinius.asm {
       @nread
     end
 
+    def reset
+      @cs = HTTP_PARSER_START
+    
+      @body_start = 0
+      @content_len = 0
+      @mark = 0
+      @nread = 0
+      @field_len = 0
+      @field_start = 0
+      nil
+    end
+    
     def finish
       # FIXME hack to replace write eof
       @cs = HTTP_PARSER_FIRST_FINAL
@@ -4387,14 +4408,6 @@ Rubinius.asm {
   
     def finished?
       @cs == HTTP_PARSER_FIRST_FINAL
-    end
-  
-    def snake_upcase_char(c)
-      case c.chr
-      when /a-z/ then c.chr.upcase.ord
-      when '-' then '_'.ord
-      else c
-      end
     end
   end
 end
