@@ -50,11 +50,10 @@ module Mongrel
   include http_parser_common "http11_parser_common.rl";
 }%%
 
-  class HttpParser    
+  class HttpParser
+    %% write data;    
+    
     def initialize
-      # FIXME this write data should *really* go somewhere else as it
-      # makes the whole parser instance-specific data.
-      %% write data;    
       
       @cs = http_parser_start
       

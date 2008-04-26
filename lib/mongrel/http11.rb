@@ -5,17 +5,11 @@ module Mongrel
 # line 51 "http11_parser.rb.rl"
 
 
-  class HttpParser    
-    def initialize
-      # FIXME this write data should *really* go somewhere else as it
-      # makes the whole parser instance-specific data.
-      
-# line 14 "http11_parser.rb.rb"
-class << self
-	attr_accessor :_http_parser_actions
-	private :_http_parser_actions, :_http_parser_actions=
-end
-self._http_parser_actions = [
+  class HttpParser
+    
+# line 11 "http11.rb"
+
+HTTP_PARSER_ACTIONS = [
 	0, 1, 0, 1, 2, 1, 3, 1, 
 	4, 1, 5, 1, 6, 1, 7, 1, 
 	8, 1, 9, 1, 11, 1, 12, 1, 
@@ -24,218 +18,21 @@ self._http_parser_actions = [
 	3, 9, 10, 7
 ]
 
-class << self
-	attr_accessor :_http_parser_key_offsets
-	private :_http_parser_key_offsets, :_http_parser_key_offsets=
-end
-self._http_parser_key_offsets = [
-	0, 0, 8, 17, 27, 29, 30, 31, 
-	32, 33, 34, 36, 39, 41, 44, 45, 
-	61, 62, 78, 80, 81, 87, 93, 99, 
-	105, 115, 121, 127, 133, 141, 147, 153, 
-	160, 166, 172, 178, 184, 190, 196, 205, 
-	214, 223, 232, 241, 250, 259, 268, 277, 
-	286, 295, 304, 313, 322, 331, 340, 349, 
-	358, 359
-]
 
-class << self
-	attr_accessor :_http_parser_trans_keys
-	private :_http_parser_trans_keys, :_http_parser_trans_keys=
-end
-self._http_parser_trans_keys = [
-	36, 95, 45, 46, 48, 57, 65, 90, 
-	32, 36, 95, 45, 46, 48, 57, 65, 
-	90, 42, 43, 47, 58, 45, 57, 65, 
-	90, 97, 122, 32, 35, 72, 84, 84, 
-	80, 47, 48, 57, 46, 48, 57, 48, 
-	57, 13, 48, 57, 10, 13, 33, 124, 
-	126, 35, 39, 42, 43, 45, 46, 48, 
-	57, 65, 90, 94, 122, 10, 33, 58, 
-	124, 126, 35, 39, 42, 43, 45, 46, 
-	48, 57, 65, 90, 94, 122, 13, 32, 
-	13, 32, 35, 37, 127, 0, 31, 32, 
-	35, 37, 127, 0, 31, 48, 57, 65, 
-	70, 97, 102, 48, 57, 65, 70, 97, 
-	102, 43, 58, 45, 46, 48, 57, 65, 
-	90, 97, 122, 32, 35, 37, 127, 0, 
-	31, 48, 57, 65, 70, 97, 102, 48, 
-	57, 65, 70, 97, 102, 32, 35, 37, 
-	59, 63, 127, 0, 31, 48, 57, 65, 
-	70, 97, 102, 48, 57, 65, 70, 97, 
-	102, 32, 35, 37, 63, 127, 0, 31, 
-	48, 57, 65, 70, 97, 102, 48, 57, 
-	65, 70, 97, 102, 32, 35, 37, 127, 
-	0, 31, 32, 35, 37, 127, 0, 31, 
-	48, 57, 65, 70, 97, 102, 48, 57, 
-	65, 70, 97, 102, 32, 36, 95, 45, 
-	46, 48, 57, 65, 90, 32, 36, 95, 
-	45, 46, 48, 57, 65, 90, 32, 36, 
-	95, 45, 46, 48, 57, 65, 90, 32, 
-	36, 95, 45, 46, 48, 57, 65, 90, 
-	32, 36, 95, 45, 46, 48, 57, 65, 
-	90, 32, 36, 95, 45, 46, 48, 57, 
-	65, 90, 32, 36, 95, 45, 46, 48, 
-	57, 65, 90, 32, 36, 95, 45, 46, 
-	48, 57, 65, 90, 32, 36, 95, 45, 
-	46, 48, 57, 65, 90, 32, 36, 95, 
-	45, 46, 48, 57, 65, 90, 32, 36, 
-	95, 45, 46, 48, 57, 65, 90, 32, 
-	36, 95, 45, 46, 48, 57, 65, 90, 
-	32, 36, 95, 45, 46, 48, 57, 65, 
-	90, 32, 36, 95, 45, 46, 48, 57, 
-	65, 90, 32, 36, 95, 45, 46, 48, 
-	57, 65, 90, 32, 36, 95, 45, 46, 
-	48, 57, 65, 90, 32, 36, 95, 45, 
-	46, 48, 57, 65, 90, 32, 36, 95, 
-	45, 46, 48, 57, 65, 90, 32, 0
-]
+HTTP_PARSER_START = 1;
 
-class << self
-	attr_accessor :_http_parser_single_lengths
-	private :_http_parser_single_lengths, :_http_parser_single_lengths=
-end
-self._http_parser_single_lengths = [
-	0, 2, 3, 4, 2, 1, 1, 1, 
-	1, 1, 0, 1, 0, 1, 1, 4, 
-	1, 4, 2, 1, 4, 4, 0, 0, 
-	2, 4, 0, 0, 6, 0, 0, 5, 
-	0, 0, 4, 4, 0, 0, 3, 3, 
-	3, 3, 3, 3, 3, 3, 3, 3, 
-	3, 3, 3, 3, 3, 3, 3, 3, 
-	1, 0
-]
+HTTP_PARSER_FIRST_FINAL = 57;
 
-class << self
-	attr_accessor :_http_parser_range_lengths
-	private :_http_parser_range_lengths, :_http_parser_range_lengths=
-end
-self._http_parser_range_lengths = [
-	0, 3, 3, 3, 0, 0, 0, 0, 
-	0, 0, 1, 1, 1, 1, 0, 6, 
-	0, 6, 0, 0, 1, 1, 3, 3, 
-	4, 1, 3, 3, 1, 3, 3, 1, 
-	3, 3, 1, 1, 3, 3, 3, 3, 
-	3, 3, 3, 3, 3, 3, 3, 3, 
-	3, 3, 3, 3, 3, 3, 3, 3, 
-	0, 0
-]
+HTTP_PARSER_ERROR = 0;
 
-class << self
-	attr_accessor :_http_parser_index_offsets
-	private :_http_parser_index_offsets, :_http_parser_index_offsets=
-end
-self._http_parser_index_offsets = [
-	0, 0, 6, 13, 21, 24, 26, 28, 
-	30, 32, 34, 36, 39, 41, 44, 46, 
-	57, 59, 70, 73, 75, 81, 87, 91, 
-	95, 102, 108, 112, 116, 124, 128, 132, 
-	139, 143, 147, 153, 159, 163, 167, 174, 
-	181, 188, 195, 202, 209, 216, 223, 230, 
-	237, 244, 251, 258, 265, 272, 279, 286, 
-	293, 295
-]
 
-class << self
-	attr_accessor :_http_parser_indicies
-	private :_http_parser_indicies, :_http_parser_indicies=
-end
-self._http_parser_indicies = [
-	0, 0, 0, 0, 0, 1, 2, 3, 
-	3, 3, 3, 3, 1, 4, 5, 6, 
-	7, 5, 5, 5, 1, 8, 9, 1, 
-	10, 1, 11, 1, 12, 1, 13, 1, 
-	14, 1, 15, 1, 16, 15, 1, 17, 
-	1, 18, 17, 1, 19, 1, 20, 21, 
-	21, 21, 21, 21, 21, 21, 21, 21, 
-	1, 22, 1, 23, 24, 23, 23, 23, 
-	23, 23, 23, 23, 23, 1, 26, 27, 
-	25, 29, 28, 31, 1, 32, 1, 1, 
-	30, 34, 1, 35, 1, 1, 33, 36, 
-	36, 36, 1, 33, 33, 33, 1, 37, 
-	38, 37, 37, 37, 37, 1, 8, 9, 
-	39, 1, 1, 38, 40, 40, 40, 1, 
-	38, 38, 38, 1, 42, 43, 44, 45, 
-	46, 1, 1, 41, 47, 47, 47, 1, 
-	41, 41, 41, 1, 8, 9, 49, 50, 
-	1, 1, 48, 51, 51, 51, 1, 48, 
-	48, 48, 1, 53, 54, 55, 1, 1, 
-	52, 57, 58, 59, 1, 1, 56, 60, 
-	60, 60, 1, 56, 56, 56, 1, 2, 
-	61, 61, 61, 61, 61, 1, 2, 62, 
-	62, 62, 62, 62, 1, 2, 63, 63, 
-	63, 63, 63, 1, 2, 64, 64, 64, 
-	64, 64, 1, 2, 65, 65, 65, 65, 
-	65, 1, 2, 66, 66, 66, 66, 66, 
-	1, 2, 67, 67, 67, 67, 67, 1, 
-	2, 68, 68, 68, 68, 68, 1, 2, 
-	69, 69, 69, 69, 69, 1, 2, 70, 
-	70, 70, 70, 70, 1, 2, 71, 71, 
-	71, 71, 71, 1, 2, 72, 72, 72, 
-	72, 72, 1, 2, 73, 73, 73, 73, 
-	73, 1, 2, 74, 74, 74, 74, 74, 
-	1, 2, 75, 75, 75, 75, 75, 1, 
-	2, 76, 76, 76, 76, 76, 1, 2, 
-	77, 77, 77, 77, 77, 1, 2, 78, 
-	78, 78, 78, 78, 1, 2, 1, 1, 
-	0
-]
+HTTP_PARSER_EN_MAIN = 1;
 
-class << self
-	attr_accessor :_http_parser_trans_targs_wi
-	private :_http_parser_trans_targs_wi, :_http_parser_trans_targs_wi=
-end
-self._http_parser_trans_targs_wi = [
-	2, 0, 3, 38, 4, 24, 28, 25, 
-	5, 20, 6, 7, 8, 9, 10, 11, 
-	12, 13, 14, 15, 16, 17, 57, 17, 
-	18, 19, 14, 18, 19, 14, 21, 5, 
-	22, 21, 5, 22, 23, 24, 25, 26, 
-	27, 28, 5, 20, 29, 31, 34, 30, 
-	31, 32, 34, 33, 35, 5, 20, 36, 
-	35, 5, 20, 36, 37, 39, 40, 41, 
-	42, 43, 44, 45, 46, 47, 48, 49, 
-	50, 51, 52, 53, 54, 55, 56
-]
-
-class << self
-	attr_accessor :_http_parser_trans_actions_wi
-	private :_http_parser_trans_actions_wi, :_http_parser_trans_actions_wi=
-end
-self._http_parser_trans_actions_wi = [
-	1, 0, 11, 0, 1, 1, 1, 1, 
-	13, 13, 1, 0, 0, 0, 0, 0, 
-	0, 0, 19, 0, 0, 28, 23, 3, 
-	5, 7, 31, 7, 0, 9, 1, 25, 
-	1, 0, 15, 0, 0, 0, 0, 0, 
-	0, 0, 37, 37, 0, 21, 21, 0, 
-	0, 0, 0, 0, 17, 40, 40, 17, 
-	0, 34, 34, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0
-]
-
-class << self
-	attr_accessor :http_parser_start
-end
-self.http_parser_start = 1;
-class << self
-	attr_accessor :http_parser_first_final
-end
-self.http_parser_first_final = 57;
-class << self
-	attr_accessor :http_parser_error
-end
-self.http_parser_error = 0;
-
-class << self
-	attr_accessor :http_parser_en_main
-end
-self.http_parser_en_main = 1;
-
-# line 58 "http11_parser.rb.rl"
+# line 55 "http11_parser.rb.rl"
+    
+    def initialize
       
-      @cs = http_parser_start
+      @cs = HTTP_PARSER_START
       
       @body_start = 0
       @content_len = 0
@@ -256,113 +53,4181 @@ self.http_parser_en_main = 1;
       raise ArgumentError, "offset past end of buffer" if nparsed > len
 
       
-# line 260 "http11_parser.rb.rb"
-begin
-	_klen, _trans, _keys, _acts, _nacts = nil
-	_goto_level = 0
-	_resume = 10
-	_eof_trans = 15
-	_again = 20
-	_test_eof = 30
-	_out = 40
-	while true
-	_trigger_goto = false
-	if _goto_level <= 0
-	if p == pe
-		_goto_level = _test_eof
-		next
-	end
-	if cs == 0
-		_goto_level = _out
-		next
-	end
-	end
-	if _goto_level <= _resume
-	_keys = _http_parser_key_offsets[cs]
-	_trans = _http_parser_index_offsets[cs]
-	_klen = _http_parser_single_lengths[cs]
-	_break_match = false
-	
+# line 68 "http11.rb"
 	begin
-	  if _klen > 0
-	     _lower = _keys
-	     _upper = _keys + _klen - 1
+ _acts, _nacts = nil
 
-	     loop do
-	        break if _upper < _lower
-	        _mid = _lower + ( (_upper - _lower) >> 1 )
-
-	        if data[p] < _http_parser_trans_keys[_mid]
-	           _upper = _mid - 1
-	        elsif data[p] > _http_parser_trans_keys[_mid]
-	           _lower = _mid + 1
-	        else
-	           _trans += (_mid - _keys)
-	           _break_match = true
-	           break
-	        end
-	     end # loop
-	     break if _break_match
-	     _keys += _klen
-	     _trans += _klen
-	  end
-	  _klen = _http_parser_range_lengths[cs]
-	  if _klen > 0
-	     _lower = _keys
-	     _upper = _keys + (_klen << 1) - 2
-	     loop do
-	        break if _upper < _lower
-	        _mid = _lower + (((_upper-_lower) >> 1) & ~1)
-	        if data[p] < _http_parser_trans_keys[_mid]
-	          _upper = _mid - 2
-	        elsif data[p] > _http_parser_trans_keys[_mid+1]
-	          _lower = _mid + 2
-	        else
-	          _trans += ((_mid - _keys) >> 1)
-	          _break_match = true
-	          break
-	        end
-	     end # loop
-	     break if _break_match
-	     _trans += _klen
-	  end
-	end while false
-	_trans = _http_parser_indicies[_trans]
-	cs = _http_parser_trans_targs_wi[_trans]
-	if _http_parser_trans_actions_wi[_trans] != 0
-		_acts = _http_parser_trans_actions_wi[_trans]
-		_nacts = _http_parser_actions[_acts]
-		_acts += 1
-		while _nacts > 0
-			_nacts -= 1
-			_acts += 1
-			case _http_parser_actions[_acts - 1]
+	if ( p == pe )
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__out]
+   lbl = tbl[:_http_parser__out] = new_label
+ end
+ goto lbl
+}
+	end
+	if ( cs == 0 )
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__out]
+   lbl = tbl[:_http_parser__out] = new_label
+ end
+ goto lbl
+}
+	end
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__resume]
+   lbl = tbl[:_http_parser__resume] = new_label
+ end
+ lbl.set!
+}
+	case ( cs )
+when 1 then
+	case  data[p]
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr0]
+   lbl = tbl[:_http_parser_tr0] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr0]
+   lbl = tbl[:_http_parser_tr0] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr0]
+   lbl = tbl[:_http_parser_tr0] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr0]
+   lbl = tbl[:_http_parser_tr0] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr0]
+   lbl = tbl[:_http_parser_tr0] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
 when 0 then
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__out]
+   lbl = tbl[:_http_parser__out] = new_label
+ end
+ goto lbl
+}
+when 2 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr3]
+   lbl = tbl[:_http_parser_tr3] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr3]
+   lbl = tbl[:_http_parser_tr3] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr3]
+   lbl = tbl[:_http_parser_tr3] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr3]
+   lbl = tbl[:_http_parser_tr3] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr3]
+   lbl = tbl[:_http_parser_tr3] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 3 then
+	case  data[p]
+		when 42 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr4]
+   lbl = tbl[:_http_parser_tr4] = new_label
+ end
+ goto lbl
+}
+		when 43 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr5]
+   lbl = tbl[:_http_parser_tr5] = new_label
+ end
+ goto lbl
+}
+		when 47 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr6]
+   lbl = tbl[:_http_parser_tr6] = new_label
+ end
+ goto lbl
+}
+		when 58 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr7]
+   lbl = tbl[:_http_parser_tr7] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 65 
+		if 45 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr5]
+   lbl = tbl[:_http_parser_tr5] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 90 
+		if 97 <= data[p] && data[p] <= 122 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr5]
+   lbl = tbl[:_http_parser_tr5] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr5]
+   lbl = tbl[:_http_parser_tr5] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 4 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr8]
+   lbl = tbl[:_http_parser_tr8] = new_label
+ end
+ goto lbl
+}
+		when 35 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr9]
+   lbl = tbl[:_http_parser_tr9] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 5 then
+	if data[p] == 72 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr10]
+   lbl = tbl[:_http_parser_tr10] = new_label
+ end
+ goto lbl
+}
+end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 6 then
+	if data[p] == 84 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr11]
+   lbl = tbl[:_http_parser_tr11] = new_label
+ end
+ goto lbl
+}
+end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 7 then
+	if data[p] == 84 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr12]
+   lbl = tbl[:_http_parser_tr12] = new_label
+ end
+ goto lbl
+}
+end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 8 then
+	if data[p] == 80 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr13]
+   lbl = tbl[:_http_parser_tr13] = new_label
+ end
+ goto lbl
+}
+end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 9 then
+	if data[p] == 47 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr14]
+   lbl = tbl[:_http_parser_tr14] = new_label
+ end
+ goto lbl
+}
+end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 10 then
+	if 48 <= data[p] && data[p] <= 57 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr15]
+   lbl = tbl[:_http_parser_tr15] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 11 then
+	if data[p] == 46 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr16]
+   lbl = tbl[:_http_parser_tr16] = new_label
+ end
+ goto lbl
+}
+end
+	if 48 <= data[p] && data[p] <= 57 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr15]
+   lbl = tbl[:_http_parser_tr15] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 12 then
+	if 48 <= data[p] && data[p] <= 57 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr17]
+   lbl = tbl[:_http_parser_tr17] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 13 then
+	if data[p] == 13 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr18]
+   lbl = tbl[:_http_parser_tr18] = new_label
+ end
+ goto lbl
+}
+end
+	if 48 <= data[p] && data[p] <= 57 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr17]
+   lbl = tbl[:_http_parser_tr17] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 14 then
+	if data[p] == 10 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr19]
+   lbl = tbl[:_http_parser_tr19] = new_label
+ end
+ goto lbl
+}
+end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 15 then
+	case  data[p]
+		when 13 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr20]
+   lbl = tbl[:_http_parser_tr20] = new_label
+ end
+ goto lbl
+}
+		when 33 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ goto lbl
+}
+		when 124 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ goto lbl
+}
+		when 126 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 45 
+		if data[p] > 39 
+			if 42 <= data[p] && data[p] <= 43 
+				Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ goto lbl
+}
+			end
+		elsif data[p] >= 35 then
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 46 
+		if data[p] < 65 
+			if 48 <= data[p] && data[p] <= 57 
+				Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ goto lbl
+}
+			end
+		elsif data[p] > 90 
+			if 94 <= data[p] && data[p] <= 122 
+				Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ goto lbl
+}
+			end
+		else
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 16 then
+	if data[p] == 10 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr22]
+   lbl = tbl[:_http_parser_tr22] = new_label
+ end
+ goto lbl
+}
+end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 57 then
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 17 then
+	case  data[p]
+		when 33 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ goto lbl
+}
+		when 58 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr24]
+   lbl = tbl[:_http_parser_tr24] = new_label
+ end
+ goto lbl
+}
+		when 124 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ goto lbl
+}
+		when 126 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 45 
+		if data[p] > 39 
+			if 42 <= data[p] && data[p] <= 43 
+				Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ goto lbl
+}
+			end
+		elsif data[p] >= 35 then
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 46 
+		if data[p] < 65 
+			if 48 <= data[p] && data[p] <= 57 
+				Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ goto lbl
+}
+			end
+		elsif data[p] > 90 
+			if 94 <= data[p] && data[p] <= 122 
+				Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ goto lbl
+}
+			end
+		else
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 18 then
+	case  data[p]
+		when 13 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr26]
+   lbl = tbl[:_http_parser_tr26] = new_label
+ end
+ goto lbl
+}
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr27]
+   lbl = tbl[:_http_parser_tr27] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr25]
+   lbl = tbl[:_http_parser_tr25] = new_label
+ end
+ goto lbl
+}
+when 19 then
+	if data[p] == 13 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr29]
+   lbl = tbl[:_http_parser_tr29] = new_label
+ end
+ goto lbl
+}
+end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr28]
+   lbl = tbl[:_http_parser_tr28] = new_label
+ end
+ goto lbl
+}
+when 20 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr31]
+   lbl = tbl[:_http_parser_tr31] = new_label
+ end
+ goto lbl
+}
+		when 35 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+		when 37 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr32]
+   lbl = tbl[:_http_parser_tr32] = new_label
+ end
+ goto lbl
+}
+		when 127 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	if 0 <= data[p] && data[p] <= 31 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr30]
+   lbl = tbl[:_http_parser_tr30] = new_label
+ end
+ goto lbl
+}
+when 21 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr34]
+   lbl = tbl[:_http_parser_tr34] = new_label
+ end
+ goto lbl
+}
+		when 35 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+		when 37 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr35]
+   lbl = tbl[:_http_parser_tr35] = new_label
+ end
+ goto lbl
+}
+		when 127 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	if 0 <= data[p] && data[p] <= 31 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr33]
+   lbl = tbl[:_http_parser_tr33] = new_label
+ end
+ goto lbl
+}
+when 22 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr36]
+   lbl = tbl[:_http_parser_tr36] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr36]
+   lbl = tbl[:_http_parser_tr36] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr36]
+   lbl = tbl[:_http_parser_tr36] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 23 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr33]
+   lbl = tbl[:_http_parser_tr33] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr33]
+   lbl = tbl[:_http_parser_tr33] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr33]
+   lbl = tbl[:_http_parser_tr33] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 24 then
+	case  data[p]
+		when 43 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr37]
+   lbl = tbl[:_http_parser_tr37] = new_label
+ end
+ goto lbl
+}
+		when 58 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr38]
+   lbl = tbl[:_http_parser_tr38] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr37]
+   lbl = tbl[:_http_parser_tr37] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if data[p] > 90 
+			if 97 <= data[p] && data[p] <= 122 
+				Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr37]
+   lbl = tbl[:_http_parser_tr37] = new_label
+ end
+ goto lbl
+}
+			end
+		elsif data[p] >= 65 then
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr37]
+   lbl = tbl[:_http_parser_tr37] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr37]
+   lbl = tbl[:_http_parser_tr37] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 25 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr8]
+   lbl = tbl[:_http_parser_tr8] = new_label
+ end
+ goto lbl
+}
+		when 35 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr9]
+   lbl = tbl[:_http_parser_tr9] = new_label
+ end
+ goto lbl
+}
+		when 37 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr39]
+   lbl = tbl[:_http_parser_tr39] = new_label
+ end
+ goto lbl
+}
+		when 127 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	if 0 <= data[p] && data[p] <= 31 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr38]
+   lbl = tbl[:_http_parser_tr38] = new_label
+ end
+ goto lbl
+}
+when 26 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr40]
+   lbl = tbl[:_http_parser_tr40] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr40]
+   lbl = tbl[:_http_parser_tr40] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr40]
+   lbl = tbl[:_http_parser_tr40] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 27 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr38]
+   lbl = tbl[:_http_parser_tr38] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr38]
+   lbl = tbl[:_http_parser_tr38] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr38]
+   lbl = tbl[:_http_parser_tr38] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 28 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr42]
+   lbl = tbl[:_http_parser_tr42] = new_label
+ end
+ goto lbl
+}
+		when 35 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr43]
+   lbl = tbl[:_http_parser_tr43] = new_label
+ end
+ goto lbl
+}
+		when 37 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr44]
+   lbl = tbl[:_http_parser_tr44] = new_label
+ end
+ goto lbl
+}
+		when 59 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr45]
+   lbl = tbl[:_http_parser_tr45] = new_label
+ end
+ goto lbl
+}
+		when 63 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr46]
+   lbl = tbl[:_http_parser_tr46] = new_label
+ end
+ goto lbl
+}
+		when 127 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	if 0 <= data[p] && data[p] <= 31 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr41]
+   lbl = tbl[:_http_parser_tr41] = new_label
+ end
+ goto lbl
+}
+when 29 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr47]
+   lbl = tbl[:_http_parser_tr47] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr47]
+   lbl = tbl[:_http_parser_tr47] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr47]
+   lbl = tbl[:_http_parser_tr47] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 30 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr41]
+   lbl = tbl[:_http_parser_tr41] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr41]
+   lbl = tbl[:_http_parser_tr41] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr41]
+   lbl = tbl[:_http_parser_tr41] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 31 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr8]
+   lbl = tbl[:_http_parser_tr8] = new_label
+ end
+ goto lbl
+}
+		when 35 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr9]
+   lbl = tbl[:_http_parser_tr9] = new_label
+ end
+ goto lbl
+}
+		when 37 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr49]
+   lbl = tbl[:_http_parser_tr49] = new_label
+ end
+ goto lbl
+}
+		when 63 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr50]
+   lbl = tbl[:_http_parser_tr50] = new_label
+ end
+ goto lbl
+}
+		when 127 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	if 0 <= data[p] && data[p] <= 31 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr48]
+   lbl = tbl[:_http_parser_tr48] = new_label
+ end
+ goto lbl
+}
+when 32 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr51]
+   lbl = tbl[:_http_parser_tr51] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr51]
+   lbl = tbl[:_http_parser_tr51] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr51]
+   lbl = tbl[:_http_parser_tr51] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 33 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr48]
+   lbl = tbl[:_http_parser_tr48] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr48]
+   lbl = tbl[:_http_parser_tr48] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr48]
+   lbl = tbl[:_http_parser_tr48] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 34 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr53]
+   lbl = tbl[:_http_parser_tr53] = new_label
+ end
+ goto lbl
+}
+		when 35 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr54]
+   lbl = tbl[:_http_parser_tr54] = new_label
+ end
+ goto lbl
+}
+		when 37 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr55]
+   lbl = tbl[:_http_parser_tr55] = new_label
+ end
+ goto lbl
+}
+		when 127 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	if 0 <= data[p] && data[p] <= 31 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr52]
+   lbl = tbl[:_http_parser_tr52] = new_label
+ end
+ goto lbl
+}
+when 35 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr57]
+   lbl = tbl[:_http_parser_tr57] = new_label
+ end
+ goto lbl
+}
+		when 35 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr58]
+   lbl = tbl[:_http_parser_tr58] = new_label
+ end
+ goto lbl
+}
+		when 37 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr59]
+   lbl = tbl[:_http_parser_tr59] = new_label
+ end
+ goto lbl
+}
+		when 127 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	if 0 <= data[p] && data[p] <= 31 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr56]
+   lbl = tbl[:_http_parser_tr56] = new_label
+ end
+ goto lbl
+}
+when 36 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr60]
+   lbl = tbl[:_http_parser_tr60] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr60]
+   lbl = tbl[:_http_parser_tr60] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr60]
+   lbl = tbl[:_http_parser_tr60] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 37 then
+	if data[p] < 65 
+		if 48 <= data[p] && data[p] <= 57 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr56]
+   lbl = tbl[:_http_parser_tr56] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 70 
+		if 97 <= data[p] && data[p] <= 102 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr56]
+   lbl = tbl[:_http_parser_tr56] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr56]
+   lbl = tbl[:_http_parser_tr56] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 38 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr61]
+   lbl = tbl[:_http_parser_tr61] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr61]
+   lbl = tbl[:_http_parser_tr61] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr61]
+   lbl = tbl[:_http_parser_tr61] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr61]
+   lbl = tbl[:_http_parser_tr61] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr61]
+   lbl = tbl[:_http_parser_tr61] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 39 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr62]
+   lbl = tbl[:_http_parser_tr62] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr62]
+   lbl = tbl[:_http_parser_tr62] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr62]
+   lbl = tbl[:_http_parser_tr62] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr62]
+   lbl = tbl[:_http_parser_tr62] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr62]
+   lbl = tbl[:_http_parser_tr62] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 40 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr63]
+   lbl = tbl[:_http_parser_tr63] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr63]
+   lbl = tbl[:_http_parser_tr63] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr63]
+   lbl = tbl[:_http_parser_tr63] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr63]
+   lbl = tbl[:_http_parser_tr63] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr63]
+   lbl = tbl[:_http_parser_tr63] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 41 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr64]
+   lbl = tbl[:_http_parser_tr64] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr64]
+   lbl = tbl[:_http_parser_tr64] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr64]
+   lbl = tbl[:_http_parser_tr64] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr64]
+   lbl = tbl[:_http_parser_tr64] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr64]
+   lbl = tbl[:_http_parser_tr64] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 42 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr65]
+   lbl = tbl[:_http_parser_tr65] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr65]
+   lbl = tbl[:_http_parser_tr65] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr65]
+   lbl = tbl[:_http_parser_tr65] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr65]
+   lbl = tbl[:_http_parser_tr65] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr65]
+   lbl = tbl[:_http_parser_tr65] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 43 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr66]
+   lbl = tbl[:_http_parser_tr66] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr66]
+   lbl = tbl[:_http_parser_tr66] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr66]
+   lbl = tbl[:_http_parser_tr66] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr66]
+   lbl = tbl[:_http_parser_tr66] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr66]
+   lbl = tbl[:_http_parser_tr66] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 44 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr67]
+   lbl = tbl[:_http_parser_tr67] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr67]
+   lbl = tbl[:_http_parser_tr67] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr67]
+   lbl = tbl[:_http_parser_tr67] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr67]
+   lbl = tbl[:_http_parser_tr67] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr67]
+   lbl = tbl[:_http_parser_tr67] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 45 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr68]
+   lbl = tbl[:_http_parser_tr68] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr68]
+   lbl = tbl[:_http_parser_tr68] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr68]
+   lbl = tbl[:_http_parser_tr68] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr68]
+   lbl = tbl[:_http_parser_tr68] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr68]
+   lbl = tbl[:_http_parser_tr68] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 46 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr69]
+   lbl = tbl[:_http_parser_tr69] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr69]
+   lbl = tbl[:_http_parser_tr69] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr69]
+   lbl = tbl[:_http_parser_tr69] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr69]
+   lbl = tbl[:_http_parser_tr69] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr69]
+   lbl = tbl[:_http_parser_tr69] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 47 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr70]
+   lbl = tbl[:_http_parser_tr70] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr70]
+   lbl = tbl[:_http_parser_tr70] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr70]
+   lbl = tbl[:_http_parser_tr70] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr70]
+   lbl = tbl[:_http_parser_tr70] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr70]
+   lbl = tbl[:_http_parser_tr70] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 48 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr71]
+   lbl = tbl[:_http_parser_tr71] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr71]
+   lbl = tbl[:_http_parser_tr71] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr71]
+   lbl = tbl[:_http_parser_tr71] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr71]
+   lbl = tbl[:_http_parser_tr71] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr71]
+   lbl = tbl[:_http_parser_tr71] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 49 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr72]
+   lbl = tbl[:_http_parser_tr72] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr72]
+   lbl = tbl[:_http_parser_tr72] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr72]
+   lbl = tbl[:_http_parser_tr72] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr72]
+   lbl = tbl[:_http_parser_tr72] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr72]
+   lbl = tbl[:_http_parser_tr72] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 50 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr73]
+   lbl = tbl[:_http_parser_tr73] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr73]
+   lbl = tbl[:_http_parser_tr73] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr73]
+   lbl = tbl[:_http_parser_tr73] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr73]
+   lbl = tbl[:_http_parser_tr73] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr73]
+   lbl = tbl[:_http_parser_tr73] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 51 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr74]
+   lbl = tbl[:_http_parser_tr74] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr74]
+   lbl = tbl[:_http_parser_tr74] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr74]
+   lbl = tbl[:_http_parser_tr74] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr74]
+   lbl = tbl[:_http_parser_tr74] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr74]
+   lbl = tbl[:_http_parser_tr74] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 52 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr75]
+   lbl = tbl[:_http_parser_tr75] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr75]
+   lbl = tbl[:_http_parser_tr75] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr75]
+   lbl = tbl[:_http_parser_tr75] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr75]
+   lbl = tbl[:_http_parser_tr75] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr75]
+   lbl = tbl[:_http_parser_tr75] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 53 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr76]
+   lbl = tbl[:_http_parser_tr76] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr76]
+   lbl = tbl[:_http_parser_tr76] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr76]
+   lbl = tbl[:_http_parser_tr76] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr76]
+   lbl = tbl[:_http_parser_tr76] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr76]
+   lbl = tbl[:_http_parser_tr76] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 54 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr77]
+   lbl = tbl[:_http_parser_tr77] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr77]
+   lbl = tbl[:_http_parser_tr77] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr77]
+   lbl = tbl[:_http_parser_tr77] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr77]
+   lbl = tbl[:_http_parser_tr77] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr77]
+   lbl = tbl[:_http_parser_tr77] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 55 then
+	case  data[p]
+		when 32 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+		when 36 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr78]
+   lbl = tbl[:_http_parser_tr78] = new_label
+ end
+ goto lbl
+}
+		when 95 then
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr78]
+   lbl = tbl[:_http_parser_tr78] = new_label
+ end
+ goto lbl
+}
+	end
+	if data[p] < 48 
+		if 45 <= data[p] && data[p] <= 46 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr78]
+   lbl = tbl[:_http_parser_tr78] = new_label
+ end
+ goto lbl
+}
+		end
+	elsif data[p] > 57 
+		if 65 <= data[p] && data[p] <= 90 
+			Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr78]
+   lbl = tbl[:_http_parser_tr78] = new_label
+ end
+ goto lbl
+}
+		end
+	else
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr78]
+   lbl = tbl[:_http_parser_tr78] = new_label
+ end
+ goto lbl
+}
+	end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+when 56 then
+	if data[p] == 32 
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ goto lbl
+}
+end
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ goto lbl
+}
+	end # case
+
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr1]
+   lbl = tbl[:_http_parser_tr1] = new_label
+ end
+ lbl.set!
+}
+cs = 0
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr0]
+   lbl = tbl[:_http_parser_tr0] = new_label
+ end
+ lbl.set!
+}
+cs = 2
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f0]
+   lbl = tbl[:_http_parser_f0] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr2]
+   lbl = tbl[:_http_parser_tr2] = new_label
+ end
+ lbl.set!
+}
+cs = 3
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f1]
+   lbl = tbl[:_http_parser_f1] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr4]
+   lbl = tbl[:_http_parser_tr4] = new_label
+ end
+ lbl.set!
+}
+cs = 4
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f0]
+   lbl = tbl[:_http_parser_f0] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr8]
+   lbl = tbl[:_http_parser_tr8] = new_label
+ end
+ lbl.set!
+}
+cs = 5
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f2]
+   lbl = tbl[:_http_parser_f2] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr31]
+   lbl = tbl[:_http_parser_tr31] = new_label
+ end
+ lbl.set!
+}
+cs = 5
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f11]
+   lbl = tbl[:_http_parser_f11] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr34]
+   lbl = tbl[:_http_parser_tr34] = new_label
+ end
+ lbl.set!
+}
+cs = 5
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f12]
+   lbl = tbl[:_http_parser_f12] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr42]
+   lbl = tbl[:_http_parser_tr42] = new_label
+ end
+ lbl.set!
+}
+cs = 5
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f13]
+   lbl = tbl[:_http_parser_f13] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr53]
+   lbl = tbl[:_http_parser_tr53] = new_label
+ end
+ lbl.set!
+}
+cs = 5
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f16]
+   lbl = tbl[:_http_parser_f16] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr57]
+   lbl = tbl[:_http_parser_tr57] = new_label
+ end
+ lbl.set!
+}
+cs = 5
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f17]
+   lbl = tbl[:_http_parser_f17] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr10]
+   lbl = tbl[:_http_parser_tr10] = new_label
+ end
+ lbl.set!
+}
+cs = 6
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f0]
+   lbl = tbl[:_http_parser_f0] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr11]
+   lbl = tbl[:_http_parser_tr11] = new_label
+ end
+ lbl.set!
+}
+cs = 7
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr12]
+   lbl = tbl[:_http_parser_tr12] = new_label
+ end
+ lbl.set!
+}
+cs = 8
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr13]
+   lbl = tbl[:_http_parser_tr13] = new_label
+ end
+ lbl.set!
+}
+cs = 9
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr14]
+   lbl = tbl[:_http_parser_tr14] = new_label
+ end
+ lbl.set!
+}
+cs = 10
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr15]
+   lbl = tbl[:_http_parser_tr15] = new_label
+ end
+ lbl.set!
+}
+cs = 11
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr16]
+   lbl = tbl[:_http_parser_tr16] = new_label
+ end
+ lbl.set!
+}
+cs = 12
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr17]
+   lbl = tbl[:_http_parser_tr17] = new_label
+ end
+ lbl.set!
+}
+cs = 13
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr18]
+   lbl = tbl[:_http_parser_tr18] = new_label
+ end
+ lbl.set!
+}
+cs = 14
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f3]
+   lbl = tbl[:_http_parser_f3] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr26]
+   lbl = tbl[:_http_parser_tr26] = new_label
+ end
+ lbl.set!
+}
+cs = 14
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f9]
+   lbl = tbl[:_http_parser_f9] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr29]
+   lbl = tbl[:_http_parser_tr29] = new_label
+ end
+ lbl.set!
+}
+cs = 14
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f10]
+   lbl = tbl[:_http_parser_f10] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr19]
+   lbl = tbl[:_http_parser_tr19] = new_label
+ end
+ lbl.set!
+}
+cs = 15
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr20]
+   lbl = tbl[:_http_parser_tr20] = new_label
+ end
+ lbl.set!
+}
+cs = 16
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr21]
+   lbl = tbl[:_http_parser_tr21] = new_label
+ end
+ lbl.set!
+}
+cs = 17
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f4]
+   lbl = tbl[:_http_parser_f4] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr23]
+   lbl = tbl[:_http_parser_tr23] = new_label
+ end
+ lbl.set!
+}
+cs = 17
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f6]
+   lbl = tbl[:_http_parser_f6] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr24]
+   lbl = tbl[:_http_parser_tr24] = new_label
+ end
+ lbl.set!
+}
+cs = 18
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f7]
+   lbl = tbl[:_http_parser_f7] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr27]
+   lbl = tbl[:_http_parser_tr27] = new_label
+ end
+ lbl.set!
+}
+cs = 18
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f8]
+   lbl = tbl[:_http_parser_f8] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr28]
+   lbl = tbl[:_http_parser_tr28] = new_label
+ end
+ lbl.set!
+}
+cs = 19
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr25]
+   lbl = tbl[:_http_parser_tr25] = new_label
+ end
+ lbl.set!
+}
+cs = 19
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f8]
+   lbl = tbl[:_http_parser_f8] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr9]
+   lbl = tbl[:_http_parser_tr9] = new_label
+ end
+ lbl.set!
+}
+cs = 20
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f2]
+   lbl = tbl[:_http_parser_f2] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr43]
+   lbl = tbl[:_http_parser_tr43] = new_label
+ end
+ lbl.set!
+}
+cs = 20
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f13]
+   lbl = tbl[:_http_parser_f13] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr54]
+   lbl = tbl[:_http_parser_tr54] = new_label
+ end
+ lbl.set!
+}
+cs = 20
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f16]
+   lbl = tbl[:_http_parser_f16] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr58]
+   lbl = tbl[:_http_parser_tr58] = new_label
+ end
+ lbl.set!
+}
+cs = 20
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f17]
+   lbl = tbl[:_http_parser_f17] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr33]
+   lbl = tbl[:_http_parser_tr33] = new_label
+ end
+ lbl.set!
+}
+cs = 21
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr30]
+   lbl = tbl[:_http_parser_tr30] = new_label
+ end
+ lbl.set!
+}
+cs = 21
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f0]
+   lbl = tbl[:_http_parser_f0] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr35]
+   lbl = tbl[:_http_parser_tr35] = new_label
+ end
+ lbl.set!
+}
+cs = 22
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr32]
+   lbl = tbl[:_http_parser_tr32] = new_label
+ end
+ lbl.set!
+}
+cs = 22
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f0]
+   lbl = tbl[:_http_parser_f0] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr36]
+   lbl = tbl[:_http_parser_tr36] = new_label
+ end
+ lbl.set!
+}
+cs = 23
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr37]
+   lbl = tbl[:_http_parser_tr37] = new_label
+ end
+ lbl.set!
+}
+cs = 24
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr5]
+   lbl = tbl[:_http_parser_tr5] = new_label
+ end
+ lbl.set!
+}
+cs = 24
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f0]
+   lbl = tbl[:_http_parser_f0] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr38]
+   lbl = tbl[:_http_parser_tr38] = new_label
+ end
+ lbl.set!
+}
+cs = 25
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr7]
+   lbl = tbl[:_http_parser_tr7] = new_label
+ end
+ lbl.set!
+}
+cs = 25
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f0]
+   lbl = tbl[:_http_parser_f0] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr39]
+   lbl = tbl[:_http_parser_tr39] = new_label
+ end
+ lbl.set!
+}
+cs = 26
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr40]
+   lbl = tbl[:_http_parser_tr40] = new_label
+ end
+ lbl.set!
+}
+cs = 27
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr41]
+   lbl = tbl[:_http_parser_tr41] = new_label
+ end
+ lbl.set!
+}
+cs = 28
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr6]
+   lbl = tbl[:_http_parser_tr6] = new_label
+ end
+ lbl.set!
+}
+cs = 28
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f0]
+   lbl = tbl[:_http_parser_f0] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr44]
+   lbl = tbl[:_http_parser_tr44] = new_label
+ end
+ lbl.set!
+}
+cs = 29
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr47]
+   lbl = tbl[:_http_parser_tr47] = new_label
+ end
+ lbl.set!
+}
+cs = 30
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr48]
+   lbl = tbl[:_http_parser_tr48] = new_label
+ end
+ lbl.set!
+}
+cs = 31
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr45]
+   lbl = tbl[:_http_parser_tr45] = new_label
+ end
+ lbl.set!
+}
+cs = 31
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f14]
+   lbl = tbl[:_http_parser_f14] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr49]
+   lbl = tbl[:_http_parser_tr49] = new_label
+ end
+ lbl.set!
+}
+cs = 32
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr51]
+   lbl = tbl[:_http_parser_tr51] = new_label
+ end
+ lbl.set!
+}
+cs = 33
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr50]
+   lbl = tbl[:_http_parser_tr50] = new_label
+ end
+ lbl.set!
+}
+cs = 34
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr46]
+   lbl = tbl[:_http_parser_tr46] = new_label
+ end
+ lbl.set!
+}
+cs = 34
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f14]
+   lbl = tbl[:_http_parser_f14] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr56]
+   lbl = tbl[:_http_parser_tr56] = new_label
+ end
+ lbl.set!
+}
+cs = 35
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr52]
+   lbl = tbl[:_http_parser_tr52] = new_label
+ end
+ lbl.set!
+}
+cs = 35
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f15]
+   lbl = tbl[:_http_parser_f15] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr59]
+   lbl = tbl[:_http_parser_tr59] = new_label
+ end
+ lbl.set!
+}
+cs = 36
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr55]
+   lbl = tbl[:_http_parser_tr55] = new_label
+ end
+ lbl.set!
+}
+cs = 36
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f15]
+   lbl = tbl[:_http_parser_f15] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr60]
+   lbl = tbl[:_http_parser_tr60] = new_label
+ end
+ lbl.set!
+}
+cs = 37
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr3]
+   lbl = tbl[:_http_parser_tr3] = new_label
+ end
+ lbl.set!
+}
+cs = 38
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr61]
+   lbl = tbl[:_http_parser_tr61] = new_label
+ end
+ lbl.set!
+}
+cs = 39
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr62]
+   lbl = tbl[:_http_parser_tr62] = new_label
+ end
+ lbl.set!
+}
+cs = 40
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr63]
+   lbl = tbl[:_http_parser_tr63] = new_label
+ end
+ lbl.set!
+}
+cs = 41
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr64]
+   lbl = tbl[:_http_parser_tr64] = new_label
+ end
+ lbl.set!
+}
+cs = 42
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr65]
+   lbl = tbl[:_http_parser_tr65] = new_label
+ end
+ lbl.set!
+}
+cs = 43
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr66]
+   lbl = tbl[:_http_parser_tr66] = new_label
+ end
+ lbl.set!
+}
+cs = 44
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr67]
+   lbl = tbl[:_http_parser_tr67] = new_label
+ end
+ lbl.set!
+}
+cs = 45
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr68]
+   lbl = tbl[:_http_parser_tr68] = new_label
+ end
+ lbl.set!
+}
+cs = 46
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr69]
+   lbl = tbl[:_http_parser_tr69] = new_label
+ end
+ lbl.set!
+}
+cs = 47
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr70]
+   lbl = tbl[:_http_parser_tr70] = new_label
+ end
+ lbl.set!
+}
+cs = 48
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr71]
+   lbl = tbl[:_http_parser_tr71] = new_label
+ end
+ lbl.set!
+}
+cs = 49
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr72]
+   lbl = tbl[:_http_parser_tr72] = new_label
+ end
+ lbl.set!
+}
+cs = 50
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr73]
+   lbl = tbl[:_http_parser_tr73] = new_label
+ end
+ lbl.set!
+}
+cs = 51
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr74]
+   lbl = tbl[:_http_parser_tr74] = new_label
+ end
+ lbl.set!
+}
+cs = 52
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr75]
+   lbl = tbl[:_http_parser_tr75] = new_label
+ end
+ lbl.set!
+}
+cs = 53
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr76]
+   lbl = tbl[:_http_parser_tr76] = new_label
+ end
+ lbl.set!
+}
+cs = 54
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr77]
+   lbl = tbl[:_http_parser_tr77] = new_label
+ end
+ lbl.set!
+}
+cs = 55
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr78]
+   lbl = tbl[:_http_parser_tr78] = new_label
+ end
+ lbl.set!
+}
+cs = 56
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+	Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_tr22]
+   lbl = tbl[:_http_parser_tr22] = new_label
+ end
+ lbl.set!
+}
+cs = 57
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f5]
+   lbl = tbl[:_http_parser_f5] = new_label
+ end
+ goto lbl
+}
+
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f0]
+   lbl = tbl[:_http_parser_f0] = new_label
+ end
+ lbl.set!
+}
+_acts = 1
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f6]
+   lbl = tbl[:_http_parser_f6] = new_label
+ end
+ lbl.set!
+}
+_acts = 3
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f7]
+   lbl = tbl[:_http_parser_f7] = new_label
+ end
+ lbl.set!
+}
+_acts = 5
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f8]
+   lbl = tbl[:_http_parser_f8] = new_label
+ end
+ lbl.set!
+}
+_acts = 7
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f10]
+   lbl = tbl[:_http_parser_f10] = new_label
+ end
+ lbl.set!
+}
+_acts = 9
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f1]
+   lbl = tbl[:_http_parser_f1] = new_label
+ end
+ lbl.set!
+}
+_acts = 11
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f2]
+   lbl = tbl[:_http_parser_f2] = new_label
+ end
+ lbl.set!
+}
+_acts = 13
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f12]
+   lbl = tbl[:_http_parser_f12] = new_label
+ end
+ lbl.set!
+}
+_acts = 15
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f15]
+   lbl = tbl[:_http_parser_f15] = new_label
+ end
+ lbl.set!
+}
+_acts = 17
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f3]
+   lbl = tbl[:_http_parser_f3] = new_label
+ end
+ lbl.set!
+}
+_acts = 19
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f14]
+   lbl = tbl[:_http_parser_f14] = new_label
+ end
+ lbl.set!
+}
+_acts = 21
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f5]
+   lbl = tbl[:_http_parser_f5] = new_label
+ end
+ lbl.set!
+}
+_acts = 23
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f11]
+   lbl = tbl[:_http_parser_f11] = new_label
+ end
+ lbl.set!
+}
+_acts = 25
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f4]
+   lbl = tbl[:_http_parser_f4] = new_label
+ end
+ lbl.set!
+}
+_acts = 28
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f9]
+   lbl = tbl[:_http_parser_f9] = new_label
+ end
+ lbl.set!
+}
+_acts = 31
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f17]
+   lbl = tbl[:_http_parser_f17] = new_label
+ end
+ lbl.set!
+}
+_acts = 34
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f13]
+   lbl = tbl[:_http_parser_f13] = new_label
+ end
+ lbl.set!
+}
+_acts = 37
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_f16]
+   lbl = tbl[:_http_parser_f16] = new_label
+ end
+ lbl.set!
+}
+_acts = 40
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser_execFuncs]
+   lbl = tbl[:_http_parser_execFuncs] = new_label
+ end
+ lbl.set!
+}
+	_nacts = HTTP_PARSER_ACTIONS[_acts]
+	_acts += 1
+	while ( _nacts > 0 ) 
+		_nacts -= 1
+		_acts += 1
+		case ( HTTP_PARSER_ACTIONS[_acts-1] ) 
+	when 0 then
 # line 7 "http11_parser.rb.rl"
 		begin
  @mark = p 		end
 # line 7 "http11_parser.rb.rl"
-when 1 then
+	when 1 then
 # line 8 "http11_parser.rb.rl"
 		begin
  @field_start = p 		end
 # line 8 "http11_parser.rb.rl"
-when 2 then
+	when 2 then
 # line 9 "http11_parser.rb.rl"
 		begin
  snake_upcase_char p 		end
 # line 9 "http11_parser.rb.rl"
-when 3 then
+	when 3 then
 # line 10 "http11_parser.rb.rl"
 		begin
  @field_len = p - @field_start 		end
 # line 10 "http11_parser.rb.rl"
-when 4 then
+	when 4 then
 # line 11 "http11_parser.rb.rl"
 		begin
  @mark = p 		end
 # line 11 "http11_parser.rb.rl"
-when 5 then
+	when 5 then
 # line 12 "http11_parser.rb.rl"
 		begin
 
@@ -375,94 +4240,117 @@ when 5 then
     end
   		end
 # line 12 "http11_parser.rb.rl"
-when 6 then
+	when 6 then
 # line 21 "http11_parser.rb.rl"
 		begin
 
     params['REQUEST_METHOD'] = data.slice @mark, p - @mark
   		end
 # line 21 "http11_parser.rb.rl"
-when 7 then
+	when 7 then
 # line 24 "http11_parser.rb.rl"
 		begin
 
     params['REQUEST_URI'] = data.slice @mark, p - @mark
   		end
 # line 24 "http11_parser.rb.rl"
-when 8 then
+	when 8 then
 # line 27 "http11_parser.rb.rl"
 		begin
 
     params['FRAGMENT'] = data.slice @mark, p - @mark
   		end
 # line 27 "http11_parser.rb.rl"
-when 9 then
+	when 9 then
 # line 31 "http11_parser.rb.rl"
 		begin
  @query_start = p 		end
 # line 31 "http11_parser.rb.rl"
-when 10 then
+	when 10 then
 # line 33 "http11_parser.rb.rl"
 		begin
 
     params['QUERY_STRING'] = data.slice @query_start, p - @query_start
   		end
 # line 33 "http11_parser.rb.rl"
-when 11 then
+	when 11 then
 # line 37 "http11_parser.rb.rl"
 		begin
 
     params['SERVER_PROTOCOL'] = data.slice @mark, p - @mark
   		end
 # line 37 "http11_parser.rb.rl"
-when 12 then
+	when 12 then
 # line 41 "http11_parser.rb.rl"
 		begin
 
     params['REQUEST_PATH'] = data.slice @mark, p - @mark
   		end
 # line 41 "http11_parser.rb.rl"
-when 13 then
+	when 13 then
 # line 45 "http11_parser.rb.rl"
 		begin
 
     @body_start = p + 1    
-    	begin
+    Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__out]
+   lbl = tbl[:_http_parser__out] = new_label
+ end
+ goto lbl
+}	
+  begin
 		p += 1
-		_trigger_goto = true
-		_goto_level = _out
-		break
+		0x108774
 	end
 
   		end
 # line 45 "http11_parser.rb.rl"
-# line 440 "http11_parser.rb.rb"
-			end # action switch
+# line 4320 "http11.rb"
 		end
-	end
-	if _trigger_goto
-		next
-	end
-	end
-	if _goto_level <= _again
-	if cs == 0
-		_goto_level = _out
-		next
+	end 
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ goto lbl
+}
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__again]
+   lbl = tbl[:_http_parser__again] = new_label
+ end
+ lbl.set!
+}
+	if ( cs == 0 )
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__out]
+   lbl = tbl[:_http_parser__out] = new_label
+ end
+ goto lbl
+}
 	end
 	p += 1
-	if p != pe
-		_goto_level = _resume
-		next
+	if ( p != pe )
+		Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__resume]
+   lbl = tbl[:_http_parser__resume] = new_label
+ end
+ goto lbl
+}
 	end
+Rubinius.asm { 
+ @labels = Hash.new if @labels.nil?; tbl = @labels;
+ unless lbl = tbl[:_http_parser__out]
+   lbl = tbl[:_http_parser__out] = new_label
+ end
+ lbl.set!
+}
 	end
-	if _goto_level <= _test_eof
-	end
-	if _goto_level <= _out
-		break
-	end
-	end
-	end
-# line 80 "http11_parser.rb.rl"
+# line 79 "http11_parser.rb.rl"
 
       @cs = cs
       @nread += (p - nparsed)
@@ -477,7 +4365,7 @@ when 13 then
       if @body_start > 0
         #final \r\n combo encountered so stop right here
         # FIXME hack to replace write eof
-        @cs = http_parser_first_final
+        @cs = HTTP_PARSER_FIRST_FINAL
         @nread += 1
       end
     
@@ -486,7 +4374,7 @@ when 13 then
 
     def finish
       # FIXME hack to replace write eof
-      @cs = http_parser_first_final
+      @cs = HTTP_PARSER_FIRST_FINAL
     
       return -1 if error?
       return 1 if finished?
@@ -494,11 +4382,11 @@ when 13 then
     end
   
     def error?
-      @cs == http_parser_error
+      @cs == HTTP_PARSER_ERROR
     end
   
     def finished?
-      @cs == http_parser_first_final
+      @cs == HTTP_PARSER_FIRST_FINAL
     end
   
     def snake_upcase_char(c)
