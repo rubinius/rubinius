@@ -23,6 +23,7 @@ require "rdoc/markup/preprocess"
 
 require "rdoc/parsers/parserfactory"
 
+$TOKEN_DEBUG ||= nil
 #$TOKEN_DEBUG = $DEBUG_RDOC
 
 # Definitions of all tokens involved in the lexical analysis
@@ -2315,7 +2316,7 @@ class RDoc::RubyParser
 
       when "section"
         context.set_current_section(param, comment)
-        comment.clear
+        comment.replace ''
         break
 
       else
