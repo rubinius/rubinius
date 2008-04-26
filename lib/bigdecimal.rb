@@ -334,8 +334,7 @@ class BigDecimal < Numeric
     else
       e = [0, @exp + prec].max
       s = @digits.to_s[0, e]
-      sign = self.to_s[0, 1] == MINUS ? MINUS : PLUS
-      BigDecimal(sign + '0' + RADIX + s + EXP + @exp.to_s)
+      BigDecimal(@sign + '0' + RADIX + s + EXP + @exp.to_s)
     end
   end
 end
