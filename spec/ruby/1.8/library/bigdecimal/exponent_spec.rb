@@ -18,9 +18,12 @@ describe "BigDecimal#exponent" do
     BigDecimal("1234567E10").exponent.should == 17
   end
 
-  it "returns 0 if exponent can't be represented as Fixnum" do
-    BigDecimal("2E1000000000000000").exponent.should == 0
-    BigDecimal("-5E-999999999999999").exponent.should == 0
+  platform_is :wordsize => 32 do
+    # TODO: write specs for both 32 and 64 bit
+    it "returns 0 if exponent can't be represented as Fixnum" do
+      BigDecimal("2E1000000000000000").exponent.should == 0
+      BigDecimal("-5E-999999999999999").exponent.should == 0
+    end
   end
 
   it "returns 0 if self is 0" do
