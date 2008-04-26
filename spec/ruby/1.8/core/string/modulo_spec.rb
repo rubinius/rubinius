@@ -373,7 +373,7 @@ describe "String#%" do
       ("%E" % (-0e0/0)).should == "NAN"
     end
     
-    platform_is :darwin, :freebsd do
+    platform_is :darwin do
       it "pads with zeros using %E with Inf, -Inf, and NaN" do
         ("%010E" % -1e1020).should == "-000000INF"
         ("%010E" % 1e1020).should == "0000000INF"
@@ -381,7 +381,7 @@ describe "String#%" do
       end
     end
     
-    platform_is_not :darwin, :freebsd do
+    platform_is_not :darwin do
       it "pads with spaces for %E with Inf, -Inf, and NaN" do
         ("%010E" % -1e1020).should == "      -INF"
         ("%010E" % 1e1020).should == "       INF"
