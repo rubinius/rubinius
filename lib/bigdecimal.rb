@@ -293,6 +293,15 @@ class BigDecimal < Numeric
     end
   end
   
+  # Returns the exponent as a Fixnum (or 0 if out of range), such that the absolute value of the base is between 0 and 1.  This is not the power function.
+  # call-seq:
+  #   BigDecimal("0.125e3").exponent => 3
+  #   BigDecimal("3000").exponent => 4
+  #
+  def exponent
+    return @exp.kind_of?(Fixnum) ? @exp : 0
+  end
+  
   def fix
     d = @digits.to_s.length
     if self.nan? or !self.finite? or d <= @exp
