@@ -6,10 +6,6 @@ describe "BigDecimal#infinite?" do
   it "returns 1 if self is Infinity" do
     # documentation says returns true.
     BigDecimal("Infinity").infinite?.should == 1
-    # nan = BigDecimal("NaN")
-    # nan.infinite?.should == true
-    # This fails.
-    # Is NaN really finite?
   end
   
   it "returns -1 if self is -Infinity" do
@@ -28,6 +24,12 @@ describe "BigDecimal#infinite?" do
     really_small_zero.infinite?.should == nil
     really_big_zero.infinite?.should == nil
     BigDecimal("0.000000000000000000000000").infinite?.should == nil
+  end
+
+  it "returns not true if self is NaN" do
+    # NaN is a special value which is neither finite nor infinite.
+    nan = BigDecimal("NaN")
+    nan.infinite?.should == nil
   end
 
 end
