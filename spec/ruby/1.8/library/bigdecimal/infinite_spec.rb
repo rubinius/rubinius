@@ -3,7 +3,7 @@ require 'bigdecimal'
 
 describe "BigDecimal#infinite?" do
 
-  it "returns 1 if self is Infinitu" do
+  it "returns 1 if self is Infinity" do
     # documentation says returns true.
     BigDecimal("Infinity").infinite?.should == 1
     # nan = BigDecimal("NaN")
