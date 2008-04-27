@@ -272,8 +272,6 @@ class IO
   alias_method :isatty, :tty?
 
   def self.popen(str, mode = "r")
-    raise "TODO make this support more than r" if mode != "r"
-
     if str == "+-+" and !block_given?
       raise ArgumentError, "this mode requires a block currently"
     end
@@ -283,21 +281,41 @@ class IO
     pid = Process.fork
 
     if pid
-      ch_write.close
+      # Parent: read/write to the child
+      if mode == 'w'
+        pa_read.close
+        pa_read = nil
+      elsif mode == 'r'
+        ch_write.close
+        ch_write = nil
+      end
+
       # See bottom for definition
-      rp = BidirectionalPipe.new(pid, pa_read, nil)
+      rp = BidirectionalPipe.new(pid, pa_read, ch_write)
       if block_given?
         begin
           yield rp
         ensure
-          pa_read.close
+          pa_read.close if pa_read
+          ch_write.close if ch_write
+          Process.kill('KILL', pid)
         end
       else
         return rp
       end
     else
-      pa_read.close
-      STDOUT.reopen ch_write
+      # Child: replace process with the requested shell command
+      if mode == 'w'
+        ch_write.close
+        ch_write = nil
+      elsif mode == 'r'
+        pa_read.close
+        pa_read = nil
+      end
+
+      STDIN.reopen(pa_read) if pa_read
+      STDOUT.reopen(ch_write) if ch_write
+
       if str == "+-+"
         yield nil
       else
