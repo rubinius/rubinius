@@ -2,16 +2,34 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'bigdecimal'
 
 describe "BigDecimal#finite?" do
-
-  it "is false if Infinity or NaN" do
-    BigDecimal("Infinity").finite?.should == false
-    BigDecimal("-Infinity").finite?.should == false
-    BigDecimal("NaN").finite?.should == false
+  before(:each) do
+    @one = BigDecimal("1")
+    @zero = BigDecimal("0")
+    @zero_pos = BigDecimal("+0")
+    @zero_neg = BigDecimal("-0")
+    @two = BigDecimal("2")
+    @three = BigDecimal("3")
+    @nan = BigDecimal("NaN")
+    @infinity = BigDecimal("Infinity")
+    @infinity_minus = BigDecimal("-Infinity")
+    @one_minus = BigDecimal("-1")
+    @frac_1 = BigDecimal("1E-99999")
+    @frac_2 = BigDecimal("0.9E-99999")
+    @big = BigDecimal("2E40001")
+    @finite_vals = [@one, @zero, @zero_pos, @zero_neg, @two,
+      @three, @frac_1, @frac_2, @big, @one_minus]
   end
 
-  it "is true otherwise" do
-    BigDecimal("3E-20001").finite?.should == true
-    BigDecimal("2E40001").finite?.should == true
+  it "is false if Infinity or NaN" do
+    @infinity.finite?.should == false
+    @infinity_minus.finite?.should == false
+    @nan.finite?.should == false
+  end
+
+  it "returns true for finite values" do
+    @finite_vals.each do |val|
+      val.finite?.should == true
+    end
   end
 end
 
