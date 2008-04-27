@@ -19,7 +19,7 @@ describe "BigDecimal#coerce" do
     b.should == zero_minus
     a, b = one.coerce(some_value)
     a.should == BigDecimal(some_value.to_s)
-    b.to_f.should be_close(1.0, TOLERANCE) # take out the to_f once BigDecimal#- is implemented
+    b.to_f.should be_close(1.0, TOLERANCE) # can we take out the to_f once BigDecimal#- is implemented?
     b.should == one
   end
 
