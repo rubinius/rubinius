@@ -22,7 +22,9 @@ describe "BigDecimal#+" do
     (@one + @two).should == @three
     (@one + @one_minus).should == @zero
     (@frac_2 + @frac_1).should == BigDecimal("1.9E-99999")
-    (@frac_1 + @frac_1).should == 2 * @frac_1
+    (@frac_1 + @frac_1).should == BigDecimal("2E-99999")
+# can't do it this way because * isn't implemented yet
+#    (@frac_1 + @frac_1).should == 2 * @frac_1
   end
 
   it "returns NaN if NaN is involved" do
