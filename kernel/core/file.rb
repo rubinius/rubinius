@@ -338,7 +338,7 @@ class File < IO
         
         cur_part = part
         
-        while cur_part.size == 1 && cur_part.first.kind_of?(Array) && cur_part.first.__id__ != part.__id__
+        while cur_part.size == 1 && cur_part.first.kind_of?(Array) && cur_part.first.__id__ != cur_part.__id__
           cur_part = cur_part.first
         end
         
