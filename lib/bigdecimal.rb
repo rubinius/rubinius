@@ -67,6 +67,14 @@ class BigDecimal < Numeric
   def finite?
     @special != 'i'
   end
+  
+  def infinite?
+    if self.finite?
+      return nil
+    else
+      return (@sign + '1').to_i
+    end
+  end
 
   # As for Float.nan? .
   # call-seq:
@@ -286,7 +294,7 @@ class BigDecimal < Numeric
       return self
     end
     s = self.to_s
-    if s[0, 1] == MINUS
+    if @sign == MINUS
       BigDecimal(s[1..-1])
     else
       BigDecimal(MINUS + s)

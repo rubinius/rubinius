@@ -3,13 +3,18 @@ require 'bigdecimal'
 
 describe "BigDecimal#infinite?" do
 
-  it "returns 1 if self is infinite" do
+  it "returns 1 if self is Infinitu" do
     # documentation says returns true.
     BigDecimal("Infinity").infinite?.should == 1
     # nan = BigDecimal("NaN")
     # nan.infinite?.should == true
     # This fails.
     # Is NaN really finite?
+  end
+  
+  it "returns -1 if self is -Infinity" do
+    # This is how MRI behaves.
+    BigDecimal("-Infinity").infinite?.should == -1
   end
 
   it "returns not true otherwise" do
