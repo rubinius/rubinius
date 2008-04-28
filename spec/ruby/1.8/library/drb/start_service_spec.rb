@@ -4,8 +4,12 @@ require 'drb'
 
 describe "DRb.start_service" do
   before :all do
-    port = 9001 + (Process.pid & 7)
-    @url = "druby://localhost:#{port}"
+    @port = 9001 + (Process.pid & 7 )
+  end
+
+  before :each do
+    @url = "druby://localhost:#{@port}"
+    @port += 1
   end
 
   it "should run a basic remote call" do    

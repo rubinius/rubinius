@@ -1,3 +1,0 @@
-fails:DRb.start_server should run a basic remote call
-fails:DRb.start_server should run a basic remote call passing a block
-fails:DRb.start_service should run a basic remote call passing a block
