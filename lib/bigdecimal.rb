@@ -220,14 +220,7 @@ class BigDecimal < Numeric
     elsif !other.finite?
       return other
     elsif self.exponent == other.exponent
-      sd = self.digits.to_s
-      od = other.digits.to_s
-      diff = sd.length - od.length
-      if diff > 0
-        od << '0' * diff
-      else
-        sd << '0' * diff.abs
-      end
+      sd, od = self.align(other)
       sum = (sd.to_i * signs[self.sign]) + (od.to_i * signs[other.sign])
       s = sum.abs.to_s
       sumdiff = s.length - sd.length
@@ -256,12 +249,8 @@ class BigDecimal < Numeric
         nzd = ('0' * nzx.abs) + nzd
       end
       
-      diff = zd.length - nzd.length
-      if diff > 0
-        nzd << '0' * diff
-      else # diff < 0
-        zd << '0' * diff.abs
-      end
+      zd, nzd = BigDecimal.align(zd, nzd)
+
       l = zd.length
       sum = (nzd.to_i * signs[nz.sign]) + (zd.to_i * signs[z.sign])
       sumsign = sum < 0 ? MINUS : PLUS
@@ -419,5 +408,38 @@ class BigDecimal < Numeric
       s = @digits.to_s[0, e]
       BigDecimal(@sign + '0' + RADIX + s + EXP + @exp.to_s)
     end
+  end
+  
+  ############################
+  # Internal utility methods #
+  ############################
+  
+ protected
+ 
+  # Takes two BigDecimals and returns an array of their digit strings,
+  # with the shorter one right-padded with zeros so they're the same length.
+  # Can also take a digit string itself.
+  # call-seq:
+  #   BigDecimal("12").align(BigDecimal("0.0056789")) => ["12000", "56789"]
+  #   BigDecimal("8.765").align("43") => ["8765", "4300"]
+  def align(y) #:nodoc:
+    xd = self.digits.to_s
+    yd = y.kind_of?(BigDecimal) ? y.digits.to_s : y
+    BigDecimal.align(xd, yd)
+  end
+  
+  # Like BigDecimal#align, but can take two digit strings.
+  # call-seq:
+  #   BigDecimal.align("8765", "43") => ["8765", "4300"]
+  def self.align(x, y) #:nodoc:
+    xd = x.clone
+    yd = y.clone
+    diff = xd.length - yd.length
+    if diff > 0
+      yd << '0' * diff
+    else
+      xd << '0' * diff.abs
+    end
+    [xd, yd]
   end
 end
