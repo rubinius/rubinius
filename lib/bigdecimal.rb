@@ -209,7 +209,6 @@ class BigDecimal < Numeric
   # These are stubbed out until we implement them so that their respective specfiles don't crash.
 
   def add(other, precs)
-    signs = {SIGN_POSITIVE_FINITE => 1, SIGN_NEGATIVE_FINITE => -1}
     if self.nan? or other.nan?
       return BigDecimal("NaN")
     elsif !self.finite? and !other.finite? and self.sign != other.sign
@@ -221,7 +220,7 @@ class BigDecimal < Numeric
       return other
     elsif self.exponent == other.exponent
       sd, od = self.align(other)
-      sum = (sd.to_i * signs[self.sign]) + (od.to_i * signs[other.sign])
+      sum = (sd.to_i * (self.sign <=> 0)) + (od.to_i * (other.sign <=> 0))
       s = sum.abs.to_s
       sumdiff = s.length - sd.length
       if sum < 0
@@ -252,22 +251,21 @@ class BigDecimal < Numeric
       zd, nzd = BigDecimal.align(zd, nzd)
 
       l = zd.length
-      sum = (nzd.to_i * signs[nz.sign]) + (zd.to_i * signs[z.sign])
+      sum = (nzd.to_s.to_i * (nz.sign <=> 0)) + (zd.to_s.to_i * (z.sign <=> 0))
       sumsign = sum < 0 ? MINUS : PLUS
       s = sum.abs.to_s
       sumdiff = s.length - zd.length
       BigDecimal(sumsign + RADIX + s + EXP + sumdiff.to_s, precs)
     else
-      signs = {SIGN_POSITIVE_FINITE => PLUS, SIGN_NEGATIVE_FINITE => MINUS}
       if self.exponent.abs < other.exponent.abs
         extra = self.exponent
       else
         extra = other.exponent
       end
-      a = BigDecimal(signs[self.sign] + RADIX + self.digits.to_s + EXP + (self.exponent - extra).to_s)
-      b = BigDecimal(signs[other.sign] + RADIX + other.digits.to_s + EXP + (other.exponent - extra).to_s)
+      a = BigDecimal((self.sign <=> 0).to_s + RADIX + self.digits.to_s + EXP + (self.exponent - extra).to_s)
+      b = BigDecimal((other.sign <=> 0).to_s + RADIX + other.digits.to_s + EXP + (other.exponent - extra).to_s)
       sum = a + b
-      BigDecimal(signs[sum.sign] + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s, precs)
+      BigDecimal((sum.sign <=> 0).to_s + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s, precs)
     end
   end
   
@@ -310,17 +308,21 @@ class BigDecimal < Numeric
   def <=(other)
   end
 
-  # This will need to be refactored
   def <=>(other)
-    if other != 0 or self.nan?
-      raise
-    elsif self.finite? and @int == '0' and @frac == '0'
+    if other.nil?
+      return nil
+    elsif !other.kind_of?(BigDecimal)
+      return self <=> self.coerce(other)[0]
+    elsif self.nan? or other.nan?
+      return nil
+    elsif self == other
       return 0
     else
-      case @sign
-        when PLUS then return 1
-        when MINUS then return -1
-      end
+      result = (self.sign <=> other.sign).nonzero? || \
+      (self.exponent <=> other.exponent).nonzero? || \
+      (self.to_i <=> other.to_i).nonzero? || \
+      ((self - other).sign <=> BigDecimal("0").sign)
+      return result
     end
   end
 
