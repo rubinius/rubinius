@@ -344,6 +344,7 @@ class BigDecimal < Numeric
     end
   end
   alias == eql?
+  alias === eql?
 
   def >(other)
     return self.<=>(other) == 1
