@@ -373,7 +373,7 @@ class BigDecimal < Numeric
   #   BigDecimal("3000").exponent => 4
   #
   def exponent
-    return @exp.kind_of?(Fixnum) ? @exp : 0
+    return @exp
   end
   
   def fix
