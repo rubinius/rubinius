@@ -208,7 +208,7 @@ class BigDecimal < Numeric
 
   # These are stubbed out until we implement them so that their respective specfiles don't crash.
 
-  def +(other)
+  def add(other, precs)
     signs = {SIGN_POSITIVE_FINITE => 1, SIGN_NEGATIVE_FINITE => -1}
     if self.nan? or other.nan?
       return BigDecimal("NaN")
@@ -229,7 +229,7 @@ class BigDecimal < Numeric
       else
         s = RADIX + s
       end
-      BigDecimal(s + EXP + (self.exponent + sumdiff).to_s)
+      BigDecimal(s + EXP + (self.exponent + sumdiff).to_s, precs)
     elsif self.exponent == 0 or other.exponent == 0
       if self.exponent == 0
         z = self
@@ -256,7 +256,7 @@ class BigDecimal < Numeric
       sumsign = sum < 0 ? MINUS : PLUS
       s = sum.abs.to_s
       sumdiff = s.length - zd.length
-      BigDecimal(sumsign + RADIX + s + EXP + sumdiff.to_s)
+      BigDecimal(sumsign + RADIX + s + EXP + sumdiff.to_s, precs)
     else
       signs = {SIGN_POSITIVE_FINITE => PLUS, SIGN_NEGATIVE_FINITE => MINUS}
       if self.exponent.abs < other.exponent.abs
@@ -267,8 +267,12 @@ class BigDecimal < Numeric
       a = BigDecimal(signs[self.sign] + RADIX + self.digits.to_s + EXP + (self.exponent - extra).to_s)
       b = BigDecimal(signs[other.sign] + RADIX + other.digits.to_s + EXP + (other.exponent - extra).to_s)
       sum = a + b
-      BigDecimal(signs[sum.sign] + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s)
+      BigDecimal(signs[sum.sign] + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s, precs)
     end
+  end
+  
+  def +(other)
+    self.add(other, 0)
   end
 
   def -(other)
