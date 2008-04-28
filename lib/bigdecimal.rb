@@ -7,6 +7,9 @@ end
 class BigDecimal < Numeric
   # See stdlib/ext/bigdecimal for MatzRuby implementation.
   
+  attr_reader :digits
+  protected :digits
+  
   #############
   # Constants #
   #############
@@ -206,6 +209,7 @@ class BigDecimal < Numeric
   # These are stubbed out until we implement them so that their respective specfiles don't crash.
 
   def +(other)
+    signs = {SIGN_POSITIVE_FINITE => 1, SIGN_NEGATIVE_FINITE => -1}
     if self.nan? or other.nan?
       return BigDecimal("NaN")
     elsif !self.finite? and !other.finite? and self.sign != other.sign
@@ -216,63 +220,65 @@ class BigDecimal < Numeric
     elsif !other.finite?
       return other
     elsif self.exponent == other.exponent
-      sum = self.to_s.split(EXP)[0].to_f + other.to_s.split(EXP)[0].to_f
-      BigDecimal(sum.to_s + EXP + self.exponent.to_s)
-    elsif (self.exponent > 0) == (other.exponent > 0)
-      extra = [self.exponent, other.exponent].min
-      a = BigDecimal(self.to_s.split(EXP)[0] + EXP + (self.exponent - extra).to_s)
-      b = BigDecimal(other.to_s.split(EXP)[0] + EXP + (other.exponent - extra).to_s)
-      sum = a + b
-      BigDecimal(sum.to_s.split(EXP)[0] + EXP + (sum.exponent + extra).to_s)
+      sd = self.digits.to_s
+      od = other.digits.to_s
+      diff = sd.length - od.length
+      if diff > 0
+        od << '0' * diff
+      else
+        sd << '0' * diff.abs
+      end
+      sum = (sd.to_i * signs[self.sign]) + (od.to_i * signs[other.sign])
+      s = sum.abs.to_s
+      sumdiff = s.length - sd.length
+      if sum < 0
+        s = MINUS + RADIX + s
+      else
+        s = RADIX + s
+      end
+      BigDecimal(s + EXP + (self.exponent + sumdiff).to_s)
+    elsif self.exponent == 0 or other.exponent == 0
+      if self.exponent == 0
+        z = self
+        nz = other
+      else
+        z = other
+        nz = self
+      end
+      # so z is the one with the 0 exponent
+      zd = z.digits.to_s
+      nzd = nz.digits.to_s
+      nzx = nz.exponent
+      
+      if nzx > 0
+        zd = ('0' * nzx) + zd
+      else # if nzx < 0
+        nzd = ('0' * nzx.abs) + nzd
+      end
+      
+      diff = zd.length - nzd.length
+      if diff > 0
+        nzd << '0' * diff
+      else # diff < 0
+        zd << '0' * diff.abs
+      end
+      l = zd.length
+      sum = (nzd.to_i * signs[nz.sign]) + (zd.to_i * signs[z.sign])
+      sumsign = sum < 0 ? MINUS : PLUS
+      s = sum.abs.to_s
+      sumdiff = s.length - zd.length
+      BigDecimal(sumsign + RADIX + s + EXP + sumdiff.to_s)
     else
       signs = {SIGN_POSITIVE_FINITE => PLUS, SIGN_NEGATIVE_FINITE => MINUS}
-      
-      i1 = self.to_i
-      i2 = other.to_i
-      i = i1 + i2 # add the integral parts as Bignums
-
-      # and now the fractional parts
-      
-      # first get them to the same length...can we do this with the precision value instead?
-      f1 = self.frac.to_s("F").split(RADIX)[1]
-      f2 = other.frac.to_s("F").split(RADIX)[1]
-      
-      s1 = signs[self.sign]
-      s2 = signs[other.sign]
-      
-      diff = f1.length - f2.length
-      if diff > 0 # f1 is longer
-        f2 << '0' * diff
-      elsif diff < 0 # f2 is longer
-        f1 << '0' * diff.abs
-      end
-      
-      # now add a 1 to the beginning of each to preserve leading 0s
-      # it's weird, but seems like the simplest way...
-      prefix1 = s1 + '1'
-      prefix2 = s2 + '1'
-      f1 = prefix1 + f1
-      f2 = prefix2 + f2
-      
-      sum = (f1.to_i + f2.to_i).to_s
-      carry = sum[0, 1].to_i - (prefix1.to_i + prefix2.to_i) # remove the 1s we added earlier
-      i += carry
-      decimal = sum[1..-1]
-      
-      a1 = i1.abs
-      a2 = i2.abs
-      if a1 > a2
-        finalsign = s1
-      elsif a2 > a1
-        finalsign = s2
+      if self.exponent.abs < other.exponent.abs
+        extra = self.exponent
       else
-        if f1.to_i.abs > f2.to_i.abs
-          finalsign = s1
-        else
-          finalsign = s2
-        end
+        extra = other.exponent
       end
-      BigDecimal(finalsign + i.abs.to_s + RADIX + decimal.to_s) 
+      a = BigDecimal(signs[self.sign] + RADIX + self.digits.to_s + EXP + (self.exponent - extra).to_s)
+      b = BigDecimal(signs[other.sign] + RADIX + other.digits.to_s + EXP + (other.exponent - extra).to_s)
+      sum = a + b
+      BigDecimal(signs[sum.sign] + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s)
     end
   end
 
