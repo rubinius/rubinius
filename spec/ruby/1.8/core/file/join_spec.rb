@@ -66,6 +66,12 @@ describe "File.join" do
     a << b
     b << a
     File.join(a).should == "a/b/[...]"
+    
+    a = []
+    b = []
+    a << b
+    b << a
+    File.join(a).should == '[...]'
   end
 
   it "doesn't remove File::SEPARATOR from the middle of arguments" do
