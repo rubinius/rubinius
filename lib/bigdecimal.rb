@@ -274,6 +274,10 @@ class BigDecimal < Numeric
   def +(other)
     self.add(other, 0)
   end
+  
+  def sub(other, precs)
+    self.add(-other, precs)
+  end
 
   def -(other)
     self + -other
