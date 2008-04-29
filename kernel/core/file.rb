@@ -336,11 +336,7 @@ class File < IO
     parts.map! do |part|
       if part.kind_of? Array
         
-        cur_part = part
-        
-        while cur_part.size == 1 && cur_part.first.kind_of?(Array) && cur_part.first.__id__ != cur_part.__id__
-          cur_part = cur_part.first
-        end
+        cur_part = part.send(:remove_outer_arrays)
         
         if cur_part.any?{ |e| e.__id__ == cur_part.__id__ }
           cur_part = cur_part.dup
