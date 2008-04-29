@@ -227,7 +227,7 @@ class StepBreakpoint < Breakpoint
       @target = selector[:target]
       if @target
         @step_type = :target
-        @steps = nil
+        @steps = nil unless @step_by == :caller
       else
         @steps = selector[:steps] || 1
         if @step_by == :line
