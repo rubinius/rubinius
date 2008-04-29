@@ -1621,14 +1621,21 @@ class Array
 
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
-  def recursively_flatten(array, out)
-    raise ArgumentError, "tried to flatten recursive array" if RecursionGuard.inspecting?(array)
-    
+  def recursively_flatten(array, out, recursive_placeholder = Undefined)
+    if RecursionGuard.inspecting?(array)
+      if recursive_placeholder.equal? Undefined
+        raise ArgumentError, "tried to flatten recursive array"
+      else
+        out << recursive_placeholder
+        return nil
+      end
+    end
+
     ret = nil
     array.each { |o|
       if o.kind_of? Array
         RecursionGuard.inspect(array) do
-          recursively_flatten(o, out)
+          recursively_flatten(o, out, recursive_placeholder)
           ret = self
         end
       else
@@ -1640,6 +1647,22 @@ class Array
   end
 
   private :recursively_flatten
+
+  def remove_outer_arrays(array=self)
+    if RecursionGuard.inspecting?(array)
+      array
+    elsif array.size == 1 && array.first.kind_of?(Array)
+      new_array = nil
+      RecursionGuard.inspect(array) do
+        new_array = remove_outer_arrays(array.first)
+      end
+      new_array
+    else
+      array
+    end
+  end
+  
+  private :remove_outer_arrays
 
   ISORT_THRESHOLD   = 7
   MEDIAN_THRESHOLD  = 11

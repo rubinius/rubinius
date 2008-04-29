@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../runner/tag'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/runner/tag'
 
 describe SpecTag do
   it "accepts an optional string to parse into fields" do

@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/formatters/dotted'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/state'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/formatters/dotted'
+require 'mspec/runner/mspec'
+require 'mspec/runner/state'
 
 describe DottedFormatter, "#initialize" do
   it "permits zero arguments" do
@@ -42,14 +42,14 @@ describe DottedFormatter, "#print" do
   end
 
   it "writes to $stdout by default" do
-    $stdout = CaptureOutput.new
+    $stdout = IOStub.new
     formatter = DottedFormatter.new
     formatter.print "begonias"
     $stdout.should == "begonias"
   end
 
   it "writes to the file specified when the formatter was created" do
-    out = CaptureOutput.new
+    out = IOStub.new
     File.should_receive(:open).with("some/file", "w").and_return(out)
     formatter = DottedFormatter.new "some/file"
     formatter.print "begonias"
@@ -59,7 +59,7 @@ end
 
 describe DottedFormatter, "#after" do
   before :each do
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @formatter = DottedFormatter.new
     @state = SpecState.new("describe", "it")
   end
@@ -100,7 +100,7 @@ describe DottedFormatter, "#finish" do
     @timer = mock("timer", :null_object => true)
     TimerAction.stub!(:new).and_return(@timer)
 
-    $stdout = @out = CaptureOutput.new
+    $stdout = @out = IOStub.new
     @state = SpecState.new("describe", "it")
     MSpec.stub!(:register)
     @formatter = DottedFormatter.new

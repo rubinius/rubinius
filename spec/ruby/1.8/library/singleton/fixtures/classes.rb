@@ -5,6 +5,10 @@ module SingletonSpecs
     attr_accessor :data
     include Singleton
   end
+
+  class NewSpec
+    include Singleton
+  end
   
   class MyClassChild < MyClass
   end

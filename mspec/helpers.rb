@@ -1,1 +1,0 @@
-require 'mspec/helpers/tmp'

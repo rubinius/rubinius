@@ -33,5 +33,9 @@ describe "IO#write on a file" do
     lambda { @readonly_file.write("") }.should_not raise_error
   end
 
+  it "returns a length of 0 when writing a blank string" do
+    @file.write('').should == 0
+  end
+
   it_behaves_like(:io_write, :write)
 end

@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require 'stringio'
 
 # The following tables are excerpted from Programming Ruby: The Pragmatic Programmer's Guide'
 # Second Edition by Dave Thomas, Chad Fowler, and Andy Hunt, page 319-22.
@@ -59,6 +60,33 @@ describe "Predefined global $~" do
 
     /foo/ =~ 'bar'
     $~.nil?.should == true
+  end
+
+  it "is set at the method-scoped level rather than block-scoped" do
+    obj = Object.new
+    def obj.foo; yield; end
+    def obj.foo2(&proc); proc.call; end
+
+    match = /foo/.match "foo"
+
+    obj.foo { match = /bar/.match("bar") }
+
+    $~.should == match
+
+    eval 'match = /baz/.match("baz")'
+
+    $~.should == match
+
+    obj.foo2 { match = /qux/.match("qux") }
+
+    $~.should == match
+  end
+
+  it "raises an error if assigned an object not nil or instanceof MatchData" do
+    lambda { $~ = nil }.should_not raise_error
+    lambda { $~ = /foo/.match("foo") }.should_not raise_error
+    lambda { $~ = Object.new }.should raise_error(TypeError)
+    lambda { $~ = 1 }.should raise_error(TypeError)
   end
 end
 
@@ -142,6 +170,56 @@ $stdin           IO              The current standard input.
 $stdout          IO              The current standard output. Assignment to $stdout is deprecated: use 
                                  $stdout.reopen instead. 
 =end
+
+
+describe "Predefined global $_" do
+  it "is set to the last line read by e.g. StringIO#gets" do
+    stdin = StringIO.new("foo\nbar\n", "r")
+
+    read = stdin.gets
+    read.should == "foo\n"
+    $_.should == read
+
+    read = stdin.gets
+    read.should == "bar\n"
+    $_.should == read
+
+    read = stdin.gets
+    read.should == nil
+    $_.should == read
+  end
+
+  it "is set at the method-scoped level rather than block-scoped" do
+    obj = Object.new
+    def obj.foo; yield; end
+    def obj.foo2; yield; end
+
+    stdin = StringIO.new("foo\nbar\nbaz\nqux\n", "r")
+    match = stdin.gets
+
+    obj.foo { match = stdin.gets }
+
+    match.should == "bar\n"
+    $_.should == match
+
+    eval 'match = stdin.gets'
+
+    match.should == "baz\n"
+    $_.should == match
+
+    obj.foo2 { match = stdin.gets }
+
+    match.should == "qux\n"
+    $_.should == match
+  end
+
+  it "can be assigned any value" do
+    lambda { $_ = nil }.should_not raise_error
+    lambda { $_ = "foo" }.should_not raise_error
+    lambda { $_ = Object.new }.should_not raise_error
+    lambda { $_ = 1 }.should_not raise_error
+  end
+end
 
 =begin
 Execution Environment Variables 

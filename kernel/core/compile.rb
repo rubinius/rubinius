@@ -436,7 +436,13 @@ module Kernel
   #
   def require(path)
     path = StringValue(path)
+    rb, rbc, ext = __split_path__ path
+    Autoload.remove(rb)
+    Compile.unified_load path, rb, rbc, ext, true
+  end
+  module_function :require
 
+  def __split_path__(path)
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
@@ -446,9 +452,8 @@ module Kernel
     else
       rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
     end
-
-    Compile.unified_load path, rb, rbc, ext, true
+    return rb,rbc,ext
   end
-  module_function :require
+  private :__split_path__
 end
 

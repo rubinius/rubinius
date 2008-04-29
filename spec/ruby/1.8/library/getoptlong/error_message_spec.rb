@@ -19,7 +19,7 @@ describe "GetoptLong#error_message" do
 
   it "returns the error message of the last error that occurred" do
     begin
-      $stderr = CaptureOutput.new
+      $stderr = IOStub.new
       ARGV = []
 
       opts = GetoptLong.new

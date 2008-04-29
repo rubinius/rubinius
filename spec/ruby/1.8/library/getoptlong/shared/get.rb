@@ -65,7 +65,7 @@ shared :getoptlong_get do |cmd|
     it "raises a if an argument was required, but none given" do
       begin
         s = $stderr
-        $stderr = CaptureOutput.new
+        $stderr = IOStub.new
         old_argv = ARGV
         ARGV = [ "--size" ]
       

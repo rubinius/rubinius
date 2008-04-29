@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-load File.dirname(__FILE__) + '/../../bin/mkspec'
+require File.dirname(__FILE__) + '/../spec_helper'
+load 'bin/mkspec'
 
 describe "The -c, --constant CONSTANT option" do
   before :each do

@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/filters/profile'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/mspec'
+require 'mspec/runner/filters/profile'
 
 describe ProfileFilter, "#find" do
   before :each do

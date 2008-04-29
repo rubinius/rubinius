@@ -7,6 +7,9 @@ end
 class BigDecimal < Numeric
   # See stdlib/ext/bigdecimal for MatzRuby implementation.
   
+  attr_reader :digits
+  protected :digits
+  
   #############
   # Constants #
   #############
@@ -22,6 +25,7 @@ class BigDecimal < Numeric
   PLUS = '+'
   MINUS = '-'
   RADIX = '.'
+  EXP = 'E'
   
   # call-seq:
   #   BigDecimal("3.14159")   => big_decimal
@@ -66,6 +70,14 @@ class BigDecimal < Numeric
   def finite?
     @special != 'i'
   end
+  
+  def infinite?
+    if self.finite?
+      return nil
+    else
+      return (@sign + '1').to_i
+    end
+  end
 
   # As for Float.nan? .
   # call-seq:
@@ -91,6 +103,22 @@ class BigDecimal < Numeric
     end
     [sigfigs, @precs]
   end
+  
+  ###############
+  # Conversions #
+  ###############
+  
+  def to_f
+    self.to_s("F").to_f
+    # Are there more cases we need to trap for?  This seems too easy.
+  end
+  
+  def to_i
+    if self.nan? or !self.finite?
+      return nil
+    end
+    self.fix.to_s("F").to_i
+  end
 
   def to_s(arg='')
     # parse the argument for format specs
@@ -102,7 +130,6 @@ class BigDecimal < Numeric
     format = arg =~ /F/ ? :float : :eng
     spacing = arg.to_i
     
-    e = 'E'
     nan = 'NaN'
     infinity = 'Infinity'
 
@@ -130,7 +157,7 @@ class BigDecimal < Numeric
       elsif format == :eng
         value = '0' + RADIX + value
         if @exp != 0
-          value << e + @exp.to_s
+          value << EXP + @exp.to_s
         end
       end
       
@@ -161,14 +188,18 @@ class BigDecimal < Numeric
   
   def inspect
     str = '#<BigDecimal:'
-    str << [nil, self.to_s, "#{precs[0]}(#{precs[1]})"].join(',')
+    str << [nil, "'#{self.to_s}'", "#{precs[0]}(#{precs[1]})"].join(',')
     str << '>'
     return str
   end
 
   def coerce(other)
     Ruby.primitive :numeric_coerce
-    [BigDecimal(other.to_s), self]
+    if other.kind_of?(BigDecimal)
+      [other, self]
+    else
+      [BigDecimal(other.to_s), self]
+    end
   end
 
   #########################
@@ -177,7 +208,7 @@ class BigDecimal < Numeric
 
   # These are stubbed out until we implement them so that their respective specfiles don't crash.
 
-  def +(other)
+  def add(other, precs)
     if self.nan? or other.nan?
       return BigDecimal("NaN")
     elsif !self.finite? and !other.finite? and self.sign != other.sign
@@ -187,9 +218,64 @@ class BigDecimal < Numeric
       return self
     elsif !other.finite?
       return other
+    elsif self.exponent == other.exponent
+      sd, od = self.align(other)
+      sum = (sd.to_i * (self.sign <=> 0)) + (od.to_i * (other.sign <=> 0))
+      s = sum.abs.to_s
+      sumdiff = s.length - sd.length
+      if sum < 0
+        s = MINUS + RADIX + s
+      else
+        s = RADIX + s
+      end
+      BigDecimal(s + EXP + (self.exponent + sumdiff).to_s, precs)
+    elsif self.exponent == 0 or other.exponent == 0
+      if self.exponent == 0
+        z = self
+        nz = other
+      else
+        z = other
+        nz = self
+      end
+      # so z is the one with the 0 exponent
+      zd = z.digits.to_s
+      nzd = nz.digits.to_s
+      nzx = nz.exponent
+      
+      if nzx > 0
+        zd = ('0' * nzx) + zd
+      else # if nzx < 0
+        nzd = ('0' * nzx.abs) + nzd
+      end
+      
+      zd, nzd = BigDecimal.align(zd, nzd)
+
+      l = zd.length
+      sum = (nzd.to_s.to_i * (nz.sign <=> 0)) + (zd.to_s.to_i * (z.sign <=> 0))
+      sumsign = sum < 0 ? MINUS : PLUS
+      s = sum.abs.to_s
+      sumdiff = s.length - zd.length
+      BigDecimal(sumsign + RADIX + s + EXP + sumdiff.to_s, precs)
     else
-      # we need int and frac for this, I think
+      signs = {-1 => MINUS, 0 => nil, 1 => PLUS}
+      if self.exponent.abs < other.exponent.abs
+        extra = self.exponent
+      else
+        extra = other.exponent
+      end
+      a = BigDecimal(signs[self.sign <=> 0].to_s + RADIX + self.digits.to_s + EXP + (self.exponent - extra).to_s)
+      b = BigDecimal(signs[other.sign <=> 0].to_s + RADIX + other.digits.to_s + EXP + (other.exponent - extra).to_s)
+      sum = a + b
+      BigDecimal(signs[sum.sign <=> 0].to_s + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s, precs)
     end
+  end
+  
+  def +(other)
+    self.add(other, 0)
+  end
+  
+  def sub(other, precs)
+    self.add(-other, precs)
   end
 
   def -(other)
@@ -210,7 +296,7 @@ class BigDecimal < Numeric
       return self
     end
     s = self.to_s
-    if s[0, 1] == MINUS
+    if @sign == MINUS
       BigDecimal(s[1..-1])
     else
       BigDecimal(MINUS + s)
@@ -223,17 +309,21 @@ class BigDecimal < Numeric
   def <=(other)
   end
 
-  # This will need to be refactored
   def <=>(other)
-    if other != 0 or self.nan?
-      raise
-    elsif self.finite? and @int == '0' and @frac == '0'
+    if other.nil?
+      return nil
+    elsif !other.kind_of?(BigDecimal)
+      return self <=> self.coerce(other)[0]
+    elsif self.nan? or other.nan?
+      return nil
+    elsif self == other
       return 0
     else
-      case @sign
-        when PLUS then return 1
-        when MINUS then return -1
-      end
+      result = (self.sign <=> other.sign).nonzero? || \
+      (self.exponent <=> other.exponent).nonzero? || \
+      (self.to_i <=> other.to_i).nonzero? || \
+      ((self - other).sign <=> BigDecimal("0").sign)
+      return result
     end
   end
 
@@ -257,6 +347,7 @@ class BigDecimal < Numeric
     end
   end
   alias == eql?
+  alias === eql?
 
   def >(other)
     return self.<=>(other) == 1
@@ -277,9 +368,31 @@ class BigDecimal < Numeric
     end
   end
   
+  # Returns the exponent as a Fixnum (or 0 if out of range), such that the absolute value of the base is between 0 and 1.  This is not the power function.
+  # call-seq:
+  #   BigDecimal("0.125e3").exponent => 3
+  #   BigDecimal("3000").exponent => 4
+  #
+  def exponent
+    return @exp
+  end
+  
+  def fix
+    d = @digits.to_s.length
+    if self.nan? or !self.finite? or d <= @exp
+      return self
+    elsif @exp < 0
+      return BigDecimal("#{@sign}0")
+    end
+    s = self.to_s("F").split(RADIX)[0] # this includes the sign
+    BigDecimal(s)
+  end
+  
   def frac
     if self.nan? or !self.finite?
       return self
+    elsif @digits.to_s.length <= @exp
+      return BigDecimal("0")
     end
     s = self.to_s("F").split(RADIX)[1] # the part after the decimal point
     BigDecimal(@sign + RADIX + s)
@@ -295,5 +408,50 @@ class BigDecimal < Numeric
     else # infinite
       @sign == PLUS ? SIGN_POSITIVE_INFINITE : SIGN_NEGATIVE_INFINITE
     end
+  end
+  
+  def truncate(prec = nil)
+    if self.nan? or !self.finite?
+      return self
+    elsif prec.nil?
+      self.fix
+    else
+      e = [0, @exp + prec].max
+      s = @digits.to_s[0, e]
+      BigDecimal(@sign + '0' + RADIX + s + EXP + @exp.to_s)
+    end
+  end
+  
+  ############################
+  # Internal utility methods #
+  ############################
+  
+ protected
+ 
+  # Takes two BigDecimals and returns an array of their digit strings,
+  # with the shorter one right-padded with zeros so they're the same length.
+  # Can also take a digit string itself.
+  # call-seq:
+  #   BigDecimal("12").align(BigDecimal("0.0056789")) => ["12000", "56789"]
+  #   BigDecimal("8.765").align("43") => ["8765", "4300"]
+  def align(y) #:nodoc:
+    xd = self.digits.to_s
+    yd = y.kind_of?(BigDecimal) ? y.digits.to_s : y
+    BigDecimal.align(xd, yd)
+  end
+  
+  # Like BigDecimal#align, but can take two digit strings.
+  # call-seq:
+  #   BigDecimal.align("8765", "43") => ["8765", "4300"]
+  def self.align(x, y) #:nodoc:
+    xd = x.clone
+    yd = y.clone
+    diff = xd.length - yd.length
+    if diff > 0
+      yd << '0' * diff
+    else
+      xd << '0' * diff.abs
+    end
+    [xd, yd]
   end
 end

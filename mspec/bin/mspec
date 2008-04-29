@@ -1,8 +1,13 @@
 #!/usr/bin/env ruby
 
+$:.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
+
+require 'yaml'
 require 'optparse'
-require 'mspec/bin/options'
-require 'mspec/bin/script'
+require 'mspec/utils/options'
+require 'mspec/utils/script'
+require 'mspec/helpers/tmp'
+require 'mspec/runner/actions/timer'
 
 
 class MSpecMain < MSpecScript
@@ -13,15 +18,15 @@ class MSpecMain < MSpecScript
     config[:flags]    = []
     config[:command]  = nil
     config[:options]  = []
-
-    if ["ci", "run", "tag"].include? ARGV[0]
-      config[:command] = ARGV.shift
-      config[:options] << "-h" if ARGV.delete("-h") || ARGV.delete("--help")
-      config[:options] << "-v" if ARGV.delete("-v") || ARGV.delete("--version")
-    end
   end
 
   def options(argv=ARGV)
+    if ["ci", "run", "tag"].include? argv[0]
+      config[:command] = argv.shift
+      config[:options] << "-h" if argv.delete("-h") || argv.delete("--help")
+      config[:options] << "-v" if argv.delete("-v") || argv.delete("--version")
+    end
+
     options = MSpecOptions.new config, "[COMMAND]", "", 28, "   "
 
     options.separator ""
@@ -46,6 +51,10 @@ class MSpecMain < MSpecScript
       config[:flags] << '-w'
       ENV['OUTPUT_WARNINGS'] = '1'
     end
+    options.on("-j", "--multi", "Run multiple (possibly parallel) subprocesses") do
+      config[:multi] = true
+      config[:options] << "-fy"
+    end
     options.add_version
     options.on("-h", "--help", "Show this message") do
       puts options.parser
@@ -65,6 +74,56 @@ class MSpecMain < MSpecScript
 
   def register; end
 
+  def parallel
+    @parallel ||= !(Object.const_defined?(:JRUBY_VERSION) ||
+                  /(mswin|mingw)/ =~ RUBY_PLATFORM)
+  end
+
+  def fork(&block)
+    parallel ? Kernel.fork(&block) : block.call
+  end
+
+  def report(files, timer)
+    exceptions = []
+    tally = Tally.new
+
+    files.each do |file|
+      d = File.open(file, "r") { |f| YAML.load f }
+      File.delete file
+
+      exceptions += Array(d['exceptions'])
+      tally.files!        d['files']
+      tally.examples!     d['examples']
+      tally.expectations! d['expectations']
+      tally.errors!       d['errors']
+      tally.failures!     d['failures']
+    end
+
+    print "\n"
+    exceptions.each_with_index do |exc, index|
+      print "\n#{index+1})\n", exc, "\n"
+    end
+    print "\n#{timer.format}\n\n#{tally.format}\n"
+  end
+
+  def multi_exec(argv)
+    timer = TimerAction.new
+    timer.start
+
+    files = config[:ci_files].inject([]) do |list, item|
+      name = tmp "mspec-ci-multi-#{list.size}"
+
+      rest = argv + ["-o", name, item]
+      fork { system [config[:target], *rest].join(" ") }
+
+      list << name
+    end
+
+    Process.waitall
+    timer.finish
+    report files, timer
+  end
+
   def run
     ENV['MSPEC_RUNNER'] = '1'
 
@@ -74,7 +133,11 @@ class MSpecMain < MSpecScript
     argv << "mspec/bin/mspec-#{ config[:command] || "run" }"
     argv.concat config[:options]
 
-    exec config[:target], *argv
+    if config[:multi] and config[:command] == "ci"
+      multi_exec argv
+    else
+      exec config[:target], *argv
+    end
   end
 end
 

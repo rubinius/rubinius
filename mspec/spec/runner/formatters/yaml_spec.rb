@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/formatters/yaml'
-require File.dirname(__FILE__) + '/../../../runner/state'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/formatters/yaml'
+require 'mspec/runner/state'
 
 describe YamlFormatter, "#initialize" do
   it "permits zero arguments" do
@@ -14,8 +14,8 @@ end
 
 describe YamlFormatter, "#print" do
   before :each do
-    $stdout = CaptureOutput.new
-    @out = CaptureOutput.new
+    $stdout = IOStub.new
+    @out = IOStub.new
     File.stub!(:open).and_return(@out)
     @formatter = YamlFormatter.new "some/file"
   end
@@ -49,11 +49,14 @@ end
 describe YamlFormatter, "#finish" do
   before :each do
     @tally = mock("tally", :null_object => true)
+    @counter = mock("counter", :null_object => true)
+    @tally.stub!(:counter).and_return(@counter)
     TallyAction.stub!(:new).and_return(@tally)
+
     @timer = mock("timer", :null_object => true)
     TimerAction.stub!(:new).and_return(@timer)
 
-    $stdout = CaptureOutput.new
+    $stdout = IOStub.new
     @state = SpecState.new("describe", "it")
     @state.exceptions << ["msg", Exception.new("broken")]
 
@@ -87,26 +90,32 @@ describe YamlFormatter, "#finish" do
     $stdout.should =~ /time: 4.2/
   end
 
+  it "outputs a file count" do
+    @counter.should_receive(:files).and_return(3)
+    @formatter.finish
+    $stdout.should =~ /files: 3/
+  end
+
   it "outputs an example count" do
-    @tally.should_receive(:examples).and_return(3)
+    @counter.should_receive(:examples).and_return(3)
     @formatter.finish
     $stdout.should =~ /examples: 3/
   end
 
   it "outputs an expectation count" do
-    @tally.should_receive(:expectations).and_return(9)
+    @counter.should_receive(:expectations).and_return(9)
     @formatter.finish
     $stdout.should =~ /expectations: 9/
   end
 
   it "outputs a failure count" do
-    @tally.should_receive(:failures).and_return(2)
+    @counter.should_receive(:failures).and_return(2)
     @formatter.finish
     $stdout.should =~ /failures: 2/
   end
 
   it "outputs an error count" do
-    @tally.should_receive(:errors).and_return(1)
+    @counter.should_receive(:errors).and_return(1)
     @formatter.finish
     $stdout.should =~ /errors: 1/
   end

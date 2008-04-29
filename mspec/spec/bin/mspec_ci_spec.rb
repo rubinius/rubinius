@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../../runner/mspec'
-require File.dirname(__FILE__) + '/../../runner/filters/tag'
-load File.dirname(__FILE__) + '/../../bin/mspec-ci'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'mspec/runner/mspec'
+require 'mspec/runner/filters/tag'
+load 'bin/mspec-ci'
 
 describe MSpecCI, "#options" do
   before :each do

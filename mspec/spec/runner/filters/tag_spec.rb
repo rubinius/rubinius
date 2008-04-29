@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
-require File.dirname(__FILE__) + '/../../../runner/mspec'
-require File.dirname(__FILE__) + '/../../../runner/filters/match'
-require File.dirname(__FILE__) + '/../../../runner/filters/tag'
+require File.dirname(__FILE__) + '/../../spec_helper'
+require 'mspec/runner/mspec'
+require 'mspec/runner/filters/match'
+require 'mspec/runner/filters/tag'
 
 describe TagFilter, "#load" do
   before :each do
@@ -11,29 +11,29 @@ describe TagFilter, "#load" do
     MSpec.stub!(:read_tags).and_return([@tag])
     MSpec.stub!(:register)
   end
-  
+
   it "loads tags from the tag file" do
     MSpec.should_receive(:read_tags).with("tag", "key").and_return([])
     @filter.load
   end
-  
+
   it "creates a MatchFilter from the descriptions matching the tags" do
     MatchFilter.should_receive(:new).with(:include, "description").and_return(@match)
     @filter.load
   end
-  
+
   it "creates an empty MatchFilter if no tags were found" do
     MSpec.should_receive(:read_tags).and_return([])
     MatchFilter.should_receive(:new).with(:include).and_return(@match)
     @filter.load
   end
-  
+
   it "registers the MatchFilter if there were tags found in the tag file" do
     @match.should_receive(:register)
     MatchFilter.should_receive(:new).with(:include, "description").and_return(@match)
     @filter.load
   end
-  
+
   it "registers the empty MatchFilter if no tags were found" do
     @match.should_receive(:register)
     MSpec.should_receive(:read_tags).and_return([])
@@ -48,7 +48,7 @@ describe TagFilter, "#unload" do
     @tag = SpecTag.new "tag(comment):description"
     MSpec.stub!(:read_tags).and_return([@tag])
   end
-  
+
   it "unregisters the MatchFilter if one was registered" do
     match = mock("match filter", :null_object => true)
     match.should_receive(:unregister)

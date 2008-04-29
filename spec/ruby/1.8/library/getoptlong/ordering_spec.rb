@@ -5,7 +5,7 @@ describe "GetoptLong#ordering=" do
   it "raises an ArgumentError if called after processing has started" do
     begin
       s = $stderr
-      $stderr = CaptureOutput.new
+      $stderr = IOStub.new
       old_argv = ARGV
       ARGV = [ "--size", "10k", "--verbose" ]
       

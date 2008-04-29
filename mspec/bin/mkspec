@@ -1,11 +1,12 @@
 #! /usr/bin/env ruby
-#
-# mkspec - utility to create spec stubs
+
+$:.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
 
 require 'fileutils'
 require 'optparse'
 require 'mspec/version'
-require 'mspec/bin/name_map'
+require 'mspec/utils/name_map'
+
 
 class MkSpec
   attr_reader :config

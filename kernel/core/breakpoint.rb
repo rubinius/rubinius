@@ -44,6 +44,11 @@ class Breakpoint
   # removing a breakpoint that was set at the same location as an existing one.
   attr_accessor :original_instruction
 
+  # Returns the name of the file in which the breakpoint is set
+  def file
+    @method.file.to_s if @method
+  end
+
   # Returns the source file line that the breakpoint is on, provided the
   # breakpoint is set at a particular location. Can return nil for
   # StepBreakpoint subclasses when a brekapoint is set on context change.

@@ -1,2 +1,0 @@
-fails:BigDecimal#inspect value after first comma is value as string
-fails:BigDecimal#inspect looks like this

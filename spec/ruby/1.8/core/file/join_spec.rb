@@ -11,9 +11,9 @@ describe "File.join" do
   end
 
   platform_is :windows do
-    it "joins parts using File::ALT_SEPARATOR on mswin" do
+    it "joins parts using File::ALT_SEPARATOR on windows" do
       File.join("C:\\", 'windows').should == "C:\\windows"
-      File.join("\\\\", "usr").should = "\\\\usr"
+      File.join("\\\\", "usr").should == "\\\\usr"
     end
   end
 
@@ -55,6 +55,23 @@ describe "File.join" do
     parts = [["one", "two"], ["three", "four"]]
     parts << parts
     File.join(parts).should == 'one/two/three/four/one/two/three/four/[...]'
+	
+    a = ['a']
+    a << a
+    File.join(a).should == 'a/a/[...]'
+    File.join([a]).should == 'a/a/[...]'
+
+    a = ['a']
+    b = ['b']
+    a << b
+    b << a
+    File.join(a).should == "a/b/[...]"
+    
+    a = []
+    b = []
+    a << b
+    b << a
+    File.join(a).should == '[...]'
   end
 
   it "doesn't remove File::SEPARATOR from the middle of arguments" do

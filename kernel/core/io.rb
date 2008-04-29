@@ -497,7 +497,7 @@ class IO
 
     data = String data
 
-    return if data.length == 0
+    return 0 if data.length == 0
     raise IOError if ((Platform::POSIX.fcntl(@descriptor, F_GETFL, 0) & ACCMODE) == RDONLY)
     prim_write(data)
   end
