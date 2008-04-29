@@ -257,15 +257,16 @@ class BigDecimal < Numeric
       sumdiff = s.length - zd.length
       BigDecimal(sumsign + RADIX + s + EXP + sumdiff.to_s, precs)
     else
+      signs = {-1 => MINUS, 0 => nil, 1 => PLUS}
       if self.exponent.abs < other.exponent.abs
         extra = self.exponent
       else
         extra = other.exponent
       end
-      a = BigDecimal((self.sign <=> 0).to_s + RADIX + self.digits.to_s + EXP + (self.exponent - extra).to_s)
-      b = BigDecimal((other.sign <=> 0).to_s + RADIX + other.digits.to_s + EXP + (other.exponent - extra).to_s)
+      a = BigDecimal(signs[self.sign <=> 0].to_s + RADIX + self.digits.to_s + EXP + (self.exponent - extra).to_s)
+      b = BigDecimal(signs[other.sign <=> 0].to_s + RADIX + other.digits.to_s + EXP + (other.exponent - extra).to_s)
       sum = a + b
-      BigDecimal((sum.sign <=> 0).to_s + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s, precs)
+      BigDecimal(signs[sum.sign <=> 0].to_s + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s, precs)
     end
   end
   
