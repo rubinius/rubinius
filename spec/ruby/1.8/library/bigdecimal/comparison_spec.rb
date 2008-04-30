@@ -62,7 +62,9 @@ describe "BigDecimal#<=>" do
   end
 
   it "returns nil if NaN is involved" do
-    @values << [@infinity, @infinity_neg, @nan]
+    @values += [@infinity, @infinity_neg, @nan]
+    @values << nil
+    @values << Object.new
     @values.each { |val|
       (@nan <=> val).should == nil
     }

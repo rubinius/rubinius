@@ -6,3 +6,5 @@ fails:BigDecimal#% returns NaN if NaN is involved
 fails:BigDecimal#% returns NaN if Infinity is involved
 fails:BigDecimal#modulo returns NaN if NaN is involved
 fails:BigDecimal#modulo returns NaN if Infinity is involved
+fails:BigDecimal#% raises TypeError if the argument cannot be coerced to BigDecimal
+fails:BigDecimal#modulo raises TypeError if the argument cannot be coerced to BigDecimal

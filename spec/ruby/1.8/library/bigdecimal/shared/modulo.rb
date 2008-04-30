@@ -102,5 +102,11 @@ shared :bigdecimal_modulo do |cmd|
       @infinity.send(cmd, @infinity_minus).nan?.should == true
       @infinity_minus.send(cmd, @infinity).nan?.should == true
     end
+    
+    it "raises TypeError if the argument cannot be coerced to BigDecimal" do
+      lambda {
+        @one.send(cmd, '2')
+      }.should raise_error(TypeError)
+    end
   end
 end
