@@ -4,3 +4,6 @@ fails:BigDecimal#mod_part_of_dimvod returns self modulo other
 fails:BigDecimal#mod_part_of_dimvod does NOT raise ZeroDivisionError if other is zero
 fails:BigDecimal#mod_part_of_dimvod returns NaN if NaN is involved
 fails:BigDecimal#mod_part_of_dimvod returns NaN if Infinity is involved
+fails:BigDecimal#mod_part_of_dimvod raises TypeError if the argument cannot be coerced to BigDecimal
+fails:BigDecimal#divmod divides value, returns an array
+fails:BigDecimal#divmod raises TypeError if the argument cannot be coerced to BigDecimal
