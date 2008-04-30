@@ -68,11 +68,11 @@ class BigDecimal < Numeric
   #   BigDecimal.new("Infinity").finite?  => false
   #   BigDecimal.new("NaN").finite?  => true
   def finite?
-    @special != 'i'
+    @special != 'i' && !self.nan?
   end
   
   def infinite?
-    if self.finite?
+    if self.finite? or self.nan?
       return nil
     else
       return (@sign + '1').to_i
@@ -92,11 +92,11 @@ class BigDecimal < Numeric
   #   BigDecimal.new("0").zero?   =>true
   #   BigDecimal.new("-0").zero?  =>true
   def zero?
-    @digits.to_i == 0 and !self.nan? and self.finite?
+    @digits.to_i == 0 and self.finite?
   end
 
   def precs
-    if !self.finite? or self.nan?
+    if !self.finite?
       sigfigs = 0
     else
       sigfigs = @digits.to_s.length
@@ -114,7 +114,7 @@ class BigDecimal < Numeric
   end
   
   def to_i
-    if self.nan? or !self.finite?
+    if !self.finite?
       return nil
     end
     self.fix.to_s("F").to_i
@@ -385,7 +385,7 @@ class BigDecimal < Numeric
   
   def fix
     d = @digits.to_s.length
-    if self.nan? or !self.finite? or d <= @exp
+    if !self.finite? or d <= @exp
       return self
     elsif @exp < 0
       return BigDecimal("#{@sign}0")
@@ -395,7 +395,7 @@ class BigDecimal < Numeric
   end
   
   def frac
-    if self.nan? or !self.finite?
+    if !self.finite?
       return self
     elsif @digits.to_s.length <= @exp
       return BigDecimal("0")
@@ -417,7 +417,7 @@ class BigDecimal < Numeric
   end
   
   def truncate(prec = nil)
-    if self.nan? or !self.finite?
+    if !self.finite?
       return self
     elsif prec.nil?
       self.fix
@@ -463,7 +463,11 @@ class BigDecimal < Numeric
   
   # Wrapper for implementing comparison methods.
   def compare_method(other, val)
-    result = (self <=> other)
-    return result.nil? ? nil : result == val
+  #  if !self.nan? and other.respond_to?(:nan?) and other.nan?
+  #    raise ArgumentError, "Can't compare #{self} to NaN", caller
+  #  else
+      result = (self <=> other)
+      return result.nil? ? nil : result == val
+  #  end
   end
 end
