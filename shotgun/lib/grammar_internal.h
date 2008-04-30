@@ -1,6 +1,8 @@
 #ifndef RBS_GRAMMAR_INTERNAL_H
 #define RBS_GRAMMAR_INTERNAL_H
 
+#include <stdbool.h>
+
 #include "quark.h"
 #include "bstrlib.h"
 #include "shotgun/lib/shotgun.h"
