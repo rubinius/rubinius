@@ -26,6 +26,7 @@ class SpinnerFormatter < DottedFormatter
 
   def register
     super
+    @counter = @tally.counter
 
     MSpec.register :start, self
     MSpec.register :load, self
@@ -62,10 +63,10 @@ class SpinnerFormatter < DottedFormatter
     @which = (@which + 1) % Spins.size
     if @color
       print "\r[%s | %s | %s] \033[0;#{@fail_color}m%6dF \033[0;#{@error_color}m%6dE\033[0m" %
-          [Spins[@which], percentage, etr, @tally.failures, @tally.errors]
+          [Spins[@which], percentage, etr, @counter.failures, @counter.errors]
     else
       print "\r[%s | %s | %s] %6dF %6dE" %
-          [Spins[@which], percentage, etr, @tally.failures, @tally.errors]
+          [Spins[@which], percentage, etr, @counter.failures, @counter.errors]
     end
   end
 
@@ -79,8 +80,8 @@ class SpinnerFormatter < DottedFormatter
 
   def after(state)
     if state.exception?
-      @fail_color =  "31" if @tally.failures > 0
-      @error_color = "33" if @tally.errors > 0
+      @fail_color =  "31" if @counter.failures > 0
+      @error_color = "33" if @counter.errors > 0
       @states << state
     end
 

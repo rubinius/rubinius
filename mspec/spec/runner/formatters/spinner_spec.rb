@@ -32,6 +32,7 @@ describe SpinnerFormatter, "#register" do
     tally = mock("tally")
     timer.should_receive(:register)
     tally.should_receive(:register)
+    tally.should_receive(:counter)
     TimerAction.should_receive(:new).and_return(timer)
     TallyAction.should_receive(:new).and_return(tally)
     @formatter.register
@@ -53,12 +54,25 @@ end
 
 describe SpinnerFormatter, "#after" do
   before :each do
+    $stdout = IOStub.new
+    MSpec.stub!(:retrieve).and_return(["a", "b"])
     @formatter = SpinnerFormatter.new
+    @formatter.register
     @state = SpecState.new("describe", "it")
   end
 
+  after :each do
+    $stdout = STDOUT
+  end
+
   it "updates the spinner" do
-    @formatter.should_receive(:spin)
+    @formatter.start
+    @formatter.load
     @formatter.after @state
+    @formatter.after @state
+    $stdout.should == "\r[/ | ========          20%                    | 00:00:00] " \
+                      "\e[0;32m     0F \e[0;32m     0E\e[0m" \
+                      "\r[- | ========          20%                    | 00:00:00] " \
+                      "\e[0;32m     0F \e[0;32m     0E\e[0m"
   end
 end
