@@ -290,6 +290,9 @@ class BigDecimal < Numeric
   end
   alias % remainder
   
+  def divmod(other)
+  end
+  
   # Unary minus
   def -@
     if self.nan?
