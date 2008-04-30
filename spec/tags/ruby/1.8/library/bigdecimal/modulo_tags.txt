@@ -2,3 +2,7 @@ fails:BigDecimal#% returns self modulo other
 fails:BigDecimal#% does NOT raise ZeroDivisionError if other is zero
 fails:BigDecimal#modulo returns self modulo other
 fails:BigDecimal#modulo does NOT raise ZeroDivisionError if other is zero
+fails:BigDecimal#% returns NaN if NaN is involved
+fails:BigDecimal#% returns NaN if Infinity is involved
+fails:BigDecimal#modulo returns NaN if NaN is involved
+fails:BigDecimal#modulo returns NaN if Infinity is involved

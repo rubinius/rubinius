@@ -3,6 +3,21 @@ require 'bigdecimal'
 shared :bigdecimal_modulo do |cmd|
 
   describe "BigDecimal##{cmd}" do
+    before(:each) do
+      @one = BigDecimal("1")
+      @zero = BigDecimal("0")
+      @zero_pos = BigDecimal("+0")
+      @zero_neg = BigDecimal("-0")
+      @two = BigDecimal("2")
+      @three = BigDecimal("3")
+      @mixed = BigDecimal("1.23456789")
+      @nan = BigDecimal("NaN")
+      @infinity = BigDecimal("Infinity")
+      @infinity_minus = BigDecimal("-Infinity")
+      @one_minus = BigDecimal("-1")
+      @frac_1 = BigDecimal("1E-99999")
+      @frac_2 = BigDecimal("0.9E-99999")
+    end
 
     it "returns self modulo other" do
       bd6543 = BigDecimal.new("6543.21")
@@ -20,6 +35,15 @@ shared :bigdecimal_modulo do |cmd|
       bd5667.send(cmd, bignum_value).should == bd5667.%(0xffffffff)
       bd6543.send(cmd, 137.24).should be_close(6543.21.%(137.24), TOLERANCE)
       a.send(cmd, b).should == BigDecimal("0.45E-42")
+      @zero.send(cmd, @one).should == @zero
+      @two.send(cmd, @one).should == @zero
+      @one.send(cmd, @two).should == @one
+      @frac_1.send(cmd, @one).should == @frac_1
+      @frac_2.send(cmd, @one).should == @frac_2
+      @one_minus.send(cmd, @one_minus).should == @zero
+      @one_minus.send(cmd, @one).should == @zero
+      @one_minus.send(cmd, @two).should == @one
+      @one.send(cmd, -@two).should == -@one
     end
 
     it "does NOT raise ZeroDivisionError if other is zero" do
@@ -31,6 +55,32 @@ shared :bigdecimal_modulo do |cmd|
       bd5667.send(cmd, 0).nan?.should == true
       bd5667.send(cmd, 0.0).nan?.should == true
       bd5667.send(cmd, BigDecimal("0")).nan?.should == true
+      @zero.send(cmd, @zero).nan?.should == true
+    end
+
+    it "returns NaN if NaN is involved" do
+      @nan.send(cmd, @nan).nan?.should == true
+      @nan.send(cmd, @one).nan?.should == true
+      @one.send(cmd, @nan).nan?.should == true
+      @infinity.send(cmd, @nan).nan?.should == true
+      @nan.send(cmd, @infinity).nan?.should == true
+    end
+
+    it "returns NaN if Infinity is involved" do
+      @infinity.send(cmd, @infinity).nan?.should == true
+      @infinity.send(cmd, @one).nan?.should == true
+      @infinity.send(cmd, @mixed).nan?.should == true
+      @infinity.send(cmd, @one_minus).nan?.should == true
+      @infinity.send(cmd, @frac_1).nan?.should == true
+      @one.send(cmd, @infinity).nan?.should == true
+
+      @infinity_minus.send(cmd, @infinity_minus).nan?.should == true
+      @infinity_minus.send(cmd, @one).nan?.should == true
+      @one.send(cmd, @infinity_minus).nan?.should == true
+      @frac_2.send(cmd, @infinity_minus).nan?.should == true
+
+      @infinity.send(cmd, @infinity_minus).nan?.should == true
+      @infinity_minus.send(cmd, @infinity).nan?.should == true
     end
   end
 end
