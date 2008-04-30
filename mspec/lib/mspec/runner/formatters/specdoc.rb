@@ -15,7 +15,7 @@ class SpecdocFormatter < DottedFormatter
     desc = "- #{state.it}"
     if state.exception?
       @states << state
-      count = @tally.failures + @tally.errors - state.exceptions.size
+      count = @counter.failures + @counter.errors - state.exceptions.size
       state.exceptions.each do |msg, exc|
         outcome = state.failure?(exc) ? "FAILED" : "ERROR"
         print "#{desc} (#{outcome} - #{count += 1})\n"

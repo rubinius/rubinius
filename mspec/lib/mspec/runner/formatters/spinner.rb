@@ -26,7 +26,6 @@ class SpinnerFormatter < DottedFormatter
 
   def register
     super
-    @counter = @tally.counter
 
     MSpec.register :start, self
     MSpec.register :load, self

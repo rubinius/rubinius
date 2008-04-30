@@ -19,6 +19,7 @@ class DottedFormatter
     @timer.register
     @tally = TallyAction.new
     @tally.register
+    @counter = @tally.counter
 
     MSpec.register :after, self
     MSpec.register :finish, self

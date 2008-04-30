@@ -42,7 +42,7 @@ EOH
     desc = "- #{state.it}"
     if state.exception?
       @states << state
-      count = @tally.failures + @tally.errors - state.exceptions.size
+      count = @counter.failures + @counter.errors - state.exceptions.size
       state.exceptions.each do |msg, exc|
         outcome = state.failure?(exc) ? "FAILED" : "ERROR"
         print %[<li class="fail">#{desc} (#{outcome} - #{count += 1})</li>\n]

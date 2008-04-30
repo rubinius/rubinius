@@ -30,6 +30,7 @@ describe DottedFormatter, "#register" do
     tally = mock("tally")
     timer.should_receive(:register)
     tally.should_receive(:register)
+    tally.should_receive(:counter)
     TimerAction.should_receive(:new).and_return(timer)
     TallyAction.should_receive(:new).and_return(tally)
     @formatter.register
