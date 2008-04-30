@@ -1,2 +1,6 @@
 fails:BigDecimal#divmod array contains quotient and modulus as BigDecimal
 fails:BigDecimal#divmod Can be reversed with * and +
+fails:BigDecimal#mod_part_of_dimvod returns self modulo other
+fails:BigDecimal#mod_part_of_dimvod does NOT raise ZeroDivisionError if other is zero
+fails:BigDecimal#mod_part_of_dimvod returns NaN if NaN is involved
+fails:BigDecimal#mod_part_of_dimvod returns NaN if Infinity is involved
