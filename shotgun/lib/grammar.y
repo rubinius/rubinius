@@ -19,7 +19,6 @@
 #include <errno.h>
 #include <ctype.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include "shotgun/lib/grammar_internal.h"
 #include "shotgun/lib/grammar_runtime.h"
