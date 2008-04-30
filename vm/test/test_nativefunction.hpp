@@ -95,7 +95,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     OBJECT out = func->call(state, msg);
 
     TS_ASSERT(out->fixnum_p());
-    TS_ASSERT_EQUALS(out->n2i(), 6);
+    TS_ASSERT_EQUALS(as<Integer>(out)->n2i(), 6);
   }
 
 };

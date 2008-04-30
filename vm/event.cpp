@@ -248,10 +248,10 @@ namespace rubinius {
       }
     }
 
-    void Loop::clear_by_channel(OBJECT chan) {
+    void Loop::clear_by_channel(void* chan) {
       std::vector<Event*>::iterator it;
       for(it = events.begin(); it != events.end();) {
-        if((*it)->channel->object() == chan) {
+        if((*it)->channel == chan) {
           delete *it;
           it = events.erase(it);
         } else {

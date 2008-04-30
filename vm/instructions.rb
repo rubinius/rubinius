@@ -71,11 +71,14 @@ class TestInstructions : public CxxTest::TestSuite {
 
         fd.puts "void #{meth}() {"
         fd.puts "Task* task = Task::create(state);"
-        fd.puts "Tuple* stack;"
         fd.puts "CompiledMethod* cm = CompiledMethod::create(state);"
         fd.puts "cm->iseq = ISeq::create(state, 10);"
-        fd.puts "task->active = task->generate_context(Qnil, cm);"
-        fd.puts "stack = task->stack = task->active->stack = Tuple::create(state, 10);"
+        fd.puts "cm->stack_size = Object::i2n(10);"
+        fd.puts "MethodContext* ctx = task->generate_context(Qnil, cm);"
+        fd.puts "task->make_active(ctx);"
+        # The += 0 disable unused variable warnings.
+        fd.puts "Tuple* stack = task->stack; stack += 0;"
+        fd.puts "task->literals = Tuple::create(state, 10);"
         fd.puts "opcode stream[100];"
         fd.puts "stream[0] = ISeq::insn_#{ins.opcode};"
         fd.puts "#define run(val) task->execute_stream(stream)"
@@ -287,7 +290,7 @@ CODE
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), 47);
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), 47);
     CODE
   end
 
@@ -317,7 +320,7 @@ CODE
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), -1);
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), -1);
     CODE
   end
 
@@ -347,7 +350,7 @@ CODE
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), 0);
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), 0);
     CODE
   end
 
@@ -377,7 +380,7 @@ CODE
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), 1);
     CODE
   end
 
@@ -407,7 +410,7 @@ CODE
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(stack->at(task->sp)->n2i(), 2);
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), 2);
     CODE
   end
 
@@ -636,8 +639,8 @@ CODE
   def push_local
     <<-CODE
     next_int;
-    check_bounds(locals, _int);
-    stack_push(fast_fetch(locals, _int));
+    check_bounds(current_locals, _int);
+    stack_push(fast_fetch(current_locals, _int));
     CODE
   end
 
@@ -685,7 +688,29 @@ CODE
       bc = as<BlockContext>(env->home_block);
     }
 
-    stack_push(locals->at(_int));
+    stack_push(bc->locals()->at(_int));
+    CODE
+  end
+
+  def test_push_local_depth
+    <<-CODE
+    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active);
+    BlockContext* bc = be->create_context(state);
+
+    BlockEnvironment* be2 = BlockEnvironment::under_context(state, cm, bc, bc);
+    BlockContext* bc2 = be2->create_context(state);
+
+    task->make_active(bc2);
+
+    bc->locals()->put(state, 0, Qtrue);
+
+    stream[1] = (opcode)1;
+    stream[2] = (opcode)0;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(task->active->stack->at(task->sp), Qtrue);
     CODE
   end
 
@@ -719,6 +744,16 @@ CODE
     CODE
   end
 
+  def test_push_exception
+    <<-CODE
+    Exception* exc = Exception::create(state);
+    task->exception = exc;
+    run();
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(task->active->stack->at(task->sp), exc);
+    CODE
+  end
+
   # [Operation]
   #   Clears any exceptions from the current execution context
   # [Format]
@@ -734,6 +769,14 @@ CODE
   def clear_exception
     <<-CODE
     exception = (Exception*)Qnil;
+    CODE
+  end
+
+  def test_clear_exception
+    <<-CODE
+    task->exception = Exception::create(state);
+    run();
+    TS_ASSERT_EQUALS(task->exception, Qnil);
     CODE
   end
 
@@ -763,6 +806,17 @@ CODE
     CODE
   end
 
+  def test_push_block
+    <<-CODE
+    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active);
+    task->active->block = be;
+    run();
+
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), be);
+    CODE
+  end
+
   # [Operation]
   #   Pushes an instance variable onto the stack
   # [Format]
@@ -782,49 +836,18 @@ CODE
     CODE
   end
 
-  # [Operation]
-  #   Allocate space for a new object
-  # [Format]
-  #   \allocate
-  # [Stack Before]
-  #   * count
-  #   * ...
-  # [Stack After]
-  #   * object
-  #   * ...
-  # [Description]
-  #   DEPRECATED
-  #   Pop a field +count+ and \allocate space for an object with the
-  #   appropriate header and field space. The object created will be
-  #   uninitialized; it will have its parent \class and all fields initialized
-  #   to +nil+.
-
-  def allocate
+  def test_push_ivar
     <<-CODE
-    sassert(0);
-    CODE
-  end
+    SYMBOL name = state->symbol("@blah");
+    task->self = Qtrue;
+    task->self->set_ivar(state, name, Qtrue);
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
 
-  # [Operation]
-  #   Sets a literal to reference the specified \class
-  # [Format]
-  #   \set_class
-  # [Stack Before]
-  #   * literal
-  #   * class
-  #   * ...
-  # [Stack After]
-  #   * literal
-  #   * ...
-  # [Description]
-  #   DEPRECATED
-  #   Pops a literal reference and a \class off the top of the stack, sets the
-  #   \class of the literal to the new \class, and then pushes it back onto
-  #   the stack.
+    run();
 
-  def set_class
-    <<-CODE
-    sassert(0);
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
     CODE
   end
 
@@ -849,10 +872,25 @@ CODE
     t1 = stack_pop();
     t2 = stack_pop();
     t3 = stack_pop();
-    size_t idx = (size_t)t1->n2i();
+    size_t idx = (size_t)as<Fixnum>(t1)->n2i();
     check_bounds(t3, idx);
     SET(t3, field[idx], t2);
     stack_push(t3);
+    CODE
+  end
+
+  def test_store_field
+    <<-CODE
+    Tuple* tup = Tuple::create(state, 3);
+    tup->put(state, 0, Qnil);
+
+    stack->put(state, ++task->sp, tup);
+    stack->put(state, ++task->sp, Qtrue);
+    stack->put(state, ++task->sp, Object::i2n(0));
+
+    run();
+
+    TS_ASSERT_EQUALS(tup->at(0), Qtrue);
     CODE
   end
 
@@ -874,7 +912,24 @@ CODE
     <<-CODE
     t1 = stack_pop();
     t2 = stack_pop();
-    stack_push(t2->at(t1->n2i()));
+    size_t index = as<Fixnum>(t1)->n2i();
+    check_bounds(t2, index);
+    stack_push(t2->at(index));
+    CODE
+  end
+
+  def test_fetch_field
+    <<-CODE
+    Tuple* tup = Tuple::create(state, 3);
+    tup->put(state, 0, Qtrue);
+
+    stack->put(state, ++task->sp, tup);
+    stack->put(state, ++task->sp, Object::i2n(0));
+
+    run();
+
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
     CODE
   end
 
@@ -902,6 +957,21 @@ CODE
     CODE
   end
 
+  def test_push_my_field
+    <<-CODE
+    Tuple* tup = Tuple::create(state, 3);
+    tup->put(state, 0, Qtrue);
+
+    task->self = tup;
+
+    stream[1] = (opcode)0;
+    run();
+
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    CODE
+  end
+
   # [Operation]
   #   Store a value into a field of self
   # [Format]
@@ -915,7 +985,7 @@ CODE
   # [Description]
   #   Stores the value at the top of the stack into the field specified by
   #   +fld+ on +self+.
-  #   
+  #
   #   The stack is left unmodified.
 
   def store_my_field
@@ -926,35 +996,20 @@ CODE
     CODE
   end
 
-  # [Operation]
-  #   Calls a primitive method
-  # [Format]
-  #   \send_primitive primitive_index argc
-  # [Stack Before]
-  #   * receiver
-  #   * arg1
-  #   * arg2
-  #   * ...
-  #   * argN
-  #   * ...
-  # [Stack After]
-  #   * retval
-  #   * ...
-  # [Description]
-  #   Execute a primitive method on the receiver (+receiver+). The index of the
-  #   primitive to execute (+primitive_index+), and the number of arguments
-  #   being passed (+argc+) are  specified as paramters.
-  #
-  #   When the primitive returns, the return value will be on top of the
-  #   stack.
-  # [Notes]
-  #   The implementation of the primitive is responsible for consuming the
-  #   receiver and any arguments that are on the stack, and for placing a
-  #   return value onto the stack.
-
-  def send_primitive
+  def test_store_my_field
     <<-CODE
-    sassert(0);
+    Tuple* tup = Tuple::create(state, 3);
+    tup->put(state, 0, Qnil);
+
+    task->self = tup;
+
+    stack->put(state, ++task->sp, Qtrue);
+    stream[1] = (opcode)0;
+    run();
+
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(tup->at(0), Qtrue);
     CODE
   end
 
@@ -979,6 +1034,14 @@ CODE
     next_int;
     ip = _int;
     cache_ip();
+    CODE
+  end
+
+  def test_goto
+    <<-CODE
+    stream[1] = (opcode)15;
+    run();
+    TS_ASSERT_EQUALS(task->ip, 15);
     CODE
   end
 
@@ -1011,6 +1074,21 @@ CODE
     CODE
   end
 
+  def test_goto_if_false
+    <<-CODE
+    stack->put(state, ++task->sp, Qtrue);
+    stream[1] = (opcode)15;
+    run();
+    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->ip, 0);
+
+    stack->put(state, ++task->sp, Qfalse);
+    run();
+    TS_ASSERT_EQUALS(task->ip, 15);
+    TS_ASSERT_EQUALS(task->sp, -1);
+    CODE
+  end
+
   # [Operation]
   #   Jump execution to the position specified by the label if the top of the
   #   stack evaluates to true.
@@ -1037,6 +1115,21 @@ CODE
       ip = _int;
       cache_ip();
     }
+    CODE
+  end
+
+  def test_goto_if_true
+    <<-CODE
+    stack->put(state, ++task->sp, Qfalse);
+    stream[1] = (opcode)15;
+    run();
+    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->ip, 0);
+
+    stack->put(state, ++task->sp, Qtrue);
+    run();
+    TS_ASSERT_EQUALS(task->ip, 15);
+    TS_ASSERT_EQUALS(task->sp, -1);
     CODE
   end
 
@@ -1070,6 +1163,21 @@ CODE
     CODE
   end
 
+  def test_goto_if_defined
+    <<-CODE
+    stack->put(state, ++task->sp, Qundef);
+    stream[1] = (opcode)15;
+    run();
+    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->ip, 0);
+
+    stack->put(state, ++task->sp, Qtrue);
+    run();
+    TS_ASSERT_EQUALS(task->ip, 15);
+    TS_ASSERT_EQUALS(task->sp, -1);
+    CODE
+  end
+
   # [Operation]
   #   Swap the top two stack values
   # [Format]
@@ -1095,6 +1203,19 @@ CODE
     CODE
   end
 
+  def test_swap_stack
+    <<-CODE
+    stack->put(state, ++task->sp, Qtrue);
+    stack->put(state, ++task->sp, Qfalse);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Qfalse);
+    TS_ASSERT_EQUALS(stack->at(1), Qtrue);
+
+    CODE
+  end
+
   # [Operation]
   #   Duplicate the top item on the stack
   # [Format]
@@ -1114,6 +1235,17 @@ CODE
     <<-CODE
     t1 = stack_top();
     stack_push(t1);
+    CODE
+  end
+
+  def test_dup_top
+    <<-CODE
+    stack->put(state, ++task->sp, Qtrue);
+
+    run();
+
+    TS_ASSERT_EQUALS(task->sp, 1);
+    TS_ASSERT_EQUALS(stack->at(1), Qtrue);
     CODE
   end
 
@@ -1138,6 +1270,16 @@ CODE
     CODE
   end
 
+  def test_pop
+    <<-CODE
+    stack->put(state, ++task->sp, Qtrue);
+
+    run();
+
+    TS_ASSERT_EQUALS(task->sp, -1);
+    CODE
+  end
+
   # [Operation]
   #   Sets the value of a local variable
   # [Format]
@@ -1157,58 +1299,27 @@ CODE
     <<-CODE
     next_int;
     t1 = stack_pop();
-    if(locals->zone == 0) {
-      check_bounds(locals, _int);
+    if(current_locals->zone == 0) {
+      check_bounds(current_locals, _int);
       /* Manipulating directly because contains a write barrier variant */
-      locals->field[_int] = t1;
+      current_locals->field[_int] = t1;
     } else {
-      locals->put(state, _int, t1);
+      current_locals->put(state, _int, t1);
     }
     stack_push(t1);
     CODE
   end
 
-  # [Operation]
-  #   Sets a method argument local from the caller's stack
-  # [Format]
-  #   \set_local_from_fp local arg
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Copies the value of method argument +arg+ into the local variable
-  #   +local+. Method arguments are accessed from the caller's stack via
-  #   negative offsets from the frame pointer, where 0 is the first argument,
-  #   1 is the second, etc.
-  # 
-  #   This opcode is now deprecated, and is not currently used under
-  #   compiler2.
-  # [See Also]
-  #   * from_fp
-  # [Notes]
-  #   Under compiler1, this opcode was used to copy method args into stack
-  #   locals if the method arg was modified, but not captured. The use of
-  #   stack and frame locals has been deprecated under compiler2, and all
-  #   locals are now allocated in the execution context locals tuple. This
-  #   opcode has thus been modified to store a frame referenced method arg in
-  #   the locals tuple.
-
-  def set_local_from_fp
+  def test_set_local
     <<-CODE
-    next_int;
-    k = (native_int)_int;
-    next_int;
+    task->sp++; /* reserve space */
+    stack->put(state, ++task->sp, Qtrue);
 
-    t1 = stack_top[fp - _int];
+    stream[1] = (opcode)0;
+    run();
 
-    t2 = locals;
-    if(t2->gc_zone == 0) {
-      sassert(k < NUM_FIELDS(t2) && "locals tuple sized wrong");
-      fast_unsafe_set(t2, k, t1);
-    } else {
-      tuple_put(state, t2, k, t1);
-    }
+    TS_ASSERT_EQUALS(stack->at(0), Qtrue);
+    TS_ASSERT_EQUALS(task->sp, 1);
     CODE
   end
 
@@ -1249,7 +1360,7 @@ CODE
     }
 
     t3 = stack_pop();
-    Tuple *tup = locals;
+    Tuple *tup = bc->locals();
 
     if(tup->zone == 0) {
       check_bounds(tup, _int);
@@ -1258,6 +1369,30 @@ CODE
       tup->put(state, _int, t3);
     }
     stack_push(t3);
+    CODE
+  end
+
+  def test_set_local_depth
+    <<-CODE
+    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active);
+    BlockContext* bc = be->create_context(state);
+
+    BlockEnvironment* be2 = BlockEnvironment::under_context(state, cm, bc, bc);
+    BlockContext* bc2 = be2->create_context(state);
+
+    task->make_active(bc2);
+
+    task->stack->put(state, ++task->sp, Qtrue);
+    bc->locals()->put(state, 0, Qnil);
+
+    stream[1] = (opcode)1;
+    stream[2] = (opcode)0;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(task->active->stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(bc->locals()->at(0), Qtrue);
     CODE
   end
 
@@ -1294,34 +1429,18 @@ CODE
     CODE
   end
 
-  # [Operation]
-  #   Unpack the array on the top of the stack into individual items on the
-  #   stack
-  # [Format]
-  #   \push_array
-  # [Stack Before]
-  #   * [value1, value2, ..., valueN]
-  #   * ...
-  # [Stack After]
-  #   * value1
-  #   * value2
-  #   * ...
-  #   * valueN
-  #   * ...
-  # [Description]
-  #   Removes the array currently on top of the stack, and replaces it with
-  #   the contents of the array, such that the first item in the array ends up
-  #   on top of the stack.
-  # [See Also]
-  #   * make_array
-  # [Notes]
-  #   Push array places the contents of the array onto the stack in reverse
-  #   order to the order in which items on the stack are added to an array by
-  #   make_array.
-
-  def push_array
+  def test_make_array
     <<-CODE
-    sassert(0);
+    stack->put(state, ++task->sp, Qtrue);
+    stack->put(state, ++task->sp, Qfalse);
+
+    stream[1] = 2;
+    run();
+
+    TS_ASSERT_EQUALS(task->sp, 0);
+    Array* ary = as<Array>(stack->at(task->sp));
+    TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
+    TS_ASSERT_EQUALS(ary->get(state, 1), Qfalse);
     CODE
   end
 
@@ -1362,44 +1481,25 @@ CODE
     CODE
   end
 
-  # [Operation]
-  #   Casts the value on the top of the stack into an array to be used as
-  #   method args
-  # [Format]
-  #   \cast_array_for_args size
-  # [Stack Before]
-  #   * value
-  #   * ...
-  # [Stack After]
-  #   * array
-  #   * ...
-  # [Description]
-  #   Removes the object on the top of the stack, and:
-  #
-  #   If the object is a tuple, it is cast to an array.
-  #
-  #   If the object is already an array, it is left unmodified.
-  #
-  #   If the object is any other type, it is wrapped in a 1-element array with
-  #   the object as the value of the single element.
-  #
-  #   The resulting array is then pushed back onto the stack, and the size of
-  #   the array is added to the argument +size+ that was specified with the
-  #   opcode, and saved as the current method argument count.
-  #
-  #   This opcode will always be followed by a push_array instruction that
-  #   unpacks the array elements into discrete stack entries prior to calling
-  #   either send_with_arg_register or send_super_with_arg_register.
-  # [See Also]
-  #   * push_array
-  #   * get_args
-  # [Notes]
-  #   This opcode exists to handle argscat and argspush, where a splat arg is
-  #   specified in addition to one or more discrete arguments.
-
-  def cast_array_for_args
+  def test_cast_array
     <<-CODE
-    sassert(00;
+    stack->put(state, ++task->sp, Qtrue);
+    run();
+
+    Array* ary = as<Array>(stack->at(0));
+    TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
+
+    stack->put(state, 0, Tuple::from(state, 1, Qfalse));
+    run();
+
+    ary = as<Array>(stack->at(0));
+    TS_ASSERT_EQUALS(ary->get(state, 0), Qfalse);
+
+    Array* custom = Array::create(state, 1);
+    stack->put(state, 0, custom);
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), custom);
     CODE
   end
 
@@ -1432,13 +1532,38 @@ CODE
       for(k = 0; k < j; k++) {
         tup->put(state, k, ary->get(state, k));
       }
-      t1 = ary;
+      t1 = tup;
     } else if(!kind_of<Tuple>(t1)) {
       Tuple* tup = Tuple::create(state, 1);
       tup->put(state, 0, t1);
       t1 = tup;
     }
     stack_push(t1);
+    CODE
+  end
+
+  def test_cast_tuple
+    <<-CODE
+    Array* custom = Array::create(state, 1);
+    custom->set(state, 0, Qtrue);
+    stack->put(state, ++task->sp, custom);
+    run();
+
+    Tuple* tup = as<Tuple>(stack->at(0));
+    TS_ASSERT_EQUALS(tup->at(0), Qtrue);
+
+
+    stack->put(state, 0, Qfalse);
+    run();
+
+    tup = as<Tuple>(stack->at(0));
+    TS_ASSERT_EQUALS(tup->at(0), Qfalse);
+
+    tup = Tuple::create(state, 1);
+    stack->put(state, 0, tup);
+    run();
+
+    TS_ASSERT_EQUALS(tup, stack->at(0));
     CODE
   end
 
@@ -1479,6 +1604,30 @@ CODE
     CODE
   end
 
+  def test_cast_for_single_block_arg
+    <<-CODE
+    Tuple* tup = Tuple::create(state, 0);
+    stack->put(state, ++task->sp, tup);
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Qnil);
+
+    tup = Tuple::from(state, 1, Qtrue);
+    stack->put(state, 0, tup);
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Qtrue);
+
+    tup = Tuple::from(state, 2, Qtrue, Qfalse);
+    stack->put(state, 0, tup);
+    run();
+
+    Array* ary = as<Array>(stack->at(0));
+    TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
+    TS_ASSERT_EQUALS(ary->get(state, 1), Qfalse);
+    CODE
+  end
+
   # [Operation]
   #   Converts a block argument single-valued tuple into multiple arguments if
   #   the arg is an array
@@ -1504,7 +1653,7 @@ CODE
   def cast_for_multi_block_arg
     <<-CODE
     Tuple* tup = as<Tuple>(stack_top());
-    k = NUM_FIELDS(t1);
+    k = NUM_FIELDS(tup);
     /* If there is only one thing in the tuple... */
     if(k == 1) {
       t1 = tup->at(0);
@@ -1526,42 +1675,22 @@ CODE
     CODE
   end
 
-  # [Operation]
-  #   Create a hash and populate with items on the stack
-  # [Format]
-  #   \make_hash argc
-  # [Stack Before]
-  #   * keyN
-  #   * valueN
-  #   * ...
-  #   * key2
-  #   * value2
-  #   * key1
-  #   * value1
-  #   * ...
-  # [Stack After]
-  #   * { key1 => value1, key2 => value2, ..., keyN => valueN }
-  #   * ...
-  # [Description]
-  #   Creates a new hash, populating its contents with the number of items
-  #   (+argc+) specified in the opcode. The contents of the new hash are taken
-  #   from the stack, with the top item on the stack becoming the last key in
-  #   the hash, the second top item becoming the last value, and so on. The
-  #   resulting hash is added back to the stack.
-
-  def make_hash
+  def test_cast_for_multi_block_arg
     <<-CODE
-    next_int;
-    Hash* hsh = Hash::create(state);
-    j = _int - 1;
-    while(j >= 0) {
-      t2 = stack_pop();
-      t3 = stack_pop();
-      hsh->set(state, t2, t3);
-      j -= 2;
-    }
+    Tuple* tup = Tuple::from(state, 2, Qtrue, Qfalse);
+    stack->put(state, ++task->sp, tup);
+    run();
 
-    stack_push(t1);
+    TS_ASSERT_EQUALS(stack->at(0), tup);
+
+    Array* ary = Array::create(state, 1);
+    ary->set(state, 0, Object::i2n(1));
+    tup = Tuple::from(state, 1, ary);
+    stack->put(state, task->sp, tup);
+    run();
+
+    tup = as<Tuple>(stack->at(0));
+    TS_ASSERT_EQUALS(tup->at(0), Object::i2n(1));
     CODE
   end
 
@@ -1586,6 +1715,22 @@ CODE
     t2 = stack_pop();
     self->set_ivar(state, _lit, t2);
     stack_push(t2);
+    CODE
+  end
+
+  def test_set_ivar
+    <<-CODE
+    SYMBOL name = state->symbol("@blah");
+    task->self = Qtrue;
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
+
+    stack->put(state, ++task->sp, Qfalse);
+    run();
+
+    TS_ASSERT_EQUALS(Qtrue->get_ivar(state, name), Qfalse);
+    TS_ASSERT_EQUALS(task->sp, 0);
+    TS_ASSERT_EQUALS(stack->at(task->sp), Qfalse);
     CODE
   end
 
@@ -1618,6 +1763,34 @@ CODE
     } else {
       /* TODO const_missing call */
     }
+    CODE
+  end
+
+  def test_push_const
+    <<-CODE
+    Module* parent = state->new_module("Parent");
+    Module* child =  state->new_module("Parent::Child");
+
+    StaticScope* ps = StaticScope::create(state);
+    SET(ps, module, parent);
+    ps->parent = (StaticScope*)Qnil;
+
+    StaticScope* cs = StaticScope::create(state);
+    SET(cs, module, child);
+    SET(cs, parent, ps);
+
+    SET(cm, scope, cs);
+
+    SYMBOL name = state->symbol("Number");
+    parent->set_const(state, name, Object::i2n(3));
+
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Object::i2n(3));
+
     CODE
   end
 
@@ -1656,6 +1829,22 @@ CODE
     CODE
   end
 
+  def test_find_const
+    <<-CODE
+    SYMBOL name = state->symbol("Number");
+    G(true_class)->set_const(state, name, Object::i2n(3));
+
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
+
+    stack->put(state, ++task->sp, G(true_class));
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Object::i2n(3));
+    CODE
+  end
+
   # [Operation]
   #   Sets a literal to refer to a constant
   # [Format]
@@ -1676,6 +1865,27 @@ CODE
     next_literal;
     t1 = stack_top();
     const_set(as<Symbol>(_lit), t1);
+    CODE
+  end
+
+  def test_set_const
+    <<-CODE
+    Module* parent = state->new_module("Parent");
+
+    StaticScope* ps = StaticScope::create(state);
+    SET(ps, module, parent);
+    ps->parent = (StaticScope*)Qnil;
+
+    SET(cm, scope, ps);
+    SYMBOL name = state->symbol("Age");
+
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
+
+    stack->put(state, ++task->sp, Object::i2n(3));
+    run();
+
+    TS_ASSERT_EQUALS(parent->get_const(state, name), Object::i2n(3));
     CODE
   end
 
@@ -1706,6 +1916,22 @@ CODE
     CODE
   end
 
+  def test_set_const_at
+    <<-CODE
+    SYMBOL name = state->symbol("Age");
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
+
+    stack->put(state, ++task->sp, G(true_class));
+    stack->put(state, ++task->sp, Qtrue);
+
+    run();
+
+    TS_ASSERT_EQUALS(G(true_class)->get_const(state, name), Qtrue);
+
+    CODE
+  end
+
   # [Operation]
   #   Pushes the top level global object onto the stack
   # [Format]
@@ -1729,59 +1955,10 @@ CODE
     CODE
   end
 
-  # [Operation]
-  #   Sets the enclosing class/module when opening a class/module
-  # [Format]
-  #   \set_encloser
-  # [Stack Before]
-  #   * class
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Pops +\class+ off the stack, and uses it as the enclosing scope for
-  #   subsequent \class or module definitions.
-  # [See Also]
-  #   * push_encloser
-  # [Example]
-  #   <code>
-  #     module A    # encloser is set to A after this line
-  #       module B  # encloser is set to B after this line
-  #       end       # encloser is reset to A after this line
-  #     end
-  #   </code>
-
-  def set_encloser
+  def test_push_cpath_top
     <<-CODE
-    sassert(0);
-    CODE
-  end
-
-  # [Operation]
-  #   Resets the current class/module to the parent class/module
-  # [Format]
-  #   \push_encloser
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Resets the current enclosing \class or module to the parent \class or
-  #   module in the enclosing scope path. Used when a \class or module
-  #   definition ends, to \pop up a level in the enclosure stack.
-  # [See Also]
-  #   * set_encloser
-  # [Example]
-  #   <code>
-  #     module A    # encloser is set to A after this line
-  #       module B  # encloser is set to B after this line
-  #       end       # encloser is reset to A after this line
-  #     end
-  #   </code>
-
-  def push_encloser
-    <<-CODE
-    sassert(0);
+    run();
+    TS_ASSERT_EQUALS(stack->at(task->sp), G(object));
     CODE
   end
 
@@ -1832,6 +2009,21 @@ CODE
     CODE
   end
 
+  def test_open_class_under
+    <<-CODE
+    SYMBOL name = state->symbol("C");
+    stack->put(state, ++task->sp, G(true_class));
+    stack->put(state, ++task->sp, Qnil);
+
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
+
+    run();
+
+    TS_ASSERT(kind_of<Class>(G(true_class)->get_const(state, name)));
+    CODE
+  end
+
   # [Operation]
   #   Creates or re-opens a \class.
   # [Format]
@@ -1879,6 +2071,26 @@ CODE
     CODE
   end
 
+  def test_open_class
+    <<-CODE
+    SYMBOL name = state->symbol("C");
+
+    StaticScope* ps = StaticScope::create(state);
+    SET(ps, module, G(true_class));
+    ps->parent = (StaticScope*)Qnil;
+    SET(cm, scope, ps);
+
+    stack->put(state, ++task->sp, Qnil);
+
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
+
+    run();
+
+    TS_ASSERT(kind_of<Class>(G(true_class)->get_const(state, name)));
+    CODE
+  end
+
   # [Operation]
   #   Creates or opens a module nested under another module
   # [Format]
@@ -1904,6 +2116,20 @@ CODE
     next_literal;
     t1 = stack_pop();
     stack_push(open_module(as<Module>(t1), as<Symbol>(_lit)));
+    CODE
+  end
+
+  def test_open_module_under
+    <<-CODE
+    SYMBOL name = state->symbol("C");
+    stack->put(state, ++task->sp, G(true_class));
+
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
+
+    run();
+
+    TS_ASSERT(kind_of<Module>(G(true_class)->get_const(state, name)));
     CODE
   end
 
@@ -1934,6 +2160,24 @@ CODE
     CODE
   end
 
+  def test_open_module
+    <<-CODE
+    SYMBOL name = state->symbol("C");
+
+    StaticScope* ps = StaticScope::create(state);
+    SET(ps, module, G(true_class));
+    ps->parent = (StaticScope*)Qnil;
+    SET(cm, scope, ps);
+
+    task->literals->put(state, 0, name);
+    stream[1] = (opcode)0;
+
+    run();
+
+    TS_ASSERT(kind_of<Module>(G(true_class)->get_const(state, name)));
+    CODE
+  end
+
   # [Operation]
   #   Returns the metaclass for an object
   # [Format]
@@ -1960,6 +2204,17 @@ CODE
     <<-CODE
     t1 = stack_pop();
     stack_push(t1->metaclass(state));
+    CODE
+  end
+
+  def test_open_metaclass
+    <<-CODE
+    Tuple* tup = Tuple::create(state, 1);
+    stack->put(state, ++task->sp, tup);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), tup->metaclass(state));
     CODE
   end
 
@@ -1998,6 +2253,22 @@ CODE
     CODE
   end
 
+  def test_attach_method
+    <<-CODE
+    SYMBOL name = state->symbol("blah");
+    task->literals->put(state, 0, name);
+
+    stack->put(state, ++task->sp, cm);
+    stack->put(state, ++task->sp, Qtrue);
+
+    stream[1] = (opcode)0;
+
+    run();
+
+    TS_ASSERT_EQUALS(Qtrue->metaclass(state)->method_table->fetch(state, name), cm);
+    CODE
+  end
+
   # [Operation]
   #   Adds a method to a \class or module
   # [Format]
@@ -2016,6 +2287,9 @@ CODE
   #   compiled method object (+method+) are popped from the stack, while the
   #   name of the method is an argument to the opcode (+name+). On return, the
   #   compiled method is pushed back onto the stack.
+  #
+  #   NOTE: this instruction is only emitted when the compiler is in kernel mode.
+  #   In normal ruby code, the method __add_method__ is sent to self to add a method.
   # [See Also]
   #   * attach_method
   # [Notes]
@@ -2032,55 +2306,19 @@ CODE
     CODE
   end
 
-  # [Operation]
-  #   Activates a cached method on an object in preparation for execution.
-  # [Format]
-  #   \activate_method argc
-  # [Stack Before]
-  #   * receiver
-  #   * method
-  #   * size
-  #   * locals
-  #   * block
-  #   * arg1
-  #   * arg2
-  #   * ...
-  #   * argN
-  #   * ...
-  # [Stack After]
-  #   * retval
-  #   * ...
-  # [Description]
-  #   Pops the top five items off the stack, using these to identify the
-  #   object on which to invoke the method (+receiver+), the CompiledMethod
-  #   instance to execute (+method+, i.e. +self+), the number of argments the
-  #   method defines (+size+), the +locals+ currently in scope, and any
-  #   +block+ passed to the method.
-  #
-  #   Additionally, the actual arguments to be passed to the method must also
-  #   be on the stack as an array, with the number of actual arguments passed
-  #   (+argc+) specified alongside the opcode; these arguments will be
-  #   consumed from the stack and pushed into locals when the method starts
-  #   executing.
-  #
-  #   When the method returns, the return value will be on top of the stack.
-  # [Notes]
-  #   Used by CompiledMethod#activate.
-  #   TODO Remove infavor of a primitive.
-
-  def activate_method
+  def test_add_method
     <<-CODE
-    next_int;
-    msg.recv   = stack_pop();
-    CompiledMethod* meth = as<CompiledMethod>(stack_pop());
-    msg.method = meth;
-    msg.module = as<Module>(stack_pop());
-    msg.args   = stack_pop()->n2i();
-    msg.name   = meth->name;
-    t3 = stack_pop(); /* locals */
-    msg.block  = stack_pop();
+    SYMBOL name = state->symbol("blah");
+    task->literals->put(state, 0, name);
 
-    activate_method(msg);
+    stack->put(state, ++task->sp, cm);
+    stack->put(state, ++task->sp, G(true_class));
+
+    stream[1] = (opcode)0;
+
+    run();
+
+    TS_ASSERT_EQUALS(G(true_class)->method_table->fetch(state, name), cm);
     CODE
   end
 
@@ -2115,6 +2353,31 @@ CODE
     msg.args = 0;
     msg.stack = 1;
     goto perform_send;
+    CODE
+  end
+
+  def test_send_method
+    <<-CODE
+    CompiledMethod* target = CompiledMethod::create(state);
+    target->iseq = ISeq::create(state, 0);
+    target->total_args = Object::i2n(0);
+    target->required_args = target->total_args;
+    target->stack_size = Object::i2n(10);
+
+    SYMBOL name = state->symbol("blah");
+    G(true_class)->method_table->store(state, name, target);
+    SendSite* ss = SendSite::create(state, name);
+
+    task->literals->put(state, 0, ss);
+    stack->put(state, ++task->sp, Qtrue);
+
+    stream[1] = (opcode)0;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->active->cm, target);
+    TS_ASSERT_EQUALS(task->active->args, 0);
+    TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
   end
 
@@ -2177,10 +2440,39 @@ CODE
     msg.recv = stack_back(msg.args);
     msg.splat = Qnil;
     msg.block = Qnil;
+    msg.use_from_task(this, msg.args);
 
     msg.stack = msg.args + 1;
 
     goto perform_send;
+    CODE
+  end
+
+  def test_send_stack
+    <<-CODE
+    CompiledMethod* target = CompiledMethod::create(state);
+    target->iseq = ISeq::create(state, 0);
+    target->total_args = Object::i2n(1);
+    target->required_args = target->total_args;
+    target->stack_size = Object::i2n(1);
+
+    SYMBOL name = state->symbol("blah");
+    G(true_class)->method_table->store(state, name, target);
+    SendSite* ss = SendSite::create(state, name);
+
+    task->literals->put(state, 0, ss);
+    stack->put(state, ++task->sp, Qtrue);
+    stack->put(state, ++task->sp, Object::i2n(3));
+
+    stream[1] = (opcode)0;
+    stream[2] = (opcode)1;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->active->cm, target);
+    TS_ASSERT_EQUALS(task->active->args, 1);
+    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
   end
 
@@ -2220,8 +2512,41 @@ CODE
     msg.splat = Qnil;
     msg.recv = stack_back(msg.args);
     msg.stack = msg.args + 2;
+    msg.use_from_task(this, msg.args);
 
     goto perform_send;
+    CODE
+  end
+
+  def test_send_stack_with_block
+    <<-CODE
+    CompiledMethod* target = CompiledMethod::create(state);
+    target->iseq = ISeq::create(state, 0);
+    target->total_args = Object::i2n(1);
+    target->required_args = target->total_args;
+    target->stack_size = Object::i2n(1);
+
+    SYMBOL name = state->symbol("blah");
+    G(true_class)->method_table->store(state, name, target);
+    SendSite* ss = SendSite::create(state, name);
+
+    task->literals->put(state, 0, ss);
+    stack->put(state, ++task->sp, Qtrue);
+    stack->put(state, ++task->sp, Object::i2n(3));
+
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active);
+    stack->put(state, ++task->sp, be);
+
+    stream[1] = (opcode)0;
+    stream[2] = (opcode)1;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->active->cm, target);
+    TS_ASSERT_EQUALS(task->active->args, 1);
+    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->active->block, be);
+    TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
   end
 
@@ -2266,9 +2591,9 @@ CODE
     msg.block = stack_pop();
     t1 = stack_pop();
 
-    msg.combine_with_splat(state, this, as<Array>(t1)); /* call_flags & 3 */
+    msg.recv = stack_back(msg.args);
 
-    msg.recv = stack_pop();
+    msg.combine_with_splat(state, this, as<Array>(t1)); /* call_flags & 3 */
 
     msg.stack = msg.args + 3;
 
@@ -2276,10 +2601,48 @@ CODE
 
     msg.priv = call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
+    msg.name = msg.send_site->name;
 
     call_flags = 0;
 
     send_message(msg);
+    CODE
+  end
+
+  def test_send_stack_with_splat
+    <<-CODE
+    CompiledMethod* target = CompiledMethod::create(state);
+    target->iseq = ISeq::create(state, 0);
+    target->total_args = Object::i2n(2);
+    target->required_args = target->total_args;
+    target->stack_size = Object::i2n(2);
+
+    SYMBOL name = state->symbol("blah");
+    G(true_class)->method_table->store(state, name, target);
+    SendSite* ss = SendSite::create(state, name);
+
+    task->literals->put(state, 0, ss);
+    stack->put(state, ++task->sp, Qtrue);
+    stack->put(state, ++task->sp, Object::i2n(3));
+
+    Array* splat = Array::create(state, 1);
+    splat->set(state, 0, Object::i2n(47));
+    stack->put(state, ++task->sp, splat);
+
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active);
+    stack->put(state, ++task->sp, be);
+
+    stream[1] = (opcode)0;
+    stream[2] = (opcode)1;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->active->cm, target);
+    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack->at(1), Object::i2n(47));
+    TS_ASSERT_EQUALS(task->active->block, be);
+    TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
   end
 
@@ -2313,17 +2676,61 @@ CODE
     next_int_into(msg.args);
     msg.block = stack_pop();
     msg.splat = Qnil;
-    msg.recv = stack_back(msg.args);
+    msg.recv = self;
     msg.stack = msg.args + 2;
+    msg.use_from_task(this, msg.args);
 
     goto perform_super_send;
+    CODE
+  end
+
+  def test_send_super_stack_with_block
+    <<-CODE
+    CompiledMethod* target = CompiledMethod::create(state);
+    target->iseq = ISeq::create(state, 0);
+    target->total_args = Object::i2n(1);
+    target->required_args = target->total_args;
+    target->stack_size = Object::i2n(1);
+
+    Class* parent = state->new_class("Parent", 1);
+    Class* child =  state->new_class("Child", parent, 1);
+
+    SYMBOL name = state->symbol("blah");
+    parent->method_table->store(state, name, target);
+    SendSite* ss = SendSite::create(state, name);
+
+    OBJECT obj = state->new_object(child);
+    task->self = obj;
+
+    StaticScope *sc = StaticScope::create(state);
+    SET(sc, module, child);
+
+    SET(cm, scope, sc);
+
+    task->literals->put(state, 0, ss);
+    stack->put(state, ++task->sp, obj);
+    stack->put(state, ++task->sp, Object::i2n(3));
+
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active);
+    stack->put(state, ++task->sp, be);
+
+    stream[1] = (opcode)0;
+    stream[2] = (opcode)1;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->active->cm, target);
+    TS_ASSERT_EQUALS(task->active->args, 1);
+    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->active->block, be);
+    TS_ASSERT_EQUALS(task->self, obj);
     CODE
   end
 
   # [Operation]
   #   Call a method on the superclass, passing args plus a block
   # [Format]
-  #   \send_super_with_splat method direct_args
+  #   \send_super_stack_with_splat method direct_args
   # [Stack Before]
   #   * block
   #   * argN
@@ -2345,7 +2752,7 @@ CODE
   #   number of arguments in +args+ via either set_args or
   #   cast_array_for_args.
 
-  def send_super_with_splat
+  def send_super_stack_with_splat
     <<-CODE
     next_literal;
     msg.send_site = as<SendSite>(_lit);
@@ -2355,11 +2762,12 @@ CODE
 
     msg.combine_with_splat(state, this, as<Array>(t1)); /* call_flags & 3 */
 
-    msg.recv = stack_pop();
+    msg.recv = self;
     msg.stack = msg.args + 3;
 
     perform_super_send:
 
+    msg.name = msg.send_site->name;
     msg.priv = TRUE;
     call_flags = 0;
 
@@ -2369,60 +2777,51 @@ CODE
     CODE
   end
 
-  # [Operation]
-  #   Calls the method specified on the top of the stack on an object
-  # [Format]
-  #   \send_off_stack
-  # [Stack Before]
-  #   * method
-  #   * block
-  #   * argN
-  #   * ...
-  #   * arg2
-  #   * arg1
-  #   * receiver
-  # [Stack After]
-  #   * retval
-  #   * ...
-  # [Description]
-  #   Pops the name of the method +method+ to call off the stack, and if
-  #   necessary, converts it to a symbol. Then pops +block+ and the receiver
-  #   +receiver+ off the stack. Any arguments required by the method must have
-  #   been placed on the stack previously, and the number of arguments set in
-  #   the args register. The arguments will be popped from the stack and
-  #   converted to locals when the method is activated.
-  #
-  #   When the method returns, the return value will be on top of the stack.
-  # [See Also]
-  #   * set_args
-  #   * cast_array_for_args
-  # [Notes]
-  #   The number of arguments to be passed to the method in +args+ must have
-  #   been set previously via a call to either set_args or
-  #   cast_array_for_args.
-
-  def send_off_stack
+  def test_send_super_stack_with_splat
     <<-CODE
-    sassert(0 && "deprecated");
+    CompiledMethod* target = CompiledMethod::create(state);
+    target->iseq = ISeq::create(state, 0);
+    target->total_args = Object::i2n(2);
+    target->required_args = target->total_args;
+    target->stack_size = Object::i2n(2);
 
-    t3 = stack_pop();
-    if(!t3->symbol_p()) {
-      if(RISA(t3, string)) {
-        t3 = string_to_sym(state, t3);
-      } else {
-        t2 = stack_pop();
-        t1 = stack_pop();
-        stack_push(t3);
-        _lit = G(sym_send);
-        j = args;
-        goto perform_send;
-      }
-    }
-    t2 = stack_pop();
-    t1 = stack_pop();
-    _lit = t3;
-    j = args;
-    goto perform_send;
+    Class* parent = state->new_class("Parent", 1);
+    Class* child =  state->new_class("Child", parent, 1);
+
+    SYMBOL name = state->symbol("blah");
+    parent->method_table->store(state, name, target);
+    SendSite* ss = SendSite::create(state, name);
+
+    OBJECT obj = state->new_object(child);
+    task->self = obj;
+
+    StaticScope *sc = StaticScope::create(state);
+    SET(sc, module, child);
+
+    SET(cm, scope, sc);
+
+    task->literals->put(state, 0, ss);
+    stack->put(state, ++task->sp, obj);
+    stack->put(state, ++task->sp, Object::i2n(3));
+
+    Array* splat = Array::create(state, 1);
+    splat->set(state, 0, Object::i2n(47));
+    stack->put(state, ++task->sp, splat);
+
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active);
+    stack->put(state, ++task->sp, be);
+
+    stream[1] = (opcode)0;
+    stream[2] = (opcode)1;
+
+    run();
+
+    TS_ASSERT_EQUALS(task->active->cm, target);
+    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack->at(1), Object::i2n(47));
+    TS_ASSERT_EQUALS(task->active->block, be);
+    TS_ASSERT_EQUALS(task->self, obj);
     CODE
   end
 
@@ -2451,6 +2850,21 @@ CODE
     SYMBOL name = as<Symbol>(stack_pop()); // meth
     t3 = stack_pop(); // self
     stack_push(locate_method_on(t3, name, t1));
+    CODE
+  end
+
+  def test_locate_method
+    <<-CODE
+    SYMBOL name = state->symbol("blah");
+    G(true_class)->method_table->store(state, name, cm);
+
+    stack->put(state, ++task->sp, Qtrue);
+    stack->put(state, ++task->sp, name);
+    stack->put(state, ++task->sp, Qfalse);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), cm);
     CODE
   end
 
@@ -2487,6 +2901,21 @@ CODE
     CODE
   end
 
+  def test_meta_send_op_plus
+    <<-CODE
+    OBJECT one = Object::i2n(1);
+    OBJECT two = Object::i2n(2);
+
+    stack->put(state, ++task->sp, one);
+    stack->put(state, ++task->sp, two);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Object::i2n(3));
+
+    CODE
+  end
+
   # [Operation]
   #   Implementation of - optimised for fixnums
   # [Format]
@@ -2517,6 +2946,21 @@ CODE
       j = 1;
       goto perform_no_ss_send;
     }
+    CODE
+  end
+
+  def test_meta_send_op_minus
+    <<-CODE
+    OBJECT one = Object::i2n(1);
+    OBJECT two = Object::i2n(2);
+
+    stack->put(state, ++task->sp, two);
+    stack->put(state, ++task->sp, one);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Object::i2n(1));
+
     CODE
   end
 
@@ -2551,6 +2995,21 @@ CODE
       j = 1;
       goto perform_no_ss_send;
     }
+    CODE
+  end
+
+  def test_meta_send_op_equal
+    <<-CODE
+    OBJECT one = Object::i2n(1);
+    OBJECT two = Object::i2n(2);
+
+    stack->put(state, ++task->sp, two);
+    stack->put(state, ++task->sp, one);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Qfalse);
+
     CODE
   end
 
@@ -2591,6 +3050,21 @@ CODE
     CODE
   end
 
+  def test_meta_send_op_nequal
+    <<-CODE
+    OBJECT one = Object::i2n(1);
+    OBJECT two = Object::i2n(2);
+
+    stack->put(state, ++task->sp, two);
+    stack->put(state, ++task->sp, one);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Qtrue);
+
+    CODE
+  end
+
   # [Operation]
   #   Implementation of === (triple \equal) optimised for fixnums and symbols
   # [Format]
@@ -2627,6 +3101,21 @@ CODE
     CODE
   end
 
+  def test_meta_send_op_tequal
+    <<-CODE
+    OBJECT one = Object::i2n(1);
+    OBJECT two = Object::i2n(2);
+
+    stack->put(state, ++task->sp, two);
+    stack->put(state, ++task->sp, one);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Qfalse);
+
+    CODE
+  end
+
   # [Operation]
   #   Implementation of < optimised for fixnums
   # [Format]
@@ -2649,8 +3138,8 @@ CODE
     t1 = stack_back(1);
     t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
-      j = t1->n2i();
-      k = t2->n2i();
+      j = as<Integer>(t1)->n2i();
+      k = as<Integer>(t2)->n2i();
       stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
     } else {
@@ -2659,6 +3148,21 @@ CODE
       j = 1;
       goto perform_no_ss_send;
     }
+    CODE
+  end
+
+  def test_meta_send_op_lt
+    <<-CODE
+    OBJECT one = Object::i2n(1);
+    OBJECT two = Object::i2n(2);
+
+    stack->put(state, ++task->sp, one);
+    stack->put(state, ++task->sp, two);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Qtrue);
+
     CODE
   end
 
@@ -2684,8 +3188,8 @@ CODE
     t1 = stack_back(1);
     t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
-      j = t1->n2i();
-      k = t2->n2i();
+      j = as<Integer>(t1)->n2i();
+      k = as<Integer>(t2)->n2i();
       stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
     } else {
@@ -2694,6 +3198,21 @@ CODE
       j = 1;
       goto perform_no_ss_send;
     }
+    CODE
+  end
+
+  def test_meta_send_op_gt
+    <<-CODE
+    OBJECT one = Object::i2n(1);
+    OBJECT two = Object::i2n(2);
+
+    stack->put(state, ++task->sp, one);
+    stack->put(state, ++task->sp, two);
+
+    run();
+
+    TS_ASSERT_EQUALS(stack->at(0), Qfalse);
+
     CODE
   end
 
@@ -2838,111 +3357,6 @@ perform_no_ss_send:
   end
 
   # [Operation]
-  #   Converts multiple individual caller arguments into an array for a rest
-  #   argument
-  # [Format]
-  #   \make_rest argc
-  # [Stack Before]
-  #   * rest1
-  #   * rest2
-  #   * ...
-  #   * restn
-  #   * ...
-  # [Stack After]
-  #   * [rest1, rest2, ..., restN]
-  #   * ...
-  # [Description]
-  #   Pops 0 or more rest arguments from the top of the stack into an array to
-  #   be used as a rest argument to a method whose last (non-block) parameter
-  #   is a splat.
-  #
-  #   The number of arguments to place into the rest array is determined by
-  #   how many actual args have been passed to the method, less the number of
-  #   arguments +argc+ defined by the method. If this is less than or \equal to
-  #   0, an empty array is pushed onto the stack. If the number is greater
-  #   than 0, arguments are popped from the stack so that the first rest arg
-  #   is at the start of the array, and the last rest arg is at the end.
-  # [Notes]
-  #   This opcode is performed after the non-splat arguments have been dealt
-  #   with, so that the top of the stack contains the first rest argument
-  #   (remembering that arguments are pushed onto the stack in right to left
-  #   order).
-  # [Example]
-  #   <code>
-  #     def foo(a,b,*c)
-  #       ...
-  #     end
-  #
-  #     foo(1,2,3,4,5)
-  #
-  #     # In foo, c = [3,4,5]
-  #     # On the top of the stack after this opcode is [3,4,5]
-  #   </code>
-
-  def make_rest
-    <<-CODE
-    sassert(0);
-    next_int;
-    j = argcount - _int;
-    if(j < 0) j = 0;
-    t1 = array_new(state, j);
-    for(k = 0; k < j; k++) {
-      array_set(state, t1, k, stack_pop());
-    }
-    stack_push(t1);
-    CODE
-  end
-
-  # [Operation]
-  #   Converts multiple individual caller arguments into an array for a rest
-  #   argument
-  # [Format]
-  #   \make_rest_fp argc
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * [rest1, rest2, ..., restN]
-  #   * ...
-  # [Description]
-  #   Copies multiple individual arguments to a method from the caller's stack
-  #   into an array to be used as a rest argument. Used when the method to be
-  #   called has a rest argument (i.e. the last defined method parameter is a
-  #   splat).
-  #
-  #   The number of arguments to place into the rest array is determined by
-  #   how many actual args have been passed to the method, less the number of
-  #   arguments +argc+ defined by the method. If this is less than or \equal to
-  #   0, an empty array is pushed onto the stack. If the number is greater
-  #   than 0, arguments are copied from before the frame pointer into the
-  #   array, so that the first rest arg is at the start of the array, and the
-  #   last rest arg is at the end.
-  # [Example]
-  #   <code>
-  #     def foo(a,b,*c)
-  #       ...
-  #     end
-  #     
-  #     foo(1,2,3,4,5)
-  #     
-  #     # In foo, c = [3,4,5]
-  #     # On the top of the stack after this opcode is [3,4,5]
-  #   </code>
-
-  def make_rest_fp
-    <<-CODE
-    sassert(0);
-    next_int;
-    j = argcount - _int;
-    if(j < 0) j = 0;
-    t1 = array_new(state, j);
-    for(k = _int, m = 0; k < argcount; k++, m++) {
-      array_set(state, t1, m, stack_top[fp - k]);
-    }
-    stack_push(t1);
-    CODE
-  end
-
-  # [Operation]
   #   Test to determine whether an argument was passed
   # [Format]
   #   \passed_arg index
@@ -3036,55 +3450,6 @@ perform_no_ss_send:
   def string_dup
     <<-CODE
     stack_push(as<String>(stack_pop())->string_dup(state));
-    CODE
-  end
-
-  # [Operation]
-  #   Sets the number of args from the stack
-  # [Format]
-  #   \set_args
-  # [Stack Before]
-  #   * argc
-  #   * ...
-  # [Stack After]
-  #   * ...
-  # [Description]
-  #   Pops a fixnum off the top of the stack, and uses its value to set the
-  #   argument count for a method prior to executing it.
-  # [See Also]
-  #   * send_with_arg_register
-  #   * send_super_with_arg_register
-  # [Notes]
-  #   Used prior to send_with_arg_register and send_super_with_arg_register to
-  #   set the number of arguments being passed to a method.
-
-  def set_args
-    <<-CODE
-    sassert(0);
-    t1 = stack_pop();
-    args = t1->n2i();
-    CODE
-  end
-
-  # [Operation]
-  #   Pushes the number of arguments passed to a method onto the stack
-  # [Format]
-  #   \get_args
-  # [Stack Before]
-  #   * ...
-  # [Stack After]
-  #   * argc
-  #   * ...
-  # [Description]
-  #   Pushes the number of arguments +argc+ actually passed to a method onto
-  #   the stack.
-  # [See Also]
-  #   * set_args
-
-  def get_args
-    <<-CODE
-    sassert(0);
-    stack_push(Object::i2n(args));
     CODE
   end
 
@@ -3243,7 +3608,7 @@ perform_no_ss_send:
 
   def yield_debugger
     <<-CODE
-    yield_debugger(Qtrue);
+    yield_debugger();
     CODE
   end
 

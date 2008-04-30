@@ -6,7 +6,7 @@ namespace rubinius {
   using std::endl;
 
   void Marshaller::set_int(OBJECT obj) {
-    stream << "I" << endl << obj->n2i() << endl;
+    stream << "I" << endl << as<Integer>(obj)->n2i() << endl;
   }
 
   void Marshaller::set_bignum(Bignum* big) {

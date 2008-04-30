@@ -4,20 +4,18 @@
 #include "objects.hpp"
 
 namespace rubinius {
-  class Bignum : public BuiltinType {
+  class Array;
+
+  class Bignum : public Integer {
     public:
     const static size_t fields = 0;
     const static object_type type = BignumType;
-
-    static bool is_a(OBJECT obj) {
-      return obj->obj_type == BignumType;
-    }
 
     static void cleanup(STATE, OBJECT obj);
     static void init(STATE);
     static Bignum* create(STATE, native_int num);
     static Bignum* new_unsigned(STATE, unsigned int num);
-    static OBJECT  normalize(STATE, Bignum* obj);
+    static INTEGER normalize(STATE, Bignum* obj);
     static Bignum* from_ull(STATE, unsigned long long val);
     static Bignum* from_ll(STATE, long long val);
     static OBJECT from_string_detect(STATE, char* str);
@@ -25,32 +23,33 @@ namespace rubinius {
     static OBJECT from_double(STATE, double d);
     
     void   debug(STATE);
-    OBJECT add(STATE, OBJECT b);
-    OBJECT sub(STATE, OBJECT b);
-    OBJECT mul(STATE, OBJECT b);
-    OBJECT div(STATE, OBJECT b, OBJECT mod);
-    OBJECT divmod(STATE, OBJECT b);
-    OBJECT mod(STATE, OBJECT b);
-    OBJECT bit_and(STATE, OBJECT b);
-    OBJECT bit_or(STATE, OBJECT b);
-    OBJECT bit_xor(STATE, OBJECT b);
-    OBJECT invert(STATE);
-    OBJECT neg(STATE);
-    OBJECT left_shift(STATE, OBJECT bits);
-    OBJECT right_shift(STATE, OBJECT bits);
-    OBJECT equal(STATE, OBJECT b);
-    OBJECT compare(STATE, OBJECT b);
-    OBJECT gt(STATE, OBJECT b);
-    OBJECT ge(STATE, OBJECT b);
-    OBJECT lt(STATE, OBJECT b);
-    OBJECT le(STATE, OBJECT b);
+    INTEGER add(STATE, INTEGER b);
+    INTEGER sub(STATE, INTEGER b);
+    INTEGER mul(STATE, INTEGER b);
+    INTEGER div(STATE, INTEGER b, INTEGER mod);
+    Array* divmod(STATE, INTEGER b);
+    INTEGER mod(STATE, INTEGER b);
+    INTEGER bit_and(STATE, INTEGER b);
+    INTEGER bit_or(STATE, INTEGER b);
+    INTEGER bit_xor(STATE, INTEGER b);
+    INTEGER invert(STATE);
+    INTEGER neg(STATE);
+    INTEGER left_shift(STATE, INTEGER bits);
+    INTEGER right_shift(STATE, INTEGER bits);
+    FIXNUM compare(STATE, INTEGER b);
+    OBJECT equal(STATE, INTEGER b);
+    OBJECT gt(STATE, INTEGER b);
+    OBJECT ge(STATE, INTEGER b);
+    OBJECT lt(STATE, INTEGER b);
+    OBJECT le(STATE, INTEGER b);
     bool   is_zero(STATE);
     unsigned long to_int(STATE);
     int    to_i(STATE);
+    native_int to_nint();
     unsigned int to_ui(STATE);
     unsigned long long to_ull(STATE);
     long long to_ll(STATE);
-    OBJECT to_s(STATE, OBJECT radix);
+    OBJECT to_s(STATE, INTEGER radix);
     void   into_string(STATE, size_t radix, char* buf, size_t sz);
     double to_double(STATE);
     OBJECT size(STATE);

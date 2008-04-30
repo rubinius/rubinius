@@ -7,14 +7,6 @@
 
 using namespace rubinius;
 
-extern "C" {
-  static bool debugger_hit;
-  static void debugger_check(int sig) {
-    debugger_hit = true;
-  }
-}
-
-
 class TestTask : public CxxTest::TestSuite {
   public:
 
@@ -29,9 +21,17 @@ class TestTask : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_create() {
+  CompiledMethod* create_cm() {
     CompiledMethod* cm = CompiledMethod::create(state);
     cm->iseq = ISeq::create(state, 40);
+    cm->stack_size = Object::i2n(10);
+    cm->total_args = Object::i2n(0);
+    cm->required_args = cm->total_args;
+    return cm;
+  }
+
+  void test_create() {
+    CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
     TS_ASSERT(kind_of<Task>(task));
@@ -43,9 +43,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_send_message() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->total_args = Object::i2n(0);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
@@ -70,8 +68,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_send_message_slowly() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
@@ -96,8 +93,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_send_message_sets_up_fixed_locals() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->required_args = Object::i2n(2);
     cm->total_args = cm->required_args;
     cm->local_count = cm->required_args;
@@ -128,8 +124,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_send_message_throws_argerror_on_too_few() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->required_args = Object::i2n(2);
     cm->total_args = cm->required_args;
     cm->local_count = cm->required_args;
@@ -168,8 +163,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_send_message_throws_argerror_on_too_many() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->required_args = Object::i2n(2);
     cm->total_args = cm->required_args;
     cm->local_count = cm->required_args;
@@ -209,8 +203,7 @@ class TestTask : public CxxTest::TestSuite {
 
 
   void test_send_message_sets_up_fixed_locals_with_optionals() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->required_args = Object::i2n(2);
     cm->total_args = Object::i2n(4);
     cm->local_count = cm->total_args;
@@ -247,8 +240,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_send_message_sets_up_fixed_locals_with_splat() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->required_args = Object::i2n(2);
     cm->total_args = cm->required_args;
     cm->local_count = Object::i2n(3);
@@ -286,8 +278,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_send_message_sets_up_fixed_locals_with_optional_and_splat() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->required_args = Object::i2n(1);
     cm->total_args = Object::i2n(2);
     cm->local_count = Object::i2n(3);
@@ -325,8 +316,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_send_message_throws_argerror_on_too_many_with_splat() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->required_args = Object::i2n(2);
     cm->total_args = cm->required_args;
     cm->local_count = Object::i2n(3);
@@ -359,9 +349,8 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_simple_return() {
-    CompiledMethod* cm = CompiledMethod::create(state);
+    CompiledMethod* cm = create_cm();
     cm->total_args = Object::i2n(0);
-    cm->iseq = ISeq::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -391,9 +380,8 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_simple_return_with_no_value_flag() {
-    CompiledMethod* cm = CompiledMethod::create(state);
+    CompiledMethod* cm = create_cm();
     cm->total_args = Object::i2n(0);
-    cm->iseq = ISeq::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -428,8 +416,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_perform_hook() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -451,8 +438,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_locate_method_on() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -465,8 +451,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_locate_method_on_private() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -483,8 +468,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_locate_method_on_private_private_send() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -501,8 +485,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_attach_method() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -513,8 +496,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_add_method() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -525,8 +507,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_check_serial() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state);
 
@@ -712,12 +693,15 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_yield_debugger() {
-    signal(SIGTRAP, debugger_check);
     Task* task = Task::create(state);
+    bool thrown = false;
+    try {
+      task->yield_debugger();
+    } catch(Assertion* e) {
+      thrown = true;
+    }
 
-    task->yield_debugger(Qtrue);
-
-    TS_ASSERT(debugger_hit);
+    TS_ASSERT(thrown);
   }
 
   void test_current_module() {
@@ -839,9 +823,7 @@ class TestTask : public CxxTest::TestSuite {
     task->ip = 3;
 
     /* Call a method ... */
-    CompiledMethod* cm2 = CompiledMethod::create(state);
-    cm2->iseq = ISeq::create(state, 40);
-    cm2->total_args = Object::i2n(0);
+    CompiledMethod* cm2 = create_cm();
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm2);
 

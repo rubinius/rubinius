@@ -52,4 +52,22 @@ namespace rubinius {
     om->collect_young(globals.roots);
     om->collect_mature(globals.roots);
   }
+
+  void VM::run_best_thread() {
+    throw new DeadLock("no runnable threads, present or future.");
+  }
+
+  void VM::return_value(OBJECT val) {
+    globals.current_task->push(val);
+  }
+
+  void VM::queue_thread(Thread* thread) {
+    List* lst = as<List>(globals.scheduled_threads->at(thread->priority->n2i()));
+    lst->append(this, thread);
+  }
+
+  void VM::activate_thread(Thread* thread) {
+    globals.current_thread.set(thread);
+    globals.current_task.set(thread->task);
+  }
 };

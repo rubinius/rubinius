@@ -23,11 +23,11 @@ class TestObject : public CxxTest::TestSuite {
   void test_i2n() {
     OBJECT f = Object::i2n(state, 3);
     TS_ASSERT(f->fixnum_p());
-    TS_ASSERT_EQUALS(f->n2i(), 3);
+    TS_ASSERT_EQUALS(as<Integer>(f)->n2i(), 3);
 
     OBJECT b = Object::i2n(state, 2147483647);
     TS_ASSERT(!b->fixnum_p());
-    TS_ASSERT(Bignum::is_a(b));
+    TS_ASSERT(kind_of<Bignum>(b));
   }
 
   void test_ui2n() {

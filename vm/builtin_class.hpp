@@ -35,10 +35,10 @@ namespace rubinius {
     const static size_t fields = 11;
     const static object_type type = ClassType;
 
-    OBJECT instance_fields;
+    FIXNUM instance_fields;
     OBJECT has_ivars;
     OBJECT needs_cleanup;
-    OBJECT instance_type;
+    FIXNUM instance_type;
 
     void set_object_type(size_t type) {
       instance_type = Object::i2n(type);

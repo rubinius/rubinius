@@ -3,6 +3,7 @@
 
 #include "objects.hpp"
 #include "message.hpp"
+#include "builtin_channel.hpp"
 
 namespace rubinius {
 
@@ -41,6 +42,10 @@ namespace rubinius {
     /* Optimization */
     opcode *ip_ptr;
 
+    /* Data */
+    Channel* debug_channel;
+    Channel* control_channel;
+
     static void init(STATE);
     static Task* create(STATE, OBJECT recv, CompiledMethod* meth);
     static Task* create(STATE);
@@ -75,11 +80,12 @@ namespace rubinius {
 
     Executable* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
     void simple_return(OBJECT val);
-    void yield_debugger(OBJECT val);
+    void yield_debugger();
     bool check_serial(OBJECT obj, SYMBOL sel, int ser);
     void check_interrupts();
 
     void execute_stream(opcode* stream);
+    void push(OBJECT val);
 
     class Info : public TypeInfo {
     public:

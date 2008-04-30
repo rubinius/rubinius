@@ -205,7 +205,8 @@ namespace rubinius {
         CompiledMethod::Visibility::fields, G(cmethod)));
     G(cmethod_vis)->set_object_type(CMVisibilityType);
 
-    new_module("Rubinius");
+    Module* x = new_module("Rubinius");
+    GO(vm).set(new_module("VM", x));
 
     bootstrap_exceptions();
 
@@ -217,6 +218,7 @@ namespace rubinius {
     Selector::init(state);
     init_ffi();
     Task::init(state);
+    Thread::init(state);
   }
 
   void VM::bootstrap_symbol() {

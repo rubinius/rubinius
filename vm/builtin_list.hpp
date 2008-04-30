@@ -18,8 +18,9 @@ namespace rubinius {
     };
       
     const static size_t fields = 3;
+    const static object_type type = ListType;
 
-    OBJECT count;
+    INTEGER count;
     Node* first;
     Node* last;
 

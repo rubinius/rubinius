@@ -2,14 +2,7 @@
 #define RBX_VIRTUAL_HPP
 
 namespace rubinius {
-
-  class ObjectContainer {
-  public:
-    virtual OBJECT object() = 0;
-    virtual ~ObjectContainer() { }
-  };
-
-  class ObjectCallback : public ObjectContainer {
+  class ObjectCallback {
   public:
     STATE;
 

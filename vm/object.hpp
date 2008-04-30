@@ -131,6 +131,7 @@ to be a simple test for that bit pattern.
     IOType          ,
     ExecutableType  ,
     CMVisibilityType,
+    ListType        ,
 
     LastObjectType   // must remain at end
   } object_type;
@@ -187,6 +188,7 @@ to be a simple test for that bit pattern.
 
   class Class;
   class MetaClass;
+  class Integer;
 
   class Object {
   public:
@@ -222,22 +224,18 @@ to be a simple test for that bit pattern.
       char bytes[];
     };
 
-    static OBJECT i2n(native_int num) {
+    static FIXNUM i2n(native_int num) {
       if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
         assert(0);
       } else {
-        return APPLY_TAG(num, TAG_FIXNUM);
+        return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
       }
     }
 
-    static OBJECT i2n(STATE, native_int num);
-    static OBJECT ui2n(STATE, unsigned int num);
-    static OBJECT ll2n(STATE, long long num);
-    static OBJECT ull2n(STATE, unsigned long long num);
-
-    native_int n2i() {
-      return STRIP_TAG(this);
-    }
+    static Integer* i2n(STATE, native_int num);
+    static Integer* ui2n(STATE, unsigned int num);
+    static Integer* ll2n(STATE, long long num);
+    static Integer* ull2n(STATE, unsigned long long num);
 
     bool fixnum_p() {
       return FIXNUM_P(this);

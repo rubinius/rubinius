@@ -48,6 +48,11 @@ namespace rubinius {
     OBJECT current_thread();
     void collect();
 
+    void return_value(OBJECT val);
+    void run_best_thread();
+    void queue_thread(Thread* thread);
+    void activate_thread(Thread* thread);
+
   };
 };
 

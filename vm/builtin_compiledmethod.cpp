@@ -1,10 +1,23 @@
-#include "objects.hpp"
-#include "vmmethod.hpp"
-#include "builtin_task.hpp"
-#include "builtin_channel.hpp"
+#include "builtin.hpp"
 #include "ffi.hpp"
 
 namespace rubinius {
+  CompiledMethod* CompiledMethod::create(STATE) {
+    CompiledMethod* cm = (CompiledMethod*)state->new_object(G(cmethod));
+    return cm;
+  }
+
+  CompiledMethod::Visibility* CompiledMethod::Visibility::create(STATE) {
+    return (CompiledMethod::Visibility*)state->new_object(G(cmethod_vis));
+  }
+
+  void CompiledMethod::post_marshal(STATE) {
+
+  }
+
+  size_t CompiledMethod::number_of_locals() {
+    return 0;
+  }
   void CompiledMethod::set_scope(StaticScope* scope) {
   }
 

@@ -53,7 +53,7 @@ class TestRegexp : public CxxTest::TestSuite {
     String *pat = String::create(state, ".");
     Regexp* re = Regexp::create(state, pat, Object::i2n(0));
 
-    TS_ASSERT_EQUALS(re->options(state)->n2i(), 16);
+    TS_ASSERT_EQUALS(as<Integer>(re->options(state))->n2i(), 16);
   }
 
   void test_match_region() {
@@ -62,15 +62,15 @@ class TestRegexp : public CxxTest::TestSuite {
 
     String *input = String::create(state, "abc");
 
-    OBJECT start = Object::i2n(0);
-    OBJECT end =   Object::i2n(3);
+    FIXNUM start = Object::i2n(0);
+    FIXNUM end =   Object::i2n(3);
     OBJECT forward = Qtrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
     TS_ASSERT_EQUALS(matches->region->field_count, 0);
-    TS_ASSERT_EQUALS(matches->full->at(0)->n2i(), 0);
-    TS_ASSERT_EQUALS(matches->full->at(1)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(0))->n2i(), 0);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->n2i(), 1);
   }
   
   void test_match_region_with_captures() {
@@ -79,17 +79,17 @@ class TestRegexp : public CxxTest::TestSuite {
 
     String *input = String::create(state, "abc");
 
-    OBJECT start = Object::i2n(0);
-    OBJECT end =   Object::i2n(3);
+    FIXNUM start = Object::i2n(0);
+    FIXNUM end =   Object::i2n(3);
     OBJECT forward = Qtrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
     TS_ASSERT(!matches->nil_p());
-    TS_ASSERT_EQUALS(matches->full->at(0)->n2i(), 0);
-    TS_ASSERT_EQUALS(matches->full->at(1)->n2i(), 2);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(0))->n2i(), 0);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->n2i(), 2);
     
     TS_ASSERT_EQUALS(matches->region->field_count, 1);
-    TS_ASSERT_EQUALS(matches->region->at(0)->at(0)->n2i(), 1);
-    TS_ASSERT_EQUALS(matches->region->at(0)->at(1)->n2i(), 2);
+    TS_ASSERT_EQUALS(as<Integer>(matches->region->at(0)->at(0))->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(matches->region->at(0)->at(1))->n2i(), 2);
   }
 };

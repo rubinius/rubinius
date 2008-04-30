@@ -101,7 +101,7 @@ namespace rubinius {
     return 0;
   }
 
-  Regexp* Regexp::create(STATE, String* pattern, OBJECT options, char *err_buf) {
+  Regexp* Regexp::create(STATE, String* pattern, INTEGER options, char *err_buf) {
     regex_t **reg;
     const UChar *pat;
     const UChar *end;
@@ -193,7 +193,7 @@ namespace rubinius {
     return md;
   }
 
-  OBJECT Regexp::match_region(STATE, String* string, OBJECT start, OBJECT end, OBJECT forward) {
+  OBJECT Regexp::match_region(STATE, String* string, INTEGER start, INTEGER end, OBJECT forward) {
     int beg, max;
     const UChar *str;
     OnigRegion *region;

@@ -33,9 +33,17 @@ class TestMessage : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(2, msg.args);
   }
 
-  void test_import_arguments() {
+  CompiledMethod* create_cm() {
     CompiledMethod* cm = CompiledMethod::create(state);
     cm->iseq = ISeq::create(state, 40);
+    cm->stack_size = Object::i2n(10);
+    cm->total_args = Object::i2n(0);
+    cm->required_args = cm->total_args;
+    return cm;
+  }
+
+  void test_import_arguments() {
+    CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
     task->stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
@@ -50,8 +58,7 @@ class TestMessage : public CxxTest::TestSuite {
   }
 
   void test_combine_with_splat() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
     task->stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
@@ -74,8 +81,7 @@ class TestMessage : public CxxTest::TestSuite {
   }
 
   void test_use_from_task() {
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
     task->stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));

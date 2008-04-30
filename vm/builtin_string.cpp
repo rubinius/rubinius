@@ -39,7 +39,7 @@ namespace rubinius {
     unsigned char *bp;
 
     if(hash != Qnil) {
-      return (hashval)hash->n2i();
+      return (hashval)as<Integer>(hash)->n2i();
     }
     bp = (unsigned char*)(data->bytes);
     size_t sz = size(state);

@@ -5,6 +5,7 @@
 #include "vmmethod.hpp"
 
 namespace rubinius {
+  class BlockContext;
   class MethodContext;
 
   class MethodContext : public BuiltinType {
@@ -25,9 +26,12 @@ namespace rubinius {
     size_t ip;
     int    sp;
     size_t args;
-    BlockEnvironment *block;
+    OBJECT block;
     SYMBOL name;
     bool   no_value;
+
+    /* Locals are stored at the top of the stack. */
+    Tuple* locals() { return stack; }
 
     static MethodContext* create(STATE);
     void reference(STATE);

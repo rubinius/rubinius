@@ -7,6 +7,7 @@ namespace rubinius {
     Class* cls;
     cls = state->new_class("List", List::fields);
     GO(list).set(cls);
+    cls->set_object_type(ListType);
 
     GO(list_node).set(state->new_class("Node", G(object),
                                                 List::Node::fields, cls));

@@ -195,7 +195,7 @@ namespace rubinius {
     return o;
   }
 
-  OBJECT Bignum::normalize(STATE, Bignum* b) {
+  INTEGER Bignum::normalize(STATE, Bignum* b) {
     mp_clamp(MP(b));
 
     if((size_t)mp_count_bits(MP(b)) <= FIXNUM_WIDTH) {
@@ -206,21 +206,21 @@ namespace rubinius {
     return b;
   }
 
-  OBJECT Bignum::add(STATE, OBJECT b) {
+  INTEGER Bignum::add(STATE, INTEGER b) {
     NMP;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
-    mp_add(MP(this), MP(b), n);
+    mp_add(MP(this), MP(as<Bignum>(b)), n);
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::sub(STATE, OBJECT b) {
+  INTEGER Bignum::sub(STATE, INTEGER b) {
     NMP;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -236,10 +236,10 @@ namespace rubinius {
     return;
   }
 
-  OBJECT Bignum::mul(STATE, OBJECT b) {
+  INTEGER Bignum::mul(STATE, INTEGER b) {
     NMP;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       if(b == Object::i2n(2)) {
         mp_mul_2(MP(this), n);
         return n_obj;
@@ -251,12 +251,12 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::div(STATE, OBJECT b, OBJECT mod_obj) {
+  INTEGER Bignum::div(STATE, INTEGER b, INTEGER mod_obj) {
     NMP;
     mp_int *mod = MP(mod_obj);
     mp_int m, x, y, z;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -309,7 +309,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::divmod(STATE, OBJECT b) {
+  Array* Bignum::divmod(STATE, INTEGER b) {
     MMP;
 
     OBJECT div = this->div(state, b, m_obj);
@@ -320,10 +320,10 @@ namespace rubinius {
     return ary;
   }
 
-  OBJECT Bignum::mod(STATE, OBJECT b) {
+  INTEGER Bignum::mod(STATE, INTEGER b) {
     NMP;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -335,10 +335,10 @@ namespace rubinius {
     return mp_iszero(MP(this)) ? TRUE : FALSE;
   }
 
-  OBJECT Bignum::bit_and(STATE, OBJECT b) {
+  INTEGER Bignum::bit_and(STATE, INTEGER b) {
     NMP;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -347,10 +347,10 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::bit_or(STATE, OBJECT b) {
+  INTEGER Bignum::bit_or(STATE, INTEGER b) {
     NMP;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
     /* Perhaps this should use mp_or rather than our own version */
@@ -358,10 +358,10 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::bit_xor(STATE, OBJECT b) {
+  INTEGER Bignum::bit_xor(STATE, INTEGER b) {
     NMP;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
     /* Perhaps this should use mp_xor rather than our own version */
@@ -369,7 +369,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::invert(STATE) {
+  INTEGER Bignum::invert(STATE) {
     NMP;
 
     mp_int a; mp_init(&a);
@@ -383,7 +383,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::neg(STATE) {
+  INTEGER Bignum::neg(STATE) {
     NMP;
 
     mp_neg(MP(this), n);
@@ -393,7 +393,7 @@ namespace rubinius {
   /* These 2 don't use mp_lshd because it shifts by internal digits,
      not bits. */
 
-  OBJECT Bignum::left_shift(STATE, OBJECT bits) {
+  INTEGER Bignum::left_shift(STATE, INTEGER bits) {
     NMP;
     int shift = bits->n2i();
     mp_int *a = MP(this);
@@ -403,7 +403,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::right_shift(STATE, OBJECT bits) {
+  INTEGER Bignum::right_shift(STATE, INTEGER bits) {
     NMP;
     int shift = bits->n2i();
     mp_int * a = MP(this);
@@ -444,8 +444,8 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::equal(STATE, OBJECT b) {
-    if(FIXNUM_P(b)) {
+  OBJECT Bignum::equal(STATE, INTEGER b) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -455,8 +455,8 @@ namespace rubinius {
     return Qfalse;
   }
 
-  OBJECT Bignum::compare(STATE, OBJECT b) {
-    if(FIXNUM_P(b)) {
+  FIXNUM Bignum::compare(STATE, INTEGER b) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -469,8 +469,8 @@ namespace rubinius {
     return Object::i2n(0);
   }
 
-  OBJECT Bignum::gt(STATE, OBJECT b) {
-    if(FIXNUM_P(b)) {
+  OBJECT Bignum::gt(STATE, INTEGER b) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -480,10 +480,10 @@ namespace rubinius {
     return Qfalse;
   }
 
-  OBJECT Bignum::ge(STATE, OBJECT b) {
+  OBJECT Bignum::ge(STATE, INTEGER b) {
     int r;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -494,8 +494,8 @@ namespace rubinius {
     return Qfalse;
   }
 
-  OBJECT Bignum::lt(STATE, OBJECT b) {
-    if(FIXNUM_P(b)) {
+  OBJECT Bignum::lt(STATE, INTEGER b) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -505,10 +505,10 @@ namespace rubinius {
     return Qfalse;
   }
 
-  OBJECT Bignum::le(STATE, OBJECT b) {
+  OBJECT Bignum::le(STATE, INTEGER b) {
     int r;
 
-    if(FIXNUM_P(b)) {
+    if(kind_of<Fixnum>(b)) {
       b = Bignum::create(state, b->n2i());
     }
 
@@ -520,6 +520,10 @@ namespace rubinius {
   }
 
   unsigned long Bignum::to_int(STATE) {
+    return mp_get_int(MP(this));
+  }
+
+  native_int Bignum::to_nint() {
     return mp_get_int(MP(this));
   }
 
@@ -592,7 +596,7 @@ namespace rubinius {
     return ret;
   }
 
-  OBJECT Bignum::to_s(STATE, OBJECT radix) {
+  OBJECT Bignum::to_s(STATE, INTEGER radix) {
     char *buf;
     int sz = 1024;
     int k;

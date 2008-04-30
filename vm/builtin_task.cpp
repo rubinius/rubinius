@@ -7,20 +7,11 @@
 
 namespace rubinius {
   void Task::init(STATE) {
-    Tuple* tup = Tuple::from(state, 7, List::create(state), List::create(state),
-        List::create(state), List::create(state), List::create(state),
-        List::create(state), List::create(state));
-
-    GO(scheduled_threads).set(tup);
-
-    Class* cls = state->new_class("Task", Task::fields);
-    cls->set_const(state, "ScheduledThreads", tup);
+    GO(task).set(state->new_class("Task", Task::fields));
+    G(task)->set_object_type(Task::type);
 
     GO(channel).set(state->new_class("Channel", Channel::fields));
     G(channel)->set_object_type(Channel::type);
-
-    GO(thread).set(state->new_class("Thread",  Thread::fields));
-    G(thread)->set_object_type(Thread::type);
   }
 
   Task* Task::create(STATE, OBJECT recv, CompiledMethod* meth) {
@@ -43,12 +34,13 @@ namespace rubinius {
   MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth) {
     MethodContext* ctx = MethodContext::create(state);
 
-    ctx->sender = (MethodContext*)Qnil;
-    ctx->self = recv;
-    ctx->cm = meth;
+    SET(ctx, sender, (MethodContext*)Qnil);
+    SET(ctx, self, recv);
+    SET(ctx, cm, meth);
+    SET(ctx, module, G(object));
+    SET(ctx, stack, Tuple::create(state, meth->stack_size->n2i()));
+
     ctx->vmm = meth->vmmethod(state);
-    ctx->module = G(object);
-    ctx->stack = Tuple::create(state, meth->stack_size->n2i());
     ctx->ip = 0;
     ctx->sp = meth->number_of_locals() - 1;
 
@@ -56,9 +48,12 @@ namespace rubinius {
   }
 
   void Task::make_active(MethodContext* ctx) {
+
     ip = ctx->ip;
     sp = ctx->sp;
     self = ctx->self;
+
+    SET(ctx, sender, active);
 
     literals = ctx->cm->literals;
     stack = ctx->stack;
@@ -71,6 +66,7 @@ namespace rubinius {
     size_t total = ctx->cm->total_args->n2i();
     size_t required = ctx->cm->required_args->n2i();
 
+    ctx->block = msg.block;
     ctx->args = msg.args;
 
     /* No input args and no expected args. Done. */
@@ -102,7 +98,7 @@ namespace rubinius {
         ary->set(state, i, msg.get_argument(n));
       }
 
-      ctx->stack->put(msg.state, ctx->cm->splat->n2i(), ary);
+      ctx->stack->put(msg.state, as<Integer>(ctx->cm->splat)->n2i(), ary);
     }
   }
 
@@ -187,8 +183,8 @@ namespace rubinius {
       if(!table->nil_p()) {
         for(size_t i = 0; i < table->field_count; i++) {
           Tuple* entry = as<Tuple>(table->at(i));
-          if(entry->at(0)->n2i() <= ip && entry->at(1)->n2i() >= ip) {
-            ip = entry->at(2)->n2i();
+          if(as<Integer>(entry->at(0))->n2i() <= ip && as<Integer>(entry->at(1))->n2i() >= ip) {
+            ip = as<Integer>(entry->at(2))->n2i();
             return;
           }
         }
@@ -308,8 +304,29 @@ namespace rubinius {
     active->cm->scope->module->set_const(state, name, val);
   }
 
-  void Task::yield_debugger(OBJECT val) {
-    kill(getpid(), SIGTRAP);
+  void Task::yield_debugger() {
+    Channel* chan;
+    if(debug_channel->nil_p()) {
+      chan = try_as<Channel>(G(vm)->get_ivar(state,
+            state->symbol("@debug_channel")));
+
+      if(!chan) return;
+    } else {
+      chan = debug_channel;
+    }
+
+    if(control_channel->nil_p()) {
+      control_channel = Channel::create(state);
+    }
+
+    sassert(control_channel->has_readers_p());
+
+    active->reference(state);
+    /* keep this stack clean. */
+    active->no_value = true;
+
+    debug_channel->send(state, active);
+    control_channel->receive(state);
   }
 
   Module* Task::current_module() {
@@ -413,6 +430,9 @@ namespace rubinius {
     return mod;
   }
 
+  void Task::push(OBJECT val) {
+    stack->put(state, ++sp, val);
+  }
 
   void Task::activate_method(Message&) { }
 
@@ -437,10 +457,10 @@ namespace rubinius {
 #define stack_set_top(val) stack->field[sp] = (val)
 #define stack_back(idx) stack->field[sp - idx]
 
-#define check_bounds(obj, index)
+#define check_bounds(obj, index) sassert(obj->reference_p() && obj->field_count > index)
 #define check(expr)
 #define next_op() *ip_ptr++
-#define locals (stack)
+#define current_locals (stack)
 #define current_block  (active->block)
 #define argcount (active->args)
 #define fast_fetch(obj, index) (obj->at(index))

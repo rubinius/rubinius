@@ -1,7 +1,4 @@
-#include "prelude.hpp"
-#include "objects.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
+#include "builtin.hpp"
 
 #define MAX_DENSITY 0.75
 #define find_bin(hash, total) (hash & (total - 1))
@@ -121,7 +118,7 @@ namespace rubinius {
         Tuple* next = (Tuple*)entry->at(3);
         entry->put(state, 3, Qnil);
 
-        native_int hash = entry->at(0)->n2i();
+        native_int hash = as<Integer>(entry->at(0))->n2i();
         size_t bin = find_bin(hash, size);
         OBJECT slot = new_values->at(bin);
 
@@ -145,7 +142,7 @@ namespace rubinius {
     OBJECT entry = values->at(bin);
 
     while(!entry->nil_p()) {
-      OBJECT th = entry->at(0);
+      INTEGER th = as<Integer>(entry->at(0));
       if((hashval)th->n2i() == hsh) {
         return entry;
       }
@@ -190,7 +187,7 @@ namespace rubinius {
 
     ent = find_entry(state, hash);
     if(ent->reference_p()) {
-      while((hashval)ent->at(0)->n2i() == hash) {
+      while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
         hk = ent->at(1);
         if(hk == key) {
           *value = ent->at(2);
@@ -214,7 +211,7 @@ namespace rubinius {
 
     ent = find_entry(state, hash);
     if(ent->reference_p()) {
-      while((hashval)ent->at(0)->n2i() == hash) {
+      while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
         hk = ent->at(1);
         if(compare(state, hk, key)) {
           *value = ent->at(2);
@@ -237,7 +234,7 @@ namespace rubinius {
 
     base = ent = (Tuple*)find_entry(state, hash);
     if(ent->reference_p()) {
-      while((hashval)ent->at(0)->n2i() == hash) {
+      while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
         hk = ent->at(1);
         if(compare(state, hk, key)) {
           ent->put(state, 2, value);
@@ -283,10 +280,11 @@ namespace rubinius {
 
   OBJECT Hash::remove(STATE, hashval hsh) {
     hashval bin;
-    OBJECT th, val;
+    OBJECT val;
     Tuple* entry;
     Tuple* lst;
     Tuple *lk;
+    INTEGER th;
 
     bin = find_bin(hsh, bins->n2i());
     entry = (Tuple*)values->at(bin);
@@ -294,7 +292,7 @@ namespace rubinius {
     lst = (Tuple*)Qnil;
 
     while(!entry->nil_p()) {
-      th = entry->at(0);
+      th = as<Integer>(entry->at(0));
       lk = (Tuple*)entry->at(3);
 
       if((hashval)th->n2i() == hsh) {

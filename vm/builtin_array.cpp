@@ -1,8 +1,4 @@
-#include "prelude.hpp"
-#include "object.hpp"
-#include "objects.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
+#include "builtin.hpp"
 
 namespace rubinius {
 
@@ -16,7 +12,14 @@ namespace rubinius {
   }
 
   Array* Array::from_tuple(STATE, Tuple* tup) {
+    Array* ary = Array::create(state, tup->field_count);
+    OBJECT i = Object::i2n(0);
+    as<Integer>(i);
+    for(size_t i = 0; i < tup->field_count; i++) {
+      ary->set(state, i, tup->at(i));
+    }
 
+    return ary;
   }
 
   void Array::setup(STATE, size_t size) {

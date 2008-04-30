@@ -9,12 +9,12 @@
 
 using namespace rubinius;
 
-class TestChannel : public ObjectCallback {
+class TestChannelObject : public ObjectCallback {
 public:
   bool called;
   OBJECT value;
 
-  TestChannel(STATE) : ObjectCallback(state), called(false) { }
+  TestChannelObject(STATE) : ObjectCallback(state), called(false) { }
 
   virtual OBJECT object() { return Qnil; }
 
@@ -39,7 +39,7 @@ class TestEventLoop : public CxxTest::TestSuite {
   }
   
   void test_timer() {
-    TestChannel chan(state);
+    TestChannelObject chan(state);
     event::Timer* timer = new event::Timer(state, &chan, 0.2);
 
     state->events->start(timer);
@@ -55,7 +55,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     int fds[2];
     TS_ASSERT(!pipe(fds));
 
-    TestChannel chan(state);
+    TestChannelObject chan(state);
     event::Read* read = new event::Read(state, &chan, fds[0]);
 
     state->events->start(read);
@@ -75,7 +75,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     int fds[2];
     TS_ASSERT(!pipe(fds));
 
-    TestChannel chan(state);
+    TestChannelObject chan(state);
     event::Read* read = new event::Read(state, &chan, fds[0]);
     
     IO::Buffer *buf = IO::Buffer::create(state, 12);
@@ -106,7 +106,7 @@ class TestEventLoop : public CxxTest::TestSuite {
 
   void test_signal() {
     event::Loop loop(ev_default_loop(0));
-    TestChannel chan(state);
+    TestChannelObject chan(state);
     event::Signal* sig = new event::Signal(state, &chan, SIGUSR1);
     loop.start(sig);
 

@@ -23,12 +23,12 @@ class TestLookupTable : public CxxTest::TestSuite {
     LookupTable *tbl;
 
     tbl = LookupTable::create(&vm);
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 0);
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 0);
     tbl->store(&vm, Qnil, Object::i2n(47));
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 1);
 
     OBJECT out = tbl->fetch(state, Qnil);
-    TS_ASSERT_EQUALS(out->n2i(), 47);
+    TS_ASSERT_EQUALS(as<Integer>(out)->n2i(), 47);
   }
 
   void test_store_overwrites_previous() {
@@ -36,18 +36,18 @@ class TestLookupTable : public CxxTest::TestSuite {
     LookupTable *tbl;
 
     tbl = LookupTable::create(&vm);
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 0);
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 0);
     tbl->store(&vm, Qnil, Object::i2n(47));
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 1);
 
     OBJECT out = tbl->fetch(state, Qnil);
-    TS_ASSERT_EQUALS(out->n2i(), 47);
+    TS_ASSERT_EQUALS(as<Integer>(out)->n2i(), 47);
 
     tbl->store(state, Qnil, Object::i2n(42));
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 1);
 
     out = tbl->fetch(state, Qnil);
-    TS_ASSERT_EQUALS(out->n2i(), 42);
+    TS_ASSERT_EQUALS(as<Integer>(out)->n2i(), 42);
   }
 
   void test_store_handles_entries_in_same_bin() {
@@ -65,7 +65,7 @@ class TestLookupTable : public CxxTest::TestSuite {
     tbl->store(state, k1, v1);
     tbl->store(state, k2, v2);
     tbl->store(state, k3, v3);
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 3);
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 3);
 
     OBJECT entry = tbl->find_entry(state, k1);
     TS_ASSERT(!entry->nil_p());
@@ -90,7 +90,7 @@ class TestLookupTable : public CxxTest::TestSuite {
       tbl->store(state, Object::i2n(i), Object::i2n(i));
     }
 
-    TS_ASSERT_EQUALS(i, (size_t)tbl->entries->n2i());
+    TS_ASSERT_EQUALS(i, (size_t)as<Integer>(tbl->entries)->n2i());
 
     TS_ASSERT((size_t)(tbl->bins->n2i()) > bins);
 
@@ -161,7 +161,7 @@ class TestLookupTable : public CxxTest::TestSuite {
 
     out = tbl->remove(state, k);
     TS_ASSERT_EQUALS(out, Qtrue);
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 0);
+    TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 0);
 
     out = tbl->fetch(state, k);
     TS_ASSERT_EQUALS(out, Qnil);
@@ -206,7 +206,7 @@ class TestLookupTable : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(tbl->remove(state, k2), Qtrue);
     TS_ASSERT_EQUALS(tbl->remove(state, k1), Qnil);
 
-    TS_ASSERT_EQUALS(0, tbl->entries->n2i());
+    TS_ASSERT_EQUALS(0, as<Integer>(tbl->entries)->n2i());
   }
 
   void test_remove_works_for_unknown_key() {

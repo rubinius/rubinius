@@ -28,12 +28,17 @@ namespace rubinius {
   class SymbolTable;
   class LookupTable;
   class Tuple;
+  class Task;
+  class Thread;
 
   class Symbol;
   typedef Symbol* SYMBOL;
 
   class Fixnum;
   typedef Fixnum* FIXNUM;
+
+  class Integer;
+  typedef Integer* INTEGER;
 
 #define Qfalse ((OBJECT)6L)
 #define Qnil   ((OBJECT)14L)

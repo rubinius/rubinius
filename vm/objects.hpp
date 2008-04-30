@@ -34,9 +34,69 @@ namespace rubinius {
     static bool kind_of<FalseClass>(OBJECT obj) {
       return obj == Qfalse;
     }
+  
+  class Integer : public BuiltinType {
+  public:
+    inline native_int n2i();
+  };
 }
 
+#include "builtin_bignum.hpp"
+
 namespace rubinius {
+
+  class Fixnum : public Integer {
+  public:
+    const static size_t fields = 0;
+    const static object_type type = FixnumType;
+
+    INTEGER add(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() + other->n2i());
+    }
+
+    INTEGER sub(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() - other->n2i());
+    }
+
+    INTEGER multiply(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() * other->n2i());
+    }
+
+    INTEGER divide(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() / other->n2i());
+    }
+
+    INTEGER modulo(STATE, FIXNUM other) {
+      return Object::i2n(state, n2i() % other->n2i());
+    }
+    
+    native_int to_nint() {
+      return STRIP_TAG(this);
+    }
+
+  };
+
+  typedef Fixnum* FIXNUM;
+
+  /* See t1 */
+  template <>
+    static bool kind_of<Integer>(OBJECT obj) {
+      return obj->fixnum_p() || (obj->reference_p() && obj->obj_type == Bignum::type);
+    }
+
+  /* For some reason, the as<> template doesn't pick up the specialized kind_of<>, until
+   * we figure out why, just special as<> too. */
+  template <>
+    static INTEGER as<Integer>(OBJECT obj) {
+      if(kind_of<Integer>(obj)) return (Integer*)obj;
+      throw new TypeError(obj->obj_type, obj, "can't be cast as an Integer");
+    }
+
+  template <>
+    static bool kind_of<Fixnum>(OBJECT obj) {
+      return obj->fixnum_p();
+    }
+  
   class StaticScope : public BuiltinType {
     public:
     const static size_t fields = 3;
@@ -48,6 +108,15 @@ namespace rubinius {
 
     static StaticScope* create(STATE);
   };
+
+  native_int Integer::n2i() {
+    if(fixnum_p()) {
+      return ((FIXNUM)this)->to_nint();
+    }
+
+    return as<Bignum>(this)->to_nint();
+  }
+
 };
 
 namespace rubinius {
@@ -114,80 +183,8 @@ namespace rubinius {
   };
 };
 
-namespace rubinius {
+#include "builtin_hash.hpp"
 
-  class LookupTable;
-
-  #define HASH_MINSIZE 16
-  class Hash : public BuiltinType {
-    public:
-    const static size_t fields = 7;
-    const static object_type type = HashType;
-
-    OBJECT instance_variables;
-    OBJECT keys;
-    Tuple* values;
-    OBJECT bins;
-    OBJECT entries;
-    OBJECT default_value;
-    OBJECT default_proc;
-
-    static Hash* create(STATE, size_t size = HASH_MINSIZE);
-    void   setup(STATE, size_t size);
-    Hash*  dup(STATE);
-    static OBJECT entry_new(STATE, hashval hsh, OBJECT key, OBJECT data);
-    static OBJECT entry_append(STATE, OBJECT top, OBJECT nxt);
-    OBJECT add_entry(STATE, hashval hsh, OBJECT ent);
-    void   redistribute(STATE);
-    OBJECT find_entry(STATE, hashval hsh);
-    OBJECT add(STATE, hashval hsh, OBJECT key, OBJECT data);
-    OBJECT set(STATE, OBJECT key, OBJECT val);
-    OBJECT get(STATE, hashval hsh);
-    int    lookup(STATE, OBJECT key, hashval hash, OBJECT *value);
-    int    lookup2(STATE, int (*compare)(STATE, OBJECT, OBJECT),
-        OBJECT key, hashval hash, OBJECT *value);
-    void   assign(STATE, int (*compare)(STATE, OBJECT, OBJECT),
-        OBJECT key, hashval hash, OBJECT value);
-    OBJECT get_undef(STATE, hashval hsh);
-    OBJECT remove(STATE, hashval hsh);
-
-    static Hash*  from_tuple(STATE, OBJECT tup);
-    static Tuple* csm_new(STATE);
-    static OBJECT csm_find(STATE, Tuple* csm, OBJECT key);
-    static OBJECT csm_add(STATE, Tuple* csm, OBJECT key, OBJECT val);
-    static Hash*  csm_into_hash(STATE, Tuple* csm);
-    static LookupTable* csm_into_lookuptable(STATE, Tuple* csm);
-
-  };
-};
-
-namespace rubinius {
-  class RegexpData : public BuiltinType {
-    public:
-    const static size_t fields = 0;
-    const static object_type type = RegexpDataType;
-
-    class Info : public TypeInfo {
-    public:
-      Info(Class* cls) : TypeInfo(cls) { }
-      virtual void cleanup(OBJECT obj);
-    };
-  };
-};
-
-namespace rubinius {
-  class MatchData : public BuiltinType {
-    public:
-    const static size_t fields = 5;
-    const static object_type type = MatchDataType;
-
-    OBJECT instance_variables;
-    OBJECT source;
-    OBJECT regexp;
-    OBJECT full;
-    OBJECT region;
-  };
-};
 
 namespace rubinius {
   class NormalObject : public BuiltinType {
@@ -199,30 +196,7 @@ namespace rubinius {
   };
 };
 
-namespace rubinius {
-  class Array : public BuiltinType {
-    public:
-    const static size_t fields = 4;
-    const static object_type type = ArrayType;
-
-    OBJECT total;
-    Tuple* tuple;
-    OBJECT start;
-    OBJECT shared;
-
-    size_t size() {
-      return total->n2i();
-    }
-
-    static Array* create(STATE, size_t size);
-    static Array* from_tuple(STATE, Tuple* tup);
-    void   setup(STATE, size_t size);
-    OBJECT get(STATE, size_t idx);
-    OBJECT set(STATE, size_t idx, OBJECT val);
-    OBJECT append(STATE, OBJECT val);
-    bool   includes_p(STATE, OBJECT val);
-  };
-};
+#include "builtin_array.hpp"
 
 namespace rubinius {
   class Exception : public BuiltinType {
@@ -240,28 +214,27 @@ namespace rubinius {
 namespace rubinius {
   class CompiledMethod;
   class MethodContext;
+  class BlockContext;
 
   class BlockEnvironment : public BuiltinType {
     public:
-    const static size_t fields = 9;
+    const static size_t fields = 5;
     const static object_type type = BlockEnvType;
 
     OBJECT instance_variables;
     MethodContext* home;
-    OBJECT initial_ip;
-    OBJECT last_ip;
-    OBJECT post_send;
-    OBJECT home_block;
+    MethodContext* home_block;
     OBJECT local_count;
-    OBJECT bonus;
-    OBJECT method;
+    CompiledMethod* method;
 
     static BlockEnvironment* under_context(STATE, CompiledMethod* cm,
         MethodContext* parent, MethodContext* active);
 
     void call(STATE, size_t args);
+    BlockContext* create_context(STATE);
   };
 };
+
 
 namespace rubinius {
   class IO : public BuiltinType {
@@ -284,8 +257,8 @@ namespace rubinius {
 
       OBJECT instance_variables;
       OBJECT storage;
-      OBJECT total;
-      OBJECT used;
+      INTEGER total;
+      INTEGER used;
 
       static Buffer* create(STATE, size_t bytes);
       void reset(STATE);
@@ -313,84 +286,8 @@ namespace rubinius {
   };
 };
 
-namespace rubinius {
-  class Regexp : public BuiltinType {
-    public:
-    const static size_t fields = 4;
-    const static object_type type = RegexpType;
-
-    OBJECT instance_variables;
-    OBJECT source;
-    OBJECT data;
-    OBJECT names;
-
-    static void cleanup(STATE, OBJECT data);
-    static void init(STATE);
-    static Regexp* create(STATE, String* pattern, OBJECT options, char* err_buf = NULL);
-    static char*  version(STATE);
-
-    OBJECT options(STATE);
-    OBJECT match_region(STATE, String* string, OBJECT start, OBJECT end, OBJECT forward);
-
-  };
-};
-
-namespace rubinius {
-  class String : public BuiltinType {
-    public:
-    const static size_t fields = 6;
-    const static object_type type = StringType;
-
-    static bool is_a(OBJECT obj) {
-      return obj->reference_p() && obj->obj_type == StringType;
-    }
-
-    OBJECT num_bytes;
-    OBJECT characters;
-    OBJECT encoding;
-    OBJECT data;
-    OBJECT hash;
-    OBJECT shared;
-
-    static String* create(STATE, const char* str, size_t bytes = 0);
-    static hashval hash_str(const unsigned char *bp, unsigned int sz);
-    static int string_equal_p(STATE, OBJECT self, OBJECT other);
-
-    size_t size(STATE) {
-      return num_bytes->n2i();
-    }
-
-    size_t size() {
-      return num_bytes->n2i();
-    }
-
-    /* Allows the String object to be cast as a char* */
-    operator const char *() {
-      return (const char*)(data->bytes);
-    }
-
-    /* TODO: since we're technically say it's ok to change this, we might
-     * want to copy it first. */
-    operator char *() {
-      return (char*)(data->bytes);
-    }
-
-    char* byte_address() {
-      return (char*)data->bytes;
-    }
-
-    void unshare(STATE);
-    hashval hash_string(STATE);
-    SYMBOL to_sym(STATE);
-    char* byte_address(STATE);
-    String* string_dup(STATE);
-    String* append(STATE, String* other);
-    String* append(STATE, char* other);
-    String* add(STATE, String* other);
-    String* add(STATE, char* other);
-
-  };
-};
+#include "builtin_regexp.hpp"
+#include "builtin_string.hpp"
 
 namespace rubinius {
   class ByteArray : public BuiltinType {
@@ -411,8 +308,8 @@ namespace rubinius {
 
     OBJECT instance_variables;
     Tuple* values;
-    OBJECT bins;
-    OBJECT entries;
+    INTEGER bins;
+    INTEGER entries;
 
     /* Prototypes */
     static LookupTable* create(STATE, size_t sz = LOOKUPTABLE_MIN_SIZE);
@@ -470,17 +367,17 @@ namespace rubinius {
 
     SYMBOL name;
     ISeq*  iseq;
-    OBJECT stack_size;
-    OBJECT local_count;
-    OBJECT required_args;
-    OBJECT total_args;
+    FIXNUM stack_size;
+    FIXNUM local_count;
+    FIXNUM required_args;
+    FIXNUM total_args;
     OBJECT splat;
     Tuple* literals;
     Tuple* exceptions;
-    OBJECT lines;
-    OBJECT file;
-    OBJECT path;
-    OBJECT serial;
+    Tuple* lines;
+    SYMBOL file;
+    SYMBOL path;
+    FIXNUM serial;
     OBJECT bonus;
     MemoryPointer* compiled;
     StaticScope* scope;
@@ -527,50 +424,15 @@ namespace rubinius {
     }
 };
 
-namespace rubinius {
-  class Fixnum : public BuiltinType {
-  public:
-    const static size_t fields = 0;
-    const static object_type type = FixnumType;
-
-    OBJECT add(STATE, FIXNUM other) {
-      return Object::i2n(state, n2i() + other->n2i());
-    }
-
-    OBJECT sub(STATE, FIXNUM other) {
-      return Object::i2n(state, n2i() - other->n2i());
-    }
-
-    OBJECT multiply(STATE, FIXNUM other) {
-      return Object::i2n(state, n2i() * other->n2i());
-    }
-
-    OBJECT divide(STATE, FIXNUM other) {
-      return Object::i2n(state, n2i() / other->n2i());
-    }
-
-    OBJECT modulo(STATE, FIXNUM other) {
-      return Object::i2n(state, n2i() % other->n2i());
-    }
-  };
-
-  typedef Fixnum* FIXNUM;
-
-  /* See t1 */
-  template <>
-    static bool kind_of<Fixnum>(OBJECT obj) {
-      return obj->fixnum_p();
-    }
-}
 
 #include "builtin_class.hpp"
 #include "builtin_contexts.hpp"
 #include "builtin_iseq.hpp"
-#include "builtin_bignum.hpp"
 #include "builtin_float.hpp"
 #include "builtin_list.hpp"
 #include "builtin_selector.hpp"
 #include "builtin_task.hpp"
 #include "builtin_iseq.hpp"
+#include "builtin_channel.hpp"
 
 #endif

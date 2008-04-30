@@ -111,7 +111,7 @@ namespace rubinius {
       void poll();
       void run_and_wait();
       void clear_by_fd(int fd);
-      void clear_by_channel(OBJECT chan);
+      void clear_by_channel(void* chan);
       void clear_by_id(size_t id);
       void remove_event(Event* ev);
       void remove_signal(int sig);

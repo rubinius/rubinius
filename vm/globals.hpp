@@ -52,6 +52,9 @@ namespace rubinius {
     TypedRoot<SYMBOL> sym_object_id, sym_call;
     TypedRoot<OBJECT> top_scope, on_gc_channel;
 
+    TypedRoot<Module*> vm;
+    TypedRoot<Thread*> current_thread;
+    TypedRoot<Task*> current_task;
 
     /* Leave this as the last data member always */
     TypedRoot<Class*> special_classes[SPECIAL_CLASS_SIZE];
@@ -93,7 +96,10 @@ namespace rubinius {
       sym_public(&roots), sym_private(&roots), sym_protected(&roots),
       sym_const_missing(&roots),
       sym_object_id(&roots), sym_call(&roots),
-      top_scope(&roots), on_gc_channel(&roots)
+      top_scope(&roots), on_gc_channel(&roots),
+      vm(&roots),
+      current_thread(&roots),
+      current_task(&roots)
     { }
   };
 };

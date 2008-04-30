@@ -76,7 +76,7 @@ namespace rubinius {
     return type;
   }
 
-  OBJECT Object::ui2n(STATE, unsigned int num) {
+  INTEGER Object::ui2n(STATE, unsigned int num) {
     /* No need to check what 'num' is if it will always fit into a Fixnum */
 #if (CONFIG_WORDSIZE != 64)
     if(num > FIXNUM_MAX) {
@@ -84,30 +84,30 @@ namespace rubinius {
       return Bignum::new_unsigned(state, num);
     }
 #endif
-    return APPLY_TAG((native_int)num, TAG_FIXNUM);
+    return (FIXNUM)APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
 
-  OBJECT Object::i2n(STATE, native_int num) {
+  INTEGER Object::i2n(STATE, native_int num) {
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       return Bignum::create(state, num);
     } else {
-      return APPLY_TAG(num, TAG_FIXNUM);
+      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
     }
   }
 
-  OBJECT Object::ll2n(STATE, long long num) {
+  INTEGER Object::ll2n(STATE, long long num) {
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       return Bignum::from_ll(state, num);
     } else {
-      return APPLY_TAG(num, TAG_FIXNUM);
+      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
     }
   }
 
-  OBJECT Object::ull2n(STATE, unsigned long long num) {
+  INTEGER Object::ull2n(STATE, unsigned long long num) {
     if(num > FIXNUM_MAX) {
       return Bignum::from_ull(state, num);
     } else {
-      return APPLY_TAG(num, TAG_FIXNUM);
+      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
     }
   }
 
@@ -169,7 +169,7 @@ namespace rubinius {
     if(!reference_p()) {
       /* Get rid of the tag part (i.e. the part that indicate nature of self */
       if(fixnum_p()) {
-        native_int val = n2i();
+        native_int val = as<Integer>(this)->n2i();
         /* We do this so the 2's complement will fit into 29 bits properly. */
         if(val < 0) {
           hsh = hsh >> 1;

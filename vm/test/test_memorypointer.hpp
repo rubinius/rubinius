@@ -34,7 +34,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_CHAR);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
   
   void test_get_field_uchar() {
@@ -43,7 +43,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_UCHAR);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
 
   void test_get_field_short() {
@@ -52,7 +52,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_SHORT);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
   
   void test_get_field_ushort() {
@@ -61,7 +61,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_USHORT);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
   
   void test_get_field_int() {
@@ -70,7 +70,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_INT);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
   
   void test_get_field_uint() {
@@ -79,7 +79,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_UINT);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
   
   void test_get_field_long() {
@@ -88,7 +88,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_LONG);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
   
   void test_get_field_ulong() {
@@ -97,7 +97,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_ULONG);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
   
   void test_get_field_float() {
@@ -124,7 +124,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_LL);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
   
   void test_get_field_ull() {
@@ -133,7 +133,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_ULL);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(obj->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
   }
 
   void test_get_field_object() {

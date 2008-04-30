@@ -1,5 +1,5 @@
-#ifndef RBX_TASK_HPP
-#define RBX_TASK_HPP
+#ifndef RBX_CHANNEL_HPP
+#define RBX_CHANNEL_HPP
 
 namespace rubinius {
   class Channel : public BuiltinType {
@@ -7,27 +7,29 @@ namespace rubinius {
     const static size_t fields = 3;
     const static object_type type = ChannelType;
 
-    void send(OBJECT);
+    OBJECT value;
+    List* waiting;
+
+    static Channel* create(STATE);
+    void send(STATE, OBJECT);
+    void receive(STATE);
+    bool has_readers_p();
   };
 
   class ChannelCallback : public ObjectCallback {
-    Channel *channel;
+    TypedRoot<Channel*> channel;
 
-    ChannelCallback(STATE, Channel* chan) : 
-      ObjectCallback(state), channel(chan) { }
-
-    virtual void call(OBJECT obj) {
-      channel->send(obj);
+    ChannelCallback(STATE, Channel* chan) : ObjectCallback(state) {
+      channel.set(chan, &GO(roots));
     }
 
-    virtual OBJECT object() { return channel; }
+    virtual void call(OBJECT obj) {
+      channel->send(state, obj);
+    }
   };
 
-  class Thread : public BuiltinType {
-  public:
-    const static size_t fields = 5;
-    const static object_type type = ThreadType;
-  };
 }
+
+#include "builtin_thread.hpp"
 
 #endif

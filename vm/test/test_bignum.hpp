@@ -13,7 +13,7 @@ class TestBignum : public CxxTest::TestSuite {
   VM* state;
   Bignum* b1;
   Bignum* b2;
-  OBJECT two;
+  FIXNUM two;
 
   void setUp() {
     state = new VM(1024);
@@ -52,7 +52,7 @@ class TestBignum : public CxxTest::TestSuite {
     OBJECT out = Bignum::normalize(state, obj);
 
     TS_ASSERT(out->fixnum_p());
-    TS_ASSERT_EQUALS(out->n2i(), 13);
+    TS_ASSERT_EQUALS(as<Integer>(out)->n2i(), 13);
 
     TS_ASSERT_EQUALS(b1, Bignum::normalize(state, b1));
   }
@@ -67,7 +67,7 @@ class TestBignum : public CxxTest::TestSuite {
       TSM_ASSERT_EQUALS(stream.str().c_str(), strcmp(val, buf), 0);
     } else {
       std::stringstream str2;
-      str2 << big->n2i();
+      str2 << as<Integer>(big)->n2i();
       stream << "bignum not correct: " << str2.str() << " != " << val;
       TSM_ASSERT_EQUALS(stream.str().c_str(), strcmp(val, str2.str().c_str()), 0);
     }
@@ -136,19 +136,19 @@ class TestBignum : public CxxTest::TestSuite {
   void test_from_string_detect() {
     OBJECT b = Bignum::from_string_detect(state, "0x47");
     TS_ASSERT(b->fixnum_p());
-    TS_ASSERT_EQUALS(b->n2i(), 0x47);
+    TS_ASSERT_EQUALS(as<Integer>(b)->n2i(), 0x47);
   }
 
   void test_from_string() {
     OBJECT b = Bignum::from_string(state, "47", 10);
     TS_ASSERT(b->fixnum_p());
-    TS_ASSERT_EQUALS(b->n2i(), 47);
+    TS_ASSERT_EQUALS(as<Integer>(b)->n2i(), 47);
   }
 
   void test_size() {
     OBJECT s = b1->size(state);
     TS_ASSERT(s->fixnum_p());
-    TS_ASSERT(s->n2i() > 0);
+    TS_ASSERT(as<Integer>(s)->n2i() > 0);
   }
 
   void test_hash_bignum() {
