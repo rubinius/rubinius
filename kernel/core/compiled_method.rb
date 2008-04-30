@@ -345,6 +345,14 @@ class CompiledMethod
     return 0
   end
 
+  # Returns the address (IP) of the first instruction in this CompiledMethod
+  # that is on the specified line, or the address of the first instruction on
+  # the next code line after the specified line if there are no instructions
+  # on the requested line.
+  # This method only looks at instructions within the current CompiledMethod;
+  # see #locate_line for an alternate method that also searches inside the child
+  # CompiledMethods.
+
   def first_ip_on_line(line)
     @lines.each do |t|
       if t.at(2) >= line
@@ -369,6 +377,47 @@ class CompiledMethod
 
   def is_block?
     @name =~ /__(?:(?:\w|_)+)?block__/
+  end
+
+  # Convenience method to return an array of the child CompiledMethods from
+  # this CompiledMethod's literals.
+
+  def child_methods
+    literals.select {|lit| lit.kind_of? CompiledMethod}
+  end
+
+  # Convenience method to return an array of the SendSites from
+  # this CompiledMethod's literals.
+
+  def send_sites
+    literals.select {|lit| lit.kind_of? SendSite}
+  end
+
+  # Locates the CompiledMethod and instruction address (IP) of the first
+  # instruction on the specified line. This method recursively examines child
+  # compiled methods until an exact match for the searched line is found.
+  # It returns both the matching CompiledMethod and the IP of the first 
+  # instruction on the requested line, or nil if no match for the specified line
+  # is found.
+
+  def locate_line(line, cm=self)
+    cm.lines.each do |t|
+      if (l = t.at(2)) == line
+        # Found target line - return first IP
+        return cm, t.at(0)
+      elsif l > line
+        # Next code line is after the line asked for, so check if a 
+        # contained CM encompasses the line searched for
+        cm.child_methods.each do |child|
+          if res = locate_line(line, child)
+            return res
+          end
+        end
+
+        # No child method is a match - fail
+        return nil
+      end
+    end
   end
 
   ##
@@ -546,3 +595,4 @@ class CompiledMethod
     end
   end
 end
+
