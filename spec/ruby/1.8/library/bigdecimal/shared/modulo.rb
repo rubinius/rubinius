@@ -36,6 +36,7 @@ shared :bigdecimal_modulo do |cmd|
       bd6543.send(cmd, 137.24).should be_close(6543.21.%(137.24), TOLERANCE)
       a.send(cmd, b).should == BigDecimal("0.45E-42")
       @zero.send(cmd, @one).should == @zero
+      @zero.send(cmd, @one_minus).should == @zero
       @two.send(cmd, @one).should == @zero
       @one.send(cmd, @two).should == @one
       @frac_1.send(cmd, @one).should == @frac_1
@@ -44,6 +45,25 @@ shared :bigdecimal_modulo do |cmd|
       @one_minus.send(cmd, @one).should == @zero
       @one_minus.send(cmd, @two).should == @one
       @one.send(cmd, -@two).should == -@one
+
+      @one_minus.modulo(BigDecimal('0.9')).should == BigDecimal('0.8')
+      @one.modulo(BigDecimal('-0.9')).should == BigDecimal('-0.8')
+
+      @one_minus.modulo(BigDecimal('0.8')).should == BigDecimal('0.6')
+      @one.modulo(BigDecimal('-0.8')).should == BigDecimal('-0.6')
+
+      @one_minus.modulo(BigDecimal('0.6')).should == BigDecimal('0.2')
+      @one.modulo(BigDecimal('-0.6')).should == BigDecimal('-0.2')
+
+      @one_minus.modulo(BigDecimal('0.5')).should == @zero
+      @one.modulo(BigDecimal('-0.5')).should == @zero
+      @one_minus.modulo(BigDecimal('-0.5')).should == @zero
+
+      @one_minus.modulo(BigDecimal('0.4')).should == BigDecimal('0.2')
+      @one.modulo(BigDecimal('-0.4')).should == BigDecimal('-0.2')
+
+      @one_minus.modulo(BigDecimal('0.3')).should == BigDecimal('0.2')
+      @one_minus.modulo(BigDecimal('0.2')).should == @zero
     end
 
     it "does NOT raise ZeroDivisionError if other is zero" do
