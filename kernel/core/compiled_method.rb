@@ -308,6 +308,12 @@ class CompiledMethod
     return out
   end
 
+  # Accessor for a hash of filenames (as per $" / $LOADED_FEATURES) to the
+  # script CompiledMethod.
+  def self.scripts
+    @scripts ||= {}
+  end
+
   class Script
     attr_accessor :path
   end

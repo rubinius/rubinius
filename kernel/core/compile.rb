@@ -73,6 +73,12 @@ module Compile
     eval(string, TOPLEVEL_BINDING)
   end
 
+  # Sets a flag so that the next script to be loaded gets a breakpoint set at
+  # the first instruction
+  def self.debug_script!
+    @debug_script = true
+  end
+
   # By calling require in the block passed to this, require will
   # load rbc if they exist without checking mtime's and such.
   @load_rbc_directly = false
@@ -141,6 +147,10 @@ module Compile
             end
 
             $LOADED_FEATURES << rb if requiring
+
+            # Add script CM to CompiledMethod.scripts
+            CompiledMethod.scripts[rb] = cm
+
             return true
           end
           # Fall through
@@ -223,12 +233,16 @@ module Compile
           end
         end
 
+        # Add script CM to CompiledMethod.scripts
+        CompiledMethod.scripts[rb] = cm
+
         begin
           cm.compile
           cm.hints = { :source => :rb }
-          if $DEBUGGER and !requiring
+          # Set a breakpoint on the script CompiledMethod if flag is set
+          if @debug_script
             Debugger.instance.set_breakpoint cm, 0
-            $DEBUGGER = false
+            @debug_script = false
           end
           cm.as_script do |script|
             script.path = rb_path

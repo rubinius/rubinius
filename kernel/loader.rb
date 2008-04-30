@@ -125,6 +125,7 @@ TOPLEVEL_BINDING = binding()
 
 begin
   version_requested = false
+  script_debug_requested = false
   until ARGV.empty?
     arg = ARGV.shift
     case arg
@@ -149,17 +150,17 @@ begin
       $DEBUG = true
     when '-debug'
       require 'debugger/interface'
-      $DEBUGGER = true
       Debugger::CmdLineInterface.new
+      script_debug_requested = true
     when '-remote-debug'
       require 'debugger/debug_server'
-      $DEBUGGER = true
       if port = (ARGV.first =~ /^\d+$/ and ARGV.shift)
         $DEBUG_SERVER = Debugger::Server.new(port.to_i)
       else
         $DEBUG_SERVER = Debugger::Server.new
       end
       $DEBUG_SERVER.listen
+      script_debug_requested = true
     when '-p'
       require 'profile'
     when '-ps'
@@ -198,6 +199,7 @@ begin
       else
         if File.exists?(arg)
           $0 = arg
+          Compile.debug_script! if script_debug_requested
           Compile.load_from_extension arg 
         else
           if arg.suffix?(".rb")
