@@ -12,6 +12,8 @@ CI_DIR = File.join HTML_DIR, "ci"
 
 GIT_URL = "http://git.rubini.us/?p=code;a=commit;h="
 
+DISPLAY = 50
+
 def abbreviate_platform(arch)
   plat = Gem::Platform.new(arch)
   cpu, os, _ = plat.to_a
@@ -180,7 +182,7 @@ html = Tagz do
         end
       end
 
-      hashes.sort_by {|_,t| -t.to_i }.each do |hash, time|
+      hashes.sort_by {|_,t| -t.to_i }.first(DISPLAY).each do |hash, time|
         tr_ do
           th_ do
             a_(hash[0..7], :href => "#{GIT_URL}#{hash}")
