@@ -1,6 +1,6 @@
 require 'bigdecimal'
 
-shared :bigdecimal_modulo do |cmd|
+shared :bigdecimal_modulo do |cmd, mode|
 
   describe "BigDecimal##{cmd}" do
     before(:each) do
@@ -73,7 +73,11 @@ shared :bigdecimal_modulo do |cmd|
       b = BigDecimal("1.00000000000000000000000000000000000000000005")
 
       bd5667.send(cmd, 0).nan?.should == true
-      bd5667.send(cmd, 0.0).nan?.should == true
+      if (mode != :exclude_float_zero)
+        # MRI weird behavior. While #modulo returns NaN,
+        # #divmod[1] raises an Error, so we guard it here.
+        bd5667.send(cmd, 0.0).nan?.should == true
+      end
       bd5667.send(cmd, BigDecimal("0")).nan?.should == true
       @zero.send(cmd, @zero).nan?.should == true
     end
