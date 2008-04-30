@@ -303,12 +303,6 @@ class BigDecimal < Numeric
     end
   end
 
-  def >=(other)
-  end
-
-  def <=(other)
-  end
-
   def <=>(other)
     if other.nil?
       return nil
@@ -316,7 +310,7 @@ class BigDecimal < Numeric
       return self <=> self.coerce(other)[0]
     elsif self.nan? or other.nan?
       return nil
-    elsif self == other
+    elsif self.eql?(other)
       return 0
     else
       result = (self.sign <=> other.sign).nonzero? || \
@@ -326,9 +320,26 @@ class BigDecimal < Numeric
       return result
     end
   end
-
+  
+  # Apparently, 'include Comparable' doesn't work, so:
+  def >(other)
+    compare_method(other, 1)
+  end
+  
+  def >=(other)
+    return (self > other or self == other)
+  end
+  
   def <(other)
-    return self.<=>(other) == -1
+    compare_method(other, -1)
+  end
+  
+  def <=(other)
+    return (self < other or self == other)
+  end
+  
+  def ==(other)
+    compare_method(other, 0)
   end
 
   def eql?(other)
@@ -341,17 +352,12 @@ class BigDecimal < Numeric
     elsif self.to_s == other.to_s
       return true
     elsif !other.kind_of?(BigDecimal)
-      return self == BigDecimal(other.to_s)
+      return self.eql?(BigDecimal(other.to_s))
     else
       return false
     end
   end
-  alias == eql?
   alias === eql?
-
-  def >(other)
-    return self.<=>(other) == 1
-  end
   
   ####################
   # Other operations #
@@ -453,5 +459,11 @@ class BigDecimal < Numeric
       xd << '0' * diff.abs
     end
     [xd, yd]
+  end
+  
+  # Wrapper for implementing comparison methods.
+  def compare_method(other, val)
+    result = (self <=> other)
+    return result.nil? ? nil : result == val
   end
 end
