@@ -200,9 +200,7 @@ class Debugger
         end
       else
         source = interface.eval_context.method
-        if literals = source.literals
-          send_sites = literals.select {|lit| lit.kind_of? SendSite}
-        end
+        send_sites = source.send_sites
         if send_sites and send_sites.size > 0
           output = output(source, send_sites)
         else
@@ -237,3 +235,4 @@ class Debugger
     end
   end
 end
+

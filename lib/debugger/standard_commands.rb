@@ -77,6 +77,35 @@ class Debugger
   end
 
 
+  class AddBreakpointInFile < Command
+    @@re = Regexp.new('^b(?:reak)?\s+([^:]+):(\d+)$')
+
+    def help
+      return "b[reak] <file>:<line>", "Set a breakpoint on the specified line of <file>."
+    end
+
+    def command_regexp
+      @@re
+    end
+
+    def execute(dbg, interface, md)
+      file, line = md[1], md[2].to_i
+      if cm = CompiledMethod.scripts[file]
+        cm, ip = cm.locate_line(line)
+      else
+        return "No loaded file found matching #{file}"
+      end
+
+      if cm
+        bp = dbg.set_breakpoint cm, ip
+        return "Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}"
+      else
+        return "Cannot set a breakpoint on line #{line} of #{file}"
+      end
+    end
+  end
+
+
   class DeleteBreakpoint < Command
     def help
       return "b[reak] d[el] <n>", "Delete breakpoint <n>."
@@ -573,3 +602,4 @@ class Debugger
     end
   end
 end
+
