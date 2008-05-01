@@ -302,14 +302,16 @@ class Socket < BasicSocket
   class SockAddr_Un < FFI::Struct
     config("rbx.platform.sockaddr_un", :sun_family, :sun_path)
 
-    def initialize(filename)
+    def initialize(filename = nil)
       maxfnsize = self.size - ( FFI.config("sockaddr_un.sun_family.size") + 1 )
 
-      if(filename.length > maxfnsize )
+      if(filename && filename.length > maxfnsize )
         raise ArgumentError, "too long unix socket path (max: #{fnsize}bytes)"
       end
       @p = MemoryPointer.new self.size
-      @p.write_string( [Socket::AF_UNIX].pack("s") + filename )
+      if filename
+        @p.write_string( [Socket::AF_UNIX].pack("s") + filename )
+      end
       super(@p)
     end
 
@@ -418,6 +420,18 @@ class Socket < BasicSocket
   if self.const_defined?(:SockAddr_Un)
     def self.pack_sockaddr_un(file)
       SockAddr_Un.new(file).to_s
+    end
+    
+    def self.unpack_sockaddr_un(addr)
+
+      if addr.length > FFI.config("sockaddr_un.sizeof")
+        raise TypeError, "too long sockaddr_un - #{addr.length} longer than #{FFI.config("sockaddr_un.sizeof")}"
+      end
+      
+      struct = SockAddr_Un.new
+      struct.pointer.write_string(addr)
+      
+      struct[:sun_path]      
     end
 
     class << self
