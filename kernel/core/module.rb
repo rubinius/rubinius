@@ -328,8 +328,9 @@ class Module
       name = normalize_name(name)
       # Will raise a NameError if the method doesn't exist.
       instance_method(name)
-      raise NameError, "method `#{name}' not defined in #{self.name}" unless
-        self.method_table[name]
+      unless self.method_table[name]
+        raise NameError, "method `#{name}' not defined in #{self.name}"
+      end
       method_table.delete name
       Rubinius::VM.reset_method_cache(name)
 
