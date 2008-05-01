@@ -96,6 +96,15 @@ class File < IO
     end
     paths.size
   end
+  
+  def self.lchmod(mode, *paths)
+    mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
+    paths.each do |path|
+      path = Type.coerce_to(path, String, :to_str) unless path.is_a? String
+      POSIX.lchmod(path, mode)
+    end
+    paths.size
+  end
 
   def self.chown(owner_int, group_int, *paths)
     owner_int = -1 if owner_int == nil
