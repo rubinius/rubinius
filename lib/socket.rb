@@ -570,6 +570,21 @@ end
 
 class TCPSocket < IPSocket
   
+  def self.gethostbyname(hostname)
+    addrinfos = Socket.getaddrinfo(hostname)
+    
+    hostname     = addrinfos.first[2]
+    family       = addrinfos.first[4]
+    addresses    = []
+    alternatives = []
+    addrinfos.each do |a|
+      alternatives << a[2] unless a[2] == hostname
+      addresses    << a[3] if a[4] == family
+    end
+    
+    [hostname, alternatives.uniq, family] + addresses.uniq
+  end
+  
   def initialize(host, port)
     @host = host
     @port = port
@@ -646,7 +661,7 @@ class TCPSocket < IPSocket
 
     setup descriptor
   end
-  private :setup
+  private :tcp_setup
 
   def from_descriptor(descriptor)
     setup descriptor
