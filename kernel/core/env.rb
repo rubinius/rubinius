@@ -31,7 +31,7 @@ class EnvironmentVariables
     end
     value = self[params[0]]
     return value if value
-    return yield params[0] if block_given?
+    return yield(params[0]) if block_given?
     raise IndexError, "key not found" if params.size == 1
     return params[1]
   end
@@ -70,7 +70,7 @@ class EnvironmentVariables
   end
 
   def reject(&block)
-    to_hash.reject &block
+    to_hash.reject(&block)
   end
 
   def clear
@@ -78,7 +78,7 @@ class EnvironmentVariables
   end
 
   def delete_if(&block)
-    reject! &block
+    reject!(&block)
     self
   end
 
@@ -96,7 +96,7 @@ class EnvironmentVariables
   alias_method :value?, :has_value?
 
   def values_at(*params)
-    to_hash.values_at *params
+    to_hash.values_at(*params)
   end
 
   def invert

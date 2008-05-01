@@ -396,7 +396,7 @@ class BlockEnvironment
 
   def call_on_instance(obj, *args)
     obj = redirect_to(obj)
-    obj.call *args
+    obj.call(*args)
   end
 
   def disable_long_return!

@@ -2384,6 +2384,7 @@ class String
     raise TypeError, "can't convert nil into String" if format.nil?
     i = 0
     elements = []
+    length = self.length
     directives = format.scan(/ (?: [@AaBbCcDdEeFfGgHhIiLlMmNnQqSsUVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
     directives.each do |d|
       case d
@@ -2432,12 +2433,12 @@ class String
           i += num_bytes
         end
         if repeat == '*'
-          proc.call while i + num_bytes <= self.length
+          proc.call while i + num_bytes <= length
         else
           j = 0
           num = repeat.to_i
           while j < num
-            if i + num_bytes > self.length
+            if i + num_bytes > length
               elements << nil if directive != 'Q'
             else
               proc.call
@@ -2447,7 +2448,7 @@ class String
         end
       when / \A (Z) (.*) \Z /x
         repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        if i >= self.length
+        if i >= length
           elements << ''
         elsif repeat == '*'
           self[i..-1] =~ / \A ( [^\x00]* ) ( [\x00]? ) /x
@@ -2456,36 +2457,36 @@ class String
           i += 1 if $2 == "\0"
         else
           repeat = repeat.to_i
-          str = i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1]
+          str = i + repeat <= length ? self[i...(i + repeat)] : self[i..-1]
           str =~ / \A ( [^\x00]* ) /x
           elements << $1
           i += repeat
         end
       when / \A (a) (.*) \Z /x
         repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        if i >= self.length
+        if i >= length
           elements << ''
         elsif repeat == '*'
           elements << self[i..-1]
-          i = self.length
+          i = length
         else
           repeat = repeat.to_i
-          elements << (i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1])
+          elements << (i + repeat <= length ? self[i...(i + repeat)] : self[i..-1])
           i += repeat
         end
-      when / \A (X) (.*) \Z /x
+      when / \A (X) (.*) \Z /x # TODO: use $' and drop everything after X
         repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        repeat = repeat == '*' ? self.length - i : repeat.to_i
+        repeat = repeat == '*' ? length - i : repeat.to_i
         raise ArgumentError, "X outside of string" if repeat < 0 or i - repeat < 0
         i -= repeat
-      when / \A (x) (.*) \Z /x
+      when / \A (x) (.*) \Z /x # TODO: use $' and drop everything after x
         repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
         if repeat == '*'
-          raise ArgumentError, "x outside of string" if i > self.length
-          i = self.length
+          raise ArgumentError, "x outside of string" if i > length
+          i = length
         else
           repeat = repeat.to_i
-          raise ArgumentError, "x outside of string" if i + repeat > self.length
+          raise ArgumentError, "x outside of string" if i + repeat > length
           i += repeat
         end
       when / \A ([BbHh]) (.*) \Z /x
@@ -2495,14 +2496,14 @@ class String
                   when /[Bb]/ then "%08b"
                   when /[Hh]/ then "%02x"
                   end
-        if i >= self.length
+        if i >= length
           elements << ''
         elsif repeat == '*'
           str = ''
           proc = (['B', 'H'].include? directive) ? Proc.new { |s| s } : Proc.new { |s| s.reverse }
           self[i..-1].each_byte { |n| str << proc.call(formaat % n) }
           elements << str
-          i = self.length
+          i = length
         else
           case directive
           when /[Bb]/
@@ -2513,7 +2514,7 @@ class String
             num_drop = r != 0 ? 1 : 0
           end
           num_bytes += 1 if r != 0
-          str0 = i + num_bytes <= self.length ? self[i...(i + num_bytes)] : self[i..-1]
+          str0 = i + num_bytes <= length ? self[i...(i + num_bytes)] : self[i..-1]
           len = str0.length
           str1 = ''
           if ['B', 'H'].include? directive
@@ -2527,13 +2528,13 @@ class String
         end
       when / \A (U) (.*) \Z /x
         repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        if i >= self.length
+        if i >= length
         elsif repeat == '*'
           utf8_chars(i) do |c|
             raise ArgumentError, "malformed UTF-8 character" if not c =~ utf8_regex_strict
             elements << c.utf8_code_value
           end
-          i = self.length
+          i = length
         else
           repeat = repeat.to_i
           num_bytes = 0
@@ -2548,28 +2549,28 @@ class String
         end
       when / \A (A) (.*) \Z /x
         repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        if i >= self.length
+        if i >= length
           elements << ''
         elsif repeat == '*'
           elements << self[i..-1].sub(/ [\x00\x20]+ \Z /x, '')
-          i = self.length
+          i = length
         else
           repeat = repeat.to_i
-          str = i + repeat <= self.length ? self[i...(i + repeat)] : self[i..-1]
+          str = i + repeat <= length ? self[i...(i + repeat)] : self[i..-1]
           elements << str.sub(/ [\x00\x20]+ \Z /x, '')
           i += repeat
         end
       when / \A (\@) (.*) \Z /x
         new_index = ($2 == '' or $2[0].chr == '-') ? 0 : $2
         if new_index == '*'
-          i = self.length
+          i = length
         else
           new_index = new_index.to_i
-          raise ArgumentError, "@ outside of string" if new_index > self.length
+          raise ArgumentError, "@ outside of string" if new_index > length
           i = new_index
         end
       when / \A M .* \Z /x
-        if i >= self.length
+        if i >= length
           elements << ''
         else
           str = ''
@@ -2594,7 +2595,7 @@ class String
           i += num_bytes
         end
       when / \A m .* \Z /x
-        if i >= self.length
+        if i >= length
           elements << ''
         else
           buffer = ''

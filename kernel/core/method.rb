@@ -204,7 +204,7 @@ class UnboundMethod
   # it with the optionally supplied arguments.
 
   def call_on_instance(obj, *args)
-    bind(obj).call *args
+    bind(obj).call(*args)
   end
 
   ##

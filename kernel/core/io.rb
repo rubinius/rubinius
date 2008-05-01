@@ -527,7 +527,7 @@ class IO
     raise IOError, "closed stream" if closed?
     # Unseek the still buffered amount
     unless @buffer.empty?
-      prim_seek -@buffer.size, SEEK_CUR
+      prim_seek(-@buffer.size, SEEK_CUR)
       @buffer.reset!
       @eof = false
     end
