@@ -3,7 +3,20 @@ Rubinius Cluster Test
 
 This is a quick and dirty continuous build / test system for rubinius
 (and really, anything in git--the rubinius specific stuff is fairly
-minimal). It contains the following files:
+minimal).
+
+Quick Start: 
+
++ to run incrementals: rake test:daemon
++ to run fulls:        rake test:daemon_full
+
+Please coordinate with the rubinius team. We only need one incremental
+and one full per platform.
+
+Description
+-----------
+
+The package contains the following files:
 
 + ci.rb - the client side script. It polls the git repo using
           ls-remote to see if anything has been pushed to head. If it
