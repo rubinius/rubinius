@@ -1498,7 +1498,8 @@ CODE
     <<-CODE
     next_literal;
     t1 = stack_pop();
-    stack_push(cpu_const_set(state, c, _lit, t1, c->enclosing_class));
+    t2 = staticscope_get_module(cpu_current_scope(state, c));
+    stack_push(cpu_const_set(state, c, _lit, t1, t2));
     CODE
   end
 
@@ -1689,7 +1690,7 @@ CODE
     <<-CODE
     int created;
     t1 = stack_pop();
-    t2 = c->enclosing_class;
+    t2 = staticscope_get_module(cpu_current_scope(state, c));
     next_literal;
     t3 = cpu_open_class(state, c, t2, t1, _lit, &created);
 
@@ -1759,7 +1760,8 @@ CODE
   def open_module
     <<-CODE
     next_literal;
-    t1 = cpu_open_module(state, c, c->enclosing_class, _lit);
+    t2 = staticscope_get_module(cpu_current_scope(state, c));
+    t1 = cpu_open_module(state, c, t2, _lit);
     if(AUTOLOAD_P(t1)) {
       cpu_send(state, c, t1, state->global->sym_call, 0, Qnil);
     } else {

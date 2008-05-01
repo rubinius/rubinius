@@ -145,11 +145,8 @@ class Node
   class EvalExpression
     def bytecode(g)
       set(:scope, self) do
-        push_self_or_class(g)
-        g.set_encloser
         prelude(nil, g)
         @body.bytecode(g)
-        g.push_encloser
         g.sret
       end
       enlarge_context

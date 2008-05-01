@@ -91,6 +91,7 @@ module Kernel
     script.path = filename
     compiled_method.staticscope.script = script
 
+
     ctx = binding.context
     be = BlockEnvironment.new
     be.from_eval!
@@ -121,7 +122,7 @@ module Kernel
   #   k = Klass.new
   #   k.instance_eval { @secret }   #=> 99
 
-  def instance_eval(string = nil, filename = "(eval)", line = 1, &prc)
+  def instance_eval(string = nil, filename = "(eval)", line = 1, modeval = false, binding = false, &prc)
     if prc
       if string
         raise ArgumentError, 'cannot pass both a block and a string to evaluate'
@@ -129,12 +130,27 @@ module Kernel
       return instance_exec(self, &prc)
     elsif string
       string = StringValue(string)
-      
-      binding = Binding.setup(MethodContext.current.sender)
+     
+      unless binding
+        binding = Binding.setup(MethodContext.current.sender)
+      end
  
       flags = { :binding => binding }
       compiled_method = Compile.compile_string string, flags, filename, line
+      compiled_method.inherit_scope binding.context.method
+
+      # If this is a module_eval style evaluation, add self to the top of the
+      # staticscope chain, so that methods and such are added directly to it.
+      if modeval
+        compiled_method.staticscope = StaticScope.new(self, compiled_method.staticscope)
+      end
+
+      # This has to be setup so __FILE__ works in eval.
+      script = CompiledMethod::Script.new
+      script.path = filename
+      compiled_method.staticscope.script = script
       compiled_method.hints = { :source => :eval }
+
       ctx = binding.context
       be = BlockEnvironment.new
       be.from_eval!
@@ -155,7 +171,22 @@ class Module
   # intermediate binding.
   #++
 
-  alias_method :module_eval, :instance_eval
+  def module_eval(string = nil, filename = "(eval)", line = 1, &prc)
+    # we have a custom version with the prc, rather than using instance_exec
+    # so that we can setup the StaticScope properly.
+    if prc
+      if string
+        raise ArgumentError, "cannot pass both string and proc"
+      end
+
+      env = prc.block.redirect_to self
+      env.method.staticscope = StaticScope.new(self, env.method.staticscope)
+      return env.call()
+    end
+
+    binding = Binding.setup(MethodContext.current.sender)
+    instance_eval(string, filename, line, true, binding, &prc)
+  end
   alias_method :class_eval, :module_eval
 
 end

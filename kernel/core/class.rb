@@ -73,7 +73,7 @@ class Class
     mc.set_superclass sclass.metaclass
 
     block = block_given?
-    instance_eval(&block) if block
+    class_eval(&block) if block
     # add class to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses
     sclass.__send__ :inherited, self

@@ -370,20 +370,20 @@ describe "A method definition in an eval" do
   end
 
   it "creates a class method" do
-    class DefSpecNested
+    class DefSpecNestedB
       class << self
         def eval_class_method
-          eval "def an_eval_class_method;self;end", binding
+          eval "def an_eval_class_method;self;end" #, binding
           an_eval_class_method
         end
       end
     end
 
-    DefSpecNested.eval_class_method.should == DefSpecNested
-    DefSpecNested.an_eval_class_method.should == DefSpecNested
+    DefSpecNestedB.eval_class_method.should == DefSpecNestedB
+    DefSpecNestedB.an_eval_class_method.should == DefSpecNestedB
 
     lambda { Object.an_eval_class_method }.should raise_error(NoMethodError)
-    lambda { DefSpecNested.new.an_eval_class_method}.should raise_error(NoMethodError)
+    lambda { DefSpecNestedB.new.an_eval_class_method}.should raise_error(NoMethodError)
   end
 
   it "creates a singleton method" do

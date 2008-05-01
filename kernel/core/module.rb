@@ -39,7 +39,7 @@ class Module
   
   def initialize
     block = block_given?
-    instance_eval(&block) if block
+    module_eval(&block) if block
   end
 
   #--
@@ -286,16 +286,16 @@ class Module
 
     # All userland added methods start out with a serial of 1.
     obj.serial = 1
-
-    Rubinius::VM.reset_method_cache(name)
-
-    method_table[name] = Tuple[visibility, obj]
-
+    
     # Push the scoping down.
     # HACK they all should have staticscopes
     if ss = s.method.staticscope
       obj.staticscope = ss
     end
+
+    Rubinius::VM.reset_method_cache(name)
+
+    ss.module.method_table[name] = Tuple[visibility, obj]
 
     if scope == :module
       module_function name

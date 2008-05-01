@@ -291,7 +291,11 @@ class BlockContext
 
   # Static scope of home method context.
   def current_scope
-    home.current_scope
+    if ss = method.staticscope
+      return ss.module
+    else
+      home.current_scope
+    end
   end
 end
 

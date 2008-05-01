@@ -108,7 +108,8 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_call = SYM("call");
 
   c->current_thread = Qnil;
-  c->current_scope = Qnil;
+  c->current_scope = staticscope_allocate(state);
+  staticscope_set_module(c->current_scope, BASIC_CLASS(object));
 
   c->current_thread = cpu_thread_new(state, c);
   c->main_thread = c->current_thread;
@@ -341,12 +342,12 @@ OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under) {
 
 void cpu_set_encloser_path(STATE, cpu c, OBJECT cls) {
   int len;
+  OBJECT method;
   len = ptr_array_length(c->paths);
   ptr_array_append(c->paths, (xpointer)c->enclosing_class);
+  method = cpu_current_method(state, c);
 
-  cmethod_set_staticscope(cpu_current_method(state, c),
-                          cpu_scope_push(state, c, cls));
-
+  cmethod_set_staticscope(method, cpu_scope_push(state, c, cls));
   c->enclosing_class = cls;
 }
 

@@ -399,6 +399,8 @@ module Kernel
   def __add_method__(name, obj)
     scope = MethodContext.current.sender.current_scope
 
+    meth = MethodContext.current.sender.method
+
     Rubinius::VM.reset_method_cache(name)
 
     scope.method_table[name] = Tuple[:public, obj]
@@ -531,6 +533,7 @@ module Kernel
   def instance_exec(*args, &prc)
     raise ArgumentError, "Missing block" unless block_given?
     env = prc.block.redirect_to self
+    env.method.staticscope = StaticScope.new(metaclass, env.method.staticscope)
     env.call(*args)
   end
 

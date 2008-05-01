@@ -901,6 +901,11 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 
   if(cpu_try_primitive(state, c, &msg)) return;
 
+  OBJECT scope = cmethod_get_staticscope(meth);
+  if(NIL_P(scope)) {
+    cmethod_set_staticscope(meth, state->global->top_scope);
+  }
+
   ctx = cpu_create_context(state, c, &msg);
   cpu_activate_context(state, c, ctx, ctx, 0);
 }
