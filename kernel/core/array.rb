@@ -13,7 +13,7 @@ class Array
   def total=(n) ; @total = n ; end
   def tuple=(t) ; @tuple = t ; end
   def start=(s) ; @start = s ; end
-  
+
   include Enumerable
 
   # The flow control for many of these methods is
@@ -21,13 +21,13 @@ class Array
   # also a lot of duplication of code due to very
   # subtle processing differences and, in some
   # cases, to avoid mutual dependency. Apologies.
-  
+
 
   # Returns a new Array populated with the given objects
   def self.[](*args)
     new args
   end
-  
+
   def self.allocate
     ary = __allocate__
     ary.start = 0
@@ -38,9 +38,9 @@ class Array
 
   # Creates a new Array. Without arguments, an empty
   # Array is returned. If the only argument is an object
-  # that responds to +to_ary+, a copy of that Array is 
+  # that responds to +to_ary+, a copy of that Array is
   # created. Otherwise the first argument is the size
-  # of the new Array (default 0.) The second argument 
+  # of the new Array (default 0.) The second argument
   # may be an object used to fill the Array up to the
   # size given (the same object, not a copy.) Alternatively,
   # a block that takes the numeric index can be given and
@@ -53,7 +53,7 @@ class Array
     unless args.empty?
       if args.size == 1 and (args.first.__kind_of__ Array or args.first.respond_to? :to_ary)
         ary = Type.coerce_to args.first, Array, :to_ary
-    
+
         tuple = Tuple.new(ary.size + 10)
         @total = ary.size
         tuple.copy_from ary.tuple, ary.start, 0
@@ -65,7 +65,7 @@ class Array
 
         @tuple = Tuple.new(count + 10)
         @total = count
-    
+
         if block_given?
           count.times { |i| @tuple.put i, yield(i) }
         else
@@ -73,21 +73,21 @@ class Array
         end
       end
     end
-  
+
     self
   end
 
   private :initialize
 
-  # Element reference, returns the element at the given index or 
-  # a subarray starting from the index continuing for length 
-  # elements or returns a subarray from range elements. Negative 
-  # indices count from the end. Returns nil if the index or subarray 
+  # Element reference, returns the element at the given index or
+  # a subarray starting from the index continuing for length
+  # elements or returns a subarray from range elements. Negative
+  # indices count from the end. Returns nil if the index or subarray
   # request cannot be completed. Array#slice is synonymous with #[].
   # Subclasses return instances of themselves.
   def [](one, two = nil)
     Ruby.primitive :array_aref
-    
+
     # Normalise the argument variants
     start, finish, count, simple, is_range = nil, nil, nil, false, false
 
@@ -97,27 +97,27 @@ class Array
     elsif two
       start, count = one, Type.coerce_to(two, Fixnum, :to_int)
       return nil if count < 0       # No need to go further
-    else  
+    else
       start, finish, simple = one, one, true
     end
 
     # Convert negative indices
     start = Type.coerce_to start, Fixnum, :to_int
     start += @total if start < 0
-    
+
     if simple
       return nil if start < 0 or start >= @total
       return @tuple.at(@start + start)
-      
+
     # ONE past end only, MRI compat
     elsif start == @total
       return self.class.new
-      
+
     elsif start < 0 or start >= @total
       return nil
     end
 
-    
+
     finish = Type.coerce_to finish, Fixnum, :to_int if finish
     finish = (start + count - 1) if count    # For non-ranges
 
@@ -126,7 +126,7 @@ class Array
     finish -= 1 if is_range and one.exclude_end?
 
     # Going past the end is ignored (sort of)
-    finish = (@total - 1) if finish >= @total 
+    finish = (@total - 1) if finish >= @total
 
     if finish < 0
       return self.class.new if is_range
@@ -139,13 +139,13 @@ class Array
 
     start.upto(finish) { |i| out << at(i) }
     out
-  end             
+  end
 
   alias_method :slice, :[]
 
   def []=(idx, ent, *args)
     Ruby.primitive :array_aset
-    
+
     cnt = nil
     if args.size != 0
       cnt = ent.to_int
@@ -157,15 +157,15 @@ class Array
       if cnt
         raise ArgumentError, "Second argument invalid with a range"
       end
-      
+
       unless idx.first.respond_to?(:to_int)
         raise TypeError, "can't convert #{idx.first.class} into Integer"
       end
-      
+
       unless idx.last.respond_to?(:to_int)
         raise TypeError, "can't convert #{idx.last.class} into Integer"
       end
-      
+
       lst = idx.last.to_int
       if lst < 0
         lst += @total
@@ -183,9 +183,9 @@ class Array
 
       cnt = lst - idx
     end
-    
+
     idx = idx.to_int
-    
+
     if idx < 0
       idx += @total
       raise IndexError.new("Index #{idx -= @total} out of bounds") if idx < 0
@@ -196,7 +196,7 @@ class Array
       raise IndexError.new("Negative length #{cnt}") if cnt < 0
 
       cnt = @total - idx if cnt > @total - idx # MRI seems to be forgiving here!
-      
+
       if ent.nil?
         replacement = []
       elsif ent.is_a?(Array)
@@ -227,24 +227,24 @@ class Array
       replacement.each_with_index { |el, i|
         @tuple.put(@start+idx+i, el)
       }
-      
+
       if replacement.size < cnt
         f = @start + idx + cnt
         t = @start + idx + replacement.size
-        
+
         # shift fields to the left
         while f < @total
           @tuple.put(t, @tuple.at(f))
           t += 1
           f += 1
         end
-        
+
         # unset any extraneous fields
         while t < @tuple.fields
           @tuple.put(t, nil)
           t += 1
         end
-        
+
         @total -= (cnt - replacement.size)
       end
 
@@ -260,7 +260,7 @@ class Array
     end
     return ent
   end
-  
+
   # Appends the object to the end of the Array.
   # Returns self so several appends can be chained.
   def <<(obj)
@@ -269,7 +269,7 @@ class Array
     @tuple.put @start + @total, obj
     @total += 1
     self
-  end                                               
+  end
 
   # Creates a new Array containing only elements common to
   # both Arrays, without duplicates. Also known as a 'set
@@ -280,7 +280,7 @@ class Array
     out, set_include = [], {}
 
     other.each { |x| set_include[x] = [true, x] }
-    each { |x| 
+    each { |x|
       if set_include[x] and set_include[x].last.eql?(x)
         out << x
         set_include[x] = false
@@ -288,7 +288,7 @@ class Array
     }
 
     out
-  end     
+  end
 
   # Creates a new Array by combining the two Arrays' items,
   # without duplicates. Also known as a 'set union.'
@@ -296,7 +296,7 @@ class Array
     other = Type.coerce_to other, Array, :to_ary
 
     out, exclude = [], {}
-    
+
     (self + other).each { |x|
       unless exclude[x]
         out << x
@@ -305,8 +305,8 @@ class Array
     }
 
     out
-  end    
-  
+  end
+
   # Repetition operator when supplied a #to_int argument:
   # returns a new Array as a concatenation of the given number
   # of the original Arrays. With an argument that responds to
@@ -315,7 +315,7 @@ class Array
     if val.respond_to? :to_str
       return join(val)
 
-    else 
+    else
       # Aaargh stupid MRI's stupid specific stupid error stupid types stupid
       val = Type.coerce_to val, Fixnum, :to_int
 
@@ -325,8 +325,8 @@ class Array
       val.times { out.push(*self) }
       out
     end
-  end   
-  
+  end
+
   # Create a concatenation of the two Arrays.
   def +(other)
     other = Type.coerce_to other, Array, :to_ary
@@ -336,9 +336,9 @@ class Array
     other.each { |e| out << e }
 
     out
-  end  
-  
-  # Creates a new Array that contains the items of the original 
+  end
+
+  # Creates a new Array that contains the items of the original
   # Array that do not appear in the other Array, effectively
   # 'deducting' those items. The matching method is Hash-based.
   def -(other)
@@ -349,8 +349,8 @@ class Array
     each { |x| out << x unless exclude[x] }
 
     out
-  end 
-  
+  end
+
   # Compares the two Arrays and returns -1, 0 or 1 depending
   # on whether the first one is 'smaller', 'equal' or 'greater'
   # in relation to the second. Two Arrays are equal only if all
@@ -360,11 +360,11 @@ class Array
   def <=>(other)
     other = Type.coerce_to other, Array, :to_ary
 
-    size.times { |i| 
+    size.times { |i|
       return 1 unless other.size > i
 
       diff = at(i) <=> other.at(i)
-      return diff if diff != 0 
+      return diff if diff != 0
     }
 
     return 1 if size > other.size
@@ -373,7 +373,7 @@ class Array
   end
 
   # The two Arrays are considered equal only if their
-  # lengths are the same and each of their elements 
+  # lengths are the same and each of their elements
   # are equal according to first_e == second_e . Both
   # Array subclasses and to_ary objects are accepted.
   def ==(other)
@@ -385,26 +385,26 @@ class Array
     return false unless size == other.size
 
     size.times { |i| return false unless @tuple.at(@start + i) == other.at(i) }
-    
-    true
-  end 
 
-  # Assumes the Array contains other Arrays and searches through 
+    true
+  end
+
+  # Assumes the Array contains other Arrays and searches through
   # it comparing the given object with the first element of each
-  # contained Array using elem == obj. Returns the first contained 
+  # contained Array using elem == obj. Returns the first contained
   # Array that matches (the first 'associated' Array) or nil.
   def assoc(obj)
     # FIX: use break when it works again
     found, res = nil, nil
 
-    each { |elem| 
+    each { |elem|
       if found.nil? and elem.kind_of? Array and elem.first == obj
         found, res = true, elem
       end
     }
 
     res
-  end 
+  end
 
   # Returns the element at the given index. If the
   # index is negative, counts from the end of the
@@ -418,20 +418,20 @@ class Array
     return nil if idx < 0 or idx >= @total
 
     @tuple.at @start + idx
-  end 
-  
+  end
+
   # Removes all elements in the Array and leaves it empty
   def clear()
     @tuple = Tuple.new(1)
     @total = 0
     @start = 0
     self
-  end 
+  end
 
   # Returns a copy of self with all nil elements removed
   def compact()
     dup.compact! || self
-  end 
+  end
 
   # Removes all nil elements from self, returns nil if no changes
   # TODO: Needs improvement
@@ -462,7 +462,7 @@ class Array
       i += 1
     end
 
-    nil                 
+    nil
   end
 
   # Appends the elements in the other Array to self
@@ -479,7 +479,7 @@ class Array
   end
 
   # Stupid subtle differences prevent proper reuse in these three
-  
+
   # Removes all elements from self that are #== to the given object.
   # If the object does not appear at all, nil is returned unless a
   # block is provided in which case the value of running it is
@@ -503,15 +503,15 @@ class Array
           i += 1
         end
 
-        @total = j - @start            
+        @total = j - @start
         return obj
       end
 
       i += 1
     end
-    
+
     yield if block_given?
-  end  
+  end
 
   # Deletes the element at the given index and returns
   # the deleted element or nil if the index is out of
@@ -531,7 +531,7 @@ class Array
 
     @total -= 1
     obj
-  end 
+  end
 
   # Deletes every element from self for which block evaluates to true
   def delete_if()
@@ -553,13 +553,13 @@ class Array
           i += 1
         end
 
-        @total = j - @start          
+        @total = j - @start
         return self
       end
 
       i += 1
     end
-    
+
     return self
   end
 
@@ -573,7 +573,7 @@ class Array
       i += 1
     end
     self
-  end 
+  end
 
   # Passes each index of the Array to the given block
   # and returns self.  We re-evaluate @total each time
@@ -585,7 +585,7 @@ class Array
       i += 1
     end
     self
-  end 
+  end
 
   # Returns true if both are the same object or if both
   # have the same elements (#eql? used for testing.)
@@ -597,7 +597,7 @@ class Array
     each_with_index { |o, i| return false unless o.eql?(other[i]) }
 
     true
-  end 
+  end
 
   # True if Array has no elements.
   def empty?()
@@ -666,7 +666,7 @@ class Array
         finish -= 1
       end
 
-      raise RangeError, "#{one.inspect} out of range" if start < 0 
+      raise RangeError, "#{one.inspect} out of range" if start < 0
       return self if finish < 0           # Nothing to modify
 
     else
@@ -701,8 +701,8 @@ class Array
 
 
     self
-  end 
-  
+  end
+
   # Returns the first or first n elements of the Array.
   # If no argument is given, returns nil if the item
   # is not found. If there is an argument, an empty
@@ -714,12 +714,12 @@ class Array
     raise ArgumentError, "Size must be positive" if n < 0
 
     Array.new(self[0...n])
-  end    
+  end
 
-  # Recursively flatten any contained Arrays into an one-dimensional result.  
+  # Recursively flatten any contained Arrays into an one-dimensional result.
   def flatten()
     dup.flatten! || self
-  end 
+  end
 
   # Flattens self in place as #flatten. If no changes are
   # made, returns nil, otherwise self.
@@ -729,7 +729,7 @@ class Array
     ret = recursively_flatten(self, out)
     replace(out) if ret
     ret
-  end 
+  end
 
   # Computes a Fixnum hash code for this Array. Any two
   # Arrays with the same content will have the same hash
@@ -755,7 +755,7 @@ class Array
   def index(obj)
     @total.times { |i| return i if @tuple.at(@start + i) == obj }
     nil
-  end 
+  end
 
   # Returns an Array populated with the objects at the given indices of the original.
   # Range arguments are given as nested Arrays as from #[].
@@ -764,7 +764,7 @@ class Array
 
     out = []
 
-    args.each { |a| 
+    args.each { |a|
       if a.kind_of? Range
         out << self[a]
       else
@@ -778,12 +778,12 @@ class Array
   alias_method :indices, :indexes
 
   # For a positive index, inserts the given values before
-  # the element at the given index. Negative indices count 
-  # backwards from the end and the values are inserted 
+  # the element at the given index. Negative indices count
+  # backwards from the end and the values are inserted
   # after them.
   def insert(idx, *items)
     return self if items.length == 0
-    
+
     # Adjust the index for correct insertion
     idx = Type.coerce_to idx, Fixnum, :to_int
     idx += (@total + 1) if idx < 0    # Negatives add AFTER the element
@@ -791,26 +791,26 @@ class Array
 
     self[idx, 0] = items   # Cheat
     self
-  end 
+  end
 
-  # Produces a printable string of the Array. The string 
+  # Produces a printable string of the Array. The string
   # is constructed by calling #inspect on all elements.
   # Descends through contained Arrays, recursive ones
   # are indicated as [...].
   def inspect()
     return "[...]" if RecursionGuard.inspecting?(self)
-    
+
     out = []
     RecursionGuard.inspect(self) do
       each { |o|
         out << o.inspect
       }
     end
-    
+
     "[#{out.join ', '}]"
   end
 
-  # Generates a string from converting all elements of 
+  # Generates a string from converting all elements of
   # the Array to strings, inserting a separator between
   # each. The separator defaults to $,. Detects recursive
   # Arrays.
@@ -843,28 +843,28 @@ class Array
     end
     out
   end
-  
+
   # Returns the last element or n elements of self. If
   # the Array is empty, without a count nil is returned,
   # otherwise an empty Array. Always returns an Array.
   def last(n = nil)
     return at(-1) unless n
-    
+
     n = Type.coerce_to n, Fixnum, :to_int
     return [] if n.zero?
     raise ArgumentError, "Number must be positive" if n < 0
 
     n = size if n > size
-    Array.new self[-n..-1] 
-  end 
-  
+    Array.new self[-n..-1]
+  end
+
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.
   def map()
     out = []
     each { |elem| out << yield(elem) }
     out
-  end 
+  end
 
   alias_method :collect, :map
 
@@ -873,7 +873,7 @@ class Array
   def map!(&block)
     replace(map(&block))
   end
-  
+
   alias_method :collect!, :map!
 
   # Returns number of non-nil elements in self, may be zero
@@ -881,8 +881,8 @@ class Array
     sum = 0
     each { |elem| sum += 1 unless elem.nil? }
     sum
-  end 
-  
+  end
+
   BASE_64_ALPHA = {}
   def self.after_loaded
     (0..25).each {|x| BASE_64_ALPHA[x] = ?A + x}
@@ -900,7 +900,7 @@ class Array
     # Remove strings in the schema between # and \n
     schema = schema.gsub(/#[^\n]{0,}\n{0,1}/,'')
     schema = schema.scan(/([^\s\d\*][\d\*]*)/).flatten.map {|x| x.match(/([^\s\d\*])([\d\*]*)/)[1..-1] }
-    
+
     # create the buffer
     ret = ""
     # we're starting from the first element in the array
@@ -970,12 +970,12 @@ class Array
         # * the number passed in
         # * the size of the array's string if "*" was passed in
         # * 1 if nothing was passed in
-        size = !t ? 1 : (t == "*" ? item.size : t.to_i)              
+        size = !t ? 1 : (t == "*" ? item.size : t.to_i)
         # Z has a twist: "*" adds a null to the end of the string
         size += 1 if kind == "Z" && t == "*"
-        # Pad or truncate the string (with spaces) as appropriate        
+        # Pad or truncate the string (with spaces) as appropriate
         ret << ("%-#{size}s" % item.dup)[0...(size)]
-        # The padding size is the calculated size minus the string size        
+        # The padding size is the calculated size minus the string size
         padsize = size - item.size
         # Replace the space padding for null padding in "a" or "Z"
         ret = ret.gsub(/\ {#{padsize}}$/, ("\x0" * (padsize)) ) if kind =~ /[aZ]/ && padsize > 0
@@ -1027,7 +1027,7 @@ class Array
              else
                encoded << "=%02X" % byte
              end
-           end         
+           end
            # add a line-ending to the end of the line
            encoded << "=\n"
          end
@@ -1101,7 +1101,7 @@ class Array
         arr_idx += 1
       elsif kind =~ /i|s|l|n/i
         size = !t ? 1 : (t == "*" ? self.size : t.to_i)
-        
+
         # Either convert to short, integer, or long
         # If _ is passed (like s_) then we use the native representation.
         # Otherwise, use the platform independent version
@@ -1125,15 +1125,15 @@ class Array
         # pack these bytes according to the native byte ordering of the host platform
         # We need big endian if we're converting to network order
         little_endian = kind =~ /n/i ? false : endian?(:little)
-        
+
         0.upto(size-1) do |i|
           item = Type.coerce_to(self[arr_idx], Integer, :to_i)
-          
+
           # MRI seems only only raise RangeError at 2**32 and above, even for shorts
           if item.abs >= 2**32
             raise RangeError, "bignum too big to convert into 'unsigned long'"
-          end          
-          
+          end
+
           if little_endian
             if item < 0
               item = 2**(8*bytes) + item
@@ -1182,7 +1182,7 @@ class Array
         #converts the number passed, or all for * or 1 if missing
         count = !t ? 1 : (t == "*" ? self.size-arr_idx : t.to_i)
         raise ArgumentError, "too few array elements" if arr_idx + count > self.length
-        
+
         count.times do
           item = Type.coerce_to(self[arr_idx], Integer, :to_i)
           raise RangeError, "pack(U): value out of range" if item < 0
@@ -1205,7 +1205,7 @@ class Array
             raise RangeError, "pack(U): value out of range"
           end
           if i>0
-            #make room 
+            #make room
             ret<<' '*bytes
             #fill backwards: put the least significant bits at the end
             #  shift the next set down, and repeat
@@ -1222,26 +1222,26 @@ class Array
         raise ArgumentError, "Unknown kind #{kind}"
       end
     end
-    
+
     return ret
   end
 
   # Removes and returns the last element from the Array.
   def pop()
     return nil if empty?
-    
+
     # TODO Reduce tuple if there are a lot of free slots
-    
+
     elem = at(-1)
     @total -= 1
     elem
   end
-  
+
   # Rubinius-only, better inspect representation of the Array
   def indented_inspect(indent = 0)
     # Here there be dragons. In fact, there is one jusAAAAAAAARGH
     str = "["
-    
+
     sub = false
     i = 0
     lst = size - 1
@@ -1250,7 +1250,7 @@ class Array
       if Array === element
         estr = element.indented_inspect(indent + 2)
         if str.size > 30 or estr.size > 30
-          if estr[0] != ?\ 
+          if estr[0] != ?\
             estr = "#{' ' * (indent + 2)}#{estr}"
           end
 
@@ -1262,30 +1262,30 @@ class Array
       else
         str << element.inspect
       end
-      
+
       str << ", " unless i == lst
       i += 1
     end
-    
+
     if sub
       str << "\n#{' ' * indent}]"
     else
       str << "]"
     end
-    
+
     if sub
       return "#{' ' * indent}#{str}"
     end
-    
+
     return str
-  end  
+  end
 
   # Appends the given object(s) to the Array and returns
   # the modified self.
   def push(*args)
     args.each { |ent| self << ent }
     self
-  end 
+  end
 
   # Searches through contained Arrays within the Array,
   # comparing obj with the second element of each using
@@ -1295,20 +1295,20 @@ class Array
     # FIX: Use break when it works
     found, res = nil, nil
 
-    each { |elem| 
+    each { |elem|
       if found.nil? and elem.kind_of? Array and elem.at(1) == obj
         res, found = elem, true
       end
     }
 
     res
-  end  
- 
+  end
+
   # Returns a new Array by removing items from self for
   # which block is true. An Array is also returned when
   # invoked on subclasses. See #reject!
   def reject(&block)
-    Array.new(self).reject!(&block) || self   
+    Array.new(self).reject!(&block) || self
   end
 
   # Equivalent to #delete_if except that returns nil if
@@ -1318,7 +1318,7 @@ class Array
     self.delete_if(&block)
 
     self if was != length     # Too clever?
-  end 
+  end
 
   # Replaces contents of self with contents of other,
   # adjusting size as needed.
@@ -1331,12 +1331,12 @@ class Array
     self
   end
 
-  # Returns a new Array or subclass populated from self 
+  # Returns a new Array or subclass populated from self
   # but in reverse order.
   def reverse()
     dup.reverse!
-  end 
-  
+  end
+
   # Reverses the order of elements in self. Returns self
   # even if no changes are made
   def reverse!
@@ -1348,14 +1348,14 @@ class Array
       tuple.put i, @tuple.at(j)
       i += 1
     end
-    
+
     @tuple = tuple
     @start = 0
 
     self
-  end 
-  
-  # Goes through the Array back to front and yields 
+  end
+
+  # Goes through the Array back to front and yields
   # each element to the supplied block. Returns self.
   def reverse_each()
     (@total - 1).downto(0) { |i| yield(at(i)) }
@@ -1368,22 +1368,22 @@ class Array
     (@total - 1).downto(0) { |i| return i if at(i) == obj }
     nil
   end
-  
+
   # Removes and returns the first element in the
   # Array or nil if empty. All other elements are
   # moved down one index.
   def shift()
     return nil if @total == 0
-        
+
     obj = @tuple.at(@start)
     @start += 1
     @total -= 1
-    
-    obj
-  end 
 
-  # Deletes the element(s) given by an index (optionally with a length) 
-  # or by a range. Returns the deleted object, subarray, or nil if the 
+    obj
+  end
+
+  # Deletes the element(s) given by an index (optionally with a length)
+  # or by a range. Returns the deleted object, subarray, or nil if the
   # index is out of range. Equivalent to:
   def slice!(*args)
     out = self[*args]
@@ -1406,7 +1406,7 @@ class Array
 
   # Returns a new Array created by sorting elements in self. Comparisons
   # to sort are either done using <=> or a block may be provided. The
-  # block must take two parameters and return -1, 0, 1 depending on 
+  # block must take two parameters and return -1, 0, 1 depending on
   # whether the first parameter is smaller, equal or larger than the
   # second parameter.
   def sort(&block)
@@ -1449,11 +1449,11 @@ class Array
     self
   end
 
-  # Produces a string by joining all elements without a 
+  # Produces a string by joining all elements without a
   # separator. See #join
   def to_s()
     self.join
-  end 
+  end
 
   # Treats all elements as being Arrays of equal lengths and
   # transposes their rows and columns so that the first contained
@@ -1464,7 +1464,7 @@ class Array
 
     out, max = [], nil
 
-    each { |ary| 
+    each { |ary|
       ary = Type.coerce_to ary, Array, :to_ary
       max ||= ary.size
 
@@ -1475,7 +1475,7 @@ class Array
     }
 
     out
-  end 
+  end
 
   # Returns a new Array by removing duplicate entries
   # from self. Equality is determined by using a Hash
@@ -1504,12 +1504,12 @@ class Array
 #
 #    self[0, 0] = val
 #    self
-#  end 
+#  end
 
   # Returns a new Array populated from the elements in
   # self corresponding to the given selector(s.) The
   # arguments may be one or more integer indices or
-  # Ranges. 
+  # Ranges.
   def values_at(*args)
     out = []
 
@@ -1517,7 +1517,7 @@ class Array
       # Cannot use #[] because of subtly different errors
       if elem.kind_of? Range
         finish = elem.last
-        start = elem.first  
+        start = elem.first
 
         start, finish = Type.coerce_to(start, Fixnum, :to_int), Type.coerce_to(finish, Fixnum, :to_int)
 
@@ -1543,7 +1543,7 @@ class Array
 
   # Interleaves all given :to_ary's so that the n-th element of each
   # Array is inserted into the n-th subarray of the returned Array.
-  # If a block is provided, then each subarray is passed to it 
+  # If a block is provided, then each subarray is passed to it
   # instead. The maximum number of subarrays and therefore elements
   # used is the size of self. Missing indices are filled in with
   # nils and any elements past self.size in the other Arrays are
@@ -1562,10 +1562,10 @@ class Array
       out.each { |ary| yield ary }
       return nil
     end
-    
+
     out
   end
-  
+
   def size
     @total
   end
@@ -1573,7 +1573,7 @@ class Array
   def length
     @total
   end
-  
+
   def unshift(*values)
     while values.size > 0 && @start > 0
       @start -= 1
@@ -1603,11 +1603,11 @@ class Array
     return if at_least < @tuple.size
 
     new_size = @tuple.size * 2
-    
+
     if new_size < at_least
       new_size = at_least
     end
-    
+
     tuple = Tuple.new(new_size)
 
     tuple.copy_from @tuple, @start, 0     # Swap over old data
@@ -1641,7 +1641,7 @@ class Array
         out << o
       end
     }
-    
+
     ret
   end
 
@@ -1660,7 +1660,7 @@ class Array
       array
     end
   end
-  
+
   private :remove_outer_arrays
 
   ISORT_THRESHOLD   = 7
