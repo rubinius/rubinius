@@ -43,7 +43,7 @@ class Debugger
     @breakpoint_listener = Thread.new do
       until @quit do
         begin
-          @breakpoint_tracker.wait_for_breakpoint
+          @debug_thread = @breakpoint_tracker.wait_for_breakpoint
           @breakpoint_tracker.wake_target(@debug_thread) unless @quit  # defer wake until we cleanup
         rescue Exception => e
           # An exception has occurred in the breakpoint or debugger code
@@ -73,8 +73,8 @@ class Debugger
   end
 
   # Sets a breakpoint on a +CompiledMethod+ at the specified address.
-  def set_breakpoint(cm, ip)
-    @breakpoint_tracker.on(cm, :ip => ip)
+  def set_breakpoint(cm, ip, condition=nil)
+    @breakpoint_tracker.on(cm, :ip => ip, :condition => condition)
   end
 
   # Removes the breakpoint(s) specified.

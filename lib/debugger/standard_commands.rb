@@ -37,14 +37,15 @@ class Debugger
       if bp_list = dbg.breakpoints and bp_list.size > 0
         output = Output.new
         output << "Breakpoints:"
-        output.set_columns(["%d.", "%-s", " %s ", "[IP:%d]", "%4d", "%s"])
+        output.set_columns(["%d.", "%-s", " %s ", "[IP:%d]", "%s", "%4d", "%s"])
         dbg.breakpoints.each_with_index do |bp, i|
           if bp.enabled?
             output.set_color :white
           else
             output.set_color :yellow
           end
-          output << [i+1, "#{bp.method.file}:#{bp.line}", bp.method.name, bp.ip, bp.hits, "#{'(disabled)' unless bp.enabled?}"]
+          output << [i+1, "#{bp.method.file}:#{bp.line}", bp.method.name, bp.ip,
+                     bp.condition, bp.hits, "#{'(disabled)' unless bp.enabled?}"]
         end
       else
         output = "No breakpoints currently defined"
@@ -55,10 +56,11 @@ class Debugger
 
 
   class AddBreakpoint < Command
-    @@re = Regexp.new('^b(?:reak)?\s+' + MODULE_METHOD_RE + '(?::(\d+))?$')
+    @@re = Regexp.new('^b(?:reak)?\s+' + MODULE_METHOD_RE + '(?::(\d+))?(?:\s+((?:if|unless).+))?$')
 
     def help
-      return "b[reak] <method>[:<line>]", "Set a breakpoint at the start or specified line of <method>."
+      return "b[reak] <method>[:<line>] [if|unless <expr>]", 
+              "Set a breakpoint at the start or specified line of <method>."
     end
 
     def command_regexp
@@ -66,22 +68,23 @@ class Debugger
     end
 
     def execute(dbg, interface, md)
-      mod, mthd_type, mthd, line = md[1], md[2], md[3], md[4]
+      mod, mthd_type, mthd, line, cond = md[1], md[2], md[3], md[4], md[5]
       cm = get_method(mod, mthd_type, mthd).compiled_method
       ip = 0
       ip = cm.first_ip_on_line(line.to_i) if line
 
-      bp = dbg.set_breakpoint cm, ip
+      bp = dbg.set_breakpoint cm, ip, cond
       return "Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}"
     end
   end
 
 
   class AddBreakpointInFile < Command
-    @@re = Regexp.new('^b(?:reak)?\s+([^:]+):(\d+)$')
+    @@re = Regexp.new('^b(?:reak)?\s+([^:]+):(\d+)(?:\s+((?:if|unless).+))?$')
 
     def help
-      return "b[reak] <file>:<line>", "Set a breakpoint on the specified line of <file>."
+      return "b[reak] <file>:<line> [if|unless <expr>]", 
+              "Set a breakpoint on the specified line of <file>."
     end
 
     def command_regexp
@@ -89,7 +92,7 @@ class Debugger
     end
 
     def execute(dbg, interface, md)
-      file, line = md[1], md[2].to_i
+      file, line, cond = md[1], md[2].to_i, md[3]
       if cm = CompiledMethod.scripts[file]
         cm, ip = cm.locate_line(line)
       else
@@ -97,7 +100,7 @@ class Debugger
       end
 
       if cm
-        bp = dbg.set_breakpoint cm, ip
+        bp = dbg.set_breakpoint(cm, ip, cond)
         return "Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}"
       else
         return "Cannot set a breakpoint on line #{line} of #{file}"

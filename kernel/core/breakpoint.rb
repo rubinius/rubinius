@@ -28,7 +28,6 @@ class Breakpoint
   # Initializes the breakpoint
   def initialize(&prc)
     @handler = prc
-    @hits = 0
   end
 
   # Returns the Proc that is registered as the breakpoint callback
@@ -37,9 +36,6 @@ class Breakpoint
   attr_reader :method
   # Returns the IP address of the breakpoint
   attr_reader :ip
-  # Accessor for the number of breakpoint hits - i.e. the number of times the
-  # breakpoint has fired.
-  attr_accessor :hits
   # Provide a way to set the correct original instruction to be used when
   # removing a breakpoint that was set at the same location as an existing one.
   attr_accessor :original_instruction
@@ -119,7 +115,6 @@ class Breakpoint
 
   # Executes the callback block that was provided for when a breakpoint was hit.
   def call_handler(thread, ctx)
-    @hits += 1
     @handler.call(thread, ctx, self) if @handler
   end
 end
@@ -163,8 +158,9 @@ class GlobalBreakpoint < Breakpoint
     @id = GlobalBreakpoint.next_id
     @method = cm
     @ip = ip || 0
-    @enabled = true
-
+    @enabled = selector[:disabled] ? selector[:disabled] : true
+    self.condition = selector[:condition]
+    @hits = 0
     validate_breakpoint_ip @ip
 
     @original_instruction = Breakpoint.encoder.decode_instruction(@method.bytecodes, @ip)
@@ -182,6 +178,70 @@ class GlobalBreakpoint < Breakpoint
 
   def enabled?
     @enabled
+  end
+
+  # Accessor for the number of breakpoint hits - i.e. the number of times the
+  # breakpoint has fired.
+  attr_reader :hits
+
+  # Accessor for setting the condition on a breakpoint.
+  # Conditions should be specified as a string to be eval-ed. A breakpoint
+  # with a condition specified will only fire if the breakpoint condition
+  # evaluates to true. Conditions can use the 'magic' variable \#hits to
+  # specify a condition based upon the number of times the breakpoint has been
+  # hit. The condition expression will be evaluated in the context of the
+  # breakpoint location, so conditions can also evalaute expressions using
+  # elements from the breakpoint context.
+  # Attempts to set an invalid expression will raise an exception.
+  def condition=(expr)
+    @condition = expr
+    if @condition
+      # Convert the breakpoint expression to a valid snippet of Ruby
+      eval_str = expr.gsub('#hits', '__hits__')
+      # - check if then...end is needed
+      if eval_str =~ /^(?:if|unless).+^(?:end)$/
+        eval_str << " then true end"
+      end
+
+      # Test expression is valid syntax
+      begin
+        @condition_eval = eval_str if eval("return true; #{eval_str}")
+      rescue Exception => e
+        STDERR.puts "An error occurred while setting the breakpoint condition '#{condition}':"
+        STDERR.puts e.to_s
+        STDERR.puts "Breakpoint condition has been ignored."
+        @condition = nil
+        @condition_eval = nil
+      end
+    else
+      @condition_eval = nil
+    end
+  end
+
+  # Returns the condition (if any) that the breakpoint needs to satisfy in
+  # order to be triggered.
+  def condition
+    @condition
+  end
+
+  # Determines if the breakpoint should actually fire when hit.
+  # This method evaluates any condition specified for the breakpoint. The 
+  # condition is evaluated with a binding from the execution context at the
+  # point at which the breakpoint is set.
+  def trigger?(task)
+    @hits += 1
+    return true unless @condition_eval
+    begin
+      # Evaluate the condition in the debug context
+      proc = eval("Proc.new {|__hits__| #{@condition_eval} }",
+               Binding.setup(task.current_context))
+      proc.call(hits)
+    rescue Exception => e
+      # An exception occurred while processing the breakpoint condition
+      STDERR.puts "An error occurred while processing the breakpoint condition '#{condition}':"
+      STDERR.puts e.to_s
+      false
+    end
   end
 end
 
@@ -566,6 +626,8 @@ class BreakpointTracker
   # - disabled: Create the breakpoint but do not enable it. This registers a
   #   breakpoint, but does not insert the yield_debugger instruction in the
   #   compiled method.
+  # - condition: An optional string representing an expression to be eval-ed
+  #   each time the breakpoint is hit, to determine if it should fire.
   def on(method, selector={})
     cm = method
     if method.kind_of? Method or method.kind_of? UnboundMethod
@@ -576,7 +638,6 @@ class BreakpointTracker
     if @global_breakpoints[cm][bp.ip]
       raise ArgumentError, "A breakpoint is already set for #{cm.name} at IP:#{bp.ip}"
     end
-
 
     @global_breakpoints[cm][bp.ip] = bp
     unless selector[:disabled]
@@ -646,7 +707,7 @@ class BreakpointTracker
   end
 
   # Finds all the breakpoints that are set on the specified task and compiled
-  # method.
+  # method, and which should be triggered.
   def find_breakpoints(task, cm, ip)
     # First, find any task-specific breakpoints
     bp_list = []
@@ -661,7 +722,7 @@ class BreakpointTracker
     # Next, check for global breakpoints
     if cm
       bp = @global_breakpoints[cm][ip] if @global_breakpoints[cm]
-      bp_list << bp if bp
+      bp_list << bp if bp && bp.enabled?
     end
     bp_list
   end
@@ -684,7 +745,7 @@ class BreakpointTracker
 
       @bp_list = find_breakpoints(task, cm, ip)
       unless @bp_list.size > 0
-        raise "Unable to find breakpoint for #{ctx.inspect}"
+        raise "Unable to find any managed breakpoint for #{ctx.inspect}"
       end
 
       do_yield = false
@@ -697,10 +758,9 @@ class BreakpointTracker
             do_yield = true unless bp.kind_of? BreakpointRestorer
           end
         when GlobalBreakpoint
-          if bp.enabled?
-            do_yield = true
-          end
+          do_yield = true if bp.trigger?(task)
         end
+        # Call any breakpoint specific handler
         bp.call_handler(@thread, ctx)
       end
 
