@@ -71,7 +71,7 @@ class Tuple
   def to_a
     ary = []
     each do |ent|
-      ary << ent unless ent.nil?
+      ary << ent
     end
     return ary
   end
