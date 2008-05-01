@@ -77,13 +77,18 @@ class Debugger
     @breakpoint_tracker.on(cm, :ip => ip)
   end
 
-  # Removes the breakpoint(s) specified
+  # Removes the breakpoint(s) specified.
+  # +bp+ may be either a single Breakpoint instance or id, or an Array of
+  # Breakpoint instances or ids.
   def remove_breakpoint(bp)
-    if bp.kind_of? Breakpoint
-      bp = [bp]
-    end
-    bp.each do |bp|
-      @breakpoint_tracker.remove_breakpoint bp
+    if bp.kind_of? Array
+      removed = []
+      bp.each do |bp|
+        removed << @breakpoint_tracker.remove_breakpoint(bp)
+      end
+      removed
+    else
+      @breakpoint_tracker.remove_breakpoint(bp)
     end
   end
 

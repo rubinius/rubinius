@@ -132,6 +132,11 @@ end
 class GlobalBreakpoint < Breakpoint
   self.public_class_method :new
 
+  # Returns the next id to use for a breakpoint.
+  def self.next_id
+    @last_id = (@last_id || 0) + 1
+  end
+
   ##
   # Creates a global breakpoint in the supplied CompiledMethod object.
   # Takes the following parameters:
@@ -155,6 +160,7 @@ class GlobalBreakpoint < Breakpoint
       ip = op
     end
 
+    @id = GlobalBreakpoint.next_id
     @method = cm
     @ip = ip || 0
     @enabled = true
@@ -163,6 +169,8 @@ class GlobalBreakpoint < Breakpoint
 
     @original_instruction = Breakpoint.encoder.decode_instruction(@method.bytecodes, @ip)
   end
+
+  attr_reader :id
 
   def enable
     @enabled = true
@@ -580,9 +588,16 @@ class BreakpointTracker
 
   # Removes a global breakpoint, making sure the original instruction is restored
   def remove_breakpoint(bp)
-    bp.remove
-    @global_breakpoints[bp.method].delete(bp.ip)
-    @global_breakpoints.delete(bp.method) if @global_breakpoints[bp.method].size == 0
+    if bp.kind_of? Fixnum
+      # Find the breakpoint with the specified id
+      bp = get_breakpoint_by_id(bp)
+    end
+    if bp
+      bp.remove
+      @global_breakpoints[bp.method].delete(bp.ip)
+      @global_breakpoints.delete(bp.method) if @global_breakpoints[bp.method].size == 0
+    end
+    bp
   end
 
   # Removes a global breakpoint without deleting it
@@ -609,6 +624,14 @@ class BreakpointTracker
   def get_breakpoints_on(cm)
     bp_list = @global_breakpoints[cm]
     bp_list &&= bp_list.values
+  end
+
+  # Finds a global breakpoint by it's id
+  def get_breakpoint_by_id(id)
+    global_breakpoints.each do |bp|
+      return bp if bp.id == id
+    end
+    nil
   end
 
   ##
