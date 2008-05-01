@@ -1250,7 +1250,7 @@ class Array
       if Array === element
         estr = element.indented_inspect(indent + 2)
         if str.size > 30 or estr.size > 30
-          if estr[0] != ?\
+          if estr[0] != ?\s
             estr = "#{' ' * (indent + 2)}#{estr}"
           end
 
