@@ -21,6 +21,17 @@ describe "File.mtime" do
 end
 
 describe "File#mtime" do
-  it "needs to be reviewed for spec completeness" do
+  before :each do
+    @filename = '/tmp/i_exist'
+    @f = File.open(@filename, 'w')
   end
+
+  after :each do
+    File.delete(@filename) if File.exist?(@filename)
+  end
+
+  it "returns the modification Time of the file" do
+    @f.mtime.class.should == Time
+  end
+
 end
