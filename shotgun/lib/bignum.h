@@ -45,4 +45,11 @@ int bignum_to_i(STATE, OBJECT self);
 int mp_init_set_long (mp_int * a, unsigned long b);
 int mp_set_long (mp_int * a, unsigned long b);
 
+/* Workaround for Solaris' bug in math.h */
+
+#if defined (__SVR4) && defined (__sun)
+#undef HUGE_VAL
+#define HUGE_VAL (1.0/0.0)
+#endif
+
 #endif
