@@ -32,8 +32,13 @@ describe "String#index with Fixnum" do
     "hello".index(?l).should == 2
   end
   
-  it "doesn't use fixnum % 256" do
+  it "character values over 255 (256th ASCII character) always result in nil" do
+    # A naive implementation could try to use % 256
     "hello".index(?e + 256 * 3).should == nil
+  end
+
+  it "negative character values always result in nil" do
+    # A naive implementation could try to use % 256
     "hello".index(-(256 - ?e)).should == nil
   end
   
