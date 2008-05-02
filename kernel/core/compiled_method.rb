@@ -406,18 +406,19 @@ class CompiledMethod
         # Found target line - return first IP
         return cm, t.at(0)
       elsif l > line
-        # Next code line is after the line asked for, so check if a 
-        # contained CM encompasses the line searched for
-        cm.child_methods.each do |child|
-          if res = locate_line(line, child)
-            return res
-          end
-        end
-
-        # No child method is a match - fail
-        return nil
+        break
       end
     end
+    # Didn't find line in this CM, so check if a contained
+    # CM encompasses the line searched for
+    cm.child_methods.each do |child|
+      if res = locate_line(line, child)
+        return res
+      end
+    end
+
+    # No child method is a match - fail
+    return nil
   end
 
   ##

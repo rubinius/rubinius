@@ -173,10 +173,12 @@ class GlobalBreakpoint < Breakpoint
   end
 
   def disable
+    remove if installed?
     @enabled = false
   end
 
   def enabled?
+    install
     @enabled
   end
 
@@ -661,18 +663,6 @@ class BreakpointTracker
     bp
   end
 
-  # Removes a global breakpoint without deleting it
-  def disable_breakpoint(bp)
-    bp.remove
-    bp.disable
-  end
-
-  # Re-installs a previously disabled breakpoint
-  def enable_breakpoint(bp)
-    bp.enable
-    bp.install
-  end
-
   ##
   # Returns the global breakpoint at the specified location
   def get_breakpoint(cm, ip)
@@ -745,7 +735,7 @@ class BreakpointTracker
 
       @bp_list = find_breakpoints(task, cm, ip)
       unless @bp_list.size > 0
-        raise "Unable to find any managed breakpoint for #{ctx.inspect}"
+        raise "Unable to find any managed breakpoint for #{ctx.inspect} at IP:#{ctx.ip}"
       end
 
       do_yield = false

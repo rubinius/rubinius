@@ -44,15 +44,13 @@ class Debugger
       until @quit do
         begin
           @debug_thread = @breakpoint_tracker.wait_for_breakpoint
-          @breakpoint_tracker.wake_target(@debug_thread) unless @quit  # defer wake until we cleanup
         rescue Exception => e
           # An exception has occurred in the breakpoint or debugger code
           STDERR.puts "An exception occured while processing a breakpoint:"
           STDERR.puts e.to_s
           STDERR.puts e.awesome_backtrace
-          # Attempt to resume blocked thread
-          @debug_thread.control_channel.send nil
         end
+        @breakpoint_tracker.wake_target(@debug_thread) unless @quit  # defer wake until we cleanup
       end
       # Release singleton, since our loop thread is exiting
       Debugger.__clear_instance
@@ -94,12 +92,12 @@ class Debugger
 
   # Temporarily removes a breakpoint, but does not delete it
   def disable_breakpoint(bp)
-    @breakpoint_tracker.disable_breakpoint bp
+    bp.disable
   end
 
-  # Temporarily removes a breakpoint, but does not delete it
+  # Re-installs a disabled breakpoint
   def enable_breakpoint(bp)
-    @breakpoint_tracker.enable_breakpoint bp
+    bp.enable
   end
 
   def step(selector)
