@@ -2,6 +2,19 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/shared/modulo'
 require 'bigdecimal'
 
+module DivmodSpecs
+  def self.check_both_nan(array)
+    array.length.should == 2
+    array[0].nan?.should == true
+    array[1].nan?.should == true
+  end
+  def self.check_both_bigdecimal(array)
+    array.length.should == 2
+    array[0].kind_of?(BigDecimal).should == true
+    array[1].kind_of?(BigDecimal).should == true
+  end
+end
+
 describe "BigDecimal#mod_part_of_divmod" do
   # BigDecimal#divmod[1] behaves exactly like #modulo
   begin
@@ -22,9 +35,30 @@ describe "BigDecimal#divmod" do
 
   before(:each) do
     @a = BigDecimal("42.00000000000000000001")
-    @one = BigDecimal("1")
-  end
 
+    @zero = BigDecimal("0")
+    @zero_pos = BigDecimal("+0")
+    @zero_neg = BigDecimal("-0")
+
+    @one = BigDecimal("1")
+    @mixed = BigDecimal("1.23456789")
+    @pos_int = BigDecimal("2E5555")
+    @neg_int = BigDecimal("-2E5555")
+    @pos_frac = BigDecimal("2E-9999")
+    @neg_frac = BigDecimal("-2E-9999")
+    @nan = BigDecimal("NaN")
+    @infinity = BigDecimal("Infinity")
+    @infinity_minus = BigDecimal("-Infinity")
+    @one_minus = BigDecimal("-1")
+    @frac_1 = BigDecimal("1E-99999")
+    @frac_2 = BigDecimal("0.9E-99999")
+
+    @special_vals = [@infinity, @infinity_minus, @nan]
+    @regular_vals = [
+      @one, @mixed, @pos_int, @neg_int, @pos_frac,
+      @neg_frac, @one_minus, @frac_1, @frac_2]
+    @zeroes = [@zero, @zero_pos, @zero_neg]
+  end
 
   it "divides value, returns an array" do
     res = @a.divmod(5)
@@ -33,9 +67,7 @@ describe "BigDecimal#divmod" do
 
   it "array contains quotient and modulus as BigDecimal" do
     res = @a.divmod(5)
-    res.each do |x|
-      x.kind_of?(BigDecimal).should == true
-    end
+    DivmodSpecs::check_both_bigdecimal(res)
     res[0].should == BigDecimal('0.8E1')
     res[1].should == BigDecimal('2.00000000000000000001')
 
@@ -56,6 +88,36 @@ describe "BigDecimal#divmod" do
     q,m = a.divmod(b)
     c = q * b + m
     a.should == c
+  end
+  
+  it "properly handles special values" do
+    values = @special_vals + @zeroes
+    values.each do |val1|
+      values.each do |val2|
+        DivmodSpecs::check_both_nan(val1.divmod(val2))
+      end
+    end
+
+    @special_vals.each do |val1|
+      @regular_vals.each do |val2|
+        DivmodSpecs::check_both_nan(val1.divmod(val2))
+      end
+    end
+    
+    @regular_vals.each do |val1|
+      @special_vals.each do |val2|
+        DivmodSpecs::check_both_nan(val1.divmod(val2))
+      end
+    end
+  end
+
+  it "returns an array of two NaNs if the argument is zero" do
+    values = @regular_vals + @special_vals
+    values.each do |val1|
+      @zeroes.each do |val2|
+        DivmodSpecs::check_both_nan(val1.divmod(val2))
+      end
+    end
   end
 
   it "raises TypeError if the argument cannot be coerced to BigDecimal" do
