@@ -3,6 +3,9 @@ require 'bigdecimal'
 
 describe "BigDecimal#floor" do
   before(:each) do
+    @one = BigDecimal("1")
+    @three = BigDecimal("3")
+    @four = BigDecimal("4")
     @zero = BigDecimal("0")
     @mixed = BigDecimal("1.23456789")
     @mixed_big = BigDecimal("1.23456789E100")
@@ -36,18 +39,40 @@ describe "BigDecimal#floor" do
     BigDecimal('-2.3').floor.should == -3
     BigDecimal('-2.5').floor.should == -3
     BigDecimal('-2.9999').floor.should == -3
+    BigDecimal('0.8').floor.should == 0
+    BigDecimal('-0.8').floor.should == -1
   end
 
   it "returns n digits right of the decimal point if given n > 0" do
     @mixed.floor(1).should == BigDecimal("1.2")
     @mixed.floor(5).should == BigDecimal("1.23456")
+    (1..10).each do |n|
+      # 0.3, 0.33, 0.333, etc.
+      (@one/@three).floor(n).should == BigDecimal("0.#{'3'*n}")
+      # 1.3, 1.33, 1.333, etc.
+      (@four/@three).floor(n).should == BigDecimal("1.#{'3'*n}")
+      (BigDecimal('31')/@three).floor(n).should == BigDecimal("10.#{'3'*n}")
+    end
+    (1..10).each do |n|
+      # -0.4, -0.34, -0.334, etc.
+      (-@one/@three).floor(n).should == BigDecimal("-0.#{'3'*(n-1)}4")
+    end
+    (1..10).each do |n|
+      (@three/@one).floor(n).should == @three
+    end
+    (1..10).each do |n|
+      (-@three/@one).floor(n).should == -@three
+    end
   end
 
   it "sets n digits left of the decimal point to 0, if given n < 0" do
-    BigDecimal("13345.234").ceil(-2).should == BigDecimal("13400.0")
+    BigDecimal("13345.234").floor(-2).should == BigDecimal("13300.0")
     @mixed_big.floor(-99).should == BigDecimal("0.12E101")
     @mixed_big.floor(-100).should == BigDecimal("0.1E101")
     @mixed_big.floor(-95).should == BigDecimal("0.123456E101")
+    (1..10).each do |n|
+      BigDecimal('1.8').floor(-n).should == @zero
+    end
   end
 
 end
