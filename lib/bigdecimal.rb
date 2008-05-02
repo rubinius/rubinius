@@ -255,7 +255,7 @@ class BigDecimal < Numeric
       sumsign = sum < 0 ? MINUS : PLUS
       s = sum.abs.to_s
       sumdiff = s.length - zd.length
-      BigDecimal(sumsign + RADIX + s + EXP + sumdiff.to_s, precs)
+      BigDecimal(sumsign + RADIX + s + EXP + (sumdiff + [nzx, 0].max).to_s, precs)
     else
       signs = {-1 => MINUS, 0 => nil, 1 => PLUS}
       if self.exponent.abs < other.exponent.abs
@@ -378,8 +378,15 @@ class BigDecimal < Numeric
   end
   
   def ceil(n = 0)
-    if self.infinite? or self.fix == self
+    if self.infinite?
       return self
+    elsif !n.zero?
+      x = (BigDecimal([@sign, '0', RADIX, @digits, EXP, self.exponent + n].join)).ceil
+      return BigDecimal([@sign, '0', RADIX, x.digits, EXP, x.exponent - n].join)
+    elsif self.frac.zero?
+      return self
+    elsif self < 0
+      return self.fix
     else
       return self.fix + BigDecimal("1")
     end
