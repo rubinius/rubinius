@@ -1,0 +1,1 @@
+fails:BigDecimal#add returns a + b with given precision

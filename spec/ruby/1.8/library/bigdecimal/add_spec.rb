@@ -8,6 +8,8 @@ describe "BigDecimal#add" do
     @zero = BigDecimal("0")
     @two = BigDecimal("2")
     @three = BigDecimal("3")
+    @ten = BigDecimal("10")
+    @eleven = BigDecimal("11")
     @nan = BigDecimal("NaN")
     @infinity = BigDecimal("Infinity")
     @infinity_minus = BigDecimal("-Infinity")
@@ -21,6 +23,7 @@ describe "BigDecimal#add" do
     @two.add(@one, 1).should == @three
     @one .add(@two, 1).should == @three
     @one.add(@one_minus, 1).should == @zero
+    @ten.add(@one, 2).should == @elevel
     @zero.add(@one, 1).should == @one
     @frac_2.add(@frac_1, 10000).should == BigDecimal("1.9E-99999")
     @frac_1.add(@frac_1, 10000).should == BigDecimal("2E-99999")
