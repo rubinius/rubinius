@@ -23,7 +23,7 @@ describe "BigDecimal#add" do
     @two.add(@one, 1).should == @three
     @one .add(@two, 1).should == @three
     @one.add(@one_minus, 1).should == @zero
-    @ten.add(@one, 2).should == @elevel
+    @ten.add(@one, 2).should == @eleven
     @zero.add(@one, 1).should == @one
     @frac_2.add(@frac_1, 10000).should == BigDecimal("1.9E-99999")
     @frac_1.add(@frac_1, 10000).should == BigDecimal("2E-99999")
