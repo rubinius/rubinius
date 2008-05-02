@@ -26,6 +26,7 @@ class BigDecimal < Numeric
   MINUS = '-'
   RADIX = '.'
   EXP = 'E'
+  SIGNS = {-1 => MINUS, 0 => nil, 1 => PLUS}
   
   # call-seq:
   #   BigDecimal("3.14159")   => big_decimal
@@ -257,16 +258,9 @@ class BigDecimal < Numeric
       sumdiff = s.length - zd.length
       BigDecimal(sumsign + RADIX + s + EXP + (sumdiff + [nzx, 0].max).to_s, precs)
     else
-      signs = {-1 => MINUS, 0 => nil, 1 => PLUS}
-      if self.exponent.abs < other.exponent.abs
-        extra = self.exponent
-      else
-        extra = other.exponent
-      end
-      a = BigDecimal(signs[self.sign <=> 0].to_s + RADIX + self.digits.to_s + EXP + (self.exponent - extra).to_s)
-      b = BigDecimal(signs[other.sign <=> 0].to_s + RADIX + other.digits.to_s + EXP + (other.exponent - extra).to_s)
+      a, b, extra = reduce(self, other)
       sum = a + b
-      BigDecimal(signs[sum.sign <=> 0].to_s + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s, precs)
+      BigDecimal(SIGNS[sum.sign <=> 0].to_s + RADIX + sum.digits.to_s + EXP + (sum.exponent + extra).to_s, precs)
     end
   end
   
@@ -283,6 +277,21 @@ class BigDecimal < Numeric
   end
 
   def quo(other)
+    if self.nan? or other.nan? or (self.infinite? and other.infinite?)
+      return BigDecimal("NaN")
+    elsif other.infinite?
+      return BigDecimal("0")
+    elsif self.infinite?
+      return (other < 0) ? -self : self
+    elsif other == BigDecimal("1")
+      return self
+    elsif other == BigDecimal("-1")
+      return -self
+    else
+      a, b, extra = reduce(self, other)
+      q = [SIGNS[a <=> 0], a.digits].join.to_f / [SIGNS[b <=> 0], b.digits].join.to_f
+      BigDecimal([q, EXP, a.exponent - b.exponent].join)
+    end
   end
   alias / quo
 
@@ -491,5 +500,19 @@ class BigDecimal < Numeric
       result = (self <=> other)
       return result.nil? ? nil : result == val
   #  end
+  end
+  
+  # Reduces exponents and returns [a, b, extra].
+  # call-seq:
+  # reduce(BigDecimal("8E5"), BigDecimal("6E2")) => [BigDecimal("8E3"), BigDecimal("6"), 2]
+  def reduce(x, y)
+    if x.exponent.abs < y.exponent.abs
+      extra = x.exponent
+    else
+      extra = y.exponent
+    end
+    a = BigDecimal(SIGNS[x.sign <=> 0].to_s + RADIX + x.digits.to_s + EXP + (x.exponent - extra).to_s)
+    b = BigDecimal(SIGNS[y.sign <=> 0].to_s + RADIX + y.digits.to_s + EXP + (y.exponent - extra).to_s)
+    [a, b, extra]
   end
 end
