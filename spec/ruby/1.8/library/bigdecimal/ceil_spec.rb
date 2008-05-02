@@ -46,6 +46,7 @@ describe "BigDecimal#ceil" do
   it "returns n digits right of the decimal point if given n > 0" do
     @mixed.ceil(1).should == BigDecimal("1.3")
     @mixed.ceil(5).should == BigDecimal("1.23457")
+    BigDecimal("0.03").ceil(1).should == BigDecimal("0.1")
   end
 
   it "sets n digits left of the decimal point to 0, if given n < 0" do
