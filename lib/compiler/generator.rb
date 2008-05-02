@@ -135,12 +135,7 @@ class Compiler
       iseq = @encoder.encode_stream @stream
       cm = CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
 
-      if @file
-        cm.file = @file.to_sym
-      else
-        cm.file = nil
-      end
-      
+      cm.file = @file.to_sym if @file and !@file.empty?
       cm.name = desc.name
 
       if @primitive

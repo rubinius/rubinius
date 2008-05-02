@@ -46,7 +46,7 @@ class Compiler
     comp = new(Generator, binding)
     node = comp.convert_sexp([:eval_expression, sexp])
     cm = node.to_description(:__eval_script__).to_cmethod
-    cm.file = filename.to_sym
+    cm.file = filename.to_sym if filename and !filename.empty?
     return cm
   end
 
