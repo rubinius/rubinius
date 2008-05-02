@@ -85,9 +85,37 @@ describe "BigDecimal#divmod" do
     # Example taken from BigDecimal documentation
     a = BigDecimal.new("42")
     b = BigDecimal.new("9")
-    q,m = a.divmod(b)
+    q, m = a.divmod(b)
     c = q * b + m
     a.should == c
+
+    values = [@one, @one_minus, BigDecimal('2'), BigDecimal('-2'),
+      BigDecimal('5'), BigDecimal('-5'), BigDecimal('10'), BigDecimal('-10'),
+      BigDecimal('20'), BigDecimal('-20'), BigDecimal('100'), BigDecimal('-100'),
+      BigDecimal('1.23456789E10'), BigDecimal('-1.23456789E10')
+    ]
+
+    # TODO: file MRI bug:
+    # BigDecimal('1').divmod(BigDecimal('3E-9'))[0] #=> 0.3E9,
+    # but really should be 0.333333333E9
+    ruby_bug { #MRI's precision is very low in some cases
+      values << BigDecimal('1E-10')
+      values << BigDecimal('-1E-10')
+      values << BigDecimal('2E55')
+      values << BigDecimal('-2E55')
+      values << BigDecimal('2E-5555')
+      values << BigDecimal('-2E-5555')
+    }
+
+    values_and_zeroes = values + @zeroes
+    values_and_zeroes.each do |val1|
+      values.each do |val2|
+        res = val1.divmod(val2)
+        DivmodSpecs::check_both_bigdecimal(res)
+        res[0].should == ((val1/val2).floor)
+        res[1].should == (val1 - res[0] * val2)
+      end
+    end
   end
   
   it "properly handles special values" do
@@ -127,4 +155,3 @@ describe "BigDecimal#divmod" do
   end
 
 end
-
