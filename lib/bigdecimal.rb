@@ -412,6 +412,10 @@ class BigDecimal < Numeric
     BigDecimal(s)
   end
   
+  def floor(n = 0)
+    -((-self).ceil(n))
+  end
+  
   def frac
     if !self.finite?
       return self
