@@ -24,6 +24,8 @@ shared :bigdecimal_quo do |cmd|
       @one_minus.send(cmd, @one_minus).should == @one
       @frac_2.send(cmd, @frac_1).should == BigDecimal("0.9")
       @frac_1.send(cmd, @frac_1).should == @one
+      (@one.send(cmd, BigDecimal('-2E5555'))).should == BigDecimal('-0.5E-5555')
+      (@one.send(cmd, BigDecimal('2E-5555'))).should == BigDecimal('0.5E5555')
     end
 
     it "returns NaN if NaN is involved" do
