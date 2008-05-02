@@ -214,9 +214,9 @@ class BigDecimal < Numeric
     elsif !self.finite? and !other.finite? and self.sign != other.sign
       # infinity + -infinity
       return BigDecimal("NaN")
-    elsif !self.finite?
+    elsif !self.finite? or other.zero?
       return self
-    elsif !other.finite?
+    elsif !other.finite? or self.zero?
       return other
     elsif self.exponent == other.exponent
       sd, od = self.align(other)
@@ -374,6 +374,14 @@ class BigDecimal < Numeric
     else
       s = self.to_s.sub(/^-/, '') # strip minus sign
       BigDecimal(s)
+    end
+  end
+  
+  def ceil(n = 0)
+    if self.infinite? or self.fix == self
+      return self
+    else
+      return self.fix + BigDecimal("1")
     end
   end
   
