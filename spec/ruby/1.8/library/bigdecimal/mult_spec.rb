@@ -34,7 +34,7 @@ describe "BigDecimal#mult" do
   end
 
   it "multiply self with other with (optional) precision" do
-    @e.mult(@one, 1).should be_close(@one, @tolerance)
+    @e.mult(@one, 1).should == (@one, @tolerance)
     @e3_minus.mult(@one, 1).should be_close(0, @tolerance2)
   end
 

@@ -275,6 +275,17 @@ class BigDecimal < Numeric
   def -(other)
     self + -other
   end
+  
+  def mult(other, precs)
+    a = self.digits * (self < 0 ? -1 : 1)
+    b = other.digits * (other < 0 ? -1 : 1)
+    prod = a * b
+    BigDecimal([SIGNS[prod <=> 0], RADIX, prod.abs, EXP, self.exponent + other.exponent - 1].join)
+  end
+  
+  def *(other)
+    self.mult(other, 0)
+  end
 
   def quo(other)
     if self.nan? or other.nan? or (self.infinite? and other.infinite?)
