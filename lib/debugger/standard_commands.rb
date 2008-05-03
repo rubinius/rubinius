@@ -93,7 +93,7 @@ class Debugger
 
     def execute(dbg, interface, md)
       file, line, cond = md[1], md[2].to_i, md[3]
-      if cm = CompiledMethod.scripts[file]
+      if cm = CompiledMethod.script_for_file(file)
         cm, ip = cm.locate_line(line)
       else
         return "No loaded file found matching #{file}"
