@@ -407,7 +407,7 @@ describe Compiler do
     gen [:alias, :b, :a] do |g|
       g.push_literal :b
       g.push_literal :a
-      g.push :self
+      g.push_context
       g.send :alias_method, 2, true
     end
   end

@@ -229,6 +229,10 @@ class MethodContext
 
   attr_accessor :method_scope
 
+  def alias_method(name, original)
+    scope = MethodContext.current.sender.current_scope
+    scope.__send__(:alias_method, name, original)
+  end
 end
 
 ##

@@ -53,4 +53,13 @@ describe "The alias keyword" do
     end
     @obj.value.should == 5
   end
+
+  it "operates on the object's metaclass when used in instance_eval" do
+    @obj.instance_eval do
+      alias __value value
+    end
+
+    @obj.__value.should == 5
+    lambda { AliasObject.new.__value }.should raise_error(NoMethodError)
+  end
 end
