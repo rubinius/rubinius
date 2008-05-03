@@ -8,6 +8,12 @@ class NewHash < Hash
   end
 end
 
+class DefaultHash < Hash
+  def default(key)
+    100
+  end
+end
+
 class ToHashHash < Hash
   def to_hash() { "to_hash" => "was", "called!" => "duh." } end
 end

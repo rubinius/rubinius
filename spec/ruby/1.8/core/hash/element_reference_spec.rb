@@ -56,6 +56,11 @@ describe "Hash#[]" do
     { 0 => 0 }[5].should == nil
   end
 
+  it "calls subclass implementations of default" do
+    h = DefaultHash.new
+    h[:nothing].should == 100
+  end
+
   it "does not create copies of the immediate default value" do
     str = "foo"
     h = Hash.new(str)
