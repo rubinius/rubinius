@@ -210,7 +210,9 @@ class BigDecimal < Numeric
   # These are stubbed out until we implement them so that their respective specfiles don't crash.
 
   def add(other, precs)
-    if self.nan? or other.nan?
+    if !other.kind_of?(BigDecimal)
+      return self.add(BigDecimal(other.to_s), precs)
+    elsif self.nan? or other.nan?
       return BigDecimal("NaN")
     elsif !self.finite? and !other.finite? and self.sign != other.sign
       # infinity + -infinity
@@ -277,10 +279,34 @@ class BigDecimal < Numeric
   end
   
   def mult(other, precs)
-    a = self.digits * (self < 0 ? -1 : 1)
-    b = other.digits * (other < 0 ? -1 : 1)
+    if !other.kind_of?(BigDecimal)
+      return self.mult(BigDecimal(other.to_s), precs)
+    elsif !self.finite?
+      if (self.sign * other.sign < 0) == self.sign < 0
+        return self
+      else
+        return -self
+      end
+    elsif !other.finite?
+      if (self.sign * other.sign < 0) == self.sign < 0
+        return other
+      else
+        return -other
+      end
+    end
+    
+    sd = self.digits
+    od = other.digits
+    
+    # figure out how many decimal places we're dealing with
+    sp = sd.to_s.length - self.exponent
+    op = od.to_s.length - other.exponent
+    
+    a = sd * (self < 0 ? -1 : 1)
+    b = od * (other < 0 ? -1 : 1)
     prod = a * b
-    BigDecimal([SIGNS[prod <=> 0], RADIX, prod.abs, EXP, self.exponent + other.exponent - 1].join)
+    pa = prod.abs
+    BigDecimal([SIGNS[prod <=> 0], RADIX, pa, EXP, pa.to_s.length - (sp + op)].join)
   end
   
   def *(other)
@@ -288,7 +314,9 @@ class BigDecimal < Numeric
   end
 
   def quo(other)
-    if self.nan? or other.nan? or (self.infinite? and other.infinite?)
+    if !other.kind_of?(BigDecimal)
+      self.quo(BigDecimal(other.to_s))
+    elsif self.nan? or other.nan? or (self.infinite? and other.infinite?)
       return BigDecimal("NaN")
     elsif other.infinite?
       return BigDecimal("0")
@@ -305,6 +333,11 @@ class BigDecimal < Numeric
     end
   end
   alias / quo
+  
+  def div(other, precs)
+    # stub for now
+    return self / other
+  end
 
   def remainder(other)
   end
@@ -312,6 +345,36 @@ class BigDecimal < Numeric
   
   def divmod(other)
   end
+  
+  # Raises self to an integer power.
+  def power(other)
+    one = BigDecimal("1")
+    if !self.finite?
+      return BigDecimal("NaN")
+    elsif other.zero? or self == 1
+      return one
+    elsif self.zero?
+      if other > 0
+        return BigDecimal("0")
+      else
+        return BigDecimal("Infinity")
+      end
+    elsif other < 0
+      return one / (self ** other.abs)
+    elsif !self.exponent.zero?
+      base = BigDecimal([@sign, RADIX, @digits].join)
+      exp = self.exponent
+      n = base ** other
+      return BigDecimal([SIGNS[n <=> 0], RADIX, n.digits, EXP, (exp * other) + n.exponent].join)
+    elsif other == 1
+      return self
+    elsif other % 2 == 1
+      return self * (self ** (other - 1))
+    else
+      return (self * self) ** (other / 2)
+    end
+  end
+  alias ** power
   
   # Unary minus
   def -@

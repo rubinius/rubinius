@@ -1,3 +1,0 @@
-fails:BigDecimal#** powers of self
-fails:BigDecimal#** returns NaN if self is NaN
-fails:BigDecimal#** returns NaN if self is infinite

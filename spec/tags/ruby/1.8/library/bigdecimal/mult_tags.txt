@@ -1,5 +1,3 @@
 fails:BigDecimal#mult multiply self with other with (optional) precision
-fails:BigDecimal#mult returns NaN if NaN is involved
-fails:BigDecimal#mult returns zero if self or argument is zero
 fails:BigDecimal#mult returns ininite value if self or argument is infinite
 fails:BigDecimal#mult returns NaN if the result is undefined

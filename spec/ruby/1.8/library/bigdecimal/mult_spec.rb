@@ -59,7 +59,7 @@ describe "BigDecimal#mult" do
     end
   end
 
-  it "returns ininite value if self or argument is infinite" do
+  it "returns infinite value if self or argument is infinite" do
     values = @regular_vals
     infs = [@infinity, @infinity_minus]
 
