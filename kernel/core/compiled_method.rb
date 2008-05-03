@@ -313,6 +313,33 @@ class CompiledMethod
   def self.scripts
     @scripts ||= {}
   end
+  
+  # Helper function for searching for a CM given a file name; applies similar
+  # search and path expansion rules as load/require, so that the full path to
+  # the file need not be specified.
+  def self.script_for_file(filename)
+    if cm = self.scripts[filename]
+      return cm
+    end
+    # ./ ../ ~/ /
+    if filename =~ %r{\A(?:(\.\.?)|(~))?/}
+      if $2    # ~ 
+        filename.slice! '~/'
+        return scripts["#{ENV['HOME']}/#{filename}"]
+      else    # . or ..
+        return scripts["#{File.expand_path filename}"]
+      end
+    # Unqualified
+    else
+      scripts = self.scripts
+      $LOAD_PATH.each do |dir|
+        if cm = scripts["#{dir}/#{filename}"]
+          return cm
+        end
+      end
+    end
+    nil
+  end
 
   class Script
     attr_accessor :path
