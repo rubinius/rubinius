@@ -177,6 +177,17 @@ class Module
     return out
   end
 
+  def superclass_chain
+    out = []
+    mod = direct_superclass()
+    while mod
+      out << mod
+      mod = mod.direct_superclass()
+    end
+
+    return out
+  end
+
   # Create a wrapper to a function in a C-linked library that
   # exists somewhere in the system. If a specific library is
   # not given, the function is assumed to exist in the running
@@ -449,7 +460,7 @@ class Module
   end
 
   def extend_object(obj)
-    obj.metaclass.include self
+    append_features obj.metaclass
   end
 
   #--
@@ -459,22 +470,63 @@ class Module
 
   def include_cv(*modules)
     modules.reverse_each do |mod|
-      raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.kind_of?(Module) and not mod.kind_of?(Class)
-      next if ancestors.include?(mod)
+      if !mod.kind_of?(Module) or mod.kind_of?(Class)
+        raise TypeError, "wrong argument type #{mod.class} (expected Module)"
+      end
+
       mod.send(:append_features, self)
       mod.send(:included, self)
     end
   end
 
-  def append_features_cv(mod)
-    ancestors.reverse_each do |m|
-      im = IncludedModule.new(m)
-      im.attach_to mod
+  def append_features_cv(target)
+    # So, the protocol here is that when including +self+ into +target+
+    # we also include all modules that are included into +self+.
+    mod = self
+    c = target
+
+    while mod
+      superclass_seen = false
+      if target == self
+        raise ArgumentError, "cyclic include detected"
+      end
+
+      skip = false
+
+      # ignore if the module included already in superclasses
+      p = target.direct_superclass
+      while p
+        if p.kind_of? IncludedModule
+          if p.module == mod
+            c = p unless superclass_seen
+            skip = true
+            break
+          end
+        elsif p.kind_of? Class
+          superclass_seen = true
+        end
+        p = p.direct_superclass
+      end
+
+      unless skip
+        if mod.kind_of? IncludedModule
+          val = mod.module
+        else
+          val = mod
+        end
+
+        im = IncludedModule.new(val)
+        im.attach_to c
+      end
+
+      mod = mod.direct_superclass
     end
   end
 
   def include?(mod)
-    raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.kind_of?(Module) and not mod.kind_of?(Class)
+    if !mod.kind_of?(Module) or mod.kind_of?(Class)
+      raise TypeError, "wrong argument type #{mod.class} (expected Module)"
+    end
     ancestors.include? mod
   end
 
@@ -508,7 +560,7 @@ class Module
     elsif find_method_in_hierarchy(name) then
       method_table[name] = Tuple[vis, nil]
     else
-      raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s}"
+      raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
     end
     
     return name
