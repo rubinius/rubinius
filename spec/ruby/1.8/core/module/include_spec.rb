@@ -61,6 +61,23 @@ describe "Module#include" do
     ModuleSpecs::C.methods.include?("cma").should == false    
     ModuleSpecs::C.methods.include?("cmb").should == false
   end
+
+  it "attaches the module as the caller's immediate ancestor" do
+    module IncludeSpecsTop
+      def value; 5; end
+    end
+
+    module IncludeSpecsMiddle
+      include IncludeSpecsTop
+      def value; 6; end
+    end
+
+    class IncludeSpecsClass
+      include IncludeSpecsMiddle
+    end
+
+    IncludeSpecsClass.new.value.should == 6
+  end
 end
 
 describe "Module#include?" do

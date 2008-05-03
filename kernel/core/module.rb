@@ -484,6 +484,8 @@ class Module
     # we also include all modules that are included into +self+.
     mod = self
     c = target
+    # collect the superclasses in order to attach modules in reverse order
+    superclasses = []
 
     while mod
       superclass_seen = false
@@ -515,11 +517,15 @@ class Module
           val = mod
         end
 
-        im = IncludedModule.new(val)
-        im.attach_to c
+        superclasses << val
       end
 
       mod = mod.direct_superclass
+    end
+
+    superclasses.reverse_each do |sc|
+      im = IncludedModule.new(sc)
+      im.attach_to target
     end
   end
 
