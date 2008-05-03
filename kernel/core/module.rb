@@ -474,59 +474,32 @@ class Module
         raise TypeError, "wrong argument type #{mod.class} (expected Module)"
       end
 
+      next if ancestors.include? mod
+
       mod.send(:append_features, self)
       mod.send(:included, self)
     end
   end
 
-  def append_features_cv(target)
-    # So, the protocol here is that when including +self+ into +target+
-    # we also include all modules that are included into +self+.
-    mod = self
-    c = target
-    # collect the superclasses in order to attach modules in reverse order
-    superclasses = []
 
-    while mod
-      superclass_seen = false
-      if target == self
-        raise ArgumentError, "cyclic include detected"
+  # Called when this Module is being included in another Module.
+  # This may be overridden for custom behaviour, but the default
+  # is to add constants, instance methods and module variables
+  # of this Module and all Modules that this one includes to the
+  # includer Module, which is passed in as the parameter +other+.
+  #
+  # See also #include.
+  #
+  def append_features_cv(other)
+    hierarchy = other.ancestors
+
+    superclass_chain.reverse_each do |ancestor|
+      if ancestor.instance_of? IncludedModule and not hierarchy.include? ancestor.module
+        IncludedModule.new(ancestor.module).attach_to other
       end
-
-      skip = false
-
-      # ignore if the module included already in superclasses
-      p = target.direct_superclass
-      while p
-        if p.kind_of? IncludedModule
-          if p.module == mod
-            c = p unless superclass_seen
-            skip = true
-            break
-          end
-        elsif p.kind_of? Class
-          superclass_seen = true
-        end
-        p = p.direct_superclass
-      end
-
-      unless skip
-        if mod.kind_of? IncludedModule
-          val = mod.module
-        else
-          val = mod
-        end
-
-        superclasses << val
-      end
-
-      mod = mod.direct_superclass
     end
 
-    superclasses.reverse_each do |sc|
-      im = IncludedModule.new(sc)
-      im.attach_to target
-    end
+    IncludedModule.new(self).attach_to other
   end
 
   def include?(mod)
