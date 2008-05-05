@@ -19,10 +19,10 @@ class Debugger
       selector = {:step_type => :in, :step_by => :ip}
       if step_type
         selector[:target] = n.to_i
-        output = "Stepping to IP[#{n}]"
+        output = Output.info("Stepping to IP[#{n}]")
       else
         n = selector[:steps] = n ? n.to_i : 1
-        output = "Stepping #{n} instruction#{'s' unless n.to_i == 1}"
+        output = Output.info("Stepping #{n} instruction#{'s' unless n.to_i == 1}")
       end
       dbg.step(selector)
 
@@ -51,10 +51,10 @@ class Debugger
       selector = {:step_type => :next, :step_by => :ip}
       if step_type
         selector[:target] = n.to_i
-        output = "Stepping to IP[#{n}]"
+        output = Output.info("Stepping to IP[#{n}]")
       else
         n = selector[:steps] = n ? n.to_i : 1
-        output = "Stepping #{n} instruction#{'s' unless n.to_i == 1}"
+        output = Output.info("Stepping #{n} instruction#{'s' unless n.to_i == 1}")
       end
       dbg.step(selector)
 
@@ -100,8 +100,7 @@ class Debugger
       first, last = last, first if first > last
       first = 0 if first < 0
 
-      output = Output.new
-      output << "Bytecode instructions [#{first}-#{last}] in compiled method #{cm.name}:"
+      output = Output.info("Bytecode instructions [#{first}-#{last}] in compiled method #{cm.name}:")
       output.set_columns(["%04d:", "%-s ", "%-s"])
       output << [nil, '...', nil] if first > 0
       line = 0
@@ -152,8 +151,7 @@ class Debugger
       fp = interface.debug_context.fp
       top = interface.debug_context.sp
 
-      output = Output.new
-      output << "VM stack [#{first}-#{last}]:"
+      output = Output.info("VM stack [#{first}-#{last}]:")
       output.set_columns([['Depth', "%2d:"], ['Class', '%-s'], ['Value', ' %s']])
       output << [nil, '...', nil] if first > 0
       first.upto(last) do |i|
@@ -196,7 +194,7 @@ class Debugger
           send_sites = source.send_sites
           output = output(source, send_sites)
         else
-          output = "No selector found with name '#{selector}'"
+          output = Output.error("No selector found with name '#{selector}'")
         end
       else
         source = interface.eval_context.method
@@ -204,7 +202,7 @@ class Debugger
         if send_sites and send_sites.size > 0
           output = output(source, send_sites)
         else
-          output = "There are no send sites in method #{source.name}"
+          output = Output.none("There are no send sites in method #{source.name}")
         end
       end
       output
@@ -212,8 +210,7 @@ class Debugger
 
     def output(source, send_sites)
       i = 1
-      output = Output.new
-      output << "SendSites for #{'selector ' if source.kind_of? Selector}#{source.name}:"
+      output = Output.info("SendSites for #{'selector ' if source.kind_of? Selector}#{source.name}:")
       output.set_columns(['%-3d.', ['Sender file', '%-s'], ['Sender method', '%-s'],
                           ['Message', '%-s'], ['Receiver class', '%-s'], ['Method', '%-s'],
                           ['Module', '%-s'], ['Hits', '%d'], ['Misses', '%d']])
@@ -228,7 +225,7 @@ class Debugger
         when NilClass
           # Do nothing - SendSite data2 not set
         else
-          puts "Unrecognized runnable type: #{runnable.class}"
+          STDERR.puts "Unrecognized runnable type: #{runnable.class}"
         end
         output << [i, ss.sender.file, ss.sender.name, ss.name, ss.data(1), 
                    runnable_name, ss.data(3), ss.hits, ss.misses]

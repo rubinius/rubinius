@@ -11,8 +11,7 @@ class Debugger
     end
 
     def execute(dbg, interface, md)
-      output = Output.new
-      output << "Available commands:"
+      output = Output.info("Available commands:")
       output.set_columns(["%-32s", "%-45s"], '  ', false)
       cmds = interface.commands
       cmds.each do |cmd|
@@ -35,8 +34,7 @@ class Debugger
 
     def execute(dbg, interface, md)
       if bp_list = dbg.breakpoints and bp_list.size > 0
-        output = Output.new
-        output << "Breakpoints:"
+        output = Output.info("Breakpoints:")
         output.set_columns(["%d.", ["File:line", "%-s"], ["IP", "%d"],
                            ["Method", " %s "], ["Condition", "%s"],
                            ["Hits", "%4d"], "%s"])
@@ -50,7 +48,7 @@ class Debugger
                      bp.condition, bp.hits, "#{'(disabled)' unless bp.enabled?}"]
         end
       else
-        output = "No breakpoints currently defined"
+        output = Output.none("No breakpoints currently defined")
       end
       output
     end
@@ -76,7 +74,7 @@ class Debugger
       ip = cm.first_ip_on_line(line.to_i) if line
 
       bp = dbg.set_breakpoint cm, ip, cond
-      return "Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}"
+      Output.info "Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}"
     end
   end
 
@@ -98,14 +96,14 @@ class Debugger
       if cm = CompiledMethod.script_for_file(file)
         cm, ip = cm.locate_line(line)
       else
-        return "No loaded file found matching #{file}"
+        return Output.error("No loaded file found matching #{file}")
       end
 
       if cm
         bp = dbg.set_breakpoint(cm, ip, cond)
-        return "Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}"
+        Output.info("Breakpoint set on #{bp.method.name} at #{bp.method.file}:#{bp.line}")
       else
-        return "Cannot set a breakpoint on line #{line} of #{file}"
+        Output.error("Cannot set a breakpoint on line #{line} of #{file}")
       end
     end
   end
@@ -125,9 +123,9 @@ class Debugger
       bp = dbg.breakpoints[n-1]
       if bp
         dbg.remove_breakpoint bp
-        return "Deleted breakpoint #{n} from #{bp.method.file}:#{bp.line}"
+        Output.info("Deleted breakpoint #{n} from #{bp.method.file}:#{bp.line}")
       else
-        return "No such breakpoint"
+        Output.error("No such breakpoint")
       end
     end
   end
@@ -149,13 +147,13 @@ class Debugger
       if bp
         if enable
           dbg.enable_breakpoint(bp)
-          return "Enabled breakpoint #{n} at #{bp.method.file}:#{bp.line}"
+          Output.info("Enabled breakpoint #{n} at #{bp.method.file}:#{bp.line}")
         else
           dbg.disable_breakpoint(bp)
-          return "Disabled breakpoint #{n} at #{bp.method.file}:#{bp.line}"
+          Output.info("Disabled breakpoint #{n} at #{bp.method.file}:#{bp.line}")
         end
       else
-        return "No such breakpoint"
+        Output.error("No such breakpoint")
       end
     end
   end
@@ -172,7 +170,7 @@ class Debugger
 
     def execute(dbg, interface, md)
       interface.done!
-      return "[Resuming program]"
+      Output.info("[Resuming program]")
     end
   end
 
@@ -195,10 +193,10 @@ class Debugger
       selector = {:step_type => :in, :step_by => :line}
       if step_type
         selector[:target] = n.to_i
-        output = "Stepping to line #{n}"
+        output = Output.info("Stepping to line #{n}")
       else
         n = selector[:steps] = n ? n.to_i : 1
-        output = "Stepping #{n} line#{'s' unless n.to_i == 1}"
+        output = Output.info("Stepping #{n} line#{'s' unless n.to_i == 1}")
       end
       dbg.step(selector)
 
@@ -227,10 +225,10 @@ class Debugger
       selector = {:step_type => :next, :step_by => :line}
       if step_type
         selector[:target] = n.to_i
-        output = "Stepping to line #{n}"
+        output = Output.info("Stepping to line #{n}")
       else
         n = selector[:steps] = n ? n.to_i : 1
-        output = "Stepping #{n} line#{'s' unless n.to_i == 1}"
+        output = Output.info("Stepping #{n} line#{'s' unless n.to_i == 1}")
       end
       dbg.step(selector)
 
@@ -258,7 +256,7 @@ class Debugger
 
       selector = {}
       n = selector[:out] = n ? n.to_i : 1
-      output = "Stepping out #{n} frame#{'s' unless n.to_i == 1}"
+      output = Output.info("Stepping out #{n} frame#{'s' unless n.to_i == 1}")
       dbg.step(selector)
 
       # Instruct debugger to end session and resume debug thread
@@ -314,7 +312,7 @@ class Debugger
       file = cm.file.to_s
       lines = dbg.source_for(file)
       if lines.nil?
-        return "No source code available for #{file}"
+        return Output.error("No source code available for #{file}")
       end
 
       first = first.to_i if first
@@ -329,8 +327,7 @@ class Debugger
       first = 1 if first < 1
       last = lines.size if last > lines.size
 
-      output = Output.new
-      output << "Source lines [#{first}-#{last}] in #{file}:"
+      output = Output.info("Source lines [#{first}-#{last}] in #{file}:")
       output.set_columns(['%d:', '%-s'])
       output << [nil, '...'] if first > 1
       first.upto(last) do |l|
@@ -375,11 +372,10 @@ class Debugger
       file = cm.file.to_s
       lines = dbg.source_for(file)
       if lines.nil?
-        return "No source code available for #{file}"
+        return Output.error("No source code available for #{file}")
       end
 
-      output = Output.new
-      output << "S-expression for source lines [#{first+1}-#{last+1}] in #{file}:"
+      output = Output.info("S-expression for source lines [#{first+1}-#{last+1}] in #{file}:")
       sexp = lines[first..last].join().to_sexp.indented_inspect
       output << sexp
       output
@@ -402,17 +398,17 @@ class Debugger
       # Output locals stored in the method context locals tuple
       locals = cm.local_names
       local_vals = interface.eval_context.locals
-      if local_vals
-        output = Output.new
-        output << "Local variables for #{cm.name}:"
+      if local_vals and local_vals.size > 1 or 
+          (local_vals.size == 0 and local_vals.at(0).to_s[0] != ?@)
+        output = Output.info("Local variables for #{cm.name}:")
         output.set_columns([['Name', '%-s'], '%s', ['Value', '%-s']])
         0.upto(local_vals.size-1) do |i|
           lvar = locals ? locals[i].to_s : '?'
           output << [lvar, '=>', local_vals.at(i).inspect] unless lvar[0] == ?@
         end
-        return output
+        output
       else
-        return "There are no local variables defined in #{cm.name}"
+        Output.none("There are no local variables defined in #{cm.name}")
       end
     end
   end
@@ -435,15 +431,14 @@ class Debugger
       instance = eval("self", bind)
       ivars = instance.instance_variables
       if ivars.size > 0
-        output = Output.new
-        output << "Instance variables for #{instance}:"
+        output = Output.info("Instance variables for #{instance}:")
         output.set_columns([['Name', '%-s'], '%s', ['Value', '%-s']])
         ivars.each do |ivar|
           output << [ivar, '=>', instance.instance_variable_get(ivar).inspect]
         end
-        return output
+        output
       else
-        return "There are no instance variables defined for #{instance}"
+        Output.none("There are no instance variables defined for #{instance}")
       end
     end
   end
@@ -460,8 +455,7 @@ class Debugger
 
     def execute(dbg, interface, inp)
       bt = Backtrace.backtrace(interface.debug_context)
-      output = Output.new
-      output << "Backtrace:"
+      output = Output.info("Backtrace:")
       output.set_columns(['%s', '%|s', '%-s'])
       bt.frames.each_with_index do |frame,i|
         recv, loc = frame.first, frame.last
@@ -551,8 +545,7 @@ class Debugger
       ctxt = interface.eval_context
       n.downto(1) { ctxt = ctxt.sender if ctxt.sender }
       interface.eval_context = ctxt
-      output = Output.new
-      output << "Evaluation context now at:"
+      output = Output.info("Evaluation context now at:")
       output.set_columns(['%s', '%|s', '%-s'])
       output.set_line_marker
       loc = ctxt.location
@@ -589,8 +582,7 @@ class Debugger
       end
       n.downto(0) { ctxt = frames.shift if frames.size > 0 }
       interface.eval_context = ctxt
-      output = Output.new
-      output << "Evaluation context now at:"
+      output = Output.info("Evaluation context now at:")
       output.set_columns(['%s', '%|s', '%-s'])
       output.set_line_marker
       loc = ctxt.location
@@ -607,4 +599,3 @@ class Debugger
     end
   end
 end
-

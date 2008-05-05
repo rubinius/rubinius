@@ -4,7 +4,10 @@ class Debugger
   # instead return either a string, or an instance of this class if the output
   # needs to be formatted in some way.
   class Output
+
+    ##
     # Class for defining columns of output.
+    
     class Columns
       # Defines a new Columns block for an output.
       # Takes the following arguments:
@@ -179,7 +182,6 @@ class Debugger
       end
     end
 
-
     ##
     # Class for colorizing output lines
 
@@ -225,7 +227,9 @@ class Debugger
       end
     end
 
+    ##
     # Class for marking a line in some way
+    
     class LineMarker
       def initialize(marker='=> ')
         @marker = marker
@@ -240,11 +244,42 @@ class Debugger
       end
     end
 
-    def initialize
-      clear
-      @line_width = 80
+    # Convenience method for creating an Output of type :info
+    def self.info(msg)
+      out = new(:info)
+      out << msg
+      out
     end
 
+    # Convenience method for creating an Output of type :none
+    def self.none(msg)
+      out = new(:none)
+      out << msg
+      out
+    end
+
+    # Convenience method for creating an Output of type :error
+    def self.error(msg)
+      out = new(:error)
+      out << msg
+      out
+    end
+
+    # Initializes a new output instance.
+    # Output may be of different types, with the default being :info.
+    # The output type is not used by the Output class, but may be significant
+    # to the interface that displays the output. Commonly used output types
+    # include:
+    # - :info, the default for informational output
+    # - :none, to indicate there is no output of the requested type
+    # - :error, to indicate a command error
+    def initialize(output_type=:info)
+      @output_type = output_type
+      #@page_size, @line_width = `stty size`.split(' ')
+      clear
+    end
+
+    # Clears all output settings
     def clear
       @output = []
       @current_cols = nil
@@ -253,6 +288,16 @@ class Debugger
     end
     attr_reader :output, :current_cols, :current_color
 
+    # Adds a new row of data to the output
+    # The item to be added may be an object of several different types:
+    # - An array is regarded as a series of cells that make up a row in a table.
+    # - A string is regarded as a complete row of data.
+    # - A Columns object defines the columnar aspects of subsequent rows of 
+    #   data, which are typically arrays.
+    # - A Color object defines a color change that remains in force until it is
+    #   cleared.
+    # - LineMarker object specifies a marker to appear to the left of the next
+    #   row.
     def <<(item)
       case item
       when Array
@@ -286,6 +331,7 @@ class Debugger
       self << Color.new(color) unless @current_color and @current_color.color == color
     end
 
+    # Sets a marker to be displayed next to the next line
     def set_line_marker(marker='=> ')
       self << LineMarker.new(marker)
     end
@@ -315,12 +361,10 @@ class Debugger
         when Columns
           column = item
           if column.has_headers?
-            str << '  '
-            str << output_marker(marker)
+            str << "\n  "
             str << column.format_header_str.join("\n  ").rstrip
             str << "\n"
-            str << '  '
-            str << output_marker(marker)
+            str << ' +'
             column.widths.each do |width|
               str << '-' * width
               str << '+'
