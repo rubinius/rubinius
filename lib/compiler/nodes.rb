@@ -17,7 +17,7 @@ class Node
     # node type that it wishes to unwind the processing branch to.
     # If this happens, then the thrown substitute value (defaulting
     # to nil) is returned instead of the normal node product.
-    # 
+    #
     # For example, Call#consume can detect the Rubinius.compile_if
     # construct and throw :newline which causes this method's return
     # value to be nil. So this Newline and the entire rest of the
@@ -488,6 +488,35 @@ class Node
     kind :dregx_once
   end
 
+  # Implicit match:
+  #
+  #   puts "$_ matched 'foo'" if /foo/
+  #                           ^^^^^^^^
+  class Match < Node
+    kind :match
+
+    # Essentially same as :match2, just using $_
+    def consume(sexp)
+      pattern = RegexLiteral.new @compiler
+      pattern.args *sexp      # Pattern, options
+
+      last_input = GVar.new @compiler
+      last_input.name = :$_
+
+      [pattern, last_input]
+    end
+
+    def args(pattern, target)
+      @pattern, @target = pattern, target
+    end
+
+    attr_accessor :pattern, :target
+  end
+
+  # Regexp match, left-hand-side:
+  #
+  #  /this/ =~ "matches this"
+  #
   class Match2 < Node
     kind :match2
 
@@ -498,6 +527,9 @@ class Node
     attr_accessor :pattern, :target
   end
 
+  # Regexp literal match, right-hand-side:
+  #
+  #   "this" =~ /matches this/
   class Match3 < Node
     kind :match3
 

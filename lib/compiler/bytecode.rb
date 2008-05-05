@@ -423,6 +423,15 @@ class Node
     end
   end
 
+  # Implicit match against $_
+  class Match
+    def bytecode(generator)
+      @target.bytecode generator
+      @pattern.bytecode generator
+      generator.send :=~, 1
+    end
+  end
+
   # TESTED
   class Match2
     def bytecode(g)
