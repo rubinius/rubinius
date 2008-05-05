@@ -10,7 +10,9 @@ class Debugger
       # Takes the following arguments:
       # - formats: Either a fixnum specifying the number of columns, or an array
       #   of format specifications (one per column). If an array is passed, the
-      #   format specifications are as handled by String#%.
+      #   items of the array may be either a format specification as handled by
+      #   String#%, or an array containing the column header and a format 
+      #   specification.
       # - An optional column separator string that will be inserted between
       #   columns when converting a row of cells to a string; defaults to a
       #   single space
@@ -18,9 +20,20 @@ class Debugger
       #   column, or use the fixed widths specified in the formats arg.
       def initialize(formats, col_sep=' ', auto=true)
         if formats.kind_of? Array
-          @formats = formats
+          @formats = []
+          @headers = nil
+          formats.each_with_index do |fmt,i|
+            if fmt.kind_of? Array
+              @headers = [] unless @headers
+              @headers[i] = fmt.first if fmt.size > 1
+              @formats[i] = fmt.last
+            else
+              @formats[i] = fmt
+            end
+          end
         elsif formats.kind_of? Fixnum
           @formats = Array.new(formats, '%-s')
+          @headers = nil
         else
           raise ArgumentError, "The formats arg must be an Array or a Fixnum (got #{formats.class})"
         end
@@ -28,7 +41,15 @@ class Debugger
         @col_separator = col_sep
         @auto = auto
 
-        unless @auto
+        if @auto
+          # Initialise column widths to column header widths
+          if @headers
+            @headers.each_with_index do |hdr, i|
+              @widths[i] = hdr.length if hdr
+            end          
+          end
+        else
+          # Use widths specified in format string
           re = /%([|-])?(\d*)([sd])/
           @formats.each_with_index do |fmt, i|
             fmt =~ re
@@ -38,7 +59,9 @@ class Debugger
           end
         end
       end
-
+      
+      attr_reader :widths
+      
       # Update the column widths required based on the row content
       def update_widths(cells)
         if @auto
@@ -53,17 +76,30 @@ class Debugger
         end
       end
 
+      # Returns true if the column specification has headers
+      def has_headers?
+        !@headers.nil?
+      end
+
+      # Returns a count of the number of columns defined
       def count
         @formats.size
+      end
+      
+      # Returns a formatted string containing the column headers 
+      def format_header_str(line_width=nil)
+        if @headers
+          format_str @headers, Array.new(@formats.size, '%|s')
+        end
       end
 
       # Format an array of cells into a string
       # TODO: Handle line_width arg to limit line overall length
-      def format_str(row, line_width=nil)
+      def format_str(row, formats=@formats, line_width=nil)
         cells = []
         cum_width = 0
         re = /%([|-])?(0)?(\d*)([sd])/
-        @formats.each_with_index do |fmt, i|
+        formats.each_with_index do |fmt, i|
           if row[i]
             # Format cell ignoring width and alignment, wrapping if necessary
             fmt =~ re
@@ -264,7 +300,6 @@ class Debugger
         case item
         when String
           str << color.escape if color
-          str << output_marker(marker)
           str << item.rstrip
           str << color.clear if color
           str << "\n"
@@ -279,6 +314,19 @@ class Debugger
           marker = nil
         when Columns
           column = item
+          if column.has_headers?
+            str << '  '
+            str << output_marker(marker)
+            str << column.format_header_str.join("\n  ").rstrip
+            str << "\n"
+            str << '  '
+            str << output_marker(marker)
+            column.widths.each do |width|
+              str << '-' * width
+              str << '+'
+            end
+            str << "\n"
+          end
         when Color
           color = item
         when LineMarker

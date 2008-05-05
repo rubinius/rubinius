@@ -154,18 +154,18 @@ class Debugger
 
       output = Output.new
       output << "VM stack [#{first}-#{last}]:"
-      output.set_columns(['%2d:', '%-s', ' %s'])
+      output.set_columns([['Depth', "%2d:"], ['Class', '%-s'], ['Value', ' %s']])
       output << [nil, '...', nil] if first > 0
       first.upto(last) do |i|
         val = task.get_stack_value(i)
         sp = top - i
         output.set_color(:yellow) if sp <= fp
         if sp == top && sp == fp
-          output.set_line_marker "fp|sp =>"
+          output.set_line_marker "fp|sp => "
         elsif sp == top
-          output.set_line_marker "sp =>"
+          output.set_line_marker "sp => "
         elsif sp == fp
-          output.set_line_marker "fp =>"
+          output.set_line_marker "fp => "
         end
         output << [i, val.class, val.inspect]
       end
@@ -214,7 +214,9 @@ class Debugger
       i = 1
       output = Output.new
       output << "SendSites for #{'selector ' if source.kind_of? Selector}#{source.name}:"
-      output.set_columns(['%-3d.', '%-s', '%-s', '%-s', '%-s', '%-s', '%-s', '%d', '%d'])
+      output.set_columns(['%-3d.', ['Sender file', '%-s'], ['Sender method', '%-s'],
+                          ['Message', '%-s'], ['Receiver class', '%-s'], ['Method', '%-s'],
+                          ['Module', '%-s'], ['Hits', '%d'], ['Misses', '%d']])
       send_sites.each do |ss|
         runnable_name = nil
         case runnable = ss.data(2)
@@ -228,7 +230,8 @@ class Debugger
         else
           puts "Unrecognized runnable type: #{runnable.class}"
         end
-        output << [i, ss.sender.file, ss.sender.name, ss.name, ss.data(1), runnable_name, ss.data(3), ss.hits, ss.misses]
+        output << [i, ss.sender.file, ss.sender.name, ss.name, ss.data(1), 
+                   runnable_name, ss.data(3), ss.hits, ss.misses]
         i += 1
       end
       output

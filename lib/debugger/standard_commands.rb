@@ -37,14 +37,16 @@ class Debugger
       if bp_list = dbg.breakpoints and bp_list.size > 0
         output = Output.new
         output << "Breakpoints:"
-        output.set_columns(["%d.", "%-s", " %s ", "[IP:%d]", "%s", "%4d", "%s"])
+        output.set_columns(["%d.", ["File:line", "%-s"], ["IP", "%d"],
+                           ["Method", " %s "], ["Condition", "%s"],
+                           ["Hits", "%4d"], "%s"])
         dbg.breakpoints.each_with_index do |bp, i|
           if bp.enabled?
             output.set_color :white
           else
             output.set_color :yellow
           end
-          output << [i+1, "#{bp.method.file}:#{bp.line}", bp.method.name, bp.ip,
+          output << [i+1, "#{bp.method.file}:#{bp.line}", bp.ip, bp.method.name,
                      bp.condition, bp.hits, "#{'(disabled)' unless bp.enabled?}"]
         end
       else
@@ -403,7 +405,7 @@ class Debugger
       if local_vals
         output = Output.new
         output << "Local variables for #{cm.name}:"
-        output.set_columns(['%-s', '%s', '%-s'])
+        output.set_columns([['Name', '%-s'], '%s', ['Value', '%-s']])
         0.upto(local_vals.size-1) do |i|
           lvar = locals ? locals[i].to_s : '?'
           output << [lvar, '=>', local_vals.at(i).inspect] unless lvar[0] == ?@
@@ -435,7 +437,7 @@ class Debugger
       if ivars.size > 0
         output = Output.new
         output << "Instance variables for #{instance}:"
-        output.set_columns(['%-s', '%s', '%-s'])
+        output.set_columns([['Name', '%-s'], '%s', ['Value', '%-s']])
         ivars.each do |ivar|
           output << [ivar, '=>', instance.instance_variable_get(ivar).inspect]
         end
