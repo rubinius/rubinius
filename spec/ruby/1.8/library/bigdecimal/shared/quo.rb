@@ -9,6 +9,7 @@ shared :bigdecimal_quo do |cmd|
       @zero = BigDecimal("0")
       @two = BigDecimal("2")
       @three = BigDecimal("3")
+      @eleven = BigDecimal("11")
       @nan = BigDecimal("NaN")
       @infinity = BigDecimal("Infinity")
       @infinity_minus = BigDecimal("-Infinity")
@@ -20,6 +21,7 @@ shared :bigdecimal_quo do |cmd|
     it "returns a / b" do
       @two.send(cmd, @one).should == @two
       @one.send(cmd, @two).should == BigDecimal("0.5")
+      @eleven.send(cmd, @three).should be_close(@three + (@two / @three), TOLERANCE)
       @one.send(cmd, @one_minus).should == @one_minus
       @one_minus.send(cmd, @one_minus).should == @one
       @frac_2.send(cmd, @frac_1).should == BigDecimal("0.9")

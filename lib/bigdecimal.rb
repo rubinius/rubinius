@@ -340,10 +340,13 @@ class BigDecimal < Numeric
       return self
     elsif other == BigDecimal("-1")
       return -self
-    else
+    elsif !self.exponent.zero? and !other.exponent.zero?
       a, b, extra = reduce(self, other)
-      q = [SIGNS[a <=> 0], a.digits].join.to_f / [SIGNS[b <=> 0], b.digits].join.to_f
-      BigDecimal([q, EXP, a.exponent - b.exponent].join)
+      a / b
+    else
+      sa, oa = self.align(other)
+      q = [SIGNS[self <=> 0], sa].join.to_f / [SIGNS[other <=> 0], oa].join.to_f
+      BigDecimal([q, EXP, self.exponent - other.exponent].join)
     end
   end
   alias / quo
@@ -594,11 +597,7 @@ class BigDecimal < Numeric
   # call-seq:
   # reduce(BigDecimal("8E5"), BigDecimal("6E2")) => [BigDecimal("8E3"), BigDecimal("6"), 2]
   def reduce(x, y)
-    if x.exponent.abs < y.exponent.abs
-      extra = x.exponent
-    else
-      extra = y.exponent
-    end
+    extra = [x.exponent, y.exponent].min
     a = BigDecimal(SIGNS[x.sign <=> 0].to_s + RADIX + x.digits.to_s + EXP + (x.exponent - extra).to_s)
     b = BigDecimal(SIGNS[y.sign <=> 0].to_s + RADIX + y.digits.to_s + EXP + (y.exponent - extra).to_s)
     [a, b, extra]
