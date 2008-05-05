@@ -241,6 +241,38 @@ describe Compiler do
     end
   end
   
+  it "compiles implicit regexp operation =~ against $_ as :match2 would" do
+    # if /x/; end
+    gen [:if, [:match, "bunnies", 0], nil, nil] do |g|
+      g.push_literal :$_
+      g.push_cpath_top
+      g.find_const :Globals
+      g.send :[], 1
+
+      i = g.add_literal nil
+      g.push_literal_at i
+      g.dup
+      g.is_nil
+
+      label = g.new_label
+      g.gif label
+      g.pop
+
+      g.push 0
+      g.push_literal "bunnies"
+      g.push_const :Regexp
+      g.send :new, 2
+      g.set_literal i
+
+      label.set!        # The nil from above drops here to get the comparison
+
+      g.send :=~, 1
+      
+      g.pop
+      g.push :nil
+    end
+  end
+
   it "compiles regexp operation =~" do
     gen [:match2, [:regex, "aoeu", 0], [:str, "blah"]] do |g|
       g.push_literal "blah"
