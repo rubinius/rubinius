@@ -123,6 +123,7 @@ module MSpec
       if current and current.state
         current.state.exceptions << [msg, e]
       else
+        require "pp" unless e.message.respond_to? :pretty_inspect
         STDERR.write "\nAn exception occurred in #{msg}:\n#{e.class}: #{e.message.pretty_inspect}\n"
         STDERR.write "#{e.backtrace.join "\n"}"
       end
