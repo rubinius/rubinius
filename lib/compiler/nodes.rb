@@ -172,8 +172,15 @@ class Node
     end
   end
 
-  # Start of Node subclasses
+  #--- Start of Node subclasses
 
+  # ClosedScope is a metanode in that it does not exist in Ruby code;
+  # it merely abstracts common functionality of various real Ruby nodes
+  # that must control a local variable scope. These classes will exist
+  # as subclasses of ClosedScope below.
+  #
+  # Most notably, LocalScope objects are kept to maintain a hierarchy
+  # of visibility and availability for the runtime.
   class ClosedScope < Node
     def initialize(comp)
       super(comp)
@@ -318,6 +325,10 @@ class Node
     end
   end
 
+  # Snippit was a special type of a scope, not exactly a Script but
+  # not something else either. Currently it only provides abstract
+  # support for eval, for example.
+  #
   class Snippit < ClosedScope
     kind :snippit
 
@@ -338,6 +349,11 @@ class Node
     kind :expression
   end
 
+  # EvalExpression is a special node and does not appear in the Ruby
+  # parse tree itself. It is inserted as the top-level scope when an
+  # eval is run, which allows managing the specialized behaviour that
+  # is needed for it.
+  #
   class EvalExpression < Expression
     kind :eval_expression
 
@@ -388,6 +404,10 @@ class Node
 
   end
 
+  # Script is a special node, and does not exist in normal Ruby code.
+  # It represents the top-level of a .rb file, and as such is the most
+  # common top-level container.
+  #
   class Script < ClosedScope
     kind :script
 
@@ -402,6 +422,11 @@ class Node
     end
   end
 
+  # Newline handles :newline nodes, which are inserted by the parser to
+  # allow keeping track of the file and line a certain sexp was produced
+  # from. In addition to that metadata, it contains within it a Block of
+  # the actual Ruby code (as sexp) that makes up that particular line.
+  #
   class Newline < Node
     kind :newline
 
@@ -421,22 +446,68 @@ class Node
     end
   end
 
+  # True is the literal +true+.
+  #
+  # Example:
+  #
+  #   puts "Hi" if true
+  #                ^^^^
+  #
   class True < Node
     kind :true
   end
 
+  # False is the literal +false+.
+  #
+  # Example:
+  #
+  #   puts "Hi" if false
+  #                ^^^^^
+  #
   class False < Node
     kind :false
   end
 
+  # Nil is the literal +nil+.
+  #
+  # Example:
+  #
+  #   puts "Hi" if nil
+  #                ^^^
+  #
   class Nil < Node
     kind :nil
   end
 
+  # Self is the literal +self+.
+  #
+  # Example:
+  #
+  #   p self
+  #     ^^^^
+  #
   class Self < Node
     kind :self
   end
 
+  # And represents either +and+ or +&&+.
+  # The precedence difference between the
+  # two has been resolved by the parser so
+  # both types map into this one node (but
+  # their child and parent nodes could be
+  # different.)
+  #
+  # It contains both the left and the right
+  # subexpression.
+  #
+  # Example:
+  #
+  #   foo and bar
+  #       ^^^
+  #
+  #   baz && quux
+  #       ^^
+  #
   class And < Node
     kind :and
 
@@ -447,10 +518,43 @@ class Node
     attr_accessor :left, :right
   end
 
+  # Or represents either +or+ or +||+.
+  # The precedence difference between the
+  # two has been resolved by the parser so
+  # both types map into this node although
+  # their contexts (parents and children)
+  # may be different.
+  #
+  # It contains both the left and the right
+  # subexpression.
+  #
+  # Example:
+  #
+  #   foo or bar
+  #       ^^
+  #
+  #   baz || quux
+  #       ^^
+  #
   class Or < And
     kind :or
   end
 
+  # Not is either +not+ or +!+. The precedence
+  # has been resolved by the parser, the two
+  # types may have different parents and children
+  # because of it, though.
+  #
+  # It contains the expression to negate.
+  #
+  # Example:
+  #
+  #   not available?
+  #   ^^^
+  #
+  #   !true
+  #   ^
+  #
   class Not < Node
     kind :not
 
@@ -461,15 +565,16 @@ class Node
     attr_accessor :child
   end
 
-  class Negate < Node
-    kind :negate
-
-    def args(child)
-      @child = child
-    end
-
-    attr_accessor :child
-  end
+  # TODO: No clue. Parser does not currently emit this.
+#  class Negate < Node
+#    kind :negate
+#
+#    def args(child)
+#      @child = child
+#    end
+#
+#    attr_accessor :child
+#  end
 
   class NumberLiteral < Node
     kind :fixnum
