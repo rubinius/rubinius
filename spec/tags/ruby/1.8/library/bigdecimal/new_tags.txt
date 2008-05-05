@@ -1,1 +1,0 @@
-fails:BigDecimal.new ignores leading whitespace

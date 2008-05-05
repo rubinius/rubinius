@@ -42,7 +42,7 @@ class BigDecimal < Numeric
     if v == "NaN"
       @special = 'n'
       @precs = 0
-    elsif v =~ /[-+]?Infinity/
+    elsif v =~ /^[-+]?Infinity$/
       @special = 'i'
       @sign = MINUS if v =~ /-/
       @precs = 0
