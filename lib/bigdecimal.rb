@@ -28,6 +28,20 @@ class BigDecimal < Numeric
   EXP = 'E'
   SIGNS = {-1 => MINUS, 0 => nil, 1 => PLUS}
   
+  VERSION = "1.0.1" # like Ruby 1.8.6
+  
+  #################
+  # Class methods #
+  #################
+  
+  def self.ver
+    VERSION
+  end
+  
+  ###############################
+  # Constructor and basic tests #
+  ###############################
+  
   # call-seq:
   #   BigDecimal("3.14159")   => big_decimal
   #   BigDecimal("3.14159", 10)   => big_decimal
