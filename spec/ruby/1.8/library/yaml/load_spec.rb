@@ -16,4 +16,9 @@ describe "YAML.load" do
   it "accepts a string argument" do
     YAML.load( "--- :locked" ).should == :locked
   end  
+
+  it "cleans strings when loading" do
+    YAML.load("--- \nstring").should == "string"
+    YAML.load("--- \"string\"").should == "string"
+  end
 end
