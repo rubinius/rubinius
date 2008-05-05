@@ -148,6 +148,24 @@ describe "Calling a method" do
 
     mybar(10).should == nil
   end
+  
+  it "with ambiguous missing parens, arguments go with innermost call" do
+    def f(*a); a.length; end
+    
+    (f f 5, 6).should == 1
+
+    lambda { eval "f 4, f 5, 6" }.should raise_error(SyntaxError)
+
+    [f 5, 6].should == [2]
+    
+    (f (5+6)*7).should == 1
+    (f(5+6)*7).should == 7
+    
+    a, b = f 5, 6
+    a.should == 2
+    b.should == nil
+  end
+  
 end
 
 describe "Calling a private setter method" do
@@ -160,3 +178,4 @@ describe "Calling a private setter method" do
     self.foo = 42
   end
 end
+
