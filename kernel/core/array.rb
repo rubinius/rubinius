@@ -892,102 +892,210 @@ class Array
     BASE_64_ALPHA[63] = ?/
   end
 
+  ##
+  #  call-seq:
+  #     arr.pack ( aTemplateString ) -> aBinaryString
+  #
+  #  Packs the contents of <i>arr</i> into a binary sequence according to
+  #  the directives in <i>aTemplateString</i> (see the table below)
+  #  Directives ``A,'' ``a,'' and ``Z'' may be followed by a count,
+  #  which gives the width of the resulting field. The remaining
+  #  directives also may take a count, indicating the number of array
+  #  elements to convert. If the count is an asterisk
+  #  (``<code>*</code>''), all remaining array elements will be
+  #  converted. Any of the directives ``<code>sSiIlL</code>'' may be
+  #  followed by an underscore (``<code>_</code>'') to use the underlying
+  #  platform's native size for the specified type; otherwise, they use a
+  #  platform-independent size. Spaces are ignored in the template
+  #  string. See also <code>String#unpack</code>.
+  #
+  #     a = [ "a", "b", "c" ]
+  #     n = [ 65, 66, 67 ]
+  #     a.pack("A3A3A3")   #=> "a  b  c  "
+  #     a.pack("a3a3a3")   #=> "a\000\000b\000\000c\000\000"
+  #     n.pack("ccc")      #=> "ABC"
+  #
+  #  Directives for +pack+.
+  #
+  #   Directive    Meaning
+  #   ---------------------------------------------------------------
+  #       @     |  Moves to absolute position
+  #       A     |  ASCII string (space padded, count is width)
+  #       a     |  ASCII string (null padded, count is width)
+  #       B     |  Bit string (descending bit order)
+  #       b     |  Bit string (ascending bit order)
+  #       C     |  Unsigned char
+  #       c     |  Char
+  #       D, d  |  Double-precision float, native format
+  #       E     |  Double-precision float, little-endian byte order
+  #       e     |  Single-precision float, little-endian byte order
+  #       F, f  |  Single-precision float, native format
+  #       G     |  Double-precision float, network (big-endian) byte order
+  #       g     |  Single-precision float, network (big-endian) byte order
+  #       H     |  Hex string (high nibble first)
+  #       h     |  Hex string (low nibble first)
+  #       I     |  Unsigned integer
+  #       i     |  Integer
+  #       L     |  Unsigned long
+  #       l     |  Long
+  #       M     |  Quoted printable, MIME encoding (see RFC2045)
+  #       m     |  Base64 encoded string
+  #       N     |  Long, network (big-endian) byte order
+  #       n     |  Short, network (big-endian) byte-order
+  #       P     |  Pointer to a structure (fixed-length string)
+  #       p     |  Pointer to a null-terminated string
+  #       Q, q  |  64-bit number
+  #       S     |  Unsigned short
+  #       s     |  Short
+  #       U     |  UTF-8
+  #       u     |  UU-encoded string
+  #       V     |  Long, little-endian byte order
+  #       v     |  Short, little-endian byte order
+  #       w     |  BER-compressed integer\fnm
+  #       X     |  Back up a byte
+  #       x     |  Null byte
+  #       Z     |  Same as ``a'', except that null is added with *
 
-  # TODO fill out pack.
-  def pack(schema)
+  def pack schema
     # The schema is an array of arrays like [["A", "6"], ["u", "*"],
     # ["X", ""]]. It represents the parsed form of "A6u*X".  Remove
     # strings in the schema between # and \n
-    schema = schema.gsub(/#[^\n]{0,}\n{0,1}/,'')
+    schema = schema.gsub(/#.*/, '')
     schema = schema.scan(/([^\s\d\*][\d\*]*)/).flatten.map {|x|
       x.match(/([^\s\d\*])([\d\*]*)/)[1..-1]
     }
 
-    # create the buffer
     ret = ""
-    # we're starting from the first element in the array
     arr_idx = 0
-    schema.each do |scheme|
-      # get the kind of pack
-      kind = scheme[0]
-      # get the array item being worked on
-      item = self[arr_idx]
-      # MRI nil compatibilty for string functions
-      item = ""  if !item && kind =~ /[aAZbBhH]/
-      # set t to nil if no number (or "*") was passed in
-      t = scheme[1].empty? ? nil : scheme[1]
 
-      # X deletes a number of characters from the buffer (defaults to
-      # one; * means 0)
-      if kind == "X"
-        # set the default number to 1; otherwise to_i will give us the
-        # correct value
-        t = t.nil? ? 1 : t.to_i
-        # don't allow backing up farther than the size of the buffer
-        raise ArgumentError, "you're backing up too far" if t > ret.size
-        ret = ret[0..-(t + 1)]
-      # x returns just a group of null strings
-      elsif kind == "x"
-        size = t.nil? ? 1 : t.to_i
-        ret << "\x0" * size
+    schema.each do |kind, t|
+      item = self[arr_idx]
+      t = nil if t.empty?
+
+      # MRI nil compatibilty for string functions
+      item = "" if !item && kind =~ /[aAZbBhH]/
+
       # if there's no item, that means there's more schema items than
       # array items, so throw an error. All actions that DON'T
       # increment arr_idx must occur before this test.
-      elsif arr_idx >= self.length
-        raise ArgumentError, "too few array elements"
-      # TODO: Document this
-      elsif kind == "N"
-        obj = item
+      raise ArgumentError, "too few array elements" if
+        arr_idx >= self.length and kind !~ /x/i
+
+      case kind # TODO: switch kind to ints
+      when 'X' then
+        size = (t || 1).to_i
+        raise ArgumentError, "you're backing up too far" if size > ret.size
+        ret[-size..-1] = '' if size > 0
+      when 'x' then
+        size = (t || 1).to_i
+        ret << "\x0" * size
+      when 'N' then                         # TODO: untested
         parts = []
-        4.times do
-          parts << (obj % 256)
-          obj = obj / 256
+        4.times do                          # TODO: const?
+          parts << (item % 256).chr
+          item >>= 8
         end
-        3.downto(0) do |j|
-          ret << parts[j].chr
-        end
+        ret << parts.join
         arr_idx += 1
-      elsif kind == "V"
-        obj = item
+      when 'V' then                         # FIX: untested
         parts = []
-        4.times do
-          parts << (obj % 256)
-          obj = obj / 256
+        4.times do                          # TODO: const?
+          parts << (item % 256).chr
+          item >>= 8
         end
-        0.upto(3) do |j|
-          ret << parts[j].chr
-        end
+        ret << parts.join
         arr_idx += 1
-      elsif kind == "v"
-        obj = item
+      when 'v' then
         parts = []
-        parts << (obj % 256)
-        obj = obj >> 8
-        parts << (obj % 256)
-        obj = obj >> 8
-        ret << parts.at(0).chr
-        ret << parts.at(1).chr
+        2.times do
+          parts << (item % 256).chr
+          item >>= 8
+        end
+        ret << parts.join
         arr_idx += 1
-      # A and a both pad the text
-      elsif kind =~ /[aAZ]/
+      when 'a', 'A', 'Z' then
         item = Type.coerce_to(item, String, :to_str)
-        # The total new string size will be:
-        # * the number passed in
-        # * the size of the array's string if "*" was passed in
-        # * 1 if nothing was passed in
-        size = !t ? 1 : (t == "*" ? item.size : t.to_i)
-        # Z has a twist: "*" adds a null to the end of the string
-        size += 1 if kind == "Z" && t == "*"
-        # Pad or truncate the string (with spaces) as appropriate
-        ret << ("%-#{size}s" % item.dup)[0...(size)]
-        # The padding size is the calculated size minus the string size
+        size = case t
+               when nil
+                 1
+               when '*' then
+                 item.size + (kind == "Z" ? 1 : 0)
+               else
+                 t.to_i
+               end
+
         padsize = size - item.size
-        # Replace the space padding for null padding in "a" or "Z"
-        ret = ret.gsub(/\ {#{padsize}}$/, ("\x0" * (padsize)) ) if
-          kind =~ /[aZ]/ && padsize > 0
+        filler  = kind == "A" ? " " : "\0"
+
+        ret << item.split(//).first(size).join
+        ret << filler * padsize if padsize > 0
+
         arr_idx += 1
-      # b/B converts a binary string e.g. '1010101' into bytes
-      elsif kind =~ /[bB]/
+      when 'b', 'B' then
+      when 'c', 'C' then
+        size = case t
+               when nil
+                 1
+               when '*' then
+                 self.size # TODO: - arr_idx?
+               else
+                 t.to_i
+               end
+
+        # FIX: uhh... size is the same as length. just tests that arr_idx == 0
+        raise ArgumentError, "too few array elements" if
+          arr_idx + size > self.length
+
+        sub = self[arr_idx...arr_idx+size]
+        sub.map! { |o| (Type.coerce_to(o, Integer, :to_int) & 0xff).chr }
+        ret << sub.join
+
+        arr_idx += size
+      when 'M' then
+        # for some reason MRI responds to to_s here
+        item = Type.coerce_to(item, String, :to_s)
+        ret << item.scan(/.{1,73}/m).map { |line| # 75 chars per line incl =\n
+          line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
+        }.join
+        arr_idx += 1
+      when 'm' then
+      when 'w' then
+        item = Type.coerce_to(item, Integer, :to_i)
+        raise ArgumentError, "can't compress negative numbers" if item < 0
+
+        ret << (item & 0x7f)
+        while (item >>= 7) > 0 do
+          ret << ((item & 0x7f) | 0x80)
+        end
+
+        ret.reverse! # FIX - breaks anything following BER?
+        arr_idx += 1
+      when 'u' then
+      when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'N' then
+      when 'H', 'h' then
+        size = if t.nil?
+                 0
+               elsif t == "*"
+                 item.length
+               else
+                 t.to_i
+               end
+        str = item.scan(/..?/).first(size)
+
+        ret << if kind == "h" then
+                 str.map { |b| b.reverse.hex.chr }.join
+               else
+                 str.map { |b| b.        hex.chr }.join
+               end
+
+        arr_idx += 1
+      when 'U' then
+      else
+        raise ArgumentError, "Unknown kind #{kind}"
+      end
+
+      if kind == "X"
+      elsif kind =~ /[bB]/ # b/B converts a binary string into bytes
         item = Type.coerce_to(item, String, :to_str)
         byte = 0
         size = t.nil? ? 1 : (t == "*" ? item.length : t.to_i)
@@ -1007,43 +1115,7 @@ class Array
         # Emulate the weird MRI spec for every 2 chars over output a \000
         (item.length).step(size-1, 2) { |i| ret << 0 } if size > item.length
         arr_idx += 1
-        # c returns a single character. If there's a size, it will
-        # gobble up more array elements
-      elsif kind =~ /c/i
-        # Size is the same as for A
-        size = !t ? 1 : (t == "*" ? self.size : t.to_i)
-        raise ArgumentError, "too few array elements" if
-          arr_idx + size > self.length
-        0.upto(size - 1) do |i|
-          item = Type.coerce_to(self[arr_idx], Integer, :to_int)
-          ret << (item & 0xff)
-          arr_idx += 1
-        end
-      # M returns a string encoded with Quoted printable
-      elsif kind == "M"
-         # normalize non-strings - for some reason MRI responds to to_s here
-         item = Type.coerce_to(item, String, :to_s)
-         encoded = ""
-         # only 75 characters per line (each line ends with "=\n")
-         e = item.scan(/.{1,73}/m).each do |result|
-           # Loop through each byte
-           # * if it's an encodable byte, encode it
-           # * otherwise pass it through
-           result.each_byte do |byte|
-             case byte
-             when 32..60, 62..126, 9..10
-               encoded << byte.chr
-             else
-               encoded << "=%02X" % byte
-             end
-           end
-           # add a line-ending to the end of the line
-           encoded << "=\n"
-         end
-         ret << encoded
-         arr_idx += 1
-      # Base64 encoding
-      elsif kind == "m"
+      elsif kind == "m" # Base64 encoding
         item = Type.coerce_to(item, String, :to_str)
         # split the string into letters
         letters = item.split(//)
@@ -1081,18 +1153,7 @@ class Array
         # add \n to the end of each line (including the last line)
         ret << broken_stream.map {|set| set + "\n"}.join
         arr_idx += 1
-      # BER compressed integer
-      elsif kind == "w"
-        item = Type.coerce_to(item, Integer, :to_i)
-        raise ArgumentError, "can't compress negative numbers" if item < 0
-        ret << (item & 0x7f)
-        while (item >>= 7) > 0
-           ret << ((item & 0x7f) | 0x80)
-        end
-        ret.reverse!
-        arr_idx += 1
-      # UUEncode
-      elsif kind == "u"
+      elsif kind == "u" # UUEncode
         item = Type.coerce_to(item, String, :to_str)
         # split the string into 45-character lines
         lines = item.scan(/.{1,45}/)
@@ -1190,26 +1251,6 @@ class Array
           end
           arr_idx += 1
         end
-
-      elsif kind =~ /H|h/
-        remaining = if t.nil?
-                      0
-                    elsif t == "*"
-                      item.length
-                    else
-                      t.to_i
-                    end
-        str = ""
-        item.scan(/..?/).each do |byte|
-          byte.reverse! if kind == "h"
-          str << (remaining == 1 ? byte + "0" : byte).hex.chr
-          remaining -= 2
-          break if remaining < 1
-        end
-
-        arr_idx += 1
-        ret << str
-
       elsif kind == 'U'
         #converts the number passed, or all for * or 1 if missing
         count = !t ? 1 : (t == "*" ? self.size-arr_idx : t.to_i)
@@ -1223,7 +1264,7 @@ class Array
           if item < 0x80
             ret << item
             i=0
-          #else count the bytes needed
+            #else count the bytes needed
           elsif item < 0x800
             i = bytes = 2
           elsif item < 0x10000
@@ -1248,11 +1289,9 @@ class Array
             end
             #catch the highest bits - the mask depends on the byte count
             ret[-bytes] =  (item | ((0x3F00>>bytes)) & 0xFC)
-            end
-            arr_idx += 1
+          end
+          arr_idx += 1
         end
-      else
-        raise ArgumentError, "Unknown kind #{kind}"
       end
     end
 
