@@ -895,11 +895,13 @@ class Array
 
   # TODO fill out pack.
   def pack(schema)
-    # The schema is an array of arrays like [["A", "6"], ["u", "*"], ["X", ""]]. It represents the parsed
-    # form of "A6u*X".
-    # Remove strings in the schema between # and \n
+    # The schema is an array of arrays like [["A", "6"], ["u", "*"],
+    # ["X", ""]]. It represents the parsed form of "A6u*X".  Remove
+    # strings in the schema between # and \n
     schema = schema.gsub(/#[^\n]{0,}\n{0,1}/,'')
-    schema = schema.scan(/([^\s\d\*][\d\*]*)/).flatten.map {|x| x.match(/([^\s\d\*])([\d\*]*)/)[1..-1] }
+    schema = schema.scan(/([^\s\d\*][\d\*]*)/).flatten.map {|x|
+      x.match(/([^\s\d\*])([\d\*]*)/)[1..-1]
+    }
 
     # create the buffer
     ret = ""
@@ -914,9 +916,12 @@ class Array
       item = ""  if !item && kind =~ /[aAZbBhH]/
       # set t to nil if no number (or "*") was passed in
       t = scheme[1].empty? ? nil : scheme[1]
-      # X deletes a number of characters from the buffer (defaults to one; * means 0)
+
+      # X deletes a number of characters from the buffer (defaults to
+      # one; * means 0)
       if kind == "X"
-        # set the default number to 1; otherwise to_i will give us the correct value
+        # set the default number to 1; otherwise to_i will give us the
+        # correct value
         t = t.nil? ? 1 : t.to_i
         # don't allow backing up farther than the size of the buffer
         raise ArgumentError, "you're backing up too far" if t > ret.size
@@ -925,9 +930,9 @@ class Array
       elsif kind == "x"
         size = t.nil? ? 1 : t.to_i
         ret << "\x0" * size
-      # if there's no item, that means there's more schema items than array items,
-      # so throw an error. All actions that DON'T increment arr_idx must occur
-      # before this test.
+      # if there's no item, that means there's more schema items than
+      # array items, so throw an error. All actions that DON'T
+      # increment arr_idx must occur before this test.
       elsif arr_idx >= self.length
         raise ArgumentError, "too few array elements"
       # TODO: Document this
@@ -978,7 +983,8 @@ class Array
         # The padding size is the calculated size minus the string size
         padsize = size - item.size
         # Replace the space padding for null padding in "a" or "Z"
-        ret = ret.gsub(/\ {#{padsize}}$/, ("\x0" * (padsize)) ) if kind =~ /[aZ]/ && padsize > 0
+        ret = ret.gsub(/\ {#{padsize}}$/, ("\x0" * (padsize)) ) if
+          kind =~ /[aZ]/ && padsize > 0
         arr_idx += 1
       # b/B converts a binary string e.g. '1010101' into bytes
       elsif kind =~ /[bB]/
@@ -996,15 +1002,18 @@ class Array
           end
         end
         # always output an incomplete byte
-        ret << byte.chr if ((size & 7) != 0 || size > item.length) && item.length > 0
+        ret << byte.chr if ((size & 7) != 0 || size > item.length) &&
+          item.length > 0
         # Emulate the weird MRI spec for every 2 chars over output a \000
         (item.length).step(size-1, 2) { |i| ret << 0 } if size > item.length
         arr_idx += 1
-      # c returns a single character. If there's a size, it will gobble up more array elements
+        # c returns a single character. If there's a size, it will
+        # gobble up more array elements
       elsif kind =~ /c/i
         # Size is the same as for A
         size = !t ? 1 : (t == "*" ? self.size : t.to_i)
-        raise ArgumentError, "too few array elements" if arr_idx + size > self.length
+        raise ArgumentError, "too few array elements" if
+          arr_idx + size > self.length
         0.upto(size - 1) do |i|
           item = Type.coerce_to(self[arr_idx], Integer, :to_int)
           ret << (item & 0xff)
@@ -1040,18 +1049,30 @@ class Array
         letters = item.split(//)
         # get a series of 0-padded 8-bit representations of the letters
         letters.map! {|letter| "%08d" % letter[0].to_s(2) }
-        # merge the 8-bit representations into 24-bit representations (divisible by 6 and 8)
-        even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream| stream.empty? }
-        # pad the 24-bit streams so we have an set of complete, 24-bit numbers (with a's for padding characters)
+        # merge the 8-bit representations into 24-bit representations
+        # (divisible by 6 and 8)
+        even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream|
+          stream.empty?
+        }
+        # pad the 24-bit streams so we have an set of complete, 24-bit
+        # numbers (with a's for padding characters)
         even_bitstream.map! {|bitset| ("%-24s" % bitset).gsub(" ", "a") }
         # split the numbers up into 6-bit (base64) fragments
-        base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream| stream.empty? }
-        # convert the 6-bit fragments into base64 characters. 'aaaaaa' means a padded base64 fragment
+        base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream|
+          stream.empty?
+        }
+        # convert the 6-bit fragments into base64 characters. 'aaaaaa'
+        # means a padded base64 fragment
         encoded_letters = base_64_stream.map do |fragment|
           # if there's a mixture of digits and "a", the a's should be 0's
           fragment = fragment.gsub("a", "0") if fragment =~ /\da/
-          # if the fragment is not a pad, get the letter from the alphabet; otherwise, pad with "="
-          (fragment != "aaaaaa") ? BASE_64_ALPHA[("%08s" % fragment).to_i(2)].chr : "="
+          # if the fragment is not a pad, get the letter from the
+          # alphabet; otherwise, pad with "="
+          if fragment != "aaaaaa" then
+            BASE_64_ALPHA[("%08s" % fragment).to_i(2)].chr
+          else
+            "="
+          end
         end
         # almost done; join the encoded letters together
         unbroken_stream = encoded_letters.join
@@ -1081,19 +1102,26 @@ class Array
           line_length = line.size
           # get a list of 0-padded 8-bit representations of the line
           letters = line.split(//).map! {|letter| "%08d" % letter[0].to_s(2) }
-          # merge the 8-bit representations into 24-bit representations (divisible by 6 and 8)
-          even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream| stream.empty? }
-          # pad the 24-bit streams so we have an set of complete, 24-bit numbers (with a's for padding characters)
+          # merge the 8-bit representations into 24-bit
+          # representations (divisible by 6 and 8)
+          even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream|
+            stream.empty?
+          }
+          # pad the 24-bit streams so we have an set of complete,
+          # 24-bit numbers (with a's for padding characters)
           even_bitstream.map! {|bitset| ("%-24s" % bitset).gsub(" ", "0") }
           # split the numbers up into 6-bit fragments
-          base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream| stream.empty? }
+          base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream|
+            stream.empty?
+          }
           # convert the 6-bit fragments into ASCII characters.
           encoded_letters = base_64_stream.map do |fragment|
             fragment == "000000" ? "`" : (("%08s" % fragment).to_i(2) + 32).chr
           end
           # almost done; join the encoded letters together
           unbroken_stream = encoded_letters.join
-          # return properly set up line (size preamble and line feed ending) from the map
+          # return properly set up line (size preamble and line feed
+          # ending) from the map
           "#{(line_length + 32).chr}#{unbroken_stream}\n"
         end
         # add \n to the end of each line (including the last line)
@@ -1106,10 +1134,12 @@ class Array
         # If _ is passed (like s_) then we use the native representation.
         # Otherwise, use the platform independent version
         native = !t.nil? && t == '_'
-        # signed or unsigned?  MRI doesn't seem to use it, but it's here in case we need it
+        # signed or unsigned?  MRI doesn't seem to use it, but it's
+        # here in case we need it
         unsigned = (kind =~ /I|S|L/)
 
-        # My 32 bit machine doesn't show any difference, but maybe a 64 bit machine will turn one up.
+        # My 32 bit machine doesn't show any difference, but maybe a
+        # 64 bit machine will turn one up.
         if(!native)
           bytes = 2 if(kind =~ /n/i)
           bytes = 2 if(kind =~ /s/i)
@@ -1122,14 +1152,16 @@ class Array
           bytes = 4 if(kind =~ /l/i)
         end
 
-        # pack these bytes according to the native byte ordering of the host platform
-        # We need big endian if we're converting to network order
+        # pack these bytes according to the native byte ordering of
+        # the host platform We need big endian if we're converting to
+        # network order
         little_endian = kind =~ /n/i ? false : endian?(:little)
 
         0.upto(size-1) do |i|
           item = Type.coerce_to(self[arr_idx], Integer, :to_i)
 
-          # MRI seems only only raise RangeError at 2**32 and above, even for shorts
+          # MRI seems only only raise RangeError at 2**32 and above,
+          # even for shorts
           if item.abs >= 2**32
             raise RangeError, "bignum too big to convert into 'unsigned long'"
           end
@@ -1181,7 +1213,8 @@ class Array
       elsif kind == 'U'
         #converts the number passed, or all for * or 1 if missing
         count = !t ? 1 : (t == "*" ? self.size-arr_idx : t.to_i)
-        raise ArgumentError, "too few array elements" if arr_idx + count > self.length
+        raise ArgumentError, "too few array elements" if
+          arr_idx + count > self.length
 
         count.times do
           item = Type.coerce_to(self[arr_idx], Integer, :to_i)
