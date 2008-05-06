@@ -605,7 +605,9 @@ class Node
 
   # NumberLiteral is generated from a Literal node that
   # represents a Fixnum literal as a convenience. It
-  # contains the actual number in a Ruby Fixnum.
+  # contains the actual number in a Ruby Fixnum. These
+  # are positive numbers only; a combination of Negate
+  # and Literal is used for negatives.
   #
   # Sexp tag: N/A
   #
@@ -628,7 +630,7 @@ class Node
   # object value in the code, such as a number representing
   # a Float. Fixnums and Regexps are delegated to be processed
   # by NumberLiteral and RegexLiteral respectively, but any
-  # other is contained within as an object. 
+  # other is contained within as an object.
   #
   # The remaining literals will also have special treatment
   # in that they are stored in the Literals Tuple of the
@@ -742,7 +744,7 @@ class Node
   # Example:
   #
   #   puts "Hi #{name}, howzit?"
-  #        ^^^^^^^^^^^^^^^^^^^^^    
+  #        ^^^^^^^^^^^^^^^^^^^^^
   #
   # Sexp from example:
   #
@@ -932,6 +934,19 @@ class Node
     attr_accessor :which
   end
 
+  # If is the safe and familiar conditional as well as
+  # the inverse: +unless+. The parser simply constructs
+  # a negated version of the +if+ on those occasions.
+  # The contents are the condition expression as well
+  # as the expressions for then and else.
+  #
+  # Sexp tag: +:if+
+  #
+  # Example:
+  #
+  #   if true; puts "hi"; end
+  #   ^^
+  #
   class If < Node
     kind :if
 
@@ -942,6 +957,29 @@ class Node
     attr_accessor :condition, :then, :else
   end
 
+  # While is the standard conditional looping construct.
+  # It contains the condition itself as well as the body
+  # to run; in addition, it may also indicate that the
+  # condition should be checked before or after the first
+  # loop, default of course being before. The syntax for
+  # both is below.
+  #
+  # Sexp tag: +:while+
+  #
+  # Example:
+  #
+  #   # Condition first (optionally add +do+ after the condition.)
+  #   while blah
+  #   ^^^^^^^^^^
+  #     ...
+  #   end
+  #
+  #   # Run once first. +end+ and +while+ must be on the same line
+  #   begin
+  #     ...
+  #   end while blah
+  #   ^^^^^^^^^^^^^^
+  #
   class While < Node
     kind :while
 
@@ -952,10 +990,57 @@ class Node
     attr_accessor :condition, :body, :check_first
   end
 
+  # Until is same as a +while not+. See While for further
+  # documentation. May also be used pre- or postcondition.
+  #
+  # Sexp tag: +:until+
+  #
+  # Example:
+  #
+  #   # Condition first (optionally add +do+ after the condition.)
+  #   until blah
+  #   ^^^^^^^^^^
+  #     ...
+  #   end
+  #
+  #   # Run once first. +end+ and +until+ must be on the same line
+  #   begin
+  #     ...
+  #   end until blah
+  #   ^^^^^^^^^^^^^^
+  #
   class Until < While
     kind :until
   end
 
+  # +Block+ is a special node: it is part of Ruby's semantics rather than
+  # syntax. Notably, a Block is NOT a Ruby block (a Proc object.) A Block
+  # simply encapsulates multiple expressions into a group. For example, an
+  # +if+ expression that has a single line inside it does not have a Block,
+  # but one that has two lines will have both of those lines encapsulated
+  # inside a Block. It has no fancy purpose apart from grouping.
+  #
+  # Sexp tag: +:block+
+  #
+  # Example:
+  #
+  #   if foo
+  #     bar    <
+  #     baz    < These will all be inside the :block
+  #     quux   <
+  #   end
+  #
+  # Sexp from example (Newline nodes omitted):
+  #
+  #   [:if
+  #       , [:vcall, :foo]
+  #       , [:block
+  #                , [:vcall, :bar]
+  #                , [:vcall, :baz]
+  #                , [:vcall, :quux]
+  #                ]
+  #       ]
+  #
   class Block < Node
     kind :block
 
@@ -966,6 +1051,28 @@ class Node
     attr_accessor :body
   end
 
+  # +Scope+ is another special node type. It represents the scope
+  # inside a logical Ruby unit such as a method definition or a
+  # class definition. Curiously, though, the Scope is not where
+  # the variable scoping etc. happens: for that, see ClosedScope
+  # and its subclasses. For example in a method definition, the
+  # Define node itself is the ClosedScope, but it in turn has a
+  # Scope object encapsulated inside. To make things stranger,
+  # the Scope object itself contains the Block of code (method
+  # body, for example) but _also the names of local variables_
+  # inside that code block. The locals are *actually* managed
+  # by the ClosedScope, though. So for the purposes of Rubinius
+  # compilation, you can sort of ignore the Scope node except
+  # for its semantic meaning.
+  #
+  # Sexp tag: +:scope+
+  #
+  # Example:
+  #
+  #   def foo(a, b)   <
+  #     ...           <  Scope object created inside the Define
+  #   end             <
+  #
   class Scope < Node
     kind :scope
 
@@ -994,6 +1101,40 @@ class Node
     end
   end
 
+  # +Arguments+ is for the representation of a method _definition's_
+  # argument list. It contains four sub-nodes, one each for required
+  # args, optional args, splat name and default value expressions. A
+  # block argument is actually not noted at this level because in the
+  # sexp, it is a sibling to this node, all contained inside the method
+  # definition. The block argument is added to the node later by the
+  # Define node in its normalisation process.
+  #
+  # There are a few interesting details: because default values can
+  # be any expressions (try it, you can use a block, a class, define
+  # another function etc.), the entire expression subtree is stored.
+  # The optional arguments are just the variable names, and the values
+  # are first processed into their own little AST subtrees which are
+  # then stored in a mapping whence they may be executed at runtime
+  # if the default value is needed.
+  # 
+  # The Arguments node performs quite a bit of other normalisation
+  # also, as well as coordinating setting up the arguments as local
+  # variables with the appropriate LocalScope and providing the
+  # arity calculation for this method. See further documentation
+  # about those operations in the individual methods of Arity.
+  #
+  # Sexp tag: +:args+
+  #
+  # Example:
+  #
+  #   def foo(a, b = lambda { :moo }, *c, &d)
+  #           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  #             These go in the node.
+  #             Block arg processed
+  #             in Define.
+  #     ...
+  #   end
+  #
   class Arguments < Node
     kind :args
 
@@ -1097,6 +1238,28 @@ class Node
     end
   end
 
+  # +Undef+ is the keyword +undef+, #undefine_method does not have any
+  # special handling that would make it processable here and thus is
+  # just a normal method call. Two data are retained: first naturally
+  # the name of the method in question which can be either just the name
+  # as a plain identifier or given as a Symbol. The other information
+  # is whether the undef occurs inside a Module definition scope. The
+  # undef keyword is somewhat surprising in its behaviour: it always
+  # tries to undefine the given method in the module that the line is
+  # _lexically_ enclosed in, so this must be known for the cases it is
+  # used outside the Module definition scopes. This also excludes any
+  # use in the block form of Module.new, which may be surprising altough
+  # consistent with closure behaviour.
+  #
+  # Sexp tag: +:undef+
+  #
+  # Example:
+  #
+  #   class Foo
+  #     undef bar
+  #     ^^^^^^^^^
+  #   end
+  #
   class Undef < Node
     kind :undef
 
