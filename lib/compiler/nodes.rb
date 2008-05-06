@@ -427,6 +427,8 @@ class Node
   # from. In addition to that metadata, it contains within it a Block of
   # the actual Ruby code (as sexp) that makes up that particular line.
   #
+  # Sexp tag: +:newline+
+  #
   class Newline < Node
     kind :newline
 
@@ -448,6 +450,8 @@ class Node
 
   # True is the literal +true+.
   #
+  # Sexp tag: +:true+
+  #
   # Example:
   #
   #   puts "Hi" if true
@@ -458,6 +462,8 @@ class Node
   end
 
   # False is the literal +false+.
+  #
+  # Sexp tag: +:false+
   #
   # Example:
   #
@@ -470,6 +476,8 @@ class Node
 
   # Nil is the literal +nil+.
   #
+  # Sexp tag: +:nil+
+  #
   # Example:
   #
   #   puts "Hi" if nil
@@ -480,6 +488,8 @@ class Node
   end
 
   # Self is the literal +self+.
+  #
+  # Sexp tag: +:self+
   #
   # Example:
   #
@@ -499,6 +509,8 @@ class Node
   #
   # It contains both the left and the right
   # subexpression.
+  #
+  # Sexp tag: +:and+
   #
   # Example:
   #
@@ -528,6 +540,8 @@ class Node
   # It contains both the left and the right
   # subexpression.
   #
+  # Sexp tag: +:or+
+  #
   # Example:
   #
   #   foo or bar
@@ -546,6 +560,8 @@ class Node
   # because of it, though.
   #
   # It contains the expression to negate.
+  #
+  # Sexp tag: +:not+
   #
   # Example:
   #
@@ -576,6 +592,17 @@ class Node
 #    attr_accessor :child
 #  end
 
+  # NumberLiteral is generated from a Literal node that
+  # represents a Fixnum literal as a convenience. It
+  # contains the actual number in a Ruby Fixnum.
+  #
+  # Sexp tag: N/A
+  #
+  # Example:
+  #
+  #   a = 50
+  #       ^^
+  #
   class NumberLiteral < Node
     kind :fixnum
 
@@ -586,6 +613,27 @@ class Node
     attr_accessor :value
   end
 
+  # Literal is the default representation of any literal
+  # object value in the code, such as a number representing
+  # a Float. Fixnums and Regexps are delegated to be processed
+  # by NumberLiteral and RegexLiteral respectively, but any
+  # other is contained within as an object. 
+  #
+  # The remaining literals will also have special treatment
+  # in that they are stored in the Literals Tuple of the
+  # CompiledMethod so that they are accessible to runtime
+  # code.
+  #
+  # Sexp tag: +:lit+
+  #
+  # Example:
+  #
+  #   pi_ish = 3.14
+  #            ^^^^
+  #
+  #   drive  = :dvd_rom
+  #            ^^^^^^^^
+  #
   class Literal < Node
     kind :lit
 
@@ -609,6 +657,22 @@ class Node
     attr_accessor :value
   end
 
+  # RegexLiteral is a regular expression literal.
+  # It is usually generated directly but may also
+  # be delegated to by Literal. Each RegexLiteral
+  # contains the source (which is actually a String)
+  # and a Fixnum representing the regexp options in
+  # effect. These two bits of information are used
+  # to create the actual object through Regexp.new
+  # at runtime.
+  #
+  # Sexp tag: +:regex+   (Note missing "p.")
+  #
+  # Example:
+  #
+  #   puts "matched" if /foo/ =~ variable
+  #                     ^^^^^
+  #
   class RegexLiteral < Node
     kind :regex
 
@@ -619,6 +683,21 @@ class Node
     attr_accessor :source, :options
   end
 
+  # StringLiteral is a nondynamic string literal.
+  # It contains the Ruby String object corresponding
+  # to the real given character sequence. Since these
+  # objects are stored in the Literals Tuple, you will
+  # often see bytecode that performs a +string_dup+,
+  # which just makes a copy of the stored one so that
+  # the user can modify his version.
+  #
+  # Sexp tag: +:str+
+  #
+  # Example:
+  #
+  #   puts "hi"
+  #        ^^^^
+  #
   class StringLiteral < Node
     kind :str
 
@@ -630,6 +709,38 @@ class Node
   end
 
 
+  # DynamicString is a dynamic string literal; i.e.,
+  # one with an interpolated component. There are a
+  # few notable things: the parser will process any
+  # interpolations which themselves contain a string
+  # literal into a plain string literal instead of
+  # a dynamic string. The latter will only be in
+  # effect for variable interpolation etc.
+  #
+  # Each dynamic string consists of two things: string
+  # literals for the nondynamic parts and :evstr nodes
+  # for the parts that need to be evaluated. The :dstr
+  # node itself contains the starting literal (if any),
+  # but all subsequent ones appear as additional :str
+  # nodes interspersed with :evstrs. The :evstr nodes
+  # are any executable code, so they will eventually
+  # be unwrapped and the sexp there translated to AST.
+  #
+  # Sexp tag: +:dstr+
+  #
+  # Example:
+  #
+  #   puts "Hi #{name}, howzit?"
+  #        ^^^^^^^^^^^^^^^^^^^^^    
+  #
+  # Sexp from example:
+  #
+  #   [:dstr, "Hi "
+  #         , [:evstr, [:vcall, :name]]
+  #         , [:str, ", howzit?"]
+  #         ]
+  #
+  #
   class DynamicString < StringLiteral
     kind :dstr
 
@@ -641,6 +752,18 @@ class Node
     attr_accessor :body
   end
 
+  # DynamicRegex is a dynamic regexp literal, i.e.
+  # one with an interpolated component. These behave
+  # the same as DynamicStrings (they actually use :str
+  # and :evstr nodes also), please see above for a more
+  # thorough explanation.
+  #
+  # Sexp tag: +:dregx+
+  #
+  # Example:
+  #
+  #   /a#{b}c/
+  #
   class DynamicRegex < DynamicString
     kind :dregx
 
@@ -651,14 +774,36 @@ class Node
     end
   end
 
+  # DynamicOnceRegex is identical to DynamicRegex, with
+  # the exception that the interpolation is only run once.
+  # This is done using the +o+ flag to the literal. Please
+  # see DynamicRegex for more detailed documentation.
+  #
+  # Sexp tag: +:dregx_once+
+  #
+  # Example:
+  #
+  #   /a#{b}c/o   # Note the +o+ option
+  #
   class DynamicOnceRegex < DynamicRegex
     kind :dregx_once
   end
 
-  # Implicit match:
+  # Implicit regexp matching node. A Match is created if
+  # there is a regexp literal in a condition without an
+  # object to match against (or indeed the matching op.)
+  # Ruby allows this form to match against +$_+ which is
+  # a predefined global always set to the last line of
+  # input read into the program.
   #
-  #   puts "$_ matched 'foo'" if /foo/
-  #                           ^^^^^^^^
+  # Sexp tag: +:match+
+  #
+  # Example:
+  #
+  #   gets
+  #   puts "Uh-uh, you said 'foo'" if /foo/
+  #                                  ^^^^^^^^
+  #
   class Match < Node
     kind :match
 
@@ -680,9 +825,18 @@ class Node
     attr_accessor :pattern, :target
   end
 
-  # Regexp match, left-hand-side:
+  # Match2 is a regexp match where the regexp literal is on the
+  # left hand side of the match operator. This node is generated
+  # any time such an event occurs. Naturally, the parser is not
+  # able to determine whether a variable is a Regexp, so it only
+  # works with a regexp literal. See also Match3.
   #
-  #  /this/ =~ "matches this"
+  # Sexp tag: +:match2+
+  #
+  # Example:
+  #
+  #   /this/ =~ "matches this"
+  #   ^^^^^^^^^
   #
   class Match2 < Node
     kind :match2
@@ -694,9 +848,19 @@ class Node
     attr_accessor :pattern, :target
   end
 
-  # Regexp literal match, right-hand-side:
+  # Match3 is a regexp match where the regexp literal is on the
+  # right hand side of the match operator. This node is generated
+  # any time such an event occurs. Naturally, the parser is not
+  # able to determine whether a variable is a Regexp, so it only
+  # works with a regexp literal. See also Match2.
   #
-  #   "this" =~ /matches this/
+  # Sexp tag: +:match3+
+  #
+  # Example:
+  #
+  #   "this matches" =~ /this/
+  #                  ^^^^^^^^^
+  #
   class Match3 < Node
     kind :match3
 
@@ -707,6 +871,20 @@ class Node
     attr_accessor :target, :pattern
   end
 
+  # BackRef is any one of the predefined (thread-) global variables
+  # that are set after each regexp match operation, except the numbered
+  # ones. A BackRef can be $`, $', $& etc. The second character is
+  # stored to create the entire variable. See also NthRef.
+  #
+  # Sexp tag: +:back_ref+
+  #
+  # Example:
+  #
+  #   /fo(o)/ =~ variable
+  #
+  #   puts $`
+  #        ^^
+  #
   class BackRef < Node
     kind :back_ref
 
@@ -717,6 +895,22 @@ class Node
     attr_accessor :kind
   end
 
+  # NthRef is one of the numbered groups from the last regexp match.
+  # The node contains the numeric value, which will then be combined
+  # with $ to make the global at runtime. Technically there is no
+  # limitation (up to the thousands) on the number of backrefs but
+  # Win32 does limit it to 10. See also BackRef for the other regexp
+  # match automatic (thread-) globals.
+  #
+  # Sexp tag: +:nth_ref+
+  #
+  # Example:
+  #
+  #     /(f)oo/ =~ variable
+  #
+  #     puts $1
+  #          ^^
+  #
   class NthRef < Node
     kind :nth_ref
 
