@@ -385,11 +385,11 @@ class Debugger
 
   class ShowLocals < Command
     def help
-      return "v[ars]", "Show local variables and their values."
+      return "[l]v[ars]", "Show local variables and their values."
     end
 
     def command_regexp
-      /^v(?:ars)?$/
+      /^l?v(?:ars)?$/
     end
 
     def execute(dbg, interface, inp)
@@ -410,6 +410,28 @@ class Debugger
       else
         Output.none("There are no local variables defined in #{cm.name}")
       end
+    end
+  end
+
+
+  class ShowGlobals < Command
+    def help
+      return "gv[ars]", "Show global variables and their values."
+    end
+
+    def command_regexp
+      /^gv(?:ars)?$/
+    end
+
+    def execute(dbg, interface, inp)
+      # Output globals
+      output = Output.info("Global variables:")
+      output.set_columns([['Name', '%-25s'], ['Class', '%-25s'], ['Value', '%-50s']], ' ', false)
+      Globals.variables.dup.sort{|a,b| a.to_s <=> b.to_s}.each do |v|
+        val = Globals[v]
+        output << [v, val.class, val.inspect]
+      end
+      output
     end
   end
 
