@@ -581,16 +581,27 @@ class Node
     attr_accessor :child
   end
 
-  # TODO: No clue. Parser does not currently emit this.
-#  class Negate < Node
-#    kind :negate
-#
-#    def args(child)
-#      @child = child
-#    end
-#
-#    attr_accessor :child
-#  end
+  # Negate represents a negative numeric literal.
+  # It contains the Ruby object for the absolute
+  # value, the node itself is used as the negative
+  # marker.
+  #
+  # Sexp tag: +:negate+
+  #
+  # Example:
+  #
+  #   -1 + -0.045
+  #   ^^   ^^^^^^
+  #
+  class Negate < Node
+    kind :negate
+
+    def args(child)
+      @child = child
+    end
+
+    attr_accessor :child
+  end
 
   # NumberLiteral is generated from a Literal node that
   # represents a Fixnum literal as a convenience. It
