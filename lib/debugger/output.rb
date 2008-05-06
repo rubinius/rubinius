@@ -150,10 +150,10 @@ puts @widths.inspect
         str.rstrip!
         lines = []
         until str.length <= width do
-          if pos = str[0, width].rindex(/[\s\-,]/)
+          if pos = str[0, width].rindex(/[\s\-,_]/)
             # Found a break on whitespace or dash
             line, str = str[0..pos].rstrip, str[pos+1..-1].strip
-          elsif pos = str[0, width-1].rindex(/[^\w]/)
+          elsif pos = str[0, width-1].rindex(/[^\w]/) and pos > 0
             # Found a non-word character to break on
             line, str = str[0...pos].rstrip, str[pos..-1].strip
           else

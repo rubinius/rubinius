@@ -38,6 +38,8 @@ describe "Output::Columns#wrap" do
 
   it "forces a break at width if no other break position exists" do
     @cols.wrap("abcdefghijklmnop", 10).should == ["abcdefghij","klmnop"]
+    @cols.wrap("abcdefghijklmnop", 5).should == ["abcde", "fghij","klmno", "p"]
+    @cols.wrap("$LOADED_FEATURES", 15).should == ["$LOADED_", "FEATURES"]
   end
 
   it "trims leading and trailing whitespace from split lines" do
