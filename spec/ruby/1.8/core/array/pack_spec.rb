@@ -263,7 +263,7 @@ describe "Array#pack" do
     end
   end
 
-  it "raises a TypeErorr if value is string with ('C')" do
+  it "raises a TypeError if value is string with ('C')" do
     lambda { ["hello"].pack('C') }.should raise_error(TypeError)
   end
 
