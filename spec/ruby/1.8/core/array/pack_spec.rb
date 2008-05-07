@@ -1,36 +1,12 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "Array#pack" do
-  #      Directive    Meaning
-  #      ---------------------------------------------------------------
-  #          @     |  Moves to absolute position
-  #          B     |  Bit string (descending bit order)
-  #          b     |  Bit string (ascending bit order)
-  #          D, d  |  Double-precision float, native format
-  #          E     |  Double-precision float, little-endian byte order
-  #          e     |  Single-precision float, little-endian byte order
-  #          F, f  |  Single-precision float, native format
-  #          G     |  Double-precision float, network (big-endian) byte order
-  #          g     |  Single-precision float, network (big-endian) byte order
-  #          H     |  Hex string (high nibble first)
-  #          h     |  Hex string (low nibble first)
-  #          I     |  Unsigned integer
-  #          i     |  Integer
-  #          L     |  Unsigned long
-  #          l     |  Long
-  #          N     |  Long, network (big-endian) byte order
-  #          n     |  Short, network (big-endian) byte-order
-  #          P     |  Pointer to a structure (fixed-length string)
-  #          p     |  Pointer to a null-terminated string
-  #          Q, q  |  64-bit number
-  #          S     |  Unsigned short
-  #          s     |  Short
-  #          U     |  UTF-8
-  #          V     |  Long, little-endian byte order
-  #          v     |  Short, little-endian byte order
-  #          w     |  BER-compressed integer\fnm
+if ENV['MRI'] then
+  $: << 'kernel/core'
+  require 'pack'
+end
 
+describe "Array#pack" do
   it "raises an ArgumentError with ('%')" do
     lambda { [].pack("%") }.should raise_error(ArgumentError)
   end
@@ -124,7 +100,7 @@ describe "Array#pack" do
     ["10000000"].pack('B8').should == "\200"
   end
 
-  it "conversion edge case: left one with ('B')" do
+  it "conversion edge case: right one with ('B')" do
     ["00000001"].pack('B8').should == "\001"
   end
 
@@ -188,7 +164,7 @@ describe "Array#pack" do
     ["10000000"].pack('b8').should == "\001"
   end
 
-  it "conversion edge case: left one with ('b')" do
+  it "conversion edge case: right one with ('b')" do
     ["00000001"].pack('b8').should == "\200"
   end
 
@@ -573,23 +549,46 @@ describe "Array#pack" do
   it "ignores star parameter with ('m')" do
     ["ABC", "DEF", "GHI"].pack('m*').should == ["ABC"].pack('m')
   end
-  
+
   it "encodes an integer in network order with ('n')" do
     [1234].pack('n').should == "\004\322"
   end
-  
+
   it "encodes 4 integers in network order with ('n4')" do
     [1234,5678,9876,5432].pack('n4').should == "\004\322\026.&\224\0258"
   end
 
-  it "encodes an integer in little-endian order with ('v')" do
+  it "encodes a long in network-order with ('N')" do
+    [1000].pack('N').should == "\000\000\003\350"
+    [-1000].pack('N').should == "\377\377\374\030"
+
+    [65536].pack('N').should == "\000\001\000\000"
+    [-65536].pack('N').should == "\377\377\000\000"
+    # TODO: add bigger numbers
+  end
+
+#   it "encodes a long in network-order with ('N4')" do
+#     [1234,5678,9876,5432].pack('N4').should == "\000\000\004\322\000\000\026.\000\000&\224\000\000\0258"
+#     # TODO: bigger
+#   end
+
+  it "encodes a long in little-endian order with ('V')" do
+    [1000].pack('V').should == "\350\003\000\000"
+    [-1000].pack('V').should == "\030\374\377\377"
+
+    [65536].pack('V').should == "\000\000\001\000"
+    [-65536].pack('V').should == "\000\000\377\377"
+    # TODO: add bigger numbers
+  end
+
+  it "encodes a short in little-endian order with ('v')" do
     [1000].pack('v').should == "\350\003"
     [-1000].pack('v').should == "\030\374"
 
     [65536].pack('v').should == "\000\000"
     [-65536].pack('v').should == "\000\000"
   end
-  
+
   it "encodes a positive integer with ('s')" do
     [0].pack('s').should == "\000\000"
     [2**32-1].pack('s').should == "\377\377"
@@ -693,10 +692,10 @@ describe "Array#pack" do
   end
 
   it "encodes 6-bit char with another char starting from char 32 with ('u')" do
-    [( 1*4).chr].pack('u').should == "!!```\n"
-    [(16*4).chr].pack('u').should == "!0```\n"
-    [(25*4).chr].pack('u').should == "!9```\n"
-    [(63*4).chr].pack('u').should == "!_```\n"
+    [( 1 * 4).chr].pack('u').should == "!!```\n"
+    [(16 * 4).chr].pack('u').should == "!0```\n"
+    [(25 * 4).chr].pack('u').should == "!9```\n"
+    [(63 * 4).chr].pack('u').should == "!_```\n"
   end
 
   it "replaces spaces in encoded string with grave accent (`) char with ('u')" do
@@ -807,7 +806,64 @@ describe "Array#pack" do
 
   # Scenario taken from Mongrel's use of the SO_ACCEPTFILTER struct
   it "reuses last array element as often as needed to complete the string" do
-    expected = "httpready\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+    expected = "httpready" + ("\000" * 247)
     ['httpready', nil].pack('a16a240').should == expected
   end
 end
+
+#   def test_pack
+#     $format = "c2x5CCxsdils_l_a6";
+#     # Need the expression in here to force ary[5] to be numeric.  This avoids
+#     # test2 failing because ary2 goes str->numeric->str and ary does not.
+#     ary = [1,-100,127,128,32767,987.654321098 / 100.0,12345,123456,-32767,-123456,"abcdef"]
+#     $x = ary.pack($format)
+#     ary2 = $x.unpack($format)
+
+#     assert_equal(ary.length, ary2.length)
+#     assert_equal(ary.join(':'), ary2.join(':'))
+#     assert_match(/def/, $x)
+
+#     $x = [-1073741825]
+#     assert_equal($x, $x.pack("q").unpack("q"))
+
+#     $x = [-1]
+#     assert_equal($x, $x.pack("l").unpack("l"))
+#   end
+
+#   def test_pack_N
+#     assert_equal "\000\000\000\000", [0].pack('N')
+#     assert_equal "\000\000\000\001", [1].pack('N')
+#     assert_equal "\000\000\000\002", [2].pack('N')
+#     assert_equal "\000\000\000\003", [3].pack('N')
+#     assert_equal "\377\377\377\376", [4294967294].pack('N')
+#     assert_equal "\377\377\377\377", [4294967295].pack('N')
+
+#     assert_equal "\200\000\000\000", [2**31].pack('N')
+#     assert_equal "\177\377\377\377", [-2**31-1].pack('N')
+#     assert_equal "\377\377\377\377", [-1].pack('N')
+
+#     assert_equal "\000\000\000\001\000\000\000\001", [1,1].pack('N*')
+#     assert_equal "\000\000\000\001\000\000\000\001\000\000\000\001", [1,1,1].pack('N*')
+#   end
+
+#   def test_unpack_N
+#     assert_equal 1, "\000\000\000\001".unpack('N')[0]
+#     assert_equal 2, "\000\000\000\002".unpack('N')[0]
+#     assert_equal 3, "\000\000\000\003".unpack('N')[0]
+#     assert_equal 3, "\000\000\000\003".unpack('N')[0]
+#     assert_equal 4294967295, "\377\377\377\377".unpack('N')[0]
+#     assert_equal [1,1], "\000\000\000\001\000\000\000\001".unpack('N*')
+#     assert_equal [1,1,1], "\000\000\000\001\000\000\000\001\000\000\000\001".unpack('N*')
+#   end
+
+#   def test_pack_U
+#     assert_raises(RangeError) { [-0x40000001].pack("U") }
+#     assert_raises(RangeError) { [-0x40000000].pack("U") }
+#     assert_raises(RangeError) { [-1].pack("U") }
+#     assert_equal "\000", [0].pack("U")
+#     assert_equal "\374\277\277\277\277\277", [0x3fffffff].pack("U")
+#     assert_equal "\375\200\200\200\200\200", [0x40000000].pack("U")
+#     assert_equal "\375\277\277\277\277\277", [0x7fffffff].pack("U")
+#     assert_raises(RangeError) { [0x80000000].pack("U") }
+#     assert_raises(RangeError) { [0x100000000].pack("U") }
+#   end
