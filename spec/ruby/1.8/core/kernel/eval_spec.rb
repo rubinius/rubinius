@@ -114,7 +114,25 @@ describe "Kernel#eval" do
     eval("k", inner_binding).should == 6
   end
 
-  it "should include file and line information in syntax error" do
+  it "allows creating a new class in a binding" do
+    bind = proc {}
+    eval "class A; end", bind
+    eval("A.name", bind).should == "A"
+  end
+
+  it "allows creating a new class in a binding created by #eval" do
+    bind = eval "binding"
+    eval "class A; end", bind
+    eval("A.name").should == "A"
+  end
+
+  it "allows creating a new class in a binding returned by a method defined with #eval" do
+    bind = eval "def spec_binding; binding; end; spec_binding"
+    eval "class A; end", bind
+    eval("A.name").should == "A"
+  end
+
+  it "includes file and line information in syntax error" do
     expected = 'speccing.rb'
     lambda {
       eval('if true',TOPLEVEL_BINDING,expected)
