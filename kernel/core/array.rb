@@ -969,11 +969,12 @@ class Array
     arr_idx = 0
 
     schema.each do |kind, t|
+      # p :iter => [kind, t]
       item = self[arr_idx]
       t = nil if t.empty?
 
       # MRI nil compatibilty for string functions
-      item = "" if !item && kind =~ /[aAZbBhH]/
+      item = "" if item.nil? && kind =~ /[aAZbBhH]/
 
       # if there's no item, that means there's more schema items than
       # array items, so throw an error. All actions that DON'T
@@ -988,15 +989,17 @@ class Array
         ret[-size..-1] = '' if size > 0
       when 'x' then
         size = (t || 1).to_i
-        ret << "\x0" * size
+        ret << "\000" * size
       when 'N' then                         # TODO: untested
         parts = []
         4.times do                          # TODO: const?
           parts << (item % 256).chr
           item >>= 8
         end
-        ret << parts.join
+        ret << parts.reverse.join
         arr_idx += 1
+        item = nil
+        next # HACK
       when 'V' then                         # FIX: untested
         parts = []
         4.times do                          # TODO: const?
@@ -1032,6 +1035,41 @@ class Array
 
         arr_idx += 1
       when 'b', 'B' then
+        item = Type.coerce_to(item, String, :to_str)
+        byte = 0
+        lsb  = (kind == "b")
+        size = case t
+               when nil
+                 1
+               when '*' then
+                 item.size
+               else
+                 t.to_i
+               end
+
+        bits = item.split(//).map { |c| c[0] & 01 }
+        min = [size, item.size].min
+
+        bits.first(min).each_with_index do |bit, i| # TODO: this can be cleaner
+          i &= 07
+
+          byte |= bit << (lsb ? i : 07 - i)
+
+          if i == 07 then
+            ret << byte.chr
+            byte = 0
+          end
+        end
+
+        # always output an incomplete byte
+        if ((size & 07) != 0 || min != size) && item.size > 0 then
+          ret << byte.chr
+        end
+
+        # Emulate the weird MRI spec for every 2 chars over output a \000 # FIX
+        (item.length).step(size-1, 2) { |i| ret << 0 } if size > item.length
+
+        arr_idx += 1
       when 'c', 'C' then
         size = case t
                when nil
@@ -1058,7 +1096,31 @@ class Array
           line.gsub(/[^ -<>-~\t\n]/) { |m| "=%02X" % m[0] } + "=\n"
         }.join
         arr_idx += 1
-      when 'm' then
+      when 'm' then # REFACTOR: merge with u
+        item = Type.coerce_to(item, String, :to_str)
+        line = item
+        format              = "%08b" * line.length
+        letters             = format % line.split(//).map { |c| c[0] }
+        even_bitstream      = letters.scan(/.{1,24}/)
+        even_bitstream[-1] += 'a' * (24 - even_bitstream.last.size) unless
+          even_bitstream.empty?
+        base_64_stream      = even_bitstream.join.scan(/.{6}/)
+
+        encoded_letters = base_64_stream.map { |fragment|
+          fragment = fragment.gsub("a", "0") if fragment =~ /\da/
+          if fragment != "aaaaaa" then
+            BASE_64_ALPHA[fragment.to_i(2)].chr
+          else
+            "="
+          end
+        }.join
+
+        unbroken_stream = encoded_letters
+
+        ret << unbroken_stream.scan(/.{1,60}/).join("\n") + "\n" unless
+          unbroken_stream.empty?
+
+        arr_idx += 1
       when 'w' then
         item = Type.coerce_to(item, Integer, :to_i)
         raise ArgumentError, "can't compress negative numbers" if item < 0
@@ -1070,8 +1132,73 @@ class Array
 
         ret.reverse! # FIX - breaks anything following BER?
         arr_idx += 1
-      when 'u' then
-      when 'i', 's', 'l', 'n', 'I', 'S', 'L', 'N' then
+      when 'u' then # REFACTOR: merge with m
+        item = Type.coerce_to(item, String, :to_str)
+        ret << item.scan(/.{1,45}/).map { |line|
+          format              = "%08b" * line.length
+          letters             = format % line.split(//).map { |c| c[0] }
+          even_bitstream      = letters.scan(/.{1,24}/)
+          even_bitstream[-1] += '0' * (24 - even_bitstream.last.size)
+          base_64_stream      = even_bitstream.join.scan(/.{6}/)
+
+          # TODO:
+          #http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
+          # encoded = sitem.scan(/(.)(.?)(.?)/).map { |a,b,c|
+          # a = a[0]; b = b[0] || 0; c = c[0] || 0
+          # [( a >> 2                    ),
+          # ((a << 4) | ((b >> 4) & 017)),
+          # ((b << 2) | ((c >> 6) & 003)),
+          # ( c                         )].map { |n| (?\s + (n & 077)).chr }
+          #}.flatten
+
+          encoded_letters = base_64_stream.map { |fragment|
+            (fragment.to_i(2) + ?\s).chr
+          }.join
+
+          unbroken_stream = encoded_letters.sub(/ +\Z/) { '`' * $&.length }
+          "#{(line.size + ?\s).chr}#{unbroken_stream}\n"
+        }.join
+        arr_idx += 1
+      when 'i', 's', 'l', 'n', 'I', 'S', 'L' then
+        size = case t
+               when nil
+                 1
+               when '*' then
+                 self.size
+               else
+                 t.to_i
+               end
+
+        native        = t && t == '_'
+        unsigned      = (kind =~ /I|S|L/)
+        little_endian = kind !~ /n/i && endian?(:little)
+
+        raise "unsupported - fix me" if native
+
+        unless native then
+          bytes = case kind
+                  when /n/i then 2
+                  when /s/i then 2
+                  when /i/i then 4
+                  when /l/i then 4
+                  end
+        end
+
+        size.times do |i|
+          item = Type.coerce_to(self[arr_idx], Integer, :to_i)
+
+          # MRI seems only only raise RangeError at 2**32 and above, even shorts
+          raise RangeError, "bignum too big to convert into 'unsigned long'" if
+            item.abs >= 2**32 # FIX: const
+
+            ret << if little_endian then
+                     item += 2 ** (8 * bytes) if item < 0
+                     (0...bytes).map { |b| ((item >> (b * 8)) & 0xFF).chr }
+                   else # ugly
+                     (0...bytes).map {n=(item % 256).chr;item /= 256; n}.reverse
+                   end.join
+          arr_idx += 1
+        end
       when 'H', 'h' then
         size = if t.nil?
                  0
@@ -1090,208 +1217,53 @@ class Array
 
         arr_idx += 1
       when 'U' then
-      else
-        raise ArgumentError, "Unknown kind #{kind}"
-      end
+        count = if t.nil? then
+                  1
+                elsif t == "*"
+                  self.size - arr_idx
+                else
+                  t.to_i
+                end
 
-      if kind == "X"
-      elsif kind =~ /[bB]/ # b/B converts a binary string into bytes
-        item = Type.coerce_to(item, String, :to_str)
-        byte = 0
-        size = t.nil? ? 1 : (t == "*" ? item.length : t.to_i)
-        # shift lsb in from the left of string for b or msb for B
-        shift_in_lsb = (kind == "b")
-        0.upto(size > item.length ? item.length-1 : size-1) do |i|
-          bit = item[i] & 1
-          byte |= shift_in_lsb ? bit << (i & 7) : bit << (7 - (i & 7))
-          if (i & 7) == 7
-            ret << byte.chr
-            byte = 0
-          end
-        end
-        # always output an incomplete byte
-        ret << byte.chr if ((size & 7) != 0 || size > item.length) &&
-          item.length > 0
-        # Emulate the weird MRI spec for every 2 chars over output a \000
-        (item.length).step(size-1, 2) { |i| ret << 0 } if size > item.length
-        arr_idx += 1
-      elsif kind == "m" # Base64 encoding
-        item = Type.coerce_to(item, String, :to_str)
-        # split the string into letters
-        letters = item.split(//)
-        # get a series of 0-padded 8-bit representations of the letters
-        letters.map! {|letter| "%08d" % letter[0].to_s(2) }
-        # merge the 8-bit representations into 24-bit representations
-        # (divisible by 6 and 8)
-        even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream|
-          stream.empty?
-        }
-        # pad the 24-bit streams so we have an set of complete, 24-bit
-        # numbers (with a's for padding characters)
-        even_bitstream.map! {|bitset| ("%-24s" % bitset).gsub(" ", "a") }
-        # split the numbers up into 6-bit (base64) fragments
-        base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream|
-          stream.empty?
-        }
-        # convert the 6-bit fragments into base64 characters. 'aaaaaa'
-        # means a padded base64 fragment
-        encoded_letters = base_64_stream.map do |fragment|
-          # if there's a mixture of digits and "a", the a's should be 0's
-          fragment = fragment.gsub("a", "0") if fragment =~ /\da/
-          # if the fragment is not a pad, get the letter from the
-          # alphabet; otherwise, pad with "="
-          if fragment != "aaaaaa" then
-            BASE_64_ALPHA[("%08s" % fragment).to_i(2)].chr
-          else
-            "="
-          end
-        end
-        # almost done; join the encoded letters together
-        unbroken_stream = encoded_letters.join
-        # break the stream up into 60 character sets
-        broken_stream = unbroken_stream.scan(/.{0,60}/).reject{|set| set.empty?}
-        # add \n to the end of each line (including the last line)
-        ret << broken_stream.map {|set| set + "\n"}.join
-        arr_idx += 1
-      elsif kind == "u" # UUEncode
-        item = Type.coerce_to(item, String, :to_str)
-        # split the string into 45-character lines
-        lines = item.scan(/.{1,45}/)
-        # get a series of 0-padded 8-bit representations of the lines
-        lines.map! do |line|
-          # store line length
-          line_length = line.size
-          # get a list of 0-padded 8-bit representations of the line
-          letters = line.split(//).map! {|letter| "%08d" % letter[0].to_s(2) }
-          # merge the 8-bit representations into 24-bit
-          # representations (divisible by 6 and 8)
-          even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream|
-            stream.empty?
-          }
-          # pad the 24-bit streams so we have an set of complete,
-          # 24-bit numbers (with a's for padding characters)
-          even_bitstream.map! {|bitset| ("%-24s" % bitset).gsub(" ", "0") }
-          # split the numbers up into 6-bit fragments
-          base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream|
-            stream.empty?
-          }
-          # convert the 6-bit fragments into ASCII characters.
-          encoded_letters = base_64_stream.map do |fragment|
-            fragment == "000000" ? "`" : (("%08s" % fragment).to_i(2) + 32).chr
-          end
-          # almost done; join the encoded letters together
-          unbroken_stream = encoded_letters.join
-          # return properly set up line (size preamble and line feed
-          # ending) from the map
-          "#{(line_length + 32).chr}#{unbroken_stream}\n"
-        end
-        # add \n to the end of each line (including the last line)
-        ret << lines.join
-        arr_idx += 1
-      elsif kind =~ /i|s|l|n/i
-        size = !t ? 1 : (t == "*" ? self.size : t.to_i)
-
-        # Either convert to short, integer, or long
-        # If _ is passed (like s_) then we use the native representation.
-        # Otherwise, use the platform independent version
-        native = !t.nil? && t == '_'
-        # signed or unsigned?  MRI doesn't seem to use it, but it's
-        # here in case we need it
-        unsigned = (kind =~ /I|S|L/)
-
-        # My 32 bit machine doesn't show any difference, but maybe a
-        # 64 bit machine will turn one up.
-        if(!native)
-          bytes = 2 if(kind =~ /n/i)
-          bytes = 2 if(kind =~ /s/i)
-          bytes = 4 if(kind =~ /i/i)
-          bytes = 4 if(kind =~ /l/i)
-        else
-          bytes = 2 if(kind =~ /n/i)
-          bytes = 2 if(kind =~ /s/i)
-          bytes = 4 if(kind =~ /i/i)
-          bytes = 4 if(kind =~ /l/i)
-        end
-
-        # pack these bytes according to the native byte ordering of
-        # the host platform We need big endian if we're converting to
-        # network order
-        little_endian = kind =~ /n/i ? false : endian?(:little)
-
-        0.upto(size-1) do |i|
-          item = Type.coerce_to(self[arr_idx], Integer, :to_i)
-
-          # MRI seems only only raise RangeError at 2**32 and above,
-          # even for shorts
-          if item.abs >= 2**32
-            raise RangeError, "bignum too big to convert into 'unsigned long'"
-          end
-
-          if little_endian
-            if item < 0
-              item = 2**(8*bytes) + item
-            end
-            str = ""
-            str << " " * bytes
-
-            (0..bytes-1).each do |byte|
-              str[byte] = ( item >> ( byte * 8 ) ) & 0xFF
-            end
-            ret << str
-          else # endian?(:big)
-            obj = item
-            parts = []
-            bytes.times do
-              parts << (obj % 256)
-              obj = obj / 256
-            end
-            (bytes - 1).downto(0) do |j|
-              ret << parts[j].chr
-            end
-          end
-          arr_idx += 1
-        end
-      elsif kind == 'U'
-        #converts the number passed, or all for * or 1 if missing
-        count = !t ? 1 : (t == "*" ? self.size-arr_idx : t.to_i)
         raise ArgumentError, "too few array elements" if
           arr_idx + count > self.length
 
         count.times do
           item = Type.coerce_to(self[arr_idx], Integer, :to_i)
+
           raise RangeError, "pack(U): value out of range" if item < 0
-          #handle the simple case and move on
-          if item < 0x80
+
+          bytes = 0
+          f = [2 ** 7, 2 ** 11, 2 ** 16, 2 ** 21, 2 ** 26, 2 ** 31].find { |n|
+            bytes += 1
+            item < n
+          }
+
+          raise RangeError, "pack(U): value out of range" if f.nil?
+
+          if bytes == 1 then
             ret << item
-            i=0
-            #else count the bytes needed
-          elsif item < 0x800
-            i = bytes = 2
-          elsif item < 0x10000
-            i = bytes = 3
-          elsif item < 0x200000
-            i = bytes = 4
-          elsif item < 0x4000000
-            i = bytes = 5
-          elsif item <= 0x7FFFFFFF
-            i = bytes = 6
-          else
-            raise RangeError, "pack(U): value out of range"
+            bytes = 0
           end
-          if i>0
-            #make room
-            ret<<' '*bytes
-            #fill backwards: put the least significant bits at the end
-            #  shift the next set down, and repeat
-            while 0 < i-=1
-              ret[i-bytes] = (item | 0x80) & 0xBF
+
+          i = bytes
+
+          buf = []
+          if i > 0 then
+            (i-1).times do
+              buf.unshift((item | 0x80) & 0xBF)
               item >>= 6
             end
-            #catch the highest bits - the mask depends on the byte count
-            ret[-bytes] =  (item | ((0x3F00>>bytes)) & 0xFC)
+            # catch the highest bits - the mask depends on the byte count
+            buf.unshift(item | ((0x3F00 >> bytes)) & 0xFC)
           end
+
+          ret << buf.map { |n| n.chr }.join
+
           arr_idx += 1
         end
+      else
+        raise ArgumentError, "Unknown kind #{kind}"
       end
     end
 
