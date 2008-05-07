@@ -397,7 +397,12 @@ module Kernel
   end
 
   def __add_method__(name, obj)
-    scope = MethodContext.current.sender.current_scope
+    sender = MethodContext.current.sender
+    scope = sender.current_scope
+
+    if ss = sender.method.staticscope
+      obj.staticscope = ss
+    end
 
     meth = MethodContext.current.sender.method
 
