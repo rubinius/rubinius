@@ -12,4 +12,11 @@ module KernelSpecs
       "zam"
     end
   end
+
+  class D
+    def a
+      cm = def b; :added; end
+      __add_method__ :c, cm
+    end
+  end
 end
