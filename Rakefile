@@ -284,6 +284,9 @@ namespace :spec do
     end
   end
 
+  desc "Initialize git submodules for mspec and rubyspec"
+  task :init => 'mspec:init'
+
   desc "Run continuous integration examples"
   task :ci => :build do
     clear_compiler
@@ -334,6 +337,32 @@ namespace :spec do
   task :r2r do
     puts ARGV.inspect
   end
+end
+
+namespace :mspec do
+  desc "Initialize git submodule for mspec"
+  task :init do
+    sh "git submodule init mspec"
+    sh "git submodule update mspec"
+  end
+
+  desc "Synchronize mspec submodule to current remote version"
+  task :sync do
+    Dir.chdir "mspec" do
+      sh "git fetch"
+      sh "git rebase origin"
+    end
+    version = `git log --pretty=oneline -1 mspec`[0..7]
+    sh "git add mspec"
+    sh "git commit -m 'Updated MSpec submodule to #{version}'"
+  end
+
+  desc "Update mspec sources to current submodule version"
+  task :update do
+    sh "git submodule update mspec"
+  end
+
+  task :pull => :update
 end
 
 # MISC TASKS
