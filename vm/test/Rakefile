@@ -149,13 +149,17 @@ compiler.flags << "-Wall" << "-Wno-write-strings" << "-Wno-sign-compare" << "-gg
 objs = compiler << "../*.cpp"
 objs += compiler << "../*.c"
 
+file "../gen/iseq_instruction_names.hpp" do
+  puts "GEN instructions.rb"
+  x "cd ..; ruby instructions.rb"
+end
+
 file "../gen/task_instructions_switch.c" => "../instructions.rb" do
   puts "GEN instructions.rb"
   x "cd ..; ruby instructions.rb"
 end
 
 file "../builtin_task.o" => "../gen/task_instructions_switch.c"
-file "../primitives.o" => "../gen/primitive_implementation.gen.cpp"
 file "../type_info.o" => "../gen/typechecks.gen.cpp"
 file "../gen/typechecks.gen.cpp" => FileList["../builtin_*.hpp"] do
   Rake::Task[:field_extract].invoke

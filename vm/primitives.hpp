@@ -6,7 +6,6 @@
 namespace rubinius {
 
 class Primitives {
-#include "gen/primitive.hpp"
 };
 
 }

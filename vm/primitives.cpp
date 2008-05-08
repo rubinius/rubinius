@@ -55,8 +55,4 @@ namespace rubinius {
 
 #define ZLIB_CHUNK_SIZE 512
 
-  void Primitives::patch(STATE, Message& msg, prim_func func, int op) {
-
-  }
-
 }
