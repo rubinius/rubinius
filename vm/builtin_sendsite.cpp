@@ -52,7 +52,7 @@ namespace rubinius {
   bool HierarchyResolver::resolve(STATE, Message& msg) {
     Module* module = msg.lookup_from;
     OBJECT entry;
-    CompiledMethod::Visibility* vis;
+    MethodVisibility* vis;
 
     do {
       entry = module->method_table->fetch(state, msg.name);
@@ -64,7 +64,7 @@ namespace rubinius {
        * (eg. undef_method) */
       if(entry == Qfalse) return false;
 
-      vis = try_as<CompiledMethod::Visibility>(entry);
+      vis = try_as<MethodVisibility>(entry);
 
       /* If this was a private send, then we can handle use
        * any method seen. */

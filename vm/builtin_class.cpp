@@ -78,14 +78,13 @@ namespace rubinius {
   MetaClass* MetaClass::attach(STATE, OBJECT obj, OBJECT sup) {
     MetaClass *meta;
 
-    meta = (MetaClass*)state->om->new_object(G(metaclass),
-                                             MetaClass::fields);
+    meta = (MetaClass*)state->new_object(G(metaclass));
     if(!sup) { sup = obj->klass; }
     meta->IsMeta = TRUE;
     SET(meta, attached_instance, obj);
     meta->setup(state);
     SET(meta, superclass, sup);
-    state->om->set_class(obj, meta);
+    SET(obj, klass, meta);
 
     return meta;
   }

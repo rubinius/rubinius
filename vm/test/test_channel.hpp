@@ -2,6 +2,7 @@
 #include "builtin_list.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "event.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -69,13 +70,65 @@ class TestChannel : public CxxTest::TestSuite {
 
   void test_receive_causes_thread_switch() {
     Thread* other = Thread::create(state);
-    Thread* waiter = Thread::create(state);
 
+    Thread* orig = G(current_thread);
+
+    G(current_task)->stack = Tuple::create(state, 10);
     state->queue_thread(other);
-    state->activate_thread(waiter);
-    TS_ASSERT_EQUALS(G(current_thread), waiter);
 
+    chan->receive(state);
+    TS_ASSERT_EQUALS(G(current_thread), other);
+    TS_ASSERT_EQUALS(orig->get_ivar(state, state->symbol("@sleep")), Qtrue);
+  }
 
+  void test_receive_causes_event_block() {
+    ChannelCallback cb(state, chan);
+    event::Timer* timer = new event::Timer(state, &cb, 0.2);
 
+    Thread* orig = G(current_thread);
+    state->events->start(timer);
+
+    G(current_task)->stack = Tuple::create(state, 10);
+
+    TS_ASSERT(!state->wait_events);
+    chan->receive(state);
+
+    TS_ASSERT_EQUALS(chan->waiting->locate(state, 0), G(current_thread));
+
+    TS_ASSERT(state->wait_events);
+    state->events->run_and_wait();
+
+    TS_ASSERT(chan->waiting->empty_p());
+
+    TS_ASSERT_EQUALS(G(current_thread), orig);
+    TS_ASSERT_EQUALS(G(current_task)->sp, 0);
+    TS_ASSERT_EQUALS(G(current_task)->stack->at(0), Qnil)
+  }
+
+  void test_receive_polls_events() {
+    ChannelCallback cb(state, chan);
+    event::Timer* timer = new event::Timer(state, &cb, 0.2);
+
+    Thread* orig = G(current_thread);
+    state->events->start(timer);
+
+    G(current_task)->stack = Tuple::create(state, 10);
+
+    TS_ASSERT(!state->wait_events);
+    usleep(300000);
+    chan->receive(state);
+    TS_ASSERT(!state->wait_events);
+    
+    TS_ASSERT(chan->waiting->empty_p());
+
+    TS_ASSERT_EQUALS(G(current_thread), orig);
+    TS_ASSERT_EQUALS(G(current_task)->sp, 0);
+    TS_ASSERT_EQUALS(G(current_task)->stack->at(0), Qnil)
+  }
+
+  void test_has_readers_p() {
+    TS_ASSERT(!chan->has_readers_p());
+    chan->waiting->append(state, G(current_thread));
+    TS_ASSERT(chan->has_readers_p());
   }
 };

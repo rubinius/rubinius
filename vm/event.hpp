@@ -18,7 +18,7 @@ namespace rubinius {
       STATE;
       ObjectCallback* channel;
       size_t id;
-      TypedRoot<IO::Buffer*> buffer;
+      TypedRoot<IOBuffer*> buffer;
       Loop* loop;
 
       Event(STATE, ObjectCallback* chan);
@@ -57,7 +57,7 @@ namespace rubinius {
 
       Read(STATE, ObjectCallback* chan, int fd);
       virtual ~Read() { }
-      void into_buffer(rubinius::IO::Buffer* buffer, size_t bytes);
+      void into_buffer(rubinius::IOBuffer* buffer, size_t bytes);
       virtual bool activated();
     };
 

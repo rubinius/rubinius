@@ -6,16 +6,14 @@
 namespace rubinius {
   class Module : public BuiltinType {
     public:
-    const static size_t fields = 7;
+    const static size_t fields = 5;
     const static object_type type = ModuleType;
 
-    OBJECT instance_variables;
-    LookupTable* method_table;
-    OBJECT method_cache;
-    SYMBOL name;
-    LookupTable* constants;
-    OBJECT encloser;
-    Class* superclass;
+    OBJECT __ivars__; // slot
+    LookupTable* method_table; // slot
+    SYMBOL name; // slot
+    LookupTable* constants; // slot
+    Module* superclass; // slot
 
     static Module* create(STATE);
     void setup(STATE);
@@ -28,23 +26,37 @@ namespace rubinius {
     OBJECT get_const(STATE, char* sym);
 
     void set_name(STATE, Module* under, SYMBOL name);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
   };
 
   class Class : public Module {
     public:
-    const static size_t fields = 11;
+    const static size_t fields = 9;
     const static object_type type = ClassType;
 
-    FIXNUM instance_fields;
-    OBJECT has_ivars;
-    OBJECT needs_cleanup;
-    FIXNUM instance_type;
+    FIXNUM instance_fields; // slot
+    OBJECT has_ivars; // slot
+    OBJECT needs_cleanup; // slot
+    FIXNUM instance_type; // slot
 
     void set_object_type(size_t type) {
       instance_type = Object::i2n(type);
     }
 
     static Class* create(STATE, Class* super);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
   };
 
   /* See t1 */
@@ -57,22 +69,34 @@ namespace rubinius {
 
   class MetaClass : public Class {
     public:
-    const static size_t fields = 12;
+    const static size_t fields = 10;
     const static object_type type = MetaclassType;
 
-    OBJECT attached_instance;
-
-    static bool is_a(OBJECT obj) {
-      return obj->obj_type == MetaclassType;
-    }
+    OBJECT attached_instance; // slot
 
     static MetaClass* attach(STATE, OBJECT obj, OBJECT sup = NULL);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
   };
 
   class IncludedModule : public Module {
     public:
+    const static size_t field = 6;
+    const static object_type type = IncModType;
 
-    OBJECT module;
+    OBJECT module; // slot
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
   };
 
 };

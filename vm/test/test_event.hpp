@@ -78,7 +78,7 @@ class TestEventLoop : public CxxTest::TestSuite {
     TestChannelObject chan(state);
     event::Read* read = new event::Read(state, &chan, fds[0]);
     
-    IO::Buffer *buf = IO::Buffer::create(state, 12);
+    IOBuffer *buf = IOBuffer::create(state, 12);
     read->into_buffer(buf, 1);
     TS_ASSERT_EQUALS(buf->used, Object::i2n(0));
 

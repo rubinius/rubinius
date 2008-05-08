@@ -67,7 +67,7 @@ namespace rubinius {
 
     cls->instance_fields = Object::i2n(Class::fields);
     cls->has_ivars = Qtrue;
-    cls->instance_type = Object::i2n(ClassType);
+    cls->set_object_type(ClassType);
     cls->obj_type = ClassType;
 
     GO(klass).set(cls);
@@ -130,6 +130,7 @@ namespace rubinius {
     G(blokenv)->instance_type = Object::i2n(BlockEnvType);
 
     GO(staticscope).set(new_class(object, StaticScope::fields));
+    G(staticscope)->set_object_type(StaticScopeType);
 
     bootstrap_symbol();
 
@@ -180,7 +181,7 @@ namespace rubinius {
     GO(task).set(new_class("Task", object, 0));
     G(task)->instance_type = Object::i2n(TaskType);
 
-    GO(iseq).set(new_class("InstructionSequence", G(object), ISeq::fields));
+    GO(iseq).set(new_class("InstructionSequence", G(object), InstructionSequence::fields));
     G(iseq)->instance_type = Object::i2n(ISeqType);
 
     for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
@@ -202,7 +203,7 @@ namespace rubinius {
     Regexp::init(this);
 
     GO(cmethod_vis).set(new_class("CompiledMethod::Visibility", G(object),
-        CompiledMethod::Visibility::fields, G(cmethod)));
+        MethodVisibility::fields, G(cmethod)));
     G(cmethod_vis)->set_object_type(CMVisibilityType);
 
     Module* x = new_module("Rubinius");
@@ -219,6 +220,8 @@ namespace rubinius {
     init_ffi();
     Task::init(state);
     Thread::init(state);
+
+    TypeInfo::init(state);
   }
 
   void VM::bootstrap_symbol() {

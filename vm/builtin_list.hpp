@@ -5,24 +5,34 @@
 
 namespace rubinius {
 
-  class List : public BuiltinType {
+  class ListNode : public BuiltinType {
+  public:
+
+    const static size_t fields = 2;
+    const static object_type type = ListNodeType;
+
+    OBJECT object; // slot
+    ListNode* next; // slot
+
+    class Info : public TypeInfo {
     public:
-
-    class Node : public BuiltinType {
-      public:
-
-      const static size_t fields = 2;
-
-      OBJECT object;
-      Node* next;
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
     };
-      
-    const static size_t fields = 3;
+
+  };
+
+  class List : public BuiltinType {
+  public:
+
+    const static size_t fields = 4;
     const static object_type type = ListType;
 
-    INTEGER count;
-    Node* first;
-    Node* last;
+    OBJECT __ivars__; // slot
+    INTEGER count; // slot
+    ListNode* first; // slot
+    ListNode* last; // slot
 
     /* Returns true if the List is empty, contains no elements. */
     bool empty_p() {
@@ -40,6 +50,14 @@ namespace rubinius {
     OBJECT shift(STATE);
     OBJECT locate(STATE, size_t index);
     size_t remove(STATE, OBJECT obj);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
+
   };
 
 };

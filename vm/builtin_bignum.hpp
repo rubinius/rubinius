@@ -57,7 +57,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(Class* cls) : TypeInfo(cls) { }
+      Info(object_type type) : TypeInfo(type) { }
       virtual void cleanup(OBJECT obj);
     };
   };

@@ -68,16 +68,16 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_metaclass() {
-    TS_ASSERT(MetaClass::is_a(G(object)->metaclass(state)));
+    TS_ASSERT(kind_of<MetaClass>(G(object)->metaclass(state)));
     TS_ASSERT_EQUALS(Qnil->metaclass(state), G(nil_class));
     TS_ASSERT_EQUALS(Qtrue->metaclass(state), G(true_class));
     TS_ASSERT_EQUALS(Qfalse->metaclass(state), G(false_class));
 
     Tuple *tup = Tuple::create(state, 1);
-    TS_ASSERT(!MetaClass::is_a(tup->klass));
+    TS_ASSERT(!kind_of<MetaClass>(tup->klass));
 
-    TS_ASSERT(MetaClass::is_a(tup->metaclass(state)));
-    TS_ASSERT(MetaClass::is_a(tup->klass));
+    TS_ASSERT(kind_of<MetaClass>(tup->metaclass(state)));
+    TS_ASSERT(kind_of<MetaClass>(tup->klass));
   }
 
   void test_get_ivar() {

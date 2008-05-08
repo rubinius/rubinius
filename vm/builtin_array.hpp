@@ -4,13 +4,14 @@
 namespace rubinius {
   class Array : public BuiltinType {
     public:
-    const static size_t fields = 4;
+    const static size_t fields = 5;
     const static object_type type = ArrayType;
 
-    INTEGER total;
-    Tuple* tuple;
-    INTEGER start;
-    OBJECT shared;
+    OBJECT __ivars__; // slot
+    INTEGER total; // slot
+    Tuple* tuple; // slot
+    INTEGER start; // slot
+    OBJECT shared; // slot
 
     size_t size() {
       return total->n2i();
@@ -23,6 +24,13 @@ namespace rubinius {
     OBJECT set(STATE, size_t idx, OBJECT val);
     OBJECT append(STATE, OBJECT val);
     bool   includes_p(STATE, OBJECT val);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
   };
 };
 

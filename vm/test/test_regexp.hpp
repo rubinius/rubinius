@@ -89,7 +89,7 @@ class TestRegexp : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->n2i(), 2);
     
     TS_ASSERT_EQUALS(matches->region->field_count, 1);
-    TS_ASSERT_EQUALS(as<Integer>(matches->region->at(0)->at(0))->n2i(), 1);
-    TS_ASSERT_EQUALS(as<Integer>(matches->region->at(0)->at(1))->n2i(), 2);
+    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(0))->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(1))->n2i(), 2);
   }
 };

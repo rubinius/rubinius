@@ -49,9 +49,9 @@ namespace rubinius {
       entry->name = name;
       entry->module = mod;
 
-      if(kind_of<CompiledMethod::Visibility>(meth)) {
-        CompiledMethod::Visibility* vis;
-        vis = as<CompiledMethod::Visibility>(meth);
+      if(kind_of<MethodVisibility>(meth)) {
+        MethodVisibility* vis;
+        vis = as<MethodVisibility>(meth);
 
         if(vis->public_p(state)) {
           entry->is_public = true;

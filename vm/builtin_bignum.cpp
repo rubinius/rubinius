@@ -170,7 +170,7 @@ namespace rubinius {
   }
 
   void Bignum::init(STATE) {
-    state->add_type_info(new Bignum::Info(G(bignum)));
+    state->add_type_info(new Bignum::Info(Bignum::type));
   }
 
   Bignum* Bignum::create(STATE, native_int num) {
@@ -253,7 +253,6 @@ namespace rubinius {
 
   INTEGER Bignum::div(STATE, INTEGER b, INTEGER mod_obj) {
     NMP;
-    mp_int *mod = MP(mod_obj);
     mp_int m, x, y, z;
 
     if(kind_of<Fixnum>(b)) {
@@ -297,7 +296,8 @@ namespace rubinius {
       mp_copy(&y, &m);
     }
 
-    if(mod) {
+    if(!mod_obj->nil_p()) {
+      mp_int *mod = MP(mod_obj);
       mp_copy(&m, mod);
     }
 

@@ -9,6 +9,13 @@ namespace rubinius {
   }
 
   void Channel::send(STATE, OBJECT val) {
+    if(!waiting->empty_p()) {
+      Thread* thr = as<Thread>(waiting->shift(state));
+      thr->set_top(state, val);
+      state->queue_thread(thr);
+      return;
+    }
+
     if(value->nil_p()) {
       List* lst = List::create(state);
       lst->append(state, val);
@@ -33,10 +40,7 @@ namespace rubinius {
   }
 
   bool Channel::has_readers_p() {
-    return false;
+    return !waiting->empty_p();
   }
 
-  void Thread::sleep_for(STATE, Channel* chan) {
-
-  }
 }

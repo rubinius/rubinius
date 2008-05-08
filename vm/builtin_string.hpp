@@ -4,19 +4,20 @@
 namespace rubinius {
   class String : public BuiltinType {
     public:
-    const static size_t fields = 6;
+    const static size_t fields = 7;
     const static object_type type = StringType;
 
     static bool is_a(OBJECT obj) {
       return obj->reference_p() && obj->obj_type == StringType;
     }
 
-    INTEGER num_bytes;
-    OBJECT characters;
-    OBJECT encoding;
-    OBJECT data;
-    OBJECT hash;
-    OBJECT shared;
+    OBJECT __ivars__; // slot
+    INTEGER num_bytes; // slot
+    INTEGER characters; // slot
+    OBJECT encoding; // slot
+    ByteArray* data; // slot
+    INTEGER hash; // slot
+    OBJECT shared; // slot
 
     static String* create(STATE, const char* str, size_t bytes = 0);
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
@@ -28,11 +29,6 @@ namespace rubinius {
 
     size_t size() {
       return num_bytes->n2i();
-    }
-
-    /* Allows the String object to be cast as a char* */
-    operator const char *() {
-      return (const char*)(data->bytes);
     }
 
     /* TODO: since we're technically say it's ok to change this, we might
@@ -54,6 +50,13 @@ namespace rubinius {
     String* append(STATE, char* other);
     String* add(STATE, String* other);
     String* add(STATE, char* other);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
 
   };
 };

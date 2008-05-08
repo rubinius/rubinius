@@ -11,6 +11,17 @@ namespace rubinius {
     return flt;
   }
 
+  OBJECT Float::compare(STATE, Float* other) {
+    double b = other->to_double();
+    if(val < b) {
+      return Object::i2n(-1);
+    } else if(val > b) {
+      return Object::i2n(1);
+    } else {
+      return Object::i2n(0);
+    }
+  }
+
   Float* Float::coerce(STATE, OBJECT value) {
     if(value->fixnum_p()) {
       return Float::create(state, (double)(as<Fixnum>(value)->to_nint()));

@@ -4,16 +4,24 @@
 #include "objects.hpp"
 
 namespace rubinius {
-  class ISeq : public BuiltinType {
+  class InstructionSequence : public BuiltinType {
   public:
-    const static size_t fields = 2;
+    const static size_t fields = 3;
     const static object_type type = ISeqType;
 
-    OBJECT instance_variables;
-    Tuple* instructions;
+    OBJECT __ivars__; // slot
+    Tuple* opcodes; // slot
+    FIXNUM stack_depth; // slot
 
     void post_marshal(STATE);
-    static ISeq* create(STATE, size_t instructions);
+    static InstructionSequence* create(STATE, size_t instructions);
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
 
 #include "gen/iseq_instruction_names.hpp"
   };

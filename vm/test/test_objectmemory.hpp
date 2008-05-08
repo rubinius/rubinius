@@ -112,10 +112,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
     obj = new_obj;
 
     TS_ASSERT(om.young.current->contains_p(obj));
-    obj3 = obj->at(0);
+    obj3 = obj->field[0];
     TS_ASSERT(obj2 != obj3);
 
-    TS_ASSERT_EQUALS(obj2->at(0), Qtrue);
+    TS_ASSERT_EQUALS(obj2->field[0], Qtrue);
   }
 
   /* Could crash on failure */
@@ -202,8 +202,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
     Roots roots(0);
     om.collect_young(roots);
 
-    TS_ASSERT(mature->at(0) != young);
-    TS_ASSERT_EQUALS(mature->at(0)->at(0), Qtrue);
+    TS_ASSERT(mature->field[0] != young);
+    TS_ASSERT_EQUALS(mature->field[0]->field[0], Qtrue);
   }
 
   void test_collect_young_promotes_objects() {
@@ -249,7 +249,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(young->age, 0);
     om.collect_young(roots);
-    TS_ASSERT_EQUALS(mature->at(0)->age, 1);
+    TS_ASSERT_EQUALS(mature->field[0]->age, 1);
     om.collect_young(roots);
 
     TS_ASSERT_EQUALS(om.remember_set->size(), 0);
@@ -273,9 +273,9 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     obj = roots.front()->get();
 
-    obj2 = obj->at(0);
-    TS_ASSERT_EQUALS(obj2, obj->at(1));
-    TS_ASSERT_EQUALS(obj2, obj->at(2));
+    obj2 = obj->field[0];
+    TS_ASSERT_EQUALS(obj2, obj->field[1]);
+    TS_ASSERT_EQUALS(obj2, obj->field[2]);
   }
 
   void test_collect_young_copies_byte_bodies() {
@@ -376,9 +376,9 @@ class TestObjectMemory : public CxxTest::TestSuite {
     om.collect_mature(roots);
 
     young = roots.front()->get();
-    mature = young->at(0);
+    mature = young->field[0];
 
-    TS_ASSERT_EQUALS(mature->at(0), young);
+    TS_ASSERT_EQUALS(mature->field[0], young);
   }
 
   void test_collect_young_stops_at_already_marked_objects() {
@@ -399,10 +399,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
     om.collect_young(roots);
 
     obj = roots.front()->get();
-    obj2 = obj->at(0);
+    obj2 = obj->field[0];
 
-    TS_ASSERT_EQUALS(obj2->at(0), obj);
-    TS_ASSERT_EQUALS(obj2->at(1), Qtrue);
+    TS_ASSERT_EQUALS(obj2->field[0], obj);
+    TS_ASSERT_EQUALS(obj2->field[1], Qtrue);
   }
 
   void test_collect_young_tells_objectmemory_about_collection() {

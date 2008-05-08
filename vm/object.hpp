@@ -76,6 +76,7 @@ to be a simple test for that bit pattern.
 #define REFERENCE_P(v) (TAG(v) == TAG_REF)
 
 #define INDEXED(obj) (REFERENCE_P(obj) && !obj->StoresBytes)
+#define STORE_BYTES(obj) (REFERENCE_P(obj) && obj->StoresBytes)
 
 #define SIZE_OF_OBJECT ((size_t)(sizeof(OBJECT)))
 
@@ -91,7 +92,13 @@ to be a simple test for that bit pattern.
   /* rubinius_object types, takes up 3 bits */
   typedef enum
   {
-    ObjectType      = 0,
+    InvalidType     = 0,
+    NumericType     ,
+    IntegerType     ,
+    FalseType       ,
+    TrueType        ,
+    NilType         ,
+    ObjectType      ,
     MContextType    ,
     BContextType    ,
     ClassType       ,
@@ -108,7 +115,6 @@ to be a simple test for that bit pattern.
     SymbolType      ,
     CMethodType     ,
     NMethodType     ,
-    NilType         ,
     BlockEnvType    ,
     TupleType       ,
     ArrayType       ,
@@ -132,6 +138,8 @@ to be a simple test for that bit pattern.
     ExecutableType  ,
     CMVisibilityType,
     ListType        ,
+    ListNodeType    ,
+    NativeFuncType  ,
 
     LastObjectType   // must remain at end
   } object_type;
@@ -295,13 +303,6 @@ to be a simple test for that bit pattern.
       return zone == MatureObjectZone;
     }
 
-    OBJECT at(size_t index) {
-      if(field_count <= index) {
-        throw new ObjectBoundsExceeded(this, index);
-      }
-      return field[index];
-    }
-
     bool forwarded_p() {
       return Forwarded == 1;
     }
@@ -352,6 +353,8 @@ to be a simple test for that bit pattern.
       return reference_p() && obj_type == type;
     }
 
+    OBJECT get_field(STATE, size_t index);
+    void   set_field(STATE, size_t index, OBJECT val);
     void cleanup(STATE);
 
     bool kind_of_p(STATE, OBJECT cls);
@@ -365,6 +368,10 @@ to be a simple test for that bit pattern.
     OBJECT get_ivar(STATE, OBJECT sym);
     OBJECT set_ivar(STATE, OBJECT sym, OBJECT val);
 
+    void copy_flags(STATE, OBJECT other);
+    void copy_ivars(STATE, OBJECT other);
+    void copy_metaclass(STATE, OBJECT other);
+
     static const char* type_to_name(object_type type);
   };
 
@@ -374,12 +381,35 @@ to be a simple test for that bit pattern.
 
   /* Given builtin-class +T+, return true if +obj+ is of class +T+ */
   template <class T>
-    static bool kind_of(OBJECT obj) {
+    static inline bool kind_of(OBJECT obj) {
       if(obj->reference_p()) {
         return obj->obj_type == T::type;
       }
       return false;
     }
+
+  /* Another version of kind_of that shouldn't be specialized for subtype
+   * compatibility. */
+  template <class T>
+    static inline bool instance_of(OBJECT obj) {
+      if(obj->reference_p()) {
+        return obj->obj_type == T::type;
+      }
+      return false;
+    }
+
+  template <>
+    static inline bool kind_of<Object>(OBJECT obj) {
+      return true;
+    }
+
+  template <>
+    static inline bool kind_of<Class>(OBJECT obj) {
+      return obj->obj_type == ClassType || 
+        obj->obj_type == MetaclassType ||
+        obj->obj_type == IncModType;
+    }
+
 
   /* Used when casting between object types.
    *
@@ -387,17 +417,20 @@ to be a simple test for that bit pattern.
    * +obj+ is not of type +T+, throw's a TypeError exception.
    * */
   template <class T>
-    static T* as(OBJECT obj) {
+    static inline T* as(OBJECT obj) {
       /* The 'obj &&' gives us additional saftey, checking for
        * NULL objects. */
       if(obj && kind_of<T>(obj)) return (T*)obj;
       throw new TypeError(T::type, obj);
     }
 
+  template <>
+    static inline Object* as<Object>(OBJECT obj) { return obj; }
+
   /* Similar to as<>, but returns NULL if the type is invalid. ONLY
    * use this when doing a conditional cast. */
   template <class T>
-    static T* try_as(OBJECT obj) {
+    static inline T* try_as(OBJECT obj) {
       /* The 'obj &&' gives us additional saftey, checking for
        * NULL objects. */
       if(obj && kind_of<T>(obj)) return (T*)obj;

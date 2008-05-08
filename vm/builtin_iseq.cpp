@@ -1,13 +1,13 @@
 #include "builtin.hpp"
 
 namespace rubinius {
-  ISeq* ISeq::create(STATE, size_t instructions) {
-    ISeq* is = (ISeq*)state->new_object(G(iseq));
-    is->instructions = Tuple::create(state, instructions);
+  InstructionSequence* InstructionSequence::create(STATE, size_t instructions) {
+    InstructionSequence* is = (InstructionSequence*)state->new_object(G(iseq));
+    is->opcodes = Tuple::create(state, instructions);
     return is;
   }
 
-  void ISeq::post_marshal(STATE) {
+  void InstructionSequence::post_marshal(STATE) {
 
   }
 

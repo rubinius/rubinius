@@ -13,7 +13,7 @@ class TestVM : public CxxTest::TestSuite {
   VM *state;
 
   void setUp() {
-    state = new VM(1024);
+    state = new VM();
   }
 
   void tearDown() {
@@ -36,6 +36,7 @@ class TestVM : public CxxTest::TestSuite {
   }
 
   void test_globals() {
-    TS_ASSERT_EQUALS(state->globals.roots.size(), 120);
+    TS_ASSERT_EQUALS(state->globals.roots.size(), 121);
   }
+
 };

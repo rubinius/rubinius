@@ -1,5 +1,6 @@
 #include "builtin.hpp"
 #include "ffi.hpp"
+#include "marshal.hpp"
 
 namespace rubinius {
   CompiledMethod* CompiledMethod::create(STATE) {
@@ -7,8 +8,8 @@ namespace rubinius {
     return cm;
   }
 
-  CompiledMethod::Visibility* CompiledMethod::Visibility::create(STATE) {
-    return (CompiledMethod::Visibility*)state->new_object(G(cmethod_vis));
+  MethodVisibility* MethodVisibility::create(STATE) {
+    return (MethodVisibility*)state->new_object(G(cmethod_vis));
   }
 
   void CompiledMethod::post_marshal(STATE) {

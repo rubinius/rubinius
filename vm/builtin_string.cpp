@@ -45,7 +45,7 @@ namespace rubinius {
     size_t sz = size(state);
 
     hashval h = hash_str(bp, sz);
-    hash = Object::ui2n(state, h);
+    SET(this, hash, Object::ui2n(state, h));
 
     return h;
   }
@@ -76,8 +76,8 @@ namespace rubinius {
   }
 
   int String::string_equal_p(STATE, OBJECT a, OBJECT b) {
-    String* self = (String*)a;
-    String* other = (String*)b;
+    String* self = as<String>(a);
+    String* other = as<String>(b);
 
     if(self->bytes != other->bytes) return FALSE;
     if(strcmp(self->byte_address(state), other->byte_address(state))) {
@@ -91,8 +91,8 @@ namespace rubinius {
     String* ns;
 
     ns = (String*)dup(state);
-    ns->shared = Qtrue;
-    shared = Qtrue;
+    SET(ns, shared, Qtrue);
+    SET(this, shared, Qtrue);
 
     state->om->set_class(ns, class_object(state));
 
@@ -100,8 +100,8 @@ namespace rubinius {
   }
 
   void String::unshare(STATE) {
-    data = data->dup(state);
-    shared = Qfalse;
+    SET(this, data, as<ByteArray>(data->dup(state)));
+    SET(this, shared, Qfalse);
   }
 
   String* String::append(STATE, String* other) {
@@ -116,8 +116,8 @@ namespace rubinius {
     d2->bytes[new_size] = 0;
 
     num_bytes = Object::i2n(state, new_size);
-    data = d2;
-    hash = Qnil;
+    SET(this, data, d2);
+    SET(this, hash, Qnil);
 
     return this;
   }
@@ -135,8 +135,8 @@ namespace rubinius {
     d2->bytes[new_size] = 0;
 
     num_bytes = Object::i2n(state, new_size);
-    data = d2;
-    hash = Qnil;
+    SET(this, data, d2);
+    SET(this, hash, Qnil);
 
     return this;
   }

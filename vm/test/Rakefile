@@ -10,6 +10,8 @@ class CCompile
     @flags = []
     @linker = "gcc"
     @deps = {}
+
+    Dir.mkdir ".deps" unless File.directory?(".deps")
   end
 
   attr_accessor :includes, :flags, :deps
@@ -43,7 +45,19 @@ class CCompile
     objects = []
 
     list.each do |name|
-      headers = extract_headers(name)
+      next if name == "../main.cpp"
+      deps = File.join(".deps", name.hash.to_s)
+      if File.exists?(deps) and File.mtime(deps) > File.mtime(name)
+        headers = Marshal.load(File.read(deps)) rescue nil
+      else
+        headers = nil
+      end
+
+      unless headers
+        puts "DEP #{name}"
+        headers = extract_headers(name)
+        File.open(deps, "w") { |f| f << Marshal.dump(headers) }
+      end
 
       output = name.gsub(/\.[^.]+$/, ".o")
       objects << output
@@ -57,6 +71,15 @@ class CCompile
   end
 
   def extract_headers(path)
+    includes = @includes.map { |i| "-I#{i}" }.join(" ")
+    data = `g++ #{includes} -MM -c #{path}`.split(/(?:\s+|\\\n)/)
+    data.shift
+    data.reject! { |s| s.size == 0 }
+
+    return data
+  end
+
+  def ruby_extract_headers(path)
     dir = File.dirname(path)
     h = File.read(path).scan(/#include\s*.([^\n]*)./).map do |i|
       File.join(dir, i[0])
@@ -131,7 +154,17 @@ file "../gen/task_instructions_switch.c" => "../instructions.rb" do
   x "cd ..; ruby instructions.rb"
 end
 
+file "../gen/primitive_implementation.gen.cpp" => "../primitives.rb" do
+  puts "GEN primitives.rb"
+  x "cd ..; ruby primitives.rb"
+end
+
 file "../builtin_task.o" => "../gen/task_instructions_switch.c"
+file "../primitives.o" => "../gen/primitive_implementation.gen.cpp"
+file "../type_info.o" => "../gen/typechecks.gen.cpp"
+file "../gen/typechecks.gen.cpp" => FileList["../builtin_*.hpp"] do
+  Rake::Task[:field_extract].invoke
+end
 
 file "runner.cpp" => tests + objs do
   puts "GEN runner.cpp"
@@ -146,8 +179,29 @@ file "runner" => "runner.o" do
   compiler.link "runner", :objects => objs + ["runner.o"], :libs => ex_libs
 end
 
+file "../main.o" => "../main.cpp" do
+  compiler.compile "../main.cpp"
+end
+
+file "../vm" => objs + ["../main.o"] do
+  puts "LD ../vm"
+  compiler.link "../vm", :objects => objs + ["../main.o"], :libs => ex_libs
+end
+
 task :test => "runner" do
   x "./runner"
+end
+
+task :field_extract do
+  order = ["objects.hpp"]
+  File.open("../objects.hpp") do |f|
+    f.each_line do |line|
+      if /\#include "builtin_(.*)"/.match(line)
+        order << "builtin_#{$1}"
+      end
+    end
+  end
+  sh "cd ..; ruby field_extract.rb #{order.join(' ')}"
 end
 
 simple = objs + (compiler << "simple.cpp")

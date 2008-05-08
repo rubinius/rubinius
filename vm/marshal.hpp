@@ -30,7 +30,7 @@ namespace rubinius {
     void set_tuple(Tuple* o);
     void set_bignum(Bignum* o);
     void set_float(Float* o);
-    void set_iseq(ISeq* o);
+    void set_iseq(InstructionSequence* o);
     void set_cmethod(CompiledMethod* o);
   };
 
@@ -52,7 +52,7 @@ namespace rubinius {
     Tuple* get_tuple();
 
     Float* get_float();
-    ISeq* get_iseq();
+    InstructionSequence* get_iseq();
     CompiledMethod* get_cmethod();
   };
 }

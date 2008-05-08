@@ -55,6 +55,7 @@ namespace rubinius {
     TypedRoot<Module*> vm;
     TypedRoot<Thread*> current_thread;
     TypedRoot<Task*> current_task;
+    TypedRoot<OBJECT> main;
 
     /* Leave this as the last data member always */
     TypedRoot<Class*> special_classes[SPECIAL_CLASS_SIZE];
@@ -99,7 +100,8 @@ namespace rubinius {
       top_scope(&roots), on_gc_channel(&roots),
       vm(&roots),
       current_thread(&roots),
-      current_task(&roots)
+      current_task(&roots),
+      main(&roots)
     { }
   };
 };

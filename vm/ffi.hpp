@@ -21,50 +21,9 @@
 #define RBX_FFI_TYPE_STRPTR  17
 #define RBX_FFI_TYPE_CHARARR 18
 
-#include <ffi.h>
 #include "prelude.hpp"
 #include "object.hpp"
 #include "message.hpp"
 
-namespace rubinius {
-  class MemoryPointer : public BuiltinType {
-    public:
-    const static size_t fields = 0;
-    const static object_type type = MemPtrType;
-
-    void* pointer;
-
-    static MemoryPointer* create(STATE, void* ptr);
-
-    OBJECT get_field(STATE, int offset, int type);
-    void   set_field(STATE, int offset, int type, OBJECT val);
-  };
-
-  class NativeFunction : public Executable {
-    public:
-    struct ffi_stub {
-      ffi_cif cif;
-      size_t arg_count;
-      int *arg_types;
-      int ret_type;
-      void *ep;
-    };
-
-    static const size_t fields = 7;
-    OBJECT name;
-    String* file;
-    MemoryPointer* data;
-
-    static void* find_symbol(STATE, OBJECT library, String* name);
-
-    static size_t type_size(size_t type);
-    static NativeFunction* create(STATE, OBJECT name, int args);
-    void bind(STATE, int arg_count, int *arg_types, int ret_type, void* func);
-    static NativeFunction* bind(STATE, String* library, String* name, Array* args, OBJECT ret);
-    void **marshal_arguments(STATE, Message *msg);
-    OBJECT call(STATE, Message* msg);
-  };
-
-}
 
 #endif

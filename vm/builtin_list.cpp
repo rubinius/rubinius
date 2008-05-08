@@ -10,22 +10,24 @@ namespace rubinius {
     cls->set_object_type(ListType);
 
     GO(list_node).set(state->new_class("Node", G(object),
-                                                List::Node::fields, cls));
+                                                ListNode::fields, cls));
+
+    G(list_node)->set_object_type(ListNodeType);
   }
 
   /* Create a new List object, containing no elements. */
   List* List::create(STATE) {
     List* list = (List*)state->new_object(G(list));
-    list->count = Object::i2n(0);
+    SET(list, count, Object::i2n(0));
 
     return list;
   }
 
   /* Append +obj+ to the current List. */
   void List::append(STATE, OBJECT obj) {
-    List::Node* node = (List::Node*)state->new_object(G(list_node));
+    ListNode* node = (ListNode*)state->new_object(G(list_node));
     SET(node, object, obj);
-    List::Node* cur_last = last;
+    ListNode* cur_last = last;
 
     if(!cur_last->nil_p()) {
       SET(cur_last, next, node);
@@ -37,12 +39,12 @@ namespace rubinius {
       SET(this, first, node);
     }
 
-    count = Object::i2n(state, count->n2i() + 1);
+    SET(this, count, Object::i2n(state, count->n2i() + 1));
   }
 
   /* Return the +index+ numbered element from the beginning. */
   OBJECT List::locate(STATE, size_t index) {
-    Node* cur = first;
+    ListNode* cur = first;
 
     while(index > 0) {
       if(cur->nil_p()) return Qnil;
@@ -60,12 +62,12 @@ namespace rubinius {
   OBJECT List::shift(STATE) {
     if(empty_p()) return Qnil;
 
-    count = Object::i2n(state, count->n2i() - 1);
-    List::Node* n = first;
+    SET(this, count, Object::i2n(state, count->n2i() - 1));
+    ListNode* n = first;
     SET(this, first, first->next);
 
     if(last == n) {
-      last = (Node*)Qnil;
+      SET(this, last, Qnil);
     }
 
     return n->object;
@@ -79,9 +81,9 @@ namespace rubinius {
 
     size_t deleted = 0, counted = 0;
 
-    Node* node = first;
-    Node* lst =  (Node*)Qnil;
-    Node* nxt =  (Node*)Qnil;
+    ListNode* node = first;
+    ListNode* lst =  (ListNode*)Qnil;
+    ListNode* nxt =  (ListNode*)Qnil;
 
     while(!node->nil_p()) {
       nxt = node->next;
@@ -98,7 +100,7 @@ namespace rubinius {
           SET(this, last, lst);
         }
 
-        lst = (Node*)Qnil;
+        lst = (ListNode*)Qnil;
       } else {
         counted++;
         lst = node;
@@ -107,7 +109,7 @@ namespace rubinius {
       node = nxt;
     }
 
-    count = Object::i2n(state, counted);
+    SET(this, count, Object::i2n(state, counted));
 
     return deleted;
   }

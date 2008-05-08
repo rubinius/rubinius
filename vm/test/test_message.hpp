@@ -35,7 +35,7 @@ class TestMessage : public CxxTest::TestSuite {
 
   CompiledMethod* create_cm() {
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(10);
     cm->total_args = Object::i2n(0);
     cm->required_args = cm->total_args;

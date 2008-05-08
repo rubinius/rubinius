@@ -1,8 +1,6 @@
 #include "builtin.hpp"
 
-#define MAX_DENSITY 0.75
 #define find_bin(hash, total) (hash & (total - 1))
-#define hash_redistribute_p(hash) (hash->entries->n2i() >= MAX_DENSITY * hash->bins->n2i())
 
 #define CSM_SIZE 12
 namespace rubinius {
@@ -26,8 +24,8 @@ namespace rubinius {
   Hash* Hash::dup(STATE) {
     size_t size, i;
     Hash *dup;
-    OBJECT tmp, ent, next;
-    Tuple *vals, *lst;
+    OBJECT tmp;
+    Tuple *vals, *lst, *ent, *next;
 
     size = bins->n2i();
     dup = Hash::create(state, size);
@@ -42,26 +40,26 @@ namespace rubinius {
     SET(dup, values, vals);
 
     for(i = 0; i < size; i++) {
-      tmp = (Tuple*)values->at(i);
-      if(tmp->nil_p()) continue;
+      tmp = try_as<Tuple>(values->at(i));
+      if(!tmp) continue;
 
-      ent = tmp->dup(state);
+      ent = as<Tuple>(tmp->dup(state));
       vals->put(state, i, ent);
-      next = ent->at(3);
-      lst = (Tuple*)ent;
+      next = try_as<Tuple>(ent->at(3));
+      lst = ent;
 
-      while(!next->nil_p()) {
-        next = next->dup(state);
+      while(next) {
+        next = as<Tuple>(next->dup(state));
         lst->put(state, 3, next);
-        lst = (Tuple*)next;
-        next = next->at(3);
+        lst = next;
+        next = try_as<Tuple>(next->at(3));
       }
     }
 
     return dup;
   }
 
-  OBJECT Hash::entry_new(STATE, hashval hsh, OBJECT key, OBJECT data) {
+  Tuple* Hash::entry_new(STATE, hashval hsh, OBJECT key, OBJECT data) {
     Tuple* tup = Tuple::create(state, 4);
     tup->put(state, 0, Object::i2n(hsh));
     tup->put(state, 1, key);
@@ -70,14 +68,14 @@ namespace rubinius {
     return tup;
   }
 
-  OBJECT Hash::entry_append(STATE, OBJECT top, OBJECT nxt) {
+  Tuple* Hash::entry_append(STATE, Tuple* top, Tuple* nxt) {
     int depth = 1;
-    Tuple* cur = (Tuple*)top->at(3);
-    Tuple* last = (Tuple*)top;
+    Tuple* cur = try_as<Tuple>(top->at(3));
+    Tuple* last = top;
 
-    while(!cur->nil_p()) {
+    while(cur) {
       last = cur;
-      cur = (Tuple*)cur->at(3);
+      cur = try_as<Tuple>(cur->at(3));
       depth++;
     }
 
@@ -85,17 +83,13 @@ namespace rubinius {
     return nxt;
   }
 
-  OBJECT Hash::add_entry(STATE, hashval hsh, OBJECT ent) {
-    OBJECT entry;
-
+  OBJECT Hash::add_entry(STATE, hashval hsh, Tuple* ent) {
     size_t bin = find_bin(hsh, bins->n2i());
 
-    entry = values->at(bin);
-
-    if(entry->nil_p()) {
-      values->put(state, bin, ent);
-    } else {
+    if(Tuple* entry = try_as<Tuple>(values->at(bin))) {
       entry_append(state, entry, ent);
+    } else {
+      values->put(state, bin, ent);
     }
 
     entries = Object::i2n(entries->n2i() + 1);
@@ -112,20 +106,18 @@ namespace rubinius {
     Tuple* new_values = Tuple::create(state, size);
 
     for(size_t i = 0; i < num; i++) {
-      Tuple* entry = (Tuple*)values->at(i);
+      Tuple* entry = try_as<Tuple>(values->at(i));
 
-      while(!entry->nil_p()) {
-        Tuple* next = (Tuple*)entry->at(3);
+      while(entry) {
+        Tuple* next = try_as<Tuple>(entry->at(3));
         entry->put(state, 3, Qnil);
 
         native_int hash = as<Integer>(entry->at(0))->n2i();
         size_t bin = find_bin(hash, size);
-        OBJECT slot = new_values->at(bin);
-
-        if(slot->nil_p()) {
-          new_values->put(state, bin, entry);
-        } else {
+        if(Tuple* slot = try_as<Tuple>(new_values->at(bin))) {
           entry_append(state, slot, entry);
+        } else {
+          new_values->put(state, bin, entry);
         }
 
         entry = next;
@@ -136,25 +128,29 @@ namespace rubinius {
     bins = Object::i2n(size);
   }
 
-  OBJECT Hash::find_entry(STATE, hashval hsh) {
+  /* Find the entry that has a hash value of +hsh+. Return NULL if nothing
+   * found. */
+  Tuple* Hash::find_entry(STATE, hashval hsh) {
     size_t num = bins->n2i();
     size_t bin = find_bin(hsh, num);
-    OBJECT entry = values->at(bin);
+    Tuple* entry = try_as<Tuple>(values->at(bin));
+    if(!entry) return NULL;
 
-    while(!entry->nil_p()) {
+    for(;;) {
       INTEGER th = as<Integer>(entry->at(0));
       if((hashval)th->n2i() == hsh) {
         return entry;
       }
-      entry = entry->at(3);
+
+      if((entry = try_as<Tuple>(entry->at(3))) == NULL) return NULL;
     }
-    return Qnil;
+    return NULL;
   }
 
   OBJECT Hash::add(STATE, hashval hsh, OBJECT key, OBJECT data) {
-    Tuple* entry = (Tuple*)find_entry(state, hsh);
+    Tuple* entry = find_entry(state, hsh);
 
-    if(!entry->nil_p()) {
+    if(entry) {
       entry->put(state, 2, data);
       return data;
     }
@@ -171,8 +167,8 @@ namespace rubinius {
   }
 
   OBJECT Hash::get(STATE, hashval hsh) {
-    OBJECT entry = find_entry(state, hsh);
-    if(!entry->nil_p()) {
+    Tuple* entry = find_entry(state, hsh);
+    if(entry) {
       return entry->at(2);
     }
 
@@ -183,20 +179,20 @@ namespace rubinius {
    * Uses +==+ to verify the key in the table matches +key+.
    * Return TRUE if key was found, and *value will be filled. */
   int Hash::lookup(STATE, OBJECT key, hashval hash, OBJECT *value) {
-    OBJECT ent, hk;
+    OBJECT hk;
 
-    ent = find_entry(state, hash);
-    if(ent->reference_p()) {
-      while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
-        hk = ent->at(1);
-        if(hk == key) {
-          *value = ent->at(2);
-          return TRUE;
-        }
+    Tuple* ent = find_entry(state, hash);
+    if(!ent) return FALSE;
 
-        ent = ent->at(3);
-        if(ent->nil_p()) break;
+    while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
+      hk = ent->at(1);
+      if(hk == key) {
+        *value = ent->at(2);
+        return TRUE;
       }
+
+      ent = try_as<Tuple>(ent->at(3));
+      if(!ent) break;
     }
 
     return FALSE;
@@ -207,20 +203,20 @@ namespace rubinius {
    * Return TRUE if key was found, and *value will be filled. */
   int Hash::lookup2(STATE, int (*compare)(STATE, OBJECT, OBJECT),
       OBJECT key, hashval hash, OBJECT *value) {
-    OBJECT ent, hk;
+    OBJECT hk;
 
-    ent = find_entry(state, hash);
-    if(ent->reference_p()) {
-      while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
-        hk = ent->at(1);
-        if(compare(state, hk, key)) {
-          *value = ent->at(2);
-          return TRUE;
-        }
+    Tuple* ent = find_entry(state, hash);
+    if(!ent) return FALSE;
 
-        ent = ent->at(3);
-        if(ent->nil_p()) break;
+    while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
+      hk = ent->at(1);
+      if(compare(state, hk, key)) {
+        *value = ent->at(2);
+        return TRUE;
       }
+
+      ent = try_as<Tuple>(ent->at(3));
+      if(!ent) break;
     }
 
     return FALSE;
@@ -232,8 +228,8 @@ namespace rubinius {
     Tuple* ent;
     Tuple* base;
 
-    base = ent = (Tuple*)find_entry(state, hash);
-    if(ent->reference_p()) {
+    base = ent = find_entry(state, hash);
+    if(ent) {
       while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
         hk = ent->at(1);
         if(compare(state, hk, key)) {
@@ -241,8 +237,8 @@ namespace rubinius {
           return;
         }
 
-        ent = (Tuple*)ent->at(3);
-        if(ent->nil_p()) break;
+        ent = try_as<Tuple>(ent->at(3));
+        if(!ent) break;
       }
 
     }
@@ -251,14 +247,14 @@ namespace rubinius {
       redistribute(state);
     }
 
-    if(base->reference_p()) {
-      ent = (Tuple*)entry_new(state, hash, key, value);
+    if(base) {
+      ent = entry_new(state, hash, key, value);
       entry_append(state, base, ent);
       entries = Object::i2n(entries->n2i() + 1);
       return;
     }
 
-    ent = (Tuple*)entry_new(state, hash, key, value);
+    ent = entry_new(state, hash, key, value);
     add_entry(state, hash, ent);
   }
 
@@ -268,10 +264,8 @@ namespace rubinius {
    */
 
   OBJECT Hash::get_undef(STATE, hashval hsh) {
-    OBJECT entry;
-
-    entry = find_entry(state, hsh);
-    if(RTEST(entry)) {
+    Tuple* entry = find_entry(state, hsh);
+    if(entry) {
       return entry->at(2);
     } else {
       return Qundef;
@@ -313,7 +307,7 @@ namespace rubinius {
     return Qnil;
   }
 
-  Hash* Hash::from_tuple(STATE, OBJECT tup) {
+  Hash* Hash::from_tuple(STATE, Tuple* tup) {
     OBJECT key, val;
     int i, fel;
 

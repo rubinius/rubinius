@@ -114,8 +114,8 @@ namespace rubinius {
   Class* Object::class_object(STATE) {
     if(reference_p()) {
       Class* cls = klass;
-      while(!cls->nil_p() && !kind_of<Class>(cls)) {
-        cls = (Class*)cls->superclass;
+      while(!cls->nil_p() && !instance_of<Class>(cls)) {
+        cls = as<Class>(cls->superclass);
       }
 
       return cls;
@@ -231,29 +231,26 @@ namespace rubinius {
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {
-      LookupTable* tbl = (LookupTable*)G(external_ivars)->fetch(state, this);
-      if(!tbl->nil_p()) {
-        return tbl->fetch(state, sym);
-      }
+      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+      if(tbl) return tbl->fetch(state, sym);
       return Qnil;
     } else if(!has_ivars_p()) {
-      MetaClass* meta = (MetaClass*)metaclass(state);
-      LookupTable* tbl = (LookupTable*)meta->has_ivars;
+      MetaClass* meta = as<MetaClass>(metaclass(state));
+      LookupTable* tbl = try_as<LookupTable>(meta->has_ivars);
 
-      if(tbl->nil_p()) return Qnil;
-
-      return tbl->fetch(state, sym);
+      if(tbl) return tbl->fetch(state, sym);
+      return Qnil;
     }
-
-    tbl = (LookupTable*)((NormalObject*)this)->instance_variables;
-
-    /* No table, no ivar! */
-    if(tbl->nil_p()) return Qnil;
 
     /* It's a tuple, use csm */
-    if(kind_of<Tuple>(tbl)) {
-      return Hash::csm_find(state, (Tuple*)tbl, sym);
+    if(Tuple* tup = try_as<Tuple>(((NormalObject*)this)->instance_variables)) {
+      return Hash::csm_find(state, tup, sym);
     }
+
+    tbl = try_as<LookupTable>(((NormalObject*)this)->instance_variables);
+
+    /* No table, no ivar! */
+    if(!tbl) return Qnil;
 
     /* It's a normal hash, no problem. */
     val = tbl->fetch(state, sym);
@@ -266,20 +263,20 @@ namespace rubinius {
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {
-      tbl = (LookupTable*)G(external_ivars)->fetch(state, this);
+      tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
 
-      if(tbl->nil_p()) {
-        tbl = (LookupTable*)LookupTable::create(state);
+      if(!tbl) {
+        tbl = LookupTable::create(state);
         G(external_ivars)->store(state, this, tbl);
       }
       tbl->store(state, sym, val);
       return val;
     } else if(!has_ivars_p()) {
-      MetaClass* meta = (MetaClass*)metaclass(state);
-      LookupTable* tbl = (LookupTable*)meta->has_ivars;
+      MetaClass* meta = as<MetaClass>(metaclass(state));
+      tbl = try_as<LookupTable>(meta->has_ivars);
 
-      if(tbl->nil_p()) {
-        tbl = (LookupTable*)LookupTable::create(state);
+      if(!tbl) {
+        tbl = LookupTable::create(state);
         SET(meta, has_ivars, tbl);
       }
 
@@ -287,26 +284,27 @@ namespace rubinius {
       return val;
     }
 
-    tbl = (LookupTable*)((NormalObject*)this)->instance_variables;
+    OBJECT ivars = ((NormalObject*)this)->instance_variables;
 
     /* Lazy creation of hash to store instance variables. */
-    if(tbl->nil_p()) {
-      Tuple* tup = (Tuple*)Hash::csm_new(state);
+    if(ivars->nil_p()) {
+      Tuple* tup = Hash::csm_new(state);
       SET((NormalObject*)this, instance_variables, tup);
       Hash::csm_add(state, tup, sym, val);
       return val;
     }
 
-    if(kind_of<Tuple>(tbl)) {
-      if(Hash::csm_add(state, (Tuple*)tbl, sym, val) == Qtrue) {
+    if(Tuple* tup = try_as<Tuple>(ivars)) {
+      if(Hash::csm_add(state, tup, sym, val) == Qtrue) {
         return val;
       }
       /* csm_add said false, meaning there is no room. We convert
          the csm into a normal hash and use it from now on. */
-      tbl = (LookupTable*)Hash::csm_into_lookuptable(state, (Tuple*)tbl);
+      tbl = Hash::csm_into_lookuptable(state, (Tuple*)tbl);
       SET((NormalObject*)this, instance_variables, tbl);
     }
-    tbl->store(state, sym, val);
+    
+    as<LookupTable>(ivars)->store(state, sym, val);
     return val;
   }
 
@@ -323,4 +321,24 @@ namespace rubinius {
   void Object::cleanup(STATE) {
     state->om->find_type_info(this)->cleanup(this);
   }
+
+  void Object::copy_flags(STATE, OBJECT source) {
+    this->obj_type        = source->obj_type;
+    this->CanStoreIvars   = source->CanStoreIvars;
+    this->StoresBytes     = source->StoresBytes;
+    this->RequiresCleanup = source->RequiresCleanup;
+    this->IsBlockContext  = source->IsBlockContext;
+    this->IsMeta          = source->IsMeta;
+  }
+    
+  // 'virtual' methods. They dispatch to the object's TypeInfo
+  // object to perform the work.
+  OBJECT Object::get_field(STATE, size_t index) {
+    return state->om->type_info[obj_type]->get_field(state, this, index);
+  }
+
+  void Object::set_field(STATE, size_t index, OBJECT val) {
+    state->om->type_info[obj_type]->set_field(state, this, index, val);
+  }
+
 }

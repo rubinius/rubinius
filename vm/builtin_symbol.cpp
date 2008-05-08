@@ -20,10 +20,10 @@ namespace rubinius {
     if(!size) size = std::strlen(str);
 
     hashval hash = String::hash_str((unsigned char*)str, size);
-    OBJECT ent = strings->find_entry(state, hash);
+    Tuple* ent = strings->find_entry(state, hash);
 
     /* If it wasn't present, use the longer, more correct version. */
-    if(ent->nil_p() || ent == Qundef) {
+    if(!ent) {
       return lookup(state, String::create(state, str, size));
     }
 

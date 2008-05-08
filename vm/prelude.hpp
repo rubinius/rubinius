@@ -11,6 +11,10 @@
 #define G(whatever) state->globals.whatever.get()
 #define GO(whatever) state->globals.whatever
 
+/* a noop identifier which goes in front of all declared typed slots.
+ * This aids in finding them via parsing */
+#define gc
+
 namespace rubinius {
   typedef intptr_t native_int;
 

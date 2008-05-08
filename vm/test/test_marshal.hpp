@@ -54,12 +54,12 @@ public:
 
   void test_symbol() {
     mar->marshal(state->symbol("blah"));
-    TS_ASSERT_EQUALS(mar->sstream.str(), "x\nblah\n");
+    TS_ASSERT_EQUALS(mar->sstream.str(), "x\n4\nblah\n");
   }
 
   void test_sendsite() {
     mar->marshal(SendSite::create(state, state->symbol("blah")));
-    TS_ASSERT_EQUALS(mar->sstream.str(), "S\nblah\n");
+    TS_ASSERT_EQUALS(mar->sstream.str(), "S\n4\nblah\n");
   }
 
   void test_array() {
@@ -96,6 +96,14 @@ public:
   void test_float() {
     mar->marshal(Float::create(state, 15.5));
     TS_ASSERT_EQUALS(mar->sstream.str(), std::string("d\n15.5\n"));
+  }
+
+  void test_iseq() {
+    InstructionSequence* iseq = InstructionSequence::create(state, 1);
+    iseq->opcodes->put(state, 0, Object::i2n(0));
+
+    mar->marshal(iseq);
+    TS_ASSERT_EQUALS(mar->sstream.str(), std::string("i\n1\n0\n"));
   }
 
 };

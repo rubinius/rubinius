@@ -23,7 +23,7 @@ class TestTask : public CxxTest::TestSuite {
 
   CompiledMethod* create_cm() {
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(10);
     cm->total_args = Object::i2n(0);
     cm->required_args = cm->total_args;
@@ -456,7 +456,7 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state, Qnil, cm);
 
-    CompiledMethod::Visibility* vis = CompiledMethod::Visibility::create(state);
+    MethodVisibility* vis = MethodVisibility::create(state);
     vis->method = cm;
     vis->visibility = G(sym_private);
 
@@ -473,7 +473,7 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state, Qnil, cm);
 
-    CompiledMethod::Visibility* vis = CompiledMethod::Visibility::create(state);
+    MethodVisibility* vis = MethodVisibility::create(state);
     vis->method = cm;
     vis->visibility = G(sym_private);
 
@@ -571,7 +571,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(cs, parent, ps);
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -612,7 +612,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(child, superclass, inc);
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -641,7 +641,7 @@ class TestTask : public CxxTest::TestSuite {
     G(object)->set_const(state, "Age", Object::i2n(28));
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -662,7 +662,7 @@ class TestTask : public CxxTest::TestSuite {
     ps->parent = (StaticScope*)Qnil;
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -681,7 +681,7 @@ class TestTask : public CxxTest::TestSuite {
     ps->parent = (StaticScope*)Qnil;
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -701,7 +701,7 @@ class TestTask : public CxxTest::TestSuite {
       thrown = true;
     }
 
-    TS_ASSERT(thrown);
+    TS_ASSERT(!thrown);
   }
 
   void test_current_module() {
@@ -712,7 +712,7 @@ class TestTask : public CxxTest::TestSuite {
     ps->parent = (StaticScope*)Qnil;
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -729,7 +729,7 @@ class TestTask : public CxxTest::TestSuite {
     ps->parent = (StaticScope*)Qnil;
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -752,7 +752,7 @@ class TestTask : public CxxTest::TestSuite {
     ps->parent = (StaticScope*)Qnil;
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -775,7 +775,7 @@ class TestTask : public CxxTest::TestSuite {
     ps->parent = (StaticScope*)Qnil;
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -796,7 +796,7 @@ class TestTask : public CxxTest::TestSuite {
     ps->parent = (StaticScope*)Qnil;
 
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
 
     Task* task = Task::create(state, Qnil, cm);
@@ -811,7 +811,7 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_raise_exception() {
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->total_args = Object::i2n(0);
     cm->stack_size = Object::i2n(1);
     cm->exceptions = Tuple::from(state, 1,
@@ -847,7 +847,7 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_raise_exception_into_sender() {
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = ISeq::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
     cm->exceptions = Tuple::from(state, 1,
         Tuple::from(state, 3, Object::i2n(0), Object::i2n(3), Object::i2n(5)));

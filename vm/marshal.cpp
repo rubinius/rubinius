@@ -36,32 +36,45 @@ namespace rubinius {
     stream >> count;
     String* str = String::create(state, NULL, count + 1);
 
-    stream >> (char*)*str;
+    stream.get(); // read off newline
+    stream.read((char*)*str, count);
+    stream.get(); // read off newline
 
     return str;
   }
 
   void Marshaller::set_symbol(SYMBOL sym) {
     String* str = sym->to_str(state);
-    stream << "x" << endl << (char*)*str << endl;
+    stream << "x" << endl << str->size() << endl;
+    stream.write((char*)*str, str->size()) << endl;
   }
 
   SYMBOL UnMarshaller::get_symbol() {
     char data[1024];
+    size_t count;
 
-    stream >> data;
+    stream >> count;
+    stream.get();
+    stream.read(data, count + 1);
+    data[count] = 0; // clamp
 
     return G(symbols)->lookup(state, data);
   }
 
   void Marshaller::set_sendsite(SendSite* ss) {
     String* str = ss->name->to_str(state);
-    stream << "S" << endl << (char*)*str << endl;
+    stream << "S" << endl << str->size() << endl;
+    stream.write((char*)*str, str->size()) << endl;
   }
 
   SendSite* UnMarshaller::get_sendsite() {
     char data[1024];
-    stream >> data;
+    size_t count;
+
+    stream >> count;
+    stream.get();
+    stream.read(data, count + 1);
+    data[count] = 0; // clamp
 
     SYMBOL sym = G(symbols)->lookup(state, data);
 
@@ -123,17 +136,26 @@ namespace rubinius {
     return Float::create(state, val);
   }
 
-  void Marshaller::set_iseq(ISeq* iseq) {
-    stream << "i" << endl << iseq->body_in_bytes() << endl;
-    stream.write(iseq->bytes, iseq->body_in_bytes()) << endl;
+  void Marshaller::set_iseq(InstructionSequence* iseq) {
+    Tuple* ops = iseq->opcodes;
+    stream << "i" << endl << ops->field_count << endl;
+    for(size_t i = 0; i < ops->field_count; i++) {
+      stream << as<Fixnum>(ops->at(i))->to_nint() << endl;
+    }
   }
 
-  ISeq* UnMarshaller::get_iseq() {
-    size_t bytes;
-    stream >> bytes;
+  InstructionSequence* UnMarshaller::get_iseq() {
+    size_t count;
+    long op;
+    stream >> count;
 
-    ISeq* iseq = ISeq::create(state, bytes);
-    stream.read(iseq->bytes, bytes);
+    InstructionSequence* iseq = InstructionSequence::create(state, count);
+    Tuple* ops = iseq->opcodes;
+
+    for(size_t i = 0; i < count; i++) {
+      stream >> op;
+      ops->put(state, i, Object::i2n(op));
+    }
 
     iseq->post_marshal(state);
 
@@ -141,11 +163,7 @@ namespace rubinius {
   }
 
   void Marshaller::set_cmethod(CompiledMethod* cm) {
-    stream << "M" << endl << 1 << endl;
-
-    for(size_t i = 0; i < CompiledMethod::saved_fields; i++) {
-      marshal(cm->at(i));
-    }
+    assert(0);
   }
 
   CompiledMethod* UnMarshaller::get_cmethod() {
@@ -154,9 +172,20 @@ namespace rubinius {
 
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    for(size_t i = 0; i < CompiledMethod::saved_fields; i++) {
-      SET(cm, field[i], unmarshal());
-    }
+    SET(cm, __ivars__, unmarshal());
+    SET(cm, primitive, unmarshal());
+    SET(cm, name,      unmarshal());
+    SET(cm, iseq,      unmarshal());
+    SET(cm, stack_size, unmarshal());
+    SET(cm, local_count, unmarshal());
+    SET(cm, required_args, unmarshal());
+    SET(cm, total_args, unmarshal());
+    SET(cm, splat,     unmarshal());
+    SET(cm, literals,  unmarshal());
+    SET(cm, exceptions, unmarshal());
+    SET(cm, lines,     unmarshal());
+    SET(cm, file,      unmarshal());
+    SET(cm, local_names, unmarshal());
 
     cm->post_marshal(state);
 
@@ -165,6 +194,7 @@ namespace rubinius {
 
   OBJECT UnMarshaller::unmarshal() {
     char code;
+    
     stream >> code;
 
     switch(code) {
@@ -220,8 +250,8 @@ namespace rubinius {
       set_tuple(as<Tuple>(obj));
     } else if(kind_of<Float>(obj)) {
       set_float(as<Float>(obj));
-    } else if(kind_of<ISeq>(obj)) {
-      set_iseq(as<ISeq>(obj));
+    } else if(kind_of<InstructionSequence>(obj)) {
+      set_iseq(as<InstructionSequence>(obj));
     } else if(kind_of<CompiledMethod>(obj)) {
       set_cmethod(as<CompiledMethod>(obj));
     } else {

@@ -27,7 +27,7 @@ namespace rubinius {
     int    sp;
     size_t args;
     OBJECT block;
-    SYMBOL name;
+    OBJECT name;
     bool   no_value;
 
     /* Locals are stored at the top of the stack. */
@@ -37,6 +37,8 @@ namespace rubinius {
     void reference(STATE);
 
     class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
       virtual void mark(MethodContext* obj);
     };
   };
@@ -52,8 +54,17 @@ namespace rubinius {
 
     static BlockContext* create(STATE);
 
-    class Info : public MethodContext::Info { };
+    class Info : public MethodContext::Info {
+    public:
+      Info(object_type type) : MethodContext::Info(type) { }
+    };
   };
+
+  template <>
+    static bool kind_of<MethodContext>(OBJECT obj) {
+      return obj->obj_type == MethodContext::type ||
+        obj->obj_type == BlockContext::type;
+    }
 
 }
 

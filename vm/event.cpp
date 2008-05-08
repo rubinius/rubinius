@@ -75,7 +75,7 @@ namespace rubinius {
       ev.data = this;
     }
 
-    void Read::into_buffer(rubinius::IO::Buffer *buf, size_t bytes) {
+    void Read::into_buffer(rubinius::IOBuffer *buf, size_t bytes) {
       count = bytes;
       buffer.set(buf);
     }

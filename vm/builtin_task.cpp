@@ -15,10 +15,7 @@ namespace rubinius {
   }
 
   Task* Task::create(STATE, OBJECT recv, CompiledMethod* meth) {
-    Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
-    task->ip = 0;
-    task->sp = -1;
-    task->state = state;
+    Task* task = create(state);
     task->make_active(task->generate_context(recv, meth));
     return task;
   }
@@ -28,7 +25,14 @@ namespace rubinius {
     task->ip = 0;
     task->sp = -1;
     task->state = state;
+    SET(task, control_channel, Qnil);
+    SET(task, debug_channel, Qnil);
+    SET(task, active, Qnil);
+
     return task;
+  }
+
+  void Task::Info::mark(Task* obj) {
   }
 
   MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth) {
@@ -208,9 +212,9 @@ namespace rubinius {
       return (Executable*)Qnil;
     }
 
-    CompiledMethod::Visibility *vis;
+    MethodVisibility *vis;
 
-    vis = try_as<CompiledMethod::Visibility>(msg.method);
+    vis = try_as<MethodVisibility>(msg.method);
     if(vis) {
       return vis->method;
     }

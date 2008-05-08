@@ -72,7 +72,7 @@ class TestInstructions : public CxxTest::TestSuite {
         fd.puts "void #{meth}() {"
         fd.puts "Task* task = Task::create(state);"
         fd.puts "CompiledMethod* cm = CompiledMethod::create(state);"
-        fd.puts "cm->iseq = ISeq::create(state, 10);"
+        fd.puts "cm->iseq = InstructionSequence::create(state, 10);"
         fd.puts "cm->stack_size = Object::i2n(10);"
         fd.puts "MethodContext* ctx = task->generate_context(Qnil, cm);"
         fd.puts "task->make_active(ctx);"
@@ -80,7 +80,7 @@ class TestInstructions : public CxxTest::TestSuite {
         fd.puts "Tuple* stack = task->stack; stack += 0;"
         fd.puts "task->literals = Tuple::create(state, 10);"
         fd.puts "opcode stream[100];"
-        fd.puts "stream[0] = ISeq::insn_#{ins.opcode};"
+        fd.puts "stream[0] = InstructionSequence::insn_#{ins.opcode};"
         fd.puts "#define run(val) task->execute_stream(stream)"
         fd.puts "#line #{line} \"instructions.rb\""
         fd.puts code
@@ -197,7 +197,7 @@ class TestInstructions : public CxxTest::TestSuite {
   end
 
   def generate_names
-    str =  "const char *rubinius::ISeq::get_instruction_name(int op) {\n"
+    str =  "const char *rubinius::InstructionSequence::get_instruction_name(int op) {\n"
     str << "static const char instruction_names[] = {\n"
     InstructionSet::OpCodes.each do |ins|
       str << "  \"#{ins.opcode.to_s}\\0\"\n"
@@ -852,88 +852,6 @@ CODE
   end
 
   # [Operation]
-  #   Store a value into the specified object field
-  # [Format]
-  #   \store_field
-  # [Stack Before]
-  #   * field
-  #   * value
-  #   * object
-  #   * ...
-  # [Stack After]
-  #   * object
-  #   * ...
-  # [Description]
-  #   Overwrite the value of a particular field slot with the specified
-  #   object. The object reference is left on the stack.
-
-  def store_field
-    <<-CODE
-    t1 = stack_pop();
-    t2 = stack_pop();
-    t3 = stack_pop();
-    size_t idx = (size_t)as<Fixnum>(t1)->n2i();
-    check_bounds(t3, idx);
-    SET(t3, field[idx], t2);
-    stack_push(t3);
-    CODE
-  end
-
-  def test_store_field
-    <<-CODE
-    Tuple* tup = Tuple::create(state, 3);
-    tup->put(state, 0, Qnil);
-
-    stack->put(state, ++task->sp, tup);
-    stack->put(state, ++task->sp, Qtrue);
-    stack->put(state, ++task->sp, Object::i2n(0));
-
-    run();
-
-    TS_ASSERT_EQUALS(tup->at(0), Qtrue);
-    CODE
-  end
-
-  # [Operation]
-  #   Retrieve the value within the field of the specified object
-  # [Format]
-  #   \fetch_field
-  # [Stack Before]
-  #   * field
-  #   * object
-  #   * ...
-  # [Stack After]
-  #   * value
-  #   * ...
-  # [Description]
-  #   Retrieve the object of the specified object field number.
-
-  def fetch_field
-    <<-CODE
-    t1 = stack_pop();
-    t2 = stack_pop();
-    size_t index = as<Fixnum>(t1)->n2i();
-    check_bounds(t2, index);
-    stack_push(t2->at(index));
-    CODE
-  end
-
-  def test_fetch_field
-    <<-CODE
-    Tuple* tup = Tuple::create(state, 3);
-    tup->put(state, 0, Qtrue);
-
-    stack->put(state, ++task->sp, tup);
-    stack->put(state, ++task->sp, Object::i2n(0));
-
-    run();
-
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
-    CODE
-  end
-
-  # [Operation]
   #   Pushes a value from an object field onto the stack
   # [Format]
   #   \push_my_field fld
@@ -953,7 +871,7 @@ CODE
   def push_my_field
     <<-CODE
     next_int;
-    stack_push(self->at(_int));
+    stack_push(self->get_field(state, _int));
     CODE
   end
 
@@ -965,10 +883,20 @@ CODE
     task->self = tup;
 
     stream[1] = (opcode)0;
+
+    TS_ASSERT_THROWS(run(), std::runtime_error);
+
+    Class* cls = state->new_class("Blah");
+
+    task->self = cls;
+
+    stream[1] = (opcode)2;
+
+    task->sp = -1;
     run();
 
     TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(stack->at(task->sp), state->symbol("Blah"));
     CODE
   end
 
@@ -2359,7 +2287,7 @@ CODE
   def test_send_method
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = ISeq::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(0);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(10);
@@ -2451,7 +2379,7 @@ CODE
   def test_send_stack
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = ISeq::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(1);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(1);
@@ -2521,7 +2449,7 @@ CODE
   def test_send_stack_with_block
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = ISeq::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(1);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(1);
@@ -2612,7 +2540,7 @@ CODE
   def test_send_stack_with_splat
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = ISeq::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(2);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(2);
@@ -2687,7 +2615,7 @@ CODE
   def test_send_super_stack_with_block
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = ISeq::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(1);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(1);
@@ -2780,7 +2708,7 @@ CODE
   def test_send_super_stack_with_splat
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = ISeq::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(2);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(2);
@@ -3340,16 +3268,15 @@ perform_no_ss_send:
 
   def shift_tuple
     <<-CODE
-    t1 = stack_pop();
-    sassert(t1->reference_p());
+    Tuple* tup = as<Tuple>(stack_pop());
     if(NUM_FIELDS(t1) == 0) {
-      stack_push(t1);
+      stack_push(tup);
       stack_push(Qnil);
     } else {
       j = NUM_FIELDS(t1) - 1;
-      t3 = t1->at(0);
+      t3 = tup->at(0);
       Tuple* tup = Tuple::create(state, j);
-      tup->copy_from(state, as<Tuple>(t1), 1, j);
+      tup->copy_from(state, tup, 1, j);
       stack_push(t2);
       stack_push(t3);
     }

@@ -16,6 +16,7 @@ class TestLookupTable : public CxxTest::TestSuite {
 
     tbl = LookupTable::create(&vm);
     TS_ASSERT_EQUALS(tbl->obj_type, LookupTableType);
+    TS_ASSERT_EQUALS(tbl->bins->n2i(), LOOKUPTABLE_MIN_SIZE);
   }
 
   void test_store_fetch() {
@@ -67,11 +68,11 @@ class TestLookupTable : public CxxTest::TestSuite {
     tbl->store(state, k3, v3);
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 3);
 
-    OBJECT entry = tbl->find_entry(state, k1);
-    TS_ASSERT(!entry->nil_p());
+    Tuple* entry = tbl->find_entry(state, k1);
+    TS_ASSERT(entry);
 
     TS_ASSERT(!entry->at(2)->nil_p());
-    TS_ASSERT_EQUALS(entry->at(2)->at(0), k2);
+    TS_ASSERT_EQUALS(as<Tuple>(entry->at(2))->at(0), k2);
 
     entry = tbl->find_entry(state, k3);
     TS_ASSERT(!entry->nil_p());
@@ -128,11 +129,11 @@ class TestLookupTable : public CxxTest::TestSuite {
     OBJECT k = Object::i2n(47);
     tbl->store(state, k, Qtrue);
 
-    OBJECT entry = tbl->find_entry(state, k);
+    Tuple* entry = tbl->find_entry(state, k);
     TS_ASSERT_EQUALS(k, entry->at(0));
 
     entry = tbl->find_entry(state, Object::i2n(40));
-    TS_ASSERT(entry->nil_p());
+    TS_ASSERT(!entry);
   }
 
   void test_find() {

@@ -10,11 +10,14 @@ namespace rubinius {
     static instlocation* instructions;
 
     opcode* opcodes;
+    size_t total;
     CompiledMethod* original;
 
     VMMethod(CompiledMethod* meth);
     VMMethod(size_t fields);
     ~VMMethod();
+
+    void specialize(TypeInfo* ti);
   };
 };
 

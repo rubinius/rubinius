@@ -1,0 +1,3 @@
+test/.deps/*
+gen/*
+external_libs

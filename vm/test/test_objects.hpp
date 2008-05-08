@@ -30,8 +30,9 @@ class TestObjects : public CxxTest::TestSuite {
   void test_class() {
     Class *cls;
 
-    cls = (Class*)G(klass);
-    TS_ASSERT_EQUALS(cls->class_object(state), cls);
+    cls = G(klass);
+    Class* o = cls->class_object(state);
+    TS_ASSERT_EQUALS(cls, o);
     TS_ASSERT_EQUALS(cls->superclass, G(module));
     check_const(klass, "Class");
   }
@@ -42,7 +43,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     cls = (Class*)G(klass);
     meta = (MetaClass*)cls->klass;
-    TS_ASSERT(MetaClass::is_a(G(object)->klass));
+    TS_ASSERT(kind_of<MetaClass>(G(object)->klass));
     TS_ASSERT(kind_of<LookupTable>(meta->method_table));
     TS_ASSERT(kind_of<LookupTable>(meta->constants));
   }

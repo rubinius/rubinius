@@ -6,6 +6,8 @@
 
 namespace rubinius {
 
+  class Exception;
+
   namespace event {
     class Loop;
   }
@@ -20,6 +22,8 @@ namespace rubinius {
     event::Loop* events;
     GlobalCache* global_cache;
 
+    bool wait_events;
+
     static const size_t default_bytes = 10240;
 
     /* Inline methods */
@@ -30,6 +34,7 @@ namespace rubinius {
     void bootstrap_ontology();
     void bootstrap_symbol();
     void bootstrap_exceptions();
+    void boot_threads();
 
     OBJECT new_object(Class* cls);
     Class* new_basic_class(OBJECT sup, size_t fields);
@@ -52,6 +57,14 @@ namespace rubinius {
     void run_best_thread();
     void queue_thread(Thread* thread);
     void activate_thread(Thread* thread);
+    void raise_from_errno(char* reason);
+    void raise_exception(Exception* exc);
+    Exception* new_exception(Class* cls, char* msg);
+    OBJECT current_block();
+
+    void inspect(OBJECT obj);
+    void set_const(const char* name, OBJECT val);
+    void set_const(Module* mod, const char* name, OBJECT val);
 
   };
 };

@@ -13,11 +13,18 @@ namespace rubinius {
 
   }
 
+  void MethodContext::Info::mark(MethodContext* obj) {
+  }
+
   BlockContext* BlockContext::create(STATE) {
     return (BlockContext*)state->new_struct(G(blokctx), sizeof(BlockContext));
   }
 
   void BlockEnvironment::call(STATE, size_t args) {
+
+  }
+
+  void BlockEnvironment::call(STATE, Message& msg) {
 
   }
 
@@ -27,7 +34,7 @@ namespace rubinius {
     SET(ctx, name, (SYMBOL)this);
     SET(ctx, cm, method);
     SET(ctx, stack, Tuple::create(state, method->stack_size->to_nint()));
-    
+
     ctx->vmm = method->vmmethod(state);
     ctx->ip = 0;
     ctx->sp = method->number_of_locals() - 1;
@@ -37,9 +44,9 @@ namespace rubinius {
 
   BlockEnvironment* BlockEnvironment::under_context(STATE, CompiledMethod* cm,
       MethodContext* parent, MethodContext* active) {
-    
+
     BlockEnvironment* be = (BlockEnvironment*)state->new_object(G(blokenv));
-    
+
     parent->reference(state);
     active->reference(state);
 

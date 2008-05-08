@@ -1,7 +1,6 @@
 #ifndef RBX_REGEXP_HPP
 #define RBX_REGEXP_HPP
 
-
 namespace rubinius {
   class RegexpData : public BuiltinType {
     public:
@@ -10,32 +9,20 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(Class* cls) : TypeInfo(cls) { }
+      Info(object_type type) : TypeInfo(type) { }
       virtual void cleanup(OBJECT obj);
     };
   };
-  
-  class MatchData : public BuiltinType {
-    public:
-    const static size_t fields = 5;
-    const static object_type type = MatchDataType;
 
-    OBJECT instance_variables;
-    OBJECT source;
-    OBJECT regexp;
-    OBJECT full;
-    OBJECT region;
-  };
-  
   class Regexp : public BuiltinType {
     public:
     const static size_t fields = 4;
     const static object_type type = RegexpType;
 
-    OBJECT instance_variables;
-    OBJECT source;
-    OBJECT data;
-    OBJECT names;
+    OBJECT __ivars__; // slot
+    String* source; // slot
+    RegexpData* data; // slot
+    Hash* names; // slot
 
     static void cleanup(STATE, OBJECT data);
     static void init(STATE);
@@ -45,7 +32,34 @@ namespace rubinius {
     OBJECT options(STATE);
     OBJECT match_region(STATE, String* string, INTEGER start, INTEGER end, OBJECT forward);
 
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
+
   };
+
+  class MatchData : public BuiltinType {
+    public:
+    const static size_t fields = 5;
+    const static object_type type = MatchDataType;
+
+    OBJECT __ivars__; // slot
+    String* source; // slot
+    Regexp* regexp; // slot
+    Tuple* full; // slot
+    Tuple* region; // slot
+
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
+      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    };
+  };
+
 }
 
 #endif
