@@ -14,7 +14,7 @@ module ModuleSpecs
     __add_method__ :b, cm
   end
 
-  class B
+  class F
     include A
   end
 end
