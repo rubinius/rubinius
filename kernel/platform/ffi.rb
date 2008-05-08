@@ -167,6 +167,12 @@ end
 
 class Module
 
+  # Set which library +attach_function+ should look in. Defaults to nil,
+  # which means the current process.
+  def set_ffi_lib(name)
+    @ffi_lib = name
+  end
+
   ##
   # Attach C function +name+ to this module.
   #
@@ -188,11 +194,7 @@ class Module
       ret = a4
     end
 
-    if args.size > 6 then
-      raise ArgumentError, "only C functions with up to 6 args may be attached"
-    end
-
-    func = FFI.create_function nil, name, args, ret
+    func = FFI.create_function @ffi_lib, name, args, ret
 
     raise ArgumentError, "Unable to find function '#{name}' to bind to #{self.name}.#{mname}" unless func
 
