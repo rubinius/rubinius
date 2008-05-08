@@ -1,0 +1,3 @@
+[submodule "mspec"]
+	path = mspec
+	url = git://github.com/brixen/mspec.git
