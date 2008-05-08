@@ -22,6 +22,7 @@ begin
   IO.after_loaded
   Object.after_loaded
   File.after_loaded
+  String.after_loaded
 
   Ar.after_loaded
 

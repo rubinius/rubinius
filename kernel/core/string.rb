@@ -8,7 +8,23 @@ class String
   include Comparable
   include Enumerable
 
-  ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3, :hash => 4, :shared => 5
+  BASE_64_A2B = {}
+  def self.after_loaded # :nodoc:
+    (?A..?Z).each {|x| BASE_64_A2B[x] = x - ?A}
+    (?a..?z).each {|x| BASE_64_A2B[x] = x - ?G}
+    (?0..?9).each {|x| BASE_64_A2B[x] = x + 04}
+    BASE_64_A2B[?+]  = ?>
+    BASE_64_A2B[?\/] = ??
+    BASE_64_A2B[?=]  = 0
+  end
+
+  ivar_as_index(:bytes      => 0,
+                :characters => 1,
+                :encoding   => 2,
+                :data       => 3,
+                :hash       => 4,
+                :shared     => 5)
+
   def bytes     ; @bytes      ; end
   def characters; @characters ; end
   def encoding  ; @encoding   ; end
@@ -2309,89 +2325,22 @@ class String
     self
   end
 
-  def b64_regex_permissive()
-    / [A-Za-z0-9+\/]{4} | [A-Za-z0-9+\/]{3} \=? |
-      [A-Za-z0-9+\/]{2} \={0,2} | [A-Za-z0-9+\/] \={0,3} | [^A-Za-z0-9+\/]+ /x
-  end
-
-  def b64_regex_strict()
-    / \A (?: [A-Za-z0-9+\/]{4} | [A-Za-z0-9+\/]{3} \=? |
-             [A-Za-z0-9+\/]{2} \={0,2} | [A-Za-z0-9+\/] \={0,3} ) \Z /x
-  end
-
-  def b64_encoded_units(first = 0, last = -1, &block)
-    begin
-      self[first..last].scan(b64_regex_permissive, &block)
-    rescue RuntimeError
-      # hack, 'break' in a block isn't fully working yet.
-      # it doesn't cause String#scan to return
-    end
-  end
-
-  def utf8_regex_permissive()
-    / [\x00-\x7F] | [\xC0-\xDF] [\x80-\xBF] | [\xE0-\xEF] [\x80-\xBF]{2} |
-      [\xF0-\xF7] [\x80-\xBF]{3} | [\xF8-\xFB] [\x80-\xBF]{4} |
-      [\xFC-\xFD] [\x80-\xBF]{5} | [\x00-\xFF]+ /x
-  end
-
-  def utf8_regex_strict()
-    / \A (?: [\x00-\x7F] | [\xC2-\xDF] [\x80-\xBF] | [\xE1-\xEF] [\x80-\xBF]{2} |
-             [\xF1-\xF7] [\x80-\xBF]{3} | [\xF9-\xFB] [\x80-\xBF]{4} |
-             [\xFD-\xFD] [\x80-\xBF]{5} ) \Z /x
-  end
-
-  def utf8_chars(first = 0, last = -1, &block)
-    self[first..last].scan(utf8_regex_permissive, &block)
-  end
-
-  # assumes self is one valid code point
-  def utf8_code_value()
-    len = self.length
-    if len == 1
-      result = self[0]
-    else
-      shift = (len - 1) * 2
-      result = (((2**(8 - len.succ) - 1) & self[0]) * 2**((len - 1) * 8)) >> shift
-      (1...(len - 1)).each do |i|
-        shift -= 2
-        result |= (((2**6 - 1) & self[i]) * 2**((len - i.succ) * 8)) >> shift
-      end
-      result |= (2**6 - 1) & self[-1]
-    end
-    result
-  end
-
-  # assumes self is a byte string
-  def extract_number(i, num_bytes, endian)
-    result = exp = 0
-    bytebits = 8
-    if :big == endian || (:native == endian && endian?(:big))
-      exp = bytebits * (num_bytes - 1)
-      bytebits = -bytebits
-    end
-    num = i + num_bytes
-    while i < num
-      result += (@data[i] * 2**exp)
-      exp += bytebits
-      i += 1
-    end
-    result
-  end
-
   ##
   #  call-seq:
   #     str.unpack(format)   => anArray
   #
-  #  Decodes <i>str</i> (which may contain binary data) according to the
-  #  format string, returning an array of each value extracted. The
-  #  format string consists of a sequence of single-character directives,
-  #  summarized in the table at the end of this entry.
-  #  Each directive may be followed
-  #  by a number, indicating the number of times to repeat with this
-  #  directive. An asterisk (``<code>*</code>'') will use up all
-  #  remaining elements. The directives <code>sSiIlL</code> may each be
-  #  followed by an underscore (``<code>_</code>'') to use the underlying
-  #  platform's native size for the specified type; otherwise, it uses a
+  #  Decodes <i>str</i> (which may contain binary data) according to
+  #  the format string, returning an array of each value
+  #  extracted. The format string consists of a sequence of
+  #  single-character directives, summarized in the table at the end
+  #  of this entry.
+  #
+  #  Each directive may be followed by a number, indicating the number
+  #  of times to repeat with this directive. An asterisk
+  #  (``<code>*</code>'') will use up all remaining elements. The
+  #  directives <code>sSiIlL</code> may each be followed by an
+  #  underscore (``<code>_</code>'') to use the underlying platform's
+  #  native size for the specified type; otherwise, it uses a
   #  platform-independent consistent size. Spaces are ignored in the
   #  format string. See also <code>Array#pack</code>.
   #
@@ -2515,259 +2464,257 @@ class String
   #            |         | length argument
   #     -------+---------+-----------------------------------------
 
-  # some of the directives work when repeat == 0 because of this behavior:
-  # str[0...0] == '' and str[1..0] == ''
   def unpack(format)
+
+    # some of the directives work when repeat == 0 because of this behavior:
+    # str[0...0] == '' and str[1..0] == ''
+
     raise TypeError, "can't convert nil into String" if format.nil?
+
     i = 0
     elements = []
     length = self.length
-    directives = format.scan(/ (?: [@AaBbCcDdEeFfGgHhIiLlMmNnQqSsUVvXxZ] ) (?: \-? [0-9]+ | \* )? /x)
-    directives.each do |d|
-      case d
-      when / \A ( [CcDdEeFfGgIiLlNnQqSsVv] ) (.*) \Z /x
-        directive = $1
-        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        num_bytes = case directive
-                    when /[DdEGQq]/ then 8
-                    when /[eFfgNV]/ then 4
-                    when /[nSsv]/ then 2
-                    when /[Cc]/ then 1
-                    when /[IiLl]/ then 1.size
-                    end
-        proc = Proc.new do
-          case directive
-          when /[Nn]/ then elements << extract_number(i, num_bytes, :big)
-          when /[CILQS]/ then elements << extract_number(i, num_bytes, :native)
-          when /[Vv]/ then elements << extract_number(i, num_bytes, :little)
-          when 'c'
-            n = extract_number(i, num_bytes, :big)
-            n = n >= 2**(num_bytes*8 - 1) ? -(2**(num_bytes*8) - n) : n
-            elements << n
-          when /[ilqs]/
-            n = extract_number(i, num_bytes, :native)
-            n = n >= 2**(num_bytes*8 - 1) ? -(2**(num_bytes*8) - n) : n
-            elements << n
-          when /[e]/
-            n = extract_number(i, num_bytes, :little)
-            elements << n.interpret_as_float
-          when /[Ff]/
-            n = extract_number(i, num_bytes, :native)
-            elements << n.interpret_as_float
-          when /[g]/
-            n = extract_number(i, num_bytes, :big)
-            elements << n.interpret_as_float
-          when /[Dd]/
-            n = extract_number(i, num_bytes, :native)
-            elements << n.interpret_as_double
-          when /[E]/
-            n = extract_number(i, num_bytes, :little)
-            elements << n.interpret_as_double
-          when /[G]/
-            n = extract_number(i, num_bytes, :big)
-            elements << n.interpret_as_double
-          end
-          i += num_bytes
-        end
-        if repeat == '*'
-          proc.call while i + num_bytes <= length
-        else
-          j = 0
-          num = repeat.to_i
-          while j < num
-            if i + num_bytes > length
-              elements << nil if directive != 'Q'
-            else
-              proc.call
-            end
-            j += 1
-          end
-        end
-      when / \A (Z) (.*) \Z /x
-        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        if i >= length
+
+    schema = format.scan(/([@a-zA-Z])(-?\d+|[\*_])?/).map { |c, n|
+      # n in (nil, -num, num, "*", "_")
+      [c, n.nil? || n =~ /\*|_/ ? n : Integer(n)]
+    }
+
+    schema.each do |code, count|
+
+      count = nil if Fixnum === count and count < 0
+      count ||= code == "@" ? 0 : 1
+
+      # TODO: profile avg occurances and reorder case
+      case code
+      when 'A' then
+        new_pos, str = if i >= length then
+                         [i, '']
+                       elsif count == '*' then
+                         [length, self[i..-1]]
+                       else
+                         new_pos = i + count
+                         [new_pos,
+                          new_pos <= length ? self[i...new_pos] : self[i..-1]]
+                       end
+        i = new_pos
+        elements << str.sub(/[\x00\x20]+\Z/, '')
+      when 'a' then
+        if i >= length then
           elements << ''
-        elsif repeat == '*'
-          self[i..-1] =~ / \A ( [^\x00]* ) ( [\x00]? ) /x
-          elements << $1
-          i += $1.length
-          i += 1 if $2 == "\0"
-        else
-          repeat = repeat.to_i
-          str = i + repeat <= length ? self[i...(i + repeat)] : self[i..-1]
-          str =~ / \A ( [^\x00]* ) /x
-          elements << $1
-          i += repeat
-        end
-      when / \A (a) (.*) \Z /x
-        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        if i >= length
-          elements << ''
-        elsif repeat == '*'
+        elsif count == '*' then
           elements << self[i..-1]
           i = length
         else
-          repeat = repeat.to_i
-          elements << (i + repeat <= length ? self[i...(i + repeat)] : self[i..-1])
-          i += repeat
+          nnd = i + count
+          s = if i + count <= length then
+                self[i...nnd]
+              else
+                self[i..-1]
+              end
+          elements << s
+          i = nnd
         end
-      when / \A (X) (.*) \Z /x # TODO: use $' and drop everything after X
-        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        repeat = repeat == '*' ? length - i : repeat.to_i
-        raise ArgumentError, "X outside of string" if repeat < 0 or i - repeat < 0
-        i -= repeat
-      when / \A (x) (.*) \Z /x # TODO: use $' and drop everything after x
-        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        if repeat == '*'
-          raise ArgumentError, "x outside of string" if i > length
-          i = length
-        else
-          repeat = repeat.to_i
-          raise ArgumentError, "x outside of string" if i + repeat > length
-          i += repeat
-        end
-      when / \A ([BbHh]) (.*) \Z /x
-        directive = $1
-        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        formaat = case directive
-                  when /[Bb]/ then "%08b"
-                  when /[Hh]/ then "%02x"
-                  end
-        if i >= length
+      when 'B', 'b', 'H', 'h' then
+        lsb = code =~ /[bh]/
+        fmt = case code
+              when /[Bb]/ then "%08b"
+              when /[Hh]/ then "%02x"
+              end
+
+        if i >= length then
           elements << ''
-        elsif repeat == '*'
-          str = ''
-          proc = (['B', 'H'].include? directive) ? Proc.new { |s| s } : Proc.new { |s| s.reverse }
-          self[i..-1].each_byte { |n| str << proc.call(formaat % n) }
-          elements << str
+        elsif count == '*' then
+          a = self[i..-1].split(//).map { |c| fmt % c[0] }
+          a.map! { |s| s.reverse } if lsb
+          elements << a.join
           i = length
         else
-          case directive
-          when /[Bb]/
-            (num_bytes, r) = repeat.to_i.divmod(8)
+          case code
+          when /[Bb]/ then
+            num_bytes, r = count.divmod(8)
             num_drop = r != 0 ? 8 - r : 0
-          when /[Hh]/
-            (num_bytes, r) = (repeat.to_i * 4).divmod(8)
+          when /[Hh]/ then
+            num_bytes, r = (count * 4).divmod(8)
             num_drop = r != 0 ? 1 : 0
           end
           num_bytes += 1 if r != 0
-          str0 = i + num_bytes <= length ? self[i...(i + num_bytes)] : self[i..-1]
+          str0 = if i + num_bytes <= length then
+                   self[i...(i + num_bytes)]
+                 else
+                   self[i..-1]
+                 end
           len = str0.length
           str1 = ''
-          if ['B', 'H'].include? directive
-            proc = Proc.new { |s| len -= 1; len == 0 ? s[0..-num_drop.succ] : s }
-          else
-            proc = Proc.new { |s| len -= 1; len == 0 ? s[num_drop..-1].reverse : s.reverse }
-          end
-          str0.each_byte { |n| str1 << proc.call(formaat % n) }
+          str0.each_byte { |n|
+            len -= 1
+            s = fmt % n
+            str1 << if lsb then
+                      len == 0 ? s[num_drop..-1].reverse : s.reverse
+                    else
+                      len == 0 ? s[0..-num_drop.succ]    : s
+                    end
+          }
           elements << str1
           i += num_bytes
         end
-      when / \A (U) (.*) \Z /x
-        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        if i >= length
-        elsif repeat == '*'
-          utf8_chars(i) do |c|
-            raise ArgumentError, "malformed UTF-8 character" if not c =~ utf8_regex_strict
-            elements << c.utf8_code_value
+      when /[CcDdEeFfGgIiLlNnQqSsVv]/ then
+        num_bytes = case code
+                    when /[DdEGQq]/ then 8
+                    when /[eFfgNV]/ then 4
+                    when /[nSsv]/   then 2
+                    when /[Cc]/     then 1
+                    when /[IiLl]/   then 1.size
+                    end
+
+        size = case code
+               when /[NncGg]/          then :big
+               when /[CILQSilqsFfDd]/ then :native
+               when /[VveE]/          then :little
+               else
+                 raise "huh? #{code.inspect}"
+               end
+
+        star = count == '*'
+        count = length - i if star
+        count.times do |j|
+          if i + num_bytes > length
+            break if star
+            elements << nil if code != 'Q'
+          else
+            start    = i
+            offset   = num_bytes - 1
+            endian   = size
+            n        = exp = 0
+            bytebits = 8
+
+            if :big == endian || (:native == endian && endian?(:big)) then
+              exp      =  bytebits * offset
+              bytebits = -bytebits
+            end
+
+            (start..start + offset).each do |x|
+              n   += (self[x] * 2**exp)
+              exp += bytebits
+            end
+
+            case code
+            when /[NnCILQSVv]/ then
+              elements << n
+            when /[ilqsc]/ then
+              max = 2 ** (num_bytes * 8 - 1)
+              n = n >= max ? -(2**(num_bytes*8) - n) : n
+              elements << n
+            when /[eFfg]/ then
+              sign   = (2**31 & n != 0) ? -1 : 1
+              expo   = ((0xFF * 2**23) & n) >> 23
+              frac   = (2**23 - 1) & n
+              result = if expo == 0 and frac == 0 then
+                         sign.to_f * 0.0    # zero
+                       elsif expo == 0 then # denormalized
+                         sign * 2**(expo - 126) * (frac.to_f / 2**23.to_f)
+                       elsif expo == 0xFF and frac == 0 then
+                         sign.to_f / 0.0    # Infinity
+                       elsif expo == 0xFF then
+                         0.0 / 0.0          # NaN
+                       else                 # normalized
+                         sign * 2**(expo - 127) * (1.0 + (frac.to_f / 2**23.to_f))
+                       end
+              elements << result
+            when /[DdEG]/ then
+              sign   = (2**63 & n != 0) ? -1 : 1
+              expo   = ((0x7FF * 2**52) & n) >> 52
+              frac   = (2**52 - 1) & n
+              result = if expo == 0 and frac == 0 then
+                         sign.to_f * 0.0    # zero
+                       elsif expo == 0 then # denormalized
+                         sign * 2**(expo - 1022) * (frac.to_f / 2**52.to_f)
+                       elsif expo == 0x7FF and frac == 0 then
+                         sign.to_f / 0.0    # Infinity
+                       elsif expo == 0x7FF then
+                         0.0 / 0.0          # NaN
+                       else                 # normalized
+                         sign * 2**(expo-1023) * (1.0 + (frac.to_f / 2**52.to_f))
+                       end
+              elements << result
+            end
+            i += num_bytes
           end
-          i = length
-        else
-          repeat = repeat.to_i
-          num_bytes = 0
-          utf8_chars(i) do |c|
-            raise ArgumentError, "malformed UTF-8 character" if not c =~ utf8_regex_strict
-            break if repeat == 0
-            elements << c.utf8_code_value
-            num_bytes += c.length
-            repeat -= 1
-          end
-          i += num_bytes
         end
-      when / \A (A) (.*) \Z /x
-        repeat = ($2 == '' or $2[0].chr == '-') ? 1 : $2
-        if i >= length
-          elements << ''
-        elsif repeat == '*'
-          elements << self[i..-1].sub(/ [\x00\x20]+ \Z /x, '')
-          i = length
-        else
-          repeat = repeat.to_i
-          str = i + repeat <= length ? self[i...(i + repeat)] : self[i..-1]
-          elements << str.sub(/ [\x00\x20]+ \Z /x, '')
-          i += repeat
-        end
-      when / \A (\@) (.*) \Z /x
-        new_index = ($2 == '' or $2[0].chr == '-') ? 0 : $2
-        if new_index == '*'
-          i = length
-        else
-          new_index = new_index.to_i
-          raise ArgumentError, "@ outside of string" if new_index > length
-          i = new_index
-        end
-      when / \A M .* \Z /x
-        if i >= length
+      when 'M' then
+        if i >= length then
           elements << ''
         else
-          str = ''
-          num_bytes = 0
+          str              = ''
+          num_bytes        = 0
           regex_permissive = / \= [0-9A-Fa-f]{2} | [^=]+ | [\x00-\xFF]+ /x
-          regex_junk = / \A ( \= [0-9A-Fa-f]{0,1} ) /x
-          regex_strict = / \A (?: \= [0-9A-Fa-f]{2} | [^=]+ ) \Z /x
-          regex_hex = / \A \= [0-9A-Fa-f]{2} \Z /x
+          regex_junk       = / \A ( \= [0-9A-Fa-f]{0,1} )               /x
+          regex_strict     = / \A (?: \= [0-9A-Fa-f]{2} | [^=]+ )    \Z /x
+          regex_hex        = / \A \= ([0-9A-Fa-f]{2})                \Z /x
+
           self[i..-1].scan(regex_permissive) do |s|
-            if s =~ regex_strict
-              if s =~ regex_hex
-                str << s.sub(/\A\=/, '').hex.chr
-              else
-                str << s
-              end
+            if s =~ regex_strict then
               num_bytes += s.length
+              s = $1.hex.chr if s =~ regex_hex
+              str << s
             elsif s =~ regex_junk
               num_bytes += $1.length
             end
           end
+
           elements << str
           i += num_bytes
         end
-      when / \A m .* \Z /x
+      when 'm' then
         if i >= length
           elements << ''
         else
-          buffer = ''
-          str = ''
+          buffer    = ''
+          str       = ''
           num_bytes = 0
-          b64_encoded_units(i) do |s|
+
+          b64_regex_permissive = /[A-Za-z0-9+\/]{4} |[A-Za-z0-9+\/]{3} \=?
+            |[A-Za-z0-9+\/]{2}\={0,2} |[A-Za-z0-9+\/]\={0,3} |[^A-Za-z0-9+\/]+/x
+
+          self[i..-1].scan(b64_regex_permissive) do |s|
             num_bytes += s.length
-            if s =~ b64_regex_strict
-              if s =~ /\=\Z/
-                s << '=' while s.length != 4
-              end
-              if buffer == '' and s =~ / \A ( [A-Za-z0-9+\/] ) \=+ \Z /x
+
+            b64_regex_strict = /\A (?:[A-Za-z0-9+\/]{4} |[A-Za-z0-9+\/]{3} \=?
+              |[A-Za-z0-9+\/]{2} \={0,2} |[A-Za-z0-9+\/] \={0,3} ) \Z /x
+
+            if s =~ b64_regex_strict then
+
+              s << '=' while s.length != 4 if s =~ /=\Z/
+
+              # TODO: WHY?
+              if buffer == '' and s =~ /\A([A-Za-z0-9+\/])\=+\Z/ then
                 buffer << $1
               else
                 buffer << s
               end
-              if buffer.length >= 4
-                s = buffer[0..3]
-                buffer = buffer.length == 4 ? '' : buffer[4..-1]
-                process = true
-              else
-                process = false
-              end
-              if process
-                a = s[0].b64_symbol_value; b = s[1].b64_symbol_value
-                c = s[2].b64_symbol_value; d = s[3].b64_symbol_value
+
+              process = buffer.length >= 4
+
+              if process then
+                s      = buffer[0..3]
+                buffer = buffer[4..-1]
+
+                a = BASE_64_A2B[s[0]]
+                b = BASE_64_A2B[s[1]]
+                c = BASE_64_A2B[s[2]]
+                d = BASE_64_A2B[s[3]]
+
+                # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
                 decoded = [a << 2 | b >> 4,
                            (b & (2**4 - 1)) << 4 | c >> 2,
                            (c & (2**2 - 1)) << 6 | d].pack('CCC')
+
                 if s[3].chr == '='
                   num_bytes -= 1
                   decoded = decoded[0..-2]
                   decoded = decoded[0..-2] if s[2].chr == '='
                   str << decoded
-                  raise "break hack"
+                  break
                 else
                   str << decoded
                 end
@@ -2777,8 +2724,97 @@ class String
           elements << str
           i += num_bytes
         end
+      when 'U' then
+        utf8_regex_strict = /\A(?:[\x00-\x7F]
+                                 |[\xC2-\xDF][\x80-\xBF]
+                                 |[\xE1-\xEF][\x80-\xBF]{2}
+                                 |[\xF1-\xF7][\x80-\xBF]{3}
+                                 |[\xF9-\xFB][\x80-\xBF]{4}
+                                 |[\xFD-\xFD][\x80-\xBF]{5} )\Z/x
+
+        utf8_regex_permissive = / [\x00-\x7F]
+                                 |[\xC0-\xDF][\x80-\xBF]
+                                 |[\xE0-\xEF][\x80-\xBF]{2}
+                                 |[\xF0-\xF7][\x80-\xBF]{3}
+                                 |[\xF8-\xFB][\x80-\xBF]{4}
+                                 |[\xFC-\xFD][\x80-\xBF]{5}
+                                 |[\x00-\xFF]+ /x
+
+        if i >= length then
+          # do nothing?!?
+        else
+          num_bytes = 0
+          self[i..-1].scan(utf8_regex_permissive) do |c|
+            raise ArgumentError, "malformed UTF-8 character" if
+              c !~ utf8_regex_strict
+
+            break if count == 0
+
+            if false then
+              elements << c.utf8_code_value
+              num_bytes += c.length
+            else
+              len = c.length
+              if len == 1
+                result = c[0]
+              else
+                shift = (len - 1) * 2
+                result = (((2 ** (8 - len.succ) - 1) & c[0]) *
+                          2 ** ((len - 1) * 8)) >> shift
+                (1...(len - 1)).each do |x|
+                  shift -= 2
+                  result |= (((2 ** 6 - 1) & c[x]) *
+                               2 ** ((len - x.succ) * 8)) >> shift
+                end
+                result |= (2 ** 6 - 1) & c[-1]
+              end
+              elements << result
+              num_bytes += len
+            end
+
+            count -= 1 if count != '*'
+          end
+          i += num_bytes
+        end
+      when 'X' then
+        count = length - i if count == '*'
+
+        raise ArgumentError, "X outside of string" if count < 0 or i - count < 0
+        i -= count
+      when 'x' then
+        if count == '*' then
+          raise ArgumentError, "x outside of string" if i > length
+          i = length
+        else
+          raise ArgumentError, "x outside of string" if i + count > length
+          i += count
+        end
+      when 'Z' then
+        if i >= length then
+          elements << ''
+        elsif count == '*' then
+          self[i..-1] =~ / \A ( [^\x00]* ) ( [\x00]? ) /x
+          elements << $1
+          i += $1.length
+          i += 1 if $2 == "\0"
+        else
+          str = i + count <= length ? self[i...(i + count)] : self[i..-1]
+          str =~ / \A ( [^\x00]* ) /x
+          elements << $1
+          i += count
+        end
+      when '@' then
+        if count == '*' then
+          i = length
+        else
+          raise ArgumentError, "@ outside of string" if count > length
+          i = count > 0 ? count : 0
+        end
+      else
+        # raise "unknown directive: #{code.inspect}"
       end
     end
+
     elements
   end
 
