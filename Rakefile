@@ -82,6 +82,7 @@ AllPreCompiled << "runtime/loader.rbc"
 namespace :build do
 
   task :all => %w[
+    spec:init
     build:shotgun
     build:platform
     build:rbc
@@ -342,8 +343,11 @@ end
 namespace :mspec do
   desc "Initialize git submodule for mspec"
   task :init do
-    sh "git submodule init mspec"
-    sh "git submodule update mspec"
+    unless File.exist? "mspec/bin/mspec"
+      puts "Initializing mspec submodule..."
+      sh "git submodule init mspec"
+      sh "git submodule update mspec"
+    end
   end
 
   desc "Synchronize mspec submodule to current remote version"
