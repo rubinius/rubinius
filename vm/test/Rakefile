@@ -154,11 +154,6 @@ file "../gen/task_instructions_switch.c" => "../instructions.rb" do
   x "cd ..; ruby instructions.rb"
 end
 
-file "../gen/primitive_implementation.gen.cpp" => "../primitives.rb" do
-  puts "GEN primitives.rb"
-  x "cd ..; ruby primitives.rb"
-end
-
 file "../builtin_task.o" => "../gen/task_instructions_switch.c"
 file "../primitives.o" => "../gen/primitive_implementation.gen.cpp"
 file "../type_info.o" => "../gen/typechecks.gen.cpp"
