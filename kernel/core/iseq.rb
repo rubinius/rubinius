@@ -14,12 +14,12 @@ class InstructionSet
   #   the stack. The first code identifies the number of operands popped from
   #   the stack, and the second the number of operands pushed back onto the
   #   stack.
-  #   
+  #
   #   If the code is zero or a positive value, it is the exact number of
   #   operands pushed or popped. If the code is a negative value, it means the
   #   number of operands consumed/produced is calculated based on another
   #   value, and cannot be determined just from the opcode.
-  #   
+  #
   #   Negative codes
   #   consist of 3-digits, where:
   #   - the first digit is a multiplier (normally 1, but make_hash has a value
@@ -27,7 +27,7 @@ class InstructionSet
   #   - the second digit is the where the arg to be multiplied comes from;
   #     1 = first opcode arg, 2 = second opcode arg, 3 = arg register;
   #   - the final digit is a constant number to be added to the result.
-  #   
+  #
   #   The value -999 is a special value, indicating that the result cannot be
   #   calculated from the bytecode, since it is dependent on the number of
   #   items in an array that will be on the stack when the opcode is
@@ -47,16 +47,26 @@ class InstructionSet
     {:opcode => :push_nil, :args => [], :stack => [0,1]},
     {:opcode => :push_true, :args => [], :stack => [0,1]},
     {:opcode => :push_false, :args => [], :stack => [0,1]},
-    {:opcode => :store_field, :args => [], :stack => [3,1]},
     {:opcode => :push_int, :args => [:int], :stack => [0,1]},
-    {:opcode => :fetch_field, :args => [], :stack => [2,1]},
     {:opcode => :push_context, :args => [], :stack => [0,1]},
     {:opcode => :push_literal, :args => [:literal], :stack => [0,1]},
     {:opcode => :push_self, :args => [], :stack => [0,1]},
+
+    # Flow control opcodes
+
     {:opcode => :goto, :args => [:ip], :stack => [0,0], :flow => :goto},
     {:opcode => :goto_if_false, :args => [:ip], :stack => [1,0], :flow => :goto},
     {:opcode => :goto_if_true, :args => [:ip], :stack => [1,0], :flow => :goto},
+    {:opcode => :goto_if_defined, :args => [:ip], :stack => [1,0],
+      :flow => :goto},
+    {:opcode => :ret, :args => [], :stack => [1,0], :flow => :return,
+      :vm_flags => [:terminator]},
+
+    # stack maintainence
+
     {:opcode => :swap_stack, :args => [], :stack => [1,1]},
+    {:opcode => :dup_top, :args => [], :stack => [0,1]},
+    {:opcode => :pop, :args => [], :stack => [1,0]},
     {:opcode => :set_local, :args => [:local], :stack => [1,1]},
     {:opcode => :push_local, :args => [:local], :stack => [0,1]},
     {:opcode => :push_exception, :args => [], :stack => [0,1]},
@@ -65,8 +75,6 @@ class InstructionSet
     {:opcode => :set_ivar, :args => [:literal], :stack => [1,1],
       :vm_flags => []},
     {:opcode => :push_ivar, :args => [:literal], :stack => [0,1]},
-    {:opcode => :goto_if_defined, :args => [:ip], :stack => [1,0],
-      :flow => :goto},
     {:opcode => :push_const, :args => [:literal], :stack => [0,1]},
     {:opcode => :set_const, :args => [:literal], :stack => [1,1],
       :vm_flags => []},
@@ -89,14 +97,21 @@ class InstructionSet
       :vm_flags => []},
     {:opcode => :cast_tuple, :args => [], :stack => [1,1],
       :vm_flags => []},
-    {:opcode => :dup_top, :args => [], :stack => [0,1]},
-    {:opcode => :pop, :args => [], :stack => [1,0]},
+
+    # send opcodes
     {:opcode => :send_method, :args => [:literal], :stack => [1,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
-    {:opcode => :send_stack, :args => [:literal, :int], :stack => [-121,1],
-      :flow => :send, :vm_flags => [:check_interrupts]},
+    {:opcode => :send_stack, :args => [:literal, :int], 
+      :stack => [-121,1], :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :send_stack_with_block, :args => [:literal, :int],
       :stack => [-122,1], :flow => :send, :vm_flags => [:check_interrupts]},
+    {:opcode => :send_stack_with_splat, :args => [:literal, :int], 
+      :stack => [-123,1], :flow => :send, :vm_flags => [:check_interrupts]},
+    {:opcode => :send_super_stack_with_block,  :args => [:literal, :int],
+      :stack => [-121,1], :flow => :send, :vm_flags => [:check_interrupts]},
+    {:opcode => :send_super_stack_with_splat, :args => [:literal, :int],
+      :stack => [-122,1], :flow => :send},
+
     {:opcode => :push_block, :args => [], :stack => [0,1]},
     {:opcode => :clear_exception, :args => [], :stack => [0,0]},
     {:opcode => :cast_array, :args => [], :stack => [1,1],
@@ -109,15 +124,33 @@ class InstructionSet
      :vm_flags => []},
     {:opcode => :string_dup, :args => [], :stack => [1,1],
       :vm_flags => []},
-    {:opcode => :send_stack_with_splat, :args => [:literal, :int], :stack => [-132,1],
-      :flow => :send, :vm_flags => [:check_interrupts]},
-    {:opcode => :send_super_stack_with_block,  :args => [:literal, :int],
-      :stack => [-121,1], :flow => :send, :vm_flags => [:check_interrupts]},
-    {:opcode => :send_super_stack_with_splat, :args => [:literal, :int],
-      :stack => [-131,1], :flow => :send},
     {:opcode => :push_my_field, :args => [:field], :stack => [0,1]},
     {:opcode => :store_my_field, :args => [:field], :stack => [1,1]},
     {:opcode => :open_metaclass, :args => [], :stack => [1,1]},
+    {:opcode => :push_local_depth, :args => [:depth, :block_local],
+      :stack => [0,1]},
+    {:opcode => :set_local_depth, :args => [:depth, :block_local],
+      :stack => [1,1], :vm_flags => []},
+    {:opcode => :locate_method, :args => [], :stack => [3,1]},
+    {:opcode => :kind_of, :args => [], :stack => [2,1]},
+    {:opcode => :instance_of, :args => [], :stack => [2,1]},
+    {:opcode => :set_call_flags, :args => [:int], :stack => [0,0]},
+    {:opcode => :yield_debugger, :args => [], :stack => [0,0],
+      :vm_flags => [:check_interrupts]},
+    {:opcode => :is_fixnum, :args => [], :stack => [1,1]},
+    {:opcode => :is_symbol, :args => [], :stack => [1,1]},
+    {:opcode => :is_nil, :args => [], :stack => [1,1]},
+    {:opcode => :class, :args => [], :stack => [1,1]},
+    {:opcode => :equal, :args => [], :stack => [2,1]},
+    {:opcode => :set_literal, :args => [:literal], :stack => [0,0]},
+    {:opcode => :passed_blockarg, :args => [:int], :stack => [0,1]},
+    {:opcode => :create_block, :args => [], :stack => [1,1],
+      :vm_flags => []},
+    {:opcode => :cast_for_single_block_arg, :args => [], :stack => [1,1]},
+    {:opcode => :cast_for_multi_block_arg, :args => [], :stack => [1,1]},
+    {:opcode => :check_serial, :args => [:literal, :int], :stack => [1,1]},
+    
+    # meta opcodes, used for optimization only.
     {:opcode => :meta_push_neg_1, :args => [], :stack => [0,1]},
     {:opcode => :meta_push_0, :args => [], :stack => [0,1]},
     {:opcode => :meta_push_1, :args => [], :stack => [0,1]},
@@ -136,35 +169,9 @@ class InstructionSet
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :meta_send_op_nequal, :args => [], :stack => [2,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
-    {:opcode => :push_local_depth, :args => [:depth, :block_local],
-      :stack => [0,1]},
-    {:opcode => :set_local_depth, :args => [:depth, :block_local],
-      :stack => [1,1], :vm_flags => []},
-    {:opcode => :locate_method, :args => [], :stack => [3,1]},
-    {:opcode => :kind_of, :args => [], :stack => [2,1]},
-    {:opcode => :instance_of, :args => [], :stack => [2,1]},
-    {:opcode => :set_call_flags, :args => [:int], :stack => [0,0]},
-    {:opcode => :yield_debugger, :args => [], :stack => [0,0],
-      :vm_flags => [:check_interrupts]},
-    {:opcode => :is_fixnum, :args => [], :stack => [1,1]},
-    {:opcode => :is_symbol, :args => [], :stack => [1,1]},
-    {:opcode => :is_nil, :args => [], :stack => [1,1]},
-    {:opcode => :class, :args => [], :stack => [1,1]},
-    {:opcode => :equal, :args => [], :stack => [2,1]},
-    {:opcode => :ret, :args => [], :stack => [1,0], :flow => :return,
-      :vm_flags => [:terminator]},
-    {:opcode => :set_literal, :args => [:literal], :stack => [0,0]},
-    {:opcode => :passed_blockarg, :args => [:int], :stack => [0,1]},
-    {:opcode => :create_block, :args => [], :stack => [1,1],
-      :vm_flags => []},
-    {:opcode => :cast_for_single_block_arg, :args => [], :stack => [1,1]},
-    {:opcode => :cast_for_multi_block_arg, :args => [], :stack => [1,1]},
-    {:opcode => :check_serial, :args => [:literal, :int], :stack => [1,1]},
     {:opcode => :meta_send_call, :args => [:int], :stack => [-111,1],
       :flow => :send}
   ]
-
-  InstructionSize = 4
 
   class OpCode
     def initialize(opcode_info)
@@ -195,10 +202,10 @@ class InstructionSet
     end
 
     ##
-    # Returns the width of the opcode (including arguments) in bytes
+    # Returns the width of the opcode (including arguments) in Iseq units
 
     def width
-      (@opcode_info[:args].size + 1) * InstructionSize
+      (@opcode_info[:args].size + 1)
     end
 
     ##
@@ -230,6 +237,9 @@ class InstructionSet
     #
     # If the value is positive, it is the exact number of items produced.
     #
+    # NOTE at present, all opcodes are either positive or 0. The variable
+    # scheme below is not used at present, and may never be again.
+    #
     # If the value is negative, it is a 3-digit number where:
     # - first digit is a multiplier (1 or 2)
     # - second digit is the opcode arg to be multiplied
@@ -245,6 +255,23 @@ class InstructionSet
 
     def stack_produced
       @opcode_info[:stack].last
+    end
+
+    # Indicates how the stack changes with this instruction. Positive numbers
+    # meaning how far the sp is pushed forward, negative how far back.
+    # +inst+ is an Array in the same format that Encoder#encode takes as input
+    def stack_difference(inst)
+      consumed = stack_consumed()
+      if consumed < 0
+        consumed = -consumed
+        mult =   consumed / 100
+        arg =   (consumed % 100) / 10
+        const = (consumed % 100) % 10
+        consumed = (mult * inst[arg]) + const
+      end
+      produced = stack_produced()
+
+      return produced - consumed
     end
 
     def check_interrupts?
@@ -290,13 +317,36 @@ class InstructionSet
     else
       inst = @opcodes[op]
     end
-    raise InvalidOpCode, "Invalid opcode #{op}" if inst.nil?
+    raise InvalidOpCode, "Invalid opcode #{op.inspect}" if inst.nil?
     inst
   end
 end
 
 
 class InstructionSequence
+  def initialize(size)
+    @opcodes = Tuple.new(size)
+    @stack_depth = 0
+  end
+
+  attr_reader :opcodes
+  attr_accessor :stack_depth
+
+  def ==(other)
+    other.kind_of?(InstructionSequence) and @opcodes == other.opcodes
+  end
+
+  def []=(idx, val)
+    @opcodes[idx] = val
+  end
+
+  def [](idx)
+    @opcodes[idx]
+  end
+
+  def size
+    @opcodes.size
+  end
 
   class Encoder
 
@@ -311,7 +361,7 @@ class InstructionSequence
       stream = []
 
       last_good = [nil, 0]
-      
+
       begin
         while @offset < @iseq.size
           inst = decode
@@ -323,7 +373,7 @@ class InstructionSequence
         # Because bytearrays and iseqs are allocated in chunks of 4 or 8 bytes,
         # we can get junk at the end of the iseq
         unless last_good.first and last_good.first.flow == :return
-          ex.message << " at byte #{@offset} of #{@iseq.size} [IP:#{@offset / InstructionSet::InstructionSize}]"
+          ex.message << " at byte #{@offset} of #{@iseq.size} [IP:#{@offset}]"
           raise ex
         end
       end
@@ -340,9 +390,15 @@ class InstructionSequence
     # whose meaning depends on the opcode.
 
     def encode_stream(stream)
-      sz = stream.inject(0) { |acc, ele| acc + (ele.size * InstructionSet::InstructionSize) }
+      sz = stream.inject(0) do |acc, ele|
+        acc + (ele.kind_of?(Array) ? ele.size : 1)
+      end
+
+      @max_stack_depth = 0
+      @stack_depth = 0
       @iseq = InstructionSequence.new(sz)
       @offset = 0
+
       begin
         stream.each do |inst|
           encode inst
@@ -352,6 +408,8 @@ class InstructionSequence
         STDERR.puts stream.inspect
         raise e
       end
+
+      @iseq.stack_depth = @max_stack_depth
 
       return @iseq
     end
@@ -367,7 +425,7 @@ class InstructionSequence
 
     def replace_instruction(iseq, ip, inst)
       @iseq = iseq
-      @offset = start = ip * InstructionSet::InstructionSize
+      @offset = start = ip
 
       old_inst = iseq2int
       old_op = InstructionSet[old_inst]
@@ -382,10 +440,10 @@ class InstructionSequence
 
       1.upto(old_op.arg_count) do
         replaced << iseq2int
-        @offset -= InstructionSet::InstructionSize
+        @offset -= 1
         int2str(0)  # Replace old args with 0
       end
-      
+
       @offset = start
       encode inst
       replaced
@@ -397,7 +455,7 @@ class InstructionSequence
 
     def decode_instruction(iseq, ip)
       @iseq = iseq
-      @offset = ip * InstructionSet::InstructionSize
+      @offset = ip
 
       decode
     end
@@ -417,55 +475,53 @@ class InstructionSequence
     end
 
     private :decode
-    
+
+    def iseq2int
+      op = @iseq[@offset]
+      @offset += 1
+      return op
+    end
+
     def encode(inst)
-      opcode = inst.first
-      unless opcode.kind_of? InstructionSet::OpCode
-        opcode = InstructionSet[opcode]
+      if inst.kind_of? Array
+        opcode = inst.first
+        unless opcode.kind_of? InstructionSet::OpCode
+          opcode = InstructionSet[opcode]
+        end
+
+        arg_count = opcode.arg_count
+        unless inst.size - 1 == arg_count
+          raise ArgumentError, "Missing instruction arguments to #{inst.first} (need #{arg_count} / got #{inst.size - 1})"
+        end
+      else
+        opcode = inst
+        arg_count = 0
+        unless opcode.kind_of? InstructionSet::OpCode
+          opcode = InstructionSet[opcode]
+        end
       end
 
-      arg_count = opcode.arg_count
-      unless inst.size - 1 == arg_count
-        raise ArgumentError, "Missing instruction arguments to #{inst.first} (need #{arg_count} / got #{inst.size - 1})"
-      end
+      this = opcode.stack_difference(inst)
+      @stack_depth += this
+      @max_stack_depth = @stack_depth if @stack_depth > @max_stack_depth
 
       begin
-        int2str(opcode.bytecode)
+        @iseq[@offset] = opcode.bytecode
         case arg_count
         when 1
-          int2str(inst[1])
+          @iseq[@offset + 1] = inst[1].to_i
         when 2
-          int2str(inst[1])
-          int2str(inst[2])
+          @iseq[@offset + 1] = inst[1].to_i
+          @iseq[@offset + 2] = inst[2].to_i
         end
-      rescue Object
+        @offset += (1 + arg_count)
+      rescue => e
         raise ArgumentError, "Unable to encode #{inst.inspect}"
       end
     end
 
     private :encode
 
-    def iseq2int
-      inst =  (@iseq[@offset    ] * 16777216)
-      inst += (@iseq[@offset + 1] * 65536)
-      inst += (@iseq[@offset + 2] * 256)
-      inst += (@iseq[@offset + 3])
-      @offset += 4
-      return inst
-    end
-
-    private :iseq2int
-
-    def int2str(int)
-      3.downto(0) do |i|
-        @iseq[@offset + i] = (int % 256)
-        int = int / 256
-      end
-
-      @offset += 4
-    end
-
-    private :int2str
   end
 
   ##

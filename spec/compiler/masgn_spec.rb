@@ -126,15 +126,15 @@ describe Compiler do
       g.send :d, 0, true
       g.cast_tuple
 
-      g.unshift_tuple
+      g.shift_tuple
       g.set_local 0
       g.pop
 
-      g.unshift_tuple
+      g.shift_tuple
       g.set_local 1
       g.pop
 
-      g.unshift_tuple
+      g.shift_tuple
       g.set_local 2
       g.pop
 
@@ -158,15 +158,15 @@ describe Compiler do
       g.send :+, 1
       g.cast_tuple
 
-      g.unshift_tuple
+      g.shift_tuple
       g.set_local 0
       g.pop
 
-      g.unshift_tuple
+      g.shift_tuple
       g.set_local 1
       g.pop
 
-      g.unshift_tuple
+      g.shift_tuple
       g.set_local 2
       g.pop
 
@@ -187,11 +187,11 @@ describe Compiler do
       g.send :d, 0, true
       g.cast_tuple
 
-      g.unshift_tuple
+      g.shift_tuple
       g.set_local 0
       g.pop
 
-      g.unshift_tuple
+      g.shift_tuple
       g.set_local 1
       g.pop
 
@@ -222,7 +222,7 @@ describe Compiler do
     gen x do |g|
       desc = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0,0
         d.pop
         d.pop
@@ -230,13 +230,13 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push :self
       g.send :x, 0, true
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :each, 0, false
       end
@@ -253,10 +253,10 @@ describe Compiler do
     gen(x) do |g|
       desc = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0,0
         d.pop
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0,1
 
         d.pop
@@ -265,13 +265,13 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push :self
       g.send :x, 0, true
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :each, 0, false
       end
@@ -281,7 +281,7 @@ describe Compiler do
   it "compiles '|*args|'" do
     x = [:iter,
          [:call, [:vcall, :x], :each],
-         [:masgn, [:lasgn, :args], nil]]
+         [:masgn, nil, [:lasgn, :args], nil]]
 
     gen x do |g|
       desc = description do |d|
@@ -292,13 +292,13 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push :self
       g.send :x, 0, true
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :each, 0, false
       end
@@ -314,7 +314,7 @@ describe Compiler do
     gen x do |g|
       desc = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0,0
         d.pop
         d.cast_array
@@ -324,13 +324,13 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push :self
       g.send :x, 0, true
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :each, 0, false
       end

@@ -66,18 +66,6 @@ class Node
       [0, 0, nil]
     end
 
-    def push_self_or_class(meth)
-      is_module = meth.new_label
-      meth.push :self
-      meth.dup
-      meth.push_cpath_top
-      meth.find_const :Module
-      meth.send :kind_of?, 1
-      meth.git is_module
-      meth.send :class, 0
-      is_module.set!
-    end
-
     def attach_and_call(g, name)
       # If the body is empty, then don't bother with it.
       return if @body.empty?
@@ -87,16 +75,13 @@ class Node
 
       prelude(g, meth)
 
-      push_self_or_class(meth)
-      meth.set_encloser
-
       set(:scope, self) do
         show_errors(meth) do
           desc.run self, @body
         end
       end
 
-      meth.sret
+      meth.ret
       meth.close
 
       g.dup
@@ -105,7 +90,6 @@ class Node
       g.attach_method name
       g.pop
       g.send name, 0
-      g.push_encloser
     end
 
     def prelude(orig, g)
@@ -136,22 +120,18 @@ class Node
       set(:scope, self) do
         prelude(nil, g)
         @body.bytecode(g)
-        g.sret
+        g.ret
       end
     end
   end
 
   # REFACTOR See if there is a sane way to call 'super' here
-  # We need to call 'push_encloser' before 'sret', hence the copy-and-paste
   class EvalExpression
     def bytecode(g)
       set(:scope, self) do
-        push_self_or_class(g)
-        g.set_encloser
         prelude(nil, g)
         @body.bytecode(g)
-        g.push_encloser
-        g.sret
+        g.ret
       end
       enlarge_context
     end
@@ -164,7 +144,7 @@ class Node
         @body.bytecode(g)
         g.pop
         g.push :true
-        g.sret
+        g.ret
       end
     end
   end
@@ -642,12 +622,12 @@ class Node
         sub.redo.set!
         @body.bytecode(sub)
         sub.pop_modifiers
-        sub.soft_return
+        sub.ret
         sub.close
       end
 
       g.push_literal desc
-      g.create_block2
+      g.create_block
     end
   end
 
@@ -731,7 +711,7 @@ class Node
         else
           g.push :nil
         end
-        g.soft_return
+        g.ret
       else
         jump_error g, "next used in invalid context"
       end
@@ -1618,7 +1598,7 @@ class Node
           if @in_block
             Return.emit_lre(g, @check_var)
           else
-            g.sret
+            g.ret
           end
 
           after.set!
@@ -1661,7 +1641,7 @@ class Node
       if @in_block
         Return.emit_lre(g, @check_var)
       else
-        g.sret
+        g.ret
       end
     end
 
@@ -1823,13 +1803,14 @@ class Node
       elsif @source.is? ConcatArgs
         @source.bytecode(g)
       elsif @source
+        p self
         raise Error, "Unknown form: #{@source.class}"
       end
       g.cast_tuple
 
       if @assigns
         @assigns.body.each do |x|
-          g.unshift_tuple
+          g.shift_tuple
           if x.is? AttrAssign
             x.bytecode(g, true)
           else
@@ -1851,7 +1832,7 @@ class Node
     def block_arg_bytecode(g)
       if @assigns
         @assigns.body.each do |x|
-          g.unshift_tuple
+          g.shift_tuple
           x.bytecode(g)
           g.pop
         end
@@ -1970,9 +1951,7 @@ class Node
       if @block and @block.is? Iter
         block_bytecode(g)
       elsif @dynamic
-        g.push @argcount
-        g.set_args
-        g.send_with_register @method, allow_private?, @concat
+        g.send_with_splat @method, @argcount, allow_private?, @concat
       elsif @block
         # Only BlockPass currently
         g.send_with_block @method, @argcount, allow_private?
@@ -1993,9 +1972,7 @@ class Node
         g.pop
 
         if @dynamic
-          g.push @argcount
-          g.set_args
-          g.send_with_register @method, allow_private?, false
+          g.send_with_splat @method, @argcount, allow_private?, false
         else
           g.send_with_block @method, @argcount, allow_private?
         end
@@ -2023,7 +2000,7 @@ class Node
         # If this is occuring already in a block, keep it raising.
         unless @in_block
           g.send :value, 0
-          g.sret
+          g.ret
         end
 
         after.set!
@@ -2046,9 +2023,7 @@ class Node
 
       if @dynamic
         g.push :nil
-        g.push @argcount
-        g.set_args
-        g.send_with_register :call, false, false
+        g.send_with_splat :call, @argcount, false, false
       else
         g.meta_send_call @argcount
       end
@@ -2067,9 +2042,7 @@ class Node
       end
 
       if @dynamic
-        g.push @argcount
-        g.set_args
-        g.send_super @method.name
+        g.send_super @method.name, @argcount, true
       else
         g.send_super @method.name, @argcount
       end
@@ -2208,7 +2181,7 @@ class Node
 
       desc.args = [required, optional, @arguments.splat && @arguments.splat.name]
 
-      meth.sret
+      meth.ret
       meth.close
 
       use_plugin g, :method, desc

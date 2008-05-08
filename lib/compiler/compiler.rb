@@ -1,16 +1,14 @@
-require 'compiler/system_hints'
-
 class Compiler
 
   Config = Hash.new
-  
+
   class Error < RuntimeError
   end
-  
+
   def self.process_flags(flags)
     flags.each { |f| Config[f] = true } if flags
   end
-  
+
   def self.parse_flags(stream)
     to_clear = []
     stream.each do |token|
@@ -205,7 +203,7 @@ class Compiler
 
     klass = Node::Mapping[sexp.first]
 
-    raise Error, "Unable to resolve #{sexp.first}" unless klass
+    raise Error, "Unable to resolve '#{sexp.first.inspect}'" unless klass
 
     return klass.create(self, sexp)
   end
@@ -244,7 +242,7 @@ class Compiler
       end
     end
   end
-  
+
   class GenerationError < Error; end
   
   def show_errors(gen)
@@ -257,7 +255,7 @@ class Compiler
       puts "   #{e.message} (#{e.class})"
       puts "   near #{gen.file}:#{gen.line}"
       puts ""
-      puts e.awesome_backtrace.show
+      puts e.backtrace
 
       raise GenerationError, "unable to generate bytecode"
     end

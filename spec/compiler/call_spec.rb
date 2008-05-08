@@ -32,9 +32,7 @@ describe Compiler do
       g.send :a, 0, true
       g.cast_array
       g.push :nil
-      g.push 0
-      g.set_args
-      g.send_with_register :blah, true, false
+      g.send_with_splat :blah, 0, true, false
     end
   end
 
@@ -85,13 +83,13 @@ describe Compiler do
         d.new_label.set! # redo
         d.push 12
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push 10
       g.push 2
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :times, 1, false
       end
@@ -112,7 +110,7 @@ describe Compiler do
          d.new_label.set! # redo
          d.push 12
          d.pop_modifiers
-         d.soft_return
+         d.ret
        end
        g.push :self
        g.send :a, 0, true
@@ -121,12 +119,10 @@ describe Compiler do
        g.send :c, 0, true
        g.cast_array
        g.push_literal desc
-       g.create_block2
+       g.create_block
 
        g.passed_block do
-         g.push 0
-         g.set_args
-         g.send_with_register :b, false, false
+         g.send_with_splat :b, 0, false, false
        end
     end
   end
@@ -186,9 +182,7 @@ describe Compiler do
       g.cast_array
 
       g.push :nil
-      g.push 2
-      g.set_args
-      g.send_with_register :h, true, false
+      g.send_with_splat :h, 2, true, false
     end
   end
 
@@ -205,9 +199,7 @@ describe Compiler do
       g.push 3
       g.swap
       g.push :nil
-      g.push 1
-      g.set_args
-      g.send_with_register :[]=, false, true
+      g.send_with_splat :[]=, 1, false, true
     end
   end
 
@@ -225,12 +217,10 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push_self_or_class
-        d.set_encloser
         d.push :self
         d.push_literal :blah
         d.send :undef_method, 1
-        d.sret
+        d.ret
       end
 
       g.push :nil
@@ -241,7 +231,6 @@ describe Compiler do
       g.attach_method :__class_init__
       g.pop
       g.send :__class_init__, 0
-      g.push_encloser
 
     end
   end
@@ -298,9 +287,7 @@ describe Compiler do
       g.cast_array
 
       g.push :nil
-      g.push 0
-      g.set_args
-      g.send_with_register :call, false, false
+      g.send_with_splat :call, 0, false, false
     end
   end
 
@@ -314,7 +301,7 @@ describe Compiler do
         d.push 2
         d.push :nil
         d.send_super :a, 2
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -334,10 +321,8 @@ describe Compiler do
         d.send :blah, 0, true
         d.cast_array
         d.push :nil
-        d.push 0
-        d.set_args
-        d.send_super :a
-        d.sret
+        d.send_super_with_splat :a, 0
+        d.ret
       end
 
       g.push :self
@@ -357,7 +342,7 @@ describe Compiler do
         d.push_local 1
         d.push :nil
         d.send_super :a, 2
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -378,10 +363,8 @@ describe Compiler do
         d.push_local 1
         d.cast_array
         d.push :nil
-        d.push 1
-        d.set_args
-        d.send_super :a
-        d.sret
+        d.send_super_with_splat :a, 1
+        d.ret
       end
 
       g.push :self
@@ -419,14 +402,14 @@ describe Compiler do
         redo_label.set!
         d.push 666
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       desc.name = :__block__
       desc.required = -1
 
       g.push :self
       g.push_literal desc
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :at_exit, 0, true
       end

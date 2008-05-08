@@ -391,7 +391,8 @@ module Plugins
         meth.generator.literals[0] = ss[1][1]
         meth.generator.as_primitive :opt_push_my_field
       else
-        case ss[1].first
+        cmd = (ss[1].kind_of?(Array) ? ss[1].first : ss[1])
+        case cmd
         when :push_nil
           lit = nil
         when :push_true

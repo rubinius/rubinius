@@ -168,7 +168,7 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push_cpath_top
       g.find_const :Range
@@ -176,7 +176,7 @@ describe Compiler do
       g.push 2
       g.send :new, 2
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :each, 0, false
       end
@@ -193,10 +193,10 @@ describe Compiler do
     gen(sexp) do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0, 0
         d.pop
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local_depth 0, 1
         d.pop
         d.pop
@@ -204,12 +204,12 @@ describe Compiler do
         d.new_label.set!
         d.push 5
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push :self
       g.send :x, 0, true
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :each, 0, false
       end
@@ -231,7 +231,7 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push_cpath_top
       g.find_const :Range
@@ -239,7 +239,7 @@ describe Compiler do
       g.push 2
       g.send :new, 2
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block(1) do
         g.send_with_block :each, 0, false
       end
@@ -260,7 +260,7 @@ describe Compiler do
         d.new_label.set!
         d.push :nil
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push_cpath_top
       g.find_const :Range
@@ -268,7 +268,7 @@ describe Compiler do
       g.push 2
       g.send :new, 2
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :each, 0, false
       end
@@ -285,10 +285,10 @@ describe Compiler do
     gen(sexp) do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local 0
         d.pop
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local 1
         d.pop
         d.pop
@@ -296,12 +296,12 @@ describe Compiler do
         d.new_label.set!
         d.push 5
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push :self
       g.send :x, 0, true
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block(2) do
         g.send_with_block :each, 0, false
       end
@@ -317,10 +317,10 @@ describe Compiler do
     gen(sexp) do |g|
       iter = description do |d|
         d.cast_for_multi_block_arg
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local 0
         d.pop
-        d.unshift_tuple
+        d.shift_tuple
         d.set_local 1
         d.pop
         d.pop
@@ -329,12 +329,12 @@ describe Compiler do
         d.push 5
         d.set_local_depth 0,0
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
       g.push :self
       g.send :x, 0, true
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block(2) do
         g.send_with_block :each, 0, false
       end
@@ -420,12 +420,12 @@ describe Compiler do
         d.raise_exc
 
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push :self
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -480,12 +480,12 @@ describe Compiler do
         d.pop
         d.goto d.redo
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push :self
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -879,14 +879,14 @@ describe Compiler do
   it "compiles 'return'" do
     gen [:return] do |g|
       g.push :nil
-      g.sret
+      g.ret
     end
   end
 
   it "compiles 'return 12'" do
     gen [:return, [:fixnum, 12]] do |g|
       g.push 12
-      g.sret
+      g.ret
     end
   end
 
@@ -923,7 +923,7 @@ describe Compiler do
       body.set!
       g.clear_exception
       g.push 13
-      g.sret
+      g.ret
       g.clear_exception
 
       g.goto last
@@ -955,12 +955,12 @@ describe Compiler do
         d.push_local 0
         d.raise_exc
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push :self
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -981,7 +981,7 @@ describe Compiler do
       g.cast_array
 
       g.send :+, 1
-      g.sret
+      g.ret
     end
   end
 end

@@ -12,18 +12,8 @@ class Class
   end
   
   def new(*args)
-    obj = allocate()
-    Rubinius.asm(args, obj) do |args, obj|
-      run args
-      cast_array_for_args 0
-      push_array
-      push_block
-      run obj
-      set_call_flags 1
-      send_with_register :initialize
-    end
-
-    return obj
+    Ruby.primitive :class_new
+    raise PrimitiveFailure, "Unable to create new instance"
   end
   
   def instance_fields; @instance_fields ; end

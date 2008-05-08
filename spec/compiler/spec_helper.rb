@@ -1,5 +1,10 @@
+require 'stringio'
+
 require File.dirname(__FILE__) + '/../spec_helper'
 
+$:.unshift(File.dirname(__FILE__) + "/../../lib")
+
+require File.dirname(__FILE__) + '/../../lib/compiler/system_hints'
 require File.dirname(__FILE__) + '/../../lib/compiler/compiler'
 require File.dirname(__FILE__) + '/../../lib/compiler/nodes'
 require File.dirname(__FILE__) + '/../../lib/compiler/generator'
@@ -7,15 +12,35 @@ require File.dirname(__FILE__) + '/../../lib/compiler/bytecode'
 require File.dirname(__FILE__) + '/../../lib/compiler/plugins'
 require File.dirname(__FILE__) + '/../../lib/compiler/local'
 require File.dirname(__FILE__) + '/../../lib/compiler/text'
+require File.dirname(__FILE__) + '/../../lib/compiler/marshal'
+require File.dirname(__FILE__) + '/../../lib/compiler/compiled_file'
+
+class SendSite
+  def initialize(name)
+    @name = name
+  end
+
+  attr_reader :name
+end
+
+class Tuple < Array
+end
+
+class LookupTable < Hash
+end
+
+require File.dirname(__FILE__) + '/../../kernel/core/iseq.rb'
+require File.dirname(__FILE__) + '/../../kernel/core/compiled_method.rb'
+require File.dirname(__FILE__) + '/../../vm/gen/simple_field.rb'
 
 class TestGenerator
   def initialize
     @stream = []
     @ip = 0
   end
-  
+
   attr_reader :stream, :ip
-  
+
   def run(node)
     node.bytecode(self)
   end
@@ -65,11 +90,12 @@ class TestGenerator
   end
 
   opcodes = InstructionSet::OpCodes.map { |desc| desc.opcode }
-  stupids = [:add_literal, :gif, :git, :pop_modifiers, :push,
+  others  = [:add_literal, :gif, :git, :pop_modifiers, :push,
              :push_literal_at, :push_modifiers, :push_unique_literal, :send,
-             :send_super, :send_with_block, :send_with_register, :swap,]
+             :send_super, :send_with_block, :send_with_splat, :swap,
+             :send_super_with_splat]
 
-  (opcodes + stupids - [:class]).each do |name|
+  (opcodes + others - [:class]).each do |name|
     class_eval <<-CODE
       def #{name}(*args)
         add :#{name}, *args
@@ -162,7 +188,7 @@ class TestGenerator
     
       unless in_block
         g.send :value, 0
-        g.sret
+        g.ret
       end
 
       after.set!
@@ -183,16 +209,6 @@ class TestGenerator
     self.send :__add_method__, 2
   end
 
-  def push_self_or_class
-    lbl = self.new_label
-    self.push :self
-    self.push_cpath_top
-    self.find_const :Module
-    self.send :kind_of?, 1
-    self.git lbl
-    self.send :class, 0
-    lbl.set!
-  end
 end
 
 def gen(sexp, plugins=[])
@@ -217,11 +233,11 @@ def gen_iter x
       d.new_label.set!
       d.push :nil
       d.pop_modifiers
-      d.soft_return
+      d.ret
     end
 
     g.push_literal desc
-    g.create_block2
+    g.create_block
     g.push :self
     g.send :ary, 0, true
 

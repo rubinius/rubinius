@@ -1,6 +1,4 @@
 class Array
-  ivar_as_index :total => 0, :tuple => 1, :start => 2, :shared => 3
-
   def total    ; @total ; end
   def tuple    ; @tuple ; end
   def start    ; @start ; end

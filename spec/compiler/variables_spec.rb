@@ -35,7 +35,7 @@ describe Compiler do
     gen x do |g|
       meth = description do |d|
         d.push_local 0
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -57,7 +57,7 @@ describe Compiler do
         d.new_label.set! # redo
         d.push_local 0
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push 12
@@ -65,7 +65,7 @@ describe Compiler do
       g.pop
       g.push :self
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block(1) do
         g.send_with_block :go, 0, true
       end
@@ -87,12 +87,12 @@ describe Compiler do
         d.pop
         d.push_local_depth 0, 0
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push :self
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -121,22 +121,22 @@ describe Compiler do
           j.new_label.set! # redo
           j.push_local_depth 1, 0
           j.pop_modifiers
-          j.soft_return
+          j.ret
         end
 
         d.push :self
         d.push_literal i2
-        d.create_block2
+        d.create_block
         d.passed_block(0, true) do
           d.send_with_block :go, 0, true
         end
         d.pop_modifiers
-        d.soft_return
+        d.ret
       end
 
       g.push :self
       g.push_literal iter
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :go, 0, true
       end
@@ -154,27 +154,6 @@ describe Compiler do
     gen [:iasgn, :@blah, [:lit, 1]] do |g|
       g.push 1
       g.set_ivar :@blah
-    end
-  end
-
-  it "compiles '@blah' when blah is a slot" do
-    x = [:block,
-      [:fcall, :ivar_as_index, [:array, [:ihash, [:lit, :blah], [:fixnum, 12]]]],
-      [:ivar, :@blah]]
-
-    gen x do |g|
-      g.push_my_field 12
-    end
-  end
-
-  it "compiles '@blah = 1' when blah is a slot" do
-    x = [:block,
-      [:fcall, :ivar_as_index, [:array, [:ihash, [:lit, :blah], [:fixnum, 12]]]],
-      [:iasgn, :@blah, [:fixnum, 9]]]
-
-    gen x do |g|
-      g.push 9
-      g.store_my_field 12
     end
   end
 

@@ -134,7 +134,7 @@ def compile(name, output=nil, check_mtime=false)
       return
     end
   end
-  
+
   inc = "-Iruntime/stable/compiler.rba -rcompiler/init"
   flags = "-frbx-safe-math -frbx-kernel"
 
@@ -142,8 +142,10 @@ def compile(name, output=nil, check_mtime=false)
     sh "rbx compile -f #{flags} #{name} #{output}", :verbose => $verbose
   elsif ENV['GDB']
     sh "shotgun/rubinius --gdb #{inc} compile #{flags} #{name} #{output}", :verbose => $verbose
-  else
+  elsif ENV['NATIVE']
     sh "shotgun/rubinius #{inc} compile #{flags} #{name} #{output}", :verbose => $verbose
+  else
+    ruby "lib/compiler/mri_compile.rb #{flags} #{name} #{output}"
   end
 end
 

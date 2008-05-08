@@ -8,7 +8,7 @@ describe Compiler do
     gen x do |g|
       meth = description do |d|
         d.push 12
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -34,7 +34,7 @@ describe Compiler do
         d.push_local 0
         d.push_local 1
         d.meta_send_op_plus
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -69,7 +69,7 @@ describe Compiler do
         d.push_local 0
         d.push_local 1
         d.meta_send_op_plus
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -109,15 +109,15 @@ describe Compiler do
           i.push_local_depth 0, 0
           i.meta_send_op_plus
           i.pop_modifiers
-          i.soft_return
+          i.ret
         end
 
         d.push_literal iter
-        d.create_block2
+        d.create_block
         d.passed_block(1) do
           d.send_with_block :each, 0, false
         end
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -140,7 +140,7 @@ describe Compiler do
     gen x do |g|
       meth = description do |d|
         d.push_local 0
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -176,7 +176,7 @@ describe Compiler do
         d.set_local 0
         d.pop
         d.push_local 0
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -193,7 +193,7 @@ describe Compiler do
     gen x do |g|
       meth = description do |d|
         d.push 12
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -218,7 +218,7 @@ describe Compiler do
       lam = description do |l|
         meth = description do |m|
           m.push_local 0
-          m.sret
+          m.ret
         end
 
         l.pop
@@ -229,12 +229,12 @@ describe Compiler do
         l.push_literal meth
         l.send :__add_method__, 2
         l.pop_modifiers
-        l.soft_return
+        l.ret
       end
 
       g.push :self
       g.push_literal lam
-      g.create_block2
+      g.create_block
       g.passed_block do
         g.send_with_block :lambda, 0, true
       end
@@ -246,10 +246,8 @@ describe Compiler do
 
     gen x do |g|
       meth = description do |d|
-        d.push_self_or_class
-        d.set_encloser
         d.push 12
-        d.sret
+        d.ret
       end
 
       g.push :self
@@ -264,7 +262,6 @@ describe Compiler do
       g.attach_method :__metaclass_init__
       g.pop
       g.send :__metaclass_init__, 0
-      g.push_encloser
     end
   end
 
@@ -273,10 +270,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push_self_or_class
-        d.set_encloser
         d.push 12
-        d.sret
+        d.ret
       end
 
       g.push :nil
@@ -287,7 +282,6 @@ describe Compiler do
       g.attach_method :__class_init__
       g.pop
       g.send :__class_init__, 0
-      g.push_encloser
     end
   end
 
@@ -296,10 +290,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push_self_or_class
-        d.set_encloser
         d.push 12
-        d.sret
+        d.ret
       end
 
       g.push_const :B
@@ -311,7 +303,6 @@ describe Compiler do
       g.attach_method :__class_init__
       g.pop
       g.send :__class_init__, 0
-      g.push_encloser
     end
   end
 
@@ -320,10 +311,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push_self_or_class
-        d.set_encloser
         d.push 12
-        d.sret
+        d.ret
       end
 
       g.push_const :B
@@ -334,7 +323,6 @@ describe Compiler do
       g.attach_method :__class_init__
       g.pop
       g.send :__class_init__, 0
-      g.push_encloser
     end
   end
 
@@ -344,11 +332,9 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push_self_or_class
-        d.set_encloser
         d.push 1
         d.set_local 0
-        d.sret
+        d.ret
       end
 
       g.push :nil
@@ -359,7 +345,6 @@ describe Compiler do
       g.attach_method :__class_init__
       g.pop
       g.send :__class_init__, 0
-      g.push_encloser
 
     end
   end
@@ -369,10 +354,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push_self_or_class
-        d.set_encloser
         d.push 12
-        d.sret
+        d.ret
       end
 
       g.open_module :A
@@ -382,7 +365,6 @@ describe Compiler do
       g.attach_method :__module_init__
       g.pop
       g.send :__module_init__, 0
-      g.push_encloser
     end
   end
 
@@ -391,10 +373,8 @@ describe Compiler do
 
     gen x do |g|
       desc = description do |d|
-        d.push_self_or_class
-        d.set_encloser
         d.push 12
-        d.sret
+        d.ret
       end
 
       g.push_const :B
@@ -405,7 +385,6 @@ describe Compiler do
       g.attach_method :__module_init__
       g.pop
       g.send :__module_init__, 0
-      g.push_encloser
     end
   end
 end

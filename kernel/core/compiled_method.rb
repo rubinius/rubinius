@@ -7,23 +7,21 @@ class NativeMethod
   def lines
     nil
   end
-  
+
   def exceptions
     nil
   end
-  
+
   def literals
     nil
   end
-  
+
   def line_from_ip(i)
     0
   end
 end
 
 class StaticScope
-  ivar_as_index :__ivars__ => 0, :module => 1, :parent => 2
-
   def initialize(mod, par=nil)
     @module = mod
     @parent = par
@@ -38,48 +36,51 @@ class StaticScope
   def module
     @module
   end
-  
+
   def parent
     @parent
-  end  
+  end
 end
 
-class CompiledMethod
-  # TODO: Delete/reuse cache (field 14) fields from C structure
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :total_args => 9, :splat => 10, :exceptions => 11, :lines => 12, :path => 13, :bonus => 15, :compiled => 16, :staticscope => 17, :args => 18
+class Executable
+end
 
-  def __ivars__  ; @__ivars__  ; end
-  def primitive  ; @primitive  ; end
-  def required   ; @required   ; end
-  def serial     ; @serial     ; end
-  def bytecodes  ; @bytecodes  ; end
-  def name       ; @name       ; end
-  def file       ; @file       ; end
-  def local_count; @local_count; end
-  def literals   ; @literals   ; end
-  def exceptions ; @exceptions ; end
-  def lines      ; @lines      ; end
-  def path       ; @path       ; end
-  def cache      ; @cache      ; end
-  def bonus      ; @bonus      ; end
-  def compiled   ; @compiled   ; end
-  def staticscope; @staticscope; end
-  def args       ; @args       ; end
-  def total_args ; @total_args ; end
-  def splat      ; @splat      ; end
-
+class CompiledMethod < Executable
+  # Ivars: instance_variables, primitive, serial, name, iseq, stack_size,
+  # local_count, required_args, total_args, splat, literals, exceptions,
+  # lines, file, compiled, scope
   ##
   # This is runtime hints, added to the method by the VM to indicate how it's
   # being used.
 
   attr_accessor :hints
-  
-  def inspect
-    "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} file=#{@file}>"
+  attr_accessor :__ivars__, :primitive, :name, :iseq, :stack_size
+  attr_accessor :local_count, :required_args, :total_args, :splat, :literals
+  attr_accessor :exceptions, :lines, :file, :local_names
+
+  def ==(other)
+    return false unless other.kind_of?(CompiledMethod)
+    @primitive == other.primitive and
+      @name == other.name and
+      @iseq == other.iseq and
+      @stack_size == other.stack_size and
+      @local_count == other.local_count and
+      @required_args == other.required_args and
+      @total_args == other.total_args and
+      @splat == other.splat and
+      @literals == other.literals and
+      @exceptions == other.exceptions and
+      @lines == other.lines and
+      @file == other.file and
+      @local_names == other.local_names
   end
-  
+
+  def inspect
+    "#<#{self.class.name} #{@name} file=#{@file}>"
+  end
+
   def from_string(bc, lcls, req)
-    @bytecodes = bc
+    @iseq = bc
     @primitive = -1
     @local_count = lcls
     @literals = Tuple.new(0)
@@ -91,7 +92,7 @@ class CompiledMethod
     @required = req
     return self
   end
-  
+
   def inherit_scope(other)
     if ss = other.staticscope
       @staticscope = ss
@@ -100,119 +101,21 @@ class CompiledMethod
     end
   end
 
-  def staticscope=(val)
-    raise TypeError, "not a static scope: #{val.inspect}" unless val.kind_of? StaticScope
-    @staticscope = val
-  end
-  
-  def exceptions=(tup)
-    @exceptions = tup
-  end
-  
-  def literals=(tup)
-    @literals = tup
-  end
-  
-  def file=(val)
-    @file = val
-  end
-  
-  def name=(val)
-    @name = val
-  end
-
-  ##
-  # Lines consists of an array of tuples, with each tuple representing a line.
-  # The tuple for a line has fields for the first ip, last ip, and line number.
-
-  def lines=(val)
-    @lines = val
-  end
-  
-  def path=(val)
-    @path = val
-  end
-  
-  def primitive=(idx)
-    @primitive = idx
-  end
-  
-  def serial=(ser)
-    @serial = ser
-  end
-
-  def bonus=(tup)
-    @bonus = tup
-  end
-  
-  def args=(ary)
-    @args = ary
-  end
-
-  def total_args=(val)
-    @total_args = val.to_i
-  end
-
-  def splat=(val)
-    @splat = val.to_i
-  end
-  
-  def local_names
-    return nil unless @bonus
-    @bonus[0]
-  end
-  
-  def local_names=(names)
-    return if names.nil?
-    
-    unless names.kind_of? Tuple
-      raise ArgumentError, "only accepts a Tuple"
-    end
-    
-    names.each do |n|
-      unless n.kind_of? Symbol
-        raise ArgumentError, "must be a tuple of symbols: #{n.inspect}"
-      end
-    end
-    
-    @bonus = Tuple.new(1) unless @bonus
-    @bonus[0] = names
-    return names
-  end
-
   def activate(recv, mod, args, locals=nil, &prc)
-    sz = args.total
-    if prc
-      block = prc.block
-    else
-      block = nil
-    end
-    
-    out = Rubinius.asm(args, block, locals, sz, mod, recv) do |a,b,l,s,m,r|
-      run a
-      push_array
-      run b
-      run l
-      run s
-      run m
-      push :self
-      run r
-      activate_method 0
-    end
-        
-    return out
+    Ruby.primitive :compiledmethod_activate
+    raise PrimitiveFailure, "Unable to call #{@name} on #{recv.inspect}"
   end
 
   class Script
     attr_accessor :path
   end
-  
+
   def as_script(script=nil)
     script ||= CompiledMethod::Script.new
     yield script if block_given?
 
     Rubinius::VM.save_encloser_path
-   
+
     # Setup the scoping.
     ss = StaticScope.new(Object)
     ss.script = script
@@ -233,40 +136,49 @@ class CompiledMethod
     end
     return 0
   end
-  
+
   def first_ip_on_line(line)
     @lines.each do |t|
       if t.at(2) >= line
         return t.at(0)
       end
     end
-    
+
     return -1
   end
-  
+
   def bytecodes=(other)
-    @bytecodes = other
+    @iseq = other
   end
-  
+
   def first_line
     @lines.each do |ent|
       return ent[2] if ent[2] > 0
     end
-    
+
     return -1
   end
 
   def is_block?
     @name =~ /__(?:(?:\w|_)+)?block__/
   end
-  
+
+  def describe
+    str = "method #{@name}: #{@total_args} arg(s), #{@required_args} required"
+    if @splat
+      str << ", splatted."
+    end
+
+    return str
+  end
+
   ##
   # Decodes the instruction sequence that is represented by this compileed
   # method. Delegates to InstructionSequence to do the instruction decoding,
   # but then converts opcode literal arguments to their actual values by looking
   # them up in the literals tuple.
   def decode
-    stream = @bytecodes.decode
+    stream = @iseq.decode
     ip = 0
     args_reg = 0
     stream.map! do |inst|
@@ -320,6 +232,7 @@ class CompiledMethod
     def initialize(inst, cm, ip, args_reg)
       @op = inst[0]
       @args = inst[1..-1]
+      @comment = nil
       @args.each_index do |i|
         case @op.args[i]
         when :literal
@@ -327,7 +240,9 @@ class CompiledMethod
         when :local
           # TODO: Blocks should be able to retrieve local names as well,
           # but need access to method corresponding to home context
-          @args[i] = cm.local_names[args[i]] if cm.local_names and cm.name != :__block__
+          if cm.local_names and cm.name != :__block__
+            @comment = cm.local_names[args[i]].to_s
+          end
         when :block_local
           # TODO: Blocks should be able to retrieve enclosing block local names as well,
           # but need access to static scope
@@ -418,6 +333,11 @@ class CompiledMethod
     def to_s
       str = "%04d:  %-27s" % [@ip, opcode]
       str << @args.map{|a| a.inspect}.join(', ')
+      if @comment
+        str << "    # #{@comment}"
+      end
+
+      return str
     end
   end
 end
