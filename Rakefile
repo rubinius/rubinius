@@ -345,6 +345,7 @@ namespace :mspec do
   task :init do
     unless File.exist? "mspec/bin/mspec"
       puts "Initializing mspec submodule..."
+      rm_rf "mspec"
       sh "git submodule init mspec"
       sh "git submodule update mspec"
     end
