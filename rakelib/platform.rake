@@ -84,6 +84,36 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   rlimit.field :rlim_cur, :rlim_t
   rlimit.field :rlim_max, :rlim_t
   rlimit.calculate
+
+  evp_md = StructGenerator.new
+  evp_md.include "openssl/ossl_typ.h"
+  evp_md.include "openssl/evp.h"
+  evp_md.name 'struct env_md_st'
+  evp_md.field  :type, :int
+  evp_md.field  :pkey_type, :int
+  evp_md.field  :md_size, :int
+  evp_md.field  :flags, :ulong
+  evp_md.field  :init, :pointer
+  evp_md.field  :update, :pointer
+  evp_md.field  :final, :pointer
+  evp_md.field  :copy, :pointer
+  evp_md.field  :cleanup, :pointer
+  evp_md.field  :sign, :pointer
+  evp_md.field  :verify, :pointer
+  # int required_pkey[5] goes here but we don't care
+  evp_md.field  :block_size, :int
+  evp_md.field  :ctx_size, :int
+  evp_md.calculate
+
+  evp_md_ctx = StructGenerator.new
+  evp_md_ctx.include "openssl/ossl_typ.h"
+  evp_md_ctx.include "openssl/evp.h"
+  evp_md_ctx.name 'struct env_md_ctx_st'
+  evp_md_ctx.field :digest, :pointer
+  evp_md_ctx.field :engine, :pointer
+  evp_md_ctx.field :flags, :ulong
+  evp_md_ctx.field :md_data, :pointer
+  evp_md_ctx.calculate
   
   # FIXME these constants don't have standard names.
   # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.
@@ -554,6 +584,8 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
     f.puts servent.generate_config('servent')
     f.puts stat.generate_config('stat')
     f.puts rlimit.generate_config('rlimit')
+    f.puts evp_md.generate_config('evp_md')
+    f.puts evp_md_ctx.generate_config('evp_md_ctx')
 
     file_constants.each do | name |
       const = cg.constants[name]

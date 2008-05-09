@@ -3,8 +3,6 @@ module FFI
   #  Specialised error classes
   class TypeError < RuntimeError; end
 
-  class SignatureError < RuntimeError; end
-
   class NotFoundError < RuntimeError
     def initialize(function, library)
       super("Function '#{function}' not found! (Looking in '#{library or 'this process'}')")
@@ -45,9 +43,6 @@ module FFI
     def create_function(library, name, args, ret)
       i = 0
       tot = args.size
-
-      # Current artificial limitation
-      raise SignatureError, 'FFI functions may take max 6 arguments!' if tot > 6
 
       # We use this instead of map or each because it's really early, map
       # isn't yet available.
