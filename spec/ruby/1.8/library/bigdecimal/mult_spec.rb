@@ -22,7 +22,6 @@ describe "BigDecimal#mult" do
 
     @e3_minus = BigDecimal "3E-20001"
     @e = BigDecimal "1.00000000000000000000123456789"
-    @one = BigDecimal "1"
     @tolerance = @e.sub @one, 1000
     @tolerance2 = BigDecimal "30001E-20005"
 
@@ -54,9 +53,26 @@ describe "BigDecimal#mult" do
     values.each do |val|
       @zeroes.each do |zero|
         zero.mult(val, 10).should == 0
+        zero.mult(val, 10).zero?.should == true
         val.mult(zero, 10).should == 0
+        val.mult(zero, 10).zero?.should == true
       end
     end
+  end
+
+  it "returns zero of appropriate sign if self or argument is zero" do
+    @zero.mult(@zero, 10).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+    @zero_neg.mult(@zero_neg, 10).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+    @zero.mult(@zero_neg, 10).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
+    @zero_neg.mult(@zero, 10).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
+
+    @one.mult(@zero, 10).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+    @one.mult(@zero_neg, 10).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
+
+    @zero.mult(@one, 10).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+    @zero.mult(@one_minus, 10).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
+    @zero_neg.mult(@one_minus, 10).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+    @zero_neg.mult(@one, 10).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
   end
 
   it "returns infinite value if self or argument is infinite" do
