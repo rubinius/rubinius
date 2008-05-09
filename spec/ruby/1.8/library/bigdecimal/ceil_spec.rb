@@ -50,8 +50,23 @@ describe "BigDecimal#ceil" do
   it "returns n digits right of the decimal point if given n > 0" do
     @mixed.ceil(1).should == BigDecimal("1.3")
     @mixed.ceil(5).should == BigDecimal("1.23457")
+
     BigDecimal("-0.03").ceil(1).should == BigDecimal("0")
     BigDecimal("0.03").ceil(1).should == BigDecimal("0.1")
+
+    BigDecimal("23.45").ceil(0).should == BigDecimal('24')
+    BigDecimal("23.45").ceil(1).should == BigDecimal('23.5')
+    BigDecimal("23.45").ceil(2).should == BigDecimal('23.45')
+
+    BigDecimal("-23.45").ceil(0).should == BigDecimal('-23')
+    BigDecimal("-23.45").ceil(1).should == BigDecimal('-23.4')
+    BigDecimal("-23.45").ceil(2).should == BigDecimal('-23.45')
+
+    BigDecimal("2E-10").ceil(0).should == @one
+    BigDecimal("2E-10").ceil(9).should == BigDecimal('1E-9')
+    BigDecimal("2E-10").ceil(10).should == BigDecimal('2E-10')
+    BigDecimal("2E-10").ceil(11).should == BigDecimal('2E-10')
+
     (1..10).each do |n|
       # 0.4, 0.34, 0.334, etc.
       (@one/@three).ceil(n).should == BigDecimal("0.#{'3'*(n-1)}4")
