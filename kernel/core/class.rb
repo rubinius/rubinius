@@ -108,8 +108,10 @@ class Class
   def subclasses_cv(descend = false)
     if descend
       subclasses_descend()
-    else
+    elsif @subclasses
       @subclasses.dup
+    else
+      []
     end
   end
 
