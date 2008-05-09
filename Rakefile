@@ -83,6 +83,7 @@ namespace :build do
 
   task :all => %w[
     spec:init
+    spec:update
     build:shotgun
     build:platform
     build:rbc
@@ -287,6 +288,11 @@ namespace :spec do
 
   desc "Initialize git submodules for mspec and rubyspec"
   task :init => 'mspec:init'
+
+  desc "Update submodule sources for mspec and rubyspec"
+  task :update => 'mspec:update'
+
+  task :pull => :update
 
   desc "Run continuous integration examples"
   task :ci => :build do
