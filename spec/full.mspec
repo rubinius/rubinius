@@ -8,6 +8,9 @@ class MSpecScript
     'spec/core',
     'spec/debugger',
     'spec/subtend',
+    'spec/ruby/1.8/library',
+    # parser specs cause odd problems with library
+    # specs, so they go last
     'spec/parser',
   ]
 
