@@ -46,6 +46,8 @@ describe "BigDecimal#floor" do
   it "returns n digits right of the decimal point if given n > 0" do
     @mixed.floor(1).should == BigDecimal("1.2")
     @mixed.floor(5).should == BigDecimal("1.23456")
+    BigDecimal("-0.03").floor(1).should == BigDecimal("-0.1")
+    BigDecimal("0.03").floor(1).should == BigDecimal("0")
     (1..10).each do |n|
       # 0.3, 0.33, 0.333, etc.
       (@one/@three).floor(n).should == BigDecimal("0.#{'3'*n}")
@@ -73,6 +75,8 @@ describe "BigDecimal#floor" do
     (1..10).each do |n|
       BigDecimal('1.8').floor(-n).should == @zero
     end
+    BigDecimal("1E10").floor(-30).should == @zero
+    BigDecimal("-1E10").floor(-30).should == BigDecimal('-1E30')
   end
 
 end
