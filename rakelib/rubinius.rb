@@ -25,6 +25,14 @@ def clear_compiler
   ENV.delete 'RBX_PLATFORM'
 end
 
+def spec_target
+  target = ENV['SPEC_TARGET'] || 'rubinius'
+  if target == 'rubinius'
+    system %(shotgun/rubinius -e 'puts "rubinius build: \#{Rubinius::BUILDREV}"')
+  end
+  target
+end
+
 def make(args = nil)
   if RUBY_PLATFORM =~ /bsd|solaris/
     gmake = 'gmake'

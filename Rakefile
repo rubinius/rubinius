@@ -291,10 +291,13 @@ namespace :spec do
   desc "Run continuous integration examples"
   task :ci => :build do
     clear_compiler
+    sh "bin/mspec ci -t #{spec_target}"
+  end
 
-    target = ENV['SPEC_TARGET'] || 'rubinius'
-    system %(shotgun/rubinius -e 'puts "rubinius build: \#{Rubinius::BUILDREV}"') if target == 'rubinius'
-    sh "bin/mspec ci -t #{target}"
+  desc "Run continuous integration examples including stdlib"
+  task :full => :build do
+    clear_compiler
+    sh "bin/mspec ci -t #{spec_target} -B full.mspec"
   end
 
   spec_targets = %w(compiler core language library parser rubinius)
