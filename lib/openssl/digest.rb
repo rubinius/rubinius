@@ -39,14 +39,17 @@ module OpenSSL
     DIGEST_TYPES = ["MD2", "MDC2", "DSS1", "SHA1", "MD5",
                       "DSS", "SHA", "MD4", "RIPEMD160"]
     class Digest
-      OpenSSL::Digest::Foreign.ossl_add_digests
+      # Populate OpenSSL's digest type table
+      Foreign.ossl_add_digests
 
       class << self
+        # We need to bypass this version of 'new' in subclasses
         alias_method :original_new, :new
+
         def new(digest_type)
           digest_type = digest_type.to_s
           begin
-            digest_class = const_get(digest_type)
+            digest_class = OpenSSL::Digest::const_get(digest_type)
           rescue NameError
             raise RuntimeError, "Unsupported digest algorithm (#{digest_type})."
           end
@@ -59,15 +62,21 @@ module OpenSSL
         @context, @digest, @buffer = nil, nil, nil
 
         @context = Foreign.ossl_digest_ctx_create
-        digest_name = self.class.name.split("::").last
-        @digest = Foreign.ossl_digest_getbyname(digest_name)
+
+        @digest = Foreign.ossl_digest_getbyname self.class.const_get(:DigestName)
         Errno.handle if @digest.nil?
         Foreign.ossl_digest_init_ex(@context, @digest, nil)
       end
 
       def hexdigest
         finalize
-        @buffer.read_string(@buffer.total).unpack("H*").join
+
+        out = ""
+        # Convert the binary string into lowercase hex
+        @buffer.read_string(@buffer.total).each_byte do |byte|
+          out << sprintf("%02x", byte)
+        end
+        out
       end
       alias_method :to_s, :hexdigest
       alias_method :inspect, :hexdigest
@@ -86,14 +95,15 @@ module OpenSSL
         buffer_size = MemoryPointer.new(:uint)
         buffer_size.write_int(@buffer.total)
 
-        ret = Foreign.ossl_digest_final_ex(final, @buffer, buffer_size)
+        err = Foreign.ossl_digest_final_ex(final, @buffer, buffer_size)
         Foreign.ossl_digest_ctx_cleanup(final)
-        Errno.handle if ret.zero?
+        Errno.handle if err.zero?
       end
       private :finalize
     end
 
     class SHA1 < Digest
+      DigestName = "SHA1"
       def self.new
         original_new
       end
