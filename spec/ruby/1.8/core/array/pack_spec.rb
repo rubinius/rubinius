@@ -499,6 +499,16 @@ describe "Array#pack" do
     ["A"].pack('m').should == "QQ==\n"
   end
 
+  it "sucks at describing specs or it gets the hose again" do
+    s = "Now is the time for all good coders\nto learn Ruby"
+    x = "Tm93IGlzIHRoZSB0aW1lIGZvciBhbGwgZ29vZCBjb2RlcnMKdG8gbGVhcm4g\nUnVieQ==\n"
+    [s].pack('m').should == x
+
+    s = 'Send reinforcements'
+    x = "U2VuZCByZWluZm9yY2VtZW50cw==\n"
+    [s].pack('m').should == x
+  end
+
   it "appends newline at the end of result string with ('m')" do
     ["A"].pack('m')[-1, 1].should == "\n"
   end

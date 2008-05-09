@@ -883,13 +883,13 @@ class Array
     sum
   end
 
-  BASE_64_ALPHA = {}
+  BASE_64_B2A = {}
   def self.after_loaded
-    (0..25).each {|x| BASE_64_ALPHA[x] = ?A + x}
-    (26..51).each {|x| BASE_64_ALPHA[x] = ?a + x - 26}
-    (52..61).each {|x| BASE_64_ALPHA[x] = ?0 + x - 52}
-    BASE_64_ALPHA[62] = ?+
-    BASE_64_ALPHA[63] = ?/
+    (00..25).each {|x| BASE_64_B2A[x] = (?A + x - 00).chr}
+    (26..51).each {|x| BASE_64_B2A[x] = (?a + x - 26).chr}
+    (52..61).each {|x| BASE_64_B2A[x] = (?0 + x - 52).chr}
+    BASE_64_B2A[62] = '+'
+    BASE_64_B2A[63] = '/'
   end
 
   ##
@@ -1098,27 +1098,21 @@ class Array
         arr_idx += 1
       when 'm' then # REFACTOR: merge with u
         item = Type.coerce_to(item, String, :to_str)
-        line = item
-        format              = "%08b" * line.length
-        letters             = format % line.split(//).map { |c| c[0] }
-        even_bitstream      = letters.scan(/.{1,24}/)
-        even_bitstream[-1] += 'a' * (24 - even_bitstream.last.size) unless
-          even_bitstream.empty?
-        base_64_stream      = even_bitstream.join.scan(/.{6}/)
 
-        encoded_letters = base_64_stream.map { |fragment|
-          fragment = fragment.gsub("a", "0") if fragment =~ /\da/
-          if fragment != "aaaaaa" then
-            BASE_64_ALPHA[fragment.to_i(2)].chr
-          else
-            "="
-          end
-        }.join
+        ret << item.scan(/.{1,45}/m).map { |line|
+          encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
+            a = a[0]
+            b = b[0] || 0
+            c = c[0] || 0
 
-        unbroken_stream = encoded_letters
+            [BASE_64_B2A[( a >> 2                    ) & 077],
+             BASE_64_B2A[((a << 4) | ((b >> 4) & 017)) & 077],
+             BASE_64_B2A[((b << 2) | ((c >> 6) & 003)) & 077],
+             BASE_64_B2A[( c                         ) & 077]]
+          }
 
-        ret << unbroken_stream.scan(/.{1,60}/).join("\n") + "\n" unless
-          unbroken_stream.empty?
+          "#{encoded.flatten.join}\n"
+        }.join.sub(/(A{1,2})\n\Z/) { "#{'=' * $1.size}\n" }
 
         arr_idx += 1
       when 'w' then
@@ -1134,30 +1128,22 @@ class Array
         arr_idx += 1
       when 'u' then # REFACTOR: merge with m
         item = Type.coerce_to(item, String, :to_str)
-        ret << item.scan(/.{1,45}/).map { |line|
-          format              = "%08b" * line.length
-          letters             = format % line.split(//).map { |c| c[0] }
-          even_bitstream      = letters.scan(/.{1,24}/)
-          even_bitstream[-1] += '0' * (24 - even_bitstream.last.size)
-          base_64_stream      = even_bitstream.join.scan(/.{6}/)
 
-          # TODO:
-          #http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
-          # encoded = sitem.scan(/(.)(.?)(.?)/).map { |a,b,c|
-          # a = a[0]; b = b[0] || 0; c = c[0] || 0
-          # [( a >> 2                    ),
-          # ((a << 4) | ((b >> 4) & 017)),
-          # ((b << 2) | ((c >> 6) & 003)),
-          # ( c                         )].map { |n| (?\s + (n & 077)).chr }
-          #}.flatten
+        # http://www.opengroup.org/onlinepubs/009695399/utilities/uuencode.html
+        ret << item.scan(/.{1,45}/m).map { |line|
+          encoded = line.scan(/(.)(.?)(.?)/m).map { |a,b,c|
+            a = a[0]
+            b = b[0] || 0
+            c = c[0] || 0
 
-          encoded_letters = base_64_stream.map { |fragment|
-            (fragment.to_i(2) + ?\s).chr
-          }.join
+            [(?\s + (( a >> 2                    ) & 077)).chr,
+             (?\s + (((a << 4) | ((b >> 4) & 017)) & 077)).chr,
+             (?\s + (((b << 2) | ((c >> 6) & 003)) & 077)).chr,
+             (?\s + (( c                         ) & 077)).chr]
+          }.flatten
 
-          unbroken_stream = encoded_letters.sub(/ +\Z/) { '`' * $&.length }
-          "#{(line.size + ?\s).chr}#{unbroken_stream}\n"
-        }.join
+          "#{(line.size + ?\s).chr}#{encoded.join}\n"
+        }.join.gsub(/ /, '`')
         arr_idx += 1
       when 'i', 's', 'l', 'n', 'I', 'S', 'L' then
         size = case t
