@@ -10,6 +10,7 @@ RUBINIUS_BASE = File.dirname(__FILE__)
 
 require 'tsort'
 require 'rakelib/rubinius'
+require 'rakelib/git'
 require 'rakelib/struct_generator'
 require 'rakelib/const_generator'
 require 'rakelib/types_generator'
@@ -270,113 +271,6 @@ namespace :clean do
     rm "shotgun/config.h", :verbose => $verbose
     rm "shotgun/config.mk", :verbose => $verbose
   end
-end
-
-# SPEC TASKS
-desc "Run all 'known good' specs (task alias for spec:ci)"
-task :spec => 'spec:ci'
-
-namespace :spec do
-  namespace :setup do
-    # Setup for 'Subtend' specs. No need to call this yourself.
-    task :subtend do
-      Dir["spec/subtend/**/Rakefile"].each do |rakefile|
-        sh "rake -f #{rakefile}"
-      end
-    end
-  end
-
-  desc "Initialize git submodules for mspec and rubyspec"
-  task :init => 'mspec:init'
-
-  desc "Update submodule sources for mspec and rubyspec"
-  task :update => 'mspec:update'
-
-  task :pull => :update
-
-  desc "Run continuous integration examples"
-  task :ci => :build do
-    clear_compiler
-    sh "bin/mspec ci -t #{spec_target}"
-  end
-
-  desc "Run continuous integration examples including stdlib"
-  task :full => :build do
-    clear_compiler
-    sh "bin/mspec ci -t #{spec_target} -B full.mspec"
-  end
-
-  spec_targets = %w(compiler core language library parser rubinius)
-  # Build a spec:<task_name> for each group of Rubinius specs
-  spec_targets.each do |group|
-    desc "Run #{group} examples"
-    task group do
-      sh "bin/mspec spec/#{group}"
-    end
-  end
-
-  desc "Run subtend (Rubinius C API) examples"
-  task :subtend => "spec:setup:subtend" do
-    sh "bin/mspec spec/rubinius/subtend"
-  end
-
-  # Specdiffs to make it easier to see what your changes have affected :)
-  desc 'Run specs and produce a diff against current base'
-  task :diff => 'diff:run'
-
-  namespace :diff do
-    desc 'Run specs and produce a diff against current base'
-    task :run do
-      system 'bin/mspec -f ci -o spec/reports/specdiff.txt spec'
-      system 'diff -u spec/reports/base.txt spec/reports/specdiff.txt'
-      system 'rm spec/reports/specdiff.txt'
-    end
-
-    desc 'Replace the base spec file with a new one'
-    task :replace do
-      system 'bin/mspec -f ci -o spec/reports/base.txt spec'
-    end
-  end
-
-  desc "Run the rspec specs for mspec"
-  task :mspec do
-    # Use the rspec spec runner (see mspec/README; gem install rspec)
-    sh 'spec ./mspec/spec'
-  end
-
-  task :r2r do
-    puts ARGV.inspect
-  end
-end
-
-namespace :mspec do
-  desc "Initialize git submodule for mspec"
-  task :init do
-    unless File.exist? "mspec/bin/mspec"
-      puts "Initializing mspec submodule..."
-      rm_rf "mspec"
-      sh "git submodule init mspec"
-      sh "git submodule update mspec"
-    end
-  end
-
-  desc "Synchronize mspec submodule to current remote version"
-  task :sync do
-    Dir.chdir "mspec" do
-      sh "git fetch"
-      sh "git rebase origin"
-    end
-    version = `git log --pretty=oneline -1 mspec`[0..7]
-    sh "git add mspec"
-    sh "git commit -m 'Updated MSpec submodule to #{version}'"
-  end
-
-  desc "Update mspec sources to current submodule version"
-  task :update do
-    sh "git submodule update mspec"
-  end
-
-  task :pull => :update
 end
 
 # MISC TASKS
