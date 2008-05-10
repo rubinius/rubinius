@@ -76,15 +76,7 @@ module OpenSSL
 
       def hexdigest
         buffer = finalize
-
-        out = ""
-        # Convert the binary string into lowercase hex
-        buffer.read_string(buffer.total).each_byte do |byte|
-          hex = byte.to_s(16)
-          out << "0" if byte < 0x10 # add leading zero if necessary
-          out << hex
-        end
-        out
+        buffer.read_string_as_hex(buffer.total)
       end
       alias_method :to_s, :hexdigest
       alias_method :inspect, :hexdigest
@@ -113,6 +105,11 @@ module OpenSSL
         end
       end
       private :finalize
+
+      def message_digest_backend
+        @digest
+      end
+      private :message_digest_backend
     end # Digest
 
     class SHA1   < Digest; DigestName = "SHA1";   end
