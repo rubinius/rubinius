@@ -2,13 +2,13 @@ class MSpecScript
   # An ordered list of the directories containing specs to run
   # as the CI process.
   set :ci_files, [
-    'spec/ruby/1.8/core',
-    'spec/ruby/1.8/language',
+    'spec/frozen/1.8/core',
+    'spec/frozen/1.8/language',
     'spec/compiler',
     'spec/core',
     'spec/debugger',
     'spec/subtend',
-    'spec/ruby/1.8/library',
+    'spec/frozen/1.8/library',
     # parser specs cause odd problems with library
     # specs, so they go last
     'spec/parser',

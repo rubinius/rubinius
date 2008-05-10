@@ -2,8 +2,8 @@ class MSpecScript
   # An ordered list of the directories containing specs to run
   # as the CI process.
   set :ci_files, [
-    'spec/ruby/1.8/core',
-    'spec/ruby/1.8/language',
+    'spec/frozen/1.8/core',
+    'spec/frozen/1.8/language',
     'spec/compiler',
     'spec/core',
     'spec/debugger',
