@@ -111,7 +111,9 @@ class Module
       current = current.direct_superclass
     end
 
-    raise NameError, "uninitialized class variable #{name} in #{self.name}"
+    # Try to print something useful for anonymous modules and metaclasses
+    module_name = self.name || self.inspect
+    raise NameError, "uninitialized class variable #{name} in #{module_name}"
   end
 
   def class_variable_defined?(name)
