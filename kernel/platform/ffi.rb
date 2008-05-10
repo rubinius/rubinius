@@ -33,6 +33,7 @@ module FFI
 
     def create_backend(library, name, args, ret)
       Ruby.primitive :nfunc_add
+      raise NotFoundError.new(name, library) 
     end
 
     # Internal function, should not be used directly.
@@ -52,9 +53,22 @@ module FFI
       end
       cret = find_type(ret)
 
-      func = create_backend(library, name, args, cret)
-      raise NotFoundError.new(name, library) unless func
-      func
+      library = setup_ld_library_path(library) if library
+      create_backend(library, name, args, cret)
+     end
+
+    # Setup the LD_LIBRARY_PATH 
+    def setup_ld_library_path(library)
+      # If we have a specific reference to the library, we load it here
+      specific_library = config("ld_library_path.#{library}")
+      library = specific_library if specific_library
+      
+      # This adds general paths to the search 
+      if path = config("ld_library_path.default")
+        ENV['LTDL_LIBRARY_PATH'] = [ENV['LTDL_LIBRARY_PATH'], path].compact.join(":")
+      end
+      
+      library
     end
 
   end
@@ -191,7 +205,7 @@ class Module
 
     func = FFI.create_function @ffi_lib, name, args, ret
 
-    raise ArgumentError, "Unable to find function '#{name}' to bind to #{self.name}.#{mname}" unless func
+    raise FFI::NotFoundError.new(name, @ffi_lib) unless func
 
     metaclass.method_table[mname] = func
     return func
