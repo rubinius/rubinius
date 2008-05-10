@@ -19,7 +19,6 @@ stamp-h1
 tmtags
 *.rbc
 .spec/bm.yml
-spec/ruby
 stats
 tmp
 scratch

@@ -32,7 +32,7 @@ namespace :spec do
   end
 
   desc "Update submodule sources for mspec and rubyspec"
-  task :update => %w[mspec:update clone]
+  task :update => 'mspec:update'
 
   task :pull => :update
 
