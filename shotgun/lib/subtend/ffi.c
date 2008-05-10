@@ -179,10 +179,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
 
   tot = N2I(array_get_total(args));
   arg_count = tot;
-  /* We don't support more than 6 args currently. */
-  if(tot > 6) {
-    return Qnil;
-  } else if(tot > 0) {
+  if(tot > 0) {
     arg_types = ALLOC_N(int, tot);
 
     for(i = 0; i < tot; i++) {
