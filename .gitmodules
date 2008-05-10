@@ -1,3 +1,6 @@
 [submodule "mspec"]
 	path = mspec
 	url = git://github.com/brixen/mspec.git
+[submodule "spec/frozen"]
+	path = spec/frozen
+	url = git://github.com/brixen/rubyspec.git
