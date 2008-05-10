@@ -27,14 +27,45 @@ namespace :spec do
   task :clone do
     unless File.exist? "spec/ruby/.git"
       rm_rf "spec/ruby" if File.exist? "spec/ruby"
-      sh "git clone git@github.com:brixen/rubyspec.git spec/ruby"
+      sh "git clone git://github.com/brixen/rubyspec.git spec/ruby"
     end
   end
 
   desc "Update submodule sources for mspec and rubyspec"
-  task :update => 'mspec:update'
+  task :update => %w[mspec:update clone] do
+    sh "git submodule update spec/frozen"
+
+    puts "Updating rubyspec repository..."
+    Dir.chdir "spec/ruby" do
+      git_update
+    end
+  end
 
   task :pull => :update
+
+  desc "Push changes to the rubyspec repository"
+  task :push => :update do
+    puts "Pushing changes to the rubyspec repository..."
+    Dir.chdir "spec/ruby" do
+      git_push
+    end
+  end
+
+  desc "Switch to the rubyspec commiter URL"
+  task :committer do
+    Dir.chdir "spec/ruby" do
+      sh "git config remote.origin.url git@github.com:brixen/rubyspec.git"
+    end
+    puts "\nYou're now accessing rubyspec via the committer URL."
+  end
+
+  desc "Switch to the rubyspec anonymous URL"
+  task :anon do
+    Dir.chdir "spec/ruby" do
+      sh "git config remote.origin.url git://github.com/brixen/rubyspec.git"
+    end
+    puts "\nYou're now accessing rubyspec via the anonymous URL."
+  end
 
   desc "Run continuous integration examples"
   task :ci => :build do
