@@ -23,8 +23,16 @@ namespace :spec do
     end
   end
 
+  desc "Clone a committer version of the rubyspecs"
+  task :clone do
+    unless File.exist? "spec/ruby/.git"
+      rm_rf "spec/ruby" if File.exist? "spec/ruby"
+      sh "git clone git@github.com:brixen/rubyspec.git spec/ruby"
+    end
+  end
+
   desc "Update submodule sources for mspec and rubyspec"
-  task :update => 'mspec:update'
+  task :update => %w[mspec:update clone]
 
   task :pull => :update
 
