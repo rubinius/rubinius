@@ -8,7 +8,6 @@ code-cache
 .dotest
 COMMIT
 .load_order.txt
-CI-specs
 TAGS
 tags
 !spec/tags
@@ -20,7 +19,7 @@ stamp-h1
 tmtags
 *.rbc
 .spec/bm.yml
-spec/ruby/1.8/core/dir/fixtures/mock
+spec/ruby
 stats
 tmp
 scratch
