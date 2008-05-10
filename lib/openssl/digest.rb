@@ -44,20 +44,17 @@ module OpenSSL
       # Populate OpenSSL's digest type table
       Foreign.ossl_add_digests
 
-      class << self
-        # We need to bypass this version of 'new' in subclasses
-        alias_method :original_new, :new
+      def self.new(digest_type = nil)
+        return super(digest_type) if const_defined?(:DigestName)
 
-        def new(digest_type)
-          digest_type = digest_type.to_s
-          begin
-            digest_class = OpenSSL::Digest::const_get(digest_type)
-          rescue NameError
-            raise RuntimeError, "Unsupported digest algorithm (#{digest_type})."
-          end
-          return digest_class.new
+        if digest_type then
+          subclass = OpenSSL::Digest::const_get(digest_type.to_s) rescue nil
+          return subclass.new if subclass
+          raise RuntimeError, "Unsupported digest algorithm (#{digest_type})."
+        else
+          raise ArgumentError, "wrong number of arguments (0 for 1)"
         end
-      end # metaclass
+      end
 
       def initialize(data = nil)
         @context, @digest = nil, nil
@@ -83,9 +80,9 @@ module OpenSSL
         out = ""
         # Convert the binary string into lowercase hex
         buffer.read_string(buffer.total).each_byte do |byte|
-          # TODO - Implement a lightweight helper for hex values
-          # with leading zeroes. sprintf is slow.
-          out << sprintf("%02x", byte)
+          hex = byte.to_s(16)
+          out << "0" if byte < 0x10 # add leading zero if necessary
+          out << hex
         end
         out
       end
@@ -118,11 +115,7 @@ module OpenSSL
       private :finalize
     end # Digest
 
-    class SHA1 < Digest
-      DigestName = "SHA1"
-      def self.new(*args)
-        original_new(*args)
-      end
-    end # SHA1
+    class SHA1   < Digest; DigestName = "SHA1";   end
+    class MD5    < Digest; DigestName = "MD5";    end
   end # OpenSSL::Digest
 end # OpenSSL
