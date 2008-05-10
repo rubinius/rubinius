@@ -14,7 +14,14 @@ namespace :spec do
   end
 
   desc "Initialize git submodules for mspec and rubyspec"
-  task :init => 'mspec:init'
+  task :init => 'mspec:init' do
+    unless File.exist? "spec/frozen/1.8"
+      puts "Initializing CI rubyspecs submodule..."
+      rm_rf "spec/frozen"
+      sh "git submodule init spec/frozen"
+      sh "git submodule update spec/frozen"
+    end
+  end
 
   desc "Update submodule sources for mspec and rubyspec"
   task :update => 'mspec:update'
