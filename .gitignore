@@ -1,3 +1,4 @@
+spec/ruby
 .DS_Store
 .gdb_history
 coverage
