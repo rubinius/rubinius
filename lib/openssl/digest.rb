@@ -27,12 +27,15 @@ module OpenSSL
       #int EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *md, unsigned int *s);
       attach_function "EVP_DigestFinal_ex", "ossl_digest_final_ex", [:pointer, :pointer, :pointer], :int
 
+      # OpenSSL structure representing a message digest algorithm
       class EVP_MD < FFI::Struct
         config("rbx.platform.evp_md", :md_size)
       end
 
+      # OpenSSL structure representing a message digest context
       class EVP_MD_CTX < FFI::Struct
         config("rbx.platform.evp_md_ctx", :digest)
+        # Returns the size of the digest associated with this context
         def digest_size
           evp_md = EVP_MD.new self[:digest]
           evp_md[:md_size]
@@ -44,7 +47,10 @@ module OpenSSL
       # Populate OpenSSL's digest type table
       Foreign.ossl_add_digests
 
+      # The API for OpenSSL::Digest is insane, and the args to "new"
+      # differ in subclasses. This madness here is designed to handle that.
       def self.new(digest_type = nil)
+        # We are in a subclass, so no further work is needed
         return super(digest_type) if const_defined?(:DigestName)
 
         if digest_type then
@@ -56,17 +62,23 @@ module OpenSSL
         end
       end
 
+      # Initialize the OpenSSL structures. This code is only executed in
+      # Digest subclasses, never in Digest itself.
       def initialize(data = nil)
         @context, @digest = nil, nil
-
-        @context = Foreign.ossl_digest_ctx_create
-
+        # Fetch the digest algorithm that matches the name of this class
         @digest = Foreign.ossl_digest_getbyname self.class.const_get(:DigestName)
         Errno.handle if @digest.nil?
+        # Create a new digest context (EVP_MD_CTX)
+        @context = Foreign.ossl_digest_ctx_create
+        Errno.handle if @context.nil?
+        # Initialize the digest context
         Foreign.ossl_digest_init_ex(@context, @digest, nil)
+        # Subclasses of Digest allow the initial data to be passed as an arg
         update(data) if data
       end
 
+      # Update the digest with new data
       def update(data)
         data = StringValue(data)
         err = Foreign.ossl_digest_update @context, data, data.size
@@ -74,11 +86,13 @@ module OpenSSL
         return self
       end
 
+      # Returns the digest in binary form
       def digest
         buffer = finalized_context
         buffer.read_string(buffer.total)
       end
 
+      # Returns the digest as a lowercase hex string
       def hexdigest
         buffer = finalized_context
         OpenSSL.digest_to_hex digest
@@ -86,38 +100,39 @@ module OpenSSL
       alias_method :to_s, :hexdigest
       alias_method :inspect, :hexdigest
 
-      # Copy the digest context and then finalize it
+      # Copy the current digest context and then finalize it
+      # to prevent further updates
       def finalized_context
-        # Create a placeholder to copy into
-        # TODO - ctx_create may be overkill here. Just use ctx_init?
+        # Create a blank context and then duplicate the current one
         final = Foreign.ossl_digest_ctx_create
-
         err = Foreign.ossl_digest_ctx_copy(final, @context)
         Errno.handle if err.zero?
 
+        # Wrap the returned pointer in a context struct so that we
+        # can access its fields.
         final_ctx = Foreign::EVP_MD_CTX.new(final)
+
         # Create a buffer to hold the finalized output
         buffer = MemoryPointer.new(final_ctx.digest_size)
         buffer_size = MemoryPointer.new(:uint)
         buffer_size.write_int(buffer.total)
 
+        # Finalize and write-protect the duplicated context
         err = Foreign.ossl_digest_final_ex(final, buffer, buffer_size)
         Foreign.ossl_digest_ctx_cleanup(final)
-        if err.zero? then
-          Errno.handle
-        else
-          buffer
-        end
+        Errno.handle if err.zero?
+        buffer
       end
       private :finalized_context
 
+      # Returns the underlying EVP_MD structure. Used by OpenSSL::HMAC
       def message_digest_backend
         @digest
       end
       private :message_digest_backend
     end # Digest
 
-    class SHA1   < Digest; DigestName = "SHA1";   end
-    class MD5    < Digest; DigestName = "MD5";    end
+    class SHA1   < Digest; DigestName = "SHA1";  end
+    class MD5    < Digest; DigestName = "MD5" ;  end
   end # OpenSSL::Digest
 end # OpenSSL
