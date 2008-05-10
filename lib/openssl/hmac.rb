@@ -7,19 +7,23 @@ module OpenSSL
             [:pointer, :string, :int, :string, :int, :string, :pointer], :pointer
     end
 
-    def self.hexdigest(digest, key, data)
-      unless digest.kind_of?(OpenSSL::Digest::Digest)
-        msg = "wrong argument (#{digest.class})! " \
+    def self.digest(md, key, data)
+      unless md.kind_of?(OpenSSL::Digest::Digest)
+        msg = "wrong argument (#{md.class})! " \
               "(Expected kind of OpenSSL::Digest::Digest)"
         raise TypeError, msg
       end
       key = StringValue(key)
       data = StringValue(data)
 
-      md = digest.__send__(:message_digest_backend)
+      evp_md = md.__send__(:message_digest_backend)
       buffer_size = MemoryPointer.new(:uint)
-      buf = Foreign.ossl_hmac(md, key, key.size, data, data.size, nil, buffer_size)
-      buf.read_string_as_hex(buffer_size.read_int)
+      buf = Foreign.ossl_hmac(evp_md, key, key.size, data, data.size, nil, buffer_size)
+      buf.read_string(buffer_size.read_int)
+    end
+
+    def self.hexdigest(md, key, data)
+      OpenSSL.digest_to_hex digest(md, key, data)
     end
   end
 end

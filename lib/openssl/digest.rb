@@ -74,15 +74,20 @@ module OpenSSL
         return self
       end
 
+      def digest
+        buffer = finalized_context
+        buffer.read_string(buffer.total)
+      end
+
       def hexdigest
-        buffer = finalize
-        buffer.read_string_as_hex(buffer.total)
+        buffer = finalized_context
+        OpenSSL.digest_to_hex digest
       end
       alias_method :to_s, :hexdigest
       alias_method :inspect, :hexdigest
 
       # Copy the digest context and then finalize it
-      def finalize
+      def finalized_context
         # Create a placeholder to copy into
         # TODO - ctx_create may be overkill here. Just use ctx_init?
         final = Foreign.ossl_digest_ctx_create
@@ -104,7 +109,7 @@ module OpenSSL
           buffer
         end
       end
-      private :finalize
+      private :finalized_context
 
       def message_digest_backend
         @digest

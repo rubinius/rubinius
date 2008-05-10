@@ -337,17 +337,6 @@ class MemoryPointer
     end
   end
 
-  def read_string_as_hex(len = nil)
-    string = read_string(len)
-    out = ""
-    string.each_byte do |byte|
-      hex = byte.to_s(16)
-      out << "0" if byte < 0x10 # add leading zero if necessary
-      out << hex
-    end
-    out
-  end
-
   def write_string(str, len=nil)
     len = str.size unless len
 
