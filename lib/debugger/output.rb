@@ -92,7 +92,6 @@ class Debugger
       # Returns a formatted string containing the column headers 
       def format_header_str(line_width=nil)
         if @headers
-puts @widths.inspect
           format_str @headers, Array.new(@formats.size, '%|s')
         end
       end

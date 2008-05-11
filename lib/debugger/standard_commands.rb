@@ -401,10 +401,11 @@ class Debugger
       if local_vals and local_vals.size > 1 or 
           (local_vals.size == 0 and local_vals.at(0).to_s[0] != ?@)
         output = Output.info("Local variables for #{cm.name}:")
-        output.set_columns([['Name', '%-s'], '%s', ['Value', '%-s']])
+        output.set_columns([['Name', '%-s'], ['Class', '%-s'], ['Value', '%-s']])
         0.upto(local_vals.size-1) do |i|
           lvar = locals ? locals[i].to_s : '?'
-          output << [lvar, '=>', local_vals.at(i).inspect] unless lvar[0] == ?@
+          val = local_vals.at(i)
+          output << [lvar, val.class, val.inspect] unless lvar[0] == ?@
         end
         output
       else
@@ -454,9 +455,10 @@ class Debugger
       ivars = instance.instance_variables
       if ivars.size > 0
         output = Output.info("Instance variables for #{instance}:")
-        output.set_columns([['Name', '%-s'], '%s', ['Value', '%-s']])
+        output.set_columns([['Name', '%-s'], ['Class', '%-s'], ['Value', '%-s']])
         ivars.each do |ivar|
-          output << [ivar, '=>', instance.instance_variable_get(ivar).inspect]
+          val = instance.instance_variable_get(ivar)
+          output << [ivar, val.class, val.inspect]
         end
         output
       else
