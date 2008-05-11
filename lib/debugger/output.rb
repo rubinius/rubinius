@@ -90,15 +90,22 @@ class Debugger
       end
       
       # Returns a formatted string containing the column headers 
-      def format_header_str(line_width=nil)
+      def format_header_str(indent=0, line_width=nil)
         if @headers
-          format_str @headers, Array.new(@formats.size, '%|s')
+          hdr = [nil]
+          hdr.concat format_str(@headers, indent-1, line_width, Array.new(@formats.size, '%|s'))
+          str = ' ' * (indent-1) + '+' if indent > 0
+          @widths.each do |width|
+            str << '-' * width + '+'
+          end
+          hdr << str
+          hdr
         end
       end
 
       # Format an array of cells into a string
       # TODO: Handle line_width arg to limit line overall length
-      def format_str(row, formats=@formats, line_width=nil)
+      def format_str(row, indent=0, line_width=nil, formats=@formats)
         cells = []
         cum_width = 0
         re = /%([|-])?(0)?(\d*)([sd])/
@@ -133,7 +140,7 @@ class Debugger
               line_cells << ' ' * @widths[i]
             end
           end
-          str << line_cells.join(@col_separator)
+          str << ' ' * indent + line_cells.join(@col_separator)
           line += 1
         end
         str
@@ -344,46 +351,47 @@ class Debugger
 
     # Convert this output stream to a string
     def to_s
-      str = ""
+      lines.join("\n")
+    end
+    
+    def lines
       column = nil
       color = nil
       marker = nil
+      lines = []
       @output.each do |item|
         case item
         when String
+          str = ""
           str << color.escape if color
           str << item.rstrip
           str << color.clear if color
-          str << "\n"
-          marker = nil
-        when Array
-          str << '  '
-          str << color.escape if color
-          str << output_marker(marker)
-          str << column.format_str(item).join("\n  ").rstrip
-          str << color.clear if color
-          str << "\n"
-          marker = nil
+          lines << str
         when Columns
           column = item
           if column.has_headers?
-            str << "\n  "
-            str << column.format_header_str.join("\n  ").rstrip
-            str << "\n"
-            str << ' +'
-            column.widths.each do |width|
-              str << '-' * width
-              str << '+'
-            end
-            str << "\n"
+            lines.concat column.format_header_str(@marker_width+2)
           end
+        when Array
+          str = ""
+          str << color.escape if color
+          str << output_marker(marker)
+          marker = nil
+          l = column.format_str(item, 2)
+          l.first.insert 0, str
+          l.last << color.clear if color
+          lines.concat l
         when Color
-          color = item
+          if item.color == :clear
+            color = nil
+          else
+            color = item
+          end
         when LineMarker
           marker = item
         end
       end
-      str
+      lines
     end
 
     def output_marker(marker)

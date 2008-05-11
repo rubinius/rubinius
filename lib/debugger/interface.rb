@@ -135,6 +135,7 @@ class Debugger
       @out.puts output
 
       until @done do
+        # Determine prompt
         if more_input?
           @input_line += 1
           prompt = "rbx:debug:#{@input_line}> "
@@ -142,11 +143,31 @@ class Debugger
           @input_line = 1
           prompt = "\nrbx:debug> "
         end
+        # Read command
         inp = Readline.readline(prompt)
         inp.strip!
         @last_inp = inp if inp.length > 0
         output = process_command(dbg, @last_inp)
-        @out.puts output if output
+        # Display output (if any)
+        if output
+          if @out == STDOUT
+            page_size, line_width = `stty size`.split(' ').map{|s| s.to_i}
+            lines = output.lines
+            i = 0
+            while i < lines.size
+              @out.puts lines[i...(i+page_size-1)].join("\n")
+              i += page_size - 1
+              if i < lines.size
+                @out.write "-- More --"
+                # TODO: Fix this when getc doesn't wait for enter to be pressed
+                key = STDIN.gets.strip
+                break if key.downcase == "q"
+              end
+            end
+          else
+            @out.puts output
+          end
+        end
       end
 
       if dbg.quit?
