@@ -109,12 +109,14 @@ class Debugger
       bp = bp_list.last
       file = ctxt.file.to_s
       line = ctxt.method.line_from_ip(ctxt.ip)
-      @out.puts "[Debugger activated]" unless bp.kind_of? StepBreakpoint
-      @out.puts ""
-      @out.puts "#{file}:#{line} (#{ctxt.method.name}) [IP:#{ctxt.ip}]"
+      if bp.kind_of? StepBreakpoint
+        output = Output.new
+      else
+        output = Output.info "[Debugger activated]", :yellow
+      end
+      output << "#{file}:#{line} (#{ctxt.method.name}) [IP:#{ctxt.ip}]"
 
       # Display current line/instruction
-      output = Output.new
       output.set_line_marker
       output.set_color :cyan
       if bp.kind_of? StepBreakpoint and bp.step_by == :ip
@@ -146,7 +148,11 @@ class Debugger
         output = process_command(dbg, @last_inp)
         @out.puts output if output
       end
-      @out.puts "[Debugger exiting]" if dbg.quit?
+
+      if dbg.quit?
+        output = Output.info "[Debugger exiting]", :yellow
+        @out.puts output
+      end
     end
 
     # Handles any exceptions raised by a Command subclass during a debug session.

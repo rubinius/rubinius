@@ -170,7 +170,7 @@ class Debugger
 
     def execute(dbg, interface, md)
       interface.done!
-      Output.info("[Resuming program]")
+      Output.info "[Resuming program]", :yellow
     end
   end
 

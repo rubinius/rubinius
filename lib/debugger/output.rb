@@ -245,23 +245,29 @@ class Debugger
     end
 
     # Convenience method for creating an Output of type :info
-    def self.info(msg)
+    def self.info(msg, color=nil)
       out = new(:info)
+      out.set_color color if color
       out << msg
+      out.set_color :clear if color
       out
     end
 
     # Convenience method for creating an Output of type :none
-    def self.none(msg)
+    def self.none(msg, color=nil)
       out = new(:none)
+      out.set_color color if color
       out << msg
+      out.set_color :clear if color
       out
     end
 
     # Convenience method for creating an Output of type :error
-    def self.error(msg)
+    def self.error(msg, color=nil)
       out = new(:error)
+      out.set_color color if color
       out << msg
+      out.set_color :clear if color
       out
     end
 
