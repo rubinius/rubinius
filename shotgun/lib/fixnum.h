@@ -65,9 +65,9 @@ static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
   }
 }
 
-static inline long fixnum_div(STATE, OBJECT a, OBJECT b, long *mod) {
+static inline native_int fixnum_div(STATE, OBJECT a, OBJECT b, native_int *mod) {
   native_int x, y;
-  long div;
+  native_int div;
 
   x = N2I(a);
   y = N2I(b);

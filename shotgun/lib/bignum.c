@@ -80,10 +80,15 @@ OBJECT bignum_add(STATE, OBJECT a, OBJECT b) {
   NMP;
 
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, N2I(b));
+    if(N2I(b) < 0) { 
+      mp_sub_d(MP(a), -N2I(b), n);
+    } else {
+      mp_add_d(MP(a), N2I(b), n);
+    }
+  } else {
+    mp_add(MP(a), MP(b), n);
   }
 
-  mp_add(MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
 
@@ -91,10 +96,15 @@ OBJECT bignum_sub(STATE, OBJECT a, OBJECT b) {
   NMP;
 
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, N2I(b));
+    if(N2I(b) < 0) { 
+      mp_add_d(MP(a), -N2I(b), n);
+    } else {
+      mp_sub_d(MP(a), N2I(b), n);
+    }
+  } else {
+    mp_sub(MP(a), MP(b), n);
   }
 
-  mp_sub(MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
 
@@ -119,10 +129,11 @@ OBJECT bignum_mul(STATE, OBJECT a, OBJECT b) {
        * Therefore we jump through some hoops to negate
        * both parts so the final result is the same.
        */
-      mp_neg(MP(a), MP(a)); 
-      b = I2N(-N2I(b));
+      mp_neg(MP(a), n); 
+      mp_mul_d(n, -N2I(b), n);
+    } else {
+      mp_mul_d(MP(a), N2I(b), n);
     }
-    mp_mul_d(MP(a), N2I(b), n);
   } else {
     mp_mul(MP(a), MP(b), n);
   }
@@ -201,11 +212,10 @@ OBJECT bignum_divmod(STATE, OBJECT a, OBJECT b) {
 
 OBJECT bignum_mod(STATE, OBJECT a, OBJECT b) {
   NMP;
-
+  
   if(FIXNUM_P(b)) {
     b = bignum_new(state, N2I(b));
   }
-
   mp_mod(MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
@@ -401,22 +411,35 @@ OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits) {
 }
 
 OBJECT bignum_equal(STATE, OBJECT a, OBJECT b) {
+  int r;
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, N2I(b));
+    if(N2I(b) < 0) {
+      mp_int n;
+      mp_init(&n);
+      mp_neg(MP(a), &n);
+      r = mp_cmp_d(&n, -N2I(b));
+      mp_clear(&n);
+    } else {
+      r = mp_cmp_d(MP(a), N2I(b));
+    }
+  } else {
+    r = mp_cmp(MP(a), MP(b));
   }
 
-  if(mp_cmp(MP(a), MP(b)) == MP_EQ) {
+  if(r == MP_EQ) {
     return Qtrue;
   }
   return Qfalse;
 }
 
 OBJECT bignum_compare(STATE, OBJECT a, OBJECT b) {
+  int r;
   if(FIXNUM_P(b)) {
     b = bignum_new(state, N2I(b));
-  }
-
-  switch(mp_cmp(MP(a), MP(b))) {
+  } 
+  r = mp_cmp(MP(a), MP(b));
+  
+  switch(r) {
     case MP_LT:
       return I2N(-1);
     case MP_GT:
@@ -426,11 +449,15 @@ OBJECT bignum_compare(STATE, OBJECT a, OBJECT b) {
 }
 
 OBJECT bignum_gt(STATE, OBJECT a, OBJECT b) {
+  int r;
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, N2I(b));
+    native_int bi;
+    r = mp_cmp_d(MP(a), (bi = N2I(b)) < 0 ? -bi : bi);
+  } else {
+    r = mp_cmp(MP(a), MP(b));
   }
 
-  if(mp_cmp(MP(a), MP(b)) == MP_GT) {
+  if(r == MP_GT) {
     return Qtrue;
   }
   return Qfalse;
@@ -438,12 +465,16 @@ OBJECT bignum_gt(STATE, OBJECT a, OBJECT b) {
 
 OBJECT bignum_ge(STATE, OBJECT a, OBJECT b) {
   int r;
-  
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, N2I(b));
+    if(N2I(b) < 0) {
+      r = mp_cmp_d(MP(a), -N2I(b));
+    } else {
+      r = mp_cmp_d(MP(a), N2I(b));
+    }
+  } else {
+    r = mp_cmp(MP(a), MP(b));
   }
-
-  r = mp_cmp(MP(a), MP(b));
+  
   if(r == MP_GT || r == MP_EQ) {
     return Qtrue;
   }
@@ -451,11 +482,15 @@ OBJECT bignum_ge(STATE, OBJECT a, OBJECT b) {
 }
 
 OBJECT bignum_lt(STATE, OBJECT a, OBJECT b) {
+  int r;
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, N2I(b));
+    native_int bi;
+    r = mp_cmp_d(MP(a), (bi = N2I(b)) < 0 ? -bi : bi);
+  } else {
+    r = mp_cmp(MP(a), MP(b));
   }
 
-  if(mp_cmp(MP(a), MP(b)) == MP_LT) {
+  if(r == MP_LT) {
     return Qtrue;
   }
   return Qfalse;
@@ -463,12 +498,13 @@ OBJECT bignum_lt(STATE, OBJECT a, OBJECT b) {
 
 OBJECT bignum_le(STATE, OBJECT a, OBJECT b) {
   int r;
-  
   if(FIXNUM_P(b)) {
-    b = bignum_new(state, N2I(b));
+    native_int bi;
+    r = mp_cmp_d(MP(a), (bi = N2I(b)) < 0 ? -bi : bi);
+  } else {
+    r = mp_cmp(MP(a), MP(b));
   }
-
-  r = mp_cmp(MP(a), MP(b));
+  
   if(r == MP_LT || r == MP_EQ) {
     return Qtrue;
   }
