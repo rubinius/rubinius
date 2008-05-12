@@ -7,6 +7,7 @@ module OpenSSL
             [:pointer, :string, :int, :string, :int, :string, :pointer], :pointer
     end
 
+    # Creates a new HMAC object and returns the binary digest
     def self.digest(md, key, data)
       unless md.kind_of?(OpenSSL::Digest::Digest)
         msg = "wrong argument (#{md.class})! " \
@@ -16,12 +17,15 @@ module OpenSSL
       key = StringValue(key)
       data = StringValue(data)
 
+      # Fetch the message digest structure from the Digest argument
       evp_md = md.__send__(:message_digest_backend)
       buffer_size = MemoryPointer.new(:uint)
+
       buf = Foreign.ossl_hmac(evp_md, key, key.size, data, data.size, nil, buffer_size)
       buf.read_string(buffer_size.read_int)
     end
 
+    # Creates a new HMAC object and returns the digest as lowercase hex
     def self.hexdigest(md, key, data)
       OpenSSL.digest_to_hex digest(md, key, data)
     end
