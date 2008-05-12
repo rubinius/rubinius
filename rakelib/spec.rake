@@ -32,7 +32,7 @@ namespace :spec do
   end
 
   desc "Update submodule sources for mspec and rubyspec"
-  task :update => %w[mspec:update clone] do
+  task :update => %w[init mspec:update clone] do
     sh "git submodule update spec/frozen"
 
     puts "Updating rubyspec repository..."

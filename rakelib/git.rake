@@ -40,7 +40,7 @@ namespace :git do
   end
 
   desc "Pull new commits from the rubinius repository"
-  task :update do
+  task :update => 'spec:update' do
     git_update
   end
 

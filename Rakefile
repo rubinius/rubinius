@@ -83,8 +83,6 @@ AllPreCompiled << "runtime/loader.rbc"
 namespace :build do
 
   task :all => %w[
-    spec:init
-    spec:update
     build:shotgun
     build:platform
     build:rbc

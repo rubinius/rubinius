@@ -23,7 +23,7 @@ namespace :mspec do
   end
 
   desc "Update mspec sources to current submodule version"
-  task :update do
+  task :update => :init do
     sh "git submodule update mspec"
   end
 
