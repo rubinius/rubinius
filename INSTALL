@@ -51,6 +51,18 @@ Rubinius can also be cloned via github:
 
   git clone git://github.com/evanphx/rubinius.git rubinius
 
+== Getting the RubySpec submodules
+
+You need to fetch the source for MSpec and the RubySpec submodules manually.
+After running 'git clone' above, run:
+
+  rake spec:update
+
+The spec:update task is also a dependency of the git:update task. So, if you
+use the rake tasks for updating your Rubinius sources, the MSpec and RubySpec
+source will automatically be updated. If you use the git commands manually,
+you will need to run rake spec:update also.
+
 == Compiling Rubinius
 
 Once you have all the prerequisites installed, building rubinius is as simple
