@@ -59,7 +59,7 @@ static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
     }
   }
   if (overflow) {
-    return bignum_mul(state, bignum_new(state, na), bignum_new(state, nb));
+    return bignum_mul(state, bignum_new(state, na), b);
   } else {
     return I2N(na * nb);
   }

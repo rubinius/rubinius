@@ -114,10 +114,19 @@ OBJECT bignum_mul(STATE, OBJECT a, OBJECT b) {
       mp_mul_2(MP(a), n);
       return n_obj;
     }
-    b = bignum_new(state, N2I(b));
+    if(N2I(b) < 0) { 
+      /* mp_mul_d only accepts positive integers (unsigned long).
+       * Therefore we jump through some hoops to negate
+       * both parts so the final result is the same.
+       */
+      mp_neg(MP(a), MP(a)); 
+      b = I2N(-N2I(b));
+    }
+    mp_mul_d(MP(a), N2I(b), n);
+  } else {
+    mp_mul(MP(a), MP(b), n);
   }
 
-  mp_mul(MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
 

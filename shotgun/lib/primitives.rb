@@ -166,7 +166,7 @@ class ShotgunPrimitives
     if(FIXNUM_P(t1)) {
       RET(fixnum_mul(state, msg->recv, t1));
     } else if(BIGNUM_P(t1)) {
-      RET(bignum_mul(state, bignum_new(state, N2I(msg->recv)), t1));
+      RET(bignum_mul(state, t1, msg->recv));
     } else if(FLOAT_P(t1)) {
       OBJECT t2 = float_coerce(state, msg->recv);
       RET(float_new(state, FLOAT_TO_DOUBLE(t2) * FLOAT_TO_DOUBLE(t1)));
