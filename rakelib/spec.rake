@@ -51,6 +51,17 @@ namespace :spec do
     end
   end
 
+  desc "Synchronize rubyspec submodule to current remote version"
+  task :sync do
+    Dir.chdir "spec/frozen" do
+      sh "git fetch"
+      sh "git rebase origin"
+    end
+    version = `git log --pretty=oneline -1 spec/frozen`[0..7]
+    sh "git add spec/frozen"
+    sh "git commit -m 'Updated RubySpec submodule to #{version}'"
+  end
+
   desc "Switch to the rubyspec commiter URL"
   task :committer do
     Dir.chdir "spec/ruby" do
