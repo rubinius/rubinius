@@ -234,54 +234,55 @@ class IO
       raise ArgumentError, "this mode requires a block currently"
     end
 
-    pa_read, ch_write = IO.pipe
+    mode = parse_mode mode
 
-    pid = Process.fork
+    readable = false
+    writable = false
 
-    if pid
-      # Parent: read/write to the child
-      case mode
-      when 'w' then
+    if mode & IO::RDWR != 0 then
+      readable = true
+      writable = true
+    elsif mode & IO::WRONLY != 0 then
+      writable = true
+    else # IO::RDONLY
+      readable = true
+    end
+
+    pa_read, ch_write = IO.pipe if readable
+    ch_read, pa_write = IO.pipe if writable
+
+    pid = Process.fork do
+      if readable then
         pa_read.close
-        pa_read = nil
-      when 'r' then
-        ch_write.close
-        ch_write = nil
-      else
-        raise ArgumentError, "mode #{mode} invalid or not supported"
+        STDOUT.reopen ch_write
       end
 
-      # See bottom for definition
-      rp = BidirectionalPipe.new(pid, pa_read, ch_write)
-      if block_given?
-        begin
-          yield rp
-        ensure
-          pa_read.close if pa_read
-          ch_write.close if ch_write
-          Process.kill('KILL', pid)
-        end
-      else
-        return rp
+      if writable then
+        pa_write.close
+        STDIN.reopen ch_read
       end
-    else
-      # Child: replace process with the requested shell command
-      if mode == 'w'
-        ch_write.close
-        ch_write = nil
-      elsif mode == 'r'
-        pa_read.close
-        pa_read = nil
-      end
-
-      STDIN.reopen(pa_read) if pa_read
-      STDOUT.reopen(ch_write) if ch_write
 
       if str == "+-+"
         yield nil
       else
         Process.replace "/bin/sh", ["sh", "-c", str]
       end
+    end
+
+    ch_write.close if readable
+    ch_read.close  if writable
+
+    # See bottom for definition
+    pipe = BidirectionalPipe.new pid, pa_read, pa_write
+
+    if block_given? then
+      begin
+        yield pipe
+      ensure
+        pipe.close
+      end
+    else
+      return pipe
     end
   end
 
@@ -393,7 +394,7 @@ class IO
         raise Errno::EINVAL, "Invalid mode '#{mode}' for existing descriptor #{fd}"
       end
     end
-      
+
     setup fd, mode
   end
 
@@ -453,6 +454,16 @@ class IO
     buffer
   end
 
+  def close_read
+    # TODO raise IOError if writable
+    close
+  end
+
+  def close_write
+    # TODO raise IOError if readable
+    close
+  end
+
   def closed?
     @descriptor == -1
   end
@@ -505,6 +516,8 @@ class IO
   end
 
   def fsync
+    raise IOError, 'closed stream' if closed?
+
     err = Platform::POSIX.fsync @descriptor
 
     Errno.handle 'fsync(2)' if err < 0
@@ -606,6 +619,10 @@ class IO
 
   def inspect
     "#<#{self.class}:0x#{object_id.to_s(16)}>"
+  end
+
+  def pid
+    nil
   end
 
   def pos
@@ -838,14 +855,29 @@ class BidirectionalPipe < IO
   alias_method :write, :<<
 
   def close
-    super
-    @write.close if @write
+    super unless closed?
 
-    Process.wait @pid
+    @write.close if @write and not @write.closed?
 
-    @pid = 0
+    if @pid != 0 then
+      Process.wait @pid
+
+      @pid = 0
+    end
 
     nil
+  end
+
+  def close_read
+    raise IOError, 'closed stream' if closed?
+
+    close
+  end
+
+  def close_write
+    raise IOError, 'closed stream' if @write.closed?
+
+    @write.close if @write
   end
 
   def pid
