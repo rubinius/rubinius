@@ -101,7 +101,7 @@ class Debugger
       first = 0 if first < 0
 
       output = Output.info("Bytecode instructions [#{first}-#{last}] in compiled method #{cm.name}:")
-      output.set_columns(["%04d:", "%-s ", "%-s"])
+      output.set_columns(["%04d:", "%-s ", "%-*s"])
       output << [nil, '...', nil] if first > 0
       line = 0
       asm.each do |inst|
@@ -152,7 +152,7 @@ class Debugger
       top = interface.debug_context.sp
 
       output = Output.info("VM stack [#{first}-#{last}]:")
-      output.set_columns([['Depth', "%2d:"], ['Class', '%-s'], ['Value', ' %s']])
+      output.set_columns([['Depth', "%2d:"], ['Class', '%-s'], ['Value', ' %-*s']])
       output << [nil, '...', nil] if first > 0
       first.upto(last) do |i|
         val = task.get_stack_value(i)
@@ -211,9 +211,9 @@ class Debugger
     def output(source, send_sites)
       i = 1
       output = Output.info("SendSites for #{'selector ' if source.kind_of? Selector}#{source.name}:")
-      output.set_columns(['%-3d.', ['Sender file', '%-s'], ['Sender method', '%-s'],
-                          ['Message', '%-s'], ['Receiver class', '%-s'], ['Method', '%-s'],
-                          ['Module', '%-s'], ['Hits', '%d'], ['Misses', '%d']])
+      output.set_columns(['%-3d.', ['Sender file', '%-*s'], ['Sender method', '%-*s'],
+                          ['Message', '%-s'], ['Receiver class', '%-*s'], ['Method', '%-*s'],
+                          ['Module', '%-*s'], ['Hits', '%d'], ['Misses', '%d']])
       send_sites.each do |ss|
         runnable_name = nil
         case runnable = ss.data(2)

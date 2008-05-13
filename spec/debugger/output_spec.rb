@@ -1,6 +1,15 @@
 require File.dirname(__FILE__) + "/spec_helper.rb"
 require 'debugger/output'
 
+
+describe "Output::Columns#initialize" do
+  it "raises an ArgumentError if an invalid format specification is used" do
+    cols = Debugger::Output::Columns.new(["%-5s"])
+    lambda { cols = Debugger::Output::Columns.new(["%5-s"]) }.should raise_error(ArgumentError)
+  end
+end
+
+
 describe "Output::Columns#wrap" do
   before :each do
     @cols = Debugger::Output::Columns.new 1
@@ -57,29 +66,81 @@ end
 
 describe "Output::Columns#format_str" do
   it "aligns columns according to a left or right justification specification" do
-    @cols = Debugger::Output::Columns.new(["%-5s"], nil, false)
-    @cols.format_str(["a"]).should == ["a    "]
-    @cols = Debugger::Output::Columns.new(["%5s"], nil, false)
-    @cols.format_str(["a"]).should == ["    a"]
-    @cols = Debugger::Output::Columns.new(["%5s", "%5s"],"|", false)
-    @cols.format_str(["a","b"]).should == ["    a|    b"]
+    cols = Debugger::Output::Columns.new(["%-5s"])
+    cols.format_str(["a"]).should == ["a    "]
+    cols = Debugger::Output::Columns.new(["%5s"])
+    cols.format_str(["a"]).should == ["    a"]
+    cols = Debugger::Output::Columns.new(["%|5s"])
+    cols.format_str(["a"]).should == ["  a  "]
+    cols = Debugger::Output::Columns.new(["%5s", "%5s"], "|")
+    cols.format_str(["a","b"]).should == ["    a|    b"]
   end
 
   it "wraps a cell value onto multiple lines if the content of a cell is wider than the cell width" do
-    @cols = Debugger::Output::Columns.new(["%10s"], nil, false)
-    @cols.format_str(["abcdefghij"]).should == ["abcdefghij"]
-    @cols.format_str(["abcdefghijklmnop"]).should == ["abcdefghij","    klmnop"]
+    cols = Debugger::Output::Columns.new(["%10s"])
+    cols.format_str(["abcdefghij"]).should == ["abcdefghij"]
+    cols.format_str(["abcdefghijklmnop"]).should == ["abcdefghij","    klmnop"]
 
-    @cols = Debugger::Output::Columns.new(["%-5s","%10s"],"|", false)
-    @cols.format_str(["a", "abcdefghijklmnop"]).should == ["a    |abcdefghij", "     |    klmnop"]
-    @cols = Debugger::Output::Columns.new(["%-5s","%10s"],"|", true)
-    @cols.update_widths(["a", "abcdefghijklmnop"])
-    @cols.format_str(["a", "abcdefghijklmnop"]).should == ["a    |abcdefghijklmnop"]
+    cols = Debugger::Output::Columns.new(["%-5s","%10s"], "|")
+    cols.format_str(["a", "abcdefghijklmnop"]).should == ["a    |abcdefghij", "     |    klmnop"]
+    cols = Debugger::Output::Columns.new(["%-5s","%10s"], "|")
+    cols.update_widths(["a", "abcdefghijklmnop"])
+    cols.format_str(["a", "abcdefghijklmnop"]).should == ["a    |abcdefghijklmnop"]
   end
 
   it "handles columns that calculate a 0 width" do
-    @cols = Debugger::Output::Columns.new(["%04d:", "%-s ", "%-s"])
-    @cols.update_widths([41, :push_self, ""])
-    @cols.format_str([41, :push_self, ""]).should == ["0041: push_self  "]
+    cols = Debugger::Output::Columns.new(["%04d:", "%-s ", "%-s"])
+    cols.update_widths([41, :push_self, ""])
+    cols.format_str([41, :push_self, ""]).should == ["0041: push_self  "]
+  end
+end
+
+
+describe "Output::Columns#redistribute_widths" do
+  it "makes no changes and returns true if page width is nil" do
+    cols = Debugger::Output::Columns.new(["%-5s","%10s"])
+    cols.update_widths(["a", "abcdefghijklmnop"])
+    cols.widths.should == [5, 16]
+    cols.redistribute_widths(nil).should == true
+    cols.widths.should == [5, 16]
+  end
+
+  it "makes no changes and returns true if page width > content width" do
+    cols = Debugger::Output::Columns.new(["%-5s","%10s"])
+    cols.update_widths(["a", "abcdefghijklmnop"])
+    cols.widths.should == [5, 16]
+    cols.redistribute_widths(80).should == true
+    cols.widths.should == [5, 16]
+  end
+
+  it "first reduces fixed width columns to specified widths if page width < content width" do
+    cols = Debugger::Output::Columns.new(["%-5s","%10s"])
+    cols.update_widths(["abcdefg", "abcdefghijklmnop"])
+    cols.widths.should == [7, 16]
+    cols.redistribute_widths(22).should == true
+    cols.widths.should == [5, 10]
+    cols = Debugger::Output::Columns.new(["%-5s","%10s"])
+    cols.update_widths(["abcdefg", "abcdefghijklmnop"])
+    cols.widths.should == [7, 16]
+    cols.redistribute_widths(22).should == true
+    cols.widths.should == [5, 10]
+  end
+
+  it "then reduces variable width columns to specified widths if page width < content width" do
+    cols = Debugger::Output::Columns.new(["%-5s","%*s"])
+    cols.update_widths(["abcdefg", "abcdefghijklmnop"])
+    cols.widths.should == [7, 16]
+    cols.redistribute_widths(23).should == true
+    cols.widths.should == [5, 16]
+    cols.redistribute_widths(20).should == true
+    cols.widths.should == [5, 14]
+  end
+
+  it "reduces multiple variable width columns in proportion to their content widths" do
+    cols = Debugger::Output::Columns.new(["%-5s","%*s", "%*s"])
+    cols.update_widths(["abcdefg", "abcdefghijklmnop", "abcdefgh"])
+    cols.widths.should == [7, 16, 8]
+    cols.redistribute_widths(30).should == true
+    cols.widths.should == [5, 15, 8]
   end
 end

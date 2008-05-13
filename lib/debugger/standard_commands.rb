@@ -12,7 +12,7 @@ class Debugger
 
     def execute(dbg, interface, md)
       output = Output.info("Available commands:")
-      output.set_columns(["%-32s", "%-45s"], '  ', false)
+      output.set_columns(["%-s", "%-*s"], '  ')
       cmds = interface.commands
       cmds.each do |cmd|
         c,h = cmd.help if cmd.respond_to? :help
@@ -35,8 +35,8 @@ class Debugger
     def execute(dbg, interface, md)
       if bp_list = dbg.breakpoints and bp_list.size > 0
         output = Output.info("Breakpoints:")
-        output.set_columns(["%d.", ["File:line", "%-s"], ["IP", "%d"],
-                           ["Method", " %s "], ["Condition", "%s"],
+        output.set_columns(["%d.", ["File:line", "%-*s"], ["IP", "%d"],
+                           ["Method", " %s "], ["Condition", "%*s"],
                            ["Hits", "%4d"], "%s"])
         dbg.breakpoints.each_with_index do |bp, i|
           if bp.enabled?
@@ -328,7 +328,7 @@ class Debugger
       last = lines.size if last > lines.size
 
       output = Output.info("Source lines [#{first}-#{last}] in #{file}:")
-      output.set_columns(['%d:', '%-s'])
+      output.set_columns(['%d:', '%-*s'])
       output << [nil, '...'] if first > 1
       first.upto(last) do |l|
         if !mthd and l == line
@@ -401,7 +401,7 @@ class Debugger
       if local_vals and local_vals.size > 1 or 
           (local_vals.size == 0 and local_vals.at(0).to_s[0] != ?@)
         output = Output.info("Local variables for #{cm.name}:")
-        output.set_columns([['Name', '%-s'], ['Class', '%-s'], ['Value', '%-s']])
+        output.set_columns([['Name', '%-s'], ['Class', '%-s'], ['Value', '%-*s']])
         0.upto(local_vals.size-1) do |i|
           lvar = locals ? locals[i].to_s : '?'
           val = local_vals.at(i)
@@ -427,7 +427,7 @@ class Debugger
     def execute(dbg, interface, inp)
       # Output globals
       output = Output.info("Global variables:")
-      output.set_columns([['Name', '%-25s'], ['Class', '%-25s'], ['Value', '%-50s']], ' ', false)
+      output.set_columns([['Name', '%-s'], ['Class', '%-s'], ['Value', '%-*s']])
       Globals.variables.dup.sort{|a,b| a.to_s <=> b.to_s}.each do |v|
         val = Globals[v]
         output << [v, val.class, val.inspect]
@@ -455,7 +455,7 @@ class Debugger
       ivars = instance.instance_variables
       if ivars.size > 0
         output = Output.info("Instance variables for #{instance}:")
-        output.set_columns([['Name', '%-s'], ['Class', '%-s'], ['Value', '%-s']])
+        output.set_columns([['Name', '%-s'], ['Class', '%-s'], ['Value', '%-*s']])
         ivars.each do |ivar|
           val = instance.instance_variable_get(ivar)
           output << [ivar, val.class, val.inspect]
@@ -480,7 +480,7 @@ class Debugger
     def execute(dbg, interface, inp)
       bt = Backtrace.backtrace(interface.debug_context)
       output = Output.info("Backtrace:")
-      output.set_columns(['%s', '%|s', '%-s'])
+      output.set_columns(['%*s', '%|s', '%-*s'])
       bt.frames.each_with_index do |frame,i|
         recv, loc = frame.first, frame.last
         if recv == interface.eval_context.describe and loc == interface.eval_context.location
@@ -509,7 +509,7 @@ class Debugger
     end
 
     def help
-      return "", "Any other command is assumed to be a Ruby expression, and is evaluated."
+      return "<expr>", "Any other command is assumed to be a Ruby expression, and is evaluated."
     end
 
     def command_regexp
@@ -570,7 +570,7 @@ class Debugger
       n.downto(1) { ctxt = ctxt.sender if ctxt.sender }
       interface.eval_context = ctxt
       output = Output.info("Evaluation context now at:")
-      output.set_columns(['%s', '%|s', '%-s'])
+      output.set_columns(['%*s', '%|s', '%-*s'])
       output.set_line_marker
       loc = ctxt.location
       bt = Backtrace.new
@@ -607,7 +607,7 @@ class Debugger
       n.downto(0) { ctxt = frames.shift if frames.size > 0 }
       interface.eval_context = ctxt
       output = Output.info("Evaluation context now at:")
-      output.set_columns(['%s', '%|s', '%-s'])
+      output.set_columns(['%*s', '%|s', '%-*s'])
       output.set_line_marker
       loc = ctxt.location
       bt = Backtrace.new

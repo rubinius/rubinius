@@ -151,8 +151,8 @@ class Debugger
         # Display output (if any)
         if output
           if @out == STDOUT
-            page_size, line_width = `stty size`.split(' ').map{|s| s.to_i}
-            lines = output.lines
+            page_size, page_width = `stty size`.split(' ').map{|s| s.to_i}
+            lines = output.lines(page_width)
             i = 0
             while i < lines.size
               @out.puts lines[i...(i+page_size-1)].join("\n")

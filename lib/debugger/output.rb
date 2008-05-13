@@ -9,6 +9,8 @@ class Debugger
     # Class for defining columns of output.
     
     class Columns
+      FORMAT_RE = /%([|-])?(0)?(\d*|\*)([sd])/
+      
       # Defines a new Columns block for an output.
       # Takes the following arguments:
       # - formats: Either a fixnum specifying the number of columns, or an array
@@ -18,10 +20,13 @@ class Debugger
       #   specification.
       # - An optional column separator string that will be inserted between
       #   columns when converting a row of cells to a string; defaults to a
-      #   single space
-      # - A flag indicating whether to calculate the required widths for each
-      #   column, or use the fixed widths specified in the formats arg.
-      def initialize(formats, col_sep=' ', auto=true)
+      #   single space.
+      # Column widths will be fixed at whatever size is specified in the format,
+      # or if none is specified, to whatever the necessary width is requried to
+      # output all values in that column. The special width specification * can
+      # be used to indicate that all remaining space on the line should be set
+      # as the column width.
+      def initialize(formats, col_sep=' ')
         if formats.kind_of? Array
           @formats = []
           @headers = nil
@@ -40,43 +45,99 @@ class Debugger
         else
           raise ArgumentError, "The formats arg must be an Array or a Fixnum (got #{formats.class})"
         end
-        @widths = Array.new(@formats.size, 0)
         @col_separator = col_sep
-        @auto = auto
 
-        if @auto
-          # Initialise column widths to column header widths
-          if @headers
-            @headers.each_with_index do |hdr, i|
-              @widths[i] = hdr.length if hdr
-            end          
-          end
-        else
-          # Use widths specified in format string
-          re = /%([|-])?(\d*)([sd])/
-          @formats.each_with_index do |fmt, i|
-            fmt =~ re
-            if $2.length > 0
-              @widths[i] = $2.to_i + $`.length + $'.length
+        @fixed_widths = Array.new(@formats.size)
+        @widths = Array.new(@formats.size, 0)
+
+        # Use widths specified in format string        
+        @formats.each_with_index do |fmt, i|
+          fmt =~ FORMAT_RE
+          raise ArgumentError, "Invalid format specification" unless $4
+          if $3 and $3.length > 0
+            if $3 != '*'
+              @fixed_widths[i] = $3.to_i + $`.length + $'.length
+              @widths[i] = @fixed_widths[i]
+            else
+              @fixed_widths[i] = '*'
             end
+          end
+        end
+
+        # Initialise column widths to column header widths
+        if @headers
+          @headers.each_with_index do |hdr, i|
+            @widths[i] = hdr.length if hdr and hdr.length > @widths[i]
+          end          
+        end
+      end
+      
+      attr_reader :fixed_widths, :widths
+      
+      # Update the column widths required based on the row content
+      def update_widths(cells)
+        cells.each_with_index do |cell,col|
+          if cell
+            @formats[col] =~ FORMAT_RE
+            str = "#{$`}%#{$2}#{$3 unless $3 == '*'}#{$4}#{$'}" % cell
+            @widths[col] = str.length if str.length > @widths[col]
           end
         end
       end
       
-      attr_reader :widths
-      
-      # Update the column widths required based on the row content
-      def update_widths(cells)
-        if @auto
-          re = /%([|-])?(\d*)([sd])/
-          cells.each_with_index do |cell,col|
-            if cell
-              @formats[col] =~ re
-              str = "#{$`}%#{$2}#{$3}#{$'}" % cell
-              @widths[col] = str.length if str.length > @widths[col]
+      # Redistributes the calculated widths, ensuring the overall line width is
+      # no greater than the specified page width.
+      def redistribute_widths(page_width, indent=0)
+        if page_width
+          page_width -= indent + (@widths.size-1) * @col_separator.length
+          fixed_width = 0
+          var_width = 0
+          cum_width = 0
+          variable_widths = []
+          @widths.each_with_index do |width,i|
+            cum_width += @widths[i]
+            if @fixed_widths[i]
+              if fixed_widths[i] == '*'
+                variable_widths << i
+                var_width += @widths[i]
+              else
+                fixed_width += @fixed_widths[i]
+              end
             end
           end
+          return true if cum_width <= page_width
+
+          # Need to squeeze - first up, ensure fixed width columns don't exceed
+          # specified size
+          @fixed_widths.each_with_index do |fw,i|
+            if fw and fw != '*'
+              if fw < @widths[i]
+                cum_width -= @widths[i] - fw
+                @widths[i] = fw
+              end
+            end
+          end
+          return true if cum_width <= page_width
+
+          if variable_widths.size > 0 and (fixed_width + variable_widths.size) < page_width
+            # Next, reduce variable widths proportionately to needs      
+            cum_adj = 0
+            variable_widths.each do |i|
+              adj = (@widths[i].to_f / var_width * (cum_width - page_width)).round
+              @widths[i] -= adj
+              cum_adj += adj
+            end
+            cum_width -= cum_adj
+          end
+          return true if cum_width <= page_width
+
+          if cum_width > page_width
+            # TODO: Full squeeze - squeeze all columns to fit
+          end
+
+          return false
         end
+        true
       end
 
       # Returns true if the column specification has headers
@@ -89,11 +150,16 @@ class Debugger
         @formats.size
       end
       
-      # Returns a formatted string containing the column headers 
-      def format_header_str(indent=0, line_width=nil)
+      # Returns a formatted string containing the column headers.
+      # Takes two optional parameters:
+      # - indent: specifies the number of characters to indent the line by
+      #   (default is 0).
+      # - page_width: specifies a page width to which the output should be made
+      #   to fit. If nil (the default), output is not forced to fit any width.
+      def format_header_str(indent=0)
         if @headers
           hdr = [nil]
-          hdr.concat format_str(@headers, indent-1, line_width, Array.new(@formats.size, '%|s'))
+          hdr.concat format_str(@headers, indent-1, Array.new(@formats.size, '%|s'))
           str = ' ' * (indent-1) + '+' if indent > 0
           @widths.each do |width|
             str << '-' * width + '+'
@@ -104,15 +170,12 @@ class Debugger
       end
 
       # Format an array of cells into a string
-      # TODO: Handle line_width arg to limit line overall length
-      def format_str(row, indent=0, line_width=nil, formats=@formats)
+      def format_str(row, indent=0, formats=@formats)
         cells = []
-        cum_width = 0
-        re = /%([|-])?(0)?(\d*)([sd])/
         formats.each_with_index do |fmt, i|
           if row[i]
             # Format cell ignoring width and alignment, wrapping if necessary
-            fmt =~ re
+            fmt =~ FORMAT_RE
             cell = "#{$`}%#{$4}#{$'}" % row[i]
             align = case $1
             when '-' then :left
@@ -156,7 +219,7 @@ class Debugger
         str.rstrip!
         lines = []
         until str.length <= width do
-          if pos = str[0, width].rindex(/[\s\-,_]/)
+          if pos = str[0, width].rindex(/[\s\-,\/_]/)
             # Found a break on whitespace or dash
             line, str = str[0..pos].rstrip, str[pos+1..-1].strip
           elsif pos = str[0, width-1].rindex(/[^\w]/) and pos > 0
@@ -288,7 +351,6 @@ class Debugger
     # - :error, to indicate a command error
     def initialize(output_type=:info)
       @output_type = output_type
-      #@page_size, @line_width = `stty size`.split(' ')
       clear
     end
 
@@ -335,8 +397,8 @@ class Debugger
     end
 
     # Convenience method to set a new column structure
-    def set_columns(formats, col_sep=' ', auto=true)
-      self << Columns.new(formats, col_sep, auto)
+    def set_columns(formats, col_sep=' ')
+      self << Columns.new(formats, col_sep)
     end
 
     # Convenience method to set a new row color
@@ -354,7 +416,12 @@ class Debugger
       lines.join("\n")
     end
     
-    def lines
+    # Return the output as an array of strings, one per line. If an output item
+    # wraps to more than one line, each line will be a seperate entry in the
+    # returned array.
+    # Takes an optional parameter +page_width+ that specifies the width of the 
+    # page on which the output will be displayed.
+    def lines(page_width=nil)
       column = nil
       color = nil
       marker = nil
@@ -369,6 +436,7 @@ class Debugger
           lines << str
         when Columns
           column = item
+          column.redistribute_widths(page_width, @marker_width + 2) if page_width
           if column.has_headers?
             lines.concat column.format_header_str(@marker_width+2)
           end
@@ -377,7 +445,8 @@ class Debugger
           str << color.escape if color
           str << output_marker(marker)
           marker = nil
-          l = column.format_str(item, 2)
+          l = column.format_str(item, @marker_width+2)
+          l.first[0, @marker_width] = ''
           l.first.insert 0, str
           l.last << color.clear if color
           lines.concat l
