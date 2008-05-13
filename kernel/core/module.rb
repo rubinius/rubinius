@@ -605,7 +605,7 @@ class Module
   def module_function_cv(*args)
     if args.empty?
       MethodContext.current.sender.method_scope = :module
-      return
+      return self
     end
 
     mc = self.metaclass
