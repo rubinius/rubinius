@@ -282,12 +282,15 @@ class IO
 
     if pid
       # Parent: read/write to the child
-      if mode == 'w'
+      case mode
+      when 'w' then
         pa_read.close
         pa_read = nil
-      elsif mode == 'r'
+      when 'r' then
         ch_write.close
         ch_write = nil
+      else
+        raise ArgumentError, "mode #{mode} invalid or not supported"
       end
 
       # See bottom for definition
@@ -825,7 +828,19 @@ class BidirectionalPipe < IO
     @write = write
   end
 
+  def close
+    super
+    @write.close if @write
+
+    Process.wait @pid
+
+    @pid = 0
+
+    nil
+  end
+
   def pid
+    raise IOError, 'closed stream' if closed?
     @pid
   end
 
