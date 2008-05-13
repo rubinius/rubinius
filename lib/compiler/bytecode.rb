@@ -1524,11 +1524,11 @@ class Node
         g.goto ok
 
         ex.handle!
+        g.push_exception
 
         @ensure.bytecode(g)
         g.pop
         # Re-raise the exception
-        g.push_exception
         if @did_return and !@outer_ensure
           g.dup
           g.push_const :ReturnException
