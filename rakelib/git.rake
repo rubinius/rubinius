@@ -5,7 +5,7 @@ namespace :git do
   desc "Switch to the commiter URL"
   task :committer do
     sh "git config remote.origin.url git@git.rubini.us:code"
-    puts "\nYou're now accessing rubinius via the committer URL." 
+    puts "\nYou're now accessing rubinius via the committer URL."
   end
 
   desc "Switch to the anonymous URL"
@@ -20,7 +20,8 @@ namespace :git do
     puts
     system "git status"
     puts
-    puts "spec/ruby"
+    puts "spec/ruby:"
+    puts
     system "(cd spec/ruby; git status)"
   end
 
