@@ -14,6 +14,10 @@ class Proc
     @check_args = other
   end
 
+  def binding
+    Binding.setup @block.home
+  end
+
   #--
   # An optimized version, used for the &block syntax
   #++
