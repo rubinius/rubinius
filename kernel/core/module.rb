@@ -36,10 +36,9 @@ class Module
     end
     nesting
   end
-  
-  def initialize
-    block = block_given?
-    module_eval(&block) if block
+
+  def initialize(&block)
+    _eval_under(self, &block) if block
   end
 
   #--
@@ -552,7 +551,7 @@ class Module
   end
 
   #--
-  # Same as include_cv above, don't call this private.
+  # As with include_cv above, don't call this private.
   #++
 
   def private_cv(*args)

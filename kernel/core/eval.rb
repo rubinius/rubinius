@@ -189,5 +189,13 @@ class Module
   end
   alias_method :class_eval, :module_eval
 
-end
+  def _eval_under(*args, &block)
+    raise "not yet" unless block
 
+    env = block.block.redirect_to self
+    env.method.staticscope = StaticScope.new(self, env.method.staticscope)
+
+    return env.call(*args)
+  end
+  private :_eval_under
+end
