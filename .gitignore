@@ -43,6 +43,11 @@ shotgun/lib/subtend/*.d.*
 .\#*
 *.dSYM
 
+# rubygems related
+bin/htmldiff
+bin/ldiff
+lib/rbx
+
 attic/externals/syd-parser/pkg
 
 kernel/.load_order.txt
