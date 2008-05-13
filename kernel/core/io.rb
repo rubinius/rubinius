@@ -4,6 +4,8 @@ class IO
 
   ivar_as_index :__ivars__ => 0, :descriptor => 1, :buffer => 2, :mode => 3
 
+  attr_accessor :lineno
+
   BufferSize = 8096
 
   class Buffer < String
@@ -132,45 +134,24 @@ class IO
     LOCK_UN  = 0x08
     BINARY   = 0x04
   end
+
   include Constants
 
-  def self.select(read_array, write_array = nil, error_array = nil,
-                  timeout = nil)
-    chan = Channel.new
+  def self.for_fd(fd)
+    self.new(fd)
+  end
 
-    if read_array then
-      read_array.each do |readable|
-        Scheduler.send_on_readable chan, readable, nil, nil
+  def self.foreach(name, sep_string = $/, &block)
+    sep_string ||= ''
+    io = File.open(StringValue(name), 'r')
+    sep = StringValue(sep_string)
+    begin
+      while(line = io.gets(sep))
+        yield line
       end
+    ensure
+      io.close
     end
-
-    raise NonImplementedError, "write_array is not supported" if write_array
-    raise NonImplementedError, "error_array is not supported" if error_array
-
-    # HACK can't do this yet
-    #if write_array then
-    #  write_array.each do |writable|
-    #    Scheduler.send_on_writable chan, writable, nil, nil
-    #  end
-    #end
-    #
-    #if errore_array then
-    #  errore_array.each do |errorable|
-    #    Scheduler.send_on_error chan, errorable, nil, nil
-    #  end
-    #end
-
-    Scheduler.send_in_microseconds chan, (timeout * 1_000_000).to_i, nil if timeout
-
-    value = chan.receive
-
-    return nil if value == 1 # timeout
-
-    io = read_array.find { |readable| readable.fileno == value }
-
-    return nil if io.nil?
-
-    [[io], [], []]
   end
 
   ##
@@ -186,30 +167,6 @@ class IO
   # Errno::EBADF will be raised if that is not the case. If the mode is
   # incompatible, it will raise Errno::EINVAL instead.
 
-  def initialize(fd, mode = nil)
-    fd = Type.coerce_to fd, Integer, :to_int
-
-    # Descriptor must be an open and valid one
-    raise Errno::EBADF, "Invalid descriptor #{fd}" if fd < 0
-
-    cur_mode = Platform::POSIX.fcntl(fd, F_GETFL, 0)
-    raise Errno::EBADF, "Invalid descriptor #{fd}" if cur_mode < 0
-
-    unless mode.nil?
-      # Must support the desired mode.
-      # O_ACCMODE is /undocumented/ for fcntl() on some platforms
-      # but it should work. If there is a problem, check it though.
-      new_mode = IO.parse_mode(mode) & ACCMODE
-      cur_mode = cur_mode & ACCMODE
-
-      if cur_mode != RDWR and cur_mode != new_mode
-        raise Errno::EINVAL, "Invalid mode '#{mode}' for existing descriptor #{fd}"
-      end
-    end
-      
-    setup fd, mode
-  end
-
   def self.open(*args)
     io = self.new(*args)
 
@@ -222,16 +179,45 @@ class IO
     end
   end
 
-  def self.sysopen(path, mode = "r", perm = 0666)
-    if mode.kind_of?(String)
-      mode = parse_mode(mode)
+  def self.parse_mode(mode)
+    ret = 0
+
+    case mode[0]
+    when ?r
+      ret |= RDONLY
+    when ?w
+      ret |= WRONLY | CREAT | TRUNC
+    when ?a
+      ret |= WRONLY | CREAT | APPEND
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
     end
 
-    return open_with_mode(path, mode, perm)
-  end
+    return ret if mode.length == 1
 
-  def self.for_fd(fd)
-    self.new(fd)
+    case mode[1]
+    when ?+
+      ret &= ~(RDONLY | WRONLY)
+      ret |= RDWR
+    when ?b
+      ret |= BINARY
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+
+    return ret if mode.length == 2
+
+    case mode[2]
+    when ?+
+      ret &= ~(RDONLY | WRONLY)
+      ret |= RDWR
+    when ?b
+      ret |= BINARY
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+
+    ret
   end
 
   def self.pipe
@@ -242,34 +228,6 @@ class IO
     rhs.setup
     return [lhs, rhs]
   end
-
-  ##
-  # Obtains a new duplicate descriptor for the current one.
-
-  def initialize_copy(original) # :nodoc:
-    @descriptor = Platform::POSIX.dup(@descriptor)
-  end
-
-  def setup(desc = nil, mode = nil)
-    @descriptor = desc if desc
-    @mode = mode if mode
-    @buffer = IO::Buffer.new(BufferSize)
-    @eof = false
-    @lineno = 0
-  end
-
-  private :initialize_copy
-
-  attr_accessor :lineno
-
-  alias_method :prim_tty?, :tty?
-
-  def tty?
-    raise IOError, "closed stream" if closed?
-    prim_tty?
-  end
-
-  alias_method :isatty, :tty?
 
   def self.popen(str, mode = "r")
     if str == "+-+" and !block_given?
@@ -327,91 +285,133 @@ class IO
     end
   end
 
-  def binmode
-    # HACK what to do?
-  end
+  def self.read(name, length = Undefined, offset = 0)
+    name = StringValue(name)
+    length ||= Undefined
+    offset ||= 0
 
-  def eof!
-    @eof = true
-  end
+    offset = Type.coerce_to(offset, Fixnum, :to_int)
 
-  def eof?
-    read 0 # HACK force check
-    @eof and @buffer.empty?
-  end
+    if offset < 0
+      raise Errno::EINVAL, "offset must not be negative"
+    end
 
-  def getc
-    char = read 1
-    return nil if char.nil?
-    char[0]
-  end
+    unless length.equal?(Undefined)
+      length = Type.coerce_to(length, Fixnum, :to_int)
 
-  def wait_til_readable
-    chan = Channel.new
-    Scheduler.send_on_readable chan, self, nil, nil
-    chan.receive
-  end
-
-  def __ivars__ ; @__ivars__  ; end
-
-  def inspect
-    "#<#{self.class}:0x#{object_id.to_s(16)}>"
-  end
-
-  def fileno
-    raise IOError, "closed stream" if closed?
-    @descriptor
-  end
-
-  alias_method :to_i, :fileno
-
-  def printf(fmt, *args)
-    write Sprintf.new(fmt, *args).parse
-  end
-
-  def puts(*args)
-    if args.empty?
-      write DEFAULT_RECORD_SEPARATOR
-    else
-      args.each do |arg|
-        if arg.nil?
-          str = "nil"
-        elsif RecursionGuard.inspecting?(arg)
-          str = "[...]"
-        elsif arg.kind_of?(Array)
-          RecursionGuard.inspect(arg) do
-            arg.each do |a|
-              puts a
-            end
-          end
-        else
-          str = arg.to_s
-        end
-
-        if str
-          write str
-          write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
-        end
+      if length < 0
+        raise ArgumentError, "length must not be negative"
       end
     end
 
-    nil
+    File.open(name) do |f|
+      f.seek(offset) unless offset.zero?
+
+      if length.equal?(Undefined)
+        f.read
+      else
+        f.read(length)
+      end
+    end
+  end
+
+  def self.readlines(name, sep_string = $/)
+    io = File.open(StringValue(name), 'r')
+    return if io.nil?
+
+    begin
+      io.readlines(sep_string)
+    ensure
+      io.close
+    end
+  end
+
+  def self.select(read_array, write_array = nil, error_array = nil,
+                  timeout = nil)
+    chan = Channel.new
+
+    if read_array then
+      read_array.each do |readable|
+        Scheduler.send_on_readable chan, readable, nil, nil
+      end
+    end
+
+    raise NonImplementedError, "write_array is not supported" if write_array
+    raise NonImplementedError, "error_array is not supported" if error_array
+
+    # HACK can't do this yet
+    #if write_array then
+    #  write_array.each do |writable|
+    #    Scheduler.send_on_writable chan, writable, nil, nil
+    #  end
+    #end
+    #
+    #if errore_array then
+    #  errore_array.each do |errorable|
+    #    Scheduler.send_on_error chan, errorable, nil, nil
+    #  end
+    #end
+
+    Scheduler.send_in_microseconds chan, (timeout * 1_000_000).to_i, nil if timeout
+
+    value = chan.receive
+
+    return nil if value == 1 # timeout
+
+    io = read_array.find { |readable| readable.fileno == value }
+
+    return nil if io.nil?
+
+    [[io], [], []]
+  end
+
+  def self.sysopen(path, mode = "r", perm = 0666)
+    if mode.kind_of?(String)
+      mode = parse_mode(mode)
+    end
+
+    return open_with_mode(path, mode, perm)
+  end
+
+  def initialize(fd, mode = nil)
+    fd = Type.coerce_to fd, Integer, :to_int
+
+    # Descriptor must be an open and valid one
+    raise Errno::EBADF, "Invalid descriptor #{fd}" if fd < 0
+
+    cur_mode = Platform::POSIX.fcntl(fd, F_GETFL, 0)
+    raise Errno::EBADF, "Invalid descriptor #{fd}" if cur_mode < 0
+
+    unless mode.nil?
+      # Must support the desired mode.
+      # O_ACCMODE is /undocumented/ for fcntl() on some platforms
+      # but it should work. If there is a problem, check it though.
+      new_mode = IO.parse_mode(mode) & ACCMODE
+      cur_mode = cur_mode & ACCMODE
+
+      if cur_mode != RDWR and cur_mode != new_mode
+        raise Errno::EINVAL, "Invalid mode '#{mode}' for existing descriptor #{fd}"
+      end
+    end
+      
+    setup fd, mode
   end
 
   ##
-  # Writes each given argument.to_s to the stream or $_ (the result of last
-  # IO#gets) if called without arguments. Appends $\.to_s to output. Returns
-  # nil.
+  # Obtains a new duplicate descriptor for the current one.
 
-  def print(*args)
-    if args.empty?
-      write $_.to_s
-    else
-      args.each {|o| write o.to_s }
-    end
+  def initialize_copy(original) # :nodoc:
+    @descriptor = Platform::POSIX.dup(@descriptor)
+  end
 
-    write $\.to_s
-    nil
+  private :initialize_copy
+
+  def setup(desc = nil, mode = nil)
+    @descriptor = desc if desc
+    @mode = mode if mode
+    @buffer = IO::Buffer.new(BufferSize)
+    @eof = false
+    @lineno = 0
   end
 
   def <<(obj)
@@ -419,16 +419,11 @@ class IO
     return self
   end
 
-  def sysread(size, buf=nil)
-    raise IOError, "closed stream" if closed?
-    buf = String.new(size) unless buf
-    chan = Channel.new
-    Scheduler.send_on_readable chan, self, buf, size
-    raise EOFError if chan.receive.nil?
-    return buf
-  end
+  def __ivars__ ; @__ivars__  ; end
 
-  alias_method :readpartial, :sysread
+  def binmode
+    # HACK what to do?
+  end
 
   def breadall(buffer=nil)
     return "" if @eof and @buffer.empty?
@@ -458,129 +453,51 @@ class IO
     buffer
   end
 
-  def read(size=nil, buffer=nil)
-    raise IOError, "closed stream" if closed?
-    return breadall(buffer) unless size
-
-    return nil if @eof and @buffer.empty?
-
-    buf = @buffer
-    done = false
-
-    output = ''
-
-    needed = size
-
-    if needed > 0 and buf.size >= needed
-      output << buf.shift_front(needed)
-    else
-      while true
-        bytes = buf.fill_from(self)
-
-        if bytes
-          done = needed - bytes <= 0
-        else
-          done = true
-        end
-
-        if done or buf.full?
-          output << buf.shift_front(needed)
-          needed = size - output.length
-        end
-
-        break if done or needed == 0
-      end
-    end
-
-    if buffer then
-      buffer = StringValue buffer
-      buffer.replace output
-    else
-      buffer = output
-    end
-
-    buffer
-  end
-
-  def read_nonblock(size, buffer = nil)
-    raise IOError, "closed stream" if closed?
-    prim_read(size, buffer)
-  end
-
-  alias_method :prim_write, :write
-
-  def write(data)
-    raise IOError, "closed stream" if closed?
-    # If we have buffered data, rewind.
-    unless @buffer.empty?
-      seek 0, SEEK_CUR
-    end
-
-    data = String data
-
-    return 0 if data.length == 0
-    raise IOError if ((Platform::POSIX.fcntl(@descriptor, F_GETFL, 0) & ACCMODE) == RDONLY)
-    prim_write(data)
-  end
-
-  alias_method :syswrite, :write
-  alias_method :write_nonblock, :write
-
-  def seek(amount, whence=SEEK_SET)
-    raise IOError, "closed stream" if closed?
-    # Unseek the still buffered amount
-    unless @buffer.empty?
-      prim_seek(-@buffer.size, SEEK_CUR)
-      @buffer.reset!
-      @eof = false
-    end
-
-    prim_seek amount, whence
-  end
-
-  def pos
-    seek 0, SEEK_CUR
-  end
-
-  alias_method :tell, :pos
-
-  def pos=(offset)
-    seek offset, SEEK_SET
-  end
-
-  def rewind
-    seek 0
-    @lineno = 0
-    @eof = false
-    return 0
+  def closed?
+    @descriptor == -1
   end
 
   def descriptor
     @descriptor
   end
 
-  def sysseek(amount, whence=SEEK_SET)
+  def dup
     raise IOError, "closed stream" if closed?
-    Platform::POSIX.lseek(@descriptor, amount, whence)
+    super
   end
 
-  def closed?
-    @descriptor == -1
+  def each(sep=$/)
+    while line = gets_helper(sep)
+      yield line
+    end
   end
 
-  ##
-  #--
-  # The current implementation does no write buffering, so we're always in
-  # sync mode.
+  alias_method :each_line, :each
 
-  def sync=(v)
+  def eof!
+    @eof = true
+  end
+
+  def eof?
+    read 0 # HACK force check
+    @eof and @buffer.empty?
+  end
+
+  def fcntl(command, arg)
     raise IOError, "closed stream" if closed?
+    if arg.kind_of? Fixnum then
+      Platform::POSIX.fcntl(descriptor, command, arg)
+    else
+      raise NotImplementedError, "cannot handle #{arg.class}"
+    end
   end
 
-  def sync
+  def fileno
     raise IOError, "closed stream" if closed?
-    true
+    @descriptor
   end
+
+  alias_method :to_i, :fileno
 
   def flush
     raise IOError, "closed stream" if closed?
@@ -595,24 +512,16 @@ class IO
     err
   end
 
+  def getc
+    char = read 1
+    return nil if char.nil?
+    char[0]
+  end
+
   def gets(sep=$/)
     @lineno += 1
     $_ = gets_helper(sep)
   end
-
-  def readline(sep=$/)
-    out = gets(sep)
-    raise EOFError, "end of file" unless out
-    return out
-  end
-
-  def each(sep=$/)
-    while line = gets_helper(sep)
-      yield line
-    end
-  end
-
-  alias_method :each_line, :each
 
   ##
   #--
@@ -695,6 +604,124 @@ class IO
     return str
   end
 
+  def inspect
+    "#<#{self.class}:0x#{object_id.to_s(16)}>"
+  end
+
+  def pos
+    seek 0, SEEK_CUR
+  end
+
+  alias_method :tell, :pos
+
+  def pos=(offset)
+    seek offset, SEEK_SET
+  end
+
+  ##
+  # Writes each given argument.to_s to the stream or $_ (the result of last
+  # IO#gets) if called without arguments. Appends $\.to_s to output. Returns
+  # nil.
+
+  def print(*args)
+    if args.empty?
+      write $_.to_s
+    else
+      args.each {|o| write o.to_s }
+    end
+
+    write $\.to_s
+    nil
+  end
+
+  def printf(fmt, *args)
+    write Sprintf.new(fmt, *args).parse
+  end
+
+  def puts(*args)
+    if args.empty?
+      write DEFAULT_RECORD_SEPARATOR
+    else
+      args.each do |arg|
+        if arg.nil?
+          str = "nil"
+        elsif RecursionGuard.inspecting?(arg)
+          str = "[...]"
+        elsif arg.kind_of?(Array)
+          RecursionGuard.inspect(arg) do
+            arg.each do |a|
+              puts a
+            end
+          end
+        else
+          str = arg.to_s
+        end
+
+        if str
+          write str
+          write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
+        end
+      end
+    end
+
+    nil
+  end
+
+  def read(size=nil, buffer=nil)
+    raise IOError, "closed stream" if closed?
+    return breadall(buffer) unless size
+
+    return nil if @eof and @buffer.empty?
+
+    buf = @buffer
+    done = false
+
+    output = ''
+
+    needed = size
+
+    if needed > 0 and buf.size >= needed
+      output << buf.shift_front(needed)
+    else
+      while true
+        bytes = buf.fill_from(self)
+
+        if bytes
+          done = needed - bytes <= 0
+        else
+          done = true
+        end
+
+        if done or buf.full?
+          output << buf.shift_front(needed)
+          needed = size - output.length
+        end
+
+        break if done or needed == 0
+      end
+    end
+
+    if buffer then
+      buffer = StringValue buffer
+      buffer.replace output
+    else
+      buffer = output
+    end
+
+    buffer
+  end
+
+  def read_nonblock(size, buffer = nil)
+    raise IOError, "closed stream" if closed?
+    prim_read(size, buffer)
+  end
+
+  def readline(sep=$/)
+    out = gets(sep)
+    raise EOFError, "end of file" unless out
+    return out
+  end
+
   def readlines(sep=$/)
     ary = Array.new
     while line = gets(sep)
@@ -703,130 +730,112 @@ class IO
     return ary
   end
 
-  def self.readlines(name, sep_string = $/)
-    io = File.open(StringValue(name), 'r')
-    return if io.nil?
-
-    begin
-      io.readlines(sep_string)
-    ensure
-      io.close
-    end
+  def rewind
+    seek 0
+    @lineno = 0
+    @eof = false
+    return 0
   end
 
-  def self.foreach(name, sep_string = $/, &block)
-    sep_string ||= ''
-    io = File.open(StringValue(name), 'r')
-    sep = StringValue(sep_string)
-    begin
-      while(line = io.gets(sep))
-        yield line
-      end
-    ensure
-      io.close
-    end
-  end
-
-  def self.read(name, length = Undefined, offset = 0)
-    name = StringValue(name)
-    length ||= Undefined
-    offset ||= 0
-
-    offset = Type.coerce_to(offset, Fixnum, :to_int)
-
-    if offset < 0
-      raise Errno::EINVAL, "offset must not be negative"
-    end
-
-    unless length.equal?(Undefined)
-      length = Type.coerce_to(length, Fixnum, :to_int)
-
-      if length < 0
-        raise ArgumentError, "length must not be negative"
-      end
-    end
-
-    File.open(name) do |f|
-      f.seek(offset) unless offset.zero?
-
-      if length.equal?(Undefined)
-        f.read
-      else
-        f.read(length)
-      end
-    end
-  end
-
-  def fcntl(command, arg)
+  def seek(amount, whence=SEEK_SET)
     raise IOError, "closed stream" if closed?
-    if arg.kind_of? Fixnum then
-      Platform::POSIX.fcntl(descriptor, command, arg)
-    else
-      raise NotImplementedError, "cannot handle #{arg.class}"
+    # Unseek the still buffered amount
+    unless @buffer.empty?
+      prim_seek(-@buffer.size, SEEK_CUR)
+      @buffer.reset!
+      @eof = false
     end
+
+    prim_seek amount, whence
   end
 
-  def self.parse_mode(mode)
-    ret = 0
+  def sync
+    raise IOError, "closed stream" if closed?
+    true
+  end
 
-    case mode[0]
-    when ?r
-      ret |= RDONLY
-    when ?w
-      ret |= WRONLY | CREAT | TRUNC
-    when ?a
-      ret |= WRONLY | CREAT | APPEND
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
+  ##
+  #--
+  # The current implementation does no write buffering, so we're always in
+  # sync mode.
 
-    return ret if mode.length == 1
+  def sync=(v)
+    raise IOError, "closed stream" if closed?
+  end
 
-    case mode[1]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
+  def sysread(size, buf=nil)
+    raise IOError, "closed stream" if closed?
+    buf = String.new(size) unless buf
+    chan = Channel.new
+    Scheduler.send_on_readable chan, self, buf, size
+    raise EOFError if chan.receive.nil?
+    return buf
+  end
 
-    return ret if mode.length == 2
+  alias_method :readpartial, :sysread
 
-    case mode[2]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    ret
+  def sysseek(amount, whence=SEEK_SET)
+    raise IOError, "closed stream" if closed?
+    Platform::POSIX.lseek(@descriptor, amount, whence)
   end
 
   def to_io
     self
   end
 
-  def dup
+  alias_method :prim_tty?, :tty?
+
+  def tty?
     raise IOError, "closed stream" if closed?
-    super
+    prim_tty?
   end
+
+  alias_method :isatty, :tty?
+
+  def wait_til_readable
+    chan = Channel.new
+    Scheduler.send_on_readable chan, self, nil, nil
+    chan.receive
+  end
+
+  alias_method :prim_write, :write
+
+  def write(data)
+    raise IOError, "closed stream" if closed?
+    # If we have buffered data, rewind.
+    unless @buffer.empty?
+      seek 0, SEEK_CUR
+    end
+
+    data = String data
+
+    return 0 if data.length == 0
+    raise IOError if ((Platform::POSIX.fcntl(@descriptor, F_GETFL, 0) & ACCMODE) == RDONLY)
+    prim_write(data)
+  end
+
+  alias_method :syswrite, :write
+  alias_method :write_nonblock, :write
 
   def self.after_loaded()
     # Nothing to do right now
   end
+
 end
 
 class BidirectionalPipe < IO
+
   def initialize(pid, read, write)
     super(read.fileno, 'r')
     @pid = pid
     @write = write
   end
+
+  def <<(str)
+    @write << str
+  end
+
+  alias_method :write, :<<
 
   def close
     super
@@ -844,13 +853,9 @@ class BidirectionalPipe < IO
     @pid
   end
 
-  def <<(str)
-    @write << str
-  end
-
-  alias_method :write, :<<
-
   def syswrite(str)
     @write.syswrite str
   end
+
 end
+
