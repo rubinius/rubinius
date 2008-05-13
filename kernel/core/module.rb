@@ -542,7 +542,9 @@ class Module
     else
       raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
     end
-    
+
+    Rubinius::VM.reset_method_cache name
+
     return name
   end
 
