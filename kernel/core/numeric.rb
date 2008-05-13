@@ -98,7 +98,7 @@ class Numeric
   end
 
   def ==(other)
-    other == self
+    !!(other == self)
   end
   
   def <=>(other)
