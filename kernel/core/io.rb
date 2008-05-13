@@ -533,7 +533,14 @@ class IO
 
   def gets(sep=$/)
     @lineno += 1
-    $_ = gets_helper(sep)
+
+    line = gets_helper sep
+    line.taint unless line.nil?
+
+    $_ = line
+    $. = @lineno
+
+    line
   end
 
   ##
