@@ -96,7 +96,7 @@ static inline native_int fixnum_div(STATE, OBJECT a, OBJECT b, native_int *mod) 
 
 static inline OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
   OBJECT ary;
-  long div, mod;
+  native_int div, mod;
   
   div = fixnum_div(state, a, b, &mod);
   
