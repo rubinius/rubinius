@@ -16,7 +16,12 @@ namespace :git do
 
   desc "Show the current status of the checkout"
   task :status do
+    puts "top-level:"
+    puts
     system "git status"
+    puts
+    puts "spec/ruby"
+    system "(cd spec/ruby; git status)"
   end
 
   desc "Create a new topic branch"
