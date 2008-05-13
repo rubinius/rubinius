@@ -1204,7 +1204,7 @@ class Node
         elsif @from_top
           g.push_cpath_top
         else
-          g.push :self
+          g.push_context
         end
 
         g.send :__const_set__, 2

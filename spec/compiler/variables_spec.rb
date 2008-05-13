@@ -234,7 +234,7 @@ describe Compiler do
     gen [:cdecl, :Blah, [:lit, 1], nil] do |g|
       g.push 1
       g.push_literal :Blah
-      g.push :self
+      g.push_context
       g.send :__const_set__, 2
     end
   end

@@ -233,6 +233,12 @@ class MethodContext
     scope = MethodContext.current.sender.current_scope
     scope.__send__(:alias_method, name, original)
   end
+
+  # This version is trivial, and is meant to match the API of BlockContext
+  def __const_set__(name, value)
+    const_scope = MethodContext.current.sender.receiver
+    const_scope.__send__(:__const_set__, name, value)
+  end
 end
 
 ##
@@ -300,6 +306,12 @@ class BlockContext
     else
       home.current_scope
     end
+  end
+
+  # instance_eval needs alternate const behavior
+  def __const_set__(name, value)
+    const_scope = env.constant_scope.module
+    const_scope.__send__(:__const_set__, name, value)
   end
 end
 
@@ -389,6 +401,7 @@ class BlockEnvironment
 
   def make_independent
     @home = @home.dup
+    @method = @method.dup
   end
 
   def redirect_to(obj)
@@ -409,6 +422,15 @@ class BlockEnvironment
 
   def arity
     method.required
+  end
+
+  # Static scope for constant lookup
+  def constant_scope=(scope)
+    @constant_scope = scope
+  end
+
+  def constant_scope
+    @constant_scope ||= @method.staticscope
   end
 end
 

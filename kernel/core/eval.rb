@@ -127,7 +127,12 @@ module Kernel
       if string
         raise ArgumentError, 'cannot pass both a block and a string to evaluate'
       end
-      return instance_exec(self, &prc)
+      # Return a copy of the BlockEnvironment with the receiver set to self
+      env = prc.block.redirect_to self
+      env.method.staticscope = StaticScope.new(metaclass, env.method.staticscope)
+      original_scope = prc.block.home.method.staticscope
+      env.constant_scope = original_scope
+      return env.call(*self)
     elsif string
       string = StringValue(string)
      
