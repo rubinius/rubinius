@@ -448,10 +448,10 @@ describe Compiler do
         g.goto ok
         
         ex.handle!
+        g.push_exception
         g.push 13
         g.pop
         
-        g.push_exception
         g.raise_exc
       end
       
