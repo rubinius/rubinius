@@ -657,6 +657,8 @@ class IO
   alias_method :tell, :pos
 
   def pos=(offset)
+    offset = Integer offset
+
     seek offset, SEEK_SET
   end
 
