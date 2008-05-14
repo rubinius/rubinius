@@ -605,11 +605,9 @@ class Module
   def module_function_cv(*args)
     if args.empty?
       ctx = MethodContext.current.sender
+      block_env = ctx.env if ctx.kind_of?(BlockContext)
       # Set the method_scope in the home context if this is an eval
-      if ctx.env.from_eval? then
-        ctx = ctx.env.home_block
-      end
-
+      ctx = block_env.home_block if block_env and block_env.from_eval?
       ctx.method_scope = :module
     else
       mc = self.metaclass
