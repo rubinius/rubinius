@@ -67,12 +67,12 @@ module Kernel
     return ary
   end
   module_function :local_variables
-  
+
   def binding
     Binding.setup MethodContext.current.sender
   end
   module_function :binding
-  
+
   def eval(string, binding=nil, filename='(eval)', lineno=1)
     if !binding
       binding = Binding.setup MethodContext.current.sender
@@ -84,13 +84,12 @@ module Kernel
 
     flags = { :binding => binding }
     compiled_method = Compile.compile_string string, flags, filename, lineno
-    compiled_method.inherit_scope binding.context.method
+    compiled_method.staticscope = binding.context.method.staticscope.dup
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
     script.path = filename
     compiled_method.staticscope.script = script
-
 
     ctx = binding.context
     be = BlockEnvironment.new
@@ -98,7 +97,7 @@ module Kernel
     be.under_context ctx, compiled_method
     be.call
   end
-  module_function :eval  
+  module_function :eval
   private :eval
 
   ##
@@ -135,11 +134,11 @@ module Kernel
       return env.call(*self)
     elsif string
       string = StringValue(string)
-     
+
       unless binding
         binding = Binding.setup(MethodContext.current.sender)
       end
- 
+
       flags = { :binding => binding }
       compiled_method = Compile.compile_string string, flags, filename, line
       compiled_method.inherit_scope binding.context.method
