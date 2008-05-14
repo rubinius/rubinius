@@ -3,6 +3,7 @@ spec/ruby
 .gdb_history
 coverage
 code-cache
+.glimpse*
 .hgignore
 .hg
 .dotest
