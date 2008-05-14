@@ -43,7 +43,9 @@ namespace :spec do
 
   desc "Update submodule sources for mspec and rubyspec"
   task :update => %w[init mspec:update clone] do
-    sh "git submodule update #{spec_frozen}"
+    Dir.chdir RUBINIUS_BASE do
+      sh "git submodule update spec/frozen"
+    end
 
     puts "\nUpdating rubyspec repository..."
     Dir.chdir spec_ruby do
