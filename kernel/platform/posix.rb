@@ -66,6 +66,7 @@ module Platform::POSIX
   attach_function 'clearerr', [:pointer], :void
   attach_function 'fseek',  [:pointer, :int, :int], :int
   attach_function 'ftell',  [:pointer], :int
+  attach_function 'lseek', [:int, :int, :int], :int
 
   #   reading
   attach_function 'fread',   [:string, :size_t, :size_t, :pointer], :size_t
