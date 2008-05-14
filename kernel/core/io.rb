@@ -4,8 +4,6 @@ class IO
 
   ivar_as_index :__ivars__ => 0, :descriptor => 1, :buffer => 2, :mode => 3
 
-  attr_accessor :lineno
-
   BufferSize = 8096
 
   class Buffer < String
@@ -632,6 +630,20 @@ class IO
 
   def inspect
     "#<#{self.class}:0x#{object_id.to_s(16)}>"
+  end
+
+  def lineno
+    raise IOError, 'closed stream' if closed?
+
+    @lineno
+  end
+
+  def lineno=(line_number)
+    raise IOError, 'closed stream' if closed?
+
+    raise TypeError if line_number.nil?
+
+    @lineno = Integer line_number
   end
 
   def pid
