@@ -405,6 +405,7 @@ class BlockEnvironment
 
   def make_independent
     @home = @home.dup
+    @home_block = @home_block.dup
     @method = @method.dup
   end
 

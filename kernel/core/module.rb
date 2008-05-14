@@ -604,7 +604,13 @@ class Module
 
   def module_function_cv(*args)
     if args.empty?
-      MethodContext.current.sender.method_scope = :module
+      ctx = MethodContext.current.sender
+      # Set the method_scope in the home context if this is an eval
+      if ctx.env.from_eval? then
+        ctx = ctx.env.home_block
+      end
+
+      ctx.method_scope = :module
       return self
     end
 
