@@ -27,6 +27,22 @@ class TestFixnum : public CxxTest::TestSuite {
     FIXNUM two = as<Fixnum>(one->add(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 2);
   }
+  
+  void test_add_overflows_to_bignum() {
+    FIXNUM  one = as<Fixnum>(Object::i2n(FIXNUM_MAX - 10));
+    INTEGER two = as<Integer>(one->add(state, one));
+
+    TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(two->n2i(), (FIXNUM_MAX - 10) * 2);
+  }
+  
+  void test_add_underflows_to_bignum() {
+    FIXNUM  one = as<Fixnum>(Object::i2n(FIXNUM_MIN + 10));
+    INTEGER two = as<Integer>(one->add(state, one));
+
+    TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(two->n2i(), (FIXNUM_MIN + 10) * 2);
+  }
 
   void test_sub() {
     FIXNUM one = as<Fixnum>(Object::i2n(1));
@@ -35,11 +51,37 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(zero->n2i(), 0);
   }
 
+  void test_sub_overflows_to_bignum() {
+    FIXNUM  one   = as<Fixnum>(Object::i2n(FIXNUM_MIN + 10));
+    FIXNUM  two   = as<Fixnum>(Object::i2n(FIXNUM_MAX - 10));
+    INTEGER three = as<Integer>(two->sub(state, one));
+
+    TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(three->n2i(), FIXNUM_MAX - 10 - (FIXNUM_MIN + 10));
+  }
+  
+  void test_sub_underflows_to_bignum() {
+    FIXNUM  one   = as<Fixnum>(Object::i2n(FIXNUM_MIN + 10));
+    FIXNUM  two   = as<Fixnum>(Object::i2n(FIXNUM_MAX - 10));
+    INTEGER three = as<Integer>(one->sub(state, two));
+
+    TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(three->n2i(), FIXNUM_MIN + 10 - (FIXNUM_MAX - 10));
+  }
+
   void test_multiply() {
     FIXNUM one = as<Fixnum>(Object::i2n(4));
 
     FIXNUM two = as<Fixnum>(one->multiply(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 16);
+  }
+  
+  void test_multiply_overflows_to_bignum() {
+    FIXNUM  one = as<Fixnum>(Object::i2n(FIXNUM_MAX - 10));
+    INTEGER two = as<Integer>(one->multiply(state, Object::i2n(2)));
+
+    TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(two->n2i(), (FIXNUM_MAX - 10) * 2);
   }
 
   void test_divide() {

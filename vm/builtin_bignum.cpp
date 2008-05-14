@@ -519,20 +519,25 @@ namespace rubinius {
     return Qfalse;
   }
 
-  unsigned long Bignum::to_int(STATE) {
+  int Bignum::to_int(STATE) {
+    if(MP(this)->sign == MP_NEG) {
+      return -mp_get_int(MP(this));
+    }
     return mp_get_int(MP(this));
   }
 
   native_int Bignum::to_nint() {
+    if(MP(this)->sign == MP_NEG) {
+      return -mp_get_int(MP(this));
+    }
     return mp_get_int(MP(this));
   }
 
   int Bignum::to_i(STATE) {
-    mp_int *s = MP(this);
-
-    if (s->sign == MP_NEG) return -mp_get_int(s);
-
-    return mp_get_int(s);
+    if(MP(this)->sign == MP_NEG) {
+      return -mp_get_int(MP(this));
+    }
+    return mp_get_int(MP(this));
   }
 
   unsigned int Bignum::to_ui(STATE) {

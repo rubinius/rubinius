@@ -10,14 +10,51 @@ namespace rubinius {
 
     // Ruby.primitive :fixnum_add
     INTEGER add(STATE, FIXNUM other) {
-      return Object::i2n(state, n2i() + other->n2i());
+      native_int r = n2i() + other->n2i();
+      if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
+        return Bignum::create(state, r);
+      } else {
+        return Object::i2n(state, r);
+      }
     }
 
     INTEGER sub(STATE, FIXNUM other) {
-      return Object::i2n(state, n2i() - other->n2i());
+      native_int r = n2i() - other->n2i();
+      if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
+        return Bignum::create(state, r);
+      } else {
+        return Object::i2n(state, r);
+      }
     }
 
     INTEGER multiply(STATE, FIXNUM other) {
+      native_int a  = n2i();
+      native_int b  = other->n2i();
+      
+      if(a == 0 || b == 0) return Object::i2n(0);
+      
+      if(a > 0) {
+        if(b > 0) {
+          if(a > (FIXNUM_MAX / b)) {
+            return Bignum::create(state, a)->mul(state, other);
+          } 
+        } else {
+          if (a < (FIXNUM_MIN / b)) {
+            return Bignum::create(state, a)->mul(state, other);
+          }
+        }
+      } else {
+        if(b > 0){
+          if(a < (FIXNUM_MIN / b)) {
+            return Bignum::create(state, a)->mul(state, other);
+          }
+        } else {
+          if(b < (FIXNUM_MAX / a)) {
+            return Bignum::create(state, a)->mul(state, other);
+          }
+        }
+      }
+      
       return Object::i2n(state, n2i() * other->n2i());
     }
 

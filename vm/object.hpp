@@ -49,7 +49,7 @@ namespace rubinius {
 
   /* How many bits of data are available in fixnum, not including
      the sign. */
-#define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_SHIFT - 1)
+#define FIXNUM_WIDTH ((8 * sizeof(native_int)) - TAG_SHIFT - 2)
 #define FIXNUM_MAX (((native_int)1 << FIXNUM_WIDTH) - 1)
 #define FIXNUM_MIN (-(FIXNUM_MAX) - 1)
 

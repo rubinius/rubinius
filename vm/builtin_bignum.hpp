@@ -43,7 +43,7 @@ namespace rubinius {
     OBJECT lt(STATE, INTEGER b);
     OBJECT le(STATE, INTEGER b);
     bool   is_zero(STATE);
-    unsigned long to_int(STATE);
+    int    to_int(STATE);
     int    to_i(STATE);
     native_int to_nint();
     unsigned int to_ui(STATE);
