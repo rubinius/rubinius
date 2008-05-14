@@ -886,7 +886,7 @@ class IO
   alias_method :write_nonblock, :write
 
   def self.after_loaded()
-    #remove_method :orig_reopen
+    remove_method :orig_reopen
     # Nothing to do right now
   end
 
