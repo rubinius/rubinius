@@ -647,6 +647,32 @@ class Module
     return false
   end
 
+  # Check if a full constant path is defined, e.g. SomeModule::Something
+  def const_path_defined?(name)
+    # Start at Object if this is a fully-qualified path
+    if name[0,2] == "::" then
+      start = Object
+      pieces = name[2,(name.length - 2)].split("::")
+    else
+      start = self
+      pieces = name.split("::")
+    end
+
+    defined = false
+    current = start
+    while current and not defined
+      const = current
+      defined = pieces.all? do |piece|
+        if const.is_a?(Module) and const.constants_table.key?(piece)
+          const = const.constants_table[piece]
+          true
+        end
+      end
+      current = current.direct_superclass
+    end
+    return defined
+  end
+
   def const_set(name, value)
     if value.is_a? Module
       value.set_name_if_necessary(name, self)
