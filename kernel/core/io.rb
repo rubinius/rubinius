@@ -175,7 +175,7 @@ class IO
     begin
       yield io
     ensure
-      io.close unless io.closed?
+      io.close rescue nil unless io.closed?
     end
   end
 
