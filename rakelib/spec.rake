@@ -35,7 +35,7 @@ namespace :spec do
   task :update => %w[init mspec:update clone] do
     sh "git submodule update spec/frozen"
 
-    puts "Updating rubyspec repository..."
+    puts "\nUpdating rubyspec repository..."
     Dir.chdir "spec/ruby" do
       git_update
     end
@@ -43,9 +43,17 @@ namespace :spec do
 
   task :pull => :update
 
+  desc "Commit changes to rubyspec sources"
+  task :commit do
+    puts "\nCommitting changes to rubyspec sources..."
+    Dir.chdir "spec/ruby" do
+      sh "git commit -a"
+    end
+  end
+
   desc "Push changes to the rubyspec repository"
   task :push => :update do
-    puts "Pushing changes to the rubyspec repository..."
+    puts "\nPushing changes to the rubyspec repository..."
     Dir.chdir "spec/ruby" do
       git_push
     end
