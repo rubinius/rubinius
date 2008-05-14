@@ -4,7 +4,7 @@ module Platform::POSIX
   class TimeVal < FFI::Struct
     config 'rbx.platform.timeval', :tv_sec, :tv_usec
   end
-end 
+end
 
 class File < IO
 
@@ -61,7 +61,7 @@ class File < IO
 
   def self.after_loaded
     private_class_method :dirsep?, :next_path, :range, :name_match
-    
+
     # these will be necessary when we run on Windows
     const_set :DOSISH, RUBY_PLATFORM.match("mswin")
     const_set :CASEFOLD_FILESYSTEM, DOSISH
@@ -96,7 +96,7 @@ class File < IO
     end
     paths.size
   end
-  
+
   def self.lchmod(mode, *paths)
     mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
     paths.each do |path|
@@ -224,14 +224,14 @@ class File < IO
     pathname = (flags & FNM_PATHNAME) != 0
     period   = (flags & FNM_DOTMATCH) == 0
     nocase   = (flags & FNM_CASEFOLD) != 0
-    
+
     while pstart < patend do
       char = pattern[pstart]
       pstart += 1
       case char
       when ??
-        if (index >= strend || (pathname && dirsep?(str[index])) || 
-            (period && str[index] == ?. && (index == 0 || 
+        if (index >= strend || (pathname && dirsep?(str[index])) ||
+            (period && str[index] == ?. && (index == 0 ||
             (pathname && dirsep?(str[index-1])))))
           return false
         end
@@ -242,7 +242,7 @@ class File < IO
           pstart += 1
           break unless char == ?*
         end
-        if (index < strend && (period && str[index] == ?. && 
+        if (index < strend && (period && str[index] == ?. &&
             (index == 0 || (pathname && dirsep?(str[index-1])))))
           return false
         end
@@ -274,7 +274,7 @@ class File < IO
           return false
         end
       when ?[
-        if (index >= strend || (pathname && dirsep?(str[index]) || 
+        if (index >= strend || (pathname && dirsep?(str[index]) ||
             (period && str[index] == ?. && (index == 0 || (pathname && dirsep?(str[index-1]))))))
           return false
         end
@@ -289,7 +289,7 @@ class File < IO
           end
         end
         return false if index >= strend
-        
+
         if DOSISH && (pathname && isdirsep?(char) && dirsep?(str[index]))
           # TODO: invert this boolean expression
         else
@@ -302,10 +302,10 @@ class File < IO
         index += 1
       end
     end
-  
+
     index >= strend ? true : false
   end
-  
+
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern).dup
     path = StringValue(path).dup
@@ -318,7 +318,7 @@ class File < IO
   end
 
   def self.grpowned?(path)
-    begin 
+    begin
       lstat(path).grpowned?
     rescue
       false
@@ -344,13 +344,13 @@ class File < IO
   def self.join(*parts)
     parts.map! do |part|
       if part.kind_of? Array
-        
+
         cur_part = part.send(:remove_outer_arrays)
-        
+
         if cur_part.any?{ |e| e.__id__ == cur_part.__id__ }
           cur_part = cur_part.dup
-        end 
-        
+        end
+
         clean_part = []
         cur_part.send(:recursively_flatten,cur_part,clean_part,'[...]')
         clean_part
@@ -484,11 +484,11 @@ class File < IO
     unless self.exist?(path)
       raise Errno::ENOENT, path
     end
-    
+
     unless length.respond_to?(:to_int)
       raise TypeError, "can't convert #{length.class} into Integer"
     end
-    
+
     n = POSIX.truncate(path, length)
     Errno.handle if n == -1
     n
@@ -563,7 +563,7 @@ class File < IO
     mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
     POSIX.fchmod(@descriptor, mode)
   end
-  
+
   def chown(owner_int, group_int)
     POSIX.fchown(@descriptor, owner_int || -1, group_int || -1)
   end
@@ -571,7 +571,7 @@ class File < IO
   def ctime
     Stat.new(@path).ctime
   end
-  
+
   def flock(locking_constant)
     result = POSIX.flock(@descriptor, locking_constant)
     return false if result == -1
@@ -581,26 +581,26 @@ class File < IO
   def lstat
     Stat.new @path, false
   end
-  
+
   def mtime
     Stat.new(@path).mtime
   end
-  
+
   def stat
     Stat.new @path
   end
-  
+
   def truncate(length)
     length = Type.coerce_to(length, Integer, :to_int)
 
     raise Errno::EINVAL, "Can't truncate a file to a negative length" if length < 0
     raise IOError, "File is closed" if closed?
-    
+
     n = POSIX.ftruncate(@descriptor, length)
     Errno.handle if n == -1
     n
   end
-  
+
   def inspect
     return_string = "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path}"
     return_string << " (closed)" if closed?
@@ -640,7 +640,7 @@ class File::Stat
   S_ISGID  = Rubinius::RUBY_CONFIG['rbx.platform.file.S_ISGID']
 
   POSIX    = Platform::POSIX
-  
+
   def initialize(path, follow_links=true)
     @path = StringValue path
     @stat = Struct.new
@@ -651,25 +651,25 @@ class File::Stat
     end
     Errno.handle @path unless result == 0
   end
-  
+
   def self.stat?(path, follow_links=true)
     new path, follow_links
   rescue Errno::ENOENT, Errno::ENOTDIR
     nil
   end
-  
+
   def atime
     Time.at @stat[:st_atime]
   end
-  
+
   def blksize
     @stat[:st_blksize]
   end
-  
+
   def blocks
     @stat[:st_blocks]
   end
-  
+
   def blockdev?
     @stat[:st_mode] & S_IFMT == S_IFBLK
   end
@@ -681,16 +681,16 @@ class File::Stat
   def ctime
     Time.at @stat[:st_ctime]
   end
-  
+
   def dev
     @stat[:st_dev]
   end
-  
+
   def dev_major
     major = POSIX.major @stat[:st_dev]
     major < 0 ? nil : major
   end
-  
+
   def dev_minor
     minor = POSIX.major @stat[:st_dev]
     minor < 0 ? nil : minor
@@ -741,7 +741,7 @@ class File::Stat
   def gid
     @stat[:st_gid]
   end
-  
+
   def grpowned?
     @stat[:st_gid] == POSIX.getegid
   end
@@ -749,7 +749,7 @@ class File::Stat
   def ino
     @stat[:st_ino]
   end
-  
+
   def inspect
     "#<File::Stat dev=0x#{self.dev.to_s(16)}, ino=#{self.ino}, " \
     "mode=#{sprintf("%07d", self.mode.to_s(8).to_i)}, nlink=#{self.nlink}, " \
@@ -761,15 +761,15 @@ class File::Stat
   def nlink
     @stat[:st_nlink]
   end
-  
+
   def mtime
     Time.at @stat[:st_mtime]
   end
-  
+
   def mode
     @stat[:st_mode]
   end
-  
+
   def owned?
     @stat[:st_uid] == POSIX.geteuid
   end
@@ -777,7 +777,7 @@ class File::Stat
   def path
     @path
   end
-  
+
   def pipe?
     @stat[:st_mode] & S_IFMT == S_IFIFO
   end
@@ -785,17 +785,17 @@ class File::Stat
   def rdev
     @stat[:st_rdev]
   end
-  
+
   def rdev_major
     major = POSIX.major @stat[:st_rdev]
     major < 0 ? nil : major
   end
-  
+
   def rdev_minor
     minor = POSIX.minor @stat[:st_rdev]
     minor < 0 ? nil : minor
   end
-  
+
   def readable?
     return true if superuser?
     return @stat[:st_mode] & S_IRUSR != 0 if owned?
@@ -813,7 +813,7 @@ class File::Stat
   def size
     @stat[:st_size]
   end
-  
+
   def size?
     size == 0 ? nil : size
   end
@@ -829,7 +829,7 @@ class File::Stat
   def uid
     @stat[:st_uid]
   end
-  
+
   def writable?
     return true if superuser?
     return @stat[:st_mode] & S_IWUSR != 0 if owned?
@@ -847,7 +847,7 @@ class File::Stat
   def zero?
     @stat[:st_size] == 0
   end
-  
+
   def <=> (other)
     return nil unless other.is_a?(File::Stat)
     self.mtime <=> other.mtime
