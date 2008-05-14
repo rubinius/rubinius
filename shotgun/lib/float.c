@@ -12,15 +12,7 @@
 
 #ifdef HAVE_IEEEFP_H
 #include <ieeefp.h>
-#endif
-
-#ifdef WORDS_BIGENDIAN
-#define word0(x) ((unsigned int *)&x)[0]
-#define word1(x) ((unsigned int *)&x)[1]
-#else
-#define word0(x) ((unsigned int *)&x)[1]
-#define word1(x) ((unsigned int *)&x)[0]
-#endif     
+#endif 
 
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/string.h"
@@ -56,32 +48,10 @@ OBJECT float_new(STATE, double dbl) {
 OBJECT float_from_string(STATE, char *str) {
   char *endp;
   double d;  
-  d = strtod(str, &endp);
+  d = ruby_strtod(str, &endp);
   if (str != endp && *endp == '\0') {
     return float_new(state, d);
   }
-  /* When we get here, we might have a system that doesn't conform to
-     C99 (OpenBSD is at least one) that can't handle Infinity / NaN.
-     We test the strings here manually and fix it if needed. */
-  
-  int sign = 0;
-	
-  if (*str == '-') {
-    sign = 1;
-    str++;
-  } else if (*str == '+') {
-    str++;
-  }
-  
-  if (*str == 'I' || *str == 'i') {
-    return float_new(state, sign ? -HUGE_VAL : HUGE_VAL);
-  } 
-  if (*str == 'N' || *str == 'n') {
-    word0(d) = 0x7ff80000;
-    word1(d) = 0;
-    return float_new(state, d);
-  }
-  
   return Qnil;
 }
 
