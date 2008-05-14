@@ -276,6 +276,10 @@ class BlockContext
     home.back_ref(idx)
   end
 
+  def method_scope
+    @method_scope || env.home_block.method_scope
+  end
+
   # Active context (instance of MethodContext) that started
   # execution of this block context.
   def home
