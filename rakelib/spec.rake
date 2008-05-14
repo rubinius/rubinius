@@ -1,5 +1,13 @@
 # -*- ruby -*-
 
+def spec_frozen
+  "#{RUBINIUS_BASE}/spec/frozen"
+end
+
+def spec_ruby
+  "#{RUBINIUS_BASE}/spec/ruby"
+end
+
 desc "Run all 'known good' specs (task alias for spec:ci)"
 task :spec => 'spec:ci'
 
@@ -15,28 +23,30 @@ namespace :spec do
 
   desc "Initialize git submodules for mspec and rubyspec"
   task :init => 'mspec:init' do
-    unless File.exist? "spec/frozen/1.8"
+    unless File.exist? "#{spec_frozen}/1.8"
       puts "Initializing CI rubyspecs submodule..."
-      rm_rf "spec/frozen"
-      sh "git submodule init spec/frozen"
-      sh "git submodule update spec/frozen"
+      Dir.chdir RUBINIUS_BASE do
+        rm_rf "spec/frozen"
+        sh "git submodule init spec/frozen"
+        sh "git submodule update spec/frozen"
+      end
     end
   end
 
   desc "Clone a committer version of the rubyspecs"
   task :clone do
-    unless File.exist? "spec/ruby/.git"
-      rm_rf "spec/ruby" if File.exist? "spec/ruby"
-      sh "git clone git://github.com/brixen/rubyspec.git spec/ruby"
+    unless File.exist? "#{spec_ruby}/.git"
+      rm_rf spec_ruby if File.exist? spec_ruby
+      sh "git clone git://github.com/brixen/rubyspec.git #{spec_ruby}"
     end
   end
 
   desc "Update submodule sources for mspec and rubyspec"
   task :update => %w[init mspec:update clone] do
-    sh "git submodule update spec/frozen"
+    sh "git submodule update #{spec_frozen}"
 
     puts "\nUpdating rubyspec repository..."
-    Dir.chdir "spec/ruby" do
+    Dir.chdir spec_ruby do
       git_update
     end
   end
@@ -46,7 +56,7 @@ namespace :spec do
   desc "Commit changes to rubyspec sources"
   task :commit do
     puts "\nCommitting changes to rubyspec sources..."
-    Dir.chdir "spec/ruby" do
+    Dir.chdir spec_ruby do
       sh "git commit -a"
     end
   end
@@ -54,25 +64,25 @@ namespace :spec do
   desc "Push changes to the rubyspec repository"
   task :push => :update do
     puts "\nPushing changes to the rubyspec repository..."
-    Dir.chdir "spec/ruby" do
+    Dir.chdir spec_ruby do
       git_push
     end
   end
 
   desc "Synchronize rubyspec submodule to current remote version"
   task :sync do
-    Dir.chdir "spec/frozen" do
+    Dir.chdir spec_frozen do
       sh "git fetch"
       sh "git rebase origin"
     end
-    version = `git log --pretty=oneline -1 spec/frozen`[0..7]
-    sh "git add spec/frozen"
+    version = `git log --pretty=oneline -1 #{spec_frozen}`[0..7]
+    sh "git add #{spec_frozen}"
     sh "git commit -m 'Updated RubySpec submodule to #{version}'"
   end
 
   desc "Switch to the rubyspec commiter URL"
   task :committer do
-    Dir.chdir "spec/ruby" do
+    Dir.chdir spec_ruby do
       sh "git config remote.origin.url git@github.com:brixen/rubyspec.git"
     end
     puts "\nYou're now accessing rubyspec via the committer URL."
@@ -80,10 +90,15 @@ namespace :spec do
 
   desc "Switch to the rubyspec anonymous URL"
   task :anon do
-    Dir.chdir "spec/ruby" do
+    Dir.chdir spec_ruby do
       sh "git config remote.origin.url git://github.com/brixen/rubyspec.git"
     end
     puts "\nYou're now accessing rubyspec via the anonymous URL."
+  end
+
+  desc "Run all rubyspecs under MatzRuby"
+  task :check do
+    sh "bin/mspec -t ruby #{spec_ruby}"
   end
 
   desc "Run continuous integration examples"
