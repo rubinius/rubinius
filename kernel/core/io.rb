@@ -758,6 +758,14 @@ class IO
     prim_read(size, buffer)
   end
 
+  def readchar
+    char = getc
+
+    raise EOFError, 'end of file reached' if char.nil?
+
+    char
+  end
+
   def readline(sep=$/)
     out = gets(sep)
     raise EOFError, "end of file" unless out
