@@ -117,11 +117,9 @@ class MethodContext
         end
 
         # In a backtrace, an eval'd context's binding shows up
-        if ctx.kind_of? BlockContext
-          if ctx.env.from_eval?
-            home = ctx.env.home
-            ret << "#{home.file}:#{home.line} in `#{home.method.name}'"
-          end
+        if ctx.kind_of?(BlockContext) and ctx.env.from_eval? then
+          home = ctx.env.home
+          ret << "#{home.file}:#{home.line} in `#{home.method.name}'"
         end
 
       end
