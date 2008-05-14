@@ -282,6 +282,37 @@ class Socket < BasicSocket
     end
   end
 
+  module ListenAndAccept
+    def listen(backlog)
+      backlog = Type.coerce_to backlog, Fixnum, :to_int
+
+      err = Socket::Foreign.listen descriptor, backlog
+
+      Errno.handle 'listen(2)' unless err == 0
+
+      err
+    end
+
+    def accept
+      return if closed?
+      wait_til_readable
+
+      fd = nil
+      sockaddr = nil
+
+      MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
+        MemoryPointer.new :int do |size_p|
+          fd = Socket::Foreign.accept descriptor, sockaddr_p, size_p
+        end
+      end
+
+      Errno.handle 'accept(2)' if fd < 0
+
+      socket = self.class.superclass.allocate
+      socket.send :from_descriptor, fd
+    end
+  end
+
   include Socket::Constants
 
   class SockAddr_In < FFI::Struct
@@ -514,9 +545,20 @@ class UNIXSocket < BasicSocket
     _, sock_path = sockaddr.unpack('SZ*')
     ["AF_UNIX", sock_path]
   end
+
+  def from_descriptor(descriptor)
+    setup descriptor
+
+    self
+  end
+  private :from_descriptor
+
 end
 
 class UNIXServer < UNIXSocket
+
+  include Socket::ListenAndAccept
+
   def initialize(path)
     @path = path
     unix_setup(true)
@@ -688,6 +730,8 @@ end
 
 class TCPServer < TCPSocket
 
+  include Socket::ListenAndAccept
+
   def initialize(host, port = nil)
     if Fixnum === host and port.nil? then
       port = host
@@ -702,34 +746,4 @@ class TCPServer < TCPSocket
     tcp_setup @host, @port, nil, nil, true
   end
 
-  def accept
-    return if closed?
-    wait_til_readable
-
-    fd = nil
-    sockaddr = nil
-
-    MemoryPointer.new 1024 do |sockaddr_p| # HACK from MRI
-      MemoryPointer.new :int do |size_p|
-        fd = Socket::Foreign.accept descriptor, sockaddr_p, size_p
-      end
-    end
-
-    Errno.handle 'accept(2)' if fd < 0
-
-    socket = TCPSocket.allocate
-    socket.send :from_descriptor, fd
-  end
-  
-  def listen(backlog)
-    backlog = Type.coerce_to backlog, Fixnum, :to_int
-
-    err = Socket::Foreign.listen descriptor, backlog
-
-    Errno.handle 'listen(2)' unless err == 0
-
-    err
-  end
-
 end
-
