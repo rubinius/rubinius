@@ -19,6 +19,11 @@ class IO
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def prim_reopen(other)
+    Ruby.primitive :io_reopen
+    raise ArgumentError, "only accepts an IO object"
+  end
+
   def prim_seek(amount, whence)
     Ruby.primitive :io_seek
     raise PrimitiveFailure, "primitive failed"
@@ -29,17 +34,16 @@ class IO
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def reopen(other)
+    prim_reopen other
+  end
+
   def tty?
     prim_operation(0)
   end
 
   def ttyname
     prim_operation(1)
-  end
-
-  def reopen(other)
-    Ruby.primitive :io_reopen
-    raise ArgumentError, "only accepts an IO object"
   end
 
   def close

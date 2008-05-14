@@ -782,6 +782,22 @@ class IO
     return ary
   end
 
+  alias_method :orig_reopen, :reopen
+
+  def reopen(other, mode = 'r')
+    other = if other.respond_to? :to_io then
+              other.to_io
+            else
+              File.new other, mode
+            end
+
+    raise IOError, 'closed stream' if other.closed?
+
+    prim_reopen other
+
+    self
+  end
+
   def rewind
     seek 0
     @lineno = 0
@@ -870,6 +886,7 @@ class IO
   alias_method :write_nonblock, :write
 
   def self.after_loaded()
+    #remove_method :orig_reopen
     # Nothing to do right now
   end
 
