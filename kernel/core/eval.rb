@@ -154,7 +154,6 @@ module Kernel
       script = CompiledMethod::Script.new
       script.path = filename
       compiled_method.staticscope.script = script
-      compiled_method.hints = { :source => :eval }
 
       ctx = binding.context
       be = BlockEnvironment.new
