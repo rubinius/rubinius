@@ -485,6 +485,12 @@ class IO
 
   alias_method :each_line, :each
 
+  def each_byte
+    yield getc until eof?
+
+    self
+  end
+
   def eof!
     @eof = true
   end
