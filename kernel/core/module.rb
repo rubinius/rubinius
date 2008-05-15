@@ -283,44 +283,6 @@ class Module
     return new_name
   end
 
-  ##
-  # Called when 'def name' is used in userland
-
-  def __add_method__(name, obj)
-    s = MethodContext.current.sender
-    scope = s.method_scope || :public
-
-    if name == :initialize or scope == :module
-      visibility = :private
-    else
-      visibility = scope
-    end
-
-    # All userland added methods start out with a serial of 1.
-    obj.serial = 1
-    
-    # Push the scoping down.
-    # HACK they all should have staticscopes
-    if ss = s.method.staticscope
-      obj.staticscope = ss
-    end
-
-    Rubinius::VM.reset_method_cache(name)
-
-    ss.module.method_table[name] = Tuple[visibility, obj]
-
-    if scope == :module
-      module_function name
-    end
-
-    if respond_to? :method_added
-      method_added(name)
-    end
-
-    # Return value here is the return value of the 'def' expression
-    return obj
-  end
-
   def undef_method(*names)
     names.each do |name|
       name = normalize_name(name)

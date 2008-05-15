@@ -396,27 +396,6 @@ module Kernel
     self.class.class_variables(symbols)
   end
 
-  def __add_method__(name, obj)
-    sender = MethodContext.current.sender
-    scope = sender.current_scope
-
-    if ss = sender.method.staticscope
-      obj.staticscope = ss
-    end
-
-    meth = MethodContext.current.sender.method
-
-    Rubinius::VM.reset_method_cache(name)
-
-    scope.method_table[name] = Tuple[:public, obj]
-
-    if respond_to? :method_added
-      method_added(name)
-    end
-
-    return obj
-  end
-
   ##
   # \_\_const_set__ is emitted by the compiler for const assignment
   # in userland.

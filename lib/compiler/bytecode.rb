@@ -2221,7 +2221,7 @@ class Node
         g.add_method @name
       else
         g.push_literal @name
-        g.push :self
+        g.push_context
         g.send :__add_method__, 2
       end
     end

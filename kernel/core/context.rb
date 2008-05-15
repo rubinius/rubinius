@@ -242,6 +242,42 @@ class MethodContext
     const_scope = MethodContext.current.sender.receiver
     const_scope.__send__(:__const_set__, name, value)
   end
+
+  ##
+  # Called when 'def name' is used in userland
+
+  def __add_method__(name, obj)
+    s = MethodContext.current.sender
+    scope = s.method_scope || :public
+
+    if name == :initialize or scope == :module
+      visibility = :private
+    else
+      visibility = scope
+    end
+
+    # All userland added methods start out with a serial of 1.
+    obj.serial = 1
+
+    # Push the scoping down.
+    obj.staticscope = s.method.staticscope
+
+    Rubinius::VM.reset_method_cache(name)
+
+    obj.staticscope.module.method_table[name] = Tuple[visibility, obj]
+
+    if scope == :module
+      s.current_scope.module_function name
+    end
+
+    if s.current_scope.respond_to? :method_added
+      s.current_scope.method_added(name)
+    end
+
+    # Return value here is the return value of the 'def' expression
+    return obj
+  end
+
 end
 
 ##

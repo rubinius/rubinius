@@ -11,7 +11,7 @@ module ModuleSpecs
       :added
     end
 
-    __add_method__ :b, cm
+    MethodContext.current.__add_method__ :b, cm
   end
 
   class F

@@ -187,7 +187,7 @@ class TestGenerator
   # Emits userland style code only.
   def add_method(name)
     self.push_literal name
-    self.push :self
+    self.push_context
     self.send :__add_method__, 2
   end
 
