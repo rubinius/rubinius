@@ -114,6 +114,16 @@ class Numeric
     Float(self).truncate
   end
 
+  # Delegate #to_int to #to_i in subclasses
+  def to_int
+    self.to_i
+  end
+  
+  # Delegate #modulp to #% in subclasses
+  def modulo(other)
+    self % other
+  end
+
   def integer?
     false
   end
