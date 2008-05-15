@@ -176,7 +176,11 @@ class File < IO
   #++
 
   def self.dirsep?(char)
-    DOSISH ? (char == ?\\ || char == ?/) : char == ?/
+    if DOSISH then
+      char == ?\\ || char == ?/
+    else
+      char == ?/
+    end
   end
 
   def self.next_path(str, start, strend)
@@ -230,64 +234,79 @@ class File < IO
       pstart += 1
       case char
       when ??
-        if (index >= strend || (pathname && dirsep?(str[index])) ||
-            (period && str[index] == ?. && (index == 0 ||
-            (pathname && dirsep?(str[index-1])))))
+        if index >= strend || (pathname && dirsep?(str[index])) ||
+           (period && str[index] == ?. && (index == 0 ||
+           (pathname && dirsep?(str[index-1]))))
           return false
         end
+
         index += 1
+
       when ?*
         while pstart < patend
           char = pattern[pstart]
           pstart += 1
           break unless char == ?*
         end
-        if (index < strend && (period && str[index] == ?. &&
-            (index == 0 || (pathname && dirsep?(str[index-1])))))
+
+        if index < strend && (period && str[index] == ?. &&
+                              (index == 0 ||
+                               (pathname && dirsep?(str[index-1]))))
           return false
         end
+
         if pstart > patend || (pstart == patend && char == ?*)
-          if pathname && next_path(str, index, strend) < strend
-            return false
-          else
-            return true
-          end
+          return !(pathname && next_path(str, index, strend) < strend)
         elsif pathname && dirsep?(char)
           index = next_path(str, index, strend)
-          if index < strend
-            index += 1
-          else
-            return false
-          end
+          return false unless index < strend
+          index += 1
         else
-          test = (escape && char == ?\\ && pstart < patend ? pattern[pstart] : char).tolower
+          test = if escape && char == ?\\ && pstart < patend then
+                   pattern[pstart]
+                 else
+                   char
+                 end.tolower
+
           pstart -= 1
+
           while index < strend do
-            if ((char == ?? || char == ?[ || str[index].tolower == test) &&
-                name_match(pattern, str, flags | FNM_DOTMATCH, pstart, patend, index, strend))
+            if (char == ?? || char == ?[ || str[index].tolower == test) &&
+               name_match(pattern, str, flags | FNM_DOTMATCH, pstart, patend,
+                          index, strend)
               return true
-            elsif (pathname && dirsep?(str[index]))
+            elsif pathname && dirsep?(str[index])
               break
             end
+
             index += 1
           end
+
           return false
         end
+
       when ?[
-        if (index >= strend || (pathname && dirsep?(str[index]) ||
-            (period && str[index] == ?. && (index == 0 || (pathname && dirsep?(str[index-1]))))))
+        if index >= strend || (pathname && dirsep?(str[index]) ||
+                               (period && str[index] == ?. &&
+                                (index == 0 ||
+                                 (pathname && dirsep?(str[index-1])))))
           return false
         end
-        pstart = range(pattern, pstart, patend, str[index], flags)
+
+        pstart = range pattern, pstart, patend, str[index], flags
+
         return false if pstart == -1
+
         index += 1
       else
         if char == ?\\
-          if (escape && (!DOSISH || (pstart < patend && "*?[]\\".index(pattern[pstart]))))
+          if escape && (!DOSISH ||
+                        (pstart < patend && "*?[]\\".index(pattern[pstart])))
             char = pstart >= patend ? ?\\ : pattern[pstart]
             pstart += 1
           end
         end
+
         return false if index >= strend
 
         if DOSISH && (pathname && isdirsep?(char) && dirsep?(str[index]))
@@ -299,6 +318,7 @@ class File < IO
             return false if char != str[index]
           end
         end
+
         index += 1
       end
     end
@@ -309,7 +329,11 @@ class File < IO
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern).dup
     path = StringValue(path).dup
-    flags = Type.coerce_to(flags, Fixnum, :to_int) unless flags.__kind_of__ Fixnum
+
+    unless flags.__kind_of__ Fixnum then
+      flags = Type.coerce_to(flags, Fixnum, :to_int)
+    end
+
     name_match(pattern, path, flags, 0, pattern.size, 0, path.size)
   end
 
