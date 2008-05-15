@@ -22,7 +22,7 @@ runner.cpp: ../external_libs $(TESTS) $(IMP)
 	cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o runner.cpp $(TESTS)
 
 runner: runner.cpp
-	g++ -Wall -Wno-write-strings -Wno-sign-compare -Icxxtest -I../ $(EX_INC) -ggdb -o runner runner.cpp ../*.cpp ../*.c $(EX_LIBS)
+	g++ -Wall -Icxxtest -I../ $(EX_INC) -ggdb -o runner runner.cpp ../*.cpp ../*.c $(EX_LIBS)
 
 coverage/runner: runner.cpp
 	@mkdir -p coverage

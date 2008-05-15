@@ -23,7 +23,7 @@ namespace rubinius {
     const static object_type type = TaskType;
 
     /* 'registers' */
-    size_t ip;
+    native_int ip;
     int    sp;
 
     OBJECT self;
@@ -33,7 +33,7 @@ namespace rubinius {
     /* globals */
     Exception* exception;
     int call_flags;
-    int blockargs;
+    opcode blockargs;
 
     /* Internal data */
     Tuple* stack;

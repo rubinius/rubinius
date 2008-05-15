@@ -19,7 +19,7 @@ namespace rubinius {
     state->set_const("ARG0", String::create(state, argv[0]));
     
     Array* ary = Array::create(state, argc - 1);
-    for(size_t i = 0; i < argc - 1; i++) {
+    for(int i = 0; i < argc - 1; i++) {
       ary->set(state, i, String::create(state, argv[i + 1]));
     }
 

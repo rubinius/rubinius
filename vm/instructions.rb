@@ -190,7 +190,7 @@ class TestInstructions : public CxxTest::TestSuite {
   end
 
   def generate_declarations(fd)
-    fd.puts "int _int;"
+    fd.puts "opcode _int;"
     fd.puts "native_int j, k;"
     fd.puts "OBJECT _lit, t1, t2, t3;"
     fd.puts "Message msg(state);"

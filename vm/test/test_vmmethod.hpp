@@ -54,9 +54,9 @@ public:
     vmm.specialize(&ti);
 
     TS_ASSERT_EQUALS(vmm.total, 3);
-    TS_ASSERT_EQUALS(vmm.opcodes[0], InstructionSequence::insn_push_my_field);
+    TS_ASSERT_EQUALS(vmm.opcodes[0], (int)InstructionSequence::insn_push_my_field);
     TS_ASSERT_EQUALS(vmm.opcodes[1], 5);
-    TS_ASSERT_EQUALS(vmm.opcodes[2], InstructionSequence::insn_push_nil);
+    TS_ASSERT_EQUALS(vmm.opcodes[2], (int)InstructionSequence::insn_push_nil);
   }
 
 };

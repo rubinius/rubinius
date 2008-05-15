@@ -144,7 +144,7 @@ compiler.includes += ex_inc
 compiler.includes << "cxxtest"
 compiler.includes << ".."
 
-compiler.flags << "-Wall" << "-Wno-write-strings" << "-Wno-sign-compare" << "-ggdb"
+compiler.flags << "-Wall" << "-ggdb"
 
 objs = compiler << "../*.cpp"
 objs += compiler << "../*.c"

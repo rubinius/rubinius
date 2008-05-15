@@ -471,8 +471,8 @@ namespace rubinius {
 #define current_scope (active->cm->scope)
 
 #define next_literal_into(val) next_int; val = literals->at(_int)
-#define next_int_into(val) val = (int)(next_op())
-#define next_int _int = (int)(next_op())
+#define next_int_into(val) val = (opcode)(next_op())
+#define next_int _int = (opcode)(next_op())
 #define next_literal next_int; _lit = literals->at(_int)
 
 insn_start:
