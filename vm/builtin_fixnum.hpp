@@ -18,6 +18,10 @@ namespace rubinius {
       }
     }
 
+    INTEGER add(STATE, Bignum* other) {
+      return other->add(state, this);
+    }
+
     INTEGER sub(STATE, FIXNUM other) {
       native_int r = n2i() - other->n2i();
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
@@ -25,6 +29,10 @@ namespace rubinius {
       } else {
         return Object::i2n(state, r);
       }
+    }
+    
+    INTEGER sub(STATE, Bignum* other) {
+      return as<Bignum>(other->neg(state))->add(state, this);
     }
 
     INTEGER mul(STATE, FIXNUM other) {

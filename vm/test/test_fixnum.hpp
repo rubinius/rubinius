@@ -43,6 +43,14 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(two->n2i(), (FIXNUM_MIN + 10) * 2);
   }
+  
+  void test_add_a_bignum() {
+    FIXNUM one  = as<Fixnum>(Object::i2n(13));
+    Bignum* obj = Bignum::create(state, FIXNUM_MAX - 10);
+    INTEGER res = one->add(state, obj);
+    TS_ASSERT_EQUALS(res->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(res->n2i(), FIXNUM_MAX + 3);
+  }
 
   void test_sub() {
     FIXNUM one = as<Fixnum>(Object::i2n(1));
@@ -67,6 +75,14 @@ class TestFixnum : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(three->n2i(), FIXNUM_MIN + 10 - (FIXNUM_MAX - 10));
+  }
+  
+  void test_sub_a_bignum() {
+    FIXNUM one  = as<Fixnum>(Object::i2n(13));
+    Bignum* obj = Bignum::create(state, FIXNUM_MAX + 28);
+    INTEGER res = one->sub(state, obj);
+    TS_ASSERT_EQUALS(res->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(res->n2i(), 13 - (FIXNUM_MAX + 28));
   }
 
   void test_mul() {

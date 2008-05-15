@@ -210,10 +210,15 @@ namespace rubinius {
     NMP;
 
     if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
+      if(b->n2i() > 0) {
+        mp_add_d(MP(this), b->n2i(), n);
+      } else {
+        mp_sub_d(MP(this), - b->n2i(), n);
+      }
+    } else {
+      mp_add(MP(this), MP(as<Bignum>(b)), n);
     }
 
-    mp_add(MP(this), MP(as<Bignum>(b)), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -221,10 +226,15 @@ namespace rubinius {
     NMP;
 
     if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
+      if(b->n2i() > 0) {
+        mp_sub_d(MP(this), b->n2i(), n);
+      } else {
+        mp_add_d(MP(this), - b->n2i(), n);
+      }
+    } else {
+      mp_sub(MP(this), MP(b), n);
     }
 
-    mp_sub(MP(this), MP(b), n);
     return Bignum::normalize(state, n_obj);
   }
 
