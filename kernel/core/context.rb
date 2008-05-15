@@ -191,6 +191,10 @@ class MethodContext
     end
   end
 
+  def make_independent
+    self.method = method.dup
+  end
+
   def send_private?
     @send_private
   end

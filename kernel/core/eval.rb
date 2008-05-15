@@ -174,21 +174,49 @@ class Module
   # intermediate binding.
   #++
 
-  def module_eval(string = nil, filename = "(eval)", line = 1, &prc)
+  def module_eval(string = Undefined, filename = "(eval)", line = 1, &prc)
     # we have a custom version with the prc, rather than using instance_exec
     # so that we can setup the StaticScope properly.
     if prc
-      if string
+      unless string.equal?(Undefined)
         raise ArgumentError, "cannot pass both string and proc"
       end
 
       env = prc.block.redirect_to self
       env.method.staticscope = StaticScope.new(self, env.method.staticscope)
       return env.call()
+    elsif string.equal?(Undefined)
+      raise ArgumentError, 'block not supplied'
     end
 
     binding = Binding.setup(MethodContext.current.sender)
-    instance_eval(string, filename, line, true, binding, &prc)
+    string = StringValue(string)
+
+    flags = { :binding => binding }
+    compiled_method = Compile.compile_string string, flags, filename, line
+
+    # The staticscope of a module_eval CM is the receiver of module_eval
+    ss = StaticScope.new(self)
+
+    # This has to be setup so __FILE__ works in eval.
+    script = CompiledMethod::Script.new
+    script.path = filename
+    ss.script = script
+
+    compiled_method.staticscope = ss
+
+    # The gist of this code is that we need the receiver's static scope
+    # but the caller's binding to implement the proper constant behavior
+    ctx = binding.context
+    be = BlockEnvironment.new
+    be.from_eval!
+    be.under_context ctx, compiled_method
+    be.make_independent
+    be.home.receiver = self
+    be.home.make_independent
+    # open_module and friends in the VM use this field to determine scope
+    be.home.method.staticscope = ss
+    be.call
   end
   alias_method :class_eval, :module_eval
 

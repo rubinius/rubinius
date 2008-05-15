@@ -41,6 +41,10 @@ class MethodContext
     _get_field(5)
   end
 
+  def method=(obj)
+    _set_field(5, obj)
+  end
+
   def receiver
     _get_field(7)
   end
