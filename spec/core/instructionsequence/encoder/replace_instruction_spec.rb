@@ -4,7 +4,7 @@ describe "Encoder#replace_instruction" do
   before :each do
     @encoder = InstructionSequence::Encoder.new
   end
-  
+
   it "replaces instruction with the same width" do
     orig = [:open_class, 0xAB]
     new = [:send_method, 0xCD]
