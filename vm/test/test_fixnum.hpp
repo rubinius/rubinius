@@ -69,32 +69,32 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(three->n2i(), FIXNUM_MIN + 10 - (FIXNUM_MAX - 10));
   }
 
-  void test_multiply() {
+  void test_mul() {
     FIXNUM one = as<Fixnum>(Object::i2n(4));
 
-    FIXNUM two = as<Fixnum>(one->multiply(state, one));
+    FIXNUM two = as<Fixnum>(one->mul(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 16);
   }
   
-  void test_multiply_overflows_to_bignum() {
+  void test_mul_overflows_to_bignum() {
     FIXNUM  one = as<Fixnum>(Object::i2n(FIXNUM_MAX - 10));
-    INTEGER two = as<Integer>(one->multiply(state, Object::i2n(2)));
+    INTEGER two = as<Integer>(one->mul(state, Object::i2n(2)));
 
     TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(two->n2i(), (FIXNUM_MAX - 10) * 2);
   }
 
-  void test_divide() {
+  void test_div() {
     FIXNUM one = as<Fixnum>(Object::i2n(4));
 
-    FIXNUM two = as<Fixnum>(one->divide(state, one));
+    FIXNUM two = as<Fixnum>(one->div(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 1);
   }
 
-  void test_modulo() {
+  void test_mod() {
     FIXNUM one = as<Fixnum>(Object::i2n(4));
 
-    FIXNUM two = as<Fixnum>(one->modulo(state, one));
+    FIXNUM two = as<Fixnum>(one->mod(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 0);
   }
 };

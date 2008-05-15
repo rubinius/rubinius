@@ -27,7 +27,7 @@ namespace rubinius {
       }
     }
 
-    INTEGER multiply(STATE, FIXNUM other) {
+    INTEGER mul(STATE, FIXNUM other) {
       native_int a  = n2i();
       native_int b  = other->n2i();
       
@@ -58,11 +58,11 @@ namespace rubinius {
       return Object::i2n(state, n2i() * other->n2i());
     }
 
-    INTEGER divide(STATE, FIXNUM other) {
+    INTEGER div(STATE, FIXNUM other) {
       return Object::i2n(state, n2i() / other->n2i());
     }
 
-    INTEGER modulo(STATE, FIXNUM other) {
+    INTEGER mod(STATE, FIXNUM other) {
       return Object::i2n(state, n2i() % other->n2i());
     }
 
