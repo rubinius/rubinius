@@ -109,6 +109,10 @@ class Numeric
       return nil
     end
   end
+  
+  def truncate
+    Float(self).truncate
+  end
 
   def integer?
     false
