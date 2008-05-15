@@ -235,8 +235,8 @@ class File < IO
       case char
       when ??
         if index >= strend || (pathname && dirsep?(str[index])) ||
-           (period && str[index] == ?. && (index == 0 ||
-           (pathname && dirsep?(str[index-1]))))
+           (period && str[index] == ?. &&
+            (index == 0 || (pathname && dirsep?(str[index-1]))))
           return false
         end
 
@@ -249,9 +249,9 @@ class File < IO
           break unless char == ?*
         end
 
-        if index < strend && (period && str[index] == ?. &&
-                              (index == 0 ||
-                               (pathname && dirsep?(str[index-1]))))
+        if index < strend &&
+           (period && str[index] == ?. &&
+            (index == 0 || (pathname && dirsep?(str[index-1]))))
           return false
         end
 
@@ -286,10 +286,11 @@ class File < IO
         end
 
       when ?[
-        if index >= strend || (pathname && dirsep?(str[index]) ||
-                               (period && str[index] == ?. &&
-                                (index == 0 ||
-                                 (pathname && dirsep?(str[index-1])))))
+        if index >= strend ||
+           (pathname && dirsep?(str[index]) ||
+            (period && str[index] == ?. &&
+             (index == 0 ||
+              (pathname && dirsep?(str[index-1])))))
           return false
         end
 
@@ -300,8 +301,8 @@ class File < IO
         index += 1
       else
         if char == ?\\
-          if escape && (!DOSISH ||
-                        (pstart < patend && "*?[]\\".index(pattern[pstart])))
+          if escape &&
+             (!DOSISH || (pstart < patend && "*?[]\\".index(pattern[pstart])))
             char = pstart >= patend ? ?\\ : pattern[pstart]
             pstart += 1
           end
