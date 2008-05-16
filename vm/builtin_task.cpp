@@ -273,7 +273,6 @@ stack_cleanup:
       object_type type = (object_type)cls->instance_type->n2i();
       TypeInfo* ti = state->om->type_info[type];
       if(ti) {
-        std::cout << "specializing against: " << ti << std::endl;
         method->vmmethod(state)->specialize(ti);
       }
     }
@@ -530,10 +529,10 @@ insn_start:
     for(;;) {
 next_op:
       opcode op = next_op();
-      /*
+#ifdef INSN_DEBUG
       std::cout << (void*)active << ":" << ip << ", op: " <<
           InstructionSequence::get_instruction_name(op) << " (" << op << ")" << std::endl;
-      */
+#endif
 #include "gen/task_instructions_switch.c"
 check_interrupts:
       check_interrupts();

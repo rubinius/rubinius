@@ -1191,19 +1191,20 @@ task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_store_my_field;
 #define run(val) task->execute_stream(stream)
-#line 929 "/Users/evanphx/git/rbx/vm/instructions.rb"
-    Tuple* tup = Tuple::create(state, 3);
-    tup->put(state, 0, Qnil);
+#line 928 "/Users/evanphx/git/rbx/vm/instructions.rb"
+    Class* cls = state->new_class("Blah");
 
-    task->self = tup;
+    task->self = cls;
 
-    stack->put(state, ++task->sp, Qtrue);
-    stream[1] = (opcode)0;
+    SYMBOL name = state->symbol("Foo");
+    stack->put(state, ++task->sp, name);
+    stream[1] = (opcode)2;
+
     run();
 
     TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
-    TS_ASSERT_EQUALS(tup->at(0), Qtrue);
+    TS_ASSERT_EQUALS(stack->at(task->sp), name);
+    TS_ASSERT_EQUALS(cls->name, name);
 #undef run
 }
 void test_open_metaclass() {
