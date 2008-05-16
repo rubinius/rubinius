@@ -1422,10 +1422,10 @@ class Node
       end
 
       body = set(:namespace, sym) do
-        super([sexp[1]])
+        super([sexp.last])
       end
 
-      [sym, parent, body]
+      [name, parent, body]
     end
 
     attr_accessor :name, :body, :parent

@@ -427,6 +427,9 @@ class Compiler
     end
 
     def open_module(name)
+      unless name.kind_of? Symbol
+        raise TypeError, "name must be a Symbol, was: #{name.class}"
+      end
       add :open_module, find_literal(name)
     end
 
