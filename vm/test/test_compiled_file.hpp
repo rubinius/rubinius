@@ -41,7 +41,7 @@ public:
   }
 
   void test_load_file() {
-    std::fstream stream("fixture.rbc");
+    std::fstream stream("test/fixture.rbc");
     TS_ASSERT(!!stream);
 
     CompiledFile* cf = CompiledFile::load(stream);

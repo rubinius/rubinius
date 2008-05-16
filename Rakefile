@@ -17,7 +17,7 @@ task :default => :build
 # BUILD TASKS
 
 desc "Build everything that needs to be built"
-task :build => 'build:all'
+task :build => 'build:simple'
 
 task :stable_compiler do
   if ENV['USE_CURRENT'] or ENV['SYSTEM']
@@ -88,6 +88,10 @@ namespace :build do
     lib/rbconfig.rb
     extensions
   ]
+
+  task :simple => "build:rbc" do
+    sh "cd vm; rake"
+  end
 
   # This nobody rule lets use use all the shotgun files as
   # prereqs. This rule is run for all those prereqs and just

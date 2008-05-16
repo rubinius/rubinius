@@ -1,3 +1,215 @@
-task :default do
-  sh "cd test; rake test"
+$verbose = Rake.application.options.trace
+
+def x(cmd)
+  sh cmd, :verbose => $verbose
+end
+
+class CCompile
+  def initialize
+    @includes = []
+    @flags = []
+    @linker = "gcc"
+    @deps = {}
+
+    Dir.mkdir ".deps" unless File.directory?(".deps")
+  end
+
+  attr_accessor :includes, :flags, :deps
+
+  def cpp!
+    @linker = "g++"
+  end
+
+  def compile(input, output=nil)
+    output = input.gsub(/\.[^\.]+$/, ".o") unless output
+
+    includes = @includes.map { |i| "-I#{i}" }.join(" ")
+    flags =    @flags.join(" ")
+    od = File.dirname(output)
+    Dir.mkdir od unless File.directory? od
+
+    puts "CC #{input}"
+    x "#{compiler(input)} #{includes} #{flags} -c -o #{output} #{input} 2>&1"
+  end
+
+  def cpp_includes
+    @includes.map { |i| "-I#{i}" }.join(" ")
+  end
+
+  def compiler(file)
+    if File.basename(file) == "c"
+      "gcc"
+    else
+      "g++"
+    end
+  end
+  
+  def link(name, opts)
+    x "#{@linker} -o #{name} #{opts[:objects].join(' ')} #{opts[:libs].join(' ')}"
+  end
+
+
+  def add_source(pattern)
+    list = FileList[pattern]
+    objects = []
+
+    list.each do |name|
+      deps = File.join(".deps", name.hash.to_s)
+      if File.exists?(deps) and File.mtime(deps) > File.mtime(name)
+        headers = Marshal.load(File.read(deps)) rescue nil
+      else
+        headers = nil
+      end
+
+      unless headers
+        puts "DEP #{name}"
+        headers = extract_headers(name)
+        File.open(deps, "w") { |f| f << Marshal.dump(headers) }
+      end
+
+      output = name.gsub(/\.[^.]+$/, ".o")
+      objects << output
+
+      file output => [name] + headers do
+        compile(name, output)
+      end
+    end
+
+    return objects
+  end
+
+  def extract_headers(path)
+    includes = @includes.map { |i| "-I#{i}" }.join(" ")
+    data = `g++ #{includes} -MM -c #{path}`.split(/(?:\s+|\\\n)/)
+    data.shift
+    data.reject! { |s| s.size == 0 }
+
+    return data
+  end
+
+end
+
+compiler = CCompile.new
+
+rule ".h"
+rule ".hpp"
+
+ex_libs = %w!
+  external_libs/libtommath/libtommath.a
+  external_libs/onig/.libs/libonig.a
+	external_libs/libffi/.libs/libffi.a
+	external_libs/libltdl/.libs/libltdl.a
+	external_libs/libev/.libs/libev.a
+  -ldl!
+
+ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
+
+ex_inc  = %w!
+  external_libs/libtommath
+  external_libs/onig
+  external_libs/libffi/include
+  external_libs/libltdl
+  external_libs/libev!
+
+tests = FileList["test/test_*.hpp"]
+
+compiler.cpp!
+
+compiler.includes += ex_inc
+compiler.includes << "test/cxxtest"
+compiler.includes << "."
+
+compiler.flags << "-Wall" << "-ggdb" << "-gdwarf-2"
+
+objs =  compiler.add_source("*.cpp")
+objs += compiler.add_source("*.c")
+
+file "gen/iseq_instruction_names.hpp" do
+  puts "GEN instructions.rb"
+  x "cd ..; ruby instructions.rb"
+end
+
+file "gen/task_instructions_switch.c" => "instructions.rb" do
+  puts "GEN instructions.rb"
+  x "ruby instructions.rb"
+end
+
+file "builtin_task.o" => "gen/task_instructions_switch.c"
+file "type_info.o" => "gen/typechecks.gen.cpp"
+file "gen/typechecks.gen.cpp" => FileList["builtin_*.hpp"] do
+  Rake::Task[:field_extract].invoke
+end
+
+file "test/runner.cpp" => tests + objs do
+  puts "GEN test/runner.cpp"
+  x "test/cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o test/runner.cpp #{tests}"
+end
+
+task :only => objs do
+  only = FileList["*" + ENV['O'] + "*"].join(" ")
+	x "test/cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o test/_only.cpp #{only}"
+  compiler.compile "_only.cpp"
+  compiler.link "test/_only", :objects => objs + ["test/_only.o"], :libs => ex_libs
+  x "./test/_only"
+end
+
+file "test/runner.o" => "test/runner.cpp" do
+  compiler.compile "test/runner.cpp"
+end
+
+file "test/runner" => "test/runner.o" do
+  compiler.link "test/runner", :objects => objs + ["test/runner.o"], :libs => ex_libs
+end
+
+file "drivers/cli.o" => "drivers/cli.cpp" do
+  compiler.compile "drivers/cli.cpp"
+end
+
+file "vm" => objs + ["drivers/cli.o"] do
+  puts "LD vm"
+  compiler.link "vm", :objects => objs + ["drivers/cli.o"], :libs => ex_libs
+end
+
+task :test => "test/runner" do
+  x "./test/runner"
+end
+
+task :coverage do
+  Dir.mkdir "test/coverage" unless File.directory? "test/coverage"
+  puts "LD test/coverage/runner"
+  x "g++ -fprofile-arcs -ftest-coverage -Wall -Itest/cxxtest -I. #{ex_libs.join(' ')} -ggdb -o test/coverage/runner test/runner.cpp *.cpp *.c #{compiler.cpp_includes}"
+  puts "RUN test/coverage/runner"
+  x "test/coverage/runner"
+  if $verbose
+    x "test/lcov/bin/lcov --directory . --capture --output-file test/coverage/app.info"
+  else
+    x "test/lcov/bin/lcov --directory . --capture --output-file test/coverage/app.info > /dev/null 2>&1"
+  end
+
+  puts "GEN test/coverage/index.html"
+  if $verbose
+    x "cd test/coverage; ../lcov/bin/genhtml app.info"
+  else
+    x "cd test/coverage; ../lcov/bin/genhtml app.info > /dev/null 2>&1"
+  end
+
+  x "rm -f *.gcno *.gcda"
+end
+
+task :field_extract do
+  order = ["objects.hpp"]
+  File.open("objects.hpp") do |f|
+    f.each_line do |line|
+      if /\#include "builtin_(.*)"/.match(line)
+        order << "builtin_#{$1}"
+      end
+    end
+  end
+  sh "ruby field_extract.rb #{order.join(' ')}"
+end
+
+task :default => :test
+
+task :clean do
+  x "rm -rf *.gcda *.gcno *.gcov *.dSYM *.o ../*.o test/runner* coverage"
 end
