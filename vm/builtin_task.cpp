@@ -4,21 +4,12 @@
 #include "builtin_channel.hpp"
 #include "message.hpp"
 #include "global_cache.hpp"
+#include "probes.hpp"
 
 #include <csignal>
 #include <sstream>
 
 namespace rubinius {
-
-  void TaskProbe::start_method(Task* task, Message& msg) {
-    std::cout << "[Sending: '" << *msg.send_site->name->to_str(task->state) <<
-      "']" << std::endl;
-  }
-  
-  void TaskProbe::lookup_failed(Task* task, Message& msg) {
-    std::cout << "[Unable to find: '" << *msg.send_site->name->to_str(task->state) <<
-      "']" << std::endl;
-  }
 
   void Task::init(STATE) {
     GO(task).set(state->new_class("Task", Task::fields));
@@ -271,6 +262,21 @@ stack_cleanup:
   void Task::add_method(Module* mod, SYMBOL name, CompiledMethod* method) {
     mod->method_table->store(state, name, method);
     state->global_cache->clear(mod, name);
+
+    if(probe) {
+      probe->added_method(this, mod, name, method);
+    }
+
+    if(instance_of<Class>(mod)) {
+      Class* cls = as<Class>(mod);
+
+      object_type type = (object_type)cls->instance_type->n2i();
+      TypeInfo* ti = state->om->type_info[type];
+      if(ti) {
+        std::cout << "specializing against: " << ti << std::endl;
+        method->vmmethod(state)->specialize(ti);
+      }
+    }
   }
 
   bool Task::check_serial(OBJECT obj, SYMBOL sel, int ser) {

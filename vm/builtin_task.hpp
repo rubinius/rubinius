@@ -4,16 +4,11 @@
 #include "objects.hpp"
 #include "message.hpp"
 #include "builtin_channel.hpp"
-
 #include <stdexcept>
 
 namespace rubinius {
 
-  class TaskProbe {
-  public:
-    void start_method(Task* task, Message& msg);
-    void lookup_failed(Task* task, Message& msg);
-  };
+  class Probe;
 
   class ArgumentError : public VMException {
   public:

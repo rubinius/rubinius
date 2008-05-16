@@ -66,6 +66,26 @@ class CPPClass
     @fields << [name, type, idx]
   end
 
+  def all_fields
+    if @super
+      ary = @super.all_fields
+    else
+      ary = []
+    end
+
+    offset = ary.size
+    @fields.each do |n,t,i|
+      if readonly?(n)
+        flags = {:readonly => true}
+      else
+        flags = {}
+      end
+      ary << [n, i + offset, flags]
+    end
+
+    return ary
+  end
+
   def readonly?(name)
     @flags[name] == "readonly"
   end
@@ -96,32 +116,21 @@ class CPPClass
     end
   end
 
-  def generate_gets(cpp, offset=0)
-    if cpp.super
-      str, offset = generate_gets(cpp.super, offset)
-    else
-      str = ""
-    end
-
-    cpp.fields.each do |name, type, idx|
-      str << "  case #{idx + offset}:\n"
+  def generate_gets
+    str = ""
+    all_fields.each do |name, idx, flags|
+      str << "  case #{idx}:\n"
       str << "    return target->#{name};\n"
     end
 
-    [str, offset + cpp.fields.size]
-
+    return str
   end
 
-  def generate_sets(cpp, offset=0)
-    if cpp.super
-      str, offset = generate_sets(cpp.super, offset)
-    else
-      str = ""
-    end
-
-    cpp.fields.each do |name, type, idx|
-      str << "  case #{idx + offset}:\n"
-      if cpp.readonly?(name)
+  def generate_sets
+    str = ""
+    all_fields.each do |name, idx, flags|
+      str << "  case #{idx}:\n"
+      if flags[:readonly]
         str << "    throw new Assertion(\"#{name} is readonly\");\n"
       else
         str << "    SET(target, #{name}, val);\n"
@@ -129,11 +138,11 @@ class CPPClass
       str << "    return;\n"
     end
 
-    [str, offset + cpp.fields.size]
+    return str
   end
 
   def generate_typechecks
-    out, offset = generate_sets self, 0
+    out = generate_sets()
     return if out.strip.empty?
 
     str =  "void #{@name}::Info::set_field(STATE, OBJECT _t, size_t index, OBJECT val) {\n"
@@ -147,8 +156,7 @@ class CPPClass
     str << "  #{@name}* target = as<#{@name}>(_t);\n"
     str << "  switch(index) {\n"
 
-    out, _ = generate_gets self, 0
-    str << out
+    str << generate_gets()
 
     str << "  }\n"
     str << "  throw std::runtime_error(\"Unable to access field\");\n"
@@ -178,7 +186,7 @@ class CPPClass
   end
 
   def generate_mark
-    out, offset = generate_sets self, 0
+    out = generate_sets()
     return if out.strip.empty?
 
     str =  "void #{@name}::Info::mark(OBJECT _t, ObjectMark& mark) {\n"
@@ -364,7 +372,13 @@ end
 File.open("gen/typechecks.gen.cpp", "w") do |f|
   f.puts "void TypeInfo::init(STATE) {"
   parser.classes.each do |n, cpp|
-    f.puts "  state->add_type_info(new #{n}::Info(#{n}::type));"
+    f.puts "  {"
+    f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
+    cpp.all_fields.each do |name, idx|
+      f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
+    end
+    f.puts "    state->add_type_info(ti);"
+    f.puts "  }"
   end
   f.puts "}"
 

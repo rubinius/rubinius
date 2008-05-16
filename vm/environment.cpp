@@ -1,5 +1,6 @@
 #include "environment.hpp"
 #include "compiled_file.hpp"
+#include "probes.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -8,6 +9,7 @@
 namespace rubinius {
   Environment::Environment() {
     state = new VM();
+    state->probe = new TaskProbe;
   }
 
   Environment::~Environment() {

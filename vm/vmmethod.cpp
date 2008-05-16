@@ -2,7 +2,7 @@
 
 namespace rubinius {
   VMMethod::VMMethod(STATE, CompiledMethod* meth) : 
-      original(state, meth) {
+      original(state, meth), type(NULL) {
     total = meth->iseq->opcodes->field_count;
 
     opcodes = new opcode[total];
@@ -22,9 +22,10 @@ namespace rubinius {
   }
 
   void VMMethod::specialize(TypeInfo* ti) {
+    type = ti;
     for(size_t i = 0; i < total; i++) {
       opcode op = opcodes[i];
-      
+
       if(op == InstructionSequence::insn_push_ivar) {
         native_int idx = opcodes[i + 1];
         native_int sym = as<Symbol>(original->literals->at(idx))->index();
@@ -32,6 +33,15 @@ namespace rubinius {
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_push_my_field;
+          opcodes[++i] = it->second;
+        }
+      } else if(op == InstructionSequence::insn_set_ivar) {
+        native_int idx = opcodes[i + 1];
+        native_int sym = as<Symbol>(original->literals->at(idx))->index();
+
+        TypeInfo::Slots::iterator it = ti->slots.find(sym);
+        if(it != ti->slots.end()) {
+          opcodes[i] = InstructionSequence::insn_store_my_field;
           opcodes[++i] = it->second;
         }
       }

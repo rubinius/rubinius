@@ -14,6 +14,7 @@ namespace rubinius {
     opcode* opcodes;
     size_t total;
     TypedRoot<CompiledMethod*> original;
+    TypeInfo* type;
 
     VMMethod(STATE, CompiledMethod* meth);
     ~VMMethod();

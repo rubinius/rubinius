@@ -303,7 +303,7 @@ namespace rubinius {
       tbl = Hash::csm_into_lookuptable(state, (Tuple*)tbl);
       SET((NormalObject*)this, instance_variables, tbl);
     }
-    
+
     as<LookupTable>(ivars)->store(state, sym, val);
     return val;
   }
@@ -330,7 +330,7 @@ namespace rubinius {
     this->IsBlockContext  = source->IsBlockContext;
     this->IsMeta          = source->IsMeta;
   }
-    
+
   // 'virtual' methods. They dispatch to the object's TypeInfo
   // object to perform the work.
   OBJECT Object::get_field(STATE, size_t index) {

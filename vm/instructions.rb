@@ -920,7 +920,7 @@ CODE
     <<-CODE
     next_int;
     check_bounds(self, _int);
-    SET(self, field[_int], stack_top());
+    self->set_field(state, _int, stack_pop());
     CODE
   end
 
