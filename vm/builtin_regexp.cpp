@@ -32,6 +32,8 @@ namespace rubinius {
     onig_free(REG(data));
   }
 
+  void RegexpData::Info::mark(STATE, OBJECT t, ObjectMark& mark) { }
+
   void Regexp::init(STATE) {
     onig_init();
     GO(regexp).set(state->new_class("Regexp", G(object), 0));

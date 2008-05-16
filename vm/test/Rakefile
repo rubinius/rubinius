@@ -144,7 +144,7 @@ compiler.includes += ex_inc
 compiler.includes << "cxxtest"
 compiler.includes << ".."
 
-compiler.flags << "-Wall" << "-ggdb"
+compiler.flags << "-Wall" << "-ggdb" << "-gdwarf-2"
 
 objs = compiler << "../*.cpp"
 objs += compiler << "../*.c"
@@ -167,7 +167,15 @@ end
 
 file "runner.cpp" => tests + objs do
   puts "GEN runner.cpp"
-	x "cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o runner.cpp #{tests}"
+  x "cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o runner.cpp #{tests}"
+end
+
+task :only => objs do
+  only = FileList["*" + ENV['O'] + "*"].join(" ")
+	x "cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o _only.cpp #{only}"
+  compiler.compile "_only.cpp"
+  compiler.link "_only", :objects => objs + ["_only.o"], :libs => ex_libs
+  x "./_only"
 end
 
 file "runner.o" => "runner.cpp" do
@@ -178,13 +186,13 @@ file "runner" => "runner.o" do
   compiler.link "runner", :objects => objs + ["runner.o"], :libs => ex_libs
 end
 
-file "../main.o" => "../main.cpp" do
-  compiler.compile "../main.cpp"
+file "../drivers/cli.o" => "../drivers/cli.cpp" do
+  compiler.compile "../drivers/cli.cpp"
 end
 
-file "../vm" => objs + ["../main.o"] do
+file "../vm" => objs + ["../drivers/cli.o"] do
   puts "LD ../vm"
-  compiler.link "../vm", :objects => objs + ["../main.o"], :libs => ex_libs
+  compiler.link "../vm", :objects => objs + ["../drivers/cli.o"], :libs => ex_libs
 end
 
 task :test => "runner" do

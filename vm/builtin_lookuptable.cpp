@@ -10,7 +10,7 @@
 #define max_density_p(ents,bins) (ents >= LOOKUPTABLE_MAX_DENSITY * bins)
 #define min_density_p(ents,bins) (ents < LOOKUPTABLE_MIN_DENSITY * bins)
 #define key_to_sym(key) \
-  if(String::is_a(key)) { \
+  if(kind_of<String>(key)) { \
     key = ((String*)key)->to_sym(state); \
   } \
 

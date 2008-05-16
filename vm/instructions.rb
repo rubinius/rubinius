@@ -15,7 +15,7 @@ class Instructions
         line = sexp[sexp.index(:newline) + 1] + 1
 
         fd.puts "   case #{ins.bytecode}: { /* #{ins.opcode} */"
-        fd.puts "#line #{line} \"instructions.rb\""
+        fd.puts "#line #{line} \"#{File.expand_path(__FILE__)}\""
         fd.puts code
         if ins.check_interrupts?
           fd.puts "   goto check_interrupts;"
@@ -74,7 +74,7 @@ class TestInstructions : public CxxTest::TestSuite {
         fd.puts "CompiledMethod* cm = CompiledMethod::create(state);"
         fd.puts "cm->iseq = InstructionSequence::create(state, 10);"
         fd.puts "cm->stack_size = Object::i2n(10);"
-        fd.puts "MethodContext* ctx = task->generate_context(Qnil, cm);"
+        fd.puts "MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));"
         fd.puts "task->make_active(ctx);"
         # The += 0 disable unused variable warnings.
         fd.puts "Tuple* stack = task->stack; stack += 0;"
@@ -82,7 +82,7 @@ class TestInstructions : public CxxTest::TestSuite {
         fd.puts "opcode stream[100];"
         fd.puts "stream[0] = InstructionSequence::insn_#{ins.opcode};"
         fd.puts "#define run(val) task->execute_stream(stream)"
-        fd.puts "#line #{line} \"instructions.rb\""
+        fd.puts "#line #{line} \"#{File.expand_path(__FILE__)}\""
         fd.puts code
         fd.puts "#undef run"
         fd.puts "}"
@@ -218,7 +218,7 @@ CODE
   end
 
   def generate_names_header
-    str = "const char *get_instruction_name(int op);\n"
+    str = "static const char *get_instruction_name(int op);\n"
 
     str << "typedef enum {\n"
     InstructionSet::OpCodes.each do |ins|
@@ -2177,7 +2177,6 @@ CODE
     t2 = stack_pop();
     attach_method(t1, as<Symbol>(_lit), as<CompiledMethod>(t2));
     stack_push(t2);
-    perform_hook(t1, G(sym_s_method_added), _lit);
     CODE
   end
 
@@ -2187,13 +2186,15 @@ CODE
     task->literals->put(state, 0, name);
 
     stack->put(state, ++task->sp, cm);
-    stack->put(state, ++task->sp, Qtrue);
+    stack->put(state, ++task->sp, G(true_class));
 
     stream[1] = (opcode)0;
 
     run();
 
-    TS_ASSERT_EQUALS(Qtrue->metaclass(state)->method_table->fetch(state, name), cm);
+    TS_ASSERT_EQUALS(G(true_class)->metaclass(state)->method_table->fetch(state, name), cm);
+    TS_ASSERT(!cm->scope->nil_p());
+    TS_ASSERT_EQUALS(cm->scope->module, G(true_class));
     CODE
   end
 
@@ -2230,7 +2231,6 @@ CODE
     t2 = stack_pop();
     add_method(as<Module>(t1), as<Symbol>(_lit), as<CompiledMethod>(t2));
     stack_push(t2);
-    perform_hook(t1, G(sym_method_added), _lit);
     CODE
   end
 
@@ -2397,6 +2397,8 @@ CODE
 
     run();
 
+    MethodContext* s = task->active->sender;
+    TS_ASSERT_EQUALS(s->sp, -1);
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1);
     TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
@@ -2441,6 +2443,8 @@ CODE
     msg.recv = stack_back(msg.args);
     msg.stack = msg.args + 2;
     msg.use_from_task(this, msg.args);
+
+    msg.stack = msg.args + 2;
 
     goto perform_send;
     CODE
@@ -3215,6 +3219,25 @@ perform_no_ss_send:
     <<-CODE
     t1 = stack_pop();
     raise_exception(as<Exception>(t1));
+    CODE
+  end
+
+  # [Operation]
+  #   Halts the current task
+  # [Format]
+  #   \halt
+  # [Stack Before]
+  #   * ...
+  # [Stack After]
+  #   * ...
+  # [Description]
+  #   Causes the current Task to halt. No further execution will be performed
+  #   on the current Task. This instruction is only used inside the trampoline
+  #   method used as the first MethodContext of a Task.
+
+  def halt
+    <<-CODE
+    throw Task::Halt("Task halted");
     CODE
   end
 

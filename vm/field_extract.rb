@@ -133,12 +133,13 @@ class CPPClass
   end
 
   def generate_typechecks
-    return "" if @fields.empty?
+    out, offset = generate_sets self, 0
+    return if out.strip.empty?
+
     str =  "void #{@name}::Info::set_field(STATE, OBJECT _t, size_t index, OBJECT val) {\n"
     str << "  #{@name}* target = as<#{@name}>(_t);\n"
     str << "  switch(index) {\n"
 
-    out, offset = generate_sets self, 0
     str << out
 
     str << "  }\n}\n"
@@ -152,6 +153,40 @@ class CPPClass
     str << "  }\n"
     str << "  throw std::runtime_error(\"Unable to access field\");\n"
     str << "}\n"
+  end
+
+  def generate_marks(cpp)
+    if cpp.super
+      str = generate_marks(cpp.super)
+    else
+      str = ""
+    end
+
+    cpp.fields.each do |name, type, idx|
+      str << "  {\n"
+      str << "    if(target->#{name}->reference_p()) {\n"
+      str << "      OBJECT res = mark.call(target->#{name});\n"
+      str << "      if(res) {\n"
+      str << "        target->#{name} = as<#{type}>(res);\n"
+      str << "        mark.just_set(target, res);\n"
+      str << "      }\n"
+      str << "    }\n"
+      str << "  }\n"
+    end
+
+    return str
+  end
+
+  def generate_mark
+    out, offset = generate_sets self, 0
+    return if out.strip.empty?
+
+    str =  "void #{@name}::Info::mark(OBJECT _t, ObjectMark& mark) {\n"
+    str << "  #{@name}* target = as<#{@name}>(_t);\n"
+
+    str << generate_marks(self)
+    str << "}\n"
+    return str
   end
 end
 
@@ -179,7 +214,8 @@ class CPPParser
       "Class" => :Class,
       "Float" => :Float,
       "Bignum" => :Bignum,
-      "Hash" => :Hash
+      "Hash" => :Hash,
+      "Channel" => :Channel
     }
 
   end
@@ -333,8 +369,15 @@ File.open("gen/typechecks.gen.cpp", "w") do |f|
   f.puts "}"
 
   parser.classes.each do |n, cpp|
-    f.puts cpp.generate_typechecks
+    if tc = cpp.generate_typechecks
+      f.puts tc
+    end
+
+    if mc = cpp.generate_mark
+      f.puts mc
+    end
   end
+
 end
 
 File.open("gen/primitives_glue.gen.cpp", "w") do |f|

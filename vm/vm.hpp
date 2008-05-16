@@ -13,6 +13,7 @@ namespace rubinius {
   }
 
   class GlobalCache;
+  class TaskProbe;
 
   class VM {
     public:
@@ -21,10 +22,11 @@ namespace rubinius {
     ObjectMemory* om;
     event::Loop* events;
     GlobalCache* global_cache;
+    TaskProbe* probe;
 
     bool wait_events;
 
-    static const size_t default_bytes = 10240;
+    static const size_t default_bytes = 1048576;
 
     /* Inline methods */
     /* Prototypes */

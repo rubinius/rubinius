@@ -23,6 +23,7 @@ namespace rubinius {
     }
 
     Root(STATE);
+    Root(STATE, OBJECT obj);
 
     Root() : object(NULL), roots(NULL) { }
 
@@ -81,6 +82,7 @@ namespace rubinius {
       TypedRoot() : Root() { }
       TypedRoot(Roots* roots) : Root(roots) { }
       TypedRoot(STATE) : Root(state) { }
+      TypedRoot(STATE, T obj) : Root(state, obj) { }
       T get() { return (T)object; }
     };
 }

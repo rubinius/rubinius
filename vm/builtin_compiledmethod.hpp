@@ -28,6 +28,8 @@ namespace rubinius {
     StaticScope* scope; // slot
 
     static CompiledMethod* create(STATE);
+    static CompiledMethod* generate_tramp(STATE);
+
     void post_marshal(STATE);
     size_t number_of_locals();
     void set_scope(StaticScope*);
@@ -35,9 +37,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
   };
 
@@ -66,9 +66,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
   };
 

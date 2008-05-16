@@ -14,10 +14,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(om.young.current->used(), 0);
 
-    obj = om.new_object(Qnil, 3);
+    obj = om.allocate_object(3);
 
     TS_ASSERT_EQUALS(obj->field_count, 3);
-    TS_ASSERT_EQUALS(obj->klass, Qnil);
+    TS_ASSERT(obj->klass == NULL);
     TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
 
     TS_ASSERT(om.young.current->used() == obj->size_in_bytes());
@@ -29,8 +29,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj, obj2;
 
-    obj  = om.new_object(Qnil, 2);
-    obj2 = om.new_object(Qnil, 2);
+    obj  = om.allocate_object(2);
+    obj2 = om.allocate_object(2);
     TS_ASSERT_EQUALS(obj->Remember, 0);
     TS_ASSERT_EQUALS(obj2->Remember, 0);
     TS_ASSERT_EQUALS(om.remember_set->size(), 0);
@@ -51,7 +51,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj, obj2;
 
-    obj = om.new_object(Qnil, 2);
+    obj = om.allocate_object(2);
     obj->zone = MatureObjectZone;
 
     obj2 = Qnil;
@@ -65,11 +65,11 @@ class TestObjectMemory : public CxxTest::TestSuite {
     OBJECT obj;
     TS_ASSERT_EQUALS(om.young.current->used(), 0);
 
-    om.new_object(Qnil, 3);
-    om.new_object(Qnil, 3);
-    om.new_object(Qnil, 3);
-    om.new_object(Qnil, 3);
-    obj = om.new_object(Qnil, 3);
+    om.allocate_object(3);
+    om.allocate_object(3);
+    om.allocate_object(3);
+    om.allocate_object(3);
+    obj = om.allocate_object(3);
 
     BakerGC::Heap *cur = om.young.next;
     TS_ASSERT_EQUALS(om.young.current->used(), obj->size_in_bytes() * 5);
@@ -80,7 +80,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(om.young.current->used(), 0);
     TS_ASSERT_EQUALS((void*)cur, (void*)om.young.current);
 
-    obj = om.new_object(Qnil, 3);
+    obj = om.allocate_object(3);
     TS_ASSERT_EQUALS(obj->age, 0);
     Root r(&roots, obj);
 
@@ -93,8 +93,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj, obj2, obj3;
 
-    obj =  om.new_object(Qnil, 3);
-    obj2 = om.new_object(Qnil, 3);
+    obj =  om.allocate_object(3);
+    obj2 = om.allocate_object(3);
 
     om.store_object(obj, 0, obj2);
     om.store_object(obj2, 0, Qtrue);
@@ -123,8 +123,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj, obj2;
 
-    obj =  om.new_object_bytes(Qnil, 3);
-    obj2 = om.new_object(Qnil, 3);
+    obj =  om.allocate_bytes(3);
+    obj2 = om.allocate_object(3);
 
     /* Force obj2 to appear in the body, but it should be seen as
      * just a generic series of bytes, not a reference. */
@@ -143,15 +143,15 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj;
 
-    obj = om.new_object_mature(Qnil, 3);
+    obj = om.allocate_mature(3);
     TS_ASSERT_EQUALS(obj->field_count, 3);
-    TS_ASSERT_EQUALS(obj->klass, Qnil);
+    TS_ASSERT(obj->klass == NULL);
     TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
     TS_ASSERT(obj->stores_references_p());
 
     TS_ASSERT_EQUALS(om.young.current->used(), 0);
 
-    obj = om.new_object_mature(Qnil, 3, true);
+    obj = om.allocate_mature(3, true);
     TS_ASSERT(obj->mature_object_p());
     TS_ASSERT(obj->stores_bytes_p());
   }
@@ -162,9 +162,9 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.large_object_threshold = 10;
 
-    obj = om.new_object(Qnil, 20);
+    obj = om.allocate_object(20);
     TS_ASSERT_EQUALS(obj->field_count, 20);
-    TS_ASSERT_EQUALS(obj->klass, Qnil);
+    TS_ASSERT(obj->klass == NULL);
     TS_ASSERT_EQUALS(obj->zone, MatureObjectZone);
 
     TS_ASSERT_EQUALS(om.young.current->used(), 0);
@@ -176,7 +176,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.large_object_threshold = 10;
 
-    obj = om.new_object(Qnil, 20);
+    obj = om.allocate_object(20);
 
     Roots roots(0);
     Root r(&roots, obj);
@@ -192,8 +192,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.large_object_threshold = 10;
 
-    young =  om.new_object(Qnil, 3);
-    mature = om.new_object(Qnil, 20);
+    young =  om.allocate_object(3);
+    mature = om.allocate_object(20);
 
     om.store_object(young, 0, Qtrue);
     om.store_object(mature, 0, young);
@@ -210,7 +210,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT young;
 
-    young = om.new_object(Qnil, 3);
+    young = om.allocate_object(3);
 
     Roots roots(0);
     Root r(&roots, young);
@@ -233,8 +233,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.large_object_threshold = 10;
 
-    young =  om.new_object(Qnil, 3);
-    mature = om.new_object(Qnil, 20);
+    young =  om.allocate_object(3);
+    mature = om.allocate_object(20);
 
     TS_ASSERT(mature->mature_object_p());
     TS_ASSERT(young->young_object_p());
@@ -259,8 +259,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj, obj2;
 
-    obj =  om.new_object(Qnil, 3);
-    obj2 = om.new_object(Qnil, 3);
+    obj =  om.allocate_object(3);
+    obj2 = om.allocate_object(3);
 
     om.store_object(obj, 0, obj2);
     om.store_object(obj, 1, obj2);
@@ -282,7 +282,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj;
 
-    obj = om.new_object_bytes(Qnil, 3);
+    obj = om.allocate_bytes(3);
     obj->bytes[0] = 47;
 
     Roots roots(0);
@@ -298,8 +298,9 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj, cls;
 
-    cls = om.new_object(Qnil, 3);
-    obj = om.new_object(cls, 3);
+    cls = om.allocate_object(3);
+    obj = om.allocate_object(3);
+    obj->klass = (Class*)cls;
 
     Roots roots(0);
     Root r(&roots, obj);
@@ -319,7 +320,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.large_object_threshold = 10;
 
-    mature = om.new_object(Qnil, 20);
+    mature = om.allocate_object(20);
     TS_ASSERT(mature->mature_object_p());
     TS_ASSERT_EQUALS(om.mature.allocated_objects, 1);
 
@@ -343,8 +344,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.large_object_threshold = 10;
 
-    young =  om.new_object(Qnil, 3);
-    mature = om.new_object(Qnil, 20);
+    young =  om.allocate_object(3);
+    mature = om.allocate_object(20);
 
     om.store_object(young, 0, mature);
 
@@ -364,8 +365,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
 
     om.large_object_threshold = 10;
 
-    young =  om.new_object(Qnil, 3);
-    mature = om.new_object(Qnil, 20);
+    young =  om.allocate_object(3);
+    mature = om.allocate_object(20);
 
     om.store_object(young, 0, mature);
     om.store_object(mature, 0, young);
@@ -385,8 +386,8 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj, obj2;
 
-    obj =  om.new_object(Qnil, 3);
-    obj2 = om.new_object(Qnil, 3);
+    obj =  om.allocate_object(3);
+    obj2 = om.allocate_object(3);
 
     om.store_object(obj2, 1, Qtrue);
 
@@ -413,7 +414,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(om.collect_young_now, false);
 
     while(left > 0) {
-      obj = om.new_object(Qnil, 3);
+      obj = om.allocate_object(3);
       left -= obj->size_in_bytes();
     }
 
@@ -426,7 +427,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     int left = 128 * 2;
 
     while(left > 0) {
-      obj = om.new_object(Qnil, 3);
+      obj = om.allocate_object(3);
       left -= obj->size_in_bytes();
     }
 
@@ -445,7 +446,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(om.collect_mature_now, false);
 
     while(left > 0) {
-      obj = om.new_object(Qnil, 4);
+      obj = om.allocate_object(4);
       left -= obj->size_in_bytes();
     }
 
@@ -456,10 +457,10 @@ class TestObjectMemory : public CxxTest::TestSuite {
     ObjectMemory om(1024);
     OBJECT obj;
 
-    obj = om.new_object(Qnil, 3);
+    obj = om.allocate_object(3);
     TS_ASSERT(om.valid_object_p(obj));
 
-    obj = om.new_object_mature(Qnil, 3);
+    obj = om.allocate_mature(3);
     TS_ASSERT(om.valid_object_p(obj));
 
     obj->zone = (gc_zone)0;

@@ -36,6 +36,7 @@ namespace CxxTest
         ErrorFormatter( OutputStream *o, const char *preLine = ":", const char *postLine = "" ) :
             _dotting( true ),
             _reported( false ),
+            _verbose( false ),
             _o(o),
             _preLine(preLine),
             _postLine(postLine)
@@ -52,7 +53,11 @@ namespace CxxTest
         {
             (*_o) << "Running " << totalTests;
             _o->flush();
-            _dotting = true;
+            if(getenv("VERBOSE")) {
+              _verbose = true;
+            } else {
+              _dotting = true;
+            }
             _reported = false;
         }
 
@@ -63,22 +68,37 @@ namespace CxxTest
             o << wd.strTotalTests( s ) << (wd.numTotalTests() == 1 ? " test" : " tests");
         }
 
-        void enterSuite( const SuiteDescription & )
+        void enterSuite( const SuiteDescription &d )
         {
+          if(_verbose) {
+            (*_o) << endl << "Suite " << d.suiteName() << endl;
+          }
             _reported = false;
         }
 
-        void enterTest( const TestDescription & )
+        void enterTest( const TestDescription & d)
         {
-            _reported = false;
+          if(_verbose) {
+            ((*_o) << "  " << d.testName() << ": ").flush();
+          }
+          
+          _reported = false;
         }
 
         void leaveTest( const TestDescription & )
         {
+          if(_verbose) {
+            if(tracker().testFailed()) {
+              (*_o) << "FAIL" << endl;
+            } else {
+              (*_o) << "ok" << endl;
+            }
+          } else {
             if ( !tracker().testFailed() ) {
                 ((*_o) << ".").flush();
                 _dotting = true;
             }
+          }
         }
 
         void leaveWorld( const WorldDescription &desc )
@@ -272,6 +292,7 @@ namespace CxxTest
 
         bool _dotting;
         bool _reported;
+        bool _verbose;
         OutputStream *_o;
         const char *_preLine;
         const char *_postLine;

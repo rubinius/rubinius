@@ -3,37 +3,10 @@
 
 #include "objects.hpp"
 #include "message.hpp"
+#include "resolver.hpp"
 
 namespace rubinius {
   class Selector;
-
-  class MethodResolver {
-  public:
-    virtual bool resolve(STATE, Message& msg) = 0;
-    virtual ~MethodResolver() { }
-  };
-
-  class HierarchyResolver : public MethodResolver {
-  public:
-    virtual bool resolve(STATE, Message& msg);
-    virtual ~HierarchyResolver() { }
-  };
-
-  class GlobalCacheResolver : public HierarchyResolver {
-  public:
-    virtual bool resolve(STATE, Message& msg);
-    virtual ~GlobalCacheResolver() { }
-  };
-
-  class SpecializedResolver : public GlobalCacheResolver {
-  public:
-    Module* klass;
-    Module* mod;
-    OBJECT  method;
-
-    virtual bool resolve(STATE, Message& msg);
-    virtual ~SpecializedResolver() { }
-  };
 
   class SendSite : public BuiltinType {
     public:
@@ -41,9 +14,9 @@ namespace rubinius {
     static const size_t object_fields = 6;
     static const object_type type = SendSiteType;
 
-    SYMBOL name;
-    OBJECT sender;
-    Selector* selector;
+    SYMBOL name; // slot
+    OBJECT sender; // slot
+    Selector* selector; // slot
     size_t hits, misses;
     bool specialized;
 
@@ -55,6 +28,11 @@ namespace rubinius {
     void set_sender(STATE, OBJECT cm);
     bool basic_p(STATE);
     bool locate(STATE, Message& msg);
+
+    class Info : public TypeInfo {
+    public:
+      BASIC_TYPEINFO(TypeInfo)
+    };
   };
 };
 

@@ -173,7 +173,13 @@ to be a simple test for that bit pattern.
   public:
     char *reason;
 
-    Assertion(char* reason) : reason(reason) { };
+    Assertion(char* reason) {
+      this->reason = strdup(reason);
+    }
+
+    ~Assertion() {
+      free(reason);
+    }
   };
 
   class TypeError : public VMException {

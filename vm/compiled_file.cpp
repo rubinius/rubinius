@@ -18,4 +18,29 @@ namespace rubinius {
     UnMarshaller mar(state, *stream);
     return mar.unmarshal();
   }
+
+  bool CompiledFile::execute(STATE) {
+    TypedRoot<Task*> task(state, Task::create(state));
+    TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
+
+    Message msg(state);
+    msg.args = 0;
+    msg.recv = G(main);
+
+    SET(cm.get(), scope, StaticScope::create(state));
+    SET(cm.get()->scope, module, G(object));
+
+    cm->execute(state, task.get(), msg);
+    try {
+      task->execute();
+    } catch(Task::Halt &e) {
+      return true;
+    }
+
+    // Task::execute contains the safe point, thus the above Task
+    // and CompiledMethod pointers have likely been moved. DO NOT
+    // USE THEM.
+
+    return false;
+  }
 }

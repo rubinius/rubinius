@@ -44,7 +44,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_dup_bytes() {
-    OBJECT obj = state->om->new_object(Qnil, 1);
+    OBJECT obj = state->om->new_object_bytes(G(object), 1);
     obj->StoresBytes = 1;
 
     obj->bytes[0] = 8;

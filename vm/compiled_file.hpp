@@ -22,6 +22,7 @@ namespace rubinius {
 
     static CompiledFile* load(std::istream& stream);
     OBJECT body(STATE);
+    bool execute(STATE);
   };
 }
 

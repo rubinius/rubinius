@@ -20,4 +20,13 @@ class TestCompiledMethod : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_startup_tramp() {
+    CompiledMethod* cm = CompiledMethod::generate_tramp(state);
+    VMMethod* vmm = cm->vmmethod(state);
+
+    TS_ASSERT_EQUALS(vmm->opcodes[0], (int)InstructionSequence::insn_halt);
+    TS_ASSERT(!cm->scope->nil_p());
+    TS_ASSERT_EQUALS(cm->scope->module, G(object));
+  }
+
 };

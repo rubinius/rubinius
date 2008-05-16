@@ -62,7 +62,7 @@ namespace rubinius {
 #define G(whatever) globals.whatever.get()
 #define GO(whatever) globals.whatever
 
-    Class *cls = (Class*)om->new_object(Qnil, Class::fields);
+    Class *cls = (Class*)om->allocate_object(Class::fields);
     cls->klass = cls;
 
     cls->instance_fields = Object::i2n(Class::fields);
@@ -199,6 +199,8 @@ namespace rubinius {
     globals.special_classes[(uintptr_t)Qfalse] = GO(false_class);
     globals.special_classes[(uintptr_t)Qnil  ] = GO(nil_class);
     globals.special_classes[(uintptr_t)Qtrue ] = GO(true_class);
+
+    GO(main).set(om->new_object(G(object), 1));
 
     Regexp::init(this);
 

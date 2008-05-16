@@ -13,21 +13,21 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = MContextType;
 
-    MethodContext* sender;
-    OBJECT self;
+    MethodContext* sender; // slot
+    OBJECT self; // slot
 
-    CompiledMethod* cm;
+    CompiledMethod* cm; // slot
     VMMethod* vmm;
 
-    Module* module;
+    Module* module; // slot
 
-    Tuple* stack;
+    Tuple* stack; // slot
 
     size_t ip;
     int    sp;
     size_t args;
-    OBJECT block;
-    OBJECT name;
+    OBJECT block; // slot
+    OBJECT name; // slot
     bool   no_value;
 
     /* Locals are stored at the top of the stack. */
@@ -38,8 +38,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void mark(MethodContext* obj);
+      BASIC_TYPEINFO(TypeInfo)
     };
   };
 
@@ -56,7 +55,7 @@ namespace rubinius {
 
     class Info : public MethodContext::Info {
     public:
-      Info(object_type type) : MethodContext::Info(type) { }
+      BASIC_TYPEINFO(MethodContext::Info)
     };
   };
 

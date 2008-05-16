@@ -42,6 +42,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
+      virtual void mark(OBJECT t, ObjectMark& mark);
     };
   };
 }

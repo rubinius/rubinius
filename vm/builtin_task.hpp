@@ -5,7 +5,15 @@
 #include "message.hpp"
 #include "builtin_channel.hpp"
 
+#include <stdexcept>
+
 namespace rubinius {
+
+  class TaskProbe {
+  public:
+    void start_method(Task* task, Message& msg);
+    void lookup_failed(Task* task, Message& msg);
+  };
 
   class ArgumentError : public VMException {
   public:
@@ -26,31 +34,33 @@ namespace rubinius {
     native_int ip;
     int    sp;
 
-    OBJECT self;
-    Tuple* literals;
-    MethodContext* active;
+    OBJECT self; // slot
+    Tuple* literals; // slot
+    MethodContext* active; // slot
 
     /* globals */
-    Exception* exception;
+    Exception* exception; // slot
     int call_flags;
     opcode blockargs;
 
     /* Internal data */
-    Tuple* stack;
+    Tuple* stack; // slot
     STATE;
+    TaskProbe *probe;
 
     /* Optimization */
     opcode *ip_ptr;
 
     /* Data */
-    Channel* debug_channel;
-    Channel* control_channel;
+    Channel* debug_channel; // slot
+    Channel* control_channel; // slot
 
     static void init(STATE);
     static Task* create(STATE, OBJECT recv, CompiledMethod* meth);
     static Task* create(STATE);
 
-    MethodContext* generate_context(OBJECT recv, CompiledMethod* meth);
+    MethodContext* generate_context(OBJECT recv, CompiledMethod* meth, VMMethod* vmm);
+    void restore_context(MethodContext* ctx);
     void make_active(MethodContext* ctx);
     void execute();
     void import_arguments(MethodContext* ctx, Message& msg);
@@ -89,8 +99,12 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void mark(Task* obj);
+      BASIC_TYPEINFO(TypeInfo)
+    };
+
+    class Halt : public std::runtime_error {
+    public:
+      Halt(char* str) : std::runtime_error(str) { }
     };
   };
 }

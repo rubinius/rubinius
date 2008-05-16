@@ -16,7 +16,6 @@ namespace rubinius {
   void Hash::setup(STATE, size_t size) {
     keys = Qnil;
     SET(this, values, Tuple::create(state, size));
-    SET(this, bins, Object::i2n(size));
     SET(this, entries, Object::i2n(0));
     default_value = Qnil;
   }
@@ -27,11 +26,10 @@ namespace rubinius {
     OBJECT tmp;
     Tuple *vals, *lst, *ent, *next;
 
-    size = bins->n2i();
+    size = values->field_count;
     dup = Hash::create(state, size);
     state->om->set_class(dup, class_object(state));
 
-    SET(dup, bins, Object::i2n(size));
     SET(dup, entries, entries);
     SET(dup, default_value, dup->default_value);
     dup->keys = Qnil;
@@ -84,7 +82,7 @@ namespace rubinius {
   }
 
   OBJECT Hash::add_entry(STATE, hashval hsh, Tuple* ent) {
-    size_t bin = find_bin(hsh, bins->n2i());
+    size_t bin = find_bin(hsh, values->field_count);
 
     if(Tuple* entry = try_as<Tuple>(values->at(bin))) {
       entry_append(state, entry, ent);
@@ -97,7 +95,7 @@ namespace rubinius {
   }
 
   void Hash::redistribute(STATE) {
-    size_t num = bins->n2i();
+    size_t num = values->field_count;
 
     /* TODO: calculate the size both up and down.
      * i.e. don't assume we're only growing
@@ -123,15 +121,14 @@ namespace rubinius {
         entry = next;
       }
     }
-
+    
     SET(this, values, new_values);
-    bins = Object::i2n(size);
   }
 
   /* Find the entry that has a hash value of +hsh+. Return NULL if nothing
    * found. */
   Tuple* Hash::find_entry(STATE, hashval hsh) {
-    size_t num = bins->n2i();
+    size_t num = values->field_count;
     size_t bin = find_bin(hsh, num);
     Tuple* entry = try_as<Tuple>(values->at(bin));
     if(!entry) return NULL;
@@ -280,7 +277,7 @@ namespace rubinius {
     Tuple *lk;
     INTEGER th;
 
-    bin = find_bin(hsh, bins->n2i());
+    bin = find_bin(hsh, values->field_count);
     entry = (Tuple*)values->at(bin);
 
     lst = (Tuple*)Qnil;

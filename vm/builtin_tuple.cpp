@@ -32,4 +32,13 @@ namespace rubinius {
     return val;
   }
 
+  void Tuple::Info::mark(OBJECT obj, ObjectMark& mark) {
+    OBJECT tmp;
+    Tuple* tup = as<Tuple>(obj);
+
+    for(size_t i = 0; i < tup->field_count; i++) {
+      tmp = mark.call(tup->field[i]);
+      if(tmp) mark.set(obj, &tup->field[i], tmp);
+    }
+  }
 }

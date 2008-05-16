@@ -6,14 +6,14 @@ namespace rubinius {
     MethodContext* ctx;
     ctx = (MethodContext*)state->new_struct(G(methctx), sizeof(MethodContext));
     ctx->no_value = false;
+    SET(ctx, block, Qnil);
+    SET(ctx, name, Qnil);
+
     return ctx;
   }
 
   void MethodContext::reference(STATE) {
 
-  }
-
-  void MethodContext::Info::mark(MethodContext* obj) {
   }
 
   BlockContext* BlockContext::create(STATE) {

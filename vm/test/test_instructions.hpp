@@ -25,14 +25,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_noop;
 #define run(val) task->execute_stream(stream)
-#line 255 "instructions.rb"
+#line 255 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(task->sp, -1);
 #undef run
@@ -42,14 +42,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_nil;
 #define run(val) task->execute_stream(stream)
-#line 437 "instructions.rb"
+#line 437 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT_EQUALS(stack->at(task->sp), Qnil);
@@ -60,14 +60,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_true;
 #define run(val) task->execute_stream(stream)
-#line 463 "instructions.rb"
+#line 463 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
@@ -78,14 +78,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_false;
 #define run(val) task->execute_stream(stream)
-#line 489 "instructions.rb"
+#line 489 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT_EQUALS(stack->at(task->sp), Qfalse);
@@ -96,14 +96,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_int;
 #define run(val) task->execute_stream(stream)
-#line 289 "instructions.rb"
+#line 289 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stream[1] = (opcode)47;
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
@@ -116,14 +116,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_context;
 #define run(val) task->execute_stream(stream)
-#line 517 "instructions.rb"
+#line 517 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT_EQUALS(stack->at(task->sp), task->active);
@@ -134,14 +134,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_literal;
 #define run(val) task->execute_stream(stream)
-#line 550 "instructions.rb"
+#line 550 "/Users/evanphx/git/rbx/vm/instructions.rb"
     task->literals = Tuple::from(state, 1, Qtrue);
     stream[1] = (opcode)0;
     run();
@@ -154,14 +154,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_self;
 #define run(val) task->execute_stream(stream)
-#line 619 "instructions.rb"
+#line 619 "/Users/evanphx/git/rbx/vm/instructions.rb"
     task->self = Qtrue;
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
@@ -173,14 +173,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_goto;
 #define run(val) task->execute_stream(stream)
-#line 970 "instructions.rb"
+#line 970 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stream[1] = (opcode)15;
     run();
     TS_ASSERT_EQUALS(task->ip, 15);
@@ -191,14 +191,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_goto_if_false;
 #define run(val) task->execute_stream(stream)
-#line 1007 "instructions.rb"
+#line 1007 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stack->put(state, ++task->sp, Qtrue);
     stream[1] = (opcode)15;
     run();
@@ -216,14 +216,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_goto_if_true;
 #define run(val) task->execute_stream(stream)
-#line 1051 "instructions.rb"
+#line 1051 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stack->put(state, ++task->sp, Qfalse);
     stream[1] = (opcode)15;
     run();
@@ -241,14 +241,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_goto_if_defined;
 #define run(val) task->execute_stream(stream)
-#line 1096 "instructions.rb"
+#line 1096 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stack->put(state, ++task->sp, Qundef);
     stream[1] = (opcode)15;
     run();
@@ -266,14 +266,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_swap_stack;
 #define run(val) task->execute_stream(stream)
-#line 1136 "instructions.rb"
+#line 1136 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stack->put(state, ++task->sp, Qtrue);
     stack->put(state, ++task->sp, Qfalse);
 
@@ -289,14 +289,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_dup_top;
 #define run(val) task->execute_stream(stream)
-#line 1171 "instructions.rb"
+#line 1171 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stack->put(state, ++task->sp, Qtrue);
 
     run();
@@ -310,14 +310,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_pop;
 #define run(val) task->execute_stream(stream)
-#line 1203 "instructions.rb"
+#line 1203 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stack->put(state, ++task->sp, Qtrue);
 
     run();
@@ -330,14 +330,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_set_local;
 #define run(val) task->execute_stream(stream)
-#line 1243 "instructions.rb"
+#line 1243 "/Users/evanphx/git/rbx/vm/instructions.rb"
     task->sp++; /* reserve space */
     stack->put(state, ++task->sp, Qtrue);
 
@@ -353,14 +353,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_local;
 #define run(val) task->execute_stream(stream)
-#line 649 "instructions.rb"
+#line 649 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stack->put(state, ++task->sp, Qtrue);
     stream[1] = (opcode)0;
     run();
@@ -373,14 +373,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_exception;
 #define run(val) task->execute_stream(stream)
-#line 749 "instructions.rb"
+#line 749 "/Users/evanphx/git/rbx/vm/instructions.rb"
     Exception* exc = Exception::create(state);
     task->exception = exc;
     run();
@@ -393,14 +393,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_make_array;
 #define run(val) task->execute_stream(stream)
-#line 1362 "instructions.rb"
+#line 1362 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stack->put(state, ++task->sp, Qtrue);
     stack->put(state, ++task->sp, Qfalse);
 
@@ -418,14 +418,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_set_ivar;
 #define run(val) task->execute_stream(stream)
-#line 1651 "instructions.rb"
+#line 1651 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("@blah");
     task->self = Qtrue;
     task->literals->put(state, 0, name);
@@ -444,14 +444,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_ivar;
 #define run(val) task->execute_stream(stream)
-#line 841 "instructions.rb"
+#line 841 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("@blah");
     task->self = Qtrue;
     task->self->set_ivar(state, name, Qtrue);
@@ -469,14 +469,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_const;
 #define run(val) task->execute_stream(stream)
-#line 1699 "instructions.rb"
+#line 1699 "/Users/evanphx/git/rbx/vm/instructions.rb"
     Module* parent = state->new_module("Parent");
     Module* child =  state->new_module("Parent::Child");
 
@@ -507,14 +507,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_set_const;
 #define run(val) task->execute_stream(stream)
-#line 1801 "instructions.rb"
+#line 1801 "/Users/evanphx/git/rbx/vm/instructions.rb"
     Module* parent = state->new_module("Parent");
 
     StaticScope* ps = StaticScope::create(state);
@@ -538,14 +538,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_set_const_at;
 #define run(val) task->execute_stream(stream)
-#line 1849 "instructions.rb"
+#line 1849 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("Age");
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
@@ -564,14 +564,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_find_const;
 #define run(val) task->execute_stream(stream)
-#line 1762 "instructions.rb"
+#line 1762 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("Number");
     G(true_class)->set_const(state, name, Object::i2n(3));
 
@@ -590,25 +590,27 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_attach_method;
 #define run(val) task->execute_stream(stream)
-#line 2186 "instructions.rb"
+#line 2185 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("blah");
     task->literals->put(state, 0, name);
 
     stack->put(state, ++task->sp, cm);
-    stack->put(state, ++task->sp, Qtrue);
+    stack->put(state, ++task->sp, G(true_class));
 
     stream[1] = (opcode)0;
 
     run();
 
-    TS_ASSERT_EQUALS(Qtrue->metaclass(state)->method_table->fetch(state, name), cm);
+    TS_ASSERT_EQUALS(G(true_class)->metaclass(state)->method_table->fetch(state, name), cm);
+    TS_ASSERT(!cm->scope->nil_p());
+    TS_ASSERT_EQUALS(cm->scope->module, G(true_class));
 #undef run
 }
 void test_add_method() {
@@ -616,14 +618,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_add_method;
 #define run(val) task->execute_stream(stream)
-#line 2239 "instructions.rb"
+#line 2239 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("blah");
     task->literals->put(state, 0, name);
 
@@ -642,14 +644,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_open_class;
 #define run(val) task->execute_stream(stream)
-#line 2004 "instructions.rb"
+#line 2004 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("C");
 
     StaticScope* ps = StaticScope::create(state);
@@ -672,14 +674,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_open_class_under;
 #define run(val) task->execute_stream(stream)
-#line 1942 "instructions.rb"
+#line 1942 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("C");
     stack->put(state, ++task->sp, G(true_class));
     stack->put(state, ++task->sp, Qnil);
@@ -697,14 +699,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_open_module;
 #define run(val) task->execute_stream(stream)
-#line 2093 "instructions.rb"
+#line 2093 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("C");
 
     StaticScope* ps = StaticScope::create(state);
@@ -725,14 +727,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_open_module_under;
 #define run(val) task->execute_stream(stream)
-#line 2052 "instructions.rb"
+#line 2052 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("C");
     stack->put(state, ++task->sp, G(true_class));
 
@@ -749,14 +751,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_cast_tuple;
 #define run(val) task->execute_stream(stream)
-#line 1475 "instructions.rb"
+#line 1475 "/Users/evanphx/git/rbx/vm/instructions.rb"
     Array* custom = Array::create(state, 1);
     custom->set(state, 0, Qtrue);
     stack->put(state, ++task->sp, custom);
@@ -784,14 +786,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_send_method;
 #define run(val) task->execute_stream(stream)
-#line 2289 "instructions.rb"
+#line 2289 "/Users/evanphx/git/rbx/vm/instructions.rb"
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(0);
@@ -819,14 +821,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_send_stack;
 #define run(val) task->execute_stream(stream)
-#line 2381 "instructions.rb"
+#line 2381 "/Users/evanphx/git/rbx/vm/instructions.rb"
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(1);
@@ -846,6 +848,8 @@ stream[0] = InstructionSequence::insn_send_stack;
 
     run();
 
+    MethodContext* s = task->active->sender;
+    TS_ASSERT_EQUALS(s->sp, -1);
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1);
     TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
@@ -857,14 +861,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_send_stack_with_block;
 #define run(val) task->execute_stream(stream)
-#line 2451 "instructions.rb"
+#line 2455 "/Users/evanphx/git/rbx/vm/instructions.rb"
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(1);
@@ -899,14 +903,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_send_stack_with_splat;
 #define run(val) task->execute_stream(stream)
-#line 2542 "instructions.rb"
+#line 2546 "/Users/evanphx/git/rbx/vm/instructions.rb"
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(2);
@@ -946,14 +950,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_send_super_stack_with_block;
 #define run(val) task->execute_stream(stream)
-#line 2617 "instructions.rb"
+#line 2621 "/Users/evanphx/git/rbx/vm/instructions.rb"
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(1);
@@ -999,14 +1003,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_send_super_stack_with_splat;
 #define run(val) task->execute_stream(stream)
-#line 2710 "instructions.rb"
+#line 2714 "/Users/evanphx/git/rbx/vm/instructions.rb"
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 0);
     target->total_args = Object::i2n(2);
@@ -1057,14 +1061,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_block;
 #define run(val) task->execute_stream(stream)
-#line 811 "instructions.rb"
+#line 811 "/Users/evanphx/git/rbx/vm/instructions.rb"
     BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active);
     task->active->block = be;
     run();
@@ -1078,14 +1082,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_clear_exception;
 #define run(val) task->execute_stream(stream)
-#line 777 "instructions.rb"
+#line 777 "/Users/evanphx/git/rbx/vm/instructions.rb"
     task->exception = Exception::create(state);
     run();
     TS_ASSERT_EQUALS(task->exception, Qnil);
@@ -1096,14 +1100,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_cast_array;
 #define run(val) task->execute_stream(stream)
-#line 1414 "instructions.rb"
+#line 1414 "/Users/evanphx/git/rbx/vm/instructions.rb"
     stack->put(state, ++task->sp, Qtrue);
     run();
 
@@ -1128,14 +1132,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_cpath_top;
 #define run(val) task->execute_stream(stream)
-#line 1888 "instructions.rb"
+#line 1888 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(stack->at(task->sp), G(object));
 #undef run
@@ -1145,14 +1149,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_my_field;
 #define run(val) task->execute_stream(stream)
-#line 880 "instructions.rb"
+#line 880 "/Users/evanphx/git/rbx/vm/instructions.rb"
     Tuple* tup = Tuple::create(state, 3);
     tup->put(state, 0, Qtrue);
 
@@ -1180,14 +1184,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_store_my_field;
 #define run(val) task->execute_stream(stream)
-#line 929 "instructions.rb"
+#line 929 "/Users/evanphx/git/rbx/vm/instructions.rb"
     Tuple* tup = Tuple::create(state, 3);
     tup->put(state, 0, Qnil);
 
@@ -1207,14 +1211,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_open_metaclass;
 #define run(val) task->execute_stream(stream)
-#line 2140 "instructions.rb"
+#line 2140 "/Users/evanphx/git/rbx/vm/instructions.rb"
     Tuple* tup = Tuple::create(state, 1);
     stack->put(state, ++task->sp, tup);
 
@@ -1228,14 +1232,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_push_local_depth;
 #define run(val) task->execute_stream(stream)
-#line 697 "instructions.rb"
+#line 697 "/Users/evanphx/git/rbx/vm/instructions.rb"
     BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active);
     BlockContext* bc = be->create_context(state);
 
@@ -1260,14 +1264,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_set_local_depth;
 #define run(val) task->execute_stream(stream)
-#line 1305 "instructions.rb"
+#line 1305 "/Users/evanphx/git/rbx/vm/instructions.rb"
     BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active);
     BlockContext* bc = be->create_context(state);
 
@@ -1294,14 +1298,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_locate_method;
 #define run(val) task->execute_stream(stream)
-#line 2786 "instructions.rb"
+#line 2790 "/Users/evanphx/git/rbx/vm/instructions.rb"
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table->store(state, name, cm);
 
@@ -1319,14 +1323,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_set_literal;
 #define run(val) task->execute_stream(stream)
-#line 589 "instructions.rb"
+#line 589 "/Users/evanphx/git/rbx/vm/instructions.rb"
     task->literals = Tuple::from(state, 1, Qtrue);
     stream[1] = (opcode)0;
     stack->put(state, ++task->sp, Qtrue);
@@ -1341,14 +1345,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_cast_for_single_block_arg;
 #define run(val) task->execute_stream(stream)
-#line 1537 "instructions.rb"
+#line 1537 "/Users/evanphx/git/rbx/vm/instructions.rb"
     Tuple* tup = Tuple::create(state, 0);
     stack->put(state, ++task->sp, tup);
     run();
@@ -1375,14 +1379,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_cast_for_multi_block_arg;
 #define run(val) task->execute_stream(stream)
-#line 1608 "instructions.rb"
+#line 1608 "/Users/evanphx/git/rbx/vm/instructions.rb"
     Tuple* tup = Tuple::from(state, 2, Qtrue, Qfalse);
     stack->put(state, ++task->sp, tup);
     run();
@@ -1404,14 +1408,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_push_neg_1;
 #define run(val) task->execute_stream(stream)
-#line 320 "instructions.rb"
+#line 320 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
@@ -1423,14 +1427,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_push_0;
 #define run(val) task->execute_stream(stream)
-#line 350 "instructions.rb"
+#line 350 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
@@ -1442,14 +1446,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_push_1;
 #define run(val) task->execute_stream(stream)
-#line 380 "instructions.rb"
+#line 380 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
@@ -1461,14 +1465,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_push_2;
 #define run(val) task->execute_stream(stream)
-#line 410 "instructions.rb"
+#line 410 "/Users/evanphx/git/rbx/vm/instructions.rb"
     run();
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
@@ -1480,14 +1484,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_send_op_plus;
 #define run(val) task->execute_stream(stream)
-#line 2834 "instructions.rb"
+#line 2838 "/Users/evanphx/git/rbx/vm/instructions.rb"
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
@@ -1505,14 +1509,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_send_op_minus;
 #define run(val) task->execute_stream(stream)
-#line 2882 "instructions.rb"
+#line 2886 "/Users/evanphx/git/rbx/vm/instructions.rb"
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
@@ -1530,14 +1534,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_send_op_equal;
 #define run(val) task->execute_stream(stream)
-#line 2931 "instructions.rb"
+#line 2935 "/Users/evanphx/git/rbx/vm/instructions.rb"
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
@@ -1555,14 +1559,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_send_op_lt;
 #define run(val) task->execute_stream(stream)
-#line 3084 "instructions.rb"
+#line 3088 "/Users/evanphx/git/rbx/vm/instructions.rb"
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
@@ -1580,14 +1584,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_send_op_gt;
 #define run(val) task->execute_stream(stream)
-#line 3134 "instructions.rb"
+#line 3138 "/Users/evanphx/git/rbx/vm/instructions.rb"
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
@@ -1605,14 +1609,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_send_op_tequal;
 #define run(val) task->execute_stream(stream)
-#line 3034 "instructions.rb"
+#line 3038 "/Users/evanphx/git/rbx/vm/instructions.rb"
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
@@ -1630,14 +1634,14 @@ Task* task = Task::create(state);
 CompiledMethod* cm = CompiledMethod::create(state);
 cm->iseq = InstructionSequence::create(state, 10);
 cm->stack_size = Object::i2n(10);
-MethodContext* ctx = task->generate_context(Qnil, cm);
+MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));
 task->make_active(ctx);
 Tuple* stack = task->stack; stack += 0;
 task->literals = Tuple::create(state, 10);
 opcode stream[100];
 stream[0] = InstructionSequence::insn_meta_send_op_nequal;
 #define run(val) task->execute_stream(stream)
-#line 2983 "instructions.rb"
+#line 2987 "/Users/evanphx/git/rbx/vm/instructions.rb"
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 

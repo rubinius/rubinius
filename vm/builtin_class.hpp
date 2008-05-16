@@ -29,9 +29,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
   };
 
@@ -53,19 +51,9 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
   };
-
-  /* See t1 */
-  template <>
-    static bool kind_of<Module>(OBJECT obj) {
-      return obj->reference_p() &&
-        (obj->obj_type == Module::type ||
-         kind_of<Class>(obj));
-    }
 
   class MetaClass : public Class {
     public:
@@ -78,9 +66,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
   };
 
@@ -93,11 +79,20 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
   };
+
+  /* See t1 */
+  template <>
+    static bool kind_of<Module>(OBJECT obj) {
+      return obj->reference_p() &&
+        (obj->obj_type == Module::type ||
+         obj->obj_type == Class::type ||
+         obj->obj_type == MetaClass::type ||
+         obj->obj_type == IncludedModule::type);
+    }
+
 
 };
 

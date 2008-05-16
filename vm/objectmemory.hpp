@@ -67,15 +67,63 @@ namespace rubinius {
       target->klass = (Class*)obj;
       if(obj->reference_p()) {
         write_barrier(target, obj);
-
-        Class *cls = (Class*)obj;
-        target->obj_type = (object_type)cls->instance_type->to_nint();
-        target->CanStoreIvars = (cls->has_ivars == Qtrue);
-        target->RequiresCleanup = (cls->needs_cleanup == Qtrue);
       }
     }
 
-    OBJECT new_object(OBJECT cls, size_t fields) {
+    OBJECT allocate_object(size_t fields) {
+      OBJECT obj;
+      gc_zone loc;
+
+      if(fields > large_object_threshold) {
+        obj = mature.allocate(fields, &collect_mature_now);
+        loc = MatureObjectZone;
+      } else {
+        if((obj = young.allocate(fields, &collect_young_now))) {
+          loc = YoungObjectZone;
+        } else {
+          obj = mature.allocate(fields, &collect_mature_now);
+          loc = MatureObjectZone;
+        }
+      }
+
+      obj->klass = NULL;
+      obj->init(loc, fields);
+      obj->clear_fields();
+      return obj;
+    }
+
+    OBJECT allocate_bytes(size_t bytes) {
+      const size_t mag = sizeof(OBJECT);
+      size_t fields;
+      size_t needed = bytes + 1;
+      if(needed <= mag) {
+        fields =  1;
+      } else {
+        fields = (needed + (mag - (needed & mag - 1))) / mag;
+      }
+
+      OBJECT obj = allocate_object(fields);
+      obj->init_bytes();
+
+      return obj;
+    }
+
+    OBJECT allocate_mature(size_t fields, bool bytes = false) {
+      OBJECT obj = mature.allocate(fields, &collect_mature_now);
+
+      obj->klass = NULL;
+      obj->init(MatureObjectZone, fields);
+
+      if(bytes) {
+        obj->init_bytes();
+      } else {
+        obj->clear_fields();
+      }
+
+      return obj;
+    }
+
+    OBJECT new_object(Class* cls, size_t fields) {
       OBJECT obj = create_object(cls, fields);
 
       obj->clear_fields();
@@ -83,7 +131,7 @@ namespace rubinius {
       return obj;
     }
 
-    OBJECT new_object_bytes(OBJECT cls, size_t bytes) {
+    OBJECT new_object_bytes(Class* cls, size_t bytes) {
       const size_t mag = sizeof(OBJECT);
       size_t fields;
       size_t needed = bytes + 1;
@@ -100,7 +148,7 @@ namespace rubinius {
       return obj;
     }
 
-    OBJECT new_object_mature(OBJECT cls, size_t fields, bool bytes = false) {
+    OBJECT new_object_mature(Class* cls, size_t fields, bool bytes = false) {
       OBJECT obj = mature.allocate(fields, &collect_mature_now);
 
       obj->init(MatureObjectZone, fields);
@@ -116,7 +164,7 @@ namespace rubinius {
       return obj;
     }
 
-    OBJECT create_object(OBJECT cls, size_t fields) {
+    OBJECT create_object(Class* cls, size_t fields) {
       OBJECT obj;
       gc_zone loc;
 
@@ -134,6 +182,10 @@ namespace rubinius {
 
       obj->init(loc, fields);
       set_class(obj, cls);
+
+      obj->obj_type = (object_type)cls->instance_type->to_nint();
+      obj->CanStoreIvars = (cls->has_ivars == Qtrue);
+      obj->RequiresCleanup = (cls->needs_cleanup == Qtrue);
 
       return obj;
     }
@@ -155,11 +207,13 @@ namespace rubinius {
 
   };
 
-#define SET(obj, field, val) ({ \
+#define OSET(om, obj, field, val) ({ \
     typeof(obj) _o = (obj); OBJECT  _v = (val); \
     if(_v->nil_p()) { _o->field = (typeof(_o->field))Qnil; } else { \
-    _o->field = as<typeof(*_o->field)>(_v); state->om->write_barrier(_o, _v); } })
+    _o->field = as<typeof(*_o->field)>(_v); om->write_barrier(_o, _v); } })
 
+
+#define SET(obj, field, val) OSET(state->om, obj, field, val)
 
 #define FREE(obj) free(obj)
 #define ALLOC_N(type, size) ((type*)calloc(size, sizeof(type)))

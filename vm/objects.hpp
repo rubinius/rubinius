@@ -56,10 +56,11 @@ namespace rubinius {
     const static object_type type = ObjectType;
 
     OBJECT instance_variables;
-    
+
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
+      virtual void mark(OBJECT t, ObjectMark& mark);
     };
   };
 };
@@ -90,13 +91,13 @@ namespace rubinius {
 namespace rubinius {
   template <>
     static bool kind_of<Numeric>(OBJECT obj) {
-      return obj->fixnum_p() || 
+      return obj->fixnum_p() ||
         (obj->reference_p() && (
           obj->obj_type == Bignum::type ||
           obj->obj_type == Float::type));
     }
 }
-  
+
 #include "builtin_list.hpp"
 #include "builtin_selector.hpp"
 #include "builtin_task.hpp"
@@ -105,5 +106,7 @@ namespace rubinius {
 
 #include "builtin_memorypointer.hpp"
 #include "builtin_nativefunction.hpp"
+
+#include "builtin_thread.hpp"
 
 #endif

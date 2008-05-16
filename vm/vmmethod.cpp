@@ -1,7 +1,8 @@
 #include "objects.hpp"
 
 namespace rubinius {
-  VMMethod::VMMethod(CompiledMethod* meth) : original(meth) {
+  VMMethod::VMMethod(STATE, CompiledMethod* meth) : 
+      original(state, meth) {
     total = meth->iseq->opcodes->field_count;
 
     opcodes = new opcode[total];
@@ -14,10 +15,6 @@ namespace rubinius {
         opcodes[index] = as<Fixnum>(val)->n2i();
       }
     }
-  }
-
-  VMMethod::VMMethod(size_t fields) {
-    opcodes = new opcode[fields];
   }
 
   VMMethod::~VMMethod() {
@@ -39,5 +36,12 @@ namespace rubinius {
         }
       }
     }
+  }
+
+  void VMMethod::execute(STATE, Task* task, Message& msg) {
+    MethodContext* ctx = task->generate_context(msg.recv, original.get(), this);
+
+    task->import_arguments(ctx, msg);
+    task->make_active(ctx);
   }
 }

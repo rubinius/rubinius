@@ -37,4 +37,6 @@ namespace rubinius {
   void Float::into_string(STATE, char* buf, size_t sz) {
     snprintf(buf, sz, "%+.17e", val);
   }
+
+  void Float::Info::mark(OBJECT t, ObjectMark& mark) { }
 }

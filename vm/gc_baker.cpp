@@ -47,8 +47,9 @@ namespace rubinius {
     return tmp;
   }
 
-  BakerGC::BakerGC(ObjectMemory *om, size_t bytes)
-          :GarbageCollector(om), heap_a(bytes), heap_b(bytes) {
+  BakerGC::BakerGC(ObjectMemory *om, size_t bytes) :
+    GarbageCollector(om), heap_a(bytes), heap_b(bytes), total_objects(0)
+  {
     current = &heap_a;
     next = &heap_b;
   }
@@ -66,6 +67,7 @@ namespace rubinius {
       copy = object_memory->promote_object(obj);
     } else if(next->enough_space_p(obj->size_in_bytes())) {
       copy = next->copy_object(obj);
+      total_objects++;
     } else {
       copy = object_memory->promote_object(obj);
     }
@@ -90,6 +92,7 @@ namespace rubinius {
     ObjectArray *current_rs = object_memory->remember_set;
 
     object_memory->remember_set = new ObjectArray(0);
+    total_objects = 0;
 
     ObjectArray::iterator oi;
     for(oi = current_rs->begin(); oi != current_rs->end(); oi++) {

@@ -29,7 +29,7 @@ public:
 
     SET(cm, iseq, iseq);
    
-    VMMethod vmm(cm);
+    VMMethod vmm(state, cm);
 
     TS_ASSERT_EQUALS(vmm.total, 1);
     TS_ASSERT_EQUALS(vmm.opcodes[0], 0);
@@ -46,9 +46,9 @@ public:
     iseq->opcodes->put(state, 2, Object::i2n(InstructionSequence::insn_push_nil));
 
     SET(cm, iseq, iseq);
-    
-    VMMethod vmm(cm);
-    
+
+    VMMethod vmm(state, cm);
+
     TypeInfo ti(ObjectType);
     ti.slots[state->symbol("@blah")->index()] = 5;
     vmm.specialize(&ti);

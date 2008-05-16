@@ -1,23 +1,25 @@
 #ifndef RBX_VMMETHOD_HPP
 #define RBX_VMMETHOD_HPP
 
+#include "vmexecutable.hpp"
+
 namespace rubinius {
   typedef void* instlocation;
   typedef uint32_t opcode;
 
-  class VMMethod {
+  class VMMethod : public VMExecutable {
   public:
     static instlocation* instructions;
 
     opcode* opcodes;
     size_t total;
-    CompiledMethod* original;
+    TypedRoot<CompiledMethod*> original;
 
-    VMMethod(CompiledMethod* meth);
-    VMMethod(size_t fields);
+    VMMethod(STATE, CompiledMethod* meth);
     ~VMMethod();
 
     void specialize(TypeInfo* ti);
+    virtual void execute(STATE, Task* task, Message& msg);
   };
 };
 

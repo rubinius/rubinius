@@ -10,6 +10,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
+      virtual void mark(STATE, OBJECT t, ObjectMark& mark);
       virtual void cleanup(OBJECT obj);
     };
   };
@@ -34,9 +35,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
 
   };
@@ -54,9 +53,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
   };
 

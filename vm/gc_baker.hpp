@@ -87,6 +87,7 @@ namespace rubinius {
     Heap *current;
     Heap *next;
     size_t lifetime;
+    size_t total_objects;
 
     /* Inline methods */
     OBJECT allocate(size_t fields, bool *collect_now) {
@@ -97,11 +98,13 @@ namespace rubinius {
         if(!next->enough_space_p(bytes)) {
           return NULL;
         } else {
+          total_objects++;
           obj = (OBJECT)next->allocate(bytes);
         }
 
         *collect_now = true;
       } else {
+        total_objects++;
         obj = (OBJECT)current->allocate(bytes);
       }
 

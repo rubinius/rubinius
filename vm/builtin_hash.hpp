@@ -47,15 +47,13 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
 
   };
 
 #define HASH_MAX_DENSITY 0.75
-#define hash_redistribute_p(hash) (hash->entries->n2i() >= HASH_MAX_DENSITY * hash->bins->n2i())
+#define hash_redistribute_p(hash) (hash->entries->n2i() >= HASH_MAX_DENSITY * hash->values->field_count)
 };
 
 #endif

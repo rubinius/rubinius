@@ -3,9 +3,23 @@
 #include "builtin_task.hpp"
 #include "builtin_channel.hpp"
 #include "message.hpp"
+#include "global_cache.hpp"
+
 #include <csignal>
+#include <sstream>
 
 namespace rubinius {
+
+  void TaskProbe::start_method(Task* task, Message& msg) {
+    std::cout << "[Sending: '" << *msg.send_site->name->to_str(task->state) <<
+      "']" << std::endl;
+  }
+  
+  void TaskProbe::lookup_failed(Task* task, Message& msg) {
+    std::cout << "[Unable to find: '" << *msg.send_site->name->to_str(task->state) <<
+      "']" << std::endl;
+  }
+
   void Task::init(STATE) {
     GO(task).set(state->new_class("Task", Task::fields));
     G(task)->set_object_type(Task::type);
@@ -16,7 +30,10 @@ namespace rubinius {
 
   Task* Task::create(STATE, OBJECT recv, CompiledMethod* meth) {
     Task* task = create(state);
-    task->make_active(task->generate_context(recv, meth));
+
+    Message msg(state, Array::create(state, 0));
+    meth->execute(state, task, msg);
+
     return task;
   }
 
@@ -25,17 +42,23 @@ namespace rubinius {
     task->ip = 0;
     task->sp = -1;
     task->state = state;
+    task->probe = state->probe;
     SET(task, control_channel, Qnil);
     SET(task, debug_channel, Qnil);
-    SET(task, active, Qnil);
+    SET(task, self, G(main));
+    SET(task, literals, Qnil);
+    SET(task, exception, Qnil);
+    SET(task, stack, Qnil);
+
+    CompiledMethod* cm = CompiledMethod::generate_tramp(state);
+    MethodContext* ctx = task->generate_context(G(main), cm, cm->vmmethod(state));
+
+    SET(task, active, ctx);
 
     return task;
   }
 
-  void Task::Info::mark(Task* obj) {
-  }
-
-  MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth) {
+  MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth, VMMethod* vmm) {
     MethodContext* ctx = MethodContext::create(state);
 
     SET(ctx, sender, (MethodContext*)Qnil);
@@ -44,20 +67,17 @@ namespace rubinius {
     SET(ctx, module, G(object));
     SET(ctx, stack, Tuple::create(state, meth->stack_size->n2i()));
 
-    ctx->vmm = meth->vmmethod(state);
+    ctx->vmm = vmm;
     ctx->ip = 0;
     ctx->sp = meth->number_of_locals() - 1;
 
     return ctx;
   }
 
-  void Task::make_active(MethodContext* ctx) {
-
+  void Task::restore_context(MethodContext* ctx) {
     ip = ctx->ip;
     sp = ctx->sp;
     self = ctx->self;
-
-    SET(ctx, sender, active);
 
     literals = ctx->cm->literals;
     stack = ctx->stack;
@@ -65,6 +85,19 @@ namespace rubinius {
 
     active = ctx;
   }
+
+  void Task::make_active(MethodContext* ctx) {
+    /* Save the current Task registers into active. */
+    if(!active->nil_p()) {
+      active->ip = ip;
+      active->sp = sp;
+    }
+
+    SET(ctx, sender, active);
+
+    restore_context(ctx);
+  }
+
 
   void Task::import_arguments(MethodContext* ctx, Message& msg) {
     size_t total = ctx->cm->total_args->n2i();
@@ -74,7 +107,7 @@ namespace rubinius {
     ctx->args = msg.args;
 
     /* No input args and no expected args. Done. */
-    if(total == 0 && msg.args == 0) return;
+    if(total == 0 && msg.args == 0) goto stack_cleanup;
 
     /* If too few args were passed in, throw an exception */
     if(msg.args < required) {
@@ -104,24 +137,30 @@ namespace rubinius {
 
       ctx->stack->put(msg.state, as<Integer>(ctx->cm->splat)->n2i(), ary);
     }
+
+    if(probe) {
+      probe->start_method(this, msg);
+    }
+
+    /* Now that we've processed everything from the stack, we need to clean it up */
+stack_cleanup:
+    sp -= msg.stack;
   }
 
   /* For details in msg, locate the proper method and begin execution
    * of it. */
   void Task::send_message(Message& msg) {
     if(!msg.send_site->locate(state, msg)) {
-      throw new Assertion("unable to locate any method");
+      if(probe) {
+        probe->lookup_failed(this, msg);
+      }
+      std::stringstream ss;
+      ss << "unable to locate any method '" << *msg.send_site->name->to_str(state) << "'";
+
+      throw new Assertion((char*)ss.str().c_str());
     }
 
-    MethodContext* ctx = generate_context(msg.recv, as<CompiledMethod>(msg.method));
-
-    import_arguments(ctx, msg);
-
-    active->ip = ip;
-    active->sp = sp;
-    ctx->sender = active;
-
-    make_active(ctx);
+    as<Executable>(msg.method)->execute(state, this, msg);
   }
 
   void Task::send_message_slowly(Message& msg) {
@@ -133,13 +172,7 @@ namespace rubinius {
       }
     }
 
-    MethodContext* ctx = generate_context(msg.recv, as<CompiledMethod>(msg.method));
-
-    active->ip = ip;
-    active->sp = sp;
-    ctx->sender = active;
-
-    make_active(ctx);
+    as<Executable>(msg.method)->execute(state, this, msg);
   }
 
  bool Task::perform_hook(OBJECT obj, SYMBOL name, OBJECT arg) {
@@ -148,22 +181,21 @@ namespace rubinius {
     msg.lookup_from = obj->lookup_begin(state);
     msg.name = name;
     msg.args = 1;
+    msg.use_from_task(this, 1);
 
     GlobalCacheResolver res;
 
     /* If we can't find it, give up. */
     if(!res.resolve(state, msg)) return false;
 
-    MethodContext* ctx = generate_context(obj, as<CompiledMethod>(msg.method));
-    /* Make sure we discard the return value */
-    ctx->no_value = true;
+    MethodContext* cur = active;
+    as<Executable>(msg.method)->execute(state, this, msg);
 
-    active->ip = ip;
-    active->sp = sp;
-
-    ctx->sender = active;
-
-    make_active(ctx);
+    /* Execute has installed a new active context. */
+    if(cur != active) {
+      /* Make sure we discard the return value */
+      active->no_value = true;
+    }
 
     return true;
   }
@@ -176,7 +208,7 @@ namespace rubinius {
     MethodContext *target = active->sender;
     bool push_value = !active->no_value;
 
-    make_active(target);
+    restore_context(target);
     if(push_value) stack->put(state, ++sp, value);
   }
 
@@ -223,11 +255,22 @@ namespace rubinius {
   }
 
   void Task::attach_method(OBJECT recv, SYMBOL name, CompiledMethod* method) {
+    if(kind_of<Module>(recv)) {
+      StaticScope* ss = StaticScope::create(state);
+      SET(ss, module, recv);
+      SET(ss, parent, method->scope);
+      SET(method, scope, ss);
+    } else {
+      /* Push the current scope down. */
+      SET(method, scope, active->cm->scope);
+    }
+
     add_method(recv->metaclass(state), name, method);
   }
 
   void Task::add_method(Module* mod, SYMBOL name, CompiledMethod* method) {
     mod->method_table->store(state, name, method);
+    state->global_cache->clear(mod, name);
   }
 
   bool Task::check_serial(OBJECT obj, SYMBOL sel, int ser) {
@@ -463,7 +506,7 @@ namespace rubinius {
 
 #define check_bounds(obj, index) sassert(obj->reference_p() && obj->field_count > index)
 #define check(expr)
-#define next_op() *ip_ptr++
+#define next_op() (active->vmm->opcodes[ip++])
 #define current_locals (stack)
 #define current_block  (active->block)
 #define argcount (active->args)
@@ -481,6 +524,10 @@ insn_start:
     for(;;) {
 next_op:
       opcode op = next_op();
+      /*
+      std::cout << (void*)active << ":" << ip << ", op: " <<
+          InstructionSequence::get_instruction_name(op) << " (" << op << ")" << std::endl;
+      */
 #include "gen/task_instructions_switch.c"
 check_interrupts:
       check_interrupts();

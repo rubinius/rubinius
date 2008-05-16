@@ -2,6 +2,7 @@
 #include "builtin_list.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "global_cache.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -31,12 +32,9 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    CompiledMethod* cm = create_cm();
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     TS_ASSERT(kind_of<Task>(task));
-
-    TS_ASSERT(kind_of<MethodContext>(task->active));
 
     TS_ASSERT_EQUALS(0, task->ip);
     TS_ASSERT_EQUALS(-1, task->sp);
@@ -44,7 +42,7 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_send_message() {
     CompiledMethod* cm = create_cm();
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
@@ -69,7 +67,7 @@ class TestTask : public CxxTest::TestSuite {
 
   void test_send_message_slowly() {
     CompiledMethod* cm = create_cm();
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
@@ -102,7 +100,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     Tuple* input_stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
     task->stack = input_stack;
@@ -133,7 +131,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     MethodContext* top = task->active;
 
@@ -172,7 +170,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     MethodContext* top = task->active;
 
@@ -212,7 +210,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     Tuple* input_stack = Tuple::from(state, 3,
         Object::i2n(3), Object::i2n(4), Object::i2n(5));
@@ -249,7 +247,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     Tuple* input_stack = Tuple::from(state, 4,
         Object::i2n(3), Object::i2n(4), Object::i2n(5) ,Object::i2n(6));
@@ -287,7 +285,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     Tuple* input_stack = Tuple::from(state, 4,
         Object::i2n(3), Object::i2n(4), Object::i2n(5) ,Object::i2n(6));
@@ -325,7 +323,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     Tuple* input_stack = Tuple::from(state, 3, Object::i2n(3), Object::i2n(4), Object::i2n(5));
     task->stack = input_stack;
@@ -425,7 +423,10 @@ class TestTask : public CxxTest::TestSuite {
 
     TS_ASSERT(!task->perform_hook(Qtrue, state->symbol("blah"), Qtrue));
 
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
+    CompiledMethod* hook = create_cm();
+    hook->required_args = Object::i2n(1);
+    hook->total_args = hook->required_args;
+    G(true_class)->method_table->store(state, state->symbol("blah"), hook);
 
     task->stack->put(state, ++task->sp, Qfalse);
     TS_ASSERT(task->perform_hook(Qtrue, state->symbol("blah"), Qtrue));
@@ -441,7 +442,7 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
@@ -454,7 +455,7 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     MethodVisibility* vis = MethodVisibility::create(state);
     vis->method = cm;
@@ -471,7 +472,7 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     MethodVisibility* vis = MethodVisibility::create(state);
     vis->method = cm;
@@ -488,7 +489,7 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
     task->attach_method(Qtrue, state->symbol("blah"), cm);
 
@@ -499,9 +500,16 @@ class TestTask : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     cm->stack_size = Object::i2n(1);
 
-    Task* task = Task::create(state, Qnil, cm);
+    Task* task = Task::create(state);
 
+    SYMBOL blah = state->symbol("blah");
+
+    state->global_cache->retain(state, G(true_class), blah, G(true_class), cm);
     task->add_method(G(true_class), state->symbol("blah"), cm);
+    struct GlobalCache::cache_entry *ent;
+    
+    ent = state->global_cache->lookup(G(true_class), blah);
+    TS_ASSERT(!ent);
 
     TS_ASSERT_EQUALS(cm, G(true_class)->method_table->fetch(state, state->symbol("blah")));
   }
@@ -570,9 +578,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(cs, module, child);
     SET(cs, parent, ps);
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, cs);
@@ -611,9 +617,7 @@ class TestTask : public CxxTest::TestSuite {
 
     SET(child, superclass, inc);
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, cs);
@@ -640,9 +644,7 @@ class TestTask : public CxxTest::TestSuite {
 
     G(object)->set_const(state, "Age", Object::i2n(28));
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, cs);
@@ -661,9 +663,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(ps, module, parent);
     ps->parent = (StaticScope*)Qnil;
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, ps);
@@ -680,9 +680,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(ps, module, parent);
     ps->parent = (StaticScope*)Qnil;
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, ps);
@@ -711,9 +709,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(ps, module, parent);
     ps->parent = (StaticScope*)Qnil;
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, ps);
@@ -728,9 +724,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(ps, module, parent);
     ps->parent = (StaticScope*)Qnil;
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, ps);
@@ -751,9 +745,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(ps, module, parent);
     ps->parent = (StaticScope*)Qnil;
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, ps);
@@ -774,9 +766,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(ps, module, parent);
     ps->parent = (StaticScope*)Qnil;
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, ps);
@@ -795,9 +785,7 @@ class TestTask : public CxxTest::TestSuite {
     SET(ps, module, parent);
     ps->parent = (StaticScope*)Qnil;
 
-    CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
-    cm->stack_size = Object::i2n(1);
+    CompiledMethod* cm = create_cm();
 
     Task* task = Task::create(state, Qnil, cm);
     SET(cm, scope, ps);
@@ -810,7 +798,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_raise_exception() {
-    CompiledMethod* cm = CompiledMethod::create(state);
+    CompiledMethod* cm = create_cm();
     cm->iseq = InstructionSequence::create(state, 40);
     cm->total_args = Object::i2n(0);
     cm->stack_size = Object::i2n(1);
@@ -846,7 +834,7 @@ class TestTask : public CxxTest::TestSuite {
   }
 
   void test_raise_exception_into_sender() {
-    CompiledMethod* cm = CompiledMethod::create(state);
+    CompiledMethod* cm = create_cm();
     cm->iseq = InstructionSequence::create(state, 40);
     cm->stack_size = Object::i2n(1);
     cm->exceptions = Tuple::from(state, 1,

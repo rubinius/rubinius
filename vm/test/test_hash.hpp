@@ -20,7 +20,7 @@ class TestHash : public CxxTest::TestSuite {
   OBJECT val2;
 
   void setUp() {
-    state = new VM(1024);
+    state = new VM();
     tbl = Hash::create(state);
     hash = 3;
     key = Object::i2n(8);
@@ -69,7 +69,8 @@ class TestHash : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(val2, tbl->get(state, collide));
     TS_ASSERT_EQUALS(Qtrue, tbl->get(state, collide2));
 
-    size_t bins = tbl->bins->n2i();
+    size_t bins = tbl->values->field_count;
+
     for(size_t i = 0; i < bins; i++) {
       tbl->set(state, Object::i2n(i), Qtrue);
     }
@@ -147,14 +148,14 @@ class TestHash : public CxxTest::TestSuite {
   }
 
   void test_assign_redistributes() {
-    size_t bins = tbl->bins->n2i();
+    size_t bins = tbl->values->field_count;
 
     for(size_t i = 0; i < bins; i++) {
       OBJECT key = Object::i2n(i);
       tbl->assign(state, _compare1, key, key->hash(state), val);
     }
 
-    TS_ASSERT(bins < (size_t)tbl->bins->n2i());
+    TS_ASSERT(bins < (size_t)tbl->values->field_count);
   }
 
   void test_get_undef() {

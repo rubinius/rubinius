@@ -7,7 +7,7 @@
 #include <iostream>
 
 namespace rubinius {
-  VM::VM(size_t bytes) : wait_events(false) {
+  VM::VM(size_t bytes) : probe(NULL), wait_events(false) {
     om = new ObjectMemory(bytes);
     bootstrap_ontology();
 
@@ -123,7 +123,7 @@ namespace rubinius {
   void VM::set_const(const char* name, OBJECT val) {
     globals.object->set_const(this, (char*)name, val);
   }
-  
+
   void VM::set_const(Module* mod, const char* name, OBJECT val) {
     mod->set_const(this, (char*)name, val);
   }

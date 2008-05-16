@@ -169,6 +169,8 @@ namespace rubinius {
     mp_clear(n);
   }
 
+  void Bignum::Info::mark(OBJECT obj, ObjectMark& mark) { }
+
   void Bignum::init(STATE) {
     state->add_type_info(new Bignum::Info(Bignum::type));
   }

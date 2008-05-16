@@ -14,10 +14,9 @@ namespace rubinius {
     delete state;
   }
 
-
   void Environment::load_argv(int argc, char** argv) {
     state->set_const("ARG0", String::create(state, argv[0]));
-    
+
     Array* ary = Array::create(state, argc - 1);
     for(int i = 0; i < argc - 1; i++) {
       ary->set(state, i, String::create(state, argv[i + 1]));
@@ -48,12 +47,6 @@ namespace rubinius {
     if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
 
     // TODO check version number
-
-    if(CompiledMethod* cm = try_as<CompiledMethod>(cf->body(state))) {
-      Task* task = Task::create(state, G(main), cm);
-      task->execute();
-    } else {
-      throw std::runtime_error("Invalid file, body not a CompiledMethod.");
-    }
+    cf->execute(state);
   }
 }

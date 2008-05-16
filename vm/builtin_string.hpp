@@ -7,10 +7,6 @@ namespace rubinius {
     const static size_t fields = 7;
     const static object_type type = StringType;
 
-    static bool is_a(OBJECT obj) {
-      return obj->reference_p() && obj->obj_type == StringType;
-    }
-
     OBJECT __ivars__; // slot
     INTEGER num_bytes; // slot
     INTEGER characters; // slot
@@ -53,9 +49,7 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      Info(object_type type) : TypeInfo(type) { }
-      virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
-      virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+      BASIC_TYPEINFO(TypeInfo)
     };
 
   };

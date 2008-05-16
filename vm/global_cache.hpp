@@ -25,7 +25,7 @@ namespace rubinius {
         entries[i].klass = 0;
         entries[i].name  = 0;
         entries[i].module = 0;
-        entries[i].method= 0;
+        entries[i].method = 0;
         entries[i].is_public = true;
       }
     }
@@ -39,6 +39,18 @@ namespace rubinius {
       }
 
       return NULL;
+    }
+
+    void clear(Module* cls, SYMBOL name) {
+      struct cache_entry* entry;
+
+      entry = entries + CPU_CACHE_HASH(cls, name);
+      if(entry->name == name && entry->klass == cls) {
+        entry->klass = NULL;
+        entry->name = NULL;
+        entry->module = NULL;
+        entry->method = NULL;
+      }
     }
 
     void retain(STATE, Module* cls, SYMBOL name, Module* mod, OBJECT meth) {
