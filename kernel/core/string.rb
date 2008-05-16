@@ -8,7 +8,6 @@ class String
   include Comparable
   include Enumerable
 
-  ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3, :hash => 4, :shared => 5
   def bytes     ; @bytes      ; end
   def characters; @characters ; end
   def encoding  ; @encoding   ; end

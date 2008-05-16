@@ -61,6 +61,8 @@ class InstructionSet
       :flow => :goto},
     {:opcode => :ret, :args => [], :stack => [1,0], :flow => :return,
       :vm_flags => [:terminator]},
+    {:opcode => :halt, :args=> [], :stack => [0,0], :flow => :return,
+      :vm_flags => [:terminator]},
 
     # stack maintainence
 

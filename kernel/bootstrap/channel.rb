@@ -1,8 +1,7 @@
 class Channel
-  ivar_as_index :waiting => 1, :value => 2
   def waiting; @waiting ; end
   def value  ; @value   ; end
-  
+
   def self.new
     Ruby.primitive :channel_new
     raise PrimitiveFailure, "primitive failed"

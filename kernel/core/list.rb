@@ -1,8 +1,6 @@
 # depends on: class.rb
 
 class List
-  ivar_as_index :count => 0, :first => 1, :last => 2
-  
   def count
     @count
   end
@@ -56,8 +54,6 @@ class List
   end
 
   class Node
-    ivar_as_index :object => 0, :next => 1
-    
     def object
       @object
     end

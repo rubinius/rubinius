@@ -14,8 +14,6 @@
 
 class Module
 
-  ivar_as_index :__ivars__ => 0, :method_table => 1, :method_cache => 2, :name => 3, :constants => 4, :encloser => 5, :superclass => 6
-
   def method_table    ; @method_table ; end
   def method_cache    ; @method_cache ; end
   def constants_table ; @constants    ; end

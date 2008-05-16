@@ -1,32 +1,29 @@
 class Class
-  
-  ivar_as_index :method_table => 1, :superclass => 6, :instance_fields => 7, :has_ivars => 8, :needs_cleanup => 9, :object_type => 10
-
   def __allocate__
     Ruby.primitive :allocate
     raise RuntimeError, "primitive '__allocate__' failed on #{self.inspect}"
   end
-  
+
   def allocate
     __allocate__
   end
-  
+
   def new(*args)
     Ruby.primitive :class_new
     raise PrimitiveFailure, "Unable to create new instance"
   end
-  
+
   def instance_fields; @instance_fields ; end
   def instance_flags ; @instance_flags  ; end
-  
+
   def instance_fields=(num)
     @instance_fields = num
   end
-  
+
   def object_type=(type)
     @object_type = type
   end
-  
+
   def object_type
     @object_type
   end
@@ -108,7 +105,6 @@ class IncludedModule < Module
   # HACK: make this a VM exported constant
   self.object_type = 7
 
-  ivar_as_index :__ivars__ => 0, :method_table => 1, :method_cache => 2, :name => 3, :constants => 4, :encloser => 5, :superclass => 6, :module => 7
   def superclass; @superclass ; end
   def module    ; @module     ; end
 

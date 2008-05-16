@@ -144,8 +144,6 @@ end
 
 class MetaClass
 
-  ivar_as_index :superclass => 6
-
   ##
   # Called when <tt>def obj.name</tt> syntax is used in userland
 

@@ -1,8 +1,6 @@
 # Requires: Object#hash
 
 class Hash
-  ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4, :default => 5, :default_proc => 6
-
   def self.allocate
     Ruby.primitive :allocate_hash
     raise PrimitiveFailure, "Hash.allocate primitive failed"

@@ -1,8 +1,7 @@
 # depends on: class.rb
 
 class Exception
-  
-  ivar_as_index :__ivars => 0, :message => 1, :context => 2
+
   def message; @message ; end
 
   def initialize(message = nil)

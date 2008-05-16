@@ -1,9 +1,6 @@
 # depends on: class.rb
 
 class Proc
-  self.instance_fields = 3
-  ivar_as_index :__ivars__ => 0, :block => 1, :check_args => 2
-
   def block; @block ; end
 
   def block=(other)
@@ -87,8 +84,6 @@ class Proc
   alias_method :[], :call
 
   class Function < Proc
-    ivar_as_index :block => 1
-
     def call(*args)
       a = arity()
       unless a < 0 or a == 1 or args.size == a

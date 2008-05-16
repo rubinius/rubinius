@@ -30,7 +30,6 @@
 # used generally like Hash.
 
 class LookupTable
-  ivar_as_index :values => 1, :bins => 2, :entries => 3
   def values;  @values  ; end
   def bins;    @bins    ; end
   def size;    @entries ; end

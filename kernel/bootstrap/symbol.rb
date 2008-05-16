@@ -1,6 +1,4 @@
 class SymbolTable
-  ivar_as_index :symbols => 1
-  
   def symbol_to_string(sym)
     @symbols.at(sym.index)  
   end

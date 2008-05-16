@@ -1,6 +1,4 @@
 class Selector
-  ivar_as_index :name => 0, :send_sites => 1
-
   def name
     @name
   end

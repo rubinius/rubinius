@@ -2,13 +2,9 @@
 
 class IO
 
-  ivar_as_index :__ivars__ => 0, :descriptor => 1, :buffer => 2, :mode => 3
-
   BufferSize = 8096
 
   class Buffer < String
-    ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3, :hash => 4, :shared => 5
-
     # Create a buffer of +size+ bytes. The buffer contains an internal Channel
     # object it uses to fill itself.
     def initialize(size)

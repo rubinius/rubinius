@@ -2,7 +2,6 @@
 
 class Regexp
 
-  ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
   def __ivars__; @__ivars__ ; end
   def source   ; @source    ; end
   def data     ; @data      ; end
@@ -333,8 +332,6 @@ end
 
 class MatchData
 
-  ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
-  
   def string
     @source
   end

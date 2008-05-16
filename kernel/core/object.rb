@@ -12,8 +12,6 @@ class Object
   RUBY_ENGINE = Rubinius::RUBY_ENGINE
   RBX_VERSION = Rubinius::RBX_VERSION
 
-  ivar_as_index :__ivars__ => 0
-
   def __ivars__; @__ivars__ ; end
   private :__ivars__
 
