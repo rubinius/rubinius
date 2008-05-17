@@ -45,8 +45,11 @@ shotgun/lib/subtend/*.d.*
 *.dSYM
 
 # rubygems related
-bin/htmldiff
-bin/ldiff
+!bin/mspec
+!bin/mkspec
+!bin/bm*
+!bin/contributors*
+bin/*
 lib/rbx
 
 attic/externals/syd-parser/pkg
