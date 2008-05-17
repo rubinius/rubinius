@@ -98,6 +98,25 @@ class TestFixnum : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(two->n2i(), (FIXNUM_MAX - 10) * 2);
+
+    FIXNUM  three = as<Fixnum>(Object::i2n(FIXNUM_MIN + 10));
+    INTEGER four  = as<Integer>(three->mul(state, Object::i2n(2)));
+
+    TS_ASSERT_EQUALS(four->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(four->n2i(), (FIXNUM_MIN + 10) * 2);
+
+    FIXNUM  five = as<Fixnum>(Object::i2n(FIXNUM_MAX - 10));
+    INTEGER six  = as<Integer>(five->mul(state, Object::i2n(-2)));
+
+    TS_ASSERT_EQUALS(six->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(six->n2i(), (FIXNUM_MAX - 10) * -2);
+
+    FIXNUM  seven = as<Fixnum>(Object::i2n(FIXNUM_MIN + 10));
+    INTEGER eight = as<Integer>(seven->mul(state, Object::i2n(-2)));
+
+    TS_ASSERT_EQUALS(eight->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(eight->n2i(), (FIXNUM_MIN + 10) * -2);
+
   }
 
   void test_div() {

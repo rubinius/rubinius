@@ -77,12 +77,28 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(b1->add(state, b1), "4294967294");
     check_bignum(b1->add(state, Object::i2n(1)), "2147483648");
   }
+  
+  void test_add_with_positive_fixnum() {
+    check_bignum(b1->add(state, Object::i2n(100)), "2147483747");
+  }
+
+  void test_add_with_negative_fixnum() {
+    check_bignum(b1->add(state, Object::i2n(-100)), "2147483547");
+  }
 
   void test_sub() {
     check_bignum(b1->sub(state, b1), "0");
     check_bignum(b1->sub(state, Object::i2n(1)), "2147483646");
   }
   
+  void test_sub_with_positive_fixnum() {
+    check_bignum(b1->sub(state, Object::i2n(100)), "2147483547");
+  }
+
+  void test_sub_with_negative_fixnum() {
+    check_bignum(b1->sub(state, Object::i2n(-100)), "2147483747");
+  }
+
   void test_mul() {
     check_bignum(b1->mul(state, b1), "4611686014132420609");
     check_bignum(b1->mul(state, Object::i2n(2)), "4294967294");

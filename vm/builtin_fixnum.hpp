@@ -47,7 +47,7 @@ namespace rubinius {
             return Bignum::create(state, a)->mul(state, other);
           } 
         } else {
-          if (a < (FIXNUM_MIN / b)) {
+          if (b < (FIXNUM_MIN / a)) {
             return Bignum::create(state, a)->mul(state, other);
           }
         }
