@@ -78,7 +78,7 @@ namespace :spec do
       sh "git rebase origin"
     end
     version = `git log --pretty=oneline -1 #{spec_frozen}`[0..7]
-    sh "git add #{spec_frozen}"
+    sh "git add spec/frozen"
     sh "git commit -m 'Updated RubySpec submodule to #{version}'"
   end
 
