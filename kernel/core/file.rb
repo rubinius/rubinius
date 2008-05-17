@@ -345,7 +345,7 @@ class File < IO
 
     # let join/split deal with all the recursive array complexities
     # one small hack is to replace URI header with \0 and swap back later
-    result = args.join(SEPARATOR).gsub(/\:\//, "\0").split(/#{SEPARATOR}+/)
+    result = args.join(SEPARATOR).gsub(/\:\//, "\0").split(/#{SEPARATOR}+/o)
     result << '' if args.last.empty? || args.last[-1] == SEPARATOR[0]
     result.join(SEPARATOR).gsub(/\0/, ':/')
   end
