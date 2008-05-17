@@ -288,12 +288,12 @@ again_no_block:
         }
         
         if (nd_type(node) == NODE_WHEN) {                 /* when */
-          in_case = 0;
           t2 = array_new(state, 3);
           array_push(t2, SYMBOL(get_node_type_string(nd_type(node))));
           array_push(tmp, t2);
           
           add_to_parse_tree(t2, node->nd_head, newlines, locals, line_numbers); /* args */
+          in_case = 0;
           if (node->nd_body) {
             add_to_parse_tree(t2, node->nd_body, newlines, locals, line_numbers); /* body */
           } else {

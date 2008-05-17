@@ -351,8 +351,9 @@ describe Compiler do
           [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
-      g.push 2
       g.push 1
+      g.push 2
+      g.rotate 2
       g.set_ivar :@a
       g.pop
       g.set_ivar :@b
@@ -367,8 +368,9 @@ describe Compiler do
           [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
-      g.push 2
       g.push 1
+      g.push 2
+      g.rotate 2
       g.set_ivar :@a
       g.pop
       g.push_literal :$b
