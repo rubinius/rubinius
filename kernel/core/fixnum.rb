@@ -10,6 +10,23 @@ class Fixnum < Integer
 
   MAX = Platform::Fixnum.MAX
 
+  def self.induced_from(obj)
+    case obj
+    when Fixnum
+      return obj
+    when Float, Bignum
+      value = obj.to_i
+      if value.is_a? Bignum
+        raise RangeError, "Object is out of range for a Fixnum"
+      else
+        return value
+      end
+    else
+      value = Type.coerce_to(obj, Integer, :to_int)
+      return self.induced_from(value)
+    end
+  end
+
   #--
   # see README-DEVELOPERS regarding safe math compiler plugin
   #++
