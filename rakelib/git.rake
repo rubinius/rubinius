@@ -46,7 +46,7 @@ namespace :git do
   end
 
   desc "Pull new commits from the rubinius repository"
-  task :update do
+  task :update => 'spec:update' do
     git_update
     # Do the spec:update AFTER we update normally, so that the proper
     # versions of the submodules are pulled in.
