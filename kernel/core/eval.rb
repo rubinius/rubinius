@@ -189,14 +189,16 @@ class Module
       raise ArgumentError, 'block not supplied'
     end
 
-    binding = Binding.setup(MethodContext.current.sender)
+    ctx = MethodContext.current.sender
+
+    binding = Binding.setup ctx
     string = StringValue(string)
 
     flags = { :binding => binding }
     compiled_method = Compile.compile_string string, flags, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
-    ss = StaticScope.new(self)
+    ss = StaticScope.new(self, ctx.method.staticscope)
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
