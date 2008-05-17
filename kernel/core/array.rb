@@ -990,7 +990,7 @@ class Array
       when 'x' then
         size = (t || 1).to_i
         ret << "\000" * size
-      when 'N' then                         # TODO: untested
+      when 'N' then
         parts = []
         4.times do                          # TODO: const?
           parts << (item % 256).chr
@@ -1000,7 +1000,7 @@ class Array
         arr_idx += 1
         item = nil
         next # HACK
-      when 'V' then                         # FIX: untested
+      when 'V' then
         parts = []
         4.times do                          # TODO: const?
           parts << (item % 256).chr
