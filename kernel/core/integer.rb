@@ -4,9 +4,15 @@ class Integer < Numeric
   include CType
   include Precision
 
-  def self.induced_from(o)
-    return o.to_i if o.respond_to?(:to_i)
-    raise TypeError, "can't convert #{o.class} into Integer"
+  def self.induced_from(obj)
+    case obj
+    when Fixnum, Bignum
+      obj
+    when Float
+      obj.to_i
+    else
+      raise TypeError, "failed to convert #{obj.class} into Integer"
+    end
   end
 
   def &(other)
