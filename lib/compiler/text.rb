@@ -106,6 +106,10 @@ class Compiler
       method_missing :dup
     end
     
+    def equal
+      method_missing :equal
+    end
+    
     def push_literal(lit)
       if lit.kind_of? MethodDescription
         @text << "push_literal #<Method #{@@method_id}>\n"

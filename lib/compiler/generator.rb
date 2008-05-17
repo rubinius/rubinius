@@ -409,6 +409,10 @@ class Compiler
       add :dup_top
     end
     
+    def equal
+      add :equal
+    end
+    
     def swap
       add :swap_stack
     end
