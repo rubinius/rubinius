@@ -119,11 +119,36 @@ class TestFixnum : public CxxTest::TestSuite {
 
   }
 
+  void test_mul_with_bignum() {
+    FIXNUM  one   = as<Fixnum>(Object::i2n(2));
+    Bignum* two   = Bignum::create(state, FIXNUM_MAX + 10);
+    INTEGER three = one->mul(state, two);
+    
+    TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(three->n2i(), (FIXNUM_MAX + 10) * 2);
+  }
+
   void test_div() {
     FIXNUM one = as<Fixnum>(Object::i2n(4));
 
     FIXNUM two = as<Fixnum>(one->div(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 1);
+  }
+
+  void test_div_with_positive_arguments() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->div(state, Object::i2n(2)), Object::i2n(1));
+  }
+
+  void test_div_with_first_negative_argument() {
+    TS_ASSERT_EQUALS(Object::i2n(-3)->div(state, Object::i2n(2)), Object::i2n(-2));
+  }
+
+  void test_div_with_second_negative_argument() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->div(state, Object::i2n(-2)), Object::i2n(-2));
+  }
+  
+  void test_div_with_negative_arguments() {
+    TS_ASSERT_EQUALS(Object::i2n(-3)->div(state, Object::i2n(-2)), Object::i2n(1));
   }
 
   void test_mod() {

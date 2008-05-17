@@ -254,12 +254,12 @@ namespace rubinius {
     if(kind_of<Fixnum>(b)) {
       if(b == Object::i2n(2)) {
         mp_mul_2(MP(this), n);
-        return n_obj;
+      } else {
+        mp_mul_d(MP(this), b->n2i(), n);
       }
-      b = Bignum::create(state, b->n2i());
+    } else {
+      mp_mul(MP(this), MP(b), n);
     }
-
-    mp_mul(MP(this), MP(b), n);
     return Bignum::normalize(state, n_obj);
   }
 

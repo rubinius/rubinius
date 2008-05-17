@@ -66,8 +66,14 @@ namespace rubinius {
       return Object::i2n(state, n2i() * other->n2i());
     }
 
+    INTEGER mul(STATE, Bignum* other) {
+      return other->mul(state, this);
+    }
+
     INTEGER div(STATE, FIXNUM other) {
-      return Object::i2n(state, n2i() / other->n2i());
+      native_int a = n2i() / other->n2i();
+      if(a < 0 ) --a;
+      return Object::i2n(state, a);
     }
 
     INTEGER mod(STATE, FIXNUM other) {
