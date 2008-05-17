@@ -337,45 +337,17 @@ class File < IO
     true
   end
 
-  #--
-  # FIXME: will fail a bunch if platfrom == :mswin
-  #++
+  def self.join(*args)
+    args.map! { |o|
+      o = o.to_str unless Array === o || String === o
+      o
+    } rescue raise TypeError
 
-  def self.join(*parts)
-    parts.map! do |part|
-      if part.kind_of? Array
-
-        cur_part = part.send(:remove_outer_arrays)
-
-        if cur_part.any?{ |e| e.__id__ == cur_part.__id__ }
-          cur_part = cur_part.dup
-        end
-
-        clean_part = []
-        cur_part.send(:recursively_flatten,cur_part,clean_part,'[...]')
-        clean_part
-      else
-        part
-      end
-    end
-
-    path = ''
-
-    parts.flatten.each_with_index do |part, i|
-      part = StringValue part
-
-      if i > 0 then
-        if part[0] == ?/ then
-          path.sub! %r|(.*?)/+\z|m, '\1'
-        elsif path !~ %r|/+\z| then
-          path << SEPARATOR
-        end
-      end
-
-      path << part
-    end
-
-    path
+    # let join/split deal with all the recursive array complexities
+    # one small hack is to replace URI header with \0 and swap back later
+    result = args.join(SEPARATOR).gsub(/\:\//, "\0").split(/#{SEPARATOR}+/)
+    result << '' if args.last.empty? || args.last[-1] == SEPARATOR[0]
+    result.join(SEPARATOR).gsub(/\0/, ':/')
   end
 
   def self.link(from, to)
