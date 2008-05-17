@@ -1,4 +1,8 @@
 
+# Example Usage:
+#
+# ruby -Itools -rtracer blah.rb > spec/profiles/blah.yaml
+
 require 'yaml'
 
 class Tracer
