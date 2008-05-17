@@ -288,6 +288,7 @@ again_no_block:
         }
         
         if (nd_type(node) == NODE_WHEN) {                 /* when */
+          in_case = 0;
           t2 = array_new(state, 3);
           array_push(t2, SYMBOL(get_node_type_string(nd_type(node))));
           array_push(tmp, t2);
@@ -298,6 +299,8 @@ again_no_block:
           } else {
             array_push(t2, Qnil);
           }
+
+          in_case = 1;
           
           node = node->nd_next; 
         } else {
@@ -314,12 +317,14 @@ again_no_block:
   case NODE_WHEN: {
     VALUE tmp, t2;
     if(in_case) {
+      in_case = 0;
       add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
       if(node->nd_body) {
         add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
       } else {
         array_push(current, Qnil);
       }
+      in_case = 1;
       break;
     }
     array_set(state, current, 0, cstring_to_symbol(state, "many_if"));

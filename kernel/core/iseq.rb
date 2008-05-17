@@ -203,7 +203,8 @@ class InstructionSet
     {:opcode => :unused, :args => [], :stack => [0,0]},
     {:opcode => :check_serial, :args => [:literal, :int], :stack => [1,1]},
     {:opcode => :meta_send_call, :args => [:int], :stack => [-111,1],
-      :flow => :send}
+      :flow => :send},
+    {:opcode => :rotate, :args => [:int], :stack => [0,0]}
   ]
 
   InstructionSize = 4

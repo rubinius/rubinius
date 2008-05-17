@@ -905,6 +905,25 @@ CODE
     CODE
   end
 
+  # TODO doc
+  def rotate
+    <<-CODE
+    next_int;
+
+    OBJECT* objs = malloc(sizeof(OBJECT) * _int);
+    int i;
+    for(i = 0; i < _int; i++) {
+      objs[i] = stack_pop();
+    }
+
+    for(i = 0; i < _int; i++) {
+      stack_push(objs[i]);
+    }
+
+    free(objs);
+    CODE
+  end
+
   # [Operation]
   #   Duplicate the top item on the stack
   # [Format]

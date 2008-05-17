@@ -1721,9 +1721,11 @@ class Node
       # than sources
       diff = pad_stack(g)
 
-      @source.body.reverse_each do |x|
+      @source.body.each do |x|
         x.bytecode(g)
       end
+
+      g.rotate @source.body.size
 
       # Now all the source data is on the stack.
 
