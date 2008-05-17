@@ -98,6 +98,7 @@ class Numeric
   end
 
   def ==(other)
+    return true if other.equal?(self)
     !!(other == self)
   end
   
