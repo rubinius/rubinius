@@ -167,10 +167,10 @@ class MetaClass
     object.inherit_scope MethodContext.current.sender.method
     Rubinius::VM.reset_method_cache(name)
 
-    # Call singleton_method_added on the object in question
-    if attached_instance.respond_to?(:singleton_method_added)
-      attached_instance.singleton_method_added name
-    end
+    # Call singleton_method_added on the object in question. There is
+    # a default version in Kernel which does nothing, so we can always
+    # call this.
+    attached_instance.__send__ :singleton_method_added, name
 
     return object
   end

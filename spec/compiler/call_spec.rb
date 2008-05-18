@@ -334,7 +334,7 @@ describe Compiler do
       desc = description do |d|
         d.check_argcount 0, 0
         d.push 1
-        d.push :nil
+        d.push_block
         d.send_super :a, 1
         d.sret
       end
@@ -356,7 +356,7 @@ describe Compiler do
         d.cast_array_for_args 0
         d.push_array
         d.get_args
-        d.push :nil
+        d.push_block
         d.swap
         d.set_args
         d.send_super :a
@@ -380,7 +380,7 @@ describe Compiler do
         d.set_local_from_fp 1, 1
         d.push_local 1
         d.push_local 0
-        d.push :nil        
+        d.push_block
         d.send_super :a, 2
         d.sret
       end
@@ -408,8 +408,8 @@ describe Compiler do
         d.push_array
         d.get_args
         d.push_local 0
-        d.swap        
-        d.push :nil
+        d.swap
+        d.push_block
         d.swap
         d.set_args
         d.send_super :a
