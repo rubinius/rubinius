@@ -35,7 +35,7 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(two->n2i(), (FIXNUM_MAX - 10) * 2);
   }
-  
+
   void test_add_underflows_to_bignum() {
     FIXNUM  one = as<Fixnum>(Object::i2n(FIXNUM_MIN + 10));
     INTEGER two = as<Integer>(one->add(state, one));
@@ -43,7 +43,7 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(two->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(two->n2i(), (FIXNUM_MIN + 10) * 2);
   }
-  
+
   void test_add_a_bignum() {
     FIXNUM one  = as<Fixnum>(Object::i2n(13));
     Bignum* obj = Bignum::create(state, FIXNUM_MAX - 10);
@@ -67,7 +67,7 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(three->n2i(), FIXNUM_MAX - 10 - (FIXNUM_MIN + 10));
   }
-  
+
   void test_sub_underflows_to_bignum() {
     FIXNUM  one   = as<Fixnum>(Object::i2n(FIXNUM_MIN + 10));
     FIXNUM  two   = as<Fixnum>(Object::i2n(FIXNUM_MAX - 10));
@@ -76,7 +76,7 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(three->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(three->n2i(), FIXNUM_MIN + 10 - (FIXNUM_MAX - 10));
   }
-  
+
   void test_sub_a_bignum() {
     FIXNUM one  = as<Fixnum>(Object::i2n(13));
     Bignum* obj = Bignum::create(state, FIXNUM_MAX + 28);
@@ -91,7 +91,7 @@ class TestFixnum : public CxxTest::TestSuite {
     FIXNUM two = as<Fixnum>(one->mul(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 16);
   }
-  
+
   void test_mul_overflows_to_bignum() {
     FIXNUM  one = as<Fixnum>(Object::i2n(FIXNUM_MAX - 10));
     INTEGER two = as<Integer>(one->mul(state, Object::i2n(2)));
@@ -146,7 +146,7 @@ class TestFixnum : public CxxTest::TestSuite {
   void test_div_with_second_negative_argument() {
     TS_ASSERT_EQUALS(Object::i2n(3)->div(state, Object::i2n(-2)), Object::i2n(-2));
   }
-  
+
   void test_div_with_negative_arguments() {
     TS_ASSERT_EQUALS(Object::i2n(-3)->div(state, Object::i2n(-2)), Object::i2n(1));
   }
@@ -156,5 +156,34 @@ class TestFixnum : public CxxTest::TestSuite {
 
     FIXNUM two = as<Fixnum>(one->mod(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 0);
+  }
+
+  void test_mod_with_positive_arguments() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->mod(state, Object::i2n(2)), Object::i2n(1));
+  }
+
+  void test_mod_with_first_negative_argument() {
+    TS_ASSERT_EQUALS(Object::i2n(-3)->mod(state, Object::i2n(2)), Object::i2n(1));
+  }
+
+  void test_mod_with_second_negative_argument() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->mod(state, Object::i2n(-2)), Object::i2n(-1));
+  }
+
+  void test_mod_with_negative_arguments() {
+    TS_ASSERT_EQUALS(Object::i2n(-3)->mod(state, Object::i2n(-2)), Object::i2n(-1));
+  }
+
+  void test_divmod() {
+    FIXNUM one = as<Fixnum>(Object::i2n(15));
+    FIXNUM two = as<Fixnum>(Object::i2n(4));
+
+    Array* ary1 = one->divmod(state, two);
+    Object* o1 = ary1->get(state, 0);
+    Object* o2 = ary1->get(state, 1);
+    TS_ASSERT(o1->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), 3);
+    TS_ASSERT(o2->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o2)->n2i(), 3);
   }
 };

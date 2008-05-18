@@ -27,47 +27,7 @@
 #define DIGIT_RADIX (1L << DIGIT_BIT)
 
 namespace rubinius {
-  /* aux mp_* functions used internally */
 
-  static int mp_set_long (mp_int* a, unsigned long b)
-  {
-    int     res;
-    // TODO: Move these two values to bignum.h
-    size_t  count = sizeof(unsigned long) * 2;
-    size_t  shift_width = (sizeof(unsigned long) * 8) - 4;
-
-    mp_zero (a);
-
-    /* set four bits at a time */
-    for(size_t x = 0; x < count; x++) {
-      /* shift the number up four bits */
-      if ((res = mp_mul_2d (a, 4, a)) != MP_OKAY) {
-        return res;
-      }
-
-      /* OR in the top four bits of the source */
-      a->dp[0] |= (b >> shift_width) & 15;
-
-      /* shift the source up to the next four bits */
-      b <<= 4;
-
-      /* ensure that digits are not clamped off */
-      a->used += 1;
-    }
-    mp_clamp (a);
-    return MP_OKAY;
-  }
-  
-  static int mp_init_set_long (mp_int* a, unsigned long b)
-  {
-    int err;
-    if ((err = mp_init(a)) != MP_OKAY) {
-      return err;
-    }
-    return mp_set_long(a, b);
-  }
-
-  
   static void twos_complement(mp_int *a)
   {
     long i = a->used;
@@ -182,10 +142,10 @@ namespace rubinius {
     a = (mp_int*)(o->bytes);
 
     if(num < 0) {
-      mp_init_set_long(a, (unsigned long)-num);
+      mp_init_set_int(a, (unsigned long)-num);
       a->sign = MP_NEG;
     } else {
-      mp_init_set_long(a, (unsigned long)num);
+      mp_init_set_int(a, (unsigned long)num);
     }
     return o;
   }
@@ -265,58 +225,50 @@ namespace rubinius {
 
   INTEGER Bignum::div(STATE, INTEGER b, INTEGER mod_obj) {
     NMP;
-    mp_int m, x, y, z;
+    mp_int m;
 
     if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
-    }
-
-    mp_init(&m);
-    mp_init(&x);
-    mp_init(&y);
-    mp_init(&z);
-
-    if(mp_cmp_d(MP(b), 0) == MP_LT) {
-      if(mp_cmp_d(MP(this), 0) == MP_LT) {
-        mp_neg(MP(this), &x);
-        mp_neg(MP(b), &y);
-        mp_div(&x, &y, &z, NULL);
+      native_int bi = b->n2i();
+      mp_digit r;
+      if(bi < 0) {
+        mp_div_d(MP(this), -bi, n, &r);
+        mp_neg(n, n);
       } else {
-        mp_neg(MP(b), &x);
-        mp_div(MP(this), &x, &y, NULL);
-        mp_neg(&y, &z);
+        mp_div_d(MP(this), bi, n, &r);
+      }
+      mp_init_set_int(&m, r);
+      if(MP(this)->sign == MP_NEG && bi > 0) {
+        mp_neg(&m, &m);
       }
     } else {
-      if (mp_cmp_d(MP(this), 0) == MP_LT) {
-        mp_neg(MP(this), &x);
-        mp_div(&x, MP(b), &y, NULL);
-        mp_neg(&y, &z);
+      mp_init(&m);
+      mp_div(MP(this), MP(b), n, &m);
+    }
+
+    if(mp_cmp_d(n, 0) == MP_LT && mp_cmp_d(&m, 0) != MP_EQ) {
+      mp_int t;
+      mp_init(&t);
+      if(kind_of<Fixnum>(b)) {
+        native_int bi = b->n2i();
+        if(bi < 0) {
+          mp_sub_d(&m, -bi, &t);
+        } else {
+          mp_add_d(&m, bi, &t);
+        }
       } else {
-        mp_div(MP(this), MP(b), &z, NULL);
+        mp_add(&m, MP(b), &t);
       }
+      mp_copy(&t, &m);
+      mp_clear(&t);
+      mp_sub_d(n, 1, n);
     }
 
-    mp_mul(&z, MP(b), &x);
-    mp_sub(MP(this), &x, &y);
-
-    if((mp_cmp_d(&y, 0) == MP_LT && mp_cmp_d(MP(b), 0) == MP_GT)
-        || (mp_cmp_d(&y, 0) == MP_GT && mp_cmp_d(MP(b), 0) == MP_LT)) {
-      mp_add(&y, MP(b), &m);
-      mp_sub_d(&z, 1, n);
-    } else {
-      mp_copy(&z, n);
-      mp_copy(&y, &m);
-    }
-
-    if(!mod_obj->nil_p()) {
+    if(kind_of<Bignum>(mod_obj)) {
       mp_int *mod = MP(mod_obj);
       mp_copy(&m, mod);
     }
 
     mp_clear(&m);
-    mp_clear(&x);
-    mp_clear(&y);
-    mp_clear(&z);
 
     return Bignum::normalize(state, n_obj);
   }
@@ -324,7 +276,7 @@ namespace rubinius {
   Array* Bignum::divmod(STATE, INTEGER b) {
     MMP;
 
-    OBJECT div = this->div(state, b, m_obj);
+    INTEGER div = this->div(state, b, m_obj);
 
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, div);
@@ -335,11 +287,7 @@ namespace rubinius {
   INTEGER Bignum::mod(STATE, INTEGER b) {
     NMP;
 
-    if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
-    }
-
-    mp_mod(MP(this), MP(b), n);
+    this->div(state, b, n_obj);
     return Bignum::normalize(state, n_obj);
   }
 

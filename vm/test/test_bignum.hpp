@@ -77,7 +77,7 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(b1->add(state, b1), "4294967294");
     check_bignum(b1->add(state, Object::i2n(1)), "2147483648");
   }
-  
+
   void test_add_with_positive_fixnum() {
     check_bignum(b1->add(state, Object::i2n(100)), "2147483747");
   }
@@ -90,7 +90,7 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(b1->sub(state, b1), "0");
     check_bignum(b1->sub(state, Object::i2n(1)), "2147483646");
   }
-  
+
   void test_sub_with_positive_fixnum() {
     check_bignum(b1->sub(state, Object::i2n(100)), "2147483547");
   }
@@ -104,7 +104,7 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(b1->mul(state, Object::i2n(2)), "4294967294");
     check_bignum(b1->mul(state, Object::i2n(1)), "2147483647");
   }
-  
+
   void test_divmod() {
     Array* ary1 = b1->divmod(state, b1);
     Object* o1 = ary1->get(state, 0);
@@ -139,7 +139,29 @@ class TestBignum : public CxxTest::TestSuite {
     o2 = ary1->get(state, 1);
     check_bignum(o1,"1");
     check_bignum(o2, "0");
+
+    ary1 = nbn1->divmod(state, Bignum::create(state, (native_int)89478485));
+    o1 = ary1->get(state, 0);
+    o2 = ary1->get(state, 1);
+    check_bignum(o1,"-25");
+    check_bignum(o2, "89478478");
     
+    ary1 = nbn1->divmod(state, Object::i2n(89478485));
+    o1 = ary1->get(state, 0);
+    o2 = ary1->get(state, 1);
+    check_bignum(o1,"-25");
+    check_bignum(o2, "89478478");
+    
+    ary1 = b1->divmod(state, Object::i2n(-89478485));
+    o1 = ary1->get(state, 0);
+    o2 = ary1->get(state, 1);
+    check_bignum(o1,"-25");
+    check_bignum(o2, "-89478478");
+  }
+
+  void test_mod() {
+    INTEGER mod = b1->mod(state, Object::i2n(-89478485));
+    check_bignum(mod, "-89478478");
   }
 
   void test_equal() {
@@ -169,7 +191,7 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(bn2->bit_and(state, Object::i2n(-21090)), "2448");
     check_bignum(nbn2->bit_and(state, Object::i2n(2109047)), "2106448");
   }
-  
+
   void test_bit_or() {
     Bignum* bn1 = Bignum::create(state, (native_int)2109047783);
     Bignum* nbn1 = Bignum::create(state, (native_int)-2109047783);
@@ -181,7 +203,7 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(bn2->bit_or(state, Object::i2n(-21090)), "-66");
     check_bignum(nbn2->bit_or(state, Object::i2n(2109047)), "-20873");
   }
-  
+
   void test_bit_xor() {
     Bignum* bn1 = Bignum::create(state, (native_int)2109047783);
     Bignum* nbn1 = Bignum::create(state, (native_int)-2109047783);
@@ -200,33 +222,33 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1->gt(state, b1), Qfalse);
     TS_ASSERT_EQUALS(b1->gt(state, two), Qtrue);
   }
-  
+
   void test_ge() {
     TS_ASSERT_EQUALS(b1->ge(state, b2), Qtrue);
     TS_ASSERT_EQUALS(b2->ge(state, b1), Qfalse);
     TS_ASSERT_EQUALS(b1->ge(state, b1), Qtrue);
     TS_ASSERT_EQUALS(b1->ge(state, two), Qtrue);
   }
-  
+
   void test_lt() {
     TS_ASSERT_EQUALS(b1->lt(state, b2), Qfalse);
     TS_ASSERT_EQUALS(b2->lt(state, b1), Qtrue);
     TS_ASSERT_EQUALS(b1->lt(state, b1), Qfalse);
     TS_ASSERT_EQUALS(b1->lt(state, two), Qfalse);
   }
-  
+
   void test_le() {
     TS_ASSERT_EQUALS(b1->le(state, b2), Qfalse);
     TS_ASSERT_EQUALS(b2->le(state, b1), Qtrue);
     TS_ASSERT_EQUALS(b1->le(state, b1), Qtrue);
     TS_ASSERT_EQUALS(b1->le(state, two), Qfalse);
   }
-  
+
   void test_from_double() {
     OBJECT s = Bignum::from_double(state, 1.0);
     TS_ASSERT(s->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(s)->n2i(), 1.0);
-    
+
     s = Bignum::from_double(state, -1);
     TS_ASSERT(s->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(s)->n2i(), -1);
@@ -236,19 +258,19 @@ class TestBignum : public CxxTest::TestSuite {
     OBJECT b = Bignum::from_string_detect(state, "0x47");
     TS_ASSERT(b->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(b)->n2i(), 0x47);
-    
+
     b = Bignum::from_string_detect(state, "0b1000111");
     TS_ASSERT(b->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(b)->n2i(), 0x47);
-    
+
     b = Bignum::from_string_detect(state, "+0o107");
     TS_ASSERT(b->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(b)->n2i(), 0x47);
-    
+
     b = Bignum::from_string_detect(state, "-0d71");
     TS_ASSERT(b->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(b)->n2i(), -0x47);
-    
+
     b = Bignum::from_string_detect(state, "0107");
     TS_ASSERT(b->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(b)->n2i(), 0x47);

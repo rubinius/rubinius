@@ -39,13 +39,14 @@ namespace rubinius {
   };
 }
 
+#include "builtin_tuple.hpp"
+#include "builtin_array.hpp"
+
 #include "builtin_bignum.hpp"
 #include "builtin_fixnum.hpp"
 
 #include "builtin_staticscope.hpp"
 #include "builtin_symbol.hpp"
-
-#include "builtin_tuple.hpp"
 
 #include "builtin_hash.hpp"
 
@@ -65,7 +66,6 @@ namespace rubinius {
   };
 };
 
-#include "builtin_array.hpp"
 #include "builtin_exception.hpp"
 
 #include "builtin_block_environment.hpp"

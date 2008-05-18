@@ -71,13 +71,28 @@ namespace rubinius {
     }
 
     INTEGER div(STATE, FIXNUM other) {
-      native_int a = n2i() / other->n2i();
-      if(a < 0 ) --a;
-      return Object::i2n(state, a);
+      native_int numerator = n2i();
+      native_int denominator = other->n2i();
+      native_int quotient = numerator / denominator;
+      if(quotient < 0 && quotient * denominator != numerator) --quotient;
+      return Object::i2n(state, quotient);
     }
 
     INTEGER mod(STATE, FIXNUM other) {
-      return Object::i2n(state, n2i() % other->n2i());
+      native_int numerator = n2i();
+      native_int denominator = other->n2i();
+      native_int quotient = div(state, other)->n2i();
+      return Object::i2n(state, numerator - denominator * quotient);
+    }
+
+    Array* divmod(STATE, FIXNUM other) {
+      native_int numerator = n2i();
+      native_int denominator = other->n2i();
+      native_int fraction = div(state, other)->n2i();
+      Array* ary = Array::create(state, 2);
+      ary->set(state, 0, Object::i2n(fraction));
+      ary->set(state, 1, Object::i2n(numerator - denominator * fraction));
+      return ary;
     }
 
     native_int to_nint() {
