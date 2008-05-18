@@ -2032,7 +2032,9 @@ class Node
       if @block
         @block.bytecode(g)
       else
-        g.push :nil
+        # Even if we're specifying new args, the original block
+        # is passed up.
+        g.push_block
       end
 
       if @dynamic

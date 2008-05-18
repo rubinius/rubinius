@@ -1,0 +1,11 @@
+File: schema_definitions.rb
+Line: 420
+Code:
+
+   column.limit = options[:limit] || native[type.to_sym][:limit] if options[:limit] or native[type.to_sym]
+
+In mysql's case, type is :primary_key, and native[:primary_key] returns a 
+String. Thus String#[] is called with :limit, which is not intended. This
+happens to work in MRI because of Symbol#to_int, but the number is pretty
+much random. String#[] happens to return nil if the number is too big
+(which is pretty much always the case here).

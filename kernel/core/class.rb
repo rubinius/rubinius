@@ -154,7 +154,7 @@ class MetaClass
   def attach_method(name, object)
     # All userland added methods start out with a serial of 1.
     object.serial = 1
-    
+
     cur = method_table[name]
     if cur and cur.kind_of? Tuple
       # Override the slot which points to the method, so that we
@@ -166,6 +166,12 @@ class MetaClass
 
     object.inherit_scope MethodContext.current.sender.method
     Rubinius::VM.reset_method_cache(name)
+
+    # Call singleton_method_added on the object in question
+    if attached_instance.respond_to?(:singleton_method_added)
+      attached_instance.singleton_method_added name
+    end
+
     return object
   end
 

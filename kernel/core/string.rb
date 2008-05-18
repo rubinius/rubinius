@@ -286,6 +286,11 @@ class String
       length = 0 if length < 0
 
       return substring(start, length)
+    # A really stupid case hit for rails. Either we define this or we define
+    # Symbol#to_int. We removed Symbol#to_int in late 2007 because it's evil,
+    # and do not want to re add it.
+    when Symbol
+      return nil
     else
       index = Type.coerce_to index, Fixnum, :to_int
       index = @bytes + index if index < 0
