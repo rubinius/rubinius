@@ -77,9 +77,11 @@ namespace :spec do
       sh "git fetch"
       sh "git rebase origin"
     end
-    version = `git log --pretty=oneline -1 #{spec_frozen}`[0..7]
-    sh "git add spec/frozen"
-    sh "git commit -m 'Updated RubySpec submodule to #{version}'"
+    Dir.chdir RUBINIUS_BASE do
+      version = `git log --pretty=oneline -1 spec/frozen`[0..7]
+      sh "git add spec/frozen"
+      sh "git commit -m 'Updated RubySpec submodule to #{version}.'"
+    end
   end
 
   desc "Switch to the rubyspec commiter URL"
