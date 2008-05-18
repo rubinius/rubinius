@@ -147,6 +147,10 @@ module Kernel
       # staticscope chain, so that methods and such are added directly to it.
       if modeval
         compiled_method.staticscope = StaticScope.new(self, compiled_method.staticscope)
+      else
+
+      # Otherwise add our metaclass, so thats where new methods go.
+        compiled_method.staticscope = StaticScope.new(metaclass, compiled_method.staticscope)
       end
 
       # This has to be setup so __FILE__ works in eval.
