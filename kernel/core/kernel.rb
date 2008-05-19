@@ -106,7 +106,11 @@ module Kernel
     skip = false
     if exc.equal? Undefined
       exc = $!
-      skip = true
+      if exc
+        skip = true
+      else
+        exc = RuntimeError.new("No current exception")
+      end
     elsif exc.respond_to? :exception
       exc = exc.exception msg
       raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
