@@ -265,8 +265,9 @@ class Module
         end
 
       else
-        unless meth.kind_of?(CompiledMethod) or meth.kind_of?(AccessVarMethod)
-          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}'"
+        # REFACTOR: pull up a common superclass and test against that
+        unless meth.kind_of?(CompiledMethod) or meth.kind_of?(AccessVarMethod) or meth.kind_of?(DelegatedMethod) then
+          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}' #{meth.inspect}"
         end
       end
       method_table[new_name] = meth
