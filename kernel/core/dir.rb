@@ -341,7 +341,7 @@ class Dir
   def self.join_path(p1, p2, dirsep)
     "#{p1}#{dirsep ? '/' : ''}#{p2}"
   end
-  
+
   def self.chdir(path = ENV['HOME'])
     if block_given?
       original_path = self.getwd
@@ -364,7 +364,7 @@ class Dir
       error
     end
   end
-  
+
   def self.mkdir(path, mode = 0777)
     error = Platform::POSIX.mkdir(path, mode)
     if error != 0
@@ -372,7 +372,7 @@ class Dir
     end
     error
   end
-  
+
   def self.rmdir(path)
     error = Platform::POSIX.rmdir(path)
     if error != 0
@@ -385,7 +385,7 @@ class Dir
     buf = " " * 1024
     Platform::POSIX.getcwd(buf, buf.length)
   end
-  
+
   def self.open(path)
     dir = self.new(path)
     if block_given?
@@ -412,7 +412,7 @@ class Dir
 
     ret
   end
-  
+
   def self.foreach(path)
     self.open(path) do |dir|
       while s = dir.read
@@ -436,7 +436,7 @@ class Dir
 
     @path = path
   end
-  
+
   def path
     raise IOError, "closed directory" if @dirptr.nil?
 
@@ -460,7 +460,7 @@ class Dir
     Ruby.primitive :dir_read
     raise PrimitiveFailure, "primitive failed"
   end
-  
+
   def read
     raise IOError, "closed directory" if @dirptr.nil?
 
@@ -488,7 +488,7 @@ class Dir
 
   def pos
     raise IOError, "closed directory" if @dirptr.nil?
-    
+
     Dir.prim_control(@dirptr, TellKind, 0)
   end
 
@@ -512,12 +512,12 @@ class Dir
 
   def rewind
     raise IOError, "closed directory" if @dirptr.nil?
-    
+
     Dir.prim_control(@dirptr, RewindKind, 0);
-    
+
     self
   end
-  
+
   class << self
     alias_method :pwd, :getwd
     alias_method :delete, :rmdir
