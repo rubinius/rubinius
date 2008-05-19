@@ -2286,7 +2286,6 @@ class Node
 
   class CVar
     def prepare_receiver(g)
-      g.push_literal @name
       if @in_module
         g.push :self
       else
@@ -2295,23 +2294,29 @@ class Node
     end
 
     def bytecode(g)
+      g.push_literal @name
       prepare_receiver(g)
       g.send :class_variable_get, 1
     end
 
     def check_first_bytecode(g)
-      prepare_receiver(g)
-      g.dup
       g.push_literal @name
-      g.swap
+      prepare_receiver(g)
+      g.send :class_variable_defined?, 1
 
       no_cvar = g.new_label
-      g.send :class_variable_defined?, 1
-      g.dup
       g.gif no_cvar
-      g.pop
+
+      g.push_literal @name
+      prepare_receiver(g)
       g.send :class_variable_get, 1
+      done = g.new_label
+      g.goto done
+
       no_cvar.set!
+      g.push :nil
+
+      done.set!
     end
   end
 
