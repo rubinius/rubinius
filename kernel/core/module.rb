@@ -151,12 +151,20 @@ class Module
   alias_method :inspect, :to_s
 
   def find_method_in_hierarchy(sym)
-    if method = @method_table[sym.to_sym]
-      method
-    elsif direct_superclass
-      direct_superclass.find_method_in_hierarchy(sym)
-    else
-      [Object,Kernel].detect { |k| k.method_table[sym] }
+    mod = self
+
+    while mod
+      if method = mod.method_table[sym.to_sym]
+        return method
+      end
+
+      mod = mod.direct_superclass
+    end
+
+    # Always also search Object (and everything included in Object).
+    # This lets a module alias methods on Kernel.
+    if instance_of?(Module) and self != Kernel
+      return Object.find_method_in_hierarchy(sym)
     end
   end
 
@@ -245,9 +253,21 @@ class Module
     new_name = normalize_name(new_name)
     current_name = normalize_name(current_name)
     meth = find_method_in_hierarchy(current_name)
+    # We valid +meth+ because all hell can break loose if method_table has unexpected
+    # objects in it.
     if meth
       if meth.kind_of? Tuple
         meth = meth.dup
+
+        if !meth[0].kind_of?(Symbol) or
+             not (meth[1].kind_of?(CompiledMethod) or meth[1].kind_of?(AccessVarMethod))
+          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}'"
+        end
+
+      else
+        unless meth.kind_of?(CompiledMethod) or meth.kind_of?(AccessVarMethod)
+          raise TypeError, "Invalid object found in method_table while attempting to alias '#{current_name}'"
+        end
       end
       method_table[new_name] = meth
       Rubinius::VM.reset_method_cache(new_name)
@@ -827,7 +847,7 @@ class Module
   private :method_added
 
   # See #const_get for documentation.
-  def recursive_const_get(name)
+  def recursive_const_get(name, missing=true)
     name = normalize_const_name(name)
 
     current, constant = self, nil
@@ -844,6 +864,8 @@ class Module
       constant = constant.call if constant.kind_of?(Autoload)
       return constant if constant
     end
+
+    return nil unless missing
 
     const_missing(name)
   end

@@ -498,7 +498,7 @@ class IO
     @eof and @buffer.empty?
   end
 
-  def fcntl(command, arg)
+  def fcntl(command, arg=0)
     raise IOError, "closed stream" if closed?
     if arg.kind_of? Fixnum then
       Platform::POSIX.fcntl(descriptor, command, arg)

@@ -102,8 +102,12 @@ module Kernel
   # HACK :: added due to broken constant lookup rules
   #++
 
-  def raise(exc=$!, msg=nil, trace=nil)
-    if exc.respond_to? :exception
+  def raise(exc=Undefined, msg=nil, trace=nil)
+    skip = false
+    if exc.equal? Undefined
+      exc = $!
+      skip = true
+    elsif exc.respond_to? :exception
       exc = exc.exception msg
       raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
       exc.set_backtrace trace if trace
@@ -118,7 +122,9 @@ module Kernel
       STDERR.puts "Exception: `#{exc.class}' #{sender.location} - #{exc.message}"
     end
 
-    exc.set_backtrace MethodContext.current.sender unless exc.backtrace
+    unless skip
+      exc.set_backtrace MethodContext.current.sender unless exc.context
+    end
     Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
   end
   module_function :raise
