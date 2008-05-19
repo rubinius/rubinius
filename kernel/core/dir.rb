@@ -6,30 +6,47 @@ class Dir
   GLOB_VERBOSE = 1 << (4 * 8 - 1) # HACK
   GLOB_RECURSIVE = -2
 
+  SeekKind = 0
+  RewindKind = 1
+  TellKind = 2
+
   def self.[](pattern)
     glob(pattern, 0)
   end
 
-  def self.glob(pattern, flags = 0)
-    matches = []
+  def self.chdir(path = ENV['HOME'])
+    if block_given?
+      original_path = self.getwd
+      error = Platform::POSIX.chdir path
+      Errno.handle(path) if error != 0
 
-    glob_brace_expand pattern, flags & ~GLOB_VERBOSE, matches
+      begin
+        value = yield path
+      ensure
+        error = Platform::POSIX.chdir original_path
+        Errno.handle(original_path) if error != 0
+      end
 
-    matches
+      return value
+    else
+      error = Platform::POSIX.chdir path
+      if error != 0
+        Errno.handle path
+      end
+      error
+    end
   end
 
-  def self.glob0(pattern, flags, matches)
-    root = pattern.dup
-    path = ''
+  def self.entries(path)
+    ret = []
 
-    if root[0] == ?/ then # HACK windows
-      root = root[1..-1]
-      path = '/'
+    self.open(path) do |dir|
+      while s = dir.read
+        ret << s
+      end
     end
 
-    list = glob_pattern root, flags
-
-    glob_helper path, false, :unknown, :unknown, list, 0, 1, flags, matches
+    ret
   end
 
   def self.find_dirsep(pattern, flags)
@@ -52,6 +69,43 @@ class Dir
     end
 
     chars.length
+  end
+
+  def self.foreach(path)
+    self.open(path) do |dir|
+      while s = dir.read
+        yield s
+      end
+    end
+
+    nil
+  end
+
+  def self.getwd
+    buf = " " * 1024
+    Platform::POSIX.getcwd(buf, buf.length)
+  end
+
+  def self.glob(pattern, flags = 0)
+    matches = []
+
+    glob_brace_expand pattern, flags & ~GLOB_VERBOSE, matches
+
+    matches
+  end
+
+  def self.glob0(pattern, flags, matches)
+    root = pattern.dup
+    path = ''
+
+    if root[0] == ?/ then # HACK windows
+      root = root[1..-1]
+      path = '/'
+    end
+
+    list = glob_pattern root, flags
+
+    glob_helper path, false, :unknown, :unknown, list, 0, 1, flags, matches
   end
 
   def self.glob_brace_expand(pattern, flags, matches)
@@ -342,48 +396,12 @@ class Dir
     "#{p1}#{dirsep ? '/' : ''}#{p2}"
   end
 
-  def self.chdir(path = ENV['HOME'])
-    if block_given?
-      original_path = self.getwd
-      error = Platform::POSIX.chdir path
-      Errno.handle(path) if error != 0
-
-      begin
-        value = yield path
-      ensure
-        error = Platform::POSIX.chdir original_path
-        Errno.handle(original_path) if error != 0
-      end
-
-      return value
-    else
-      error = Platform::POSIX.chdir path
-      if error != 0
-        Errno.handle path
-      end
-      error
-    end
-  end
-
   def self.mkdir(path, mode = 0777)
     error = Platform::POSIX.mkdir(path, mode)
     if error != 0
       Errno.handle path
     end
     error
-  end
-
-  def self.rmdir(path)
-    error = Platform::POSIX.rmdir(path)
-    if error != 0
-      Errno.handle path
-    end
-    error
-  end
-
-  def self.getwd
-    buf = " " * 1024
-    Platform::POSIX.getcwd(buf, buf.length)
   end
 
   def self.open(path)
@@ -401,30 +419,31 @@ class Dir
     end
   end
 
-  def self.entries(path)
-    ret = []
-
-    self.open(path) do |dir|
-      while s = dir.read
-        ret << s
-      end
-    end
-
-    ret
+  def self.prim_close(dir)
+    Ruby.primitive :dir_close
+    raise PrimitiveFailure, "primitive failed"
   end
 
-  def self.foreach(path)
-    self.open(path) do |dir|
-      while s = dir.read
-        yield s
-      end
-    end
-
-    nil
+  def self.prim_control(dir, kind, pos)
+    Ruby.primitive :dir_control
+    raise PrimitiveFailure, "primitive failed"
   end
 
   def self.prim_open(path)
     Ruby.primitive :dir_open
+  end
+
+  def self.prim_read(dir)
+    Ruby.primitive :dir_read
+    raise PrimitiveFailure, "primitive failed"
+  end
+
+  def self.rmdir(path)
+    error = Platform::POSIX.rmdir(path)
+    if error != 0
+      Errno.handle path
+    end
+    error
   end
 
   def initialize(path)
@@ -437,34 +456,12 @@ class Dir
     @path = path
   end
 
-  def path
-    raise IOError, "closed directory" if @dirptr.nil?
-
-    @path
-  end
-
-  def self.prim_close(dir)
-    Ruby.primitive :dir_close
-    raise PrimitiveFailure, "primitive failed"
-  end
-
   def close
     raise IOError, "closed directory" if @dirptr.nil?
 
     Dir.prim_close(@dirptr)
 
     @dirptr = nil
-  end
-
-  def self.prim_read(dir)
-    Ruby.primitive :dir_read
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def read
-    raise IOError, "closed directory" if @dirptr.nil?
-
-    return Dir.prim_read(@dirptr)
   end
 
   def each
@@ -477,13 +474,10 @@ class Dir
     self
   end
 
-  SeekKind = 0
-  RewindKind = 1
-  TellKind = 2
+  def path
+    raise IOError, "closed directory" if @dirptr.nil?
 
-  def self.prim_control(dir, kind, pos)
-    Ruby.primitive :dir_control
-    raise PrimitiveFailure, "primitive failed"
+    @path
   end
 
   def pos
@@ -502,12 +496,10 @@ class Dir
     position
   end
 
-  def seek(position)
+  def read
     raise IOError, "closed directory" if @dirptr.nil?
 
-    Dir.prim_control(@dirptr, SeekKind, position)
-
-    self
+    return Dir.prim_read(@dirptr)
   end
 
   def rewind
@@ -518,9 +510,19 @@ class Dir
     self
   end
 
+  def seek(position)
+    raise IOError, "closed directory" if @dirptr.nil?
+
+    Dir.prim_control(@dirptr, SeekKind, position)
+
+    self
+  end
+
   class << self
     alias_method :pwd, :getwd
     alias_method :delete, :rmdir
     alias_method :unlink, :rmdir
   end
+
 end
+
