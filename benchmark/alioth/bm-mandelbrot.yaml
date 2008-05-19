@@ -1,0 +1,7 @@
+commandline: 500
+output: mandelbrot/output-500.txt
+mri: mandelbrot/mandelbrot.rb
+rbx: mandelbrot/mandelbrot.rb
+perl: mandelbrot/mandelbrot.pl
+gcc: mandelbrot/mandelbrot.c
+gcc-opts: -pipe -Wall -O3 -fomit-frame-pointer -D_ISOC9X_SOURCE -mfpmath=sse -lm

@@ -1,0 +1,7 @@
+commandline: 500
+output: spectralnorm/output-500.txt
+mri: spectralnorm/spectralnorm.rb
+rbx: spectralnorm/spectralnorm.rb
+perl: spectralnorm/spectralnorm.pl
+gcc: spectralnorm/spectralnorm.c
+gcc-opts: -pipe -Wall -O3 -fomit-frame-pointer -lm

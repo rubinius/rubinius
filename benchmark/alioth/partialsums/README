@@ -1,0 +1,9 @@
+Benchmark description
+---------------------
+http://shootout.alioth.debian.org/gp4/benchmark.php?test=partialsums&lang=all
+
+File sources
+------------
+partialsums.rb: http://alioth.debian.org/plugins/scmcvs/cvsweb.php/~checkout~/shootout/bench/partialsums/partialsums.ruby?rev=1.2;content-type=text%2Fplain;cvsroot=shootout
+partialsums.pl: http://alioth.debian.org/plugins/scmcvs/cvsweb.php/~checkout~/shootout/bench/partialsums/partialsums.perl-3.perl?rev=1.2;content-type=text%2Fplain;cvsroot=shootout
+partialsums.c: http://alioth.debian.org/plugins/scmcvs/cvsweb.php/~checkout~/shootout/bench/partialsums/partialsums.gcc?rev=1.2;content-type=text%2Fplain;cvsroot=shootout

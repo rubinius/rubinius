@@ -1,0 +1,9 @@
+3.000000000	(2/3)^k
+314.770573775	k^-0.5
+0.999960002	1/k(k+1)
+30.314520404	Flint Hills
+42.994899946	Cookson Hills
+10.703866769	Harmonic
+1.644894068	Riemann Zeta
+0.693127181	Alternating Harmonic
+0.785388163	Gregory

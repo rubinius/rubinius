@@ -1,0 +1,7 @@
+commandline: 2500000
+output: partialsums/output-2500000.txt
+mri: partialsums/partialsums.rb
+rbx: partialsums/partialsums.rb
+perl: partialsums/partialsums.pl
+gcc: partialsums/partialsums.c
+gcc-opts: -O3 -msse2 -lm
