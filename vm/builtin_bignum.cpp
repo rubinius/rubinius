@@ -168,35 +168,37 @@ namespace rubinius {
     return b;
   }
 
-  INTEGER Bignum::add(STATE, INTEGER b) {
+  INTEGER Bignum::add(STATE, FIXNUM b) {
     NMP;
-
-    if(kind_of<Fixnum>(b)) {
-      if(b->n2i() > 0) {
-        mp_add_d(MP(this), b->n2i(), n);
-      } else {
-        mp_sub_d(MP(this), - b->n2i(), n);
-      }
+    native_int bi = b->n2i();
+    if(bi > 0) {
+      mp_add_d(MP(this), bi, n);
     } else {
-      mp_add(MP(this), MP(as<Bignum>(b)), n);
+      mp_sub_d(MP(this), -bi, n);
     }
-
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::sub(STATE, INTEGER b) {
+  INTEGER Bignum::add(STATE, Bignum* b) {
     NMP;
+    mp_add(MP(this), MP(b), n);
+    return Bignum::normalize(state, n_obj);
+  }
 
-    if(kind_of<Fixnum>(b)) {
-      if(b->n2i() > 0) {
-        mp_sub_d(MP(this), b->n2i(), n);
-      } else {
-        mp_add_d(MP(this), - b->n2i(), n);
-      }
+  INTEGER Bignum::sub(STATE, FIXNUM b) {
+    NMP;
+    native_int bi = b->n2i();
+    if(bi > 0) {
+      mp_sub_d(MP(this), bi, n);
     } else {
-      mp_sub(MP(this), MP(b), n);
+      mp_add_d(MP(this), -bi, n);
     }
+    return Bignum::normalize(state, n_obj);
+  }
 
+  INTEGER Bignum::sub(STATE, Bignum* b) {
+    NMP;
+    mp_sub(MP(this), MP(b), n);
     return Bignum::normalize(state, n_obj);
   }
 
@@ -208,87 +210,108 @@ namespace rubinius {
     return;
   }
 
-  INTEGER Bignum::mul(STATE, INTEGER b) {
+  INTEGER Bignum::mul(STATE, FIXNUM b) {
     NMP;
 
-    if(kind_of<Fixnum>(b)) {
-      if(b == Object::i2n(2)) {
-        mp_mul_2(MP(this), n);
-      } else {
-        mp_mul_d(MP(this), b->n2i(), n);
-      }
+    native_int bi = b->n2i();
+    if(bi == 2) {
+      mp_mul_2(MP(this), n);
     } else {
-      mp_mul(MP(this), MP(b), n);
-    }
-    return Bignum::normalize(state, n_obj);
-  }
-
-  INTEGER Bignum::div(STATE, INTEGER b, INTEGER mod_obj) {
-    NMP;
-    mp_int m;
-
-    if(kind_of<Fixnum>(b)) {
-      native_int bi = b->n2i();
-      mp_digit r;
-      if(bi < 0) {
-        mp_div_d(MP(this), -bi, n, &r);
+      if(bi > 0) {
+        mp_mul_d(MP(this), bi, n);
+      } else {
+        mp_mul_d(MP(this), -bi, n);
         mp_neg(n, n);
-      } else {
-        mp_div_d(MP(this), bi, n, &r);
       }
-      mp_init_set_int(&m, r);
-      if(MP(this)->sign == MP_NEG && bi > 0) {
-        mp_neg(&m, &m);
-      }
-    } else {
-      mp_init(&m);
-      mp_div(MP(this), MP(b), n, &m);
     }
-
-    if(mp_cmp_d(n, 0) == MP_LT && mp_cmp_d(&m, 0) != MP_EQ) {
-      mp_int t;
-      mp_init(&t);
-      if(kind_of<Fixnum>(b)) {
-        native_int bi = b->n2i();
-        if(bi < 0) {
-          mp_sub_d(&m, -bi, &t);
-        } else {
-          mp_add_d(&m, bi, &t);
-        }
-      } else {
-        mp_add(&m, MP(b), &t);
-      }
-      mp_copy(&t, &m);
-      mp_clear(&t);
-      mp_sub_d(n, 1, n);
-    }
-
-    if(kind_of<Bignum>(mod_obj)) {
-      mp_int *mod = MP(mod_obj);
-      mp_copy(&m, mod);
-    }
-
-    mp_clear(&m);
-
     return Bignum::normalize(state, n_obj);
   }
 
-  Array* Bignum::divmod(STATE, INTEGER b) {
+  INTEGER Bignum::mul(STATE, Bignum* b) {
+    NMP;
+    mp_mul(MP(this), MP(b), n);
+    return Bignum::normalize(state, n_obj);
+  }
+
+  INTEGER Bignum::div(STATE, FIXNUM denominator, INTEGER* remainder) {
+    NMP;
+
+    native_int bi  = denominator->n2i();
+    mp_digit r;
+    if(bi < 0) {
+      mp_div_d(MP(this), -bi, n, &r);
+      mp_neg(n, n);
+    } else {
+      mp_div_d(MP(this), bi, n, &r);
+    }
+    
+    if(remainder) {
+      if(MP(this)->sign == MP_NEG) {
+        *remainder = Object::i2n(-(native_int)r);
+      } else {
+        *remainder = Object::i2n((native_int)r);
+      }
+    }
+    
+    if(mp_cmp_d(n, 0) == MP_LT && r != 0) {
+      if(remainder) {
+        *remainder = Object::i2n(as<Fixnum>(*remainder)->n2i() + bi);
+      }
+      mp_int m;
+      mp_init(&m);
+      mp_sub_d(n, 1, &m);
+      mp_copy(&m, n);
+      mp_clear(&m);
+    }
+    return Bignum::normalize(state, n_obj);
+  }
+
+  INTEGER Bignum::div(STATE, Bignum* b, INTEGER* remainder) {
+    NMP;
     MMP;
+    mp_div(MP(this), MP(b), n, m);
+    if(mp_cmp_d(n, 0) == MP_LT && mp_cmp_d(m, 0) != MP_EQ) {
+      mp_sub_d(n, 1, m);
+      mp_copy(m, n);
+      mp_mul(MP(b), n, m);
+      mp_sub(MP(this), m, m);
+    }
+    if(remainder) {
+      *remainder = Bignum::normalize(state, m_obj);
+    }
+    return Bignum::normalize(state, n_obj);
+  }
 
-    INTEGER div = this->div(state, b, m_obj);
-
+  Array* Bignum::divmod(STATE, FIXNUM denominator) {
+    INTEGER mod = Object::i2n(0);
+    INTEGER quotient = div(state, denominator, &mod);
+    
     Array* ary = Array::create(state, 2);
-    ary->set(state, 0, div);
-    ary->set(state, 1, Bignum::normalize(state, m_obj));
+    ary->set(state, 0, quotient);
+    ary->set(state, 1, mod);
+    
     return ary;
   }
 
-  INTEGER Bignum::mod(STATE, INTEGER b) {
-    NMP;
+  Array* Bignum::divmod(STATE, Bignum* denominator) {
+    INTEGER mod = Object::i2n(0);
+    INTEGER quotient = div(state, denominator, &mod);
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, quotient);
+    ary->set(state, 1, mod);
+    return ary;
+  }
 
-    this->div(state, b, n_obj);
-    return Bignum::normalize(state, n_obj);
+  INTEGER Bignum::mod(STATE, FIXNUM denominator) {
+    INTEGER mod = Object::i2n(0);
+    div(state, denominator, &mod);
+    return mod;
+  }
+  
+  INTEGER Bignum::mod(STATE, Bignum* denominator) {
+    INTEGER mod = Object::i2n(0);
+    div(state, denominator, &mod);
+    return mod;
   }
 
   bool Bignum::is_zero(STATE) {

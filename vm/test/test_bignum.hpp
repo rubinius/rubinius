@@ -105,6 +105,14 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(b1->mul(state, Object::i2n(1)), "2147483647");
   }
 
+  void test_mul_with_positive_fixnum() {
+    check_bignum(b1->mul(state, Object::i2n(100)), "214748364700");
+  }
+
+  void test_mul_with_negative_fixnum() {
+    check_bignum(b1->mul(state, Object::i2n(-100)), "-214748364700");
+  }
+
   void test_divmod() {
     Array* ary1 = b1->divmod(state, b1);
     Object* o1 = ary1->get(state, 0);

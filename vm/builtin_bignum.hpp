@@ -23,12 +23,18 @@ namespace rubinius {
     static OBJECT from_double(STATE, double d);
     
     void   debug(STATE);
-    INTEGER add(STATE, INTEGER b);
-    INTEGER sub(STATE, INTEGER b);
-    INTEGER mul(STATE, INTEGER b);
-    INTEGER div(STATE, INTEGER b, INTEGER mod);
-    Array* divmod(STATE, INTEGER b);
-    INTEGER mod(STATE, INTEGER b);
+    INTEGER add(STATE, FIXNUM b);
+    INTEGER add(STATE, Bignum* b);
+    INTEGER sub(STATE, FIXNUM b);
+    INTEGER sub(STATE, Bignum* b);
+    INTEGER mul(STATE, FIXNUM b);
+    INTEGER mul(STATE, Bignum* b);
+    INTEGER div(STATE, FIXNUM b, INTEGER* r);
+    INTEGER div(STATE, Bignum* b, INTEGER* r);
+    Array* divmod(STATE, FIXNUM b);
+    Array* divmod(STATE, Bignum* b);
+    INTEGER mod(STATE, FIXNUM b);
+    INTEGER mod(STATE, Bignum* b);
     INTEGER bit_and(STATE, INTEGER b);
     INTEGER bit_or(STATE, INTEGER b);
     INTEGER bit_xor(STATE, INTEGER b);
