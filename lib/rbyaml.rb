@@ -28,7 +28,7 @@ module RbYAML
   end
 
   def self.load( io )
-    _load(io)
+    _load(io) rescue false
   end
 
   def self.load_file( filepath )
