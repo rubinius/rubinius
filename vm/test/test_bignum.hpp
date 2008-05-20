@@ -14,12 +14,14 @@ class TestBignum : public CxxTest::TestSuite {
   Bignum* b1;
   Bignum* b2;
   FIXNUM two;
+  double TOLERANCE;
 
   void setUp() {
     state = new VM(1024);
     b1 = Bignum::create(state, (native_int)2147483647);
     b2 = Bignum::create(state, (native_int)2147483646);
     two = Object::i2n(2);
+    TOLERANCE = 0.00003;
   }
 
   void tearDown() {
@@ -73,6 +75,13 @@ class TestBignum : public CxxTest::TestSuite {
     }
   }
 
+  void check_float(Float* f, Float* g) {
+    TS_ASSERT_RELATION(std::greater<double>, f->val + TOLERANCE, g->val);
+    TS_ASSERT_RELATION(std::greater<double>, f->val, g->val - TOLERANCE);
+    TS_ASSERT_RELATION(std::greater<double>, g->val + TOLERANCE, f->val);
+    TS_ASSERT_RELATION(std::greater<double>, g->val, f->val - TOLERANCE);
+  }
+
   void test_add() {
     check_bignum(b1->add(state, b1), "4294967294");
     check_bignum(b1->add(state, Object::i2n(1)), "2147483648");
@@ -84,6 +93,12 @@ class TestBignum : public CxxTest::TestSuite {
 
   void test_add_with_negative_fixnum() {
     check_bignum(b1->add(state, Object::i2n(-100)), "2147483547");
+  }
+
+  void test_add_with_float() {
+    Float* f = Float::create(state, 0.2);
+    Float* a = Bignum::create(state, FIXNUM_MAX + 10)->add(state, f);
+    check_float(a, Float::create(state, (double)FIXNUM_MAX + 10.2));
   }
 
   void test_sub() {
@@ -99,6 +114,12 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(b1->sub(state, Object::i2n(-100)), "2147483747");
   }
 
+  void test_sub_with_float() {
+    Float* f = Float::create(state, 0.2);
+    Float* a = Bignum::create(state, FIXNUM_MAX + 10)->sub(state, f);
+    check_float(a, Float::create(state, (double)FIXNUM_MAX + 9.8));
+  }
+
   void test_mul() {
     check_bignum(b1->mul(state, b1), "4611686014132420609");
     check_bignum(b1->mul(state, Object::i2n(2)), "4294967294");
@@ -111,6 +132,12 @@ class TestBignum : public CxxTest::TestSuite {
 
   void test_mul_with_negative_fixnum() {
     check_bignum(b1->mul(state, Object::i2n(-100)), "-214748364700");
+  }
+
+  void test_mul_with_float() {
+    Float* f = Float::create(state, 0.2);
+    Float* a = Bignum::create(state, FIXNUM_MAX + 10)->mul(state, f);
+    check_float(a, Float::create(state, ((double)FIXNUM_MAX + 10) * 0.2));
   }
 
   void test_divmod() {

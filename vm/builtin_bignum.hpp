@@ -25,10 +25,13 @@ namespace rubinius {
     void   debug(STATE);
     INTEGER add(STATE, FIXNUM b);
     INTEGER add(STATE, Bignum* b);
+    Float*  add(STATE, Float* b);
     INTEGER sub(STATE, FIXNUM b);
     INTEGER sub(STATE, Bignum* b);
+    Float*  sub(STATE, Float* b);
     INTEGER mul(STATE, FIXNUM b);
     INTEGER mul(STATE, Bignum* b);
+    Float*  mul(STATE, Float* b);
     INTEGER divide(STATE, FIXNUM b, INTEGER* r);
     INTEGER divide(STATE, Bignum* b, INTEGER* r);
     Array* divmod(STATE, FIXNUM b);

@@ -185,6 +185,10 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
+  Float* Bignum::add(STATE, Float* b) {
+    return b->add(state, this);
+  }
+
   INTEGER Bignum::sub(STATE, FIXNUM b) {
     NMP;
     native_int bi = b->n2i();
@@ -200,6 +204,10 @@ namespace rubinius {
     NMP;
     mp_sub(MP(this), MP(b), n);
     return Bignum::normalize(state, n_obj);
+  }
+
+  Float* Bignum::sub(STATE, Float* b) {
+    return Float::coerce(state, this)->sub(state, b);
   }
 
   void Bignum::debug(STATE) {
@@ -231,6 +239,10 @@ namespace rubinius {
     NMP;
     mp_mul(MP(this), MP(b), n);
     return Bignum::normalize(state, n_obj);
+  }
+
+  Float* Bignum::mul(STATE, Float* b) {
+    return b->mul(state, this);
   }
 
   INTEGER Bignum::divide(STATE, FIXNUM denominator, INTEGER* remainder) {
