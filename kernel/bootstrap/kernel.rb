@@ -83,6 +83,16 @@ module Kernel
     STDOUT.write cls.name
     STDOUT.write ")"
     STDOUT.write "\n"
+    begin
+      context = MethodContext.current
+      while context
+        STDOUT.write "  "
+        STDOUT.write context.name.to_s
+        STDOUT.write "\n"
+        context = context.sender
+      end
+    rescue
+    end
     Process.exit 1
   end
 
