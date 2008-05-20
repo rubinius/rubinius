@@ -86,6 +86,67 @@ class Dir
     Platform::POSIX.getcwd(buf, buf.length)
   end
 
+  ##
+  # call-seq:
+  #    Dir.glob( pattern, [flags] ) => array
+  #    Dir.glob( pattern, [flags] ) {| filename | block }  => nil
+  #
+  # Returns the filenames found by expanding <i>pattern</i> which is an
+  # +Array+ of the patterns or the pattern +String+, either as an +array+ or
+  # as parameters to the block. Note that this pattern is not a regexp (it's
+  # closer to a shell glob). See File::fnmatch for the meaning of the +flags+
+  # parameter. Note that case sensitivity depends on your system (so
+  # <code>File::FNM_CASEFOLD</code> is ignored)
+  #
+  # <code>*</code>::        Matches any file. Can be restricted by
+  #                         other values in the glob. <code>*</code>
+  #                         will match all files; <code>c*</code> will
+  #                         match all files beginning with
+  #                         <code>c</code>; <code>*c</code> will match
+  #                         all files ending with <code>c</code>; and
+  #                         <code>*c*</code> will match all files that
+  #                         have <code>c</code> in them (including at
+  #                         the beginning or end). Equivalent to
+  #                         <code>/ .* /x</code> in regexp.
+  # <code>**</code>::       Matches directories recursively.
+  # <code>?</code>::        Matches any one character. Equivalent to
+  #                         <code>/.{1}/</code> in regexp.
+  # <code>[set]</code>::    Matches any one character in +set+.
+  #                         Behaves exactly like character sets in
+  #                         Regexp, including set negation
+  #                         (<code>[^a-z]</code>).
+  # <code>{p,q}</code>::    Matches either literal <code>p</code> or
+  #                         literal <code>q</code>. Matching literals
+  #                         may be more than one character in length.
+  #                         More than two literals may be specified.
+  #                         Equivalent to pattern alternation in
+  #                         regexp.
+  # <code>\</code>::        Escapes the next metacharacter.
+  #
+  #   Dir["config.?"]                     #=> ["config.h"]
+  #   Dir.glob("config.?")                #=> ["config.h"]
+  #   Dir.glob("*.[a-z][a-z]")            #=> ["main.rb"]
+  #   Dir.glob("*.[^r]*")                 #=> ["config.h"]
+  #   Dir.glob("*.{rb,h}")                #=> ["main.rb", "config.h"]
+  #   Dir.glob("*")                       #=> ["config.h", "main.rb"]
+  #   Dir.glob("*", File::FNM_DOTMATCH)   #=> [".", "..", "config.h", "main.rb"]
+  #   
+  #   rbfiles = File.join("**", "*.rb")
+  #   Dir.glob(rbfiles)                   #=> ["main.rb",
+  #                                            "lib/song.rb",
+  #                                            "lib/song/karaoke.rb"]
+  #   
+  #   libdirs = File.join("**", "lib")
+  #   Dir.glob(libdirs)                   #=> ["lib"]
+  #
+  #   
+  #   librbfiles = File.join("**", "lib", "**", "*.rb")
+  #   Dir.glob(librbfiles)                #=> ["lib/song.rb",
+  #                                            "lib/song/karaoke.rb"]
+  #   
+  #   librbfiles = File.join("**", "lib", "*.rb")
+  #   Dir.glob(librbfiles)                #=> ["lib/song.rb"]
+
   def self.glob(pattern, flags = 0)
     matches = []
 
@@ -93,6 +154,9 @@ class Dir
 
     matches
   end
+
+  ##
+  # Adds matches for +pattern+ to +matches+.  Called from glob_brace_expand.
 
   def self.glob0(pattern, flags, matches)
     root = pattern.dup
@@ -107,6 +171,10 @@ class Dir
 
     glob_helper path, false, :unknown, :unknown, [pattern], flags, matches
   end
+
+  ##
+  # Expands {} alternation in +pattern+ and searches for matching files with
+  # each expanded pattern, collecting them into +matches+.
 
   def self.glob_brace_expand(pattern, flags, matches)
     escape = (flags & File::FNM_NOESCAPE) == 0
@@ -163,17 +231,21 @@ class Dir
 
         glob_brace_expand brace_pattern, flags, matches
       end
-
     else
       glob0 pattern, flags, matches
     end
   end
 
   ##
+  # glob_helper performs recursive matching on +path+ with +patterns+ and
+  # collects matches found into +matches+.
+  #--
   # +dirsep+:: Should '/' be placed before appending child's entry name to
   #            +path+?
   # +exist+:: Does 'path' indicate an existing entry?
   # +isdir+:: Does 'path' indicate a directory or a symlink to a directory?
+  # +patterns+:: An Array of Arrays of pattern tuples
+  # +flags+:: File.fnmatch flags
 
   def self.glob_helper(path, dirsep, exist, isdir, patterns, flags, matches)
     status = nil
@@ -182,6 +254,7 @@ class Dir
 
     last_type = nil
 
+    # sanity check
     patterns.each do |pattern|
       type = pattern.first.last
 
@@ -204,6 +277,7 @@ class Dir
       end
     end
 
+    # add entry to matches
     unless path.empty? then
       if match_all and exist == :unknown then
         if stat = File.stat(path) rescue nil then
@@ -263,9 +337,11 @@ class Dir
                         end
           end
 
+          # build up a new patterns Array
           patterns.each do |pattern|
             pattern.each_with_index do |(match_str, type), i|
               if type == :recursive then
+                # add recursive pattern if real directory
                 new_patterns << pattern[i..-1] if new_isdir == :yes
                 i += 1
                 part = pattern[i]
@@ -289,6 +365,7 @@ class Dir
         pattern.first[1] == :plain
       end
 
+      # build a list of plain patterns that all start with the same string
       plain_patterns.each_with_index do |pattern, i|
         next if pattern.nil?
 
@@ -313,13 +390,18 @@ class Dir
 
           new_patterns.delete_if { |pattern| pattern.nil? or pattern.empty? }
 
-          buf = join_path path, name, dirsep
+          new_path = join_path path, name, dirsep
 
-          glob_helper buf, true, :unknown, :unknown, new_patterns, flags, matches
+          glob_helper(new_path, true, :unknown, :unknown, new_patterns, flags,
+                      matches)
         end
       end
     end
   end
+
+  ##
+  # A glob pattern is magic if it contains the magic characters *, ? or [], or
+  # if the File::FNM_CASEFOLD flag is set.
 
   def self.glob_magic?(pattern, flags)
     escape = (flags & File::FNM_NOESCAPE) == 0
@@ -340,6 +422,17 @@ class Dir
 
     false
   end
+
+  ##
+  # Builds a glob pattern from pattern string +pattern+.
+  #
+  # A glob pattern is an Array of pairs containing a match string and a type.
+  # The type can be one of:
+  # +:recursive+:: '**'
+  # +:magic+:: contains '*', etc., see #glob_magic?
+  # +:plain+:: plain string
+  # +:match_dir+:: +pattern+ ends in '/'
+  # +:match_all+:: +pattern+ does not end in '/'
 
   def self.glob_pattern(pattern, flags)
     dirsep = false
@@ -380,6 +473,10 @@ class Dir
 
     glob_pattern
   end
+
+  ##
+  # Joins p1 with p2 and adds a directory separator if +dirsep+ is true.
+  # Used by Dir::glob.
 
   def self.join_path(p1, p2, dirsep)
     "#{p1}#{dirsep ? '/' : ''}#{p2}"
