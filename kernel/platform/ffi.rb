@@ -1,3 +1,5 @@
+#depends on env.rb
+
 module FFI
 
   #  Specialised error classes
@@ -205,12 +207,38 @@ class Module
 
     func = FFI.create_function @ffi_lib, name, args, ret
 
-    raise FFI::NotFoundError.new(name, @ffi_lib) unless func
+    # Error handling does not work properly so avoid it for now.
+    if !func
+      STDOUT.write "*** ERROR: Native function "
+      STDOUT.write name.to_s
+      STDOUT.write " from "
+      if @ffi_lib
+        STDOUT.write @ffi_lib.to_s
+      else
+        STDOUT.write "this process"
+      end
+      STDOUT.write " could not be found or linked.\n"
+
+      if env "RBX_FFI_SOFTFAIL"
+        STDOUT.write "***        Proceeding because RBX_FFI_SOFTFAIL is set. Program may fail later.\n"
+        return nil
+      else
+        STDOUT.write "***        If you want to try to work around this problem, you may set environment\n"
+        STDOUT.write "***        variable RBX_FFI_SOFTFAIL.\n"
+        STDOUT.write "***        Exiting.\n"
+        Process.exit 1
+      end
+    end
+#    raise FFI::NotFoundError.new(name, @ffi_lib) unless func
 
     metaclass.method_table[mname] = func
     return func
   end
 
+  # HACK: Unable to get EnvironmentVariables up at this point
+  def env(str)
+    Ruby.primitive :env_get
+  end
 end
 
 # MemoryPointer is Rubinius's "fat" pointer class. It represents an actual
