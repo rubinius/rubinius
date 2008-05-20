@@ -93,6 +93,7 @@ namespace rubinius {
   void Task::import_arguments(MethodContext* ctx, Message& msg) {
     size_t total = ctx->cm->total_args->n2i();
     size_t required = ctx->cm->required_args->n2i();
+    size_t fixed;
 
     ctx->block = msg.block;
     ctx->args = msg.args;
@@ -111,7 +112,7 @@ namespace rubinius {
       throw new ArgumentError(required, msg.args);
     }
 
-    size_t fixed = total;
+    fixed = total;
     if(msg.args < total) fixed = msg.args;
 
     for(size_t i = 0; i < fixed; i++) {
