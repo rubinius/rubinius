@@ -34,6 +34,42 @@ namespace rubinius {
     return Float::create(state, 0.0);
   }
 
+  Float* Float::add(STATE, Float* other) {
+    return Float::create(state, this->val + other->val);
+  }
+
+  Float* Float::add(STATE, INTEGER other) {
+    return Float::create(state, this->val + Float::coerce(state, other)->val);
+  }
+
+  Float* Float::sub(STATE, Float* other) {
+    return Float::create(state, this->val - other->val);
+  }
+
+  Float* Float::sub(STATE, INTEGER other) {
+    return Float::create(state, this->val - Float::coerce(state, other)->val);
+  }
+
+  Float* Float::mul(STATE, Float* other) {
+    return Float::create(state, this->val * other->val);
+  }
+
+  Float* Float::mul(STATE, INTEGER other) {
+    return Float::create(state, this->val * Float::coerce(state, other)->val);
+  }
+
+  Float* Float::divide(STATE, Float* other) {
+    return Float::create(state, this->val / other->val);
+  }
+
+  Float* Float::divide(STATE, INTEGER other) {
+    return Float::create(state, this->val / Float::coerce(state, other)->val);
+  }
+
+  Float* Float::neg(STATE) {
+    return Float::create(state, -this->val);
+  }
+
   void Float::into_string(STATE, char* buf, size_t sz) {
     snprintf(buf, sz, "%+.17e", val);
   }

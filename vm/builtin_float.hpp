@@ -27,6 +27,20 @@ namespace rubinius {
     void into_string(STATE, char* buf, size_t sz);
     OBJECT compare(STATE, Float* other);
 
+    Float* add(STATE, Float* other);
+    Float* add(STATE, INTEGER other);
+    Float* sub(STATE, Float* other);
+    Float* sub(STATE, INTEGER other);
+    Float* mul(STATE, Float* other);
+    Float* mul(STATE, INTEGER other);
+    Float* divide(STATE, Float* other);
+    Float* divide(STATE, INTEGER other);
+    Float* div(STATE, Float* other);
+    Float* div(STATE, INTEGER other);
+    Float* mod(STATE, Float* other);
+    Float* mod(STATE, INTEGER other);
+    Float* neg(STATE);
+
     static int radix()      { return FLT_RADIX; }
     static int rounds()     { return FLT_ROUNDS; }
     static double min()     { return DBL_MIN; }

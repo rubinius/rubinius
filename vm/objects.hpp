@@ -41,6 +41,7 @@ namespace rubinius {
 
 #include "builtin_tuple.hpp"
 #include "builtin_array.hpp"
+#include "builtin_float.hpp"
 
 #include "builtin_bignum.hpp"
 #include "builtin_fixnum.hpp"
@@ -86,7 +87,6 @@ namespace rubinius {
 #include "builtin_class.hpp"
 #include "builtin_contexts.hpp"
 #include "builtin_iseq.hpp"
-#include "builtin_float.hpp"
 
 namespace rubinius {
   template <>

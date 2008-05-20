@@ -29,8 +29,8 @@ namespace rubinius {
     INTEGER sub(STATE, Bignum* b);
     INTEGER mul(STATE, FIXNUM b);
     INTEGER mul(STATE, Bignum* b);
-    INTEGER div(STATE, FIXNUM b, INTEGER* r);
-    INTEGER div(STATE, Bignum* b, INTEGER* r);
+    INTEGER divide(STATE, FIXNUM b, INTEGER* r);
+    INTEGER divide(STATE, Bignum* b, INTEGER* r);
     Array* divmod(STATE, FIXNUM b);
     Array* divmod(STATE, Bignum* b);
     INTEGER mod(STATE, FIXNUM b);

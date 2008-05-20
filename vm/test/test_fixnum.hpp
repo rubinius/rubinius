@@ -12,13 +12,22 @@ class TestFixnum : public CxxTest::TestSuite {
 
 #undef state
   VM* state;
+  double TOLERANCE;
 
   void setUp() {
     state = new VM();
+    TOLERANCE = 0.00003;
   }
 
   void tearDown() {
     delete state;
+  }
+
+  void check_float(Float* f, Float* g) {
+    TS_ASSERT_RELATION(std::greater<double>, f->val + TOLERANCE, g->val);
+    TS_ASSERT_RELATION(std::greater<double>, f->val, g->val - TOLERANCE);
+    TS_ASSERT_RELATION(std::greater<double>, g->val + TOLERANCE, f->val);
+    TS_ASSERT_RELATION(std::greater<double>, g->val, f->val - TOLERANCE);
   }
 
   void test_add() {
@@ -52,6 +61,12 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(res->n2i(), FIXNUM_MAX + 3);
   }
 
+  void test_add_a_float() {
+    FIXNUM one = Object::i2n(13);
+    Float* res = one->add(state, Float::create(state, 1.4));
+    check_float(res, Float::create(state, 14.4));
+  }
+
   void test_sub() {
     FIXNUM one = as<Fixnum>(Object::i2n(1));
 
@@ -83,6 +98,12 @@ class TestFixnum : public CxxTest::TestSuite {
     INTEGER res = one->sub(state, obj);
     TS_ASSERT_EQUALS(res->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(res->n2i(), 13 - (FIXNUM_MAX + 28));
+  }
+
+  void test_sub_a_float() {
+    FIXNUM one = Object::i2n(13);
+    Float* res = one->sub(state, Float::create(state, 1.4));
+    check_float(res, Float::create(state, 11.6));
   }
 
   void test_mul() {
@@ -128,27 +149,33 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(three->n2i(), (FIXNUM_MAX + 10) * 2);
   }
 
-  void test_div() {
+  void test_mul_a_float() {
+    FIXNUM one = Object::i2n(13);
+    Float* res = one->mul(state, Float::create(state, 1.4));
+    check_float(res, Float::create(state, 18.2));
+  }
+
+  void test_divide() {
     FIXNUM one = as<Fixnum>(Object::i2n(4));
 
-    FIXNUM two = as<Fixnum>(one->div(state, one));
+    FIXNUM two = as<Fixnum>(one->divide(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 1);
   }
 
-  void test_div_with_positive_arguments() {
-    TS_ASSERT_EQUALS(Object::i2n(3)->div(state, Object::i2n(2)), Object::i2n(1));
+  void test_divide_with_positive_arguments() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->divide(state, Object::i2n(2)), Object::i2n(1));
   }
 
-  void test_div_with_first_negative_argument() {
-    TS_ASSERT_EQUALS(Object::i2n(-3)->div(state, Object::i2n(2)), Object::i2n(-2));
+  void test_divide_with_first_negative_argument() {
+    TS_ASSERT_EQUALS(Object::i2n(-3)->divide(state, Object::i2n(2)), Object::i2n(-2));
   }
 
-  void test_div_with_second_negative_argument() {
-    TS_ASSERT_EQUALS(Object::i2n(3)->div(state, Object::i2n(-2)), Object::i2n(-2));
+  void test_divide_with_second_negative_argument() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->divide(state, Object::i2n(-2)), Object::i2n(-2));
   }
 
-  void test_div_with_negative_arguments() {
-    TS_ASSERT_EQUALS(Object::i2n(-3)->div(state, Object::i2n(-2)), Object::i2n(1));
+  void test_divide_with_negative_arguments() {
+    TS_ASSERT_EQUALS(Object::i2n(-3)->divide(state, Object::i2n(-2)), Object::i2n(1));
   }
 
   void test_mod() {

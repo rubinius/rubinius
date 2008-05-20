@@ -233,7 +233,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::div(STATE, FIXNUM denominator, INTEGER* remainder) {
+  INTEGER Bignum::divide(STATE, FIXNUM denominator, INTEGER* remainder) {
     NMP;
 
     native_int bi  = denominator->n2i();
@@ -266,7 +266,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  INTEGER Bignum::div(STATE, Bignum* b, INTEGER* remainder) {
+  INTEGER Bignum::divide(STATE, Bignum* b, INTEGER* remainder) {
     NMP;
     MMP;
     mp_div(MP(this), MP(b), n, m);
@@ -284,7 +284,7 @@ namespace rubinius {
 
   Array* Bignum::divmod(STATE, FIXNUM denominator) {
     INTEGER mod = Object::i2n(0);
-    INTEGER quotient = div(state, denominator, &mod);
+    INTEGER quotient = divide(state, denominator, &mod);
     
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, quotient);
@@ -295,7 +295,7 @@ namespace rubinius {
 
   Array* Bignum::divmod(STATE, Bignum* denominator) {
     INTEGER mod = Object::i2n(0);
-    INTEGER quotient = div(state, denominator, &mod);
+    INTEGER quotient = divide(state, denominator, &mod);
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, quotient);
     ary->set(state, 1, mod);
@@ -304,13 +304,13 @@ namespace rubinius {
 
   INTEGER Bignum::mod(STATE, FIXNUM denominator) {
     INTEGER mod = Object::i2n(0);
-    div(state, denominator, &mod);
+    divide(state, denominator, &mod);
     return mod;
   }
   
   INTEGER Bignum::mod(STATE, Bignum* denominator) {
     INTEGER mod = Object::i2n(0);
-    div(state, denominator, &mod);
+    divide(state, denominator, &mod);
     return mod;
   }
 
