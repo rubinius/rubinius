@@ -810,6 +810,8 @@ class Module
     alias_method :attr_writer, :attr_writer_cv
     alias_method :attr_accessor, :attr_accessor_cv
 
+    alias_method :attach_function, :attach_function_cv
+
     private :alias_method
   end
 
