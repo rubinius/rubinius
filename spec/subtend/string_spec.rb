@@ -45,6 +45,10 @@ describe "SubtendString" do
   it "rb_str_cat should concat C strings to ruby strings" do
     @s.cat_as_question("Your house is on fire").should == "Your house is on fire?"
   end
+
+  it "rb_str_cat2 should concat C strings to ruby strings" do
+    @s.cat2_as_question("Your house is on fire").should == "Your house is on fire?"
+  end
   
   it "rb_str_cmp should compare two strings" do
     @s.rb_str_cmp("xxx", "xxxx").should == -1

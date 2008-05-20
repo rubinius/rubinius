@@ -168,6 +168,7 @@ VALUE rb_str_new2(const char *ptr);
 VALUE rb_str_dup(VALUE str);
 VALUE rb_str_append(VALUE str, VALUE str2);
 VALUE rb_str_cat(VALUE str, const char *ptr, long len);
+VALUE rb_str_cat2(VALUE str, const char *ptr);
 VALUE rb_str_plus(VALUE str1, VALUE str2);
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
 VALUE rb_str_cmp(VALUE str1, VALUE str2);

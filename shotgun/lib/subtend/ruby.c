@@ -550,6 +550,10 @@ VALUE rb_str_cat(VALUE str, const char *ptr, long len) {
   return rb_funcall(str, rb_intern("+"), 1, rb_str_new(ptr, len));
 }
 
+VALUE rb_str_cat2(VALUE str, const char *ptr) {
+  return rb_str_cat(str, ptr, strlen(ptr));
+}
+
 VALUE rb_str_plus(VALUE str1, VALUE str2) {
   CTX;
   OBJECT new_string = string_dup(ctx->state, HNDL(str1));
