@@ -329,11 +329,8 @@ class File < IO
 
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern).dup
-    path = StringValue(path).dup
-
-    unless flags.__kind_of__ Fixnum then
-      flags = Type.coerce_to(flags, Fixnum, :to_int)
-    end
+    path    = StringValue(path).dup
+    flags   = Type.coerce_to(flags, Fixnum, :to_int) unless Fixnum === flags
 
     name_match(pattern, path, flags, 0, pattern.size, 0, path.size)
   end

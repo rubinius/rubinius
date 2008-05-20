@@ -1101,7 +1101,7 @@ class String
   #   "bad".oct       #=> 0
   #   "0377bad".oct   #=> 255
   def oct
-    self.to_inum(-8)
+    self.to_inum(8, false, true)
   end
 
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
@@ -1958,119 +1958,74 @@ class String
     return result
   end
 
-  def to_inum(base, check = false)
-    i = 0
-    # ignore only leading whitespaces
-    if check
-      while i < @bytes && @data[i].isspace
-        i += 1
-      end
-    # ignore leading whitespaces and underscores
-    else
-      while i < @bytes && (@data[i].isspace || @data[i] == ?_)
-        i += 1
-      end
-    end
+  def to_inum(base, check = false, detect_base = false)
+    detect_base = true if base == 0
 
-    negative = false
-    if @data[i] == ?+
-      i += 1
-    elsif @data[i] == ?-
-      negative = true
-      i += 1
-    end
+    raise(ArgumentError,
+          "invalid value for Integer: #{inspect}") if check and self =~ /__/
 
-    if @data[i] == ?+ || @data[i] == ?- || @data[i] == ?_
-      raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check
-      return 0
-    end
-
-    if base <= 0
-      if @data[i] == ?0
-        case @data[i+1]
-        when ?x, ?X
-          base = 16
-        when ?b, ?B
-          base = 2
-        when ?o, ?O
-          base = 8
-        when ?d, ?D
-          base = 10
+    s = if check then
+          self.strip
         else
-          base = 8
+          self.delete('_').strip
         end
-      elsif base < -1
-        base = -base
-      else
-        base = 10
-      end
+
+    if detect_base then
+      base = if s =~ /^[+-]?0([bdox]?)/i then
+               {"b" => 2, "d" => 10, "o" => 8, '' => 8, "x" => 16}[$1.downcase]
+             else
+               base == 8 ? 8 : 10
+             end
     end
 
-    case base
-    when 2
-      i += 2 if @data[i] == ?0 && (@data[i+1] == ?b || @data[i+1] == ?B)
-    when 8
-      i += 2 if @data[i] == ?0 && (@data[i+1] == ?o || @data[i+1] == ?O)
-    when 10
-      i += 2 if @data[i] == ?0 && (@data[i+1] == ?d || @data[i+1] == ?D)
-    when 16
-      i += 2 if @data[i] == ?0 && (@data[i+1] == ?x || @data[i+1] == ?X)
-    else
-      raise ArgumentError, "illegal radix #{base}" if (base < 2 || 36 < base)
-    end
+    raise ArgumentError, "illegal radix #{base}" unless (2..36).include? base
 
+    match_re = case base
+               when  2 then
+                 /([+-])?(?:0b?)?([a-z0-9_]*)/ix
+               when  8 then
+                 /([+-])?(?:0o?)?([a-z0-9_]*)/ix
+               when 10 then
+                 /([+-])?(?:0d)? ([a-z0-9_]*)/ix
+               when 16 then
+                 /([+-])?(?:0x)? ([a-z0-9_]*)/ix
+               else
+                 /([+-])?        ([a-z0-9_]*)/ix
+               end
+
+    match_re = /^#{match_re}$/x if check # stupid /x for emacs lameness
+
+    sign = data = nil
+    sign, data = $1, $2 if s =~ match_re
+
+    raise ArgumentError, "error in impl parsing: #{self.inspect}" if
+      data.nil? || (check && (s =~ /^_/ || data.empty? ))
+
+    negative = sign == "-"
     result = 0
-    seen_space = false
-    seen_digit = false
-    last_under = false
-    i.upto(@bytes - 1) do |index|
-      char = @data[index]
 
-      if check
-        if char.isspace
-          seen_space = true
-          next
-        elsif seen_space
-          raise ArgumentError, "invalid value for Integer: #{inspect()}"
-        end
+    data.each_byte do |char|
+      value = case char
+              when ?0..?9 then
+                (char - ?0)
+              when ?A..?Z then
+                (char - ?A + 10)
+              when ?a..?z then
+                (char - ?a + 10)
+              when ?_ then
+                next
+              else
+                nil
+              end
 
-        if char == ?_
-          if last_under || !seen_digit
-            raise ArgumentError, "invalid value for Integer: #{inspect}"
-          else
-            last_under = true
-            next
-          end
-        end
-
-        last_under = false
-      else
-        break if char.isspace
-        next if char == ?_
-      end
-
-      if char >= ?0 && char <= ?9
-        value = (char - ?0)
-      elsif char >= ?A && char <= ?Z
-        value = (char - ?A + 10)
-      elsif char >= ?a && char <= ?z
-        value = (char - ?a + 10)
-      # An invalid character.
-      else
-        raise ArgumentError, "invalid value for Integer: #{self.inspect} (#{char.chr})" if check
+      if value.nil? or value >= base then
+        raise ArgumentError, "invalid value for Integer: #{inspect}" if check
         return negative ? -result : result
       end
 
-      if value >= base
-        raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check
-        return negative ? -result : result
-      end
-
-      seen_digit = true
       result *= base
       result += value
     end
-    raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check && (last_under || !seen_digit)
 
     return negative ? -result : result
   end
