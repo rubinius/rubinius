@@ -103,9 +103,9 @@ class Dir
       path = '/'
     end
 
-    list = glob_pattern root, flags
+    pattern = glob_pattern root, flags
 
-    glob_helper path, false, :unknown, :unknown, list, 0, 1, flags, matches
+    glob_helper path, false, :unknown, :unknown, [pattern], flags, matches
   end
 
   def self.glob_brace_expand(pattern, flags, matches)
@@ -175,20 +175,22 @@ class Dir
   # +exist+:: Does 'path' indicate an existing entry?
   # +isdir+:: Does 'path' indicate a directory or a symlink to a directory?
 
-  def self.glob_helper(path, dirsep, exist, isdir, pattern, start, stop, flags, matches)
+  def self.glob_helper(path, dirsep, exist, isdir, patterns, flags, matches)
     status = nil
     plain = magic = recursive = match_all = match_dir = false
     escape = (flags & File::FNM_NOESCAPE) == 0
 
     last_type = nil
 
-    pattern[start, stop].each_with_index do |part, i|
-      if part[1] == :recursive then
+    patterns.each do |pattern|
+      type = pattern.first.last
+
+      if type == :recursive then
         recursive = true
-        part = pattern[i + 1]
+        type = pattern[1].last
       end
 
-      case part[1]
+      case type
       when :magic then
         magic = true
       when :match_all then
@@ -247,8 +249,7 @@ class Dir
         Dir.foreach dir do |entry|
           buf = join_path path, entry, dirsep
           new_isdir = :unknown
-          new_pattern = []
-          copied = start
+          new_patterns = []
 
           if recursive and not %w[. ..].include?(entry) and
             File.fnmatch('*', entry, flags) then
@@ -262,72 +263,60 @@ class Dir
                         end
           end
 
-          pattern[start, stop].each_with_index do |part, i|
-            if part[1] == :recursive then
-              if new_isdir == :yes then
-                new_pattern << part
-                copied += 1
+          patterns.each do |pattern|
+            pattern.each_with_index do |(match_str, type), i|
+              if type == :recursive then
+                new_patterns << pattern[i..-1] if new_isdir == :yes
+                i += 1
+                part = pattern[i]
               end
-              part = pattern[start + i + 1]
-              i += 1
-            end
 
-            if (part[1] == :plain or part[1] == :magic) and
-              File.fnmatch part[0], entry, flags then
-              new_pattern << pattern[start + i + 1]
-              copied += 2
+              if (type == :plain or type == :magic) and
+                 File.fnmatch match_str, entry, flags then
+                new_patterns << pattern[(i + 1)..-1]
+              end
             end
           end
 
-          length = new_pattern.length
-
-          new_pattern.concat pattern[copied, pattern.size-copied]
-
-          glob_helper(buf, true, :yes, new_isdir, new_pattern, 0, length,
-                      flags, matches)
+          glob_helper buf, true, :yes, new_isdir, new_patterns, flags, matches
         end
       rescue Errno::ENOTDIR
         # File.directory? may return true on entries in an fdesc file system
         return
       end
     elsif plain then
-      copy_end = 0
-      copy_pattern = pattern.dup
-
-      pattern[start, stop].each_with_index do |part, i|
-        copy_pattern[i] = nil unless part[1] == :plain
+      plain_patterns = patterns.select do |pattern|
+        pattern.first[1] == :plain
       end
 
-      copy_pattern[start, stop].each_with_index do |part, i|
-        next unless part
+      plain_patterns.each_with_index do |pattern, i|
+        next if pattern.nil?
 
-        new_pattern = []
-        copied = i
-        next_offset = i + 1
+        pattern.each_with_index do |part, j|
+          new_patterns = []
+          next_offset = j + 1
 
-        name = part[0]
-        name = name.gsub '\\', '' if escape
+          name = part[0]
+          name = name.gsub '\\', '' if escape
 
-        new_pattern << copy_pattern[next_offset]
-        copied += 1
+          new_patterns << pattern[next_offset..-1]
 
-        copy_pattern[(i+1), stop-(i+1)].each_with_index do |part2, j|
-          if part2 and not File.fnmatch part2[0], name, flags then
-            new_pattern << copy_pattern[next_offset + j]
-            copied += 1
-
-            copy_pattern[next_offset + j] = nil
+          same_patterns = plain_patterns[(i + 1)..-1].select do |pattern2|
+            File.fnmatch pattern2.first.first, name, flags
           end
+
+          same_patterns = same_patterns.map do |pattern2|
+            pattern2[1..-1]
+          end
+
+          new_patterns.push same_patterns
+
+          new_patterns.delete_if { |pattern| pattern.nil? or pattern.empty? }
+
+          buf = join_path path, name, dirsep
+
+          glob_helper buf, true, :unknown, :unknown, new_patterns, flags, matches
         end
-
-        length = new_pattern.length
-
-        new_pattern.concat copy_pattern[(copied + 1)..-1]
-
-        buf = join_path path, name, dirsep
-
-        glob_helper(buf, true, :unknown, :unknown, new_pattern,
-                    0, length, flags, matches)
       end
     end
   end
