@@ -1982,15 +1982,15 @@ class String
 
     match_re = case base
                when  2 then
-                 /([+-])?(?:0b?)?([a-z0-9_]*)/ix
+                 /([+-])?(?:0b)?([a-z0-9_]*)/ix
                when  8 then
-                 /([+-])?(?:0o?)?([a-z0-9_]*)/ix
+                 /([+-])?(?:0o)?([a-z0-9_]*)/ix
                when 10 then
-                 /([+-])?(?:0d)? ([a-z0-9_]*)/ix
+                 /([+-])?(?:0d)?([a-z0-9_]*)/ix
                when 16 then
-                 /([+-])?(?:0x)? ([a-z0-9_]*)/ix
+                 /([+-])?(?:0x)?([a-z0-9_]*)/ix
                else
-                 /([+-])?        ([a-z0-9_]*)/ix
+                 /([+-])?       ([a-z0-9_]*)/ix
                end
 
     match_re = /^#{match_re}$/x if check # stupid /x for emacs lameness
