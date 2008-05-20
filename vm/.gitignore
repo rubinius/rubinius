@@ -1,3 +1,4 @@
 .deps/*
 gen/*
 external_libs
+test/test_instructions.hpp
