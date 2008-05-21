@@ -122,4 +122,4 @@ For the build to succeed you will need these packages:
 
 * libglib2.0-dev
 * zlib1g-dev
-
+* bison
