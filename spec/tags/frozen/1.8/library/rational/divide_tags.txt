@@ -1,1 +1,3 @@
 incomplete:Rational#/ needs to be reviewed for spec completeness
+fails:Rational#/ when passed [Rational] returns self divided by other as a Rational
+fails:Rational#/ when passed [Integer] returns self divided by other as a Rational

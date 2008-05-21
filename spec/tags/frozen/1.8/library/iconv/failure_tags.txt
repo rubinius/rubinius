@@ -1,0 +1,6 @@
+fails:Iconv::Failure is a module
+fails:Iconv::Failure is included by Iconv::InvalidEncoding
+fails:Iconv::Failure is included by Iconv::IllegalSequence
+fails:Iconv::Failure is included by Iconv::InvalidCharacter
+fails:Iconv::Failure is included by Iconv::OutOfRange
+fails:Iconv::Failure is included by Iconv::BrokenLibrary
