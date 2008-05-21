@@ -6,91 +6,91 @@ KNOWN_TYPES = %w(rbx mri perl gcc)
 tests = []
 configs = Dir["bm-*.yaml"]
 configs.each do |config_fn|
-  test = config_fn =~ /bm-(.*?)\.yaml/ && $1
-  tests << test.to_sym
-  config = YAML::load_file config_fn
-  result_fns = []
+  test = config_fn =~ /bm-(.*?)\.yaml/ && $1
+  tests << test.to_sym
+  config = YAML::load_file config_fn
+  result_fns = []
 
-  KNOWN_TYPES.each do |type|
-    next unless config[type]
-    script_fn = config[type]
-    opts = config["#{type}-opts"]
+  KNOWN_TYPES.each do |type|
+    next unless config[type]
+    script_fn = config[type]
+    opts = config["#{type}-opts"]
 
-    ## eval task
-    result_fn = "results-#{test}-#{type}.yaml"
-    result_fns << result_fn
-    input, output, commandline = config["input"], config["output"], config["commandline"]
-    file result_fn => [script_fn, config_fn] do |t|
-      puts "Evaluating #{type} on #{script_fn}..."
-      results = send "run_#{type}", script_fn, input, output, commandline, opts
-      File.open(result_fn, "w") { |f| f.puts results.to_yaml }
-    end
-  end
+    ## eval task
+    result_fn = "results-#{test}-#{type}.yaml"
+    result_fns << result_fn
+    input, output, commandline = config["input"], config["output"], config["commandline"]
+    file result_fn => [script_fn, config_fn] do |t|
+      puts "Evaluating #{type} on #{script_fn}..."
+      results = send "run_#{type}", script_fn, input, output, commandline, opts
+      File.open(result_fn, "w") { |f| f.puts results.to_yaml }
+    end
+  end
 
-  task test.to_sym => result_fns do
-    all_results = {}
-    KNOWN_TYPES.each do |type|
-      all_results[type] = YAML.load_file("results-#{test}-#{type}.yaml")
-    end
+  task test.to_sym => result_fns do
+    all_results = {}
+    KNOWN_TYPES.each do |type|
+      all_results[type] = YAML.load_file("results-#{test}-#{type}.yaml")
+    end
 
-    puts "#{test}:"
-    report all_results
-  end
+    puts "#{test}:"
+    report all_results
+  end
 end
 
 task :default => tests
 
 def evaluate output, cmd
-  t = Tempfile.new "alioth-benchmark"
-  start = Time.now
-  system "#{cmd} > #{t.path}" # system instead of sh because failure shouldn't abort
-  stop = Time.now
-  raw_time = stop - start
-  diff = `diff -u #{t.path} #{output}`
-  unless diff.empty?
-    puts "========================="
-    puts "=== incorrect output! ==="
-    puts "========================="
-    puts diff
-  end
-  puts "## took #{raw_time}s"
-  { :time => raw_time, :fail => !diff.empty? }
+  t = Tempfile.new "alioth-benchmark"
+  start = Time.now
+  system "#{cmd} > #{t.path}" # system instead of sh because failure shouldn't abort
+  stop = Time.now
+  raw_time = stop - start
+  diff = `diff -u #{t.path} #{output}`
+  unless diff.empty?
+    puts "========================="
+    puts "=== incorrect output! ==="
+    puts "========================="
+    puts diff
+  end
+  puts "## took #{raw_time}s"
+  { :time => raw_time, :fail => !diff.empty? }
 end
 
 def run_rbx script, input, output, commandline, opts
-  evaluate output, "../../shotgun/rubinius #{script} #{commandline || ""}" + (input ? " < #{input} " : "")
+  evaluate output, "../../shotgun/rubinius #{script} #{commandline || ""}" + (input ? " < #{input} " : "")
 end
 
 def run_mri script, input, output, commandline, opts
-  evaluate output, "ruby #{script} #{commandline || ""}" + (input ? " < #{input} " : "")
+  evaluate output, "ruby #{script} #{commandline || ""}" + (input ? " < #{input} " : "")
 end
 
 def run_perl script, input, output, commandline, opts
-  evaluate output, "perl #{script} #{commandline || ""}" + (input ? " < #{input} " : "")
+  evaluate output, "perl #{script} #{commandline || ""}" + (input ? " < #{input} " : "")
 end
 
 def run_gcc script, input, output, commandline, opts
-  t = Tempfile.new "alioth-gcc-compiled"; t.close
-  sh "gcc #{opts} -o #{t.path} #{script}"
-  evaluate output, "#{t.path} #{commandline || ""}" + (input ? " < #{input} " : "")
+  t = Tempfile.new "alioth-gcc-compiled"; t.close
+  sh "gcc #{opts} -o #{t.path} #{script}"
+  evaluate output, "#{t.path} #{commandline || ""}" + (input ? " < #{input} " : "")
 end
 
 def report results
-  KNOWN_TYPES.each do |type|
-    time = results[type][:time]
-    printf "%8s: ", type
-    if results[type][:fail]
-      print "failure"
-    else
-      printf "%6.2fs = ", time
-      print(KNOWN_TYPES.map do |otype|
-        next if type == otype || results[otype][:fail]
-        otime = results[otype][:time]
-        " %4.0f%% of %4s" % [(100.0 * time / otime), otype]
-      end.compact.join(", "))
-    end
-    puts
-  end
+  KNOWN_TYPES.each do |type|
+    time = results[type][:time]
+    printf "%8s: ", type
+    if results[type][:fail]
+      print "failure"
+    else
+      printf "%6.2fs = ", time
+      print(KNOWN_TYPES.map do |otype|
+        next if type == otype || results[otype][:fail]
+        otime = results[otype][:time]
+        " %4.0f%% of %4s" % [(100.0 * time / otime), otype]
+      end.compact.join(", "))
+    end
+    puts
+  end
 end
 
 #task :run_ruby => "partialsums.rb" do
