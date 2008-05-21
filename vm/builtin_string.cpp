@@ -122,7 +122,7 @@ namespace rubinius {
     return this;
   }
 
-  String* String::append(STATE, char* other) {
+  String* String::append(STATE, const char* other) {
     if(shared) unshare(state);
 
     size_t len = strlen(other);
@@ -145,7 +145,7 @@ namespace rubinius {
     return string_dup(state)->append(state, other);
   }
 
-  String* String::add(STATE, char* other) {
+  String* String::add(STATE, const char* other) {
     return string_dup(state)->append(state, other);
   }
 

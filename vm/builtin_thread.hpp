@@ -26,7 +26,7 @@ namespace rubinius {
 
   class DeadLock : public Assertion {
   public:
-    DeadLock(char* msg) : Assertion(msg) { }
+    DeadLock(const char* msg) : Assertion(msg) { }
   };
 }
 

@@ -42,7 +42,7 @@ namespace rubinius {
     return om->new_object_bytes(cls, bytes);
   }
 
-  void type_assert(OBJECT obj, object_type type, char* reason) {
+  void type_assert(OBJECT obj, object_type type, const char* reason) {
     if(obj->reference_p() && obj->obj_type != type) {
       throw new TypeError(type, obj, reason);
     } else if(type == FixnumType && !obj->fixnum_p()) {

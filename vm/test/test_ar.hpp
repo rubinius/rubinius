@@ -10,7 +10,7 @@ class CollectAr : public Ar {
 public:
   std::vector<char*> names;
 
-  CollectAr(char* path) : Ar(path) { }
+  CollectAr(const char* path) : Ar(path) { }
 
   virtual bool each_file(const char* path, uint8_t* data, long len) {
     names.push_back(strdup(path));

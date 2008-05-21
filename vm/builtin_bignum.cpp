@@ -615,8 +615,8 @@ namespace rubinius {
     }
   }
 
-  OBJECT Bignum::from_string_detect(STATE, char *str) {
-    char *s;
+  OBJECT Bignum::from_string_detect(STATE, const char *str) {
+    const char *s;
     int radix;
     int sign;
     NMP;

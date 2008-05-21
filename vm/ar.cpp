@@ -2,7 +2,7 @@
 
 namespace rubinius {
 
-  Ar::Ar(char* path) : path(path), fd(-1) { }
+  Ar::Ar(const char* path) : path(path), fd(-1) { }
   Ar::~Ar() {
     if(fd > -1) ::close(fd);
   }

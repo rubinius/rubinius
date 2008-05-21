@@ -173,7 +173,7 @@ to be a simple test for that bit pattern.
   public:
     char *reason;
 
-    Assertion(char* reason) {
+    Assertion(const char* reason) {
       this->reason = strdup(reason);
     }
 
@@ -186,9 +186,9 @@ to be a simple test for that bit pattern.
   public:
     object_type type;
     OBJECT object;
-    char* reason;
+    const char* reason;
 
-    TypeError(object_type type, OBJECT obj, char* reason = NULL)
+    TypeError(object_type type, OBJECT obj, const char* reason = NULL)
       : type(type), object(obj), reason(reason) { };
   };
 
@@ -445,7 +445,7 @@ to be a simple test for that bit pattern.
       return NULL;
     }
 
-  void type_assert(OBJECT obj, object_type type, char* reason);
+  void type_assert(OBJECT obj, object_type type, const char* reason);
 #define sassert(cond) if(!(cond)) throw new Assertion(#cond);
 
   /*

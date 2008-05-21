@@ -17,13 +17,13 @@ namespace rubinius {
 
     static Module* create(STATE);
     void setup(STATE);
-    void setup(STATE, char* name, Module* under = NULL);
+    void setup(STATE, const char* name, Module* under = NULL);
     void setup(STATE, SYMBOL name, Module* under = NULL);
     void set_const(STATE, OBJECT sym, OBJECT val);
-    void set_const(STATE, char* name, OBJECT val);
+    void set_const(STATE, const char* name, OBJECT val);
     OBJECT get_const(STATE, SYMBOL sym);
     OBJECT get_const(STATE, SYMBOL sym, bool* found);
-    OBJECT get_const(STATE, char* sym);
+    OBJECT get_const(STATE, const char* sym);
 
     void set_name(STATE, Module* under, SYMBOL name);
 

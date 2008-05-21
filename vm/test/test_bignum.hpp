@@ -59,7 +59,7 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1, Bignum::normalize(state, b1));
   }
 
-  void check_bignum(OBJECT big, char* val) {
+  void check_bignum(OBJECT big, const char* val) {
     char buf[1024];
     std::stringstream stream;
 

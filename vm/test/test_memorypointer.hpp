@@ -167,7 +167,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   }
 
   void test_get_field_string() {
-    char *str = "blah\0";
+    const char *str = "blah\0";
     
     MemoryPointer *ptr = MemoryPointer::create(state, &str);
 
@@ -189,7 +189,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   }
   
   void test_get_field_strptr() {
-    char *str = "blah\0";
+    const char *str = "blah\0";
     
     MemoryPointer *ptr = MemoryPointer::create(state, &str);
 

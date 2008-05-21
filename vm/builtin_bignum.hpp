@@ -19,7 +19,7 @@ namespace rubinius {
     static INTEGER normalize(STATE, Bignum* obj);
     static Bignum* from_ull(STATE, unsigned long long val);
     static Bignum* from_ll(STATE, long long val);
-    static OBJECT from_string_detect(STATE, char* str);
+    static OBJECT from_string_detect(STATE, const char* str);
     static OBJECT from_string(STATE, const char* str, size_t radix);
     static OBJECT from_double(STATE, double d);
 

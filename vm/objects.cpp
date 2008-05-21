@@ -29,25 +29,25 @@ namespace rubinius {
     return cls;
   }
 
-  Class* VM::new_class(char* name) {
+  Class* VM::new_class(const char* name) {
     return new_class(name, G(object), G(object)->instance_fields->n2i());
   }
 
-  Class* VM::new_class(char* name, size_t fields) {
+  Class* VM::new_class(const char* name, size_t fields) {
     return new_class(name, G(object), fields);
   }
 
-  Class* VM::new_class(char* name, OBJECT sup, size_t fields) {
+  Class* VM::new_class(const char* name, OBJECT sup, size_t fields) {
     return new_class(name, sup, fields, G(object));
   }
 
-  Class* VM::new_class(char* name, OBJECT sup, size_t fields, Module* under) {
+  Class* VM::new_class(const char* name, OBJECT sup, size_t fields, Module* under) {
     Class* cls = new_class(sup, fields);
     cls->setup(this, name, under);
     return cls;
   }
 
-  Module* VM::new_module(char* name, Module* under) {
+  Module* VM::new_module(const char* name, Module* under) {
     Module *mod = (Module*)om->new_object(G(module), Module::fields);
     mod->setup(this, name, under);
     return mod;

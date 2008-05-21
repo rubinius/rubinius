@@ -100,7 +100,7 @@ namespace rubinius {
 
     class Halt : public std::runtime_error {
     public:
-      Halt(char* str) : std::runtime_error(str) { }
+      Halt(const char* str) : std::runtime_error(str) { }
     };
   };
 }

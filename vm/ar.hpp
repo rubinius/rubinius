@@ -13,10 +13,10 @@
 namespace rubinius {
   class Ar {
   public:
-    char* path;
+    const char* path;
     int fd;
 
-    Ar(char* path);
+    Ar(const char* path);
     virtual ~Ar();
     bool validate();
     bool open();

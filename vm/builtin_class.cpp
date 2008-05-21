@@ -34,7 +34,7 @@ namespace rubinius {
     SET(this, method_table, MethodTable::create(state));
   }
 
-  void Module::setup(STATE, char* str, Module* under) {
+  void Module::setup(STATE, const char* str, Module* under) {
     setup(state, state->symbol(str), under);
   }
 
@@ -59,7 +59,7 @@ namespace rubinius {
     constants->store(state, sym, val);
   }
 
-  void Module::set_const(STATE, char* name, OBJECT val) {
+  void Module::set_const(STATE, const char* name, OBJECT val) {
     constants->store(state, state->symbol(name), val);
   }
 
@@ -71,7 +71,7 @@ namespace rubinius {
     return constants->fetch(state, sym, found);
   }
 
-  OBJECT Module::get_const(STATE, char* sym) {
+  OBJECT Module::get_const(STATE, const char* sym) {
     return get_const(state, state->symbol(sym));
   }
 

@@ -43,11 +43,11 @@ namespace rubinius {
     OBJECT new_object(Class* cls);
     Class* new_basic_class(OBJECT sup, size_t fields);
     Class* new_class(OBJECT sup, size_t fields);
-    Class* new_class(char* name);
-    Class* new_class(char* name, size_t fields);
-    Class* new_class(char* name, OBJECT sup, size_t fields);
-    Class* new_class(char* name, OBJECT sup, size_t fields, Module* under);
-    Module* new_module(char* name, Module* under = NULL);
+    Class* new_class(const char* name);
+    Class* new_class(const char* name, size_t fields);
+    Class* new_class(const char* name, OBJECT sup, size_t fields);
+    Class* new_class(const char* name, OBJECT sup, size_t fields, Module* under);
+    Module* new_module(const char* name, Module* under = NULL);
     SYMBOL symbol(const char *str, size_t len = 0);
     OBJECT new_struct(Class* cls, size_t bytes);
 
@@ -64,7 +64,7 @@ namespace rubinius {
     void activate_thread(Thread* thread);
     void raise_from_errno(char* reason);
     void raise_exception(Exception* exc);
-    Exception* new_exception(Class* cls, char* msg);
+    Exception* new_exception(Class* cls, const char* msg);
     OBJECT current_block();
 
     void inspect(OBJECT obj);

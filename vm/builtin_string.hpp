@@ -43,9 +43,9 @@ namespace rubinius {
     char* byte_address(STATE);
     String* string_dup(STATE);
     String* append(STATE, String* other);
-    String* append(STATE, char* other);
+    String* append(STATE, const char* other);
     String* add(STATE, String* other);
-    String* add(STATE, char* other);
+    String* add(STATE, const char* other);
 
     class Info : public TypeInfo {
     public:
