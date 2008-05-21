@@ -9,8 +9,8 @@
 namespace rubinius {
 
   class Environment {
-    VM* state;
   public:
+    VM* state;
 
     Environment();
     ~Environment();

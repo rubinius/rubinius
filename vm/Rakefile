@@ -141,7 +141,7 @@ def field_extract
       end
     end
   end
-  x "ruby field_extract.rb #{order.join(' ')}"
+  x "ruby field_extract.rb object.hpp #{order.join(' ')}"
 end
 
 insn_gen = %w!gen/task_instructions_switch.c
@@ -153,6 +153,7 @@ insn_gen = %w!gen/task_instructions_switch.c
 
 type_gen = %w!gen/simple_field.rb
               gen/typechecks.gen.cpp
+              gen/primitives_declare.hpp
               gen/primitives_glue.gen.cpp!
 
 maybe_regen insn_gen do
@@ -172,6 +173,10 @@ compiler.includes << "test/cxxtest"
 compiler.includes << "."
 
 compiler.flags << "-Wall" << "-ggdb" << "-gdwarf-2"
+
+if ENV['FAST']
+  compiler.flags << "-O2"
+end
 
 objs =  compiler.add_source("*.cpp")
 objs += compiler.add_source("*.c")
@@ -239,6 +244,7 @@ task :coverage do
 end
 
 task :field_extract do
+  field_extract()
 end
 
 task :default => :test

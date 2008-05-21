@@ -1,6 +1,7 @@
 #include "builtin.hpp"
 #include "ffi.hpp"
 #include "marshal.hpp"
+#include "primitives.hpp"
 
 namespace rubinius {
   CompiledMethod* CompiledMethod::create(STATE) {
@@ -32,6 +33,18 @@ namespace rubinius {
 
   VMMethod* CompiledMethod::vmmethod(STATE) {
     if(compiled->nil_p()) {
+      if(!primitive->nil_p()) {
+        if(SYMBOL name = try_as<Symbol>(primitive)) {
+          std::cout << "resolving: "; inspect(state, name);
+          primitive_func func = Primitives::resolve_primitive(state, name);
+
+          VMPrimitiveMethod* vmm = new VMPrimitiveMethod(state, this, func);
+          compiled = MemoryPointer::create(state, vmm);
+          return vmm;
+        } else {
+          std::cout << "Invalid primitive id (not a symbol)" << std::endl;
+        }
+      }
       VMMethod* vmm = new VMMethod(state, this);
       compiled = MemoryPointer::create(state, vmm);
       return vmm;

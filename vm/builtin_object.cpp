@@ -318,6 +318,18 @@ namespace rubinius {
     std::cout << ":" << (char*)*name << "\n";
   }
 
+  OBJECT NormalObject::show(STATE) {
+    if(INTEGER i = try_as<Integer>(this)) {
+      std::cout << i->n2i() << std::endl;
+    } else if(String* str = try_as<String>(this)) {
+      std::cout << *str << std::endl;
+    } else {
+      inspect(state, this);
+    }
+
+    return Qnil;
+  }
+
   void Object::cleanup(STATE) {
     state->om->find_type_info(this)->cleanup(this);
   }

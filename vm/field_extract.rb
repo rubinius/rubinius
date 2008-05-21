@@ -10,8 +10,13 @@ class CPPPrimitive
   def generate_glue(klass="Primitives")
     str =  "OBJECT #{klass}::#{@name}(STATE, Message& msg) {\n"
     i = -1
-    args = arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }.join(", ")
-    str << "  return as<#{@type}>(msg.recv)->#{@cpp_name}(state, #{args});\n"
+    if arg_types.empty?
+      args = ""
+    else
+      args = ", " + arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }.join(", ")
+    end
+
+    str << "  return as<#{@type}>(msg.recv)->#{@cpp_name}(state#{args});\n"
     str << "}\n"
     return str
   end
@@ -377,6 +382,7 @@ File.open("gen/typechecks.gen.cpp", "w") do |f|
     cpp.all_fields.each do |name, idx|
       f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
     end
+    f.puts "    ti->type_name = std::string(\"#{n}\");"
     f.puts "    state->add_type_info(ti);"
     f.puts "  }"
   end
@@ -394,11 +400,30 @@ File.open("gen/typechecks.gen.cpp", "w") do |f|
 
 end
 
-File.open("gen/primitives_glue.gen.cpp", "w") do |f|
+File.open("gen/primitives_declare.hpp", "w") do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
+      f.puts "OBJECT #{pn}(STATE, Message& msg);"
+    end
+  end
+end
+
+File.open("gen/primitives_glue.gen.cpp", "w") do |f|
+  names = []
+  parser.classes.each do |n, cpp|
+    cpp.primitives.each do |pn, prim|
+      names << pn
       f.puts prim.generate_glue
     end
   end
+
+  f.puts "primitive_func Primitives::resolve_primitive(STATE, SYMBOL name) {"
+  names.each do |name|
+    f.puts "  if(name == state->symbol(\"#{name}\")) {"
+    f.puts "    return &Primitives::#{name};"
+    f.puts "  }"
+  end
+  f.puts "  throw std::runtime_error(\"Unable to resolve primitive\");"
+  f.puts "}"
 end
 

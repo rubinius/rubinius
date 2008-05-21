@@ -59,12 +59,18 @@ namespace rubinius {
 
     OBJECT instance_variables;
 
+    // Ruby.primitive :object_show
+    OBJECT show(STATE);
+
     class Info : public TypeInfo {
     public:
       Info(object_type type) : TypeInfo(type) { }
       virtual void mark(OBJECT t, ObjectMark& mark);
     };
   };
+
+  template <>
+    static inline NormalObject* as<NormalObject>(OBJECT obj) { return (NormalObject*)obj; }
 };
 
 #include "builtin_exception.hpp"

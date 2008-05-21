@@ -21,6 +21,7 @@ namespace rubinius {
 
     VM* state;
     object_type type;
+    std::string type_name;
     Slots slots;
 
     static void init(STATE);

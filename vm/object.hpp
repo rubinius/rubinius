@@ -378,12 +378,14 @@ to be a simple test for that bit pattern.
     void copy_ivars(STATE, OBJECT other);
     void copy_metaclass(STATE, OBJECT other);
 
+    void show(STATE);
     static const char* type_to_name(object_type type);
   };
 
 
   void inspect(STATE, OBJECT);
   void inspect(STATE, SYMBOL);
+
 
   /* Given builtin-class +T+, return true if +obj+ is of class +T+ */
   template <class T>

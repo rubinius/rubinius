@@ -55,6 +55,10 @@ namespace rubinius {
     ti->state = this;
   }
 
+  TypeInfo* VM::find_type(int type) {
+    return om->type_info[type];
+  }
+
   OBJECT VM::current_thread() {
     return Qnil;
   }

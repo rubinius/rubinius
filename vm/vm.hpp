@@ -14,6 +14,7 @@ namespace rubinius {
 
   class GlobalCache;
   class TaskProbe;
+  class Primitives;
 
   class VM {
     public:
@@ -23,6 +24,7 @@ namespace rubinius {
     event::Loop* events;
     GlobalCache* global_cache;
     TaskProbe* probe;
+    Primitives* primitives;
 
     bool wait_events;
 
@@ -50,6 +52,7 @@ namespace rubinius {
     OBJECT new_struct(Class* cls, size_t bytes);
 
     void add_type_info(TypeInfo* ti);
+    TypeInfo* find_type(int type);
 
     void init_ffi();
     OBJECT current_thread();

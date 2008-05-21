@@ -54,4 +54,17 @@ namespace rubinius {
     task->import_arguments(ctx, msg);
     task->make_active(ctx);
   }
+
+  VMPrimitiveMethod::VMPrimitiveMethod(STATE, CompiledMethod* meth, primitive_func func) :
+      VMMethod(state, meth), fp(func) { }
+
+  void VMPrimitiveMethod::execute(STATE, Task* task, Message& msg) {
+    try {
+      OBJECT ret = CALL_PRIM(state->primitives, fp)(state, msg);
+      task->push(ret);
+    } catch(PrimitiveFailed& e) {
+      VMMethod::execute(state, task, msg);
+      return;
+    }
+  }
 }

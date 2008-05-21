@@ -2,6 +2,7 @@
 #define RBX_VMMETHOD_HPP
 
 #include "vmexecutable.hpp"
+#include "primitives.hpp"
 
 namespace rubinius {
   typedef void* instlocation;
@@ -20,6 +21,15 @@ namespace rubinius {
     ~VMMethod();
 
     void specialize(TypeInfo* ti);
+    virtual void execute(STATE, Task* task, Message& msg);
+  };
+
+  class VMPrimitiveMethod : public VMMethod {
+  public:
+    primitive_func fp;
+
+    VMPrimitiveMethod(STATE, CompiledMethod* meth, primitive_func func);
+
     virtual void execute(STATE, Task* task, Message& msg);
   };
 };

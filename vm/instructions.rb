@@ -3399,7 +3399,8 @@ perform_no_ss_send:
 
   def string_dup
     <<-CODE
-    stack_push(as<String>(stack_pop())->string_dup(state));
+    String *s1 = as<String>(stack_pop());
+    stack_push(s1->string_dup(state));
     CODE
   end
 
