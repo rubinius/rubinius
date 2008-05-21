@@ -13,9 +13,12 @@ class Iconv
     @to, @from = to, from
     @handle = Iconv.create to, from
     Errno.handle if @handle.address == -1
+    @closed = false
   end
 
   def close
+    return if @closed
+    @closed = true
     Errno.handle if Iconv.close(@handle) != 0
   end
 
