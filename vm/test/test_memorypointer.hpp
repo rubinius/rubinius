@@ -197,7 +197,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     TS_ASSERT(obj->check_type(ArrayType));
 
     Array* ary = as<Array>(obj);
-    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->size(), 2UL);
 
     TS_ASSERT(ary->get(state, 0)->check_type(StringType));
     String *so = as<String>(ary->get(state, 0));
@@ -217,7 +217,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     TS_ASSERT(obj->check_type(ArrayType));
 
     Array* ary = as<Array>(obj);
-    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->size(), 2U);
 
     TS_ASSERT(ary->get(state, 0)->nil_p());
     TS_ASSERT(ary->get(state, 1)->nil_p());
@@ -239,7 +239,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_CHAR, one);
-    TS_ASSERT_EQUALS(*buffer, 1);
+    TS_ASSERT_EQUALS(*buffer, static_cast<char>(1));
   }
   
   void test_set_field_uchar() {
@@ -250,7 +250,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_UCHAR, one);
-    TS_ASSERT_EQUALS(*buffer, 1);
+    TS_ASSERT_EQUALS(*buffer, static_cast<unsigned char>(1));
   }
   
   void test_set_field_short() {
@@ -305,7 +305,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_UINT, one);
-    TS_ASSERT_EQUALS(*buffer, 1);
+    TS_ASSERT_EQUALS(*buffer, 1U);
   }
   
   void test_set_field_uint_bignum() {
@@ -316,7 +316,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_UINT, one);
-    TS_ASSERT_EQUALS(*buffer, 1);
+    TS_ASSERT_EQUALS(*buffer, 1U);
   }
 
   void test_set_field_long() {
@@ -327,7 +327,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_LONG, one);
-    TS_ASSERT_EQUALS(*buffer, 1);
+    TS_ASSERT_EQUALS(*buffer, 1L);
   }
   
   void test_set_field_long_bignum() {
@@ -338,7 +338,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_LONG, one);
-    TS_ASSERT_EQUALS(*buffer, 1);
+    TS_ASSERT_EQUALS(*buffer, 1L);
   }
   
   void test_set_field_ulong() {
@@ -349,7 +349,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_ULONG, one);
-    TS_ASSERT_EQUALS(*buffer, (unsigned long)1);
+    TS_ASSERT_EQUALS(*buffer, 1UL);
   }
   
   void test_set_field_ulong_bignum() {
@@ -360,7 +360,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_ULONG, one);
-    TS_ASSERT_EQUALS(*buffer, (unsigned long)1);
+    TS_ASSERT_EQUALS(*buffer, 1UL);
   }
 
   void test_set_field_float() {

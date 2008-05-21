@@ -2304,7 +2304,7 @@ CODE
     run();
 
     TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 0);
+    TS_ASSERT_EQUALS(task->active->args, 0U);
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
   end
@@ -2400,7 +2400,7 @@ CODE
     MethodContext* s = task->active->sender;
     TS_ASSERT_EQUALS(s->sp, -1);
     TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 1);
+    TS_ASSERT_EQUALS(task->active->args, 1U);
     TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
@@ -2475,7 +2475,7 @@ CODE
     run();
 
     TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 1);
+    TS_ASSERT_EQUALS(task->active->args, 1U);
     TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, Qtrue);
@@ -2570,7 +2570,7 @@ CODE
     run();
 
     TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->active->args, 2U);
     TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->stack->at(1), Object::i2n(47));
     TS_ASSERT_EQUALS(task->active->block, be);
@@ -2652,7 +2652,7 @@ CODE
     run();
 
     TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 1);
+    TS_ASSERT_EQUALS(task->active->args, 1U);
     TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, obj);
@@ -2749,7 +2749,7 @@ CODE
     run();
 
     TS_ASSERT_EQUALS(task->active->cm, target);
-    TS_ASSERT_EQUALS(task->active->args, 2);
+    TS_ASSERT_EQUALS(task->active->args, 2U);
     TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->stack->at(1), Object::i2n(47));
     TS_ASSERT_EQUALS(task->active->block, be);

@@ -30,7 +30,7 @@ class TestMessage : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(Object::i2n(3), msg.get_argument(0));
     TS_ASSERT_EQUALS(Object::i2n(4), msg.get_argument(1));
-    TS_ASSERT_EQUALS(2, msg.args);
+    TS_ASSERT_EQUALS(2U, msg.args);
   }
 
   CompiledMethod* create_cm() {
@@ -54,7 +54,7 @@ class TestMessage : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(Object::i2n(3), msg.get_argument(0));
     TS_ASSERT_EQUALS(Object::i2n(4), msg.get_argument(1));
-    TS_ASSERT_EQUALS(2, msg.args);
+    TS_ASSERT_EQUALS(2U, msg.args);
   }
 
   void test_combine_with_splat() {
@@ -77,7 +77,7 @@ class TestMessage : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(state->symbol("blah"), msg.get_argument(2));
     TS_ASSERT_EQUALS(state->symbol("foo"), msg.get_argument(3));
 
-    TS_ASSERT_EQUALS(4, msg.args);
+    TS_ASSERT_EQUALS(4U, msg.args);
   }
 
   void test_use_from_task() {
@@ -92,6 +92,6 @@ class TestMessage : public CxxTest::TestSuite {
     
     TS_ASSERT_EQUALS(Object::i2n(3), msg.get_argument(0));
     TS_ASSERT_EQUALS(Object::i2n(4), msg.get_argument(1));
-    TS_ASSERT_EQUALS(2, msg.args);
+    TS_ASSERT_EQUALS(2U, msg.args);
   }
 };

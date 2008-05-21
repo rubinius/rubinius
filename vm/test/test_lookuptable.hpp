@@ -187,7 +187,7 @@ class TestLookupTable : public CxxTest::TestSuite {
       TS_ASSERT_EQUALS(out, Qtrue);
     }
 
-    TS_ASSERT_EQUALS(bins, tbl->bins->n2i());
+    TS_ASSERT_EQUALS(bins, static_cast<unsigned int>(tbl->bins->n2i()));
   }
 
   void test_remove_works_for_chained_bins() {

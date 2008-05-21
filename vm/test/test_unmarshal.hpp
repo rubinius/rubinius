@@ -134,7 +134,7 @@ public:
 
     TS_ASSERT(kind_of<Tuple>(seq->opcodes));
 
-    TS_ASSERT_EQUALS(seq->opcodes->field_count, 1);
+    TS_ASSERT_EQUALS(seq->opcodes->field_count, 1U);
 
     TS_ASSERT_EQUALS(seq->opcodes->at(0), Object::i2n(0));
   }

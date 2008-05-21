@@ -33,10 +33,10 @@ public:
   void test_process() {
     CollectAr ar("test/test.a");
     TS_ASSERT(ar.open());
-    TS_ASSERT_EQUALS(ar.names.size(), 0);
+    TS_ASSERT_EQUALS(ar.names.size(), 0U);
 
     ar.process();
-    TS_ASSERT_EQUALS(ar.names.size(), 3);
+    TS_ASSERT_EQUALS(ar.names.size(), 3U);
     TS_ASSERT(!strcmp("Makefile", ar.names[0]));
     TS_ASSERT(!strcmp("Rakefile", ar.names[1]));
     TS_ASSERT(!strcmp("a_file_with_a_very_long_file_name", ar.names[2]));

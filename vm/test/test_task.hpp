@@ -116,7 +116,7 @@ class TestTask : public CxxTest::TestSuite {
     task->send_message(msg);
 
     TS_ASSERT(task->stack != input_stack);
-    TS_ASSERT_EQUALS(task->stack->field_count, 2);
+    TS_ASSERT_EQUALS(task->stack->field_count, 2U);
     TS_ASSERT_EQUALS(task->stack->field[0], Object::i2n(3));
     TS_ASSERT_EQUALS(task->stack->field[1], Object::i2n(4));
   }
@@ -150,8 +150,8 @@ class TestTask : public CxxTest::TestSuite {
     try {
       task->send_message(msg);
     } catch(ArgumentError* error) {
-      TS_ASSERT_EQUALS(1, error->given);
-      TS_ASSERT_EQUALS(2, error->expected);
+      TS_ASSERT_EQUALS(1U, error->given);
+      TS_ASSERT_EQUALS(2U, error->expected);
       thrown = true;
     }
 
@@ -189,8 +189,8 @@ class TestTask : public CxxTest::TestSuite {
     try {
       task->send_message(msg);
     } catch(ArgumentError* error) {
-      TS_ASSERT_EQUALS(3, error->given);
-      TS_ASSERT_EQUALS(2, error->expected);
+      TS_ASSERT_EQUALS(3U, error->given);
+      TS_ASSERT_EQUALS(2U, error->expected);
       thrown = true;
     }
 
@@ -227,7 +227,7 @@ class TestTask : public CxxTest::TestSuite {
     task->send_message(msg);
 
     TS_ASSERT(task->stack != input_stack);
-    TS_ASSERT_EQUALS(task->stack->field_count, 4);
+    TS_ASSERT_EQUALS(task->stack->field_count, 4U);
     TS_ASSERT_EQUALS(task->stack->field[0], Object::i2n(3));
     TS_ASSERT_EQUALS(task->stack->field[1], Object::i2n(4));
     TS_ASSERT_EQUALS(task->stack->field[2], Object::i2n(5));
@@ -264,13 +264,13 @@ class TestTask : public CxxTest::TestSuite {
     task->send_message(msg);
 
     TS_ASSERT(task->stack != input_stack);
-    TS_ASSERT_EQUALS(task->stack->field_count, 3);
+    TS_ASSERT_EQUALS(task->stack->field_count, 3U);
     TS_ASSERT_EQUALS(task->stack->field[0], Object::i2n(3));
     TS_ASSERT_EQUALS(task->stack->field[1], Object::i2n(4));
 
     Array* splat = as<Array>(task->stack->field[2]);
 
-    TS_ASSERT_EQUALS(splat->size(), 2);
+    TS_ASSERT_EQUALS(splat->size(), 2U);
     TS_ASSERT_EQUALS(splat->get(state, 0), Object::i2n(5));
     TS_ASSERT_EQUALS(splat->get(state, 1), Object::i2n(6));
   }
@@ -302,13 +302,13 @@ class TestTask : public CxxTest::TestSuite {
     task->send_message(msg);
 
     TS_ASSERT(task->stack != input_stack);
-    TS_ASSERT_EQUALS(task->stack->field_count, 3);
+    TS_ASSERT_EQUALS(task->stack->field_count, 3U);
     TS_ASSERT_EQUALS(task->stack->field[0], Object::i2n(3));
     TS_ASSERT_EQUALS(task->stack->field[1], Object::i2n(4));
 
     Array* splat = as<Array>(task->stack->field[2]);
 
-    TS_ASSERT_EQUALS(splat->size(), 2);
+    TS_ASSERT_EQUALS(splat->size(), 2U);
     TS_ASSERT_EQUALS(splat->get(state, 0), Object::i2n(5));
     TS_ASSERT_EQUALS(splat->get(state, 1), Object::i2n(6));
   }

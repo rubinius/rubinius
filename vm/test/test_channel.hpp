@@ -40,13 +40,13 @@ class TestChannel : public CxxTest::TestSuite {
 
     TS_ASSERT(kind_of<List>(chan->value));
     List* lst = as<List>(chan->value);
-    TS_ASSERT_EQUALS(lst->size(), 1);
+    TS_ASSERT_EQUALS(lst->size(), 1U);
     TS_ASSERT_EQUALS(lst->locate(state, 0), Qtrue);
 
     chan->receive(state);
     TS_ASSERT_EQUALS(task->sp, 0);
     TS_ASSERT_EQUALS(task->stack->at(0), Qtrue);
-    TS_ASSERT_EQUALS(lst->size(), 0);
+    TS_ASSERT_EQUALS(lst->size(), 0U);
   }
 
   void test_receive_causes_deadlock() {

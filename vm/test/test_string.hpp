@@ -24,12 +24,12 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT(state->globals.string->has_ivars->false_p());
     str = String::create(state, "blah");
     TS_ASSERT(!str->CanStoreIvars);
-    TS_ASSERT_EQUALS(str->size(state), 4);
+    TS_ASSERT_EQUALS(str->size(state), 4U);
   }
 
   void test_create2() {
     str = String::create(state, "blah", 2);
-    TS_ASSERT_EQUALS(str->size(state), 2);
+    TS_ASSERT_EQUALS(str->size(state), 2U);
   }
 
   void test_hash_string() {

@@ -31,8 +31,8 @@ public:
    
     VMMethod vmm(state, cm);
 
-    TS_ASSERT_EQUALS(vmm.total, 1);
-    TS_ASSERT_EQUALS(vmm.opcodes[0], 0);
+    TS_ASSERT_EQUALS(vmm.total, 1U);
+    TS_ASSERT_EQUALS(vmm.opcodes[0], 0U);
   }
 
   void test_specialize_transforms_ivars_to_slots() {
@@ -53,10 +53,10 @@ public:
     ti.slots[state->symbol("@blah")->index()] = 5;
     vmm.specialize(&ti);
 
-    TS_ASSERT_EQUALS(vmm.total, 3);
-    TS_ASSERT_EQUALS(vmm.opcodes[0], (int)InstructionSequence::insn_push_my_field);
-    TS_ASSERT_EQUALS(vmm.opcodes[1], 5);
-    TS_ASSERT_EQUALS(vmm.opcodes[2], (int)InstructionSequence::insn_push_nil);
+    TS_ASSERT_EQUALS(vmm.total, 3U);
+    TS_ASSERT_EQUALS(vmm.opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_push_my_field));
+    TS_ASSERT_EQUALS(vmm.opcodes[1], 5U);
+    TS_ASSERT_EQUALS(vmm.opcodes[2], static_cast<unsigned int>(InstructionSequence::insn_push_nil));
   }
 
 };
