@@ -25,7 +25,6 @@ namespace rubinius {
 
     // Ruby.primitive! :fixnum_add
     Float* add(STATE, Float* other) {
-      printf("HERE!\n");
       return other->add(state, this);
     }
 

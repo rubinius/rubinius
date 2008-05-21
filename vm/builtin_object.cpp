@@ -319,8 +319,12 @@ namespace rubinius {
   }
 
   OBJECT NormalObject::show(STATE) {
-    if(INTEGER i = try_as<Integer>(this)) {
+    if(FIXNUM i = try_as<Fixnum>(this)) {
       std::cout << i->n2i() << std::endl;
+    } else if(Bignum* b = try_as<Bignum>(this)) {
+      std::cout << b->to_s(state, Object::i2n(10)) << std::endl;
+    } else if(Float* f = try_as<Float>(this)) {
+      std::cout << f->val << std::endl;
     } else if(String* str = try_as<String>(this)) {
       std::cout << *str << std::endl;
     } else {
