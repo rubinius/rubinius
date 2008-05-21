@@ -2,17 +2,14 @@ require 'mini/test'
 
 module Test
   module Unit # was ::Mini::Test, but rails' horrid code forced my hand
-
     remove_const :TestCase if defined? TestCase # nope... fuck you
-    TestCase = ::Mini::Test::TestCase
 
-    class TestCase
-      alias :method_name :name # so lame
-    end
-
+    TestCase             = ::Mini::Test::TestCase
     AssertionFailedError = ::Mini::Assertion
 
     class TestCase
+      alias :method_name :name # so lame
+
       def build_message(user_message, template_message, *args)
         user_message ||= ''
         user_message += ' ' unless user_message.empty?

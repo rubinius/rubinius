@@ -66,6 +66,7 @@ module Mini
     end
 
     def assert_equal exp, act, msg = ""
+      msg ||= "" # ARGH! FUCKING RAILS!
       msg += '.' unless msg.empty?
       assert exp == act, "#{msg}\n<#{exp.inspect}> expected, not\n<#{act.inspect}>.".strip
     end
