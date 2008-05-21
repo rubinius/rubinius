@@ -9,6 +9,8 @@
 #include <csignal>
 #include <sstream>
 
+#define INSN_DEBUG
+
 namespace rubinius {
 
   void Task::init(STATE) {
@@ -261,6 +263,7 @@ stack_cleanup:
   }
 
   void Task::add_method(Module* mod, SYMBOL name, CompiledMethod* method) {
+    SET(method, scope, active->cm->scope);
     mod->method_table->store(state, name, method);
     state->global_cache->clear(mod, name);
 

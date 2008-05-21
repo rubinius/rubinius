@@ -43,7 +43,7 @@ class CCompile
       "g++"
     end
   end
-  
+
   def link(name, opts)
     x "#{@linker} -o #{name} #{opts[:objects].join(' ')} #{opts[:libs].join(' ')}"
   end
@@ -94,13 +94,22 @@ compiler = CCompile.new
 rule ".h"
 rule ".hpp"
 
-ex_libs = %w!
+external = %w!
   external_libs/libtommath/libtommath.a
   external_libs/onig/.libs/libonig.a
 	external_libs/libffi/.libs/libffi.a
 	external_libs/libltdl/.libs/libltdl.a
 	external_libs/libev/.libs/libev.a
-  -ldl!
+!
+
+external.each do |lib|
+  file lib do
+    path = lib.split("/")[0,2].join("/")
+    x "cd #{path}; ./configure; make"
+  end
+end
+
+ex_libs = external + [ "-ldl" ]
 
 ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
 
@@ -113,6 +122,49 @@ ex_inc  = %w!
 
 tests = FileList["test/test_*.hpp"]
 
+def maybe_regen(list)
+  cur = File.mtime("instructions.rb")
+  list.each do |file|
+    if !File.exists?(file) or cur > File.mtime(file)
+      yield
+      return
+    end
+  end
+end
+
+def field_extract
+  order = ["objects.hpp"]
+  File.open("objects.hpp") do |f|
+    f.each_line do |line|
+      if /\#include "builtin_(.*)"/.match(line)
+        order << "builtin_#{$1}"
+      end
+    end
+  end
+  x "ruby field_extract.rb #{order.join(' ')}"
+end
+
+insn_gen = %w!gen/task_instructions_switch.c
+              gen/iseq_instruction_names.cpp
+              gen/iseq_instruction_names.hpp
+              gen/iseq_instruction_dt_helper.cpp
+              gen/task_instruction_dt.cpp
+              test/test_instructions.hpp!
+
+type_gen = %w!gen/simple_field.rb
+              gen/typechecks.gen.cpp
+              gen/primitives_glue.gen.cpp!
+
+maybe_regen insn_gen do
+  puts "GEN instructions.rb"
+  x "ruby instructions.rb"
+end
+
+maybe_regen type_gen do
+  puts "GEN field_extract"
+  field_extract
+end
+
 compiler.cpp!
 
 compiler.includes += ex_inc
@@ -124,23 +176,12 @@ compiler.flags << "-Wall" << "-ggdb" << "-gdwarf-2"
 objs =  compiler.add_source("*.cpp")
 objs += compiler.add_source("*.c")
 
-file "gen/iseq_instruction_names.hpp" do
-  puts "GEN instructions.rb"
-  x "cd ..; ruby instructions.rb"
-end
-
-file "gen/task_instructions_switch.c" => "instructions.rb" do
-  puts "GEN instructions.rb"
-  x "ruby instructions.rb"
-end
-
-file "builtin_task.o" => "gen/task_instructions_switch.c"
 file "type_info.o" => "gen/typechecks.gen.cpp"
 file "gen/typechecks.gen.cpp" => FileList["builtin_*.hpp"] do
   Rake::Task[:field_extract].invoke
 end
 
-file "test/runner.cpp" => tests + objs do
+file "test/runner.cpp" => tests + objs + external do
   puts "GEN test/runner.cpp"
   x "test/cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o test/runner.cpp #{tests}"
 end
@@ -170,6 +211,7 @@ file "vm" => objs + ["drivers/cli.o"] do
   compiler.link "vm", :objects => objs + ["drivers/cli.o"], :libs => ex_libs
 end
 
+desc "Run all VM tests"
 task :test => "test/runner" do
   x "./test/runner"
 end
@@ -197,19 +239,10 @@ task :coverage do
 end
 
 task :field_extract do
-  order = ["objects.hpp"]
-  File.open("objects.hpp") do |f|
-    f.each_line do |line|
-      if /\#include "builtin_(.*)"/.match(line)
-        order << "builtin_#{$1}"
-      end
-    end
-  end
-  sh "ruby field_extract.rb #{order.join(' ')}"
 end
 
 task :default => :test
 
 task :clean do
-  x "rm -rf *.gcda *.gcno *.gcov *.dSYM *.o ../*.o test/runner* coverage"
+  x "rm -rf *.gcda *.gcno *.gcov *.dSYM *.o ../*.o test/runner* coverage gen .deps"
 end
