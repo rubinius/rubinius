@@ -145,6 +145,10 @@ class Debugger
         end
         # Read command
         inp = Readline.readline(prompt)
+        if inp.nil?
+          @done = true
+          break
+        end
         inp.strip!
         @last_inp = inp if inp.length > 0
         output = process_command(dbg, @last_inp)
