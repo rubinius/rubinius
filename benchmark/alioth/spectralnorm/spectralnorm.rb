@@ -34,6 +34,7 @@ end
 
 n = ARGV[0].to_i
 u=[1]*n
+v=nil
 for i in 1..10
         v=eval_AtA_times_u(u)
         u=eval_AtA_times_u(v)
