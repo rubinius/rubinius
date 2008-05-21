@@ -8,7 +8,7 @@ describe Compiler do
       g.push :true
       g.push_literal :instance_exec
       g.push :self
-      g.send :"respond_to?", 2
+      g.send :__respond_to_eh__, 2
       g.git responded
       g.push_nil
       g.goto done
@@ -24,7 +24,7 @@ describe Compiler do
       g.push :true
       g.push_literal :instance_exec
       g.push :self
-      g.send :"respond_to?", 2
+      g.send :__respond_to_eh__, 2
       g.git responded
       g.push_nil
       g.goto done

@@ -604,6 +604,11 @@ module Kernel
     return vars.key?(name)
   end
 
+  # Both of these are for defined? when used inside a proxy obj that
+  # may undef the regular method. The compiler generates __ calls.
+  alias_method :__instance_variable_defined_eh__, :instance_variable_defined?
+  alias_method :__respond_to_eh__, :respond_to?
+
   def singleton_method_added(name)
   end
   private :singleton_method_added

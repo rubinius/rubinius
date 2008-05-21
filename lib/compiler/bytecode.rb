@@ -1317,7 +1317,7 @@ class Node
           g.push :true
           g.push_literal msg
           receiver.bytecode(g)
-          g.send :respond_to?, 2
+          g.send :__respond_to_eh__, 2
           g.goto done
 
           no_const.set!
@@ -1327,7 +1327,7 @@ class Node
           g.push :true
           g.push_literal msg
           receiver.bytecode(g)
-          g.send :respond_to?, 2
+          g.send :__respond_to_eh__, 2
         end
       when :vcall, :fcall
         msg = expr.shift
@@ -1341,7 +1341,7 @@ class Node
         g.push :true
         g.push_literal msg
         g.push :self
-        g.send :respond_to?, 2
+        g.send :__respond_to_eh__, 2
       when :cvar
         cvar = expr.shift
         g.push_literal cvar
@@ -1358,7 +1358,7 @@ class Node
         ivar = expr.shift
         g.push_literal ivar
         g.push :self
-        g.send :instance_variable_defined?, 1
+        g.send :__instance_variable_defined_eh__, 1
       when :yield
         g.push_block
       when :const
