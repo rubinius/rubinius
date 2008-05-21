@@ -82,7 +82,7 @@ Get to know your way around the place!
   lib/ instead.
 
 * bin/
-  Various utility programs like bin/mspec and bin/ci.
+  Various utility programs like bin/mspec (the spec runner frontend).
 
 * benchmark/
   All benchmarks live here. The rubinius/ subdirectory is not in
@@ -106,8 +106,8 @@ Notes: Occasionally working with kernel/ you may seem classes that
 
 Any time you make a change here -- or anywhere else for that
 matter -- make sure you do a full rebuild to pick up the changes,
-then run the related specs, and then run bin/ci to make sure
-that also the *unrelated* specs still work (minimal-seeming
+then run the related specs, and then 'run bin/mspec ci' to make
+sure that also the *unrelated* specs still work (minimal-seeming
 changes may have broad consequences.)
 
 There are a few special forms that are used in bootstrap/ as well
@@ -372,7 +372,7 @@ procedure:
      code to use the new signature, then recompile
   3. run rake build:stable
   4. change the actual primitive in the VM and recompile again
-  5. run bin/ci
+  5. run bin/mspec ci -B full.mspec OR rake spec:full
 
 4.2 FFI
 -------
