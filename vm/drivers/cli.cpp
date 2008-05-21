@@ -36,6 +36,8 @@ int main(int argc, char** argv) {
     std::cout << "Runtime exception: " << e.what() << std::endl;
   } catch(VMException *e) {
     std::cout << "Unknown VM exception detected." << std::endl;
+  } catch(std::string e) {
+    std::cout << e << std::endl;
   } catch(...) {
     std::cout << "Unknown exception detected." << std::endl;
   }

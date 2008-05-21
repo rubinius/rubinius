@@ -223,7 +223,9 @@ namespace rubinius {
     case 'M':
       return get_cmethod();
     default:
-      throw "unknown marshal code";
+      std::string str = "unknown marshal code: ";
+      str.append( 1, code );
+      throw str;
     }
   }
 
