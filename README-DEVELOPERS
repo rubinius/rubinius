@@ -234,51 +234,84 @@ Kernel-land has a number of restrictions to keep things sane and simple:
 3. Specs (Specifications)
 =========================
 
-Probably the first or second thing you hear about Rubinius when speaking to
-any of the developers is a mention of The Specs. It is a crucial part of
-Rubinius.
+Probably the first or second thing you hear about Rubinius when
+speaking to any of the developers is a mention of The Specs. It
+is a crucial part of Rubinius.
 
-Rubinius itself is being developed using the Behaviour-Driven Design
-approach (a refinement of Test-Driven Design) where each aspect of the
-behaviour of the code is first specified using the spec format and only then
-implemented to pass those specs.
+Rubinius itself is being developed using the Behaviour-Driven
+Design approach (a refinement of Test-Driven Design) where each
+aspect of the behaviour of the code is first specified using the
+spec format and only then implemented to pass those specs.
 
-In addition to this, we have undertaken the ambitious task of specifying the
-entirety of the Ruby language as well as its Core and Stdlib libraries in
-this format which both allows us to ensure our implementation is conformant
-with the Ruby standard and, more importantly, to actually *define* that
-standard since there currently is no formal specification of Ruby.
+In addition to this, we have undertaken the ambitious task of
+specifying the entirety of the Ruby language as well as its Core
+and Stdlib libraries in this format which both allows us to
+ensure our implementation is conformant with the Ruby standard
+and, more importantly, to actually *define* that standard since
+there currently is no formal specification of Ruby.
 
-The de facto standard of BDD is set by "RSpec":http://rspec.info, the
-project conceived to implement the then-new way of coding. Their website is
-fairly useful as a tutorial as well, although the spec syntax (particularly
-as used in Rubinius) is not very complex at all.
+The de facto standard of BDD is set by "RSpec":http://rspec.info,
+the project conceived to implement the then-new way of coding.
+Their website is fairly useful as a tutorial as well, although
+the spec syntax (particularly as used in Rubinius) is not very
+complex at all.
 
-Currently we actually use a compatible but vastly simpler implementation
-specifically developed as a part of Rubinius called MSpec (for mini-RSpec,
-as it was originally needed because the code in RSpec was too complex to be
-run on our not-yet-complete Ruby implementation.)
+Currently we actually use a compatible but vastly simpler
+implementation specifically developed as a part of Rubinius
+called MSpec (for mini-RSpec, as it was originally needed because
+the code in RSpec was too complex to be run on our
+not-yet-complete Ruby implementation.)
 
-Specs live in the spec/ directory. The spec/ directory contains two copies of the RubySpecs (http://rubyspec.org). The spec/frozen directory is a git submodule and is synchronized with the tag files in spec/tags/frozen. The tag files are used to exclude known failures. The spec/frozen specs are used as a CI (continuous integration) process to ensure that new code does not cause regressions. The spec/ruby directory is a git clone of the RubySpecs and is included for the convenience of adding to the RubySpecs from within the Rubinius repository.
+Specs live in the spec/ directory. The spec/ directory contains
+two copies of the RubySpecs (http://rubyspec.org). The
+spec/frozen directory is a git submodule and is synchronized with
+the tag files in spec/tags/frozen. The tag files are used to
+exclude known failures. The spec/frozen specs are used as a CI
+(continuous integration) process to ensure that new code does not
+cause regressions. The spec/ruby directory is a git clone of the
+RubySpecs and is included for the convenience of adding to the
+RubySpecs from within the Rubinius repository.
 
-All the other directories under the spec directory except for spec/ruby and spec/frozen are for specs specific to Rubinius. The directories are self-explanatory. For example, the spec/compiler directory is for specs for the Rubinius compiler. Three directories could be confusing so those are described in more detail here.
+All the other directories under the spec directory except for
+spec/ruby and spec/frozen are for specs specific to Rubinius. The
+directories are self-explanatory. For example, the spec/compiler
+directory is for specs for the Rubinius compiler. Three
+directories could be confusing so those are described in more
+detail here.
 
-The spec/core directory is for Rubinius specific extensions to MatzRuby core library. For example, Rubinius has a Tuple and ByteArray class. The specs for these are under the spec/core directory. This directory is also for Rubinius specific extensions to methods of the MatzRuby core library classes. For example, Rubinius handles coercion of Bignum and other numeric differently. The spec/core directory parallels the purpose of the spec/ruby/1.8/core directory from the RubySpecs.
+The spec/core directory is for Rubinius specific extensions to
+MatzRuby core library. For example, Rubinius has a Tuple and
+ByteArray class. The specs for these are under the spec/core
+directory. This directory is also for Rubinius specific
+extensions to methods of the MatzRuby core library classes. For
+example, Rubinius handles coercion of Bignum and other numeric
+differently. The spec/core directory parallels the purpose of the
+spec/ruby/1.8/core directory from the RubySpecs.
 
-The spec/language directory contains Rubinius specific specs related to the Ruby language. The directory parallels the spec/ruby/1.8/language directory.
+The spec/language directory contains Rubinius specific specs
+related to the Ruby language. The directory parallels the
+spec/ruby/1.8/language directory.
 
-The spec/library directory contains Rubinius specific standard library classes (e.g. Actor, VMActor) and Rubinius specific behavior of methods of MatzRuby standard library classes.
+The spec/library directory contains Rubinius specific standard
+library classes (e.g. Actor, VMActor) and Rubinius specific
+behavior of methods of MatzRuby standard library classes.
 
-The specs are run with the bin/mspec command. See the help output from bin/mspec -h and refer to the links below for more details. In general, to run the specs for a specific spec file, use:
+The specs are run with the bin/mspec command. See the help output
+from bin/mspec -h and refer to the links below for more details.
+In general, to run the specs for a specific spec file, use:
 
   bin/mspec spec/some/spec_file.rb
 
-The CI specs are run with rake spec or bin/mspec ci. CI is very important
-for any Rubinius developer: before each commit, bin/mspec ci should be run
-and should finish without error. It makes it very easy to ensure that your
-change did not break other, seemingly unrelated things because it exercises
-all areas of specs. A clean bin/mspec ci run gives confidence that your code
-is correct. Since there are a very large body of specs, the CI specs run by bin/mspec ci do not include the Ruby standard library specs. To run these specs as well, use rake spec:full or bin/mspec ci -B full.mspec.
+The CI specs are run with rake spec or bin/mspec ci. CI is very
+important for any Rubinius developer: before each commit,
+bin/mspec ci should be run and should finish without error. It
+makes it very easy to ensure that your change did not break
+other, seemingly unrelated things because it exercises all areas
+of specs. A clean bin/mspec ci run gives confidence that your
+code is correct. Since there are a very large body of specs, the
+CI specs run by bin/mspec ci do not include the Ruby standard
+library specs. To run these specs as well, use rake spec:full or
+bin/mspec ci -B full.mspec.
 
 For a deeper overview, tutorials, help and other information
 about Rubinius' specs, start here:
