@@ -120,6 +120,7 @@ radical you can just `sudo rm /sw/bin/glibtool` to fix this mess.
 
 For the build to succeed you will need these packages:
 
-* libglib2.0-dev
-* zlib1g-dev
 * bison
+* libglib2.0-dev
+* libreadline5-dev
+* zlib1g-dev
