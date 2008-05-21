@@ -110,6 +110,13 @@ VALUE rb_each(VALUE obj);
 #define rb_eIOError            subtend_get_exception(21)
 #define rb_eLocalJumpError     subtend_get_exception(22)
 
+#define rb_eEOFError           subtend_get_exception(23)
+#define rb_eThreadError        subtend_get_exception(24)
+#define rb_eZeroDivError       subtend_get_exception(25)
+#define rb_eFloatDomainError   subtend_get_exception(26)
+#define rb_eSysStackError      subtend_get_exception(27)
+#define rb_eRegexpError        subtend_get_exception(28)
+
 void rb_raise(VALUE exc, const char *fmt, ...);
 
 VALUE rb_require(const char *name);

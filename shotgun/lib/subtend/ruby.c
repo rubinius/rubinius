@@ -33,7 +33,7 @@ ID rb_intern(const char *name) {
 VALUE subtend_get_exception(int which) {
   CTX;
 
-  assert(which <= 22);
+  assert(which <= 28);
 
   static const char * subtend_exceptions[] = {
     "Exception", 
@@ -58,7 +58,13 @@ VALUE subtend_get_exception(int which) {
     "SystemCallError",
     "Errno",
     "IOError",
-    "LocalJumpError"
+    "LocalJumpError",
+    "EOFError",
+    "ThreadError",
+    "ZeroDivisionError",
+    "FloatDomainError",
+    "SystemStackError",
+    "RegexpError"
   };
 
   VALUE val;
