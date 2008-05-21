@@ -3165,6 +3165,7 @@ perform_no_ss_send:
       msg.recv = t1;
       msg.import_arguments(state, this, j);
       msg.name = as<Symbol>(_lit);
+      msg.lookup_from = msg.recv->lookup_begin(state);
       msg.block = t2;
       stack_pop(); /* remove receiver */
       send_message_slowly(msg);
