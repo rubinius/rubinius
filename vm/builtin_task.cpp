@@ -9,7 +9,7 @@
 #include <csignal>
 #include <sstream>
 
-#define INSN_DEBUG
+// #define INSN_DEBUG
 
 namespace rubinius {
 
