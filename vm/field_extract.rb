@@ -24,10 +24,10 @@ end
 
 class CPPOverloadedPrimitive
   def initialize(prim)
-    @name = prim.name
-    @type = prim.type
-
-    @kinds = [prim]
+    @name     = prim.name
+    @type     = prim.type
+    @cpp_name = prim.cpp_name
+    @kinds    = [prim]
   end
 
   def add_kind(prim)
@@ -307,7 +307,7 @@ class CPPParser
             prim = m[2]
             prototype = f.gets
 
-            m = %r!\s*([\w_]+)\s+([\w_]+)\((.*)\)!.match(prototype)
+            m = %r!\s*([\w_\*]+)\s+([\w_]+)\((.*)\)!.match(prototype)
             args = m[3].split(/\s*,\s*/)
             if args.shift != "STATE"
               raise "Invalid primitive #{prim}, STATE is not first argument"

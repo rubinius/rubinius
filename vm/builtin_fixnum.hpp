@@ -8,7 +8,7 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = FixnumType;
 
-    // Ruby.primitive :fixnum_add
+    // Ruby.primitive! :fixnum_add
     INTEGER add(STATE, FIXNUM other) {
       native_int r = n2i() + other->n2i();
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
@@ -18,11 +18,14 @@ namespace rubinius {
       }
     }
 
+    // Ruby.primitive! :fixnum_add
     INTEGER add(STATE, Bignum* other) {
       return other->add(state, this);
     }
 
+    // Ruby.primitive! :fixnum_add
     Float* add(STATE, Float* other) {
+      printf("HERE!\n");
       return other->add(state, this);
     }
 
