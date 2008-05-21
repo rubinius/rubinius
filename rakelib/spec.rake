@@ -8,6 +8,12 @@ def spec_ruby
   "#{RUBINIUS_BASE}/spec/ruby"
 end
 
+Rsync_options = "-avP --delete --exclude '*svn*' --exclude '*swp' --exclude '*rbc' --exclude '*.rej' --exclude '*.orig'"
+
+def rsync(left, right)
+  sh "rsync #{Rsync_options} #{left} #{right}"
+end
+
 desc "Run all 'known good' specs (task alias for spec:ci)"
 task :spec => 'spec:ci'
 
@@ -21,39 +27,20 @@ namespace :spec do
     end
   end
 
-  desc "Initialize git submodules for mspec and rubyspec"
-  task :init => 'mspec:init' do
-    unless File.exist? "#{spec_frozen}/1.8"
-      puts "Initializing CI rubyspecs submodule..."
-      Dir.chdir RUBINIUS_BASE do
-        rm_rf "spec/frozen"
-        sh "git submodule init spec/frozen"
-        sh "git submodule update spec/frozen"
-      end
-    end
-  end
-
-  desc "Clone a committer version of the rubyspecs"
-  task :clone do
-    unless File.exist? "#{spec_ruby}/.git"
-      rm_rf spec_ruby if File.exist? spec_ruby
+  desc "Initialize #{spec_ruby} with a rubyspec clone"
+  task :init do
+    unless is_git_dir spec_ruby
       sh "git clone git://github.com/brixen/rubyspec.git #{spec_ruby}"
     end
   end
 
-  desc "Update submodule sources for mspec and rubyspec"
-  task :update => %w[init mspec:update clone] do
-    Dir.chdir RUBINIUS_BASE do
-      sh "git submodule update spec/frozen"
-    end
-
+  desc "Update rubyspec"
+  task :update => :init do
     puts "\nUpdating rubyspec repository..."
     Dir.chdir spec_ruby do
       git_update
     end
   end
-
-  task :pull => :update
 
   desc "Commit changes to rubyspec sources"
   task :commit do
@@ -71,17 +58,15 @@ namespace :spec do
     end
   end
 
-  desc "Synchronize rubyspec submodule to current remote version"
+  desc "Synchronize spec/frozen with a current checkout"
   task :sync do
-    Dir.chdir spec_frozen do
-      sh "git fetch"
-      sh "git rebase origin"
+    dir = ENV['DIR'] || "spec/ruby"
+
+    unless is_git_dir(dir)
+      raise "#{dir} isn't a rubyspec checkout. Use spec:init to get it."
     end
-    Dir.chdir RUBINIUS_BASE do
-      version = `git log --pretty=oneline -1 spec/frozen`[0..7]
-      sh "git add spec/frozen"
-      sh "git commit -m 'Updated RubySpec submodule to #{version}.'"
-    end
+
+    rsync dir + "/*", "spec/frozen"
   end
 
   desc "Switch to the rubyspec commiter URL"

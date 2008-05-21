@@ -1,31 +1,17 @@
 # -*- ruby -*-
 
 namespace :mspec do
-  desc "Initialize git submodule for mspec"
-  task :init do
-    unless File.exist? "mspec/bin/mspec"
-      puts "Initializing mspec submodule..."
-      rm_rf "mspec"
-      sh "git submodule init mspec"
-      sh "git submodule update mspec"
-    end
-  end
-
-  desc "Synchronize mspec submodule to current remote version"
+  desc "Synchronize mspec with another checkout"
   task :sync do
-    Dir.chdir "mspec" do
-      sh "git fetch"
-      sh "git rebase origin"
+    unless dir = ENV['DIR']
+      raise "Use DIR= to specify a checkout of mspec"
     end
-    version = `git log --pretty=oneline -1 mspec`[0..7]
-    sh "git add mspec"
-    sh "git commit -m 'Updated MSpec submodule to #{version}'"
-  end
 
-  desc "Update mspec sources to current submodule version"
-  task :update => :init do
-    sh "git submodule update mspec"
-  end
+    unless File.directory?(dir)
+      raise "#{dir} isn't an mspec checkout. Use 'cd ~/git; git clone git://github.com/brixen/mspec.git'"
+    end
 
-  task :pull => :update
+    rsync dir + "/*", "mspec"
+
+  end
 end

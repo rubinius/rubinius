@@ -1,0 +1,40 @@
+require 'complex'
+require File.dirname(__FILE__) + '/../fixtures/classes'
+
+shared :complex_math_acosh do |obj|
+  describe "Math#{obj == Math ? '.' : '#'}acosh" do
+    it "returns the principle value of the inverse hyperbolic cosine of the argument" do
+      obj.send(:acosh, 14.2).should be_close(3.345146999647, TOLERANCE)
+      obj.send(:acosh, 1.0).should be_close(0.0, TOLERANCE)
+    end
+
+    it "returns the principle value of the inverse hyperbolic cosine for numbers less than 1.0 as a Complex number" do
+      obj.send(:acosh, 1.0 - TOLERANCE).should be_close(Complex(0.0, 0.00774598605746135), TOLERANCE)
+      obj.send(:acosh, 0).should be_close(Complex(0.0, 1.5707963267949), TOLERANCE)
+      obj.send(:acosh, -1.0).should be_close(Complex(0.0, 3.14159265358979), TOLERANCE)
+    end
+    
+    it "returns the principle value of the inverse hyperbolic cosine for Complex numbers" do
+      obj.send(:acosh, Complex(3, 4)).should be_close(Complex(2.30550903124348, 0.93681246115572), TOLERANCE)
+    end
+  end
+end
+
+shared :complex_math_acosh_bang do |obj|
+  describe "Math#{obj == Math ? '.' : '#'}acosh!" do
+    it "returns the principle value of the inverse hyperbolic cosine of the argument" do
+      obj.send(:acosh!, 14.2).should be_close(3.345146999647, TOLERANCE)
+      obj.send(:acosh!, 1.0).should be_close(0.0, TOLERANCE)
+    end
+
+    it "raises Errno::EDOM for numbers less than 1.0" do
+      lambda { obj.send(:acosh!, 1.0 - TOLERANCE) }.should raise_error(Errno::EDOM)
+      lambda { obj.send(:acosh!, 0) }.should raise_error(Errno::EDOM)
+      lambda { obj.send(:acosh!, -1.0) }.should raise_error(Errno::EDOM)
+    end
+
+    it "raises a TypeError when passed a Complex number" do
+      lambda { obj.send(:acosh!, Complex(4, 5)) }.should raise_error(TypeError)
+    end
+  end
+end

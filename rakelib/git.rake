@@ -2,6 +2,25 @@ require 'readline'
 
 namespace :git do
 
+  task :fixup do
+    `git config submodule.mspec.url`
+    if $?.exitstatus == 0
+      `git config --remove-section submodule.mspec`
+    end
+
+    `git config submodule.spec/frozen.url`
+    if $?.exitstatus == 0
+      `git config --remove-section submodule.spec/frozen`
+    end
+  end
+
+  desc "Executed post update. Lets the new Rakefile perform any fixups"
+  task :post_update do
+    last_commit = ENV['LAST']
+
+    Rake::Task['git:fixup'].invoke
+  end
+
   desc "Switch to the commiter URL"
   task :committer do
     sh "git config remote.origin.url git@git.rubini.us:code"
@@ -46,11 +65,10 @@ namespace :git do
   end
 
   desc "Pull new commits from the rubinius repository"
-  task :update => 'spec:update' do
+  task :update => :fixup do
+    cur = `git rev-parse HEAD`.strip
     git_update
-    # Do the spec:update AFTER we update normally, so that the proper
-    # versions of the submodules are pulled in.
-    Rake::Task['spec:update'].invoke
+    sh "rake git:post_update LAST=#{cur}"
   end
 
   task :pull => :update

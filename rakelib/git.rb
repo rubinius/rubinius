@@ -1,3 +1,7 @@
+def is_git_dir(dir)
+  File.directory?(dir) and File.directory?(File.join(dir, ".git"))
+end
+
 def git_branch
   `git branch | grep "*"`.strip[2..-1]
 end
