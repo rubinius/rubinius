@@ -41,6 +41,27 @@ class BasicSocket < IO
     
     return 0
   end
+
+  # to doesn't do anything yet
+  def send(msg, flags, to = nil)
+    bytes = msg.length
+    buffer = MemoryPointer.new :char, bytes
+    buffer.write_string msg
+    bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
+    Errno.handle 'send(2)' if bytes_sent < 0
+    buffer.free
+    return bytes_sent
+  end
+
+  def recv(bytes_to_read, flags = 0)
+    bytes_to_read = Type.coerce_to bytes_to_read, Fixnum, :to_int
+    buffer = MemoryPointer.new :char, bytes_to_read
+    bytes_read = Socket::Foreign.recv(descriptor, buffer, bytes_to_read, flags)
+    Errno.handle 'recv(2)' if bytes_read < 0
+    message = buffer.read_string
+    buffer.free
+    return message
+  end
 end
 
 class Socket < BasicSocket
@@ -68,6 +89,8 @@ class Socket < BasicSocket
     attach_function "connect", :_connect, [:int, :pointer, :socklen_t], :int
     attach_function "listen", :listen, [:int, :int], :int
     attach_function "socket", :socket, [:int, :int, :int], :int
+    attach_function "send", :send, [:int, :pointer, :int, :int], :int
+    attach_function "recv", :recv, [:int, :pointer, :int, :int], :int
 
     attach_function "getsockopt", :_getsockopt,
                     [:int, :int, :int, :pointer, :pointer], :int
@@ -318,7 +341,7 @@ class Socket < BasicSocket
       Errno.handle 'accept(2)' if fd < 0
 
       socket = self.class.superclass.allocate
-      socket.send :from_descriptor, fd
+      socket.__send__ :from_descriptor, fd
     end
   end
 
