@@ -301,6 +301,14 @@ const char *rb_class2name(VALUE klass) {
   return rbs_symbol_to_cstring( ctx->state, class_get_name( h ) );
 }
 
+VALUE rb_class_of(VALUE obj) {
+  OBJECT h;
+  CTX;
+  
+  h = HNDL(obj);
+  return NEW_HANDLE(ctx, object_class(ctx->state, h));
+}
+
 VALUE rb_obj_alloc(VALUE klass) {
   CTX;
   OBJECT o;
