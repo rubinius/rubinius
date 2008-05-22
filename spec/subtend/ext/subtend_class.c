@@ -53,6 +53,10 @@ VALUE sc_rbclassof(VALUE self, VALUE obj) {
   return rb_class_of(obj);
 }
 
+VALUE sc_rbobjclassname(VALUE self, VALUE obj) {
+  return rb_str_new2( rb_obj_classname(obj) );
+}
+
 void Init_subtend_class() {
   VALUE cls;
   cls = rb_define_class("SubtendClass", rb_cObject);
@@ -63,4 +67,5 @@ void Init_subtend_class() {
   rb_define_method(cls, "rb_define_attr", sc_define_attr, 4);
   rb_define_method(cls, "rb_class2name", sc_rbclass2name, 1);
   rb_define_method(cls, "rb_class_of", sc_rbclassof, 1);
+  rb_define_method(cls, "rb_obj_classname", sc_rbobjclassname, 1);
 }

@@ -210,6 +210,8 @@ const char *rb_class2name(VALUE klass);
 VALUE rb_class_of(VALUE obj);
 #define CLASS_OF rb_class_of
 
+const char *rb_obj_classname(VALUE obj);
+
 #define rb_obj_freeze(obj) obj
 
 /* RSTRING Macro Replacement */

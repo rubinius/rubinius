@@ -309,6 +309,10 @@ VALUE rb_class_of(VALUE obj) {
   return NEW_HANDLE(ctx, object_class(ctx->state, h));
 }
 
+const char *rb_obj_classname(VALUE obj) {
+  return rb_class2name(rb_class_of(obj));
+}
+
 VALUE rb_obj_alloc(VALUE klass) {
   CTX;
   OBJECT o;
