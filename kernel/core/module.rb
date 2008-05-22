@@ -704,7 +704,7 @@ class Module
   def attr_reader_cv(*names)
     names.each do |name|
       method_symbol = reader_method_symbol(name)
-      access_method = AccessVarMethod.get_ivar(attribute_symbol(name))
+      access_method = AccessVarMethod.get_ivar(attribute_symbol(name), normalize_name(name))
       method_table[method_symbol] = access_method
     end
 
@@ -714,7 +714,7 @@ class Module
   def attr_writer_cv(*names)
     names.each do |name|
       method_symbol = writer_method_symbol(name)
-      access_method = AccessVarMethod.set_ivar(attribute_symbol(name))
+      access_method = AccessVarMethod.set_ivar(attribute_symbol(name), normalize_name(name))
       method_table[method_symbol] = access_method
     end
 

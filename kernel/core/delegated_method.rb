@@ -6,9 +6,13 @@ class DelegatedMethod < RuntimePrimitive
   UseSelf = 6
 
   self.instance_fields = 7
+
+  def name= n; @name = n end
+  def name; @name end
   
   def self.build(sym, receiver, pass_self)
     obj = allocate()
+    obj.name = "<delegated to: #{receiver.to_s}>"
     obj.put RuntimePrimitive::PrimitiveIndex, :dispatch_as_method
     obj.put RuntimePrimitive::RequiredArguments, -1
     obj.put RuntimePrimitive::SerialNumber, 0
