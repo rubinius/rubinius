@@ -24,8 +24,6 @@ namespace rubinius {
 
     stream >> data;
 
-    std::cout << "bignum: " << data << std::endl;
-
     return Bignum::from_string(state, data, 10);
   }
 
