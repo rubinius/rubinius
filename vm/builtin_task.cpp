@@ -206,6 +206,12 @@ stack_cleanup:
     if(push_value) stack->put(state, ++sp, value);
   }
 
+  /* Called after a primitive has executed and wants to return a value. */
+  void Task::primitive_return(OBJECT value, Message& msg) {
+    sp -= msg.stack;
+    push(value);
+  }
+
   void Task::raise_exception(Exception* exc) {
     for(;;) {
       Tuple* table = active->cm->exceptions;

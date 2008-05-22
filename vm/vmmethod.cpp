@@ -61,7 +61,7 @@ namespace rubinius {
   void VMPrimitiveMethod::execute(STATE, Task* task, Message& msg) {
     try {
       OBJECT ret = CALL_PRIM(state->primitives, fp)(state, msg);
-      task->push(ret);
+      task->primitive_return(ret, msg);
     } catch(PrimitiveFailed& e) {
       VMMethod::execute(state, task, msg);
       return;

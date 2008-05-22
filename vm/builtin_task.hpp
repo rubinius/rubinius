@@ -85,6 +85,7 @@ namespace rubinius {
 
     Executable* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
     void simple_return(OBJECT val);
+    void primitive_return(OBJECT val, Message& msg);
     void yield_debugger();
     bool check_serial(OBJECT obj, SYMBOL sel, int ser);
     void check_interrupts();
