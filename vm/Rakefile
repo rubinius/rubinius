@@ -102,10 +102,6 @@ external = %w!
 	external_libs/libev/.libs/libev.a
 !
 
-file "ffi.h" do
-  sh "cd external_libs/libffi; ./configure"
-end
-
 cleaning = Rake.application.top_level_tasks.find { |t| t =~ /clean/ }
 
 ex_libs = external + [ "-ldl" ]

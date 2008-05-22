@@ -19,10 +19,14 @@ namespace rubinius {
   }
 
   OBJECT UnMarshaller::get_int() {
-    long num;
+    char data[1024];
+    memset(data, 0, 1024);
 
-    stream >> num;
-    return Object::i2n(state, num);
+    stream >> data;
+
+    std::cout << "bignum: " << data << std::endl;
+
+    return Bignum::from_string(state, data, 10);
   }
 
   void Marshaller::set_string(String* str) {

@@ -5,6 +5,7 @@
 
 namespace rubinius {
   class Array;
+  class String;
 
   class Bignum : public Integer {
     public:
@@ -21,7 +22,7 @@ namespace rubinius {
     static OBJECT from_string_detect(STATE, char* str);
     static OBJECT from_string(STATE, const char* str, size_t radix);
     static OBJECT from_double(STATE, double d);
-    
+
     void   debug(STATE);
     INTEGER add(STATE, FIXNUM b);
     INTEGER add(STATE, Bignum* b);
@@ -58,7 +59,7 @@ namespace rubinius {
     unsigned int to_ui(STATE);
     unsigned long long to_ull(STATE);
     long long to_ll(STATE);
-    OBJECT to_s(STATE, INTEGER radix);
+    String* to_s(STATE, INTEGER radix);
     void   into_string(STATE, size_t radix, char* buf, size_t sz);
     double to_double(STATE);
     OBJECT size(STATE);

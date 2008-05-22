@@ -596,11 +596,11 @@ namespace rubinius {
     return ret;
   }
 
-  OBJECT Bignum::to_s(STATE, INTEGER radix) {
+  String* Bignum::to_s(STATE, INTEGER radix) {
     char *buf;
     int sz = 1024;
     int k;
-    OBJECT obj;
+    String* obj;
 
     for(;;) {
       buf = ALLOC_N(char, sz);
