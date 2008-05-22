@@ -185,12 +185,12 @@ class Sampler
 
       puts "\nTotal SendSites: #{count}"
       puts "Top #{range}, by sends:"
-      puts "%-32s| %-18s| %-10s| %s" % ["sender", "name", "hits", "misses"]
-      puts "========================================================================"
+      puts "%-32s| %-18s | %-18s| %-10s| %s" % ["sender", "receiver", "name", "hits", "misses"]
+      puts "============================================================================================="
       sort[0,range].each do |entry|
         mod = entry.sender.staticscope.module if entry.sender.staticscope
         sender = "#{mod}##{entry.sender.name}"
-        puts "%-32s| %-18s| %-10d| %d" % [sender, entry.name, entry.hits, entry.misses]
+        puts "%-32s| %-18s | %-18s| %-10d| %d" % [sender, entry.receiver, entry.name, entry.hits, entry.misses]
       end
     end
   end

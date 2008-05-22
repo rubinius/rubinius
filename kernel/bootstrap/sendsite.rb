@@ -21,6 +21,10 @@ class SendSite
     at(1)
   end
 
+  def receiver
+    at(2)
+  end
+
   def hits
     at(6)
   end
