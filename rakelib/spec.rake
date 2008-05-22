@@ -102,6 +102,12 @@ namespace :spec do
     sh "bin/mspec ci -t #{spec_target} -B full.mspec"
   end
 
+  desc "Run continuous integration examples including stdlib on multiple processors"
+  task :multi => :build do
+    clear_compiler
+    sh "bin/mspec ci -j -t #{spec_target} -B full.mspec"
+  end
+
   spec_targets = %w(compiler core language library parser rubinius)
   # Build a spec:<task_name> for each group of Rubinius specs
   spec_targets.each do |group|
