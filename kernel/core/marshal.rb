@@ -393,7 +393,7 @@ module Marshal
     end
 
     def construct_hash(type)
-      obj = @user_class ? get_user_class.new : {}
+      obj = @user_class ? get_user_class.allocate : {}
       store_unique_object obj
 
       construct_integer.times do
