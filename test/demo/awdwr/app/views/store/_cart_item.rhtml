@@ -1,0 +1,17 @@
+<!--
+ ! Excerpted from "Agile Web Development with Rails, 3rd Ed.",
+ ! published by The Pragmatic Bookshelf.
+ ! Copyrights apply to this code. It may not be used to create training material, 
+ ! courses, books, articles, and the like. Contact us if you are in doubt.
+ ! We make no guarantees that this code is fit for any purpose. 
+ ! Visit http://www.pragmaticprogrammer.com/titles/rails3 for more book information.
+-->
+<% if cart_item == @current_item %>
+  <tr id="current_item">
+<% else %>
+  <tr>
+<% end %>
+  <td><%= cart_item.quantity %>&times;</td>
+  <td><%= h(cart_item.title) %></td>
+  <td class="item-price"><%= number_to_currency(cart_item.price) %></td>
+</tr>

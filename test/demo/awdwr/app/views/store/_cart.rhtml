@@ -1,0 +1,20 @@
+<!--
+ ! Excerpted from "Agile Web Development with Rails, 3rd Ed.",
+ ! published by The Pragmatic Bookshelf.
+ ! Copyrights apply to this code. It may not be used to create training material, 
+ ! courses, books, articles, and the like. Contact us if you are in doubt.
+ ! We make no guarantees that this code is fit for any purpose. 
+ ! Visit http://www.pragmaticprogrammer.com/titles/rails3 for more book information.
+-->
+<div class="cart-title">Your Cart</div>
+
+<table>
+  <%= render(:partial => "cart_item", :collection => cart.items) %>
+  <tr class="total-line">
+    <td colspan="2">Total</td>
+    <td class="total-cell"><%= number_to_currency(cart.total_price) %></td>
+  </tr>
+</table>
+
+<%= button_to "Checkout", :action => :checkout %>
+<%= button_to "Empty cart", :action => :empty_cart %>

@@ -1,0 +1,16 @@
+#START:ruby
+ruby_book:
+  id:          1
+  title:       Programming Ruby
+  description: Dummy description
+  price:       1234
+  image_url:   ruby.png
+#END:ruby
+
+rails_book:
+  id:          2
+  title:       Agile Web Development with Rails
+  description: Dummy description
+  price:       2345
+  image_url:   rails.png
+  

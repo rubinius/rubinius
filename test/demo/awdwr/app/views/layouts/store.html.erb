@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- START:jit -->
+<html>
+<head>
+  <title>Pragprog Books Online Store</title>
+  <%= stylesheet_link_tag "depot", :media => "all" %>
+  <!-- START_HIGHLIGHT -->
+  <%= javascript_include_tag :defaults %>
+  <!-- END_HIGHLIGHT -->
+</head>
+<!-- END:jit -->
+<body id="store">
+  <div id="banner">
+    <%= image_tag("logo.png") %>
+    <%= @page_title || "Pragmatic Bookshelf" %>
+  </div>
+  <div id="columns">
+    <div id="side">
+      <!-- START_HIGHLIGHT -->
+      <!-- START:hidden_div -->
+      <% hidden_div_if(@cart.items.empty?, :id => "cart") do %>
+        <%= render(:partial => "cart", :object => @cart) %>
+      <% end %>
+    <!-- END:hidden_div -->
+      <!-- END_HIGHLIGHT -->
+
+      <a href="http://www....">Home</a><br />
+      <a href="http://www..../faq">Questions</a><br />
+      <a href="http://www..../news">News</a><br />
+      <a href="http://www..../contact">Contact</a><br />
+    </div>
+    <div id="main">
+      <!-- START:flash -->
+      <% if flash[:notice] -%>
+        <div id="notice"><%= flash[:notice] %></div>
+      <% end -%>
+      <!-- END:flash -->
+
+      <%= yield :layout %>
+    </div>
+  </div>
+</body>
+</html>

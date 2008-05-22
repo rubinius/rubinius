@@ -1,0 +1,36 @@
+<!--
+ ! Excerpted from "Agile Web Development with Rails, 3rd Ed.",
+ ! published by The Pragmatic Bookshelf.
+ ! Copyrights apply to this code. It may not be used to create training material, 
+ ! courses, books, articles, and the like. Contact us if you are in doubt.
+ ! We make no guarantees that this code is fit for any purpose. 
+ ! Visit http://www.pragmaticprogrammer.com/titles/rails3 for more book information.
+-->
+<div class="depot-form">
+
+  <%= error_messages_for 'user' %>
+
+  <fieldset>
+    <legend>Enter User Details</legend>
+
+    <% form_for :user do |form| %>
+      <p>
+        <label for="user_name">Name:</label>
+        <%= form.text_field :name, :size => 40 %>
+      </p>
+
+      <p>
+        <label for="user_password">Password:</label>
+        <%= form.password_field :password, :size => 40 %>
+      </p>
+
+      <p>
+        <label for="user_password_confirmation">Confirm:</label>
+        <%= form.password_field :password_confirmation, :size => 40 %>
+      </p>
+
+      <%= submit_tag "Add User", :class => "submit" %>
+    
+    <% end %>  
+  </fieldset>
+</div>

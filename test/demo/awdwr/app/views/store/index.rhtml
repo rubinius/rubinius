@@ -1,0 +1,25 @@
+<!--
+ ! Excerpted from "Agile Web Development with Rails, 3rd Ed.",
+ ! published by The Pragmatic Bookshelf.
+ ! Copyrights apply to this code. It may not be used to create training material, 
+ ! courses, books, articles, and the like. Contact us if you are in doubt.
+ ! We make no guarantees that this code is fit for any purpose. 
+ ! Visit http://www.pragmaticprogrammer.com/titles/rails3 for more book information.
+-->
+<h1>Your Pragmatic Catalog</h1>
+
+<% for product in @products -%>
+  <div class="entry">
+    <%= image_tag(product.image_url) %>
+    <h3><%= h(product.title) %></h3>
+    <%= product.description %>
+    <div class="price-line">
+      <span class="price"><%= number_to_currency(product.price) %></span>
+      
+      <% form_remote_tag :url => { :action => :add_to_cart, :id => product } do %>
+        <%= submit_tag "Add to Cart" %>
+      <% end %>
+      
+      </div>
+  </div>
+<% end %>

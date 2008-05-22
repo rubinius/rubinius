@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--
+ ! Excerpted from "Agile Web Development with Rails, 3rd Ed.",
+ ! published by The Pragmatic Bookshelf.
+ ! Copyrights apply to this code. It may not be used to create training material, 
+ ! courses, books, articles, and the like. Contact us if you are in doubt.
+ ! We make no guarantees that this code is fit for any purpose. 
+ ! Visit http://www.pragmaticprogrammer.com/titles/rails3 for more book information.
+-->
+<html>
+<head>
+  <title>Administer the Bookstore</title>
+  <%= stylesheet_link_tag "scaffold", "depot", :media => "all" %>
+</head>
+<body id="admin">
+  <div id="banner">
+    <%= image_tag("logo.png") %>
+    <%= @page_title || "Pragmatic Bookshelf" %>
+  </div>
+  <div id="columns">
+    <div id="side">
+      <p>
+        <%= link_to "Products",   :controller => 'admin', :action => 'list' %>
+      </p>
+      <p>
+        <%= link_to "List users", :controller => 'login', :action => 'list_users' %>
+        <br/>
+        <%= link_to "Add user",   :controller => 'login', :action => 'add_user' %>
+      </p>
+      <p>
+        <%= link_to "Logout",     :controller => 'login', :action => 'logout' %>
+      </p>
+    </div>
+    <div id="main">
+    <% if flash[:notice] -%>
+      <div id="notice"><%= flash[:notice] %></div>
+    <% end -%>
+      <%= yield :layout %>
+    </div>
+  </div>
+</body>
+</html>

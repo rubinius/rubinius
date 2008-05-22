@@ -1,0 +1,24 @@
+<!--
+ ! Excerpted from "Agile Web Development with Rails, 3rd Ed.",
+ ! published by The Pragmatic Bookshelf.
+ ! Copyrights apply to this code. It may not be used to create training material, 
+ ! courses, books, articles, and the like. Contact us if you are in doubt.
+ ! We make no guarantees that this code is fit for any purpose. 
+ ! Visit http://www.pragmaticprogrammer.com/titles/rails3 for more book information.
+-->
+<%= error_messages_for 'product' %>
+
+<!--[form:product]-->
+<p><label for="product_title">Title</label><br/>
+<%= text_field 'product', 'title'  %></p>
+
+<p><label for="product_description">Description</label><br/>
+<%= text_area 'product', 'description'  %></p>
+
+<p><label for="product_image_url">Image url</label><br/>
+<%= text_field 'product', 'image_url'  %></p>
+
+<p><label for="product_price">Price</label><br/>
+<%= text_field 'product', 'price'  %></p>
+<!--[eoform:product]-->
+
