@@ -80,7 +80,7 @@ class CCompile
 
   def extract_headers(path)
     includes = @includes.map { |i| "-I#{i}" }.join(" ")
-    data = `g++ #{includes} -MM -c #{path}`.split(/(?:\s+|\\\n)/)
+    data = `g++ #{includes} -MM -MG -c #{path}`.split(/(?:\s+|\\\n)/)
     data.shift
     data.reject! { |s| s.size == 0 }
 
@@ -102,12 +102,11 @@ external = %w!
 	external_libs/libev/.libs/libev.a
 !
 
-external.each do |lib|
-  file lib do
-    path = lib.split("/")[0,2].join("/")
-    x "cd #{path}; ./configure; make"
-  end
+file "ffi.h" do
+  sh "cd external_libs/libffi; ./configure"
 end
+
+cleaning = Rake.application.top_level_tasks.find { |t| t =~ /clean/ }
 
 ex_libs = external + [ "-ldl" ]
 
@@ -156,16 +155,6 @@ type_gen = %w!gen/simple_field.rb
               gen/primitives_declare.hpp
               gen/primitives_glue.gen.cpp!
 
-maybe_regen insn_gen do
-  puts "GEN instructions.rb"
-  x "ruby instructions.rb"
-end
-
-maybe_regen type_gen do
-  puts "GEN field_extract"
-  field_extract
-end
-
 compiler.cpp!
 
 compiler.includes += ex_inc
@@ -178,8 +167,29 @@ if ENV['FAST']
   compiler.flags << "-O2"
 end
 
-objs =  compiler.add_source("*.cpp")
-objs += compiler.add_source("*.c")
+if cleaning
+  objs = []
+else
+  external.each do |lib|
+    file lib do
+      path = lib.split("/")[0,2].join("/")
+      x "cd #{path}; ./configure || true; make"
+    end
+  end
+
+  maybe_regen insn_gen do
+    puts "GEN instructions.rb"
+    x "ruby instructions.rb"
+  end
+
+  maybe_regen type_gen do
+    puts "GEN field_extract"
+    field_extract
+  end
+
+  objs =  compiler.add_source("*.cpp")
+  objs += compiler.add_source("*.c")
+end
 
 file "type_info.o" => "gen/typechecks.gen.cpp"
 file "gen/typechecks.gen.cpp" => FileList["builtin_*.hpp"] do
@@ -251,4 +261,11 @@ task :default => :test
 
 task :clean do
   x "rm -rf *.gcda *.gcno *.gcov *.dSYM *.o ../*.o test/runner* coverage gen .deps"
+end
+
+task :distclean => :clean do
+  external.each do |lib|
+    path = lib.split("/")[0,2].join("/")
+    sh "cd #{path}; make clean"
+  end
 end
