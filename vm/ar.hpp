@@ -3,7 +3,6 @@
 
 #include <fcntl.h>
 #include <cstring>
-#include <sys/cdefs.h>
 #include <strings.h>
 #include <sys/types.h>
 #include <sys/uio.h>

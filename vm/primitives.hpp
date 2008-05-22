@@ -18,7 +18,7 @@ namespace rubinius {
 #include "gen/primitives_declare.hpp"
   };
 
-  class PrimitiveFailed : public std::runtime_error {
+  class PrimitiveFailed : public VMException {
   };
 
 }
