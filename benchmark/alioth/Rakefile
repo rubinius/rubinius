@@ -29,12 +29,24 @@ configs.each do |config_fn|
 
   task test.to_sym => result_fns do
     all_results = {}
-    KNOWN_TYPES.each do |type|
-      all_results[type] = YAML.load_file("results-#{test}-#{type}.yaml")
+    files = (result_fns + Dir["results-#{test}-*.yaml"]).uniq
+    files.each do |f|
+      f =~ /^results-#{test}-(.+?)\.yaml$/
+      type = $1
+      all_results[type] ||= YAML.load_file(f)
     end
 
     puts "#{test}:"
     report all_results
+  end
+end
+
+task :save do
+  name = ENV["name"] or raise "need a name= argument to :save"
+  Dir["results-*-rbx.yaml"].each do |f|
+    f =~ /^results-(.+?)-rbx\.yaml/
+    new_f = "results-#{$1}-#{name}.yaml"
+    sh "cp #{f} #{new_f}"
   end
 end
 
@@ -76,18 +88,24 @@ def run_gcc script, input, output, commandline, opts
 end
 
 def report results
-  KNOWN_TYPES.each do |type|
+  types = results.keys.sort_by { |k| [results[k][:fail] ? 1 : 0, results[k][:time], k] }
+  widths = types.map { |t| t.length }
+  max_width = widths.max
+  col_widths = widths.zip(widths[1 .. -1])[0 ... -1].map { |a, b| [a, b].max }
+  types.each do |type|
     time = results[type][:time]
-    printf "%8s: ", type
+    printf "%#{max_width}s: ", type
     if results[type][:fail]
       print "failure"
     else
       printf "%6.2fs = ", time
-      print(KNOWN_TYPES.map do |otype|
+      i = 0
+      print(types.map do |otype|
         next if type == otype || results[otype][:fail]
+        i += 1
         otime = results[otype][:time]
-        " %4.0f%% of %4s" % [(100.0 * time / otime), otype]
-      end.compact.join(", "))
+        "%5.0f%% of %-#{col_widths[i - 1]}s" % [(100.0 * time / otime), otype]
+      end.compact)
     end
     puts
   end
