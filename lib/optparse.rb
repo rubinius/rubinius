@@ -204,8 +204,8 @@
 class OptionParser
   # :stopdoc:
   RCSID = %w$Id: optparse.rb 11798 2007-02-20 06:53:16Z knu $[1..-1].each {|s| s.freeze}.freeze
-  Version = 42 # (RCSID[1].split('.').collect {|s| s.to_i}.extend(Comparable).freeze if RCSID[1])
-  LastModified = 42 # (Time.gm(*RCSID[2, 2].join('-').scan(/\d+/).collect {|s| s.to_i}) if RCSID[2])
+  Version = (RCSID[1].split('.').collect {|s| s.to_i}.extend(Comparable).freeze if RCSID[1])
+  LastModified = (Time.gm(*RCSID[2, 2].join('-').scan(/\d+/).collect {|s| s.to_i}) if RCSID[2])
   Release = RCSID[2]
 
   NoArgument = [NO_ARGUMENT = :NONE, nil].freeze
