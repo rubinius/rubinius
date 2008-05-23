@@ -8,7 +8,6 @@ using namespace rubinius;
 class TestString : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM *state;
   String *str;
 

@@ -8,9 +8,6 @@
 #include "object.hpp"
 #include "objects.hpp"
 
-/* not sure whats up with this, but it's needed. */
-#undef state
-
 namespace rubinius {
 
   class Marshaller {

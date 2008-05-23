@@ -9,7 +9,6 @@ using namespace rubinius;
 class TestFloat : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM *state;
   double TOLERANCE;
   void setUp() {

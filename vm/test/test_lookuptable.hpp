@@ -8,24 +8,25 @@ using namespace rubinius;
 class TestLookupTable : public CxxTest::TestSuite {
   public:
 
-#define state &vm
+  VM *state;
+  LookupTable *tbl;
+  void setUp() {
+    state = new VM(1024);
+    tbl = LookupTable::create(state);
+  }
 
-  void test_create() {
-    VM vm(1024);
-    LookupTable *tbl;
+  void tearDown() {
+    delete state;
+  }
 
-    tbl = LookupTable::create(&vm);
+  void test_create() {    
     TS_ASSERT_EQUALS(tbl->obj_type, LookupTableType);
     TS_ASSERT_EQUALS(tbl->bins->n2i(), LOOKUPTABLE_MIN_SIZE);
   }
 
   void test_store_fetch() {
-    VM vm(1024);
-    LookupTable *tbl;
-
-    tbl = LookupTable::create(&vm);
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 0);
-    tbl->store(&vm, Qnil, Object::i2n(47));
+    tbl->store(state, Qnil, Object::i2n(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 1);
 
     OBJECT out = tbl->fetch(state, Qnil);
@@ -33,12 +34,8 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_store_overwrites_previous() {
-    VM vm(1024);
-    LookupTable *tbl;
-
-    tbl = LookupTable::create(&vm);
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 0);
-    tbl->store(&vm, Qnil, Object::i2n(47));
+    tbl->store(state, Qnil, Object::i2n(47));
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries)->n2i(), 1);
 
     OBJECT out = tbl->fetch(state, Qnil);
@@ -52,9 +49,6 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_store_handles_entries_in_same_bin() {
-    VM vm(1024);
-    LookupTable *tbl;
-
     OBJECT k1 = Object::i2n((4 << 4)  | 15);
     OBJECT k2 = Object::i2n((10 << 4) | 15);
     OBJECT k3 = Object::i2n((11 << 4) | 15);
@@ -62,7 +56,6 @@ class TestLookupTable : public CxxTest::TestSuite {
     OBJECT v2 = Qfalse;
     OBJECT v3 = Qtrue;
 
-    tbl = LookupTable::create(&vm);
     tbl->store(state, k1, v1);
     tbl->store(state, k2, v2);
     tbl->store(state, k3, v3);
@@ -80,11 +73,7 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_store_resizes_table() {
-    VM vm(1024);
-    LookupTable *tbl;
     size_t i;
-
-    tbl = LookupTable::create(&vm);
     size_t bins = tbl->bins->n2i();
 
     for(i = 0; i < bins; i++) {
@@ -101,11 +90,7 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_store_resizes_table_with_chained_bins() {
-    VM vm(1024);
-    LookupTable *tbl;
     size_t i;
-
-    tbl = LookupTable::create(&vm);
     size_t bins = tbl->bins->n2i() - 2;
 
     OBJECT k1 = Object::i2n((4 << 5)  | 31);
@@ -123,9 +108,6 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_find_entry() {
-    VM vm(1024);
-
-    LookupTable* tbl = LookupTable::create(&vm);
     OBJECT k = Object::i2n(47);
     tbl->store(state, k, Qtrue);
 
@@ -137,9 +119,6 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_find() {
-    VM vm(1024);
-
-    LookupTable* tbl = LookupTable::create(&vm);
     OBJECT k = Object::i2n(47);
     tbl->store(state, k, Qtrue);
 
@@ -151,9 +130,6 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_remove() {
-    VM vm(1024);
-
-    LookupTable* tbl = LookupTable::create(&vm);
     OBJECT k = Object::i2n(47);
     tbl->store(state, k, Qtrue);
 
@@ -169,9 +145,6 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_remove_redistributes() {
-    VM vm(1024);
-
-    LookupTable* tbl = LookupTable::create(&vm);
     size_t bins = tbl->bins->n2i();
     size_t bound = bins * 2;
 
@@ -191,11 +164,6 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_remove_works_for_chained_bins() {
-    VM vm(1024);
-    LookupTable *tbl;
-
-    tbl = LookupTable::create(&vm);
-
     OBJECT k1 = Object::i2n((4 << 5)  | 31);
     OBJECT k2 = Object::i2n((10 << 5) | 31);
     OBJECT k3 = Object::i2n((11 << 5) | 31);
@@ -211,22 +179,12 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_remove_works_for_unknown_key() {
-    VM vm(1024);
-    LookupTable *tbl;
-
-    tbl = LookupTable::create(&vm);
-
     OBJECT k1 = Object::i2n(4);
 
     TS_ASSERT_EQUALS(Qnil, tbl->remove(state, k1));
   }
 
   void test_has_key() {
-    VM vm(1024);
-    LookupTable *tbl;
-
-    tbl = LookupTable::create(&vm);
-
     OBJECT k1 = Object::i2n(4);
     TS_ASSERT_EQUALS(Qfalse, tbl->has_key(state, k1));
 
@@ -236,10 +194,6 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_dup() {
-    VM vm(1024);
-    LookupTable *tbl;
-
-    tbl = LookupTable::create(&vm);
     OBJECT k1 = Object::i2n(4);
 
     tbl->store(state, k1, Qtrue);
@@ -250,10 +204,6 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_all_keys() {
-    VM vm(1024);
-    LookupTable *tbl;
-
-    tbl = LookupTable::create(&vm);
     OBJECT k1 = Object::i2n(4);
 
     tbl->store(state, k1, Qtrue);
@@ -264,10 +214,6 @@ class TestLookupTable : public CxxTest::TestSuite {
   }
 
   void test_all_values() {
-    VM vm(1024);
-    LookupTable *tbl;
-
-    tbl = LookupTable::create(&vm);
     OBJECT k1 = Object::i2n(4);
 
     tbl->store(state, k1, Qtrue);

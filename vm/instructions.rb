@@ -50,7 +50,6 @@ using namespace rubinius;
 class TestInstructions : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM* state;
 
   void setUp() {

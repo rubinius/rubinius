@@ -8,7 +8,6 @@ using namespace rubinius;
 class TestHash : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM *state;
   Hash *tbl;
   hashval hash;

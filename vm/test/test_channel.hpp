@@ -11,7 +11,6 @@ using namespace rubinius;
 class TestChannel : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM* state;
   Channel* chan;
 

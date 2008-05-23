@@ -10,7 +10,7 @@ using namespace rubinius;
 
 class TestCompiledFile : public CxxTest::TestSuite {
 public:
-#undef state
+
   VM* state;
 
   void setUp() {

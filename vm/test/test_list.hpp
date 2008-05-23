@@ -10,7 +10,6 @@ using namespace rubinius;
 class TestList : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM* state;
   OBJECT one, two;
 

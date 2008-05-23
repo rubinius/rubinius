@@ -9,7 +9,6 @@ using namespace rubinius;
 class TestSymbol : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM *state;
 
   void setUp() {

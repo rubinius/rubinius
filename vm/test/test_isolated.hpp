@@ -9,8 +9,6 @@ using namespace rubinius;
 class TestIso : public CxxTest::TestSuite {
   public:
 
-#undef state
-
   void test_gc_cycle() {
     VM* state = new VM();
     state->collect();

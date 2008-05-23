@@ -10,7 +10,6 @@ class TestObjects : public CxxTest::TestSuite {
 
 #define check_const(obj, name) TS_ASSERT_EQUALS(G(object)->get_const(state,name), G(obj))
 
-#undef state
   VM *state;
 
   void setUp() {

@@ -9,7 +9,6 @@ using namespace rubinius;
 class TestBignum : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM* state;
   Bignum* b1;
   Bignum* b2;

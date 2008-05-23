@@ -18,7 +18,6 @@ public:
 
 class TestUnMarshal : public CxxTest::TestSuite {
 public:
-#undef state
   VM* state;
   StringUnMarshaller* mar;
 

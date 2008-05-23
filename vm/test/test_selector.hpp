@@ -10,7 +10,6 @@ using namespace rubinius;
 class TestSelector : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM* state;
 
   void setUp() {

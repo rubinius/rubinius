@@ -27,7 +27,6 @@ public:
 class TestEventLoop : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM *state;
 
   void setUp() {

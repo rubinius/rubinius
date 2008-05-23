@@ -8,9 +8,7 @@ using namespace rubinius;
 class TestRegexp : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM *state;
-  String *str;
 
   void setUp() {
     state = new VM(1024);

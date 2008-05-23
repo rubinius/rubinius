@@ -10,7 +10,6 @@ using namespace rubinius;
 class TestFixnum : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM* state;
   double TOLERANCE;
 

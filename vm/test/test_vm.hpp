@@ -13,7 +13,6 @@ using namespace rubinius;
 class TestVM : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM *state;
 
   void setUp() {

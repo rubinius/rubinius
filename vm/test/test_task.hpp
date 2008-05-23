@@ -11,7 +11,6 @@ using namespace rubinius;
 class TestTask : public CxxTest::TestSuite {
   public:
 
-#undef state
   VM* state;
 
   void setUp() {
