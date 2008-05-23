@@ -74,11 +74,12 @@ class TestInstructions : public CxxTest::TestSuite {
         fd.puts "CompiledMethod* cm = CompiledMethod::create(state);"
         fd.puts "cm->iseq = InstructionSequence::create(state, 10);"
         fd.puts "cm->stack_size = Object::i2n(10);"
+        fd.puts "cm->local_count = Object::i2n(0);"
+        fd.puts "cm->literals = Tuple::create(state, 10);"
         fd.puts "MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));"
         fd.puts "task->make_active(ctx);"
         # The += 0 disable unused variable warnings.
         fd.puts "Tuple* stack = task->stack; stack += 0;"
-        fd.puts "task->literals = Tuple::create(state, 10);"
         fd.puts "opcode stream[100];"
         fd.puts "stream[0] = InstructionSequence::insn_#{ins.opcode};"
         fd.puts "#define run(val) task->execute_stream(stream)"
@@ -694,11 +695,11 @@ CODE
 
   def test_push_local_depth
     <<-CODE
-    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active);
-    BlockContext* bc = be->create_context(state);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active, 0);
+    BlockContext* bc = be->create_context(state, (MethodContext*)Qnil);
 
-    BlockEnvironment* be2 = BlockEnvironment::under_context(state, cm, bc, bc);
-    BlockContext* bc2 = be2->create_context(state);
+    BlockEnvironment* be2 = BlockEnvironment::under_context(state, cm, bc, bc, 1);
+    BlockContext* bc2 = be2->create_context(state, (MethodContext*)Qnil);
 
     task->make_active(bc2);
 
@@ -808,7 +809,7 @@ CODE
 
   def test_push_block
     <<-CODE
-    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active, 0);
     task->active->block = be;
     run();
 
@@ -1302,11 +1303,11 @@ CODE
 
   def test_set_local_depth
     <<-CODE
-    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active);
-    BlockContext* bc = be->create_context(state);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, cm, task->active, task->active, 0);
+    BlockContext* bc = be->create_context(state, (MethodContext*)Qnil);
 
-    BlockEnvironment* be2 = BlockEnvironment::under_context(state, cm, bc, bc);
-    BlockContext* bc2 = be2->create_context(state);
+    BlockEnvironment* be2 = BlockEnvironment::under_context(state, cm, bc, bc, 0);
+    BlockContext* bc2 = be2->create_context(state, (MethodContext*)Qnil);
 
     task->make_active(bc2);
 
@@ -2466,7 +2467,7 @@ CODE
     stack->put(state, ++task->sp, Qtrue);
     stack->put(state, ++task->sp, Object::i2n(3));
 
-    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
     stack->put(state, ++task->sp, be);
 
     stream[1] = (opcode)0;
@@ -2561,7 +2562,7 @@ CODE
     splat->set(state, 0, Object::i2n(47));
     stack->put(state, ++task->sp, splat);
 
-    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
     stack->put(state, ++task->sp, be);
 
     stream[1] = (opcode)0;
@@ -2643,7 +2644,7 @@ CODE
     stack->put(state, ++task->sp, obj);
     stack->put(state, ++task->sp, Object::i2n(3));
 
-    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
     stack->put(state, ++task->sp, be);
 
     stream[1] = (opcode)0;
@@ -2740,7 +2741,7 @@ CODE
     splat->set(state, 0, Object::i2n(47));
     stack->put(state, ++task->sp, splat);
 
-    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active);
+    BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
     stack->put(state, ++task->sp, be);
 
     stream[1] = (opcode)0;
@@ -3154,8 +3155,7 @@ CODE
     t1 = stack_back(_int);
 
     if(kind_of<BlockEnvironment>(t1)) {
-      stack_pop();
-      as<BlockEnvironment>(t1)->call(state, _int);
+      as<BlockEnvironment>(t1)->call(state, this, _int);
     } else {
       _lit = G(sym_call);
       t2 = Qnil;
@@ -3429,30 +3429,23 @@ perform_no_ss_send:
   end
 
   # [Operation]
-  #   Creates a compiler2 style block
+  #   Creates a block
   # [Format]
-  #   \create_block2
+  #   \create_block literal
   # [Stack Before]
-  #   * compiled_method
   #   * ...
   # [Stack After]
   #   * block_env
   #   * ...
   # [Description]
-  #   Pops +compiled_method+ off of the stack, and converts it into a
+  #   Takes a +compiled_method+ out o the literals tuple, and converts it into a
   #   block environment +block_env+, which is then pushed back onto the stack.
-  # [See Also]
-  #   * create_block
-  # [Notes]
-  #   This opcode replaces create_block, which is used under compiler1, but
-  #   deprecated under compiler2. Unlike create_block which uses the same
-  #   instruction sequence as the enclosing method context, \create_block2
-  #   takes its own instruction sequence in the form of a compiled method.
 
   def create_block
     <<-CODE
     /* the method */
-    CompiledMethod* cm = as<CompiledMethod>(stack_pop());
+    next_literal;
+    CompiledMethod* cm = as<CompiledMethod>(_lit);
 
     MethodContext* parent;
     if(kind_of<BlockContext>(active)) {
@@ -3466,7 +3459,7 @@ perform_no_ss_send:
 
     cm->set_scope(current_scope);
 
-    t2 = BlockEnvironment::under_context(state, cm, parent, active);
+    t2 = BlockEnvironment::under_context(state, cm, parent, active, _int);
     stack_push(t2);
     CODE
   end

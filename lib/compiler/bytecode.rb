@@ -626,8 +626,7 @@ class Node
         sub.close
       end
 
-      g.push_literal desc
-      g.create_block
+      g.create_block desc
     end
   end
 

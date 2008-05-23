@@ -23,21 +23,21 @@ output = ARGV.shift
 puts "Compiling #{file}"
 
 top = Compiler.compile_file(file, flags)
-  
+
 mar = Compiler::Marshal.new
 
-def decode_cm(top)
-  puts top.describe
-  puts top.decode
+def decode_cm(cm)
+  puts "= #{cm.name} (0x#{cm.object_id.to_s(16)}) ======================"
+  puts "= stack:#{cm.stack_size}, locals:#{cm.local_count}"
+  puts "= #{cm.describe}"
+  puts cm.decode
 
-  extra = top.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+  extra = cm.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
 
   until extra.empty?
-    cm = extra.shift
-    puts "= #{cm.name} (0x#{cm.object_id.to_s(16)}) ======================"
-    puts "= #{cm.describe}"
-    puts cm.decode
-    extra += cm.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+    sub = extra.shift
+    decode_cm(sub);
+    extra += sub.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
   end
 end
 
@@ -66,6 +66,7 @@ def compare_cm(a,b)
 end
 
 class Float
+  undef_method :==
   def ==(other)
     (self - other).abs < 1e-14
   end

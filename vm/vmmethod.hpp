@@ -16,6 +16,7 @@ namespace rubinius {
     size_t total;
     TypedRoot<CompiledMethod*> original;
     TypeInfo* type;
+    std::vector<VMMethod*> blocks;
 
     VMMethod(STATE, CompiledMethod* meth);
     ~VMMethod();

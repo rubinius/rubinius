@@ -18,6 +18,10 @@ namespace rubinius {
     return cls;
   }
 
+  OBJECT Class::allocate(STATE) {
+    return state->new_object(this);
+  }
+
   Module* Module::create(STATE) {
     Module* mod = (Module*)state->new_object(G(module));
 

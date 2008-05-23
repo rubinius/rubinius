@@ -146,7 +146,7 @@ class InstructionSet
     {:opcode => :equal, :args => [], :stack => [2,1]},
     {:opcode => :set_literal, :args => [:literal], :stack => [0,0]},
     {:opcode => :passed_blockarg, :args => [:int], :stack => [0,1]},
-    {:opcode => :create_block, :args => [], :stack => [1,1],
+    {:opcode => :create_block, :args => [:literal], :stack => [0,1],
       :vm_flags => []},
     {:opcode => :cast_for_single_block_arg, :args => [], :stack => [1,1]},
     {:opcode => :cast_for_multi_block_arg, :args => [], :stack => [1,1]},

@@ -11,7 +11,7 @@ namespace rubinius {
   }
 
   void Executable::execute(STATE, Task* task, Message& msg) {
-    if(compiled->nil_p()) initialize(state);
-    ((VMExecutable*)compiled->pointer)->execute(state, task, msg);
+    if(!executable) initialize(state);
+    executable->execute(state, task, msg);
   }
 }

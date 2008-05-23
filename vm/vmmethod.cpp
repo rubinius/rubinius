@@ -1,9 +1,12 @@
 #include "objects.hpp"
 
 namespace rubinius {
-  VMMethod::VMMethod(STATE, CompiledMethod* meth) : 
+  VMMethod::VMMethod(STATE, CompiledMethod* meth) :
       original(state, meth), type(NULL) {
     total = meth->iseq->opcodes->field_count;
+    if(Tuple* tup = try_as<Tuple>(meth->literals)) {
+      blocks.resize(tup->field_count, NULL);
+    }
 
     opcodes = new opcode[total];
 

@@ -561,6 +561,11 @@ class Compiler
       add :check_serial, idx, serial.to_i
     end
 
+    def create_block(desc)
+      idx = add_literal(desc)
+      add :create_block, idx
+    end
+
     def method_missing(*op)
       if op[0] == :val
         raise "blah"

@@ -49,6 +49,9 @@ namespace rubinius {
 
     static Class* create(STATE, Class* super);
 
+    // Ruby.primitive :class_allocate
+    OBJECT allocate(STATE);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

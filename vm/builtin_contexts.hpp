@@ -14,6 +14,7 @@ namespace rubinius {
     const static object_type type = MContextType;
 
     MethodContext* sender; // slot
+    MethodContext* home; // slot
     OBJECT self; // slot
 
     CompiledMethod* cm; // slot

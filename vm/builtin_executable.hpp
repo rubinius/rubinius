@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_EXECUTABLE_HPP
 #define RBX_BUILTIN_EXECUTABLE_HPP
 
+#include "vmexecutable.hpp"
+
 namespace rubinius {
 
   class MemoryPointer;
@@ -13,7 +15,7 @@ namespace rubinius {
     OBJECT __ivars__; // slot
     SYMBOL primitive; // slot
     FIXNUM serial; // slot
-    MemoryPointer* compiled; // slot readonly
+    VMExecutable* executable;
 
     void initialize(STATE);
     void execute(STATE, Task* cur, Message& msg);

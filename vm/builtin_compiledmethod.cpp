@@ -6,6 +6,8 @@
 namespace rubinius {
   CompiledMethod* CompiledMethod::create(STATE) {
     CompiledMethod* cm = (CompiledMethod*)state->new_object(G(cmethod));
+    SET(cm, local_count, Object::i2n(0));
+    cm->executable = NULL;
     return cm;
   }
 
@@ -32,25 +34,25 @@ namespace rubinius {
   }
 
   VMMethod* CompiledMethod::vmmethod(STATE) {
-    if(compiled->nil_p()) {
+    if(!executable) {
       if(!primitive->nil_p()) {
         if(SYMBOL name = try_as<Symbol>(primitive)) {
           std::cout << "resolving: "; inspect(state, name);
           primitive_func func = Primitives::resolve_primitive(state, name);
 
-          VMPrimitiveMethod* vmm = new VMPrimitiveMethod(state, this, func);
-          compiled = MemoryPointer::create(state, vmm);
+          VMMethod* vmm = new VMPrimitiveMethod(state, this, func);
+          executable = vmm;
           return vmm;
         } else {
           std::cout << "Invalid primitive id (not a symbol)" << std::endl;
         }
       }
       VMMethod* vmm = new VMMethod(state, this);
-      compiled = MemoryPointer::create(state, vmm);
+      executable = vmm;
       return vmm;
     }
 
-    return (VMMethod*)compiled->pointer;
+    return dynamic_cast<VMMethod*>(executable);
   }
 
   void CompiledMethod::post_marshal(STATE) {
@@ -58,9 +60,11 @@ namespace rubinius {
   }
 
   size_t CompiledMethod::number_of_locals() {
-    return 0;
+    return local_count->to_nint();
   }
+
   void CompiledMethod::set_scope(StaticScope* scope) {
+    this->scope = scope;
   }
 
 }

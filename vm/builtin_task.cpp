@@ -42,6 +42,7 @@ namespace rubinius {
     SET(task, literals, Qnil);
     SET(task, exception, Qnil);
     SET(task, stack, Qnil);
+    SET(task, home, Qnil);
 
     CompiledMethod* cm = CompiledMethod::generate_tramp(state);
     MethodContext* ctx = task->generate_context(G(main), cm, cm->vmmethod(state));
@@ -59,6 +60,7 @@ namespace rubinius {
     SET(ctx, cm, meth);
     SET(ctx, module, G(object));
     SET(ctx, stack, Tuple::create(state, meth->stack_size->n2i()));
+    SET(ctx, home, ctx);
 
     ctx->vmm = vmm;
     ctx->ip = 0;
@@ -68,15 +70,17 @@ namespace rubinius {
   }
 
   void Task::restore_context(MethodContext* ctx) {
+
+    SET(this, literals, ctx->cm->literals);
+    SET(this, stack, ctx->stack);
+
+    SET(this, active, ctx);
+    SET(this, home, ctx->home);
+    SET(this, self, home->self);
+
     ip = ctx->ip;
-    sp = ctx->sp;
-    self = ctx->self;
-
-    literals = ctx->cm->literals;
-    stack = ctx->stack;
     ip_ptr = ctx->vmm->opcodes + ip;
-
-    active = ctx;
+    sp = ctx->sp;
   }
 
   void Task::make_active(MethodContext* ctx) {
@@ -149,7 +153,8 @@ stack_cleanup:
         probe->lookup_failed(this, msg);
       }
       std::stringstream ss;
-      ss << "unable to locate any method '" << *msg.send_site->name->to_str(state) << "'";
+      ss << "unable to locate any method '" << *msg.send_site->name->to_str(state) << 
+        "' from '" << *msg.lookup_from->name->to_str(state) << "'";
 
       throw new Assertion((char*)ss.str().c_str());
     }
@@ -496,6 +501,10 @@ stack_cleanup:
     stack->put(state, ++sp, val);
   }
 
+  OBJECT Task::pop() {
+    return stack->at(sp--);
+  }
+
   void Task::activate_method(Message&) { }
 
   void Task::cache_ip() { }
@@ -508,6 +517,18 @@ stack_cleanup:
     if(state->om->collect_mature_now) {
       state->om->collect_mature_now = false;
       state->om->collect_mature(state->globals.roots);
+    }
+  }
+
+  void Task::print_stack() {
+    for(size_t i = 0; i < stack->field_count; i++) {
+      if(i == (size_t)sp) {
+        std::cout << "=> ";
+      } else {
+        std::cout << "   ";
+      }
+
+      ((NormalObject*)stack->field[i])->show(state);
     }
   }
 

@@ -32,6 +32,7 @@ namespace rubinius {
     OBJECT self; // slot
     Tuple* literals; // slot
     MethodContext* active; // slot
+    MethodContext* home; // slot
 
     /* globals */
     Exception* exception; // slot
@@ -92,6 +93,9 @@ namespace rubinius {
 
     void execute_stream(opcode* stream);
     void push(OBJECT val);
+    OBJECT Task::pop();
+
+    void print_stack();
 
     class Info : public TypeInfo {
     public:
