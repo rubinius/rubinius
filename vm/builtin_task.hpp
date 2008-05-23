@@ -93,7 +93,7 @@ namespace rubinius {
 
     void execute_stream(opcode* stream);
     void push(OBJECT val);
-    OBJECT Task::pop();
+    OBJECT pop();
 
     void print_stack();
 
