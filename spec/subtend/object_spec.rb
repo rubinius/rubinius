@@ -88,5 +88,25 @@ describe "SubtendObject" do
     @o.rb_check_string_type(so).should == "Hello"
     @o.rb_check_string_type(h).should == ""
   end
-  
+
+  it "rb_inspect should return a string with the inspect representation" do
+    @o.rb_inspect(nil).should == "nil"
+    @o.rb_inspect(0).should == '0'
+    @o.rb_inspect([1,2,3]).should == '[1, 2, 3]'
+    @o.rb_inspect("0").should == '"0"'
+  end
+
+  it "rb_class_of should return the class of a object" do
+    @o.rb_class_of(nil).should == NilClass
+    @o.rb_class_of(0).should == Fixnum
+    @o.rb_class_of(0.1).should == Float
+    @o.rb_class_of(ObjectTest.new).should == ObjectTest
+  end
+
+  it "rb_obj_classname should return the class name of a object" do
+    @o.rb_obj_classname(nil).should == 'NilClass'
+    @o.rb_obj_classname(0).should == 'Fixnum'
+    @o.rb_obj_classname(0.1).should == 'Float'
+    @o.rb_obj_classname(ObjectTest.new).should == 'ObjectTest'
+  end 
 end

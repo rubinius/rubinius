@@ -195,6 +195,8 @@ void rb_string_value(VALUE *obj);
 /* HACK ? */
 #define STR2CSTR StringValuePtr
 
+VALUE rb_inspect(VALUE obj);
+
 /* Hash */
 VALUE rb_hash_new(void);
 VALUE rb_hash_aref(VALUE hash, VALUE key);

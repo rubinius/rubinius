@@ -64,18 +64,4 @@ describe "SubtendClass" do
   it "rb_class2name should return the classname" do
     @s.rb_class2name(SubtendClass).should == "SubtendClass"
   end
-
-  it "rb_class_of should return the class of a object" do
-    @s.rb_class_of(nil).should == NilClass
-    @s.rb_class_of(0).should == Fixnum
-    @s.rb_class_of(0.1).should == Float
-    @s.rb_class_of(SubtendClassTest.new(0)).should == SubtendClassTest
-  end
-  
-  it "rb_obj_classname should return the class name of a object" do
-    @s.rb_obj_classname(nil).should == 'NilClass'
-    @s.rb_obj_classname(0).should == 'Fixnum'
-    @s.rb_obj_classname(0.1).should == 'Float'
-    @s.rb_obj_classname(SubtendClassTest.new(0)).should == 'SubtendClassTest'
-  end
 end

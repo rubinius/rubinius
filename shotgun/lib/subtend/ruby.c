@@ -620,6 +620,10 @@ void rb_string_value(VALUE *val) {
   *val = rb_obj_as_string(*val);
 }
 
+VALUE rb_inspect(VALUE obj) {
+  return rb_funcall(obj, rb_intern("inspect"), 0, 0);
+}
+
 /* Hash */
 
 VALUE rb_hash_new(void) {

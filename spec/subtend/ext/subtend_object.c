@@ -37,6 +37,18 @@ VALUE so_check_convert_type(VALUE self, VALUE obj) {
   return rb_check_convert_type(obj, 9, "Array", "to_ary");
 }
 
+VALUE so_rbobjclassname(VALUE self, VALUE obj) {
+  return rb_str_new2( rb_obj_classname(obj) );
+}
+
+VALUE so_rbclassof(VALUE self, VALUE obj) {
+  return rb_class_of(obj);
+}
+
+VALUE so_inspect(VALUE self, VALUE obj) {
+  return rb_inspect(obj);
+}
+
 void Init_subtend_object() {
   VALUE cls;
   cls = rb_define_class("SubtendObject", rb_cObject);
@@ -49,4 +61,7 @@ void Init_subtend_object() {
   rb_define_method(cls, "rb_check_array_type", so_check_array_type, 1);
   rb_define_method(cls, "rb_check_string_type", so_check_string_type, 1);
   rb_define_method(cls, "rb_check_convert_type", so_check_convert_type, 1);  
+  rb_define_method(cls, "rb_inspect", so_inspect, 1);
+  rb_define_method(cls, "rb_obj_classname", so_rbobjclassname, 1);
+  rb_define_method(cls, "rb_class_of", so_rbclassof, 1);
 }
