@@ -58,16 +58,23 @@ namespace rubinius {
     return Float::create(state, this->val * Float::coerce(state, other)->val);
   }
 
-  Float* Float::divide(STATE, Float* other) {
+  Float* Float::div(STATE, Float* other) {
     return Float::create(state, this->val / other->val);
   }
 
-  Float* Float::divide(STATE, INTEGER other) {
+  Float* Float::div(STATE, INTEGER other) {
     return Float::create(state, this->val / Float::coerce(state, other)->val);
   }
 
   Float* Float::neg(STATE) {
     return Float::create(state, -this->val);
+  }
+
+  OBJECT Float::equal(STATE, Float* other) {
+    if(this->val == other->val) {
+      return Qtrue;
+    }
+    return Qfalse;
   }
 
   void Float::into_string(STATE, char* buf, size_t sz) {

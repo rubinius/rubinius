@@ -97,17 +97,17 @@ class TestFloat : public CxxTest::TestSuite {
     check_float(a, Float::create(state, ((double)FIXNUM_MAX + 10) * 0.2));
   }
 
-  void test_divide() {
+  void test_div() {
     Float* f = Float::create(state, 0.2);
-    Float* a = f->divide(state, Float::create(state, 0.4));
+    Float* a = f->div(state, Float::create(state, 0.4));
     check_float(a, Float::create(state, 0.5));
 
     f = Float::create(state, 0.2);
-    a = f->divide(state, Object::i2n(10));
+    a = f->div(state, Object::i2n(10));
     check_float(a, Float::create(state, 0.02));
 
     f = Float::create(state, 100000);
-    a = f->divide(state, Bignum::create(state, FIXNUM_MAX + 10));
+    a = f->div(state, Bignum::create(state, FIXNUM_MAX + 10));
     check_float(a, Float::create(state, 100000 / ((double)FIXNUM_MAX + 10)));
   }
 

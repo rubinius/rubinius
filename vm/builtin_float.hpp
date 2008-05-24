@@ -27,19 +27,28 @@ namespace rubinius {
     void into_string(STATE, char* buf, size_t sz);
     OBJECT compare(STATE, Float* other);
 
+    // Ruby.primitive! :float_add
     Float* add(STATE, Float* other);
+    // Ruby.primitive! :float_add
     Float* add(STATE, INTEGER other);
+
+    // Ruby.primitive! :float_sub
     Float* sub(STATE, Float* other);
+    // Ruby.primitive! :float_sub
     Float* sub(STATE, INTEGER other);
+
+    // Ruby.primitive! :float_mul
     Float* mul(STATE, Float* other);
+    // Ruby.primitive! :float_mul
     Float* mul(STATE, INTEGER other);
-    Float* divide(STATE, Float* other);
-    Float* divide(STATE, INTEGER other);
+
+    // Ruby.primitive! :float_div
     Float* div(STATE, Float* other);
+    // Ruby.primitive! :float_div
     Float* div(STATE, INTEGER other);
-    Float* mod(STATE, Float* other);
-    Float* mod(STATE, INTEGER other);
+
     Float* neg(STATE);
+    OBJECT equal(STATE, Float* other);
 
     static int radix()      { return FLT_RADIX; }
     static int rounds()     { return FLT_ROUNDS; }

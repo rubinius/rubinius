@@ -154,27 +154,39 @@ class TestFixnum : public CxxTest::TestSuite {
     check_float(res, Float::create(state, 18.2));
   }
 
-  void test_divide() {
+  void test_div() {
     FIXNUM one = as<Fixnum>(Object::i2n(4));
 
-    FIXNUM two = as<Fixnum>(one->divide(state, one));
+    FIXNUM two = as<Fixnum>(one->div(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 1);
   }
 
-  void test_divide_with_positive_arguments() {
-    TS_ASSERT_EQUALS(Object::i2n(3)->divide(state, Object::i2n(2)), Object::i2n(1));
+  void test_div_a_bignum() {
+    FIXNUM one = Object::i2n(13);
+    INTEGER res = one->div(state, Bignum::create(state, FIXNUM_MAX + 10));
+    TS_ASSERT_EQUALS(res->n2i(), 0);
   }
 
-  void test_divide_with_first_negative_argument() {
-    TS_ASSERT_EQUALS(Object::i2n(-3)->divide(state, Object::i2n(2)), Object::i2n(-2));
+  void test_div_a_float() {
+    FIXNUM one = Object::i2n(13);
+    Float* res = one->div(state, Float::create(state, 1.4));
+    check_float(res, Float::create(state, 9.28571428571));
   }
 
-  void test_divide_with_second_negative_argument() {
-    TS_ASSERT_EQUALS(Object::i2n(3)->divide(state, Object::i2n(-2)), Object::i2n(-2));
+  void test_div_with_positive_arguments() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->div(state, Object::i2n(2)), Object::i2n(1));
   }
 
-  void test_divide_with_negative_arguments() {
-    TS_ASSERT_EQUALS(Object::i2n(-3)->divide(state, Object::i2n(-2)), Object::i2n(1));
+  void test_div_with_first_negative_argument() {
+    TS_ASSERT_EQUALS(Object::i2n(-3)->div(state, Object::i2n(2)), Object::i2n(-2));
+  }
+
+  void test_div_with_second_negative_argument() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->div(state, Object::i2n(-2)), Object::i2n(-2));
+  }
+
+  void test_div_with_negative_arguments() {
+    TS_ASSERT_EQUALS(Object::i2n(-3)->div(state, Object::i2n(-2)), Object::i2n(1));
   }
 
   void test_mod() {

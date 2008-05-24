@@ -28,6 +28,7 @@ namespace rubinius {
       return other->add(state, this);
     }
 
+    // Ruby.primitive! :fixnum_sub
     INTEGER sub(STATE, FIXNUM other) {
       native_int r = n2i() - other->n2i();
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
@@ -37,14 +38,17 @@ namespace rubinius {
       }
     }
     
+    // Ruby.primitive! :fixnum_sub
     INTEGER sub(STATE, Bignum* other) {
       return as<Bignum>(other->neg(state))->add(state, this);
     }
 
+    // Ruby.primitive! :fixnum_sub
     Float* sub(STATE, Float* other) {
       return Float::coerce(state, this)->sub(state, other);
     }
 
+    // Ruby.primitive! :fixnum_mul
     INTEGER mul(STATE, FIXNUM other) {
       native_int a  = n2i();
       native_int b  = other->n2i();
@@ -76,15 +80,18 @@ namespace rubinius {
       return Object::i2n(state, n2i() * other->n2i());
     }
 
+    // Ruby.primitive! :fixnum_mul
     INTEGER mul(STATE, Bignum* other) {
       return other->mul(state, this);
     }
 
+    // Ruby.primitive! :fixnum_mul
     Float* mul(STATE, Float* other) {
       return other->mul(state, this);
     }
 
-    INTEGER divide(STATE, FIXNUM other) {
+    // Ruby.primitive! :fixnum_div
+    INTEGER div(STATE, FIXNUM other) {
       native_int numerator = n2i();
       native_int denominator = other->n2i();
       native_int quotient = numerator / denominator;
@@ -92,21 +99,38 @@ namespace rubinius {
       return Object::i2n(state, quotient);
     }
 
+    // Ruby.primitive! :fixnum_div
+    INTEGER div(STATE, Bignum* other) {
+      return Bignum::create(state, n2i())->div(state, other);
+    }
+
+    // Ruby.primitive! :fixnum_div
+    Float* div(STATE, Float* other) {
+      return Float::coerce(state, this)->div(state, other);
+    }
+
     INTEGER mod(STATE, FIXNUM other) {
       native_int numerator = n2i();
       native_int denominator = other->n2i();
-      native_int quotient = divide(state, other)->n2i();
+      native_int quotient = div(state, other)->n2i();
       return Object::i2n(state, numerator - denominator * quotient);
     }
 
     Array* divmod(STATE, FIXNUM other) {
       native_int numerator = n2i();
       native_int denominator = other->n2i();
-      native_int fraction = divide(state, other)->n2i();
+      native_int fraction = div(state, other)->n2i();
       Array* ary = Array::create(state, 2);
       ary->set(state, 0, Object::i2n(fraction));
       ary->set(state, 1, Object::i2n(numerator - denominator * fraction));
       return ary;
+    }
+
+    OBJECT equal(STATE, FIXNUM other) {
+      if(this->n2i() == other->n2i()) {
+        return Qtrue;
+      }
+      return Qfalse;
     }
 
     native_int to_nint() {

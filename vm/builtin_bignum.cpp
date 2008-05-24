@@ -294,6 +294,18 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
+  INTEGER Bignum::div(STATE, FIXNUM denominator) {
+    return divide(state, denominator, NULL);
+  }
+
+  INTEGER Bignum::div(STATE, Bignum* denominator) {
+    return divide(state, denominator, NULL);
+  }
+
+  Float* Bignum::div(STATE, Float* other) {
+    return Float::coerce(state, this)->div(state, other);
+  }
+
   Array* Bignum::divmod(STATE, FIXNUM denominator) {
     INTEGER mod = Object::i2n(0);
     INTEGER quotient = divide(state, denominator, &mod);
@@ -439,15 +451,24 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::equal(STATE, INTEGER b) {
-    if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
+  OBJECT Bignum::equal(STATE, FIXNUM b) {
+    native_int bi = b->n2i();
+    if(bi < 0) bi = -bi;
+    if(mp_cmp_d(MP(this), bi) == MP_EQ) {
+      return Qtrue;
     }
+    return Qfalse;
+  }
 
+  OBJECT Bignum::equal(STATE, Bignum* b) {
     if(mp_cmp(MP(this), MP(b)) == MP_EQ) {
       return Qtrue;
     }
     return Qfalse;
+  }
+
+  OBJECT Bignum::equal(STATE, Float* b) {
+    return Float::coerce(state, this)->equal(state, b);
   }
 
   FIXNUM Bignum::compare(STATE, INTEGER b) {

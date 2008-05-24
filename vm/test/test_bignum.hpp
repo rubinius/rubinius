@@ -139,6 +139,22 @@ class TestBignum : public CxxTest::TestSuite {
     check_float(a, Float::create(state, ((double)FIXNUM_MAX + 10) * 0.2));
   }
 
+  void test_div() {
+    INTEGER div = b1->div(state, b1);
+    TS_ASSERT(div->fixnum_p());
+    TS_ASSERT_EQUALS(div->n2i(), 1);
+  }
+
+  void test_div_with_fixnum() {
+    INTEGER div = b1->div(state, two);
+    check_bignum(div,"1073741823");
+  }
+
+  void test_div_with_float() {
+    Float* div = b1->div(state, Float::create(state, 1.5));
+    check_float(div, Float::create(state, 1431655764.6666667));
+  }
+
   void test_divmod() {
     Array* ary1 = b1->divmod(state, b1);
     Object* o1 = ary1->get(state, 0);

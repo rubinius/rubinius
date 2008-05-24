@@ -24,17 +24,37 @@ namespace rubinius {
     static OBJECT from_double(STATE, double d);
 
     void   debug(STATE);
+    // Ruby.primitive! :bignum_add
     INTEGER add(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_add
     INTEGER add(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_add
     Float*  add(STATE, Float* b);
+
+    // Ruby.primitive! :bignum_sub
     INTEGER sub(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_sub
     INTEGER sub(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_sub
     Float*  sub(STATE, Float* b);
+
+    // Ruby.primitive! :bignum_mul
     INTEGER mul(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_mul
     INTEGER mul(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_mul
     Float*  mul(STATE, Float* b);
-    INTEGER divide(STATE, FIXNUM b, INTEGER* r);
-    INTEGER divide(STATE, Bignum* b, INTEGER* r);
+
+    INTEGER divide(STATE, FIXNUM b, INTEGER* mod);
+    INTEGER divide(STATE, Bignum* b, INTEGER* mod);
+
+    // Ruby.primitive! :bignum_div
+    INTEGER div(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_div
+    INTEGER div(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_div
+    Float*  div(STATE, Float* b);
+
     Array* divmod(STATE, FIXNUM b);
     Array* divmod(STATE, Bignum* b);
     INTEGER mod(STATE, FIXNUM b);
@@ -47,7 +67,9 @@ namespace rubinius {
     INTEGER left_shift(STATE, INTEGER bits);
     INTEGER right_shift(STATE, INTEGER bits);
     FIXNUM compare(STATE, INTEGER b);
-    OBJECT equal(STATE, INTEGER b);
+    OBJECT equal(STATE, FIXNUM b);
+    OBJECT equal(STATE, Bignum* b);
+    OBJECT equal(STATE, Float* b);
     OBJECT gt(STATE, INTEGER b);
     OBJECT ge(STATE, INTEGER b);
     OBJECT lt(STATE, INTEGER b);
