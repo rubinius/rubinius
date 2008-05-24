@@ -14,3 +14,12 @@ fails:Iconv#iconv returns a blank string on invalid lower bounds
 fails:Iconv.iconv raises a TypeError when encoding names are not Strings or string-compatible
 fails:Iconv.iconv raises an Iconv::InvalidEncoding exception when an encoding cannot be found
 fails:Iconv.iconv acts exactly as if invoking Iconv#iconv consecutively on the same converter
+fails:Iconv#iconv when given the same source and target encodings still goes through all the decoding and encoding steps
+fails:Iconv#iconv raises Iconv::IllegalSequence when faced with an invalid byte for the source encoding
+fails:The 'us-ascii' decoder accepts only the strict 7-bit ASCII set
+fails:The 'us-ascii' encoder accepts only the strict 7-bit ASCII set
+fails:The 'utf-8' decoder accepts only strictly valid UTF-8 sequences
+fails:The 'utf-8' decoder rejects surrogate characters
+fails:The 'utf-16' decoder rejects surrogates without pairs
+fails:The 'utf-16' encoder emits an empty string when the source input is empty
+fails:The 'iso-8859-1' encoder rejects characters which are not in the ISO-8859-1 range

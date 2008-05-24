@@ -1,1 +1,5 @@
 fails:Object#to_yaml returns the YAML representation of a Symbol
+fails:Object#to_yaml returns the YAML representation of an Array object
+fails:Object#to_yaml returns the YAML representation of a Class object
+fails:Object#to_yaml returns the YAML representation of a Struct object
+fails:Object#to_yaml returns the YAML representation of a Symbol object

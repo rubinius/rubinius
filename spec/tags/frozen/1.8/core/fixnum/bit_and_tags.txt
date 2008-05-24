@@ -1,0 +1,1 @@
+fails:Fixnum#& doesn't raise an error if passed a Float out of Fixnum range
