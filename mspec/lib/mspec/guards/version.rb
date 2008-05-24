@@ -14,7 +14,7 @@ class VersionGuard < SpecGuard
 
   def to_v(str)
     major, minor, tiny, patch = str.split "."
-    "%02d%02d%02d%04d" % [major, minor, tiny, patch].map { |x| x.to_i }
+    ("1%02d%02d%02d%04d" % [major, minor, tiny, patch].map { |x| x.to_i }).to_i
   end
 
   def ruby_version
@@ -23,7 +23,7 @@ class VersionGuard < SpecGuard
 
   def match?
     case @version
-    when String
+    when Integer
       ruby_version >= @version
     when Range
       @version.include? ruby_version

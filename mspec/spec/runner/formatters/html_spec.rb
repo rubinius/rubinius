@@ -31,10 +31,12 @@ describe HtmlFormatter, "#start" do
   it "prints the HTML head" do
     @formatter.start
     @out.should ==
-%[<html>
+%[<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-<title>Spec Output For #{RUBY_NAME} (#{RUBY_VERSION})</title>
-<script type="text/css">
+<title>Spec Output For ruby (1.8.6)</title>
+<style type="text/css">
 ul {
   list-style: none;
 }
@@ -44,7 +46,10 @@ ul {
 .pass {
   color: green;
 }
-</script>
+#details :target {
+  background-color: #ffffe0;
+}
+</style>
 </head>
 <body>
 ]
@@ -105,7 +110,10 @@ describe HtmlFormatter, "#after" do
     @state.exceptions << ["msg", MSpecExampleError.new("painful")]
     @formatter.tally.after @state
     @formatter.after @state
-    @out.should == %[<li class="fail">- it (FAILED - 1)</li>\n<li class="fail">- it (ERROR - 2)</li>\n]
+    @out.should == 
+%[<li class="fail">- it (<a href="#details-1">FAILED - 1</a>)</li>
+<li class="fail">- it (<a href="#details-2">ERROR - 2</a>)</li>
+]
   end
 end
 
@@ -121,6 +129,8 @@ describe HtmlFormatter, "#finish" do
     MSpec.stub!(:register)
     @formatter = HtmlFormatter.new
     @formatter.register
+    @exception = MSpecExampleError.new("broken")
+    @exception.stub!(:backtrace).and_return(["file.rb:1", "file.rb:2"])
   end
 
   after :each do
@@ -128,7 +138,7 @@ describe HtmlFormatter, "#finish" do
   end
 
   it "prints a failure message for an exception" do
-    @state.exceptions << ["msg", MSpecExampleError.new("broken")]
+    @state.exceptions << ["msg", @exception]
     @formatter.instance_variable_set :@states, [@state]
     @formatter.finish
     @out.should =~ %r[<p>describe it ERROR</p>]
@@ -136,7 +146,7 @@ describe HtmlFormatter, "#finish" do
 
   it "prints a backtrace for an exception" do
     @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
-    @state.exceptions << ["msg", MSpecExampleError.new("broken")]
+    @state.exceptions << ["msg", @exception]
     @formatter.instance_variable_set :@states, [@state]
     @formatter.finish
     @out.should =~ %r[<pre>.*path/to/some/file.rb:35:in method.*</pre>]m
@@ -155,15 +165,16 @@ describe HtmlFormatter, "#finish" do
   end
 
   it "prints errors, backtraces, elapsed time, and tallies" do
-    @state.exceptions << ["msg", MSpecExampleError.new("broken")]
+    @state.exceptions << ["msg", @exception]
     @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
     @timer.should_receive(:format).and_return("Finished in 2.0 seconds")
     @tally.should_receive(:format).and_return("1 example, 1 failures")
     @formatter.instance_variable_set :@states, [@state]
     @formatter.finish
     @out.should ==
-%[<ol>
-<li><p>describe it ERROR</p>
+%[<hr>
+<ol id="details">
+<li id="details-1"><p>describe it ERROR</p>
 <p>MSpecExampleError: broken</p>
 <pre>
 path/to/some/file.rb:35:in method</pre>

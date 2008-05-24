@@ -10,7 +10,7 @@ class BugGuard < VersionGuard
     major, minor, tiny, patch = str.split "."
     tiny = 99 unless tiny
     patch = 9999 unless patch
-    "%02d%02d%02d%04d" % [major, minor, tiny, patch].map { |x| x.to_i }
+    ("1%02d%02d%02d%04d" % [major, minor, tiny, patch].map { |x| x.to_i }).to_i
   end
 
   def match?

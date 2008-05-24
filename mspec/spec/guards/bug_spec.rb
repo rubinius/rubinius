@@ -7,13 +7,13 @@ describe BugGuard, "#to_v" do
   end
 
   it "returns a version string containing only digits" do
-    @guard.to_v("1.8.6.22").should == "0108060022"
+    @guard.to_v("1.8.6.22").should == 10108060022
   end
 
   it "replaces missing version parts with zeros" do
-    @guard.to_v("1.8").should == "0108999999"
-    @guard.to_v("1.8.6").should == "0108069999"
-    @guard.to_v("1.8.7.333").should == "0108070333"
+    @guard.to_v("1.8").should == 10108999999
+    @guard.to_v("1.8.6").should == 10108069999
+    @guard.to_v("1.8.7.333").should == 10108070333
   end
 end
 
