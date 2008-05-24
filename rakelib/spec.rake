@@ -1,9 +1,5 @@
 # -*- ruby -*-
 
-def spec_frozen
-  "#{RUBINIUS_BASE}/spec/frozen"
-end
-
 def spec_ruby
   "#{RUBINIUS_BASE}/spec/ruby"
 end
@@ -67,6 +63,9 @@ namespace :spec do
     end
 
     rsync dir + "/*", "spec/frozen"
+
+    version = Dir.chdir(ENV['DIR']) { `git log --pretty=oneline -1`[0..7] }
+    sh "git commit -m 'Updated RubySpec submodule to #{version}.' spec/frozen"
   end
 
   desc "Switch to the rubyspec commiter URL"
