@@ -44,6 +44,14 @@ describe "A class definition" do
     }.should raise_error(TypeError)
   end
   
+  it "allows using self as the superclass iff self is a class" do
+    ClassSpecs::I::J.superclass.should == ClassSpecs::I
+    
+    lambda {
+      class ShouldNotWork < self; end
+    }.should raise_error(TypeError)
+  end
+  
 #  # I do not think this is a valid spec   -- rue
 #  it "has no class-level instance variables" do
 #    ClassSpecs::A.instance_variables.should == []

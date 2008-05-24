@@ -63,12 +63,24 @@ shared :hash_iteration_no_block do |cmd|
       @empty = {}
     end
     
-    it "raises a LocalJumpError when called on a non-empty hash without a block" do
-      lambda { @hsh.send(cmd) }.should raise_error(LocalJumpError)
+    ruby_version_is "" ... "1.8.7" do
+      it "raises a LocalJumpError when called on a non-empty hash without a block" do
+        lambda { @hsh.send(cmd) }.should raise_error(LocalJumpError)
+      end
+
+      it "does not raise a LocalJumpError when called on an empty hash without a block" do
+        @empty.send(cmd).should == @empty
+      end
     end
-    
-    it "does not raise a LocalJumpError when called on an empty hash without a block" do
-      @empty.send(cmd).should == @empty
+
+    ruby_version_is "1.8.7" do
+      it "returns an Enumerator if called on a non-empty hash without a block" do
+        @hsh.send(cmd).should be_kind_of(Enumerable::Enumerator)
+      end
+
+      it "returns an Enumerator if called on an empty hash without a block" do
+        @empty.send(cmd).should be_kind_of(Enumerable::Enumerator)
+      end
     end
   end
 end

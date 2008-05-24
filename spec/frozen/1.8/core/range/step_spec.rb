@@ -38,7 +38,7 @@ describe "Range#step" do
 
   it "raises TypeError if the argument is non-numeric" do
     obj = mock("mock")
-    lambda { (1..10).step(obj) }.should raise_error(TypeError)
+    lambda { (1..10).step(obj) {} }.should raise_error(TypeError)
   end
 
   it "coerces the argument to intger by invoking to_int" do

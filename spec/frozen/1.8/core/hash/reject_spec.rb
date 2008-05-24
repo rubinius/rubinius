@@ -78,12 +78,24 @@ describe "Hash#reject!" do
     end
   end
 
-  it "raises a LocalJumpError when called on a non-empty hash without a block" do
-    lambda { @hsh.reject! }.should raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.8.7" do
+    it "raises a LocalJumpError when called on a non-empty hash without a block" do
+      lambda { @hsh.reject! }.should raise_error(LocalJumpError)
+    end
+
+    it "does not raise a LocalJumpError when called on an empty hash without a block" do
+      @empty.reject!.should == nil
+    end
   end
 
-  it "does not raise a LocalJumpError when called on an empty hash without a block" do
-    @empty.reject!.should == nil
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator when called on a non-empty hash without a block" do
+      @hsh.reject!.should be_kind_of(Enumerable::Enumerator)
+    end
+
+    it "returns an Enumerator when called on an empty hash without a block" do
+      @empty.reject!.should be_kind_of(Enumerable::Enumerator)
+    end
   end
 
   it_behaves_like(:hash_iteration_method, :reject!)

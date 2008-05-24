@@ -5,23 +5,20 @@ describe "Hash.[]" do
   it "creates a Hash; values can be provided as the argument list" do
     Hash[:a, 1, :b, 2].should == {:a => 1, :b => 2}
     Hash[].should == {}
+    Hash[:a, 1, :b, {:c => 2}].should == {:a => 1, :b => {:c => 2}}
   end
 
   it "creates a Hash; values can be provided as one single hash" do
-    Hash[:a => 1, :b => 2].should == {:a => 1, :b => 2} 
+    Hash[:a => 1, :b => 2].should == {:a => 1, :b => 2}
     Hash[{1 => 2, 3 => 4}].should == {1 => 2, 3 => 4}
     Hash[{}].should == {}
   end
 
   it "raises an ArgumentError when passed an odd number of arguments" do
     lambda { Hash[1, 2, 3] }.should raise_error(ArgumentError)
-  end
- 
-  it "raises an ArgumentError when mixing argument styles" do
     lambda { Hash[1, 2, {3 => 4}] }.should raise_error(ArgumentError)
-    Hash[1, 2, 3, {3 => 4}].should == {1 => 2, 3 => {3 => 4}}
   end
-  
+
   it "does not call to_hash" do
     obj = mock('x')
     def obj.to_hash() { 1 => 2, 3 => 4 } end
@@ -45,15 +42,16 @@ describe "Hash#[]" do
     h[[]].should == "baz"
   end
 
+  it "returns nil as default default value" do
+    { 0 => 0 }[5].should == nil
+  end
+
   it "returns the default (immediate) value for missing keys" do
     h = Hash.new(5)
     h[:a].should == 5
     h[:a] = 0
     h[:a].should == 0
     h[:b].should == 5
-
-    # The default default is nil
-    { 0 => 0 }[5].should == nil
   end
 
   it "calls subclass implementations of default" do
@@ -121,7 +119,7 @@ describe "Hash#[]" do
     def y.hash() 1 end
 
     { y => 1 }[x].should == nil
-  end    
+  end
 
   it "compares key with found hash code via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
@@ -145,5 +143,5 @@ describe "Hash#[]" do
 
     { y => 1 }[x].should == 1
     x.tainted?.should == true
-  end  
+  end
 end

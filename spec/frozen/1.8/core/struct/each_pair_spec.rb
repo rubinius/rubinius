@@ -9,8 +9,17 @@ describe "Struct#each_pair" do
     end
   end
 
-  it "fails if not passed a block" do
-    car = Struct::Car.new('Ford', 'Ranger')
-    lambda { car.each_pair }.should raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.8.7" do
+    it "fails if not passed a block" do
+      car = Struct::Car.new('Ford', 'Ranger')
+      lambda { car.each_pair }.should raise_error(LocalJumpError)
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator if not passed a block" do
+      car = Struct::Car.new('Ford', 'Ranger')
+      car.each_pair.should be_kind_of(Enumerable::Enumerator)
+    end
   end
 end

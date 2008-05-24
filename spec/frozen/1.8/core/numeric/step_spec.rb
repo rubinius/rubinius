@@ -7,27 +7,45 @@ describe "Numeric#step with [stop, step]" do
   end
   
   it "raises an ArgumentError when step is 0" do
-    lambda { @obj.step(5, 0) }.should raise_error(ArgumentError)
+    lambda { @obj.step(5, 0) {} }.should raise_error(ArgumentError)
   end
   
-  it "raises no LocalJumpError when passed no block and self > stop" do
-    @stop = mock("Stop value")
-    @step = mock("Step value")
-    @step.should_receive(:>).with(0).and_return(true)
-    
-    @obj.should_receive(:>).with(@stop).and_return(true)
-    
-    lambda { @obj.step(@stop, @step) }.should_not raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.8.7" do
+    it "raises no LocalJumpError when passed no block and self > stop" do
+      @stop = mock("Stop value")
+      @step = mock("Step value")
+      @step.should_receive(:>).with(0).and_return(true)
+      
+      @obj.should_receive(:>).with(@stop).and_return(true)
+      
+      lambda { @obj.step(@stop, @step) }.should_not raise_error(LocalJumpError)
+    end
+
+    it "raises a LocalJumpError when passed no block and self < stop" do
+      @stop = mock("Stop value")
+      @step = mock("Step value")
+      @step.should_receive(:>).with(0).and_return(true)
+      
+      @obj.should_receive(:>).with(@stop).and_return(false)
+      
+      lambda { @obj.step(@stop, @step) }.should raise_error(LocalJumpError)
+    end
   end
 
-  it "raises a LocalJumpError when passed no block and self < stop" do
-    @stop = mock("Stop value")
-    @step = mock("Step value")
-    @step.should_receive(:>).with(0).and_return(true)
-    
-    @obj.should_receive(:>).with(@stop).and_return(false)
-    
-    lambda { @obj.step(@stop, @step) }.should raise_error(LocalJumpError)
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator when passed no block and self > stop" do
+      @stop = mock("Stop value")
+      @step = mock("Step value")
+      
+      @obj.step(@stop, @step).should be_kind_of(Enumerable::Enumerator)
+    end
+
+    it "returns an Enumerator when passed no block and self < stop" do
+      @stop = mock("Stop value")
+      @step = mock("Step value")
+      
+      @obj.step(@stop, @step).should be_kind_of(Enumerable::Enumerator)
+    end
   end
   
   it "increments self (using #+) until self > stop when step > 0" do
@@ -66,7 +84,7 @@ end
 
 describe "Numeric#step with [stop, step] when self, stop and step are Fixnums" do
   it "raises an ArgumentError when step is 0" do
-    lambda { 1.step(5, 0) }.should raise_error(ArgumentError)
+    lambda { 1.step(5, 0) {} }.should raise_error(ArgumentError)
   end
 
   it "yields only Fixnums" do
@@ -122,7 +140,7 @@ end
 
 describe "Numeric#step with [stop, step] when self, stop or step is a Float" do
   it "raises an ArgumentError when step is 0" do
-    lambda { 1.1.step(2, 0.0) }.should raise_error(ArgumentError)
+    lambda { 1.1.step(2, 0.0) {} }.should raise_error(ArgumentError)
   end
   
   it "yields only Floats" do

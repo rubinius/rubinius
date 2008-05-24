@@ -50,3 +50,18 @@ describe "The retry statement" do
     end
   end
 end
+
+describe "The retry keyword inside a begin block's rescue block" do
+  it "causes the begin block to be executed again" do
+    counter = 0
+    
+    begin
+      counter += 1
+      raise "An exception"
+    rescue
+      retry unless counter == 7
+    end
+    
+    counter.should == 7
+  end
+end

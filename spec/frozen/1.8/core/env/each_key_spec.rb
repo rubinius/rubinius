@@ -17,8 +17,16 @@ describe "ENV#each_key" do
     end
   end
 
-  it "raises LocalJumpError if no block given" do
-    lambda { ENV.each_key }.should raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.8.7" do
+    it "raises LocalJumpError if no block given" do
+      lambda { ENV.each_key }.should raise_error(LocalJumpError)
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator if called without a block" do
+      ENV.each_key.should be_kind_of(Enumerable::Enumerator)
+    end
   end
 
 end

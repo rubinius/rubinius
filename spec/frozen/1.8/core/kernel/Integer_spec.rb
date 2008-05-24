@@ -5,6 +5,8 @@ describe "Kernel.Integer when given a String" do
   it "does not call #to_i on the given String" do
     (obj = "2").should_not_receive(:to_i)
     Integer(obj).should == 2
+    (obj = "0").should_not_receive(:to_i)
+    Integer(obj).should == 0
   end
   
   it "ignores whitespaces" do

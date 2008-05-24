@@ -11,5 +11,21 @@ describe "Dir#path" do
 end
 
 describe "Dir#path" do
-  it_behaves_like :dir_closed, :path
+  ruby_version_is ""..."1.8.7" do
+    it "raises an IOError when called on a closed Dir instance" do
+      lambda {
+        dir = Dir.open DirSpecs.mock_dir
+        dir.close
+        dir.path
+      }.should raise_error(IOError)
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "returns the path even when called on a closed Dir instance" do
+      dir = Dir.open DirSpecs.mock_dir
+      dir.close
+      dir.path.should == "/tmp/mock"
+    end
+  end
 end

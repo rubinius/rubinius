@@ -4,7 +4,7 @@ shared :dir_closed do |cmd|
       lambda {
         dir = Dir.open DirSpecs.mock_dir
         dir.close
-        dir.send cmd
+        dir.send(cmd) {}
       }.should raise_error(IOError)
     end
   end

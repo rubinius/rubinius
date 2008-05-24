@@ -12,14 +12,20 @@ describe "Fixnum#&" do
     (-1 & 2**64).should == 18446744073709551616
   end
   
-  it "raises a RangeError if passed a Float out of Fixnum range" do
-    lambda { 1 & bignum_value(10000).to_f }.should raise_error(RangeError)
-    lambda { 1 & -bignum_value(10000).to_f }.should raise_error(RangeError)
+  ruby_version_is "" ... "1.9" do
+    ruby_bug "#", "1.8.6" do
+      it "doesn't raise an error if passed a Float out of Fixnum range" do
+        lambda { 1 & bignum_value(10000).to_f }.should_not raise_error()
+        lambda { 1 & -bignum_value(10000).to_f }.should_not raise_error()
+      end
+    end
+
+    it "converts a Float to an Integer" do
+      (3 & 2.4).should == 2
+    end
   end
-  
-  it "tries to convert it's argument to an Integer using to_int" do
-    (3 & 2.4).should == 2
-    
+
+  it "tries to convert it's int like argument to an Integer using to_int" do
     (obj = mock('2')).should_receive(:to_int).and_return(2)
     (3 & obj).should == 2
   end

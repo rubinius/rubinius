@@ -20,8 +20,16 @@ describe "ENV#reject!" do
     ENV["foo"].should == nil
   end
 
-  it "raises on no block given" do
-    lambda { ENV.reject! }.should raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.8.7" do
+    it "raises on no block given" do
+      lambda { ENV.reject! }.should raise_error(LocalJumpError)
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator if called without a block" do
+      ENV.reject!.should be_kind_of(Enumerable::Enumerator)
+    end
   end
 
   it "doesn't raise if empty" do
@@ -56,8 +64,16 @@ describe "ENV#reject" do
     ENV.reject { false }.class.should == Hash
   end
 
-  it "raises on no block given" do
-    lambda { ENV.reject }.should raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.8.7" do
+    it "raises on no block given" do
+      lambda { ENV.reject }.should raise_error(LocalJumpError)
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator if called without a block" do
+      ENV.reject.should be_kind_of(Enumerable::Enumerator)
+    end
   end
 
   it "doesn't raise if empty" do

@@ -89,10 +89,10 @@ shared :string_each do |cmd|
     end
     
     it "raises a TypeError when the separator can't be converted to a string" do
-      lambda { "hello world".send(cmd, false)     }.should raise_error(TypeError)
-      lambda { "hello world".send(cmd, ?o)        }.should raise_error(TypeError)
-      lambda { "hello world".send(cmd, :o)        }.should raise_error(TypeError)
-      lambda { "hello world".send(cmd, mock('x')) }.should raise_error(TypeError)
+      lambda { "hello world".send(cmd, false) {}     }.should raise_error(TypeError)
+      lambda { "hello world".send(cmd, ?o) {}        }.should raise_error(TypeError)
+      lambda { "hello world".send(cmd, :o) {}        }.should raise_error(TypeError)
+      lambda { "hello world".send(cmd, mock('x')) {} }.should raise_error(TypeError)
     end
   end
 end

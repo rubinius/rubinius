@@ -55,7 +55,7 @@ describe "Rational#<=> when passed [Float]" do
 end
 
 describe "Rational#<=> when passed an Object that responds to #coerce" do
-  it "should call #coerce on the passed argument with self" do
+  it "calls #coerce on the passed argument with self" do
     rational = Rational(3, 4)
         
     obj = mock("Object")
@@ -64,7 +64,7 @@ describe "Rational#<=> when passed an Object that responds to #coerce" do
     rational <=> obj
   end
   
-  it "should call #<=> on the coerced Rational with the coerced Object" do
+  it "calls #<=> on the coerced Rational with the coerced Object" do
     rational = Rational(3, 4)
 
     coerced_rational = mock("Coerced Rational")

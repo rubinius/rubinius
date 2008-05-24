@@ -21,4 +21,9 @@ describe "YAML.load" do
     YAML.load("--- \nstring").should == "string"
     YAML.load("--- \"string\"").should == "string"
   end
+
+  it "returns false on empty strings or all comments" do
+    YAML.load("").should == false
+    YAML.load("# nothing\n# still nothing").should == false
+  end
 end

@@ -69,4 +69,9 @@ module ClassSpecs
   end
   
   class K < H; end
+  
+  class I
+    class J < self 
+    end
+  end
 end

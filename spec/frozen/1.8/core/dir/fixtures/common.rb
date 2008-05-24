@@ -16,7 +16,7 @@ module DirSpecs
   end
 
   def DirSpecs.clear_dirs
-    ['nonexisting', 'default_perms','reduced', 'always_returns_0'].each do |dir|
+    ['nonexisting', 'default_perms','reduced', 'always_returns_0', '???'].each do |dir|
       begin
         Dir.rmdir dir
       rescue

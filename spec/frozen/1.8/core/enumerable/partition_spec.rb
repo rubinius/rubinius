@@ -6,7 +6,15 @@ describe "Enumerable#partition" do
     EnumerableSpecs::Numerous.new.partition { |i| i % 2 == 0 }.should == [[2, 6, 4], [5, 3, 1]]
   end
   
-  it "throws LocalJumpError if called without a block" do
-    lambda { EnumerableSpecs::Numerous.new.partition }.should raise_error(LocalJumpError)
+  ruby_version_is "" ... "1.8.7" do
+    it "throws LocalJumpError if called without a block" do
+      lambda { EnumerableSpecs::Numerous.new.partition }.should raise_error(LocalJumpError)
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator if called without a block" do
+      EnumerableSpecs::Numerous.new.partition.should be_kind_of(Enumerable::Enumerator)
+    end
   end
 end
