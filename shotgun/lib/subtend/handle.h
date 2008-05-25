@@ -9,6 +9,7 @@ typedef struct rni_handle rni_handle;
 
 struct rni_ht_entry {
   int handle_id;
+  rni_handle *rh;
   OBJECT object;
 };
 
@@ -41,4 +42,5 @@ void handle_delete(rni_handle *h);
 OBJECT handle_to_object(STATE, rni_handle_table *tbl, rni_handle *h);
 void handle_make_global(rni_handle *h);
 void handle_clear_global(rni_handle *h);
+void check_rstruct_data_in_handles(STATE, rni_handle_table *tbl);
 

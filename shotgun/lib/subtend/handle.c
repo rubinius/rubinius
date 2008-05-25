@@ -1,4 +1,13 @@
 #include "shotgun/lib/shotgun.h"
+#include "shotgun/lib/string.h"
+
+/* Copied from ruby.h to avoid including it here. */
+struct RString {
+  char *ptr;
+  int len;
+};
+
+typedef struct RString RString;
 
 rni_handle_table *handle_table_new() {
   rni_handle_table *tbl;
@@ -18,6 +27,7 @@ rni_handle *handle_allocate() {
   h->flags = 0;
   h->handle_id = 0;
   h->table_idx = 0;
+  h->data = 0;
   
   return h;
 }
@@ -35,6 +45,7 @@ rni_handle *handle_new(rni_handle_table *tbl, OBJECT obj) {
   e = ALLOC(rni_ht_entry);
   e->handle_id = h->handle_id;
   e->object = obj;
+  e->rh = h;
   
   /* Put the entry in the table. */
   tbl->entries[h->table_idx] = e;
@@ -109,6 +120,38 @@ rni_handle *handle_detached_array(rni_handle_table *tbl, int len) {
 
 */
 
+/* Check if the handle has RStruct data in it. 
+   If it does we have to copy RStruct data back to the object. */
+void check_rstruct_data(STATE, rni_handle *h, OBJECT o) {
+  if(!h->data) {
+    return;
+  }
+  if (STRING_P(o)) {
+    RString *rs = (RString *)h->data;
+    string_cstr_overwrite(state, o, rs->ptr, rs->len);
+    XFREE(rs);
+    h->data = 0;
+  } else if (ARRAY_P(o)) {
+    //TODO: overwrite array in object
+  }
+}
+
+/* Check all created handles looking for RStruct data on them. */
+void check_rstruct_data_in_handles(STATE, rni_handle_table *tbl) {
+  rni_ht_entry *e;
+  rni_handle *h;
+  int i;
+
+  for(i = 0; i < tbl->total; ++i) {
+    e = tbl->entries[i];
+    if(!e) {
+      continue;
+    }
+    h = e->rh;
+    check_rstruct_data(state, h, e->object);
+  }
+}
+
 OBJECT handle_to_object(STATE, rni_handle_table *tbl, rni_handle *h) {
   rni_ht_entry *e;
   
@@ -141,6 +184,8 @@ OBJECT handle_to_object(STATE, rni_handle_table *tbl, rni_handle *h) {
     return Qnil;
   }
   
+  check_rstruct_data(state, h, e->object);
+
   return e->object;
 }
 

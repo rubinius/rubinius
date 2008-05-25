@@ -195,6 +195,15 @@ void rb_string_value(VALUE *obj);
 /* HACK ? */
 #define STR2CSTR StringValuePtr
 
+struct RString {
+  char *ptr;
+  int len;
+};
+
+typedef struct RString RString;
+
+RString* RSTRING(VALUE obj);
+
 VALUE rb_inspect(VALUE obj);
 
 /* Hash */

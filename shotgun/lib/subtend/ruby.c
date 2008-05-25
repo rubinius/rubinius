@@ -620,6 +620,20 @@ void rb_string_value(VALUE *val) {
   *val = rb_obj_as_string(*val);
 }
 
+RString* RSTRING(VALUE arg) {
+  RString *ret;
+  CTX;
+
+  ret = (RString *)AS_HNDL(arg)->data;
+  if(!ret) {
+    ret = ALLOC(RString);
+    ret->ptr = rbx_string_as_cstr(ctx->state, HNDL(arg));
+    ret->len = strlen(ret->ptr);
+    AS_HNDL(arg)->data = (void *)ret;
+  }
+  return ret;
+}
+
 VALUE rb_inspect(VALUE obj) {
   return rb_funcall(obj, rb_intern("inspect"), 0, 0);
 }

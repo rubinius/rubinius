@@ -77,4 +77,28 @@ describe "SubtendString" do
     end
   end
 
+  it "RSTRING(str)->ptr should return the string on the object" do
+    @s.rb_rstring_see("foo").should == "foo"
+  end
+
+  it "Changing RSTRING(str)->ptr should change the string" do
+    t = "a"
+    @s.rb_rstring_assign_foo(t)
+    t.should == "foo"
+    $global_rstring_test = "b"
+    @s.rb_rstring_assign_global_foobar()
+    $global_rstring_test.should == "foobar"
+  end
+
+  it "Reducing RSTRING(str)->len should cut the string" do
+    t = "12345"
+    @s.rb_rstring_set_len(t, 3)
+    t.should == "123"
+  end
+
+  it "Changing RSTRING(str)->ptr and calling upcase! should change the string and upcase it" do
+    t = ""
+    @s.rb_rstring_assign_foo_and_upcase(t)
+    t.should == "FOO"
+  end
 end

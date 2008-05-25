@@ -253,7 +253,9 @@ void _nmc_start() {
       abort();
     }
   }
-  
+
+  check_rstruct_data_in_handles(state, global_context->state->handle_tbl);
+
   /*
   if(args) XFREE(args);
   if(va) XFREE(va);

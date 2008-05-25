@@ -184,6 +184,31 @@ double string_to_double(STATE, OBJECT self) {
   return value;
 }
 
+OBJECT string_cstr_overwrite(STATE, OBJECT self, char *str, int len) {
+  OBJECT nd, cur;
+  int tmp;
+  char *ba;
+
+  xassert(STRING_P(self));
+  string_unshare(state, self);
+
+  cur = string_get_data(self);
+  tmp = bytearray_bytes(state, cur);
+  if(len+1 > tmp) {
+    int extra = len * 0.01;
+    if(extra < 10) extra = 10;
+    nd = bytearray_new_dirty(state, len + extra);
+    ba = bytearray_byte_address(state, nd);
+    string_set_data(self, nd);
+  } else {
+    ba = bytearray_byte_address(state, cur);
+  }
+  memcpy(ba, str, len);
+  ba[len] = 0;
+  string_set_bytes(self, I2N(len));
+  return self;
+}
+
 static OBJECT tr_replace(STATE, OBJECT string, int bytes, unsigned char *str,
                          unsigned char *data, int size, int steps) {
   if(size > bytes || RTEST(string_get_shared(string))) {
