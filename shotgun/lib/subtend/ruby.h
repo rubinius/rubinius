@@ -203,6 +203,8 @@ struct RString {
 typedef struct RString RString;
 
 RString* RSTRING(VALUE obj);
+#define RSTRING_PTR(s) (RSTRING(s)->ptr)
+#define RSTRING_LEN(s) (RSTRING(s)->len)
 
 VALUE rb_inspect(VALUE obj);
 
