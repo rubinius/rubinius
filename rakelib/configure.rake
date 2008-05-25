@@ -27,7 +27,6 @@ task :config_env => %W[rakelib/configure.rake] do
   HOST                = `./shotgun/config.guess`.chomp
   BUILDREV            = `git rev-list --all | head -n1`.chomp
   CC                  = ENV['CC'] || 'gcc'
-  LIBTOOL             = libtool
   BINPATH             = "#{PREFIX}/bin"
   LIBPATH             = "#{PREFIX}/lib"
   CODEPATH            = "#{PREFIX}/lib/rubinius/#{LIBVER}"
@@ -58,7 +57,6 @@ def write_config
       f.puts "LIBVER          = #{LIBVER}"
       f.puts "VERSION         = #{RBX_VERSION}"
       f.puts "HOST            = #{HOST}"
-      f.puts "LIBTOOL         = #{LIBTOOL}"
       f.puts "DARWIN          = #{DARWIN}"
       f.puts "DISABLE_KQUEUE  = #{DISABLE_KQUEUE}"
       f.puts "BINPATH         = #{BINPATH}"

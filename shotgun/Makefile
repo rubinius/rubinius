@@ -1,7 +1,7 @@
 -include config.mk
 include common.mk
 
-INSTALL=$(LIBTOOL) --mode=install install
+INSTALL=install
 MKDIR=install -d
 
 ifdef DEV

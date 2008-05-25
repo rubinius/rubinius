@@ -106,16 +106,6 @@ been tested.
 
 See http://42squared.com/posts/how_to_install_rubinius_on_mac_os_x
 
-If you are getting an error like this one:
-
-  glibtool: link: cannot build libtool library `librubinius.la' from non-libtool objects: ...
-
-This is probably because you are using an old glibtool (1.3.5 or similar) that
-came with Fink.  This is the case when `which glibtool` returns
-/sw/bin/glibtool. You want to use /usr/bin/glibtool (1.5) instead.  If you are
-radical you can just `sudo rm /sw/bin/glibtool` to fix this mess.
-
-
 === Ubuntu
 
 For the build to succeed you will need these packages:
