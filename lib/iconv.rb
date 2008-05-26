@@ -9,6 +9,42 @@ class Iconv
   attach_function "iconv_close", :close, [:pointer],         :int
   attach_function "iconv", :convert, [:pointer, :pointer, :pointer, :pointer, :pointer], :long
 
+  module Failure
+
+    attr_reader :success
+    attr_reader :failed
+  
+    def initialize(mesg, success, failed)
+      super(mesg)
+      @success = success
+      @failed = failed
+    end
+
+    def inspect()
+      "<##{self.class}: #{success.inspect}, #{failed.inspect}>"
+    end
+  end
+
+  class BrokenLibrary < RuntimeError
+    include Failure
+  end
+
+  class IllegalSequence < ArgumentError
+    include Failure
+  end
+
+  class InvalidCharacter < ArgumentError
+    include Failure
+  end
+
+  class InvalidEncoding < ArgumentError
+    include Failure
+  end
+
+  class OutOfRange < RuntimeError
+    include Failure
+  end
+
   def initialize(to, from)
     @to, @from = to, from
     @handle = Iconv.create to, from
@@ -34,13 +70,33 @@ class Iconv
   end
 
   def self.iconv(to, from, *rest)
+    
+    converted = []
+
     open(to, from) do |cd|
-      rest.map { |s| cd.iconv(s) }
+      while x = rest.shift
+        begin
+          converted << cd.iconv(x)
+        rescue Failure => e
+          converted << e.success
+          raise e.class.new(nil, converted, rest.unshift(e.failed))
+        end
+      end
     end
+    
+    converted
+
+    #open(to, from) do |cd|
+    #  rest.map { |s| cd.iconv(s) }
+    #end
   end
 
   def self.conv(to, from, str)
-    iconv(to, from, str).join
+    begin
+      iconv(to, from, str).join
+    rescue Failure => e
+      raise e.class.new(nil, e.success.join, e.failed)
+    end
   end
 
   def iconv(str)
@@ -63,7 +119,23 @@ class Iconv
     l2.write_long os.address
 
     count = Iconv.convert @handle, l1, ic, l2, oc
-    Errno.handle if count == -1
+    if count == -1 then
+      success = os.read_string(l2.read_int - os.address)
+      failed = (is + (l1.read_int - is.address)).read_string(ic.read_long)
+      begin
+        Errno.handle if count == -1
+      rescue Errno::EILSEQ => e
+        raise IllegalSequence.new(nil, success, failed)
+      rescue Errno::E2BIG => e
+        # TODO
+      rescue Errno::EINVAL => e
+        raise InvalidCharacter.new(nil, success, failed)
+      rescue RuntimeError => e
+        raise BrokenLibrary.new(nil, success, failed)
+      end
+    elsif ic.read_long > 0 then
+      raise IllegalSequence.new(nil, success, failed)
+    end
 
     size = l2.read_int - os.address
     output = os.read_string(size)
@@ -72,6 +144,8 @@ class Iconv
 
     return output
   end
+
+
 end
 
 =begin
