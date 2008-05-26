@@ -4,10 +4,16 @@
 /* Copied from ruby.h to avoid including it here. */
 struct RString {
   char *ptr;
-  int len;
+  long len;
 };
-
 typedef struct RString RString;
+
+typedef void* VALUE;
+struct RArray {
+  VALUE *ptr;
+  long len;
+};
+typedef struct RArray RArray;
 
 rni_handle_table *handle_table_new() {
   rni_handle_table *tbl;
@@ -122,7 +128,7 @@ rni_handle *handle_detached_array(rni_handle_table *tbl, int len) {
 
 /* Check if the handle has RStruct data in it. 
    If it does we have to copy RStruct data back to the object. */
-void check_rstruct_data(STATE, rni_handle *h, OBJECT o) {
+void check_rstruct_data(STATE, rni_handle_table *tbl, rni_handle *h, OBJECT o) {
   if(!h->data) {
     return;
   }
@@ -132,7 +138,15 @@ void check_rstruct_data(STATE, rni_handle *h, OBJECT o) {
     XFREE(rs);
     h->data = 0;
   } else if (ARRAY_P(o)) {
-    //TODO: overwrite array in object
+    RArray *ra = (RArray *)h->data;
+    int i;
+    for(i = 0; i < ra->len; ++i) {
+      array_set(state, o, i, handle_to_object(state, tbl, ra->ptr[i]));
+    }
+    array_set_total(o, I2N(ra->len));
+    XFREE(ra->ptr);
+    XFREE(ra);
+    h->data = 0;
   }
 }
 
@@ -148,7 +162,7 @@ void check_rstruct_data_in_handles(STATE, rni_handle_table *tbl) {
       continue;
     }
     h = e->rh;
-    check_rstruct_data(state, h, e->object);
+    check_rstruct_data(state, tbl, h, e->object);
   }
 }
 
@@ -184,7 +198,7 @@ OBJECT handle_to_object(STATE, rni_handle_table *tbl, rni_handle *h) {
     return Qnil;
   }
   
-  check_rstruct_data(state, h, e->object);
+  check_rstruct_data(state, tbl, h, e->object);
 
   return e->object;
 }

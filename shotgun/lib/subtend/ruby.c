@@ -530,6 +530,30 @@ void rb_ary_store(VALUE array, int offset, VALUE val) {
   array_set(ctx->state, ary, offset, HNDL(val));
 }
 
+void fill_rarray_helper(rni_context *ctx, RArray *rarray, VALUE array) {
+  OBJECT ary = HNDL(array);
+  long ary_len = (long)rbs_to_int(array_get_total(ary));
+  int i;
+  rarray->len = ary_len;
+  rarray->ptr = ALLOC_N(VALUE, ary_len);
+  for(i = 0; i < ary_len; ++i) {
+    rarray->ptr[i] = NEW_HANDLE(ctx, array_get(ctx->state, ary, i));
+  }
+}
+
+RArray* RARRAY(VALUE arg) {
+  RArray *ret;
+  CTX;
+
+  ret = (RArray *)AS_HNDL(arg)->data;
+  if(!ret) {
+    ret = ALLOC(RArray);
+    fill_rarray_helper(ctx, ret, arg);
+    AS_HNDL(arg)->data = (void *)ret;
+  }
+  return ret;
+}
+
 /* Strings */
 
 VALUE rb_str_new(const char *ptr, long len) {

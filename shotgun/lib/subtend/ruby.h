@@ -169,6 +169,16 @@ VALUE rb_ary_unshift(VALUE array, VALUE val);
 VALUE rb_ary_shift(VALUE array);
 void rb_ary_store(VALUE array, int offset, VALUE val);
 
+struct RArray {
+  VALUE *ptr;
+  long len;
+};
+typedef struct RArray RArray;
+
+RArray* RARRAY(VALUE obj);
+#define RARRAY_PTR(a) (RARRAY(a)->ptr)
+#define RARRAY_LEN(a) (RARRAY(a)->len)
+
 /* String */
 VALUE rb_str_new(const char *ptr, long len);
 VALUE rb_str_new2(const char *ptr);
@@ -197,9 +207,8 @@ void rb_string_value(VALUE *obj);
 
 struct RString {
   char *ptr;
-  int len;
+  long len;
 };
-
 typedef struct RString RString;
 
 RString* RSTRING(VALUE obj);

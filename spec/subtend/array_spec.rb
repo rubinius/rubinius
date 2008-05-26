@@ -113,4 +113,25 @@ describe "SubtendArray" do
 
     a.should == [nil, nil, 7]
   end
+
+  it "RARRAY(a)->ptr should access the elements of an array" do
+    a = [1, 2, 3]
+    b = []
+    @s.rb_rarray_iterate(a) do |e|
+      b << e
+    end
+    a.should == b
+  end
+
+  it "Changing RARRAY(a)->ptr should change the array" do
+    $global_rarray_test = [1, 2, 3, 4, 5, 6, 7]
+    @s.rb_rarray_assign_global_alphabet
+    $global_rarray_test.should == ['a', 'b', 'c', 'd', 'e'];
+  end
+
+  it "Reducing RARRAY(a)->len should cut the array" do
+    t = [1, 2, 3, 4, 5]
+    @s.rb_rarray_set_len(t, 3)
+    t.should == [1, 2, 3]
+  end
 end
