@@ -143,6 +143,11 @@ class StringScanner
     self
   end
 
+  def peek len
+    return "" if len.zero?
+    return string.substring(pos, len)
+  end
+
   def _scan pattern, succptr, getstr, headonly
     _lame_guard
 
@@ -174,7 +179,7 @@ class StringScanner
   private :_scan
 
   def _lame_guard
-    raise ArgumentError unless defined? @string
+    raise ArgumentError unless instance_variable_defined?(:@string)
   end
   private :_lame_guard
 end
