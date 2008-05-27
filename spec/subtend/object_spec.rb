@@ -108,5 +108,17 @@ describe "SubtendObject" do
     @o.rb_obj_classname(0).should == 'Fixnum'
     @o.rb_obj_classname(0.1).should == 'Float'
     @o.rb_obj_classname(ObjectTest.new).should == 'ObjectTest'
-  end 
+  end
+
+  it "rb_type should return the type constant for the object" do
+    class DescArray < Array
+    end
+    @o.rb_is_type_nil(nil).should == true
+    @o.rb_is_type_object([]).should == false
+    @o.rb_is_type_object(ObjectTest.new).should == true
+    @o.rb_is_type_array([]).should == true
+    @o.rb_is_type_array(DescArray.new).should == true
+    @o.rb_is_type_module(ObjectTest).should == false
+    @o.rb_is_type_class(ObjectTest).should == true
+  end
 end

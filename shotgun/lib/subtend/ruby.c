@@ -836,6 +836,42 @@ void* subtend_get_struct(VALUE obj) {
   return s->ptr;
 }
 
+int rb_type(VALUE obj) {
+  int i;
+  struct type_map {
+    int type;
+    const char *name;
+  } tmap[] = {
+    {T_NIL,     "NilClass"},
+    {T_SYMBOL,  "Symbol"},
+    {T_CLASS,   "Class"},
+    {T_MODULE,  "Module"},
+    {T_FLOAT,   "Float"},
+    {T_STRING,  "String"},
+    {T_REGEXP,  "Regexp"},
+    {T_ARRAY,   "Array"},
+    {T_FIXNUM,  "Fixnum"},
+    {T_HASH,    "Hash"},
+    {T_STRUCT,  "Struct"},
+    {T_BIGNUM,  "Bignum"},
+    {T_FILE,    "File"},
+    {T_TRUE,    "TrueClass"},
+    {T_FALSE,   "FalseClass"},
+    {T_MATCH,   "MatchData"},
+    {T_OBJECT,  "Object"},
+    {0,         0}
+  };
+
+  for(i = 0; tmap[i].name != 0; ++i) {
+    VALUE klass = rb_const_get(rb_cObject, rb_intern(tmap[i].name));
+    if(rb_obj_is_kind_of(obj, klass) == Qtrue) {
+      return tmap[i].type;
+    }
+  }
+  /* It's ruby, it HAS to be an object. :) */
+  return T_OBJECT;
+}
+
 /*
 
 Still needed for Mongrel - Kev

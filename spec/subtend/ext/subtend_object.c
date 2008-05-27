@@ -49,6 +49,41 @@ VALUE so_inspect(VALUE self, VALUE obj) {
   return rb_inspect(obj);
 }
 
+VALUE so_is_type_nil(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_NIL) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+VALUE so_is_type_object(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_OBJECT) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+VALUE so_is_type_array(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_ARRAY) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+VALUE so_is_type_module(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_MODULE) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+VALUE so_is_type_class(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_CLASS) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
 void Init_subtend_object() {
   VALUE cls;
   cls = rb_define_class("SubtendObject", rb_cObject);
@@ -64,4 +99,9 @@ void Init_subtend_object() {
   rb_define_method(cls, "rb_inspect", so_inspect, 1);
   rb_define_method(cls, "rb_obj_classname", so_rbobjclassname, 1);
   rb_define_method(cls, "rb_class_of", so_rbclassof, 1);
+  rb_define_method(cls, "rb_is_type_nil", so_is_type_nil, 1);
+  rb_define_method(cls, "rb_is_type_object", so_is_type_object, 1);
+  rb_define_method(cls, "rb_is_type_array", so_is_type_array, 1);
+  rb_define_method(cls, "rb_is_type_module", so_is_type_module, 1);
+  rb_define_method(cls, "rb_is_type_class", so_is_type_class, 1);
 }

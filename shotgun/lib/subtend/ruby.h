@@ -249,4 +249,35 @@ void* subtend_get_struct(VALUE obj);
 #define Data_Get_Struct(obj, type, sval) do { sval = (type *)subtend_get_struct(obj); } while (0)
 #define Data_Wrap_Struct(klass, mark, free, sval) subtend_wrap_struct(klass, sval, mark, free)
 
+enum {
+  T_NONE,
+  T_NIL,
+  T_OBJECT,
+  T_CLASS,
+  T_ICLASS,
+  T_MODULE,
+  T_FLOAT,
+  T_STRING,
+  T_REGEXP,
+  T_ARRAY,
+  T_FIXNUM,
+  T_HASH,
+  T_STRUCT,
+  T_BIGNUM,
+  T_FILE,
+  T_TRUE,
+  T_FALSE,
+  T_DATA,
+  T_MATCH,
+  T_SYMBOL,
+  T_BLKTAG,
+  T_UNDEF,
+  T_VARMAP,
+  T_SCOPE,
+  T_NODE
+};
+
+int rb_type(VALUE obj);
+#define TYPE(o) rb_type((VALUE)o)
+
 #endif
