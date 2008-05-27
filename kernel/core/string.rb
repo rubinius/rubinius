@@ -823,7 +823,7 @@ class String
 
     last_end = 0
     offset = nil
-    ret = []
+    ret = self.class.template(0,0) # Empty string, or string subclass
 
     last_match = nil
     match = pattern.match_from self, last_end
@@ -865,10 +865,8 @@ class String
     str = substring(last_end, @bytes-last_end+1)
     ret << str if str
 
-    str = ret.join
-    str = self.class.new(str) unless self.instance_of?(String)
-    str.taint if tainted || self.tainted?
-    return str
+    ret.taint if tainted || self.tainted?
+    return ret
   end
 
   # Performs the substitutions of <code>String#gsub</code> in place, returning
