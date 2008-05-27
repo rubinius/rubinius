@@ -312,7 +312,7 @@ class Regexp
     if (option & OPTION_MASK) != OPTION_MASK
       string << '-' << option_to_string(~option)
     end
-    string << ':' << pattern[idx..endpt] << ')'
+    string << ':' << pattern[0..endpt] << ')'
   end
 
   def get_option_string_length(string)
