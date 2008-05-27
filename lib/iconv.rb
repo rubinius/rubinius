@@ -70,7 +70,6 @@ class Iconv
   end
 
   def self.iconv(to, from, *rest)
-    
     converted = []
 
     open(to, from) do |cd|
@@ -85,10 +84,6 @@ class Iconv
     end
     
     converted
-
-    #open(to, from) do |cd|
-    #  rest.map { |s| cd.iconv(s) }
-    #end
   end
 
   def self.conv(to, from, str)
@@ -98,6 +93,17 @@ class Iconv
       raise e.class.new(nil, e.success.join, e.failed)
     end
   end
+
+  def get_success(os, l2)
+    os.read_string(l2.read_int - os.address)
+  end
+
+  def get_failed(is, ic, l1)
+    (is + (l1.read_int - is.address)).read_string(ic.read_long)
+  end
+
+  private :get_success
+  private :get_failed
 
   def iconv(str)
     l1 = MemoryPointer.new(:pointer)
@@ -115,34 +121,39 @@ class Iconv
     os = MemoryPointer.new(output)
     oc = MemoryPointer.new(:long)
 
-    oc.write_long output
-    l2.write_long os.address
+    result = ""
 
-    count = Iconv.convert @handle, l1, ic, l2, oc
-    if count == -1 then
-      success = os.read_string(l2.read_int - os.address)
-      failed = (is + (l1.read_int - is.address)).read_string(ic.read_long)
-      begin
-        Errno.handle if count == -1
-      rescue Errno::EILSEQ => e
-        raise IllegalSequence.new(nil, success, failed)
-      rescue Errno::E2BIG => e
-        # TODO
-      rescue Errno::EINVAL => e
-        raise InvalidCharacter.new(nil, success, failed)
-      rescue RuntimeError => e
-        raise BrokenLibrary.new(nil, success, failed)
+    begin
+      loop do
+        oc.write_long output
+        l2.write_long os.address
+  
+        count = Iconv.convert @handle, l1, ic, l2, oc
+        if count == -1 then
+          begin
+            Errno.handle if count == -1
+          rescue Errno::EILSEQ => e
+            raise IllegalSequence.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+          rescue Errno::E2BIG => e
+            result += get_success(os, l2)
+            next
+          rescue Errno::EINVAL => e
+            raise InvalidCharacter.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+          rescue RuntimeError => e
+            raise BrokenLibrary.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+          end
+        elsif ic.read_long > 0 then
+          raise IllegalSequence.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+        end
+
+        result += get_success(os, l2)
+        break
       end
-    elsif ic.read_long > 0 then
-      raise IllegalSequence.new(nil, success, failed)
+    ensure
+      l1.free; l2.free; is.free; ic.free; os.free; oc.free
     end
 
-    size = l2.read_int - os.address
-    output = os.read_string(size)
-
-    l1.free; l2.free; is.free; ic.free; os.free; oc.free
-
-    return output
+    return result
   end
 
 
