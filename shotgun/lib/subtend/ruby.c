@@ -330,7 +330,9 @@ VALUE rb_obj_is_instance_of(VALUE obj, VALUE klass) {
 }
 
 VALUE rb_obj_is_kind_of(VALUE obj, VALUE klass) {
-  return rb_funcall(obj, rb_intern("kind_of?"), 1, klass);
+  CTX;
+  //HACK ? Calling rb_funcall() causes segmentation fault
+  return object_kind_of_p(ctx->state, HNDL(obj), HNDL(klass)) ? Qtrue : Qfalse;
 }
 
 int rb_respond_to(VALUE obj, ID sym) {
