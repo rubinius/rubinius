@@ -1,11 +1,11 @@
 #include <ruby.h>
 
 static VALUE sb_gv_get(VALUE self, VALUE var) {
-  return rb_gv_get( rb_str_get_char_ptr(var) );
+  return rb_gv_get( StringValuePtr(var) );
 }
 
 static VALUE sb_gv_set(VALUE self, VALUE var, VALUE val) {
-  return rb_gv_set( rb_str_get_char_ptr(var), val );
+  return rb_gv_set( StringValuePtr(var), val );
 }
 
 void Init_subtend_global() {
