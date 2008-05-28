@@ -214,12 +214,43 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(mod, "-89478478");
   }
 
+  void test_left_shift() {
+    INTEGER shifted = b1->left_shift(state, Object::i2n(3));
+    check_bignum(shifted, "17179869176");
+
+    Bignum* nbn1 = Bignum::create(state, (native_int)-2147483647);
+    shifted = nbn1->left_shift(state, Object::i2n(3));
+    check_bignum(shifted, "-17179869176");
+  }
+
+  void test_right_shift() {
+    INTEGER shifted = b1->right_shift(state, Object::i2n(3));
+    check_bignum(shifted, "268435455");
+
+    shifted = b1->right_shift(state, Object::i2n(1048576));
+    check_bignum(shifted, "0");
+
+    shifted = b1->right_shift(state, Object::i2n(0));
+    check_bignum(shifted, "2147483647");
+
+    Bignum* nbn1 = Bignum::create(state, (native_int)-2147483647);
+    shifted = nbn1->right_shift(state, Object::i2n(3));
+    check_bignum(shifted, "-268435456");
+
+    shifted = nbn1->right_shift(state, Object::i2n(1048576));
+    check_bignum(shifted, "-1");
+  }
+
   void test_equal() {
     TS_ASSERT_EQUALS(b1->equal(state, b1), Qtrue);
     TS_ASSERT_EQUALS(b1->equal(state, b2), Qfalse);
 
     Bignum* b = Bignum::create(state, 2);
     TS_ASSERT_EQUALS(b->equal(state, Object::i2n(2)), Qtrue);
+    TS_ASSERT_EQUALS(b->equal(state, Object::i2n(1)), Qfalse);
+
+    TS_ASSERT_EQUALS(b->equal(state, Float::create(state, 2.0)), Qtrue);
+    TS_ASSERT_EQUALS(b->equal(state, Float::create(state, 1.9)), Qfalse);
   }
 
   void test_compare() {

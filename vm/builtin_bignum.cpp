@@ -269,11 +269,7 @@ namespace rubinius {
       if(remainder) {
         *remainder = Object::i2n(as<Fixnum>(*remainder)->n2i() + bi);
       }
-      mp_int m;
-      mp_init(&m);
-      mp_sub_d(n, 1, &m);
-      mp_copy(&m, n);
-      mp_clear(&m);
+      mp_sub_d(n, 1, n);
     }
     return Bignum::normalize(state, n_obj);
   }
@@ -283,8 +279,7 @@ namespace rubinius {
     MMP;
     mp_div(MP(this), MP(b), n, m);
     if(mp_cmp_d(n, 0) == MP_LT && mp_cmp_d(m, 0) != MP_EQ) {
-      mp_sub_d(n, 1, m);
-      mp_copy(m, n);
+      mp_sub_d(n, 1, n);
       mp_mul(MP(b), n, m);
       mp_sub(MP(this), m, m);
     }
@@ -425,26 +420,9 @@ namespace rubinius {
     if (shift == 0) {
       mp_copy(a, n);
     } else {
-      int need_floor = (a->sign == MP_NEG) && (DIGIT(a, 0) & 1);
-
       mp_div_2d(a, shift, n, NULL);
-      n->sign = a->sign;
-      if (need_floor) {
-        /* We sometimes have to simulate the rounding toward negative
-           infinity that would happen if we were using a twos-complement
-           representation.  We know we'll never overflow or need to grow,
-           but we may need to back away from zero.  (libtommath doesn't
-           seem to have an increment-in-place function.) */
-        long i = 0;
-        BDIGIT_DBL num = 1;
-
-        if (n->used == 0)
-          n->used = 1;
-        while (i < n->used) {
-          num += DIGIT(n,i);
-          DIGIT(n,i++) = num & (DIGIT_RADIX-1);
-          num = num >> DIGIT_BIT;
-        }
+      if ((a->sign == MP_NEG) && (DIGIT(a, 0) & 1)) {
+        mp_sub_d(n, 1, n);
       }
     }
 
