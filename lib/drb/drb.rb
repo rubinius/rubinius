@@ -578,7 +578,7 @@ module DRb
       end
       raise(DRbConnError, 'connection closed') if str.nil?
       raise(DRbConnError, 'premature marshal format(can\'t read)') if str.size < sz
-      Thread.exclusive do
+      DRb.mutex.synchronize do
         begin
           save = Thread.current[:drb_untaint]
           Thread.current[:drb_untaint] = []
@@ -858,6 +858,7 @@ module DRb
     def self.open_server(uri, config)
       uri = 'druby://:0' unless uri
       host, port, opt = parse_uri(uri)
+      config = {:tcp_original_host => host}.update(config)
       if host.size == 0
         host = getservername
         soc = open_server_inaddr_any(host, port)
@@ -865,6 +866,7 @@ module DRb
 	soc = TCPServer.open(host, port)
       end
       port = soc.addr[1] if port == 0
+      config[:tcp_port] = port
       uri = "druby://#{host}:#{port}"
       self.new(uri, soc, config)
     end
@@ -945,7 +947,12 @@ module DRb
 	break if (@acl ? @acl.allow_socket?(s) : true) 
 	s.close
       end
-      self.class.new(nil, s, @config)
+      if @config[:tcp_original_host].to_s.size == 0
+        uri = "druby://#{s.addr[3]}:#{@config[:tcp_port]}"
+      else
+        uri = @uri
+      end
+      self.class.new(uri, s, @config)
     end
 
     # Check to see if this connection is alive.
@@ -1469,10 +1476,10 @@ module DRb
       raise(ArgumentError, "#{any_to_s(msg_id)} is not a symbol") unless Symbol == msg_id.class
       raise(SecurityError, "insecure method `#{msg_id}'") if insecure_method?(msg_id)
       
-      if obj.private_methods.include?(msg_id.to_s)
+      if obj.private_methods.include?(msg_id)
 	desc = any_to_s(obj)
         raise NoMethodError, "private method `#{msg_id}' called for #{desc}"
-      elsif obj.protected_methods.include?(msg_id.to_s)
+      elsif obj.protected_methods.include?(msg_id)
 	desc = any_to_s(obj)
         raise NoMethodError, "protected method `#{msg_id}' called for #{desc}"
       else
@@ -1666,6 +1673,12 @@ module DRb
   #
   # This is the URI of the current server.  See #current_server.
   def uri
+    drb = Thread.current['DRb']
+    client = (drb && drb['client'])
+    if client
+      uri = client.uri
+      return uri if uri
+    end
     current_server.uri
   end
   module_function :uri
@@ -1738,10 +1751,16 @@ module DRb
   end
   module_function :install_acl
 
+  @mutex = Mutex.new
+  def mutex
+    @mutex
+  end
+  module_function :mutex
+
   @server = {}
   def regist_server(server)
     @server[server.uri] = server
-    Thread.exclusive do
+    mutex.synchronize do
       @primary_server = server unless @primary_server
     end
   end
