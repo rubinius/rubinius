@@ -213,7 +213,7 @@ void rb_define_const(VALUE klass, const char* key, VALUE val) {
 }
 
 int rb_const_defined(VALUE klass, ID id) {
-  return rb_funcall(klass, rb_intern("const_defined?"), 1, ID2SYM(id)) == Qtrue ? 1 : 0;
+  return (int)rb_funcall(klass, rb_intern("const_defined?"), 1, ID2SYM(id));
 }
 
 VALUE rb_ivar_get(VALUE obj, ID sym) {
