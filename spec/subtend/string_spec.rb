@@ -55,6 +55,7 @@ describe "SubtendString" do
     @s.rb_str_cmp("xxxx", "xxx").should == 1
     @s.rb_str_cmp("xxx", "yyy").should == -1
     @s.rb_str_cmp("yyy", "xxx").should == 1
+    @s.rb_str_cmp("ppp", "ppp").should == 0
   end
   
   it "rb_str_split should split strings over a splitter" do

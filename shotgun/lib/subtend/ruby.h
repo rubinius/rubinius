@@ -188,7 +188,7 @@ VALUE rb_str_cat(VALUE str, const char *ptr, long len);
 VALUE rb_str_cat2(VALUE str, const char *ptr);
 VALUE rb_str_plus(VALUE str1, VALUE str2);
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
-VALUE rb_str_cmp(VALUE str1, VALUE str2);
+int rb_str_cmp(VALUE str1, VALUE str2);
 VALUE rb_str_split(VALUE str, const char *sep);
 VALUE rb_str2inum(VALUE str, int base);
 VALUE rb_cstr2inum(VALUE str, int base);

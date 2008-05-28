@@ -604,8 +604,8 @@ VALUE rb_str_plus(VALUE str1, VALUE str2) {
   return NEW_HANDLE(ctx, string_append(ctx->state, new_string, HNDL(str2)));
 }
 
-VALUE rb_str_cmp(VALUE str1, VALUE str2) {
-  return rb_funcall(str1, rb_intern("<=>"), 1, str2);
+int rb_str_cmp(VALUE str1, VALUE str2) {
+  return NUM2INT(rb_funcall(str1, rb_intern("<=>"), 1, str2));
 }
 
 VALUE rb_str_split(VALUE str, const char *sep) {

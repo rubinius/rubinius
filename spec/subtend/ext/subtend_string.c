@@ -41,7 +41,7 @@ VALUE ss_rb_str_new2_with_null(VALUE self) {
 }
 
 VALUE ss_str_cmp(VALUE self, VALUE str1, VALUE str2) {
-  return rb_str_cmp(str1, str2);
+  return INT2NUM(rb_str_cmp(str1, str2));
 }
 
 VALUE ss_str_split(VALUE self, VALUE str) {
