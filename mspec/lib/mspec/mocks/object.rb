@@ -7,6 +7,10 @@ class MockObject
 end
 
 class Object
+  def stub!(sym)
+    Mock.install_method self, sym, :stub
+  end
+  
   def should_receive(sym)
     Mock.install_method self, sym
   end

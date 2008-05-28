@@ -1,3 +1,5 @@
+require 'mspec/helpers/const_lookup'
+
 class NameMap
   MAP = {
     '`'   => 'backtick',
@@ -66,10 +68,6 @@ class NameMap
   def initialize(filter=false)
     @seen = {}
     @filter = filter
-  end
-
-  def const_lookup(c)
-    c.split('::').inject(Object) { |k,n| k.const_get n }
   end
 
   def exception?(name)

@@ -25,20 +25,6 @@ module NameMapSpecs
   def n; end
 end
 
-describe NameMap, "#const_lookup" do
-  before :each do
-    @map = NameMap.new
-  end
-
-  it "returns the constant specified by 'A::B'" do
-    @map.const_lookup("NameMapSpecs::A::B").should == NameMapSpecs::A::B
-  end
-
-  it "returns a regular constant specified without scoping" do
-    @map.const_lookup("NameMapSpecs").should == NameMapSpecs
-  end
-end
-
 describe NameMap, "#exception?" do
   before :each do
     @map = NameMap.new

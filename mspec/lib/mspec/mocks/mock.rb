@@ -13,7 +13,7 @@ module Mock
     :"__ms_#{sym}__"
   end
 
-  def self.install_method(obj, sym)
+  def self.install_method(obj, sym, type = :mock)
     meta = class << obj; self; end
 
     if (sym.to_sym == :respond_to? or obj.respond_to?(sym)) and !meta.instance_methods.include?(replaced_name(sym).to_s)
@@ -27,9 +27,16 @@ module Mock
     END
 
     MSpec.actions :expectation, MSpec.current.state
+
     proxy = MockProxy.new
-    expects[[obj, sym]] << proxy
-    proxy.exactly(1)
+
+    if type == :stub
+      expects[[obj, sym]] << proxy
+      proxy.at_least(0)
+    else
+      expects[[obj, sym]].unshift proxy
+      proxy.exactly(1)
+    end
   end
 
   def self.verify_count
