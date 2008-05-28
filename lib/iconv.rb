@@ -10,7 +10,6 @@ class Iconv
   attach_function "iconv", :convert, [:pointer, :pointer, :pointer, :pointer, :pointer], :long
 
   module Failure
-
     attr_reader :success
     attr_reader :failed
   
@@ -105,7 +104,7 @@ class Iconv
   private :get_success
   private :get_failed
 
-  def iconv(str)
+  def iconv(str, start = Undefined, length = Undefined)
     l1 = MemoryPointer.new(:pointer)
     l2 = MemoryPointer.new(:pointer)
 
@@ -156,21 +155,4 @@ class Iconv
     return result
   end
 
-
 end
-
-=begin
-
-input = "Late night hacks rock"
-
-cd = Iconv.new "UTF-16", "ASCII"
-
-out = cd.iconv(input)
-
-c2 = Iconv.new "ASCII", "UTF-16"
-
-same = c2.iconv(out)
-
-p [input, out, same]
-
-=end
