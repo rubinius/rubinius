@@ -378,7 +378,7 @@ VALUE rb_check_string_type(VALUE str) {
   CTX;
   VALUE coercable = rb_funcall(str, rb_intern("respond_to?"), 1, CHAR2STR("to_str"));
   if(coercable == Qtrue) return rb_funcall(str, rb_intern("to_str"), 0);
-  else return NEW_HANDLE(ctx, string_new(ctx->state, ""));  
+  else return Qnil;
 }
 
 VALUE rb_check_convert_type(VALUE val, int type, const char* tname, const char* method) {

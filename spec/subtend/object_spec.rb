@@ -80,13 +80,13 @@ describe "SubtendObject" do
     @o.rb_check_convert_type(h).should == nil
   end
   
-  it "rb_check_string_type should try to coerce to a string, otherwise return an empty string" do
+  it "rb_check_string_type should try to coerce to a string, otherwise return nil" do
     sc = "Hello"
     so = StrChild.new("Hello")
     h = {:hello => :goodbye}
     @o.rb_check_string_type(sc).should == "Hello"
     @o.rb_check_string_type(so).should == "Hello"
-    @o.rb_check_string_type(h).should == ""
+    @o.rb_check_string_type(h).should == nil
   end
 
   it "rb_inspect should return a string with the inspect representation" do
