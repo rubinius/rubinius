@@ -64,7 +64,8 @@ namespace :spec do
 
     rsync dir + "/*", "spec/frozen"
 
-    version = Dir.chdir(ENV['DIR']) { `git log --pretty=oneline -1`[0..7] }
+    version = Dir.chdir(dir) { `git log --pretty=oneline -1`[0..7] }
+    sh "git add spec/frozen/"
     sh "git commit -m 'Updated RubySpec source to #{version}.' spec/frozen"
   end
 

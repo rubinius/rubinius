@@ -14,6 +14,7 @@ namespace :mspec do
     rsync dir + "/*", "mspec"
 
     version = Dir.chdir(ENV['DIR']) { `git log --pretty=oneline -1`[0..7] }
+    sh "git add mspec/"
     sh "git commit -m 'Updated MSpec source to #{version}.' mspec"
   end
 end
