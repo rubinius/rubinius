@@ -103,7 +103,7 @@ describe "SubtendArray" do
   it "rb_ary_store should raise IndexError if the offset is still negative after wrap around " do
     a = [1, 2, 3]
 
-    lambda { @s.rb_ary_store(a, -10, 5) }.should raise_error IndexError
+    lambda { @s.rb_ary_store(a, -10, 5) }.should raise_error(IndexError)
   end
 
   it "rb_ary_store should enlarge the array if necessary" do

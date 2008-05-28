@@ -38,11 +38,12 @@ static VALUE sc_include_module(VALUE self, VALUE klass, VALUE module) {
   return klass;
 }
 
-void sc_define_attr(VALUE self, VALUE klass, VALUE sym, VALUE read, VALUE write) {
+VALUE sc_define_attr(VALUE self, VALUE klass, VALUE sym, VALUE read, VALUE write) {
   int int_read, int_write;
   int_read = read == Qtrue ? 1 : 0;
   int_write = write == Qtrue ? 1 : 0;
   rb_define_attr(klass, rb_id2name(SYM2ID(sym)), int_read, int_write);
+  return Qnil;
 }
 
 static VALUE sc_rbclass2name(VALUE self, VALUE klass) {

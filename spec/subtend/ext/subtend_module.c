@@ -1,7 +1,8 @@
 #include <ruby.h>
 
-void sm_define_const(VALUE self, VALUE klass, VALUE val) {
+VALUE sm_define_const(VALUE self, VALUE klass, VALUE val) {
   rb_define_const(klass, "FOO", val);
+  return Qnil;
 }
 
 VALUE sm_const_defined(VALUE self, VALUE klass, VALUE id) {
