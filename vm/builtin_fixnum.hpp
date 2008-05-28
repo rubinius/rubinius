@@ -152,7 +152,7 @@ namespace rubinius {
   template <>
     static INTEGER as<Integer>(OBJECT obj) {
       if(kind_of<Integer>(obj)) return (Integer*)obj;
-      throw new TypeError(obj->obj_type, obj, "can't be cast as an Integer");
+      throw TypeError(obj->obj_type, obj, "can't be cast as an Integer");
     }
 
   template <>

@@ -224,4 +224,8 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT(o2->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(o2)->n2i(), 3);
   }
+
+  void test_uncastable_object_throws_exception() {
+    TS_ASSERT_THROWS( as<Integer>(String::create(state, "blah")), const TypeError &);
+  }
 };
