@@ -115,7 +115,7 @@ namespace :build do
     "shotgun/lib/*.[chy]",
     "shotgun/lib/*.rb",
     "shotgun/lib/subtend/*.[chS]",
-    "shotgun/main.c",
+    "shotgun/main.c"
   ].exclude(*exclude_source)
 
   file "shotgun/rubinius.bin" => c_source do
