@@ -9,7 +9,7 @@ VALUE so_kind_of(VALUE self, VALUE obj, VALUE klass) {
 }
 
 VALUE so_respond_to(VALUE self, VALUE obj, VALUE sym) {
-  return rb_respond_to(obj, SYM2ID(sym)) == 1 ? Qtrue : Qfalse;
+  return (VALUE)rb_respond_to(obj, SYM2ID(sym));
 }
 
 VALUE so_to_id(VALUE self, VALUE obj) {

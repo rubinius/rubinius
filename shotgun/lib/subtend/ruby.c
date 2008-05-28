@@ -336,7 +336,7 @@ VALUE rb_obj_is_kind_of(VALUE obj, VALUE klass) {
 }
 
 int rb_respond_to(VALUE obj, ID sym) {
-  return rb_funcall(obj, rb_intern("respond_to?"), 1, sym) == Qtrue ? 1 : 0;
+  return (int)rb_funcall(obj, rb_intern("respond_to?"), 1, sym);
 }
 
 ID rb_to_id(VALUE obj) {
