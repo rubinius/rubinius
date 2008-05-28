@@ -42,7 +42,7 @@ void sc_define_attr(VALUE self, VALUE klass, VALUE sym, VALUE read, VALUE write)
   int int_read, int_write;
   int_read = read == Qtrue ? 1 : 0;
   int_write = write == Qtrue ? 1 : 0;
-  rb_define_attr(klass, SYM2ID(sym), int_read, int_write);
+  rb_define_attr(klass, rb_id2name(SYM2ID(sym)), int_read, int_write);
 }
 
 static VALUE sc_rbclass2name(VALUE self, VALUE klass) {

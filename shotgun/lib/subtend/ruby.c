@@ -229,9 +229,9 @@ VALUE rb_attr_get(VALUE obj, ID sym) {
   return rb_ivar_get(obj, sym);
 }
 
-void rb_define_attr(VALUE klass, ID id, int read, int write) {
-  if(read == 1) rb_funcall(klass, rb_intern("attr_reader_cv"), 1, id);
-  if(write == 1) rb_funcall(klass, rb_intern("attr_writer_cv"), 1, id);    
+void rb_define_attr(VALUE klass, const char *name, int read, int write) {
+  if(read == 1) rb_funcall(klass, rb_intern("attr_reader_cv"), 1, rb_intern(name));
+  if(write == 1) rb_funcall(klass, rb_intern("attr_writer_cv"), 1, rb_intern(name));
 }
 
 VALUE rb_iv_get(VALUE obj, char *name) {
