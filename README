@@ -8,6 +8,9 @@ high-performance environment for running Ruby code.
 
 Refer to the INSTALL file for instructions on getting and building Rubinius.
 
+To disable backtrace colorization in Rubinius set the RBX environment variable
+to rbx.colorize_backtraces=no.
+
 3. Status
 
 Rubinius is under heavy development, and currently supports the basic Ruby
