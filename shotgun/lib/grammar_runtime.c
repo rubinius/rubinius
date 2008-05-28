@@ -73,7 +73,6 @@ void *pt_allocate(rb_parse_state *st, int size) {
     }
     st->memory_pools[st->current_pool] = malloc(st->memory_size);
     st->memory_cur = st->memory_pools[st->current_pool];
-    memset(st->memory_cur, 0, st->memory_size);
     st->memory_last_addr = st->memory_cur + st->memory_size - 1;
   }
   
