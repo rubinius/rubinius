@@ -2,15 +2,11 @@ class Class
   
   ivar_as_index :method_table => 1, :superclass => 6, :instance_fields => 7, :has_ivars => 8, :needs_cleanup => 9, :object_type => 10
 
-  def __allocate__
-    Ruby.primitive :allocate
-    raise RuntimeError, "primitive '__allocate__' failed on #{self.inspect}"
-  end
-  
   def allocate
-    __allocate__
+    Ruby.primitive :allocate
+    raise RuntimeError, "primitive 'allocate' failed on #{self.inspect}"
   end
-  
+
   def new(*args)
     obj = allocate()
     Rubinius.asm(args, obj) do |args, obj|

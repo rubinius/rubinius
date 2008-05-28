@@ -29,7 +29,7 @@ class Array
   end
 
   def self.allocate
-    ary = __allocate__
+    ary = super()
     ary.start = 0
     ary.total = 0
     ary.tuple = Tuple.new 8

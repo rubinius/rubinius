@@ -37,7 +37,7 @@ class String
   def data=(d)      ; @data = d       ; end
 
   def self.allocate
-    str = __allocate__
+    str = super()
     str.data = ByteArray.new(1)
     str.bytes = 0
     str.characters = 0
