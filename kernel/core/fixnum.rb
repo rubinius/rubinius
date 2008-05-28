@@ -66,4 +66,13 @@ class Fixnum < Integer
     based_to_s(base)
   end
   private :base_to_s
+
+  # taint and untaint are noops on Fixnum
+  def taint
+    self
+  end
+  
+  def untaint
+    self
+  end
 end
