@@ -230,9 +230,35 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Object::i2n(4)->equal(state, Object::i2n(3)), Qfalse);
   }
 
+  void test_equal_with_a_bignum() {
+    Bignum* obj1 = Bignum::create(state, 10);
+    Bignum* obj2 = Bignum::create(state, 11);
+    
+    TS_ASSERT_EQUALS(Object::i2n(10)->equal(state, obj1), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(10)->equal(state, obj2), Qfalse);
+  }
+
+  void test_equal_with_a_float() {
+    Float* obj1 = Float::create(state, 10.0);
+    Float* obj2 = Float::create(state, 10.1);
+    
+    TS_ASSERT_EQUALS(Object::i2n(10)->equal(state, obj1), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(10)->equal(state, obj2), Qfalse);
+  }
+
   void test_gt() {
     TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Object::i2n(2)), Qtrue);
     TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Object::i2n(3)), Qfalse);
+  }
+
+  void test_gt_with_a_bignum() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Bignum::create(state, 2)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Bignum::create(state, 3)), Qfalse);
+  }
+
+  void test_gt_with_a_float() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Float::create(state, 2.9)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Float::create(state, 3.0)), Qfalse);
   }
 
   void test_ge() {
@@ -241,15 +267,49 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Object::i2n(4)), Qfalse);
   }
 
+  void test_ge_with_a_bignum() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Bignum::create(state, 2)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Bignum::create(state, 3)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Bignum::create(state, 4)), Qfalse);
+  }
+
+  void test_ge_with_a_float() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Float::create(state, 2.9)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Float::create(state, 3.0)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Float::create(state, 3.1)), Qfalse);
+  }
+
   void test_lt() {
     TS_ASSERT_EQUALS(Object::i2n(3)->lt(state, Object::i2n(4)), Qtrue);
     TS_ASSERT_EQUALS(Object::i2n(3)->lt(state, Object::i2n(3)), Qfalse);
+  }
+
+  void test_lt_with_a_bignum() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->lt(state, Bignum::create(state, 4)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->lt(state, Bignum::create(state, 3)), Qfalse);
+  }
+
+  void test_lt_with_a_float() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->lt(state, Float::create(state, 3.1)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->lt(state, Float::create(state, 3.0)), Qfalse);
   }
 
   void test_le() {
     TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Object::i2n(4)), Qtrue);
     TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Object::i2n(3)), Qtrue);
     TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Object::i2n(2)), Qfalse);
+  }
+
+  void test_le_with_a_bignum() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Bignum::create(state, 4)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Bignum::create(state, 3)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Bignum::create(state, 2)), Qfalse);
+  }
+
+  void test_le_with_a_float() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Float::create(state, 3.1)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Float::create(state, 3.0)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Float::create(state, 2.9)), Qfalse);
   }
 
   void test_left_shift() {

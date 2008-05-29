@@ -127,26 +127,63 @@ namespace rubinius {
     }
 
     OBJECT equal(STATE, FIXNUM other) {
-      if(this->n2i() == other->n2i()) {
-        return Qtrue;
-      }
-      return Qfalse;
+      return n2i() == other->n2i() ? Qtrue : Qfalse;
+    }
+
+    OBJECT equal(STATE, Bignum* other) {
+      return other->equal(state, this);
+    }
+
+    OBJECT equal(STATE, Float* other) {
+      return (double)n2i() == other->val ? Qtrue : Qfalse;
     }
 
     OBJECT gt(STATE, FIXNUM other) {
       return n2i() > other->n2i() ? Qtrue : Qfalse;
     }
 
+    OBJECT gt(STATE, Bignum* other) {
+      return other->lt(state, this);
+    }
+
+    OBJECT gt(STATE, Float* other) {
+      return (double) n2i() > other->val ? Qtrue : Qfalse;
+    }
+
     OBJECT ge(STATE, FIXNUM other) {
       return n2i() >= other->n2i() ? Qtrue : Qfalse;      
+    }
+
+    OBJECT ge(STATE, Bignum* other) {
+      return other->le(state, this);
+    }
+
+    OBJECT ge(STATE, Float* other) {
+      return (double) n2i() >= other->val ? Qtrue : Qfalse;
     }
 
     OBJECT lt(STATE, FIXNUM other) {
       return n2i() < other->n2i() ? Qtrue : Qfalse;      
     }
 
+    OBJECT lt(STATE, Bignum* other) {
+      return other->gt(state, this);
+    }
+
+    OBJECT lt(STATE, Float* other) {
+      return (double) n2i() < other->val ? Qtrue : Qfalse;
+    }
+
     OBJECT le(STATE, FIXNUM other) {
       return n2i() <= other->n2i() ? Qtrue : Qfalse;      
+    }
+
+    OBJECT le(STATE, Bignum* other) {
+      return other->ge(state, this);
+    }
+
+    OBJECT le(STATE, Float* other) {
+      return (double) n2i() <= other->val ? Qtrue : Qfalse;
     }
 
     INTEGER left_shift(STATE, INTEGER bits) {
