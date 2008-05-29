@@ -42,7 +42,7 @@ readline_readline(VALUE self, VALUE tmp, VALUE add_hist)
 
     rb_secure(4);
     SafeStringValue(tmp);
-    prompt = rb_str_get_char_ptr(tmp);
+    prompt = RSTRING_PTR(tmp);
 
     if (!isatty(0) && errno == EBADF) rb_raise(rb_eIOError, "stdin closed");
 
@@ -141,7 +141,7 @@ readline_attempted_completion_function(text, start, end)
     result = ALLOC_N(char *, matches + 2);
     for (i = 0; i < matches; i++) {
       temp = rb_obj_as_string(rb_ary_entry(ary, i)); 
-      result[i + 1] = rb_str_get_char_ptr(temp);
+      result[i + 1] = RSTRING_PTR(temp);
     }
     result[matches + 1] = NULL;
 
@@ -190,7 +190,7 @@ readline_s_set_completion_append_character(self, str)
     }
     else {
         SafeStringValue(str);
-        if (rb_str_get_char_len(str) == 0) {
+        if (RSTRING_LEN(str) == 0) {
             rl_completion_append_character = '\0';
         } else {
             rl_completion_append_character = rb_str_get_char(str, 0);
@@ -220,7 +220,7 @@ readline_s_set_basic_word_break_characters(self, str)
     rb_secure(4);
     SafeStringValue(str);
     
-    rl_basic_word_break_characters = rb_str_get_char_ptr(str);
+    rl_basic_word_break_characters = RSTRING_PTR(str);
     
     return self;
 }
@@ -242,7 +242,7 @@ readline_s_set_completer_word_break_characters(self, str)
     rb_secure(4);
     SafeStringValue(str);
     
-    rl_completer_word_break_characters = rb_str_get_char_ptr(str);
+    rl_completer_word_break_characters = RSTRING_PTR(str);
     
     return self;
 }
@@ -266,7 +266,7 @@ readline_s_set_completer_quote_characters(self, str)
     rb_secure(4);
     SafeStringValue(str);
     
-    rl_completer_quote_characters = rb_str_get_char_ptr(str);
+    rl_completer_quote_characters = RSTRING_PTR(str);
 
     return self;
 }
@@ -324,7 +324,7 @@ hist_set(self, index, str)
     if (i < 0) {
         i += history_length;
     }
-    data = rb_str_get_char_ptr(str);
+    data = RSTRING_PTR(str);
     entry = replace_history_entry(i, data, NULL);
     free(data);
     if (entry == NULL) {
@@ -341,9 +341,8 @@ hist_push(self, str)
   char *data;
   rb_secure(4);
   SafeStringValue(str);
-  data = rb_str_get_char_ptr(str);
+  data = RSTRING_PTR(str);
   add_history(data);
-  free(data);
   return self;
 }
 
@@ -360,9 +359,8 @@ hist_push_method(argc, argv, self)
     while (argc--) {
         str = *argv++;
         SafeStringValue(str);
-        data = rb_str_get_char_ptr(str);
+        data = RSTRING_PTR(str);
         add_history(data);
-        free(data);
     }
     return self;
 }
