@@ -59,6 +59,8 @@ struct rubinius_machine {
   int g_access_violation;
   int g_firesuit_arg;
   char *g_firesuit_message;
+  pthread_t sampler_thread;
+  unsigned int sampler_active;
 };
 
 machine machine_new(environment e);

@@ -239,6 +239,7 @@ machine machine_new(environment e) {
   m->g_use_firesuit = 0;
   m->g_access_violation = 0;
   m->sub = 0;
+  m->sampler_active = 0;
   pipe(pipes);
 
 
