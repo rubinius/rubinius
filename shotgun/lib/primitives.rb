@@ -3182,7 +3182,7 @@ class ShotgunPrimitives
     OBJECT t1;
 
     POP(t1, FIXNUM);
-    cpu_sampler_activate(state, N2I(t1));
+    cpu_sampler_activate(state, N2I(t1), environment_current_machine());
     RET(ML2N(clock()));
     CODE
   end
@@ -3191,7 +3191,7 @@ class ShotgunPrimitives
   def sampler_stop
     <<-CODE
     ARITY(0);
-    OBJECT t1 = cpu_sampler_disable(state);
+    OBJECT t1 = cpu_sampler_disable(state, environment_current_machine());
     RET(t1);
     CODE
   end

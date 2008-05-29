@@ -335,9 +335,10 @@ void cpu_find_waiters(STATE);
 #define channel_set_value(obj, val) SET_FIELD(obj, 2, val)
 #define channel_get_value(obj) NTH_FIELD(obj, 2)
 
+#include "shotgun/lib/machine.h"
 void cpu_sampler_init(STATE, cpu c);
-void cpu_sampler_activate(STATE, int hz);
-OBJECT cpu_sampler_disable(STATE);
+void cpu_sampler_activate(STATE, int hz, machine m);
+OBJECT cpu_sampler_disable(STATE, machine m);
 
 #define type_assert(obj, type, message) ({\
   if(type == FixnumType) {\

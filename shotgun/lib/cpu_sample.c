@@ -116,7 +116,7 @@ void cpu_sampler_resume(STATE) {
 /* move into state. */
 static int interval;
 
-void cpu_sampler_activate(STATE, int hz) {
+void cpu_sampler_activate(STATE, int hz, machine m) {
   struct itimerval new, old;
   new.it_interval.tv_usec = 1000000 / hz;
   new.it_interval.tv_sec = 0;
@@ -133,7 +133,7 @@ void cpu_sampler_activate(STATE, int hz) {
   setitimer(ITIMER_PROF, &new, &old);
 }
 
-OBJECT cpu_sampler_disable(STATE) {
+OBJECT cpu_sampler_disable(STATE, machine m) {
   OBJECT tup;
   int i;
   struct itimerval new, old;
