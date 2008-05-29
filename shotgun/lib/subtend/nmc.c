@@ -165,9 +165,9 @@ void _nmc_start() {
   if(n->method->args == -2) {
     hs = 2;
   } else if(n->method->args == -1) {
-    hs = 3;
+    hs = fc->argcount + 3;
   } else {
-    hs = n->method->args + 2;
+    hs = fc->argcount + 2;
   }
   
   data = (void*)ALLOC_N(rni_handle*, hs);
