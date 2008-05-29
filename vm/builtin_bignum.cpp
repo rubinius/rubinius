@@ -265,7 +265,7 @@ namespace rubinius {
       }
     }
     
-    if(mp_cmp_d(n, 0) == MP_LT && r != 0) {
+    if(r != 0 && mp_cmp_d(n, 0) == MP_LT) {
       if(remainder) {
         *remainder = Object::i2n(as<Fixnum>(*remainder)->n2i() + bi);
       }
@@ -333,10 +333,6 @@ namespace rubinius {
     return mod;
   }
 
-  bool Bignum::is_zero(STATE) {
-    return mp_iszero(MP(this)) ? TRUE : FALSE;
-  }
-
   INTEGER Bignum::bit_and(STATE, INTEGER b) {
     NMP;
 
@@ -398,6 +394,9 @@ namespace rubinius {
   INTEGER Bignum::left_shift(STATE, INTEGER bits) {
     NMP;
     int shift = bits->n2i();
+    if(shift < 0) {
+      return right_shift(state, bits);
+    }
     mp_int *a = MP(this);
 
     mp_mul_2d(a, shift, n);
@@ -408,8 +407,11 @@ namespace rubinius {
   INTEGER Bignum::right_shift(STATE, INTEGER bits) {
     NMP;
     int shift = bits->n2i();
-    mp_int * a = MP(this);
+    if(shift < 0) {
+      return left_shift(state, bits);
+    }
 
+    mp_int * a = MP(this);
     if ((shift / DIGIT_BIT) >= a->used) {
       if (a->sign == MP_ZPOS)
         return Object::i2n(0);

@@ -133,6 +133,33 @@ namespace rubinius {
       return Qfalse;
     }
 
+    INTEGER left_shift(STATE, INTEGER bits) {
+      native_int shift = bits->n2i();
+      if(shift < 0) {
+        return right_shift(state, Object::i2n(-shift));
+      }
+      
+      native_int self = n2i();
+      
+      if(shift > (native_int)FIXNUM_WIDTH || self >> ((native_int)FIXNUM_WIDTH - shift) > 0) {
+        return Bignum::create(state, self)->left_shift(state, bits);
+      }
+      
+      return Object::i2n(self << shift);
+    }
+
+    INTEGER right_shift(STATE, INTEGER bits) {
+      native_int shift = bits->n2i();
+      if(shift < 0) {
+        return left_shift(state, Object::i2n(-shift));
+      }
+      
+      native_int self = n2i();
+      
+      native_int a = self >> shift;
+      return Object::i2n(a); 
+    }
+
     native_int to_nint() {
       return STRIP_TAG(this);
     }

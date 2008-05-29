@@ -212,6 +212,8 @@ class TestBignum : public CxxTest::TestSuite {
   void test_mod() {
     INTEGER mod = b1->mod(state, Object::i2n(-89478485));
     check_bignum(mod, "-89478478");
+    mod = b1->mod(state, Bignum::create(state, (native_int)-2147483645));
+    check_bignum(mod, "-2147483643");
   }
 
   void test_left_shift() {
@@ -259,6 +261,16 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1->compare(state, b1), Object::i2n(0));
 
     TS_ASSERT_EQUALS(b1->compare(state, Object::i2n(0)), Object::i2n(1));
+  }
+
+  void test_neg() {
+    INTEGER negated = b1->neg(state);
+    check_bignum(negated, "-2147483647");
+  }
+
+  void test_invert() {
+    INTEGER inverted = b1->invert(state);
+    check_bignum(inverted, "-2147483648");
   }
 
   void test_bit_and() {

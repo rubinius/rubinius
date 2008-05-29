@@ -225,6 +225,24 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(o2)->n2i(), 3);
   }
 
+  void test_left_shift() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->left_shift(state, Object::i2n(4)), Object::i2n(48));
+
+    INTEGER i = Object::i2n(1)->left_shift(state, Object::i2n(FIXNUM_WIDTH));
+    TS_ASSERT_EQUALS(i->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(i->n2i(), FIXNUM_MAX + 1);
+
+    TS_ASSERT_EQUALS(Object::i2n(34235)->left_shift(state, Object::i2n(-3)), Object::i2n(4279));
+  }
+
+  void test_right_shift() {
+    TS_ASSERT_EQUALS(Object::i2n(49)->right_shift(state, Object::i2n(4)), Object::i2n(3));
+    TS_ASSERT_EQUALS(Object::i2n(3)->right_shift(state, Object::i2n(-4)), Object::i2n(48));
+    TS_ASSERT_EQUALS(Object::i2n(-49)->right_shift(state, Object::i2n(4)), Object::i2n(-4));
+    TS_ASSERT_EQUALS(Object::i2n(1)->right_shift(state, Object::i2n(4)), Object::i2n(0));
+    TS_ASSERT_EQUALS(Object::i2n(-1)->right_shift(state, Object::i2n(4)), Object::i2n(-1));
+  }
+
   void test_uncastable_object_throws_exception() {
     TS_ASSERT_THROWS( as<Integer>(String::create(state, "blah")), const TypeError &);
   }
