@@ -225,6 +225,33 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(o2)->n2i(), 3);
   }
 
+  void test_equal() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->equal(state, Object::i2n(3)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(4)->equal(state, Object::i2n(3)), Qfalse);
+  }
+
+  void test_gt() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Object::i2n(2)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Object::i2n(3)), Qfalse);
+  }
+
+  void test_ge() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Object::i2n(2)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Object::i2n(3)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->ge(state, Object::i2n(4)), Qfalse);
+  }
+
+  void test_lt() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->lt(state, Object::i2n(4)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->lt(state, Object::i2n(3)), Qfalse);
+  }
+
+  void test_le() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Object::i2n(4)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Object::i2n(3)), Qtrue);
+    TS_ASSERT_EQUALS(Object::i2n(3)->le(state, Object::i2n(2)), Qfalse);
+  }
+
   void test_left_shift() {
     TS_ASSERT_EQUALS(Object::i2n(3)->left_shift(state, Object::i2n(4)), Object::i2n(48));
 

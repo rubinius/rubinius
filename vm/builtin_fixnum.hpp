@@ -133,6 +133,22 @@ namespace rubinius {
       return Qfalse;
     }
 
+    OBJECT gt(STATE, FIXNUM other) {
+      return n2i() > other->n2i() ? Qtrue : Qfalse;
+    }
+
+    OBJECT ge(STATE, FIXNUM other) {
+      return n2i() >= other->n2i() ? Qtrue : Qfalse;      
+    }
+
+    OBJECT lt(STATE, FIXNUM other) {
+      return n2i() < other->n2i() ? Qtrue : Qfalse;      
+    }
+
+    OBJECT le(STATE, FIXNUM other) {
+      return n2i() <= other->n2i() ? Qtrue : Qfalse;      
+    }
+
     INTEGER left_shift(STATE, INTEGER bits) {
       native_int shift = bits->n2i();
       if(shift < 0) {
