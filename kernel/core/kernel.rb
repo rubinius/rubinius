@@ -127,7 +127,7 @@ module Kernel
     end
 
     unless skip
-      exc.set_backtrace MethodContext.current.sender unless exc.context
+      exc.context = MethodContext.current.sender unless exc.context
     end
     Rubinius.asm(exc) { |e| e.bytecode(self); raise_exc }
   end

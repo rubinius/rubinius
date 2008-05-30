@@ -585,10 +585,8 @@ class Backtrace
   end
 
   def self.backtrace(ctx=nil)
+    ctx = MethodContext.current.sender unless ctx
     obj = new()
-    unless ctx
-      ctx = MethodContext.current.sender
-    end
     obj.fill_from ctx
     return obj
   end

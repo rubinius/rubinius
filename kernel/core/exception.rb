@@ -8,24 +8,25 @@ class Exception
   def initialize(message = nil)
     @message = message
     @context = nil
+    @backtrace = nil
   end
 
   def backtrace
     return nil unless @context
-    return @context if @context.kind_of? Array
+    return @backtrace if @backtrace
     awesome_backtrace.to_mri
   end
   
   def awesome_backtrace
     return nil unless @context
-    unless @context.kind_of? Backtrace
-      @context = Backtrace.backtrace(@context)
-    end
-    @context
+    #unless @backtrace.kind_of? Backtrace
+      @backtrace = Backtrace.backtrace(@context)
+    #end
+    @backtrace
   end
 
   def set_backtrace(bt)
-    @context = bt
+    @backtrace = bt
   end
   
   def to_s
@@ -35,7 +36,7 @@ class Exception
   def inspect
     "#<#{self.class.name}: #{self.to_s}>"
   end
-  
+
   alias_method :message, :to_s
   alias_method :to_str, :to_s
   
@@ -52,11 +53,11 @@ class Exception
   end
   
   def context
-    if @context.kind_of? Backtrace
-      return @context.top_context
-    end
-    
-    return @context
+    @context
+  end
+
+  def context=(other)
+    @context = other
   end
   
   def location
