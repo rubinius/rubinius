@@ -207,6 +207,12 @@ class TestBignum : public CxxTest::TestSuite {
     o2 = ary1->get(state, 1);
     check_bignum(o1,"-25");
     check_bignum(o2, "-89478478");
+
+    ary1 = b1->divmod(state, Float::create(state, 2.5));
+    o1 = ary1->get(state, 0);
+    o2 = ary1->get(state, 1);
+    check_bignum(o1,"858993458");
+    check_float(as<Float>(o2), Float::create(state, 2.0));
   }
 
   void test_mod() {

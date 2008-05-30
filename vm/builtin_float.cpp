@@ -81,7 +81,7 @@ namespace rubinius {
 
   Array* Float::divmod(STATE, Float* other) {
     Array* ary = Array::create(state, 2);
-    ary->set(state, 0, Object::i2n((native_int) floor(this->val / other->val) ));
+    ary->set(state, 0, Bignum::from_double(state, floor(this->val / other->val) ));
     ary->set(state, 1, mod(state, other));
     return ary;
   }
