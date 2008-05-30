@@ -385,6 +385,74 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Object::i2n(0)->size(state)->n2i(), sizeof(native_int));
   }
 
+  void test_and() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_and(state, Object::i2n(3)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_and(state, Object::i2n(3)), Object::i2n(3));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_and(state, Object::i2n(-3)), Object::i2n(5));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_and(state, Object::i2n(-3)), Object::i2n(-7));
+  }
+
+  void test_and_with_bignum() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_and(state, Bignum::create(state, 3)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_and(state, Bignum::create(state, 3)), Object::i2n(3));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_and(state, Bignum::create(state, -3)), Object::i2n(5));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_and(state, Bignum::create(state, -3)), Object::i2n(-7));
+  }
+
+  void test_and_with_float() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_and(state, Float::create(state, 3.1)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_and(state, Float::create(state, 2.9)), Object::i2n(0));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_and(state, Float::create(state, -3.1)), Object::i2n(5));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_and(state, Float::create(state, -2.9)), Object::i2n(4));
+  }
+
+  void test_or() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_or(state, Object::i2n(3)), Object::i2n(7));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_or(state, Object::i2n(3)), Object::i2n(-5));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_or(state, Object::i2n(-3)), Object::i2n(-3));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_or(state, Object::i2n(-3)), Object::i2n(-1));
+  }
+
+  void test_or_with_bignum() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_or(state, Bignum::create(state, 3)), Object::i2n(7));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_or(state, Bignum::create(state, 3)), Object::i2n(-5));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_or(state, Bignum::create(state, -3)), Object::i2n(-3));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_or(state, Bignum::create(state, -3)), Object::i2n(-1));
+  }
+
+  void test_or_with_float() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_or(state, Float::create(state, 3.1)), Object::i2n(7));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_or(state, Float::create(state, 2.9)), Object::i2n(7));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_or(state, Float::create(state, -3.1)), Object::i2n(-3));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_or(state, Float::create(state, -2.9)), Object::i2n(-1));
+  }
+
+  void test_xor() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_xor(state, Object::i2n(3)), Object::i2n(6));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_xor(state, Object::i2n(3)), Object::i2n(-8));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_xor(state, Object::i2n(-3)), Object::i2n(-8));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_xor(state, Object::i2n(-3)), Object::i2n(6));
+  }
+
+  void test_xor_with_bignum() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_xor(state, Bignum::create(state, 3)), Object::i2n(6));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_xor(state, Bignum::create(state, 3)), Object::i2n(-8));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_xor(state, Bignum::create(state, -3)), Object::i2n(-8));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->bit_xor(state, Bignum::create(state, -3)), Object::i2n(6));
+  }
+
+  void test_xor_with_float() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_xor(state, Float::create(state, 3.1)), Object::i2n(6));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_xor(state, Float::create(state, 2.9)), Object::i2n(7));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_xor(state, Float::create(state, -3.1)), Object::i2n(-8));
+    TS_ASSERT_EQUALS(Object::i2n(5)->bit_xor(state, Float::create(state, -2.9)), Object::i2n(-5));
+  }
+
+  void test_invert() {
+    TS_ASSERT_EQUALS(Object::i2n(5)->invert(state), Object::i2n(-6));
+    TS_ASSERT_EQUALS(Object::i2n(-5)->invert(state), Object::i2n(4));
+  }
+
   void test_uncastable_object_throws_exception() {
     TS_ASSERT_THROWS( as<Integer>(String::create(state, "blah")), const TypeError &);
   }

@@ -298,6 +298,47 @@ namespace rubinius {
     INTEGER size(STATE) {
       return Object::i2n(sizeof(native_int));
     }
+
+    INTEGER bit_and(STATE, FIXNUM other) {
+      return Object::i2n(n2i() & other->n2i());
+    }
+
+    INTEGER bit_and(STATE, Bignum* other) {
+      return other->bit_and(state, this);
+    }
+
+    INTEGER bit_and(STATE, Float* other) {
+      return Object::i2n(n2i() & (native_int)other->val);
+    }
+
+    INTEGER bit_or(STATE, FIXNUM other) {
+      return Object::i2n(n2i() | other->n2i());
+    }
+
+    INTEGER bit_or(STATE, Bignum* other) {
+      return other->bit_or(state, this);
+    }
+
+    INTEGER bit_or(STATE, Float* other) {
+      return Object::i2n(n2i() | (native_int)other->val);
+    }
+
+    INTEGER bit_xor(STATE, FIXNUM other) {
+      return Object::i2n(n2i() ^ other->n2i());
+    }
+
+    INTEGER bit_xor(STATE, Bignum* other) {
+      return other->bit_xor(state, this);
+    }
+
+    INTEGER bit_xor(STATE, Float* other) {
+      return Object::i2n(n2i() ^ (native_int)other->val);
+    }
+
+    INTEGER invert(STATE) {
+      return Object::i2n(~n2i());
+    }
+
   };
 
   typedef Fixnum* FIXNUM;
