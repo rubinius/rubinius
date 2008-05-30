@@ -163,6 +163,44 @@ namespace rubinius {
       return (double)n2i() == other->val ? Qtrue : Qfalse;
     }
 
+    // Ruby.primitive! :fixnum_compare
+    FIXNUM compare(STATE, FIXNUM other) {
+      native_int left  = n2i();
+      native_int right = other->n2i();
+      if(left == right) {
+        return Object::i2n(0);
+      } else if(left < right) {
+        return Object::i2n(-1);
+      } else {
+        return Object::i2n(1);
+      }
+    }
+
+    // Ruby.primitive! :fixnum_compare
+    FIXNUM compare(STATE, Bignum* other) {
+      native_int res = other->compare(state, this)->n2i();
+      if(res == 0) {
+        return Object::i2n(0);
+      } else if(res < 0) {
+        return Object::i2n(1);
+      } else {
+        return Object::i2n(-1);
+      }
+    }
+
+    // Ruby.primitive! :fixnum_compare
+    FIXNUM compare(STATE, Float* other) {
+      double left  = (double)n2i();
+      double right = other->val;
+      if(left == right) {
+        return Object::i2n(0);
+      } else if(left < right) {
+        return Object::i2n(-1);
+      } else {
+        return Object::i2n(1);
+      }
+    }
+
     // Ruby.primitive! :fixnum_gt
     OBJECT gt(STATE, FIXNUM other) {
       return n2i() > other->n2i() ? Qtrue : Qfalse;
@@ -256,10 +294,10 @@ namespace rubinius {
       return STRIP_TAG(this);
     }
 
-    INTEGER size() {
+    // Ruby.primitive :fixnum_size
+    INTEGER size(STATE) {
       return Object::i2n(sizeof(native_int));
     }
-
   };
 
   typedef Fixnum* FIXNUM;

@@ -58,6 +58,7 @@ namespace rubinius {
     // Ruby.primitive! :float_divmod
     Array* divmod(STATE, INTEGER other);
 
+    // Ruby.primitive :float_neg
     Float* neg(STATE);
     OBJECT equal(STATE, Float* other);
 

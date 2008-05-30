@@ -279,6 +279,24 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Object::i2n(10)->equal(state, obj2), Qfalse);
   }
 
+  void test_compare() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->compare(state, Object::i2n(2)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Object::i2n(3)->compare(state, Object::i2n(3)), Object::i2n(0));
+    TS_ASSERT_EQUALS(Object::i2n(3)->compare(state, Object::i2n(4)), Object::i2n(-1));
+  }
+
+  void test_compare_with_a_bignum() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->compare(state, Bignum::create(state, 2)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Object::i2n(3)->compare(state, Bignum::create(state, 3)), Object::i2n(0));
+    TS_ASSERT_EQUALS(Object::i2n(3)->compare(state, Bignum::create(state, 4)), Object::i2n(-1));
+  }
+
+  void test_compare_with_a_float() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->compare(state, Float::create(state, 2.9)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Object::i2n(3)->compare(state, Float::create(state, 3.0)), Object::i2n(0));
+    TS_ASSERT_EQUALS(Object::i2n(3)->compare(state, Float::create(state, 3.1)), Object::i2n(-1));
+  }
+
   void test_gt() {
     TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Object::i2n(2)), Qtrue);
     TS_ASSERT_EQUALS(Object::i2n(3)->gt(state, Object::i2n(3)), Qfalse);
@@ -361,6 +379,10 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Object::i2n(-49)->right_shift(state, Object::i2n(4)), Object::i2n(-4));
     TS_ASSERT_EQUALS(Object::i2n(1)->right_shift(state, Object::i2n(4)), Object::i2n(0));
     TS_ASSERT_EQUALS(Object::i2n(-1)->right_shift(state, Object::i2n(4)), Object::i2n(-1));
+  }
+
+  void test_size() {
+    TS_ASSERT_EQUALS(Object::i2n(0)->size(state)->n2i(), sizeof(native_int));
   }
 
   void test_uncastable_object_throws_exception() {
