@@ -382,7 +382,8 @@ class TestFixnum : public CxxTest::TestSuite {
   }
 
   void test_size() {
-    TS_ASSERT_EQUALS(Object::i2n(0)->size(state)->n2i(), sizeof(native_int));
+    TS_ASSERT_EQUALS(static_cast<unsigned int>(Object::i2n(0)->size(state)->n2i()), 
+		     sizeof(native_int));
   }
 
   void test_and() {
