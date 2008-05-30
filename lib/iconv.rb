@@ -108,12 +108,18 @@ class Iconv
     l1 = MemoryPointer.new(:pointer)
     l2 = MemoryPointer.new(:pointer)
 
-    is = MemoryPointer.new(str.size + 10)
     ic = MemoryPointer.new(:long)
+    if str then
+      is = MemoryPointer.new(str.size + 10)
+      is.write_string str, str.size
 
-    ic.write_long str.size
-    is.write_string str, str.size
-    l1.write_long is.address
+      ic.write_long str.size
+      l1.write_long is.address
+    else # if str is nil, reset the shift state
+      ic.write_long 0
+      l1.write_long 0
+    end
+
 
     # Totally made up metric
     output = 1024
@@ -122,37 +128,36 @@ class Iconv
 
     result = ""
 
-    begin
-      loop do
-        oc.write_long output
-        l2.write_long os.address
-  
-        count = Iconv.convert @handle, l1, ic, l2, oc
-        if count == -1 then
-          begin
-            Errno.handle if count == -1
-          rescue Errno::EILSEQ => e
-            raise IllegalSequence.new(nil, get_success(os, l2), get_failed(is, ic, l1))
-          rescue Errno::E2BIG => e
-            result += get_success(os, l2)
-            next
-          rescue Errno::EINVAL => e
-            raise InvalidCharacter.new(nil, get_success(os, l2), get_failed(is, ic, l1))
-          rescue RuntimeError => e
-            raise BrokenLibrary.new(nil, get_success(os, l2), get_failed(is, ic, l1))
-          end
-        elsif ic.read_long > 0 then
-          raise IllegalSequence.new(nil, get_success(os, l2), get_failed(is, ic, l1))
-        end
+    loop do
+      oc.write_long output
+      l2.write_long os.address
 
-        result += get_success(os, l2)
-        break
+      count = Iconv.convert @handle, l1, ic, l2, oc
+      if count == -1 then
+        begin
+          Errno.handle if count == -1
+        rescue Errno::EILSEQ => e
+          raise IllegalSequence.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+        rescue Errno::E2BIG => e
+          result += get_success(os, l2)
+          next
+        rescue Errno::EINVAL => e
+          raise InvalidCharacter.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+        rescue RuntimeError => e
+          raise BrokenLibrary.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+        end
+      elsif ic.read_long > 0 then
+        raise IllegalSequence.new(nil, get_success(os, l2), get_failed(is, ic, l1))
       end
-    ensure
-      l1.free; l2.free; is.free; ic.free; os.free; oc.free
+
+      result += get_success(os, l2)
+      break
     end
 
-    return result
+    result
+
+  ensure
+      l1.free; l2.free; is.free if is; ic.free; os.free; oc.free
   end
 
 end
