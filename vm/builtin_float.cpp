@@ -66,6 +66,30 @@ namespace rubinius {
     return Float::create(state, this->val / Float::coerce(state, other)->val);
   }
 
+  Float* Float::mod(STATE, Float* other) {
+    double res = fmod(this->val, other->val);
+    if(other->val < 0.0 && this->val > 0.0 ||
+       other->val > 0.0 && this->val < 0.0 ) {
+      res += other->val;
+    }
+    return Float::create(state, res);
+  }
+
+  Float* Float::mod(STATE, INTEGER other) {
+    return mod(state, Float::coerce(state, other));
+  }
+
+  Array* Float::divmod(STATE, Float* other) {
+    Array* ary = Array::create(state, 2);
+    ary->set(state, 0, Object::i2n((native_int) floor(this->val / other->val) ));
+    ary->set(state, 1, mod(state, other));
+    return ary;
+  }
+
+  Array* Float::divmod(STATE, INTEGER other) {
+    return divmod(state, Float::coerce(state, other));
+  }
+
   Float* Float::neg(STATE) {
     return Float::create(state, -this->val);
   }

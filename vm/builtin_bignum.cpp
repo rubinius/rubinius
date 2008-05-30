@@ -326,7 +326,11 @@ namespace rubinius {
     divide(state, denominator, &mod);
     return mod;
   }
-  
+
+  Array* Bignum::divmod(STATE, Float* denominator) {
+    return Float::coerce(state, this)->divmod(state, denominator);
+  }  
+
   INTEGER Bignum::mod(STATE, Bignum* denominator) {
     INTEGER mod = Object::i2n(0);
     divide(state, denominator, &mod);

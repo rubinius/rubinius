@@ -6,6 +6,7 @@
 #include <floatingpoint.h>
 #endif
 
+#include <math.h>
 #include <float.h>
 
 namespace rubinius {
@@ -46,6 +47,16 @@ namespace rubinius {
     Float* div(STATE, Float* other);
     // Ruby.primitive! :float_div
     Float* div(STATE, INTEGER other);
+
+    // Ruby.primitive! :float_mod
+    Float* mod(STATE, Float* other);
+    // Ruby.primitive! :float_mod
+    Float* mod(STATE, INTEGER other);
+    
+    // Ruby.primitive! :float_divmod
+    Array* divmod(STATE, Float* other);
+    // Ruby.primitive! :float_divmod
+    Array* divmod(STATE, INTEGER other);
 
     Float* neg(STATE);
     OBJECT equal(STATE, Float* other);

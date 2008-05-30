@@ -212,6 +212,15 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Object::i2n(-3)->mod(state, Object::i2n(-2)), Object::i2n(-1));
   }
 
+  void test_mod_with_a_bignum() {
+    TS_ASSERT_EQUALS(Object::i2n(-3)->mod(state, Bignum::create(state, -2)), Object::i2n(-1));
+  }
+
+  void test_mod_with_a_float() {
+    Float* f = Object::i2n(4)->mod(state, Float::create(state, -1.7));
+    check_float(f, Float::create(state, -1.1));
+  }
+
   void test_divmod() {
     FIXNUM one = as<Fixnum>(Object::i2n(15));
     FIXNUM two = as<Fixnum>(Object::i2n(4));
@@ -223,6 +232,30 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), 3);
     TS_ASSERT(o2->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(o2)->n2i(), 3);
+  }
+
+  void test_divmod_with_a_bignum() {
+    FIXNUM one = as<Fixnum>(Object::i2n(15));
+    Bignum* two = Bignum::create(state, 4);
+
+    Array* ary1 = one->divmod(state, two);
+    Object* o1 = ary1->get(state, 0);
+    Object* o2 = ary1->get(state, 1);
+    TS_ASSERT(o1->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), 3);
+    TS_ASSERT(o2->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o2)->n2i(), 3);
+  }
+
+  void test_divmod_with_a_float() {
+    FIXNUM one = as<Fixnum>(Object::i2n(15));
+
+    Array* ary1 = one->divmod(state, Float::create(state, -3.3));
+    Object* o1 = ary1->get(state, 0);
+    Object* o2 = ary1->get(state, 1);
+    TS_ASSERT(o1->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), -5);
+    check_float(as<Float>(o2), Float::create(state, -1.5));
   }
 
   void test_equal() {

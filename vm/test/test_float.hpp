@@ -111,6 +111,75 @@ class TestFloat : public CxxTest::TestSuite {
     check_float(a, Float::create(state, 100000 / ((double)FIXNUM_MAX + 10)));
   }
 
+  void test_mod() {
+    Float* f = Float::create(state, 2.2);
+    Float* a = f->mod(state, Float::create(state, 0.5));
+    check_float(a, Float::create(state, 0.2));
+
+    f = Float::create(state, -2.2);
+    a = f->mod(state, Float::create(state, 0.5));
+    check_float(a, Float::create(state, 0.3));
+
+    f = Float::create(state, 2.2);
+    a = f->mod(state, Float::create(state, -0.5));
+    check_float(a, Float::create(state, -0.3));
+
+    f = Float::create(state, -2.2);
+    a = f->mod(state, Float::create(state, -0.5));
+    check_float(a, Float::create(state, -0.2));
+
+    f = Float::create(state, 2.2);
+    a = f->mod(state, Object::i2n(1));
+    check_float(a, Float::create(state, 0.2));
+  }
+
+  void test_divmod() {
+    Float*  f  = Float::create(state, 2.2);
+    Array*  a  = f->divmod(state, Float::create(state, 0.5));
+    Object* o1 = a->get(state, 0);
+    Float*  o2 = as<Float>(a->get(state, 1));
+
+    TS_ASSERT(o1->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), 4);
+    check_float(o2, Float::create(state, 0.2));
+
+    f = Float::create(state, -2.2);
+    a = f->divmod(state, Float::create(state, 0.5));
+    o1 = a->get(state, 0);
+    o2 = as<Float>(a->get(state, 1));
+
+    TS_ASSERT(o1->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), -5);
+    check_float(o2, Float::create(state, 0.3));
+
+    f = Float::create(state, 2.2);
+    a = f->divmod(state, Float::create(state, -0.5));
+    o1 = a->get(state, 0);
+    o2 = as<Float>(a->get(state, 1));
+
+    TS_ASSERT(o1->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), -5);
+    check_float(o2, Float::create(state, -0.3));
+
+    f = Float::create(state, -2.2);
+    a = f->divmod(state, Float::create(state, -0.5));
+    o1 = a->get(state, 0);
+    o2 = as<Float>(a->get(state, 1));
+
+    TS_ASSERT(o1->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), 4);
+    check_float(o2, Float::create(state, -0.2));
+
+    f = Float::create(state, -2.2);
+    a = f->divmod(state, Object::i2n(2));
+    o1 = a->get(state, 0);
+    o2 = as<Float>(a->get(state, 1));
+
+    TS_ASSERT(o1->fixnum_p());
+    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), -2);
+    check_float(o2, Float::create(state, 1.8));
+  }
+
   void test_neg() {
     Float* f = Float::create(state, 0.2);
     Float* a = f->neg(state);

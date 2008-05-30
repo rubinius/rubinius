@@ -109,6 +109,7 @@ namespace rubinius {
       return Float::coerce(state, this)->div(state, other);
     }
 
+    // Ruby.primitive! :fixnum_mod
     INTEGER mod(STATE, FIXNUM other) {
       native_int numerator = n2i();
       native_int denominator = other->n2i();
@@ -116,6 +117,17 @@ namespace rubinius {
       return Object::i2n(state, numerator - denominator * quotient);
     }
 
+    // Ruby.primitive! :fixnum_mod
+    INTEGER mod(STATE, Bignum* other) {
+      return Bignum::create(state, n2i())->mod(state, other);
+    }
+
+    // Ruby.primitive! :fixnum_mod
+    Float* mod(STATE, Float* other) {
+      return Float::create(state, n2i())->mod(state, other);
+    }
+
+    // Ruby.primitive! :fixnum_divmod
     Array* divmod(STATE, FIXNUM other) {
       native_int numerator = n2i();
       native_int denominator = other->n2i();
@@ -126,66 +138,92 @@ namespace rubinius {
       return ary;
     }
 
+    // Ruby.primitive! :fixnum_divmod
+    Array* divmod(STATE, Bignum* other) {
+      return Bignum::create(state, n2i())->divmod(state, other);
+    }
+
+    // Ruby.primitive! :fixnum_divmod
+    Array* divmod(STATE, Float* other) {
+      return Float::create(state, n2i())->divmod(state, other);
+    }
+
+    // Ruby.primitive! :fixnum_equal
     OBJECT equal(STATE, FIXNUM other) {
       return n2i() == other->n2i() ? Qtrue : Qfalse;
     }
 
+    // Ruby.primitive! :fixnum_equal
     OBJECT equal(STATE, Bignum* other) {
       return other->equal(state, this);
     }
 
+    // Ruby.primitive! :fixnum_equal
     OBJECT equal(STATE, Float* other) {
       return (double)n2i() == other->val ? Qtrue : Qfalse;
     }
 
+    // Ruby.primitive! :fixnum_gt
     OBJECT gt(STATE, FIXNUM other) {
       return n2i() > other->n2i() ? Qtrue : Qfalse;
     }
 
+    // Ruby.primitive! :fixnum_gt
     OBJECT gt(STATE, Bignum* other) {
       return other->lt(state, this);
     }
 
+    // Ruby.primitive! :fixnum_gt
     OBJECT gt(STATE, Float* other) {
       return (double) n2i() > other->val ? Qtrue : Qfalse;
     }
 
+    // Ruby.primitive! :fixnum_ge
     OBJECT ge(STATE, FIXNUM other) {
       return n2i() >= other->n2i() ? Qtrue : Qfalse;      
     }
 
+    // Ruby.primitive! :fixnum_ge
     OBJECT ge(STATE, Bignum* other) {
       return other->le(state, this);
     }
 
+    // Ruby.primitive! :fixnum_ge
     OBJECT ge(STATE, Float* other) {
       return (double) n2i() >= other->val ? Qtrue : Qfalse;
     }
 
+    // Ruby.primitive! :fixnum_lt
     OBJECT lt(STATE, FIXNUM other) {
       return n2i() < other->n2i() ? Qtrue : Qfalse;      
     }
 
+    // Ruby.primitive! :fixnum_lt
     OBJECT lt(STATE, Bignum* other) {
       return other->gt(state, this);
     }
 
+    // Ruby.primitive! :fixnum_lt
     OBJECT lt(STATE, Float* other) {
       return (double) n2i() < other->val ? Qtrue : Qfalse;
     }
 
+    // Ruby.primitive! :fixnum_le
     OBJECT le(STATE, FIXNUM other) {
       return n2i() <= other->n2i() ? Qtrue : Qfalse;      
     }
 
+    // Ruby.primitive! :fixnum_le
     OBJECT le(STATE, Bignum* other) {
       return other->ge(state, this);
     }
 
+    // Ruby.primitive! :fixnum_le
     OBJECT le(STATE, Float* other) {
       return (double) n2i() <= other->val ? Qtrue : Qfalse;
     }
 
+    // Ruby.primitive :fixnum_left_shift
     INTEGER left_shift(STATE, INTEGER bits) {
       native_int shift = bits->n2i();
       if(shift < 0) {
@@ -201,6 +239,7 @@ namespace rubinius {
       return Object::i2n(self << shift);
     }
 
+    // Ruby.primitive :fixnum_right_shift
     INTEGER right_shift(STATE, INTEGER bits) {
       native_int shift = bits->n2i();
       if(shift < 0) {
@@ -215,6 +254,10 @@ namespace rubinius {
 
     native_int to_nint() {
       return STRIP_TAG(this);
+    }
+
+    INTEGER size() {
+      return Object::i2n(sizeof(native_int));
     }
 
   };

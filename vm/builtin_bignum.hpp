@@ -55,8 +55,13 @@ namespace rubinius {
     // Ruby.primitive! :bignum_div
     Float*  div(STATE, Float* b);
 
+    // Ruby.primitive! :bignum_divmod
     Array* divmod(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_divmod
     Array* divmod(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_divmod
+    Array* divmod(STATE, Float* b);
+
     INTEGER mod(STATE, FIXNUM b);
     INTEGER mod(STATE, Bignum* b);
     INTEGER bit_and(STATE, INTEGER b);
