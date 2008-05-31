@@ -224,6 +224,8 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(mod, "-89478478");
     mod = b1->mod(state, Bignum::create(state, (native_int)-2147483645));
     check_bignum(mod, "-2147483643");
+    Float* f = b1->mod(state, Float::create(state, -21483645.2));
+    check_float(f, Float::create(state, -880872.999999925));
   }
 
   void test_left_shift() {
@@ -261,7 +263,11 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b->equal(state, Object::i2n(2)), Qtrue);
     TS_ASSERT_EQUALS(b->equal(state, Object::i2n(1)), Qfalse);
 
-    TS_ASSERT_EQUALS(b->equal(state, Float::create(state, 2.0)), Qtrue);
+    b = Bignum::create(state, -2);
+    TS_ASSERT_EQUALS(b->equal(state, Object::i2n(-2)), Qtrue);
+    TS_ASSERT_EQUALS(b->equal(state, Object::i2n(1)), Qfalse);
+
+    TS_ASSERT_EQUALS(b->equal(state, Float::create(state, -2.0)), Qtrue);
     TS_ASSERT_EQUALS(b->equal(state, Float::create(state, 1.9)), Qfalse);
   }
 
@@ -271,6 +277,26 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1->compare(state, b1), Object::i2n(0));
 
     TS_ASSERT_EQUALS(b1->compare(state, Object::i2n(0)), Object::i2n(1));
+  }
+
+  void test_compare_with_fixnum() {
+    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Object::i2n(3)), Object::i2n(0));
+    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Object::i2n(2)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Object::i2n(4)), Object::i2n(-1));
+
+    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Object::i2n(-3)), Object::i2n(0));
+    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Object::i2n(-2)), Object::i2n(-1));
+    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Object::i2n(-4)), Object::i2n(1));
+  }
+
+  void test_compare_with_float() {
+    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Float::create(state, 3.0)), Object::i2n(0));
+    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Float::create(state, 2.9)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Float::create(state, 3.1)), Object::i2n(-1));
+
+    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Float::create(state, -3.0)), Object::i2n(0));
+    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Float::create(state, -2.9)), Object::i2n(-1));
+    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Float::create(state, -3.1)), Object::i2n(1));
   }
 
   void test_neg() {

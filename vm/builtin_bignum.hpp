@@ -62,19 +62,37 @@ namespace rubinius {
     // Ruby.primitive! :bignum_divmod
     Array* divmod(STATE, Float* b);
 
+    // Ruby.primitive! :bignum_mod
     INTEGER mod(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_mod
     INTEGER mod(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_mod
+    Float* mod(STATE, Float* b);
+
+    // Ruby.primitive :bignum_invert
+    INTEGER invert(STATE);
+    // Ruby.primitive :bignum_neg
+    INTEGER neg(STATE);
+
+    // Ruby.primitive! :bignum_equal
+    OBJECT equal(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_equal
+    OBJECT equal(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_equal
+    OBJECT equal(STATE, Float* b);
+
+    // Ruby.primitive! :bignum_compare
+    FIXNUM compare(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_compare
+    FIXNUM compare(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_compare
+    FIXNUM compare(STATE, Float* b);
+
     INTEGER bit_and(STATE, INTEGER b);
     INTEGER bit_or(STATE, INTEGER b);
     INTEGER bit_xor(STATE, INTEGER b);
-    INTEGER invert(STATE);
-    INTEGER neg(STATE);
     INTEGER left_shift(STATE, INTEGER bits);
     INTEGER right_shift(STATE, INTEGER bits);
-    FIXNUM compare(STATE, INTEGER b);
-    OBJECT equal(STATE, FIXNUM b);
-    OBJECT equal(STATE, Bignum* b);
-    OBJECT equal(STATE, Float* b);
     OBJECT gt(STATE, INTEGER b);
     OBJECT ge(STATE, INTEGER b);
     OBJECT lt(STATE, INTEGER b);

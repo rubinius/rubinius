@@ -329,21 +329,25 @@ namespace rubinius {
     return ary;
   }
 
+  Array* Bignum::divmod(STATE, Float* denominator) {
+    return Float::coerce(state, this)->divmod(state, denominator);
+  }  
+
   INTEGER Bignum::mod(STATE, FIXNUM denominator) {
     INTEGER mod = Object::i2n(0);
     divide(state, denominator, &mod);
     return mod;
   }
 
-  Array* Bignum::divmod(STATE, Float* denominator) {
-    return Float::coerce(state, this)->divmod(state, denominator);
-  }  
-
   INTEGER Bignum::mod(STATE, Bignum* denominator) {
     INTEGER mod = Object::i2n(0);
     divide(state, denominator, &mod);
     return mod;
   }
+
+  Float* Bignum::mod(STATE, Float* denominator) {
+    return Float::coerce(state, this)->mod(state, denominator);
+  }  
 
   INTEGER Bignum::bit_and(STATE, INTEGER b) {
     NMP;
@@ -445,8 +449,16 @@ namespace rubinius {
 
   OBJECT Bignum::equal(STATE, FIXNUM b) {
     native_int bi = b->n2i();
-    if(bi < 0) bi = -bi;
-    if(mp_cmp_d(MP(this), bi) == MP_EQ) {
+    mp_int* a = MP(this);
+    if(bi < 0) {
+      bi = -bi;
+      mp_int n;
+      mp_init(&n);
+      mp_copy(a, &n);
+      mp_neg(&n, &n);
+      a = &n;
+    }
+    if(mp_cmp_d(a, bi) == MP_EQ) {
       return Qtrue;
     }
     return Qfalse;
@@ -463,11 +475,34 @@ namespace rubinius {
     return Float::coerce(state, this)->equal(state, b);
   }
 
-  FIXNUM Bignum::compare(STATE, INTEGER b) {
-    if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
+  FIXNUM Bignum::compare(STATE, FIXNUM b) {
+    native_int bi = b->n2i();
+    mp_int* a = MP(this);
+    if(bi < 0) {
+      mp_int n;
+      mp_init(&n);
+      mp_copy(a, &n);
+      mp_neg(&n, &n);
+      
+      switch(mp_cmp_d(&n, -bi)) {
+        case MP_LT:
+          return Object::i2n(1);
+        case MP_GT:
+          return Object::i2n(-1);
+      }
+      
+    } else {
+      switch(mp_cmp_d(a, bi)) {
+        case MP_LT:
+          return Object::i2n(-1);
+        case MP_GT:
+          return Object::i2n(1);
+      }
     }
+    return Object::i2n(0);
+  }
 
+  FIXNUM Bignum::compare(STATE, Bignum* b) {
     switch(mp_cmp(MP(this), MP(b))) {
       case MP_LT:
         return Object::i2n(-1);
@@ -475,6 +510,10 @@ namespace rubinius {
         return Object::i2n(1);
     }
     return Object::i2n(0);
+  }
+
+  FIXNUM Bignum::compare(STATE, Float* b) {
+    return Float::coerce(state, this)->compare(state, b);
   }
 
   OBJECT Bignum::gt(STATE, INTEGER b) {
