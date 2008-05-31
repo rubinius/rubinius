@@ -54,7 +54,12 @@ class Iconv
   def close
     return if @closed
     @closed = true
-    Errno.handle if Iconv.close(@handle) != 0
+    
+    begin
+      iconv nil
+    ensure
+      Errno.handle if Iconv.close(@handle) != 0
+    end
   end
 
   def self.open(to, from)
