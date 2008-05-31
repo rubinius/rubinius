@@ -75,26 +75,26 @@ module Kernel
 
   def eval(string, binding=nil, filename='(eval)', lineno=1)
     if !binding
-      binding = Binding.setup MethodContext.current.sender
+      context = MethodContext.current.sender
     elsif binding.kind_of? Proc
-      binding = Binding.setup binding.block.home_block
+      context = binding.block.home_block
     elsif !binding.kind_of? Binding
       raise ArgumentError, "unknown type of binding"
+    else
+      context = binding.context
     end
 
-    flags = { :binding => binding }
-    compiled_method = Compile.compile_string string, flags, filename, lineno
-    compiled_method.staticscope = binding.context.method.staticscope.dup
+    compiled_method = Compile.compile_string string, context, filename, lineno
+    compiled_method.staticscope = context.method.staticscope.dup
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
     script.path = filename
     compiled_method.staticscope.script = script
 
-    ctx = binding.context
     be = BlockEnvironment.new
     be.from_eval!
-    be.under_context ctx, compiled_method
+    be.under_context context, compiled_method
     be.call
   end
   module_function :eval
@@ -121,7 +121,7 @@ module Kernel
   #   k = Klass.new
   #   k.instance_eval { @secret }   #=> 99
 
-  def instance_eval(string = nil, filename = "(eval)", line = 1, modeval = false, binding = false, &prc)
+  def instance_eval(string = nil, filename = "(eval)", line = 1, modeval = false, binding = nil, &prc)
     if prc
       if string
         raise ArgumentError, 'cannot pass both a block and a string to evaluate'
@@ -135,13 +135,14 @@ module Kernel
     elsif string
       string = StringValue(string)
 
-      unless binding
-        binding = Binding.setup(MethodContext.current.sender)
+      if binding
+        context = binding.context
+      else
+        context = MethodContext.current.sender
       end
 
-      flags = { :binding => binding }
-      compiled_method = Compile.compile_string string, flags, filename, line
-      compiled_method.inherit_scope binding.context.method
+      compiled_method = Compile.compile_string string, context, filename, line
+      compiled_method.inherit_scope context.method
 
       # If this is a module_eval style evaluation, add self to the top of the
       # staticscope chain, so that methods and such are added directly to it.
@@ -158,10 +159,9 @@ module Kernel
       script.path = filename
       compiled_method.staticscope.script = script
 
-      ctx = binding.context
       be = BlockEnvironment.new
       be.from_eval!
-      be.under_context ctx, compiled_method
+      be.under_context context, compiled_method
       be.call_on_instance(self)
     else
       raise ArgumentError, 'block not supplied'
@@ -193,16 +193,14 @@ class Module
       raise ArgumentError, 'block not supplied'
     end
 
-    ctx = MethodContext.current.sender
+    context = MethodContext.current.sender
 
-    binding = Binding.setup ctx
     string = StringValue(string)
 
-    flags = { :binding => binding }
-    compiled_method = Compile.compile_string string, flags, filename, line
+    compiled_method = Compile.compile_string string, context, filename, line
 
     # The staticscope of a module_eval CM is the receiver of module_eval
-    ss = StaticScope.new(self, ctx.method.staticscope)
+    ss = StaticScope.new(self, context.method.staticscope)
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
@@ -213,10 +211,9 @@ class Module
 
     # The gist of this code is that we need the receiver's static scope
     # but the caller's binding to implement the proper constant behavior
-    ctx = binding.context
     be = BlockEnvironment.new
     be.from_eval!
-    be.under_context ctx, compiled_method
+    be.under_context context, compiled_method
     be.make_independent
     be.home.receiver = self
     be.home.make_independent

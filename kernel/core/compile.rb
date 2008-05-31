@@ -65,8 +65,8 @@ module Compile
     compiler.compile_file(path, flags)
   end
 
-  def self.compile_string(string, flags=nil, filename="(eval)", line=1)
-    compiler.compile_string(string, flags, filename, line)
+  def self.compile_string(string, context=nil, filename="(eval)", line=1)
+    compiler.compile_string(string, context, filename, line)
   end
 
   def self.execute(string)
