@@ -319,6 +319,9 @@ class TestBignum : public CxxTest::TestSuite {
     Bignum* nbn2 = Bignum::create(state, (native_int)-23472);
     check_bignum(bn2->bit_and(state, Object::i2n(-21090)), "2448");
     check_bignum(nbn2->bit_and(state, Object::i2n(2109047)), "2106448");
+
+    check_bignum(bn2->bit_and(state, Float::create(state, -21090.2)), "2448");
+    check_bignum(nbn2->bit_and(state, Float::create(state, 2109047.7)), "2106448");
   }
 
   void test_bit_or() {
@@ -331,6 +334,9 @@ class TestBignum : public CxxTest::TestSuite {
     Bignum* nbn2 = Bignum::create(state, (native_int)-23472);
     check_bignum(bn2->bit_or(state, Object::i2n(-21090)), "-66");
     check_bignum(nbn2->bit_or(state, Object::i2n(2109047)), "-20873");
+
+    check_bignum(bn2->bit_or(state, Float::create(state, -21090.1)), "-66");
+    check_bignum(nbn2->bit_or(state, Float::create(state, 2109047.9)), "-20873");
   }
 
   void test_bit_xor() {
@@ -343,6 +349,9 @@ class TestBignum : public CxxTest::TestSuite {
     Bignum* nbn2 = Bignum::create(state, (native_int)-23472);
     check_bignum(bn2->bit_xor(state, Object::i2n(-21090)), "-2514");
     check_bignum(nbn2->bit_xor(state, Object::i2n(2109047)), "-2127321");
+
+    check_bignum(bn2->bit_xor(state, Float::create(state, -21090.1)), "-2514");
+    check_bignum(nbn2->bit_xor(state, Float::create(state, 2109047.9)), "-2127321");
   }
 
   void test_gt() {

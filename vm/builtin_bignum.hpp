@@ -88,16 +88,31 @@ namespace rubinius {
     // Ruby.primitive! :bignum_compare
     FIXNUM compare(STATE, Float* b);
 
+    // Ruby.primitive! :bignum_and
     INTEGER bit_and(STATE, INTEGER b);
+    // Ruby.primitive! :bignum_and
+    INTEGER bit_and(STATE, Float* b);
+
+    // Ruby.primitive! :bignum_or
     INTEGER bit_or(STATE, INTEGER b);
+    // Ruby.primitive! :bignum_or
+    INTEGER bit_or(STATE, Float* b);
+
+    // Ruby.primitive! :bignum_xor
     INTEGER bit_xor(STATE, INTEGER b);
+    // Ruby.primitive! :bignum_xor
+    INTEGER bit_xor(STATE, Float* b);
+
+    // Ruby.primitive :bignum_left_shift
     INTEGER left_shift(STATE, INTEGER bits);
+    // Ruby.primitive :bignum_right_shift
     INTEGER right_shift(STATE, INTEGER bits);
+
     OBJECT gt(STATE, INTEGER b);
     OBJECT ge(STATE, INTEGER b);
     OBJECT lt(STATE, INTEGER b);
     OBJECT le(STATE, INTEGER b);
-    bool   is_zero(STATE);
+
     int    to_int(STATE);
     int    to_i(STATE);
     native_int to_nint();

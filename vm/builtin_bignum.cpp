@@ -361,6 +361,10 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
+  INTEGER Bignum::bit_and(STATE, Float* b) {
+    return bit_and(state, Bignum::from_double(state, b->val));
+  }
+
   INTEGER Bignum::bit_or(STATE, INTEGER b) {
     NMP;
 
@@ -372,6 +376,10 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
+  INTEGER Bignum::bit_or(STATE, Float* b) {
+    return bit_or(state, Bignum::from_double(state, b->val));
+  }
+
   INTEGER Bignum::bit_xor(STATE, INTEGER b) {
     NMP;
 
@@ -381,6 +389,10 @@ namespace rubinius {
     /* Perhaps this should use mp_xor rather than our own version */
     bignum_bitwise_op(BITWISE_OP_XOR, MP(this), MP(b), n);
     return Bignum::normalize(state, n_obj);
+  }
+
+  INTEGER Bignum::bit_xor(STATE, Float* b) {
+    return bit_xor(state, Bignum::from_double(state, b->val));
   }
 
   INTEGER Bignum::invert(STATE) {
