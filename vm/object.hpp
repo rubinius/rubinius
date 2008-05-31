@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#include <sstream>
 #include <cstring>
 #include <cassert>
 #include <vector>

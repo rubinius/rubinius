@@ -41,6 +41,8 @@ namespace rubinius {
 
 #include "builtin_tuple.hpp"
 #include "builtin_array.hpp"
+#include "builtin_bytearray.hpp"
+#include "builtin_string.hpp"
 #include "builtin_float.hpp"
 
 #include "builtin_bignum.hpp"
@@ -80,8 +82,6 @@ namespace rubinius {
 #include "builtin_io.hpp"
 
 #include "builtin_regexp.hpp"
-#include "builtin_bytearray.hpp"
-#include "builtin_string.hpp"
 
 #include "builtin_lookuptable.hpp"
 #include "builtin_methodtable.hpp"

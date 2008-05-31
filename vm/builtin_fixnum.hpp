@@ -148,6 +148,11 @@ namespace rubinius {
       return Float::create(state, n2i())->divmod(state, other);
     }
 
+    // Ruby.primitive :fixnum_neg
+    INTEGER neg(STATE) {
+      return Object::i2n(-n2i());
+    }
+
     // Ruby.primitive! :fixnum_equal
     OBJECT equal(STATE, FIXNUM other) {
       return n2i() == other->n2i() ? Qtrue : Qfalse;
@@ -299,46 +304,67 @@ namespace rubinius {
       return Object::i2n(sizeof(native_int));
     }
 
+    // Ruby.primitive! :fixnum_and
     INTEGER bit_and(STATE, FIXNUM other) {
       return Object::i2n(n2i() & other->n2i());
     }
 
+    // Ruby.primitive! :fixnum_and
     INTEGER bit_and(STATE, Bignum* other) {
       return other->bit_and(state, this);
     }
 
+    // Ruby.primitive! :fixnum_and
     INTEGER bit_and(STATE, Float* other) {
       return Object::i2n(n2i() & (native_int)other->val);
     }
 
+    // Ruby.primitive! :fixnum_or
     INTEGER bit_or(STATE, FIXNUM other) {
       return Object::i2n(n2i() | other->n2i());
     }
 
+    // Ruby.primitive! :fixnum_or
     INTEGER bit_or(STATE, Bignum* other) {
       return other->bit_or(state, this);
     }
 
+    // Ruby.primitive! :fixnum_or
     INTEGER bit_or(STATE, Float* other) {
       return Object::i2n(n2i() | (native_int)other->val);
     }
 
+    // Ruby.primitive! :fixnum_xor
     INTEGER bit_xor(STATE, FIXNUM other) {
       return Object::i2n(n2i() ^ other->n2i());
     }
 
+    // Ruby.primitive! :fixnum_xor
     INTEGER bit_xor(STATE, Bignum* other) {
       return other->bit_xor(state, this);
     }
 
+    // Ruby.primitive! :fixnum_xor
     INTEGER bit_xor(STATE, Float* other) {
       return Object::i2n(n2i() ^ (native_int)other->val);
     }
 
+    // Ruby.primitive :fixnum_invert
     INTEGER invert(STATE) {
       return Object::i2n(~n2i());
     }
 
+    // Ruby.primitive :fixnum_to_f
+    Float* to_f(STATE) {
+      return Float::create(state, (double)n2i());
+    }
+
+    // Ruby.primitive :fixnum_to_s
+    String* to_s(STATE) {
+      std::stringstream sout;
+      sout << n2i();
+      return String::create(state, sout.str().c_str());
+    }
   };
 
   typedef Fixnum* FIXNUM;

@@ -258,6 +258,11 @@ class TestFixnum : public CxxTest::TestSuite {
     check_float(as<Float>(o2), Float::create(state, -1.5));
   }
 
+  void test_neg() {
+    TS_ASSERT_EQUALS(Object::i2n(3)->neg(state),  Object::i2n(-3));
+    TS_ASSERT_EQUALS(Object::i2n(-3)->neg(state),  Object::i2n(3));
+  }
+
   void test_equal() {
     TS_ASSERT_EQUALS(Object::i2n(3)->equal(state, Object::i2n(3)), Qtrue);
     TS_ASSERT_EQUALS(Object::i2n(4)->equal(state, Object::i2n(3)), Qfalse);
@@ -452,6 +457,18 @@ class TestFixnum : public CxxTest::TestSuite {
   void test_invert() {
     TS_ASSERT_EQUALS(Object::i2n(5)->invert(state), Object::i2n(-6));
     TS_ASSERT_EQUALS(Object::i2n(-5)->invert(state), Object::i2n(4));
+  }
+
+  void test_to_f() {
+    Float* f = Object::i2n(5)->to_f(state);
+    check_float(f, Float::create(state, 5.0));
+    f = Object::i2n(-2)->to_f(state);
+    check_float(f, Float::create(state, -2.0));
+  }
+
+  void test_to_s() {
+    String* n = Object::i2n(86545)->to_s(state);
+    TS_ASSERT_EQUALS(std::string("86545"), (char*)*n);
   }
 
   void test_uncastable_object_throws_exception() {
