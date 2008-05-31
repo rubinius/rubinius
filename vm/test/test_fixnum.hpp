@@ -159,12 +159,16 @@ class TestFixnum : public CxxTest::TestSuite {
 
     FIXNUM two = as<Fixnum>(one->div(state, one));
     TS_ASSERT_EQUALS(two->n2i(), 1);
+
+    TS_ASSERT_THROWS( one->div(state, Object::i2n(0)), const ZeroDivisionError &);
   }
 
   void test_div_a_bignum() {
     FIXNUM one = Object::i2n(13);
     INTEGER res = one->div(state, Bignum::create(state, FIXNUM_MAX + 10));
     TS_ASSERT_EQUALS(res->n2i(), 0);
+
+    TS_ASSERT_THROWS( one->div(state, Bignum::create(state, 0)), const ZeroDivisionError &);
   }
 
   void test_div_a_float() {
@@ -232,6 +236,8 @@ class TestFixnum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), 3);
     TS_ASSERT(o2->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(o2)->n2i(), 3);
+
+    TS_ASSERT_THROWS( one->divmod(state, Object::i2n(0)), const ZeroDivisionError &);
   }
 
   void test_divmod_with_a_bignum() {

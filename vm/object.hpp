@@ -201,6 +201,24 @@ to be a simple test for that bit pattern.
     ObjectBoundsExceeded(OBJECT o, size_t i) : obj(o), index(i) { }
   };
 
+  class ZeroDivisionError : public VMException {
+  public:
+    INTEGER i;
+    const char* reason;
+
+    ZeroDivisionError(INTEGER i, const char* reason = NULL)
+      : i(i), reason(reason) { };
+  };
+
+  class FloatDomainError : public VMException {
+  public:
+    double d;
+    const char* reason;
+
+    FloatDomainError(double d, const char* reason = NULL)
+      : d(d), reason(reason) { };
+  };
+
   class Class;
   class MetaClass;
   class Integer;

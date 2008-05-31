@@ -26,7 +26,6 @@ namespace rubinius {
     double to_double(STATE) { return val; }
     double to_double() { return val; }
     void into_string(STATE, char* buf, size_t sz);
-    OBJECT compare(STATE, Float* other);
 
     // Ruby.primitive! :float_add
     Float* add(STATE, Float* other);
@@ -42,6 +41,11 @@ namespace rubinius {
     Float* mul(STATE, Float* other);
     // Ruby.primitive! :float_mul
     Float* mul(STATE, INTEGER other);
+
+    // Ruby.primitive! :float_pow
+    Float* fpow(STATE, Float* other);
+    // Ruby.primitive! :float_pow
+    Float* fpow(STATE, INTEGER other);
 
     // Ruby.primitive! :float_div
     Float* div(STATE, Float* other);
@@ -60,7 +64,28 @@ namespace rubinius {
 
     // Ruby.primitive :float_neg
     Float* neg(STATE);
+
+    // Ruby.primitive! :float_equal
     OBJECT equal(STATE, Float* other);
+    // Ruby.primitive! :float_equal
+    OBJECT equal(STATE, INTEGER other);
+
+    // Ruby.primitive! :float_compare
+    FIXNUM compare(STATE, Float* other);
+    // Ruby.primitive! :float_compare
+    FIXNUM compare(STATE, INTEGER other);
+
+    // Ruby.primitive :float_isinf
+    OBJECT fisinf(STATE);
+
+    // Ruby.primitive :float_isnan
+    OBJECT fisnan(STATE);
+
+    // Ruby.primitive :float_round
+    INTEGER fround(STATE);
+
+    // Ruby.primitive :float_to_i
+    INTEGER to_i(STATE);
 
     static int radix()      { return FLT_RADIX; }
     static int rounds()     { return FLT_ROUNDS; }

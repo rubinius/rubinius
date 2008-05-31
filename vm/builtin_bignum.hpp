@@ -19,9 +19,9 @@ namespace rubinius {
     static INTEGER normalize(STATE, Bignum* obj);
     static Bignum* from_ull(STATE, unsigned long long val);
     static Bignum* from_ll(STATE, long long val);
-    static OBJECT from_string_detect(STATE, const char* str);
-    static OBJECT from_string(STATE, const char* str, size_t radix);
-    static OBJECT from_double(STATE, double d);
+    static INTEGER from_string_detect(STATE, const char* str);
+    static INTEGER from_string(STATE, const char* str, size_t radix);
+    static INTEGER from_double(STATE, double d);
 
     void   debug(STATE);
     // Ruby.primitive! :bignum_add
@@ -89,7 +89,7 @@ namespace rubinius {
     String* to_s(STATE, INTEGER radix);
     void   into_string(STATE, size_t radix, char* buf, size_t sz);
     double to_double(STATE);
-    OBJECT size(STATE);
+    INTEGER size(STATE);
     hashval hash_bignum(STATE);
 
     class Info : public TypeInfo {

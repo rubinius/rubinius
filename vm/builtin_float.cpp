@@ -11,17 +11,6 @@ namespace rubinius {
     return flt;
   }
 
-  OBJECT Float::compare(STATE, Float* other) {
-    double b = other->to_double();
-    if(val < b) {
-      return Object::i2n(-1);
-    } else if(val > b) {
-      return Object::i2n(1);
-    } else {
-      return Object::i2n(0);
-    }
-  }
-
   Float* Float::coerce(STATE, OBJECT value) {
     if(value->fixnum_p()) {
       return Float::create(state, (double)(as<Fixnum>(value)->to_nint()));
@@ -56,6 +45,14 @@ namespace rubinius {
 
   Float* Float::mul(STATE, INTEGER other) {
     return Float::create(state, this->val * Float::coerce(state, other)->val);
+  }
+
+  Float* Float::fpow(STATE, Float* other) {
+    return Float::create(state, pow(this->val, other->val));
+  }
+
+  Float* Float::fpow(STATE, INTEGER other) {
+    return Float::create(state, pow(this->val, Float::coerce(state, other)->val));
   }
 
   Float* Float::div(STATE, Float* other) {
@@ -99,6 +96,63 @@ namespace rubinius {
       return Qtrue;
     }
     return Qfalse;
+  }
+
+  OBJECT Float::equal(STATE, INTEGER other) {
+    Float* o = Float::coerce(state, other);
+    if(this->val == o->val) {
+      return Qtrue;
+    }
+    return Qfalse;
+  }
+
+  FIXNUM Float::compare(STATE, Float* other) {
+    if(this->val == other->val) {
+      return Object::i2n(0);
+    } else if(this->val > other->val) {
+      return Object::i2n(1);
+    } else {
+      return Object::i2n(-1);
+    }
+  }
+
+  FIXNUM Float::compare(STATE, INTEGER other) {
+    Float* o = Float::coerce(state, other);
+    if(this->val == o->val) {
+      return Object::i2n(0);
+    } else if(this->val > o->val) {
+      return Object::i2n(1);
+    } else {
+      return Object::i2n(-1);
+    }
+  }
+
+  OBJECT Float::fisinf(STATE) {
+    if(isinf(this->val) != 0) {
+      return this->val < 0 ? Object::i2n(-1) : Object::i2n(1);
+    } else {
+      return Qnil;
+    }
+  }
+
+  OBJECT Float::fisnan(STATE) {
+    return isnan(this->val) == 1 ? Qtrue : Qfalse;
+  }
+
+  INTEGER Float::fround(STATE) {
+    double value = this->val;
+    if (value > 0.0) value = floor(value+0.5);
+    if (value < 0.0) value = ceil(value-0.5);
+    return Bignum::from_double(state, value);
+  }
+
+  INTEGER Float::to_i(STATE) {
+    if(this->val > 0.0) {
+      return Bignum::from_double(state, floor(this->val));
+    } else if(this->val < 0.0) {
+      return Bignum::from_double(state, ceil(this->val));
+    }
+    return Bignum::from_double(state, this->val);
   }
 
   void Float::into_string(STATE, char* buf, size_t sz) {

@@ -92,6 +92,9 @@ namespace rubinius {
 
     // Ruby.primitive! :fixnum_div
     INTEGER div(STATE, FIXNUM other) {
+      if(other->n2i() == 0) {
+        throw ZeroDivisionError(other, "divided by 0");
+      }
       native_int numerator = n2i();
       native_int denominator = other->n2i();
       native_int quotient = numerator / denominator;
@@ -129,6 +132,9 @@ namespace rubinius {
 
     // Ruby.primitive! :fixnum_divmod
     Array* divmod(STATE, FIXNUM other) {
+      if(other->n2i() == 0) {
+        throw ZeroDivisionError(other, "divided by 0");
+      }
       native_int numerator = n2i();
       native_int denominator = other->n2i();
       native_int fraction = div(state, other)->n2i();

@@ -143,11 +143,15 @@ class TestBignum : public CxxTest::TestSuite {
     INTEGER div = b1->div(state, b1);
     TS_ASSERT(div->fixnum_p());
     TS_ASSERT_EQUALS(div->n2i(), 1);
+
+    TS_ASSERT_THROWS( b1->div(state, Bignum::create(state, 0)), const ZeroDivisionError &);
   }
 
   void test_div_with_fixnum() {
     INTEGER div = b1->div(state, two);
     check_bignum(div,"1073741823");
+
+    TS_ASSERT_THROWS( b1->div(state, Object::i2n(0)), const ZeroDivisionError &);
   }
 
   void test_div_with_float() {

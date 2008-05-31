@@ -32,14 +32,6 @@ class TestFloat : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(flt->val, 1.0);
   }
   
-  void test_compare() {
-    Float* fltBig = Float::create(state, 4.0);
-    Float* fltSmall = Float::create(state, 9.0);
-    TS_ASSERT_EQUALS(fltBig->compare(state, fltSmall), Object::i2n(-1));
-    TS_ASSERT_EQUALS(fltSmall->compare(state, fltBig), Object::i2n(1));
-    TS_ASSERT_EQUALS(fltSmall->compare(state, fltSmall), Object::i2n(0));
-  }
-  
   void test_coerce() {
     OBJECT o = Object::i2n(5432);
     Float* coerced = Float::coerce(state, o);
@@ -95,6 +87,16 @@ class TestFloat : public CxxTest::TestSuite {
     f = Float::create(state, 0.2);
     a = f->mul(state, Bignum::create(state, FIXNUM_MAX + 10));
     check_float(a, Float::create(state, ((double)FIXNUM_MAX + 10) * 0.2));
+  }
+
+  void test_pow() {
+    Float* f = Float::create(state, 0.2);
+    Float* a = f->fpow(state, Float::create(state, 0.4));
+    check_float(a, Float::create(state, 0.525305560880753));
+
+    f = Float::create(state, 1.2);
+    a = f->fpow(state, Object::i2n(10));
+    check_float(a, Float::create(state, 6.1917364224));
   }
 
   void test_div() {
@@ -184,6 +186,59 @@ class TestFloat : public CxxTest::TestSuite {
     Float* f = Float::create(state, 0.2);
     Float* a = f->neg(state);
     check_float(a, Float::create(state, -0.2));
+  }
+
+  void test_equal() {
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->equal(state, Float::create(state, 0.2)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->equal(state, Float::create(state, 0.3)), Qfalse);
+
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->equal(state, Object::i2n(2)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 2.1)->equal(state, Object::i2n(2)), Qfalse);
+  }
+
+  void test_compare() {
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->compare(state, Float::create(state, 0.1)), Object::i2n( 1));
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->compare(state, Float::create(state, 0.2)), Object::i2n( 0));
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->compare(state, Float::create(state, 0.3)), Object::i2n(-1));
+
+    TS_ASSERT_EQUALS(Float::create(state, 1.9)->compare(state, Object::i2n(2)), Object::i2n(-1));
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->compare(state, Object::i2n(2)), Object::i2n( 0));
+    TS_ASSERT_EQUALS(Float::create(state, 2.1)->compare(state, Object::i2n(2)), Object::i2n( 1));
+  }
+
+  void test_isinf() {
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->fisinf(state), Qnil);
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->div(state, Float::create(state, 0.0))->fisinf(state), Object::i2n(1));
+    TS_ASSERT_EQUALS(Float::create(state, -2.0)->div(state, Float::create(state, 0.0))->fisinf(state), Object::i2n(-1));
+  }
+
+  void test_isnan() {
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->fisnan(state), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 0.0)->div(state, Float::create(state, 0.0))->fisnan(state), Qtrue);
+  }
+
+  void test_round() {
+    TS_ASSERT_EQUALS(Float::create(state, 1.5)->fround(state), Object::i2n(2));
+    TS_ASSERT_EQUALS(Float::create(state, 1.4)->fround(state), Object::i2n(1));
+    TS_ASSERT_EQUALS(Float::create(state, -1.4)->fround(state), Object::i2n(-1));
+    TS_ASSERT_EQUALS(Float::create(state, -1.5)->fround(state), Object::i2n(-2));
+
+    TS_ASSERT_THROWS(Float::create(state,  0.0)->div(state, Float::create(state, 0.0))->fround(state), const FloatDomainError &);
+    TS_ASSERT_THROWS(Float::create(state,  1.0)->div(state, Float::create(state, 0.0))->fround(state), const FloatDomainError &);
+    TS_ASSERT_THROWS(Float::create(state, -1.0)->div(state, Float::create(state, 0.0))->fround(state), const FloatDomainError &);
+  }
+
+  void test_to_i() {
+    TS_ASSERT_EQUALS(Float::create(state, 1.9)->to_i(state), Object::i2n(1));
+    TS_ASSERT_EQUALS(Float::create(state, 1.1)->to_i(state), Object::i2n(1));
+    TS_ASSERT_EQUALS(Float::create(state, 0.9)->to_i(state), Object::i2n(0));
+    TS_ASSERT_EQUALS(Float::create(state, -0.9)->to_i(state), Object::i2n(0));
+    TS_ASSERT_EQUALS(Float::create(state, -1.1)->to_i(state), Object::i2n(-1));
+    TS_ASSERT_EQUALS(Float::create(state, -1.9)->to_i(state), Object::i2n(-1));
+
+    TS_ASSERT_THROWS(Float::create(state,  0.0)->div(state, Float::create(state, 0.0))->to_i(state), const FloatDomainError &);
+    TS_ASSERT_THROWS(Float::create(state,  1.0)->div(state, Float::create(state, 0.0))->to_i(state), const FloatDomainError &);
+    TS_ASSERT_THROWS(Float::create(state, -1.0)->div(state, Float::create(state, 0.0))->to_i(state), const FloatDomainError &);
   }
 
   void test_into_string() {

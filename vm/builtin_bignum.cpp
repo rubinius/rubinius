@@ -246,6 +246,10 @@ namespace rubinius {
   }
 
   INTEGER Bignum::divide(STATE, FIXNUM denominator, INTEGER* remainder) {
+    if(denominator->n2i() == 0) {
+      throw ZeroDivisionError(denominator, "divided by 0");
+    }
+    
     NMP;
 
     native_int bi  = denominator->n2i();
@@ -275,6 +279,10 @@ namespace rubinius {
   }
 
   INTEGER Bignum::divide(STATE, Bignum* b, INTEGER* remainder) {
+    if(mp_cmp_d(MP(b), 0) == MP_EQ) {
+      throw ZeroDivisionError(b, "divided by 0");
+    }
+    
     NMP;
     MMP;
     mp_div(MP(this), MP(b), n, m);
@@ -620,7 +628,7 @@ namespace rubinius {
     }
   }
 
-  OBJECT Bignum::from_string_detect(STATE, const char *str) {
+  INTEGER Bignum::from_string_detect(STATE, const char *str) {
     const char *s;
     int radix;
     int sign;
@@ -662,7 +670,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::from_string(STATE, const char *str, size_t radix) {
+  INTEGER Bignum::from_string(STATE, const char *str, size_t radix) {
     NMP;
     mp_read_radix(n, str, radix);
     return Bignum::normalize(state, n_obj);
@@ -706,7 +714,7 @@ namespace rubinius {
     return res;
   }
 
-  OBJECT Bignum::from_double(STATE, double d) {
+  INTEGER Bignum::from_double(STATE, double d) {
     NMP;
 
     long i = 0;
@@ -715,14 +723,11 @@ namespace rubinius {
 
     value = (d < 0) ? -d : d;
 
-    /*
-       if (isinf(d)) {
-       rb_raise(rb_eFloatDomainError, d < 0 ? "-Infinity" : "Infinity");
-       }
-       if (isnan(d)) {
-       rb_raise(rb_eFloatDomainError, "NaN");
-       }
-       */
+    if(isinf(d)) {
+      throw FloatDomainError(d, d < 0 ? "-Infinity" : "Infinity");
+    } else if(isnan(d)) {
+      throw FloatDomainError(d, "NaN");
+    }
 
     while (!(value <= (LONG_MAX >> 1)) || 0 != (long)value) {
       value = value / (double)(DIGIT_RADIX);
@@ -746,7 +751,7 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
-  OBJECT Bignum::size(STATE)
+  INTEGER Bignum::size(STATE)
   {
     int bits = mp_count_bits(MP(this));
     int bytes = (bits + 7) / 8;
