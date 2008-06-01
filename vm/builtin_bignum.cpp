@@ -423,7 +423,7 @@ namespace rubinius {
     NMP;
     int shift = bits->n2i();
     if(shift < 0) {
-      return right_shift(state, bits);
+      return right_shift(state, Object::i2n(-bits->n2i()));
     }
     mp_int *a = MP(this);
 
@@ -436,7 +436,7 @@ namespace rubinius {
     NMP;
     int shift = bits->n2i();
     if(shift < 0) {
-      return left_shift(state, bits);
+      return left_shift(state, Object::i2n(-bits->n2i()));
     }
 
     mp_int * a = MP(this);
@@ -528,54 +528,140 @@ namespace rubinius {
     return Float::coerce(state, this)->compare(state, b);
   }
 
-  OBJECT Bignum::gt(STATE, INTEGER b) {
-    if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
-    }
+  OBJECT Bignum::gt(STATE, FIXNUM b) {
+    native_int bi = b->n2i();
 
+    mp_int* a = MP(this);
+    if(bi < 0) {
+      mp_int n;
+      mp_init(&n);
+      mp_copy(a, &n);
+      mp_neg(&n, &n);
+
+      if(mp_cmp_d(&n, -bi) == MP_LT) {
+        return Qtrue;
+      }
+      return Qfalse;
+    } else {
+      if(mp_cmp_d(a, bi) == MP_GT) {
+        return Qtrue;
+      }
+      return Qfalse;
+    }
+  }
+
+  OBJECT Bignum::gt(STATE, Bignum* b) {
     if(mp_cmp(MP(this), MP(b)) == MP_GT) {
       return Qtrue;
     }
     return Qfalse;
   }
 
-  OBJECT Bignum::ge(STATE, INTEGER b) {
-    int r;
+  OBJECT Bignum::gt(STATE, Float* b) {
+    return Float::coerce(state, this)->gt(state, b);
+  }
 
-    if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
+  OBJECT Bignum::ge(STATE, FIXNUM b) {
+    native_int bi = b->n2i();
+
+    mp_int* a = MP(this);
+    if(bi < 0) {
+      mp_int n;
+      mp_init(&n);
+      mp_copy(a, &n);
+      mp_neg(&n, &n);
+      int r = mp_cmp_d(&n, -bi);
+      if(r == MP_EQ || r == MP_LT) {
+        return Qtrue;
+      }
+      return Qfalse;
+    } else {
+      int r = mp_cmp_d(a, bi);
+      if(r == MP_EQ || r == MP_GT) {
+        return Qtrue;
+      }
+      return Qfalse;
     }
+  }
 
-    r = mp_cmp(MP(this), MP(b));
+  OBJECT Bignum::ge(STATE, Float* b) {
+    return Float::coerce(state, this)->ge(state, b);
+  }
+
+  OBJECT Bignum::ge(STATE, Bignum* b) {
+    int r = mp_cmp(MP(this), MP(b));
     if(r == MP_GT || r == MP_EQ) {
       return Qtrue;
     }
     return Qfalse;
   }
 
-  OBJECT Bignum::lt(STATE, INTEGER b) {
-    if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
-    }
+  OBJECT Bignum::lt(STATE, FIXNUM b) {
+    native_int bi = b->n2i();
 
+    mp_int* a = MP(this);
+    if(bi < 0) {
+      mp_int n;
+      mp_init(&n);
+      mp_copy(a, &n);
+      mp_neg(&n, &n);
+
+      if(mp_cmp_d(&n, -bi) == MP_GT) {
+        return Qtrue;
+      }
+      return Qfalse;
+    } else {
+      if(mp_cmp_d(a, bi) == MP_LT) {
+        return Qtrue;
+      }
+      return Qfalse;
+    }
+  }
+
+  OBJECT Bignum::lt(STATE, Bignum* b) {
     if(mp_cmp(MP(this), MP(b)) == MP_LT) {
       return Qtrue;
     }
     return Qfalse;
   }
 
-  OBJECT Bignum::le(STATE, INTEGER b) {
-    int r;
+  OBJECT Bignum::lt(STATE, Float* b) {
+    return Float::coerce(state, this)->lt(state, b);
+  }
 
-    if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
+  OBJECT Bignum::le(STATE, FIXNUM b) {
+    native_int bi = b->n2i();
+
+    mp_int* a = MP(this);
+    if(bi < 0) {
+      mp_int n;
+      mp_init(&n);
+      mp_copy(a, &n);
+      mp_neg(&n, &n);
+      int r = mp_cmp_d(&n, -bi);
+      if(r == MP_EQ || r == MP_GT) {
+        return Qtrue;
+      }
+      return Qfalse;
+    } else {
+      int r = mp_cmp_d(a, bi);
+      if(r == MP_EQ || r == MP_LT) {
+        return Qtrue;
+      }
+      return Qfalse;
     }
+  }
 
-    r = mp_cmp(MP(this), MP(b));
+  OBJECT Bignum::le(STATE, Bignum* b) {
+    int r = mp_cmp(MP(this), MP(b));
     if(r == MP_LT || r == MP_EQ) {
       return Qtrue;
     }
     return Qfalse;
+  }
+
+  OBJECT Bignum::le(STATE, Float* b) {
+    return Float::coerce(state, this)->le(state, b);
   }
 
   int Bignum::to_int(STATE) {

@@ -108,10 +108,33 @@ namespace rubinius {
     // Ruby.primitive :bignum_right_shift
     INTEGER right_shift(STATE, INTEGER bits);
 
-    OBJECT gt(STATE, INTEGER b);
-    OBJECT ge(STATE, INTEGER b);
-    OBJECT lt(STATE, INTEGER b);
-    OBJECT le(STATE, INTEGER b);
+    // Ruby.primitive! :bignum_gt
+    OBJECT gt(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_gt
+    OBJECT gt(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_gt
+    OBJECT gt(STATE, Float* b);
+
+    // Ruby.primitive! :bignum_ge
+    OBJECT ge(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_ge
+    OBJECT ge(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_ge
+    OBJECT ge(STATE, Float* b);
+
+    // Ruby.primitive! :bignum_lt
+    OBJECT lt(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_lt
+    OBJECT lt(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_lt
+    OBJECT lt(STATE, Float* b);
+
+    // Ruby.primitive! :bignum_le
+    OBJECT le(STATE, FIXNUM b);
+    // Ruby.primitive! :bignum_le
+    OBJECT le(STATE, Bignum* b);
+    // Ruby.primitive! :bignum_le
+    OBJECT le(STATE, Float* b);
 
     int    to_int(STATE);
     int    to_i(STATE);
