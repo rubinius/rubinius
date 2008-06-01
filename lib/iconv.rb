@@ -57,11 +57,11 @@ class Iconv
 
   def close
     return if @closed
-    @closed = true
     
     begin
       iconv nil
     ensure
+      @closed = true
       Errno.handle if Iconv.close(@handle) != 0
     end
   end
@@ -114,6 +114,9 @@ class Iconv
   private :get_failed
 
   def iconv(str, start = Undefined, length = Undefined)
+
+    raise ArgumentError.new("closed iconv") if @closed
+
     l1 = MemoryPointer.new(:pointer)
     l2 = MemoryPointer.new(:pointer)
 
@@ -166,7 +169,9 @@ class Iconv
     result
 
   ensure
-      l1.free; l2.free; is.free if is; ic.free; os.free; oc.free
+    [l1, l2, is, ic, os, oc].each do |mp|
+      mp.free if mp
+    end
   end
 
 end
