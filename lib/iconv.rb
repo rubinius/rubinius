@@ -44,13 +44,25 @@ class Iconv
     include Failure
   end
 
+  def string_value(obj)
+    if obj.instance_of? String
+      obj
+    else
+      if obj.respond_to? :to_str
+        obj.to_str
+      else
+        raise TypeError.new "can't convert #{obj.class} into String"
+      end
+    end
+  end
+
   def initialize(to, from)
-    @to, @from = to, from
-    @handle = Iconv.create to, from
+    @to, @from = string_value(to), string_value(from)
+    @handle = Iconv.create @to, @from
     begin
       Errno.handle if @handle.address == -1
     rescue Errno::EINVAL
-      raise InvalidEncoding.new("invalid encoding (#{to.inspect}, #{from.inspect})", nil, [to, from])
+      raise InvalidEncoding.new("invalid encoding (#{@to.inspect}, #{@from.inspect})", nil, [@to, @from])
     end
     @closed = false
   end
