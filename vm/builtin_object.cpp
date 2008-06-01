@@ -213,7 +213,11 @@ namespace rubinius {
     }
   }
 
- Class* Object::metaclass(STATE) {
+  OBJECT Object::equal(STATE, OBJECT other) {
+    return this == other ? Qtrue : Qfalse;
+  }
+
+  Class* Object::metaclass(STATE) {
     if(reference_p()) {
       if(kind_of<MetaClass>(klass)) {
         return as<MetaClass>(klass);

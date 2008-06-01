@@ -206,6 +206,46 @@ class TestFloat : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Float::create(state, 2.1)->compare(state, Object::i2n(2)), Object::i2n( 1));
   }
 
+  void test_gt() {
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->gt(state, Float::create(state, 0.1)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->gt(state, Float::create(state, 0.2)), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->gt(state, Float::create(state, 0.3)), Qfalse);
+
+    TS_ASSERT_EQUALS(Float::create(state, 1.9)->gt(state, Object::i2n(2)), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->gt(state, Object::i2n(2)), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 2.1)->gt(state, Object::i2n(2)), Qtrue);
+  }
+
+  void test_ge() {
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->ge(state, Float::create(state, 0.1)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->ge(state, Float::create(state, 0.2)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->ge(state, Float::create(state, 0.3)), Qfalse);
+
+    TS_ASSERT_EQUALS(Float::create(state, 1.9)->ge(state, Object::i2n(2)), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->ge(state, Object::i2n(2)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 2.1)->ge(state, Object::i2n(2)), Qtrue);
+  }
+
+  void test_lt() {
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->lt(state, Float::create(state, 0.1)), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->lt(state, Float::create(state, 0.2)), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->lt(state, Float::create(state, 0.3)), Qtrue);
+
+    TS_ASSERT_EQUALS(Float::create(state, 1.9)->lt(state, Object::i2n(2)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->lt(state, Object::i2n(2)), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 2.1)->lt(state, Object::i2n(2)), Qfalse);
+  }
+
+  void test_le() {
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->le(state, Float::create(state, 0.1)), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->le(state, Float::create(state, 0.2)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->le(state, Float::create(state, 0.3)), Qtrue);
+
+    TS_ASSERT_EQUALS(Float::create(state, 1.9)->le(state, Object::i2n(2)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->le(state, Object::i2n(2)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 2.1)->le(state, Object::i2n(2)), Qfalse);
+  }
+
   void test_isinf() {
     TS_ASSERT_EQUALS(Float::create(state, 2.0)->fisinf(state), Qnil);
     TS_ASSERT_EQUALS(Float::create(state, 2.0)->div(state, Float::create(state, 0.0))->fisinf(state), Object::i2n(1));

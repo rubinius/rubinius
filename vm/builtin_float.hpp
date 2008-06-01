@@ -75,6 +75,26 @@ namespace rubinius {
     // Ruby.primitive! :float_compare
     FIXNUM compare(STATE, INTEGER other);
 
+    // Ruby.primitive! :float_gt
+    OBJECT gt(STATE, Float* other);
+    // Ruby.primitive! :float_gt
+    OBJECT gt(STATE, INTEGER other);
+
+    // Ruby.primitive! :float_ge
+    OBJECT ge(STATE, Float* other);
+    // Ruby.primitive! :float_ge
+    OBJECT ge(STATE, INTEGER other);
+
+    // Ruby.primitive! :float_lt
+    OBJECT lt(STATE, Float* other);
+    // Ruby.primitive! :float_lt
+    OBJECT lt(STATE, INTEGER other);
+
+    // Ruby.primitive! :float_le
+    OBJECT le(STATE, Float* other);
+    // Ruby.primitive! :float_le
+    OBJECT le(STATE, INTEGER other);
+
     // Ruby.primitive :float_isinf
     OBJECT fisinf(STATE);
 

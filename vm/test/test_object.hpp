@@ -79,6 +79,14 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<MetaClass>(tup->klass));
   }
 
+  void test_equal() {
+    String* s1 = String::create(state, "whatever");
+    String* s2 = String::create(state, "whatever");
+
+    TS_ASSERT_EQUALS(as<Object>(s1)->equal(state, as<Object>(s2)), Qfalse);
+    TS_ASSERT_EQUALS(as<Object>(Object::i2n(0))->equal(state, as<Object>(Object::i2n(0))), Qtrue);
+  }
+
   void test_get_ivar() {
     OBJECT sym = G(symbols)->lookup(state, "@test");
     OBJECT val = Object::i2n(33);

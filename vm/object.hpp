@@ -389,6 +389,8 @@ to be a simple test for that bit pattern.
     hashval hash(STATE);
     uintptr_t id(STATE);
     Class* metaclass(STATE);
+    // Ruby.primitive object_equal
+    OBJECT equal(STATE, OBJECT other);
 
     OBJECT get_ivar(STATE, OBJECT sym);
     OBJECT set_ivar(STATE, OBJECT sym, OBJECT val);

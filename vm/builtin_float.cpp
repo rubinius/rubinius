@@ -127,6 +127,38 @@ namespace rubinius {
     }
   }
 
+  OBJECT Float::gt(STATE, Float* other) {
+    return this->val > other->val ? Qtrue : Qfalse;
+  }
+
+  OBJECT Float::gt(STATE, INTEGER other) {
+    return this->val > Float::coerce(state, other)->val ? Qtrue : Qfalse;
+  }
+
+  OBJECT Float::ge(STATE, Float* other) {
+    return this->val >= other->val ? Qtrue : Qfalse;
+  }
+
+  OBJECT Float::ge(STATE, INTEGER other) {
+    return this->val >= Float::coerce(state, other)->val ? Qtrue : Qfalse;
+  }
+
+  OBJECT Float::lt(STATE, Float* other) {
+    return this->val < other->val ? Qtrue : Qfalse;
+  }
+
+  OBJECT Float::lt(STATE, INTEGER other) {
+    return this->val < Float::coerce(state, other)->val ? Qtrue : Qfalse;
+  }
+
+  OBJECT Float::le(STATE, Float* other) {
+    return this->val <= other->val ? Qtrue : Qfalse;
+  }
+
+  OBJECT Float::le(STATE, INTEGER other) {
+    return this->val <= Float::coerce(state, other)->val ? Qtrue : Qfalse;
+  }
+
   OBJECT Float::fisinf(STATE) {
     if(isinf(this->val) != 0) {
       return this->val < 0 ? Object::i2n(-1) : Object::i2n(1);
