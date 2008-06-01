@@ -122,6 +122,15 @@ class Iconv
 
     ic = MemoryPointer.new(:long)
     if str then
+
+      if not str.instance_of? String then
+        if str.respond_to? :to_str then
+          str = str.to_str
+        else
+          raise TypeError.new "can't convert #{str.class} into String"
+        end
+      end
+
       is = MemoryPointer.new(str.size + 10)
       is.write_string str, str.size
 
