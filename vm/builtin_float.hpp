@@ -24,7 +24,6 @@ namespace rubinius {
     static Float* create(STATE, double val);
     static Float* coerce(STATE, OBJECT value);
     double to_double(STATE) { return val; }
-    double to_double() { return val; }
     void into_string(STATE, char* buf, size_t sz);
 
     // Ruby.primitive! :float_add

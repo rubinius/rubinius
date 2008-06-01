@@ -664,6 +664,10 @@ namespace rubinius {
     return Float::coerce(state, this)->le(state, b);
   }
 
+  Float* Bignum::to_f(STATE) {
+    return Float::coerce(state, this);
+  }
+
   int Bignum::to_int(STATE) {
     if(MP(this)->sign == MP_NEG) {
       return -mp_get_int(MP(this));

@@ -136,6 +136,9 @@ namespace rubinius {
     // Ruby.primitive! :bignum_le
     OBJECT le(STATE, Float* b);
 
+    // Ruby.primitive :bignum_to_f
+    Float* to_f(STATE);
+
     int    to_int(STATE);
     int    to_i(STATE);
     native_int to_nint();

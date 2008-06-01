@@ -420,6 +420,10 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Bignum::create(state, -3)->le(state, Float::create(state, -3.1)), Qfalse);
   }
 
+  void test_to_f() {
+    check_float(b1->to_f(state), Float::create(state, 2147483647.0));
+  }
+
   void test_from_double() {
     OBJECT s = Bignum::from_double(state, 1.0);
     TS_ASSERT(s->fixnum_p());
