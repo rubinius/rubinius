@@ -47,7 +47,11 @@ class Iconv
   def initialize(to, from)
     @to, @from = to, from
     @handle = Iconv.create to, from
-    Errno.handle if @handle.address == -1
+    begin
+      Errno.handle if @handle.address == -1
+    rescue Errno::EINVAL
+      raise InvalidEncoding.new("invalid encoding (#{to.inspect}, #{from.inspect})", nil, [to, from])
+    end
     @closed = false
   end
 
