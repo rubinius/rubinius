@@ -213,6 +213,15 @@ end
     assert_equal 'old_platform', same_spec.original_platform
   end
 
+  def test_add_dependency_with_explicit_type
+    gem = quick_gem "awesome", "1.0" do |awesome|
+      awesome.add_development_dependency "monkey"
+    end
+
+    monkey = gem.dependencies.detect { |d| d.name == "monkey" }
+    assert_equal(:development, monkey.type)
+  end
+
   def test_author
     assert_equal 'A User', @a1.author
   end
@@ -280,6 +289,20 @@ end
     pqa = Gem::Dependency.new 'pqa', ['> 0.4', '<= 0.6']
 
     assert_equal [rake, jabber, pqa], @a1.dependencies
+  end
+
+  def test_dependencies_scoped_by_type
+    gem = quick_gem "awesome", "1.0" do |awesome|
+      awesome.add_runtime_dependency "bonobo", []
+      awesome.add_development_dependency "monkey", []
+    end
+
+    bonobo = Gem::Dependency.new("bonobo", [])
+    monkey = Gem::Dependency.new("monkey", [], :development)
+
+    assert_equal([bonobo, monkey], gem.dependencies)
+    assert_equal([bonobo], gem.runtime_dependencies)
+    assert_equal([monkey], gem.development_dependencies)
   end
 
   def test_description
@@ -531,6 +554,17 @@ end
     assert_equal ['A working computer'], @a1.requirements
   end
 
+  def test_runtime_dependencies_legacy
+    # legacy gems don't have a type
+    @a1.runtime_dependencies.each do |dep|
+      dep.instance_variable_set :@type, nil
+    end
+
+    expected = %w[rake jabber4r pqa]
+
+    assert_equal expected, @a1.runtime_dependencies.map { |d| d.name }
+  end
+
   def test_spaceship_name
     s1 = quick_gem 'a', '1'
     s2 = quick_gem 'b', '1'
@@ -570,6 +604,8 @@ end
   end
 
   def test_to_ruby
+    @a2.add_runtime_dependency 'b', '1'
+    @a2.dependencies.first.instance_variable_set :@type, nil
     @a2.required_rubygems_version = Gem::Requirement.new '> 0'
 
     ruby_code = @a2.to_ruby
@@ -591,6 +627,8 @@ end
   s.require_paths = [\"lib\"]
   s.rubygems_version = %q{#{Gem::RubyGemsVersion}}
   s.summary = %q{this is a summary}
+
+  s.add_runtime_dependency(%q<b>, [\"= 1\"])
 end
 "
 
@@ -633,9 +671,9 @@ end
   s.summary = %q{this is a summary}
   s.test_files = [\"test/suite.rb\"]
 
-  s.add_dependency(%q<rake>, [\"> 0.4\"])
-  s.add_dependency(%q<jabber4r>, [\"> 0.0.0\"])
-  s.add_dependency(%q<pqa>, [\"> 0.4\", \"<= 0.6\"])
+  s.add_runtime_dependency(%q<rake>, [\"> 0.4\"])
+  s.add_runtime_dependency(%q<jabber4r>, [\"> 0.0.0\"])
+  s.add_runtime_dependency(%q<pqa>, [\"> 0.4\", \"<= 0.6\"])
 end
 "
 

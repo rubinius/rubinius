@@ -11,11 +11,33 @@ class Gem::RemoteFetcher
 
   include Gem::UserInteraction
 
-  class FetchError < Gem::Exception; end
+  ##
+  # A FetchError exception wraps up the various possible IO and HTTP failures
+  # that could happen while downloading from the internet.
+
+  class FetchError < Gem::Exception
+
+    ##
+    # The URI which was being accessed when the exception happened.
+
+    attr_accessor :uri
+
+    def initialize(message, uri)
+      super message
+      @uri = uri
+    end
+
+    def to_s # :nodoc:
+      "#{super} (#{uri})"
+    end
+
+  end
 
   @fetcher = nil
 
+  ##
   # Cached RemoteFetcher instance.
+
   def self.fetcher
     @fetcher ||= self.new Gem.configuration[:http_proxy]
   end
@@ -48,10 +70,11 @@ class Gem::RemoteFetcher
   # already there.  If the source_uri is local the gem cache dir copy is
   # always replaced.
   def download(spec, source_uri, install_dir = Gem.dir)
+    cache_dir = File.join install_dir, 'cache'
     gem_file_name = "#{spec.full_name}.gem"
-    local_gem_path = File.join install_dir, 'cache', gem_file_name
+    local_gem_path = File.join cache_dir, gem_file_name
 
-    Gem.ensure_gem_subdirectories install_dir
+    FileUtils.mkdir_p cache_dir rescue nil unless File.exist? cache_dir
 
     source_uri = URI.parse source_uri unless URI::Generic === source_uri
     scheme = source_uri.scheme
@@ -108,12 +131,12 @@ class Gem::RemoteFetcher
       input.read
     end
   rescue Timeout::Error
-    raise FetchError, "timed out fetching #{uri}"
+    raise FetchError.new('timed out', uri)
   rescue IOError, SocketError, SystemCallError => e
-    raise FetchError, "#{e.class}: #{e} reading #{uri}"
+    raise FetchError.new("#{e.class}: #{e}", uri)
   rescue => e
-    message = "#{e.class}: #{e} reading #{uri}"
-    raise FetchError, message
+    message = "#{e.class}: #{e}"
+    raise FetchError.new(message, uri)
   end
 
   # Returns the size of +uri+ in bytes.
@@ -138,6 +161,8 @@ class Gem::RemoteFetcher
             "HTTP Response #{resp.code} fetching #{uri}"
     end
 
+    say "fetched size of #{uri}" if $DEBUG
+
     if resp['content-length'] then
       return resp['content-length'].to_i
     else
@@ -146,8 +171,7 @@ class Gem::RemoteFetcher
     end
 
   rescue SocketError, SystemCallError, Timeout::Error => e
-    raise Gem::RemoteFetcher::FetchError,
-          "#{e.message} (#{e.class})\n\tgetting size of #{uri}"
+    raise FetchError.new("#{e.message} (#{e.class})\n\tfetching size", uri)
   end
 
   private
@@ -242,6 +266,7 @@ class Gem::RemoteFetcher
       begin
         @requests[connection_id] += 1
         response = connection.request(request)
+        say "fetched #{uri}" if $DEBUG
       rescue EOFError, Errno::ECONNABORTED
         requests = @requests[connection_id]
         say "connection reset after #{requests} requests, retrying" if
@@ -262,7 +287,9 @@ class Gem::RemoteFetcher
       when Net::HTTPOK then
         block.call(StringIO.new(response.body)) if block
       when Net::HTTPRedirection then
-        raise Gem::RemoteFetcher::FetchError, "too many redirects" if depth > 10
+        if depth > 10 then
+          raise Gem::RemoteFetcher::FetchError.new('too many redirects', uri)
+        end
         open_uri_or_path(response['Location'], depth + 1, &block)
       else
         raise Gem::RemoteFetcher::FetchError,

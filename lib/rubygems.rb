@@ -152,7 +152,7 @@ module Gem
     @loaded_specs[spec.name] = spec
 
     # Load dependent gems first
-    spec.dependencies.each do |dep_gem|
+    spec.runtime_dependencies.each do |dep_gem|
       activate dep_gem
     end
 
@@ -684,13 +684,10 @@ module Gem
 
   end
 
-end
+  MARSHAL_SPEC_DIR = "quick/Marshal.#{Gem.marshal_version}/"
 
-# Modify the non-gem version of datadir to handle gem package names.
+  YAML_SPEC_DIR = 'quick/'
 
-begin
-  require 'rbconfig/datadir'
-rescue LoadError
 end
 
 module Config

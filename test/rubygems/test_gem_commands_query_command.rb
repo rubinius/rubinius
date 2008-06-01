@@ -7,14 +7,12 @@ class TestGemCommandsQueryCommand < RubyGemTestCase
   def setup
     super
 
-    util_make_gems
-
-    @a2.summary = 'This is a lot of text. ' * 4
-
     @cmd = Gem::Commands::QueryCommand.new
 
-    @si = util_setup_source_info_cache @a1, @a2, @pl1
     util_setup_fake_fetcher
+    @a2.summary = 'This is a lot of text. ' * 4
+
+    @si = util_setup_spec_fetcher @a1, @a2, @pl1
 
     @fetcher.data["#{@gem_repo}/Marshal.#{Gem.marshal_version}"] = proc do
       raise Gem::RemoteFetcher::FetchError
@@ -22,18 +20,6 @@ class TestGemCommandsQueryCommand < RubyGemTestCase
   end
 
   def test_execute
-    cache = Gem::SourceInfoCache.cache
-    cache.update
-    cache.write_cache
-    cache.reset_cache_data
-    Gem::SourceInfoCache.reset
-
-    a2_name = @a2.full_name
-    @fetcher.data["#{@gem_repo}/quick/latest_index.rz"] = util_zip a2_name
-    @fetcher.data["#{@gem_repo}/quick/Marshal.#{Gem.marshal_version}/#{a2_name}.gemspec.rz"] = util_zip Marshal.dump(@a2)
-    @fetcher.data["#{@gem_repo}/Marshal.#{Gem.marshal_version}"] =
-      Marshal.dump @si
-
     @cmd.handle_options %w[-r]
 
     use_ui @ui do
@@ -44,10 +30,8 @@ class TestGemCommandsQueryCommand < RubyGemTestCase
 
 *** REMOTE GEMS ***
 
-Updating metadata for 1 gems from http://gems.example.com/
-.
-complete
 a (2)
+pl (1)
     EOF
 
     assert_equal expected, @ui.output
@@ -55,21 +39,8 @@ a (2)
   end
 
   def test_execute_all
-    cache = Gem::SourceInfoCache.cache
-    cache.update
-    cache.write_cache
-    cache.reset_cache_data
-    Gem::SourceInfoCache.reset
-
     a1_name = @a1.full_name
     a2_name = @a2.full_name
-    @fetcher.data["#{@gem_repo}/quick/index.rz"] =
-        util_zip [a1_name, a2_name].join("\n")
-    @fetcher.data["#{@gem_repo}/quick/latest_index.rz"] = util_zip a2_name
-    @fetcher.data["#{@gem_repo}/quick/Marshal.#{Gem.marshal_version}/#{a1_name}.gemspec.rz"] = util_zip Marshal.dump(@a1)
-    @fetcher.data["#{@gem_repo}/quick/Marshal.#{Gem.marshal_version}/#{a2_name}.gemspec.rz"] = util_zip Marshal.dump(@a2)
-    @fetcher.data["#{@gem_repo}/Marshal.#{Gem.marshal_version}"] =
-      Marshal.dump @si
 
     @cmd.handle_options %w[-r --all]
 
@@ -81,10 +52,8 @@ a (2)
 
 *** REMOTE GEMS ***
 
-Updating metadata for 2 gems from http://gems.example.com/
-..
-complete
 a (2, 1)
+pl (1)
     EOF
 
     assert_equal expected, @ui.output
@@ -126,6 +95,7 @@ pl (1)
     assert_equal 0, e.exit_code
 
     assert_equal "true\n", @ui.output
+
     assert_equal '', @ui.error
   end
 
@@ -187,6 +157,42 @@ pl (1)
     assert_equal '', @ui.error
 
     assert_equal 1, e.exit_code
+  end
+
+  def test_execute_legacy
+    Gem::SpecFetcher.fetcher = nil
+    si = util_setup_source_info_cache @a1, @a2, @pl1
+
+    @fetcher.data["#{@gem_repo}/yaml"] = YAML.dump si
+    @fetcher.data["#{@gem_repo}/Marshal.#{Gem.marshal_version}"] =
+      si.dump
+
+    @fetcher.data["#{@gem_repo}/latest_specs.#{Gem.marshal_version}.gz"] = nil
+
+    @cmd.handle_options %w[-r]
+
+    use_ui @ui do
+      @cmd.execute
+    end
+
+    expected = <<-EOF
+
+*** REMOTE GEMS ***
+
+a (2)
+pl (1)
+    EOF
+
+    assert_equal expected, @ui.output
+
+    expected = <<-EOF
+WARNING:  RubyGems 1.2+ index not found for:
+\thttp://gems.example.com
+
+RubyGems will revert to legacy indexes degrading performance.
+    EOF
+
+    assert_equal expected, @ui.error
   end
 
   def test_execute_no_versions
