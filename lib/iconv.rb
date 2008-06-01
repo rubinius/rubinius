@@ -110,7 +110,9 @@ class Iconv
     begin
       iconv(to, from, str).join
     rescue Failure => e
-      raise e.class.new(nil, e.success.join, e.failed)
+      # e.success is nil if open throws InvalidEncoding
+      # e.success is an Array if #iconv throws any Failure
+      raise e.class.new(e.message, (e.success.instance_of? Array) ? e.success.join : e.success, e.failed)
     end
   end
 
