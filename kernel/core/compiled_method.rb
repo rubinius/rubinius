@@ -212,6 +212,18 @@ class CompiledMethod
     return self
   end
 
+  def self.from_bytecodes bytecodes, arg_count, local_count, literals, exceptions=nil, lines=nil
+    c = CompiledMethod.new
+    c.bytecodes = InstructionSequence::Encoder.new.encode_stream bytecodes
+    c.primitive = false
+    c.local_count = local_count
+    c.required = arg_count
+    c.literals = literals
+    c.lines = lines || Tuple[Tuple[0, bytecodes.size, 0]]
+    c.exceptions = exceptions || []
+    c
+  end
+
   def inherit_scope(other)
     if ss = other.staticscope
       @staticscope = ss
@@ -227,6 +239,14 @@ class CompiledMethod
 
   def exceptions=(tup)
     @exceptions = tup
+  end
+
+  def local_count=(val)
+    @local_count = val
+  end
+
+  def required=(val)
+    @required = val
   end
 
   def literals=(tup)
