@@ -108,7 +108,7 @@ class Module
 
   def attr_writer(name)
     sym = "@#{name}".to_sym
-    meth = AccessVarMethod.set_ivar(sym, name)
+    meth = AccessVarMethod.set_ivar(sym, "#{name}=")
     @method_table["#{name}=".to_sym] = meth
     return nil
   end
