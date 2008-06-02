@@ -140,6 +140,7 @@ VALUE rb_gv_get(const char *name);
 VALUE rb_check_array_type(VALUE ary);
 VALUE rb_check_string_type(VALUE str);
 VALUE rb_check_convert_type(VALUE val, int type, const char* tname, const char* method);
+VALUE rb_convert_type(VALUE val, int type, const char* tname, const char* method);
 
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass);
 

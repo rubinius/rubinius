@@ -89,6 +89,16 @@ describe "SubtendObject" do
     @o.rb_check_string_type(h).should == nil
   end
 
+  it "rb_convert_type should try to coerce to a type, otherwise raise a TypeError" do
+    ac = AryChild.new
+    ao = Array.new
+    h = Hash.new
+    # note that the ary information is forced in the spec extension
+    @o.rb_convert_type(ac).should == []
+    @o.rb_convert_type(ao).should == []
+    lambda { @o.rb_convert_type(h) }.should raise_error(TypeError)
+  end
+
   it "rb_inspect should return a string with the inspect representation" do
     @o.rb_inspect(nil).should == "nil"
     @o.rb_inspect(0).should == '0'

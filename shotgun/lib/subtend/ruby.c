@@ -368,17 +368,11 @@ int rb_block_given_p()
 
 
 VALUE rb_check_array_type(VALUE ary) {
-  CTX;
-  VALUE coercable = rb_funcall(ary, rb_intern("respond_to?"), 1, CHAR2STR("to_ary"));
-  if(coercable == Qtrue) return rb_funcall(ary, rb_intern("to_ary"), 0);
-  else return Qnil;
+  return rb_check_convert_type(ary, 0, "Array", "to_ary");
 }
 
 VALUE rb_check_string_type(VALUE str) {
-  CTX;
-  VALUE coercable = rb_funcall(str, rb_intern("respond_to?"), 1, CHAR2STR("to_str"));
-  if(coercable == Qtrue) return rb_funcall(str, rb_intern("to_str"), 0);
-  else return Qnil;
+  return rb_check_convert_type(str, 0, "String", "to_str");
 }
 
 VALUE rb_check_convert_type(VALUE val, int type, const char* tname, const char* method) {
@@ -386,6 +380,23 @@ VALUE rb_check_convert_type(VALUE val, int type, const char* tname, const char* 
   VALUE coercable = rb_funcall(val, rb_intern("respond_to?"), 1, CHAR2STR(method));
   if(coercable == Qtrue) return rb_funcall(val, rb_intern(method), 0);
   else return Qnil;  
+}
+
+VALUE rb_convert_type(VALUE val, int type, const char* tname, const char* method) {
+  VALUE ret_val = rb_check_convert_type(val, type, tname, method);
+  if(ret_val == Qnil) {
+    rb_raise(rb_eTypeError, "can't convert %s into %s",
+            NIL_P(val) ? "nil" :
+            val == Qtrue ? "true" :
+            val == Qfalse ? "false" :
+            rb_obj_classname(val),
+            tname);
+  }
+  VALUE klass = rb_const_get(rb_cObject, rb_intern(tname));
+  if(rb_obj_is_kind_of(ret_val, klass) != Qtrue) {
+    rb_raise(rb_eTypeError, "%s#to_str should return %s", rb_obj_classname(ret_val), tname);
+  }
+  return ret_val;
 }
 
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass) {

@@ -34,7 +34,11 @@ VALUE so_check_string_type(VALUE self, VALUE str) {
 }
 
 VALUE so_check_convert_type(VALUE self, VALUE obj) {
-  return rb_check_convert_type(obj, 9, "Array", "to_ary");
+  return rb_check_convert_type(obj, T_ARRAY, "Array", "to_ary");
+}
+
+VALUE so_convert_type(VALUE self, VALUE obj) {
+  return rb_convert_type(obj, T_ARRAY, "Array", "to_ary");
 }
 
 VALUE so_rbobjclassname(VALUE self, VALUE obj) {
@@ -96,6 +100,7 @@ void Init_subtend_object() {
   rb_define_method(cls, "rb_check_array_type", so_check_array_type, 1);
   rb_define_method(cls, "rb_check_string_type", so_check_string_type, 1);
   rb_define_method(cls, "rb_check_convert_type", so_check_convert_type, 1);  
+  rb_define_method(cls, "rb_convert_type", so_convert_type, 1);
   rb_define_method(cls, "rb_inspect", so_inspect, 1);
   rb_define_method(cls, "rb_obj_classname", so_rbobjclassname, 1);
   rb_define_method(cls, "rb_class_of", so_rbclassof, 1);
