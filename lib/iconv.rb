@@ -98,7 +98,7 @@ class Iconv
           converted << cd.iconv(x)
         rescue Failure => e
           converted << e.success
-          raise e.class.new(nil, converted, rest.unshift(e.failed))
+          raise e.class.new(e.message, converted, rest.unshift(e.failed))
         end
       end
     end
@@ -200,7 +200,8 @@ class Iconv
           result += get_success(os, l2)
           next
         rescue Errno::EINVAL => e
-          raise InvalidCharacter.new(nil, get_success(os, l2), get_failed(is, ic, l1))
+          failed = get_failed(is, ic, l1)
+          raise InvalidCharacter.new(failed.inspect, get_success(os, l2), failed)
         rescue RuntimeError => e
           raise BrokenLibrary.new(nil, get_success(os, l2), get_failed(is, ic, l1))
         end
