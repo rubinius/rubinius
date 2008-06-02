@@ -26,7 +26,7 @@ namespace :spec do
   desc "Initialize #{spec_ruby} with a rubyspec clone"
   task :init do
     unless is_git_dir spec_ruby
-      sh "git clone git://github.com/brixen/rubyspec.git #{spec_ruby}"
+      sh "git clone git://github.com/rubyspec/rubyspec.git #{spec_ruby}"
     end
   end
 
@@ -72,7 +72,7 @@ namespace :spec do
   desc "Switch to the rubyspec commiter URL"
   task :committer do
     Dir.chdir spec_ruby do
-      sh "git config remote.origin.url git@github.com:brixen/rubyspec.git"
+      sh "git config remote.origin.url git@github.com:rubyspec/rubyspec.git"
     end
     puts "\nYou're now accessing rubyspec via the committer URL."
   end
@@ -80,7 +80,7 @@ namespace :spec do
   desc "Switch to the rubyspec anonymous URL"
   task :anon do
     Dir.chdir spec_ruby do
-      sh "git config remote.origin.url git://github.com/brixen/rubyspec.git"
+      sh "git config remote.origin.url git://github.com/rubyspec/rubyspec.git"
     end
     puts "\nYou're now accessing rubyspec via the anonymous URL."
   end
