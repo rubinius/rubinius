@@ -127,7 +127,10 @@ class Iconv
   private :get_success
   private :get_failed
 
-  def iconv(str, start = Undefined, length = Undefined)
+  def iconv(str, start = 0, length = -1)
+
+    start = 0 if not start
+    length = -1 if not length
 
     raise ArgumentError.new("closed iconv") if @closed
 
@@ -148,8 +151,28 @@ class Iconv
       is = MemoryPointer.new(str.size + 10)
       is.write_string str, str.size
 
-      ic.write_long str.size
       l1.write_long is.address
+
+      start += str.size if start < 0
+      if start < 0 || start >= str.size
+        length = 0
+      else
+        length += str.size + 1 if length < 0
+        if length < 0
+          length = 0
+        else
+          length -= start
+          if length < 0
+            length = 0
+          else
+            l1.write_long(is.address + start)
+            length = str.size if length > str.size
+          end
+        end
+      end
+
+      ic.write_long length
+
     else # if str is nil, reset the shift state
       ic.write_long 0
       l1.write_long 0
