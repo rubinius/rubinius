@@ -8,6 +8,18 @@ describe "SubtendString" do
   before :each do
     @s = SubtendString.new
   end
+
+  class ValidTostrTest
+    def to_str
+      "ruby"
+    end
+  end
+
+  class InvalidTostrTest
+    def to_str
+      []
+    end
+  end
   
   it "rb_str_new should return a new string object" do
     # Hardcoded to pass const char * = "hello"
@@ -101,5 +113,12 @@ describe "SubtendString" do
     t = ""
     @s.rb_rstring_assign_foo_and_upcase(t)
     t.should == "FOO"
+  end
+
+  it "rb_str_to_str should try to coerce to String, otherwise raise a TypeError" do
+    @s.rb_str_to_str("foo").should == "foo"
+    @s.rb_str_to_str(ValidTostrTest.new).should == "ruby"
+    lambda { @s.rb_str_to_str(0) }.should raise_error(TypeError)
+    lambda { @s.rb_str_to_str(InvalidTostrTest.new) }.should raise_error(TypeError)
   end
 end

@@ -198,6 +198,7 @@ VALUE rb_tainted_str_new2(const char *ptr);
 char *StringValuePtr(VALUE str);
 VALUE rb_obj_as_string(VALUE obj);
 char rb_str_get_char(VALUE arg, int index);
+VALUE rb_str_to_str(VALUE arg);
 
 void rb_string_value(VALUE *obj);
 #define StringValue(v) rb_string_value(&v)

@@ -94,6 +94,10 @@ VALUE ss_rstring_assign_foo_and_upcase(VALUE self, VALUE str) {
   return Qnil;
 }
 
+VALUE ss_str_to_str(VALUE self, VALUE arg) {
+  return rb_str_to_str(arg);
+}
+
 void Init_subtend_string() {
   VALUE cls;
   cls = rb_define_class("SubtendString", rb_cObject);
@@ -116,4 +120,5 @@ void Init_subtend_string() {
   rb_define_method(cls, "rb_rstring_assign_global_foobar", ss_rstring_assign_global_foobar, 0);
   rb_define_method(cls, "rb_rstring_set_len", ss_rstring_set_len, 2);
   rb_define_method(cls, "rb_rstring_assign_foo_and_upcase", ss_rstring_assign_foo_and_upcase, 1);
+  rb_define_method(cls, "rb_str_to_str", ss_str_to_str, 1);
 }

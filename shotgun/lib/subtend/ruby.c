@@ -657,6 +657,10 @@ void rb_string_value(VALUE *val) {
   *val = rb_obj_as_string(*val);
 }
 
+VALUE rb_str_to_str(VALUE str) {
+  return rb_convert_type(str, 0, "String", "to_str");
+}
+
 RString* RSTRING(VALUE arg) {
   RString *ret;
   CTX;
