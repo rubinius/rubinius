@@ -1,8 +1,8 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/runner/mspec'
-load 'bin/mspec-run'
+require 'mspec/commands/mspec-tag'
 
-describe MSpecRun, "#options" do
+describe MSpecTag, "#options" do
   before :each do
     @stdout, $stdout = $stdout, IOStub.new
 
@@ -10,7 +10,7 @@ describe MSpecRun, "#options" do
     @options, @config = new_option
     MSpecOptions.stub!(:new).and_return(@options)
 
-    @script = MSpecRun.new
+    @script = MSpecTag.new
     @script.stub!(:config).and_return(@config)
   end
 
@@ -43,11 +43,6 @@ describe MSpecRun, "#options" do
     @script.options @argv
   end
 
-  it "enables the randomize option to runs specs in random order" do
-    @options.should_receive(:add_randomize)
-    @script.options @argv
-  end
-
   it "enables the dry run option" do
     @options.should_receive(:add_pretend)
     @script.options @argv
@@ -68,18 +63,8 @@ describe MSpecRun, "#options" do
     @script.options @argv
   end
 
-  it "enables the verify options" do
-    @options.should_receive(:add_verify)
-    @script.options @argv
-  end
-
-  it "enables the action options" do
-    @options.should_receive(:add_actions)
-    @script.options @argv
-  end
-
-  it "enables the action filter options" do
-    @options.should_receive(:add_action_filters)
+  it "enables the tagging options" do
+    @options.should_receive(:add_tagging)
     @script.options @argv
   end
 
@@ -101,7 +86,7 @@ describe MSpecRun, "#options" do
   end
 end
 
-describe MSpecRun, "#run" do
+describe MSpecTag, "#run" do
   before :each do
     MSpec.stub!(:process)
 
@@ -116,7 +101,7 @@ describe MSpecRun, "#run" do
     MSpecOptions.stub!(:new).and_return(options)
 
     @config = { }
-    @script = MSpecRun.new
+    @script = MSpecTag.new
     @script.stub!(:exit)
     @script.stub!(:config).and_return(@config)
     @script.options

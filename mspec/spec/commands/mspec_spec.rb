@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'yaml'
-load 'bin/mspec'
+require 'mspec/commands/mspec'
 
 describe MSpecMain, "#options" do
   before :each do

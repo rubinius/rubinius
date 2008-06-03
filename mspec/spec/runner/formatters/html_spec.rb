@@ -30,12 +30,14 @@ describe HtmlFormatter, "#start" do
 
   it "prints the HTML head" do
     @formatter.start
+    ruby_name = RUBY_NAME
+    ruby_name.should =~ /^ruby/
     @out.should ==
 %[<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
     "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-<title>Spec Output For ruby (1.8.6)</title>
+<title>Spec Output For #{ruby_name} (1.8.6)</title>
 <style type="text/css">
 ul {
   list-style: none;

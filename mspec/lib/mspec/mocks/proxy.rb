@@ -61,7 +61,8 @@ class MockProxy
   end
 
   def any_number_of_times
-    at_least 0
+    @count = [:any_number_of_times, 0]
+    self
   end
 
   def with(*args)

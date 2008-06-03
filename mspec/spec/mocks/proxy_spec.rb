@@ -156,9 +156,9 @@ describe MockProxy, "#any_number_of_times" do
     @proxy.any_number_of_times.should be_equal(@proxy)
   end
 
-  it "sets the expected calls to at least 0" do
+  it "sets the expected calls to any number of times" do
     @proxy.any_number_of_times
-    @proxy.count.should == [:at_least, 0]
+    @proxy.count.should == [:any_number_of_times, 0]
   end
 
   it "does not accept an argument" do

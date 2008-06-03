@@ -32,7 +32,7 @@ module Mock
 
     if type == :stub
       expects[[obj, sym]] << proxy
-      proxy.at_least(0)
+      proxy.any_number_of_times
     else
       expects[[obj, sym]].unshift proxy
       proxy.exactly(1)
@@ -52,6 +52,8 @@ module Mock
           proxy.calls <= count
         when :exactly
           proxy.calls == count
+        when :any_number_of_times
+          true
         else
           false
         end

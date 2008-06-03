@@ -1,3 +1,4 @@
+require 'mspec/helpers/tmp'
 require 'fileutils'
 
 # Lower-level output speccing mechanism for a single

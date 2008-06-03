@@ -1,94 +1,85 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/runner/mspec'
-load 'bin/mspec-tag'
+require 'mspec/runner/filters/tag'
+require 'mspec/commands/mspec-ci'
 
-describe MSpecTag, "#options" do
+describe MSpecCI, "#options" do
   before :each do
-    @stdout, $stdout = $stdout, IOStub.new
-
-    @argv = ["a", "b"]
     @options, @config = new_option
     MSpecOptions.stub!(:new).and_return(@options)
 
-    @script = MSpecTag.new
+    @script = MSpecCI.new
     @script.stub!(:config).and_return(@config)
-  end
-
-  after :each do
-    $stdout = @stdout
-  end
-
-  it "enables the filter options" do
-    @options.should_receive(:add_filters)
-    @script.options @argv
   end
 
   it "enables the config option" do
     @options.should_receive(:add_config)
-    @script.options @argv
+    @script.options
   end
 
   it "provides a custom action (block) to the config option" do
     @script.should_receive(:load).with("cfg.mspec")
-    @script.options ["-B", "cfg.mspec", "a"]
+    @script.options ["-B", "cfg.mspec"]
   end
 
   it "enables the name option" do
     @options.should_receive(:add_name)
-    @script.options @argv
+    @script.options
   end
 
   it "enables the tags dir option" do
     @options.should_receive(:add_tags_dir)
-    @script.options @argv
+    @script.options
   end
 
   it "enables the dry run option" do
     @options.should_receive(:add_pretend)
-    @script.options @argv
+    @script.options
   end
 
   it "enables the interrupt single specs option" do
     @options.should_receive(:add_interrupt)
-    @script.options @argv
+    @script.options
   end
 
   it "enables the formatter options" do
     @options.should_receive(:add_formatters)
-    @script.options @argv
+    @script.options
   end
 
   it "enables the verbose option" do
     @options.should_receive(:add_verbose)
-    @script.options @argv
+    @script.options
   end
 
-  it "enables the tagging options" do
-    @options.should_receive(:add_tagging)
-    @script.options @argv
+  it "enables the action options" do
+    @options.should_receive(:add_actions)
+    @script.options
+  end
+
+  it "enables the action filter options" do
+    @options.should_receive(:add_action_filters)
+    @script.options
   end
 
   it "enables the version option" do
     @options.should_receive(:add_version)
-    @script.options @argv
+    @script.options
   end
 
   it "enables the help option" do
     @options.should_receive(:add_help)
-    @script.options @argv
-  end
-
-  it "exits if there are no files to process" do
-    @options.should_receive(:parse).and_return([])
-    @script.should_receive(:exit)
     @script.options
-    $stdout.should =~ /No files specified/
   end
 end
 
-describe MSpecTag, "#run" do
+describe MSpecCI, "#run" do
   before :each do
     MSpec.stub!(:process)
+
+    @filter = mock("TagFilter")
+    TagFilter.stub!(:new).and_return(@filter)
+    @filter.stub!(:register)
 
     stat = mock("stat")
     stat.stub!(:file?).and_return(true)
@@ -96,12 +87,8 @@ describe MSpecTag, "#run" do
     File.stub!(:expand_path)
     File.stub!(:stat).and_return(stat)
 
-    options = mock("MSpecOptions", :null_object => true)
-    options.stub!(:parse).and_return(["one", "two"])
-    MSpecOptions.stub!(:new).and_return(options)
-
-    @config = { }
-    @script = MSpecTag.new
+    @config = { :ci_files => ["one", "two"] }
+    @script = MSpecCI.new
     @script.stub!(:exit)
     @script.stub!(:config).and_return(@config)
     @script.options
@@ -115,6 +102,27 @@ describe MSpecTag, "#run" do
 
   it "registers the files to process" do
     MSpec.should_receive(:register_files).with(["one", "two"])
+    @script.run
+  end
+
+  it "registers a tag filter for 'fails'" do
+    filter = mock("fails filter")
+    TagFilter.should_receive(:new).with(:exclude, 'fails').and_return(filter)
+    filter.should_receive(:register)
+    @script.run
+  end
+
+  it "registers a tag filter for 'unstable'" do
+    filter = mock("unstable filter")
+    TagFilter.should_receive(:new).with(:exclude, 'unstable').and_return(filter)
+    filter.should_receive(:register)
+    @script.run
+  end
+
+  it "registers a tag filter for 'incomplete'" do
+    filter = mock("incomplete filter")
+    TagFilter.should_receive(:new).with(:exclude, 'incomplete').and_return(filter)
+    filter.should_receive(:register)
     @script.run
   end
 
