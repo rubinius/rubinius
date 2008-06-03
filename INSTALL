@@ -111,9 +111,9 @@ Currently mostly works on amd64 and Opteron. Other 64-bit platforms have not
 been tested.
 
 
-=== Mac OS X with Fink
+=== Mac OS X with macports
 
-See http://42squared.com/posts/how_to_install_rubinius_on_mac_os_x
+See http://sam.aaron.name/2007/9/22/rubinius-on-os-x/
 
 === Ubuntu
 
