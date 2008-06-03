@@ -1,5 +1,1 @@
-fails:SubtendObject rb_to_id should return a symbol representation of the object
-fails:SubtendObject rb_check_array_type should try to coerce to array, otherwise return nil
-fails:SubtendObject rb_check_convert_type should try to coerce to a type, otherwise return nil
 fails:SubtendObject rb_require should require a ruby file
-fails:SubtendObject rb_convert_type should try to coerce to a type, otherwise raise a TypeError
