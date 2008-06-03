@@ -341,7 +341,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
     
   /* Oh, we have traveled back here! Lets figure out why! */
   } else {
-    OBJECT tmp;
+    OBJECT tmp, t2;
     
     // printf("Welcome back! %d\n", travel);
     switch(travel) {
@@ -359,9 +359,30 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
       // n->setup_context++;
       /* With call method, the rb_funcall shim pushs the arguments
          on the stack already, so we just have to perform the send. */
+      t2 = c->active_context;
       tmp = handle_to_object(state, state->handle_tbl, n->value);
       cpu_send(state, c, tmp, n->symbol, n->args, (OBJECT)Qnil);
-      break;
+
+      /* Ok, a new context was created, we'll get activated again when
+       * we're returned into. */
+      if(t2 != c->active_context) {
+        break;
+      } else {
+        /* oh ho! no new context means the send is done, and the value 
+         * is on the stack. 
+         *
+         * NOTE this wont work when each context has it's own stack though (ie
+         * the v2 C++ VM) */
+
+        /* Grab the return value and make a handle for it. */
+        n->value = nmc_handle_new(n, state->handle_tbl, cpu_stack_pop(state, c));
+
+        /* Go go gadget stack! */
+        n->jump_val = 1;
+        setcontext(&n->cont);
+
+        assert(0 && "Should never get here!");
+      }
     case SEGFAULT_DETECTED:
       {
         char msg[1024];
@@ -369,7 +390,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
         snprintf(msg, sizeof(msg), "Segfault detected in function %p (accessing %p)", 
             n->method->entry, global_context->fault_address);
             
-        /* We swap around the active_conetext so the exception thats created
+        /* We swap around the active_context so the exception thats created
            references the NativeMethodContext, but raise_exception doesn't
            see it so we go directly up. */
         cur = c->active_context;
