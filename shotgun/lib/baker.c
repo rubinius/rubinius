@@ -188,7 +188,7 @@ static void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
     fields = NUM_FIELDS(iobj);
     for(i = 0; i < fields; i++) {
       tmp = NTH_FIELD(iobj, i);
-      if(!REFERENCE_P(tmp)) continue;
+      if(!tmp || !REFERENCE_P(tmp)) continue;
 			/* TODO: duplicated in other places: extract to separate function? */
       if(FORWARDED_P(tmp)) {
         mut = tmp->klass;
