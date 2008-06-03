@@ -1,25 +1,5 @@
-fails:Iconv#iconv raises an ArgumentError when called on a closed converter
-fails:Iconv#iconv when given a string or string-like parameter returns a converted version of it
-fails:Iconv#iconv when given nil resets the converter
-fails:Iconv#iconv when given a negative start position counts from the end of string
-fails:Iconv#iconv when the end parameter is omitted or nil goes until the end of the string
-fails:Iconv#iconv when given a positive end position treats it as exclusive
-fails:Iconv#iconv when given a negative end position treats it as inclusive
 fails:Iconv#iconv to utf-16, when given an empty string or empty range, always returns an empty string
 fails:Iconv#iconv raises Iconv::IllegalSequence when faced with an invalid byte
-fails:Iconv#iconv raises Iconv::IllegalSequence when a character cannot be represented on the target encoding
-fails:Iconv#iconv raises Iconv::InvalidCharacter when an incomplete character or shift sequence happens at the end of the input buffer
-fails:Iconv#iconv sanitizes invalid upper bounds
-fails:Iconv#iconv returns a blank string on invalid lower bounds
-fails:Iconv.iconv raises a TypeError when encoding names are not Strings or string-compatible
-fails:Iconv.iconv raises an Iconv::InvalidEncoding exception when an encoding cannot be found
 fails:Iconv.iconv acts exactly as if invoking Iconv#iconv consecutively on the same converter
-fails:Iconv#iconv when given the same source and target encodings still goes through all the decoding and encoding steps
-fails:Iconv#iconv raises Iconv::IllegalSequence when faced with an invalid byte for the source encoding
-fails:The 'us-ascii' decoder accepts only the strict 7-bit ASCII set
-fails:The 'us-ascii' encoder accepts only the strict 7-bit ASCII set
-fails:The 'utf-8' decoder accepts only strictly valid UTF-8 sequences
 fails:The 'utf-8' decoder rejects surrogate characters
 fails:The 'utf-16' decoder rejects surrogates without pairs
-fails:The 'utf-16' encoder emits an empty string when the source input is empty
-fails:The 'iso-8859-1' encoder rejects characters which are not in the ISO-8859-1 range
