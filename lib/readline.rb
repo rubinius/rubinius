@@ -1,6 +1,8 @@
 begin
   require 'ext/readline/readline'
 
+  Readline::HISTORY.extend Enumerable
+
   module Readline
     def self.readline(prompt="", add_hist=true)
       perform_readline(prompt, add_hist)
