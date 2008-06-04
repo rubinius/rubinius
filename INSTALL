@@ -88,6 +88,15 @@ To install @rbx@ as a shortcut for @./shotgun/rubinius@:
   rake install
 
 
+== Prefix installs
+
+To install rbx and the rubinius library in a different location, you can set
+the PREFIX environment variable during build and install:
+
+  PREFIX=/opt/packages/rubinius rake build
+  PREFIX=/opt/packages/rubinius rake install
+
+
 == Troubleshooting and platform-specific notes
 
 Right now, the very best thing to do is to join the #rubinius IRC channel on
