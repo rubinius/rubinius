@@ -191,6 +191,11 @@ class Iconv
       l2.write_long os.address
 
       count = Iconv.convert @handle, l1, ic, l2, oc
+
+      if oc.read_long < 0 || oc.read_long > output then
+        raise OutOfRange.new("bug?(output length = #{output - oc.read_long})", get_success(os, l2), get_failed(is, ic, l1))
+      end
+
       if count == -1 then
         begin
           Errno.handle if count == -1
