@@ -31,7 +31,7 @@ extern const ffi_dlhandle_t* const ffi_this_process;
  * to use .so.
  *
  * The library name or path should never have a file extension and
- * it is always assumed to be no longer than FFI_MAX_PATH. 
+ * it is always assumed to be no longer than FFI_MAX_PATH.
  */
 static void* ffi_load_function_from_dso(STATE, const OBJECT library, const OBJECT symbol)
 {
@@ -69,7 +69,7 @@ static void* ffi_load_function_from_dso(STATE, const OBJECT library, const OBJEC
       return NULL;
     }
   }
-  
+
   /* Now locate the symbol in the library (or this process.)
    * We may return NULL if not found, user can check ffi_dlerror().
    */
@@ -221,7 +221,7 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
   ptr += offset;
 
 #define READ(type) (*((type*)(ptr)))
-  
+
   switch(type) {
   case RBX_FFI_TYPE_CHAR:
     ret = I2N(READ(char));
@@ -285,14 +285,14 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
     OBJECT s, p;
 
     result = READ(char*);
-    
+
     if(result == NULL) {
       s = p = Qnil;
     } else {
       p = ffi_new_pointer(state, result);
       s = string_new(state, result);
     }
-    
+
     ret = array_new(state, 2);
     array_set(state, ret, 0, s);
     array_set(state, ret, 1, p);
@@ -311,7 +311,7 @@ void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
   STATE = current_machine->s;
 
   ptr += offset;
-  
+
 #define WRITE(type, val) *((type*)ptr) = (type)val
 
   switch(type) {
