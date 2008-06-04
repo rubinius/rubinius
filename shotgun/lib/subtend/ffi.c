@@ -47,6 +47,7 @@ static void* ffi_load_function_from_dso(STATE, const OBJECT library, const OBJEC
     const char* suffix    = (const char*) FFI_DSO_EXT;
 
   #ifdef __APPLE_CC__
+    unsigned short tried_other_suffix = FALSE;
     try_other_suffix:
   #endif
 
@@ -61,7 +62,8 @@ static void* ffi_load_function_from_dso(STATE, const OBJECT library, const OBJEC
     /* This name not found or unable to open. Error in ffi_dlerror(). */
     if(!lib) {
       #ifdef __APPLE_CC__
-        if(suffix != FFI_DSO_ALT_EXT) {
+        if(!tried_other_suffix) {
+          tried_other_suffix = TRUE;
           suffix = FFI_DSO_ALT_EXT;
           goto try_other_suffix;
         }
