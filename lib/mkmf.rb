@@ -119,6 +119,8 @@ if not $extmk and File.exist?(Config::CONFIG["archdir"] + "/ruby.h")
 elsif File.exist?(($top_srcdir ||= topdir)  + "/ruby.h") and
     File.exist?(($topdir ||= Config::CONFIG["topdir"]) + "/config.h")
   $hdrdir = $top_srcdir
+elsif File.exist?((hdrdir = Config::CONFIG["rubyhdrdir"]) + "/ruby.h")
+  $hdrdir = hdrdir
 else
   abort "can't find header files for ruby."
 end
@@ -266,8 +268,7 @@ ensure
 end
 
 def link_command(ldflags, opt="", libpath=$DEFLIBPATH|$LIBPATH)
-  Config::expand(TRY_LINK.dup,
-                 CONFIG.merge('hdrdir' => $hdrdir.quote,
+  conf = Config::CONFIG.merge('hdrdir' => $hdrdir.quote,
                               'src' => CONFTEST_C,
                               'INCFLAGS' => $INCFLAGS,
                               'CPPFLAGS' => $CPPFLAGS,
@@ -276,22 +277,30 @@ def link_command(ldflags, opt="", libpath=$DEFLIBPATH|$LIBPATH)
                               'LDFLAGS' => "#$LDFLAGS #{ldflags}",
                               'LIBPATH' => libpathflag(libpath),
                               'LOCAL_LIBS' => "#$LOCAL_LIBS #$libs",
-                              'LIBS' => "#$LIBRUBYARG_STATIC #{opt} #$LIBS"))
+                              'LIBS' => "#$LIBRUBYARG_STATIC #{opt} #$LIBS")
+  Config::expand(TRY_LINK.dup, conf)
 end
 
 def cc_command(opt="")
+  conf = Config::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote)
   Config::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
-		 CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote))
+		 conf)
 end
 
 def cpp_command(outfile, opt="")
+  conf = Config::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote)
   Config::expand("$(CPP) #$INCFLAGS #$CPPFLAGS #$CFLAGS #{opt} #{CONFTEST_C} #{outfile}",
-		 CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote))
+		 conf)
 end
 
 def libpathflag(libpath=$DEFLIBPATH|$LIBPATH)
   libpath.map{|x|
-    (x == "$(topdir)" ? LIBPATHFLAG : LIBPATHFLAG+RPATHFLAG) % x.quote
+    case x
+    when "$(topdir)", /\A\./
+      LIBPATHFLAG
+    else
+      LIBPATHFLAG+RPATHFLAG
+    end % x.quote
   }.join
 end
 
@@ -1047,6 +1056,9 @@ topdir = #{($extmk ? CONFIG["topdir"] : $topdir).quote}
 hdrdir = #{$extmk ? CONFIG["hdrdir"].quote : '$(topdir)'}
 VPATH = #{vpath.join(CONFIG['PATH_SEPARATOR'])}
 }
+  if $extmk
+    mk << "RUBYLIB = -\nRUBYOPT = -rpurelib.rb\n"
+  end
   if destdir = CONFIG["prefix"][$dest_prefix_pattern, 1]
     mk << "\nDESTDIR = #{destdir}\n"
   end
@@ -1390,6 +1402,7 @@ site-install-rb: install-rb
     unless suffixes.empty?
       mfile.print ".SUFFIXES: .", suffixes.uniq.join(" ."), "\n\n"
     end
+    mfile.print "$(OBJS): $(RUBY_EXTCONF_H)\n\n" if $extconf_h
     mfile.print depout
   else
     headers = %w[ruby.h defines.h]
@@ -1425,6 +1438,7 @@ def init_mkmf(config = CONFIG)
   $LIBRUBYARG_STATIC = config['LIBRUBYARG_STATIC']
   $LIBRUBYARG_SHARED = config['LIBRUBYARG_SHARED']
   $DEFLIBPATH = $extmk ? ["$(topdir)"] : CROSS_COMPILING ? [] : ["$(libdir)"]
+  $DEFLIBPATH.unshift(".")
   $LIBPATH = []
   $INSTALLFILES = nil
 
@@ -1438,6 +1452,7 @@ def init_mkmf(config = CONFIG)
   $LOCAL_LIBS = ""
 
   $cleanfiles = config_string('CLEANFILES') {|s| Shellwords.shellwords(s)} || []
+  $cleanfiles << "mkmf.log"
   $distcleanfiles = config_string('DISTCLEANFILES') {|s| Shellwords.shellwords(s)} || []
 
   $extout ||= nil
@@ -1516,8 +1531,8 @@ LINK_SO = config_string('LINK_SO') ||
   if CONFIG["DLEXT"] == $OBJEXT
     "ld $(DLDFLAGS) -r -o $@ $(OBJS)\n"
   else
-    "$(LDSHARED) $(DLDFLAGS) $(LIBPATH) #{OUTFLAG}$@ " \
-    "$(OBJS) $(LOCAL_LIBS) $(LIBS)"
+    "$(LDSHARED) #{OUTFLAG}$@ $(OBJS) " \
+    "$(LIBPATH) $(DLDFLAGS) $(LOCAL_LIBS) $(LIBS)"
   end
 LIBPATHFLAG = config_string('LIBPATHFLAG') || ' -L"%s"'
 RPATHFLAG = config_string('RPATHFLAG') || ''
