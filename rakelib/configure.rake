@@ -322,6 +322,7 @@ def write_rbconfig
 EOC
     f.puts "end"
     f.puts
+    f.puts "CROSS_COMPILING = nil unless defined? CROSS_COMPILING"
     f.puts "RbConfig = Config"
   end
 end
