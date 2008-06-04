@@ -141,6 +141,7 @@ class Class
     alias_method :opened_class, :opened_class_cv
     alias_method :add_subclass, :add_subclass_cv
     alias_method :__subclasses__, :subclasses_cv
+    alias_method :dup, :clone
   end
 end
 
