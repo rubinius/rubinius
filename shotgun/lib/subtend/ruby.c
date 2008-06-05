@@ -93,6 +93,14 @@ void rb_global_object(VALUE val) {
   handle_make_global(AS_HNDL(val));
 }
 
+/* HACK this is wrong. We should tag +address+, but we cheat
+ * and just tag whatever it currently points to. This will break
+ * if they store a different object in that location. Thankfully
+ * people don't do that often. */
+void rb_global_variable(VALUE* address) {
+  rb_global_object(*address);
+}
+
 void rb_free_global(VALUE val) {
   handle_clear_global(AS_HNDL(val));
 }
@@ -642,6 +650,12 @@ char *StringValuePtr(VALUE str) {
   return (char*)rbx_string_as_cstr(ctx->state, HNDL(str));
 }
 
+char *rb_string_value_cstr(VALUE* val) {
+  CTX;
+  VALUE str = rb_string_value(val);
+  return (char*)rbx_string_as_cstr(ctx->state, HNDL(str));
+}
+
 VALUE rb_obj_as_string(VALUE val) {
   CTX;
   OBJECT str = HNDL(val);
@@ -653,8 +667,9 @@ VALUE rb_obj_as_string(VALUE val) {
   return rb_funcall2(val, rb_intern("to_s"), 0, NULL);
 }
 
-void rb_string_value(VALUE *val) {
+VALUE rb_string_value(VALUE *val) {
   *val = rb_obj_as_string(*val);
+  return *val;
 }
 
 VALUE rb_str_to_str(VALUE str) {
@@ -836,8 +851,14 @@ VALUE subtend_wrap_struct(VALUE klass, void *struct_value, void *mark_func, void
   CTX;
   STATE;
   state = ctx->state;
-  
-  OBJECT obj = NEW_OBJECT(HNDL(klass), (unsigned int)(sizeof(struct wraps_struct)/sizeof(uintptr_t)));
+
+  size_t words = sizeof(struct wraps_struct) / SIZE_OF_OBJECT;
+  if(sizeof(struct wraps_struct) % SIZE_OF_OBJECT != 0) words++;
+
+  OBJECT obj = NEW_OBJECT(HNDL(klass), words);
+  object_make_byte_storage(state, obj);
+  object_initialize_bytes(state, obj);
+
   struct wraps_struct *s = (struct wraps_struct *)BYTES_OF(obj);
   s->ptr = struct_value;
   s->mark = mark_func;
@@ -886,11 +907,3 @@ int rb_type(VALUE obj) {
   /* It's ruby, it HAS to be an object. :) */
   return T_OBJECT;
 }
-
-/*
-
-Still needed for Mongrel - Kev
-
-rb_global_variable
-
-*/

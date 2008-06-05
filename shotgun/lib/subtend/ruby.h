@@ -49,6 +49,8 @@ extern VALUE rb_funcall2(VALUE, ID, int cnt, VALUE*);
 extern VALUE subtend_get_global(int which);
 extern VALUE subtend_get_exception(int which);
 
+void rb_global_variable(VALUE* address);
+
 void rb_define_method_(const char *file, VALUE vmod, const char *name, void *func, int args, int kind);
 void rb_define_module_function(VALUE vmod, const char *name, void *func, int args);
 
@@ -196,11 +198,18 @@ VALUE rb_cstr2inum(VALUE str, int base);
 VALUE rb_str_substr(VALUE str, long beg, long len);
 VALUE rb_tainted_str_new2(const char *ptr);
 char *StringValuePtr(VALUE str);
+#define StringValueCStr(str) rb_string_value_cstr(&(str))
 VALUE rb_obj_as_string(VALUE obj);
 char rb_str_get_char(VALUE arg, int index);
 VALUE rb_str_to_str(VALUE arg);
 
-void rb_string_value(VALUE *obj);
+void rb_global_object(VALUE obj);
+void rb_free_global(VALUE obj);
+
+#define MAKE_GLOBAL(val) rb_global_object(val)
+#define FREE_GLOBAL(val) rb_free_global(val)
+
+VALUE rb_string_value(VALUE *obj);
 #define StringValue(v) rb_string_value(&v)
 #define SafeStringValue StringValue
 

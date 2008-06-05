@@ -111,7 +111,7 @@ def map_dir(dir, map = nil)
   map.inject(dir) {|dir, (orig, new)| dir.gsub(orig, new)}
 end
 
-topdir = File.dirname(libdir = File.dirname(__FILE__))
+$topdir = topdir = File.dirname(libdir = File.dirname(__FILE__))
 extdir = File.expand_path("ext", topdir)
 $extmk = File.expand_path($0)[0, extdir.size+1] == extdir+"/"
 if not $extmk and File.exist?(Config::CONFIG["archdir"] + "/ruby.h")
@@ -1411,7 +1411,7 @@ site-install-rb: install-rb
     end
     headers << $config_h if $config_h
     headers << "$(RUBY_EXTCONF_H)" if $extconf_h
-    mfile.print "$(OBJS): ", headers.join(' '), "\n"
+    mfile.print "$(OBJS): " # , headers.join(' '), "\n"
   end
 
   $makefile_created = true
@@ -1502,7 +1502,7 @@ unless File.expand_path(Config::CONFIG["topdir"]) == File.expand_path(curdir)
   Config::CONFIG["topdir"] = curdir
 end
 $configure_args["--topdir"] ||= $curdir
-$ruby = arg_config("--ruby", File.join(Config::CONFIG["bindir"], CONFIG["ruby_install_name"]))
+$ruby = arg_config("--ruby", RUBY_BIN_PATH)
 
 split = Shellwords.method(:shellwords).to_proc
 

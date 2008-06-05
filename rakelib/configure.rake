@@ -130,7 +130,7 @@ def write_rbconfig
     f.puts '  CONFIG = {}'
     f.puts
     f.puts '  CONFIG["prefix"]             = prefix'
-    f.puts '  CONFIG["install_prefix"]     = /usr/local'
+    f.puts %Q!  CONFIG["install_prefix"]     = "#{PREFIX}"!
     f.puts '  CONFIG["DLEXT"]              = Rubinius::LIBSUFFIX.dup'
     f.puts '  CONFIG["EXEEXT"]             = ""'
     f.puts '  CONFIG["ruby_install_name"]  = RUBY_ENGINE.dup'
@@ -263,7 +263,7 @@ def write_rbconfig
     f.puts '  CONFIG["ARCHFILE"]           = ""'
     f.puts '  CONFIG["RDOCTARGET"]         = ""'
     f.puts '  CONFIG["LIBRUBY_A"]          = "lib$(RUBY_SO_NAME)-static.a"'
-    f.puts '  CONFIG["LIBRUBY_SO"]         = "lib$(RUBY_SO_NAME).so.$(MAJOR).$(MINOR).$(TEENY)"'
+    f.puts '  CONFIG["LIBRUBY_SO"]         = "lib$(RUBY_SO_NAME).so"'
     f.puts '  CONFIG["LIBRUBY_ALIASES"]    = "lib$(RUBY_SO_NAME).so"'
     f.puts '  CONFIG["LIBRUBY"]            = "$(LIBRUBY_A)"'
     f.puts '  CONFIG["LIBRUBYARG"]         = "$(LIBRUBYARG_STATIC)"'

@@ -124,6 +124,9 @@ MethodContext.current.method.staticscope = StaticScope.new(Object)
 
 TOPLEVEL_BINDING = binding()
 
+eval_code = nil
+arg = nil
+
 begin
   version_requested = false
   script_debug_requested = false
@@ -131,6 +134,7 @@ begin
     arg = ARGV.shift
     case arg
     when '--'
+      arg = nil
       break
     when '-h', '--help'
       puts RBS_USAGE
@@ -172,7 +176,7 @@ begin
       show_sendsites = count.to_i
     when '-e'
       $0 = "(eval)"
-      Compile.execute ARGV.shift
+      eval_code = ARGV.shift
     else
       if arg.prefix? "-I"
         more = arg[2..-1]
@@ -198,26 +202,38 @@ begin
         puts RBS_USAGE
         exit! 1
       else
-        if File.exists?(arg)
-          $0 = arg
-          Compile.debug_script! if script_debug_requested
-          Compile.load_from_extension arg 
-        else
-          if arg.suffix?(".rb")
-            puts "Unable to find '#{arg}'"
-            exit! 1
-          else
-            prog = "bin/#{arg}"
-            begin
-              $0 = prog
-              require prog
-            rescue LoadError => e
-              puts "Unable to find program '#{arg}' ('#{prog}'): #{e.message} (#{e.class})"
-              exit! 1
-            end
-          end
-        end
+        # Otherwise, we're done. Leave arg populated though, so we can
+        # try and load it.
         break
+      end
+    end
+  end
+
+  # If someone used -e, run that code.
+  if eval_code
+    # We have to put the last arg back on, since the option parser bails
+    # when it seems a non-option even if it's just a -e.
+    ARGV.unshift arg if arg
+
+    Compile.execute eval_code
+  elsif arg
+    if File.exists?(arg)
+      $0 = arg
+      Compile.debug_script! if script_debug_requested
+      Compile.load_from_extension arg 
+    else
+      if arg.suffix?(".rb")
+        puts "Unable to find '#{arg}'"
+        exit! 1
+      else
+        prog = "bin/#{arg}"
+        begin
+          $0 = prog
+          require prog
+        rescue LoadError => e
+          puts "Unable to find program '#{arg}' ('#{prog}'): #{e.message} (#{e.class})"
+          exit! 1
+        end
       end
     end
   end

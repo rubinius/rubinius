@@ -193,8 +193,14 @@ class UnboundMethod
   # Module anyway.
 
   def bind(receiver)
-    unless receiver.kind_of? @defined_in
-      raise TypeError, "Must be bound to an object of kind #{@defined_in}"
+    if @defined_in.kind_of? MetaClass
+      unless @defined_in.attached_instance == receiver
+        raise TypeError, "Must be bound to #{@defined_in.attached_instance.inspect} only"
+      end
+    else
+      unless receiver.kind_of? @defined_in
+        raise TypeError, "Must be bound to an object of kind #{@defined_in}"
+      end
     end
     Method.new receiver, @defined_in, @compiled_method
   end

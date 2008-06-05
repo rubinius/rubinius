@@ -2,4 +2,4 @@ define rbt
 p machine_print_callstack(0)
 end
 
-file rubinius.bin
+file rubinius.local.bin
