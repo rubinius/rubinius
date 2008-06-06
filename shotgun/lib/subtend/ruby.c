@@ -81,6 +81,57 @@ VALUE subtend_get_global(int which) {
     case 0:
     val = ctx->state->global->object;
     break;
+    case 1:
+    val = ctx->state->global->array;
+    break;
+    case 2:
+    val = ctx->state->global->bignum;
+    break;
+    case 3:
+    val = ctx->state->global->class;
+    break;
+    case 4:
+    val = ctx->state->global->data;
+    break;
+    case 5:
+    val = ctx->state->global->false_class;
+    break;
+    case 6:
+    val = ctx->state->global->fixnum_class;
+    break;
+    case 7:
+    val = ctx->state->global->floatpoint;
+    break;
+    case 8:
+    val = ctx->state->global->hash;
+    break;
+    case 9:
+    val = ctx->state->global->io;
+    break;
+    case 10:
+    val = ctx->state->global->module;
+    break;
+    case 11:
+    val = ctx->state->global->nil_class;
+    break;
+    case 12:
+    val = ctx->state->global->regexp;
+    break;
+    case 13:
+    val = ctx->state->global->string;
+    break;
+    case 14:
+    val = ctx->state->global->symbol;
+    break;
+    case 15:
+    val = ctx->state->global->thread;
+    break;
+    case 16:
+    val = ctx->state->global->true_class;
+    break;
+    case 17:
+    val = ctx->state->global->fixnum_class;
+    break;
         
     default:
     val = (OBJECT)Qnil;

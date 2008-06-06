@@ -82,7 +82,29 @@ VALUE rb_attr_get(VALUE obj, ID sym);
 int rb_block_given_p();
 VALUE rb_each(VALUE obj);
 
-#define rb_cObject (subtend_get_global(0))
+/* If you change these numbers, please also modify subtend_get_global
+ * in ruby.c.  It is safe to do so, these numbers have no inherent
+ * meanings.
+ */
+#define rb_cObject        (subtend_get_global(0))
+#define rb_cArray         (subtend_get_global(1))
+#define rb_cBignum        (subtend_get_global(2))
+#define rb_cClass         (subtend_get_global(3))
+#define rb_cData          (subtend_get_global(4))
+#define rb_cFalseClass    (subtend_get_global(5))
+#define rb_cFixnum        (subtend_get_global(6))
+#define rb_cFloat         (subtend_get_global(7))
+#define rb_cHash          (subtend_get_global(8))
+#define rb_cIO            (subtend_get_global(9))
+#define rb_cModule        (subtend_get_global(10))
+#define rb_cNilClass      (subtend_get_global(11))
+#define rb_cRegexp        (subtend_get_global(12))
+#define rb_cString        (subtend_get_global(13))
+#define rb_cSymbol        (subtend_get_global(14))
+#define rb_cThread        (subtend_get_global(15))
+#define rb_cTrueClass     (subtend_get_global(16))
+#define rb_cInteger       (subtend_get_global(17))
+
 #define rb_mKernel rb_const_get(rb_cObject, rb_intern("Kernel") )
 
 /* TODO: Pull these into an enum */
