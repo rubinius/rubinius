@@ -20,30 +20,30 @@ end
 
 class Sampler
   def initialize(freq=nil)
-    @frequency = freq 
+    @frequency = freq
     @frequency ||= ENV['PROFILE_FREQ'].to_i
     @frequency = 100 if @frequency == 0
 
     @call_graph = ENV['PROFILE_FULL']
   end
-  
+
   def start
     @start_clock = activate(@frequency)
     nil
   end
-    
+
   def stop
     @results, @last_clock, @gc_cycles = terminate()
     nil
   end
-  
+
   class Call
     attr_accessor :slices
     attr_accessor :descendants_slices
     attr_accessor :name
     attr_accessor :parents
     attr_accessor :children
-    
+
     def initialize(name)
       @name = name
       @slices = 0
@@ -64,14 +64,14 @@ class Sampler
       end
     end
   end
-  
+
   def display(out=STDOUT)
     @total_slices = 0
     @calls = Hash.new { |h,k| h[k] = Call.new(k) }
-  
+
     @results.each do |ent|
       next unless ent
-      
+
       @total_slices += 1
 
       call = find_call(ent)
@@ -90,7 +90,7 @@ class Sampler
         while true
           ent = ent.sender
           break unless ent
-          
+
           c = find_call(ent)
 
           # unwind to the root, but count each call only once
@@ -100,7 +100,7 @@ class Sampler
             c.descendants_slices += 1
           end
         end
-      end 
+      end
     end
 
     @calls["VM.garbage_collection"].slices = @gc_cycles
@@ -108,30 +108,30 @@ class Sampler
     out << "Total slices: #{@total_slices}, #{@last_clock - @start_clock} clocks\n\n"
     out << "=== FLAT PROFILE ===\n\n"
     out << " % time   slices   name\n"
-    
+
     @calls.sort { |a, b| b[1].slices <=> a[1].slices }.each do |name, call|
       out.printf " %6.2f %8d    %s\n", percent(call.slices), call.slices, name
     end
-   
+
     if @call_graph
       out << "\n=== CALL GRAPH ===\n\n"
       out << " % time   slices % self   slices  name\n"
       @calls.sort { |a, b| b[1].total_slices <=> a[1].total_slices }.each do |name, call|
         print_relatives(out, call.parents.sort { |a,b| a[1] <=> b[1] })
-        
-        out.printf " %6.2f %8d %6.2f %8d   %s\n", 
-          percent(call.total_slices), call.total_slices, 
-          percent(call.slices), call.slices, 
+
+        out.printf " %6.2f %8d %6.2f %8d   %s\n",
+          percent(call.total_slices), call.total_slices,
+          percent(call.slices), call.slices,
           name
-        
+
         print_relatives(out, call.children.sort { |a,b| b[1] <=> a[1] })
 
         out << "----------------------------------------------------------------------\n"
       end
-    end 
+    end
     nil
   end
-  
+
   def context_name(entry)
     # a Fixnum means that a primitive was running
     if entry.kind_of? Fixnum
@@ -140,7 +140,7 @@ class Sampler
       entry.normalized_name
     end
   end
-  
+
   def find_call(entry)
     @calls[context_name(entry)]
   end
