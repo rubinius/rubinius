@@ -51,17 +51,20 @@ class Proc
     end
   end
 
-  def self.new(&block)
-    if block
-      return block
+  def self.new
+    if block_given?
+      env = MethodContext.current.block
     else
-      # This behavior is stupid.
-      be = MethodContext.current.sender.block
-      if be
-        return from_environment(be)
-      else
-        raise ArgumentError, "tried to create a Proc object without a block"
-      end
+      # Support for ancient pre-block-pass style:
+      # def something; Proc.new; end
+      # something { a_block } => Proc instance
+      env = MethodContext.current.sender.block
+    end
+
+    if env
+      return from_environment(env)
+    else
+      raise ArgumentError, "tried to create a Proc object without a block"
     end
   end
 
