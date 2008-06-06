@@ -3,7 +3,7 @@
 class Iconv
 
   # Makes all following +attach_function+ calls look in this library
-  set_ffi_lib "libiconv"
+  set_ffi_lib [nil, "libiconv"]
 
   attach_function "iconv_open",  :create,  [:string, :string], :pointer
   attach_function "iconv_close", :close, [:pointer],         :int

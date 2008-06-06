@@ -54,10 +54,18 @@ module FFI
         i += 1
       end
       cret = find_type(ret)
-
-      library = setup_ld_library_path(library) if library
-      create_backend(library, name, args, cret)
-     end
+      
+      if library.respond_to?(:each)
+        library.each do |lib|
+          lib = setup_ld_library_path(lib) if lib
+          func = create_backend(lib, name, args, cret)
+          return func if func
+        end
+      else
+        library = setup_ld_library_path(library) if library
+        create_backend(library, name, args, cret)
+      end
+    end
 
     # Setup the LD_LIBRARY_PATH 
     def setup_ld_library_path(library)
