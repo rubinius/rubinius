@@ -174,6 +174,13 @@ task :install => :config_env do
   mkdir_p RBAPATH, :verbose => true
   mkdir_p CODEPATH, :verbose => true
 
+  # Install the subtend headers.
+  mkdir_p EXTPATH, :verbose => true
+
+  Rake::FileList.new('shotgun/lib/subtend/*.h').each do |file|
+    install file, File.join(EXTPATH, File.basename(file)), :mode => 0644, :verbose => true
+  end
+
   rba_files = Rake::FileList.new('runtime/platform.conf',
                                  'runtime/**/*.rb{a,c}',
                                  'runtime/**/.load_order.txt')

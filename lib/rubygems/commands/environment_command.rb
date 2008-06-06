@@ -50,6 +50,7 @@ class Gem::Commands::EnvironmentCommand < Gem::Command
       out << "  - RUBYGEMS PREFIX: #{Gem.prefix}\n" unless Gem.prefix.nil?
 
       out << "  - RUBY EXECUTABLE: #{Gem.ruby}\n"
+      out << "  - BINARY DIRECTORY: #{Gem.bindir}\n"
 
       out << "  - RUBYGEMS PLATFORMS:\n"
       Gem.platforms.each do |platform|

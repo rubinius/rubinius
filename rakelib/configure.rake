@@ -137,7 +137,11 @@ def write_rbconfig
     f.puts '  CONFIG["RUBY_INSTALL_NAME"]  = RUBY_ENGINE.dup'
 
     f.puts '  CONFIG["exec_prefix"]        = "$(prefix)"'
-    f.puts '  CONFIG["bindir"]             = "$(exec_prefix)/bin"'
+    f.puts '  if File.exists?(File.join(prefix, "bin", "rbx"))'
+    f.puts '    CONFIG["bindir"]             = "$(exec_prefix)/bin"'
+    f.puts '  else'
+    f.puts "    CONFIG[\"bindir\"]           = '#{BINPATH}'"
+    f.puts '  end'
     f.puts '  CONFIG["sbindir"]            = "$(exec_prefix)/sbin"'
     f.puts '  CONFIG["libexecdir"]         = "$(exec_prefix)/libexec"'
     f.puts '  CONFIG["datarootdir"]        = "$(prefix)/share"'
@@ -193,7 +197,11 @@ def write_rbconfig
 
     f.puts '  CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::RBX_VERSION}"'
     f.puts '  CONFIG["sitedir"]            = "$(install_prefix)/lib/rubinius"'
-    f.puts '  CONFIG["rubyhdrdir"]         = "$(prefix)/shotgun/lib/subtend"'
+    f.puts '  if File.directory?(File.join(prefix, "shotgun"))'
+    f.puts '    CONFIG["rubyhdrdir"]         = "$(prefix)/shotgun/lib/subtend"'
+    f.puts '  else'
+    f.puts '    CONFIG["rubyhdrdir"]         = "#{Rubinius::CODE_PATH}/$(host)"'
+    f.puts '  end'
     f.puts '  CONFIG["wordsize"]           = Rubinius::WORDSIZE'
 
     # TODO: we should compose sitelibdir from existing CONFIG keys

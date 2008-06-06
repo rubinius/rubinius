@@ -765,10 +765,6 @@ require 'rubygems/source_index'         # Needed for Kernel#gem
 require 'rubygems/platform'
 require 'rubygems/builder'              # HACK: Needed for rake's package task.
 
-if RUBY_VERSION < '1.9' then
-  require 'rubygems/custom_require'
-end
-
 begin
   require 'rubygems/defaults/operating_system'
 rescue LoadError
@@ -780,4 +776,9 @@ if defined?(RUBY_ENGINE) then
   rescue LoadError
   end
 end
+
+if RUBY_VERSION < '1.9' then
+  require 'rubygems/custom_require'
+end
+
 
