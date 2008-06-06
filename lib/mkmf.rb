@@ -1051,6 +1051,7 @@ SHELL = /bin/sh
 
 #### Start of system configuration section. ####
 
+host = #{CONFIG["host"].quote}
 srcdir = #{srcdir.gsub(/\$\((srcdir)\)|\$\{(srcdir)\}/) {CONFIG[$1||$2]}.quote}
 topdir = #{($extmk ? CONFIG["topdir"] : $topdir).quote}
 hdrdir = #{$extmk ? CONFIG["hdrdir"].quote : '$(topdir)'}
@@ -1087,7 +1088,7 @@ LIBRUBYARG_STATIC = #$LIBRUBYARG_STATIC
 
 RUBY_EXTCONF_H = #{$extconf_h}
 CFLAGS   = #{$static ? '' : CONFIG['CCDLFLAGS']} #$CFLAGS #$ARCH_FLAG
-INCFLAGS = -I. #$INCFLAGS
+INCFLAGS = -I. -I$(rubyhdrdir) #$INCFLAGS
 CPPFLAGS = #{extconf_h}#{$CPPFLAGS}
 CXXFLAGS = $(CFLAGS) #{CONFIG['CXXFLAGS']}
 DLDFLAGS = #$LDFLAGS #$DLDFLAGS #$ARCH_FLAG
