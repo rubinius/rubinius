@@ -79,6 +79,9 @@ if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
   $LOAD_PATH.unshift(*ENV['RUBYLIB'].split(':'))
 end
 
+# Pull it out now so that later unshifts don't obsure it.
+main_lib = $LOAD_PATH.first
+
 # Allow system wide code preloading
 
 ['/etc/rbxrc',"#{ENV['HOME']}/.rbxrc",ENV['RBX_PRELOAD']].each do |file|
@@ -108,9 +111,6 @@ Options:
   -rlibrary      Require library before execution.
   -w             Enable warnings. (currently does nothing--compatibility)
   -v             Display the version and set $VERBOSE to true.
-  --shark        Wait for Shark to start after loading Rubinius.
-  --valgrind     Execute under the watchful eyes of Valgrind.
-  --dtrace       Wait for DTrace to start after loading Rubinius.
 END
 
 $VERBOSE = false
@@ -226,13 +226,12 @@ begin
         puts "Unable to find '#{arg}'"
         exit! 1
       else
-        prog = "bin/#{arg}"
-        begin
+        prog = File.join main_lib, "bin", arg
+        if File.exists? prog
           $0 = prog
-          require prog
-        rescue LoadError => e
-          puts "Unable to find program '#{arg}' ('#{prog}'): #{e.message} (#{e.class})"
-          exit! 1
+          load prog
+        else
+          raise LoadError, "Unable to find a script '#{arg}' to run"
         end
       end
     end
@@ -253,7 +252,13 @@ begin
       unless ran or version_requested
         repr = ENV['RBX_REPR'] || "bin/irb"
         $0 = repr
-        require repr
+        prog = File.join main_lib, repr
+        begin
+          load prog
+        rescue LoadError => e
+          STDERR.puts "Unable to find repr named '#{repr}' to load."
+          exit 1
+        end
       end
     else
       $0 = "(eval)"
