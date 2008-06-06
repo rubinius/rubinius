@@ -33,7 +33,7 @@ class Sampler
   end
     
   def stop
-    @results, @last_clock, @interval = terminate()
+    @results, @last_clock, @gc_cycles = terminate()
     nil
   end
   
@@ -102,6 +102,8 @@ class Sampler
         end
       end 
     end
+
+    @calls["VM.garbage_collection"].slices = @gc_cycles
 
     out << "Total slices: #{@total_slices}, #{@last_clock - @start_clock} clocks\n\n"
     out << "=== FLAT PROFILE ===\n\n"

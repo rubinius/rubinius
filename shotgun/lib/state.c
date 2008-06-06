@@ -89,6 +89,8 @@ void state_collect(STATE, cpu c) {
   int stats = state->gc_stats;
   struct timeval start, fin;
 
+  state->in_gc = 1;
+
   cpu_task_flush(state, c);
 
   if(stats) {
@@ -136,6 +138,8 @@ void state_collect(STATE, cpu c) {
   cpu_task_flush(state, c);
   cpu_hard_cache(state, c);
   cpu_cache_sp(c);
+
+  state->in_gc = 0;
 }
 
 
@@ -144,6 +148,7 @@ void state_major_collect(STATE, cpu c) {
   int stats = state->gc_stats;
   struct timeval start, fin;
 
+  state->in_gc = 1;
   cpu_task_flush(state, c);
 
   state_collect(state, c);
@@ -188,6 +193,7 @@ void state_major_collect(STATE, cpu c) {
   cpu_task_flush(state, c);
   cpu_hard_cache(state, c);
   cpu_cache_sp(c);
+  state->in_gc = 0;
 }
 
 void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {

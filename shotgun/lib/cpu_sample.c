@@ -113,41 +113,77 @@ void cpu_sampler_resume(STATE) {
   }
 }
 
-/* move into state. */
-static int interval;
+struct sampler_args {
+  int hz;
+  pthread_t other;
+  unsigned int* active;
+  int* in_gc;
+  uint32_t gc_cycles;
+};
+
+void *_cpu_thread_tick(void* blah) {
+  struct timespec spec;
+  struct timespec actual;
+
+  struct sampler_args* args = (struct sampler_args*)blah;
+
+  spec.tv_sec = 0;
+  /* The 3 is here because it seems like the constant overhead of
+   * everything is about 3x. Thus if we say 100 hz, we only get 30
+   * samples, 1000hz, 300some samples. By reducing it by 3, we get
+   * nearly the right number each time. */
+  spec.tv_nsec = 1000000000 / args->hz / 3;
+
+  unsigned int* active = args->active;
+  int* in_gc = args->in_gc;
+  uint32_t gc_cycles = 0;
+
+  while(*active) {
+    nanosleep(&spec, &actual);
+    if(*in_gc) {
+      gc_cycles++;
+    } else {
+      pthread_kill(args->other, SIGPROF);
+    }
+  }
+
+  args->gc_cycles = gc_cycles;
+
+  pthread_exit(blah);
+  return blah;
+}
 
 void cpu_sampler_activate(STATE, int hz, machine m) {
-  struct itimerval new, old;
-  new.it_interval.tv_usec = 1000000 / hz;
-  new.it_interval.tv_sec = 0;
-  new.it_value.tv_usec = new.it_interval.tv_usec;
-  new.it_value.tv_sec = 0;
-  
-  interval = new.it_interval.tv_usec;
-  
   state->max_samples = SAMPLE_INCS;
   state->cur_sample = 0;
   state->samples = ALLOC_N(OBJECT, state->max_samples);
     
   cpu_sampler_resume(state);
-  setitimer(ITIMER_PROF, &new, &old);
+  
+  m->sampler_active = 1;
+  struct sampler_args *args = ALLOC_N(struct sampler_args, 1);
+  
+  args->hz = hz;
+  args->other = pthread_self();
+  args->active = &m->sampler_active;
+  args->in_gc = &state->in_gc;
+  
+  pthread_create(&m->sampler_thread, NULL, _cpu_thread_tick, (void*)args);
 }
 
 OBJECT cpu_sampler_disable(STATE, machine m) {
   OBJECT tup;
   int i;
-  struct itimerval new, old;
   clock_t fin;
   
   fin = clock();
-  
-  new.it_interval.tv_usec = 0;
-  new.it_interval.tv_sec = 0;
-  new.it_value.tv_usec = 0;
-  new.it_value.tv_sec = 0;
+ 
+  /* tell the other thread to stop, then join it. */
+  m->sampler_active = 0;
+  struct sampler_args* args;
+  pthread_join(m->sampler_thread, (void*)&args);
   
   cpu_sampler_suspend(state);
-  setitimer(ITIMER_PROF, &new, &old);
     
   if(!state->samples) return Qnil;
   tup = tuple_new(state, state->cur_sample);
@@ -158,5 +194,7 @@ OBJECT cpu_sampler_disable(STATE, machine m) {
   XFREE(state->samples);
   state->samples = NULL;
   
-  return tuple_new2(state, 3, tup, I2N((int)fin), I2N(interval));
+  tup = tuple_new2(state, 3, tup, I2N((int)fin), I2N(args->gc_cycles));
+  free(args);
+  return tup;
 }

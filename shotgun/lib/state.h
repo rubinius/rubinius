@@ -154,6 +154,9 @@ struct rubinius_state {
   int excessive_tracing, gc_stats;
   int check_events, pending_threads, pending_events;
 
+  /* Indicates the system is in gc. */
+  int in_gc;
+
   struct termios *termios;
 
   /* Used to store the value of c->ip_ptr while cpu_run isn't running */
