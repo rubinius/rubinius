@@ -25,6 +25,8 @@ OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *
 
 #define CHAR2STR(name) NEW_HANDLE(ctx, string_new(ctx->state, name))
 
+#define ID2OBJECT(val) ((OBJECT)(val))
+
 ID rb_intern(const char *name) {
   CTX;
   return (ID)symtbl_lookup_cstr(ctx->state, ctx->state->global->symbols, name);
@@ -268,7 +270,7 @@ VALUE rb_const_get(VALUE klass, ID id) {
 void rb_define_const(VALUE klass, const char* key, VALUE val) {
   CTX;
   if(NIL_P(klass)) rb_raise(rb_eTypeError, "no class/module to define constant %s", key);
-  module_const_set(ctx->state, HNDL(klass), HNDL(ID2SYM(rb_intern(key))), HNDL(val));
+  module_const_set(ctx->state, HNDL(klass), ID2OBJECT(rb_intern(key)), HNDL(val));
 }
 
 int rb_const_defined(VALUE klass, ID id) {

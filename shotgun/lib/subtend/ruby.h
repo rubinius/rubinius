@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 /* Pointers are seen as totally opaque */
-typedef unsigned long VALUE;
+#define VALUE uintptr_t
 #define ID uintptr_t
 
 #ifdef __cplusplus
