@@ -177,6 +177,8 @@ int FIX2INT(VALUE val);
 VALUE INT2NUM(int num);
 #define INT2FIX(v) INT2NUM(v)
 #define NUM2INT(val) FIX2INT(val)
+#define LONG2NUM(v) INT2NUM((int)v)
+#define NUM2LONG(v) ((long)FIX2INT(v))
 
 /* Array */
 VALUE rb_Array(VALUE val);
