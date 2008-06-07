@@ -193,13 +193,16 @@ end
 
 class Module
 
-  # Set which library +attach_function+ should look in. Defaults to nil,
-  # which means the current process.
-  def set_ffi_lib(name)
-    @ffi_lib = name
+  # Set which library or libraries +attach_function+ should
+  # look in. By default it only searches for the function in
+  # the current process. If you want to specify this as one
+  # of the locations, add FFI::USE_THIS_PROCESS_AS_LIBRARY.
+  # The libraries are tried in the order given.
+  #
+  def set_ffi_lib(*names)
+    @ffi_lib = *names
   end
 
-  ##
   # Attach C function +name+ to this module.
   #
   # If you want to provide an alternate name for the module function, supply
