@@ -923,6 +923,17 @@ void* subtend_get_struct(VALUE obj) {
   return s->ptr;
 }
 
+struct RData* RDATA(VALUE arg) {
+  CTX;
+  OBJECT obj = HNDL(arg);
+  /* HACK? RData definition is similar to wraps_struct definition, so as
+   * long as wraps_struct doesn't change, it's safe to cast.
+   * Directly returning avoid the need of copying data back and forth
+   * subtend layer.
+   */
+  return (struct RData *)BYTES_OF(obj);
+}
+
 int rb_type(VALUE obj) {
   int i;
   struct type_map {

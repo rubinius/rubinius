@@ -282,6 +282,16 @@ void* subtend_get_struct(VALUE obj);
 #define Data_Get_Struct(obj, type, sval) do { sval = (type *)subtend_get_struct(obj); } while (0)
 #define Data_Wrap_Struct(klass, mark, free, sval) subtend_wrap_struct(klass, sval, mark, free)
 
+struct RData {
+  void *data;
+  void (*dmark)(void*);
+  void (*dfree)(void*);
+};
+typedef struct RData RData;
+
+RData* RDATA(VALUE obj);
+#define DATA_PTR(v) (RDATA(v)->data)
+
 enum {
   T_NONE,
   T_NIL,
