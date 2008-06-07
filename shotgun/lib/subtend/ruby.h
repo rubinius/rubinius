@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 /* Pointers are seen as totally opaque */
-typedef void * VALUE;
+typedef unsigned long VALUE;
 #define ID uintptr_t
 
 #ifdef __cplusplus
@@ -218,7 +218,7 @@ VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
 int rb_str_cmp(VALUE str1, VALUE str2);
 VALUE rb_str_split(VALUE str, const char *sep);
 VALUE rb_str2inum(VALUE str, int base);
-VALUE rb_cstr2inum(VALUE str, int base);
+VALUE rb_cstr2inum(const char *str, int base);
 VALUE rb_str_substr(VALUE str, long beg, long len);
 VALUE rb_tainted_str_new2(const char *ptr);
 char *StringValuePtr(VALUE str);

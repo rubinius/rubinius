@@ -21,7 +21,7 @@ OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *
 
 #define HNDL(obj) handle_to_object(ctx->state, ctx->state->handle_tbl, (rni_handle*)obj)
 #define CTX rni_context* ctx = subtend_retrieve_context()
-#define NEW_HANDLE(ctx, val) nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, val)
+#define NEW_HANDLE(ctx, val) ((VALUE)nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, val))
 
 #define CHAR2STR(name) NEW_HANDLE(ctx, string_new(ctx->state, name))
 
@@ -171,18 +171,18 @@ static VALUE _push_and_call(VALUE recv, ID meth, int args, VALUE *ary) {
     
   if(!ctx->nmc) {
     printf("ERROR: tried to do rb_funcall, but there is no context!\n");
-    return NULL;
+    return 0;
   }
   
   /* Push all the arguments on the stack in reverse order... */
   for(i = args - 1; i >= 0; i--) {
-    tmp = handle_to_object(ctx->state, ctx->state->handle_tbl, ary[i]);
+    tmp = handle_to_object(ctx->state, ctx->state->handle_tbl, AS_HNDL(ary[i]));
     cpu_stack_push(ctx->state, ctx->cpu, tmp, 0);
   }
   
   n = ctx->nmc;
   
-  n->value = recv;
+  n->value = AS_HNDL(recv);
   n->symbol = (OBJECT)meth;
   n->args = args;
 
@@ -194,7 +194,7 @@ static VALUE _push_and_call(VALUE recv, ID meth, int args, VALUE *ary) {
     setcontext(&n->system);
   }
   /* When we return here, the call has been done. */
-  return n->value;
+  return (VALUE)n->value;
 }
 
 VALUE rb_funcall(VALUE recv, ID meth, int args, ...) {
@@ -268,7 +268,7 @@ VALUE rb_const_get(VALUE klass, ID id) {
 void rb_define_const(VALUE klass, const char* key, VALUE val) {
   CTX;
   if(NIL_P(klass)) rb_raise(rb_eTypeError, "no class/module to define constant %s", key);
-  module_const_set(ctx->state, HNDL(klass), ID2SYM(rb_intern(key)), HNDL(val));
+  module_const_set(ctx->state, HNDL(klass), HNDL(ID2SYM(rb_intern(key))), HNDL(val));
 }
 
 int rb_const_defined(VALUE klass, ID id) {
@@ -498,7 +498,7 @@ VALUE rb_float_new(double d) {
 
 VALUE rb_Array(VALUE val) {
   CTX;
-  VALUE ary, tmp;
+  OBJECT ary, tmp;
   
   ary = HNDL(val);
   if(object_kind_of_p(ctx->state, ary, ctx->state->global->array)) {
@@ -687,7 +687,7 @@ VALUE rb_str2inum(VALUE str, int base) {
   return rb_funcall(str, rb_intern("to_i"), 1, INT2NUM(base));
 }
 
-VALUE rb_cstr2inum(VALUE str, int base) {
+VALUE rb_cstr2inum(const char *str, int base) {
   CTX;
   return rb_funcall(CHAR2STR(str), rb_intern("to_i"), 1, INT2NUM(base));
 }
@@ -786,7 +786,7 @@ void rb_raise(VALUE exc, const char *fmt, ...) {
   vsnprintf(buf, BUFSIZ, fmt, args);
   va_end(args);
   
-  ctx->nmc->value = NEW_HANDLE(ctx, cpu_new_exception(ctx->state, ctx->cpu, HNDL(exc), buf));
+  ctx->nmc->value = AS_HNDL(NEW_HANDLE(ctx, cpu_new_exception(ctx->state, ctx->cpu, HNDL(exc), buf)));
   ctx->nmc->jump_val = RAISED_EXCEPTION;
   setcontext(&ctx->nmc->system);
 }
