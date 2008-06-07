@@ -1,9 +1,9 @@
 # Simple $5 Iconv implementation using FFI
 
+
 class Iconv
 
-  # Makes all following +attach_function+ calls look in this library
-  set_ffi_lib [nil, "libiconv"]
+  set_ffi_lib FFI::USE_THIS_PROCESS_AS_LIBRARY, "libiconv"
 
   attach_function "iconv_open",  :create,  [:string, :string], :pointer
   attach_function "iconv_close", :close, [:pointer],         :int
