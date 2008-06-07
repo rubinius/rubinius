@@ -11,6 +11,13 @@ module FFI
     end
   end
 
+  # Shorthand for the current process, i.e. all code that
+  # the process image itself contains. In addition to the
+  # Rubinius codebase, this also includes libc etc.
+  #
+  # Use this constant instead of nil directly.
+  #
+  USE_THIS_PROCESS_AS_LIBRARY = nil
 
   TypeDefs = LookupTable.new
 
