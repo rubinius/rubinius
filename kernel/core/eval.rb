@@ -34,6 +34,9 @@
 # Binding objects have no class-specific methods.
 
 class Binding
+  attr_accessor :context
+  attr_accessor :caller_env
+
   def self.setup(ctx)
     bind = allocate()
     while ctx.kind_of? BlockContext and ctx.env.from_eval?
@@ -43,8 +46,14 @@ class Binding
     bind.context = ctx
     return bind
   end
-  
-  attr_accessor :context
+
+  def self.from_env(env)
+    bind = allocate()
+
+    bind.context = env.home_block
+    bind.caller_env = env
+    return bind
+  end
 end
 
 module Kernel
@@ -74,14 +83,18 @@ module Kernel
   module_function :binding
 
   def eval(string, binding=nil, filename='(eval)', lineno=1)
+    caller_env = nil
     if !binding
       context = MethodContext.current.sender
     elsif binding.kind_of? Proc
-      context = binding.block.home_block
+      binding = binding.binding
+      context = binding.context
+      caller_env = binding.caller_env
     elsif !binding.kind_of? Binding
       raise ArgumentError, "unknown type of binding"
     else
       context = binding.context
+      caller_env = binding.caller_env
     end
 
     compiled_method = Compile.compile_string string, context, filename, lineno
@@ -94,6 +107,7 @@ module Kernel
 
     be = BlockEnvironment.new
     be.from_eval!
+    be.caller_env = caller_env # For correct 'caller' output
     be.under_context context, compiled_method
     be.call
   end

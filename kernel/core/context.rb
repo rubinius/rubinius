@@ -107,10 +107,27 @@ class MethodContext
   def calling_hierarchy(start=1)
     ret = []
     ctx = self
+    if ctx.__kind_of__(BlockContext) and ctx.env.from_eval?
+      # This binding came from a Proc, and we need to show
+      # the 'definition trace', not the actual current call trace
+      if ctx.env.caller_env then
+        ctx = ctx.env.caller_env
+      else
+        ctx = ctx.sender
+      end
+    end
+
     i = 0
     until ctx.nil?
       if i >= start
-        if ctx.method.name
+        # Check to see if there is a context here that needs us to
+        # delegate to a new starting point
+        if ctx.__kind_of__(BlockEnvironment)
+          ret << "#{ctx.method.file}:#{ctx.method.line_from_ip(0)}"
+          ctx = ctx.home_block
+          i += 1
+          next
+        elsif ctx.method.name
           ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
         else
           ret << "#{ctx.file}:#{ctx.line}"
@@ -125,7 +142,7 @@ class MethodContext
       end
 
       i += 1
-      ctx = ctx.sender
+      ctx = ctx.sender unless i == 1 && ctx.__kind_of__(BlockEnvironment)
     end
 
     return nil if start > i + 1
@@ -389,6 +406,8 @@ class BlockEnvironment
   def home_block  ; @home_block  ; end
   def local_count ; @local_count ; end
   def method      ; @method      ; end
+
+  attr_accessor :caller_env
 
   def metadata_container
     @metadata_container

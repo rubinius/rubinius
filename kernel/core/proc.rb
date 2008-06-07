@@ -1,8 +1,8 @@
-# depends on: class.rb
+# depends on: class.rb context.rb
 
 class Proc
-  self.instance_fields = 3
-  ivar_as_index :__ivars__ => 0, :block => 1, :check_args => 2
+  self.instance_fields = 2
+  ivar_as_index :__ivars__ => 0, :block => 1
 
   def block; @block ; end
 
@@ -10,17 +10,9 @@ class Proc
     @block = other
   end
 
-  def check_args=(other)
-    @check_args = other
-  end
-
   def binding
-    Binding.setup @block.home
+    Binding.from_env @block
   end
-
-  #--
-  # An optimized version, used for the &block syntax
-  #++
 
   def self.__from_block__(env)
     if env.__kind_of__(BlockEnvironment)
@@ -36,21 +28,6 @@ class Proc
     end
   end
 
-  def self.from_environment(env, check_args=false)
-    if env.nil?
-      nil
-    elsif env.kind_of?(BlockEnvironment)
-      obj = allocate()
-      obj.block = env
-      obj.check_args = check_args
-      obj
-    elsif env.respond_to? :to_proc
-      env.to_proc
-    else
-      raise ArgumentError.new("Unable to turn a #{env.inspect} into a Proc")
-    end
-  end
-
   def self.new
     if block_given?
       env = MethodContext.current.block
@@ -62,7 +39,7 @@ class Proc
     end
 
     if env
-      return from_environment(env)
+      return __from_block__(env)
     else
       raise ArgumentError, "tried to create a Proc object without a block"
     end

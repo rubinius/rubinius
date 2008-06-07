@@ -280,14 +280,15 @@ module Kernel
 
     block.disable_long_return!
 
-    return Proc::Function.from_environment(block)
+    return Proc::Function.__from_block__(block)
   end
   alias_method :proc, :lambda
   module_function :lambda
   module_function :proc
 
   def caller(start=1)
-    return MethodContext.current.sender.calling_hierarchy(start)
+    ctx = MethodContext.current.sender
+    ctx.calling_hierarchy(start)
   end
   module_function :caller
 

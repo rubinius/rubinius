@@ -96,7 +96,7 @@ class Method
 
   def to_proc()
     env = Method::AsBlockEnvironment.new self
-    Proc.from_environment(env)
+    Proc.__from_block__(env)
   end
 
   ##
