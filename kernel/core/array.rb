@@ -1662,9 +1662,10 @@ class Array
 
     ret = nil
     array.each { |o|
-      if o.kind_of? Array
+      if o.respond_to? :to_ary
         RecursionGuard.inspect(array) do
-          recursively_flatten(o, out, recursive_placeholder)
+          ary = Type.coerce_to o, Array, :to_ary
+          recursively_flatten(ary, out, recursive_placeholder)
           ret = self
         end
       else
