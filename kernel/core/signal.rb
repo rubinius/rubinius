@@ -7,7 +7,7 @@ module Signal
   @handlers = {}
   
   def self.trap(sig, prc=nil, pass_ctx=false, &block)
-    sig = sig.id2name if sig.kind_of?(Symbol)
+    sig = sig.to_s if sig.kind_of?(Symbol)
 
     if sig.kind_of?(String)
       osig = sig
