@@ -49,6 +49,8 @@ class Base
 
   def normalize_method m
     case m
+    when DelegatedMethod
+      m.receiver.method
     ## TODO: handle m being a DelegatedMethod
     when AccessVarMethod
       ## Right now this depends on AccessVarMethod#name, which seems a bit
