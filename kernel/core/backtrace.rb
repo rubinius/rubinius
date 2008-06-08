@@ -67,7 +67,15 @@ class Backtrace
   def fill_backtrace
     @max = 0
     @backtrace = []
-    @frames.each do |ctx|
+    # Skip the first frame if we are raising an exception from
+    # an eval's BlockContext
+    if @frames.at(0).from_eval?
+      frames = @frames[1, @frames.length - 1]
+    else
+      frames = @frames
+    end
+
+    frames.each_with_index do |ctx, i|
       str = ctx.describe
       @max = str.size if str.size > @max
       @backtrace << [str, ctx.location]

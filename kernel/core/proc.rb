@@ -1,9 +1,10 @@
-# depends on: class.rb context.rb
+# depends on: class.rb context.rb binding.rb
 
 class Proc
   self.instance_fields = 2
   ivar_as_index :__ivars__ => 0, :block => 1
 
+  attr_writer :binding
   def block; @block ; end
 
   def block=(other)
@@ -11,7 +12,8 @@ class Proc
   end
 
   def binding
-    Binding.from_env @block
+    return @binding if @binding
+    @binding = Binding.from_env @block
   end
 
   def caller(start = 0)
@@ -21,6 +23,7 @@ class Proc
   def self.__from_block__(env)
     if env.__kind_of__(BlockEnvironment)
       obj = allocate()
+      env.last_ip = env.home_block.ip if env.home_block
       obj.block = env
       return obj
     else

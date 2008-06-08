@@ -1,4 +1,4 @@
-# depends on: array.rb
+# depends on: array.rb proc.rb binding.rb
 # (due to alias_method)
 
 module Kernel
@@ -36,11 +36,11 @@ module Kernel
     if !binding
       context = MethodContext.current.sender
       caller_env = nil
-    elsif binding.kind_of? Proc
+    elsif binding.__kind_of__ Proc
       binding = binding.binding
       context = binding.context
       caller_env = binding.caller_env
-    elsif !binding.kind_of? Binding
+    elsif !binding.__kind_of__ Binding
       raise ArgumentError, "unknown type of binding"
     else
       context = binding.context

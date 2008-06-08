@@ -1,5 +1,3 @@
-# depends on: eval.rb
-
 ##
 # Objects of class Binding encapsulate the execution context at some
 # particular place in the code and retain this context for future use. The

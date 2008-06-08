@@ -79,7 +79,7 @@ class MethodContext
     # We subtract 1 because the ip is actually set to what it should do
     # next, not what it's currently doing (unless we are at the start of
     # a new context).
-    return self.method.line_from_ip(self.ip == 0 ? self.ip : self.ip - 1)
+    self.method.line_from_ip(self.ip == 0 ? self.ip : self.ip - 1)
   end
 
   # Copies context. If locals is true
@@ -324,7 +324,12 @@ class BlockContext
 
   def next_frame
     if self.env.caller_env
-      self.env.caller_env.home_block
+      # Twiddle the IP to match its state when the block
+      # was initially created
+      ret = self.env.caller_env.home_block
+      return unless ret
+      ret.ip = self.env.caller_env.last_ip
+      ret
     else
       self.sender
     end
@@ -336,7 +341,7 @@ class BlockContext
 
   def position_info
     ret = super()
-    if self.env.from_eval?
+    if self.from_eval?
       home = self.env.home
       ret << "#{home.file}:#{home.line} in `#{home.method.name}'"
     end
@@ -420,8 +425,12 @@ class BlockEnvironment
 
   attr_accessor :caller_env
 
-  def position_info
-    ["#{@method.file}:#{@method.line_from_ip(0)}"]
+  def initial_ip=(ip)
+    @initial_ip = ip
+  end
+
+  def last_ip=(ip)
+    @last_ip = ip
   end
 
   def metadata_container
