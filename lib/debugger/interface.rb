@@ -190,9 +190,9 @@ class Debugger
         output = Output.new
         output.set_columns(['%s', '%-s'], ' at ')
         first = true
-        bt.frames.each do |fr|
-          recv = fr[0]
-          loc = fr[1]
+        bt.frames.each do |ctxt|
+          recv = ctxt.describe
+          loc = ctxt.location
           break if recv =~ /Debugger.*#process_command/
           output.set_color(bt.color_from_loc(loc, first))
           first = false # special handling for first line
