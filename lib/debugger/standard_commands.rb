@@ -482,7 +482,7 @@ class Debugger
       output = Output.info("Backtrace:")
       output.set_columns(['%*s', '%|s', '%-*s'])
       bt.frames.each_with_index do |frame,i|
-        recv, loc = frame.first, frame.last
+        recv, loc = frame.describe, frame.location
         if recv == interface.eval_context.describe and loc == interface.eval_context.location
           output.set_line_marker
         end
