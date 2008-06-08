@@ -738,21 +738,25 @@ module Kernel
   # Perlisms.
 
   def chomp(string=$/)
+    ensure_last_read_string
     $_ = $_.chomp(string)
   end
   module_function :chomp
   
   def chomp!(string=$/)
+    ensure_last_read_string
     $_.chomp!(string)
   end
   module_function :chomp!
 
   def chop(string=$/)
+    ensure_last_read_string
     $_ = $_.chop(string)
   end
   module_function :chop
   
   def chop!(string=$/)
+    ensure_last_read_string
     $_.chop!(string)
   end
   module_function :chop!
@@ -784,26 +788,31 @@ module Kernel
   module_function :readlines
 
   def gsub(pattern, rep=nil, &block)
+    ensure_last_read_string
     $_ = $_.gsub(pattern, rep, &block)
   end
   module_function :gsub
   
   def gsub!(pattern, rep=nil, &block)
+    ensure_last_read_string
     $_.gsub!(pattern, rep, &block)
   end
   module_function :gsub!
 
   def sub(pattern, rep=nil, &block)
+    ensure_last_read_string
     $_ = $_.sub(pattern, rep, &block)
   end
   module_function :sub
   
   def sub!(pattern, rep=nil, &block)
+    ensure_last_read_string
     $_.sub!(pattern, rep, &block)
   end
   module_function :sub!
 
   def scan(pattern, &block)
+    ensure_last_read_string
     $_.scan(pattern, &block)
   end
   module_function :scan
@@ -814,9 +823,21 @@ module Kernel
   module_function :select
 
   def split(*args)
+    ensure_last_read_string
     $_.split(*args)
   end
   module_function :split
+
+  # Checks whether the "last read line" $_ variable is a String,
+  # raising a TypeError when not.
+  def ensure_last_read_string
+    unless $_.kind_of? String
+      cls = $_.nil? ? "nil" : $_.class
+      raise TypeError, "$_ must be a String (#{cls} given)"
+    end
+  end
+  module_function :ensure_last_read_string
+  private :ensure_last_read_string
 
   # From bootstrap
   private :get_instance_variable
