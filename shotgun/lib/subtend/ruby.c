@@ -971,3 +971,17 @@ int rb_type(VALUE obj) {
   /* It's ruby, it HAS to be an object. :) */
   return T_OBJECT;
 }
+
+VALUE rb_exc_new(VALUE klass, const char *str, long len) {
+  return rb_exc_new3(klass, rb_str_new(str, len));
+}
+
+VALUE rb_exc_new2(VALUE klass, const char *str) {
+  return rb_exc_new3(klass, rb_str_new(str, strlen(str)));
+}
+
+VALUE rb_exc_new3(VALUE klass, VALUE str) {
+  StringValue(str);
+  return rb_funcall(klass, rb_intern("new"), 1, str);
+}
+
