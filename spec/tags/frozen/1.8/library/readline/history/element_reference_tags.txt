@@ -1,0 +1,3 @@
+fails:Readline::HISTORY.[] returns tainted objects
+fails:Readline::HISTORY.[] returns the history item at the passed index + 1
+fails:Readline::HISTORY.[] returns the first item when there is no item at the passed negative index

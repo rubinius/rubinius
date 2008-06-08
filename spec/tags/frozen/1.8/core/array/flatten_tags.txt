@@ -1,0 +1,1 @@
+fails:Array#flatten flattens any element which responds to #to_ary, using the return value of said method

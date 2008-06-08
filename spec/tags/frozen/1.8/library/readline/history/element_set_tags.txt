@@ -1,0 +1,2 @@
+fails:Readline::HISTORY.[]= sets the item at the given index - 1
+fails:Readline::HISTORY.[]= sets the item at index 0 when passed a negative index

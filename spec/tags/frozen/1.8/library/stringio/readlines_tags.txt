@@ -1,0 +1,3 @@
+fails:StringIO#readlines optionally accepts a separator string
+fails:StringIO#readlines returns an array of paragraphs when separator is an empty string
+fails:StringIO#readlines returns the rest of the stream when separator is nil

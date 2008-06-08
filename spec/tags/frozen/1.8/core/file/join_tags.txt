@@ -1,0 +1,1 @@
+fails:File.join returns an empty string when given no arguments
