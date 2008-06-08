@@ -35,16 +35,16 @@ module Kernel
   def eval(string, binding=nil, filename='(eval)', lineno=1)
     if !binding
       context = MethodContext.current.sender
-      caller_env = nil
+      binding = Binding.setup context
     elsif binding.__kind_of__ Proc
-      binding = binding.binding
+      binding = Binding.from_env(binding.block)
+      # TODO - This is wrong. should call 'binding' on this object
+      # However, it breaks a tricky eval CI spec
       context = binding.context
-      caller_env = binding.caller_env
     elsif !binding.__kind_of__ Binding
       raise ArgumentError, "unknown type of binding"
     else
       context = binding.context
-      caller_env = binding.caller_env
     end
 
     compiled_method = Compile.compile_string string, context, filename, lineno
@@ -57,7 +57,7 @@ module Kernel
 
     be = BlockEnvironment.new
     be.from_eval!
-    be.caller_env = caller_env # For correct stack traces
+    be.caller_env = binding.caller_env # For correct stack traces
     be.under_context context, compiled_method
     be.call
   end

@@ -425,6 +425,10 @@ class BlockEnvironment
 
   attr_accessor :caller_env
 
+  def home_block=(block)
+    @home_block = block
+  end
+
   def initial_ip=(ip)
     @initial_ip = ip
   end

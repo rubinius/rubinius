@@ -13,6 +13,7 @@ class Proc
 
   def binding
     return @binding if @binding
+    @block.home_block = @block.home_block.dup
     @binding = Binding.from_env @block
   end
 
