@@ -9,7 +9,17 @@
 class MethodContext
 
   attr_accessor :last_match
+  alias_method :next_frame, :sender
 
+  def position_info
+    ret = []
+    if self.method.name and self.method.name != :__script__
+      ret << "#{self.file}:#{self.line}:in `#{self.method.name}'" 
+    else
+      ret << "#{self.file}:#{self.line}"
+    end
+    ret
+  end
   ##
   # The Nth group of the last regexp match.
 
@@ -107,42 +117,12 @@ class MethodContext
   def calling_hierarchy(start=1)
     ret = []
     ctx = self
-    if ctx.__kind_of__(BlockContext) and ctx.env.from_eval?
-      # This binding came from a Proc, and we need to show
-      # the 'definition trace', not the actual current call trace
-      if ctx.env.caller_env then
-        ctx = ctx.env.caller_env
-      else
-        ctx = ctx.sender
-      end
-    end
 
     i = 0
     until ctx.nil?
-      if i >= start
-        # Check to see if there is a context here that needs us to
-        # delegate to a new starting point
-        if ctx.__kind_of__(BlockEnvironment)
-          ret << "#{ctx.method.file}:#{ctx.method.line_from_ip(0)}"
-          ctx = ctx.home_block
-          i += 1
-          next
-        elsif ctx.method.name
-          ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
-        else
-          ret << "#{ctx.file}:#{ctx.line}"
-        end
-
-        # In a backtrace, an eval'd context's binding shows up
-        if ctx.kind_of?(BlockContext) and ctx.env.from_eval? then
-          home = ctx.env.home
-          ret << "#{home.file}:#{home.line} in `#{home.method.name}'"
-        end
-
-      end
-
+      ret.concat ctx.position_info if i >= start
+      ctx = ctx.next_frame || ctx.sender
       i += 1
-      ctx = ctx.sender unless i == 1 && ctx.__kind_of__(BlockEnvironment)
     end
 
     return nil if start > i + 1
@@ -332,6 +312,15 @@ end
 # method context that started it's execution.
 class BlockContext
 
+  def position_info
+    ret = super()
+    if self.env.from_eval?
+      home = self.env.home
+      ret << "#{home.file}:#{home.line} in `#{home.method.name}'"
+    end
+    ret
+  end
+
   def last_match
     home.last_match
   end
@@ -408,6 +397,29 @@ class BlockEnvironment
   def method      ; @method      ; end
 
   attr_accessor :caller_env
+
+  def next_frame
+    @home_block
+  end
+
+  def position_info
+    ["#{@method.file}:#{@method.line_from_ip(0)}"]
+  end
+
+  def calling_hierarchy(start=1)
+    ret = []
+    ctx = self
+
+    i = 0
+    until ctx.nil?
+      ret.concat ctx.position_info if i >= start
+      ctx = ctx.next_frame || ctx.sender
+      i += 1
+    end
+
+    return nil if start > i + 1
+    ret
+  end
 
   def metadata_container
     @metadata_container

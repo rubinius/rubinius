@@ -288,6 +288,15 @@ module Kernel
 
   def caller(start=1)
     ctx = MethodContext.current.sender
+    if ctx.__kind_of__(BlockContext) and ctx.env.from_eval?
+      # This binding came from a Proc, and we need to show
+      # the 'definition trace', not the actual current call trace
+      if ctx.env.caller_env then
+        ctx = ctx.env.caller_env
+      else
+        ctx = ctx.sender
+      end
+    end
     ctx.calling_hierarchy(start)
   end
   module_function :caller
