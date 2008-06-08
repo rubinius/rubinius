@@ -41,6 +41,9 @@ module MSpec
 
     shuffle files if randomize?
     files.each do |file|
+      @env = Object.new
+      @env.extend MSpec
+
       store :file, file
       actions :load
       protect("loading #{file}") { Kernel.load file }
@@ -118,7 +121,7 @@ module MSpec
 
   def self.protect(msg, &block)
     begin
-      instance_eval(&block)
+      @env.instance_eval(&block)
     rescue Exception => e
       register_exit 1
       if current and current.state

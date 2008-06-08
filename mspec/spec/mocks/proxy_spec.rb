@@ -1,21 +1,54 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/mocks/proxy'
 
-describe MockProxy, "reporting method" do
+describe MockObject, ".new" do
+  it "creates a new mock object" do
+    m = MockObject.new('not a null object')
+    lambda { m.not_a_method }.should raise_error(NoMethodError)
+  end
+
+  it "creates a new mock object that follows the NullObject pattern" do
+    m = MockObject.new('null object', :null_object => true)
+    m.not_really_a_method.should equal(m)
+  end
+end
+
+describe MockProxy, ".new" do
+  it "creates a mock proxy by default" do
+    MockProxy.new.mock?.should be_true
+  end
+
+  it "creates a stub proxy by request" do
+    MockProxy.new(:stub).stub?.should be_true
+  end
+
+  it "sets the call expectation to 1 call for a mock" do
+    MockProxy.new.count.should == [:exactly, 1]
+  end
+
+  it "sets the call expectation to any number of times for a stub" do
+    MockProxy.new(:stub).count.should == [:any_number_of_times, 0]
+  end
+end
+
+describe MockProxy, "#count" do
   before :each do
     @proxy = MockProxy.new
   end
 
-  it "returns the expected number of calls the mock should receive with #count" do
-    @proxy.count.should == [:exactly, 0]
+  it "returns the expected number of calls the mock should receive" do
+    @proxy.count.should == [:exactly, 1]
+    @proxy.at_least(3).count.should == [:at_least, 3]
+  end
+end
+
+describe MockProxy, "#arguments" do
+  before :each do
+    @proxy = MockProxy.new
   end
 
-  it "returns the expected arguments with #arguments" do
+  it "returns the expected arguments" do
     @proxy.arguments.should == :any_args
-  end
-
-  it "returns the expected return value with #returning" do
-    @proxy.returning.should == nil
   end
 end
 
@@ -172,7 +205,7 @@ describe MockProxy, "#and_return" do
   end
 
   it "returns self" do
-    @proxy.and_return(false).should be_equal(@proxy)
+    @proxy.and_return(false).should equal(@proxy)
   end
 
   it "sets the expected return value" do
@@ -192,12 +225,38 @@ describe MockProxy, "#and_return" do
     @proxy.count.should == [:exactly, 3]
   end
   
-  it "it only sets the expected number of calls if it is higher than what is already set" do
+  it "only sets the expected number of calls if it is higher than what is already set" do
     @proxy.at_least(5).times.and_return(1, 2, 3)
     @proxy.count.should == [:at_least, 5]
 
     @proxy.at_least(2).times.and_return(1, 2, 3)
     @proxy.count.should == [:at_least, 3]
+  end
+end
+
+describe MockProxy, "#returning" do
+  before :each do
+    @proxy = MockProxy.new
+  end
+
+  it "returns nil by default" do
+    @proxy.returning.should be_nil
+  end
+
+  it "returns the value set by #and_return" do
+    @proxy.and_return(2)
+    @proxy.returning.should == 2
+    @proxy.returning.should == 2
+  end
+
+  it "returns a sequence of values set by #and_return" do
+    @proxy.and_return(1,2,3,4)
+    @proxy.returning.should == 1
+    @proxy.returning.should == 2
+    @proxy.returning.should == 3
+    @proxy.returning.should == 4
+    @proxy.returning.should == 4
+    @proxy.returning.should == 4
   end
 end
 
@@ -223,31 +282,6 @@ describe MockProxy, "#called" do
   end
 end
 
-describe MockProxy, "#returning" do
-  before :each do
-    @proxy = MockProxy.new
-  end
-
-  it "should return nil by default" do
-    @proxy.returning.should be_nil
-  end
-
-  it "should return the value set by #and_return" do
-    @proxy.and_return(2)
-    @proxy.returning.should == 2
-  end
-
-  it "should return a sequence of values set by #and_return" do
-    @proxy.and_return(1,2,3,4)
-    @proxy.returning.should == 1
-    @proxy.returning.should == 2
-    @proxy.returning.should == 3
-    @proxy.returning.should == 4
-    @proxy.returning.should == 4
-    @proxy.returning.should == 4
-  end
-end
-
 describe MockProxy, "#times" do
   before :each do
     @proxy = MockProxy.new
@@ -255,5 +289,78 @@ describe MockProxy, "#times" do
 
   it "is a no-op" do
     @proxy.times.should == @proxy
+  end
+end
+
+describe MockProxy, "#stub?" do
+  it "returns true if the proxy is created as a stub" do
+    MockProxy.new(:stub).stub?.should be_true
+  end
+
+  it "returns false if the proxy is created as a mock" do
+    MockProxy.new(:mock).stub?.should be_false
+  end
+end
+
+describe MockProxy, "#mock?" do
+  it "returns true if the proxy is created as a mock" do
+    MockProxy.new(:mock).mock?.should be_true
+  end
+
+  it "returns false if the proxy is created as a stub" do
+    MockProxy.new(:stub).mock?.should be_false
+  end
+end
+
+describe MockProxy, "#and_yield" do
+  before :each do
+    @proxy = MockProxy.new
+  end
+
+  it "returns self" do
+    @proxy.and_yield(false).should equal(@proxy)
+  end
+
+  it "sets the expected values to yield" do
+    @proxy.and_yield(1).yielding.should == [[1]]
+  end
+
+  it "accepts multiple values to yield" do
+    @proxy.and_yield(1, 2, 3).yielding.should == [[1, 2, 3]]
+  end
+end
+
+describe MockProxy, "#yielding" do
+  before :each do
+    @proxy = MockProxy.new
+  end
+
+  it "returns an empty array by default" do
+    @proxy.yielding.should == []
+  end
+
+  it "returns an array of arrays of values the proxy should yield" do
+    @proxy.and_yield(3)
+    @proxy.yielding.should == [[3]]
+  end
+
+  it "returns an accumulation of arrays of values the proxy should yield" do
+    @proxy.and_yield(1).and_yield(2, 3)
+    @proxy.yielding.should == [[1], [2, 3]]
+  end
+end
+
+describe MockProxy, "#yielding?" do
+  before :each do
+    @proxy = MockProxy.new
+  end
+
+  it "returns false if the proxy is not yielding" do
+    @proxy.yielding?.should be_false
+  end
+
+  it "returns true if the proxy is yielding" do
+    @proxy.and_yield(1)
+    @proxy.yielding?.should be_true
   end
 end

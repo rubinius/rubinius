@@ -1,13 +1,33 @@
+class MockObject
+  def initialize(name, options={})
+    @name = name
+    @null = options[:null_object]
+  end
+
+  def method_missing(sym, *args, &block)
+    @null ? self : super
+  end
+end
+
 class MockProxy
-  def initialize
+  def initialize(type=nil)
     @multiple_returns = nil
     @returning = nil
     @yielding  = []
     @arguments = :any_args
+    @type      = type || :mock
+  end
+
+  def mock?
+    @type == :mock
+  end
+
+  def stub?
+    @type == :stub
   end
 
   def count
-    @count ||= [:exactly, 0]
+    @count ||= mock? ? [:exactly, 1] : [:any_number_of_times, 0]
   end
 
   def arguments

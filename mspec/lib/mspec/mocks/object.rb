@@ -1,16 +1,10 @@
 require 'mspec/mocks/proxy'
 
-class MockObject
-  def initialize(name)
-    @name = name
-  end
-end
-
 class Object
   def stub!(sym)
     Mock.install_method self, sym, :stub
   end
-  
+
   def should_receive(sym)
     Mock.install_method self, sym
   end
@@ -22,7 +16,7 @@ class Object
     nil
   end
 
-  def mock(name)
-    MockObject.new(name)
+  def mock(name, options={})
+    MockObject.new name, options
   end
 end

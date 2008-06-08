@@ -7,23 +7,68 @@ require 'mspec/runner/mspec'
 require 'mspec/mocks/mock'
 require 'mspec/mocks/proxy'
 
-describe Mock do
-  after :each do
-    Mock.cleanup
+describe Mock, ".mocks" do
+  it "returns a Hash" do
+    Mock.mocks.should be_kind_of(Hash)
   end
+end
 
-  it "provides expects that returns a Hash" do
-    Mock.expects.should be_an_instance_of(Hash)
+describe Mock, ".stubs" do
+  it "returns a Hash" do
+    Mock.stubs.should be_kind_of(Hash)
   end
 end
 
 describe Mock, ".replaced_name" do
   it "returns the name for a method that is being replaced by a mock method" do
-    Mock.replaced_name(:method_call).should == :__ms_method_call__
+    m = mock('a fake id')
+    m.stub!(:__id__).and_return(42)
+    Mock.replaced_name(m, :method_call).should == :__ms_42_method_call__
   end
 end
 
-describe Mock, ".install_method" do
+describe Mock, ".replaced_key" do
+  it "returns a key used internally by Mock" do
+    m = mock('a fake id')
+    m.stub!(:__id__).and_return(42)
+    Mock.replaced_key(m, :method_call).should == [:__ms_42_method_call__, m, :method_call]
+  end
+end
+
+describe Mock, ".replaced?" do
+  before :each do
+    @mock = mock('install_method')
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+  end
+
+  it "returns true if a method has been stubbed on an object" do
+    Mock.install_method @mock, :method_call
+    Mock.replaced?(Mock.replaced_key(@mock, :method_call)).should be_true
+  end
+
+  it "returns true if a method has been mocked on an object" do
+    Mock.install_method @mock, :method_call, :stub
+    Mock.replaced?(Mock.replaced_key(@mock, :method_call)).should be_true
+  end
+
+  it "returns false if a method has not been stubbed or mocked" do
+    Mock.replaced?(Mock.replaced_key(@mock, :method_call)).should be_false
+  end
+end
+
+describe Mock, ".name_or_inspect" do
+  before :each do
+    @mock = mock("I have a #name")
+  end
+
+  it "returns the value of @name if set" do
+    @mock.instance_variable_set(:@name, "Myself")
+    Mock.name_or_inspect(@mock).should == "Myself"
+  end
+end
+
+describe Mock, ".install_method for mocks" do
   before :each do
     @mock = mock('install_method')
     MSpec.stub!(:actions)
@@ -38,17 +83,34 @@ describe Mock, ".install_method" do
     Mock.install_method(@mock, :method_call).should be_an_instance_of(MockProxy)
   end
 
-  it "sets the proxy to expect exactly 1 call" do
-    proxy = Mock.install_method(@mock, :method_call)
-    proxy.count.should == [:exactly, 1]
-  end
-
   it "does not override a previously mocked method with the same name" do
     Mock.install_method(@mock, :method_call).with(:a, :b).and_return(1)
     Mock.install_method(@mock, :method_call).with(:c).and_return(2)
     @mock.method_call(:a, :b)
     @mock.method_call(:c)
     lambda { @mock.method_call(:d) }.should raise_error(ExpectationNotMetError)
+  end
+
+  # This illustrates RSpec's behavior. This spec fails in mock call count verification
+  # on RSpec (i.e. Mock 'foo' expected :foo with (any args) once, but received it 0 times)
+  # and we mimic the behavior of RSpec.
+  #
+  # describe "A mock receiving multiple calls to #should_receive" do
+  #   it "returns the first value mocked" do
+  #     m = mock 'multiple #should_receive'
+  #     m.should_receive(:foo).and_return(true)
+  #     m.foo.should == true
+  #     m.should_receive(:foo).and_return(false)
+  #     m.foo.should == true
+  #   end
+  # end
+  #
+  it "does not override a previously mocked method having the same arguments" do
+    Mock.install_method(@mock, :method_call).with(:a).and_return(true)
+    @mock.method_call(:a).should == true
+    Mock.install_method(@mock, :method_call).with(:a).and_return(false)
+    @mock.method_call(:a).should == true
+    lambda { Mock.verify_count }.should raise_error(ExpectationNotMetError)
   end
 
   it "properly sends #respond_to? calls to the aliased respond_to? method when not matching mock expectations" do
@@ -66,6 +128,74 @@ describe Mock, ".install_method" do
     MSpec.should_receive(:current).and_return(state)
     MSpec.should_receive(:actions).with(:expectation, state.state)
     Mock.install_method(@mock, :method_call).and_return(1)
+    @mock.method_call.should == 1
+  end
+end
+
+describe Mock, ".install_method for stubs" do
+  before :each do
+    @mock = mock('install_method')
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+  end
+
+  after :each do
+    Mock.cleanup
+  end
+
+  it "returns a MockProxy instance" do
+    Mock.install_method(@mock, :method_call, :stub).should be_an_instance_of(MockProxy)
+  end
+
+  # This illustrates RSpec's behavior. This spec passes on RSpec and we mimic it
+  #
+  # describe "A mock receiving multiple calls to #stub!" do
+  #   it "returns the last value stubbed" do
+  #     m = mock 'multiple #stub!'
+  #     m.stub!(:foo).and_return(true)
+  #     m.foo.should == true
+  #     m.stub!(:foo).and_return(false)
+  #     m.foo.should == false
+  #   end
+  # end
+  it "inserts new stubs before old stubs" do
+    Mock.install_method(@mock, :method_call, :stub).with(:a).and_return(true)
+    @mock.method_call(:a).should == true
+    Mock.install_method(@mock, :method_call, :stub).with(:a).and_return(false)
+    @mock.method_call(:a).should == false
+    Mock.verify_count
+  end
+
+  it "does not add to the expectation tally" do
+    state = mock("run state", :null_object => true)
+    state.stub!(:state).and_return(mock("spec state"))
+    MSpec.should_not_receive(:actions)
+    Mock.install_method(@mock, :method_call, :stub).and_return(1)
+    @mock.method_call.should == 1
+  end
+end
+
+describe Mock, ".install_method" do
+  before :each do
+    @mock = mock('install_method')
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+  end
+
+  after :each do
+    Mock.cleanup
+  end
+
+  it "does not alias a mocked or stubbed method when installing a new mock or stub" do
+    @mock.should_not respond_to(:method_call)
+
+    Mock.install_method @mock, :method_call
+    @mock.should respond_to(:method_call)
+    @mock.should_not respond_to(Mock.replaced_name(@mock, :method_call))
+
+    Mock.install_method @mock, :method_call, :stub
+    @mock.should respond_to(:method_call)
+    @mock.should_not respond_to(Mock.replaced_name(@mock, :method_call))
   end
 end
 
@@ -113,25 +243,25 @@ describe Mock, ".verify_call" do
     @proxy.with(:any_args)
     Mock.verify_call @mock, :method_call, 1, 2, 3
   end
-  
+
   it "yields a passed block when it is expected to" do
     @proxy.and_yield()
-    Mock.verify_call @mock, :method_call do 
+    Mock.verify_call @mock, :method_call do
       ScratchPad.record true
     end
     ScratchPad.recorded.should == true
   end
-  
+
   it "does not yield a passed block when it is not expected to" do
-    Mock.verify_call @mock, :method_call do 
+    Mock.verify_call @mock, :method_call do
       ScratchPad.record true
     end
     ScratchPad.recorded.should == nil
   end
-  
+
   it "can yield subsequently" do
     @proxy.and_yield(1).and_yield(2).and_yield(3)
-    
+
     ScratchPad.record []
     Mock.verify_call @mock, :method_call do |arg|
       ScratchPad << arg
@@ -141,7 +271,7 @@ describe Mock, ".verify_call" do
 
   it "can yield and return an expected value" do
     @proxy.and_yield(1).and_return(3)
-    
+
     Mock.verify_call(@mock, :method_call) { |arg| ScratchPad.record arg }.should == 3
     ScratchPad.recorded.should == 1
   end
@@ -231,6 +361,38 @@ describe Mock, ".verify_count" do
   end
 end
 
+describe Mock, ".verify_count mixing mocks and stubs" do
+  before :each do
+    MSpec.stub!(:actions)
+    MSpec.stub!(:current).and_return(mock("spec state", :null_object => true))
+
+    @mock = mock('verify_count')
+  end
+
+  after :each do
+    Mock.cleanup
+  end
+
+  it "does not raise an exception for a stubbed method that is never called" do
+    Mock.install_method @mock, :method_call, :stub
+    Mock.verify_count
+  end
+
+  it "verifies the calls to the mocked method when a mock is defined after a stub" do
+    Mock.install_method @mock, :method_call, :stub
+    Mock.install_method @mock, :method_call, :mock
+    @mock.method_call
+    Mock.verify_count
+  end
+
+  it "verifies the calls to the mocked method when a mock is defined before a stub" do
+    Mock.install_method @mock, :method_call, :mock
+    Mock.install_method @mock, :method_call, :stub
+    @mock.method_call
+    Mock.verify_count
+  end
+end
+
 describe Mock, ".cleanup" do
   before :each do
     MSpec.stub!(:actions)
@@ -238,6 +400,7 @@ describe Mock, ".cleanup" do
 
     @mock = mock('cleanup')
     @proxy = Mock.install_method @mock, :method_call
+    @stub = Mock.install_method @mock, :method_call, :stub
   end
 
   after :each do
@@ -255,18 +418,23 @@ describe Mock, ".cleanup" do
     def @mock.already_here() :hey end
     @mock.should respond_to(:already_here)
     Mock.install_method @mock, :already_here
-    @mock.should respond_to(Mock.replaced_name(:already_here))
+    @mock.should respond_to(Mock.replaced_name(@mock, :already_here))
 
     Mock.cleanup
-    @mock.should_not respond_to(Mock.replaced_name(:already_here))
+    @mock.should_not respond_to(Mock.replaced_name(@mock, :already_here))
     @mock.should respond_to(:already_here)
     @mock.already_here.should == :hey
   end
 
   it "removes all mock expectations" do
-    Mock.expects.should == { [@mock, :method_call] => [@proxy] }
-
+    Mock.mocks.should == { Mock.replaced_key(@mock, :method_call) => [@proxy] }
     Mock.cleanup
-    Mock.expects.should == {}
+    Mock.mocks.should == {}
+  end
+
+  it "removes all stubs" do
+    Mock.stubs.should == { Mock.replaced_key(@mock, :method_call) => [@stub] }
+    Mock.cleanup
+    Mock.stubs.should == {}
   end
 end
