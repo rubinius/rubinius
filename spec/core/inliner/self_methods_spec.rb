@@ -195,6 +195,58 @@ describe Rubinius::Inliner::SimpleSelfCallInliner do
     lambda { im.activate(self, self.class, []) }.should_not raise_error(ArgumentError)
   end
 
+  it "inlines methods that use blocks" do
+    rm = def r a, b
+      x = 0
+      y = a + b
+      y.times { |i| x += i }
+      x
+    end
+
+    sm = def s
+      r 1, 2
+    end
+
+    im = @inliner.inline sm, rm, find_send_ip(sm, :r)
+    im.activate(self, self.class, []).should == s()
+  end
+
+  it "inlines into methods that use blocks" do
+    rm = def r a
+      a + 5
+    end
+
+    sm = def s
+      x = 0
+      (r(5)+ 1).times { |i| x += i }
+      x
+    end
+
+    im = @inliner.inline sm, rm, find_send_ip(sm, :r)
+    im.activate(self, self.class, []).should == s()
+  end
+
+  it "inlines methods that use blocks into methods that use blocks" do
+    rm = def r a, b
+      x = 0
+      y = a + b
+      y.times { |i| x += i }
+      x
+    end
+
+    sm = def s
+      a = 5
+      y = r 1, 2
+      y.times { |i| a += i }
+      a
+    end
+
+    im = @inliner.inline sm, rm, find_send_ip(sm, :r)
+    im.activate(self, self.class, []).should == s()
+  end
+
+
+
   it "inlines methods defined in a new class" do
     rm = class C; def r; 3 end end
     sm = class C; def s; r + 4 end end
