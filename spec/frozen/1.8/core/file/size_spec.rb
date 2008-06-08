@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../../shared/file/size'
 
 describe "File.size" do
   before :each do
-    @file = '/tmp/i_exist'
+    @file = tmp('i_exist')
     File.open(@file,'w'){|f| f.write 'rubinius'}
   end
 

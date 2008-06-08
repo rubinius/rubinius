@@ -16,6 +16,12 @@ describe "Object#to_yaml" do
     Date.parse('1997/12/30').to_yaml.should == "--- 1997-12-30\n"
   end
 
+  it "returns the YAML representation of a FalseClass" do
+    false_klass = false
+    false_klass.should be_kind_of(FalseClass)
+    false_klass.to_yaml.should == "--- false\n"
+  end
+
   it "returns the YAML representation of a Float object" do
     float = 1.2
     float.should be_kind_of(Float)
@@ -34,6 +40,10 @@ describe "Object#to_yaml" do
     nil_klass.to_yaml.should == "--- \n"
   end
   
+  it "returns the YAML represenation of a RegExp object" do
+    Regexp.new('^a-z+:\\s+\w+').to_yaml.should == "--- !ruby/regexp /^a-z+:\\s+\\w+/\n"
+  end
+  
   it "returns the YAML representation of a String object" do
     "I love Ruby".to_yaml.should == "--- I love Ruby\n"
   end
@@ -50,4 +60,10 @@ describe "Object#to_yaml" do
   it "returns the YAML representation of a Time object" do
     Time.utc(2000,"jan",1,20,15,1).to_yaml.should == "--- 2000-01-01 20:15:01 Z\n"
   end
+  
+  it "returns the YAML representation of a TrueClass" do
+    true_klass = true
+    true_klass.should be_kind_of(TrueClass)
+    true_klass.to_yaml.should == "--- true\n"
+  end  
 end

@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Process.fork" do
-  not_supported_on :jruby do
+  not_supported_on :jruby, :windows do
     before :each do
-      @file = '/tmp/i_exist'
+      @file = tmp('i_exist')
       File.delete(@file) if File.exist?(@file)
     end
 

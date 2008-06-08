@@ -8,11 +8,11 @@ describe "Matrix#clone" do
   
   it "returns a shallow copy of the matrix" do
     b = @a.clone
-    @a.should_not.equal?(b)
+    @a.should_not equal(b)
     b.class.should == Matrix
     b.should == @a
     0.upto(@a.row_size - 1) do |i|
-      @a.row(i).should_not.equal?(b.row(i))
+      @a.row(i).should_not equal(b.row(i))
     end
   end
   

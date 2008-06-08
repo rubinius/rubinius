@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "ENV#clear" do
+describe "ENV.clear" do
 
   it "deletes all environment variables" do
     orig = ENV.to_hash

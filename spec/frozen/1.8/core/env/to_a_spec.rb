@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#to_a" do
+describe "ENV.to_a" do
 
   it "returns the ENV as an array" do
     ENV["foo"] = "bar"

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#to_hash" do
+describe "ENV.to_hash" do
 
   it "returns the ENV as a hash" do
     ENV["foo"] = "bar"

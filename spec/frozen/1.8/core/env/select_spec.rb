@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#select" do
+describe "ENV.select" do
 
   it "returns the Hash for which block return true" do
     ENV["foo"] = "bar"

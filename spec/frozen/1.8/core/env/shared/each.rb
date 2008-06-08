@@ -1,5 +1,5 @@
 shared :env_each do |cmd|
-  describe "ENV##{cmd}" do
+  describe "ENV.#{cmd}" do
 
     it "returns each pair" do
       orig = ENV.to_hash

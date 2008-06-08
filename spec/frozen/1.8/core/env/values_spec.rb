@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#values" do
+describe "ENV.values" do
 
   it "returns an array of the values" do
     orig = ENV.to_hash

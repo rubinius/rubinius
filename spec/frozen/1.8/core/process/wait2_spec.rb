@@ -6,16 +6,18 @@ describe "Process.wait2" do
     # misbehaving spec somewhere else does not clear processes
     Process.waitall
   end
-
-  it "returns the pid and status of child process" do
-    pidf = Process.fork { Process.exit! 99 }
-    results = Process.wait2
-    results.size.should == 2
-    pidw, status = results
-    pidf.should == pidw
-    status.exitstatus.should == 99
+  
+  not_supported_on :windows do
+    it "returns the pid and status of child process" do
+      pidf = Process.fork { Process.exit! 99 }
+      results = Process.wait2
+      results.size.should == 2
+      pidw, status = results
+      pidf.should == pidw
+      status.exitstatus.should == 99
+    end
   end
-
+  
   it "raises a StandardError if no child processes exist" do
     lambda { Process.wait2 }.should raise_error(Errno::ECHILD)
     lambda { Process.wait2 }.should raise_error(StandardError)

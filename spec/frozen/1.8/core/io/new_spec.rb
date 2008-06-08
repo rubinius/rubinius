@@ -8,7 +8,7 @@ end
 
 describe "IO.new" do
   before :all do
-    @filename = "/tmp/rubinius-spec-io-new-#{$$}.txt"
+    @filename = tmp("rubinius-spec-io-new-#{$$}.txt")
   end
 
   after :all do

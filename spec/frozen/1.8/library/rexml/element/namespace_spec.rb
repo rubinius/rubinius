@@ -16,7 +16,12 @@ describe "REXML::Element#namespace" do
     @doc.elements["//c"].namespace("z").should == "3"
   end
 
+  it "returns an empty String if default namespace is not defined" do
+    e = REXML::Document.new("<a/>")
+    e.root.namespace.should be_empty
+  end
+
   it "returns nil if namespace is not defined" do
-    @elem.namespace("z").should == nil
+    @elem.namespace("z").should be_nil
   end
 end

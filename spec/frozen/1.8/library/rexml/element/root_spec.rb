@@ -22,7 +22,7 @@ describe "REXML::Element#root" do
   end
 
   it "returns self on standalone nodes" do
-    e = REXML::Element.new "Elem"         # Not that doesn't have a parent node
+    e = REXML::Element.new "Elem"         # Note that it doesn't have a parent node
     e.root.should == e
   end
 end

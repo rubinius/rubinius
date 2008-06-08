@@ -15,7 +15,7 @@ describe "Kernel#p" do
   end
   
   it "flushes output if receiver is a File" do
-    filename = "/tmp/Kernel_p_flush" + $$.to_s
+    filename = tmp("Kernel_p_flush") + $$.to_s
     begin
       File.open(filename, "w") do |f|
         begin

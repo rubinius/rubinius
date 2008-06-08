@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#each_key" do
+describe "ENV.each_key" do
 
   it "returns each key" do
     e = []

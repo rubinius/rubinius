@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#fetch" do
+describe "ENV.fetch" do
 
   it "returns a value" do
     ENV["foo"] = "bar"

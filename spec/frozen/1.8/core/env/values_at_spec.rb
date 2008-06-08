@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#values_at" do
+describe "ENV.values_at" do
 
   it "returns an array of the values referenced by the parameters as keys" do
     ENV["foo"] = "oof"

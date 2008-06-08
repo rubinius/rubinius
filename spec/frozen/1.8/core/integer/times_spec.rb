@@ -1,68 +1,39 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Integer#times with block argument" do
-  it "passes block values from 0 to self - 1" do
+describe "Integer#times" do
+  it "returns self" do
+    5.times {}.should == 5
+    9.times {}.should == 9
+    9.times { |n| n - 2 }.should == 9
+  end
+  
+  it "yields each value from 0 to self - 1" do
     a = []
     9.times { |i| a << i }
     -2.times { |i| a << i }
     a.should == [0, 1, 2, 3, 4, 5, 6, 7, 8]
   end
-
-  it "executes a simple expression" do
-    a = 0
-    b = 3.times do |i|
-      a += 1
+  
+  it "skips the current iteration when encountering 'next'" do
+    a = []
+    3.times do |i|
+      next if i == 1
+      a << i
     end
-    a.should == 3
-    b.should == 3
+    a.should == [0, 2]
   end
-
-  it "skips the current iteration of the block from 'next' to the end" do
-    a = 0
-    b = 3.times do |i|
-      next if a == 2
-      a += 1
+  
+  it "skips all iterations when encountering 'break'" do
+    a = []
+    5.times do |i|
+      break if i == 3
+      a << i
     end
-    a.should == 2
-    b.should == 3
+    a.should == [0, 1, 2]
   end
-
-  it "stops executing the block when it contains a break expression" do
-    a = 0
-    b = 3.times do |i|
-      a += 1
-      break
-    end
-    a.should == 1
-    b.should == nil
-  end
-
-  it "stops executing the block when it contains a break expression with argument" do
-    a = 0
-    b = 3.times do |i|
-      a += 1
-      break 9
-    end
-    a.should == 1
-    b.should == 9
-  end
-
-  it "stops executing the block when it contains an expression containing break" do
-    a = [false]
-    b = 1.times do |i|
-      a.shift or break
-    end
-    a.should == []
-    b.should == nil
-  end
-
-  it "stops executing the block when it contains a complex break expression" do
-    a = [false]
-    b = 2.times do |i|
-      (a.shift or break) << 'x'
-    end
-    a.should == []
-    b.should == nil
+  
+  it "skips all iterations when encountering break with an argument and returns that argument" do
+    9.times { break 2 }.should == 2
   end
 
   it "executes a nested while loop containing a break expression" do
@@ -76,17 +47,6 @@ describe "Integer#times with block argument" do
     b.should == 1
   end
 
-  it "executes a nested while loop containing a complex break expression" do
-    a = [nil, nil]
-    b = 3.times do |i|
-      while true
-        (a.shift or break) << 'x'
-      end
-    end
-    a.should == []
-    b.should == 3
-  end
-
   it "executes a nested #times" do
     a = 0
     b = 3.times do |i|
@@ -95,94 +55,21 @@ describe "Integer#times with block argument" do
     a.should == 6
     b.should == 3
   end
-end
-
-describe "Integer#times without block argument" do
-  it "executes a simple expression" do
-    a = 0
-    b = 3.times do
-      a += 1
+  
+  ruby_version_is "" ... "1.8.7" do
+    it "raises a LocalJumpError when no block given" do
+      lambda { 3.times }.should raise_error(LocalJumpError)
     end
-    a.should == 3
-    b.should == 3
   end
 
-  it "skips the current iteration of the block from 'next' to the end" do
-    a = 0
-    b = 3.times do
-      next if a == 2
-      a += 1
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator" do
+      result = []
+      
+      enum = 3.times
+      enum.each { |i| result << i }
+      
+      result.should == [0, 1, 2]
     end
-    a.should == 2
-    b.should == 3
-  end
-
-  it "stops executing the block when it contains a break expression" do
-    a = 0
-    b = 3.times do
-      a += 1
-      break
-    end
-    a.should == 1
-    b.should == nil
-  end
-
-  it "stops executing the block when it contains a break expression with argument" do
-    a = 0
-    b = 3.times do
-      a += 1
-      break 9
-    end
-    a.should == 1
-    b.should == 9
-  end
-
-  it "stops executing the block when it contains an expression containing break" do
-    a = [false]
-    b = 1.times do
-      a.shift or break
-    end
-    a.should == []
-    b.should == nil
-  end
-
-  it "stops executing the block when it contains a complex break expression" do
-    a = [false]
-    b = 2.times do
-      (a.shift or break) << 'x'
-    end
-    a.should == []
-    b.should == nil
-  end
-
-  it "executes a nested while loop containing a break expression" do
-    a = [false]
-    b = 1.times do
-      while true
-        a.shift or break
-      end
-    end
-    a.should == []
-    b.should == 1
-  end
-
-  it "executes a nested while loop containing a complex break expression" do
-    a = [nil, nil]
-    b = 3.times do
-      while true
-        (a.shift or break) << 'x'
-      end
-    end
-    a.should == []
-    b.should == 3
-  end
-
-  it "executes a nested #times" do
-    a = 0
-    b = 3.times do
-      2.times { a += 1 }
-    end
-    a.should == 6
-    b.should == 3
   end
 end

@@ -143,6 +143,23 @@ describe "Kernel#eval" do
 end
 
 describe "Kernel.eval" do
+#  TODO: This is how MRI 1.9 and JRuby behave. Bug or feature?
+#  it "yields to the block of the method when evaling 'yield' inside it" do
+#    class TT
+#      def self.call_yield_from_eval_no_binding
+#        eval('yield')
+#      end
+#    end
+#
+#    (TT.call_yield_from_eval_no_binding {"content"}).should == "content"
+#  end
+
+  it "does not pass the block to the method being eval'ed" do
+    lambda {
+      eval('KernelSpecs::EvalTest.call_yield') { "content" }
+    }.should raise_error(LocalJumpError)
+  end
+
   it "needs to be reviewed for spec completeness" do
   end
 end

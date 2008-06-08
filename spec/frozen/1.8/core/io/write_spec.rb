@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/shared/write'
 
 describe "IO#write on a file" do
   before :each do
-    @filename = "/tmp/IO_syswrite_file" + $$.to_s
+    @filename = tmp("IO_syswrite_file") + $$.to_s
     File.open(@filename, "w") do |file|
       file.write("012345678901234567890123456789")
     end

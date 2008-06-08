@@ -1,7 +1,7 @@
 shared :file_writable do |cmd, klass, name|
   describe "#{name || "#{klass}.#{cmd}"}" do
     before :each do
-      @file = '/tmp/i_exist'
+      @file = tmp('i_exist')
     end
 
     after :each do

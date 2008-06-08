@@ -1,5 +1,5 @@
-require 'rexml/document'
 require File.dirname(__FILE__) + '/../../../spec_helper'
+require 'rexml/document'
 
 describe "REXML::Document#new" do
 
@@ -26,8 +26,10 @@ describe "REXML::Document#new" do
     d.attributes.should == s.attributes
   end
 
-  it "raises an error if source is not a Document, String or IO" do
-    lambda {s = REXML::Document.new(3)}.should raise_error(RuntimeError)
+  ruby_bug "#", "1.8.6.111" do
+    it "raises an error if source is not a Document, String or IO" do
+      lambda {s = REXML::Document.new(3)}.should raise_error(RuntimeError)
+    end
   end
 
   it "does not perform XML validation" do

@@ -19,10 +19,12 @@ describe "Hash.[]" do
     lambda { Hash[1, 2, {3 => 4}] }.should raise_error(ArgumentError)
   end
 
-  it "does not call to_hash" do
-    obj = mock('x')
-    def obj.to_hash() { 1 => 2, 3 => 4 } end
-    lambda { Hash[obj] }.should raise_error(ArgumentError)
+  ruby_bug "#", "1.8.6" do
+    it "call to_hash" do
+      obj = mock('x')
+      def obj.to_hash() { 1 => 2, 3 => 4 } end
+      Hash[obj].should == { 1 => 2, 3 => 4 }
+    end
   end
 
   it "returns an instance of the class it's called on" do

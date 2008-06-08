@@ -1,11 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'set'
+require File.dirname(__FILE__) + '/shared/constructor'
 
 describe "Set.[]" do
-  it "creates a new Set" do
-    set = Set[1, 2, 3]
-    other = Set.new
-    other << 1 << 2 << 3
-    set.should == other
-  end
+  it_behaves_like :set_constructor, Set
 end

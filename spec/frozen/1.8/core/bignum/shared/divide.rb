@@ -20,11 +20,6 @@ shared :bignum_divide do |cmd|
       lambda { @bignum.send(cmd, 0) }.should raise_error(ZeroDivisionError)
     end
 
-    it "does NOT raise ZeroDivisionError if other is zero and is a Float" do
-      @bignum.send(cmd, 0.0).to_s.should == 'Infinity'
-      @bignum.send(cmd, -0.0).to_s.should == '-Infinity'
-    end
-
     it "raises a TypeError when given a non-Integer" do
       lambda { @bignum.send(cmd, mock('10')) }.should raise_error(TypeError)
       lambda { @bignum.send(cmd, "2") }.should raise_error(TypeError)

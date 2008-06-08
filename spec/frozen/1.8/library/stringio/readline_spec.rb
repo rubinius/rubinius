@@ -4,6 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "StringIO#readline" do
   before(:each) do
     @io = StringIO.new("r e a d")
+    @io_para = StringIO.new("para1-1\npara1-2\n\n\npara2-1\npara2-2\n\n\n\n")
   end
 
   it "returns the next 'line'" do
@@ -21,7 +22,16 @@ describe "StringIO#readline" do
   end
 
   it "support separator strings" do
-    @io.gets('e').should == 'r e'
-    @io.gets('e').should == ' a d'
+    @io.readline('e').should == 'r e'
+    @io.readline('e').should == ' a d'
+  end
+
+  it "returns the next paragrah when separator is an empty string" do
+    @io_para.readline("").should == "para1-1\npara1-2\n"
+    @io_para.readline("").should == "para2-1\npara2-2\n"
+  end
+
+  it "returns the entire content if separator is nil" do
+    @io_para.readline(nil).should == @io_para.string
   end
 end

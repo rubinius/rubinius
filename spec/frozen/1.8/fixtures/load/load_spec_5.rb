@@ -1,1 +1,2 @@
-$load_spec_5 = Time.now
+$load_spec_5 ||= 0 
+$load_spec_5 += 1

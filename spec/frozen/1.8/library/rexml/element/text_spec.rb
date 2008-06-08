@@ -1,7 +1,7 @@
 require 'rexml/document'
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-describe "REXML::Element#test" do
+describe "REXML::Element#text" do
   before :each do
     @e = REXML::Element.new "name"
     @e.text = "John"

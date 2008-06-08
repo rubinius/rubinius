@@ -25,15 +25,34 @@ describe "Kernel#open" do
     @output.should == "This is a test\n"
   end
   
-  it "opens an io when path starts with a pipe" do
-    @io = open("|date")
-    @io.should be_kind_of(IO)
-  end
+  platform_is_not :windows do
+    
+    it "opens an io when path starts with a pipe" do
+      @io = open("|date")
+      @io.should be_kind_of(IO)
+    end
+    
+    it "opens an io when called with a block" do
+      @output = open("|date") { |f| f.gets }
+      @output.should_not == ''
+    end
   
-  it "opens an io when called with a block" do
-    @output = open("|date") { |f| f.gets }
-    @output.should_not == ''
   end
+
+  platform_is :windows do
+    
+    it "opens an io when path starts with a pipe" do
+      @io = open("|date /t")
+      @io.should be_kind_of(IO)
+    end
+    
+    it "opens an io when called with a block" do
+      @output = open("|date /t") { |f| f.gets }
+      @output.should_not == ''
+    end
+  
+  end
+    
   
   it "raises an ArgumentError if not passed one argument" do
     lambda { open }.should raise_error(ArgumentError)

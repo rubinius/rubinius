@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#replace" do
+describe "ENV.replace" do
 
   it "replaces ENV with a Hash" do
     ENV["foo"] = "bar"

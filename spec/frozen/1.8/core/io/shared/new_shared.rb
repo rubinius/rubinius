@@ -1,7 +1,7 @@
 shared :io_new do |cmd|
   describe "IO##{cmd}" do
     before :all do
-      @filename = "/tmp/rubinius-spec-io-new-#{$$}.txt"
+      @filename = tmp("rubinius-spec-io-new-#{$$}.txt")
     end
 
     after :all do

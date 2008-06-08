@@ -8,8 +8,20 @@ describe "StringIO#each_byte" do
 
   it "yields each character code in turn" do
     seen = []
-    @io.each_byte {|b| seen << b}.should == nil
+    @io.each_byte { |b| seen << b }
     seen.should == [120, 121, 122]
+  end
+  
+  ruby_version_is "" ... "1.8.7" do
+    it "returns nil" do
+      @io.each_byte {}.should be_nil
+    end
+  end
+  
+  ruby_version_is "1.8.7" do
+    it "returns self" do
+      @io.each_byte {}.should equal(@io)
+    end
   end
 
   it "raises an IOError unless the IO is open for reading" do

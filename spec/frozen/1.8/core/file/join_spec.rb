@@ -1,13 +1,21 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.join" do
+  it "returns an empty string when given no arguments" do
+    File.join.should == ""
+  end
 
-  it "does nothing to empty strings" do
+  it "when given a single argument returns an equal string" do
     File.join("").should == ""
+    File.join("usr").should == "usr"
   end
 
   it "joins parts using File::SEPARATOR" do
     File.join('usr', 'bin').should == "usr/bin"
+  end
+
+  it "supports any number of arguments" do
+    File.join("a", "b", "c", "d").should == "a/b/c/d"
   end
 
   platform_is :windows do
@@ -95,6 +103,11 @@ describe "File.join" do
 
   it "calls #to_str" do
     lambda { File.join(mock('x')) }.should raise_error(TypeError)
+
+    bin = mock("bin")
+    bin.should_receive(:to_str).exactly(:twice).and_return("bin")
+    File.join(bin).should == "bin"
+    File.join("usr", bin).should == "usr/bin"
   end
 
 end

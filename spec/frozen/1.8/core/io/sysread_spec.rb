@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#sysread on a file" do
   before :each do
-    @file_name = "/tmp/IO_sysread_file" + $$.to_s
+    @file_name = tmp("IO_sysread_file") + $$.to_s
     File.open(@file_name, "w") do |f|
       # write some stuff
       f.write("012345678901234567890123456789")

@@ -1,5 +1,5 @@
 shared :env_include do |cmd|
-  describe "ENV##{cmd}" do
+  describe "ENV.#{cmd}" do
 
     it "returns true if ENV has the key" do
       ENV["foo"] = "bar"

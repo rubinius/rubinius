@@ -27,7 +27,7 @@ describe "IO#getc" do
   end
 
   it "returns nil on empty stream" do
-    File.open('/tmp/empty.txt') { |empty|
+    File.open(tmp('empty.txt')) { |empty|
       empty.getc.should == nil
     }
   end

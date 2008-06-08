@@ -1,28 +1,34 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'set'
 
-describe "Set#superset?" do
-
-  before :each do
+describe "Set#proper_superset?" do
+  before(:each) do
     @set = Set[1, 2, 3, 4]
-    @superset = Set[1, 2, 3, 4, 5]
-    @empty_set = Set[]
   end
 
-  it "returns true if a proper superset" do
-    @superset.proper_superset?(@set).should == true
+  it "returns true if passed a Set that self is a proper superset of" do
+    @set.proper_superset?(Set[]).should be_true
+    Set[1, 2, 3].proper_superset?(Set[]).should be_true
+    Set["a", :b, ?c].proper_superset?(Set[]).should be_true
+
+    @set.proper_superset?(Set[1, 2, 3]).should be_true
+    @set.proper_superset?(Set[1, 3]).should be_true
+    @set.proper_superset?(Set[1, 2]).should be_true
+    @set.proper_superset?(Set[1]).should be_true
+    
+    @set.proper_superset?(Set[5]).should be_false
+    @set.proper_superset?(Set[1, 5]).should be_false
+    @set.proper_superset?(Set[nil]).should be_false
+    @set.proper_superset?(Set["test"]).should be_false
+    
+    @set.proper_superset?(@set).should be_false
+    Set[].proper_superset?(Set[]).should be_false
   end
   
-  it "returns false when compared to itself" do
-    @set.proper_superset?(@set).should == false
+  it "raises an ArgumentError when passed a non-Set" do
+    lambda { Set[].proper_superset?([]) }.should raise_error(ArgumentError)
+    lambda { Set[].proper_superset?(1) }.should raise_error(ArgumentError)
+    lambda { Set[].proper_superset?("test") }.should raise_error(ArgumentError)
+    lambda { Set[].proper_superset?(Object.new) }.should raise_error(ArgumentError)
   end
-  
-  it "returns false when non-empty set compared to an empty set" do
-    @empty_set.proper_superset?(@set).should == false
-  end
-  
-  it "returns false then empty set compared to itself" do
-    @empty_set.proper_superset?(@empty_set).should == false
-  end
-  
 end

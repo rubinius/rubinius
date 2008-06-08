@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 
 describe "File::Stat#nlink" do
   before :each do
-    @file = "/tmp/stat_nlink"
+    @file = tmp("stat_nlink")
     @link = @file + ".lnk"
     File.open(@file, "w") {}
   end

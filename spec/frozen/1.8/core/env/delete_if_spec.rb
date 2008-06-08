@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#delete_if" do
+describe "ENV.delete_if" do
 
   it "deletes pairs if the block returns true" do
     ENV["foo"] = "bar"

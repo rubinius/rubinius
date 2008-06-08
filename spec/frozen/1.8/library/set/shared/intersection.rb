@@ -4,12 +4,14 @@ shared :set_intersection do |cmd|
       @set = Set[:a, :b, :c]
     end
 
-    it "returns a new set containing only elements shared by self and other" do
+    it "returns a new Set containing only elements shared by self and the passed Enumerable" do
       @set.send(cmd, Set[:b, :c, :d, :e]).should == Set[:b, :c]
+      @set.send(cmd, [:b, :c, :d]).should == Set[:b, :c]
     end
     
-    it "accepts any enumerable as other" do
-      @set.send(cmd, [:b, :c, :d]).should == Set[:b, :c]
+    it "raises an ArgumentError when passed a non-Enumerable" do
+      lambda { @set.send(cmd, 1) }.should raise_error(ArgumentError)
+      lambda { @set.send(cmd, Object.new) }.should raise_error(ArgumentError)
     end
   end
 end

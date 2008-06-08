@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 
 describe "File::Stat#uid" do
   before :each do
-    @file = '/tmp/i_exist'
+    @file = tmp('i_exist')
     File.open(@file,'w'){|f| f.write 'rubinius'}
   end
 

@@ -70,8 +70,41 @@ describe "Date#parse" do
   it_behaves_like(:date_parse, ' ')
 
   # Numeric date parsing doesn't work when using spaces
-  it_behaves_like(:date_parse_us, '.')
   it_behaves_like(:date_parse_us, '/')
   it_behaves_like(:date_parse_eu, '-')
-  
+  ruby_version_is "" ... "1.8.7" do
+    it_behaves_like(:date_parse_us, '.')
+  end
+end
+
+ruby_version_is "1.8.7" do
+  describe "Date#parse(.)" do
+    it "parses a YYYY.MM.DD string into a Date object" do
+      d = Date.parse("2007.10.01")
+      d.year.should  == 2007
+      d.month.should == 10
+      d.day.should   == 1
+    end
+
+    it "parses a DD.MM.YYYY string into a Date object" do
+      d = Date.parse("10.01.2007")
+      d.year.should  == 2007
+      d.month.should == 1
+      d.day.should   == 10
+    end
+
+    it "parses a YY.MM.DD string into a Date object" do
+      d = Date.parse("10.01.07")
+      d.year.should  == 10
+      d.month.should == 1
+      d.day.should   == 7
+    end
+
+    it "parses a YY.MM.DD string into a Date object using the year digits as 20XX" do
+      d = Date.parse("10.01.07", true)
+      d.year.should  == 2010
+      d.month.should == 1
+      d.day.should   == 7
+    end
+  end
 end

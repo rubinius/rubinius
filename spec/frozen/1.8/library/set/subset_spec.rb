@@ -2,27 +2,33 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'set'
 
 describe "Set#subset?" do
-
-  before :each do
+  before(:each) do
     @set = Set[1, 2, 3, 4]
-    @subset = Set[1, 2, 3]
-    @empty_set = Set[]
   end
 
-  it "returns true if a subset of a set" do
-    @subset.subset?(@set).should == true
+  it "returns true if passed a Set that is equal to self or self is a subset of" do
+    @set.subset?(@set).should be_true
+    Set[].subset?(Set[]).should be_true
+
+    Set[].subset?(@set).should be_true
+    Set[].subset?(Set[1, 2, 3]).should be_true
+    Set[].subset?(Set["a", :b, ?c]).should be_true
+
+    Set[1, 2, 3].subset?(@set).should be_true
+    Set[1, 3].subset?(@set).should be_true
+    Set[1, 2].subset?(@set).should be_true
+    Set[1].subset?(@set).should be_true
+    
+    Set[5].subset?(@set).should be_false
+    Set[1, 5].subset?(@set).should be_false
+    Set[nil].subset?(@set).should be_false
+    Set["test"].subset?(@set).should be_false
   end
   
-  it "returns true when compared to itself" do
-    @set.subset?(@set).should == true
+  it "raises an ArgumentError when passed a non-Set" do
+    lambda { Set[].subset?([]) }.should raise_error(ArgumentError)
+    lambda { Set[].subset?(1) }.should raise_error(ArgumentError)
+    lambda { Set[].subset?("test") }.should raise_error(ArgumentError)
+    lambda { Set[].subset?(Object.new) }.should raise_error(ArgumentError)
   end
-  
-  it "returns true when comparing empty set to a set" do
-    @empty_set.subset?(@set).should == true
-  end
-  
-  it "returns true when comparing empty set to itself" do
-    @empty_set.subset?(@empty_set).should == true
-  end
-  
 end

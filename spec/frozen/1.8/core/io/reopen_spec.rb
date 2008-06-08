@@ -10,8 +10,8 @@ describe "IO#reopen" do
     @file2 = File.new(@name2)
 
     # for writing
-    @name1_w = "/tmp/IO_reopen_file1" + $$.to_s
-    @name2_w = "/tmp/IO_reopen_file2" + $$.to_s
+    @name1_w = tmp("IO_reopen_file1") + $$.to_s
+    @name2_w = tmp("IO_reopen_file2") + $$.to_s
     @file1_w = File.new(@name1_w, "w+")
     @file2_w = File.new(@name2_w, "w+")
   end

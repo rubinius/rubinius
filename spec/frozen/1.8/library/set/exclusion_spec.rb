@@ -6,13 +6,13 @@ describe "Set#^" do
     @set = Set[1, 2, 3, 4]
   end
   
-  it "returns a new set containing elements not in both self and other" do
-    set = @set ^ Set[3, 4, 5]
-    set.should == Set[1, 2, 5]
+  it "returns a new Set containing elements that are not in both self and the passed Enumberable" do
+    (@set ^ Set[3, 4, 5]).should == Set[1, 2, 5]
+    (@set ^ [3, 4, 5]).should == Set[1, 2, 5]
   end
   
-  it "accepts any enumerable as other" do
-    set = @set ^ [3, 4]
-    set.should == Set[1, 2]
+  it "raises an ArgumentError when passed a non-Enumerable" do
+    lambda { @set ^ 3 }.should raise_error(ArgumentError)
+    lambda { @set ^ Object.new }.should raise_error(ArgumentError)
   end
 end

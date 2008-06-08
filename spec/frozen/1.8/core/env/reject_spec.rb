@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#reject!" do
+describe "ENV.reject!" do
   it "rejects entries based on key" do
     ENV["foo"] = "bar"
     ENV.reject! { |k, v| k == "foo" }
@@ -43,7 +43,7 @@ describe "ENV#reject!" do
   end
 end
 
-describe "ENV#reject" do
+describe "ENV.reject" do
   it "rejects entries based on key" do
     ENV["foo"] = "bar"
     e = ENV.reject { |k, v| k == "foo" }

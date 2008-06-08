@@ -9,6 +9,7 @@ describe "File.new" do
   end
 
   after :each do
+   @fh.close if @fh 
     File.delete(@file) if File.exists?(@file)
     @fh    = nil
     @file  = nil

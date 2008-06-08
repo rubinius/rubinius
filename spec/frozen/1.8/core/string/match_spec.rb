@@ -21,8 +21,9 @@ describe "String#=~" do
     obj.should_receive(:=~).with(str).any_number_of_times.and_return(true)
     str.should =~ obj
 
+    obj = mock('y')
     obj.should_receive(:=~).with(str).any_number_of_times.and_return(false)
-    str.should =~ obj
+    str.should_not =~ obj
   end
   
   it "sets $~ to MatchData when there is a match and nil when there's none" do

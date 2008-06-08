@@ -37,8 +37,8 @@ describe "IO#eof?" do
   end
 
   it "returns true on just opened empty stream" do
-    File.open('/tmp/empty.txt', "w") { |empty| } # ensure it exists
-    File.open('/tmp/empty.txt') { |empty|
+    File.open(tmp('empty.txt'), "w") { |empty| } # ensure it exists
+    File.open(tmp('empty.txt')) { |empty|
       empty.eof?.should == true
     }
   end
@@ -58,7 +58,7 @@ describe "IO#eof?" do
 
   it "raises IOError on stream not opened for reading" do
     lambda {
-      File.open('/tmp/empty.txt', "w") { |empty|
+      File.open(tmp('empty.txt'), "w") { |empty|
         empty.eof?
       }
     }.should raise_error(IOError)

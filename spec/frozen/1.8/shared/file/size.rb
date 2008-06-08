@@ -5,7 +5,7 @@ shared :file_size do |cmd, klass, name|
       File.delete @empty if File.exist? @empty
       File.open(@empty,'w') { }
 
-      @exists = '/tmp/i_exist'
+      @exists = tmp('i_exist')
       File.open(@exists,'w') { |f| f.write 'rubinius' }
     end
 

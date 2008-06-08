@@ -1,5 +1,5 @@
 shared :env_length do |cmd|
-  describe "ENV##{cmd}" do
+  describe "ENV.#{cmd}" do
     it "returns the number of ENV entries" do
       orig = ENV.to_hash
       begin

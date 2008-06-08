@@ -219,10 +219,10 @@ describe "String#gsub with pattern and block" do
     offsets = []
     
     str.gsub(/([aeiou])/) do
-       md = $~
-       md.string.should == str
-       offsets << md.offset(0)
-       str
+      md = $~
+      md.string.should == str
+      offsets << md.offset(0)
+      str
     end.should == "hhellollhello"
     
     offsets.should == [[1, 2], [4, 5]]
@@ -236,12 +236,12 @@ describe "String#gsub with pattern and block" do
         "ok".match(/./)
         "x"
       end
-    
+
       $~.should == old_md
       $~.string.should == "hello"
     end
   end
-  
+
   it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
     'hello.'.gsub('l') { 'x' }
     $~.begin(0).should == 3
@@ -256,7 +256,7 @@ describe "String#gsub with pattern and block" do
     'hello.'.gsub(/not/) { 'x' }
     $~.should == nil
   end
-  
+
   it "raises a RuntimeError if the string is modified while substituting" do
     str = "hello"
     raise_error(RuntimeError) { str.gsub(//) { str[0] = 'x' } }

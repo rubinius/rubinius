@@ -23,18 +23,6 @@ describe "Iconv#iconv" do
     end
   end
 
-  it "when given the same source and target encodings still goes through all the decoding and encoding steps" do
-    Iconv.open "utf-16", "utf-16" do |conv|
-      # the interpretation might vary, but emitting a BOM is still important
-      result = conv.iconv("\0a\0b")
-      result[0, 2].should equal_utf16("\xfe\xff")
-      result[2..-1].should equal_utf16("\0a\0b")
-    end
-    Iconv.open "utf-8", "utf-8" do |conv|
-      lambda { conv.iconv("\xff") }.should raise_error(Iconv::IllegalSequence)
-    end
-  end
-
   it "keeps context between calls" do
     Iconv.open "utf-16", "us-ascii" do |conv|
       # BOM for first call of utf-16
@@ -70,6 +58,11 @@ describe "Iconv#iconv" do
     end
   end
 
+  # The current spec (this one and below) test for the current MRI
+  # behavior, which is out of sync with the ruby-doc.
+  # TODO: MRI 1.9 apparently changed this behavior, to be in sync
+  # with the docs that state that the second argument is *length*.
+  # See http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/17092
   it "when given a positive end position treats it as exclusive" do
     # i.e. string[start...end]
     Iconv.open "us-ascii", "us-ascii" do |conv|
@@ -79,6 +72,7 @@ describe "Iconv#iconv" do
     end
   end
 
+  # TODO: see the comment above
   it "when given a negative end position treats it as inclusive" do
     # i.e. string[start..end]
     Iconv.open "us-ascii", "us-ascii" do |conv|
@@ -89,10 +83,6 @@ describe "Iconv#iconv" do
   end
 
   it "raises Iconv::IllegalSequence when faced with an invalid byte for the source encoding" do
-    Iconv.open "us-ascii", "us-ascii" do |conv|
-      lambda { conv.iconv("test\xa0") }.should raise_error(Iconv::IllegalSequence)
-    end
-
     Iconv.open "utf-8", "utf-8" do |conv|
       lambda { conv.iconv("test\x80") }.should raise_error(Iconv::IllegalSequence)
     end
@@ -111,22 +101,6 @@ describe "Iconv#iconv" do
     end
     Iconv.open "utf-16be", "utf-16be" do |conv|
       lambda { conv.iconv("a") }.should raise_error(Iconv::InvalidCharacter)
-    end
-  end
-
-  it "ignores characters which cannot be represented in the target encoding when the //ignore option is set for the target encoding" do
-    Iconv.open "iso-8859-1//ignore", "utf-8" do |conv|
-      conv.iconv("euro \xe2\x82\xac euro").should == "euro  euro"
-    end
-  end
-
-  platform_is :os => :linux do
-    it "transliterates characters which cannot be accurately represented in the target encoding when the //translit option is set for the target encoding" do
-      # Hard to test this one, seems too implementation-dependent on
-      # the platform's iconv(3) library
-      Iconv.open "us-ascii//translit", "utf-16be" do |conv|
-        conv.iconv("\xff\xfd").should == "?"
-      end
     end
   end
 
@@ -150,6 +124,7 @@ end
 
 describe "Iconv.iconv" do
   it "converts a series of strings with a single converter" do
+    Iconv.iconv("utf-16be", "us-ascii", "abc", "de").should == ["\0a\0b\0c", "\0d\0e"]
     # BOM only on first string
     Iconv.iconv("utf-16", "utf-8", "abc", "de").should equal_utf16(["\xfe\xff\0a\0b\0c", "\0d\0e"])
   end
@@ -165,43 +140,9 @@ describe "Iconv.iconv" do
   it_behaves_like :iconv_initialize_exceptions, :iconv, "test"
 end
 
-describe "The 'us-ascii' decoder" do
-  it "accepts only the strict 7-bit ASCII set" do
-    lambda { Iconv.iconv("utf-8", "us-ascii", "#255: \xff") }.should raise_error(Iconv::IllegalSequence)
-  end
-end
-
-describe "The 'us-ascii' encoder" do
-  it "accepts only the strict 7-bit ASCII set" do
-    lambda { Iconv.iconv("us-ascii", "utf-8", "#255: \xc3\xbf") }.should raise_error(Iconv::IllegalSequence)
-  end
-end
-
-describe "The 'utf-8' decoder" do
-  it "accepts only strictly valid UTF-8 sequences" do
-    Iconv.open "utf-8", "utf-8" do |conv|
-      lambda { conv.iconv("not the shortest possible representation for U+0000: \xc0\x80.") }.should raise_error(Iconv::IllegalSequence)
-      lambda { conv.iconv("no trail: \xc2.") }.should raise_error(Iconv::IllegalSequence)
-      lambda { conv.iconv("headless trail: \xc2\x81\x81.") }.should raise_error(Iconv::IllegalSequence)
-    end
-  end
-
-  it "rejects surrogate characters" do
-    lambda { Iconv.iconv("utf-16be", "utf-8", "\xed\xa1\x80") }.should raise_error(Iconv::IllegalSequence)
-    lambda { Iconv.iconv("utf-16be", "utf-8", "\xed\xa1\x80\xed\xb0\x80") }.should raise_error(Iconv::IllegalSequence)
-  end
-end
-
 describe "The 'utf-8' encoder" do
   it "emits proper representations for characters outside the Basic Multilingual Plane" do
     Iconv.iconv("utf-8", "utf-16be", "\xd8\x40\xdc\x00").should == ["\xf0\xa0\x80\x80"]
-  end
-end
-
-describe "The 'utf-16' decoder" do
-  it "rejects surrogates without pairs" do
-    lambda { Iconv.iconv("utf-16", "utf-16", "\xfe\xff\xd8\x40") }.should raise_error(Iconv::InvalidCharacter)
-    lambda { Iconv.iconv("utf-16", "utf-16", "\xfe\xff\xdc\x00") }.should raise_error(Iconv::InvalidCharacter)
   end
 end
 
@@ -241,17 +182,5 @@ describe "The 'utf-16le' decoder" do
   it "treats possible byte-order marks as regular characters" do
     Iconv.iconv("utf-8", "utf-16le", "\xfe\xff\0a").should == ["\xef\xbf\xbe\xe6\x84\x80"]
     Iconv.iconv("utf-8", "utf-16le", "\xff\xfe\0a").should == ["\xef\xbb\xbf\xe6\x84\x80"]
-  end
-end
-
-describe "The 'iso-8859-1' decoder" do
-  it "emits characters which are not in the ISO-8859-1 range" do
-    Iconv.iconv("utf-8", "iso-8859-1", "\x97 is not a valid ISO-8859-1 character, but is read anyway").should == ["\xc2\x97 is not a valid ISO-8859-1 character, but is read anyway"]
-  end
-end
-
-describe "The 'iso-8859-1' encoder" do
-  it "rejects characters which are not in the ISO-8859-1 range" do
-    lambda { Iconv.iconv("iso-8859-1", "utf-8", "the em dash is a windows-1252 extension: \xe2\x80\x94") }.should raise_error(Iconv::IllegalSequence)
   end
 end

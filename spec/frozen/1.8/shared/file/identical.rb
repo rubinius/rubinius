@@ -42,8 +42,8 @@ shared :file_identical do |cmd, klass, name|
 
     it "identical? should return true if both named files are identical" do
       begin
-        file = '/tmp/i_exist'
-        file2 = '/tmp/i_exist_too'
+        file = tmp('i_exist')
+        file2 = tmp('i_exist_too')
         File.open(file,'w'){|f| f.write 'rubinius'}
         File.open(file2,'w'){|f| f.write 'ruby'}
         klass.send(cmd, file,file).should == true

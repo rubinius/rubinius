@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "IO#dup" do
   before :all do
-    @file = "/tmp/rubinius_spec_io_dup_#{$$}_#{Time.now.to_f}"
+    @file = tmp("rubinius_spec_io_dup_#{$$}_#{Time.now.to_f}")
   end
 
   before :each do

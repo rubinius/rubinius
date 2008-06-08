@@ -24,17 +24,30 @@ describe "Array#delete_at" do
     a.should == [1, 2]
   end
 
-  it "calls to_int on its argument" do
+  it "tries to convert the passed argument to an Integer using #to_int" do
     obj = mock('to_int')
-    def obj.to_int() -1 end
-    [1, 2].delete_at(obj).should == 2
-    
-    obj = mock('method_missing to_int')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(-1)
+    obj.should_receive(:to_int).and_return(-1)
     [1, 2].delete_at(obj).should == 2
   end
-  
+
+  ruby_version_is "" ... "1.8.7" do
+    it "checks whether the passed argument responds to #to_int" do
+      obj = mock('method_missing to_int')
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
+      [1, 2].delete_at(obj).should == 2
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "checks whether the passed argument responds to #to_int (including private methods)" do
+      obj = mock('method_missing to_int')
+      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
+      [1, 2].delete_at(obj).should == 2
+    end
+  end
+
   it "accepts negative indices" do
     a = [1, 2]
     a.delete_at(-2).should == 1

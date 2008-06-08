@@ -20,6 +20,14 @@ describe "Socket#getaddrinfo" do
           Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
         ['AF_INET6', 80, host, '::1', Socket::AF_INET6,
           Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
+        ['AF_INET6', 80, host, 'fe80::1%lo0', Socket::AF_INET6,
+          Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
+        ['AF_INET6', 80, host, 'fe80::1%lo0', Socket::AF_INET6,
+          Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
+        ['AF_INET6', 80, host, 'fe80::1%lo0', Socket::AF_INET6,
+          Socket::SOCK_DGRAM, Socket::IPPROTO_UDP],
+        ['AF_INET6', 80, host, 'fe80::1%lo0', Socket::AF_INET6,
+          Socket::SOCK_STREAM, Socket::IPPROTO_TCP],
       ]
     end
 

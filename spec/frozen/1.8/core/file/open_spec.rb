@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.open" do
   before :all do
-    @file = "/tmp/test.txt"
+    @file = tmp("test.txt")
     File.delete(@file) if File.exist?(@file)
     File.delete("fake") if File.exist?("fake")
   end

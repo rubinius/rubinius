@@ -41,7 +41,7 @@ describe "IO#ungetc" do
   end
 
   it "pushes back one character when invoked on empty stream" do
-    File.open('/tmp/empty.txt') { |empty|
+    File.open(tmp('empty.txt')) { |empty|
       empty.getc().should == nil
       empty.ungetc(10)
       empty.getc.should == 10
@@ -49,7 +49,7 @@ describe "IO#ungetc" do
   end
 
   it "affects EOF state" do
-    File.open('/tmp/empty.txt') { |empty|
+    File.open(tmp('empty.txt')) { |empty|
       empty.eof?.should == true
       empty.getc.should == nil
       empty.ungetc(100)

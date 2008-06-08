@@ -163,6 +163,15 @@ module KernelSpecs
   class IncludesInstEval
     include InstEval
   end
+
+  class EvalTest
+    def self.eval_yield_with_binding
+      eval("yield", binding)
+    end
+    def self.call_yield
+      yield
+    end
+  end
 end
 
 # for Kernel#sleep to have Channel in it's specs

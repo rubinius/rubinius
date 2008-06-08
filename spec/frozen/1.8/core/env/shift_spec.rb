@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#shift" do
+describe "ENV.shift" do
 
   it "returns a pair and deletes it" do
     ENV.empty?.should == false

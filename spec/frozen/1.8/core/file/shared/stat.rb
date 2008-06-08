@@ -1,7 +1,7 @@
 shared :file_stat do |cmd|
   describe "File.#{cmd}" do
     before :each do
-      @file = '/tmp/i_exist'
+      @file = tmp('/i_exist')
       File.open(@file,'w'){|f| f.write 'rubinius'}
     end
 

@@ -1,10 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'set'
+require File.dirname(__FILE__) + '/shared/collect'
 
 describe "Set#collect!" do
-  it "destructively performs #collect and returns self" do
-    saved = set = Set[1, 2, 3, 4, 5]
-    set.collect! { |x| x * 2 }.should == saved
-    set.should == Set[2, 4, 6, 8, 10]
-  end
+  it_behaves_like :set_collect_bang, Set, :collect!
 end

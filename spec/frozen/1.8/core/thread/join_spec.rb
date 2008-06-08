@@ -4,13 +4,13 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Thread#join" do
   it "returns the thread when it is finished" do
     t = Thread.new {}
-    t.join.should.equal? t
+    t.join.should equal(t)
   end
 
   it "returns the thread when it is finished when given a timeout" do
     t = Thread.new {}
     t.join
-    t.join(0).should.equal? t
+    t.join(0).should equal(t)
   end
 
   it "returns nil if it is not finished when given a timeout" do

@@ -4,8 +4,8 @@ describe "File.utime" do
   before :each do
     @atime = Time.now
     @mtime = Time.now
-    @file1 = "/tmp/specs_file_utime1"
-    @file2 = "/tmp/specs_file_utime2"
+    @file1 = tmp("specs_file_utime1")
+    @file2 = tmp("specs_file_utime2")
     File.open(@file1, "w") {}
     File.open(@file2, "w") {}
   end

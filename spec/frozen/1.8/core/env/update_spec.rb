@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#update" do
+describe "ENV.update" do
 
   it "add the parameter hash to ENV" do
     ENV["foo"].should == nil

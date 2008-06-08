@@ -53,6 +53,18 @@ shared :file_fnmatch do |cmd|
       File.send(cmd, 'cat', 'CAT', File::FNM_CASEFOLD).should == true
     end
 
+    platform_is_not :windows do
+      it "doesn't match case sensitive characters on platfroms with case sensitive paths, when flags include FNM_SYSCASE" do
+        File.send(cmd, 'cat', 'CAT', File::FNM_SYSCASE).should == false
+      end
+    end
+
+    platform_is :windows do
+      it "matches case sensitive characters on platfroms with case insensitive paths, when flags include FNM_SYSCASE" do
+        File.send(cmd, 'cat', 'CAT', Filee::FNM_SYSCASE).should == true
+      end
+    end
+
     it "does not match '/' characters with ? or * when flags includes FNM_PATHNAME" do
       File.send(cmd, '?', '/', File::FNM_PATHNAME).should == false
       File.send(cmd, '*', '/', File::FNM_PATHNAME).should == false

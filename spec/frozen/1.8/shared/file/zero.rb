@@ -44,7 +44,7 @@ shared :file_zero do |cmd, klass, name|
 
     it "zero? should return true if the named file exists and has a zero size." do
       begin
-        file = '/tmp/i_exist'
+        file = tmp('i_exist')
         File.open(file,'w') { klass.send(cmd, file).should == true }
       ensure
         File.delete(file) rescue nil

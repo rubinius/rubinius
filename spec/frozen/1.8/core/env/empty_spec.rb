@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "ENV#empty?" do
+describe "ENV.empty?" do
 
   it "return true if the Environment is empty" do
     if ENV.keys.size > 0
