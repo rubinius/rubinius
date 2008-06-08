@@ -288,7 +288,7 @@ module Kernel
 
   def caller(start=1)
     frame = MethodContext.current.sender
-    frames = frame.calling_hierarchy(start)
+    frame.stack_trace_starting_at(start)
   end
   module_function :caller
 

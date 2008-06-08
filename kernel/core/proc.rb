@@ -15,7 +15,7 @@ class Proc
   end
 
   def caller(start = 0)
-    @block.home_block.calling_hierarchy(0)
+    @block.home_block.stack_trace_starting_at(0)
   end
 
   def self.__from_block__(env)

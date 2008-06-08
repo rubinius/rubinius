@@ -79,7 +79,7 @@ class Backtrace
     ctx ||= MethodContext.current.sender
     obj = new()
     obj.top_context = ctx
-    obj.frames = ctx.stack_trace
+    obj.frames = ctx.context_stack
 
     # TODO - Consider not doing this step if we know we want MRI output
     obj.fill_backtrace
@@ -92,6 +92,6 @@ class Backtrace
   end
 
   def to_mri
-    return @top_context.calling_hierarchy(0)
+    return @top_context.stack_trace_starting_at(0)
   end
 end

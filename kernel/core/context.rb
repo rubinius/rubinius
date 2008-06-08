@@ -118,7 +118,7 @@ class MethodContext
     _set_field(12, 1)
   end
 
-  def stack_trace
+  def context_stack
     ret = []
     ctx = self
     while ctx
@@ -128,9 +128,9 @@ class MethodContext
     ret
   end
 
-  def calling_hierarchy(start=1)
+  def stack_trace_starting_at(start=1)
     ret = []
-    trace = self.stack_trace
+    trace = self.context_stack
     return nil if start > trace.size
     trace.each_with_index do |frame, i|
       next if i < start
