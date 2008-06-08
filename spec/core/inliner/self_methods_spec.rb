@@ -245,7 +245,7 @@ describe Rubinius::Inliner::SimpleSelfCallInliner do
 
   it "inlines delegated methods" do
     define_method(:r) { 3 }
-    rm = instance_method(:r).compiled_method
+    rm = instance_method(:r).compiled_method.receiver.method
     sm = def s; r + 4 end
 
     im = @inliner.inline sm, rm, find_send_ip(sm, :r)
@@ -255,7 +255,7 @@ describe Rubinius::Inliner::SimpleSelfCallInliner do
   it "inlines into delegated methods" do
     rm = def r; 3 end
     define_method(:s) { r + 4 }
-    sm = instance_method(:s).compiled_method
+    sm = instance_method(:s).compiled_method.receiver.method
 
     im = @inliner.inline sm, rm, find_send_ip(sm, :r)
     im.activate(self, self.class, []).should == s()
@@ -264,8 +264,8 @@ describe Rubinius::Inliner::SimpleSelfCallInliner do
   it "inlines delegated methods into delegated methods" do
     define_method(:r) { 3 }
     define_method(:s) { r + 4 }
-    rm = instance_method(:r).compiled_method
-    sm = instance_method(:s).compiled_method
+    rm = instance_method(:r).compiled_method.receiver.method
+    sm = instance_method(:s).compiled_method.receiver.method
 
     im = @inliner.inline sm, rm, find_send_ip(sm, :r)
     im.activate(self, self.class, []).should == s()
