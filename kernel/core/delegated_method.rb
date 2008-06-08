@@ -9,6 +9,9 @@ class DelegatedMethod < RuntimePrimitive
 
   def name= n; @name = n end
   def name; @name end
+  def receiver
+    at(Receiver)
+  end
   
   def self.build(sym, receiver, pass_self)
     obj = allocate()
