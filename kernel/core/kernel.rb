@@ -288,15 +288,7 @@ module Kernel
 
   def caller(start=1)
     frame = MethodContext.current.sender
-    if frame.__kind_of__(BlockContext) and frame.env.from_eval?
-      # If this binding came from a Proc, then we need to show
-      # the 'definition trace', not the actual current call trace
-      #
-      # If this is why we are here, 'frame' will be a BlockEnvironment not
-      # a BlockContext
-      frame = frame.env.caller_env || frame.sender
-    end
-    frame.calling_hierarchy(start)
+    frames = frame.calling_hierarchy(start)
   end
   module_function :caller
 

@@ -39,8 +39,8 @@ class Binding
 
   def self.setup(ctx)
     bind = allocate()
-    while ctx.kind_of? BlockContext and ctx.env.from_eval?
-      ctx = ctx.env.home_block
+    while ctx.from_eval?
+      ctx = ctx.next_frame
     end
     
     bind.context = ctx
@@ -78,14 +78,19 @@ module Kernel
   module_function :local_variables
 
   def binding
-    Binding.setup MethodContext.current.sender
+    ctx = MethodContext.current.sender
+    if ctx.from_eval?
+      Binding.setup ctx.next_frame.next_frame
+    else
+      Binding.setup ctx
+    end
   end
   module_function :binding
 
   def eval(string, binding=nil, filename='(eval)', lineno=1)
-    caller_env = nil
     if !binding
       context = MethodContext.current.sender
+      caller_env = nil
     elsif binding.kind_of? Proc
       binding = binding.binding
       context = binding.context
@@ -107,7 +112,7 @@ module Kernel
 
     be = BlockEnvironment.new
     be.from_eval!
-    be.caller_env = caller_env # For correct 'caller' output
+    be.caller_env = caller_env # For correct stack traces
     be.under_context context, compiled_method
     be.call
   end

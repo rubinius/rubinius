@@ -33,16 +33,16 @@ class Backtrace
       clear = "\033[0m"
     end
 
-    fr2 = @frames.map do |ent|
-      recv = ent[0]
-      loc = ent[1]
+    formatted = @frames.map do |ctx|
+      recv = ctx.describe
+      loc = ctx.location
       color = color_from_loc(loc, first) if colorize
       first = false # special handling for first line
       times = @max - recv.size
       times = 0 if times < 0
       "#{color}    #{' ' * times}#{recv} at #{loc}#{clear}"
     end
-    return fr2.join(sep)
+    return formatted.join(sep)
   end
 
   def join(sep)
@@ -64,22 +64,13 @@ class Backtrace
 
   MAX_WIDTH = 40
 
-  def fill_from(ctx)
+  def fill_backtrace
     @max = 0
-    while ctx
-      unless ctx.method
-        ctx = ctx.sender
-        next
-      end
-
+    @backtrace = []
+    @frames.each do |ctx|
       str = ctx.describe
-
-      if str.size > @max
-        @max = str.size
-      end
-
-      @frames << [str, ctx.location]
-      ctx = ctx.sender
+      @max = str.size if str.size > @max
+      @backtrace << [str, ctx.location]
     end
     @max = MAX_WIDTH if @max > MAX_WIDTH
   end
@@ -87,21 +78,16 @@ class Backtrace
   def self.backtrace(ctx=nil)
     ctx ||= MethodContext.current.sender
     obj = new()
-    # If we are here with a Proc binding, start elsewhere where
-    # the proc was registered, not at our sender
-    if ctx.__kind_of__(BlockContext) and env = ctx.env.caller_env
-      obj.frames = [["#{env.method.name}", "#{env.position_info}"]]
-      ctx = ctx.env.caller_env.next_frame
-      obj.top_context = env
-    else
-      obj.top_context = ctx
-    end
-    obj.fill_from ctx
+    obj.top_context = ctx
+    obj.frames = ctx.stack_trace
+
+    # TODO - Consider not doing this step if we know we want MRI output
+    obj.fill_backtrace
     return obj
   end
 
   def each
-    @frames.each { |f| yield f.last }
+    @backtrace.each { |f| yield f.last }
     self
   end
 

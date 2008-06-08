@@ -11,6 +11,10 @@ class MethodContext
   attr_accessor :last_match
   alias_method :next_frame, :sender
 
+  def from_eval?
+    false
+  end
+
   def position_info
     ret = []
     if self.method.name and self.method.name != :__script__
@@ -114,18 +118,24 @@ class MethodContext
     _set_field(12, 1)
   end
 
-  def calling_hierarchy(start=1)
+  def stack_trace
     ret = []
     ctx = self
-
-    i = 0
     while ctx
-      ret.concat ctx.position_info if i >= start
-      ctx = ctx.next_frame || ctx.sender
-      i += 1
+      ret << ctx
+      ctx = ctx.next_frame
     end
+    ret
+  end
 
-    return nil if start > i + 1
+  def calling_hierarchy(start=1)
+    ret = []
+    trace = self.stack_trace
+    return nil if start > trace.size
+    trace.each_with_index do |frame, i|
+      next if i < start
+      ret.concat frame.position_info
+    end
     ret
   end
 
@@ -312,6 +322,18 @@ end
 # method context that started it's execution.
 class BlockContext
 
+  def next_frame
+    if self.env.caller_env
+      self.env.caller_env.home_block
+    else
+      self.sender
+    end
+  end
+
+  def from_eval?
+    self.env.from_eval?
+  end
+
   def position_info
     ret = super()
     if self.env.from_eval?
@@ -398,27 +420,8 @@ class BlockEnvironment
 
   attr_accessor :caller_env
 
-  def next_frame
-    @home_block
-  end
-
   def position_info
     ["#{@method.file}:#{@method.line_from_ip(0)}"]
-  end
-
-  def calling_hierarchy(start=1)
-    ret = []
-    ctx = self
-
-    i = 0
-    while ctx
-      ret.concat ctx.position_info if i >= start
-      ctx = ctx.next_frame || ctx.sender
-      i += 1
-    end
-
-    return nil if start > i + 1
-    ret
   end
 
   def metadata_container

@@ -14,8 +14,8 @@ class Proc
     Binding.from_env @block
   end
 
-  def caller(start = 1)
-    @block.calling_hierarchy(start)
+  def caller(start = 0)
+    @block.home_block.calling_hierarchy(0)
   end
 
   def self.__from_block__(env)

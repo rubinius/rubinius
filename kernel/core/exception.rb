@@ -19,10 +19,7 @@ class Exception
   
   def awesome_backtrace
     return nil unless @context
-    #unless @backtrace.kind_of? Backtrace
-      @backtrace = Backtrace.backtrace(@context)
-    #end
-    @backtrace
+    @backtrace = Backtrace.backtrace(@context)
   end
 
   def set_backtrace(bt)
