@@ -185,17 +185,22 @@ class Debugger
       @err.puts ""
       @err.puts "An exception has occurred:\n    #{e.message} (#{e.class})"
       @err.puts "Backtrace:"
-      output = Output.new
-      output.set_columns(['%s', '%-s'], ' at ')
       bt = e.awesome_backtrace
-      first = true
-      bt.frames.each do |fr|
-        recv = fr[0]
-        loc = fr[1]
-        break if recv =~ /Debugger.*#process_command/
-        output.set_color(bt.color_from_loc(loc, first))
-        first = false # special handling for first line
-        output << [recv, loc]
+      begin
+        output = Output.new
+        output.set_columns(['%s', '%-s'], ' at ')
+        first = true
+        bt.frames.each do |fr|
+          recv = fr[0]
+          loc = fr[1]
+          break if recv =~ /Debugger.*#process_command/
+          output.set_color(bt.color_from_loc(loc, first))
+          first = false # special handling for first line
+          output << [recv, loc]
+        end
+      rescue
+        # Can't process the backtrace for some reason - just fallback to std
+        output = bt.show
       end
       @err.puts output
     end
