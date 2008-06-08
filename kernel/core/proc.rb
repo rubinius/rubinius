@@ -14,6 +14,10 @@ class Proc
     Binding.from_env @block
   end
 
+  def caller(start = 1)
+    @block.calling_hierarchy(start)
+  end
+
   def self.__from_block__(env)
     if env.__kind_of__(BlockEnvironment)
       obj = allocate()

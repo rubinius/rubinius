@@ -4,8 +4,8 @@
 class Backtrace
   include Enumerable
 
-  attr_reader :frames
-
+  attr_accessor :frames
+  attr_accessor :top_context
   attr_accessor :first_color
   attr_accessor :kernel_color
   attr_accessor :eval_color
@@ -62,13 +62,9 @@ class Backtrace
     end
   end
 
-  attr_reader :top_context
-
   MAX_WIDTH = 40
 
   def fill_from(ctx)
-    @top_context = ctx
-
     @max = 0
     while ctx
       unless ctx.method
@@ -89,8 +85,17 @@ class Backtrace
   end
 
   def self.backtrace(ctx=nil)
-    ctx = MethodContext.current.sender unless ctx
+    ctx ||= MethodContext.current.sender
     obj = new()
+    # If we are here with a Proc binding, start elsewhere where
+    # the proc was registered, not at our sender
+    if ctx.__kind_of__(BlockContext) and env = ctx.env.caller_env
+      obj.frames = [["#{env.method.name}", "#{env.position_info}"]]
+      ctx = ctx.env.caller_env.next_frame
+      obj.top_context = env
+    else
+      obj.top_context = ctx
+    end
     obj.fill_from ctx
     return obj
   end
