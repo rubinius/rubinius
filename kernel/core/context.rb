@@ -119,7 +119,7 @@ class MethodContext
     ctx = self
 
     i = 0
-    until ctx.nil?
+    while ctx
       ret.concat ctx.position_info if i >= start
       ctx = ctx.next_frame || ctx.sender
       i += 1
@@ -411,7 +411,7 @@ class BlockEnvironment
     ctx = self
 
     i = 0
-    until ctx.nil?
+    while ctx
       ret.concat ctx.position_info if i >= start
       ctx = ctx.next_frame || ctx.sender
       i += 1
