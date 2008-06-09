@@ -56,10 +56,10 @@ void rb_define_module_function(VALUE vmod, const char *name, void *func, int arg
 
 void rb_include_module(VALUE parent, VALUE module);
 
-#define rb_define_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 0)
-#define rb_define_private_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 1)
-#define rb_define_protected_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 2)
-#define rb_define_singleton_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 3)
+#define rb_define_method(a, b, c, d) rb_define_method_(__FILE__, a, b, (void*)(c), d, 0)
+#define rb_define_private_method(a, b, c, d) rb_define_method_(__FILE__, a, b, (void*)(c), d, 1)
+#define rb_define_protected_method(a, b, c, d) rb_define_method_(__FILE__, a, b, (void*)(c), d, 2)
+#define rb_define_singleton_method(a, b, c, d) rb_define_method_(__FILE__, a, b, (void*)(c), d, 3)
 void rb_undef_method(VALUE klass, const char *name);
 void rb_define_alloc_func(VALUE klass, void *func);
 
@@ -287,7 +287,7 @@ void* subtend_get_struct(VALUE obj);
 
 // TODO: Make this do Check_Type as well
 #define Data_Get_Struct(obj, type, sval) do { sval = (type *)subtend_get_struct(obj); } while (0)
-#define Data_Wrap_Struct(klass, mark, free, sval) subtend_wrap_struct(klass, sval, mark, free)
+#define Data_Wrap_Struct(klass, mark, free, sval) subtend_wrap_struct(klass, sval, (void*)(mark), (void*)(free))
 
 struct RData {
   void *data;
