@@ -1,18 +1,8 @@
-
-$TESTING_MINI_TEST ||= false
-
+##
 #
-# Totally minimal (hopefully) drop-in replacement for test/unit
+# Totally minimal drop-in replacement for test-unit
 #
-#
-# DEPRECATED:
-#
-# :assert_no_match
-# :assert_not_equal
-# :assert_not_nil
-# :assert_not_same
-# :assert_nothing_thrown
-# :assert_raise
+# TODO: refute -> debunk, prove/rebut, show/deny... lots of possibilities
 
 module Mini
   class Assertion < Exception; end
@@ -46,6 +36,17 @@ module Mini
   end
 
   module Assertions
+    begin
+      require 'pp'
+      def mu_pp(obj)
+        PP.pp(obj, '').chomp
+      end
+    rescue LoadError
+      def mu_pp(obj)
+        obj.inspect
+      end
+    end
+
     def _assertions= n
       @_assertions = n
     end
@@ -54,66 +55,72 @@ module Mini
       @_assertions ||= 0
     end
 
-    # TODO: refute -> debunk, prove/rebut, show/deny... lots of possibilities
-    def assert test, msg = "failed assertion, no message given."
+    def assert test, msg = nil
+      msg ||= "Failed assertion, no message given."
       self._assertions += 1
       raise Mini::Assertion, msg unless test
       true
     end
 
-    def assert_block msg = "assert_block failed."
+    def assert_block msg = nil
+      msg = message msg, "Expected block to return true value"
       assert yield, msg
     end
 
-    def assert_equal exp, act, msg = ""
-      msg ||= "" # ARGH! FUCKING RAILS!
-      msg += '.' unless msg.empty?
-      assert exp == act, "#{msg}\n<#{exp.inspect}> expected, not\n<#{act.inspect}>.".strip
+    def assert_empty obj, msg = nil
+      msg = message msg, "Expected #{obj.inspect} to be empty"
+      assert_respond_to obj, :empty?
+      assert obj.empty?, msg
     end
 
-    def assert_in_delta exp, act, delta = 0.001, msg="Expected #{exp} to be within #{delta} of #{act}"
-      assert delta.to_f > (exp.to_f - act.to_f).abs, msg
+    def assert_equal exp, act, msg = nil
+      msg = message msg, "Expected #{mu_pp(exp)}, not #{mu_pp(act)}"
+      assert(exp == act, msg)
     end
 
-    def assert_includes item, obj, message = "Expected #{item.inspect} to include #{obj.inspect}."
-      assert_respond_to obj, :include?
-      assert obj.include?(item), message
+    def assert_in_delta exp, act, delta = 0.001, msg = nil
+      n = (exp - act).abs
+      msg = message msg, "Expected #{exp} - #{act} (#{n}) to be < #{delta}"
+      assert delta > n, msg
     end
 
-    def assert_instance_of cls, obj, msg = "Expected #{obj.inspect} to be an instance of #{cls}"
+    def assert_in_epsilon a, b, epsilon = 0.001, msg = nil
+      assert_in_delta a, b, [a, b].min * epsilon, msg
+    end
+
+    def assert_includes collection, obj, msg = nil
+      msg = message msg, "Expected #{mu_pp(collection)} to include #{mu_pp(obj)}"
+      assert_respond_to collection, :include?
+      assert collection.include?(obj), msg
+    end
+
+    def assert_instance_of cls, obj, msg = nil
+      msg = message msg, "Expected #{mu_pp(obj)} to be an instance of #{cls}"
       flip = (Module === obj) && ! (Module === cls) # HACK for specs
       obj, cls = cls, obj if flip
       assert cls === obj, msg
     end
 
-    def assert_kind_of cls, obj, msg = "Expected #{obj.inspect} to be a kind of #{cls}"
+    def assert_kind_of cls, obj, msg = nil # TODO: merge with instance_of
+      msg = message msg, "Expected #{mu_pp(obj)} to be a kind of #{cls}"
       flip = (Module === obj) && ! (Module === cls) # HACK for specs
       obj, cls = cls, obj if flip
       assert obj.kind_of?(cls), msg
     end
 
-    def assert_match exp, act, msg = "Expected #{act.inspect} to match #{exp.inspect}"
+    def assert_match exp, act, msg = nil
+      msg = message msg, "Expected #{mu_pp(act)} to match #{mu_pp(exp)}"
       assert act =~ exp, msg
     end
 
-    def assert_nil obj, msg = "Expected #{obj.inspect} to be nil"
+    def assert_nil obj, msg = nil
+      msg = message msg, "Expected #{mu_pp(obj)} to be nil"
       assert obj.nil?, msg
     end
 
-    def assert_nothing_raised _ = :ignored # TODO: deprecate
-      self._assertions += 1
-      yield
-    rescue => e
-      raise Mini::Assertion, exception_details(e, "Exception raised:")
-    end
-    alias :assert_nothing_thrown :assert_nothing_raised
-
-    def assert_operator o1, op, o2, msg = "<#{o1.inspect}> expected to be\n#{op.inspect}\n<#{o2.inspect}>."
+    def assert_operator o1, op, o2, msg = nil
+      msg = message msg, "Expected #{mu_pp(o1)} to be #{op} #{mu_pp(o2)}"
       assert o1.__send__(op, o2), msg
-    end
-
-    def exception_details e, msg
-      "#{msg}\nClass: <#{e.class}>\nMessage: <#{e.message.inspect}>\n---Backtrace---\n#{Mini::filter_backtrace(e.backtrace).join("\n")}\n---------------"
     end
 
     def assert_raises *exp
@@ -123,68 +130,157 @@ module Mini
         yield
         should_raise = true
       rescue Exception => e
-        assert_includes e.class, exp
-        exception_details(e, "<#{exp.inspect}> exception expected, not")
+        assert_includes exp, e.class
+        exception_details(e, "<#{mu_pp(exp)}> exception expected, not")
         return e
       end
 
       exp = exp.first if exp.size == 1
-      flunk "#{exp.inspect} expected but nothing was raised." if should_raise
+      flunk "#{mu_pp(exp)} expected but nothing was raised." if should_raise
     end
-    alias :assert_raise :assert_raises
 
-    def assert_respond_to obj, meth, msg = "Expected #{obj.inspect} of type #{obj.class} to respond_to? #{meth.inspect}"
+    def assert_respond_to obj, meth, msg = nil
+      msg = message msg, "Expected #{mu_pp(obj)} to respond to #{meth}"
       flip = (Symbol === obj) && ! (Symbol === meth) # HACK for specs
       obj, meth = meth, obj if flip
       assert obj.respond_to?(meth), msg
     end
 
-    def assert_same exp, act, msg = "Expected #{act.inspect} to be the same as #{exp.inspect}."
+    def assert_same exp, act, msg = nil
+      msg = message msg, "Expected #{mu_pp(act)} to be the same as #{mu_pp(exp)}"
       assert exp.equal?(act), msg
     end
 
-    def assert_throws sym, msg = "<#{sym.inspect}> should have been thrown"
+    def assert_throws sym, msg = nil
+      default = "Expected #{mu_pp(sym)} to have been thrown"
       caught = true
       catch(sym) do
         begin
           yield
         rescue ArgumentError => e     # 1.9 exception
-          msg += ", not <#{e.message.split(/ /).last}>"
+          default += ", not #{e.message.split(/ /).last}"
         rescue NameError => e         # 1.8 exception
-          msg += ", not <#{e.name.inspect}>"
+          default += ", not #{e.name.inspect}"
         end
         caught = false
       end
-      assert caught, msg + "."
+
+      assert caught, message(msg, default)
     end
 
-    def flunk msg = "Flunked"
+    def capture_io
+      require 'stringio'
+
+      orig_stdout, orig_stderr         = $stdout.dup, $stderr.dup
+      captured_stdout, captured_stderr = StringIO.new, StringIO.new
+      $stdout, $stderr                 = captured_stdout, captured_stderr
+
+      yield
+
+      return captured_stdout.string, captured_stderr.string
+    ensure
+      $stdout = orig_stdout
+      $stderr = orig_stderr
+    end
+
+    def exception_details e, msg
+      "#{msg}\nClass: <#{e.class}>\nMessage: <#{e.message.inspect}>\n---Backtrace---\n#{Mini::filter_backtrace(e.backtrace).join("\n")}\n---------------"
+    end
+
+    def fail msg = nil
+      msg ||= "Epic Fail!"
       assert false, msg
     end
 
-    def refute test, msg = "failed refutation, no message given."
+    alias :flunk :fail
+
+    def message msg, default
+      if msg then
+        msg += '.' unless msg.empty?
+        msg += "\n#{default}."
+        msg.strip
+      else
+        "#{default}."
+      end
+    end
+
+    # used for counting assertions
+    def pass msg = nil
+      assert true
+    end
+
+    def refute test, msg = nil
+      msg ||= "Failed refutation, no message given"
       not assert(! test, msg)
     end
 
-    def refute_equal exp, act, msg = "Expected #{act.inspect} to not be equal to #{exp.inspect}"
+    def refute_empty obj, msg = nil
+      msg = message msg, "Expected #{obj.inspect} to not be empty"
+      assert_respond_to obj, :empty?
+      refute obj.empty?, msg
+    end
+
+    def refute_equal exp, act, msg = nil
+      msg = message msg, "Expected #{mu_pp(act)} to not be equal to #{mu_pp(exp)}"
       refute exp == act, msg
     end
-    alias :assert_not_equal :refute_equal
 
-    def refute_match exp, act, msg = "Expected #{act.inspect} to not match #{exp.inspect}"
+    def refute_in_delta exp, act, delta = 0.001, msg = nil
+      n = (exp - act).abs
+      msg = message msg, "Expected #{exp} - #{act} (#{n}) to not be < #{delta}"
+      refute delta > n, msg
+    end
+
+    def refute_in_epsilon a, b, epsilon = 0.001, msg = nil
+      refute_in_delta a, b, a * epsilon, msg
+    end
+
+    def refute_includes collection, obj, msg = nil
+      msg = message msg, "Expected #{mu_pp(collection)} to not include #{mu_pp(obj)}"
+      assert_respond_to collection, :include?
+      refute collection.include?(obj), msg
+    end
+
+    def refute_instance_of cls, obj, msg = nil
+      msg = message msg, "Expected #{mu_pp(obj)} to not be an instance of #{cls}"
+      flip = (Module === obj) && ! (Module === cls) # HACK for specs
+      obj, cls = cls, obj if flip
+      refute cls === obj, msg
+    end
+
+    def refute_kind_of cls, obj, msg = nil # TODO: merge with instance_of
+      msg = message msg, "Expected #{mu_pp(obj)} to not be a kind of #{cls}"
+      flip = (Module === obj) && ! (Module === cls) # HACK for specs
+      obj, cls = cls, obj if flip
+      refute obj.kind_of?(cls), msg
+    end
+
+    def refute_match exp, act, msg = nil
+      msg = message msg, "Expected #{mu_pp(act)} to not match #{mu_pp(exp)}"
       refute act =~ exp, msg
     end
-    alias :assert_no_match :refute_match
 
-    def refute_nil obj, msg = "Expected #{obj.inspect} to not be nil"
+    def refute_nil obj, msg = nil
+      msg = message msg, "Expected #{mu_pp(obj)} to not be nil"
       refute obj.nil?, msg
     end
-    alias :assert_not_nil :refute_nil
 
-    def refute_same exp, act, msg = "Expected #{act.inspect} to not be the same as #{exp.inspect}"
+    def refute_operator o1, op, o2, msg = nil
+      msg = message msg, "Expected #{mu_pp(o1)} to not be #{op} #{mu_pp(o2)}"
+      refute o1.__send__(op, o2), msg
+    end
+
+    def refute_respond_to obj, meth, msg = nil
+      msg = message msg, "Expected #{mu_pp(obj)} to not respond to #{meth}"
+      flip = (Symbol === obj) && ! (Symbol === meth) # HACK for specs
+      obj, meth = meth, obj if flip
+      refute obj.respond_to?(meth), msg
+    end
+
+    def refute_same exp, act, msg = nil
+      msg = message msg, "Expected #{mu_pp(act)} to not be the same as #{mu_pp(exp)}"
       refute exp.equal?(act), msg
     end
-    alias :assert_not_same :refute_same
   end
 
   class Test
@@ -211,7 +307,7 @@ module Mini
       if Mini::Assertion === e then
         @failures += 1
 
-        loc = e.backtrace.find { |s| s !~ /in .(assert|flunk|raise)/ }
+        loc = e.backtrace.find { |s| s !~ /in .(assert|flunk|pass|fail|raise)/ }
         loc.sub!(/:in .*$/, '')
 
         @report << "Failure:\n#{meth}(#{klass}) [#{loc}]:\n#{e.message}\n"
@@ -264,6 +360,7 @@ module Mini
 
     def run_test_suites filter = /^test/
       @test_count, @assertion_count = 0, 0
+      old_sync, @@out.sync = @@out.sync, true if @@out.respond_to? :sync=
       TestCase.test_suites.each do |suite|
         suite.test_methods.grep(filter).each do |test|
           inst = suite.new test
@@ -288,6 +385,7 @@ module Mini
           @assertion_count += inst._assertions
         end
       end
+      @@out.sync = old_sync if @@out.respond_to? :sync=
       [@test_count, @assertion_count]
     end
 

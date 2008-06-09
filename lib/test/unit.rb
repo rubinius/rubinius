@@ -16,4 +16,6 @@ module Test
   end
 end
 
-Mini::Test.autorun unless $TESTING_MINI_TEST
+require 'test/unit/assertions' # brings in deprecated methods
+
+Mini::Test.autorun
