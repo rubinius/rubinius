@@ -34,10 +34,6 @@ def self.to_s
   "main"
 end
 
-module Rubinius
-  AtExit = []
-end
-
 class NilClass
   alias_method :|, :^
 
