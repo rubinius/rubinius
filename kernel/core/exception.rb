@@ -12,8 +12,8 @@ class Exception
   end
 
   def backtrace
-    return nil unless @context
     return @backtrace if @backtrace
+    return nil unless @context
     awesome_backtrace.to_mri
   end
   
