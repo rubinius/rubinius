@@ -103,7 +103,8 @@ class Gem::Commands::QueryCommand < Gem::Command
           specs = Gem::SourceInfoCache.search_with_source dep, false, all
 
           spec_tuples = specs.map do |spec, source_uri|
-            [[spec.name, spec.version, spec.original_name, spec], source_uri]
+            [[spec.name, spec.version, spec.original_platform, spec],
+             source_uri]
           end
         end
       end
@@ -136,7 +137,7 @@ class Gem::Commands::QueryCommand < Gem::Command
 
     versions.each do |gem_name, matching_tuples|
       matching_tuples = matching_tuples.sort_by do |(name, version,),|
-        version.to_ints
+        version
       end.reverse
 
       seen = {}
@@ -167,7 +168,21 @@ class Gem::Commands::QueryCommand < Gem::Command
                  Gem::SpecFetcher.fetcher.fetch_spec detail_tuple.first, uri
                end
 
-        entry << "\n" << format_text(spec.summary, 68, 4)
+        entry << "\n"
+        authors = "Author#{spec.authors.length > 1 ? 's' : ''}: "
+        authors << spec.authors.join(', ')
+        entry << format_text(authors, 68, 4)
+
+        if spec.rubyforge_project and not spec.rubyforge_project.empty? then
+          rubyforge = "Rubyforge: http://rubyforge.org/projects/#{spec.rubyforge_project}"
+          entry << "\n" << format_text(rubyforge, 68, 4)
+        end
+
+        if spec.homepage and not spec.homepage.empty? then
+          entry << "\n" << format_text("Homepage: #{spec.homepage}", 68, 4)
+        end
+
+        entry << "\n\n" << format_text(spec.summary, 68, 4)
       end
       output << entry
     end

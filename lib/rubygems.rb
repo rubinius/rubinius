@@ -138,7 +138,7 @@ module Gem
 
       unless matches.any? { |spec| spec.version == existing_spec.version } then
         raise Gem::Exception,
-              "can't activate #{gem}, already activated #{existing_spec.full_name}]"
+              "can't activate #{gem}, already activated #{existing_spec.full_name}"
       end
 
       return false
@@ -780,5 +780,4 @@ end
 if RUBY_VERSION < '1.9' then
   require 'rubygems/custom_require'
 end
-
 

@@ -26,7 +26,7 @@ class TestGemCommandsDependencyCommand < RubyGemTestCase
       @cmd.execute
     end
 
-    assert_equal "Gem foo-2\n  bar (> 1)\n\n", @ui.output
+    assert_equal "Gem foo-2\n  bar (> 1, runtime)\n\n", @ui.output
     assert_equal '', @ui.error
   end
 
@@ -79,9 +79,9 @@ class TestGemCommandsDependencyCommand < RubyGemTestCase
 
     expected = <<-EOF
 Gem foo-2
-  bar (> 1)
+  bar (> 1, runtime)
   Used by
-    baz-2 (foo (>= 0))
+    baz-2 (foo (>= 0, runtime))
 
     EOF
 
@@ -128,31 +128,7 @@ ERROR:  Only reverse dependencies for local gems are supported.
       @cmd.execute
     end
 
-    assert_equal "Gem foo-2\n  bar (> 1)\n\n", @ui.output
-    assert_equal '', @ui.error
-  end
-
-  def test_execute_remote
-    foo = quick_gem 'foo' do |gem|
-      gem.add_dependency 'bar', '> 1'
-    end
-
-    @fetcher = Gem::FakeFetcher.new
-    Gem::RemoteFetcher.fetcher = @fetcher
-
-    util_setup_spec_fetcher foo
-
-    FileUtils.rm File.join(@gemhome, 'specifications',
-                           "#{foo.full_name}.gemspec")
-
-    @cmd.options[:args] = %w[foo]
-    @cmd.options[:domain] = :remote
-
-    use_ui @ui do
-      @cmd.execute
-    end
-
-    assert_equal "Gem foo-2\n  bar (> 1)\n\n", @ui.output
+    assert_equal "Gem foo-2\n  bar (> 1, runtime)\n\n", @ui.output
     assert_equal '', @ui.error
   end
 
@@ -167,11 +143,11 @@ ERROR:  Only reverse dependencies for local gems are supported.
     Gem::SpecFetcher.fetcher = nil
     si = util_setup_source_info_cache foo
 
-    @fetcher.data["#{@gem_repo}/yaml"] = YAML.dump si
-    @fetcher.data["#{@gem_repo}/Marshal.#{Gem.marshal_version}"] =
+    @fetcher.data["#{@gem_repo}yaml"] = YAML.dump si
+    @fetcher.data["#{@gem_repo}Marshal.#{Gem.marshal_version}"] =
       si.dump
 
-    @fetcher.data["#{@gem_repo}/latest_specs.#{Gem.marshal_version}.gz"] = nil
+    @fetcher.data["#{@gem_repo}latest_specs.#{Gem.marshal_version}.gz"] = nil
 
     FileUtils.rm File.join(@gemhome, 'specifications',
                            "#{foo.full_name}.gemspec")
@@ -183,11 +159,11 @@ ERROR:  Only reverse dependencies for local gems are supported.
       @cmd.execute
     end
 
-    assert_equal "Gem foo-2\n  bar (> 1)\n\n", @ui.output
+    assert_equal "Gem foo-2\n  bar (> 1, runtime)\n\n", @ui.output
 
     expected = <<-EOF
 WARNING:  RubyGems 1.2+ index not found for:
-\thttp://gems.example.com
+\t#{@gem_repo}
 
 RubyGems will revert to legacy indexes degrading performance.
     EOF

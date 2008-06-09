@@ -48,9 +48,8 @@ class TestGemDependencyInstaller < RubyGemTestCase
     si = util_setup_spec_fetcher @a1, @b1, @d1, @d2, @x1_m, @x1_o, @w1, @y1,
                                  @y1_1_p, @z1
 
-    #@fetcher.data['http://gems.example.com/gems/yaml'] = si.to_yaml
-
     FileUtils.rm_rf File.join(@gemhome, 'gems')
+    Gem.source_index.refresh!
   end
 
   def test_install
@@ -304,12 +303,14 @@ class TestGemDependencyInstaller < RubyGemTestCase
     FileUtils.mv @b1_gem, @tempdir
     inst = nil
 
+    Gem.source_index.gems.delete @a1.full_name
+
     Dir.chdir @tempdir do
       e = assert_raise Gem::InstallError do
         inst = Gem::DependencyInstaller.new :domain => :local
         inst.install 'b'
       end
-      assert_equal 'b requires a (>= 0)', e.message
+      assert_equal 'b requires a (>= 0, runtime)', e.message
     end
 
     assert_equal [], inst.installed_gems.map { |s| s.full_name }
@@ -327,6 +328,29 @@ class TestGemDependencyInstaller < RubyGemTestCase
     inst.install 'a'
 
     assert_equal %w[a-1], inst.installed_gems.map { |s| s.full_name }
+  end
+
+  def test_install_dual_repository
+    FileUtils.mv @a1_gem, @tempdir
+    FileUtils.mv @b1_gem, @tempdir
+    inst = nil
+
+    gemhome2 = "#{@gemhome}2"
+
+    Dir.chdir @tempdir do
+      inst = Gem::DependencyInstaller.new :install_dir => @gemhome2
+      inst.install 'a'
+    end
+
+    ENV['GEM_PATH'] = [@gemhome, gemhome2].join ':'
+    Gem.clear_paths
+
+    Dir.chdir @tempdir do
+      inst = Gem::DependencyInstaller.new
+      inst.install 'b'
+    end
+
+    assert_equal %w[b-1], inst.installed_gems.map { |s| s.full_name }
   end
 
   def test_install_remote
@@ -471,7 +495,7 @@ class TestGemDependencyInstaller < RubyGemTestCase
     inst = Gem::DependencyInstaller.new
     dep = Gem::Dependency.new 'b', '>= 0'
 
-    assert_equal [[@b1, 'http://gems.example.com']],
+    assert_equal [[@b1, @gem_repo]],
                  inst.find_gems_with_sources(dep)
   end
 
@@ -488,7 +512,7 @@ class TestGemDependencyInstaller < RubyGemTestCase
     assert_equal 2, gems.length
     remote = gems.first
     assert_equal 'a-1', remote.first.full_name, 'remote spec'
-    assert_equal 'http://gems.example.com', remote.last, 'remote path'
+    assert_equal @gem_repo, remote.last, 'remote path'
 
     local = gems.last
     assert_equal 'a-1', local.first.full_name, 'local spec'
@@ -547,5 +571,6 @@ class TestGemDependencyInstaller < RubyGemTestCase
 
     assert_equal %w[d-1 e-1], inst.gems_to_install.map { |s| s.full_name }
   end
+
 end
 

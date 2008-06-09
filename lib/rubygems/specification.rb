@@ -705,8 +705,9 @@ module Gem
     # The directory that this gem was installed into.
 
     def installation_path
-      (File.dirname(@loaded_from).split(File::SEPARATOR)[0..-2]).
-        join(File::SEPARATOR)
+      path = File.dirname(@loaded_from).split(File::SEPARATOR)[0..-2]
+      path = path.join File::SEPARATOR
+      File.expand_path path
     end
 
     # Checks if this Specification meets the requirement of the supplied

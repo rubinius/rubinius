@@ -38,12 +38,16 @@ class Gem::SpecFetcher
 
   def initialize
     @dir = File.join Gem.user_home, '.gem', 'specs'
+    @update_cache = File.stat(Gem.user_home).uid == Process.uid
 
     @specs = {}
     @latest_specs = {}
 
     @fetcher = Gem::RemoteFetcher.fetcher
   end
+
+  ##
+  # Retuns the local directory to write +uri+ to.
 
   def cache_dir(uri)
     File.join @dir, "#{uri.host}:#{uri.port}", File.dirname(uri.path)
@@ -86,12 +90,14 @@ class Gem::SpecFetcher
       uri.path << '.rz'
 
       spec = @fetcher.fetch_path uri
-      spec = inflate spec
+      spec = Gem.inflate spec
 
-      FileUtils.mkdir_p cache_dir
+      if @update_cache then
+        FileUtils.mkdir_p cache_dir
 
-      open local_spec, 'wb' do |io|
-        io.write spec
+        open local_spec, 'wb' do |io|
+          io.write spec
+        end
       end
     end
 
@@ -125,13 +131,6 @@ class Gem::SpecFetcher
   end
 
   ##
-  # Inflate wrapper that inflates +data+.
-
-  def inflate(data)
-    Zlib::Inflate.inflate data
-  end
-
-  ##
   # Returns Array of gem repositories that were generated with RubyGems less
   # than 1.2.
 
@@ -143,7 +142,12 @@ class Gem::SpecFetcher
       begin
         @fetcher.fetch_size spec_path
       rescue Gem::RemoteFetcher::FetchError
-        @fetcher.fetch_size(source_uri + 'yaml') # re-raise if non-repo
+        begin
+          @fetcher.fetch_size(source_uri + 'yaml') # re-raise if non-repo
+        rescue Gem::RemoteFetcher::FetchError
+          alert_error "#{source_uri} does not appear to be a repository"
+          raise
+        end
         false
       end
     end
@@ -201,12 +205,12 @@ class Gem::SpecFetcher
       loaded = true
 
       spec_dump_gz = @fetcher.fetch_path spec_path
-      spec_dump = unzip spec_dump_gz
+      spec_dump = Gem.gunzip spec_dump_gz
     end
 
     specs = Marshal.load spec_dump
 
-    if loaded then
+    if loaded and @update_cache then
       begin
         FileUtils.mkdir_p cache_dir
 
@@ -221,21 +225,13 @@ class Gem::SpecFetcher
   end
 
   ##
-  # GzipWriter wrapper that unzips +data+.
-
-  def unzip(data)
-    data = StringIO.new data
-
-    Zlib::GzipReader.new(data).read
-  end
-
-  ##
   # Warn about legacy repositories if +exception+ indicates only legacy
   # repositories are available, and yield to the block.  Returns false if the
   # exception indicates some other FetchError.
 
   def warn_legacy(exception)
-    if exception.uri =~ /specs\.#{Regexp.escape Gem.marshal_version}\.gz$/ then
+    uri = exception.uri.to_s
+    if uri =~ /specs\.#{Regexp.escape Gem.marshal_version}\.gz$/ then
       alert_warning <<-EOF
 RubyGems 1.2+ index not found for:
 \t#{legacy_repos.join "\n\t"}
