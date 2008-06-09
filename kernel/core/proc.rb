@@ -4,7 +4,6 @@ class Proc
   self.instance_fields = 2
   ivar_as_index :__ivars__ => 0, :block => 1
 
-  attr_writer :binding
   def block; @block ; end
 
   def block=(other)
@@ -12,9 +11,7 @@ class Proc
   end
 
   def binding
-    return @binding if @binding
-    @block.home_block = @block.home_block.dup
-    @binding = Binding.from_env @block
+    Binding.from_env @block
   end
 
   def caller(start = 0)
@@ -24,8 +21,8 @@ class Proc
   def self.__from_block__(env)
     if env.__kind_of__(BlockEnvironment)
       obj = allocate()
-      env.last_ip = env.home_block.ip if env.home_block
       obj.block = env
+      obj.block.registration_ip = env.home_block.ip if env.home_block
       return obj
     else
       begin

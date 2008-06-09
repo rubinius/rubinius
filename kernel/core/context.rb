@@ -79,7 +79,8 @@ class MethodContext
     # We subtract 1 because the ip is actually set to what it should do
     # next, not what it's currently doing (unless we are at the start of
     # a new context).
-    self.method.line_from_ip(self.ip == 0 ? self.ip : self.ip - 1)
+    ip = self.ip == 0 ? self.ip : self.ip - 1
+    self.method.line_from_ip(ip)
   end
 
   # Copies context. If locals is true
@@ -324,15 +325,26 @@ class BlockContext
 
   def next_frame
     if self.env.caller_env
-      # Twiddle the IP to match its state when the block
-      # was initially created
-      ret = self.env.caller_env.home_block
-      return unless ret
-      ret.ip = self.env.caller_env.last_ip
-      ret
+      self.env.caller_env.home_block
     else
       self.sender
     end
+  end
+
+  # Current line being executed by the VM.
+  def line
+    return 0 unless self.method
+    # We subtract 1 because the ip is actually set to what it should do
+    # next, not what it's currently doing (unless we are at the start of
+    # a new context).
+    if self.env.caller_env
+      ip = self.env.caller_env.registration_ip - 1
+    else
+      ip = self.ip - 1
+      ip = 0 if ip < 0
+    end
+
+    self.method.line_from_ip(ip)
   end
 
   def from_eval?
@@ -424,6 +436,7 @@ class BlockEnvironment
   def method      ; @method      ; end
 
   attr_accessor :caller_env
+  attr_accessor :registration_ip
 
   def home_block=(block)
     @home_block = block
@@ -481,20 +494,6 @@ class BlockEnvironment
 
   def method=(tup)
     @method = tup
-  end
-
-  ##
-  #--
-  # These should be safe since I'm unsure how you'd have a BlockContext
-  # and have a nil CompiledMethod (something that can (and has) happened
-  # with MethodContexts)
-
-  def file
-    method.file
-  end
-
-  def line
-    method.line_from_ip(initial_ip)
   end
 
   def home=(home)

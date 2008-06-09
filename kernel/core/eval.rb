@@ -37,9 +37,7 @@ module Kernel
       context = MethodContext.current.sender
       binding = Binding.setup context
     elsif binding.__kind_of__ Proc
-      binding = Binding.from_env(binding.block)
-      # TODO - This is wrong. should call 'binding' on this object
-      # However, it breaks a tricky eval CI spec
+      binding = binding.binding
       context = binding.context
     elsif !binding.__kind_of__ Binding
       raise ArgumentError, "unknown type of binding"
