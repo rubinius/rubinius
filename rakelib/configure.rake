@@ -167,7 +167,7 @@ def write_rbconfig
     f.puts '  CONFIG["MINOR"]              = "#{minor}"'
     f.puts '  CONFIG["TEENY"]              = "#{teeny}"'
 
-    f.puts '  CONFIG["ruby_version"]       = "$(MAJOR).$(MINOR).$(TEENY)"'
+    f.puts '  CONFIG["ruby_version"]       = "$(MAJOR).$(MINOR)"'
     f.puts '  CONFIG["rubylibdir"]         = "$(libdir)/ruby/$(ruby_version)"'
     f.puts '  CONFIG["archdir"]            = "$(rubylibdir)/$(arch)"'
     f.puts '  CONFIG["sitelibdir"]         = "$(sitedir)/$(ruby_version)"'

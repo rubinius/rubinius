@@ -462,6 +462,10 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
     state->om->collect_now |= OMCollectYoung;
   }
 
+  /* TODO this code only works if ctx is allocated in the context stack
+   * or young area. If it's allocated mature off the bat, the write
+   * barrier wont be run and we're screwed. */
+
   ins = fast_fetch(meth, CMETHOD_f_COMPILED);
 
   if(NIL_P(ins)) {

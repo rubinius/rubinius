@@ -19,8 +19,14 @@ else
   end
 
   def Gem.default_dir
-    ver = File.basename(Rubinius::CODE_PATH)
-    File.join File.dirname(Rubinius::CODE_PATH), 'gems', ver
+    File.join File.dirname(Rubinius::CODE_PATH), 'gems', Gem::ConfigMap[:ruby_version]
   end
 
+end
+
+def Gem.default_path
+  version = Rubinius::RBX_VERSION.split('.')[0, 2].join '.'
+  pre_installed = File.join File.dirname(Rubinius::CODE_PATH), "gems",
+    "rubinius", version
+  [Gem.default_dir, pre_installed]
 end
