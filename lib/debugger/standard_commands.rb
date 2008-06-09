@@ -479,13 +479,12 @@ class Debugger
 
     def execute(dbg, interface, inp)
       bt = Backtrace.backtrace(interface.debug_context)
+      eval_ctxt = interface.eval_context
       output = Output.info("Backtrace:")
       output.set_columns(['%*s', '%|s', '%-*s'])
       bt.frames.each_with_index do |frame,i|
+        output.set_line_marker if frame == eval_ctxt
         recv, loc = frame.describe, frame.location
-        if recv == interface.eval_context.describe and loc == interface.eval_context.location
-          output.set_line_marker
-        end
         if i == 0
           output.set_color :green
         elsif loc =~ /kernel/
