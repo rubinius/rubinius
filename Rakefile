@@ -121,8 +121,12 @@ namespace :build do
   file "shotgun/rubinius.bin" => c_source do
     sh make('vm')
   end
-  
-  file "shotgun/rubinius.local.bin" => c_source do
+
+  file "shotgun/dev-tramp" => "shotgun/dev-tramp.c" do
+    sh "cc -DBUILDDIR=\\\"#{Dir.pwd}/shotgun\\\" -o shotgun/dev-tramp shotgun/dev-tramp.c"
+  end
+
+  file "shotgun/rubinius.local.bin" => c_source + ["shotgun/dev-tramp"] do
     sh make('vm')
   end
 
@@ -254,6 +258,7 @@ namespace :clean do
   desc "Cleans up VM building site"
   task :shotgun do
     sh make('clean')
+    rm_f "shotgun/dev-tramp"
   end
 
   desc "Cleans up generated files"

@@ -31,6 +31,7 @@ shotgun/lib/*.d
 shotgun/lib/*.d.*
 shotgun/lib/subtend/*.d
 shotgun/lib/subtend/*.d.*
+shotgun/dev-tramp
 *.o
 *.lo
 *.a
@@ -49,7 +50,6 @@ shotgun/lib/subtend/*.d.*
 !bin/mkspec
 !bin/bm*
 !bin/contributors*
-bin/*
 lib/rbx
 
 attic/externals/syd-parser/pkg
