@@ -16,6 +16,7 @@ describe "Debugger::CmdLineInterface#handle_exception" do
   end
 end
 
+
 describe "Interface#process_command" do
   before do
     @ifc = Debugger::Interface.new
@@ -80,11 +81,45 @@ describe "Interface#process_command" do
     @cmd_map[Debugger::Continue].executes.should == 4
   end
   
+  it "matches step in commands (s[tep] [to] [n]) to the StepIn Command subclass" do
     # Step in
+    @ifc.process_command(nil, "s")
+    @cmd_map[Debugger::StepIn].executes.should == 1
+    @ifc.process_command(nil, "step")
+    @cmd_map[Debugger::StepIn].executes.should == 2
+    @ifc.process_command(nil, "s to 12")
+    @cmd_map[Debugger::StepIn].executes.should == 3
+    @ifc.process_command(nil, "s 5")
+    @cmd_map[Debugger::StepIn].executes.should == 4
+    @ifc.process_command(nil, "step 2")
+    @cmd_map[Debugger::StepIn].executes.should == 5
+  end
     
+  it "matches step in commands (n[ext] [to] [n]) to the StepNext Command subclass" do
     # Step next
+    @ifc.process_command(nil, "n")
+    @cmd_map[Debugger::StepNext].executes.should == 1
+    @ifc.process_command(nil, "next")
+    @cmd_map[Debugger::StepNext].executes.should == 2
+    @ifc.process_command(nil, "n to 12")
+    @cmd_map[Debugger::StepNext].executes.should == 3
+    @ifc.process_command(nil, "n 5")
+    @cmd_map[Debugger::StepNext].executes.should == 4
+    @ifc.process_command(nil, "next 2")
+    @cmd_map[Debugger::StepNext].executes.should == 5
+  end
     
+  it "matches step out commands (o[ut] [n]) to the StepOut Command subclass" do
     # Step out
+    @ifc.process_command(nil, "o")
+    @cmd_map[Debugger::StepOut].executes.should == 1
+    @ifc.process_command(nil, "out")
+    @cmd_map[Debugger::StepOut].executes.should == 2
+    @ifc.process_command(nil, "o 1")
+    @cmd_map[Debugger::StepOut].executes.should == 3
+    @ifc.process_command(nil, "out 5")
+    @cmd_map[Debugger::StepOut].executes.should == 4
+  end
     
   it "matches quit commands (q[uit]) to the Quit Command subclass" do
     # Quit
@@ -94,9 +129,29 @@ describe "Interface#process_command" do
     @cmd_map[Debugger::Quit].executes.should == 2
   end
   
+  it "matches list source commands (l[ist] [<method>] [start [end]]) to the ListSource Command subclass" do
     # List source
-    
+    @ifc.process_command(nil, "l")
+    @cmd_map[Debugger::ListSource].executes.should == 1
+    @ifc.process_command(nil, "list")
+    @cmd_map[Debugger::ListSource].executes.should == 2
+    @ifc.process_command(nil, "l 1 17")
+    @cmd_map[Debugger::ListSource].executes.should == 3
+    @ifc.process_command(nil, "list 12-16")
+    @cmd_map[Debugger::ListSource].executes.should == 4
+    @ifc.process_command(nil, "l Float#==")
+    @cmd_map[Debugger::ListSource].executes.should == 5
+    @ifc.process_command(nil, "l Float#== 1 10")
+    @cmd_map[Debugger::ListSource].executes.should == 6
+  end
+  
+  it "matches list sexp commands (sexp [<method>]) to the ListSexp Command subclass" do
     # List sexp
+    @ifc.process_command(nil, "sexp")
+    @cmd_map[Debugger::ListSexp].executes.should == 1
+    @ifc.process_command(nil, "sexp Object#to_s")
+    @cmd_map[Debugger::ListSexp].executes.should == 2
+  end
   
   it "matches show locals commands ([l]v[ars]) to the ShowLocals Command subclass" do
     # Local variables
@@ -134,7 +189,15 @@ describe "Interface#process_command" do
     @cmd_map[Debugger::ShowBacktrace].executes.should == 3
     @ifc.process_command(nil, "where")
     @cmd_map[Debugger::ShowBacktrace].executes.should == 4
-  end  
+  end
+  
+  it "matches any other command string to the Eval Command subclass" do
+    # Eval
+    @ifc.process_command(nil, "a = 12")
+    @cmd_map[Debugger::EvalExpression].executes.should == 1
+    @ifc.process_command(nil, "puts b")
+    @cmd_map[Debugger::EvalExpression].executes.should == 2
+  end
   
   it "matches up frame commands (up <n>) to the UpFrame Command subclass" do
     # Up frame
@@ -150,5 +213,68 @@ describe "Interface#process_command" do
     @cmd_map[Debugger::DownFrame].executes.should == 1
     @ifc.process_command(nil, "down 2")
     @cmd_map[Debugger::DownFrame].executes.should == 2
+  end
+
+  it "matches step in instruction commands (s[tep]i [to] [n]) to the StepInInstruction Command subclass" do
+    # Step in instruction
+    @ifc.process_command(nil, "si")
+    @cmd_map[Debugger::StepInInstruction].executes.should == 1
+    @ifc.process_command(nil, "stepi")
+    @cmd_map[Debugger::StepInInstruction].executes.should == 2
+    @ifc.process_command(nil, "si to 12")
+    @cmd_map[Debugger::StepInInstruction].executes.should == 3
+    @ifc.process_command(nil, "si 5")
+    @cmd_map[Debugger::StepInInstruction].executes.should == 4
+    @ifc.process_command(nil, "stepi 2")
+    @cmd_map[Debugger::StepInInstruction].executes.should == 5
+  end
+    
+  it "matches step in commands (n[ext]i [to] [n]) to the StepNextInstruction Command subclass" do
+    # Step next instruction
+    @ifc.process_command(nil, "ni")
+    @cmd_map[Debugger::StepNextInstruction].executes.should == 1
+    @ifc.process_command(nil, "nexti")
+    @cmd_map[Debugger::StepNextInstruction].executes.should == 2
+    @ifc.process_command(nil, "ni to 12")
+    @cmd_map[Debugger::StepNextInstruction].executes.should == 3
+    @ifc.process_command(nil, "ni 5")
+    @cmd_map[Debugger::StepNextInstruction].executes.should == 4
+    @ifc.process_command(nil, "nexti 2")
+    @cmd_map[Debugger::StepNextInstruction].executes.should == 5
+  end
+    
+  it "matches decode commands (d[ecode] [<method>] [start [end]]) to the ListBytecode Command subclass" do
+    @ifc.process_command(nil, "d")
+    @cmd_map[Debugger::ListBytecode].executes.should == 1
+    @ifc.process_command(nil, "decode")
+    @cmd_map[Debugger::ListBytecode].executes.should == 2
+    @ifc.process_command(nil, "d String#len")
+    @cmd_map[Debugger::ListBytecode].executes.should == 3
+    @ifc.process_command(nil, "decode 1 15")
+    @cmd_map[Debugger::ListBytecode].executes.should == 4
+    @ifc.process_command(nil, "decode String#split 7-15")
+    @cmd_map[Debugger::ListBytecode].executes.should == 5
+  end
+  
+  it "matches show stack commands () to the ShowStack Command subclass" do
+    @ifc.process_command(nil, "vs")
+    @cmd_map[Debugger::ShowStack].executes.should == 1
+    @ifc.process_command(nil, "vm stack")
+    @cmd_map[Debugger::ShowStack].executes.should == 2
+    @ifc.process_command(nil, "vs 5")
+    @cmd_map[Debugger::ShowStack].executes.should == 3
+    @ifc.process_command(nil, "vm stack 5 10")
+    @cmd_map[Debugger::ShowStack].executes.should == 4
+  end
+  
+  it "matches show sendsites commands () to the ShowSendSites Command subclass" do
+    @ifc.process_command(nil, "vss")
+    @cmd_map[Debugger::ShowSendSites].executes.should == 1
+    @ifc.process_command(nil, "vm send sites")
+    @cmd_map[Debugger::ShowSendSites].executes.should == 2
+    @ifc.process_command(nil, "vss match")
+    @cmd_map[Debugger::ShowSendSites].executes.should == 3
+    @ifc.process_command(nil, "vm send sites split")
+    @cmd_map[Debugger::ShowSendSites].executes.should == 4
   end
 end

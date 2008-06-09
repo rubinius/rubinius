@@ -132,7 +132,7 @@ class Debugger
   # Shows the contents of the VM stack
   class ShowStack < Command
     def help
-      return "v[m] s[tack]", "Display the current objects on the VM stack."
+      return "v[m] s[tack] [start [end]]", "Display the current objects on the VM stack."
     end
 
     def command_regexp

@@ -242,7 +242,7 @@ class Debugger
   # Step out to caller
   class StepOut < Command
     def help
-      return "o[ut] [+n]", "Step out to the calling method (or nth caller)."
+      return "o[ut] [n]", "Step out to the calling method (or nth caller)."
     end
 
     def command_regexp
