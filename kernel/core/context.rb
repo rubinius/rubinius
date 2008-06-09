@@ -79,7 +79,12 @@ class MethodContext
     # We subtract 1 because the ip is actually set to what it should do
     # next, not what it's currently doing (unless we are at the start of
     # a new context).
-    ip = self.ip == 0 ? self.ip : self.ip - 1
+    if self.from_eval? and self.env.caller_env
+      ip = self.env.caller_env.registration_ip - 1
+    else
+      ip = self.ip - 1
+      ip = 0 if ip < 0
+    end
     self.method.line_from_ip(ip)
   end
 
@@ -329,22 +334,6 @@ class BlockContext
     else
       self.sender
     end
-  end
-
-  # Current line being executed by the VM.
-  def line
-    return 0 unless self.method
-    # We subtract 1 because the ip is actually set to what it should do
-    # next, not what it's currently doing (unless we are at the start of
-    # a new context).
-    if self.env.caller_env
-      ip = self.env.caller_env.registration_ip - 1
-    else
-      ip = self.ip - 1
-      ip = 0 if ip < 0
-    end
-
-    self.method.line_from_ip(ip)
   end
 
   def from_eval?
