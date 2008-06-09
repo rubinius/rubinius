@@ -137,12 +137,7 @@ module Kernel
   module_function :fail
 
   def warn(warning)
-    if $VERBOSE
-      $stderr.write MethodContext.current.sender.location
-      $stderr.write ": warning: "
-      $stderr.write warning
-      $stderr.write "\n"
-    end
+    $stderr.write "#{warning}\n" unless $VERBOSE.nil?
     nil
   end
   module_function :warn
