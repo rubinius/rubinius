@@ -51,7 +51,7 @@ class Proc
   end
 
   def inspect
-    "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
+    "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.home_block.file}:#{self.block.home_block.line}>"
   end
 
   alias_method :to_s, :inspect
