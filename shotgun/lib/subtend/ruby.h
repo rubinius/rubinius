@@ -60,6 +60,7 @@ void rb_include_module(VALUE parent, VALUE module);
 #define rb_define_private_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 1)
 #define rb_define_protected_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 2)
 #define rb_define_singleton_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 3)
+void rb_undef_method(VALUE klass, const char *name);
 void rb_define_alloc_func(VALUE klass, void *func);
 
 VALUE rb_define_class(const char *name, VALUE super);

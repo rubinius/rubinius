@@ -332,6 +332,10 @@ void rb_define_method_(const char *file, VALUE vmod, const char *name, void *fun
   }
 }
 
+void rb_undef_method(VALUE klass, const char *name) {
+  rb_funcall(klass, rb_intern("undef_method"), 1, ID2SYM(rb_intern(name)));
+}
+
 void rb_define_alloc_func(VALUE class, void *func) {
   rb_define_singleton_method(class, "allocate", func, 0);
 }
