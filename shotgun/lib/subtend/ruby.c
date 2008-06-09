@@ -674,6 +674,19 @@ VALUE rb_str_cat2(VALUE str, const char *ptr) {
   return rb_str_cat(str, ptr, strlen(ptr));
 }
 
+VALUE rb_str_concat(VALUE str1, VALUE str2) {
+    if (FIXNUM_P(str2)) {
+        int i = FIX2INT(str2);
+        if (0 <= i && i <= 0xff) { /* byte */
+            char c = i;
+            return rb_str_cat(str1, &c, 1);
+        }
+    }
+    str1 = rb_str_append(str1, str2);
+
+    return str1;
+}
+
 VALUE rb_str_plus(VALUE str1, VALUE str2) {
   CTX;
   OBJECT new_string = string_dup(ctx->state, HNDL(str1));
@@ -731,6 +744,10 @@ VALUE rb_string_value(VALUE *val) {
 
 VALUE rb_str_to_str(VALUE str) {
   return rb_convert_type(str, 0, "String", "to_str");
+}
+
+VALUE rb_String(VALUE val) {
+  return rb_convert_type(val, T_STRING, "String", "to_s");
 }
 
 RString* RSTRING(VALUE arg) {

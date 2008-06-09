@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <stdint.h>
+#include <string.h>
+#include <limits.h>
+#include <stddef.h>
 
 /* Pointers are seen as totally opaque */
 #define VALUE uintptr_t
@@ -37,6 +40,8 @@
 
 #undef ALLOC_N
 #define ALLOC_N(kind, many) (kind*)malloc(sizeof(kind) * many)
+#undef ALLOC
+#define ALLOC(type) (type*)malloc(sizeof(type))
 
 #ifndef SYMBOL_P
 int SYMBOL_P(VALUE obj);
@@ -107,6 +112,9 @@ VALUE rb_each(VALUE obj);
 #define rb_cInteger       (subtend_get_global(17))
 
 #define rb_mKernel rb_const_get(rb_cObject, rb_intern("Kernel") )
+#define rb_mComparable rb_const_get(rb_cObject, rb_intern("Comparable") )
+#define rb_mEnumerable rb_const_get(rb_cObject, rb_intern("Enumerable") )
+
 
 /* TODO: Pull these into an enum */
 #define rb_eException          subtend_get_exception(0)
@@ -231,6 +239,8 @@ char *StringValuePtr(VALUE str);
 VALUE rb_obj_as_string(VALUE obj);
 char rb_str_get_char(VALUE arg, int index);
 VALUE rb_str_to_str(VALUE arg);
+VALUE rb_str_concat(VALUE str1, VALUE str2);
+VALUE rb_String(VALUE val);
 
 void rb_global_object(VALUE obj);
 void rb_free_global(VALUE obj);
@@ -288,6 +298,11 @@ void* subtend_get_struct(VALUE obj);
 // TODO: Make this do Check_Type as well
 #define Data_Get_Struct(obj, type, sval) do { sval = (type *)subtend_get_struct(obj); } while (0)
 #define Data_Wrap_Struct(klass, mark, free, sval) subtend_wrap_struct(klass, sval, (void*)(mark), (void*)(free))
+#define Data_Make_Struct(klass,type,mark,free,sval) (\
+    sval = ALLOC(type),\
+    memset(sval, 0, sizeof(type)),\
+    Data_Wrap_Struct(klass,mark,free,sval)\
+)
 
 struct RData {
   void *data;
