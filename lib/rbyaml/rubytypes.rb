@@ -192,7 +192,7 @@ class Symbol
   end
   def to_yaml_node( repr )
     RbYAML::quick_emit_node( nil, repr ) do |out|
-      out.scalar( "tag:yaml.org,2002:str", self.inspect, nil )
+      out.scalar( "tag:yaml.org,2002:sym", self.inspect, nil)
     end
   end
 end
