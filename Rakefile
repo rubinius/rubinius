@@ -172,7 +172,7 @@ end
 # INSTALL TASKS
 
 desc "Install rubinius as rbx"
-task :install => :config_env do
+task :install do
   sh "cd shotgun; #{make "install"}"
 
   mkdir_p RBAPATH, :verbose => true
@@ -203,10 +203,12 @@ task :install => :config_env do
     end
     sh File.join(BINPATH, 'rbx'), 'compile', rb_file, :verbose => true
   end
+
+  Rake::Task['gems:install'].invoke
 end
 
 desc "Uninstall rubinius and libraries. Helps with build problems."
-task :uninstall => :config_env do
+task :uninstall do
   rm Dir[File.join(BINPATH, 'rbx*')]
   rm_r Dir[File.join(LIBPATH, '*rubinius*')]
 end

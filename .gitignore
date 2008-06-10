@@ -54,6 +54,8 @@ lib/rbx
 
 attic/externals/syd-parser/pkg
 
+gems/**/*.gem
+
 kernel/.load_order.txt
 kernel/core/dir_entry.rb
 

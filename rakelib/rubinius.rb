@@ -42,10 +42,13 @@ def make(args = nil)
   "#{ENV['MAKE'] || gmake} #{args}"
 end
 
+current_dir = File.dirname File.expand_path(__FILE__)
+RBX_BIN_PATH = File.join File.dirname(current_dir), 'bin', 'rbx'
+
 def rbx(*args)
   clear_compiler
 
-  sh('shotgun/rubinius', *args)
+  sh(RBX_BIN_PATH, *args)
 end
 
 class Hash
