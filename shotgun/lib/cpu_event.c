@@ -456,7 +456,6 @@ OBJECT cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid, int flags) {
   ti->channel = channel;
   ti->stopper = NULL;
   
-  state->pending_events++;
   id = _cpu_event_register_info(state, ti);
 
   /* todo: we can mitigate O(N^2) complexity for waitpid calls by

@@ -57,7 +57,7 @@ OBJECT methctx_dup_chain(STATE, OBJECT ctx, OBJECT *also) {
     
     methctx_reference(state, sender);
     
-    FASTCTX(ctx)->sender = methctx_dup(state, sender);
+    SET_STRUCT_FIELD(ctx, FASTCTX(ctx)->sender, methctx_dup(state, sender));
     /* Update another ref if one is passed in
        (used to also update home_context) */
     if(also && *also == sender) {

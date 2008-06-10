@@ -2431,7 +2431,7 @@ class ShotgunPrimitives
     switch(i) {
       case 0:
         GUARD(CTX_P(t2));
-        fc->sender = t2;
+        SET_STRUCT_FIELD(msg->recv, fc->sender, t2);
         break;
       case 1:
         GUARD(FIXNUM_P(t2));
@@ -2442,29 +2442,29 @@ class ShotgunPrimitives
         fc->sp = N2I(t2);
         break;
       case 3:
-        fc->block = t2;
+        SET_STRUCT_FIELD(msg->recv, fc->block, t2);
         break;
       case 5:
-        fc->method = t2;
+        SET_STRUCT_FIELD(msg->recv, fc->method, t2);
         break;
       case 6:
-        fc->literals = t2;
+        SET_STRUCT_FIELD(msg->recv, fc->literals, t2);
         break;
       case 7:
-        fc->self = t2;
+        SET_STRUCT_FIELD(msg->recv, fc->self, t2);
         break;
       case 8:
-        fc->locals = t2;
+        SET_STRUCT_FIELD(msg->recv, fc->locals, t2);
         break;
       case 9:
         GUARD(FIXNUM_P(t2));
         fc->argcount = N2I(t2);
         break;
       case 10:
-        fc->name = t2;
+        SET_STRUCT_FIELD(msg->recv, fc->name, t2);
         break;
       case 11:
-        fc->method_module = t2;
+        SET_STRUCT_FIELD(msg->recv, fc->method_module, t2);
         break;
       case 12:
         if(NIL_P(t2)) {
@@ -2519,7 +2519,7 @@ class ShotgunPrimitives
 
     ba = bytearray_new(state, target_size);
     cpu_compile_instructions(state, t1, ba);
-    fc->custom_iseq = ba;
+    SET_STRUCT_FIELD(msg->recv, fc->custom_iseq, ba);
     fc->data = BYTEARRAY_ADDRESS(ba);
 
     RET(Qtrue);
