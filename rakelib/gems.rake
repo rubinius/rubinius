@@ -1,8 +1,8 @@
 # for building and installing rubinius-specific gems.
-checkout_dir = File.dirname File.dirname(File.expand_path(__FILE__))
 
 namespace :gems do
 
+  checkout_dir = File.dirname File.dirname(File.expand_path(__FILE__))
   relative_path = File.join 'gems', 'rubinius', LIBVER
 
   GEMS_DEVELOPMENT_PRE_INSTALLED_DIR = File.join checkout_dir, 'tmp',
@@ -39,7 +39,12 @@ namespace :gems do
     end
   end
 
-  task :build => %w[build:all] + gems
+  task :build => %w[extensions] + gems
+
+  task :clean do
+    gems.each { |gem| rm_f gem, :verbose => $verbose }
+    rm_rf GEMS_DEVELOPMENT_PRE_INSTALLED_DIR, :verbose => $verbose
+  end
 
   task :install_development => [:build] + installed_gemspecs
 

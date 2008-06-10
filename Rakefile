@@ -83,13 +83,23 @@ AllPreCompiled << "runtime/loader.rbc"
 namespace :build do
 
   task :all => %w[
+    build:system
+
+    compiler
+
+    lib/etc.rb
+    lib/rbconfig.rb
+
+    extensions
+
+    gems:install_development
+  ]
+
+  desc "Builds the core components for running rbx"
+  task :system => %w[
     build:shotgun
     build:platform
     build:rbc
-    compiler
-    lib/etc.rb
-    lib/rbconfig.rb
-    extensions
   ]
 
   # This nobody rule lets use use all the shotgun files as
@@ -232,7 +242,15 @@ task :distclean => "clean:distclean"
 
 namespace :clean do
   desc "Clean everything but third-party libs"
-  task :all => %w[clean:rbc clean:extensions clean:shotgun clean:generated clean:crap clean:config]
+  task :all => %w[
+    clean:rbc
+    clean:extensions
+    clean:shotgun
+    clean:generated
+    clean:crap
+    clean:config
+    gems:clean
+  ]
 
   desc "Clean everything including third-party libs"
   task :distclean => %w[clean:all clean:external]
@@ -277,7 +295,7 @@ namespace :clean do
   task :crap do
     rm_f Dir["*~"] + Dir["**/*~"], :verbose => $verbose
   end
-  
+
   desc "Cleans up config files (so they can be regenerated when you change PREFIX)"
   task :config do
     files = %w(shotgun/config.h shotgun/config.mk lib/rbconfig.rb)

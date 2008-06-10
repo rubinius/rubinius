@@ -1,7 +1,6 @@
 desc "Build extensions from lib/ext"
 task :extensions => %w[
-  build:shotgun
-  build:rbc
+  build:system
 
   extension:digest_rmd160
   extension:digest_md5
