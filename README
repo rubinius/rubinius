@@ -23,16 +23,14 @@ effort is shifting toward performance, rather than completeness.
 
 4. Goals
 
-* Thread safety. Rubinius intends to be thread-safe so you could embed more
-  than one virtual machine in a single application. It does not currently meet
-  this goal due to some components borrowed from the mainline Ruby interpreter.
-
 * Clean, readable code that is easy for users to understand and extend.
 
 * Reliable, rock-solid infrastructure. Rubinius is Valgrind clean.
 
 * Bring modern techniques to the Ruby runtime. Currently we are up to
   roughly 1986 in terms of modernity, but the date creeps forward daily.
+
+* Support for the best ideas in concurrency, whatever those happen to be.
 
 5. Volunteering to Help
 
@@ -44,8 +42,8 @@ Rubinius.
 6. Architecture
 
 While most of the Rubinius features are implemented in Ruby, the VM itself
-is written in C++. This is likely to continue to be true in the near-term
-future, partly to ease the integration of LLVM into the Rubinius system.
+is written in C++. This is likely to continue to be the case in the coming
+months, partly to ease the integration of LLVM into the Rubinius system.
 
 The compiler, assembler, and bytecode generators are all written in Ruby, and
 can be found under the ./lib/compiler directory.
