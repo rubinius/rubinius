@@ -278,9 +278,10 @@ namespace :clean do
   
   desc "Cleans up config files (so they can be regenerated when you change PREFIX)"
   task :config do
-    rm "shotgun/config.h", :verbose => $verbose
-    rm "shotgun/config.mk", :verbose => $verbose
-    rm "lib/rbconfig.rb", :verbose => $verbose
+    files = %w(shotgun/config.h shotgun/config.mk lib/rbconfig.rb)
+    files.each do |file|
+      rm file, :verbose => $verbose if File.exist?(file)
+    end
   end
 end
 
