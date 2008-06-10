@@ -93,12 +93,12 @@ class Iconv
     converted = []
 
     open(to, from) do |cd|
-      while x = rest.shift
+      rest.each_with_index do |x, i|
         begin
           converted << cd.iconv(x)
         rescue Failure => e
           converted << e.success
-          raise e.class.new(e.message, converted, rest.unshift(e.failed))
+          raise e.class.new(e.message, converted, [e.failed] + rest[i + 1..-1])
         end
       end
     end
