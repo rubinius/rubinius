@@ -280,6 +280,7 @@ namespace :clean do
   task :config do
     rm "shotgun/config.h", :verbose => $verbose
     rm "shotgun/config.mk", :verbose => $verbose
+    rm "lib/rbconfig.rb", :verbose => $verbose
   end
 end
 
