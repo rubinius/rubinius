@@ -1,5 +1,7 @@
 # for building and installing rubinius-specific gems.
 
+require 'rakelib/rubinius'
+
 namespace :gems do
 
   checkout_dir = File.dirname File.dirname(File.expand_path(__FILE__))
