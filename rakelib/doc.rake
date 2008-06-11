@@ -1,3 +1,9 @@
+require 'rake/rdoctask'
+
+task :doc => %w[
+  doc:vm
+  doc:rdoc
+]
 namespace :doc do
 
   task :vm => 'doc:vm:html'
@@ -33,5 +39,22 @@ namespace :doc do
       doc/vm/vm_interfaces.html
     ]
   end
+
+  desc 'Generate rdoc for kernel, lib and stdlib'
+  Rake::RDocTask.new :rdoc do |rd|
+    rd.main = 'README'
+    rd.rdoc_files.include 'README'
+    rd.rdoc_files.include 'README-DEVELOPERS'
+    rd.rdoc_files.include 'CONTRIBUTORS'
+    rd.rdoc_files.include 'THANKS'
+    rd.rdoc_files.include 'LICENSE'
+
+    rd.rdoc_files.include 'kernel/core/*.rb'
+    rd.rdoc_files.include 'kernel/bootstrap/*.rb'
+    rd.rdoc_files.include 'kernel/platform/*.rb'
+
+    rd.rdoc_files.include 'lib/**/*.rb'
+  end
+
 end
 
