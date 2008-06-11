@@ -1,6 +1,6 @@
 # for building and installing rubinius-specific gems.
 
-require 'rakelib/rubinius'
+require 'rakelib/configuration'
 
 namespace :gems do
 
