@@ -1,9 +1,11 @@
 require 'rake/rdoctask'
+require 'rakelib/configuration'
 
 task :doc => %w[
   doc:vm
   doc:rdoc
 ]
+
 namespace :doc do
 
   task :vm => 'doc:vm:html'
@@ -43,6 +45,10 @@ namespace :doc do
   desc 'Generate rdoc for kernel, lib and stdlib'
   Rake::RDocTask.new :rdoc do |rd|
     rd.main = 'README'
+    rd.title = "Rubinius #{RBX_VERSION} Documentation"
+
+    rd.rdoc_dir = 'doc/rdoc'
+
     rd.rdoc_files.include 'README'
     rd.rdoc_files.include 'README-DEVELOPERS'
     rd.rdoc_files.include 'CONTRIBUTORS'
