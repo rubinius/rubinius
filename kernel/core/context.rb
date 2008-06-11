@@ -1,7 +1,32 @@
 # depends on: class.rb
 
 ##
-# Stores all the information about a running method.
+# Stores information about a running method:
+#
+# sender::          the MethodContext calling this one
+# block::           block argument passed in
+# CompiledMethod::  the method being run
+# locals::          locals for the callee
+# defining module:: which module (or class) the CompiledMethod was defined in
+# receiver::        object this CompiledMethod was sent too.
+# CPU registers::   VM state for running this CompiledMethod
+#
+# == Life of a MethodContext
+#
+# Given a CompiledMethod "m" defined on a module or class K, if the
+# CompiledMethod has no primitive
+#
+# When calling a method, a MethodContext "mc" is created if the CompiledMethod
+# representing the method either has no primitive, or the primitive failed.
+#
+# mc is filled in with various details from the CompiledMethod.  The VM state
+# is then saved into the active MethodContext and the VM state from mc is
+# coppied into the VM.  The VM will run the CompiledMethod's bytecode until
+# encountering a return instruction (:ret).
+#
+# Upon encountering the return instruction, the VM pops off the top of the
+# stack for use as the return value, restores the previously running
+# MethodContext's VM state and pushes the return value back onto the stack.
 #--
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
 # you can get recursive exceptions being raised (THATS BAD, BTW).
@@ -88,9 +113,10 @@ class MethodContext
     self.method.line_from_ip(ip)
   end
 
-  # Copies context. If locals is true
-  # local variable values are also
-  # copied into new context.
+  ##
+  # Copies context. If locals is true local variable values are also copied
+  # into new context.
+
   def copy(locals=false)
     d = self.dup
     return d unless locals
@@ -108,6 +134,9 @@ class MethodContext
 
     return d
   end
+
+  ##
+  # Place in the source that this method was created at.
 
   def location
     l = line()
@@ -144,6 +173,10 @@ class MethodContext
     end
     ret
   end
+
+  ##
+  # Desrcibes the execution state of this context.  Produces the message you
+  # would see in a backtrace print-out.
 
   def describe
     if method_module.equal?(Kernel)
@@ -215,6 +248,9 @@ class MethodContext
       return method_module
     end
   end
+
+  ##
+  # Safely dups this MethodContext's method for manipulation.
 
   def make_independent
     self.method = method.dup

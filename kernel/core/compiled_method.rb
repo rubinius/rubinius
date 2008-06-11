@@ -1,7 +1,11 @@
 # depends on: class.rb array.rb
 
 ##
-# A wrapper for a calling a function in a shared library.
+# A wrapper for a calling a function in a shared library that has been
+# attached via rb_define_method().
+#
+# The primitive slot for a NativeMethod points to the nmethod_call primitive
+# which dispatches to the underlying C function.
 
 class NativeMethod
   def lines
@@ -91,19 +95,39 @@ class StaticScope
   end
 end
 
+##
 # CompiledMethod represents source code method compiled into VM bytecodes.
 # It's instruction set is then executed by Shotgun's abstraction of CPU.
-# CompiledMethods are not just sets of instructions though. They carry
-# a lot of information about method: it's lexical scope (static scope),
-# name, file it has been defined in and so forth.
-#
-#
+# CompiledMethods are not just sets of instructions though. They carry a lot
+# of information about method: it's lexical scope (static scope), name, file
+# it has been defined in and so forth.
+
 class CompiledMethod
   # TODO: Delete/reuse cache (field 14) field from C structure
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :local_count => 7, :literals => 8, :args => 9, :local_names => 10, :exceptions => 11, :lines => 12, :path => 13, :metadata_container => 15, :compiled => 16, :staticscope => 17
+  ivar_as_index :__ivars__ => 0,
+                :primitive => 1,
+                :required => 2,
+                :serial => 3, 
+                :bytecodes => 4, 
+                :name => 5, 
+                :file => 6, 
+                :local_count => 7, 
+                :literals => 8, 
+                :args => 9, 
+                :local_names => 10, 
+                :exceptions => 11, 
+                :lines => 12, 
+                :path => 13, 
+                :metadata_container => 15, 
+                :compiled => 16, 
+                :staticscope => 17
+
   def __ivars__  ; @__ivars__  ; end
 
-  # true if this method is primitive, false otherwise
+  ##
+  # nil if the method does not have a primitive, otherwise the name of the
+  # primitive to run.
+
   def primitive  ; @primitive  ; end
 
   # number of arguments required by method
