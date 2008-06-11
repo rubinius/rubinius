@@ -1,3 +1,6 @@
+##
+# Namespace for Rubinius internals.
+
 module Rubinius
   AtExit = []
 

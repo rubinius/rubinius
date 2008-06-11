@@ -112,6 +112,9 @@ class Method
 
 end
 
+##
+# Wraps the Method into a BlockEnvironment, for use with Method#to_proc.
+
 class Method::AsBlockEnvironment < BlockEnvironment
   def initialize(method)
     @method = method

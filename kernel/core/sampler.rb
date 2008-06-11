@@ -18,6 +18,9 @@ class MethodContext
   end
 end
 
+##
+# Interface to VM's sampling profiler.
+
 class Sampler
   def initialize(freq=nil)
     @frequency = freq
@@ -36,6 +39,9 @@ class Sampler
     @results, @last_clock, @gc_cycles = terminate()
     nil
   end
+
+  ##
+  # Records call information.
 
   class Call
     attr_accessor :slices
@@ -155,6 +161,9 @@ class Sampler
     end
   end
 
+  ##
+  # Displays Selector statistics.
+
   class Selectors
     def show_stats(range=30)
 
@@ -175,6 +184,9 @@ class Sampler
       end
     end
   end
+
+  ##
+  # Displays SendSite statistics.
 
   class SendSites
     def show_stats(range=30)

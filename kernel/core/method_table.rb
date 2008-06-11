@@ -1,5 +1,8 @@
 # depends on: class.rb
 
+##
+# Holds CompiledMethods for lookup by the VM.
+
 class MethodTable
   def public_names
     filter_names :public

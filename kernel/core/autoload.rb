@@ -1,3 +1,6 @@
+##
+# Used to implement Module#autoload.
+
 class Autoload
   attr_reader :name
   attr_reader :scope

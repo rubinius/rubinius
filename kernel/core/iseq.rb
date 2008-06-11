@@ -1,5 +1,8 @@
 # depends on: class.rb array.rb
 
+##
+# Defines all the bytecode instructions used by the VM.
+
 class InstructionSet
 
   ##
@@ -338,8 +341,14 @@ class InstructionSet
   end
 end
 
+##
+# A list of bytecode instructions.
 
 class InstructionSequence
+
+  ##
+  # Encodes an array of symbols representing bytecode into an
+  # InstructionSequence
 
   class Encoder
 
@@ -518,7 +527,7 @@ class InstructionSequence
   end
 
   ##
-  # Decodes the instruction sequence into an array of Instructions
+  # Decodes the instruction sequence into an array of symbols
 
   def decode(symbols_only=true)
     enc = Encoder.new

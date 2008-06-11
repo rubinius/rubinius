@@ -892,6 +892,9 @@ class IO
 
 end
 
+##
+# Implements the pipe returned by IO::pipe.
+
 class BidirectionalPipe < IO
 
   def initialize(pid, read, write)

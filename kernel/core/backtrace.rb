@@ -1,5 +1,5 @@
 ##
-# Contains stack frame objects
+# Contains all logic for gathering and displaying backtraces.
 
 class Backtrace
   include Enumerable

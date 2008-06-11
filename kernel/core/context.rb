@@ -319,14 +319,13 @@ class NativeMethodContext
 end
 
 ##
-# Stores all information about a running Block.
+# Stores all information about a running BlockEnvironment.
 #
-# Block context has no own receiver,
-# static lexical scope and is unnamed
-# so it uses receiver, scope and name
-# of home method context, that is,
-# method context that started it's execution.
-class BlockContext
+# A BlockContext contains a home and a BlockEnvironment in addition to a
+# MethodContext.  The home points to the MethodContext that encloses the
+# block which is used to find self, etc.
+
+class BlockContext < MethodContext
 
   def next_frame
     if self.env.caller_env
@@ -369,30 +368,40 @@ class BlockContext
     @method_scope || env.home_block.method_scope
   end
 
+  ##
   # Active context (instance of MethodContext) that started
   # execution of this block context.
+
   def home
     env.home
   end
 
+  ##
   # Name of home method.
+
   def name
     home.name
   end
 
-  # Block context has no receiver thus uses
-  # receiver from it's home method context.
+  ##
+  # Block context has no receiver thus uses receiver from it's home method
+  # context.
+
   def receiver
     home.receiver
   end
 
-  # Block context has no own module thus uses
-  # module from it's home method context.
+  ##
+  # Block context has no own module thus uses module from it's home method
+  # context.
+
   def method_module
     home.method_module
   end
 
+  ##
   # Static scope of home method context.
+
   def current_scope
     if ss = method.staticscope
       return ss.module
@@ -401,7 +410,9 @@ class BlockContext
     end
   end
 
+  ##
   # instance_eval needs alternate const behavior
+
   def __const_set__(name, value)
     const_scope = env.constant_scope.module
     const_scope.__send__(:__const_set__, name, value)
@@ -409,7 +420,7 @@ class BlockContext
 end
 
 ##
-# Describes the environment a Block was created in.  BlockEnvironment is used
+# Describes the environment a block was created in.  BlockEnvironment is used
 # to create a BlockContext.
 
 class BlockEnvironment

@@ -1,5 +1,8 @@
 # depends on: class.rb module.rb
 
+##
+# The tuple data type.
+
 class Tuple
 
   include Enumerable

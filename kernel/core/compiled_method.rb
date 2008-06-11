@@ -1,6 +1,8 @@
 # depends on: class.rb array.rb
 
+##
 # A wrapper for a calling a function in a shared library.
+
 class NativeMethod
   def lines
     nil
@@ -19,8 +21,9 @@ class NativeMethod
   end
 end
 
-# A linked list that details the static,
-# lexical scope the method was created in.
+##
+# A linked list that details the static, lexical scope the method was created
+# in.
 #
 # You can access it this way:
 #
@@ -28,31 +31,32 @@ end
 #
 # Here is a simple example:
 #
-# module Fruits
-#   class Pineapple
-#     attr_reader :initialize_scope
-#
-#     def initialize(weight)
-#       @initialize_scope = MethodContext.current.method.staticscope
-#       @weight = weight
+#   module Fruits
+#     class Pineapple
+#       attr_reader :initialize_scope
+#   
+#       def initialize(weight)
+#         @initialize_scope = MethodContext.current.method.staticscope
+#         @weight = weight
+#       end
 #     end
 #   end
-# end
 #
 # Static scope members are shown below:
 #
-# irb(main):> pineapple.initialize_scope.script
-# => nil
-# irb(main):> pineapple.initialize_scope.parent
-# => #<StaticScope:0x1c9>
-# irb(main):> pineapple.initialize_scope.module
-# => Fruits::Pineapple
-# irb(main):> pineapple.initialize_scope.parent.module
-# => Fruits
-# irb(main):> pineapple.initialize_scope.parent.parent.module
-# => Object
-# irb(main):> pineapple.initialize_scope.parent.parent.parent.module
-# => Object
+#   irb(main):> pineapple.initialize_scope.script
+#   => nil
+#   irb(main):> pineapple.initialize_scope.parent
+#   => #<StaticScope:0x1c9>
+#   irb(main):> pineapple.initialize_scope.module
+#   => Fruits::Pineapple
+#   irb(main):> pineapple.initialize_scope.parent.module
+#   => Fruits
+#   irb(main):> pineapple.initialize_scope.parent.parent.module
+#   => Object
+#   irb(main):> pineapple.initialize_scope.parent.parent.parent.module
+#   => Object
+
 class StaticScope
   ivar_as_index :__ivars__ => 0, :module => 1, :parent => 2
 

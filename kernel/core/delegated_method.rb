@@ -1,5 +1,8 @@
 # depends on: class.rb
 
+##
+# DelegatedMethod is used to implement Module#define_method
+
 class DelegatedMethod < RuntimePrimitive
 
   Receiver = 5
@@ -12,7 +15,7 @@ class DelegatedMethod < RuntimePrimitive
   def receiver
     at(Receiver)
   end
-  
+
   def self.build(sym, receiver, pass_self)
     obj = allocate()
     obj.name = "<delegated to: #{receiver.to_s}>"

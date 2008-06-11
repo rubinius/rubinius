@@ -1,3 +1,6 @@
+##
+# The representation of a method name used for invalidating a cached SendSite.
+
 class Selector
   ivar_as_index :name => 0, :send_sites => 1
 

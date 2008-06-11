@@ -191,11 +191,26 @@ class SystemCallError < StandardError
   end
 end
 
-class IllegalLongReturn
+##
+# Raised when you try to return from a block when not allowed.  Never seen by
+# ruby code.
+
+class IllegalLongReturn < LocalJumpError
   attr_reader :return_value
 end
 
-class ReturnException
+##
+# Abstract class for implementing flow control in Rubinius.  Never seen by
+# ruby code.
+
+class FlowControlException < Exception
+end
+
+##
+# Flow control exception used to implement return inside an ensure.  Never
+# seen by ruby code.
+
+class ReturnException < FlowControlException
   attr_reader :return_value
 
   def initialize(val)
@@ -204,7 +219,11 @@ class ReturnException
   end
 end
 
-class LongReturnException
+##
+# Raised when returning from a block to handle proper flow control.  Never
+# seen by ruby code.
+
+class LongReturnException < FlowControlException
   attr_reader :value
   attr_reader :is_return
 

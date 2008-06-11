@@ -12,7 +12,8 @@ module Rubinius
 end
 
 ##
-# A module for selecting which Rubinius compiler to use.
+# Main entrace point to the Rubinius compiler.  Handles loading and compiling
+# ruby code.
 
 module Compile
 
@@ -340,7 +341,7 @@ module Kernel
   end
   module_function :compile
 
-  
+  ##
   # Loads the given file as executable code and returns true. If
   # the file cannot be found, cannot be compiled or some other
   # error occurs, LoadError is raised with an explanation.

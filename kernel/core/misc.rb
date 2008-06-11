@@ -59,6 +59,9 @@ FALSE = false
 
 Undefined = Object.new
 
+##
+# Prevents Kernel#p from recursively traversing an object graph.
+
 module RecursionGuard
   def self.inspecting?(obj)
     stack.include?(obj.object_id)
@@ -72,7 +75,7 @@ module RecursionGuard
       stack.pop
     end
   end
-  
+
   def self.stack
     stack = Thread.current[:inspecting] ||= []
   end

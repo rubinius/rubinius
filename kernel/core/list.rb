@@ -1,5 +1,8 @@
 # depends on: class.rb
 
+##
+# A linked-list data structure.
+
 class List
   ivar_as_index :count => 0, :first => 1, :last => 2
 

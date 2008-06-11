@@ -1,3 +1,6 @@
+##
+# A future replacement for Time.  Not in use currently.
+
 class Moment
 
   def self.now

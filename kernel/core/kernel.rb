@@ -1,5 +1,8 @@
 # depends on: module.rb kernel.rb
 
+##
+# Namespace for coercion functions between various ruby objects.
+
 module Type
 
   ##
@@ -9,6 +12,8 @@ module Type
   # conversion result is wrong.
   #
   # Uses Type.obj_kind_of to bypass type check overrides.
+  #
+  # Equivalent to MRI's rb_convert_type().
 
   def self.coerce_to(obj, cls, meth)
     return obj if self.obj_kind_of?(obj, cls)

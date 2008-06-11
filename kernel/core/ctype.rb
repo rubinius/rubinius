@@ -1,9 +1,10 @@
 # depends on: module.rb
 
 ##
+# Mixin containing byte classification methods.
 #--
-# isspace, islower, ... are not in MRI core library.
-# See specs in spec/shotgun/ctype_spec.rb
+# isspace, islower, ... are not in MRI core library.  See specs in
+# spec/shotgun/ctype_spec.rb
 
 module CType
   def isctrl
