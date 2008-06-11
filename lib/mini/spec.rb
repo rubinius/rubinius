@@ -32,7 +32,8 @@ class Module
 end
 
 Object.infect_with_assertions(:must, :wont,
-                              /^(must|wont)$|wont_(throw)|must_(block|not?_|nothing)/,
+                              /^(must|wont)$|wont_(throw)|
+                                 must_(block|not?_|nothing|raise$)/x,
                               /(must_throw)s/                 => '\1',
                               /(?!not)_same/                  => '_be_same_as',
                               /_in_/                          => '_be_within_',

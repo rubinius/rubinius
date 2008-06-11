@@ -36,15 +36,8 @@ module Mini
   end
 
   module Assertions
-    begin
-      require 'pp'
-      def mu_pp(obj)
-        PP.pp(obj, '').chomp
-      end
-    rescue LoadError
-      def mu_pp(obj)
-        obj.inspect
-      end
+    def mu_pp(obj)
+      obj.inspect
     end
 
     def _assertions= n
@@ -366,19 +359,9 @@ module Mini
           inst = suite.new test
           inst._assertions = 0
           @@out.puts "\n#{test}: " if $DEBUG
-          result = '.'
-          begin
-            inst.setup
-            inst.__send__ test
-          rescue Exception => e
-            result = puke(suite, test, e)
-          ensure
-            begin
-              inst.teardown
-            rescue Exception => e
-              result = puke(suite, test, e)
-            end
-          end
+
+          result = inst.run(self)
+
           @@out.print result
           @@out.puts if $DEBUG
           @test_count += 1
@@ -391,6 +374,23 @@ module Mini
 
     class TestCase
       attr_reader :name
+
+      def run runner
+        result = '.'
+        begin
+          self.setup
+          self.__send__ self.name
+        rescue Exception => e
+          result = runner.puke(self.class, self.name, e)
+        ensure
+          begin
+            self.teardown
+          rescue Exception => e
+            result = runner.puke(self.class, self.name, e)
+          end
+        end
+        result
+      end
 
       def initialize name
         @name = name
@@ -406,12 +406,27 @@ module Mini
         @@test_suites[klass] = true
       end
 
+      def self.test_order
+        :random
+      end
+
       def self.test_suites
         @@test_suites.keys.sort_by { |ts| ts.name }
       end
 
       def self.test_methods
-        public_instance_methods(true).grep(/^test/).sort.map { |m| m.to_s }
+        methods = public_instance_methods(true).grep(/^test/).map { |m|
+          m.to_s
+        }.sort
+
+        if self.test_order == :random then
+          max = methods.size
+          methods = methods.sort_by { rand(max) }
+        end
+
+# p :methods => methods
+
+        methods
       end
 
       def setup; end
