@@ -19,8 +19,14 @@ class Compiler
   def self.compile_string(string, context=nil, filename="(eval)", line=1)
     sexp = string.to_sexp(filename, line, true)
 
-    comp = new(Generator, context)
-    node = comp.convert_sexp([:eval_expression, sexp])
+    if context
+      comp = new(Generator, context)
+      node = comp.convert_sexp([:eval_expression, sexp])
+    else
+      comp = new(Generator)
+      node = comp.into_script(sexp)
+    end
+
     cm = node.to_description(:__eval_script__).to_cmethod
     cm.file = filename.to_sym if filename and !filename.empty?
     return cm
