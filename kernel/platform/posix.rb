@@ -1,5 +1,8 @@
 # depends on: ffi.rb
 
+##
+# Namespace for various POSIX functions.
+
 module Platform::POSIX
 
   # errors
@@ -143,11 +146,11 @@ module Platform::POSIX
   attach_function 'getppid', [], :pid_t
   attach_function 'getpgrp', [], :pid_t
   attach_function 'setsid', [], :pid_t
-  
+
   # related to stat()
   attach_function 'ffi_major', :major, [:dev_t], :dev_t
   attach_function 'ffi_minor', :minor, [:dev_t], :dev_t
-  
+
   # stat
   # FIXME: these are TEMPORARY until we determine how to
   # have FFI resolve symbols that may be macros. This is

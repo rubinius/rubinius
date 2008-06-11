@@ -1,5 +1,8 @@
 #depends on env.rb
 
+##
+# A Foreign Function Interface used to bind C libraries to ruby.
+
 module FFI
 
   #  Specialised error classes
@@ -278,6 +281,7 @@ class Module
   end
 end
 
+##
 # MemoryPointer is Rubinius's "fat" pointer class. It represents an actual
 # pointer, in C language terms, to an address in memory. They're called
 # fat pointers because the MemoryPointer object is an wrapper around
@@ -297,7 +301,7 @@ end
 # NOTE: MemoryPointer exposes direct, unmanaged operations on any
 # memory. It therefore MUST be used carefully. Reading or writing to
 # invalid address will cause bus errors and segmentation faults.
-#
+
 class MemoryPointer
 
   # call-seq:
@@ -524,6 +528,9 @@ module FFI
 
 end
 
+##
+# Represents a C struct as ruby class.
+
 class FFI::Struct
 
   attr_reader :pointer
@@ -629,12 +636,18 @@ class FFI::Struct
 
 end
 
+##
+# A C function that can be executed.  Similar to CompiledMethod.
+
 class NativeFunction
 
   # The *args means the primitive handles it own argument count checks.
   def call(*args)
     Ruby.primitive :nfunc_call_object
   end
+
+  ##
+  # Static C variable like errno.  (May not be used).
 
   class Variable
     def initialize(library, name, a2, a3=nil)
@@ -675,9 +688,8 @@ class NativeFunction
   end
 end
 
-#++
-# Define it now so that the rest of platform can use it.
-#--
+##
+# Namespace for holding platform-specific C constants.
 
 module Platform
 end

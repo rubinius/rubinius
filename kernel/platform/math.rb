@@ -1,5 +1,8 @@
 # depends on: ffi.rb
 
+##
+# Platform specific behavior for Math.
+
 module Platform::Math
   attach_function "atan2", [:double, :double], :double
   attach_function "cos",   [:double], :double

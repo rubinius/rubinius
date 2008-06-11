@@ -1,5 +1,8 @@
 # depends on: ffi.rb
 
+##
+# Platform specific behavior for Float.
+
 class Platform::Float
   attach_function 'float_radix',      :RADIX, [], :int
   attach_function 'float_rounds',     :ROUNDS, [], :int
