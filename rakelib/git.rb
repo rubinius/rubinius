@@ -78,6 +78,7 @@ def git_push
 
   on_master do
     puts "* Merging topic '#{branch}' back into master..."
+    sh "git merge #{branch}"
     puts "* Pushing changes..."
     sh "git push"
   end

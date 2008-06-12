@@ -120,7 +120,7 @@ elsif File.exist?(($top_srcdir ||= topdir)  + "/ruby.h") and
     File.exist?(($topdir ||= Config::CONFIG["topdir"]) + "/config.h")
   $hdrdir = $top_srcdir
 elsif File.exist?((hdrdir = Config::CONFIG["rubyhdrdir"]) + "/ruby.h")
-  $hdrdir = hdrdir
+  $topdir = $hdrdir = hdrdir
 else
   abort "can't find header files for ruby."
 end

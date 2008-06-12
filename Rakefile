@@ -195,6 +195,17 @@ task :install do
     install file, File.join(EXTPATH, File.basename(file)), :mode => 0644, :verbose => true
   end
 
+  install "shotgun/config.h", File.join(EXTPATH, "config.h"), 
+    :mode => 0644, :verbose => true
+
+  File.open File.join(EXTPATH, "defines.h"), "w" do |f|
+    f.puts "// This file left empty"
+  end
+
+  File.open File.join(EXTPATH, "missing.h"), "w" do |f|
+    f.puts "// This file left empty"
+  end
+
   rba_files = Rake::FileList.new('runtime/platform.conf',
                                  'runtime/**/*.rb{a,c}',
                                  'runtime/**/.load_order.txt')
