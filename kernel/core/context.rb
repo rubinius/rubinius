@@ -40,6 +40,22 @@ class MethodContext
     false
   end
 
+  def normalized_name
+    if method_module.is_a?(MetaClass)
+      begin
+        "#{method_module.attached_instance.inspect}.#{name}"
+      rescue Object
+        "#{method_module.attached_instance.class}##{name}"
+      end
+    else
+      if method_module
+        "#{method_module.name}##{name}"
+      else
+        "#{receiver}.#{name}"
+      end
+    end
+  end
+
   def position_info
     ret = []
     if self.method.name and self.method.name != :__script__
