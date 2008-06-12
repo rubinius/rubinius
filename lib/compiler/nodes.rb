@@ -1119,7 +1119,7 @@ class Node
   # are first processed into their own little AST subtrees which are
   # then stored in a mapping whence they may be executed at runtime
   # if the default value is needed.
-  # 
+  #
   # The Arguments node performs quite a bit of other normalisation
   # also, as well as coordinating setting up the arguments as local
   # variables with the appropriate LocalScope and providing the

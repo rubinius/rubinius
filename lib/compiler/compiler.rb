@@ -66,7 +66,7 @@ class Compiler
     else
       @version_number = 0
     end
-      
+
     if $DEBUG_LOADING
       STDERR.puts "[Compiler version: #{@version_number} (forced)]"
     end
@@ -98,13 +98,13 @@ class Compiler
     if ctx.kind_of? BlockContext
       all_scopes = []
       block_scopes = []
-      
+
       while ctx.kind_of? BlockContext
         scope = LocalScope.new(nil)
         scope.from_eval = true
         block_scopes.unshift scope
         all_scopes << scope
-        
+
         if !ctx.env.from_eval? and names = ctx.method.local_names
           i = 0
           names.each do |name|
@@ -112,14 +112,14 @@ class Compiler
             i += 1
           end
         end
-        
+
         ctx = ctx.env.home_block
       end
-      
+
       scope = LocalScope.new(nil)
       scope.from_eval = true
       all_scopes << scope
-      
+
       if names = ctx.method.local_names
         i = 0
         names.each do |name|
@@ -127,7 +127,7 @@ class Compiler
           i += 1
         end
       end
-      
+
       return [scope, block_scopes, all_scopes, @context]
     else
       scope = LocalScope.new(nil)
@@ -139,7 +139,7 @@ class Compiler
           i += 1
         end
       end
-      
+
       return [scope, [], [scope], @context]
     end
   end

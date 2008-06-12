@@ -677,7 +677,7 @@ class Node
       g.push_cpath_top
       g.find_const :Proc
       g.send :__from_block__, 1
-      
+
       nil_block.set!
     end
   end
@@ -1581,7 +1581,7 @@ class Node
           g.gif after
           g.send :return_value, 0
           g.clear_exception
-          
+
           # Emit the special code for doing a return in a block.
           if @in_block
             Return.emit_lre(g, @check_var)
@@ -2123,7 +2123,7 @@ class Node
 
       min = @required.size
       if @splat
-        # There is no upper bound, check is in instructions.gen 
+        # There is no upper bound, check is in instructions.gen
         max = -1
       else
         max = min + @optional.size
