@@ -1,5 +1,7 @@
 # -*- ruby -*-
 
+require 'rakelib/configuration'
+
 ##
 # Release Steps:
 #
@@ -59,5 +61,8 @@ namespace :release do
 end
 
 def verify_version expected
-
+  actual = LIBVER
+  unless expected == actual
+    abort "version #{expected} doesn't match #{actual}. `rake release:help`"
+  end
 end
