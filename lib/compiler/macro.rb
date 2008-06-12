@@ -1,4 +1,8 @@
 class Compiler
+
+  ##
+  # Unused test code
+
   class MacroGenerator
     
     def initialize(compiler)

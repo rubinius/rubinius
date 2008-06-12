@@ -1,27 +1,30 @@
-
+#--
 # See compiler.rb for more information about the Compiler mode of
 # operation etc.
+#++
+
 class Compiler
 
+##
 # Node is the representation of a node in the Abstract Syntax Tree
 # (AST) of the Ruby code. It is typically fairly close in structure
 # to the sexp produced by the parser but there are some transforms
 # that are done at this stage:
 #
-#   1. Compiler special forms, such as Rubinius.asm which allows
-#      inline Rubinius "assembly" code. See plugins.rb for more of
-#      these.
-#   2. Combining redundant and removing obsolete nodes from the tree.
-#      The current parser is still mostly MatzRuby's and therefore
-#      contains some artifacts that we have no need for.
-#   3. Optimizations. At this time, there are not that many nor will
-#      there ever be huge amounts.
-#   4. Sexp transformations, somewhat akin to Lisp macros. These
-#      allow modifying the sexp, and therefore the code produced,
-#      as it is being compiled. The mechanism is currently very raw
-#      and the only transform supported is conditional compilation
-#      (e.g. not including debug statements in the bytecode at all.)
-#      Look for Rubinius.compile_if.
+# 1. Compiler special forms, such as Rubinius.asm which allows
+#    inline Rubinius "assembly" code. See plugins.rb for more of
+#    these.
+# 2. Combining redundant and removing obsolete nodes from the tree.
+#    The current parser is still mostly MatzRuby's and therefore
+#    contains some artifacts that we have no need for.
+# 3. Optimizations. At this time, there are not that many nor will
+#    there ever be huge amounts.
+# 4. Sexp transformations, somewhat akin to Lisp macros. These
+#    allow modifying the sexp, and therefore the code produced,
+#    as it is being compiled. The mechanism is currently very raw
+#    and the only transform supported is conditional compilation
+#    (e.g. not including debug statements in the bytecode at all.)
+#    Look for Rubinius.compile_if.
 #
 # The compiler is based on the Visitor pattern, and this stage is no
 # different. First, for every type of sexp node possible in Ruby code,
@@ -60,7 +63,7 @@ class Compiler
 # object (usually a Script) which then hierarchically contains the
 # rest of the AST. This object graph can then be passed on to the
 # bytecode producer. See bytecode.rb for that.
-#
+
 class Node
   Mapping = {}
 

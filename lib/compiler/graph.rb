@@ -59,9 +59,6 @@ class Compiler::Node
     str
   end
 
-
-
-
   # More sophisticated graphing
 
   def to_dot(output, ds)
@@ -190,7 +187,7 @@ class Compiler::Node
   end
 end
 
-class DotState
+class DotState # :nodoc:
   def initialize
     @node = 0
   end

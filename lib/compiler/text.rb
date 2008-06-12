@@ -1,6 +1,10 @@
 require 'compiler/compiler'
 
 class Compiler
+
+  ##
+  # An alternate generator that prints out bytecode for display.
+
   class TextGenerator
     
     @@method_id = 0

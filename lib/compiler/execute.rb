@@ -1,4 +1,7 @@
 
+##
+# Used for the Rubinius::asm Compiler hook.
+
 class Compiler::ExecuteContext
   def initialize(who)
     @self = who

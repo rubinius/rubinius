@@ -4,6 +4,10 @@
 require 'compiler/generator'
 
 class Compiler
+
+  ##
+  # The precursor to a CompiledMethod
+
   class MethodDescription
     def initialize(gen_class, locals)
       @generator = gen_class.new
@@ -34,9 +38,11 @@ class Compiler
       [:method_description, @name, @required, @optional, @generator].inspect
     end
   end
-end
 
-class Compiler
+##
+# Parent class of all AST classes used by the compiler.  Contains utility
+# classes used by nodes.
+
 class Node
 
   def show_errors(gen, &block)
@@ -2319,6 +2325,9 @@ class Node
       done.set!
     end
   end
+
+  ##
+  # __FILE__ node.
 
   class File
     def bytecode(g)

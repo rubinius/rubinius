@@ -1,12 +1,18 @@
 require 'compiler/system_hints'
 
+##
+# Turns text into CompiledMethods
+
 class Compiler
 
   Config = Hash.new
-  
+
+  ##
+  # Compiler error subclass.
+
   class Error < RuntimeError
   end
-  
+
   def self.compile_file(path, flags=nil)
     flags.each { |f| Config[f] = true } if flags
     sexp = File.to_sexp(path, true)
@@ -82,11 +88,11 @@ class Compiler
   def kernel?
     @kernel
   end
-  
+
   def custom_scopes?
     @context
   end
-  
+
   def create_scopes
     ctx = @context
     if ctx.kind_of? BlockContext
@@ -227,9 +233,12 @@ class Compiler
       end
     end
   end
-  
+
+  ##
+  # Raised when turning the AST into bytecode fails in some way.
+
   class GenerationError < Error; end
-  
+
   def show_errors(gen)
     begin
       yield

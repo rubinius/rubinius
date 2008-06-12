@@ -1,5 +1,8 @@
 class Compiler
-  
+
+  ##
+  # Tracks local variables in a MethodDescription
+
   class LocalScope
     def initialize(scope)
       @scope = scope
@@ -60,7 +63,10 @@ class Compiler
     attr_reader :locals
     attr_accessor :scope
   end
-  
+
+  ##
+  # A local variable in a LocalScope
+
   class Local
     def initialize(scope, name)
       @scope = scope

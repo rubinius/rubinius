@@ -1,7 +1,13 @@
 class Compiler
-    
+
+  ##
+  # Generates an InstructionSequence
+
   class Generator
-    
+
+    ##
+    # Jump label for the goto instructions.
+
     class Label
       def initialize(generator)
         @generator = generator
@@ -227,7 +233,10 @@ class Compiler
     def new_label
       Label.new(self)
     end
-    
+
+    ##
+    # Used to generate the exception table for a begin.
+
     class ExceptionBlock
       def initialize(gen)
         @generator = gen
