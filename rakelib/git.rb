@@ -49,6 +49,7 @@ end
 def git_update
   check_git_ver
 
+  clear = false
   stash = with_git_changes do
     clear = `git stash list`.scan("\n").size == 0
     puts "* Saving changes..."
