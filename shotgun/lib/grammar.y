@@ -4604,16 +4604,11 @@ yylex(YYSTYPE *yylval, void *vstate)
             }
         }
         pslval->id = rb_intern(tok());
-        /*
-        
-        FIXME: NO clue what this does.
-        
-        if (is_local_id(pslval->id) &&
-            ((syd_dyna_in_block(parse_state) && 
-                      rb_dvar_defined(pslval->id)) || local_id(pslval->id))) {
+
+        if (is_local_id(pslval->id) && local_id(pslval->id)) {
             parse_state->lex_state = EXPR_END;
         }
-        */
+
         return result;
     }
 }
