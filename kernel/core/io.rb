@@ -135,8 +135,8 @@ class IO
 
   include Constants
 
-  def self.for_fd(fd)
-    self.new(fd)
+  def self.for_fd(fd = -1, mode = nil)
+    self.new(fd, mode)
   end
 
   def self.foreach(name, sep_string = $/, &block)
