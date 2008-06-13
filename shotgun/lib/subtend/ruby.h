@@ -116,35 +116,33 @@ enum {
   T_VARMAP,
   T_SCOPE,
   T_NODE,
-  T_IO,
-  T_INTEGER,
-  T_THREAD
 };
 
 int rb_type(VALUE obj);
 #define TYPE(o) rb_type((VALUE)o)
 
 /* If you change these numbers, please also modify subtend_get_global
- * in ruby.c.
+ * in ruby.c.  It is safe to do so, these numbers have no inherent
+ * meanings.
  */
-#define rb_cObject        (subtend_get_global(T_OBJECT))
-#define rb_cArray         (subtend_get_global(T_ARRAY))
-#define rb_cBignum        (subtend_get_global(T_BIGNUM))
-#define rb_cClass         (subtend_get_global(T_CLASS))
-#define rb_cData          (subtend_get_global(T_DATA))
-#define rb_cFalseClass    (subtend_get_global(T_FALSE))
-#define rb_cFixnum        (subtend_get_global(T_FIXNUM))
-#define rb_cFloat         (subtend_get_global(T_FLOAT))
-#define rb_cHash          (subtend_get_global(T_HASH))
-#define rb_cIO            (subtend_get_global(T_IO))
-#define rb_cModule        (subtend_get_global(T_MODULE))
-#define rb_cNilClass      (subtend_get_global(T_NIL))
-#define rb_cRegexp        (subtend_get_global(T_REGEXP))
-#define rb_cString        (subtend_get_global(T_STRING))
-#define rb_cSymbol        (subtend_get_global(T_SYMBOL))
-#define rb_cThread        (subtend_get_global(T_THREAD))
-#define rb_cTrueClass     (subtend_get_global(T_TRUE))
-#define rb_cInteger       (subtend_get_global(T_INTEGER))
+#define rb_cObject        (subtend_get_global(0))
+#define rb_cArray         (subtend_get_global(1))
+#define rb_cBignum        (subtend_get_global(2))
+#define rb_cClass         (subtend_get_global(3))
+#define rb_cData          (subtend_get_global(4))
+#define rb_cFalseClass    (subtend_get_global(5))
+#define rb_cFixnum        (subtend_get_global(6))
+#define rb_cFloat         (subtend_get_global(7))
+#define rb_cHash          (subtend_get_global(8))
+#define rb_cIO            (subtend_get_global(9))
+#define rb_cModule        (subtend_get_global(10))
+#define rb_cNilClass      (subtend_get_global(11))
+#define rb_cRegexp        (subtend_get_global(12))
+#define rb_cString        (subtend_get_global(13))
+#define rb_cSymbol        (subtend_get_global(14))
+#define rb_cThread        (subtend_get_global(15))
+#define rb_cTrueClass     (subtend_get_global(16))
+#define rb_cInteger       (subtend_get_global(17))
 
 #define rb_mKernel rb_const_get(rb_cObject, rb_intern("Kernel") )
 #define rb_mComparable rb_const_get(rb_cObject, rb_intern("Comparable") )
