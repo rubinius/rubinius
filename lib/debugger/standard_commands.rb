@@ -468,6 +468,40 @@ class Debugger
   end
 
 
+  class ShowCVars < Command
+    @@re = Regexp.new('^cv(?:ars)?(?:\s+('+ MODULE_RE+ '))?$')
+
+    def help
+      return "cv[ars] [<class>]", "Show class variables and their values for the specified class, or current self class."
+    end
+
+    def command_regexp
+      @@re
+    end
+
+    def execute(dbg, interface, md)
+      cm = interface.eval_context.method
+
+      # Output ivars on the specified class current self
+      bind = Binding.setup(interface.eval_context)
+      klass = eval(md[1] || "self", bind)
+      cvars = klass.class_variables
+      
+      if cvars.size > 0
+        output = Output.info("Class variables for #{klass}:")
+        output.set_columns([['Name', '%-s'], ['Class', '%-s'], ['Value', '%-*s']])
+        cvars.each do |cvar|
+          val = klass.class_variable_get(cvar)
+          output << [cvar, val.class, val.inspect]
+        end
+        output
+      else
+        Output.none("There are no class variables defined for #{klass}")
+      end
+    end
+  end
+
+
   class ShowBacktrace < Command
     def help
       return "w[here] | b[ack]t[race]", "Show execution backtrace."

@@ -171,12 +171,24 @@ describe "Interface#process_command" do
     @cmd_map[Debugger::ShowGlobals].executes.should == 2
   end
     
-  it "matches show ivars commands (iv[ars]) to the ShowIvars Command subclass" do
+  it "matches show ivars commands (iv[ars]) to the ShowIVars Command subclass" do
     # Instance variables
     @ifc.process_command(nil, "iv")
     @cmd_map[Debugger::ShowIVars].executes.should == 1
     @ifc.process_command(nil, "ivars")
     @cmd_map[Debugger::ShowIVars].executes.should == 2
+  end
+  
+  it "matches show cvars commands (cv[ars] [<class>]) to the ShowCVars Command subclass" do
+    # Instance variables
+    @ifc.process_command(nil, "cv")
+    @cmd_map[Debugger::ShowCVars].executes.should == 1
+    @ifc.process_command(nil, "cvars")
+    @cmd_map[Debugger::ShowCVars].executes.should == 2
+    @ifc.process_command(nil, "cvars File")
+    @cmd_map[Debugger::ShowCVars].executes.should == 3
+    @ifc.process_command(nil, "cv Debugger::Command")
+    @cmd_map[Debugger::ShowCVars].executes.should == 4    
   end
   
   it "matches backtrace commands (b[ack]t[race], w[here]) to the ShowBacktrace Command subclass" do
