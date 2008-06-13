@@ -16,6 +16,11 @@ module Signal
         sig = sig[3..-1]
       end
 
+      if sig == "EXIT"
+        at_exit { block.call }
+        return
+      end
+
       unless number = Names[sig]
         raise ArgumentError, "Unknown signal '#{osig}'"
       end
