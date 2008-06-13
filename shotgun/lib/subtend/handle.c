@@ -1,7 +1,13 @@
+#include <stdint.h>
+
 #include "shotgun/lib/shotgun.h"
 #include "shotgun/lib/string.h"
+#include "shotgun/lib/hash.h"
+#include "shotgun/lib/subtend/nmc.h"
+#include "shotgun/lib/subtend/st.h"
 
 /* Copied from ruby.h to avoid including it here. */
+
 struct RString {
   char *ptr;
   long len;
@@ -14,6 +20,24 @@ struct RArray {
   long len;
 };
 typedef struct RArray RArray;
+
+struct RFloat {
+  double value;
+};
+typedef struct RFloat RFloat;
+
+struct RHash {
+    struct st_table *tbl;
+};
+typedef struct RHash RHash;
+
+#define ID uintptr_t
+
+extern VALUE rb_funcall(VALUE, ID, int cnt, ...);
+ID rb_intern(const char *name);
+
+/* Done copying from ruby.h */
+
 
 rni_handle_table *handle_table_new() {
   rni_handle_table *tbl;
@@ -147,6 +171,29 @@ void check_rstruct_data(STATE, rni_handle_table *tbl, rni_handle *h, OBJECT o) {
     XFREE(ra->ptr);
     XFREE(ra);
     h->data = 0;
+  } else if (FLOAT_P(o)) {
+    RFloat *rf = (RFloat *)h->data;
+    *((double*)BYTES_OF(o)) = rf->value;
+    XFREE(rf);
+		h->data = 0;
+  } else if (HASH_P(o)) {
+		RHash *rh = (RHash *)h->data;
+		st_table_entry *ptr;
+		int i;
+		
+		/* Convert back from MRI-style hash to Rubinius-style hash. */
+		o = hash_new(state); /* Clear out old data */
+		
+		/* Most of this comes from st.c::st_foreach */
+		for (i = 0; i < rh->tbl->num_bins; i++) {
+			for (ptr = rh->tbl->bins[i]; ptr != 0; ptr = ptr->next) {
+				int hsh = N2I(rb_funcall((VALUE)ptr->key, rb_intern("hash"), 0));
+				hash_add(state, o, hsh, (VALUE)ptr->key, (VALUE)ptr->record);
+			}
+		}
+		
+		XFREE(rh);
+		h->data = 0;
   }
 }
 

@@ -340,7 +340,7 @@ extension code, for example.
 
 There is also a specific Rubinius extension layer called Subtend.
 It emulates the extension interface of Ruby to allow old Ruby
-extensions to work with Rubinius.
+extensions to work with Rubinius.  See doc/subtend.txt.
 
 
 4.1 Primitives

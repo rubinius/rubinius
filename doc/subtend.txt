@@ -1,0 +1,82 @@
+# vim: tw=65
+
+General help and instructions on the subtend layer.
+
+1. Exporting Rubinius Data
+==========================
+
+To export Rubinius data so that it can be used by extensions
+designed for MRI, you need to convert it into MRI's format.
+Let us examine, for example, floating point numbers.  MRI stores
+these in a structure called RFloat.  This looks like:
+struct RFloat {
+    struct RBasic basic;
+    double value;
+};
+
+We can forget about the RBasic structure which makes up the first
+element in all MRI types.  Pretty much all extensions will only
+care about the rest of the structure.  So, in
+rubinius/shotgun/lib/subtend/ruby.h, we have:
+struct RFloat {
+  double value;
+};
+typedef struct RFloat RFloat;
+
+Now, the actual function to convert from Rubinius data to MRI
+data is called RFLOAT:
+RFloat* RFLOAT(VALUE obj);
+This takes a Rubinius VALUE object and outputs an MRI style
+R-structure.  In ruby.c:
+  RFloat *RFLOAT(VALUE obj) {
+    CTX;
+    RFloat *ret;
+
+    ret = (RFloat *)AS_HNDL(obj)->data;
+    if (!ret) {
+      ret = ALLOC(RFloat);
+      ret->value = *((double*)BYTES_OF(HNDL(obj)));
+      AS_HNDL(obj)->data = (void*)ret;
+    }
+    return ret;
+  }
+
+If we have already done the conversion, we just return the
+RFloat structure.  But we probably have not.  So, we allocate
+some storage.  We then set the MRI structure contents (in this
+case, the double value) based on how the data is stored by
+Rubinius.  Then we store a pointer to the MRI structure as
+obj->data in case the user repeatedly calls RFLOAT() on the same
+object and so we can import changed data back into Rubinius.
+
+Floating point numbers are very simple.  More complex data types
+may require substantially more effort to convert.
+
+2. Importing MRI Data
+=====================
+
+After the extension is done mucking about with the R-structure
+data, we need to copy it back into Rubinius's format.  This is
+so that if the extension changed any data, Rubinius knows about
+the change.
+
+This happens in handle.c.  Note that the structures are copied
+from ruby.h (to prevent including that whole file) and then the
+magic happens in check_rstruct_data.  The RFloat case is as
+follows:
+  else if (FLOAT_P(o)) {
+    RFloat *rf = (RFloat *)h->data;
+    *((double*)BYTES_OF(o)) = rf->value;
+    XFREE(rf);
+    h->data = 0;
+  }
+
+Here, we get a handle to the R-struct.  We then update the
+Rubinius data from the MRI R-struct.  For a data type more
+complex than floats, this may be substantially more lines of
+code.  Finally, we free the R-struct pointer.
+
+Note that we totally overwrite whatever was previously stored
+by Rubinius.  There's no way to tell whether or not the
+extension changed the data so the only way to be sure is to
+copy everything back.

@@ -6,7 +6,9 @@
 #include "shotgun/lib/hash.h"
 #include "shotgun/lib/class.h"
 #include "shotgun/lib/module.h"
+#include "shotgun/lib/tuple.h"
 #include "shotgun/lib/subtend/nmc.h"
+#include "shotgun/lib/subtend/st.h"
 
 #undef SYMBOL_P
 #include "shotgun/lib/subtend/ruby.h"
@@ -80,58 +82,58 @@ VALUE subtend_get_global(int which) {
   CTX;
   
   switch(which) {
-    case 0:
+    case T_OBJECT:
     val = ctx->state->global->object;
     break;
-    case 1:
+    case T_ARRAY:
     val = ctx->state->global->array;
     break;
-    case 2:
+    case T_BIGNUM:
     val = ctx->state->global->bignum;
     break;
-    case 3:
+    case T_CLASS:
     val = ctx->state->global->class;
     break;
-    case 4:
+    case T_DATA:
     val = ctx->state->global->data;
     break;
-    case 5:
+    case T_FALSE:
     val = ctx->state->global->false_class;
     break;
-    case 6:
+    case T_FIXNUM:
     val = ctx->state->global->fixnum_class;
     break;
-    case 7:
+    case T_FLOAT:
     val = ctx->state->global->floatpoint;
     break;
-    case 8:
+    case T_HASH:
     val = ctx->state->global->hash;
     break;
-    case 9:
+    case T_IO:
     val = ctx->state->global->io;
     break;
-    case 10:
+    case T_MODULE:
     val = ctx->state->global->module;
     break;
-    case 11:
+    case T_NIL:
     val = ctx->state->global->nil_class;
     break;
-    case 12:
+    case T_REGEXP:
     val = ctx->state->global->regexp;
     break;
-    case 13:
+    case T_STRING:
     val = ctx->state->global->string;
     break;
-    case 14:
+    case T_SYMBOL:
     val = ctx->state->global->symbol;
     break;
-    case 15:
+    case T_THREAD:
     val = ctx->state->global->thread;
     break;
-    case 16:
+    case T_TRUE:
     val = ctx->state->global->true_class;
     break;
-    case 17:
+    case T_INTEGER:
     val = ctx->state->global->fixnum_class;
     break;
         
@@ -426,9 +428,9 @@ VALUE rb_yield(VALUE val) {
 
 int rb_block_given_p()
 {
-	CTX;
+  CTX;
 
-	return RTEST( cpu_current_block(ctx->state, ctx->cpu) );
+  return RTEST( cpu_current_block(ctx->state, ctx->cpu) );
 }
 
 
@@ -489,7 +491,30 @@ int rb_ary_size(VALUE self) {
 /* The same value as 1.8.x */
 #define ARRAY_DEFAULT_SIZE 16
 
+/* Integer */
+VALUE rb_Integer(VALUE val) {
+  VALUE ret_val;
+  
+  ret_val = rb_check_convert_type(val, T_FIXNUM, "Integer", "to_int");
+  if(ret_val == Qnil)
+    ret_val = rb_convert_type(val, T_FIXNUM, "Integer", "to_i");
+    
+  return ret_val;
+}
+
 /* Float */
+RFloat *RFLOAT(VALUE obj) {
+  CTX;
+  RFloat *ret;
+
+  ret = (RFloat *)AS_HNDL(obj)->data;
+  if (!ret) {
+    ret = ALLOC(RFloat);
+    ret->value = *((double*)BYTES_OF(HNDL(obj)));
+    AS_HNDL(obj)->data = (void*)ret;
+  }
+  return ret;
+}
 
 VALUE rb_float_new(double d) {
   OBJECT flt;
@@ -498,6 +523,10 @@ VALUE rb_float_new(double d) {
   flt = float_new(ctx->state, d);
   
   return NEW_HANDLE(ctx, flt);
+}
+
+VALUE rb_Float(VALUE val) {
+  return rb_convert_type(val, T_FLOAT, "Float", "to_f");
 }
 
 /* Array */
@@ -528,6 +557,19 @@ VALUE rb_ary_new2(long length) {
   ary = array_new(ctx->state, length);
   
   return NEW_HANDLE(ctx, ary);
+}
+
+VALUE rb_ary_new4(long length, const VALUE *val) {
+  VALUE ary;
+
+  ary = rb_ary_new2(length);
+  if (length > 0 && val) {
+    memcpy(RARRAY_PTR(ary), val, sizeof(VALUE) * length);
+  }
+
+  RARRAY_LEN(ary) = length;
+
+  return ary;
 }
 
 VALUE rb_ary_push(VALUE array, VALUE val) {
@@ -660,6 +702,22 @@ VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len) {
   return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), string_new2(ctx->state, ptr, len)));
 }
 
+VALUE rb_str_buf_cat2(VALUE str, const char *ptr) {
+  return rb_str_buf_cat(str, ptr, strlen(ptr));
+}
+
+VALUE rb_str_buf_new(long capa)
+{
+  /* Rubinius does not yet support strings with capacities different
+   * from their length, so just return an empty string.
+   */
+  return rb_str_new2("");
+}
+
+VALUE rb_str_buf_append(VALUE str, VALUE str2) {
+  return rb_str_append(str, str2);
+}
+
 VALUE rb_str_append(VALUE str, VALUE str2) {
   CTX;
   return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(str2)));
@@ -685,6 +743,29 @@ VALUE rb_str_concat(VALUE str1, VALUE str2) {
     str1 = rb_str_append(str1, str2);
 
     return str1;
+}
+
+VALUE rb_str_times(VALUE str, VALUE times) {
+  VALUE str2;
+  long i, len;
+
+  len = NUM2LONG(times);
+  if (len < 0) {
+    rb_raise(rb_eArgError, "negative argument");
+  }
+  if (len && LONG_MAX/len < RSTRING(str)->len) {
+    rb_raise(rb_eArgError, "argument too big");
+  }
+
+  str2 = rb_str_new(StringValuePtr(str), len *= RSTRING(str)->len);
+  for (i = 0; i < len; i += RSTRING(str)->len) {
+    memcpy(RSTRING(str2)->ptr + i, RSTRING(str)->ptr, RSTRING(str)->len);
+  }
+  RSTRING(str2)->ptr[RSTRING(str2)->len] = '\0';
+
+  OBJ_INFECT(str2, str);
+
+  return str2;
 }
 
 VALUE rb_str_plus(VALUE str1, VALUE str2) {
@@ -769,6 +850,57 @@ VALUE rb_inspect(VALUE obj) {
 }
 
 /* Hash */
+
+static int rb_any_cmp(VALUE a, VALUE b) {
+  return rb_funcall(a, rb_intern("<=>"), 1, b);
+}
+
+static int rb_any_hash(VALUE a) {
+  return rb_funcall(a, rb_intern("hash"), 0);
+}
+
+static struct st_hash_type objhash = {
+  rb_any_cmp,
+  rb_any_hash,
+};
+
+RHash* RHASH(VALUE obj) {
+  CTX;
+  RHash *ret;
+
+  ret = (RHash *)AS_HNDL(obj)->data;
+  /* Much of the following code is from hash.c::hash_redistribute */
+  if (!ret) {
+    STATE;
+    OBJECT hsh = HNDL(obj);
+    int i, bins;
+    OBJECT values, entry, key, value;
+    
+    (void)state; /* Stop complaining about unused variable, it's used below */
+
+    ret = ALLOC(RHash);
+    ret->tbl = st_init_table(&objhash);
+    
+    /* Now, let's copy the data from Rubinius */
+    bins = N2I(hash_get_bins(hsh));
+    values = hash_get_values(hsh);
+    
+    for (i = 0; i < bins; i++) {
+      entry = tuple_at(state, values, i);
+      
+      while ((VALUE)entry != Qnil) {
+        key = tuple_at(state, entry, 1);
+        value = tuple_at(state, entry, 2);
+        st_insert(ret->tbl, NEW_HANDLE(ctx, key), NEW_HANDLE(ctx, value));
+        
+        entry = tuple_at(state, entry, 3); /* Get the next entry in bin */
+      }
+    }
+
+    AS_HNDL(obj)->data = (void*)ret;
+  }
+  return ret;
+}
 
 VALUE rb_hash_new(void) {
   CTX;
@@ -1004,5 +1136,142 @@ VALUE rb_exc_new2(VALUE klass, const char *str) {
 VALUE rb_exc_new3(VALUE klass, VALUE str) {
   StringValue(str);
   return rb_funcall(klass, rb_intern("new"), 1, str);
+}
+
+VALUE rb_path2class(const char *path) {
+  const char *pbeg, *p;
+  ID id;
+  VALUE c = rb_cObject;
+  VALUE str = 0;
+
+  if (path[0] == '#') {
+    rb_raise(rb_eArgError, "can't retrieve anonymous class %s", path);
+  }
+  pbeg = p = path;
+  while (*p) {
+    while (*p && *p != ':') p++;
+    if (str) {
+      RSTRING(str)->len = 0;
+      rb_str_cat(str, pbeg, p-pbeg);
+    }
+    else {
+      str = rb_str_new(pbeg, p-pbeg);
+    }
+    id = rb_intern(RSTRING(str)->ptr);
+    if (p[0] == ':') {
+      if (p[1] != ':') goto undefined_class;
+      p += 2;
+      pbeg = p;
+    }
+    if (!rb_const_defined(c, id)) {
+      undefined_class:
+      rb_raise(rb_eArgError, "undefined class/module %.*s", p-path, path);
+    }
+    c = rb_const_get(c, id);
+    switch (TYPE(c)) {
+      case T_MODULE:
+      case T_CLASS:
+      break;
+      default:
+      rb_raise(rb_eTypeError, "%s does not refer class/module", path);
+    }
+  }
+
+  return c;
+}
+
+int rb_scan_args(int argc, const VALUE *argv, const char *fmt, ...) {
+  CTX;
+  int n, i = 0;
+  const char *p = fmt;
+  VALUE *var;
+  va_list vargs;
+
+  va_start(vargs, fmt);
+
+  if (*p == '*') goto rest_arg;
+
+  if (ISDIGIT(*p)) {
+    n = *p - '0';
+    if (n > argc)
+      rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)", argc, n);
+    for (i=0; i<n; i++) {
+      var = va_arg(vargs, VALUE*);
+      if (var) *var = argv[i];
+    }
+    p++;
+  }
+  else {
+    goto error;
+  }
+
+  if (ISDIGIT(*p)) {
+    n = i + *p - '0';
+    for (; i<n; i++) {
+      var = va_arg(vargs, VALUE*);
+      if (argc > i) {
+        if (var) *var = argv[i];
+      }
+      else {
+        if (var) *var = Qnil;
+      }
+    }
+    p++;
+  }
+
+  if(*p == '*') {
+    rest_arg:
+    var = va_arg(vargs, VALUE*);
+    if (argc > i) {
+      if (var) *var = rb_ary_new4(argc-i, argv+i);
+      i = argc;
+    }
+    else {
+      if (var) *var = rb_ary_new();
+    }
+    p++;
+  }
+
+  if (*p == '&') {
+    var = va_arg(vargs, VALUE*);
+    if (rb_block_given_p()) {
+      *var = NEW_HANDLE(ctx, cpu_current_block(ctx->state, ctx->cpu));
+    }
+    else {
+      *var = Qnil;
+    }
+    p++;
+  }
+  va_end(vargs);
+
+  if (*p != '\0') {
+    goto error;
+  }
+
+  if (argc > i) {
+    rb_raise(rb_eArgError, "wrong number of arguments (%d for %d)", argc, i);
+  }
+
+  return argc;
+
+  error:
+  rb_raise(rb_eFatal, "bad scan arg format: %s", fmt);
+  return 0;
+}
+
+void rb_check_type(VALUE x, int t) {
+  if (TYPE(x) != t) {
+    rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
+      rb_obj_classname(x), rb_obj_classname(subtend_get_global(t)));
+  }
+}
+
+VALUE rb_class_name(VALUE klass) {
+  OBJECT h, ret;
+  CTX;
+
+  h = HNDL(klass);
+  ret = rbs_symbol_to_string( ctx->state, class_get_name( h ) );
+  return NEW_HANDLE(ctx, ret);
 }
 

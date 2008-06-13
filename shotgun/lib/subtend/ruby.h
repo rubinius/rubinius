@@ -42,6 +42,7 @@
 #define ALLOC_N(kind, many) (kind*)malloc(sizeof(kind) * many)
 #undef ALLOC
 #define ALLOC(type) (type*)malloc(sizeof(type))
+#define MEMZERO(p,type,n) memset((p), 0, sizeof(type)*(n))
 
 #ifndef SYMBOL_P
 int SYMBOL_P(VALUE obj);
@@ -49,6 +50,7 @@ int SYMBOL_P(VALUE obj);
 
 extern VALUE rb_funcall(VALUE, ID, int cnt, ...);
 extern VALUE rb_funcall2(VALUE, ID, int cnt, VALUE*);
+int rb_scan_args(int, const VALUE*, const char*, ...);
 
 
 extern VALUE subtend_get_global(int which);
@@ -88,28 +90,61 @@ VALUE rb_attr_get(VALUE obj, ID sym);
 int rb_block_given_p();
 VALUE rb_each(VALUE obj);
 
+enum {
+  T_NONE,
+  T_NIL,
+  T_OBJECT,
+  T_CLASS,
+  T_ICLASS,
+  T_MODULE,
+  T_FLOAT,
+  T_STRING,
+  T_REGEXP,
+  T_ARRAY,
+  T_FIXNUM,
+  T_HASH,
+  T_STRUCT,
+  T_BIGNUM,
+  T_FILE,
+  T_TRUE,
+  T_FALSE,
+  T_DATA,
+  T_MATCH,
+  T_SYMBOL,
+  T_BLKTAG,
+  T_UNDEF,
+  T_VARMAP,
+  T_SCOPE,
+  T_NODE,
+  T_IO,
+  T_INTEGER,
+  T_THREAD
+};
+
+int rb_type(VALUE obj);
+#define TYPE(o) rb_type((VALUE)o)
+
 /* If you change these numbers, please also modify subtend_get_global
- * in ruby.c.  It is safe to do so, these numbers have no inherent
- * meanings.
+ * in ruby.c.
  */
-#define rb_cObject        (subtend_get_global(0))
-#define rb_cArray         (subtend_get_global(1))
-#define rb_cBignum        (subtend_get_global(2))
-#define rb_cClass         (subtend_get_global(3))
-#define rb_cData          (subtend_get_global(4))
-#define rb_cFalseClass    (subtend_get_global(5))
-#define rb_cFixnum        (subtend_get_global(6))
-#define rb_cFloat         (subtend_get_global(7))
-#define rb_cHash          (subtend_get_global(8))
-#define rb_cIO            (subtend_get_global(9))
-#define rb_cModule        (subtend_get_global(10))
-#define rb_cNilClass      (subtend_get_global(11))
-#define rb_cRegexp        (subtend_get_global(12))
-#define rb_cString        (subtend_get_global(13))
-#define rb_cSymbol        (subtend_get_global(14))
-#define rb_cThread        (subtend_get_global(15))
-#define rb_cTrueClass     (subtend_get_global(16))
-#define rb_cInteger       (subtend_get_global(17))
+#define rb_cObject        (subtend_get_global(T_OBJECT))
+#define rb_cArray         (subtend_get_global(T_ARRAY))
+#define rb_cBignum        (subtend_get_global(T_BIGNUM))
+#define rb_cClass         (subtend_get_global(T_CLASS))
+#define rb_cData          (subtend_get_global(T_DATA))
+#define rb_cFalseClass    (subtend_get_global(T_FALSE))
+#define rb_cFixnum        (subtend_get_global(T_FIXNUM))
+#define rb_cFloat         (subtend_get_global(T_FLOAT))
+#define rb_cHash          (subtend_get_global(T_HASH))
+#define rb_cIO            (subtend_get_global(T_IO))
+#define rb_cModule        (subtend_get_global(T_MODULE))
+#define rb_cNilClass      (subtend_get_global(T_NIL))
+#define rb_cRegexp        (subtend_get_global(T_REGEXP))
+#define rb_cString        (subtend_get_global(T_STRING))
+#define rb_cSymbol        (subtend_get_global(T_SYMBOL))
+#define rb_cThread        (subtend_get_global(T_THREAD))
+#define rb_cTrueClass     (subtend_get_global(T_TRUE))
+#define rb_cInteger       (subtend_get_global(T_INTEGER))
 
 #define rb_mKernel rb_const_get(rb_cObject, rb_intern("Kernel") )
 #define rb_mComparable rb_const_get(rb_cObject, rb_intern("Comparable") )
@@ -180,6 +215,7 @@ VALUE rb_check_convert_type(VALUE val, int type, const char* tname, const char* 
 VALUE rb_convert_type(VALUE val, int type, const char* tname, const char* method);
 
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass);
+VALUE rb_class_name(VALUE klass);
 
 void rb_thread_schedule();
 #define CHECK_INTS
@@ -192,11 +228,14 @@ VALUE INT2NUM(int num);
 #define NUM2INT(val) FIX2INT(val)
 #define LONG2NUM(v) INT2NUM((int)v)
 #define NUM2LONG(v) ((long)FIX2INT(v))
+#define LONG2FIX(v) INT2FIX((int)v)
+#define FIX2LONG(v) ((long)FIX2INT(v))
 
 /* Array */
 VALUE rb_Array(VALUE val);
 VALUE rb_ary_new(void);
 VALUE rb_ary_new2(long length);
+VALUE rb_ary_new4(long length, const VALUE *val);
 int rb_ary_size(VALUE self);
 VALUE rb_ary_push(VALUE array, VALUE val);
 VALUE rb_ary_pop(VALUE array);
@@ -228,6 +267,9 @@ VALUE rb_str_cat(VALUE str, const char *ptr, long len);
 VALUE rb_str_cat2(VALUE str, const char *ptr);
 VALUE rb_str_plus(VALUE str1, VALUE str2);
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
+VALUE rb_str_buf_cat2(VALUE str, const char *ptr);
+VALUE rb_str_buf_new(long capa);
+VALUE rb_str_buf_append(VALUE str, VALUE str2);
 int rb_str_cmp(VALUE str1, VALUE str2);
 VALUE rb_str_split(VALUE str, const char *sep);
 VALUE rb_str2inum(VALUE str, int base);
@@ -235,11 +277,13 @@ VALUE rb_cstr2inum(const char *str, int base);
 VALUE rb_str_substr(VALUE str, long beg, long len);
 VALUE rb_tainted_str_new2(const char *ptr);
 char *StringValuePtr(VALUE str);
+char *rb_string_value_cstr(VALUE *str);
 #define StringValueCStr(str) rb_string_value_cstr(&(str))
 VALUE rb_obj_as_string(VALUE obj);
 char rb_str_get_char(VALUE arg, int index);
 VALUE rb_str_to_str(VALUE arg);
 VALUE rb_str_concat(VALUE str1, VALUE str2);
+VALUE rb_str_times(VALUE str, VALUE times);
 VALUE rb_String(VALUE val);
 
 void rb_global_object(VALUE obj);
@@ -247,6 +291,7 @@ void rb_free_global(VALUE obj);
 
 #define MAKE_GLOBAL(val) rb_global_object(val)
 #define FREE_GLOBAL(val) rb_free_global(val)
+#define rb_gc_mark_maybe(val) MAKE_GLOBAL(val)
 
 VALUE rb_string_value(VALUE *obj);
 #define StringValue(v) rb_string_value(&v)
@@ -268,19 +313,36 @@ RString* RSTRING(VALUE obj);
 VALUE rb_inspect(VALUE obj);
 
 /* Hash */
+struct RHash {
+    struct st_table *tbl;
+};
+typedef struct RHash RHash;
+
+RHash* RHASH(VALUE obj);
 VALUE rb_hash_new(void);
 VALUE rb_hash_aref(VALUE hash, VALUE key);
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE val);
 VALUE rb_hash_delete(VALUE hash, VALUE key);
 
 /* Float */
+struct RFloat {
+  double value;
+};
+typedef struct RFloat RFloat;
+
+RFloat* RFLOAT(VALUE obj);
 VALUE rb_float_new(double d);
+VALUE rb_Float(VALUE val);
+
+/* Integer */
+VALUE rb_Integer(VALUE val);
 
 const char *rb_id2name(ID sym);
 ID rb_intern(const char *name);
 const char *rb_class2name(VALUE klass);
 VALUE rb_class_of(VALUE obj);
 #define CLASS_OF rb_class_of
+#define rb_obj_class(obj) rb_class_of(obj)
 
 const char *rb_obj_classname(VALUE obj);
 
@@ -303,6 +365,8 @@ void* subtend_get_struct(VALUE obj);
     memset(sval, 0, sizeof(type)),\
     Data_Wrap_Struct(klass,mark,free,sval)\
 )
+void rb_check_type(VALUE x, int t);
+#define Check_Type(v,t) rb_check_type((VALUE)(v),t)
 
 struct RData {
   void *data;
@@ -314,35 +378,11 @@ typedef struct RData RData;
 RData* RDATA(VALUE obj);
 #define DATA_PTR(v) (RDATA(v)->data)
 
-enum {
-  T_NONE,
-  T_NIL,
-  T_OBJECT,
-  T_CLASS,
-  T_ICLASS,
-  T_MODULE,
-  T_FLOAT,
-  T_STRING,
-  T_REGEXP,
-  T_ARRAY,
-  T_FIXNUM,
-  T_HASH,
-  T_STRUCT,
-  T_BIGNUM,
-  T_FILE,
-  T_TRUE,
-  T_FALSE,
-  T_DATA,
-  T_MATCH,
-  T_SYMBOL,
-  T_BLKTAG,
-  T_UNDEF,
-  T_VARMAP,
-  T_SCOPE,
-  T_NODE
-};
+VALUE rb_path2class(const char *path);
 
-int rb_type(VALUE obj);
-#define TYPE(o) rb_type((VALUE)o)
+/* Right now, Rubinius doesn't do tainted objects */
+#define OBJ_TAINTED(x) 0
+#define OBJ_TAINT(x)
+#define OBJ_INFECT(x,s)
 
 #endif
