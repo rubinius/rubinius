@@ -10,12 +10,22 @@ class Proc
     @block = other
   end
 
+  def compiled_method; @compiled_method; end
+
+  def compiled_method=(other)
+    @compiled_method = other
+  end
+
+  def block_based?
+    not block.nil?
+  end
+
   def binding
-    Binding.from_env @block
+    Binding.from_env @block if block_based?
   end
 
   def caller(start = 0)
-    @block.home_block.stack_trace_starting_at(0)
+    @block.home_block.stack_trace_starting_at(start) if block_based?
   end
 
   def self.__from_block__(env)
@@ -33,7 +43,14 @@ class Proc
     end
   end
 
-  def self.new
+  def self.__from_compiled_method__(cm)
+    obj = allocate()
+    obj.compiled_method = cm
+    obj.metaclass.method_table[:call] = obj.metaclass.method_table[:[]] = cm
+    return obj
+  end
+
+  def self.new(compiled_method = nil)
     if block_given?
       env = MethodContext.current.block
     else
@@ -45,23 +62,38 @@ class Proc
 
     if env
       return __from_block__(env)
+    elsif compiled_method and compiled_method.__kind_of__(CompiledMethod)
+      return __from_compiled_method__(compiled_method)
     else
       raise ArgumentError, "tried to create a Proc object without a block"
     end
   end
 
   def inspect
-    "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.home_block.file}:#{self.block.home_block.line}>"
+    if block_based?
+      line = @block.home_block.line
+      file = @block.home_block.file
+    else
+      line = @compiled_method.first_line if @compiled_method.lines
+      file = @compiled_method.file
+    end
+    "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{file}:#{line}>"
   end
 
   alias_method :to_s, :inspect
 
   def ==(other)
     return false unless other.kind_of? self.class
+    return @compiled_method == other.compiled_method unless block_based?
     @block == other.block
   end
 
   def arity
+    unless block_based?
+      return -1 if @compiled_method.kind_of? NativeMethod
+      c = @compiled_method.args.inject(0) { |s, v| s += (v.length rescue 0) }
+      return (@compiled_method.args[2].nil?) ? c : -(c + 1)
+    end
     @block.arity
   end
 
