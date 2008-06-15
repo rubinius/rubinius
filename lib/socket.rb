@@ -140,8 +140,9 @@ class Socket < BasicSocket
       hints[:ai_socktype] = socktype
       hints[:ai_protocol] = protocol
       hints[:ai_flags] = flags
+      host = "" if host.nil?
 
-      if host.empty?
+      if host.empty? 
         if (flags & Socket::AI_PASSIVE == 1) # Passive socket
           family == Socket::AF_INET6 ? (host = "::") : (host = "0.0.0.0") # IPv6 or IPv4
         else
