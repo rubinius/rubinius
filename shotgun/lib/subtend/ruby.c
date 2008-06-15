@@ -1275,3 +1275,8 @@ VALUE rb_class_name(VALUE klass) {
   return NEW_HANDLE(ctx, ret);
 }
 
+VALUE rb_proc_new(VALUE (*func)(), VALUE val) {
+  CTX;
+  VALUE native_meth = NEW_HANDLE(ctx, nmethod_new(ctx->state, HNDL(rb_mKernel), __FILE__, "", func, -3));
+  return rb_funcall(rb_const_get(rb_cObject, rb_intern("Proc")), rb_intern("new"), 1, native_meth);
+}

@@ -162,7 +162,7 @@ void _nmc_start() {
   
   rni_handle* (*func)() = (rni_handle* (*)())(n->method->entry);
   int hs, ch;
-  if(n->method->args == -2) {
+  if(n->method->args == -2 || n->method->args == -3) {
     hs = 2;
   } else if(n->method->args == -1) {
     hs = fc->argcount + 3;
@@ -180,8 +180,21 @@ void _nmc_start() {
 #define nha() ({ rni_handle *_h = nmc_handle_new(n, global_context->state->handle_tbl, cpu_stack_pop(global_context->state, c)); handles_used[ch++] = _h; _h; })
 
   retval = (rni_handle*)Qnil;
-  
-  if(n->method->args == -2) {
+  if(n->method->args == -3) {
+    /* Arity 1: Parameters as a ruby list */
+    OBJECT rargs = array_new(state, fc->argcount);
+    rni_handle *ah;
+
+    for(i = 0; i < fc->argcount; i++) {
+      array_set(state, rargs, i, cpu_stack_pop(state, c));
+    }
+
+    ah = nmc_handle_new(n, global_context->state->handle_tbl, rargs);
+    handles_used[ch++] = ah;
+
+    retval = (*func)(ah);
+  } else if(n->method->args == -2) {
+    /* Arity 2: Receiver object + Parameters as a ruby list */
     OBJECT rargs = array_new(state, fc->argcount);
     rni_handle *ah;
     
@@ -194,6 +207,7 @@ void _nmc_start() {
     
     retval = (*func)(recv, ah);
   } else if(n->method->args == -1) {
+    /* Arity 3: Arg count + Parameters as a VALUE* + Receiver object */
     rni_handle **args;
     
     args = &handles_used[ch];

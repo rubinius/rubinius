@@ -383,4 +383,6 @@ VALUE rb_path2class(const char *path);
 #define OBJ_TAINT(x)
 #define OBJ_INFECT(x,s)
 
+VALUE rb_proc_new(VALUE (*func)(), VALUE val);
+
 #endif
