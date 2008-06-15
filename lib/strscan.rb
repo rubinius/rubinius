@@ -4,8 +4,6 @@
 #   "check_until",        strscan_check_until,  1);
 #   "exist?",             strscan_exist_p,      1);
 #   "match?",             strscan_match_p,      1);
-#   "rest?",              strscan_rest_p,       0);
-#   "rest_size",          strscan_rest_size,    0);
 #   "scan_full",          strscan_scan_full,    3);
 #   "search_full",        strscan_search_full,  3);
 #   "skip",               strscan_skip,         1);
@@ -108,6 +106,14 @@ class StringScanner
 
   def rest
     string[pos..-1]
+  end
+
+  def rest?
+    return !eos?
+  end
+
+  def rest_size
+    self.rest.size
   end
 
   def scan pattern
