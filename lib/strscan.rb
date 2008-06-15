@@ -4,7 +4,6 @@
 #   "check_until",        strscan_check_until,  1);
 #   "exist?",             strscan_exist_p,      1);
 #   "match?",             strscan_match_p,      1);
-#   "rest",               strscan_rest,         0);
 #   "rest?",              strscan_rest_p,       0);
 #   "rest_size",          strscan_rest_size,    0);
 #   "scan_full",          strscan_scan_full,    3);
@@ -65,7 +64,9 @@ class StringScanner
   def inspect
     if defined? @string then
       rest = string.size > 5 ? string[pos..pos+4] + "..." : string
-      r = if pos > 0 then
+      r = if eos? then
+            "#<StringScanner fin>"
+          elsif pos > 0 then
             prev = string[0...pos].inspect
             "#<StringScanner #{pos}/#{string.size} #{prev} @ #{rest.inspect}>"
           else
