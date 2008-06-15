@@ -12,6 +12,8 @@
 #   "skip",               strscan_skip,         1);
 #   "skip_until",         strscan_skip_until,   1);
 
+class ScanError < StandardError; end
+
 class StringScanner
   Id = "bite me $Id".freeze
   Version = "1.0.0".freeze
@@ -136,7 +138,7 @@ class StringScanner
   end
 
   def unscan
-    raise ScanError if @prev_pos.nil?
+    raise ScanError.new if @prev_pos.nil?
     self.pos = @prev_pos
     @prev_pos = nil
     @match = nil

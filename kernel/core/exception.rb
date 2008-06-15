@@ -141,9 +141,6 @@ end
 class LoadError < ScriptError
 end
 
-class ScanError < StandardError
-end
-
 class NotImplementedError < ScriptError
 end
 
