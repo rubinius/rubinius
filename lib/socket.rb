@@ -141,6 +141,14 @@ class Socket < BasicSocket
       hints[:ai_protocol] = protocol
       hints[:ai_flags] = flags
 
+      if host.empty?
+        if (flags & Socket::AI_PASSIVE == 1) # Passive socket
+          family == Socket::AF_INET6 ? (host = "::") : (host = "0.0.0.0") # IPv6 or IPv4
+        else
+          family == Socket::AF_INET6 ? (host = "::1") : (host = "127.0.0.1")
+        end
+      end
+
       res_p = MemoryPointer.new :pointer
 
       err = _getaddrinfo host, service, hints.pointer, res_p
