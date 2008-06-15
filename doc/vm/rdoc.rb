@@ -1,3 +1,4 @@
+require 'rdoc/generator'
 require 'rdoc/markup/to_html'
 
 TEMPLATE = <<-EOF
