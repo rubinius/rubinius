@@ -4,7 +4,6 @@
 #   "check_until",        strscan_check_until,  1);
 #   "exist?",             strscan_exist_p,      1);
 #   "match?",             strscan_match_p,      1);
-#   "peek",               strscan_peek,         1);
 #   "rest",               strscan_rest,         0);
 #   "rest?",              strscan_rest_p,       0);
 #   "rest_size",          strscan_rest_size,    0);
@@ -137,6 +136,7 @@ class StringScanner
   end
 
   def unscan
+    raise ScanError if @prev_pos.nil?
     self.pos = @prev_pos
     @prev_pos = nil
     @match = nil
@@ -161,7 +161,10 @@ class StringScanner
                pattern.search_region(string, pos, string.size, true)
              end
 
-    return nil if match.nil?
+    if match.nil? then
+      @prev_pos = nil
+      return nil
+    end
 
     m = string[pos...match.end(0)]
 
