@@ -11,7 +11,7 @@ describe "SubtendProc" do
   
   it "rb_proc_new should return a new valid Proc" do
     my_proc = @p.underline_concat_proc()
-    my_proc.class.should == Proc
+    my_proc.kind_of?(Proc).should == true
     my_proc.call('foo', 'bar').should == 'foo_bar'
     my_proc['foo', 'bar'].should == 'foo_bar'
   end
