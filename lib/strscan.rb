@@ -1,10 +1,6 @@
 
 # TODO: write these - they don't have tests at all (rest_size above as well)
-#   "check_until",        strscan_check_until,  1);
 #   "exist?",             strscan_exist_p,      1);
-#   "scan_full",          strscan_scan_full,    3);
-#   "search_full",        strscan_search_full,  3);
-#   "skip_until",         strscan_skip_until,   1);
 
 class ScanError < StandardError; end
 
@@ -29,6 +25,10 @@ class StringScanner
 
   def check pattern
     _scan pattern, false, true, true
+  end
+
+  def check_until pattern
+    _scan pattern, false, true, false
   end
 
   def concat str
@@ -125,12 +125,24 @@ class StringScanner
     _scan pattern, true, true, false
   end
 
+  def scan_full pattern, succptr, getstr
+    _scan pattern, succptr, getstr, true
+  end
+
+  def search_full pattern, succptr, getstr
+    _scan pattern, succptr, getstr, false
+  end
+
   def self.must_C_version
     self
   end
 
   def skip pattern
     _scan pattern, true, false, true
+  end
+
+  def skip_until pattern
+    _scan pattern, true, false, false
   end
 
   def string= s
@@ -170,10 +182,7 @@ class StringScanner
                pattern.search_region(string, pos, string.size, true)
              end
 
-#     if match.nil? then
-#       @prev_pos = nil
-       return nil if match.nil? 
-#     end
+    return nil if match.nil? 
 
     m = string[pos...match.end(0)]
 
