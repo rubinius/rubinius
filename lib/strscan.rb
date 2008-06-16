@@ -1,12 +1,9 @@
 
 # TODO: write these - they don't have tests at all (rest_size above as well)
-#   "check",              strscan_check,        1);
 #   "check_until",        strscan_check_until,  1);
 #   "exist?",             strscan_exist_p,      1);
-#   "match?",             strscan_match_p,      1);
 #   "scan_full",          strscan_scan_full,    3);
 #   "search_full",        strscan_search_full,  3);
-#   "skip",               strscan_skip,         1);
 #   "skip_until",         strscan_skip_until,   1);
 
 class ScanError < StandardError; end
@@ -77,6 +74,10 @@ class StringScanner
     end
   end
 
+  def match? pattern
+    _scan pattern, false, false, true
+  end
+
   def matched
     match.to_s if matched?
   end
@@ -125,12 +126,11 @@ class StringScanner
   end
 
   def self.must_C_version
-    # do nothing
+    self
   end
 
   def skip pattern
-    s = scan pattern
-    s.size if s
+    _scan pattern, true, false, true
   end
 
   def string= s
@@ -170,10 +170,10 @@ class StringScanner
                pattern.search_region(string, pos, string.size, true)
              end
 
-    if match.nil? then
-      @prev_pos = nil
-      return nil
-    end
+#     if match.nil? then
+#       @prev_pos = nil
+       return nil if match.nil? 
+#     end
 
     m = string[pos...match.end(0)]
 
@@ -185,7 +185,7 @@ class StringScanner
     if getstr then
       m
     else
-      len
+      m.size
     end
   end
   private :_scan
