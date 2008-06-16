@@ -322,6 +322,7 @@ class Socket < BasicSocket
     end
   end
 
+  include Socket::ListenAndAccept
   include Socket::Constants
 
   class SockAddr_In < FFI::Struct
@@ -496,6 +497,11 @@ class Socket < BasicSocket
   def from_descriptor(fixnum)
     setup(fixnum)
     return self
+  end
+
+  def bind(server_sockaddr)
+    err = Socket::Foreign.bind(descriptor, server_sockaddr)
+    Errno.handle 'bind(2)' unless err == 0
   end
 end
 
