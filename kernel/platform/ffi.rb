@@ -65,12 +65,13 @@ module FFI
       end
       cret = find_type(ret)
       
-      if library.respond_to?(:each)
+      if library.respond_to?(:each) and !library.kind_of? String
         library.each do |lib|
           lib = setup_ld_library_path(lib) if lib
           func = create_backend(lib, name, args, cret)
           return func if func
         end
+        return nil
       else
         library = setup_ld_library_path(library) if library
         create_backend(library, name, args, cret)
