@@ -1,12 +1,12 @@
-shared :set_difference do |klass, cmd|
-  describe "#{klass}##{cmd}" do
+shared :set_difference do |cmd|
+  describe "Set##{cmd}" do
     before :each do
-      @set = klass[:a, :b, :c]
+      @set = Set[:a, :b, :c]
     end
     
     it "returns a new Set containting self's elements excluding the elements in the passed Enumerable" do
-      @set.send(cmd, Set[:a, :b]).should == klass[:c]
-      @set.send(cmd, [:b, :c]).should == klass[:a]
+      @set.send(cmd, Set[:a, :b]).should == Set[:c]
+      @set.send(cmd, [:b, :c]).should == Set[:a]
     end
     
     it "raises an ArgumentError when passed a non-Enumerable" do

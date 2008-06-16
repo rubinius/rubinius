@@ -14,26 +14,34 @@ shared :array_replace do |cmd|
       a.should == []
     end
 
-    it "calls to_ary on its argument" do
-      obj = mock('[1,2,3]')
-      def obj.to_ary() [1, 2, 3] end
-
-      ary = []
-      ary.send(cmd, obj)
-      ary.should == [1, 2, 3]
-
-      obj = mock('[]')
-      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return([])
-
-      ary.send(cmd, obj)
-      ary.should == []
+    it "tries to convert the passed argument to an Array using #to_ary" do
+      obj = mock('to_ary')
+      obj.stub!(:to_ary).and_return([1, 2, 3])
+      [].send(cmd, obj).should == [1, 2, 3]
     end
 
-    it "does not call to_ary on array subclasses" do
-      ary = []
-      ary.send(cmd, ArraySpecs::ToAryArray[5, 6, 7])
-      ary.should == [5, 6, 7]
+    ruby_version_is "" ... "1.8.6.220" do
+      it "checks whether the passed argument responds to #to_ary" do
+        obj = mock('method_missing to_ary')
+        obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+        obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
+        [].send(cmd, obj).should == [1, 2, 3]
+      end
+    end
+
+    ruby_version_is "1.8.6.220" do
+      it "checks whether the passed argument responds to #to_ary (including private methods)" do
+        obj = mock('method_missing to_ary')
+        obj.should_receive(:respond_to?).with(:to_ary, true).any_number_of_times.and_return(true)
+        obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
+        [].send(cmd, obj).should == [1, 2, 3]
+      end
+    end
+
+    it "does not call #to_ary on Array subclasses" do
+      obj = ArraySpecs::ToAryArray[5, 6, 7]
+      obj.should_not_receive(:to_ary)
+      [].send(cmd, ArraySpecs::ToAryArray[5, 6, 7]).should == [5, 6, 7]
     end
 
     compliant_on :ruby, :jruby do

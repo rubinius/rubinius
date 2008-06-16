@@ -1,33 +1,22 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require "stringio"
+require File.dirname(__FILE__) + '/shared/read'
 
 describe "StringIO#read" do
+  it_behaves_like :stringio_read, :read
+end
+
+describe "StringIO#read when passed [length]" do
   before(:each) do
-    @io = StringIOSpecs.build
+    @io = StringIO.new("example")
+  end
+  
+  it "returns nil when self's position is at the end" do
+    @io.pos = 7
+    @io.read(10).should be_nil
   end
 
-  it "reads at most 'length' bytes" do
-    @io.read(666).should == @io.string
-  end
-
-  it "reads to the end of the string if length is omitted" do
-    @io.read.should == @io.string
-    @io.read.should == ""
-    @io.read(nil).should == ""
-    @io.read(50).should == nil
-  end
-
-  it "only supports String buffers" do
-    lambda { @io.read(5, []) }.should raise_error(TypeError)
-    @io.pos.should == 0
-  end
-
-  it "reads data into a buffer string if provided" do
-    @io = StringIO.new('buffered')
-    buf = ""
-    @io.read(5, buf).object_id.should == buf.object_id
-    buf.should == "buffe"
-    @io.read(1, buf)
-    buf.should == 'r'
+  it "returns an empty String when length is 0" do
+    @io.read(0).should == ""
   end
 end

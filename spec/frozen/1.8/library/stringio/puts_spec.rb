@@ -1,63 +1,210 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "StringIO#puts" do
+describe "StringIO#puts when passed [Array, ...]" do
   before(:each) do
-    @io = StringIO.new('')
-  end
-
-  after(:each) do
-    $/ = "\n"
-  end
-
-  it "writes a newline after objects that do not end in newlines" do
-    @io.puts(5).should == nil
-    @io.string.should == "5\n"
-  end
-
-  it "does not write a newline after objects that end in newlines" do
-    @io.puts("5\n").should == nil
-    @io.string.should == "5\n"
+    @io = StringIO.new
   end
   
-  it "calls to_s before writing non-string objects" do
-    object = mock('hola')
-    object.should_receive(:to_s).and_return("hola")
+  it "writes each element of the passed Array to self, seperated by a newline" do
+    @io.puts([1, 2, 3, 4])
+    @io.string.should == "1\n2\n3\n4\n"
+  
+    @io.puts([1, 2], [3, 4])
+    @io.string.should == "1\n2\n3\n4\n1\n2\n3\n4\n"
+  end
+  
+  it "flattens nested Arrays" do
+    @io.puts([1, [2, [3, [4]]]])
+    @io.string.should == "1\n2\n3\n4\n"
+  end
+  
+  it "handles self-recursive arrays correctly" do
+    (ary = [5])
+    ary << ary
+    @io.puts(ary)
+    @io.string.should == "5\n[...]\n"
+  end
+
+  it "does not honor the global output record seperator $\\" do
+    begin
+      old_rs, $\ = $\, "test"
+      @io.puts([1, 2, 3, 4])
+      @io.string.should == "1\n2\n3\n4\n"
+    ensure
+      $\ = old_rs
+    end
+  end
+  
+  it "first tries to convert each Array element to an Array using #to_ary" do
+    obj = mock("Object")
+    obj.should_receive(:to_ary).and_return(["to_ary"])
+    @io.puts([obj])
+    @io.string.should == "to_ary\n"
+  end
+  
+  it "then tries to convert each Array element to a String using #to_s" do
+    obj = mock("Object")
+    obj.should_receive(:to_s).and_return("to_s")
+    @io.puts([obj])
+    @io.string.should == "to_s\n"
+  end
+  
+  ruby_version_is "" ... "1.8.7" do
+    it "checks each Array element whether it responds to #to_ary" do
+      obj = mock('method_missing to_ary')
+      obj.should_receive(:respond_to?).with(:to_ary).and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
+      @io.puts([obj])
+      @io.string.should == "to_ary\n"
+    end
+
+    it "checks each Array element whether it responds to #to_s if it does not respond to #to_ary" do
+      obj = mock('method_missing to_s')
+      obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
+      obj.should_not_receive(:respond_to?).with(:to_s).and_return(true)
+      @io.puts([obj])
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "checks each Array element whether it responds to #to_ary (including private methods)" do
+      obj = mock('method_missing to_ary')
+      obj.should_receive(:respond_to?).with(:to_ary, true).and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
+      @io.puts([obj])
+      @io.string.should == "to_ary\n"
+    end
+
+    it "does not check each Array element whether it responds to #to_s (including private methods) if it does not respond to #to_ary" do
+      obj = mock('method_missing to_s')
+      obj.should_receive(:respond_to?).with(:to_ary, true).and_return(false)
+      obj.should_not_receive(:respond_to?).with(:to_s, true).and_return(true)
+      @io.puts([obj])
+    end
+  end
+end
+
+describe "StringIO#puts when passed [Object, ...]" do
+  before(:each) do
+    @io = StringIO.new
+  end
+
+  it "does not honor the global output record seperator $\\" do
+    begin
+      old_rs, $\ = $\, "test"
+      @io.puts(1, 2, 3, 4)
+      @io.string.should == "1\n2\n3\n4\n"
+    ensure
+      $\ = old_rs
+    end
+  end
+
+  it "does not put a \\n after each Objects that end in a newline" do
+    @io.puts("1\n", "2\n", "3\n")
+    @io.string.should == "1\n2\n3\n"
+  end
+  
+  it "first tries to convert each Object to an Array using #to_ary" do
+    obj = mock("Object")
+    obj.should_receive(:to_ary).and_return(["to_ary"])
+    @io.puts(obj)
+    @io.string.should == "to_ary\n"
+  end
+  
+  it "then tries to convert each Object to a String using #to_s" do
+    obj = mock("Object")
+    obj.should_receive(:to_s).and_return("to_s")
+    @io.puts(obj)
+    @io.string.should == "to_s\n"
+  end
+  
+  ruby_version_is "" ... "1.8.7" do
+    it "checks each Object whether it responds to #to_ary" do
+      obj = mock('method_missing to_ary')
+      obj.should_receive(:respond_to?).with(:to_ary).and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
+      @io.puts(obj)
+      @io.string.should == "to_ary\n"
+    end
+
+    it "checks each Object whether it responds to #to_s if it does not respond to #to_ary" do
+      obj = mock('method_missing to_s')
+      obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
+      obj.should_not_receive(:respond_to?).with(:to_s).and_return(true)
+      @io.puts(obj)
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "checks each Object whether it responds to #to_ary (including private methods)" do
+      obj = mock('method_missing to_ary')
+      obj.should_receive(:respond_to?).with(:to_ary, true).and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
+      @io.puts(obj)
+      @io.string.should == "to_ary\n"
+    end
+
+    it "does not check each Object whether it responds to #to_s (including private methods) if it does not respond to #to_ary" do
+      obj = mock('method_missing to_s')
+      obj.should_receive(:respond_to?).with(:to_ary, true).and_return(false)
+      obj.should_not_receive(:respond_to?).with(:to_s, true).and_return(true)
+      @io.puts(obj)
+    end
+  end
+end
+
+describe "StringIO#puts when passed no arguments" do
+  before(:each) do
+    @io = StringIO.new
+  end
+
+  it "returns nil" do
+    @io.puts.should be_nil
+  end
+
+  it "prints a newline" do
+    @io.puts
+    @io.string.should == "\n"
+  end
+  
+  it "does not honor the global output record seperator $\\" do
+    begin
+      old_rs, $\ = $\, "test"
+      @io.puts
+      @io.string.should == "\n"
+    ensure
+      $\ = old_rs
+    end
+  end
+end
+
+describe "StringIO#puts when in append mode" do
+  before(:each) do
+    @io = StringIO.new("example", "a")
+  end
+
+  it "appends the passed argument to the end of self" do
+    @io.puts(", just testing")
+    @io.string.should == "example, just testing\n"
     
-    @io.puts(object).should == nil
-    @io.string.should == "hola\n"
-  end
-  
-  it "writes each arg if given several" do
-    @io.puts(1, "two", 3).should == nil
-    @io.string.should == "1\ntwo\n3\n"
-  end
-  
-  it "flattens a nested array before writing it" do
-    @io.puts([1, 2, [3, [4, [5]]]]).should == nil
-    @io.string.should == "1\n2\n3\n4\n5\n"
-  end
-  
-  it "writes [...] for a recursive array arg" do
-    x = []
-    x << 2 << x
-    @io.puts(x).should == nil
-    @io.string.should == "2\n[...]\n"
-  end
-  
-  it "writes a newline after objects that do not end in newlines" do
-    @io.puts(5).should == nil
-    @io.string.should == "5\n"
-  end
-  
-  it "does not write a newline after objects that end in newlines" do
-    @io.puts("5\n").should == nil
-    @io.string.should == "5\n"
+    @io.puts(" and more testing")
+    @io.string.should == "example, just testing\n and more testing\n"
   end
 
-  it "ignores the $/ separator global" do
-    $/ = ":"
-    @io.puts(5,6)
-    @io.string.should == "5\n6\n"
+  it "correctly updates self's position" do
+    @io.puts(", testing")
+    @io.pos.should eql(17)
+  end
+end
+
+describe "StringIO#puts when self is not writable" do
+  it "raises an IOError" do
+    io = StringIO.new("test", "r")
+    lambda { io.puts }.should raise_error(IOError)
+
+    io = StringIO.new("test")
+    io.close_write
+    lambda { io.puts }.should raise_error(IOError)
   end
 end

@@ -49,15 +49,31 @@ describe "Array#initialize" do
     lambda { [].instance_eval { initialize(-1, :a) } }.should raise_error(ArgumentError)
     lambda { [1, 2, 3].instance_eval { initialize(-1) } }.should raise_error(ArgumentError)
   end
-  
-  it "calls to_int on array size" do
+
+  it "tries to convert the passed size argument to an Integer using #to_int" do
     obj = mock('1')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(1)
-    
-    [1, 2].instance_eval { initialize(obj, :a) }
+    obj.should_receive(:to_int).and_return(1)
+    [1, 2].send(:initialize, obj, :a).should == [:a]
+  end
+
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the passed size argument responds to #to_int" do
+      obj = mock('1')
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(1)
+      [1, 2].send(:initialize, obj, :a).should == [:a]
+    end
   end
   
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the passed size argument responds to #to_int (including private methods)" do
+      obj = mock('1')
+      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(1)
+      [1, 2].send(:initialize, obj, :a).should == [:a]
+    end
+  end
+
   compliant_on :ruby, :jruby do
     it "raises a TypeError on frozen arrays even if the array would not be 'modified'" do
       # This is true at least 1.8.6p111 onwards 

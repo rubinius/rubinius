@@ -12,21 +12,34 @@ describe "Array#transpose" do
     [[0], [1]].transpose.should == [[0, 1]]
   end
 
-  it "raises if the items aren't arrays and don't respond to to_ary" do
-    g = mock('[1,2]')
-    def g.to_a() [1, 2] end
-    h = mock('[1,2]')
-    def h.to_ary() [1, 2] end
+  it "tries to convert the passed argument to an Array using #to_ary" do
+    obj = mock('[1,2]')
+    obj.should_receive(:to_ary).and_return([1, 2])
+    [obj, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
+  end
 
-    lambda { [g, [:a, :b]].transpose }.should raise_error(TypeError)
-    [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
-    
-    h = mock('[1,2]')
-    h.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    h.should_receive(:method_missing).with(:to_ary).and_return([1, 2])
-    [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]    
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_ary" do
+      obj = mock('[1,2]')
+      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2])
+      [obj, [:a, :b]].transpose.should == [[1, :a], [2, :b]]    
+    end
+  end
+
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_ary (including private methods)" do
+      obj = mock('[1,2]')
+      obj.should_receive(:respond_to?).with(:to_ary, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2])
+      [obj, [:a, :b]].transpose.should == [[1, :a], [2, :b]]    
+    end
   end
   
+  it "raises a TypeError if the passed Argument does not respond to #to_ary" do
+    lambda { [Object.new, [:a, :b]].transpose }.should raise_error(TypeError)
+  end
+
   it "does not call to_ary on array subclass elements" do
     ary = [ArraySpecs::ToAryArray[1, 2], ArraySpecs::ToAryArray[4, 6]]
     ary.transpose.should == [[1, 4], [2, 6]]

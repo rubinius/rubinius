@@ -8,17 +8,23 @@ describe "Matrix#/" do
     @c = Matrix[ [1.2, 2.4], [3.6, 4.8] ]
   end
 
-  it "returns the result of dividing self by another Matrix" do
-    (@a / @b).should == Matrix[ [-2, 0], [-4, 0] ]
-    ((@a / @b) / @b).should == Matrix[ [0,0], [0,0] ]
+  conflicts_with :Prime do
+    it "returns the result of dividing self by another Matrix" do
+      (@a / @b).should == Matrix[ [-2, 0], [-4, 0] ]
+      ((@a / @b) / @b).should == Matrix[ [0,0], [0,0] ]
+    end
   end
 
-  it "returns the result of dividing self by a Fixnum" do
-    (@a / 2).should == Matrix[ [0, 1], [1, 2] ]
+  conflicts_with :Prime do
+    it "returns the result of dividing self by a Fixnum" do
+      (@a / 2).should == Matrix[ [0, 1], [1, 2] ]
+    end
   end
 
-  it "returns the result of dividing self by a Bignum" do
-    (@a / bignum_value).should == Matrix[ [0, 0], [0, 0] ]
+  conflicts_with :Prime do
+    it "returns the result of dividing self by a Bignum" do
+      (@a / bignum_value).should == Matrix[ [0, 0], [0, 0] ]
+    end
   end
 
   it "returns the result of dividing self by a Float" do

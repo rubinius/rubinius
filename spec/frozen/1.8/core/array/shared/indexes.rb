@@ -10,17 +10,28 @@ shared :array_indexes do |cmd|
       array.send(cmd, *params).should == array.values_at(*params)
     end
     
-    it "calls to_int on arguments" do
-      array = [1, 2, 3, 4, 5]
+    it "tries to convert the passed arguments to Integers using #to_int" do
+      obj = mock('to_int')
+      obj.should_receive(:to_int).and_return(1, 3)
+      [1, 2, 3, 4, 5].send(cmd, obj, obj).should == [2, 4]
+    end
 
-      x = mock('4')
-      def x.to_int() 4 end
-      array.send(cmd, x).should == [5]
+    ruby_version_is "" ... "1.8.6.220" do
+      it "checks whether the passed arguments respond to #to_int" do
+        obj = mock('method_missing to_int')
+        obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+        obj.should_receive(:method_missing).with(:to_int).twice.and_return(1, 3)
+        [1, 2, 3, 4, 5].send(cmd, obj, obj).should == [2, 4]
+      end
+    end
 
-      x = mock('2')
-      x.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      x.should_receive(:method_missing).with(:to_int).and_return(2)
-      array.send(cmd, x).should == [3]
+    ruby_version_is "1.8.6.220" do
+      it "checks whether the passed arguments respond to #to_int (including private methods)" do
+        obj = mock('method_missing to_int')
+        obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+        obj.should_receive(:method_missing).with(:to_int).twice.and_return(1, 3)
+        [1, 2, 3, 4, 5].send(cmd, obj, obj).should == [2, 4]
+      end
     end
 
     it "returns elements in range arguments as nested arrays (DEPRECATED)" do

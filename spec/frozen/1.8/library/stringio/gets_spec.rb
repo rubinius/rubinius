@@ -1,52 +1,144 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require "stringio"
 
-describe "StringIO#gets" do
+describe "StringIO#gets when passed [seperator]" do
   before(:each) do
-    @io = StringIO.new("g e t s")
-    @io_para = StringIO.new("para1-1\npara1-2\n\n\npara2-1\npara2-2\n\n\n\n")
+    @io = StringIO.new("this>is>an>example")
   end
 
-  after(:each) do
-    $/ = "\n"
+  it "returns the data read till the next occurence of the passed seperator" do
+    @io.gets(">").should == "this>"
+    @io.gets(">").should == "is>"
+    @io.gets(">").should == "an>"
+    @io.gets(">").should == "example"
   end
 
-  it "returns the next 'line'" do
-    @io.gets.should == 'g e t s'
+  it "sets $_ to the read content" do
+    @io.gets(">")
+    $_.should == "this>"
+    @io.gets(">")
+    $_.should == "is>"
+    @io.gets(">")
+    $_.should == "an>"
+    @io.gets(">")
+    $_.should == "example"
+    @io.gets(">")
+    $_.should be_nil
   end
 
-  it "returns nil at the end" do
+  it "updates self's lineno by one" do
+    @io.gets(">")
+    @io.lineno.should eql(1)
+    
+    @io.gets(">")
+    @io.lineno.should eql(2)
+    
+    @io.gets(">")
+    @io.lineno.should eql(3)
+  end
+  
+  it "returns the next paragraph when the passed seperator is an empty String" do
+    io = StringIO.new("this is\n\nan example")
+    io.gets("").should == "this is\n"
+    io.gets("").should == "an example"
+  end
+  
+  it "returns the remaining content starting at the current position when passed nil" do
+    io = StringIO.new("this is\n\nan example")
+    io.pos = 5
+    io.gets(nil).should == "is\n\nan example"
+  end
+
+  it "tries to convert the passed seperator to a String using #to_str" do
+    obj = mock('to_str')
+    obj.should_receive(:to_str).and_return(">")
+    @io.gets(obj).should == "this>"
+  end
+
+  ruby_version_is "" ... "1.8.7" do
+    it "checks whether the passed seperator responds to #to_str" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).with(:to_str).and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return(">")
+      @io.gets(obj).should == "this>"
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "checks whether the passed seperator responds to #to_str (including private methods)" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).with(:to_str, true).and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return(">")
+      @io.gets(obj).should == "this>"
+    end
+  end
+end
+
+describe "StringIO#gets when passed no argument" do
+  before(:each) do
+    @io = StringIO.new("this is\nan example\nfor StringIO#gets")
+  end
+  
+  it "returns the data read till the next occurence of $/ or till eof" do
+    @io.gets.should == "this is\n"
+    
+    begin
+      old_sep, $/ = $/, " "
+      @io.gets.should == "an "
+      @io.gets.should == "example\nfor "
+      @io.gets.should == "StringIO#gets"
+    ensure
+      $/ = old_sep
+    end
+  end
+
+  it "sets $_ to the read content" do
     @io.gets
+    $_.should == "this is\n"
+    @io.gets
+    $_.should == "an example\n"
+    @io.gets
+    $_.should == "for StringIO#gets"
+    @io.gets
+    $_.should be_nil
+  end
+
+  it "updates self's position" do
+    @io.gets
+    @io.pos.should eql(8)
+    
+    @io.gets
+    @io.pos.should eql(19)
+
+    @io.gets
+    @io.pos.should eql(36)
+  end
+  
+  it "updates self's lineno" do
+    @io.gets
+    @io.lineno.should eql(1)
+    
+    @io.gets
+    @io.lineno.should eql(2)
+    
+    @io.gets
+    @io.lineno.should eql(3)
+  end
+
+  it "returns nil if self is at the end" do
+    @io.pos = 36
+    @io.gets.should be_nil
     @io.gets.should be_nil
   end
+end
 
-  it "raises an IOError when it is not open for reading" do
-    @io.close_read
-    lambda { @io.gets }.should raise_error(IOError)
-  end
+describe "StringIO#gets when in write-only mode" do
+  it "raises an IOError" do
+    io = StringIO.new("xyz", "w")
+    lambda { io.gets }.should raise_error(IOError)
 
-  it "supports separator strings" do
-    @io.gets('e').should == 'g e'
-    @io.gets('e').should == ' t s'
-  end
-
-  it "honors the $/ global separator" do
-    $/ = ' '
-    @io.gets.should == 'g '
-    @io.gets.should == 'e '
-    @io.gets.should == 't '
-    @io.gets.should == 's'
-  end
-
-  it "returns the next paragrah when separator is an empty string" do
-    @io_para.gets("").should == "para1-1\npara1-2\n"
-    @io_para.gets("").should == "para2-1\npara2-2\n"
-    @io_para.gets("").should be_nil
-    StringIO.new("\n\n\n\n\n\n\n\n\n").gets("").should be_nil
-  end
-
-  it "returns the entire content if separator is nil" do
-    @io_para.gets(nil).should == @io_para.string
-    @io_para.gets(nil).should be_nil
+    io = StringIO.new("xyz")
+    io.close_read
+    lambda { io.gets }.should raise_error(IOError)
   end
 end

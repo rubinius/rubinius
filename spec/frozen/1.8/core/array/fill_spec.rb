@@ -28,15 +28,28 @@ describe "Array#fill" do
     [1, 2, 3, 4, 5].fill('a', 5).should == [1, 2, 3, 4, 5]
   end
   
-  it "calls to_int on start and length" do
-    x = mock('2')
-    def x.to_int() 2 end
-    [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
-    
-    x = mock('2')
-    x.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    x.should_receive(:method_missing).with(:to_int).twice.and_return(2)
-    [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
+  it "tries to convert the passed arguments to Integers using #to_int" do
+    obj = mock('to_int')
+    obj.should_receive(:to_int).and_return(2, 2)
+    [1, 2, 3, 4, 5].fill('a', obj, obj).should == [1, 2, "a", "a", 5]
+  end
+  
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the passed arguments respond to #to_int" do
+      obj = mock('method_missing to_int')
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).twice.and_return(2)
+      [1, 2, 3, 4, 5].fill('a', obj, obj).should == [1, 2, "a", "a", 5]
+    end
+  end
+
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the passed arguments respond to #to_int (including private methods)" do
+      obj = mock('method_missing to_int')
+      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).twice.and_return(2)
+      [1, 2, 3, 4, 5].fill('a', obj, obj).should == [1, 2, "a", "a", 5]
+    end
   end
 
   it "starts at 0 if the negative index is before the start of the array" do

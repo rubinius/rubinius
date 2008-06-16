@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#fetch" do
-  it "returns the element at index" do
+  it "returns the element at the passed index" do
     [1, 2, 3].fetch(1).should == 2
     [nil].fetch(0).should == nil
   end
@@ -40,14 +40,31 @@ describe "Array#fetch" do
     [1, 2, 3].fetch(9, :foo) { |i| i * i }.should == 81
   end
 
-  it "calls to_int on its argument" do
-    x = mock('0')
-    def x.to_int() 0 end
-    [1, 2, 3].fetch(x).should == 1
-    
-    x = mock('1')
-    x.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    x.should_receive(:method_missing).with(:to_int).and_return(0)
-    [1, 2, 3].fetch(x).should == 1
+  it "tries to convert the passed argument to an Integer using #to_int" do
+    obj = mock('to_int')
+    obj.should_receive(:to_int).and_return(2)
+    ["a", "b", "c"].fetch(obj).should == "c"
+  end
+  
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_int" do
+      obj = mock('method_missing to_int')
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(2)
+      ["a", "b", "c"].fetch(obj).should == "c"
+    end
+  end
+
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_int (including private methods)" do
+      obj = mock('method_missing to_int')
+      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(2)
+      ["a", "b", "c"].fetch(obj).should == "c"
+    end
+  end
+  
+  it "raises a TypeError when the passed argument can't be coerced to Integer" do
+    lambda { [].fetch("cat") }.should raise_error(TypeError)
   end
 end

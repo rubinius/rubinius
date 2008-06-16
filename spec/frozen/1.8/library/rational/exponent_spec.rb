@@ -2,24 +2,26 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'rational'
 
 describe "Rational#** when passed [Rational]" do
-  it "converts self to a Float and returns it raised to the passed argument" do
-    (Rational(3, 4) ** Rational(4, 3)).should be_close(0.681420222312052, TOLERANCE)
-    (Rational(3, 4) ** Rational(-4, 3)).should be_close(1.46752322173095, TOLERANCE)
-    (Rational(3, 4) ** Rational(4, -3)).should be_close(1.46752322173095, TOLERANCE)
+  conflicts_with :Prime do
+    it "converts self to a Float and returns it raised to the passed argument" do
+      (Rational(3, 4) ** Rational(4, 3)).should be_close(0.681420222312052, TOLERANCE)
+      (Rational(3, 4) ** Rational(-4, 3)).should be_close(1.46752322173095, TOLERANCE)
+      (Rational(3, 4) ** Rational(4, -3)).should be_close(1.46752322173095, TOLERANCE)
 
-    (Rational(3, 4) ** Rational(0, 3)).should eql(1.0)
-    (Rational(-3, 4) ** Rational(0, 3)).should eql(1.0)
-    (Rational(3, -4) ** Rational(0, 3)).should eql(1.0)
-    (Rational(3, 4) ** Rational(0, -3)).should eql(1.0)
+      (Rational(3, 4) ** Rational(0, 3)).should eql(1.0)
+      (Rational(-3, 4) ** Rational(0, 3)).should eql(1.0)
+      (Rational(3, -4) ** Rational(0, 3)).should eql(1.0)
+      (Rational(3, 4) ** Rational(0, -3)).should eql(1.0)
 
-    (Rational(bignum_value, 4) ** Rational(0, 3)).should eql(1.0)
-    (Rational(3, -bignum_value) ** Rational(0, 3)).should eql(1.0)
-    (Rational(3, 4) ** Rational(0, bignum_value)).should eql(1.0)
-    (Rational(3, 4) ** Rational(0, -bignum_value)).should eql(1.0)
-  end
+      (Rational(bignum_value, 4) ** Rational(0, 3)).should eql(1.0)
+      (Rational(3, -bignum_value) ** Rational(0, 3)).should eql(1.0)
+      (Rational(3, 4) ** Rational(0, bignum_value)).should eql(1.0)
+      (Rational(3, 4) ** Rational(0, -bignum_value)).should eql(1.0)
+    end
 
-  it "returns NaN when self is negative and the passed argument is not 0" do
-    (Rational(-3, 4) ** Rational(-4, 3)).nan?.should be_true
+    it "returns NaN when self is negative and the passed argument is not 0" do
+      (Rational(-3, 4) ** Rational(-4, 3)).nan?.should be_true
+    end
   end
 end
 
@@ -36,13 +38,15 @@ describe "Rational#** when passed [Integer]" do
     (Rational(3, -bignum_value) ** -4).should == Rational(7237005577332262213973186563042994240829374041602535252466099000494570602496, 81)
   end
   
-  it "returns Rational(1, 1) when the passed argument is 0" do
-    (Rational(3, 4) ** 0).should eql(Rational(1, 1))
-    (Rational(-3, 4) ** 0).should eql(Rational(1, 1))
-    (Rational(3, -4) ** 0).should eql(Rational(1, 1))
+  conflicts_with :Prime do
+    it "returns Rational(1, 1) when the passed argument is 0" do
+      (Rational(3, 4) ** 0).should eql(Rational(1, 1))
+      (Rational(-3, 4) ** 0).should eql(Rational(1, 1))
+      (Rational(3, -4) ** 0).should eql(Rational(1, 1))
 
-    (Rational(bignum_value, 4) ** 0).should eql(Rational(1, 1))
-    (Rational(3, -bignum_value) ** 0).should eql(Rational(1, 1))
+      (Rational(bignum_value, 4) ** 0).should eql(Rational(1, 1))
+      (Rational(3, -bignum_value) ** 0).should eql(Rational(1, 1))
+    end
   end
 end
 

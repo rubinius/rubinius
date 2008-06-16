@@ -111,7 +111,7 @@ shared :array_slice do |cmd|
       a.send(cmd, 0, obj).should == [1, 2]
     end
 
-    ruby_version_is "" ... "1.8.7" do
+    ruby_version_is "" ... "1.8.6.220" do
       it "checks whether index and count respond to #to_int with [index, count]" do
         obj = mock('method_missing to_int')
         obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
@@ -120,7 +120,7 @@ shared :array_slice do |cmd|
       end
     end
 
-    ruby_version_is "1.8.7" do
+    ruby_version_is "1.8.6.220" do
       it "checks whether index and count respond to #to_int (including private methods) with [index, count]" do
         obj = mock('method_missing to_int')
         obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
@@ -277,7 +277,7 @@ shared :array_slice do |cmd|
       lambda { a.slice(from ... "b") }.should raise_error(TypeError)
     end
 
-    ruby_version_is "" ... "1.8.7" do
+    ruby_version_is "" ... "1.8.6.220" do
       it "checks whether the Range elements respond to #to_int with [m..n] and [m...n]" do
         from = mock('from')
         to = mock('to')
@@ -295,7 +295,7 @@ shared :array_slice do |cmd|
       end
     end
 
-    ruby_version_is "1.8.7" do
+    ruby_version_is "1.8.6.220" do
       it "checks whether the Range elements respond to #to_int (including private methods) with [m..n] and [m...n]" do
         from = mock('from')
         to = mock('to')

@@ -1,7 +1,7 @@
-shared :set_collect_bang do |klass, cmd|
-  describe "#{klass}##{cmd}" do
+shared :set_collect_bang do |cmd|
+  describe "Set##{cmd}" do
     before(:each) do
-      @set = klass[1, 2, 3, 4, 5]
+      @set = Set[1, 2, 3, 4, 5]
     end
 
     it "yields each Object in self" do
@@ -16,8 +16,7 @@ shared :set_collect_bang do |klass, cmd|
 
     it "replaces self with the return values of the block" do
       @set.send(cmd) { |x| x * 2 }
-      @set.should == klass[2, 4, 6, 8, 10]
+      @set.should == Set[2, 4, 6, 8, 10]
     end
   end
-
 end

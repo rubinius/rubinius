@@ -2,6 +2,14 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'strscan'
 
 describe "StringScanner#reset" do
-  it "needs to be reviewed for spec completeness" do
+  before :each do
+    @s = StringScanner.new("This is a test")
+  end
+
+  it "reset the scan pointer and clear matching data" do
+    @s.scan(/This/)
+    @s.reset
+    @s.pos.should == 0
+    @s.matched.should == nil
   end
 end

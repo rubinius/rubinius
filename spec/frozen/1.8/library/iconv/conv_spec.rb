@@ -23,7 +23,5 @@ describe "Iconv.conv" do
     lambda { Iconv.conv("us-ascii", "us-ascii", "test\xa9") }.should raise_error(Iconv::IllegalSequence)
 
     lambda { Iconv.conv("utf-8", "utf-8", "euro \xe2") }.should raise_error(Iconv::InvalidCharacter)
-
-    Iconv.conv("iso-8859-1//ignore", "utf-8", "euro \xe2\x82\xac euro").should == "euro  euro"
   end
 end

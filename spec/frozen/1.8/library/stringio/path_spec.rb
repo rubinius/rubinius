@@ -3,6 +3,6 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "StringIO#path" do
   it "returns nil" do
-    StringIO.new("path").path.should == nil
+    StringIO.new("path").path.should be_nil
   end
 end

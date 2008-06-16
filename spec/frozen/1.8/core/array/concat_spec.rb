@@ -21,7 +21,7 @@ describe "Array#concat" do
     [4, 5, 6].concat(obj).should == [4, 5, 6, "x", "y"]
   end
 
-  ruby_version_is "" ... "1.8.7" do
+  ruby_version_is "" ... "1.8.6.220" do
     it "checks whether the passed argument responds to #to_ary" do
       obj = mock('method_missing to_ary')
       obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
@@ -30,7 +30,7 @@ describe "Array#concat" do
     end
   end
   
-  ruby_version_is "1.8.7" do
+  ruby_version_is "1.8.6.220" do
     it "checks whether the passed argument responds to #to_ary (including private methods)" do
       obj = mock('method_missing to_ary')
       obj.should_receive(:respond_to?).with(:to_ary, true).any_number_of_times.and_return(true)

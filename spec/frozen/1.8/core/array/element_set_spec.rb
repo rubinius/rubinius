@@ -126,7 +126,7 @@ describe "Array#[]=" do
     lambda { a[from .. "b"] = [] }.should raise_error(TypeError)
   end
 
-  ruby_version_is "" ... "1.8.7" do
+  ruby_version_is "" ... "1.8.6.220" do
     it "checks whether the Range elements respond to #to_int with [m..n] and [m...n]" do
       from = mock('from')
       to = mock('to')
@@ -144,7 +144,7 @@ describe "Array#[]=" do
     end
   end
 
-  ruby_version_is "1.8.7" do
+  ruby_version_is "1.8.6.220" do
     it "checks whether the Range elements respond to #to_int (including private methods) with [m..n] and [m...n]" do
       from = mock('from')
       to = mock('to')

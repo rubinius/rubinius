@@ -20,18 +20,56 @@ describe "Array.new" do
     a.inspect.should == [nil, nil, nil, nil, nil].inspect
   end
 
-  it "calls to_int on size" do
-    obj = mock('3')
-    def obj.to_int() 3 end
-    Array.new(obj).should == [nil, nil, nil]
-    
-    obj = mock('3')
-    obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(3)
-    Array.new(obj).should == [nil, nil, nil]
+  it "tries to convert the passed arguments to Arrays using #to_ary" do
+    obj = mock('[:foo]')
+    obj.should_receive(:to_ary).and_return([:foo])
+    Array.new(obj).should == [:foo]
   end
   
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_ary" do
+      obj = mock('[:foo]')
+      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).any_number_of_times.and_return([:foo])
+      Array.new(obj).should == [:foo]
+    end
+  end
+
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_ary (including private methods)" do
+      obj = mock('[:foo]')
+      obj.should_receive(:respond_to?).with(:to_ary, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).any_number_of_times.and_return([:foo])
+      Array.new(obj).should == [:foo]
+    end
+  end
+  
+  it "tries to convert the passed arguments to Integers using #to_int when they don't respond to #to_ary" do
+    obj = mock('3')
+    obj.should_receive(:to_int).and_return(3)
+    Array.new(obj).should == [nil, nil, nil]
+  end
+
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_int if they don't respond to #to_ary" do
+      obj = mock('3')
+      obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(3)
+      Array.new(obj).should == [nil, nil, nil]
+    end
+  end
+
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_int if they don't respond to #to_ary (including private methods)" do
+      obj = mock('3')
+      obj.should_receive(:respond_to?).with(:to_ary, true).and_return(false)
+      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(3)
+      Array.new(obj).should == [nil, nil, nil]
+    end
+  end
+
   it "returns a new array of size default objects" do
     Array.new(4, true).should == [true, true, true, true]
 
@@ -44,21 +82,6 @@ describe "Array.new" do
     a = ArraySpecs::MyArray.new(4, true)
     a.class.should == ArraySpecs::MyArray
     a.inspect.should == [true, true, true, true].inspect
-  end
-  
-  it "returns a new array by calling to_ary on an array-like argument" do
-    obj = mock('[:foo]')
-    def obj.to_ary() [:foo] end
-    Array.new(obj).should == [:foo]
-    
-    a = ArraySpecs::MyArray.new(obj)
-    a.class.should == ArraySpecs::MyArray
-    a.inspect.should == [:foo].inspect
-
-    obj = mock('[:foo]')
-    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_ary).any_number_of_times.and_return([:foo])
-    Array.new(obj).should == [:foo]
   end
   
   it "does not call to_ary on Array subclasses when passed an array-like argument" do

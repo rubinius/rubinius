@@ -1,31 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require 'stringio'
+require File.dirname(__FILE__) + "/shared/each_byte"
 
 describe "StringIO#each_byte" do
-  before(:each) do
-    @io = StringIO.new("xyz")
-  end
-
-  it "yields each character code in turn" do
-    seen = []
-    @io.each_byte { |b| seen << b }
-    seen.should == [120, 121, 122]
-  end
-  
-  ruby_version_is "" ... "1.8.7" do
-    it "returns nil" do
-      @io.each_byte {}.should be_nil
-    end
-  end
-  
-  ruby_version_is "1.8.7" do
-    it "returns self" do
-      @io.each_byte {}.should equal(@io)
-    end
-  end
-
-  it "raises an IOError unless the IO is open for reading" do
-    @io.close_read
-    lambda { @io.each_byte {|b| b } }.should raise_error(IOError)
-  end
+  it_behaves_like :stringio_each_byte, :each_byte
 end

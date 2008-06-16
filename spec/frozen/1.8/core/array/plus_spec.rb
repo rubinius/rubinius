@@ -9,15 +9,28 @@ describe "Array#+" do
     ([] + []).should == []
   end
 
-  it "calls to_ary on its argument" do
+  it "tries to convert the passed argument to an Array using #to_ary" do
     obj = mock('["x", "y"]')
-    def obj.to_ary() ["x", "y"] end
-    ([1, 2, 3] + obj).should == [1, 2, 3] + obj.to_ary
-    
-    obj = mock('[:x]')
-    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_ary).and_return([:x])
-    ([1, 2, 3] + obj).should == [1, 2, 3, :x]
+    obj.should_receive(:to_ary).and_return(["x", "y"])
+    ([1, 2, 3] + obj).should == [1, 2, 3, "x", "y"]
+  end
+
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_ary" do
+      obj = mock('[:x]')
+      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return([:x])
+      ([1, 2, 3] + obj).should == [1, 2, 3, :x]
+    end
+  end
+
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_ary (including private methods)" do
+      obj = mock('[:x]')
+      obj.should_receive(:respond_to?).with(:to_ary, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return([:x])
+      ([1, 2, 3] + obj).should == [1, 2, 3, :x]
+    end
   end
 
   it "does return subclass instances with Array subclasses" do

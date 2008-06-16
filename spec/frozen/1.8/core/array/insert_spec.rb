@@ -55,15 +55,28 @@ describe "Array#insert" do
     [].insert(-2).should == []
   end
 
-  it "calls to_int on position argument" do
+  it "tries to convert the passed position argument to an Integer using #to_int" do
     obj = mock('2')
-    def obj.to_int() 2 end
+    obj.should_receive(:to_int).and_return(2)
     [].insert(obj, 'x').should == [nil, nil, 'x']
-    
-    obj = mock('2')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(2)
-    [].insert(obj, 'x').should == [nil, nil, 'x']
+  end
+
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the passed position argument responds to #to_int" do
+      obj = mock('2')
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(2)
+      [].insert(obj, 'x').should == [nil, nil, 'x']
+    end
+  end
+  
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the passed position argument responds to #to_int (including private methods)" do
+      obj = mock('2')
+      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(2)
+      [].insert(obj, 'x').should == [nil, nil, 'x']
+    end
   end
   
   compliant_on :ruby, :jruby do

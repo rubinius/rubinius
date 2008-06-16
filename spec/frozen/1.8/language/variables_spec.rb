@@ -618,6 +618,27 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     (h['key2'] += 'ue').should == 'value'
     h.should == {'key1' => 3, 'key2' => 'value'}
   end
+
+  it "returns result of rhs not result of []=" do
+    a = VariablesSpecs::Hashalike.new
+
+    (a[123] =   2).should == 2
+    (a[123] +=  2).should == 125
+    (a[123] -=  2).should == 121
+    (a[123] *=  2).should == 246
+    (a[123] /=  2).should == 61
+    (a[123] %=  2).should == 1
+    (a[123] **= 2).should == 15129
+    (a[123] |=  2).should == 123
+    (a[123] &=  2).should == 2
+    (a[123] ^=  2).should == 121
+    (a[123] <<= 2).should == 492
+    (a[123] >>= 2).should == 30
+    (a[123] ||= 2).should == 123
+    (a[nil] ||= 2).should == 2
+    (a[123] &&= 2).should == 2
+    (a[nil] &&= 2).should == nil
+  end
 end
 
 describe "Single assignment" do

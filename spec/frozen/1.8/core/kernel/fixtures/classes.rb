@@ -1,3 +1,5 @@
+require File.dirname(__FILE__) + '/caller_fixture1'
+
 module KernelSpecs
   class Methods
     def self.ichi; end

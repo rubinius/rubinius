@@ -1,7 +1,15 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'set'
-require File.dirname(__FILE__) + '/../shared/constructor'
 
-describe "SortedSet.[]" do
-  it_behaves_like :set_constructor, SortedSet
+describe "SortedSet[]" do
+  it "returns a new SortedSet populated with the passed Objects" do
+    set = SortedSet[1, 2, 3]
+
+    set.instance_of?(SortedSet).should be_true
+    set.size.should eql(3)
+
+    set.should include(1)
+    set.should include(2)
+    set.should include(3)
+  end
 end

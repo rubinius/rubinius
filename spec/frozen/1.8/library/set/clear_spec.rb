@@ -1,7 +1,17 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'set'
-require File.dirname(__FILE__) + '/shared/clear'
 
 describe "Set#clear" do
-  it_behaves_like :set_clear, Set
+  before(:each) do
+    @set = Set["one", "two", "three", "four"]
+  end
+
+  it "removes all elements from self" do
+    @set.clear
+    @set.should be_empty
+  end
+
+  it "returns self" do
+    @set.clear.should equal(@set)
+  end
 end

@@ -1,32 +1,252 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require 'stringio'
 
-describe "StringIO.open" do
-  it "contains an empty string if no argument is provided" do
-    StringIO.open.string.should == ""
+describe "StringIO.open when passed [Object, mode]" do
+  it "uses the passed Object as the StringIO backend" do
+    io = StringIO.open(str = "example", "r")
+    io.string.should equal(str)
   end
-
-  it "yields the IO object to the block" do
-    sio = nil
-    StringIO.open("abc") do |io|
-      io.string.should == 'abc'
-      io.read(2).should == 'ab'
-      io.closed?.should == false
-      sio = io
+  
+  it "returns the blocks return value when yielding" do
+    ret = StringIO.open("example", "r") { :test }
+    ret.should equal(:test)
+  end
+  
+  it "yields self to the passed block" do
+    io = nil
+    StringIO.open("example", "r") { |strio| io = strio }
+    io.should be_kind_of(StringIO)
+  end
+  
+  it "closes self after yielding" do
+    io = nil
+    StringIO.open("example", "r") { |strio| io = strio }
+    io.closed?.should be_true
+  end
+  
+  it "even closes self when an exception is raised while yielding" do
+    io = nil
+    begin
+      StringIO.open("example", "r") do |strio|
+        io = strio
+        raise "Error"
+      end
+    rescue
     end
-    sio.closed?.should == true
+    io.closed?.should be_true
   end
 
-  it "calls to_str on the first argument if it is not a String" do
-    obj = mock('hello')
-    def obj.to_str; "hello"; end
-    StringIO.open(obj) do |io|
-      io.string.should == "hello"
+  it "sets self's string to nil after yielding" do
+    io = nil
+    StringIO.open("example", "r") { |strio| io = strio }
+    io.string.should be_nil
+  end
+
+  it "even sets self's string to nil when an exception is raised while yielding" do
+    io = nil
+    begin
+      StringIO.open("example", "r") do |strio|
+        io = strio
+        raise "Error"
+      end
+    rescue
+    end
+    io.string.should be_nil
+  end
+
+  it "sets the mode based on the passed mode" do
+    io = StringIO.open("example", "r")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_true
+
+    io = StringIO.open("example", "rb")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_true
+
+    io = StringIO.open("example", "r+")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", "rb+")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", "w")
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", "wb")
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", "w+")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+    
+    io = StringIO.open("example", "wb+")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", "a")
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", "ab")
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", "a+")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+    
+    io = StringIO.open("example", "ab+")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+  end
+  
+  it "allows passing the mode as an Integer" do
+    io = StringIO.open("example", IO::RDONLY)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_true
+
+    io = StringIO.open("example", IO::RDWR)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", IO::WRONLY)
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", IO::WRONLY | IO::TRUNC)
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", IO::RDWR | IO::TRUNC)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", IO::WRONLY | IO::APPEND)
+    io.closed_read?.should be_true
+    io.closed_write?.should be_false
+
+    io = StringIO.open("example", IO::RDWR | IO::APPEND)
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+  end
+
+  not_compliant_on :rubinius do
+    it "raises a TypeError when passed a frozen String in truncate mode as StringIO backend" do
+      lambda { StringIO.open("example".freeze, IO::TRUNC) }.should raise_error(TypeError)
+    end
+  end
+  
+  it "tries to convert the passed mode to a String using #to_str" do
+    obj = mock('to_str')
+    obj.should_receive(:to_str).and_return("r")
+    io = StringIO.open("example", obj)
+    
+    io.closed_read?.should be_false
+    io.closed_write?.should be_true
+  end
+
+  ruby_version_is "" ... "1.8.7" do
+    it "checks whether the passed mode responds to #to_str" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).with(:to_str).and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return("r")
+      io = StringIO.open("example", obj)
     end
   end
 
-  it "raises a TypeError if the argument cannot be converted" do
-    obj = mock('x')
-    lambda { StringIO.open(obj) }.should raise_error(TypeError)
+  ruby_version_is "1.8.7" do
+    it "checks whether the passed mode responds to #to_str (including private methods)" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).with(:to_str, true).and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return("r")
+      io = StringIO.open("example", obj)
+    end
+  end
+  
+  not_compliant_on :rubinius do
+    it "raises an Errno::EACCES error when passed a frozen string with a write-mode" do
+      (str = "example").freeze
+      lambda { io = StringIO.open(str, "r+") }.should raise_error(Errno::EACCES)
+      lambda { io = StringIO.open(str, "w") }.should raise_error(Errno::EACCES)
+      lambda { io = StringIO.open(str, "a") }.should raise_error(Errno::EACCES)
+    end
   end
 end
+
+describe "StringIO.open when passed [Object]" do
+  it "uses the passed Object as the StringIO backend" do
+    io = StringIO.open(str = "example")
+    io.string.should equal(str)
+  end
+  
+  it "yields self to the passed block" do
+    io = nil
+    ret = StringIO.open("example") { |strio| io = strio }
+    io.should equal(ret)
+  end
+  
+  it "sets the mode to read-write" do
+    io = StringIO.open("example")
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+  end
+  
+  it "tries to convert the passed Object to a String using #to_str" do
+    obj = mock('to_str')
+    obj.should_receive(:to_str).and_return("example")
+    io = StringIO.open(obj)
+    io.string.should == "example"
+  end
+
+  ruby_version_is "" ... "1.8.7" do
+    it "checks whether the passed argument responds to #to_str" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).with(:to_str).and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return("example")
+      io = StringIO.open(obj)
+      io.string.should == "example"
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "checks whether the passed argument responds to #to_str (including private methods)" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).with(:to_str, true).and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return("example")
+      io = StringIO.open(obj)
+      io.string.should == "example"
+    end
+  end
+  
+  not_compliant_on :rubinius do
+    it "automatically sets the mode to read-only when passed a frozen string" do
+      (str = "example").freeze
+      io = StringIO.open(str)
+      io.closed_read?.should be_false
+      io.closed_write?.should be_true
+    end
+  end
+end
+
+describe "StringIO.open when passed no arguments" do
+  it "yields self to the passed block" do
+    io = nil
+    ret = StringIO.open { |strio| io = strio }
+    io.should equal(ret)
+  end
+  
+  it "sets the mode to read-write" do
+    io = StringIO.open
+    io.closed_read?.should be_false
+    io.closed_write?.should be_false
+  end
+
+  it "uses an empty String as the StringIO backend" do
+    StringIO.open.string.should == ""
+  end
+end
+

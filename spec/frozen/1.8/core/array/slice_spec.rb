@@ -50,12 +50,26 @@ describe "Array#slice!" do
     a.should == [1, 2]
     a.slice!(0, obj).should == [1, 2]
     a.should == []
+  end
 
-    obj = mock('2')
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(2)
-    a = [1, 2, 3, 4, 5]
-    a.slice!(obj).should == 3
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the start and length respond to #to_int" do
+      obj = mock('2')
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(2)
+      a = [1, 2, 3, 4, 5]
+      a.slice!(obj).should == 3
+    end
+  end
+
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the start and length respond to #to_int (including private methods)" do
+      obj = mock('2')
+      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(2)
+      a = [1, 2, 3, 4, 5]
+      a.slice!(obj).should == 3
+    end
   end
 
   it "removes and return elements in range" do
@@ -90,38 +104,61 @@ describe "Array#slice!" do
 
     lambda { a.slice!("a" .. "b")  }.should raise_error(TypeError)
     lambda { a.slice!(from .. "b") }.should raise_error(TypeError)
+  end
 
-    from = mock('from')
-    to = mock('to')
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the range arguments respond to #to_int" do
+      from = mock('from')
+      to = mock('to')
 
-    def from.<=>(o) 0 end
-    def to.<=>(o) 0 end
+      def from.<=>(o) 0 end
+      def to.<=>(o) 0 end
 
-    from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    from.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(1)
-    to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    to.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(-2)
+      from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      from.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(1)
+      to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      to.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(-2)
 
-    a = [1, 2, 3, 4, 5]
-    a.slice!(from .. to).should == [2, 3, 4]
+      a = [1, 2, 3, 4, 5]
+      a.slice!(from .. to).should == [2, 3, 4]
+    end
+  end
+
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the range arguments respond to #to_int (including private methods)" do
+      from = mock('from')
+      to = mock('to')
+
+      def from.<=>(o) 0 end
+      def to.<=>(o) 0 end
+
+      from.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+      from.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(1)
+      to.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
+      to.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(-2)
+
+      a = [1, 2, 3, 4, 5]
+      a.slice!(from .. to).should == [2, 3, 4]
+    end
   end
 
   # TODO: MRI behaves inconsistently here. I'm trying to find out what it should
   # do at ruby-core right now. -- flgr
   # See http://groups.google.com/group/ruby-core-google/t/af70e3d0e9b82f39
-  it "does (not?) expand array with indices out of bounds" do
-    # This is the way MRI behaves -- subject to change
-    a = [1, 2]
-    a.slice!(4).should == nil
-    a.should == [1, 2]
-    a.slice!(4, 0).should == nil
-    a.should == [1, 2, nil, nil]
-    a.slice!(6, 1).should == nil
-    a.should == [1, 2, nil, nil, nil, nil]
-    a.slice!(8...8).should == nil
-    a.should == [1, 2, nil, nil, nil, nil, nil, nil]
-    a.slice!(10..10).should == nil
-    a.should == [1, 2, nil, nil, nil, nil, nil, nil, nil, nil]
+  ruby_bug "", "1.8.6.222" do
+    it "does not expand array with indices out of bounds" do
+      a = [1, 2]
+      a.slice!(4).should == nil
+      a.should == [1, 2]
+      a.slice!(4, 0).should == nil
+      a.should == [1, 2]
+      a.slice!(6, 1).should == nil
+      a.should == [1, 2]
+      a.slice!(8...8).should == nil
+      a.should == [1, 2]
+      a.slice!(10..10).should == nil
+      a.should == [1, 2]
+    end
   end
 
   compliant_on :ruby, :jruby do

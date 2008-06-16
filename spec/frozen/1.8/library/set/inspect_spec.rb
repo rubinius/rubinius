@@ -9,4 +9,10 @@ describe "Set#inspect" do
     Set["1", "2", "3"].inspect.should be_kind_of(String)
     Set[:a, "b", Set[?c]].inspect.should be_kind_of(String)
   end
+  
+  it "correctly handles self-references" do
+    (set = Set[]) << set
+    set.inspect.should be_kind_of(String)
+    set.inspect.should include("#<Set: {...}>")
+  end
 end

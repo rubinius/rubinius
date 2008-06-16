@@ -1,12 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/shared/pos.rb'
 require 'strscan'
 
 describe "StringScanner#pointer" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it_behaves_like(:strscan_pos, :pointer)
 end
 
 describe "StringScanner#pointer=" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it_behaves_like(:strscan_pos_set, :pointer=)
 end

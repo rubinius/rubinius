@@ -1,37 +1,144 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "StringIO#readline" do
+
+describe "StringIO#readline when passed [seperator]" do
   before(:each) do
-    @io = StringIO.new("r e a d")
-    @io_para = StringIO.new("para1-1\npara1-2\n\n\npara2-1\npara2-2\n\n\n\n")
+    @io = StringIO.new("this>is>an>example")
   end
 
-  it "returns the next 'line'" do
-    @io.readline.should == 'r e a d'
+  it "returns the data read till the next occurence of the passed seperator" do
+    @io.readline(">").should == "this>"
+    @io.readline(">").should == "is>"
+    @io.readline(">").should == "an>"
+    @io.readline(">").should == "example"
+  end
+  
+  ruby_bug "http://redmine.ruby-lang.org/issues/show/159", "1.8.7.17" do
+    it "sets $_ to the read content" do
+      @io.readline(">")
+      $_.should == "this>"
+      @io.readline(">")
+      $_.should == "is>"
+      @io.readline(">")
+      $_.should == "an>"
+      @io.readline(">")
+      $_.should == "example"
+    end
   end
 
-  it "raises an EOFError at the end" do
+  it "updates self's lineno by one" do
+    @io.readline(">")
+    @io.lineno.should eql(1)
+    
+    @io.readline(">")
+    @io.lineno.should eql(2)
+    
+    @io.readline(">")
+    @io.lineno.should eql(3)
+  end
+  
+  it "returns the next paragraph when the passed seperator is an empty String" do
+    io = StringIO.new("this is\n\nan example")
+    io.readline("").should == "this is\n"
+    io.readline("").should == "an example"
+  end
+  
+  it "returns the remaining content starting at the current position when passed nil" do
+    io = StringIO.new("this is\n\nan example")
+    io.pos = 5
+    io.readline(nil).should == "is\n\nan example"
+  end
+
+  it "tries to convert the passed seperator to a String using #to_str" do
+    obj = mock('to_str')
+    obj.should_receive(:to_str).and_return(">")
+    @io.readline(obj).should == "this>"
+  end
+
+  ruby_version_is "" ... "1.8.7" do
+    it "checks whether the passed seperator responds to #to_str" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).with(:to_str).and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return(">")
+      @io.readline(obj).should == "this>"
+    end
+  end
+
+  ruby_version_is "1.8.7" do
+    it "checks whether the passed seperator responds to #to_str (including private methods)" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).with(:to_str, true).and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return(">")
+      @io.readline(obj).should == "this>"
+    end
+  end
+end
+
+describe "StringIO#readline when passed no argument" do
+  before(:each) do
+    @io = StringIO.new("this is\nan example\nfor StringIO#readline")
+  end
+  
+  it "returns the data read till the next occurence of $/ or till eof" do
+    @io.readline.should == "this is\n"
+    
+    begin
+      old_sep, $/ = $/, " "
+      @io.readline.should == "an "
+      @io.readline.should == "example\nfor "
+      @io.readline.should == "StringIO#readline"
+    ensure
+      $/ = old_sep
+    end
+  end
+
+  ruby_bug "http://redmine.ruby-lang.org/issues/show/159", "1.8.7.17" do
+    it "sets $_ to the read content" do
+      @io.readline
+      $_.should == "this is\n"
+      @io.readline
+      $_.should == "an example\n"
+      @io.readline
+      $_.should == "for StringIO#readline"
+    end
+  end
+
+  it "updates self's position" do
     @io.readline
-    lambda { @io.readline }.should raise_error(EOFError)
+    @io.pos.should eql(8)
+    
+    @io.readline
+    @io.pos.should eql(19)
+
+    @io.readline
+    @io.pos.should eql(40)
+  end
+  
+  it "updates self's lineno" do
+    @io.readline
+    @io.lineno.should eql(1)
+    
+    @io.readline
+    @io.lineno.should eql(2)
+    
+    @io.readline
+    @io.lineno.should eql(3)
   end
 
-  it "raises an IOError when it is not open for reading" do
-    @io.close_read
+  it "raises an IOError if self is at the end" do
+    @io.pos = 40
     lambda { @io.readline }.should raise_error(IOError)
   end
+end
 
-  it "support separator strings" do
-    @io.readline('e').should == 'r e'
-    @io.readline('e').should == ' a d'
-  end
+describe "StringIO#readline when in write-only mode" do
+  it "raises an IOError" do
+    io = StringIO.new("xyz", "w")
+    lambda { io.readline }.should raise_error(IOError)
 
-  it "returns the next paragrah when separator is an empty string" do
-    @io_para.readline("").should == "para1-1\npara1-2\n"
-    @io_para.readline("").should == "para2-1\npara2-2\n"
-  end
-
-  it "returns the entire content if separator is nil" do
-    @io_para.readline(nil).should == @io_para.string
+    io = StringIO.new("xyz")
+    io.close_read
+    lambda { io.readline }.should raise_error(IOError)
   end
 end

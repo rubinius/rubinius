@@ -545,20 +545,13 @@ describe "String#%" do
     end
   end
 
-  # TODO: This behavior is for MRI 1.8.6 p111, but it was
-  # changed later to prefix with '.', as the Kernel#sprintf doc requires.
-  # See: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/8418
-  not_compliant_on :rubinius, :jruby do
-    it "supports negative bignums by prefixing the value with zeros" do
-      ("%u" % -(2 ** 64 + 5)).should == "0079228162495817593519834398715"
-    end
-  end
-
-  # This is the proper, compliant behavior of both JRuby, and
-  # MRI 1.8.6 with patchlevel 114 and up.
-  compliant_on :jruby do
-    it "supports negative bignums by prefixing the value with dots" do
-      ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
+  not_compliant_on :rubinius do
+    # This is the proper, compliant behavior of both JRuby, and
+    # MRI 1.8.6 with patchlevel greater than 114.
+    ruby_bug "http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/8418", "1.8.6.114" do
+      it "supports negative bignums by prefixing the value with dots" do
+        ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
+      end
     end
   end
 

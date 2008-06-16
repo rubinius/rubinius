@@ -14,12 +14,28 @@ describe "Array#zip" do
   
   # MRI 1.8.6 uses to_ary, but it's been fixed in 1.9
   compliant_on(:ruby, :jruby) do
-    it "calls to_ary on its arguments" do
+    it "tries to convert the passed argument to an Array using #to_ary" do
       obj = mock('[3,4]')
-      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return([3, 4])
-    
+      obj.should_receive(:to_ary).and_return([3, 4])
       [1, 2].zip(obj).should == [[1, 3], [2, 4]]
+    end
+
+    ruby_version_is "" ... "1.8.6.220" do
+      it "checks whether the passed argument responds to #to_ary" do
+        obj = mock('[3,4]')
+        obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+        obj.should_receive(:method_missing).with(:to_ary).and_return([3, 4])
+        [1, 2].zip(obj).should == [[1, 3], [2, 4]]
+      end
+    end
+
+    ruby_version_is "1.8.6.220" do
+      it "checks whether the passed argument responds to #to_ary (including private methods)" do
+        obj = mock('[3,4]')
+        obj.should_receive(:respond_to?).with(:to_ary, true).any_number_of_times.and_return(true)
+        obj.should_receive(:method_missing).with(:to_ary).and_return([3, 4])
+        [1, 2].zip(obj).should == [[1, 3], [2, 4]]
+      end
     end
   end
   

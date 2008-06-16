@@ -1,34 +1,24 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/fixtures/classes'
+require "stringio"
+require File.dirname(__FILE__) + '/shared/read'
 
 describe "StringIO#sysread" do
+  it_behaves_like :stringio_read, :sysread
+end
+
+describe "StringIO#sysread when passed [length]" do
   before(:each) do
-    @io = StringIOSpecs.build
+    @io = StringIO.new("example")
+  end
+  
+  it "raises an EOFError when self's position is at the end" do
+    @io.pos = 7
+    lambda { @io.sysread(10) }.should raise_error(EOFError)
   end
 
-  it "reads at most 'length' bytes" do
-    @io.sysread(666).should == @io.string
-  end
-
-  it "reads to the end of the string if length is omitted" do
-    @io.sysread.should == @io.string
-  end
-
-  it "raises an EOFError after the end of the string" do
-    @io.sysread
-    lambda { @io.sysread    }.should raise_error(EOFError)
-    lambda { @io.sysread(5) }.should raise_error(EOFError)
-  end
-
-  it "only supports String buffers" do
-    lambda { @io.sysread(5, []) }.should raise_error(TypeError)
-    @io.pos.should == 0
-  end
-
-  it "reads data into a buffer string if provided" do
-    @io = StringIO.new('buffered')
-    buf = ""
-    @io.sysread(5, buf).object_id.should == buf.object_id
-    buf.should == "buffe"
+  ruby_bug "http://redmine.ruby-lang.org/projects/ruby-18/issues/show?id=156", "1.8.7.17" do
+    it "returns an empty String when length is 0" do
+      @io.sysread(0).should == ""
+    end
   end
 end

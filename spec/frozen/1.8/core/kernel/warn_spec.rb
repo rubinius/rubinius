@@ -6,15 +6,37 @@ describe "Kernel.warn" do
     Kernel.private_instance_methods.should include("warn")
   end
   
-  it "calls #write on $stderr" do
+  it "calls #write on $stderr if $VERBOSE is true" do
     lambda {
       v = $VERBOSE
       $VERBOSE = true
 
-      warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
+      warn("this is some simple text")
 
       $VERBOSE = v
-    }.should output(nil, /Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn\n/)
+    }.should output(nil, "this is some simple text\n")
+  end
+
+  it "calls #write on $stderr if $VERBOSE is false" do
+    lambda {
+      v = $VERBOSE
+      $VERBOSE = false
+
+      warn("this is some simple text")
+
+      $VERBOSE = v
+    }.should output(nil, "this is some simple text\n")
+  end
+
+  it "does not call #write on $stderr if $VERBOSE is nil" do
+    lambda {
+      v = $VERBOSE
+      $VERBOSE = nil
+
+      warn("this is some simple text")
+
+      $VERBOSE = v
+    }.should output(nil, "")
   end
 
   it "writes the default record seperator (\\n) and NOT $/ to $stderr after the warning message" do
@@ -29,17 +51,6 @@ describe "Kernel.warn" do
       $VERBOSE = v
       $/ = rs
     }.should output(nil, /\n/)
-  end
-
-  it "does not call #write on $stderr if $VERBOSE is nil" do
-    lambda {
-      v = $VERBOSE
-      $VERBOSE = nil
-
-      warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
-
-      $VERBOSE = v
-    }.should output(nil, "")
   end
 end
 

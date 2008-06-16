@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "StringIO#fsync" do
   it "returns zero" do
-    @io = StringIO.new("fsync")
-    @io.fsync.should == 0
+    io = StringIO.new("fsync")
+    io.fsync.should eql(0)
   end
 end

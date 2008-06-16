@@ -23,15 +23,28 @@ describe "Array#&" do
     a.should == [1, 1, 3, 5]
   end
 
-  it "calls to_ary on its argument" do
+  it "tries to convert the passed argument to an Array using #to_ary" do
     obj = mock('[1,2,3]')
-    def obj.to_ary() [1, 2, 3] end
+    obj.should_receive(:to_ary).and_return([1, 2, 3])
     ([1, 2] & obj).should == ([1, 2])
-    
-    obj = mock('[1,2,3]')
-    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
-    ([1, 2] & obj).should == [1, 2]
+  end
+  
+  ruby_version_is "" ... "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_ary" do
+      obj = mock('[1,2,3]')
+      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
+      ([1, 2] & obj).should == [1, 2]
+    end
+  end
+  
+  ruby_version_is "1.8.6.220" do
+    it "checks whether the passed argument responds to #to_ary (including private methods)" do
+      obj = mock('[1,2,3]')
+      obj.should_receive(:respond_to?).with(:to_ary, true).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
+      ([1, 2] & obj).should == [1, 2]
+    end
   end
 
   # MRI follows hashing semantics here, so doesn't actually call eql?/hash for Fixnum/Symbol

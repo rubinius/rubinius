@@ -42,5 +42,54 @@ describe "Socket#getaddrinfo" do
     addrinfo.each { |a| expected.should include(a) }
   end
 
+  # #getaddrinfo will return a INADDR_ANY address (0.0.0.0
+  # or "::") if it's a passive socket. In the case of non-passive 
+  # sockets (AI_PASSIVE not set) it should return the loopback 
+  # address (127.0.0.1 or "::1".
+
+  it "accepts empty addresses for IPv4 passive sockets" do
+    res = Socket::getaddrinfo(nil, "http", 
+                              Socket::AF_INET, 
+                              Socket::SOCK_STREAM, 
+                              Socket::IPPROTO_TCP,
+                              Socket::AI_PASSIVE)  
+
+    expected = [["AF_INET", 80, "0.0.0.0", "0.0.0.0", Socket::AF_INET, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
+    res.should == expected
+  end
+
+  it "accepts empty addresses for IPv4 non-passive sockets" do
+    res = Socket::getaddrinfo(nil, "http", 
+                              Socket::AF_INET, 
+                              Socket::SOCK_STREAM, 
+                              Socket::IPPROTO_TCP,
+                              0)  
+
+    expected = [["AF_INET", 80, "localhost", "127.0.0.1", Socket::AF_INET, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
+    res.should == expected
+  end
+
+
+  it "accepts empty addresses for IPv6 passive sockets" do
+    res = Socket::getaddrinfo(nil, "http", 
+                              Socket::AF_INET6, 
+                              Socket::SOCK_STREAM, 
+                              Socket::IPPROTO_TCP,
+                              Socket::AI_PASSIVE)  
+
+    expected = [["AF_INET6", 80, "::", "::", Socket::AF_INET6, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
+    res.should == expected
+  end
+
+  it "accepts empty addresses for IPv6 non-passive sockets" do
+    res = Socket::getaddrinfo(nil, "http", 
+                              Socket::AF_INET6, 
+                              Socket::SOCK_STREAM, 
+                              Socket::IPPROTO_TCP,
+                              0)  
+
+    expected = [["AF_INET6", 80, "::1", "::1", Socket::AF_INET6, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
+    res.should == expected
+  end
 end
 

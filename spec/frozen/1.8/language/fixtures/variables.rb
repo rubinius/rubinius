@@ -23,7 +23,12 @@ module VariablesSpecs
       return @a
     end
   end
-  
+
+  class Hashalike
+    def [](k) k end
+    def []=(k, v) [k, v] end
+  end
+
   def self.reverse_foo(a, b)
     return b, a
   end

@@ -1,16 +1,16 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'ostruct'
 
-describe "OpenStruct.marshal_dump" do
-  before :each do
-    @os = OpenStruct.new(:name => "John Smith", :age => 30)
+describe "OpenStruct#table" do
+  before(:each) do
+    @os = OpenStruct.new("age" => 20, "name" => "John")
   end
   
-  it "returns a Hash object" do
-    @os.marshal_dump.should be_kind_of(Hash)
+  it "is protected" do
+    @os.protected_methods.should include("table")
   end
   
-  it "returns a Hash object with two keys" do
-    @os.marshal_dump.keys.size.should == 2
+  it "returns self's method/value table" do
+    @os.send(:table).should == { :age => 20, :name => "John" }
   end
 end
