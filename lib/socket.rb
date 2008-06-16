@@ -292,7 +292,7 @@ class Socket < BasicSocket
   end
 
   module ListenAndAccept
-    def listen(backlog)
+    def self.listen(descriptor, backlog)
       backlog = Type.coerce_to backlog, Fixnum, :to_int
 
       err = Socket::Foreign.listen descriptor, backlog
@@ -302,7 +302,7 @@ class Socket < BasicSocket
       err
     end
 
-    def accept
+    def self.accept
       return if closed?
       wait_til_readable
 
@@ -496,6 +496,15 @@ class Socket < BasicSocket
   def from_descriptor(fixnum)
     setup(fixnum)
     return self
+  end
+
+  def bind(server_sockaddr)
+    err = Socket::Foreign.bind(descriptor, server_sockaddr)
+    Errno.handle 'bind(2)' unless err == 0
+  end
+
+  def listen(backlog)
+      Socket::ListenAndAccept.listen(descriptor, backlog)
   end
 end
 
