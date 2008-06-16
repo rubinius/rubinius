@@ -4605,9 +4605,9 @@ yylex(YYSTYPE *yylval, void *vstate)
         }
         pslval->id = rb_intern(tok());
 
-        if (is_local_id(pslval->id) && local_id(pslval->id)) {
-            parse_state->lex_state = EXPR_END;
-        }
+/*         if (is_local_id(pslval->id) && local_id(pslval->id)) { */
+/*             parse_state->lex_state = EXPR_END; */
+/*         } */
 
         return result;
     }
