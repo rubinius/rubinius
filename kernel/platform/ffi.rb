@@ -594,13 +594,13 @@ class FFI::Struct
   end
 
   def initialize(pointer = nil, *spec)
+    @cspec = self.class.layout(*spec)
+
     if pointer then
       @pointer = pointer
     else
       @pointer = MemoryPointer.new size
     end
-
-    @cspec = self.class.layout(*spec)
   end
 
   def free
