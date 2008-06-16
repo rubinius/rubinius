@@ -204,7 +204,7 @@ class Module
   # The libraries are tried in the order given.
   #
   def set_ffi_lib(*names)
-    @ffi_lib = *names
+    @ffi_lib = names
   end
 
   # Attach C function +name+ to this module.
