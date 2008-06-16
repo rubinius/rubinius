@@ -1,7 +1,3 @@
-
-# TODO: write these - they don't have tests at all (rest_size above as well)
-#   "exist?",             strscan_exist_p,      1);
-
 class ScanError < StandardError; end
 
 class StringScanner
@@ -41,6 +37,10 @@ class StringScanner
     _lame_guard
 
     self.pos >= self.string.size
+  end
+
+  def exist? pattern
+    _scan pattern, false, false, false
   end
 
   def get_byte
@@ -157,7 +157,7 @@ class StringScanner
   end
 
   def unscan
-    raise ScanError if  @match.nil?
+    raise ScanError if @match.nil?
     self.pos = @prev_pos
     @prev_pos = nil
     @match = nil
@@ -182,7 +182,7 @@ class StringScanner
                pattern.search_region(string, pos, string.size, true)
              end
 
-    return nil if match.nil? 
+    return nil if match.nil?
 
     m = string[pos...match.end(0)]
 
