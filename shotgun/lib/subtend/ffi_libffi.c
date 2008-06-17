@@ -465,5 +465,9 @@ void ffi_call_libffi(STATE, cpu c, OBJECT ptr) {
 int ffi_get_arg_count(OBJECT ptr)
 {
   struct ffi_stub *stub = (struct ffi_stub*)(*DATA_STRUCT(ptr, void**));
-  return stub->arg_count;
+  int count = stub->arg_count;
+
+  if (count > 0 && stub->arg_types[0] == RBX_FFI_TYPE_STATE)
+    return count-1; /* the state parameter is invisible in Ruby */
+  return count;
 }
