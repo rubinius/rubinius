@@ -80,5 +80,6 @@ void ffi_autorelease(OBJECT ptr, int ar);
 /* Internal defs */
 #define FFI_MAX_PATH 128
 
+int ffi_get_arg_count(OBJECT ptr);
 
 #endif                      /* __RBX_FFI_H__ */

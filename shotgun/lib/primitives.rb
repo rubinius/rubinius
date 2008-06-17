@@ -2568,8 +2568,13 @@ class ShotgunPrimitives
        to be done. The stub contains all the serialization code.
 
        That being said, this might get more complicated when callbacks are supported. */
+    OBJECT ptr;
+
     cpu_patch_ffi(state, msg);
-    ffi_call(state, c, nfunc_get_data(msg->method));
+
+    ptr = nfunc_get_data(msg->method);
+    ARITY(ffi_get_arg_count(ptr));
+    ffi_call(state, c, ptr);
     CODE
   end
 
@@ -2580,7 +2585,10 @@ class ShotgunPrimitives
        to be done. The stub contains all the serialization code.
 
        That being said, this might get more complicated when callbacks are supported. */
-    ffi_call(state, c, nfunc_get_data(msg->recv));
+    OBJECT ptr = nfunc_get_data(msg->recv);
+
+    ARITY(ffi_get_arg_count(ptr));
+    ffi_call(state, c, ptr);
     CODE
   end
 

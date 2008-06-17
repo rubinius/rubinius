@@ -461,3 +461,9 @@ void ffi_call_libffi(STATE, cpu c, OBJECT ptr) {
 
   stack_push(ret);
 }
+
+int ffi_get_arg_count(OBJECT ptr)
+{
+  struct ffi_stub *stub = (struct ffi_stub*)(*DATA_STRUCT(ptr, void**));
+  return stub->arg_count;
+}
