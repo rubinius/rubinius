@@ -21,4 +21,15 @@ describe "NativeFunction#call" do
   it "raises ArgumentError when argument too few" do
     lambda { @func.call() }.should raise_error(ArgumentError)
   end
+
+  it "doesn't count the first :state argument in arity" do
+    func = FFI.create_function(FFI::USE_THIS_PROCESS_AS_LIBRARY,
+                               'abs', [:state], :int)
+    # Note :state is a wrong parameter for the abs function.
+    # However, we're only testing the arity here, and using
+    # the state (will be a pointer) as the argument to abs
+    # will not cause a problem (though the result will be
+    # "garbage").
+    lambda { func.call() }.should_not raise_error(ArgumentError)
+  end
 end
