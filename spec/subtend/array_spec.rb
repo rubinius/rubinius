@@ -65,7 +65,7 @@ describe "SubtendArray" do
     b = @s.rb_ary_dup(a)
 
     b.should == a
-    b.should_not equal?(a)
+    b.should_not equal(a)
   end
 
   it "rb_ary_unshift should prepend the element to the array" do
