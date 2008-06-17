@@ -1,0 +1,3 @@
+fails:SortedSet#flatten returns a copy of self with each included SortedSet flattened
+fails:SortedSet#flatten! flattens self
+fails:SortedSet#flatten! returns self when self was modified

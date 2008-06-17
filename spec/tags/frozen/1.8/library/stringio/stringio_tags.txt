@@ -1,0 +1,2 @@
+fails:StringIO should include the Enumerable module
+fails:StringIO is a subclass of Data

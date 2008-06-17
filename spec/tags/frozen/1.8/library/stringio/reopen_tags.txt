@@ -1,0 +1,15 @@
+fails:StringIO#reopen when passed [Object, Integer] reopens self with the passed Object in the passed mode
+fails:StringIO#reopen when passed [Object, Integer] does not taint self when the passed Object was tainted
+fails:StringIO#reopen when passed [Object, Integer] tries to convert the passed Object to a String using #to_str
+fails:StringIO#reopen when passed [Object, Integer] checks whether the passed Object responds to #to_str
+fails:StringIO#reopen when passed [Object, Object] tries to convert the passed mode Object to an Integer using #to_str
+fails:StringIO#reopen when passed [Object, Object] checks whether the passed mode-Object responds to #to_str
+fails:StringIO#reopen when passed [Object] does not try to convert the passed Object to a String using #to_str
+fails:StringIO#reopen when passed [Object] tries to convert the passed Object to a StringIO using #to_strio
+fails:StringIO#reopen when passed [Object] taints self when the passed Object was tainted
+fails:StringIO#reopen when passed [Object] checks whether the passed Object responds to #to_strio
+fails:StringIO#reopen when passed no arguments resets self's mode to read-write
+fails:StringIO#reopen when passed no arguments resets self's position to 0
+fails:StringIO#reopen when passed no arguments resets self's line number to 0
+fails:StringIO#reopen taints self if the provided StringIO argument is tainted
+fails:StringIO#reopen does not truncate the content even when the StringIO argument is in the truncate mode

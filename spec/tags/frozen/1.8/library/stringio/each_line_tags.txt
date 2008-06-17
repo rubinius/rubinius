@@ -1,0 +1,4 @@
+fails:StringIO#each_line when passed [seperator] yields self's content starting from the current position when the passed seperator is nil
+fails:StringIO#each_line when passed [seperator] yields each paragraph when passed an empty String as seperator
+fails:StringIO#each_line when passed [seperator] tries to convert the passed seperator to a String using #to_str
+fails:StringIO#each_line when passed [seperator] checks whether the passed seperator responds to #to_str

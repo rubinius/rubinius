@@ -1,0 +1,1 @@
+fails:StringIO#readchar when self is not readable raises an IOError

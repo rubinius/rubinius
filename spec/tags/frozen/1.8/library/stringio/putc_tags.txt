@@ -1,0 +1,4 @@
+fails:StringIO#putc when passed [Object] it writes the passed Integer % 256 to self
+fails:StringIO#putc when passed [Object] tries to convert the passed argument to an Integer using #to_int
+fails:StringIO#putc when passed [Object] checks whether the passed argument responds to #to_int
+fails:StringIO#putc when self is not writable raises an IOError

@@ -1,0 +1,2 @@
+fails:StringIO#close_write returns nil
+fails:StringIO#close_write raises an IOError when in read-only mode

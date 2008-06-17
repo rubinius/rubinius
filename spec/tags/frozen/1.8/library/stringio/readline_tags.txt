@@ -1,3 +1,13 @@
 fails:StringIO#readline support separator strings
 fails:StringIO#readline returns the next paragrah when separator is an empty string
 fails:StringIO#readline returns the entire content if separator is nil
+fails:StringIO#readline when passed [seperator] returns the data read till the next occurence of the passed seperator
+fails:StringIO#readline when passed [seperator] sets $_ to the read content
+fails:StringIO#readline when passed [seperator] updates self's lineno by one
+fails:StringIO#readline when passed [seperator] returns the next paragraph when the passed seperator is an empty String
+fails:StringIO#readline when passed [seperator] returns the remaining content starting at the current position when passed nil
+fails:StringIO#readline when passed [seperator] tries to convert the passed seperator to a String using #to_str
+fails:StringIO#readline when passed [seperator] checks whether the passed seperator responds to #to_str
+fails:StringIO#readline when passed no argument sets $_ to the read content
+fails:StringIO#readline when passed no argument updates self's position
+fails:StringIO#readline when passed no argument updates self's lineno

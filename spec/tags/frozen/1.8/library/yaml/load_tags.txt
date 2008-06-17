@@ -1,0 +1,2 @@
+fails:YAML.load does not escape symbols
+fails:YAML.load loads a symbol key that contains spaces

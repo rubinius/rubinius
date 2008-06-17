@@ -1,3 +1,10 @@
 fails:StringIO#readlines optionally accepts a separator string
 fails:StringIO#readlines returns an array of paragraphs when separator is an empty string
 fails:StringIO#readlines returns the rest of the stream when separator is nil
+fails:StringIO#readlines when passed [seperator] returns an Array containing all paragraphs when the passed seperator is an empty String
+fails:StringIO#readlines when passed [seperator] updates self's position based on the number of read bytes
+fails:StringIO#readlines when passed [seperator] updates self's lineno based on the number of read lines
+fails:StringIO#readlines when passed [seperator] tries to convert the passed seperator to a String using #to_str
+fails:StringIO#readlines when passed [seperator] checks whether the passed seperator responds to #to_str
+fails:StringIO#readlines when passed no argument updates self's position based on the number of read bytes
+fails:StringIO#readlines when passed no argument updates self's lineno based on the number of read lines

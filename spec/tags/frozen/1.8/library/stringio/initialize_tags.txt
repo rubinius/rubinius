@@ -1,0 +1,4 @@
+fails:StringIO#initialize when passed [Object, mode] sets the mode based on the passed mode
+fails:StringIO#initialize when passed [Object, mode] allows passing the mode as an Integer
+fails:StringIO#initialize when passed [Object, mode] tries to convert the passed mode to a String using #to_str
+fails:StringIO#initialize when passed [Object, mode] checks whether the passed mode responds to #to_str

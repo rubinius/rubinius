@@ -1,0 +1,3 @@
+fails:StringScanner#initialize_copy copies the passed StringScanner's content to self
+fails:StringScanner#initialize_copy copies the passed StringSCanner's position to self
+fails:StringScanner#initialize_copy copies the passed StringScanner scan pointer to self

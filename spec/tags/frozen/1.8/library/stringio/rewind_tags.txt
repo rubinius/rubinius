@@ -1,0 +1,1 @@
+fails:StringIO#rewind returns 0

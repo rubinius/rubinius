@@ -1,0 +1,1 @@
+fails:StringScanner#pos= raises a RangeError when the passed argument is out of range
