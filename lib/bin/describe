@@ -26,8 +26,6 @@ end
 
 require 'pp'
 
-Compiler.parse_flags ARGV
-
 file = ARGV.shift
 unless file
   interactive()
