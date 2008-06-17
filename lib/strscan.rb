@@ -27,11 +27,21 @@ class StringScanner
     _scan pattern, false, true, false
   end
 
+  def clear
+    warn "StringScanner#clear is obsolete; use #terminate instead"
+    terminate
+  end
+
   def concat str
     self.string << str
     self
   end
   alias :<< :concat # TODO: reverse
+
+  def empty?
+    warn "StringScanner#empty? is obsolete; use #eos? instead?"
+    eos?
+  end
 
   def eos?
     _lame_guard
@@ -45,6 +55,11 @@ class StringScanner
 
   def get_byte
     scan(/./mn)
+  end
+
+  def getbyte
+    warn "StringScanner#getbyte is obsolete; use #get_byte instead"
+    get_byte
   end
 
   def getch
@@ -89,7 +104,11 @@ class StringScanner
   def matched_size
     match.to_s.size if matched?
   end
-  alias :matchedsize :matched_size
+
+  def matchedsize
+    warn "StringScanner#matchedsize is obsolete; use #matched_size instead"
+    matched_size
+  end
 
   def post_match
     match.post_match if matched?
@@ -115,6 +134,11 @@ class StringScanner
 
   def rest_size
     self.rest.size
+  end
+
+  def restsize
+    warn "StringScanner#restsize is obsolete; use #rest_size instead"
+    rest_size
   end
 
   def scan pattern
@@ -165,8 +189,14 @@ class StringScanner
   end
 
   def peek len
+    raise ArgumentError if len < 0
     return "" if len.zero?
     return string.substring(pos, len)
+  end
+
+  def peep len
+    warn "StringScanner#peep is obsolete; use #peek instead"
+    peek len
   end
 
   def _scan pattern, succptr, getstr, headonly
