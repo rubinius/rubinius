@@ -214,6 +214,7 @@ VALUE rb_convert_type(VALUE val, int type, const char* tname, const char* method
 
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass);
 VALUE rb_class_name(VALUE klass);
+VALUE rb_singleton_class(VALUE klass);
 
 void rb_thread_schedule();
 #define CHECK_INTS

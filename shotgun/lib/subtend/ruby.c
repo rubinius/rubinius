@@ -1275,6 +1275,10 @@ VALUE rb_class_name(VALUE klass) {
   return NEW_HANDLE(ctx, ret);
 }
 
+VALUE rb_singleton_class(VALUE klass) {
+	return rb_funcall(klass, rb_intern("metaclass"), 0);
+}
+
 VALUE rb_proc_new(VALUE (*func)(), VALUE val) {
   CTX;
   VALUE native_meth = NEW_HANDLE(ctx, nmethod_new(ctx->state, HNDL(rb_mKernel), __FILE__, "", func, -3));
