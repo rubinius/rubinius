@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 module FFIStructSpecs
-  DummyLayout = ['a', :int, 0]
+  DummyLayout = [:a, :int, 0]
   
   class DummyStruct < FFI::Struct
     layout(*DummyLayout)

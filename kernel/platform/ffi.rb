@@ -49,7 +49,7 @@ module FFI
     end
 
     # Internal function, should not be used directly.
-    # See Module#attach_foreign.
+    # See Module#attach_function.
     #
     # TODO: Is this necessary at all? When would we ever
     #       create an unattached method (not a Method)?
