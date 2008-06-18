@@ -45,7 +45,7 @@ class BasicSocket < IO
   # to doesn't do anything yet
   def send(msg, flags, to = nil)
     bytes = msg.length
-    buffer = MemoryPointer.new :char, bytes
+    buffer = MemoryPointer.new :char, bytes + 1
     buffer.write_string msg
     bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
     Errno.handle 'send(2)' if bytes_sent < 0
@@ -55,7 +55,7 @@ class BasicSocket < IO
 
   def recv(bytes_to_read, flags = 0)
     bytes_to_read = Type.coerce_to bytes_to_read, Fixnum, :to_int
-    buffer = MemoryPointer.new :char, bytes_to_read
+    buffer = MemoryPointer.new :char, bytes_to_read + 1
     bytes_read = Socket::Foreign.recv(descriptor, buffer, bytes_to_read, flags)
     Errno.handle 'recv(2)' if bytes_read < 0
     message = buffer.read_string
