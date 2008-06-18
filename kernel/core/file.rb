@@ -146,6 +146,8 @@ class File < IO
 
   def self.exist?(path)
     Stat.stat?(path) ? true : false
+  rescue SystemCallError
+    false
   end
 
   def self.expand_path(path, dir_string = nil)
