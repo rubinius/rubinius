@@ -196,7 +196,7 @@ class Socket < BasicSocket
     end
 
     def self.getaddress(host)
-      addrinfos = Socket::Foreign.getaddrinfo(host, nil, 0, 0, 0, Socket::NI_NUMERICHOST)
+      addrinfos = Socket.getaddrinfo(host)
       addrinfos.first[3]
     end
     
