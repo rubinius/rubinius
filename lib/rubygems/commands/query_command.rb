@@ -131,18 +131,18 @@ class Gem::Commands::QueryCommand < Gem::Command
       versions[spec_tuple.first] << [spec_tuple, source_uri]
     end
 
-    versions = versions.sort_by do |(name,),|
+    versions = versions.sort_by do |(name,_),_|
       name.downcase
     end
 
     versions.each do |gem_name, matching_tuples|
-      matching_tuples = matching_tuples.sort_by do |(name, version,),|
+      matching_tuples = matching_tuples.sort_by do |(name, version,_),_|
         version
       end.reverse
 
       seen = {}
 
-      matching_tuples.delete_if do |(name, version,),|
+      matching_tuples.delete_if do |(name, version,_),_|
         if seen[version] then
           true
         else
@@ -154,7 +154,7 @@ class Gem::Commands::QueryCommand < Gem::Command
       entry = gem_name.dup
 
       if options[:versions] then
-        versions = matching_tuples.map { |(name, version,),| version }.uniq
+        versions = matching_tuples.map { |(name, version,_),_| version }.uniq
         entry << " (#{versions.join ', '})"
       end
 
@@ -180,6 +180,20 @@ class Gem::Commands::QueryCommand < Gem::Command
 
         if spec.homepage and not spec.homepage.empty? then
           entry << "\n" << format_text("Homepage: #{spec.homepage}", 68, 4)
+        end
+
+        if spec.loaded_from then
+          if matching_tuples.length == 1 then
+            loaded_from = File.dirname File.dirname(spec.loaded_from)
+            entry << "\n" << "    Installed at: #{loaded_from}"
+          else
+            label = 'Installed at'
+            matching_tuples.each do |(_,version,_,s),|
+              loaded_from = File.dirname File.dirname(s.loaded_from)
+              entry << "\n" << "    #{label} (#{version}): #{loaded_from}"
+              label = ' ' * label.length
+            end
+          end
         end
 
         entry << "\n\n" << format_text(spec.summary, 68, 4)

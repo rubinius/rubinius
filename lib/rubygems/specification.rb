@@ -6,6 +6,7 @@
 
 require 'rubygems'
 require 'rubygems/version'
+require 'rubygems/requirement'
 require 'rubygems/platform'
 
 # :stopdoc:
@@ -16,6 +17,9 @@ if RUBY_VERSION < '1.9' then
     t - ((t.to_f + t.gmt_offset) % 86400)
   end unless defined? Time.today
 end
+
+class Date; end # for ruby_code if date.rb wasn't required
+
 # :startdoc:
 
 module Gem
@@ -37,22 +41,32 @@ module Gem
   #
   class Specification
 
+    ##
     # Allows deinstallation of gems with legacy platforms.
+
     attr_accessor :original_platform # :nodoc:
 
-    # ------------------------- Specification version contstants.
+    # ------------------------- Specification version constants.
 
+    ##
     # The the version number of a specification that does not specify one
     # (i.e. RubyGems 0.7 or earlier).
+
     NONEXISTENT_SPECIFICATION_VERSION = -1
 
+    ##
     # The specification version applied to any new Specification instances
     # created.  This should be bumped whenever something in the spec format
     # changes.
-    CURRENT_SPECIFICATION_VERSION = 2
+    #--
+    # When updating this number, be sure to also update #to_ruby.
 
+    CURRENT_SPECIFICATION_VERSION = 3
+
+    ##
     # An informal list of changes to the specification.  The highest-valued
     # key should be equal to the CURRENT_SPECIFICATION_VERSION.
+
     SPECIFICATION_VERSION_HISTORY = {
       -1 => ['(RubyGems versions up to and including 0.7 did not have versioned specifications)'],
       1  => [
@@ -63,10 +77,13 @@ module Gem
         'Added "required_rubygems_version"',
         'Now forward-compatible with future versions',
       ],
+      3  => [
+        'Added dependency types',
+      ],
     }
 
     # :stopdoc:
-    MARSHAL_FIELDS = { -1 => 16, 1 => 16, 2 => 16 }
+    MARSHAL_FIELDS = { -1 => 16, 1 => 16, 2 => 16, 3 => 16 }
 
     now = Time.at(Time.now.to_i)
     TODAY = now - ((now.to_i + now.gmt_offset) % 86400)
@@ -791,9 +808,11 @@ module Gem
       self.platform = Gem::Platform.new @platform
     end
 
+    ##
     # Returns a Ruby code representation of this specification, such that it
     # can be eval'ed and reconstruct the same specification later.  Attributes
     # that still have their default values are omitted.
+
     def to_ruby
       mark_version
       result = []
@@ -804,8 +823,6 @@ module Gem
       unless platform.nil? or platform == Gem::Platform::RUBY then
         result << "  s.platform = #{ruby_code original_platform}"
       end
-      result << ""
-      result << "  s.specification_version = #{specification_version} if s.respond_to? :specification_version="
       result << ""
       result << "  s.required_rubygems_version = #{ruby_code required_rubygems_version} if s.respond_to? :required_rubygems_version="
 
@@ -829,13 +846,39 @@ module Gem
         end
       end
 
-      result << nil unless dependencies.empty?
+      result << nil
+      result << "  if s.respond_to? :specification_version then"
+      result << "    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION"
+      result << "    s.specification_version = #{specification_version}"
+      result << nil
 
-      dependencies.each do |dep|
-        version_reqs_param = dep.requirements_list.inspect
-        dep.instance_variable_set :@type, :runtime if dep.type.nil? # HACK
-        result << "  s.add_#{dep.type}_dependency(%q<#{dep.name}>, #{version_reqs_param})"
+      result << "    if current_version >= 3 then"
+
+      unless dependencies.empty? then
+        dependencies.each do |dep|
+          version_reqs_param = dep.requirements_list.inspect
+          dep.instance_variable_set :@type, :runtime if dep.type.nil? # HACK
+          result << "      s.add_#{dep.type}_dependency(%q<#{dep.name}>, #{version_reqs_param})"
+        end
       end
+
+      result << "    else"
+
+      unless dependencies.empty? then
+        dependencies.each do |dep|
+          version_reqs_param = dep.requirements_list.inspect
+          result << "      s.add_dependency(%q<#{dep.name}>, #{version_reqs_param})"
+        end
+      end
+
+      result << '    end'
+
+      result << "  else"
+        dependencies.each do |dep|
+          version_reqs_param = dep.requirements_list.inspect
+          result << "    s.add_dependency(%q<#{dep.name}>, #{version_reqs_param})"
+        end
+      result << "  end"
 
       result << "end"
       result << nil

@@ -1,10 +1,6 @@
 # depends on: array.rb dir.rb env.rb file.rb hash.rb module.rb regexp.rb
 
-# empty gem_prelude.rb
-#
-# p Gem::Enable
-
-if defined?(Gem::Enable) && Gem::Enable then
+if defined?(Gem) then
 
   module Kernel
 
@@ -28,71 +24,69 @@ if defined?(Gem::Enable) && Gem::Enable then
       :ruby_install_name => RbConfig::CONFIG["ruby_install_name"]
     }
 
-    class << self
-
-      def default_dir
-        if defined? RUBY_FRAMEWORK_VERSION
-          return File.join(File.dirname(ConfigMap[:sitedir]), "Gems")
-        else
-          File.join(ConfigMap[:libdir], 'ruby', 'gems', ConfigMap[:ruby_version])
-        end
+    def self.default_dir
+      if defined? RUBY_FRAMEWORK_VERSION
+        return File.join(File.dirname(ConfigMap[:sitedir]), "Gems")
+      else
+        File.join(ConfigMap[:libdir], 'ruby', 'gems', ConfigMap[:ruby_version])
       end
-
-      def dir
-        @gem_home ||= nil
-        set_home(ENV['GEM_HOME'] || default_dir) unless @gem_home
-        @gem_home
-      end
-
-      def path
-        @gem_path ||= nil
-        unless @gem_path
-          paths = [ENV['GEM_PATH']]
-          paths << APPLE_GEM_HOME if defined? APPLE_GEM_HOME
-          set_paths(paths.compact.join(File::PATH_SEPARATOR))
-        end
-        @gem_path
-      end
-
-      # Set the Gem home directory (as reported by +dir+).
-      def set_home(home)
-        @gem_home = home
-        ensure_gem_subdirectories(@gem_home)
-      end
-
-      def set_paths(gpaths)
-        if gpaths
-          @gem_path = gpaths.split(File::PATH_SEPARATOR)
-          @gem_path << Gem.dir
-        else
-          @gem_path = [Gem.dir]
-        end
-        @gem_path.uniq!
-        @gem_path.each do |gp| ensure_gem_subdirectories(gp) end
-      end
-
-      def ensure_gem_subdirectories(path)
-      end
-
     end
+
+    def self.dir
+      @gem_home ||= nil
+      set_home(ENV['GEM_HOME'] || default_dir) unless @gem_home
+      @gem_home
+    end
+
+    def self.path
+      @gem_path ||= nil
+      unless @gem_path
+        paths = [ENV['GEM_PATH']]
+        paths << APPLE_GEM_HOME if defined? APPLE_GEM_HOME
+        set_paths(paths.compact.join(File::PATH_SEPARATOR))
+      end
+      @gem_path
+    end
+
+    # Set the Gem home directory (as reported by +dir+).
+    def self.set_home(home)
+      @gem_home = home
+      ensure_gem_subdirectories(@gem_home)
+    end
+
+    def self.set_paths(gpaths)
+      if gpaths
+        @gem_path = gpaths.split(File::PATH_SEPARATOR)
+        @gem_path << Gem.dir
+      else
+        @gem_path = [Gem.dir]
+      end
+      @gem_path.uniq!
+      @gem_path.each do |gp| ensure_gem_subdirectories(gp) end
+    end
+
+    def self.ensure_gem_subdirectories(path)
+    end
+
+    GEM_PRELUDE_METHODS = Gem.methods(false)
 
     module QuickLoader
 
-      class << self
-        def load_full_rubygems_library
-          class << Gem
-            Gem.methods(false).each do |method_name|
-              undef_method method_name
-            end
+      def self.load_full_rubygems_library
+        class << Gem
+          Gem::GEM_PRELUDE_METHODS.each do |method_name|
+            undef_method method_name
           end
-
-          Kernel.send :undef_method, :gem
-
-          $".delete File.join(Gem::ConfigMap[:libdir], 'ruby',
-                              Gem::ConfigMap[:ruby_version], 'rubygems.rb')
-
-          require 'rubygems'
         end
+
+        Kernel.module_eval do
+          undef_method :gem if method_defined? :gem
+        end
+
+        $".delete File.join(Gem::ConfigMap[:libdir], 'ruby',
+                            Gem::ConfigMap[:ruby_version], 'rubygems.rb')
+
+        require 'rubygems'
       end
 
       GemPaths = {}
@@ -186,7 +180,11 @@ if defined?(Gem::Enable) && Gem::Enable then
 
       def const_missing(constant)
         QuickLoader.load_full_rubygems_library
-        Gem.const_get(constant)
+        if Gem.const_defined?(constant)
+          Gem.const_get(constant)
+        else
+          super
+        end
       end
 
       def method_missing(method, *args, &block)

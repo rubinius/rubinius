@@ -70,7 +70,7 @@ class Gem::DependencyInstaller
   # Returns a list of pairs of gemspecs and source_uris that match
   # Gem::Dependency +dep+ from both local (Dir.pwd) and remote (Gem.sources)
   # sources.  Gems are sorted with newer gems prefered over older gems, and
-  # local gems prefered over remote gems.
+  # local gems preferred over remote gems.
 
   def find_gems_with_sources(dep)
     gems_and_sources = []
@@ -133,7 +133,7 @@ class Gem::DependencyInstaller
         deps.each do |dep|
           results = find_gems_with_sources(dep).reverse
 
-          results.reject! do |spec,|
+          results.reject! do
             @source_index.any? do |_, installed_spec|
               dep.name == installed_spec.name and
                 dep.version_requirements.satisfied_by? installed_spec.version

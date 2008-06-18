@@ -20,6 +20,10 @@ class TestGemIndexer < RubyGemTestCase
 
     util_make_gems
 
+    @d2_0 = quick_gem 'd', '2.0'
+    write_file File.join(*%W[gems #{@d2_0.original_name} lib code.rb]) do end
+    util_build_gem @d2_0
+
     gems = File.join(@tempdir, 'gems')
     FileUtils.mkdir_p gems
     cache_gems = File.join @gemhome, 'cache', '*.gem'
@@ -53,10 +57,33 @@ class TestGemIndexer < RubyGemTestCase
     assert_indexed quickdir, "index"
     assert_indexed quickdir, "index.rz"
 
+    quick_index = File.read File.join(quickdir, 'index')
+    expected = <<-EOF
+a-1
+a-2
+a_evil-9
+b-2
+c-1.2
+d-2.0
+pl-1-i386-linux
+    EOF
+
+    assert_equal expected, quick_index
+
     assert_indexed quickdir, "latest_index"
     assert_indexed quickdir, "latest_index.rz"
 
-    assert_no_match %r|a-1|, File.read(File.join(quickdir, 'latest_index'))
+    latest_quick_index = File.read File.join(quickdir, 'latest_index')
+    expected = <<-EOF
+a-2
+a_evil-9
+b-2
+c-1.2
+d-2.0
+pl-1-i386-linux
+    EOF
+
+    assert_equal expected, latest_quick_index
 
     assert_indexed quickdir, "#{@a1.full_name}.gemspec.rz"
     assert_indexed quickdir, "#{@a2.full_name}.gemspec.rz"
@@ -85,19 +112,19 @@ class TestGemIndexer < RubyGemTestCase
     end
 
     expected = <<-EOF
-Loading 6 gems from #{@tempdir}
-......
+Loading 7 gems from #{@tempdir}
+.......
 Loaded all gems
-Generating quick index gemspecs for 6 gems
-......
+Generating quick index gemspecs for 7 gems
+.......
 Complete
 Generating specs index
 Generating latest specs index
 Generating quick index
 Generating latest index
 Generating Marshal master index
-Generating YAML master index for 6 gems (this may take a while)
-......
+Generating YAML master index for 7 gems (this may take a while)
+.......
 Complete
 Compressing indicies
     EOF
@@ -141,6 +168,7 @@ Compressing indicies
       ['a_evil', Gem::Version.new(9),     'ruby'],
       ['b',      Gem::Version.new(2),     'ruby'],
       ['c',      Gem::Version.new('1.2'), 'ruby'],
+      ['d',      Gem::Version.new('2.0'), 'ruby'],
       ['pl',     Gem::Version.new(1),     'i386-linux'],
     ]
 
@@ -154,6 +182,9 @@ Compressing indicies
 
     assert_same specs[0].last, specs[1].last,
                 'identical platforms not identical'
+
+    assert_not_same specs[1][1], specs[5][1],
+                    'different versions not different'
   end
 
   def test_generate_index_latest_specs
@@ -171,6 +202,7 @@ Compressing indicies
       ['a_evil', Gem::Version.new(9),     'ruby'],
       ['b',      Gem::Version.new(2),     'ruby'],
       ['c',      Gem::Version.new('1.2'), 'ruby'],
+      ['d',      Gem::Version.new('2.0'), 'ruby'],
       ['pl',     Gem::Version.new(1),     'i386-linux'],
     ]
 
