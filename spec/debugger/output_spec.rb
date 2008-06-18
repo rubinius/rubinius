@@ -135,6 +135,16 @@ describe "Output::Columns#redistribute_widths" do
     cols.redistribute_widths(20).should == true
     cols.widths.should == [5, 14]
   end
+  
+  it "only reduces variable column widths until content width == page width" do
+    cols = Debugger::Output::Columns.new(["%-5s","%*s", "%*s"])
+    cols.update_widths(["abcdefg", "abcdefghij", "klmnop"])
+    cols.widths.should == [7, 10, 6]
+    cols.redistribute_widths(23).should == true
+    cols.widths.should == [5, 10, 6]
+    cols.redistribute_widths(22).should == true
+    cols.widths.should == [5, 9, 6]
+  end
 
   it "reduces multiple variable width columns in proportion to their content widths" do
     cols = Debugger::Output::Columns.new(["%-5s","%*s", "%*s"])

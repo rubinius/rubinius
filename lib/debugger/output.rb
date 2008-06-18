@@ -86,10 +86,19 @@ class Debugger
       end
       
       # Redistributes the calculated widths, ensuring the overall line width is
-      # no greater than the specified page width.
+      # no greater than the specified page width. Reductions are made in the
+      # following order:
+      # - first, all columns that have a width specification are reduced to that
+      #   width (if they exceed it)
+      # - next, any columns with a variable width specification are reduced 
+      #   (from largest to smallest) proportionately based on the needed reduction
       def redistribute_widths(page_width, indent=0)
         if page_width
+          # Reduce page_wdith by any requirements for indentation and column separators
           page_width -= indent + (@widths.size-1) * @col_separator.length
+          raise ArgumentError, "Page width is insufficient to display any content" if page_width < 1
+
+          # Determine the fixed and variable width columns
           fixed_width = 0
           var_width = 0
           cum_width = 0
@@ -122,10 +131,11 @@ class Debugger
           if variable_widths.size > 0 and (fixed_width + variable_widths.size) < page_width
             # Next, reduce variable widths proportionately to needs      
             cum_adj = 0
-            variable_widths.each do |i|
-              adj = (@widths[i].to_f / var_width * (cum_width - page_width)).round
+            variable_widths.sort.each do |i|
+              adj = (@widths[i].to_f / var_width * (cum_width - page_width)).ceil
               @widths[i] -= adj
               cum_adj += adj
+              break if cum_width - cum_adj <= page_width
             end
             cum_width -= cum_adj
           end
