@@ -84,7 +84,7 @@ class GlobalVariables
     
     if setter.nil?
       setter = method(:illegal_set)
-    elsif setter.respond_to?(:call)
+    elsif not setter.respond_to?(:call)
       raise ArgumentError, "setter must respond to call"
     end
     
