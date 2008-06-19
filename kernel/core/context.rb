@@ -235,9 +235,8 @@ class MethodContext
     scope = method.staticscope
 
     while scope
-      if mod = scope.module.__send__(:recursive_const_get, top, false)
-        return mod.const_path_defined? parts.join("::")
-      end
+      mod = top.to_s !~ /self/ ? scope.module.__send__(:recursive_const_get, top, false) : scope.module
+      return mod.const_path_defined? parts.join("::") if mod
 
       scope = scope.parent
     end
