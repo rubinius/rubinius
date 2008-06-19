@@ -31,23 +31,16 @@
 
 class Binding
   attr_accessor :context
-  attr_accessor :caller_env
+  attr_accessor :proc_environment
+
+  def from_proc?
+    @proc_environment
+  end
 
   def self.setup(ctx)
     bind = allocate()
-    while ctx.from_eval?
-      ctx = ctx.next_frame
-    end
     
     bind.context = ctx
-    return bind
-  end
-
-  def self.from_env(env)
-    bind = allocate()
-
-    bind.context = env.home_block
-    bind.caller_env = env
     return bind
   end
 end

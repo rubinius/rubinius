@@ -34,7 +34,6 @@
 class MethodContext
 
   attr_accessor :last_match
-  alias_method :next_frame, :sender
 
   def from_eval?
     false
@@ -57,13 +56,11 @@ class MethodContext
   end
 
   def position_info
-    ret = []
-    if self.method.name and self.method.name != :__script__
-      ret << "#{self.file}:#{self.line}:in `#{self.method.name}'" 
+    if [:__script__, :__block__].include?(self.name)
+      "#{self.file}:#{self.line}"
     else
-      ret << "#{self.file}:#{self.line}"
+      "#{self.file}:#{self.line}:in `#{self.name}'"
     end
-    ret
   end
   ##
   # The Nth group of the last regexp match.
@@ -120,12 +117,8 @@ class MethodContext
     # We subtract 1 because the ip is actually set to what it should do
     # next, not what it's currently doing (unless we are at the start of
     # a new context).
-    if self.from_eval? and self.env.caller_env
-      ip = self.env.caller_env.registration_ip - 1
-    else
-      ip = self.ip - 1
-      ip = 0 if ip < 0
-    end
+    ip = self.ip - 1
+    ip = 0 if ip < 0
     self.method.line_from_ip(ip)
   end
 
@@ -171,12 +164,33 @@ class MethodContext
 
   def context_stack
     ret = []
-    ctx = self
-    while ctx
-      ret << ctx
-      ctx = ctx.next_frame
+    frame = self
+    while frame
+      ret << frame
+      # If this context's env was created from a Proc binding
+      # then we duplicate the frame and reset its instruction pointer
+      # in order to show the first line of the block as the active
+      # line in stack trace output
+      if frame.__kind_of__(BlockContext) and frame.env.from_proc?
+        frame = frame.context_from_proc
+      else
+        frame = frame.sender
+      end
     end
     ret
+  end
+
+  # Get the first IP value in the 'home_block' that is on the
+  # first line of the method representing the Proc and return
+  # a copy of the Proc environment's home block initialized with
+  # this IP
+  def context_from_proc
+    frame = self.env.proc_environment.home_block.dup
+
+    first_line = self.env.proc_environment.method.first_line
+    frame.ip = frame.method.first_ip_on_line(first_line) + 1
+
+    return frame
   end
 
   def stack_trace_starting_at(start=1)
@@ -185,7 +199,7 @@ class MethodContext
     return nil if start > trace.size
     trace.each_with_index do |frame, i|
       next if i < start
-      ret.concat frame.position_info
+      ret << frame.position_info
     end
     ret
   end
@@ -378,25 +392,8 @@ end
 
 class BlockContext < MethodContext
 
-  def next_frame
-    if self.env.caller_env
-      self.env.caller_env.home_block
-    else
-      self.sender
-    end
-  end
-
   def from_eval?
     self.env.from_eval?
-  end
-
-  def position_info
-    ret = super()
-    if self.from_eval?
-      home = self.env.home
-      ret << "#{home.file}:#{home.line} in `#{home.method.name}'"
-    end
-    ret
   end
 
   def last_match
@@ -486,8 +483,10 @@ class BlockEnvironment
   def local_count ; @local_count ; end
   def method      ; @method      ; end
 
-  attr_accessor :caller_env
-  attr_accessor :registration_ip
+  attr_accessor :proc_environment
+  def from_proc?
+    @proc_environment
+  end
 
   def home_block=(block)
     @home_block = block
@@ -505,21 +504,21 @@ class BlockEnvironment
     @metadata_container
   end
 
-  def under_context(home, cmethod)
-    if home.kind_of? BlockContext
-      home_block = home
-      home = home.home
+  def under_context(context, cmethod)
+    if context.__kind_of__ BlockContext
+      home = context.home
     else
-      home_block = home
+      home = context
     end
 
     @home = home
+    @home_block = context
+    @method = cmethod
+    @local_count = cmethod.local_count
+
     @initial_ip = 0
     @last_ip = 0x10000000 # 2**28
     @post_send = 0
-    @home_block = home_block
-    @method = cmethod
-    @local_count = cmethod.local_count
     return self
   end
 

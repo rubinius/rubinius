@@ -11,7 +11,9 @@ class Proc
   end
 
   def binding
-    Binding.from_env @block
+    bind = Binding.setup @block.home_block
+    bind.proc_environment = @block
+    bind
   end
 
   def caller(start = 0)
@@ -22,7 +24,6 @@ class Proc
     if env.__kind_of__(BlockEnvironment)
       obj = allocate()
       obj.block = env
-      obj.block.registration_ip = env.home_block.ip if env.home_block
       return obj
     else
       begin

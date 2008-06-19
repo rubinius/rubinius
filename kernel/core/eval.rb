@@ -24,8 +24,10 @@ module Kernel
 
   def binding
     ctx = MethodContext.current.sender
+    # If we are here because of eval, fetch the context of
+    # the thing that invoked eval
     if ctx.from_eval?
-      Binding.setup ctx.next_frame.next_frame
+      Binding.setup ctx.sender.sender
     else
       Binding.setup ctx
     end
@@ -34,19 +36,15 @@ module Kernel
 
   def eval(string, binding=nil, filename='(eval)', lineno=1)
     if !binding
-      context = MethodContext.current.sender
-      binding = Binding.setup context
+      binding = Binding.setup MethodContext.current.sender
     elsif binding.__kind_of__ Proc
       binding = binding.binding
-      context = binding.context
     elsif !binding.__kind_of__ Binding
       raise ArgumentError, "unknown type of binding"
-    else
-      context = binding.context
     end
 
-    compiled_method = Compile.compile_string string, context, filename, lineno
-    compiled_method.staticscope = context.method.staticscope.dup
+    compiled_method = Compile.compile_string string, binding.context, filename, lineno
+    compiled_method.staticscope = binding.context.method.staticscope.dup
 
     # This has to be setup so __FILE__ works in eval.
     script = CompiledMethod::Script.new
@@ -54,9 +52,18 @@ module Kernel
     compiled_method.staticscope.script = script
 
     be = BlockEnvironment.new
+    be.under_context binding.context, compiled_method
+
+    # Pass the BlockEnvironment this binding was created from
+    # down into the new BlockEnvironment we just created.
+    # This indicates the "declaration trace" to the stack trace
+    # mechanisms, which can be different from the "call trace"
+    # in the case of, say: eval("caller", a_proc_instance)
+    if binding.from_proc? then
+      be.proc_environment = binding.proc_environment
+    end
+
     be.from_eval!
-    be.caller_env = binding.caller_env # For correct stack traces
-    be.under_context context, compiled_method
     be.call
   end
   module_function :eval
