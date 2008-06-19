@@ -72,7 +72,7 @@ module Zlib
         return nil
       end
 
-      unless in_stream? then
+      if in_stream? then
         warn "attempt to close unfinished zstream; reset forced"
         reset
       end
@@ -125,7 +125,7 @@ module Zlib
     end
 
     def in_stream?
-      (@flags & IN_STREAM) == 1
+      (@flags & IN_STREAM) == IN_STREAM
     end
 
     def input_empty?
@@ -137,7 +137,7 @@ module Zlib
     end
 
     def ready?
-      (@flags & READY) == 1
+      (@flags & READY) == READY
     end
 
     def reset
