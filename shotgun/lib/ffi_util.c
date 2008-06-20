@@ -125,17 +125,6 @@ char *ffi_sprintf_d(int value, int size, char *fmt) {
   return str;
 }
 
-OBJECT ffi_pack_sockaddr_un(STATE, char *path) {
-  struct sockaddr_un *sa;
-  
-  sa = ALLOC(struct sockaddr_un);
-  memset(sa, 0, sizeof(struct sockaddr_un));
-  
-  strncpy(sa->sun_path, path, sizeof(sa->sun_path) - 1);
-
-  return string_new2(state, (char*) sa, sizeof(struct sockaddr_un) );
-}
-
 void *ffi_add_ptr(char *ptr, int offset) { 
   return (void*)(ptr + offset); 
 }
