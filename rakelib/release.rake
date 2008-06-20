@@ -62,7 +62,7 @@ namespace :release do
 end
 
 def verify_version expected
-  actual = LIBVER
+  actual = RBX_VERSION
   unless expected == actual
     abort "version #{expected} doesn't match #{actual}. Run `rake release:help`"
   end
