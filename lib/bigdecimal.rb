@@ -70,7 +70,7 @@ class BigDecimal < Numeric
         fraczeros = /^0*/.match(frac)[0]
         @exp = m[5].to_i + int.length
         if int.to_i == 0 
-          @exp -= fraczeros.length
+          @exp -= (fraczeros.size == frac.size) ? 0 : fraczeros.length
         end
         @digits = (int + frac).gsub(/0*$/, '').to_i
       end
@@ -536,6 +536,29 @@ class BigDecimal < Numeric
     else # infinite
       @sign == PLUS ? SIGN_POSITIVE_INFINITE : SIGN_NEGATIVE_INFINITE
     end
+  end
+
+  def split
+    arr = []
+    base = 10
+
+    if self.sign > 0 
+      sgn =  1
+    elsif self.sign < 0
+      sgn = -1
+    else
+      sgn = 0    
+    end
+
+    if self.infinite? 
+      value = "Infinity"
+    elsif self.nan?
+      value = "NaN"
+    else
+      value = @digits.to_s
+    end
+
+    arr << sgn << value << base << @exp
   end
   
   def truncate(prec = nil)
