@@ -459,6 +459,7 @@ void ffi_call_libffi(STATE, cpu c, OBJECT ptr) {
   }
   }
 
+  free(values);
   stack_push(ret);
 }
 
