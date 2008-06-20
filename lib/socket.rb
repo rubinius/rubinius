@@ -121,9 +121,6 @@ class Socket < BasicSocket
                     [:pointer, :socklen_t, :pointer, :socklen_t,
                      :pointer, :socklen_t, :int], :int
 
-    #attach_function "ffi_pack_sockaddr_un", :pack_sa_unix,
-    #                [:state, :string], :object
-
     def self.bind(descriptor, sockaddr)
       MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
         sockaddr_p.write_string sockaddr, sockaddr.length
