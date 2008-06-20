@@ -125,16 +125,14 @@ MethodContext.current.method.staticscope = StaticScope.new(Object)
 TOPLEVEL_BINDING = binding()
 
 eval_code = nil
-arg = nil
+script = nil
 
 begin
-  version_requested = false
   script_debug_requested = false
   until ARGV.empty?
     arg = ARGV.shift
     case arg
     when '--'
-      arg = nil
       break
     when '-h', '--help'
       puts RBS_USAGE
@@ -142,7 +140,7 @@ begin
     when "-v"
       puts "rubinius #{RBX_VERSION} (ruby #{RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
-      version_requested = true
+      exit 0 if ARGV.empty?
     when "-w"
       # do nothing (HACK)
     when '-dc'
@@ -202,8 +200,8 @@ begin
         puts RBS_USAGE
         exit! 1
       else
-        # Otherwise, we're done. Leave arg populated though, so we can
-        # try and load it.
+        script = arg
+        # And we're done.
         break
       end
     end
@@ -211,54 +209,42 @@ begin
 
   # If someone used -e, run that code.
   if eval_code
-    # We have to put the last arg back on, since the option parser bails
-    # when it seems a non-option even if it's just a -e.
-    ARGV.unshift arg if arg
+    # If we also caught a script to run, we just treat it like
+    # another arg.
+    ARGV.unshift script if script
 
     Compile.execute eval_code
-  elsif arg
-    if File.exists?(arg)
-      $0 = arg
+  elsif script
+    if File.exists?(script)
+      $0 = script
       Compile.debug_script! if script_debug_requested
       Compile.load_from_extension arg 
     else
-      if arg.suffix?(".rb")
-        puts "Unable to find '#{arg}'"
+      if script.suffix?(".rb")
+        puts "Unable to find '#{script}'"
         exit! 1
       else
-        prog = File.join main_lib, "bin", arg
+        prog = File.join main_lib, "bin", script
         if File.exists? prog
           $0 = prog
           load prog
         else
-          raise LoadError, "Unable to find a script '#{arg}' to run"
+          raise LoadError, "Unable to find a script '#{script}' to run"
         end
       end
     end
   end
-  
+
   unless $0
     if Rubinius::Terminal
-      ran = false
-      unless /^(rubinius|rbx)$/.match(ARG0)
-        begin
-          $0 = ARG0
-          require "bin/#{ARG0}"
-          ran = true
-        rescue LoadError
-        end
-      end
-
-      unless ran or version_requested
-        repr = ENV['RBX_REPR'] || "bin/irb"
-        $0 = repr
-        prog = File.join main_lib, repr
-        begin
-          load prog
-        rescue LoadError => e
-          STDERR.puts "Unable to find repr named '#{repr}' to load."
-          exit 1
-        end
+      repr = ENV['RBX_REPR'] || "bin/irb"
+      $0 = repr
+      prog = File.join main_lib, repr
+      begin
+        load prog
+      rescue LoadError => e
+        STDERR.puts "Unable to find repr named '#{repr}' to load."
+        exit 1
       end
     else
       $0 = "(eval)"
