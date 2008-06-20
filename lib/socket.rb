@@ -117,8 +117,9 @@ class Socket < BasicSocket
     attach_function "htons", :htons, [:u_int16_t], :u_int16_t
     attach_function "ntohs", :ntohs, [:u_int16_t], :u_int16_t
 
-    attach_function "ffi_getnameinfo", :_getnameinfo,
-                    [:state, :pointer, :socklen_t, :int], :object
+    attach_function "getnameinfo", :_getnameinfo,
+                    [:pointer, :socklen_t, :pointer, :socklen_t,
+                     :pointer, :socklen_t, :int], :int
 
     #attach_function "ffi_pack_sockaddr_un", :pack_sa_unix,
     #                [:state, :string], :object
@@ -227,20 +228,40 @@ class Socket < BasicSocket
                          reverse_lookup = !BasicSocket.do_not_reverse_lookup)
       name_info = []
       value = nil
-      flags = 0
-      flags |= Socket::NI_NUMERICHOST unless reverse_lookup
 
       MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
-        sockaddr_p.write_string sockaddr, sockaddr.length
+        MemoryPointer.new :char, Socket::Constants::NI_MAXHOST do |node|
+          MemoryPointer.new :char, Socket::Constants::NI_MAXSERV do |service|
+            sockaddr_p.write_string sockaddr, sockaddr.length
 
-        success, value = _getnameinfo sockaddr_p, sockaddr.length, flags
+            if reverse_lookup then
+              err = _getnameinfo(sockaddr_p, sockaddr.length,
+                                 node, Socket::Constants::NI_MAXHOST, nil, 0, 0)
 
-        raise SocketError, value unless success
+              unless err == 0 then
+                raise SocketError, Socket::Foreign.gai_strerror(err)
+              end
 
-        name_info[0] = Socket::Constants::AF_TO_FAMILY[value[0]]
-        name_info[1] = value[1]
-        name_info[2] = value[2]
-        name_info[3] = value[3]
+              name_info[2] = node.read_string
+            end
+
+            err = _getnameinfo(sockaddr_p, sockaddr.length,
+                               node, Socket::Constants::NI_MAXHOST,
+                               service, Socket::Constants::NI_MAXSERV,
+                               Socket::Constants::NI_NUMERICHOST |
+                                 Socket::Constants::NI_NUMERICSERV)
+
+            unless err == 0 then
+              raise SocketError, Socket::Foreign.gai_strerror(err)
+            end
+
+            sa_family = SockAddr_In.new(sockaddr)[:sin_family]
+
+            name_info[0] = Socket::Constants::AF_TO_FAMILY[sa_family]
+            name_info[1] = Integer service.read_string
+            name_info[3] = node.read_string
+          end
+        end
       end
 
       name_info[2] = name_info[3] if name_info[2].nil?
