@@ -9,7 +9,7 @@ file 'lib/rbconfig.rb' do
 end
 
 %w[shotgun/config.mk shotgun/config.h].each do |f|
-  file f do
+  file f => "rakelib/configuration.rb" do
     write_config
   end
 end
