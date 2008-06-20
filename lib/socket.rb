@@ -38,7 +38,7 @@ class BasicSocket < IO
     end
 
     Errno.handle "Unable to set socket option" unless error == 0
-    
+
     return 0
   end
 
@@ -138,7 +138,7 @@ class Socket < BasicSocket
 
         err = _connect descriptor, sockaddr_p, sockaddr.length
       end
-      
+
       getsockopt(descriptor, Socket::SOL_SOCKET, Socket::SO_ERROR) if err < 0
       err
     end
@@ -165,7 +165,7 @@ class Socket < BasicSocket
       hints[:ai_flags] = flags
       host = "" if host.nil?
 
-      if host.empty? 
+      if host.empty?
         if (flags & Socket::AI_PASSIVE == 1) # Passive socket
           family == Socket::AF_INET6 ? (host = "::") : (host = "0.0.0.0") # IPv6 or IPv4
         else
@@ -180,7 +180,7 @@ class Socket < BasicSocket
       raise SocketError, Socket::Foreign.gai_strerror(err) unless err == 0
 
       ptr = res_p.read_pointer
-      
+
       return [] unless ptr
 
       res = Socket::Foreign::AddrInfo.new ptr
@@ -222,14 +222,14 @@ class Socket < BasicSocket
       addrinfos = Socket::Foreign.getaddrinfo(host)
       Socket::Foreign.unpack_sockaddr_in(addrinfos.first[4], false).first
     end
-    
+
     def self.getnameinfo(sockaddr,
                          reverse_lookup = !BasicSocket.do_not_reverse_lookup)
       name_info = []
       value = nil
       flags = 0
       flags |= Socket::NI_NUMERICHOST unless reverse_lookup
-      
+
       MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
         sockaddr_p.write_string sockaddr, sockaddr.length
 
@@ -265,7 +265,7 @@ class Socket < BasicSocket
       MemoryPointer.new :char, 128 do |sockaddr_storage_p|
         MemoryPointer.new :socklen_t do |len_p|
           len_p.write_int 128
-          
+
           err = _getsockname descriptor, sockaddr_storage_p, len_p
 
           Errno.handle 'getsockname(2)' unless err == 0
@@ -485,17 +485,17 @@ class Socket < BasicSocket
     def self.pack_sockaddr_un(file)
       SockAddr_Un.new(file).to_s
     end
-    
+
     def self.unpack_sockaddr_un(addr)
 
       if addr.length > FFI.config("sockaddr_un.sizeof")
         raise TypeError, "too long sockaddr_un - #{addr.length} longer than #{FFI.config("sockaddr_un.sizeof")}"
       end
-      
+
       struct = SockAddr_Un.new
       struct.pointer.write_string(addr)
-      
-      struct[:sun_path]      
+
+      struct[:sun_path]
     end
 
     class << self
@@ -629,7 +629,7 @@ class UDPSocket < IPSocket
     Errno.handle 'socket(2)' if status < 0
     setup status
   end
-  
+
   def bind(host, port)
     @host = host.to_s if host
     @port = port.to_s if port
@@ -650,12 +650,12 @@ class UDPSocket < IPSocket
       break if status >= 0
     end
     if status < 0
-      Errno.handle syscall 
+      Errno.handle syscall
       Socket::Foreign.close descriptor
     end
     status
   end
-  
+
   def inspect
     "#<#{self.class}:0x#{object_id.to_s(16)} #{@host}:#{@port}>"
   end
@@ -663,10 +663,10 @@ class UDPSocket < IPSocket
 end
 
 class TCPSocket < IPSocket
-  
+
   def self.gethostbyname(hostname)
     addrinfos = Socket.getaddrinfo(hostname)
-    
+
     hostname     = addrinfos.first[2]
     family       = addrinfos.first[4]
     addresses    = []
@@ -675,10 +675,10 @@ class TCPSocket < IPSocket
       alternatives << a[2] unless a[2] == hostname
       addresses    << a[3] if a[4] == family
     end
-    
+
     [hostname, alternatives.uniq, family] + addresses.uniq
   end
-  
+
   def initialize(host, port)
     @host = host
     @port = port
@@ -703,7 +703,7 @@ class TCPSocket < IPSocket
 
     if server == false and (local_host or local_service) then
       @local_addrinfo = Socket::Foreign.getaddrinfo(local_host,
-                                                    local_service, 
+                                                    local_service,
                                                     Socket::AF_UNSPEC,
                                                     Socket::SOCK_STREAM, 0, 0)
     end
@@ -744,10 +744,10 @@ class TCPSocket < IPSocket
     end
 
     if status < 0
-      Errno.handle syscall 
+      Errno.handle syscall
       Socket::Foreign.close descriptor
     end
-    
+
     if server then
       err = Socket::Foreign.listen descriptor, 5
       Errno.handle syscall unless err == 0
@@ -775,7 +775,7 @@ class TCPServer < TCPSocket
       port = host
       host = nil
     end
-    
+
     port = StringValue port unless port.__kind_of__ Fixnum
 
     @host = host
