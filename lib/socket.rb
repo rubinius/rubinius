@@ -157,7 +157,7 @@ class Socket < BasicSocket
       end
     end
 
-    def self.getaddrinfo(host, service, family, socktype, protocol, flags)
+    def self.getaddrinfo(host, service = nil, family = 0, socktype = 0,  protocol = 0, flags = 0)
       hints = Socket::Foreign::AddrInfo.new
       hints[:ai_family] = family
       hints[:ai_socktype] = socktype
@@ -219,8 +219,8 @@ class Socket < BasicSocket
     end
 
     def self.getaddress(host)
-      addrinfos = Socket.getaddrinfo(host)
-      addrinfos.first[3]
+      addrinfos = Socket::Foreign.getaddrinfo(host)
+      Socket::Foreign.unpack_sockaddr_in(addrinfos.first[4], false).first
     end
     
     def self.getnameinfo(sockaddr,
