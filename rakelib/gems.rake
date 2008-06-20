@@ -9,7 +9,7 @@ namespace :gems do
 
   GEMS_DEVELOPMENT_PRE_INSTALLED_DIR = File.join checkout_dir, 'tmp',
                                                  relative_path
-  GEMS_PRE_INSTALLED_DIR = File.join CODEPATH, 'rubinius', relative_path 
+  GEMS_PRE_INSTALLED_DIR = File.join File.dirname(CODEPATH), relative_path
 
   rule '.gem' => '.gemspec' do |task|
     Dir.chdir File.dirname(task.source) do
