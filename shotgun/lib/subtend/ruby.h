@@ -386,4 +386,9 @@ VALUE rb_path2class(const char *path);
 
 VALUE rb_proc_new(VALUE (*func)(), VALUE val);
 
+void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(), void (*setter)());
+void rb_define_variable(const char *name, VALUE *var);
+void rb_define_readonly_variable(const char *name, VALUE *var);
+void rb_define_virtual_variable(const char *name, VALUE (*getter)(), void (*setter)());
+
 #endif

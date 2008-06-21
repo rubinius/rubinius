@@ -145,7 +145,8 @@ VALUE subtend_get_global(int which) {
 }
 
 void rb_global_object(VALUE val) {
-  handle_make_global(AS_HNDL(val));
+  if(REFERENCE_P((OBJECT)val)) /* We should avoid primitives */
+    handle_make_global(AS_HNDL(val));
 }
 
 /* HACK this is wrong. We should tag +address+, but we cheat
@@ -157,7 +158,8 @@ void rb_global_variable(VALUE* address) {
 }
 
 void rb_free_global(VALUE val) {
-  handle_clear_global(AS_HNDL(val));
+  if(REFERENCE_P((OBJECT)val))
+    handle_clear_global(AS_HNDL(val));
 }
 
 /* Functions for calling methods or object. */
@@ -1284,3 +1286,121 @@ VALUE rb_proc_new(VALUE (*func)(), VALUE val) {
   VALUE native_meth = NEW_HANDLE(ctx, nmethod_new(ctx->state, HNDL(rb_mKernel), __FILE__, "", func, -3));
   return rb_funcall(rb_const_get(rb_cObject, rb_intern("Proc")), rb_intern("new"), 1, native_meth);
 }
+
+static ID global_id(const char *name) {
+  ID id;
+
+  if (name[0] == '$') {
+    id = rb_intern(name);
+  } else {
+    char *buf = ALLOC_N(char, strlen(name) + 2);
+    buf[0] = '$';
+    strcpy(buf + 1, name);
+    id = rb_intern(buf);
+    XFREE(buf);
+  }
+  return id;
+}
+
+VALUE global_variables_hash = 0;
+struct global_variable {
+  void *data;
+  VALUE (*getter)();
+  void (*setter)();
+};
+
+static struct global_variable* rb_global_variable_entry(ID id) {
+  struct global_variable *gvar;
+
+  if(!global_variables_hash) {
+    global_variables_hash = rb_hash_new();
+    rb_global_variable(&global_variables_hash);
+  }
+
+  VALUE v = rb_hash_aref(global_variables_hash, ID2SYM(id));
+  if(v == Qnil) {
+    v = Data_Make_Struct(rb_cObject, struct global_variable, NULL, NULL, gvar);
+    rb_hash_aset(global_variables_hash, ID2SYM(id), v);
+  } else {
+    Data_Get_Struct(v, struct global_variable, gvar);
+  }
+  return gvar;
+}
+
+static VALUE gvar_getter(VALUE args) {
+  ID id;
+  struct global_variable *gvar;
+
+  id = SYM2ID(rb_ary_entry(args, 0));
+  gvar = rb_global_variable_entry(id);
+  return gvar->getter(id, gvar->data, gvar);
+}
+
+static VALUE gvar_setter(VALUE args) {
+  ID id;
+  struct global_variable *gvar;
+  VALUE data;
+
+  data = rb_ary_entry(args, 0);
+  id = SYM2ID(rb_ary_entry(args, 1));
+  gvar = rb_global_variable_entry(id);
+
+  /* FIX: We need to clear the global flag (so that we don't leak) and
+   * then tag the new value as global again. All this happen because
+   * rb_global_variable is tagging only the VALUE, not the address in
+   * which it is. When rb_global_variable get fixed we can remove this.
+   */
+  rb_free_global(*((VALUE*)gvar->data));
+  gvar->setter(data, id, gvar->data, gvar);
+  rb_global_variable(gvar->data);
+  return data;
+}
+
+static VALUE var_getter(ID id, VALUE *var) {
+    if(!var) return Qnil;
+    return *var;
+}
+
+static void var_setter(VALUE val, ID id, VALUE *var) {
+    *var = val;
+}
+
+static void readonly_setter(VALUE val, ID id, void *var) {
+  rb_raise(rb_eNameError, "%s is a read-only variable", rb_id2name(id));
+}
+
+static VALUE val_getter(ID id, VALUE val) {
+    return val;
+}
+
+void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(), void (*setter)()) {
+  struct global_variable *gvar;
+  ID id = global_id(name);
+
+  rb_global_variable(var);
+
+  gvar = rb_global_variable_entry(id);
+  gvar->data = (void*)var;
+  gvar->getter = getter ? getter : var_getter;
+  gvar->setter = setter ? setter : var_setter;
+
+  rb_funcall(rb_const_get(rb_cObject, rb_intern("Globals")), rb_intern("set_hook"), 3, id,
+      rb_proc_new(gvar_getter, Qnil),
+      rb_proc_new(gvar_setter, Qnil));
+}
+
+void rb_define_variable(const char *name, VALUE *var) {
+  rb_define_hooked_variable(name, var, 0, 0);
+}
+
+void rb_define_readonly_variable(const char *name, VALUE *var) {
+  rb_define_hooked_variable(name, var, 0, readonly_setter);
+}
+
+void rb_define_virtual_variable(const char *name, VALUE (*getter)(), void (*setter)()) {
+  if(!getter) getter = val_getter;
+  if(!setter) setter = readonly_setter;
+
+  rb_define_hooked_variable(name, 0, getter, setter);
+}
+
