@@ -40,6 +40,7 @@ TOC_TEMPLATE = <<-EOF
 <li><a href="rubinius_vs_mri.html" target="op_code">Rubinius vs MRI</a></li>
 <li><a href="concurrency.html" target="op_code">Concurrency</a></li>
 <li><a href="vm_interfaces.html" target="op_code">Interfacing to Rubinius</a></li>
+<li><a href="ffi.html" target="op_code">Foreign Function Interface</a></li>
 <li><a href="rbc_files.html" target="op_code">Rubinius Compiled Files</a></li>
 </ul>
 

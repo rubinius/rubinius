@@ -1,0 +1,286 @@
+== Introduction
+
+Rubinius FFI (Foreign Function Interface) provides a convenient way to
+attach and call a foreign function. The main interface function is
+<tt>Module#attach_function</tt>. Here's a simple example to call the C
+version of <tt>printf</tt>:
+
+  module Foo
+    attach_function 'printf', :dummy_printf, [:string, :int], :int
+  end
+
+After that, call to the attached foreign function will convert the
+arguments and return value between Ruby and C automatically:
+
+  irb(main):001:0> dummy_printf "hi! This is the number: %d\n", 6
+  hi! This is the number: 6
+  => 26
+
+FFI provides a convenient way to access external libraries from Ruby.
+
+== Document
+
+=== Module#attach_function(name, a3, a4, a5=nil)
+
+<b>call sequence:</b>
+- <tt>attach_function(func_name, method_name, arg_types, ret_type) => method</tt>
+- <tt>attach_function(func_name, arg_types, ret_type) => method</tt>
+
+<b>params:</b>
+- *func_name*: The name of the native function. e.g. <tt>"printf"</tt>.
+- *method_name*: The name of the wrapper method to be attached. e.g. <tt>:dummy_printf</tt>.
+  Will be <tt>func_name.to_sym</tt> if not given.
+- *arg_types*: An array of the type of arguments accepted by the native function in that
+  order. e.g. <tt>[:string, :int]</tt>.
+- *ret_type*: The return type of the native function. e.g. <tt>:int</tt>.
+
+The native function is searched in the libraries specified by the
+<tt>@ffi_lib</tt> instance variable of the module. Call
+<tt>Module#set_ffi_lib</tt> to set <tt>@ffi_lib</tt> of a module:
+
+  module Foo
+    set_ffi_lib("libz", "libreadline")
+  end
+
+set <tt>@ffi_lib</tt> to <tt>FFI::USE_THIS_PROCESS_AS_LIBRARY</tt>
+(the default value) to let Rubinius search the native function in the
+current process. All functions defined in the Rubinius code base as
+well as other libraries like libc are available in the image of
+current process.
+
+If the native function is found, a stub will be created and attached
+as a singleton method of the module. The following numerical types are
+supported:
+
+- <tt>:int/:uint</tt>
+- <tt>:char/:uchar</tt>
+- <tt>:short/:ushort</tt>
+- <tt>:long/:ulong</tt>
+- <tt>:long_long/:ulong_long</tt>
+- <tt>:float/:double</tt>
+
+They are all self-explaining. Besides, the following basic types are
+also supported:
+
+- <tt>:string</tt>. A +String+ in Ruby maps to a <tt>char *</tt> in C.
+- <tt>:pointer</tt>. A +MemoryPointer+ object in Ruby is used represent
+  an arbitraty pointer in C (<tt>void *</tt>).
+- <tt>:object</tt>. Any Ruby object can be mapped to a C +OBJECT+
+  value by this.
+- <tt>:state</tt>. <tt>rubinius_state *</tt> in C. This is only used
+  as function argument type. Then the current state of Rubinius will
+  be used as the parameter. It.s invisible, i.e. doesn.t get seen as
+  in onbound arg by Ruby. And it can only be the first argument.
+- <tt>:strptr</tt> or <tt>:string_and_pointer</tt>: A <tt>char *</tt>
+  in C mapped to Ruby <tt>[String, MemoryPointer]</tt>. The +String+ is
+  a copy of the original C string, while the +MemoryPointer+ is pointed
+  to the original memory. This is generally used when you.ll have to
+  manually free the memory (through the +MemoryPointer+ object).
+- <tt>:void</tt>: This is only used as function return type. Then the
+  return value will be nil in Ruby.
+- <tt>:char_array</tt>: This is only used in the layout spec of a C
+  struct to represent an embedded char array of a struct.
+
+However, when you are attaching functions, you should always use the
+specific type if possible. For example, for the chmod function:
+
+  attach_function 'chmod', [:string, :mode_t], :int
+
+<tt>:mode_t</tt> should be used instead of :uint here. They are
+available through typedefs to the FFI. You can add your own typedef by
+calling <tt>FFI.add_typedef</tt>:
+
+  FFI.add_typedef(:ulong, :my_long)
+
+However, this is generally not encouraged. Because those type
+definitions are usually platform dependent, they <b>should not</b> be
+specified in Ruby. Fortunately, almost all the well known typedefs are
+automatically available in Rubinius (see <i>runtime/platform.conf</i>). They
+are automatically generated at compile time, so they are guaranteed to
+be well defined for your platform.
+
+=== MemoryPointer
+
++MemoryPointer+ is Rubinius.s fat pointer class. It represents an actual
+pointer, in C language terms, to an address in memory. They.re called
+fat pointers because the MemoryPointer object is an wrapper around the
+actual pointer, the Rubinius runtime doesn.t have direct access to the
+raw address.
+
+=== MemoryPointer.new(type, count=nil, clear=true)
+
+<b>call sequence:</b>
+- <tt>MemoryPointer.new(num) => MemoryPointer</tt> instance of +num+
+  bytes.
+- <tt>MemoryPointer.new(sym) => MemoryPointer</tt> instance with number of
+  bytes need by FFI type +sym+.
+- <tt>MemoryPointer.new(obj) => MemoryPointer</tt> instance with number of
+  <tt>obj.size</tt> bytes.
+- <tt>MemoryPointer.new(sym, count) => MemoryPointer</tt> instance with
+  number of bytes need by length-count array of FFI type +sym+. Like
+  above, +sym+ here can also be +num+ or +obj+.
+- <tt>MemoryPointer.new(arg) { |p| ... }</tt>
+
+The form without a block returns the MemoryPointer instance. The form
+with a block yields the MemoryPointer instance and frees the memory
+when the block returns. The value returned is the value of the block.
+
+When clear is set, the memory will be zero-ed automatically. By
+default, +MemoryPointer+ object is in autorelease mode: when the Ruby GC
+collect the MemoryPointer object, it will automatically free the
+memory. This can be turned off by:
+
+  ptr.autorelease = false
+
+Then you might need to call <tt>ptr.free</tt> explicitly to free the memory
+when necessary.
+
+=== MemoryPointer#[](which)
+
+Access the MemoryPointer like a C array, accessing the which number
+element in memory. However, this is not equivalent to the C version of
+subscription of a pointer. The return value will also be a
+MemoryPointer object. For example:
+
+  ptr = MemoryPointer.new(:int, 20)
+  new_ptr = ptr[9]
+
+is equivalent to the following C code:
+
+  int *ptr = (int*)malloc(sizeof(int) * 20);
+  int *new_ptr;
+  new_ptr = &ptr[9];
+
+A <tt>+</tt> method is also provided to do explicit pointer arithmetic. Unlike
+the pointer arithmetic in C, the offset is always in byte. So <tt>ptr[1]</tt>
+is equivalent to <tt>ptr + ptr.type_size</tt> instead of <tt>ptr + 1</tt>.
+
+=== read_xxx
+
+To read the content of the pointer, call the functions named <tt>read_int</tt>,
+<tt>read_long</tt> etc. Note <tt>read_string</tt> is a bit different to other read
+functions:
+
+- Ruby <tt>ptr.read_int</tt> is equivalent to C <tt>*(int *)ptr</tt>, but Ruby
+  <tt>ptr.read_string</tt> is equivalent to C <tt>(char *)ptr</tt> . the pointer itself
+  is considered as a char array (<tt>char *</tt>) instead of a pointer to a
+  char array (<tt>char **</tt>).
+- You can pass an optional +length+ parameter to <tt>read_string</tt>. This is
+  useful when the string contains NUL-character (<tt>'\0'</tt>).
+
+=== read_array_of_xxx(n)
+
+There are also functions like read_array_of_int, read_array_of_long,
+etc. The return value will be an Array of n values. There.s no
+read_array_of_string because it is nonsense here.
+
+=== write_xxx(value) and write_array_of_xxx(array)
+
+Similar writer functions are provided to update the content of the
+pointer.
+
+*Note*: write_string is implemented by memcpy. If the original
+<tt>char *</tt> pointer is pointed to some constant string literal or
+the previous allocated memory is not big enough to hold the new
+string, it will cause serious problems without warning.
+
+*Note*: MemoryPointer exposes direct, unmanaged operations on any
+memory. It therefore *must* be used carefully. Reading or writing to
+invalid address will cause bus errors and segmentation faults.
+
+=== FFI::Struct
+
+<tt>FFI::Struct</tt> enables you to manipulate a C struct in Ruby
+easily. However, you.ll need to let Ruby know the layout of the struct
+before you can use it. Because the layout of a struct is highly
+platform dependent (it depends on size of basic types like int, the
+aligning and padding, etc.), it is often a good idea to generate the
+layout spec in C code at compile time, which, in turn, is not so
+convenient. But if the struct is well known, it might be already
+supported by Rubinius, see the doc for <tt>FFI::Struct.config</tt>.
+
+The layout spec is groups of three-element tuples of name, type and
+offset. Here.s an example:
+
+  class MyStruct < FFI::Struct
+    layout(:a, :int, 0, :b, :int, 4)
+  end
+
+Then you can create an instance of the struct by <tt>struct =
+MyStruct.new</tt>. Alternatively, you can also provide the spec on the fly
+instead of creating a sub-class of <tt>FFI::Struct</tt>:
+
+  struct = FFI::Struct.new(nil, :a, :int, 0, :b, :int, 4)
+
+<tt>FFI::Struct</tt> is wrapping a <tt>MemoryPointer</tt> object. The
+first parameter of the code snippet above made nil to have it allocate
+a new struct in memory.
+
+=== FFI::Struct.config(base, *fields)
+
+Because the layout of a struct is highly platform dependent, Rubinius
+collected the layout information for some well known structures at
+compile time and make them available to the Ruby side. So
+
+  class AddrInfo < FFI::Struct
+    config("rbx.platform.addrinfo", :ai_flags, :ai_family, :ai_socktype,
+           :ai_protocol, :ai_addrlen, :ai_addr, :ai_canonname, :ai_next)
+  end
+
+can setup the layout automatically. The generated structure layout
+information (and other information like typedefs, C macro constants,
+etc.) can be found in <i>runtime/platform.conf</i>, which is generated by
+<i>rakelib/platform.rake</i> when building the VM.
+
+=== FFI::Struct#[](field) and FFI::Struct#[]=(field, value)
+
+Read and write of struct field is fairly simple. The conversion
+between C and Ruby is automatically once the layout spec is setup
+properly:
+
+  a = struct[:a]
+  struct[:b] = 5
+
+There are other helper methods like +size+ to get the size of the
+struct, +dup+ to do a +memcpy+ of the struct and +free+ to free the memory
+explicitly, etc.
+
+=== NativeFunction and FFI.create_function(library, name, args, ret)
+
+When we call <tt>Module#attach_function</tt>, it create a
+<tt>NativeFunction</tt> by calling <tt>FFI.create_function</tt> and attach it
+to the module.
+
+You can also create unattached +NativeFunction+ object like this:
+
+  func = FFI.create_function(FFI::USE_THIS_PROCESS_AS_LIBRARY, 
+                             "printf", 
+                             [:string, :int], 
+                             :int)
+  func.call "hi! This is the number: %d\n", 6
+
+There's a helper class <tt>NativeFunction::Variable</tt> that lets you
+call native functions with variable number/type of arguments (like
++printf+):
+
+  func = NativeFunction::Variable.new(FFI::USE_THIS_PROCESS_AS_LIBRARY,
+                                      "printf",
+                                      [:string],
+                                      :int)
+   
+  func[:int].call "hi! This is the number: %d\n", 6
+  func[:string, :double].call "Wow, %s is %f\n", "here", 5.5
+
+First create the function by specifying the fixed parameters (the <tt>char
+*format</tt> for +printf+), then use the type of the variable parameters to
+get the correct function to call.
+
+== Links
+
+- {Eric Hodel's example of using
+  FFI}[http://blog.segment7.net/articles/2008/01/15/rubinius-foreign-function-interface]:
+  presents an example of writing +getaddrinfo+ in Ruby code (using
+  FFI) insead of C.
+- {On the Rubinius FFI}[http://pluskid.lifegoo.com/?p=370]: includes a
+  simple introduction to FFI, as well as detailed document for FFI and
+  a comparison between Rubinius FFI and Python ctypes.

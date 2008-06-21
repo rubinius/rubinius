@@ -39,6 +39,7 @@ namespace :doc do
       doc/vm/shotgun.html
       doc/vm/toc.html
       doc/vm/vm_interfaces.html
+      doc/vm/ffi.html
     ]
   end
 
