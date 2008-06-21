@@ -1,14 +1,12 @@
 # depends on: class.rb string.rb
 
 class Regexp
-
   ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
   def __ivars__; @__ivars__ ; end
   def source   ; @source    ; end
   def data     ; @data      ; end
   def names    ; @names     ; end
 
-  ValidOptions  = ['m','i','x']
   ValidKcode    = [?n,?e,?s,?u]
   KcodeValue    = [16,32,48,64]
 
@@ -265,75 +263,197 @@ class Regexp
     search_region(str, count, str.size, true)
   end
 
+  class SourceParser
+    class Part
+      OPTIONS_MAP = {'m' => Regexp::MULTILINE, 'i' => Regexp::IGNORECASE, 'x' => Regexp::EXTENDED}
+      attr_accessor :options
+      attr_accessor :source
+      def initialize(source = "")
+        @source = source
+        @options = []
+        @negated_options = []
+      end
+
+      def <<(str)
+        @source << str
+      end
+
+      def empty?
+        @source.empty?
+      end    
+
+      def flatten
+      end
+      
+      def to_s
+        source
+      end
+      
+      def has_options!
+        @has_options = true
+      end
+      
+      def has_options?
+        @has_options
+      end      
+    end
+    
+    class GroupPart < Part
+      def to_s
+        @flatten ? "#{source}" : "(#{options_string}#{source})"
+      end
+      
+      def push_option!(identifier)
+        @options << identifier
+      end
+     
+      def push_negated_option!(identifier)
+        @negated_options << identifier
+      end
+      
+      def flatten
+        @flatten = true
+      end
+      
+      def options_string
+        string = @options.join + (@negated_options.empty? ? "" : @negated_options.join)
+        string.empty? ? "" : "?#{string}:"
+      end
+      private :options_string
+    end
+    
+    def initialize(source, options = 0)
+      @source = source
+      @options = options
+      @parts = [Part.new]
+    end
+
+
+    def string
+      ["(?", options_string, ":",  parts_string, ")"].join
+    end
+    
+    def parts_string
+      if parts.size == 1 && parts.first.has_options?
+        parts.first.flatten
+      end
+      parts.map{|part| part.to_s}.join
+    end
+
+    def parts
+      return @parts if @already_parsed
+      @index = 0
+      create_parts
+      @parts.reject!{|part| part.empty?}
+      @already_parsed = true
+      @parts
+    end
+
+    def create_parts
+      return if finished_processing?
+      char =  @source[@index].chr
+      case char
+      when '('
+        if @source[@index + 1].chr == '?'
+          process_group
+        else
+          push_current_character!
+        end
+      else
+        push_current_character!
+      end
+      create_parts
+    end
+
+    def finished_processing?
+      @index + 1 > @source.size
+    end
+
+    def process_group
+      @index += 1
+      @parts << GroupPart.new
+      (@index += 1) && process_group_options if in_group_with_options?
+      process_until_group_finished
+      add_part!
+    end
+
+    def in_group_with_options?
+      i = @index
+      4.times do
+        if @source[i] && @source[i].chr == ':'
+          return true
+        end
+        i += 1
+       end
+      false
+    end
+    
+    def process_group_options
+      @parts.last.has_options!
+      case @source[@index].chr
+      when ')'
+        return
+      when ':'
+        @index += 1
+        return
+      else
+        push_option!
+        process_group_options
+      end
+    end
+
+    def process_until_group_finished
+      if @source[@index].chr == ")"
+        @index += 1
+        return
+      else
+        push_current_character!
+        process_until_group_finished
+      end
+    end
+
+    def push_current_character!
+      @parts.last << @source[@index].chr
+      @index += 1
+    end
+    
+    def push_option!
+      @parts.last.push_option!(@source[@index].chr)
+      @index += 1
+    end
+    
+    def add_part!
+      @parts << Part.new
+    end
+    
+    def options_string
+      chosen_options = []
+      possible_options = [[MULTILINE, "m"], [IGNORECASE, "i"], [EXTENDED, "x"]]
+      possible_options.each do |flag, identifier|
+        chosen_options << identifier if @options & flag > 0
+      end
+      if parts.size == 1
+        chosen_options.concat parts.first.options
+      end
+      excluded_options = possible_options.map{|e| e.last}.select{|identifier| !chosen_options.include?(identifier)}
+      options_to_return = chosen_options
+      if !excluded_options.empty?
+        options_to_return << "-" << excluded_options
+      end
+      options_to_return.join
+    end
+    
+  end
   def to_s
-    idx     = 0
-    offset  = 0
-    pattern = source
-    option  = options
-    len     = pattern.size
-    endpt   = -1
-
-    loop do
-      if (len - idx) > 4 && pattern[idx,2] == "(?"
-        idx += 2
-
-        offset = get_option_string_length(pattern[idx..-1])
-        if offset > 0
-          option |= string_to_option(pattern[idx, offset])
-          idx += offset
-        end
-
-        if pattern[idx,1] == '-'
-          idx += 1
-          offset = get_option_string_length(pattern[idx..-1])
-          if offset > 0
-            option &= ~string_to_option(pattern[idx, offset])
-            idx += offset
-          end
-        end
-
-        if pattern[idx..1] == ')'
-          idx += 1
-          next
-        elsif pattern[idx,1] == ':' && pattern[-1,1] == ')'
-          idx += 1
-          if !Regexp.new(pattern[idx..-2], 0).is_a?(Regexp)
-            option = self.options
-            idx    = 0
-          else
-            endpt -= 1
-          end
-        end
-      end
-      break
-    end
-    string = '(?'
-    string << option_to_string(option)
-    if (option & OPTION_MASK) != OPTION_MASK
-      string << '-' << option_to_string(~option)
-    end
-    string << ':' << pattern[0..endpt] << ')'
+    SourceParser.new(source, options).string
   end
-
-  def get_option_string_length(string)
-    idx = 0
-    while idx < string.length do
-      if !ValidOptions.include?(string[idx,1])
-        return idx
-      end
-      idx += 1
-    end
-    return idx
-  end
-
   def option_to_string(option)
     string = ""
     string << 'm' if (option & MULTILINE) > 0
     string << 'i' if (option & IGNORECASE) > 0
     string << 'x' if (option & EXTENDED) > 0
-    return string
+    string
   end
-
 end
 
 class MatchData
