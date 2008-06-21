@@ -330,12 +330,15 @@ class BigDecimal < Numeric
   def quo(other)
     if !other.kind_of?(BigDecimal)
       self.quo(BigDecimal(other.to_s))
-    elsif self.nan? or other.nan? or (self.infinite? and other.infinite?)
+    elsif self.nan? or other.nan? or (self.infinite? and other.infinite?) or (self.zero? and other.zero?)
       return BigDecimal("NaN")
     elsif other.infinite?
       return BigDecimal("0")
     elsif self.infinite?
       return (other < 0) ? -self : self
+    elsif other.zero?
+      return BigDecimal("-Infinity") if other.sign == -1
+      return BigDecimal("Infinity")
     elsif other == BigDecimal("1")
       return self
     elsif other == BigDecimal("-1")
@@ -358,7 +361,10 @@ class BigDecimal < Numeric
 
   def remainder(other)
   end
-  alias % remainder
+
+  def modulo(other)
+  end
+  alias % modulo
   
   def divmod(other)
   end
