@@ -306,21 +306,15 @@ class StringIO
   end
 
   def print(*args)
-    i = 0
+    args=[$_] if args.empty?
+
     args.each do |arg|
-      if $\ and i > 0
-        write $\
-      end
-
-      if arg.nil?
-        write "nil"
-      else
-        write arg
-      end
+      arg = "nil" if arg.nil?
+      write arg
     end
-
+    
     write $\ if $\
-
+               
     return nil
   end
 
