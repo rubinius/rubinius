@@ -335,8 +335,8 @@ class IO
       end
     end
 
-    raise NonImplementedError, "write_array is not supported" if write_array
-    raise NonImplementedError, "error_array is not supported" if error_array
+    raise NotImplementedError, "write_array is not supported" if write_array
+    raise NotImplementedError, "error_array is not supported" if error_array
 
     # HACK can't do this yet
     #if write_array then
