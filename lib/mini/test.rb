@@ -382,13 +382,13 @@ module Mini
           self.__send__ self.name
         rescue Exception => e
           result = runner.puke(self.class, self.name, e)
-          @tests_passed = false
+          @test_passed = false
         ensure
           begin
             self.teardown
           rescue Exception => e
             result = runner.puke(self.class, self.name, e)
-            @tests_passed = false
+            @test_passed = false
           end
         end
         result
@@ -396,7 +396,7 @@ module Mini
 
       def initialize name
         @name = name
-        @tests_passed = true
+        @test_passed = true
       end
 
       def self.reset
@@ -406,7 +406,7 @@ module Mini
       reset
 
       def passed?
-        @tests_passed
+        @test_passed
       end
 
       def self.inherited klass
