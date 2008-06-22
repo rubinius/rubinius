@@ -88,31 +88,6 @@ VALUE so_is_type_class(VALUE self, VALUE obj) {
   return Qfalse;
 }
 
-VALUE so_check_type_nil(VALUE self, VALUE obj) {
-  Check_Type(obj, T_NIL);
-  return Qnil;
-}
-
-VALUE so_check_type_object(VALUE self, VALUE obj) {
-  Check_Type(obj, T_OBJECT);
-  return Qnil;
-}
-
-VALUE so_check_type_array(VALUE self, VALUE obj) {
-  Check_Type(obj, T_ARRAY);
-  return Qnil;
-}
-
-VALUE so_check_type_module(VALUE self, VALUE obj) {
-  Check_Type(obj, T_MODULE);
-  return Qnil;
-}
-
-VALUE so_check_type_class(VALUE self, VALUE obj) {
-  Check_Type(obj, T_CLASS);
-  return Qnil;
-}
-
 void Init_subtend_object() {
   VALUE cls;
   cls = rb_define_class("SubtendObject", rb_cObject);
@@ -134,10 +109,4 @@ void Init_subtend_object() {
   rb_define_method(cls, "rb_is_type_array", so_is_type_array, 1);
   rb_define_method(cls, "rb_is_type_module", so_is_type_module, 1);
   rb_define_method(cls, "rb_is_type_class", so_is_type_class, 1);
-
-  rb_define_method(cls, "rb_check_type_nil", so_check_type_nil, 1);
-  rb_define_method(cls, "rb_check_type_object", so_check_type_object, 1);
-  rb_define_method(cls, "rb_check_type_array", so_check_type_array, 1);
-  rb_define_method(cls, "rb_check_type_module", so_check_type_module, 1);
-  rb_define_method(cls, "rb_check_type_class", so_check_type_class, 1);
 }

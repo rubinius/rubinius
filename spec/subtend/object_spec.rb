@@ -131,16 +131,4 @@ describe "SubtendObject" do
     @o.rb_is_type_module(ObjectTest).should == false
     @o.rb_is_type_class(ObjectTest).should == true
   end
-
-  it "rb_check_type should check the type of a given object raising a TypeError if the type is wrong" do
-    class DescArray < Array
-    end
-    @o.rb_check_type_nil(nil)
-    lambda { @o.rb_check_type_object([]) }.should raise_error(TypeError, /type Array.*expected Object/)
-    @o.rb_check_type_object(ObjectTest.new)
-    @o.rb_check_type_array([])
-    @o.rb_check_type_array(DescArray.new)
-    lambda { @o.rb_check_type_module(ObjectTest) }.should raise_error(TypeError, /type Class.*expected Module/)
-    @o.rb_check_type_class(ObjectTest)
-  end
 end
