@@ -82,65 +82,63 @@ VALUE subtend_get_global(int which) {
   CTX;
   
   switch(which) {
-    case 0:
+    case T_OBJECT:
     val = ctx->state->global->object;
     break;
-    case 1:
+    case T_ARRAY:
     val = ctx->state->global->array;
     break;
-    case 2:
+    case T_BIGNUM:
     val = ctx->state->global->bignum;
     break;
-    case 3:
+    case T_CLASS:
     val = ctx->state->global->class;
     break;
-    case 4:
+    case T_DATA:
     val = ctx->state->global->data;
     break;
-    case 5:
+    case T_FALSE:
     val = ctx->state->global->false_class;
     break;
-    case 6:
+    case T_INTEGER:
+    case T_FIXNUM:
     val = ctx->state->global->fixnum_class;
     break;
-    case 7:
+    case T_FLOAT:
     val = ctx->state->global->floatpoint;
     break;
-    case 8:
+    case T_HASH:
     val = ctx->state->global->hash;
     break;
-    case 9:
+    case T_IO:
     val = ctx->state->global->io;
     break;
-    case 10:
+    case T_MODULE:
     val = ctx->state->global->module;
     break;
-    case 11:
+    case T_NIL:
     val = ctx->state->global->nil_class;
     break;
-    case 12:
+    case T_REGEXP:
     val = ctx->state->global->regexp;
     break;
-    case 13:
+    case T_STRING:
     val = ctx->state->global->string;
     break;
-    case 14:
+    case T_SYMBOL:
     val = ctx->state->global->symbol;
     break;
-    case 15:
+    case T_THREAD:
     val = ctx->state->global->thread;
     break;
-    case 16:
+    case T_TRUE:
     val = ctx->state->global->true_class;
     break;
-    case 17:
-    val = ctx->state->global->fixnum_class;
-    break;
-        
+
     default:
     val = (OBJECT)Qnil;
   }
-  
+
   return NEW_HANDLE(ctx, val);
 }
 
@@ -1264,7 +1262,7 @@ int rb_scan_args(int argc, const VALUE *argv, const char *fmt, ...) {
 void rb_check_type(VALUE x, int t) {
   if (TYPE(x) != t) {
     rb_raise(rb_eTypeError, "wrong argument type %s (expected %s)",
-      rb_obj_classname(x), rb_obj_classname(subtend_get_global(t)));
+      rb_obj_classname(x), rb_class2name(subtend_get_global(t)));
   }
 }
 
