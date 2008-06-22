@@ -20,7 +20,7 @@ class Method
 
   def initialize(receiver, defined_in, compiled_method)
     @receiver         = receiver
-    @pulled_from      = receiver.class
+    @pulled_from      = receiver.__class__
     @defined_in       = defined_in
     @compiled_method  = compiled_method
   end
@@ -201,7 +201,7 @@ class UnboundMethod
         raise TypeError, "Must be bound to #{@defined_in.attached_instance.inspect} only"
       end
     else
-      unless receiver.kind_of? @defined_in
+      unless receiver.__kind_of__ @defined_in
         raise TypeError, "Must be bound to an object of kind #{@defined_in}"
       end
     end

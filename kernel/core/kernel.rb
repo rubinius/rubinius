@@ -707,7 +707,7 @@ module Kernel
   end
 
   def to_s
-    "#<#{self.class}:0x#{self.object_id.to_s(16)}>"
+    "#<#{self.__class__}:0x#{self.__id__.to_s(16)}>"
   end
 
   def autoload(name, file)
