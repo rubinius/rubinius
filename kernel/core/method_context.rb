@@ -213,10 +213,10 @@ class MethodContext
       str = "Kernel."
     elsif method_module.kind_of?(MetaClass)
       str = "#{receiver}."
-    elsif method_module and method_module != receiver.class
-      str = "#{method_module}(#{receiver.class})#"
+    elsif method_module and method_module != receiver.__class__
+      str = "#{method_module}(#{receiver.__class__})#"
     else
-      str = "#{receiver.class}#"
+      str = "#{receiver.__class__}#"
     end
 
     if kind_of? BlockContext
