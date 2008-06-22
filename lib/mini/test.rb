@@ -313,7 +313,7 @@ module Mini
         'E'
       end
     end
-
+    
     def initialize
       @report = []
       @errors = @failures = 0
@@ -382,11 +382,13 @@ module Mini
           self.__send__ self.name
         rescue Exception => e
           result = runner.puke(self.class, self.name, e)
+          @tests_passed = false
         ensure
           begin
             self.teardown
           rescue Exception => e
             result = runner.puke(self.class, self.name, e)
+            @tests_passed = false
           end
         end
         result
@@ -394,6 +396,7 @@ module Mini
 
       def initialize name
         @name = name
+        @tests_passed = true
       end
 
       def self.reset
@@ -401,6 +404,10 @@ module Mini
       end
 
       reset
+
+      def passed?
+        @tests_passed
+      end
 
       def self.inherited klass
         @@test_suites[klass] = true
