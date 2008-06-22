@@ -1996,7 +1996,7 @@ class String
     sign = data = nil
     sign, data = $1, $2 if s =~ match_re
 
-    raise ArgumentError, "error in impl parsing: #{self.inspect}" if
+    raise ArgumentError, "error in impl parsing: #{self.inspect} with #{match_re.source}" if
       data.nil? || (check && (s =~ /^_/ || data.empty? ))
 
     negative = sign == "-"

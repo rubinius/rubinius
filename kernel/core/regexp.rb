@@ -298,7 +298,7 @@ class Regexp
       end      
     end
     
-    class GroupPart < Part
+    class OptionsGroupPart < Part
       def to_s
         @flatten ? "#{source}" : "(#{options_string}#{source})"
       end
@@ -317,9 +317,17 @@ class Regexp
       
       def options_string
         string = @options.join + (@negated_options.empty? ? "" : @negated_options.join)
-        string.empty? ? "" : "?#{string}:"
+#FIXME!!!!!!!!!        
+        #string.empty? ? "" : 
+        "?#{string}:"
       end
       private :options_string
+    end
+    
+    class LookAheadGroupPart < Part
+      def to_s
+        "(#{source})"
+      end
     end
     
     def initialize(source, options = 0)
@@ -371,12 +379,32 @@ class Regexp
 
     def process_group
       @index += 1
-      @parts << GroupPart.new
+      @parts << group_part_class.new
       (@index += 1) && process_group_options if in_group_with_options?
+      process_look_ahead if in_lookahead_group?
       process_until_group_finished
       add_part!
     end
-
+    
+    def group_part_class
+      if in_group_with_options?
+        OptionsGroupPart
+      elsif in_lookahead_group?
+        LookAheadGroupPart
+      else
+        raise "Couldn't determine Group part type to instantiate"
+      end
+    end
+    
+    def in_lookahead_group?
+      @source[@index, 2] == "?=" || @source[@index, 2] == "?!"
+    end
+    
+    def process_look_ahead
+      push_current_character!
+      push_current_character!
+    end
+    
     def in_group_with_options?
       i = @index
       4.times do
@@ -444,9 +472,11 @@ class Regexp
     end
     
   end
+  
   def to_s
     SourceParser.new(source, options).string
   end
+  
   def option_to_string(option)
     string = ""
     string << 'm' if (option & MULTILINE) > 0
