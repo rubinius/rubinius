@@ -5,7 +5,7 @@
 # TODO: refute -> debunk, prove/rebut, show/deny... lots of possibilities
 
 module Mini
-  class Assertion < Exception; end
+  class Assertion < StandardError; end
 
   file = if __FILE__ =~ /^[^\.]/ then # OMG ruby 1.9 is so lame (rubinius too)
            require 'pathname'
