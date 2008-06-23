@@ -363,12 +363,33 @@ class BigDecimal < Numeric
   end
 
   def modulo(other)
+    self.divmod(other)[1]
   end
   alias % modulo
   
   def divmod(other)
+    arr = []
+
+    raise TypeError if other.kind_of?(String)
+    other = BigDecimal(other.to_s) if other.kind_of?(Integer)
+
+    if self.infinite? or self.nan?
+      return [BigDecimal("NaN"), BigDecimal("NaN")]
+    end
+
+    if other.infinite? or other.nan? or other.zero?
+      return [BigDecimal("NaN"), BigDecimal("NaN")]
+    end
+
+    first = (self / other).floor     
+    second = self - (first * other)
+    
+    arr << first << second
   end
   
+  def sqrt(other)
+  end
+
   # Raises self to an integer power.
   def power(other)
     one = BigDecimal("1")
