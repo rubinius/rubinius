@@ -1,6 +1,8 @@
-require 'ext/zlib/zlib'
-
 module Zlib
+
+  ZLIB_VERSION = Rubinius::RUBY_CONFIG['rbx.platform.zlib.ZLIB_VERSION']
+
+  p ZLIB_VERSION
 
   class Error < StandardError; end
 
@@ -17,13 +19,25 @@ module Zlib
     @@@
     name "struct z_stream_s"
     include "zlib.h"
-    field :next_in, :pointer
-    field :avail_in, :uint
-    field :total_in, :ulong
-    field :next_out, :pointer
+
+    field :next_in,   :pointer
+    field :avail_in,  :uint
+    field :total_in,  :ulong
+
+    field :next_out,  :pointer
     field :avail_out, :uint
     field :total_out, :ulong
-    field :msg, :string
+
+    field :msg,       :string
+    field :state,     :pointer
+
+    field :zalloc,    :pointer
+    field :zfree,     :pointer
+    field :opaque,    :pointer
+
+    field :data_type, :int
+    field :adler,     :ulong
+    field :reserved,  :ulong
     @@@
 
     #--
@@ -44,7 +58,14 @@ module Zlib
     end
 
     def initialize
-      super Zlib.z_stream_Alloc
+      super
+
+      self[:avail_in] = 0
+      self[:avail_out] = 0
+      self[:next_in] = nil
+      self[:opaque] = nil
+      self[:zalloc] = nil
+      self[:zfree] = nil
 
       reset_input
       @output = nil
@@ -221,22 +242,36 @@ module Zlib
 
   end
 
-  attach_function 'rbx_Zlib_z_stream_Alloc', :z_stream_Alloc, [], :pointer
+  set_ffi_lib 'libz'
 
-  attach_function 'rbx_Zlib_deflateInit2', :deflateInit2, [
+  # deflateInit2 is a macro pointing to deflateInit2_
+  attach_function 'deflateInit2_', :deflateInit2_, [
                     :pointer, # z_streamp strm
                     :int,     # int level
                     :int,     # int method
                     :int,     # int windowBits
                     :int,     # int memLevel
                     :int,     # int strategy
+                    :string,  # ZLIB_VERSION
+                    :int      # (int)sizeof(z_stream)
                   ], :int
+
+  def self.deflateInit2(stream, level, method, window_bits, mem_level, strategy)
+    deflateInit2_ stream, level, method, window_bits, mem_level, strategy,
+                  ZLIB_VERSION, ZStream.size
+  end
 
   attach_function 'deflate',        :deflate,         [:pointer, :int], :int
   attach_function 'deflateEnd',     :deflateEnd,      [:pointer],       :int
   attach_function 'deflateReset',   :deflateReset,    [:pointer],       :int
 
-  attach_function 'rbx_Zlib_inflateInit2', :inflateInit2, [:pointer, :int], :int
+  # inflateInit2 is a macro pointing to inflateInit2_
+  attach_function 'inflateInit2_', :inflateInit2_,
+                  [:pointer, :int, :string, :int], :int
+
+  def self.inflateInit2(stream, window_bits)
+    inflateInit2_ stream, window_bits, ZLIB_VERSION, ZStream.size
+  end
 
   attach_function 'inflate',        :inflate,         [:pointer, :int], :int
   attach_function 'inflateEnd',     :inflateEnd,      [:pointer],       :int

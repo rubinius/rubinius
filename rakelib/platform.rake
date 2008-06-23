@@ -546,6 +546,8 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
     SIGINFO
   }
 
+  zlib_constants = %w[ZLIB_VERSION]
+
   cg = ConstGenerator.new
   cg.include "stdio.h"
   cg.include "fcntl.h"
@@ -558,6 +560,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   cg.include "signal.h"
   cg.include "netinet/in.h"
   cg.include "syslog.h"
+  cg.include "zlib.h"
 
   file_constants.each { |c| cg.const c }
   io_constants.each { |c| cg.const c }
@@ -570,6 +573,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
   signal_constants.each { |c| cg.const c }
   fcntl_constants.each { |c| cg.const c }
   syslog_constants.each { |c| cg.const c }
+  zlib_constants.each { |c| cg.const c, "%s", "(char *)" }
 
   cg.calculate
 
@@ -624,6 +628,11 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct
     syslog_constants.each do |name|
       const = cg.constants[name]
       f.puts "rbx.platform.syslog.#{name} = #{const.converted_value}"
+    end
+
+    zlib_constants.each do |name|
+      const = cg.constants[name]
+      f.puts "rbx.platform.zlib.#{name} = #{const.converted_value}"
     end
 
     f.puts TypesGenerator.generate
