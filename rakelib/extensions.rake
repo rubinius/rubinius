@@ -8,6 +8,7 @@ task :extensions => %w[
   extension:digest_sha2
 
   extension:readline
+  lib/zlib.rb
 ]
 
 namespace :extension do
