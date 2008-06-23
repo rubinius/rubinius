@@ -7,7 +7,6 @@ task :extensions => %w[
   extension:digest_sha1
   extension:digest_sha2
 
-  extension:zlib
   extension:readline
 ]
 
@@ -65,16 +64,6 @@ namespace :extension do
     'lib/ext/mongrel/*.h',
   ] do
     compile "lib/ext/mongrel"
-  end
-
-  task :zlib => %W[lib/ext/zlib/zlib.#{$dlext} lib/zlib.rb]
-
-  file "lib/ext/zlib/zlib.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/ruby.h',
-    'lib/ext/zlib/build.rb',
-    'lib/ext/zlib/*.c'
-  ] do
-    compile "lib/ext/zlib"
   end
 
   task :readline => %W[lib/ext/readline/readline.#{$dlext} lib/readline.rb]
