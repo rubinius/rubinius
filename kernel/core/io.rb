@@ -498,6 +498,8 @@ class IO
     @eof and @buffer.empty?
   end
 
+  alias_method :eof, :eof?
+
   def fcntl(command, arg=0)
     raise IOError, "closed stream" if closed?
     if arg.kind_of? Fixnum then
@@ -680,6 +682,16 @@ class IO
 
   def printf(fmt, *args)
     write Sprintf.new(fmt, *args).parse
+  end
+
+  def putc(obj)
+    byte = if obj.__kind_of__ String then
+             obj[0]
+           else
+             Type.coerce_to(obj, Integer, :to_int) & 0xff
+           end
+
+    write byte.chr
   end
 
   def puts(*args)
