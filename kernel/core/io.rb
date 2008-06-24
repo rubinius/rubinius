@@ -829,6 +829,12 @@ class IO
     prim_seek amount, whence
   end
 
+  def stat
+    raise IOError, "closed stream" if closed?
+
+    File::Stat.new fileno
+  end
+
   def sync
     raise IOError, "closed stream" if closed?
     true

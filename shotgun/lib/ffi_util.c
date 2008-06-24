@@ -158,6 +158,10 @@ int ffi_stat(const char *path, struct stat *buf) {
   return stat(path, buf);
 }
 
+int ffi_fstat(int filedes, struct stat *buf) {
+  return fstat(filedes, buf);
+}
+
 int ffi_lstat(const char *path, struct stat *buf) {
   return lstat(path, buf);
 }

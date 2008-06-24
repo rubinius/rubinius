@@ -638,14 +638,23 @@ class File::Stat
   POSIX    = Platform::POSIX
 
   def initialize(path, follow_links=true)
-    @path = StringValue path
     @stat = Struct.new
-    if follow_links
-      result = POSIX.stat @path, @stat.pointer
+    @path = nil
+
+    if path.kind_of? Integer then
+      result = POSIX.fstat path, @stat.pointer
+
+      Errno.handle "file descriptor #{path}" unless result == 0
     else
-      result = POSIX.lstat @path, @stat.pointer
+      @path = StringValue path
+      result = if follow_links
+                 POSIX.stat @path, @stat.pointer
+               else
+                 POSIX.lstat @path, @stat.pointer
+               end
+
+      Errno.handle @path unless result == 0
     end
-    Errno.handle @path unless result == 0
   end
 
   def self.stat?(path, follow_links=true)

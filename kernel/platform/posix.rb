@@ -157,5 +157,6 @@ module Platform::POSIX
   # used rather than a primitive so that it is easier to
   # replace (unlike primitives).
   attach_function 'ffi_stat',  :stat,  [:string, :pointer], :int
+  attach_function 'ffi_fstat', :fstat, [:int,    :pointer], :int
   attach_function 'ffi_lstat', :lstat, [:string, :pointer], :int
 end
