@@ -230,7 +230,7 @@ class MethodContext
 
   def const_defined?(name)
     scope = method.staticscope
-    while scope
+    while scope and scope.module != Object
       return true if scope.module.const_defined?(name)
       scope = scope.parent
     end
