@@ -36,12 +36,12 @@ describe EqualUtf16Matcher do
   it "provides a useful failure message" do
     matcher = EqualUtf16Matcher.new("a\0b\0")
     matcher.matches?("a\0b\0c\0")
-    matcher.failure_message.should == ["Expected \"a\\000b\\000c\\000\"", "to equal \"a\\000b\\000\" or \"\\000a\\000b\""]
+    matcher.failure_message.should == ["Expected \"a\\000b\\000c\\000\"\n", "to equal \"a\\000b\\000\"\n or \"\\000a\\000b\"\n"]
   end
 
   it "provides a useful negative failure message" do
     matcher = EqualUtf16Matcher.new("a\0b\0")
     matcher.matches?("\0a\0b")
-    matcher.negative_failure_message.should == ["Expected \"\\000a\\000b\"", "not to equal \"a\\000b\\000\" nor \"\\000a\\000b\""]
+    matcher.negative_failure_message.should == ["Expected \"\\000a\\000b\"\n", "not to equal \"a\\000b\\000\"\n nor \"\\000a\\000b\"\n"]
   end
 end
