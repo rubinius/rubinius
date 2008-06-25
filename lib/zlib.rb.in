@@ -2,8 +2,6 @@ module Zlib
 
   ZLIB_VERSION = Rubinius::RUBY_CONFIG['rbx.platform.zlib.ZLIB_VERSION']
 
-  p ZLIB_VERSION
-
   class Error < StandardError; end
 
   class StreamEnd < Error; end
