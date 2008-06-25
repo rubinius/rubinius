@@ -15,6 +15,7 @@ namespace :extension do
   task :digest_md5 => "lib/ext/digest/md5/md5.#{$dlext}"
 
   file "lib/ext/digest/md5/md5.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/*',
     'lib/ext/digest/md5/build.rb',
     'lib/ext/digest/md5/*.c',
     'lib/ext/digest/md5/*.h',
@@ -26,6 +27,7 @@ namespace :extension do
   task :digest_rmd160 => "lib/ext/digest/rmd160/rmd160.#{$dlext}"
 
   file "lib/ext/digest/rmd160/rmd160.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/*',
     'lib/ext/digest/rmd160/build.rb',
     'lib/ext/digest/rmd160/*.c',
     'lib/ext/digest/rmd160/*.h',
@@ -37,6 +39,7 @@ namespace :extension do
   task :digest_sha1 => "lib/ext/digest/sha1/sha1.#{$dlext}"
 
   file "lib/ext/digest/sha1/sha1.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/*',
     'lib/ext/digest/sha1/build.rb',
     'lib/ext/digest/sha1/*.c',
     'lib/ext/digest/sha1/*.h',
@@ -48,6 +51,7 @@ namespace :extension do
   task :digest_sha2 => "lib/ext/digest/sha2/sha2.#{$dlext}"
 
   file "lib/ext/digest/sha2/sha2.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/*',
     'lib/ext/digest/sha2/build.rb',
     'lib/ext/digest/sha2/*.c',
     'lib/ext/digest/sha2/*.h',
@@ -59,7 +63,7 @@ namespace :extension do
   task :mongrel => "lib/ext/mongrel/http11.#{$dlext}"
 
   file "lib/ext/mongrel/http11.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/ruby.h',
+    'shotgun/lib/subtend/*',
     'lib/ext/mongrel/build.rb',
     'lib/ext/mongrel/*.c',
     'lib/ext/mongrel/*.h',
@@ -70,7 +74,7 @@ namespace :extension do
   task :readline => %W[lib/ext/readline/readline.#{$dlext} lib/readline.rb]
 
   file "lib/ext/readline/readline.#{$dlext}" => FileList[
-    'shotgun/lib/subtend/ruby.h',
+    'shotgun/lib/subtend/*',
     'lib/ext/readline/build.rb',
     'lib/ext/readline/*.c'
   ] do

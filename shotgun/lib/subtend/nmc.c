@@ -107,12 +107,16 @@ rni_handle *nmc_handle_new(rni_nmc *n, rni_handle_table *tbl, OBJECT obj) {
 void nmc_cleanup(rni_nmc *nmc, rni_handle_table *tbl) {
   int i;
   rni_handle *h;
+
   for(i = 0; i < nmc->used; i++) {
-    h = nmc->handles[i];
-    if(!handle_is_global(h)) {
-      handle_remove(tbl, h);
-      handle_delete(h);
-    }
+      h = nmc->handles[i];
+      /* If all handles are global, don't clean any up. */
+      if(nmc->all_global) {
+        handle_make_global(h);
+      } else if(!handle_is_global(h)) {
+        handle_remove(tbl, h);
+        handle_delete(h);
+      }
   }
   
   if(nmc->stack) {
@@ -278,9 +282,13 @@ void _nmc_start() {
   
   n->cont_set--;
   n->system_set--;
-  
-  n->value = retval;
-  
+
+  if(n->ignore_return) {
+    n->value = (rni_handle*)Qnil;
+  } else {
+    n->value = retval;
+  }
+
   /* Switch back to the main stack, into nmc_activate to finish up. */
   n->jump_val = ALL_DONE;
   setcontext(&n->system);

@@ -13,7 +13,7 @@ struct native_method {
 };
 
 typedef struct native_method native_method;
-
+OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *func, int args);
 #define NMETHOD_FIELDS 7
 
 #define nmethod_allocate(st) (object_memory_new_object_mature(st->om, st->global->nmethod, NMETHOD_FIELDS))

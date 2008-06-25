@@ -9,6 +9,8 @@
 #include "shotgun/lib/strlcpy.h"
 #include "shotgun/lib/strlcat.h"
 #include "shotgun/lib/subtend/nmc.h"
+#include "shotgun/lib/subtend/nmethod.h"
+#include "shotgun/lib/symbol.h"
 
 #ifdef _WIN32
 #define LIBSUFFIX ".dll"
@@ -75,13 +77,10 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   void (*ep)(void);
   char init[128] = "Init_";
   char *sys_name;
-  rni_nmc *nmc;
   int len;
   struct stat sb;
   char *end;
   
-  nmc = NULL;
-
   /* Try to make room for 'Init_', the extension, and a null byte */
   len = N2I(string_get_bytes(path)) + 21;
 
@@ -107,12 +106,13 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
      the library isn't there. */
   lib = xdlopen(sys_name);
   if(!lib) {
-    XFREE(sys_name);
     printf("Couldnt open '%s': %s\n", sys_name, xdlerror());
+    XFREE(sys_name);
     /* No need to raise an exception, it's not there. */
     return I2N(0);
   }
-  
+  XFREE(sys_name);
+
   /* name is like 'gzip', we want 'Init_gzip' */
   c_name = rbx_string_as_cstr(state, name);
   strlcat(init, c_name, sizeof(init));
@@ -120,31 +120,35 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   /* Try and load the init function. */
   ep = (void (*)(void))xdlsym(lib, init);
   if(!ep) {
-    XFREE(sys_name);
     /* TODO: raise an exception that the library is missing the function. */
     return I2N(1);
   } else {
-    nmc = nmc_new_standalone();
-    
-    /* Now we need to setup the 'global' context so that stuff like
-       rb_define_method works. */
-    subtend_set_context(state, c, nmc);
+    OBJECT meth;
 
-    /* Now perform the call. */
-    (*ep)();
+    meth = nmethod_new(state, BASIC_CLASS(object), c_path, init, ep, 0);
+    cpu_flush_ip(c);
+    cpu_flush_sp(c);
+    cpu_save_registers(state, c, 0);
+
+    OBJECT sym_name = symtbl_lookup_cstr(state, state->global->symbols, init);
+
+    OBJECT nmc = nmc_new(state, meth, c->active_context, BASIC_CLASS(object), sym_name, Qnil, 0);
+    struct fast_context* fc = FASTCTX(nmc);
+    rni_nmc* n = (rni_nmc*)fc->opaque_data;
+    n->ignore_return = 1;
+    /* Protects the common case where users store things created in
+     * Init_ into static variables. */
+    n->all_global = 1;
+
+    nmc_activate(state, c, nmc, Qnil, FALSE);
   }
-   
+
   /*
    * We can't close the library while there are references to the code
    * in it. For now, we just leak the library reference, but we need
    * to track it so we can clean them up at some point in the future.
-   * 
+   *
   */
-  
-  if(nmc) XFREE(nmc);
-  
-  subtend_set_context(state, c, NULL);
-  XFREE(sys_name);
-  
+
   return Qtrue;
 }
