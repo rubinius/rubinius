@@ -284,7 +284,7 @@ void _nmc_start() {
   n->system_set--;
 
   if(n->ignore_return) {
-    n->value = (rni_handle*)Qnil;
+    n->value = (rni_handle*)Qtrue;
   } else {
     n->value = retval;
   }

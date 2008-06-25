@@ -2614,7 +2614,8 @@ class ShotgunPrimitives
 
     POP(t1, STRING);
     POP(t2, STRING);
-    RET(subtend_load_library(state, c, t1, t2));
+    OBJECT ret = subtend_load_library(state, c, t1, t2);
+    if(ret != Qtrue) RET(ret);
     CODE
   end
 
