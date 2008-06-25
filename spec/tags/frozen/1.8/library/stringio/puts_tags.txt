@@ -1,2 +1,0 @@
-fails:StringIO#puts when passed [Array, ...] checks each Array element whether it responds to #to_s if it does not respond to #to_ary
-fails:StringIO#puts when passed [Object, ...] checks each Object whether it responds to #to_s if it does not respond to #to_ary

@@ -1,2 +1,0 @@
-fails:StringIO#gets returns the next paragrah when separator is an empty string
-fails:StringIO#gets returns the entire content if separator is nil
