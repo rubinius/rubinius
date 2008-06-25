@@ -832,7 +832,7 @@ class IO
   def stat
     raise IOError, "closed stream" if closed?
 
-    File::Stat.new fileno
+    File::Stat.from_fd fileno
   end
 
   def sync

@@ -637,24 +637,35 @@ class File::Stat
 
   POSIX    = Platform::POSIX
 
+  ##
+  # File::Stat#from_fd is used to support IO#stat which does not necessarily
+  # have a path.
+
+  def self.from_fd(descriptor)
+    stat = allocate
+    stat_struct = Struct.new
+
+    stat.instance_variable_set :@stat, stat_struct
+    stat.instance_variable_set :@path, nil
+
+    result = POSIX.fstat descriptor, stat_struct.pointer
+
+    Errno.handle "file descriptor #{descriptor}" unless result == 0
+
+    stat
+  end
+
   def initialize(path, follow_links=true)
     @stat = Struct.new
-    @path = nil
+    @path = StringValue path
 
-    if path.kind_of? Integer then
-      result = POSIX.fstat path, @stat.pointer
+    result = if follow_links
+               POSIX.stat @path, @stat.pointer
+             else
+               POSIX.lstat @path, @stat.pointer
+             end
 
-      Errno.handle "file descriptor #{path}" unless result == 0
-    else
-      @path = StringValue path
-      result = if follow_links
-                 POSIX.stat @path, @stat.pointer
-               else
-                 POSIX.lstat @path, @stat.pointer
-               end
-
-      Errno.handle @path unless result == 0
-    end
+    Errno.handle @path unless result == 0
   end
 
   def self.stat?(path, follow_links=true)
