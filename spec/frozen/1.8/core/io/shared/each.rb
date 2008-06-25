@@ -119,34 +119,17 @@ shared :io_each do |cmd|
         "linha ", "cinco.\nHere ", "is ", "line ", "six.\n"]
     end
     
-    ruby_version_is "" ... "1.8.7" do
-      it "checks whether the passed seperator responds to #to_str" do
-        obj = mock('method_missing to_str')
-        obj.should_receive(:respond_to?).any_number_of_times.with(:to_str).and_return(true)
-        obj.should_receive(:method_missing).any_number_of_times.with(:to_str).and_return(" ")
+    it "checks whether the passed seperator responds to #to_str" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).any_number_of_times.with(:to_str).and_return(true)
+      obj.should_receive(:method_missing).any_number_of_times.with(:to_str).and_return(" ")
 
-        seen = []
-        @io.send(cmd, obj) { |l| seen << l }
-        seen.should == ["Voici ", "la ", "ligne ", "une.\nQui ", "\303\250 ", "la ",
-          "linea ", "due.\n\n\nAqu\303\255 ", "est\303\241 ", "la ", "l\303\255nea ",
-          "tres.\nIst ", "hier ", "Linie ", "vier.\n\nEst\303\241 ", "aqui ", "a ",
-          "linha ", "cinco.\nHere ", "is ", "line ", "six.\n"]
-      end
-    end
-
-    ruby_version_is "1.8.7" do
-      it "checks whether the passed seperator responds to #to_str (including private methods)" do
-        obj = mock('method_missing to_str')
-        obj.should_receive(:respond_to?).any_number_of_times.with(:to_str, true).and_return(true)
-        obj.should_receive(:method_missing).any_number_of_times.with(:to_str).and_return(" ")
-
-        seen = []
-        @io.send(cmd, obj) { |l| seen << l }
-        seen.should == ["Voici ", "la ", "ligne ", "une.\nQui ", "\303\250 ", "la ",
-          "linea ", "due.\n\n\nAqu\303\255 ", "est\303\241 ", "la ", "l\303\255nea ",
-          "tres.\nIst ", "hier ", "Linie ", "vier.\n\nEst\303\241 ", "aqui ", "a ",
-          "linha ", "cinco.\nHere ", "is ", "line ", "six.\n"]
-      end
+      seen = []
+      @io.send(cmd, obj) { |l| seen << l }
+      seen.should == ["Voici ", "la ", "ligne ", "une.\nQui ", "\303\250 ", "la ",
+        "linea ", "due.\n\n\nAqu\303\255 ", "est\303\241 ", "la ", "l\303\255nea ",
+        "tres.\nIst ", "hier ", "Linie ", "vier.\n\nEst\303\241 ", "aqui ", "a ",
+        "linha ", "cinco.\nHere ", "is ", "line ", "six.\n"]
     end
     
     it "yields self's content starting from the current position when the passed seperator is nil" do

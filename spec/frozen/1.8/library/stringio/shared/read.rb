@@ -28,24 +28,12 @@ shared :stringio_read do |cmd|
       lambda { @io.send(cmd, 7, Object.new) }.should raise_error(TypeError)
     end
 
-    ruby_version_is "" ... "1.8.7" do
-      it "checks whether the passed buffer Object responds to #to_str" do
-        obj = mock('method_missing to_str')
-        obj.should_receive(:respond_to?).with(:to_str).and_return(true)
-        obj.should_receive(:method_missing).with(:to_str).and_return(buffer = "")
-        @io.send(cmd, 7, obj)
-        buffer.should == "example"
-      end
-    end
-
-    ruby_version_is "1.8.7" do
-      it "checks whether the passed buffer Object responds to #to_str (including private methods)" do
-        obj = mock('method_missing to_str')
-        obj.should_receive(:respond_to?).with(:to_str, true).and_return(true)
-        obj.should_receive(:method_missing).with(:to_str).and_return(buffer = "")
-        @io.send(cmd, 7, obj)
-        buffer.should == "example"
-      end
+    it "checks whether the passed buffer Object responds to #to_str" do
+      obj = mock('method_missing to_str')
+      obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return(buffer = "")
+      @io.send(cmd, 7, obj)
+      buffer.should == "example"
     end
 
     not_compliant_on :rubinius do
@@ -91,22 +79,11 @@ shared :stringio_read do |cmd|
       lambda { @io.send(cmd, -2) }.should raise_error(ArgumentError)
     end
 
-    ruby_version_is "" ... "1.8.7" do
-      it "checks whether the passed length Object responds to #to_int" do
-        obj = mock('method_missing to_int')
-        obj.should_receive(:respond_to?).with(:to_int).and_return(true)
-        obj.should_receive(:method_missing).with(:to_int).and_return(7)
-        @io.send(cmd, obj).should == "example"
-      end
-    end
-
-    ruby_version_is "1.8.7" do
-      it "checks whether the passed length Object responds to #to_int (including private methods)" do
-        obj = mock('method_missing to_int')
-        obj.should_receive(:respond_to?).with(:to_int, true).and_return(true)
-        obj.should_receive(:method_missing).with(:to_int).and_return(7)
-        @io.send(cmd, obj).should == "example"
-      end
+    it "checks whether the passed length Object responds to #to_int" do
+      obj = mock('method_missing to_int')
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(7)
+      @io.send(cmd, obj).should == "example"
     end
   end
 

@@ -10,6 +10,10 @@ ruby_version_is "1.8.7" do
         hex.class.should == String
         hex.length.should == 2 * idx
       end
+      
+      base64 = SecureRandom.hex(5.5)
+      base64.class.should == String
+      base64.length.should eql(10)
     end
 
     it "returns an empty string when argument is 0" do
@@ -42,17 +46,18 @@ ruby_version_is "1.8.7" do
         SecureRandom.hex(-1)
       }.should raise_error(ArgumentError)
     end
-
-    it "raises ArgumentError on non-integer arguments" do
-      lambda {
-        SecureRandom.hex(2.2)
-      }.should raise_error(ArgumentError)
+    
+    it "tries to convert the passed argument to an Integer using #to_int" do
+      obj = mock("to_int")
+      obj.should_receive(:to_int).and_return(5)
+      SecureRandom.hex(obj).size.should eql(10)
     end
-
-    it "raises ArgumentError on non-numeric arguments" do
-      lambda {
-        SecureRandom.hex(Object.new)
-      }.should raise_error(ArgumentError)
+    
+    it "checks whether the passed argument responds to #to_int" do
+      obj = mock("to_int")
+      obj.should_receive(:respond_to?).with(:to_int).and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(5)
+      SecureRandom.hex(obj).size.should eql(10)
     end
   end
 end

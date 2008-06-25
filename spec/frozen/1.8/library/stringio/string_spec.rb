@@ -48,23 +48,11 @@ describe "StringIO#string=" do
     lambda { @io.seek(Object.new) }.should raise_error(TypeError)
   end
   
-  ruby_version_is "" ... "1.8.7" do
-    it "checks whether the passed Object responds to #to_str" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_str).and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("to_str")
-      @io.string = obj
-      @io.string.should == "to_str"
-    end
-  end
-
-  ruby_version_is "1.8.7" do
-    it "checks whether the passed Object responds to #to_str (including private methods)" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_str, true).and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("to_str")
-      @io.string = obj
-      @io.string.should == "to_str"
-    end
+  it "checks whether the passed Object responds to #to_str" do
+    obj = mock('method_missing to_str')
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("to_str")
+    @io.string = obj
+    @io.string.should == "to_str"
   end
 end

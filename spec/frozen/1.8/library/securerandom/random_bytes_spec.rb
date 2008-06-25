@@ -22,6 +22,8 @@ ruby_version_is "1.8.7" do
         bytes.class.should == String
         bytes.length.should == idx
       end
+
+      SecureRandom.random_bytes(2.2).length.should eql(2)
     end
 
     it "generates different binary strings with subsequent invocations" do
@@ -41,16 +43,17 @@ ruby_version_is "1.8.7" do
       }.should raise_error(ArgumentError)
     end
 
-    it "raises ArgumentError on non-integer arguments" do
-      lambda {
-        SecureRandom.hex(2.2)
-      }.should raise_error(ArgumentError)
+    it "tries to convert the passed argument to an Integer using #to_int" do
+      obj = mock("to_int")
+      obj.should_receive(:to_int).and_return(5)
+      SecureRandom.random_bytes(obj).size.should eql(5)
     end
-
-    it "raises ArgumentError on non-numeric arguments" do
-      lambda {
-        SecureRandom.random_bytes(Object.new)
-      }.should raise_error(ArgumentError)
+    
+    it "checks whether the passed argument responds to #to_int" do
+      obj = mock("to_int")
+      obj.should_receive(:respond_to?).with(:to_int).and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(5)
+      SecureRandom.random_bytes(obj).size.should eql(5)
     end
   end
 end

@@ -24,22 +24,11 @@ describe "Array#*" do
     ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
   end
 
-  ruby_version_is "" ... "1.8.6.220" do
-    it "checks whether the passed argument responds to #to_str" do
-      obj = mock('x')
-      obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("x")
-      ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
-    end
-  end
-
-  ruby_version_is "1.8.6.220" do
-    it "checks whether the passed argument responds to #to_str (including private methods)" do
-      obj = mock('x')
-      obj.should_receive(:respond_to?).with(:to_str, true).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("x")
-      ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
-    end
+  it "checks whether the passed argument responds to #to_str" do
+    obj = mock('x')
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("x")
+    ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
   end
 
   it "concatenates n copies of the array when passed an integer" do
@@ -60,24 +49,12 @@ describe "Array#*" do
     ([1, 2, 3] * obj).should == [1, 2, 3] * obj.to_int
   end
 
-  ruby_version_is "" ... "1.8.6.220" do
-    it "checks whether the passed argument responds to #to_int" do
-      obj = mock('2')
-      obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(false)
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(2)
-      ([1, 2, 3] * obj).should == [1, 2, 3] * 2
-    end
-  end
-
-  ruby_version_is "1.8.6.220" do
-    it "checks whether the passed argument responds to #to_int (including private methods)" do
-      obj = mock('2')
-      obj.should_receive(:respond_to?).with(:to_str, true).any_number_of_times.and_return(false)
-      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(2)
-      ([1, 2, 3] * obj).should == [1, 2, 3] * 2
-    end
+  it "checks whether the passed argument responds to #to_int" do
+    obj = mock('2')
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(false)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(2)
+    ([1, 2, 3] * obj).should == [1, 2, 3] * 2
   end
 
   it "calls to_str on its argument before to_int" do

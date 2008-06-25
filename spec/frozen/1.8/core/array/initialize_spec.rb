@@ -56,22 +56,11 @@ describe "Array#initialize" do
     [1, 2].send(:initialize, obj, :a).should == [:a]
   end
 
-  ruby_version_is "" ... "1.8.6.220" do
-    it "checks whether the passed size argument responds to #to_int" do
-      obj = mock('1')
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(1)
-      [1, 2].send(:initialize, obj, :a).should == [:a]
-    end
-  end
-  
-  ruby_version_is "1.8.6.220" do
-    it "checks whether the passed size argument responds to #to_int (including private methods)" do
-      obj = mock('1')
-      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(1)
-      [1, 2].send(:initialize, obj, :a).should == [:a]
-    end
+  it "checks whether the passed size argument responds to #to_int" do
+    obj = mock('1')
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(1)
+    [1, 2].send(:initialize, obj, :a).should == [:a]
   end
 
   compliant_on :ruby, :jruby do

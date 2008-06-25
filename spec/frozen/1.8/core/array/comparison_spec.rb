@@ -36,23 +36,12 @@ describe "Array#<=>" do
     ([4, 5] <=> obj).should == ([4, 5] <=> obj.to_ary)
   end
   
-  ruby_version_is "" ... "1.8.6.220" do
-    it "checks whether the passed argument responds to #to_ary" do
-      obj = mock('method_missing to_ary')
-      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return([4, 5])
-      ([4, 5] <=> obj).should == 0
-    end
-  end
-  
-  ruby_version_is "1.8.6.220" do
-    it "checks whether the passed argument responds to #to_ary (including private methods)" do
-      obj = mock('method_missing to_ary')
-      obj.should_receive(:respond_to?).with(:to_ary, true).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return([4, 5])
-      ([4, 5] <=> obj).should == 0
-    end
-  end
+  it "checks whether the passed argument responds to #to_ary" do
+    obj = mock('method_missing to_ary')
+    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_ary).and_return([4, 5])
+    ([4, 5] <=> obj).should == 0
+  end  
 
   it "does not call #to_ary on Array subclasses" do
     obj = ArraySpecs::ToAryArray[5, 6, 7]

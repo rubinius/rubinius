@@ -8,10 +8,25 @@ describe "String#hex" do
     "0o".hex.should == 0
     "0x".hex.should == 0
     "A_BAD_BABE".hex.should == 0xABADBABE
-    "a__b".hex.should == 0xab
     "0b1010".hex.should == "b1010".hex
     "0d500".hex.should == "d500".hex
     "abcdefG".hex.should == 0xabcdef
+  end
+  
+  ruby_version_is "" ... "1.8.7" do
+    it "accepts a sequence of underscores as part of a number" do
+      "a__b".hex.should == 0xab
+      "a____b".hex.should == 0xab
+      "a___f".hex.should == 0xaf
+    end
+  end
+  
+  ruby_version_is "1.8.7" do
+    it "does not accept a sequence of underscores as part of a number" do
+      "a__b".hex.should == 0xa
+      "a____b".hex.should == 0xa
+      "a___f".hex.should == 0xa
+    end
   end
   
   it "takes an optional sign" do

@@ -43,22 +43,11 @@ describe "StringIO#readlines when passed [seperator]" do
     @io.readlines(obj).should == ["this>", "is>", "an>", "example"]
   end
 
-  ruby_version_is "" ... "1.8.7" do
-    it "checks whether the passed seperator responds to #to_str" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).any_number_of_times.with(:to_str).and_return(true)
-      obj.should_receive(:method_missing).any_number_of_times.with(:to_str).and_return(">")
-      @io.readlines(obj).should == ["this>", "is>", "an>", "example"]
-    end
-  end
-
-  ruby_version_is "1.8.7" do
-    it "checks whether the passed seperator responds to #to_str (including private methods)" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).any_number_of_times.with(:to_str, true).and_return(true)
-      obj.should_receive(:method_missing).any_number_of_times.with(:to_str).and_return(">")
-      @io.readlines(obj).should == ["this>", "is>", "an>", "example"]
-    end
+  it "checks whether the passed seperator responds to #to_str" do
+    obj = mock('method_missing to_str')
+    obj.should_receive(:respond_to?).any_number_of_times.with(:to_str).and_return(true)
+    obj.should_receive(:method_missing).any_number_of_times.with(:to_str).and_return(">")
+    @io.readlines(obj).should == ["this>", "is>", "an>", "example"]
   end
 end
 

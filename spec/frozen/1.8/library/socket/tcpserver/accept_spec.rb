@@ -1,12 +1,21 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
+
 describe "TCPServer#accept" do
-  it "accepts what is written by the client" do
-    server = TCPServer.new('127.0.0.1', SocketSpecs.port)
+  before :each do
+    @server = TCPServer.new(SocketSpecs.port)
+  end
+
+  after :each do
+    @server.close unless @server.closed?
+  end
+
+  it "accepts a connection and returns a TCPSocket" do
     data = nil
     t = Thread.new do
-      client = server.accept
+      client = @server.accept
+      client.should be_kind_of(TCPSocket)
       data = client.read(5)
       client << "goodbye"
       client.close
@@ -18,15 +27,12 @@ describe "TCPServer#accept" do
     socket.read.should == 'goodbye'
     t.join
     data.should == 'hello'
-    server.close
     socket.close
   end
 
   it "can be interrupted by Thread#kill" do
-    server = TCPServer.new(nil, SocketSpecs.port)
-    t = Thread.new {
-      server.accept
-    }
+    t = Thread.new { @server.accept }
+
     Thread.pass until t.status == "sleep"
 
     # kill thread, ensure it dies in a reasonable amount of time
@@ -38,20 +44,16 @@ describe "TCPServer#accept" do
       a += 1
     end
     a.should < 1000
-    server.close
   end
 
   it "can be interrupted by Thread#raise" do
-    server = TCPServer.new(nil, SocketSpecs.port)
-    t = Thread.new {
-      server.accept
-    }
+    t = Thread.new { @server.accept }
+
     Thread.pass until t.status == "sleep"
 
     # raise in thread, ensure the raise happens
     ex = Exception.new
     t.raise ex
     lambda { t.join }.should raise_error(Exception)
-    server.close
   end
 end

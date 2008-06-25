@@ -23,6 +23,10 @@ describe "The defined? keyword" do
       defined?( super() )
     end
   end
+
+  module A
+    self::FOO = 'x' unless defined? self::FOO rescue nil
+  end
   
   it "returns 'method' when defined?(exit) is sent" do
     ret = defined?(exit)
@@ -110,6 +114,11 @@ describe "The defined? keyword" do
   it "returns 'constant' when defined?(LanguageDefinedSpecs::SomeConst) is sent" do
     ret = defined?(LanguageDefinedSpecs::SomeConst)
     ret.should == "constant"
+  end
+
+  it "returns 'constant' when evaluating self::FOO in module A" do
+    ret = defined?(A::FOO)
+    ret.should == 'constant'
   end
 
   it "returns 'constant' when defined?(File) is sent" do

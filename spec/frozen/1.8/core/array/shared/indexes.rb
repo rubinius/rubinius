@@ -16,22 +16,11 @@ shared :array_indexes do |cmd|
       [1, 2, 3, 4, 5].send(cmd, obj, obj).should == [2, 4]
     end
 
-    ruby_version_is "" ... "1.8.6.220" do
-      it "checks whether the passed arguments respond to #to_int" do
-        obj = mock('method_missing to_int')
-        obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-        obj.should_receive(:method_missing).with(:to_int).twice.and_return(1, 3)
-        [1, 2, 3, 4, 5].send(cmd, obj, obj).should == [2, 4]
-      end
-    end
-
-    ruby_version_is "1.8.6.220" do
-      it "checks whether the passed arguments respond to #to_int (including private methods)" do
-        obj = mock('method_missing to_int')
-        obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
-        obj.should_receive(:method_missing).with(:to_int).twice.and_return(1, 3)
-        [1, 2, 3, 4, 5].send(cmd, obj, obj).should == [2, 4]
-      end
+    it "checks whether the passed arguments respond to #to_int" do
+      obj = mock('method_missing to_int')
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).twice.and_return(1, 3)
+      [1, 2, 3, 4, 5].send(cmd, obj, obj).should == [2, 4]
     end
 
     it "returns elements in range arguments as nested arrays (DEPRECATED)" do

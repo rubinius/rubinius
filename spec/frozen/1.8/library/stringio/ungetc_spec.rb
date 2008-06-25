@@ -48,26 +48,13 @@ describe "StringIO#ungetc when passed [char]" do
     lambda { @io.ungetc("A") }.should raise_error(TypeError)
   end
   
-  ruby_version_is "" ... "1.8.7" do
-    it "checks whether the passed length responds to #to_int" do
-      obj = mock('method_missing to_int')
-      obj.should_receive(:respond_to?).with(:to_int).and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(?A)
-      @io.pos = 1
-      @io.ungetc(obj)
-      @io.string.should == "A234"
-    end
-  end
-
-  ruby_version_is "1.8.7" do
-    it "checks whether the passed length responds to #to_int (including private methods)" do
-      obj = mock('method_missing to_int')
-      obj.should_receive(:respond_to?).with(:to_int, true).and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(?A)
-      @io.pos = 1
-      @io.ungetc(obj)
-      @io.string.should == "A234"
-    end
+  it "checks whether the passed length responds to #to_int" do
+    obj = mock('method_missing to_int')
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(?A)
+    @io.pos = 1
+    @io.ungetc(obj)
+    @io.string.should == "A234"
   end
 end
 

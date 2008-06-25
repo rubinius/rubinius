@@ -7,15 +7,13 @@ describe "StringIO#print" do
   end
 
   it "prints $_ when passed no arguments" do
+    $_ = nil
     @io.print
     @io.string.should == "nilmple"
-    old, $_ = $_, "blah"
-    begin
-      @io.print
-      @io.string.should == "nilblah"
-    ensure
-      $_ = old
-    end
+
+    $_ = "blah"
+    @io.print
+    @io.string.should == "nilblah"
   end
 
   it "prints the passed arguments to self" do

@@ -50,38 +50,19 @@ describe "StringIO#puts when passed [Array, ...]" do
     @io.string.should == "to_s\n"
   end
   
-  ruby_version_is "" ... "1.8.7" do
-    it "checks each Array element whether it responds to #to_ary" do
-      obj = mock('method_missing to_ary')
-      obj.should_receive(:respond_to?).with(:to_ary).and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
-      @io.puts([obj])
-      @io.string.should == "to_ary\n"
-    end
-
-    it "checks each Array element whether it responds to #to_s if it does not respond to #to_ary" do
-      obj = mock('method_missing to_s')
-      obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
-      obj.should_not_receive(:respond_to?).with(:to_s).and_return(true)
-      @io.puts([obj])
-    end
+  it "checks each Array element whether it responds to #to_ary" do
+    obj = mock('method_missing to_ary')
+    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
+    @io.puts([obj])
+    @io.string.should == "to_ary\n"
   end
 
-  ruby_version_is "1.8.7" do
-    it "checks each Array element whether it responds to #to_ary (including private methods)" do
-      obj = mock('method_missing to_ary')
-      obj.should_receive(:respond_to?).with(:to_ary, true).and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
-      @io.puts([obj])
-      @io.string.should == "to_ary\n"
-    end
-
-    it "does not check each Array element whether it responds to #to_s (including private methods) if it does not respond to #to_ary" do
-      obj = mock('method_missing to_s')
-      obj.should_receive(:respond_to?).with(:to_ary, true).and_return(false)
-      obj.should_not_receive(:respond_to?).with(:to_s, true).and_return(true)
-      @io.puts([obj])
-    end
+  it "does not check each Array element whether it responds to #to_s if it does not respond to #to_ary" do
+    obj = mock('method_missing to_s')
+    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(false)
+    obj.should_not_receive(:respond_to?).with(:to_s)
+    @io.puts([obj])
   end
 end
 
@@ -119,38 +100,19 @@ describe "StringIO#puts when passed [Object, ...]" do
     @io.string.should == "to_s\n"
   end
   
-  ruby_version_is "" ... "1.8.7" do
-    it "checks each Object whether it responds to #to_ary" do
-      obj = mock('method_missing to_ary')
-      obj.should_receive(:respond_to?).with(:to_ary).and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
-      @io.puts(obj)
-      @io.string.should == "to_ary\n"
-    end
-
-    it "checks each Object whether it responds to #to_s if it does not respond to #to_ary" do
-      obj = mock('method_missing to_s')
-      obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
-      obj.should_not_receive(:respond_to?).with(:to_s).and_return(true)
-      @io.puts(obj)
-    end
+  it "checks each Object whether it responds to #to_ary" do
+    obj = mock('method_missing to_ary')
+    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
+    @io.puts(obj)
+    @io.string.should == "to_ary\n"
   end
 
-  ruby_version_is "1.8.7" do
-    it "checks each Object whether it responds to #to_ary (including private methods)" do
-      obj = mock('method_missing to_ary')
-      obj.should_receive(:respond_to?).with(:to_ary, true).and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return(["to_ary"])
-      @io.puts(obj)
-      @io.string.should == "to_ary\n"
-    end
-
-    it "does not check each Object whether it responds to #to_s (including private methods) if it does not respond to #to_ary" do
-      obj = mock('method_missing to_s')
-      obj.should_receive(:respond_to?).with(:to_ary, true).and_return(false)
-      obj.should_not_receive(:respond_to?).with(:to_s, true).and_return(true)
-      @io.puts(obj)
-    end
+  it "does not check each Object whether it responds to #to_s if it does not respond to #to_ary" do
+    obj = mock('method_missing to_s')
+    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(false)
+    obj.should_not_receive(:respond_to?).with(:to_s)
+    @io.puts(obj)
   end
 end
 

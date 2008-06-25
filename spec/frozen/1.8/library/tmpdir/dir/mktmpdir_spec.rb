@@ -7,7 +7,7 @@ ruby_version_is "1.8.7" do
       Dir.stub!(:mkdir)
       Dir.should_receive(:tmpdir).and_return("/tmp")
       path = Dir.mktmpdir
-      path.should =~ /^\/tmp\/d\d{8}-\d{4}-\w{0,7}$/
+      path.should =~ /^\/tmp\//
     end
   
     it "creates a new writable directory in the path provided by Dir.tmpdir" do
@@ -29,7 +29,7 @@ ruby_version_is "1.8.7" do
       called = nil
       Dir.mktmpdir do |path|
         called = true
-        path.should =~ /^\/tmp\/d\d{8}-\d{4}-\w{0,7}$/
+        path.should =~ /^\/tmp\//
       end
       called.should be_true
     end
@@ -63,7 +63,7 @@ ruby_version_is "1.8.7" do
     it "uses the passed String as a prefix to the tmp-directory" do
       prefix = "before"
       path = Dir.mktmpdir(prefix)
-      path.should =~ /^\/tmp\/#{prefix}\d{8}-\d{4}-\w{0,7}$/
+      path.should =~ /^\/tmp\/#{prefix}/
     end
   end
 
@@ -79,7 +79,7 @@ ruby_version_is "1.8.7" do
       suffix = "after"
     
       path = Dir.mktmpdir([prefix, suffix])
-      path.should =~ /^\/tmp\/#{prefix}\d{8}-\d{4}-\w{0,7}#{suffix}$/
+      path.should =~ /#{suffix}$/
     end
   end
 

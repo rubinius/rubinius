@@ -25,7 +25,7 @@ describe "Dir#path" do
     it "returns the path even when called on a closed Dir instance" do
       dir = Dir.open DirSpecs.mock_dir
       dir.close
-      dir.path.should == "/tmp/mock"
+      dir.path.should == DirSpecs.mock_dir
     end
   end
 end

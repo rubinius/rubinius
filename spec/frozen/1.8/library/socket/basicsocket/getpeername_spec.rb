@@ -9,8 +9,8 @@ describe "Socket::BasicSocket#getpeername" do
   end
 
   after :each do
-    @server.close if @server
-    @client.close if @client
+    @server.close unless @server.closed?
+    @client.close unless @client.closed?
   end
   
   not_compliant_on :jruby do

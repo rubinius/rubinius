@@ -8,6 +8,10 @@ describe "Object#to_yaml" do
     %w( 30 ruby maz irb 99 ).to_yaml.should == "--- \n- \"30\"\n- ruby\n- maz\n- irb\n- \"99\"\n"
   end
 
+  it "returns the YAML representation of a Hash object" do
+    { "a" => "b"}.to_yaml.should == "--- \na: b\n"
+  end
+
   it "returns the YAML representation of a Class object" do
     FooBar.new("baz").to_yaml.should == "--- !ruby/object:FooBar \nname: baz\n"
   end
@@ -66,4 +70,24 @@ describe "Object#to_yaml" do
     true_klass.should be_kind_of(TrueClass)
     true_klass.to_yaml.should == "--- true\n"
   end  
+
+  it "returns the YAML representation of a Error object" do
+    StandardError.new("foobar").to_yaml.should == "--- !ruby/exception:StandardError \nmessage: foobar\n"
+  end
+
+  it "returns the YAML representation for Range objects" do
+    Range.new(1,3).to_yaml.should == "--- !ruby/range \nbegin: 1\nend: 3\nexcl: false\n"
+  end
+
+  it "returns the YAML representation of numeric constants" do
+    (0.0/0.0).to_yaml.should == "--- .NaN\n"
+    (1.0/0.0).to_yaml.should == "--- .Inf\n"
+    (-1.0/0.0).to_yaml.should == "--- -.Inf\n"
+    (0.0).to_yaml.should == "--- 0.0\n"
+  end
+
+  it "returns the YAML representation of an array of hashes" do
+    players = [{"a" => "b"}, {"b" => "c"}]
+    players.to_yaml.should == "--- \n- a: b\n- b: c\n"
+  end
 end

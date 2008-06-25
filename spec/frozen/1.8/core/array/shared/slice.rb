@@ -111,22 +111,11 @@ shared :array_slice do |cmd|
       a.send(cmd, 0, obj).should == [1, 2]
     end
 
-    ruby_version_is "" ... "1.8.6.220" do
-      it "checks whether index and count respond to #to_int with [index, count]" do
-        obj = mock('method_missing to_int')
-        obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-        obj.should_receive(:method_missing).with(:to_int).and_return(2, 2)
-        [1, 2, 3, 4].send(cmd, obj, obj).should == [3, 4]
-      end
-    end
-
-    ruby_version_is "1.8.6.220" do
-      it "checks whether index and count respond to #to_int (including private methods) with [index, count]" do
-        obj = mock('method_missing to_int')
-        obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
-        obj.should_receive(:method_missing).with(:to_int).and_return(2, 2)
-        [1, 2, 3, 4].send(cmd, obj, obj).should == [3, 4]
-      end
+    it "checks whether index and count respond to #to_int with [index, count]" do
+      obj = mock('method_missing to_int')
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(2, 2)
+      [1, 2, 3, 4].send(cmd, obj, obj).should == [3, 4]
     end
 
     it "returns the elements specified by Range indexes with [m..n]" do
@@ -277,40 +266,20 @@ shared :array_slice do |cmd|
       lambda { a.slice(from ... "b") }.should raise_error(TypeError)
     end
 
-    ruby_version_is "" ... "1.8.6.220" do
-      it "checks whether the Range elements respond to #to_int with [m..n] and [m...n]" do
-        from = mock('from')
-        to = mock('to')
+    it "checks whether the Range elements respond to #to_int with [m..n] and [m...n]" do
+      from = mock('from')
+      to = mock('to')
 
-        def from.<=>(o) 0 end
-        def to.<=>(o) 0 end
+      def from.<=>(o) 0 end
+      def to.<=>(o) 0 end
 
-        from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-        from.should_receive(:method_missing).with(:to_int).and_return(1)
-        
-        to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-        to.should_receive(:method_missing).with(:to_int).and_return(-2)
-        
-        [1, 2, 3, 4].send(cmd, from..to).should == [2, 3]
-      end
-    end
-
-    ruby_version_is "1.8.6.220" do
-      it "checks whether the Range elements respond to #to_int (including private methods) with [m..n] and [m...n]" do
-        from = mock('from')
-        to = mock('to')
-
-        def from.<=>(o) 0 end
-        def to.<=>(o) 0 end
-
-        from.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
-        from.should_receive(:method_missing).with(:to_int).and_return(1)
-        
-        to.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
-        to.should_receive(:method_missing).with(:to_int).and_return(-2)
-        
-        [1, 2, 3, 4].send(cmd, from..to).should == [2, 3]
-      end
+      from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      from.should_receive(:method_missing).with(:to_int).and_return(1)
+      
+      to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      to.should_receive(:method_missing).with(:to_int).and_return(-2)
+      
+      [1, 2, 3, 4].send(cmd, from..to).should == [2, 3]
     end
 
     it "returns the same elements as [m..n] and [m...n] with Range subclasses" do

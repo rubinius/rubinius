@@ -43,24 +43,12 @@ describe "StringIO#reopen when passed [Object, Integer]" do
     lambda { @io.reopen(Object.new, IO::RDWR) }.should raise_error(TypeError)
   end
   
-  ruby_version_is "" ... "1.8.7" do
-    it "checks whether the passed Object responds to #to_str" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_str).and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("reopened")
-      @io.reopen(obj, IO::RDONLY)
-      @io.string.should == "reopened"
-    end
-  end
-
-  ruby_version_is "1.8.7" do
-    it "checks whether the passed Object responds to #to_str (including private methods)" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_str, true).and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("reopened")
-      @io.reopen(obj, IO::RDONLY)
-      @io.string.should == "reopened"
-    end
+  it "checks whether the passed Object responds to #to_str" do
+    obj = mock('method_missing to_str')
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("reopened")
+    @io.reopen(obj, IO::RDONLY)
+    @io.string.should == "reopened"
   end
   
   not_compliant_on :rubinius do
@@ -132,24 +120,12 @@ describe "StringIO#reopen when passed [Object, Object]" do
     lambda { @io.reopen(Object.new, "r") }.should raise_error(TypeError)
   end
   
-  ruby_version_is "" ... "1.8.7" do
-    it "checks whether the passed Object responds to #to_str" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_str).and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("reopened")
-      @io.reopen(obj, "r")
-      @io.string.should == "reopened"
-    end
-  end
-
-  ruby_version_is "1.8.7" do
-    it "checks whether the passed Object responds to #to_str (including private methods)" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_str, true).and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("reopened")
-      @io.reopen(obj, "r")
-      @io.string.should == "reopened"
-    end
+  it "checks whether the passed Object responds to #to_str" do
+    obj = mock('method_missing to_str')
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("reopened")
+    @io.reopen(obj, "r")
+    @io.string.should == "reopened"
   end
 
   ruby_bug "#", "1.8.7.17" do
@@ -175,22 +151,11 @@ describe "StringIO#reopen when passed [Object, Object]" do
     @io.string.should == "reopened"
   end
   
-  ruby_version_is "" ... "1.8.7" do
-    it "checks whether the passed mode-Object responds to #to_str" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_str).and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("r")
-      @io.reopen("reopened", obj)
-    end
-  end
-
-  ruby_version_is "1.8.7" do
-    it "checks whether the passed mode-Object responds to #to_str (including private methods)" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_str, true).and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return("r")
-      @io.reopen("reopened", obj)
-    end
+  it "checks whether the passed mode-Object responds to #to_str" do
+    obj = mock('method_missing to_str')
+    obj.should_receive(:respond_to?).any_number_of_times.with(:to_str).and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("r")
+    @io.reopen("reopened", obj)
   end
 
   not_compliant_on :rubinius do
@@ -273,24 +238,12 @@ describe "StringIO#reopen when passed [Object]" do
     @io.tainted?.should be_true
   end
 
-  ruby_version_is "" ... "1.8.7" do
-    it "checks whether the passed Object responds to #to_strio" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_strio).and_return(true)
-      obj.should_receive(:method_missing).with(:to_strio).and_return(StringIO.new("reopened"))
-      @io.reopen(obj)
-      @io.string.should == "reopened"
-    end
-  end
-  
-  ruby_version_is "1.8.7" do
-    it "checks whether the passed Object responds to #to_str (including private methods)" do
-      obj = mock('method_missing to_str')
-      obj.should_receive(:respond_to?).with(:to_strio, true).and_return(true)
-      obj.should_receive(:method_missing).with(:to_strio).and_return(StringIO.new("reopened"))
-      @io.reopen(obj)
-      @io.string.should == "reopened"
-    end
+  it "checks whether the passed Object responds to #to_strio" do
+    obj = mock('method_missing to_str')
+    obj.should_receive(:respond_to?).with(:to_strio).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_strio).and_return(StringIO.new("reopened"))
+    @io.reopen(obj)
+    @io.string.should == "reopened"
   end
 end
 

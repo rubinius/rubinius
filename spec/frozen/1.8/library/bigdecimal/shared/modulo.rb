@@ -15,8 +15,8 @@ shared :bigdecimal_modulo do |cmd, mode|
       @infinity = BigDecimal("Infinity")
       @infinity_minus = BigDecimal("-Infinity")
       @one_minus = BigDecimal("-1")
-      @frac_1 = BigDecimal("1E-99999")
-      @frac_2 = BigDecimal("0.9E-99999")
+      @frac_1 = BigDecimal("1E-9999")
+      @frac_2 = BigDecimal("0.9E-9999")
     end
 
     it "returns self modulo other" do
@@ -24,14 +24,13 @@ shared :bigdecimal_modulo do |cmd, mode|
       bd5667 = BigDecimal.new("5667.19")
       a = BigDecimal("1.0000000000000000000000000000000000000000005")
       b = BigDecimal("1.00000000000000000000000000000000000000000005")
-
+ 
       bd6543.send(cmd, 137).should == BigDecimal("104.21")
       bd5667.send(cmd, bignum_value).should == 5667.19
       bd6543.send(cmd, BigDecimal("137.24")).should == BigDecimal("92.93")
       bd6543.send(cmd, 137).should be_close(6543.21.%(137), TOLERANCE)
       bd6543.send(cmd, 137).should == bd6543 % 137
-      bd5667.send(cmd, bignum_value).should 
-        be_close(5667.19.%(0xffffffff), TOLERANCE)
+      bd5667.send(cmd, bignum_value).should be_close(5667.19.%(0xffffffff), TOLERANCE)
       bd5667.send(cmd, bignum_value).should == bd5667.%(0xffffffff)
       bd6543.send(cmd, 137.24).should be_close(6543.21.%(137.24), TOLERANCE)
       a.send(cmd, b).should == BigDecimal("0.45E-42")
@@ -64,6 +63,13 @@ shared :bigdecimal_modulo do |cmd, mode|
 
       @one_minus.modulo(BigDecimal('0.3')).should == BigDecimal('0.2')
       @one_minus.modulo(BigDecimal('0.2')).should == @zero
+    end
+
+    it "returns a [Float value] when the argument is Float" do
+      @two.send(cmd, 2.0).should == 0.0
+      @one.send(cmd, 2.0).should == 1.0
+      res = @two.send(cmd, 5.0)
+      res.kind_of?(Float).should == true
     end
 
     it "does NOT raise ZeroDivisionError if other is zero" do

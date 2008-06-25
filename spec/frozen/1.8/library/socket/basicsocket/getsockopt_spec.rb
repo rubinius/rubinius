@@ -6,6 +6,10 @@ describe "BasicSocket#getsockopt" do
   before(:each) do
     @sock = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
   end
+
+  after :each do
+    @sock.close unless @sock.closed?
+  end
   
   it "gets a socket option" do
     n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_TYPE)

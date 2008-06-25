@@ -14,8 +14,8 @@ describe "Iconv::Failure#inspect" do
       end
     }.should raise_error(Iconv::Failure)
     inspection = @ex.inspect
-    inspection.should MSpec.include(@ex.class.to_s)
-    inspection.should MSpec.include(@ex.success.inspect)
-    inspection.should MSpec.include(@ex.failed.inspect)
+    inspection.should include(@ex.class.to_s)
+    inspection.should include(@ex.success.inspect)
+    inspection.should include(@ex.failed.inspect)
   end
 end

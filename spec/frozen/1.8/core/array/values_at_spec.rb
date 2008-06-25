@@ -13,22 +13,11 @@ describe "Array#values_at" do
     [1, 2].values_at(obj, obj, obj).should == [2, 2, 2]
   end
   
-  ruby_version_is "" ... "1.8.6.220" do
-    it "checks whether the start and length respond to #to_int" do
-      obj = mock('1')
-      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(1)
-      [1, 2].values_at(obj).should == [2]
-    end
-  end
-
-  ruby_version_is "1.8.6.220" do
-    it "checks whether the start and length respond to #to_int (including private methods)" do
-      obj = mock('1')
-      obj.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_int).and_return(1)
-      [1, 2].values_at(obj).should == [2]
-    end
+  it "checks whether the start and length respond to #to_int" do
+    obj = mock('1')
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(1)
+    [1, 2].values_at(obj).should == [2]
   end
   
   it "returns an array of elements in the ranges when passes ranges" do
@@ -51,40 +40,20 @@ describe "Array#values_at" do
     ary.values_at(from .. to, from ... to, to .. from).should == [2, 3, 4, 2, 3]
   end
 
-  ruby_version_is "" ... "1.8.6.220" do
-    it "checks whether the range arguments respond to #to_int" do
-      from = mock('from')
-      to = mock('to')
+  it "checks whether the range arguments respond to #to_int" do
+    from = mock('from')
+    to = mock('to')
 
-      def from.<=>(o) 0 end
-      def to.<=>(o) 0 end
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
 
-      from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      from.should_receive(:method_missing).with(:to_int).and_return(1)
-      to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-      to.should_receive(:method_missing).with(:to_int).and_return(-2)
+    from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    from.should_receive(:method_missing).with(:to_int).and_return(1)
+    to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    to.should_receive(:method_missing).with(:to_int).and_return(-2)
 
-      ary = [1, 2, 3, 4, 5]
-      ary.values_at(from .. to).should == [2, 3, 4]
-    end
-  end
-
-  ruby_version_is "1.8.6.220" do
-    it "checks whether the range arguments respond to #to_int (including private methods)" do
-      from = mock('from')
-      to = mock('to')
-
-      def from.<=>(o) 0 end
-      def to.<=>(o) 0 end
-
-      from.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
-      from.should_receive(:method_missing).with(:to_int).and_return(1)
-      to.should_receive(:respond_to?).with(:to_int, true).any_number_of_times.and_return(true)
-      to.should_receive(:method_missing).with(:to_int).and_return(-2)
-
-      ary = [1, 2, 3, 4, 5]
-      ary.values_at(from .. to).should == [2, 3, 4]
-    end
+    ary = [1, 2, 3, 4, 5]
+    ary.values_at(from .. to).should == [2, 3, 4]
   end
 
   it "does not return subclass instance on Array subclasses" do
