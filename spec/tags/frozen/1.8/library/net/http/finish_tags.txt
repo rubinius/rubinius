@@ -1,0 +1,2 @@
+unstable:Net::HTTP#finish closes the tcp connection
+unstable:Net::HTTP#finish when self has not been started yet raises an IOError

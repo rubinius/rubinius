@@ -1,8 +1,0 @@
-fails:StringIO#read when passed [length, buffer] tries to convert the passed buffer Object to a String using #to_str
-fails:StringIO#read when passed [length, buffer] checks whether the passed buffer Object responds to #to_str
-fails:StringIO#read when passed [length] correctly updates the position
-fails:StringIO#read when passed [length] tries to convert the passed length to an Integer using #to_int
-fails:StringIO#read when passed [length] raises a TypeError when the passed length is negative
-fails:StringIO#read when passed [length] checks whether the passed length Object responds to #to_int
-fails:StringIO#read when passed no arguments reads the whole content starting from the current position
-fails:StringIO#read when passed [length] returns nil when self's position is at the end

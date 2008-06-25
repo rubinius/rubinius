@@ -1,4 +1,0 @@
-fails:StringIO#seek raises an Errno::EINVAL error on negative amounts when whence is IO::SEEK_SET
-fails:StringIO#seek tries to convert the passed Object to a String using #to_int
-fails:StringIO#seek raises a TypeError when the passed Object can't be converted to an Integer
-fails:StringIO#seek checks whether the passed Object responds to #to_int

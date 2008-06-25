@@ -1,1 +1,0 @@
-fails:StringIO#close raises an IOError when self was already closed

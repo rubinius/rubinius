@@ -1,10 +1,2 @@
 fails:StringIO#gets returns the next paragrah when separator is an empty string
 fails:StringIO#gets returns the entire content if separator is nil
-fails:StringIO#gets when passed [seperator] sets $_ to the read content
-fails:StringIO#gets when passed [seperator] returns the next paragraph when the passed seperator is an empty String
-fails:StringIO#gets when passed [seperator] returns the remaining content starting at the current position when passed nil
-fails:StringIO#gets when passed [seperator] tries to convert the passed seperator to a String using #to_str
-fails:StringIO#gets when passed [seperator] checks whether the passed seperator responds to #to_str
-fails:StringIO#gets when passed no argument sets $_ to the read content
-fails:StringIO#gets when passed no argument updates self's position
-fails:StringIO#gets when passed no argument updates self's lineno

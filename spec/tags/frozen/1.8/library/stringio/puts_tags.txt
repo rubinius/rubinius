@@ -1,6 +1,2 @@
-fails:StringIO#puts when passed [Array, ...] first tries to convert each Array element to an Array using #to_ary
-fails:StringIO#puts when passed [Array, ...] checks each Array element whether it responds to #to_ary
 fails:StringIO#puts when passed [Array, ...] checks each Array element whether it responds to #to_s if it does not respond to #to_ary
-fails:StringIO#puts when passed [Object, ...] first tries to convert each Object to an Array using #to_ary
-fails:StringIO#puts when passed [Object, ...] checks each Object whether it responds to #to_ary
 fails:StringIO#puts when passed [Object, ...] checks each Object whether it responds to #to_s if it does not respond to #to_ary
