@@ -1,4 +1,5 @@
-class StringIO < Data
+class StringIO
+
   include Enumerable
   
   DEFAULT_RECORD_SEPARATOR = "\n" unless defined?(::DEFAULT_RECORD_SEPARATOR)

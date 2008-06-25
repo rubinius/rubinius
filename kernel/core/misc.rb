@@ -59,10 +59,6 @@ FALSE = false
 
 Undefined = Object.new
 
-# Used by StringIO - also existant in matzruby core
-class Data
-end
-
 ##
 # Prevents Kernel#p from recursively traversing an object graph.
 
