@@ -120,6 +120,7 @@ class StringIO < Data
   
   def each(sep = $/)
     raise IOError, "not opened for reading" unless @readable
+    sep = StringValue(sep) unless sep.nil?
     while line = self.getline(sep)
       yield line
     end
@@ -488,5 +489,4 @@ class StringIO < Data
     
       return line
     end
-
 end
