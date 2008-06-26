@@ -124,8 +124,15 @@ class BigDecimal < Numeric
   ###############
   
   def to_f
+    if self.sign == SIGN_POSITIVE_INFINITE
+      return +1.0/0.0 
+    elsif self.sign == SIGN_NEGATIVE_INFINITE
+      return -1.0/0.0
+    elsif self.nan?
+      return 0.0/0.0
+    end
+ 
     self.to_s("F").to_f
-    # Are there more cases we need to trap for?  This seems too easy.
   end
   
   def to_i
@@ -360,6 +367,13 @@ class BigDecimal < Numeric
   end
 
   def remainder(other)
+    mod = self % other
+
+    if (self.sign * other.sign < 0)
+      return mod - other
+    else
+      return mod
+    end
   end
 
   def modulo(other)
