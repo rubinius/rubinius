@@ -12,6 +12,7 @@ CI_DIR = File.join HTML_DIR, "ci"
 
 GIT_URL = "http://git.rubini.us/?p=code;a=commit;h="
 
+STALE   = 14
 DISPLAY = 50
 
 def abbreviate_platform(arch)
@@ -31,15 +32,53 @@ class HashHash < Hash
   end
 end
 
+def archive_stale_data days
+  seconds_per_day = 86400
+
+  results = Hash.new { |h,k| h[k] = [] }
+
+  Dir["data/*"].each do |f|
+    h = YAML.load(File.read(f))
+    log = h.delete :log
+    mtime = File.mtime f
+
+    next if (Time.now - mtime) < days * seconds_per_day
+
+    h[:submitted] = mtime
+    h[:time]      = log[/^Finished in (.*) seconds/, 1].to_f
+    h[:result]    = log[/^\d+ files.*/]
+
+
+    results[h[:submitted].strftime("%Y-%m")] << h
+    File.unlink f # TODO: unlink html file as well
+  end
+
+  results.each do |date, data|
+    next if data.empty?
+    path = "index.#{date}.yaml"
+    if File.exist? path then
+      old_data = YAML.load_file path
+      data = old_data + data
+    end
+    File.open path, 'w' do |f|
+      YAML.dump data, f
+    end
+  end
+end
+
 FileUtils.rm_rf CI_DIR
 FileUtils.mkdir_p CI_DIR
 
+Dir.chdir BASE_DIR
+
 all_data = HashHash.new
+
+archive_stale_data STALE
 
 flat_data = Dir[File.join(DATA_DIR, "*")].select { |f| File.file? f }.map { |f|
   h = YAML.load(File.read(f))
   h[:id] = File.basename(f)
-  h[:time] = File.mtime f
+  h[:submitted] = File.mtime f
 
   log = h[:log]
   h[:status] = if log =~ /(\d+) failures?, (\d+) errors?$/ then
@@ -69,7 +108,7 @@ flat_data = Dir[File.join(DATA_DIR, "*")].select { |f| File.file? f }.map { |f|
         h1_ "Build Result"
 
         table_ do
-          [:id, :time, :incremental, :hash, :platform].each do |key|
+          [:id, :submitted, :incremental, :hash, :platform].each do |key|
             tr_ do
               th_ key
               td_ h[key]
@@ -86,9 +125,12 @@ flat_data = Dir[File.join(DATA_DIR, "*")].select { |f| File.file? f }.map { |f|
       end
     end
 
-    File.open File.join(HTML_DIR, "ci", "#{h[:id]}.html"), 'w' do |out|
+    path = File.join(HTML_DIR, "ci", "#{h[:id]}.html")
+    File.open path, 'w' do |out|
       out.write html
     end
+    t = File.mtime f
+    File.utime(t, t, path)
   end
 
   h
@@ -103,8 +145,8 @@ end
 
 hash_times = hashes.map { |hash|
   # incrementals and fall back to fulls if the sky is falling
-  (all_data[true][hash].map { |_,run| run[:time] }.max ||
-   all_data[false][hash].map { |_,run| run[:time] }.max)
+  (all_data[true][hash].map { |_,run| run[:submitted] }.max ||
+   all_data[false][hash].map { |_,run| run[:submitted] }.max)
 }
 
 hashes = Hash[*hashes.zip(hash_times).flatten]
