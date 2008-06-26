@@ -1144,22 +1144,23 @@ VALUE rb_path2class(const char *path) {
   const char *pbeg, *p;
   ID id;
   VALUE c = rb_cObject;
-  VALUE str = 0;
+  char *str;
+  int i;
 
   if (path[0] == '#') {
     rb_raise(rb_eArgError, "can't retrieve anonymous class %s", path);
   }
   pbeg = p = path;
+  /* Provide storage big enough for a complete copy of path.  This
+   * means the string copy (str[i++] = *p++) is guaranteed safe.
+   */
+  str = ALLOC_N(char, strlen(path) + 1);
   while (*p) {
-    while (*p && *p != ':') p++;
-    if (str) {
-      RSTRING(str)->len = 0;
-      rb_str_cat(str, pbeg, p-pbeg);
-    }
-    else {
-      str = rb_str_new(pbeg, p-pbeg);
-    }
-    id = rb_intern(RSTRING(str)->ptr);
+    i = 0;
+    while (*p && *p != ':')
+      str[i++] = *p++;
+    str[i] = '\0';
+    id = rb_intern(str);
     if (p[0] == ':') {
       if (p[1] != ':') goto undefined_class;
       p += 2;
@@ -1167,18 +1168,21 @@ VALUE rb_path2class(const char *path) {
     }
     if (!rb_const_defined(c, id)) {
       undefined_class:
+      XFREE(str);
       rb_raise(rb_eArgError, "undefined class/module %.*s", p-path, path);
     }
     c = rb_const_get(c, id);
     switch (TYPE(c)) {
       case T_MODULE:
       case T_CLASS:
-      break;
+        break;
       default:
-      rb_raise(rb_eTypeError, "%s does not refer class/module", path);
+        XFREE(str);
+        rb_raise(rb_eTypeError, "%s does not refer class/module", path);
     }
   }
 
+  XFREE(str);
   return c;
 }
 
