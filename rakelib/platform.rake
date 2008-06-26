@@ -1,119 +1,121 @@
-file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct_generator.rb] do |task|
-  addrinfo = StructGenerator.new
-  addrinfo.include 'sys/socket.h'
-  addrinfo.include 'netdb.h'
-  addrinfo.name 'struct addrinfo'
-  addrinfo.field :ai_flags, :int
-  addrinfo.field :ai_family, :int
-  addrinfo.field :ai_socktype, :int
-  addrinfo.field :ai_protocol, :int
-  addrinfo.field :ai_addrlen, :int
-  addrinfo.field :ai_addr, :pointer
-  addrinfo.field :ai_canonname, :string
-  addrinfo.field :ai_next, :pointer
-  addrinfo.calculate
+require 'lib/ffi/struct_generator'
 
-  dirent = StructGenerator.new
-  dirent.include "sys/types.h"
-  dirent.include "dirent.h"
-  dirent.name 'struct dirent'
-  dirent.field :d_ino, :ino_t
-  dirent.field :d_reclen, :ushort
-  dirent.field :d_name, :char_array
-  dirent.calculate
+file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct_generator.rb] do |task|
+  addrinfo = FFI::StructGenerator.new do |s|
+    s.include 'sys/socket.h'
+    s.include 'netdb.h'
+    s.name 'struct addrinfo'
+    s.field :ai_flags, :int
+    s.field :ai_family, :int
+    s.field :ai_socktype, :int
+    s.field :ai_protocol, :int
+    s.field :ai_addrlen, :int
+    s.field :ai_addr, :pointer
+    s.field :ai_canonname, :string
+    s.field :ai_next, :pointer
+  end
 
-  timeval = StructGenerator.new
-  timeval.include "sys/time.h"
-  timeval.name 'struct timeval'
-  timeval.field :tv_sec, :time_t
-  timeval.field :tv_usec, :suseconds_t
-  timeval.calculate
+  dirent = FFI::StructGenerator.new do |s|
+    s.include "sys/types.h"
+    s.include "dirent.h"
+    s.name 'struct dirent'
+    s.field :d_ino, :ino_t
+    s.field :d_reclen, :ushort
+    s.field :d_name, :char_array
+  end
 
-  sockaddr_in = StructGenerator.new
-  sockaddr_in.include "netinet/in.h"
-  sockaddr_in.include "fcntl.h"
-  sockaddr_in.include "sys/socket.h"
-  sockaddr_in.include "sys/stat.h"
-  sockaddr_in.name 'struct sockaddr_in'
-  sockaddr_in.field :sin_family, :sa_family_t
-  sockaddr_in.field :sin_port, :ushort
-  sockaddr_in.field :sin_addr
-  sockaddr_in.field :sin_zero, :char_array
-  sockaddr_in.calculate
+  timeval = FFI::StructGenerator.new do |s|
+    s.include "sys/time.h"
+    s.name 'struct timeval'
+    s.field :tv_sec, :time_t
+    s.field :tv_usec, :suseconds_t
+  end
 
-  sockaddr_un = StructGenerator.new
-  sockaddr_un.include "sys/un.h"
-  sockaddr_un.name 'struct sockaddr_un'
-  sockaddr_un.field :sun_family, :sa_family_t
-  sockaddr_un.field :sun_path, :char_array
-  sockaddr_un.calculate
+  sockaddr_in = FFI::StructGenerator.new do |s|
+    s.include "netinet/in.h"
+    s.include "fcntl.h"
+    s.include "sys/socket.h"
+    s.include "sys/stat.h"
+    s.name 'struct sockaddr_in'
+    s.field :sin_family, :sa_family_t
+    s.field :sin_port, :ushort
+    s.field :sin_addr
+    s.field :sin_zero, :char_array
+  end
 
-  servent = StructGenerator.new
-  servent.include "netdb.h"
-  servent.name 'struct servent'
-  servent.field :s_name, :pointer
-  servent.field :s_aliases, :pointer
-  servent.field :s_port, :int
-  servent.field :s_proto, :pointer
-  servent.calculate
+  sockaddr_un = FFI::StructGenerator.new do |s|
+    s.include "sys/un.h"
+    s.name 'struct sockaddr_un'
+    s.field :sun_family, :sa_family_t
+    s.field :sun_path, :char_array
+  end
+
+  servent = FFI::StructGenerator.new do |s|
+    s.include "netdb.h"
+    s.name 'struct servent'
+    s.field :s_name, :pointer
+    s.field :s_aliases, :pointer
+    s.field :s_port, :int
+    s.field :s_proto, :pointer
+  end
   
-  stat = StructGenerator.new
-  stat.include "sys/types.h"
-  stat.include "sys/stat.h"
-  stat.name 'struct stat'
-  stat.field :st_dev, :dev_t
-  stat.field :st_ino, :ino_t
-  stat.field :st_mode, :mode_t
-  stat.field :st_nlink, :nlink_t
-  stat.field :st_uid, :uid_t
-  stat.field :st_gid, :gid_t
-  stat.field :st_rdev, :dev_t
-  stat.field :st_size, :off_t
-  stat.field :st_blksize
-  stat.field :st_blocks
-  stat.field :st_atime, :time_t
-  stat.field :st_mtime, :time_t
-  stat.field :st_ctime, :time_t
-  stat.calculate
+  stat = FFI::StructGenerator.new do |s|
+    s.include "sys/types.h"
+    s.include "sys/stat.h"
+    s.name 'struct stat'
+    s.field :st_dev, :dev_t
+    s.field :st_ino, :ino_t
+    s.field :st_mode, :mode_t
+    s.field :st_nlink, :nlink_t
+    s.field :st_uid, :uid_t
+    s.field :st_gid, :gid_t
+    s.field :st_rdev, :dev_t
+    s.field :st_size, :off_t
+    s.field :st_blksize
+    s.field :st_blocks
+    s.field :st_atime, :time_t
+    s.field :st_mtime, :time_t
+    s.field :st_ctime, :time_t
+  end
   
-  rlimit = StructGenerator.new
-  rlimit.include "sys/types.h"
-  rlimit.include "sys/time.h"
-  rlimit.include "sys/resource.h"
-  rlimit.name 'struct rlimit'
-  rlimit.field :rlim_cur, :rlim_t
-  rlimit.field :rlim_max, :rlim_t
-  rlimit.calculate
+  rlimit = FFI::StructGenerator.new do |s|
+    s.include "sys/types.h"
+    s.include "sys/time.h"
+    s.include "sys/resource.h"
+    s.name 'struct rlimit'
+    s.field :rlim_cur, :rlim_t
+    s.field :rlim_max, :rlim_t
+  end
 
-  evp_md = StructGenerator.new
-  evp_md.include "openssl/ossl_typ.h"
-  evp_md.include "openssl/evp.h"
-  evp_md.name 'struct env_md_st'
-  evp_md.field  :type, :int
-  evp_md.field  :pkey_type, :int
-  evp_md.field  :md_size, :int
-  evp_md.field  :flags, :ulong
-  evp_md.field  :init, :pointer
-  evp_md.field  :update, :pointer
-  evp_md.field  :final, :pointer
-  evp_md.field  :copy, :pointer
-  evp_md.field  :cleanup, :pointer
-  evp_md.field  :sign, :pointer
-  evp_md.field  :verify, :pointer
-  # int required_pkey[5] goes here but we don't care
-  evp_md.field  :block_size, :int
-  evp_md.field  :ctx_size, :int
-  evp_md.calculate
+  evp_md = FFI::StructGenerator.new do |s|
+    s.include "openssl/ossl_typ.h"
+    s.include "openssl/evp.h"
+    s.name 'struct env_md_st'
+    s.field  :type, :int
+    s.field  :pkey_type, :int
+    s.field  :md_size, :int
+    s.field  :flags, :ulong
+    s.field  :init, :pointer
+    s.field  :update, :pointer
+    s.field  :final, :pointer
+    s.field  :copy, :pointer
+    s.field  :cleanup, :pointer
+    s.field  :sign, :pointer
+    s.field  :verify, :pointer
+    # int required_pkey[5] goes here but we don't care
+    s.field  :block_size, :int
+    s.field  :ctx_size, :int
+  end
 
-  evp_md_ctx = StructGenerator.new
-  evp_md_ctx.include "openssl/ossl_typ.h"
-  evp_md_ctx.include "openssl/evp.h"
-  evp_md_ctx.name 'struct env_md_ctx_st'
-  evp_md_ctx.field :digest, :pointer
-  evp_md_ctx.field :engine, :pointer
-  evp_md_ctx.field :flags, :ulong
-  evp_md_ctx.field :md_data, :pointer
-  evp_md_ctx.calculate
+  evp_md_ctx = FFI::StructGenerator.new do |s|
+    s.include "openssl/ossl_typ.h"
+    s.include "openssl/evp.h"
+    s.name 'struct env_md_ctx_st'
+    s.field :digest, :pointer
+    s.field :engine, :pointer
+    s.field :flags, :ulong
+    s.field :md_data, :pointer
+  end
   
   # FIXME these constants don't have standard names.
   # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.

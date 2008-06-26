@@ -11,7 +11,7 @@ RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
 require 'tsort'
 require 'rakelib/rubinius'
 require 'rakelib/git'
-require 'rakelib/struct_generator'
+require 'lib/ffi/struct_generator_task'
 require 'rakelib/const_generator'
 require 'rakelib/types_generator'
 
@@ -69,13 +69,10 @@ file 'runtime/stable/compiler.rba' => 'build:compiler' do |t|
   end
 end
 
-Rake::StructGeneratorTask.new do |t|
-  t.dest = "lib/etc.rb"
-end
-
-Rake::StructGeneratorTask.new do |t|
-  t.dest = 'lib/zlib.rb'
-end
+FFI::StructGenerator::Task.new %w[
+  lib/etc.rb
+  lib/zlib.rb
+]
 
 AllPreCompiled = Core.output + Bootstrap.output + PlatformFiles.output
 AllPreCompiled << "runtime/loader.rbc"
