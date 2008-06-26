@@ -373,21 +373,21 @@ module Mini
     end
 
     class TestCase
-      attr_reader :name
+      attr_reader :mini_unit_name
 
       def run runner
         result = '.'
         begin
           self.setup
-          self.__send__ self.name
+          self.__send__ self.mini_unit_name
         rescue Exception => e
-          result = runner.puke(self.class, self.name, e)
+          result = runner.puke(self.class, self.mini_unit_name, e)
           @test_passed = false
         ensure
           begin
             self.teardown
           rescue Exception => e
-            result = runner.puke(self.class, self.name, e)
+            result = runner.puke(self.class, self.mini_unit_name, e)
             @test_passed = false
           end
         end
@@ -395,7 +395,7 @@ module Mini
       end
 
       def initialize name
-        @name = name
+        @mini_unit_name = name
         @test_passed = true
       end
 
