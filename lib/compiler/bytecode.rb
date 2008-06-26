@@ -1470,7 +1470,7 @@ class Node
         g.push_exception
         @splat.bytecode(g)
         g.cast_array
-        g.send :__rescue_match__, 1
+      #  g.send :__rescue_match__, 1
         g.git body
       end
 
