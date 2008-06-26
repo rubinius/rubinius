@@ -23,11 +23,11 @@ class Object
   def metaclass
     class << self;self;end
   end
-
+  alias_method :__metaclass__, :metaclass  
   # TODO - Improve this check for metaclass support
   # TODO - Make this private in core
   def __verify_metaclass__
-    if self.kind_of?(Fixnum) or self.kind_of?(Symbol)
+    if self.__kind_of__(Fixnum) or self.__kind_of__(Symbol)
       raise TypeError, "no virtual class for #{self.class}"
     end
   end
