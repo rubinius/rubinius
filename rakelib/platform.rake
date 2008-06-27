@@ -141,6 +141,7 @@ file 'runtime/platform.conf' => deps do |task|
   file_cg = FFI::ConstGenerator.new 'rbx.platform.file' do |cg|
     cg.include 'stdio.h'
     cg.include 'fcntl.h'
+    cg.include 'sys/stat.h'
 
     file_constants = %w[
       O_RDONLY
@@ -226,6 +227,8 @@ file 'runtime/platform.conf' => deps do |task|
     cg.include 'sys/types.h'
     cg.include 'sys/socket.h'
     cg.include 'netdb.h'
+    cg.include 'netinet/tcp.h'
+    cg.include 'netinet/in.h'
 
     socket_constants = %w[
       AF_APPLETALK
