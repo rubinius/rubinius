@@ -46,6 +46,13 @@ module FFI
       @structs << FFI::StructGenerator.new(@name, &block)
     end
 
+    ##
+    # Utility converter for constants
+
+    def to_s
+      proc { |obj| obj.to_s.inspect }
+    end
+
   end
 end
 

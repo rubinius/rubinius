@@ -2,9 +2,44 @@ module Zlib
 
   @@@
   constants do |c|
-    c.include "zlib.h"
+    c.include 'zlib.h'
+    c.include 'zconf.h'
 
-    c.const 'ZLIB_VERSION', '%s', '(char *)'
+    c.const 'ZLIB_VERSION', '%s', '(char *)', nil, to_s
+
+    c.const 'Z_NO_FLUSH',            nil, nil, 'NO_FLUSH'
+    c.const 'Z_PARTIAL_FLUSH',       nil, nil, 'PARTIAL_FLUSH'
+    c.const 'Z_SYNC_FLUSH',          nil, nil, 'SYNC_FLUSH'
+    c.const 'Z_FULL_FLUSH',          nil, nil, 'FULL_FLUSH'
+    c.const 'Z_FINISH',              nil, nil, 'FINISH'
+    c.const 'Z_BLOCK',               nil, nil, 'BLOCK'
+
+    c.const 'Z_OK',                  nil, nil, 'OK'
+    c.const 'Z_STREAM_END',          nil, nil, 'STREAM_END'
+    c.const 'Z_NEED_DICT',           nil, nil, 'NEED_DICT'
+    c.const 'Z_ERRNO',               nil, nil, 'ERRNO'
+    c.const 'Z_STREAM_ERROR',        nil, nil, 'STREAM_ERROR'
+    c.const 'Z_DATA_ERROR',          nil, nil, 'DATA_ERROR'
+    c.const 'Z_MEM_ERROR',           nil, nil, 'MEM_ERROR'
+    c.const 'Z_BUF_ERROR',           nil, nil, 'BUF_ERROR'
+    c.const 'Z_VERSION_ERROR',       nil, nil, 'VERSION_ERROR'
+
+    c.const 'Z_NO_COMPRESSION',      nil, nil, 'NO_COMPRESSION'
+    c.const 'Z_BEST_SPEED',          nil, nil, 'BEST_SPEED'
+    c.const 'Z_BEST_COMPRESSION',    nil, nil, 'BEST_COMPRESSION'
+    c.const 'Z_DEFAULT_COMPRESSION', nil, nil, 'DEFAULT_COMPRESSION'
+
+    c.const 'Z_FILTERED',            nil, nil, 'FILTERED'
+    c.const 'Z_HUFFMAN_ONLY',        nil, nil, 'HUFFMAN_ONLY'
+    c.const 'Z_RLE',                 nil, nil, 'RLE'
+    c.const 'Z_FIXED',               nil, nil, 'FIXED'
+    c.const 'Z_DEFAULT_STRATEGY',    nil, nil, 'DEFAULT_STRATEGY'
+
+    c.const 'Z_DEFLATED',            nil, nil, 'DEFLATED'
+
+    c.const 'Z_MAX_WBITS',           nil, nil, 'MAX_WBITS'
+    c.const 'Z_MAX_MEM_LEVEL',       nil, nil, 'MAX_MEM_LEVEL'
+    c.const 'Z_DEF_MEM_LEVEL',       nil, nil, 'DEF_MEM_LEVEL'
   end
   @@@
 
@@ -24,7 +59,7 @@ module Zlib
     struct do |s|
       s.include "zlib.h"
 
-      s.name "struct z_stream_s" 
+      s.name "struct z_stream_s"
       s.field :next_in,   :pointer
       s.field :avail_in,  :uint
       s.field :total_in,  :ulong
@@ -294,48 +329,6 @@ module Zlib
   # Chunk size for inflation and deflation
 
   CHUNK = 1024
-
-  #--
-  # From zlib.h
-  #++
-
-  NO_FLUSH = 0
-  PARTIAL_FLUSH = 1
-  SYNC_FLUSH = 2
-  FULL_FLUSH = 3
-  FINISH = 4
-  BLOCK = 5
-
-  OK = 0
-  STREAM_END = 1
-  NEED_DICT = 2
-  ERRNO = -1
-  STREAM_ERROR = -2
-  DATA_ERROR = -3
-  MEM_ERROR = -4
-  BUF_ERROR = -5
-  VERSION_ERROR = -6
-
-  NO_COMPRESSION = 0
-  BEST_SPEED = 1
-  BEST_COMPRESSION = 9
-  DEFAULT_COMPRESSION = -1
-
-  FILTERED = 1
-  HUFFMAN_ONLY = 2
-  RLE = 3
-  FIXED = 4
-  DEFAULT_STRATEGY = 0
-
-  DEFLATED = 8
-
-  #--
-  # HACK from zconf.h
-  #++
-
-  MAX_WBITS = 15
-  MAX_MEM_LEVEL = 9
-  DEF_MEM_LEVEL = 9
 
   #--
   # HACK from zlib.c

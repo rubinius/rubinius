@@ -22,8 +22,18 @@ module FFI
       @constants[name].value
     end
 
-    def const(name, format="%d", cast="", &converter)
-      const = Constant.new(name, format, cast, converter)
+    def const(name, format = nil, cast = '', ruby_name = nil, converter = nil,
+              &converter_proc)
+      format ||= '%d'
+      cast ||= ''
+
+      if converter_proc and converter then
+        raise ArgumentError, "Supply only converter or converter block"
+      end
+
+      converter = converter_proc if converter.nil?
+
+      const = Constant.new name, format, cast, ruby_name, converter
       @constants[name.to_s] = const
       return const
     end
@@ -78,8 +88,8 @@ module FFI
     end
 
     def to_ruby
-      @constants.map do |name, constant|
-        "#{name} = #{constant.converted_value.inspect}"
+      @constants.sort_by { |name,| name }.map do |name, constant|
+        constant.to_ruby
       end.join "\n"
     end
 
@@ -94,10 +104,11 @@ module FFI
     attr_reader :name, :format, :cast
     attr_accessor :value
 
-    def initialize(name, format, cast, converter=nil)
+    def initialize(name, format, cast, ruby_name = nil, converter=nil)
       @name = name
       @format = format
       @cast = cast
+      @ruby_name = ruby_name
       @converter = converter
       @value = nil
     end
@@ -108,6 +119,14 @@ module FFI
       else
         @value
       end
+    end
+
+    def ruby_name
+      @ruby_name || @name
+    end
+
+    def to_ruby
+      "#{ruby_name} = #{converted_value}"
     end
 
   end  
