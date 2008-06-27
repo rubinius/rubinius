@@ -12,8 +12,6 @@ require 'tsort'
 require 'rakelib/rubinius'
 require 'rakelib/git'
 require 'lib/ffi/struct_generator_task'
-require 'rakelib/const_generator'
-require 'rakelib/types_generator'
 
 task :default => :build
 

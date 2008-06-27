@@ -61,7 +61,8 @@ module FFI
       sg.generate_layout
     end
 
-    def initialize
+    def initialize(name)
+      @name = name
       @struct_name = nil
       @includes = []
       @fields = []
@@ -138,10 +139,10 @@ module FFI
       @found
     end
 
-    def generate_config(name)
-      @fields.inject(["rbx.platform.#{name}.sizeof = #{@size}"]) do |list, field|
-        list.concat field.to_config(name)
-      end.join "\n"
+    def dump_config(io)
+      io.puts "rbx.platform.#{@name}.sizeof = #{@size}"
+
+      @fields.each { |field| io.puts field.to_config(@name) }
     end
 
     def generate_layout

@@ -1,7 +1,16 @@
 require 'lib/ffi/struct_generator'
+require 'lib/ffi/const_generator'
+require 'rakelib/types_generator'
 
-file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct_generator.rb] do |task|
-  addrinfo = FFI::StructGenerator.new do |s|
+deps = %w[
+  Rakefile
+  rakelib/platform.rake
+  lib/ffi/struct_generator.rb
+  lib/ffi/const_generator.rb
+]
+
+file 'runtime/platform.conf' => deps do |task|
+  addrinfo = FFI::StructGenerator.new 'addrinfo' do |s|
     s.include 'sys/socket.h'
     s.include 'netdb.h'
     s.name 'struct addrinfo'
@@ -15,7 +24,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct
     s.field :ai_next, :pointer
   end
 
-  dirent = FFI::StructGenerator.new do |s|
+  dirent = FFI::StructGenerator.new 'dirent' do |s|
     s.include "sys/types.h"
     s.include "dirent.h"
     s.name 'struct dirent'
@@ -24,14 +33,14 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct
     s.field :d_name, :char_array
   end
 
-  timeval = FFI::StructGenerator.new do |s|
+  timeval = FFI::StructGenerator.new 'timeval' do |s|
     s.include "sys/time.h"
     s.name 'struct timeval'
     s.field :tv_sec, :time_t
     s.field :tv_usec, :suseconds_t
   end
 
-  sockaddr_in = FFI::StructGenerator.new do |s|
+  sockaddr_in = FFI::StructGenerator.new 'sockaddr_in' do |s|
     s.include "netinet/in.h"
     s.include "fcntl.h"
     s.include "sys/socket.h"
@@ -43,14 +52,14 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct
     s.field :sin_zero, :char_array
   end
 
-  sockaddr_un = FFI::StructGenerator.new do |s|
+  sockaddr_un = FFI::StructGenerator.new 'sockaddr_un' do |s|
     s.include "sys/un.h"
     s.name 'struct sockaddr_un'
     s.field :sun_family, :sa_family_t
     s.field :sun_path, :char_array
   end
 
-  servent = FFI::StructGenerator.new do |s|
+  servent = FFI::StructGenerator.new 'servent' do |s|
     s.include "netdb.h"
     s.name 'struct servent'
     s.field :s_name, :pointer
@@ -59,7 +68,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct
     s.field :s_proto, :pointer
   end
   
-  stat = FFI::StructGenerator.new do |s|
+  stat = FFI::StructGenerator.new 'stat' do |s|
     s.include "sys/types.h"
     s.include "sys/stat.h"
     s.name 'struct stat'
@@ -78,7 +87,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct
     s.field :st_ctime, :time_t
   end
   
-  rlimit = FFI::StructGenerator.new do |s|
+  rlimit = FFI::StructGenerator.new 'rlimit' do |s|
     s.include "sys/types.h"
     s.include "sys/time.h"
     s.include "sys/resource.h"
@@ -87,7 +96,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct
     s.field :rlim_max, :rlim_t
   end
 
-  evp_md = FFI::StructGenerator.new do |s|
+  evp_md = FFI::StructGenerator.new 'evp_md' do |s|
     s.include "openssl/ossl_typ.h"
     s.include "openssl/evp.h"
     s.name 'struct env_md_st'
@@ -107,7 +116,7 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct
     s.field  :ctx_size, :int
   end
 
-  evp_md_ctx = FFI::StructGenerator.new do |s|
+  evp_md_ctx = FFI::StructGenerator.new 'evp_md_ctx' do |s|
     s.include "openssl/ossl_typ.h"
     s.include "openssl/evp.h"
     s.name 'struct env_md_ctx_st'
@@ -117,10 +126,10 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct
     s.field :md_data, :pointer
   end
   
-  # FIXME these constants don't have standard names.
-  # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.
-  # Binary doesn't exist at all in many non-Unix variants.
-  # This should come out of something like config.h
+  # FIXME these constants don't have standard names.  LOCK_SH == Linux,
+  # O_SHLOCK on Bsd/Darwin, etc.  Binary doesn't exist at all in many non-Unix
+  # variants.  This should come out of something like config.h
+
   fixme_constants = %w{
     LOCK_SH
     LOCK_EX
@@ -550,93 +559,85 @@ file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake lib/ffi/struct
 
   zlib_constants = %w[ZLIB_VERSION]
 
-  cg = ConstGenerator.new
-  cg.include "stdio.h"
-  cg.include "fcntl.h"
-  cg.include "sys/types.h"
-  cg.include "sys/socket.h"
-  cg.include "netdb.h"
-  cg.include "sys/stat.h"
-  cg.include "sys/resource.h"
-  cg.include "netinet/tcp.h"
-  cg.include "signal.h"
-  cg.include "netinet/in.h"
-  cg.include "syslog.h"
-  cg.include "zlib.h"
+  file_cg = FFI::ConstGenerator.new 'rbx.platform.file' do |cg|
+    cg.include 'stdio.h'
+    cg.include 'fcntl.h'
 
-  file_constants.each { |c| cg.const c }
-  io_constants.each { |c| cg.const c }
-  fcntl_constants.each {|c| cg.const c }
-  socket_constants.each { |c| cg.const c }
-  process_constants.each { |c| cg.const c }
-  long_process_constants.each { |c|
-    cg.const c, "%llu", "(unsigned long long)"
-  }
-  signal_constants.each { |c| cg.const c }
-  fcntl_constants.each { |c| cg.const c }
-  syslog_constants.each { |c| cg.const c }
-  zlib_constants.each { |c| cg.const c, "%s", "(char *)" }
+    file_constants.each { |c| cg.const c }
+  end
 
-  cg.calculate
+  io_cg = FFI::ConstGenerator.new 'rbx.platform.io' do |cg|
+    cg.include 'stdio.h'
+    io_constants.each { |c| cg.const c }
+  end
 
-  puts "Generating #{task.name}..."
+  fcntl_cg = FFI::ConstGenerator.new 'rbx.platform.fcntl' do |cg|
+    cg.include 'fcntl.h'
+    fcntl_constants.each { |c| cg.const c }
+  end
+
+  socket_cg = FFI::ConstGenerator.new 'rbx.platform.socket' do |cg|
+    cg.include 'sys/types.h'
+    cg.include 'sys/socket.h'
+    cg.include 'netdb.h'
+
+    socket_constants.each { |c| cg.const c }
+  end
+
+  process_cg = FFI::ConstGenerator.new 'rbx.platform.process' do |cg|
+    cg.include 'sys/wait.h'
+    cg.include 'sys/resource.h'
+
+    process_constants.each { |c| cg.const c }
+
+    long_process_constants.each { |c|
+      cg.const c, "%llu", "(unsigned long long)"
+    }
+  end
+
+  signal_cg = FFI::ConstGenerator.new 'rbx.platform.signal' do |cg|
+    cg.include 'signal.h'
+    cg.include 'sys/signal.h'
+
+    signal_constants.each { |c| cg.const c }
+  end
+
+  syslog_cg = FFI::ConstGenerator.new 'rbx.platform.syslog' do |cg|
+    cg.include 'syslog.h'
+
+    syslog_constants.each { |c| cg.const c }
+  end
+
+  zlib_cg = FFI::ConstGenerator.new 'rbx.platform.zlib' do |cg|
+    cg.include 'zlib.h'
+
+    zlib_constants.each { |c| cg.const c, "%s", "(char *)" }
+  end
+
+  puts "Generating #{task.name}..." if $verbose
 
   File.open task.name, "w" do |f|
-    f.puts addrinfo.generate_config('addrinfo')
-    f.puts dirent.generate_config('dirent')
-    f.puts timeval.generate_config('timeval')
-    f.puts sockaddr_in.generate_config('sockaddr_in')
-    f.puts sockaddr_un.generate_config('sockaddr_un') if sockaddr_un.found?
-    f.puts servent.generate_config('servent')
-    f.puts stat.generate_config('stat')
-    f.puts rlimit.generate_config('rlimit')
-    f.puts evp_md.generate_config('evp_md')
-    f.puts evp_md_ctx.generate_config('evp_md_ctx')
+    addrinfo.dump_config f
+    dirent.dump_config f
+    timeval.dump_config f
+    sockaddr_in.dump_config f
+    sockaddr_un.dump_config f if sockaddr_un.found?
+    servent.dump_config f
+    stat.dump_config f
+    rlimit.dump_config f
+    evp_md.dump_config f
+    evp_md_ctx.dump_config f
 
-    file_constants.each do | name |
-      const = cg.constants[name]
-      f.puts "rbx.platform.file.#{name} = #{const.converted_value}"
-    end
-
-    io_constants.each do |name|
-      const = cg.constants[name]
-      f.puts "rbx.platform.io.#{name} = #{const.converted_value}"
-    end
-
-    fcntl_constants.each do |name|
-      const = cg.constants[name]
-      next if const.converted_value.nil?
-      f.puts "rbx.platform.fcntl.#{name} = #{const.converted_value}"
-    end
-
-    socket_constants.each do |name|
-      const = cg.constants[name]
-      next if const.converted_value.nil?
-      f.puts "rbx.platform.socket.#{name} = #{const.converted_value}"
-    end
-
-    (process_constants + long_process_constants).each do |name|
-      const = cg.constants[name]
-      next if const.converted_value.nil?
-      f.puts "rbx.platform.process.#{name} = #{const.converted_value}"
-    end
-
-    signal_constants.each do |name|
-      const = cg.constants[name]
-      next if const.converted_value.nil?
-      f.puts "rbx.platform.signal.#{name} = #{const.converted_value}"
-    end
-
-    syslog_constants.each do |name|
-      const = cg.constants[name]
-      f.puts "rbx.platform.syslog.#{name} = #{const.converted_value}"
-    end
-
-    zlib_constants.each do |name|
-      const = cg.constants[name]
-      f.puts "rbx.platform.zlib.#{name} = #{const.converted_value}"
-    end
+    file_cg.dump_constants f
+    io_cg.dump_constants f
+    fcntl_cg.dump_constants f
+    socket_cg.dump_constants f
+    process_cg.dump_constants f
+    signal_cg.dump_constants f
+    syslog_cg.dump_constants f
+    zlib_cg.dump_constants f
 
     f.puts TypesGenerator.generate
   end
+
 end
