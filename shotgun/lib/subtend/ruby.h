@@ -87,6 +87,8 @@ VALUE rb_iv_set(VALUE obj, char *name, VALUE val);
 void rb_define_attr(VALUE klass, const char* id, int read, int write);
 VALUE rb_attr_get(VALUE obj, ID sym);
 
+void rb_define_alias(VALUE obj, const char *new_name, const char *old_name);
+
 int rb_block_given_p();
 VALUE rb_each(VALUE obj);
 

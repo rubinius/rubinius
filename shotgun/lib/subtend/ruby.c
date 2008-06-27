@@ -299,6 +299,13 @@ void rb_define_attr(VALUE klass, const char *name, int read, int write) {
   if(write == 1) rb_funcall(klass, rb_intern("attr_writer_cv"), 1, rb_intern(name));
 }
 
+void rb_define_alias(VALUE obj, const char *new_name, const char *old_name) {
+  ID id_new = rb_intern(new_name);
+  ID id_old = rb_intern(old_name);
+  
+  rb_funcall(obj, rb_intern("alias_method_cv"), 2, id_new, id_old);
+}
+
 VALUE rb_iv_get(VALUE obj, char *name) {
   return rb_ivar_get(obj, rb_intern(name));
 }
