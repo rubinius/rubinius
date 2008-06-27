@@ -1020,6 +1020,11 @@ VALUE INT2NUM(int num) {
   return NEW_HANDLE(ctx, rbs_int_to_numeric(ctx->state, num));
 }
 
+VALUE UINT2NUM(unsigned int num) {
+  CTX;
+  return NEW_HANDLE(ctx, rbs_uint_to_numeric(ctx->state, num));
+}
+
 int SYMBOL_P(VALUE obj) {
   return RBX_SYMBOL_P(obj);
 }

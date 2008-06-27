@@ -225,6 +225,7 @@ void rb_secure(int);
 /* Conversions */
 int FIX2INT(VALUE val);
 VALUE INT2NUM(int num);
+VALUE UINT2NUM(unsigned int num);
 #define INT2FIX(v) INT2NUM(v)
 #define NUM2INT(val) FIX2INT(val)
 #define LONG2NUM(v) INT2NUM((int)v)
