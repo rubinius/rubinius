@@ -6,40 +6,43 @@ module OpenSSL
 
       # OpenSSL structure representing a message digest algorithm
       class EVP_MD < FFI::Struct
-        config("rbx.platform.evp_md", :md_size)
         @@@
-        include "openssl/ossl_typ.h"
-        include "openssl/evp.h"
+        struct do |s|
+          s.include "openssl/ossl_typ.h"
+          s.include "openssl/evp.h"
 
-        name 'struct env_md_st'
-        field  :type, :int
-        field  :pkey_type, :int
-        field  :md_size, :int
-        field  :flags, :ulong
-        field  :init, :pointer
-        field  :update, :pointer
-        field  :final, :pointer
-        field  :copy, :pointer
-        field  :cleanup, :pointer
-        field  :sign, :pointer
-        field  :verify, :pointer
-        # int required_pkey[5] goes here but we don't care
-        field  :block_size, :int
-        field  :ctx_size, :int
+          s.name 'struct env_md_st'
+          s.field  :type, :int
+          s.field  :pkey_type, :int
+          s.field  :md_size, :int
+          s.field  :flags, :ulong
+          s.field  :init, :pointer
+          s.field  :update, :pointer
+          s.field  :final, :pointer
+          s.field  :copy, :pointer
+          s.field  :cleanup, :pointer
+          s.field  :sign, :pointer
+          s.field  :verify, :pointer
+          # int required_pkey[5] goes here but we don't care
+          s.field  :block_size, :int
+          s.field  :ctx_size, :int
+        end
         @@@
       end
 
       # OpenSSL structure representing a message digest context
       class EVP_MD_CTX < FFI::Struct
         @@@
-        include "openssl/ossl_typ.h"
-        include "openssl/evp.h"
+        struct do |s|
+          s.include "openssl/ossl_typ.h"
+          s.include "openssl/evp.h"
 
-        name 'struct env_md_ctx_st'
-        field :digest, :pointer
-        field :engine, :pointer
-        field :flags, :ulong
-        field :md_data, :pointer
+          s.name 'struct env_md_ctx_st'
+          s.field :digest, :pointer
+          s.field :engine, :pointer
+          s.field :flags, :ulong
+          s.field :md_data, :pointer
+        end
         @@@
 
         # Returns the size of the digest associated with this context

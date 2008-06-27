@@ -61,10 +61,13 @@ gems/**/*.gem
 kernel/.load_order.txt
 kernel/core/dir_entry.rb
 
-lib/etc.rb
 lib/kernel.rb
 lib/rbconfig.rb
-lib/zlib.rb
+
+# FFI extensions
+/lib/etc.rb
+/lib/openssl/digest.rb
+/lib/zlib.rb
 
 native/sexp
 native/translation

@@ -1,6 +1,12 @@
 module Zlib
 
-  ZLIB_VERSION = Rubinius::RUBY_CONFIG['rbx.platform.zlib.ZLIB_VERSION']
+  @@@
+  constants do |c|
+    c.include "zlib.h"
+
+    c.const 'ZLIB_VERSION', '%s', '(char *)'
+  end
+  @@@
 
   class Error < StandardError; end
 
@@ -15,27 +21,29 @@ module Zlib
   class ZStream < FFI::Struct
 
     @@@
-    name "struct z_stream_s"
-    include "zlib.h"
+    struct do |s|
+      s.include "zlib.h"
 
-    field :next_in,   :pointer
-    field :avail_in,  :uint
-    field :total_in,  :ulong
+      s.name "struct z_stream_s" 
+      s.field :next_in,   :pointer
+      s.field :avail_in,  :uint
+      s.field :total_in,  :ulong
 
-    field :next_out,  :pointer
-    field :avail_out, :uint
-    field :total_out, :ulong
+      s.field :next_out,  :pointer
+      s.field :avail_out, :uint
+      s.field :total_out, :ulong
 
-    field :msg,       :string
-    field :state,     :pointer
+      s.field :msg,       :string
+      s.field :state,     :pointer
 
-    field :zalloc,    :pointer
-    field :zfree,     :pointer
-    field :opaque,    :pointer
+      s.field :zalloc,    :pointer
+      s.field :zfree,     :pointer
+      s.field :opaque,    :pointer
 
-    field :data_type, :int
-    field :adler,     :ulong
-    field :reserved,  :ulong
+      s.field :data_type, :int
+      s.field :adler,     :ulong
+      s.field :reserved,  :ulong
+    end
     @@@
 
     #--

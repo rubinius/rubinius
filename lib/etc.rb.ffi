@@ -1,15 +1,18 @@
 module Etc
   class Passwd < FFI::Struct
     @@@
-    name "struct passwd"
-    include "sys/types.h"
-    include "pwd.h"
-    field :pw_name, :string
-    field :pw_passwd, :string
-    field :pw_uid, :uint
-    field :pw_gid, :uint
-    field :pw_dir, :string
-    field :pw_shell, :string
+    struct do |s|
+      s.include "sys/types.h"
+      s.include "pwd.h"
+
+      s.name "struct passwd"
+      s.field :pw_name, :string
+      s.field :pw_passwd, :string
+      s.field :pw_uid, :uint
+      s.field :pw_gid, :uint
+      s.field :pw_dir, :string
+      s.field :pw_shell, :string
+    end
     @@@
 
     def name; self[:pw_name]; end
@@ -22,11 +25,14 @@ module Etc
 
   class Group < FFI::Struct
     @@@
-    name "struct group"
-    include "sys/types.h"
-    include "grp.h"
-    field :gr_name, :string
-    field :gr_gid, :uint
+    struct do |s|
+      s.include "sys/types.h"
+      s.include "grp.h"
+
+      s.name "struct group"
+      s.field :gr_name, :string
+      s.field :gr_gid, :uint
+    end
     @@@
 
     def name; self[:gr_name]; end

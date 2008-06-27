@@ -77,6 +77,12 @@ module FFI
       end
     end
 
+    def to_ruby
+      @constants.map do |name, constant|
+        "#{name} = #{constant.converted_value.inspect}"
+      end.join "\n"
+    end
+
     def include(i)
       @includes << i
     end

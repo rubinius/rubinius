@@ -1,4 +1,4 @@
-require 'lib/ffi/struct_generator_task'
+require 'lib/ffi/generator_task'
 
 desc "Build extensions from lib/ext"
 task :extensions => %w[
@@ -17,7 +17,7 @@ task :extensions => %w[
 ]
 
 namespace :extension do
-  FFI::StructGenerator::Task.new %w[
+  FFI::Generator::Task.new %w[
     lib/etc.rb
     lib/openssl/digest.rb
     lib/zlib.rb
