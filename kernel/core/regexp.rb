@@ -406,14 +406,12 @@ class Regexp
     end
 
     def in_group_with_options?
-      i = @index
-      4.times do
-        if @source[i] && @source[i].chr == ':'
-          return true
-        end
-        i += 1
-       end
-      false
+      return false if @source[@index, 1] != '?'
+
+      @source[@index + 1..-1].each_char do |c|
+        return true if ':' == c
+        return false unless %w[m i x -].include? c
+      end
     end
 
     def process_group_options
