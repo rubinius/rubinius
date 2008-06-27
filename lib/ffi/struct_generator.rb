@@ -55,7 +55,7 @@ module FFI
     end
 
     def self.generate_from_code(code)
-      sg = new
+      sg = new 'anonymous'
       sg.instance_eval(code)
       sg.calculate
       sg.generate_layout
