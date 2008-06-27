@@ -446,7 +446,11 @@ class Debugger
           lines << str
         when Columns
           column = item
-          column.redistribute_widths(page_width, @marker_width + 2) if page_width
+          if page_width
+            # Check page_width is sufficient for marker and column headers
+            width = page_width-1 - (@marker_width + 2)
+            column.redistribute_widths(page_width-1, @marker_width + 2) if width > 0
+          end
           if column.has_headers?
             lines.concat column.format_header_str(@marker_width+2)
           end
