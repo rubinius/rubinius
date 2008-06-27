@@ -311,8 +311,8 @@ describe Compiler do
       g.push :self
       g.send :blah, 0, true
       g.cast_array
+      g.send :__rescue_match__, 1            
       body = g.new_label
-      
       g.git body
       g.goto rr
       body.set!
@@ -367,7 +367,7 @@ describe Compiler do
       g.push :self
       g.send :blah, 0, true
       g.cast_array
-      
+      g.send :__rescue_match__, 1      
       g.git body
       g.goto rr
       body.set!
