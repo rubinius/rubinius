@@ -80,7 +80,7 @@ module FFI
 
       raise "struct name not set" if @struct_name.nil?
 
-      Tempfile.open("rbx_struct_gen_tmp") do |f|
+      Tempfile.open("#{@name}.struct_generator") do |f|
         f.puts "#include <stdio.h>"
 
         @includes.each do |inc|
@@ -111,13 +111,13 @@ module FFI
 
       output = `./#{binary}`.split "\n"
       File.unlink(binary)
-      
+
       sizeof = output.shift
       unless @size
         m = /\s*sizeof\([^)]+\) (\d+)/.match sizeof
         @size = m[1]
       end
-      
+
       line_no = 0
       output.each do |line|
         md = line.match(/.+ (\d+) (\d+)/)

@@ -31,7 +31,7 @@ module FFI
     def calculate
       binary = File.join Dir.tmpdir, "rb_const_gen_bin_#{Process.pid}"
 
-      Tempfile.open("rbx_const_gen_tmp") do |f|
+      Tempfile.open("#{name}.const_generator") do |f|
         f.puts "#include <stdio.h>"
 
         @includes.each do |inc|
