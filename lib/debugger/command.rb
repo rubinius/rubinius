@@ -31,16 +31,55 @@ class Debugger
     # 3. The method name
     MODULE_METHOD_RE = '(?:' + MODULE_RE + '([.#]))?' + METHOD_RE
 
-    @commands = []
+    @@commands = []
 
     def self.available_commands
-      @commands
+      @@commands
     end
 
-    def self.inherited(klass)
-      @commands << klass
+    # Registers a command name
+    def self.command(name, details={})
+      @@commands << self
+      
+      define_method :name do
+        name
+      end
+
+      unless re = details[:regexp] and re.kind_of? Regexp
+        raise ArgumentError, "A regex representing the command syntax must be specified"
+      end
+      define_method :command_regexp do
+        details[:regexp]
+      end
+
+      define_method :syntax do
+        details[:syntax]
+      end
+
+      define_method :description do
+        details[:description].gsub(/\s\s+/,' ').strip
+      end
     end
 
+    # Registers a command setting
+    def self.setting(name, default, options={})
+      @settings ||= {}
+      @settings[name] = [default, options]
+    end
+    
+    # Returns the settings that can be used with this command.
+    def settings
+      self.class.instance_variable_get("@settings") || {}
+    end
+    
+    def initialize
+      if settings = self.class.instance_variable_get("@settings")
+        settings.each do |key, val|
+          instance_variable_set "@#{key.to_s}", val.first
+        end
+      end
+    end
+    
     # Indicates whether command may take (require) multiple lines of input.
     # If this is true, a command must indicate to the debugger when additional
     # input is required, by calling the Debugger#more_input! method.
@@ -58,9 +97,7 @@ class Debugger
           order = (other <=> self) * -1
         end
         if order == 0
-          cmd, = help
-          oth_cmd, = other.help
-          order = (cmd <=> oth_cmd)
+          order = (syntax <=> other.syntax)
         end
         return order
       else

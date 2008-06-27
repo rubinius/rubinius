@@ -2,21 +2,48 @@
 class Debugger
 
   class Help < Command
-    def help
-      return "h[elp]", "Display this list of commands."
-    end
-
-    def command_regexp
-      /^(?:(?:h(?:elp)?)|\?)$/
-    end
-
+    command :help,
+      :regexp => /^(?:(?:h(?:elp)?)|\?)(?:\s+(\w+))?$/,
+      :syntax => "h[elp]",
+      :description => "Display this list of commands."
+    
     def execute(dbg, interface, md)
       output = Output.info("Available commands:")
       output.set_columns(["%-s", "%-*s"], '  ')
       cmds = interface.commands
       cmds.each do |cmd|
-        c,h = cmd.help if cmd.respond_to? :help
-        output << [c,h]
+        if cmd.respond_to? :syntax and md[1].nil? or cmd.name.to_s =~ Regexp.new(md[1])
+          output << [cmd.syntax, cmd.description]
+        end
+      end
+      return output
+    end
+  end
+  
+  
+  class Show < Command
+    command :show,
+      :regexp => /^(?:show(?:\s+(\w+)(?:\s+(\w+))?)?)$/,
+      :syntax => "show [<command> [<setting>]]",
+      :description => "Display the current values for all settings, or just the specified command/setting."
+
+    def execute(dbg, interface, md)
+      output = Output.info("Current settings:")
+      output.set_columns([["Command", "%-s"], ["Setting", "%-s"], 
+        ["Value", "%-s"], ["Description", "%-*s"]])
+      cmds = interface.commands
+      cmds.each do |cmd|
+        name = cmd.name.to_s
+        if md[1].nil? or md[1] == name
+          cmd.settings.each_pair do |key, val|
+            if md[2].nil? or md[2] == key.to_s
+              desc = val.last[:description]
+              desc = desc.gsub(/\s\s+/,' ').strip if desc
+              output << [name, key, val.first.to_s, desc]
+              name = nil
+            end
+          end
+        end
       end
       return output
     end
@@ -24,13 +51,10 @@ class Debugger
 
 
   class ShowBreakpoints < Command
-    def help
-      return "b[reak]", "List breakpoints."
-    end
-
-    def command_regexp
-      /^b(?:reak)?$/
-    end
+    command :breakpoint_show,
+      :regexp => /^b(?:reak)?$/,
+      :syntax => "b[reak]",
+      :description => "List breakpoints."
 
     def execute(dbg, interface, md)
       if bp_list = dbg.breakpoints and bp_list.size > 0
@@ -56,16 +80,11 @@ class Debugger
 
 
   class AddBreakpoint < Command
-    @@re = Regexp.new('^b(?:reak)?\s+' + MODULE_METHOD_RE + '(?::(\d+))?(?:\s+((?:if|unless).+))?$')
-
-    def help
-      return "b[reak] <method>[:<line>] [if|unless <expr>]", 
-              "Set a breakpoint at the start or specified line of <method>."
-    end
-
-    def command_regexp
-      @@re
-    end
+    command :breakpoint_add,
+      :regexp => Regexp.new('^b(?:reak)?\s+' + MODULE_METHOD_RE + 
+        '(?::(\d+))?(?:\s+((?:if|unless).+))?$'),
+      :syntax => "b[reak] <method>[:<line>] [if|unless <expr>]",
+      :description => "Set a breakpoint at the start or specified line of <method>."
 
     def execute(dbg, interface, md)
       mod, mthd_type, mthd, line, cond = md[1], md[2], md[3], md[4], md[5]
@@ -80,16 +99,10 @@ class Debugger
 
 
   class AddBreakpointInFile < Command
-    @@re = Regexp.new('^b(?:reak)?\s+([^:]+):(\d+)(?:\s+((?:if|unless).+))?$')
-
-    def help
-      return "b[reak] <file>:<line> [if|unless <expr>]", 
-              "Set a breakpoint on the specified line of <file>."
-    end
-
-    def command_regexp
-      @@re
-    end
+    command :breakpoint_add_in_file,
+      :regexp => Regexp.new('^b(?:reak)?\s+([^:]+):(\d+)(?:\s+((?:if|unless).+))?$'),
+      :syntax => "b[reak] <file>:<line> [if|unless <expr>]", 
+      :description => "Set a breakpoint on the specified line of <file>."
 
     def execute(dbg, interface, md)
       file, line, cond = md[1], md[2].to_i, md[3]
@@ -110,13 +123,10 @@ class Debugger
 
 
   class DeleteBreakpoint < Command
-    def help
-      return "b[reak] d[el] <n>", "Delete breakpoint <n>."
-    end
-
-    def command_regexp
-      /^b(?:reak)?\s+d(?:el(?:ete)?)?\s+(\d+)$/
-    end
+    command :breakpoint_delete,
+      :regexp => /^b(?:reak)?\s+d(?:el(?:ete)?)?\s+(\d+)$/,
+      :syntax => "b[reak] d[el] <n>",
+      :description => "Delete breakpoint <n>."
 
     def execute(dbg, interface, md)
       n = md[1].to_i
@@ -132,13 +142,10 @@ class Debugger
 
 
   class EnableBreakpoint < Command
-    def help
-      return "b[reak] (en|dis)[able] <n>", "Enable or disable breakpoint <n>."
-    end
-
-    def command_regexp
-      /^b(?:reak)?\s+(en|dis)(?:able)?\s+(\d+)$/
-    end
+    command :breakpoint_enable,
+      :regexp => /^b(?:reak)?\s+(en|dis)(?:able)?\s+(\d+)$/,
+      :syntax => "b[reak] (en|dis)[able] <n>",
+      :description => "Enable or disable breakpoint <n>."
 
     def execute(dbg, interface, md)
       enable = md[1] == "en"
@@ -160,13 +167,10 @@ class Debugger
 
 
   class Continue < Command
-    def help
-      return "c[ont]", "Continue execution to next breakpoint, or end of program (whichever comes first)."
-    end
-
-    def command_regexp
-      /^(?:c(ont(inue)?)?|r(un)?)$/
-    end
+    command :continue,
+      :regexp => /^(?:c(ont(inue)?)?|r(un)?)$/,
+      :syntax => "c[ont] | r[un]",
+      :description => "Continue execution to next breakpoint, or end of program (whichever comes first)."
 
     def execute(dbg, interface, md)
       interface.done!
@@ -177,13 +181,10 @@ class Debugger
 
   # Step in to the next line
   class StepIn < Command
-    def help
-      return "s[tep] [to] [n]", "Step to the next, (or nth next, or specified) line, stepping into called methods."
-    end
-
-    def command_regexp
-      /^s(?:tep)?(?:\s+(?:(to)\s+)?(\d+))?$/
-    end
+    command :step_in,
+      :regexp => /^s(?:tep)?(?:\s+(?:(to)\s+)?(\d+))?$/,
+      :syntax => "s[tep] [to] [n]",
+      :description => "Step to the next, (or nth next, or specified) line, stepping into called methods."
 
     def execute(dbg, interface, md)
       step_type = md[1]
@@ -209,13 +210,10 @@ class Debugger
 
   # Step next to the next line
   class StepNext < Command
-    def help
-      return "n[ext] [to] [n]", "Step to the next, (or nth next, or specified) line, without stepping into called methods."
-    end
-
-    def command_regexp
-      /^n(?:ext)?(?:\s+(?:(to)\s+)?(\d+))?$/
-    end
+    command :step_next,
+      :regexp => /^n(?:ext)?(?:\s+(?:(to)\s+)?(\d+))?$/,
+      :syntax => "n[ext] [to] [n]",
+      :description => "Step to the next, (or nth next, or specified) line, without stepping into called methods."      
 
     def execute(dbg, interface, md)
       step_type = md[1]
@@ -241,14 +239,11 @@ class Debugger
 
   # Step out to caller
   class StepOut < Command
-    def help
-      return "o[ut] [n]", "Step out to the calling method (or nth caller)."
-    end
-
-    def command_regexp
-      /^o(?:ut)?(?:\s+(\d+))?$/
-    end
-
+    command :step_out,
+      :regexp => /^o(?:ut)?(?:\s+(\d+))?$/,
+      :syntax => "o[ut] [n]",
+      :description => "Step out to the calling method (or nth caller)."
+    
     def execute(dbg, interface, md)
       step_type = md[1]
       n = md[1]
@@ -268,13 +263,10 @@ class Debugger
 
 
   class Quit < Command
-    def help
-      return "q[uit]", "Remove all breakpoints, quit the debugger, and resume program."
-    end
-
-    def command_regexp
-      /^q(?:uit)?$/
-    end
+    command :quit, 
+      :regexp => /^q(?:uit)?$/, 
+      :syntax => "q[uit]",
+      :description => "Remove all breakpoints, quit the debugger, and resume program."
 
     def execute(dbg, interface, md)
       interface.done!
@@ -284,15 +276,10 @@ class Debugger
 
 
   class ListSource < Command
-    @@re = Regexp.new('^l(?:ist)?(?:\s+' + MODULE_METHOD_RE + ')?(?:\s+(\d+))?(?:(?:\s+|-)(\d+))?$')
-
-    def help
-      return "l[ist] [<method>] [start [end]]", "List source code lines around breakpoint or <method>, and between start/end."
-    end
-
-    def command_regexp
-      @@re
-    end
+    command :list,
+      :regexp => Regexp.new('^l(?:ist)?(?:\s+' + MODULE_METHOD_RE + ')?(?:\s+(\d+))?(?:(?:\s+|-)(\d+))?$'),
+      :syntax => "l[ist] [<method>] [start [end]]",
+      :description => "List source code lines around breakpoint or <method>, and between start/end."
 
     # Lists source code around the specified line
     def execute(dbg, interface, md)
@@ -345,15 +332,10 @@ class Debugger
 
 
   class ListSexp < Command
-    @@re = Regexp.new('^sexp(?:\s+' + MODULE_METHOD_RE + ')?$')
-
-    def help
-      return "sexp [<method>]", "List S-expression for current or specified method."
-    end
-
-    def command_regexp
-      @@re
-    end
+    command :sexp,
+      :regexp => Regexp.new('^sexp(?:\s+' + MODULE_METHOD_RE + ')?$'),
+      :syntax => "sexp [<method>]",
+      :description => "List S-expression for current or specified method."
 
     # Lists source code around the specified line
     # TODO: Change to stored Sexp on CompiledMethod once this is available
@@ -384,13 +366,10 @@ class Debugger
 
 
   class ShowLocals < Command
-    def help
-      return "[l]v[ars]", "Show local variables and their values."
-    end
-
-    def command_regexp
-      /^l?v(?:ars)?$/
-    end
+    command :lvars,
+      :regexp => /^l?v(?:ars)?$/,
+      :syntax => "[l]v[ars]",
+      :description => "Show local variables and their values."
 
     def execute(dbg, interface, inp)
       cm = interface.eval_context.method
@@ -416,13 +395,10 @@ class Debugger
 
 
   class ShowGlobals < Command
-    def help
-      return "gv[ars]", "Show global variables and their values."
-    end
-
-    def command_regexp
-      /^gv(?:ars)?$/
-    end
+    command :gvars,
+      :regexp => /^gv(?:ars)?$/,
+      :syntax => "gv[ars]",
+      :description => "Show global variables and their values."
 
     def execute(dbg, interface, inp)
       # Output globals
@@ -438,14 +414,11 @@ class Debugger
 
 
   class ShowIVars < Command
-    def help
-      return "iv[ars]", "Show instance variables and their values."
-    end
-
-    def command_regexp
-      /^iv(?:ars)?$/
-    end
-
+    command :ivars,
+      :regexp => /^iv(?:ars)?$/,
+      :syntax => "iv[ars]",
+      :description => "Show instance variables and their values."
+    
     def execute(dbg, interface, inp)
       cm = interface.eval_context.method
 
@@ -469,16 +442,11 @@ class Debugger
 
 
   class ShowCVars < Command
-    @@re = Regexp.new('^cv(?:ars)?(?:\s+('+ MODULE_RE+ '))?$')
-
-    def help
-      return "cv[ars] [<class>]", "Show class variables and their values for the specified class, or current self class."
-    end
-
-    def command_regexp
-      @@re
-    end
-
+    command :cvars,
+      :regexp => Regexp.new('^cv(?:ars)?(?:\s+('+ MODULE_RE+ '))?$'),
+      :syntax => "cv[ars] [<class>]",
+      :description => "Show class variables and their values for the specified class, or current self class."
+    
     def execute(dbg, interface, md)
       cm = interface.eval_context.method
 
@@ -503,14 +471,11 @@ class Debugger
 
 
   class ShowBacktrace < Command
-    def help
-      return "w[here] | b[ack]t[race]", "Show execution backtrace."
-    end
-
-    def command_regexp
-      /^w(?:here)?|b(?:ack)?t(?:race)?$/
-    end
-
+    command :backtrace,
+      :regexp => /^w(?:here)?|b(?:ack)?t(?:race)?$/,
+      :syntax => "w[here] | b[ack]t[race]",
+      :description => "Show execution backtrace."
+    
     def execute(dbg, interface, inp)
       bt = Backtrace.backtrace(interface.debug_context)
       eval_ctxt = interface.eval_context
@@ -537,16 +502,14 @@ class Debugger
 
   # Debugger command for evaluating a Ruby expression
   class EvalExpression < Command
+    command :eval,
+      :regexp => /\w+/,
+      :syntax => "<expr>",
+      :description => "Any other command is assumed to be a Ruby expression, and is evaluated."
+
     def initialize
+      super
       @expr = ''
-    end
-
-    def help
-      return "<expr>", "Any other command is assumed to be a Ruby expression, and is evaluated."
-    end
-
-    def command_regexp
-      /\w+/
     end
 
     # Eval commands can extend over more than one line
@@ -589,14 +552,11 @@ class Debugger
 
 
   class UpFrame < Command
-    def help
-      return "up [n]", "Change the eval context by moving up 1 (or n) call frames."
-    end
-
-    def command_regexp
-      /^up(?:\s+(\d+))?$/
-    end
-
+    command :up,
+      :regexp => /^up(?:\s+(\d+))?$/,
+      :syntax => "up [n]",
+      :description => "Change the eval context by moving up 1 (or n) call frames."
+    
     def execute(dbg, interface, md)
       n = (md[1] or "1").to_i
       ctxt = interface.eval_context
@@ -621,14 +581,11 @@ class Debugger
 
 
   class DownFrame < Command
-    def help
-      return "down [n]", "Change the eval context by moving down 1 (or n) call frames."
-    end
-
-    def command_regexp
-      /^down(?:\s+(\d+))?$/
-    end
-
+    command :down,
+      :regexp => /^down(?:\s+(\d+))?$/,
+      :syntax => "down [n]",
+      :description => "Change the eval context by moving down 1 (or n) call frames."
+    
     def execute(dbg, interface, md)
       n = (md[1] or "1").to_i
       ctxt = interface.debug_context

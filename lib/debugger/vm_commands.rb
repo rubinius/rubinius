@@ -3,13 +3,13 @@ class Debugger
 
   # Step in to the next VM instruction
   class StepInInstruction < Command
-    def help
-      return "s[tep]i [to] [n]", "Step to the next, (or nth next, or target IP) VM instruction, stepping into called methods."
-    end
-
-    def command_regexp
-      /^s(?:tep)?\s*i(?:nst(?:ruction)?)?(?:\s+(?:(to)\s+)?(\d+))?$/
-    end
+    command :step_in_instruction,
+      :regexp => /^s(?:tep)?\s*i(?:nst(?:ruction)?)?(?:\s+(?:(to)\s+)?(\d+))?$/,
+      :syntax => "s[tep]i [to] [n]",
+      :description => <<-END
+        Step to the next, (or nth next, or target IP) VM instruction, stepping
+        into called methods.
+      END
 
     def execute(dbg, interface, md)
       step_type = md[1]
@@ -35,13 +35,13 @@ class Debugger
 
   # Step next to the next VM instruction
   class StepNextInstruction < Command
-    def help
-      return "n[ext]i [to] [n]", "Step to the next, (or nth next, or target IP) VM instruction, without stepping into called methods."
-    end
-
-    def command_regexp
-      /^n(?:ext)?\s*i(?:nst(?:ruction)?)?(?:\s+(?:(to)\s+)?(\d+))?$/
-    end
+    command :step_next_instruction,
+      :regexp => /^n(?:ext)?\s*i(?:nst(?:ruction)?)?(?:\s+(?:(to)\s+)?(\d+))?$/,
+      :syntax => "n[ext]i [to] [n]",
+      :description => <<-END
+        Step to the next, (or nth next, or target IP) VM instruction, without
+        stepping into called methods.
+      END
 
     def execute(dbg, interface, md)
       step_type = md[1]
@@ -69,14 +69,18 @@ class Debugger
   # Lists the VM bytecode
   # TODO: Should bytecode listing remember last window displayed and show next?
   class ListBytecode < Command
-    @@re = Regexp.new('^d(?:ecode)?(?:\s+' + MODULE_METHOD_RE + ')?(?:\s+(\d+))?(?:(?:\s+|-)(\d+))?$')
-    def help
-      return "d[ecode] [<method>] [start [end]]", "Decode bytecode around breakpoint or between start/end."
-    end
-
-    def command_regexp
-      @@re
-    end
+    command :decode,
+      :regexp => Regexp.new('^d(?:ecode)?(?:\s+' + MODULE_METHOD_RE +
+        ')?(?:\s+(\d+))?(?:(?:\s+|-)(\d+))?$'),
+      :syntax => "d[ecode] [<method>] [start [end]]", 
+      :description => "Decode bytecode around breakpoint or between start/end."
+    
+    setting :window_size, 20, 
+      :description => <<-END
+        Sets the 'window' size, i.e. the number of instructions to be displayed
+        around the current IP when no IP range is specified.
+      END
+    setting :auto_advance, false, "Determines whether the listing advances if the command is repeated"
 
     def execute(dbg, interface, md)
       mod, mthd_type, mthd = md[1], md[2], md[3]
@@ -88,17 +92,20 @@ class Debugger
       else
         # Decode current method
         cm = interface.eval_context.method
-        first = interface.eval_context.ip - 10 unless first
+        first = interface.eval_context.ip - @window_size/2 unless first
       end
       file = cm.file.to_s
       lines = dbg.source_for(file)
       asm = dbg.asm_for(cm)
 
       first = first.to_i
-      last = last.to_i if last
-      last = first + 20 unless last
-      first, last = last, first if first > last
       first = 0 if first < 0
+      if last
+        last = last.to_i
+      else
+        last = first + @window_size
+      end
+      first, last = last, first if first > last
 
       output = Output.info("Bytecode instructions [#{first}-#{last}] in compiled method #{cm.name}:")
       output.set_columns(["%04d:", "%-s ", "%-*s"])
@@ -131,13 +138,10 @@ class Debugger
 
   # Shows the contents of the VM stack
   class ShowStack < Command
-    def help
-      return "v[m] s[tack] [start [end]]", "Display the current objects on the VM stack."
-    end
-
-    def command_regexp
-      /^v(?:m)?\s*s(?:tack)?(?:\s+(\d+))?(?:\s+(\d+))?$/
-    end
+    command :stack,
+      :regexp => /^v(?:m)?\s*s(?:tack)?(?:\s+(\d+))?(?:\s+(\d+))?$/,
+      :syntax => "v[m] s[tack] [start [end]]",
+      :description => "Display the current objects on the VM stack."
 
     def execute(dbg, interface, md)
       first, last = md[1], md[2]
@@ -176,15 +180,10 @@ class Debugger
   
   # Shows info about the SendSites within the current method
   class ShowSendSites < Command
-    @@re = Regexp.new('^v(?:m)?\s*s(?:end)?\s*s(?:ite(?:s)?)?(?:\s+' + METHOD_RE + ')?$')
-
-    def help
-      return "v[m] s[end] s[ites] [<selector>]", "Display send site info for each send site in the current method, or for the specified selector."
-    end
-    
-    def command_regexp
-      @@re
-    end
+    command :send_sites,
+      :regexp => Regexp.new('^v(?:m)?\s*s(?:end)?\s*s(?:ite(?:s)?)?(?:\s+' + METHOD_RE + ')?$'),
+      :syntax => "v[m] s[end] s[ites] [<selector>]",
+      :description => "Display send site info for each send site in the current method, or for the specified selector."
     
     def execute(dbg, interface, md)
       selector = md[1]
