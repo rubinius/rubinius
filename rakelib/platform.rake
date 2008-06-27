@@ -1,6 +1,6 @@
 require 'lib/ffi/struct_generator'
 require 'lib/ffi/const_generator'
-require 'rakelib/types_generator'
+require 'lib/ffi/types_generator'
 
 deps = %w[
   Rakefile
@@ -637,7 +637,7 @@ file 'runtime/platform.conf' => deps do |task|
     syslog_cg.dump_constants f
     zlib_cg.dump_constants f
 
-    f.puts TypesGenerator.generate
+    f.puts FFI::TypesGenerator.generate
   end
 
 end
