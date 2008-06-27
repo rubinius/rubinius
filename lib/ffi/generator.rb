@@ -14,7 +14,7 @@ module FFI
         @structs = []
 
         indent = $1
-        original_lines = $2.count("\n") - 1
+        original_lines = $2.count "\n"
 
         instance_eval $2
 
