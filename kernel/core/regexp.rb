@@ -122,7 +122,7 @@ class Regexp
       return nil
     end
   end
-  
+
   def self.last_match=(match)
     # Set an ivar in the sender of our sender
     parent = MethodContext.current.sender
@@ -135,7 +135,7 @@ class Regexp
   # last_match= sets the senders last match.
 
   def self.my_last_match=(match)
-    # Set an ivar in the sender 
+    # Set an ivar in the sender
     ctx = MethodContext.current.sender
     ctx.last_match = match
   end
@@ -181,7 +181,7 @@ class Regexp
       return nil
     end
   end
-  
+
   def match_all(str)
     start = 0
     arr = []
@@ -257,7 +257,7 @@ class Regexp
     return nil if str.nil?
     Regexp.last_match = search_region(str, 0, str.size, true)
   end
-  
+
   def match_from(str, count)
     return nil if str.nil?
     search_region(str, count, str.size, true)
@@ -280,56 +280,56 @@ class Regexp
 
       def empty?
         @source.empty?
-      end    
+      end
 
       def flatten
       end
-      
+
       def to_s
         source
       end
-      
+
       def has_options!
         @has_options = true
       end
-      
+
       def has_options?
         @has_options
-      end      
+      end
     end
-    
+
     class OptionsGroupPart < Part
       def to_s
         @flatten ? "#{source}" : "(#{options_string}#{source})"
       end
-      
+
       def push_option!(identifier)
         @options << identifier
       end
-     
+
       def push_negated_option!(identifier)
         @negated_options << identifier
       end
-      
+
       def flatten
         @flatten = true
       end
-      
+
       def options_string
         string = @options.join + (@negated_options.empty? ? "" : @negated_options.join)
-#FIXME!!!!!!!!!        
-        #string.empty? ? "" : 
+#FIXME!!!!!!!!!
+        #string.empty? ? "" :
         "?#{string}:"
       end
       private :options_string
     end
-    
+
     class LookAheadGroupPart < Part
       def to_s
         "(#{source})"
       end
     end
-    
+
     def initialize(source, options = 0)
       @source = source
       @options = options
@@ -340,7 +340,7 @@ class Regexp
     def string
       ["(?", options_string, ":",  parts_string, ")"].join
     end
-    
+
     def parts_string
       if parts.size == 1 && parts.first.has_options?
         parts.first.flatten
@@ -385,7 +385,7 @@ class Regexp
       process_until_group_finished
       add_part!
     end
-    
+
     def group_part_class
       if in_group_with_options?
         OptionsGroupPart
@@ -395,16 +395,16 @@ class Regexp
         raise "Couldn't determine Group part type to instantiate"
       end
     end
-    
+
     def in_lookahead_group?
       @source[@index, 2] == "?=" || @source[@index, 2] == "?!"
     end
-    
+
     def process_look_ahead
       push_current_character!
       push_current_character!
     end
-    
+
     def in_group_with_options?
       i = @index
       4.times do
@@ -415,7 +415,7 @@ class Regexp
        end
       false
     end
-    
+
     def process_group_options
       @parts.last.has_options!
       case @source[@index].chr
@@ -444,16 +444,16 @@ class Regexp
       @parts.last << @source[@index].chr
       @index += 1
     end
-    
+
     def push_option!
       @parts.last.push_option!(@source[@index].chr)
       @index += 1
     end
-    
+
     def add_part!
       @parts << Part.new
     end
-    
+
     def options_string
       chosen_options = []
       possible_options = [[MULTILINE, "m"], [IGNORECASE, "i"], [EXTENDED, "x"]]
@@ -470,13 +470,13 @@ class Regexp
       end
       options_to_return.join
     end
-    
+
   end
-  
+
   def to_s
     SourceParser.new(source, options).string
   end
-  
+
   def option_to_string(option)
     string = ""
     string << 'm' if (option & MULTILINE) > 0
@@ -489,19 +489,19 @@ end
 class MatchData
 
   ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
-  
+
   def string
     @source
   end
-  
+
   def source
     @source
   end
-  
+
   def full
     @full
   end
-  
+
   def begin(idx)
    return full.at(0) if idx == 0
    return @region.at(idx - 1).at(0)
@@ -527,33 +527,33 @@ class MatchData
     out = []
     @region.each do |tup|
       x = tup.at(0)
-      
+
       if x == -1
         out << nil
-      else  
+      else
         y = tup.at(1)
         out << @source[x, y-x]
       end
     end
     return out
   end
-  
+
   def pre_match
     return "" if full.at(0) == 0
     nd = full.at(0) - 1
     @source[0, nd+1]
   end
-  
+
   def pre_match_from(idx)
     return "" if full.at(0) == 0
     nd = full.at(0) - 1
-    @source[idx, nd-idx+1]    
+    @source[idx, nd-idx+1]
   end
-  
+
   def collapsing?
     self.begin(0) == self.end(0)
   end
-  
+
   def post_match
     nd = @source.size - 1
     st = full.at(1)
@@ -570,7 +570,7 @@ class MatchData
     elsif !idx.is_a?(Integer) or idx < 0
       return to_a[idx]
     end
-    
+
     if idx == 0
       return matched_area()
     elsif idx < size
@@ -590,11 +590,11 @@ class MatchData
     unless block_given?
       raise LocalJumpError, "no block given"
     end
-    
+
     out = []
     ma = matched_area()
     out << ma if yield ma
-    
+
     each_capture do |str|
       if yield(str)
         out << str
@@ -614,19 +614,19 @@ class MatchData
   def values_at(*indexes)
     indexes.map { |i| self[i] }
   end
-  
+
   def matched_area
     x = full[0]
     y = full[1]
     @source[x, y-x]
   end
-  
+
   private :matched_area
 
   def get_capture(num)
     x, y = @region[num]
     return nil if !y or x == -1
-    
+
     return @source[x, y-x]
   end
 
