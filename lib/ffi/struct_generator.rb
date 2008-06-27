@@ -191,6 +191,7 @@ module FFI
       @name = name
       @type = type
       @offset = nil
+      @size = nil
     end
 
     def offset=(o)
