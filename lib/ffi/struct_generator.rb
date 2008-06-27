@@ -1,3 +1,5 @@
+require 'tempfile'
+
 module FFI
 
   ##
@@ -102,10 +104,12 @@ module FFI
         f.puts "\n  return 0;\n}"
         f.flush
 
-        `gcc -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -x c -Wall #{f.path} -o #{binary}`
-        if $?.exitstatus == 1
+        output = `gcc -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -x c -Wall -Werror #{f.path} -o #{binary} 2>&1`
+
+        unless $?.success? then
           @found = false
-          return
+          output = output.split("\n").map { |l| "\t#{l}" }.join "\n"
+          raise "Compilation error generating struct #{@name} (#{@struct_name}):\n#{output}"
         end
       end
 
@@ -126,6 +130,7 @@ module FFI
 
         line_no += 1
       end
+
       @found = true
     end
 

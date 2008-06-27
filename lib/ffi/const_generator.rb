@@ -31,7 +31,7 @@ module FFI
     def calculate
       binary = File.join Dir.tmpdir, "rb_const_gen_bin_#{Process.pid}"
 
-      Tempfile.open("#{@name}.const_generator") do |f|
+      Tempfile.open("#{@prefix}.const_generator") do |f|
         f.puts "#include <stdio.h>"
 
         @includes.each do |inc|
@@ -52,14 +52,11 @@ module FFI
         f.puts "\n\treturn 0;\n}"
         f.flush
 
-        inn, out, err = Open3.popen3 "gcc -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -x c -Wall -Werror #{f.path} -o #{binary}"
+        output = `gcc -D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -x c -Wall -Werror #{f.path} -o #{binary} 2>&1`
 
-        inn.close
-        errs = err.read
-
-        unless errs.empty? then
-          errs = errs.split("\n").map { |l| "\t#{l}" }.join "\n"
-          raise "Compilation error generating constants:\n#{errs}"
+        unless $?.success? then
+          output = output.split("\n").map { |l| "\t#{l}" }.join "\n"
+          raise "Compilation error generating constants #{@prefix}:\n#{output}"
         end
       end
 

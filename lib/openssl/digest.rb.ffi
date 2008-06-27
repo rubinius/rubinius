@@ -3,6 +3,52 @@ module OpenSSL
     # Native OpenSSL functions and structs
     module Foreign
       set_ffi_lib "libssl"
+
+      # OpenSSL structure representing a message digest algorithm
+      class EVP_MD < FFI::Struct
+        config("rbx.platform.evp_md", :md_size)
+        @@@
+        include "openssl/ossl_typ.h"
+        include "openssl/evp.h"
+
+        name 'struct env_md_st'
+        field  :type, :int
+        field  :pkey_type, :int
+        field  :md_size, :int
+        field  :flags, :ulong
+        field  :init, :pointer
+        field  :update, :pointer
+        field  :final, :pointer
+        field  :copy, :pointer
+        field  :cleanup, :pointer
+        field  :sign, :pointer
+        field  :verify, :pointer
+        # int required_pkey[5] goes here but we don't care
+        field  :block_size, :int
+        field  :ctx_size, :int
+        @@@
+      end
+
+      # OpenSSL structure representing a message digest context
+      class EVP_MD_CTX < FFI::Struct
+        @@@
+        include "openssl/ossl_typ.h"
+        include "openssl/evp.h"
+
+        name 'struct env_md_ctx_st'
+        field :digest, :pointer
+        field :engine, :pointer
+        field :flags, :ulong
+        field :md_data, :pointer
+        @@@
+
+        # Returns the size of the digest associated with this context
+        def digest_size
+          evp_md = EVP_MD.new self[:digest]
+          evp_md[:md_size]
+        end
+      end
+
       # const EVP_MD *EVP_get_digestbyname(const char *name);
       attach_function "EVP_get_digestbyname", "ossl_digest_getbyname", [:string], :pointer
 
@@ -27,20 +73,6 @@ module OpenSSL
       #int EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *md, unsigned int *s);
       attach_function "EVP_DigestFinal_ex", "ossl_digest_final_ex", [:pointer, :pointer, :pointer], :int
 
-      # OpenSSL structure representing a message digest algorithm
-      class EVP_MD < FFI::Struct
-        config("rbx.platform.evp_md", :md_size)
-      end
-
-      # OpenSSL structure representing a message digest context
-      class EVP_MD_CTX < FFI::Struct
-        config("rbx.platform.evp_md_ctx", :digest)
-        # Returns the size of the digest associated with this context
-        def digest_size
-          evp_md = EVP_MD.new self[:digest]
-          evp_md[:md_size]
-        end
-      end
     end # Foreign
 
     class Digest

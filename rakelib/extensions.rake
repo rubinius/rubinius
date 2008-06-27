@@ -1,3 +1,5 @@
+require 'lib/ffi/struct_generator_task'
+
 desc "Build extensions from lib/ext"
 task :extensions => %w[
   build:system
@@ -8,10 +10,19 @@ task :extensions => %w[
   extension:digest_sha2
 
   extension:readline
+
+  lib/etc.rb
+  lib/openssl/digest.rb
   lib/zlib.rb
 ]
 
 namespace :extension do
+  FFI::StructGenerator::Task.new %w[
+    lib/etc.rb
+    lib/openssl/digest.rb
+    lib/zlib.rb
+  ]
+
   task :digest_md5 => "lib/ext/digest/md5/md5.#{$dlext}"
 
   file "lib/ext/digest/md5/md5.#{$dlext}" => FileList[

@@ -96,36 +96,6 @@ file 'runtime/platform.conf' => deps do |task|
     s.field :rlim_max, :rlim_t
   end
 
-  evp_md = FFI::StructGenerator.new 'evp_md' do |s|
-    s.include "openssl/ossl_typ.h"
-    s.include "openssl/evp.h"
-    s.name 'struct env_md_st'
-    s.field  :type, :int
-    s.field  :pkey_type, :int
-    s.field  :md_size, :int
-    s.field  :flags, :ulong
-    s.field  :init, :pointer
-    s.field  :update, :pointer
-    s.field  :final, :pointer
-    s.field  :copy, :pointer
-    s.field  :cleanup, :pointer
-    s.field  :sign, :pointer
-    s.field  :verify, :pointer
-    # int required_pkey[5] goes here but we don't care
-    s.field  :block_size, :int
-    s.field  :ctx_size, :int
-  end
-
-  evp_md_ctx = FFI::StructGenerator.new 'evp_md_ctx' do |s|
-    s.include "openssl/ossl_typ.h"
-    s.include "openssl/evp.h"
-    s.name 'struct env_md_ctx_st'
-    s.field :digest, :pointer
-    s.field :engine, :pointer
-    s.field :flags, :ulong
-    s.field :md_data, :pointer
-  end
-
   # FIXME these constants don't have standard names.  LOCK_SH == Linux,
   # O_SHLOCK on Bsd/Darwin, etc.  Binary doesn't exist at all in many non-Unix
   # variants.  This should come out of something like config.h
@@ -631,8 +601,6 @@ file 'runtime/platform.conf' => deps do |task|
     servent.dump_config f
     stat.dump_config f
     rlimit.dump_config f
-    evp_md.dump_config f
-    evp_md_ctx.dump_config f
 
     file_cg.dump_constants f
     io_cg.dump_constants f
