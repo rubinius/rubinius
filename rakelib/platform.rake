@@ -138,441 +138,87 @@ file 'runtime/platform.conf' => deps do |task|
     BINARY
   }
   
-  syslog_constants = %w{
-    LOG_PID
-    LOG_EMERG
-    LOG_ALERT
-    LOG_ERR
-    LOG_CRIT
-    LOG_WARNING
-    LOG_NOTICE
-    LOG_INFO
-    LOG_DEBUG
-    LOG_CONS
-    LOG_ODELAY
-    LOG_NODELAY
-    LOG_NOWAIT
-    LOG_PERROR
-    LOG_AUTH
-    LOG_AUTHPRIV
-    LOG_CONSOLE
-    LOG_CRON
-    LOG_DAEMON
-    LOG_FTP
-    LOG_KERN
-    LOG_LPR
-    LOG_MAIL
-    LOG_NEWS
-    LOG_NTP
-    LOG_SECURITY
-    LOG_SYSLOG
-    LOG_USER
-    LOG_UUCP
-    LOG_LOCAL0
-    LOG_LOCAL1
-    LOG_LOCAL2
-    LOG_LOCAL3
-    LOG_LOCAL4
-    LOG_LOCAL5
-    LOG_LOCAL6
-    LOG_LOCAL7
-  }
-
-  file_constants = %w{
-    O_RDONLY
-    O_WRONLY
-    O_RDWR
-    O_CREAT
-    O_EXCL
-    O_NOCTTY
-    O_TRUNC
-    O_APPEND
-    O_NONBLOCK
-    O_SYNC
-    S_IRUSR
-    S_IWUSR
-    S_IXUSR
-    S_IRGRP
-    S_IWGRP
-    S_IXGRP
-    S_IROTH
-    S_IWOTH
-    S_IXOTH
-    S_IFMT
-    S_IFIFO
-    S_IFCHR
-    S_IFDIR
-    S_IFBLK
-    S_IFREG
-    S_IFLNK
-    S_IFSOCK
-    S_IFWHT
-    S_ISUID
-    S_ISGID
-  }
-
-  io_constants = %w{
-    SEEK_SET
-    SEEK_CUR
-    SEEK_END
-  }
-
-  fcntl_constants = %w{
-    F_DUPFD
-    F_GETFD
-    F_GETLK
-    F_SETFD
-    F_GETFL
-    F_SETFL
-    F_SETLK
-    F_SETLKW
-    FD_CLOEXEC
-    F_RDLCK
-    F_UNLCK
-    F_WRLCK
-    O_CREAT
-    O_EXCL
-    O_NOCTTY
-    O_TRUNC
-    O_APPEND
-    O_NONBLOCK
-    O_NDELAY
-    O_RDONLY
-    O_RDWR
-    O_WRONLY
-    O_ACCMODE
-  }
-
-  socket_constants = %w[
-    AF_APPLETALK
-    AF_ATM
-    AF_AX25
-    AF_CCITT
-    AF_CHAOS
-    AF_CNT
-    AF_COIP
-    AF_DATAKIT
-    AF_DEC
-    AF_DLI
-    AF_E164
-    AF_ECMA
-    AF_HYLINK
-    AF_IMPLINK
-    AF_INET
-    AF_INET6
-    AF_IPX
-    AF_ISDN
-    AF_ISO
-    AF_LAT
-    AF_LINK
-    AF_LOCAL
-    AF_MAX
-    AF_NATM
-    AF_NDRV
-    AF_NETBIOS
-    AF_NETGRAPH
-    AF_NS
-    AF_OSI
-    AF_PPP
-    AF_PUP
-    AF_ROUTE
-    AF_SIP
-    AF_SNA
-    AF_SYSTEM
-    AF_UNIX
-    AF_UNSPEC
-
-    AI_ADDRCONFIG
-    AI_ALL
-    AI_CANONNAME
-    AI_DEFAULT
-    AI_MASK
-    AI_NUMERICHOST
-    AI_PASSIVE
-    AI_V4MAPPED
-    AI_V4MAPPED_CFG
-
-    EAI_ADDRFAMILY
-    EAI_AGAIN
-    EAI_BADFLAGS
-    EAI_BADHINTS
-    EAI_FAIL
-    EAI_FAMILY
-    EAI_MAX
-    EAI_MEMORY
-    EAI_NODATA
-    EAI_NONAME
-    EAI_PROTOCOL
-    EAI_SERVICE
-    EAI_SOCKTYPE
-    EAI_SYSTEM
-
-    INADDR_ALLHOSTS_GROUP
-    INADDR_ANY
-    INADDR_BROADCAST
-    INADDR_LOOPBACK
-    INADDR_MAX_LOCAL_GROUP
-    INADDR_NONE
-    INADDR_UNSPEC_GROUP
-
-    IPPORT_RESERVED
-    IPPORT_USERRESERVED
-
-    IPPROTO_BIP
-    IPPROTO_EGP
-    IPPROTO_EON
-    IPPROTO_GGP
-    IPPROTO_HELLO
-    IPPROTO_ICMP
-    IPPROTO_IDP
-    IPPROTO_IGMP
-    IPPROTO_IP
-    IPPROTO_MAX
-    IPPROTO_ND
-    IPPROTO_PUP
-    IPPROTO_RAW
-    IPPROTO_TCP
-    IPPROTO_TP
-    IPPROTO_UDP
-    IPPROTO_XTP
-
-    IPX_TYPE
-
-    IP_ADD_MEMBERSHIP
-    IP_DEFAULT_MULTICAST_LOOP
-    IP_DEFAULT_MULTICAST_TTL
-    IP_DROP_MEMBERSHIP
-    IP_HDRINCL
-    IP_MAX_MEMBERSHIPS
-    IP_MULTICAST_IF
-    IP_MULTICAST_LOOP
-    IP_MULTICAST_TTL
-    IP_OPTIONS
-    IP_RECVDSTADDR
-    IP_RECVOPTS
-    IP_RECVRETOPTS
-    IP_RETOPTS
-    IP_TOS
-    IP_TTL
-
-    MSG_COMPAT
-    MSG_CTRUNC
-    MSG_DONTROUTE
-    MSG_DONTWAIT
-    MSG_EOF
-    MSG_EOR
-    MSG_FLUSH
-    MSG_HAVEMORE
-    MSG_HOLD
-    MSG_OOB
-    MSG_PEEK
-    MSG_RCVMORE
-    MSG_SEND
-    MSG_TRUNC
-    MSG_WAITALL
-
-    NI_DGRAM
-    NI_MAXHOST
-    NI_MAXSERV
-    NI_NAMEREQD
-    NI_NOFQDN
-    NI_NUMERICHOST
-    NI_NUMERICSERV
-
-    PF_APPLETALK
-    PF_AX25
-    PF_CCITT
-    PF_CHAOS
-    PF_CNT
-    PF_COIP
-    PF_DATAKIT
-    PF_DLI
-    PF_ECMA
-    PF_HYLINK
-    PF_IMPLINK
-    PF_INET
-    PF_INET6
-    PF_IPX
-    PF_ISDN
-    PF_ISO
-    PF_KEY
-    PF_LAT
-    PF_LINK
-    PF_LOCAL
-    PF_MAX
-    PF_NATM
-    PF_NDRV
-    PF_NETBIOS
-    PF_NETGRAPH
-    PF_NS
-    PF_OSI
-    PF_PIP
-    PF_PPP
-    PF_PUP
-    PF_ROUTE
-    PF_RTIP
-    PF_SIP
-    PF_SNA
-    PF_SYSTEM
-    PF_UNIX
-    PF_UNSPEC
-    PF_XTP
-
-    SHUT_RD
-    SHUT_RDWR
-    SHUT_WR
-
-    SOCK_DGRAM
-    SOCK_PACKET
-    SOCK_RAW
-    SOCK_RDM
-    SOCK_SEQPACKET
-    SOCK_STREAM
-
-    SOL_ATALK
-    SOL_AX25
-    SOL_IP
-    SOL_IPX
-    SOL_SOCKET
-    SOL_TCP
-    SOL_UDP
-
-    SOPRI_BACKGROUND
-    SOPRI_INTERACTIVE
-    SOPRI_NORMAL
-
-    SO_ACCEPTCONN
-    SO_ACCEPTFILTER
-    SO_ATTACH_FILTER
-    SO_BINDTODEVICE
-    SO_BROADCAST
-    SO_DEBUG
-    SO_DETACH_FILTER
-    SO_DONTROUTE
-    SO_DONTTRUNC
-    SO_ERROR
-    SO_KEEPALIVE
-    SO_LINGER
-    SO_NKE
-    SO_NOSIGPIPE
-    SO_NO_CHECK
-    SO_NREAD
-    SO_OOBINLINE
-    SO_PASSCRED
-    SO_PEERCRED
-    SO_PEERNAME
-    SO_PRIORITY
-    SO_RCVBUF
-    SO_RCVLOWAT
-    SO_RCVTIMEO
-    SO_REUSEADDR
-    SO_REUSEPORT
-    SO_SECURITY_AUTHENTICATION
-    SO_SECURITY_ENCRYPTION_NETWORK
-    SO_SECURITY_ENCRYPTION_TRANSPORT
-    SO_SNDBUF
-    SO_SNDLOWAT
-    SO_SNDTIMEO
-    SO_TIMESTAMP
-    SO_TYPE
-    SO_USELOOPBACK
-    SO_WANTMORE
-    SO_WANTOOBFLAG
-
-    TCP_MAXSEG
-    TCP_NODELAY
-  ]
-
-  process_constants = %w{
-    WNOHANG
-    WUNTRACED
-    PRIO_PROCESS
-    PRIO_PGRP
-    PRIO_USER
-    RLIMIT_CPU
-    RLIMIT_FSIZE
-    RLIMIT_DATA
-    RLIMIT_STACK
-    RLIMIT_CORE
-    RLIMIT_RSS
-    RLIMIT_NPROC
-    RLIMIT_NOFILE
-    RLIMIT_MEMLOCK
-    RLIMIT_AS
-    RLIMIT_SBSIZE
-  }
-
-  long_process_constants = %w{
-    RLIM_INFINITY
-    RLIM_SAVED_MAX
-    RLIM_SAVED_CUR
-  }
-
-  # The constants come from MRI's signal.c. This means that some of them might
-  # be missing.
-  signal_constants = %w{
-    SIGHUP
-    SIGINT
-    SIGQUIT
-    SIGILL
-    SIGTRAP
-    SIGIOT
-    SIGABRT
-    SIGEMT
-    SIGFPE
-    SIGKILL
-    SIGBUS
-    SIGSEGV
-    SIGSYS
-    SIGPIPE
-    SIGALRM
-    SIGTERM
-    SIGURG
-    SIGSTOP
-    SIGTSTP
-    SIGCONT
-    SIGCHLD
-    SIGCLD
-    SIGCHLD
-    SIGTTIN
-    SIGTTOU
-    SIGIO
-    SIGXCPU
-    SIGXFSZ
-    SIGVTALRM
-    SIGPROF
-    SIGWINCH
-    SIGUSR1
-    SIGUSR2
-    SIGLOST
-    SIGMSG
-    SIGPWR
-    SIGPOLL
-    SIGDANGER
-    SIGMIGRATE
-    SIGPRE
-    SIGGRANT
-    SIGRETRACT
-    SIGSOUND
-    SIGINFO
-  }
-
-  zlib_constants = %w[ZLIB_VERSION]
-
   file_cg = FFI::ConstGenerator.new 'rbx.platform.file' do |cg|
     cg.include 'stdio.h'
     cg.include 'fcntl.h'
+
+    file_constants = %w[
+      O_RDONLY
+      O_WRONLY
+      O_RDWR
+      O_CREAT
+      O_EXCL
+      O_NOCTTY
+      O_TRUNC
+      O_APPEND
+      O_NONBLOCK
+      O_SYNC
+      S_IRUSR
+      S_IWUSR
+      S_IXUSR
+      S_IRGRP
+      S_IWGRP
+      S_IXGRP
+      S_IROTH
+      S_IWOTH
+      S_IXOTH
+      S_IFMT
+      S_IFIFO
+      S_IFCHR
+      S_IFDIR
+      S_IFBLK
+      S_IFREG
+      S_IFLNK
+      S_IFSOCK
+      S_IFWHT
+      S_ISUID
+      S_ISGID
+    ]
 
     file_constants.each { |c| cg.const c }
   end
 
   io_cg = FFI::ConstGenerator.new 'rbx.platform.io' do |cg|
     cg.include 'stdio.h'
+
+    io_constants = %w[
+      SEEK_SET
+      SEEK_CUR
+      SEEK_END
+    ]
+
     io_constants.each { |c| cg.const c }
   end
 
   fcntl_cg = FFI::ConstGenerator.new 'rbx.platform.fcntl' do |cg|
     cg.include 'fcntl.h'
+
+    fcntl_constants = %w[
+      F_DUPFD
+      F_GETFD
+      F_GETLK
+      F_SETFD
+      F_GETFL
+      F_SETFL
+      F_SETLK
+      F_SETLKW
+      FD_CLOEXEC
+      F_RDLCK
+      F_UNLCK
+      F_WRLCK
+      O_CREAT
+      O_EXCL
+      O_NOCTTY
+      O_TRUNC
+      O_APPEND
+      O_NONBLOCK
+      O_NDELAY
+      O_RDONLY
+      O_RDWR
+      O_WRONLY
+      O_ACCMODE
+    ]
+
     fcntl_constants.each { |c| cg.const c }
   end
 
@@ -581,6 +227,246 @@ file 'runtime/platform.conf' => deps do |task|
     cg.include 'sys/socket.h'
     cg.include 'netdb.h'
 
+    socket_constants = %w[
+      AF_APPLETALK
+      AF_ATM
+      AF_AX25
+      AF_CCITT
+      AF_CHAOS
+      AF_CNT
+      AF_COIP
+      AF_DATAKIT
+      AF_DEC
+      AF_DLI
+      AF_E164
+      AF_ECMA
+      AF_HYLINK
+      AF_IMPLINK
+      AF_INET
+      AF_INET6
+      AF_IPX
+      AF_ISDN
+      AF_ISO
+      AF_LAT
+      AF_LINK
+      AF_LOCAL
+      AF_MAX
+      AF_NATM
+      AF_NDRV
+      AF_NETBIOS
+      AF_NETGRAPH
+      AF_NS
+      AF_OSI
+      AF_PPP
+      AF_PUP
+      AF_ROUTE
+      AF_SIP
+      AF_SNA
+      AF_SYSTEM
+      AF_UNIX
+      AF_UNSPEC
+
+      AI_ADDRCONFIG
+      AI_ALL
+      AI_CANONNAME
+      AI_DEFAULT
+      AI_MASK
+      AI_NUMERICHOST
+      AI_PASSIVE
+      AI_V4MAPPED
+      AI_V4MAPPED_CFG
+
+      EAI_ADDRFAMILY
+      EAI_AGAIN
+      EAI_BADFLAGS
+      EAI_BADHINTS
+      EAI_FAIL
+      EAI_FAMILY
+      EAI_MAX
+      EAI_MEMORY
+      EAI_NODATA
+      EAI_NONAME
+      EAI_PROTOCOL
+      EAI_SERVICE
+      EAI_SOCKTYPE
+      EAI_SYSTEM
+
+      INADDR_ALLHOSTS_GROUP
+      INADDR_ANY
+      INADDR_BROADCAST
+      INADDR_LOOPBACK
+      INADDR_MAX_LOCAL_GROUP
+      INADDR_NONE
+      INADDR_UNSPEC_GROUP
+
+      IPPORT_RESERVED
+      IPPORT_USERRESERVED
+
+      IPPROTO_BIP
+      IPPROTO_EGP
+      IPPROTO_EON
+      IPPROTO_GGP
+      IPPROTO_HELLO
+      IPPROTO_ICMP
+      IPPROTO_IDP
+      IPPROTO_IGMP
+      IPPROTO_IP
+      IPPROTO_MAX
+      IPPROTO_ND
+      IPPROTO_PUP
+      IPPROTO_RAW
+      IPPROTO_TCP
+      IPPROTO_TP
+      IPPROTO_UDP
+      IPPROTO_XTP
+
+      IPX_TYPE
+
+      IP_ADD_MEMBERSHIP
+      IP_DEFAULT_MULTICAST_LOOP
+      IP_DEFAULT_MULTICAST_TTL
+      IP_DROP_MEMBERSHIP
+      IP_HDRINCL
+      IP_MAX_MEMBERSHIPS
+      IP_MULTICAST_IF
+      IP_MULTICAST_LOOP
+      IP_MULTICAST_TTL
+      IP_OPTIONS
+      IP_RECVDSTADDR
+      IP_RECVOPTS
+      IP_RECVRETOPTS
+      IP_RETOPTS
+      IP_TOS
+      IP_TTL
+
+      MSG_COMPAT
+      MSG_CTRUNC
+      MSG_DONTROUTE
+      MSG_DONTWAIT
+      MSG_EOF
+      MSG_EOR
+      MSG_FLUSH
+      MSG_HAVEMORE
+      MSG_HOLD
+      MSG_OOB
+      MSG_PEEK
+      MSG_RCVMORE
+      MSG_SEND
+      MSG_TRUNC
+      MSG_WAITALL
+
+      NI_DGRAM
+      NI_MAXHOST
+      NI_MAXSERV
+      NI_NAMEREQD
+      NI_NOFQDN
+      NI_NUMERICHOST
+      NI_NUMERICSERV
+
+      PF_APPLETALK
+      PF_AX25
+      PF_CCITT
+      PF_CHAOS
+      PF_CNT
+      PF_COIP
+      PF_DATAKIT
+      PF_DLI
+      PF_ECMA
+      PF_HYLINK
+      PF_IMPLINK
+      PF_INET
+      PF_INET6
+      PF_IPX
+      PF_ISDN
+      PF_ISO
+      PF_KEY
+      PF_LAT
+      PF_LINK
+      PF_LOCAL
+      PF_MAX
+      PF_NATM
+      PF_NDRV
+      PF_NETBIOS
+      PF_NETGRAPH
+      PF_NS
+      PF_OSI
+      PF_PIP
+      PF_PPP
+      PF_PUP
+      PF_ROUTE
+      PF_RTIP
+      PF_SIP
+      PF_SNA
+      PF_SYSTEM
+      PF_UNIX
+      PF_UNSPEC
+      PF_XTP
+
+      SHUT_RD
+      SHUT_RDWR
+      SHUT_WR
+
+      SOCK_DGRAM
+      SOCK_PACKET
+      SOCK_RAW
+      SOCK_RDM
+      SOCK_SEQPACKET
+      SOCK_STREAM
+
+      SOL_ATALK
+      SOL_AX25
+      SOL_IP
+      SOL_IPX
+      SOL_SOCKET
+      SOL_TCP
+      SOL_UDP
+
+      SOPRI_BACKGROUND
+      SOPRI_INTERACTIVE
+      SOPRI_NORMAL
+
+      SO_ACCEPTCONN
+      SO_ACCEPTFILTER
+      SO_ATTACH_FILTER
+      SO_BINDTODEVICE
+      SO_BROADCAST
+      SO_DEBUG
+      SO_DETACH_FILTER
+      SO_DONTROUTE
+      SO_DONTTRUNC
+      SO_ERROR
+      SO_KEEPALIVE
+      SO_LINGER
+      SO_NKE
+      SO_NOSIGPIPE
+      SO_NO_CHECK
+      SO_NREAD
+      SO_OOBINLINE
+      SO_PASSCRED
+      SO_PEERCRED
+      SO_PEERNAME
+      SO_PRIORITY
+      SO_RCVBUF
+      SO_RCVLOWAT
+      SO_RCVTIMEO
+      SO_REUSEADDR
+      SO_REUSEPORT
+      SO_SECURITY_AUTHENTICATION
+      SO_SECURITY_ENCRYPTION_NETWORK
+      SO_SECURITY_ENCRYPTION_TRANSPORT
+      SO_SNDBUF
+      SO_SNDLOWAT
+      SO_SNDTIMEO
+      SO_TIMESTAMP
+      SO_TYPE
+      SO_USELOOPBACK
+      SO_WANTMORE
+      SO_WANTOOBFLAG
+
+      TCP_MAXSEG
+      TCP_NODELAY
+    ]
+
     socket_constants.each { |c| cg.const c }
   end
 
@@ -588,16 +474,91 @@ file 'runtime/platform.conf' => deps do |task|
     cg.include 'sys/wait.h'
     cg.include 'sys/resource.h'
 
+    process_constants = %w{
+      WNOHANG
+      WUNTRACED
+      PRIO_PROCESS
+      PRIO_PGRP
+      PRIO_USER
+      RLIMIT_CPU
+      RLIMIT_FSIZE
+      RLIMIT_DATA
+      RLIMIT_STACK
+      RLIMIT_CORE
+      RLIMIT_RSS
+      RLIMIT_NPROC
+      RLIMIT_NOFILE
+      RLIMIT_MEMLOCK
+      RLIMIT_AS
+      RLIMIT_SBSIZE
+    }
+
     process_constants.each { |c| cg.const c }
+
+    long_process_constants = %w[
+      RLIM_INFINITY
+      RLIM_SAVED_MAX
+      RLIM_SAVED_CUR
+    ]
 
     long_process_constants.each { |c|
       cg.const c, "%llu", "(unsigned long long)"
     }
   end
 
+  # The constants come from MRI's signal.c. This means that some of them might
+  # be missing.
+
   signal_cg = FFI::ConstGenerator.new 'rbx.platform.signal' do |cg|
     cg.include 'signal.h'
     cg.include 'sys/signal.h'
+
+    signal_constants = %w{
+      SIGHUP
+      SIGINT
+      SIGQUIT
+      SIGILL
+      SIGTRAP
+      SIGIOT
+      SIGABRT
+      SIGEMT
+      SIGFPE
+      SIGKILL
+      SIGBUS
+      SIGSEGV
+      SIGSYS
+      SIGPIPE
+      SIGALRM
+      SIGTERM
+      SIGURG
+      SIGSTOP
+      SIGTSTP
+      SIGCONT
+      SIGCHLD
+      SIGCLD
+      SIGCHLD
+      SIGTTIN
+      SIGTTOU
+      SIGIO
+      SIGXCPU
+      SIGXFSZ
+      SIGVTALRM
+      SIGPROF
+      SIGWINCH
+      SIGUSR1
+      SIGUSR2
+      SIGLOST
+      SIGMSG
+      SIGPWR
+      SIGPOLL
+      SIGDANGER
+      SIGMIGRATE
+      SIGPRE
+      SIGGRANT
+      SIGRETRACT
+      SIGSOUND
+      SIGINFO
+    }
 
     signal_constants.each { |c| cg.const c }
   end
@@ -605,11 +566,53 @@ file 'runtime/platform.conf' => deps do |task|
   syslog_cg = FFI::ConstGenerator.new 'rbx.platform.syslog' do |cg|
     cg.include 'syslog.h'
 
+    syslog_constants = %w[
+      LOG_PID
+      LOG_EMERG
+      LOG_ALERT
+      LOG_ERR
+      LOG_CRIT
+      LOG_WARNING
+      LOG_NOTICE
+      LOG_INFO
+      LOG_DEBUG
+      LOG_CONS
+      LOG_ODELAY
+      LOG_NODELAY
+      LOG_NOWAIT
+      LOG_PERROR
+      LOG_AUTH
+      LOG_AUTHPRIV
+      LOG_CONSOLE
+      LOG_CRON
+      LOG_DAEMON
+      LOG_FTP
+      LOG_KERN
+      LOG_LPR
+      LOG_MAIL
+      LOG_NEWS
+      LOG_NTP
+      LOG_SECURITY
+      LOG_SYSLOG
+      LOG_USER
+      LOG_UUCP
+      LOG_LOCAL0
+      LOG_LOCAL1
+      LOG_LOCAL2
+      LOG_LOCAL3
+      LOG_LOCAL4
+      LOG_LOCAL5
+      LOG_LOCAL6
+      LOG_LOCAL7
+    ]
+
     syslog_constants.each { |c| cg.const c }
   end
 
   zlib_cg = FFI::ConstGenerator.new 'rbx.platform.zlib' do |cg|
     cg.include 'zlib.h'
+
+    zlib_constants = %w[ZLIB_VERSION]
 
     zlib_constants.each { |c| cg.const c, "%s", "(char *)" }
   end
