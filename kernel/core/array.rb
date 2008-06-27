@@ -1786,7 +1786,7 @@ class Array
       end
 
       unless right >= right_end
-        while eqls_right < right_end
+        while eqls_right < right_end and right < right_end
           @tuple.swap(eqls_right, right)
           right += 1
           eqls_right += 1
@@ -1917,7 +1917,7 @@ class Array
       end
 
       unless right >= right_end
-        while eqls_right < right_end
+        while eqls_right < right_end and right < right_end
           @tuple.swap(eqls_right, right)
           right += 1
           eqls_right += 1
