@@ -1990,7 +1990,16 @@ class Array
       i += 1
     end
   end
-
+  
+  def __rescue_match__(exception)
+    i = 0
+    while i < @total
+      return true if at(i) === exception
+      i += 1
+    end
+    false
+  end
+  
   private :qsort
   private :isort
   private :qsort_block
