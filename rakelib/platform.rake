@@ -67,7 +67,7 @@ file 'runtime/platform.conf' => deps do |task|
     s.field :s_port, :int
     s.field :s_proto, :pointer
   end
-  
+
   stat = FFI::StructGenerator.new 'stat' do |s|
     s.include "sys/types.h"
     s.include "sys/stat.h"
@@ -86,7 +86,7 @@ file 'runtime/platform.conf' => deps do |task|
     s.field :st_mtime, :time_t
     s.field :st_ctime, :time_t
   end
-  
+
   rlimit = FFI::StructGenerator.new 'rlimit' do |s|
     s.include "sys/types.h"
     s.include "sys/time.h"
@@ -125,7 +125,7 @@ file 'runtime/platform.conf' => deps do |task|
     s.field :flags, :ulong
     s.field :md_data, :pointer
   end
-  
+
   # FIXME these constants don't have standard names.  LOCK_SH == Linux,
   # O_SHLOCK on Bsd/Darwin, etc.  Binary doesn't exist at all in many non-Unix
   # variants.  This should come out of something like config.h
@@ -137,7 +137,7 @@ file 'runtime/platform.conf' => deps do |task|
     LOCK_UN
     BINARY
   }
-  
+
   file_cg = FFI::ConstGenerator.new 'rbx.platform.file' do |cg|
     cg.include 'stdio.h'
     cg.include 'fcntl.h'
