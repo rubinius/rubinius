@@ -43,4 +43,7 @@ class Object
     private :set_instance_variable
   end
 
+  def display(port=$>)
+    port.write self
+  end
 end
