@@ -3,7 +3,6 @@ module Zlib
   @@@
   constants do |c|
     c.include 'zlib.h'
-    c.include 'zconf.h'
 
     c.const 'ZLIB_VERSION', '%s', '(char *)', nil, to_s
 
@@ -37,9 +36,10 @@ module Zlib
 
     c.const 'Z_DEFLATED',            nil, nil, 'DEFLATED'
 
-    c.const 'Z_MAX_WBITS',           nil, nil, 'MAX_WBITS'
-    c.const 'Z_MAX_MEM_LEVEL',       nil, nil, 'MAX_MEM_LEVEL'
-    c.const 'Z_DEF_MEM_LEVEL',       nil, nil, 'DEF_MEM_LEVEL'
+    c.include 'zconf.h'
+    c.const 'MAX_WBITS'
+    c.const 'MAX_MEM_LEVEL'
+    c.const 'DEF_MEM_LEVEL'
   end
   @@@
 
@@ -261,7 +261,7 @@ module Zlib
             @input = self[:next_in].read_string(self[:avail_in]) + @input
           end
 
-          msg = self[:msg].read_string unless self[:msg].nil?
+          msg = self[:msg] unless self[:msg].nil?
           Zlib.raise_error err, msg
         end
 
