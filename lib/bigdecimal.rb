@@ -335,35 +335,40 @@ class BigDecimal < Numeric
   end
 
   def quo(other)
+    self.div(other, 0)
+  end
+  alias / quo
+  
+  def div(other, precs = nil)
     if !other.kind_of?(BigDecimal)
       self.quo(BigDecimal(other.to_s))
-    elsif self.nan? or other.nan? or (self.infinite? and other.infinite?) or (self.zero? and other.zero?)
+    elsif self.nan? or other.nan?
       return BigDecimal("NaN")
     elsif other.infinite?
-      return BigDecimal("0")
-    elsif self.infinite?
-      return (other < 0) ? -self : self
+      if precs.nil? or self.infinite?
+        return BigDecimal("NaN") 
+      else
+        return BigDecimal("0")
+      end
     elsif other.zero?
-      return BigDecimal("-Infinity") if other.sign == -1
-      return BigDecimal("Infinity")
-    elsif other == BigDecimal("1")
-      return self
-    elsif other == BigDecimal("-1")
-      return -self
+      return BigDecimal("NaN") if precs.nil? or self.zero?
+      return BigDecimal("Infinity") * other.sign
+    elsif (other.digits == 1) and self.infinite?
+      if precs.nil?
+        return BigDecimal("NaN")
+      else
+        return self * other.sign
+      end
     elsif !self.exponent.zero? and !other.exponent.zero?
       a, b, extra = reduce(self, other)
-      a / b
+      q = precs.nil? ? (a / b).floor : (a / b)
+      p = precs.nil? ? q.to_s.length : precs
+      p.zero? ? BigDecimal(q.to_s) : BigDecimal(q.to_s[0..p+1])
     else
       sa, oa = self.align(other)
       q = [SIGNS[self <=> 0], sa].join.to_f / [SIGNS[other <=> 0], oa].join.to_f
       BigDecimal([q, EXP, self.exponent - other.exponent].join)
-    end
-  end
-  alias / quo
-  
-  def div(other, precs)
-    # stub for now
-    return self / other
+    end    
   end
 
   def remainder(other)
