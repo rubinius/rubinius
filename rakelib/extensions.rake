@@ -19,6 +19,7 @@ task :extensions => %w[
 namespace :extension do
   FFI::Generator::Task.new %w[
     lib/etc.rb
+    lib/fcntl.rb
     lib/openssl/digest.rb
     lib/zlib.rb
   ]

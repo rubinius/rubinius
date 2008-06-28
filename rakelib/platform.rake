@@ -2,12 +2,7 @@ require 'lib/ffi/struct_generator'
 require 'lib/ffi/const_generator'
 require 'lib/ffi/types_generator'
 
-deps = %w[
-  Rakefile
-  rakelib/platform.rake
-  lib/ffi/struct_generator.rb
-  lib/ffi/const_generator.rb
-]
+deps = %w[Rakefile] + Dir['lib/ffi/*rb']
 
 file 'runtime/platform.conf' => deps do |task|
   addrinfo = FFI::StructGenerator.new 'addrinfo' do |s|
@@ -161,32 +156,13 @@ file 'runtime/platform.conf' => deps do |task|
     io_constants.each { |c| cg.const c }
   end
 
+  # Only constants needed by core are added here
   fcntl_cg = FFI::ConstGenerator.new 'rbx.platform.fcntl' do |cg|
     cg.include 'fcntl.h'
 
     fcntl_constants = %w[
-      F_DUPFD
-      F_GETFD
-      F_GETLK
-      F_SETFD
       F_GETFL
       F_SETFL
-      F_SETLK
-      F_SETLKW
-      FD_CLOEXEC
-      F_RDLCK
-      F_UNLCK
-      F_WRLCK
-      O_CREAT
-      O_EXCL
-      O_NOCTTY
-      O_TRUNC
-      O_APPEND
-      O_NONBLOCK
-      O_NDELAY
-      O_RDONLY
-      O_RDWR
-      O_WRONLY
       O_ACCMODE
     ]
 
