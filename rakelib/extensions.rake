@@ -12,6 +12,7 @@ task :extensions => %w[
   extension:readline
 
   lib/etc.rb
+  lib/fcntl.rb
   lib/openssl/digest.rb
   lib/zlib.rb
 ]

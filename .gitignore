@@ -66,6 +66,7 @@ lib/rbconfig.rb
 
 # FFI extensions
 /lib/etc.rb
+/lib/fcntl.rb
 /lib/openssl/digest.rb
 /lib/zlib.rb
 
