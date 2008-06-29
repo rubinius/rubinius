@@ -68,8 +68,8 @@ class StringIO
     str = String(str)
     
     return 0 if str.empty?
-    
-    if @append
+        
+    if @append || @pos == @string.length
       @string << str
       @pos = @string.length
     elsif @pos > @string.size
