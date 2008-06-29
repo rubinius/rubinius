@@ -149,6 +149,7 @@ class Dir
 
   def self.glob(pattern, flags = 0)
     matches = []
+    pattern = StringValue(pattern)
 
     glob_brace_expand pattern, flags & ~GLOB_VERBOSE, matches
 
