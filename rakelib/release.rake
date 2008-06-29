@@ -22,6 +22,7 @@ task :release => %w(release:package release:tag)
 desc "release tasks"
 namespace :release do
 
+  # TODO auto-commit CONTRIBUTORS file
   desc  "Generate CONTRIBUTORS file"
   task :contributors do
     sh "git log | grep Author | sort --unique | sed -e 's/Author: //' > CONTRIBUTORS"
