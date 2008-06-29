@@ -302,6 +302,13 @@ class BigDecimal < Numeric
   def mult(other, precs)
     if !other.kind_of?(BigDecimal)
       return self.mult(BigDecimal(other.to_s), precs)
+    elsif (self.infinite? and other.zero?) or (self.zero? and other.infinite?)
+      return BigDecimal("NaN")
+    elsif (self.nan? or other.nan?)
+      return BigDecimal("NaN")
+    elsif (self.zero? or other.zero?)
+      return BigDecimal("0") if (self.sign * other.sign) > 0
+      return BigDecimal("-0") if (self.sign * other.sign) < 0
     elsif !self.finite?
       if (self.sign * other.sign < 0) == self.sign < 0
         return self
@@ -402,7 +409,8 @@ class BigDecimal < Numeric
 
     first = (self / other).floor     
     second = self - (first * other)
-    
+
+    arr << first.to_i << second.to_f if other.kind_of?(Float)
     arr << first << second
   end
   
