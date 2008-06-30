@@ -586,11 +586,11 @@ module Kernel
   end
 
   def instance_variable_defined?(name)
+    name = instance_variable_validate(name)
+
     vars = get_instance_variables
     return false unless vars
 
-    name = name.to_sym unless name.kind_of? Symbol
-    
     # CSM awareness
     if vars.kind_of? Tuple
       out = []
