@@ -122,4 +122,5 @@ For the build to succeed you will need these packages:
 * bison
 * libglib2.0-dev
 * libreadline5-dev
+* libssl-dev
 * zlib1g-dev
