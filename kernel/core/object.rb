@@ -19,20 +19,22 @@ class Object
   end
   private :initialize
 
-  def instance_variable_validate(arg)
+  def instance_variable_validate(name)
     # adapted from rb_to_id
-    if arg.is_a?(Symbol)
-      name = arg.to_s
-    elsif arg.is_a?(String)
-      name = arg
-    elsif arg.is_a?(Fixnum)
-      raise ArgumentError.new("#{arg.inspect} is not a symbol")
+    case name
+    when Symbol
+      return name if name.to_s[0] == ?@
+    when String
+      return name.intern if name[0] == ?@
+    when Fixnum
+      raise ArgumentError.new("#{name.inspect} is not a symbol")
     else
-      raise TypeError.new("#{arg.inspect} is not a symbol") unless arg.respond_to?(:to_str)
-      name = arg.to_str
+      raise TypeError.new("#{name.inspect} is not a symbol") unless name.respond_to?(:to_str)
+      name = name.to_str
+      return name.to_sym if name[0] == ?@
     end
-    raise NameError.new("`#{arg}' is not allowed as an instance variable name") unless name.to_s[0] == ?@
-    name.to_sym
+    
+    raise NameError.new("`#{name}' is not allowed as an instance variable name")
   end
   private :instance_variable_validate
 
