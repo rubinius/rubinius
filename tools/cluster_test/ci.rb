@@ -218,7 +218,7 @@ def run_tests hash
   Dir.chdir dir do
     # TODO: stupid rbx needs to go against frozen, not 1.8
     # TODO: way to totally botch things up with complexity
-    cmd "multiruby -v -S mspec 1.8/core/process/kill_spec.rb > ../#{hash}.log 2>&1 < /dev/null", false
+    cmd "multiruby -v -S mspec 1.8 > ../#{hash}.log 2>&1 < /dev/null", false
   end
 ensure
   FileUtils::rm_rf hash # not dir, hash... incremental stays as a result
