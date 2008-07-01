@@ -20,7 +20,6 @@ class MSpecCI < MSpecScript
     options.separator "\n How to run the specs"
     options.add_config { |f| load f }
     options.add_name
-    options.add_tags_dir
     options.add_pretend
     options.add_interrupt
 
@@ -59,7 +58,7 @@ class MSpecCI < MSpecScript
       files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
     end
 
-    MSpec.register_tags_path config[:tags_dir]
+    MSpec.register_tags_patterns config[:tags_patterns]
     MSpec.register_files files
     TagFilter.new(:exclude, "fails").register
     TagFilter.new(:exclude, "unstable").register

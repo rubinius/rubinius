@@ -17,10 +17,10 @@ describe MSpec, ".register_mode" do
   end
 end
 
-describe MSpec, ".register_tags_path" do
-  it "records the path to tag files" do
-    MSpec.register_tags_path "path/to/tags"
-    MSpec.retrieve(:tags_path).should == "path/to/tags"
+describe MSpec, ".register_tags_patterns" do
+  it "records the patterns for generating a tag file from a spec file" do
+    MSpec.register_tags_patterns [[/spec\/ruby/, "spec/tags"], [/frozen/, "ruby"]]
+    MSpec.retrieve(:tags_patterns).should == [[/spec\/ruby/, "spec/tags"], [/frozen/, "ruby"]]
   end
 end
 
@@ -288,34 +288,33 @@ describe MSpec, ".shuffle" do
   end
 end
 
-describe MSpec, ".tags_path" do
-  before :each do
-    MSpec.store :tags_path, nil
-  end
-
-  it "returns 'spec/tags' if no tags path has been registered" do
-    MSpec.tags_path.should == "spec/tags"
-  end
-
-  it "returns the registered tags path" do
-    MSpec.register_tags_path "/path/to/tags"
-    MSpec.tags_path.should == "/path/to/tags"
-  end
-end
-
 describe MSpec, ".tags_file" do
   before :each do
-    MSpec.store :file, "/path/to/spec/something/some_spec.rb"
-    MSpec.store :tags_path, nil
+    MSpec.store :file, "path/to/spec/something/some_spec.rb"
+    MSpec.store :tags_patterns, nil
   end
 
-  it "returns the tags file for the current spec file with default tags_path" do
-    MSpec.tags_file.should == "spec/tags/something/some_tags.txt"
+  it "returns the default tags file for the current spec file" do
+    MSpec.tags_file.should == "path/to/spec/tags/something/some_tags.txt"
   end
 
-  it "returns the tags file for the current spec file with custom tags_path" do
-    MSpec.register_tags_path "/path/to/tags"
-    MSpec.tags_file.should == "/path/to/tags/something/some_tags.txt"
+  it "returns the tags file for the current spec file with custom tags_patterns" do
+    MSpec.register_tags_patterns [[/^(.*)\/spec/, '\1/tags'], [/_spec.rb/, "_tags.txt"]]
+    MSpec.tags_file.should == "path/to/tags/something/some_tags.txt"
+  end
+
+  it "performs multiple substitutions" do
+    MSpec.register_tags_patterns [
+      [%r(/spec/something/), "/spec/other/"],
+      [%r(/spec/), "/spec/tags/"],
+      [/_spec.rb/, "_tags.txt"]
+    ]
+    MSpec.tags_file.should == "path/to/spec/tags/other/some_tags.txt"
+  end
+
+  it "handles cases where no substitution is performed" do
+    MSpec.register_tags_patterns [[/nothing/, "something"]]
+    MSpec.tags_file.should == "path/to/spec/something/some_spec.rb"
   end
 end
 

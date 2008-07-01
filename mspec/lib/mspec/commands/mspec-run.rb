@@ -24,7 +24,6 @@ class MSpecRun < MSpecScript
     options.separator "\n How to modify the execution"
     options.add_config { |f| load f }
     options.add_name
-    options.add_tags_dir
     options.add_randomize
     options.add_pretend
     options.add_interrupt
@@ -70,7 +69,7 @@ class MSpecRun < MSpecScript
       files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
     end
 
-    MSpec.register_tags_path config[:tags_dir]
+    MSpec.register_tags_patterns config[:tags_patterns]
     MSpec.register_files files
 
     MSpec.process

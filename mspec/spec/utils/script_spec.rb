@@ -80,17 +80,18 @@ describe MSpecScript, "#initialize" do
   end
 
   it "sets the default config values" do
-    @config[:tags_dir].should  == 'spec/tags'
-    @config[:formatter].should == DottedFormatter
-    @config[:includes].should  == []
-    @config[:excludes].should  == []
-    @config[:patterns].should  == []
-    @config[:xpatterns].should == []
-    @config[:tags].should      == []
-    @config[:xtags].should     == []
-    @config[:atags].should     == []
-    @config[:astrings].should  == []
-    @config[:abort].should     == true
+    @config[:tags_dir].should   == 'spec/tags'
+    @config[:formatter].should  == DottedFormatter
+    @config[:includes].should   == []
+    @config[:excludes].should   == []
+    @config[:patterns].should   == []
+    @config[:xpatterns].should  == []
+    @config[:tags].should       == []
+    @config[:xtags].should      == []
+    @config[:atags].should      == []
+    @config[:astrings].should   == []
+    @config[:abort].should      == true
+    @config[:config_ext].should == '.mspec'
   end
 end
 
@@ -99,6 +100,7 @@ describe MSpecScript, "#load" do
     File.stub!(:exist?).and_return(false)
     @script = MSpecScript.new
     @file = "default.mspec"
+    @base = "default"
   end
 
   it "attempts to locate the file through the expanded path name" do
@@ -108,6 +110,15 @@ describe MSpecScript, "#load" do
     @script.load(@file).should == :loaded
   end
 
+  it "appends config[:config_ext] to the name and attempts to locate the file through the expanded path name" do
+    File.should_receive(:expand_path).with(@base).and_return(@base)
+    File.should_receive(:expand_path).with(@file).and_return(@file)
+    File.should_receive(:exist?).with(@base).and_return(false)
+    File.should_receive(:exist?).with(@file).and_return(true)
+    Kernel.should_receive(:load).with(@file).and_return(:loaded)
+    @script.load(@base).should == :loaded
+  end
+
   it "attemps to locate the file in '.'" do
     path = File.join ".", @file
     File.should_receive(:exist?).with(path).and_return(true)
@@ -115,11 +126,25 @@ describe MSpecScript, "#load" do
     @script.load(@file).should == :loaded
   end
 
+  it "appends config[:config_ext] to the name and attempts to locate the file in '.'" do
+    path = File.join ".", @file
+    File.should_receive(:exist?).with(path).and_return(true)
+    Kernel.should_receive(:load).with(path).and_return(:loaded)
+    @script.load(@base).should == :loaded
+  end
+
   it "attemps to locate the file in 'spec'" do
     path = File.join "spec", @file
     File.should_receive(:exist?).with(path).and_return(true)
     Kernel.should_receive(:load).with(path).and_return(:loaded)
     @script.load(@file).should == :loaded
+  end
+
+  it "appends config[:config_ext] to the name and attempts to locate the file in 'spec'" do
+    path = File.join "spec", @file
+    File.should_receive(:exist?).with(path).and_return(true)
+    Kernel.should_receive(:load).with(path).and_return(:loaded)
+    @script.load(@base).should == :loaded
   end
 end
 

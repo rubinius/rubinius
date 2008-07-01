@@ -1,4 +1,3 @@
-
 require 'mspec/runner/state'
 require 'mspec/runner/tag'
 require 'fileutils'
@@ -68,8 +67,15 @@ module MSpec
     store :files, files
   end
 
-  def self.register_tags_path(path)
-    store :tags_path, path
+  # Stores one or more substitution patterns for transforming
+  # a spec filename into a tags filename, where each pattern
+  # has the form:
+  #
+  #   [Regexp, String]
+  #
+  # See also +tags_file+.
+  def self.register_tags_patterns(patterns)
+    store :tags_patterns, patterns
   end
 
   def self.register_mode(mode)
@@ -171,18 +177,22 @@ module MSpec
     end
   end
 
-  def self.tags_path
-    retrieve(:tags_path) || "spec/tags"
-  end
-
+  # Transforms a spec filename into a tags filename by applying each
+  # substitution pattern in :tags_pattern. The default patterns are:
+  #
+  #   [%r(/spec/), '/spec/tags/'], [/_spec.rb$/, '_tags.txt']
+  #
+  # which will perform the following transformation:
+  #
+  #   path/to/spec/class/method_spec.rb => path/to/spec/tags/class/method_tags.txt
+  #
+  # See also +register_tags_patterns+.
   def self.tags_file
-    path = tags_path
-    file = retrieve :file
-    tags_file = File.basename(file, '.*').sub(/_spec$/, '_tags') + '.txt'
-
-    m = file.match %r[.*spec/(.*)/.*_spec.rb]
-    path = File.join(path, m[1]) if m
-    File.join path, tags_file
+    patterns = retrieve(:tags_patterns) ||
+               [[%r(spec/), 'spec/tags/'], [/_spec.rb$/, '_tags.txt']]
+    patterns.inject(retrieve(:file).dup) do |file, pattern|
+      file.gsub *pattern
+    end
   end
 
   def self.read_tags(*keys)

@@ -187,27 +187,6 @@ describe "The -r, --require LIBRARY option" do
   end
 end
 
-describe "The -X, --tags-dir DIR option" do
-  before :each do
-    @options, @config = new_option
-    @options.add_tags_dir
-  end
-
-  it "is enabled with #add_tags_dir" do
-    @options.should_receive(:on).with("-X", "--tags-dir DIR",
-        String, an_instance_of(String))
-    @options.add_tags_dir
-  end
-
-  it "sets the tags directory to DIR" do
-    ["-X", "--tags-dir"].each do |opt|
-      @config[:tags_dir] = nil
-      @options.parse [opt, "tags"]
-      @config[:tags_dir].should == "tags"
-    end
-  end
-end
-
 describe "The -f, --format FORMAT option" do
   before :each do
     @options, @config = new_option

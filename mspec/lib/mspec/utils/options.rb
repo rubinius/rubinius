@@ -122,13 +122,6 @@ class MSpecOptions
     end
   end
 
-  def add_tags_dir
-    on("-X", "--tags-dir DIR", String,
-       "Use DIR as the path prefix for locating spec tag files") do |d|
-      @config[:tags_dir] = d
-    end
-  end
-
   def add_formatters
     on("-f", "--format FORMAT", String,
        "Formatter for reporting, where FORMAT is one of:") do |o|

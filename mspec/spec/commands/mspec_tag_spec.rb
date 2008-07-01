@@ -38,11 +38,6 @@ describe MSpecTag, "#options" do
     @script.options @argv
   end
 
-  it "enables the tags dir option" do
-    @options.should_receive(:add_tags_dir)
-    @script.options @argv
-  end
-
   it "enables the dry run option" do
     @options.should_receive(:add_pretend)
     @script.options @argv
@@ -107,9 +102,9 @@ describe MSpecTag, "#run" do
     @script.options
   end
 
-  it "registers the tags directory path" do
-    @config[:tags_dir] = "tags_dir"
-    MSpec.should_receive(:register_tags_path).with("tags_dir")
+  it "registers the tags patterns" do
+    @config[:tags_patterns] = [/spec/, "tags"]
+    MSpec.should_receive(:register_tags_patterns).with([/spec/, "tags"])
     @script.run
   end
 
