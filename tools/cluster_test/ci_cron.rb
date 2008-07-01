@@ -38,6 +38,7 @@ def archive_stale_data days
   results = Hash.new { |h,k| h[k] = [] }
 
   Dir["data/*"].each do |f|
+    next unless File.file? f
     h = YAML.load(File.read(f))
     log = h.delete :log
     mtime = File.mtime f
@@ -47,7 +48,6 @@ def archive_stale_data days
     h[:submitted] = mtime
     h[:time]      = log[/^Finished in (.*) seconds/, 1].to_f
     h[:result]    = log[/^\d+ files.*/]
-
 
     results[h[:submitted].strftime("%Y-%m")] << h
     File.unlink f # TODO: unlink html file as well
@@ -247,7 +247,6 @@ html = Tagz do
     end
   end
 end
-
 
 File.open File.join(HTML_DIR, "index.html"), "w" do |f|
   f.puts html
