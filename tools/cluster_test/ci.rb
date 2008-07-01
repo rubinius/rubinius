@@ -1,15 +1,7 @@
 #!/usr/bin/env ruby
 
-while flag = ARGV.shift
-  case flag
-  when "-i"
-    $i = true
-  when "-v"
-    $v = true
-  end
-end
-
-$VERBOSE = true
+# for testing:
+# rubyspec = 530035781746afb3c18c1f54ca7af667dfc13195
 
 ##
 # Build dir structure:
@@ -22,71 +14,184 @@ $VERBOSE = true
 # Strategy:
 #
 # 1) start and build necessary dir structure
-# 2) check out HEAD from git if necessary
-# 3) head git atom feed and get date
-# 4) sleep and repeat 3 if date unchanged
-# 5) if first time or date has changed, get atom feed
-# 6) get hashes and usernames newer than recorded
-# 7) build latest hash PER USER
-# 8) record latesh hash
+# 2) head CI trigger URL to get timestamp
+# 3) sleep and repeat 3 if date unchanged
+# 4) if first time or timestamp has changed, run multiruby_update
+# 5) git pull on rubyspec dir
+# 6) run multiruby on the rubyspecs - FIX: different targets per ruby platform
+# 7) split results from multiruby output
+# 8) submit each result separately with rubyspec hash & ruby impl id (-v)
+#
+# Requirements:
+#
+# 1) sudo gem install ZenTest
+# 2) multiruby_setup update_rubygems
+# 3) multiruby_setup help and run spec(s) for your test target, e.g.:
+#    multiruby_setup mri:svn:branches - for all MRI active branches
+# 4) multiruby -S gem install mspec
 
+require 'time'
 require 'fileutils'
 require 'net/http'
 require 'yaml'
+
 require 'rubygems'
+require 'mspec'
 
-$v ||= false
-$i ||= false # use -i to turn on incremental builds
+$i = $r = $t = $u = $v = false
 
-# tweakables, preferably through cmdline:
-BASE_DIR  = File.expand_path(ARGV.shift || "/tmp/ci")
-GIT_REPO  = ARGV.shift || 'git://git.rubini.us/code'
-CGI_URI   = (ARGV.shift || 'http://ci.rubini.us/cgi-bin/ci_submit.cgi')
-
-# don't modify these:
-HEAD_DIR  = File.join(BASE_DIR, "HEAD")
-BUILD_DIR = File.join(BASE_DIR, "builds")
-GIT_HASH  = GIT_REPO.sub(/git@/, 'git://').sub(/:(\w+)$/, '/\1')
-HASH_PATH = File.join(BASE_DIR, "latest_#{"incremental_" if $i}hash.txt")
-
-# ARGH
-ENV["RBX"] = "rbx.colorize_backtraces=no"
-
-def cmd cmd
-  puts "cmd = #{cmd}"
-  raise "cmd #{cmd.inspect} failed with #{$?}" unless system cmd
+# evan thinks writing this is better than calling with full path in
+# crontab... um. ick. stupid linux's env
+while flag = ARGV.shift
+  case flag
+  when "-i" then # turn on incremental builds
+    $i = true
+  when "-r" then
+    $r = ARGV.shift.downcase.to_sym
+  when "-t" then
+    $t = true
+  when "-u" then
+    $u = true
+  when "-v" then
+    $v = true
+  end
 end
 
-def build_dir_structures
-  FileUtils::mkdir_p BUILD_DIR unless File.directory? BUILD_DIR
+$VERBOSE = true
+
+abort "need -r (mri|rbx|...) option" unless $r
+
+# tweakables
+BASE_DIR     = "/tmp/ci"
+SPEC_REPO    = 'git://github.com/rubyspec/rubyspec.git'
+RBX_REPO     = 'git://git.rubini.us/code'
+CGI_URI      = 'http://ci.rubini.us/cgi-bin/ci_submit.cgi'
+TRIGGER_HOST = 'ci.rubini.us'
+
+# don't modify these:
+HEAD_DIR     = File.join(BASE_DIR, "HEAD")
+TEST_DIR     = File.join(BASE_DIR, "builds")
+TIME_PATH    = File.join(BASE_DIR, "latest_#{"incremental_" if $i}hash.txt")
+
+# ARGH
+ENV["RBX"]   = "rbx.colorize_backtraces=no"
+
+############################################################
+# Core Method
+
+def _run
+  build_dir_structures
+
+  Dir.chdir HEAD_DIR do
+    warn "rolling back 5 commits for testing"
+    cmd "git reset --hard HEAD~5"
+    hash, _ = git_log_hashes[10]
+    update_build hash
+    File.utime 0, 0, TIME_PATH
+  end if $t
 
   Dir.chdir BASE_DIR do
-    cmd "git clone -n #{GIT_REPO} HEAD"
+    loop do
+      update_scm
+
+      if need_build then
+        update_scm :full
+
+        new_hashes.each do |hash|
+          Dir.chdir TEST_DIR do
+            run_tests hash
+            submit hash
+          end
+
+          update_build hash
+        end
+      end
+
+      sleep($t ? 15 : 120)
+    end
+  end
+end
+
+############################################################
+# Utility Methods
+
+def build_dir_structures
+  FileUtils::mkdir_p TEST_DIR unless File.directory? TEST_DIR
+
+  Dir.chdir BASE_DIR do
+    cmd "git clone -n #{SPEC_REPO} HEAD"
+    hash, _ = git_log_hashes.first
+    update_build hash
   end unless File.directory? HEAD_DIR
 end
 
-def git_latest_hash
-  `git ls-remote -h #{GIT_HASH} refs/heads/master`.split.first
+def cmd cmd, fatal = true
+  warn "cmd = #{cmd}"
+  raise "cmd #{cmd.inspect} failed with #{$?}" if fatal unless system cmd
 end
 
-def git_pull
+def generate_mri_triggers # TODO: move to cron
+  not_implemented_yet
+end
+
+def generate_rbx_triggers # TODO: move to cron
+  not_implemented_yet
+end
+
+def generate_scm_triggers # TODO: move to cron
+  # generate_mri_triggers
+  # generate_rbx_triggers
+end
+
+def git_latest_hash repo
+  uri = case repo
+        when :rbx then
+          RBX_REPO
+        when :spec then
+          SPEC_REPO
+        else
+          raise "unsupported repo type #{repo}"
+        end
+  `git ls-remote #{uri} master`.split.first
+end
+
+def git_log_hashes
   Dir.chdir HEAD_DIR do
+    `git log --pretty=format:"%H %ae"`.split(/\n+/).map {|s| s.split }
+  end
+end
+
+def git_pull dir
+  Dir.chdir dir do
     cmd "git pull"
   end
 end
 
-def hashes_since latest_hash
-  logs = Dir.chdir HEAD_DIR do
-    `git log --pretty=format:"%H %ae"`.split(/\n+/).map {|s| s.split }
-  end
+def head_time path
+  response = nil
+  Net::HTTP.start(TRIGGER_HOST, 80) {|http|
+    response = http.head path
+  }
 
-  warn "found #{logs.size} hashes" if $v
+  Time.parse(response["last-modified"]) rescue Time.now
+end
 
-  latest_hash = logs[1].first if latest_hash.nil?
+def need_build
+  generate_scm_triggers # TODO move to cron
+
+  prev_time   = File.mtime(TIME_PATH)
+  newest_time = [scm_time, spec_time].max
+
+  prev_time < newest_time
+end
+
+def new_hashes
+  logs      = git_log_hashes
+  curr_hash = File.read(TIME_PATH).chomp || logs[1].first # TODO: why 1?
+
   build_hashes, latest_author = [], nil
-
   logs.each do |hash, author|
-    break if hash == latest_hash
+    break if hash == curr_hash
     build_hashes << hash unless latest_author == author
     latest_author = author
   end
@@ -94,73 +199,77 @@ def hashes_since latest_hash
   build_hashes.reverse
 end
 
-def build hash
+def not_implemented_yet
+  abort "NIY: #{caller.first}"
+end
+
+def run_tests hash
   warn "building #{hash}" if $v
   dir = $i ? "incremental" : hash
-  cmd "git clone -q -l #{HEAD_DIR} #{dir}" unless File.directory? dir
+  unless File.directory? dir then
+    cmd "git clone -q -l #{HEAD_DIR} #{dir}"
+  else
+    git_pull dir
+    Dir.chdir dir do
+      cmd "git reset --hard #{hash}"
+    end
+  end
+
   Dir.chdir dir do
-    cmd "git pull" if $i
-    cmd "git reset --hard #{hash}"
-    system "rake -t spec > ../#{hash}.log 2>&1"
+    # TODO: stupid rbx needs to go against frozen, not 1.8
+    # TODO: way to totally botch things up with complexity
+    cmd "multiruby -v -S mspec 1.8/core/process/kill_spec.rb > ../#{hash}.log 2>&1 < /dev/null", false
   end
 ensure
   FileUtils::rm_rf hash # not dir, hash... incremental stays as a result
 end
 
+def scm_time
+  head_time "/index.html" # FIX: switch when deployed
+end
+
+def spec_time
+  head_time "/index.html" # FIX: switch when deployed
+end
+
 def submit hash
-  warn "submitting #{hash} to #{CGI_URI}" if $v
-  data = {
-    :platform    => Gem::Platform.local.to_s,
-    :incremental => $i,
-    :hash        => hash,
-    :log         => File.read("#{hash}.log"),
-  }
+  target = $r
 
-  res = Net::HTTP.post_form(URI.parse(CGI_URI), "data" => YAML.dump(data))
+  full_log = File.read("#{hash}.log")
 
-  puts res.body
-ensure
-  # TODO: File.unlink hash
-end
+  full_log.scan(/^VERSION =.*?RESULT = \d+/m).each do |log|
+    warn "submitting #{hash} to #{CGI_URI}" if $v
+    data = {
+      :platform    => Gem::Platform.local.to_s,
+      :incremental => $i,
+      :hash        => hash,
+      :target      => target,
+      :log         => log,
+    }
 
-def write_file path, str
-  File.open(path, 'w') do |f|
-    f.write str
-  end
-end
-
-def run
-  build_dir_structures
-
-  Dir.chdir BASE_DIR do
-    loop do
-      previous_hash = File.read(HASH_PATH).chomp rescue nil
-      latest_hash = git_latest_hash
-
-      need_build = (latest_hash &&
-                    (previous_hash.nil? ||
-                     previous_hash != latest_hash))
-
-      if need_build then
-        warn "needs building #{previous_hash} vs #{latest_hash}" if $v
-        git_pull
-
-        hashes = hashes_since(previous_hash)
-
-        warn hashes.inspect if $v
-
-        hashes.each do |hash|
-          Dir.chdir BUILD_DIR do
-            build hash
-            submit hash
-          end
-          write_file HASH_PATH, hash
-        end
-      end
-
-      sleep 120
+    unless $t then
+      res = Net::HTTP.post_form(URI.parse(CGI_URI), "data" => YAML.dump(data))
+      warn res.body
+    else
+      warn YAML.dump(data)
     end
   end
+ensure
+  File.unlink hash rescue nil
 end
 
-run if $0 == __FILE__
+def update_build hash
+  File.open(TIME_PATH, 'w') do |f|
+    f.puts hash
+  end
+end
+
+def update_scm full = false
+  cmd "multiruby_setup update", false if full if $u
+  git_pull HEAD_DIR
+end
+
+# end
+##################################################$$$$$$$$$$#
+
+_run if $0 == __FILE__
