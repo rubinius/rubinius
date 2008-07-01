@@ -15,6 +15,12 @@ GIT_URL = "http://git.rubini.us/?p=code;a=commit;h="
 STALE   = 14
 DISPLAY = 50
 
+class HashHash < Hash
+  def initialize
+    super { |h,k| h[k] = HashHash.new }
+  end
+end
+
 def abbreviate_platform(arch)
   plat = Gem::Platform.new(arch)
   cpu, os, _ = plat.to_a
@@ -26,10 +32,17 @@ def abbreviate_platform(arch)
   "#{o}#{c}#{x}"
 end
 
-class HashHash < Hash
-  def initialize
-    super { |h,k| h[k] = HashHash.new }
-  end
+def generate_mri_triggers # TODO: move to cron
+  not_implemented_yet
+end
+
+def generate_rbx_triggers # TODO: move to cron
+  not_implemented_yet
+end
+
+def generate_scm_triggers # TODO: move to cron
+  # generate_mri_triggers
+  # generate_rbx_triggers
 end
 
 def archive_stale_data days
@@ -55,7 +68,7 @@ def archive_stale_data days
 
   results.each do |date, data|
     next if data.empty?
-    path = "index.#{date}.yaml"
+    path = "html/index.#{date}.yaml"
     if File.exist? path then
       old_data = YAML.load_file path
       data = old_data + data
@@ -66,90 +79,68 @@ def archive_stale_data days
   end
 end
 
-FileUtils.rm_rf CI_DIR
-FileUtils.mkdir_p CI_DIR
+def process_individual_results
+  Dir[File.join(DATA_DIR, "*")].select { |f| File.file? f }.map { |f|
+    h = YAML.load(File.read(f))
+    h[:id] = File.basename(f)
+    h[:submitted] = File.mtime f
 
-Dir.chdir BASE_DIR
-
-all_data = HashHash.new
-
-archive_stale_data STALE
-
-flat_data = Dir[File.join(DATA_DIR, "*")].select { |f| File.file? f }.map { |f|
-  h = YAML.load(File.read(f))
-  h[:id] = File.basename(f)
-  h[:submitted] = File.mtime f
-
-  log = h[:log]
-  h[:status] = if log =~ /(\d+) failures?, (\d+) errors?$/ then
-                 failures, errors = $1.to_i, $2.to_i
-                 if failures + errors == 0 then
-                   :passed
+    log = h[:log]
+    h[:status] = if log =~ /(\d+) failures?, (\d+) errors?$/ then
+                   failures, errors = $1.to_i, $2.to_i
+                   if failures + errors == 0 then
+                     :passed
+                   else
+                     "#{failures}/#{errors}"
+                   end
                  else
-                   "#{failures}/#{errors}"
+                   :died
                  end
-               else
-                 :died
-               end
 
-  if h[:status] != :passed then
-    html = Tagz do
-      head_ do
-        title_ "Build Result"
-        style_ do
-          tagz << "pre { white-space: pre-wrap;  }"
-          tagz << ".x  { font-size: 0.7em; color: #999; }"
-          tagz << ".b  { color: #009; }"
-          tagz << "th  { text-align: right }"
-        end
-      end
-
-      body_ do
-        h1_ "Build Result"
-
-        table_ do
-          [:id, :submitted, :incremental, :hash, :platform].each do |key|
-            tr_ do
-              th_ key
-              td_ h[key]
-            end
+    if h[:status] != :passed then
+      html = Tagz do
+        head_ do
+          title_ "Build Result"
+          style_ do
+            tagz << "pre { white-space: pre-wrap;  }"
+            tagz << ".x  { font-size: 0.7em; color: #999; }"
+            tagz << ".b  { color: #009; }"
+            tagz << "th  { text-align: right }"
           end
         end
 
-        log = h[:log]
-        log.gsub!(/^(\*\*.*not_needed.*)/, '<span class=x>\1</span>')
-        log.gsub!(/^(\*\*.*)/, '<span class=x>\1</span>')
-        log.gsub!(/^.*\.{10}.*/) { |l| l.scan(/.{78}/).join("\n") + "\n" }
-        log.gsub!(/<.span>\n/, "\n</span>")
-        pre_ log
+        body_ do
+          h1_ "Build Result"
+
+          table_ do
+            [:id, :submitted, :incremental, :hash, :platform].each do |key|
+              tr_ do
+                th_ key
+                td_ h[key]
+              end
+            end
+          end
+
+          log = h[:log]
+          log.gsub!(/^(\*\*.*not_needed.*)/, '<span class=x>\1</span>')
+          log.gsub!(/^(\*\*.*)/, '<span class=x>\1</span>')
+          log.gsub!(/^.*\.{10}.*/) { |l| l.scan(/.{78}/).join("\n") + "\n" }
+          log.gsub!(/<.span>\n/, "\n</span>")
+          pre_ log
+        end
       end
+
+      path = File.join(HTML_DIR, "ci", "#{h[:id]}.html")
+      File.open path, 'w' do |out|
+        out.write html
+      end
+      t = File.mtime f
+      File.utime(t, t, path)
     end
 
-    path = File.join(HTML_DIR, "ci", "#{h[:id]}.html")
-    File.open path, 'w' do |out|
-      out.write html
-    end
-    t = File.mtime f
-    File.utime(t, t, path)
-  end
-
-  h
-}
-
-platforms = flat_data.map { |h| h[:platform] }.uniq
-hashes    = flat_data.map { |h| h[:hash] }.uniq
-
-flat_data.each do |data|
-  all_data[data[:incremental]][data[:hash]][data[:platform]] = data
+    h
+  }
 end
-
-hash_times = hashes.map { |hash|
-  # incrementals and fall back to fulls if the sky is falling
-  (all_data[true][hash].map { |_,run| run[:submitted] }.max ||
-   all_data[false][hash].map { |_,run| run[:submitted] }.max)
-}
-
-hashes = Hash[*hashes.zip(hash_times).flatten]
 
 def build_row runs, platforms
   platforms.each do |platform|
@@ -174,80 +165,110 @@ def build_row runs, platforms
   end
 end
 
-html = Tagz do
-  head_ do
-    title_ "Rubinius CI Dashboard"
-    style_ do
-      tagz << "body { font-family: Optima, Times }"
-      tagz << "a    { color: black; }"
-      tagz << "h1,h3{ color: #339; text-align: center }"
+def write_index platforms, hashes, all_data
+  html = Tagz do
+    head_ do
+      title_ "Rubinius CI Dashboard"
+      style_ do
+        tagz << "body { font-family: Optima, Times }"
+        tagz << "a    { color: black; }"
+        tagz << "h1,h3{ color: #339; text-align: center }"
 
-      tagz << "table.data { border-spacing: 2 0 }"
-      tagz << ".data tr   { border-bottom: 1px solid black }"
-      tagz << ".data th   { text-align: right; font-family: monospace }"
-      tagz << ".data td   { text-align: center; }"
+        tagz << "table.data { border-spacing: 2 0 }"
+        tagz << ".data tr   { border-bottom: 1px solid black }"
+        tagz << ".data th   { text-align: right; font-family: monospace }"
+        tagz << ".data td   { text-align: center; }"
 
-      tagz << ".data #first th { text-align: center }"
+        tagz << ".data #first th { text-align: center }"
 
-      tagz << "td.p { background-color: #cfc }"
-      tagz << "td.f { background-color: #fcc }"
-      tagz << "td.d { background-color: #fcc }"
-      tagz << "td.m { background-color: #ccc }"
+        tagz << "td.p { background-color: #cfc }"
+        tagz << "td.f { background-color: #fcc }"
+        tagz << "td.d { background-color: #fcc }"
+        tagz << "td.m { background-color: #ccc }"
+      end
     end
-  end
 
-  body_ do
-    h1_ "Rubinius CI Dashboard"
-    h3_ Time.now.strftime("%m-%d %H:%M")
+    body_ do
+      h1_ "Rubinius CI Dashboard"
+      h3_ Time.now.strftime("%m-%d %H:%M")
 
-    table_ :id => "data" do
-      tr_ :id => "first" do
-        th_ "&nbsp;"
-        th_ "&nbsp;"
-        th_ "Incrs", :colspan => platforms.size
-        th_ "&nbsp;"
-        th_ "Fulls", :colspan => platforms.size
-      end
-
-      tr_ :id => "first" do
-        th_ "Hash"
-        th_ "Time"
-
-        platforms.each do |platform|
-          th_ abbreviate_platform(platform)
+      table_ :id => "data" do
+        tr_ :id => "first" do
+          th_ "&nbsp;"
+          th_ "&nbsp;"
+          th_ "Incrs", :colspan => platforms.size
+          th_ "&nbsp;"
+          th_ "Fulls", :colspan => platforms.size
         end
 
-        th_ "&nbsp;"
+        tr_ :id => "first" do
+          th_ "Hash"
+          th_ "Time"
 
-        platforms.each do |platform|
-          th_ abbreviate_platform(platform)
-        end
-      end
-
-      hashes.sort_by {|_,t| -t.to_i }.first(DISPLAY).each do |hash, time|
-        tr_ do
-          th_ do
-            a_(hash[0..7], :href => "#{GIT_URL}#{hash}")
+          platforms.each do |platform|
+            th_ abbreviate_platform(platform)
           end
 
-          th_ "#{time.strftime("%m-%d %H:%M")}"
+          th_ "&nbsp;"
 
-          build_row all_data[true][hash], platforms
-          td_ "&nbsp;"
-          build_row all_data[false][hash], platforms
+          platforms.each do |platform|
+            th_ abbreviate_platform(platform)
+          end
+        end
+
+        hashes.sort_by {|_,t| -t.to_i }.first(DISPLAY).each do |hash, time|
+          tr_ do
+            th_ do
+              a_(hash[0..7], :href => "#{GIT_URL}#{hash}")
+            end
+
+            th_ "#{time.strftime("%m-%d %H:%M")}"
+
+            build_row all_data[true][hash], platforms
+            td_ "&nbsp;"
+            build_row all_data[false][hash], platforms
+          end
+        end
+      end
+
+      table_ do
+        tr_ { th_ "Legend", :colspan => 2 }
+        platforms.each do |plat|
+          tr_ { th_ abbreviate_platform(plat); td_ plat }
         end
       end
     end
+  end
 
-    table_ do
-      tr_ { th_ "Legend", :colspan => 2 }
-      platforms.each do |plat|
-        tr_ { th_ abbreviate_platform(plat); td_ plat }
-      end
-    end
+  File.open File.join(HTML_DIR, "index.html"), "w" do |f|
+    f.puts html
   end
 end
 
-File.open File.join(HTML_DIR, "index.html"), "w" do |f|
-  f.puts html
+def _run
+  FileUtils.rm_rf CI_DIR
+  FileUtils.mkdir_p CI_DIR
+  Dir.chdir BASE_DIR
+  all_data = HashHash.new
+  archive_stale_data STALE
+
+  flat_data = process_individual_results
+  platforms = flat_data.map { |h| h[:platform] }.uniq
+  hashes    = flat_data.map { |h| h[:hash] }.uniq
+
+  flat_data.each do |data|
+    all_data[data[:incremental]][data[:hash]][data[:platform]] = data
+  end
+
+  hash_times = hashes.map { |hash|
+    # incrementals and fall back to fulls if the sky is falling
+    (all_data[true][hash].map { |_,run| run[:submitted] }.max ||
+     all_data[false][hash].map { |_,run| run[:submitted] }.max)
+  }
+
+  hashes = Hash[*hashes.zip(hash_times).flatten]
+
+  write_index platforms, hashes, all_data
 end
+
+_run if $0 == __FILE__
