@@ -11,11 +11,13 @@ class MSpecScript
     'spec/parser',
   ]
 
-  # The directory to search for tags for each spec file
-  # processed. The directory is relative to the directory
-  # in which the spec runner is invoked, in this case,
-  # the rubinius root.
-  set :tags_dir, File.expand_path('spec/tags')
+  # The set of substitutions to transform a spec filename
+  # into a tag filename.
+  set :tags_patterns, [
+                        [%r(spec/ruby/), 'spec/frozen/'],
+                        [%r(spec/), 'spec/tags/'],
+                        [/_spec.rb$/, '_tags.txt']
+                      ]
 
   # The default implementation to run the specs.
   set :target, 'shotgun/rubinius'
