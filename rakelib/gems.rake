@@ -35,7 +35,7 @@ namespace :gems do
 
     file installed_gemspec => gem do
       Dir.chdir File.dirname(gem) do
-        rbx 'gem', 'install', File.basename(gem), '-i',
+        sh 'gem', 'install', File.basename(gem), '-i',
             GEMS_DEVELOPMENT_PRE_INSTALLED_DIR
       end
     end
