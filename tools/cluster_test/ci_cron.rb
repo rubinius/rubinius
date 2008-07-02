@@ -54,13 +54,9 @@ def _run
 
   hashes = Hash[*hashes.zip(hash_times).flatten]
 
-  warn "writing html"
   write_index platforms, hashes, all_data
 
-  warn "generating triggers"
   update_triggers
-
-  warn "done"
 end
 
 ############################################################
@@ -243,11 +239,8 @@ def update_trigger name, data = nil
 end
 
 def update_triggers
-  p :rbx
   update_rbx_trigger
-  p :spec
   update_rubyspec_trigger
-  p :mri
   update_mri_trigger
 end
 
