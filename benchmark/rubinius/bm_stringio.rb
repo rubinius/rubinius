@@ -66,7 +66,10 @@ Benchmark.bmbm do |x|
   
   run("StringIO#each_byte") {
     io = StringIO.new(STRING.dup)
-    (MAX*6.3).to_i.times { io.each_byte { |b| b } }
+    (MAX*6.3).to_i.times {
+      io.each_byte { |b| b }
+      io.pos = 0
+    }
   }
 
   run("StringIO#each") {
