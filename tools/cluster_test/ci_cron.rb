@@ -134,33 +134,6 @@ def build_row runs, platforms
   end
 end
 
-def update_mri_trigger
-  old, new = svn_diff MRI_TRUNK, "mri_trunk"
-
-  update_trigger "mri", :revision => new if old != new
-end
-
-def update_rbx_trigger
-  old, new = git_diff RBX_REPO, "rbx"
-
-  update_trigger "rbx", :revision => new if old != new || old.nil?
-end
-
-def update_rubyspec_trigger
-  old, new = git_diff SPEC_REPO, "spec"
-
-  update_trigger "spec", :revision => new if old != new || old.nil?
-end
-
-def update_triggers
-  p :rbx
-  update_rbx_trigger
-  p :spec
-  update_rubyspec_trigger
-  p :mri
-  update_mri_trigger
-end
-
 def git_diff repo, n
   old = YAML.load_file(File.join(TRIG_DIR, "#{n}.yaml"))[:revision] rescue nil
   new = `git ls-remote -h #{repo} refs/heads/master`.split.first
@@ -243,12 +216,39 @@ def svn_diff repo, dir
   end
 end
 
+def update_mri_trigger
+  old, new = svn_diff MRI_TRUNK, "mri_trunk"
+
+  update_trigger "mri", :revision => new if old != new
+end
+
+def update_rbx_trigger
+  old, new = git_diff RBX_REPO, "rbx"
+
+  update_trigger "rbx", :revision => new if old != new || old.nil?
+end
+
+def update_rubyspec_trigger
+  old, new = git_diff SPEC_REPO, "spec"
+
+  update_trigger "spec", :revision => new if old != new || old.nil?
+end
+
 def update_trigger name, data = nil
   Dir.chdir HTML_DIR do
     File.open "trigger/#{name}.yaml", "w" do |f|
       YAML.dump data, f
     end
   end
+end
+
+def update_triggers
+  p :rbx
+  update_rbx_trigger
+  p :spec
+  update_rubyspec_trigger
+  p :mri
+  update_mri_trigger
 end
 
 def write_index platforms, hashes, all_data
