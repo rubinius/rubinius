@@ -316,6 +316,9 @@ module Compile
       rb, rbc, ext = path, "#{path}c", nil
     elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
+    elsif path.suffix? ".so"
+      # Handle case on OS X where .so is passed in but we want .bundle
+      rb, rbc, ext = nil, nil, path.sub('.so', ".#{Rubinius::LIBSUFFIX}")
     else
       dir, name = File.split(path)
       name = ".#{name}" unless name[0] == ?.
@@ -396,6 +399,9 @@ module Kernel
       rb, rbc, ext = path, "#{path}c", nil
     elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
+    elsif path.suffix? ".so"
+      # Handle case on OS X where .so is passed in but we want .bundle
+      rb, rbc, ext = nil, nil, path.sub('.so', ".#{Rubinius::LIBSUFFIX}")
     else
       dir, name = File.split(path)
       name = ".#{name}" unless name[0] == ?.
@@ -464,6 +470,9 @@ module Kernel
       rb, rbc, ext = path, "#{path}c", nil
     elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
+    elsif path.suffix? ".so"
+      # Handle case on OS X where .so is passed in but we want .bundle
+      rb, rbc, ext = nil, nil, path.sub('.so', ".#{Rubinius::LIBSUFFIX}")
     else
       rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
     end
