@@ -7,8 +7,10 @@ require 'tagz'
 
 BASE_DIR = File.expand_path(ARGV.shift || "/tmp/ci")
 HTML_DIR = File.expand_path(ARGV.shift || File.join(BASE_DIR, "html"))
+TEMP_DIR = File.join BASE_DIR, "tmp"
 DATA_DIR = File.join BASE_DIR, "data"
-CI_DIR = File.join HTML_DIR, "ci"
+CI_DIR   = File.join HTML_DIR, "ci"
+TRIG_DIR = File.join HTML_DIR, "trigger"
 
 GIT_URL = "http://git.rubini.us/?p=code;a=commit;h="
 
@@ -21,6 +23,45 @@ class HashHash < Hash
   end
 end
 
+############################################################
+# Main Runner:
+
+def _run
+  FileUtils.rm_rf CI_DIR
+  FileUtils.mkdir_p [CI_DIR, TEMP_DIR, TRIG_DIR]
+  Dir.chdir BASE_DIR
+  all_data = HashHash.new
+
+  archive_stale_data STALE
+
+  flat_data = process_individual_results
+  platforms = flat_data.map { |h| h[:platform] }.uniq
+  hashes    = flat_data.map { |h| h[:hash] }.uniq
+
+  flat_data.each do |data|
+    all_data[data[:incremental]][data[:hash]][data[:platform]] = data
+  end
+
+  hash_times = hashes.map { |hash|
+    # incrementals and fall back to fulls if the sky is falling
+    (all_data[true][hash].map { |_,run| run[:submitted] }.max ||
+     all_data[false][hash].map { |_,run| run[:submitted] }.max)
+  }
+
+  hashes = Hash[*hashes.zip(hash_times).flatten]
+
+  warn "writing html"
+  write_index platforms, hashes, all_data
+
+  warn "generating triggers"
+  generate_scm_triggers
+
+  warn "done"
+end
+
+############################################################
+# Helper Methods
+
 def abbreviate_platform(arch)
   plat = Gem::Platform.new(arch)
   cpu, os, _ = plat.to_a
@@ -30,19 +71,6 @@ def abbreviate_platform(arch)
   x = "6" if cpu =~ /64/
 
   "#{o}#{c}#{x}"
-end
-
-def generate_mri_triggers # TODO: move to cron
-  not_implemented_yet
-end
-
-def generate_rbx_triggers # TODO: move to cron
-  not_implemented_yet
-end
-
-def generate_scm_triggers # TODO: move to cron
-  # generate_mri_triggers
-  # generate_rbx_triggers
 end
 
 def archive_stale_data days
@@ -77,6 +105,54 @@ def archive_stale_data days
       YAML.dump data, f
     end
   end
+end
+
+def build_row runs, platforms
+  platforms.each do |platform|
+    run = runs[platform]
+    if run.has_key? :log then
+      status = run[:status]
+      case status
+      when :passed then
+        td_ "&nbsp;", :class => :p
+      when :died then
+        td_ :class => :d do
+          a_("doa", :href => "ci/#{run[:id]}.html")
+        end
+      when String then
+        td_ :class => :f do
+          a_(status, :href => "ci/#{run[:id]}.html")
+        end
+      end
+    else
+      td_ "&nbsp;", :class => :m
+    end
+  end
+end
+
+def generate_mri_triggers
+  old, new = svn_diff "http://svn.ruby-lang.org/repos/ruby/trunk", "mri_trunk"
+
+  update_trigger "mri", :revision => new if old != new || old.nil?
+end
+
+def generate_rbx_triggers
+  old, new = git_diff 'git://git.rubini.us/code', "rbx"
+
+  update_trigger "mri", :hash => new if old != new
+end
+
+def generate_scm_triggers
+  p :rbx
+  generate_rbx_triggers
+  p :mri
+  generate_mri_triggers
+end
+
+def git_diff repo, name
+  old = YAML.load_file(File.join(TRIG_DIR, "#{name}.yaml"))[:hash] rescue nil
+  new = `git ls-remote -h #{repo} refs/heads/master`.split.first
+  return old, new
 end
 
 def process_individual_results
@@ -142,25 +218,23 @@ def process_individual_results
   }
 end
 
-def build_row runs, platforms
-  platforms.each do |platform|
-    run = runs[platform]
-    if run.has_key? :log then
-      status = run[:status]
-      case status
-      when :passed then
-        td_ "&nbsp;", :class => :p
-      when :died then
-        td_ :class => :d do
-          a_("doa", :href => "ci/#{run[:id]}.html")
-        end
-      when String then
-        td_ :class => :f do
-          a_(status, :href => "ci/#{run[:id]}.html")
-        end
-      end
-    else
-      td_ "&nbsp;", :class => :m
+def svn_diff repo, dir
+  Dir.chdir TEMP_DIR do
+    system "svn co -q #{repo} #{dir}" unless File.directory? dir
+
+    Dir.chdir dir do
+      old = `svnversion .`.chomp
+      system "svn up -q"
+      new = `svnversion .`.chomp
+      return old, new
+    end
+  end
+end
+
+def update_trigger name, data = nil
+  Dir.chdir HTML_DIR do
+    File.open "trigger/#{name}.yaml", "w" do |f|
+      YAML.dump f, data
     end
   end
 end
@@ -245,30 +319,7 @@ def write_index platforms, hashes, all_data
   end
 end
 
-def _run
-  FileUtils.rm_rf CI_DIR
-  FileUtils.mkdir_p CI_DIR
-  Dir.chdir BASE_DIR
-  all_data = HashHash.new
-  archive_stale_data STALE
-
-  flat_data = process_individual_results
-  platforms = flat_data.map { |h| h[:platform] }.uniq
-  hashes    = flat_data.map { |h| h[:hash] }.uniq
-
-  flat_data.each do |data|
-    all_data[data[:incremental]][data[:hash]][data[:platform]] = data
-  end
-
-  hash_times = hashes.map { |hash|
-    # incrementals and fall back to fulls if the sky is falling
-    (all_data[true][hash].map { |_,run| run[:submitted] }.max ||
-     all_data[false][hash].map { |_,run| run[:submitted] }.max)
-  }
-
-  hashes = Hash[*hashes.zip(hash_times).flatten]
-
-  write_index platforms, hashes, all_data
-end
+# Done
+############################################################
 
 _run if $0 == __FILE__

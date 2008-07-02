@@ -130,19 +130,6 @@ def cmd cmd, fatal = true
   raise "cmd #{cmd.inspect} failed with #{$?}" if fatal unless system cmd
 end
 
-def generate_mri_triggers # TODO: move to cron
-  not_implemented_yet
-end
-
-def generate_rbx_triggers # TODO: move to cron
-  not_implemented_yet
-end
-
-def generate_scm_triggers # TODO: move to cron
-  # generate_mri_triggers
-  # generate_rbx_triggers
-end
-
 def git_latest_hash repo
   uri = case repo
         when :rbx then
@@ -177,8 +164,6 @@ def head_time path
 end
 
 def need_build
-  generate_scm_triggers # TODO move to cron
-
   prev_time   = File.mtime(TIME_PATH)
   newest_time = [scm_time, spec_time].max
 
