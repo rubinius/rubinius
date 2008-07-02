@@ -850,11 +850,21 @@ class IO
   end
 
   def sysread(size, buf=nil)
+    raise ArgumentError, 'negative string size' unless size >= 0
     raise IOError, "closed stream" if closed?
+
+    in_buf = @buffer.shift_front size
+    size = size - in_buf.length
+
+    return in_buf if size == 0
+
     buf = String.new(size) unless buf
+
     chan = Channel.new
     Scheduler.send_on_readable chan, self, buf, size
     raise EOFError if chan.receive.nil?
+
+    buf = in_buf + buf
     return buf
   end
 
