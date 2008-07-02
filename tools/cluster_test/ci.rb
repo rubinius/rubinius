@@ -132,9 +132,9 @@ def git_log_hashes
   end
 end
 
-def git_pull dir
+def git_fetch dir
   Dir.chdir dir do
-    cmd "git pull"
+    cmd "git fetch"
   end
 end
 
@@ -171,7 +171,7 @@ def run_tests hash
   unless File.directory? dir then
     cmd "git clone -q -l #{HEAD_DIR} #{dir}"
   else
-    git_pull dir
+    git_fetch dir
     Dir.chdir dir do
       cmd "git reset --hard #{hash}"
     end
@@ -235,7 +235,7 @@ end
 
 def update_scm full = false
   cmd "multiruby_setup update", false if full if $u
-  git_pull HEAD_DIR
+  git_fetch HEAD_DIR
 end
 
 # end
