@@ -38,8 +38,8 @@ module FFI
       end
     end
 
-    def constants(&block)
-      @constants << FFI::ConstGenerator.new(@name, &block)
+    def constants(options = {}, &block)
+      @constants << FFI::ConstGenerator.new(@name, options, &block)
     end
 
     def struct(&block)

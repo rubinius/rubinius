@@ -3,14 +3,29 @@ require 'open3'
 
 module FFI
 
+  ##
+  # ConstGenerator turns C constants into ruby values.
+
   class ConstGenerator
 
     attr_reader :constants
 
-    def initialize(prefix = nil)
+    ##
+    # Creates a new constant generator that uses +prefix+ as a name, and an
+    # options hash.
+    #
+    # The only option is :required, which if set to true raises an error if a
+    # constant you have requested was not found.
+    #
+    # When passed a block, #calculate is automatically called at the end of
+    # the block, otherwise you must call it yourself.
+
+    def initialize(prefix = nil, options = {})
       @includes = []
       @constants = {}
       @prefix = prefix
+
+      @required = options[:required]
 
       if block_given? then
         yield self
@@ -21,6 +36,13 @@ module FFI
     def [](name)
       @constants[name].value
     end
+
+    ##
+    # Request the value for C constant +name+.  +format+ is a printf format
+    # string to print the value out, and +cast+ is a C cast for the value.
+    # +ruby_name+ allows you to give the constant an alternate ruby name for
+    # #to_ruby.  +converter+ or +converter_proc+ allow you to convert the
+    # value from a string to the appropriate type for #to_ruby.
 
     def const(name, format = nil, cast = '', ruby_name = nil, converter = nil,
               &converter_proc)
@@ -78,6 +100,14 @@ module FFI
         const = @constants[$1]
         const.value = $2
       end
+
+      missing_constants = @constants.select do |name, constant|
+        constant.value.nil?
+      end.map { |name,| name }
+
+      if @required and not missing_constants.empty? then
+        raise "Missing required constants for #{@prefix}: #{missing_constants.join ', '}"
+      end
     end
 
     def dump_constants(io)
@@ -87,9 +117,17 @@ module FFI
       end
     end
 
+    ##
+    # Outputs values for discovered constants.  If the constant's value was
+    # not discovered it is not omitted.
+
     def to_ruby
       @constants.sort_by { |name,| name }.map do |name, constant|
-        constant.to_ruby
+        if constant.value.nil? then
+          "# #{name} not available"
+        else
+          constant.to_ruby
+        end
       end.join "\n"
     end
 
