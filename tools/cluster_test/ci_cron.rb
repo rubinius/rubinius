@@ -91,7 +91,7 @@ def archive_stale_data days
     h[:result]    = log[/^\d+ files.*/]
 
     results[h[:submitted].strftime("%Y-%m")] << h
-    File.unlink f # TODO: unlink html file as well
+    File.unlink f
   end
 
   results.each do |date, data|
