@@ -105,6 +105,7 @@ Options:
   -remote-debug  Run the program under the control of a remote debugger.
   -e 'code'      Directly compile and execute code (no file provided).
   -Idir1[:dir2]  Add directories to $LOAD_PATH.
+  -S script      Run script using PATH environment variable to find it.
   -p             Run the profiler.
   -ps            Run the Selector profiler.
   -pss           Run the SendSite profiler.
@@ -172,6 +173,16 @@ begin
     when '-pss'
       count = (ARGV.first =~ /^\d+$/) ? ARGV.shift : '30'
       show_sendsites = count.to_i
+    when '-S'
+      script = ARGV.shift
+      sep    = File::PATH_SEPARATOR
+      path   = ENV['PATH'].split(sep).map { |d| File.join(d, script) }
+      file   = path.find { |path| File.exist? path }
+
+      $0 = script if file
+
+      # if missing, let it die a natural death
+      ARGV.unshift file ? file : script
     when '-e'
       $0 = "(eval)"
       eval_code = ARGV.shift
