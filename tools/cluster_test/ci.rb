@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
 
-# for testing:
-# rubyspec = 530035781746afb3c18c1f54ca7af667dfc13195
-
 ##
 # Build dir structure:
 #
@@ -18,7 +15,7 @@
 # 3) sleep and repeat 3 if date unchanged
 # 4) if first time or timestamp has changed, run multiruby_update
 # 5) git pull on rubyspec dir
-# 6) run multiruby on the rubyspecs - FIX: different targets per ruby platform
+# 6) run multiruby on the rubyspecs
 # 7) split results from multiruby output
 # 8) submit each result separately with rubyspec hash & ruby impl id (-v)
 #
@@ -64,7 +61,6 @@ abort "need -r (mri|rbx|...) option" unless $r
 # tweakables
 BASE_DIR     = "/tmp/ci"
 SPEC_REPO    = 'git://github.com/rubyspec/rubyspec.git'
-RBX_REPO     = 'git://git.rubini.us/code'
 CGI_URI      = 'http://ci.rubini.us/cgi-bin/ci_submit.cgi'
 TRIGGER_HOST = 'ci.rubini.us'
 
@@ -94,16 +90,16 @@ def _run
     loop do
       update_scm
 
-      if need_build then
+      if there_is_shit_to_do? then
         update_scm :full
 
         new_hashes.each do |hash|
+          update_build hash
+
           Dir.chdir TEST_DIR do
             run_tests hash
             submit hash
           end
-
-          update_build hash
         end
       end
 
@@ -130,18 +126,6 @@ def cmd cmd, fatal = true
   raise "cmd #{cmd.inspect} failed with #{$?}" if fatal unless system cmd
 end
 
-def git_latest_hash repo
-  uri = case repo
-        when :rbx then
-          RBX_REPO
-        when :spec then
-          SPEC_REPO
-        else
-          raise "unsupported repo type #{repo}"
-        end
-  `git ls-remote #{uri} master`.split.first
-end
-
 def git_log_hashes
   Dir.chdir HEAD_DIR do
     `git log --pretty=format:"%H %ae"`.split(/\n+/).map {|s| s.split }
@@ -163,7 +147,7 @@ def head_time path
   Time.parse(response["last-modified"]) rescue Time.now
 end
 
-def need_build
+def there_is_shit_to_do?
   prev_time   = File.mtime(TIME_PATH)
   newest_time = [scm_time, spec_time].max
 
@@ -172,7 +156,7 @@ end
 
 def new_hashes
   logs      = git_log_hashes
-  curr_hash = File.read(TIME_PATH).chomp || logs[1].first # TODO: why 1?
+  curr_hash = File.read(TIME_PATH).chomp || logs.first.first
 
   build_hashes, latest_author = [], nil
   logs.each do |hash, author|
@@ -210,11 +194,11 @@ ensure
 end
 
 def scm_time
-  head_time "/index.html" # FIX: switch when deployed
+  head_time "/trigger/#{$r}.yaml"
 end
 
 def spec_time
-  head_time "/index.html" # FIX: switch when deployed
+  head_time "/trigger/spec.yaml"
 end
 
 def submit hash
@@ -255,6 +239,6 @@ def update_scm full = false
 end
 
 # end
-##################################################$$$$$$$$$$#
+###################################################
 
 _run if $0 == __FILE__
