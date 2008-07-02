@@ -213,7 +213,7 @@ class StringIO
       char = Type.coerce_to obj, Integer, :to_int
     end
 
-    if @append
+    if @append || @pos == @string.length
       @string << char
       @pos = @string.length
     elsif @pos > @string.length
