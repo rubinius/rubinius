@@ -68,6 +68,7 @@ lib/rbconfig.rb
 /lib/etc.rb
 /lib/fcntl.rb
 /lib/openssl/digest.rb
+/lib/syslog.rb
 /lib/zlib.rb
 
 native/sexp

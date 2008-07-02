@@ -512,52 +512,6 @@ file 'runtime/platform.conf' => deps do |task|
     signal_constants.each { |c| cg.const c }
   end
 
-  syslog_cg = FFI::ConstGenerator.new 'rbx.platform.syslog' do |cg|
-    cg.include 'syslog.h'
-
-    syslog_constants = %w[
-      LOG_PID
-      LOG_EMERG
-      LOG_ALERT
-      LOG_ERR
-      LOG_CRIT
-      LOG_WARNING
-      LOG_NOTICE
-      LOG_INFO
-      LOG_DEBUG
-      LOG_CONS
-      LOG_ODELAY
-      LOG_NODELAY
-      LOG_NOWAIT
-      LOG_PERROR
-      LOG_AUTH
-      LOG_AUTHPRIV
-      LOG_CONSOLE
-      LOG_CRON
-      LOG_DAEMON
-      LOG_FTP
-      LOG_KERN
-      LOG_LPR
-      LOG_MAIL
-      LOG_NEWS
-      LOG_NTP
-      LOG_SECURITY
-      LOG_SYSLOG
-      LOG_USER
-      LOG_UUCP
-      LOG_LOCAL0
-      LOG_LOCAL1
-      LOG_LOCAL2
-      LOG_LOCAL3
-      LOG_LOCAL4
-      LOG_LOCAL5
-      LOG_LOCAL6
-      LOG_LOCAL7
-    ]
-
-    syslog_constants.each { |c| cg.const c }
-  end
-
   zlib_cg = FFI::ConstGenerator.new 'rbx.platform.zlib' do |cg|
     cg.include 'zlib.h'
 
@@ -584,7 +538,6 @@ file 'runtime/platform.conf' => deps do |task|
     socket_cg.dump_constants f
     process_cg.dump_constants f
     signal_cg.dump_constants f
-    syslog_cg.dump_constants f
     zlib_cg.dump_constants f
 
     f.puts FFI::TypesGenerator.generate

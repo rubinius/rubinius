@@ -14,6 +14,7 @@ task :extensions => %w[
   lib/etc.rb
   lib/fcntl.rb
   lib/openssl/digest.rb
+  lib/syslog.rb
   lib/zlib.rb
 ]
 
@@ -22,6 +23,7 @@ namespace :extension do
     lib/etc.rb
     lib/fcntl.rb
     lib/openssl/digest.rb
+    lib/syslog.rb
     lib/zlib.rb
   ]
 
