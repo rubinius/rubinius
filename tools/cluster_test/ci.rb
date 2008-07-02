@@ -147,13 +147,6 @@ def head_time path
   Time.parse(response["last-modified"]) rescue Time.now
 end
 
-def there_is_shit_to_do?
-  prev_time   = File.mtime(TIME_PATH)
-  newest_time = [scm_time, spec_time].max
-
-  prev_time < newest_time
-end
-
 def new_hashes
   logs      = git_log_hashes
   curr_hash = File.read(TIME_PATH).chomp || logs.first.first
@@ -225,6 +218,13 @@ def submit hash
   end
 ensure
   File.unlink hash rescue nil
+end
+
+def there_is_shit_to_do?
+  prev_time   = File.mtime(TIME_PATH)
+  newest_time = [scm_time, spec_time].max
+
+  prev_time < newest_time
 end
 
 def update_build hash
