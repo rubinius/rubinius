@@ -76,6 +76,8 @@ VALUE rb_define_class_under(VALUE parent, const char *name, VALUE super);
 VALUE rb_define_module(const char *name);
 VALUE rb_define_module_under(VALUE parent, const char *name);
 
+VALUE rb_call_super(int nargs, VALUE *args);
+
 VALUE rb_const_get(VALUE klass, ID id);
 void rb_define_const(VALUE klass, const char* key, VALUE val);
 int rb_const_defined(VALUE klass, ID id);

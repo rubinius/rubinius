@@ -266,6 +266,21 @@ void rb_include_module(VALUE klass, VALUE module) {
   rb_funcall(klass, rb_intern("include"), 1, module);
 }
 
+VALUE rb_call_super(int nargs, VALUE *args) {
+  CTX;
+  VALUE obj;
+  
+  if(!ctx->fc) {
+    printf("ERROR: tried to do rb_call_super, but there is no fast context!\n");
+    return 0;
+  }
+
+  /* Temporarily set the object class to its superclass, call method again */
+  ctx->fc->self->klass = class_get_superclass(ctx->fc->self->klass);
+  obj = NEW_HANDLE(ctx, ctx->fc->self);
+  return _push_and_call(obj, (ID)(ctx->fc->name), nargs, args);
+}
+
 VALUE rb_const_get(VALUE klass, ID id) {
   CTX;
   return NEW_HANDLE(ctx, cpu_const_get(ctx->state, ctx->cpu, (OBJECT)id, HNDL(klass)));
@@ -476,12 +491,7 @@ VALUE rb_convert_type(VALUE val, int type, const char* tname, const char* method
 }
 
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass) {
-  VALUE obj;
-
-  obj = rb_obj_alloc(klass);
-  rb_obj_call_init(obj, nargs, args);
-
-  return obj;
+  return rb_funcall2(klass, rb_intern("new"), nargs, args);
 }
 
 void rb_thread_schedule() {
