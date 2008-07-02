@@ -123,6 +123,7 @@ end
 
 def cmd cmd, fatal = true
   warn "cmd = #{cmd}"
+  warn "dir = #{Dir.pwd}"
   raise "cmd #{cmd.inspect} failed with #{$?}" if fatal unless system cmd
 end
 
@@ -167,7 +168,11 @@ end
 
 def run_tests hash
   warn "building #{hash}" if $v
+
   dir = $i ? "incremental" : hash
+  arg = "1.8"
+  log = File.join Dir.pwd, "#{hash}.log"
+
   unless File.directory? dir then
     cmd "git clone -q -l #{HEAD_DIR} #{dir}"
   else
@@ -177,10 +182,28 @@ def run_tests hash
     end
   end
 
+  # NOTE: I really really really don't want this conditional here...
+  #       CI should _NOT_ have implementation specific knowledge in
+  #       it, but I don't have a choice because rubinius isn't up to
+  #       snuff with the rest of the impls, so it can't run against
+  #       the raw rubyspecs (without being horribly red). This is in
+  #       part because rubyspecs is trying to not have rubinius
+  #       specific code in it (tho, it does in the form of
+  #       guards)... I is a trade-off, and the smallest diff lies
+  #       here:
+
+  case $r
+  when :mri then
+    # change nothing... yay
+  when :rbx then
+    dir = File.expand_path "~/.multiruby/install/rubinius"
+    arg = "ci spec/frozen"
+  else
+    raise "unknown implementation: #{$r}"
+  end
+
   Dir.chdir dir do
-    # TODO: stupid rbx needs to go against frozen, not 1.8
-    # TODO: way to totally botch things up with complexity
-    cmd "multiruby -v -S mspec 1.8 > ../#{hash}.log 2>&1 < /dev/null", false
+    cmd "multiruby -v -S mspec #{arg} > #{log} 2>&1 < /dev/null", false
   end
 ensure
   FileUtils::rm_rf hash # not dir, hash... incremental stays as a result
