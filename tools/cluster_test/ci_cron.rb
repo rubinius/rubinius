@@ -143,26 +143,26 @@ end
 def update_rbx_trigger
   old, new = git_diff RBX_REPO, "rbx"
 
-  update_trigger "rbx", :hash => new if old != new || old.nil?
+  update_trigger "rbx", :revision => new if old != new || old.nil?
 end
 
 def update_rubyspec_trigger
   old, new = git_diff SPEC_REPO, "spec"
 
-  update_trigger "spec", :hash => new if old != new || old.nil?
+  update_trigger "spec", :revision => new if old != new || old.nil?
 end
 
 def update_triggers
   p :rbx
   update_rbx_trigger
-  p :mri
-  update_mri_trigger
   p :spec
   update_rubyspec_trigger
+  p :mri
+  update_mri_trigger
 end
 
-def git_diff repo, name
-  old = YAML.load_file(File.join(TRIG_DIR, "#{name}.yaml"))[:hash] rescue nil
+def git_diff repo, n
+  old = YAML.load_file(File.join(TRIG_DIR, "#{n}.yaml"))[:revision] rescue nil
   new = `git ls-remote -h #{repo} refs/heads/master`.split.first
   return old, new
 end
@@ -238,7 +238,7 @@ def svn_diff repo, dir
       old = `svnversion .`.chomp
       system "svn up -q"
       new = `svnversion .`.chomp
-      return old, new
+      return old.to_i, new.to_i
     end
   end
 end
@@ -246,7 +246,7 @@ end
 def update_trigger name, data = nil
   Dir.chdir HTML_DIR do
     File.open "trigger/#{name}.yaml", "w" do |f|
-      YAML.dump f, data
+      YAML.dump data, f
     end
   end
 end
