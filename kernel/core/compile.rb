@@ -309,16 +309,14 @@ module Compile
 
   def self.load_from_extension(path)
     path = StringValue(path)
-
+    # Remap all library extensions behind the scenes, just like MRI
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, ".#{Rubinius::LIBSUFFIX}")
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
       rb, rbc, ext = path, "#{path}c", nil
     elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
-    elsif path.suffix? ".so"
-      # Handle case on OS X where .so is passed in but we want .bundle
-      rb, rbc, ext = nil, nil, path.sub('.so', ".#{Rubinius::LIBSUFFIX}")
     else
       dir, name = File.split(path)
       name = ".#{name}" unless name[0] == ?.
@@ -390,6 +388,8 @@ module Kernel
   #
   def load(path, opts = {:wrap => false, :recompile => false})
     path = StringValue(path)
+    # Remap all library extensions behind the scenes, just like MRI
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, ".#{Rubinius::LIBSUFFIX}")
     
     opts = {:wrap => !!opts, :recompile => false} unless Hash === opts
 
@@ -399,9 +399,6 @@ module Kernel
       rb, rbc, ext = path, "#{path}c", nil
     elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
-    elsif path.suffix? ".so"
-      # Handle case on OS X where .so is passed in but we want .bundle
-      rb, rbc, ext = nil, nil, path.sub('.so', ".#{Rubinius::LIBSUFFIX}")
     else
       dir, name = File.split(path)
       name = ".#{name}" unless name[0] == ?.
@@ -464,15 +461,15 @@ module Kernel
   module_function :require
 
   def __split_path__(path)
+    # Remap all library extensions behind the scenes, just like MRI
+    path.gsub!(/\.(so|bundle|dll|dylib)$/, ".#{Rubinius::LIBSUFFIX}")
+
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
       rb, rbc, ext = path, "#{path}c", nil
     elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
-    elsif path.suffix? ".so"
-      # Handle case on OS X where .so is passed in but we want .bundle
-      rb, rbc, ext = nil, nil, path.sub('.so', ".#{Rubinius::LIBSUFFIX}")
     else
       rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
     end
