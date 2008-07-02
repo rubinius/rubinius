@@ -5,12 +5,16 @@ require 'fileutils'
 require 'rubygems'
 require 'tagz'
 
-BASE_DIR = File.expand_path(ARGV.shift || "/tmp/ci")
-HTML_DIR = File.expand_path(ARGV.shift || File.join(BASE_DIR, "html"))
-TEMP_DIR = File.join BASE_DIR, "tmp"
-DATA_DIR = File.join BASE_DIR, "data"
-CI_DIR   = File.join HTML_DIR, "ci"
-TRIG_DIR = File.join HTML_DIR, "trigger"
+BASE_DIR  = File.expand_path(ARGV.shift || "/tmp/ci")
+HTML_DIR  = File.expand_path(ARGV.shift || File.join(BASE_DIR, "html"))
+
+CI_DIR    = File.join HTML_DIR, "ci"
+DATA_DIR  = File.join BASE_DIR, "data"
+MRI_TRUNK = 'http://svn.ruby-lang.org/repos/ruby/trunk'
+RBX_REPO  = 'git://git.rubini.us/code'
+SPEC_REPO = 'git://github.com/rubyspec/rubyspec.git'
+TEMP_DIR  = File.join BASE_DIR, "tmp"
+TRIG_DIR  = File.join HTML_DIR, "trigger"
 
 GIT_URL = "http://git.rubini.us/?p=code;a=commit;h="
 
@@ -30,13 +34,13 @@ def _run
   FileUtils.rm_rf CI_DIR
   FileUtils.mkdir_p [CI_DIR, TEMP_DIR, TRIG_DIR]
   Dir.chdir BASE_DIR
-  all_data = HashHash.new
 
   archive_stale_data STALE
 
+  all_data  = HashHash.new
   flat_data = process_individual_results
   platforms = flat_data.map { |h| h[:platform] }.uniq
-  hashes    = flat_data.map { |h| h[:hash] }.uniq
+  hashes    = flat_data.map { |h| h[:hash]     }.uniq
 
   flat_data.each do |data|
     all_data[data[:incremental]][data[:hash]][data[:platform]] = data
@@ -44,7 +48,7 @@ def _run
 
   hash_times = hashes.map { |hash|
     # incrementals and fall back to fulls if the sky is falling
-    (all_data[true][hash].map { |_,run| run[:submitted] }.max ||
+    (all_data[true ][hash].map { |_,run| run[:submitted] }.max ||
      all_data[false][hash].map { |_,run| run[:submitted] }.max)
   }
 
@@ -54,7 +58,7 @@ def _run
   write_index platforms, hashes, all_data
 
   warn "generating triggers"
-  generate_scm_triggers
+  update_triggers
 
   warn "done"
 end
@@ -130,23 +134,31 @@ def build_row runs, platforms
   end
 end
 
-def generate_mri_triggers
-  old, new = svn_diff "http://svn.ruby-lang.org/repos/ruby/trunk", "mri_trunk"
+def update_mri_trigger
+  old, new = svn_diff MRI_TRUNK, "mri_trunk"
 
-  update_trigger "mri", :revision => new if old != new || old.nil?
+  update_trigger "mri", :revision => new if old != new
 end
 
-def generate_rbx_triggers
-  old, new = git_diff 'git://git.rubini.us/code', "rbx"
+def update_rbx_trigger
+  old, new = git_diff RBX_REPO, "rbx"
 
-  update_trigger "mri", :hash => new if old != new
+  update_trigger "rbx", :hash => new if old != new || old.nil?
 end
 
-def generate_scm_triggers
+def update_rubyspec_trigger
+  old, new = git_diff SPEC_REPO, "spec"
+
+  update_trigger "spec", :hash => new if old != new || old.nil?
+end
+
+def update_triggers
   p :rbx
-  generate_rbx_triggers
+  update_rbx_trigger
   p :mri
-  generate_mri_triggers
+  update_mri_trigger
+  p :spec
+  update_rubyspec_trigger
 end
 
 def git_diff repo, name
