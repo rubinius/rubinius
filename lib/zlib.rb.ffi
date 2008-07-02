@@ -1,7 +1,7 @@
 module Zlib
 
   @@@
-  constants do |c|
+  constants :required => true do |c|
     c.include 'zlib.h'
 
     c.const 'ZLIB_VERSION', '%s', '(char *)', nil, to_s
@@ -35,13 +35,23 @@ module Zlib
     c.const 'Z_DEFAULT_STRATEGY',    nil, nil, 'DEFAULT_STRATEGY'
 
     c.const 'Z_DEFLATED',            nil, nil, 'DEFLATED'
+  end
+  @@@
 
+  @@@
+  constants do |c|
     c.include 'zconf.h'
+
     c.const 'MAX_WBITS'
     c.const 'MAX_MEM_LEVEL'
     c.const 'DEF_MEM_LEVEL'
   end
   @@@
+
+  # from zutil.h
+  unless defined? DEF_MEM_LEVEL then
+    DEF_MEM_LEVEL = MAX_MEM_LEVEL >= 8 ? 8 : MAX_MEM_LEVEL
+  end
 
   class Error < StandardError; end
 
