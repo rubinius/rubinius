@@ -8,7 +8,6 @@ require 'net/http'
 require 'yaml'
 
 require 'rubygems'
-require 'mspec'
 
 $d = $i = $r = $t = $v = false
 
