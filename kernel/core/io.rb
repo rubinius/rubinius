@@ -38,7 +38,7 @@ class IO
     def shift_front(count)
       count = @bytes if count > @bytes
 
-      str = String.new count
+      str = String.buffer count
       str.copy_from self, 0, count, 0
 
       rest = @bytes - count
@@ -50,7 +50,7 @@ class IO
 
     # Empty the contents of the Buffer into a String object and return it.
     def as_str
-      str = String.new @bytes
+      str = String.buffer @bytes
       str.copy_from self, 0, @bytes, 0
       @bytes = 0
       return str

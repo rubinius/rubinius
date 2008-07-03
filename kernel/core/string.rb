@@ -45,19 +45,19 @@ class String
     str
   end
 
+  ##
+  # Creates String of +bytes+ NUL characters.
+
+  def self.buffer(bytes)
+    "\0" * bytes
+  end
+
   def initialize(arg=nil)
-    if arg.__kind_of__ Fixnum
-      # + 1 for the null on the end.
-      @data = ByteArray.new(arg+1)
-      @bytes = arg
-      @characters = arg
-      @encoding = nil
-    elsif !arg.nil?
-      replace(StringValue(arg))
-    end
+    replace StringValue(arg) unless arg.nil?
 
     self
   end
+
   private :initialize
 
   # call-seq:
@@ -979,7 +979,7 @@ class String
 
     osize = other.size
     size = @bytes + osize
-    str = self.class.new size
+    str = self.class.new("\0") * size
 
     index = @bytes + 1 + index if index < 0
     raise IndexError, "index #{index} out of string" if index > @bytes or index < 0
@@ -1824,8 +1824,10 @@ class String
     (str = self.dup).upcase! || str
   end
 
-  # Upcases the contents of <i>self</i>, returning <code>nil</code> if no changes
-  # were made.
+  ##
+  # Upcases the contents of <i>self</i>, returning <code>nil</code> if no
+  # changes were made.
+
   def upcase!
     return if @bytes == 0
     self.modify!
@@ -2081,7 +2083,7 @@ class String
       return dup
     end
 
-    str = self.class.new padsize + @bytes
+    str = self.class.new("\0") * (padsize + @bytes)
     str.taint if tainted? or padstr.tainted?
 
     case direction
@@ -2170,7 +2172,7 @@ class String
     size = start < @bytes ? @bytes - count : @bytes
     rsize = replacement.size
 
-    str = self.class.new size + rsize
+    str = self.class.new("\0") * (size + rsize)
     str.taint if tainted? || replacement.tainted?
 
     last = start + count
