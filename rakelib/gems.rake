@@ -13,7 +13,7 @@ namespace :gems do
 
   rule '.gem' => '.gemspec' do |task|
     Dir.chdir File.dirname(task.source) do
-      rbx 'gem', 'build', File.basename(task.source)
+      sh 'gem', 'build', File.basename(task.source)
     end
   end
 
@@ -57,7 +57,7 @@ namespace :gems do
   task :install => :build do
     Dir['gems/*/*.gem'].each do |gem|
       Dir.chdir File.dirname(gem) do
-        rbx 'gem', 'install', File.basename(gem), '-i',
+        sh 'gem', 'install', File.basename(gem), '-i',
             GEMS_PRE_INSTALLED_DIR
       end
     end
