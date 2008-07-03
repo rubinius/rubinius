@@ -1,31 +1,6 @@
 #!/usr/bin/env ruby
 
-##
-# Build dir structure:
-#
-# root/
-#   current   - file with latest built hash
-#   HEAD/...
-#   builds/hash/...
-#
-# Strategy:
-#
-# 1) start and build necessary dir structure
-# 2) head CI trigger URL to get timestamp
-# 3) sleep and repeat 3 if date unchanged
-# 4) if first time or timestamp has changed, run multiruby_update
-# 5) git pull on rubyspec dir
-# 6) run multiruby on the rubyspecs
-# 7) split results from multiruby output
-# 8) submit each result separately with rubyspec hash & ruby impl id (-v)
-#
-# Requirements:
-#
-# 1) sudo gem install ZenTest
-# 2) multiruby_setup update_rubygems
-# 3) multiruby_setup help and run spec(s) for your test target, e.g.:
-#    multiruby_setup mri:svn:branches - for all MRI active branches
-# 4) multiruby -S gem install mspec
+# See README for instructions.
 
 require 'time'
 require 'fileutils'
@@ -35,7 +10,7 @@ require 'yaml'
 require 'rubygems'
 require 'mspec'
 
-$i = $r = $t = $u = $v = false
+$d = $i = $r = $t = $v = false
 
 # evan thinks writing this is better than calling with full path in
 # crontab... um. ick. stupid linux's env
@@ -43,13 +18,13 @@ while flag = ARGV.shift
   case flag
   when "-i" then # turn on incremental builds
     $i = true
-  when "-r" then
+  when "-d" then # change the directory we run in
+    $d = ARGV.shift
+  when "-r" then # what ruby impl to run against (rbx, mri, etc)
     $r = ARGV.shift.downcase.to_sym
-  when "-t" then
+  when "-t" then # test mode
     $t = true
-  when "-u" then
-    $u = true
-  when "-v" then
+  when "-v" then # verbose mode
     $v = true
   end
 end
@@ -59,7 +34,7 @@ $VERBOSE = true
 abort "need -r (mri|rbx|...) option" unless $r
 
 # tweakables
-BASE_DIR     = "/tmp/ci"
+BASE_DIR     = $d || "/tmp/ci"
 SPEC_REPO    = 'git://github.com/rubyspec/rubyspec.git'
 CGI_URI      = 'http://ci.rubini.us/cgi-bin/ci_submit.cgi'
 TRIGGER_HOST = 'ci.rubini.us'
@@ -123,7 +98,7 @@ end
 
 def cmd cmd, fatal = true
   warn "cmd = #{cmd}"
-  warn "dir = #{Dir.pwd}"
+  warn "dir = #{Dir.pwd}" if $v
   raise "cmd #{cmd.inspect} failed with #{$?}" if fatal unless system cmd
 end
 
@@ -234,7 +209,7 @@ def submit hash
 
     unless $t then
       res = Net::HTTP.post_form(URI.parse(CGI_URI), "data" => YAML.dump(data))
-      warn res.body
+      warn res.body if $v
     else
       warn YAML.dump(data)
     end
@@ -257,7 +232,7 @@ def update_build hash
 end
 
 def update_scm full = false
-  cmd "multiruby_setup update", false if full if $u
+  cmd "multiruby_setup update", false if full
   git_fetch HEAD_DIR
 end
 

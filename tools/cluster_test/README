@@ -1,57 +1,104 @@
-Rubinius Cluster Test
----------------------
+Rubinius Cluster Test (bad name--I know)
+----------------------------------------
 
-This is a quick and dirty continuous build / test system for rubinius
-(and really, anything in git--the rubinius specific stuff is fairly
-minimal).
+cluster_test is a continuous build / test system for ruby
+implementations. On the client side, it runs rubyspecs against any
+number of ruby versions for a given implementation (mri, rbx,
+etc). The server script collects submitted data and produces summaries
+of the current results.
 
-Quick Start: 
+If You Want to Contribute:
+--------------------------
 
-+ to run incrementals: rake test:daemon
-+ to run fulls:        rake test:daemon_full
+Please coordinate with the rubinius team! We only need one incremental
+and one full per platform. Anything more just gets dumped on the
+floor. Save the salmon, etc etc.
 
-Please coordinate with the rubinius team. We only need one incremental
-and one full per platform.
+Basic Architecture:
+-------------------
 
-Description
------------
+ci.rb         - client run in various platforms for various ruby
+                implementations.
+
+ci_submit.cgi - runs on ci.rubini.us and receives test result
+                payloads and files them via safecat.
+
+ci_cron.rb    - runs on ci.rubini.us and collects the results and
+                generates html files, and updates client trigger files.
+
+Running the Scripts:
+--------------------
 
 The package contains the following files:
 
-+ ci.rb - the client side script. It polls the git repo using
-          ls-remote to see if anything has been pushed to head. If it
-          has, then it updates the HEAD checkout and clones a build
-          directory off of that.
++ ci.rb - the client side script.
+
+          Requires a proper multiruby set up. See below for details.
 
           Takes three optional args and two options:
 
-          ci.rb [-v] [-i] [base_dir] [git_repo] [cgi_url]
+          ci.rb [-i] [-d dir] -r (mri|rbx)
 
-          -v is verbose and just for debugging.
-          -i is incremental and builds into base_dir/builds/incremental
+          -i is incremental and builds into base_dir/builds/incremental.
+          -d dir changes the base directory to run out of.
+          -r is the ruby implementation you're running against (mri, rbx, etc).
 
           The rest is minutia and can be discovered by reading the source.
 
-+ ci_submit.cgi - server side build result submission CGI. Has a
-                  third-party dependency on safecat (essentially cat +
-                  maildir). Tweak BASE_DIR and SAFE_CAT as necessary.
++ ci_submit.cgi - server side build result submission CGI. 
 
-                  http://jeenyus.net/~budney/linux/software/safecat.html
+                  Tweak BASE_DIR and SAFE_CAT as necessary.
 
-+ ci_cron.rb - server side cron script. Gathers up the files from
-               ci_submit.cgi and generates a nice html report.
++ ci_cron.rb - server side cron script. 
 
                Takes two optional args:
 
                ci_cron.rb [base_dir] [html_dir]
 
-               Has a dependency on the tagz gem.
+Client Strategy:
+----------------
 
-TODO:
+1) start and build necessary dir structure
+2) head CI trigger URL to get timestamp
+3) sleep and repeat 2 if date unchanged
+4) if first time or timestamp has changed, run multiruby_update
+5) git pull on rubyspec dir
+6) run multiruby on the rubyspecs
+7) split results from multiruby output
+8) submit each result separately with rubyspec hash & ruby impl id (-v)
 
-+ ci_cron.rb - should archive off results in a YAML format so that
-               other scripts can trigger actions off of that (like
-               email and irc notification scripts).
+Client Dir Structure:
+---------------------
 
-+ ci_cron.rb - should prune data files (into the archive or otherwise)
-               or at least have an age based filter.
+  root/
+    latest_hash.txt             - file with latest built hash
+    latest_incremental_hash.txt - file with latest incrementally built hash
+    HEAD/...                    - clone of rubyspecs
+    builds/$hash/...            - clone of HEAD
+    builds/incremental/...      - clone of HEAD
+
+Server Dir Structure:
+---------------------
+
+  root/
+    data/
+    html/
+      ci/
+      trigger/
+    tmp/
+
+Client Requirements:
+--------------------
+
+1) sudo gem install ZenTest (latest)
+2) multiruby_setup update:rubygems
+3) multiruby_setup help and run spec(s) for your test target, e.g.:
+   multiruby_setup mri:svn:branches - for all MRI active branches
+4) multiruby -S gem install mspec
+
+Server Requirements:
+--------------------
+
+1) sudo gem install tagz
+2) safecat - http://jeenyus.net/~budney/linux/software/safecat.html
+

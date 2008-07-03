@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby -w
 
+# See README for instructions.
+
 require 'cgi'
 require 'yaml'
 require 'fileutils'
