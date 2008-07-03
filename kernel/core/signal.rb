@@ -57,7 +57,7 @@ module Signal
           @handlers[number].call(obj)
         rescue Object => e
           if $DEBUG
-            STDERR.pus "Exception while running signal handler: #{e.message}"
+            STDERR.puts "Exception while running signal handler: #{e.message}"
           end
         end
       end
