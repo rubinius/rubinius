@@ -47,16 +47,18 @@ module Signal
       while true
         ctx = chan.receive
 
-        if pass_ctx
-          obj = ctx
-        else
-          obj = number
-        end
+        Thread.new do
+          if pass_ctx
+            obj = ctx
+          else
+            obj = number
+          end
 
-        begin
-          @handlers[number].call(obj)
-        rescue Object => e
-          Thread.main.raise e
+          begin
+            @handlers[number].call(obj)
+          rescue Object => e
+            Thread.main.raise e
+          end
         end
       end
     end
