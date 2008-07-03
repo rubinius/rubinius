@@ -90,6 +90,8 @@ Server Dir Structure:
 Multiruby Suggestions:
 ----------------------
 
+*** Only have one ruby implementation per user ***
+
 1) for mri, multiruby_setup mri:svn:branches
 2) for rbx, multiruby_setup rbx:git:current
 3) for other, submit patch to zentest project to teach multiruby_setup
@@ -98,7 +100,7 @@ Multiruby Suggestions:
 Client Requirements:
 --------------------
 
-1) sudo gem install ZenTest (latest)
+1) sudo gem install mspec ZenTest
 2) multiruby_setup update:rubygems
 3) multiruby_setup help and run spec(s) for your test target, e.g.:
    multiruby_setup mri:svn:branches - for all MRI active branches
