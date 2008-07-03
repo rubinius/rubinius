@@ -271,7 +271,7 @@ class IO
     ch_read.close  if writable
 
     # See bottom for definition
-    pipe = BidirectionalPipe.new pid, pa_read, pa_write
+    pipe = IO::BidirectionalPipe.new pid, pa_read, pa_write
 
     if block_given? then
       begin
@@ -794,6 +794,22 @@ class IO
     return ary
   end
 
+  def readpartial(size, buffer = nil)
+    raise ArgumentError, 'negative string size' unless size >= 0
+    raise IOError, "closed stream" if closed?
+
+    buffer = '' if buffer.nil?
+
+    in_buf = @buffer.shift_front size
+    size = size - in_buf.length
+
+    in_buf << sysread(size) if size > 0
+
+    buffer.replace in_buf
+
+    buffer
+  end
+
   alias_method :orig_reopen, :reopen
 
   def reopen(other, mode = 'r')
@@ -849,26 +865,18 @@ class IO
     raise IOError, "closed stream" if closed?
   end
 
-  def sysread(size, buf=nil)
+  def sysread(size, buffer = nil)
     raise ArgumentError, 'negative string size' unless size >= 0
     raise IOError, "closed stream" if closed?
 
-    in_buf = @buffer.shift_front size
-    size = size - in_buf.length
-
-    return in_buf if size == 0
-
-    buf = String.new(size) unless buf
+    buffer = "\0" * size unless buffer
 
     chan = Channel.new
-    Scheduler.send_on_readable chan, self, buf, size
+    Scheduler.send_on_readable chan, self, buffer, size
     raise EOFError if chan.receive.nil?
 
-    buf = in_buf + buf
-    return buf
+    buffer
   end
-
-  alias_method :readpartial, :sysread
 
   def sysseek(amount, whence=SEEK_SET)
     raise IOError, "closed stream" if closed?
@@ -923,23 +931,49 @@ end
 ##
 # Implements the pipe returned by IO::pipe.
 
-class BidirectionalPipe < IO
+class IO::BidirectionalPipe < IO
+
+  READ_METHODS = [
+    :each,
+    :each_line,
+    :getc,
+    :gets,
+    :read,
+    :read_nonblock,
+    :readchar,
+    :readline,
+    :readlines,
+    :readpartial,
+    :sysread,
+  ]
+
+  WRITE_METHODS = [
+    :<<,
+    :print,
+    :printf,
+    :putc,
+    :puts,
+    :syswrite,
+    :write,
+    :write_nonblock,
+  ]
 
   def initialize(pid, read, write)
-    super(read.fileno, 'r')
     @pid = pid
+    @read = read
     @write = write
   end
 
-  def <<(str)
-    @write << str
+  def check_read
+    raise IOError, 'not opened for reading' if @read.nil?
   end
 
-  alias_method :write, :<<
+  def check_write
+    raise IOError, 'not opened for writing' if @write.nil?
+  end
 
   def close
-    super unless closed?
-
+    @read.close  if @read  and not @read.closed?
     @write.close if @write and not @write.closed?
 
     if @pid != 0 then
@@ -951,10 +985,20 @@ class BidirectionalPipe < IO
     nil
   end
 
-  def close_read
-    raise IOError, 'closed stream' if closed?
+  def closed?
+    if @read and @write then
+      @read.closed? and @write.closed?
+    elsif @read then
+      @read.closed?
+    else
+      @write.closed?
+    end
+  end
 
-    close
+  def close_read
+    raise IOError, 'closed stream' if @read.closed?
+
+    @read.close if @read
   end
 
   def close_write
@@ -963,13 +1007,30 @@ class BidirectionalPipe < IO
     @write.close if @write
   end
 
+  def method_missing(message, *args, &block)
+    if READ_METHODS.include? message then
+      check_read
+
+      @read.send(message, *args, &block)
+    elsif WRITE_METHODS.include? message then
+      check_write
+
+      @write.send(message, *args, &block)
+    else
+      super
+    end
+  end
+
   def pid
     raise IOError, 'closed stream' if closed?
+
     @pid
   end
 
-  def syswrite(str)
-    @write.syswrite str
+  def self.after_loaded
+    (READ_METHODS + WRITE_METHODS).each do |method|
+      undef_method method
+    end
   end
 
 end

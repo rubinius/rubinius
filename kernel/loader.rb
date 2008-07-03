@@ -20,6 +20,7 @@ begin
   Signal.after_loaded
   ObjectSpace.after_loaded
   IO.after_loaded
+  IO::BidirectionalPipe.after_loaded
   Object.after_loaded
   File.after_loaded
   String.after_loaded
