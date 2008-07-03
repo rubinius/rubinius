@@ -33,9 +33,9 @@ The package contains the following files:
 
 + ci.rb - the client side script.
 
-          Requires a proper multiruby set up. See below for details.
+          REQUIRES A PROPER MULTIRUBY SETUP. See below for details.
 
-          Takes three optional args and two options:
+          Takes two optional args and one mandatory arg:
 
           ci.rb [-i] [-d dir] -r (mri|rbx)
 
@@ -87,6 +87,14 @@ Server Dir Structure:
       trigger/
     tmp/
 
+Multiruby Suggestions:
+----------------------
+
+1) for mri, multiruby_setup mri:svn:branches
+2) for rbx, multiruby_setup rbx:git:current
+3) for other, submit patch to zentest project to teach multiruby_setup
+   how to work with your impl.
+
 Client Requirements:
 --------------------
 
@@ -102,3 +110,16 @@ Server Requirements:
 1) sudo gem install tagz
 2) safecat - http://jeenyus.net/~budney/linux/software/safecat.html
 
+Maintenance Details:
+--------------------
+
+Server is hosted on hoshi.fallingsnow.net in ~ci/
+
+CGI is located in XXX.
+
+Cron is run by user XXX.
+
+The following people have admin access on the server:
+
++ Evan Phoenix (irc: evan)
++ Ryan Davis   (irc: zenspider)
