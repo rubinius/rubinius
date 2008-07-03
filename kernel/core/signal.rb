@@ -47,6 +47,10 @@ module Signal
       while true
         ctx = chan.receive
 
+        # Run the handler in a new thread so chan.receive doesn't
+        # block signals during handler execution, e.g., a SIGINT
+        # during a sleep() in a SIGINT handler.
+
         Thread.new do
           if pass_ctx
             obj = ctx
