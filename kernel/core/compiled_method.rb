@@ -97,9 +97,9 @@ end
 
 ##
 # CompiledMethod represents source code method compiled into VM bytecodes.
-# It's instruction set is then executed by Shotgun's abstraction of CPU.
+# Its instruction set is then executed by Shotgun's abstraction of CPU.
 # CompiledMethods are not just sets of instructions though. They carry a lot
-# of information about method: it's lexical scope (static scope), name, file
+# of information about method: its lexical scope (static scope), name, file
 # it has been defined in and so forth.
 
 class CompiledMethod
