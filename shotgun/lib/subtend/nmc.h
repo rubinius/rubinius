@@ -62,4 +62,5 @@ rni_handle *nmc_handle_new(rni_nmc *n, rni_handle_table *tbl, OBJECT obj);
 #define ALL_DONE 4
 #define CALL_ERROR 5
 #define SEGFAULT_DETECTED 6
+#define CALL_SUPER_METHOD 7
 

@@ -405,6 +405,32 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
 
         assert(0 && "Should never get here!");
       }
+
+    case CALL_SUPER_METHOD:
+      /* As per CALL_METHOD, but we want to call cpu_send_super instead. */
+      t2 = c->active_context;
+      tmp = handle_to_object(state, state->handle_tbl, n->value);
+      cpu_send_super(state, c, tmp, n->symbol, n->args, (OBJECT)Qnil);
+
+      /* Ok, a new context was created, we'll get activated again when
+       * we're returned into. */
+      if(t2 != c->active_context) {
+        break;
+      } else {
+        /* oh ho! no new context means the send is done, and the value
+         * is on the stack. 
+         *
+         * NOTE this wont work when each context has its own stack though (ie
+         * the v2 C++ VM) */
+
+        /* Grab the return value and make a handle for it. */
+        n->value = nmc_handle_new(n, state->handle_tbl, cpu_stack_pop(state, c));
+        /* Go go gadget stack! */
+        n->jump_val = 1;
+        setcontext(&n->cont);
+
+        assert(0 && "Should never get here!");
+      }
     case SEGFAULT_DETECTED:
       {
         char msg[1024];

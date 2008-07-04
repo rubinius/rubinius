@@ -260,6 +260,7 @@ void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name, OBJECT block);
 
 void cpu_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
+void cpu_send_super(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
 OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include_private);
 void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home);
 void cpu_yield_debugger(STATE, cpu c);

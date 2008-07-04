@@ -169,7 +169,7 @@ static VALUE _push_and_call(VALUE recv, ID meth, int args, VALUE *ary) {
   rni_nmc *n;
   int i;
   /* This has to be volatile so that gcc doesn't optimize
-     it away and it's test around getcontext/setcontext works
+     it away and its test around getcontext/setcontext works
      properly. */
   volatile int swapped;
   OBJECT tmp;
@@ -267,18 +267,48 @@ void rb_include_module(VALUE klass, VALUE module) {
 }
 
 VALUE rb_call_super(int nargs, VALUE *args) {
-  CTX;
-  VALUE obj;
-  
-  if(!ctx->fc) {
-    printf("ERROR: tried to do rb_call_super, but there is no fast context!\n");
+  /* Most of this the code comes from _push_and_call, though we have to
+   * do things slightly differently to call CALL_SUPER_METHOD instead
+   * of CALL_METHOD.
+   */
+  rni_context *ctx;
+  rni_nmc *n;
+  int i;
+  /* This has to be volatile so that gcc doesn't optimize
+     it away and its test around getcontext/setcontext works
+     properly. */
+  volatile int swapped;
+  OBJECT tmp;
+  ID meth;
+
+  ctx = subtend_retrieve_context();
+  if(!ctx->nmc) {
+    printf("ERROR: tried to do rb_call_super, but there is no context!\n");
     return 0;
   }
+  meth = (ID)(ctx->fc->name);
 
-  /* Temporarily set the object class to its superclass, call method again */
-  ctx->fc->self->klass = class_get_superclass(ctx->fc->self->klass);
-  obj = NEW_HANDLE(ctx, ctx->fc->self);
-  return _push_and_call(obj, (ID)(ctx->fc->name), nargs, args);
+  /* Push all the arguments on the stack in reverse order... */
+  for(i = nargs - 1; i >= 0; i--) {
+    tmp = handle_to_object(ctx->state, ctx->state->handle_tbl, AS_HNDL(args[i]));
+    cpu_stack_push(ctx->state, ctx->cpu, tmp, 0);
+  }
+
+  n = ctx->nmc;
+
+  n->value = nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, ctx->fc->self);
+  n->symbol = (OBJECT)meth;
+  n->args = nargs;
+
+  n->jump_val = CALL_SUPER_METHOD;
+  swapped = 0;
+  getcontext(&n->cont);
+  if(!swapped) {
+    swapped++;
+    setcontext(&n->system);
+  }
+  /* When we return here, the call has been done. */
+  return (VALUE)n->value;
 }
 
 VALUE rb_const_get(VALUE klass, ID id) {

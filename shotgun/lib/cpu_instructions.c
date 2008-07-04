@@ -1309,6 +1309,24 @@ void cpu_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
   cpu_send_message_external(state, c, &msg);
 }
 
+/* A version used to call method on superclass  */
+void cpu_send_super(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
+  struct message msg;
+
+  msg.recv = recv;
+  msg.name = sym;
+  msg.args = args;
+  msg.block = block;
+  msg.klass = class_get_superclass(_real_class(state, recv));
+  msg.priv = TRUE;
+  msg.missing = 0;
+  msg.send_site = Qnil;
+
+  c->call_flags = 0;
+
+  cpu_send_message_external(state, c, &msg);
+}
+
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   OBJECT ctx, table, ent;
   int cur, total, target, idx, l, r;
