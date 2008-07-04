@@ -31,9 +31,9 @@ describe "SubtendCallSuper" do
     instance.a_method.should == 2
   end
 
-	it "should create a subclass and create a new instance" do
-		@s.test_subclass_and_instantiation().should == true
-		(instance = ModuleTest::ClassSuper.new()).should_not == nil
-		(instance = ModuleTest::ClassSub.new()).should_not == nil
-	end
+  it "should create a subclass and create a new instance" do
+    @s.test_subclass_and_instantiation().should == true
+    (instance = ModuleTest::ClassSuper.new()).should_not == nil
+    (instance = ModuleTest::ClassSub.new()).should_not == nil
+  end
 end
