@@ -1,6 +1,18 @@
 require 'mspec/runner/mspec'
+require 'mspec/runner/example'
 
-class RunState
+# Holds the state of the +describe+ block that is being
+# evaluated. Every example (i.e. +it+ block) is evaluated
+# in a context, which may include state set up in <tt>before
+# :each</tt> or <tt>before :all</tt> blocks.
+#
+#--
+# A note on naming: this is named _ContextState_ rather
+# than _DescribeState_ because +describe+ is the keyword
+# in the DSL for refering to the context in which an example
+# is evaluated, just as +it+ refers to the example itself.
+#++
+class ContextState
   def initialize
     @start = []
     @before = []
@@ -32,7 +44,7 @@ class RunState
   end
 
   def it(desc, &block)
-    state = SpecState.new @describe, desc
+    state = ExampleState.new @describe, desc
     @spec << [desc, block, state] unless state.filtered?
   end
 
@@ -42,8 +54,8 @@ class RunState
   end
 
   def protect(what, blocks, check=true)
-    return if check and MSpec.pretend_mode?
-    Array(blocks).each { |block| MSpec.protect what, &block }
+    return false if check and MSpec.pretend_mode?
+    Array(blocks).all? { |block| MSpec.protect what, &block }
   end
 
   def process
@@ -56,10 +68,11 @@ class RunState
     @spec.each do |desc, spec, state|
       @state = state
       MSpec.actions :before, state
-      protect "before :each", @before
-      protect nil, spec
-      protect "after :each", @after
-      protect "Mock.verify_count", lambda { Mock.verify_count }
+      if protect("before :each", @before)
+        protect nil, spec
+        protect "after :each", @after
+        protect "Mock.verify_count", lambda { Mock.verify_count }
+      end
       protect "Mock.cleanup", lambda { Mock.cleanup }
       MSpec.actions :after, state
       @state = nil
@@ -69,48 +82,3 @@ class RunState
   end
 end
 
-class SpecState
-  def initialize(describe, it)
-    @describe = describe
-    @it = it
-    @unfiltered = nil
-  end
-
-  def describe
-    @describe
-  end
-
-  def it
-    @it
-  end
-
-  def description
-    @description ||= "#{@describe} #{@it}"
-  end
-
-  def exceptions
-    @exceptions ||= []
-  end
-
-  def exception?
-    not exceptions.empty?
-  end
-
-  def unfiltered?
-    unless @unfiltered
-      incl = MSpec.retrieve(:include) || []
-      excl = MSpec.retrieve(:exclude) || []
-      @unfiltered   = incl.empty? || incl.any? { |f| f === description }
-      @unfiltered &&= excl.empty? || !excl.any? { |f| f === description }
-    end
-    @unfiltered
-  end
-
-  def filtered?
-    not unfiltered?
-  end
-
-  def failure?(exception)
-    exception.is_a?(ExpectationNotMetError)
-  end
-end

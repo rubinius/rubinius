@@ -1,4 +1,5 @@
-require 'mspec/runner/state'
+require 'mspec/runner/context'
+require 'mspec/runner/exception'
 require 'mspec/runner/tag'
 require 'fileutils'
 
@@ -21,7 +22,7 @@ module MSpec
   @expectation = nil
 
   def self.describe(mod, msg=nil, &block)
-    stack.push RunState.new
+    stack.push ContextState.new
 
     current.describe(mod, msg, &block)
     current.process
@@ -53,6 +54,17 @@ module MSpec
   def self.actions(action, *args)
     actions = retrieve(action)
     actions.each { |obj| obj.send action, *args } if actions
+  end
+
+  def self.protect(location, &block)
+    begin
+      @env.instance_eval(&block)
+      return true
+    rescue Exception => exc
+      register_exit 1
+      actions :exception, ExceptionState.new(current && current.state, location, exc)
+      return false
+    end
   end
 
   def self.register_exit(code)
@@ -97,6 +109,7 @@ module MSpec
   #   :enter        before a describe block is run
   #   :before       before a single spec is run
   #   :expectation  before a 'should', 'should_receive', etc.
+  #   :exception    after an exception is rescued
   #   :after        after a single spec is run
   #   :leave        after a describe block is run
   #   :unload       after a spec file is run
@@ -122,20 +135,6 @@ module MSpec
   def self.unregister(symbol, action)
     if value = retrieve(symbol)
       value.delete action
-    end
-  end
-
-  def self.protect(msg, &block)
-    begin
-      @env.instance_eval(&block)
-    rescue Exception => e
-      register_exit 1
-      if current and current.state
-        current.state.exceptions << [msg, e]
-      else
-        STDERR.write "\nAn exception occurred in #{msg}:\n#{e.class}: #{e.message.inspect}\n"
-        STDERR.write "#{e.backtrace.join "\n"}"
-      end
     end
   end
 
@@ -191,7 +190,7 @@ module MSpec
     patterns = retrieve(:tags_patterns) ||
                [[%r(spec/), 'spec/tags/'], [/_spec.rb$/, '_tags.txt']]
     patterns.inject(retrieve(:file).dup) do |file, pattern|
-      file.gsub *pattern
+      file.gsub(*pattern)
     end
   end
 

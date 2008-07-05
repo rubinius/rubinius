@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'mspec/runner/formatters/dotted'
 require 'mspec/runner/mspec'
-require 'mspec/runner/state'
+require 'mspec/runner/example'
 
 describe DottedFormatter, "#initialize" do
   it "permits zero arguments" do
@@ -20,6 +20,8 @@ describe DottedFormatter, "#register" do
 
   it "registers self with MSpec for appropriate actions" do
     MSpec.stub!(:register)
+    MSpec.should_receive(:register).with(:exception, @formatter)
+    MSpec.should_receive(:register).with(:before, @formatter)
     MSpec.should_receive(:register).with(:after, @formatter)
     MSpec.should_receive(:register).with(:finish, @formatter)
     @formatter.register
@@ -58,24 +60,106 @@ describe DottedFormatter, "#print" do
   end
 end
 
-describe DottedFormatter, "#message" do
+describe DottedFormatter, "#exception" do
   before :each do
     @formatter = DottedFormatter.new
+    @failure = ExceptionState.new nil, nil, ExpectationNotMetError.new("failed")
+    @error = ExceptionState.new nil, nil, MSpecExampleError.new("boom!")
   end
 
-  it "returns <No message> if the exception message is empty" do
-    exc = Exception.new ""
-    @formatter.message(exc).should == "<No message>"
+  it "sets the #failure? flag" do
+    @formatter.exception @failure
+    @formatter.failure?.should be_true
+    @formatter.exception @error
+    @formatter.failure?.should be_false
   end
 
-  it "returns the message without exception class when the exception is ExpectationNotMetError" do
-    exc = Exception.new "message"
-    @formatter.message(exc).should == "Exception: message"
+  it "sets the #exception? flag" do
+    @formatter.exception @error
+    @formatter.exception?.should be_true
+    @formatter.exception @failure
+    @formatter.exception?.should be_true
   end
 
-  it "returns the message with exception class when the exception is not ExpectationNotMetError" do
-    exc = ExpectationNotMetError.new "message"
-    @formatter.message(exc).should == "message"
+  it "addes the exception to the list of exceptions" do
+    @formatter.exceptions.should == []
+    @formatter.exception @error
+    @formatter.exception @failure
+    @formatter.exceptions.should == [@error, @failure]
+  end
+end
+
+describe DottedFormatter, "#exception?" do
+  before :each do
+    @formatter = DottedFormatter.new
+    @failure = ExceptionState.new nil, nil, ExpectationNotMetError.new("failed")
+    @error = ExceptionState.new nil, nil, MSpecExampleError.new("boom!")
+  end
+
+  it "returns false if there have been no exceptions" do
+    @formatter.exception?.should be_false
+  end
+
+  it "returns true if any exceptions are errors" do
+    @formatter.exception @failure
+    @formatter.exception @error
+    @formatter.exception?.should be_true
+  end
+
+  it "returns true if all exceptions are failures" do
+    @formatter.exception @failure
+    @formatter.exception @failure
+    @formatter.exception?.should be_true
+  end
+
+  it "returns true if all exceptions are errors" do
+    @formatter.exception @error
+    @formatter.exception @error
+    @formatter.exception?.should be_true
+  end
+end
+
+describe DottedFormatter, "#failure?" do
+  before :each do
+    @formatter = DottedFormatter.new
+    @failure = ExceptionState.new nil, nil, ExpectationNotMetError.new("failed")
+    @error = ExceptionState.new nil, nil, MSpecExampleError.new("boom!")
+  end
+
+  it "returns false if there have been no exceptions" do
+    @formatter.failure?.should be_false
+  end
+
+  it "returns false if any exceptions are errors" do
+    @formatter.exception @failure
+    @formatter.exception @error
+    @formatter.failure?.should be_false
+  end
+
+  it "returns true if all exceptions are failures" do
+    @formatter.exception @failure
+    @formatter.exception @failure
+    @formatter.failure?.should be_true
+  end
+end
+
+describe DottedFormatter, "#before" do
+  before :each do
+    @state = ExampleState.new("describe", "it")
+    @formatter = DottedFormatter.new
+    @formatter.exception ExceptionState.new(nil, nil, ExpectationNotMetError.new("Failed!"))
+  end
+
+  it "resets the #failure? flag to false" do
+    @formatter.failure?.should be_true
+    @formatter.before @state
+    @formatter.failure?.should be_false
+  end
+
+  it "resets the #exception? flag to false" do
+    @formatter.exception?.should be_true
+    @formatter.before @state
+    @formatter.exception?.should be_false
   end
 end
 
@@ -83,7 +167,7 @@ describe DottedFormatter, "#after" do
   before :each do
     $stdout = @out = IOStub.new
     @formatter = DottedFormatter.new
-    @state = SpecState.new("describe", "it")
+    @state = ExampleState.new("describe", "it")
   end
 
   after :each do
@@ -96,20 +180,24 @@ describe DottedFormatter, "#after" do
   end
 
   it "prints an 'F' if there was an expectation failure" do
-    @state.exceptions << ["msg", ExpectationNotMetError.new("failed")]
+    exc = ExpectationNotMetError.new "failed"
+    @formatter.exception ExceptionState.new(@state, nil, exc)
     @formatter.after(@state)
     @out.should == "F"
   end
 
   it "prints an 'E' if there was an exception other than expectation failure" do
-    @state.exceptions << ["msg", MSpecExampleError.new("boom!")]
+    exc = MSpecExampleError.new("boom!")
+    @formatter.exception ExceptionState.new(@state, nil, exc)
     @formatter.after(@state)
     @out.should == "E"
   end
 
   it "prints an 'E' if there are mixed exceptions and exepctation failures" do
-    @state.exceptions << ["msg", ExpectationNotMetError.new("failed")]
-    @state.exceptions << ["msg", MSpecExampleError.new("boom!")]
+    exc = ExpectationNotMetError.new "failed"
+    @formatter.exception ExceptionState.new(@state, nil, exc)
+    exc = MSpecExampleError.new("boom!")
+    @formatter.exception ExceptionState.new(@state, nil, exc)
     @formatter.after(@state)
     @out.should == "E"
   end
@@ -123,7 +211,7 @@ describe DottedFormatter, "#finish" do
     TimerAction.stub!(:new).and_return(@timer)
 
     $stdout = @out = IOStub.new
-    @state = SpecState.new("describe", "it")
+    @state = ExampleState.new("Class#method", "runs")
     MSpec.stub!(:register)
     @formatter = DottedFormatter.new
     @formatter.register
@@ -134,15 +222,17 @@ describe DottedFormatter, "#finish" do
   end
 
   it "prints a failure message for an exception" do
-    @state.exceptions << ["msg", MSpecExampleError.new("broken")]
+    exc = ExceptionState.new @state, nil, MSpecExampleError.new("broken")
+    @formatter.exception exc
     @formatter.after @state
     @formatter.finish
-    @out.should =~ /^1\)\ndescribe it ERROR$/
+    @out.should =~ /^1\)\nClass#method runs ERROR$/
   end
 
   it "prints a backtrace for an exception" do
-    @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
-    @state.exceptions << ["msg", MSpecExampleError.new("broken")]
+    exc = ExceptionState.new @state, nil, MSpecExampleError.new("broken")
+    exc.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    @formatter.exception exc
     @formatter.after @state
     @formatter.finish
     @out.should =~ %r[path/to/some/file.rb:35:in method$]
@@ -161,24 +251,24 @@ describe DottedFormatter, "#finish" do
   end
 
   it "prints errors, backtraces, elapsed time, and tallies" do
-    @state.exceptions << ["msg", MSpecExampleError.new("broken")]
-    @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    exc = ExceptionState.new @state, nil, MSpecExampleError.new("broken")
+    exc.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    @formatter.exception exc
     @timer.should_receive(:format).and_return("Finished in 2.0 seconds")
-    @tally.should_receive(:format).and_return("1 example, 0 failures")
+    @tally.should_receive(:format).and_return("1 example, 1 failure")
     @formatter.after @state
     @formatter.finish
     @out.should ==
 %[E
 
 1)
-describe it ERROR
-MSpecExampleError occurred during: msg
+Class#method runs ERROR
 MSpecExampleError: broken
 path/to/some/file.rb:35:in method
 
 Finished in 2.0 seconds
 
-1 example, 0 failures
+1 example, 1 failure
 ]
   end
 end

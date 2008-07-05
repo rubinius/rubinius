@@ -3,7 +3,9 @@ require 'mspec/runner/formatters/dotted'
 
 class YamlFormatter < DottedFormatter
   def initialize(out=nil)
-    @states = []
+    @exception = @failure = false
+    @exceptions = []
+    @count = 0
     @out = $stdout
 
     if out.nil?
@@ -17,20 +19,19 @@ class YamlFormatter < DottedFormatter
     @out = @finish
   end
 
+  def after(state)
+  end
+
   def finish
     switch
 
     print "---\n"
     print "exceptions:\n"
-    @states.each do |state|
-      state.exceptions.each do |msg, exc|
-        outcome = failure?(state) ? "FAILED" : "ERROR"
-        str =  "#{state.description} #{outcome}\n"
-        str << "#{exc.class.name} occurred during: #{msg}\n" if msg
-        str << message(exc)
-        str << backtrace(exc)
-        print "- ", str.inspect, "\n"
-      end
+    @exceptions.each do |exc|
+      outcome = exc.failure? ? "FAILED" : "ERROR"
+      str =  "#{exc.description} #{outcome}\n"
+      str << exc.message << "\n" << exc.backtrace
+      print "- ", str.inspect, "\n"
     end
 
     print "time: ",         @timer.elapsed,              "\n"

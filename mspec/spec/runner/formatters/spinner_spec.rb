@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require 'mspec/runner/formatters/spinner'
 require 'mspec/runner/mspec'
-require 'mspec/runner/state'
+require 'mspec/runner/example'
 
 describe SpinnerFormatter, "#initialize" do
   it "permits zero arguments" do
@@ -58,7 +58,7 @@ describe SpinnerFormatter, "#after" do
     MSpec.stub!(:retrieve).and_return(["a", "b"])
     @formatter = SpinnerFormatter.new
     @formatter.register
-    @state = SpecState.new("describe", "it")
+    @state = ExampleState.new("describe", "it")
   end
 
   after :each do

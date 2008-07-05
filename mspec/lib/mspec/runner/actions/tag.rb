@@ -29,15 +29,35 @@ class TagAction < ActionFilter
     @tag = tag
     @comment = comment
     @report = []
+    @exception = false
   end
 
+  # Returns true if there are no _tag_ or _description_ filters. This
+  # means that a TagAction matches any example by default. Otherwise,
+  # returns true if either the _tag_ or the _description_ filter
+  # matches +string+.
   def ===(string)
     return true unless @sfilter or @tfilter
     @sfilter === string or @tfilter === string
   end
 
+  # Callback for the MSpec :before event. Resets the +#exception?+
+  # flag to false.
+  def before(state)
+    @exception = false
+  end
+
+  # Callback for the MSpec :exception event. Sets the +#exception?+
+  # flag.
+  def exception(exception)
+    @exception = exception
+  end
+
+  # Callback for the MSpec :after event. Performs the tag action
+  # depending on the type of action and the outcome of evaluating
+  # the example. See +TagAction+ for a description of the actions.
   def after(state)
-    if self === state.description and outcome? state
+    if self === state.description and outcome?
       tag = SpecTag.new
       tag.tag = @tag
       tag.comment = @comment
@@ -54,10 +74,19 @@ class TagAction < ActionFilter
     end
   end
 
-  def outcome?(state)
+  # Returns true if the result of evaluating the example matches
+  # the _outcome_ registered for this tag action. See +TagAction+
+  # for a description of the _outcome_ types.
+  def outcome?
     @outcome == :all or
-        (@outcome == :pass and not state.exception?) or
-        (@outcome == :fail and state.exception?)
+        (@outcome == :pass and not exception?) or
+        (@outcome == :fail and exception?)
+  end
+
+  # Returns true if an exception was raised while evaluating the
+  # current example.
+  def exception?
+    !!@exception
   end
 
   def report
@@ -65,6 +94,8 @@ class TagAction < ActionFilter
   end
   private :report
 
+  # Callback for the MSpec :finish event. Prints the actions
+  # performed while evaluating the examples.
   def finish
     case @action
     when :add
@@ -86,12 +117,15 @@ class TagAction < ActionFilter
 
   def register
     super
-    MSpec.register :after, self
-    MSpec.register :finish, self
+    MSpec.register :exception, self
+    MSpec.register :after,     self
+    MSpec.register :finish,    self
   end
 
   def unregister
     super
-    MSpec.unregister :after, self
+    MSpec.unregister :exception, self
+    MSpec.unregister :after,     self
+    MSpec.unregister :finish,    self
   end
 end

@@ -5,15 +5,11 @@ class UnitdiffFormatter < DottedFormatter
   def finish
     print "\n\n#{@timer.format}\n"
     count = 0
-    @states.each do |state|
-      state.exceptions.each do |msg, exc|
-        outcome = failure?(state) ? "FAILED" : "ERROR"
-        print "\n#{count += 1})\n#{state.description} #{outcome}\n"
-        print "Exception occurred during: #{msg}\n" if msg
-        print((exc.message.empty? ? "<No message>" : exc.message) + ": \n")
-        print backtrace(exc)
-        print "\n"
-      end
+    @exceptions.each do |exc|
+      outcome = exc.failure? ? "FAILED" : "ERROR"
+      print "\n#{count += 1})\n#{exc.description} #{outcome}\n"
+      print exc.message, ": \n"
+      print exc.backtrace, "\n"
     end
     print "\n#{@tally.format}\n"
   end

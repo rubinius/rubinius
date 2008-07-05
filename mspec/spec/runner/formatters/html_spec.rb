@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require 'mspec/guards/guard'
 require 'mspec/runner/formatters/html'
 require 'mspec/runner/mspec'
-require 'mspec/runner/state'
+require 'mspec/runner/example'
 
 describe HtmlFormatter do
   before :each do
@@ -90,11 +90,36 @@ describe HtmlFormatter, "#leave" do
   end
 end
 
+describe HtmlFormatter, "#exception" do
+  before :each do
+    $stdout = @out = IOStub.new
+    @formatter = HtmlFormatter.new
+    @formatter.register
+    @state = ExampleState.new("describe", "it")
+  end
+
+  after :each do
+    $stdout = STDOUT
+  end
+
+  it "prints the #it string once for each exception raised" do
+    exc = ExceptionState.new @state, nil, ExpectationNotMetError.new("disappointing")
+    @formatter.exception exc
+    exc = ExceptionState.new @state, nil, MSpecExampleError.new("painful")
+    @formatter.exception exc
+    @out.should == 
+%[<li class="fail">- it (<a href="#details-1">FAILED - 1</a>)</li>
+<li class="fail">- it (<a href="#details-2">ERROR - 2</a>)</li>
+]
+  end
+end
+
 describe HtmlFormatter, "#after" do
   before :each do
     $stdout = @out = IOStub.new
     @formatter = HtmlFormatter.new
-    @state = SpecState.new("describe", "it")
+    @formatter.register
+    @state = ExampleState.new("describe", "it")
   end
 
   after :each do
@@ -106,16 +131,12 @@ describe HtmlFormatter, "#after" do
     @out.should == %[<li class="pass">- it</li>\n]
   end
 
-  it "prints the #it string once for each exception raised" do
-    @formatter.register
-    @state.exceptions << ["msg", ExpectationNotMetError.new("disappointing")]
-    @state.exceptions << ["msg", MSpecExampleError.new("painful")]
-    @formatter.tally.after @state
+  it "does not print any output if an exception is raised" do
+    exc = ExceptionState.new @state, nil, ExpectationNotMetError.new("disappointing")
+    @formatter.exception exc
+    out = @out.dup
     @formatter.after @state
-    @out.should == 
-%[<li class="fail">- it (<a href="#details-1">FAILED - 1</a>)</li>
-<li class="fail">- it (<a href="#details-2">ERROR - 2</a>)</li>
-]
+    @out.should == out
   end
 end
 
@@ -127,7 +148,7 @@ describe HtmlFormatter, "#finish" do
     TimerAction.stub!(:new).and_return(@timer)
 
     $stdout = @out = IOStub.new
-    @state = SpecState.new("describe", "it")
+    @state = ExampleState.new("describe", "it")
     MSpec.stub!(:register)
     @formatter = HtmlFormatter.new
     @formatter.register
@@ -140,16 +161,16 @@ describe HtmlFormatter, "#finish" do
   end
 
   it "prints a failure message for an exception" do
-    @state.exceptions << ["msg", @exception]
-    @formatter.instance_variable_set :@states, [@state]
+    exc = ExceptionState.new @state, nil, @exception
+    @formatter.exception exc
     @formatter.finish
     @out.should =~ %r[<p>describe it ERROR</p>]
   end
 
   it "prints a backtrace for an exception" do
-    @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
-    @state.exceptions << ["msg", @exception]
-    @formatter.instance_variable_set :@states, [@state]
+    exc = ExceptionState.new @state, nil, @exception
+    exc.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    @formatter.exception exc
     @formatter.finish
     @out.should =~ %r[<pre>.*path/to/some/file.rb:35:in method.*</pre>]m
   end
@@ -167,14 +188,16 @@ describe HtmlFormatter, "#finish" do
   end
 
   it "prints errors, backtraces, elapsed time, and tallies" do
-    @state.exceptions << ["msg", @exception]
-    @formatter.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    exc = ExceptionState.new @state, nil, @exception
+    exc.stub!(:backtrace).and_return("path/to/some/file.rb:35:in method")
+    @formatter.exception exc
+    
     @timer.should_receive(:format).and_return("Finished in 2.0 seconds")
     @tally.should_receive(:format).and_return("1 example, 1 failures")
-    @formatter.instance_variable_set :@states, [@state]
     @formatter.finish
     @out.should ==
-%[<hr>
+%[<li class=\"fail\">- it (<a href=\"#details-1\">ERROR - 1</a>)</li>
+<hr>
 <ol id="details">
 <li id="details-1"><p>describe it ERROR</p>
 <p>MSpecExampleError: broken</p>

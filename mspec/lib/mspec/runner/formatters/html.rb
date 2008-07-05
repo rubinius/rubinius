@@ -43,36 +43,30 @@ EOH
     print "</ul>\n</div>\n"
   end
 
+  def exception(exception)
+    super
+    outcome = exception.failure? ? "FAILED" : "ERROR"
+    print %[<li class="fail">- #{exception.it} (<a href="#details-#{@count}">]
+    print %[#{outcome} - #{@count}</a>)</li>\n]
+  end
+
   def after(state)
-    desc = "- #{state.it}"
-    if state.exception?
-      @states << state
-      count = @counter.failures + @counter.errors - state.exceptions.size
-      state.exceptions.each do |msg, exc|
-        outcome = state.failure?(exc) ? "FAILED" : "ERROR"
-        count += 1
-        print %[<li class="fail">#{desc} (<a href="#details-#{count}">#{outcome} - #{count}</a>)</li>\n]
-      end
-    else
-      print %[<li class="pass">#{desc}</li>\n]
-    end
+    print %[<li class="pass">- #{state.it}</li>\n] unless exception?
   end
 
   def finish
-    success = @states.empty?
+    success = @exceptions.empty?
     unless success
       print "<hr>\n"
       print %[<ol id="details">]
       count = 0
-      @states.each do |state|
-        state.exceptions.each do |msg, exc|
-          outcome = failure?(state) ? "FAILED" : "ERROR"
-          print %[\n<li id="details-#{count += 1}"><p>#{escape(state.description)} #{outcome}</p>\n<p>]
-          print escape(message(exc))
-          print "</p>\n<pre>\n"
-          print escape(backtrace(exc))
-          print "</pre>\n</li>\n"
-        end
+      @exceptions.each do |exc|
+        outcome = exc.failure? ? "FAILED" : "ERROR"
+        print %[\n<li id="details-#{count += 1}"><p>#{escape(exc.description)} #{outcome}</p>\n<p>]
+        print escape(exc.message)
+        print "</p>\n<pre>\n"
+        print escape(exc.backtrace)
+        print "</pre>\n</li>\n"
       end
       print "</ol>\n"
     end

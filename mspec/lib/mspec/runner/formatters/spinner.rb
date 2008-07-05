@@ -9,11 +9,13 @@ class SpinnerFormatter < DottedFormatter
   MIN = 60
 
   def initialize(out=nil)
+    @exception = @failure = false
+    @exceptions = []
+    @count = 0
     @out = $stdout
 
-    @states = []
     @which = 0
-    @count = 0
+    @loaded = 0
     self.length = 40
     @percent = 0
     @start = Time.now
@@ -51,7 +53,7 @@ class SpinnerFormatter < DottedFormatter
   end
 
   def percentage
-    @percent = @count * 100 / @total
+    @percent = @loaded * 100 / @total
     bar = ("=" * (@percent / @ratio)).ljust @length
     label = "%d%%" % @percent
     bar[@position, label.size] = label
@@ -69,21 +71,29 @@ class SpinnerFormatter < DottedFormatter
     end
   end
 
+  # Callback for the MSpec :start event. Stores the total
+  # number of files that will be processed.
   def start
     @total = MSpec.retrieve(:files).size
   end
 
+  # Callback for the MSpec :load event. Increments the number
+  # of files that have been loaded.
   def load
-    @count += 1
+    @loaded += 1
   end
 
-  def after(state)
-    if state.exception?
-      @fail_color =  "31" if @counter.failures > 0
-      @error_color = "33" if @counter.errors > 0
-      @states << state
-    end
+  # Callback for the MSpec :exception event. Changes the color
+  # used to display the tally of errors and failures
+  def exception(exception)
+    super
+    @fail_color =  "31" if exception.failure?
+    @error_color = "33" unless exception.failure?
+  end
 
+  # Callback for the MSpec :after event. Updates the spinner
+  # and progress bar.
+  def after(state)
     spin
   end
 end
