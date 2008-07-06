@@ -18,7 +18,7 @@ namespace rubinius {
     VMExecutable* executable;
 
     void initialize(STATE);
-    void execute(STATE, Task* cur, Message& msg);
+    bool execute(STATE, Task* cur, Message& msg);
 
     class Info : public TypeInfo {
     public:

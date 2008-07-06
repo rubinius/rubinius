@@ -9,7 +9,7 @@
 #include <csignal>
 #include <sstream>
 
-// #define INSN_DEBUG
+#define INSN_DEBUG
 
 namespace rubinius {
 
@@ -145,33 +145,37 @@ stack_cleanup:
     sp -= msg.stack;
   }
 
-  /* For details in msg, locate the proper method and begin execution
-   * of it. */
-  void Task::send_message(Message& msg) {
-    if(!msg.send_site->locate(state, msg)) {
-      if(probe) {
-        probe->lookup_failed(this, msg);
-      }
-      std::stringstream ss;
-      ss << "unable to locate any method '" << *msg.send_site->name->to_str(state) << 
-        "' from '" << *msg.lookup_from->name->to_str(state) << "'";
-
-      throw new Assertion((char*)ss.str().c_str());
+  /* Only called if send_message can't locate anything to run, which pretty
+   * much never happens, since it means even method_missing wasn't available. */
+  void Task::tragic_failure(Message& msg) {
+    if(probe) {
+      probe->lookup_failed(this, msg);
     }
+    std::stringstream ss;
+    ss << "unable to locate any method '" << *msg.send_site->name->to_str(state) << 
+      "' from '" << *msg.lookup_from->name->to_str(state) << "'";
 
-    as<Executable>(msg.method)->execute(state, this, msg);
+    throw new Assertion((char*)ss.str().c_str());
   }
 
-  void Task::send_message_slowly(Message& msg) {
+  /* For details in msg, locate the proper method and begin execution
+   * of it. */
+  bool Task::send_message(Message& msg) {
+    if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
+    return as<Executable>(msg.method)->execute(state, this, msg);
+  }
+
+  bool Task::send_message_slowly(Message& msg) {
     GlobalCacheResolver res;
 
     if(!res.resolve(state, msg)) {
+      msg.name = G(sym_method_missing);
       if(!res.resolve(state, msg)) {
-        throw new Assertion("unable to locate any method");
+        tragic_failure(msg);
       }
     }
 
-    as<Executable>(msg.method)->execute(state, this, msg);
+    return as<Executable>(msg.method)->execute(state, this, msg);
   }
 
  bool Task::perform_hook(OBJECT obj, SYMBOL name, OBJECT arg) {
@@ -287,9 +291,11 @@ stack_cleanup:
 
       object_type type = (object_type)cls->instance_type->n2i();
       TypeInfo* ti = state->om->type_info[type];
-      if(ti) {
-        method->vmmethod(state)->specialize(ti);
+      if(!ti) {
+        ti = new TypeInfo((object_type)0);
       }
+      
+      method->vmmethod(state)->specialize(ti);
     }
   }
 
@@ -533,6 +539,14 @@ stack_cleanup:
   }
 
   void Task::execute() {
+    if(active->nil_p()) return;
+
+    for(;;) {
+      active->vmm->resume(this, active);
+    }
+  }
+
+  void Task::execute_interp() {
 
 #define stack_push(val) stack->field[++sp] = (val)
 #define stack_pop() stack->field[sp--]

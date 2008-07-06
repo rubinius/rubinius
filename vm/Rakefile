@@ -80,7 +80,7 @@ class CCompile
 
   def extract_headers(path)
     includes = @includes.map { |i| "-I#{i}" }.join(" ")
-    data = `g++ #{includes} -MM -MG -c #{path}`.split(/(?:\s+|\\\n)/)
+    data = `g++ #{includes} -MM -MG -D__STDC_LIMIT_MACROS -c #{path}`.split(/(?:\s+|\\\n)/)
     data.shift
     data.reject! { |s| s.size == 0 }
 
@@ -107,6 +107,8 @@ cleaning = Rake.application.top_level_tasks.find { |t| t =~ /clean/ }
 ex_libs = external + [ "-ldl" ]
 
 ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
+
+ex_libs += `llvm-config --libs all`.split(/\s+/)
 
 ex_inc  = %w!
   external_libs/libtommath
@@ -158,6 +160,7 @@ compiler.includes << "test/cxxtest"
 compiler.includes << "."
 
 compiler.flags << "-Wall" << "-ggdb" << "-gdwarf-2"
+compiler.flags += `llvm-config --cflags`.split(/\s+/)
 
 if ENV['FAST']
   compiler.flags << "-O2"
@@ -217,9 +220,14 @@ file "drivers/cli.o" => "drivers/cli.cpp" do
   compiler.compile "drivers/cli.cpp"
 end
 
-file "vm" => objs + ["drivers/cli.o"] do
+file "vm" => objs + ["drivers/cli.o", "instructions.bc"] do
   puts "LD vm"
   compiler.link "vm", :objects => objs + ["drivers/cli.o"], :libs => ex_libs
+end
+
+file "instructions.bc" do
+  puts "LLVM instructions.bc"
+  x "llvm-g++ -emit-llvm -I. -I external_libs/libffi/include -o instructions.bc -c llvm/instructions.cpp"
 end
 
 desc "Run all VM tests"

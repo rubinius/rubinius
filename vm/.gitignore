@@ -1,3 +1,4 @@
+vm
 .deps/*
 gen/*
 external_libs

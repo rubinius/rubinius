@@ -2,6 +2,7 @@
 #include "ffi.hpp"
 #include "marshal.hpp"
 #include "primitives.hpp"
+#include "llvm.hpp"
 
 namespace rubinius {
   CompiledMethod* CompiledMethod::create(STATE) {
@@ -26,6 +27,7 @@ namespace rubinius {
     StaticScope* ss = StaticScope::create(state);
     SET(ss, module, G(object));
     SET(cm, scope, ss);
+
     return cm;
   }
 
@@ -47,7 +49,7 @@ namespace rubinius {
           std::cout << "Invalid primitive id (not a symbol)" << std::endl;
         }
       }
-      VMMethod* vmm = new VMMethod(state, this);
+      VMMethod* vmm = new VMLLVMMethod(state, this);
       executable = vmm;
       return vmm;
     }

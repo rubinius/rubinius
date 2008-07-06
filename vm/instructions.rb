@@ -113,6 +113,25 @@ class TestInstructions : public CxxTest::TestSuite {
     fd.puts
   end
 
+  def generate_size
+    code = "size_t width = 1; switch(op) {\n"
+    InstructionSet::OpCodes.each do |ins|
+      if ins.arg_count == 2
+        code << "  case #{ins.bytecode}:\n"
+      end
+    end
+    code << "    width = 3; break;\n"
+
+    InstructionSet::OpCodes.each do |ins|
+      if ins.arg_count == 1
+        code << "  case #{ins.bytecode}:\n"
+      end
+    end
+    code << "   width = 2; break;\n"
+
+    code << "}\n"
+  end
+
   def generate_dter
     code = ""
     code << "static int _ip_size(uint32_t bc) {\nswitch(bc) {\n"
@@ -3735,6 +3754,10 @@ end
 
 File.open("gen/iseq_instruction_dt_helper.cpp", "w") do |f|
   f.puts si.generate_dter
+end
+
+File.open("gen/iseq_instruction_size.gen", "w") do |f|
+  f.puts si.generate_size
 end
 
 File.open("gen/task_instruction_dt.cpp", "w") do |f|

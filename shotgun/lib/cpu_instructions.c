@@ -454,6 +454,8 @@ static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
     state->om->collect_now |= OMCollectYoung;
   }
 
+  sassert(ctx->gc_zone != MatureObjectZone);
+
   ins = fast_fetch(meth, CMETHOD_f_COMPILED);
 
   if(NIL_P(ins)) {

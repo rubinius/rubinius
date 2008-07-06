@@ -24,7 +24,7 @@ namespace rubinius {
 
     Tuple* stack; // slot
 
-    size_t ip;
+    int    ip;
     int    sp;
     size_t args;
     OBJECT block; // slot

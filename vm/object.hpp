@@ -257,12 +257,10 @@ to be a simple test for that bit pattern.
       char bytes[];
     };
 
+    /* WARNING. Do not use this version if +num+ has the chance of being
+     * greater than FIXNUM_MAX. */
     static FIXNUM i2n(native_int num) {
-      if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
-        assert(0);
-      } else {
-        return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
-      }
+      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
     }
 
     static Integer* i2n(STATE, native_int num);

@@ -3,6 +3,7 @@
 #include "objects.hpp"
 #include "event.hpp"
 #include "global_cache.hpp"
+#include "llvm.hpp"
 
 #include <iostream>
 
@@ -15,6 +16,8 @@ namespace rubinius {
     global_cache = new GlobalCache;
 
     boot_threads();
+
+    VMLLVMMethod::init("instructions.bc");
   }
 
   VM::~VM() {

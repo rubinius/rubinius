@@ -23,6 +23,7 @@ namespace rubinius {
 
 #include "gen/iseq_instruction_names.hpp"
   };
+
 }
 
 #endif

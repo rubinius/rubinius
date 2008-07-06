@@ -10,11 +10,11 @@ namespace rubinius {
 
     // Ruby.primitive! :fixnum_add
     INTEGER add(STATE, FIXNUM other) {
-      native_int r = n2i() + other->n2i();
+      native_int r = to_nint() + other->to_nint();
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
         return Bignum::create(state, r);
       } else {
-        return Object::i2n(state, r);
+        return Object::i2n(r);
       }
     }
 

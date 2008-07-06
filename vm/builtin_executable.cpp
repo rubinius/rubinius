@@ -10,8 +10,8 @@ namespace rubinius {
     }
   }
 
-  void Executable::execute(STATE, Task* task, Message& msg) {
+  bool Executable::execute(STATE, Task* task, Message& msg) {
     if(!executable) initialize(state);
-    executable->execute(state, task, msg);
+    return executable->execute(state, task, msg);
   }
 }

@@ -18,6 +18,16 @@ namespace rubinius {
         opcodes[index] = as<Fixnum>(val)->n2i();
       }
     }
+
+    /*
+    std::vector<Opcode*> ops = create_opcodes();
+    size_t idx = 0;
+    for(std::vector<Opcode*>::iterator i = ops.begin(); i != ops.end(); i++) {
+      Opcode* op = *i;
+      std::cout << idx++ << ":" << op->block << ": " << InstructionSequence::get_instruction_name(op->op);
+      std::cout << "\n";
+    }
+    */
   }
 
   VMMethod::~VMMethod() {
@@ -51,23 +61,140 @@ namespace rubinius {
     }
   }
 
-  void VMMethod::execute(STATE, Task* task, Message& msg) {
+  bool VMMethod::execute(STATE, Task* task, Message& msg) {
     MethodContext* ctx = task->generate_context(msg.recv, original.get(), this);
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);
+    
+    return true;
   }
+
+  /* This is a noop for this class. */
+  void VMMethod::compile() { }
 
   VMPrimitiveMethod::VMPrimitiveMethod(STATE, CompiledMethod* meth, primitive_func func) :
       VMMethod(state, meth), fp(func) { }
 
-  void VMPrimitiveMethod::execute(STATE, Task* task, Message& msg) {
+  bool VMPrimitiveMethod::execute(STATE, Task* task, Message& msg) {
+    OBJECT ret;
     try {
-      OBJECT ret = CALL_PRIM(state->primitives, fp)(state, msg);
-      task->primitive_return(ret, msg);
+      ret = CALL_PRIM(state->primitives, fp)(state, msg);
     } catch(PrimitiveFailed& e) {
-      VMMethod::execute(state, task, msg);
-      return;
+      abort();
+      return true;
     }
+
+    task->primitive_return(ret, msg);
+    return false;
+  }
+
+  void VMMethod::resume(Task* task, MethodContext* ctx) {
+    throw std::string("blah!");
+  }
+
+  std::vector<Opcode*> VMMethod::create_opcodes() {
+    std::vector<Opcode*> ops;
+    std::map<int, size_t> stream2opcode;
+
+    VMMethod::Iterator iter(this);
+
+    /* Fill +ops+ with all our Opcode objects, maintain
+     * the map from stream position to instruction. */
+    for(size_t ipos = 0; !iter.end(); ipos++, iter.inc()) {
+      stream2opcode[iter.position] = ipos;
+      Opcode* lop = new Opcode(iter);
+      ops.push_back(lop);
+    }
+
+    /* Iterate through the ops, fixing goto locations to point
+     * to opcodes and set start_block on any opcode that is
+     * the beginning of a block */
+    bool next_new = false;
+
+    for(std::vector<Opcode*>::iterator i = ops.begin(); i != ops.end(); i++) {
+      Opcode* op = *i;
+      if(next_new) {
+        op->start_block = true;
+        next_new = false;
+      }
+
+      /* We patch and mark where we branch to. */
+      if(op->is_goto()) {
+        op->arg1 = stream2opcode[op->arg1];
+        ops.at(op->arg1)->start_block = true;
+      }
+
+      /* This terminates the block. */
+      if(op->is_terminator()) {
+        /* this ends a block. */
+        next_new = true;
+      }
+    }
+
+    // TODO take the exception table into account here
+
+    /* Go through again and assign each opcode a block
+     * number. */
+    size_t block = 0;
+    for(std::vector<Opcode*>::iterator i = ops.begin(); i != ops.end(); i++) {
+      Opcode* op = *i;
+      
+      if(op->start_block) block++;
+      op->block = block;
+    }
+
+    return ops;
+  }
+
+  bool Opcode::is_goto() {
+    switch(op) {
+    case InstructionSequence::insn_goto_if_false:
+    case InstructionSequence::insn_goto_if_true:
+    case InstructionSequence::insn_goto_if_defined:
+    case InstructionSequence::insn_goto:
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Opcode::is_terminator() {
+    switch(op) {
+    case InstructionSequence::insn_send_method:
+    case InstructionSequence::insn_send_stack:
+    case InstructionSequence::insn_send_stack_with_block:
+    case InstructionSequence::insn_send_stack_with_splat:
+    case InstructionSequence::insn_meta_send_op_plus:
+    case InstructionSequence::insn_meta_send_op_minus:
+    case InstructionSequence::insn_meta_send_op_equal:
+    case InstructionSequence::insn_meta_send_op_lt:
+    case InstructionSequence::insn_meta_send_op_gt:
+    case InstructionSequence::insn_meta_send_op_tequal:
+    case InstructionSequence::insn_meta_send_op_nequal:
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Opcode::is_send() {
+    switch(op) {
+    case InstructionSequence::insn_send_method:
+    case InstructionSequence::insn_send_stack:
+    case InstructionSequence::insn_send_stack_with_block:
+    case InstructionSequence::insn_send_stack_with_splat:
+    case InstructionSequence::insn_meta_send_op_plus:
+    case InstructionSequence::insn_meta_send_op_minus:
+    case InstructionSequence::insn_meta_send_op_equal:
+    case InstructionSequence::insn_meta_send_op_lt:
+    case InstructionSequence::insn_meta_send_op_gt:
+    case InstructionSequence::insn_meta_send_op_tequal:
+    case InstructionSequence::insn_meta_send_op_nequal:
+      return true;
+    }
+
+    return false;
+
   }
 }

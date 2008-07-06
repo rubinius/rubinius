@@ -6,7 +6,7 @@ namespace rubinius {
   public:
 
     virtual ~VMExecutable() { }
-    virtual void execute(STATE, Task* task, Message& msg) = 0;
+    virtual bool execute(STATE, Task* task, Message& msg) = 0;
   };
 }
 

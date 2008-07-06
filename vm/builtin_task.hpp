@@ -59,6 +59,7 @@ namespace rubinius {
     void restore_context(MethodContext* ctx);
     void make_active(MethodContext* ctx);
     void execute();
+    void execute_interp();
     void import_arguments(MethodContext* ctx, Message& msg);
     bool passed_arg_p(size_t pos);
 
@@ -80,8 +81,8 @@ namespace rubinius {
 
     void raise_exception(Exception *exc);
     void activate_method(Message& msg);
-    void send_message(Message& msg);
-    void send_message_slowly(Message& msg);
+    bool send_message(Message& msg);
+    bool send_message_slowly(Message& msg);
     Module* current_module();
 
     Executable* locate_method_on(OBJECT obj, SYMBOL sel, OBJECT priv);
@@ -96,6 +97,7 @@ namespace rubinius {
     OBJECT pop();
 
     void print_stack();
+    void tragic_failure(Message& msg);
 
     class Info : public TypeInfo {
     public:
