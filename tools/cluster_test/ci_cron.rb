@@ -33,11 +33,8 @@ end
 # Main Runner:
 
 def _run
-  FileUtils.rm_rf CI_DIR
-  FileUtils.mkdir_p [CI_DIR, TEMP_DIR, TRIG_DIR]
-  Dir.chdir BASE_DIR
-
-  archive_stale_data STALE
+  initialize_dirs
+  archive_data STALE
 
   all_data  = HashHash.new
   flat_data = process_individual_results
@@ -75,34 +72,51 @@ def abbreviate_platform(arch)
   "#{o}#{c}#{x}"
 end
 
-def archive_stale_data days
+def archive_data days
   seconds_per_day = 86400
+  days           *= seconds_per_day
+  now             = Time.now
+  results         = Hash.new { |h,k| h[k] = [] }
+  fresh_path      = "html/index.yaml"
 
-  results = Hash.new { |h,k| h[k] = [] }
+  files = Dir["data/*"].select { |f| File.file? f }.sort_by { |f| File.mtime f }
 
-  Dir["data/*"].each do |f|
-    next unless File.file? f
-    h = YAML.load(File.read(f))
-    log = h.delete :log
-    mtime = File.mtime f
-
-    next if (Time.now - mtime) < days * seconds_per_day
-
-    h[:submitted] = mtime
+  files.map! { |f|
+    h             = YAML.load(File.read(f))
+    log           = h.delete :log
+    h[:id]        = f
+    h[:submitted] = File.mtime f
     h[:time]      = log[/^Finished in (.*) seconds/, 1].to_f
     h[:result]    = log[/^\d+ files.*/]
+    h
+  }
 
+  fresh, stale = files.partition { |h|
+    now - h[:submitted] < days
+  }
+
+  stale.each do |h|
     results[h[:submitted].strftime("%Y-%m")] << h
-    File.unlink f
+    File.unlink h[:id]
   end
+
+  # don't bump the mtime unless there is an actual newer data file
+  fresh_mtime  = File.mtime(fresh_path) rescue Time.at(0)
+  latest_mtime = File.mtime(fresh.last) rescue Time.at(1)
+  File.open fresh_path, 'w' do |f|
+    YAML.dump fresh, f
+  end if fresh_mtime <= latest_mtime
 
   results.each do |date, data|
     next if data.empty?
+
     path = "html/index.#{date}.yaml"
+
     if File.exist? path then
       old_data = YAML.load_file path
       data = old_data + data
     end
+
     File.open path, 'w' do |f|
       YAML.dump data, f
     end
@@ -136,6 +150,12 @@ def git_diff repo, n
   old = YAML.load_file(File.join(TRIG_DIR, "#{n}.yaml"))[:revision] rescue nil
   new = `git ls-remote -h #{repo} refs/heads/master`.split.first
   return old, new
+end
+
+def initialize_dirs
+  FileUtils.rm_rf CI_DIR
+  FileUtils.mkdir_p [CI_DIR, TEMP_DIR, TRIG_DIR]
+  Dir.chdir BASE_DIR
 end
 
 def process_individual_results
@@ -203,7 +223,7 @@ end
 
 def svn_diff repo, dir
   Dir.chdir TEMP_DIR do
-    system "svn co -q #{repo} #{dir}" unless File.directory? dir
+    system "svn co -r 1 -q #{repo} #{dir}" unless File.directory? dir
 
     Dir.chdir dir do
       old = `svnversion .`.chomp
