@@ -12,7 +12,7 @@ describe "SubtendCVGetSet" do
   class CVTest
   end
 
-
+#  Actually, this causes a segfault on MRI
 #  it "rb_cv_get should return nil when there's no class variable" do
 #    @s.rb_cv_get(CVTest, "@@no_variable").should == nil
 #    @s.rb_cvar_get(CVTest, "@@no_variable").should == nil
