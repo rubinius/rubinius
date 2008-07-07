@@ -236,11 +236,6 @@ file "instructions.bc" do
   x "llvm-g++ -emit-llvm -I. -I external_libs/libffi/include -o instructions.bc -c llvm/instructions.cpp"
 end
 
-desc "Run all VM tests"
-task :test => "test/runner" do
-  x "./test/runner"
-end
-
 task :coverage do
   Dir.mkdir "test/coverage" unless File.directory? "test/coverage"
   puts "LD test/coverage/runner"
@@ -267,15 +262,29 @@ task :field_extract do
   field_extract()
 end
 
-task :default => :test
 
+# Public tasks
+
+desc "Build the VM"
+task :build => "vm"
+
+desc "Run all VM tests"
+task :test => "test/runner" do
+  x "./test/runner"
+end
+
+desc "Remove object files and build products"
 task :clean do
   x "rm -rf *.gcda *.gcno *.gcov *.dSYM *.o ../*.o test/runner* coverage gen .deps"
 end
 
+desc "Clean up, including all external libs"
 task :distclean => :clean do
   external.each do |lib|
     path = lib.split("/")[0,2].join("/")
     sh "cd #{path}; make clean"
   end
 end
+
+task :default => :test
+
