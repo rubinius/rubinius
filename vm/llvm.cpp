@@ -23,7 +23,6 @@
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/LinkAllPasses.h"
-#include "llvm/StandardPasses.h"
 #include "llvm/ModuleProvider.h"
 #include "llvm/ExecutionEngine/JIT.h"
 #include "llvm/ExecutionEngine/Interpreter.h"
