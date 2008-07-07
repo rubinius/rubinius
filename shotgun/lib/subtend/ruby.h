@@ -90,6 +90,10 @@ void rb_define_attr(VALUE klass, const char* id, int read, int write);
 VALUE rb_attr_get(VALUE obj, ID sym);
 
 VALUE rb_cvar_defined(VALUE klass, ID id);
+VALUE rb_cv_set(VALUE klass, const char *name, VALUE val);
+VALUE rb_cvar_set(VALUE klass, ID name, VALUE val);
+VALUE rb_cv_get(VALUE klass, const char *name);
+VALUE rb_cvar_get(VALUE klass, ID name);
 
 void rb_define_alias(VALUE obj, const char *new_name, const char *old_name);
 

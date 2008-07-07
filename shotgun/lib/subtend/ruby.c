@@ -359,6 +359,22 @@ VALUE rb_cvar_defined(VALUE klass, ID id) {
   return rb_funcall(klass, rb_intern("class_variable_defined?"), 1, id);
 }
 
+VALUE rb_cv_set(VALUE klass, const char *name, VALUE val) {
+  return rb_cvar_set(klass, rb_intern(name), val);
+}
+
+VALUE rb_cvar_set(VALUE klass, ID name, VALUE val) {
+  return rb_funcall(klass, rb_intern("class_variable_set"), 2, name, val);
+}
+
+VALUE rb_cv_get(VALUE klass, const char *name) {
+  return rb_cvar_get(klass, rb_intern(name));
+}
+
+VALUE rb_cvar_get(VALUE klass, ID name) {
+  return rb_funcall(klass, rb_intern("class_variable_get"), 1, name);
+}
+
 void rb_define_attr(VALUE klass, const char *name, int read, int write) {
   if(read == 1) rb_funcall(klass, rb_intern("attr_reader_cv"), 1, rb_intern(name));
   if(write == 1) rb_funcall(klass, rb_intern("attr_writer_cv"), 1, rb_intern(name));
