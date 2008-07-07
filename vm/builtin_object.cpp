@@ -262,7 +262,7 @@ namespace rubinius {
   }
 
   OBJECT Object::set_ivar(STATE, OBJECT sym, OBJECT val) {
-    LookupTable *tbl;
+    LookupTable* tbl;
 
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
@@ -302,9 +302,10 @@ namespace rubinius {
       if(Hash::csm_add(state, tup, sym, val) == Qtrue) {
         return val;
       }
+
       /* csm_add said false, meaning there is no room. We convert
          the csm into a normal hash and use it from now on. */
-      tbl = Hash::csm_into_lookuptable(state, (Tuple*)tbl);
+      tbl = Hash::csm_into_lookuptable(state, tup);
       SET((NormalObject*)this, instance_variables, tbl);
     }
 
