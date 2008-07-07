@@ -8,12 +8,14 @@
     - You can just get the binaries rather than source.
 
 3.  Set up an altogether new clone of the repository for yourself:
-    - For current committers: `cd $WHEREVER; git clone git@git.rubini.us:code my_cpp`
+    - For current committers:
+        `cd $WHEREVER; git clone git@git.rubini.us:code my_cpp`
     - For others: `cd $WHEREVER; git clone git://git.rubini.us/code my_cpp`
 
 3b. `cd my_cpp`
 
-4.  Switch to the C++ branch: `git branch --track cpp origin/cpp; git checkout cpp`
+4.  Switch to the C++ branch:
+      `git branch --track cpp origin/cpp; git checkout cpp`
     - The --track allows you to push and pull directly to/from the branch.
 
 5.  All of the C++ work is in a subdirectory: `cd vm`
