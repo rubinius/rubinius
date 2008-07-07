@@ -1,3 +1,84 @@
+##
+# The Zlib module contains several classes for compressing and decompressing
+# streams, and for working with "gzip" files.
+#
+# == Classes
+#
+# Following are the classes that are most likely to be of interest to the
+# user:
+# - Zlib::Inflate
+# - Zlib::Deflate
+# - Zlib::GzipReader
+# - Zlib::GzipWriter
+#
+# There are two important base classes for the classes above: Zlib::ZStream
+# and Zlib::GzipFile.  Everything else is an error class.
+#
+# == Constants
+#
+# Here's a list.
+#
+#   Zlib::VERSION
+#       The Ruby/zlib version string.
+#
+#   Zlib::ZLIB_VERSION
+#       The string which represents the version of zlib.h.
+#
+#   Zlib::BINARY
+#   Zlib::ASCII
+#   Zlib::UNKNOWN
+#       The integers representing data types which Zlib::ZStream#data_type
+#       method returns.
+#
+#   Zlib::NO_COMPRESSION
+#   Zlib::BEST_SPEED
+#   Zlib::BEST_COMPRESSION
+#   Zlib::DEFAULT_COMPRESSION
+#       The integers representing compression levels which are an argument
+#       for Zlib::Deflate.new, Zlib::Deflate#deflate, and so on.
+#
+#   Zlib::FILTERED
+#   Zlib::HUFFMAN_ONLY
+#   Zlib::DEFAULT_STRATEGY
+#       The integers representing compression methods which are an argument
+#       for Zlib::Deflate.new and Zlib::Deflate#params.
+#
+#   Zlib::DEF_MEM_LEVEL
+#   Zlib::MAX_MEM_LEVEL
+#       The integers representing memory levels which are an argument for
+#       Zlib::Deflate.new, Zlib::Deflate#params, and so on.
+#
+#   Zlib::MAX_WBITS
+#       The default value of windowBits which is an argument for
+#       Zlib::Deflate.new and Zlib::Inflate.new.
+#
+#   Zlib::NO_FLUSH
+#   Zlib::SYNC_FLUSH
+#   Zlib::FULL_FLUSH
+#   Zlib::FINISH
+#       The integers to control the output of the deflate stream, which are
+#       an argument for Zlib::Deflate#deflate and so on.
+#--
+# These constants are missing!
+#
+#   Zlib::OS_CODE
+#   Zlib::OS_MSDOS
+#   Zlib::OS_AMIGA
+#   Zlib::OS_VMS
+#   Zlib::OS_UNIX
+#   Zlib::OS_VMCMS
+#   Zlib::OS_ATARI
+#   Zlib::OS_OS2
+#   Zlib::OS_MACOS
+#   Zlib::OS_ZSYSTEM
+#   Zlib::OS_CPM
+#   Zlib::OS_TOPS20
+#   Zlib::OS_WIN32
+#   Zlib::OS_QDOS
+#   Zlib::OS_RISCOS
+#   Zlib::OS_UNKNOWN
+#       The return values of Zlib::GzipFile#os_code method.
+
 module Zlib
 
   @@@
@@ -62,6 +143,64 @@ module Zlib
   class BufError < Error; end
   class VersionError < Error; end
   class MemError < Error; end
+
+  ##
+  # Zlib::ZStream is the abstract class for the stream which handles the
+  # compressed data. The operations are defined in the subclasses:
+  # Zlib::Deflate for compression, and Zlib::Inflate for decompression.
+  #
+  # An instance of Zlib::ZStream has one stream (struct zstream in the source)
+  # and two variable-length buffers which associated to the input (next_in) of
+  # the stream and the output (next_out) of the stream. In this document,
+  # "input buffer" means the buffer for input, and "output buffer" means the
+  # buffer for output.
+  #
+  # Data input into an instance of Zlib::ZStream are temporally stored into
+  # the end of input buffer, and then data in input buffer are processed from
+  # the beginning of the buffer until no more output from the stream is
+  # produced (i.e. until avail_out > 0 after processing).  During processing,
+  # output buffer is allocated and expanded automatically to hold all output
+  # data.
+  #
+  # Some particular instance methods consume the data in output buffer and
+  # return them as a String.
+  #
+  # Here is an ascii art for describing above:
+  #
+  #    +================ an instance of Zlib::ZStream ================+
+  #    ||                                                            ||
+  #    ||     +--------+          +-------+          +--------+      ||
+  #    ||  +--| output |<---------|zstream|<---------| input  |<--+  ||
+  #    ||  |  | buffer |  next_out+-------+next_in   | buffer |   |  ||
+  #    ||  |  +--------+                             +--------+   |  ||
+  #    ||  |                                                      |  ||
+  #    +===|======================================================|===+
+  #        |                                                      |
+  #        v                                                      |
+  #    "output data"                                         "input data"
+  #
+  # If an error occurs during processing input buffer, an exception which is a
+  # subclass of Zlib::Error is raised.  At that time, both input and output
+  # buffer keep their conditions at the time when the error occurs.
+  #
+  # == Method Catalogue
+  #
+  # Many of the methods in this class are fairly low-level and unlikely to be
+  # of interest to users.  In fact, users are unlikely to use this class
+  # directly; rather they will be interested in Zlib::Inflate and
+  # Zlib::Deflate.
+  #
+  # The higher level methods are listed below.
+  #
+  # - #total_in
+  # - #total_out
+  # - #data_type
+  # - #adler
+  # - #reset
+  # - #finish
+  # - #finished?
+  # - #close
+  # - #closed?
 
   class ZStream < FFI::Struct
 
@@ -138,6 +277,10 @@ module Zlib
       data
     end
 
+    ##
+    # Closes the stream. All operations on the closed stream will raise an
+    # exception.
+
     def end
       unless ready? then
         warn "attempt to close uninitialized stream; ignored."
@@ -186,11 +329,18 @@ module Zlib
       self[:avail_out] = CHUNK
     end
 
+    ##
+    # Finishes the stream and flushes output buffer. See Zlib::Deflate#finish
+    # and Zlib::Inflate#finish for details of this behavior.
+
     def finish
       run '', Zlib::FINISH
 
       detatch_output
     end
+
+    ##
+    # Returns true if the stream is finished.
 
     def finished?
       (@flags & FINISHED) == FINISHED
@@ -211,6 +361,10 @@ module Zlib
     def ready?
       (@flags & READY) == READY
     end
+
+    ##
+    # Resets and initializes the stream. All data in both input and output
+    # buffer are discarded.
 
     def reset
       err = Zlib.send @func_reset, pointer
@@ -347,7 +501,26 @@ module Zlib
   GZ_EXTRAFLAG_FAST = 0x4
   GZ_EXTRAFLAG_SLOW = 0x2
 
+  ##
+  # Zlib::Deflate is the class for compressing data.  See Zlib::ZStream for
+  # more information.
+
   class Deflate < ZStream
+
+    ##
+    # Compresses the given +string+. Valid values of level are
+    # <tt>Zlib::NO_COMPRESSION</tt>, <tt>Zlib::BEST_SPEED</tt>,
+    # <tt>Zlib::BEST_COMPRESSION</tt>, <tt>Zlib::DEFAULT_COMPRESSION</tt>, and
+    # an integer from 0 to 9.
+    #
+    # This method is almost equivalent to the following code:
+    #
+    #   def deflate(string, level)
+    #     z = Zlib::Deflate.new(level)
+    #     dst = z.deflate(string, Zlib::FINISH)
+    #     z.close
+    #     dst
+    #   end
 
     def self.deflate(data, level = Zlib::DEFAULT_COMPRESSION)
       deflator = new level
@@ -358,6 +531,11 @@ module Zlib
     ensure
       deflator.end
     end
+
+    ##
+    # Creates a new deflate stream for compression. See zlib.h for details of
+    # each argument. If an argument is nil, the default value of that argument
+    # is used.
 
     def initialize(level = Zlib::DEFAULT_COMPRESSION,
                    window_bits = Zlib::MAX_WBITS,
@@ -382,6 +560,16 @@ module Zlib
       ready
     end
 
+    ##
+    # Inputs +string+ into the deflate stream and returns the output from the
+    # stream.  On calling this method, both the input and the output buffers
+    # of the stream are flushed. If +string+ is nil, this method finishes the
+    # stream, just like Zlib::ZStream#finish.
+    #
+    # The value of +flush+ should be either <tt>Zlib::NO_FLUSH</tt>,
+    # <tt>Zlib::SYNC_FLUSH</tt>, <tt>Zlib::FULL_FLUSH</tt>, or
+    # <tt>Zlib::FINISH</tt>. See zlib.h for details.
+
     def deflate(data, flush = Zlib::NO_FLUSH)
       if data.nil? then
         run '', Zlib::FINISH
@@ -405,8 +593,18 @@ module Zlib
 
   end
 
+  ##
+  # Zlib::GzipFile is an abstract class for handling a gzip formatted
+  # compressed file. The operations are defined in the subclasses,
+  # Zlib::GzipReader for reading, and Zlib::GzipWriter for writing.
+  #
+  # GzipReader should be used by associating an IO, or IO-like, object.
+
   class GzipFile
     class Error < Zlib::Error; end
+
+    ##
+    # See Zlib::GzipReader#wrap and Zlib::GzipWriter#wrap.
 
     def self.wrap(*args)
       obj = new(*args)
@@ -422,7 +620,66 @@ module Zlib
 
   end
 
-  class GzipReader < GzipFile # HACK usa a buffer class
+  ##
+  # Zlib::GzipReader is the class for reading a gzipped file.  GzipReader
+  # should be used an IO, or -IO-lie, object.
+  #
+  #   Zlib::GzipReader.open('hoge.gz') {|gz|
+  #     print gz.read
+  #   }
+  #   
+  #   File.open('hoge.gz') do |f|
+  #     gz = Zlib::GzipReader.new(f)
+  #     print gz.read
+  #     gz.close
+  #   end
+  #
+  # == Method Catalogue
+  #
+  # The following methods in Zlib::GzipReader are just like their counterparts
+  # in IO, but they raise Zlib::Error or Zlib::GzipFile::Error exception if an
+  # error was found in the gzip file.
+  #
+  # - #each
+  # - #each_line
+  # - #each_byte
+  # - #gets
+  # - #getc
+  # - #lineno
+  # - #lineno=
+  # - #read
+  # - #readchar
+  # - #readline
+  # - #readlines
+  # - #ungetc
+  #
+  # Be careful of the footer of the gzip file. A gzip file has the checksum of
+  # pre-compressed data in its footer. GzipReader checks all uncompressed data
+  # against that checksum at the following cases, and if it fails, raises
+  # <tt>Zlib::GzipFile::NoFooter</tt>, <tt>Zlib::GzipFile::CRCError</tt>, or
+  # <tt>Zlib::GzipFile::LengthError</tt> exception.
+  #
+  # - When an reading request is received beyond the end of file (the end of
+  #   compressed data). That is, when Zlib::GzipReader#read,
+  #   Zlib::GzipReader#gets, or some other methods for reading returns nil.
+  # - When Zlib::GzipFile#close method is called after the object reaches the
+  #   end of file.
+  # - When Zlib::GzipReader#unused method is called after the object reaches
+  #   the end of file.
+  #
+  # The rest of the methods are adequately described in their own
+  # documentation.
+
+  class GzipReader < GzipFile # HACK use a buffer class
+
+    ##
+    # Creates a GzipReader object associated with +io+. The GzipReader object
+    # reads gzipped data from +io+, and parses/decompresses them.  At least,
+    # +io+ must have a +read+ method that behaves same as the +read+ method in
+    # IO class.
+    #
+    # If the gzip file header is incorrect, raises an Zlib::GzipFile::Error
+    # exception.
 
     def initialize(io)
       @io = io
@@ -448,6 +705,9 @@ module Zlib
       @zstream[:total_out] - @buffer.length
     end
 
+    ##
+    # See Zlib::GzipReader documentation for a description.
+
     def read(length = nil)
       data = @buffer
 
@@ -469,7 +729,35 @@ module Zlib
 
   end
 
+  ##
+  # Zlib::GzipWriter is a class for writing gzipped files.  GzipWriter should
+  # be used with an instance of IO, or IO-like, object.
+  #
+  # For example:
+  #
+  #   Zlib::GzipWriter.open('hoge.gz') do |gz|
+  #     gz.write 'jugemu jugemu gokou no surikire...'
+  #   end
+  #   
+  #   File.open('hoge.gz', 'w') do |f|
+  #     gz = Zlib::GzipWriter.new(f)
+  #     gz.write 'jugemu jugemu gokou no surikire...'
+  #     gz.close
+  #   end
+  #
+  # NOTE: Due to the limitation of Ruby's finalizer, you must explicitly close
+  # GzipWriter objects by Zlib::GzipWriter#close etc.  Otherwise, GzipWriter
+  # will be not able to write the gzip footer and will generate a broken gzip
+  # file.
+
   class GzipWriter < GzipFile # HACK use a buffer class
+
+    ##
+    # Creates a GzipWriter object associated with +io+. +level+ and +strategy+
+    # should be the same as the arguments of Zlib::Deflate.new.  The
+    # GzipWriter object writes gzipped data to +io+.  At least, +io+ must
+    # respond to the +write+ method that behaves same as write method in IO
+    # class.
 
     def initialize(io, level = Zlib::DEFAULT_COMPRESSION,
                    strategy = Zlib::DEFAULT_STRATEGY)
@@ -493,9 +781,18 @@ module Zlib
       raise GzipFile::Error, e.message
     end
 
+    ##
+    # Flushes all the internal buffers of the GzipWriter object.  The meaning
+    # of +flush+ is same as in Zlib::Deflate#deflate.
+    # <tt>Zlib::SYNC_FLUSH</tt> is used if +flush+ is omitted.  It is no use
+    # giving flush <tt>Zlib::NO_FLUSH</tt>.
+
     def flush
       true
     end
+
+    ##
+    # Same as IO.
 
     def write(data)
       @buffer << data
@@ -504,7 +801,26 @@ module Zlib
 
   end
 
+  ##
+  # Zlib:Inflate is the class for decompressing compressed data.  Unlike
+  # Zlib::Deflate, an instance of this class is not able to duplicate (clone,
+  # dup) itself.
+
   class Inflate < ZStream
+
+    ##
+    # Decompresses +string+. Raises a Zlib::NeedDict exception if a preset
+    # dictionary is needed for decompression.
+    #
+    # This method is almost equivalent to the following code:
+    #
+    #   def inflate(string)
+    #     zstream = Zlib::Inflate.new
+    #     buf = zstream.inflate(string)
+    #     zstream.finish
+    #     zstream.close
+    #     buf
+    #   end
 
     def self.inflate(data)
       inflator = new
@@ -515,6 +831,10 @@ module Zlib
     ensure
       inflator.end
     end
+
+    ##
+    # Creates a new inflate stream for decompression. See zlib.h for details
+    # of the argument.  If +window_bits+ is +nil+, the default value is used.
 
     def initialize(window_bits = Zlib::MAX_WBITS)
       super()
@@ -529,6 +849,16 @@ module Zlib
 
       ready
     end
+
+    ##
+    # Inputs +string+ into the inflate stream and returns the output from the
+    # stream.  Calling this method, both the input and the output buffer of
+    # the stream are flushed.  If string is +nil+, this method finishes the
+    # stream, just like Zlib::ZStream#finish.
+    #
+    # Raises a Zlib::NeedDict exception if a preset dictionary is needed to
+    # decompress.  Set the dictionary by Zlib::Inflate#set_dictionary and then
+    # call this method again with an empty string.  (<i>???</i>)
 
     def inflate(data)
       data = Type.coerce_to data, String, :to_str unless data.nil?
@@ -561,9 +891,17 @@ module Zlib
 
   end
 
+  ##
+  # Calculates Alder-32 checksum for +string+, and returns updated value of
+  # +adler+. If +string+ is omitted, it returns the Adler-32 initial value. If
+  # +adler+ is omitted, it assumes that the initial value is given to +adler+.
+
   def self.adler32(string = "", sum = 1)
     do_checksum(string, sum, :adler32_c)
   end
+
+  ##
+  # Returns the table for calculating CRC checksum as an array.
 
   def self.crc_table
     get_crc_table_c.read_array_of_long(256).map do |x|
@@ -571,9 +909,17 @@ module Zlib
     end
   end
 
+  ##
+  # Calculates CRC checksum for +string+, and returns updated value of +crc+.
+  # If +string+ is omitted, it returns the CRC initial value. If +crc+ is
+  # omitted, it assumes that the initial value is given to +crc+.
+
   def self.crc32(string = "", sum = 0)
     do_checksum(string, sum, :crc32_c)
   end
+
+  ##
+  # Generates a checksum using function +type+
 
   def self.do_checksum(string, vsum, type)
     if vsum
@@ -588,6 +934,9 @@ module Zlib
 
     send(type, sum, string, string ? string.size : 0)
   end
+
+  ##
+  # Raises an exception of the appropriate class
 
   def self.raise_error(error, message = nil)
     message = zError error if message.nil?
