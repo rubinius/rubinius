@@ -1,24 +1,46 @@
-VM: a C++ VM for running ruby code
+ VM: a C++ VM for running ruby code
+------------------------------------
 (Could probably use a better name than VM)
 
-TASKS in test/:
 
-make test:
-  Runs all tests defined by test_*.hpp
+ Prerequisites
+---------------
 
-make coverage:
-  Generates a code coverage report, coverage/index.html, by running
-  the tests.
+* LLVM 2.3 or later, http://llvm.org
 
-NOTES:
 
-*) classes defined in objects.hpp and builtin_*.hpp are C++ classes mapped
-directly to ruby objects. 
+ Building
+----------
 
-*) Because of the previous point, NO virtual functions are allowed in these
-classes. C++ inserts a pointer into every object which has virtual functions
-and we must have complete control over the body of an object.
+You should be in the vm directory for all of these.
 
-*) Similarly, only use single inheritance. This keeps the order of data
-members consistent.
+`rake build`
+
+
+ Running
+---------
+
+For now, just run the tests.
+
+
+ Tests and Specs
+-----------------
+
+* `rake test` builds and runs all of the tests in test/test_*
+* `rake coverage` runs the tests as above and then generates
+  a coverage report based on those in coverage/index.html.
+
+
+ Notes
+-------
+
+* Classes defined in objects.hpp and builtin_*.hpp are C++ classes mapped
+  directly to ruby objects. 
+
+* Because of the previous point, NO virtual functions are allowed in these
+  classes. C++ inserts a pointer into every object which has virtual functions
+  and we must have complete control over the body of an object.
+
+* Similarly, only use single inheritance. This keeps the order of data
+  members consistent.
 
