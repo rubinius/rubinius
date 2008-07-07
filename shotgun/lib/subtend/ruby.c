@@ -339,6 +339,26 @@ VALUE rb_attr_get(VALUE obj, ID sym) {
   return rb_ivar_get(obj, sym);
 }
 
+VALUE rb_cvar_defined(VALUE klass, ID id) {
+  const char *as_string = rb_id2name(id);
+  char c;
+  
+  /* First, verify that the variable name is plausible.
+   * Check comes from module.rb's verify_class_variable_name.
+   * Class variables must start with @@ and the next character
+   * must be a letter (a - z or A - Z) or an underscore.
+   */
+  if ((as_string == NULL) || (as_string[0] == '\0') ||
+    (as_string[1] == '\0') || (as_string[2] == '\0') ||
+    (as_string[0] != '@') || (as_string[1] != '@'))
+    return Qfalse;
+  c = toupper(as_string[2]);
+  if (! ((c == '_') || ((c >= 'A') && (c <= 'Z'))) )
+    return Qfalse;
+  
+  return rb_funcall(klass, rb_intern("class_variable_defined?"), 1, id);
+}
+
 void rb_define_attr(VALUE klass, const char *name, int read, int write) {
   if(read == 1) rb_funcall(klass, rb_intern("attr_reader_cv"), 1, rb_intern(name));
   if(write == 1) rb_funcall(klass, rb_intern("attr_writer_cv"), 1, rb_intern(name));
