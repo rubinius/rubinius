@@ -45,7 +45,7 @@ class CCompile
   end
 
   def link(name, opts)
-    x "#{@linker} -o #{name} #{opts[:objects].join(' ')} #{opts[:libs].join(' ')}"
+    x "#{@linker} #{opts[:flags].join(' ')} -o #{name} #{opts[:objects].join(' ')} #{opts[:libs].join(' ')}"
   end
 
 
@@ -103,6 +103,12 @@ external = %w!
 !
 
 cleaning = Rake.application.top_level_tasks.find { |t| t =~ /clean/ }
+
+
+#  Linker and external libs
+# --------------------------
+
+link_opts = `llvm-config --ldflags`.split /\s+/   # Mainly useful for the libdir
 
 ex_libs = external + [ "-ldl" ]
 
@@ -204,7 +210,7 @@ task :only => objs do
   only = FileList["*" + ENV['O'] + "*"].join(" ")
 	x "test/cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o test/_only.cpp #{only}"
   compiler.compile "_only.cpp"
-  compiler.link "test/_only", :objects => objs + ["test/_only.o"], :libs => ex_libs
+  compiler.link "test/_only", :objects => objs + ["test/_only.o"], :libs => ex_libs, :flags => link_opts
   x "./test/_only"
 end
 
@@ -213,7 +219,7 @@ file "test/runner.o" => "test/runner.cpp" do
 end
 
 file "test/runner" => "test/runner.o" do
-  compiler.link "test/runner", :objects => objs + ["test/runner.o"], :libs => ex_libs
+  compiler.link "test/runner", :objects => objs + ["test/runner.o"], :libs => ex_libs, :flags => link_opts
 end
 
 file "drivers/cli.o" => "drivers/cli.cpp" do
@@ -222,7 +228,7 @@ end
 
 file "vm" => objs + ["drivers/cli.o", "instructions.bc"] do
   puts "LD vm"
-  compiler.link "vm", :objects => objs + ["drivers/cli.o"], :libs => ex_libs
+  compiler.link "vm", :objects => objs + ["drivers/cli.o"], :libs => ex_libs, :flags => link_opts
 end
 
 file "instructions.bc" do
