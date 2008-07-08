@@ -18,29 +18,53 @@ def abbreviate_platform(arch)
   "#{o}#{c}#{x}"
 end
 
-class CIBot < AkiraBot
-  def ci_poll dir
-    time = config[:time] || 60
-    prev = Time.at(0)
+Thread.abort_on_exception = true
 
+class CIBot < AkiraBot
+  def cmd_help(data)
+    super
+    say "See http://ci.rubini.us/ for CI details."
+  end
+
+  def execute(msg, nick)
+    unless super then
+      say "I no nutin'. I am just a messenger. See http://ci.rubini.us/"
+      true
+    end
+  end
+
+  def ci_poll dir
     @thread = Thread.new do
+      time = config[:time] || 60
       sleep 10 unless $t # just to help get IRC logged in
+
+      path = "html/index.yaml"
+
       Dir.chdir dir do
+        prev = if $t then
+                 YAML.load_file(path)[-2][:submitted]
+               else
+                 YAML.load_file(path).last[:submitted]
+               end rescue Time.now
+
         loop do
-          data = YAML.load_file("html/index.yaml")
+          data = YAML.load_file(path)
           data.reject! { |r| r[:submitted] <= prev }
 
-          r   = data.first
-          h   = r[:hash][0..8]
-          res = r[:result] ? r[:result][/\d+ failures, \d+ errors/] : "DOA"
-          i   = r[:incremental] ? "incr" : "full"
-          t   = r[:time].to_i
-          p   = abbreviate_platform r[:platform]
+          unless data.empty? then
+            r   = data.first
+            h   = r[:hash][0..8]
+            res = r[:result] ? r[:result][/\d+ failures, \d+ errors/] : "DOA"
+            i   = r[:incremental] ? "incr" : "full"
+            t   = r[:time].to_i
+            p   = abbreviate_platform r[:platform]
+            d   = File.basename(r[:id])
 
-          warn "##{h}/#{i}/#{p}: #{res} in #{t} seconds."
-          warn "See http://ci.rubini.us/ for more details."
+            warn "##{h}/#{i}/#{p}: #{res} in #{t} seconds."
 
-          prev = r[:submitted]
+            prev = r[:submitted]
+          end
+
           sleep time
         end
       end
