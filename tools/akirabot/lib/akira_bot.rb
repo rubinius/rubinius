@@ -65,6 +65,7 @@ class AkiraBot
 
     data = cmd.split
 
+    # NO, we will NOT react to every line, only when spoken to!
     return unless data.shift =~ /^#{config[:nick]}/i
 
     msg = "cmd_#{data.shift}"
@@ -95,7 +96,7 @@ class AkiraBot
       while message
         fragment, message = message[0..450], message[450..-1]
         puts "PRIVMSG #{channel} :#{fragment}"
-        sleep 1 if message
+        sleep 0.5 if message
       end
     end
 
