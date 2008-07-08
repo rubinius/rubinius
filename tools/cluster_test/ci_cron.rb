@@ -100,12 +100,10 @@ def archive_data days
     File.unlink h[:id]
   end
 
-  # don't bump the mtime unless there is an actual newer data file
-  fresh_mtime  = File.mtime(fresh_path) rescue Time.at(0)
-  latest_mtime = File.mtime(fresh.last) rescue Time.at(1)
-  File.open fresh_path, 'w' do |f|
+  latest_mtime = fresh.last[:submitted] rescue Time.at(0)
+  safe_write fresh_path, latest_mtime do |f|
     YAML.dump fresh, f
-  end if fresh_mtime <= latest_mtime
+  end
 
   results.each do |date, data|
     next if data.empty?
@@ -117,7 +115,7 @@ def archive_data days
       data = old_data + data
     end
 
-    File.open path, 'w' do |f|
+    safe_write path do |f|
       YAML.dump data, f
     end
   end
@@ -219,6 +217,15 @@ def process_individual_results
 
     h
   }
+end
+
+def safe_write path, mtime = nil
+  new_path = "#{path}.new"
+  File.open new_path, 'w' do |f|
+    yield f
+  end
+  File.utime mtime, mtime, new_path if mtime
+  File.rename new_path, path
 end
 
 def svn_diff repo, dir
