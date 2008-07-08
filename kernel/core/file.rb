@@ -550,25 +550,25 @@ class File < IO
   # used id of the calling process is the owner of the file.
   #  File.owned?(file_name)   => true or false
   def self.owned?(file_name)
-    self::Stat.new(file_name).owned?
+    Stat.new(file_name).owned?
   end
   
   # 
   # Returns true if the named file has the setgid bit set.
   def self.setgid?(file_name)
-    self::Stat.new(file_name).setgid?
+    Stat.new(file_name).setgid?
   end
   
   # 
   # Returns true if the named file has the setuid bit set.
   def self.setuid?(file_name)
-    self::Stat.new(file_name).setuid?
+    Stat.new(file_name).setuid?
   end
   
   # 
   # Returns true if the named file has the sticky bit set.
   def self.sticky?(file_name)
-    self::Stat.new(file_name).sticky?
+    Stat.new(file_name).sticky?
   end
 
   class << self
