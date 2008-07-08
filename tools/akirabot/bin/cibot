@@ -1,6 +1,4 @@
-#!/usr/bin/env ruby -ws
-
-$t ||= false
+#!/usr/bin/env ruby
 
 require 'akira_bot'
 require 'yaml'
@@ -36,16 +34,12 @@ class CIBot < AkiraBot
   def ci_poll dir
     @thread = Thread.new do
       time = config[:time] || 60
-      sleep 10 unless $t # just to help get IRC logged in
+      sleep 10 # just to help get IRC logged in
 
       path = "html/index.yaml"
 
       Dir.chdir dir do
-        prev = if $t then
-                 YAML.load_file(path)[-2][:submitted]
-               else
-                 YAML.load_file(path).last[:submitted]
-               end rescue Time.now
+        prev = YAML.load_file(path).last[:submitted] rescue Time.now
 
         loop do
           data = YAML.load_file(path)
@@ -72,15 +66,10 @@ class CIBot < AkiraBot
   end
 end
 
-time = $t ? 0.1 : 120
 cibot = CIBot.new(:channel => 'ruby2c',
                   :name => '#rubinius CI Bot',
-                  :time => time)
+                  :time => 120)
 
 cibot.ci_poll(ARGV.shift || "/tmp/ci")
 
-if $t then
-  sleep 5
-else
-  cibot.start
-end
+cibot.start
