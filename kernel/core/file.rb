@@ -544,6 +544,32 @@ class File < IO
     st = Stat.stat? path
     st ? st.zero? : false
   end
+  
+  # 
+  # Returns true if the named file exists and the effective
+  # used id of the calling process is the owner of the file.
+  #  File.owned?(file_name)   => true or false
+  def self.owned?(file_name)
+    self::Stat.new(file_name).owned?
+  end
+  
+  # 
+  # Returns true if the named file has the setgid bit set.
+  def self.setgid?(file_name)
+    self::Stat.new(file_name).setgid?
+  end
+  
+  # 
+  # Returns true if the named file has the setuid bit set.
+  def self.setuid?(file_name)
+    self::Stat.new(file_name).setuid?
+  end
+  
+  # 
+  # Returns true if the named file has the sticky bit set.
+  def self.sticky?(file_name)
+    self::Stat.new(file_name).sticky?
+  end
 
   class << self
     alias_method :delete,   :unlink
@@ -824,6 +850,14 @@ class File::Stat
     return @stat[:st_mode] & S_IRUSR != 0 if rowned?
     return @stat[:st_mode] & S_IRGRP != 0 if rgrpowned?
     return @stat[:st_mode] & S_IROTH != 0
+  end
+  
+  def setgid?
+    !!@stat[:st_gid]
+  end
+  
+  def setuid?
+    !!@stat[:st_uid]
   end
 
   def size
