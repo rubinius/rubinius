@@ -1,32 +1,62 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby -ws
+
+$t ||= false
 
 require 'akira_bot'
 require 'yaml'
+require 'rubygems'
+
+# TODO: stolen from ci_cron.rb:
+def abbreviate_platform(arch)
+  plat = Gem::Platform.new(arch)
+  cpu, os, _ = plat.to_a
+  o, c = os[0..0], cpu[0..0] rescue "?"
+
+  c = "i" if c == "x"
+  x = "6" if cpu =~ /64/
+
+  "#{o}#{c}#{x}"
+end
 
 class CIBot < AkiraBot
   def ci_poll dir
-    known = {}
-    seen = {}
     time = config[:time] || 60
+    prev = Time.at(0)
 
     @thread = Thread.new do
-      sleep 10 # just to help get IRC logged in
+      sleep 10 unless $t # just to help get IRC logged in
       Dir.chdir dir do
         loop do
+          data = YAML.load_file("html/index.yaml")
+          data.reject! { |r| r[:submitted] <= prev }
+
+          r   = data.first
+          h   = r[:hash][0..8]
+          res = r[:result] ? r[:result][/\d+ failures, \d+ errors/] : "DOA"
+          i   = r[:incremental] ? "incr" : "full"
+          t   = r[:time].to_i
+          p   = abbreviate_platform r[:platform]
+
+          warn "##{h}/#{i}/#{p}: #{res} in #{t} seconds."
+          warn "See http://ci.rubini.us/ for more details."
+
+          prev = r[:submitted]
           sleep time
-          latest = YAML.load_file("html/index.yaml").last rescue next
-          p latest[:submitted]
         end
       end
     end
   end
 end
 
-dir = ARGV.shift || "/tmp/ci"
-
+time = $t ? 0.1 : 120
 cibot = CIBot.new(:channel => 'ruby2c',
                   :name => '#rubinius CI Bot',
-                  :time => 120)
+                  :time => time)
 
-cibot.ci_poll dir
-cibot.start
+cibot.ci_poll(ARGV.shift || "/tmp/ci")
+
+if $t then
+  sleep 5
+else
+  cibot.start
+end
