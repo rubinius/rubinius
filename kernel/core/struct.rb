@@ -120,7 +120,19 @@ class Struct
   #    joe == jane    #=> false
 
   def ==(other)
-    return self.class == other.class && self.values == other.values
+    return false if (self.class != other.class)
+    return false if (self.values.size != other.values.size)
+    
+    self.values.size.times { |i|
+      next if (RecursionGuard.inspecting?(self.values.at(i)))
+      next if (RecursionGuard.inspecting?(other.values.at(i)))
+      RecursionGuard.inspect(self.values.at(i)) do
+        RecursionGuard.inspect(other.values.at(i)) do
+          return false if (self.values.at(i) != other.values.at(i))
+        end
+      end
+    }
+    return true
   end
 
   ##
@@ -359,7 +371,11 @@ class Struct
   # Describe the contents of this struct in a string.
 
   def to_s
-    "#<struct #{self.class.name} #{_attrs.zip(self.to_a).map{|o| o[1] = o[1].inspect; o.join('=')}.join(', ') }>"
+    return "[...]" if RecursionGuard.inspecting?(self)
+  
+    RecursionGuard.inspect(self) do
+      "#<struct #{self.class.name} #{_attrs.zip(self.to_a).map{|o| o[1] = o[1].inspect; o.join('=')}.join(', ') }>"
+    end
   end
 
   alias inspect to_s
