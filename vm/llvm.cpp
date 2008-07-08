@@ -60,8 +60,10 @@ namespace rubinius {
       throw std::runtime_error(std::string("Unable to open LLVM operations file") + error);
     }
 
-    mp = new ExistingModuleProvider(operations);
-    engine = ExecutionEngine::create(mp);
+    if(!mp) {
+      mp = new ExistingModuleProvider(operations);
+      engine = ExecutionEngine::create(mp);
+    }
 
     llvm::PointerType* PointerTy_5 = llvm::PointerType::get(llvm::IntegerType::get(8), 0);
 
@@ -204,7 +206,7 @@ namespace rubinius {
   }
 
   static BasicBlock** construct_blocks(Function* func,
-      std::vector<Opcode*>& ops, Value* next_pos) {
+      std::vector<Opcode*> ops, Value* next_pos) {
 
     BasicBlock* top = BasicBlock::Create("top", func);
     size_t num_blocks = ops[ops.size() - 1]->block + 1;
