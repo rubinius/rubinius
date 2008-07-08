@@ -230,7 +230,7 @@ OBJECT handle_to_object(STATE, rni_handle_table *tbl, rni_handle *h) {
     }
     */
     
-    printf("Fuck. A detached handle with no data.\n");
+    printf("Oh dear!  A detached handle with no data.\n");
     return Qnil;
   }
   
