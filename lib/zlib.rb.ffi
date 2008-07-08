@@ -346,6 +346,13 @@ module Zlib
       (@flags & FINISHED) == FINISHED
     end
 
+    ##
+    # Flushes output buffer and returns all data in that buffer.
+
+    def flush_next_out
+      detatch_output
+    end
+
     def in_stream?
       (@flags & IN_STREAM) == IN_STREAM
     end
@@ -848,6 +855,24 @@ module Zlib
       Zlib.raise_error err unless err == Zlib::OK # HACK
 
       ready
+    end
+
+    ##
+    # Inputs +string+ into the inflate stream just like Zlib::Inflate#inflate,
+    # but returns the Zlib::Inflate object itself.  The output from the stream
+    # is preserved in output buffer.
+
+    def <<(string)
+      string = StringValue string unless string.nil?
+
+      if finished? then
+        unless string.nil? then
+          @input ||= ''
+          @input << string
+        end
+      else
+        run string, Zlib::SYNC_FLUSH
+      end
     end
 
     ##
