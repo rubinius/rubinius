@@ -266,6 +266,38 @@ void rb_include_module(VALUE klass, VALUE module) {
   rb_funcall(klass, rb_intern("include"), 1, module);
 }
 
+VALUE rb_struct_define(const char *name, ...) {
+  va_list ar;
+  VALUE nm, *ary;
+  char *mem;
+  int args = 0;
+  int i;
+  VALUE retval;
+  
+  if (!name) nm = Qnil;
+  else nm = rb_str_new2(name);
+
+  /* First, how many arguments? */
+  va_start(ar, name);
+  while (va_arg(ar, char*) != 0) ++args;
+  va_end(ar);
+  
+  ary = ALLOC_N(VALUE, args);
+  /* Push our arguments into the array */
+  ary[0] = nm; /* Struct name */
+  va_start(ar, name);
+  i = 1;
+  while ((mem = va_arg(ar, char*)) != 0) {
+    /* Struct attributes */
+    ary[i++] = rb_str_new2(mem);
+  }
+  va_end(ar);
+
+  retval = rb_funcall2(rb_path2class("Struct"), rb_intern("new"), args+1, ary);
+  XFREE(ary);
+  return retval;
+}
+
 VALUE rb_call_super(int nargs, VALUE *args) {
   /* Most of this the code comes from _push_and_call, though we have to
    * do things slightly differently to call CALL_SUPER_METHOD instead
