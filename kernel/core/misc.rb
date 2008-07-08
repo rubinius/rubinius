@@ -60,7 +60,7 @@ FALSE = false
 Undefined = Object.new
 
 ##
-# Prevents Kernel#p from recursively traversing an object graph.
+# This is used to prevent recursively traversing an object graph.
 
 module RecursionGuard
   def self.inspecting?(obj)
