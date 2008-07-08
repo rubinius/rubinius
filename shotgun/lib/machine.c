@@ -612,6 +612,7 @@ void machine_setup_config(machine m) {
 
   mod = rbs_const_get(m->s, m->s->global->object, "Rubinius");
   machine_set_const(m, "RUBY_PLATFORM", string_new(m->s, CONFIG_HOST));
+  machine_set_const(m, "PLATFORM", string_new(m->s, CONFIG_HOST));
   machine_set_const(m, "RUBY_RELEASE_DATE", string_new(m->s, CONFIG_RELDATE));
   machine_set_const_under(m, "RBX_VERSION", string_new(m->s, CONFIG_VERSION), mod);
   machine_set_const_under(m, "RUBY_VERSION", string_new(m->s, CONFIG_RUBY_VERSION), mod);
