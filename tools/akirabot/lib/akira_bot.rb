@@ -44,10 +44,12 @@ class AkiraBot
     who = cmd.shift
     msg = cmd.shift
 
-    return unless who =~ /^#{config[:nick]}/i && self.commands.include?(msg)
+    return false unless
+      who =~ /^#{config[:nick]}/i && self.commands.include?(msg)
 
     self.last_nick = nick
     send "cmd_#{msg}", cmd
+    true
   end
 
   def initialize config = {}
