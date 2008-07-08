@@ -13,17 +13,19 @@ class AkiraBot
 
   attr_accessor :config, :socket, :last_nick
 
-  def initialize config = {}
-    self.config = DEFAULTS.merge(config)
+  def cmd_help(data)
+    say("Commands I know: \0037 #{commands(:short).join(', ')}")
   end
 
-  def start
-    connect
-    while true
-      if IO.select([socket])
-        react_to socket.gets
-      end
-    end
+  def cmd_quit(data)
+    puts "QUIT :#{data.shift}"
+    exit!
+  end
+
+  def commands short = false
+    c = methods.map { |m| m.to_s }.grep(/^cmd_/).sort
+    c.map! { |m| m.sub(/^cmd_/, '') } if short
+    c
   end
 
   def connect
@@ -37,10 +39,31 @@ class AkiraBot
     join c[:channel] if c[:channel]
   end
 
-  def reconnect
-    socket.close
-    self.socket = nil
-    connect
+  def execute(cmd, nick)
+    self.last_nick = nick
+
+    data = cmd.split
+
+    # NO, we will NOT react to every line, only when spoken to!
+    return unless data.shift =~ /^#{config[:nick]}/i
+
+    msg = "cmd_#{data.shift}"
+    send msg, data if self.commands.include? msg
+  end
+
+  def initialize config = {}
+    self.config = DEFAULTS.merge(config)
+  end
+
+  def join(channel, quit_prev = true)
+    channel = "##{channel}" unless channel =~ /^#/
+    puts "PART #{config[:channel]}" if quit_prev
+    puts "JOIN #{channel} \r\n"
+    config[:channel] = channel
+  end
+
+  def puts str
+    socket.puts "#{str}\r\n"
   end
 
   def react_to(line)
@@ -60,33 +83,10 @@ class AkiraBot
     end
   end
 
-  def execute(cmd, nick)
-    self.last_nick = nick
-
-    data = cmd.split
-
-    # NO, we will NOT react to every line, only when spoken to!
-    return unless data.shift =~ /^#{config[:nick]}/i
-
-    msg = "cmd_#{data.shift}"
-    send msg, data if self.commands.include? msg
-  end
-
-  def join(channel, quit_prev = true)
-    channel = "##{channel}" unless channel =~ /^#/
-    puts "PART #{config[:channel]}" if quit_prev
-    puts "JOIN #{channel} \r\n"
-    config[:channel] = channel
-  end
-
-  def commands short = false
-    c = methods.map { |m| m.to_s }.grep(/^cmd_/).sort
-    c.map! { |m| m.sub(/^cmd_/, '') } if short
-    c
-  end
-
-  def cmd_help(data)
-    say("Commands I know: \0037 #{commands(:short).join(', ')}")
+  def reconnect
+    socket.close
+    self.socket = nil
+    connect
   end
 
   def say(data, channel = config[:channel])
@@ -103,12 +103,12 @@ class AkiraBot
     nil
   end
 
-  def cmd_quit(data)
-    puts "QUIT :#{data.shift}"
-    exit!
-  end
-
-  def puts str
-    socket.puts "#{str}\r\n"
+  def start
+    connect
+    while true
+      if IO.select([socket])
+        react_to socket.gets
+      end
+    end
   end
 end
