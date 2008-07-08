@@ -1,10 +1,20 @@
 class AkiraBot
   VERSION = '1.0.0'
 
+  DEFAULTS = {
+    :channel => nil,
+    :name => 'Akira Bot',
+    :nick => 'akirabot',
+    :password => nil,
+    :port => 6667,
+    :server => 'irc.freenode.org',
+    :user => 'akirabot',
+  }
+
   attr_accessor :config, :socket, :last_nick
 
-  def initialize config
-    self.config = config
+  def initialize config = {}
+    self.config = DEFAULTS.merge(config)
   end
 
   def start
@@ -18,19 +28,19 @@ class AkiraBot
 
   def connect
     c = config
-    self.socket = TCPSocket.new(c[:server], c[:port])
+    self.socket ||= TCPSocket.new(c[:server], c[:port])
 
-    socket.puts "USER #{c[:user]} #{c[:nick]} #{c[:name]} :#{c[:name]} \r\n"
-    socket.puts "NICK #{c[:nick]} \r\n"
-    socket.puts "PRIVMSG NickServ :IDENTIFY #{c[:password]}" if c[:password]
+    puts "USER #{c[:user]} #{c[:nick]} #{c[:name]} :#{c[:name]}"
+    puts "NICK #{c[:nick]}"
+    puts "PRIVMSG NickServ :IDENTIFY #{c[:password]}" if c[:password]
 
-    join c[:channel]
+    join c[:channel] if c[:channel]
   end
 
   def reconnect
     socket.close
     self.socket = nil
-    start
+    connect
   end
 
   def react_to(line)
@@ -42,7 +52,7 @@ class AkiraBot
       warn [msg, nick].inspect
       execute(msg, nick)
     when /^PONG (.+)/ then
-      socket.puts "PONG #{$1}"
+      puts "PONG #{$1}"
     when /^ERROR/ then
       reconnect
     else
@@ -63,8 +73,8 @@ class AkiraBot
 
   def join(channel, quit_prev = true)
     channel = "##{channel}" unless channel =~ /^#/
-    socket.puts "PART #{config[:channel]}" if quit_prev
-    socket.puts "JOIN #{channel} \r\n"
+    puts "PART #{config[:channel]}" if quit_prev
+    puts "JOIN #{channel} \r\n"
     config[:channel] = channel
   end
 
@@ -79,19 +89,25 @@ class AkiraBot
   end
 
   def say(data, channel = config[:channel])
-    data = data.join(" ") if data.is_a?(Array)
+    data = data.join(" ") if Array === data
+
     data.split("\n").each do |message|
       while message
         fragment, message = message[0..450], message[450..-1]
-        socket.puts "PRIVMSG #{channel} :#{fragment}"
+        puts "PRIVMSG #{channel} :#{fragment}"
+        sleep 1 if message
       end
-      sleep 1
     end
+
     nil
   end
 
   def cmd_quit(data)
-    socket.puts "QUIT :#{data.shift}"
+    puts "QUIT :#{data.shift}"
     exit!
+  end
+
+  def puts str
+    socket.puts "#{str}\r\n"
   end
 end

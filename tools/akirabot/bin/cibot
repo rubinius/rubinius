@@ -7,12 +7,13 @@ class CIBot < AkiraBot
   def ci_poll dir
     known = {}
     seen = {}
+    time = config[:time] || 60
 
     @thread = Thread.new do
-      # sleep 10
+      sleep 10 # just to help get IRC logged in
       Dir.chdir dir do
         loop do
-          sleep 10
+          sleep time
           latest = YAML.load_file("html/index.yaml").last rescue next
           p latest[:submitted]
         end
@@ -23,16 +24,9 @@ end
 
 dir = ARGV.shift || "/tmp/ci"
 
-cibot = CIBot.new(:server => 'irc.freenode.org',
-                  :port => 6667,
-                  :nick => 'akirabot',
-                  :password => nil,
-                  :channel => 'ruby2c',
-                  :user => 'akirabot',
-                  :name => '#rubinius CI Bot')
+cibot = CIBot.new(:channel => 'ruby2c',
+                  :name => '#rubinius CI Bot',
+                  :time => 120)
+
 cibot.ci_poll dir
-
-sleep 30
-exit!
-
-# cibot.start
+cibot.start
