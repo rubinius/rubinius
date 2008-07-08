@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'akira_bot'
+require 'yaml'
+
+class CIBot < AkiraBot
+  def ci_poll dir
+    known = {}
+    seen = {}
+
+    @thread = Thread.new do
+      # sleep 10
+      Dir.chdir dir do
+        loop do
+          sleep 10
+          latest = YAML.load_file("html/index.yaml").last rescue next
+          p latest[:submitted]
+        end
+      end
+    end
+  end
+end
+
+dir = ARGV.shift || "/tmp/ci"
+
+cibot = CIBot.new(:server => 'irc.freenode.org',
+                  :port => 6667,
+                  :nick => 'akirabot',
+                  :password => nil,
+                  :channel => 'ruby2c',
+                  :user => 'akirabot',
+                  :name => '#rubinius CI Bot')
+cibot.ci_poll dir
+
+sleep 30
+exit!
+
+# cibot.start

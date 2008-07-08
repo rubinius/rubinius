@@ -1,0 +1,12 @@
+# -*- ruby -*-
+
+require 'rubygems'
+require 'hoe'
+require './lib/akira_bot.rb'
+
+Hoe.new('AkiraBot', AkiraBot::VERSION) do |p|
+  p.rubyforge_name = 'seattlerb'
+  p.developer('Ryan Davis', 'ryand-ruby@zenspider.com')
+end
+
+# vim: syntax=Ruby

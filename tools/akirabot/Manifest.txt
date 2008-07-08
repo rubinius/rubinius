@@ -1,0 +1,7 @@
+History.txt
+Manifest.txt
+README.txt
+Rakefile
+bin/cibot
+lib/akira_bot.rb
+test/test_akira_bot.rb
