@@ -1,3 +1,5 @@
+require 'socket'
+
 class AkiraBot
   VERSION = '1.0.0'
 
@@ -14,7 +16,7 @@ class AkiraBot
   attr_accessor :config, :socket, :last_nick
 
   def cmd_help(data)
-    say("Commands I know: \0037 #{commands(:short).join(', ')}")
+    say("Commands I know: \0037 #{commands.join(', ')}")
   end
 
   def cmd_quit(data)
@@ -22,10 +24,8 @@ class AkiraBot
     exit!
   end
 
-  def commands short = false
-    c = methods.map { |m| m.to_s }.grep(/^cmd_/).sort
-    c.map! { |m| m.sub(/^cmd_/, '') } if short
-    c
+  def commands
+    methods.map { |m| m.to_s }.grep(/^cmd_/).sort.map { |m| m.sub(/^cmd_/, '') }
   end
 
   def connect
@@ -34,21 +34,20 @@ class AkiraBot
 
     puts "USER #{c[:user]} #{c[:nick]} #{c[:name]} :#{c[:name]}"
     puts "NICK #{c[:nick]}"
-    puts "PRIVMSG NickServ :IDENTIFY #{c[:password]}" if c[:password]
+    say "IDENTIFY #{c[:password]}", "NickServ" if c[:password]
 
     join c[:channel] if c[:channel]
   end
 
-  def execute(cmd, nick)
+  def execute(msg, nick)
+    cmd = msg.split
+    who = cmd.shift
+    msg = cmd.shift
+
+    return unless who =~ /^#{config[:nick]}/i && self.commands.include? msg
+
     self.last_nick = nick
-
-    data = cmd.split
-
-    # NO, we will NOT react to every line, only when spoken to!
-    return unless data.shift =~ /^#{config[:nick]}/i
-
-    msg = "cmd_#{data.shift}"
-    send msg, data if self.commands.include? msg
+    send "cmd_#{msg}", cmd
   end
 
   def initialize config = {}
@@ -58,7 +57,7 @@ class AkiraBot
   def join(channel, quit_prev = true)
     channel = "##{channel}" unless channel =~ /^#/
     puts "PART #{config[:channel]}" if quit_prev
-    puts "JOIN #{channel} \r\n"
+    puts "JOIN #{channel}"
     config[:channel] = channel
   end
 
@@ -70,9 +69,8 @@ class AkiraBot
     warn line.chomp
 
     case line
-    when /^\:(.+)\!\~?(.+)\@(.+) (PRIVMSG) \#?(\w+) \:(.+)/ then
-      msg, nick = $6, $1
-      warn [msg, nick].inspect
+    when /^\:(.+)\!\~?.+\@.+ PRIVMSG \#?\w+ \:(.+)/ then
+      nick, msg = $1, $2
       execute(msg, nick)
     when /^PONG (.+)/ then
       puts "PONG #{$1}"
@@ -105,10 +103,8 @@ class AkiraBot
 
   def start
     connect
-    while true
-      if IO.select([socket])
-        react_to socket.gets
-      end
+    loop do
+      react_to(socket.gets) if IO.select([socket])
     end
   end
 end
