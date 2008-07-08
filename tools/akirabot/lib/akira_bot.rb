@@ -13,7 +13,7 @@ class AkiraBot
     :user => 'akirabot',
   }
 
-  attr_accessor :config, :socket, :last_nick
+  attr_accessor :config, :socket, :last_nick, :quit
 
   def cmd_help(data)
     say("Commands I know: \0037 #{commands.join(', ')}")
@@ -21,7 +21,7 @@ class AkiraBot
 
   def cmd_quit(data)
     puts "QUIT :#{data.shift}"
-    exit!
+    self.quit = true
   end
 
   def commands
@@ -51,6 +51,7 @@ class AkiraBot
   end
 
   def initialize config = {}
+    self.quit = false
     self.config = DEFAULTS.merge(config)
   end
 
@@ -105,6 +106,7 @@ class AkiraBot
     connect
     loop do
       react_to(socket.gets) if IO.select([socket])
+      break if self.quit
     end
   end
 end
