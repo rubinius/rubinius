@@ -492,6 +492,8 @@ module Zlib
   attach_function 'inflate',        :inflate,         [:pointer, :int], :int
   attach_function 'inflateEnd',     :inflateEnd,      [:pointer],       :int
   attach_function 'inflateReset',   :inflateReset,    [:pointer],       :int
+  attach_function 'inflateSetDictionary', :inflateSetDictionary,
+                  [:pointer, :string, :uint], :int
 
   attach_function 'adler32',        :adler32_c,       [:ulong, :string, :uint],
                   :ulong
@@ -596,6 +598,10 @@ module Zlib
       detatch_output
     end
 
+    ##
+    # Performs the deflate operation and leaves the compressed data in the
+    # output buffer
+
     def do_deflate(data, flush)
       if data.nil? then
         run '', Zlib::FINISH
@@ -607,6 +613,10 @@ module Zlib
         end
       end
     end
+
+    ##
+    # Finishes compressing the deflate input stream and returns the output
+    # buffer.
 
     def finish
       run '', Zlib::FINISH
@@ -970,6 +980,21 @@ module Zlib
       end
 
       unzipped
+    end
+
+    ##
+    # Sets the preset dictionary and returns +string+.  This method is
+    # available just only after a Zlib::NeedDict exception was raised.  See
+    # zlib.h for details.
+
+    def set_dictionary(dictionary)
+      dict = StringValue dictionary
+
+      err = Zlib.inflateSetDictionary pointer, dict, dict.length
+
+      Zlib.handle_error err, message
+
+      dictionary
     end
 
   end
