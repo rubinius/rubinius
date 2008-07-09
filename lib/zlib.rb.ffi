@@ -296,10 +296,7 @@ module Zlib
 
       err = Zlib.send @func_end, pointer
 
-      unless err == Zlib::OK then
-        msg = self[:msg].read_string unless self[:msg].nil?
-        Zlib.raise_error err, msg
-      end
+      Zlib.handle_error err, message
 
       @flags = 0
 
@@ -361,6 +358,13 @@ module Zlib
       @input.nil? or @input.empty?
     end
 
+    ##
+    # The msg field of the struct
+
+    def message
+      self[:msg]
+    end
+
     def ready
       @flags |= READY
     end
@@ -376,10 +380,7 @@ module Zlib
     def reset
       err = Zlib.send @func_reset, pointer
 
-      unless err == Zlib::OK then
-        msg = self[:msg].read_string unless self[:msg].nil?
-        Zlib.raise_error err, msg
-      end
+      Zlib.handle_error err, message
 
       @flags = READY
 
@@ -432,8 +433,7 @@ module Zlib
             @input = self[:next_in].read_string(self[:avail_in]) + @input
           end
 
-          msg = self[:msg] unless self[:msg].nil?
-          Zlib.raise_error err, msg
+          Zlib.handle_error err, message
         end
 
         if available > 0 then
@@ -475,6 +475,8 @@ module Zlib
 
   attach_function 'deflate',        :deflate,         [:pointer, :int], :int
   attach_function 'deflateEnd',     :deflateEnd,      [:pointer],       :int
+  attach_function 'deflateParams',  :deflateParams,   [:pointer, :int, :int],
+                  :int
   attach_function 'deflateReset',   :deflateReset,    [:pointer],       :int
 
   # inflateInit2 is a macro pointing to inflateInit2_
@@ -562,9 +564,18 @@ module Zlib
       err = Zlib.deflateInit2(pointer, level, Zlib::DEFLATED,
                               window_bits, mem_level, strategy)
 
-      Zlib.raise_error unless err == Zlib::OK
+      Zlib.handle_error err, message
 
       ready
+    end
+
+    ##
+    # Same as IO.
+
+    def <<(data)
+      do_deflate data, Zlib::NO_FLUSH
+
+      self
     end
 
     ##
@@ -578,24 +589,54 @@ module Zlib
     # <tt>Zlib::FINISH</tt>. See zlib.h for details.
 
     def deflate(data, flush = Zlib::NO_FLUSH)
+      do_deflate data, flush
+
+      detatch_output
+    end
+
+    def do_deflate(data, flush)
       if data.nil? then
         run '', Zlib::FINISH
-        return
+      else
+        data = StringValue data
+
+        if flush != Zlib::NO_FLUSH or not data.empty? then # prevent BUF_ERROR
+          run data, flush
+        end
       end
-
-      data = Type.coerce_to data, String, :to_str
-
-      if flush != Zlib::NO_FLUSH or not data.empty? then
-        run data, flush
-      end
-
-      zipped = detatch_output
     end
 
     def finish
       run '', Zlib::FINISH
 
       detatch_output
+    end
+
+    ##
+    # This method is equivalent to <tt>deflate('', flush)</tt>.  If flush is
+    # omitted, <tt>Zlib::SYNC_FLUSH</tt> is used as flush.  This method is
+    # just provided to improve the readability of your Ruby program.
+
+    def flush(flush = Zlib::SYNC_FLUSH)
+      run '', flush unless flush == Zlib::NO_FLUSH
+
+      detatch_output
+    end
+
+    ##
+    # Changes the parameters of the deflate stream. See zlib.h for details.
+    # The output from the stream by changing the params is preserved in output
+    # buffer.
+
+    def params(level, strategy)
+      err = Zlib.deflateParams pointer, level, strategy
+
+      raise Zlib::BufError, 'buffer expansion not implemented' if
+        err == Zlib::BUF_ERROR
+
+      Zlib.handle_error err, message
+
+      nil
     end
 
   end
@@ -852,7 +893,7 @@ module Zlib
 
       err = Zlib.inflateInit2 pointer, window_bits
 
-      Zlib.raise_error err unless err == Zlib::OK # HACK
+      Zlib.handle_error err, message # HACK
 
       ready
     end
@@ -963,7 +1004,9 @@ module Zlib
   ##
   # Raises an exception of the appropriate class
 
-  def self.raise_error(error, message = nil)
+  def self.handle_error(error, message = nil)
+    return if error == Zlib::OK
+
     message = zError error if message.nil?
 
     klass = case error
