@@ -478,6 +478,8 @@ module Zlib
   attach_function 'deflateParams',  :deflateParams,   [:pointer, :int, :int],
                   :int
   attach_function 'deflateReset',   :deflateReset,    [:pointer],       :int
+  attach_function 'deflateSetDictionary', :deflateSetDictionary,
+                  [:pointer, :string, :uint], :int
 
   # inflateInit2 is a macro pointing to inflateInit2_
   attach_function 'inflateInit2_', :inflateInit2_,
@@ -637,6 +639,21 @@ module Zlib
       Zlib.handle_error err, message
 
       nil
+    end
+
+    ##
+    # Sets the preset dictionary and returns +dictionary+. This method is
+    # available just only after Zlib::Deflate.new or Zlib::ZStream#reset
+    # method was called.  See zlib.h for details.
+
+    def set_dictionary(dictionary)
+      dict = StringValue dictionary
+
+      err = Zlib.deflateSetDictionary pointer, dict, dict.length
+
+      Zlib.handle_error err, message
+
+      dictionary
     end
 
   end
