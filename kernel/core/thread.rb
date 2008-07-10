@@ -274,4 +274,8 @@ class Thread
     ThreadGroup.const_set :Default, dg
     dg.add Thread.current
   end
+
+  def self.list
+    Thread.current.group.list
+  end
 end
