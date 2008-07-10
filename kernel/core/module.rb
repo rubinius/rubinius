@@ -815,6 +815,8 @@ class Module
     private :alias_method
   end
 
+  # Install a new Autoload object into the constants table
+  # See kernel/core/autoload.rb
   def autoload(name, path)
     name = normalize_const_name(name)
     raise ArgumentError, "empty file name" if path.empty?
@@ -823,6 +825,7 @@ class Module
     return nil
   end
 
+  # Is an autoload trigger defined for the given path?
   def autoload?(name)
     name = name.to_sym
     return unless constants_table.key?(name)
