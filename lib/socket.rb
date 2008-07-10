@@ -642,8 +642,11 @@ class IPSocket < BasicSocket
 end
 
 class UDPSocket < IPSocket
-  def initialize
-    status = Socket::Foreign.socket Socket::AF_INET, Socket::SOCK_DGRAM, 0
+  def initialize(*args)
+    socktype = Socket::AF_INET
+    raise ArgumentError, 'too many arguments' if args.size > 1
+    socktype = args[0] if args.size == 1
+    status = Socket::Foreign.socket socktype, Socket::SOCK_DGRAM, 0
     Errno.handle 'socket(2)' if status < 0
     setup status
   end
