@@ -80,4 +80,7 @@ namespace :git do
 
   desc "Pull, build, spec, push"
   task :safe_push => %w[git:pull build spec git:push]
+
+  desc "Pull, build, spec:full, push (very slow)"
+  task :really_safe_push => %w[git:pull build spec:full git:push]
 end
