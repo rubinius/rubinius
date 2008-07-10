@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_IMMEDIATES_HPP
 
 namespace rubinius {
-  class NilClass : public BuiltinType {
+  class NilClass : public Object {
   public:
     static const object_type type = NilType;
 
@@ -22,7 +22,7 @@ namespace rubinius {
       return obj == Qnil;
     }
 
-  class TrueClass : public BuiltinType {
+  class TrueClass : public Object {
   public:
     static const object_type type = TrueType;
 
@@ -39,7 +39,7 @@ namespace rubinius {
       return obj == Qtrue;
     }
 
-  class FalseClass : public BuiltinType {
+  class FalseClass : public Object {
   public:
     static const object_type type = FalseType;
 

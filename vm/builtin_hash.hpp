@@ -6,7 +6,7 @@ namespace rubinius {
   class LookupTable;
 
   #define HASH_MINSIZE 16
-  class Hash : public BuiltinType {
+  class Hash : public Object {
     public:
     const static size_t fields = 7;
     const static object_type type = HashType;

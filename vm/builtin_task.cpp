@@ -535,7 +535,7 @@ stack_cleanup:
         std::cout << "   ";
       }
 
-      ((NormalObject*)stack->field[i])->show(state);
+      stack->field[i]->show(state);
     }
   }
 

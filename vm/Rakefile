@@ -136,6 +136,7 @@ def maybe_regen(list)
 end
 
 def field_extract
+  puts "GEN field_extract"
   order = ["objects.hpp"]
   File.open("objects.hpp") do |f|
     f.each_line do |line|
@@ -144,7 +145,7 @@ def field_extract
       end
     end
   end
-  x "ruby field_extract.rb object.hpp #{order.join(' ')}"
+  x "ruby field_extract.rb builtin_object.hpp #{order.join(' ')}"
 end
 
 insn_gen = %w!gen/task_instructions_switch.c
@@ -188,7 +189,6 @@ else
   end
 
   maybe_regen type_gen do
-    puts "GEN field_extract"
     field_extract
   end
 

@@ -216,6 +216,7 @@ class CPPParser
       "InstructionSequence" =>   :InstructionSequence,
       "FIXNUM" => :Fixnum,
       "OBJECT" => :Object,
+      "Object" => :Object,
       "Tuple"  => :Tuple,
       "MemoryPointer" => :MemoryPointer,
       "StaticScope" => :StaticScope,
@@ -249,12 +250,13 @@ class CPPParser
   def parse_stream(f)
     while l = f.gets
       if m = /class ([^\s]+)\s*:\s*public\s+([^\s]+) \{/.match(l)
-        if m[2] != "BuiltinType"
+        puts "Considering: #{m[1]}"
+        if m[2] != "Object" and m[2] != "ObjectHeader"
           if sup = @classes[m[2]]
             cpp = CPPClass.new(m[1])
             cpp.super = sup
           else
-            # puts "Skipping #{m[1]}"
+            puts "Skipping #{m[1]}"
             next
           end
         else
@@ -303,6 +305,7 @@ class CPPParser
           end
 
           if m = %r%^\s*//\s+Ruby.primitive(!)?\s+:(.*)\s*$%.match(l)
+            p :prim => l
             overload = m[1] == "!"
             prim = m[2]
             prototype = f.gets
@@ -377,6 +380,8 @@ end
 File.open("gen/typechecks.gen.cpp", "w") do |f|
   f.puts "void TypeInfo::init(STATE) {"
   parser.classes.each do |n, cpp|
+    next if n == "Object"
+
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
     cpp.all_fields.each do |name, idx|

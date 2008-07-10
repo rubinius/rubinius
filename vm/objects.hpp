@@ -7,16 +7,10 @@
 
 #include <iostream>
 
-namespace rubinius {
-  class BuiltinType : public Object {
-
-  };
-}
-
 #include "builtin_immediates.hpp"
 
 namespace rubinius {
-  class Numeric : public BuiltinType {
+  class Numeric : public Object {
   public:
     static const object_type type = NumericType;
 
@@ -54,15 +48,12 @@ namespace rubinius {
 #include "builtin_hash.hpp"
 
 namespace rubinius {
-  class NormalObject : public BuiltinType {
+  class NormalObject : public Object {
   public:
     const static size_t fields = 1;
     const static object_type type = ObjectType;
 
     OBJECT instance_variables;
-
-    // Ruby.primitive :object_show
-    OBJECT show(STATE);
 
     class Info : public TypeInfo {
     public:

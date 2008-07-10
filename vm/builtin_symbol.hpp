@@ -7,7 +7,7 @@ namespace rubinius {
   class Hash;
   class Tuple;
 
-  class Symbol : public BuiltinType {
+  class Symbol : public Object {
   public:
     const static size_t fields = 0;
     const static object_type type = SymbolType;
@@ -37,7 +37,7 @@ namespace rubinius {
 
   typedef Symbol* SYMBOL;
 
-  class SymbolTable : public BuiltinType {
+  class SymbolTable : public Object {
   public:
     const static size_t fields = 3;
     const static object_type type = SymbolTableType;

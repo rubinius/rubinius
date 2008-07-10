@@ -2,7 +2,7 @@
 #define RBX_THREAD_HPP
 
 namespace rubinius {
-  class Thread : public BuiltinType {
+  class Thread : public Object {
   public:
     const static size_t fields = 5;
     const static object_type type = ThreadType;

@@ -7,7 +7,7 @@ namespace rubinius {
 
   class MemoryPointer;
 
-  class Executable : public BuiltinType {
+  class Executable : public Object {
     public:
     const static size_t fields = 4;
     const static object_type type = ExecutableType;

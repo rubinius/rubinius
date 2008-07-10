@@ -2,7 +2,7 @@
 #define RBX_CHANNEL_HPP
 
 namespace rubinius {
-  class Channel : public BuiltinType {
+  class Channel : public Object {
   public:
     const static size_t fields = 3;
     const static object_type type = ChannelType;

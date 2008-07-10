@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_BYTEARRAY_HPP
 
 namespace rubinius {
-  class ByteArray : public BuiltinType {
+  class ByteArray : public Object {
     public:
     const static size_t fields = 0;
     const static object_type type = ByteArrayType;

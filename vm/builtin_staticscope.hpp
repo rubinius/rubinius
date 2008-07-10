@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_STATICSCOPE_HPP
 
 namespace rubinius {
-  class StaticScope : public BuiltinType {
+  class StaticScope : public Object {
   public:
     const static size_t fields = 3;
     const static object_type type = StaticScopeType;

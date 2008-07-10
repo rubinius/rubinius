@@ -8,7 +8,7 @@ namespace rubinius {
   class Message;
   class VMMethod;
 
-  class BlockEnvironment : public BuiltinType {
+  class BlockEnvironment : public Object {
     public:
     const static size_t fields = 6;
     const static object_type type = BlockEnvType;

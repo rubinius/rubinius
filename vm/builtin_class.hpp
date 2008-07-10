@@ -4,7 +4,7 @@
 #include "objects.hpp"
 
 namespace rubinius {
-  class Module : public BuiltinType {
+  class Module : public Object {
     public:
     const static size_t fields = 5;
     const static object_type type = ModuleType;

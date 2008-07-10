@@ -2,7 +2,7 @@
 #define RBX_REGEXP_HPP
 
 namespace rubinius {
-  class RegexpData : public BuiltinType {
+  class RegexpData : public Object {
     public:
     const static size_t fields = 0;
     const static object_type type = RegexpDataType;
@@ -15,7 +15,7 @@ namespace rubinius {
     };
   };
 
-  class Regexp : public BuiltinType {
+  class Regexp : public Object {
     public:
     const static size_t fields = 4;
     const static object_type type = RegexpType;
@@ -40,7 +40,7 @@ namespace rubinius {
 
   };
 
-  class MatchData : public BuiltinType {
+  class MatchData : public Object {
     public:
     const static size_t fields = 5;
     const static object_type type = MatchDataType;

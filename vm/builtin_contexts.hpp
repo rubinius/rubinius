@@ -8,7 +8,7 @@ namespace rubinius {
   class BlockContext;
   class MethodContext;
 
-  class MethodContext : public BuiltinType {
+  class MethodContext : public Object {
     public:
     const static size_t fields = 0;
     const static object_type type = MContextType;

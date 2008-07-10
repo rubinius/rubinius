@@ -42,7 +42,7 @@ namespace rubinius {
     };
   };
 
-  class MethodVisibility : public BuiltinType {
+  class MethodVisibility : public Object {
   public:
     const static size_t fields = 3;
     const static object_type type = CMVisibilityType;

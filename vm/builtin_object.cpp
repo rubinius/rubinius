@@ -323,7 +323,7 @@ namespace rubinius {
     std::cout << ":" << (char*)*name << "\n";
   }
 
-  OBJECT NormalObject::show(STATE) {
+  OBJECT Object::show(STATE) {
     if(FIXNUM i = try_as<Fixnum>(this)) {
       std::cout << i->n2i() << std::endl;
     } else if(Bignum* b = try_as<Bignum>(this)) {
