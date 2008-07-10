@@ -129,6 +129,35 @@ module Zlib
   end
   @@@
 
+  OS_MSDOS    = 0x00
+  OS_AMIGA    = 0x01
+  OS_VMS      = 0x02
+  OS_UNIX     = 0x03
+  OS_ATARI    = 0x05
+  OS_OS2      = 0x06
+  OS_MACOS    = 0x07
+  OS_TOPS20   = 0x0a
+  OS_WIN32    = 0x0b
+  
+  OS_VMCMS    = 0x04
+  OS_ZSYSTEM  = 0x08
+  OS_CPM      = 0x09
+  OS_QDOS     = 0x0c
+  OS_RISCOS   = 0x0d
+  OS_UNKNOWN  = 0xff
+
+  @@@
+  constants do |c|
+    c.include 'zlib.h'
+
+    c.const 'OS_CODE'
+  end
+  @@@
+
+  unless defined? OS_CODE then
+    OS_CODE = OS_UNIX
+  end
+
   # from zutil.h
   unless defined? DEF_MEM_LEVEL then
     DEF_MEM_LEVEL = MAX_MEM_LEVEL >= 8 ? 8 : MAX_MEM_LEVEL
@@ -242,6 +271,10 @@ module Zlib
 
     attr_accessor :flags
 
+    attr_reader :input
+
+    attr_reader :output
+
     def self.inherited(subclass)
       subclass.instance_variable_set :@layout, @layout
       subclass.instance_variable_set :@size, @size
@@ -261,6 +294,10 @@ module Zlib
       @output = nil
       @flags = 0
       @func = nil
+    end
+
+    def closing?
+      @flags & CLOSING == CLOSING
     end
 
     def detatch_output
@@ -340,7 +377,7 @@ module Zlib
     # Returns true if the stream is finished.
 
     def finished?
-      (@flags & FINISHED) == FINISHED
+      @flags & FINISHED == FINISHED
     end
 
     ##
@@ -351,7 +388,7 @@ module Zlib
     end
 
     def in_stream?
-      (@flags & IN_STREAM) == IN_STREAM
+      @flags & IN_STREAM == IN_STREAM
     end
 
     def input_empty?
@@ -370,7 +407,7 @@ module Zlib
     end
 
     def ready?
-      (@flags & READY) == READY
+      @flags & READY == READY
     end
 
     ##
@@ -450,6 +487,20 @@ module Zlib
     ensure
       data_in.free
       self[:next_in] = nil
+    end
+
+    ##
+    # Returns the number of bytes consumed
+
+    def total_in
+      self[:total_in]
+    end
+
+    ##
+    # Returns the number bytes processed
+
+    def total_out
+      self[:total_out]
     end
 
   end
@@ -676,7 +727,51 @@ module Zlib
   # GzipReader should be used by associating an IO, or IO-like, object.
 
   class GzipFile
+
+    SYNC            = Zlib::ZStream::UNUSED
+    HEADER_FINISHED = Zlib::ZStream::UNUSED << 1
+    FOOTER_FINISHED = Zlib::ZStream::UNUSED << 2
+
+    FLAG_MULTIPART    = 0x2
+    FLAG_EXTRA        = 0x4
+    FLAG_ORIG_NAME    = 0x8
+    FLAG_COMMENT      = 0x10
+    FLAG_ENCRYPT      = 0x20
+    FLAG_UNKNOWN_MASK = 0xc0
+
+    EXTRAFLAG_FAST    = 0x4
+    EXTRAFLAG_SLOW    = 0x2
+
+    MAGIC1         = 0x1f
+    MAGIC2         = 0x8b
+    METHOD_DEFLATE = 8
+
+    ##
+    # Base class of errors that occur when processing GZIP files.
+
     class Error < Zlib::Error; end
+
+    ##
+    # Raised when gzip file footer is not found. 
+
+    class NoFooter < Error; end
+
+    ##
+    # Raised when the CRC checksum recorded in gzip file footer is not
+    # equivalent to the CRC checksum of the actual uncompressed data. 
+
+    class CRCError < Error; end
+
+    ##
+    # Raised when the data length recorded in the gzip file footer is not
+    # equivalent to the length of the actual uncompressed data. 
+
+    class LengthError < Error; end
+
+    ##
+    # Accessor for the underlying ZStream
+
+    attr_reader :zstream # :nodoc:
 
     ##
     # See Zlib::GzipReader#wrap and Zlib::GzipWriter#wrap.
@@ -688,9 +783,106 @@ module Zlib
         begin
           yield obj
         ensure
-          obj.close
+          obj.close if obj.zstream.ready?
         end
       end
+    end
+
+    def initialize
+      @comment = nil
+      @crc = 0
+      @level = nil
+      @mtime = Time.at 0
+      @orig_name = nil
+      @os_code = Zlib::OS_CODE
+    end
+
+    ##
+    # Closes the GzipFile object. This method calls close method of the
+    # associated IO object. Returns the associated IO object.
+
+    def close
+      io = finish
+
+      io.close if io.respond_to? :close
+
+      io
+    end
+
+    ##
+    # Same as IO
+
+    def closed?
+      @io.nil?
+    end
+
+    ##
+    # Returns comments recorded in the gzip file header, or nil if the
+    # comment is not present.
+
+    def comment
+      raise Error, 'closed gzip stream' if @io.nil?
+
+      @comment.dup
+    end
+
+    def end
+      return if @zstream.closing?
+
+      @zstream.flags |= Zlib::ZStream::CLOSING
+
+      begin
+        end_run
+      ensure
+        @zstream.end
+      end
+    end
+
+    ##
+    # Closes the GzipFile object. Unlike Zlib::GzipFile#close, this method
+    # never calls the close method of the associated IO object. Returns the
+    # associated IO object.
+
+    def finish
+      self.end
+
+      io = @io
+      @io = nil
+      @orig_name = nil
+      @comment = nil
+
+      io
+    end
+
+    def finished?
+      @zstream.finished? and @zstream.output.empty? # HACK I think
+    end
+
+    def footer_finished?
+      @zstream.flags & Zlib::GzipFile::FOOTER_FINISHED ==
+        Zlib::GzipFile::FOOTER_FINISHED
+    end
+
+    def header_finished?
+      @zstream.flags & Zlib::GzipFile::HEADER_FINISHED ==
+        Zlib::GzipFile::HEADER_FINISHED
+    end
+
+    ##
+    # Returns last modification time recorded in the gzip file header.
+
+    def mtime
+      Time.at @mtime
+    end
+
+    ##
+    # Returns original filename recorded in the gzip file header, or +nil+ if
+    # original filename is not present.
+
+    def orig_name
+      raise Error, 'closed gzip stream' if @io.nil?
+
+      @orig_name.dup
     end
 
   end
@@ -758,22 +950,40 @@ module Zlib
 
     def initialize(io)
       @io = io
-      window_bits = Zlib::MAX_WBITS + 16 # gzip header
 
-      @zstream = Zlib::Inflate.new window_bits
+      @zstream = Zlib::Inflate.new -Zlib::MAX_WBITS
 
       @buffer = ''
+
+      super()
+
+      read_header
     end
 
-    def close
+    def check_footer
+      @zstream.flags |= Zlib::GzipFile::FOOTER_FINISHED
+
+      footer = @zstream.input.slice! 0, 8
+      @io.read 8 - footer.length, footer
+
+      raise NoFooter, 'footer is not found' unless footer.length == 8
+
+      crc, length = footer.unpack 'VV'
+
+      @zstream[:total_in] += 8 # to rewind correctly
+
+      raise CRCError, 'invalid compressed data -- crc error' unless @crc == crc
+
+      raise LengthError, 'invalid compressed data -- length error' unless
+        length == @zstream.total_out
+    end
+
+    def end_run
+      check_footer if @zstream.finished? and not footer_finished?
     end
 
     def eof?
       @zstream.finished? and @zstream.input_empty?
-    end
-
-    def finish
-      true
     end
 
     def pos
@@ -788,6 +998,8 @@ module Zlib
 
       while chunk = @io.read(CHUNK) do
         data << @zstream.inflate(chunk)
+        @crc = Zlib.crc32 data, @crc
+
         break if length and data.length > length
       end
 
@@ -797,9 +1009,91 @@ module Zlib
         @buffer = ''
       end
 
+      check_footer if @zstream.finished? and not footer_finished?
+
       data
     rescue Zlib::Error => e
       raise GzipFile::Error, e.message
+    end
+
+    def read_header
+      header = @io.read 10
+
+      raise Error, 'not in gzip format' unless header.length == 10
+
+      magic1, magic2, method, flags, @mtime, extra_flags, @os_code =
+        header.unpack 'CCCCVCC'
+
+      unless magic1 == Zlib::GzipFile::MAGIC1 and
+             magic2 == Zlib::GzipFile::MAGIC2 then
+        raise Error, 'not in gzip format'
+      end
+
+      unless method == Zlib::GzipFile::METHOD_DEFLATE then
+        raise Error, "unsupported compression method #{method}"
+      end
+
+      if flags & Zlib::GzipFile::FLAG_MULTIPART ==
+           Zlib::GzipFile::FLAG_MULTIPART then
+        raise Error, 'multi-part gzip file is not supported'
+      end
+
+      if flags & Zlib::GzipFile::FLAG_ENCRYPT ==
+           Zlib::GzipFile::FLAG_ENCRYPT then
+        raise Error, 'encrypted gzip file is not supported'
+      end
+
+      if flags & Zlib::GzipFile::FLAG_UNKNOWN_MASK ==
+           Zlib::GzipFile::FLAG_UNKNOWN_MASK then
+        raise Error, "unknown flags 0x#{flags.to_s 16}"
+      end
+
+      if extra_flags & Zlib::GzipFile::EXTRAFLAG_FAST ==
+           Zlib::GzipFile::EXTRAFLAG_FAST then
+        @level = Zlib::BEST_SPEED
+      elsif extra_flags & Zlib::GzipFile::EXTRAFLAG_SLOW ==
+           Zlib::GzipFile::EXTRAFLAG_SLOW then
+        @level = Zlib::BEST_COMPRESSION
+      else
+        @level = Zlib::DEFAULT_COMPRESSION
+      end
+
+      if flags & Zlib::GzipFile::FLAG_EXTRA == Zlib::GzipFile::FLAG_EXTRA then
+        length = @io.read 2
+        raise Zlib::GzipFile::Error, 'unexpected end of file' if
+          length.nil? or length.length != 2
+
+        length, = length.unpack 'v'
+
+        extra = @io.read length + 2
+
+        raise Zlib::GzipFile::Error, 'unexpected end of file' if
+          extra.nil? or extra.length != length + 2
+      end
+
+      if flags & Zlib::GzipFile::FLAG_ORIG_NAME ==
+           Zlib::GzipFile::FLAG_ORIG_NAME then
+        @orig_name = ''
+
+        c = @io.getc
+
+        until c == 0 do
+          @orig_name << c.chr
+          c = @io.getc
+        end
+      end
+
+      if flags & Zlib::GzipFile::FLAG_COMMENT ==
+           Zlib::GzipFile::FLAG_COMMENT then
+        @comment = ''
+
+        c = @io.getc
+
+        until c == 0 do
+          @comment << c.chr
+          c = @io.getc
+        end
+      end
     end
 
   end
@@ -828,6 +1122,16 @@ module Zlib
   class GzipWriter < GzipFile # HACK use a buffer class
 
     ##
+    # Set the comment
+
+    attr_writer :comment
+
+    ##
+    # Set the original name
+
+    attr_writer :orig_name
+
+    ##
     # Creates a GzipWriter object associated with +io+. +level+ and +strategy+
     # should be the same as the arguments of Zlib::Deflate.new.  The
     # GzipWriter object writes gzipped data to +io+.  At least, +io+ must
@@ -837,23 +1141,25 @@ module Zlib
     def initialize(io, level = Zlib::DEFAULT_COMPRESSION,
                    strategy = Zlib::DEFAULT_STRATEGY)
       @io = io
-      window_bits = Zlib::MAX_WBITS + 16 # gzip header
 
-      @zstream = Zlib::Deflate.new level, window_bits, nil, strategy
+      @zstream = Zlib::Deflate.new level, -Zlib::MAX_WBITS,
+                                   Zlib::DEF_MEM_LEVEL, strategy
 
       @buffer = ''
+
+      super()
     end
 
-    def close
-      finish
-      @io.close if @io.respond_to? :close
+    def end_run
+      make_header unless header_finished?
+
+      @zstream.run '', Zlib::FINISH
+
+      write_raw
+
+      make_footer
+
       nil
-    end
-
-    def finish
-      @io.write @zstream.deflate(@buffer, Zlib::FINISH)
-    rescue Zlib::Error => e
-      raise GzipFile::Error, e.message
     end
 
     ##
@@ -867,11 +1173,99 @@ module Zlib
     end
 
     ##
+    # Writes out a gzip header
+
+    def make_header
+      flags = 0
+      extra_flags = 0
+
+      flags |= Zlib::GzipFile::FLAG_ORIG_NAME if @orig_name
+      flags |= Zlib::GzipFile::FLAG_COMMENT   if @comment
+
+      extra_flags |= Zlib::GzipFile::EXTRAFLAG_FAST if
+        @level == Zlib::BEST_SPEED
+
+      extra_flags |= Zlib::GzipFile::EXTRAFLAG_SLOW if
+        @level == Zlib::BEST_COMPRESSION
+
+      header = [
+        Zlib::GzipFile::MAGIC1,         # byte 0
+        Zlib::GzipFile::MAGIC2,         # byte 1
+        Zlib::GzipFile::METHOD_DEFLATE, # byte 2
+        flags,                          # byte 3
+        @mtime.to_i,                    # bytes 4-7
+        extra_flags,                    # byte 8
+        @os_code                        # byte 9
+      ].pack 'CCCCVCC'
+
+      @io.write header
+
+      @io.write "#{@orig_name}\0" if @orig_name
+      @io.write "#{@comment}\0" if @comment
+
+      @zstream.flags |= Zlib::GzipFile::HEADER_FINISHED
+    end
+
+    ##
+    # Writes out a gzip footer
+
+    def make_footer
+      footer = [
+        @crc,              # bytes 0-3
+        @zstream.total_in, # bytes 4-7
+      ].pack 'VV'
+
+      @io.write footer
+
+      @zstream.flags |= Zlib::GzipFile::FOOTER_FINISHED
+    end
+
+    ##
+    # Sets the modification time of this file
+
+    def mtime=(time)
+      if header_finished? then
+        raise Zlib::GzipFile::Error, 'header is already written'
+      end
+
+      @mtime = Integer time
+    end
+
+    def sync?
+      @zstream.flags & Zlib::GzipFile::SYNC == Zlib::GzipFile::SYNC
+    end
+
+    ##
     # Same as IO.
 
     def write(data)
-      @buffer << data
-      data.length
+      make_header unless header_finished?
+
+      data = String data
+
+      if data.length > 0 or sync? then
+        @crc = Zlib.crc32_c @crc, data, data.length
+
+        flush = sync? ? Zlib::SYNC_FLUSH : Zlib::NO_FLUSH
+
+        @zstream.run data, flush
+      end
+
+      write_raw
+    end
+
+    ##
+    # Same as IO.
+
+    alias << write
+
+    def write_raw
+      data = @zstream.detatch_output
+
+      unless data.empty? then
+        @io.write data
+        @io.flush if sync? and io.respond_to :flush
+      end
     end
 
   end
