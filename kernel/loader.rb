@@ -38,34 +38,22 @@ rescue Object => e
   exit 2
 end
 
+# Set up a handler for SIGINT that raises Interrupt on the main thread
+Signal.action("INT") do |_|
+  thread = Thread.main
+
+  if thread.alive?
+    thread.raise Interrupt, "Thread has been interrupted"
+  else # somehow..?
+    puts "Signal received, but the main thread is dead."
+    puts "Unable to continue."
+    exit! 1
+  end
+end
+
 # This is the end of the kernel and the beginning of specified
 # code. We read out of ARGV to figure out what the user is
 # trying to do.
-
-Signal.action("INT") do |thr|
-  # We can't raise on ourselves, we raise on main.
-  if thr == Thread.current
-    thr = Thread.main
-  end
-
-  # The current thread might be dead if all other live threads are
-  # a sleep when the current one died.
-  unless thr.alive?
-
-    thr = Thread.main
-    # If main is dead too. Wow. Ok.. well... tell the user.
-    unless thr.alive?
-      puts "Signal received, but the main thread is dead."
-      puts "Unable to continue."
-      exit! 1
-    end
-  end
-
-  # Push the output down a little bit, makes things look more
-  # obvious that the system was interrupted.
-  puts
-  thr.raise Interrupt, "Thread has been interrupted"
-end
 
 # Setup $LOAD_PATH.
 
