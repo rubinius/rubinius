@@ -3310,17 +3310,18 @@ perform_no_ss_send:
 
   def shift_tuple
     <<-CODE
-    Tuple* tup = as<Tuple>(stack_pop());
+    t1 = stack_pop();
+    Tuple* tup = as<Tuple>(t1);
     if(NUM_FIELDS(t1) == 0) {
       stack_push(tup);
       stack_push(Qnil);
     } else {
       j = NUM_FIELDS(t1) - 1;
-      t3 = tup->at(0);
+      t2 = tup->at(0);
       Tuple* tup = Tuple::create(state, j);
       tup->copy_from(state, tup, 1, j);
+      stack_push(tup);
       stack_push(t2);
-      stack_push(t3);
     }
     CODE
   end
@@ -3393,8 +3394,10 @@ perform_no_ss_send:
 
   def string_append
     <<-CODE
-    String* s1 = as<String>(stack_pop());
-    String* s2 = as<String>(stack_pop());
+    t1 = stack_pop();
+    t2 = stack_pop();
+    String* s1 = as<String>(t1);
+    String* s2 = as<String>(t2);
     s1->append(state, s2);
     stack_push(t1);
     CODE
