@@ -72,7 +72,7 @@ namespace rubinius {
         /* nil means that the actual method object is 'up' from here */
         if(vis && vis->method->nil_p()) goto keep_looking;
 
-        msg.method = entry;
+        msg.method = as<Executable>(entry);
         msg.module = module;
         break;
       } else if(vis) {
@@ -95,11 +95,11 @@ namespace rubinius {
           goto keep_looking;
         }
 
-        msg.method = entry;
+        msg.method = as<Executable>(entry);
         msg.module = module;
         break;
       } else {
-        msg.method = entry;
+        msg.method = as<Executable>(entry);
         msg.module = module;
         break;
       }

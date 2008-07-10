@@ -36,6 +36,7 @@ namespace rubinius {
     task->sp = -1;
     task->state = state;
     task->probe = state->probe;
+    task->msg = new Message(state);
     SET(task, control_channel, Qnil);
     SET(task, debug_channel, Qnil);
     SET(task, self, G(main));
@@ -45,14 +46,14 @@ namespace rubinius {
     SET(task, home, Qnil);
 
     CompiledMethod* cm = CompiledMethod::generate_tramp(state);
-    MethodContext* ctx = task->generate_context(G(main), cm, cm->vmmethod(state));
+    MethodContext* ctx = task->generate_context(G(main), cm);
 
     SET(task, active, ctx);
 
     return task;
   }
 
-  MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth, VMMethod* vmm) {
+  MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth) {
     MethodContext* ctx = MethodContext::create(state);
 
     SET(ctx, sender, (MethodContext*)Qnil);
@@ -62,7 +63,7 @@ namespace rubinius {
     SET(ctx, stack, Tuple::create(state, meth->stack_size->n2i()));
     SET(ctx, home, ctx);
 
-    ctx->vmm = vmm;
+    ctx->vmm = (VMMethod*)meth->executable;
     ctx->ip = 0;
     ctx->sp = meth->number_of_locals() - 1;
 
@@ -162,7 +163,7 @@ stack_cleanup:
    * of it. */
   bool Task::send_message(Message& msg) {
     if(!msg.send_site->locate(state, msg)) tragic_failure(msg);
-    return as<Executable>(msg.method)->execute(state, this, msg);
+    return msg.method->execute(state, this, msg);
   }
 
   bool Task::send_message_slowly(Message& msg) {
@@ -175,7 +176,7 @@ stack_cleanup:
       }
     }
 
-    return as<Executable>(msg.method)->execute(state, this, msg);
+    return msg.method->execute(state, this, msg);
   }
 
  bool Task::perform_hook(OBJECT obj, SYMBOL name, OBJECT arg) {
@@ -192,7 +193,7 @@ stack_cleanup:
     if(!res.resolve(state, msg)) return false;
 
     MethodContext* cur = active;
-    as<Executable>(msg.method)->execute(state, this, msg);
+    msg.method->execute(state, this, msg);
 
     /* Execute has installed a new active context. */
     if(cur != active) {
@@ -260,7 +261,7 @@ stack_cleanup:
       return vis->method;
     }
 
-    return as<Executable>(msg.method);
+    return msg.method;
   }
 
   void Task::attach_method(OBJECT recv, SYMBOL name, CompiledMethod* method) {
@@ -294,8 +295,8 @@ stack_cleanup:
       if(!ti) {
         ti = new TypeInfo((object_type)0);
       }
-      
-      method->vmmethod(state)->specialize(ti);
+
+      method->specialize(ti);
     }
   }
 

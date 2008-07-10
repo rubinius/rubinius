@@ -17,8 +17,9 @@ namespace rubinius {
     FIXNUM serial; // slot
     VMExecutable* executable;
 
-    void initialize(STATE);
-    bool execute(STATE, Task* cur, Message& msg);
+    bool execute(STATE, Task* task, Message& msg) {
+      return executable->execute(state, task, msg);
+    }
 
     class Info : public TypeInfo {
     public:

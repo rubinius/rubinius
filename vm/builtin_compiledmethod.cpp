@@ -28,6 +28,8 @@ namespace rubinius {
     SET(ss, module, G(object));
     SET(cm, scope, ss);
 
+    cm->formalize(state);
+
     return cm;
   }
 
@@ -35,7 +37,7 @@ namespace rubinius {
     return (MethodVisibility*)state->new_object(G(cmethod_vis));
   }
 
-  VMMethod* CompiledMethod::vmmethod(STATE) {
+  VMMethod* CompiledMethod::formalize(STATE) {
     if(!executable) {
       if(!primitive->nil_p()) {
         if(SYMBOL name = try_as<Symbol>(primitive)) {
@@ -49,7 +51,7 @@ namespace rubinius {
           std::cout << "Invalid primitive id (not a symbol)" << std::endl;
         }
       }
-      VMMethod* vmm = new VMLLVMMethod(state, this);
+      VMMethod* vmm = new VMLLVMMethodUncompiled(state, this);
       executable = vmm;
       return vmm;
     }
@@ -57,8 +59,12 @@ namespace rubinius {
     return dynamic_cast<VMMethod*>(executable);
   }
 
-  void CompiledMethod::post_marshal(STATE) {
+  void CompiledMethod::specialize(TypeInfo* ti) {
+    dynamic_cast<VMMethod*>(executable)->specialize(ti);
+  }
 
+  void CompiledMethod::post_marshal(STATE) {
+    formalize(state); // side-effect, populates executable
   }
 
   size_t CompiledMethod::number_of_locals() {

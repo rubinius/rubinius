@@ -34,8 +34,6 @@
 #include <sstream>
 #include <fstream>
 
-#include "jit_state.h"
-
 #define INLINE_THRESHOLD 1000
 
 namespace rubinius {
@@ -350,17 +348,22 @@ namespace rubinius {
     c_func = (CompiledFunction)engine->getPointerToFunction(func);
   }
 
-  bool VMLLVMMethod::execute(STATE, Task* task, Message& msg) {
-    /* compile it on demand. */
-    if(!function) compile();
-    return VMMethod::execute(state, task, msg);
+  void VMLLVMMethodUncompiled::resume(Task* task, MethodContext* ctx) {
+    VMLLVMMethod* real = new VMLLVMMethod(state, original.get());
+    original->executable = real;
+    ctx->vmm = real;
+
+    delete this;
+
+    real->compile();
+    real->resume(task, ctx);
   }
 
   void VMLLVMMethod::resume(Task* task, MethodContext* ctx) {
     /* compile it on demand. */
-    if(!function) compile();
+    // if(!function) assert(false); // compile();
 
-    struct jit_state js;
+    struct jit_state& js = task->js;
     js.stack = ctx->stack->field + ctx->sp;
     c_func(task, &js, &ctx->ip);
     ctx->sp = js.stack - ctx->stack->field;

@@ -62,11 +62,11 @@ namespace rubinius {
   }
 
   bool VMMethod::execute(STATE, Task* task, Message& msg) {
-    MethodContext* ctx = task->generate_context(msg.recv, original.get(), this);
+    MethodContext* ctx = task->generate_context(msg.recv, original.get());
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);
-    
+
     return true;
   }
 

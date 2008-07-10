@@ -23,7 +23,7 @@ namespace rubinius {
     bool   priv;
 
     Module* lookup_from;
-    OBJECT  method;
+    Executable* method;
     Module* module;
 
     Message(STATE, Array* ary);

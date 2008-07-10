@@ -11,7 +11,7 @@ namespace rubinius {
       task(NULL), argument_start(0), send_site(NULL), name(NULL),
       recv(Qnil), block(Qnil), splat(Qnil), current_self(Qnil),
       args(0), stack(0), priv(false), lookup_from(NULL), 
-      method(Qnil), module(NULL) {
+      method(NULL), module(NULL) {
     this->state = state;
     arguments = ary;
     args = arguments->size();
@@ -22,7 +22,7 @@ namespace rubinius {
       argument_start(0), send_site(NULL), name(NULL),
       recv(Qnil), block(Qnil), splat(Qnil), current_self(Qnil),
       args(0), stack(0), priv(false), lookup_from(NULL), 
-      method(Qnil), module(NULL) { }
+      method(NULL), module(NULL) { }
 
   OBJECT Message::get_argument(size_t index) {
     if(arguments) {

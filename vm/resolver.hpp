@@ -25,7 +25,7 @@ namespace rubinius {
   public:
     Module* klass;
     Module* mod;
-    OBJECT  method;
+    Executable* method;
 
     virtual bool resolve(STATE, Message& msg);
     virtual ~SpecializedResolver() { }
