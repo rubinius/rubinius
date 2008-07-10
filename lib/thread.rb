@@ -233,24 +233,30 @@ class Queue
   #
   def initialize
     @que = []
+    @waiting = []
     @que.taint		# enable tainted comunication
+    @waiting.taint
     self.taint
     @mutex = Mutex.new
-    @resource = ConditionVariable.new
-    @waiting = 0
   end
 
   #
   # Pushes +obj+ to the queue.
   #
   def push(obj)
-    @mutex.synchronize do
+    t = nil
+    @mutex.synchronize{
       @que.push obj
-      begin        
-        @resource.signal
+      begin
+        t = @waiting.shift
+        t.wakeup if t
       rescue ThreadError
         retry
       end
+    }
+    begin
+      t.run if t
+    rescue ThreadError
     end
   end
 
@@ -271,16 +277,15 @@ class Queue
   #
   def pop(non_block=false)
     while true
-      @mutex.synchronize do
-        @waiting -= 1 if @waiting > 0
+      @mutex.synchronize{
         if @que.empty?
           raise ThreadError, "queue empty" if non_block
-          @waiting += 1
-          @resource.wait(@mutex)
+          @waiting.push Thread.current
+          @mutex.sleep
         else
           return @que.shift
         end
-      end
+      }
     end
   end
 
@@ -324,7 +329,7 @@ class Queue
   # Returns the number of threads waiting on the queue.
   #
   def num_waiting
-    @waiting
+    @waiting.size
   end
 end
 
