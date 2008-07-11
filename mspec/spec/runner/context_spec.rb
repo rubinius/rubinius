@@ -231,6 +231,12 @@ describe ContextState, "#process" do
     @state.process
     ScratchPad.recorded.should be_nil
   end
+
+  it "does not raise an ExpectationNotFoundError if the #it block causes a failure" do
+    @state.it("it") { raise Exception, "Failed!" }
+    @state.process
+    ScratchPad.recorded.should be_nil
+  end
 end
 
 describe ContextState, "#process" do

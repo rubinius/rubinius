@@ -73,10 +73,10 @@ class ContextState
 
         if protect("before :each", @before)
           MSpec.clear_expectations
-          protect nil, spec
+          passed = protect nil, spec
           if spec
             MSpec.actions :example, state, spec
-            protect nil, @expectation_missing unless MSpec.expectation?
+            protect nil, @expectation_missing unless MSpec.expectation? or not passed
           end
           protect "after :each", @after
           protect "Mock.verify_count", @mock_verify
