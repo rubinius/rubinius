@@ -14,6 +14,22 @@ Please coordinate with the rubinius team! We only need one incremental
 and one full per platform. Anything more just gets dumped on the
 floor. Save the salmon, etc etc.
 
+Cut to the Chase: How to run a client:
+-------------------------------------
+
+0. Install ZenTest at least version 3.11
+
+1. Follow multiruby setup steps below.
+  * multiruby_setup update:rubygems
+  * multiruby_setup rbx:git:current
+  * multiruby -S gem install --no-ri --no-rdoc mspec
+
+2. cd cluster_test
+3. mkdir ~/work/rubinius-ci
+4. ruby ci.rb -i -d ~/work/rubinius-ci -r rbx
+5. Wait. It's now waiting for a commit.
+
+
 Basic Architecture:
 -------------------
 
