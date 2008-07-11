@@ -1,1 +1,2 @@
 incomplete:Kernel.throw needs to be reviewed for spec completeness
+fails:Kernel.throw raises TypeError if the first argument is not a symbol

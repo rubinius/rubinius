@@ -1,0 +1,2 @@
+fails:StringIO#each_byte updates the position before each yield
+fails:StringIO#each_byte does not yield if the current position is out of bounds

@@ -4,3 +4,7 @@ fails:Predefined global $~ raises an error if assigned an object not nil or inst
 fails:Predefined global $_ is set to the last line read by e.g. Kernel#gets
 fails:Predefined global $_ is set to the last line read by e.g. StringIO#gets
 fails:Predefined global $_ is set at the method-scoped level rather than block-scoped
+fails:Predefined global $stdout is the same as $defout
+fails:Predefined global $stdout is the same as $DEFAULT_OUTPUT from 'English' library
+fails:Predefined global $stdout raises TypeError error if assigned to nil
+fails:Predefined global $stdout raises TypeError error if assigned to object that doesn't respond to #write

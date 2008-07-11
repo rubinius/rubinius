@@ -1,0 +1,1 @@
+fails:SubtendClass rb_obj_call_init should send #initialize

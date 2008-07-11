@@ -1,1 +1,2 @@
 incomplete:CGI::HtmlExtension#textarea needs to be reviewed for spec completeness
+unstable(Causes an Illegal Instruction exception during a full run):CGI::HtmlExtension#textarea needs to be reviewed for spec completeness

@@ -1,0 +1,2 @@
+fails:UDPSocket.bind receives a hostname and a port
+fails:UDPSocket.bind binds to INADDR_ANY if the hostname is empty

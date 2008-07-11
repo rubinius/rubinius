@@ -3,3 +3,5 @@ fails:IO#readpartial raises ArgumentError if the negative argument is provided
 fails:IO#readpartial immediately returns an empty string if the length argument is 0
 fails:IO#readpartial correctly handles previously ungot char and some data in the buffer
 fails:IO#readpartial correctly handles previously ungot char and no data in the buffer
+fails:IO#readpartial reads after ungetc with data in the buffer
+fails:IO#readpartial reads after ungetc without data in the buffer

@@ -1,1 +1,3 @@
 incomplete:File.setuid? needs to be reviewed for spec completeness
+fails:File.setuid? should return false if the file was just made
+fails:File.setuid? should be false if the file doesn't exist

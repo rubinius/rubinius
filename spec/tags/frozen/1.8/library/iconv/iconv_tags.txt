@@ -4,3 +4,5 @@ fails:Iconv.iconv acts exactly as if invoking Iconv#iconv consecutively on the s
 fails:The 'utf-8' decoder rejects surrogate characters
 fails:The 'utf-16' decoder rejects surrogates without pairs
 unstable:Iconv#iconv when given nil resets the converter
+fails:Iconv#iconv when given a positive length
+fails:Iconv#iconv when given a negative length
