@@ -1,4 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
+
+has_tty? do # needed for CI until we figure out a better way
 require 'readline'
 
 describe "Readline::HISTORY.empty?" do
@@ -9,4 +11,5 @@ describe "Readline::HISTORY.empty?" do
     Readline::HISTORY.pop
     Readline::HISTORY.should be_empty
   end
+end
 end

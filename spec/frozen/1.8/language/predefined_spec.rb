@@ -117,9 +117,8 @@ end
 describe "Predefined global $+" do
   it "is equivalent to $~.captures.last" do
     /(f(o)o)/ =~ 'barfoobaz'
-    # causes a compiler exception as of 036b07375
-    # $+.should == $~.captures.last
-    # $+.should == 'o'
+    $+.should == $~.captures.last
+    $+.should == 'o'
   end
 end
 
@@ -132,6 +131,43 @@ describe "Predefined globals $1..N" do
     $4.should == $~[4]
 
     [$1, $2, $3, $4].should == ['f', 'o', 'o', nil]
+  end
+end
+
+describe "Predefined global $stdout" do
+  before(:each) do
+    @old_stdout = $stdout
+  end
+
+  after(:each) do
+    $stdout = @old_stdout
+  end
+
+  it "is the same as $defout" do
+    $stdout.should == $defout
+
+    $stdout = IOStub.new
+    $stdout.should == $defout
+  end
+
+  it "is the same as $DEFAULT_OUTPUT from 'English' library" do
+    require 'English'
+    $stdout.should == $DEFAULT_OUTPUT
+
+    $stdout = IOStub.new
+    $stdout.should == $DEFAULT_OUTPUT
+  end
+
+  it "raises TypeError error if assigned to nil" do
+    lambda { $stdout = nil }.should raise_error(TypeError)
+  end
+
+  it "raises TypeError error if assigned to object that doesn't respond to #write" do
+    obj = mock('object')
+    lambda { $stdout = obj }.should raise_error(TypeError)
+
+    obj.should_receive(:respond_to?).with(:write).and_return(true);
+    lambda { $stdout = obj }.should_not raise_error()
   end
 end
 
@@ -309,10 +345,9 @@ describe "The predefined standard object nil" do
     nil.class.should == NilClass
   end
   
-  it "raises a SyntaxError if assigned to" do
-    # this needs to be tested with a subprocess because
-    # MRI aborts reading in the file
-  end
+  # this needs to be tested with a subprocess because
+  # MRI aborts reading in the file
+  it "raises a SyntaxError if assigned to"
 end
 
 describe "The predefined standard object true" do
@@ -320,10 +355,9 @@ describe "The predefined standard object true" do
     true.class.should == TrueClass
   end
   
-  it "raises a SyntaxError if assigned to" do
-    # this needs to be tested with a subprocess because
-    # MRI aborts reading in the file
-  end
+  # this needs to be tested with a subprocess because
+  # MRI aborts reading in the file
+  it "raises a SyntaxError if assigned to"
 end
 
 describe "The predefined standard object false" do
@@ -331,10 +365,9 @@ describe "The predefined standard object false" do
     false.class.should == FalseClass
   end
   
-  it "raises a SyntaxError if assigned to" do
-    # this needs to be tested with a subprocess because
-    # MRI aborts reading in the file
-  end
+  # this needs to be tested with a subprocess because
+  # MRI aborts reading in the file
+  it "raises a SyntaxError if assigned to"
 end
 
 =begin

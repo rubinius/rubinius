@@ -14,7 +14,7 @@ describe "Bignum#size" do
       (256**40-1).size.should == 40
     end
 
-    compliant_on(:rubinius) do
+    compliant_on(:rubinius, :jruby) do
       (256**7).size.should == 8
       (256**8).size.should == 9
       (256**9).size.should == 10

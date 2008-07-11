@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'mathn'
 
 describe "Rational#power2 when passed [Rational]" do
-  ruby_bug "#", "1.8.7.17" do
+  ruby_bug "#175", "1.8.7" do
     it "returns Rational.new!(1, 1) when the passed argument is 0" do
       (Rational.new!(3, 4).power2(Rational.new!(0, 3))).should == Rational.new!(1, 1)
       (Rational.new!(-3, 4).power2(Rational.new!(0, 3))).should == Rational.new!(1, 1)
@@ -25,7 +25,7 @@ describe "Rational#power2 when passed [Rational]" do
     (Rational.new!(0,1).power2(Rational.new!(-2, -3))).should == Rational.new!(0, 1)
   end
 
-  ruby_bug "#", "1.8.7.17" do
+  ruby_bug "#175", "1.8.7" do
     it "returns the Rational value of self raised to the passed argument" do
       (Rational.new!(1, 4).power2(Rational.new!(1, 2))).should == Rational.new!(1, 2)
       (Rational.new!(1, 4).power2(Rational.new!(1, -2))).should == Rational.new!(2, 1)

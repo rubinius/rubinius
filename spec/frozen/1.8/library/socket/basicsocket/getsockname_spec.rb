@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "Socket::BasicSocket#getsockname" do
-  
   after :each do
     @socket.close unless @socket.closed?
   end
@@ -16,10 +15,11 @@ describe "Socket::BasicSocket#getsockname" do
   end
 
   it "works on server sockets" do
-    @server = TCPServer.new(SocketSpecs.port)
-    sockaddr = Socket.unpack_sockaddr_in(@server.getsockname)
-    sockaddr.should == [SocketSpecs.port, "0.0.0.0"]
-    @server.close
+    @socket = TCPServer.new(SocketSpecs.port)
+    sockaddr = Socket.unpack_sockaddr_in(@socket.getsockname)
+    [SocketSpecs.port, "0.0.0.0"]
+    ["0.0.0.0", "::"].include?(sockaddr[1]).should be_true
+    sockaddr[0].should == SocketSpecs.port
   end
 
   it "returns empty sockaddr for unbinded sockets" do

@@ -3,19 +3,7 @@ require File.dirname(__FILE__) + '/shared/mult'
 require 'bigdecimal'
 
 describe "BigDecimal#mult" do
-  # BigDecimal#mult with precision shares some behavior with BigDecimal#*
-  begin
-    class BigDecimal
-      def mult_with_precision(arg)
-        mult(arg, 10)
-      end
-    end
-    it_behaves_like(:bigdecimal_mult, :mult_with_precision, :mult)
-  ensure
-    class BigDecimal
-      undef mult_with_precision
-    end
-  end
+  it_behaves_like(:bigdecimal_mult, :mult, 10)
 end
 
 describe "BigDecimal#mult" do

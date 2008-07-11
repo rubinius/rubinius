@@ -7,6 +7,5 @@ describe "File::Stat#pipe?" do
 end
 
 describe "File::Stat#pipe?" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

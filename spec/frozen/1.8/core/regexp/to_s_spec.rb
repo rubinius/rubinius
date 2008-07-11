@@ -1,10 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Regexp#to_s" do
-  def parts_for(regex)
-    Regexp::SourceParser.new(regex.source).parts.map{|part| part.source}
-  end
-
   it "should display options if included" do
      /abc/mxi.to_s.should == "(?mix:abc)"
    end
@@ -46,4 +42,9 @@ describe "Regexp#to_s" do
     /(?i:.)/.to_s.should == "(?i-mx:.)"
     /(?:.)/.to_s.should == "(?-mix:.)"
   end
+
+  it "handles abusive option groups" do
+    /(?mmmmix-miiiix:)/.to_s.should == '(?-mix:)'
+  end
+
 end

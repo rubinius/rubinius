@@ -28,6 +28,6 @@ describe "Socket::BasicSocket#getpeername" do
 
   # Catch general exceptions to prevent NotImplementedError
   it "raises an error if socket's not connected" do
-    lambda { server.getpeername }.should raise_error(Exception)
+    lambda { @server.getpeername }.should raise_error(Exception)
   end
 end

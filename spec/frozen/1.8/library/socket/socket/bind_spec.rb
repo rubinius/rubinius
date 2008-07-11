@@ -14,7 +14,6 @@ describe "Socket#bind" do
     @sock.close unless @sock.closed?
   end                           
 
-  # TODO: Needs to actually check something.
   it "binds to a port" do
     sockaddr = Socket.pack_sockaddr_in(SocketSpecs.port, "127.0.0.1");
     lambda { @sock.bind(sockaddr) }.should_not raise_error

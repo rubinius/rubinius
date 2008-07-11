@@ -33,8 +33,6 @@ describe "REXML::Document#new" do
   end
 
   it "does not perform XML validation" do
-    lambda {s = REXML::Document.new("Invalid document")}
+    REXML::Document.new("Invalid document").should be_kind_of(REXML::Document)
   end
 end
-
-

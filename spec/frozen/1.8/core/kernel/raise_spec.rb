@@ -8,6 +8,5 @@ describe "Kernel#raise" do
 end
 
 describe "Kernel.raise" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

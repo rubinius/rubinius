@@ -14,11 +14,9 @@ describe "Kernel#chop!" do
 end
 
 describe "Kernel.chop" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end
 
 describe "Kernel.chop!" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

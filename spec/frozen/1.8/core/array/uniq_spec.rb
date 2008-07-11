@@ -17,7 +17,7 @@ describe "Array#uniq" do
     y = mock('0')
     def y.hash() 0 end
   
-    [x, y].uniq
+    [x, y].uniq.should == [x, y]
   end
   
   it "does not compare elements with different hash codes via eql?" do
@@ -99,7 +99,7 @@ describe "Array#uniq!" do
     end
 
     it "does not raise TypeError on a frozen array if no modification takes place" do
-      ArraySpecs.frozen_array.uniq! # ok, already uniq
+      ArraySpecs.frozen_array.uniq!.should be_nil
     end
   end
 end

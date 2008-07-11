@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'stringio'
 require 'zlib'
 
-describe "GzipReader#write" do
+describe "GzipWriter#write" do
 
   before :each do
     @data = '12345abcde'
@@ -11,9 +11,9 @@ describe "GzipReader#write" do
   end
 
   it "writes some compressed data" do
-    gz = Zlib::GzipWriter.new @io
-    gz.write @data
-    gz.close
+    Zlib::GzipWriter.wrap @io do |gzio|
+      gzio.write @data
+    end
 
     # skip gzip header for now
     @io.string[10..-1].should == @zip[10..-1]

@@ -12,6 +12,7 @@ describe "BigDecimal#precs" do
 
     @arr = [BigDecimal("2E40001"), BigDecimal("3E-20001"),\
             @infinity, @infinity_neg, @nan, @zero, @zero_neg]
+    @precision = BigDecimal::BASE.to_s.length - 1
   end
 
   it "returns array of two values" do
@@ -32,16 +33,16 @@ describe "BigDecimal#precs" do
     BigDecimal("3.14159").precs[0].should >= 6
     BigDecimal('1').precs[0].should == BigDecimal('1' + '0' * 100).precs[0]
     [@infinity, @infinity_neg, @nan, @zero, @zero_neg].each do |value|
-      value.precs[0].should <= 4
+      value.precs[0].size.should <= @precision
     end
   end
 
   it "returns the maximum number of significant digits as the second value" do
     BigDecimal("3.14159").precs[1].should >= 6
-    BigDecimal('1').precs[1].should < 10
+    BigDecimal('1').precs[1].size.should <= @precision
     BigDecimal('1' + '0' * 100).precs[1] >= 101
     [@infinity, @infinity_neg, @nan, @zero, @zero_neg].each do |value|
-      value.precs[1].should <= 8
+      value.precs[1].size.should <= @precision
     end
   end
 end

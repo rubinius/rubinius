@@ -40,7 +40,7 @@ describe "Array#concat" do
     end
 
     it "does not raise a TypeError when Array is frozen but no modification occurs" do
-      ArraySpecs.frozen_array.concat [] # ok, no modification
+      ArraySpecs.frozen_array.concat([]).should == [1, 2, 3]
     end
   end
 end

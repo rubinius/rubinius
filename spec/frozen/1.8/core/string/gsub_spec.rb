@@ -259,7 +259,7 @@ describe "String#gsub with pattern and block" do
 
   it "raises a RuntimeError if the string is modified while substituting" do
     str = "hello"
-    raise_error(RuntimeError) { str.gsub(//) { str[0] = 'x' } }
+    lambda { str.gsub(//) { str[0] = 'x' } }.should raise_error(RuntimeError)
   end
   
   it "doesn't interpolate special sequences like \\1 for the block's return value" do

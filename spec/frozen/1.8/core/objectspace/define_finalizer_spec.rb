@@ -1,26 +1,25 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures'
 
-describe "ObjectSpace#define_finalizer" do
-  it "takes a proc and ignores the block" do
-    lambda {
-      ObjectSpace.define_finalizer("", proc { 1 }) do
-        2
-      end
-    }.should_not raise_error(ArgumentError)
-  end
-
-  it "complains if the action doesn't respond to call" do
+# NOTE: A call to define_finalizer does not guarantee that the
+# passed proc or callable will be called at any particular time.
+# It is highly questionable whether these aspects of ObjectSpace
+# should be spec'd at all.
+describe "ObjectSpace.define_finalizer" do
+  it "raises an ArgumentError if the action does not respond to call" do
     lambda { 
       ObjectSpace.define_finalizer("", 3)
     }.should raise_error(ArgumentError)
   end
 
-  it "causes calls with the object_id when the object is dead" do
-    handler = ObjectSpaceFixtures.make_finalizer
-    ObjectSpace.define_finalizer ObjectSpaceFixtures.garbage, handler
-    3.times { GC.start }
+  it "accepts an object and a proc" do
+    handler = lambda { |obj| obj }
+    ObjectSpace.define_finalizer("garbage", handler).should == [0, handler]
+  end
 
-    ObjectSpaceFixtures.last_objid == ObjectSpaceFixtures.garbage_objid
+  it "accepts an object and a callable" do
+    handler = mock("callable")
+    def handler.call(obj) end
+    ObjectSpace.define_finalizer("garbage", handler).should == [0, handler]
   end
 end

@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.new" do
   before :each do
-    @file = 'test.txt'
+    @file = tmp('test.txt')
     @fh = nil
     @flags = File::CREAT | File::TRUNC | File::WRONLY
     File.open(@file, "w") {} # touch
@@ -112,14 +112,10 @@ describe "File.new" do
   end
 
   it "coerces filename using to_str" do
-    f = Object.new
-    def f.to_str; __FILE__; end
-
-    begin
-      file = File.new(f)
-    ensure
-      file.close if file
-    end
+    name = mock("file")
+    name.should_receive(:to_str).and_return(@file)
+    File.new(name, "w") { }
+    File.exists?(@file).should == true
   end
 
   specify  "expected errors " do

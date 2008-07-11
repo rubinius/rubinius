@@ -26,6 +26,6 @@ describe "Net::HTTP#do_finish" do
   end
   
   it "raises no error when self has not been started yet" do
-    @http.send(:do_finish)
+    @http.send(:do_finish).should be_nil
   end
 end

@@ -1,4 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
+
+has_tty? do # needed for CI until we figure out a better way
 require 'readline'
 
 describe "Readline::HISTORY.push" do
@@ -22,4 +24,5 @@ describe "Readline::HISTORY.push" do
   it "raises a TypeError when the passed Object can't be converted to a String" do
     lambda { Readline::HISTORY.push(mock("Object")) }.should raise_error(TypeError)
   end
+end
 end

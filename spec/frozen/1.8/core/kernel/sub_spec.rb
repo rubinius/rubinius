@@ -14,11 +14,9 @@ describe "Kernel#sub!" do
 end
 
 describe "Kernel.sub" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end
 
 describe "Kernel.sub!" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

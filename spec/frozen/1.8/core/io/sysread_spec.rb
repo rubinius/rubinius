@@ -66,9 +66,10 @@ describe "IO#sysread on a file" do
     @file.syswrite("abcde")
     lambda { @file.sysread(5) }.should_not raise_error(IOError)
   end
-  
-  it "flushes write buffer when called immediately after a buffered IO#write" do
+
+  it "reads updated content after the flushed buffered IO#write" do
     @file.write("abcde")
+    @file.flush
     @file.sysread(5).should == "56789"
     File.open(@file_name) do |f|
       f.sysread(10).should == "abcde56789"

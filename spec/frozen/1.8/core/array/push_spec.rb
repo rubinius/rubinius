@@ -23,7 +23,7 @@ describe "Array#push" do
     end
 
     it "does not raise on a frozen array if no modification is made" do
-      ArraySpecs.frozen_array.push() # ok
+      ArraySpecs.frozen_array.push.should == [1, 2, 3]
     end
   end
 end

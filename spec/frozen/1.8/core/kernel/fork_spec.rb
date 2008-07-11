@@ -8,6 +8,5 @@ describe "Kernel#fork" do
 end
 
 describe "Kernel.fork" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

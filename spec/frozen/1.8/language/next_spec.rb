@@ -1,12 +1,21 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+class NextSpecs
+  def self.yielding_method(expected)
+    yield.should == expected
+    :method_return_value
+  end
+end
+
 describe "The next statement" do
   it "raises a LocalJumpError if used not within block or while/for loop" do
     def bad_meth; next; end
     lambda { bad_meth }.should raise_error(LocalJumpError)
   end
+end
 
-  it "ends block execution if used within block" do
+describe "The next statement from within the block" do
+  it "ends block execution" do
     a = []
     lambda {
       a << 1
@@ -16,13 +25,55 @@ describe "The next statement" do
     a.should == [1]
   end
 
-  it "causes block to return nil" do
+  it "causes block to return nil if invoked without arguments" do
     lambda { 123; next; 456 }.call.should == nil
   end
 
   it "returns the argument passed" do
     lambda { 123; next 234; 345 }.call.should == 234
   end
+
+  it "returns to the invoking method" do
+    NextSpecs.yielding_method(nil) { next }.should == :method_return_value
+  end
+
+  it "returns to the invoking method, with the specified value" do
+    NextSpecs.yielding_method(nil) {
+      next nil;
+      fail("next didn't end the block execution")
+    }.should == :method_return_value
+
+    NextSpecs.yielding_method(1) {
+      next 1
+      fail("next didn't end the block execution")
+    }.should == :method_return_value
+
+    NextSpecs.yielding_method([1, 2, 3]) {
+      next 1, 2, 3
+      fail("next didn't end the block execution")
+    }.should == :method_return_value
+  end
+
+  it "returns to the currently yielding method in case of chained calls" do
+    class ChainedNextTest
+      def self.meth_with_yield(&b)
+        yield.should == :next_return_value
+        :method_return_value
+      end
+      def self.invoking_method(&b)
+        meth_with_yield(&b)
+      end
+      def self.enclosing_method
+        invoking_method do
+          next :next_return_value
+          :wrong_return_value
+        end
+      end
+    end
+
+    ChainedNextTest.enclosing_method.should == :method_return_value
+  end
+
 end
 
 describe "Assignment via next" do

@@ -27,7 +27,7 @@ describe "REXML::Element#delete_element" do
 
   # According to the docs this should return the deleted element
   # but it won't if it's an Element.
-  ruby_bug "#", "1.8.6.114" do
+  ruby_bug "REXMLTracker#161", "1.8" do
     it "deletes Element and returns it" do
       node = REXML::Element.new("some_node")
       @root.add_element node

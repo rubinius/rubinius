@@ -2,62 +2,104 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#instance_variable_get" do
-  it "returns the value of the instance variable" do
-    class Fred 
-      def initialize(p1, p2) 
-        @a, @b = p1, p2 
-      end 
-    end 
-    fred = Fred.new('cat', 99) 
-    fred.instance_variable_get(:@a).should == "cat"
-    fred.instance_variable_get("@b").should == 99
-
-    a = []
-    a.instance_variable_set(:@c, 1)
-    a.instance_variable_get(:@c).should == 1
-  end
-
-  it "returns nil if the instance variable does not exist" do
-    [].instance_variable_get(:@c).should == nil
-  end
-
-  it "raises a NameError exception if the argument is not of form '@x'" do
-    class NoFred; end
-    lambda { NoFred.new.instance_variable_get(:c) }.should raise_error(NameError)
-    lambda { [].instance_variable_get(:c) }.should raise_error(NameError)
-  end
-
-  it "raises an ArgumentError if the instance variable name is a Fixnum" do
-    lambda { "".instance_variable_get(1) }.should raise_error(ArgumentError)
+  before(:each) do
+    @obj = Object.new
+    @obj.instance_variable_set("@test", :test)
   end
   
-  it "raises a TypeError if the instance variable name is an object that does not respond to to_str" do
-    class KernelSpecs::A; end
-    lambda { "".instance_variable_get(KernelSpecs::A.new) }.should raise_error(TypeError)
+  it "tries to convert the passed argument to a String using #to_str" do
+    obj = mock("to_str")
+    obj.should_receive(:to_str).and_return("@test")
+    @obj.instance_variable_get(obj)
+  end
+
+  it "returns the value of the passed instance variable that is referred to by the conversion result" do
+    obj = mock("to_str")
+    obj.stub!(:to_str).and_return("@test")
+    @obj.instance_variable_get(obj).should == :test
   end
   
-  it "raises a NameError if the passed object, when coerced with to_str, does not start with @" do
-    class KernelSpecs::B
-      def to_str
-        ":c"
-      end
+  it "returns nil when the referred instance variable does not exist" do
+    @obj.instance_variable_get(:@does_not_exist).should be_nil
+  end
+  
+  it "raises a TypeError when the passed argument does not respond to #to_str" do
+    lambda { @obj.instance_variable_get(Object.new) }.should raise_error(TypeError)
+  end
+  
+  it "raises a TypeError when the passed argument can't be converted to a String" do
+    obj = mock("to_str")
+    obj.stub!(:to_str).and_return(123)
+    lambda { @obj.instance_variable_get(obj) }.should raise_error(TypeError)
+  end
+  
+  it "raises a NameError when the conversion result does not start with an '@'" do
+    obj = mock("to_str")
+    obj.stub!(:to_str).and_return("test")
+    lambda { @obj.instance_variable_get(obj) }.should raise_error(NameError)
+  end
+end
+
+describe "Kernel#instance_variable_get when passed Symbol" do
+  before(:each) do
+    @obj = Object.new
+    @obj.instance_variable_set("@test", :test)
+  end
+
+  it "returns the value of the instance variable that is referred to by the passed Symbol" do
+    @obj.instance_variable_get(:@test).should == :test
+  end
+  
+  it "raises a NameError when the passed Symbol does not start with an '@'" do
+    lambda { @obj.instance_variable_get(:test) }.should raise_error(NameError)
+  end
+end
+
+describe "Kernel#instance_variable_get when passed String" do
+  before(:each) do
+    @obj = Object.new
+    @obj.instance_variable_set("@test", :test)
+  end
+
+  it "returns the value of the instance variable that is referred to by the passed String" do
+    @obj.instance_variable_get("@test").should == :test
+  end
+  
+  it "raises a NameError when the passed String does not start with an '@'" do
+    lambda { @obj.instance_variable_get("test") }.should raise_error(NameError)
+  end
+end
+
+describe "Kernel#instance_variable_get when passed Fixnum" do
+  before(:each) do
+    @obj = Object.new
+    @obj.instance_variable_set("@test", :test)
+  end
+
+  compliant_on :rubinius do
+    it "always raises an ArgumentError" do
+      lambda { @obj.instance_variable_get(0) }.should raise_error(ArgumentError)
+      lambda { @obj.instance_variable_get(10) }.should raise_error(ArgumentError)
+      lambda { @obj.instance_variable_get(100) }.should raise_error(ArgumentError)
+      lambda { @obj.instance_variable_get(-100) }.should raise_error(ArgumentError)
     end
-    lambda { "".instance_variable_get(KernelSpecs::B.new) }.should raise_error(NameError)
   end
   
-  it "raises a NameError if pass an object that cannot be a symbol" do
-    lambda { "".instance_variable_get(:c) }.should raise_error(NameError)
-  end
-  
-  it "accepts as instance variable name any instance of a class that responds to to_str" do
-    class KernelSpecs::C
-      def initialize
-        @a = 1
-      end
-      def to_str
-        "@a"
-      end
+  not_compliant_on :rubinius do
+    it "tries to convert the passed Integer to a Symbol and returns the instance variable that is referred by the Symbol" do
+      @obj.instance_variable_get(:@test.to_i).should == :test
     end
-    KernelSpecs::C.new.instance_variable_get(KernelSpecs::C.new).should == 1
+    
+    it "outputs a warning" do
+      lambda { @obj.instance_variable_get(:@test.to_i) }.should complain(/#{"do not use Fixnums as Symbols"}/)
+    end
+    
+    it "raises an ArgumentError when the passed Fixnum can't be converted to a Symbol" do
+      lambda { @obj.instance_variable_get(-10) }.should raise_error(ArgumentError)
+    end
+    
+    it "raises a NameError when the Symbol does not start with an '@'" do
+      lambda { @obj.instance_variable_get(:test.to_i) }.should raise_error(NameError)
+    end
   end
 end

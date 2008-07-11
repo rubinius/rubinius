@@ -128,7 +128,7 @@ describe "StringIO#reopen when passed [Object, Object]" do
     @io.string.should == "reopened"
   end
 
-  ruby_bug "#", "1.8.7.17" do
+  ruby_bug "#", "1.8.7" do
     it "resets self's position to 0" do
       @io.read(5)
       @io.reopen("reopened")
@@ -195,7 +195,7 @@ describe "StringIO#reopen when passed [String]" do
     @io.tainted?.should be_false
   end
 
-  ruby_bug "#", "1.8.7.17" do
+  ruby_bug "#", "1.8.7" do
     it "resets self's position to 0" do
       @io.read(5)
       @io.reopen("reopened")
@@ -259,7 +259,7 @@ describe "StringIO#reopen when passed no arguments" do
     @io.closed_write?.should be_false
   end
   
-  ruby_bug "#", "1.8.7.17" do
+  ruby_bug "#", "1.8.7" do
     it "resets self's position to 0" do
       @io.read(5)
       @io.reopen

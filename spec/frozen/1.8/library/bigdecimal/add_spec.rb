@@ -20,6 +20,7 @@ describe "BigDecimal#add" do
     @frac_2 = BigDecimal("0.9E-99999")
     @frac_3 = BigDecimal("12345E10")
     @frac_4 = BigDecimal("98765E10")
+    @dot_ones = BigDecimal("0.1111111111")
   end
 
   it "returns a + b with given precision" do
@@ -38,7 +39,6 @@ describe "BigDecimal#add" do
     @frac_3.add(@frac_4, 4).should == BigDecimal("0.1111E16")
     @frac_3.add(@frac_4, 5).should == BigDecimal("0.11111E16")
     @frac_3.add(@frac_4, 6).should == BigDecimal("0.11111E16")
-    @dot_ones = BigDecimal("0.1111111111")
   end
 
   it "returns a + [Fixnum value] with given precision" do

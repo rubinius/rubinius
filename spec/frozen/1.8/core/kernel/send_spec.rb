@@ -51,7 +51,7 @@ describe "Kernel#send" do
 
     lambda { KernelSpecs::Foo.new.send(:bar, :arg) }.should raise_error(ArgumentError)
   end
-  
+
   it "raises an ArgumentError if called with fewer arguments than required parameters" do
     class KernelSpecs::Foo
       def foo(arg); end
@@ -59,62 +59,42 @@ describe "Kernel#send" do
 
     lambda { KernelSpecs::Foo.new.send(:foo) }.should raise_error(ArgumentError)
   end
-  
+
   it "succeeds if passed an arbitrary number of arguments as a splat parameter" do
     class KernelSpecs::Foo
-      def baz(*args); end
+      def baz(*args) args end
     end
-    
+
     begin
-      KernelSpecs::Foo.new.send(:baz)
-    rescue
-      fail
-    end
-    
-    begin
-      KernelSpecs::Foo.new.send(:baz, :quux)
-    rescue
-      fail
-    end
-    
-    begin
-      KernelSpecs::Foo.new.send(:baz, :quux, :foo)
+      KernelSpecs::Foo.new.send(:baz).should == []
+      KernelSpecs::Foo.new.send(:baz, :quux).should == [:quux]
+      KernelSpecs::Foo.new.send(:baz, :quux, :foo).should == [:quux, :foo]
     rescue
       fail
     end
   end
-  
+
   it "succeeds when passing 1 or more arguments as a required and a splat parameter" do
     class KernelSpecs::Foo
-      def foo(first, *rest); end
-    end
-    
-    begin
-      KernelSpecs::Foo.new.send(:baz, :quux)
-    rescue
-      fail
+      def foo(first, *rest) [first, *rest] end
     end
 
     begin
-      KernelSpecs::Foo.new.send(:baz, :quux, :foo)
+      KernelSpecs::Foo.new.send(:baz, :quux).should == [:quux]
+      KernelSpecs::Foo.new.send(:baz, :quux, :foo).should == [:quux, :foo]
     rescue
       fail
     end
   end
-  
+
   it "succeeds when passing 0 arguments to a method with one parameter with a default" do
     class KernelSpecs::Foo
-      def foo(first = true); end
-    end
-    
-    begin
-      KernelSpecs::Foo.new.send(:foo)
-    rescue
-      fail
+      def foo(first = true) first end
     end
 
     begin
-      KernelSpecs::Foo.new.send(:foo, :arg)
+      KernelSpecs::Foo.new.send(:foo).should == true
+      KernelSpecs::Foo.new.send(:foo, :arg).should == :arg
     rescue
       fail
     end

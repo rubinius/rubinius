@@ -1,7 +1,7 @@
 require 'bigdecimal'
 
-shared :bigdecimal_mult do |cmd, name|
-  describe "BigDecimal##{name ? name : cmd}" do
+shared :bigdecimal_mult do |cmd, *args|
+  describe "BigDecimal##{cmd}" do
     before :each do
       @zero = BigDecimal "0"
       @zero_pos = BigDecimal "+0"
@@ -34,26 +34,26 @@ shared :bigdecimal_mult do |cmd, name|
     end
 
     it "returns zero of appropriate sign if self or argument is zero" do
-      @zero.send(cmd, @zero).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
-      @zero_neg.send(cmd, @zero_neg).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
-      @zero.send(cmd, @zero_neg).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
-      @zero_neg.send(cmd, @zero).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
+      @zero.send(cmd, @zero, *args).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+      @zero_neg.send(cmd, @zero_neg, *args).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+      @zero.send(cmd, @zero_neg, *args).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
+      @zero_neg.send(cmd, @zero, *args).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
 
-      @one.send(cmd, @zero).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
-      @one.send(cmd, @zero_neg).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
+      @one.send(cmd, @zero, *args).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+      @one.send(cmd, @zero_neg, *args).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
 
-      @zero.send(cmd, @one).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
-      @zero.send(cmd, @one_minus).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
-      @zero_neg.send(cmd, @one_minus).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
-      @zero_neg.send(cmd, @one).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
+      @zero.send(cmd, @one, *args).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+      @zero.send(cmd, @one_minus, *args).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
+      @zero_neg.send(cmd, @one_minus, *args).sign.should == BigDecimal::SIGN_POSITIVE_ZERO
+      @zero_neg.send(cmd, @one, *args).sign.should == BigDecimal::SIGN_NEGATIVE_ZERO
     end
 
     it "returns NaN if NaN is involved" do
       values = @regular_vals + @zeroes
 
       values.each do |val|
-        @nan.send(cmd, val).nan?.should == true
-        val.send(cmd, @nan).nan?.should == true
+        @nan.send(cmd, val, *args).nan?.should == true
+        val.send(cmd, @nan, *args).nan?.should == true
       end
     end
 
@@ -62,10 +62,10 @@ shared :bigdecimal_mult do |cmd, name|
 
       values.each do |val|
         @zeroes.each do |zero|
-          zero.send(cmd, val).should == 0
-          zero.send(cmd, val).zero?.should == true
-          val.send(cmd, zero).should == 0
-          val.send(cmd, zero).zero?.should == true
+          zero.send(cmd, val, *args).should == 0
+          zero.send(cmd, val, *args).zero?.should == true
+          val.send(cmd, zero, *args).should == 0
+          val.send(cmd, zero, *args).zero?.should == true
         end
       end
     end
@@ -76,24 +76,24 @@ shared :bigdecimal_mult do |cmd, name|
 
       values.each do |val|
         infs.each do |inf|
-          inf.send(cmd, val).finite?.should == false
-          val.send(cmd, inf).finite?.should == false
+          inf.send(cmd, val, *args).finite?.should == false
+          val.send(cmd, inf, *args).finite?.should == false
         end
       end
 
-      @infinity.send(cmd, @infinity).infinite?.should == 1
-      @infinity_minus.send(cmd, @infinity_minus).infinite?.should == 1
-      @infinity.send(cmd, @infinity_minus).infinite?.should == -1
-      @infinity_minus.send(cmd, @infinity).infinite?.should == -1
-      @infinity.send(cmd, @one).infinite?.should == 1
-      @infinity_minus.send(cmd, @one).infinite?.should == -1
+      @infinity.send(cmd, @infinity, *args).infinite?.should == 1
+      @infinity_minus.send(cmd, @infinity_minus, *args).infinite?.should == 1
+      @infinity.send(cmd, @infinity_minus, *args).infinite?.should == -1
+      @infinity_minus.send(cmd, @infinity, *args).infinite?.should == -1
+      @infinity.send(cmd, @one, *args).infinite?.should == 1
+      @infinity_minus.send(cmd, @one, *args).infinite?.should == -1
     end
 
     it "returns NaN if the result is undefined" do
-      @zero.send(cmd, @infinity).nan?.should == true
-      @zero.send(cmd, @infinity_minus).nan?.should == true
-      @infinity.send(cmd, @zero).nan?.should == true
-      @infinity_minus.send(cmd, @zero).nan?.should == true
+      @zero.send(cmd, @infinity, *args).nan?.should == true
+      @zero.send(cmd, @infinity_minus, *args).nan?.should == true
+      @infinity.send(cmd, @zero, *args).nan?.should == true
+      @infinity_minus.send(cmd, @zero, *args).nan?.should == true
     end
 
   end

@@ -1,5 +1,5 @@
 module ProcSpecs
-  def self.returner
-    Proc.new { return }.call
+  def self.new_proc_in_method
+    Proc.new
   end
 end

@@ -1,6 +1,5 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
-require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "Socket::BasicSocket#close_write" do
   before :each do

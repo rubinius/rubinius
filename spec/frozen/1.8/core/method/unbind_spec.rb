@@ -18,7 +18,7 @@ describe "Method#unbind" do
     deviates_on(:rubinius) do
       name.should == "#<UnboundMethod: MethodSpecs::MySub#bar (defined in MethodSpecs::MyMod)>"
     end
-    deviates_on(:ruby) do
+    compliant_on(:ruby, :jruby) do
       name.should == "#<UnboundMethod: MethodSpecs::MySub(MethodSpecs::MyMod)#bar>"
     end
   end

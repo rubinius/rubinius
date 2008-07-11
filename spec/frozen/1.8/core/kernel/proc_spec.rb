@@ -11,6 +11,5 @@ describe "Kernel.proc" do
 end
 
 describe "Kernel#proc" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

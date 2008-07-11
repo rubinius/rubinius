@@ -37,6 +37,5 @@ describe "Kernel#Array" do
 end
 
 describe "Kernel.Array" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

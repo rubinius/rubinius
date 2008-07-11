@@ -25,8 +25,79 @@ describe "The break statement" do
   end
 end
 
+describe "Executing break from within a block" do
+  it "returns from the invoking singleton method" do
+    obj = Object.new
+    def obj.meth_with_block
+      yield
+      fail("break didn't break from the singleton method")
+    end
+    obj.meth_with_block { break :value }.should == :value
+  end
+
+  it "returns from the invoking method with the argument to break" do
+    class BreakTest
+      def self.meth_with_block
+        yield
+        fail("break didn't break from the method")
+      end
+    end
+    BreakTest.meth_with_block { break :value }.should == :value
+  end
+
+  # Discovered in JRuby (see JRUBY-2756)
+  it "returns from the original invoking method even in case of chained calls" do
+    class BreakTest
+      # case #1: yield
+      def self.meth_with_yield(&b)
+        yield
+        fail("break returned from yield to wrong place")
+      end
+      def self.invoking_method(&b)
+        meth_with_yield(&b)
+        fail("break returned from 'meth_with_yield' method to wrong place")
+      end
+
+      # case #2: block.call
+      def self.meth_with_block_call(&b)
+        b.call
+        fail("break returned from b.call to wrong place")
+      end
+      def self.invoking_method2(&b)
+        meth_with_block_call(&b)
+        fail("break returned from 'meth_with_block_call' method to wrong place")
+      end
+    end
+
+    # this calls a method that calls another method that yields to the block
+    BreakTest.invoking_method do
+      break
+      fail("break didn't, well, break")
+    end
+
+    # this calls a method that calls another method that calls the block
+    BreakTest.invoking_method2 do
+      break
+      fail("break didn't, well, break")
+    end
+
+    res = BreakTest.invoking_method do
+      break :return_value
+      fail("break didn't, well, break")
+    end
+    res.should == :return_value
+
+    res = BreakTest.invoking_method2 do
+      break :return_value
+      fail("break didn't, well, break")
+    end
+    res.should == :return_value
+
+  end
+end
+
 describe "Breaking out of a loop with a value" do
-  
+
   it "assigns objects" do
     a = loop do break; end;          a.should == nil
     a = loop do break nil; end;      a.should == nil
@@ -65,7 +136,7 @@ describe "Breaking out of a loop with a value" do
     *a = loop do break [1,2]; end;    a.should == [[1,2]]
     *a = loop do break [*[]]; end;    a.should == [[]]
     *a = loop do break [*[1]]; end;   a.should == [[1]]
-    *a = loop do break [*[1,2]]; end; a.should == [[1,2]]    
+    *a = loop do break [*[1,2]]; end; a.should == [[1,2]]
   end
 
   it "assigns splatted objects to a splatted reference" do
@@ -78,7 +149,7 @@ describe "Breaking out of a loop with a value" do
     *a = loop do break *[1,2]; end;    a.should == [[1,2]]
     *a = loop do break *[*[]]; end;    a.should == [nil]
     *a = loop do break *[*[1]]; end;   a.should == [1]
-    *a = loop do break *[*[1,2]]; end; a.should == [[1,2]]    
+    *a = loop do break *[*[1,2]]; end; a.should == [[1,2]]
   end
 
   it "assigns splatted objects to a splatted reference from a splatted loop" do
@@ -91,7 +162,7 @@ describe "Breaking out of a loop with a value" do
     *a = *loop do break *[1,2]; end;    a.should == [1,2]
     *a = *loop do break *[*[]]; end;    a.should == [nil]
     *a = *loop do break *[*[1]]; end;   a.should == [1]
-    *a = *loop do break *[*[1,2]]; end; a.should == [1,2]    
+    *a = *loop do break *[*[1,2]]; end; a.should == [1,2]
   end
 
   it "assigns objects to multiple block variables" do
@@ -118,7 +189,7 @@ describe "Breaking out of a loop with a value" do
     a,b,*c = loop do break *[1,2]; end;    [a,b,c].should == [1,2,[]]
     a,b,*c = loop do break *[*[]]; end;    [a,b,c].should == [nil,nil,[]]
     a,b,*c = loop do break *[*[1]]; end;   [a,b,c].should == [1,nil,[]]
-    a,b,*c = loop do break *[*[1,2]]; end; [a,b,c].should == [1,2,[]]    
+    a,b,*c = loop do break *[*[1,2]]; end; [a,b,c].should == [1,2,[]]
   end
 
   it "stops any loop type at the correct spot" do
@@ -141,4 +212,5 @@ describe "Breaking out of a loop with a value" do
     break_test {|i| break i if i == 1 }
     i.should == 1
   end
+
 end

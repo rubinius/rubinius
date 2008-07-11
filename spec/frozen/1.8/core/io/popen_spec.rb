@@ -6,6 +6,9 @@ describe "IO::popen" do
     it "reads from a read-only pipe" do
       IO.popen("echo foo", "r") do |io|
         io.read.should == "foo\n"
+
+        lambda { io.write('foo').should }.should \
+          raise_error(IOError, 'not opened for writing')
       end
     end
 
@@ -15,23 +18,42 @@ describe "IO::popen" do
           io.write("bar")
           io.read 3
         end
-      
+
         data.should == "bar"
+      end
+
+      it "writes to a write-only pipe" do
+        begin
+          tmp_file = tmp "IO_popen_spec_#{$$}"
+
+          data = IO.popen "cat > #{tmp_file}", 'w' do |io|
+            io.write 'bar'
+
+            lambda { io.read.should }.should \
+              raise_error(IOError, 'not opened for reading')
+          end
+
+          File.read(tmp_file).should == 'bar'
+
+        ensure
+          File.unlink tmp_file if File.exist? tmp_file
+        end
       end
     end
 
     it "allows the io to be closed inside the block" do
       io = IO.popen('yes', 'r') do |io|
         io.close
+
+        io.closed?.should == true
+
         io
       end
-    
+
       io.closed?.should == true
     end
   #end
+
+  it "needs to be reviewed for spec completeness"
 end
 
-describe "IO::popen" do
-  it "needs to be reviewed for spec completeness" do
-  end
-end

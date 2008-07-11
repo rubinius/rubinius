@@ -36,7 +36,7 @@ describe "Array#unshift" do
     end  
     
     it "does not raise TypeError on a frozen array if no modification takes place" do
-      ArraySpecs.frozen_array.unshift() # ok
+      ArraySpecs.frozen_array.unshift.should == [1, 2, 3]
     end
   end
 end

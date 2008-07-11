@@ -33,6 +33,5 @@ describe "Kernel#binding" do
 end
 
 describe "Kernel.binding" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

@@ -57,9 +57,9 @@ describe "Kernel#load" do
     end
   end
 
-  it "loads extension files" do
-    # Not sure how to spec this yet because it needs an extension file
-  end
+  # TODO: add an implementation-agnostic method for creating
+  # an extension file
+  it "loads extension files"
 
   it "loads an unqualified .rb by looking in $LOAD_PATH and returns true" do
     load('load_spec_2.rb').should == true
@@ -229,6 +229,5 @@ describe "Shell expansion in Kernel#load" do
 end
 
 describe "Kernel.load" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

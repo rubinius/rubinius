@@ -3,19 +3,7 @@ require File.dirname(__FILE__) + '/shared/quo'
 require 'bigdecimal'
 
 describe "BigDecimal#div with precision set to 0" do
-  # BigDecimal#div with precision set to 0 behaves exactly like / or quo
-  begin
-    class BigDecimal
-      def div_with_zero_precision(arg)
-        div(arg, 0)
-      end
-    end
-    it_behaves_like(:bigdecimal_quo, :div_with_zero_precision)
-  ensure
-    class BigDecimal
-      undef div_with_zero_precision
-    end
-  end
+  it_behaves_like(:bigdecimal_quo, :div, 0)
 end
 
 describe "BigDecimal#div" do

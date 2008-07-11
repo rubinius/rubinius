@@ -13,23 +13,18 @@ platform_is_not :windows do
 
     it "accepts what is written by the client" do
       server = UNIXServer.open(SocketSpecs.socket_path)
-      server.listen 5
-      data = nil
-      t = Thread.new do
-        client = server.accept
-        data = client.read(5)
-        client << "goodbye"
-        client.close
-      end
-      Thread.pass until t.status == "sleep"
+      client = UNIXSocket.open(SocketSpecs.socket_path)
 
-      socket = UNIXSocket.open(SocketSpecs.socket_path)
-      socket.write('hello')
-      socket.read.should == 'goodbye'
-      t.join
+      client.send('hello', 0)
+
+      sock = server.accept
+      data, info = sock.recvfrom(5)
+
       data.should == 'hello'
+
       server.close
-      socket.close
+      client.close
+      sock.close
     end
 
     it "can be interrupted by Thread#kill" do

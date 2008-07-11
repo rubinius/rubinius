@@ -160,6 +160,15 @@ module ModuleSpecs
     MODULE_SPEC_TOPLEVEL_CONSTANT = 1
   end
 
+  module Alias
+    def report() :report end
+    alias publish report
+  end
+
+  class Allonym
+    include ModuleSpecs::Alias
+  end
+
   class Aliasing
     def self.make_alias(*a)
       alias_method(*a)

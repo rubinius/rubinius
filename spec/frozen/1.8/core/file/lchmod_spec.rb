@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.lchmod" do
-  not_supported_on :windows do
+  platform_is_not :os => [:linux, :windows, :openbsd] do
     before :each do
       @fname = tmp('file_chmod_test')
       @lname = @fname + '.lnk'

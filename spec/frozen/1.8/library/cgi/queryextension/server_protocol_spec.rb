@@ -2,6 +2,21 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require 'cgi'
 
 describe "CGI::QueryExtension#server_protocol" do
-  it "needs to be reviewed for spec completeness" do
+  before(:each) do
+    ENV['REQUEST_METHOD'], @old_request_method = "GET", ENV['REQUEST_METHOD']
+    @cgi = CGI.new
+  end
+  
+  after(:each) do
+    ENV['REQUEST_METHOD'] = @old_request_method
+  end
+  
+  it "returns ENV['SERVER_PROTOCOL']" do
+    old_value, ENV['SERVER_PROTOCOL'] = ENV['SERVER_PROTOCOL'], "HTTP/1.1"
+    begin
+      @cgi.server_protocol.should == "HTTP/1.1"
+    ensure
+      ENV['SERVER_PROTOCOL'] = old_value
+    end
   end
 end

@@ -39,6 +39,5 @@ describe "Kernel.fail" do
 end
 
 describe "Kernel#fail" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

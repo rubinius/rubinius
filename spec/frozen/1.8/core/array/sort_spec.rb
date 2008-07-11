@@ -53,10 +53,6 @@ describe "Array#sort" do
     lambda { [o, 1].sort }.should raise_error
   end
 
-  it "may leave the Array partially sorted if the sorting fails at any point" do
-    true.should == true   # Muhaha.
-  end
-
   it "may take a block which is used to determine the order of objects a and b described as -1, 0 or +1" do
     a = [5, 1, 4, 3, 2]
     a.sort.should == [1, 2, 3, 4, 5]

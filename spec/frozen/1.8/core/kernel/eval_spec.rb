@@ -160,6 +160,5 @@ describe "Kernel.eval" do
     }.should raise_error(LocalJumpError)
   end
 
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

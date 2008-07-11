@@ -43,6 +43,11 @@ describe "The defined? keyword" do
     ret.should == nil
   end
 
+  it "returns nil when defined?(Kernel.does_not_exist) is sent" do
+    ret = defined?(Kernel.does_not_exist)
+    ret.should == nil
+  end
+
   it "returns 'assignment' when defined?(x = 2) is sent" do
     ret = defined?(x = 2)
     ret.should == 'assignment'

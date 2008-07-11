@@ -8,6 +8,5 @@ describe "Kernel#trap" do
 end
 
 describe "Kernel.trap" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

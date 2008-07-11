@@ -19,7 +19,23 @@ describe "Calling a method" do
     foo(10) do 200 end.should == [10,200]
     foo(10) { 200 }.should == [10,200]
   end
-  
+
+  it "with block argument converts the block to proc" do
+    def makeproc(&b) b end
+    makeproc { "hello" }.call.should == "hello"
+    makeproc { "hello" }.class.should == Proc
+
+    # check that converted proc is indeed behaves like proc,
+    # not like lambda
+    def proc_caller(&b) b.call end
+    def enclosing_method
+      proc_caller { return :break_return_value }
+      :method_return_value
+    end
+
+    enclosing_method.should == :break_return_value
+  end
+
   it "with lambda as block argument is ok" do
     def foo(a,&b); [a,yield(b)] end
 
@@ -171,11 +187,13 @@ end
 describe "Calling a private setter method" do
   it "permits self as a receiver" do
     class << self
+      attr_reader :foo
       attr_writer :foo
       private :foo=
     end
-    
+
     self.foo = 42
+    self.foo.should == 42
   end
 end
 

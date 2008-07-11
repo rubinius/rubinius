@@ -7,6 +7,5 @@ describe "File::Stat#setgid?" do
 end
 
 describe "File::Stat#setgid?" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

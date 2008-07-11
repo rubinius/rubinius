@@ -6,12 +6,12 @@ shared :tempfile_length do |cmd|
   
     it "returns the size of self" do
       @tempfile.send(cmd).should eql(0)
-      @tempfile.puts("Test!")
-      @tempfile.send(cmd).should eql(6)
+      @tempfile.print("Test!")
+      @tempfile.send(cmd).should eql(5)
     end
   
     it "returns 0 when self is closed" do
-      @tempfile.puts("Test!")
+      @tempfile.print("Test!")
       @tempfile.close
       @tempfile.send(cmd).should eql(0)
     end

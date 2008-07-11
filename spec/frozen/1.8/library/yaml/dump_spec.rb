@@ -14,7 +14,7 @@ describe "YAML.dump" do
   end
   
   it "returns a string containing dumped YAML when no io provided" do
-    YAML.dump( :locked ) == "--- :locked"
+    YAML.dump( :locked ).should == "--- :locked\n"
   end  
   
   it "returns the same string that #to_yaml on objects" do

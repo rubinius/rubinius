@@ -12,14 +12,14 @@ describe "Fixnum#**" do
     (2 ** 40).should == 1099511627776
   end
 
-  ruby_bug "ruby-dev:32084", "1.8.6.138" do
-    it "returns Infinity for 0**-1" do
-      (0**-1).should be_kind_of(Float)
-      (0**-1).infinite?.should == 1
-    end
-  end
-
   conflicts_with :Rational do
+    ruby_bug "ruby-dev:32084", "1.8.6.138" do
+      it "returns Infinity for 0**-1" do
+        (0**-1).should be_kind_of(Float)
+        (0**-1).infinite?.should == 1
+      end
+    end
+
     it "raises a TypeError when given a non-Integer" do
       lambda {
         (obj = mock('10')).should_receive(:to_int).any_number_of_times.and_return(10)

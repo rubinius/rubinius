@@ -1,4 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
+
+has_tty? do # needed for CI until we figure out a better way
 require 'readline'
 
 describe "Readline::HISTORY.pop" do
@@ -26,4 +28,5 @@ describe "Readline::HISTORY.pop" do
     Readline::HISTORY.pop.tainted?.should be_true
     Readline::HISTORY.pop.tainted?.should be_true
   end
+end
 end

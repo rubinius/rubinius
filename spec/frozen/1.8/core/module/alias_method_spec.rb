@@ -48,9 +48,7 @@ describe "Module#alias_method" do
   end
 
   it "works in module" do
-    module Exception2MessageMapper
-      alias fail! fail
-    end
+    ModuleSpecs::Allonym.new.publish.should == :report
   end
   
   it "works on private module methods in a module that has been reopened" do

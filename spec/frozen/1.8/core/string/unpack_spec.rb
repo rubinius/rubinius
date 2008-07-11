@@ -6,8 +6,7 @@ if ENV['MRI'] then
   require 'unpack'
 end
 
-# TODO: fucking hell... "according to the format string" is NOT a spec
-# description!
+# FIXME: "according to the format string" is NOT a spec description!
 
 describe "String#unpack" do
   it "returns an array by decoding self according to the format string" do

@@ -9,7 +9,7 @@ describe "Etc.getpwuid" do
       pw.is_a?(Etc::Passwd).should == true
     end
 
-    compliant_on :ruby do
+    compliant_on(:ruby, :jruby) do
       pw.is_a?(Struct::Passwd).should == true
     end
   end

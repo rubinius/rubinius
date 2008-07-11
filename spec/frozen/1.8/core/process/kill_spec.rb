@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
+# if run indirectly (eg via CI), kills the runner. TODO: needs guard
 describe "Process.kill" do
   it "requires at least two arguments" do
     lambda { Process.kill }.should raise_error(ArgumentError)
@@ -49,7 +50,7 @@ describe "Process.kill" do
     before :all do
       @saved_trap = Signal.trap("HUP") {}
     end
-  
+
     before :each do
       @foo = 0
       @read, @write = IO.pipe
@@ -59,31 +60,33 @@ describe "Process.kill" do
         @write.close
       }
     end
-  
+
     after :each do
       @read.gets # the signal handler has run
       @read.close
       @foo.should == 42
     end
-  
+
     after :all do
       Signal.trap("HUP", @saved_trap)
     end
-  
-    it "sends the given signal to the current process if pid is zero" do
-      Process.kill("HUP", 0).should == 1
-    end
-  
-    it "accepts integer signal numbers" do
-      Process.kill(1, 0).should == 1
-    end
-  
-    it "accepts POSIX signal names without 'SIG' prefix" do
-      Process.kill("HUP", 0).should == 1
-    end
-  
-    it "accepts POSIX signal names with 'SIG' prefix" do
-      Process.kill("SIGHUP", 0).should == 1
+
+    has_tty? do # 0 goes to the entire process group, not just current pid
+      it "sends the given signal to the current process if pid is zero" do
+        Process.kill("HUP", 0).should == 1
+      end
+
+      it "accepts integer signal numbers" do
+        Process.kill(1, 0).should == 1
+      end
+
+      it "accepts POSIX signal names without 'SIG' prefix" do
+        Process.kill("HUP", 0).should == 1
+      end
+
+      it "accepts POSIX signal names with 'SIG' prefix" do
+        Process.kill("SIGHUP", 0).should == 1
+      end
     end
   end
 end
@@ -108,26 +111,28 @@ describe "Process.kill" do
       @read.gets # the child has changed process groups
       @read.close
     end
-  
+
     after :each do
       Process.waitpid(@pid).should == @pid
       $?.exitstatus.should == 99
     end
-  
-    it "sends the given signal to the specified process" do
-      Process.kill("HUP", @pid).should == 1
-    end
-  
-    it "kills process groups if signal is negative" do
-      Process.kill(-1, Process.getpgid(@pid)).should == 1
-    end
-  
-    it "kills process groups if signal starts with a minus sign" do
-      Process.kill("-HUP", Process.getpgid(@pid)).should == 1
-    end
-  
-    it "kills process groups if signal starts with a minus sign and 'SIG'" do
-      Process.kill("-SIGHUP", Process.getpgid(@pid)).should == 1
+
+    has_tty? do
+      it "sends the given signal to the specified process" do
+        Process.kill("HUP", @pid).should == 1
+      end
+
+      it "kills process groups if signal is negative" do
+        Process.kill(-1, Process.getpgid(@pid)).should == 1
+      end
+
+      it "kills process groups if signal starts with a minus sign" do
+        Process.kill("-HUP", Process.getpgid(@pid)).should == 1
+      end
+
+      it "kills process groups if signal starts with a minus sign and 'SIG'" do
+        Process.kill("-SIGHUP", Process.getpgid(@pid)).should == 1
+      end
     end
   end
 end

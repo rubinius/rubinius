@@ -2,45 +2,42 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 require File.dirname(__FILE__) + '/../fixtures/classes'
 
 describe "BasicSocket#recv" do
+
   before :each do
     @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
   end
 
   after :each do
-    @socket.close unless @socket.closed?
-    @server.close unless @server.closed?
+    @server.close
   end
 
-  it "receives a specified number of bytes of a message from another socket" do
-    # TCPServer and TCPSocket both inherit from BasicSocket
-    data = nil
+  it "receives a specified number of bytes of a message from another socket"  do
+    data = ""
     t = Thread.new do
       client = @server.accept
-      data = client.recv(5)
+      data = client.recv(10)
       client.close
     end
-    Thread.pass until t.status == "sleep"
 
-    @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
-    @socket.send('hello', 0).should == 5
+    socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
+    socket.send('hello', 0)
+    socket.close
 
     t.join
     data.should == 'hello'
   end
 
   it "accepts flags to specify unusual receiving behaviour" do
-    data = nil
+    data = ""
     t = Thread.new do
       client = @server.accept
-      data = client.recv(5, Socket::MSG_OOB)
+      data = client.recv(10)    # in-band data (TCP), doesn't receive the flag.
       client.close
     end
-    Thread.pass until t.status == "sleep"
-
-    @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
-    @socket.send('helloU', Socket::MSG_OOB)
-
+    
+    socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
+    socket.send('helloU', Socket::MSG_OOB)
     t.join
-    data.should == 'U'
+    data.should == 'hello'
   end
 end

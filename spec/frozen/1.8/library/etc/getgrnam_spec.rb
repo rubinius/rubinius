@@ -9,7 +9,7 @@ describe "Etc.getgrnam" do
       gr.is_a?(Etc::Group).should == true
     end
 
-    compliant_on :ruby do
+    compliant_on(:ruby, :jruby) do
       gr.is_a?(Struct::Group).should == true
     end
   end

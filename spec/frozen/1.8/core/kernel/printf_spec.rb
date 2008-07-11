@@ -8,6 +8,5 @@ describe "Kernel#printf" do
 end
 
 describe "Kernel.printf" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

@@ -52,11 +52,4 @@ describe "Tempfile.open when passed a block" do
     Tempfile.open("specs") { |x| tempfile = x }
     tempfile.closed?.should be_true
   end
-  
-  ruby_bug "#", "1.8.7" do
-    # That's what IO does... -- NoKarma
-    it "returns the return value of the passed block" do
-      Tempfile.open("specs") { :symbol }.should == :symbol
-    end
-  end
 end

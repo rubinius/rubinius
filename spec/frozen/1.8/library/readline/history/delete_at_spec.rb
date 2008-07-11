@@ -1,4 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
+
+has_tty? do # needed for CI until we figure out a better way
 require 'readline'
 
 describe "Readline::HISTORY.delete_at" do
@@ -41,4 +43,5 @@ describe "Readline::HISTORY.delete_at" do
     Readline::HISTORY.delete_at(0).tainted?.should be_true
     Readline::HISTORY.delete_at(0).tainted?.should be_true
   end
+end
 end

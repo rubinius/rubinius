@@ -8,6 +8,5 @@ describe "Kernel#untrace_var" do
 end
 
 describe "Kernel.untrace_var" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

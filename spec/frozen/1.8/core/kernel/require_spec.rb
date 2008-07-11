@@ -69,9 +69,9 @@ describe "Kernel#require" do
     $require_spec_2.nil?.should == false
   end
 
-  it "loads extension files" do
-    # TODO: Not sure how to spec this yet since it needs an extfile
-  end
+  # TODO: add an implementation-agnostic method for creating
+  # an extension file
+  it "loads extension files"
 
   it "does not expand/resolve qualified files against $LOAD_PATH" do
     num_features = $LOADED_FEATURES.size
@@ -133,9 +133,9 @@ describe "Kernel#require" do
     require('require_spec_dummy').should == false
   end
 
-  it "will load explicit file.<ext> even if file.rb already loaded and vice versa" do
-    # Not sure how to spec this yet because it needs an extfile. 
-  end
+  # TODO: add an implementation-agnostic method for creating
+  # an extension file
+  it "will load explicit file.<ext> even if file.rb already loaded and vice versa"
 
   it "appends any non-ruby extensioned file with .rb/.<ext> in that order to locate file" do
     load('require_spec.rooby')
@@ -277,6 +277,5 @@ describe "Shell expansion in Kernel#require" do
 end
 
 describe "Kernel.require" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

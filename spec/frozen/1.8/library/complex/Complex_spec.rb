@@ -26,22 +26,28 @@ end
 
 describe "Complex when passed [Integer]" do
   it "returns a new Complex number with 0 as the imaginary component" do
-    Complex(1).should eql(Complex.new(1, 0))
-    Complex(-3).should eql(Complex.new(-3, 0))
-    Complex(-4.5).should eql(Complex.new(-4.5, 0))
-    Complex(bignum_value).should eql(Complex.new(bignum_value, 0))
+    # Guard against the Mathn library
+    conflicts_with :Prime do
+      Complex(1).should eql(Complex.new(1, 0))
+      Complex(-3).should eql(Complex.new(-3, 0))
+      Complex(-4.5).should eql(Complex.new(-4.5, 0))
+      Complex(bignum_value).should eql(Complex.new(bignum_value, 0))
+    end
   end
   
   it "returns the passed Integer when Complex::Unify is defined" do
-    begin
-      Complex::Unify = true
+    # Guard against the Mathn library
+    conflicts_with :Prime do
+      begin
+        Complex::Unify = true
       
-      Complex(1).should eql(1)
-      Complex(-3).should eql(-3)
-      Complex(-4.5).should eql(-4.5)
-      Complex(bignum_value).should eql(bignum_value)
-    ensure
-      Complex.send :remove_const, :Unify
+        Complex(1).should eql(1)
+        Complex(-3).should eql(-3)
+        Complex(-4.5).should eql(-4.5)
+        Complex(bignum_value).should eql(bignum_value)
+      ensure
+        Complex.send :remove_const, :Unify
+      end
     end
   end
 end

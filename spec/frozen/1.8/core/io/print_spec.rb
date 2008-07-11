@@ -54,6 +54,5 @@ describe IO, "#print" do
 end
 
 describe "IO#print" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

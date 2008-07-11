@@ -7,6 +7,5 @@ describe "Object.object_id" do
 end
 
 describe "Kernel#object_id" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

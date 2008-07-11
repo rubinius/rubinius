@@ -42,6 +42,19 @@ describe "String#initialize" do
     s.special.should == "subclass"
     s.should == ""
   end
+
+  it "converts its argument to a string representation" do
+    obj = mock 'foo'
+    obj.should_receive(:to_str).and_return('foo')
+
+    String.new obj
+  end
+  
+  # Rubinius String makes a String of 5 NULs.  This behavior may need to be
+  # removed from many places.
+  it "raises TypeError on inconvertible object" do
+    lambda { String.new 5 }.should raise_error(TypeError)
+  end
   
   compliant_on :ruby, :jruby do
     it "raises a TypeError if self is frozen" do

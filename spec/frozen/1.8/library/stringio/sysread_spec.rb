@@ -16,7 +16,7 @@ describe "StringIO#sysread when passed [length]" do
     lambda { @io.sysread(10) }.should raise_error(EOFError)
   end
 
-  ruby_bug "http://redmine.ruby-lang.org/projects/ruby-18/issues/show?id=156", "1.8.7.17" do
+  ruby_bug "http://redmine.ruby-lang.org/projects/ruby-18/issues/show?id=156", "1.8.7" do
     it "returns an empty String when length is 0" do
       @io.sysread(0).should == ""
     end

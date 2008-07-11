@@ -3,7 +3,7 @@ require 'set'
 
 describe "SortedSet#==" do
   it "returns true when the passed Object is a SortedSet and self and the Object contain the same elements" do
-    SortedSet[] == SortedSet[]
+    SortedSet[].should == SortedSet[]
     SortedSet[1, 2, 3].should == SortedSet[1, 2, 3]
     SortedSet["1", "2", "3"].should == SortedSet["1", "2", "3"]
     

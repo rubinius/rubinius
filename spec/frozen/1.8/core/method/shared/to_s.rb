@@ -21,7 +21,7 @@ shared :method_to_s do |cmd|
       deviates_on(:rubinius) do
         name.should == "#<Method: MethodSpecs::MySub#bar (defined in MethodSpecs::MyMod)>"
       end
-      deviates_on(:ruby) do
+      compliant_on(:ruby, :jruby) do
         name.should == "#<Method: MethodSpecs::MySub(MethodSpecs::MyMod)#bar>"
       end
     end

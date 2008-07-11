@@ -16,7 +16,7 @@ describe "UDPSocket.send" do
   
   it "sends data in ad hoc mode" do
     @socket = UDPSocket.open
-    @socket.send("ad hoc", 0, 'localhost',SocketSpecs.port)
+    @socket.send("ad hoc", 0, SocketSpecs.hostname,SocketSpecs.port)
     @socket.close
     @server_thread.join
       
@@ -28,7 +28,7 @@ describe "UDPSocket.send" do
 
   it "sends data in connection mode" do
     @socket = UDPSocket.open
-    @socket.connect('localhost',SocketSpecs.port)
+    @socket.connect(SocketSpecs.hostname,SocketSpecs.port)
     @socket.send("connection-based", 0)
     @socket.close
     @server_thread.join

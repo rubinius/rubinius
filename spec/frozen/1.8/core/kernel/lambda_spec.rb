@@ -11,6 +11,5 @@ describe "Kernel.lambda" do
 end
 
 describe "Kernel#lambda" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

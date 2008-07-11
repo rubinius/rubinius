@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
+# TODO: migrate these to constants/constants_spec.rb
+
 describe "File::Constants" do
   it "match mode constants" do
     File::FNM_NOESCAPE.should_not == nil

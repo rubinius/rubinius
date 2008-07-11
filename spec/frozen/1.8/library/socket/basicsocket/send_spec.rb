@@ -4,6 +4,7 @@ require File.dirname(__FILE__) + '/../fixtures/classes'
 describe "BasicSocket#send" do
   before :each do
     @server = TCPServer.new(SocketSpecs.port)
+    @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
   end
 
   after :each do
@@ -18,9 +19,9 @@ describe "BasicSocket#send" do
        data = client.recv(5)
        client.close
      end
-     Thread.pass until t.status == "sleep"
+     Thread.pass until t.status == "sleep" or t.status == nil
+     t.status.should_not be_nil
 
-     @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
      @socket.send('hello', 0).should == 5
 
      t.join
@@ -36,9 +37,9 @@ describe "BasicSocket#send" do
        data = client.recv(6)
        client.close
      end
-     Thread.pass until t.status == "sleep"
+     Thread.pass until t.status == "sleep" or t.status == nil
+     t.status.should_not be_nil
 
-     @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
      @socket.send('helloU', Socket::MSG_PEEK | Socket::MSG_OOB).should == 6
 
      t.join
@@ -47,20 +48,19 @@ describe "BasicSocket#send" do
    end
 
   it "accepts a sockaddr as recipient address" do
-#     data = nil
-#     t = Thread.new do
-#       client = @server.accept
-#       data = client.recv(5)
-#       client.close
-#     end
-#     Thread.pass until t.status == "sleep"
+     data = nil
+     t = Thread.new do
+       client = @server.accept
+       data = client.recv(5)
+       client.close
+     end
+     Thread.pass until t.status == "sleep" or t.status == nil
+     t.status.should_not be_nil
 
-#     @socket = TCPSocket.new(nil, SocketSpecs.port)
+     sockaddr = Socket.pack_sockaddr_in(SocketSpecs.port, "127.0.0.1")
+     @socket.send('hello', 0, sockaddr).should == 5
 
-#     sockaddr = Socket.pack_sockaddr_in(SocketSpecs.port, "127.0.0.1")
-#     @socket.send('hello', 0, sockaddr).should == 5
-
-#     t.join
-#     data.should == 'hello'
+     t.join
+     data.should == 'hello'
   end
 end

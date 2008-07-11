@@ -12,6 +12,5 @@ describe "Kernel#exec" do
 end
 
 describe "Kernel.exec" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

@@ -142,17 +142,23 @@ shared :file_fnmatch do |cmd|
       File.send(cmd, "**/best/*", 'lib/my/best/song.rb').should == true
     end
 
-    it "requires that '/' characters in pattern match '/' characters in path when flags includes FNM_PATHNAME" do
+    it "returns false if '/' in pattern do not match '/' in path when flags includes FNM_PATHNAME" do
       pattern = '*/*'
-      File.send(cmd, pattern, 'dave/.profile', File::FNM_PATHNAME)
-      File.send(cmd, pattern, 'dave/.profile', File::FNM_PATHNAME | File::FNM_DOTMATCH)
+      File.send(cmd, pattern, 'dave/.profile', File::FNM_PATHNAME).should be_false
 
       pattern = '**/foo'
-      File.send(cmd, pattern, 'a/b/c/foo', File::FNM_PATHNAME)
-      File.send(cmd, pattern, '/a/b/c/foo', File::FNM_PATHNAME)
-      File.send(cmd, pattern, 'c:/a/b/c/foo', File::FNM_PATHNAME)
-      File.send(cmd, pattern, 'a/.b/c/foo', File::FNM_PATHNAME)
-      File.send(cmd, pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH)
+      File.send(cmd, pattern, 'a/.b/c/foo', File::FNM_PATHNAME).should be_false
+    end
+
+    it "returns true if '/' in pattern match '/' in path when flags includes FNM_PATHNAME" do
+      pattern = '*/*'
+      File.send(cmd, pattern, 'dave/.profile', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
+
+      pattern = '**/foo'
+      File.send(cmd, pattern, 'a/b/c/foo', File::FNM_PATHNAME).should be_true
+      File.send(cmd, pattern, '/a/b/c/foo', File::FNM_PATHNAME).should be_true
+      File.send(cmd, pattern, 'c:/a/b/c/foo', File::FNM_PATHNAME).should be_true
+      File.send(cmd, pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH).should be_true
     end
 
     it "raises a TypeError if the first and second arguments are not string-like" do

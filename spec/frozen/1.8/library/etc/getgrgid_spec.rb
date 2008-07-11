@@ -25,19 +25,22 @@ describe "Etc.getgrgid" do
   end
 
   compliant_on :ruby do
-    platform_is_not :darwin, :freebsd do
-      it "ignores its argument" do
-        lambda { Etc.getgrgid("foo") }.should raise_error(TypeError)
-        Etc.getgrgid(42)
-        Etc.getgrgid(9876)
-      end
+#    platform_is_not :darwin, :freebsd do
+#      it "ignores its argument" do
+#        lambda { Etc.getgrgid("foo") }.should raise_error(TypeError)
+#        Etc.getgrgid(42)
+#        Etc.getgrgid(9876)
+#      end
+#    end
+    it "returns the Group for a given gid if it exists" do
+      grp = Etc.getgrgid(@gid)
+      grp.should be_kind_of(Struct::Group)
+      grp.gid.should == @gid
+      grp.name.should == @name
     end
-
-    it "returns a Group struct instance for the current user's group" do
-      gr = Etc.getgrgid(@gid)
-      gr.is_a?(Struct::Group).should == true
-      gr.gid.should == @gid
-      gr.name.should == @name
+    
+    it "raises if the group does not exist" do
+      lambda { Etc.getgrgid(9876)}.should raise_error(ArgumentError)
     end
   end
 

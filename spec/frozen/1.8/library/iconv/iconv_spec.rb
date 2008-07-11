@@ -58,27 +58,21 @@ describe "Iconv#iconv" do
     end
   end
 
-  # The current spec (this one and below) test for the current MRI
-  # behavior, which is out of sync with the ruby-doc.
-  # TODO: MRI 1.9 apparently changed this behavior, to be in sync
-  # with the docs that state that the second argument is *length*.
-  # See http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-core/17092
-  it "when given a positive end position treats it as exclusive" do
-    # i.e. string[start...end]
-    Iconv.open "us-ascii", "us-ascii" do |conv|
-      conv.iconv("testing", 0, 4).should == "test"
-      conv.iconv("testing", 4, 6).should == "in"
-      conv.iconv("substring", -6, 6).should == "str"
+  ruby_bug "[ruby-core:17092]", "1.8.6.258" do
+    it "when given a positive length" do
+      Iconv.open "us-ascii", "us-ascii" do |conv|
+        conv.iconv("testing", 0, 4).should == "test"
+        conv.iconv("testing", 4, 6).should == "ing"
+        conv.iconv("substring", -6, 6).should == "string"
+      end
     end
-  end
 
-  # TODO: see the comment above
-  it "when given a negative end position treats it as inclusive" do
-    # i.e. string[start..end]
-    Iconv.open "us-ascii", "us-ascii" do |conv|
-      conv.iconv("testing", 0, -1).should == "testing"
-      conv.iconv("testing", 2, -4).should == "st"
-      conv.iconv("substring", -6, -4).should == "str"
+    it "when given a negative length" do
+      Iconv.open "us-ascii", "us-ascii" do |conv|
+        conv.iconv("testing", 0, -1).should == "testing"
+        conv.iconv("testing", 2, -4).should == "sting"
+        conv.iconv("substring", -6, -4).should == "string"
+      end
     end
   end
 
@@ -147,13 +141,26 @@ describe "The 'utf-8' encoder" do
 end
 
 describe "The 'utf-16' encoder" do
-  it "emits an empty string when the source input is empty" do
-    Iconv.iconv("utf-16", "us-ascii", "", "").should == ["", ""]
-    Iconv.open "utf-16", "utf-8" do |conv|
-      conv.iconv("").should == ""
-      conv.iconv("test", 1, 1).should == ""
-      conv.iconv("test", 3, -3).should == ""
-      conv.iconv("test", 1, -4).should == ""
+
+  ruby_version_is "".."1.8.6p230" do
+    it "emits an empty string when the source input is empty" do
+      Iconv.iconv("utf-16", "us-ascii", "", "").should == ["", ""]
+      Iconv.open "utf-16", "utf-8" do |conv|
+        conv.iconv("").should == ""
+        conv.iconv("test", 1, 1).should == ""
+        conv.iconv("test", 3, -3).should == ""
+        conv.iconv("test", 1, -4).should == ""
+      end
+    end
+  end
+
+  ruby_version_is "1.8.6p238".."1.9" do
+    it "emits an empty string when the source input is empty" do
+      Iconv.iconv("utf-16", "us-ascii", "", "").should == ["", ""]
+      Iconv.open "utf-16", "utf-8" do |conv|
+        conv.iconv("").should == ""
+        conv.iconv("test", 1, 0).should == ""
+      end
     end
   end
 

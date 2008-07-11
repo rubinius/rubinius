@@ -1,4 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
+
+has_tty? do # needed for CI until we figure out a better way
 require 'readline'
 
 describe "Readline::HISTORY.[]=" do
@@ -51,4 +53,5 @@ describe "Readline::HISTORY.[]=" do
       lambda { Readline::HISTORY[10] = "test" }.should raise_error(IndexError)
     end
   end
+end
 end

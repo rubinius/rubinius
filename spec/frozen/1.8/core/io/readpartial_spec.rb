@@ -22,12 +22,12 @@ describe "IO#readpartial" do
     @wr.write("foobar")
 
     # buffered read
-    @rd.read(1)
+    @rd.read(1).should == 'f'
     # return only specified number, not the whole buffer
     @rd.readpartial(1).should == "o"
   end
 
-  it "correctly handles previously ungot char and some data in the buffer" do
+  it "reads after ungetc with data in the buffer" do
     @wr.write("foobar")
     c = @rd.getc
     @rd.ungetc(c)
@@ -35,7 +35,7 @@ describe "IO#readpartial" do
     @rd.readpartial(3).should == "bar"
   end
 
-  it "correctly handles previously ungot char and no data in the buffer" do
+  it "reads after ungetc without data in the buffer" do
     @wr.write("f")
     c = @rd.getc
     @rd.ungetc(c)

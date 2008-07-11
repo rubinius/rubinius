@@ -11,8 +11,16 @@ describe "Assignment via return" do
     def r; return [*[]]; end;    a = r(); a.should == []
     def r; return [*[1]]; end;   a = r(); a.should == [1]
     def r; return [*[1,2]]; end; a = r(); a.should == [1,2]
+
+    # return with expressions separated by commas
+    def r; return 1, 2, 3; end;
+    a =  r(); a.should == [1, 2, 3]
+    a = *r(); a.should == [1, 2, 3]
+    *a =  r(); a.should == [[1, 2, 3]]
+    *a = *r(); a.should == [1, 2, 3]
+    a,*c = r(); [a, c].should == [1, [2,3]]
   end
-  
+
   it "assigns splatted objects to block variables" do
     def r; return *nil; end;     a = r(); a.should == nil
     def r; return *1; end;       a = r(); a.should == 1
@@ -35,7 +43,7 @@ describe "Assignment via return" do
     def r; return [1,2]; end;    a = *r(); a.should == [1,2]
     def r; return [*[]]; end;    a = *r(); a.should == nil
     def r; return [*[1]]; end;   a = *r(); a.should == 1
-    def r; return [*[1,2]]; end; a = *r(); a.should == [1,2]    
+    def r; return [*[1,2]]; end; a = *r(); a.should == [1,2]
   end
   
   it "assigns objects to splatted block variables that include the splat operator inside the block" do
@@ -47,7 +55,7 @@ describe "Assignment via return" do
     def r; return *[[]]; end;     *a = r(); a.should == [[]]
     def r; return *[*[]]; end;    *a = r(); a.should == [nil]
     def r; return *[*[1]]; end;   *a = r(); a.should == [1]
-    def r; return *[*[1,2]]; end; *a = r(); a.should == [[1,2]]    
+    def r; return *[*[1,2]]; end; *a = r(); a.should == [[1,2]]
   end
   
   it "assigns objects to splatted block variables that include the splat operator inside the block" do
@@ -148,15 +156,48 @@ describe "Return from within a begin" do
 end
 
 describe "Executing return from within a block" do
-  it "raises a LocalJumpError" do
+  it "raises a LocalJumpError if there is no lexicaly enclosing method" do
     def f; yield end
     lambda { f { return 5 } }.should raise_error(LocalJumpError)
   end
-  
-  it "causes the method calling the method that yields to the block to return" do
-    def f; yield; return 2 end
-    def b; f { return 5 } end
-    b.should == 5
+
+  it "causes the method that lexically encloses the block to return" do
+    def meth_with_yield
+      yield
+      fail("return returned to wrong location")
+    end
+
+    def enclosing_method
+      meth_with_yield do
+        return :return_value
+        fail("return didn't, well, return")
+      end
+      fail("return should not behave like break")
+    end
+
+    enclosing_method.should == :return_value
+  end
+
+  it "returns from the lexically enclosing method even in case of chained calls" do
+    class ChainedReturnTest
+      def self.meth_with_yield(&b)
+        yield
+        fail("returned from yield to wrong place")
+      end
+      def self.invoking_method(&b)
+        meth_with_yield(&b)
+        fail("returned from 'meth_with_yield' method to wrong place")
+      end
+      def self.enclosing_method
+        invoking_method do
+          return :return_value
+          fail("return didn't, well, return")
+        end
+        fail("return should not behave like break")
+      end
+    end
+
+    ChainedReturnTest.enclosing_method.should == :return_value
   end
 end
 

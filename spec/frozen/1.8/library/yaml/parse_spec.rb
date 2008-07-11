@@ -17,6 +17,6 @@ describe "YAML#parse" do
   end
   
   it "returns the value from the object" do
-    YAML.parse(@string_yaml).value == "foo"
+    YAML.parse(@string_yaml).value.should == "foo"
   end  
 end

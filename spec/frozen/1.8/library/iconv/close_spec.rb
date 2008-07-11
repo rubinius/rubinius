@@ -4,13 +4,13 @@ require 'iconv'
 describe "Iconv#close" do
   it "ignores multiple calls" do
     conv1 = Iconv.new("us-ascii", "us-ascii")
-    conv1.close
-    conv1.close
+    conv1.close.should == ""
+    conv1.close.should be_nil
   end
 
   it "does not raise an exception if called inside an .open block" do
     Iconv.open "us-ascii", "us-ascii" do |conv2|
-      conv2.close
+      conv2.close.should == ""
     end
   end
 

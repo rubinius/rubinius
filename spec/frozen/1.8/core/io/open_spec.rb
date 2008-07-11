@@ -44,9 +44,11 @@ describe "IO.open" do
 
   it "with a block swallows StandardErrors produced by close" do
     # This closes the file descriptor twice, the second raises Errno::EBADF
-    File.open @file_name do |f|
-      IO.open f.fileno do end
-    end
+    lambda {
+      File.open @file_name do |f|
+        IO.open f.fileno do end
+      end
+    }.should_not raise_error
   end
 
 #  before :all do

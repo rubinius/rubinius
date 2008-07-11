@@ -32,7 +32,7 @@ shared :stringio_each do |cmd|
     it "checks whether the passed seperator responds to #to_str" do
       obj = mock('method_missing to_str')
       obj.should_receive(:respond_to?).any_number_of_times.with(:to_str).and_return(true)
-      obj.should_receive(:method_missing).with(:to_str).and_return(" ")
+      obj.should_receive(:method_missing).any_number_of_times.with(:to_str).and_return(" ")
 
       seen = []
       @io.send(cmd, obj) { |l| seen << l }

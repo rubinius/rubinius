@@ -6,6 +6,5 @@ describe "File.owned?" do
 end
 
 describe "File.owned?" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

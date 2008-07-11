@@ -61,7 +61,7 @@ describe "File.open" do
           raise IOError
         end
       end
-    end
+    end.should be_nil
   end
 
   it "opens the file (basic case)" do

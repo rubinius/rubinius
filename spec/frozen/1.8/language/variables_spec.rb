@@ -626,7 +626,12 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     (a[123] +=  2).should == 125
     (a[123] -=  2).should == 121
     (a[123] *=  2).should == 246
-    (a[123] /=  2).should == 61
+    # Guard against the Mathn library
+    # TODO: Make these specs not rely on specific behaviour / result values
+    # by using mocks.
+    conflicts_with :Prime do
+      (a[123] /=  2).should == 61
+    end
     (a[123] %=  2).should == 1
     (a[123] **= 2).should == 15129
     (a[123] |=  2).should == 123

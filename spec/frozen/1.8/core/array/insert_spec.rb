@@ -74,7 +74,7 @@ describe "Array#insert" do
     end
 
     it "does not raise on frozen arrays if no modification takes place" do
-      ArraySpecs.frozen_array.insert(0) # ok
+      ArraySpecs.frozen_array.insert(0).should == [1, 2, 3]
     end
   end
 end

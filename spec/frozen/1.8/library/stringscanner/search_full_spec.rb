@@ -20,7 +20,7 @@ describe "StringScanner#search_full" do
   it "returns the matched string if the third argument is true" do
     orig_pos = @s.pos
     @s.search_full(/This/, false, true).should == "This"
-    @s.pos == orig_pos
+    @s.pos.should == orig_pos
   end
 
   it "returns the matched string if the third argument is true and advances the scan pointer if the second argument is true" do

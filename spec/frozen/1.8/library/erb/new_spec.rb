@@ -1,87 +1,56 @@
 require 'erb'
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-
-## http://doc.loveruby.net/refm/api/view/library/erb
-
-
 describe "ERB.new" do
-
-  eruby_str = <<'END'
+  before :each do
+    @eruby_str = <<'END'
 <ul>
+<% list = [1,2,3] %>
 <% for item in list %>
-  <% if item %>
-  <li><%= item %>
-  <% end %>
+<% if item %>
+<li><%= item %></li>
+<% end %>
 <% end %>
 </ul>
 END
 
-
-  ## trim_mode == 0 , '', or nil
-  it "compile eRuby script into ruby code when trim mode is 0 or not specified" do
-    input = eruby_str
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<ul>\n"
- for item in list ; _erbout.concat "\n"
-_erbout.concat "  ";  if item ; _erbout.concat "\n"
-_erbout.concat "  <li>"; _erbout.concat(( item ).to_s); _erbout.concat "\n"
-_erbout.concat "  ";  end ; _erbout.concat "\n"
- end ; _erbout.concat "\n"
-_erbout.concat "</ul>\n"
-_erbout
+    @eruby_str2 = <<'END'
+<ul>
+% list = [1,2,3]
+%for item in list
+%  if item
+  <li><%= item %>
+  <% end %>
+<% end %>
+</ul>
+%%%
 END
-    expected.chomp!
-    ERB.new(input).src.should == expected
+
+  end
+
+  it "compiles eRuby script into ruby code when trim mode is 0 or not specified" do
+    expected = "<ul>\n\n\n\n<li>1</li>\n\n\n\n<li>2</li>\n\n\n\n<li>3</li>\n\n\n</ul>\n"
     [0, '', nil].each do |trim_mode|
-      ERB.new(input, nil, trim_mode).src.should == expected
+      ERB.new(@eruby_str, nil, trim_mode).result.should == expected
     end
   end
 
-
-  ## trim_mode == 1 or '>'
   it 'remove "\n" when trim_mode is 1 or \'>\'' do
-    input = eruby_str
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<ul>\n"
- for item in list 
-_erbout.concat "  ";  if item 
-_erbout.concat "  <li>"; _erbout.concat(( item ).to_s)
-_erbout.concat "  ";  end 
- end 
-_erbout.concat "</ul>\n"
-_erbout
-END
-    expected.chomp!
+    expected = "<ul>\n<li>1</li>\n<li>2</li>\n<li>3</li>\n</ul>\n"
     [1, '>'].each do |trim_mode|
-      ERB.new(input, nil, trim_mode).src.should == expected
+      ERB.new(@eruby_str, nil, trim_mode).result.should == expected
     end
   end
 
-
-  ## trim_mode == 2 or '<>'
   it 'remove spaces at beginning of line and "\n" when trim_mode is 2 or \'<>\'' do
-    input = eruby_str
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<ul>\n"
- for item in list 
-_erbout.concat "  ";  if item ; _erbout.concat "\n"
-_erbout.concat "  <li>"; _erbout.concat(( item ).to_s); _erbout.concat "\n"
-_erbout.concat "  ";  end ; _erbout.concat "\n"
- end 
-_erbout.concat "</ul>\n"
-_erbout
-END
-    expected.chomp!
+    expected = "<ul>\n<li>1</li>\n<li>2</li>\n<li>3</li>\n</ul>\n"
     [2, '<>'].each do |trim_mode|
-      ERB.new(input, nil, trim_mode).src.should == expected
+      ERB.new(@eruby_str, nil, trim_mode).result.should == expected
     end
   end
 
-
-  ## trim_mode == '-'
-  it "removes spaces arount '<%- -%>' when trim_mode is '-'" do
-    #input = eruby_str.gsub(/<%/, '<%-')
+  it "removes spaces around '<%- -%>' when trim_mode is '-'" do
+    expected = "<ul>\n  <li>1  <li>2  <li>3</ul>\n"
     input = <<'END'
 <ul>
 <%- for item in list -%>
@@ -91,219 +60,78 @@ END
 <%- end -%>
 </ul>
 END
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<ul>\n"
- for item in list 
- if item 
-_erbout.concat "  <li>"; _erbout.concat(( item ).to_s)
- end 
- end 
-_erbout.concat "</ul>\n"
-_erbout
-END
-    expected.chomp!
-    ['-'].each do |trim_mode|
-      ERB.new(input, nil, trim_mode).src.should == expected
-    end
+
+    ERB.new(input, nil, '-').result.should == expected
   end
 
 
-  ## trim_mode == '-'  #2
   it "not support '<%-= expr %> even when trim_mode is '-'" do
+
     input = <<'END'
 <p>
   <%= expr -%>
   <%-= expr -%>
 </p>
 END
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<p>\n"
-_erbout.concat "  "; _erbout.concat(( expr ).to_s)
-= expr 
-_erbout.concat "</p>\n"
-_erbout
-END
-    expected.chomp!
-    ['-'].each do |trim_mode|
-      ERB.new(input, nil, trim_mode).src.should == expected
+
+    lambda { ERB.new(input, nil, '-').result }.should raise_error
+  end
+
+  ruby_bug "#213", "1.8.7" do 
+    it "regards lines starting with '%' as '<% ... %>' when trim_mode is '%'" do
+      expected = "<ul>\n  <li>1\n  \n  <li>2\n  \n  <li>3\n  \n\n</ul>\n%%\n"
+      ERB.new(@eruby_str2, nil, "%").result.should == expected
     end
+  end
+  it "regards lines starting with '%' as '<% ... %>' and remove \"\\n\" when trim_mode is '%>'" do
+    expected = "<ul>\n  <li>1    <li>2    <li>3  </ul>\n%%\n"
+    ERB.new(@eruby_str2, nil, '%>').result.should == expected
   end
 
 
-  erubystr2 = <<'END'
-<ul>
-%for item in list
-%  if item
-  <li><%= item %>
-  <% end %>
-<% end %>
-</ul>
-%%%
-END
-
-
-  ## trim_mode == '%'
-  it "regard lines starting with '%' as '<% ... %>' when trim_mode is '%'" do
-    input = erubystr2
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<ul>\n"
-for item in list
-  if item
-_erbout.concat "  <li>"; _erbout.concat(( item ).to_s); _erbout.concat "\n"
-_erbout.concat "  ";  end ; _erbout.concat "\n"
- end ; _erbout.concat "\n"
-_erbout.concat "</ul>\n"
-_erbout.concat "%%\n"
-_erbout
-END
-    expected.chomp!
-    ['%'].each do |trim_mode|
-      ERB.new(input, nil, trim_mode).src.should == expected
-    end
-  end
-
-
-  ## trim_mode == '%>'
-  it "regard lines starting with '%' as '<% ... %>' and remove \"\\n\" when trim_mode is '%>'" do
-    input = erubystr2
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<ul>\n"
-for item in list
-  if item
-_erbout.concat "  <li>"; _erbout.concat(( item ).to_s)
-_erbout.concat "  ";  end 
- end 
-_erbout.concat "</ul>\n"
-_erbout.concat "%%\n"
-_erbout
-END
-    expected.chomp!
-    ['%>'].each do |trim_mode|
-      ERB.new(input, nil, trim_mode).src.should == expected
-    end
-  end
-
-
-  ## trim_mode == '%<>'
   it "regard lines starting with '%' as '<% ... %>' and remove \"\\n\" when trim_mode is '%<>'" do
-    input = erubystr2
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<ul>\n"
-for item in list
-  if item
-_erbout.concat "  <li>"; _erbout.concat(( item ).to_s); _erbout.concat "\n"
-_erbout.concat "  ";  end ; _erbout.concat "\n"
- end 
-_erbout.concat "</ul>\n"
-_erbout.concat "%%\n"
-_erbout
-END
-    expected.chomp!
-    ['%<>'].each do |trim_mode|
-      ERB.new(input, nil, trim_mode).src.should == expected
-    end
+    expected = "<ul>\n  <li>1\n  \n  <li>2\n  \n  <li>3\n  \n</ul>\n%%\n"
+    ERB.new(@eruby_str2, nil, '%<>').result.should == expected
   end
 
 
-  ## trim_mode == '%-'
   it "regard lines starting with '%' as '<% ... %>' and spaces around '<%- -%>' when trim_mode is '%-'" do
+
+    expected = "<ul>\n<li>1</li>\n<li>2</li>\n</ul>\n%%\n"
     input = <<'END'
 <ul>
+%list = [1,2]
 %for item in list
-%  if item
-  <li><%= item -%>
-  <%- end -%>
-<%- end -%>
-</ul>
+<li><%= item %></li>
+<% end %></ul>
 %%%
 END
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<ul>\n"
-for item in list
-  if item
-_erbout.concat "  <li>"; _erbout.concat(( item ).to_s)
- end 
- end 
-_erbout.concat "</ul>\n"
-_erbout.concat "%%\n"
-_erbout
-END
-    expected.chomp!
-    ['%-'].each do |trim_mode|
-      ERB.new(input, nil, trim_mode).src.should == expected
-    end
+
+    trim_mode = '%-'
+    ERB.new(input, nil, '%-').result.should == expected
+  end
+
+  it "accepts a safe level as second argument" do
+    input = "<b><%=- 2+2 %>"
+    safe_level = 3
+    lambda { ERB.new(input, safe_level).result }.should_not raise_error
+  end
+
+  it "changes '_erbout' variable name in the produced source" do
+    input = @eruby_str
+    match_erbout = ERB.new(input, nil, nil).src
+    match_buf = ERB.new(input, nil, nil, 'buf').src
+    match_erbout.gsub("_erbout", "buf").should == match_buf
   end
 
 
-  ## safe_level
-  #it "set savel level" do
-  #  input = ''
-  #  safe_level = 4
-  #  erb = ERB.new(input, safe_level)
-  #end
-
-
-  ## eoutvar
-  it "change '_erbout' variable name" do
-    input = eruby_str
-    expected = <<'END'
-buf = ''; buf.concat "<ul>\n"
- for item in list ; buf.concat "\n"
-buf.concat "  ";  if item ; buf.concat "\n"
-buf.concat "  <li>"; buf.concat(( item ).to_s); buf.concat "\n"
-buf.concat "  ";  end ; buf.concat "\n"
- end ; buf.concat "\n"
-buf.concat "</ul>\n"
-buf
-END
-    expected.chomp!
-    ERB.new(input, nil, nil, 'buf').src.should == expected
-  end
-
-
-  ## <%# ... %>
-  it "ignore '<%# ... %>'" do
+  it "ignores '<%# ... %>'" do
     input = <<'END'
 <%# for item in list %>
 <b><%#= item %></b>
 <%# end %>
 END
-    expected = <<'END'
-_erbout = ''; _erbout.concat "\n"
-_erbout.concat "<b>"; _erbout.concat "</b>\n"
-_erbout.concat "\n"
-_erbout
-END
-    expected.chomp!
-    ERB.new(input).src.should == expected
-    #
-    expected = <<'END'
-_erbout = ''
-_erbout.concat "<b>"; _erbout.concat "</b>\n"
-
-_erbout
-END
-    expected.chomp!
-    ERB.new(input, nil, '<>').src.should == expected
+    ERB.new(input).result.should == "\n<b></b>\n\n"
+    ERB.new(input, nil, '<>').result.should == "<b></b>\n"
   end
-
-
-  ## <%% ... %%>
-  it "convert '<%% ... %%>' into '<% ... %>'" do
-    input = <<'END'
-<%% for item in list %>
-<b><%%= item %></b>
-<%% end %%>
-END
-    expected = <<'END'
-_erbout = ''; _erbout.concat "<% for item in list %>\n"
-_erbout.concat "<b><%= item %></b>\n"
-_erbout.concat "<% end %%>\n"
-_erbout
-END
-    expected.chomp!
-    ERB.new(input).src.should == expected
-  end
-
-
 end

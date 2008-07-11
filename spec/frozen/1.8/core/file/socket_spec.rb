@@ -6,6 +6,5 @@ describe "File.socket?" do
 end
 
 describe "File.socket?" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

@@ -7,7 +7,7 @@ end
 
 describe "Exception" do
   it "is a Class" do
-    Exception.is_a?(Class)
+    Exception.should be_kind_of(Class)
   end
 
   it "is a superclass of NoMemoryError" do

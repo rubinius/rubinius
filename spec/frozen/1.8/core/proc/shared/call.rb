@@ -39,41 +39,46 @@ shared :proc_call do |cmd|
         a.should == [[1, 2, 3]]
       end
     end
-    
-    it "replaces missing arguments with nil when called on a Proc created with Proc.new" do
+  end
+
+  describe "Proc##{cmd} on a Proc created with Proc.new" do
+    it "replaces missing arguments with nil" do
       Proc.new { |a, b| [a, b] }.send(cmd).should == [nil, nil]
       Proc.new { |a, b| [a, b] }.send(cmd, 1).should == [1, nil]
     end
-    
-    it "silently ignores extra arguments when called on a Proc created with Proc.new" do
+
+    it "silently ignores extra arguments" do
       Proc.new { |a, b| a + b }.send(cmd, 1, 2, 5).should == 3
     end
-    
-    it "auto-explodes a single Array argument when called on a Proc created with Proc.new" do
+
+    it "auto-explodes a single Array argument" do
       p = Proc.new { |a, b| [a, b] }
       p.send(cmd, 1, 2).should == [1, 2]
       p.send(cmd, [1, 2]).should == [1, 2]
       p.send(cmd, [1, 2, 3]).should == [1, 2]
       p.send(cmd, [1, 2, 3], 4).should == [[1, 2, 3], 4]
     end
-    
-    it "raises an ArgumentError when called with too few arguments on a Proc created with Kernel#lambda or Kernel#proc" do
+  end
+
+  describe "Proc##{cmd} on a Proc created with Kernel#lambda or Kernel#proc" do
+    it "raises an ArgumentError when called with too few arguments" do
       lambda { lambda { |a, b| [a, b] }.send(cmd)    }.should raise_error(ArgumentError)
       lambda { lambda { |a, b| [a, b] }.send(cmd, 1) }.should raise_error(ArgumentError)
       lambda { proc { |a, b| [a, b] }.send(cmd)      }.should raise_error(ArgumentError)
       lambda { proc { |a, b| [a, b] }.send(cmd, 1)   }.should raise_error(ArgumentError)
     end
-    
-    it "raises an ArgumentError when called with too many arguments on a Proc created with Kernel#lambda or Kernel#proc" do
+
+    it "raises an ArgumentError when called with too many arguments" do
       lambda { lambda { |a, b| [a, b] }.send(cmd, 1, 2, 3) }.should raise_error(ArgumentError)
       lambda { proc { |a, b| [a, b] }.send(cmd, 1, 2, 3)   }.should raise_error(ArgumentError)
     end
-    
-    it "treats a single Array argument as a single argument when called on a Proc created with Kernel#lambda or Kernel#proc" do
+
+    it "treats a single Array argument as a single argument" do
       lambda { |a| [a] }.send(cmd, [1, 2]).should == [[1, 2]]
       lambda { lambda { |a, b| [a, b] }.send(cmd, [1, 2]) }.should raise_error(ArgumentError)
       proc { |a| [a] }.send(cmd, [1, 2]).should == [[1, 2]]
       lambda { proc { |a, b| [a, b] }.send(cmd, [1, 2]) }.should raise_error(ArgumentError)
     end
   end
+
 end

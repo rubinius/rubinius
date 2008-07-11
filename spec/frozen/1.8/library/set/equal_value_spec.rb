@@ -3,7 +3,7 @@ require 'set'
 
 describe "Set#==" do
   it "returns true when the passed Object is a Set and self and the Object contain the same elements" do
-    Set[] == Set[]
+    Set[].should == Set[]
     Set[1, 2, 3].should == Set[1, 2, 3]
     Set["1", "2", "3"].should == Set["1", "2", "3"]
     

@@ -8,6 +8,5 @@ describe "Kernel#getc" do
 end
 
 describe "Kernel.getc" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end

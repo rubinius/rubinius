@@ -26,9 +26,9 @@ describe "Marshal.dump" do
   end
 
   it "ignores the recursion limit if the limit is negative" do
-    Marshal.dump([], -1)
-    Marshal.dump([[]], -1)
-    Marshal.dump([[[]]], -1)
+    Marshal.dump([], -1).should == "\004\b[\000"
+    Marshal.dump([[]], -1).should == "\004\b[\006[\000"
+    Marshal.dump([[[]]], -1).should == "\004\b[\006[\006[\000"
   end
 
   it "writes the serialized data to the IO-Object" do

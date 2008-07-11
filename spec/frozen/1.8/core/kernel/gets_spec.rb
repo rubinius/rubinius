@@ -8,6 +8,5 @@ describe "Kernel#gets" do
 end
 
 describe "Kernel.gets" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end
