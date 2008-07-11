@@ -41,7 +41,10 @@ module Mock
 
     proxy = MockProxy.new type
 
-    MSpec.actions :expectation, MSpec.current.state if proxy.mock?
+    if proxy.mock?
+      MSpec.expectation
+      MSpec.actions :expectation, MSpec.current.state
+    end
 
     if proxy.stub?
       stubs[key].unshift proxy

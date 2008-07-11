@@ -1,6 +1,8 @@
 class ExceptionState
   attr_reader :description, :describe, :it, :exception
 
+  PATH = /#{File.expand_path(File.dirname(__FILE__) + '/../../..')}/
+
   def initialize(state, location, exception)
     @exception = exception
 
@@ -16,13 +18,14 @@ class ExceptionState
   end
 
   def failure?
-    @exception.is_a? ExpectationNotMetError
+    [ExpectationNotMetError, ExpectationNotFoundError].any? { |e| @exception.is_a? e }
   end
 
   def message
     if @exception.message.empty?
       "<No message>"
-    elsif @exception.class == ExpectationNotMetError
+    elsif @exception.class == ExpectationNotMetError ||
+          @exception.class == ExpectationNotFoundError
       @exception.message
     else
       "#{@exception.class}: #{@exception.message}"
@@ -31,9 +34,10 @@ class ExceptionState
 
   def backtrace
     begin
-      return @exception.awesome_backtrace.show
+      bt = @exception.awesome_backtrace.show.split "\n"
     rescue Exception
-      return @exception.backtrace && @exception.backtrace.join("\n")
+      bt = @exception.backtrace || []
     end
+    bt.reject { |line| PATH =~ line }.join("\n")
   end
 end

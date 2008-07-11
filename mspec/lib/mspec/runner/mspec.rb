@@ -18,8 +18,10 @@ module MSpec
   @mode    = nil
   @load    = nil
   @unload  = nil
-  @randomize   = nil
-  @expectation = nil
+  @exception    = nil
+  @randomize    = nil
+  @expectation  = nil
+  @expectations = false
 
   def self.describe(mod, msg=nil, &block)
     stack.push ContextState.new
@@ -109,6 +111,7 @@ module MSpec
   #   :enter        before a describe block is run
   #   :before       before a single spec is run
   #   :expectation  before a 'should', 'should_receive', etc.
+  #   :example      after an example block is run, passed the block
   #   :exception    after an exception is rescued
   #   :after        after a single spec is run
   #   :leave        after a describe block is run
@@ -174,6 +177,21 @@ module MSpec
       r = rand(size - i - 1)
       ary[i], ary[r] = ary[r], ary[i]
     end
+  end
+
+  # Records that an expectation has been encountered in an example.
+  def self.expectation
+    store :expectations, true
+  end
+
+  # Returns true if an expectation has been encountered
+  def self.expectation?
+    retrieve :expectations
+  end
+
+  # Resets the flag that an expectation has been encountered in an example.
+  def self.clear_expectations
+    store :expectations, false
   end
 
   # Transforms a spec filename into a tags filename by applying each

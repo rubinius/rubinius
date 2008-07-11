@@ -127,7 +127,8 @@ class MSpecMain < MSpecScript
   def run
     ENV['MSPEC_RUNNER'] = '1'
 
-    argv = config[:flags]
+    argv = ["-v"]
+    argv.concat config[:flags]
     argv.concat config[:includes]
     argv.concat config[:requires]
     argv << "#{MSPEC_HOME}/bin/mspec-#{ config[:command] || "run" }"

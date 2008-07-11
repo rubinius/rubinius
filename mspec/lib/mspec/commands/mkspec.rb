@@ -94,8 +94,7 @@ class MkSpec
       f.puts <<-EOS
 
 describe "#{meth}" do
-  it "needs to be reviewed for spec completeness" do
-  end
+  it "needs to be reviewed for spec completeness"
 end
 EOS
     end

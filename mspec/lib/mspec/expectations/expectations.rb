@@ -1,4 +1,9 @@
 class ExpectationNotMetError < StandardError; end
+class ExpectationNotFoundError < StandardError
+  def message
+    "No behavior expectation was found in the example"
+  end
+end
 
 class Expectation
   def self.fail_with(expected, actual)

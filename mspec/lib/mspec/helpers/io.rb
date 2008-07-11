@@ -10,4 +10,8 @@ class IOStub < String
   def puts(*str)
     write(str.collect { |s| s.to_s.chomp }.concat([nil]).join("\n"))
   end
+
+  def flush
+    self
+  end
 end

@@ -73,8 +73,8 @@ describe TallyAction do
     @tally.counter.expectations.should == 1
   end
 
-  it "responds to #after by incrementing counts returned by Tally#examples" do
-    @tally.after @state
+  it "responds to #example by incrementing counts returned by Tally#examples" do
+    @tally.example @state, nil
     @tally.counter.examples.should == 1
     @tally.counter.expectations.should == 0
     @tally.counter.failures.should == 0
@@ -101,7 +101,7 @@ describe TallyAction do
 
   it "responds to #format by returning a readable string of counts" do
     @tally.load
-    @tally.after @state
+    @tally.example @state, nil
     @tally.expectation @state
     @tally.expectation @state
     exc = ExceptionState.new nil, nil, ExpectationNotMetError.new("Failed!")
@@ -111,7 +111,7 @@ describe TallyAction do
 
   it "responds to #register by registering itself with MSpec for appropriate actions" do
     MSpec.should_receive(:register).with(:load, @tally)
-    MSpec.should_receive(:register).with(:after, @tally)
+    MSpec.should_receive(:register).with(:example, @tally)
     MSpec.should_receive(:register).with(:exception, @tally)
     MSpec.should_receive(:register).with(:expectation, @tally)
     @tally.register
@@ -120,7 +120,7 @@ describe TallyAction do
   it "responds to #unregister by unregistering itself with MSpec for appropriate actions" do
     MSpec.should_receive(:unregister).with(:load, @tally)
     MSpec.should_receive(:unregister).with(:exception, @tally)
-    MSpec.should_receive(:unregister).with(:after, @tally)
+    MSpec.should_receive(:unregister).with(:example, @tally)
     MSpec.should_receive(:unregister).with(:expectation, @tally)
     @tally.unregister
   end

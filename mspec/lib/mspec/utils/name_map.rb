@@ -100,7 +100,6 @@ class NameMap
       hash["#{name}."] = ms.sort unless ms.empty?
 
       ms = m.public_instance_methods(false) +
-           m.private_instance_methods(false) +
            m.protected_instance_methods(false)
       hash["#{name}#"] = ms.sort unless ms.empty?
 

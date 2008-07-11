@@ -1,15 +1,6 @@
-require 'rubygems'
-require 'spec/rake/spectask'
-require 'rake/gempackagetask'
-
-Spec::Rake::SpecTask.new
-
-task :default => :spec
-
-
-spec = Gem::Specification.new do |s|
+Gem::Specification.new do |s|
   s.name                      = %q{mspec}
-  s.version                   = "1.3.0"
+  s.version                   = "1.1.1"
 
   s.specification_version     = 2 if s.respond_to? :specification_version=
 
@@ -40,5 +31,3 @@ EOS
                    '--main' << 'README' <<
                    '--line-numbers'
 end
-
-Rake::GemPackageTask.new(spec){ |pkg| pkg.gem_spec = spec }

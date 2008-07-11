@@ -31,4 +31,8 @@ describe IOStub do
     @out.puts "hello", 1, 2, 3
     @out.should == "hello\n1\n2\n3\n"
   end
+
+  it "provides a flush method that does nothing and returns self" do
+    @out.flush.should == @out
+  end
 end

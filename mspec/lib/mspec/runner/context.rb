@@ -13,16 +13,17 @@ require 'mspec/runner/example'
 # is evaluated, just as +it+ refers to the example itself.
 #++
 class ContextState
-  def initialize
-    @start = []
-    @before = []
-    @after = []
-    @finish = []
-    @spec = []
-  end
+  attr_reader :state
 
-  def state
-    @state
+  def initialize
+    @start  = []
+    @before = []
+    @after  = []
+    @finish = []
+    @spec   = []
+    @mock_verify         = lambda { Mock.verify_count }
+    @mock_cleanup        = lambda { Mock.cleanup }
+    @expectation_missing = lambda { raise ExpectationNotFoundError }
   end
 
   def before(at=:each, &block)
@@ -54,7 +55,7 @@ class ContextState
   end
 
   def protect(what, blocks, check=true)
-    return false if check and MSpec.pretend_mode?
+    return true if check and MSpec.pretend_mode?
     Array(blocks).all? { |block| MSpec.protect what, &block }
   end
 
@@ -64,21 +65,32 @@ class ContextState
 
     MSpec.shuffle @spec if MSpec.randomize?
     MSpec.actions :enter, @describe
-    protect "before :all", @start
-    @spec.each do |desc, spec, state|
-      @state = state
-      MSpec.actions :before, state
-      if protect("before :each", @before)
-        protect nil, spec
-        protect "after :each", @after
-        protect "Mock.verify_count", lambda { Mock.verify_count }
+
+    if protect "before :all", @start
+      @spec.each do |desc, spec, state|
+        @state = state
+        MSpec.actions :before, state
+
+        if protect("before :each", @before)
+          MSpec.clear_expectations
+          protect nil, spec
+          if spec
+            MSpec.actions :example, state, spec
+            protect nil, @expectation_missing unless MSpec.expectation?
+          end
+          protect "after :each", @after
+          protect "Mock.verify_count", @mock_verify
+        end
+
+        protect "Mock.cleanup", @mock_cleanup
+        MSpec.actions :after, state
+        @state = nil
       end
-      protect "Mock.cleanup", lambda { Mock.cleanup }
-      MSpec.actions :after, state
-      @state = nil
+      protect "after :all", @finish
+    else
+      protect "Mock.cleanup", @mock_cleanup
     end
-    protect "after :all", @finish
+
     MSpec.actions :leave
   end
 end
-

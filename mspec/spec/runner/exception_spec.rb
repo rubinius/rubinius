@@ -70,7 +70,12 @@ describe ExceptionState, "#failure?" do
     exc.failure?.should be_true
   end
 
-  it "returns false if the exception is not an ExpectationNotMetError" do
+  it "returns true if the exception is an ExpectationNotFoundError" do
+    exc = ExceptionState.new @state, "", ExpectationNotFoundError.new("Fail!")
+    exc.failure?.should be_true
+  end
+
+  it "returns false if the exception is not an ExpectationNotMetError or an ExpectationNotFoundError" do
     exc = ExceptionState.new @state, "", Exception.new("Fail!")
     exc.failure?.should be_false
   end
@@ -82,12 +87,18 @@ describe ExceptionState, "#message" do
     exc.message.should == "<No message>"
   end
 
-  it "returns the message without exception class when the exception is ExpectationNotMetError" do
+  it "returns the message without exception class when the exception is an ExpectationNotMetError" do
     exc = ExceptionState.new @state, "", ExpectationNotMetError.new("Fail!")
     exc.message.should == "Fail!"
   end
 
-  it "returns the message with exception class when the exception is not ExpectationNotMetError" do
+  it "returns ExpectationNotFoundError#message when the exception is an ExpectationNotFoundError" do
+    e = ExpectationNotFoundError.new
+    exc = ExceptionState.new @state, "", e
+    exc.message.should == e.message
+  end
+
+  it "returns the message with exception class when the exception is not an ExpectationNotMetError or an ExpectationNotFoundError" do
     exc = ExceptionState.new @state, "", Exception.new("Fail!")
     exc.message.should == "Exception: Fail!"
   end
@@ -95,16 +106,25 @@ end
 
 describe ExceptionState, "#backtrace" do
   before :each do
-    begin
-      raise Exception, "mock backtrace"
-    rescue Exception => @exception
+    @action = mock("action")
+    def @action.exception(exc)
+      ScratchPad.record exc.exception
     end
+    MSpec.register :exception, @action
+
+    ScratchPad.clear
+    MSpec.protect("") { raise Exception }
+
+    @exc = ExceptionState.new @state, "", ScratchPad.recorded
   end
 
   it "returns a string representation of the exception backtrace" do
-    exc = ExceptionState.new @state, "", @exception
-    exc.backtrace.should be_kind_of(String)
+    @exc.backtrace.should be_kind_of(String)
   end
 
-  # TODO: spec the filtering of the backtrace so mspec files don't display
+  it "strips MSpec files from the backtrace" do
+    @exc.backtrace.split("\n").each do |line|
+      line.should_not =~ ExceptionState::PATH
+    end
+  end
 end

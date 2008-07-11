@@ -389,3 +389,33 @@ benchmark(0.01825):The#fastest method today
     File.exist?(tmp("tags.txt")).should == false
   end
 end
+
+describe MSpec, ".expectation" do
+  it "sets the flag that an expectation has been reported" do
+    MSpec.clear_expectations
+    MSpec.expectation?.should be_false
+    MSpec.expectation
+    MSpec.expectation?.should be_true
+  end
+end
+
+describe MSpec, ".expectation?" do
+  it "returns true if an expectation has been reported" do
+    MSpec.expectation
+    MSpec.expectation?.should be_true
+  end
+
+  it "returns false if an expectation has not been reported" do
+    MSpec.clear_expectations
+    MSpec.expectation?.should be_false
+  end
+end
+
+describe MSpec, ".clear_expectations" do
+  it "clears the flag that an expectation has been reported" do
+    MSpec.expectation
+    MSpec.expectation?.should be_true
+    MSpec.clear_expectations
+    MSpec.expectation?.should be_false
+  end
+end

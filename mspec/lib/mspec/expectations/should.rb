@@ -1,5 +1,6 @@
 class Object
   def should(matcher=nil)
+    MSpec.expectation
     MSpec.actions :expectation, MSpec.current.state
     if matcher
       unless matcher.matches?(self)
@@ -11,6 +12,7 @@ class Object
   end
 
   def should_not(matcher=nil)
+    MSpec.expectation
     MSpec.actions :expectation, MSpec.current.state
     if matcher
       if matcher.matches?(self)

@@ -50,14 +50,14 @@ class TallyAction
   def register
     MSpec.register :load,        self
     MSpec.register :exception,   self
-    MSpec.register :after,       self
+    MSpec.register :example,     self
     MSpec.register :expectation, self
   end
 
   def unregister
     MSpec.unregister :load,        self
     MSpec.unregister :exception,   self
-    MSpec.unregister :after,       self
+    MSpec.unregister :example,     self
     MSpec.unregister :expectation, self
   end
 
@@ -77,9 +77,9 @@ class TallyAction
     exception.failure? ? @counter.failures! : @counter.errors!
   end
 
-  # Callback for the MSpec :after event. Increments the tally
+  # Callback for the MSpec :example event. Increments the tally
   # of examples.
-  def after(state)
+  def example(state, block)
     @counter.examples!
   end
 

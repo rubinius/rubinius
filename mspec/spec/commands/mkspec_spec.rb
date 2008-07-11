@@ -208,6 +208,16 @@ describe MkSpec, "#write_spec" do
     @script.should_receive(:puts).with("spec/core/tcejbo/inspect_spec.rb")
     @script.write_spec("spec/core/tcejbo/inspect_spec.rb", "Object#inspect", true)
   end
+
+  it "writes a template spec" do
+    @file.should_receive(:puts).with(<<EOS)
+
+describe "Object#inspect" do
+  it "needs to be reviewed for spec completeness"
+end
+EOS
+    @script.write_spec("spec/core/tcejbo/inspect_spec.rb", "Object#inspect", true)
+  end
 end
 
 describe MkSpec, "#create_file" do

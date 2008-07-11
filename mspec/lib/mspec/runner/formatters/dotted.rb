@@ -93,5 +93,6 @@ class DottedFormatter
   # A convenience method to allow printing to different outputs.
   def print(*args)
     @out.print(*args)
+    @out.flush
   end
 end

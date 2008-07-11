@@ -130,6 +130,14 @@ describe Mock, ".install_method for mocks" do
     Mock.install_method(@mock, :method_call).and_return(1)
     @mock.method_call.should == 1
   end
+
+  it "registers that an expectation has been encountered" do
+    state = mock("run state", :null_object => true)
+    state.stub!(:state).and_return(mock("spec state"))
+    MSpec.should_receive(:expectation)
+    Mock.install_method(@mock, :method_call).and_return(1)
+    @mock.method_call.should == 1
+  end
 end
 
 describe Mock, ".install_method for stubs" do

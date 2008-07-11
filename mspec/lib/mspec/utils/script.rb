@@ -76,6 +76,7 @@ class MSpecScript
   end
 
   def self.main
+    $VERBOSE = nil unless ENV['OUTPUT_WARNINGS']
     script = new
     script.load 'default.mspec'
     script.load '~/.mspecrc'
