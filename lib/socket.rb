@@ -42,8 +42,12 @@ class BasicSocket < IO
     return 0
   end
 
-  # to doesn't do anything yet
-  def send(msg, flags, to = nil)
+  def getsockname()
+    return Socket::Foreign.getsockname(descriptor)
+  end
+
+  def send(msg, flags, *rest)
+    connect(*rest) if rest.size == 2
     bytes = msg.length
     buffer = MemoryPointer.new :char, bytes + 1
     buffer.write_string msg
@@ -295,7 +299,7 @@ class Socket < BasicSocket
 
     def self.pack_sockaddr_in(name, port, type, flags)
       hints = Socket::Foreign::AddrInfo.new
-      hints[:ai_family] = Socket::AF_UNSPEC
+      hints[:ai_family] = Socket::AF_INET
       hints[:ai_socktype] = type
       hints[:ai_flags] = flags
 
@@ -646,7 +650,8 @@ class UDPSocket < IPSocket
     socktype = Socket::AF_INET
     raise ArgumentError, 'too many arguments' if args.size > 1
     socktype = args[0] if args.size == 1
-    status = Socket::Foreign.socket socktype, Socket::SOCK_DGRAM, 0
+    status = Socket::Foreign.socket socktype, Socket::SOCK_DGRAM,
+      Socket::IPPROTO_UDP
     Errno.handle 'socket(2)' if status < 0
     setup status
   end
@@ -658,7 +663,8 @@ class UDPSocket < IPSocket
     addrinfos = Socket::Foreign.getaddrinfo(@host,
                                            @port,
                                            Socket::AF_UNSPEC,
-                                           Socket::SOCK_DGRAM, 0, 0)
+                                           Socket::SOCK_DGRAM, 0,
+                                           Socket::AI_PASSIVE)
 
     status = -1
 
@@ -675,6 +681,19 @@ class UDPSocket < IPSocket
       Socket::Foreign.close descriptor
     end
     status
+  end
+
+  def connect(host, port)
+	debugger
+    sockaddr = Socket.pack_sockaddr_in(port, host)
+    syscall = 'connect(2)'
+    status = Socket::Foreign.connect descriptor, sockaddr
+
+    if status < 0 then
+      Socket::Foreign.close descriptor
+      Errno.handle syscall
+    end
+    return 0
   end
 
   def inspect
