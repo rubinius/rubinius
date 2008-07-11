@@ -4,7 +4,6 @@ module FileSpecs
     @file   = tmp("test.txt")
     @dir    = Dir.pwd
     @fifo   = tmp("test_fifo")
-    @sock   = nil
 
     platform_is_not :windows do
       @block  = `find /dev /devices -type b 2> /dev/null`.split("\n").first
@@ -17,17 +16,6 @@ module FileSpecs
         break
       end
 
-      find_socket
-    end
-  end
-
-  # TODO: This is probably too volatile
-  def self.find_socket()
-    %w[/tmp /var/run].each do |dir|
-      socks = `find #{dir} -type s 2> /dev/null`.split("\n")
-      next if socks.empty?
-      @sock = socks.first
-      break
     end
   end
 
@@ -45,6 +33,7 @@ module FileSpecs
     yield @dir
   end
 
+  # TODO: need a platform-independent helper here
   def self.fifo()
     system "mkfifo #{@fifo} 2> /dev/null"
     yield @fifo
@@ -64,12 +53,13 @@ module FileSpecs
     yield @link
   end
 
-  # This will silently not execute the block if no socket
-  # can be found. However, if you are running X, there is
-  # a good chance that if nothing else, at least the X
-  # Server socket exists.
   def self.socket()
-    find_socket
-    yield @sock if @sock
+    require 'socket'
+    name = tmp("ftype_socket.socket")
+    File.delete name if File.exist? name
+    socket = UNIXServer.new name
+    yield name
+    socket.close
+    File.delete name if File.exist? name
   end
 end
