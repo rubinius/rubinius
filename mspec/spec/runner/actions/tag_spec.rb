@@ -266,6 +266,11 @@ describe TagAction, "#register" do
     @action = TagAction.new :add, :all, nil, nil, nil, nil
   end
 
+  it "registers itself with MSpec for the :before event" do
+    MSpec.should_receive(:register).with(:before, @action)
+    @action.register
+  end
+
   it "registers itself with MSpec for the :after event" do
     MSpec.should_receive(:register).with(:after, @action)
     @action.register
@@ -289,8 +294,12 @@ describe TagAction, "#unregister" do
     @action = TagAction.new :add, :all, nil, nil, nil, nil
   end
 
+  it "unregisters itself with MSpec for the :before event" do
+    MSpec.should_receive(:unregister).with(:before, @action)
+    @action.unregister
+  end
+
   it "unregisters itself with MSpec for the :after event" do
-    MSpec.should_receive(:unregister).with(:exception, @action)
     MSpec.should_receive(:unregister).with(:after, @action)
     @action.unregister
   end

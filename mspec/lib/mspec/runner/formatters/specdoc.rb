@@ -16,6 +16,7 @@ class SpecdocFormatter < DottedFormatter
   # Callback for the MSpec :before event. Prints the
   # +it+ block string.
   def before(state)
+    super
     print "- #{state.it}"
   end
 

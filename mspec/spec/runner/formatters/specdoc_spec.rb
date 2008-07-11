@@ -45,6 +45,14 @@ describe SpecdocFormatter, "#before" do
     @formatter.before @state
     @out.should == "- it"
   end
+
+  it "resets the #exception? flag" do
+    exc = ExceptionState.new @state, nil, ExpectationNotMetError.new("disappointing")
+    @formatter.exception exc
+    @formatter.exception?.should be_true
+    @formatter.before @state
+    @formatter.exception?.should be_false
+  end
 end
 
 describe SpecdocFormatter, "#exception" do

@@ -48,9 +48,9 @@ class TagAction < ActionFilter
   end
 
   # Callback for the MSpec :exception event. Sets the +#exception?+
-  # flag.
+  # flag to true.
   def exception(exception)
-    @exception = exception
+    @exception = true
   end
 
   # Callback for the MSpec :after event. Performs the tag action
@@ -86,7 +86,7 @@ class TagAction < ActionFilter
   # Returns true if an exception was raised while evaluating the
   # current example.
   def exception?
-    !!@exception
+    @exception
   end
 
   def report
@@ -117,6 +117,7 @@ class TagAction < ActionFilter
 
   def register
     super
+    MSpec.register :before,    self
     MSpec.register :exception, self
     MSpec.register :after,     self
     MSpec.register :finish,    self
@@ -124,6 +125,7 @@ class TagAction < ActionFilter
 
   def unregister
     super
+    MSpec.unregister :before,    self
     MSpec.unregister :exception, self
     MSpec.unregister :after,     self
     MSpec.unregister :finish,    self
