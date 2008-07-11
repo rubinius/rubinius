@@ -684,7 +684,6 @@ class UDPSocket < IPSocket
   end
 
   def connect(host, port)
-	debugger
     sockaddr = Socket.pack_sockaddr_in(port, host)
     syscall = 'connect(2)'
     status = Socket::Foreign.connect descriptor, sockaddr
