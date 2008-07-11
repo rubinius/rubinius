@@ -964,7 +964,8 @@ module Zlib
       @zstream.flags |= Zlib::GzipFile::FOOTER_FINISHED
 
       footer = @zstream.input.slice! 0, 8
-      @io.read 8 - footer.length, footer
+      rest = @io.read 8 - footer.length
+      footer << rest if rest
 
       raise NoFooter, 'footer is not found' unless footer.length == 8
 
@@ -997,8 +998,9 @@ module Zlib
       data = @buffer
 
       while chunk = @io.read(CHUNK) do
-        data << @zstream.inflate(chunk)
-        @crc = Zlib.crc32 data, @crc
+        inflated = @zstream.inflate(chunk)
+        @crc = Zlib.crc32 inflated, @crc
+        data << inflated
 
         break if length and data.length > length
       end
