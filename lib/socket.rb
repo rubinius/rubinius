@@ -95,6 +95,8 @@ class Socket < BasicSocket
     attach_function "socket", :socket, [:int, :int, :int], :int
     attach_function "send", :send, [:int, :pointer, :int, :int], :int
     attach_function "recv", :recv, [:int, :pointer, :int, :int], :int
+    attach_function "recvfrom", :recvfrom, [:int, :pointer, :size_t, :int,
+                    :pointer, :pointer], :int
 
     attach_function "getsockopt", :_getsockopt,
                     [:int, :int, :int, :pointer, :pointer], :int
@@ -642,6 +644,30 @@ class IPSocket < BasicSocket
     sockaddr = Socket::Foreign.getpeername descriptor
 
     Socket::Foreign.getnameinfo sockaddr
+  end
+
+  def recvfrom(maxlen, flags = 0)
+    maxlen = Type.coerce_to maxlen, Fixnum, :to_int
+    mesg = nil
+    sender_sockaddr = nil
+
+    MemoryPointer.new(:char, maxlen + 1) do |buffer_p|
+      MemoryPointer.new :char, 128 do |sockaddr_storage_p|
+        MemoryPointer.new :socklen_t do |len_p|
+          len_p.write_int 128
+          bytes_read = Socket::Foreign.recvfrom(descriptor, buffer_p, maxlen,
+            flags, sockaddr_storage_p, len_p)
+          Errno.handle 'recvfrom(2)' if bytes_read < 0
+
+          mesg = buffer_p.read_string
+          sockaddr = sockaddr_storage_p.read_string(len_p.read_int)
+					sockaddr = Socket::Foreign.unpack_sockaddr_in(sockaddr, false)
+          sender_sockaddr = [ "AF_INET", sockaddr[2], sockaddr[0], sockaddr[1] ]
+        end
+      end
+    end
+
+    return [mesg, sender_sockaddr]
   end
 end
 
