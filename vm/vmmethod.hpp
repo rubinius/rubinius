@@ -114,11 +114,7 @@ namespace rubinius {
 
   class VMPrimitiveMethod : public VMMethod {
   public:
-    primitive_func fp;
-
-    VMPrimitiveMethod(STATE, CompiledMethod* meth, primitive_func func);
-
-    static bool executor(STATE, VMExecutable* meth, Task* task, Message& msg);
+    VMPrimitiveMethod(STATE, CompiledMethod* meth, rubinius::executor func);
   };
 };
 

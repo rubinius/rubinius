@@ -78,27 +78,11 @@ namespace rubinius {
   /* This is a noop for this class. */
   void VMMethod::compile() { }
 
-  VMPrimitiveMethod::VMPrimitiveMethod(STATE, CompiledMethod* meth, 
-                                       primitive_func func) :
-      VMMethod(state, meth), fp(func) {
-        this->execute = VMPrimitiveMethod::executor;
+  VMPrimitiveMethod::VMPrimitiveMethod(STATE, CompiledMethod* meth,
+                                       rubinius::executor func) :
+      VMMethod(state, meth) {
+        this->execute = func;
       }
-
-  bool VMPrimitiveMethod::executor(STATE, VMExecutable* exec, 
-                                  Task* task, Message& msg) {
-    VMPrimitiveMethod* meth = (VMPrimitiveMethod*)exec;
-
-    OBJECT ret;
-    try {
-      ret = CALL_PRIM(state->primitives, meth->fp)(state, msg);
-    } catch(PrimitiveFailed& e) {
-      abort();
-      return true;
-    }
-
-    task->primitive_return(ret, msg);
-    return false;
-  }
 
   void VMMethod::resume(Task* task, MethodContext* ctx) {
     throw std::string("blah!");
