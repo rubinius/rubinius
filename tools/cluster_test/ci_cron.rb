@@ -18,7 +18,8 @@ SPEC_REPO = 'git://github.com/rubyspec/rubyspec.git'
 TEMP_DIR  = File.join BASE_DIR, "tmp"
 TRIG_DIR  = File.join HTML_DIR, "trigger"
 
-GIT_URL = "http://git.rubini.us/?p=code;a=commit;h="
+SPEC_GIT_URL = "http://github.com/rubyspec/rubyspec/commit/"
+RBX_GIT_URL = "http://git.rubini.us/?p=code;a=commit;h="
 
 STALE   = 14
 DISPLAY = 50
@@ -327,7 +328,7 @@ def write_index platforms, hashes, all_data
         hashes.sort_by {|_,t| -t.to_i }.first(DISPLAY).each do |hash, time|
           tr_ do
             th_ do
-              a_(hash[0..7], :href => "#{GIT_URL}#{hash}")
+              a_(hash[0..7], :href => "#{SPEC_GIT_URL}#{hash}")
             end
 
             th_ "#{time.strftime("%m-%d %H:%M")}"
