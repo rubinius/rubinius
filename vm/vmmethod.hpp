@@ -25,7 +25,7 @@ namespace rubinius {
 
     virtual void specialize(TypeInfo* ti);
     virtual void compile();
-    virtual bool execute(STATE, Task* task, Message& msg);
+    static bool executor(STATE, VMExecutable* meth, Task* task, Message& msg);
     virtual void resume(Task* task, MethodContext* ctx);
 
     std::vector<Opcode*> create_opcodes();
@@ -118,7 +118,7 @@ namespace rubinius {
 
     VMPrimitiveMethod(STATE, CompiledMethod* meth, primitive_func func);
 
-    virtual bool execute(STATE, Task* task, Message& msg);
+    static bool executor(STATE, VMExecutable* meth, Task* task, Message& msg);
   };
 };
 
