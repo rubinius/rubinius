@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby -w
+#!/usr/local/bin/ruby -w
 
 # See README for instructions.
 
@@ -8,7 +8,7 @@ require 'fileutils'
 require 'open3' # FIX: no clue why this is needed
 
 # tweak this as needed:
-BASE_DIR = File.expand_path "/tmp/ci"
+BASE_DIR = File.expand_path "~ci/ci"
 SAFE_CAT = "/usr/local/bin/safecat"
 
 # don't tweak this
