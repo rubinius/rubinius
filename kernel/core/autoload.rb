@@ -29,19 +29,21 @@ class Autoload
 
   # Class methods
   class << self
+    # Initializes as a Hash with an empty array as the default value
     def autoloads
-      @autoloads ||= {}
+      @autoloads ||= Hash.new {|h,k| h[k] = Array.new }
     end
 
     # Called by Autoload#initialize
     def add(al)
-      autoloads[al.path] = al
+      autoloads[al.path] << al
     end
 
     # Called by require; see kernel/core/compile.rb
     def remove(path)
       al = autoloads.delete(path)
-      al.discard if al
+      return unless al
+      al.each {|a| a.discard }
     end
   end
 end
