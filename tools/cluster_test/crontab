@@ -1,3 +1,5 @@
+#
+SHELL=/bin/bash
 # field          allowed values
 # -----          --------------
 # minute         0-59
@@ -7,7 +9,7 @@
 # day of week    0-7 (0 or 7 is Sun, or use names)
 #
 */2  * * * * ruby ~/rubinius/tools/cluster_test/ci_cron.rb ~/ci
-*/15 * * * * cd ~/rubinius; git fetch
+*/15 * * * * cd ~/rubinius; /usr/bin/rake git:pull &> /dev/null
 */15 * * * * crontab ~/rubinius/tools/cluster_test/crontab
 #
 # always have a blank line at the end... cron sucks
