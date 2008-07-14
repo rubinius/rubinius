@@ -133,6 +133,8 @@ def new_hashes
     latest_author = author
   end
 
+  build_hashes << curr_hash if build_hashes.empty?
+
   build_hashes.reverse
 end
 
@@ -198,6 +200,7 @@ def submit hash
 
   full_log.scan(/^VERSION =.*?RESULT = \d+/m).each do |log|
     warn "submitting #{hash} to #{CGI_URI}" if $v
+
     data = {
       :platform    => Gem::Platform.local.to_s,
       :incremental => $i,
