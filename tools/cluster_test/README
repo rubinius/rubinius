@@ -141,3 +141,10 @@ The following people have admin access on the server:
 
 + Evan Phoenix (irc: evan)
 + Ryan Davis   (irc: zenspider)
+
+The follow CI clients are setup:
+
++ elle.fallingsnow.net - linux/x86-32/debian
+  mode: incremental
+  admin: Evan Phoenix (irc: evan)
+
