@@ -131,11 +131,10 @@ Server Requirements:
 Maintenance Details:
 --------------------
 
-Server is hosted on hoshi.fallingsnow.net in ~ci/
-
-CGI is located in XXX.
-
-Cron is run by user XXX.
++ Server is hosted on hoshi.fallingsnow.net in ~ci/
++ CGI is located in ~ci/cgi-bin.
++ Cron is run by user ci and is checked in as "crontab".
++ Results are reported on: http://ci.rubini.us/
 
 The following people have admin access on the server:
 
