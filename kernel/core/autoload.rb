@@ -15,6 +15,7 @@ class Autoload
     Autoload.add(self)
   end
 
+  ##
   # When any code that finds a constant sees an instance of Autoload as its match,
   # it calls this method on us
   def call
@@ -22,23 +23,28 @@ class Autoload
     scope.const_get(name)
   end
 
+  ##
   # Called by Autoload.remove
   def discard
     scope.__send__(:remove_const, name)
   end
 
+  ##
   # Class methods
   class << self
+    ##
     # Initializes as a Hash with an empty array as the default value
     def autoloads
       @autoloads ||= Hash.new {|h,k| h[k] = Array.new }
     end
 
+    ##
     # Called by Autoload#initialize
     def add(al)
       autoloads[al.path] << al
     end
 
+    ##
     # Called by require; see kernel/core/compile.rb
     def remove(path)
       al = autoloads.delete(path)
