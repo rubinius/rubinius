@@ -25,8 +25,7 @@
 7.  Build and run the tests: `rake test`
 
 8.  You can use `git pull` to get updates
-    - Rubinius Rake tasks work too although for those you will need to
-      cd back out of the vm directory.
+    - The 'rake git:pull' task currently doesn't work for the C++ branch.
 
 9.  ...And `git push` to send back any of your commits to the C++ branch.
     - Same here with the Rbx Rake tasks.
