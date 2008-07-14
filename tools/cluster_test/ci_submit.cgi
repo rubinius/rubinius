@@ -27,8 +27,6 @@ cgi.out do
 
     Open3.popen3("#{SAFE_CAT} #{TEMP_DIR} #{DATA_DIR}") do |inn, out, err|
       inn.write data
-      err_output = err.read
-      raise err_output unless err_output.empty?
     end
 
     "<p>thanks #{$?.exitstatus}<p>"
