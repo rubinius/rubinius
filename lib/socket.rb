@@ -1,3 +1,5 @@
+require 'fcntl'
+
 class SocketError < StandardError
 end
 
@@ -47,13 +49,18 @@ class BasicSocket < IO
   end
 
   def send(msg, flags, *rest)
+    if ((rest.size != 2) && (rest.size != 0))
+      raise ArgumentError, '#send takes 0 or 2 arguments, passed #{rest.size}'
+    end
+    
     connect(*rest) if rest.size == 2
     bytes = msg.length
-    buffer = MemoryPointer.new :char, bytes + 1
-    buffer.write_string msg
-    bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
-    Errno.handle 'send(2)' if bytes_sent < 0
-    buffer.free
+    bytes_sent = 0
+    MemoryPointer.new :char, bytes + 1 do |buffer|
+      buffer.write_string msg
+      bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
+      Errno.handle 'send(2)' if bytes_sent < 0
+    end
     return bytes_sent
   end
 
@@ -668,6 +675,17 @@ class IPSocket < BasicSocket
     end
 
     return [mesg, sender_sockaddr]
+  end
+
+  def recvfrom_nonblock(maxlen, flags = 0)
+    # Set socket to non-blocking, if we can
+    unless RUBY_PLATFORM =~ /win32/
+        fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    end
+
+    # Wait until we have something to read
+    IO.select([self])
+    return recvfrom(maxlen, flags)
   end
 end
 
