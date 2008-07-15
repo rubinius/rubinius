@@ -68,26 +68,51 @@ class File < IO
     const_set :FNM_SYSCASE, CASEFOLD_FILESYSTEM ? FNM_CASEFOLD : false
   end
 
+  ##
+  # Returns the last access time for the named file as a Time object).
+  #
+  #  File.atime("testfile")   #=> Wed Apr 09 08:51:48 CDT 2003
   def self.atime(path)
     Stat.new(path).atime
   end
 
+  ##
+  # Returns the last component of the filename given
+  # in file_name, which must be formed using forward
+  # slashes (``/’’) regardless of the separator used
+  # on the local file system. If suffix is given and
+  # present at the end of file_name, it is removed.
+  #
+  #  File.basename("/home/gumby/work/ruby.rb")          #=> "ruby.rb"
+  #  File.basename("/home/gumby/work/ruby.rb", ".rb")   #=> "ruby"
   def self.basename(path,ext = "")
     path = StringValue(path)
     ext = StringValue(ext)
     Platform::File.basename(path,ext)
   end
 
+  ##
+  # Returns true if the named file is a block device.
   def self.blockdev?(path)
     st = Stat.stat? path
     st ? st.blockdev? : false
   end
 
+  ##
+  # Returns true if the named file is a character device.
   def self.chardev?(path)
     st = Stat.stat? path
     st ? st.chardev? : false
   end
 
+  ##
+  # Changes permission bits on the named file(s) to
+  # the bit pattern represented by mode_int. Actual
+  # effects are operating system dependent (see the
+  # beginning of this section). On Unix systems, see
+  # chmod(2) for details. Returns the number of files processed.
+  #
+  #  File.chmod(0644, "testfile", "out")   #=> 2
   def self.chmod(mode, *paths)
     mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
     paths.each do |path|
@@ -97,6 +122,11 @@ class File < IO
     paths.size
   end
 
+  ##
+  # Equivalent to File::chmod, but does not follow symbolic
+  # links (so it will change the permissions associated with
+  # the link, not the file referenced by the link).
+  # Often not available.
   def self.lchmod(mode, *paths)
     mode = Type.coerce_to(mode, Integer, :to_int) unless mode.is_a? Integer
     paths.each do |path|
@@ -106,6 +136,17 @@ class File < IO
     paths.size
   end
 
+  ##
+  # Changes the owner and group of the
+  # named file(s) to the given numeric owner
+  # and group id‘s. Only a process with superuser 
+  # privileges may change the owner of a file. The
+  # current owner of a file may change the file‘s
+  # group to any group to which the owner belongs.
+  # A nil or -1 owner or group id is ignored.
+  # Returns the number of files processed.
+  # 
+  #  File.chown(nil, 100, "testfile")
   def self.chown(owner_int, group_int, *paths)
     owner_int = -1 if owner_int == nil
     group_int = -1 if group_int == nil
@@ -113,6 +154,12 @@ class File < IO
     paths.size
   end
 
+  ##
+  # Equivalent to File::chown, but does not follow
+  # symbolic links (so it will change the owner
+  # associated with the link, not the file referenced
+  # by the link). Often not available. Returns number
+  # of files in the argument list.
   def self.lchown(owner_int, group_int, *paths)
     owner_int = -1 if owner_int == nil
     group_int = -1 if group_int == nil
@@ -120,40 +167,84 @@ class File < IO
     paths.size
   end
 
+  ##
+  # Returns the change time for the named file (the
+  # time at which directory information about the
+  # file was changed, not the file itself).
+  #
+  #  File.ctime("testfile")   #=> Wed Apr 09 08:53:13 CDT 2003
   def self.ctime(path)
     Stat.new(path).ctime
   end
 
+  ##
+  # Returns true if the named file is a directory, false otherwise.
+  #
+  # File.directory?(".")
   def self.directory?(path)
     st = Stat.stat? path
     st ? st.directory? : false
   end
 
+  ##
+  # Returns all components of the filename given in
+  # file_name except the last one. The filename must be
+  # formed using forward slashes (``/’’) regardless of
+  # the separator used on the local file system.
+  # 
+  #  File.dirname("/home/gumby/work/ruby.rb")   #=> "/home/gumby/work"
   def self.dirname(path)
     path = StringValue(path)
     Platform::File.dirname(path)
   end
 
+  ##
+  # Returns true if the named file is executable by the
+  # effective user id of this process.
   def self.executable?(path)
     st = Stat.stat? path
     st ? st.executable? : false
   end
 
+  ##
+  # Returns true if the named file is executable by
+  # the real user id of this process.
   def self.executable_real?(path)
     st = Stat.stat? path
     st ? st.executable_real? : false
   end
 
+  ##
+  # Return true if the named file exists.
   def self.exist?(path)
     Stat.stat?(path) ? true : false
   rescue SystemCallError
     false
   end
 
+  ##
+  # Converts a pathname to an absolute pathname. Relative
+  # paths are referenced from the current working directory
+  # of the process unless dir_string is given, in which case
+  # it will be used as the starting point. The given pathname
+  # may start with a ``~’’, which expands to the process owner‘s
+  # home directory (the environment variable HOME must be set
+  # correctly). "~user" expands to the named user‘s home directory.
+  # 
+  #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
+  #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir_string = nil)
     Platform::File.expand_path(path, dir_string)
   end
 
+  ##
+  # Returns the extension (the portion of file name in
+  # path after the period).
+  #
+  #  File.extname("test.rb")         #=> ".rb"
+  #  File.extname("a/b/d/test.rb")   #=> ".rb"
+  #  File.extname("test")            #=> ""
+  #  File.extname(".profile")        #=> ""
   def self.extname(path)
     filename = File.basename(StringValue(path))
     idx = filename.rindex '.'
@@ -168,6 +259,8 @@ class File < IO
     filename.slice idx..-1
   end
 
+  ##
+  # Returns true if the named file exists and is a regular file.
   def self.file?(path)
     st = Stat.stat? path
     st ? st.file? : false
@@ -329,6 +422,65 @@ class File < IO
     index >= strend ? true : false
   end
 
+  ##
+  # Returns true if path matches against pattern The pattern
+  # is not a regular expression; instead it follows rules
+  # similar to shell filename globbing. It may contain the
+  # following metacharacters:
+  # 
+  # *:	Matches any file. Can be restricted by other values in the glob. * will match all files; c* will match all files beginning with c; *c will match all files ending with c; and c will match all files that have c in them (including at the beginning or end). Equivalent to / .* /x in regexp.
+  # **:	Matches directories recursively or files expansively.
+  # ?:	Matches any one character. Equivalent to /.{1}/ in regexp.
+  # [set]:	Matches any one character in set. Behaves exactly like character sets in Regexp, including set negation ([^a-z]).
+  # <code></code>:	Escapes the next metacharacter.
+  # flags is a bitwise OR of the FNM_xxx parameters. The same glob pattern and flags are used by Dir::glob.
+  # 
+  #  File.fnmatch('cat',       'cat')        #=> true  : match entire string
+  #  File.fnmatch('cat',       'category')   #=> false : only match partial string
+  #  File.fnmatch('c{at,ub}s', 'cats')       #=> false : { } isn't supported
+  #
+  #  File.fnmatch('c?t',     'cat')          #=> true  : '?' match only 1 character
+  #  File.fnmatch('c??t',    'cat')          #=> false : ditto
+  #  File.fnmatch('c*',      'cats')         #=> true  : '*' match 0 or more characters
+  #  File.fnmatch('c*t',     'c/a/b/t')      #=> true  : ditto
+  #  File.fnmatch('ca[a-z]', 'cat')          #=> true  : inclusive bracket expression
+  #  File.fnmatch('ca[^t]',  'cat')          #=> false : exclusive bracket expression ('^' or '!')
+  #
+  #  File.fnmatch('cat', 'CAT')                     #=> false : case sensitive
+  #  File.fnmatch('cat', 'CAT', File::FNM_CASEFOLD) #=> true  : case insensitive
+  #
+  #  File.fnmatch('?',   '/', File::FNM_PATHNAME)  #=> false : wildcard doesn't match '/' on FNM_PATHNAME
+  #  File.fnmatch('*',   '/', File::FNM_PATHNAME)  #=> false : ditto
+  #  File.fnmatch('[/]', '/', File::FNM_PATHNAME)  #=> false : ditto
+  #
+  #  File.fnmatch('\?',   '?')                       #=> true  : escaped wildcard becomes ordinary
+  #  File.fnmatch('\a',   'a')                       #=> true  : escaped ordinary remains ordinary
+  #  File.fnmatch('\a',   '\a', File::FNM_NOESCAPE)  #=> true  : FNM_NOESACPE makes '\' ordinary
+  #  File.fnmatch('[\?]', '?')                       #=> true  : can escape inside bracket expression
+  #
+  #  File.fnmatch('*',   '.profile')                      #=> false : wildcard doesn't match leading
+  #  File.fnmatch('*',   '.profile', File::FNM_DOTMATCH)  #=> true    period by default.
+  #  File.fnmatch('.*',  '.profile')                      #=> true
+  #
+  #  rbfiles = '**' '/' '*.rb' # you don't have to do like this. just write in single string.
+  #  File.fnmatch(rbfiles, 'main.rb')                    #=> false
+  #  File.fnmatch(rbfiles, './main.rb')                  #=> false
+  #  File.fnmatch(rbfiles, 'lib/song.rb')                #=> true
+  #  File.fnmatch('**.rb', 'main.rb')                    #=> true
+  #  File.fnmatch('**.rb', './main.rb')                  #=> false
+  #  File.fnmatch('**.rb', 'lib/song.rb')                #=> true
+  #  File.fnmatch('*',           'dave/.profile')                      #=> true
+  #
+  #  pattern = '*' '/' '*'
+  #  File.fnmatch(pattern, 'dave/.profile', File::FNM_PATHNAME)  #=> false
+  #  File.fnmatch(pattern, 'dave/.profile', File::FNM_PATHNAME | File::FNM_DOTMATCH) #=> true
+  #
+  #  pattern = '**' '/' 'foo'
+  #  File.fnmatch(pattern, 'a/b/c/foo', File::FNM_PATHNAME)     #=> true
+  #  File.fnmatch(pattern, '/a/b/c/foo', File::FNM_PATHNAME)    #=> true
+  #  File.fnmatch(pattern, 'c:/a/b/c/foo', File::FNM_PATHNAME)  #=> true
+  #  File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME)    #=> false
+  #  File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH) #=> true
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern).dup
     path    = StringValue(path).dup
@@ -337,10 +489,22 @@ class File < IO
     name_match(pattern, path, flags, 0, pattern.size, 0, path.size)
   end
 
+  ##
+  # Identifies the type of the named file; the return string is 
+  # one of "file", "directory", "characterSpecial",
+  # "blockSpecial", "fifo", "link", "socket", or "unknown".
+  #
+  #  File.ftype("testfile")            #=> "file"
+  #  File.ftype("/dev/tty")            #=> "characterSpecial"
+  #  File.ftype("/tmp/.X11-unix/X0")   #=> "socket"
   def self.ftype(path)
     lstat(path).ftype
   end
 
+  ##
+  # Returns true if the named file exists and the effective 
+  # group id of the calling process is the owner of the file.
+  # Returns false on Windows.
   def self.grpowned?(path)
     begin
       lstat(path).grpowned?
@@ -349,6 +513,18 @@ class File < IO
     end
   end
 
+  ##
+  # Returns true if the named files are identical.
+  #
+  #   open("a", "w") {}
+  #   p File.identical?("a", "a")      #=> true
+  #   p File.identical?("a", "./a")    #=> true
+  #   File.link("a", "b")
+  #   p File.identical?("a", "b")      #=> true
+  #   File.symlink("a", "c")
+  #   p File.identical?("a", "c")      #=> true
+  #   open("d", "w") {}
+  #   p File.identical?("a", "d")      #=> false
   def self.identical?(orig, copy)
     st_o = stat(StringValue(orig))
     st_c = stat(StringValue(copy))
@@ -361,6 +537,10 @@ class File < IO
     true
   end
 
+  ##
+  # Returns a new string formed by joining the strings using File::SEPARATOR.
+  # 
+  #  File.join("usr", "mail", "gumby")   #=> "usr/mail/gumby"
   def self.join(*args)
     args.map! { |o|
       o = o.to_str unless Array === o || String === o
@@ -374,6 +554,13 @@ class File < IO
     result.join(SEPARATOR).gsub(/\0/, ':/')
   end
 
+  ##
+  # Creates a new name for an existing file using a hard link.
+  # Will not overwrite new_name if it already exists (raising
+  # a subclass of SystemCallError). Not available on all platforms.
+  #
+  #  File.link("testfile", ".testfile")   #=> 0
+  #  IO.readlines(".testfile")[0]         #=> "This is line one\n"
   def self.link(from, to)
     to = StringValue(to)
     from = StringValue(from)
@@ -383,38 +570,55 @@ class File < IO
     n
   end
 
+  ##
+  # Same as File::stat, but does not follow the last symbolic link.
+  # Instead, reports on the link itself.
+  #
+  #  File.symlink("testfile", "link2test")   #=> 0
+  #  File.stat("testfile").size              #=> 66
+  #  File.lstat("link2test").size            #=> 8
+  #  File.stat("link2test").size             #=> 66
   def self.lstat(path)
     Stat.new path, false
   end
 
+  ##
+  # Returns the modification time for the named file as a Time object.
+  #
+  #  File.mtime("testfile")   #=> Tue Apr 08 12:58:04 CDT 2003
   def self.mtime(path)
     Stat.new(path).mtime
   end
 
+  ##
+  # Returns true if the named file is a pipe.
   def self.pipe?(path)
     st = Stat.stat? path
     st ? st.pipe? : false
   end
 
+  ## 
+  # Returns true if the named file is readable by the effective
+  # user id of this process.
   def self.readable?(path)
     st = Stat.stat? path
     st ? st.readable? : false
   end
 
+  ##
+  # Returns true if the named file is readable by the real user
+  # id of this process.
   def self.readable_real?(path)
     st = Stat.stat? path
     st ? st.readable_real? : false
   end
 
-  def self.rename(from, to)
-    to = StringValue(to)
-    from = StringValue(from)
-
-    n = POSIX.rename(from, to)
-    Errno.handle if n == -1
-    n
-  end
-
+  ##
+  # Returns the name of the file referenced by the given link.
+  # Not available on all platforms.
+  #
+  #  File.symlink("testfile", "link2test")   #=> 0
+  #  File.readlink("link2test")              #=> "testfile"
   def self.readlink(path)
     StringValue(path)
 
@@ -426,29 +630,64 @@ class File < IO
     buf[0, n]
   end
 
+  ##
+  # Renames the given file to the new name. Raises a SystemCallError
+  # if the file cannot be renamed.
+  #
+  #  File.rename("afile", "afile.bak")   #=> 0
+  def self.rename(from, to)
+    to = StringValue(to)
+    from = StringValue(from)
+
+    n = POSIX.rename(from, to)
+    Errno.handle if n == -1
+    n
+  end
+  
+  ##
+  # Returns the size of file_name.
   def self.size(path)
     stat(path).size
   end
 
+  ##
+  # Returns nil if file_name doesn‘t exist or has zero size,
+  # the size of the file otherwise.
   def self.size?(path)
     st = Stat.stat? path
     st && st.size > 0 ? st.size : nil
   end
 
+  ##
+  # Returns true if the named file is a socket.
   def self.socket?(path)
     st = Stat.stat? path
     st ? st.socket? : false
   end
 
+  ##
+  # Splits the given string into a directory and a file component and returns them in a two-element array. See also File::dirname and File::basename.
+  # 
+  #  File.split("/home/gumby/.profile")   #=> ["/home/gumby", ".profile"]
   def self.split(path)
     p = StringValue(path)
     [dirname(p), basename(p)]
   end
 
+  ##
+  # Returns a File::Stat object for the named file (see File::Stat).
+  # 
+  #  File.stat("testfile").mtime   #=> Tue Apr 08 12:58:04 CDT 2003
   def self.stat(path)
     Stat.new path
   end
 
+  ##
+  # Creates a symbolic link called new_name for the
+  # existing file old_name. Raises a NotImplemented
+  # exception on platforms that do not support symbolic links.
+  # 
+  #  File.symlink("testfile", "link2test")   #=> 0
   def self.symlink(from, to)
     to = StringValue(to)
     from = StringValue(from)
@@ -458,11 +697,28 @@ class File < IO
     n
   end
 
+  ##
+  # Returns true if the named file is a symbolic link.
   def self.symlink?(path)
     st = Stat.stat? path, false
     st ? st.symlink? : false
   end
+  
+  ##
+  # Copies a file from to to. If to is a directory, copies from to to/from.
+  def self.syscopy(from, to)
+    out = File.directory?(to) ? to + File.basename(from) : to
+    
+    open(out, 'w') do |f|
+      f.write read(from).read
+    end
+  end
 
+  ##
+  # Return the equivalent S-Expression of the file given.
+  # Raises +SyntaxError+ if there is a syntax issue in the
+  # file, making it unparsable.
+  #  File.to_sexp("/tmp/test.rb") #=> [...]
   def self.to_sexp(name, newlines=true)
     out = to_sexp_full(name, newlines)
     if out.kind_of? Tuple
@@ -476,6 +732,15 @@ class File < IO
     out
   end
 
+  ##
+  # Truncates the file file_name to be at most integer
+  # bytes long. Not available on all platforms.
+  #
+  #  f = File.new("out", "w")
+  #  f.write("1234567890")     #=> 10
+  #  f.close                   #=> nil
+  #  File.truncate("out", 5)   #=> 0
+  #  File.size("out")          #=> 5
   def self.truncate(path, length)
     unless self.exist?(path)
       raise Errno::ENOENT, path
@@ -490,6 +755,16 @@ class File < IO
     n
   end
 
+  ##
+  # Returns the current umask value for this process.
+  # If the optional argument is given, set the umask
+  # to that value and return the previous value. Umask
+  # values are subtracted from the default permissions,
+  # so a umask of 0222 would make a file read-only for
+  # everyone.
+  # 
+  #  File.umask(0006)   #=> 18
+  #  File.umask         #=> 6
   def self.umask(mask = nil)
     if mask
       POSIX.umask(mask)
@@ -500,6 +775,11 @@ class File < IO
     end
   end
 
+  ##
+  # Deletes the named files, returning the number of names
+  # passed as arguments. Raises an exception on any error.
+  # 
+  # See also Dir::rmdir.
   def self.unlink(*paths)
     paths.each do |path|
       path = StringValue(path)
@@ -511,6 +791,11 @@ class File < IO
     paths.size
   end
 
+  ##
+  # Sets the access and modification times of each named
+  # file to the first two arguments. Returns the number
+  # of file names in the argument list.
+  #  #=> Integer
   def self.utime(a_in, m_in, *paths)
     ptr = MemoryPointer.new(POSIX::TimeVal, 2)
     atime = POSIX::TimeVal.new ptr
@@ -530,22 +815,30 @@ class File < IO
     ptr.free
   end
 
+  ##
+  # Returns true if the named file is writable by the effective 
+  # user id of this process.
   def self.writable?(path)
     st = Stat.stat? path
     st ? st.writable? : false
   end
 
+  ##
+  # Returns true if the named file is writable by the real user
+  # id of this process.
   def self.writable_real?(path)
     st = Stat.stat? path
     st ? st.writable_real? : false
   end
 
+  ##
+  # Returns true if the named file exists and has a zero size.
   def self.zero?(path)
     st = Stat.stat? path
     st ? st.zero? : false
   end
   
-  # 
+  ##
   # Returns true if the named file exists and the effective
   # used id of the calling process is the owner of the file.
   #  File.owned?(file_name)   => true or false
@@ -553,22 +846,29 @@ class File < IO
     Stat.new(file_name).owned?
   end
   
-  # 
+  ##
   # Returns true if the named file has the setgid bit set.
   def self.setgid?(file_name)
     Stat.new(file_name).setgid?
   end
   
-  # 
+  ##
   # Returns true if the named file has the setuid bit set.
   def self.setuid?(file_name)
     Stat.new(file_name).setuid?
   end
   
-  # 
+  ##
   # Returns true if the named file has the sticky bit set.
   def self.sticky?(file_name)
     Stat.new(file_name).sticky?
+  end
+  
+  ##
+  # Returns true if the named file exists and the effective
+  # used id of the calling process is the owner of the file.
+  def self.owned?(file_name)
+    Stat.new(file_name).owned?
   end
 
   class << self
