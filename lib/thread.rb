@@ -281,7 +281,7 @@ class Queue
         if @que.empty?
           raise ThreadError, "queue empty" if non_block
           @waiting.push Thread.current
-          @mutex.sleep
+          sleep
         else
           return @que.shift
         end
@@ -394,7 +394,7 @@ class SizedQueue < Queue
       while true
         break if @que.length <= @max
         @queue_wait.push Thread.current
-        @mutex.sleep
+        sleep
       end
     
       @que.push obj
