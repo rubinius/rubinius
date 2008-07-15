@@ -86,46 +86,58 @@ class CCompile
 
     return data
   end
-
 end
 
 compiler = CCompile.new
 
+LLVM_CONFIG = "./external_libs/llvm/Release/bin/llvm-config"
+
 rule ".h"
 rule ".hpp" => "external_libs/libffi/include/ffi.h"
 
-external = %w!
-  external_libs/libtommath/libtommath.a
-  external_libs/onig/.libs/libonig.a
-  external_libs/libffi/.libs/libffi.a
-  external_libs/libltdl/.libs/libltdl.a
-  external_libs/libev/.libs/libev.a
-!
+def external
+  $external ||= %w(
+    external_libs/libtommath/libtommath.a
+    external_libs/onig/.libs/libonig.a
+    external_libs/libffi/.libs/libffi.a
+    external_libs/libltdl/.libs/libltdl.a
+    external_libs/libev/.libs/libev.a
+    external_libs/llvm/Release/lib/libLLVMSystem.a
+  )
+end
 
 cleaning = Rake.application.top_level_tasks.find { |t| t =~ /clean/ }
-
 
 #  Linker and external libs
 # --------------------------
 
-link_opts = `llvm-config --ldflags`.split /\s+/   # Mainly useful for the libdir
+##
+# Mainly useful for the libdir
+def link_opts
+  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split /\s+/
+end
 
-ex_libs = external + [ "-ldl" ]
-
-ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
-
-ex_libs += `llvm-config --libs all`.split(/\s+/)
+def ex_libs
+  unless defined? $ex_libs then
+    $ex_libs = external + [ "-ldl" ]
+    $ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
+    $ex_libs += `#{LLVM_CONFIG} --libs all`.split(/\s+/)
+  end
+  $ex_libs
+end
 
 ex_inc  = %w!
   external_libs/libtommath
   external_libs/onig
   external_libs/libffi/include
   external_libs/libltdl
-  external_libs/libev!
+  external_libs/libev
+  external_libs/llvm/include
+!
 
 tests = FileList["test/test_*.hpp"]
 
-def maybe_regen(list)
+def maybe_regen(list) # TODO: remove this in favor of rake rules
   cur = File.mtime("instructions.rb")
   list.each do |file|
     if !File.exists?(file) or cur > File.mtime(file)
@@ -166,7 +178,7 @@ compiler.includes << "test/cxxtest"
 compiler.includes << "."
 
 compiler.flags << "-Wall" << "-ggdb" << "-gdwarf-2"
-compiler.flags += `llvm-config --cflags`.split(/\s+/)
+compiler.flags += `#{LLVM_CONFIG} --cflags`.split(/\s+/)
 
 if ENV['FAST']
   compiler.flags << "-O2"
@@ -233,7 +245,7 @@ file "drivers/cli.o" => "drivers/cli.cpp" do
   compiler.compile "drivers/cli.cpp"
 end
 
-file "vm" => objs + ["drivers/cli.o", "instructions.bc"] do
+file "vm" => external + objs + ["drivers/cli.o", "instructions.bc"] do
   puts "LD vm"
   compiler.link "vm", :objects => objs + ["drivers/cli.o"], :libs => ex_libs, :flags => link_opts
 end
