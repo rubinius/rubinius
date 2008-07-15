@@ -348,15 +348,17 @@ namespace rubinius {
     c_func = (CompiledFunction)engine->getPointerToFunction(func);
   }
 
-  void VMLLVMMethodUncompiled::resume(Task* task, MethodContext* ctx) {
-    VMLLVMMethod* real = new VMLLVMMethod(state, original.get());
-    original->executable = real;
-    ctx->vmm = real;
+  bool VMLLVMMethodUncompiled::executor(STATE, VMExecutable* exec,
+                                        Task* task, Message& msg) {
+    VMLLVMMethodUncompiled* meth = (VMLLVMMethodUncompiled*)exec;
 
-    delete this;
+    VMLLVMMethod* real = new VMLLVMMethod(state, meth->original.get());
+    meth->original->executable = real;
+
+    delete meth;
 
     real->compile();
-    real->resume(task, ctx);
+    return VMMethod::executor(state, real, task, msg);
   }
 
   void VMLLVMMethod::resume(Task* task, MethodContext* ctx) {

@@ -33,7 +33,7 @@ namespace rubinius {
     void post_marshal(STATE);
     size_t number_of_locals();
     void set_scope(StaticScope*);
-    VMMethod* formalize(STATE);
+    VMMethod* formalize(STATE, bool ondemand=true);
     void specialize(TypeInfo* ti);
 
     class Info : public TypeInfo {

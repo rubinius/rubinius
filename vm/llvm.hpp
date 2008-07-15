@@ -18,7 +18,7 @@ namespace rubinius {
     VMLLVMMethod(STATE, CompiledMethod* meth) :
       VMMethod(state, meth), function(NULL), c_func(NULL) { }
     static void init(const char* path);
-    llvm::CallInst* call_operation(Opcode* op, llvm::Value* state, 
+    llvm::CallInst* call_operation(Opcode* op, llvm::Value* state,
         llvm::Value*task, llvm::BasicBlock* block);
     virtual void compile();
     virtual void resume(Task* task, MethodContext* ctx);
@@ -29,9 +29,11 @@ namespace rubinius {
     STATE;
 
     VMLLVMMethodUncompiled(STATE, CompiledMethod* meth):
-      VMMethod(state, meth) { }
+      VMMethod(state, meth) {
+        this->execute = VMLLVMMethodUncompiled::executor;
+      }
 
-    virtual void resume(Task* task, MethodContext* ctx);
+    static bool executor(STATE, VMExecutable* exec, Task* task, Message& msg);
   };
 }
 

@@ -167,7 +167,9 @@ compiler.includes << "test/cxxtest"
 compiler.includes << "."
 
 compiler.flags << "-Wall" << "-ggdb" << "-gdwarf-2"
-compiler.flags += `llvm-config --cflags`.split(/\s+/)
+llvm_c = `llvm-config --cflags`.split(/\s+/)
+llvm_c.delete_if { |e| e.index("-O") == 0 }
+compiler.flags += llvm_c
 
 if ENV['FAST']
   compiler.flags << "-O2"
