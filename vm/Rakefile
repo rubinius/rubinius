@@ -92,7 +92,7 @@ end
 compiler = CCompile.new
 
 rule ".h"
-rule ".hpp"
+rule ".hpp" => "external_libs/libffi/include/ffi.h"
 
 external = %w!
   external_libs/libtommath/libtommath.a
@@ -201,6 +201,13 @@ file "gen/typechecks.gen.cpp" => FileList["builtin_*.hpp"] do
   Rake::Task[:field_extract].invoke
 end
 
+file "external_libs/libffi/include/ffi.h" do
+  Dir.chdir "external_libs/libffi" do
+    x "./configure"
+  end
+end
+
+
 file "test/runner.cpp" => tests + objs + external do
   puts "GEN test/runner.cpp"
   x "test/cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o test/runner.cpp #{tests}"
@@ -282,7 +289,7 @@ desc "Clean up, including all external libs"
 task :distclean => :clean do
   external.each do |lib|
     path = lib.split("/")[0,2].join("/")
-    sh "cd #{path}; make clean"
+    system "cd #{path}; make clean"
   end
 end
 
