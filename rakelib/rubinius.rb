@@ -214,7 +214,7 @@ class CodeGroup
   end
 
   def make_tasks
-    Dir.mkdir @compile_dir unless File.exists? @compile_dir
+    FileUtils.mkdir_p @compile_dir unless File.exists? @compile_dir
 
     compile_task
     load_order_task
