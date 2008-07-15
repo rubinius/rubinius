@@ -233,30 +233,25 @@ class Queue
   #
   def initialize
     @que = []
-    @waiting = []
     @que.taint		# enable tainted comunication
-    @waiting.taint
     self.taint
+    @waiting = []
+    @waiting.taint
     @mutex = Mutex.new
+    @resource = ConditionVariable.new
   end
 
   #
   # Pushes +obj+ to the queue.
   #
   def push(obj)
-    t = nil
-    @mutex.synchronize{
+    @mutex.synchronize do
       @que.push obj
-      begin
-        t = @waiting.shift
-        t.wakeup if t
+      begin        
+        @resource.signal
       rescue ThreadError
         retry
       end
-    }
-    begin
-      t.run if t
-    rescue ThreadError
     end
   end
 
@@ -277,15 +272,19 @@ class Queue
   #
   def pop(non_block=false)
     while true
-      @mutex.synchronize{
+      @mutex.synchronize do
+        #FIXME: some code in net or somewhere violates encapsulation
+        #and demands that a waiting queue exist for Queue, as a result
+        #we have to do a linear search here to remove the current Thread.
+        @waiting.remove(Thread.current)
         if @que.empty?
           raise ThreadError, "queue empty" if non_block
           @waiting.push Thread.current
-          sleep
+          @resource.wait(@mutex)
         else
           return @que.shift
         end
-      }
+      end
     end
   end
 
