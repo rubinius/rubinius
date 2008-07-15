@@ -247,11 +247,7 @@ class Queue
   def push(obj)
     @mutex.synchronize do
       @que.push obj
-      begin        
-        @resource.signal
-      rescue ThreadError
-        retry
-      end
+      @resource.signal
     end
   end
 
@@ -276,13 +272,15 @@ class Queue
         #FIXME: some code in net or somewhere violates encapsulation
         #and demands that a waiting queue exist for Queue, as a result
         #we have to do a linear search here to remove the current Thread.
-        @waiting.remove(Thread.current)
+        @waiting.delete(Thread.current)
         if @que.empty?
           raise ThreadError, "queue empty" if non_block
           @waiting.push Thread.current
           @resource.wait(@mutex)
         else
-          return @que.shift
+          retval = @que.shift
+          @resource.signal
+          return retval
         end
       end
     end
@@ -347,6 +345,8 @@ class SizedQueue < Queue
     @max = max
     @queue_wait = []
     @queue_wait.taint		# enable tainted comunication
+    @size_mutex = Mutex.new
+    @sem = ConditionVariable.new
     super()
   end
 
@@ -361,24 +361,9 @@ class SizedQueue < Queue
   # Sets the maximum size of the queue.
   #
   def max=(max)
-    diff = nil
-    @mutex.synchronize {
-      if max <= @max
-        @max = max
-      else
-        diff = max - @max
-        @max = max
-      end
-    }
-    if diff
-      diff.times do
-	begin
-	  t = @queue_wait.shift
-	  t.run if t
-	rescue ThreadError
-	  retry
-	end
-      end
+    @size_mutex.synchronize do
+      @max = max
+      @sem.broadcast(@size_mutex)
     end
     max
   end
@@ -388,26 +373,16 @@ class SizedQueue < Queue
   # until space becomes available.
   #
   def push(obj)
-    t = nil
-    @mutex.synchronize{
-      while true
-        break if @que.length <= @max
-        @queue_wait.push Thread.current
-        sleep
-      end
-    
-      @que.push obj
-      begin
-        t = @waiting.shift
-        t.wakeup if t
-      rescue ThreadError
-        retry
-      end
-    }
-    
-    begin
-      t.run if t
-    rescue ThreadError
+    while(true)
+      @size_mutex.synchronize do
+        @queue_wait.delete(Thread.current)
+        if(@que.size >= @max)
+          @queue_wait.push Thread.current
+          @sem.wait(@size_mutex)          
+        else
+          return super(obj)
+        end
+      end      
     end
   end
 
@@ -426,22 +401,14 @@ class SizedQueue < Queue
   #
   def pop(*args)
     retval = super
-    t = nil
-    @mutex.synchronize {
-      if @que.length < @max
-        begin
-          t = @queue_wait.shift
-          t.wakeup if t
-        rescue ThreadError
-          retry
-        end
-      end
-    }
-    begin
-      t.run if t
-    rescue ThreadError
+    
+    @size_mutex.synchronize do
+      if @que.size < @max
+        @sem.broadcast
+      end      
     end
-    retval
+    
+    return retval
   end
 
   #
