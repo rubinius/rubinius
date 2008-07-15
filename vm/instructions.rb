@@ -75,7 +75,8 @@ class TestInstructions : public CxxTest::TestSuite {
         fd.puts "cm->stack_size = Object::i2n(10);"
         fd.puts "cm->local_count = Object::i2n(0);"
         fd.puts "cm->literals = Tuple::create(state, 10);"
-        fd.puts "MethodContext* ctx = task->generate_context(Qnil, cm, cm->vmmethod(state));"
+        fd.puts "cm->formalize(state);"
+        fd.puts "MethodContext* ctx = task->generate_context(Qnil, cm);"
         fd.puts "task->make_active(ctx);"
         # The += 0 disable unused variable warnings.
         fd.puts "Tuple* stack = task->stack; stack += 0;"
@@ -2306,7 +2307,8 @@ CODE
   def test_send_method
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 1);
+    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
     target->total_args = Object::i2n(0);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(10);
@@ -2319,6 +2321,8 @@ CODE
     stack->put(state, ++task->sp, Qtrue);
 
     stream[1] = (opcode)0;
+
+    target->formalize(state);
 
     run();
 
@@ -2398,7 +2402,8 @@ CODE
   def test_send_stack
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 1);
+    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
     target->total_args = Object::i2n(1);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(1);
@@ -2413,6 +2418,8 @@ CODE
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
+
+    target->formalize(state);
 
     run();
 
@@ -2472,7 +2479,8 @@ CODE
   def test_send_stack_with_block
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 1);
+    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
     target->total_args = Object::i2n(1);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(1);
@@ -2490,6 +2498,8 @@ CODE
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
+
+    target->formalize(state);
 
     run();
 
@@ -2563,7 +2573,8 @@ CODE
   def test_send_stack_with_splat
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 1);
+    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
     target->total_args = Object::i2n(2);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(2);
@@ -2585,6 +2596,8 @@ CODE
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
+
+    target->formalize(state);
 
     run();
 
@@ -2638,7 +2651,8 @@ CODE
   def test_send_super_stack_with_block
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 1);
+    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
     target->total_args = Object::i2n(1);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(1);
@@ -2667,6 +2681,8 @@ CODE
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
+
+    target->formalize(state);
 
     run();
 
@@ -2731,7 +2747,8 @@ CODE
   def test_send_super_stack_with_splat
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
-    target->iseq = InstructionSequence::create(state, 0);
+    target->iseq = InstructionSequence::create(state, 1);
+    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
     target->total_args = Object::i2n(2);
     target->required_args = target->total_args;
     target->stack_size = Object::i2n(2);
@@ -2764,6 +2781,8 @@ CODE
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
+
+    target->formalize(state);
 
     run();
 

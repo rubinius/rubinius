@@ -23,10 +23,14 @@ class TestTask : public CxxTest::TestSuite {
 
   CompiledMethod* create_cm() {
     CompiledMethod* cm = CompiledMethod::create(state);
-    cm->iseq = InstructionSequence::create(state, 40);
+    cm->iseq = InstructionSequence::create(state, 1);
+    cm->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
     cm->stack_size = Object::i2n(10);
     cm->total_args = Object::i2n(0);
     cm->required_args = cm->total_args;
+
+    cm->formalize(state);
+
     return cm;
   }
 
