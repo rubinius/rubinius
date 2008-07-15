@@ -10,7 +10,7 @@
 #include <float.h>
 
 namespace rubinius {
-  class Float : public BuiltinType {
+  class Float : public Object {
     public:
     const static size_t fields = 0;
     const static object_type type = FloatType;

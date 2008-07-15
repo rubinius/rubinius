@@ -33,7 +33,8 @@ namespace rubinius {
     void post_marshal(STATE);
     size_t number_of_locals();
     void set_scope(StaticScope*);
-    VMMethod* vmmethod(STATE);
+    VMMethod* formalize(STATE, bool ondemand=true);
+    void specialize(TypeInfo* ti);
 
     class Info : public TypeInfo {
     public:
@@ -41,7 +42,7 @@ namespace rubinius {
     };
   };
 
-  class MethodVisibility : public BuiltinType {
+  class MethodVisibility : public Object {
   public:
     const static size_t fields = 3;
     const static object_type type = CMVisibilityType;

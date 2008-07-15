@@ -4,6 +4,7 @@
 #include "objects.hpp"
 #include "message.hpp"
 #include "builtin_channel.hpp"
+#include "jit_state.h"
 #include <stdexcept>
 
 namespace rubinius {
@@ -20,7 +21,7 @@ namespace rubinius {
 
   class Task;
 
-  class Task : public BuiltinType {
+  class Task : public Object {
   public:
     const static size_t fields = 0;
     const static object_type type = TaskType;
@@ -42,6 +43,8 @@ namespace rubinius {
     /* Internal data */
     Tuple* stack; // slot
     STATE;
+    Message* msg;
+    jit_state js;
     TaskProbe *probe;
 
     /* Optimization */
@@ -55,7 +58,7 @@ namespace rubinius {
     static Task* create(STATE, OBJECT recv, CompiledMethod* meth);
     static Task* create(STATE);
 
-    MethodContext* generate_context(OBJECT recv, CompiledMethod* meth, VMMethod* vmm);
+    MethodContext* generate_context(OBJECT recv, CompiledMethod* meth);
     void restore_context(MethodContext* ctx);
     void make_active(MethodContext* ctx);
     void execute();

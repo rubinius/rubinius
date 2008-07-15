@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_EXCEPTION_HPP
 
 namespace rubinius {
-  class Exception : public BuiltinType {
+  class Exception : public Object {
   public:
     const static size_t fields = 3;
     const static object_type type = ExceptionType;

@@ -2,7 +2,7 @@
 #define RBX_STRING_HPP
 
 namespace rubinius {
-  class String : public BuiltinType {
+  class String : public Object {
     public:
     const static size_t fields = 7;
     const static object_type type = StringType;

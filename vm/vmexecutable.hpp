@@ -2,11 +2,17 @@
 #define RBX_VMEXECUTABLE_HPP
 
 namespace rubinius {
+
+  class VMExecutable;
+
+  typedef bool (*executor)(STATE, VMExecutable*, Task*, Message& msg);
+
   class VMExecutable {
   public:
 
+    executor execute;
+
     virtual ~VMExecutable() { }
-    virtual bool execute(STATE, Task* task, Message& msg) = 0;
   };
 }
 

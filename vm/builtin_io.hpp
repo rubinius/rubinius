@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_IO_HPP
 
 namespace rubinius {
-  class IO : public BuiltinType {
+  class IO : public Object {
     public:
     const static size_t fields = 4;
     const static object_type type = IOType;
@@ -27,7 +27,7 @@ namespace rubinius {
 
   };
 
-  class IOBuffer : public BuiltinType {
+  class IOBuffer : public Object {
   public:
     const static size_t fields = 4;
     const static object_type type = IOBufferType;

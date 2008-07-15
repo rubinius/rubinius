@@ -5,7 +5,7 @@
 
 namespace rubinius {
 
-  class ListNode : public BuiltinType {
+  class ListNode : public Object {
   public:
 
     const static size_t fields = 2;
@@ -21,7 +21,7 @@ namespace rubinius {
 
   };
 
-  class List : public BuiltinType {
+  class List : public Object {
   public:
 
     const static size_t fields = 4;

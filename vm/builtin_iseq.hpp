@@ -4,7 +4,7 @@
 #include "objects.hpp"
 
 namespace rubinius {
-  class InstructionSequence : public BuiltinType {
+  class InstructionSequence : public Object {
   public:
     const static size_t fields = 3;
     const static object_type type = ISeqType;

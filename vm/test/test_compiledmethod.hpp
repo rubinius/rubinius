@@ -21,7 +21,7 @@ class TestCompiledMethod : public CxxTest::TestSuite {
 
   void test_startup_tramp() {
     CompiledMethod* cm = CompiledMethod::generate_tramp(state);
-    VMMethod* vmm = cm->vmmethod(state);
+    VMMethod* vmm = cm->formalize(state);
 
     TS_ASSERT_EQUALS(vmm->opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_halt));
     TS_ASSERT(!cm->scope->nil_p());

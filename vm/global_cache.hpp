@@ -14,7 +14,7 @@ namespace rubinius {
       Module* klass;
       SYMBOL name;
       Module* module;
-      OBJECT method;
+      Executable* method;
       bool is_public;
     };
 
@@ -53,7 +53,7 @@ namespace rubinius {
       }
     }
 
-    void retain(STATE, Module* cls, SYMBOL name, Module* mod, OBJECT meth) {
+    void retain(STATE, Module* cls, SYMBOL name, Module* mod, Executable* meth) {
       struct cache_entry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);

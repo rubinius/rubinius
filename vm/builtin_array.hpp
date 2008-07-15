@@ -2,7 +2,7 @@
 #define RBX_ARRAY_HPP
 
 namespace rubinius {
-  class Array : public BuiltinType {
+  class Array : public Object {
     public:
     const static size_t fields = 5;
     const static object_type type = ArrayType;

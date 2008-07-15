@@ -28,6 +28,8 @@ namespace rubinius {
     SET(ss, module, G(object));
     SET(cm, scope, ss);
 
+    cm->formalize(state, false);
+
     return cm;
   }
 
@@ -35,12 +37,12 @@ namespace rubinius {
     return (MethodVisibility*)state->new_object(G(cmethod_vis));
   }
 
-  VMMethod* CompiledMethod::vmmethod(STATE) {
+  VMMethod* CompiledMethod::formalize(STATE, bool ondemand) {
     if(!executable) {
       if(!primitive->nil_p()) {
         if(SYMBOL name = try_as<Symbol>(primitive)) {
           std::cout << "resolving: "; inspect(state, name);
-          primitive_func func = Primitives::resolve_primitive(state, name);
+          executor func = Primitives::resolve_primitive(state, name);
 
           VMMethod* vmm = new VMPrimitiveMethod(state, this, func);
           executable = vmm;
@@ -49,7 +51,14 @@ namespace rubinius {
           std::cout << "Invalid primitive id (not a symbol)" << std::endl;
         }
       }
-      VMMethod* vmm = new VMLLVMMethod(state, this);
+      VMMethod* vmm;
+      if(ondemand) {
+        vmm = new VMLLVMMethodUncompiled(state, this);
+      } else {
+        VMLLVMMethod* llvm = new VMLLVMMethod(state, this);
+        llvm->compile();
+        vmm = llvm;
+      }
       executable = vmm;
       return vmm;
     }
@@ -57,8 +66,12 @@ namespace rubinius {
     return dynamic_cast<VMMethod*>(executable);
   }
 
-  void CompiledMethod::post_marshal(STATE) {
+  void CompiledMethod::specialize(TypeInfo* ti) {
+    dynamic_cast<VMMethod*>(executable)->specialize(ti);
+  }
 
+  void CompiledMethod::post_marshal(STATE) {
+    formalize(state); // side-effect, populates executable
   }
 
   size_t CompiledMethod::number_of_locals() {

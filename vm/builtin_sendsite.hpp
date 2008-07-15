@@ -8,7 +8,7 @@
 namespace rubinius {
   class Selector;
 
-  class SendSite : public BuiltinType {
+  class SendSite : public Object {
     public:
 
     static const size_t object_fields = 6;

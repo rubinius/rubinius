@@ -8,7 +8,7 @@ class CPPPrimitive
   attr_accessor :cpp_name, :return_type, :arg_types
 
   def generate_glue(klass="Primitives")
-    str =  "OBJECT #{klass}::#{@name}(STATE, Message& msg) {\n"
+    str =  "bool #{klass}::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
     i = -1
     if arg_types.empty?
       args = ""
@@ -16,7 +16,15 @@ class CPPPrimitive
       args = ", " + arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }.join(", ")
     end
 
-    str << "  return as<#{@type}>(msg.recv)->#{@cpp_name}(state#{args});\n"
+    str << "  OBJECT ret;\n"
+    str << "  try {\n"
+    str << "    ret = as<#{@type}>(msg.recv)->#{@cpp_name}(state#{args});\n"
+    str << "  } catch(PrimitiveFailed& e) {\n"
+    str << "    abort(); // FIXME\n"
+    str << "    return true;\n"
+    str << "  }\n"
+    str << "  task->primitive_return(ret, msg);\n"
+    str << "  return false;\n"
     str << "}\n"
     return str
   end
@@ -38,14 +46,24 @@ class CPPOverloadedPrimitive
   end
 
   def generate_glue(klass="Primitives")
-    str =  "OBJECT #{klass}::#{@name}(STATE, Message& msg) {\n"
+    str =  "bool #{klass}::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
+    str << "  OBJECT ret;\n"
+    str << "  try {\n"
+
     @kinds.each do |prim|
       type = prim.arg_types.first
-      str << "  if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
-      str << "    return as<#{@type}>(msg.recv)->#{@cpp_name}(state, arg);\n"
-      str << "  }\n"
+      str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
+      str << "      return as<#{@type}>(msg.recv)->#{@cpp_name}(state, arg);\n"
+      str << "    }\n"
     end
-    str << " throw new Assertion(\"unable to resolve primitive #{@name} types\");\n"
+    str << "    else { throw new Assertion(\"unable to resolve primitive #{@name} types\"); }\n"
+
+    str << "  } catch(PrimitiveFailed& e) {\n"
+    str << "    abort(); // FIXME\n"
+    str << "    return true;\n"
+    str << "  }\n"
+    str << "  task->primitive_return(ret, msg);\n"
+    str << "  return false;\n"
     str << "}\n"
     return str
   end
@@ -216,6 +234,7 @@ class CPPParser
       "InstructionSequence" =>   :InstructionSequence,
       "FIXNUM" => :Fixnum,
       "OBJECT" => :Object,
+      "Object" => :Object,
       "Tuple"  => :Tuple,
       "MemoryPointer" => :MemoryPointer,
       "StaticScope" => :StaticScope,
@@ -249,12 +268,13 @@ class CPPParser
   def parse_stream(f)
     while l = f.gets
       if m = /class ([^\s]+)\s*:\s*public\s+([^\s]+) \{/.match(l)
-        if m[2] != "BuiltinType"
+        puts "Considering: #{m[1]}"
+        if m[2] != "Object" and m[2] != "ObjectHeader"
           if sup = @classes[m[2]]
             cpp = CPPClass.new(m[1])
             cpp.super = sup
           else
-            # puts "Skipping #{m[1]}"
+            puts "Skipping #{m[1]}"
             next
           end
         else
@@ -303,6 +323,7 @@ class CPPParser
           end
 
           if m = %r%^\s*//\s+Ruby.primitive(!)?\s+:(.*)\s*$%.match(l)
+            p :prim => l
             overload = m[1] == "!"
             prim = m[2]
             prototype = f.gets
@@ -377,6 +398,8 @@ end
 File.open("gen/typechecks.gen.cpp", "w") do |f|
   f.puts "void TypeInfo::init(STATE) {"
   parser.classes.each do |n, cpp|
+    next if n == "Object"
+
     f.puts "  {"
     f.puts "    TypeInfo *ti = new #{n}::Info(#{n}::type);"
     cpp.all_fields.each do |name, idx|
@@ -403,7 +426,7 @@ end
 File.open("gen/primitives_declare.hpp", "w") do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
-      f.puts "OBJECT #{pn}(STATE, Message& msg);"
+      f.puts "static bool #{pn}(STATE, VMExecutable* exec, Task* task, Message& msg);"
     end
   end
 end
@@ -417,7 +440,7 @@ File.open("gen/primitives_glue.gen.cpp", "w") do |f|
     end
   end
 
-  f.puts "primitive_func Primitives::resolve_primitive(STATE, SYMBOL name) {"
+  f.puts "executor Primitives::resolve_primitive(STATE, SYMBOL name) {"
   names.each do |name|
     f.puts "  if(name == state->symbol(\"#{name}\")) {"
     f.puts "    return &Primitives::#{name};"

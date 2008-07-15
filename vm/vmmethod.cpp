@@ -3,6 +3,9 @@
 namespace rubinius {
   VMMethod::VMMethod(STATE, CompiledMethod* meth) :
       original(state, meth), type(NULL) {
+
+    this->execute = VMMethod::executor;
+
     total = meth->iseq->opcodes->field_count;
     if(Tuple* tup = try_as<Tuple>(meth->literals)) {
       blocks.resize(tup->field_count, NULL);
@@ -61,33 +64,25 @@ namespace rubinius {
     }
   }
 
-  bool VMMethod::execute(STATE, Task* task, Message& msg) {
-    MethodContext* ctx = task->generate_context(msg.recv, original.get(), this);
+  bool VMMethod::executor(STATE, VMExecutable* exec, Task* task, Message& msg) {
+    VMMethod* meth = (VMMethod*)exec;
+
+    MethodContext* ctx = task->generate_context(msg.recv, meth->original.get());
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);
-    
+
     return true;
   }
 
   /* This is a noop for this class. */
   void VMMethod::compile() { }
 
-  VMPrimitiveMethod::VMPrimitiveMethod(STATE, CompiledMethod* meth, primitive_func func) :
-      VMMethod(state, meth), fp(func) { }
-
-  bool VMPrimitiveMethod::execute(STATE, Task* task, Message& msg) {
-    OBJECT ret;
-    try {
-      ret = CALL_PRIM(state->primitives, fp)(state, msg);
-    } catch(PrimitiveFailed& e) {
-      abort();
-      return true;
-    }
-
-    task->primitive_return(ret, msg);
-    return false;
-  }
+  VMPrimitiveMethod::VMPrimitiveMethod(STATE, CompiledMethod* meth,
+                                       rubinius::executor func) :
+      VMMethod(state, meth) {
+        this->execute = func;
+      }
 
   void VMMethod::resume(Task* task, MethodContext* ctx) {
     throw std::string("blah!");

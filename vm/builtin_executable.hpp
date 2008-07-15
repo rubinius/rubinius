@@ -7,7 +7,7 @@ namespace rubinius {
 
   class MemoryPointer;
 
-  class Executable : public BuiltinType {
+  class Executable : public Object {
     public:
     const static size_t fields = 4;
     const static object_type type = ExecutableType;
@@ -17,8 +17,9 @@ namespace rubinius {
     FIXNUM serial; // slot
     VMExecutable* executable;
 
-    void initialize(STATE);
-    bool execute(STATE, Task* cur, Message& msg);
+    bool execute(STATE, Task* task, Message& msg) {
+      return executable->execute(state, executable, task, msg);
+    }
 
     class Info : public TypeInfo {
     public:

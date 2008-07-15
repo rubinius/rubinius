@@ -224,7 +224,7 @@ extern "C" {
   }
 
   OP2(bool, send_method, int index) {
-    Message msg(state);
+    Message& msg = *task->msg;
 
     msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.recv = stack_top();
@@ -249,7 +249,7 @@ extern "C" {
   }
 
   OP2(bool, send_stack, int index, int count) {
-    Message msg(state);
+    Message& msg = *task->msg;
 
     msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.recv = stack_back(count);
@@ -275,7 +275,7 @@ extern "C" {
   }
 
   bool send_slowly(Task* task, struct jit_state* const js, SYMBOL name) {
-    Message msg(state);
+    Message& msg = *task->msg;
     msg.recv = stack_back(1);
     msg.import_arguments(state, task, 1);
     msg.name = name;
@@ -345,6 +345,37 @@ extern "C" {
 
   OP(set_call_flags, int flags) {
     task->call_flags = flags;
+  }
+
+  OP2(bool, fixed_args_prelude, size_t required) {
+    Message* const msg = task->msg;
+
+    if(msg->args != required) {
+      return false;
+    }
+
+    MethodContext* ctx = task->generate_context(
+            msg->recv, original.get(), this);
+    task->make_active(ctx);
+
+    for(size_t i = 0; i < required; i++) {
+      ctx->stack->put(task->state, i, msg->get_argument(i));
+    }
+
+    return true;
+  }
+
+  OP2(bool, zero_args_prelude) {
+    Message* const msg = task->msg;
+    if(task->msg.args != 0) return false;
+
+    MethodContext* ctx = task->generate_context(msg.recv, original.get(), this);
+    task->make_active(ctx);
+    return true;
+  }
+
+  OP2(bool, full_prelude) {
+    task->import_arguments(task->ctx, *task->msg);
   }
 
   OP(test) {
