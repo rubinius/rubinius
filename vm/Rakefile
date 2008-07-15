@@ -97,9 +97,9 @@ rule ".hpp"
 external = %w!
   external_libs/libtommath/libtommath.a
   external_libs/onig/.libs/libonig.a
-	external_libs/libffi/.libs/libffi.a
-	external_libs/libltdl/.libs/libltdl.a
-	external_libs/libev/.libs/libev.a
+  external_libs/libffi/.libs/libffi.a
+  external_libs/libltdl/.libs/libltdl.a
+  external_libs/libev/.libs/libev.a
 !
 
 cleaning = Rake.application.top_level_tasks.find { |t| t =~ /clean/ }
