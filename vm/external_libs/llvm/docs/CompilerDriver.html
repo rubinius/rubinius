@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
+<title>Customizing LLVMC: Reference Manual</title>
+<link rel="stylesheet" href="llvm.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="customizing-llvmc-reference-manual">
+
+<div class="doc_title">Customizing LLVMC: Reference Manual</div>
+
+<div class="doc_warning">
+  <p>Note: This document is a work-in-progress.  Additions and clarifications
+  are welcome.</p>
+</div>
+
+<p>LLVMC is a generic compiler driver, designed to be customizable and
+extensible. It plays the same role for LLVM as the <tt class="docutils literal"><span class="pre">gcc</span></tt> program
+does for GCC - LLVMC's job is essentially to transform a set of input
+files into a set of targets depending on configuration rules and user
+options. What makes LLVMC different is that these transformation rules
+are completely customizable - in fact, LLVMC knows nothing about the
+specifics of transformation (even the command-line options are mostly
+not hard-coded) and regards the transformation structure as an
+abstract graph. This makes it possible to adapt LLVMC for other
+purposes - for example, as a build tool for game resources.</p>
+<p>Because LLVMC employs TableGen <a class="footnote-reference" href="#id2" id="id1" name="id1">[1]</a> as its configuration language, you
+need to be familiar with it to customize LLVMC.</p>
+<div class="contents topic">
+<ul class="simple">
+<li><a class="reference" href="#compiling-with-llvmc" id="id3" name="id3">Compiling with LLVMC</a></li>
+<li><a class="reference" href="#predefined-options" id="id4" name="id4">Predefined options</a></li>
+<li><a class="reference" href="#customizing-llvmc-the-compilation-graph" id="id5" name="id5">Customizing LLVMC: the compilation graph</a></li>
+<li><a class="reference" href="#writing-a-tool-description" id="id6" name="id6">Writing a tool description</a></li>
+<li><a class="reference" href="#option-list-specifying-all-options-in-a-single-place" id="id7" name="id7">Option list - specifying all options in a single place</a></li>
+<li><a class="reference" href="#using-hooks-and-environment-variables-in-the-cmd-line-property" id="id8" name="id8">Using hooks and environment variables in the <tt class="docutils literal"><span class="pre">cmd_line</span></tt> property</a></li>
+<li><a class="reference" href="#conditional-evaluation-the-case-expression" id="id9" name="id9">Conditional evaluation: the <tt class="docutils literal"><span class="pre">case</span></tt> expression</a></li>
+<li><a class="reference" href="#language-map" id="id10" name="id10">Language map</a></li>
+<li><a class="reference" href="#references" id="id11" name="id11">References</a></li>
+</ul>
+</div>
+
+<div class="doc_author">Written by Mikhail Glushenkov</div>
+
+<div class="doc_text">
+<div class="doc_section"><a class="toc-backref" href="#id3" id="compiling-with-llvmc" name="compiling-with-llvmc">Compiling with LLVMC</a></div>
+<p>LLVMC tries hard to be as compatible with <tt class="docutils literal"><span class="pre">gcc</span></tt> as possible,
+although there are some small differences. Most of the time, however,
+you shouldn't be able to notice them:</p>
+<pre class="literal-block">
+$ # This works as expected:
+$ llvmc2 -O3 -Wall hello.cpp
+$ ./a.out
+hello
+</pre>
+<p>One nice feature of LLVMC is that one doesn't have to distinguish
+between different compilers for different languages (think <tt class="docutils literal"><span class="pre">g++</span></tt> and
+<tt class="docutils literal"><span class="pre">gcc</span></tt>) - the right toolchain is chosen automatically based on input
+language names (which are, in turn, determined from file
+extensions). If you want to force files ending with &quot;.c&quot; to compile as
+C++, use the <tt class="docutils literal"><span class="pre">-x</span></tt> option, just like you would do it with <tt class="docutils literal"><span class="pre">gcc</span></tt>:</p>
+<pre class="literal-block">
+$ llvmc2 -x c hello.cpp
+$ # hello.cpp is really a C file
+$ ./a.out
+hello
+</pre>
+<p>On the other hand, when using LLVMC as a linker to combine several C++
+object files you should provide the <tt class="docutils literal"><span class="pre">--linker</span></tt> option since it's
+impossible for LLVMC to choose the right linker in that case:</p>
+<pre class="literal-block">
+$ llvmc2 -c hello.cpp
+$ llvmc2 hello.o
+[A lot of link-time errors skipped]
+$ llvmc2 --linker=c++ hello.o
+$ ./a.out
+hello
+</pre>
+</div>
+<div class="doc_text">
+<div class="doc_section"><a class="toc-backref" href="#id4" id="predefined-options" name="predefined-options">Predefined options</a></div>
+<p>LLVMC has some built-in options that can't be overridden in the
+configuration files:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">-o</span> <span class="pre">FILE</span></tt> - Output file name.</li>
+<li><tt class="docutils literal"><span class="pre">-x</span> <span class="pre">LANGUAGE</span></tt> - Specify the language of the following input files
+until the next -x option.</li>
+<li><tt class="docutils literal"><span class="pre">-v</span></tt> - Enable verbose mode, i.e. print out all executed commands.</li>
+<li><tt class="docutils literal"><span class="pre">--view-graph</span></tt> - Show a graphical representation of the compilation
+graph. Requires that you have <tt class="docutils literal"><span class="pre">dot</span></tt> and <tt class="docutils literal"><span class="pre">gv</span></tt> commands
+installed. Hidden option, useful for debugging.</li>
+<li><tt class="docutils literal"><span class="pre">--write-graph</span></tt> - Write a <tt class="docutils literal"><span class="pre">compilation-graph.dot</span></tt> file in the
+current directory with the compilation graph description in the
+Graphviz format. Hidden option, useful for debugging.</li>
+<li><tt class="docutils literal"><span class="pre">--save-temps</span></tt> - Write temporary files to the current directory
+and do not delete them on exit. Hidden option, useful for debugging.</li>
+<li><tt class="docutils literal"><span class="pre">--help</span></tt>, <tt class="docutils literal"><span class="pre">--help-hidden</span></tt>, <tt class="docutils literal"><span class="pre">--version</span></tt> - These options have
+their standard meaning.</li>
+</ul>
+</div>
+<div class="doc_text">
+<div class="doc_section"><a class="toc-backref" href="#id5" id="customizing-llvmc-the-compilation-graph" name="customizing-llvmc-the-compilation-graph">Customizing LLVMC: the compilation graph</a></div>
+<p>At the time of writing LLVMC does not support on-the-fly reloading of
+configuration, so to customize LLVMC you'll have to recompile the
+source code (which lives under <tt class="docutils literal"><span class="pre">$LLVM_DIR/tools/llvmc2</span></tt>). The
+default configuration files are <tt class="docutils literal"><span class="pre">Common.td</span></tt> (contains common
+definitions, don't forget to <tt class="docutils literal"><span class="pre">include</span></tt> it in your configuration
+files), <tt class="docutils literal"><span class="pre">Tools.td</span></tt> (tool descriptions) and <tt class="docutils literal"><span class="pre">Graph.td</span></tt> (compilation
+graph definition).</p>
+<p>To compile LLVMC with your own configuration file (say,``MyGraph.td``),
+run <tt class="docutils literal"><span class="pre">make</span></tt> like this:</p>
+<pre class="literal-block">
+$ cd $LLVM_DIR/tools/llvmc2
+$ make GRAPH=MyGraph.td TOOLNAME=my_llvmc
+</pre>
+<p>This will build an executable named <tt class="docutils literal"><span class="pre">my_llvmc</span></tt>. There are also
+several sample configuration files in the <tt class="docutils literal"><span class="pre">llvmc2/examples</span></tt>
+subdirectory that should help to get you started.</p>
+<p>Internally, LLVMC stores information about possible source
+transformations in form of a graph. Nodes in this graph represent
+tools, and edges between two nodes represent a transformation path. A
+special &quot;root&quot; node is used to mark entry points for the
+transformations. LLVMC also assigns a weight to each edge (more on
+this later) to choose between several alternative edges.</p>
+<p>The definition of the compilation graph (see file <tt class="docutils literal"><span class="pre">Graph.td</span></tt>) is
+just a list of edges:</p>
+<pre class="literal-block">
+def CompilationGraph : CompilationGraph&lt;[
+    Edge&lt;root, llvm_gcc_c&gt;,
+    Edge&lt;root, llvm_gcc_assembler&gt;,
+    ...
+
+    Edge&lt;llvm_gcc_c, llc&gt;,
+    Edge&lt;llvm_gcc_cpp, llc&gt;,
+    ...
+
+    OptionalEdge&lt;llvm_gcc_c, opt, [(switch_on &quot;opt&quot;)]&gt;,
+    OptionalEdge&lt;llvm_gcc_cpp, opt, [(switch_on &quot;opt&quot;)]&gt;,
+    ...
+
+    OptionalEdge&lt;llvm_gcc_assembler, llvm_gcc_cpp_linker,
+        (case (input_languages_contain &quot;c++&quot;), (inc_weight),
+              (or (parameter_equals &quot;linker&quot;, &quot;g++&quot;),
+                  (parameter_equals &quot;linker&quot;, &quot;c++&quot;)), (inc_weight))&gt;,
+    ...
+
+    ]&gt;;
+</pre>
+<p>As you can see, the edges can be either default or optional, where
+optional edges are differentiated by sporting a <tt class="docutils literal"><span class="pre">case</span></tt> expression
+used to calculate the edge's weight.</p>
+<p>The default edges are assigned a weight of 1, and optional edges get a
+weight of 0 + 2*N where N is the number of tests that evaluated to
+true in the <tt class="docutils literal"><span class="pre">case</span></tt> expression. It is also possible to provide an
+integer parameter to <tt class="docutils literal"><span class="pre">inc_weight</span></tt> and <tt class="docutils literal"><span class="pre">dec_weight</span></tt> - in this case,
+the weight is increased (or decreased) by the provided value instead
+of the default 2.</p>
+<p>When passing an input file through the graph, LLVMC picks the edge
+with the maximum weight. To avoid ambiguity, there should be only one
+default edge between two nodes (with the exception of the root node,
+which gets a special treatment - there you are allowed to specify one
+default edge <em>per language</em>).</p>
+<p>To get a visual representation of the compilation graph (useful for
+debugging), run <tt class="docutils literal"><span class="pre">llvmc2</span> <span class="pre">--view-graph</span></tt>. You will need <tt class="docutils literal"><span class="pre">dot</span></tt> and
+<tt class="docutils literal"><span class="pre">gsview</span></tt> installed for this to work properly.</p>
+</div>
+<div class="doc_text">
+<div class="doc_section"><a class="toc-backref" href="#id6" id="writing-a-tool-description" name="writing-a-tool-description">Writing a tool description</a></div>
+<p>As was said earlier, nodes in the compilation graph represent tools,
+which are described separately. A tool definition looks like this
+(taken from the <tt class="docutils literal"><span class="pre">Tools.td</span></tt> file):</p>
+<pre class="literal-block">
+def llvm_gcc_cpp : Tool&lt;[
+    (in_language &quot;c++&quot;),
+    (out_language &quot;llvm-assembler&quot;),
+    (output_suffix &quot;bc&quot;),
+    (cmd_line &quot;llvm-g++ -c $INFILE -o $OUTFILE -emit-llvm&quot;),
+    (sink)
+    ]&gt;;
+</pre>
+<p>This defines a new tool called <tt class="docutils literal"><span class="pre">llvm_gcc_cpp</span></tt>, which is an alias for
+<tt class="docutils literal"><span class="pre">llvm-g++</span></tt>. As you can see, a tool definition is just a list of
+properties; most of them should be self-explanatory. The <tt class="docutils literal"><span class="pre">sink</span></tt>
+property means that this tool should be passed all command-line
+options that lack explicit descriptions.</p>
+<p>The complete list of the currently implemented tool properties follows:</p>
+<ul class="simple">
+<li>Possible tool properties:<ul>
+<li><tt class="docutils literal"><span class="pre">in_language</span></tt> - input language name.</li>
+<li><tt class="docutils literal"><span class="pre">out_language</span></tt> - output language name.</li>
+<li><tt class="docutils literal"><span class="pre">output_suffix</span></tt> - output file suffix.</li>
+<li><tt class="docutils literal"><span class="pre">cmd_line</span></tt> - the actual command used to run the tool. You can
+use <tt class="docutils literal"><span class="pre">$INFILE</span></tt> and <tt class="docutils literal"><span class="pre">$OUTFILE</span></tt> variables, output redirection
+with <tt class="docutils literal"><span class="pre">&gt;</span></tt>, hook invocations (<tt class="docutils literal"><span class="pre">$CALL</span></tt>), environment variables
+(via <tt class="docutils literal"><span class="pre">$ENV</span></tt>) and the <tt class="docutils literal"><span class="pre">case</span></tt> construct (more on this below).</li>
+<li><tt class="docutils literal"><span class="pre">join</span></tt> - this tool is a &quot;join node&quot; in the graph, i.e. it gets a
+list of input files and joins them together. Used for linkers.</li>
+<li><tt class="docutils literal"><span class="pre">sink</span></tt> - all command-line options that are not handled by other
+tools are passed to this tool.</li>
+</ul>
+</li>
+</ul>
+<p>The next tool definition is slightly more complex:</p>
+<pre class="literal-block">
+def llvm_gcc_linker : Tool&lt;[
+    (in_language &quot;object-code&quot;),
+    (out_language &quot;executable&quot;),
+    (output_suffix &quot;out&quot;),
+    (cmd_line &quot;llvm-gcc $INFILE -o $OUTFILE&quot;),
+    (join),
+    (prefix_list_option &quot;L&quot;, (forward),
+                        (help &quot;add a directory to link path&quot;)),
+    (prefix_list_option &quot;l&quot;, (forward),
+                        (help &quot;search a library when linking&quot;)),
+    (prefix_list_option &quot;Wl&quot;, (unpack_values),
+                        (help &quot;pass options to linker&quot;))
+    ]&gt;;
+</pre>
+<p>This tool has a &quot;join&quot; property, which means that it behaves like a
+linker. This tool also defines several command-line options: <tt class="docutils literal"><span class="pre">-l</span></tt>,
+<tt class="docutils literal"><span class="pre">-L</span></tt> and <tt class="docutils literal"><span class="pre">-Wl</span></tt> which have their usual meaning. An option has two
+attributes: a name and a (possibly empty) list of properties. All
+currently implemented option types and properties are described below:</p>
+<ul>
+<li><p class="first">Possible option types:</p>
+<blockquote>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">switch_option</span></tt> - a simple boolean switch, for example <tt class="docutils literal"><span class="pre">-time</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">parameter_option</span></tt> - option that takes an argument, for example
+<tt class="docutils literal"><span class="pre">-std=c99</span></tt>;</li>
+<li><tt class="docutils literal"><span class="pre">parameter_list_option</span></tt> - same as the above, but more than one
+occurence of the option is allowed.</li>
+<li><tt class="docutils literal"><span class="pre">prefix_option</span></tt> - same as the parameter_option, but the option name
+and parameter value are not separated.</li>
+<li><tt class="docutils literal"><span class="pre">prefix_list_option</span></tt> - same as the above, but more than one
+occurence of the option is allowed; example: <tt class="docutils literal"><span class="pre">-lm</span> <span class="pre">-lpthread</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">alias_option</span></tt> - a special option type for creating
+aliases. Unlike other option types, aliases are not allowed to
+have any properties besides the aliased option name. Usage
+example: <tt class="docutils literal"><span class="pre">(alias_option</span> <span class="pre">&quot;preprocess&quot;,</span> <span class="pre">&quot;E&quot;)</span></tt></li>
+</ul>
+</blockquote>
+</li>
+<li><p class="first">Possible option properties:</p>
+<blockquote>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">append_cmd</span></tt> - append a string to the tool invocation command.</li>
+<li><tt class="docutils literal"><span class="pre">forward</span></tt> - forward this option unchanged.</li>
+<li><tt class="docutils literal"><span class="pre">output_suffix</span></tt> - modify the output suffix of this
+tool. Example : <tt class="docutils literal"><span class="pre">(switch</span> <span class="pre">&quot;E&quot;,</span> <span class="pre">(output_suffix</span> <span class="pre">&quot;i&quot;)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">stop_compilation</span></tt> - stop compilation after this phase.</li>
+<li><tt class="docutils literal"><span class="pre">unpack_values</span></tt> - used for for splitting and forwarding
+comma-separated lists of options, e.g. <tt class="docutils literal"><span class="pre">-Wa,-foo=bar,-baz</span></tt> is
+converted to <tt class="docutils literal"><span class="pre">-foo=bar</span> <span class="pre">-baz</span></tt> and appended to the tool invocation
+command.</li>
+<li><tt class="docutils literal"><span class="pre">help</span></tt> - help string associated with this option. Used for
+<tt class="docutils literal"><span class="pre">--help</span></tt> output.</li>
+<li><tt class="docutils literal"><span class="pre">required</span></tt> - this option is obligatory.</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+</div>
+<div class="doc_text">
+<div class="doc_section"><a class="toc-backref" href="#id7" id="option-list-specifying-all-options-in-a-single-place" name="option-list-specifying-all-options-in-a-single-place">Option list - specifying all options in a single place</a></div>
+<p>It can be handy to have all information about options gathered in a
+single place to provide an overview. This can be achieved by using a
+so-called <tt class="docutils literal"><span class="pre">OptionList</span></tt>:</p>
+<pre class="literal-block">
+def Options : OptionList&lt;[
+(switch_option &quot;E&quot;, (help &quot;Help string&quot;)),
+(alias_option &quot;quiet&quot;, &quot;q&quot;)
+...
+]&gt;;
+</pre>
+<p><tt class="docutils literal"><span class="pre">OptionList</span></tt> is also a good place to specify option aliases.</p>
+<p>Tool-specific option properties like <tt class="docutils literal"><span class="pre">append_cmd</span></tt> have (obviously)
+no meaning in the context of <tt class="docutils literal"><span class="pre">OptionList</span></tt>, so the only properties
+allowed there are <tt class="docutils literal"><span class="pre">help</span></tt> and <tt class="docutils literal"><span class="pre">required</span></tt>.</p>
+<p>Option lists are used at the file scope. See file
+<tt class="docutils literal"><span class="pre">examples/Clang.td</span></tt> for an example of <tt class="docutils literal"><span class="pre">OptionList</span></tt> usage.</p>
+</div>
+<div class="doc_text">
+<div class="doc_section"><a class="toc-backref" href="#id8" id="using-hooks-and-environment-variables-in-the-cmd-line-property" name="using-hooks-and-environment-variables-in-the-cmd-line-property">Using hooks and environment variables in the <tt class="docutils literal"><span class="pre">cmd_line</span></tt> property</a></div>
+<p>Normally, LLVMC executes programs from the system <tt class="docutils literal"><span class="pre">PATH</span></tt>. Sometimes,
+this is not sufficient: for example, we may want to specify tool names
+in the configuration file. This can be achieved via the mechanism of
+hooks - to compile LLVMC with your hooks, just drop a .cpp file into
+<tt class="docutils literal"><span class="pre">tools/llvmc2</span></tt> directory. Hooks should live in the <tt class="docutils literal"><span class="pre">hooks</span></tt>
+namespace and have the signature <tt class="docutils literal"><span class="pre">std::string</span> <span class="pre">hooks::MyHookName</span>
+<span class="pre">(void)</span></tt>. They can be used from the <tt class="docutils literal"><span class="pre">cmd_line</span></tt> tool property:</p>
+<pre class="literal-block">
+(cmd_line &quot;$CALL(MyHook)/path/to/file -o $CALL(AnotherHook)&quot;)
+</pre>
+<p>It is also possible to use environment variables in the same manner:</p>
+<pre class="literal-block">
+(cmd_line &quot;$ENV(VAR1)/path/to/file -o $ENV(VAR2)&quot;)
+</pre>
+<p>To change the command line string based on user-provided options use
+the <tt class="docutils literal"><span class="pre">case</span></tt> expression (documented below):</p>
+<pre class="literal-block">
+(cmd_line
+  (case
+    (switch_on &quot;E&quot;),
+       &quot;llvm-g++ -E -x c $INFILE -o $OUTFILE&quot;,
+    (default),
+       &quot;llvm-g++ -c -x c $INFILE -o $OUTFILE -emit-llvm&quot;))
+</pre>
+</div>
+<div class="doc_text">
+<div class="doc_section"><a class="toc-backref" href="#id9" id="conditional-evaluation-the-case-expression" name="conditional-evaluation-the-case-expression">Conditional evaluation: the <tt class="docutils literal"><span class="pre">case</span></tt> expression</a></div>
+<p>The 'case' construct can be used to calculate weights of the optional
+edges and to choose between several alternative command line strings
+in the <tt class="docutils literal"><span class="pre">cmd_line</span></tt> tool property. It is designed after the
+similarly-named construct in functional languages and takes the form
+<tt class="docutils literal"><span class="pre">(case</span> <span class="pre">(test_1),</span> <span class="pre">statement_1,</span> <span class="pre">(test_2),</span> <span class="pre">statement_2,</span> <span class="pre">...</span> <span class="pre">(test_N),</span>
+<span class="pre">statement_N)</span></tt>. The statements are evaluated only if the corresponding
+tests evaluate to true.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+// Increases edge weight by 5 if &quot;-A&quot; is provided on the
+// command-line, and by 5 more if &quot;-B&quot; is also provided.
+(case
+    (switch_on &quot;A&quot;), (inc_weight 5),
+    (switch_on &quot;B&quot;), (inc_weight 5))
+
+// Evaluates to &quot;cmdline1&quot; if option &quot;-A&quot; is provided on the
+// command line, otherwise to &quot;cmdline2&quot;
+(case
+    (switch_on &quot;A&quot;), &quot;cmdline1&quot;,
+    (switch_on &quot;B&quot;), &quot;cmdline2&quot;,
+    (default), &quot;cmdline3&quot;)
+</pre>
+<p>Note the slight difference in 'case' expression handling in contexts
+of edge weights and command line specification - in the second example
+the value of the <tt class="docutils literal"><span class="pre">&quot;B&quot;</span></tt> switch is never checked when switch <tt class="docutils literal"><span class="pre">&quot;A&quot;</span></tt> is
+enabled, and the whole expression always evaluates to <tt class="docutils literal"><span class="pre">&quot;cmdline1&quot;</span></tt> in
+that case.</p>
+<p>Case expressions can also be nested, i.e. the following is legal:</p>
+<pre class="literal-block">
+(case (switch_on &quot;E&quot;), (case (switch_on &quot;o&quot;), ..., (default), ...)
+      (default), ...)
+</pre>
+<p>You should, however, try to avoid doing that because it hurts
+readability. It is usually better to split tool descriptions and/or
+use TableGen inheritance instead.</p>
+<ul class="simple">
+<li>Possible tests are:<ul>
+<li><tt class="docutils literal"><span class="pre">switch_on</span></tt> - Returns true if a given command-line option is
+provided by the user. Example: <tt class="docutils literal"><span class="pre">(switch_on</span> <span class="pre">&quot;opt&quot;)</span></tt>. Note that
+you have to define all possible command-line options separately in
+the tool descriptions. See the next doc_text for the discussion of
+different kinds of command-line options.</li>
+<li><tt class="docutils literal"><span class="pre">parameter_equals</span></tt> - Returns true if a command-line parameter equals
+a given value. Example: <tt class="docutils literal"><span class="pre">(parameter_equals</span> <span class="pre">&quot;W&quot;,</span> <span class="pre">&quot;all&quot;)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">element_in_list</span></tt> - Returns true if a command-line parameter list
+includes a given value. Example: <tt class="docutils literal"><span class="pre">(parameter_in_list</span> <span class="pre">&quot;l&quot;,</span> <span class="pre">&quot;pthread&quot;)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">input_languages_contain</span></tt> - Returns true if a given language
+belongs to the current input language set. Example:
+<tt class="docutils literal"><span class="pre">`(input_languages_contain</span> <span class="pre">&quot;c++&quot;)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">in_language</span></tt> - Evaluates to true if the language of the input
+file equals to the argument. Valid only when using <tt class="docutils literal"><span class="pre">case</span></tt>
+expression in a <tt class="docutils literal"><span class="pre">cmd_line</span></tt> tool property. Example:
+<tt class="docutils literal"><span class="pre">`(in_language</span> <span class="pre">&quot;c++&quot;)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">not_empty</span></tt> - Returns true if a given option (which should be
+either a parameter or a parameter list) is set by the
+user. Example: <tt class="docutils literal"><span class="pre">`(not_empty</span> <span class="pre">&quot;o&quot;)</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">default</span></tt> - Always evaluates to true. Should always be the last
+test in the <tt class="docutils literal"><span class="pre">case</span></tt> expression.</li>
+<li><tt class="docutils literal"><span class="pre">and</span></tt> - A standard logical combinator that returns true iff all
+of its arguments return true. Used like this: <tt class="docutils literal"><span class="pre">(and</span> <span class="pre">(test1),</span>
+<span class="pre">(test2),</span> <span class="pre">...</span> <span class="pre">(testN))</span></tt>. Nesting of <tt class="docutils literal"><span class="pre">and</span></tt> and <tt class="docutils literal"><span class="pre">or</span></tt> is allowed,
+but not encouraged.</li>
+<li><tt class="docutils literal"><span class="pre">or</span></tt> - Another logical combinator that returns true only if any
+one of its arguments returns true. Example: <tt class="docutils literal"><span class="pre">(or</span> <span class="pre">(test1),</span>
+<span class="pre">(test2),</span> <span class="pre">...</span> <span class="pre">(testN))</span></tt>.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="doc_text">
+<div class="doc_section"><a class="toc-backref" href="#id10" id="language-map" name="language-map">Language map</a></div>
+<p>One last thing that you will need to modify when adding support for a
+new language to LLVMC is the language map, which defines mappings from
+file extensions to language names. It is used to choose the proper
+toolchain(s) for a given input file set. Language map definition is
+located in the file <tt class="docutils literal"><span class="pre">Tools.td</span></tt> and looks like this:</p>
+<pre class="literal-block">
+def LanguageMap : LanguageMap&lt;
+    [LangToSuffixes&lt;&quot;c++&quot;, [&quot;cc&quot;, &quot;cp&quot;, &quot;cxx&quot;, &quot;cpp&quot;, &quot;CPP&quot;, &quot;c++&quot;, &quot;C&quot;]&gt;,
+     LangToSuffixes&lt;&quot;c&quot;, [&quot;c&quot;]&gt;,
+     ...
+    ]&gt;;
+</pre>
+</div>
+<div class="doc_text">
+<div class="doc_section"><a class="toc-backref" href="#id11" id="references" name="references">References</a></div>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1" name="id2">[1]</a></td><td>TableGen Fundamentals
+<a class="reference" href="http://llvm.cs.uiuc.edu/docs/TableGenFundamentals.html">http://llvm.cs.uiuc.edu/docs/TableGenFundamentals.html</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<hr />
+<address>
+  <a href="http://jigsaw.w3.org/css-validator/check/referer"><img
+  src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!" /></a>
+  <a href="http://validator.w3.org/check/referer"><img
+  src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" /></a>
+  <a href="http://llvm.org">The LLVM Compiler Infrastructure</a><br/>
+  Last modified: $Date: 2008-06-09 01:11:58 -0500 (Mon, 09 Jun 2008) $
+</address>
+</body>
+</html>
