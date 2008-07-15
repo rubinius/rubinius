@@ -67,9 +67,11 @@ class BasicSocket < IO
   def recv(bytes_to_read, flags = 0)
     bytes_to_read = Type.coerce_to bytes_to_read, Fixnum, :to_int
     buffer = MemoryPointer.new :char, bytes_to_read + 1
+    # Wait until we have something to read, so we don't block other threads
+    IO.select([self])
     bytes_read = Socket::Foreign.recv(descriptor, buffer, bytes_to_read, flags)
     Errno.handle 'recv(2)' if bytes_read < 0
-    message = buffer.read_string
+    message = buffer.read_string(bytes_read)
     buffer.free
     return message
   end
@@ -679,9 +681,8 @@ class IPSocket < BasicSocket
 
   def recvfrom_nonblock(maxlen, flags = 0)
     # Set socket to non-blocking, if we can
-    unless RUBY_PLATFORM =~ /win32/
-        fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
-    end
+    # Todo: Ensure this works in Windows!  If not, I claim that's Fcntl's fault.
+    fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
     # Wait until we have something to read
     IO.select([self])
