@@ -2121,20 +2121,22 @@ class Node
   class Arguments
     def bytecode(g)
 
+      # Minimum number of arguments to be supplied
       min = @required.size
       if @splat
         # There is no upper bound, check is in instructions.gen
         max = -1
       else
+        # Maximum unsplatted argument count
         max = min + @optional.size
       end
 
+      # Check these min and max argument counts at runtime
       g.check_argcount min, max
 
+      # Emit a local setup instruction for each required argument
       @required.each do |var|
-        unless var.on_stack?
-          g.set_local_from_fp var.slot, var.stack_position
-        end
+        g.set_local_from_fp var.slot, var.stack_position
       end
 
       @optional.each do |var|
