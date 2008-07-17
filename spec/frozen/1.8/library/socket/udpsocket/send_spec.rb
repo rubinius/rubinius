@@ -8,7 +8,12 @@ describe "UDPSocket.send" do
       @server = UDPSocket.open
       @server.bind(nil, SocketSpecs.port)
       @ready = true
-      @msg = @server.recvfrom(64)
+      begin
+        @msg = @server.recvfrom_nonblock(64)
+      rescue Errno::EAGAIN
+        IO.select([@server])
+        retry
+      end
       @server.close
     end
     Thread.pass while @server_thread.status and !@ready

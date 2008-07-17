@@ -1,7 +1,5 @@
-shared :file_blockdev do |cmd, klass, name|
-  describe "#{name || "#{klass}.#{cmd}"}" do
-    it "returns true/false depending if the named file is a block device" do
-      klass.send(cmd, "/tmp").should == false
-    end
+describe :file_blockdev, :shared => true do
+  it "returns true/false depending if the named file is a block device" do
+    @object.send(@method, "/tmp").should == false
   end
 end

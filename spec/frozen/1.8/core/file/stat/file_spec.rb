@@ -3,5 +3,5 @@ require File.dirname(__FILE__) + '/../../../shared/file/file'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "File::Stat#file?" do
-  it_behaves_like :file_file, :file?, FileStat, "File::Stat#file?"
+  it_behaves_like :file_file, :file?, FileStat
 end

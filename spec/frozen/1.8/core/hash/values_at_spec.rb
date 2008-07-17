@@ -1,15 +1,13 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-shared :hash_values_at do |cmd|
-  describe "Hash##{cmd}" do
-    it "returns an array of values for the given keys" do
-      h = {:a => 9, :b => 'a', :c => -10, :d => nil}
-      h.send(cmd).class.should == Array
-      h.send(cmd).should == []
-      h.send(cmd, :a, :d, :b).class.should == Array
-      h.send(cmd, :a, :d, :b).should == [9, nil, 'a']
-    end
+describe :hash_values_at, :shared => true do
+  it "returns an array of values for the given keys" do
+    h = {:a => 9, :b => 'a', :c => -10, :d => nil}
+    h.send(@method).class.should == Array
+    h.send(@method).should == []
+    h.send(@method, :a, :d, :b).class.should == Array
+    h.send(@method, :a, :d, :b).should == [9, nil, 'a']
   end
 end
 

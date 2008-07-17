@@ -1,4 +1,2 @@
-shared :file_socket do |cmd, klass, name|
-  describe "#{name || "#{klass}.#{cmd}"}" do
-  end
+describe :file_socket, :shared => true do
 end

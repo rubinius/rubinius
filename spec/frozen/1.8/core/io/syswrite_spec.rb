@@ -49,6 +49,8 @@ describe "IO#syswrite on a file" do
       file.sysread(10).should == "01234abcde"
     end
   end
+end
 
-  it_behaves_like(:io_write, :syswrite)
+describe "IO#syswrite" do
+  it_behaves_like :io_write, :syswrite
 end

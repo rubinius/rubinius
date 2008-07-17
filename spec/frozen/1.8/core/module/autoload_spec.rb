@@ -84,6 +84,18 @@ describe "Module#autoload" do
     end
     ModuleSpecs::AutoloadExtension::Constant.message.should == "success"
   end
+
+  it "should allow multiple autoload requests to reference one file" do
+    module ModuleSpecs::AutoloadMulti
+      rb = File.dirname(__FILE__) + "/fixtures/autoload_multi.rb"
+      autoload :FirstConst, rb
+      autoload :SecondConst, rb
+    end
+
+    module ModuleSpecs::AutoloadMulti
+      FirstConst.name.should == 'ModuleSpecs::AutoloadMulti::FirstConst'
+    end
+  end
 end
 
 describe "Module#autoload?" do

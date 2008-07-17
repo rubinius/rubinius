@@ -1,4 +1,2 @@
-shared :file_pipe do |cmd, klass, name|
-  describe "#{name || "#{klass}.#{cmd}"}" do
-  end
+describe :file_pipe, :shared => true do
 end

@@ -46,6 +46,12 @@ describe "A block whose arguments are splatted" do
     BlockSpecs::Yield.new.two_arg_array { |*args| a << args }
     a.should == [[[1, 2]]]
   end
+
+  it "yields the correct arguments in a nested block" do
+    a = []
+    BlockSpecs::Yield.new.yield_splat_inside_block {|a1, a2| a << [a1, a2]}
+    a.should == [[1, 0], [2, 1]]
+  end
 end
 
 not_compliant_on :rubinius do

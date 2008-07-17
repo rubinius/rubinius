@@ -3,7 +3,10 @@ require File.dirname(__FILE__) + '/shared/quo'
 require 'bigdecimal'
 
 describe "BigDecimal#div with precision set to 0" do
-  it_behaves_like(:bigdecimal_quo, :div, 0)
+  # TODO: figure out if there is a better way to do these
+  # shared specs rather than sending [0]. See other specs
+  # that share :bigdecimal_quo.
+  it_behaves_like :bigdecimal_quo, :div, [0]
 end
 
 describe "BigDecimal#div" do

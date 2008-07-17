@@ -1,11 +1,9 @@
 require 'rexml/document'
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-shared :document_expanded_name do |cmd|
-  describe "REXML::Document##{cmd}" do
-    it "returns an empty string for root" do # root nodes have no expanded name
-      REXML::Document.new.expanded_name.should == ""
-    end
+describe :document_expanded_name, :shared => true do
+  it "returns an empty string for root" do # root nodes have no expanded name
+    REXML::Document.new.send(@method).should == ""
   end
 end
 

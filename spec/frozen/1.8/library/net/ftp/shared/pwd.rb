@@ -1,3 +1,3 @@
-shared :net_ftp_pwd do |cmd|
+describe :net_ftp_pwd, :shared => true do
   
 end

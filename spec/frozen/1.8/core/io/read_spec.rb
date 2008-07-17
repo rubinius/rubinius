@@ -208,8 +208,18 @@ describe "IO#read" do
     @io.read.should == ''
   end
 
+  it "returns an empty string when the current pos is bigger than the content size" do
+    @io.pos = 1000
+    @io.read.should == ''
+  end
+
   it "returns nil at end-of-file with a length" do
     @io.read
+    @io.read(1).should == nil
+  end
+
+  it "with length argument returns nil when the current pos is bigger than the content size" do
+    @io.pos = 1000
     @io.read(1).should == nil
   end
 

@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/shared/mult'
 require 'bigdecimal'
 
 describe "BigDecimal#*" do
-  it_behaves_like(:bigdecimal_mult, :*)
+  it_behaves_like :bigdecimal_mult, :*, []
 end
 
 describe "BigDecimal#*" do

@@ -8,8 +8,9 @@ describe "Logger::Application#level=" do
     @app = LoggerSpecs::TestApp.new("TestApp", @log_file)
 
   end
-  
-  after :all do
+
+  after :each do
+    @log_file.close unless @log_file.closed?
     File.unlink(@file_path) if File.exists?(@file_path)
   end
 
@@ -19,7 +20,7 @@ describe "Logger::Application#level=" do
     @app.log(Logger::WARN, "Don't show me")
     @app.log(Logger::ERROR, "Show me")
     @log_file.rewind
-    messages = @log_file.readlines 
+    messages = @log_file.readlines
     messages.length.should == 1
     LoggerSpecs::strip_date(messages.first).should == "ERROR -- TestApp: Show me\n"
   end

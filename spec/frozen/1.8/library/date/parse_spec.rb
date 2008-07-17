@@ -1,12 +1,10 @@
-require 'date' 
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/shared/parse'
 require File.dirname(__FILE__) + '/shared/parse_us'
 require File.dirname(__FILE__) + '/shared/parse_eu'
+require 'date'
 
 describe "Date#parse" do
-
-
   # The space separator is also different, doesn't work for only numbers
   it "can parse a day name into a Date object" do
     d = Date.parse("friday")
@@ -62,19 +60,56 @@ describe "Date#parse" do
     d = Date.parse("19101101")
     d.should == Date.civil(1910, 11, 1)
   end
+end
 
-  # The combination of using the - separator and using names for
-  # months doesn't work, so - is excluded here.
-  it_behaves_like(:date_parse, '.')
-  it_behaves_like(:date_parse, '/')
-  it_behaves_like(:date_parse, ' ')
-
-  # Numeric date parsing doesn't work when using spaces
-  it_behaves_like(:date_parse_us, '/')
-  it_behaves_like(:date_parse_eu, '-')
-  ruby_version_is "" ... "1.8.7" do
-    it_behaves_like(:date_parse_us, '.')
+describe "Date#parse with '.' separator" do
+  before :all do
+    @sep = '.'
   end
+
+  it_should_behave_like "date_parse"
+end
+
+describe "Date#parse with '/' separator" do
+  before :all do
+    @sep = '/'
+  end
+
+  it_should_behave_like "date_parse"
+end
+
+describe "Date#parse with ' ' separator" do
+  before :all do
+    @sep = ' '
+  end
+
+  it_should_behave_like "date_parse"
+end
+
+describe "Date#parse with '/' separator US-style" do
+  before :all do
+    @sep = '/'
+  end
+
+  it_should_behave_like "date_parse_us"
+end
+
+ruby_version_is "" ... "1.8.7" do
+  describe "Date#parse with '.' separator US-style" do
+    before :all do
+      @sep = '.'
+    end
+
+    it_should_behave_like "date_parse_us"
+  end
+end
+
+describe "Date#parse with '-' separator EU-style" do
+  before :all do
+    @sep = '-'
+  end
+
+  it_should_behave_like "date_parse_eu"
 end
 
 ruby_version_is "1.8.7" do

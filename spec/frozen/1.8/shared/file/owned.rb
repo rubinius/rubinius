@@ -1,4 +1,2 @@
-shared :file_owned do |cmd, klass, name|
-  describe "#{name || "#{klass}.#{cmd}"}" do
-  end
+describe :file_owned, :shared => true do
 end

@@ -37,6 +37,8 @@ describe "IO#write on a file" do
   it "returns a length of 0 when writing a blank string" do
     @file.write('').should == 0
   end
+end
 
-  it_behaves_like(:io_write, :write)
+describe "IO#write" do
+  it_behaves_like :io_write, :write
 end

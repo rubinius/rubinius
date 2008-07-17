@@ -2,9 +2,22 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require "stringio"
 require File.dirname(__FILE__) + '/shared/read'
 
-describe "StringIO#sysread" do
+describe "StringIO#sysread when passed length, buffer" do
   it_behaves_like :stringio_read, :sysread
 end
+
+describe "StringIO#sysread when passed [length]" do
+  it_behaves_like :stringio_read_length, :sysread
+end
+
+describe "StringIO#sysread when passed no arguments" do
+  it_behaves_like :stringio_read_no_arguments, :sysread
+end
+
+describe "StringIO#sysread when self is not readable" do
+  it_behaves_like :stringio_read_not_readable, :sysread
+end
+
 
 describe "StringIO#sysread when passed [length]" do
   before(:each) do

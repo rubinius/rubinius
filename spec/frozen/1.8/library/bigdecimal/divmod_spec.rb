@@ -15,19 +15,35 @@ module DivmodSpecs
   end
 end
 
+# TODO: figure out a way to do the shared specs with helpers instead
+# of spec'ing a method that does not really exist
 describe "BigDecimal#mod_part_of_divmod" do
   # BigDecimal#divmod[1] behaves exactly like #modulo
-  begin
+  before :all do
     class BigDecimal
       def mod_part_of_dimvod(arg)
         divmod(arg)[1]
       end
     end
-    it_behaves_like(:bigdecimal_modulo, :mod_part_of_dimvod, :exclude_float_zero)
-  ensure
+  end
+
+  after :all do
     class BigDecimal
       undef mod_part_of_dimvod
     end
+  end
+
+  it_behaves_like :bigdecimal_modulo, :mod_part_of_dimvod
+
+  it "does NOT raise ZeroDivisionError if other is zero" do
+    bd6543 = BigDecimal.new("6543.21")
+    bd5667 = BigDecimal.new("5667.19")
+    a = BigDecimal("1.0000000000000000000000000000000000000000005")
+    b = BigDecimal("1.00000000000000000000000000000000000000000005")
+
+    bd5667.send(@method, 0).nan?.should == true
+    bd5667.send(@method, BigDecimal("0")).nan?.should == true
+    @zero.send(@method, @zero).nan?.should == true
   end
 end
 
@@ -78,7 +94,7 @@ describe "BigDecimal#divmod" do
     BigDecimal('2').divmod(BigDecimal('-1')).should == [-2, 0]
 
     BigDecimal('-1').divmod(BigDecimal('2')).should == [-1, 1]
-    BigDecimal('-2').divmod(BigDecimal('1')).should == [-2, 0]    
+    BigDecimal('-2').divmod(BigDecimal('1')).should == [-2, 0]
   end
 
   it "Can be reversed with * and +" do
@@ -105,7 +121,7 @@ describe "BigDecimal#divmod" do
       values << BigDecimal('-2E55')
       values << BigDecimal('2E-5555')
       values << BigDecimal('-2E-5555')
-      
+
 
       values_and_zeroes = values + @zeroes
       values_and_zeroes.each do |val1|
@@ -118,7 +134,7 @@ describe "BigDecimal#divmod" do
       end
     end
   end
-  
+
   it "properly handles special values" do
     values = @special_vals + @zeroes
     values.each do |val1|
@@ -132,7 +148,7 @@ describe "BigDecimal#divmod" do
         DivmodSpecs::check_both_nan(val1.divmod(val2))
       end
     end
-    
+
     @regular_vals.each do |val1|
       @special_vals.each do |val2|
         DivmodSpecs::check_both_nan(val1.divmod(val2))

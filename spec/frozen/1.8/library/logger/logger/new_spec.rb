@@ -8,7 +8,8 @@ describe "Logger#new" do
     @log_file = File.open(@file_path, "w+")
   end
 
-  after :all do
+  after :each do
+    @log_file.close unless @log_file.closed?
     File.unlink(@file_path) if File.exists?(@file_path)
   end
 

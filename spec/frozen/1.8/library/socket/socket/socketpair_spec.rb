@@ -3,5 +3,5 @@ require File.dirname(__FILE__) + '/../fixtures/classes'
 require File.dirname(__FILE__) + '/../shared/socketpair'
 
 describe "Socket#socketpair" do
-  it_behaves_like :socketpair, :socketpair
+  it_behaves_like :socket_socketpair, :socketpair
 end

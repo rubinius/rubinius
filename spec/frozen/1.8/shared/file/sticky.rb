@@ -1,4 +1,2 @@
-shared :file_sticky do |cmd, klass, name|
-  describe "#{name || "#{klass}.#{cmd}"}" do
-  end
+describe :file_sticky, :shared => true do
 end

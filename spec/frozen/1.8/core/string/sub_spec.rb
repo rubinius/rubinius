@@ -1,13 +1,12 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
-require File.dirname(__FILE__) + '/shared/sub.rb'
 
 describe "String#sub with pattern, replacement" do
   it "returns a copy of self with all occurrences of pattern replaced with replacement" do
     "hello".sub(/[aeiou]/, '*').should == "h*llo"
     "hello".sub(//, ".").should == ".hello"
   end
-  
+
   it "ignores a block if supplied" do
     "food".sub(/f/, "g") { "w" }.should == "good"
   end
@@ -20,15 +19,15 @@ describe "String#sub with pattern, replacement" do
     "Hello".sub(/h/i, "j").should == "jello"
     "hello".sub(/H/i, "j").should == "jello"
   end
-  
+
   it "doesn't interpret regexp metacharacters if pattern is a string" do
     "12345".sub('\d', 'a').should == "12345"
     '\d'.sub('\d', 'a').should == "a"
   end
-  
+
   it "replaces \\1 sequences with the regexp's corresponding capture" do
     str = "hello"
-    
+
     str.sub(/([aeiou])/, '<\1>').should == "h<e>llo"
     str.sub(/(.)/, '\1\1').should == "hhello"
 
@@ -46,7 +45,7 @@ describe "String#sub with pattern, replacement" do
 
   it "treats \\1 sequences without corresponding captures as empty strings" do
     str = "hello!"
-    
+
     str.sub("", '<\1>').should == "<>hello!"
     str.sub("h", '<\1>').should == "<>ello!"
 
@@ -57,14 +56,14 @@ describe "String#sub with pattern, replacement" do
 
   it "replaces \\& and \\0 with the complete match" do
     str = "hello!"
-    
+
     str.sub("", '<\0>').should == "<>hello!"
     str.sub("", '<\&>').should == "<>hello!"
     str.sub("he", '<\0>').should == "<he>llo!"
     str.sub("he", '<\&>').should == "<he>llo!"
     str.sub("l", '<\0>').should == "he<l>lo!"
     str.sub("l", '<\&>').should == "he<l>lo!"
-    
+
     str.sub(//, '<\0>').should == "<>hello!"
     str.sub(//, '<\&>').should == "<>hello!"
     str.sub(/../, '<\0>').should == "<he>llo!"
@@ -74,24 +73,24 @@ describe "String#sub with pattern, replacement" do
 
   it "replaces \\` with everything before the current match" do
     str = "hello!"
-    
+
     str.sub("", '<\`>').should == "<>hello!"
     str.sub("h", '<\`>').should == "<>ello!"
     str.sub("l", '<\`>').should == "he<he>lo!"
     str.sub("!", '<\`>').should == "hello<hello>"
-    
+
     str.sub(//, '<\`>').should == "<>hello!"
     str.sub(/..o/, '<\`>').should == "he<he>!"
   end
 
   it "replaces \\' with everything after the current match" do
     str = "hello!"
-    
+
     str.sub("", '<\\\'>').should == "<hello!>hello!"
     str.sub("h", '<\\\'>').should == "<ello!>ello!"
     str.sub("ll", '<\\\'>').should == "he<o!>o!"
     str.sub("!", '<\\\'>').should == "hello<>"
-    
+
     str.sub(//, '<\\\'>').should == "<hello!>hello!"
     str.sub(/../, '<\\\'>').should == "<llo!>llo!"
   end
@@ -102,7 +101,7 @@ describe "String#sub with pattern, replacement" do
 
   it "replaces \\+ with the last paren that actually matched" do
     str = "hello!"
-    
+
     str.sub(/(.)(.)/, '\+').should == "ello!"
     str.sub(/(.)(.)+/, '\+').should == "!"
     str.sub(/(.)()/, '\+').should == "ello!"
@@ -116,7 +115,7 @@ describe "String#sub with pattern, replacement" do
   it "treats \\+ as an empty string if there was no captures" do
     "hello!".sub(/./, '\+').should == "ello!"
   end
-  
+
   it "maps \\\\ in replacement to \\" do
     "hello".sub(/./, '\\\\').should == '\\ello'
   end
@@ -137,23 +136,23 @@ describe "String#sub with pattern, replacement" do
     a_t = "a"
     empty = ""
     empty_t = ""
-    
+
     hello_t.taint; a_t.taint; empty_t.taint
-    
+
     hello_t.sub(/./, a).tainted?.should == true
     hello_t.sub(/./, empty).tainted?.should == true
 
     hello.sub(/./, a_t).tainted?.should == true
     hello.sub(/./, empty_t).tainted?.should == true
     hello.sub(//, empty_t).tainted?.should == true
-    
+
     hello.sub(//.taint, "foo").tainted?.should == false
   end
 
   it "tries to convert pattern to a string using to_str" do
     pattern = mock('.')
     def pattern.to_str() "." end
-    
+
     "hello.".sub(pattern, "!").should == "hello!"
 
     obj = mock('.')
@@ -171,27 +170,27 @@ describe "String#sub with pattern, replacement" do
   it "tries to convert replacement to a string using to_str" do
     replacement = mock('hello_replacement')
     def replacement.to_str() "hello_replacement" end
-    
+
     "hello".sub(/hello/, replacement).should == "hello_replacement"
-    
+
     obj = mock('ok')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("ok")
     "hello".sub(/hello/, obj).should == "ok"
   end
-  
+
   it "raises a TypeError when replacement can't be converted to a string" do
     lambda { "hello".sub(/[aeiou]/, :woot) }.should raise_error(TypeError)
     lambda { "hello".sub(/[aeiou]/, ?f)    }.should raise_error(TypeError)
   end
-  
+
   it "returns subclass instances when called on a subclass" do
     StringSpecs::MyString.new("").sub(//, "").class.should == StringSpecs::MyString
     StringSpecs::MyString.new("").sub(/foo/, "").class.should == StringSpecs::MyString
     StringSpecs::MyString.new("foo").sub(/foo/, "").class.should == StringSpecs::MyString
     StringSpecs::MyString.new("foo").sub("foo", "").class.should == StringSpecs::MyString
   end
-  
+
   it "sets $~ to MatchData of match and nil when there's none" do
     'hello.'.sub('hello', 'x')
     $~[0].should == 'hello'
@@ -209,7 +208,7 @@ describe "String#sub with pattern, replacement" do
   it 'replaces \\\1 with \1' do
     "ababa".sub(/(b)/, '\\\1').should == "a\\1aba"
   end
-  
+
   it 'replaces \\\\1 with \\1' do
     "ababa".sub(/(b)/, '\\\\1').should == "a\\1aba"
   end
@@ -225,25 +224,25 @@ describe "String#sub with pattern and block" do
     "hi".sub(/./) { |s| s[0].to_s + ' ' }.should == "104 i"
     "hi!".sub(/(.)(.)/) { |*a| a.inspect }.should == '["hi"]!'
   end
-  
+
   it "sets $~ for access from the block" do
     str = "hello"
     str.sub(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>llo"
     str.sub(/([aeiou])/) { "<#{$1}>" }.should == "h<e>llo"
     str.sub("l") { "<#{$~[0]}>" }.should == "he<l>lo"
-    
+
     offsets = []
-    
+
     str.sub(/([aeiou])/) do
        md = $~
        md.string.should == str
        offsets << md.offset(0)
        str
     end.should == "hhellollo"
-    
+
     offsets.should == [[1, 2]]
   end
-  
+
   it "restores $~ after leaving the block" do
     [/./, "l"].each do |pattern|
       old_md = nil
@@ -252,12 +251,12 @@ describe "String#sub with pattern and block" do
         "ok".match(/./)
         "x"
       end
-    
+
       $~.should == old_md
       $~.string.should == "hello"
     end
   end
-  
+
   it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
     'hello.'.sub('l') { 'x' }
     $~.begin(0).should == 2
@@ -272,28 +271,28 @@ describe "String#sub with pattern and block" do
     'hello.'.sub(/not/) { 'x' }
     $~.should == nil
   end
-  
+
   it "doesn't raise a RuntimeError if the string is modified while substituting" do
     str = "hello"
     str.sub(//) { str[0] = 'x' }.should == "xhello"
     str.should == "xello"
   end
-  
+
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
     repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
     "hello".sub(/(.+)/) { repl }.should == repl
   end
-  
+
   it "converts the block's return value to a string using to_s" do
     obj = mock('hello_replacement')
     obj.should_receive(:to_s).and_return("hello_replacement")
     "hello".sub(/hello/) { obj }.should == "hello_replacement"
-    
+
     obj = mock('ok')
     obj.should_receive(:to_s).and_return("ok")
     "hello".sub(/.+/) { obj }.should == "ok"
   end
-  
+
   it "taints the result if the original string or replacement is tainted" do
     hello = "hello"
     hello_t = "hello"
@@ -301,16 +300,16 @@ describe "String#sub with pattern and block" do
     a_t = "a"
     empty = ""
     empty_t = ""
-    
+
     hello_t.taint; a_t.taint; empty_t.taint
-    
+
     hello_t.sub(/./) { a }.tainted?.should == true
     hello_t.sub(/./) { empty }.tainted?.should == true
 
     hello.sub(/./) { a_t }.tainted?.should == true
     hello.sub(/./) { empty_t }.tainted?.should == true
     hello.sub(//) { empty_t }.tainted?.should == true
-    
+
     hello.sub(//.taint) { "foo" }.tainted?.should == false
   end
 end
@@ -327,19 +326,19 @@ describe "String#sub! with pattern, replacement" do
     a.sub!(/./.taint, "foo").tainted?.should == false
     a.sub!(/./, "foo".taint).tainted?.should == true
   end
-  
+
   it "returns nil if no modifications were made" do
     a = "hello"
     a.sub!(/z/, '*').should == nil
     a.sub!(/z/, 'z').should == nil
     a.should == "hello"
   end
-  
+
   compliant_on :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       s = "hello"
       s.freeze
-    
+
       s.sub!(/ROAR/, "x") # ok
       lambda { s.sub!(/e/, "e")       }.should raise_error(TypeError)
       lambda { s.sub!(/[aeiou]/, '*') }.should raise_error(TypeError)
@@ -359,7 +358,7 @@ describe "String#sub! with pattern and block" do
     a.sub!(/./.taint) { "foo" }.tainted?.should == false
     a.sub!(/./) { "foo".taint }.tainted?.should == true
   end
-  
+
   it "returns nil if no modifications were made" do
     a = "hello"
     a.sub!(/z/) { '*' }.should == nil
@@ -373,12 +372,15 @@ describe "String#sub! with pattern and block" do
       lambda { str.sub!(//) { str << 'x' } }.should raise_error(RuntimeError)
     end
   end
-  
-  compliant_on :jruby do
-    it_behaves_like(:string_sub_bang_frozen_raises, RuntimeError)
-  end
-  
-  compliant_on :ruby do
-    it_behaves_like(:string_sub_bang_frozen_raises, RuntimeError)
+
+  compliant_on :ruby, :jruby do
+    it "raises a RuntimeError when self is frozen" do
+      s = "hello"
+      s.freeze
+
+      s.sub!(/ROAR/) { "x" } # ok
+      lambda { s.sub!(/e/) { "e" } }.should raise_error(RuntimeError)
+      lambda { s.sub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
+    end
   end
 end

@@ -11,6 +11,10 @@ module BlockSpecs
     def two_arg_array
       yield [1, 2]
     end
+
+    def yield_splat_inside_block
+      [1, 2].send(:each_with_index) {|*args| yield(*args)}
+    end
   end
 end
 

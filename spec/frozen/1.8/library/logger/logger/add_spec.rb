@@ -8,7 +8,8 @@ describe "Logger#add" do
     @logger = Logger.new(@path)
   end
 
-  after :all do
+  after :each do
+    @log_file.close unless @log_file.closed?
     File.unlink(@path) if File.exists?(@path)
   end
 
@@ -50,8 +51,8 @@ describe "Logger#add" do
   end
 
   it "receives a block" do
-    lambda {     
-      @logger.log(nil, "test", "TestApp") do 
+    lambda {
+      @logger.log(nil, "test", "TestApp") do
         1+1
       end
     }.should_not raise_error
@@ -59,21 +60,21 @@ describe "Logger#add" do
 
   it "calls the block if message is nil" do
     temp = 0
-    lambda {     
-      @logger.log(nil, nil, "TestApp") do 
+    lambda {
+      @logger.log(nil, nil, "TestApp") do
         temp = 1+1
       end
     }.should_not raise_error
     temp.should == 2
   end
-  
+
   it "ignores the block if the message is not nil" do
     temp = 0
-    lambda {     
-      @logger.log(nil, "not nil", "TestApp") do 
+    lambda {
+      @logger.log(nil, "not nil", "TestApp") do
         temp = 1+1
       end
     }.should_not raise_error
     temp.should == 0
   end
-end 
+end

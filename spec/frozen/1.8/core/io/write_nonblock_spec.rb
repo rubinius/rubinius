@@ -32,6 +32,8 @@ describe "IO#write_nonblock on a file" do
   it "checks if the file is writable if writing zero bytes" do
     lambda { @readonly_file.write_nonblock("") }.should raise_error
   end
+end
 
-  it_behaves_like(:io_write, :write_nonblock)
+describe "IO#write_nonblock" do
+  it_behaves_like :io_write, :write_nonblock
 end

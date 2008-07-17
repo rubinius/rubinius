@@ -843,3 +843,40 @@ describe "Multiple assignment, array-style" do
     end
   end
 end
+
+describe "Scope of variables" do
+  it "instance variables not overwritten by local variable in each block" do
+    
+    class ScopeVariables
+      attr_accessor :v
+
+      def initialize
+        @v = ['a', 'b', 'c']
+      end
+
+      def check_access
+        v.should == ['a', 'b', 'c']
+        self.v.should == ['a', 'b', 'c']
+      end
+      
+      def check_local_variable
+        v = nil
+        self.v.should == ['a', 'b', 'c']
+      end
+      
+      def check_each_block
+        self.v.each { |v|
+          # Don't actually do anything
+        }
+        self.v.should == ['a', 'b', 'c']
+        v.should == ['a', 'b', 'c']
+        self.v.object_id.should == v.object_id
+      end
+    end # Class ScopeVariables
+    
+    instance = ScopeVariables.new()
+    instance.check_access
+    instance.check_local_variable
+    instance.check_each_block
+  end
+end

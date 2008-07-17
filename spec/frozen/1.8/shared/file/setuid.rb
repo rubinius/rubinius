@@ -1,4 +1,2 @@
-shared :file_setuid do |cmd, klass, name|
-  describe "#{name || "#{klass}.#{cmd}"}" do
-  end
+describe :file_setuid, :shared => true do
 end

@@ -28,4 +28,10 @@ describe "Enumerable#each_with_index" do
     @b.should == res
   end
 
+  it "binds splat arguments properly" do
+    acc = []
+    res = @b.each_with_index { |*b| c,d = b; acc << c; acc << d }
+    [2, 0, 5, 1, 3, 2, 6, 3, 1, 4, 4, 5].should == acc
+    @b.should == res
+  end
 end

@@ -9,7 +9,8 @@ describe "Logger::Application#log" do
     @app.start
   end
 
-  after :all do
+  after :each do
+    @log_file.close unless @log_file.closed?
     File.unlink(@file_path) if File.exists?(@file_path)
   end
 
@@ -19,7 +20,7 @@ describe "Logger::Application#log" do
     message = @log_file.readlines.last
     LoggerSpecs::strip_date(message).should == "WARN -- TestApp: Test message\n"
   end
-  
+
   it "receives a severity" do
     @app.log(Logger::INFO,  "Info message")
     @app.log(Logger::DEBUG, "Debug message")
@@ -35,7 +36,7 @@ describe "Logger::Application#log" do
     LoggerSpecs::strip_date(messages[3]).should == "ERROR -- TestApp: Error message\n"
     LoggerSpecs::strip_date(messages[4]).should == "FATAL -- TestApp: Fatal message\n"
   end
-  
+
   it "uses app name for Application Name" do
     @app.log(Logger::INFO,  "Info message")
     @log_file.rewind

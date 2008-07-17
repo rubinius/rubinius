@@ -384,6 +384,7 @@ NIL                  NilClass    Synonym for nil.
 RUBY_PLATFORM        String      The identifier of the platform running this program. This string 
                                  is in the same form as the platform identifier used by the GNU 
                                  configure utility (which is not a coincidence). 
+PLATFORM             String      Same as RUBY_PLATFORM.
 RUBY_RELEASE_DATE    String      The date of this release. 
 RUBY_VERSION         String      The version number of the interpreter. 
 STDERR               IO          The actual standard error stream for the program. The initial 
@@ -456,6 +457,11 @@ describe "The predefined global constants" do
   
   it "includes RUBY_PLATFORM" do
     Object.const_defined?(:RUBY_PLATFORM).should == true
+  end
+
+  it "includes PLATFORM" do
+    Object.const_defined?(:PLATFORM).should == true
+    RUBY_PLATFORM == PLATFORM
   end
 
   it "includes TOPLEVEL_BINDING" do

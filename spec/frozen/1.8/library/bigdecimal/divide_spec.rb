@@ -3,5 +3,5 @@ require File.dirname(__FILE__) + '/shared/quo'
 require 'bigdecimal'
 
 describe "BigDecimal#/" do
-  it_behaves_like(:bigdecimal_quo, :/)
+  it_behaves_like :bigdecimal_quo, :/, []
 end

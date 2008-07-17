@@ -1,11 +1,9 @@
-shared :symbol_id2name do |cmd|
-  describe "Symbol\##{cmd}" do
-    it "returns the string corresponding to self" do
-      :rubinius.send(cmd).should == "rubinius"
-      :squash.send(cmd).should == "squash"
-      :[].send(cmd).should == "[]"
-      :@ruby.send(cmd).should == "@ruby"
-      :@@ruby.send(cmd).should == "@@ruby"
-    end
+describe :symbol_id2name, :shared => true do
+  it "returns the string corresponding to self" do
+    :rubinius.send(@method).should == "rubinius"
+    :squash.send(@method).should == "squash"
+    :[].send(@method).should == "[]"
+    :@ruby.send(@method).should == "@ruby"
+    :@@ruby.send(@method).should == "@@ruby"
   end
 end

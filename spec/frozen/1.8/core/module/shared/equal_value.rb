@@ -1,16 +1,14 @@
-shared :module_equal do |cmd|
-  describe "Module##{cmd}(other)" do
-    it "returns true if self and the given module are the same" do
-      ModuleSpecs.send(cmd, ModuleSpecs).should == true
-      ModuleSpecs::Child.send(cmd, ModuleSpecs::Child).should == true
-      ModuleSpecs::Parent.send(cmd, ModuleSpecs::Parent).should == true
-      ModuleSpecs::Basic.send(cmd, ModuleSpecs::Basic).should == true
-      ModuleSpecs::Super.send(cmd, ModuleSpecs::Super).should == true
-      
-      ModuleSpecs::Child.send(cmd, ModuleSpecs).should == false
-      ModuleSpecs::Child.send(cmd, ModuleSpecs::Parent).should == false
-      ModuleSpecs::Child.send(cmd, ModuleSpecs::Basic).should == false
-      ModuleSpecs::Child.send(cmd, ModuleSpecs::Super).should == false
-    end
+describe :module_equal, :shared => true do
+  it "returns true if self and the given module are the same" do
+    ModuleSpecs.send(@method, ModuleSpecs).should == true
+    ModuleSpecs::Child.send(@method, ModuleSpecs::Child).should == true
+    ModuleSpecs::Parent.send(@method, ModuleSpecs::Parent).should == true
+    ModuleSpecs::Basic.send(@method, ModuleSpecs::Basic).should == true
+    ModuleSpecs::Super.send(@method, ModuleSpecs::Super).should == true
+    
+    ModuleSpecs::Child.send(@method, ModuleSpecs).should == false
+    ModuleSpecs::Child.send(@method, ModuleSpecs::Parent).should == false
+    ModuleSpecs::Child.send(@method, ModuleSpecs::Basic).should == false
+    ModuleSpecs::Child.send(@method, ModuleSpecs::Super).should == false
   end
 end
