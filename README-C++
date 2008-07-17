@@ -1,32 +1,26 @@
  Running the C++ Branch
 ------------------------
 
-1.  Get LLVM 2.3 or later from http://llvm.org
-    - Simple build: `./configure [--prefix=...] && make; sudo make install`
-
-2.  Optional but recommended, also get the LLVM GCC frontend, http://llvm.org
-    - You can just get the binaries rather than source.
-
-3.  Set up an altogether new clone of the repository for yourself:
++  Set up an altogether new clone of the repository for yourself:
     - For current committers:
         `cd $WHEREVER; git clone git@git.rubini.us:code my_cpp`
     - For others: `cd $WHEREVER; git clone git://git.rubini.us/code my_cpp`
 
-3b. `cd my_cpp`
++ `cd my_cpp`
 
-4.  Switch to the C++ branch:
++  Switch to the C++ branch:
       `git branch --track cpp origin/cpp; git checkout cpp`
     - The --track allows you to push and pull directly to/from the branch.
 
-5.  All of the C++ work is in a subdirectory: `cd vm`
++  All of the C++ work is in a subdirectory: `cd vm`
 
-6.  Build the codebase: `rake build`
++  Build the codebase: `rake build`
 
-7.  Build and run the tests: `rake test`
++  Build and run the tests: `rake test`
 
-8.  You can use `git pull` to get updates
++  You can use `git pull` to get updates
     - The 'rake git:pull' task currently doesn't work for the C++ branch.
 
-9.  ...And `git push` to send back any of your commits to the C++ branch.
++  ...And `git push` to send back any of your commits to the C++ branch.
     - Same here with the Rbx Rake tasks.
 
