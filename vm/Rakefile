@@ -97,12 +97,12 @@ rule ".hpp" => "external_libs/libffi/include/ffi.h"
 
 def external
   $external ||= %w(
+    external_libs/llvm/Release/lib/libLLVMSystem.a
     external_libs/libtommath/libtommath.a
     external_libs/onig/.libs/libonig.a
     external_libs/libffi/.libs/libffi.a
     external_libs/libltdl/.libs/libltdl.a
     external_libs/libev/.libs/libev.a
-    external_libs/llvm/Release/lib/libLLVMSystem.a
   )
 end
 
@@ -221,8 +221,7 @@ file "external_libs/libffi/include/ffi.h" do
   end
 end
 
-
-file "test/runner.cpp" => tests + objs + external do
+file "test/runner.cpp" => external + tests + objs do
   puts "GEN test/runner.cpp"
   x "test/cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o test/runner.cpp #{tests}"
 end
