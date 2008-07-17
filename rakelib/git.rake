@@ -51,39 +51,37 @@ namespace :git do
     if name.strip.empty?
       name = default
     end
-    sh "git checkout -b #{name}"
+    sh "git branch --track #{name}"
+    sh "git checkout #{name}"
   end
 
   desc "Push all changes to the rubinius repository"
   task :push => :update do
     branch = git_branch()
-    if branch != "master"
-      `git diff-files --quiet`
-      if $?.exitstatus == 1
-        puts "You have outstanding changes. Please commit them first."
-        exit 1
-      end
 
-      puts "* Merging topic '#{branch}' back into master..."
-      `git checkout master`
-      sh "git merge #{branch}"
-      switch = true
-    else
-      switch = false
+    rem = `git config branch.#{branch}.remote`.strip
+    if $?.exitstatus == 1
+      puts "This branch does not have tracking setup, so I'm unable to automatically pull into it. Please use 'rake git:topic' or 'git branch --track' to create your topic branches."
+      exit 1
     end
 
     puts "* Pushing changes..."
     sh "git push"
-
-    if switch
-      puts "* Switching back to #{branch}..."
-      `git checkout #{branch}`
-    end
   end
 
   desc "Pull new commits from the rubinius repository"
   task :update do
     check_git_ver
+    branch = git_branch()
+
+    # Test if this is a "root" branch or a topic branch.
+
+    rem = `git config branch.#{branch}.remote`.strip
+    if $?.exitstatus == 1
+      puts "This branch does not have tracking setup, so I'm unable to automatically pull into it. Please use 'rake git:topic' or 'git branch --track' to create your topic branches."
+      exit 1
+    end
+
     `git diff-files --quiet`
     if $?.exitstatus == 1
       stash = true
@@ -94,25 +92,9 @@ namespace :git do
       stash = false
     end
 
-    branch = git_branch()
-    if branch != "master"
-      switch = true
-      `git checkout master`
-      puts "* Switching back to master..."
-    else
-      switch = false
-    end
-
     puts "* Pulling in new commits..."
-    sh "git fetch"
-    sh "git rebase origin"
-    
-    if switch
-      puts "* Porting changes into #{branch}..."
-      `git checkout #{branch}`
-      sh "git rebase master"
-    end
-    
+    sh "git pull --rebase"
+
     if stash
       puts "* Applying changes..."
       sh "git stash apply"
