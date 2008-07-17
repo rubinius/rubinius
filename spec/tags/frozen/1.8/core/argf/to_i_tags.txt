@@ -1,0 +1,2 @@
+fails:ARGF.to_i returns the current file number on each file
+fails:ARGF.to_i raises ArgumentError (no stream) when called on a closed stream

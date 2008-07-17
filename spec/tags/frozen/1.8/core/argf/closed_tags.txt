@@ -1,0 +1,1 @@
+fails:ARGF.closed? says it is closed 

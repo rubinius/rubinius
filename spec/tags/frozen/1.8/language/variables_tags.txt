@@ -3,3 +3,4 @@ fails:Assigning multiple values calls #to_ary on rhs arg if rhs has only a singl
 fails:Assigning multiple values allows complex parallel assignment
 fails:Multiple assignments with splats * on a range should act like array expansion
 fails:Operator assignment 'obj[idx] op= expr' returns result of rhs not result of []=
+fails:Scope of variables instance variables not overwritten by local variable in each block

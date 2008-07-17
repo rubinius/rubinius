@@ -1,0 +1,2 @@
+fails:ARGF.rewind goes back to beginning of current file
+fails:ARGF.rewind raises ArgumentError when end of stream reached
