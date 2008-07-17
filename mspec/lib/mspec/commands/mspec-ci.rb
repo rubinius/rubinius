@@ -61,8 +61,10 @@ class MSpecCI < MSpecScript
     MSpec.register_tags_patterns config[:tags_patterns]
     MSpec.register_files files
     TagFilter.new(:exclude, "fails").register
+    TagFilter.new(:exclude, "critical").register
     TagFilter.new(:exclude, "unstable").register
     TagFilter.new(:exclude, "incomplete").register
+    TagFilter.new(:exclude, "unsupported").register
 
     MSpec.process
     exit MSpec.exit_code

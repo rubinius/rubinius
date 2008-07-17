@@ -18,18 +18,21 @@ module MSpec
   @mode    = nil
   @load    = nil
   @unload  = nil
+  @current = nil
+  @shared  = {}
   @exception    = nil
   @randomize    = nil
   @expectation  = nil
   @expectations = false
 
-  def self.describe(mod, msg=nil, &block)
-    stack.push ContextState.new
+  def self.describe(mod, options=nil, &block)
+    state = ContextState.new mod, options
+    state.parent = current
 
-    current.describe(mod, msg, &block)
-    current.process
+    MSpec.register_current state
+    state.describe(&block)
 
-    stack.pop
+    state.process unless state.shared? or current
   end
 
   def self.process
@@ -62,6 +65,8 @@ module MSpec
     begin
       @env.instance_eval(&block)
       return true
+    rescue SystemExit
+      raise
     rescue Exception => exc
       register_exit 1
       actions :exception, ExceptionState.new(current && current.state, location, exc)
@@ -69,14 +74,42 @@ module MSpec
     end
   end
 
+  # Sets the toplevel ContextState to +state+.
+  def self.register_current(state)
+    store :current, state
+  end
+
+  # Sets the toplevel ContextState to +nil+.
+  def self.clear_current
+    store :current, nil
+  end
+
+  # Returns the toplevel ContextState.
+  def self.current
+    retrieve :current
+  end
+
+  # Stores the shared ContextState keyed by description.
+  def self.register_shared(state)
+    @shared[state.to_s] = state
+  end
+
+  # Returns the shared ContextState matching description.
+  def self.retrieve_shared(desc)
+    @shared[desc.to_s]
+  end
+
+  # Stores the exit code used by the runner scripts.
   def self.register_exit(code)
     store :exit, code
   end
 
+  # Retrieves the stored exit code.
   def self.exit_code
     retrieve(:exit).to_i
   end
 
+  # Stores the list of files to be evaluated.
   def self.register_files(files)
     store :files, files
   end
@@ -139,14 +172,6 @@ module MSpec
     if value = retrieve(symbol)
       value.delete action
     end
-  end
-
-  def self.stack
-    @stack ||= []
-  end
-
-  def self.current
-    stack.last
   end
 
   def self.verify_mode?

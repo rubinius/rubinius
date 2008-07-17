@@ -7,7 +7,8 @@ describe SummaryFormatter, "#after" do
     $stdout = @out = IOStub.new
     @formatter = SummaryFormatter.new
     @formatter.register
-    @state = ExampleState.new("describe", "it")
+    context = ContextState.new "describe"
+    @state = ExampleState.new(context, "it")
   end
 
   after :each do

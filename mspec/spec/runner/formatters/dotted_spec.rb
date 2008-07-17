@@ -145,7 +145,7 @@ end
 
 describe DottedFormatter, "#before" do
   before :each do
-    @state = ExampleState.new("describe", "it")
+    @state = ExampleState.new ContextState.new("describe"), "it"
     @formatter = DottedFormatter.new
     @formatter.exception ExceptionState.new(nil, nil, ExpectationNotMetError.new("Failed!"))
   end
@@ -167,7 +167,7 @@ describe DottedFormatter, "#after" do
   before :each do
     $stdout = @out = IOStub.new
     @formatter = DottedFormatter.new
-    @state = ExampleState.new("describe", "it")
+    @state = ExampleState.new ContextState.new("describe"), "it"
   end
 
   after :each do
@@ -211,7 +211,8 @@ describe DottedFormatter, "#finish" do
     TimerAction.stub!(:new).and_return(@timer)
 
     $stdout = @out = IOStub.new
-    @state = ExampleState.new("Class#method", "runs")
+    context = ContextState.new "Class#method"
+    @state = ExampleState.new(context, "runs")
     MSpec.stub!(:register)
     @formatter = DottedFormatter.new
     @formatter.register

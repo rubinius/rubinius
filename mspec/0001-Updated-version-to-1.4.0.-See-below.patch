@@ -1,0 +1,217 @@
+From f3ec07ad7022d69e87addbc8a273ff720d8e0165 Mon Sep 17 00:00:00 2001
+From: Brian Ford <bford@engineyard.com>
+Date: Wed, 16 Jul 2008 17:16:39 -0700
+Subject: [PATCH] Updated version to 1.4.0. See below.
+
+This version significantly breaks compatibility with older versions
+in two areas: RSpec-style shared specs and nested 'describe' blocks.
+A concurrent version guard has been placed in the RubySpec repo
+(spec_helper.rb) to prevent running the updated RubySpecs with an
+older version of MSpec.
+
+See the README for information on shared and nested 'describe' blocks.
+---
+ README               |   93 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ lib/mspec/version.rb |    2 +-
+ mspec-1.3.1.gemspec  |   33 ------------------
+ mspec-1.4.0.gemspec  |   33 ++++++++++++++++++
+ 4 files changed, 127 insertions(+), 34 deletions(-)
+ delete mode 100644 mspec-1.3.1.gemspec
+ create mode 100644 mspec-1.4.0.gemspec
+
+diff --git a/README b/README
+index 1429ac0..5400b08 100644
+--- a/README
++++ b/README
+@@ -91,6 +91,99 @@ All of these should be applied to a block created with `lambda` or `proc`:
+   is associated with. The exception class can be given for finer-grained
+   control (inheritance works normally so Exception would catch everything.)
+ 
++== Nested 'describe' blocks
++
++MSpec supports nesting one 'describe' block inside another. The examples in
++the nested block are evaluated with all the before/after blocks of all the
++containing 'describe' blocks. The following example illustrates this:
++
++describe "Some#method" do
++  before :each do
++    @obj = 1
++  end
++
++  describe "when passed String" do
++    before :each do
++      @meth = :to_s
++    end
++
++    it "returns false" do
++      # when this example is evaluated, @obj = 1 and @meth = :to_s
++    end
++  end
++end
++
++The output when using the SpecdocFormatter (selected with -fs to the runners)
++will be as follows:
++
++Some#method when passed String
++- returns false
++
++
++== Shared 'describe' blocks
++
++MSpec supports RSpec-style shared 'describe' blocks. MSpec also provides a
++convenience method to assist in writing specs for the numerous aliased methods
++that Ruby provides. The following example illustrates shared blocks:
++
++describe :someclass_some_method, :shared => true do
++  it "does something" do
++  end
++end
++
++describe "SomeClass#some_method" do
++  it_should_behave_like "someclass_some_method"
++end
++
++The first argument to 'describe' for a shared block is an object that
++duck-types as a String. The representation of the object must be unique. This
++example uses a symbol. This was the convention for the previous facility that
++MSpec provided for aliased method (#it_behaves_like). However, this convention
++is not set in stone (but the uniqueness requirement is). Note that the
++argument to the #it_should_behave_like is a String because at this time RSpec
++will not find the shared block by the symbol.
++
++MSpec continues to support the #it_behaves_like convenience method for
++specifying aliased methods. The syntax is as follows:
++
++it_behaves_like :symbol_matching_shared_describe, :method [, :object]
++
++describe :someclass_some_method, :shared => true do
++  it "returns true" do
++    obj.send(@method).should be_true
++  end
++
++  it "returns something else" do
++    @object.send(@method).should be_something_else
++  end
++end
++
++# example #1
++describe "SomeClass#some_method" do
++  it_behaves_like :someclass_some_method, :other_method
++end
++
++# example #2
++describe "SomeOtherClass#some_method" do
++  it_behaves_like :someclass_some_method, :some_method, OtherClass
++end
++
++The first form above (#1) is used for typical aliases. That is, methods with
++different names on the same class that behave identically. The
++#it_behaves_like helper creates a before(:all) block that sets @method to
++:other_method. The form of the first example block in the shared block
++illustrates the typical form of a spec for an aliased method.
++
++The second form above (#2) is used for methods on different classes that are
++essentially aliases, even though Ruby does not provide a syntax for specifying
++such methods as aliases. Examples are the methods on File, FileTest, and
++File::Stat. In this case, the #it_behaves_like helper sets both @method and
++@object in the before(:all) block (@method = :some_method, @object =
++OtherClass in this example).
++
++For shared specs that fall outside of either of these two narrow categories,
++use nested or shared 'describe' blocks as appropriate and use the
++#it_should_behave_like method directly.
+ 
+ == Guards
+ 
+diff --git a/lib/mspec/version.rb b/lib/mspec/version.rb
+index 0a75f11..6a7efc6 100644
+--- a/lib/mspec/version.rb
++++ b/lib/mspec/version.rb
+@@ -1,3 +1,3 @@
+ module MSpec
+-  VERSION = '1.3.1'
++  VERSION = '1.4.0'
+ end
+diff --git a/mspec-1.3.1.gemspec b/mspec-1.3.1.gemspec
+deleted file mode 100644
+index 5bf371c..0000000
+--- a/mspec-1.3.1.gemspec
++++ /dev/null
+@@ -1,33 +0,0 @@
+-Gem::Specification.new do |s|
+-  s.name                      = %q{mspec}
+-  s.version                   = "1.3.1"
+-
+-  s.specification_version     = 2 if s.respond_to? :specification_version=
+-
+-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+-  s.authors                   = ["Brian Ford"]
+-  s.date                      = %q{2008-05-21}
+-  s.email                     = %q{bford@engineyard.com}
+-  s.has_rdoc                  = true
+-  s.extra_rdoc_files          = %w[ README LICENSE ]
+-  s.executables               = ["mkspec", "mspec", "mspec-ci", "mspec-run", "mspec-tag"]
+-  s.files                     = FileList[ '{bin,lib,spec}/**/*.{yaml,txt,rb}', 'Rakefile', *s.extra_rdoc_files ]
+-  s.homepage                  = %q{http://rubyspec.org}
+-  s.rubyforge_project         = 'http://rubyforge.org/projects/mspec'
+-  s.require_paths             = ["lib"]
+-  s.rubygems_version          = %q{1.1.1}
+-  s.summary                   = <<EOS
+-MSpec is a specialized framework that is syntax-compatible
+-with RSpec for basic things like describe, it blocks and
+-before, after actions.
+-
+-MSpec contains additional features that assist in writing
+-the RubySpecs used by multiple Ruby implementations. Also,
+-MSpec attempts to use the simplest Ruby language features
+-so that beginning Ruby implementations can run it.
+-EOS
+-
+-  s.rdoc_options << '--title' << 'MSpec Gem' <<
+-                   '--main' << 'README' <<
+-                   '--line-numbers'
+-end
+\ No newline at end of file
+diff --git a/mspec-1.4.0.gemspec b/mspec-1.4.0.gemspec
+new file mode 100644
+index 0000000..8d47f7c
+--- /dev/null
++++ b/mspec-1.4.0.gemspec
+@@ -0,0 +1,33 @@
++Gem::Specification.new do |s|
++  s.name                      = %q{mspec}
++  s.version                   = "1.4.0"
++
++  s.specification_version     = 2 if s.respond_to? :specification_version=
++
++  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
++  s.authors                   = ["Brian Ford"]
++  s.date                      = %q{2008-05-21}
++  s.email                     = %q{bford@engineyard.com}
++  s.has_rdoc                  = true
++  s.extra_rdoc_files          = %w[ README LICENSE ]
++  s.executables               = ["mkspec", "mspec", "mspec-ci", "mspec-run", "mspec-tag"]
++  s.files                     = FileList[ '{bin,lib,spec}/**/*.{yaml,txt,rb}', 'Rakefile', *s.extra_rdoc_files ]
++  s.homepage                  = %q{http://rubyspec.org}
++  s.rubyforge_project         = 'http://rubyforge.org/projects/mspec'
++  s.require_paths             = ["lib"]
++  s.rubygems_version          = %q{1.1.1}
++  s.summary                   = <<EOS
++MSpec is a specialized framework that is syntax-compatible
++with RSpec for basic things like describe, it blocks and
++before, after actions.
++
++MSpec contains additional features that assist in writing
++the RubySpecs used by multiple Ruby implementations. Also,
++MSpec attempts to use the simplest Ruby language features
++so that beginning Ruby implementations can run it.
++EOS
++
++  s.rdoc_options << '--title' << 'MSpec Gem' <<
++                   '--main' << 'README' <<
++                   '--line-numbers'
++end
+\ No newline at end of file
+-- 
+1.5.3.7
+

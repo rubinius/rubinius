@@ -57,7 +57,8 @@ describe YamlFormatter, "#finish" do
     TimerAction.stub!(:new).and_return(@timer)
 
     $stdout = IOStub.new
-    @state = ExampleState.new("describe", "it")
+    context = ContextState.new "describe"
+    @state = ExampleState.new(context, "it")
 
     @formatter = YamlFormatter.new
     @formatter.stub!(:backtrace).and_return("")

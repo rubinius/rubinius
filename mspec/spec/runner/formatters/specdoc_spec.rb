@@ -34,7 +34,7 @@ describe SpecdocFormatter, "#before" do
   before :each do
     $stdout = @out = IOStub.new
     @formatter = SpecdocFormatter.new
-    @state = ExampleState.new "describe", "it"
+    @state = ExampleState.new ContextState.new("describe"), "it"
   end
 
   after :each do
@@ -59,7 +59,8 @@ describe SpecdocFormatter, "#exception" do
   before :each do
     $stdout = @out = IOStub.new
     @formatter = SpecdocFormatter.new
-    @state = ExampleState.new "describe", "it"
+    context = ContextState.new "describe"
+    @state = ExampleState.new context, "it"
   end
 
   after :each do

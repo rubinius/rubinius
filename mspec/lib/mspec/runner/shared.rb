@@ -1,12 +1,12 @@
 require 'mspec/runner/mspec'
 
 class Object
-  def shared(msg, &block)
-    MSpec.store msg.to_sym, block
-  end
+  def it_behaves_like(desc, meth, obj=nil)
+    send :before, :all do
+      @method = meth
+      @object = obj if obj
+    end
 
-  def it_behaves_like(behavior, *args)
-    p = MSpec.retrieve behavior.to_sym
-    p[*args]
+    send :it_should_behave_like, desc.to_s
   end
 end

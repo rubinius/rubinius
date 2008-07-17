@@ -91,6 +91,99 @@ All of these should be applied to a block created with `lambda` or `proc`:
   is associated with. The exception class can be given for finer-grained
   control (inheritance works normally so Exception would catch everything.)
 
+== Nested 'describe' blocks
+
+MSpec supports nesting one 'describe' block inside another. The examples in
+the nested block are evaluated with all the before/after blocks of all the
+containing 'describe' blocks. The following example illustrates this:
+
+describe "Some#method" do
+  before :each do
+    @obj = 1
+  end
+
+  describe "when passed String" do
+    before :each do
+      @meth = :to_s
+    end
+
+    it "returns false" do
+      # when this example is evaluated, @obj = 1 and @meth = :to_s
+    end
+  end
+end
+
+The output when using the SpecdocFormatter (selected with -fs to the runners)
+will be as follows:
+
+Some#method when passed String
+- returns false
+
+
+== Shared 'describe' blocks
+
+MSpec supports RSpec-style shared 'describe' blocks. MSpec also provides a
+convenience method to assist in writing specs for the numerous aliased methods
+that Ruby provides. The following example illustrates shared blocks:
+
+describe :someclass_some_method, :shared => true do
+  it "does something" do
+  end
+end
+
+describe "SomeClass#some_method" do
+  it_should_behave_like "someclass_some_method"
+end
+
+The first argument to 'describe' for a shared block is an object that
+duck-types as a String. The representation of the object must be unique. This
+example uses a symbol. This was the convention for the previous facility that
+MSpec provided for aliased method (#it_behaves_like). However, this convention
+is not set in stone (but the uniqueness requirement is). Note that the
+argument to the #it_should_behave_like is a String because at this time RSpec
+will not find the shared block by the symbol.
+
+MSpec continues to support the #it_behaves_like convenience method for
+specifying aliased methods. The syntax is as follows:
+
+it_behaves_like :symbol_matching_shared_describe, :method [, :object]
+
+describe :someclass_some_method, :shared => true do
+  it "returns true" do
+    obj.send(@method).should be_true
+  end
+
+  it "returns something else" do
+    @object.send(@method).should be_something_else
+  end
+end
+
+# example #1
+describe "SomeClass#some_method" do
+  it_behaves_like :someclass_some_method, :other_method
+end
+
+# example #2
+describe "SomeOtherClass#some_method" do
+  it_behaves_like :someclass_some_method, :some_method, OtherClass
+end
+
+The first form above (#1) is used for typical aliases. That is, methods with
+different names on the same class that behave identically. The
+#it_behaves_like helper creates a before(:all) block that sets @method to
+:other_method. The form of the first example block in the shared block
+illustrates the typical form of a spec for an aliased method.
+
+The second form above (#2) is used for methods on different classes that are
+essentially aliases, even though Ruby does not provide a syntax for specifying
+such methods as aliases. Examples are the methods on File, FileTest, and
+File::Stat. In this case, the #it_behaves_like helper sets both @method and
+@object in the before(:all) block (@method = :some_method, @object =
+OtherClass in this example).
+
+For shared specs that fall outside of either of these two narrow categories,
+use nested or shared 'describe' blocks as appropriate and use the
+#it_should_behave_like method directly.
 
 == Guards
 

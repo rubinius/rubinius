@@ -7,12 +7,16 @@ class Object
     MSpec.current.after at, &block
   end
 
-  def describe(mod, msg=nil, &block)
+  def describe(mod, msg=nil, options=nil, &block)
     MSpec.describe mod, msg, &block
   end
 
   def it(msg, &block)
     MSpec.current.it msg, &block
+  end
+
+  def it_should_behave_like(desc)
+    MSpec.current.it_should_behave_like desc
   end
 
   alias_method :context, :describe

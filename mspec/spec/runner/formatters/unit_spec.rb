@@ -10,7 +10,8 @@ describe UnitdiffFormatter, "#finish" do
     TimerAction.stub!(:new).and_return(@timer)
 
     $stdout = @out = IOStub.new
-    @state = ExampleState.new("describe", "it")
+    context = ContextState.new "describe"
+    @state = ExampleState.new(context, "it")
     MSpec.stub!(:register)
     @formatter = UnitdiffFormatter.new
     @formatter.register

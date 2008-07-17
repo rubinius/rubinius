@@ -1,41 +1,27 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'mspec/runner/shared'
 
-describe Object, "#shared" do
-  it "stores the passed block in the MSpec module" do
-    proc = lambda { :shared }
-    shared :shared, &proc
-    MSpec.retrieve(:shared).should == proc
-  end
-end
-
 describe Object, "#it_behaves_like" do
   before :each do
+    @recv = Object.new
+    def @recv.before(what)
+      yield
+    end
+    @recv.stub!(:it_should_behave_like)
   end
 
-  it "retrieves the instance variable set on Object and calls the proc" do
-    proc = lambda { |a| raise Exception, "visited with #{a.inspect}" }
-    shared :shared, &proc
-    lambda {
-      it_behaves_like(:shared, nil)
-    }.should raise_error(Exception, "visited with nil")
+  it "creates @method set to the name of the aliased method" do
+    @recv.it_behaves_like "something", :some_method
+    @recv.instance_variable_get(:@method).should == :some_method
   end
 
-  it "accepts an optional argument to specify the class/module" do
-    proc = lambda { |a, b| raise Exception, "visited with #{a.inspect}, #{b.inspect}" }
-    shared :shared, &proc
-    lambda {
-      it_behaves_like(:shared, :method, :klass)
-    }.should raise_error(Exception, "visited with :method, :klass")
+  it "creates @object if the passed object is not nil" do
+    @recv.it_behaves_like "something", :some_method, :some_object
+    @recv.instance_variable_get(:@object).should == :some_object
   end
 
-  it "accepts an optional argument to specify the class/module name" do
-    proc = lambda { |a, b, c|
-      raise Exception, "visited with #{a.inspect}, #{b.inspect}, #{c.inspect}"
-    }
-    shared :shared, &proc
-    lambda {
-      it_behaves_like(:shared, :method, :klass, :name)
-    }.should raise_error(Exception, "visited with :method, :klass, :name")
+  it "sends :it_should_behave_like" do
+    @recv.should_receive(:it_should_behave_like)
+    @recv.it_behaves_like "something", :some_method
   end
 end

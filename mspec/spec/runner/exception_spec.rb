@@ -5,7 +5,8 @@ require 'mspec/runner/exception'
 
 describe ExceptionState, "#initialize" do
   it "takes a state, location (e.g. before :each), and exception" do
-    state = ExampleState.new "Class#method", "does something"
+    context = ContextState.new "Class#method"
+    state = ExampleState.new context, "does something"
     exc = Exception.new "Fail!"
     ExceptionState.new(state, "location", exc).should be_kind_of(ExceptionState)
   end
@@ -13,7 +14,8 @@ end
 
 describe ExceptionState, "#description" do
   before :each do
-    @state = ExampleState.new "Class#method", "does something"
+    context = ContextState.new "Class#method"
+    @state = ExampleState.new context, "does something"
   end
 
   it "returns the state description if state was not nil" do
@@ -34,7 +36,8 @@ end
 
 describe ExceptionState, "#describe" do
   before :each do
-    @state = ExampleState.new "Class#method", "does something"
+    context = ContextState.new "Class#method"
+    @state = ExampleState.new context, "does something"
   end
 
   it "returns the ExampleState#describe string if created with a non-nil state" do
@@ -48,7 +51,8 @@ end
 
 describe ExceptionState, "#it" do
   before :each do
-    @state = ExampleState.new "Class#method", "does something"
+    context = ContextState.new "Class#method"
+    @state = ExampleState.new context, "does something"
   end
 
   it "returns the ExampleState#it string if created with a non-nil state" do
@@ -62,7 +66,7 @@ end
 
 describe ExceptionState, "#failure?" do
   before :each do
-    @state = ExampleState.new "C#m", "works"
+    @state = ExampleState.new ContextState.new("C#m"), "works"
   end
 
   it "returns true if the exception is an ExpectationNotMetError" do

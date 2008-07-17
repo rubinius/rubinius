@@ -95,7 +95,7 @@ describe HtmlFormatter, "#exception" do
     $stdout = @out = IOStub.new
     @formatter = HtmlFormatter.new
     @formatter.register
-    @state = ExampleState.new("describe", "it")
+    @state = ExampleState.new ContextState.new("describe"), "it"
   end
 
   after :each do
@@ -119,7 +119,7 @@ describe HtmlFormatter, "#after" do
     $stdout = @out = IOStub.new
     @formatter = HtmlFormatter.new
     @formatter.register
-    @state = ExampleState.new("describe", "it")
+    @state = ExampleState.new ContextState.new("describe"), "it"
   end
 
   after :each do
@@ -148,7 +148,8 @@ describe HtmlFormatter, "#finish" do
     TimerAction.stub!(:new).and_return(@timer)
 
     $stdout = @out = IOStub.new
-    @state = ExampleState.new("describe", "it")
+    context = ContextState.new "describe"
+    @state = ExampleState.new(context, "it")
     MSpec.stub!(:register)
     @formatter = HtmlFormatter.new
     @formatter.register

@@ -87,11 +87,12 @@ end
 
 describe MSpec, ".protect" do
   before :each do
-    MSpec.stack.clear
-    @es = ExampleState.new "C#m", "runs"
-    @cs = ContextState.new
+    MSpec.clear_current
+    @cs = ContextState.new "C#m"
     @cs.stub!(:state).and_return(@es)
-    MSpec.stack.push @cs
+    @cs.parent = MSpec.current
+
+    @es = ExampleState.new @cs, "runs"
     ScratchPad.record Exception.new("Sharp!")
   end
 
@@ -105,6 +106,15 @@ describe MSpec, ".protect" do
 
   it "rescues any exceptions raised when evaluating the block argument" do
     MSpec.protect("") { raise Exception, "Now you see me..." }
+  end
+
+  it "does not rescue SystemExit" do
+    begin
+      MSpec.protect("") { exit 1 }
+    rescue SystemExit
+      ScratchPad.record :system_exit
+    end
+    ScratchPad.recorded.should == :system_exit
   end
 
   it "calls all the exception actions" do
@@ -123,18 +133,43 @@ describe MSpec, ".protect" do
   end
 end
 
-describe MSpec, ".stack" do
-  it "returns an array" do
-    MSpec.stack.should be_kind_of(Array)
+describe MSpec, ".register_current" do
+  before :each do
+    MSpec.clear_current
+  end
+
+  it "sets the value returned by MSpec.current" do
+    MSpec.current.should be_nil
+    MSpec.register_current :a
+    MSpec.current.should == :a
+  end
+end
+
+describe MSpec, ".clear_current" do
+  it "sets the value returned by MSpec.current to nil" do
+    MSpec.register_current :a
+    MSpec.current.should_not be_nil
+    MSpec.clear_current
+    MSpec.current.should be_nil
   end
 end
 
 describe MSpec, ".current" do
-  it "returns the top of the execution stack" do
-    MSpec.stack.clear
-    MSpec.stack.push :a
-    MSpec.stack.push :b
-    MSpec.current.should == :b
+  before :each do
+    MSpec.clear_current
+  end
+
+  it "returns nil if no ContextState has been registered" do
+    MSpec.current.should be_nil
+  end
+
+  it "returns the most recently registered ContextState" do
+    first = ContextState.new ""
+    second = ContextState.new ""
+    MSpec.register_current first
+    MSpec.current.should == first
+    MSpec.register_current second
+    MSpec.current.should == second
   end
 end
 
@@ -187,23 +222,32 @@ end
 
 describe MSpec, ".describe" do
   before :each do
-    MSpec.stack.clear
+    MSpec.clear_current
+    @cs = ContextState.new ""
+    ContextState.stub!(:new).and_return(@cs)
+    MSpec.stub!(:current).and_return(nil)
+    MSpec.stub!(:register_current)
   end
 
-  it "accepts one argument" do
-    MSpec.describe(Object) { ScratchPad.record MSpec.current }
-    ScratchPad.recorded.should be_kind_of(ContextState)
+  it "creates a new ContextState for the block" do
+    ContextState.should_receive(:new).and_return(@cs)
+    MSpec.describe(Object) { }
   end
 
-  it "pushes a new ContextState instance on the stack" do
-    MSpec.describe(Object, "msg") { ScratchPad.record MSpec.current }
-    ScratchPad.recorded.should be_kind_of(ContextState)
+  it "accepts an optional second argument" do
+    ContextState.should_receive(:new).and_return(@cs)
+    MSpec.describe(Object, "msg") { }
   end
 
-  it "pops the ContextState instance off the stack when finished" do
-    MSpec.describe(Object, "msg") { ScratchPad.record MSpec.current }
-    ScratchPad.recorded.should be_kind_of(ContextState)
-    MSpec.stack.should == []
+  it "registers the newly created ContextState" do
+    MSpec.should_receive(:register_current).with(@cs).twice
+    MSpec.describe(Object) { }
+  end
+
+  it "invokes the ContextState#describe method" do
+    prc = lambda { }
+    @cs.should_receive(:describe).with(&prc)
+    MSpec.describe(Object, "msg", &prc)
   end
 end
 
@@ -417,5 +461,25 @@ describe MSpec, ".clear_expectations" do
     MSpec.expectation?.should be_true
     MSpec.clear_expectations
     MSpec.expectation?.should be_false
+  end
+end
+
+describe MSpec, ".register_shared" do
+  it "stores a shared ContextState by description" do
+    parent = ContextState.new "container"
+    state = ContextState.new "shared"
+    state.parent = parent
+    prc = lambda { }
+    state.describe(&prc)
+    MSpec.register_shared(state)
+    MSpec.retrieve(:shared)["shared"].should == state
+  end
+end
+
+describe MSpec, ".retrieve_shared" do
+  it "retrieves the shared ContextState matching description" do
+    state = ContextState.new ""
+    MSpec.retrieve(:shared)["shared"] = state
+    MSpec.retrieve_shared(:shared).should == state
   end
 end
