@@ -139,7 +139,7 @@ public:
   }
 
   void test_cmethod() {
-    std::string str = "M\n1\nn\nx\n4\nblah\nx\n4\ntest\ni\n1\n0\nI\n10\nI\n0\nI\n0\nI\n0\nn\np\n2\nI\n1\nI\n2\nn\np\n1\np\n3\nI\n0\nI\n1\nI\n1\nx\n8\nnot_real\np\n1\nx\n4\nblah\n";
+    std::string str = "M\n1\nn\nx\n12\nobject_equal\nx\n4\ntest\ni\n1\n0\nI\n10\nI\n0\nI\n0\nI\n0\nn\np\n2\nI\n1\nI\n2\nn\np\n1\np\n3\nI\n0\nI\n1\nI\n1\nx\n8\nnot_real\np\n1\nx\n4\nblah\n";
     mar->sstream.str(str);
 
     OBJECT obj = mar->unmarshal();
@@ -149,7 +149,7 @@ public:
     CompiledMethod* cm = as<CompiledMethod>(obj);
 
     TS_ASSERT_EQUALS(cm->__ivars__, Qnil);
-    TS_ASSERT_EQUALS(cm->primitive, state->symbol("blah"));
+    TS_ASSERT_EQUALS(cm->primitive, state->symbol("object_equal"));
     TS_ASSERT_EQUALS(cm->name, state->symbol("test"));
     TS_ASSERT(tuple_equals(cm->iseq->opcodes, Tuple::from(state, 1, Object::i2n(0))));
     TS_ASSERT_EQUALS(cm->stack_size, Object::i2n(10));
