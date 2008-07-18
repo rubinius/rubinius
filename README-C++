@@ -24,3 +24,99 @@
 +  ...And `git push` to send back any of your commits to the C++ branch.
     - Same here with the Rbx Rake tasks.
 
+
+ Building the VM
+-----------------
+
+  # nn the vm subdirectory
+  $ rake vm
+
+
+ Compiling to .rbc with MRI
+----------------------------
+
+MRI can be used to compile Ruby files to bytecode, which can then be run by
+the VM. To compile 'file.rb' to 'file.rbc':
+
+  # in the root of the cpp directory
+  $ ruby lib/compiler/mri_compile.rb -frbx-kernel file.rb file.rbc
+
+
+ Running bytecode with the VM
+------------------------------
+
+Once a Ruby file has been compiled to bytecode (.rbc), it can be run by the VM
+with the following command:
+
+  # in the vm subdirectory
+  $ ./vm file.rbc
+
+
+ Primitives
+------------
+
+Primitives are normal methods on C++ classes. Comment annotation links the C++
+method to a symbol with which the primitive is accessed in Ruby code.
+
+For example, consider the Ruby LookupTable class:
+
+class LookupTable
+  def [](key)
+    Ruby.primitive :lookuptable_fetch
+    raise PrimitiveFailure, "LookupTable#[] primitive failed"
+  end
+end
+
+In the C++ file, rbx/vm/builtin_lookuptable.hpp, the primitive is annotated:
+
+namespace rubinius {
+  class LookupTable : public Object {
+    // ...
+
+    // Ruby.primitive :lookuptable_fetch
+    OBJECT fetch(STATE, OBJECT key);
+  }
+}
+
+The magic for this happens in rbx/vm/field_extract.rb and the output goes to
+rbx/vm/gen/primitives_declare.hpp and rbx/vm/gen/primitives_glue.gen.cpp.
+
+
+ Overloaded C++ Methods as Primitives
+--------------------------------------
+
+There are two ways to annotate the C++ methods as primitives. If there is a
+single C++ method, use 'Ruby.primitive :name_of_primitive'. If there are
+multiple C++ methods (i.e. overloaded methods), use 'Ruby.primitive!
+:name_of_primitive'. The difference is the '!' method for defining overloaded
+methods as primitives. The resulting glue code for overloaded methods looks
+something like the following:
+
+bool Primitives::float_mul(STATE, VMExecutable* exec,
+                           Task* task, Message& msg) {
+  OBJECT ret;
+  try {
+    if(Float* arg = try_as<Float>(msg.get_argument(0))) {
+      return as<Float>(msg.recv)->mul(state, arg);
+    }
+    if(Integer* arg = try_as<Integer>(msg.get_argument(0))) {
+      return as<Float>(msg.recv)->mul(state, arg);
+    }
+    else {
+      throw new Assertion("unable to resolve primitive float_mul types");
+    }
+  } catch(PrimitiveFailed& e) {
+    abort(); // FIXME
+    return true;
+  }
+  task->primitive_return(ret, msg);
+  return false;
+}
+
+
+ Tests for Primitives
+----------------------
+
+Since the "primitives" are ordinary C++ methods, tests for them are written
+along with the other VM tests. Each builtin_xxx.cpp method has a corresponding
+rbx/vm/test/test_xxx.hpp method. See the existing files for more examples.
