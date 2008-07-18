@@ -39,7 +39,7 @@ class RDoc::Options
   ##
   # Pattern for additional attr_... style methods
 
-  attr_reader :extra_accessors
+  attr_accessor :extra_accessors
 
   ##
   # Should we draw fileboxes in diagrams
@@ -61,6 +61,11 @@ class RDoc::Options
 
   attr_accessor :generator
 
+  ##
+  # Formatter to mark up text with
+
+  attr_accessor :formatter
+  
   ##
   # image format for diagrams
 
@@ -95,7 +100,7 @@ class RDoc::Options
   ##
   # The name to use for the output
 
-  attr_reader :op_name
+  attr_accessor :op_name
 
   ##
   # Are we promiscuous about showing module contents across multiple files
@@ -105,7 +110,7 @@ class RDoc::Options
   ##
   # Don't display progress as we process the files
 
-  attr_reader :quiet
+  attr_accessor :quiet
 
   ##
   # Array of directories to search for files to satisfy an :include:
@@ -175,7 +180,6 @@ class RDoc::Options
     @extra_accessor_flags = {}
     @promiscuous = false
     @force_update = false
-    @title = "RDoc Documentation"
 
     @css = nil
     @webcvs = nil
@@ -513,6 +517,8 @@ Usage: #{opt.program_name} [options] [names...]
       end
     end
 
+    argv.insert(0, *ENV['RDOCOPT'].split) if ENV['RDOCOPT']
+
     opts.parse! argv
 
     @files = argv.dup
@@ -571,7 +577,7 @@ Usage: #{opt.program_name} [options] [names...]
     end
   end
 
-  # Check that the right version of 'dot' is available.  Unfortuately this
+  # Check that the right version of 'dot' is available.  Unfortunately this
   # doesn't work correctly under Windows NT, so we'll bypass the test under
   # Windows.
 

@@ -2,11 +2,10 @@ require 'yaml'
 require 'rdoc/markup/fragments'
 require 'rdoc/ri'
 
-#--
+##
 # Descriptions are created by RDoc (in ri_generator) and written out in
 # serialized form into the documentation tree. ri then reads these to generate
 # the documentation
-#++
 
 class RDoc::RI::NamedThing
   attr_reader :name
@@ -83,7 +82,7 @@ class RDoc::RI::ModuleDescription < RDoc::RI::Description
   attr_accessor :constants
   attr_accessor :includes
 
-  # merge in another class desscription into this one
+  # merge in another class description into this one
   def merge_in(old)
     merge(@class_methods, old.class_methods)
     merge(@instance_methods, old.instance_methods)
