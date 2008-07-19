@@ -268,13 +268,11 @@ class CPPParser
   def parse_stream(f)
     while l = f.gets
       if m = /class ([^\s]+)\s*:\s*public\s+([^\s]+) \{/.match(l)
-        puts "Considering: #{m[1]}"
         if m[2] != "Object" and m[2] != "ObjectHeader"
           if sup = @classes[m[2]]
             cpp = CPPClass.new(m[1])
             cpp.super = sup
           else
-            puts "Skipping #{m[1]}"
             next
           end
         else
@@ -323,7 +321,6 @@ class CPPParser
           end
 
           if m = %r%^\s*//\s+Ruby.primitive(!)?\s+:(.*)\s*$%.match(l)
-            p :prim => l
             overload = m[1] == "!"
             prim = m[2]
             prototype = f.gets
