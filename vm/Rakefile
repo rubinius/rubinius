@@ -8,6 +8,11 @@ require 'rake/clean'
 
 task :default => :test
 
+desc "Build test/runner and run all VM tests [DEFAULT TASK]"
+task :test => "test/runner" do
+  sh "./test/runner"
+end
+
 desc "Build the VM"
 task :build => "vm"
 
@@ -28,37 +33,30 @@ srcs        = FileList["*.{cpp,c}"]
 hdrs        = FileList["*.{hpp,h}"]
 objs        = srcs.map { |f| f.sub(/c(pp)?$/, 'o') }
 dep_file    = ".depends.mf"
-vm_objs     = %w(drivers/cli.o)
-vm_srcs     = %w(drivers/cli.cpp)
-EX_INC = %w(libtommath onig libffi/include
-            libltdl libev llvm/include).map { |f| "external_libs/#{f}" }
-INSN_GEN = %w(
-  gen/task_instructions_switch.c gen/iseq_instruction_names.cpp
-  gen/iseq_instruction_names.hpp gen/iseq_instruction_dt_helper.cpp
-  gen/task_instruction_dt.cpp    test/test_instructions.hpp)
-TYPE_GEN = %w(
-  gen/simple_field.rb        gen/typechecks.gen.cpp
-  gen/primitives_declare.hpp gen/primitives_glue.gen.cpp)
-EXTERNALS = %w(
-    external_libs/llvm/Release/lib/libLLVMSystem.a
-    external_libs/libtommath/libtommath.a
-    external_libs/onig/.libs/libonig.a
-    external_libs/libffi/.libs/libffi.a
-    external_libs/libltdl/.libs/libltdl.a
-    external_libs/libev/.libs/libev.a)
-INCLUDES = (EX_INC + ["test/cxxtest", "."]).map { |f| "-I#{f}" }
-FLAGS = %w(-Wall -ggdb -gdwarf-2)
+vm_objs     = %w( drivers/cli.o )
+vm_srcs     = %w( drivers/cli.cpp )
+EX_INC      = %w( libtommath onig libffi/include
+                  libltdl libev llvm/include ).map { |f| "external_libs/#{f}" }
+INSN_GEN    = %w( gen/task_instructions_switch.c
+                  gen/iseq_instruction_names.cpp
+                  gen/iseq_instruction_names.hpp
+                  gen/iseq_instruction_dt_helper.cpp
+                  gen/task_instruction_dt.cpp
+                  test/test_instructions.hpp )
+TYPE_GEN    = %w( gen/simple_field.rb
+                  gen/typechecks.gen.cpp
+                  gen/primitives_declare.hpp
+                  gen/primitives_glue.gen.cpp )
+EXTERNALS   = %w( external_libs/llvm/Release/lib/libLLVMSystem.a
+                  external_libs/libtommath/libtommath.a
+                  external_libs/onig/.libs/libonig.a
+                  external_libs/libffi/.libs/libffi.a
+                  external_libs/libltdl/.libs/libltdl.a
+                  external_libs/libev/.libs/libev.a )
+INCLUDES    = (EX_INC + ["test/cxxtest", "."]).map { |f| "-I#{f}" }
+FLAGS       = %w(-Wall -ggdb -gdwarf-2)
 
 FLAGS << "-O2" if ENV['FAST']
-
-def ex_libs # needs to be method to delay running of llvm_config
-  unless defined? $ex_libs then
-    $ex_libs = EXTERNALS + [ "-ldl" ]
-    $ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
-    $ex_libs += `#{LLVM_CONFIG} --libs all`.split(/\s+/)
-  end
-  $ex_libs
-end
 
 ############################################################
 # Other Tasks
@@ -68,8 +66,7 @@ CLEAN << objs << dep_file << "test/runner" << "gen" << "vm"
 
 rule '.o' do |t|
   obj   = t.name
-  name  = File.basename obj, '.o'
-  src   = t.prerequisites.find { |f| f =~ /#{name}\.c(pp)?$/ }
+  src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.o'}\.c(pp)?$/}
   cc    = "gcc" # File.basename(src) == "c" ? "gcc" : "g++"
 
   unless defined? $llvm_c then
@@ -80,16 +77,6 @@ rule '.o' do |t|
   flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
 
   sh "#{cc} #{flags} -c -o #{obj} #{src} 2>&1"
-end
-
-file :vm => EXTERNALS + objs + vm_objs do |t|
-  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
-
-  ld = ENV['LD'] || 'g++'
-  o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
-  l  = ex_libs.join(' ')
-
-  sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
 end
 
 def files targets, dependencies = nil, &block
@@ -126,18 +113,12 @@ files TYPE_GEN, %w(gen instructions.rb field_extract.rb) do
   field_extract
 end
 
-file "test/runner" => objs + %w(test/runner.o) do |t|
-  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
-
-  ld = ENV['LD'] || 'g++'
-  o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
-  l  = ex_libs.join(' ')
-
-  sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
+file :vm => EXTERNALS + objs + vm_objs do |t|
+  link t
 end
 
-task :test => "test/runner" do
-  sh "./test/runner"
+file "test/runner" => EXTERNALS + objs + %w(test/runner.o) do |t|
+  link t
 end
 
 ############################################################$
@@ -160,8 +141,27 @@ end
 
 import dep_file
 
+def ex_libs # needs to be method to delay running of llvm_config
+  unless defined? $ex_libs then
+    $ex_libs = EXTERNALS + [ "-ldl" ]
+    $ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
+    $ex_libs += `#{LLVM_CONFIG} --libs all`.split(/\s+/)
+  end
+  $ex_libs
+end
+
 def field_extract
   order = %w(builtin_object.hpp objects.hpp)
   order += File.read("objects.hpp").scan(/builtin_[^"]+/)
   sh "ruby field_extract.rb #{order.join(' ')}"
+end
+
+def link t
+  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
+
+  ld = ENV['LD'] || 'g++'
+  o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
+  l  = ex_libs.join(' ')
+
+  sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
 end
