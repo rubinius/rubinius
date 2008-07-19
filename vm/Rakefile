@@ -1,310 +1,167 @@
-$verbose = Rake.application.options.trace
+require 'rake/clean'
 
-def x(cmd)
-  sh cmd, :verbose => $verbose
-end
+# NOTE: instructions.bc is checked in, not built. This should probably
+#       be remedied at some point, but not right now.
 
-class CCompile
-  def initialize
-    @includes = []
-    @flags = []
-    @linker = "gcc"
-    @deps = {}
+############################################################
+# Primary Tasks
 
-    Dir.mkdir ".deps" unless File.directory?(".deps")
-  end
+task :default => :test
 
-  attr_accessor :includes, :flags, :deps
+desc "Build the VM"
+task :build => "vm"
 
-  def cpp!
-    @linker = "g++"
-  end
-
-  def compile(input, output=nil)
-    output = input.gsub(/\.[^\.]+$/, ".o") unless output
-
-    includes = @includes.map { |i| "-I#{i}" }.join(" ")
-    flags =    @flags.join(" ")
-    od = File.dirname(output)
-    Dir.mkdir od unless File.directory? od
-
-    puts "CC #{input}"
-    x "#{compiler(input)} #{includes} #{flags} -c -o #{output} #{input} 2>&1"
-  end
-
-  def cpp_includes
-    @includes.map { |i| "-I#{i}" }.join(" ")
-  end
-
-  def compiler(file)
-    if File.basename(file) == "c"
-      "gcc"
-    else
-      "g++"
-    end
-  end
-
-  def link(name, opts)
-    x "#{@linker} #{opts[:flags].join(' ')} -o #{name} #{opts[:objects].join(' ')} #{opts[:libs].join(' ')}"
-  end
-
-
-  def add_source(pattern)
-    list = FileList[pattern]
-    objects = []
-
-    list.each do |name|
-      deps = File.join(".deps", name.hash.to_s)
-      if File.exists?(deps) and File.mtime(deps) > File.mtime(name)
-        headers = Marshal.load(File.read(deps)) rescue nil
-      else
-        headers = nil
-      end
-
-      unless headers
-        puts "DEP #{name}"
-        headers = extract_headers(name)
-        File.open(deps, "w") { |f| f << Marshal.dump(headers) }
-      end
-
-      output = name.gsub(/\.[^.]+$/, ".o")
-      objects << output
-
-      file output => [name] + headers do
-        compile(name, output)
-      end
-    end
-
-    return objects
-  end
-
-  def extract_headers(path)
-    includes = @includes.map { |i| "-I#{i}" }.join(" ")
-    data = `g++ #{includes} -MM -MG -D__STDC_LIMIT_MACROS -c #{path}`.split(/(?:\s+|\\\n)/)
-    data.shift
-    data.reject! { |s| s.size == 0 }
-
-    return data
+desc "Clean up, including all external libs"
+task :distclean => :clean do
+  EXTERNALS.each do |lib|
+    path = lib.split("/")[0,2].join("/")
+    system "cd #{path}; make clean"
   end
 end
 
-compiler = CCompile.new
+############################################################
+# Files, Flags, & Constants
 
 LLVM_CONFIG = "./external_libs/llvm/Release/bin/llvm-config"
-
-rule ".h"
-rule ".hpp" => "external_libs/libffi/include/ffi.h"
-
-def external
-  $external ||= %w(
+tests       = FileList["test/test_*.hpp"]
+srcs        = FileList["*.{cpp,c}"]
+hdrs        = FileList["*.{hpp,h}"]
+objs        = srcs.map { |f| f.sub(/c(pp)?$/, 'o') }
+dep_file    = ".depends.mf"
+vm_objs     = %w(drivers/cli.o)
+vm_srcs     = %w(drivers/cli.cpp)
+EX_INC = %w(libtommath onig libffi/include
+            libltdl libev llvm/include).map { |f| "external_libs/#{f}" }
+INSN_GEN = %w(
+  gen/task_instructions_switch.c gen/iseq_instruction_names.cpp
+  gen/iseq_instruction_names.hpp gen/iseq_instruction_dt_helper.cpp
+  gen/task_instruction_dt.cpp    test/test_instructions.hpp)
+TYPE_GEN = %w(
+  gen/simple_field.rb        gen/typechecks.gen.cpp
+  gen/primitives_declare.hpp gen/primitives_glue.gen.cpp)
+EXTERNALS = %w(
     external_libs/llvm/Release/lib/libLLVMSystem.a
     external_libs/libtommath/libtommath.a
     external_libs/onig/.libs/libonig.a
     external_libs/libffi/.libs/libffi.a
     external_libs/libltdl/.libs/libltdl.a
-    external_libs/libev/.libs/libev.a
-  )
-end
+    external_libs/libev/.libs/libev.a)
+INCLUDES = (EX_INC + ["test/cxxtest", "."]).map { |f| "-I#{f}" }
+FLAGS = %w(-Wall -ggdb -gdwarf-2)
 
-cleaning = Rake.application.top_level_tasks.find { |t| t =~ /clean/ }
+FLAGS << "-O2" if ENV['FAST']
 
-#  Linker and external libs
-# --------------------------
-
-##
-# Mainly useful for the libdir
-def link_opts
-  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split /\s+/
-end
-
-def ex_libs
+def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then
-    $ex_libs = external + [ "-ldl" ]
+    $ex_libs = EXTERNALS + [ "-ldl" ]
     $ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
     $ex_libs += `#{LLVM_CONFIG} --libs all`.split(/\s+/)
   end
   $ex_libs
 end
 
-ex_inc  = %w!
-  external_libs/libtommath
-  external_libs/onig
-  external_libs/libffi/include
-  external_libs/libltdl
-  external_libs/libev
-  external_libs/llvm/include
-!
+############################################################
+# Other Tasks
 
-tests = FileList["test/test_*.hpp"]
+# TODO evan? "*.gcda *.gcno *.gcov *.dSYM ../*.o coverage"
+CLEAN << objs << dep_file << "test/runner" << "gen" << "vm"
 
-def maybe_regen(list) # TODO: remove this in favor of rake rules
-  cur = File.mtime("instructions.rb")
-  list.each do |file|
-    if !File.exists?(file) or cur > File.mtime(file)
-      yield
-      return
+rule '.o' do |t|
+  obj   = t.name
+  name  = File.basename obj, '.o'
+  src   = t.prerequisites.find { |f| f =~ /#{name}\.c(pp)?$/ }
+  cc    = "gcc" # File.basename(src) == "c" ? "gcc" : "g++"
+
+  unless defined? $llvm_c then
+    $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
+    $llvm_c.delete_if { |e| e.index("-O") == 0 }
+  end
+
+  flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
+
+  sh "#{cc} #{flags} -c -o #{obj} #{src} 2>&1"
+end
+
+file :vm => EXTERNALS + objs + vm_objs do |t|
+  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
+
+  ld = ENV['LD'] || 'g++'
+  o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
+  l  = ex_libs.join(' ')
+
+  sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
+end
+
+def files targets, dependencies = nil, &block
+  targets.each do |target|
+    if dependencies then
+      file target => dependencies, &block
+    else
+      file target, &block
     end
   end
 end
+
+directory "gen"
+file  "type_info.o"    => "gen/typechecks.gen.cpp"
+file  "primitives.hpp" => "gen/primitives_declare.hpp"
+files Dir["builtin_*.hpp"], INSN_GEN
+files objs, EXTERNALS
+files vm_objs, vm_srcs
+
+objs.zip(srcs).each do |obj, src|
+  file obj => src
+end
+
+files EXTERNALS do |t|
+  path = File.join(*split_all(t.name)[0..1])
+  sh "cd #{path}; ./configure && make"
+end
+
+files INSN_GEN, %w(gen instructions.rb) do
+  sh "ruby instructions.rb"
+end
+
+files TYPE_GEN, %w(gen instructions.rb field_extract.rb) do
+  field_extract
+end
+
+file "test/runner" => objs + %w(test/runner.o) do |t|
+  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
+
+  ld = ENV['LD'] || 'g++'
+  o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
+  l  = ex_libs.join(' ')
+
+  sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
+end
+
+task :test => "test/runner" do
+  sh "./test/runner"
+end
+
+############################################################$
+# Importers & Methods:
+
+require 'rake/loaders/makefile'
+
+file dep_file => srcs + hdrs + vm_srcs do |t|
+  flags = (INCLUDES + FLAGS).join(' ')
+  flags << " -D__STDC_LIMIT_MACROS"
+
+  dep = `makedepend -f- -- #{flags} -- #{t.prerequisites} 2>/dev/null`
+  dep.gsub!(%r% /usr/include\S+%, '') # speeds up rake a lot
+  dep.gsub!(%r%^\S+:[^ ]%, '')
+
+  File.open t.name, 'w' do |f|
+    f.puts dep
+  end
+end
+
+import dep_file
 
 def field_extract
-  puts "GEN field_extract"
-  order = ["objects.hpp"]
-  File.open("objects.hpp") do |f|
-    f.each_line do |line|
-      if /\#include "builtin_(.*)"/.match(line)
-        order << "builtin_#{$1}"
-      end
-    end
-  end
-  x "ruby field_extract.rb builtin_object.hpp #{order.join(' ')}"
+  order = %w(builtin_object.hpp objects.hpp)
+  order += File.read("objects.hpp").scan(/builtin_[^"]+/)
+  sh "ruby field_extract.rb #{order.join(' ')}"
 end
-
-insn_gen = %w!gen/task_instructions_switch.c
-              gen/iseq_instruction_names.cpp
-              gen/iseq_instruction_names.hpp
-              gen/iseq_instruction_dt_helper.cpp
-              gen/task_instruction_dt.cpp
-              test/test_instructions.hpp!
-
-type_gen = %w!gen/simple_field.rb
-              gen/typechecks.gen.cpp
-              gen/primitives_declare.hpp
-              gen/primitives_glue.gen.cpp!
-
-compiler.cpp!
-
-compiler.includes += ex_inc
-compiler.includes << "test/cxxtest"
-compiler.includes << "."
-
-compiler.flags << "-Wall" << "-ggdb" << "-gdwarf-2"
-llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
-llvm_c.delete_if { |e| e.index("-O") == 0 }
-compiler.flags += llvm_c
-
-if ENV['FAST']
-  compiler.flags << "-O2"
-end
-
-if cleaning
-  objs = []
-else
-  external.each do |lib|
-    file lib do
-      path = lib.split("/")[0,2].join("/")
-      x "cd #{path}; ./configure || true; make"
-    end
-  end
-
-  maybe_regen insn_gen do
-    puts "GEN instructions.rb"
-    x "ruby instructions.rb"
-  end
-
-  maybe_regen type_gen do
-    field_extract
-  end
-
-  objs =  compiler.add_source("*.cpp")
-  objs += compiler.add_source("*.c")
-end
-
-file "type_info.o" => "gen/typechecks.gen.cpp"
-file "gen/typechecks.gen.cpp" => FileList["builtin_*.hpp"] do
-  Rake::Task[:field_extract].invoke
-end
-
-file "external_libs/libffi/include/ffi.h" do
-  Dir.chdir "external_libs/libffi" do
-    x "./configure"
-  end
-end
-
-file "test/runner.cpp" => external + tests + objs do
-  puts "GEN test/runner.cpp"
-  x "test/cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o test/runner.cpp #{tests}"
-end
-
-task :only => objs do
-  only = FileList["*" + ENV['O'] + "*"].join(" ")
-	x "test/cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail -o test/_only.cpp #{only}"
-  compiler.compile "_only.cpp"
-  compiler.link "test/_only", :objects => objs + ["test/_only.o"], :libs => ex_libs, :flags => link_opts
-  x "./test/_only"
-end
-
-file "test/runner.o" => "test/runner.cpp" do
-  compiler.compile "test/runner.cpp"
-end
-
-file "test/runner" => "test/runner.o" do
-  compiler.link "test/runner", :objects => objs + ["test/runner.o"], :libs => ex_libs, :flags => link_opts
-end
-
-file "drivers/cli.o" => "drivers/cli.cpp" do
-  compiler.compile "drivers/cli.cpp"
-end
-
-file "vm" => external + objs + ["drivers/cli.o", "instructions.bc"] do
-  puts "LD vm"
-  compiler.link "vm", :objects => objs + ["drivers/cli.o"], :libs => ex_libs, :flags => link_opts
-end
-
-file "instructions.bc" do
-  puts "LLVM instructions.bc"
-  x "llvm-g++ -emit-llvm -I. -I external_libs/libffi/include -o instructions.bc -c llvm/instructions.cpp"
-end
-
-task :coverage do
-  Dir.mkdir "test/coverage" unless File.directory? "test/coverage"
-  puts "LD test/coverage/runner"
-  x "g++ -fprofile-arcs -ftest-coverage -Wall -Itest/cxxtest -I. #{ex_libs.join(' ')} -ggdb -o test/coverage/runner test/runner.cpp *.cpp *.c #{compiler.cpp_includes}"
-  puts "RUN test/coverage/runner"
-  x "test/coverage/runner"
-  if $verbose
-    x "test/lcov/bin/lcov --directory . --capture --output-file test/coverage/app.info"
-  else
-    x "test/lcov/bin/lcov --directory . --capture --output-file test/coverage/app.info > /dev/null 2>&1"
-  end
-
-  puts "GEN test/coverage/index.html"
-  if $verbose
-    x "cd test/coverage; ../lcov/bin/genhtml app.info"
-  else
-    x "cd test/coverage; ../lcov/bin/genhtml app.info > /dev/null 2>&1"
-  end
-
-  x "rm -f *.gcno *.gcda"
-end
-
-task :field_extract do
-  field_extract()
-end
-
-
-# Public tasks
-
-desc "Build the VM"
-task :build => "vm"
-
-desc "Run all VM tests"
-task :test => "test/runner" do
-  x "./test/runner"
-end
-
-desc "Remove object files and build products"
-task :clean do
-  x "rm -rf *.gcda *.gcno *.gcov *.dSYM *.o ../*.o test/runner* coverage gen .deps"
-end
-
-desc "Clean up, including all external libs"
-task :distclean => :clean do
-  external.each do |lib|
-    path = lib.split("/")[0,2].join("/")
-    system "cd #{path}; make clean"
-  end
-end
-
-task :default => :test
-
