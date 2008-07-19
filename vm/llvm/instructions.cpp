@@ -21,6 +21,8 @@ using namespace rubinius;
 #define FLUSH_JS() task->sp = js->stack - task->stack->field
 
 extern "C" {
+  OP(noop) {
+  }
 
   OP(push_int, int val) {
     stack_push(Object::i2n(val));
