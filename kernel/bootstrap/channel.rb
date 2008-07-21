@@ -1,61 +1,62 @@
-# Channel a simple, thread aware value passing class.
+##
+# Channel is a FIFO, thread-aware value passing class that can hold any number
+# of objects similar to Queue.  Use #send to add objects to the channel and
+# #receive to remove objects from the channel.
 #
-# The semantics of it are simple. Channel#send puts a value
-# into the channel. A channel can hold any number of objects.
+# If Channel#receive is called on an empty channel, the VM puts the current
+# Thread (t1) to sleep.  At some future time, when Channel#send is called on
+# that same thread, the VM wakes up t1 and the value passed to #send is
+# returned.  This allows us to implement all manner of Thread semantics, such
+# as Mutex.
 #
-# A call to Channel#receive returns the first available object,
-# in the order that they were passed to #send.
-#
-# The power is what happens when the Channel is empty. If
-# Channel#receive is called on an empty channel, the VM puts
-# the current Thread (t1) to sleep. At some future time, when
-# Channel#send is called on that same thread, the VM wakes up
-# t1 and the value passed to #send is returned.
-#
-# This allows us to implement all manner of Thread semantics, such as
-# Mutex.
-#
-# Channel is used heavily by Scheduler, to allow ruby code to
-# interact with the outside world in a thread aware manner.
-#
+# Channel is used heavily by Scheduler, to allow ruby code to interact with
+# the outside world in a thread aware manner.
 
 class Channel
+
   ivar_as_index :waiting => 1, :value => 2
 
-  # Return nil if nothing is waiting, or a List object
-  # which contains all Thread objects waiting on this Channel.
-  #
-  def waiting; @waiting ; end
+  ##
+  # Returns nil if nothing is waiting, or a List object which contains all
+  # Thread objects waiting on this Channel.
 
-  # Return nil if there are no values, otherwise a List object
-  # containing all values the Channel contains.
-  #
-  def value  ; @value   ; end
+  def waiting() @waiting end
 
-  # Create a new Channel, and register it with the VM.
-  #
+  ##
+  # Returns nil if there are no values, otherwise a List object containing all
+  # values the Channel contains.
+
+  def value() @value end
+
+  ##
+  # Creates a new Channel and registers it with the VM.
+
   def self.new
     Ruby.primitive :channel_new
     raise PrimitiveFailure, "primitive failed"
   end
 
-  # Put the value +obj+ into the Channel. If there are waiting threads,
-  # the first thread will be woken up and handed +obj+.
-  #
+  ##
+  # Puts +obj+ in the Channel.  If there are waiting threads the first thread
+  # will be woken up and handed +obj+.
+
   def send(obj)
     Ruby.primitive :channel_send
     raise PrimitiveFailure, "primitive failed"
   end
 
-  # Remove and return the first value from the Channel. If the channel
+  ##
+  # Removes and returns the first value from the Channel.  If the channel
   # is empty, Thread.current is put to sleep until #send is called.
-  #
+
   def receive
     Ruby.primitive :channel_receive
     raise PrimitiveFailure, "primitive failed"
   end
 
-  # Convert +obj+ into a Channel using #to_channel.
+  ##
+  # Converts +obj+ into a Channel using #to_channel.
+
   def self.convert_to_channel(obj)
     return obj if Channel === obj
     begin
@@ -69,13 +70,19 @@ class Channel
     end
   end
 
+  ##
   # Legacy API. To be removed.
-  def self.receive(obj)
+
+  def self.receive(obj) # :nodoc:
     return convert_to_channel(obj).receive
   end
 
+  ##
   # API compliance, returns self.
+
   def to_channel
     self
   end
+
 end
+
