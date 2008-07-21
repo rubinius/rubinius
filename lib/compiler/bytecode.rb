@@ -2117,10 +2117,10 @@ class Node
     end
   end
 
-  # TESTED
+  # Represents the argument list of a method definition
+  # See +nodes.rb+ for details.
   class Arguments
     def bytecode(g)
-
       # Minimum number of arguments to be supplied
       min = @required.size
       if @splat
@@ -2134,12 +2134,23 @@ class Node
       # Check these min and max argument counts at runtime
       g.check_argcount min, max
 
-      # Emit a local setup instruction for each required argument
+      process_required_args(g)
+      process_optional_args(g)
+      process_rest_arg(g) if @splat.kind_of?(Local)
+      process_block_arg(g) if @block_arg
+    end
+
+    # Emit a local setup instruction for each required argument
+    def process_required_args(g)
       @required.each do |var|
         g.set_local_from_fp var.slot, var.stack_position
       end
+    end
 
+    # Emit bytecode to handle any optional arguments
+    def process_optional_args(g)
       @optional.each do |var|
+
         assign = @mapped_defaults[var.name]
 
         use_passed = g.new_label
@@ -2155,31 +2166,33 @@ class Node
 
         done.set!
       end
+    end
 
-      if @splat.kind_of? Local
-        g.make_rest_fp @required.size + @optional.size
-        lv = LocalAssignment.new(@compiler)
-        lv.from_variable @splat
-        lv.bytecode(g)
-        g.pop
-      end
+    # Emit bytecode to handle a 'rest' (a.k.a. 'splat') argument
+    def process_rest_arg(g)
+      g.make_rest_fp @required.size + @optional.size
+      lv = LocalAssignment.new(@compiler)
+      lv.from_variable @splat
+      lv.bytecode(g)
+      g.pop
+    end
 
-      if @block_arg
-        g.push_block
-        g.dup
-        g.is_nil
+    # Emit bytecode to handle a block argument (&block syntax)
+    def process_block_arg(g)
+      g.push_block
+      g.dup
+      g.is_nil
 
-        after = g.new_label
-        g.git after
+      after = g.new_label
+      g.git after
 
-        g.push_const :Proc
-        g.send :__from_block__, 1
+      g.push_const :Proc
+      g.send :__from_block__, 1
 
-        after.set!
+      after.set!
 
-        @block_arg.bytecode(g)
-        g.pop
-      end
+      @block_arg.bytecode(g)
+      g.pop
     end
   end
 
