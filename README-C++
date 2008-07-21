@@ -58,25 +58,24 @@ with the following command:
 Primitives are normal methods on C++ classes. Comment annotation links the C++
 method to a symbol with which the primitive is accessed in Ruby code.
 
-For example, consider the Ruby LookupTable class:
+For example, consider the Ruby Fixnum class:
 
-class LookupTable
-  def [](key)
-    Ruby.primitive :lookuptable_fetch
-    raise PrimitiveFailure, "LookupTable#[] primitive failed"
+class Fixnum
+  def -@
+    Ruby.primitive :fixnum_neg
+    raise PrimitiveFailure, "Fixnum#-@ primitive failed"
   end
 end
 
-In the C++ file, rbx/vm/builtin_lookuptable.hpp, the primitive is annotated:
+In the C++ file, rbx/vm/builtin_fixnum.hpp, the primitive is annotated:
 
 namespace rubinius {
-  class LookupTable : public Object {
+
+  class Fixnum : public Integer {
     // ...
 
-    // Ruby.primitive :lookuptable_fetch
-    OBJECT fetch(STATE, OBJECT key);
-  }
-}
+    // Ruby.primitive :fixnum_neg
+    INTEGER neg(STATE) {
 
 The magic for this happens in rbx/vm/field_extract.rb and the output goes to
 rbx/vm/gen/primitives_declare.hpp and rbx/vm/gen/primitives_glue.gen.cpp.
@@ -86,11 +85,15 @@ rbx/vm/gen/primitives_declare.hpp and rbx/vm/gen/primitives_glue.gen.cpp.
 --------------------------------------
 
 There are two ways to annotate the C++ methods as primitives. If there is a
-single C++ method, use 'Ruby.primitive :name_of_primitive'. If there are
-multiple C++ methods (i.e. overloaded methods), use 'Ruby.primitive!
-:name_of_primitive'. The difference is the '!' method for defining overloaded
-methods as primitives. The resulting glue code for overloaded methods looks
-something like the following:
+single C++ method, use 'Ruby.primitive :name_of_primitive'.
+
+If there are multiple C++ methods (i.e. overloaded methods), use
+'Ruby.primitive! :name_of_primitive'. The '!' annotation is used for each
+overloaded method and uses the argument types to determine which implementation
+method to call for the primitive.
+
+The resulting glue code for overloaded methods looks something like the
+following:
 
 bool Primitives::float_mul(STATE, VMExecutable* exec,
                            Task* task, Message& msg) {
