@@ -10,12 +10,11 @@ describe Compiler do
       g.push 1
       g.push 2
 
-      g.make_array 2
-      g.cast_tuple
+      g.rotate 2
 
-      g.lvar_set 0
-      g.lvar_set 1
-
+      g.set_local 0
+      g.pop
+      g.set_local 1
       g.pop
 
       g.push :true
@@ -34,12 +33,11 @@ describe Compiler do
       g.send :c, 0, false
       g.push :true
 
-      g.make_array 2
-      g.cast_tuple
+      g.rotate 2
 
-      g.lvar_set 0
+      g.set_local 0
+      g.pop
 
-      g.unshift_tuple
       g.push :self
       g.send :b, 0, true
       g.send :c=, 1, false
@@ -60,14 +58,14 @@ describe Compiler do
       g.push 2
       g.push 3
 
-      g.make_array 3
-      g.cast_tuple
+      g.rotate 3
 
-      g.lvar_set 0
-      g.lvar_set 1
-
+      g.set_local 0
+      g.pop
+      g.set_local 1
       g.pop
 
+      g.pop # no set_local since the LHS is smaller than the RHS
       g.push :true
     end
   end
@@ -78,16 +76,17 @@ describe Compiler do
           [:array, [:fixnum, 1], [:fixnum, 2]]]
 
     gen x do |g|
+      g.push :nil
       g.push 1
       g.push 2
 
-      g.make_array 2
-      g.cast_tuple
+      g.rotate 2
 
-      g.lvar_set 0
-      g.lvar_set 1
-      g.lvar_set 2
-
+      g.set_local 0
+      g.pop
+      g.set_local 1
+      g.pop
+      g.set_local 2
       g.pop
 
       g.push :true
@@ -104,13 +103,12 @@ describe Compiler do
       g.push 2
       g.push 3
 
-      g.make_array 3
-      g.cast_tuple
+      g.make_array 2
 
-      g.lvar_set 0
-
-      g.cast_array
       g.set_local 1
+      g.pop
+
+      g.set_local 0
       g.pop
 
       g.push :true
@@ -127,13 +125,14 @@ describe Compiler do
       g.push 2
       g.push 3
 
-      g.make_array 3
-
-      g.lvar_set 0
-      g.lvar_set 1
-
-      g.cast_array
+      g.make_array 1
       g.set_local 2
+      g.pop
+
+      g.set_local 1
+      g.pop
+
+      g.set_local 0
       g.pop
 
       g.push :true
@@ -149,7 +148,6 @@ describe Compiler do
       g.push :self
       g.send :d, 0, true
 
-      g.make_array 1
       g.cast_tuple
 
       g.lvar_set 0
@@ -198,7 +196,6 @@ describe Compiler do
       g.push :self
       g.send :d, 0, true
 
-      g.make_array 1
       g.cast_tuple
 
       g.lvar_set 0
@@ -395,14 +392,14 @@ describe Compiler do
       g.set_ivar :@a
       g.push_ivar :@a
 
-      g.make_array 2
-      g.cast_tuple
+      g.rotate 2
 
-      g.lvar_set 0
-      g.lvar_set 1
-
+      g.set_local 0
       g.pop
-      g.push true
+      g.set_local 1
+      g.pop
+
+      g.push :true
     end
   end
 end
