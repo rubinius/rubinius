@@ -117,6 +117,13 @@ file :vm => EXTERNALS + objs + vm_objs do |t|
   link t
 end
 
+file 'test/runner.cpp' => tests do
+  sh('test/cxxtest/cxxtestgen.pl', '--error-printer', '--have-eh',
+     '--abort-on-fail', '-o', 'test/runner.cpp', *tests)
+end
+
+file 'test/runner.o' => 'test/runner.cpp' # no rule .o => .cpp
+
 file "test/runner" => EXTERNALS + objs + %w(test/runner.o) do |t|
   link t
 end
