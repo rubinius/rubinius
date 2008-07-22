@@ -1,6 +1,9 @@
 module OpenSSL
   autoload :HMAC, "openssl/hmac"
   autoload :Digest, "openssl/digest"
+  autoload :Random, "openssl/random"
+
+  class OpenSSLError < StandardError ; end
 
   # Used by the various hexdigest implementations
   def self.digest_to_hex(digest)
