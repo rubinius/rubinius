@@ -115,7 +115,9 @@ class StringIO
   
   def each_byte
     raise IOError, "not opened for reading" unless @readable
-    @string[@pos..-1].each_byte { |b| yield b }
+    if @pos < @string.length
+      @string[@pos..-1].each_byte { |b| @pos += 1; yield b}
+    end
     nil
   end
   
