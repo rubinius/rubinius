@@ -41,7 +41,11 @@ namespace rubinius {
     hashval hash_string(STATE);
     SYMBOL to_sym(STATE);
     char* byte_address(STATE);
+
+    // Ruby.primitive :string_dup
     String* string_dup(STATE);
+
+    // Ruby.primitive :string_append
     String* append(STATE, String* other);
     String* append(STATE, const char* other);
     String* add(STATE, String* other);
