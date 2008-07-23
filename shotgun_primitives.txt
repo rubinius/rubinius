@@ -225,8 +225,6 @@ task_set_current
 task_set_debug_context_change
 task_set_debugging
 task_stack_size
-terminal_normal
-terminal_raw
 thread_current
 thread_dequeue
 thread_new
