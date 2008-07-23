@@ -42,6 +42,9 @@ shotgun/lib/subtend/*.d
 .\#*
 *.dSYM
 
+/vm/.deps
+/vm/log
+
 attic/externals/syd-parser/pkg
 
 kernel/.load_order.txt
