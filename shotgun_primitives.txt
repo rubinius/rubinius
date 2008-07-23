@@ -50,7 +50,6 @@ channel_send_on_writable
 compare
 compare_bytes
 context_sender
-create_pipe
 dir_chdir
 dir_close
 dir_control
@@ -61,8 +60,6 @@ dispatch_as_method
 dtrace_fire_ruby_probe
 dup_into
 env_as_hash
-env_get
-env_set
 equal
 fastctx_dup
 fastctx_get_field
@@ -116,7 +113,6 @@ gc_start
 get_byte
 get_index
 get_ivar
-gettimeofday
 hash_delete
 hash_get
 hash_object
@@ -152,8 +148,6 @@ machine_send_message
 make_weak_ref
 marshal_object
 marshal_to_file
-micro_sleep
-mktime
 move_bytes
 nfunc_add
 nfunc_call
@@ -197,8 +191,6 @@ sendsite_set_sender
 set_byte
 set_index
 set_ivar
-str_crypt
-strftime
 string_append
 string_apply_and
 string_compare_substring
