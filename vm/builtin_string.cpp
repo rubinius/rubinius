@@ -3,15 +3,12 @@
 #include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "builtin_bytearray.hpp"
 
 #define HashPrime 16777619
 #define MASK_28 (((unsigned int)1<<28)-1)
 
 namespace rubinius {
-
-  ByteArray* ByteArray::create(STATE, size_t bytes) {
-    return (ByteArray*)state->om->new_object_bytes(G(bytearray), bytes);
-  }
 
   String* String::create(STATE, const char* str, size_t bytes) {
     String *so;

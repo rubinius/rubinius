@@ -9,6 +9,9 @@ namespace rubinius {
 
     static ByteArray* create(STATE, size_t bytes);
 
+    // Ruby.primitive :bytearray_size
+    INTEGER size(STATE);
+
     class Info : public TypeInfo {
     public:
       Info(object_type type): TypeInfo(type) { }
