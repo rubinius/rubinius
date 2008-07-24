@@ -102,7 +102,12 @@ end
 
 files EXTERNALS do |t|
   path = File.join(*split_all(t.name)[0..1])
-  sh "cd #{path}; ./configure && make"
+  configure_path = File.join(path, 'configure')
+  if File.exist? configure_path then
+    sh "cd #{path}; ./configure && make"
+  else
+    sh "cd #{path}; make"
+  end
 end
 
 files INSN_GEN, %w(gen instructions.rb) do
