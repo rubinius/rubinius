@@ -16,6 +16,11 @@ namespace rubinius {
       return DATA_STRIP_TAG(this);
     }
 
+    // Ruby.primitive :symbol_index
+    INTEGER index(STATE) {
+      return Object::i2n(this->index());
+    }
+
     static Symbol* from_index(STATE, size_t index) {
       return (Symbol*)DATA_APPLY_TAG(index, DATA_TAG_SYMBOL);
     }

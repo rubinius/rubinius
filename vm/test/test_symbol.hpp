@@ -70,6 +70,12 @@ class TestSymbol : public CxxTest::TestSuite {
     TS_ASSERT(!strncmp("blah", str->byte_address(state), 4));
   }
 
+  void test_index() {
+    Symbol* sym = state->globals.symbols->lookup(state, "blah", 4);
+
+    TS_ASSERT_EQUALS(sym->index(state)->n2i(), sym->index());
+  }
+
   void test_to_str() {
     Symbol* sym = (Symbol*)state->globals.symbols->lookup(state, "blah");
 
