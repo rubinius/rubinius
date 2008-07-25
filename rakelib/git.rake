@@ -4,8 +4,6 @@ def git_branch
   `git branch | grep "*"`.strip[2..-1]
 end
 
-
-
 def compare_git_ver
   m = /git version (\d+).(\d+).(\d+)/.match(`git version`.strip)
   return true  if m[1].to_i > 1
@@ -66,11 +64,11 @@ namespace :git do
     end
 
     puts "* Pushing changes..."
-    sh "git push"
+    sh "git push origin cpp"
   end
 
   desc "Pull new commits from the rubinius repository"
-  task :update do
+  task :pull do
     check_git_ver
     branch = git_branch()
 
@@ -102,7 +100,7 @@ namespace :git do
     end
   end
 
-  task :pull => :update
+  task :update => :pull
 
   desc "Make patches upto current"
   task :make_patches do
