@@ -64,6 +64,7 @@ namespace rubinius {
     return hv;
   }
 
+  // Ruby.primitive :symbol_lookup
   SYMBOL String::to_sym(STATE) {
     return G(symbols)->lookup(state, this);
   }
