@@ -12,7 +12,11 @@ namespace rubinius {
     List* waiting; // slot
 
     static Channel* create(STATE);
+
+    // Ruby.primitive :channel_send
     void send(STATE, OBJECT);
+
+    // Ruby.primitive :channel_receive
     void receive(STATE);
     bool has_readers_p();
 
