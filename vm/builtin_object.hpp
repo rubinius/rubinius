@@ -24,122 +24,53 @@ namespace rubinius {
 
     /* WARNING. Do not use this version if +num+ has the chance of being
      * greater than FIXNUM_MAX. */
-    static FIXNUM i2n(native_int num) {
-      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
-    }
+    static FIXNUM i2n(native_int num);
 
     static Integer* i2n(STATE, native_int num);
     static Integer* ui2n(STATE, unsigned int num);
     static Integer* ll2n(STATE, long long num);
     static Integer* ull2n(STATE, unsigned long long num);
 
-    bool fixnum_p() {
-      return FIXNUM_P(this);
-    }
-
-    bool symbol_p() {
-      return SYMBOL_P(this);
-    }
+    bool fixnum_p();
+    bool symbol_p();
 
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created. */
-    void init(gc_zone loc, size_t fields) {
-      all_flags = 0;
-      zone = loc;
-      field_count = fields;
-    }
+    void init(gc_zone loc, size_t fields);
 
     /* Clear the body of the object, by setting each field to Qnil */
-    void clear_fields() {
-      for(size_t i = 0; i < field_count; i++) {
-        field[i] = Qnil;
-      }
-    }
+    void clear_fields();
 
-    /* Initialize the object as storing bytes, by setting the flag then clearing the
-     * body of the object, by setting the entire body as bytes to 0 */
-    void init_bytes() {
-      this->StoresBytes = 1;
-      std::memset((void*)(this->field), field_count * sizeof(OBJECT), 0);
-    }
+    /* Initialize the object as storing bytes, by setting the flag then
+     * clearing the body of the object, by setting the entire body as bytes to
+     * 0 */
+    void init_bytes();
 
-    size_t size_in_bytes() {
-      return SIZE_IN_BYTES(this);
-    }
+    size_t size_in_bytes();
+    size_t body_in_bytes();
 
-    size_t body_in_bytes() {
-      return field_count * sizeof(OBJECT);
-    }
+    bool reference_p();
+    bool stores_bytes_p();
+    bool stores_references_p();
+    bool young_object_p();
+    bool mature_object_p();
+    bool forwarded_p();
 
-    bool reference_p() {
-      return REFERENCE_P(this);
-    }
+    void set_forward(OBJECT fwd);
+    OBJECT forward();
 
-    bool stores_bytes_p() {
-      return StoresBytes;
-    }
+    bool marked_p();
+    void mark();
+    void clear_mark();
 
-    bool stores_references_p() {
-      return !StoresBytes;
-    }
+    bool nil_p();
+    bool undef_p();
+    bool true_p();
+    bool false_p();
 
-    bool young_object_p() {
-      return zone == YoungObjectZone;
-    }
+    bool has_ivars_p();
 
-    bool mature_object_p() {
-      return zone == MatureObjectZone;
-    }
-
-    bool forwarded_p() {
-      return Forwarded == 1;
-    }
-
-    void set_forward(OBJECT fwd) {
-      assert(zone == YoungObjectZone);
-      Forwarded = 1;
-      klass = (Class*)fwd;
-    }
-
-    OBJECT forward() {
-      return (OBJECT)klass;
-    }
-
-    bool marked_p() {
-      return Marked == 1;
-    }
-
-    void mark() {
-      Marked = 1;
-    }
-
-    void clear_mark() {
-      Marked = 0;
-    }
-
-    bool nil_p() {
-      return this == Qnil;
-    }
-
-    bool undef_p() {
-      return this == Qundef;
-    }
-
-    bool true_p() {
-      return this == Qtrue;
-    }
-
-    bool false_p() {
-      return this == Qfalse;
-    }
-
-    bool has_ivars_p() {
-      return CanStoreIvars == TRUE;
-    }
-
-    bool check_type(object_type type) {
-      return reference_p() && obj_type == type;
-    }
+    bool check_type(object_type type);
 
     OBJECT get_field(STATE, size_t index);
     void   set_field(STATE, size_t index, OBJECT val);
