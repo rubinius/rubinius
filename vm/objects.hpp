@@ -106,4 +106,6 @@ namespace rubinius {
 
 #include "builtin_thread.hpp"
 
+#include "builtin_dir.hpp"
+
 #endif

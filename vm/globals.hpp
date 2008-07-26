@@ -15,7 +15,7 @@ namespace rubinius {
 
     /* This requires some manual work when adding a root, but thats ok.
      * First, add the root to the END of this list. Then add it to
-     * the constructor for Globals, again, and the END of the list. */
+     * the constructor for Globals, again, at the END of the list. */
 
     /* classes for the core 'types' */
     TypedRoot<Class*> blokctx, cmethod, tuple, module, object, array;
@@ -56,6 +56,7 @@ namespace rubinius {
     TypedRoot<Thread*> current_thread;
     TypedRoot<Task*> current_task;
     TypedRoot<OBJECT> main;
+    TypedRoot<Class*> dir;
 
     /* Leave this as the last data member always */
     TypedRoot<Class*> special_classes[SPECIAL_CLASS_SIZE];
@@ -101,7 +102,8 @@ namespace rubinius {
       vm(&roots),
       current_thread(&roots),
       current_task(&roots),
-      main(&roots)
+      main(&roots),
+      dir(&roots)
     { }
   };
 };

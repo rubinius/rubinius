@@ -162,4 +162,15 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cls->superclass, G(executable));
     check_const(cmethod, "CompiledMethod");
   }
+
+  void test_dir() {
+    Class *cls;
+
+    cls = G(dir);
+
+    TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
+    TS_ASSERT_EQUALS(cls->superclass, G(object));
+    TS_ASSERT_EQUALS(cls->instance_type, Object::i2n(DirType));
+    check_const(dir, "Dir");
+  }
 };

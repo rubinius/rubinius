@@ -69,6 +69,9 @@ namespace rubinius {
     case LookupTableType:
       type = "LookupTable";
       break;
+    case DirType:
+      type = "Dir";
+      break;
     default:
       type = "unknown";
       break;

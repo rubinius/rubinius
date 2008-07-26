@@ -53,6 +53,7 @@ namespace rubinius {
     ListType        ,
     ListNodeType    ,
     NativeFuncType  ,
+    DirType         ,
 
     LastObjectType   // must remain at end
   } object_type;

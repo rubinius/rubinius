@@ -132,6 +132,9 @@ namespace rubinius {
     GO(staticscope).set(new_class(object, StaticScope::fields));
     G(staticscope)->set_object_type(StaticScopeType);
 
+    GO(dir).set(new_class(object, Dir::fields));
+    G(dir)->instance_type = Object::i2n(DirType);
+
     bootstrap_symbol();
 
     G(object)->setup(this, "Object");
@@ -153,6 +156,7 @@ namespace rubinius {
     G(blokenv)->setup(this, "BlockEnvironment");
     G(staticscope)->setup(this, "StaticScope");
     G(symbol)->setup(this, "Symbol");
+    G(dir)->setup(this, "Dir");
 
     G(object)->set_const(this, symbol("Symbols"), G(symbols));
 
