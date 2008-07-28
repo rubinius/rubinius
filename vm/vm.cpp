@@ -112,7 +112,11 @@ namespace rubinius {
   }
 
   void VM::raise_from_errno(char* msg) {
+    // TODO: implement me
+  }
 
+  void VM::raise_exception(Exception* exc) {
+    // TODO: implement me
   }
 
   void VM::inspect(OBJECT obj) {
