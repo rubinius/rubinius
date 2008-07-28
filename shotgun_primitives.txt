@@ -50,10 +50,8 @@ channel_send_on_writable
 compare
 compare_bytes
 context_sender
-dir_chdir
 dir_close
 dir_control
-dir_glob
 dir_open
 dir_read
 dispatch_as_method
