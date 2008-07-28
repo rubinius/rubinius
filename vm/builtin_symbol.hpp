@@ -12,12 +12,18 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = SymbolType;
 
-    native_int index();
+    native_int index() {
+      return DATA_STRIP_TAG(this);
+    }
 
     // Ruby.primitive :symbol_index
-    INTEGER index(STATE);
+    INTEGER index(STATE) {
+      return Object::i2n(this->index());
+    }
 
-    static Symbol* from_index(STATE, size_t index);
+    static Symbol* from_index(STATE, size_t index) {
+      return (Symbol*)DATA_APPLY_TAG(index, DATA_TAG_SYMBOL);
+    }
 
     String* to_str(STATE);
 

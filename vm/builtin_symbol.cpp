@@ -68,18 +68,6 @@ namespace rubinius {
     return as<String>(symbols->at(sym->index()));
   }
 
-    native_int Symbol::index() {
-      return DATA_STRIP_TAG(this);
-    }
-
-    INTEGER Symbol::index(STATE) {
-      return Object::i2n(this->index());
-    }
-
-    Symbol* Symbol::from_index(STATE, size_t index) {
-      return (Symbol*)DATA_APPLY_TAG(index, DATA_TAG_SYMBOL);
-    }
-
   String* Symbol::to_str(STATE) {
     return G(symbols)->find_string(state, this);
   }
