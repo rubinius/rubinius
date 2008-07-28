@@ -387,7 +387,7 @@ class Dir
   end
   
   def self.open(path)
-    dir = self.new(path)
+    dir = new path
     if block_given?
       begin
         value = yield dir
@@ -423,53 +423,19 @@ class Dir
     nil
   end
 
-  def self.prim_open(path)
-    Ruby.primitive :dir_open
-  end
-
   def initialize(path)
-    @dirptr = Dir.prim_open(path)
-
-    if @dirptr.nil?
-      Errno.handle path
-    end
+    __open__ path
 
     @path = path
   end
   
   def path
-    raise IOError, "closed directory" if @dirptr.nil?
+    raise IOError, "closed directory" if closed?
 
     @path
   end
 
-  def self.prim_close(dir)
-    Ruby.primitive :dir_close
-    raise PrimitiveFailure, "primitive failed"
-  end
-
-  def close
-    raise IOError, "closed directory" if @dirptr.nil?
-
-    Dir.prim_close(@dirptr)
-
-    @dirptr = nil
-  end
-
-  def self.prim_read(dir)
-    Ruby.primitive :dir_read
-    raise PrimitiveFailure, "primitive failed"
-  end
-  
-  def read
-    raise IOError, "closed directory" if @dirptr.nil?
-
-    return Dir.prim_read(@dirptr)
-  end
-
   def each
-    raise IOError, "closed directory" if @dirptr.nil?
-
     while s = read
       yield s
     end
@@ -481,40 +447,27 @@ class Dir
   RewindKind = 1
   TellKind = 2
 
-  def self.prim_control(dir, kind, pos)
-    Ruby.primitive :dir_control
-    raise PrimitiveFailure, "primitive failed"
-  end
-
   def pos
-    raise IOError, "closed directory" if @dirptr.nil?
-    
-    Dir.prim_control(@dirptr, TellKind, 0)
+    __control__ TellKind, 0
   end
 
   alias_method :tell, :pos
 
   def pos=(position)
-    raise IOError, "closed directory" if @dirptr.nil?
-
     seek(position)
 
     position
   end
 
   def seek(position)
-    raise IOError, "closed directory" if @dirptr.nil?
-
-    Dir.prim_control(@dirptr, SeekKind, position)
+    __control__ SeekKind, position
 
     self
   end
 
   def rewind
-    raise IOError, "closed directory" if @dirptr.nil?
-    
-    Dir.prim_control(@dirptr, RewindKind, 0);
-    
+    __control__ RewindKind, 0
+
     self
   end
   
