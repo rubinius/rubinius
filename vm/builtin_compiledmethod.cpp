@@ -41,14 +41,14 @@ namespace rubinius {
     if(!executable) {
       if(!primitive->nil_p()) {
         if(SYMBOL name = try_as<Symbol>(primitive)) {
-          std::cout << "resolving: "; inspect(state, name);
+          //std::cout << "resolving: "; inspect(state, name);
           executor func = Primitives::resolve_primitive(state, name);
 
           VMMethod* vmm = new VMPrimitiveMethod(state, this, func);
           executable = vmm;
           return vmm;
         } else {
-          std::cout << "Invalid primitive id (not a symbol)" << std::endl;
+          //std::cout << "Invalid primitive id (not a symbol)" << std::endl;
         }
       }
       VMMethod* vmm;
