@@ -17,6 +17,7 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/TypeSymbolTable.h>
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/Analysis/LoopPass.h"
 #include "llvm/Analysis/CallGraph.h"
@@ -40,7 +41,7 @@ namespace rubinius {
   using namespace llvm;
 
   static llvm::Module* operations;
-  static llvm::ExistingModuleProvider* mp;
+  static llvm::ExistingModuleProvider* mp = NULL;
   static llvm::ExecutionEngine* engine;
 
   static llvm::Function* puts;
@@ -181,7 +182,6 @@ namespace rubinius {
     PM.add(createAggressiveDCEPass());        // Delete dead instructions
     PM.add(createCFGSimplificationPass());    // Merge & remove BBs
     PM.add(createStripDeadPrototypesPass());  // Get rid of dead prototypes
-    PM.add(createDeadTypeEliminationPass());  // Eliminate dead types
     PM.add(createConstantMergePass());        // Merge dup global constants
 
   }
@@ -190,8 +190,22 @@ namespace rubinius {
     std::stringstream stream;
     stream << "jitfunction_" << operations->size();
 
+    TypeSymbolTable& tbl = operations->getTypeSymbolTable();
+
+    /*
+    */
+
     const Type* task_type  = operations->getTypeByName(std::string("struct.rubinius::Task"));
-    const Type* obj_type = operations->getTypeByName(std::string("struct.jit_state"));
+    std::string js("struct.jit_state");
+    const Type* obj_type = operations->getTypeByName(js);
+
+    Type* o2 = tbl.lookup(js);
+    if(!obj_type) {
+      for(TypeSymbolTable::iterator i = tbl.begin(); i != tbl.end(); i++) {
+        std::cout << "type: '" << i->first << "'\n";
+      }
+      assert(obj_type);
+    }
 
     Type* stack_type = PointerType::get(obj_type, 0);
 

@@ -47,12 +47,18 @@ TYPE_GEN    = %w( gen/simple_field.rb
                   gen/typechecks.gen.cpp
                   gen/primitives_declare.hpp
                   gen/primitives_glue.gen.cpp )
-EXTERNALS   = %w( external_libs/llvm/Release/lib/libLLVMSystem.a
+
+LLVM_A      = "external_libs/llvm/Release/lib/libLLVMSystem.a"
+EXTERNALS   = %W( #{LLVM_A}
                   external_libs/libtommath/libtommath.a
                   external_libs/onig/.libs/libonig.a
                   external_libs/libffi/.libs/libffi.a
                   external_libs/libltdl/.libs/libltdl.a
                   external_libs/libev/.libs/libev.a )
+OPTIONS     = {
+                LLVM_A => "--enable-targets=host-only --enable-optimized"
+              }
+
 INCLUDES    = (EX_INC + ["test/cxxtest", "."]).map { |f| "-I#{f}" }
 FLAGS       = %w(-Wall -ggdb -gdwarf-2)
 
@@ -64,11 +70,9 @@ FLAGS << "-O2" if ENV['FAST']
 # TODO evan? "*.gcda *.gcno *.gcov *.dSYM ../*.o coverage"
 CLEAN << objs << dep_file << "test/runner" << "gen" << "vm"
 
-rule '.o' do |t|
-  obj   = t.name
-  src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.o'}\.c(pp)?$/}
-  cc    = "gcc" # File.basename(src) == "c" ? "gcc" : "g++"
-
+def compile(obj, src)
+  cc = "gcc" # File.basename(src) == "c" ? "gcc" : "g++"
+  
   unless defined? $llvm_c then
     $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
     $llvm_c.delete_if { |e| e.index("-O") == 0 }
@@ -77,6 +81,13 @@ rule '.o' do |t|
   flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
 
   sh "#{cc} #{flags} -c -o #{obj} #{src} 2>&1"
+end
+
+rule '.o' do |t|
+  obj   = t.name
+  src   = t.prerequisites.find { |f| f =~ /#{File.basename obj, '.o'}\.c(pp)?$/}
+
+  compile obj, src
 end
 
 def files targets, dependencies = nil, &block
@@ -100,11 +111,13 @@ objs.zip(srcs).each do |obj, src|
   file obj => src
 end
 
+objs += ["instructions.o"]
+
 files EXTERNALS do |t|
   path = File.join(*split_all(t.name)[0..1])
   configure_path = File.join(path, 'configure')
   if File.exist? configure_path then
-    sh "cd #{path}; ./configure && make"
+    sh "cd #{path}; ./configure #{OPTIONS[t.name]} && make"
   else
     sh "cd #{path}; make"
   end
@@ -133,6 +146,18 @@ file 'test/runner.o' => 'test/runner.cpp' # no rule .o => .cpp
 
 file "test/runner" => EXTERNALS + objs + %w(test/runner.o) do |t|
   link t
+end
+
+file "instructions.o" => ["llvm/instructions.cpp", "instructions.rb"] do
+  ruby "rubypp.rb llvm/instructions.cpp llvm/.instructions.cpp"
+  compile "instructions.o", "llvm/.instructions.cpp"
+  File.unlink "llvm/.instructions.cpp" rescue nil
+end
+
+file "instructions.bc" => "llvm/instructions.cpp" do
+  ruby "rubypp.rb llvm/instructions.cpp llvm/.instructions.cpp"
+  sh "llvm-g++ -emit-llvm -I. -Iexternal_libs/libffi/include -c -o instructions.bc llvm/.instructions.cpp"
+  File.unlink "llvm/.instructions.cpp" rescue nil
 end
 
 ############################################################$

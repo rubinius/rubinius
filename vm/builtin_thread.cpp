@@ -16,7 +16,6 @@ namespace rubinius {
 
   Thread* Thread::create(STATE) {
     Thread* thr = (Thread*)state->new_object(G(thread));
-    SET(thr, task, Task::create(state));
     SET(thr, priority, Object::i2n(2));
     return thr;
   }

@@ -4,6 +4,94 @@ require 'parse_tree'
 
 class Instructions
 
+
+  Implementation = Struct.new(:name, :sexp, :line, :body)
+
+  class Implementation
+    def args
+      return @args if defined? @args
+
+      args = sexp[2][1][1]
+      args.shift
+      ret = []
+      while sym = args.shift
+        break unless sym.kind_of? Symbol
+        ret << sym
+      end
+
+      @args = ret
+    end
+
+    def return_type
+      if /return\s+false/.match(body)
+        "bool"
+      else
+        "void"
+      end
+    end
+
+    def signature
+      av = args.map { |name| "int #{name}" }.join(", ")
+      av = ", #{av}" unless av.empty?
+      "#{return_type} op_#{name.opcode}(Task* task, struct jit_state* const js #{av})"
+    end
+  end
+
+  def decode_methods
+    pt = ParseTree.new(true)
+    
+    InstructionSet::OpCodes.map do |ins|
+      meth = method(ins.opcode) rescue nil
+      if meth
+        # Be sure to call it with the right number of args, to get the code
+        # out.
+        args = [nil] * meth.arity
+        code = meth.call *args
+        sexp = pt.parse_tree_for_method(Instructions, ins.opcode)
+        flat = sexp.flatten
+        line = flat[flat.index(:newline) + 1] + 1
+
+        Implementation.new ins, sexp, line, code
+      else
+        nil
+      end
+    end
+  end
+
+  def generate_functions(methods, io)
+    methods.each do |impl|
+      io.puts "#{impl.signature} {"
+      io.puts "#line #{impl.line} \"instructions.rb\""
+      io.puts impl.body
+      io.puts "}"
+    end
+  end
+
+  def generate_decoder_switch(methods, io)
+    io.puts "switch(op) {"
+
+    methods.each do |impl|
+      io.puts "  case #{impl.name.bytecode}: { // #{impl.name.opcode}"
+      args = impl.args
+      case args.size
+      when 2
+        io.puts "  int a1 = next_int;"
+        io.puts "  int a2 = next_int;"
+        io.puts "  op_#{impl.name.opcode}(task, js, a1, a2);"
+      when 1
+        io.puts "  int a1 = next_int;"
+        io.puts "  op_#{impl.name.opcode}(task, js, a1);"
+      when 0
+        io.puts "  op_#{impl.name.opcode}(task, js);"
+      end
+
+      io.puts "  break;"
+      io.puts "  }"
+    end
+    
+    io.puts "}"
+  end
+
   def generate_switch(fd, op="op")
     pt = ParseTree.new(true)
 
@@ -209,18 +297,11 @@ class TestInstructions : public CxxTest::TestSuite {
     code
   end
 
-  def generate_declarations(fd)
-    fd.puts "opcode _int;"
-    fd.puts "native_int j, k;"
-    fd.puts "OBJECT _lit, t1, t2, t3;"
-    fd.puts "Message msg(state);"
-  end
-
   def generate_names
     str =  "const char *rubinius::InstructionSequence::get_instruction_name(int op) {\n"
     str << "static const char instruction_names[] = {\n"
     InstructionSet::OpCodes.each do |ins|
-      str << "  \"#{ins.opcode.to_s}\\0\"\n"
+      str << "  \"op_#{ins.opcode.to_s}\\0\"\n"
     end
     str << "};\n\n"
     offset = 0
@@ -228,7 +309,7 @@ class TestInstructions : public CxxTest::TestSuite {
     InstructionSet::OpCodes.each_with_index do |ins, index|
       str << ",\n" if index > 0
       str << "  #{offset}"
-      offset += ins.opcode.to_s.length + 1
+      offset += ins.opcode.to_s.length + 4
     end
     str << "\n};\n\n"
     str << <<CODE
@@ -278,7 +359,7 @@ CODE
   end
 
   # [Operation]
-  #   Pushes an integer literal value onto the stack
+  #   Pushes a small integer literal value onto the stack
   # [Format]
   #   \push_int value
   # [Stack Before]
@@ -295,12 +376,11 @@ CODE
   #   * meta_push_neg_1
   # [Notes]
   #   Certain common cases (i.e. -1, 0, 1, and 2) are optimised to avoid the
-  #   lookup of the literal value in the literals tuple.
+  #   decoding of the argument.
 
-  def push_int
+  def push_int(val)
     <<-CODE
-    next_int;
-    stack_push(Object::i2n(_int));
+    stack_push(Object::i2n(val));
     CODE
   end
 
@@ -527,8 +607,9 @@ CODE
 
   def push_context
     <<-CODE
-    active->reference(state);
-    stack_push(active);
+    MethodContext* ctx = task->active;
+    ctx->reference(state);
+    stack_push(ctx);
     CODE
   end
 
@@ -556,11 +637,9 @@ CODE
   #   The literals tuple is part of the machine state, and holds all literal
   #   objects defined or used within a particular scope.
 
-  def push_literal
+  def push_literal(val)
     <<-CODE
-    next_int;
-    check_bounds(literals, _int);
-    t2 = literals->field[_int];
+    OBJECT t2 = task->literals->field[val];
     stack_push(t2);
     CODE
   end
@@ -596,11 +675,9 @@ CODE
   #   the '/' delimiters and create a new Regexp object passing it the string.
   #   Only then can the literal value be set, using the set_literal opcode.
 
-  def set_literal
+  def set_literal(val)
     <<-CODE
-    next_int;
-    check_bounds(literals, _int);
-    SET(literals, field[_int], stack_top());
+    SET(task->literals, field[val], stack_top());
     CODE
   end
 
@@ -630,7 +707,7 @@ CODE
 
   def push_self
     <<-CODE
-    stack_push(self);
+    stack_push(task->self);
     CODE
   end
 
@@ -656,11 +733,10 @@ CODE
   #   Retrieves the current value (+local_value+) of the referenced local
   #   variable (+local+), and pushes it onto the stack.
 
-  def push_local
+  def push_local(index)
     <<-CODE
-    next_int;
-    check_bounds(current_locals, _int);
-    stack_push(fast_fetch(current_locals, _int));
+    OBJECT obj = task->stack->field[index];
+    stack_push(obj);
     CODE
   end
 
@@ -695,20 +771,17 @@ CODE
   #     end
   #   </code>
 
-  def push_local_depth
+  def push_local_depth(depth, index)
     <<-CODE
-    next_int;
-    k = (native_int)_int;
-    next_int;
-    BlockContext* bc = as<BlockContext>(active);
+    BlockContext* bc = as<BlockContext>(task->active);
     BlockEnvironment* env;
 
-    for(j = 0; j < k; j++) {
+    for(int j = 0; j < depth; j++) {
       env = bc->env();
       bc = as<BlockContext>(env->home_block);
     }
 
-    stack_push(bc->locals()->at(_int));
+    stack_push(bc->locals()->at(index));
     CODE
   end
 
@@ -760,7 +833,7 @@ CODE
 
   def push_exception
     <<-CODE
-    stack_push(exception);
+    stack_push(task->exception);
     CODE
   end
 
@@ -788,7 +861,7 @@ CODE
 
   def clear_exception
     <<-CODE
-    exception = (Exception*)Qnil;
+    task->exception = (Exception*)Qnil;
     CODE
   end
 
@@ -822,7 +895,7 @@ CODE
 
   def push_block
     <<-CODE
-    stack_push(current_block);
+    stack_push(task->active->block);
     CODE
   end
 
@@ -849,10 +922,10 @@ CODE
   # [Description]
   #   Pushes the instance variable identified by +lit+ onto the stack.
 
-  def push_ivar
+  def push_ivar(index)
     <<-CODE
-    next_literal;
-    stack_push(self->get_ivar(state, _lit));
+    OBJECT sym = task->literals->field[index];
+    stack_push(task->self->get_ivar(state, sym));
     CODE
   end
 
@@ -888,10 +961,9 @@ CODE
   #   allocated. They are primarily used on core or bootstap classes.
   #   Accessing a field is slightly faster than accessing an ivar.
 
-  def push_my_field
+  def push_my_field(index)
     <<-CODE
-    next_int;
-    stack_push(self->get_field(state, _int));
+    stack_push(task->self->get_field(state, index));
     CODE
   end
 
@@ -936,10 +1008,9 @@ CODE
   #
   #   The stack is left unmodified.
 
-  def store_my_field
+  def store_my_field(index)
     <<-CODE
-    next_int;
-    self->set_field(state, _int, stack_top());
+    task->self->set_field(state, index, stack_top());
     CODE
   end
 
@@ -977,10 +1048,9 @@ CODE
   #   * goto_if_false
   #   * goto_if_defined
 
-  def goto
+  def goto(location)
     <<-CODE
-    next_int;
-    ip = _int;
+    task->ip = location;
     cache_ip();
     CODE
   end
@@ -1011,14 +1081,17 @@ CODE
   #   * goto_if_false
   #   * goto_if_defined
 
-  def goto_if_false
+  def goto_if_false(location)
     <<-CODE
-    next_int;
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
+    #if JIT
+    return !RTEST(t1);
+    #else
     if(!RTEST(t1)) {
-      ip = _int;
+      task->ip = location;
       cache_ip();
     }
+    #endif
     CODE
   end
 
@@ -1055,14 +1128,17 @@ CODE
   #   * goto_if_false
   #   * goto_if_defined
 
-  def goto_if_true
+  def goto_if_true(location)
     <<-CODE
-    next_int;
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
+    #if JIT
+    return RTEST(t1);
+    #else
     if(RTEST(t1)) {
-      ip = _int;
+      task->ip = location;
       cache_ip();
     }
+    #endif
     CODE
   end
 
@@ -1100,14 +1176,17 @@ CODE
   #   * goto_if_true
   #   * goto_if_false
 
-  def goto_if_defined
+  def goto_if_defined(location)
     <<-CODE
-    next_int;
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
+    #if JIT
+    return t1 != Qundef;
+    #else
     if(t1 != Qundef) {
-      ip = _int;
+      task->ip = location;
       cache_ip();
     }
+    #endif
     CODE
   end
 
@@ -1144,8 +1223,8 @@ CODE
 
   def swap_stack
     <<-CODE
-    t1 = stack_pop();
-    t2 = stack_pop();
+    OBJECT t1 = stack_pop();
+    OBJECT t2 = stack_pop();
     stack_push(t1);
     stack_push(t2);
     CODE
@@ -1181,7 +1260,7 @@ CODE
 
   def dup_top
     <<-CODE
-    t1 = stack_top();
+    OBJECT t1 = stack_top();
     stack_push(t1);
     CODE
   end
@@ -1243,18 +1322,9 @@ CODE
   #   variable identified by the literal +local+. The value is then pushed back
   #   onto the stack, to represent the return value from the expression.
 
-  def set_local
+  def set_local(index)
     <<-CODE
-    next_int;
-    t1 = stack_pop();
-    if(current_locals->zone == 0) {
-      check_bounds(current_locals, _int);
-      /* Manipulating directly because contains a write barrier variant */
-      current_locals->field[_int] = t1;
-    } else {
-      current_locals->put(state, _int, t1);
-    }
-    stack_push(t1);
+    task->stack->field[index] = stack_top();
     CODE
   end
 
@@ -1294,28 +1364,19 @@ CODE
   #     end
   #   </code>
 
-  def set_local_depth
+  def set_local_depth(depth, index)
     <<-CODE
-    next_int;
-    k = (native_int)_int;
-    next_int;
-    BlockContext* bc = as<BlockContext>(active);
+    BlockContext* bc = as<BlockContext>(task->active);
     BlockEnvironment* env;
 
-    for(j = 0; j < k; j++) {
+    for(int j = 0; j < depth; j++) {
       env = bc->env();
       bc = as<BlockContext>(env->home_block);
     }
 
-    t3 = stack_pop();
+    OBJECT t3 = stack_pop();
     Tuple *tup = bc->locals();
-
-    if(tup->zone == 0) {
-      check_bounds(tup, _int);
-      tup->field[_int] = t3;
-    } else {
-      tup->put(state, _int, t3);
-    }
+    tup->put(state, index, t3);
     stack_push(t3);
     CODE
   end
@@ -1363,11 +1424,11 @@ CODE
   #   taken from the stack, with the top item on the stack becoming the last
   #   item in the array. The resulting array is added back to the stack.
 
-  def make_array
+  def make_array(count)
     <<-CODE
-    next_int;
-    Array* ary = Array::create(state, _int);
-    j = _int - 1;
+    OBJECT t2;
+    Array* ary = Array::create(state, count);
+    int j = count - 1;
     for(; j >= 0; j--) {
       t2 = stack_pop();
       ary->set(state, j, t2);
@@ -1417,7 +1478,7 @@ CODE
 
   def cast_array
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     if(kind_of<Tuple>(t1)) {
       t1 = Array::from_tuple(state, as<Tuple>(t1));
     } else if(!kind_of<Array>(t1)) {
@@ -1470,14 +1531,14 @@ CODE
 
   def cast_tuple
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     if(kind_of<Array>(t1)) {
       Array* ary = as<Array>(t1);
-      j = ary->size();
+      int j = ary->size();
 
       Tuple* tup = Tuple::create(state, j);
 
-      for(k = 0; k < j; k++) {
+      for(int k = 0; k < j; k++) {
         tup->put(state, k, ary->get(state, k));
       }
       t1 = tup;
@@ -1541,7 +1602,7 @@ CODE
   def cast_for_single_block_arg
     <<-CODE
     Tuple* tup = as<Tuple>(stack_pop());
-    k = NUM_FIELDS(tup);
+    int k = NUM_FIELDS(tup);
     if(k == 0) {
       stack_push(Qnil);
     } else if(k == 1) {
@@ -1601,15 +1662,15 @@ CODE
   def cast_for_multi_block_arg
     <<-CODE
     Tuple* tup = as<Tuple>(stack_top());
-    k = NUM_FIELDS(tup);
+    int k = NUM_FIELDS(tup);
     /* If there is only one thing in the tuple... */
     if(k == 1) {
-      t1 = tup->at(0);
+      OBJECT t1 = tup->at(0);
       /* and that thing is an array... */
       if(kind_of<Array>(t1)) {
         /* make a tuple out of the array contents... */
         Array* ary = as<Array>(t1);
-        j = ary->size();
+        int j = ary->size();
         Tuple* out = Tuple::create(state, j);
 
         for(k = 0; k < j; k++) {
@@ -1657,12 +1718,10 @@ CODE
   #   variable identifies by the literal +ivar+ on the current +self+ object.
   #   The value popped off the stack is then pushed back on again.
 
-  def set_ivar
+  def set_ivar(index)
     <<-CODE
-    next_literal;
-    t2 = stack_pop();
-    self->set_ivar(state, _lit, t2);
-    stack_push(t2);
+    OBJECT sym = task->literals->field[index];
+    task->self->set_ivar(state, sym, stack_top());
     CODE
   end
 
@@ -1701,15 +1760,15 @@ CODE
   #     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
   #   </code>
 
-  def push_const
+  def push_const(index)
     <<-CODE
-    next_literal;
     bool found;
-    t1 = const_get(as<Symbol>(_lit), &found);
-    if(found) {
-      stack_push(t1);
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    OBJECT res = task->const_get(sym, &found);
+    if(!found) {
+      assert("implement const_missing");
     } else {
-      /* TODO const_missing call */
+      stack_push(res);
     }
     CODE
   end
@@ -1763,16 +1822,16 @@ CODE
   #     enum = Enumerable::Enumerator(str, :each_byte)
   #   </code>
 
-  def find_const
+  def find_const(index)
     <<-CODE
-    t1 = stack_pop();
-    next_literal;
     bool found;
-    t2 = const_get(as<Module>(t1), as<Symbol>(_lit), &found);
-    if(found) {
-      stack_push(t2);
+    Module* under = as<Module>(stack_pop());
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    OBJECT res = task->const_get(under, sym, &found);
+    if(!found) {
+      assert("implement const_missing");
     } else {
-      /* TODO call const_missing */
+      stack_push(res);
     }
     CODE
   end
@@ -1808,11 +1867,10 @@ CODE
   #   opcode to refer to the object as a constant. The constant is pushed back
   #   onto the stack.
 
-  def set_const
+  def set_const(index)
     <<-CODE
-    next_literal;
-    t1 = stack_top();
-    const_set(as<Symbol>(_lit), t1);
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    task->const_set(sym, stack_top());
     CODE
   end
 
@@ -1852,15 +1910,14 @@ CODE
   #   literals tuple, in the scope of +module+, which is also popped from the
   #   stack.
 
-  def set_const_at
+  def set_const_at(index)
     <<-CODE
-    next_literal;
-    t2 = stack_pop();
-    t3 = stack_pop();
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    OBJECT val = stack_pop();
+    Module* under = as<Module>(stack_pop());
 
-    const_set(as<Module>(t3), as<Symbol>(_lit), t2);
-
-    stack_push(t2);
+    task->const_set(under, sym, val);
+    stack_push(val);
     CODE
   end
 
@@ -1926,8 +1983,8 @@ CODE
   #   enclosing \class from the stack. Upon return, the new \class is pushed
   #   onto the stack.
   #
-  #   The +\class+ argument to the opcode is the \class literal identifying
-  #   the \class to be opened.
+  #   The +\class+ argument to the opcode is index of a literal symbol that
+  #   indicates the name of the class to be opened. 
   # [See Also]
   #   * open_class
   # [Example]
@@ -1941,19 +1998,18 @@ CODE
   #     # [...,A,C] => [...,B]
   #   </code>
 
-  def open_class_under
+  def open_class_under(index)
     <<-CODE
     bool created;
+    OBJECT super = stack_pop();
+    Module* under = as<Module>(stack_pop());
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
 
-    t1 = stack_pop();
-    t2 = stack_pop();
+    Class* cls = task->open_class(under, super, sym, &created);
+    // TODO use created? it's only for running the opened_class hook, which
+    // we're eliminating anyway.
 
-    next_literal;
-    t3 = open_class(as<Module>(t2), t1, as<Symbol>(_lit), &created);
-    if(t3 != Qundef) {
-      stack_push(t3);
-      if(created) perform_hook(t3, G(sym_opened_class), t1);
-    }
+    stack_push(cls);
     CODE
   end
 
@@ -2005,17 +2061,15 @@ CODE
   #     # [...,A] => [...,B]
   #   </code>
 
-  def open_class
+  def open_class(index)
     <<-CODE
     bool created;
+    OBJECT super = stack_pop();
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
 
-    t1 = stack_pop();
-    next_literal;
-    t3 = open_class(t1, as<Symbol>(_lit), &created);
-    if(t3 != Qundef) {
-      stack_push(t3);
-      if(created) perform_hook(t3, G(sym_opened_class), t1);
-    }
+    Class* cls = task->open_class(super, sym, &created);
+
+    stack_push(cls);
     CODE
   end
 
@@ -2059,11 +2113,12 @@ CODE
   #     end
   #   </code>
 
-  def open_module_under
+  def open_module_under(index)
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    stack_push(open_module(as<Module>(t1), as<Symbol>(_lit)));
+    Module* mod = as<Module>(stack_pop());
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+
+    stack_push(task->open_module(mod, sym));
     CODE
   end
 
@@ -2101,10 +2156,11 @@ CODE
   #     end
   #   </code>
 
-  def open_module
+  def open_module(index)
     <<-CODE
-    next_literal;
-    stack_push(open_module(as<Symbol>(_lit)));
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+
+    stack_push(task->open_module(sym));
     CODE
   end
 
@@ -2150,7 +2206,7 @@ CODE
 
   def open_metaclass
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     stack_push(t1->metaclass(state));
     CODE
   end
@@ -2190,13 +2246,15 @@ CODE
   # [Notes]
   #   Class/module methods are handled by add_method.
 
-  def attach_method
+  def attach_method(index)
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = stack_pop();
-    attach_method(t1, as<Symbol>(_lit), as<CompiledMethod>(t2));
-    stack_push(t2);
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    OBJECT obj = stack_pop();
+    OBJECT obj2 = stack_pop();
+    CompiledMethod* meth = as<CompiledMethod>(obj2);
+
+    task->attach_method(obj, sym, meth);
+    stack_push(meth);
     CODE
   end
 
@@ -2244,13 +2302,14 @@ CODE
   # [Notes]
   #   Singleton methods are handled by attach_method.
 
-  def add_method
+  def add_method(index)
     <<-CODE
-    next_literal;
-    t1 = stack_pop();
-    t2 = stack_pop();
-    add_method(as<Module>(t1), as<Symbol>(_lit), as<CompiledMethod>(t2));
-    stack_push(t2);
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
+    Module* obj = as<Module>(stack_pop());
+    CompiledMethod* meth = as<CompiledMethod>(stack_pop());
+
+    task->add_method(obj, sym, meth);
+    stack_push(meth);
     CODE
   end
 
@@ -2291,16 +2350,30 @@ CODE
   #   This form of send is for methods that take no arguments.
   #
 
-  def send_method
+  def send_method(index)
     <<-CODE
-    next_literal;
-    msg.send_site = as<SendSite>(_lit);
+    Message& msg = *task->msg;
+
+    msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.recv = stack_top();
     msg.block = Qnil;
     msg.splat = Qnil;
     msg.args = 0;
     msg.stack = 1;
-    goto perform_send;
+
+    msg.priv = task->call_flags & 1;
+    msg.lookup_from = msg.recv->lookup_begin(state);
+    msg.name = msg.send_site->name;
+
+    task->call_flags = 0;
+
+    FLUSH_JS();
+    if(task->send_message(msg)) {
+      return true;
+    } else {
+      CACHE_JS();
+      return false;
+    }
     CODE
   end
 
@@ -2383,19 +2456,31 @@ CODE
   #   send_stack_with_block for the equivalent op code used when a block is to
   #   be passed.
 
-  def send_stack
+  def send_stack(index, count)
     <<-CODE
-    next_literal;
-    msg.send_site = as<SendSite>(_lit);
-    next_int_into(msg.args);
-    msg.recv = stack_back(msg.args);
-    msg.splat = Qnil;
+    Message& msg = *task->msg;
+
+    msg.send_site = as<SendSite>(task->literals->field[index]);
+    msg.recv = stack_back(count);
     msg.block = Qnil;
-    msg.use_from_task(this, msg.args);
+    msg.splat = Qnil;
+    msg.args = count;
+    msg.stack = count + 1;
+    msg.use_from_task(task, count);
 
-    msg.stack = msg.args + 1;
+    msg.priv = task->call_flags & 1;
+    msg.lookup_from = msg.recv->lookup_begin(state);
+    msg.name = msg.send_site->name;
 
-    goto perform_send;
+    task->call_flags = 0;
+
+    FLUSH_JS();
+    if(task->send_message(msg)) {
+      return true;
+    } else {
+      CACHE_JS();
+      return false;
+    }
     CODE
   end
 
@@ -2459,20 +2544,31 @@ CODE
   #   This opcode passes a block to the receiver; see send_stack for the
   #   equivalent op code used when no block is to be passed.
 
-  def send_stack_with_block
+  def send_stack_with_block(index, count)
     <<-CODE
-    next_literal;
-    msg.send_site = as<SendSite>(_lit);
-    next_int_into(msg.args);
+    Message& msg = *task->msg;
+
+    msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.block = stack_pop();
     msg.splat = Qnil;
-    msg.recv = stack_back(msg.args);
-    msg.stack = msg.args + 2;
-    msg.use_from_task(this, msg.args);
+    msg.args = count;
+    msg.recv = stack_back(count);
+    msg.stack = count + 2;
+    msg.use_from_task(task, count);
 
-    msg.stack = msg.args + 2;
+    msg.priv = task->call_flags & 1;
+    msg.lookup_from = msg.recv->lookup_begin(state);
+    msg.name = msg.send_site->name;
 
-    goto perform_send;
+    task->call_flags = 0;
+
+    FLUSH_JS();
+    if(task->send_message(msg)) {
+      return true;
+    } else {
+      CACHE_JS();
+      return false;
+    }
     CODE
   end
 
@@ -2543,30 +2639,32 @@ CODE
   #   been set previously via a call to either set_args or
   #   cast_array_for_args.
 
-  def send_stack_with_splat
+  def send_stack_with_splat(index, count)
     <<-CODE
-    next_literal;
-    msg.send_site = as<SendSite>(_lit);
-    next_int_into(msg.args);
+    Message& msg = *task->msg;
 
+    msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.block = stack_pop();
-    t1 = stack_pop();
+    OBJECT ary = stack_pop();
+    msg.splat = Qnil;
+    msg.args = count;
+    msg.recv = stack_back(count);
+    msg.stack = count + 3;
+    msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
 
-    msg.recv = stack_back(msg.args);
-
-    msg.combine_with_splat(state, this, as<Array>(t1)); /* call_flags & 3 */
-
-    msg.stack = msg.args + 3;
-
-    perform_send:
-
-    msg.priv = call_flags & 1;
+    msg.priv = task->call_flags & 1;
     msg.lookup_from = msg.recv->lookup_begin(state);
     msg.name = msg.send_site->name;
 
-    call_flags = 0;
+    task->call_flags = 0;
 
-    send_message(msg);
+    FLUSH_JS();
+    if(task->send_message(msg)) {
+      return true;
+    } else {
+      CACHE_JS();
+      return false;
+    }
     CODE
   end
 
@@ -2633,18 +2731,31 @@ CODE
   #   The receiver is not specified for a call to super; it is the superclass
   #   of the current object that will receive the message.
 
-  def send_super_stack_with_block
+  def send_super_stack_with_block(index, count)
     <<-CODE
-    next_literal;
-    msg.send_site = as<SendSite>(_lit);
-    next_int_into(msg.args);
+    Message& msg = *task->msg;
+    
+    msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.block = stack_pop();
     msg.splat = Qnil;
-    msg.recv = self;
-    msg.stack = msg.args + 2;
-    msg.use_from_task(this, msg.args);
+    msg.args = count;
+    msg.recv = stack_back(count);
+    msg.stack = count + 2;
+    msg.use_from_task(task, count);
 
-    goto perform_super_send;
+    msg.priv = task->call_flags & 1;
+    msg.lookup_from = msg.recv->lookup_begin(state);
+    msg.name = msg.send_site->name;
+
+    task->call_flags = 0;
+
+    FLUSH_JS();
+    if(task->send_message(msg)) {
+      return true;
+    } else {
+      CACHE_JS();
+      return false;
+    }
     CODE
   end
 
@@ -2719,28 +2830,32 @@ CODE
   #   number of arguments in +args+ via either set_args or
   #   cast_array_for_args.
 
-  def send_super_stack_with_splat
+  def send_super_stack_with_splat(index, count)
     <<-CODE
-    next_literal;
-    msg.send_site = as<SendSite>(_lit);
-    next_int_into(msg.args);
+    Message& msg = *task->msg;
+
+    msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.block = stack_pop();
-    t1 = stack_pop();
+    OBJECT ary = stack_pop();
+    msg.splat = Qnil;
+    msg.args = count;
+    msg.recv = task->self;
+    msg.stack = count + 2;
+    msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
 
-    msg.combine_with_splat(state, this, as<Array>(t1)); /* call_flags & 3 */
-
-    msg.recv = self;
-    msg.stack = msg.args + 3;
-
-    perform_super_send:
-
-    msg.name = msg.send_site->name;
     msg.priv = TRUE;
-    call_flags = 0;
+    msg.lookup_from = task->current_module()->superclass;
+    msg.name = msg.send_site->name;
 
-    msg.lookup_from = current_module()->superclass;
+    task->call_flags = 0;
 
-    send_message(msg);
+    FLUSH_JS();
+    if(task->send_message(msg)) {
+      return true;
+    } else {
+      CACHE_JS();
+      return false;
+    }
     CODE
   end
 
@@ -2816,10 +2931,10 @@ CODE
 
   def locate_method
     <<-CODE
-    t1 = stack_pop(); // include_private
+    OBJECT t1 = stack_pop(); // include_private
     SYMBOL name = as<Symbol>(stack_pop()); // meth
-    t3 = stack_pop(); // self
-    stack_push(locate_method_on(t3, name, t1));
+    OBJECT t3 = stack_pop(); // self
+    stack_push(task->locate_method_on(t3, name, t1));
     CODE
   end
 
@@ -2857,17 +2972,18 @@ CODE
 
   def meta_send_op_plus
     <<-CODE
-    t1 = stack_back(1);
-    t2 = stack_back(0);
-    if(t1->fixnum_p() && t2->fixnum_p()) {
+    OBJECT left =  stack_back(1);
+    OBJECT right = stack_back(0);
+
+    if(both_fixnum_p(left, right)) {
       stack_pop();
-      stack_set_top(as<Fixnum>(t1)->add(state, as<Fixnum>(t2)));
-    } else {
-      _lit = G(sym_plus);
-      t2 = Qnil;
-      j = 1;
-      goto perform_no_ss_send;
+      stack_pop();
+      OBJECT res = ((FIXNUM)(left))->add(state, (FIXNUM)(right));
+      stack_push(res);
+      return false;
     }
+
+    return send_slowly(task, js, G(sym_plus));
     CODE
   end
 
@@ -2905,17 +3021,18 @@ CODE
 
   def meta_send_op_minus
     <<-CODE
-    t1 = stack_back(1);
-    t2 = stack_back(0);
-    if(t1->fixnum_p() && t2->fixnum_p()) {
+    OBJECT left =  stack_back(1);
+    OBJECT right = stack_back(0);
+
+    if(both_fixnum_p(left, right)) {
       stack_pop();
-      stack_set_top(as<Fixnum>(t1)->sub(state, as<Fixnum>(t2)));
-    } else {
-      _lit = G(sym_minus);
-      t2 = Qnil;
-      j = 1;
-      goto perform_no_ss_send;
+      stack_pop();
+      OBJECT res = ((FIXNUM)(left))->sub(state, (FIXNUM)(right));
+      stack_push(res);
+      return false;
     }
+
+    return send_slowly(task, js, G(sym_minus));
     CODE
   end
 
@@ -2953,18 +3070,16 @@ CODE
 
   def meta_send_op_equal
     <<-CODE
-    t1 = stack_back(1);
-    t2 = stack_back(0);
+    OBJECT t1 = stack_back(1);
+    OBJECT t2 = stack_back(0);
     /* If both are not references, compare them directly. */
     if(!t1->reference_p() && !t2->reference_p()) {
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
-    } else {
-      _lit = G(sym_equal);
-      t2 = Qnil;
-      j = 1;
-      goto perform_no_ss_send;
+      return false;
     }
+    
+    return send_slowly(task, js, G(sym_equal));
     CODE
   end
 
@@ -3005,18 +3120,16 @@ CODE
 
   def meta_send_op_nequal
     <<-CODE
-    t1 = stack_back(1);
-    t2 = stack_back(0);
+    OBJECT t1 = stack_back(1);
+    OBJECT t2 = stack_back(0);
     /* If both are not references, compare them directly. */
     if(!t1->reference_p() && !t2->reference_p()) {
       stack_pop();
       stack_set_top((t1 == t2) ? Qfalse : Qtrue);
-    } else {
-      _lit = G(sym_nequal);
-      t2 = Qnil;
-      j = 1;
-      goto perform_no_ss_send;
+      return false;
     }
+    
+    return send_slowly(task, js, G(sym_nequal));
     CODE
   end
 
@@ -3056,18 +3169,16 @@ CODE
 
   def meta_send_op_tequal
     <<-CODE
-    t1 = stack_back(1);
-    t2 = stack_back(0);
+    OBJECT t1 = stack_back(1);
+    OBJECT t2 = stack_back(0);
     /* If both are fixnums, or both are symbols, compare the ops directly. */
     if((t1->fixnum_p() && t2->fixnum_p()) || (t1->symbol_p() && t2->symbol_p())) {
       stack_pop();
       stack_set_top((t1 == t2) ? Qtrue : Qfalse);
-    } else {
-      _lit = G(sym_tequal);
-      t2 = Qnil;
-      j = 1;
-      goto perform_no_ss_send;
+      return false;
     }
+    
+    return send_slowly(task, js, G(sym_tequal));
     CODE
   end
 
@@ -3105,19 +3216,17 @@ CODE
 
   def meta_send_op_lt
     <<-CODE
-    t1 = stack_back(1);
-    t2 = stack_back(0);
+    OBJECT t1 = stack_back(1);
+    OBJECT t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
-      j = as<Integer>(t1)->n2i();
-      k = as<Integer>(t2)->n2i();
+      int j = as<Integer>(t1)->n2i();
+      int k = as<Integer>(t2)->n2i();
       stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
-    } else {
-      _lit = G(sym_lt);
-      t2 = Qnil;
-      j = 1;
-      goto perform_no_ss_send;
+      return false;
     }
+    
+    return send_slowly(task, js, G(sym_lt));
     CODE
   end
 
@@ -3155,19 +3264,17 @@ CODE
 
   def meta_send_op_gt
     <<-CODE
-    t1 = stack_back(1);
-    t2 = stack_back(0);
+    OBJECT t1 = stack_back(1);
+    OBJECT t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
-      j = as<Integer>(t1)->n2i();
-      k = as<Integer>(t2)->n2i();
+      int j = as<Integer>(t1)->n2i();
+      int k = as<Integer>(t2)->n2i();
       stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
-    } else {
-      _lit = G(sym_gt);
-      t2 = Qnil;
-      j = 1;
-      goto perform_no_ss_send;
+      return false;
     }
+    
+    return send_slowly(task, js, G(sym_gt));
     CODE
   end
 
@@ -3186,27 +3293,16 @@ CODE
     CODE
   end
 
-  def meta_send_call
+  def meta_send_call(count)
     <<-CODE
-    next_int;
-    t1 = stack_back(_int);
+    OBJECT t1 = stack_back(count);
 
     if(kind_of<BlockEnvironment>(t1)) {
-      as<BlockEnvironment>(t1)->call(state, this, _int);
-    } else {
-      _lit = G(sym_call);
-      t2 = Qnil;
-      j = _int;
-
-perform_no_ss_send:
-      msg.recv = t1;
-      msg.import_arguments(state, this, j);
-      msg.name = as<Symbol>(_lit);
-      msg.lookup_from = msg.recv->lookup_begin(state);
-      msg.block = t2;
-      stack_pop(); /* remove receiver */
-      send_message_slowly(msg);
+      as<BlockEnvironment>(t1)->call(state, task, count);
+      return false;
     }
+
+    return send_slowly(task, js, G(sym_call));
     CODE
   end
 
@@ -3235,8 +3331,8 @@ perform_no_ss_send:
 
   def soft_return
     <<-CODE
-    t1 = stack_pop();
-    simple_return(state, t1);
+    OBJECT t1 = stack_pop();
+    task->simple_return(state, t1);
     CODE
   end
 
@@ -3255,8 +3351,8 @@ perform_no_ss_send:
 
   def raise_exc
     <<-CODE
-    t1 = stack_pop();
-    raise_exception(as<Exception>(t1));
+    OBJECT t1 = stack_pop();
+    task->raise_exception(as<Exception>(t1));
     CODE
   end
 
@@ -3303,7 +3399,7 @@ perform_no_ss_send:
 
   def ret
     <<-CODE
-    simple_return(stack_top());
+    task->simple_return(stack_top());
     CODE
   end
 
@@ -3329,14 +3425,14 @@ perform_no_ss_send:
 
   def shift_tuple
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     Tuple* tup = as<Tuple>(t1);
     if(NUM_FIELDS(t1) == 0) {
       stack_push(tup);
       stack_push(Qnil);
     } else {
-      j = NUM_FIELDS(t1) - 1;
-      t2 = tup->at(0);
+      int j = NUM_FIELDS(t1) - 1;
+      OBJECT t2 = tup->at(0);
       Tuple* tup = Tuple::create(state, j);
       tup->copy_from(state, tup, 1, j);
       stack_push(tup);
@@ -3359,10 +3455,9 @@ perform_no_ss_send:
   #   specified argument index +index+ (0-based), and pushes the result of the
   #   test onto the stack.
 
-  def passed_arg
+  def passed_arg(count)
     <<-CODE
-    next_int;
-    if((unsigned long int)_int < argcount) {
+    if((unsigned long int)count < task->active->args) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -3383,10 +3478,9 @@ perform_no_ss_send:
   #   Checks if a block was passed to a method, and pushes the result of the
   #   test onto the stack.
 
-  def passed_blockarg
+  def passed_blockarg(count)
     <<-CODE
-    next_int;
-    if(_int == blockargs) {
+    if((unsigned int)count == task->blockargs) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -3413,8 +3507,8 @@ perform_no_ss_send:
 
   def string_append
     <<-CODE
-    t1 = stack_pop();
-    t2 = stack_pop();
+    OBJECT t1 = stack_pop();
+    OBJECT t2 = stack_pop();
     String* s1 = as<String>(t1);
     String* s2 = as<String>(t2);
     s1->append(state, s2);
@@ -3461,10 +3555,9 @@ perform_no_ss_send:
   #   include private methods when looking for a method that responds to a
   #   message.
 
-  def set_call_flags
+  def set_call_flags(flags)
     <<-CODE
-    next_int;
-    call_flags = _int;
+    task->call_flags = flags;
     CODE
   end
 
@@ -3481,25 +3574,25 @@ perform_no_ss_send:
   #   Takes a +compiled_method+ out o the literals tuple, and converts it into a
   #   block environment +block_env+, which is then pushed back onto the stack.
 
-  def create_block
+  def create_block(index)
     <<-CODE
     /* the method */
-    next_literal;
+    OBJECT _lit = task->literals->field[index];
     CompiledMethod* cm = as<CompiledMethod>(_lit);
 
     MethodContext* parent;
-    if(kind_of<BlockContext>(active)) {
-      parent = as<BlockContext>(active)->env()->home;
+    if(kind_of<BlockContext>(task->active)) {
+      parent = as<BlockContext>(task->active)->env()->home;
     } else {
-      parent = active;
+      parent = task->active;
     }
 
     parent->reference(state);
-    active->reference(state);
+    task->active->reference(state);
 
-    cm->set_scope(current_scope);
+    cm->set_scope(task->active->cm->scope);
 
-    t2 = BlockEnvironment::under_context(state, cm, parent, active, _int);
+    OBJECT t2 = BlockEnvironment::under_context(state, cm, parent, task->active, index);
     stack_push(t2);
     CODE
   end
@@ -3525,7 +3618,7 @@ perform_no_ss_send:
 
   def kind_of
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     Class* cls = as<Class>(stack_pop());
     if(t1->kind_of_p(state, cls)) {
       stack_push(Qtrue);
@@ -3556,7 +3649,7 @@ perform_no_ss_send:
 
   def instance_of
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     Class* cls = as<Class>(stack_pop());
     if(t1->class_object(state) == cls) {
       stack_push(Qtrue);
@@ -3593,7 +3686,7 @@ perform_no_ss_send:
 
   def yield_debugger
     <<-CODE
-    yield_debugger();
+    task->yield_debugger();
     CODE
   end
 
@@ -3613,7 +3706,7 @@ perform_no_ss_send:
 
   def is_fixnum
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     stack_push(t1->fixnum_p() ? Qtrue : Qfalse);
     CODE
   end
@@ -3634,7 +3727,7 @@ perform_no_ss_send:
 
   def is_symbol
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     stack_push(t1->symbol_p() ? Qtrue : Qfalse);
     CODE
   end
@@ -3655,7 +3748,7 @@ perform_no_ss_send:
 
   def is_nil
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     stack_push(t1 == Qnil ? Qtrue : Qfalse);
     CODE
   end
@@ -3676,7 +3769,7 @@ perform_no_ss_send:
 
   def class
     <<-CODE
-    t1 = stack_pop();
+    OBJECT t1 = stack_pop();
     stack_push(t1->class_object(state));
     CODE
   end
@@ -3705,8 +3798,8 @@ perform_no_ss_send:
 
   def equal
     <<-CODE
-    t1 = stack_pop();
-    t2 = stack_pop();
+    OBJECT t1 = stack_pop();
+    OBJECT t2 = stack_pop();
     stack_push(t1 == t2 ? Qtrue : Qfalse);
     CODE
   end
@@ -3741,13 +3834,12 @@ perform_no_ss_send:
   #   CompiledMethod, is initialised to either 0 (for kernel land methods) or
   #   1 (for user land methods).
 
-  def check_serial
+  def check_serial(index, serial)
     <<-CODE
-    t1 = stack_pop();
-    next_literal;
-    next_int;
+    OBJECT t1 = stack_pop();
+    SYMBOL sym = as<Symbol>(task->literals->field[index]);
 
-    if(check_serial(t1, as<Symbol>(_lit), _int)) {
+    if(task->check_serial(t1, sym, serial)) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -3757,36 +3849,30 @@ perform_no_ss_send:
 
 end
 
-si = Instructions.new
 
-Dir.mkdir "gen" unless File.directory?("gen")
+if $0 == __FILE__
+  si = Instructions.new
 
-File.open("gen/task_instructions_switch.c", "w") do |f|
-  si.generate_declarations(f)
-  si.generate_switch(f)
-end
+  Dir.mkdir "gen" unless File.directory?("gen")
 
-File.open("gen/iseq_instruction_names.cpp","w") do |f|
-  f.puts si.generate_names
-end
+  File.open("gen/iseq_instruction_names.cpp","w") do |f|
+    f.puts si.generate_names
+  end
 
-File.open("gen/iseq_instruction_names.hpp","w") do |f|
-  f.puts si.generate_names_header
-end
+  File.open("gen/iseq_instruction_names.hpp","w") do |f|
+    f.puts si.generate_names_header
+  end
 
-File.open("gen/iseq_instruction_dt_helper.cpp", "w") do |f|
-  f.puts si.generate_dter
-end
+  File.open("gen/iseq_instruction_dt_helper.cpp", "w") do |f|
+    f.puts si.generate_dter
+  end
 
-File.open("gen/iseq_instruction_size.gen", "w") do |f|
-  f.puts si.generate_size
-end
+  File.open("gen/iseq_instruction_size.gen", "w") do |f|
+    f.puts si.generate_size
+  end
 
-File.open("gen/task_instruction_dt.cpp", "w") do |f|
-  si.generate_declarations(f)
-  si.generate_threaded(f)
-end
+  File.open("test/test_instructions.hpp", "w") do |f|
+    si.generate_tests(f)
+  end
 
-File.open("test/test_instructions.hpp", "w") do |f|
-  si.generate_tests(f)
 end
