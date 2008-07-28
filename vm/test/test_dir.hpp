@@ -32,14 +32,18 @@ class TestDir : public CxxTest::TestSuite {
     TS_ASSERT(!d->data->nil_p());
   }
 
-  void test_open_raises_exception_if_directory_doesnt_exist() {
+  /*
+  void _test_open_nonexistent() {
     String* path = String::create(state, "nonexistent");
     // TODO: change to TS_ASSERT_RAISES(d->open(state, path), {Ruby IOError});
   }
+  */
 
-  void test_close_raises_exception_if_closed() {
+  /*
+  void _test_close_closed() {
     // TODO: TS_ASSERT_RAISES(d->close(state), {Ruby IOError});
   }
+  */
 
   void test_close() {
     String* path = String::create(state, ".");
@@ -84,9 +88,11 @@ class TestDir : public CxxTest::TestSuite {
     remove_directory(dir);
   }
 
-  void test_read_raises_exception_if_closed() {
+  /*
+  void _test_read_raises_exception_if_closed() {
     // TODO: TS_ASSERT_RAISES(d->read(state), {Ruby IOError});
   }
+  */
 
   void test_control_tells_current_position() {
     char *dir = make_directory();
@@ -128,8 +134,10 @@ class TestDir : public CxxTest::TestSuite {
     remove_directory(dir);
   }
 
-  void test_control_raises_exception_if_closed() {
+  /*
+  void _test_control_closed() {
     // TODO: TS_ASSERT_RAISES(d->control(state, Object::i2n(0), Object::i2n(0)), {Ruby IOError});
   }
+  */
 
 };
