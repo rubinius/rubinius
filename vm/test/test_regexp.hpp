@@ -90,4 +90,20 @@ class TestRegexp : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(0))->n2i(), 1);
     TS_ASSERT_EQUALS(as<Integer>(as<Tuple>(matches->region->at(0))->at(1))->n2i(), 2);
   }
+
+  void test_match_start() {
+    String *pat = String::create(state, ".");
+    Regexp* re = Regexp::create(state, pat, Object::i2n(0));
+
+    String *input = String::create(state, "abc");
+
+    FIXNUM start = Object::i2n(1);
+
+    MatchData* matches = (MatchData*)re->match_start(state, input, start);
+    TS_ASSERT(!matches->nil_p());
+    TS_ASSERT_EQUALS(matches->region->field_count, 0U);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(0))->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(matches->full->at(1))->n2i(), 2);
+  }
+  
 };

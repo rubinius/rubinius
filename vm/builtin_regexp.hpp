@@ -30,8 +30,14 @@ namespace rubinius {
     static Regexp* create(STATE, String* pattern, INTEGER options, char* err_buf = NULL);
     static char*  version(STATE);
 
+    // Ruby.primitive :regexp_options
     OBJECT options(STATE);
+
+    // Ruby.primitive :regexp_search_region
     OBJECT match_region(STATE, String* string, INTEGER start, INTEGER end, OBJECT forward);
+
+    // Ruby.primitive :regexp_match_start
+    OBJECT match_start(STATE, String* string, INTEGER start);
 
     class Info : public TypeInfo {
     public:

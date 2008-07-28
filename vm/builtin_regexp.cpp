@@ -221,4 +221,26 @@ namespace rubinius {
     onig_region_free(region, 1);
     return md;
   }
+
+  OBJECT Regexp::match_start(STATE, String* string, INTEGER start) {
+    int beg, max;
+    const UChar *str;
+    OnigRegion *region;
+    OBJECT md = Qnil;
+
+    region = onig_region_new();
+
+    max = string->size(state);
+    str = (UChar*)string->byte_address(state);
+
+    beg = onig_match(REG(data), str, str + max, str + start->n2i(), region,
+                     ONIG_OPTION_NONE);
+
+    if(beg != ONIG_MISMATCH) {
+      md = get_match_data(state, region, string, this, max);
+    }
+
+    onig_region_free(region, 1);
+    return md;
+  }
 }
