@@ -122,6 +122,8 @@ file :vm => EXTERNALS + objs + vm_objs do |t|
   link t
 end
 
+file 'gen/primitives_glue.gen.cpp' => hdrs
+
 file 'test/runner.cpp' => tests do
   sh('test/cxxtest/cxxtestgen.pl', '--error-printer', '--have-eh',
      '--abort-on-fail', '-o', 'test/runner.cpp', *tests)
