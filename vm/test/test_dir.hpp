@@ -32,7 +32,7 @@ class TestDir : public CxxTest::TestSuite {
     TS_ASSERT(!d->data->nil_p());
   }
 
-  void test_open_raises_exception() {
+  void test_open_raises_exception_if_directory_doesnt_exist() {
     String* path = String::create(state, "nonexistent");
     // TODO: change to TS_ASSERT_RAISES(d->open(state, path), {Ruby IOError});
   }
@@ -83,4 +83,53 @@ class TestDir : public CxxTest::TestSuite {
     TS_ASSERT(d->read(state)->nil_p());
     remove_directory(dir);
   }
+
+  void test_read_raises_exception_if_closed() {
+    // TODO: TS_ASSERT_RAISES(d->read(state), {Ruby IOError});
+  }
+
+  void test_control_tells_current_position() {
+    char *dir = make_directory();
+    String* path = String::create(state, dir);
+    d->open(state, path);
+    FIXNUM pos = (FIXNUM)d->control(state, Object::i2n(2), Object::i2n(0));
+    TS_ASSERT_EQUALS(pos->n2i(), 0);
+    d->read(state);
+    pos = (FIXNUM)d->control(state, Object::i2n(2), Object::i2n(0));
+    TS_ASSERT_LESS_THAN(0, pos->n2i());
+    remove_directory(dir);
+  }
+
+  void test_control_rewinds_read_location() {
+    char *dir = make_directory();
+    String* path = String::create(state, dir);
+    d->open(state, path);
+    d->read(state);
+    d->read(state);
+    TS_ASSERT(d->read(state)->nil_p());
+    d->control(state, Object::i2n(1), Object::i2n(0));
+    String* name = (String*)d->read(state);
+    TS_ASSERT_EQUALS(name->byte_address()[0], '.');
+    remove_directory(dir);
+  }
+
+  void test_control_seeks_to_a_known_position() {
+    char *dir = make_directory();
+    String* path = String::create(state, dir);
+    d->open(state, path);
+    d->read(state);
+    FIXNUM pos = (FIXNUM)d->control(state, Object::i2n(2), Object::i2n(0));
+    String* first = (String*)d->read(state);
+
+    d->control(state, Object::i2n(0), pos);
+    String* second = (String*)d->read(state);
+    TS_ASSERT_EQUALS(first->size(), second->size());
+    TS_ASSERT_SAME_DATA(first, second, first->size());
+    remove_directory(dir);
+  }
+
+  void test_control_raises_exception_if_closed() {
+    // TODO: TS_ASSERT_RAISES(d->control(state, Object::i2n(0), Object::i2n(0)), {Ruby IOError});
+  }
+
 };

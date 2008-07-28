@@ -60,5 +60,18 @@ namespace rubinius {
   OBJECT Dir::control(STATE, FIXNUM kind, INTEGER pos) {
     guard(state);
 
+    DIR* d = (DIR*)data->pointer;
+
+    switch(kind->n2i()) {
+    case 0:
+      seekdir(d, pos->n2i());
+      return Qtrue;
+    case 1:
+      rewinddir(d);
+      return Qtrue;
+    case 2:
+      return Object::i2n(state, telldir(d));
+    }
+    return Qnil;
   }
 }
