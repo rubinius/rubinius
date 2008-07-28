@@ -14,10 +14,10 @@ namespace rubinius {
     static Channel* create(STATE);
 
     // Ruby.primitive :channel_send
-    void send(STATE, OBJECT);
+    OBJECT send(STATE, OBJECT);
 
     // Ruby.primitive :channel_receive
-    void receive(STATE);
+    OBJECT receive(STATE);
     bool has_readers_p();
 
     class Info : public TypeInfo {

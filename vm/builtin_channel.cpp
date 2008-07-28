@@ -8,12 +8,12 @@ namespace rubinius {
     return chan;
   }
 
-  void Channel::send(STATE, OBJECT val) {
+  OBJECT Channel::send(STATE, OBJECT val) {
     if(!waiting->empty_p()) {
       Thread* thr = as<Thread>(waiting->shift(state));
       thr->set_top(state, val);
       state->queue_thread(thr);
-      return;
+      return Qnil;
     }
 
     if(value->nil_p()) {
@@ -22,13 +22,14 @@ namespace rubinius {
 
       value = lst;
     }
+    return Qnil;
   }
 
-  void Channel::receive(STATE) {
+  OBJECT Channel::receive(STATE) {
     if(!value->nil_p()) {
       OBJECT val = as<List>(value)->shift(state);
       state->return_value(val);
-      return;
+      return Qnil;
     }
 
     /* We push nil on the stack to reserve a place to put the result. */
@@ -37,6 +38,7 @@ namespace rubinius {
     G(current_thread)->sleep_for(state, this);
     waiting->append(state, G(current_thread));
     state->run_best_thread();
+    return Qnil;
   }
 
   bool Channel::has_readers_p() {
