@@ -90,10 +90,6 @@ namespace rubinius {
     return (FIXNUM)APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
 
-  FIXNUM Object::i2n(native_int num) {
-    return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
-  }
-
   INTEGER Object::i2n(STATE, native_int num) {
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       return Bignum::create(state, num);
@@ -116,109 +112,6 @@ namespace rubinius {
     } else {
       return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
     }
-  }
-
-  bool Object::fixnum_p() {
-    return FIXNUM_P(this);
-  }
-
-  bool Object::symbol_p() {
-    return SYMBOL_P(this);
-  }
-
-  void Object::init(gc_zone loc, size_t fields) {
-    all_flags = 0;
-    zone = loc;
-    field_count = fields;
-  }
-
-  void Object::clear_fields() {
-    for(size_t i = 0; i < field_count; i++) {
-      field[i] = Qnil;
-    }
-  }
-
-  void Object::init_bytes() {
-    this->StoresBytes = 1;
-    std::memset((void*)(this->field), field_count * sizeof(OBJECT), 0);
-  }
-
-  size_t Object::size_in_bytes() {
-    return SIZE_IN_BYTES(this);
-  }
-
-  size_t Object::body_in_bytes() {
-    return field_count * sizeof(OBJECT);
-  }
-
-  bool Object::reference_p() {
-    return REFERENCE_P(this);
-  }
-
-  bool Object::stores_bytes_p() {
-    return StoresBytes;
-  }
-
-  bool Object::stores_references_p() {
-    return !StoresBytes;
-  }
-
-  bool Object::young_object_p() {
-    return zone == YoungObjectZone;
-  }
-
-  bool Object::mature_object_p() {
-    return zone == MatureObjectZone;
-  }
-
-  bool Object::forwarded_p() {
-    return Forwarded == 1;
-  }
-
-  void Object::set_forward(OBJECT fwd) {
-    assert(zone == YoungObjectZone);
-    Forwarded = 1;
-    klass = (Class*)fwd;
-  }
-
-  OBJECT Object::forward() {
-    return (OBJECT)klass;
-  }
-
-  bool Object::marked_p() {
-    return Marked == 1;
-  }
-
-  void Object::mark() {
-    Marked = 1;
-  }
-
-  void Object::clear_mark() {
-    Marked = 0;
-  }
-
-  bool Object::nil_p() {
-    return this == Qnil;
-  }
-
-  bool Object::undef_p() {
-    return this == Qundef;
-  }
-
-  bool Object::true_p() {
-    return this == Qtrue;
-  }
-
-  bool Object::false_p() {
-    return this == Qfalse;
-  }
-
-  bool Object::has_ivars_p() {
-    return CanStoreIvars == TRUE;
-  }
-
-  bool Object::check_type(object_type type) {
-    return reference_p() && obj_type == type;
   }
 
   Class* Object::class_object(STATE) {
