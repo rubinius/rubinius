@@ -4,7 +4,7 @@
 namespace rubinius {
   class Dir : public Object {
     public:
-    const static size_t fields = 1;
+    const static size_t fields = 2;
     const static object_type type = DirType;
 
     OBJECT __ivars__; // slot
