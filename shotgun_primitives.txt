@@ -172,7 +172,6 @@ opt_push_my_field
 opt_push_self
 process_exit
 put
-regexp_match
 regexp_match_start
 regexp_new
 regexp_options
