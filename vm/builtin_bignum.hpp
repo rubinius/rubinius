@@ -23,6 +23,9 @@ namespace rubinius {
     static INTEGER from_string(STATE, const char* str, size_t radix);
     static INTEGER from_double(STATE, double d);
 
+    // Ruby.primitive :bignum_from_double
+    static INTEGER from_double(STATE, Float* f); // FIX: this is horrible to overload against a non-primitive
+
     void   debug(STATE);
     // Ruby.primitive! :bignum_add
     INTEGER add(STATE, FIXNUM b);

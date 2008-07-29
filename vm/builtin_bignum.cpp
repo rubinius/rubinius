@@ -855,6 +855,10 @@ namespace rubinius {
     return res;
   }
 
+  INTEGER Bignum::from_double(STATE, Float* f) {
+    return Bignum::from_double(state, f->val);
+  }
+
   INTEGER Bignum::from_double(STATE, double d) {
     NMP;
 
