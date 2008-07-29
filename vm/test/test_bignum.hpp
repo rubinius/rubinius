@@ -424,7 +424,20 @@ class TestBignum : public CxxTest::TestSuite {
     check_float(b1->to_f(state), Float::create(state, 2147483647.0));
   }
 
-  void test_from_double() {
+  void test_from_double_external() {
+    double f = 2147483647.0;
+
+    OBJECT s = Bignum::from_double(state, Float::create(state, f));
+    TS_ASSERT_EQUALS(as<Integer>(s)->n2i(), (long)f);
+
+    f = -2147483647.0;
+
+    s = Bignum::from_double(state, Float::create(state, f));
+    TS_ASSERT_EQUALS(as<Integer>(s)->n2i(), (long)f);
+  }
+
+
+  void test_from_double_internal() { // TODO: wtf? this doesn't test bignum at all.
     OBJECT s = Bignum::from_double(state, 1.0);
     TS_ASSERT(s->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(s)->n2i(), 1.0);
