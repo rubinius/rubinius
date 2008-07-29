@@ -241,12 +241,12 @@ class Module
       end
       STDOUT.write " could not be found or linked.\n"
 
-      if env "RBX_FFI_SOFTFAIL"
-        STDOUT.write "***        Proceeding because RBX_FFI_SOFTFAIL is set. Program may fail later.\n"
+      if Rubinius::RUBY_CONFIG["rbx.ffi.soft_fail"]
+        STDOUT.write "***        Proceeding because rbx.ffi.soft_fail is set. Program may fail later.\n"
         return nil
       else
-        STDOUT.write "***        If you want to try to work around this problem, you may set environment\n"
-        STDOUT.write "***        variable RBX_FFI_SOFTFAIL.\n"
+        STDOUT.write "***        If you want to try to work around this problem, you may set configuration\n"
+        STDOUT.write "***        variable rbx.ffi.soft_fail.\n"
         STDOUT.write "***        Exiting.\n"
         Process.exit 1
       end
@@ -274,11 +274,6 @@ class Module
 
     metaclass.method_table[mname] = func
     return func
-  end
-
-  # HACK: Unable to get EnvironmentVariables up at this point
-  def env(str)
-    Ruby.primitive :env_get
   end
 end
 
