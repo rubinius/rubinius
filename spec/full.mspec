@@ -11,6 +11,7 @@ class MSpecScript
     'spec/debugger',
     'spec/subtend',
     'spec/frozen/1.8/library',
+    'spec/library',
     # parser specs cause odd problems with library
     # specs, so they go last
     'spec/parser',
