@@ -37,11 +37,9 @@ vm_objs     = %w( drivers/cli.o )
 vm_srcs     = %w( drivers/cli.cpp )
 EX_INC      = %w( libtommath onig libffi/include
                   libltdl libev llvm/include ).map { |f| "external_libs/#{f}" }
-INSN_GEN    = %w( gen/task_instructions_switch.c
-                  gen/iseq_instruction_names.cpp
+INSN_GEN    = %w( gen/iseq_instruction_names.cpp
                   gen/iseq_instruction_names.hpp
                   gen/iseq_instruction_dt_helper.cpp
-                  gen/task_instruction_dt.cpp
                   test/test_instructions.hpp )
 TYPE_GEN    = %w( gen/simple_field.rb
                   gen/typechecks.gen.cpp
@@ -184,7 +182,7 @@ def ex_libs # needs to be method to delay running of llvm_config
   unless defined? $ex_libs then
     $ex_libs = EXTERNALS + [ "-ldl" ]
     $ex_libs << "-lrt" if RUBY_PLATFORM =~ /linux/
-    $ex_libs += `#{LLVM_CONFIG} --libs all`.split(/\s+/)
+    $ex_libs += `#{LLVM_CONFIG} --libfiles all`.split(/\s+/)
   end
   $ex_libs
 end
