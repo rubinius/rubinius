@@ -174,7 +174,7 @@ regexp_match_start
 regexp_new
 regexp_options
 regexp_search_region
-replace_process#
+replace_process
 reset_method_cache
 restore_encloser_path
 sampler_activate

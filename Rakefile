@@ -19,19 +19,6 @@ task :default => :build
 desc "Build everything that needs to be built"
 task :build => 'build:vm'
 
-desc "Show which primitives are missing"
-task :missing_primitives do
-  cpp_primitives = `grep 'Ruby.primitive' vm/*.hpp | awk '{ print $4 }'`
-
-  cpp_primitives = cpp_primitives.gsub(':', '').split("\n").sort
-
-  shotgun_primitives = File.read('shotgun_primitives.txt').split "\n"
-
-  missing = shotgun_primitives - cpp_primitives
-
-  puts missing.join("\n")
-end
-
 # task :stable_compiler do
 #   if ENV['USE_CURRENT'] or ENV['SYSTEM']
 #     puts "Use current versions, not stable."

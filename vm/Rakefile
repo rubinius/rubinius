@@ -24,6 +24,19 @@ task :distclean => :clean do
   end
 end
 
+desc "Show which primitives are missing"
+task :missing_primitives do
+  cpp_primitives = `grep 'Ruby.primitive' *.hpp | awk '{ print $4 }'`
+
+  cpp_primitives = cpp_primitives.gsub(':', '').split("\n").sort.uniq
+
+  shotgun_primitives = File.read('shotgun_primitives.txt').split("\n").sort.uniq
+
+  missing = shotgun_primitives - cpp_primitives
+
+  puts missing.join("\n")
+end
+
 ############################################################
 # Files, Flags, & Constants
 
