@@ -190,22 +190,9 @@ namespace rubinius {
     std::stringstream stream;
     stream << "jitfunction_" << operations->size();
 
-    TypeSymbolTable& tbl = operations->getTypeSymbolTable();
-
-    /*
-    */
-
     const Type* task_type  = operations->getTypeByName(std::string("struct.rubinius::Task"));
     std::string js("struct.jit_state");
     const Type* obj_type = operations->getTypeByName(js);
-
-    Type* o2 = tbl.lookup(js);
-    if(!obj_type) {
-      for(TypeSymbolTable::iterator i = tbl.begin(); i != tbl.end(); i++) {
-        std::cout << "type: '" << i->first << "'\n";
-      }
-      assert(obj_type);
-    }
 
     Type* stack_type = PointerType::get(obj_type, 0);
 
