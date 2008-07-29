@@ -52,7 +52,6 @@ EX_INC      = %w( libtommath onig libffi/include
                   libltdl libev llvm/include ).map { |f| "external_libs/#{f}" }
 INSN_GEN    = %w( gen/iseq_instruction_names.cpp
                   gen/iseq_instruction_names.hpp
-                  gen/iseq_instruction_dt_helper.cpp
                   test/test_instructions.hpp )
 TYPE_GEN    = %w( gen/simple_field.rb
                   gen/typechecks.gen.cpp
