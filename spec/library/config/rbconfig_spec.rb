@@ -63,9 +63,9 @@ describe "Config::CONFIG" do
   it_has_keys 'Config::CONFIG', keys
 
   entries = {
-    "RUBY_SO_NAME"      => "rubinius-0.8.0",
+    "RUBY_SO_NAME"      => "rubinius-0.9.0",
     "ruby_install_name" => "rbx",
-    "ruby_version"      => "1.8.6",
+    "ruby_version"      => "1.8",
   }
 
   it_has_entries 'Config::CONFIG', entries
@@ -94,7 +94,7 @@ describe "Config::MAKEFILE_CONFIG" do
     "localedir"          => "$(datarootdir)/locale",
     "mandir"             => "$(datarootdir)/man",
     "sitedir"            => "$(libdir)/ruby/site_ruby",
-    "ruby_version"       => "$(MAJOR).$(MINOR).$(TEENY)",
+    "ruby_version"       => "$(MAJOR).$(MINOR)",
     "rubylibdir"         => "$(libdir)/ruby/$(ruby_version)",
     "archdir"            => "$(rubylibdir)/$(arch)",
     "sitearchdir"        => "$(sitelibdir)/$(sitearch)",
