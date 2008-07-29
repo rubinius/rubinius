@@ -148,9 +148,13 @@ namespace rubinius {
     unsigned int to_ui(STATE);
     unsigned long long to_ull(STATE);
     long long to_ll(STATE);
+
+    // Ruby.primitive :bignum_to_s
     String* to_s(STATE, INTEGER radix);
     void   into_string(STATE, size_t radix, char* buf, size_t sz);
     double to_double(STATE);
+
+    // Ruby.primitive :bignum_size
     INTEGER size(STATE);
     hashval hash_bignum(STATE);
 
