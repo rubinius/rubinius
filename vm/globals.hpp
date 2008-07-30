@@ -58,6 +58,8 @@ namespace rubinius {
     TypedRoot<OBJECT> main;
     TypedRoot<Class*> dir;
 
+    /* Add new globals above this line. */
+
     /* Leave this as the last data member always */
     TypedRoot<Class*> special_classes[SPECIAL_CLASS_SIZE];
 
@@ -104,6 +106,8 @@ namespace rubinius {
       current_task(&roots),
       main(&roots),
       dir(&roots)
+
+      /* Add initialize of globals above this line. */
     { }
   };
 };

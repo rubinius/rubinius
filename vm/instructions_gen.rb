@@ -176,7 +176,7 @@ class TestInstructions : public CxxTest::TestSuite {
         fd.puts "opcode stream[100];"
         fd.puts "stream[0] = InstructionSequence::insn_#{ins.opcode};"
         fd.puts "#define run(val) task->execute_stream(stream)"
-        fd.puts "#line #{line} \"#{File.expand_path(__FILE__)}\""
+        fd.puts "#line #{line} \"instructions.rb\""
         fd.puts code
         fd.puts "#undef run"
         fd.puts "}"
