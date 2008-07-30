@@ -31,7 +31,7 @@ public:
   }
 
   void test_process() {
-    CollectAr ar("test/test.a");
+    CollectAr ar("vm/test/test.a");
     TS_ASSERT(ar.open());
     TS_ASSERT_EQUALS(ar.names.size(), 0U);
 

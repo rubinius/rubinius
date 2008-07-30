@@ -15,7 +15,7 @@ namespace rubinius {
     events = new event::Loop(EVFLAG_FORKCHECK);
     global_cache = new GlobalCache;
 
-    VMLLVMMethod::init("instructions.bc");
+    VMLLVMMethod::init("vm/instructions.bc");
     boot_threads();
   }
 

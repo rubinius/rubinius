@@ -27,7 +27,7 @@ extern "C" {
 
 #ruby <<CODE
 require 'stringio'
-require 'instructions.rb'
+require 'vm/instructions.rb'
 si = Instructions.new
 impl = si.decode_methods
 io = StringIO.new

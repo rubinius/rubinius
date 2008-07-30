@@ -89,7 +89,7 @@ class Instructions
   def generate_functions(methods, io)
     methods.each do |impl|
       io.puts "#{impl.signature} {"
-      io.puts "#line #{impl.line} \"instructions.rb\""
+      io.puts "#line #{impl.line} \"vm/instructions.rb\""
       io.puts impl.body
       io.puts "}"
     end
@@ -152,6 +152,7 @@ class TestInstructions : public CxxTest::TestSuite {
   void tearDown() {
     delete state;
   }
+
     CODE
 
     InstructionSet::OpCodes.each do |ins|
@@ -161,28 +162,35 @@ class TestInstructions : public CxxTest::TestSuite {
         sexp = pt.parse_tree_for_method(Instructions, meth).flatten
         line = sexp[sexp.index(:newline) + 1] + 1
 
-        fd.puts "void #{meth}() {"
-        fd.puts "Task* task = Task::create(state);"
-        fd.puts "CompiledMethod* cm = CompiledMethod::create(state);"
-        fd.puts "cm->iseq = InstructionSequence::create(state, 10);"
-        fd.puts "cm->stack_size = Object::i2n(10);"
-        fd.puts "cm->local_count = Object::i2n(0);"
-        fd.puts "cm->literals = Tuple::create(state, 10);"
-        fd.puts "cm->formalize(state);"
-        fd.puts "MethodContext* ctx = task->generate_context(Qnil, cm);"
-        fd.puts "task->make_active(ctx);"
-        # The += 0 disable unused variable warnings.
-        fd.puts "Tuple* stack = task->stack; stack += 0;"
-        fd.puts "opcode stream[100];"
-        fd.puts "stream[0] = InstructionSequence::insn_#{ins.opcode};"
-        fd.puts "#define run(val) task->execute_stream(stream)"
-        fd.puts "#line #{line} \"instructions.rb\""
-        fd.puts code
-        fd.puts "#undef run"
-        fd.puts "}"
+        fd.puts <<-EOF
+void #{meth}() {
+  Task* task = Task::create(state);
+  CompiledMethod* cm = CompiledMethod::create(state);
+  cm->iseq = InstructionSequence::create(state, 10);
+  cm->stack_size = Object::i2n(10);
+  cm->local_count = Object::i2n(0);
+  cm->literals = Tuple::create(state, 10);
+  cm->formalize(state);
+
+  MethodContext* ctx = task->generate_context(Qnil, cm);
+  task->make_active(ctx);
+  // The += 0 disable unused variable warnings.
+
+  Tuple* stack = task->stack; stack += 0;
+
+  opcode stream[100];
+  stream[0] = InstructionSequence::insn_#{ins.opcode};
+
+#define run(val) task->execute_stream(stream)
+#line #{line} \"vm/instructions.rb\"
+#{code}
+#undef run
+}
+
+        EOF
       end
     end
-    fd.puts "  };"
+    fd.puts "};"
   end
 
   # Generate a switch statement which, given +op+, sets +width+ to

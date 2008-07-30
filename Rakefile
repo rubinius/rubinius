@@ -12,12 +12,12 @@ $compiler = nil
 # require 'rakelib/const_generator'
 # require 'rakelib/types_generator'
 
-task :default => :build
+task :default => %w[build vm:test]
 
 # BUILD TASKS
 
 desc "Build everything that needs to be built"
-task :build => 'build:vm'
+task :build => 'build:all'
 
 # task :stable_compiler do
 #   if ENV['USE_CURRENT'] or ENV['SYSTEM']
@@ -79,21 +79,15 @@ task :build => 'build:vm'
 
 namespace :build do
 
-#   task :all => %w[
-#     build:shotgun
+   task :all => %w[
+     vm
+   ]
 #     build:platform
 #     build:rbc
 #     compiler
 #     lib/etc.rb
 #     lib/rbconfig.rb
 #     extensions
-#   ]
-
-  task :vm => "vm/vm"
-
-  file "vm/vm" do
-    sh "cd vm; rake"
-  end
 
 #   task :simple => "build:rbc" do
 #     sh "cd vm; rake"
@@ -128,7 +122,7 @@ namespace :build do
 #   file "shotgun/rubinius.bin" => c_source do
 #     sh make('vm')
 #   end
-  
+
 #   file "shotgun/rubinius.local.bin" => c_source do
 #     sh make('vm')
 #   end
@@ -229,13 +223,13 @@ end
 # desc "Recompile all ruby system files"
 # task :rebuild => %w[clean build:all]
 
-# desc "Alias for clean:all"
-# task :clean => "clean:all"
+desc 'Remove rubinius build files'
+task :clean => %w[vm:clean clean:crap]
 
-# desc "Alias for clean:distclean"
-# task :distclean => "clean:distclean"
+desc 'Remove rubinius build files and external library build files'
+task :distclean => %w[vm:distclean]
 
-# namespace :clean do
+namespace :clean do
 #   desc "Clean everything but third-party libs"
 #   task :all => %w[clean:rbc clean:extensions clean:shotgun clean:generated clean:crap]
 
@@ -262,26 +256,18 @@ end
 #     end
 #   end
 
-#   desc "Cleans up VM building site"
-#   task :shotgun do
-#     sh make('clean')
-#   end
-
 #   desc "Cleans up generated files"
 #   task :generated do
 #     rm_f Dir["shotgun/lib/grammar.c"], :verbose => $verbose
 #   end
 
-#   desc "Cleans up VM and external libs"
-#   task :external do
-#     sh "cd shotgun; #{make('distclean')}"
-#   end
+  desc "Cleans up editor files and other misc crap"
+  task :crap do
+    files = (Dir["*~"] + Dir["**/*~"]).uniq
 
-#   desc "Cleans up editor files and other misc crap"
-#   task :crap do
-#     rm_f Dir["*~"] + Dir["**/*~"], :verbose => $verbose
-#   end
-# end
+    rm_f files, :verbose => $verbose unless files.empty?
+  end
+end
 
 # # SPEC TASKS
 # desc "Run all 'known good' specs (task alias for spec:ci)"

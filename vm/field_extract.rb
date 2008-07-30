@@ -394,7 +394,7 @@ parser = CPPParser.new
 
 parser.parse_stream ARGF
 
-File.open("gen/simple_field.rb", "w") do |f|
+File.open("vm/gen/simple_field.rb", "w") do |f|
   f.puts "# DO NOT EDIT!! Autogenerate by field_extract.rb"
   parser.class_order.each do |name|
     obj = parser.classes[name]
@@ -439,7 +439,7 @@ File.open("gen/simple_field.rb", "w") do |f|
   end
 end
 
-File.open("gen/typechecks.gen.cpp", "w") do |f|
+File.open("vm/gen/typechecks.gen.cpp", "w") do |f|
   f.puts "void TypeInfo::init(STATE) {"
   parser.classes.each do |n, cpp|
     next if n == "Object"
@@ -467,7 +467,7 @@ File.open("gen/typechecks.gen.cpp", "w") do |f|
 
 end
 
-File.open("gen/primitives_declare.hpp", "w") do |f|
+File.open("vm/gen/primitives_declare.hpp", "w") do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
       f.puts "static bool #{pn}(STATE, VMExecutable* exec, Task* task, Message& msg);"
@@ -475,7 +475,7 @@ File.open("gen/primitives_declare.hpp", "w") do |f|
   end
 end
 
-File.open("gen/primitives_glue.gen.cpp", "w") do |f|
+File.open("vm/gen/primitives_glue.gen.cpp", "w") do |f|
   names = []
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
