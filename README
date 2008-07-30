@@ -35,21 +35,3 @@ support. One possible way to help is implement Ruby library classes. Visit
 http://rubinius.lighthouseapp.com for documentation on how to begin hacking
 Rubinius.
 
-6. Architecture
-
-Rubinius currently uses C to bootstrap the system. In the future, a limited
-dialect of Ruby called cuby/garnet will be used to generate C. This is a
-time-honored technique, used by systems such as Squeak, Smalltalk, and Algol on
-the Burroughs systems (as seen in the movie 'Tron').
-
-For now, this code is hand-written, and can be found in the ./shotgun/lib
-directory.  This code was ported from a Ruby implementation found in the ./lib
-directory.  For example, shotgun/lib/object_memory.c is the C translation of
-lib/object_memory.rb.
-
-The compiler, assembler, and bytecode generators are all written in Ruby, and
-can be found under the ./lib directory.  Other systems use the word
-'translator' for what is here referred to as 'compiler'.  The ./bin/rcc script
-can be used to display the symbolic output of the compiler, for debugging or
-learning purposes.
-
