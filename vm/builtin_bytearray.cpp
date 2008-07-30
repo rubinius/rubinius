@@ -1,3 +1,5 @@
+/* The simple ByteArray class, used to implement String. */
+
 #include "builtin.hpp"
 
 namespace rubinius {

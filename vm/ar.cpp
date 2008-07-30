@@ -1,12 +1,20 @@
 #include "ar.hpp"
 
+/*
+ * A simple ar(5) implementation. Used to load data from .rba's */
+
 namespace rubinius {
 
+  /* Create an AR object for +path+ as an ar format file. */
   Ar::Ar(const char* path) : path(path), fd(-1) { }
+
+  /* Closes any open descriptors. */
   Ar::~Ar() {
     if(fd > -1) ::close(fd);
   }
 
+  /* Open up the archive, returning false if we were unable to open
+   * the path. */
   bool Ar::open() {
     fd = ::open(path, O_RDONLY);
 

@@ -1,5 +1,10 @@
 #include "builtin.hpp"
 
+/* Implementation certain Array methods. These methods are just
+ * the ones the VM requires, not the entire set of all Array methods.
+ * This includes methods required to implement certain Array
+ * primitives. */
+
 namespace rubinius {
 
   Array* Array::create(STATE, size_t idx) {

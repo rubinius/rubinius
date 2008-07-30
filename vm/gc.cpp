@@ -1,3 +1,5 @@
+/* The GC superclass methods, used by both GCs. */
+
 #include "gc.hpp"
 #include "objectmemory.hpp"
 

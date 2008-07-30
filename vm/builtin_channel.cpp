@@ -1,3 +1,6 @@
+/* The Channel class, provides a simple, Ruby thread safe communication
+ * mechanism. */
+
 #include "builtin.hpp"
 
 namespace rubinius {

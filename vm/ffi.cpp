@@ -1,3 +1,5 @@
+/* A simple C++ wrapper around libffi. */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

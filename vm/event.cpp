@@ -1,3 +1,6 @@
+/* A C++ wrapper around libev, which Rubinius uses for all event handling.
+ * This is the folcrum of the thread subsystem. */
+
 #include "prelude.hpp"
 #include "object.hpp"
 #include "objects.hpp"

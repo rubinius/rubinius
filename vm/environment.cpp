@@ -1,3 +1,6 @@
+/* An Environment is the toplevel class for Rubinius. It manages multiple
+ * VMs, as well as imports C data from the process into Rubyland. */
+
 #include "environment.hpp"
 #include "compiled_file.hpp"
 #include "probes.hpp"

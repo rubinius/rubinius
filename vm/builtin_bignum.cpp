@@ -1,3 +1,5 @@
+/* The implementation of Bignum, providing infinite size integers */
+
 #include "prelude.hpp"
 #include "object.hpp"
 #include "objects.hpp"

@@ -1,3 +1,6 @@
+/* A BlockEnvironment is created when a block is created. Its primary
+ * operation is call, which activates the code associated with the block. */
+
 #include "objects.hpp"
 #include "objectmemory.hpp"
 
