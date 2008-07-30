@@ -176,7 +176,7 @@ end
 
 def field_extract
   order = %w[vm/builtin_object.hpp vm/objects.hpp]
-  order += File.read("vm/objects.hpp").scan(/vm\/builtin_[^"]+/)
+  order += File.read("vm/objects.hpp").scan(/builtin_[^"]+/).map { |f| "vm/#{f}" }
   order << { :verbose => $verbose}
   ruby('vm/field_extract.rb', *order)
 end
