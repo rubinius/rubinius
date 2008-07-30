@@ -1,7 +1,7 @@
 # depends on: class.rb
 
 #--
-# Be very careful about calling raise in here! Thread has it's own
+# Be very careful about calling raise in here! Thread has its own
 # raise which, if you're calling raise, you probably don't want. Use
 # Kernel.raise to call the proper raise.
 #++
