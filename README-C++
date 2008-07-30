@@ -3,8 +3,8 @@
 
 +  Set up an altogether new clone of the repository for yourself:
     - For current committers:
-        `cd $WHEREVER; git clone git@git.rubini.us:code my_cpp`
-    - For others: `cd $WHEREVER; git clone git://git.rubini.us/code my_cpp`
+        `cd $WHEREVER; git clone git@github.com:evanphx/rubinius.git`
+    - For others: `cd $WHEREVER; git clone git://github.com/evanphx/rubinius.git my_cpp`
 
 + `cd my_cpp`
 
@@ -12,25 +12,21 @@
       `git branch --track cpp origin/cpp; git checkout cpp`
     - The --track allows you to push and pull directly to/from the branch.
 
-+  All of the C++ work is in a subdirectory: `cd vm`
++  All of the C++ work is in the vm subdirectory
 
-+  Build the codebase: `rake build`
++  Build the codebase (from toplevel): `rake vm`
 
-+  Build and run the tests: `rake test`
++  Build and run the tests (from toplevel): `rake vm:test`
 
-+  You can use `git pull` to get updates
-    - The 'rake git:pull' task currently doesn't work for the C++ branch.
++  You can use `git pull` or `rake git:pull to get updates
 
-+  ...And `git push` to send back any of your commits to the C++ branch.
-    - Same here with the Rbx Rake tasks.
-
++  ...And `git push` or `rake git:push` to send back any of your commits to the
+   C++ branch.
 
  Building the VM
 -----------------
 
-  # nn the vm subdirectory
-  $ rake vm
-
+  rake vm
 
  Compiling to .rbc with MRI
 ----------------------------
@@ -48,8 +44,8 @@ the VM. To compile 'file.rb' to 'file.rbc':
 Once a Ruby file has been compiled to bytecode (.rbc), it can be run by the VM
 with the following command:
 
-  # in the vm subdirectory
-  $ ./vm file.rbc
+  # at toplevel
+  $ vm/vm file.rbc
 
 
  Primitives
@@ -67,7 +63,7 @@ class Fixnum
   end
 end
 
-In the C++ file, rbx/vm/builtin_fixnum.hpp, the primitive is annotated:
+In the C++ file, vm/builtin_fixnum.hpp, the primitive is annotated:
 
 namespace rubinius {
 
@@ -77,8 +73,8 @@ namespace rubinius {
     // Ruby.primitive :fixnum_neg
     INTEGER neg(STATE) {
 
-The magic for this happens in rbx/vm/field_extract.rb and the output goes to
-rbx/vm/gen/primitives_declare.hpp and rbx/vm/gen/primitives_glue.gen.cpp.
+The magic for this happens in vm/field_extract.rb and the output goes to
+vm/gen/primitives_declare.hpp and vm/gen/primitives_glue.gen.cpp.
 
 
  Overloaded C++ Methods as Primitives
@@ -122,4 +118,5 @@ bool Primitives::float_mul(STATE, VMExecutable* exec,
 
 Since the "primitives" are ordinary C++ methods, tests for them are written
 along with the other VM tests. Each builtin_xxx.cpp method has a corresponding
-rbx/vm/test/test_xxx.hpp method. See the existing files for more examples.
+vm/test/test_xxx.hpp method. See the existing files for more examples.
+
