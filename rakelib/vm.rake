@@ -39,9 +39,9 @@ FLAGS       = %w(-Wall -ggdb -gdwarf-2)
 
 FLAGS << "-O2" if ENV['FAST']
 
-def compile(obj, src)
-  cc = "gcc" # File.basename(src) == "c" ? "gcc" : "g++"
+CC = ENV['CC'] || "gcc"
 
+def compile(obj, src)
   unless defined? $llvm_c then
     $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
     $llvm_c.delete_if { |e| e.index("-O") == 0 }
@@ -49,7 +49,7 @@ def compile(obj, src)
 
   flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
 
-  sh "#{cc} #{flags} -c -o #{obj} #{src} 2>&1"
+  sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1"
 end
 
 ############################################################

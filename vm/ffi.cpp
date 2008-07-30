@@ -16,8 +16,10 @@
 #include "ffi.hpp"
 #include "message.hpp"
 
-#include "strlcpy.h"
-#include "strlcat.h"
+extern "C" {
+  #include "strlcpy.h"
+  #include "strlcat.h"
+}
 
 #ifdef _WIN32
 #define LIBSUFFIX ".dll"
