@@ -15,6 +15,9 @@ namespace rubinius {
     INTEGER hash; // slot
     OBJECT shared; // slot
 
+    // Ruby.primitive :string_allocate
+    static String* allocate(STATE, FIXNUM size);
+
     static String* create(STATE, const char* str, size_t bytes = 0);
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
     static int string_equal_p(STATE, OBJECT self, OBJECT other);

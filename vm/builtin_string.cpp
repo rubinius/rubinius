@@ -10,6 +10,24 @@
 
 namespace rubinius {
 
+  String* String::allocate(STATE, FIXNUM size) {
+    String *so;
+    size_t bytes = size->n2i();
+
+    so = (String*)state->om->new_object(G(string), String::fields);
+
+    so->num_bytes = Object::i2n(bytes);
+    so->characters = so->num_bytes;
+    so->encoding = Qnil;
+
+    OBJECT ba = ByteArray::create(state, bytes);
+    ba->bytes[bytes] = 0;
+
+    SET(so, data, ba);
+
+    return so;
+  }
+
   String* String::create(STATE, const char* str, size_t bytes) {
     String *so;
 

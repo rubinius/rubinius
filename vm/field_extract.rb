@@ -30,6 +30,30 @@ class CPPPrimitive
   end
 end
 
+class CPPStaticPrimitive < CPPPrimitive
+  def generate_glue(klass="Primitives")
+    str =  "bool #{klass}::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
+    i = -1
+    if arg_types.empty?
+      args = ""
+    else
+      args = ", " + arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }.join(", ")
+    end
+
+    str << "  OBJECT ret;\n"
+    str << "  try {\n"
+    str << "    ret = #{@type}::#{@cpp_name}(state#{args});\n"
+    str << "  } catch(PrimitiveFailed& e) {\n"
+    str << "    abort(); // FIXME\n"
+    str << "    return true;\n"
+    str << "  }\n"
+    str << "  task->primitive_return(ret, msg);\n"
+    str << "  return false;\n"
+    str << "}\n"
+    return str
+  end
+end
+
 class CPPOverloadedPrimitive
   def initialize(prim)
     @name     = prim.name
@@ -137,6 +161,19 @@ class CPPClass
     else
       @primitives[name] = prim
     end
+  end
+
+  def add_static_primitive(name, cpp_name, ret, args)
+    prim = CPPStaticPrimitive.new(name, @name)
+    prim.cpp_name = cpp_name
+    prim.return_type = ret
+    prim.arg_types = args
+
+    if @primitives[name]
+      raise "Already defined primitive #{name}"
+    end
+
+    @primitives[name] = prim
   end
 
   def generate_gets
@@ -262,7 +299,11 @@ class CPPParser
       type = type[0..-2]
     end
 
-    return map[type]
+    if val = map[type]
+      return val
+    end
+
+    raise "Unable to resolve type '#{type}'"
   end
 
   def parse_stream(f)
@@ -289,7 +330,6 @@ class CPPParser
 
         idx = 0
         while l = f.gets
-          next if /static/.match(l)
           break if /\};/.match(l)
           break if /^\s*class/.match(l)
 
@@ -325,14 +365,21 @@ class CPPParser
             prim = m[2]
             prototype = f.gets
 
-            m = %r!\s*([\w_\*]+)\s+([\w_]+)\((.*)\)!.match(prototype)
-            args = m[3].split(/\s*,\s*/)
+            m = %r!\s*(static\s+)?([\w_\*]+)\s+([\w_]+)\((.*)\)!.match(prototype)
+            args = m[4].split(/\s*,\s*/)
             if args.shift != "STATE"
               raise "Invalid primitive #{prim}, STATE is not first argument"
             end
 
             arg_types = args.map { |a| strip_and_map(a.split(/\s+/, 2).first, @type_map) }
-            cpp.add_primitive prim, m[2], @type_map[m[1]], arg_types, overload
+            if m[1]
+              if overload
+                raise "Unable to overload static primitives."
+              end
+              cpp.add_static_primitive prim, m[3], @type_map[m[2]], arg_types
+            else
+              cpp.add_primitive prim, m[3], @type_map[m[2]], arg_types, overload
+            end
 
           end
         end
