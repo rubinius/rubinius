@@ -1,4 +1,5 @@
 #include "llvm.hpp"
+#include "builtin/iseq.hpp"
 
 #include <llvm/Module.h>
 #include <llvm/DerivedTypes.h>

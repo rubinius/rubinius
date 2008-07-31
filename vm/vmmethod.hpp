@@ -3,12 +3,15 @@
 
 #include "vmexecutable.hpp"
 #include "primitives.hpp"
+#include "gc_root.hpp"
 
 namespace rubinius {
   typedef void* instlocation;
   typedef uint32_t opcode;
 
   class Opcode;
+  class CompiledMethod;
+  class MethodContext;
 
   class VMMethod : public VMExecutable {
   public:

@@ -1,6 +1,5 @@
 #ifndef RBX_LLVM_HPP
 
-#include "builtin.hpp"
 #include "vmmethod.hpp"
 #include <llvm/Function.h>
 #include <llvm/Module.h>
