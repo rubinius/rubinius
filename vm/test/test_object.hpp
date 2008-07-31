@@ -40,6 +40,7 @@ class TestObject : public CxxTest::TestSuite {
     Tuple* tup2 = (Tuple*)tup->dup(state);
 
     TS_ASSERT_EQUALS(tup2->at(0), Qtrue);
+    TS_ASSERT(tup->id(state) != tup2->id(state));
   }
 
   void test_dup_bytes() {
@@ -116,6 +117,32 @@ class TestObject : public CxxTest::TestSuite {
 
     uintptr_t id4 = Object::i2n(33)->id(state);
     TS_ASSERT_EQUALS(id3, id4);
+    TS_ASSERT(id4 % 2 != 0);
+  }
+
+  void test_tainted_p() {
+    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+
+    TS_ASSERT(!obj->tainted_p());
+
+    obj->IsTainted = TRUE;
+
+    TS_ASSERT(obj->tainted_p());
+  }
+
+  void test_taint() {
+    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    TS_ASSERT(!obj->IsTainted);
+    obj->taint();
+    TS_ASSERT(obj->IsTainted);
+  }
+
+  void test_untaint() {
+    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    obj->IsTainted = TRUE;
+    TS_ASSERT(obj->IsTainted);
+    obj->untaint();
+    TS_ASSERT(!obj->IsTainted);
   }
 
   void test_nil_class() {

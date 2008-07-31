@@ -141,6 +141,36 @@ namespace rubinius {
       return reference_p() && obj_type == type;
     }
 
+    // Ruby.primitive :object_tainted_p
+    bool tainted_p() {
+      if(this->IsTainted && reference_p()) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    // Ruby.primitive :object_taint
+    OBJECT taint() {
+      if(reference_p()) {
+        this->IsTainted = TRUE;
+      }
+      return this;
+    }
+
+    // Ruby.primitive :object_untaint
+    OBJECT untaint() {
+      if(reference_p()) {
+        this->IsTainted = FALSE;
+      }
+      return this;
+    }
+
+    // Ruby.primitive :object_dup
+    OBJECT dup(STATE);
+    // Ruby.primitive :object_id
+    uintptr_t id(STATE);
+
     OBJECT get_field(STATE, size_t index);
     void   set_field(STATE, size_t index, OBJECT val);
     void cleanup(STATE);
@@ -148,9 +178,9 @@ namespace rubinius {
     bool kind_of_p(STATE, OBJECT cls);
     Class* lookup_begin(STATE);
     Class* class_object(STATE);
-    OBJECT dup(STATE);
+
     hashval hash(STATE);
-    uintptr_t id(STATE);
+
     Class* metaclass(STATE);
 
     OBJECT get_ivar(STATE, OBJECT sym);
