@@ -41,8 +41,8 @@ shotgun/lib/subtend/*.d
 \#*
 .\#*
 *.dSYM
+/rubinius_tasks.dot
 
-/vm/.deps
 /vm/log
 
 attic/externals/syd-parser/pkg
