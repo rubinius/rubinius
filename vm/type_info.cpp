@@ -1,5 +1,8 @@
-#include "builtin.hpp"
+
 #include "type_info.hpp"
+#include "builtin/list.hpp"
+#include "builtin/string.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
 

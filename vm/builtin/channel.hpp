@@ -2,6 +2,8 @@
 #define RBX_CHANNEL_HPP
 
 namespace rubinius {
+  class List;
+
   class Channel : public Object {
   public:
     const static size_t fields = 3;
