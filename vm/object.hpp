@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "prelude.hpp"
-#include "builtin_object.hpp"
+#include "builtin/object.hpp"
 
 /* Defines all the most common operations on for dealing with
  * objects, such as type checking and casting. */
