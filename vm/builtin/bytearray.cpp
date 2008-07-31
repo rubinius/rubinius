@@ -1,6 +1,8 @@
 /* The simple ByteArray class, used to implement String. */
 
-#include "builtin.hpp"
+#include "bytearray.hpp"
+#include "vm.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
   ByteArray* ByteArray::create(STATE, size_t bytes) {
