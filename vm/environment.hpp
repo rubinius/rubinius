@@ -1,10 +1,10 @@
 #ifndef RBX_ENVIRONMENT_HPP
 #define RBX_ENVIRONMENT_HPP
 
-#include "builtin.hpp"
-
 #include <string>
 #include <stdexcept>
+
+#include "vm.hpp"
 
 namespace rubinius {
 

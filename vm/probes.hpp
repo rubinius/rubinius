@@ -1,7 +1,13 @@
 #ifndef RBX_PROBES_HPP
 #define RBX_PROBES_HPP
 
+#include "message.hpp"
+
 namespace rubinius {
+  class Task;
+  class Module;
+  class CompiledMethod;
+
   class TaskProbe {
   public:
     void start_method(Task* task, Message& msg);

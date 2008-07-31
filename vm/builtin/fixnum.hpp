@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_FIXNUM_HPP
 #define RBX_BUILTIN_FIXNUM_HPP
 
+#include "builtin/string.hpp"
+
 namespace rubinius {
 
   class Fixnum : public Integer {
@@ -366,11 +368,11 @@ namespace rubinius {
     }
 
     // Ruby.primitive :fixnum_to_s
-    String* to_s(STATE) {
-      std::stringstream sout;
-      sout << n2i();
-      return String::create(state, sout.str().c_str());
-    }
+    String* to_s(STATE); // {
+//       std::stringstream sout;
+//       sout << n2i();
+//       return String::create(state, sout.str().c_str());
+//     }
   };
 
   typedef Fixnum* FIXNUM;

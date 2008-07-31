@@ -1,7 +1,13 @@
 #ifndef RBX_STRING_HPP
 #define RBX_STRING_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+#include "objects.hpp" // FIX: nuke objects.hpp... it is a mess
+
 namespace rubinius {
+  class ByteArray;
+
   class String : public Object {
     public:
     const static size_t fields = 7;

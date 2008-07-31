@@ -4,6 +4,7 @@
 #include "environment.hpp"
 #include "compiled_file.hpp"
 #include "probes.hpp"
+#include "builtin/string.hpp"
 
 #include <iostream>
 #include <fstream>

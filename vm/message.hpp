@@ -2,6 +2,8 @@
 #define RBX_MESSAGE_HPP
 
 namespace rubinius {
+  class Array;
+  class Executable;
   class SendSite;
   class Task;
 
