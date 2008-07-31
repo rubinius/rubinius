@@ -7,6 +7,19 @@
 #define Increments 32
 
 namespace rubinius {
+
+  native_int Symbol::index() {
+    return DATA_STRIP_TAG(this);
+  }
+
+  INTEGER Symbol::index(STATE) {
+    return Object::i2n(this->index());
+  }
+
+  Symbol* Symbol::from_index(STATE, size_t index) {
+    return (Symbol*)DATA_APPLY_TAG(index, DATA_TAG_SYMBOL);
+  }
+
   SymbolTable* SymbolTable::create(STATE) {
     SymbolTable *tbl = (SymbolTable*)state->om->new_object(G(symtbl),
                                                            SymbolTable::fields);
