@@ -483,7 +483,11 @@ class Socket < BasicSocket
   end
 
   def self.pack_sockaddr_in(port, host, type = Socket::SOCK_DGRAM, flags = 0)
-    host = "0.0.0.0" if host.empty?
+    if host.nil?
+      host = "127.0.0.1"
+    elsif host.empty?
+      host = "0.0.0.0"
+    end
     Socket::Foreign.pack_sockaddr_in host.to_s, port.to_s, type, flags
   end
 
