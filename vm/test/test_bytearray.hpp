@@ -1,6 +1,6 @@
 #include "objects.hpp"
 #include "vm.hpp"
-#include "builtin_bytearray.hpp"
+#include "builtin/bytearray.hpp"
 
 #include <cxxtest/TestSuite.h>
 
