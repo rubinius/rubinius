@@ -8,6 +8,7 @@
 
 #include "compiled_file.hpp"
 #include "marshal.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {

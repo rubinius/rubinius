@@ -1,7 +1,8 @@
 #ifndef RBX_COMPILED_FILE_HPP
 #define RBX_COMPILED_FILE_HPP
 
-#include "builtin.hpp"
+#include <string>
+#include "prelude.hpp"
 
 namespace rubinius {
   class CompiledFile {
