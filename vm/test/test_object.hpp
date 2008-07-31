@@ -145,6 +145,24 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT(!obj->IsTainted);
   }
 
+  void test_frozen_p() {
+    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+
+    TS_ASSERT(!obj->frozen_p());
+
+    obj->IsFrozen = TRUE;
+
+    TS_ASSERT(obj->frozen_p());
+  }
+
+  void test_freeze() {
+    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    TS_ASSERT(!obj->IsFrozen);
+    obj->freeze();
+    TS_ASSERT(obj->IsFrozen);
+  }
+  
+
   void test_nil_class() {
     TS_ASSERT_EQUALS(Qnil->class_object(state), G(nil_class));
   }

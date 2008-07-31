@@ -166,6 +166,23 @@ namespace rubinius {
       return this;
     }
 
+    // Ruby.primitive :object_freeze
+    OBJECT freeze() {
+      if(reference_p()) {
+        this->IsFrozen = TRUE;
+      }
+      return this;
+    }
+
+    // Ruby.primitive :object_frozen_p
+    bool frozen_p() {
+      if(this->IsFrozen && reference_p()) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
     // Ruby.primitive :object_dup
     OBJECT dup(STATE);
     // Ruby.primitive :object_id
