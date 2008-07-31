@@ -1,7 +1,13 @@
 #ifndef RBX_BUILTIN_DIR_HPP
 #define RBX_BUILTIN_DIR_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
+  class MemoryPointer;
+  class String;
+
   class Dir : public Object {
     public:
     const static size_t fields = 2;

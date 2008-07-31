@@ -1,15 +1,20 @@
 #ifndef RBX_BUILTIN_TASK_HPP
 #define RBX_BUILTIN_TASK_HPP
 
-#include "objects.hpp"
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
+#include "vmmethod.hpp"
 #include "message.hpp"
-#include "builtin/channel.hpp"
 #include "jit_state.h"
-#include <stdexcept>
 
 namespace rubinius {
 
   class Probe;
+  class MethodContext;
+  class Channel;
+  class Exception;
+  class TaskProbe;
 
   class ArgumentError : public VMException {
   public:

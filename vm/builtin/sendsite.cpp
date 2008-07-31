@@ -1,5 +1,6 @@
-#include "builtin.hpp"
+#include "builtin/sendsite.hpp"
 #include "global_cache.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
   void SendSite::init(STATE) {

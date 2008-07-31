@@ -1,4 +1,4 @@
-#include "builtin.hpp"
+#include "builtin/executable.hpp"
 
 namespace rubinius {
 }

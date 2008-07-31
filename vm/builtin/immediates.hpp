@@ -1,6 +1,9 @@
 #ifndef RBX_BUILTIN_IMMEDIATES_HPP
 #define RBX_BUILTIN_IMMEDIATES_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
   class NilClass : public Object {
   public:

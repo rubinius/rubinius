@@ -32,16 +32,8 @@ namespace rubinius {
     ListNode* first; // slot
     ListNode* last; // slot
 
-    /* Returns true if the List is empty, contains no elements. */
-    bool empty_p() {
-      return count->n2i() == 0;
-    }
-
-    /* Returns the number of elements in the List. */
-    size_t size() {
-      return count->n2i();
-    }
-
+    bool empty_p();
+    size_t size();
     static void init(STATE);
     static List* create(STATE);
     void append(STATE, OBJECT obj);

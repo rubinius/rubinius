@@ -1,6 +1,9 @@
 #ifndef RBX_BUILTIN_MEMORYPOINTER_HPP
 #define RBX_BUILTIN_MEMORYPOINTER_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
   class MemoryPointer : public Object {
     public:

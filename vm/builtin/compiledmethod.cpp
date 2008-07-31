@@ -1,8 +1,9 @@
-#include "builtin.hpp"
+#include "builtin/compiledmethod.hpp"
 #include "ffi.hpp"
 #include "marshal.hpp"
 #include "primitives.hpp"
 #include "llvm.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
   CompiledMethod* CompiledMethod::create(STATE) {

@@ -2,6 +2,8 @@
 #define RBX_BUILTIN_EXECUTABLE_HPP
 
 #include "vmexecutable.hpp"
+#include "builtin/object.hpp"
+#include "type_info.hpp"
 
 namespace rubinius {
 

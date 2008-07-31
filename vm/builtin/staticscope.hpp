@@ -1,6 +1,9 @@
 #ifndef RBX_BUILTIN_STATICSCOPE_HPP
 #define RBX_BUILTIN_STATICSCOPE_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
   class StaticScope : public Object {
   public:

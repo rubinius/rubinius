@@ -1,4 +1,6 @@
-#include "builtin.hpp"
+#include "builtin/exception.hpp"
+
+#include "vm.hpp"
 
 namespace rubinius {
   Exception* Exception::create(STATE) {

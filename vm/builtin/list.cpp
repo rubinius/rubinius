@@ -1,6 +1,17 @@
-#include "builtin.hpp"
+#include "builtin/list.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
+
+  /* Returns true if the List is empty, contains no elements. */
+  bool List::empty_p() {
+    return count->n2i() == 0;
+  }
+
+  /* Returns the number of elements in the List. */
+  size_t List::size() {
+    return count->n2i();
+  }
 
   /* Register the List and List::Node classes as globals */
   void List::init(STATE) {

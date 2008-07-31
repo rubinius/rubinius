@@ -1,6 +1,11 @@
 #ifndef RBX_CHANNEL_HPP
 #define RBX_CHANNEL_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+#include "gc_root.hpp"
+#include "vm.hpp"
+
 namespace rubinius {
   class List;
 

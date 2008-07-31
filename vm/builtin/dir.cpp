@@ -1,6 +1,7 @@
-#include "builtin.hpp"
 #include "builtin/dir.hpp"
 #include "ffi.hpp"
+#include "vm.hpp"
+#include "objectmemory.hpp"
 
 #include <sys/types.h>
 #include <dirent.h>

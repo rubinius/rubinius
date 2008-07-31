@@ -1,7 +1,9 @@
 /* The Channel class, provides a simple, Ruby thread safe communication
  * mechanism. */
 
-#include "builtin.hpp"
+#include "builtin/channel.hpp"
+#include "builtin/list.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
   Channel* Channel::create(STATE) {

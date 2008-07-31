@@ -1,4 +1,6 @@
-#include "builtin.hpp"
+#include "builtin/staticscope.hpp"
+
+#include "vm.hpp"
 
 namespace rubinius {
   StaticScope* StaticScope::create(STATE) {

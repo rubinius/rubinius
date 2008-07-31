@@ -1,6 +1,9 @@
 #ifndef RBX_HASH_HPP
 #define RBX_HASH_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
 
   class LookupTable;

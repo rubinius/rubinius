@@ -1,7 +1,12 @@
 #ifndef RBX_THREAD_HPP
 #define RBX_THREAD_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
+  class Channel;
+
   class Thread : public Object {
   public:
     const static size_t fields = 5;

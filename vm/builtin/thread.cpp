@@ -1,4 +1,8 @@
-#include "builtin.hpp"
+#include "builtin/thread.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/list.hpp"
+
+#include "objectmemory.hpp"
 
 namespace rubinius {
   void Thread::init(STATE) {

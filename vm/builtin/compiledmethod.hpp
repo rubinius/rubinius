@@ -1,11 +1,15 @@
 #ifndef RBX_BUILTIN_COMPILEDMETHOD_HPP
 #define RBX_BUILTIN_COMPILEDMETHOD_HPP
 
+#include "builtin/executable.hpp"
+#include "vm.hpp"
+
 namespace rubinius {
 
   class InstructionSequence;
   class MemoryPointer;
   class VMMethod;
+  class StaticScope;
 
   class CompiledMethod : public Executable {
     public:

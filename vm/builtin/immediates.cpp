@@ -1,4 +1,6 @@
-#include "builtin.hpp"
+#include "builtin/immediates.hpp"
+
+#include "objects.hpp"
 
 namespace rubinius {
   void NormalObject::Info::mark(OBJECT t, ObjectMark& mark) { }
