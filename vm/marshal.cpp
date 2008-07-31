@@ -1,4 +1,4 @@
-#include "builtin.hpp"
+#include "objectmemory.hpp"
 #include "marshal.hpp"
 
 namespace rubinius {
