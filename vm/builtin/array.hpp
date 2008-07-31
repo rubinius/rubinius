@@ -1,6 +1,11 @@
 #ifndef RBX_ARRAY_HPP
 #define RBX_ARRAY_HPP
 
+#include "builtin/object.hpp"
+#include "prelude.hpp"
+#include "type_info.hpp"
+#include "objects.hpp"
+
 namespace rubinius {
   class Array : public Object {
     public:

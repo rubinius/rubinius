@@ -1,4 +1,5 @@
-#include "builtin.hpp"
+#include "array.hpp"
+#include "objectmemory.hpp"
 
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.

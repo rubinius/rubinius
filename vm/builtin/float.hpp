@@ -10,6 +10,9 @@
 #include <float.h>
 
 namespace rubinius {
+
+  class Array;
+
   class Float : public Object {
     public:
     const static size_t fields = 0;

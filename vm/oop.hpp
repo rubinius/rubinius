@@ -1,6 +1,8 @@
 #ifndef RBX_VM_OOP_HPP
 #define RBX_VM_OOP_HPP
 
+#include <ctype.h>
+#include <stdint.h>
 #include "object_types.hpp"
 
 namespace rubinius {

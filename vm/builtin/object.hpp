@@ -2,6 +2,7 @@
 #define RBX_VM_BUILTIN_OBJECT_HPP
 
 #include "oop.hpp"
+#include "prelude.hpp"
 
 namespace rubinius {
   class MetaClass;
