@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-#include "builtin_immediates.hpp"
+#include "builtin/immediates.hpp"
 
 namespace rubinius {
   class Numeric : public Object {
@@ -33,19 +33,19 @@ namespace rubinius {
   };
 }
 
-#include "builtin_tuple.hpp"
-#include "builtin_array.hpp"
-#include "builtin_bytearray.hpp"
-#include "builtin_string.hpp"
-#include "builtin_float.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/array.hpp"
+#include "builtin/bytearray.hpp"
+#include "builtin/string.hpp"
+#include "builtin/float.hpp"
 
-#include "builtin_bignum.hpp"
-#include "builtin_fixnum.hpp"
+#include "builtin/bignum.hpp"
+#include "builtin/fixnum.hpp"
 
-#include "builtin_staticscope.hpp"
-#include "builtin_symbol.hpp"
+#include "builtin/staticscope.hpp"
+#include "builtin/symbol.hpp"
 
-#include "builtin_hash.hpp"
+#include "builtin/hash.hpp"
 
 namespace rubinius {
   class NormalObject : public Object {
@@ -66,24 +66,24 @@ namespace rubinius {
     static inline NormalObject* as<NormalObject>(OBJECT obj) { return (NormalObject*)obj; }
 };
 
-#include "builtin_exception.hpp"
+#include "builtin/exception.hpp"
 
-#include "builtin_block_environment.hpp"
+#include "builtin/block_environment.hpp"
 
-#include "builtin_io.hpp"
+#include "builtin/io.hpp"
 
-#include "builtin_regexp.hpp"
+#include "builtin/regexp.hpp"
 
-#include "builtin_lookuptable.hpp"
-#include "builtin_methodtable.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/methodtable.hpp"
 
-#include "builtin_executable.hpp"
+#include "builtin/executable.hpp"
 
-#include "builtin_compiledmethod.hpp"
+#include "builtin/compiledmethod.hpp"
 
-#include "builtin_class.hpp"
-#include "builtin_contexts.hpp"
-#include "builtin_iseq.hpp"
+#include "builtin/class.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/iseq.hpp"
 
 namespace rubinius {
   template <>
@@ -95,17 +95,17 @@ namespace rubinius {
     }
 }
 
-#include "builtin_list.hpp"
-#include "builtin_selector.hpp"
-#include "builtin_task.hpp"
-#include "builtin_iseq.hpp"
-#include "builtin_channel.hpp"
+#include "builtin/list.hpp"
+#include "builtin/selector.hpp"
+#include "builtin/task.hpp"
+#include "builtin/iseq.hpp"
+#include "builtin/channel.hpp"
 
-#include "builtin_memorypointer.hpp"
-#include "builtin_nativefunction.hpp"
+#include "builtin/memorypointer.hpp"
+#include "builtin/nativefunction.hpp"
 
-#include "builtin_thread.hpp"
+#include "builtin/thread.hpp"
 
-#include "builtin_dir.hpp"
+#include "builtin/dir.hpp"
 
 #endif

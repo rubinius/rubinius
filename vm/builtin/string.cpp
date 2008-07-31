@@ -3,7 +3,7 @@
 #include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "builtin_bytearray.hpp"
+#include "builtin/bytearray.hpp"
 
 #define HashPrime 16777619
 #define MASK_28 (((unsigned int)1<<28)-1)

@@ -3,7 +3,7 @@
 
 #include "objects.hpp"
 #include "message.hpp"
-#include "builtin_channel.hpp"
+#include "builtin/channel.hpp"
 #include "jit_state.h"
 #include <stdexcept>
 

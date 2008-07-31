@@ -2,7 +2,7 @@
 #define RBX_BUILTIN_SELECTOR_HPP
 
 #include "objects.hpp"
-#include "builtin_sendsite.hpp"
+#include "builtin/sendsite.hpp"
 
 namespace rubinius {
   class SendSite;

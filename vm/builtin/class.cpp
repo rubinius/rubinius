@@ -1,5 +1,5 @@
 #include "vm.hpp"
-#include "builtin_class.hpp"
+#include "builtin/class.hpp"
 #include "objectmemory.hpp"
 
 namespace rubinius {

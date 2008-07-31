@@ -41,6 +41,6 @@ namespace rubinius {
 
 }
 
-#include "builtin_thread.hpp"
+#include "builtin/thread.hpp"
 
 #endif

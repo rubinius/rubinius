@@ -1,5 +1,5 @@
 #include "builtin.hpp"
-#include "builtin_dir.hpp"
+#include "builtin/dir.hpp"
 #include "ffi.hpp"
 
 #include <sys/types.h>
