@@ -42,6 +42,7 @@ namespace rubinius {
 
     void unshare(STATE);
     hashval hash_string(STATE);
+    // Ruby.primitive :symbol_lookup
     SYMBOL to_sym(STATE);
     char* byte_address(STATE);
 
@@ -57,6 +58,7 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
+      virtual void show(STATE, OBJECT self);
     };
 
   };

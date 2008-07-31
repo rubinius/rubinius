@@ -141,12 +141,23 @@ namespace rubinius {
       return reference_p() && obj_type == type;
     }
 
+    // Safely return the object type, even if the receiver is an immediate
+    object_type type() {
+      if(reference_p()) return obj_type;
+      if(fixnum_p()) return FixnumType;
+      if(symbol_p()) return SymbolType;
+      if(nil_p()) return NilType;
+      if(true_p()) return TrueType;
+      if(false_p()) return FalseType;
+      return ObjectType;
+    }
+
     // Ruby.primitive :object_tainted_p
-    bool tainted_p() {
+    OBJECT tainted_p() {
       if(this->IsTainted && reference_p()) {
-        return true;
+        return Qtrue;
       } else {
-        return false;
+        return Qfalse;
       }
     }
 

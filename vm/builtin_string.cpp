@@ -82,7 +82,6 @@ namespace rubinius {
     return hv;
   }
 
-  // Ruby.primitive :symbol_lookup
   SYMBOL String::to_sym(STATE) {
     return G(symbols)->lookup(state, this);
   }
@@ -163,6 +162,11 @@ namespace rubinius {
 
   String* String::add(STATE, const char* other) {
     return string_dup(state)->append(state, other);
+  }
+
+  void String::Info::show(STATE, OBJECT self) {
+    String* str = as<String>(self);
+    std::cout << *str << std::endl;
   }
 
 }
