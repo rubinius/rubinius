@@ -1,6 +1,7 @@
 #ifndef RBX_PRIMITIVES_HPP
 #define RBX_PRIMITIVES_HPP
 
+#include "object.hpp"
 #include "message.hpp"
 #include "vmexecutable.hpp"
 #include <stdexcept>

@@ -1,6 +1,8 @@
 #ifndef RBX_MESSAGE_HPP
 #define RBX_MESSAGE_HPP
 
+#include "prelude.hpp"
+
 namespace rubinius {
   class Array;
   class Executable;

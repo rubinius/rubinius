@@ -12,9 +12,7 @@ namespace rubinius {
     OBJECT buffer; // slot
     OBJECT mode; // slot
 
-    native_int to_fd() {
-      return descriptor->to_nint();
-    }
+    native_int to_fd();
 
     static void init(STATE);
     static IO* create(STATE, int fd);
@@ -55,9 +53,7 @@ namespace rubinius {
       return start;
     }
 
-    void read_bytes(size_t bytes) {
-      used = Object::i2n(used->n2i() + bytes);
-    }
+    void read_bytes(size_t bytes);
 
     class Info : public TypeInfo {
     public:

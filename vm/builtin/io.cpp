@@ -28,4 +28,12 @@ namespace rubinius {
     SET(this, descriptor, Object::i2n(state, fd));
     SET(this, mode, String::create(state, mode));
   }
+
+  native_int IO::to_fd() {
+    return descriptor->to_nint();
+  }
+
+  void IOBuffer::read_bytes(size_t bytes) {
+    used = Object::i2n(used->n2i() + bytes);
+  }
 };
