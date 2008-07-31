@@ -6,8 +6,8 @@ task :vm => 'vm/vm'
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/Release/bin/llvm-config"
 tests       = FileList["vm/test/test_*.hpp"]
-srcs        = FileList["vm/*.{cpp,c}"]
-hdrs        = FileList["vm/*.{hpp,h}"]
+srcs        = FileList["vm/*.{cpp,c}"] + FileList["vm/builtin/*.{cpp,c}"]
+hdrs        = FileList["vm/*.{hpp,h}"] + FileList["vm/builtin/*.{hpp,h}"]
 objs        = srcs.map { |f| f.sub(/c(pp)?$/, 'o') }
 dep_file    = "vm/.depends.mf"
 vm_objs     = %w[ vm/drivers/cli.o ]
@@ -75,7 +75,7 @@ end
 directory "vm/gen"
 file  "vm/type_info.o"    => "vm/gen/typechecks.gen.cpp"
 file  "vm/primitives.hpp" => "vm/gen/primitives_declare.hpp"
-files Dir["vm/builtin_*.hpp"], INSN_GEN
+files Dir["vm/builtin/*.hpp"], INSN_GEN
 files objs, EXTERNALS
 files vm_objs, vm_srcs
 
@@ -136,6 +136,50 @@ file "vm/instructions.bc" => "vm/llvm/instructions.cpp" do
   rm_f "llvm/.instructions.cpp", :verbose => $verbose
 end
 
+namespace :vm do
+  desc 'Run all VM tests'
+  task :test => 'vm/test/runner' do
+    ENV['VERBOSE'] = '1' if $verbose 
+    sh 'vm/test/runner', :verbose => $verbose
+  end
+
+  desc "Clean up vm build files"
+  task :clean do
+    files = [
+      objs, dep_file,
+      'vm/test/runner', 'vm/test/runner.cpp',
+      'vm/gen',
+      'vm/vm'
+    ]
+
+    files.each do |filename|
+      rm_f filename, :verbose => $verbose
+    end
+  end
+
+  desc "Clean up, including all external libs"
+  task :distclean => :clean do
+    EXTERNALS.each do |lib|
+      path = File.join(*lib.split(File::SEPARATOR)[0..2])
+      system "cd #{path}; make clean"
+    end
+  end
+
+  desc "Show which primitives are missing"
+  task :missing_primitives do
+    cpp_primitives = `grep 'Ruby.primitive' vm/*.hpp | awk '{ print $4 }'`
+
+    cpp_primitives = cpp_primitives.gsub(':', '').split("\n").sort.uniq
+
+    shotgun_primitives = File.read('vm/shotgun_primitives.txt')
+    shotgun_primitives = shotgun_primitives.split("\n").sort.uniq
+
+    missing = shotgun_primitives - cpp_primitives
+
+    puts missing.join("\n")
+  end
+end
+
 ############################################################$
 # Importers & Methods:
 
@@ -175,9 +219,10 @@ def ex_libs # needs to be method to delay running of llvm_config
 end
 
 def field_extract
-  order = %w[vm/builtin_object.hpp vm/objects.hpp]
-  order += File.read("vm/objects.hpp").scan(/builtin_[^"]+/).map { |f| "vm/#{f}" }
+  order = %w[vm/builtin/object.hpp vm/objects.hpp]
+  order += File.read("vm/objects.hpp").scan(/builtin[^"]+/).map { |f| "vm/#{f}" }
   order << { :verbose => $verbose}
+p order
   ruby('vm/field_extract.rb', *order)
 end
 
@@ -189,51 +234,5 @@ def link t
   l  = ex_libs.join(' ')
 
   sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
-end
-
-namespace :vm do
-  desc 'Run all VM tests'
-  task :test => 'vm/test/runner' do
-    ENV['VERBOSE'] = '1' if $verbose 
-    sh 'vm/test/runner', :verbose => $verbose
-  end
-
-  desc "Clean up vm build files"
-  task :clean do
-    # TODO evan? "*.gcda *.gcno *.gcov *.dSYM ../*.o coverage"
-    files = [
-      objs, dep_file,
-      'vm/test/runner', 'vm/test/runner.cpp',
-      'vm/gen',
-      'vm/vm'
-    ]
-
-    files.each do |filename|
-      rm_f filename, :verbose => $verbose
-    end
-  end
-
-  desc "Clean up, including all external libs"
-  task :distclean => :clean do
-    EXTERNALS.each do |lib|
-      path = File.join(*lib.split(File::SEPARATOR)[0..2])
-      system "cd #{path}; make clean"
-    end
-  end
-
-  desc "Show which primitives are missing"
-  task :missing_primitives do
-    cpp_primitives = `grep 'Ruby.primitive' vm/*.hpp | awk '{ print $4 }'`
-
-    cpp_primitives = cpp_primitives.gsub(':', '').split("\n").sort.uniq
-
-    shotgun_primitives = File.read('vm/shotgun_primitives.txt')
-    shotgun_primitives = shotgun_primitives.split("\n").sort.uniq
-
-    missing = shotgun_primitives - cpp_primitives
-
-    puts missing.join("\n")
-  end
-
 end
 
