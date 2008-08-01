@@ -15,6 +15,8 @@ namespace rubinius {
   class GlobalCache;
   class TaskProbe;
   class Primitives;
+  class ObjectMemory;
+  class TypeInfo;
 
   class VM {
     public:

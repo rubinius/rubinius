@@ -9,6 +9,14 @@
 
 namespace rubinius {
 
+  class SymbolTable;
+  class LookupTable;
+  class Tuple;
+  class Module;
+  class Thread;
+  class Task;
+  class Class;
+
   struct Globals {
 
     Roots roots;

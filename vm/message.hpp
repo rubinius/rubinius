@@ -8,6 +8,8 @@ namespace rubinius {
   class Executable;
   class SendSite;
   class Task;
+  class Module;
+  class TypeInfo;
 
   class Message {
   public:

@@ -15,6 +15,7 @@ namespace rubinius {
   class Channel;
   class Exception;
   class TaskProbe;
+  class Tuple;
 
   class ArgumentError : public VMException {
   public:

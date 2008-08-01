@@ -5,6 +5,9 @@
 #include "type_info.hpp"
 
 namespace rubinius {
+
+  class Module;
+
   class StaticScope : public Object {
   public:
     const static size_t fields = 3;

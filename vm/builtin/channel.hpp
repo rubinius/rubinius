@@ -5,6 +5,7 @@
 #include "type_info.hpp"
 #include "gc_root.hpp"
 #include "vm.hpp"
+#include "virtual.hpp"
 
 namespace rubinius {
   class List;

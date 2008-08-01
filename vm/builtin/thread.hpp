@@ -6,6 +6,7 @@
 
 namespace rubinius {
   class Channel;
+  class Task;
 
   class Thread : public Object {
   public:

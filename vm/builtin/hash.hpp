@@ -7,6 +7,7 @@
 namespace rubinius {
 
   class LookupTable;
+  class Tuple;
 
   #define HASH_MINSIZE 16
   class Hash : public Object {
