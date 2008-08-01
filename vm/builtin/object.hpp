@@ -187,11 +187,11 @@ namespace rubinius {
     }
 
     // Ruby.primitive :object_frozen_p
-    bool frozen_p() {
+    OBJECT frozen_p() {
       if(this->IsFrozen && reference_p()) {
-        return true;
+        return Qtrue;
       } else {
-        return false;
+        return Qfalse;
       }
     }
 

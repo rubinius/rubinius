@@ -123,15 +123,14 @@ class TestObject : public CxxTest::TestSuite {
   void test_tainted_p() {
     OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
 
-    TS_ASSERT(!obj->tainted_p());
-
+    TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
     obj->IsTainted = TRUE;
-
-    TS_ASSERT(obj->tainted_p());
+    TS_ASSERT_EQUALS(obj->tainted_p(), Qtrue);
   }
 
   void test_taint() {
     OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+
     TS_ASSERT(!obj->IsTainted);
     obj->taint();
     TS_ASSERT(obj->IsTainted);
@@ -139,6 +138,7 @@ class TestObject : public CxxTest::TestSuite {
 
   void test_untaint() {
     OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+
     obj->IsTainted = TRUE;
     TS_ASSERT(obj->IsTainted);
     obj->untaint();
@@ -148,21 +148,19 @@ class TestObject : public CxxTest::TestSuite {
   void test_frozen_p() {
     OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
 
-    TS_ASSERT(!obj->frozen_p());
-
+    TS_ASSERT_EQUALS(obj->frozen_p(), Qfalse);
     obj->IsFrozen = TRUE;
-
-    TS_ASSERT(obj->frozen_p());
+    TS_ASSERT_EQUALS(obj->frozen_p(), Qtrue);
   }
 
   void test_freeze() {
     OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+
     TS_ASSERT(!obj->IsFrozen);
     obj->freeze();
     TS_ASSERT(obj->IsFrozen);
   }
   
-
   void test_nil_class() {
     TS_ASSERT_EQUALS(Qnil->class_object(state), G(nil_class));
   }
