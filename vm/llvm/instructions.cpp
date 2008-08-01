@@ -1,5 +1,7 @@
-#include "builtin.hpp"
+
+#include "builtin/object.hpp"
 #include "jit_state.h"
+#include "objectmemory.hpp"
 
 using namespace rubinius;
 

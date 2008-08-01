@@ -132,7 +132,7 @@ class Instructions
 
     fd.puts <<-CODE
 #include "objects.hpp"
-#include "builtin_list.hpp"
+#include "builtin/list.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
