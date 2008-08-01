@@ -46,6 +46,7 @@ tmp
 tmtags
 
 /vm/log
+/vm/.instructions.cpp
 
 attic/externals/syd-parser/pkg
 

@@ -17,6 +17,7 @@ EX_INC      = %w[ libtommath onig libffi/include
                 ].map { |f| "vm/external_libs/#{f}" }
 INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
                   vm/gen/iseq_instruction_names.hpp
+                  vm/gen/iseq_instruction_size.gen
                   vm/test/test_instructions.hpp ]
 TYPE_GEN    = %w[ vm/gen/simple_field.rb
                   vm/gen/typechecks.gen.cpp
@@ -76,7 +77,6 @@ directory "vm/gen"
 file  "vm/type_info.o"    => "vm/gen/typechecks.gen.cpp"
 file  "vm/primitives.hpp" => "vm/gen/primitives_declare.hpp"
 files Dir["vm/builtin/*.hpp"], INSN_GEN
-files objs, EXTERNALS
 files vm_objs, vm_srcs
 
 objs.zip(srcs).each do |obj, src|
@@ -96,13 +96,16 @@ files EXTERNALS do |t|
   end
 end
 
-file 'vm/instructions.rb' => 'vm/instructions_gen.rb'
+file 'vm/instructions_gen.rb' => 'kernel/core/iseq.rb'
+file 'vm/instructions.rb' => %w[vm/gen vm/instructions_gen.rb]
 
-files INSN_GEN, %w[vm/gen vm/instructions.rb] do
+files INSN_GEN, %w[vm/instructions.rb] do
   ruby 'vm/instructions.rb', :verbose => $verbose
 end
 
-files TYPE_GEN, %w[vm/gen vm/instructions.rb vm/field_extract.rb] do
+file 'vm/field_extract.rb' => %w[vm/gen vm/builtin/object.hpp vm/objects.hpp]
+
+files TYPE_GEN, %w[vm/field_extract.rb] do
   field_extract
 end
 
@@ -124,16 +127,16 @@ file 'vm/test/runner' => EXTERNALS + objs + %w[vm/test/runner.o] do |t|
   link t
 end
 
-file "vm/instructions.o" => %w[vm/llvm/instructions.cpp vm/instructions.rb] do
-  ruby "vm/rubypp.rb vm/llvm/instructions.cpp vm/llvm/.instructions.cpp"
-  compile "vm/instructions.o", "vm/llvm/.instructions.cpp"
-  rm_f "vm/llvm/.instructions.cpp", :verbose => $verbose
+file 'vm/.instructions.cpp' => %w[vm/llvm/instructions.cpp vm/rubypp.rb] do
+  ruby 'vm/rubypp.rb vm/llvm/instructions.cpp vm/.instructions.cpp'
 end
 
-file "vm/instructions.bc" => "vm/llvm/instructions.cpp" do
-  ruby "vm/rubypp.rb vm/llvm/instructions.cpp vm/llvm/.instructions.cpp"
-  sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc vm/llvm/.instructions.cpp", :verbose => true
-  rm_f "llvm/.instructions.cpp", :verbose => $verbose
+file "vm/instructions.o" => 'vm/.instructions.cpp' do
+  compile "vm/instructions.o", "vm/.instructions.cpp"
+end
+
+file "vm/instructions.bc" => 'vm/.instructions.cpp' do
+  sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc vm/.instructions.cpp", :verbose => true
 end
 
 namespace :vm do
@@ -147,7 +150,9 @@ namespace :vm do
   task :clean do
     files = [
       objs, dep_file,
-      'vm/test/runner', 'vm/test/runner.cpp',
+      'vm/test/runner',
+      'vm/test/runner.cpp',
+      'vm/test/test_instructions.cpp',
       'vm/gen',
       'vm/vm'
     ]
@@ -185,14 +190,22 @@ end
 
 require 'rake/loaders/makefile'
 
-file dep_file => srcs + hdrs + vm_srcs do |t|
-  flags = (INCLUDES + FLAGS).join(' ')
+generated = (TYPE_GEN + INSN_GEN).select { |f| f =~ /pp$/ }
+
+file dep_file => srcs + hdrs + vm_srcs + generated do |t|
+  includes = INCLUDES.join ' '
+
+  flags = FLAGS.join ' '
   flags << " -D__STDC_LIMIT_MACROS"
 
-  dep = nil
-  Dir.chdir 'vm' do
-    dep = `makedepend -f- -- #{flags} -- #{t.prerequisites} 2>/dev/null`
+  cmd = "makedepend -f- #{includes} -- #{flags} -- #{t.prerequisites}"
+  if $verbose then
+    puts cmd
+  else
+    cmd << ' 2>/dev/null'
   end
+
+  dep = `#{cmd}`
   dep.gsub!(%r% /usr/include\S+%, '') # speeds up rake a lot
   dep.gsub!(%r%^\S+:[^ ]%, '')
 
@@ -220,9 +233,11 @@ end
 
 def field_extract
   order = %w[vm/builtin/object.hpp vm/objects.hpp]
-  order += File.read("vm/objects.hpp").scan(/builtin[^"]+/).map { |f| "vm/#{f}" }
+  objects = File.read("vm/objects.hpp").scan(/builtin\/[^"]+/)
+
+  order += objects.map { |f| File.join 'vm', f }
   order << { :verbose => $verbose}
-p order
+
   ruby('vm/field_extract.rb', *order)
 end
 

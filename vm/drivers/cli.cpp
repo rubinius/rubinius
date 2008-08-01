@@ -1,4 +1,6 @@
+#include <iostream>
 #include "environment.hpp"
+#include "objects.hpp"
 
 using namespace rubinius;
 

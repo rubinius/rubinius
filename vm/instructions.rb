@@ -3529,8 +3529,6 @@ require File.dirname(__FILE__) + "/instructions_gen.rb"
 if $0 == __FILE__
   si = Instructions.new
 
-  Dir.mkdir "vm/gen" unless File.directory?("vm/gen")
-
   File.open("vm/gen/iseq_instruction_names.cpp","w") do |f|
     f.puts si.generate_names
   end
