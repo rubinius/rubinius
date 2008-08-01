@@ -209,7 +209,7 @@ namespace :vm do
 
   desc "Show which primitives are missing"
   task :missing_primitives do
-    cpp_primitives = `grep 'Ruby.primitive' vm/*.hpp | awk '{ print $4 }'`
+    cpp_primitives = `grep 'Ruby.primitive' vm/builtin/*.hpp | awk '{ print $4 }'`
 
     cpp_primitives = cpp_primitives.gsub(':', '').split("\n").sort.uniq
 
