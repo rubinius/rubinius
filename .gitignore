@@ -32,6 +32,7 @@ code-cache
 coverage
 cscope.files
 cscope.out
+rakelib/ryan.rake
 runtime/platform.conf
 runtime/pristine*
 scratch
