@@ -237,6 +237,7 @@ file dep_file => srcs + hdrs + vm_srcs + generated do |t|
 
   cmd = "makedepend -f- #{includes} -- #{flags} -- #{t.prerequisites}"
   cmd << ' 2>/dev/null' unless $verbose
+  warn "makedepend ..."
 
   dep = `#{cmd}`
   dep.gsub!(%r% /usr/include\S+%, '') # speeds up rake a lot
