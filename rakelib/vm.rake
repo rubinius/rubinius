@@ -93,7 +93,7 @@ def rubypp_task(target, prerequisite)
   file target => [prerequisite, 'vm/rubypp.rb'] do
     path = tmpname do |path|
       ruby 'vm/rubypp.rb', prerequisite, path
-      compile target, path
+      yield path
     end
   end
 end
@@ -174,12 +174,10 @@ file 'vm/test/runner' => EXTERNALS + objs + %w[vm/test/runner.o] do |t|
 end
 
 rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp' do |path|
-  ruby "vm/rubypp.rb vm/llvm/instructions.cpp #{path}"
   compile 'vm/instructions.o', path
 end
 
 rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp' do |path|
-  ruby "vm/rubypp.rb vm/llvm/instructions.cpp #{path}"
   sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc #{path}"
 end
 
