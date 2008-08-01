@@ -112,12 +112,12 @@ class TestHash : public CxxTest::TestSuite {
     TS_ASSERT(!tbl->lookup(state, Qtrue, hash, &out));
   }
 
-  static int _compare1(VM* vm, OBJECT cur, OBJECT key) {
-    return TRUE;
+  static bool _compare1(VM* vm, OBJECT cur, OBJECT key) {
+    return true;
   }
 
-  static int _compare2(VM* vm, OBJECT cur, OBJECT key) {
-    return FALSE;
+  static bool _compare2(VM* vm, OBJECT cur, OBJECT key) {
+    return false;
   }
 
   void test_lookup2() {

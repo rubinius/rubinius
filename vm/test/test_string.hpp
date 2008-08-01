@@ -94,4 +94,13 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(std::string("blah"), (char*)*str);
 
   }
+
+  void test_equal() {
+    String* str1 = String::create(state, "a_string");
+    String* str2 = String::create(state, "a_string");
+    String* str3 = String::create(state, "another_string");
+
+    TS_ASSERT_EQUALS(str1->equal(state, str2), Qtrue);
+    TS_ASSERT_EQUALS(str1->equal(state, str3), Qfalse);
+  }
 };

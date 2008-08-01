@@ -33,10 +33,10 @@ namespace rubinius {
     OBJECT add(STATE, hashval hsh, OBJECT key, OBJECT data);
     OBJECT set(STATE, OBJECT key, OBJECT val);
     OBJECT get(STATE, hashval hsh);
-    int    lookup(STATE, OBJECT key, hashval hash, OBJECT *value);
-    int    lookup2(STATE, int (*compare)(STATE, OBJECT, OBJECT),
+    bool    lookup(STATE, OBJECT key, hashval hash, OBJECT *value);
+    bool    lookup2(STATE, bool (*compare)(STATE, OBJECT, OBJECT),
         OBJECT key, hashval hash, OBJECT *value);
-    void   assign(STATE, int (*compare)(STATE, OBJECT, OBJECT),
+    void   assign(STATE, bool (*compare)(STATE, OBJECT, OBJECT),
         OBJECT key, hashval hash, OBJECT value);
     OBJECT get_undef(STATE, hashval hsh);
     OBJECT remove(STATE, hashval hsh);

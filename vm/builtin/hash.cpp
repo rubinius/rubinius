@@ -177,51 +177,51 @@ namespace rubinius {
   /* Find the +value+ for +key+, having hash value +hash+. 
    * Uses +==+ to verify the key in the table matches +key+.
    * Return TRUE if key was found, and *value will be filled. */
-  int Hash::lookup(STATE, OBJECT key, hashval hash, OBJECT *value) {
+  bool Hash::lookup(STATE, OBJECT key, hashval hash, OBJECT *value) {
     OBJECT hk;
 
     Tuple* ent = find_entry(state, hash);
-    if(!ent) return FALSE;
+    if(!ent) return false;
 
     while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
       hk = ent->at(1);
       if(hk == key) {
         *value = ent->at(2);
-        return TRUE;
+        return true;
       }
 
       ent = try_as<Tuple>(ent->at(3));
       if(!ent) break;
     }
 
-    return FALSE;
+    return false;
   }
 
   /* Find the +value+ for +key+, having hash value +hash+. 
    * Uses +compare+ to verify the key in the table matches +key+.
    * Return TRUE if key was found, and *value will be filled. */
-  int Hash::lookup2(STATE, int (*compare)(STATE, OBJECT, OBJECT),
+  bool Hash::lookup2(STATE, bool (*compare)(STATE, OBJECT, OBJECT),
       OBJECT key, hashval hash, OBJECT *value) {
     OBJECT hk;
 
     Tuple* ent = find_entry(state, hash);
-    if(!ent) return FALSE;
+    if(!ent) return false;
 
     while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
       hk = ent->at(1);
       if(compare(state, hk, key)) {
         *value = ent->at(2);
-        return TRUE;
+        return true;
       }
 
       ent = try_as<Tuple>(ent->at(3));
       if(!ent) break;
     }
 
-    return FALSE;
+    return false;
   }
 
-  void Hash::assign(STATE, int (*compare)(STATE, OBJECT, OBJECT),
+  void Hash::assign(STATE, bool (*compare)(STATE, OBJECT, OBJECT),
       OBJECT key, hashval hash, OBJECT value) {
     OBJECT hk;
     Tuple* ent;

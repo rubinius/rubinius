@@ -90,16 +90,21 @@ namespace rubinius {
     return (char*)data->bytes;
   }
 
-  int String::string_equal_p(STATE, OBJECT a, OBJECT b) {
+  bool String::string_equal_p(STATE, OBJECT a, OBJECT b) {
     String* self = as<String>(a);
     String* other = as<String>(b);
 
-    if(self->bytes != other->bytes) return FALSE;
-    if(strcmp(self->byte_address(state), other->byte_address(state))) {
-      return FALSE;
+    if(self->num_bytes != other->num_bytes) return false;
+    if(strncmp(self->byte_address(state), other->byte_address(state), self->num_bytes->n2i())) {
+      return false;
     }
 
-    return TRUE;
+    return true;
+  }
+
+  OBJECT String::equal(STATE, String* other) {
+    bool ret = String::string_equal_p(state, this, other);
+    return ret ? Qtrue : Qfalse;
   }
 
   String* String::string_dup(STATE) {

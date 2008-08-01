@@ -26,7 +26,9 @@ namespace rubinius {
 
     static String* create(STATE, const char* str, size_t bytes = 0);
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
-    static int string_equal_p(STATE, OBJECT self, OBJECT other);
+    static bool string_equal_p(STATE, OBJECT self, OBJECT other);
+	// Ruby.primitive :string_equal
+	OBJECT equal(STATE, String* other);
 
     size_t size(STATE) {
       return num_bytes->n2i();
