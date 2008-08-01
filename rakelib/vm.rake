@@ -15,6 +15,7 @@ vm_srcs     = %w[ vm/drivers/cli.cpp ]
 EX_INC      = %w[ libtommath onig libffi/include
                   libltdl libev llvm/include
                 ].map { |f| "vm/external_libs/#{f}" }
+
 INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
                   vm/gen/iseq_instruction_names.hpp
                   vm/gen/iseq_instruction_size.gen
@@ -23,6 +24,7 @@ TYPE_GEN    = %w[ vm/gen/simple_field.rb
                   vm/gen/typechecks.gen.cpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
+OTHER_GEN   = %w[ vm/instructions.cpp ]
 
 LLVM_A      = "vm/external_libs/llvm/Release/lib/libLLVMSystem.a"
 EXTERNALS   = %W[ #{LLVM_A}
@@ -127,16 +129,16 @@ file 'vm/test/runner' => EXTERNALS + objs + %w[vm/test/runner.o] do |t|
   link t
 end
 
-file 'vm/.instructions.cpp' => %w[vm/llvm/instructions.cpp vm/rubypp.rb] do
-  ruby 'vm/rubypp.rb vm/llvm/instructions.cpp vm/.instructions.cpp'
+file 'vm/instructions.cpp' => %w[vm/llvm/instructions.cpp vm/rubypp.rb] do
+  ruby 'vm/rubypp.rb vm/llvm/instructions.cpp vm/instructions.cpp'
 end
 
-file "vm/instructions.o" => 'vm/.instructions.cpp' do
-  compile "vm/instructions.o", "vm/.instructions.cpp"
+file 'vm/instructions.o' => 'vm/instructions.cpp' do
+  compile 'vm/instructions.o', 'vm/instructions.cpp'
 end
 
-file "vm/instructions.bc" => 'vm/.instructions.cpp' do
-  sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc vm/.instructions.cpp", :verbose => true
+file 'vm/instructions.bc' => 'vm/instructions.cpp' do
+  sh 'llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc vm/instructions.cpp', :verbose => true
 end
 
 namespace :vm do
@@ -149,16 +151,16 @@ namespace :vm do
   desc "Clean up vm build files"
   task :clean do
     files = [
-      objs, dep_file,
+      objs, dep_file, TYPE_GEN, INSN_GEN, OTHER_GEN,
+      'vm/gen',
       'vm/test/runner',
       'vm/test/runner.cpp',
       'vm/test/test_instructions.cpp',
-      'vm/gen',
       'vm/vm'
-    ]
+    ].flatten
 
     files.each do |filename|
-      rm_f filename, :verbose => $verbose
+      rm_rf filename, :verbose => $verbose
     end
   end
 
@@ -190,7 +192,7 @@ end
 
 require 'rake/loaders/makefile'
 
-generated = (TYPE_GEN + INSN_GEN).select { |f| f =~ /pp$/ }
+generated = (TYPE_GEN + INSN_GEN + OTHER_GEN).select { |f| f =~ /pp$/ }
 
 file dep_file => srcs + hdrs + vm_srcs + generated do |t|
   includes = INCLUDES.join ' '
@@ -199,11 +201,8 @@ file dep_file => srcs + hdrs + vm_srcs + generated do |t|
   flags << " -D__STDC_LIMIT_MACROS"
 
   cmd = "makedepend -f- #{includes} -- #{flags} -- #{t.prerequisites}"
-  if $verbose then
-    puts cmd
-  else
-    cmd << ' 2>/dev/null'
-  end
+  cmd << ' 2>/dev/null' unless $verbose
+  puts cmd
 
   dep = `#{cmd}`
   dep.gsub!(%r% /usr/include\S+%, '') # speeds up rake a lot
