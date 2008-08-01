@@ -207,6 +207,7 @@ namespace rubinius {
 
   };
 
+// Type-safe, write-barrier-enabled version of 'SET'
 #define OSET(om, obj, field, val) ({ \
     typeof(obj) _o = (obj); OBJECT  _v = (val); \
     if(_v->nil_p()) { _o->field = (typeof(_o->field))Qnil; } else { \
