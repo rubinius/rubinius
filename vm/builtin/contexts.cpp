@@ -5,7 +5,6 @@ namespace rubinius {
   MethodContext* MethodContext::create(STATE) {
     MethodContext* ctx;
     ctx = (MethodContext*)state->new_struct(G(methctx), sizeof(MethodContext));
-    ctx->no_value = false;
     SET(ctx, block, Qnil);
     SET(ctx, name, Qnil);
     SET(ctx, home, Qnil);

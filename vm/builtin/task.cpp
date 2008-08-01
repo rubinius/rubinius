@@ -174,41 +174,15 @@ stack_cleanup:
     return msg.method->execute(state, this, msg);
   }
 
- bool Task::perform_hook(OBJECT obj, SYMBOL name, OBJECT arg) {
-    Message msg(state);
-    msg.recv = obj;
-    msg.lookup_from = obj->lookup_begin(state);
-    msg.name = name;
-    msg.args = 1;
-    msg.use_from_task(this, 1);
-
-    GlobalCacheResolver res;
-
-    /* If we can't find it, give up. */
-    if(!res.resolve(state, msg)) return false;
-
-    MethodContext* cur = active;
-    msg.method->execute(state, this, msg);
-
-    /* Execute has installed a new active context. */
-    if(cur != active) {
-      /* Make sure we discard the return value */
-      active->no_value = true;
-    }
-
-    return true;
-  }
-
   bool Task::passed_arg_p(size_t pos) {
     return active->args >= pos;
   }
 
   void Task::simple_return(OBJECT value) {
     MethodContext *target = active->sender;
-    bool push_value = !active->no_value;
 
     restore_context(target);
-    if(push_value) stack->put(state, ++sp, value);
+    stack->put(state, ++sp, value);
   }
 
   /* Called after a primitive has executed and wants to return a value. */
@@ -373,6 +347,7 @@ stack_cleanup:
     active->cm->scope->module->set_const(state, name, val);
   }
 
+  // TODO - Make sure this cannot contaminate the stack!
   void Task::yield_debugger() {
     Channel* chan;
     if(debug_channel->nil_p()) {
@@ -391,8 +366,6 @@ stack_cleanup:
     sassert(control_channel->has_readers_p());
 
     active->reference(state);
-    /* keep this stack clean. */
-    active->no_value = true;
 
     debug_channel->send(state, active);
     control_channel->receive(state);

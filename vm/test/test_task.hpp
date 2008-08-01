@@ -376,69 +376,9 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT(outer_stack != inner_stack);
 
     task->simple_return(Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack, outer_stack);
     TS_ASSERT_EQUALS(task->active, top);
     TS_ASSERT_EQUALS(task->sp, 0);
-  }
-
-  void test_simple_return_with_no_value_flag() {
-    CompiledMethod* cm = create_cm();
-    cm->total_args = Object::i2n(0);
-    cm->stack_size = Object::i2n(1);
-
-    Task* task = Task::create(state, Qnil, cm);
-
-    MethodContext* top = task->active;
-
-    G(true_class)->method_table->store(state, state->symbol("blah"), cm);
-
-    Message msg(state);
-    msg.recv = Qtrue;
-    msg.lookup_from = G(true_class);
-    msg.name = state->symbol("blah");
-    msg.send_site = SendSite::create(state, state->symbol("blah"));
-    msg.args = 0;
-
-    Tuple* outer_stack = task->stack;
-
-    task->stack->put(state, ++task->sp, Qtrue);
-
-    /* call the thing that we're going to ignore the return value of */
-    task->send_message(msg);
-    task->active->no_value = true;
-
-    Tuple* inner_stack = task->stack;
-
-    TS_ASSERT(outer_stack != inner_stack);
-
-    task->simple_return(Object::i2n(3));
-    TS_ASSERT_EQUALS(task->active, top);
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(task->stack->at(0), Qtrue);
-  }
-
-  void test_perform_hook() {
-    CompiledMethod* cm = create_cm();
-    cm->stack_size = Object::i2n(1);
-
-    Task* task = Task::create(state, Qnil, cm);
-
-    MethodContext* top = task->active;
-
-    TS_ASSERT(!task->perform_hook(Qtrue, state->symbol("blah"), Qtrue));
-
-    CompiledMethod* hook = create_cm();
-    hook->required_args = Object::i2n(1);
-    hook->total_args = hook->required_args;
-    G(true_class)->method_table->store(state, state->symbol("blah"), hook);
-
-    task->stack->put(state, ++task->sp, Qfalse);
-    TS_ASSERT(task->perform_hook(Qtrue, state->symbol("blah"), Qtrue));
-
-    /* The hook'd method returning. */
-    task->simple_return(Object::i2n(3));
-    TS_ASSERT_EQUALS(task->active, top);
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(task->stack->at(0), Qfalse);
   }
 
   void test_locate_method_on() {

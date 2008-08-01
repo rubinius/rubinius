@@ -29,7 +29,6 @@ namespace rubinius {
     size_t args;
     OBJECT block; // slot
     OBJECT name; // slot
-    bool   no_value;
 
     /* Locals are stored at the top of the stack. */
     Tuple* locals() { return stack; }

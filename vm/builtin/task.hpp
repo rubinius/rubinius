@@ -81,7 +81,6 @@ namespace rubinius {
 
     void attach_method(OBJECT obj, SYMBOL name, CompiledMethod* meth);
     void add_method(Module* obj, SYMBOL name, CompiledMethod* meth);
-    bool perform_hook(OBJECT obj, SYMBOL name, OBJECT arg);
     Class* open_class(OBJECT super, SYMBOL name, bool* created);
     Class* open_class(Module* under, OBJECT super, SYMBOL name, bool* created);
     Module* open_module(Module* under, SYMBOL name);
