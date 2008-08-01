@@ -26,11 +26,14 @@ namespace rubinius {
 
     static void init(STATE);
     TypeInfo(object_type type);
+    // These are virtual methods that are 're-dispatched' using an object's
+    // 'obj_type' field to determine the correct type info
     virtual ~TypeInfo();
     virtual void cleanup(OBJECT obj);
     virtual void mark(OBJECT obj, ObjectMark& mark);
     virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val);
     virtual OBJECT get_field(STATE, OBJECT target, size_t index);
+    virtual void show(STATE, OBJECT self);
   };
 
 #define BASIC_TYPEINFO(super) \

@@ -135,7 +135,11 @@ namespace rubinius {
   OBJECT Object::dup(STATE) {
     OBJECT dup;
 
-    dup = state->om->new_object(class_object(state), field_count);
+    // We will use lookup_begin here instead of class_object in order
+    // to preserve any IncludedModule instances; they will be shared
+    // between all duplicates made from this object
+    // TODO - Verify this statement
+    dup = state->om->new_object(lookup_begin(state), field_count);
     dup->all_flags = all_flags;
 
     if(stores_bytes_p()) {
@@ -145,6 +149,7 @@ namespace rubinius {
         state->om->store_object(dup, i, field[i]);
       }
     }
+    // TODO - Duplicate ('make independent') ivars here
 
     return dup;
   }
@@ -326,22 +331,6 @@ namespace rubinius {
     std::cout << ":" << (char*)*name << "\n";
   }
 
-  OBJECT Object::show(STATE) {
-    if(FIXNUM i = try_as<Fixnum>(this)) {
-      std::cout << i->n2i() << std::endl;
-    } else if(Bignum* b = try_as<Bignum>(this)) {
-      std::cout << *b->to_s(state, Object::i2n(10)) << std::endl;
-    } else if(Float* f = try_as<Float>(this)) {
-      std::cout << f->val << std::endl;
-    } else if(String* str = try_as<String>(this)) {
-      std::cout << *str << std::endl;
-    } else {
-      inspect(state, this);
-    }
-
-    return Qnil;
-  }
-
   void Object::cleanup(STATE) {
     state->om->find_type_info(this)->cleanup(this);
   }
@@ -358,11 +347,16 @@ namespace rubinius {
   // 'virtual' methods. They dispatch to the object's TypeInfo
   // object to perform the work.
   OBJECT Object::get_field(STATE, size_t index) {
-    return state->om->type_info[obj_type]->get_field(state, this, index);
+    return state->om->type_info[type()]->get_field(state, this, index);
   }
 
   void Object::set_field(STATE, size_t index, OBJECT val) {
-    state->om->type_info[obj_type]->set_field(state, this, index, val);
+    state->om->type_info[type()]->set_field(state, this, index, val);
+  }
+
+  OBJECT Object::show(STATE) {
+    state->om->type_info[type()]->show(state, this);
+    return Qnil;
   }
 
 }
