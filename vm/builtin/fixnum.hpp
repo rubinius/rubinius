@@ -10,22 +10,22 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = FixnumType;
 
-    // Ruby.primitive! :fixnum_add
+    // Ruby.primitive! :add
     INTEGER add(STATE, FIXNUM other);
 
-    // Ruby.primitive! :fixnum_add
+    // Ruby.primitive! :add
     INTEGER add(STATE, Bignum* other);
 
-    // Ruby.primitive! :fixnum_add
+    // Ruby.primitive! :add
     Float* add(STATE, Float* other);
 
-    // Ruby.primitive! :fixnum_sub
+    // Ruby.primitive! :sub
     INTEGER sub(STATE, FIXNUM other);
-    
-    // Ruby.primitive! :fixnum_sub
+
+    // Ruby.primitive! :sub
     INTEGER sub(STATE, Bignum* other);
 
-    // Ruby.primitive! :fixnum_sub
+    // Ruby.primitive! :sub
     Float* sub(STATE, Float* other);
 
     // Ruby.primitive! :fixnum_mul
