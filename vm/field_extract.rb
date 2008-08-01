@@ -290,7 +290,7 @@ class CPPParser
   end
 
   def add_class(name, obj)
-    @class_order << name
+    @class_order << name unless @class_order.include? name
     @classes[name] = obj
   end
 
@@ -490,7 +490,11 @@ File.open("vm/gen/primitives_glue.gen.cpp", "w") do |f|
     f.puts "    return &Primitives::#{name};"
     f.puts "  }"
   end
-  f.puts "  throw std::runtime_error(\"Unable to resolve primitive\");"
+  f.puts "  std::string msg = std::string(\"Unable to resolve primitive: \") + (char*)*name->to_str(state);"
+  f.puts "  std::cout << msg << std::endl;"
+  f.puts "  return &Primitives::unknown_primitive;"
+  # commented out while we have soft primitive failures
+  #f.puts "  throw std::runtime_error(msg.c_str());"
   f.puts "}"
 end
 

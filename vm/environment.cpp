@@ -34,12 +34,18 @@ namespace rubinius {
   void Environment::load_directory(std::string dir) {
     std::string path = dir + "/.load_order.txt";
     std::ifstream stream(path.c_str());
-    if(!stream) throw std::runtime_error("Unable to load directory");
-
-    std::string line;
+    if(!stream) {
+      throw std::runtime_error("Unable to load directory, .load_order.txt is missing");
+    }
 
     while(!stream.eof()) {
+      std::string line;
       stream >> line;
+      stream.get(); // eat newline
+
+      // skip empty lines
+      if(line.size() == 0) continue;
+
       std::cout << "Loading: " << line << std::endl;
       run_file(dir + "/" + line);
     }

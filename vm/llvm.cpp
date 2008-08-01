@@ -81,6 +81,23 @@ namespace rubinius {
 
   }
 
+  static CallInst* call_function(std::string name, Value* task, 
+                                 Value* js, BasicBlock* block) {
+    Function* func = operations->getFunction(name);
+    if(!func) {
+      std::string str = std::string("Unable to find: ");
+      str += name;
+
+      throw str;
+    }
+
+    std::vector<Value*> args(0);
+    args.push_back(task);
+    args.push_back(js);
+
+    return CallInst::Create(func, args.begin(), args.end(), "", block);
+  }
+
   CallInst* VMLLVMMethod::call_operation(Opcode* op, Value* task,
                                          Value* js, BasicBlock* block) {
     const char* name = InstructionSequence::get_instruction_name(op->op);
@@ -287,7 +304,20 @@ namespace rubinius {
         /* Remove the argument from being used, since we used it directly
          * here. */
         op->args--;
-        call = call_operation(op, task, js, cur);
+        std::string func_name;
+        switch(op->op) {
+        case InstructionSequence::insn_goto_if_true:
+          func_name = std::string("jit_goto_if_true");
+          break;
+        case InstructionSequence::insn_goto_if_false:
+          func_name = std::string("jit_goto_if_false");
+          break;
+        case InstructionSequence::insn_goto_if_defined:
+          func_name = std::string("jit_goto_if_defined");
+          break;
+        }
+          
+        call = call_function(func_name, task, js, cur);
         call->setName("goto");
         ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_EQ, call,
             ConstantInt::get(Type::Int8Ty, 1), "cmp", cur);

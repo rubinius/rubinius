@@ -71,6 +71,21 @@ CODE
 
   */
 
+  OP2(bool, jit_goto_if_false) {
+    OBJECT val = stack_pop();
+    return !RTEST(val);
+  }
+  
+  OP2(bool, jit_goto_if_true) {
+    OBJECT val = stack_pop();
+    return RTEST(val);
+  }
+
+  OP2(bool, jit_goto_if_defined) {
+    OBJECT val = stack_pop();
+    return val != Qundef;
+  }
+
   bool send_slowly(Task* task, struct jit_state* const js, SYMBOL name) {
     Message& msg = *task->msg;
     msg.recv = stack_back(1);

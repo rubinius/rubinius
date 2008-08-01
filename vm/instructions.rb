@@ -754,14 +754,10 @@ class Instructions
   def goto_if_false(location)
     <<-CODE
     OBJECT t1 = stack_pop();
-    #if JIT
-    return !RTEST(t1);
-    #else
     if(!RTEST(t1)) {
       task->ip = location;
       cache_ip();
     }
-    #endif
     CODE
   end
 
@@ -801,14 +797,10 @@ class Instructions
   def goto_if_true(location)
     <<-CODE
     OBJECT t1 = stack_pop();
-    #if JIT
-    return RTEST(t1);
-    #else
     if(RTEST(t1)) {
       task->ip = location;
       cache_ip();
     }
-    #endif
     CODE
   end
 
@@ -849,14 +841,10 @@ class Instructions
   def goto_if_defined(location)
     <<-CODE
     OBJECT t1 = stack_pop();
-    #if JIT
-    return t1 != Qundef;
-    #else
     if(t1 != Qundef) {
       task->ip = location;
       cache_ip();
     }
-    #endif
     CODE
   end
 

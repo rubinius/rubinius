@@ -24,8 +24,8 @@ TYPE_GEN    = %w[ vm/gen/simple_field.rb
                   vm/gen/typechecks.gen.cpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
-OTHER_GEN   = %w[ vm/instructions.cpp ]
 
+BC          = "vm/instructions.bc"
 LLVM_A      = "vm/external_libs/llvm/Release/lib/libLLVMSystem.a"
 EXTERNALS   = %W[ #{LLVM_A}
                   vm/external_libs/libtommath/libtommath.a
@@ -39,10 +39,11 @@ OPTIONS     = {
 
 INCLUDES    = (EX_INC + %w[vm/test/cxxtest vm .]).map { |f| "-I#{f}" }
 FLAGS       = %w(-Wall -ggdb -gdwarf-2)
+CC          = ENV['CC'] || "gcc"
+
 
 FLAGS << "-O2" if ENV['FAST']
 
-CC = ENV['CC'] || "gcc"
 
 def compile(obj, src)
   unless defined? $llvm_c then
@@ -52,8 +53,29 @@ def compile(obj, src)
 
   flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
 
-  sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1"
+  if ENV['TERSE']
+    puts "CC #{src}"
+    sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1", :verbose => false
+  else
+    sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1"
+  end
 end
+
+def link t
+  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
+
+  ld = ENV['LD'] || 'g++'
+  o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
+  l  = ex_libs.join(' ')
+
+  if ENV['TERSE']
+    puts "LD #{t.name}"
+    sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}", :verbose => false
+  else
+    sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
+  end
+end
+
 
 ############################################################
 # Other Tasks
@@ -85,7 +107,7 @@ objs.zip(srcs).each do |obj, src|
   file obj => src
 end
 
-objs += ["vm/instructions.o"]
+objs += ["vm/instructions.o", BC]
 
 files EXTERNALS do |t|
   path = File.join(*split_all(t.name)[0..2])
@@ -98,6 +120,7 @@ files EXTERNALS do |t|
   end
 end
 
+file "vm/primitives.o" => "vm/field_extract.rb"
 file 'vm/instructions_gen.rb' => 'kernel/core/iseq.rb'
 file 'vm/instructions.rb' => %w[vm/gen vm/instructions_gen.rb]
 
@@ -129,16 +152,28 @@ file 'vm/test/runner' => EXTERNALS + objs + %w[vm/test/runner.o] do |t|
   link t
 end
 
-file 'vm/instructions.cpp' => %w[vm/llvm/instructions.cpp vm/rubypp.rb] do
-  ruby 'vm/rubypp.rb vm/llvm/instructions.cpp vm/instructions.cpp'
+require 'tmpdir'
+
+def tmpname(suffix="cpp")
+  @which ||= 0
+
+  path = File.join(Dir.tmpdir, "rake.#{$$}.#{@which += 1}.#{suffix}")
+
+  at_exit { FileUtils.rm_rf(path) }
+
+  return path
 end
 
-file 'vm/instructions.o' => 'vm/instructions.cpp' do
-  compile 'vm/instructions.o', 'vm/instructions.cpp'
+file 'vm/instructions.o' => 'vm/llvm/instructions.cpp' do
+  path = tmpname()
+  ruby "vm/rubypp.rb vm/llvm/instructions.cpp #{path}"
+  compile 'vm/instructions.o', path
 end
 
-file 'vm/instructions.bc' => 'vm/instructions.cpp' do
-  sh 'llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc vm/instructions.cpp', :verbose => true
+file 'vm/instructions.bc' => 'vm/llvm/instructions.cpp' do
+  path = tmpname()
+  ruby "vm/rubypp.rb vm/llvm/instructions.cpp #{path}"
+  sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc #{path}"
 end
 
 namespace :vm do
@@ -151,7 +186,7 @@ namespace :vm do
   desc "Clean up vm build files"
   task :clean do
     files = [
-      objs, dep_file, TYPE_GEN, INSN_GEN, OTHER_GEN,
+      objs, dep_file, TYPE_GEN, INSN_GEN,
       'vm/gen',
       'vm/test/runner',
       'vm/test/runner.cpp',
@@ -192,7 +227,7 @@ end
 
 require 'rake/loaders/makefile'
 
-generated = (TYPE_GEN + INSN_GEN + OTHER_GEN).select { |f| f =~ /pp$/ }
+generated = (TYPE_GEN + INSN_GEN).select { |f| f =~ /pp$/ }
 
 file dep_file => srcs + hdrs + vm_srcs + generated do |t|
   includes = INCLUDES.join ' '
@@ -202,7 +237,6 @@ file dep_file => srcs + hdrs + vm_srcs + generated do |t|
 
   cmd = "makedepend -f- #{includes} -- #{flags} -- #{t.prerequisites}"
   cmd << ' 2>/dev/null' unless $verbose
-  puts cmd
 
   dep = `#{cmd}`
   dep.gsub!(%r% /usr/include\S+%, '') # speeds up rake a lot
@@ -239,14 +273,3 @@ def field_extract
 
   ruby('vm/field_extract.rb', *order)
 end
-
-def link t
-  $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
-
-  ld = ENV['LD'] || 'g++'
-  o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
-  l  = ex_libs.join(' ')
-
-  sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
-end
-

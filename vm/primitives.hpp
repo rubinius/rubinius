@@ -13,6 +13,7 @@ namespace rubinius {
   class Primitives {
   public:
     static executor resolve_primitive(STATE, SYMBOL name);
+    static bool unknown_primitive(STATE, VMExecutable* exec, Task* task, Message& msg);
 #include "gen/primitives_declare.hpp"
   };
 
