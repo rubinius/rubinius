@@ -1,3 +1,5 @@
+require 'tmpdir'
+
 task :vm => 'vm/vm'
 
 ############################################################
@@ -76,6 +78,25 @@ def link t
   end
 end
 
+def tmpname(suffix = "cpp")
+  @which ||= 0
+
+  path = File.join(Dir.tmpdir, "rake.#{$$}.#{@which += 1}.#{suffix}")
+
+  yield path
+
+ensure
+  FileUtils.rm_rf path
+end
+
+def rubypp_task(target, prerequisite)
+  file target => [prerequisite, 'vm/rubypp.rb'] do
+    path = tmpname do |path|
+      ruby 'vm/rubypp.rb', prerequisite, path
+      compile target, path
+    end
+  end
+end
 
 ############################################################
 # Other Tasks
@@ -107,7 +128,7 @@ objs.zip(srcs).each do |obj, src|
   file obj => src
 end
 
-objs += ["vm/instructions.o", BC]
+objs += ["vm/instructions.o"] # NOTE: BC isn't added due to llvm-g++ requirement
 
 files EXTERNALS do |t|
   path = File.join(*split_all(t.name)[0..2])
@@ -152,26 +173,12 @@ file 'vm/test/runner' => EXTERNALS + objs + %w[vm/test/runner.o] do |t|
   link t
 end
 
-require 'tmpdir'
-
-def tmpname(suffix="cpp")
-  @which ||= 0
-
-  path = File.join(Dir.tmpdir, "rake.#{$$}.#{@which += 1}.#{suffix}")
-
-  at_exit { FileUtils.rm_rf(path) }
-
-  return path
-end
-
-file 'vm/instructions.o' => 'vm/llvm/instructions.cpp' do
-  path = tmpname()
+rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp' do |path|
   ruby "vm/rubypp.rb vm/llvm/instructions.cpp #{path}"
   compile 'vm/instructions.o', path
 end
 
-file 'vm/instructions.bc' => 'vm/llvm/instructions.cpp' do
-  path = tmpname()
+rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp' do |path|
   ruby "vm/rubypp.rb vm/llvm/instructions.cpp #{path}"
   sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc #{path}"
 end
