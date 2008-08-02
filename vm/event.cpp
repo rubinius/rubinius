@@ -10,6 +10,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
+#include "builtin/thread.hpp"
 
 #include "event.hpp"
 
@@ -152,7 +153,6 @@ namespace rubinius {
       channel->call(state->current_thread());
       return false;
     }
-
 
     Timer::Timer(STATE, ObjectCallback* chan, double seconds) : 
         Event(state, chan) {
