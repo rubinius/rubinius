@@ -1,7 +1,9 @@
 #include "builtin/dir.hpp"
+#include "builtin/memorypointer.hpp"
+#include "builtin/string.hpp"
+
 #include <cstdio>
 #include <sys/stat.h>
-
 #include <cxxtest/TestSuite.h>
 
 using namespace rubinius;

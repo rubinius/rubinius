@@ -1,5 +1,6 @@
-#include "objects.hpp"
+#include "builtin/selector.hpp"
 #include "builtin/list.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
 

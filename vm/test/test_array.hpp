@@ -1,4 +1,7 @@
-#include "objects.hpp"
+#include "builtin/array.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/tuple.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "ffi.hpp"

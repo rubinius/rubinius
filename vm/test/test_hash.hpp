@@ -1,4 +1,4 @@
-#include "objects.hpp"
+#include "builtin/hash.hpp"
 #include "vm.hpp"
 
 #include <cxxtest/TestSuite.h>

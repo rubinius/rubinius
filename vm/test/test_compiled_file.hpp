@@ -1,4 +1,8 @@
 #include "compiled_file.hpp"
+#include "builtin/class.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/staticscope.hpp"
 
 #include <cxxtest/TestSuite.h>
 

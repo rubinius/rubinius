@@ -1,7 +1,8 @@
-#include "objects.hpp"
+#include "event.hpp"
+#include "builtin/io.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "event.hpp"
 
 #include <unistd.h>
 #include <signal.h>

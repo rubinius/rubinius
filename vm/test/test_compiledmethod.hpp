@@ -1,6 +1,7 @@
 #include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "builtin/iseq.hpp"
 
 #include <cxxtest/TestSuite.h>
 
