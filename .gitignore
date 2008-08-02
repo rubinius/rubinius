@@ -3,6 +3,7 @@
 *.a
 *.bundle
 *.dSYM
+*.dot
 *.dylib
 *.la
 *.lo
