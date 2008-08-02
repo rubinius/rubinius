@@ -2,11 +2,11 @@
 #define RBX_ARRAY_HPP
 
 #include "builtin/object.hpp"
-#include "prelude.hpp"
 #include "type_info.hpp"
-#include "objects.hpp"
 
 namespace rubinius {
+  class Tuple;
+
   class Array : public Object {
     public:
     const static size_t fields = 5;
@@ -18,10 +18,7 @@ namespace rubinius {
     INTEGER start; // slot
     OBJECT shared; // slot
 
-    size_t size() {
-      return total->n2i();
-    }
-
+    size_t size();
     static Array* create(STATE, size_t size);
     static Array* from_tuple(STATE, Tuple* tup);
     void   setup(STATE, size_t size);

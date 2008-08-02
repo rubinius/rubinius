@@ -1,6 +1,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/list.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/thread.hpp"
 
 #include "vm.hpp"
 #include "objectmemory.hpp"

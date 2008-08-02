@@ -2,7 +2,9 @@
  * mechanism. */
 
 #include "builtin/channel.hpp"
+#include "builtin/thread.hpp"
 #include "builtin/list.hpp"
+
 #include "objectmemory.hpp"
 
 namespace rubinius {
@@ -50,4 +52,11 @@ namespace rubinius {
     return !waiting->empty_p();
   }
 
+  ChannelCallback::ChannelCallback(STATE, Channel* chan) : ObjectCallback(state) {
+    channel.set(chan, &GO(roots));
+  }
+
+  void ChannelCallback::call(OBJECT obj) {
+    channel->send(state, obj);
+  }
 }

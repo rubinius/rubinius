@@ -1,6 +1,9 @@
 #ifndef RBX_FLOAT_HPP
 #define RBX_FLOAT_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 /* Begin borrowing from MRI 1.8.6 stable */
 #if defined(__FreeBSD__) && __FreeBSD__ < 4
 #include <floatingpoint.h>
@@ -8,9 +11,6 @@
 
 #include <math.h>
 #include <float.h>
-
-#include "builtin/object.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   class Array;

@@ -1,7 +1,6 @@
 #ifndef RBX_VM_BUILTIN_OBJECT_HPP
 #define RBX_VM_BUILTIN_OBJECT_HPP
 
-#include <assert.h>
 #include "oop.hpp"
 #include "prelude.hpp"
 

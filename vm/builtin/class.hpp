@@ -1,9 +1,12 @@
 #ifndef RBX_BUILTIN_CLASS_HPP
 #define RBX_BUILTIN_CLASS_HPP
 
-#include "objects.hpp"
+#include "builtin/object.hpp"
+#include "type_info.hpp"
 
 namespace rubinius {
+  class LookupTable;
+
   class Module : public Object {
     public:
     const static size_t fields = 5;

@@ -13,6 +13,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
+#include "resolver.hpp"
 #include "global_cache.hpp"
 #include "probes.hpp"
 

@@ -4,6 +4,7 @@
 #include "builtin/selector.hpp"
 #include "builtin/symbol.hpp"
 
+#include "resolver.hpp"
 #include "global_cache.hpp"
 #include "objectmemory.hpp"
 

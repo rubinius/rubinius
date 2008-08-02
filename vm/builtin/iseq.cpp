@@ -1,6 +1,8 @@
 #include "builtin/iseq.hpp"
 #include "builtin/tuple.hpp"
 
+#include "vm.hpp"
+
 namespace rubinius {
   InstructionSequence* InstructionSequence::create(STATE, size_t instructions) {
     InstructionSequence* is = (InstructionSequence*)state->new_object(G(iseq));

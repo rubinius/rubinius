@@ -1,12 +1,12 @@
 #ifndef RBX_BUILTIN_EXECUTABLE_HPP
 #define RBX_BUILTIN_EXECUTABLE_HPP
 
-#include "vmexecutable.hpp"
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 
-namespace rubinius {
+#include "vmexecutable.hpp"
 
+namespace rubinius {
   class MemoryPointer;
 
   class Executable : public Object {
@@ -28,8 +28,6 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
     };
   };
-
 }
-
 
 #endif

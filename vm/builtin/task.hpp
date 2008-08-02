@@ -4,9 +4,8 @@
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 
-#include "vmmethod.hpp"
-#include "message.hpp"
-#include "jit_state.h"
+#include "vmmethod.hpp" // opcode
+#include "jit_state.h" // jit_state
 
 namespace rubinius {
 

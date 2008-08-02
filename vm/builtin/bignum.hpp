@@ -1,7 +1,7 @@
 #ifndef RBX_BUILTIN_BIGNUM_HPP
 #define RBX_BUILTIN_BIGNUM_HPP
 
-#include "objects.hpp"
+#include "objects.hpp" // TODO: break up objects.hpp
 
 namespace rubinius {
   class Array;

@@ -1,13 +1,17 @@
 #ifndef RBX_BUILTIN_CONTEXTS_HPP
 #define RBX_BUILTIN_CONTEXTS_HPP
 
-#include "objects.hpp"
-#include "vmmethod.hpp"
+#include "builtin/object.hpp"
+#include "type_info.hpp"
 
 namespace rubinius {
   class BlockContext;
   class MethodContext;
   class BlockEnvironment;
+  class CompiledMethod;
+  class VMMethod;
+  class Tuple;
+  class Module;
 
   class MethodContext : public Object {
     public:

@@ -2,6 +2,7 @@
 #define RBX_RESOLVER_HPP
 
 namespace rubinius {
+  class Executable;
 
   class MethodResolver {
   public:

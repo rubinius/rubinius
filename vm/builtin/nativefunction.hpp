@@ -1,8 +1,9 @@
 #ifndef RBX_BUILTIN_NATIVEFUNCTION_HPP
 #define RBX_BUILTIN_NATIVEFUNCTION_HPP
 
-#include <ffi.h>
 #include "builtin/executable.hpp"
+
+#include <ffi.h>
 
 namespace rubinius {
   class NativeFunction : public Executable {

@@ -1,9 +1,12 @@
 #ifndef RBX_BUILTIN_ISEQ_HPP
 #define RBX_BUILTIN_ISEQ_HPP
 
-#include "objects.hpp"
+#include "builtin/object.hpp"
+#include "type_info.hpp"
 
 namespace rubinius {
+  class Tuple;
+
   class InstructionSequence : public Object {
   public:
     const static size_t fields = 3;

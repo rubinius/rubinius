@@ -10,6 +10,11 @@
 
 namespace rubinius {
 
+  size_t Array::size() {
+    return total->n2i();
+  }
+
+
   Array* Array::create(STATE, size_t idx) {
     Array* ary;
     ary = (Array*)state->om->new_object(G(array), Array::fields);

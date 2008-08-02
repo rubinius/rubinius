@@ -3,9 +3,9 @@
 
 #include "builtin/object.hpp"
 #include "type_info.hpp"
-#include "gc_root.hpp"
-#include "vm.hpp"
-#include "virtual.hpp"
+
+#include "virtual.hpp" // ObjectCallback
+#include "gc_root.hpp" // TypedRoot
 
 namespace rubinius {
   class List;
@@ -38,17 +38,10 @@ namespace rubinius {
   public:
     TypedRoot<Channel*> channel;
 
-    ChannelCallback(STATE, Channel* chan) : ObjectCallback(state) {
-      channel.set(chan, &GO(roots));
-    }
-
-    virtual void call(OBJECT obj) {
-      channel->send(state, obj);
-    }
+    ChannelCallback(STATE, Channel* chan);
+    virtual void call(OBJECT obj);
   };
 
 }
-
-#include "builtin/thread.hpp"
 
 #endif
