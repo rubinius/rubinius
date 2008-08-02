@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_NATIVEFUNCTION_HPP
 
 #include <ffi.h>
+#include "builtin/executable.hpp"
 
 namespace rubinius {
   class NativeFunction : public Executable {

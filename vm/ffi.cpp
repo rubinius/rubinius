@@ -13,6 +13,14 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
+#include "builtin/array.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/memorypointer.hpp"
+#include "builtin/nativefunction.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+
 #include "ffi.hpp"
 #include "message.hpp"
 

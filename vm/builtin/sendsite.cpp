@@ -1,4 +1,9 @@
 #include "builtin/sendsite.hpp"
+#include "builtin/class.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/selector.hpp"
+#include "builtin/symbol.hpp"
+
 #include "global_cache.hpp"
 #include "objectmemory.hpp"
 

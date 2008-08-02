@@ -1,6 +1,9 @@
-#include "prelude.hpp"
-#include "object.hpp"
-#include "objects.hpp"
+#include "builtin/io.hpp"
+#include "builtin/bytearray.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/string.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
@@ -35,5 +38,19 @@ namespace rubinius {
 
   void IOBuffer::read_bytes(size_t bytes) {
     used = Object::i2n(used->n2i() + bytes);
+  }
+
+  char* IOBuffer::byte_address() {
+    return (char*)storage->bytes;
+  }
+
+  size_t IOBuffer::left() {
+    return total->n2i() - used->n2i();
+  }
+
+  char* IOBuffer::at_unused() {
+    char* start = (char*)storage->bytes;
+    start += used->n2i();
+    return start;
   }
 };

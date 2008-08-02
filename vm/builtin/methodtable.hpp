@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_METHODTABLE_HPP
 #define RBX_BUILTIN_METHODTABLE_HPP
 
+#include "builtin/lookuptable.hpp"
+
 namespace rubinius {
   class MethodTable : public LookupTable {
     public:

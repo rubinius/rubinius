@@ -1,6 +1,15 @@
 #include "objectmemory.hpp"
 #include "marshal.hpp"
 
+#include "builtin/sendsite.hpp"
+#include "builtin/array.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/iseq.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
+
 namespace rubinius {
 
   using std::endl;

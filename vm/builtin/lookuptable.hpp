@@ -1,7 +1,13 @@
 #ifndef RBX_BUILTIN_LOOKUPTABLE_HPP
 #define RBX_BUILTIN_LOOKUPTABLE_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
+  class Tuple;
+  class Array;
+
   #define LOOKUPTABLE_MIN_SIZE 16
   class LookupTable : public Object {
     public:

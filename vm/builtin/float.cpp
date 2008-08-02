@@ -3,6 +3,8 @@
 #include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "builtin/array.hpp"
+#include "builtin/fixnum.hpp"
 
 namespace rubinius {
   Float* Float::create(STATE, double val) {

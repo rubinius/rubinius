@@ -1,4 +1,6 @@
-#include "array.hpp"
+#include "builtin/array.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/tuple.hpp"
 #include "objectmemory.hpp"
 
 /* Implementation certain Array methods. These methods are just

@@ -3,6 +3,8 @@
 #include "gc.hpp"
 #include "objectmemory.hpp"
 
+#include "builtin/class.hpp"
+
 namespace rubinius {
 
   ObjectMark::ObjectMark(GarbageCollector* gc) : gc(gc) { }

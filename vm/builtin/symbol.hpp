@@ -1,8 +1,10 @@
 #ifndef RBX_BUILTIN_SYMBOL_HPP
 #define RBX_BUILTIN_SYMBOL_HPP
 
-namespace rubinius {
+#include "builtin/object.hpp"
+#include "type_info.hpp"
 
+namespace rubinius {
   class String;
   class Hash;
   class Tuple;

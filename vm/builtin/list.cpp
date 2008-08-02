@@ -1,5 +1,7 @@
 #include "builtin/list.hpp"
 #include "objectmemory.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
 
 namespace rubinius {
 

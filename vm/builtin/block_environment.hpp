@@ -1,12 +1,16 @@
 #ifndef RBX_BUILTIN_BLOCK_ENVIRONMENT_HPP
 #define RBX_BUILTIN_BLOCK_ENVIRONMENT_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
   class CompiledMethod;
   class MethodContext;
   class BlockContext;
   class Message;
   class VMMethod;
+  class Task;
 
   class BlockEnvironment : public Object {
     public:

@@ -1,4 +1,11 @@
-#include "objects.hpp"
+#include "vmmethod.hpp"
+
+#include "builtin/compiledmethod.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/iseq.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/task.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
   VMMethod::VMMethod(STATE, CompiledMethod* meth) :

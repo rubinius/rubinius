@@ -4,6 +4,14 @@
 #include "event.hpp"
 #include "global_cache.hpp"
 #include "llvm.hpp"
+#include "builtin/class.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/list.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/thread.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/string.hpp"
 
 #include <iostream>
 

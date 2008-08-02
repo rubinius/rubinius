@@ -1,4 +1,18 @@
 #include "builtin/task.hpp"
+#include "builtin/array.hpp"
+#include "builtin/channel.hpp"
+#include "builtin/class.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/staticscope.hpp"
+#include "builtin/string.hpp"
+#include "builtin/sendsite.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
+
 #include "global_cache.hpp"
 #include "probes.hpp"
 

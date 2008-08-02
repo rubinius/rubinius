@@ -1,5 +1,9 @@
-#include "prelude.hpp"
-#include "objects.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/hash.hpp"
+#include "builtin/string.hpp"
+#include "builtin/tuple.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
 

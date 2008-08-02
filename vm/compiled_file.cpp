@@ -9,6 +9,10 @@
 #include "compiled_file.hpp"
 #include "marshal.hpp"
 #include "objectmemory.hpp"
+#include "builtin/task.hpp"
+#include "builtin/staticscope.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/class.hpp"
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {

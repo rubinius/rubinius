@@ -1,7 +1,12 @@
-#include "vm.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/array.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
 #include "objectmemory.hpp"
+#include "builtin/string.hpp"
 
-/* MINSIZE MUST be a power of 2 */
 #define LOOKUPTABLE_MAX_DENSITY 0.75
 #define LOOKUPTABLE_MIN_DENSITY 0.3
 
@@ -22,16 +27,6 @@ namespace rubinius {
     tbl = (LookupTable*)state->om->new_object(G(lookuptable),
                                               LookupTable::fields);
     tbl->setup(state, size);
-
-    return tbl;
-  }
-
-  MethodTable* MethodTable::create(STATE) {
-    MethodTable *tbl;
-
-    tbl = (MethodTable*)state->om->new_object(G(lookuptable),
-                                              LookupTable::fields);
-    tbl->setup(state, 0);
 
     return tbl;
   }

@@ -1,6 +1,9 @@
 #ifndef RBX_BUILTIN_TUPLE_HPP
 #define RBX_BUILTIN_TUPLE_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
   class Tuple : public Object {
   public:
@@ -10,13 +13,7 @@ namespace rubinius {
     static Tuple* create(STATE, size_t fields);
     static Tuple* from(STATE, size_t fields, ...);
 
-    OBJECT at(size_t index) {
-      if(field_count <= index) {
-        throw new ObjectBoundsExceeded(this, index);
-      }
-      return field[index];
-    }
-
+    OBJECT at(size_t index);
     OBJECT put(STATE, size_t idx, OBJECT val);
     void copy_from(STATE, Tuple* other, int start, int end);
 

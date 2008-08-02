@@ -5,6 +5,7 @@
 #include "compiled_file.hpp"
 #include "probes.hpp"
 #include "builtin/string.hpp"
+#include "builtin/array.hpp"
 
 #include <iostream>
 #include <fstream>

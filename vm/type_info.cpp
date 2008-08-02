@@ -3,6 +3,7 @@
 #include "builtin/list.hpp"
 #include "builtin/string.hpp"
 #include "objectmemory.hpp"
+#include "builtin/fixnum.hpp"
 
 namespace rubinius {
 

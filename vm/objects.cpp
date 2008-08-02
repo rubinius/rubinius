@@ -4,11 +4,51 @@
 #include "objectmemory.hpp"
 #include "vm.hpp"
 
+#include "builtin/array.hpp"
+#include "builtin/block_environment.hpp"
+#include "builtin/class.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/dir.hpp"
+#include "builtin/executable.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/hash.hpp"
+#include "builtin/io.hpp"
+#include "builtin/iseq.hpp"
+#include "builtin/list.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/methodtable.hpp"
+#include "builtin/regexp.hpp"
+#include "builtin/selector.hpp"
+#include "builtin/sendsite.hpp"
+#include "builtin/staticscope.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/task.hpp"
+#include "builtin/thread.hpp"
+#include "builtin/tuple.hpp"
+
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
 #define CUSTOM_CLASS GO(object)
 
 namespace rubinius {
+
+  native_int Integer::n2i() {
+    if(fixnum_p()) {
+      return ((FIXNUM)this)->to_nint();
+    }
+
+    return as<Bignum>(this)->to_nint();
+  }
+
+  // TODO: double check that this links. Evan says it doesn't. I'll
+  // check my Meiers books when I get home
+  template <>
+  static bool kind_of<Numeric>(OBJECT obj) {
+    return obj->fixnum_p() ||
+      (obj->reference_p() && (obj->obj_type == Bignum::type ||
+                              obj->obj_type == Float::type));
+  }
 
   /* State is a VM* so, we can just use this in here */
   #define state this

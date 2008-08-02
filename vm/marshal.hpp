@@ -9,6 +9,9 @@
 #include "objects.hpp"
 
 namespace rubinius {
+  class SendSite;
+  class InstructionSequence;
+  class CompiledMethod;
 
   class Marshaller {
   public:

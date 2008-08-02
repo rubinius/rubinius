@@ -3,6 +3,9 @@
 #include "probes.hpp"
 #include "builtin/task.hpp"
 #include "builtin/sendsite.hpp"
+#include "builtin/symbol.hpp"
+#include "vm/message.hpp"
+#include "builtin/string.hpp"
 
 namespace rubinius {
   void TaskProbe::start_method(Task* task, Message& msg) {

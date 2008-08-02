@@ -2,6 +2,7 @@
 #define RBX_GLOBAL_CACHE_HPP
 
 #include "objects.hpp"
+#include "builtin/compiledmethod.hpp"
 
 namespace rubinius {
   #define CPU_CACHE_SIZE 0x1000

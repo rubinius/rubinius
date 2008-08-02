@@ -7,6 +7,7 @@
 namespace rubinius {
   class BlockContext;
   class MethodContext;
+  class BlockEnvironment;
 
   class MethodContext : public Object {
     public:
@@ -47,9 +48,7 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = BContextType;
 
-    BlockEnvironment* env() {
-      return as<BlockEnvironment>(name);
-    }
+    BlockEnvironment* env();
 
     static BlockContext* create(STATE);
 

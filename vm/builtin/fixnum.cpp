@@ -1,6 +1,8 @@
 
 #include "prelude.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/array.hpp"
+#include "builtin/string.hpp"
 
 namespace rubinius {
 

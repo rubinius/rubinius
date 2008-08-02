@@ -1,9 +1,12 @@
-#include "prelude.hpp"
-#include "object.hpp"
-#include "objects.hpp"
+#include "builtin/regexp.hpp"
+#include "builtin/class.hpp"
+#include "builtin/hash.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
-
 #include "oniguruma.h"
 
 #define OPTION_IGNORECASE ONIG_OPTION_IGNORECASE

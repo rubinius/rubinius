@@ -1,5 +1,9 @@
 #include "llvm.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/contexts.hpp"
 #include "builtin/iseq.hpp"
+#include "builtin/task.hpp"
+#include "builtin/tuple.hpp"
 
 #include <llvm/Module.h>
 #include <llvm/DerivedTypes.h>
@@ -31,6 +35,7 @@
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Target/TargetOptions.h>
+
 #include <algorithm>
 #include <iostream>
 #include <sstream>

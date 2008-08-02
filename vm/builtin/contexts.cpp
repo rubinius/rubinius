@@ -1,5 +1,6 @@
-#include "objects.hpp"
+#include "builtin/contexts.hpp"
 #include "objectmemory.hpp"
+#include "builtin/block_environment.hpp"
 
 namespace rubinius {
   MethodContext* MethodContext::create(STATE) {
@@ -10,6 +11,10 @@ namespace rubinius {
     SET(ctx, home, Qnil);
 
     return ctx;
+  }
+
+  BlockEnvironment* BlockContext::env() {
+    return as<BlockEnvironment>(name);
   }
 
   void MethodContext::reference(STATE) {

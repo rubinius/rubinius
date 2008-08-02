@@ -1,6 +1,10 @@
 #include "builtin/hash.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/tuple.hpp"
 
 #define find_bin(hash, total) (hash & (total - 1))
 

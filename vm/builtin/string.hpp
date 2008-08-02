@@ -3,7 +3,6 @@
 
 #include "builtin/object.hpp"
 #include "type_info.hpp"
-#include "objects.hpp" // FIX: nuke objects.hpp... it is a mess
 
 namespace rubinius {
   class ByteArray;
@@ -27,26 +26,12 @@ namespace rubinius {
     static String* create(STATE, const char* str, size_t bytes = 0);
     static hashval hash_str(const unsigned char *bp, unsigned int sz);
     static bool string_equal_p(STATE, OBJECT self, OBJECT other);
-	// Ruby.primitive :string_equal
-	OBJECT equal(STATE, String* other);
+    // Ruby.primitive :string_equal
+    OBJECT equal(STATE, String* other);
 
-    size_t size(STATE) {
-      return num_bytes->n2i();
-    }
-
-    size_t size() {
-      return num_bytes->n2i();
-    }
-
-    /* TODO: since we're technically say it's ok to change this, we might
-     * want to copy it first. */
-    operator char *() {
-      return (char*)(data->bytes);
-    }
-
-    char* byte_address() {
-      return (char*)data->bytes;
-    }
+    size_t size(STATE);
+    size_t size();
+    char* byte_address();
 
     void unshare(STATE);
     hashval hash_string(STATE);
@@ -62,6 +47,8 @@ namespace rubinius {
     String* append(STATE, const char* other);
     String* add(STATE, String* other);
     String* add(STATE, const char* other);
+
+    operator char *();
 
     class Info : public TypeInfo {
     public:

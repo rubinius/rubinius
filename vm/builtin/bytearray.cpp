@@ -3,6 +3,7 @@
 #include "bytearray.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "builtin/fixnum.hpp"
 
 namespace rubinius {
   ByteArray* ByteArray::create(STATE, size_t bytes) {

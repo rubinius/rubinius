@@ -1,4 +1,5 @@
 #include "builtin/iseq.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
   InstructionSequence* InstructionSequence::create(STATE, size_t instructions) {

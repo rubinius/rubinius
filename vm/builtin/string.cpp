@@ -1,14 +1,31 @@
-#include "prelude.hpp"
-#include "object.hpp"
+#include "builtin/string.hpp"
+#include "builtin/bytearray.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/symbol.hpp"
+
 #include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
-#include "builtin/bytearray.hpp"
 
 #define HashPrime 16777619
 #define MASK_28 (((unsigned int)1<<28)-1)
 
 namespace rubinius {
+
+  size_t String::size(STATE) {
+    return num_bytes->n2i();
+  }
+
+  size_t String::size() {
+    return num_bytes->n2i();
+  }
+
+  /* TODO: since we're technically say it's ok to change this, we might
+   * want to copy it first. */
+  String::operator char *() {
+    return (char*)(data->bytes);
+  }
 
   String* String::allocate(STATE, FIXNUM size) {
     String *so;

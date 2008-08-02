@@ -1,4 +1,4 @@
-#include "prelude.hpp"
+#include "builtin/tuple.hpp"
 #include "vm.hpp"
 #include "objects.hpp"
 #include "objectmemory.hpp"
@@ -6,6 +6,13 @@
 #include <cstdarg>
 
 namespace rubinius {
+  OBJECT Tuple::at(size_t index) {
+    if(field_count <= index) {
+      throw new ObjectBoundsExceeded(this, index);
+    }
+    return field[index];
+  }
+
   Tuple* Tuple::create(STATE, size_t fields) {
     return (Tuple*)state->om->new_object(G(tuple), fields);
   }

@@ -1,8 +1,15 @@
 /* A BlockEnvironment is created when a block is created. Its primary
  * operation is call, which activates the code associated with the block. */
 
-#include "objects.hpp"
+#include "block_environment.hpp"
 #include "objectmemory.hpp"
+
+#include "builtin/compiledmethod.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/task.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
   void BlockEnvironment::call(STATE, Task* task, size_t args) {

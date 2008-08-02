@@ -2,6 +2,10 @@
 #include "ffi.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "builtin/array.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/memorypointer.hpp"
+#include "builtin/string.hpp"
 
 #include <sys/types.h>
 #include <dirent.h>

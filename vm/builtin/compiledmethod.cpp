@@ -4,6 +4,12 @@
 #include "primitives.hpp"
 #include "llvm.hpp"
 #include "objectmemory.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/iseq.hpp"
+#include "builtin/staticscope.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
 
 namespace rubinius {
   CompiledMethod* CompiledMethod::create(STATE) {

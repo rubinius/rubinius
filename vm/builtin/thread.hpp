@@ -1,6 +1,7 @@
 #ifndef RBX_THREAD_HPP
 #define RBX_THREAD_HPP
 
+#include "object.hpp" // TODO: break this file up... we just need Assertion
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 

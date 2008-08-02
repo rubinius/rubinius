@@ -5,6 +5,9 @@
 #include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "builtin/array.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/string.hpp"
 
 #include <ctype.h>
 #include <math.h>

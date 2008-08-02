@@ -1,8 +1,13 @@
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/list.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/task.hpp"
 
 #include "objectmemory.hpp"
+#include "vm.hpp"
 
 namespace rubinius {
   void Thread::init(STATE) {

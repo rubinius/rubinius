@@ -3,6 +3,8 @@
 
 #include "objectmemory.hpp"
 #include "gc_marksweep.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
 
 namespace rubinius {
 
@@ -79,6 +81,155 @@ namespace rubinius {
     type_info[ti->type] = ti;
   }
 
+  void ObjectMemory::write_barrier(OBJECT target, OBJECT val) {
+    if(!target->Remember && val->reference_p() &&
+       target->zone == MatureObjectZone &&
+       val->zone != MatureObjectZone) {
+
+      target->Remember = 1;
+      remember_set->push_back(target);
+    }
+  }
+
+  void ObjectMemory::store_object(OBJECT target, size_t index, OBJECT val) {
+    if(target->field_count <= index) {
+      throw new ObjectBoundsExceeded(target, index);
+    }
+
+    target->field[index] = val;
+    if(val->reference_p()) write_barrier(target, val);
+  }
+
+  void ObjectMemory::set_class(OBJECT target, OBJECT obj) {
+    target->klass = (Class*)obj;
+    if(obj->reference_p()) {
+      write_barrier(target, obj);
+    }
+  }
+
+  OBJECT ObjectMemory::allocate_object(size_t fields) {
+    OBJECT obj;
+    gc_zone loc;
+
+    if(fields > large_object_threshold) {
+      obj = mature.allocate(fields, &collect_mature_now);
+      loc = MatureObjectZone;
+    } else {
+      if((obj = young.allocate(fields, &collect_young_now))) {
+        loc = YoungObjectZone;
+      } else {
+        obj = mature.allocate(fields, &collect_mature_now);
+        loc = MatureObjectZone;
+      }
+    }
+
+    obj->klass = NULL;
+    obj->init(loc, fields);
+    obj->clear_fields();
+    return obj;
+  }
+
+  OBJECT ObjectMemory::allocate_bytes(size_t bytes) {
+    const size_t mag = sizeof(OBJECT);
+    size_t fields;
+    size_t needed = bytes + 1;
+    if(needed <= mag) {
+      fields =  1;
+    } else {
+      fields = (needed + (mag - (needed & mag - 1))) / mag;
+    }
+
+    OBJECT obj = allocate_object(fields);
+    obj->init_bytes();
+
+    return obj;
+  }
+
+  OBJECT ObjectMemory::allocate_mature(size_t fields, bool bytes) {
+    OBJECT obj = mature.allocate(fields, &collect_mature_now);
+
+    obj->klass = NULL;
+    obj->init(MatureObjectZone, fields);
+
+    if(bytes) {
+      obj->init_bytes();
+    } else {
+      obj->clear_fields();
+    }
+
+    return obj;
+  }
+
+  OBJECT ObjectMemory::new_object(Class* cls, size_t fields) {
+    OBJECT obj = create_object(cls, fields);
+
+    obj->clear_fields();
+
+    return obj;
+  }
+
+  OBJECT ObjectMemory::new_object_bytes(Class* cls, size_t bytes) {
+    const size_t mag = sizeof(OBJECT);
+    size_t fields;
+    size_t needed = bytes + 1;
+    if(needed <= mag) {
+      fields =  1;
+    } else {
+      fields = (needed + (mag - (needed & mag - 1))) / mag;
+    }
+
+    OBJECT obj = create_object(cls, fields);
+
+    obj->init_bytes();
+
+    return obj;
+  }
+
+  OBJECT ObjectMemory::new_object_mature(Class* cls, size_t fields, bool bytes) {
+    OBJECT obj = mature.allocate(fields, &collect_mature_now);
+
+    obj->init(MatureObjectZone, fields);
+
+    if(bytes) {
+      obj->init_bytes();
+    } else {
+      obj->clear_fields();
+    }
+
+    set_class(obj, cls);
+
+    return obj;
+  }
+
+  OBJECT ObjectMemory::create_object(Class* cls, size_t fields) {
+    OBJECT obj;
+    gc_zone loc;
+
+    if(fields > large_object_threshold) {
+      obj = mature.allocate(fields, &collect_mature_now);
+      loc = MatureObjectZone;
+    } else {
+      if((obj = young.allocate(fields, &collect_young_now))) {
+        loc = YoungObjectZone;
+      } else {
+        obj = mature.allocate(fields, &collect_mature_now);
+        loc = MatureObjectZone;
+      }
+    }
+
+    obj->init(loc, fields);
+    set_class(obj, cls);
+
+    obj->obj_type = (object_type)cls->instance_type->to_nint();
+    obj->CanStoreIvars = (cls->has_ivars == Qtrue);
+    obj->RequiresCleanup = (cls->needs_cleanup == Qtrue);
+
+    return obj;
+  }
+
+  TypeInfo* ObjectMemory::find_type_info(OBJECT obj) {
+    return type_info[obj->obj_type];
+  }
 };
 
 void* XMALLOC(size_t bytes) {

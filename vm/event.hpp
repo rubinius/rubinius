@@ -7,10 +7,12 @@
 #include "prelude.hpp"
 #include "objects.hpp"
 #include "builtin/task.hpp"
+#include "virtual.hpp"
 
 namespace rubinius {
-  namespace event {
+  class IOBuffer;
 
+  namespace event {
     class Loop;
 
     class Event {

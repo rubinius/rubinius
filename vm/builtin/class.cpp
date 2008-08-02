@@ -1,6 +1,10 @@
-#include "vm.hpp"
 #include "builtin/class.hpp"
 #include "objectmemory.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/methodtable.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/string.hpp"
 
 namespace rubinius {
 

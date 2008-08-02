@@ -5,6 +5,10 @@
 #include "objectmemory.hpp"
 #include "message.hpp"
 
+#include "builtin/array.hpp"
+#include "builtin/task.hpp"
+#include "builtin/tuple.hpp"
+
 namespace rubinius {
 
   Message::Message(STATE, Array* ary) : 

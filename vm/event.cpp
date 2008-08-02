@@ -7,6 +7,10 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
+#include "builtin/tuple.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/io.hpp"
+
 #include "event.hpp"
 
 #include <sys/types.h>

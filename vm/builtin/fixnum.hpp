@@ -1,7 +1,7 @@
 #ifndef RBX_BUILTIN_FIXNUM_HPP
 #define RBX_BUILTIN_FIXNUM_HPP
 
-#include "builtin/string.hpp"
+#include "objects.hpp" // FIX: empty this file out... gah
 
 namespace rubinius {
 
@@ -173,29 +173,21 @@ namespace rubinius {
 
   /* See t1 */
   template <>
-    static bool kind_of<Integer>(OBJECT obj) {
-      return obj->fixnum_p() || (obj->reference_p() && obj->obj_type == Bignum::type);
-    }
+  static bool kind_of<Integer>(OBJECT obj) {
+    return obj->fixnum_p() || (obj->reference_p() && obj->obj_type == Bignum::type);
+  }
 
   /* For some reason, the as<> template doesn't pick up the specialized kind_of<>, until
    * we figure out why, just special as<> too. */
   template <>
-    static INTEGER as<Integer>(OBJECT obj) {
-      if(kind_of<Integer>(obj)) return (Integer*)obj;
-      throw TypeError(obj->obj_type, obj, "can't be cast as an Integer");
-    }
+  static INTEGER as<Integer>(OBJECT obj) {
+    if(kind_of<Integer>(obj)) return (Integer*)obj;
+    throw TypeError(obj->obj_type, obj, "can't be cast as an Integer");
+  }
 
   template <>
-    static bool kind_of<Fixnum>(OBJECT obj) {
-      return obj->fixnum_p();
-    }
-  
-  native_int Integer::n2i() {
-    if(fixnum_p()) {
-      return ((FIXNUM)this)->to_nint();
-    }
-
-    return as<Bignum>(this)->to_nint();
+  static bool kind_of<Fixnum>(OBJECT obj) {
+    return obj->fixnum_p();
   }
 }
 

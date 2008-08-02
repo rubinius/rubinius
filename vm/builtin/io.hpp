@@ -1,7 +1,12 @@
 #ifndef RBX_BUILTIN_IO_HPP
 #define RBX_BUILTIN_IO_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
+  class String;
+
   class IO : public Object {
     public:
     const static size_t fields = 4;
@@ -38,21 +43,9 @@ namespace rubinius {
     static IOBuffer* create(STATE, size_t bytes);
     void reset(STATE);
     String* drain(STATE);
-
-    char* byte_address() {
-      return (char*)storage->bytes;
-    }
-
-    size_t left() {
-      return total->n2i() - used->n2i();
-    }
-
-    char* at_unused() {
-      char* start = (char*)storage->bytes;
-      start += used->n2i();
-      return start;
-    }
-
+    char* byte_address();
+    size_t left();
+    char* at_unused();
     void read_bytes(size_t bytes);
 
     class Info : public TypeInfo {

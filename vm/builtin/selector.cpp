@@ -1,5 +1,11 @@
 #include "builtin/selector.hpp"
+#include "builtin/array.hpp"
+#include "builtin/class.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/sendsite.hpp"
+#include "builtin/symbol.hpp"
 
+#include "vm.hpp"
 #include "objectmemory.hpp"
 
 namespace rubinius {

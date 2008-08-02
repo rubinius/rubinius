@@ -1,7 +1,14 @@
 #ifndef RBX_REGEXP_HPP
 #define RBX_REGEXP_HPP
 
+#include "builtin/object.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
+  class String;
+  class Tuple;
+  class Hash;
+
   class RegexpData : public Object {
     public:
     const static size_t fields = 0;

@@ -1,11 +1,12 @@
 #ifndef RBX_BUILTIN_SELECTOR_HPP
 #define RBX_BUILTIN_SELECTOR_HPP
 
-#include "objects.hpp"
-#include "builtin/sendsite.hpp"
+#include "builtin/object.hpp"
+#include "type_info.hpp"
 
 namespace rubinius {
   class SendSite;
+  class Array;
 
   class Selector : public Object {
     public:
