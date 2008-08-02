@@ -1,6 +1,5 @@
 activate_as_script
 activate_context
-add
 allocate
 allocate_bytes
 allocate_count
@@ -69,6 +68,7 @@ fields
 file_to_sexp
 file_unlink
 find_method
+fixnum_add
 fixnum_and
 fixnum_div
 fixnum_divmod
@@ -84,6 +84,7 @@ fixnum_neg
 fixnum_or
 fixnum_right_shift
 fixnum_size
+fixnum_sub
 fixnum_to_f
 fixnum_to_s
 fixnum_xor
@@ -198,7 +199,6 @@ string_template
 string_to_f
 string_to_sexp
 string_tr_expand
-sub
 symbol_index
 symbol_lookup
 task_associate
