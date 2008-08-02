@@ -28,12 +28,31 @@ class BigDecimal < Numeric
   EXP = 'E'
   SIGNS = {-1 => MINUS, 0 => nil, 1 => PLUS}
   
+  # Global upper limit of the precision newly allocated
+  @@prec_limit = 0
+
   VERSION = "1.0.1" # like Ruby 1.8.6
   
   #################
   # Class methods #
   #################
-  
+  def self.induced_from(obj)
+    case obj
+    when BigDecimal
+     obj
+    when Bignum, Fixnum
+      BigDecimal(obj.to_s)
+    else
+      raise TypeError, "failed to convert #{obj.class} into BigDecimal"
+    end
+  end
+
+  def self.limit(val=nil)
+    old_limit = @@prec_limit
+    @@prec_limit = val if !val.nil?
+    return old_limit
+  end
+
   def self.ver
     VERSION
   end
