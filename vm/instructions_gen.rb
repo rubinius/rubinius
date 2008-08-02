@@ -131,8 +131,13 @@ class Instructions
     pt = ParseTree.new(true)
 
     fd.puts <<-CODE
-#include "objects.hpp"
+#include "builtin/iseq.hpp"
 #include "builtin/list.hpp"
+#include "builtin/block_environment.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/sendsite.hpp"
+
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
