@@ -103,6 +103,10 @@ namespace rubinius {
     return G(symbols)->lookup(state, this);
   }
 
+  char* String::byte_address() {
+    return (char*)data->bytes;
+  }
+
   char* String::byte_address(STATE) {
     return (char*)data->bytes;
   }
