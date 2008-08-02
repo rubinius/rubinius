@@ -62,7 +62,7 @@ namespace rubinius {
   }
 
   OBJECT VM::current_thread() {
-    return Qnil;
+    return globals.current_thread.get();
   }
 
   void VM::collect() {
