@@ -25,7 +25,7 @@ namespace rubinius {
   }
 
   Thread* Thread::current(STATE) {
-    state->current_thread();
+    return state->current_thread();
   }
 
   void Thread::boot_task(STATE) {
