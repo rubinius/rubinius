@@ -85,8 +85,8 @@ class ShotgunPrimitives
 
   end
 
-  defprim :add
-  def add
+  defprim :fixnum_add
+  def fixnum_add
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
@@ -121,8 +121,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :sub
-  def sub
+  defprim :fixnum_sub
+  def fixnum_sub
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
