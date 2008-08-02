@@ -6,6 +6,7 @@
 namespace rubinius {
   class Array;
   class String;
+  class Float;
 
   class Bignum : public Integer {
     public:

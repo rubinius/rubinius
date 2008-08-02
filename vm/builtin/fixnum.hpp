@@ -2,8 +2,12 @@
 #define RBX_BUILTIN_FIXNUM_HPP
 
 #include "objects.hpp" // FIX: empty this file out... gah
+#include "builtin/bignum.hpp"
 
 namespace rubinius {
+  class Float;
+  class Array;
+  class String;
 
   class Fixnum : public Integer {
   public:
@@ -177,8 +181,9 @@ namespace rubinius {
     return obj->fixnum_p() || (obj->reference_p() && obj->obj_type == Bignum::type);
   }
 
-  /* For some reason, the as<> template doesn't pick up the specialized kind_of<>, until
-   * we figure out why, just special as<> too. */
+  /* For some reason, the as<> template doesn't pick up the
+   * specialized kind_of<>, until we figure out why, just special as<>
+   * too. */
   template <>
   static INTEGER as<Integer>(OBJECT obj) {
     if(kind_of<Integer>(obj)) return (Integer*)obj;

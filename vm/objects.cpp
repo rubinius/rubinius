@@ -11,6 +11,7 @@
 #include "builtin/dir.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
 #include "builtin/hash.hpp"
 #include "builtin/io.hpp"
 #include "builtin/iseq.hpp"

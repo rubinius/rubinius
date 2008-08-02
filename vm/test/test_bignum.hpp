@@ -1,4 +1,5 @@
-#include "objects.hpp"
+#include "builtin/bignum.hpp"
+#include "builtin/float.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 

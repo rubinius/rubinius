@@ -132,7 +132,10 @@ class Instructions
 
     fd.puts <<-CODE
 #include "builtin/iseq.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
 #include "builtin/list.hpp"
+#include "builtin/task.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/contexts.hpp"
 #include "builtin/exception.hpp"

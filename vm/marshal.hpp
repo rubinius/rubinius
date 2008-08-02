@@ -4,14 +4,15 @@
 #include <iostream>
 #include <sstream>
 
-#include "prelude.hpp"
-#include "object.hpp"
-#include "objects.hpp"
-
 namespace rubinius {
   class SendSite;
   class InstructionSequence;
   class CompiledMethod;
+  class String;
+  class Array;
+  class Bignum;
+  class Float;
+  class Tuple;
 
   class Marshaller {
   public:

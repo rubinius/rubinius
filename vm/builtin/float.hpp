@@ -9,8 +9,10 @@
 #include <math.h>
 #include <float.h>
 
-namespace rubinius {
+#include "builtin/object.hpp"
+#include "type_info.hpp"
 
+namespace rubinius {
   class Array;
 
   class Float : public Object {

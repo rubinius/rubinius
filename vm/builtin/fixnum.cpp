@@ -1,6 +1,7 @@
 
 #include "prelude.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
 #include "builtin/array.hpp"
 #include "builtin/string.hpp"
 

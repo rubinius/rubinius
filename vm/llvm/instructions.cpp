@@ -1,5 +1,18 @@
 
 #include "builtin/object.hpp"
+#include "builtin/array.hpp"
+#include "builtin/block_environment.hpp"
+#include "builtin/class.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/contexts.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/sendsite.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/task.hpp"
+#include "builtin/tuple.hpp"
+
 #include "jit_state.h"
 #include "objectmemory.hpp"
 

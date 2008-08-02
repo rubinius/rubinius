@@ -33,9 +33,6 @@ namespace rubinius {
   };
 }
 
-#include "builtin/float.hpp"  // TODO: remove me too!
-#include "builtin/bignum.hpp" // TODO: remove me too!
-
 namespace rubinius {
   class NormalObject : public Object {
   public:

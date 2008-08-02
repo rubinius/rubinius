@@ -7,6 +7,7 @@
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
 #include "builtin/string.hpp"
 
 #include <ctype.h>
