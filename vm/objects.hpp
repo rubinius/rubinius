@@ -7,8 +7,6 @@
 
 #include <iostream>
 
-#include "builtin/immediates.hpp" // TODO: remove me!
-
 namespace rubinius {
   class Numeric : public Object {
   public:
