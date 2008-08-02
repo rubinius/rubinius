@@ -51,7 +51,7 @@ namespace :debug do
 
     raise "No such task #{args[:task].inspect}" unless task
 
-    puts task.prerequisites.join(', ')
+    puts task.prerequisites.join("\n")
   end
 
   desc "Display tasks that depend on a task"
@@ -64,7 +64,7 @@ namespace :debug do
 
     tasks = Rake::Task.tasks.select { |t| t.prerequisites.include? task.name }
 
-    puts tasks.join(', ')
+    puts tasks.join("\n")
   end
 
 end

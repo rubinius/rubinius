@@ -57,7 +57,7 @@ namespace rubinius {
     TypeInfo* find_type(int type);
 
     void init_ffi();
-    OBJECT current_thread();
+    Thread* current_thread();
     void collect();
 
     void return_value(OBJECT val);

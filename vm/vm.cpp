@@ -69,8 +69,8 @@ namespace rubinius {
     return om->type_info[type];
   }
 
-  OBJECT VM::current_thread() {
-    return Qnil;
+  Thread *VM::current_thread() {
+    return globals.current_thread.get();
   }
 
   void VM::collect() {

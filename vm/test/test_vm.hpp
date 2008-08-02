@@ -75,4 +75,10 @@ class TestVM : public CxxTest::TestSuite {
     //  state->om->young.total_objects << ")" << std::endl;
   }
 
+  void test_current_thread() {
+    OBJECT current_thread = state->globals.current_thread.get();
+
+    TS_ASSERT_EQUALS(state->current_thread(), current_thread);
+  }
+
 };

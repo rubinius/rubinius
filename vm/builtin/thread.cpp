@@ -29,6 +29,10 @@ namespace rubinius {
     return thr;
   }
 
+  Thread* Thread::current(STATE) {
+    return state->current_thread();
+  }
+
   void Thread::boot_task(STATE) {
     Task* task = Task::create(state);
     SET(this, task, task);
