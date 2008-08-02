@@ -19,6 +19,10 @@ namespace rubinius {
 
     static void init(STATE);
     static Thread* create(STATE);
+
+    // Ruby.primitive :thread_current
+    static Thread* current(STATE);
+
     void boot_task(STATE);
     void sleep_for(STATE, Channel* chan);
     void set_top(STATE, OBJECT val);
