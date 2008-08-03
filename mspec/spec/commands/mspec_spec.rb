@@ -5,16 +5,14 @@ require 'mspec/commands/mspec'
 describe MSpecMain, "#options" do
   before :each do
     @options, @config = new_option
-    @options.stub!(:parser).and_return(mock("parser"))
-    @options.parser.stub!(:filter!).and_return(["blocked!"])
     MSpecOptions.stub!(:new).and_return(@options)
 
     @script = MSpecMain.new
     @script.stub!(:config).and_return(@config)
   end
 
-  it "enables the config option" do
-    @options.should_receive(:add_config)
+  it "enables the configure option" do
+    @options.should_receive(:configure)
     @script.options
   end
 
@@ -24,13 +22,18 @@ describe MSpecMain, "#options" do
   end
 
   it "enables the target options" do
-    @options.should_receive(:add_targets)
+    @options.should_receive(:targets)
     @script.options
   end
 
   it "enables the version option" do
-    @options.should_receive(:add_version)
+    @options.should_receive(:version)
     @script.options
+  end
+
+  it "sets config[:options] to all argv entries that are not registered options" do
+    @script.options [".", "-G", "fail"]
+    @config[:options].sort.should == ["-G", ".", "fail"]
   end
 end
 
@@ -351,8 +354,8 @@ describe "The -h, --help option" do
   end
 
   it "prints help and exits" do
-    @script.should_receive(:puts).twice
-    @script.should_receive(:exit).twice
+    @options.should_receive(:puts).twice
+    @options.should_receive(:exit).twice
     ["-h", "--help"].each do |opt|
       @script.options [opt]
     end

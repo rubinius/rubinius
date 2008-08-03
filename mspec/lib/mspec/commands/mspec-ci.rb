@@ -2,49 +2,49 @@
 
 $:.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
 
-require 'optparse'
+require 'mspec/version'
 require 'mspec/utils/options'
 require 'mspec/utils/script'
 
 
 class MSpecCI < MSpecScript
   def options(argv=ARGV)
-    options = MSpecOptions.new config, "ci", "", 28, "   "
+    options = MSpecOptions.new "mspec ci [options] (FILE|DIRECTORY|GLOB)+", 30, config
 
-    options.separator " Ask yourself:"
-    options.separator "  1. How to run the specs?"
-    options.separator "  2. How to display the output?"
-    options.separator "  3. What action to perform?"
-    options.separator "  4. When to perform it?"
+    options.doc " Ask yourself:"
+    options.doc "  1. How to run the specs?"
+    options.doc "  2. How to display the output?"
+    options.doc "  3. What action to perform?"
+    options.doc "  4. When to perform it?"
 
-    options.separator "\n How to run the specs"
-    options.add_config { |f| load f }
-    options.add_name
-    options.add_pretend
-    options.add_interrupt
+    options.doc "\n How to run the specs"
+    options.configure { |f| load f }
+    options.name
+    options.pretend
+    options.interrupt
 
-    options.separator "\n How to display their output"
-    options.add_formatters
-    options.add_verbose
+    options.doc "\n How to display their output"
+    options.formatters
+    options.verbose
 
-    options.separator "\n What action to perform"
-    options.add_actions
+    options.doc "\n What action to perform"
+    options.actions
 
-    options.separator "\n When to perform it"
-    options.add_action_filters
+    options.doc "\n When to perform it"
+    options.action_filters
 
-    options.separator "\n Help!"
-    options.add_version
-    options.add_help
+    options.doc "\n Help!"
+    options.version MSpec::VERSION
+    options.help
 
-    options.separator "\n How might this work in the real world?"
-    options.separator "\n   1. To simply run the known good specs"
-    options.separator "\n     $ mspec ci"
-    options.separator "\n   2. To run a subset of the known good specs"
-    options.separator "\n     $ mspec ci path/to/specs"
-    options.separator "\n   3. To start the debugger before the spec matching 'this crashes'"
-    options.separator "\n     $ mspec ci --spec-debug -S 'this crashes'"
-    options.separator ""
+    options.doc "\n How might this work in the real world?"
+    options.doc "\n   1. To simply run the known good specs"
+    options.doc "\n     $ mspec ci"
+    options.doc "\n   2. To run a subset of the known good specs"
+    options.doc "\n     $ mspec ci path/to/specs"
+    options.doc "\n   3. To start the debugger before the spec matching 'this crashes'"
+    options.doc "\n     $ mspec ci --spec-debug -S 'this crashes'"
+    options.doc ""
 
     @patterns = options.parse argv
     @patterns = config[:ci_files] if @patterns.empty?

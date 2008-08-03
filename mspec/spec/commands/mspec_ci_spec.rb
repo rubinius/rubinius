@@ -13,7 +13,7 @@ describe MSpecCI, "#options" do
   end
 
   it "enables the config option" do
-    @options.should_receive(:add_config)
+    @options.should_receive(:configure)
     @script.options
   end
 
@@ -23,47 +23,47 @@ describe MSpecCI, "#options" do
   end
 
   it "enables the name option" do
-    @options.should_receive(:add_name)
+    @options.should_receive(:name)
     @script.options
   end
 
   it "enables the dry run option" do
-    @options.should_receive(:add_pretend)
+    @options.should_receive(:pretend)
     @script.options
   end
 
   it "enables the interrupt single specs option" do
-    @options.should_receive(:add_interrupt)
+    @options.should_receive(:interrupt)
     @script.options
   end
 
   it "enables the formatter options" do
-    @options.should_receive(:add_formatters)
+    @options.should_receive(:formatters)
     @script.options
   end
 
   it "enables the verbose option" do
-    @options.should_receive(:add_verbose)
+    @options.should_receive(:verbose)
     @script.options
   end
 
   it "enables the action options" do
-    @options.should_receive(:add_actions)
+    @options.should_receive(:actions)
     @script.options
   end
 
   it "enables the action filter options" do
-    @options.should_receive(:add_action_filters)
+    @options.should_receive(:action_filters)
     @script.options
   end
 
   it "enables the version option" do
-    @options.should_receive(:add_version)
+    @options.should_receive(:version)
     @script.options
   end
 
   it "enables the help option" do
-    @options.should_receive(:add_help)
+    @options.should_receive(:help)
     @script.options
   end
 end

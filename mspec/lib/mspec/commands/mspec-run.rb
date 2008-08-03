@@ -2,60 +2,60 @@
 
 $:.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
 
-require 'optparse'
+require 'mspec/version'
 require 'mspec/utils/options'
 require 'mspec/utils/script'
 
 
 class MSpecRun < MSpecScript
   def options(argv=ARGV)
-    options = MSpecOptions.new config, "run", "", 28, "   "
+    options = MSpecOptions.new "mspec run [options] (FILE|DIRECTORY|GLOB)+", 30, config
 
-    options.separator " Ask yourself:"
-    options.separator "  1. What specs to run?"
-    options.separator "  2. How to modify the execution?"
-    options.separator "  3. How to display the output?"
-    options.separator "  4. What action to perform?"
-    options.separator "  5. When to perform it?"
+    options.doc " Ask yourself:"
+    options.doc "  1. What specs to run?"
+    options.doc "  2. How to modify the execution?"
+    options.doc "  3. How to display the output?"
+    options.doc "  4. What action to perform?"
+    options.doc "  5. When to perform it?"
 
-    options.separator "\n What specs to run"
-    options.add_filters
+    options.doc "\n What specs to run"
+    options.filters
 
-    options.separator "\n How to modify the execution"
-    options.add_config { |f| load f }
-    options.add_name
-    options.add_randomize
-    options.add_pretend
-    options.add_interrupt
+    options.doc "\n How to modify the execution"
+    options.configure { |f| load f }
+    options.name
+    options.randomize
+    options.pretend
+    options.interrupt
 
-    options.separator "\n How to display their output"
-    options.add_formatters
-    options.add_verbose
+    options.doc "\n How to display their output"
+    options.formatters
+    options.verbose
 
-    options.separator "\n What action to perform"
-    options.add_actions
-    options.add_verify
+    options.doc "\n What action to perform"
+    options.actions
+    options.verify
 
-    options.separator "\n When to perform it"
-    options.add_action_filters
+    options.doc "\n When to perform it"
+    options.action_filters
 
-    options.separator "\n Help!"
-    options.add_version
-    options.add_help
+    options.doc "\n Help!"
+    options.version MSpec::VERSION
+    options.help
 
-    options.separator "\n How might this work in the real world?"
-    options.separator "\n   1. To simply run some specs"
-    options.separator "\n     $ mspec path/to/the/specs"
-    options.separator "     mspec path/to/the_file_spec.rb"
-    options.separator "\n   2. To run specs tagged with 'fails'"
-    options.separator "\n     $ mspec -g fails path/to/the_file_spec.rb"
-    options.separator "\n   3. To start the debugger before the spec matching 'this crashes'"
-    options.separator "\n     $ mspec --spec-debug -S 'this crashes' path/to/the_file_spec.rb"
-    options.separator ""
+    options.doc "\n How might this work in the real world?"
+    options.doc "\n   1. To simply run some specs"
+    options.doc "\n     $ mspec path/to/the/specs"
+    options.doc "     mspec path/to/the_file_spec.rb"
+    options.doc "\n   2. To run specs tagged with 'fails'"
+    options.doc "\n     $ mspec -g fails path/to/the_file_spec.rb"
+    options.doc "\n   3. To start the debugger before the spec matching 'this crashes'"
+    options.doc "\n     $ mspec --spec-debug -S 'this crashes' path/to/the_file_spec.rb"
+    options.doc ""
 
     @patterns = options.parse argv
     if @patterns.empty?
-      puts options.parser
+      puts options
       puts "No files specified."
       exit 1
     end

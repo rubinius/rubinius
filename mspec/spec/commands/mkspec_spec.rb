@@ -4,16 +4,16 @@ require 'mspec/commands/mkspec'
 
 describe "The -c, --constant CONSTANT option" do
   before :each do
-    @options = OptionParser.new
-    OptionParser.stub!(:new).and_return(@options)
+    @options = MSpecOptions.new
+    MSpecOptions.stub!(:new).and_return(@options)
     @script = MkSpec.new
     @config = @script.config
   end
 
   it "is enabled by #options" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-c", "--constant CONSTANT",
-      String, an_instance_of(String))
+    @options.should_receive(:on).with("-c", "--constant", "CONSTANT",
+      an_instance_of(String))
     @script.options
   end
 
@@ -28,16 +28,16 @@ end
 
 describe "The -b, --base DIR option" do
   before :each do
-    @options = OptionParser.new
-    OptionParser.stub!(:new).and_return(@options)
+    @options = MSpecOptions.new
+    MSpecOptions.stub!(:new).and_return(@options)
     @script = MkSpec.new
     @config = @script.config
   end
 
   it "is enabled by #options" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-b", "--base DIR",
-      String, an_instance_of(String))
+    @options.should_receive(:on).with("-b", "--base", "DIR",
+      an_instance_of(String))
     @script.options
   end
 
@@ -52,16 +52,16 @@ end
 
 describe "The -r, --require LIBRARY option" do
   before :each do
-    @options = OptionParser.new
-    OptionParser.stub!(:new).and_return(@options)
+    @options = MSpecOptions.new
+    MSpecOptions.stub!(:new).and_return(@options)
     @script = MkSpec.new
     @config = @script.config
   end
 
   it "is enabled by #options" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-r", "--require LIBRARY",
-      String, an_instance_of(String))
+    @options.should_receive(:on).with("-r", "--require", "LIBRARY",
+      an_instance_of(String))
     @script.options
   end
 
@@ -76,8 +76,8 @@ end
 
 describe MkSpec, "#options" do
   before :each do
-    @options = OptionParser.new
-    OptionParser.stub!(:new).and_return(@options)
+    @options = MSpecOptions.new
+    MSpecOptions.stub!(:new).and_return(@options)
     @script = MkSpec.new
   end
 
@@ -257,8 +257,8 @@ end
 
 describe MkSpec, "#run" do
   before :each do
-    @options = OptionParser.new
-    OptionParser.stub!(:new).and_return(@options)
+    @options = MSpecOptions.new
+    MSpecOptions.stub!(:new).and_return(@options)
 
     @map = NameMap.new
     NameMap.stub!(:new).and_return(@map)

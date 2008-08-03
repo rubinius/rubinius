@@ -3,9 +3,9 @@
 MSPEC_HOME = File.expand_path(File.dirname(__FILE__) + '/../../..')
 
 require 'fileutils'
-require 'optparse'
 require 'rbconfig'
 require 'mspec/version'
+require 'mspec/utils/options'
 require 'mspec/utils/name_map'
 
 
@@ -22,35 +22,34 @@ class MkSpec
   end
 
   def options(argv=ARGV)
-    options = OptionParser.new
-    options.version = MSpec::VERSION
-    options.banner = "mkspec [options]"
-    options.separator ""
+    options = MSpecOptions.new "mkspec [options]"
 
-    options.on("-c", "--constant CONSTANT", String,
+    options.on("-c", "--constant", "CONSTANT",
                "Class or Module to generate spec stubs for") do |name|
       config[:constants] << name
     end
-    options.on("-b", "--base DIR", String,
+    options.on("-b", "--base", "DIR",
                "Directory to generate specs into") do |directory|
       config[:base] = File.expand_path directory
     end
-    options.on("-r", "--require LIBRARY", String,
+    options.on("-r", "--require", "LIBRARY",
                "A library to require") do |file|
       config[:requires] << file
     end
+    options.version MSpec::VERSION
+    options.help
 
-    options.separator "\n How might this work in the real world?\n"
-    options.separator "   1. To create spec stubs for every class or module in Object\n"
-    options.separator "     $ mkspec\n"
-    options.separator "   2. To create spec stubs for Fixnum\n"
-    options.separator "     $ mkspec -c Fixnum\n"
-    options.separator "   3. To create spec stubs for Complex in 'superspec/complex'\n"
-    options.separator "     $ mkspec -c Complex -rcomplex -b superspec"
-    options.separator ""
+    options.doc "\n How might this work in the real world?\n"
+    options.doc "   1. To create spec stubs for every class or module in Object\n"
+    options.doc "     $ mkspec\n"
+    options.doc "   2. To create spec stubs for Fixnum\n"
+    options.doc "     $ mkspec -c Fixnum\n"
+    options.doc "   3. To create spec stubs for Complex in 'superspec/complex'\n"
+    options.doc "     $ mkspec -c Complex -rcomplex -b superspec"
+    options.doc ""
 
     options.parse argv
-  rescue OptionParser::ParseError => e
+  rescue MSpecOptions::ParseError => e
     puts options
     puts
     puts e

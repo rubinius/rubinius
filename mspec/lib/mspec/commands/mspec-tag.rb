@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
+require 'mspec/version'
 require 'mspec/utils/options'
 require 'mspec/utils/script'
 
@@ -15,45 +15,45 @@ class MSpecTag < MSpecScript
   end
 
   def options(argv=ARGV)
-    options = MSpecOptions.new config, "tag", "", 28, "   "
+    options = MSpecOptions.new "mspec tag [options] (FILE|DIRECTORY|GLOB)+", 30, config
 
-    options.separator " Ask yourself:"
-    options.separator "  1. What specs to run?"
-    options.separator "  2. How to modify the execution?"
-    options.separator "  3. How to display the output?"
-    options.separator "  4. What tag action to perform?"
-    options.separator "  5. When to perform it?"
+    options.doc " Ask yourself:"
+    options.doc "  1. What specs to run?"
+    options.doc "  2. How to modify the execution?"
+    options.doc "  3. How to display the output?"
+    options.doc "  4. What tag action to perform?"
+    options.doc "  5. When to perform it?"
 
-    options.separator "\n What specs to run"
-    options.add_filters
+    options.doc "\n What specs to run"
+    options.filters
 
-    options.separator "\n How to modify the execution"
-    options.add_config { |f| load f }
-    options.add_name
-    options.add_pretend
-    options.add_interrupt
+    options.doc "\n How to modify the execution"
+    options.configure { |f| load f }
+    options.name
+    options.pretend
+    options.interrupt
 
-    options.separator "\n How to display their output"
-    options.add_formatters
-    options.add_verbose
+    options.doc "\n How to display their output"
+    options.formatters
+    options.verbose
 
-    options.separator "\n What action to perform and when to perform it"
-    options.add_tagging
+    options.doc "\n What action to perform and when to perform it"
+    options.tagging
 
-    options.separator "\n Help!"
-    options.add_version
-    options.add_help
+    options.doc "\n Help!"
+    options.version MSpec::VERSION
+    options.help
 
-    options.separator "\n How might this work in the real world?"
-    options.separator "\n   1. To add the 'fails' tag to failing specs"
-    options.separator "\n     $ mspec tag path/to/the_file_spec.rb"
-    options.separator "\n   2. To remove the 'fails' tag from passing specs"
-    options.separator "\n     $ mspec tag --del fails path/to/the_file_spec.rb"
-    options.separator ""
+    options.doc "\n How might this work in the real world?"
+    options.doc "\n   1. To add the 'fails' tag to failing specs"
+    options.doc "\n     $ mspec tag path/to/the_file_spec.rb"
+    options.doc "\n   2. To remove the 'fails' tag from passing specs"
+    options.doc "\n     $ mspec tag --del fails path/to/the_file_spec.rb"
+    options.doc ""
 
     @patterns = options.parse argv
     if @patterns.empty?
-      puts options.parser
+      puts options
       puts "No files specified."
       exit 1
     end

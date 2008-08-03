@@ -19,12 +19,12 @@ describe MSpecTag, "#options" do
   end
 
   it "enables the filter options" do
-    @options.should_receive(:add_filters)
+    @options.should_receive(:filters)
     @script.options @argv
   end
 
-  it "enables the config option" do
-    @options.should_receive(:add_config)
+  it "enables the configure option" do
+    @options.should_receive(:configure)
     @script.options @argv
   end
 
@@ -34,42 +34,42 @@ describe MSpecTag, "#options" do
   end
 
   it "enables the name option" do
-    @options.should_receive(:add_name)
+    @options.should_receive(:name)
     @script.options @argv
   end
 
   it "enables the dry run option" do
-    @options.should_receive(:add_pretend)
+    @options.should_receive(:pretend)
     @script.options @argv
   end
 
   it "enables the interrupt single specs option" do
-    @options.should_receive(:add_interrupt)
+    @options.should_receive(:interrupt)
     @script.options @argv
   end
 
   it "enables the formatter options" do
-    @options.should_receive(:add_formatters)
+    @options.should_receive(:formatters)
     @script.options @argv
   end
 
   it "enables the verbose option" do
-    @options.should_receive(:add_verbose)
+    @options.should_receive(:verbose)
     @script.options @argv
   end
 
   it "enables the tagging options" do
-    @options.should_receive(:add_tagging)
+    @options.should_receive(:tagging)
     @script.options @argv
   end
 
   it "enables the version option" do
-    @options.should_receive(:add_version)
+    @options.should_receive(:version)
     @script.options @argv
   end
 
   it "enables the help option" do
-    @options.should_receive(:add_help)
+    @options.should_receive(:help)
     @script.options @argv
   end
 

@@ -4,28 +4,461 @@ require 'mspec/version'
 require 'mspec/runner/mspec'
 require 'mspec/runner/formatters'
 
-describe MSpecOptions, "#parser" do
-  it "returns an OptionParser instance" do
-    MSpecOptions.new({}, "spec").parser.should be_kind_of(OptionParser)
+describe MSpecOption, ".new" do
+  before :each do
+    @opt = MSpecOption.new("-a", "--bdc", "ARG", "desc", :block)
+  end
+
+  it "sets the short attribute" do
+    @opt.short.should == "-a"
+  end
+
+  it "sets the long attribute" do
+    @opt.long.should == "--bdc"
+  end
+
+  it "sets the arg attribute" do
+    @opt.arg.should == "ARG"
+  end
+
+  it "sets the description attribute" do
+    @opt.description.should == "desc"
+  end
+
+  it "sets the block attribute" do
+    @opt.block.should == :block
   end
 end
+
+describe MSpecOption, "#arg?" do
+  it "returns true if arg attribute is not nil" do
+    MSpecOption.new(nil, nil, "ARG", nil, nil).arg?.should be_true
+  end
+
+  it "returns false if arg attribute is nil" do
+    MSpecOption.new(nil, nil, nil, nil, nil).arg?.should be_false
+  end
+end
+
+describe MSpecOption, "#match?" do
+  before :each do
+    @opt = MSpecOption.new("-a", "--bdc", "ARG", "desc", :block)
+  end
+
+  it "returns true if the argument matches the short option" do
+    @opt.match?("-a").should be_true
+  end
+
+  it "returns true if the argument matches the long option" do
+    @opt.match?("--bdc").should be_true
+  end
+
+  it "returns false if the argument matches neither the short nor long option" do
+    @opt.match?("-b").should be_false
+    @opt.match?("-abdc").should be_false
+  end
+end
+
+describe MSpecOptions, ".new" do
+  before :each do
+    @opt = MSpecOptions.new("cmd", 20, :config)
+  end
+
+  it "sets the banner attribute" do
+    @opt.banner.should == "cmd"
+  end
+
+  it "sets the config attribute" do
+    @opt.config.should == :config
+  end
+
+  it "sets the width attribute" do
+    @opt.width.should == 20
+  end
+
+  it "sets the default width attribute" do
+    MSpecOptions.new.width.should == 30
+  end
+end
+
+describe MSpecOptions, "#on" do
+  before :each do
+    @opt = MSpecOptions.new
+  end
+
+  it "adds a short option" do
+    @opt.should_receive(:add).with("-a", nil, nil, "desc", nil)
+    @opt.on("-a", "desc")
+  end
+
+  it "adds a short option taking an argument" do
+    @opt.should_receive(:add).with("-a", nil, "ARG", "desc", nil)
+    @opt.on("-a", "ARG", "desc")
+  end
+
+  it "adds a long option" do
+    @opt.should_receive(:add).with("-a", nil, nil, "desc", nil)
+    @opt.on("-a", "desc")
+  end
+
+  it "adds a long option taking an argument" do
+    @opt.should_receive(:add).with("-a", nil, nil, "desc", nil)
+    @opt.on("-a", "desc")
+  end
+
+  it "adds a short and long option" do
+    @opt.should_receive(:add).with("-a", nil, nil, "desc", nil)
+    @opt.on("-a", "desc")
+  end
+
+  it "adds a short and long option taking an argument" do
+    @opt.should_receive(:add).with("-a", nil, nil, "desc", nil)
+    @opt.on("-a", "desc")
+  end
+
+  it "raises MSpecOptions::OptionError if pass less than 2 arguments" do
+    lambda { @opt.on    }.should raise_error(MSpecOptions::OptionError)
+    lambda { @opt.on "" }.should raise_error(MSpecOptions::OptionError)
+  end
+end
+
+describe MSpecOptions, "#add" do
+  before :each do
+    @opt = MSpecOptions.new "cmd", 20
+    @prc = lambda { }
+  end
+
+  it "adds documentation for an option" do
+    @opt.should_receive(:doc).with("   -t, --typo ARG   Correct typo ARG")
+    @opt.add("-t", "--typo", "ARG", "Correct typo ARG", @prc)
+  end
+
+  it "leaves spaces in the documentation for a missing short option" do
+    @opt.should_receive(:doc).with("       --typo ARG   Correct typo ARG")
+    @opt.add(nil, "--typo", "ARG", "Correct typo ARG", @prc)
+  end
+
+  it "handles a short option with argument but no long argument" do
+    @opt.should_receive(:doc).with("   -t ARG           Correct typo ARG")
+    @opt.add("-t", nil, "ARG", "Correct typo ARG", @prc)
+  end
+
+  it "registers an option" do
+    option = MSpecOption.new "-t", "--typo", "ARG", "Correct typo ARG", @prc
+    MSpecOption.should_receive(:new).with(
+        "-t", "--typo", "ARG", "Correct typo ARG", @prc).and_return(option)
+    @opt.add("-t", "--typo", "ARG", "Correct typo ARG", @prc)
+    @opt.options.should == [option]
+  end
+end
+
+describe MSpecOptions, "#match?" do
+  before :each do
+    @opt = MSpecOptions.new
+  end
+
+  it "returns the MSpecOption instance matching the argument" do
+    @opt.on "-a", "--abdc", "desc"
+    option = @opt.match? "-a"
+    @opt.match?("--abdc").should be(option)
+    option.should be_kind_of(MSpecOption)
+    option.short.should == "-a"
+    option.long.should == "--abdc"
+    option.description.should == "desc"
+  end
+end
+
+describe MSpecOptions, "#process" do
+  before :each do
+    @opt = MSpecOptions.new
+    ScratchPad.clear
+  end
+
+  it "calls the on_extra block if the argument does not match any option" do
+    @opt.on_extra { ScratchPad.record :extra }
+    @opt.process ["-a"], "-a", "-a", nil
+    ScratchPad.recorded.should == :extra
+  end
+
+  it "returns the matching option" do
+    @opt.on "-a", "ARG", "desc"
+    option = @opt.process [], "-a", "-a", "ARG"
+    option.should be_kind_of(MSpecOption)
+    option.short.should == "-a"
+    option.arg.should == "ARG"
+    option.description.should == "desc"
+  end
+
+  it "raises an MSpecOptions::ParseError if arg is nil and there are no more entries in argv" do
+    @opt.on "-a", "ARG", "desc"
+    lambda { @opt.process [], "-a", "-a", nil }.should raise_error(MSpecOptions::ParseError)
+  end
+
+  it "fetches the argument for the option from argv if arg is nil" do
+    @opt.on("-a", "ARG", "desc") { |o| ScratchPad.record o }
+    @opt.process ["ARG"], "-a", "-a", nil
+    ScratchPad.recorded.should == "ARG"
+  end
+
+  it "calls the option's block" do
+    @opt.on("-a", "ARG", "desc") { ScratchPad.record :option }
+    @opt.process [], "-a", "-a", "ARG"
+    ScratchPad.recorded.should == :option
+  end
+
+  it "does not call the option's block if it is nil" do
+    @opt.on "-a", "ARG", "desc"
+    lambda { @opt.process [], "-a", "-a", "ARG" }.should_not raise_error
+  end
+end
+
+describe MSpecOptions, "#split" do
+  before :each do
+    @opt = MSpecOptions.new
+  end
+
+  it "breaks a string at the nth character" do
+    opt, arg, rest = @opt.split "-bdc", 2
+    opt.should == "-b"
+    arg.should == "dc"
+    rest.should == "dc"
+  end
+
+  it "returns nil for arg if there are no characters left" do
+    opt, arg, rest = @opt.split "-b", 2
+    opt.should == "-b"
+    arg.should == nil
+    rest.should == ""
+  end
+end
+
+describe MSpecOptions, "#parse" do
+  before :each do
+    @opt = MSpecOptions.new
+    @prc = lambda { |o| ScratchPad.record [:parsed, o] }
+    ScratchPad.clear
+  end
+
+  it "parses a short option" do
+    @opt.on "-a", "desc", &@prc
+    @opt.parse ["-a"]
+    ScratchPad.recorded.should == [:parsed, nil]
+  end
+
+  it "parse a long option" do
+    @opt.on "--abdc", "desc", &@prc
+    @opt.parse ["--abdc"]
+    ScratchPad.recorded.should == [:parsed, nil]
+  end
+
+  it "parses a short option group" do
+    @opt.on "-a", "ARG", "desc", &@prc
+    @opt.parse ["-a", "ARG"]
+    ScratchPad.recorded.should == [:parsed, "ARG"]
+  end
+
+  it "parses a short option with an argument" do
+    @opt.on "-a", "ARG", "desc", &@prc
+    @opt.parse ["-a", "ARG"]
+    ScratchPad.recorded.should == [:parsed, "ARG"]
+  end
+
+  it "parses a short option with connected argument" do
+    @opt.on "-a", "ARG", "desc", &@prc
+    @opt.parse ["-aARG"]
+    ScratchPad.recorded.should == [:parsed, "ARG"]
+  end
+
+  it "parses a long option with an argument" do
+    @opt.on "--abdc", "ARG", "desc", &@prc
+    @opt.parse ["--abdc", "ARG"]
+    ScratchPad.recorded.should == [:parsed, "ARG"]
+  end
+
+  it "parses a long option with an '=' argument" do
+    @opt.on "--abdc", "ARG", "desc", &@prc
+    @opt.parse ["--abdc=ARG"]
+    ScratchPad.recorded.should == [:parsed, "ARG"]
+  end
+
+  it "parses a short option group with the final option taking an argument" do
+    ScratchPad.record []
+    @opt.on("-a", "desc") { |o| ScratchPad << :a }
+    @opt.on("-b", "ARG", "desc") { |o| ScratchPad << [:b, o] }
+    @opt.parse ["-ab", "ARG"]
+    ScratchPad.recorded.should == [:a, [:b, "ARG"]]
+  end
+
+  it "parses a short option group with a connected argument" do
+    ScratchPad.record []
+    @opt.on("-a", "desc") { |o| ScratchPad << :a }
+    @opt.on("-b", "ARG", "desc") { |o| ScratchPad << [:b, o] }
+    @opt.on("-c", "desc") { |o| ScratchPad << :c }
+    @opt.parse ["-acbARG"]
+    ScratchPad.recorded.should == [:a, :c, [:b, "ARG"]]
+  end
+
+  it "returns the unprocessed entries" do
+    @opt.on "-a", "ARG", "desc", &@prc
+    @opt.parse(["abdc", "-a", "ilny"]).should == ["abdc"]
+  end
+
+  it "calls the on_extra handler with unrecognized options" do
+    ScratchPad.record []
+    @opt.on_extra { |o| ScratchPad << o }
+    @opt.on "-a", "desc"
+    @opt.parse ["-a", "-b"]
+    ScratchPad.recorded.should == ["-b"]
+  end
+
+  it "does not attempt to call the block if it is nil" do
+    @opt.on "-a", "ARG", "desc"
+    @opt.parse(["-a", "ARG"]).should == []
+  end
+
+  it "raises MSpecOptions::ParseError if passed an unrecognized option" do
+    lambda { @opt.parse ["-u"] }.should raise_error(MSpecOptions::ParseError)
+  end
+end
+
+describe MSpecOptions, "#banner=" do
+  before :each do
+    @opt = MSpecOptions.new
+  end
+
+  it "sets the banner attribute" do
+    @opt.banner.should == ""
+    @opt.banner = "banner"
+    @opt.banner.should == "banner"
+  end
+end
+
+describe MSpecOptions, "#width=" do
+  before :each do
+    @opt = MSpecOptions.new
+  end
+
+  it "sets the width attribute" do
+    @opt.width.should == 30
+    @opt.width = 20
+    @opt.width.should == 20
+  end
+end
+
+describe MSpecOptions, "#config=" do
+  before :each do
+    @opt = MSpecOptions.new
+  end
+
+  it "sets the config attribute" do
+    @opt.config.should be_nil
+    @opt.config = :config
+    @opt.config.should == :config
+  end
+end
+
+describe MSpecOptions, "#doc" do
+  before :each do
+    @opt = MSpecOptions.new "command"
+  end
+
+  it "adds text to be displayed with #to_s" do
+    @opt.doc "Some message"
+    @opt.doc "Another message"
+    @opt.to_s.should == <<-EOD
+command
+
+Some message
+Another message
+EOD
+  end
+end
+
+describe MSpecOptions, "#version" do
+  before :each do
+    @opt = MSpecOptions.new
+    ScratchPad.clear
+  end
+
+  it "installs a basic -v, --version option" do
+    @opt.should_receive(:puts)
+    @opt.should_receive(:exit)
+    @opt.version "1.0.0"
+    @opt.parse "-v"
+  end
+
+  it "accepts a block instead of using the default block" do
+    @opt.version("1.0.0") { |o| ScratchPad.record :version }
+    @opt.parse "-v"
+    ScratchPad.recorded.should == :version
+  end
+end
+
+describe MSpecOptions, "#help" do
+  before :each do
+    @opt = MSpecOptions.new
+    ScratchPad.clear
+  end
+
+  it "installs a basic -h, --help option" do
+    @opt.should_receive(:puts)
+    @opt.should_receive(:exit).with(1)
+    @opt.help
+    @opt.parse "-h"
+  end
+
+  it "accepts a block instead of using the default block" do
+    @opt.help { |o| ScratchPad.record :help }
+    @opt.parse "-h"
+    ScratchPad.recorded.should == :help
+  end
+end
+
+describe MSpecOptions, "#on_extra" do
+  before :each do
+    @opt = MSpecOptions.new
+    ScratchPad.clear
+  end
+
+  it "registers a block to be called when an option is not recognized" do
+    @opt.on_extra { ScratchPad.record :extra }
+    @opt.parse "-g"
+    ScratchPad.recorded.should == :extra
+  end
+end
+
+describe MSpecOptions, "#to_s" do
+  before :each do
+    @opt = MSpecOptions.new "command"
+  end
+
+  it "returns the banner and descriptive strings for all registered options" do
+    @opt.on "-t", "--this ARG", "Adds this ARG to the list"
+    @opt.to_s.should == <<-EOD
+command
+
+   -t, --this ARG             Adds this ARG to the list
+EOD
+  end
+end
+
 
 describe "The -B, --config FILE option" do
   before :each do
     @options, @config = new_option
   end
 
-  it "is enabled with #add_config { }" do
-    @options.should_receive(:on).with("-B", "--config FILE",
-        String, an_instance_of(String))
-    @options.add_config {}
+  it "is enabled with #configure { }" do
+    @options.should_receive(:on).with("-B", "--config", "FILE",
+        an_instance_of(String))
+    @options.configure {}
   end
 
   it "calls the passed block" do
     ["-B", "--config"].each do |opt|
       ScratchPad.clear
 
-      @options.add_config { |x| ScratchPad.record x }
+      @options.configure { |x| ScratchPad.record x }
       @options.parse [opt, "file"]
       ScratchPad.recorded.should == "file"
     end
@@ -42,15 +475,15 @@ describe "The -n, --name RUBY_NAME option" do
     $VERBOSE = @verbose
   end
 
-  it "is enabled with #add_name" do
-    @options.should_receive(:on).with("-n", "--name RUBY_NAME",
-        String, an_instance_of(String))
-    @options.add_name
+  it "is enabled with #name" do
+    @options.should_receive(:on).with("-n", "--name", "RUBY_NAME",
+        an_instance_of(String))
+    @options.name
   end
 
   it "sets RUBY_NAME when invoked" do
     Object.should_receive(:const_set).with(:RUBY_NAME, "name").twice
-    @options.add_name
+    @options.name
     @options.parse ["-n", "name"]
     @options.parse ["--name", "name"]
   end
@@ -59,14 +492,14 @@ end
 describe "The -t, --target TARGET option" do
   before :each do
     @options, @config = new_option
-    @options.add_targets
+    @options.targets
   end
 
-  it "is enabled with #add_targets" do
+  it "is enabled with #targets" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-t", "--target TARGET",
-        String, an_instance_of(String))
-    @options.add_targets
+    @options.should_receive(:on).with("-t", "--target", "TARGET",
+        an_instance_of(String))
+    @options.targets
   end
 
   it "sets the target to 'ruby' and flags to verbose with TARGET 'ruby'" do
@@ -99,7 +532,7 @@ describe "The -t, --target TARGET option" do
     ["-t", "--target"].each do |opt|
       ["x", "rubinius"].each do |t|
         @options.parse [opt, t]
-        @config[:target].should == "shotgun/rubinius"
+        @config[:target].should == "./bin/rbx"
       end
     end
   end
@@ -124,14 +557,14 @@ end
 describe "The -T, --target-opt OPT option" do
   before :each do
     @options, @config = new_option
-    @options.add_targets
+    @options.targets
   end
 
-  it "is enabled with #add_targets" do
+  it "is enabled with #targets" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-T", "--target-opt OPT",
-        String, an_instance_of(String))
-    @options.add_targets
+    @options.should_receive(:on).with("-T", "--target-opt", "OPT",
+        an_instance_of(String))
+    @options.targets
   end
 
   it "adds OPT to flags" do
@@ -146,14 +579,14 @@ end
 describe "The -I, --include DIR option" do
   before :each do
     @options, @config = new_option
-    @options.add_targets
+    @options.targets
   end
 
-  it "is enabled with #add_targets" do
+  it "is enabled with #targets" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-I", "--include DIR",
-        String, an_instance_of(String))
-    @options.add_targets
+    @options.should_receive(:on).with("-I", "--include", "DIR",
+        an_instance_of(String))
+    @options.targets
   end
 
   it "add DIR to the includes list" do
@@ -168,14 +601,14 @@ end
 describe "The -r, --require LIBRARY option" do
   before :each do
     @options, @config = new_option
-    @options.add_targets
+    @options.targets
   end
 
-  it "is enabled with #add_targets" do
+  it "is enabled with #targets" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-r", "--require LIBRARY",
-        String, an_instance_of(String))
-    @options.add_targets
+    @options.should_receive(:on).with("-r", "--require", "LIBRARY",
+        an_instance_of(String))
+    @options.targets
   end
 
   it "adds LIBRARY to the requires list" do
@@ -190,14 +623,14 @@ end
 describe "The -f, --format FORMAT option" do
   before :each do
     @options, @config = new_option
-    @options.add_formatters
+    @options.formatters
   end
 
-  it "is enabled with #add_formatters" do
+  it "is enabled with #formatters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-f", "--format FORMAT",
-        String, an_instance_of(String))
-    @options.add_formatters
+    @options.should_receive(:on).with("-f", "--format", "FORMAT",
+        an_instance_of(String))
+    @options.formatters
   end
 
   it "sets the SpecdocFormatter with FORMAT 's' or 'specdoc'" do
@@ -264,14 +697,14 @@ end
 describe "The -o, --output FILE option" do
   before :each do
     @options, @config = new_option
-    @options.add_formatters
+    @options.formatters
   end
 
-  it "is enabled with #add_formatters" do
+  it "is enabled with #formatters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-o", "--output FILE",
-        String, an_instance_of(String))
-    @options.add_formatters
+    @options.should_receive(:on).with("-o", "--output", "FILE",
+        an_instance_of(String))
+    @options.formatters
   end
 
   it "sets the output to FILE" do
@@ -286,14 +719,14 @@ end
 describe "The -e, --example STR" do
   before :each do
     @options, @config = new_option
-    @options.add_filters
+    @options.filters
   end
 
-  it "is enabled with #add_filters" do
+  it "is enabled with #filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-e", "--example STR",
-        String, an_instance_of(String))
-    @options.add_filters
+    @options.should_receive(:on).with("-e", "--example", "STR",
+        an_instance_of(String))
+    @options.filters
   end
 
   it "adds STR to the includes list" do
@@ -308,14 +741,14 @@ end
 describe "The -E, --exclude STR" do
   before :each do
     @options, @config = new_option
-    @options.add_filters
+    @options.filters
   end
 
-  it "is enabled with #add_filters" do
+  it "is enabled with #filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-E", "--exclude STR",
-        String, an_instance_of(String))
-    @options.add_filters
+    @options.should_receive(:on).with("-E", "--exclude", "STR",
+        an_instance_of(String))
+    @options.filters
   end
 
   it "adds STR to the excludes list" do
@@ -330,14 +763,14 @@ end
 describe "The -p, --pattern PATTERN" do
   before :each do
     @options, @config = new_option
-    @options.add_filters
+    @options.filters
   end
 
-  it "is enabled with #add_filters" do
+  it "is enabled with #filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-p", "--pattern PATTERN",
-        Regexp, an_instance_of(String))
-    @options.add_filters
+    @options.should_receive(:on).with("-p", "--pattern", "PATTERN",
+        an_instance_of(String))
+    @options.filters
   end
 
   it "adds PATTERN to the included patterns list" do
@@ -352,14 +785,14 @@ end
 describe "The -P, --excl-pattern PATTERN" do
   before :each do
     @options, @config = new_option
-    @options.add_filters
+    @options.filters
   end
 
-  it "is enabled with #add_filters" do
+  it "is enabled with #filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-P", "--excl-pattern PATTERN",
-        Regexp, an_instance_of(String))
-    @options.add_filters
+    @options.should_receive(:on).with("-P", "--excl-pattern", "PATTERN",
+        an_instance_of(String))
+    @options.filters
   end
 
   it "adds PATTERN to the excluded patterns list" do
@@ -374,14 +807,14 @@ end
 describe "The -g, --tag TAG" do
   before :each do
     @options, @config = new_option
-    @options.add_filters
+    @options.filters
   end
 
-  it "is enabled with #add_filters" do
+  it "is enabled with #filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-g", "--tag TAG",
-        String, an_instance_of(String))
-    @options.add_filters
+    @options.should_receive(:on).with("-g", "--tag", "TAG",
+        an_instance_of(String))
+    @options.filters
   end
 
   it "adds TAG to the included tags list" do
@@ -396,14 +829,14 @@ end
 describe "The -G, --excl-tag TAG" do
   before :each do
     @options, @config = new_option
-    @options.add_filters
+    @options.filters
   end
 
-  it "is enabled with #add_filters" do
+  it "is enabled with #filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-G", "--excl-tag TAG",
-        String, an_instance_of(String))
-    @options.add_filters
+    @options.should_receive(:on).with("-G", "--excl-tag", "TAG",
+        an_instance_of(String))
+    @options.filters
   end
 
   it "adds TAG to the excluded tags list" do
@@ -418,14 +851,14 @@ end
 describe "The -w, --profile FILE option" do
   before :each do
     @options, @config = new_option
-    @options.add_filters
+    @options.filters
   end
 
-  it "is enabled with #add_filters" do
+  it "is enabled with #filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-w", "--profile FILE",
-        String, an_instance_of(String))
-    @options.add_filters
+    @options.should_receive(:on).with("-w", "--profile", "FILE",
+        an_instance_of(String))
+    @options.filters
   end
 
   it "adds FILE to the included profiles list" do
@@ -440,14 +873,14 @@ end
 describe "The -W, --excl-profile FILE option" do
   before :each do
     @options, @config = new_option
-    @options.add_filters
+    @options.filters
   end
 
-  it "is enabled with #add_filters" do
+  it "is enabled with #filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-W", "--excl-profile FILE",
-        String, an_instance_of(String))
-    @options.add_filters
+    @options.should_receive(:on).with("-W", "--excl-profile", "FILE",
+        an_instance_of(String))
+    @options.filters
   end
 
   it "adds FILE to the excluded profiles list" do
@@ -462,12 +895,12 @@ end
 describe "The -Z", "--dry-run option" do
   before :each do
     @options, @config = new_option
-    @options.add_pretend
+    @options.pretend
   end
 
-  it "is enabled with #add_pretend" do
+  it "is enabled with #pretend" do
     @options.should_receive(:on).with("-Z", "--dry-run", an_instance_of(String))
-    @options.add_pretend
+    @options.pretend
   end
 
   it "registers the MSpec pretend mode" do
@@ -481,12 +914,12 @@ end
 describe "The -H, --random option" do
   before :each do
     @options, @config = new_option
-    @options.add_randomize
+    @options.randomize
   end
 
-  it "is enabled with #add_randomize" do
+  it "is enabled with #randomize" do
     @options.should_receive(:on).with("-H", "--random", an_instance_of(String))
-    @options.add_randomize
+    @options.randomize
   end
 
   it "registers the MSpec randomize mode" do
@@ -500,13 +933,13 @@ end
 describe "The -V, --verbose option" do
   before :each do
     @options, @config = new_option
-    @options.add_verbose
+    @options.verbose
   end
 
-  it "is enabled with #add_verbose" do
+  it "is enabled with #verbose" do
     @options.stub!(:on)
     @options.should_receive(:on).with("-V", "--verbose", an_instance_of(String))
-    @options.add_verbose
+    @options.verbose
   end
 
   it "registers a verbose output object with MSpec" do
@@ -521,14 +954,14 @@ end
 describe "The -m, --marker MARKER option" do
   before :each do
     @options, @config = new_option
-    @options.add_verbose
+    @options.verbose
   end
 
-  it "is enabled with #add_verbose" do
+  it "is enabled with #verbose" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-m", "--marker MARKER",
-        String, an_instance_of(String))
-    @options.add_verbose
+    @options.should_receive(:on).with("-m", "--marker", "MARKER",
+        an_instance_of(String))
+    @options.verbose
   end
 
   it "registers a marker output object with MSpec" do
@@ -542,12 +975,12 @@ end
 describe "The --int-spec option" do
   before :each do
     @options, @config = new_option
-    @options.add_interrupt
+    @options.interrupt
   end
 
-  it "is enabled with #add_interrupt" do
+  it "is enabled with #interrupt" do
     @options.should_receive(:on).with("--int-spec", an_instance_of(String))
-    @options.add_interrupt
+    @options.interrupt
   end
 
   it "sets the abort config option to false to only abort the running spec with ^C" do
@@ -560,17 +993,17 @@ end
 describe "The -Y, --verify option" do
   before :each do
     @options, @config = new_option
-    @options.add_verify
+    @options.verify
   end
 
-  it "is enabled with #add_interrupt" do
+  it "is enabled with #interrupt" do
     @options.stub!(:on)
     @options.should_receive(:on).with("-Y", "--verify", an_instance_of(String))
-    @options.add_verify
+    @options.verify
   end
 
   it "sets the MSpec mode to :verify" do
-    MSpec.should_receive(:set_mode).with(:verify).twice
+    MSpec.should_receive(:register_mode).with(:verify).twice
     ["-Y", "--verify"].each do |m|
       @options.parse m
     end
@@ -580,17 +1013,17 @@ end
 describe "The -O, --report option" do
   before :each do
     @options, @config = new_option
-    @options.add_verify
+    @options.verify
   end
 
-  it "is enabled with #add_interrupt" do
+  it "is enabled with #interrupt" do
     @options.stub!(:on)
     @options.should_receive(:on).with("-O", "--report", an_instance_of(String))
-    @options.add_verify
+    @options.verify
   end
 
   it "sets the MSpec mode to :report" do
-    MSpec.should_receive(:set_mode).with(:report).twice
+    MSpec.should_receive(:register_mode).with(:report).twice
     ["-O", "--report"].each do |m|
       @options.parse m
     end
@@ -600,14 +1033,14 @@ end
 describe "The -N, --add TAG option" do
   before :each do
     @options, @config = new_option
-    @options.add_tagging
+    @options.tagging
   end
 
-  it "is enabled with #add_tagging" do
+  it "is enabled with #tagging" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-N", "--add TAG",
-        String, an_instance_of(String))
-    @options.add_tagging
+    @options.should_receive(:on).with("-N", "--add", "TAG",
+        an_instance_of(String))
+    @options.tagging
   end
 
   it "sets the mode to :add and sets the tag to TAG" do
@@ -624,14 +1057,14 @@ end
 describe "The -R, --del TAG option" do
   before :each do
     @options, @config = new_option
-    @options.add_tagging
+    @options.tagging
   end
 
-  it "is enabled with #add_tagging" do
+  it "is enabled with #tagging" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-R", "--del TAG",
-        String, an_instance_of(String))
-    @options.add_tagging
+    @options.should_receive(:on).with("-R", "--del", "TAG",
+        an_instance_of(String))
+    @options.tagging
   end
 
   it "it sets the mode to :del, the tag to TAG, and the outcome to :pass" do
@@ -650,13 +1083,13 @@ end
 describe "The -Q, --pass option" do
   before :each do
     @options, @config = new_option
-    @options.add_tagging
+    @options.tagging
   end
 
-  it "is enabled with #add_tagging" do
+  it "is enabled with #tagging" do
     @options.stub!(:on)
     @options.should_receive(:on).with("-Q", "--pass", an_instance_of(String))
-    @options.add_tagging
+    @options.tagging
   end
 
   it "sets the outcome to :pass" do
@@ -671,13 +1104,13 @@ end
 describe "The -F, --fail option" do
   before :each do
     @options, @config = new_option
-    @options.add_tagging
+    @options.tagging
   end
 
-  it "is enabled with #add_tagging" do
+  it "is enabled with #tagging" do
     @options.stub!(:on)
     @options.should_receive(:on).with("-F", "--fail", an_instance_of(String))
-    @options.add_tagging
+    @options.tagging
   end
 
   it "sets the outcome to :fail" do
@@ -692,13 +1125,13 @@ end
 describe "The -L, --all option" do
   before :each do
     @options, @config = new_option
-    @options.add_tagging
+    @options.tagging
   end
 
-  it "is enabled with #add_tagging" do
+  it "is enabled with #tagging" do
     @options.stub!(:on)
     @options.should_receive(:on).with("-L", "--all", an_instance_of(String))
-    @options.add_tagging
+    @options.tagging
   end
 
   it "sets the outcome to :all" do
@@ -713,14 +1146,14 @@ end
 describe "The -K, --action-tag TAG option" do
   before :each do
     @options, @config = new_option
-    @options.add_action_filters
+    @options.action_filters
   end
 
-  it "is enabled with #add_action_filters" do
+  it "is enabled with #action_filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-K", "--action-tag TAG",
-        String, an_instance_of(String))
-    @options.add_action_filters
+    @options.should_receive(:on).with("-K", "--action-tag", "TAG",
+        an_instance_of(String))
+    @options.action_filters
   end
 
   it "adds TAG to the list of tags that trigger actions" do
@@ -735,14 +1168,14 @@ end
 describe "The -S, --action-string STR option" do
   before :each do
     @options, @config = new_option
-    @options.add_action_filters
+    @options.action_filters
   end
 
-  it "is enabled with #add_action_filters" do
+  it "is enabled with #action_filters" do
     @options.stub!(:on)
-    @options.should_receive(:on).with("-S", "--action-string STR",
-        String, an_instance_of(String))
-    @options.add_action_filters
+    @options.should_receive(:on).with("-S", "--action-string", "STR",
+        an_instance_of(String))
+    @options.action_filters
   end
 
   it "adds STR to the list of spec descriptions that trigger actions" do
@@ -757,17 +1190,17 @@ end
 describe "The --spec-debug option" do
   before :each do
     @options, @config = new_option
-    @options.add_actions
+    @options.actions
   end
 
-  it "is enabled with #add_actions" do
+  it "is enabled with #actions" do
     @options.stub!(:on)
     @options.should_receive(:on).with("--spec-debug", an_instance_of(String))
-    @options.add_actions
+    @options.actions
   end
 
   it "enables the triggering the ruby debugger" do
-    @options.add_action_filters
+    @options.action_filters
     @options.parse ["-S", "some spec"]
 
     @config[:debugger] = nil
@@ -779,63 +1212,21 @@ end
 describe "The --spec-gdb option" do
   before :each do
     @options, @config = new_option
-    @options.add_actions
+    @options.actions
   end
 
-  it "is enabled with #add_actions" do
+  it "is enabled with #actions" do
     @options.stub!(:on)
     @options.should_receive(:on).with("--spec-gdb", an_instance_of(String))
-    @options.add_actions
+    @options.actions
   end
 
   it "enables triggering the gdb debugger" do
-    @options.add_action_filters
+    @options.action_filters
     @options.parse ["-S", "some spec"]
 
     @config[:gdb] = nil
     @options.parse "--spec-gdb"
     @config[:gdb].should == true
-  end
-end
-
-describe "The -v, --version option" do
-  before :each do
-    @options, @config = new_option
-    @options.add_version
-  end
-
-  it "is enabled with #add_version" do
-    @options.stub!(:on)
-    @options.should_receive(:on).with("-v", "--version", an_instance_of(String))
-    @options.add_version
-  end
-
-  it "prints the version and exits" do
-    @options.should_receive(:puts).twice
-    @options.should_receive(:exit).twice
-    ["-v", "--version"].each do |opt|
-      @options.parse opt
-    end
-  end
-end
-
-describe "The -h, --help option" do
-  before :each do
-    @options, @config = new_option
-    @options.add_help
-  end
-
-  it "is enabled with #add_help" do
-    @options.stub!(:on)
-    @options.should_receive(:on).with("-h", "--help", an_instance_of(String))
-    @options.add_help
-  end
-
-  it "prints help and exits" do
-    @options.should_receive(:puts).twice
-    @options.should_receive(:exit).twice
-    ["-h", "--help"].each do |opt|
-      @options.parse opt
-    end
   end
 end

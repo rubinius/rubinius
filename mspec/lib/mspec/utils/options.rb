@@ -1,215 +1,335 @@
-# FIXME: There are essentially two options for these runner
-# scripts: 1. all in one file, 2. in separate files. The fact
-# that the subcommands share a number of options weighs
-# toward having a single script. However, the subcommands
-# also take specialized options which can be confusing. Added
-# to this the support for switches to specify a different
-# implementation and the balance swings to separate scripts.
-#
-# Now, the fun begins. The main script needs a way to specify
-# certain command line options and then pass the rest to the
-# invoked subscript. Unfortunately, this possibility does not
-# exist in the universe inhabited by OptionParser or GetoptLong.
-#
-# The #filter! method below does not properly handle optional
-# arguments to a switch.
-class OptionParser
-  class Switch
-    def consume?(opt)
-      if opt == short.to_s or opt == long.to_s
-        return arg ? 2 : 1
-      elsif opt[0..1] == short.to_s and opt.size > 2
-        return 1
-      else
-        return 0
-      end
-    end
+require 'mspec/version'
+
+class MSpecOption
+  attr_reader :short, :long, :arg, :description, :block
+
+  def initialize(short, long, arg, description, block)
+    @short       = short
+    @long        = long
+    @arg         = arg
+    @description = description
+    @block       = block
   end
 
-  def filter!(argv)
-    @stack.inject(options=[]) do |list, entry|
-      entry.list.each do |switch|
-        next unless switch.kind_of? OptionParser::Switch
-        list << switch
-      end
-      list
-    end
+  def arg?
+    @arg != nil
+  end
 
-    filtered = []
-    recognized = []
-    consume = nil
-    until argv.empty?
-      opt = argv.shift
-      options.find { |o| consume = o.consume?(opt); consume != 0 }
-      if consume == 0
-        filtered << opt
-      else
-        recognized << opt
-        recognized << argv.shift if consume == 2
-      end
-    end
-    argv.replace recognized
-    filtered
+  def match?(opt)
+    opt == @short or opt == @long
   end
 end
 
-require 'mspec/version'
-
-# MSpecOptions wraps OptionParser and provides a composable set of
-# options that the runner scripts pick from.
+# MSpecOptions provides a parser for command line options. It also
+# provides a composable set of options from which the runner scripts
+# can select for their particular functionality.
 class MSpecOptions
-  attr_reader :parser
+  # Raised if incorrect or incomplete formats are passed to #on.
+  class OptionError < Exception; end
 
-  def initialize(config, command, *args)
-    @parser = OptionParser.new(*args) do |opts|
-      opts.banner = "mspec #{command} [options] (FILE|DIRECTORY|GLOB)+"
-      opts.separator ""
-    end
+  # Raised if an unrecognized option is encountered.
+  class ParseError < Exception; end
 
-    @config = config
+  attr_accessor :config, :banner, :width, :options
+
+  def initialize(banner="", width=30, config=nil)
+    @banner  = banner
+    @config  = config
+    @width   = width
+    @options = []
+    @doc     = []
+    @extra   = lambda { |opt| raise ParseError, "Unrecognized option: #{opt}" }
+
+    yield self if block_given?
   end
 
-  def add_config(&block)
-    on("-B", "--config FILE", String,
+  # Registers an option. Acceptable formats for arguments are:
+  #
+  #  on "-a", "description"
+  #  on "-a", "--abdc", "description"
+  #  on "-a", "ARG", "description"
+  #  on "--abdc", "ARG", "description"
+  #  on "-a", "--abdc", "ARG", "description"
+  #
+  # If an block is passed, it will be invoked when the option is
+  # matched. Not passing a block is permitted, but nonsensical.
+  def on(*args, &block)
+    raise OptionError, "option and description are required" if args.size < 2
+
+    description = args.pop
+    short, long, argument = nil
+    args.each do |arg|
+      if arg[0] == ?-
+        if arg[1] == ?-
+          long = arg
+        else
+          short = arg
+        end
+      else
+        argument = arg
+      end
+    end
+
+    add short, long, argument, description, block
+  end
+
+  # Adds documentation text for an option and adds an +MSpecOption+
+  # instance to the list of registered options.
+  def add(short, long, arg, description, block)
+    s = short ? short.dup : "  "
+    s << (short ? ", " : "  ") if long
+    doc "   #{s}#{long} #{arg}".ljust(@width-1) + " #{description}"
+    @options << MSpecOption.new(short, long, arg, description, block)
+  end
+
+  # Searches all registered options to find a match for +opt+. Returns
+  # +nil+ if no registered options match.
+  def match?(opt)
+    @options.find { |o| o.match? opt }
+  end
+
+  # Processes an option. Calles the #on_extra block (or default) for
+  # unrecognized options. For registered options, possibly fetches an
+  # argument and invokes the option's block if it is not nil.
+  def process(argv, entry, opt, arg)
+    unless option = match?(opt)
+      @extra[entry]
+    else
+      if option.arg?
+        arg = argv.shift if arg.nil?
+        raise ParseError, "No argument provided for #{opt}" unless arg
+      end
+      option.block[arg] if option.block
+    end
+    option
+  end
+
+  # Splits a string at +n+ characters into the +opt+ and the +rest+.
+  # The +arg+ is set to +nil+ if +rest+ is an empty string.
+  def split(str, n)
+    opt  = str[0, n]
+    rest = str[n, str.size]
+    arg  = rest == "" ? nil : rest
+    return opt, arg, rest
+  end
+
+  # Parses an array of command line entries, calling blocks for
+  # registered options.
+  def parse(argv=ARGV)
+    argv = Array(argv).dup
+    remaining = []
+
+    while entry = argv.shift
+      # collect everything that is not an option
+      if entry[0] != ?- or entry.size < 2
+        remaining << entry
+        next
+      end
+
+      # this is a long option
+      if entry[1] == ?-
+        opt, arg = entry.split "="
+        process argv, entry, opt, arg
+        next
+      end
+
+      # disambiguate short option group from short option with argument
+      opt, arg, rest = split entry, 2
+
+      # process first option
+      option = process argv, entry, opt, arg
+      next unless option and not option.arg?
+
+      # process the rest of the options
+      while rest.size > 0
+        opt, arg, rest = split rest, 1
+        opt = "-" + opt
+        option = process argv, opt, opt, arg
+        break if option.arg?
+      end
+    end
+
+    remaining
+  end
+
+  # Adds a string of documentation text inline in the text generated
+  # from the options. See #on and #add.
+  def doc(str)
+    @doc << str
+  end
+
+  # Convenience method for providing -v, --version options.
+  def version(version, &block)
+    show = block || lambda { puts "#{File.basename $0} #{version}"; exit }
+    on "-v", "--version", "Show version", &show
+  end
+
+  # Convenience method for providing -h, --help options.
+  def help(&block)
+    help = block || lambda { puts self; exit 1 }
+    on "-h", "--help", "Show this message", &help
+  end
+
+  # Stores a block that will be called with unrecognized options
+  def on_extra(&block)
+    @extra = block
+  end
+
+  # Returns a string representation of the options and doc strings.
+  def to_s
+    @banner + "\n\n" + @doc.join("\n") + "\n"
+  end
+
+  # The methods below provide groups of options that
+  # are composed by the particular runners to provide
+  # their functionality
+
+  def configure(&block)
+    on("-B", "--config", "FILE",
        "Load FILE containing configuration options", &block)
   end
 
-  def add_name
-    on("-n", "--name RUBY_NAME", String,
+  def name
+    on("-n", "--name", "RUBY_NAME",
        "Set the value of RUBY_NAME (used to determine the implementation)") do |n|
       Object.const_set :RUBY_NAME, n
     end
   end
 
-  def add_targets
-    on("-t", "--target TARGET", String,
+  def targets
+    on("-t", "--target", "TARGET",
        "Implementation to run the specs, where:") do |t|
       case t
       when 'r', 'ruby'
-        @config[:target] = 'ruby'
-        @config[:flags] << '-v'
+        config[:target] = 'ruby'
+        config[:flags] << '-v'
       when 'r19', 'ruby19'
-        @config[:target] = 'ruby19'
+        config[:target] = 'ruby19'
       when 'x', 'rubinius'
-        @config[:target] = 'shotgun/rubinius'
+        config[:target] = './bin/rbx'
       when 'X', 'rbx'
-        @config[:target] = 'rbx'
+        config[:target] = 'rbx'
       when 'j', 'jruby'
-        @config[:target] = 'jruby'
+        config[:target] = 'jruby'
+      when 'i','ironruby'
+        config[:target] = 'ir'
       else
-        @config[:target] = t
+        config[:target] = t
       end
     end
 
-    separator ""
-    separator "   'r' or 'ruby'     invokes ruby in PATH"
-    separator "   'r19' or 'ruby19' invokes ruby19 in PATH"
-    separator "   'x' or 'rubinius' invokes ./shotgun/rubinius"
-    separator "   'X' or 'rbx'      invokes rbx in PATH"
-    separator "   'j' or 'jruby'    invokes jruby in PATH\n"
+    doc ""
+    doc "     r or ruby     invokes ruby in PATH"
+    doc "     r19 or ruby19 invokes ruby19 in PATH"
+    doc "     x or rubinius invokes ./bin/rbx"
+    doc "     X or rbx      invokes rbx in PATH"
+    doc "     j or jruby    invokes jruby in PATH"
+    doc "     i or ironruby invokes ir in PATH\n"
 
-    on("-T", "--target-opt OPT", String,
+    on("-T", "--target-opt", "OPT",
        "Pass OPT as a flag to the target implementation") do |t|
-      @config[:flags] << t
+      config[:flags] << t
     end
-    on("-I", "--include DIR", String,
+    on("-I", "--include", "DIR",
        "Pass DIR through as the -I option to the target") do |d|
-      @config[:includes] << "-I#{d}"
+      config[:includes] << "-I#{d}"
     end
-    on("-r", "--require LIBRARY", String,
+    on("-r", "--require", "LIBRARY",
        "Pass LIBRARY through as the -r option to the target") do |f|
-      @config[:requires] << "-r#{f}"
+      config[:requires] << "-r#{f}"
     end
   end
 
-  def add_formatters
-    on("-f", "--format FORMAT", String,
+  def formatters
+    on("-f", "--format", "FORMAT",
        "Formatter for reporting, where FORMAT is one of:") do |o|
       case o
       when 's', 'spec', 'specdoc'
-        @config[:formatter] = SpecdocFormatter
+        config[:formatter] = SpecdocFormatter
       when 'h', 'html'
-        @config[:formatter] = HtmlFormatter
+        config[:formatter] = HtmlFormatter
       when 'd', 'dot', 'dotted'
-        @config[:formatter] = DottedFormatter
+        config[:formatter] = DottedFormatter
       when 'u', 'unit', 'unitdiff'
-        @config[:formatter] = UnitdiffFormatter
+        config[:formatter] = UnitdiffFormatter
       when 'm', 'summary'
-        @config[:formatter] = SummaryFormatter
+        config[:formatter] = SummaryFormatter
       when 'a', '*', 'spin'
-        @config[:formatter] = SpinnerFormatter
+        config[:formatter] = SpinnerFormatter
       when 'y', 'yaml'
-        @config[:formatter] = YamlFormatter
+        config[:formatter] = YamlFormatter
       else
         puts "Unknown format: #{o}"
         puts @parser
         exit
       end
     end
-    separator("")
-    separator("       s, spec, specdoc         SpecdocFormatter")
-    separator("       h, html,                 HtmlFormatter")
-    separator("       d, dot, dotted           DottedFormatter")
-    separator("       u, unit, unitdiff        UnitdiffFormatter")
-    separator("       m, summary               SummaryFormatter")
-    separator("       a, *, spin               SpinnerFormatter")
-    separator("       y, yaml                  YamlFormatter\n")
-    on("-o", "--output FILE", String,
+
+    doc ""
+    doc "       s, spec, specdoc         SpecdocFormatter"
+    doc "       h, html,                 HtmlFormatter"
+    doc "       d, dot, dotted           DottedFormatter"
+    doc "       u, unit, unitdiff        UnitdiffFormatter"
+    doc "       m, summary               SummaryFormatter"
+    doc "       a, *, spin               SpinnerFormatter"
+    doc "       y, yaml                  YamlFormatter\n"
+
+    on("-o", "--output", "FILE",
        "Write formatter output to FILE") do |f|
-      @config[:output] = f
+      config[:output] = f
     end
   end
 
-  def add_filters
-    on("-e", "--example STR", String,
+  def filters
+    on("-e", "--example", "STR",
        "Run examples with descriptions matching STR") do |o|
-      @config[:includes] << o
+      config[:includes] << o
     end
-    on("-E", "--exclude STR", String,
+    on("-E", "--exclude", "STR",
        "Exclude examples with descriptions matching STR") do |o|
-      @config[:excludes] << o
+      config[:excludes] << o
     end
-    on("-p", "--pattern PATTERN", Regexp,
+    on("-p", "--pattern", "PATTERN",
        "Run examples with descriptions matching PATTERN") do |o|
-      @config[:patterns] << o
+      config[:patterns] << Regexp.new(o)
     end
-    on("-P", "--excl-pattern PATTERN", Regexp,
+    on("-P", "--excl-pattern", "PATTERN",
        "Exclude examples with descriptions matching PATTERN") do |o|
-      @config[:xpatterns] << o
+      config[:xpatterns] << Regexp.new(o)
     end
-    on("-g", "--tag TAG", String,
+    on("-g", "--tag", "TAG",
        "Run examples with descriptions matching ones tagged with TAG") do |o|
-      @config[:tags] << o
+      config[:tags] << o
     end
-    on("-G", "--excl-tag TAG", String,
+    on("-G", "--excl-tag", "TAG",
        "Exclude examples with descriptions matching ones tagged with TAG") do |o|
-      @config[:xtags] << o
+      config[:xtags] << o
     end
-    on("-w", "--profile FILE", String,
+    on("-w", "--profile", "FILE",
        "Run examples for methods listed in the profile FILE") do |f|
-      @config[:profiles] << f
+      config[:profiles] << f
     end
-    on("-W", "--excl-profile FILE", String,
+    on("-W", "--excl-profile", "FILE",
        "Exclude examples for methods listed in the profile FILE") do |f|
-      @config[:xprofiles] << f
+      config[:xprofiles] << f
     end
   end
 
-  def add_pretend
+  def pretend
     on("-Z", "--dry-run",
        "Invoke formatters and other actions, but don't execute the specs") do
       MSpec.register_mode :pretend
     end
   end
 
-  def add_randomize
+  def randomize
     on("-H", "--random",
        "Randomize the list of spec files") do
       MSpec.randomize
     end
   end
 
-  def add_verbose
+  def verbose
     on("-V", "--verbose", "Output the name of each file processed") do
       obj = Object.new
       def obj.start
@@ -223,7 +343,7 @@ class MSpecOptions
       MSpec.register :load, obj
     end
 
-    on("-m", "--marker MARKER", String,
+    on("-m", "--marker", "MARKER",
        "Output MARKER for each file processed") do |o|
       obj = Object.new
       obj.instance_variable_set :@marker, o
@@ -234,104 +354,64 @@ class MSpecOptions
     end
   end
 
-  def add_interrupt
+  def interrupt
     on("--int-spec", "Control-C interupts the current spec only") do
-      @config[:abort] = false
+      config[:abort] = false
     end
   end
 
-  def add_verify
+  def verify
     on("-Y", "--verify",
        "Verify that guarded specs pass and fail as expected") do
-      MSpec.set_mode :verify
+      MSpec.register_mode :verify
     end
     on("-O", "--report", "Report guarded specs") do
-      MSpec.set_mode :report
+      MSpec.register_mode :report
     end
   end
 
-  def add_tagging
-    on("-N", "--add TAG", String,
+  def tagging
+    on("-N", "--add", "TAG",
        "Add TAG with format 'tag' or 'tag(comment)' (see -Q, -F, -L)") do |o|
-      @config[:tagger] = :add
-      @config[:tag] = "#{o}:"
+      config[:tagger] = :add
+      config[:tag] = "#{o}:"
     end
-    on("-R", "--del TAG", String,
+    on("-R", "--del", "TAG",
        "Delete TAG (see -Q, -F, -L)") do |o|
-      @config[:tagger] = :del
-      @config[:tag] = "#{o}:"
-      @config[:outcome] = :pass
+      config[:tagger] = :del
+      config[:tag] = "#{o}:"
+      config[:outcome] = :pass
     end
     on("-Q", "--pass", "Apply action to specs that pass (default for --del)") do
-      @config[:outcome] = :pass
+      config[:outcome] = :pass
     end
     on("-F", "--fail", "Apply action to specs that fail (default for --add)") do
-      @config[:outcome] = :fail
+      config[:outcome] = :fail
     end
     on("-L", "--all", "Apply action to all specs") do
-      @config[:outcome] = :all
+      config[:outcome] = :all
     end
   end
 
-  def add_action_filters
-    on("-K", "--action-tag TAG", String,
+  def action_filters
+    on("-K", "--action-tag", "TAG",
        "Spec descriptions marked with TAG will trigger the specified action") do |o|
-      @config[:atags] << o
+      config[:atags] << o
     end
-    on("-S", "--action-string STR", String,
+    on("-S", "--action-string", "STR",
        "Spec descriptions matching STR will trigger the specified action") do |o|
-      @config[:astrings] << o
+      config[:astrings] << o
     end
   end
 
-  def add_actions
+  def actions
     on("--spec-debug",
        "Invoke the debugger when a spec description matches (see -K, -S)") do
-      @config[:debugger] = true
+      config[:debugger] = true
     end
     on("--spec-gdb",
        "Invoke Gdb when a spec description matches (see -K, -S)") do
-      @config[:gdb] = true
+      config[:gdb] = true
     end
-  end
-
-  def add_version
-    on("-v", "--version", "Show version") do
-      puts "#{File.basename $0} #{MSpec::VERSION}"
-      exit
-    end
-  end
-
-  def add_help
-    on("-h", "--help", "Show this message") do
-      puts @parser
-      exit
-    end
-  end
-
-  def on(*args, &block)
-    @parser.on(*args, &block)
-  end
-
-  def separator(str)
-    @parser.separator str
-  end
-
-  def parse(argv=ARGV)
-    result = @parser.parse argv
-
-    if (@config[:debugger] || @config[:gdb]) &&
-        @config[:atags].empty? && @config[:astrings].empty?
-      puts "Missing --action-tag or --action-string."
-      puts @parser
-      exit 1
-    end
-
-    result
-  rescue OptionParser::ParseError => e
-    puts @parser
-    puts
-    puts e
-    exit 1
   end
 end

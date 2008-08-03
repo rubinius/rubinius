@@ -32,7 +32,7 @@ end
 
 def new_option
   config = MOSConfig.new
-  return MSpecOptions.new(config, "spec"), config
+  return MSpecOptions.new("spec", 20, config), config
 end
 
 # Just to have an exception name output not be "Exception"

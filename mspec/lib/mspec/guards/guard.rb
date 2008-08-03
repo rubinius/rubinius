@@ -81,6 +81,8 @@ class SpecGuard
         RUBY_NAME =~ /^ruby(1.9)?/ and RUBY_VERSION =~ /^1.9/
       when :jruby
         RUBY_NAME =~ /^jruby/
+      when :ironruby, :ir
+        RUBY_NAME =~ /^ironruby/
       else
         false
       end
