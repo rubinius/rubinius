@@ -75,7 +75,7 @@ class Continuation
     else
       @value = value
     end
-    Task.current = task
+    Rubinius::Task.current = task
   end
 
   alias_method :[], :call
@@ -86,7 +86,7 @@ module Kernel
     cont = Continuation.create
     # Task#dup appears as though it returns nil in the dup'd
     # task, kinda like fork().
-    task = Task.current.dup
+    task = Rubinius::Task.current.dup
     if task
       cont.task = task
       yield cont

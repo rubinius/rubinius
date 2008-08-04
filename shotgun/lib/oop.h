@@ -118,7 +118,7 @@ typedef enum
     type = "included Module"; \
     break; \
   case TaskType: \
-    type = "Task"; \
+    type = "Rubinius::Task"; \
     break; \
   case FixnumType: \
     type = "Fixnum"; \

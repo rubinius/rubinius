@@ -603,8 +603,8 @@ class BreakpointTracker
   # 1. Register a VM-wide debug channel (via Rubinius::VM.debug_channel=)
   #    that will be used for all threads that do not have a debug channel
   #    already set.
-  # 2. Call Thread#set_debugging or Task#set_debugging to set a specific debug
-  #    channel for the thread/task.
+  # 2. Call Thread#set_debugging or Rubinius::Task#set_debugging to set a
+  #    specific debug channel for the thread/task.
   #
   # This method uses the second option, and sets the BreakpointTracker's debug
   # channel as the debug channel for the specified thread. As an alternative to

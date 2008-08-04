@@ -21,7 +21,7 @@ void cpu_bootstrap_exceptions(STATE);
 
 /* Creates the rubinius object universe from scratch. */
 void cpu_bootstrap(STATE) {
-  OBJECT cls, obj, tmp, tmp2;
+  OBJECT cls, obj, tmp, tmp2, rubinius;
   int i;
 
   /* Class is created first by hand, and twittle to setup the internal
@@ -129,11 +129,14 @@ void cpu_bootstrap(STATE) {
   class_set_object_type(BC(floatpoint), I2N(FloatType));
   
   BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
+
+  rubinius = rbs_module_new(state, "Rubinius", BC(object));
+
   BC(fastctx) = rbs_class_new(state, "MethodContext", 0, obj);
   BC(methctx) = BC(fastctx);
   BC(blokctx) = rbs_class_new(state, "BlockContext", 0, BC(fastctx));
-  
-  BC(task) = rbs_class_new(state, "Task", 0, obj);
+
+  BC(task) = rbs_class_new_with_namespace(state, "Task", 0, obj, rubinius);
   class_set_object_type(BC(task), I2N(TaskType));
   
   BC(iseq) = rbs_class_new(state, "InstructionSequence", 0, BC(bytearray));
@@ -173,9 +176,7 @@ void cpu_bootstrap(STATE) {
   bcs(matchdata, obj, "MatchData");
       
   cpu_bootstrap_exceptions(state);
-  
-  rbs_module_new(state, "Rubinius", BC(object));
-  
+
   Init_list(state);
   Init_cpu_task(state);
   Init_ffi(state);

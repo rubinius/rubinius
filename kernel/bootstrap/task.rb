@@ -1,4 +1,4 @@
-class Task
+class Rubinius::Task
   def self.current
     Ruby.primitive :task_current
     Kernel.raise PrimitiveFailure, "primitive failed"
@@ -11,7 +11,7 @@ class Task
 
   def self.new(&pr)
     Kernel.raise "Must pass in a block." unless pr
-    t = Task.create
+    t = create
     t.associate pr.block
     return t
   end
@@ -35,12 +35,12 @@ class Task
   end
 
   def inspect
-    "#<Task:#{self.object_id.to_s(16)}>"
+    "#<#{self.class}:#{self.object_id.to_s(16)}>"
   end
 
   def self.current=(task)
     Ruby.primitive :task_set_current
-    Kernel.raise ArgumentError, "Unable to set '#{task.inspect}' as the current Task"
+    Kernel.raise ArgumentError, "Unable to set '#{task.inspect}' as the current task"
   end
 
   def associate(be)
@@ -95,6 +95,7 @@ class Task
 
     # If we get here, the primitive failed
     # Kernel raise is used, since we don't want to use the raise primitive above
-    Kernel.raise ArgumentError, "Task stack index out of range"
+    Kernel.raise ArgumentError, "#{self.class} stack index out of range"
   end
 end
+
