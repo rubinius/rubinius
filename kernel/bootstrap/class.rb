@@ -54,12 +54,12 @@ class RuntimePrimitive
   ByteCodes = 4
 
   def put(idx, val)
-    Ruby.primitive :put
-    raise InvalidIndexError, "Object#put failed."
+    Ruby.primitive :object_put
+    raise InvalidIndexError, "RuntimePrimitive#put failed."
   end
 
   def at(idx)
-    Ruby.primitive :at
+    Ruby.primitive :object_at
     raise InvalidIndexError, "RuntimePrimitive#at failed."
   end
 

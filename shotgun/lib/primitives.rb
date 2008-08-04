@@ -438,9 +438,8 @@ class ShotgunPrimitives
     CODE
   end
 
-
-  defprim :at
-  def at
+  defprim :object_at
+  def object_at
     <<-CODE
     ARITY(1);
     OBJECT t1;
@@ -456,8 +455,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :put
-  def put
+  defprim :object_put
+  def object_put
     <<-CODE
     ARITY(2);
     OBJECT t1, t2;

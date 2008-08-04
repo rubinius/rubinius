@@ -16,22 +16,22 @@ class Tuple
   end
 
   def [](idx)
-    Ruby.primitive :at
+    Ruby.primitive :object_at
     raise InvalidIndexError, "Unable to access index '#{idx}' of #{self}"
   end
 
   def []=(idx, val)
-    Ruby.primitive :put
+    Ruby.primitive :object_put
     raise InvalidIndexError, "Unable to set index '#{idx}' of #{self}"
   end
 
   def at(idx)
-    Ruby.primitive :at
-    raise InvalidIndexError, "Object#at failed."
+    Ruby.primitive :object_at
+    raise InvalidIndexError, "Tuple#at failed."
   end
 
   def put(idx, val)
-    Ruby.primitive :put
+    Ruby.primitive :object_put
     raise InvalidIndexError, "Unable to set index '#{idx}' of #{self}"
   end
 
