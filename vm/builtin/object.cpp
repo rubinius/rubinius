@@ -139,7 +139,7 @@ namespace rubinius {
   }
 
   OBJECT Object::tainted_p() {
-    if(this->IsTainted && reference_p()) {
+    if(reference_p() && this->IsTainted) {
       return Qtrue;
     } else {
       return Qfalse;
@@ -168,7 +168,7 @@ namespace rubinius {
   }
 
   OBJECT Object::frozen_p() {
-    if(this->IsFrozen && reference_p()) {
+    if(reference_p() && this->IsFrozen) {
       return Qtrue;
     } else {
       return Qfalse;
