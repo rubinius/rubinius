@@ -90,7 +90,7 @@ class Fixnum < Integer
   # comparison operators
   
   def ==(o)
-    Ruby.primitive :equal
+    Ruby.primitive :fixnum_equal
     super(o)
   end
   

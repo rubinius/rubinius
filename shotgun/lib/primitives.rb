@@ -263,8 +263,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :equal
-  def equal
+  defprim :fixnum_equal
+  def fixnum_equal
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));
@@ -473,8 +473,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :fields
-  def fields
+  defprim :tuple_fields
+  def tuple_fields
     <<-CODE
     ARITY(0);
     GUARD(REFERENCE_P(msg->recv));

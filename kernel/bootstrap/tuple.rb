@@ -36,7 +36,7 @@ class Tuple
   end
 
   def fields
-    Ruby.primitive :fields
+    Ruby.primitive :tuple_fields
     raise PrimitiveFailure, "primitive failed"
   end
 
