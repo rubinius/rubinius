@@ -3,8 +3,8 @@ class Class
   ivar_as_index :method_table => 1, :superclass => 6, :instance_fields => 7, :has_ivars => 8, :needs_cleanup => 9, :object_type => 10
 
   def allocate
-    Ruby.primitive :allocate
-    raise RuntimeError, "primitive 'allocate' failed on #{self.inspect}"
+    Ruby.primitive :class_allocate
+    raise RuntimeError, "primitive 'class_allocate' failed on #{self.inspect}"
   end
 
   def new(*args)

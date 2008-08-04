@@ -484,8 +484,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :allocate
-  def allocate
+  defprim :class_allocate
+  def class_allocate
     <<-CODE
     ARITY(0);
     OBJECT t1, t2;
