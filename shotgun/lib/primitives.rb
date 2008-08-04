@@ -315,8 +315,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :compare
-  def compare
+  defprim :fixnum_compare
+  def fixnum_compare
     <<-CODE
     ARITY(1);
     GUARD(FIXNUM_P(msg->recv));

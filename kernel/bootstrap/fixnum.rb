@@ -95,7 +95,7 @@ class Fixnum < Integer
   end
   
   def <=>(other)
-    Ruby.primitive :compare
+    Ruby.primitive :fixnum_compare
     super(other)
   end
 
