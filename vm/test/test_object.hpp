@@ -43,6 +43,18 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT(tup->id(state) != tup2->id(state));
   }
 
+  void test_clone() {
+    Tuple* tup = Tuple::create(state, 1);
+    tup->put(state, 0, Qtrue);
+
+    Tuple* tup2 = (Tuple*)tup->clone(state);
+
+    TS_ASSERT_EQUALS(tup2->at(0), Qtrue);
+    TS_ASSERT(tup->id(state) != tup2->id(state));
+    TS_ASSERT_EQUALS(tup2->metaclass(state), tup->metaclass(state));
+    TS_ASSERT_EQUALS(tup2->metaclass(state)->method_table, tup->metaclass(state)->method_table);
+  }
+
   void test_dup_bytes() {
     OBJECT obj = state->om->new_object_bytes(G(object), 1);
     obj->StoresBytes = 1;

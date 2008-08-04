@@ -321,6 +321,16 @@ namespace rubinius {
     return dup;
   }
 
+  OBJECT Object::clone(STATE) {
+    OBJECT source_table = this->metaclass(state)->method_table;
+    OBJECT new_object = this->dup(state);
+
+    // Set the clone's method table to that of the receiver's metaclass
+    SET(new_object->klass, method_table, source_table);
+
+    return new_object;
+  }
+
   bool Object::kind_of_p(STATE, OBJECT cls) {
     Class* found = class_object(state);
     if(found == cls) return true;

@@ -85,6 +85,10 @@ namespace rubinius {
 
     // Ruby.primitive :object_dup
     OBJECT dup(STATE);
+
+    // Ruby.primitive :object_clone
+    OBJECT clone(STATE);
+
     // Ruby.primitive :object_id
     uintptr_t id(STATE);
 
