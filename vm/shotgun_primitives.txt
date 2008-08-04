@@ -1,6 +1,5 @@
 activate_as_script
 activate_context
-allocate
 allocate_bytes
 allocate_count
 allocate_hash
@@ -8,7 +7,6 @@ allocate_module
 allocate_table
 array_aref
 array_aset
-at
 bignum_add
 bignum_and
 bignum_compare
@@ -46,7 +44,7 @@ channel_send_on_readable
 channel_send_on_signal
 channel_send_on_stopped
 channel_send_on_writable
-compare
+class_allocate
 compare_bytes
 context_sender
 dir_close
@@ -57,21 +55,21 @@ dispatch_as_method
 dtrace_fire_ruby_probe
 dup_into
 env_as_hash
-equal
 fastctx_dup
 fastctx_get_field
 fastctx_reload_method
 fastctx_set_field
 fastctx_set_iseq
 fetch_bytes
-fields
 file_to_sexp
 file_unlink
 find_method
 fixnum_add
 fixnum_and
+fixnum_compare
 fixnum_div
 fixnum_divmod
+fixnum_equal
 fixnum_ge
 fixnum_gt
 fixnum_invert
@@ -153,6 +151,7 @@ nfunc_call
 nfunc_call_object
 nmethod_call
 numeric_coerce
+object_at
 object_become
 object_clone
 object_dup
@@ -160,6 +159,7 @@ object_equal
 object_freeze
 object_frozen_p
 object_id
+object_put
 object_send
 object_taint
 object_tainted_p
@@ -170,7 +170,6 @@ opt_push_literal
 opt_push_my_field
 opt_push_self
 process_exit
-put
 regexp_match_start
 regexp_new
 regexp_options
@@ -222,6 +221,7 @@ thread_run
 thread_schedule
 thread_yield
 time_switch
+tuple_fields
 tuple_shifted
 tuple_template
 unmarshal_from_file
