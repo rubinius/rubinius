@@ -21,6 +21,8 @@ namespace rubinius {
     FIXNUM priority; // slot
 
     static void init(STATE);
+
+    // Ruby.primitive :thread_new
     static Thread* create(STATE);
 
     // Ruby.primitive :thread_current
