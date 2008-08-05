@@ -38,6 +38,11 @@ namespace rubinius {
     SET(this, task, task);
   }
 
+  Thread* Thread::run(STATE) {
+    state->activate_thread(this);
+    return this;
+  }
+
   void Thread::set_top(STATE, OBJECT val) {
     task->stack->put(state, task->sp, val);
   }
