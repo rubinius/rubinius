@@ -1239,8 +1239,8 @@ class ShotgunPrimitives
   end
 
 
-  defprim :fastctx_dup
-  def fastctx_dup
+  defprim :context_dup
+  def context_dup
     <<-CODE
     ARITY(0);
     GUARD(RISA(msg->recv, fastctx));
@@ -2348,8 +2348,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :fastctx_get_field
-  def fastctx_get_field
+  defprim :context_get_field
+  def context_get_field
     <<-CODE
     ARITY(1);
     native_int i;
@@ -2411,8 +2411,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :fastctx_set_field
-  def fastctx_set_field
+  defprim :context_set_field
+  def context_set_field
     <<-CODE
     ARITY(2);
     native_int i;
@@ -2480,8 +2480,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :fastctx_reload_method
-  def fastctx_reload_method
+  defprim :context_reload_method
+  def context_reload_method
     <<-CODE
     ARITY(0);
     struct fast_context *fc;
@@ -2497,8 +2497,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :fastctx_set_iseq
-  def fastctx_set_iseq
+  defprim :context_set_iseq
+  def context_set_iseq
     <<-CODE
     ARITY(1);
     struct fast_context *fc;
