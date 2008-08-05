@@ -40,7 +40,7 @@ class TestObject : public CxxTest::TestSuite {
     Tuple* tup2 = (Tuple*)tup->dup(state);
 
     TS_ASSERT_EQUALS(tup2->at(0), Qtrue);
-    TS_ASSERT(tup->id(state) != tup2->id(state));
+    TS_ASSERT_DIFFERS(tup->id(state), tup2->id(state));
   }
 
   void test_clone() {
@@ -50,9 +50,15 @@ class TestObject : public CxxTest::TestSuite {
     Tuple* tup2 = (Tuple*)tup->clone(state);
 
     TS_ASSERT_EQUALS(tup2->at(0), Qtrue);
-    TS_ASSERT(tup->id(state) != tup2->id(state));
-    TS_ASSERT_EQUALS(tup2->metaclass(state), tup->metaclass(state));
+
+    TS_ASSERT_DIFFERS(tup->id(state), tup2->id(state));
+    TS_ASSERT_DIFFERS(tup2->metaclass(state), tup->metaclass(state));
+
     TS_ASSERT_EQUALS(tup2->metaclass(state)->method_table, tup->metaclass(state)->method_table);
+    TS_ASSERT(tup2->metaclass(state)->method_table != tup->metaclass(state)->method_table);
+
+    TS_ASSERT_EQUALS(tup2->metaclass(state)->constants, tup->metaclass(state)->constants);
+    TS_ASSERT(tup2->metaclass(state)->constants != tup->metaclass(state)->constants);
   }
 
   void test_dup_bytes() {

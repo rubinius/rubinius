@@ -322,11 +322,16 @@ namespace rubinius {
   }
 
   OBJECT Object::clone(STATE) {
-    OBJECT source_table = this->metaclass(state)->method_table;
+    LookupTable* source_methods = this->metaclass(state)->method_table->dup(state);
+    LookupTable* source_constants = this->metaclass(state)->constants->dup(state);
     OBJECT new_object = this->dup(state);
 
-    // Set the clone's method table to that of the receiver's metaclass
-    SET(new_object->klass, method_table, source_table);
+    // Set the clone's method and constants tables to those
+    // of the receiver's metaclass
+    SET(new_object->klass, method_table, source_methods);
+    SET(new_object->klass, constants, source_constants);
+    // Reset object id
+    new_object->metaclass(state)->set_ivar(state, G(sym_object_id), Qnil);
 
     return new_object;
   }
