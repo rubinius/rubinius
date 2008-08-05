@@ -46,7 +46,12 @@ channel_send_on_stopped
 channel_send_on_writable
 class_allocate
 compare_bytes
+context_dup
+context_get_field
+context_reload_method
 context_sender
+context_set_field
+context_set_iseq
 dir_close
 dir_control
 dir_open
@@ -55,11 +60,6 @@ dispatch_as_method
 dtrace_fire_ruby_probe
 dup_into
 env_as_hash
-fastctx_dup
-fastctx_get_field
-fastctx_reload_method
-fastctx_set_field
-fastctx_set_iseq
 fetch_bytes
 file_to_sexp
 file_unlink
