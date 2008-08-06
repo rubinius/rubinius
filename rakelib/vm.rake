@@ -8,6 +8,11 @@ task :vm => 'vm/vm'
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/Release/bin/llvm-config"
 tests       = FileList["vm/test/test_*.hpp"]
+
+# vm/test/test_instructions.hpp may not have been generated yet
+tests      << 'vm/test/test_instructions.hpp'
+tests.uniq!
+
 srcs        = FileList["vm/*.{cpp,c}"] + FileList["vm/builtin/*.{cpp,c}"]
 hdrs        = FileList["vm/*.{hpp,h}"] + FileList["vm/builtin/*.{hpp,h}"]
 objs        = srcs.map { |f| f.sub(/c(pp)?$/, 'o') }
@@ -22,10 +27,46 @@ INSN_GEN    = %w[ vm/gen/iseq_instruction_names.cpp
                   vm/gen/iseq_instruction_names.hpp
                   vm/gen/iseq_instruction_size.gen
                   vm/test/test_instructions.hpp ]
-TYPE_GEN    = %w[ vm/gen/simple_field.rb
+TYPE_GEN    = %w[ vm/gen/includes.hpp
+                  vm/gen/simple_field.rb
                   vm/gen/typechecks.gen.cpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
+
+field_extract_headers = %w[
+  vm/builtin/object.hpp
+  vm/builtin/array.hpp
+  vm/builtin/bignum.hpp
+  vm/builtin/block_environment.hpp
+  vm/builtin/bytearray.hpp
+  vm/builtin/channel.hpp
+  vm/builtin/class.hpp
+  vm/builtin/executable.hpp
+  vm/builtin/compiledmethod.hpp
+  vm/builtin/contexts.hpp
+  vm/builtin/dir.hpp
+  vm/builtin/exception.hpp
+  vm/builtin/fixnum.hpp
+  vm/builtin/float.hpp
+  vm/builtin/hash.hpp
+  vm/builtin/immediates.hpp
+  vm/builtin/io.hpp
+  vm/builtin/iseq.hpp
+  vm/builtin/list.hpp
+  vm/builtin/lookuptable.hpp
+  vm/builtin/memorypointer.hpp
+  vm/builtin/methodtable.hpp
+  vm/builtin/nativefunction.hpp
+  vm/builtin/regexp.hpp
+  vm/builtin/selector.hpp
+  vm/builtin/sendsite.hpp
+  vm/builtin/staticscope.hpp
+  vm/builtin/string.hpp
+  vm/builtin/symbol.hpp
+  vm/builtin/task.hpp
+  vm/builtin/thread.hpp
+  vm/builtin/tuple.hpp
+]
 
 BC          = "vm/instructions.bc"
 LLVM_A      = "vm/external_libs/llvm/Release/lib/libLLVMSystem.a"
@@ -150,10 +191,10 @@ files INSN_GEN, %w[vm/instructions.rb] do
   ruby 'vm/instructions.rb', :verbose => $verbose
 end
 
-file 'vm/field_extract.rb' => %w[vm/gen vm/builtin/object.hpp vm/objects.hpp]
+file 'vm/field_extract.rb' => 'vm/gen'
 
-files TYPE_GEN, %w[vm/field_extract.rb] do
-  field_extract
+files TYPE_GEN, field_extract_headers + %w[vm/field_extract.rb] do
+  field_extract field_extract_headers
 end
 
 file 'vm/vm' => EXTERNALS + objs + vm_objs do |t|
@@ -271,12 +312,8 @@ def ex_libs # needs to be method to delay running of llvm_config
   $ex_libs
 end
 
-def field_extract
-  order = %w[vm/builtin/object.hpp vm/objects.hpp]
-  objects = File.read("vm/objects.hpp").scan(/builtin\/[^"]+/)
+def field_extract(headers)
+  headers += [{ :verbose => $verbose}]
 
-  order += objects.map { |f| File.join 'vm', f }
-  order << { :verbose => $verbose}
-
-  ruby('vm/field_extract.rb', *order)
+  ruby('vm/field_extract.rb', *headers)
 end

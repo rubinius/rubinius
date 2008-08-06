@@ -1,10 +1,7 @@
 
 #include "type_info.hpp"
-#include "builtin/list.hpp"
-#include "builtin/string.hpp"
-#include "builtin/float.hpp"
 #include "objectmemory.hpp"
-#include "builtin/fixnum.hpp"
+#include "gen/includes.hpp"
 
 namespace rubinius {
 

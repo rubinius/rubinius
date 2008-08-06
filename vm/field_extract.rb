@@ -203,58 +203,66 @@ class CPPClass
 
   def generate_typechecks
     out = generate_sets()
-    return if out.strip.empty?
+    return '' if out.strip.empty?
 
-    str =  "void #{@name}::Info::set_field(STATE, OBJECT _t, size_t index, OBJECT val) {\n"
-    str << "  #{@name}* target = as<#{@name}>(_t);\n"
-    str << "  switch(index) {\n"
+    <<-EOF
+void #{@name}::Info::set_field(STATE, OBJECT _t, size_t index, OBJECT val) {
+  #{@name}* target = as<#{@name}>(_t);
 
-    str << out
+  switch(index) {
+#{out}  }
+}
 
-    str << "  }\n}\n"
-    str << "OBJECT #{@name}::Info::get_field(STATE, OBJECT _t, size_t index) {\n"
-    str << "  #{@name}* target = as<#{@name}>(_t);\n"
-    str << "  switch(index) {\n"
+OBJECT #{@name}::Info::get_field(STATE, OBJECT _t, size_t index) {
+  #{@name}* target = as<#{@name}>(_t);
 
-    str << generate_gets()
+  switch(index) {
+#{generate_gets}  }
 
-    str << "  }\n"
-    str << "  throw std::runtime_error(\"Unable to access field\");\n"
-    str << "}\n"
+  throw std::runtime_error(\"Unable to access field\");
+}
+
+    EOF
   end
 
   def generate_marks(cpp)
-    if cpp.super
-      str = generate_marks(cpp.super)
-    else
-      str = ""
-    end
+    str = ''
+
+    str << generate_marks(cpp.super) if cpp.super
 
     cpp.fields.each do |name, type, idx|
-      str << "  {\n"
-      str << "    if(target->#{name}->reference_p()) {\n"
-      str << "      OBJECT res = mark.call(target->#{name});\n"
-      str << "      if(res) {\n"
-      str << "        target->#{name} = as<#{type}>(res);\n"
-      str << "        mark.just_set(target, res);\n"
-      str << "      }\n"
-      str << "    }\n"
-      str << "  }\n"
+      str << <<-EOF
+  {
+    if(target->#{name}->reference_p()) {
+      OBJECT res = mark.call(target->#{name});
+      if(res) {
+        target->#{name} = as<#{type}>(res);
+        mark.just_set(target, res);
+      }
+    }
+  }
+
+      EOF
     end
 
     return str
   end
 
   def generate_mark
-    out = generate_sets()
-    return if out.strip.empty?
+    marks = generate_marks(self).rstrip
 
-    str =  "void #{@name}::Info::mark(OBJECT _t, ObjectMark& mark) {\n"
-    str << "  #{@name}* target = as<#{@name}>(_t);\n"
+    str = ''
 
-    str << generate_marks(self)
-    str << "}\n"
-    return str
+    str << <<-EOF unless marks.empty?
+void #{@name}::Info::mark(OBJECT _t, ObjectMark& mark) {
+  #{@name}* target = as<#{@name}>(_t);
+
+#{marks}
+}
+
+    EOF
+
+    str
   end
 end
 
@@ -333,17 +341,9 @@ class CPPParser
           break if /\};/.match(l)
           break if /^\s*class/.match(l)
 
-          if m = %r!^\s*([\w\d_]+)\*?\s+\*?([\w\d_]+)\s*;\s*//\s*slot(.*)!.match(l)
+          if m = %r!^\s*(\w+)\*?\s+\*?(\w+)\s*;\s*//\s*slot(.*)!.match(l)
             type = m[1]
             name = m[2]
-
-            if name[0] == ?*
-              name = name[1..-1]
-            end
-
-            if type[-1] == ?*
-              type = type[0..-2]
-            end
 
             if mapped = @type_map[type]
               type = mapped
@@ -356,7 +356,8 @@ class CPPParser
             else
               flag = nil
             end
-            cpp.add_field idx, name, mapped, flag
+
+            cpp.add_field idx, name, type, flag
             idx += 1
           end
 
@@ -365,7 +366,7 @@ class CPPParser
             prim = m[2]
             prototype = f.gets
 
-            m = %r!\s*(static\s+)?([\w_\*]+)\s+([\w_]+)\((.*)\)!.match(prototype)
+            m = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!.match(prototype)
             args = m[4].split(/\s*,\s*/)
             if args.shift != "STATE"
               raise "Invalid primitive #{prim}, STATE is not first argument"
@@ -392,7 +393,24 @@ end
 
 parser = CPPParser.new
 
+includes = ARGV.map do |include|
+  "#include \"#{include.sub(/^vm\//, '')}\""
+end.join "\n"
+
 parser.parse_stream ARGF
+
+File.open 'vm/gen/includes.hpp', 'w' do |f|
+  f << <<-EOF
+#ifndef GEN_INCLUDES_HPP
+#define GEN_INCLUDES_HPP
+
+// DO NOT INCLUDE THIS IN SOMETHING THAT DOES NOT INCLUDE A GENERATED FILE
+
+#{includes}
+
+#endif
+  EOF
+end
 
 File.open("vm/gen/simple_field.rb", "w") do |f|
   f.puts "# DO NOT EDIT!! Autogenerate by field_extract.rb"
@@ -452,17 +470,14 @@ File.open("vm/gen/typechecks.gen.cpp", "w") do |f|
     f.puts "    ti->type_name = std::string(\"#{n}\");"
     f.puts "    state->add_type_info(ti);"
     f.puts "  }"
+    f.puts
   end
   f.puts "}"
+  f.puts
 
   parser.classes.each do |n, cpp|
-    if tc = cpp.generate_typechecks
-      f.puts tc
-    end
-
-    if mc = cpp.generate_mark
-      f.puts mc
-    end
+    f.puts cpp.generate_typechecks
+    f.puts cpp.generate_mark
   end
 
 end

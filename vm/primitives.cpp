@@ -1,10 +1,6 @@
-
 #include "primitives.hpp"
 #include "event.hpp"
-
-#include "builtin/fixnum.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
+#include "gen/includes.hpp"
 
 namespace rubinius {
   bool Primitives::unknown_primitive(STATE, VMExecutable* exec, Task* task, Message& msg) {
