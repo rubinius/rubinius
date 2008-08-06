@@ -1,1 +1,0 @@
-fails:BigDecimal#infinite? returns 1 if self is infinite

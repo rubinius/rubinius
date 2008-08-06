@@ -1,2 +1,0 @@
-fails:BigDecimal#/ returns (+|-) Infinity if divided by zero
-fails:BigDecimal#/ returns NaN if zero is divided by zero

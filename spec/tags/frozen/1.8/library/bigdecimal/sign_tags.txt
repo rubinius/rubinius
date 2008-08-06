@@ -1,3 +1,0 @@
-fails:BigDecimal#sign returns positive value if BigDecimal greater 0
-fails:BigDecimal#sign returns negative value if BigDecimal smaller 0
-fails:BigDecimal#sign returns negative zero if BigDecimal equal negative zero
