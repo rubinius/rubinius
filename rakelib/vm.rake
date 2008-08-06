@@ -204,7 +204,7 @@ end
 file 'vm/gen/primitives_glue.gen.cpp' => hdrs
 
 file 'vm/test/runner.cpp' => tests + objs do
-  tests += [{ :verbose => true }]
+  tests = tests.sort + [{ :verbose => true }]
   sh("vm/test/cxxtest/cxxtestgen.pl", "--error-printer", "--have-eh",
      "--abort-on-fail", "-o", "vm/test/runner.cpp", *tests)
 end
