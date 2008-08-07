@@ -240,9 +240,47 @@ end
 namespace :vm do
   desc 'Run all VM tests'
   task :test => 'vm/test/runner' do
-    ENV['VERBOSE'] = '1' if $verbose 
+    ENV['VERBOSE'] = '1' if $verbose
     sh 'vm/test/runner', :verbose => $verbose
   end
+
+  task :coverage do
+    Dir.mkdir "vm/test/coverage" unless File.directory? "vm/test/coverage"
+    unless defined? $llvm_c then
+      $llvm_c = `#{LLVM_CONFIG} --cflags`.split(/\s+/)
+      $llvm_c.delete_if { |e| e.index("-O") == 0 }
+    end
+
+    $link_opts ||= `#{LLVM_CONFIG} --ldflags`.split(/\s+/).join(' ')
+
+    flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
+
+    puts "CC/LD vm/test/coverage/runner"
+    begin
+      path = tmpname do |path|
+        ruby 'vm/rubypp.rb', "vm/llvm/instructions.cpp", path
+        sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp vm/*.c #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
+      end
+
+      puts "RUN vm/test/coverage/runner"
+      sh "vm/test/coverage/runner"
+      if $verbose
+        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info"
+      else
+        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info > /dev/null 2>&1"
+      end
+
+      puts "GEN vm/test/coverage/index.html"
+      if $verbose
+        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info"
+      else
+        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info > /dev/null 2>&1"
+      end
+    ensure
+      sh "rm -f *.gcno *.gcda"
+    end
+  end
+
 
   desc "Clean up vm build files"
   task :clean do
