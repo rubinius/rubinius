@@ -12,6 +12,7 @@ class MSpecTag < MSpecScript
     config[:tagger]  = :add
     config[:tag]     = 'fails:'
     config[:outcome] = :fail
+    config[:ltags]   = []
   end
 
   def options(argv=ARGV)
@@ -38,7 +39,33 @@ class MSpecTag < MSpecScript
     options.verbose
 
     options.doc "\n What action to perform and when to perform it"
-    options.tagging
+    options.on("-N", "--add", "TAG",
+       "Add TAG with format 'tag' or 'tag(comment)' (see -Q, -F, -L)") do |o|
+      config[:tagger] = :add
+      config[:tag] = "#{o}:"
+    end
+    options.on("-R", "--del", "TAG",
+       "Delete TAG (see -Q, -F, -L)") do |o|
+      config[:tagger] = :del
+      config[:tag] = "#{o}:"
+      config[:outcome] = :pass
+    end
+    options.on("-Q", "--pass", "Apply action to specs that pass (default for --del)") do
+      config[:outcome] = :pass
+    end
+    options.on("-F", "--fail", "Apply action to specs that fail (default for --add)") do
+      config[:outcome] = :fail
+    end
+    options.on("-L", "--all", "Apply action to all specs") do
+      config[:outcome] = :all
+    end
+    options.on("--list", "TAG", "Display descriptions of any specs tagged with TAG") do |t|
+      config[:tagger] = :list
+      config[:ltags] << t
+    end
+    options.on("--list-all", "Display descriptions of any tagged specs") do
+      config[:tagger] = :list_all
+    end
 
     options.doc "\n Help!"
     options.version MSpec::VERSION
@@ -60,24 +87,26 @@ class MSpecTag < MSpecScript
   end
 
   def register
-    super
-
-    tag = SpecTag.new config[:tag]
-    tagger = TagAction.new(config[:tagger], config[:outcome], tag.tag, tag.comment,
-                           config[:atags], config[:astrings])
+    case config[:tagger]
+    when :add, :del
+      tag = SpecTag.new config[:tag]
+      tagger = TagAction.new(config[:tagger], config[:outcome], tag.tag, tag.comment,
+                             config[:atags], config[:astrings])
+    when :list, :list_all
+      tagger = TagListAction.new config[:tagger] == :list_all ? nil : config[:ltags]
+      MSpec.register_mode :pretend
+      config[:formatter] = nil
+    else
+      raise ArgumentError, "No recognized action given"
+    end
     tagger.register
+
+    super
   end
 
   def run
-    files = []
-    @patterns.each do |item|
-      stat = File.stat(File.expand_path(item))
-      files << item if stat.file?
-      files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
-    end
-
     MSpec.register_tags_patterns config[:tags_patterns]
-    MSpec.register_files files
+    MSpec.register_files files(@patterns)
 
     MSpec.process
     exit MSpec.exit_code

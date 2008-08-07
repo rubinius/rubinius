@@ -20,11 +20,7 @@ class MSpecMain < MSpecScript
   end
 
   def options(argv=ARGV)
-    if ["ci", "run", "tag"].include? argv[0]
-      config[:command] = argv.shift
-      config[:options] << "-h" if argv.delete("-h") || argv.delete("--help")
-      config[:options] << "-v" if argv.delete("-v") || argv.delete("--version")
-    end
+    config[:command] = argv.shift if ["ci", "run", "tag"].include?(argv[0])
 
     options = MSpecOptions.new "mspec [COMMAND] [options] (FILE|DIRECTORY|GLOB)+", 30, config
 
@@ -52,8 +48,22 @@ class MSpecMain < MSpecScript
       config[:multi] = true
       config[:options] << "-fy"
     end
-    options.version MSpec::VERSION
-    options.help
+    options.version MSpec::VERSION do
+      if config[:command]
+        config[:options] << "-v"
+      else
+        puts options
+        exit
+      end
+    end
+    options.help do
+      if config[:command]
+        config[:options] << "-h"
+      else
+        puts options
+        exit 1
+      end
+    end
 
     # The rest of the help output
     options.doc "\n  where COMMAND is one of:\n"
@@ -122,11 +132,14 @@ class MSpecMain < MSpecScript
 
   def run
     ENV['MSPEC_RUNNER'] = '1'
+    ENV['RUBY_EXE']     = config[:target]
+    ENV['RUBY_FLAGS']   = config[:flags].join " "
 
-    argv = ["-v"]
+    argv = []
     argv.concat config[:flags]
     argv.concat config[:includes]
     argv.concat config[:requires]
+    argv << "-v"
     argv << "#{MSPEC_HOME}/bin/mspec-#{ config[:command] || "run" }"
     argv.concat config[:options]
 

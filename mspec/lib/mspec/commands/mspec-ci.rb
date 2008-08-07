@@ -51,20 +51,11 @@ class MSpecCI < MSpecScript
   end
 
   def run
-    files = []
-    @patterns.each do |item|
-      stat = File.stat(File.expand_path(item))
-      files << item if stat.file?
-      files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
-    end
-
     MSpec.register_tags_patterns config[:tags_patterns]
-    MSpec.register_files files
-    TagFilter.new(:exclude, "fails").register
-    TagFilter.new(:exclude, "critical").register
-    TagFilter.new(:exclude, "unstable").register
-    TagFilter.new(:exclude, "incomplete").register
-    TagFilter.new(:exclude, "unsupported").register
+    MSpec.register_files files(@patterns)
+    filter = TagFilter.new(:exclude,
+        "fails", "critical", "unstable", "incomplete", "unsupported")
+    filter.register
 
     MSpec.process
     exit MSpec.exit_code

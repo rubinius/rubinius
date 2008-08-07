@@ -49,11 +49,6 @@ class MkSpec
     options.doc ""
 
     options.parse argv
-  rescue MSpecOptions::ParseError => e
-    puts options
-    puts
-    puts e
-    exit 1
   end
 
   def create_directory(mod)

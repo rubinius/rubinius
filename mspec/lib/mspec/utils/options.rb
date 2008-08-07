@@ -33,12 +33,16 @@ class MSpecOptions
   attr_accessor :config, :banner, :width, :options
 
   def initialize(banner="", width=30, config=nil)
-    @banner  = banner
-    @config  = config
-    @width   = width
-    @options = []
-    @doc     = []
-    @extra   = lambda { |opt| raise ParseError, "Unrecognized option: #{opt}" }
+    @banner   = banner
+    @config   = config
+    @width    = width
+    @options  = []
+    @doc      = []
+    @extra    = []
+    @on_extra = lambda { |x|
+      raise ParseError, "Unrecognized option: #{x}" if x[0] == ?-
+      @extra << x
+    }
 
     yield self if block_given?
   end
@@ -93,7 +97,7 @@ class MSpecOptions
   # argument and invokes the option's block if it is not nil.
   def process(argv, entry, opt, arg)
     unless option = match?(opt)
-      @extra[entry]
+      @on_extra[entry]
     else
       if option.arg?
         arg = argv.shift if arg.nil?
@@ -117,12 +121,11 @@ class MSpecOptions
   # registered options.
   def parse(argv=ARGV)
     argv = Array(argv).dup
-    remaining = []
 
     while entry = argv.shift
       # collect everything that is not an option
       if entry[0] != ?- or entry.size < 2
-        remaining << entry
+        @on_extra[entry]
         next
       end
 
@@ -149,7 +152,11 @@ class MSpecOptions
       end
     end
 
-    remaining
+    @extra
+  rescue ParseError => e
+    puts self
+    puts e
+    exit 1
   end
 
   # Adds a string of documentation text inline in the text generated
@@ -172,7 +179,7 @@ class MSpecOptions
 
   # Stores a block that will be called with unrecognized options
   def on_extra(&block)
-    @extra = block
+    @on_extra = block
   end
 
   # Returns a string representation of the options and doc strings.
@@ -202,7 +209,6 @@ class MSpecOptions
       case t
       when 'r', 'ruby'
         config[:target] = 'ruby'
-        config[:flags] << '-v'
       when 'r19', 'ruby19'
         config[:target] = 'ruby19'
       when 'x', 'rubinius'
@@ -367,29 +373,6 @@ class MSpecOptions
     end
     on("-O", "--report", "Report guarded specs") do
       MSpec.register_mode :report
-    end
-  end
-
-  def tagging
-    on("-N", "--add", "TAG",
-       "Add TAG with format 'tag' or 'tag(comment)' (see -Q, -F, -L)") do |o|
-      config[:tagger] = :add
-      config[:tag] = "#{o}:"
-    end
-    on("-R", "--del", "TAG",
-       "Delete TAG (see -Q, -F, -L)") do |o|
-      config[:tagger] = :del
-      config[:tag] = "#{o}:"
-      config[:outcome] = :pass
-    end
-    on("-Q", "--pass", "Apply action to specs that pass (default for --del)") do
-      config[:outcome] = :pass
-    end
-    on("-F", "--fail", "Apply action to specs that fail (default for --add)") do
-      config[:outcome] = :fail
-    end
-    on("-L", "--all", "Apply action to all specs") do
-      config[:outcome] = :all
     end
   end
 

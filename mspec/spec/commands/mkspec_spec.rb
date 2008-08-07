@@ -92,8 +92,9 @@ describe MkSpec, "#options" do
   end
 
   it "prints help and exits if passed an unrecognized option" do
-    @script.should_receive(:puts).exactly(3).times
-    @script.should_receive(:exit)
+    @options.should_receive(:raise).with(MSpecOptions::ParseError, an_instance_of(String))
+    @options.stub!(:puts)
+    @options.stub!(:exit)
     @script.options "--iunknown"
   end
 end

@@ -1,3 +1,4 @@
+require 'mspec/ruby_name'
 require 'mspec/guards/bug'
 require 'mspec/guards/compliance'
 require 'mspec/guards/extensions'

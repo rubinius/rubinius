@@ -27,6 +27,7 @@ class MOSConfig < Hash
     self[:astrings]  = []
     self[:target]    = 'ruby'
     self[:command]   = nil
+    self[:ltags]     = []
   end
 end
 

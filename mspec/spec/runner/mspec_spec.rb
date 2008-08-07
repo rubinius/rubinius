@@ -368,7 +368,7 @@ describe MSpec, ".read_tags" do
 
   it "returns a list of tag instances for matching tag names found" do
     one = SpecTag.new "fail(broken):Some#method? works"
-    MSpec.read_tags("fail", "pass").should == [one]
+    MSpec.read_tags(["fail", "pass"]).should == [one]
   end
 
   it "returns [] if no tags names match" do

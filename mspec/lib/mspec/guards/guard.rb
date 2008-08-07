@@ -1,21 +1,6 @@
 require 'mspec/runner/mspec'
 require 'mspec/runner/actions/tally'
 
-unless defined?(RUBY_NAME) and RUBY_NAME
-  if defined?(RUBY_ENGINE) and RUBY_ENGINE
-    RUBY_NAME = RUBY_ENGINE
-    if defined?(ARG0)
-      RUBY_CLI = /rubinius|rbx/.match(ARG0) ? "shotgun/rubinius" : ARG0
-    else
-      RUBY_CLI = RUBY_NAME
-    end
-  else
-    require 'rbconfig'
-    RUBY_NAME = Config::CONFIG["RUBY_INSTALL_NAME"] || Config::CONFIG["ruby_install_name"]
-    RUBY_CLI  = RUBY_NAME
-  end
-end
-
 class SpecGuard
   def self.register
     unless @registered

@@ -24,7 +24,7 @@ class ActionFilter
     @tfilter = nil
     return if @tags.empty?
 
-    desc = MSpec.read_tags(*@tags).map { |t| t.description }
+    desc = MSpec.read_tags(@tags).map { |t| t.description }
     return if desc.empty?
 
     @tfilter = MatchFilter.new(nil, *desc)

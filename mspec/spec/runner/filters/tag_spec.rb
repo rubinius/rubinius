@@ -13,7 +13,7 @@ describe TagFilter, "#load" do
   end
 
   it "loads tags from the tag file" do
-    MSpec.should_receive(:read_tags).with("tag", "key").and_return([])
+    MSpec.should_receive(:read_tags).with(["tag", "key"]).and_return([])
     @filter.load
   end
 

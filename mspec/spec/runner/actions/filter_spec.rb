@@ -48,13 +48,13 @@ describe ActionFilter, "#load" do
   end
 
   it "creates a filter from a single tag" do
-    MSpec.should_receive(:read_tags).with("tag").and_return([@tag])
+    MSpec.should_receive(:read_tags).with(["tag"]).and_return([@tag])
     MatchFilter.should_receive(:new).with(nil, "description")
     ActionFilter.new("tag", nil).load
   end
 
   it "creates a filter from an array of tags" do
-    MSpec.should_receive(:read_tags).with("tag", "key").and_return([@tag])
+    MSpec.should_receive(:read_tags).with(["tag", "key"]).and_return([@tag])
     MatchFilter.should_receive(:new).with(nil, "description")
     ActionFilter.new(["tag", "key"], nil).load
   end
@@ -68,7 +68,7 @@ describe ActionFilter, "#load" do
 end
 
 describe ActionFilter, "#register" do
-  it "registers itself with MSpec for the :load, :unload actions" do
+  it "registers itself with MSpec for the :load actions" do
     filter = ActionFilter.new
     MSpec.should_receive(:register).with(:load, filter)
     filter.register
@@ -76,7 +76,7 @@ describe ActionFilter, "#register" do
 end
 
 describe ActionFilter, "#unregister" do
-  it "unregisters itself with MSpec for the :load, :unload actions" do
+  it "unregisters itself with MSpec for the :load actions" do
     filter = ActionFilter.new
     MSpec.should_receive(:unregister).with(:load, filter)
     filter.unregister

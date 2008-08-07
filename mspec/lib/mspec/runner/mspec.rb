@@ -237,7 +237,9 @@ module MSpec
     end
   end
 
-  def self.read_tags(*keys)
+  # Returns a list of tags matching any tag string in +keys+ based
+  # on the return value of <tt>keys.include?("tag_name")</tt>
+  def self.read_tags(keys)
     tags = []
     file = tags_file
     if File.exist? file

@@ -4,11 +4,7 @@ require 'mspec/runner/mspec'
 require 'mspec/runner/example'
 require 'mspec/runner/tag'
 
-describe TagAction do
-  before :each do
-    MSpec.stub!(:read_tags).and_return([])
-  end
-
+describe TagAction, ".new" do
   it "creates an MatchFilter with its tag and desc arguments" do
     filter = mock('action filter', :null_object => true)
     MatchFilter.should_receive(:new).with(nil, "some", "thing").and_return(filter)

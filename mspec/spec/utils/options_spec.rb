@@ -317,7 +317,10 @@ describe MSpecOptions, "#parse" do
   end
 
   it "raises MSpecOptions::ParseError if passed an unrecognized option" do
-    lambda { @opt.parse ["-u"] }.should raise_error(MSpecOptions::ParseError)
+    @opt.should_receive(:raise).with(MSpecOptions::ParseError, an_instance_of(String))
+    @opt.stub!(:puts)
+    @opt.stub!(:exit)
+    @opt.parse "-u"
   end
 end
 
@@ -442,7 +445,6 @@ EOD
   end
 end
 
-
 describe "The -B, --config FILE option" do
   before :each do
     @options, @config = new_option
@@ -506,7 +508,6 @@ describe "The -t, --target TARGET option" do
     ["-t", "--target"].each do |opt|
       @options.parse [opt, "ruby"]
       @config[:target].should == "ruby"
-      @config[:flags].should include("-v")
     end
   end
 
@@ -1026,119 +1027,6 @@ describe "The -O, --report option" do
     MSpec.should_receive(:register_mode).with(:report).twice
     ["-O", "--report"].each do |m|
       @options.parse m
-    end
-  end
-end
-
-describe "The -N, --add TAG option" do
-  before :each do
-    @options, @config = new_option
-    @options.tagging
-  end
-
-  it "is enabled with #tagging" do
-    @options.stub!(:on)
-    @options.should_receive(:on).with("-N", "--add", "TAG",
-        an_instance_of(String))
-    @options.tagging
-  end
-
-  it "sets the mode to :add and sets the tag to TAG" do
-    ["-N", "--add"].each do |opt|
-      @config[:tagger] = nil
-      @config[:tag] = nil
-      @options.parse [opt, "taggit"]
-      @config[:tagger].should == :add
-      @config[:tag].should == "taggit:"
-    end
-  end
-end
-
-describe "The -R, --del TAG option" do
-  before :each do
-    @options, @config = new_option
-    @options.tagging
-  end
-
-  it "is enabled with #tagging" do
-    @options.stub!(:on)
-    @options.should_receive(:on).with("-R", "--del", "TAG",
-        an_instance_of(String))
-    @options.tagging
-  end
-
-  it "it sets the mode to :del, the tag to TAG, and the outcome to :pass" do
-    ["-R", "--del"].each do |opt|
-      @config[:tagger] = nil
-      @config[:tag] = nil
-      @config[:outcome] = nil
-      @options.parse [opt, "taggit"]
-      @config[:tagger].should == :del
-      @config[:tag].should == "taggit:"
-      @config[:outcome].should == :pass
-    end
-  end
-end
-
-describe "The -Q, --pass option" do
-  before :each do
-    @options, @config = new_option
-    @options.tagging
-  end
-
-  it "is enabled with #tagging" do
-    @options.stub!(:on)
-    @options.should_receive(:on).with("-Q", "--pass", an_instance_of(String))
-    @options.tagging
-  end
-
-  it "sets the outcome to :pass" do
-    ["-Q", "--pass"].each do |opt|
-      @config[:outcome] = nil
-      @options.parse opt
-      @config[:outcome].should == :pass
-    end
-  end
-end
-
-describe "The -F, --fail option" do
-  before :each do
-    @options, @config = new_option
-    @options.tagging
-  end
-
-  it "is enabled with #tagging" do
-    @options.stub!(:on)
-    @options.should_receive(:on).with("-F", "--fail", an_instance_of(String))
-    @options.tagging
-  end
-
-  it "sets the outcome to :fail" do
-    ["-F", "--fail"].each do |opt|
-      @config[:outcome] = nil
-      @options.parse opt
-      @config[:outcome].should == :fail
-    end
-  end
-end
-
-describe "The -L, --all option" do
-  before :each do
-    @options, @config = new_option
-    @options.tagging
-  end
-
-  it "is enabled with #tagging" do
-    @options.stub!(:on)
-    @options.should_receive(:on).with("-L", "--all", an_instance_of(String))
-    @options.tagging
-  end
-
-  it "sets the outcome to :all" do
-    ["-L", "--all"].each do |opt|
-      @config[:outcome] = nil
-      @options.parse opt
-      @config[:outcome].should == :all
     end
   end
 end

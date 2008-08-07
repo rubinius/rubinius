@@ -161,6 +161,11 @@ describe MSpecScript, "#register" do
     @formatter.should_receive(:register)
     @script.register
   end
+
+  it "does not register the formatter if config[:formatter] is nil" do
+    @script.config[:formatter] = nil
+    @script.register
+  end
 end
 
 describe MSpecScript, "#register" do
@@ -261,5 +266,32 @@ describe MSpecScript, "#signals" do
     Signal.should_not_receive(:trap).with("INT")
     @script.config[:abort] = false
     @script.signals
+  end
+end
+
+describe MSpecScript, "#files" do
+  before :each do
+    @script = MSpecScript.new
+  end
+
+  it "returns entries unchanged if they are files" do
+    stat = mock("Stat")
+    stat.stub!(:file?).and_return(true)
+    stat.stub!(:directory?).and_return(false)
+    File.stub!(:stat).and_return(stat)
+    @script.files(["a", "b"]).should == ["a", "b"]
+  end
+
+  it "searches for _spec.rb files if the entry is a directory" do
+    File.should_receive(:expand_path).with("some/dir").and_return("some/dir")
+    stat = mock("Stat")
+    stat.should_receive(:file?).and_return(false)
+    stat.should_receive(:directory?).and_return(true)
+    File.stub!(:stat).and_return(stat)
+
+    Dir.should_receive(:[]).with("some/dir/**/*_spec.rb").and_return(
+      ["some/dir/file_spec.rb", "some/dir/other_spec.rb"])
+    @script.files(["some/dir"]).should ==
+      ["some/dir/file_spec.rb", "some/dir/other_spec.rb"]
   end
 end
