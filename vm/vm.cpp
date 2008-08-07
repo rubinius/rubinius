@@ -32,6 +32,7 @@ namespace rubinius {
     delete om;
     delete events;
     delete global_cache;
+    llvm_cleanup();
   }
 
   void VM::boot_threads() {

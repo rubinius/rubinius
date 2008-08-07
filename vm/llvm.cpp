@@ -50,14 +50,25 @@
 namespace rubinius {
   using namespace llvm;
 
-  static llvm::Module* operations;
+  static llvm::Module* operations = NULL;
   static llvm::ExistingModuleProvider* mp = NULL;
-  static llvm::ExecutionEngine* engine;
+  static llvm::ExecutionEngine* engine = NULL;
 
-  static llvm::Function* puts;
+  // static llvm::Function* puts = NULL;
 
   llvm::Module* VM::llvm_module() {
     return operations;
+  }
+
+  /* Clean up the memory in the statics.
+   * TODO remove the statics entirely. */
+  void VM::llvm_cleanup() {
+    /* We can't also delete mp and operations, since deleting engine
+     * cascade deletes mp and operations internally. */
+    delete engine;
+    operations = NULL;
+    mp = NULL;
+    engine = NULL;
   }
 
   void VMLLVMMethod::init(const char* path) {
@@ -65,18 +76,19 @@ namespace rubinius {
     llvm::UnwindTablesMandatory = true;
 
     std::string error;
-    if(MemoryBuffer* buffer = MemoryBuffer::getFile(path, &error)) {
-      operations = ParseBitcodeFile(buffer, &error);
-      delete buffer;
-    } else {
-      operations = NULL;
-      throw std::runtime_error(std::string("Unable to open LLVM operations file") + error);
-    }
+    if(!operations) {
+      if(MemoryBuffer* buffer = MemoryBuffer::getFile(path, &error)) {
+        operations = ParseBitcodeFile(buffer, &error);
+        delete buffer;
+      } else {
+        operations = NULL;
+        throw std::runtime_error(std::string("Unable to open LLVM operations file") + error);
+      }
 
-    if(!mp) {
       mp = new ExistingModuleProvider(operations);
       engine = ExecutionEngine::create(mp);
     }
+#if 0
 
     llvm::PointerType* PointerTy_5 = llvm::PointerType::get(llvm::IntegerType::get(8), 0);
 
@@ -91,6 +103,7 @@ namespace rubinius {
         /*Type=*/ FuncTy_8,
         /*Linkage=*/ GlobalValue::ExternalLinkage,
         /*Name=*/ "puts", operations); // (external, no body)
+#endif
 
   }
 
@@ -139,6 +152,7 @@ namespace rubinius {
     return CallInst::Create(func, args.begin(), args.end(), "", block);
   }
 
+#if 0
   void show(const char* data, BasicBlock* block) {
     llvm::ArrayType* ArrayTy_0 = llvm::ArrayType::get(llvm::IntegerType::get(8), strlen(data) + 1);
     GlobalVariable* glob = new GlobalVariable(ArrayTy_0,
@@ -158,6 +172,7 @@ namespace rubinius {
 
     CallInst::Create(puts, args.begin(), args.end(), "tmp", block);
   }
+#endif
 
 #if 0
   /* Copied originally from opt */

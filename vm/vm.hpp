@@ -85,6 +85,7 @@ namespace rubinius {
     void set_const(Module* mod, const char* name, OBJECT val);
 
     llvm::Module* llvm_module();
+    void llvm_cleanup();
 
     void print_backtrace();
 
