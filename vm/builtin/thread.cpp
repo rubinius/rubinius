@@ -39,6 +39,15 @@ namespace rubinius {
     SET(this, task, task);
   }
 
+  Object* Thread::pass(STATE) {
+    Thread* current = Thread::current(state);
+
+    state->queue_thread(current);
+    state->run_best_thread();
+
+    return Qnil;
+  }
+
   Thread* Thread::run(STATE) {
     state->activate_thread(this);
     return this;

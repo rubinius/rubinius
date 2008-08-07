@@ -28,6 +28,16 @@ public:
     TS_ASSERT_DIFFERS(thr, Thread::current(state));
   }
 
+  void test_pass() {
+    Thread* thr = Thread::create(state);
+    thr->wakeup(state);
+
+    Object* obj = Thread::pass(state);
+
+    TS_ASSERT_EQUALS(Qnil, obj);
+    TS_ASSERT_EQUALS(thr, Thread::current(state));
+  }
+
   void test_run() {
     Thread* thr = Thread::create(state);
 

@@ -30,6 +30,9 @@ namespace rubinius {
 
     void boot_task(STATE);
 
+    // Ruby.primitive :thread_yield
+    static Object* pass(STATE);
+
     // Ruby.primitive :thread_run
     Thread* run(STATE);
 
