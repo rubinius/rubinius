@@ -71,6 +71,9 @@ namespace rubinius {
     Float* to_f(STATE);
     double to_double(STATE);
 
+    // Ruby.primitive :string_apply_and
+    String* apply_and(STATE, String* other);
+
     operator char *();
 
     class Info : public TypeInfo {

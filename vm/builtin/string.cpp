@@ -241,6 +241,29 @@ namespace rubinius {
     return value;
   }
 
+  String* String::apply_and(STATE, String* other) {
+    native_int count, i;
+    char* s = this->data->to_chars(state);
+    char* o = other->data->to_chars(state);
+
+    if(this->num_bytes > other->num_bytes) {
+      count = other->num_bytes->n2i();
+    } else {
+      count = this->num_bytes->n2i();
+    }
+
+    for(i = 0; i < count; i++) {
+      s[i] = s[i] && o[i];
+    }
+    ByteArray* ba = ByteArray::create(state, count);
+
+    std::memcpy(ba->bytes, s, count);
+    ba->bytes[count] = 0;
+
+    SET(this, data, ba);
+
+    return this;
+  }
 
   void String::Info::show(STATE, OBJECT self) {
     String* str = as<String>(self);
