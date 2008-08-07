@@ -241,6 +241,7 @@ namespace rubinius {
     return value;
   }
 
+  // Character-wise logical AND of two strings. Modifies the receiver.
   String* String::apply_and(STATE, String* other) {
     native_int count, i;
     char* s = this->data->to_chars(state);
