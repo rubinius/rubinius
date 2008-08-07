@@ -120,7 +120,7 @@ namespace rubinius {
     return globals.current_task->active->block;
   }
 
-  void VM::raise_from_errno(char* msg) {
+  void VM::raise_from_errno(const char* msg) {
     // TODO: implement me
   }
 

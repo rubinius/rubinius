@@ -75,7 +75,7 @@ namespace rubinius {
     void run_best_thread();
     void queue_thread(Thread* thread);
     void activate_thread(Thread* thread);
-    void raise_from_errno(char* reason);
+    void raise_from_errno(const char* reason);
     void raise_exception(Exception* exc);
     Exception* new_exception(Class* cls, const char* msg);
     OBJECT current_block();
