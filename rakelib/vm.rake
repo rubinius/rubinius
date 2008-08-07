@@ -5,8 +5,10 @@ task :vm => 'vm/vm'
 ############################################################
 # Files, Flags, & Constants
 
+LLVM_STYLE = "Release"
+
 ENV.delete 'CDPATH' # confuses llvm_config
-LLVM_CONFIG = "vm/external_libs/llvm/Release/bin/llvm-config"
+LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"
 tests       = FileList["vm/test/test_*.hpp"]
 
 # vm/test/test_instructions.hpp may not have been generated yet
@@ -69,7 +71,7 @@ field_extract_headers = %w[
 ]
 
 BC          = "vm/instructions.bc"
-LLVM_A      = "vm/external_libs/llvm/Release/lib/libLLVMSystem.a"
+LLVM_A      = "vm/external_libs/llvm/#{LLVM_STYLE}/lib/libLLVMSystem.a"
 EXTERNALS   = %W[ #{LLVM_A}
                   vm/external_libs/libtommath/libtommath.a
                   vm/external_libs/onig/.libs/libonig.a
@@ -77,11 +79,15 @@ EXTERNALS   = %W[ #{LLVM_A}
                   vm/external_libs/libltdl/.libs/libltdl.a
                   vm/external_libs/libev/.libs/libev.a ]
 OPTIONS     = {
-                LLVM_A => "--enable-targets=host-only --enable-optimized"
+                LLVM_A => "--enable-targets=host-only"
               }
 
+if LLVM_STYLE == "Release"
+  OPTIONS[LLVM_A] << " --enable-optimized"
+end
+
 INCLUDES    = (EX_INC + %w[vm/test/cxxtest vm .]).map { |f| "-I#{f}" }
-FLAGS       = %w(-Wall -ggdb -gdwarf-2)
+FLAGS       = %w(-Wall -Werror -ggdb -gdwarf-2)
 CC          = ENV['CC'] || "gcc"
 
 
@@ -212,6 +218,14 @@ end
 file 'vm/test/runner.o' => 'vm/test/runner.cpp' # no rule .o => .cpp
 
 file 'vm/test/runner' => EXTERNALS + objs + %w[vm/test/runner.o] do |t|
+  link t
+end
+
+# A simple JIT tester driver
+
+file 'vm/drivers/compile.o' => 'vm/drivers/compile.cpp'
+
+file 'vm/compile' => EXTERNALS + objs + %w[vm/drivers/compile.o] do |t|
   link t
 end
 

@@ -42,7 +42,7 @@ class Instructions
     # code returns void or bool.
     #
     def return_type
-      if /return\s+false/.match(body)
+      if /return\s+/.match(body)
         "bool"
       else
         "void"
@@ -99,11 +99,16 @@ class Instructions
   # statement which decodes the arguments and calls the function that
   # contains the implementation of the instruction.
   #
-  def generate_decoder_switch(methods, io)
+  def generate_decoder_switch(methods, io, flow=false)
     io.puts "switch(op) {"
 
     methods.each do |impl|
       io.puts "  case #{impl.name.bytecode}: { // #{impl.name.opcode}"
+      if flow and impl.name.flow and impl.name.flow != :sequential
+        # Flush the ip register from the task
+        io.puts "  ctx->ip = task->ip;"
+      end
+
       args = impl.args
       case args.size
       when 2
@@ -117,10 +122,16 @@ class Instructions
         io.puts "  op_#{impl.name.opcode}(task, js);"
       end
 
+      if flow
+        if [:send, :return, :raise].include?(impl.name.flow)
+          io.puts "  return;"
+        end
+      end
+
       io.puts "  break;"
       io.puts "  }"
     end
-    
+
     io.puts "}"
   end
 
@@ -184,7 +195,7 @@ void #{meth}() {
   task->make_active(ctx);
   // The += 0 disable unused variable warnings.
 
-  Tuple* stack = task->stack; stack += 0;
+  Tuple* stack = task->current_stack(); stack += 0;
 
   opcode stream[100];
   stream[0] = InstructionSequence::insn_#{ins.opcode};

@@ -83,17 +83,13 @@ namespace rubinius {
   }
 
   /* This is a noop for this class. */
-  void VMMethod::compile() { }
+  void VMMethod::compile(STATE) { }
 
   VMPrimitiveMethod::VMPrimitiveMethod(STATE, CompiledMethod* meth,
                                        rubinius::executor func) :
       VMMethod(state, meth) {
         this->execute = func;
       }
-
-  void VMMethod::resume(Task* task, MethodContext* ctx) {
-    throw std::string("blah!");
-  }
 
   std::vector<Opcode*> VMMethod::create_opcodes() {
     std::vector<Opcode*> ops;

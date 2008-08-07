@@ -43,7 +43,6 @@ namespace rubinius {
   Task* Task::create(STATE) {
     Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
     task->ip = 0;
-    task->sp = -1;
     task->state = state;
     task->probe = state->probe;
     task->msg = new Message(state);
@@ -52,7 +51,6 @@ namespace rubinius {
     SET(task, self, G(main));
     SET(task, literals, Qnil);
     SET(task, exception, Qnil);
-    SET(task, stack, Qnil);
     SET(task, home, Qnil);
 
     CompiledMethod* cm = CompiledMethod::generate_tramp(state);
@@ -76,6 +74,7 @@ namespace rubinius {
     ctx->vmm = (VMMethod*)meth->executable;
     ctx->ip = 0;
     ctx->sp = meth->number_of_locals() - 1;
+    ctx->js.stack = ctx->stack->field + ctx->sp;
 
     return ctx;
   }
@@ -83,7 +82,6 @@ namespace rubinius {
   void Task::restore_context(MethodContext* ctx) {
 
     SET(this, literals, ctx->cm->literals);
-    SET(this, stack, ctx->stack);
 
     SET(this, active, ctx);
     SET(this, home, ctx->home);
@@ -91,14 +89,12 @@ namespace rubinius {
 
     ip = ctx->ip;
     ip_ptr = ctx->vmm->opcodes + ip;
-    sp = ctx->sp;
   }
 
   void Task::make_active(MethodContext* ctx) {
     /* Save the current Task registers into active. */
     if(!active->nil_p()) {
       active->ip = ip;
-      active->sp = sp;
     }
 
     SET(ctx, sender, active);
@@ -153,7 +149,7 @@ namespace rubinius {
 
     /* Now that we've processed everything from the stack, we need to clean it up */
 stack_cleanup:
-    sp -= msg.stack;
+    active->clear_stack(msg.stack);
   }
 
   /* Only called if send_message can't locate anything to run, which pretty
@@ -197,12 +193,12 @@ stack_cleanup:
     MethodContext *target = active->sender;
 
     restore_context(target);
-    stack->put(state, ++sp, value);
+    active->push(value);
   }
 
   /* Called after a primitive has executed and wants to return a value. */
   void Task::primitive_return(OBJECT value, Message& msg) {
-    sp -= msg.stack;
+    active->clear_stack(msg.stack);
     push(value);
   }
 
@@ -487,12 +483,28 @@ stack_cleanup:
     return mod;
   }
 
+  /* Used in testing. Sets the stack of the current context to +stack+ */
+  void Task::set_stack(Tuple* stack) {
+    SET(active, stack, stack);
+    /* the - 1 is because the stack starts below the bottom, so push
+     * always increments and sets. */
+    active->js.stack = stack->field - 1;
+  }
+
+  Tuple* Task::current_stack() {
+    return active->stack;
+  }
+
   void Task::push(OBJECT val) {
-    stack->put(state, ++sp, val);
+    active->push(val);
   }
 
   OBJECT Task::pop() {
-    return stack->at(sp--);
+    return active->pop();
+  }
+
+  int Task::calculate_sp() {
+    return active->js.stack - active->stack->field;
   }
 
   void Task::activate_method(Message&) { }
@@ -507,18 +519,6 @@ stack_cleanup:
     if(state->om->collect_mature_now) {
       state->om->collect_mature_now = false;
       state->om->collect_mature(state->globals.roots);
-    }
-  }
-
-  void Task::print_stack() {
-    for(size_t i = 0; i < stack->field_count; i++) {
-      if(i == (size_t)sp) {
-        std::cout << "=> ";
-      } else {
-        std::cout << "   ";
-      }
-
-      stack->field[i]->show(state);
     }
   }
 

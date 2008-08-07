@@ -33,7 +33,6 @@ namespace rubinius {
 
     /* 'registers' */
     native_int ip;
-    int    sp;
 
     OBJECT self; // slot
     Tuple* literals; // slot
@@ -46,11 +45,10 @@ namespace rubinius {
     opcode blockargs;
 
     /* Internal data */
-    Tuple* stack; // slot
     STATE;
     Message* msg;
-    jit_state js;
     TaskProbe *probe;
+    struct jit_state js;
 
     /* Optimization */
     opcode *ip_ptr;
@@ -102,6 +100,9 @@ namespace rubinius {
     void execute_stream(opcode* stream);
     void push(OBJECT val);
     OBJECT pop();
+    int  calculate_sp();
+    void set_stack(Tuple* stack);
+    Tuple* current_stack();
 
     void print_stack();
     void tragic_failure(Message& msg);

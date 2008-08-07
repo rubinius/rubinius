@@ -2,6 +2,8 @@
 #include "type_info.hpp"
 #include "objectmemory.hpp"
 #include "gen/includes.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/symbol.hpp"
 
 namespace rubinius {
 
@@ -10,7 +12,7 @@ namespace rubinius {
   TypeInfo::TypeInfo(object_type type) : type(type) {
     state = NULL;
   }
-    
+
   void TypeInfo::cleanup(OBJECT obj) { }
 
   void TypeInfo::set_field(STATE, OBJECT target, size_t index, OBJECT val) {
@@ -20,7 +22,7 @@ namespace rubinius {
   OBJECT TypeInfo::get_field(STATE, OBJECT target, size_t index) {
     throw std::runtime_error("unable to access field");
   }
-    
+
   void TypeInfo::mark(OBJECT obj, ObjectMark& mark) {
     throw std::runtime_error("unable to mark object");
   }
@@ -34,9 +36,19 @@ namespace rubinius {
       std::cout << f->val << std::endl;
     } else if(String* str = try_as<String>(self)) {
       std::cout << *str << std::endl;
+    } else if(SYMBOL sym = try_as<Symbol>(self)) {
+      std::cout << ":" << *sym->to_str(state) << std::endl;
     } else {
       inspect(state, self);
     }
   }
 #include "gen/typechecks.gen.cpp"
+
+  /* For use in gdb. */
+  extern "C" {
+    /* A wrapper because gdb can't do virtual dispatch. */
+    void __show__(STATE, OBJECT obj) {
+      obj->show(state);
+    }
+  }
 }

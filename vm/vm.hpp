@@ -4,6 +4,10 @@
 #include "prelude.hpp"
 #include "globals.hpp"
 
+namespace llvm {
+  class Module;
+}
+
 namespace rubinius {
 
   class Exception;
@@ -17,6 +21,11 @@ namespace rubinius {
   class Primitives;
   class ObjectMemory;
   class TypeInfo;
+  class Task;
+
+  struct Configuration {
+    bool compile_up_front;
+  };
 
   class VM {
     public:
@@ -27,6 +36,7 @@ namespace rubinius {
     GlobalCache* global_cache;
     TaskProbe* probe;
     Primitives* primitives;
+    Configuration config;
 
     bool wait_events;
 
@@ -52,6 +62,7 @@ namespace rubinius {
     Module* new_module(const char* name, Module* under = NULL);
     SYMBOL symbol(const char *str, size_t len = 0);
     OBJECT new_struct(Class* cls, size_t bytes);
+    Task* new_task();
 
     void add_type_info(TypeInfo* ti);
     TypeInfo* find_type(int type);
@@ -72,6 +83,10 @@ namespace rubinius {
     void inspect(OBJECT obj);
     void set_const(const char* name, OBJECT val);
     void set_const(Module* mod, const char* name, OBJECT val);
+
+    llvm::Module* llvm_module();
+
+    void print_backtrace();
 
   };
 };

@@ -10,6 +10,7 @@
 #include "builtin/staticscope.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/string.hpp"
 
 namespace rubinius {
   CompiledMethod* CompiledMethod::create(STATE) {
@@ -27,6 +28,7 @@ namespace rubinius {
     SET(cm, stack_size, Object::i2n(1));
     SET(cm, required_args, Object::i2n(0));
     SET(cm, total_args, cm->required_args);
+    SET(cm, name, String::create(state, "__halt__")->to_sym(state));
 
     SET(cm, iseq, InstructionSequence::create(state, 1));
     cm->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_halt));
@@ -59,12 +61,17 @@ namespace rubinius {
         }
       }
       VMMethod* vmm;
-      if(ondemand) {
-        vmm = new VMLLVMMethodUncompiled(state, this);
+      /* Controls whether we use LLVM out of the gate or not. */
+      if(state->config.compile_up_front) {
+        if(ondemand) {
+          vmm = new VMLLVMMethodUncompiled(state, this);
+        } else {
+          VMLLVMMethod* llvm = new VMLLVMMethod(state, this);
+          llvm->compile(state);
+          vmm = llvm;
+        }
       } else {
-        VMLLVMMethod* llvm = new VMLLVMMethod(state, this);
-        llvm->compile();
-        vmm = llvm;
+        vmm = new VMMethod(state, this);
       }
       executable = vmm;
       return vmm;

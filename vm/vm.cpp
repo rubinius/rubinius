@@ -17,6 +17,7 @@
 
 namespace rubinius {
   VM::VM(size_t bytes) : probe(NULL), wait_events(false) {
+    config.compile_up_front = false;
     om = new ObjectMemory(bytes);
     bootstrap_ontology();
 
@@ -144,5 +145,37 @@ namespace rubinius {
 
   void VM::set_const(Module* mod, const char* name, OBJECT val) {
     mod->set_const(this, (char*)name, val);
+  }
+
+  void VM::print_backtrace() {
+    MethodContext* ctx = globals.current_task.get()->active;
+
+    while(!ctx->nil_p()) {
+      std::cout << (void*)ctx << ": ";
+      std::cout << *ctx->module->name->to_str(this) << "#";
+
+      SYMBOL name = try_as<Symbol>(ctx->name);
+      if(name) {
+        std::cout << *name->to_str(this);
+      } else {
+        std::cout << *ctx->cm->name->to_str(this);
+      }
+
+      std::cout << "\n";
+      ctx = ctx->sender;
+    }
+  }
+
+  Task* VM::new_task() {
+    Task* task = Task::create(this);
+    globals.current_task.set(task);
+    return task;
+  }
+
+  /* For debugging. */
+  extern "C" {
+    void __printbt__(STATE) {
+      state->print_backtrace();
+    }
   }
 };

@@ -19,7 +19,7 @@ namespace rubinius {
     static void init(const char* path);
     llvm::CallInst* call_operation(Opcode* op, llvm::Value* state,
         llvm::Value*task, llvm::BasicBlock* block);
-    virtual void compile();
+    virtual void compile(STATE);
     virtual void resume(Task* task, MethodContext* ctx);
   };
 

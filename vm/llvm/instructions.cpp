@@ -12,6 +12,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/iseq.hpp"
 
 #include "jit_state.h"
 #include "objectmemory.hpp"
@@ -33,8 +34,6 @@ using namespace rubinius;
 #define I2N(num) APPLY_TAG(num, TAG_FIXNUM)
 #define both_fixnum_p(_p1, _p2) ((intptr_t)_p1 & (intptr_t)_p2 & TAG_FIXNUM)
 
-#define CACHE_JS() js->stack = task->stack->field + task->sp
-#define FLUSH_JS() task->sp = js->stack - task->stack->field
 #define cache_ip()
 
 extern "C" {
@@ -110,13 +109,7 @@ CODE
     /* pull receiver off stack */
     stack_pop();
 
-    FLUSH_JS();
-    if(task->send_message_slowly(msg)) {
-      return true;
-    } else {
-      CACHE_JS();
-      return false;
-    }
+    return task->send_message_slowly(msg);
   }
 }
 
@@ -130,9 +123,7 @@ CODE
 void rubinius::Task::execute_stream(opcode* stream) {
   opcode op;
   Task* task = this;
-  struct jit_state* js = &task->js;
-
-  CACHE_JS();
+  struct jit_state* js = &active->js;
 
   op = next_op();
 
@@ -142,5 +133,28 @@ si.generate_decoder_switch impl, io
 puts io.string
 CODE
 
-  FLUSH_JS();
+}
+
+/* Use a simplier next_int */
+#undef next_int
+#define next_int ((opcode)(stream[task->ip++]))
+
+void VMMethod::resume(Task* task, MethodContext* ctx) {
+  opcode* stream = ctx->vmm->opcodes;
+  struct jit_state* js = &ctx->js;
+  opcode op;
+
+  task->ip = ctx->ip;
+
+  for(;;) {
+    op = stream[task->ip++];
+    // std::cout << task->ip << ": " << InstructionSequence::get_instruction_name(op) << "\n";
+
+#ruby <<CODE
+io = StringIO.new
+si.generate_decoder_switch impl, io, true
+puts io.string
+CODE
+  }
+
 }

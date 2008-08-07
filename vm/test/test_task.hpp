@@ -70,7 +70,6 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT(kind_of<Task>(task));
 
     TS_ASSERT_EQUALS(0, task->ip);
-    TS_ASSERT_EQUALS(-1, task->sp);
   }
 
   void test_send_message() {
@@ -135,9 +134,10 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    Tuple* input_stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
-    task->stack = input_stack;
-    task->sp = 1;
+    Tuple* input_stack = Tuple::create(state, 2);
+    task->set_stack(input_stack);
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -148,10 +148,10 @@ class TestTask : public CxxTest::TestSuite {
 
     task->send_message(msg);
 
-    TS_ASSERT(task->stack != input_stack);
-    TS_ASSERT_EQUALS(task->stack->field_count, 2U);
-    TS_ASSERT_EQUALS(task->stack->field[0], Object::i2n(3));
-    TS_ASSERT_EQUALS(task->stack->field[1], Object::i2n(4));
+    TS_ASSERT(task->current_stack() != input_stack);
+    TS_ASSERT_EQUALS(task->current_stack()->field_count, 2U);
+    TS_ASSERT_EQUALS(task->current_stack()->field[0], Object::i2n(3));
+    TS_ASSERT_EQUALS(task->current_stack()->field[1], Object::i2n(4));
   }
 
   void test_send_message_throws_argerror_on_too_few() {
@@ -168,9 +168,10 @@ class TestTask : public CxxTest::TestSuite {
 
     MethodContext* top = task->active;
 
-    Tuple* input_stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
-    task->stack = input_stack;
-    task->sp = 1;
+    Tuple* input_stack = Tuple::create(state, 2);
+    task->set_stack(input_stack);
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -207,9 +208,10 @@ class TestTask : public CxxTest::TestSuite {
 
     MethodContext* top = task->active;
 
-    Tuple* input_stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
-    task->stack = input_stack;
-    task->sp = 1;
+    Tuple* input_stack = Tuple::create(state, 2);
+    task->set_stack(input_stack);
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -245,10 +247,11 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    Tuple* input_stack = Tuple::from(state, 3,
-        Object::i2n(3), Object::i2n(4), Object::i2n(5));
-    task->stack = input_stack;
-    task->sp = 2;
+    Tuple* input_stack = Tuple::create(state, 3);
+    task->set_stack(input_stack);
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
+    task->push(Object::i2n(5));
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -259,12 +262,12 @@ class TestTask : public CxxTest::TestSuite {
 
     task->send_message(msg);
 
-    TS_ASSERT(task->stack != input_stack);
-    TS_ASSERT_EQUALS(task->stack->field_count, 4U);
-    TS_ASSERT_EQUALS(task->stack->field[0], Object::i2n(3));
-    TS_ASSERT_EQUALS(task->stack->field[1], Object::i2n(4));
-    TS_ASSERT_EQUALS(task->stack->field[2], Object::i2n(5));
-    TS_ASSERT_EQUALS(task->stack->field[3], Qnil);
+    TS_ASSERT(task->current_stack() != input_stack);
+    TS_ASSERT_EQUALS(task->current_stack()->field_count, 4U);
+    TS_ASSERT_EQUALS(task->current_stack()->field[0], Object::i2n(3));
+    TS_ASSERT_EQUALS(task->current_stack()->field[1], Object::i2n(4));
+    TS_ASSERT_EQUALS(task->current_stack()->field[2], Object::i2n(5));
+    TS_ASSERT_EQUALS(task->current_stack()->field[3], Qnil);
 
     TS_ASSERT(task->passed_arg_p(3));
     TS_ASSERT(!task->passed_arg_p(4));
@@ -282,10 +285,12 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    Tuple* input_stack = Tuple::from(state, 4,
-        Object::i2n(3), Object::i2n(4), Object::i2n(5) ,Object::i2n(6));
-    task->stack = input_stack;
-    task->sp = 3;
+    Tuple* input_stack = Tuple::create(state, 4);
+    task->set_stack(input_stack);
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
+    task->push(Object::i2n(5));
+    task->push(Object::i2n(6));
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -296,12 +301,14 @@ class TestTask : public CxxTest::TestSuite {
 
     task->send_message(msg);
 
-    TS_ASSERT(task->stack != input_stack);
-    TS_ASSERT_EQUALS(task->stack->field_count, 3U);
-    TS_ASSERT_EQUALS(task->stack->field[0], Object::i2n(3));
-    TS_ASSERT_EQUALS(task->stack->field[1], Object::i2n(4));
+    Tuple* cur = task->current_stack();
 
-    Array* splat = as<Array>(task->stack->field[2]);
+    TS_ASSERT(cur != input_stack);
+    TS_ASSERT_EQUALS(cur->field_count, 3U);
+    TS_ASSERT_EQUALS(cur->field[0], Object::i2n(3));
+    TS_ASSERT_EQUALS(cur->field[1], Object::i2n(4));
+
+    Array* splat = as<Array>(cur->field[2]);
 
     TS_ASSERT_EQUALS(splat->size(), 2U);
     TS_ASSERT_EQUALS(splat->get(state, 0), Object::i2n(5));
@@ -320,10 +327,12 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    Tuple* input_stack = Tuple::from(state, 4,
-        Object::i2n(3), Object::i2n(4), Object::i2n(5) ,Object::i2n(6));
-    task->stack = input_stack;
-    task->sp = 3;
+    Tuple* input_stack = Tuple::create(state, 4);
+    task->set_stack(input_stack);
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
+    task->push(Object::i2n(5));
+    task->push(Object::i2n(6));
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -334,12 +343,12 @@ class TestTask : public CxxTest::TestSuite {
 
     task->send_message(msg);
 
-    TS_ASSERT(task->stack != input_stack);
-    TS_ASSERT_EQUALS(task->stack->field_count, 3U);
-    TS_ASSERT_EQUALS(task->stack->field[0], Object::i2n(3));
-    TS_ASSERT_EQUALS(task->stack->field[1], Object::i2n(4));
+    TS_ASSERT(task->current_stack() != input_stack);
+    TS_ASSERT_EQUALS(task->current_stack()->field_count, 3U);
+    TS_ASSERT_EQUALS(task->current_stack()->field[0], Object::i2n(3));
+    TS_ASSERT_EQUALS(task->current_stack()->field[1], Object::i2n(4));
 
-    Array* splat = as<Array>(task->stack->field[2]);
+    Array* splat = as<Array>(task->current_stack()->field[2]);
 
     TS_ASSERT_EQUALS(splat->size(), 2U);
     TS_ASSERT_EQUALS(splat->get(state, 0), Object::i2n(5));
@@ -358,9 +367,11 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    Tuple* input_stack = Tuple::from(state, 3, Object::i2n(3), Object::i2n(4), Object::i2n(5));
-    task->stack = input_stack;
-    task->sp = 2;
+    Tuple* input_stack = Tuple::create(state, 4);
+    task->set_stack(input_stack);
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
+    task->push(Object::i2n(5));
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -397,18 +408,17 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = SendSite::create(state, state->symbol("blah"));
     msg.args = 0;
 
-    Tuple* outer_stack = task->stack;
+    Tuple* outer_stack = task->current_stack();
 
     task->send_message(msg);
 
-    Tuple* inner_stack = task->stack;
+    Tuple* inner_stack = task->current_stack();
 
     TS_ASSERT(outer_stack != inner_stack);
 
     task->simple_return(Object::i2n(3));
-    TS_ASSERT_EQUALS(task->stack, outer_stack);
+    TS_ASSERT_EQUALS(task->current_stack(), outer_stack);
     TS_ASSERT_EQUALS(task->active, top);
-    TS_ASSERT_EQUALS(task->sp, 0);
   }
 
   void test_locate_method_on() {

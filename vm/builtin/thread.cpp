@@ -5,6 +5,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
+#include "builtin/contexts.hpp"
 
 #include "objectmemory.hpp"
 #include "vm.hpp"
@@ -19,7 +20,7 @@ namespace rubinius {
 
     GO(thread).set(state->new_class("Thread",  Thread::fields));
     G(thread)->set_object_type(Thread::type);
-    
+
     G(thread)->set_const(state, "ScheduledThreads", tup);
   }
 
@@ -44,9 +45,9 @@ namespace rubinius {
   }
 
   void Thread::set_top(STATE, OBJECT val) {
-    task->stack->put(state, task->sp, val);
+    task->active->set_top(val);
   }
-  
+
   void Thread::sleep_for(STATE, Channel* chan) {
     channel = chan;
     set_ivar(state, state->symbol("@sleep"), Qtrue);

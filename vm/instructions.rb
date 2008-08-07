@@ -24,7 +24,7 @@ class Instructions
   def test_noop
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     CODE
   end
 
@@ -58,9 +58,9 @@ class Instructions
     <<-CODE
     stream[1] = (opcode)47;
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), 47);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), 47);
     CODE
   end
 
@@ -88,9 +88,9 @@ class Instructions
   def test_meta_push_neg_1
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), -1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), -1);
     CODE
   end
 
@@ -118,9 +118,9 @@ class Instructions
   def test_meta_push_0
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), 0);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), 0);
     CODE
   end
 
@@ -148,9 +148,9 @@ class Instructions
   def test_meta_push_1
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), 1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), 1);
     CODE
   end
 
@@ -178,9 +178,9 @@ class Instructions
   def test_meta_push_2
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->sp)));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->sp))->n2i(), 2);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
+    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), 2);
     CODE
   end
 
@@ -205,8 +205,8 @@ class Instructions
   def test_push_nil
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qnil);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qnil);
     CODE
   end
 
@@ -231,8 +231,8 @@ class Instructions
   def test_push_true
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
     CODE
   end
 
@@ -257,8 +257,8 @@ class Instructions
   def test_push_false
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qfalse);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qfalse);
     CODE
   end
 
@@ -286,8 +286,8 @@ class Instructions
   def test_push_context
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), task->active);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), task->active);
     CODE
   end
 
@@ -319,8 +319,8 @@ class Instructions
     task->literals = Tuple::from(state, 1, Qtrue);
     stream[1] = (opcode)0;
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
     CODE
   end
 
@@ -355,10 +355,10 @@ class Instructions
     <<-CODE
     task->literals = Tuple::from(state, 1, Qtrue);
     stream[1] = (opcode)0;
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
     TS_ASSERT_EQUALS(task->literals->at(0), Qtrue);
     CODE
   end
@@ -385,8 +385,8 @@ class Instructions
     <<-CODE
     task->self = Qtrue;
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
     CODE
   end
 
@@ -405,18 +405,18 @@ class Instructions
 
   def push_local(index)
     <<-CODE
-    OBJECT obj = task->stack->field[index];
+    OBJECT obj = task->current_stack()->field[index];
     stack_push(obj);
     CODE
   end
 
   def test_push_local
     <<-CODE
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
     stream[1] = (opcode)0;
     run();
-    TS_ASSERT_EQUALS(task->sp, 1);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 1);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
     CODE
   end
 
@@ -472,8 +472,8 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(task->active->stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(task->active->stack->at(task->calculate_sp()), Qtrue);
     CODE
   end
 
@@ -512,8 +512,8 @@ class Instructions
     Exception* exc = Exception::create(state);
     task->exception = exc;
     run();
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(task->active->stack->at(task->sp), exc);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(task->active->stack->at(task->calculate_sp()), exc);
     CODE
   end
 
@@ -575,8 +575,8 @@ class Instructions
     task->active->block = be;
     run();
 
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), be);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), be);
     CODE
   end
 
@@ -609,8 +609,8 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
     CODE
   end
 
@@ -654,11 +654,10 @@ class Instructions
 
     stream[1] = (opcode)2;
 
-    task->sp = -1;
     run();
 
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), state->symbol("Blah"));
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), state->symbol("Blah"));
     CODE
   end
 
@@ -691,13 +690,13 @@ class Instructions
     task->self = cls;
 
     SYMBOL name = state->symbol("Foo");
-    stack->put(state, ++task->sp, name);
+    task->push(name);
     stream[1] = (opcode)2;
 
     run();
 
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), name);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), name);
     TS_ASSERT_EQUALS(cls->name, name);
     CODE
   end
@@ -763,16 +762,16 @@ class Instructions
 
   def test_goto_if_false
     <<-CODE
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
     stream[1] = (opcode)15;
     run();
-    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     TS_ASSERT_EQUALS(task->ip, 0);
 
-    stack->put(state, ++task->sp, Qfalse);
+    task->push(Qfalse);
     run();
     TS_ASSERT_EQUALS(task->ip, 15);
-    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     CODE
   end
 
@@ -806,16 +805,16 @@ class Instructions
 
   def test_goto_if_true
     <<-CODE
-    stack->put(state, ++task->sp, Qfalse);
+    task->push(Qfalse);
     stream[1] = (opcode)15;
     run();
-    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     TS_ASSERT_EQUALS(task->ip, 0);
 
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
     run();
     TS_ASSERT_EQUALS(task->ip, 15);
-    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     CODE
   end
 
@@ -850,16 +849,16 @@ class Instructions
 
   def test_goto_if_defined
     <<-CODE
-    stack->put(state, ++task->sp, Qundef);
+    task->push(Qundef);
     stream[1] = (opcode)15;
     run();
-    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     TS_ASSERT_EQUALS(task->ip, 0);
 
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
     run();
     TS_ASSERT_EQUALS(task->ip, 15);
-    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     CODE
   end
 
@@ -890,8 +889,8 @@ class Instructions
 
   def test_swap_stack
     <<-CODE
-    stack->put(state, ++task->sp, Qtrue);
-    stack->put(state, ++task->sp, Qfalse);
+    task->push(Qtrue);
+    task->push(Qfalse);
 
     run();
 
@@ -925,11 +924,11 @@ class Instructions
 
   def test_dup_top
     <<-CODE
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
 
     run();
 
-    TS_ASSERT_EQUALS(task->sp, 1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 1);
     TS_ASSERT_EQUALS(stack->at(1), Qtrue);
     CODE
   end
@@ -957,11 +956,11 @@ class Instructions
 
   def test_pop
     <<-CODE
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
 
     run();
 
-    TS_ASSERT_EQUALS(task->sp, -1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     CODE
   end
 
@@ -982,20 +981,20 @@ class Instructions
 
   def set_local(index)
     <<-CODE
-    task->stack->field[index] = stack_top();
+    task->current_stack()->field[index] = stack_top();
     CODE
   end
 
   def test_set_local
     <<-CODE
-    task->sp++; /* reserve space */
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qnil);
+    task->push(Qtrue);
 
     stream[1] = (opcode)0;
     run();
 
     TS_ASSERT_EQUALS(stack->at(0), Qtrue);
-    TS_ASSERT_EQUALS(task->sp, 1);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 1);
     CODE
   end
 
@@ -1049,7 +1048,7 @@ class Instructions
 
     task->make_active(bc2);
 
-    task->stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
     bc->locals()->put(state, 0, Qnil);
 
     stream[1] = (opcode)1;
@@ -1057,8 +1056,8 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(task->active->stack->at(task->sp), Qtrue);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(task->active->stack->at(task->calculate_sp()), Qtrue);
     TS_ASSERT_EQUALS(bc->locals()->at(0), Qtrue);
     CODE
   end
@@ -1098,14 +1097,14 @@ class Instructions
 
   def test_make_array
     <<-CODE
-    stack->put(state, ++task->sp, Qtrue);
-    stack->put(state, ++task->sp, Qfalse);
+    task->push(Qtrue);
+    task->push(Qfalse);
 
     stream[1] = 2;
     run();
 
-    TS_ASSERT_EQUALS(task->sp, 0);
-    Array* ary = as<Array>(stack->at(task->sp));
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    Array* ary = as<Array>(stack->at(task->calculate_sp()));
     TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
     TS_ASSERT_EQUALS(ary->get(state, 1), Qfalse);
     CODE
@@ -1150,7 +1149,7 @@ class Instructions
 
   def test_cast_array
     <<-CODE
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
     run();
 
     Array* ary = as<Array>(stack->at(0));
@@ -1213,7 +1212,7 @@ class Instructions
     <<-CODE
     Array* custom = Array::create(state, 1);
     custom->set(state, 0, Qtrue);
-    stack->put(state, ++task->sp, custom);
+    task->push(custom);
     run();
 
     Tuple* tup = as<Tuple>(stack->at(0));
@@ -1274,7 +1273,7 @@ class Instructions
   def test_cast_for_single_block_arg
     <<-CODE
     Tuple* tup = Tuple::create(state, 0);
-    stack->put(state, ++task->sp, tup);
+    task->push(tup);
     run();
 
     TS_ASSERT_EQUALS(stack->at(0), Qnil);
@@ -1345,7 +1344,7 @@ class Instructions
   def test_cast_for_multi_block_arg
     <<-CODE
     Tuple* tup = Tuple::from(state, 2, Qtrue, Qfalse);
-    stack->put(state, ++task->sp, tup);
+    task->push(tup);
     run();
 
     TS_ASSERT_EQUALS(stack->at(0), tup);
@@ -1353,7 +1352,7 @@ class Instructions
     Array* ary = Array::create(state, 1);
     ary->set(state, 0, Object::i2n(1));
     tup = Tuple::from(state, 1, ary);
-    stack->put(state, task->sp, tup);
+    task->active->set_top(tup);
     run();
 
     tup = as<Tuple>(stack->at(0));
@@ -1390,12 +1389,12 @@ class Instructions
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
 
-    stack->put(state, ++task->sp, Qfalse);
+    task->push(Qfalse);
     run();
 
     TS_ASSERT_EQUALS(Qtrue->get_ivar(state, name), Qfalse);
-    TS_ASSERT_EQUALS(task->sp, 0);
-    TS_ASSERT_EQUALS(stack->at(task->sp), Qfalse);
+    TS_ASSERT_EQUALS(task->calculate_sp(), 0);
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qfalse);
     CODE
   end
 
@@ -1502,7 +1501,7 @@ class Instructions
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
 
-    stack->put(state, ++task->sp, G(true_class));
+    task->push(G(true_class));
 
     run();
 
@@ -1546,7 +1545,7 @@ class Instructions
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
 
-    stack->put(state, ++task->sp, Object::i2n(3));
+    task->push(Object::i2n(3));
     run();
 
     TS_ASSERT_EQUALS(parent->get_const(state, name), Object::i2n(3));
@@ -1585,8 +1584,8 @@ class Instructions
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
 
-    stack->put(state, ++task->sp, G(true_class));
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(G(true_class));
+    task->push(Qtrue);
 
     run();
 
@@ -1621,7 +1620,7 @@ class Instructions
   def test_push_cpath_top
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(stack->at(task->sp), G(object));
+    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), G(object));
     CODE
   end
 
@@ -1674,8 +1673,8 @@ class Instructions
   def test_open_class_under
     <<-CODE
     SYMBOL name = state->symbol("C");
-    stack->put(state, ++task->sp, G(true_class));
-    stack->put(state, ++task->sp, Qnil);
+    task->push(G(true_class));
+    task->push(Qnil);
 
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
@@ -1740,7 +1739,7 @@ class Instructions
     ps->parent = (StaticScope*)Qnil;
     SET(cm, scope, ps);
 
-    stack->put(state, ++task->sp, Qnil);
+    task->push(Qnil);
 
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
@@ -1783,7 +1782,7 @@ class Instructions
   def test_open_module_under
     <<-CODE
     SYMBOL name = state->symbol("C");
-    stack->put(state, ++task->sp, G(true_class));
+    task->push(G(true_class));
 
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
@@ -1872,7 +1871,7 @@ class Instructions
   def test_open_metaclass
     <<-CODE
     Tuple* tup = Tuple::create(state, 1);
-    stack->put(state, ++task->sp, tup);
+    task->push(tup);
 
     run();
 
@@ -1921,8 +1920,8 @@ class Instructions
     SYMBOL name = state->symbol("blah");
     task->literals->put(state, 0, name);
 
-    stack->put(state, ++task->sp, cm);
-    stack->put(state, ++task->sp, G(true_class));
+    task->push(cm);
+    task->push(G(true_class));
 
     stream[1] = (opcode)0;
 
@@ -1976,8 +1975,8 @@ class Instructions
     SYMBOL name = state->symbol("blah");
     task->literals->put(state, 0, name);
 
-    stack->put(state, ++task->sp, cm);
-    stack->put(state, ++task->sp, G(true_class));
+    task->push(cm);
+    task->push(G(true_class));
 
     stream[1] = (opcode)0;
 
@@ -2025,13 +2024,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    FLUSH_JS();
-    if(task->send_message(msg)) {
-      return true;
-    } else {
-      CACHE_JS();
-      return false;
-    }
+    return task->send_message(msg);
     CODE
   end
 
@@ -2049,7 +2042,7 @@ class Instructions
     SendSite* ss = SendSite::create(state, name);
 
     task->literals->put(state, 0, ss);
-    stack->put(state, ++task->sp, Qtrue);
+    task->push(Qtrue);
 
     stream[1] = (opcode)0;
 
@@ -2132,13 +2125,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    FLUSH_JS();
-    if(task->send_message(msg)) {
-      return true;
-    } else {
-      CACHE_JS();
-      return false;
-    }
+    return task->send_message(msg);
     CODE
   end
 
@@ -2156,8 +2143,8 @@ class Instructions
     SendSite* ss = SendSite::create(state, name);
 
     task->literals->put(state, 0, ss);
-    stack->put(state, ++task->sp, Qtrue);
-    stack->put(state, ++task->sp, Object::i2n(3));
+    task->push(Qtrue);
+    task->push(Object::i2n(3));
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
@@ -2166,11 +2153,9 @@ class Instructions
 
     run();
 
-    MethodContext* s = task->active->sender;
-    TS_ASSERT_EQUALS(s->sp, -1);
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1U);
-    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
   end
@@ -2220,13 +2205,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    FLUSH_JS();
-    if(task->send_message(msg)) {
-      return true;
-    } else {
-      CACHE_JS();
-      return false;
-    }
+    return task->send_message(msg);
     CODE
   end
 
@@ -2244,11 +2223,11 @@ class Instructions
     SendSite* ss = SendSite::create(state, name);
 
     task->literals->put(state, 0, ss);
-    stack->put(state, ++task->sp, Qtrue);
-    stack->put(state, ++task->sp, Object::i2n(3));
+    task->push(Qtrue);
+    task->push(Object::i2n(3));
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
-    stack->put(state, ++task->sp, be);
+    task->push(be);
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
@@ -2259,7 +2238,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1U);
-    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
@@ -2316,13 +2295,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    FLUSH_JS();
-    if(task->send_message(msg)) {
-      return true;
-    } else {
-      CACHE_JS();
-      return false;
-    }
+    return task->send_message(msg);
     CODE
   end
 
@@ -2340,15 +2313,15 @@ class Instructions
     SendSite* ss = SendSite::create(state, name);
 
     task->literals->put(state, 0, ss);
-    stack->put(state, ++task->sp, Qtrue);
-    stack->put(state, ++task->sp, Object::i2n(3));
+    task->push(Qtrue);
+    task->push(Object::i2n(3));
 
     Array* splat = Array::create(state, 1);
     splat->set(state, 0, Object::i2n(47));
-    stack->put(state, ++task->sp, splat);
+    task->push(splat);
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
-    stack->put(state, ++task->sp, be);
+    task->push(be);
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
@@ -2359,8 +2332,8 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 2U);
-    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
-    TS_ASSERT_EQUALS(task->stack->at(1), Object::i2n(47));
+    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->current_stack()->at(1), Object::i2n(47));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
@@ -2407,13 +2380,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    FLUSH_JS();
-    if(task->send_message(msg)) {
-      return true;
-    } else {
-      CACHE_JS();
-      return false;
-    }
+    return task->send_message(msg);
     CODE
   end
 
@@ -2442,11 +2409,11 @@ class Instructions
     SET(cm, scope, sc);
 
     task->literals->put(state, 0, ss);
-    stack->put(state, ++task->sp, obj);
-    stack->put(state, ++task->sp, Object::i2n(3));
+    task->push(obj);
+    task->push(Object::i2n(3));
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
-    stack->put(state, ++task->sp, be);
+    task->push(be);
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
@@ -2457,7 +2424,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1U);
-    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, obj);
     CODE
@@ -2507,13 +2474,7 @@ class Instructions
 
     task->call_flags = 0;
 
-    FLUSH_JS();
-    if(task->send_message(msg)) {
-      return true;
-    } else {
-      CACHE_JS();
-      return false;
-    }
+    return task->send_message(msg);
     CODE
   end
 
@@ -2542,15 +2503,15 @@ class Instructions
     SET(cm, scope, sc);
 
     task->literals->put(state, 0, ss);
-    stack->put(state, ++task->sp, obj);
-    stack->put(state, ++task->sp, Object::i2n(3));
+    task->push(obj);
+    task->push(Object::i2n(3));
 
     Array* splat = Array::create(state, 1);
     splat->set(state, 0, Object::i2n(47));
-    stack->put(state, ++task->sp, splat);
+    task->push(splat);
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
-    stack->put(state, ++task->sp, be);
+    task->push(be);
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
@@ -2561,8 +2522,8 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 2U);
-    TS_ASSERT_EQUALS(task->stack->at(0), Object::i2n(3));
-    TS_ASSERT_EQUALS(task->stack->at(1), Object::i2n(47));
+    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->current_stack()->at(1), Object::i2n(47));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, obj);
     CODE
@@ -2601,9 +2562,9 @@ class Instructions
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table->store(state, name, cm);
 
-    stack->put(state, ++task->sp, Qtrue);
-    stack->put(state, ++task->sp, name);
-    stack->put(state, ++task->sp, Qfalse);
+    task->push(Qtrue);
+    task->push(name);
+    task->push(Qfalse);
 
     run();
 
@@ -2650,8 +2611,8 @@ class Instructions
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
-    stack->put(state, ++task->sp, one);
-    stack->put(state, ++task->sp, two);
+    task->push(one);
+    task->push(two);
 
     run();
 
@@ -2699,8 +2660,8 @@ class Instructions
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
-    stack->put(state, ++task->sp, two);
-    stack->put(state, ++task->sp, one);
+    task->push(two);
+    task->push(one);
 
     run();
 
@@ -2746,8 +2707,8 @@ class Instructions
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
-    stack->put(state, ++task->sp, two);
-    stack->put(state, ++task->sp, one);
+    task->push(two);
+    task->push(one);
 
     run();
 
@@ -2796,8 +2757,8 @@ class Instructions
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
-    stack->put(state, ++task->sp, two);
-    stack->put(state, ++task->sp, one);
+    task->push(two);
+    task->push(one);
 
     run();
 
@@ -2845,8 +2806,8 @@ class Instructions
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
-    stack->put(state, ++task->sp, two);
-    stack->put(state, ++task->sp, one);
+    task->push(two);
+    task->push(one);
 
     run();
 
@@ -2893,8 +2854,8 @@ class Instructions
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
-    stack->put(state, ++task->sp, one);
-    stack->put(state, ++task->sp, two);
+    task->push(one);
+    task->push(two);
 
     run();
 
@@ -2941,8 +2902,8 @@ class Instructions
     OBJECT one = Object::i2n(1);
     OBJECT two = Object::i2n(2);
 
-    stack->put(state, ++task->sp, one);
-    stack->put(state, ++task->sp, two);
+    task->push(one);
+    task->push(two);
 
     run();
 

@@ -3,6 +3,8 @@
 
 #include "builtin/object.hpp"
 #include "type_info.hpp"
+#include "vmmethod.hpp"
+#include "jit_state.h"
 
 namespace rubinius {
   class BlockContext;
@@ -29,6 +31,7 @@ namespace rubinius {
 
     Tuple* stack; // slot
 
+    struct jit_state js;
     int    ip;
     int    sp;
     size_t args;
@@ -40,6 +43,30 @@ namespace rubinius {
 
     static MethodContext* create(STATE);
     void reference(STATE);
+
+    /* Stack manipulation functions */
+
+    void clear_stack(size_t amount) {
+      sp -= amount;
+      js.stack -= amount;
+    }
+
+    OBJECT pop() {
+      return *js.stack--;
+    }
+
+    void push(OBJECT value) {
+      *++js.stack = value;
+    }
+
+    OBJECT stack_back(size_t position) {
+      OBJECT* pos = js.stack - position;
+      return *pos;
+    }
+
+    void set_top(OBJECT val) {
+      *js.stack = val;
+    }
 
     class Info : public TypeInfo {
     public:

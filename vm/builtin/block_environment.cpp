@@ -45,6 +45,7 @@ namespace rubinius {
     ctx->vmm = vmm;
     ctx->ip = 0;
     ctx->sp = -1;
+    ctx->js.stack = ctx->stack->field + ctx->sp;
 
     return ctx;
   }

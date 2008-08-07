@@ -48,8 +48,9 @@ class TestMessage : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
-    task->stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
-    task->sp = 1;
+    task->set_stack(Tuple::create(state, 2));
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
 
     Message msg(state);
     msg.import_arguments(state, task, 2);
@@ -63,8 +64,9 @@ class TestMessage : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
-    task->stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
-    task->sp = 1;
+    task->set_stack(Tuple::create(state, 2));
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
 
     Array* ary = Array::create(state, 2);
     ary->set(state, 0, state->symbol("blah"));
@@ -73,7 +75,7 @@ class TestMessage : public CxxTest::TestSuite {
     Message msg(state);
     msg.args = 2;
     msg.combine_with_splat(state, task, ary);
-    
+
     TS_ASSERT_EQUALS(Object::i2n(3), msg.get_argument(0));
     TS_ASSERT_EQUALS(Object::i2n(4), msg.get_argument(1));
     TS_ASSERT_EQUALS(state->symbol("blah"), msg.get_argument(2));
@@ -86,12 +88,13 @@ class TestMessage : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
-    task->stack = Tuple::from(state, 2, Object::i2n(3), Object::i2n(4));
-    task->sp = 1;
+    task->set_stack(Tuple::create(state, 2));
+    task->push(Object::i2n(3));
+    task->push(Object::i2n(4));
 
     Message msg(state);
     msg.use_from_task(task, 2);
-    
+
     TS_ASSERT_EQUALS(Object::i2n(3), msg.get_argument(0));
     TS_ASSERT_EQUALS(Object::i2n(4), msg.get_argument(1));
     TS_ASSERT_EQUALS(2U, msg.args);

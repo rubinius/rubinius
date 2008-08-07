@@ -8,10 +8,11 @@
 #include "builtin/array.hpp"
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/contexts.hpp"
 
 namespace rubinius {
 
-  Message::Message(STATE, Array* ary) : 
+  Message::Message(STATE, Array* ary) :
       task(NULL), argument_start(0), send_site(NULL), name(NULL),
       recv(Qnil), block(Qnil), splat(Qnil), current_self(Qnil),
       args(0), stack(0), priv(false), lookup_from(NULL), 
@@ -32,7 +33,7 @@ namespace rubinius {
     if(arguments) {
       return arguments->get(state, index);
     } else if(task){
-      return task->stack->at(task->sp - (args - index - 1));
+      return task->active->stack_back(args - index - 1);
     } else {
       throw new Assertion("message not setup properly");
     }
@@ -57,7 +58,8 @@ namespace rubinius {
     size_t stack_pos = args - 1;
 
     for(size_t i = 0; i < args; i++, stack_pos--) {
-      arguments->set(state, i, task->stack->at(task->sp - stack_pos));
+      OBJECT arg = task->active->stack_back(stack_pos);
+      arguments->set(state, i, arg);
     }
 
     this->args = args;

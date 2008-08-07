@@ -33,7 +33,7 @@ namespace rubinius {
   }
 
   bool CompiledFile::execute(STATE) {
-    TypedRoot<Task*> task(state, Task::create(state));
+    TypedRoot<Task*> task(state, state->new_task());
     TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
 
     Message msg(state);

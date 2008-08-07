@@ -4,6 +4,8 @@
 #include "builtin/iseq.hpp"
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/string.hpp"
 
 #include <llvm/Module.h>
 #include <llvm/DerivedTypes.h>
@@ -35,6 +37,8 @@
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Target/TargetOptions.h>
+#include <llvm/Transforms/Utils/Cloning.h>
+#include <llvm/Analysis/Verifier.h>
 
 #include <algorithm>
 #include <iostream>
@@ -51,6 +55,10 @@ namespace rubinius {
   static llvm::ExecutionEngine* engine;
 
   static llvm::Function* puts;
+
+  llvm::Module* VM::llvm_module() {
+    return operations;
+  }
 
   void VMLLVMMethod::init(const char* path) {
     llvm::ExceptionHandling = true;
@@ -151,6 +159,7 @@ namespace rubinius {
     CallInst::Create(puts, args.begin(), args.end(), "tmp", block);
   }
 
+#if 0
   /* Copied originally from opt */
   static void add_passes(PassManager& PM) {
     PM.add(createVerifierPass());             // Verify that input is correct
@@ -208,10 +217,11 @@ namespace rubinius {
     PM.add(createConstantMergePass());        // Merge dup global constants
 
   }
+#endif
 
-  static Function* create_function() {
+  static Function* create_function(char* name) {
     std::stringstream stream;
-    stream << "jitfunction_" << operations->size();
+    stream << "_XJIT_" << strlen(name) << name << "_" << operations->size();
 
     const Type* task_type  = operations->getTypeByName(std::string("struct.rubinius::Task"));
     std::string js("struct.jit_state");
@@ -254,8 +264,9 @@ namespace rubinius {
     return blocks;
   }
 
-  void VMLLVMMethod::compile() {
-    Function* func = create_function();
+  void VMLLVMMethod::compile(STATE) {
+    char* name = *original->name->to_str(state);
+    Function* func = create_function(name);
 
     Function::arg_iterator args = func->arg_begin();
     Value* task = args++;
@@ -273,6 +284,10 @@ namespace rubinius {
     BasicBlock* last = NULL;
     BasicBlock* cur  = NULL;
     int cur_block = -1;
+
+    /* We collect up all the calls to the operation functions so we can
+     * inline them later. */
+    std::vector<CallInst*> calls(0);
 
     for(std::vector<Opcode*>::iterator i = ops.begin(); i != ops.end(); i++) {
       Opcode* op = *i;
@@ -321,7 +336,7 @@ namespace rubinius {
           func_name = std::string("jit_goto_if_defined");
           break;
         }
-          
+
         call = call_function(func_name, task, js, cur);
         call->setName("goto");
         ICmpInst* cmp = new ICmpInst(ICmpInst::ICMP_EQ, call,
@@ -364,6 +379,11 @@ namespace rubinius {
         new StoreInst(ConstantInt::get(Type::Int32Ty, op->block + 1), next_pos, cur);
         ReturnInst::Create(cur);
       }
+
+      /* Now, inline it! We don't hinge on the optimizer to do this anymore. */
+      if(call) {
+        calls.push_back(call);
+      }
     }
 
     /* stick a return on the end if there isn't already one. */
@@ -371,15 +391,27 @@ namespace rubinius {
       ReturnInst::Create(cur);
     }
 
-    PassManager p;
+    /* Now, manually inline all those calls to operation functions. */
 
-    p.add(new TargetData(operations));
-    add_passes(p);
+    for(std::vector<CallInst*>::iterator i = calls.begin(); i != calls.end(); i++) {
+      CallInst* ci = *i;
+      llvm::InlineFunction(ci);
+    }
 
-    // std::ostream* out = new std::ofstream("test.bc", std::ios::out);
-    // p.add(CreateBitcodeWriterPass(*out));
+    FunctionPassManager fpm(new ExistingModuleProvider(func->getParent()));
 
-    p.run(*operations);
+    fpm.add(new TargetData(func->getParent()));
+    fpm.add(createInstructionCombiningPass());
+    fpm.add(createPromoteMemoryToRegisterPass());
+    fpm.add(createConstantPropagationPass());
+    fpm.add(createScalarReplAggregatesPass());
+    fpm.add(createAggressiveDCEPass());
+    fpm.add(createVerifierPass());
+    fpm.add(createCFGSimplificationPass());
+    fpm.add(createDeadStoreEliminationPass());
+    fpm.add(createInstructionCombiningPass());
+    fpm.run(*func);
+
     function = func;
 
     c_func = (CompiledFunction)engine->getPointerToFunction(func);
@@ -394,18 +426,12 @@ namespace rubinius {
 
     delete meth;
 
-    real->compile();
+    real->compile(state);
     return VMMethod::executor(state, real, task, msg);
   }
 
   void VMLLVMMethod::resume(Task* task, MethodContext* ctx) {
-    /* compile it on demand. */
-    // if(!function) assert(false); // compile();
-
-    struct jit_state& js = task->js;
-    js.stack = ctx->stack->field + ctx->sp;
-    c_func(task, &js, &ctx->ip);
-    ctx->sp = js.stack - ctx->stack->field;
+    c_func(task, &ctx->js, &ctx->ip);
     if(ctx->ip == -1) {
       throw Task::Halt("Task halted");
     }
