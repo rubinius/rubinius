@@ -119,20 +119,22 @@ class TestObject : public CxxTest::TestSuite {
     Tuple* t1 = Tuple::create(state, 2);
     Tuple* t2 = Tuple::create(state, 2);
 
-    uintptr_t id1 = t1->id(state);
-    uintptr_t id2 = t2->id(state);
+    INTEGER id1 = t1->id(state);
+    INTEGER id2 = t2->id(state);
 
-    TS_ASSERT(id1 > 0 && id2 > 0);
-    TS_ASSERT(id1 != id2);
+    TS_ASSERT(id1->n2i() > 0);
+    TS_ASSERT(id2->n2i() > 0);
+
+    TS_ASSERT_DIFFERS(id1, id2)
 
     TS_ASSERT_EQUALS(id1, t1->id(state));
 
-    uintptr_t id3 = Object::i2n(33)->id(state);
-    TS_ASSERT(id3 != id1);
+    INTEGER id3 = Object::i2n(33)->id(state);
+    TS_ASSERT_DIFFERS(id3, id1);
 
-    uintptr_t id4 = Object::i2n(33)->id(state);
+    INTEGER id4 = Object::i2n(33)->id(state);
     TS_ASSERT_EQUALS(id3, id4);
-    TS_ASSERT(id4 % 2 != 0);
+    TS_ASSERT(id4->n2i() % 2 != 0);
   }
 
   void test_tainted_p() {

@@ -374,14 +374,14 @@ namespace rubinius {
       } else if(kind_of_p(state, G(floatpoint))) {
         hsh = String::hash_str((unsigned char *)(this->bytes), sizeof(double));
       } else {
-        hsh = id(state);
+        hsh = id(state)->n2i();
       }
     }
 
     return hsh;
   }
 
-  uintptr_t Object::id(STATE) {
+  INTEGER Object::id(STATE) {
     if(reference_p()) {
       OBJECT id;
 
@@ -396,10 +396,10 @@ namespace rubinius {
         meta->set_ivar(state, G(sym_object_id), id);
       }
 
-      return (uintptr_t)id;
+      return as<Integer>(id);
     } else {
       /* All non-references have an odd object_id */
-      return (((uintptr_t)this << 1) | 1);
+      return Object::i2n(((uintptr_t)this << 1) | 1);
     }
   }
 

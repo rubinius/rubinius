@@ -26,10 +26,10 @@ namespace rubinius {
     /* WARNING. Do not use this version if +num+ has the chance of being
      * greater than FIXNUM_MAX. */
     static FIXNUM i2n(native_int num);
-    static Integer* i2n(STATE, native_int num);
-    static Integer* ui2n(STATE, unsigned int num);
-    static Integer* ll2n(STATE, long long num);
-    static Integer* ull2n(STATE, unsigned long long num);
+    static INTEGER i2n(STATE, native_int num);
+    static INTEGER ui2n(STATE, unsigned int num);
+    static INTEGER ll2n(STATE, long long num);
+    static INTEGER ull2n(STATE, unsigned long long num);
 
     bool fixnum_p();
     bool symbol_p();
@@ -90,7 +90,7 @@ namespace rubinius {
     OBJECT clone(STATE);
 
     // Ruby.primitive :object_id
-    uintptr_t id(STATE);
+    INTEGER id(STATE);
 
     OBJECT get_field(STATE, size_t index);
     void   set_field(STATE, size_t index, OBJECT val);
