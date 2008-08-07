@@ -21,6 +21,13 @@ public:
     TS_ASSERT_EQUALS(Thread::current(state), current_thread);
   }
 
+  void test_create() {
+    Thread* thr = Thread::create(state);
+
+    TS_ASSERT_EQUALS(2, thr->priority->n2i());
+    TS_ASSERT_DIFFERS(thr, Thread::current(state));
+  }
+
   void test_run() {
     Thread* thr = Thread::create(state);
 
