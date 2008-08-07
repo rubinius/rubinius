@@ -36,6 +36,9 @@ namespace rubinius {
     void sleep_for(STATE, Channel* chan);
     void set_top(STATE, OBJECT val);
 
+    // Ruby.primitive :thread_schedule
+    Thread* wakeup(STATE);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

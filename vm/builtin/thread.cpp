@@ -52,4 +52,10 @@ namespace rubinius {
     channel = chan;
     set_ivar(state, state->symbol("@sleep"), Qtrue);
   }
+
+  Thread* Thread::wakeup(STATE) {
+    state->queue_thread(this);
+    return this;
+  }
+
 }
