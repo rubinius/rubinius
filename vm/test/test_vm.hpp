@@ -81,4 +81,18 @@ class TestVM : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(state->current_thread(), current_thread);
   }
 
+  void test_run_best_thread() {
+    Thread* cur = Thread::current(state);
+    Thread* low = Thread::create(state);
+
+    low->priority = Object::i2n(0);
+
+    cur->wakeup(state);
+    low->wakeup(state);
+
+    state->run_best_thread();
+
+    TS_ASSERT_EQUALS(cur, Thread::current(state));
+  }
+
 };
