@@ -3,6 +3,7 @@
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
+#include "builtin/float.hpp"
 
 #include "objects.hpp"
 #include "vm.hpp"
@@ -189,6 +190,57 @@ namespace rubinius {
   String* String::add(STATE, const char* other) {
     return string_dup(state)->append(state, other);
   }
+
+  Float* String::to_f(STATE) {
+    return Float::create(state, this->to_double(state));
+  }
+
+  double String::to_double(STATE) {
+    double value;
+    char *ba = this->data->to_chars(state);
+    char *p, *n, *rest;
+    int e_seen = 0;
+
+    p = ba;
+    while (ISSPACE(*p)) p++;
+    n = p;
+
+    while (*p) {
+      if (*p == '_') {
+        p++;
+      } else {
+        if(*p == 'e' || *p == 'E') {
+          if(e_seen) {
+            *n = 0;
+            break;
+          }
+          e_seen = 1;
+        } else if(!(ISDIGIT(*p) || *p == '.' || *p == '-' || *p == '+')) {
+          *n = 0;
+          break;
+        }
+
+        *n++ = *p++;
+      }
+    }
+    *n = 0;
+
+    /* Some implementations of strtod() don't guarantee to
+     * set errno, so we need to reset it ourselves.
+     */
+    errno = 0;
+
+    value = strtod(ba, &rest);
+    if (errno == ERANGE) {
+      printf("Float %s out of range\n", ba);
+    }
+
+    free(ba);
+
+
+    return value;
+  }
+
 
   void String::Info::show(STATE, OBJECT self) {
     String* str = as<String>(self);

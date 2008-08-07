@@ -103,4 +103,18 @@ class TestString : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(str1->equal(state, str2), Qtrue);
     TS_ASSERT_EQUALS(str1->equal(state, str3), Qfalse);
   }
+
+  void test_to_double() {
+    str = String::create(state, "2.10");
+    double val = 2.10;
+    double ret = str->to_double(state);
+    TS_ASSERT_EQUALS(val, ret);
+  }
+
+  void test_to_f() {
+    str = String::create(state, "6.50");
+    Float* val = Float::create(state, 6.50);
+    Float* ret = str->to_f(state);
+    TS_ASSERT(val->equal(state, ret));
+  }
 };

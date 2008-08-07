@@ -17,6 +17,7 @@ namespace rubinius {
 
     // Ruby.primitive :bytearray_size
     INTEGER size(STATE);
+    char* to_chars(STATE);
 
     class Info : public TypeInfo {
     public:
