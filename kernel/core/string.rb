@@ -2069,7 +2069,7 @@ class String
 
   def tr_expand!(limit)
     Ruby.primitive :string_tr_expand
-    raise PrimitiveFailure, "String#tr_flatten primitive failed"
+    raise PrimitiveFailure, "String#tr_expand primitive failed"
   end
 
   def justify(width, direction, padstr=" ")
