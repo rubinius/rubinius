@@ -1,6 +1,6 @@
 #include "builtin/regexp.hpp"
 #include "builtin/class.hpp"
-#include "builtin/hash.hpp"
+#include "builtin/lookuptable.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
@@ -89,7 +89,7 @@ namespace rubinius {
   
   struct _gather_data {
     STATE;
-    Hash* tup;
+    LookupTable* tbl;
   };
 
   static int _gather_names(const UChar *name, const UChar *name_end,
@@ -97,12 +97,12 @@ namespace rubinius {
 
     int gn;
     STATE;
-    Hash* hash = gd->tup;
+    LookupTable* tbl = gd->tbl;
 
     state = gd->state;
 
     gn = group_nums[0];
-    hash->set(state, state->symbol((char*)name), Object::i2n(state, gn - 1));
+    tbl->store(state, state->symbol((char*)name), Object::i2n(state, gn - 1));
     return 0;
   }
 
@@ -151,10 +151,10 @@ namespace rubinius {
     } else {
       struct _gather_data gd;
       gd.state = state;
-      Hash* o_names = Hash::create(state);
-      gd.tup = o_names;
+      LookupTable* tbl = LookupTable::create(state);
+      gd.tbl = tbl;
       onig_foreach_name(*reg, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
-      SET(o_reg, names, o_names);
+      SET(o_reg, names, tbl);
     }
 
     return o_reg;

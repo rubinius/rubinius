@@ -34,7 +34,7 @@ class TestRegexp : public CxxTest::TestSuite {
     String *pat = String::create(state, "(?<blah>.)");
     Regexp* re = Regexp::create(state, pat, Object::i2n(0));
     TS_ASSERT_EQUALS(re->source, pat);
-    TS_ASSERT(re->names->kind_of_p(state, G(hash)));
+    TS_ASSERT(re->names->kind_of_p(state, G(lookuptable)));
   }
 
   void test_create_with_bad_pattern() {

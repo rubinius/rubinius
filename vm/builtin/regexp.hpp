@@ -7,7 +7,7 @@
 namespace rubinius {
   class String;
   class Tuple;
-  class Hash;
+  class LookupTable;
 
   class RegexpData : public Object {
     public:
@@ -30,7 +30,7 @@ namespace rubinius {
     OBJECT __ivars__; // slot
     String* source; // slot
     RegexpData* data; // slot
-    Hash* names; // slot
+    LookupTable* names; // slot
 
     static void cleanup(STATE, OBJECT data);
     static void init(STATE);
