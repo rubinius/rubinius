@@ -52,6 +52,22 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(task, state->globals.current_task.get());
   }
 
+  void task_get_control_channel() {
+    Task* task = Task::current(state);
+
+    Channel* control = task->get_control_channel(state);
+
+    TS_ASSERT_EQUALS(task->control_channel, control);
+  }
+
+  void task_get_debug_channel() {
+    Task* task = Task::current(state);
+
+    Channel* debug = task->get_debug_channel(state);
+
+    TS_ASSERT_EQUALS(task->debug_channel, debug);
+  }
+
   void test_send_message() {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state);

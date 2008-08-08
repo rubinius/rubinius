@@ -83,6 +83,14 @@ namespace rubinius {
     return ctx;
   }
 
+  Channel* Task::get_debug_channel(STATE) {
+    return debug_channel;
+  }
+
+  Channel* Task::get_control_channel(STATE) {
+    return control_channel;
+  }
+
   void Task::restore_context(MethodContext* ctx) {
 
     SET(this, literals, ctx->cm->literals);
