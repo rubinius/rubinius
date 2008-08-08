@@ -66,9 +66,12 @@ namespace rubinius {
 
     // Ruby.primitive :task_control_channel
     Channel* get_control_channel(STATE);
-    
+
     // Ruby.primitive :task_debug_channel
     Channel* get_debug_channel(STATE);
+
+    // Ruby.primitive :task_current_context
+    MethodContext* current_context(STATE);
 
     MethodContext* generate_context(OBJECT recv, CompiledMethod* meth);
     void restore_context(MethodContext* ctx);

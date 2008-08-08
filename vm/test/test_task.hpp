@@ -52,6 +52,12 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(task, state->globals.current_task.get());
   }
 
+  void test_current_context() {
+    Task* task = Task::current(state);
+
+    TS_ASSERT_EQUALS(task->active, task->current_context(state));
+  }
+
   void task_get_control_channel() {
     Task* task = Task::current(state);
 
