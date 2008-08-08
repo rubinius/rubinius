@@ -2747,33 +2747,20 @@ class ShotgunPrimitives
     CODE
   end
 
-  defprim :task_at
-  def task_at
+  defprim :task_current_context
+  def task_current_context
     <<-CODE
-    ARITY(1);
+    ARITY(0);
     struct cpu_task *task;
-    OBJECT t1, t2;
-    native_int k;
-
     GUARD(TASK_P(msg->recv));
-    POP(t1, FIXNUM);
+    OBJECT t1;
 
     task = (struct cpu_task*)BYTES_OF(msg->recv);
-    k = N2I(t1);
 
-    switch(k) {
-    case 0:
-      t2 = task->main;
-      break;
-    case 1:
-      t2 = task->active_context;
-      if(REFERENCE_P(t2)) methctx_reference(state, t2);
-      break;
-    default:
-      t2 = Qnil;
-    }
+    t1 = task->active_context;
+    if(REFERENCE_P(t1)) methctx_reference(state, t1);
 
-    RET(t2);
+    RET(t1);
     CODE
   end
 

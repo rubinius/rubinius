@@ -21,17 +21,9 @@ class Rubinius::Task
     Kernel.raise PrimitiveFailure, "primitive failed"
   end
 
-  def at(index)
-    Ruby.primitive :task_at
-    Kernel.raise PrimitiveFailure, "primitive failed"
-  end
-
-  def main
-    at(0)
-  end
-
   def current_context
-    at(1)
+    Ruby.primitive :task_current_context
+    Kernel.raise PrimitiveFailure, 'task_current_context primitive failed'
   end
 
   def inspect
