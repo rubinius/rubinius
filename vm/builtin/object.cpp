@@ -1,8 +1,8 @@
 #include "builtin/object.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
+#include "builtin/compactlookuptable.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/hash.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
@@ -419,13 +419,11 @@ namespace rubinius {
   }
 
   OBJECT Object::get_ivar(STATE, OBJECT sym) {
-    OBJECT val;
-    LookupTable* tbl;
-
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+
       if(tbl) return tbl->fetch(state, sym);
       return Qnil;
     } else if(!has_ivars_p()) {
@@ -436,19 +434,15 @@ namespace rubinius {
       return Qnil;
     }
 
-    /* It's a tuple, use csm */
-    if(Tuple* tup = try_as<Tuple>(((NormalObject*)this)->instance_variables)) {
-      return Hash::csm_find(state, tup, sym);
+    OBJECT ivars = ((NormalObject*)this)->instance_variables;
+
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars)) {
+      return tbl->fetch(state, sym);
+    } else if(LookupTable* tbl = try_as<LookupTable>(ivars)) {
+      return tbl->fetch(state, sym);
     }
 
-    tbl = try_as<LookupTable>(((NormalObject*)this)->instance_variables);
-
-    /* No table, no ivar! */
-    if(!tbl) return Qnil;
-
-    /* It's a normal hash, no problem. */
-    val = tbl->fetch(state, sym);
-    return val;
+    return Qnil;
   }
 
   OBJECT Object::set_ivar(STATE, OBJECT sym, OBJECT val) {
@@ -480,26 +474,25 @@ namespace rubinius {
 
     OBJECT ivars = ((NormalObject*)this)->instance_variables;
 
-    /* Lazy creation of hash to store instance variables. */
+    /* Lazy creation of a lookuptable to store instance variables. */
     if(ivars->nil_p()) {
-      Tuple* tup = Hash::csm_new(state);
-      SET((NormalObject*)this, instance_variables, tup);
-      Hash::csm_add(state, tup, sym, val);
+      CompactLookupTable* tbl = CompactLookupTable::create(state);
+      SET((NormalObject*)this, instance_variables, tbl);
+      tbl->store(state, sym, val);
       return val;
     }
 
-    if(Tuple* tup = try_as<Tuple>(ivars)) {
-      if(Hash::csm_add(state, tup, sym, val) == Qtrue) {
+    if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars)) {
+      if(tbl->store(state, sym, val) == Qtrue) {
         return val;
       }
 
-      /* csm_add said false, meaning there is no room. We convert
-         the csm into a normal hash and use it from now on. */
-      tbl = Hash::csm_into_lookuptable(state, tup);
-      SET((NormalObject*)this, instance_variables, tbl);
+      /* No more room in the CompactLookupTable. */
+      ivars = tbl->to_lookuptable(state);
+      SET((NormalObject*)this, instance_variables, ivars);
     }
 
-    as<LookupTable>(ivars)->store(state, sym, val);
+    try_as<LookupTable>(ivars)->store(state, sym, val);
     return val;
   }
 

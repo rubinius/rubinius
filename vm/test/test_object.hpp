@@ -1,6 +1,7 @@
 #include "objects.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "builtin/compactlookuptable.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -101,6 +102,22 @@ class TestObject : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(as<Object>(s1)->equal(state, as<Object>(s2)), Qfalse);
     TS_ASSERT_EQUALS(as<Object>(Object::i2n(0))->equal(state, as<Object>(Object::i2n(0))), Qtrue);
+  }
+
+  void test_set_ivar() {
+    char name[7] = "@testX";
+    unsigned int i, size = COMPACTLOOKUPTABLE_SIZE / 2 + 2;
+    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    OBJECT sym;
+
+    for (i = 0; i < size; i++) {
+      name[5] = '0' + i;
+      sym = state->symbol(name);
+      obj->set_ivar(state, sym, Object::i2n(i));
+    }
+
+    sym = state->symbol("@test5");
+    TS_ASSERT_EQUALS(obj->get_ivar(state, sym), Object::i2n(5));
   }
 
   void test_get_ivar() {
