@@ -54,6 +54,7 @@ namespace rubinius {
     ListNodeType    ,
     NativeFuncType  ,
     DirType         ,
+    CompactLookupTableType,
 
     LastObjectType   // must remain at end
   } object_type;

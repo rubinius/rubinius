@@ -7,6 +7,7 @@
 #include "builtin/array.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
+#include "builtin/compactlookuptable.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/dir.hpp"
 #include "builtin/executable.hpp"
@@ -176,6 +177,9 @@ namespace rubinius {
     GO(dir).set(new_class(object, Dir::fields));
     G(dir)->instance_type = Object::i2n(DirType);
 
+    GO(compactlookuptable).set(new_class(G(tuple), CompactLookupTable::fields));
+    G(compactlookuptable)->instance_type = Object::i2n(CompactLookupTableType);
+
     bootstrap_symbol();
 
     G(object)->setup(this, "Object");
@@ -198,6 +202,7 @@ namespace rubinius {
     G(staticscope)->setup(this, "StaticScope");
     G(symbol)->setup(this, "Symbol");
     G(dir)->setup(this, "Dir");
+    G(compactlookuptable)->setup(this, "CompactLookupTable");
 
     G(object)->set_const(this, symbol("Symbols"), G(symbols));
 

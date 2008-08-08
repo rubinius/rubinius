@@ -44,6 +44,7 @@ field_extract_headers = %w[
   vm/builtin/channel.hpp
   vm/builtin/class.hpp
   vm/builtin/executable.hpp
+  vm/builtin/compactlookuptable.hpp
   vm/builtin/compiledmethod.hpp
   vm/builtin/contexts.hpp
   vm/builtin/dir.hpp

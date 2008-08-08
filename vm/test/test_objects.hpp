@@ -173,4 +173,15 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cls->instance_type, Object::i2n(DirType));
     check_const(dir, "Dir");
   }
+
+  void test_compactlookuptable() {
+    Class *cls;
+
+    cls = G(compactlookuptable);
+
+    TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
+    TS_ASSERT_EQUALS(cls->superclass, G(tuple));
+    TS_ASSERT_EQUALS(cls->instance_type, Object::i2n(CompactLookupTableType));
+    check_const(compactlookuptable, "CompactLookupTable");
+  }
 };
