@@ -61,6 +61,9 @@ namespace rubinius {
     static Task* create(STATE, OBJECT recv, CompiledMethod* meth);
     static Task* create(STATE);
 
+    // Ruby.primitive :task_current
+    static Task* current(STATE);
+
     MethodContext* generate_context(OBJECT recv, CompiledMethod* meth);
     void restore_context(MethodContext* ctx);
     void make_active(MethodContext* ctx);

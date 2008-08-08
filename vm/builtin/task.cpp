@@ -61,6 +61,10 @@ namespace rubinius {
     return task;
   }
 
+  Task* Task::current(STATE) {
+    return state->globals.current_task.get();
+  }
+
   MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth) {
     MethodContext* ctx = MethodContext::create(state);
 

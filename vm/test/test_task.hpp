@@ -46,6 +46,12 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(0, task->ip);
   }
 
+  void test_current() {
+    Task* task = Task::current(state);
+
+    TS_ASSERT_EQUALS(task, state->globals.current_task.get());
+  }
+
   void test_send_message() {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state);
@@ -207,7 +213,6 @@ class TestTask : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(task->active, top);
   }
-
 
   void test_send_message_sets_up_fixed_locals_with_optionals() {
     CompiledMethod* cm = create_cm();
