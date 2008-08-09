@@ -94,6 +94,7 @@ namespace rubinius {
     Module* open_module(Module* under, SYMBOL name);
     Module* open_module(SYMBOL name);
 
+    // Ruby.primitive :task_raise
     void raise_exception(Exception *exc);
     void activate_method(Message& msg);
     bool send_message(Message& msg);
