@@ -151,7 +151,7 @@ class InstructionSet
     {:opcode => :cast_for_single_block_arg, :args => [], :stack => [1,1]},
     {:opcode => :cast_for_multi_block_arg, :args => [], :stack => [1,1]},
     {:opcode => :check_serial, :args => [:literal, :int], :stack => [1,1]},
-    
+
     # meta opcodes, used for optimization only.
     {:opcode => :meta_push_neg_1, :args => [], :stack => [0,1]},
     {:opcode => :meta_push_0, :args => [], :stack => [0,1]},
@@ -172,7 +172,11 @@ class InstructionSet
     {:opcode => :meta_send_op_nequal, :args => [], :stack => [2,1],
       :flow => :send, :vm_flags => [:check_interrupts]},
     {:opcode => :meta_send_call, :args => [:int], :stack => [-111,1],
-      :flow => :send}
+      :flow => :send},
+
+    # scope management
+    {:opcode => :push_scope, :args => [], :stack => [0, 1]},
+    {:opcode => :add_scope,  :args => [], :stack => [1, 0]}
   ]
 
   class OpCode

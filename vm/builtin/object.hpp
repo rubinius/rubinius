@@ -11,17 +11,17 @@ namespace rubinius {
   class Object : public ObjectHeader {
   public:
 
-    // Ruby.primitive :object_equal
-    OBJECT equal(STATE, OBJECT other);
-
-    // Ruby.primitive :object_show
-    OBJECT show(STATE);
-
     /* body access */
     union {
       OBJECT field[];
       uint8_t bytes[];
     };
+
+    // Ruby.primitive :object_equal
+    OBJECT equal(STATE, OBJECT other);
+
+    // Ruby.primitive :object_show
+    OBJECT show(STATE);
 
     /* WARNING. Do not use this version if +num+ has the chance of being
      * greater than FIXNUM_MAX. */
@@ -98,6 +98,8 @@ namespace rubinius {
 
     bool kind_of_p(STATE, OBJECT cls);
     Class* lookup_begin(STATE);
+
+    // Ruby.primitive :object_class
     Class* class_object(STATE);
 
     hashval hash(STATE);

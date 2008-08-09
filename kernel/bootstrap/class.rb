@@ -1,6 +1,6 @@
 class Class
   def __allocate__
-    Ruby.primitive :allocate
+    Ruby.primitive :class_allocate
     raise RuntimeError, "primitive '__allocate__' failed on #{self.inspect}"
   end
 
@@ -9,8 +9,15 @@ class Class
   end
 
   def new(*args)
-    Ruby.primitive :class_new
-    raise PrimitiveFailure, "Unable to create new instance"
+    obj = allocate()
+    Rubinius.asm(args, obj) do |args, obj|
+      run obj
+      run args
+      push_block
+      send_with_splat :initialize, 0, true
+    end
+
+    return obj
   end
 
   def instance_fields; @instance_fields ; end

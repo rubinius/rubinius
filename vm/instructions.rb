@@ -405,8 +405,7 @@ class Instructions
 
   def push_local(index)
     <<-CODE
-    OBJECT obj = task->current_stack()->field[index];
-    stack_push(obj);
+    stack_push(task->get_local(index));
     CODE
   end
 
@@ -719,7 +718,7 @@ class Instructions
 
   def goto(location)
     <<-CODE
-    task->ip = location;
+    task->set_ip(location);
     cache_ip();
     CODE
   end
@@ -728,7 +727,7 @@ class Instructions
     <<-CODE
     stream[1] = (opcode)15;
     run();
-    TS_ASSERT_EQUALS(task->ip, 15);
+    TS_ASSERT_EQUALS(task->current_ip(), 15);
     CODE
   end
 
@@ -754,7 +753,7 @@ class Instructions
     <<-CODE
     OBJECT t1 = stack_pop();
     if(!RTEST(t1)) {
-      task->ip = location;
+      task->set_ip(location);
       cache_ip();
     }
     CODE
@@ -766,11 +765,11 @@ class Instructions
     stream[1] = (opcode)15;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), -1);
-    TS_ASSERT_EQUALS(task->ip, 0);
+    TS_ASSERT_EQUALS(task->current_ip(), 0);
 
     task->push(Qfalse);
     run();
-    TS_ASSERT_EQUALS(task->ip, 15);
+    TS_ASSERT_EQUALS(task->current_ip(), 15);
     TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     CODE
   end
@@ -797,7 +796,7 @@ class Instructions
     <<-CODE
     OBJECT t1 = stack_pop();
     if(RTEST(t1)) {
-      task->ip = location;
+      task->set_ip(location);
       cache_ip();
     }
     CODE
@@ -809,11 +808,11 @@ class Instructions
     stream[1] = (opcode)15;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), -1);
-    TS_ASSERT_EQUALS(task->ip, 0);
+    TS_ASSERT_EQUALS(task->current_ip(), 0);
 
     task->push(Qtrue);
     run();
-    TS_ASSERT_EQUALS(task->ip, 15);
+    TS_ASSERT_EQUALS(task->current_ip(), 15);
     TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     CODE
   end
@@ -841,8 +840,7 @@ class Instructions
     <<-CODE
     OBJECT t1 = stack_pop();
     if(t1 != Qundef) {
-      task->ip = location;
-      cache_ip();
+      task->set_ip(location);
     }
     CODE
   end
@@ -853,11 +851,11 @@ class Instructions
     stream[1] = (opcode)15;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), -1);
-    TS_ASSERT_EQUALS(task->ip, 0);
+    TS_ASSERT_EQUALS(task->current_ip(), 0);
 
     task->push(Qtrue);
     run();
-    TS_ASSERT_EQUALS(task->ip, 15);
+    TS_ASSERT_EQUALS(task->current_ip(), 15);
     TS_ASSERT_EQUALS(task->calculate_sp(), -1);
     CODE
   end
@@ -981,7 +979,7 @@ class Instructions
 
   def set_local(index)
     <<-CODE
-    task->current_stack()->field[index] = stack_top();
+    task->set_local(index, stack_top());
     CODE
   end
 
@@ -3465,6 +3463,73 @@ class Instructions
     }
     CODE
   end
+
+  # === Scope Management instructions ===
+
+  # [Operation]
+  #   Pushes the current StaticScope object on the stack
+  # [Format]
+  #   \push_scope
+  # [Stack Before]
+  #   * ...
+  # [Stack After]
+  #   * #<StaticScope>
+  #   * ...
+  # [Description]
+  #   Many operations are defered to the current scope. This operation
+  #   retrieves the current scope so methods can be called on it.
+  #
+
+  def push_scope
+    <<-CODE
+    stack_push(task->active->cm->scope);
+    CODE
+  end
+
+  def test_push_scope
+    <<-CODE
+    run();
+    TS_ASSERT_EQUALS(task->active->cm->scope, stack->at(0));
+    CODE
+  end
+
+  # [Operation]
+  #   Set the StaticScope of the current CompiledMethod
+  # [Format]
+  #   \push_scope
+  # [Stack Before]
+  #   * #<Module>
+  #   * ...
+  # [Stack After]
+  #   * ...
+  # [Description]
+  #   Create a new StaticScope object and set it to the current
+  #   CompiledMethod object. The value on the top of the stack is set
+  #   to be the module within the StaticScope. This scope is chained off
+  #   the current scope of the method.
+  #
+
+  def add_scope
+    <<-CODE
+    OBJECT obj = stack_pop();
+    Module* mod = as<Module>(obj);
+    StaticScope* scope = StaticScope::create(state);
+    SET(scope, module, mod);
+    SET(scope, parent, task->active->cm->scope);
+    SET(task->active->cm, scope, scope);
+    CODE
+  end
+
+  def test_add_scope
+    <<-CODE
+    StaticScope* scope = task->active->cm->scope;
+    task->push(G(string));
+    run();
+    TS_ASSERT_DIFFERS(scope, task->active->cm->scope);
+    TS_ASSERT_EQUALS(G(string), task->active->cm->scope->module);
+    CODE
+  end
+
 
 end
 

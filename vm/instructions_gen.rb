@@ -104,10 +104,6 @@ class Instructions
 
     methods.each do |impl|
       io.puts "  case #{impl.name.bytecode}: { // #{impl.name.opcode}"
-      if flow and impl.name.flow and impl.name.flow != :sequential
-        # Flush the ip register from the task
-        io.puts "  ctx->ip = task->ip;"
-      end
 
       args = impl.args
       case args.size
@@ -131,6 +127,9 @@ class Instructions
       io.puts "  break;"
       io.puts "  }"
     end
+
+    io.puts "default:"
+    io.puts %q!  std::cout << "Invalid instruction: " << InstructionSequence::get_instruction_name(op) << "\n"; abort();!
 
     io.puts "}"
   end

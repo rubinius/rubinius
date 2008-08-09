@@ -119,4 +119,8 @@ namespace :kernel do
       create_load_order files, "runtime/#{name}/.load_order.txt"
     end
   end
+
+  task :clean do
+    sh "rm -rf runtime/bootstrap runtime/platform runtime/core"
+  end
 end

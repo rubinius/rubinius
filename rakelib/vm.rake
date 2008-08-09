@@ -201,6 +201,7 @@ end
 file 'vm/field_extract.rb' => 'vm/gen'
 
 files TYPE_GEN, field_extract_headers + %w[vm/field_extract.rb] do
+  puts "GEN field_extract"
   field_extract field_extract_headers
 end
 

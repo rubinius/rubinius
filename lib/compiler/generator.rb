@@ -138,27 +138,26 @@ class Compiler
 
     def to_cmethod(desc)
       collapse_labels
-      
+
       iseq = @encoder.encode_stream @stream
       cm = CompiledMethod.new.from_string iseq, desc.locals.size, desc.required
-      
+
       cm.total_args = desc.required + desc.optional
       cm.required_args = desc.required
       cm.literals = encode_literals(cm)
       cm.lines = encode_lines()
       cm.local_names = desc.locals.encoded_order
       cm.exceptions = encode_exceptions()
-     
+
 
       if desc.splat
         cm.splat = desc.splat.slot
-        cm.total_args += 1
       else
         cm.splat = nil
       end
-      
-      cm.stack_size = cm.total_args + iseq.stack_depth
-     
+
+      cm.stack_size = desc.locals.size + iseq.stack_depth
+
       if @file
         cm.file = @file.to_sym
       else

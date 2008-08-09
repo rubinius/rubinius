@@ -38,6 +38,11 @@ namespace rubinius {
     SET(this, entries, Object::i2n(0));
   }
 
+  /* The LookupTable.allocate primitive. */
+  LookupTable* LookupTable::allocate(STATE) {
+    return LookupTable::create(state, LOOKUPTABLE_MIN_SIZE);
+  }
+
   LookupTable* LookupTable::dup(STATE) {
     size_t size, i;
     LookupTable *dup;

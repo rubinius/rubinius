@@ -22,11 +22,17 @@ namespace rubinius {
     /* Prototypes */
     static LookupTable* create(STATE, size_t sz = LOOKUPTABLE_MIN_SIZE);
     void setup(STATE, size_t sz);
+
+    // Ruby.primitive :lookuptable_allocate
+    static LookupTable* allocate(STATE);
+
     // Ruby.primitive :lookuptable_store
     OBJECT store(STATE, OBJECT key, OBJECT val);
+
     // Ruby.primitive :lookuptable_fetch
     OBJECT fetch(STATE, OBJECT key);
     OBJECT fetch(STATE, OBJECT key, bool* found);
+
     // Ruby.primitive :lookuptable_dup
     LookupTable* dup(STATE);
     static OBJECT entry_new(STATE, OBJECT key, OBJECT val);

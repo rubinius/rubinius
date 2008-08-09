@@ -2,6 +2,7 @@
 #include "vm.hpp"
 #include "objects.hpp"
 #include "objectmemory.hpp"
+#include "builtin/fixnum.hpp"
 
 #include <cstdarg>
 
@@ -13,8 +14,35 @@ namespace rubinius {
     return field[index];
   }
 
+  /* The Tuple#at primitive. */
+  OBJECT Tuple::at_prim(STATE, FIXNUM index_obj) {
+    size_t index = index_obj->n2i();
+    if(field_count <= index) return Qnil;
+
+    return field[index];
+  }
+
+  OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {
+    state->om->store_object(this, idx, val);
+    return val;
+  }
+
+  /* The Tuple#put primitive. */
+  OBJECT Tuple::put_prim(STATE, FIXNUM index, OBJECT val) {
+    return put(state, index->n2i(), val);
+  }
+
+  /* The Tuple#fields primitive. */
+  OBJECT Tuple::fields_prim(STATE) {
+    return Object::i2n(state, field_count);
+  }
+
   Tuple* Tuple::create(STATE, size_t fields) {
     return (Tuple*)state->om->new_object(G(tuple), fields);
+  }
+
+  Tuple* Tuple::allocate(STATE, Fixnum* fields) {
+    return Tuple::create(state, fields->n2i());
   }
 
   Tuple* Tuple::from(STATE, size_t fields, ...) {
@@ -34,10 +62,6 @@ namespace rubinius {
 
   }
 
-  OBJECT Tuple::put(STATE, size_t idx, OBJECT val) {
-    state->om->store_object(this, idx, val);
-    return val;
-  }
 
   void Tuple::Info::mark(OBJECT obj, ObjectMark& mark) {
     OBJECT tmp;

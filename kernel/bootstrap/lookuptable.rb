@@ -35,7 +35,7 @@ class LookupTable
   def size;    @entries ; end
 
   def self.allocate
-    Ruby.primitive :allocate_table
+    Ruby.primitive :lookuptable_allocate
     raise PrimitiveFailure, "LookupTable.allocate primitive failed"
   end
 

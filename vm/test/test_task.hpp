@@ -42,8 +42,6 @@ class TestTask : public CxxTest::TestSuite {
     Task* task = Task::create(state);
 
     TS_ASSERT(kind_of<Task>(task));
-
-    TS_ASSERT_EQUALS(0, task->ip);
   }
 
   void test_current() {
@@ -792,7 +790,7 @@ class TestTask : public CxxTest::TestSuite {
     Task* task = Task::create(state, Qnil, cm);
 
     MethodContext* top = task->active;
-    task->ip = 3;
+    task->set_ip(3);
 
     /* Call a method ... */
     CompiledMethod* cm2 = create_cm();
@@ -814,7 +812,7 @@ class TestTask : public CxxTest::TestSuite {
     task->raise_exception(exc);
 
     TS_ASSERT_EQUALS(task->active, top);
-    TS_ASSERT_EQUALS(task->ip, 5);
+    TS_ASSERT_EQUALS(task->current_ip(), 5);
   }
 
   void test_raise_exception_into_sender() {
@@ -826,13 +824,13 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state, Qnil, cm);
 
-    task->ip = 3;
+    task->set_ip(3);
 
     Exception* exc = Exception::create(state);
 
     task->raise_exception(exc);
 
-    TS_ASSERT_EQUALS(task->ip, 5);
+    TS_ASSERT_EQUALS(task->current_ip(), 5);
   }
 
   void test_check_interrupts() {

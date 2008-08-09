@@ -1,4 +1,8 @@
-class CPPPrimitive
+class BasicPrimitive
+  attr_accessor :pass_state
+end
+
+class CPPPrimitive < BasicPrimitive
   def initialize(name, type)
     @type = type
     @name = name
@@ -11,14 +15,15 @@ class CPPPrimitive
     str =  "bool #{klass}::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
     i = -1
     if arg_types.empty?
-      args = ""
+      args = []
     else
-      args = ", " + arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }.join(", ")
+      args = arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }
     end
 
     str << "  OBJECT ret;\n"
     str << "  try {\n"
-    str << "    ret = as<#{@type}>(msg.recv)->#{@cpp_name}(state#{args});\n"
+    args.unshift "state" if @pass_state
+    str << "    ret = as<#{@type}>(msg.recv)->#{@cpp_name}(#{args.join(', ')});\n"
     str << "  } catch(PrimitiveFailed& e) {\n"
     str << "    abort(); // FIXME\n"
     str << "    return true;\n"
@@ -35,14 +40,15 @@ class CPPStaticPrimitive < CPPPrimitive
     str =  "bool #{klass}::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
     i = -1
     if arg_types.empty?
-      args = ""
+      args = []
     else
-      args = ", " + arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }.join(", ")
+      args = arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }
     end
 
     str << "  OBJECT ret;\n"
     str << "  try {\n"
-    str << "    ret = #{@type}::#{@cpp_name}(state#{args});\n"
+    args.unshift "state" if @pass_state
+    str << "    ret = #{@type}::#{@cpp_name}(#{args.join(', ')});\n"
     str << "  } catch(PrimitiveFailed& e) {\n"
     str << "    abort(); // FIXME\n"
     str << "    return true;\n"
@@ -54,7 +60,7 @@ class CPPStaticPrimitive < CPPPrimitive
   end
 end
 
-class CPPOverloadedPrimitive
+class CPPOverloadedPrimitive < BasicPrimitive
   def initialize(prim)
     @name     = prim.name
     @type     = prim.type
@@ -77,7 +83,11 @@ class CPPOverloadedPrimitive
     @kinds.each do |prim|
       type = prim.arg_types.first
       str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
-      str << "      return as<#{@type}>(msg.recv)->#{@cpp_name}(state, arg);\n"
+      if @pass_state
+        str << "      return as<#{@type}>(msg.recv)->#{@cpp_name}(state, arg);\n"
+      else
+        str << "      return as<#{@type}>(msg.recv)->#{@cpp_name}(arg);\n"
+      end
       str << "    }\n"
     end
     str << "    else { throw new Assertion(\"unable to resolve primitive #{@name} types\"); }\n"
@@ -152,15 +162,21 @@ class CPPClass
         raise "Overloaded variant of #{name} must only take one arg"
       end
 
-      unless cur.kind_of? CPPOverloadedPrimitive
+      if cur.kind_of? CPPOverloadedPrimitive
+        cur.add_kind prim
+        return cur
+      else
         over = CPPOverloadedPrimitive.new(cur)
-        cur = @primitives[name] = over
+        @primitives[name] = over
+        over.add_kind prim
+        return over
       end
 
-      cur.add_kind prim
     else
       @primitives[name] = prim
     end
+
+    return prim
   end
 
   def add_static_primitive(name, cpp_name, ret, args)
@@ -174,6 +190,7 @@ class CPPClass
     end
 
     @primitives[name] = prim
+    return prim
   end
 
   def generate_gets
@@ -338,7 +355,7 @@ class CPPParser
 
         idx = 0
         while l = f.gets
-          break if /\};/.match(l)
+          # break if /\};/.match(l)
           break if /^\s*class/.match(l)
 
           if m = %r!^\s*(\w+)\*?\s+\*?(\w+)\s*;\s*//\s*slot(.*)!.match(l)
@@ -368,8 +385,11 @@ class CPPParser
 
             m = %r!\s*(static\s+)?([\w\*]+)\s+([\w]+)\((.*)\)!.match(prototype)
             args = m[4].split(/\s*,\s*/)
-            if args.shift != "STATE"
-              raise "Invalid primitive #{prim}, STATE is not first argument"
+            if args.first == "STATE"
+              args.shift
+              pass_state = true
+            else
+              pass_state = false
             end
 
             arg_types = args.map { |a| strip_and_map(a.split(/\s+/, 2).first, @type_map) }
@@ -377,10 +397,12 @@ class CPPParser
               if overload
                 raise "Unable to overload static primitives."
               end
-              cpp.add_static_primitive prim, m[3], @type_map[m[2]], arg_types
+              obj = cpp.add_static_primitive prim, m[3], @type_map[m[2]], arg_types
             else
-              cpp.add_primitive prim, m[3], @type_map[m[2]], arg_types, overload
+              obj = cpp.add_primitive prim, m[3], @type_map[m[2]], arg_types, overload
             end
+
+            obj.pass_state = pass_state
 
           end
         end

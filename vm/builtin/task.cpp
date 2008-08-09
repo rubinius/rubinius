@@ -42,7 +42,6 @@ namespace rubinius {
 
   Task* Task::create(STATE) {
     Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
-    task->ip = 0;
     task->state = state;
     task->probe = state->probe;
     task->msg = new Message(state);
@@ -82,7 +81,6 @@ namespace rubinius {
     SET(ctx, home, ctx);
 
     ctx->vmm = (VMMethod*)meth->executable;
-    ctx->ip = 0;
     ctx->sp = meth->number_of_locals() - 1;
     ctx->js.stack = ctx->stack->field + ctx->sp;
 
@@ -104,17 +102,9 @@ namespace rubinius {
     SET(this, active, ctx);
     SET(this, home, ctx->home);
     SET(this, self, home->self);
-
-    ip = ctx->ip;
-    ip_ptr = ctx->vmm->opcodes + ip;
   }
 
   void Task::make_active(MethodContext* ctx) {
-    /* Save the current Task registers into active. */
-    if(!active->nil_p()) {
-      active->ip = ip;
-    }
-
     SET(ctx, sender, active);
 
     restore_context(ctx);
@@ -130,7 +120,15 @@ namespace rubinius {
     ctx->args = msg.args;
 
     /* No input args and no expected args. Done. */
-    if(total == 0 && msg.args == 0) goto stack_cleanup;
+    if(total == 0 && msg.args == 0) {
+      /* Even though there was nothing, if there was a splat, we need to fill
+       * it in. */
+      if(ctx->cm->splat != Qnil) {
+        Array* ary = Array::create(state, 0);
+        ctx->locals()->put(msg.state, as<Integer>(ctx->cm->splat)->n2i(), ary);
+      }
+      goto stack_cleanup;
+    }
 
     /* If too few args were passed in, throw an exception */
     if(msg.args < required) {
@@ -158,15 +156,17 @@ namespace rubinius {
         ary->set(state, i, msg.get_argument(n));
       }
 
-      ctx->stack->put(msg.state, as<Integer>(ctx->cm->splat)->n2i(), ary);
-    }
-
-    if(probe) {
-      probe->start_method(this, msg);
+      ctx->locals()->put(msg.state, as<Integer>(ctx->cm->splat)->n2i(), ary);
     }
 
     /* Now that we've processed everything from the stack, we need to clean it up */
 stack_cleanup:
+#if 0
+    if(probe) {
+      probe->start_method(this, msg);
+    }
+#endif
+
     active->clear_stack(msg.stack);
   }
 
@@ -222,13 +222,14 @@ stack_cleanup:
 
   void Task::raise_exception(Exception* exc) {
     for(;;) {
+      int ip = active->ip;
       Tuple* table = active->cm->exceptions;
 
       if(!table->nil_p()) {
         for(size_t i = 0; i < table->field_count; i++) {
           Tuple* entry = as<Tuple>(table->at(i));
           if(as<Integer>(entry->at(0))->n2i() <= ip && as<Integer>(entry->at(1))->n2i() >= ip) {
-            ip = as<Integer>(entry->at(2))->n2i();
+            set_ip(as<Integer>(entry->at(2))->n2i());
             return;
           }
         }
@@ -404,9 +405,10 @@ stack_cleanup:
     return active->cm->scope->module;
   }
 
-  static Class* check_superclass(Class* cls, OBJECT super) {
+  static Class* check_superclass(STATE, Class* cls, OBJECT super) {
     if(super->nil_p()) return cls;
     if(cls->superclass != super) {
+      std::cout << "mismatch: " << *cls->name->to_str(state) << " != " << *as<Class>(super)->name->to_str(state) << "\n";
       throw new TypeError(Class::type, super, "superclass mismatch");
     }
 
@@ -434,20 +436,14 @@ stack_cleanup:
     *created = false;
 
     OBJECT obj = const_get(under, name, &found);
-    if(found) return check_superclass(as<Class>(obj), super);
+    if(found) return check_superclass(state, as<Class>(obj), super);
 
     *created = true;
     return add_class(state, under, super, name);
   }
 
   Class* Task::open_class(OBJECT super, SYMBOL name, bool* created) {
-    bool found;
     Module* under;
-
-    *created = false;
-
-    OBJECT obj = const_get(name, &found);
-    if(found) return check_superclass(as<Class>(obj), super);
 
     if(active->cm->scope->nil_p()) {
       under = G(object);
@@ -455,8 +451,7 @@ stack_cleanup:
       under = active->cm->scope->module;
     }
 
-    *created = true;
-    return add_class(state, under, super, name);
+    return open_class(under, super, name, created);
   }
 
   Module* Task::open_module(SYMBOL name) {
@@ -525,7 +520,27 @@ stack_cleanup:
     return active->js.stack - active->stack->field;
   }
 
+  /* Set the local variable at +pos+ to +val+ in the current context. */
+  void Task::set_local(int pos, OBJECT val) {
+    active->locals()->put(state, pos, val);
+  }
+
+  /* Get local variable at +pos+ in the current context. */
+  OBJECT Task::get_local(int pos) {
+    return active->locals()->at(pos);
+  }
+
   void Task::activate_method(Message&) { }
+
+  /* Move the active context to executing instruction +ip+. */
+  void Task::set_ip(int ip) {
+    active->ip = ip;
+  }
+
+  /* Returns the current instruction the active context is on. */
+  int Task::current_ip() {
+    return active->ip;
+  }
 
   void Task::cache_ip() { }
   void Task::check_interrupts() {

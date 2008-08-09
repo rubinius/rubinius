@@ -13,6 +13,7 @@
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/iseq.hpp"
+#include "builtin/staticscope.hpp"
 
 #include "jit_state.h"
 #include "objectmemory.hpp"
@@ -137,18 +138,19 @@ CODE
 
 /* Use a simplier next_int */
 #undef next_int
-#define next_int ((opcode)(stream[task->ip++]))
+#define next_int ((opcode)(stream[ctx->ip++]))
 
 void VMMethod::resume(Task* task, MethodContext* ctx) {
   opcode* stream = ctx->vmm->opcodes;
   struct jit_state* js = &ctx->js;
   opcode op;
 
-  task->ip = ctx->ip;
-
   for(;;) {
-    op = stream[task->ip++];
-    // std::cout << task->ip << ": " << InstructionSequence::get_instruction_name(op) << "\n";
+    op = stream[ctx->ip++];
+#if 0
+    std::cout << *ctx->cm->name->to_str(state) << "+" <<
+      ctx->ip << ": " << InstructionSequence::get_instruction_name(op) << "\n";
+#endif
 
 #ruby <<CODE
 io = StringIO.new

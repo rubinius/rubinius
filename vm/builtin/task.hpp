@@ -31,9 +31,6 @@ namespace rubinius {
     const static size_t fields = 0;
     const static object_type type = TaskType;
 
-    /* 'registers' */
-    native_int ip;
-
     OBJECT self; // slot
     Tuple* literals; // slot
     MethodContext* active; // slot
@@ -49,9 +46,6 @@ namespace rubinius {
     Message* msg;
     TaskProbe *probe;
     struct jit_state js;
-
-    /* Optimization */
-    opcode *ip_ptr;
 
     /* Data */
     Channel* debug_channel; // slot
@@ -82,6 +76,8 @@ namespace rubinius {
     bool passed_arg_p(size_t pos);
 
     void methctx_reference(MethodContext* ctx);
+    void set_ip(int ip);
+    int  current_ip();
     void cache_ip();
 
     OBJECT const_get(Module* under, SYMBOL name, bool* found);
@@ -115,6 +111,10 @@ namespace rubinius {
     int  calculate_sp();
     void set_stack(Tuple* stack);
     Tuple* current_stack();
+
+    /* Locals manipulation */
+    void set_local(int pos, OBJECT val);
+    OBJECT get_local(int pos);
 
     void print_stack();
     void tragic_failure(Message& msg);
