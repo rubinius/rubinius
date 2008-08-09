@@ -48,7 +48,6 @@ class TestMessage : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
-    task->set_stack(Tuple::create(state, 2));
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
 
@@ -64,7 +63,6 @@ class TestMessage : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
-    task->set_stack(Tuple::create(state, 2));
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
 
@@ -88,7 +86,6 @@ class TestMessage : public CxxTest::TestSuite {
     CompiledMethod* cm = create_cm();
     Task* task = Task::create(state, Qnil, cm);
 
-    task->set_stack(Tuple::create(state, 2));
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
 

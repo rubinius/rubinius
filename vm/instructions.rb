@@ -59,8 +59,8 @@ class Instructions
     stream[1] = (opcode)47;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), 47);
+    TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), 47);
     CODE
   end
 
@@ -89,8 +89,8 @@ class Instructions
     <<-CODE
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), -1);
+    TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), -1);
     CODE
   end
 
@@ -119,8 +119,8 @@ class Instructions
     <<-CODE
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), 0);
+    TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), 0);
     CODE
   end
 
@@ -149,8 +149,8 @@ class Instructions
     <<-CODE
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), 1);
+    TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), 1);
     CODE
   end
 
@@ -179,8 +179,8 @@ class Instructions
     <<-CODE
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT(kind_of<Fixnum>(stack->at(task->calculate_sp())));
-    TS_ASSERT_EQUALS(as<Integer>(stack->at(task->calculate_sp()))->n2i(), 2);
+    TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), 2);
     CODE
   end
 
@@ -206,7 +206,7 @@ class Instructions
     <<-CODE
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qnil);
+    TS_ASSERT_EQUALS(task->stack_top(), Qnil);
     CODE
   end
 
@@ -232,7 +232,7 @@ class Instructions
     <<-CODE
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
     CODE
   end
 
@@ -258,7 +258,7 @@ class Instructions
     <<-CODE
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qfalse);
+    TS_ASSERT_EQUALS(task->stack_top(), Qfalse);
     CODE
   end
 
@@ -287,7 +287,7 @@ class Instructions
     <<-CODE
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), task->active);
+    TS_ASSERT_EQUALS(task->stack_top(), task->active);
     CODE
   end
 
@@ -320,7 +320,7 @@ class Instructions
     stream[1] = (opcode)0;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
     CODE
   end
 
@@ -358,7 +358,7 @@ class Instructions
     task->push(Qtrue);
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
     TS_ASSERT_EQUALS(task->literals->at(0), Qtrue);
     CODE
   end
@@ -386,7 +386,7 @@ class Instructions
     task->self = Qtrue;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
     CODE
   end
 
@@ -415,7 +415,7 @@ class Instructions
     stream[1] = (opcode)0;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 1);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
     CODE
   end
 
@@ -450,7 +450,7 @@ class Instructions
       bc = as<BlockContext>(env->home_block);
     }
 
-    stack_push(bc->locals()->at(index));
+    stack_push(bc->get_local(index));
     CODE
   end
 
@@ -464,7 +464,7 @@ class Instructions
 
     task->make_active(bc2);
 
-    bc->locals()->put(state, 0, Qtrue);
+    bc->set_local(0, Qtrue);
 
     stream[1] = (opcode)1;
     stream[2] = (opcode)0;
@@ -472,7 +472,7 @@ class Instructions
     run();
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(task->active->stack->at(task->calculate_sp()), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
     CODE
   end
 
@@ -512,7 +512,7 @@ class Instructions
     task->exception = exc;
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(task->active->stack->at(task->calculate_sp()), exc);
+    TS_ASSERT_EQUALS(task->stack_top(), exc);
     CODE
   end
 
@@ -575,7 +575,7 @@ class Instructions
     run();
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), be);
+    TS_ASSERT_EQUALS(task->stack_top(), be);
     CODE
   end
 
@@ -609,7 +609,7 @@ class Instructions
     run();
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
     CODE
   end
 
@@ -656,7 +656,7 @@ class Instructions
     run();
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), state->symbol("Blah"));
+    TS_ASSERT_EQUALS(task->stack_top(), state->symbol("Blah"));
     CODE
   end
 
@@ -695,7 +695,7 @@ class Instructions
     run();
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), name);
+    TS_ASSERT_EQUALS(task->stack_top(), name);
     TS_ASSERT_EQUALS(cls->name, name);
     CODE
   end
@@ -892,8 +892,8 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Qfalse);
-    TS_ASSERT_EQUALS(stack->at(1), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_at(0), Qfalse);
+    TS_ASSERT_EQUALS(task->stack_at(1), Qtrue);
 
     CODE
   end
@@ -927,7 +927,7 @@ class Instructions
     run();
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 1);
-    TS_ASSERT_EQUALS(stack->at(1), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_at(1), Qtrue);
     CODE
   end
 
@@ -991,7 +991,7 @@ class Instructions
     stream[1] = (opcode)0;
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_at(0), Qtrue);
     TS_ASSERT_EQUALS(task->calculate_sp(), 1);
     CODE
   end
@@ -1030,8 +1030,7 @@ class Instructions
     }
 
     OBJECT t3 = stack_pop();
-    Tuple *tup = bc->locals();
-    tup->put(state, index, t3);
+    bc->set_local(index, t3);
     stack_push(t3);
     CODE
   end
@@ -1047,7 +1046,7 @@ class Instructions
     task->make_active(bc2);
 
     task->push(Qtrue);
-    bc->locals()->put(state, 0, Qnil);
+    bc->set_local(0, Qnil);
 
     stream[1] = (opcode)1;
     stream[2] = (opcode)0;
@@ -1055,8 +1054,8 @@ class Instructions
     run();
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(task->active->stack->at(task->calculate_sp()), Qtrue);
-    TS_ASSERT_EQUALS(bc->locals()->at(0), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
+    TS_ASSERT_EQUALS(bc->get_local(0), Qtrue);
     CODE
   end
 
@@ -1102,7 +1101,7 @@ class Instructions
     run();
 
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    Array* ary = as<Array>(stack->at(task->calculate_sp()));
+    Array* ary = as<Array>(task->stack_top());
     TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
     TS_ASSERT_EQUALS(ary->get(state, 1), Qfalse);
     CODE
@@ -1150,20 +1149,20 @@ class Instructions
     task->push(Qtrue);
     run();
 
-    Array* ary = as<Array>(stack->at(0));
+    Array* ary = as<Array>(task->pop());
     TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
 
-    stack->put(state, 0, Tuple::from(state, 1, Qfalse));
+    task->push(Qfalse);
     run();
 
-    ary = as<Array>(stack->at(0));
+    ary = as<Array>(task->pop());
     TS_ASSERT_EQUALS(ary->get(state, 0), Qfalse);
 
     Array* custom = Array::create(state, 1);
-    stack->put(state, 0, custom);
+    task->push(custom);
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), custom);
+    TS_ASSERT_EQUALS(task->stack_top(), custom);
     CODE
   end
 
@@ -1213,21 +1212,20 @@ class Instructions
     task->push(custom);
     run();
 
-    Tuple* tup = as<Tuple>(stack->at(0));
+    Tuple* tup = as<Tuple>(task->pop());
     TS_ASSERT_EQUALS(tup->at(0), Qtrue);
 
-
-    stack->put(state, 0, Qfalse);
+    task->push(Qfalse);
     run();
 
-    tup = as<Tuple>(stack->at(0));
+    tup = as<Tuple>(task->pop());
     TS_ASSERT_EQUALS(tup->at(0), Qfalse);
 
     tup = Tuple::create(state, 1);
-    stack->put(state, 0, tup);
+    task->push(tup);
     run();
 
-    TS_ASSERT_EQUALS(tup, stack->at(0));
+    TS_ASSERT_EQUALS(tup, task->stack_top());
     CODE
   end
 
@@ -1274,19 +1272,19 @@ class Instructions
     task->push(tup);
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Qnil);
+    TS_ASSERT_EQUALS(task->pop(), Qnil);
 
     tup = Tuple::from(state, 1, Qtrue);
-    stack->put(state, 0, tup);
+    task->push(tup);
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Qtrue);
+    TS_ASSERT_EQUALS(task->pop(), Qtrue);
 
     tup = Tuple::from(state, 2, Qtrue, Qfalse);
-    stack->put(state, 0, tup);
+    task->push(tup);
     run();
 
-    Array* ary = as<Array>(stack->at(0));
+    Array* ary = as<Array>(task->stack_top());
     TS_ASSERT_EQUALS(ary->get(state, 0), Qtrue);
     TS_ASSERT_EQUALS(ary->get(state, 1), Qfalse);
     CODE
@@ -1345,7 +1343,7 @@ class Instructions
     task->push(tup);
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), tup);
+    TS_ASSERT_EQUALS(task->stack_top(), tup);
 
     Array* ary = Array::create(state, 1);
     ary->set(state, 0, Object::i2n(1));
@@ -1353,7 +1351,7 @@ class Instructions
     task->active->set_top(tup);
     run();
 
-    tup = as<Tuple>(stack->at(0));
+    tup = as<Tuple>(task->stack_top());
     TS_ASSERT_EQUALS(tup->at(0), Object::i2n(1));
     CODE
   end
@@ -1392,7 +1390,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(Qtrue->get_ivar(state, name), Qfalse);
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), Qfalse);
+    TS_ASSERT_EQUALS(task->stack_top(), Qfalse);
     CODE
   end
 
@@ -1451,7 +1449,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_top(), Object::i2n(3));
 
     CODE
   end
@@ -1503,7 +1501,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_top(), Object::i2n(3));
     CODE
   end
 
@@ -1618,7 +1616,7 @@ class Instructions
   def test_push_cpath_top
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(stack->at(task->calculate_sp()), G(object));
+    TS_ASSERT_EQUALS(task->stack_top(), G(object));
     CODE
   end
 
@@ -1873,7 +1871,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), tup->metaclass(state));
+    TS_ASSERT_EQUALS(task->stack_top(), tup->metaclass(state));
     CODE
   end
 
@@ -2153,7 +2151,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1U);
-    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
   end
@@ -2236,7 +2234,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1U);
-    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
@@ -2330,8 +2328,8 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 2U);
-    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
-    TS_ASSERT_EQUALS(task->current_stack()->at(1), Object::i2n(47));
+    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Object::i2n(47));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
@@ -2422,7 +2420,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1U);
-    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, obj);
     CODE
@@ -2520,8 +2518,8 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 2U);
-    TS_ASSERT_EQUALS(task->current_stack()->at(0), Object::i2n(3));
-    TS_ASSERT_EQUALS(task->current_stack()->at(1), Object::i2n(47));
+    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Object::i2n(47));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, obj);
     CODE
@@ -2566,7 +2564,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), cm);
+    TS_ASSERT_EQUALS(task->stack_top(), cm);
     CODE
   end
 
@@ -2614,7 +2612,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_top(), Object::i2n(3));
 
     CODE
   end
@@ -2663,7 +2661,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Object::i2n(1));
+    TS_ASSERT_EQUALS(task->stack_top(), Object::i2n(1));
 
     CODE
   end
@@ -2710,7 +2708,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Qfalse);
+    TS_ASSERT_EQUALS(task->stack_top(), Qfalse);
 
     CODE
   end
@@ -2760,7 +2758,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
 
     CODE
   end
@@ -2809,7 +2807,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Qfalse);
+    TS_ASSERT_EQUALS(task->stack_top(), Qfalse);
 
     CODE
   end
@@ -2857,7 +2855,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
 
     CODE
   end
@@ -2905,7 +2903,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(stack->at(0), Qfalse);
+    TS_ASSERT_EQUALS(task->stack_top(), Qfalse);
 
     CODE
   end
@@ -3489,7 +3487,7 @@ class Instructions
   def test_push_scope
     <<-CODE
     run();
-    TS_ASSERT_EQUALS(task->active->cm->scope, stack->at(0));
+    TS_ASSERT_EQUALS(task->active->cm->scope, task->stack_top());
     CODE
   end
 

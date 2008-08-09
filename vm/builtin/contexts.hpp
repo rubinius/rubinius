@@ -29,8 +29,6 @@ namespace rubinius {
 
     Module* module; // slot
 
-    Tuple* stack; // slot
-
     struct jit_state js;
     int    ip;
     int    sp;
@@ -38,11 +36,22 @@ namespace rubinius {
     OBJECT block; // slot
     OBJECT name; // slot
 
-    /* Locals are stored at the top of the stack. */
-    Tuple* locals() { return stack; }
+    size_t stack_size;
+    // MUST BE AT THE LAST DATA MEMBER
+    OBJECT stk[];
 
-    static MethodContext* create(STATE);
+    static MethodContext* create(STATE, size_t stack_size);
     void reference(STATE);
+
+    /* Locals manipulation functions */
+    /* Locals are just stored at the top of the stack. */
+    void set_local(size_t pos, OBJECT val) {
+      stk[pos] = val;
+    }
+
+    OBJECT get_local(size_t pos) {
+      return stk[pos];
+    }
 
     /* Stack manipulation functions */
 
@@ -64,8 +73,20 @@ namespace rubinius {
       return *pos;
     }
 
+    OBJECT top() {
+      return *js.stack;
+    }
+
     void set_top(OBJECT val) {
       *js.stack = val;
+    }
+
+    void position_stack(int pos) {
+      js.stack = stk + pos;
+    }
+
+    int calculate_sp() {
+      return js.stack - stk;
     }
 
     class Info : public TypeInfo {
@@ -81,7 +102,7 @@ namespace rubinius {
 
     BlockEnvironment* env();
 
-    static BlockContext* create(STATE);
+    static BlockContext* create(STATE, size_t stack_size);
 
     class Info : public MethodContext::Info {
     public:

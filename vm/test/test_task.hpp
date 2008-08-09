@@ -132,12 +132,12 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 2);
 
-    Tuple* input_stack = Tuple::create(state, 2);
-    task->set_stack(input_stack);
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
+
+    MethodContext* input_context = task->active;
 
     Message msg(state);
     msg.recv = Qtrue;
@@ -148,10 +148,9 @@ class TestTask : public CxxTest::TestSuite {
 
     task->send_message(msg);
 
-    TS_ASSERT(task->current_stack() != input_stack);
-    TS_ASSERT_EQUALS(task->current_stack()->field_count, 2U);
-    TS_ASSERT_EQUALS(task->current_stack()->field[0], Object::i2n(3));
-    TS_ASSERT_EQUALS(task->current_stack()->field[1], Object::i2n(4));
+    TS_ASSERT(task->active != input_context);
+    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Object::i2n(4));
   }
 
   void test_send_message_throws_argerror_on_too_few() {
@@ -164,12 +163,10 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 2);
 
     MethodContext* top = task->active;
 
-    Tuple* input_stack = Tuple::create(state, 2);
-    task->set_stack(input_stack);
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
 
@@ -204,12 +201,10 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 2);
 
     MethodContext* top = task->active;
 
-    Tuple* input_stack = Tuple::create(state, 2);
-    task->set_stack(input_stack);
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
 
@@ -244,10 +239,8 @@ class TestTask : public CxxTest::TestSuite {
 
     G(true_class)->method_table->store(state, state->symbol("blah"), cm);
 
-    Task* task = Task::create(state);
+    Task* task = Task::create(state, 4);
 
-    Tuple* input_stack = Tuple::create(state, 3);
-    task->set_stack(input_stack);
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
     task->push(Object::i2n(5));
@@ -261,15 +254,13 @@ class TestTask : public CxxTest::TestSuite {
 
     task->send_message(msg);
 
-    TS_ASSERT(task->current_stack() != input_stack);
-    TS_ASSERT_EQUALS(task->current_stack()->field_count, 4U);
-    TS_ASSERT_EQUALS(task->current_stack()->field[0], Object::i2n(3));
-    TS_ASSERT_EQUALS(task->current_stack()->field[1], Object::i2n(4));
-    TS_ASSERT_EQUALS(task->current_stack()->field[2], Object::i2n(5));
-    TS_ASSERT_EQUALS(task->current_stack()->field[3], Qnil);
-
     TS_ASSERT(task->passed_arg_p(3));
     TS_ASSERT(!task->passed_arg_p(4));
+
+    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Object::i2n(4));
+    TS_ASSERT_EQUALS(task->stack_at(2), Object::i2n(5));
+    TS_ASSERT_EQUALS(task->stack_at(3), Qnil);
   }
 
   void test_send_message_sets_up_fixed_locals_with_splat() {
@@ -284,8 +275,6 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    Tuple* input_stack = Tuple::create(state, 4);
-    task->set_stack(input_stack);
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
     task->push(Object::i2n(5));
@@ -300,14 +289,10 @@ class TestTask : public CxxTest::TestSuite {
 
     task->send_message(msg);
 
-    Tuple* cur = task->current_stack();
+    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Object::i2n(4));
 
-    TS_ASSERT(cur != input_stack);
-    TS_ASSERT_EQUALS(cur->field_count, 3U);
-    TS_ASSERT_EQUALS(cur->field[0], Object::i2n(3));
-    TS_ASSERT_EQUALS(cur->field[1], Object::i2n(4));
-
-    Array* splat = as<Array>(cur->field[2]);
+    Array* splat = as<Array>(task->stack_at(2));
 
     TS_ASSERT_EQUALS(splat->size(), 2U);
     TS_ASSERT_EQUALS(splat->get(state, 0), Object::i2n(5));
@@ -326,8 +311,6 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    Tuple* input_stack = Tuple::create(state, 4);
-    task->set_stack(input_stack);
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
     task->push(Object::i2n(5));
@@ -342,12 +325,10 @@ class TestTask : public CxxTest::TestSuite {
 
     task->send_message(msg);
 
-    TS_ASSERT(task->current_stack() != input_stack);
-    TS_ASSERT_EQUALS(task->current_stack()->field_count, 3U);
-    TS_ASSERT_EQUALS(task->current_stack()->field[0], Object::i2n(3));
-    TS_ASSERT_EQUALS(task->current_stack()->field[1], Object::i2n(4));
+    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Object::i2n(4));
 
-    Array* splat = as<Array>(task->current_stack()->field[2]);
+    Array* splat = as<Array>(task->stack_at(2));
 
     TS_ASSERT_EQUALS(splat->size(), 2U);
     TS_ASSERT_EQUALS(splat->get(state, 0), Object::i2n(5));
@@ -366,8 +347,6 @@ class TestTask : public CxxTest::TestSuite {
 
     Task* task = Task::create(state);
 
-    Tuple* input_stack = Tuple::create(state, 4);
-    task->set_stack(input_stack);
     task->push(Object::i2n(3));
     task->push(Object::i2n(4));
     task->push(Object::i2n(5));
@@ -407,16 +386,14 @@ class TestTask : public CxxTest::TestSuite {
     msg.send_site = SendSite::create(state, state->symbol("blah"));
     msg.args = 0;
 
-    Tuple* outer_stack = task->current_stack();
+    MethodContext* before = task->active;
 
     task->send_message(msg);
 
-    Tuple* inner_stack = task->current_stack();
-
-    TS_ASSERT(outer_stack != inner_stack);
+    TS_ASSERT_DIFFERS(before, task->active);
 
     task->simple_return(Object::i2n(3));
-    TS_ASSERT_EQUALS(task->current_stack(), outer_stack);
+    TS_ASSERT_EQUALS(task->active, before);
     TS_ASSERT_EQUALS(task->active, top);
   }
 

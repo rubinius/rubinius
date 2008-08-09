@@ -35,17 +35,16 @@ namespace rubinius {
   }
 
   BlockContext* BlockEnvironment::create_context(STATE, MethodContext* sender) {
-    BlockContext* ctx = BlockContext::create(state);
+    BlockContext* ctx = BlockContext::create(state, method->stack_size->to_nint());
     SET(ctx, sender, sender);
     SET(ctx, name, (SYMBOL)this);
     SET(ctx, cm, method);
-    SET(ctx, stack, Tuple::create(state, method->stack_size->to_nint() + 1));
     SET(ctx, home, home);
 
     ctx->vmm = vmm;
     ctx->ip = 0;
     ctx->sp = -1;
-    ctx->js.stack = ctx->stack->field + ctx->sp;
+    ctx->position_stack(ctx->sp);
 
     return ctx;
   }

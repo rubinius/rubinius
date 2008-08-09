@@ -20,12 +20,10 @@ namespace rubinius {
     return cm;
   }
 
-  CompiledMethod* CompiledMethod::generate_tramp(STATE) {
+  CompiledMethod* CompiledMethod::generate_tramp(STATE, size_t stack_size) {
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    // Use a stack of 1 so that the return value of the executed method
-    // has a place to go
-    SET(cm, stack_size, Object::i2n(1));
+    SET(cm, stack_size, Object::i2n(stack_size));
     SET(cm, required_args, Object::i2n(0));
     SET(cm, total_args, cm->required_args);
     SET(cm, name, String::create(state, "__halt__")->to_sym(state));

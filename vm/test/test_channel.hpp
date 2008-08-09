@@ -32,9 +32,7 @@ class TestChannel : public CxxTest::TestSuite {
   }
 
   void test_send_then_receive() {
-    Task* task = Task::create(state);
-    Tuple* stack = Tuple::create(state, 10);
-    task->set_stack(stack);
+    Task* task = Task::create(state, 10);
 
     state->globals.current_task.set(task);
 
@@ -48,14 +46,12 @@ class TestChannel : public CxxTest::TestSuite {
 
     chan->receive(state);
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(0), Qtrue);
+    TS_ASSERT_EQUALS(task->stack_top(), Qtrue);
     TS_ASSERT_EQUALS(lst->size(), 0U);
   }
 
   void test_receive_causes_deadlock() {
-    Task* task = Task::create(state);
-    Tuple* stack = Tuple::create(state, 10);
-    task->set_stack(stack);
+    Task* task = Task::create(state, 10);
 
     state->globals.current_task.set(task);
 
@@ -77,8 +73,6 @@ class TestChannel : public CxxTest::TestSuite {
 
     Thread* orig = G(current_thread);
 
-    Tuple* stack = Tuple::create(state, 10);
-    G(current_task)->set_stack(stack);
     state->queue_thread(other);
 
     chan->receive(state);
@@ -92,8 +86,8 @@ class TestChannel : public CxxTest::TestSuite {
 
     Thread* orig = G(current_thread);
     state->events->start(timer);
-    Tuple* stack = Tuple::create(state, 10);
-    G(current_task)->set_stack(stack);
+
+    OBJECT* stack = G(current_task)->current_stack();
 
     TS_ASSERT(!state->wait_events);
     chan->receive(state);
@@ -107,7 +101,7 @@ class TestChannel : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(G(current_task)->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(0), Qnil)
+    TS_ASSERT_EQUALS(stack[0], Qnil)
   }
 
   void test_receive_polls_events() {
@@ -117,8 +111,7 @@ class TestChannel : public CxxTest::TestSuite {
     Thread* orig = G(current_thread);
     state->events->start(timer);
 
-    Tuple* stack = Tuple::create(state, 10);
-    G(current_task)->set_stack(stack);
+    OBJECT* stack = G(current_task)->current_stack();
 
     TS_ASSERT(!state->wait_events);
     usleep(300000);
@@ -129,7 +122,7 @@ class TestChannel : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(G(current_thread), orig);
     TS_ASSERT_EQUALS(G(current_task)->calculate_sp(), 0);
-    TS_ASSERT_EQUALS(stack->at(0), Qnil)
+    TS_ASSERT_EQUALS(stack[0], Qnil)
   }
 
   void test_has_readers_p() {

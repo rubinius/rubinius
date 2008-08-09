@@ -40,7 +40,7 @@ namespace rubinius {
     return task;
   }
 
-  Task* Task::create(STATE) {
+  Task* Task::create(STATE, size_t stack_size) {
     Task* task = (Task*)state->new_struct(G(task), sizeof(Task));
     task->state = state;
     task->probe = state->probe;
@@ -52,7 +52,9 @@ namespace rubinius {
     SET(task, exception, Qnil);
     SET(task, home, Qnil);
 
-    CompiledMethod* cm = CompiledMethod::generate_tramp(state);
+    if(stack_size == 0) stack_size = CompiledMethod::tramp_stack_size;
+
+    CompiledMethod* cm = CompiledMethod::generate_tramp(state, stack_size);
     MethodContext* ctx = task->generate_context(G(main), cm);
 
     SET(task, active, ctx);
@@ -71,18 +73,17 @@ namespace rubinius {
   }
 
   MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth) {
-    MethodContext* ctx = MethodContext::create(state);
+    MethodContext* ctx = MethodContext::create(state, meth->stack_size->n2i());
 
     SET(ctx, sender, (MethodContext*)Qnil);
     SET(ctx, self, recv);
     SET(ctx, cm, meth);
     SET(ctx, module, G(object));
-    SET(ctx, stack, Tuple::create(state, meth->stack_size->n2i()));
     SET(ctx, home, ctx);
 
     ctx->vmm = (VMMethod*)meth->executable;
     ctx->sp = meth->number_of_locals() - 1;
-    ctx->js.stack = ctx->stack->field + ctx->sp;
+    ctx->position_stack(ctx->sp);
 
     return ctx;
   }
@@ -125,7 +126,7 @@ namespace rubinius {
        * it in. */
       if(ctx->cm->splat != Qnil) {
         Array* ary = Array::create(state, 0);
-        ctx->locals()->put(msg.state, as<Integer>(ctx->cm->splat)->n2i(), ary);
+        ctx->set_local(as<Integer>(ctx->cm->splat)->n2i(), ary);
       }
       goto stack_cleanup;
     }
@@ -145,7 +146,7 @@ namespace rubinius {
     if(msg.args < total) fixed = msg.args;
 
     for(size_t i = 0; i < fixed; i++) {
-      ctx->stack->put(msg.state, i, msg.get_argument(i));
+      ctx->set_local(i, msg.get_argument(i));
     }
 
     if(ctx->cm->splat != Qnil) {
@@ -156,7 +157,7 @@ namespace rubinius {
         ary->set(state, i, msg.get_argument(n));
       }
 
-      ctx->locals()->put(msg.state, as<Integer>(ctx->cm->splat)->n2i(), ary);
+      ctx->set_local(as<Integer>(ctx->cm->splat)->n2i(), ary);
     }
 
     /* Now that we've processed everything from the stack, we need to clean it up */
@@ -496,16 +497,8 @@ stack_cleanup:
     return mod;
   }
 
-  /* Used in testing. Sets the stack of the current context to +stack+ */
-  void Task::set_stack(Tuple* stack) {
-    SET(active, stack, stack);
-    /* the - 1 is because the stack starts below the bottom, so push
-     * always increments and sets. */
-    active->js.stack = stack->field - 1;
-  }
-
-  Tuple* Task::current_stack() {
-    return active->stack;
+  OBJECT* Task::current_stack() {
+    return active->stk;
   }
 
   void Task::push(OBJECT val) {
@@ -516,18 +509,26 @@ stack_cleanup:
     return active->pop();
   }
 
+  OBJECT Task::stack_top() {
+    return active->top();
+  }
+
+  OBJECT Task::stack_at(size_t pos) {
+    return active->stk[pos];
+  }
+
   int Task::calculate_sp() {
-    return active->js.stack - active->stack->field;
+    return active->calculate_sp();
   }
 
   /* Set the local variable at +pos+ to +val+ in the current context. */
   void Task::set_local(int pos, OBJECT val) {
-    active->locals()->put(state, pos, val);
+    active->set_local(pos, val);
   }
 
   /* Get local variable at +pos+ in the current context. */
   OBJECT Task::get_local(int pos) {
-    return active->locals()->at(pos);
+    return active->get_local(pos);
   }
 
   void Task::activate_method(Message&) { }

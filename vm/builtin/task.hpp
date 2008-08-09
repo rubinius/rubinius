@@ -53,7 +53,9 @@ namespace rubinius {
 
     static void init(STATE);
     static Task* create(STATE, OBJECT recv, CompiledMethod* meth);
-    static Task* create(STATE);
+    // We actually use the value CompiledMethod::tramp_stack_size by default
+    // inside the method though.
+    static Task* create(STATE, size_t stack_size = 0);
 
     // Ruby.primitive :task_current
     static Task* current(STATE);
@@ -108,9 +110,10 @@ namespace rubinius {
     void execute_stream(opcode* stream);
     void push(OBJECT val);
     OBJECT pop();
+    OBJECT stack_top();
+    OBJECT stack_at(size_t pos);
     int  calculate_sp();
-    void set_stack(Tuple* stack);
-    Tuple* current_stack();
+    OBJECT* current_stack();
 
     /* Locals manipulation */
     void set_local(int pos, OBJECT val);

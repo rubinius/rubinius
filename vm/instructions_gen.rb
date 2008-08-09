@@ -194,8 +194,6 @@ void #{meth}() {
   task->make_active(ctx);
   // The += 0 disable unused variable warnings.
 
-  Tuple* stack = task->current_stack(); stack += 0;
-
   opcode stream[100];
   stream[0] = InstructionSequence::insn_#{ins.opcode};
 

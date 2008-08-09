@@ -32,7 +32,10 @@ namespace rubinius {
     StaticScope* scope; // slot
 
     static CompiledMethod* create(STATE);
-    static CompiledMethod* generate_tramp(STATE);
+    // Use a stack of 1 so that the return value of the executed method
+    // has a place to go
+    const static size_t tramp_stack_size = 1;
+    static CompiledMethod* generate_tramp(STATE, size_t stack_size = tramp_stack_size);
 
     void post_marshal(STATE);
     size_t number_of_locals();
