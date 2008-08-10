@@ -82,8 +82,7 @@ namespace rubinius {
     SET(ctx, home, ctx);
 
     ctx->vmm = (VMMethod*)meth->executable;
-    ctx->sp = meth->number_of_locals() - 1;
-    ctx->position_stack(ctx->sp);
+    ctx->position_stack(meth->number_of_locals() - 1);
 
     return ctx;
   }

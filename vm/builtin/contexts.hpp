@@ -31,7 +31,6 @@ namespace rubinius {
 
     struct jit_state js;
     int    ip;
-    int    sp;
     size_t args;
     OBJECT block; // slot
     OBJECT name; // slot
@@ -59,7 +58,6 @@ namespace rubinius {
     /* Stack manipulation functions */
 
     void clear_stack(size_t amount) {
-      sp -= amount;
       js.stack -= amount;
     }
 

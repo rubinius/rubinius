@@ -43,8 +43,7 @@ namespace rubinius {
 
     ctx->vmm = vmm;
     ctx->ip = 0;
-    ctx->sp = -1;
-    ctx->position_stack(ctx->sp);
+    ctx->position_stack(-1);
 
     return ctx;
   }
