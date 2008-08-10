@@ -36,6 +36,7 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/primitives_glue.gen.cpp ]
 
 field_extract_headers = %w[
+  vm/objects.hpp
   vm/builtin/object.hpp
   vm/builtin/array.hpp
   vm/builtin/bignum.hpp

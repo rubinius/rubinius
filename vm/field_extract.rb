@@ -301,6 +301,7 @@ class CPPParser
       "MemoryPointer" => :MemoryPointer,
       "StaticScope" => :StaticScope,
       "INTEGER" => :Integer,
+      "Integer" => :Integer,
       "MethodContext" => :MethodContext,
       "CompiledMethod" => :CompiledMethod,
       "String" => :String,
