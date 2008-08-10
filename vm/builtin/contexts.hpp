@@ -41,6 +41,9 @@ namespace rubinius {
     OBJECT stk[];
 
     static MethodContext* create(STATE, size_t stack_size);
+    static void initialize_cache(STATE);
+    static void reset_cache(STATE);
+    void recycle(STATE);
     void reference(STATE);
 
     /* Locals manipulation functions */

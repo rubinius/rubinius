@@ -5,7 +5,7 @@ task :vm => 'vm/vm'
 ############################################################
 # Files, Flags, & Constants
 
-LLVM_STYLE = "Release"
+LLVM_STYLE = "Debug"
 
 ENV.delete 'CDPATH' # confuses llvm_config
 LLVM_CONFIG = "vm/external_libs/llvm/#{LLVM_STYLE}/bin/llvm-config"

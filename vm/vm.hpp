@@ -22,6 +22,8 @@ namespace rubinius {
   class ObjectMemory;
   class TypeInfo;
   class Task;
+  class MethodContext;
+  class ContextCache;
 
   struct Configuration {
     bool compile_up_front;
@@ -37,6 +39,9 @@ namespace rubinius {
     TaskProbe* probe;
     Primitives* primitives;
     Configuration config;
+
+    /* Used to implement a simple context cache */
+    ContextCache* context_cache;
 
     bool wait_events;
 

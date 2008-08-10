@@ -18,7 +18,12 @@
 namespace rubinius {
   VM::VM(size_t bytes) : probe(NULL), wait_events(false) {
     config.compile_up_front = false;
+    context_cache = NULL;
+
     om = new ObjectMemory(bytes);
+
+    MethodContext::initialize_cache(this);
+
     bootstrap_ontology();
 
     events = new event::Loop(EVFLAG_FORKCHECK);

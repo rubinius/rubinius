@@ -211,6 +211,9 @@ stack_cleanup:
   void Task::simple_return(OBJECT value) {
     MethodContext *target = active->sender;
 
+    /* Try to recycle this context to be used again. */
+    active->recycle(state);
+
     restore_context(target);
     active->push(value);
   }
