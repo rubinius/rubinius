@@ -17,7 +17,8 @@ namespace rubinius {
     static void cleanup(STATE, OBJECT obj);
     static void init(STATE);
 
-    static Bignum* create(STATE, native_int num);
+    static Bignum* create(STATE, int num);
+    static Bignum* create(STATE, long num);
     static Bignum* create(STATE, unsigned long);
     static Bignum* create(STATE, long long val);
     static Bignum* create(STATE, unsigned long long val);

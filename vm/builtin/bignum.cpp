@@ -211,7 +211,22 @@ namespace rubinius {
     state->add_type_info(new Bignum::Info(Bignum::type));
   }
 
-  Bignum* Bignum::create(STATE, native_int num) {
+  Bignum* Bignum::create(STATE, int num) {
+    mp_int *a;
+    Bignum* o;
+    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
+    a = (mp_int*)(o->bytes);
+
+    if(num < 0) {
+      mp_init_set_long(a, (unsigned long)-num);
+      a->sign = MP_NEG;
+    } else {
+      mp_init_set_long(a, (unsigned long)num);
+    }
+    return o;
+  }
+
+  Bignum* Bignum::create(STATE, long num) {
     mp_int *a;
     Bignum* o;
     o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));

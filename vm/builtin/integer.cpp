@@ -4,13 +4,6 @@
 
 namespace rubinius {
   
-  INTEGER Integer::from(STATE, native_int num) {
-    if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
-      return Bignum::create(state, num);
-    }
-    return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
-  }
-
   INTEGER Integer::from(STATE, int num) {
 #if (CONFIG_WORDSIZE != 64)
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
@@ -37,6 +30,13 @@ namespace rubinius {
     return (FIXNUM)APPLY_TAG((native_int)num, TAG_FIXNUM);
   }
 
+  INTEGER Integer::from(STATE, long num) {
+    if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
+      return Bignum::create(state, num);
+    }
+    return (FIXNUM)APPLY_TAG((native_int)num, TAG_FIXNUM);
+  }
+
   INTEGER Integer::from(STATE, long long num) {
     if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
       return Bignum::create(state, num);
@@ -52,3 +52,4 @@ namespace rubinius {
   }
 
 }
+
