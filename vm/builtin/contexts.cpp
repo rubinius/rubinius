@@ -2,62 +2,9 @@
 #include "objectmemory.hpp"
 #include "builtin/block_environment.hpp"
 
-#define CountContextCaches 2
-
-/* These numbers were taken from Squeak */
-#define SmallContextSize   16
-#define SmallContextCache  0
-#define LargeContextSize   56
-#define LargeContextCache  1
+#include "context_cache.hpp"
 
 namespace rubinius {
-
-  /* Implements a simple context cache based on having context of a couple
-   * sizes only. This implementation also support 'huge' contexts by
-   * always just heap allocating them. */
-  class ContextCache {
-  public:
-    /* A stack depth, indicates how many more contexts we can recycle.
-     * This is reset to 0 if it's determined that context recycle needs
-     * to be disabled for all current contexts. */
-    int reclaim;
-
-    /* A simple array of MethodContext's. The contexts are treated like
-     * linked lists, chaining to the next context off their home field.
-     * This lets us store any number of contexts quickly in a couple
-     * of different caches. Each cache contains context of all the same
-     * size. */
-    MethodContext* caches[CountContextCaches];
-
-    /* Reset all state to empty. */
-    void reset() {
-      reclaim = 0;
-      for(size_t i = 0; i < CountContextCaches; i++) {
-        caches[i] = (MethodContext*)Qnil;
-      }
-    }
-
-    /* Retrieve a context from +which+ cache. Return NULL if the cache
-     * was empty. */
-    MethodContext* get(size_t which) {
-      MethodContext* ctx;
-      if((ctx = caches[which]) != Qnil) {
-        /* We chain off ->home */
-        caches[which] = ctx->home;
-        return ctx;
-      }
-
-      return NULL;
-    }
-
-    /* Add context +ctx+ to cache +which+. */
-    void add(size_t which, MethodContext* ctx) {
-      ctx->home = caches[which];
-      caches[which] = ctx;
-
-      reclaim--;
-    }
-  };
 
   /* Calculate how much big of an object (in bytes) to allocate
    * for one with a body of +original+ and a stack of +stack+ */
@@ -115,21 +62,27 @@ initialize:
   }
 
   /* Attempt to recycle +this+ context into the context cache, based
-   * on it's size. */
-  void MethodContext::recycle(STATE) {
+   * on it's size. Returns true if the context was recycled, otherwise
+   * false. */
+  bool MethodContext::recycle(STATE) {
+    /* Only recycle young contexts */
+    if(zone != YoungObjectZone) return false;
+
     if(state->context_cache->reclaim > 0) {
       size_t which;
       if(stack_size == SmallContextSize) {
         which = SmallContextCache;
       } else if(stack_size != LargeContextSize) {
-        return;
+        return false;
       } else {
         which = LargeContextSize;
       }
 
       state->context_cache->add(which, this);
-
+      return true;
     }
+
+    return false;
   }
 
   /* Create a ContextCache object and install it in +state+ */

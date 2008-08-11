@@ -3,6 +3,7 @@
 #include "objectmemory.hpp"
 #include "ffi.hpp"
 #include "builtin/contexts.hpp"
+#include "context_cache.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -26,5 +27,22 @@ class TestContexts : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ctx->obj_type, MContextType);
     TS_ASSERT(ctx->stack_size >= 10);
     TS_ASSERT_EQUALS(ctx->ip, 0);
+  }
+
+  void test_recycle() {
+    MethodContext* ctx = MethodContext::create(state, 10);
+    state->context_cache->reclaim = 1;
+    TS_ASSERT(ctx->recycle(state));
+
+    TS_ASSERT_EQUALS(state->context_cache->reclaim, 0);
+    MethodContext* ctx2 = MethodContext::create(state, 10);
+    TS_ASSERT_EQUALS(ctx, ctx2);
+  }
+
+  void test_recycle_ignores_mature_contexts() {
+    MethodContext* ctx = MethodContext::create(state, 10);
+    ctx->zone = MatureObjectZone; // GROSS
+    state->context_cache->reclaim = 1;
+    TS_ASSERT(!ctx->recycle(state));
   }
 };
