@@ -22,12 +22,12 @@ class TestHash : public CxxTest::TestSuite {
     state = new VM();
     tbl = Hash::create(state);
     hash = 3;
-    key = Object::i2n(8);
-    val = Object::i2n(3234);
+    key = Fixnum::from(8);
+    val = Fixnum::from(3234);
 
     hash2 = 8;
-    key2 = Object::i2n(60);
-    val2 =  Object::i2n(1123);
+    key2 = Fixnum::from(60);
+    val2 =  Fixnum::from(1123);
   }
 
   void tearDown() {
@@ -62,7 +62,7 @@ class TestHash : public CxxTest::TestSuite {
     tbl->add(state, collide, key2, val2);
 
     hashval collide2 = (2 << 4) | hash;
-    tbl->add(state, collide2, Object::i2n(12), Qtrue);
+    tbl->add(state, collide2, Fixnum::from(12), Qtrue);
 
     TS_ASSERT_EQUALS(val, tbl->get(state, hash));
     TS_ASSERT_EQUALS(val2, tbl->get(state, collide));
@@ -71,7 +71,7 @@ class TestHash : public CxxTest::TestSuite {
     size_t bins = tbl->values->field_count;
 
     for(size_t i = 0; i < bins; i++) {
-      tbl->set(state, Object::i2n(i), Qtrue);
+      tbl->set(state, Fixnum::from(i), Qtrue);
     }
   }
 
@@ -150,7 +150,7 @@ class TestHash : public CxxTest::TestSuite {
     size_t bins = tbl->values->field_count;
 
     for(size_t i = 0; i < bins; i++) {
-      OBJECT key = Object::i2n(i);
+      OBJECT key = Fixnum::from(i);
       tbl->assign(state, _compare1, key, key->hash(state), val);
     }
 
@@ -210,7 +210,7 @@ class TestHash : public CxxTest::TestSuite {
   void test_csm_add_returns_false_on_full() {
     Tuple *tup = Hash::csm_new(state);
     for(size_t i = 0; i < 6; i++) {
-      TS_ASSERT_EQUALS(Hash::csm_add(state, tup, Object::i2n(i), val), Qtrue);
+      TS_ASSERT_EQUALS(Hash::csm_add(state, tup, Fixnum::from(i), val), Qtrue);
     }
     TS_ASSERT_EQUALS(Hash::csm_add(state, tup, key, val), Qfalse);
   }

@@ -26,7 +26,7 @@ namespace rubinius {
 
   Array* Array::from_tuple(STATE, Tuple* tup) {
     Array* ary = Array::create(state, tup->field_count);
-    OBJECT i = Object::i2n(0);
+    OBJECT i = Fixnum::from(0);
     as<Integer>(i);
     for(size_t i = 0; i < tup->field_count; i++) {
       ary->set(state, i, tup->at(i));
@@ -37,8 +37,8 @@ namespace rubinius {
 
   void Array::setup(STATE, size_t size) {
     SET(this, tuple, Tuple::create(state, size));
-    SET(this, start, Object::i2n(0));
-    SET(this, total, Object::i2n(0));
+    SET(this, start, Fixnum::from(0));
+    SET(this, total, Fixnum::from(0));
   }
 
   OBJECT Array::get(STATE, size_t idx) {
@@ -79,7 +79,7 @@ namespace rubinius {
 
     tup->put(state, idx, val);
     if((size_t)total->n2i() <= oidx) {
-      total = Object::i2n(oidx+1);
+      total = Fixnum::from(oidx+1);
     }
     return val;
   }

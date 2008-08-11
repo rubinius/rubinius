@@ -35,11 +35,11 @@ class TestArray : public CxxTest::TestSuite {
   void test_set_resizes() {
     Array* ary = Array::create(state, 3);
 
-    ary->set(state, 0, Object::i2n(33));
+    ary->set(state, 0, Fixnum::from(33));
     ary->set(state, 10, Qtrue);
 
     TS_ASSERT(ary->tuple->field_count > 3);
-    TS_ASSERT_EQUALS(ary->get(state, 0), Object::i2n(33));
+    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(33));
 
   }
 };

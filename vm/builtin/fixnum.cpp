@@ -7,12 +7,18 @@
 
 namespace rubinius {
 
+  /* WARNING. Do not use this version if +num+ has the chance of being
+   * greater than FIXNUM_MAX or less than FIXNUM_MIN. */
+  FIXNUM Fixnum::from(native_int num) {
+    return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
+  }
+
   INTEGER Fixnum::add(STATE, FIXNUM other) {
     native_int r = to_nint() + other->to_nint();
     if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
       return Bignum::create(state, r);
     } else {
-      return Object::i2n(r);
+      return Fixnum::from(r);
     }
   }
 
@@ -29,7 +35,7 @@ namespace rubinius {
     if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
       return Bignum::create(state, r);
     } else {
-      return Object::i2n(state, r);
+      return Fixnum::from(r);
     }
   }
     
@@ -45,7 +51,7 @@ namespace rubinius {
     native_int a  = n2i();
     native_int b  = other->n2i();
       
-    if(a == 0 || b == 0) return Object::i2n(0);
+    if(a == 0 || b == 0) return Fixnum::from(0);
       
     if(a > 0) {
       if(b > 0) {
@@ -69,7 +75,7 @@ namespace rubinius {
       }
     }
       
-    return Object::i2n(state, n2i() * other->n2i());
+    return Fixnum::from(n2i() * other->n2i());
   }
 
   INTEGER Fixnum::mul(STATE, Bignum* other) {
@@ -88,7 +94,7 @@ namespace rubinius {
     native_int denominator = other->n2i();
     native_int quotient = numerator / denominator;
     if(quotient < 0 && quotient * denominator != numerator) --quotient;
-    return Object::i2n(state, quotient);
+    return Fixnum::from(quotient);
   }
 
   INTEGER Fixnum::div(STATE, Bignum* other) {
@@ -103,7 +109,7 @@ namespace rubinius {
     native_int numerator = n2i();
     native_int denominator = other->n2i();
     native_int quotient = div(state, other)->n2i();
-    return Object::i2n(state, numerator - denominator * quotient);
+    return Fixnum::from(numerator - denominator * quotient);
   }
 
   INTEGER Fixnum::mod(STATE, Bignum* other) {
@@ -122,8 +128,8 @@ namespace rubinius {
     native_int denominator = other->n2i();
     native_int fraction = div(state, other)->n2i();
     Array* ary = Array::create(state, 2);
-    ary->set(state, 0, Object::i2n(fraction));
-    ary->set(state, 1, Object::i2n(numerator - denominator * fraction));
+    ary->set(state, 0, Fixnum::from(fraction));
+    ary->set(state, 1, Fixnum::from(numerator - denominator * fraction));
     return ary;
   }
 
@@ -136,7 +142,7 @@ namespace rubinius {
   }
 
   INTEGER Fixnum::neg(STATE) {
-    return Object::i2n(-n2i());
+    return Fixnum::from(-n2i());
   }
 
   OBJECT Fixnum::equal(STATE, FIXNUM other) {
@@ -155,22 +161,22 @@ namespace rubinius {
     native_int left  = n2i();
     native_int right = other->n2i();
     if(left == right) {
-      return Object::i2n(0);
+      return Fixnum::from(0);
     } else if(left < right) {
-      return Object::i2n(-1);
+      return Fixnum::from(-1);
     } else {
-      return Object::i2n(1);
+      return Fixnum::from(1);
     }
   }
 
   FIXNUM Fixnum::compare(STATE, Bignum* other) {
     native_int res = other->compare(state, this)->n2i();
     if(res == 0) {
-      return Object::i2n(0);
+      return Fixnum::from(0);
     } else if(res < 0) {
-      return Object::i2n(1);
+      return Fixnum::from(1);
     } else {
-      return Object::i2n(-1);
+      return Fixnum::from(-1);
     }
   }
 
@@ -178,11 +184,11 @@ namespace rubinius {
     double left  = (double)n2i();
     double right = other->val;
     if(left == right) {
-      return Object::i2n(0);
+      return Fixnum::from(0);
     } else if(left < right) {
-      return Object::i2n(-1);
+      return Fixnum::from(-1);
     } else {
-      return Object::i2n(1);
+      return Fixnum::from(1);
     }
   }
 
@@ -237,7 +243,7 @@ namespace rubinius {
   INTEGER Fixnum::left_shift(STATE, INTEGER bits) {
     native_int shift = bits->n2i();
     if(shift < 0) {
-      return right_shift(state, Object::i2n(-shift));
+      return right_shift(state, Fixnum::from(-shift));
     }
       
     native_int self = n2i();
@@ -246,19 +252,19 @@ namespace rubinius {
       return Bignum::create(state, self)->left_shift(state, bits);
     }
       
-    return Object::i2n(self << shift);
+    return Fixnum::from(self << shift);
   }
 
   INTEGER Fixnum::right_shift(STATE, INTEGER bits) {
     native_int shift = bits->n2i();
     if(shift < 0) {
-      return left_shift(state, Object::i2n(-shift));
+      return left_shift(state, Fixnum::from(-shift));
     }
       
     native_int self = n2i();
       
     native_int a = self >> shift;
-    return Object::i2n(a); 
+    return Fixnum::from(a); 
   }
 
   native_int Fixnum::to_nint() {
@@ -266,11 +272,11 @@ namespace rubinius {
   }
 
   INTEGER Fixnum::size(STATE) {
-    return Object::i2n(sizeof(native_int));
+    return Fixnum::from(sizeof(native_int));
   }
 
   INTEGER Fixnum::bit_and(STATE, FIXNUM other) {
-    return Object::i2n(n2i() & other->n2i());
+    return Fixnum::from(n2i() & other->n2i());
   }
 
   INTEGER Fixnum::bit_and(STATE, Bignum* other) {
@@ -278,11 +284,11 @@ namespace rubinius {
   }
 
   INTEGER Fixnum::bit_and(STATE, Float* other) {
-    return Object::i2n(n2i() & (native_int)other->val);
+    return Fixnum::from(n2i() & (native_int)other->val);
   }
 
   INTEGER Fixnum::bit_or(STATE, FIXNUM other) {
-    return Object::i2n(n2i() | other->n2i());
+    return Fixnum::from(n2i() | other->n2i());
   }
 
   INTEGER Fixnum::bit_or(STATE, Bignum* other) {
@@ -290,11 +296,11 @@ namespace rubinius {
   }
 
   INTEGER Fixnum::bit_or(STATE, Float* other) {
-    return Object::i2n(n2i() | (native_int)other->val);
+    return Fixnum::from(n2i() | (native_int)other->val);
   }
 
   INTEGER Fixnum::bit_xor(STATE, FIXNUM other) {
-    return Object::i2n(n2i() ^ other->n2i());
+    return Fixnum::from(n2i() ^ other->n2i());
   }
 
   INTEGER Fixnum::bit_xor(STATE, Bignum* other) {
@@ -302,11 +308,11 @@ namespace rubinius {
   }
 
   INTEGER Fixnum::bit_xor(STATE, Float* other) {
-    return Object::i2n(n2i() ^ (native_int)other->val);
+    return Fixnum::from(n2i() ^ (native_int)other->val);
   }
 
   INTEGER Fixnum::invert(STATE) {
-    return Object::i2n(~n2i());
+    return Fixnum::from(~n2i());
   }
 
   Float* Fixnum::to_f(STATE) {

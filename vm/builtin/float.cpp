@@ -110,22 +110,22 @@ namespace rubinius {
 
   FIXNUM Float::compare(STATE, Float* other) {
     if(this->val == other->val) {
-      return Object::i2n(0);
+      return Fixnum::from(0);
     } else if(this->val > other->val) {
-      return Object::i2n(1);
+      return Fixnum::from(1);
     } else {
-      return Object::i2n(-1);
+      return Fixnum::from(-1);
     }
   }
 
   FIXNUM Float::compare(STATE, INTEGER other) {
     Float* o = Float::coerce(state, other);
     if(this->val == o->val) {
-      return Object::i2n(0);
+      return Fixnum::from(0);
     } else if(this->val > o->val) {
-      return Object::i2n(1);
+      return Fixnum::from(1);
     } else {
-      return Object::i2n(-1);
+      return Fixnum::from(-1);
     }
   }
 
@@ -163,7 +163,7 @@ namespace rubinius {
 
   OBJECT Float::fisinf(STATE) {
     if(isinf(this->val) != 0) {
-      return this->val < 0 ? Object::i2n(-1) : Object::i2n(1);
+      return this->val < 0 ? Fixnum::from(-1) : Fixnum::from(1);
     } else {
       return Qnil;
     }

@@ -31,7 +31,7 @@ namespace rubinius {
     if(FIXNUM i = try_as<Fixnum>(self)) {
       std::cout << i->n2i() << std::endl;
     } else if(Bignum* b = try_as<Bignum>(self)) {
-      std::cout << *b->to_s(state, Object::i2n(10)) << std::endl;
+      std::cout << *b->to_s(state, Fixnum::from(10)) << std::endl;
     } else if(Float* f = try_as<Float>(self)) {
       std::cout << f->val << std::endl;
     } else if(String* str = try_as<String>(self)) {

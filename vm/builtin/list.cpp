@@ -31,7 +31,7 @@ namespace rubinius {
   /* Create a new List object, containing no elements. */
   List* List::create(STATE) {
     List* list = (List*)state->new_object(G(list));
-    SET(list, count, Object::i2n(0));
+    SET(list, count, Fixnum::from(0));
 
     return list;
   }
@@ -52,7 +52,7 @@ namespace rubinius {
       SET(this, first, node);
     }
 
-    SET(this, count, Object::i2n(state, count->n2i() + 1));
+    SET(this, count, Integer::from(state, count->n2i() + 1));
   }
 
   /* Return the +index+ numbered element from the beginning. */
@@ -75,7 +75,7 @@ namespace rubinius {
   OBJECT List::shift(STATE) {
     if(empty_p()) return Qnil;
 
-    SET(this, count, Object::i2n(state, count->n2i() - 1));
+    SET(this, count, Integer::from(state, count->n2i() - 1));
     ListNode* n = first;
     SET(this, first, first->next);
 
@@ -122,7 +122,7 @@ namespace rubinius {
       node = nxt;
     }
 
-    SET(this, count, Object::i2n(state, counted));
+    SET(this, count, Integer::from(state, counted));
 
     return deleted;
   }

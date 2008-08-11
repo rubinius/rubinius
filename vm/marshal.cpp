@@ -166,7 +166,7 @@ namespace rubinius {
 
     for(size_t i = 0; i < count; i++) {
       stream >> op;
-      ops->put(state, i, Object::i2n(op));
+      ops->put(state, i, Fixnum::from(op));
     }
 
     iseq->post_marshal(state);

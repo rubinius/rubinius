@@ -68,25 +68,25 @@ namespace rubinius {
           NativeFunction::fields));
 
     Module* mod = new_module("FFI");
-    mod->set_const(this, "TYPE_OBJECT",   Object::i2n(this, RBX_FFI_TYPE_OBJECT));
-    mod->set_const(this, "TYPE_CHAR",     Object::i2n(this, RBX_FFI_TYPE_CHAR));
-    mod->set_const(this, "TYPE_UCHAR",    Object::i2n(this, RBX_FFI_TYPE_UCHAR));
-    mod->set_const(this, "TYPE_SHORT",    Object::i2n(this, RBX_FFI_TYPE_SHORT));
-    mod->set_const(this, "TYPE_USHORT",   Object::i2n(this, RBX_FFI_TYPE_USHORT));
-    mod->set_const(this, "TYPE_INT",      Object::i2n(this, RBX_FFI_TYPE_INT));
-    mod->set_const(this, "TYPE_UINT",     Object::i2n(this, RBX_FFI_TYPE_UINT));
-    mod->set_const(this, "TYPE_LONG",     Object::i2n(this, RBX_FFI_TYPE_LONG));
-    mod->set_const(this, "TYPE_ULONG",    Object::i2n(this, RBX_FFI_TYPE_ULONG));
-    mod->set_const(this, "TYPE_LL",       Object::i2n(this, RBX_FFI_TYPE_LL));
-    mod->set_const(this, "TYPE_ULL",      Object::i2n(this, RBX_FFI_TYPE_ULL));
-    mod->set_const(this, "TYPE_FLOAT",    Object::i2n(this, RBX_FFI_TYPE_FLOAT));
-    mod->set_const(this, "TYPE_DOUBLE",   Object::i2n(this, RBX_FFI_TYPE_DOUBLE));
-    mod->set_const(this, "TYPE_PTR",      Object::i2n(this, RBX_FFI_TYPE_PTR));
-    mod->set_const(this, "TYPE_VOID",     Object::i2n(this, RBX_FFI_TYPE_VOID));
-    mod->set_const(this, "TYPE_STRING",   Object::i2n(this, RBX_FFI_TYPE_STRING));
-    mod->set_const(this, "TYPE_STATE",    Object::i2n(this, RBX_FFI_TYPE_STATE));
-    mod->set_const(this, "TYPE_STRPTR",   Object::i2n(this, RBX_FFI_TYPE_STRPTR));
-    mod->set_const(this, "TYPE_CHARARR",  Object::i2n(this, RBX_FFI_TYPE_CHARARR));
+    mod->set_const(this, "TYPE_OBJECT",   Fixnum::from(RBX_FFI_TYPE_OBJECT));
+    mod->set_const(this, "TYPE_CHAR",     Fixnum::from(RBX_FFI_TYPE_CHAR));
+    mod->set_const(this, "TYPE_UCHAR",    Fixnum::from(RBX_FFI_TYPE_UCHAR));
+    mod->set_const(this, "TYPE_SHORT",    Fixnum::from(RBX_FFI_TYPE_SHORT));
+    mod->set_const(this, "TYPE_USHORT",   Fixnum::from(RBX_FFI_TYPE_USHORT));
+    mod->set_const(this, "TYPE_INT",      Fixnum::from(RBX_FFI_TYPE_INT));
+    mod->set_const(this, "TYPE_UINT",     Fixnum::from(RBX_FFI_TYPE_UINT));
+    mod->set_const(this, "TYPE_LONG",     Fixnum::from(RBX_FFI_TYPE_LONG));
+    mod->set_const(this, "TYPE_ULONG",    Fixnum::from(RBX_FFI_TYPE_ULONG));
+    mod->set_const(this, "TYPE_LL",       Fixnum::from(RBX_FFI_TYPE_LL));
+    mod->set_const(this, "TYPE_ULL",      Fixnum::from(RBX_FFI_TYPE_ULL));
+    mod->set_const(this, "TYPE_FLOAT",    Fixnum::from(RBX_FFI_TYPE_FLOAT));
+    mod->set_const(this, "TYPE_DOUBLE",   Fixnum::from(RBX_FFI_TYPE_DOUBLE));
+    mod->set_const(this, "TYPE_PTR",      Fixnum::from(RBX_FFI_TYPE_PTR));
+    mod->set_const(this, "TYPE_VOID",     Fixnum::from(RBX_FFI_TYPE_VOID));
+    mod->set_const(this, "TYPE_STRING",   Fixnum::from(RBX_FFI_TYPE_STRING));
+    mod->set_const(this, "TYPE_STATE",    Fixnum::from(RBX_FFI_TYPE_STATE));
+    mod->set_const(this, "TYPE_STRPTR",   Fixnum::from(RBX_FFI_TYPE_STRPTR));
+    mod->set_const(this, "TYPE_CHARARR",  Fixnum::from(RBX_FFI_TYPE_CHARARR));
   }
 
   MemoryPointer* MemoryPointer::create(STATE, void* ptr) {
@@ -105,28 +105,28 @@ namespace rubinius {
 
     switch(type) {
     case RBX_FFI_TYPE_CHAR:
-      ret = Object::i2n(state, READ(char));
+      ret = Fixnum::from((int)(READ(char)));
       break;
     case RBX_FFI_TYPE_UCHAR:
-      ret = Object::i2n(state, READ(unsigned char));
+      ret = Fixnum::from((unsigned int)(READ(unsigned char)));
       break;
     case RBX_FFI_TYPE_SHORT:
-      ret = Object::i2n(state, READ(short));
+      ret = Fixnum::from((int)(READ(short)));
       break;
     case RBX_FFI_TYPE_USHORT:
-      ret = Object::i2n(state, READ(unsigned short));
+      ret = Fixnum::from((unsigned int)(READ(unsigned short)));
       break;
     case RBX_FFI_TYPE_INT:
-      ret = Object::i2n(state, READ(int));
+      ret = Fixnum::from(READ(int));
       break;
     case RBX_FFI_TYPE_UINT:
-      ret = Object::i2n(state, READ(unsigned int));
+      ret = Fixnum::from(READ(unsigned int));
       break;
     case RBX_FFI_TYPE_LONG:
-      ret = Object::i2n(state, READ(long));
+      ret = Fixnum::from(READ(long));
       break;
     case RBX_FFI_TYPE_ULONG:
-      ret = Object::i2n(state, READ(unsigned long));
+      ret = Fixnum::from(READ(unsigned long));
       break;
     case RBX_FFI_TYPE_FLOAT:
       ret = Float::create(state, (double)READ(float));
@@ -135,10 +135,10 @@ namespace rubinius {
       ret = Float::create(state, READ(double));
       break;
     case RBX_FFI_TYPE_LL:
-      ret = Object::ll2n(state, READ(long long));
+      ret = Fixnum::from(READ(long long));
       break;
     case RBX_FFI_TYPE_ULL:
-      ret = Object::ull2n(state, READ(unsigned long long));
+      ret = Fixnum::from(READ(unsigned long long));
       break;
     case RBX_FFI_TYPE_OBJECT:
       ret = READ(OBJECT);
@@ -403,8 +403,8 @@ namespace rubinius {
   NativeFunction* NativeFunction::create(STATE, OBJECT name, int args) {
     NativeFunction* nf = (NativeFunction*)state->new_object(G(ffi_func));
     SET(nf, primitive, state->symbol("nfunc_call"));
-    SET(nf, required, Object::i2n(state, args));
-    SET(nf, serial, Object::i2n(0));
+    SET(nf, required, Integer::from(state, args));
+    SET(nf, serial, Fixnum::from(0));
     SET(nf, name,   name);
     SET(nf, file,   state->symbol("<system>"));
     SET(nf, data,   Qnil);
@@ -783,49 +783,49 @@ namespace rubinius {
     case RBX_FFI_TYPE_CHAR: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::i2n(state, (char)result);
+      ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UCHAR: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::ui2n(state, (unsigned char)result);
+      ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::i2n(state, (short)result);
+      ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_USHORT: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::ui2n(state, (unsigned short)result);
+      ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_INT: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::i2n(state, (int)result);
+      ret = Integer::from(state, (native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UINT: {
       ffi_arg result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::ui2n(state, (unsigned int)result);
+      ret = Integer::from(state, (unsigned int)result);
       break;
     }
     case RBX_FFI_TYPE_LONG: {
       long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::i2n(state, result);
+      ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG: {
       unsigned long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::ui2n(state, result);
+      ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_FLOAT: {
@@ -843,13 +843,13 @@ namespace rubinius {
     case RBX_FFI_TYPE_LL: {
       long long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::ll2n(state, result);
+      ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULL: {
       unsigned long long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
-      ret = Object::ull2n(state, result);
+      ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_OBJECT: {

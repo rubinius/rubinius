@@ -13,12 +13,6 @@
 
 namespace rubinius {
 
-  /* WARNING. Do not use this version if +num+ has the chance of being
-   * greater than FIXNUM_MAX. */
-  FIXNUM Object::i2n(native_int num) {
-    return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
-  }
-
   bool Object::fixnum_p() {
     return FIXNUM_P(this);
   }
@@ -246,41 +240,6 @@ namespace rubinius {
     return type;
   }
 
-  INTEGER Object::ui2n(STATE, unsigned int num) {
-    /* No need to check what 'num' is if it will always fit into a Fixnum */
-#if (CONFIG_WORDSIZE != 64)
-    if(num > FIXNUM_MAX) {
-      /* Number is too big for Fixnum. Use Bignum. */
-      return Bignum::new_unsigned(state, num);
-    }
-#endif
-    return (FIXNUM)APPLY_TAG((native_int)num, TAG_FIXNUM);
-  }
-
-  INTEGER Object::i2n(STATE, native_int num) {
-    if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
-      return Bignum::create(state, num);
-    } else {
-      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
-    }
-  }
-
-  INTEGER Object::ll2n(STATE, long long num) {
-    if(num > FIXNUM_MAX || num < FIXNUM_MIN) {
-      return Bignum::from_ll(state, num);
-    } else {
-      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
-    }
-  }
-
-  INTEGER Object::ull2n(STATE, unsigned long long num) {
-    if(num > FIXNUM_MAX) {
-      return Bignum::from_ull(state, num);
-    } else {
-      return (FIXNUM)APPLY_TAG(num, TAG_FIXNUM);
-    }
-  }
-
   Class* Object::class_object(STATE) {
     if(reference_p()) {
       Class* cls = klass;
@@ -392,14 +351,14 @@ namespace rubinius {
       if(id->nil_p()) {
         /* All references have an even object_id. last_object_id starts out at 0
          * but we don't want to use 0 as an object_id, so we just add before using */
-        id = Object::i2n(state->om->last_object_id += 2);
+        id = Fixnum::from(state->om->last_object_id += 2);
         meta->set_ivar(state, G(sym_object_id), id);
       }
 
       return as<Integer>(id);
     } else {
       /* All non-references have an odd object_id */
-      return Object::i2n(((uintptr_t)this << 1) | 1);
+      return Fixnum::from(((uintptr_t)this << 1) | 1);
     }
   }
 

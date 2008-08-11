@@ -8,6 +8,7 @@
 #include "objectmemory.hpp"
 
 #include "builtin/tuple.hpp"
+#include "builtin/integer.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
 #include "builtin/thread.hpp"
@@ -92,7 +93,7 @@ namespace rubinius {
       OBJECT ret;
 
       if(buffer->nil_p()) {
-        ret = Object::i2n(state, fd);
+        ret = Integer::from(state, fd);
       } else {
         /* the + 1 is for the null on the end */
         size_t bytes_to_read = count + 1;
@@ -115,13 +116,13 @@ namespace rubinius {
             if(errno == EINTR) continue;
 
             /* not sure. Send a system error */
-            ret = Tuple::from(state, 2, state->symbol("error"), Object::i2n(errno));
+            ret = Tuple::from(state, 2, state->symbol("error"), Fixnum::from(errno));
           } else {
             /* clamp */
             start[i] = 0;
 
             buffer->read_bytes(i);
-            ret = Object::i2n(i);
+            ret = Fixnum::from(i);
           }
 
           break;
@@ -186,12 +187,12 @@ namespace rubinius {
 
       if(p > 0) {
         if(WIFEXITED(status)) {
-          ret = Object::i2n(WEXITSTATUS(status));
+          ret = Fixnum::from(WEXITSTATUS(status));
         } else {
           /* Could support WIFSIGNALED also. */
           ret = Qtrue;
         }
-        channel->call(Tuple::from(state, 2, Object::i2n(p), ret));
+        channel->call(Tuple::from(state, 2, Fixnum::from(p), ret));
       } else if(pid == -1 && errno == ECHILD) {
         channel->call(Qfalse);
       } else if(pid == 0 && (options & WNOHANG)) {

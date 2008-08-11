@@ -100,10 +100,10 @@ class TestDir : public CxxTest::TestSuite {
     char *dir = make_directory();
     String* path = String::create(state, dir);
     d->open(state, path);
-    FIXNUM pos = (FIXNUM)d->control(state, Object::i2n(2), Object::i2n(0));
+    FIXNUM pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
     TS_ASSERT_EQUALS(pos->n2i(), 0);
     d->read(state);
-    pos = (FIXNUM)d->control(state, Object::i2n(2), Object::i2n(0));
+    pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
     TS_ASSERT_LESS_THAN(0, pos->n2i());
     remove_directory(dir);
   }
@@ -115,7 +115,7 @@ class TestDir : public CxxTest::TestSuite {
     d->read(state);
     d->read(state);
     TS_ASSERT(d->read(state)->nil_p());
-    d->control(state, Object::i2n(1), Object::i2n(0));
+    d->control(state, Fixnum::from(1), Fixnum::from(0));
     String* name = (String*)d->read(state);
     TS_ASSERT_EQUALS(name->byte_address()[0], '.');
     remove_directory(dir);
@@ -126,10 +126,10 @@ class TestDir : public CxxTest::TestSuite {
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);
-    FIXNUM pos = (FIXNUM)d->control(state, Object::i2n(2), Object::i2n(0));
+    FIXNUM pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
     String* first = (String*)d->read(state);
 
-    d->control(state, Object::i2n(0), pos);
+    d->control(state, Fixnum::from(0), pos);
     String* second = (String*)d->read(state);
     TS_ASSERT_EQUALS(first->size(), second->size());
     TS_ASSERT_SAME_DATA(first, second, first->size());
@@ -138,7 +138,7 @@ class TestDir : public CxxTest::TestSuite {
 
   /*
   void _test_control_closed() {
-    // TODO: TS_ASSERT_RAISES(d->control(state, Object::i2n(0), Object::i2n(0)), {Ruby IOError});
+    // TODO: TS_ASSERT_RAISES(d->control(state, Fixnum::from(0), Fixnum::from(0)), {Ruby IOError});
   }
   */
 

@@ -15,20 +15,20 @@ namespace rubinius {
   IOBuffer* IOBuffer::create(STATE, size_t bytes) {
     IOBuffer* buf = (IOBuffer*)state->new_object(G(iobuffer));
     SET(buf, storage, ByteArray::create(state, bytes));
-    SET(buf, total, Object::i2n(bytes));
-    SET(buf, used, Object::i2n(0));
+    SET(buf, total, Fixnum::from(bytes));
+    SET(buf, used, Fixnum::from(0));
 
     return buf;
   }
 
   IO* IO::create(STATE, int fd) {
     IO* io = (IO*)state->new_object(G(io));
-    SET(io, descriptor, Object::i2n(state, fd));
+    SET(io, descriptor, Integer::from(state, fd));
     return io;
   }
 
   void IO::initialize(STATE, int fd, char* mode) {
-    SET(this, descriptor, Object::i2n(state, fd));
+    SET(this, descriptor, Integer::from(state, fd));
     SET(this, mode, String::create(state, mode));
   }
 
@@ -37,7 +37,7 @@ namespace rubinius {
   }
 
   void IOBuffer::read_bytes(size_t bytes) {
-    used = Object::i2n(used->n2i() + bytes);
+    used = Fixnum::from(used->n2i() + bytes);
   }
 
   char* IOBuffer::byte_address() {

@@ -23,14 +23,6 @@ namespace rubinius {
     // Ruby.primitive :object_show
     OBJECT show(STATE);
 
-    /* WARNING. Do not use this version if +num+ has the chance of being
-     * greater than FIXNUM_MAX. */
-    static FIXNUM i2n(native_int num);
-    static INTEGER i2n(STATE, native_int num);
-    static INTEGER ui2n(STATE, unsigned int num);
-    static INTEGER ll2n(STATE, long long num);
-    static INTEGER ull2n(STATE, unsigned long long num);
-
     bool fixnum_p();
     bool symbol_p();
 

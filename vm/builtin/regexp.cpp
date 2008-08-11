@@ -1,5 +1,6 @@
 #include "builtin/regexp.hpp"
 #include "builtin/class.hpp"
+#include "builtin/integer.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -102,7 +103,7 @@ namespace rubinius {
     state = gd->state;
 
     gn = group_nums[0];
-    tbl->store(state, state->symbol((char*)name), Object::i2n(state, gn - 1));
+    tbl->store(state, state->symbol((char*)name), Integer::from(state, gn - 1));
     return 0;
   }
 
@@ -169,7 +170,7 @@ namespace rubinius {
     option = onig_get_options(reg);
     enc    = onig_get_encoding(reg);
 
-    return Object::i2n(state, ((int)(option & OPTION_MASK) | get_kcode_from_enc(enc)));
+    return Integer::from(state, ((int)(option & OPTION_MASK) | get_kcode_from_enc(enc)));
   }
 
   static OBJECT _md_region_to_tuple(STATE, OnigRegion *region, int max) {
@@ -178,8 +179,8 @@ namespace rubinius {
     Tuple* tup = Tuple::create(state, region->num_regs - 1);
     for(i = 1; i < region->num_regs; i++) {
       sub = Tuple::create(state, 2);
-      sub->put(state, 0, Object::i2n(state, region->beg[i]));
-      sub->put(state, 1, Object::i2n(state, region->end[i]));
+      sub->put(state, 0, Integer::from(state, region->beg[i]));
+      sub->put(state, 1, Integer::from(state, region->end[i]));
       tup->put(state, i - 1, sub);
     }
     return tup;
@@ -190,8 +191,8 @@ namespace rubinius {
     SET(md, source, string->string_dup(state));
     SET(md, regexp, regexp);
     Tuple* tup = Tuple::create(state, 2);
-    tup->put(state, 0, Object::i2n(state, region->beg[0]));
-    tup->put(state, 1, Object::i2n(state, region->end[0]));
+    tup->put(state, 0, Integer::from(state, region->beg[0]));
+    tup->put(state, 1, Integer::from(state, region->end[0]));
     
     SET(md, full, tup);
     SET(md, region, _md_region_to_tuple(state, region, max));

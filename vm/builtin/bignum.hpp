@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_BIGNUM_HPP
 
 #include "objects.hpp" // TODO: break up objects.hpp
+#include "builtin/integer.hpp"
 
 namespace rubinius {
   class Array;
@@ -15,11 +16,13 @@ namespace rubinius {
 
     static void cleanup(STATE, OBJECT obj);
     static void init(STATE);
+
     static Bignum* create(STATE, native_int num);
-    static Bignum* new_unsigned(STATE, unsigned int num);
+    static Bignum* create(STATE, unsigned long);
+    static Bignum* create(STATE, long long val);
+    static Bignum* create(STATE, unsigned long long val);
+
     static INTEGER normalize(STATE, Bignum* obj);
-    static Bignum* from_ull(STATE, unsigned long long val);
-    static Bignum* from_ll(STATE, long long val);
     static INTEGER from_string_detect(STATE, const char* str);
     static INTEGER from_string(STATE, const char* str, size_t radix);
     static INTEGER from_double(STATE, double d);

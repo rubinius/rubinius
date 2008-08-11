@@ -34,7 +34,7 @@ namespace rubinius {
 
   /* The Tuple#fields primitive. */
   OBJECT Tuple::fields_prim(STATE) {
-    return Object::i2n(state, field_count);
+    return Integer::from(state, field_count);
   }
 
   Tuple* Tuple::create(STATE, size_t fields) {

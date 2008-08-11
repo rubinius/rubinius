@@ -22,7 +22,7 @@ namespace rubinius {
   void Hash::setup(STATE, size_t size) {
     keys = Qnil;
     SET(this, values, Tuple::create(state, size));
-    SET(this, entries, Object::i2n(0));
+    SET(this, entries, Fixnum::from(0));
     default_value = Qnil;
   }
 
@@ -65,7 +65,7 @@ namespace rubinius {
 
   Tuple* Hash::entry_new(STATE, hashval hsh, OBJECT key, OBJECT data) {
     Tuple* tup = Tuple::create(state, 4);
-    tup->put(state, 0, Object::i2n(hsh));
+    tup->put(state, 0, Fixnum::from(hsh));
     tup->put(state, 1, key);
     tup->put(state, 2, data);
     tup->put(state, 3, Qnil);
@@ -96,7 +96,7 @@ namespace rubinius {
       values->put(state, bin, ent);
     }
 
-    entries = Object::i2n(entries->n2i() + 1);
+    entries = Fixnum::from(entries->n2i() + 1);
     return ent;
   }
 
@@ -253,7 +253,7 @@ namespace rubinius {
     if(base) {
       ent = entry_new(state, hash, key, value);
       entry_append(state, base, ent);
-      entries = Object::i2n(entries->n2i() + 1);
+      entries = Fixnum::from(entries->n2i() + 1);
       return;
     }
 
@@ -299,7 +299,7 @@ namespace rubinius {
         } else {
           lst->put(state, 3, lk);
         }
-        entries = Object::i2n(entries->n2i() - 1);
+        entries = Fixnum::from(entries->n2i() - 1);
         return val;
       }
 

@@ -57,9 +57,9 @@ namespace rubinius {
 
   Class *VM::new_basic_class(OBJECT sup, size_t fields) {
     Class *cls = (Class*)om->new_object(G(klass), Class::fields);
-    cls->instance_fields = Object::i2n(fields);
+    cls->instance_fields = Fixnum::from(fields);
     cls->has_ivars = Qtrue;
-    cls->instance_type = Object::i2n(ObjectType);
+    cls->instance_type = Fixnum::from(ObjectType);
     SET(cls, superclass, sup);
 
     return cls;
@@ -107,7 +107,7 @@ namespace rubinius {
     Class *cls = (Class*)om->allocate_object(Class::fields);
     cls->klass = cls;
 
-    cls->instance_fields = Object::i2n(Class::fields);
+    cls->instance_fields = Fixnum::from(Class::fields);
     cls->has_ivars = Qtrue;
     cls->set_object_type(ClassType);
     cls->obj_type = ClassType;
@@ -123,17 +123,17 @@ namespace rubinius {
     cls->superclass = G(module);
 
     GO(metaclass).set(new_basic_class(cls, MetaClass::fields));
-    G(metaclass)->instance_type = Object::i2n(MetaclassType);
+    G(metaclass)->instance_type = Fixnum::from(MetaclassType);
 
     GO(tuple).set(new_basic_class(object, Tuple::fields));
-    G(tuple)->instance_type = Object::i2n(TupleType);
+    G(tuple)->instance_type = Fixnum::from(TupleType);
     G(tuple)->has_ivars = Qfalse;
 
     GO(lookuptable).set(new_basic_class(object, LookupTable::fields));
-    G(lookuptable)->instance_type = Object::i2n(LookupTableType);
+    G(lookuptable)->instance_type = Fixnum::from(LookupTableType);
 
     GO(methtbl).set(new_basic_class(G(lookuptable), MethodTable::fields));
-    G(methtbl)->instance_type = Object::i2n(MTType);
+    G(methtbl)->instance_type = Fixnum::from(MTType);
 
     OBJECT mc = MetaClass::attach(this, object, cls);
     mc = MetaClass::attach(this, G(module), mc);
@@ -146,14 +146,14 @@ namespace rubinius {
 
     GO(symbol).set(new_class(object, 0));
     GO(array).set(new_class(object, Array::fields));
-    G(array)->instance_type = Object::i2n(ArrayType);
+    G(array)->instance_type = Fixnum::from(ArrayType);
     G(array)->has_ivars = Qfalse;
 
     GO(bytearray).set(new_class(object, 0));
-    G(bytearray)->instance_type = Object::i2n(ByteArrayType);
+    G(bytearray)->instance_type = Fixnum::from(ByteArrayType);
 
     GO(string).set(new_class(object, String::fields));
-    G(string)->instance_type = Object::i2n(StringType);
+    G(string)->instance_type = Fixnum::from(StringType);
     G(string)->has_ivars = Qfalse;
 
     GO(symtbl).set(new_class(object, SymbolTable::fields));
@@ -161,24 +161,24 @@ namespace rubinius {
     GO(executable).set(new_class(object, Executable::fields));
 
     GO(cmethod).set(new_class(G(executable), CompiledMethod::fields));
-    G(cmethod)->instance_type = Object::i2n(CMethodType);
+    G(cmethod)->instance_type = Fixnum::from(CMethodType);
 
     GO(hash).set(new_class(object, Hash::fields));
-    G(hash)->instance_type = Object::i2n(HashType);
+    G(hash)->instance_type = Fixnum::from(HashType);
 
     GO(io).set(new_class(object, IO::fields));
 
     GO(blokenv).set(new_class(object, BlockEnvironment::fields));
-    G(blokenv)->instance_type = Object::i2n(BlockEnvType);
+    G(blokenv)->instance_type = Fixnum::from(BlockEnvType);
 
     GO(staticscope).set(new_class(object, StaticScope::fields));
     G(staticscope)->set_object_type(StaticScopeType);
 
     GO(dir).set(new_class(object, Dir::fields));
-    G(dir)->instance_type = Object::i2n(DirType);
+    G(dir)->instance_type = Fixnum::from(DirType);
 
     GO(compactlookuptable).set(new_class(G(tuple), CompactLookupTable::fields));
-    G(compactlookuptable)->instance_type = Object::i2n(CompactLookupTableType);
+    G(compactlookuptable)->instance_type = Fixnum::from(CompactLookupTableType);
 
     bootstrap_symbol();
 
@@ -213,14 +213,14 @@ namespace rubinius {
     Class* numeric = new_class("Numeric", object, 0);
     Class* integer = new_class("Integer", numeric, 0);
     GO(fixnum_class).set(new_class("Fixnum", integer, 0));
-    G(fixnum_class)->instance_type = Object::i2n(FixnumType);
+    G(fixnum_class)->instance_type = Fixnum::from(FixnumType);
 
     GO(bignum).set(new_class("Bignum", integer, 0));
-    G(bignum)->instance_type = Object::i2n(BignumType);
+    G(bignum)->instance_type = Fixnum::from(BignumType);
     Bignum::init(this);
 
     GO(floatpoint).set(new_class("Float", numeric, 0));
-    G(floatpoint)->instance_type = Object::i2n(FloatType);
+    G(floatpoint)->instance_type = Fixnum::from(FloatType);
 
     GO(methctx).set(new_class("MethodContext", object, 0));
     G(methctx)->set_object_type(MContextType);
@@ -229,10 +229,10 @@ namespace rubinius {
     G(blokctx)->set_object_type(BContextType);
 
     GO(task).set(new_class("Task", object, 0));
-    G(task)->instance_type = Object::i2n(TaskType);
+    G(task)->instance_type = Fixnum::from(TaskType);
 
     GO(iseq).set(new_class("InstructionSequence", G(object), InstructionSequence::fields));
-    G(iseq)->instance_type = Object::i2n(ISeqType);
+    G(iseq)->instance_type = Fixnum::from(ISeqType);
 
     for(size_t i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
       globals.special_classes[i + 0] = GO(object); /* unused slot */
@@ -359,8 +359,8 @@ namespace rubinius {
 
 #define set_syserr(num, name) ({ \
     Class* _cls = new_class(name, sce, sz, ern); \
-    _cls->set_const(state, symbol("Errno"), Object::i2n(num)); \
-    G(errno_mapping)->store(state, Object::i2n(num), _cls); \
+    _cls->set_const(state, symbol("Errno"), Fixnum::from(num)); \
+    G(errno_mapping)->store(state, Fixnum::from(num), _cls); \
     })
 
     /*

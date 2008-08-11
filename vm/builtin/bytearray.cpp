@@ -23,6 +23,6 @@ namespace rubinius {
   }
 
   INTEGER ByteArray::size(STATE) {
-    return Object::i2n(SIZE_OF_BODY(this));
+    return Fixnum::from(SIZE_OF_BODY(this));
   }
 }

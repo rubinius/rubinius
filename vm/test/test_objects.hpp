@@ -63,7 +63,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(meta->class_object(state), G(klass));
     TS_ASSERT_EQUALS(meta->superclass, G(klass));
-    TS_ASSERT_EQUALS(meta->instance_type, Object::i2n(MetaclassType));
+    TS_ASSERT_EQUALS(meta->instance_type, Fixnum::from(MetaclassType));
     check_const(metaclass, "MetaClass");
   }
 
@@ -74,7 +74,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(tup->class_object(state), G(klass));
     TS_ASSERT_EQUALS(tup->superclass, G(object));
-    TS_ASSERT_EQUALS(tup->instance_type, Object::i2n(TupleType));
+    TS_ASSERT_EQUALS(tup->instance_type, Fixnum::from(TupleType));
     check_const(tuple, "Tuple");
   }
 
@@ -85,7 +85,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(lt->class_object(state), G(klass));
     TS_ASSERT_EQUALS(lt->superclass, G(object));
-    TS_ASSERT_EQUALS(lt->instance_type, Object::i2n(LookupTableType));
+    TS_ASSERT_EQUALS(lt->instance_type, Fixnum::from(LookupTableType));
     check_const(lookuptable, "LookupTable");
   }
 
@@ -170,7 +170,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass, G(object));
-    TS_ASSERT_EQUALS(cls->instance_type, Object::i2n(DirType));
+    TS_ASSERT_EQUALS(cls->instance_type, Fixnum::from(DirType));
     check_const(dir, "Dir");
   }
 
@@ -181,7 +181,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass, G(tuple));
-    TS_ASSERT_EQUALS(cls->instance_type, Object::i2n(CompactLookupTableType));
+    TS_ASSERT_EQUALS(cls->instance_type, Fixnum::from(CompactLookupTableType));
     check_const(compactlookuptable, "CompactLookupTable");
   }
 };

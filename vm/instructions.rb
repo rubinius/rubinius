@@ -50,7 +50,7 @@ class Instructions
 
   def push_int(val)
     <<-CODE
-    stack_push(Object::i2n(val));
+    stack_push(Fixnum::from(val));
     CODE
   end
 
@@ -81,7 +81,7 @@ class Instructions
 
   def meta_push_neg_1
     <<-CODE
-    stack_push(Object::i2n(-1));
+    stack_push(Fixnum::from(-1));
     CODE
   end
 
@@ -111,7 +111,7 @@ class Instructions
 
   def meta_push_0
     <<-CODE
-    stack_push(Object::i2n(0));
+    stack_push(Fixnum::from(0));
     CODE
   end
 
@@ -141,7 +141,7 @@ class Instructions
 
   def meta_push_1
     <<-CODE
-    stack_push(Object::i2n(1));
+    stack_push(Fixnum::from(1));
     CODE
   end
 
@@ -171,7 +171,7 @@ class Instructions
 
   def meta_push_2
     <<-CODE
-    stack_push(Object::i2n(2));
+    stack_push(Fixnum::from(2));
     CODE
   end
 
@@ -1346,13 +1346,13 @@ class Instructions
     TS_ASSERT_EQUALS(task->stack_top(), tup);
 
     Array* ary = Array::create(state, 1);
-    ary->set(state, 0, Object::i2n(1));
+    ary->set(state, 0, Fixnum::from(1));
     tup = Tuple::from(state, 1, ary);
     task->active->set_top(tup);
     run();
 
     tup = as<Tuple>(task->stack_top());
-    TS_ASSERT_EQUALS(tup->at(0), Object::i2n(1));
+    TS_ASSERT_EQUALS(tup->at(0), Fixnum::from(1));
     CODE
   end
 
@@ -1442,14 +1442,14 @@ class Instructions
     SET(cm, scope, cs);
 
     SYMBOL name = state->symbol("Number");
-    parent->set_const(state, name, Object::i2n(3));
+    parent->set_const(state, name, Fixnum::from(3));
 
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
 
     run();
 
-    TS_ASSERT_EQUALS(task->stack_top(), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_top(), Fixnum::from(3));
 
     CODE
   end
@@ -1492,7 +1492,7 @@ class Instructions
   def test_find_const
     <<-CODE
     SYMBOL name = state->symbol("Number");
-    G(true_class)->set_const(state, name, Object::i2n(3));
+    G(true_class)->set_const(state, name, Fixnum::from(3));
 
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
@@ -1501,7 +1501,7 @@ class Instructions
 
     run();
 
-    TS_ASSERT_EQUALS(task->stack_top(), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_top(), Fixnum::from(3));
     CODE
   end
 
@@ -1541,10 +1541,10 @@ class Instructions
     task->literals->put(state, 0, name);
     stream[1] = (opcode)0;
 
-    task->push(Object::i2n(3));
+    task->push(Fixnum::from(3));
     run();
 
-    TS_ASSERT_EQUALS(parent->get_const(state, name), Object::i2n(3));
+    TS_ASSERT_EQUALS(parent->get_const(state, name), Fixnum::from(3));
     CODE
   end
 
@@ -2028,10 +2028,10 @@ class Instructions
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
-    target->total_args = Object::i2n(0);
+    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args = Fixnum::from(0);
     target->required_args = target->total_args;
-    target->stack_size = Object::i2n(10);
+    target->stack_size = Fixnum::from(10);
 
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table->store(state, name, target);
@@ -2129,10 +2129,10 @@ class Instructions
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
-    target->total_args = Object::i2n(1);
+    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args = Fixnum::from(1);
     target->required_args = target->total_args;
-    target->stack_size = Object::i2n(1);
+    target->stack_size = Fixnum::from(1);
 
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table->store(state, name, target);
@@ -2140,7 +2140,7 @@ class Instructions
 
     task->literals->put(state, 0, ss);
     task->push(Qtrue);
-    task->push(Object::i2n(3));
+    task->push(Fixnum::from(3));
 
     stream[1] = (opcode)0;
     stream[2] = (opcode)1;
@@ -2151,7 +2151,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1U);
-    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
   end
@@ -2209,10 +2209,10 @@ class Instructions
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
-    target->total_args = Object::i2n(1);
+    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args = Fixnum::from(1);
     target->required_args = target->total_args;
-    target->stack_size = Object::i2n(1);
+    target->stack_size = Fixnum::from(1);
 
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table->store(state, name, target);
@@ -2220,7 +2220,7 @@ class Instructions
 
     task->literals->put(state, 0, ss);
     task->push(Qtrue);
-    task->push(Object::i2n(3));
+    task->push(Fixnum::from(3));
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
     task->push(be);
@@ -2234,7 +2234,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1U);
-    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
@@ -2299,10 +2299,10 @@ class Instructions
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
-    target->total_args = Object::i2n(2);
+    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args = Fixnum::from(2);
     target->required_args = target->total_args;
-    target->stack_size = Object::i2n(2);
+    target->stack_size = Fixnum::from(2);
 
     SYMBOL name = state->symbol("blah");
     G(true_class)->method_table->store(state, name, target);
@@ -2310,10 +2310,10 @@ class Instructions
 
     task->literals->put(state, 0, ss);
     task->push(Qtrue);
-    task->push(Object::i2n(3));
+    task->push(Fixnum::from(3));
 
     Array* splat = Array::create(state, 1);
-    splat->set(state, 0, Object::i2n(47));
+    splat->set(state, 0, Fixnum::from(47));
     task->push(splat);
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
@@ -2328,8 +2328,8 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 2U);
-    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
-    TS_ASSERT_EQUALS(task->stack_at(1), Object::i2n(47));
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(47));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, Qtrue);
     CODE
@@ -2384,10 +2384,10 @@ class Instructions
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
-    target->total_args = Object::i2n(1);
+    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args = Fixnum::from(1);
     target->required_args = target->total_args;
-    target->stack_size = Object::i2n(1);
+    target->stack_size = Fixnum::from(1);
 
     Class* parent = state->new_class("Parent", 1);
     Class* child =  state->new_class("Child", parent, 1);
@@ -2406,7 +2406,7 @@ class Instructions
 
     task->literals->put(state, 0, ss);
     task->push(obj);
-    task->push(Object::i2n(3));
+    task->push(Fixnum::from(3));
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
     task->push(be);
@@ -2420,7 +2420,7 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 1U);
-    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, obj);
     CODE
@@ -2478,10 +2478,10 @@ class Instructions
     <<-CODE
     CompiledMethod* target = CompiledMethod::create(state);
     target->iseq = InstructionSequence::create(state, 1);
-    target->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_ret));
-    target->total_args = Object::i2n(2);
+    target->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    target->total_args = Fixnum::from(2);
     target->required_args = target->total_args;
-    target->stack_size = Object::i2n(2);
+    target->stack_size = Fixnum::from(2);
 
     Class* parent = state->new_class("Parent", 1);
     Class* child =  state->new_class("Child", parent, 1);
@@ -2500,10 +2500,10 @@ class Instructions
 
     task->literals->put(state, 0, ss);
     task->push(obj);
-    task->push(Object::i2n(3));
+    task->push(Fixnum::from(3));
 
     Array* splat = Array::create(state, 1);
-    splat->set(state, 0, Object::i2n(47));
+    splat->set(state, 0, Fixnum::from(47));
     task->push(splat);
 
     BlockEnvironment* be = BlockEnvironment::under_context(state, target, task->active, task->active, 0);
@@ -2518,8 +2518,8 @@ class Instructions
 
     TS_ASSERT_EQUALS(task->active->cm, target);
     TS_ASSERT_EQUALS(task->active->args, 2U);
-    TS_ASSERT_EQUALS(task->stack_at(0), Object::i2n(3));
-    TS_ASSERT_EQUALS(task->stack_at(1), Object::i2n(47));
+    TS_ASSERT_EQUALS(task->stack_at(0), Fixnum::from(3));
+    TS_ASSERT_EQUALS(task->stack_at(1), Fixnum::from(47));
     TS_ASSERT_EQUALS(task->active->block, be);
     TS_ASSERT_EQUALS(task->self, obj);
     CODE
@@ -2604,15 +2604,15 @@ class Instructions
 
   def test_meta_send_op_plus
     <<-CODE
-    OBJECT one = Object::i2n(1);
-    OBJECT two = Object::i2n(2);
+    OBJECT one = Fixnum::from(1);
+    OBJECT two = Fixnum::from(2);
 
     task->push(one);
     task->push(two);
 
     run();
 
-    TS_ASSERT_EQUALS(task->stack_top(), Object::i2n(3));
+    TS_ASSERT_EQUALS(task->stack_top(), Fixnum::from(3));
 
     CODE
   end
@@ -2653,15 +2653,15 @@ class Instructions
 
   def test_meta_send_op_minus
     <<-CODE
-    OBJECT one = Object::i2n(1);
-    OBJECT two = Object::i2n(2);
+    OBJECT one = Fixnum::from(1);
+    OBJECT two = Fixnum::from(2);
 
     task->push(two);
     task->push(one);
 
     run();
 
-    TS_ASSERT_EQUALS(task->stack_top(), Object::i2n(1));
+    TS_ASSERT_EQUALS(task->stack_top(), Fixnum::from(1));
 
     CODE
   end
@@ -2700,8 +2700,8 @@ class Instructions
 
   def test_meta_send_op_equal
     <<-CODE
-    OBJECT one = Object::i2n(1);
-    OBJECT two = Object::i2n(2);
+    OBJECT one = Fixnum::from(1);
+    OBJECT two = Fixnum::from(2);
 
     task->push(two);
     task->push(one);
@@ -2750,8 +2750,8 @@ class Instructions
 
   def test_meta_send_op_nequal
     <<-CODE
-    OBJECT one = Object::i2n(1);
-    OBJECT two = Object::i2n(2);
+    OBJECT one = Fixnum::from(1);
+    OBJECT two = Fixnum::from(2);
 
     task->push(two);
     task->push(one);
@@ -2799,8 +2799,8 @@ class Instructions
 
   def test_meta_send_op_tequal
     <<-CODE
-    OBJECT one = Object::i2n(1);
-    OBJECT two = Object::i2n(2);
+    OBJECT one = Fixnum::from(1);
+    OBJECT two = Fixnum::from(2);
 
     task->push(two);
     task->push(one);
@@ -2847,8 +2847,8 @@ class Instructions
 
   def test_meta_send_op_lt
     <<-CODE
-    OBJECT one = Object::i2n(1);
-    OBJECT two = Object::i2n(2);
+    OBJECT one = Fixnum::from(1);
+    OBJECT two = Fixnum::from(2);
 
     task->push(one);
     task->push(two);
@@ -2895,8 +2895,8 @@ class Instructions
 
   def test_meta_send_op_gt
     <<-CODE
-    OBJECT one = Object::i2n(1);
-    OBJECT two = Object::i2n(2);
+    OBJECT one = Fixnum::from(1);
+    OBJECT two = Fixnum::from(2);
 
     task->push(one);
     task->push(two);

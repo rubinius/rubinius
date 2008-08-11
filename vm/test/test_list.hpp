@@ -15,8 +15,8 @@ class TestList : public CxxTest::TestSuite {
 
   void setUp() {
     state = new VM(1024);
-    one = Object::i2n(1);
-    two = Object::i2n(2);
+    one = Fixnum::from(1);
+    two = Fixnum::from(2);
   }
 
   void tearDown() {

@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_CLASS_HPP
 
 #include "builtin/object.hpp"
+#include "builtin/fixnum.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
@@ -47,7 +48,7 @@ namespace rubinius {
     FIXNUM instance_type; // slot
 
     void set_object_type(size_t type) {
-      instance_type = Object::i2n(type);
+      instance_type = Fixnum::from(type);
     }
 
     static Class* create(STATE, Class* super);

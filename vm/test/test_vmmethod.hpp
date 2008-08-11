@@ -24,7 +24,7 @@ public:
     SET(cm, literals, tup);
 
     InstructionSequence* iseq = InstructionSequence::create(state, 1);
-    iseq->opcodes->put(state, 0, Object::i2n(0));
+    iseq->opcodes->put(state, 0, Fixnum::from(0));
 
     SET(cm, iseq, iseq);
    
@@ -40,9 +40,9 @@ public:
     SET(cm, literals, tup);
 
     InstructionSequence* iseq = InstructionSequence::create(state, 3);
-    iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_push_ivar));
-    iseq->opcodes->put(state, 1, Object::i2n(0));
-    iseq->opcodes->put(state, 2, Object::i2n(InstructionSequence::insn_push_nil));
+    iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_push_ivar));
+    iseq->opcodes->put(state, 1, Fixnum::from(0));
+    iseq->opcodes->put(state, 2, Fixnum::from(InstructionSequence::insn_push_nil));
 
     SET(cm, iseq, iseq);
 

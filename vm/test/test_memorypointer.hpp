@@ -136,7 +136,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   }
 
   void test_get_field_object() {
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     MemoryPointer *ptr = MemoryPointer::create(state, &one);
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_OBJECT);
@@ -232,7 +232,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_char() {
     char buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
 
     buffer[0] = 0;
 
@@ -243,7 +243,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_uchar() {
     unsigned char buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     buffer[0] = 0;
 
@@ -254,7 +254,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_short() {
     short buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     buffer[0] = 0;
 
@@ -265,7 +265,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_ushort() {
     unsigned short buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     buffer[0] = 0;
 
@@ -276,7 +276,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_int() {
     int buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     buffer[0] = 0;
 
@@ -287,7 +287,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_int_bignum() {
     int buffer[1024];
-    OBJECT one = Bignum::create(state, 1);
+    OBJECT one = Bignum::create(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -298,7 +298,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_uint() {
     unsigned int buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     buffer[0] = 0;
 
@@ -309,7 +309,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_uint_bignum() {
     unsigned int buffer[1024];
-    OBJECT one = Bignum::create(state, 1);
+    OBJECT one = Bignum::create(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -320,7 +320,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_long() {
     long buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     buffer[0] = 0;
 
@@ -331,7 +331,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_long_bignum() {
     long buffer[1024];
-    OBJECT one = Bignum::create(state, 1);
+    OBJECT one = Bignum::create(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -342,7 +342,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_ulong() {
     unsigned long buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     buffer[0] = 0;
 
@@ -353,7 +353,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_ulong_bignum() {
     unsigned long buffer[1024];
-    OBJECT one = Bignum::create(state, 1);
+    OBJECT one = Bignum::create(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -386,7 +386,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_ll() {
     long long buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     buffer[0] = 0;
 
@@ -397,7 +397,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_ll_bignum() {
     long long buffer[1024];
-    OBJECT one = Bignum::create(state, 1);
+    OBJECT one = Bignum::create(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -408,7 +408,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_ull() {
     unsigned long long buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
     
     buffer[0] = 0;
 
@@ -419,7 +419,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_ull_bignum() {
     unsigned long long buffer[1024];
-    OBJECT one = Bignum::create(state, 1);
+    OBJECT one = Bignum::create(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -430,7 +430,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
 
   void test_set_field_object() {
     OBJECT buffer[1024];
-    OBJECT one = Object::i2n(1);
+    OBJECT one = Fixnum::from(1);
 
     buffer[0] = Qnil;
 

@@ -75,7 +75,7 @@ namespace rubinius {
       rewinddir(d);
       return Qtrue;
     case 2:
-      return Object::i2n(state, telldir(d));
+      return Integer::from(state, telldir(d));
     }
     return Qnil;
   }

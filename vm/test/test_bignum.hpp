@@ -20,7 +20,7 @@ class TestBignum : public CxxTest::TestSuite {
     state = new VM(1024);
     b1 = Bignum::create(state, (native_int)2147483647);
     b2 = Bignum::create(state, (native_int)2147483646);
-    two = Object::i2n(2);
+    two = Fixnum::from(2);
     TOLERANCE = 0.00003;
   }
 
@@ -29,32 +29,32 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_create() {
-    Bignum* obj = Bignum::create(state, 13);
+    Bignum* obj = Bignum::create(state, (native_int)13);
     TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(obj->obj_type, BignumType);
   }
 
   void test_to_i() {
-    Bignum* obj = Bignum::create(state, 13);
-    TS_ASSERT_EQUALS(obj->to_i(state), 13);
+    Bignum* obj = Bignum::create(state, (native_int)13);
+    TS_ASSERT_EQUALS(obj->to_i(state), (native_int)13);
   }
 
   void test_create_negative() {
-    Bignum* obj = Bignum::create(state, -13);
-    TS_ASSERT_EQUALS(obj->to_i(state), -13);
+    Bignum* obj = Bignum::create(state, (native_int)-13);
+    TS_ASSERT_EQUALS(obj->to_i(state), (native_int)-13);
   }
 
-  void test_new_unsigned() {
-    Bignum* obj = Bignum::new_unsigned(state, 13);
-    TS_ASSERT_EQUALS(obj->to_i(state), 13);
+  void test_create_unsigned() {
+    Bignum* obj = Bignum::create(state, (unsigned long)13);
+    TS_ASSERT_EQUALS(obj->to_i(state), (native_int)13);
   }
 
   void test_normalize() {
-    Bignum* obj = Bignum::create(state, 13);
+    Bignum* obj = Bignum::create(state, (native_int)13);
     OBJECT out = Bignum::normalize(state, obj);
 
     TS_ASSERT(out->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(out)->n2i(), 13);
+    TS_ASSERT_EQUALS(as<Integer>(out)->n2i(), (native_int)13);
 
     TS_ASSERT_EQUALS(b1, Bignum::normalize(state, b1));
   }
@@ -84,59 +84,59 @@ class TestBignum : public CxxTest::TestSuite {
 
   void test_add() {
     check_bignum(b1->add(state, b1), "4294967294");
-    check_bignum(b1->add(state, Object::i2n(1)), "2147483648");
+    check_bignum(b1->add(state, Fixnum::from(1)), "2147483648");
   }
 
   void test_add_with_positive_fixnum() {
-    check_bignum(b1->add(state, Object::i2n(100)), "2147483747");
+    check_bignum(b1->add(state, Fixnum::from(100)), "2147483747");
   }
 
   void test_add_with_negative_fixnum() {
-    check_bignum(b1->add(state, Object::i2n(-100)), "2147483547");
+    check_bignum(b1->add(state, Fixnum::from(-100)), "2147483547");
   }
 
   void test_add_with_float() {
     Float* f = Float::create(state, 0.2);
-    Float* a = Bignum::create(state, FIXNUM_MAX + 10)->add(state, f);
+    Float* a = Bignum::create(state, (native_int)FIXNUM_MAX + 10)->add(state, f);
     check_float(a, Float::create(state, (double)FIXNUM_MAX + 10.2));
   }
 
   void test_sub() {
     check_bignum(b1->sub(state, b1), "0");
-    check_bignum(b1->sub(state, Object::i2n(1)), "2147483646");
+    check_bignum(b1->sub(state, Fixnum::from(1)), "2147483646");
   }
 
   void test_sub_with_positive_fixnum() {
-    check_bignum(b1->sub(state, Object::i2n(100)), "2147483547");
+    check_bignum(b1->sub(state, Fixnum::from(100)), "2147483547");
   }
 
   void test_sub_with_negative_fixnum() {
-    check_bignum(b1->sub(state, Object::i2n(-100)), "2147483747");
+    check_bignum(b1->sub(state, Fixnum::from(-100)), "2147483747");
   }
 
   void test_sub_with_float() {
     Float* f = Float::create(state, 0.2);
-    Float* a = Bignum::create(state, FIXNUM_MAX + 10)->sub(state, f);
+    Float* a = Bignum::create(state, (native_int)FIXNUM_MAX + 10)->sub(state, f);
     check_float(a, Float::create(state, (double)FIXNUM_MAX + 9.8));
   }
 
   void test_mul() {
     check_bignum(b1->mul(state, b1), "4611686014132420609");
-    check_bignum(b1->mul(state, Object::i2n(2)), "4294967294");
-    check_bignum(b1->mul(state, Object::i2n(1)), "2147483647");
+    check_bignum(b1->mul(state, Fixnum::from(2)), "4294967294");
+    check_bignum(b1->mul(state, Fixnum::from(1)), "2147483647");
   }
 
   void test_mul_with_positive_fixnum() {
-    check_bignum(b1->mul(state, Object::i2n(100)), "214748364700");
+    check_bignum(b1->mul(state, Fixnum::from(100)), "214748364700");
   }
 
   void test_mul_with_negative_fixnum() {
-    check_bignum(b1->mul(state, Object::i2n(-100)), "-214748364700");
+    check_bignum(b1->mul(state, Fixnum::from(-100)), "-214748364700");
   }
 
   void test_mul_with_float() {
     Float* f = Float::create(state, 0.2);
-    Float* a = Bignum::create(state, FIXNUM_MAX + 10)->mul(state, f);
+    Float* a = Bignum::create(state, (native_int)FIXNUM_MAX + 10)->mul(state, f);
     check_float(a, Float::create(state, ((double)FIXNUM_MAX + 10) * 0.2));
   }
 
@@ -145,14 +145,14 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT(div->fixnum_p());
     TS_ASSERT_EQUALS(div->n2i(), 1);
 
-    TS_ASSERT_THROWS( b1->div(state, Bignum::create(state, 0)), const ZeroDivisionError &);
+    TS_ASSERT_THROWS( b1->div(state, Bignum::create(state, (native_int)0)), const ZeroDivisionError &);
   }
 
   void test_div_with_fixnum() {
     INTEGER div = b1->div(state, two);
     check_bignum(div,"1073741823");
 
-    TS_ASSERT_THROWS( b1->div(state, Object::i2n(0)), const ZeroDivisionError &);
+    TS_ASSERT_THROWS( b1->div(state, Fixnum::from(0)), const ZeroDivisionError &);
   }
 
   void test_div_with_float() {
@@ -201,13 +201,13 @@ class TestBignum : public CxxTest::TestSuite {
     check_bignum(o1,"-25");
     check_bignum(o2, "89478478");
     
-    ary1 = nbn1->divmod(state, Object::i2n(89478485));
+    ary1 = nbn1->divmod(state, Fixnum::from(89478485));
     o1 = ary1->get(state, 0);
     o2 = ary1->get(state, 1);
     check_bignum(o1,"-25");
     check_bignum(o2, "89478478");
     
-    ary1 = b1->divmod(state, Object::i2n(-89478485));
+    ary1 = b1->divmod(state, Fixnum::from(-89478485));
     o1 = ary1->get(state, 0);
     o2 = ary1->get(state, 1);
     check_bignum(o1,"-25");
@@ -221,7 +221,7 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_mod() {
-    INTEGER mod = b1->mod(state, Object::i2n(-89478485));
+    INTEGER mod = b1->mod(state, Fixnum::from(-89478485));
     check_bignum(mod, "-89478478");
     mod = b1->mod(state, Bignum::create(state, (native_int)-2147483645));
     check_bignum(mod, "-2147483643");
@@ -230,35 +230,35 @@ class TestBignum : public CxxTest::TestSuite {
   }
 
   void test_left_shift() {
-    INTEGER shifted = b1->left_shift(state, Object::i2n(3));
+    INTEGER shifted = b1->left_shift(state, Fixnum::from(3));
     check_bignum(shifted, "17179869176");
 
-    shifted = b1->left_shift(state, Object::i2n(-3));
+    shifted = b1->left_shift(state, Fixnum::from(-3));
     check_bignum(shifted, "268435455");
 
     Bignum* nbn1 = Bignum::create(state, (native_int)-2147483647);
-    shifted = nbn1->left_shift(state, Object::i2n(3));
+    shifted = nbn1->left_shift(state, Fixnum::from(3));
     check_bignum(shifted, "-17179869176");
   }
 
   void test_right_shift() {
-    INTEGER shifted = b1->right_shift(state, Object::i2n(3));
+    INTEGER shifted = b1->right_shift(state, Fixnum::from(3));
     check_bignum(shifted, "268435455");
 
-    shifted = b1->right_shift(state, Object::i2n(-3));
+    shifted = b1->right_shift(state, Fixnum::from(-3));
     check_bignum(shifted, "17179869176");
 
-    shifted = b1->right_shift(state, Object::i2n(1048576));
+    shifted = b1->right_shift(state, Fixnum::from(1048576));
     check_bignum(shifted, "0");
 
-    shifted = b1->right_shift(state, Object::i2n(0));
+    shifted = b1->right_shift(state, Fixnum::from(0));
     check_bignum(shifted, "2147483647");
 
     Bignum* nbn1 = Bignum::create(state, (native_int)-2147483647);
-    shifted = nbn1->right_shift(state, Object::i2n(3));
+    shifted = nbn1->right_shift(state, Fixnum::from(3));
     check_bignum(shifted, "-268435456");
 
-    shifted = nbn1->right_shift(state, Object::i2n(1048576));
+    shifted = nbn1->right_shift(state, Fixnum::from(1048576));
     check_bignum(shifted, "-1");
   }
 
@@ -266,44 +266,44 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1->equal(state, b1), Qtrue);
     TS_ASSERT_EQUALS(b1->equal(state, b2), Qfalse);
 
-    Bignum* b = Bignum::create(state, 2);
-    TS_ASSERT_EQUALS(b->equal(state, Object::i2n(2)), Qtrue);
-    TS_ASSERT_EQUALS(b->equal(state, Object::i2n(1)), Qfalse);
+    Bignum* b = Bignum::create(state, (native_int)2);
+    TS_ASSERT_EQUALS(b->equal(state, Fixnum::from(2)), Qtrue);
+    TS_ASSERT_EQUALS(b->equal(state, Fixnum::from(1)), Qfalse);
 
-    b = Bignum::create(state, -2);
-    TS_ASSERT_EQUALS(b->equal(state, Object::i2n(-2)), Qtrue);
-    TS_ASSERT_EQUALS(b->equal(state, Object::i2n(1)), Qfalse);
+    b = Bignum::create(state, (native_int)-2);
+    TS_ASSERT_EQUALS(b->equal(state, Fixnum::from(-2)), Qtrue);
+    TS_ASSERT_EQUALS(b->equal(state, Fixnum::from(1)), Qfalse);
 
     TS_ASSERT_EQUALS(b->equal(state, Float::create(state, -2.0)), Qtrue);
     TS_ASSERT_EQUALS(b->equal(state, Float::create(state, 1.9)), Qfalse);
   }
 
   void test_compare() {
-    TS_ASSERT_EQUALS(b1->compare(state, b2), Object::i2n(1));
-    TS_ASSERT_EQUALS(b2->compare(state, b1), Object::i2n(-1));
-    TS_ASSERT_EQUALS(b1->compare(state, b1), Object::i2n(0));
+    TS_ASSERT_EQUALS(b1->compare(state, b2), Fixnum::from(1));
+    TS_ASSERT_EQUALS(b2->compare(state, b1), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(b1->compare(state, b1), Fixnum::from(0));
 
-    TS_ASSERT_EQUALS(b1->compare(state, Object::i2n(0)), Object::i2n(1));
+    TS_ASSERT_EQUALS(b1->compare(state, Fixnum::from(0)), Fixnum::from(1));
   }
 
   void test_compare_with_fixnum() {
-    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Object::i2n(3)), Object::i2n(0));
-    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Object::i2n(2)), Object::i2n(1));
-    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Object::i2n(4)), Object::i2n(-1));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)3)->compare(state, Fixnum::from(3)), Fixnum::from(0));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)3)->compare(state, Fixnum::from(2)), Fixnum::from(1));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)3)->compare(state, Fixnum::from(4)), Fixnum::from(-1));
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Object::i2n(-3)), Object::i2n(0));
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Object::i2n(-2)), Object::i2n(-1));
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Object::i2n(-4)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->compare(state, Fixnum::from(-3)), Fixnum::from(0));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->compare(state, Fixnum::from(-2)), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->compare(state, Fixnum::from(-4)), Fixnum::from(1));
   }
 
   void test_compare_with_float() {
-    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Float::create(state, 3.0)), Object::i2n(0));
-    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Float::create(state, 2.9)), Object::i2n(1));
-    TS_ASSERT_EQUALS(Bignum::create(state, 3)->compare(state, Float::create(state, 3.1)), Object::i2n(-1));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)3)->compare(state, Float::create(state, 3.0)), Fixnum::from(0));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)3)->compare(state, Float::create(state, 2.9)), Fixnum::from(1));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)3)->compare(state, Float::create(state, 3.1)), Fixnum::from(-1));
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Float::create(state, -3.0)), Object::i2n(0));
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Float::create(state, -2.9)), Object::i2n(-1));
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->compare(state, Float::create(state, -3.1)), Object::i2n(1));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->compare(state, Float::create(state, -3.0)), Fixnum::from(0));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->compare(state, Float::create(state, -2.9)), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->compare(state, Float::create(state, -3.1)), Fixnum::from(1));
   }
 
   void test_neg() {
@@ -319,13 +319,13 @@ class TestBignum : public CxxTest::TestSuite {
   void test_bit_and() {
     Bignum* bn1 = Bignum::create(state, (native_int)2109047783);
     Bignum* nbn1 = Bignum::create(state, (native_int)-2109047783);
-    check_bignum(bn1->bit_and(state, Object::i2n(-23472)), "2109046848");
-    check_bignum(nbn1->bit_and(state, Object::i2n(23472056)), "4334616");
+    check_bignum(bn1->bit_and(state, Fixnum::from(-23472)), "2109046848");
+    check_bignum(nbn1->bit_and(state, Fixnum::from(23472056)), "4334616");
 
     Bignum* bn2 = Bignum::create(state, (native_int)23472);
     Bignum* nbn2 = Bignum::create(state, (native_int)-23472);
-    check_bignum(bn2->bit_and(state, Object::i2n(-21090)), "2448");
-    check_bignum(nbn2->bit_and(state, Object::i2n(2109047)), "2106448");
+    check_bignum(bn2->bit_and(state, Fixnum::from(-21090)), "2448");
+    check_bignum(nbn2->bit_and(state, Fixnum::from(2109047)), "2106448");
 
     check_bignum(bn2->bit_and(state, Float::create(state, -21090.2)), "2448");
     check_bignum(nbn2->bit_and(state, Float::create(state, 2109047.7)), "2106448");
@@ -334,13 +334,13 @@ class TestBignum : public CxxTest::TestSuite {
   void test_bit_or() {
     Bignum* bn1 = Bignum::create(state, (native_int)2109047783);
     Bignum* nbn1 = Bignum::create(state, (native_int)-2109047783);
-    check_bignum(bn1->bit_or(state, Object::i2n(-23472)), "-22537");
-    check_bignum(nbn1->bit_or(state, Object::i2n(23472056)), "-2089910343");
+    check_bignum(bn1->bit_or(state, Fixnum::from(-23472)), "-22537");
+    check_bignum(nbn1->bit_or(state, Fixnum::from(23472056)), "-2089910343");
 
     Bignum* bn2 = Bignum::create(state, (native_int)23472);
     Bignum* nbn2 = Bignum::create(state, (native_int)-23472);
-    check_bignum(bn2->bit_or(state, Object::i2n(-21090)), "-66");
-    check_bignum(nbn2->bit_or(state, Object::i2n(2109047)), "-20873");
+    check_bignum(bn2->bit_or(state, Fixnum::from(-21090)), "-66");
+    check_bignum(nbn2->bit_or(state, Fixnum::from(2109047)), "-20873");
 
     check_bignum(bn2->bit_or(state, Float::create(state, -21090.1)), "-66");
     check_bignum(nbn2->bit_or(state, Float::create(state, 2109047.9)), "-20873");
@@ -349,13 +349,13 @@ class TestBignum : public CxxTest::TestSuite {
   void test_bit_xor() {
     Bignum* bn1 = Bignum::create(state, (native_int)2109047783);
     Bignum* nbn1 = Bignum::create(state, (native_int)-2109047783);
-    check_bignum(bn1->bit_xor(state, Object::i2n(-23472)), "-2109069385");
-    check_bignum(nbn1->bit_xor(state, Object::i2n(23472056)), "-2094244959");
+    check_bignum(bn1->bit_xor(state, Fixnum::from(-23472)), "-2109069385");
+    check_bignum(nbn1->bit_xor(state, Fixnum::from(23472056)), "-2094244959");
 
     Bignum* bn2 = Bignum::create(state, (native_int)23472);
     Bignum* nbn2 = Bignum::create(state, (native_int)-23472);
-    check_bignum(bn2->bit_xor(state, Object::i2n(-21090)), "-2514");
-    check_bignum(nbn2->bit_xor(state, Object::i2n(2109047)), "-2127321");
+    check_bignum(bn2->bit_xor(state, Fixnum::from(-21090)), "-2514");
+    check_bignum(nbn2->bit_xor(state, Fixnum::from(2109047)), "-2127321");
 
     check_bignum(bn2->bit_xor(state, Float::create(state, -21090.1)), "-2514");
     check_bignum(nbn2->bit_xor(state, Float::create(state, 2109047.9)), "-2127321");
@@ -367,13 +367,13 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1->gt(state, b1), Qfalse);
     TS_ASSERT_EQUALS(b1->gt(state, two), Qtrue);
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->gt(state, Object::i2n(-3)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->gt(state, Object::i2n(-2)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->gt(state, Object::i2n(-4)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->gt(state, Fixnum::from(-3)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->gt(state, Fixnum::from(-2)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->gt(state, Fixnum::from(-4)), Qtrue);
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->gt(state, Float::create(state, -3.0)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->gt(state, Float::create(state, -2.9)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->gt(state, Float::create(state, -3.1)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->gt(state, Float::create(state, -3.0)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->gt(state, Float::create(state, -2.9)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->gt(state, Float::create(state, -3.1)), Qtrue);
   }
 
   void test_ge() {
@@ -382,13 +382,13 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1->ge(state, b1), Qtrue);
     TS_ASSERT_EQUALS(b1->ge(state, two), Qtrue);
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->ge(state, Object::i2n(-3)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->ge(state, Object::i2n(-2)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->ge(state, Object::i2n(-4)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->ge(state, Fixnum::from(-3)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->ge(state, Fixnum::from(-2)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->ge(state, Fixnum::from(-4)), Qtrue);
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->ge(state, Float::create(state, -3.0)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->ge(state, Float::create(state, -2.9)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->ge(state, Float::create(state, -3.1)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->ge(state, Float::create(state, -3.0)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->ge(state, Float::create(state, -2.9)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->ge(state, Float::create(state, -3.1)), Qtrue);
   }
 
   void test_lt() {
@@ -397,13 +397,13 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1->lt(state, b1), Qfalse);
     TS_ASSERT_EQUALS(b1->lt(state, two), Qfalse);
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->lt(state, Object::i2n(-3)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->lt(state, Object::i2n(-2)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->lt(state, Object::i2n(-4)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->lt(state, Fixnum::from(-3)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->lt(state, Fixnum::from(-2)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->lt(state, Fixnum::from(-4)), Qfalse);
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->lt(state, Float::create(state, -3.0)), Qfalse);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->lt(state, Float::create(state, -2.9)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->lt(state, Float::create(state, -3.1)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->lt(state, Float::create(state, -3.0)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->lt(state, Float::create(state, -2.9)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->lt(state, Float::create(state, -3.1)), Qfalse);
   }
 
   void test_le() {
@@ -412,13 +412,13 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(b1->le(state, b1), Qtrue);
     TS_ASSERT_EQUALS(b1->le(state, two), Qfalse);
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->le(state, Object::i2n(-3)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->le(state, Object::i2n(-2)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->le(state, Object::i2n(-4)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->le(state, Fixnum::from(-3)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->le(state, Fixnum::from(-2)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->le(state, Fixnum::from(-4)), Qfalse);
 
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->le(state, Float::create(state, -3.0)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->le(state, Float::create(state, -2.9)), Qtrue);
-    TS_ASSERT_EQUALS(Bignum::create(state, -3)->le(state, Float::create(state, -3.1)), Qfalse);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->le(state, Float::create(state, -3.0)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->le(state, Float::create(state, -2.9)), Qtrue);
+    TS_ASSERT_EQUALS(Bignum::create(state, (native_int)-3)->le(state, Float::create(state, -3.1)), Qfalse);
   }
 
   void test_to_f() {

@@ -34,7 +34,7 @@ namespace rubinius {
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
-    so->num_bytes = Object::i2n(bytes);
+    so->num_bytes = Fixnum::from(bytes);
     so->characters = so->num_bytes;
     so->encoding = Qnil;
 
@@ -53,7 +53,7 @@ namespace rubinius {
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
-    so->num_bytes = Object::i2n(bytes);
+    so->num_bytes = Fixnum::from(bytes);
     so->characters = so->num_bytes;
     so->encoding = Qnil;
 
@@ -78,7 +78,7 @@ namespace rubinius {
     size_t sz = size(state);
 
     hashval h = hash_str(bp, sz);
-    SET(this, hash, Object::ui2n(state, h));
+    SET(this, hash, Integer::from(state, h));
 
     return h;
   }
@@ -157,7 +157,7 @@ namespace rubinius {
 
     d2->bytes[new_size] = 0;
 
-    num_bytes = Object::i2n(state, new_size);
+    num_bytes = Integer::from(state, new_size);
     SET(this, data, d2);
     SET(this, hash, Qnil);
 
@@ -176,7 +176,7 @@ namespace rubinius {
 
     d2->bytes[new_size] = 0;
 
-    num_bytes = Object::i2n(state, new_size);
+    num_bytes = Integer::from(state, new_size);
     SET(this, data, d2);
     SET(this, hash, Qnil);
 

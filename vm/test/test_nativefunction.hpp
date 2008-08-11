@@ -77,9 +77,9 @@ class TestNativeFunction : public CxxTest::TestSuite {
     String* name = String::create(state, "strlen");
 
     Array* args = Array::create(state, 1);
-    args->set(state, 0, Object::i2n(RBX_FFI_TYPE_STRING));
+    args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_STRING));
 
-    OBJECT ret = Object::i2n(RBX_FFI_TYPE_INT);
+    OBJECT ret = Fixnum::from(RBX_FFI_TYPE_INT);
 
     NativeFunction *func = NativeFunction::bind(state, lib, name, args, ret);
 

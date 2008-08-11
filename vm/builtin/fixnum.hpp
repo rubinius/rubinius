@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_FIXNUM_HPP
 
 #include "objects.hpp" // FIX: empty this file out... gah
+#include "builtin/integer.hpp"
 #include "builtin/bignum.hpp"
 
 namespace rubinius {
@@ -13,6 +14,8 @@ namespace rubinius {
   public:
     const static size_t fields = 0;
     const static object_type type = FixnumType;
+
+    static FIXNUM from(native_int);
 
     // Ruby.primitive! :fixnum_add
     INTEGER add(STATE, FIXNUM other);

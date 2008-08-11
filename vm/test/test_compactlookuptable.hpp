@@ -27,35 +27,35 @@ class TestCompactLookupTable : public CxxTest::TestSuite {
   }
 
   void test_find() {
-    tbl->put(state, 2, Object::i2n(1));
-    tbl->put(state, 3, Object::i2n(2));
+    tbl->put(state, 2, Fixnum::from(1));
+    tbl->put(state, 3, Fixnum::from(2));
 
-    TS_ASSERT_EQUALS(tbl->fetch(state, Object::i2n(1)), Object::i2n(2));
-    TS_ASSERT_EQUALS(tbl->fetch(state, Object::i2n(2)), Qnil);
+    TS_ASSERT_EQUALS(tbl->fetch(state, Fixnum::from(1)), Fixnum::from(2));
+    TS_ASSERT_EQUALS(tbl->fetch(state, Fixnum::from(2)), Qnil);
   }
 
   void test_add() {
     TS_ASSERT_EQUALS(tbl->at(0), Qnil);
     TS_ASSERT_EQUALS(tbl->at(1), Qnil);
 
-    tbl->store(state, Object::i2n(1), Object::i2n(2));
+    tbl->store(state, Fixnum::from(1), Fixnum::from(2));
 
-    TS_ASSERT_EQUALS(tbl->at(0), Object::i2n(1));
-    TS_ASSERT_EQUALS(tbl->at(1), Object::i2n(2));
+    TS_ASSERT_EQUALS(tbl->at(0), Fixnum::from(1));
+    TS_ASSERT_EQUALS(tbl->at(1), Fixnum::from(2));
   }
 
   void test_add_when_full() {
     int size = COMPACTLOOKUPTABLE_SIZE / 2;
     for (int i = 0; i < size; i++) {
-      tbl->store(state, Object::i2n(i), Qnil);
+      tbl->store(state, Fixnum::from(i), Qnil);
     }
-    TS_ASSERT_EQUALS(tbl->store(state, Object::i2n(6), Qnil), Qfalse);
+    TS_ASSERT_EQUALS(tbl->store(state, Fixnum::from(6), Qnil), Qfalse);
   }
 
   void test_to_lookuptable() {
     LookupTable* lt;
-    OBJECT key = Object::i2n(1);
-    OBJECT val = Object::i2n(2);
+    OBJECT key = Fixnum::from(1);
+    OBJECT val = Fixnum::from(2);
 
     tbl->put(state, 2, key);
     tbl->put(state, 3, val);

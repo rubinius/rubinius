@@ -17,7 +17,7 @@ namespace rubinius {
   }
 
   INTEGER Symbol::index(STATE) {
-    return Object::i2n(this->index());
+    return Fixnum::from(this->index());
   }
 
   Symbol* Symbol::from_index(STATE, size_t index) {

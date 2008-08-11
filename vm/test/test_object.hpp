@@ -20,20 +20,6 @@ class TestObject : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_i2n() {
-    OBJECT f = Object::i2n(state, 3);
-    TS_ASSERT(f->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(f)->n2i(), 3);
-
-    OBJECT b = Object::i2n(state, 2147483647);
-    TS_ASSERT(!b->fixnum_p());
-    TS_ASSERT(kind_of<Bignum>(b));
-  }
-
-  void test_ui2n() {
-    TS_ASSERT_EQUALS(Object::ui2n(state, 93)->n2i(), 93);
-  }
-
   void test_dup() {
     Tuple* tup = Tuple::create(state, 1);
     tup->put(state, 0, Qtrue);
@@ -79,8 +65,8 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_hash() {
-    TS_ASSERT(Object::i2n(8)->hash(state) > 0);
-    TS_ASSERT(Object::i2n(-8)->hash(state) > 0);
+    TS_ASSERT(Fixnum::from(8)->hash(state) > 0);
+    TS_ASSERT(Fixnum::from(-8)->hash(state) > 0);
   }
 
   void test_metaclass() {
@@ -101,7 +87,7 @@ class TestObject : public CxxTest::TestSuite {
     String* s2 = String::create(state, "whatever");
 
     TS_ASSERT_EQUALS(as<Object>(s1)->equal(state, as<Object>(s2)), Qfalse);
-    TS_ASSERT_EQUALS(as<Object>(Object::i2n(0))->equal(state, as<Object>(Object::i2n(0))), Qtrue);
+    TS_ASSERT_EQUALS(as<Object>(Fixnum::from(0))->equal(state, as<Object>(Fixnum::from(0))), Qtrue);
   }
 
   void test_set_ivar() {
@@ -113,16 +99,16 @@ class TestObject : public CxxTest::TestSuite {
     for (i = 0; i < size; i++) {
       name[5] = '0' + i;
       sym = state->symbol(name);
-      obj->set_ivar(state, sym, Object::i2n(i));
+      obj->set_ivar(state, sym, Fixnum::from(i));
     }
 
     sym = state->symbol("@test5");
-    TS_ASSERT_EQUALS(obj->get_ivar(state, sym), Object::i2n(5));
+    TS_ASSERT_EQUALS(obj->get_ivar(state, sym), Fixnum::from(5));
   }
 
   void test_get_ivar() {
     OBJECT sym = G(symbols)->lookup(state, "@test");
-    OBJECT val = Object::i2n(33);
+    OBJECT val = Fixnum::from(33);
     OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
 
     TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, sym));
@@ -146,10 +132,10 @@ class TestObject : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(id1, t1->id(state));
 
-    INTEGER id3 = Object::i2n(33)->id(state);
+    INTEGER id3 = Fixnum::from(33)->id(state);
     TS_ASSERT_DIFFERS(id3, id1);
 
-    INTEGER id4 = Object::i2n(33)->id(state);
+    INTEGER id4 = Fixnum::from(33)->id(state);
     TS_ASSERT_EQUALS(id3, id4);
     TS_ASSERT(id4->n2i() % 2 != 0);
   }
@@ -209,7 +195,7 @@ class TestObject : public CxxTest::TestSuite {
 
   void test_fixnum_class() {
     for(size_t i = 0; i < SPECIAL_CLASS_MASK; i++) {
-      TS_ASSERT_EQUALS(Object::i2n(i)->class_object(state), G(fixnum_class));
+      TS_ASSERT_EQUALS(Fixnum::from(i)->class_object(state), G(fixnum_class));
     }
   }
 

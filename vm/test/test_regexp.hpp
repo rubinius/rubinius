@@ -25,14 +25,14 @@ class TestRegexp : public CxxTest::TestSuite {
 
   void test_create() {
     String *pat = String::create(state, ".");
-    Regexp* re = Regexp::create(state, pat, Object::i2n(0));
+    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
     TS_ASSERT_EQUALS(re->source, pat);
     TS_ASSERT_EQUALS(re->names,  Qnil);
   }
 
   void test_create_with_named_captures() {
     String *pat = String::create(state, "(?<blah>.)");
-    Regexp* re = Regexp::create(state, pat, Object::i2n(0));
+    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
     TS_ASSERT_EQUALS(re->source, pat);
     TS_ASSERT(re->names->kind_of_p(state, G(lookuptable)));
   }
@@ -42,26 +42,26 @@ class TestRegexp : public CxxTest::TestSuite {
     memset(buf, 0, 1024);
 
     String *pat = String::create(state, "(?");
-    OBJECT re = Regexp::create(state, pat, Object::i2n(0), buf);
+    OBJECT re = Regexp::create(state, pat, Fixnum::from(0), buf);
     TS_ASSERT(re->nil_p());
     TS_ASSERT(strlen(buf) > 0);
   }
 
   void test_options() {
     String *pat = String::create(state, ".");
-    Regexp* re = Regexp::create(state, pat, Object::i2n(0));
+    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
 
     TS_ASSERT_EQUALS(as<Integer>(re->options(state))->n2i(), 16);
   }
 
   void test_match_region() {
     String *pat = String::create(state, ".");
-    Regexp* re = Regexp::create(state, pat, Object::i2n(0));
+    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
 
     String *input = String::create(state, "abc");
 
-    FIXNUM start = Object::i2n(0);
-    FIXNUM end =   Object::i2n(3);
+    FIXNUM start = Fixnum::from(0);
+    FIXNUM end =   Fixnum::from(3);
     OBJECT forward = Qtrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
@@ -73,12 +73,12 @@ class TestRegexp : public CxxTest::TestSuite {
   
   void test_match_region_with_captures() {
     String *pat = String::create(state, ".(.)");
-    Regexp* re = Regexp::create(state, pat, Object::i2n(0));
+    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
 
     String *input = String::create(state, "abc");
 
-    FIXNUM start = Object::i2n(0);
-    FIXNUM end =   Object::i2n(3);
+    FIXNUM start = Fixnum::from(0);
+    FIXNUM end =   Fixnum::from(3);
     OBJECT forward = Qtrue;
 
     MatchData* matches = (MatchData*)re->match_region(state, input, start, end, forward);
@@ -93,11 +93,11 @@ class TestRegexp : public CxxTest::TestSuite {
 
   void test_match_start() {
     String *pat = String::create(state, ".");
-    Regexp* re = Regexp::create(state, pat, Object::i2n(0));
+    Regexp* re = Regexp::create(state, pat, Fixnum::from(0));
 
     String *input = String::create(state, "abc");
 
-    FIXNUM start = Object::i2n(1);
+    FIXNUM start = Fixnum::from(1);
 
     MatchData* matches = (MatchData*)re->match_start(state, input, start);
     TS_ASSERT(!matches->nil_p());

@@ -34,8 +34,8 @@ namespace rubinius {
   void LookupTable::setup(STATE, size_t sz = 0) {
     if(!sz) sz = LOOKUPTABLE_MIN_SIZE;
     SET(this, values, Tuple::create(state, sz));
-    SET(this, bins, Object::i2n(sz));
-    SET(this, entries, Object::i2n(0));
+    SET(this, bins, Fixnum::from(sz));
+    SET(this, entries, Fixnum::from(0));
   }
 
   /* The LookupTable.allocate primitive. */
@@ -109,7 +109,7 @@ namespace rubinius {
     }
 
     SET(this, values, new_values);
-    bins = Object::i2n(size);
+    bins = Fixnum::from(size);
   }
 
   OBJECT LookupTable::store(STATE, OBJECT key, OBJECT val) {
@@ -145,7 +145,7 @@ namespace rubinius {
       cur->put(state, 2, new_ent);
     }
 
-    entries = Object::i2n(num_entries + 1);
+    entries = Fixnum::from(num_entries + 1);
     return val;
   }
 
@@ -227,7 +227,7 @@ namespace rubinius {
         } else {
           lst->put(state, 2, lk);
         }
-        entries = Object::i2n(entries->n2i() - 1);
+        entries = Fixnum::from(entries->n2i() - 1);
         return val;
       }
 

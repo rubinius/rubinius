@@ -15,7 +15,7 @@
 namespace rubinius {
   CompiledMethod* CompiledMethod::create(STATE) {
     CompiledMethod* cm = (CompiledMethod*)state->new_object(G(cmethod));
-    SET(cm, local_count, Object::i2n(0));
+    SET(cm, local_count, Fixnum::from(0));
     cm->executable = NULL;
     return cm;
   }
@@ -23,13 +23,13 @@ namespace rubinius {
   CompiledMethod* CompiledMethod::generate_tramp(STATE, size_t stack_size) {
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    SET(cm, stack_size, Object::i2n(stack_size));
-    SET(cm, required_args, Object::i2n(0));
+    SET(cm, stack_size, Fixnum::from(stack_size));
+    SET(cm, required_args, Fixnum::from(0));
     SET(cm, total_args, cm->required_args);
     SET(cm, name, String::create(state, "__halt__")->to_sym(state));
 
     SET(cm, iseq, InstructionSequence::create(state, 1));
-    cm->iseq->opcodes->put(state, 0, Object::i2n(InstructionSequence::insn_halt));
+    cm->iseq->opcodes->put(state, 0, Fixnum::from(InstructionSequence::insn_halt));
 
     StaticScope* ss = StaticScope::create(state);
     SET(ss, module, G(object));

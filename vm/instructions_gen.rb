@@ -185,8 +185,8 @@ void #{meth}() {
   Task* task = Task::create(state);
   CompiledMethod* cm = CompiledMethod::create(state);
   cm->iseq = InstructionSequence::create(state, 10);
-  cm->stack_size = Object::i2n(10);
-  cm->local_count = Object::i2n(0);
+  cm->stack_size = Fixnum::from(10);
+  cm->local_count = Fixnum::from(0);
   cm->literals = Tuple::create(state, 10);
   cm->formalize(state);
 

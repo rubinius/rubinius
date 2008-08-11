@@ -31,12 +31,12 @@ public:
   }
 
   void test_int() {
-    mar->marshal(Object::i2n(1));
+    mar->marshal(Fixnum::from(1));
     TS_ASSERT_EQUALS(mar->sstream.str(), "I\n1\n");
   }
 
   void test_bignum() {
-    mar->marshal(Bignum::create(state, 1));
+    mar->marshal(Bignum::create(state, (native_int)1));
     TS_ASSERT_EQUALS(mar->sstream.str(), "I\n1\n");
   }
 
@@ -64,9 +64,9 @@ public:
 
   void test_array() {
     Array* ary = Array::create(state, 3);
-    ary->set(state, 0, Object::i2n(1));
-    ary->set(state, 1, Object::i2n(2));
-    ary->set(state, 2, Object::i2n(3));
+    ary->set(state, 0, Fixnum::from(1));
+    ary->set(state, 1, Fixnum::from(2));
+    ary->set(state, 2, Fixnum::from(3));
 
     mar->marshal(ary);
     TS_ASSERT_EQUALS(mar->sstream.str(), std::string("A\n3\nI\n1\nI\n2\nI\n3\n"));
@@ -74,20 +74,20 @@ public:
 
   void test_array_with_inner_array() {
     Array* ary = Array::create(state, 3);
-    ary->set(state, 0, Object::i2n(1));
-    ary->set(state, 1, Object::i2n(2));
-    ary->set(state, 2, Object::i2n(3));
+    ary->set(state, 0, Fixnum::from(1));
+    ary->set(state, 1, Fixnum::from(2));
+    ary->set(state, 2, Fixnum::from(3));
 
     Array* out = Array::create(state, 2);
     out->set(state, 0, ary);
-    out->set(state, 1, Object::i2n(4));
+    out->set(state, 1, Fixnum::from(4));
 
     mar->marshal(out);
     TS_ASSERT_EQUALS(mar->sstream.str(), std::string("A\n2\nA\n3\nI\n1\nI\n2\nI\n3\nI\n4\n"));
   }
 
   void test_tuple() {
-    Tuple* tup = Tuple::from(state, 2, Object::i2n(8), Object::i2n(10));
+    Tuple* tup = Tuple::from(state, 2, Fixnum::from(8), Fixnum::from(10));
 
     mar->marshal(tup);
     TS_ASSERT_EQUALS(mar->sstream.str(), std::string("p\n2\nI\n8\nI\n10\n"));
@@ -100,7 +100,7 @@ public:
 
   void test_iseq() {
     InstructionSequence* iseq = InstructionSequence::create(state, 1);
-    iseq->opcodes->put(state, 0, Object::i2n(0));
+    iseq->opcodes->put(state, 0, Fixnum::from(0));
 
     mar->marshal(iseq);
     TS_ASSERT_EQUALS(mar->sstream.str(), std::string("i\n1\n0\n"));
