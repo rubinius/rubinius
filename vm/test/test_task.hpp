@@ -817,4 +817,22 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT(!state->om->collect_young_now);
     TS_ASSERT(!state->om->collect_mature_now);
   }
+
+  void test_old_contexts_are_remembered_on_activate() {
+    Task* task = Task::create(state);
+    TS_ASSERT(!task->active->Remember);
+
+    /* Evil, but lets us test this easy. Don't do this in real
+     * code */
+    task->active->zone = MatureObjectZone;
+
+    task->restore_context(task->active);
+    TS_ASSERT(task->active->Remember);
+
+    /* Check it only happens to old contexts. */
+    task = Task::create(state);
+    TS_ASSERT(!task->active->Remember);
+    task->restore_context(task->active);
+    TS_ASSERT(!task->active->Remember);
+  }
 };

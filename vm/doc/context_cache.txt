@@ -9,6 +9,7 @@ Squeak context cache
 *) On context allocation (from heap or cache, reclaimable count is incremented
 *) On return, if reclaimable is greater than 0, recycle the context we were using,
    and decrement reclaimable.
+   *) Only try and reclaim contexts in the young area.
 *) When switching to a new Process, zero out reclaimable.
    *) This protects all existing contexts from being reused.
 *) Pushing the active context also zero's out reclaimable, so that context

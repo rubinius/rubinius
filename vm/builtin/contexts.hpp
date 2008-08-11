@@ -82,6 +82,10 @@ namespace rubinius {
       *js.stack = val;
     }
 
+    OBJECT stack_at(size_t pos) {
+      return stk[pos];
+    }
+
     void position_stack(int pos) {
       js.stack = stk + pos;
     }

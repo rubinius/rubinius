@@ -96,7 +96,7 @@ to be a simple test for that bit pattern.
 
   typedef size_t hashval;
 
-  /* the sizeof(struct rubinius_object) must an increment of the platform 
+  /* the sizeof(class ObjectHeader) must an increment of the platform 
      pointer size, so that the bytes located directly after a
      struct rubinius_object can hold a pointer which can be
      dereferenced. (an 32 bit platforms, pointers must be aligned
@@ -129,10 +129,8 @@ to be a simple test for that bit pattern.
         unsigned int IsBlockContext         : 1;
         unsigned int IsMeta                 : 1;
 
-        unsigned int CTXFast                : 1;
         unsigned int IsTainted              : 1;
         unsigned int IsFrozen               : 1;
-        unsigned int IsLittleEndian         : 1;
         unsigned int RefsAreWeak            : 1;
       };
       uint32_t all_flags;

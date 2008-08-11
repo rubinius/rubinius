@@ -91,6 +91,15 @@ namespace rubinius {
     }
   }
 
+  /* Store an object into the remember set. Called when we've calculated
+   * externally that the object in question needs to be remembered */
+  void ObjectMemory::remember_object(OBJECT target) {
+    /* If it's already remembered, ignore this request */
+    if(target->Remember) return;
+    target->Remember = 1;
+    remember_set->push_back(target);
+  }
+
   void ObjectMemory::store_object(OBJECT target, size_t index, OBJECT val) {
     if(target->field_count <= index) {
       throw new ObjectBoundsExceeded(target, index);

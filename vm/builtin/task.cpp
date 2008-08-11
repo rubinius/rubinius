@@ -102,6 +102,12 @@ namespace rubinius {
     SET(this, active, ctx);
     SET(this, home, ctx->home);
     SET(this, self, home->self);
+
+    /* Stack Management procedures. Make sure that we don't
+     * miss object stored into the stack of a context */
+    if(ctx->zone == MatureObjectZone) {
+      state->om->remember_object(ctx);
+    }
   }
 
   void Task::make_active(MethodContext* ctx) {
@@ -499,6 +505,8 @@ stack_cleanup:
     return mod;
   }
 
+  /* Used only in debugging and testing. Direct access to the stack
+   * can be dangerous. */
   OBJECT* Task::current_stack() {
     return active->stk;
   }
@@ -515,8 +523,9 @@ stack_cleanup:
     return active->top();
   }
 
+  /* Retrieve the object at position +pos+ in the current context */
   OBJECT Task::stack_at(size_t pos) {
-    return active->stk[pos];
+    return active->stack_at(pos);
   }
 
   int Task::calculate_sp() {
