@@ -24,6 +24,7 @@ namespace rubinius {
   class Task;
   class MethodContext;
   class ContextCache;
+  class String;
 
   struct Configuration {
     bool compile_up_front;
@@ -66,6 +67,8 @@ namespace rubinius {
     Class* new_class(const char* name, OBJECT sup, size_t fields, Module* under);
     Module* new_module(const char* name, Module* under = NULL);
     SYMBOL symbol(const char *str, size_t len = 0);
+    SYMBOL symbol(String* str);
+    String* symbol_to_string(SYMBOL sym);
     OBJECT new_struct(Class* cls, size_t bytes);
     Task* new_task();
 

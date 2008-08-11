@@ -101,7 +101,7 @@ namespace rubinius {
   }
 
   SYMBOL String::to_sym(STATE) {
-    return G(symbols)->lookup(state, this);
+    return state->symbol(this);
   }
 
   char* String::byte_address() {

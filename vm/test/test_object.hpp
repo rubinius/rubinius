@@ -107,7 +107,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_get_ivar() {
-    OBJECT sym = G(symbols)->lookup(state, "@test");
+    OBJECT sym = state->symbol("@test");
     OBJECT val = Fixnum::from(33);
     OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
 

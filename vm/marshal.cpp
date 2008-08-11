@@ -70,7 +70,7 @@ namespace rubinius {
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
-    return G(symbols)->lookup(state, data);
+    return state->symbol(data);
   }
 
   void Marshaller::set_sendsite(SendSite* ss) {
@@ -88,7 +88,7 @@ namespace rubinius {
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
-    SYMBOL sym = G(symbols)->lookup(state, data);
+    SYMBOL sym = state->symbol(data);
 
     return SendSite::create(state, sym);
   }

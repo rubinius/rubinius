@@ -86,7 +86,7 @@ namespace rubinius {
   }
 
   String* Symbol::to_str(STATE) {
-    return G(symbols)->find_string(state, this);
+    return state->symbol_to_string(this);
   }
 
   void Symbol::Info::mark(OBJECT t, ObjectMark& mark) { }

@@ -51,8 +51,16 @@ namespace rubinius {
     return om->new_object(cls, cls->instance_fields->n2i());
   }
 
-  Symbol* VM::symbol(const char* str, size_t size) {
+  SYMBOL VM::symbol(const char* str, size_t size) {
     return (Symbol*)globals.symbols->lookup(this, str, size);
+  }
+
+  SYMBOL VM::symbol(String* str) {
+    return (SYMBOL)globals.symbols->lookup(this, str);
+  }
+
+  String* VM::symbol_to_string(SYMBOL sym) {
+    return (String*)globals.symbols->find_string(this, sym);
   }
 
   OBJECT VM::new_struct(Class* cls, size_t bytes) {

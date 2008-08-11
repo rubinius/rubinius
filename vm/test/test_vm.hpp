@@ -23,11 +23,28 @@ class TestVM : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_symbol() {
-    Symbol *sym1 = state->symbol("blah");
-    Symbol *sym2 = state->symbol("blah");
+  void test_symbol_given_cstr() {
+    SYMBOL sym1 = state->symbol("blah");
+    SYMBOL sym2 = state->symbol("blah");
 
     TS_ASSERT_EQUALS(sym1, sym2);
+  }
+
+  void test_symbol_given_string() {
+    String* str1 = String::create(state, "symbolic");
+    String* str2 = String::create(state, "symbolic");
+
+    SYMBOL sym1 = state->symbol(str1);
+    SYMBOL sym2 = state->symbol(str2);
+
+    TS_ASSERT_EQUALS(sym1, sym2);
+  }
+
+  void test_symbol_to_string() {
+    SYMBOL sym = state->symbol("georgia");
+    String* str = state->symbol_to_string(sym);
+
+    TS_ASSERT(!strncmp("georgia", str->byte_address(state), 4));
   }
 
   void test_new_object_uses_field_count_from_class() {
