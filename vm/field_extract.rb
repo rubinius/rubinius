@@ -1,5 +1,50 @@
 class BasicPrimitive
   attr_accessor :pass_state
+
+  def output_header(str)
+    str << "bool Primitives::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
+    str << "  OBJECT ret;\n"
+    str << "  try {\n"
+  end
+
+  def output_args(str, arg_types)
+    str << "    #{@type}* recv;\n"
+    str << "    if((recv = try_as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
+    args = []
+    i = -1
+    arg_types.each do |t|
+      i += 1
+      str << "    #{t}* a#{i};\n"
+      str << "    if((a#{i} = try_as<#{t}>(msg.get_argument(#{i}))) == NULL) goto fail;\n"
+      args << "a#{i}"
+    end
+    args.unshift "state" if @pass_state
+
+    return args
+  end
+
+  def output_call(str, call, args)
+    str << "    ret = #{call}(#{args.join(', ')});\n"
+    str << "  } catch(PrimitiveFailed& e) {\n"
+    str << "    return VMMethod::executor(state, exec, task, msg);\n"
+    str << "  }\n"
+    str << "  task->primitive_return(ret, msg);\n"
+    str << "  return false;\n"
+    str << "fail:\n"
+    str << "    return VMMethod::executor(state, exec, task, msg);\n"
+    str << "}\n"
+  end
+
+  def generate_call_glue(call)
+    str = ""
+    output_header str
+
+    args = output_args str, arg_types
+
+    output_call str, call, args
+
+    return str
+  end
 end
 
 class CPPPrimitive < BasicPrimitive
@@ -11,52 +56,14 @@ class CPPPrimitive < BasicPrimitive
   attr_accessor :type, :name
   attr_accessor :cpp_name, :return_type, :arg_types
 
-  def generate_glue(klass="Primitives")
-    str =  "bool #{klass}::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
-    i = -1
-    if arg_types.empty?
-      args = []
-    else
-      args = arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }
-    end
-
-    str << "  OBJECT ret;\n"
-    str << "  try {\n"
-    args.unshift "state" if @pass_state
-    str << "    ret = as<#{@type}>(msg.recv)->#{@cpp_name}(#{args.join(', ')});\n"
-    str << "  } catch(PrimitiveFailed& e) {\n"
-    str << "    abort(); // FIXME\n"
-    str << "    return true;\n"
-    str << "  }\n"
-    str << "  task->primitive_return(ret, msg);\n"
-    str << "  return false;\n"
-    str << "}\n"
-    return str
+  def generate_glue
+    generate_call_glue "recv->#{@cpp_name}"
   end
 end
 
 class CPPStaticPrimitive < CPPPrimitive
-  def generate_glue(klass="Primitives")
-    str =  "bool #{klass}::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
-    i = -1
-    if arg_types.empty?
-      args = []
-    else
-      args = arg_types.map { |t| "as<#{t}>(msg.get_argument(#{i += 1}))" }
-    end
-
-    str << "  OBJECT ret;\n"
-    str << "  try {\n"
-    args.unshift "state" if @pass_state
-    str << "    ret = #{@type}::#{@cpp_name}(#{args.join(', ')});\n"
-    str << "  } catch(PrimitiveFailed& e) {\n"
-    str << "    abort(); // FIXME\n"
-    str << "    return true;\n"
-    str << "  }\n"
-    str << "  task->primitive_return(ret, msg);\n"
-    str << "  return false;\n"
-    str << "}\n"
-    return str
+  def generate_glue
+    generate_call_glue "#{@type}::#{@cpp_name}"
   end
 end
 
@@ -75,29 +82,31 @@ class CPPOverloadedPrimitive < BasicPrimitive
     @kinds << prim
   end
 
-  def generate_glue(klass="Primitives")
-    str =  "bool #{klass}::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
-    str << "  OBJECT ret;\n"
-    str << "  try {\n"
+  def generate_glue
+    str = ""
+    output_header str
 
+    str << "    #{@type}* recv;\n"
+    str << "    if((recv = as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
     @kinds.each do |prim|
       type = prim.arg_types.first
       str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
       if @pass_state
-        str << "      return as<#{@type}>(msg.recv)->#{@cpp_name}(state, arg);\n"
+        str << "      return recv->#{@cpp_name}(state, arg);\n"
       else
-        str << "      return as<#{@type}>(msg.recv)->#{@cpp_name}(arg);\n"
+        str << "      return recv->#{@cpp_name}(arg);\n"
       end
       str << "    }\n"
     end
-    str << "    else { throw new Assertion(\"unable to resolve primitive #{@name} types\"); }\n"
+    str << "    else { goto fail; }\n"
 
     str << "  } catch(PrimitiveFailed& e) {\n"
-    str << "    abort(); // FIXME\n"
-    str << "    return true;\n"
+    str << "    return VMMethod::executor(state, exec, task, msg);"
     str << "  }\n"
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
+    str << "fail:\n"
+    str << "    return VMMethod::executor(state, exec, task, msg);"
     str << "}\n"
     return str
   end
