@@ -84,6 +84,7 @@ namespace rubinius {
   static MethodContext* allocate(STATE, Class* cls, size_t stack_size) {
     MethodContext* ctx;
     size_t which_cache = SmallContextCache;
+    size_t bytes;
 
     /* If it's small enough, use the set small size. */
     if(stack_size < SmallContextSize) {
@@ -104,7 +105,7 @@ namespace rubinius {
     }
 
 allocate_heap:
-    size_t bytes = add_stack(sizeof(MethodContext), stack_size);
+    bytes = add_stack(sizeof(MethodContext), stack_size);
     ctx = (MethodContext*)state->new_struct(cls, bytes);
 
 initialize:
