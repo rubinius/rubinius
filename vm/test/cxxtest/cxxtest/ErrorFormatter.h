@@ -37,6 +37,7 @@ namespace CxxTest
             _dotting( true ),
             _reported( false ),
             _verbose( false ),
+            _auto( false ),
             _o(o),
             _preLine(preLine),
             _postLine(postLine)
@@ -61,6 +62,9 @@ namespace CxxTest
               _verbose = true;
             } else {
               _dotting = true;
+            }
+            if(getenv("AUTO")) {
+              _auto = true;
             }
             _reported = false;
         }
@@ -89,13 +93,20 @@ namespace CxxTest
           _reported = false;
         }
 
-        void leaveTest( const TestDescription & )
+        void leaveTest( const TestDescription &d)
         {
           if(_verbose) {
             if(tracker().testFailed()) {
               (*_o) << "FAIL" << endl;
+              if(_auto) {
+                (*_o) << "--- F " << d.suiteName() << "::" << d.testName() << "::" << 
+                  d.file() << "::" << d.line() << endl;
+              }
             } else {
               (*_o) << "ok" << endl;
+              if(_auto) {
+                (*_o) << "--- O " << d.suiteName() << "::" << d.testName() << endl;
+              }
             }
           } else {
             if ( !tracker().testFailed() ) {
@@ -297,6 +308,7 @@ namespace CxxTest
         bool _dotting;
         bool _reported;
         bool _verbose;
+        bool _auto;
         OutputStream *_o;
         const char *_preLine;
         const char *_postLine;
