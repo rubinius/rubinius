@@ -142,8 +142,8 @@ ensure
   FileUtils.rm_rf path
 end
 
-def rubypp_task(target, prerequisite)
-  file target => [prerequisite, 'vm/rubypp.rb'] do
+def rubypp_task(target, prerequisite, *extra)
+  file target => [prerequisite, 'vm/rubypp.rb'] + extra do
     path = tmpname do |path|
       ruby 'vm/rubypp.rb', prerequisite, path
       yield path
@@ -236,11 +236,11 @@ file 'vm/compile' => EXTERNALS + objs + %w[vm/drivers/compile.o] do |t|
   link t
 end
 
-rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp' do |path|
+rubypp_task 'vm/instructions.o', 'vm/llvm/instructions.cpp', *hdrs do |path|
   compile 'vm/instructions.o', path
 end
 
-rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp' do |path|
+rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp', *hdrs do |path|
   sh "llvm-g++ -emit-llvm -Ivm -Ivm/external_libs/libffi/include -c -o vm/instructions.bc #{path}"
 end
 
