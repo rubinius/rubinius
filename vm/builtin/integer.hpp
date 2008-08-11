@@ -18,11 +18,7 @@ namespace rubinius {
   class Integer : public Numeric {
   public:
     static const object_type type = IntegerType;
-    
-    static INTEGER from(STATE, char i);
-    static INTEGER from(STATE, unsigned char i);
-    static INTEGER from(STATE, short i);
-    static INTEGER from(STATE, unsigned short i);
+
     static INTEGER from(STATE, int i);
     static INTEGER from(STATE, unsigned int i);
     static INTEGER from(STATE, long i);
