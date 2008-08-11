@@ -42,9 +42,14 @@ namespace CxxTest
             tracker().enterWorld( wd );
             if ( wd.setUp() ) {
                 for ( SuiteDescription *sd = wd.firstSuite(); sd; sd = sd->next() )
-                    if ( sd->active() )
+                    if ( char* which = getenv("SUITE") ) {
+                        if ( sd->active() && strstr(sd->suiteName(), which) ) {
+                            runSuite( *sd );
+                        }
+                    } else if ( sd->active() ) {
                         runSuite( *sd );
-            
+                    }
+
                 wd.tearDown();
             }
             tracker().leaveWorld( wd );
@@ -56,9 +61,16 @@ namespace CxxTest
             
             tracker().enterSuite( sd );
             if ( sd.setUp() ) {
-                for ( TestDescription *td = sd.firstTest(); td; td = td->next() )
-                    if ( td->active() )
+                for ( TestDescription *td = sd.firstTest(); td; td = td->next() ) {
+                    /* run only tests that match this 'pattern' */
+                    if ( char* which = getenv("TEST") ) {
+                        if ( td->active() && strstr(td->testName(), which) ) {
+                            runTest( *td );
+                        }
+                    } else if ( td->active() ) {
                         runTest( *td );
+                    }
+                }
 
                 sd.tearDown();
             }

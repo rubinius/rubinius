@@ -51,7 +51,11 @@ namespace CxxTest
 
         void enterWorld( const WorldDescription & /*desc*/ )
         {
-            (*_o) << "Running " << totalTests;
+            if(getenv("TEST") || getenv("SUITE")) {
+              (*_o) << "Running tests...";
+            } else {
+              (*_o) << "Running " << totalTests;
+            }
             _o->flush();
             if(getenv("VERBOSE")) {
               _verbose = true;
