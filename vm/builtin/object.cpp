@@ -31,6 +31,7 @@ namespace rubinius {
 
   /* Clear the body of the object, by setting each field to Qnil */
   void Object::clear_fields() {
+    ivars = Qnil;
     for(size_t i = 0; i < field_count; i++) {
       field[i] = Qnil;
     }
@@ -114,7 +115,7 @@ namespace rubinius {
   }
 
   bool Object::has_ivars_p() {
-    return CanStoreIvars == TRUE;
+    return TRUE;
   }
 
   bool Object::check_type(object_type type) {
@@ -393,8 +394,6 @@ namespace rubinius {
       return Qnil;
     }
 
-    OBJECT ivars = ((NormalObject*)this)->instance_variables;
-
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars)) {
       return tbl->fetch(state, sym);
     } else if(LookupTable* tbl = try_as<LookupTable>(ivars)) {
@@ -431,12 +430,10 @@ namespace rubinius {
       return val;
     }
 
-    OBJECT ivars = ((NormalObject*)this)->instance_variables;
-
     /* Lazy creation of a lookuptable to store instance variables. */
     if(ivars->nil_p()) {
       CompactLookupTable* tbl = CompactLookupTable::create(state);
-      SET((NormalObject*)this, instance_variables, tbl);
+      SET(this, ivars, tbl);
       tbl->store(state, sym, val);
       return val;
     }
@@ -448,7 +445,7 @@ namespace rubinius {
 
       /* No more room in the CompactLookupTable. */
       ivars = tbl->to_lookuptable(state);
-      SET((NormalObject*)this, instance_variables, ivars);
+      SET(this, ivars, ivars);
     }
 
     try_as<LookupTable>(ivars)->store(state, sym, val);
@@ -471,7 +468,6 @@ namespace rubinius {
 
   void Object::copy_flags(STATE, OBJECT source) {
     this->obj_type        = source->obj_type;
-    this->CanStoreIvars   = source->CanStoreIvars;
     this->StoresBytes     = source->StoresBytes;
     this->RequiresCleanup = source->RequiresCleanup;
     this->IsBlockContext  = source->IsBlockContext;

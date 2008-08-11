@@ -12,10 +12,9 @@ namespace rubinius {
   #define HASH_MINSIZE 16
   class Hash : public Object {
     public:
-    const static size_t fields = 7;
+    const static size_t fields = 6;
     const static object_type type = HashType;
 
-    OBJECT __ivars__; // slot
     OBJECT keys; // slot
     Tuple* values; // slot
     FIXNUM bins; // slot

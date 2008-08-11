@@ -7,11 +7,10 @@
 namespace rubinius {
   class Exception : public Object {
   public:
-    const static size_t fields = 3;
+    const static size_t fields = 2;
     const static object_type type = ExceptionType;
 
     static Exception* create(STATE);
-    OBJECT __ivars__; // slot
     OBJECT message; // slot
     OBJECT context; // slot
 

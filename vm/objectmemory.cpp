@@ -230,7 +230,6 @@ namespace rubinius {
     set_class(obj, cls);
 
     obj->obj_type = (object_type)cls->instance_type->to_nint();
-    obj->CanStoreIvars = (cls->has_ivars == Qtrue);
     obj->RequiresCleanup = (cls->needs_cleanup == Qtrue);
 
     return obj;

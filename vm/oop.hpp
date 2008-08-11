@@ -104,12 +104,13 @@ to be a simple test for that bit pattern.
      have to be aligned on 64bit (double word) boundaries) */
 
   /* On a 32 bit platform, I expect rubinius_object to take up
-     4 + 4 + 4 = 12 bytes.
+     4 + 4 + 4 + 4 = 16 bytes.
      on 64 bit platform,
-     4 + 4 + 8 = 16 bytes.
+     4 + 4 + 8 + 8 = 24 bytes.
      */
 
   class Class;
+  class Object;
 
   class ObjectHeader {
   public:
@@ -123,7 +124,6 @@ to be a simple test for that bit pattern.
         unsigned int Remember               : 1;
         unsigned int Marked                 : 1;
         unsigned int ForeverYoung           : 1;
-        unsigned int CanStoreIvars          : 1;
         unsigned int StoresBytes            : 1;
         unsigned int RequiresCleanup        : 1;
         unsigned int IsBlockContext         : 1;
@@ -137,6 +137,7 @@ to be a simple test for that bit pattern.
     };
     uint32_t field_count;
     Class* klass;
+    Object* ivars;
   };
 
   /* Object access, lowest level. These read and set fields of an OBJECT

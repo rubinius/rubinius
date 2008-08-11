@@ -40,10 +40,9 @@ namespace rubinius {
 
   class SymbolTable : public Object {
   public:
-    const static size_t fields = 3;
+    const static size_t fields = 2;
     const static object_type type = SymbolTableType;
 
-    OBJECT __ivars__; // slot
     Tuple* symbols; // slot
     Hash*  strings; // slot
 

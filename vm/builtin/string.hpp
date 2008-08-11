@@ -28,10 +28,9 @@ namespace rubinius {
 
   class String : public Object {
     public:
-    const static size_t fields = 7;
+    const static size_t fields = 6;
     const static object_type type = StringType;
 
-    OBJECT __ivars__; // slot
     INTEGER num_bytes; // slot
     INTEGER characters; // slot
     OBJECT encoding; // slot

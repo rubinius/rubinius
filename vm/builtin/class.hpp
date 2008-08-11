@@ -10,10 +10,9 @@ namespace rubinius {
 
   class Module : public Object {
     public:
-    const static size_t fields = 5;
+    const static size_t fields = 4;
     const static object_type type = ModuleType;
 
-    OBJECT __ivars__; // slot
     LookupTable* method_table; // slot
     SYMBOL name; // slot
     LookupTable* constants; // slot
@@ -39,7 +38,7 @@ namespace rubinius {
 
   class Class : public Module {
     public:
-    const static size_t fields = 9;
+    const static size_t fields = Module::fields + 4;
     const static object_type type = ClassType;
 
     FIXNUM instance_fields; // slot
@@ -64,7 +63,7 @@ namespace rubinius {
 
   class MetaClass : public Class {
     public:
-    const static size_t fields = 10;
+    const static size_t fields = Class::fields + 1;
     const static object_type type = MetaclassType;
 
     OBJECT attached_instance; // slot
@@ -79,7 +78,7 @@ namespace rubinius {
 
   class IncludedModule : public Module {
     public:
-    const static size_t field = 6;
+    const static size_t field = Module::fields + 1;
     const static object_type type = IncModType;
 
     OBJECT module; // slot

@@ -24,10 +24,9 @@ namespace rubinius {
 
   class Regexp : public Object {
     public:
-    const static size_t fields = 4;
+    const static size_t fields = 3;
     const static object_type type = RegexpType;
 
-    OBJECT __ivars__; // slot
     String* source; // slot
     RegexpData* data; // slot
     LookupTable* names; // slot
@@ -55,10 +54,9 @@ namespace rubinius {
 
   class MatchData : public Object {
     public:
-    const static size_t fields = 5;
+    const static size_t fields = 4;
     const static object_type type = MatchDataType;
 
-    OBJECT __ivars__; // slot
     String* source; // slot
     Regexp* regexp; // slot
     Tuple* full; // slot

@@ -184,7 +184,7 @@ namespace rubinius {
 
     CompiledMethod* cm = CompiledMethod::create(state);
 
-    SET(cm, __ivars__, unmarshal());
+    SET(cm, ivars, unmarshal());
     SET(cm, primitive, unmarshal());
     SET(cm, name,      unmarshal());
     SET(cm, iseq,      unmarshal());

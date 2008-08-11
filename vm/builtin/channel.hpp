@@ -12,10 +12,9 @@ namespace rubinius {
 
   class Channel : public Object {
   public:
-    const static size_t fields = 3;
+    const static size_t fields = 2;
     const static object_type type = ChannelType;
 
-    OBJECT __ivars__; // slot
     OBJECT value; // slot
     List* waiting; // slot
 

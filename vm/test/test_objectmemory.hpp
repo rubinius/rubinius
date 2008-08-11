@@ -19,6 +19,7 @@ class TestObjectMemory : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(obj->field_count, 3U);
     TS_ASSERT(obj->klass == NULL);
     TS_ASSERT_EQUALS(obj->zone, YoungObjectZone);
+    TS_ASSERT_EQUALS(obj->ivars, Qnil);
 
     TS_ASSERT(om.young.current->used() == obj->size_in_bytes());
     TS_ASSERT(om.young.heap_a.used()  == obj->size_in_bytes());

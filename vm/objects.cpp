@@ -114,7 +114,7 @@ namespace rubinius {
 
     GO(klass).set(cls);
 
-    Class *object = new_basic_class(Qnil, NormalObject::fields);
+    Class *object = new_basic_class(Qnil, Object::fields);
     GO(object).set(object);
 
     GO(module).set(new_basic_class(object, Module::fields));

@@ -651,7 +651,7 @@ class Instructions
 
     task->self = cls;
 
-    stream[1] = (opcode)2;
+    stream[1] = (opcode)1;
 
     run();
 
@@ -690,7 +690,7 @@ class Instructions
 
     SYMBOL name = state->symbol("Foo");
     task->push(name);
-    stream[1] = (opcode)2;
+    stream[1] = (opcode)1;
 
     run();
 

@@ -148,7 +148,7 @@ public:
 
     CompiledMethod* cm = as<CompiledMethod>(obj);
 
-    TS_ASSERT_EQUALS(cm->__ivars__, Qnil);
+    TS_ASSERT_EQUALS(cm->ivars, Qnil);
     TS_ASSERT_EQUALS(cm->primitive, state->symbol("object_equal"));
     TS_ASSERT_EQUALS(cm->name, state->symbol("test"));
     TS_ASSERT(tuple_equals(cm->iseq->opcodes, Tuple::from(state, 1, Fixnum::from(0))));

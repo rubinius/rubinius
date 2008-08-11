@@ -10,10 +10,9 @@ namespace rubinius {
 
   class StaticScope : public Object {
   public:
-    const static size_t fields = 3;
+    const static size_t fields = 2;
     const static object_type type = StaticScopeType;
 
-    OBJECT __ivars__; // slot
     Module* module; // slot
     StaticScope* parent; // slot
 

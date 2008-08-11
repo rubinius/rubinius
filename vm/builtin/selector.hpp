@@ -11,10 +11,9 @@ namespace rubinius {
   class Selector : public Object {
     public:
 
-    static const size_t fields = 3;
+    static const size_t fields = 2;
     static const object_type type = SelectorType;
 
-    OBJECT __ivars__; // slot
     SYMBOL name; // slot
     Array* send_sites; // slot
 

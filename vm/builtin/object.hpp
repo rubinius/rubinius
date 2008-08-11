@@ -11,6 +11,9 @@ namespace rubinius {
   class Object : public ObjectHeader {
   public:
 
+    /* Objects have no index fields past the header by default */
+    const static size_t fields = 0;
+
     /* body access */
     union {
       OBJECT field[];

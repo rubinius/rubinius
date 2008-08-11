@@ -9,10 +9,9 @@ namespace rubinius {
 
   class Array : public Object {
     public:
-    const static size_t fields = 5;
+    const static size_t fields = 4;
     const static object_type type = ArrayType;
 
-    OBJECT __ivars__; // slot
     INTEGER total; // slot
     Tuple* tuple; // slot
     INTEGER start; // slot

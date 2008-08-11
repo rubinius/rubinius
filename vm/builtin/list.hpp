@@ -25,10 +25,9 @@ namespace rubinius {
   class List : public Object {
   public:
 
-    const static size_t fields = 4;
+    const static size_t fields = 3;
     const static object_type type = ListType;
 
-    OBJECT __ivars__; // slot
     INTEGER count; // slot
     ListNode* first; // slot
     ListNode* last; // slot

@@ -9,10 +9,9 @@ namespace rubinius {
 
   class IO : public Object {
     public:
-    const static size_t fields = 4;
+    const static size_t fields = 3;
     const static object_type type = IOType;
 
-    OBJECT __ivars__; // slot
     FIXNUM descriptor; // slot
     OBJECT buffer; // slot
     OBJECT mode; // slot
@@ -32,10 +31,9 @@ namespace rubinius {
 
   class IOBuffer : public Object {
   public:
-    const static size_t fields = 4;
+    const static size_t fields = 3;
     const static object_type type = IOBufferType;
 
-    OBJECT __ivars__; // slot
     OBJECT storage; // slot
     INTEGER total; // slot
     INTEGER used; // slot

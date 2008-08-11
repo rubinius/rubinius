@@ -93,7 +93,7 @@ class TestObject : public CxxTest::TestSuite {
   void test_set_ivar() {
     char name[7] = "@testX";
     unsigned int i, size = COMPACTLOOKUPTABLE_SIZE / 2 + 2;
-    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
     OBJECT sym;
 
     for (i = 0; i < size; i++) {
@@ -109,7 +109,7 @@ class TestObject : public CxxTest::TestSuite {
   void test_get_ivar() {
     OBJECT sym = state->symbol("@test");
     OBJECT val = Fixnum::from(33);
-    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT_EQUALS(Qnil, obj->get_ivar(state, sym));
 
@@ -141,7 +141,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_tainted_p() {
-    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT_EQUALS(obj->tainted_p(), Qfalse);
     obj->IsTainted = TRUE;
@@ -149,7 +149,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_taint() {
-    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT(!obj->IsTainted);
     obj->taint();
@@ -157,7 +157,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_untaint() {
-    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
 
     obj->IsTainted = TRUE;
     TS_ASSERT(obj->IsTainted);
@@ -166,7 +166,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_frozen_p() {
-    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT_EQUALS(obj->frozen_p(), Qfalse);
     obj->IsFrozen = TRUE;
@@ -174,7 +174,7 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_freeze() {
-    OBJECT obj = state->om->new_object(G(object), NormalObject::fields);
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
 
     TS_ASSERT(!obj->IsFrozen);
     obj->freeze();

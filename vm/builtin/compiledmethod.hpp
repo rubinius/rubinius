@@ -51,10 +51,9 @@ namespace rubinius {
 
   class MethodVisibility : public Object {
   public:
-    const static size_t fields = 3;
+    const static size_t fields = 2;
     const static object_type type = CMVisibilityType;
 
-    OBJECT __ivars__; // slot
     SYMBOL visibility; // slot
     Executable* method; // slot
 
