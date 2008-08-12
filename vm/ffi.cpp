@@ -217,6 +217,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(int, as<Fixnum>(val)->to_int());
       } else {
+        type_assert(val, BignumType, "converting to int");
         WRITE(int, as<Bignum>(val)->to_int());
       }
       break;
@@ -224,6 +225,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(unsigned int, as<Fixnum>(val)->to_uint());
       } else {
+        type_assert(val, BignumType, "converting to unsigned int");
         WRITE(unsigned int, as<Bignum>(val)->to_uint());
       }
       break;
@@ -231,6 +233,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(long, as<Fixnum>(val)->to_long());
       } else {
+        type_assert(val, BignumType, "converting to long");
         WRITE(long, as<Bignum>(val)->to_long());
       }
       break;
@@ -238,6 +241,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(unsigned long, as<Fixnum>(val)->to_ulong());
       } else {
+        type_assert(val, BignumType, "converting to unsigned long");
         WRITE(unsigned long, as<Bignum>(val)->to_ulong());
       }
       break;
@@ -257,6 +261,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(long long, as<Fixnum>(val)->to_long_long());
       } else {
+        type_assert(val, BignumType, "converting to long long");
         WRITE(long long, as<Bignum>(val)->to_long_long());
       }
       break;
@@ -264,6 +269,7 @@ namespace rubinius {
       if(FIXNUM_P(val)) {
         WRITE(unsigned long long, as<Fixnum>(val)->to_ulong_long());
       } else {
+        type_assert(val, BignumType, "converting to unsigned long long");
         WRITE(unsigned long long, as<Bignum>(val)->to_ulong_long());
       }
       break;
