@@ -77,8 +77,8 @@ namespace rubinius {
     mod->set_const(this, "TYPE_UINT",       Fixnum::from(RBX_FFI_TYPE_UINT));
     mod->set_const(this, "TYPE_LONG",       Fixnum::from(RBX_FFI_TYPE_LONG));
     mod->set_const(this, "TYPE_ULONG",      Fixnum::from(RBX_FFI_TYPE_ULONG));
-    mod->set_const(this, "TYPE_LONG_LONG",  Fixnum::from(RBX_FFI_TYPE_LONG_LONG));
-    mod->set_const(this, "TYPE_ULONG_LONG", Fixnum::from(RBX_FFI_TYPE_ULONG_LONG));
+    mod->set_const(this, "TYPE_LL",         Fixnum::from(RBX_FFI_TYPE_LONG_LONG));
+    mod->set_const(this, "TYPE_ULL",        Fixnum::from(RBX_FFI_TYPE_ULONG_LONG));
     mod->set_const(this, "TYPE_FLOAT",      Fixnum::from(RBX_FFI_TYPE_FLOAT));
     mod->set_const(this, "TYPE_DOUBLE",     Fixnum::from(RBX_FFI_TYPE_DOUBLE));
     mod->set_const(this, "TYPE_PTR",        Fixnum::from(RBX_FFI_TYPE_PTR));

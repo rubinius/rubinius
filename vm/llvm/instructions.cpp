@@ -151,7 +151,8 @@ void VMMethod::resume(Task* task, MethodContext* ctx) {
     op = stream[ctx->ip++];
 #if 0
     std::cout << *ctx->cm->name->to_str(state) << "+" <<
-      ctx->ip << ": " << InstructionSequence::get_instruction_name(op) << "\n";
+      ctx->ip << ": " << InstructionSequence::get_instruction_name(op) << 
+        "        " << js->stack << "\n";
 #endif
 
 #ruby <<CODE

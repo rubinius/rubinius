@@ -341,6 +341,10 @@ namespace rubinius {
     return hsh;
   }
 
+  FIXNUM Object::hash_prim(STATE) {
+    return Fixnum::from(hash(state));
+  }
+
   INTEGER Object::id(STATE) {
     if(reference_p()) {
       OBJECT id;

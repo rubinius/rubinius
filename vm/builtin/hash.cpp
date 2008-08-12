@@ -10,6 +10,11 @@
 
 #define CSM_SIZE 12
 namespace rubinius {
+
+  Hash* Hash::allocate(STATE) {
+    return Hash::create(state);
+  }
+
   Hash* Hash::create(STATE, size_t size) {
     Hash *tbl;
 
@@ -169,6 +174,10 @@ namespace rubinius {
     return add(state, key->hash(state), key, val);
   }
 
+  OBJECT Hash::set_prim(STATE, FIXNUM hash, OBJECT key, OBJECT val) {
+    return add(state, hash->to_native(), key, val);
+  }
+
   OBJECT Hash::get(STATE, hashval hsh) {
     Tuple* entry = find_entry(state, hsh);
     if(entry) {
@@ -176,6 +185,10 @@ namespace rubinius {
     }
 
     return Qnil;
+  }
+
+  OBJECT Hash::get_prim(STATE, FIXNUM hash, OBJECT key) {
+    return get(state, hash->to_native());
   }
 
   /* Find the +value+ for +key+, having hash value +hash+. 

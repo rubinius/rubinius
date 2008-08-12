@@ -1419,7 +1419,8 @@ class Instructions
     SYMBOL sym = as<Symbol>(task->literals->field[index]);
     OBJECT res = task->const_get(sym, &found);
     if(!found) {
-      assert("implement const_missing");
+      sym->show(state);
+      assert(0 && "implement const_missing");
     } else {
       stack_push(res);
     }
@@ -1482,7 +1483,7 @@ class Instructions
     SYMBOL sym = as<Symbol>(task->literals->field[index]);
     OBJECT res = task->const_get(under, sym, &found);
     if(!found) {
-      assert("implement const_missing");
+      assert(0 && "implement const_missing");
     } else {
       stack_push(res);
     }
@@ -2196,7 +2197,7 @@ class Instructions
     msg.splat = Qnil;
     msg.args = count;
     msg.recv = stack_back(count);
-    msg.stack = count + 2;
+    msg.stack = count + 1;
     msg.use_from_task(task, count);
 
     msg.priv = task->call_flags & 1;
@@ -2288,7 +2289,7 @@ class Instructions
     msg.splat = Qnil;
     msg.args = count;
     msg.recv = stack_back(count);
-    msg.stack = count + 3;
+    msg.stack = count + 1;
     msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
 
     msg.priv = task->call_flags & 1;
@@ -2369,13 +2370,13 @@ class Instructions
   def send_super_stack_with_block(index, count)
     <<-CODE
     Message& msg = *task->msg;
-    
+
     msg.send_site = as<SendSite>(task->literals->field[index]);
     msg.block = stack_pop();
     msg.splat = Qnil;
     msg.args = count;
     msg.recv = stack_back(count);
-    msg.stack = count + 2;
+    msg.stack = count + 1;
     msg.use_from_task(task, count);
 
     msg.priv = task->call_flags & 1;
@@ -2471,7 +2472,7 @@ class Instructions
     msg.splat = Qnil;
     msg.args = count;
     msg.recv = task->self;
-    msg.stack = count + 2;
+    msg.stack = count;
     msg.combine_with_splat(state, task, as<Array>(ary)); /* call_flags & 3 */
 
     msg.priv = TRUE;

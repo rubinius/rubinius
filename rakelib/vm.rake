@@ -42,6 +42,7 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
 field_extract_headers = %w[
   vm/objects.hpp
   vm/builtin/object.hpp
+  vm/builtin/integer.hpp
   vm/builtin/array.hpp
   vm/builtin/bignum.hpp
   vm/builtin/block_environment.hpp

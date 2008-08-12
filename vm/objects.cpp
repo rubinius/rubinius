@@ -157,6 +157,7 @@ namespace rubinius {
     G(string)->has_ivars = Qfalse;
 
     GO(symtbl).set(new_class(object, SymbolTable::fields));
+    GO(symtbl)->instance_type = Fixnum::from(SymbolTable::type);
 
     GO(executable).set(new_class(object, Executable::fields));
 

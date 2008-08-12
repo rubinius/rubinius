@@ -541,7 +541,7 @@ class Compiler
       ss = SendSite.new meth
       idx = add_literal(ss)
 
-      add :send_stack_with_splat, args, idx
+      add :send_stack_with_splat, idx, args
     end
 
     def send_super(meth, args, splat=false)

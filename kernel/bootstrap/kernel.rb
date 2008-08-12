@@ -41,7 +41,7 @@ module Kernel
   end
 
   def hash
-    Ruby.primitive :hash_object
+    Ruby.primitive :object_hash
     raise PrimitiveFailure, "Object#hash failed."
   end
 

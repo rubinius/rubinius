@@ -2,7 +2,7 @@
 
 class Hash
   def self.allocate
-    Ruby.primitive :allocate_hash
+    Ruby.primitive :hash_allocate
     raise PrimitiveFailure, "Hash.allocate primitive failed"
   end
 

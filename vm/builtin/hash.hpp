@@ -22,6 +22,9 @@ namespace rubinius {
     OBJECT default_value; // slot
     OBJECT default_proc; // slot
 
+    // Ruby.primitive :hash_allocate
+    static Hash* allocate(STATE);
+
     static Hash* create(STATE, size_t size = HASH_MINSIZE);
     void   setup(STATE, size_t size);
     Hash*  dup(STATE);
@@ -31,8 +34,16 @@ namespace rubinius {
     void   redistribute(STATE);
     Tuple* find_entry(STATE, hashval hsh);
     OBJECT add(STATE, hashval hsh, OBJECT key, OBJECT data);
+
     OBJECT set(STATE, OBJECT key, OBJECT val);
     OBJECT get(STATE, hashval hsh);
+
+    // Ruby.primitive :hash_set
+    OBJECT set_prim(STATE, FIXNUM hash, OBJECT key, OBJECT val);
+
+    // Ruby.primitive :hash_get
+    OBJECT get_prim(STATE, FIXNUM hash, OBJECT key);
+
     bool    lookup(STATE, OBJECT key, hashval hash, OBJECT *value);
     bool    lookup2(STATE, bool (*compare)(STATE, OBJECT, OBJECT),
         OBJECT key, hashval hash, OBJECT *value);

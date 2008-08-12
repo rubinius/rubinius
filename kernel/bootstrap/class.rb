@@ -10,11 +10,13 @@ class Class
 
   def new(*args)
     obj = allocate()
+
     Rubinius.asm(args, obj) do |args, obj|
       run obj
       run args
       push_block
       send_with_splat :initialize, 0, true
+      pop
     end
 
     return obj

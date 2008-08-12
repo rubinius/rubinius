@@ -360,7 +360,6 @@ class CPPParser
           cpp = CPPClass.new(m[1])
         end
 
-        # puts "Seen #{m[1]}"
 
         add_class(cpp.name, cpp)
 
@@ -434,7 +433,11 @@ includes = ARGV.map do |include|
   "#include \"#{include.sub(/^vm\//, '')}\""
 end.join "\n"
 
-parser.parse_stream ARGF
+ARGV.each do |file|
+  File.open(file) do |f|
+    parser.parse_stream f
+  end
+end
 
 File.open 'vm/gen/includes.hpp', 'w' do |f|
   f << <<-EOF
