@@ -13,7 +13,7 @@ namespace rubinius {
   void ByteArray::Info::mark(OBJECT t, ObjectMark& mark) { }
 
   char* ByteArray::to_chars(STATE) {
-    native_int sz = this->size(state)->n2i();
+    native_int sz = this->size(state)->to_native();
     char* str = (char*)(this->bytes);
     char* out = ALLOC_N(char, sz);
 

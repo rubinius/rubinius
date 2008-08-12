@@ -53,7 +53,7 @@ public:
     OBJECT obj = mar->unmarshal();
 
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 3);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 3);
   }
 
   void test_string() {

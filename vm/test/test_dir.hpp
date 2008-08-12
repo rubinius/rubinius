@@ -101,10 +101,10 @@ class TestDir : public CxxTest::TestSuite {
     String* path = String::create(state, dir);
     d->open(state, path);
     FIXNUM pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
-    TS_ASSERT_EQUALS(pos->n2i(), 0);
+    TS_ASSERT_EQUALS(pos->to_native(), 0);
     d->read(state);
     pos = (FIXNUM)d->control(state, Fixnum::from(2), Fixnum::from(0));
-    TS_ASSERT_LESS_THAN(0, pos->n2i());
+    TS_ASSERT_LESS_THAN(0, pos->to_native());
     remove_directory(dir);
   }
 

@@ -128,7 +128,7 @@ namespace rubinius {
 
     NEW_STRUCT(o_regdata, reg, BASIC_CLASS(regexpdata), regex_t*);
 
-    opts  = options->n2i();
+    opts  = options->to_native();
     kcode = opts & KCODE_MASK;
     enc   = get_enc_from_kcode(kcode);
     opts &= OPTION_MASK;
@@ -211,9 +211,9 @@ namespace rubinius {
     str = (UChar*)string->byte_address(state);
 
     if(!RTEST(forward)) {
-      beg = onig_search(REG(data), str, str + max, str + end->n2i(), str + start->n2i(), region, ONIG_OPTION_NONE);  
+      beg = onig_search(REG(data), str, str + max, str + end->to_native(), str + start->to_native(), region, ONIG_OPTION_NONE);  
     } else {
-      beg = onig_search(REG(data), str, str + max, str + start->n2i(), str + end->n2i(), region, ONIG_OPTION_NONE);
+      beg = onig_search(REG(data), str, str + max, str + start->to_native(), str + end->to_native(), region, ONIG_OPTION_NONE);
     }
 
     if(beg == ONIG_MISMATCH) {
@@ -237,7 +237,7 @@ namespace rubinius {
     max = string->size(state);
     str = (UChar*)string->byte_address(state);
 
-    beg = onig_match(REG(data), str, str + max, str + start->n2i(), region,
+    beg = onig_match(REG(data), str, str + max, str + start->to_native(), region,
                      ONIG_OPTION_NONE);
 
     if(beg != ONIG_MISMATCH) {

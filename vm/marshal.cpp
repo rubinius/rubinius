@@ -16,7 +16,7 @@ namespace rubinius {
   using std::endl;
 
   void Marshaller::set_int(OBJECT obj) {
-    stream << "I" << endl << as<Integer>(obj)->n2i() << endl;
+    stream << "I" << endl << as<Integer>(obj)->to_native() << endl;
   }
 
   void Marshaller::set_bignum(Bignum* big) {
@@ -152,7 +152,7 @@ namespace rubinius {
     Tuple* ops = iseq->opcodes;
     stream << "i" << endl << ops->field_count << endl;
     for(size_t i = 0; i < ops->field_count; i++) {
-      stream << as<Fixnum>(ops->at(i))->to_nint() << endl;
+      stream << as<Fixnum>(ops->at(i))->to_native() << endl;
     }
   }
 

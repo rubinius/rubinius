@@ -73,7 +73,7 @@ class TestSymbol : public CxxTest::TestSuite {
   void test_index() {
     Symbol* sym = state->globals.symbols->lookup(state, "blah", 4);
 
-    TS_ASSERT_EQUALS(sym->index(state)->n2i(), sym->index());
+    TS_ASSERT_EQUALS(sym->index(state)->to_native(), sym->index());
   }
 
   void test_to_str() {

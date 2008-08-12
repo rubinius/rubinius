@@ -33,7 +33,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_CHAR);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
   
   void test_get_field_uchar() {
@@ -42,7 +42,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_UCHAR);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
 
   void test_get_field_short() {
@@ -51,7 +51,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_SHORT);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
   
   void test_get_field_ushort() {
@@ -60,7 +60,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_USHORT);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
   
   void test_get_field_int() {
@@ -69,7 +69,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_INT);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
   
   void test_get_field_uint() {
@@ -78,7 +78,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_UINT);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
   
   void test_get_field_long() {
@@ -87,7 +87,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_LONG);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
   
   void test_get_field_ulong() {
@@ -96,7 +96,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_ULONG);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
   
   void test_get_field_float() {
@@ -120,19 +120,19 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   void test_get_field_ll() {
     long long one = 1;
     MemoryPointer *ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_LL);
+    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_LONG_LONG);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
   
   void test_get_field_ull() {
     unsigned long long one = 1;
     MemoryPointer *ptr = MemoryPointer::create(state, &one);
-    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_ULL);
+    OBJECT obj = ptr->get_field(state, 0, RBX_FFI_TYPE_ULONG_LONG);
     
     TS_ASSERT(obj->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(obj)->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
 
   void test_get_field_object() {
@@ -287,7 +287,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_int_bignum() {
     int buffer[1024];
-    OBJECT one = Bignum::create(state, (native_int)1);
+    OBJECT one = Bignum::from(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -309,7 +309,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_uint_bignum() {
     unsigned int buffer[1024];
-    OBJECT one = Bignum::create(state, (native_int)1);
+    OBJECT one = Bignum::from(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -331,7 +331,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_long_bignum() {
     long buffer[1024];
-    OBJECT one = Bignum::create(state, (native_int)1);
+    OBJECT one = Bignum::from(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -353,7 +353,7 @@ class TestMemoryPointer : public CxxTest::TestSuite {
   
   void test_set_field_ulong_bignum() {
     unsigned long buffer[1024];
-    OBJECT one = Bignum::create(state, (native_int)1);
+    OBJECT one = Bignum::from(state, (native_int)1);
     
     buffer[0] = 0;
 
@@ -391,18 +391,18 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     buffer[0] = 0;
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
-    ptr->set_field(state, 0, RBX_FFI_TYPE_LL, one);
+    ptr->set_field(state, 0, RBX_FFI_TYPE_LONG_LONG, one);
     TS_ASSERT_EQUALS(*buffer, 1);
   }
   
   void test_set_field_ll_bignum() {
     long long buffer[1024];
-    OBJECT one = Bignum::create(state, (native_int)1);
+    OBJECT one = Bignum::from(state, (native_int)1);
     
     buffer[0] = 0;
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
-    ptr->set_field(state, 0, RBX_FFI_TYPE_LL, one);
+    ptr->set_field(state, 0, RBX_FFI_TYPE_LONG_LONG, one);
     TS_ASSERT_EQUALS(*buffer, 1);
   }
   
@@ -413,18 +413,18 @@ class TestMemoryPointer : public CxxTest::TestSuite {
     buffer[0] = 0;
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
-    ptr->set_field(state, 0, RBX_FFI_TYPE_ULL, one);
+    ptr->set_field(state, 0, RBX_FFI_TYPE_ULONG_LONG, one);
     TS_ASSERT_EQUALS(*buffer, 1ULL);
   }
   
   void test_set_field_ull_bignum() {
     unsigned long long buffer[1024];
-    OBJECT one = Bignum::create(state, (native_int)1);
+    OBJECT one = Bignum::from(state, (native_int)1);
     
     buffer[0] = 0;
 
     MemoryPointer* ptr = MemoryPointer::create(state, buffer);
-    ptr->set_field(state, 0, RBX_FFI_TYPE_ULL, one);
+    ptr->set_field(state, 0, RBX_FFI_TYPE_ULONG_LONG, one);
     TS_ASSERT_EQUALS(*buffer, 1ULL);
   }
 

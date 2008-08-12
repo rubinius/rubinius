@@ -16,7 +16,7 @@ namespace rubinius {
 
   /* The Tuple#at primitive. */
   OBJECT Tuple::at_prim(STATE, FIXNUM index_obj) {
-    size_t index = index_obj->n2i();
+    size_t index = index_obj->to_native();
     if(field_count <= index) return Qnil;
 
     return field[index];
@@ -29,7 +29,7 @@ namespace rubinius {
 
   /* The Tuple#put primitive. */
   OBJECT Tuple::put_prim(STATE, FIXNUM index, OBJECT val) {
-    return put(state, index->n2i(), val);
+    return put(state, index->to_native(), val);
   }
 
   /* The Tuple#fields primitive. */
@@ -42,7 +42,7 @@ namespace rubinius {
   }
 
   Tuple* Tuple::allocate(STATE, Fixnum* fields) {
-    return Tuple::create(state, fields->n2i());
+    return Tuple::create(state, fields->to_native());
   }
 
   Tuple* Tuple::from(STATE, size_t fields, ...) {

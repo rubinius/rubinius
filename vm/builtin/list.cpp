@@ -7,12 +7,12 @@ namespace rubinius {
 
   /* Returns true if the List is empty, contains no elements. */
   bool List::empty_p() {
-    return count->n2i() == 0;
+    return count->to_native() == 0;
   }
 
   /* Returns the number of elements in the List. */
   size_t List::size() {
-    return count->n2i();
+    return count->to_native();
   }
 
   /* Register the List and List::Node classes as globals */
@@ -52,7 +52,7 @@ namespace rubinius {
       SET(this, first, node);
     }
 
-    SET(this, count, Integer::from(state, count->n2i() + 1));
+    SET(this, count, Integer::from(state, count->to_native() + 1));
   }
 
   /* Return the +index+ numbered element from the beginning. */
@@ -75,7 +75,7 @@ namespace rubinius {
   OBJECT List::shift(STATE) {
     if(empty_p()) return Qnil;
 
-    SET(this, count, Integer::from(state, count->n2i() - 1));
+    SET(this, count, Integer::from(state, count->to_native() - 1));
     ListNode* n = first;
     SET(this, first, first->next);
 

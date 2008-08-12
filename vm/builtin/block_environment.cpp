@@ -35,7 +35,7 @@ namespace rubinius {
   }
 
   BlockContext* BlockEnvironment::create_context(STATE, MethodContext* sender) {
-    BlockContext* ctx = BlockContext::create(state, method->stack_size->to_nint());
+    BlockContext* ctx = BlockContext::create(state, method->stack_size->to_native());
     SET(ctx, sender, sender);
     SET(ctx, name, (SYMBOL)this);
     SET(ctx, cm, method);

@@ -15,11 +15,11 @@
 namespace rubinius {
 
   size_t String::size(STATE) {
-    return num_bytes->n2i();
+    return num_bytes->to_native();
   }
 
   size_t String::size() {
-    return num_bytes->n2i();
+    return num_bytes->to_native();
   }
 
   /* TODO: since we're technically say it's ok to change this, we might
@@ -30,7 +30,7 @@ namespace rubinius {
 
   String* String::allocate(STATE, FIXNUM size) {
     String *so;
-    size_t bytes = size->n2i();
+    size_t bytes = size->to_native();
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
@@ -72,7 +72,7 @@ namespace rubinius {
     unsigned char *bp;
 
     if(hash != Qnil) {
-      return (hashval)as<Integer>(hash)->n2i();
+      return (hashval)as<Integer>(hash)->to_native();
     }
     bp = (unsigned char*)(data->bytes);
     size_t sz = size(state);
@@ -117,7 +117,7 @@ namespace rubinius {
     String* other = as<String>(b);
 
     if(self->num_bytes != other->num_bytes) return false;
-    if(strncmp(self->byte_address(state), other->byte_address(state), self->num_bytes->n2i())) {
+    if(strncmp(self->byte_address(state), other->byte_address(state), self->num_bytes->to_native())) {
       return false;
     }
 
@@ -248,9 +248,9 @@ namespace rubinius {
     char* o = other->data->to_chars(state);
 
     if(this->num_bytes > other->num_bytes) {
-      count = other->num_bytes->n2i();
+      count = other->num_bytes->to_native();
     } else {
-      count = this->num_bytes->n2i();
+      count = this->num_bytes->to_native();
     }
 
     for(i = 0; i < count; i++) {

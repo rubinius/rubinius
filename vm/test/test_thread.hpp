@@ -24,7 +24,7 @@ public:
   void test_create() {
     Thread* thr = Thread::create(state);
 
-    TS_ASSERT_EQUALS(2, thr->priority->n2i());
+    TS_ASSERT_EQUALS(2, thr->priority->to_native());
     TS_ASSERT_DIFFERS(thr, Thread::current(state));
   }
 
@@ -51,7 +51,7 @@ public:
     Thread* cur = Thread::current(state);
     Thread* thr = Thread::create(state);
 
-    int priority = thr->priority->n2i();
+    int priority = thr->priority->to_native();
 
     Thread* thr2 = thr->wakeup(state);
 

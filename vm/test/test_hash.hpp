@@ -53,7 +53,7 @@ class TestHash : public CxxTest::TestSuite {
     OBJECT out = tbl->get(state, hash);
 
     TS_ASSERT_EQUALS(val, out);
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 1);
+    TS_ASSERT_EQUALS(tbl->entries->to_native(), 1);
   }
 
   void test_add_on_chained_buckets() {
@@ -79,7 +79,7 @@ class TestHash : public CxxTest::TestSuite {
     tbl->add(state, hash, key, val);
     tbl->add(state, hash, key2, val2);
 
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 1);
+    TS_ASSERT_EQUALS(tbl->entries->to_native(), 1);
     TS_ASSERT_EQUALS(tbl->get(state, hash), val2);
   }
 
@@ -100,7 +100,7 @@ class TestHash : public CxxTest::TestSuite {
     entry = (Tuple*)Hash::entry_new(state, hash, key2, val2);
     tbl->add_entry(state, hash, entry);
 
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 2);
+    TS_ASSERT_EQUALS(tbl->entries->to_native(), 2);
 
     OBJECT out;
     TS_ASSERT(tbl->lookup(state, key, hash, &out));
@@ -139,11 +139,11 @@ class TestHash : public CxxTest::TestSuite {
     tbl->assign(state, _compare1, key, hash, val);
     tbl->assign(state, _compare1, key2, hash, val2);
 
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 1);
+    TS_ASSERT_EQUALS(tbl->entries->to_native(), 1);
 
     tbl->assign(state, _compare2, key2, hash, val2);
 
-    TS_ASSERT_EQUALS(tbl->entries->n2i(), 2);
+    TS_ASSERT_EQUALS(tbl->entries->to_native(), 2);
   }
 
   void test_assign_redistributes() {

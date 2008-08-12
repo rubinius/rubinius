@@ -37,7 +37,7 @@ class TestFloat : public CxxTest::TestSuite {
     Float* coerced = Float::coerce(state, o);
     TS_ASSERT(kind_of<Float>(coerced));
     
-    Bignum* bn = Bignum::create(state, (native_int)2147483647);
+    Bignum* bn = Bignum::from(state, (native_int)2147483647);
     Float* coercedBn = Float::coerce(state, bn);
     TS_ASSERT(kind_of<Float>(coercedBn));
     
@@ -57,7 +57,7 @@ class TestFloat : public CxxTest::TestSuite {
     check_float(a, Float::create(state, 10.2));
 
     f = Float::create(state, 0.2);
-    a = f->add(state, Bignum::create(state, FIXNUM_MAX + 10));
+    a = f->add(state, Bignum::from(state, FIXNUM_MAX + 10));
     check_float(a, Float::create(state, (double)FIXNUM_MAX + 10.2));
   }
 
@@ -71,7 +71,7 @@ class TestFloat : public CxxTest::TestSuite {
     check_float(a, Float::create(state, -9.8));
 
     f = Float::create(state, 0.2);
-    a = f->sub(state, Bignum::create(state, FIXNUM_MAX + 10));
+    a = f->sub(state, Bignum::from(state, FIXNUM_MAX + 10));
     check_float(a, Float::create(state, (double)-FIXNUM_MAX - 9.8));
   }
 
@@ -85,7 +85,7 @@ class TestFloat : public CxxTest::TestSuite {
     check_float(a, Float::create(state, 2.0));
 
     f = Float::create(state, 0.2);
-    a = f->mul(state, Bignum::create(state, FIXNUM_MAX + 10));
+    a = f->mul(state, Bignum::from(state, FIXNUM_MAX + 10));
     check_float(a, Float::create(state, ((double)FIXNUM_MAX + 10) * 0.2));
   }
 
@@ -109,7 +109,7 @@ class TestFloat : public CxxTest::TestSuite {
     check_float(a, Float::create(state, 0.02));
 
     f = Float::create(state, 100000);
-    a = f->div(state, Bignum::create(state, FIXNUM_MAX + 10));
+    a = f->div(state, Bignum::from(state, FIXNUM_MAX + 10));
     check_float(a, Float::create(state, 100000 / ((double)FIXNUM_MAX + 10)));
   }
 
@@ -142,7 +142,7 @@ class TestFloat : public CxxTest::TestSuite {
     Float*  o2 = as<Float>(a->get(state, 1));
 
     TS_ASSERT(o1->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), 4);
+    TS_ASSERT_EQUALS(as<Integer>(o1)->to_native(), 4);
     check_float(o2, Float::create(state, 0.2));
 
     f = Float::create(state, -2.2);
@@ -151,7 +151,7 @@ class TestFloat : public CxxTest::TestSuite {
     o2 = as<Float>(a->get(state, 1));
 
     TS_ASSERT(o1->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), -5);
+    TS_ASSERT_EQUALS(as<Integer>(o1)->to_native(), -5);
     check_float(o2, Float::create(state, 0.3));
 
     f = Float::create(state, 2.2);
@@ -160,7 +160,7 @@ class TestFloat : public CxxTest::TestSuite {
     o2 = as<Float>(a->get(state, 1));
 
     TS_ASSERT(o1->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), -5);
+    TS_ASSERT_EQUALS(as<Integer>(o1)->to_native(), -5);
     check_float(o2, Float::create(state, -0.3));
 
     f = Float::create(state, -2.2);
@@ -169,7 +169,7 @@ class TestFloat : public CxxTest::TestSuite {
     o2 = as<Float>(a->get(state, 1));
 
     TS_ASSERT(o1->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), 4);
+    TS_ASSERT_EQUALS(as<Integer>(o1)->to_native(), 4);
     check_float(o2, Float::create(state, -0.2));
 
     f = Float::create(state, -2.2);
@@ -178,7 +178,7 @@ class TestFloat : public CxxTest::TestSuite {
     o2 = as<Float>(a->get(state, 1));
 
     TS_ASSERT(o1->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(o1)->n2i(), -2);
+    TS_ASSERT_EQUALS(as<Integer>(o1)->to_native(), -2);
     check_float(o2, Float::create(state, 1.8));
   }
 

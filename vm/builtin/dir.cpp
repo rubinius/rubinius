@@ -67,9 +67,9 @@ namespace rubinius {
 
     DIR* d = (DIR*)data->pointer;
 
-    switch(kind->n2i()) {
+    switch(kind->to_native()) {
     case 0:
-      seekdir(d, pos->n2i());
+      seekdir(d, pos->to_native());
       return Qtrue;
     case 1:
       rewinddir(d);

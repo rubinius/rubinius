@@ -125,8 +125,8 @@ class TestObject : public CxxTest::TestSuite {
     INTEGER id1 = t1->id(state);
     INTEGER id2 = t2->id(state);
 
-    TS_ASSERT(id1->n2i() > 0);
-    TS_ASSERT(id2->n2i() > 0);
+    TS_ASSERT(id1->to_native() > 0);
+    TS_ASSERT(id2->to_native() > 0);
 
     TS_ASSERT_DIFFERS(id1, id2)
 
@@ -137,7 +137,7 @@ class TestObject : public CxxTest::TestSuite {
 
     INTEGER id4 = Fixnum::from(33)->id(state);
     TS_ASSERT_EQUALS(id3, id4);
-    TS_ASSERT(id4->n2i() % 2 != 0);
+    TS_ASSERT(id4->to_native() % 2 != 0);
   }
 
   void test_tainted_p() {

@@ -56,7 +56,7 @@ namespace rubinius {
   };
 
 #define HASH_MAX_DENSITY 0.75
-#define hash_redistribute_p(hash) (hash->entries->n2i() >= HASH_MAX_DENSITY * hash->values->field_count)
+#define hash_redistribute_p(hash) (hash->entries->to_native() >= HASH_MAX_DENSITY * hash->values->field_count)
 };
 
 #endif

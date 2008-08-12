@@ -97,7 +97,7 @@ class TestObjects : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass, G(lookuptable));
 
-    TS_ASSERT_EQUALS((object_type)cls->instance_type->n2i(), MTType);
+    TS_ASSERT_EQUALS((object_type)cls->instance_type->to_native(), MTType);
     check_const(methtbl, "MethodTable");
   }
 
@@ -128,7 +128,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass, G(object));
-    TS_ASSERT_EQUALS((object_type)cls->instance_type->n2i(), ByteArrayType);
+    TS_ASSERT_EQUALS((object_type)cls->instance_type->to_native(), ByteArrayType);
     check_const(bytearray, "ByteArray");
   }
 
@@ -139,7 +139,7 @@ class TestObjects : public CxxTest::TestSuite {
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass, G(object));
-    TS_ASSERT_EQUALS((object_type)cls->instance_type->n2i(), StringType);
+    TS_ASSERT_EQUALS((object_type)cls->instance_type->to_native(), StringType);
     check_const(string, "String");
   }
 

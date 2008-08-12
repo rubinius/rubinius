@@ -319,7 +319,7 @@ namespace rubinius {
     if(!reference_p()) {
       /* Get rid of the tag part (i.e. the part that indicate nature of self */
       if(fixnum_p()) {
-        native_int val = as<Integer>(this)->n2i();
+        native_int val = as<Integer>(this)->to_native();
         /* We do this so the 2's complement will fit into 29 bits properly. */
         if(val < 0) {
           hsh = hsh >> 1;
@@ -334,7 +334,7 @@ namespace rubinius {
       } else if(kind_of_p(state, G(floatpoint))) {
         hsh = String::hash_str((unsigned char *)(this->bytes), sizeof(double));
       } else {
-        hsh = id(state)->n2i();
+        hsh = id(state)->to_native();
       }
     }
 

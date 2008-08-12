@@ -17,11 +17,20 @@ namespace rubinius {
     static void cleanup(STATE, OBJECT obj);
     static void init(STATE);
 
-    static Bignum* create(STATE, int num);
-    static Bignum* create(STATE, long num);
-    static Bignum* create(STATE, unsigned long);
-    static Bignum* create(STATE, long long val);
-    static Bignum* create(STATE, unsigned long long val);
+    static Bignum* from(STATE, int num);
+    static Bignum* from(STATE, long num);
+    static Bignum* from(STATE, unsigned long);
+    static Bignum* from(STATE, long long val);
+    static Bignum* from(STATE, unsigned long long val);
+
+    native_int         to_native();
+
+    int                to_int();
+    unsigned int       to_uint();
+    long               to_long();
+    unsigned long      to_ulong();
+    long long          to_long_long();
+    unsigned long long to_ulong_long();
 
     static INTEGER normalize(STATE, Bignum* obj);
     static INTEGER from_string_detect(STATE, const char* str);
@@ -146,13 +155,6 @@ namespace rubinius {
 
     // Ruby.primitive :bignum_to_f
     Float* to_f(STATE);
-
-    int    to_int(STATE);
-    int    to_i(STATE);
-    native_int to_nint();
-    unsigned int to_ui(STATE);
-    unsigned long long to_ull(STATE);
-    long long to_ll(STATE);
 
     // Ruby.primitive :bignum_to_s
     String* to_s(STATE, INTEGER radix);

@@ -48,7 +48,7 @@ namespace rubinius {
   }
 
   OBJECT VM::new_object(Class *cls) {
-    return om->new_object(cls, cls->instance_fields->n2i());
+    return om->new_object(cls, cls->instance_fields->to_native());
   }
 
   SYMBOL VM::symbol(const char* str, size_t size) {
@@ -122,7 +122,7 @@ namespace rubinius {
   }
 
   void VM::queue_thread(Thread* thread) {
-    List* lst = as<List>(globals.scheduled_threads->at(thread->priority->n2i()));
+    List* lst = as<List>(globals.scheduled_threads->at(thread->priority->to_native()));
     lst->append(this, thread);
   }
 
@@ -148,7 +148,7 @@ namespace rubinius {
       String* str = as<Symbol>(obj)->to_str(this);
       std::cout << "<Symbol :" << (char*)*str << ">" << std::endl;
     } else if(obj->fixnum_p()) {
-      std::cout << "<Fixnum " << as<Fixnum>(obj)->to_nint() << ">" << std::endl;
+      std::cout << "<Fixnum " << as<Fixnum>(obj)->to_native() << ">" << std::endl;
     } else {
       std::cout << "<Object: " << (void*)obj << ">" << std::endl;
     }

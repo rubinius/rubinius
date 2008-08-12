@@ -35,12 +35,12 @@
 
 namespace rubinius {
 
-  native_int Integer::n2i() {
+  native_int Integer::to_native() {
     if(fixnum_p()) {
-      return ((FIXNUM)this)->to_nint();
+      return ((FIXNUM)this)->to_native();
     }
 
-    return as<Bignum>(this)->to_nint();
+    return as<Bignum>(this)->to_native();
   }
 
   // TODO: double check that this links. Evan says it doesn't. I'll
@@ -72,7 +72,7 @@ namespace rubinius {
   }
 
   Class* VM::new_class(const char* name) {
-    return new_class(name, G(object), G(object)->instance_fields->n2i());
+    return new_class(name, G(object), G(object)->instance_fields->to_native());
   }
 
   Class* VM::new_class(const char* name, size_t fields) {

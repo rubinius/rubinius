@@ -73,7 +73,7 @@ namespace rubinius {
   }
 
   MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth) {
-    MethodContext* ctx = MethodContext::create(state, meth->stack_size->n2i());
+    MethodContext* ctx = MethodContext::create(state, meth->stack_size->to_native());
 
     SET(ctx, sender, (MethodContext*)Qnil);
     SET(ctx, self, recv);
@@ -118,8 +118,8 @@ namespace rubinius {
 
 
   void Task::import_arguments(MethodContext* ctx, Message& msg) {
-    size_t total = ctx->cm->total_args->n2i();
-    size_t required = ctx->cm->required_args->n2i();
+    size_t total = ctx->cm->total_args->to_native();
+    size_t required = ctx->cm->required_args->to_native();
     size_t fixed;
 
     ctx->block = msg.block;
@@ -131,7 +131,7 @@ namespace rubinius {
        * it in. */
       if(ctx->cm->splat != Qnil) {
         Array* ary = Array::create(state, 0);
-        ctx->set_local(as<Integer>(ctx->cm->splat)->n2i(), ary);
+        ctx->set_local(as<Integer>(ctx->cm->splat)->to_native(), ary);
       }
       goto stack_cleanup;
     }
@@ -162,7 +162,7 @@ namespace rubinius {
         ary->set(state, i, msg.get_argument(n));
       }
 
-      ctx->set_local(as<Integer>(ctx->cm->splat)->n2i(), ary);
+      ctx->set_local(as<Integer>(ctx->cm->splat)->to_native(), ary);
     }
 
     /* Now that we've processed everything from the stack, we need to clean it up */
@@ -237,8 +237,8 @@ stack_cleanup:
       if(!table->nil_p()) {
         for(size_t i = 0; i < table->field_count; i++) {
           Tuple* entry = as<Tuple>(table->at(i));
-          if(as<Integer>(entry->at(0))->n2i() <= ip && as<Integer>(entry->at(1))->n2i() >= ip) {
-            set_ip(as<Integer>(entry->at(2))->n2i());
+          if(as<Integer>(entry->at(0))->to_native() <= ip && as<Integer>(entry->at(1))->to_native() >= ip) {
+            set_ip(as<Integer>(entry->at(2))->to_native());
             return;
           }
         }
@@ -298,7 +298,7 @@ stack_cleanup:
     if(instance_of<Class>(mod)) {
       Class* cls = as<Class>(mod);
 
-      object_type type = (object_type)cls->instance_type->n2i();
+      object_type type = (object_type)cls->instance_type->to_native();
       TypeInfo* ti = state->om->type_info[type];
       if(!ti) {
         ti = new TypeInfo((object_type)0);
@@ -317,7 +317,7 @@ stack_cleanup:
 
     CompiledMethod* cm = try_as<CompiledMethod>(x);
 
-    if(cm) return cm->serial->n2i() == ser;
+    if(cm) return cm->serial->to_native() == ser;
 
     return false;
   }

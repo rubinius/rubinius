@@ -87,7 +87,7 @@ namespace rubinius {
   }
 
   size_t CompiledMethod::number_of_locals() {
-    return local_count->to_nint();
+    return local_count->to_native();
   }
 
   void CompiledMethod::set_scope(StaticScope* scope) {

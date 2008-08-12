@@ -211,7 +211,7 @@ namespace rubinius {
     state->add_type_info(new Bignum::Info(Bignum::type));
   }
 
-  Bignum* Bignum::create(STATE, int num) {
+  Bignum* Bignum::from(STATE, int num) {
     mp_int *a;
     Bignum* o;
     o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
@@ -226,7 +226,7 @@ namespace rubinius {
     return o;
   }
 
-  Bignum* Bignum::create(STATE, long num) {
+  Bignum* Bignum::from(STATE, long num) {
     mp_int *a;
     Bignum* o;
     o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
@@ -241,14 +241,14 @@ namespace rubinius {
     return o;
   }
 
-  Bignum* Bignum::create(STATE, unsigned long num) {
+  Bignum* Bignum::from(STATE, unsigned long num) {
     Bignum* o;
     o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
     mp_init_set_long(MP(o), num);
     return o;
   }
 
-  Bignum* Bignum::create(STATE, unsigned long long val) {
+  Bignum* Bignum::from(STATE, unsigned long long val) {
     mp_int low, high;
     mp_int* ans;
     mp_init_set_int(&low, val & 0xffffffff);
@@ -265,17 +265,60 @@ namespace rubinius {
     return ret;
   }
 
-  Bignum* Bignum::create(STATE, long long val) {
+  Bignum* Bignum::from(STATE, long long val) {
     Bignum* ret;
 
     if(val < 0) {
-      ret = Bignum::create(state, (unsigned long long)-val);
+      ret = Bignum::from(state, (unsigned long long)-val);
       MP(ret)->sign = MP_NEG;
     } else {
-      ret = Bignum::create(state, (unsigned long long)val);
+      ret = Bignum::from(state, (unsigned long long)val);
     }
 
     return ret;
+  }
+
+  native_int Bignum::to_native() {
+    return (MP(this)->sign == MP_NEG) ? -mp_get_long(MP(this)) : mp_get_long(MP(this));
+  }
+
+  int Bignum::to_int() {
+    return (MP(this)->sign == MP_NEG) ? -mp_get_int(MP(this)) : mp_get_int(MP(this));
+  }
+
+  unsigned int Bignum::to_uint() {
+    return mp_get_int(MP(this));
+  }
+
+  long Bignum::to_long() {
+    return (MP(this)->sign == MP_NEG) ? -mp_get_long(MP(this)) : mp_get_long(MP(this));
+  }
+
+  unsigned long Bignum::to_ulong() {
+    return mp_get_long(MP(this));
+  }
+
+  long long Bignum::to_long_long() {
+    mp_int *s = MP(this);
+    return (s->sign == MP_NEG) ? -to_ulong_long() : to_ulong_long();
+  }
+
+  unsigned long long Bignum::to_ulong_long() {
+    mp_int t;
+    mp_int *s = MP(this);
+    unsigned long long out, tmp;
+
+    /* mp_get_int() gets only the lower 32 bits, on any platform. */
+    out = mp_get_int(s);
+
+    mp_init(&t);
+    mp_div_2d(s, 32, &t, NULL);
+
+    tmp = mp_get_int(&t);
+    out |= tmp << 32;
+
+    mp_clear(&t);
+    return out;
   }
 
   INTEGER Bignum::normalize(STATE, Bignum* b) {
@@ -283,7 +326,7 @@ namespace rubinius {
 
     if((size_t)mp_count_bits(MP(b)) <= FIXNUM_WIDTH) {
       native_int val;
-      val = (native_int)b->to_nint();
+      val = (native_int)b->to_native();
       return Fixnum::from(val);
     }
     return b;
@@ -291,7 +334,7 @@ namespace rubinius {
 
   INTEGER Bignum::add(STATE, FIXNUM b) {
     NMP;
-    native_int bi = b->n2i();
+    native_int bi = b->to_native();
     if(bi > 0) {
       mp_add_d(MP(this), bi, n);
     } else {
@@ -312,7 +355,7 @@ namespace rubinius {
 
   INTEGER Bignum::sub(STATE, FIXNUM b) {
     NMP;
-    native_int bi = b->n2i();
+    native_int bi = b->to_native();
     if(bi > 0) {
       mp_sub_d(MP(this), bi, n);
     } else {
@@ -342,7 +385,7 @@ namespace rubinius {
   INTEGER Bignum::mul(STATE, FIXNUM b) {
     NMP;
 
-    native_int bi = b->n2i();
+    native_int bi = b->to_native();
     if(bi == 2) {
       mp_mul_2(MP(this), n);
     } else {
@@ -367,13 +410,13 @@ namespace rubinius {
   }
 
   INTEGER Bignum::divide(STATE, FIXNUM denominator, INTEGER* remainder) {
-    if(denominator->n2i() == 0) {
+    if(denominator->to_native() == 0) {
       throw ZeroDivisionError(denominator, "divided by 0");
     }
 
     NMP;
 
-    native_int bi  = denominator->n2i();
+    native_int bi  = denominator->to_native();
     mp_digit r;
     if(bi < 0) {
       mp_div_d(MP(this), -bi, n, &r);
@@ -392,7 +435,7 @@ namespace rubinius {
 
     if(r != 0 && mp_cmp_d(n, 0) == MP_LT) {
       if(remainder) {
-        *remainder = Fixnum::from(as<Fixnum>(*remainder)->n2i() + bi);
+        *remainder = Fixnum::from(as<Fixnum>(*remainder)->to_native() + bi);
       }
       mp_sub_d(n, 1, n);
     }
@@ -474,7 +517,7 @@ namespace rubinius {
     NMP;
 
     if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
+      b = Bignum::from(state, b->to_native());
     }
 
     /* Perhaps this should use mp_and rather than our own version */
@@ -490,7 +533,7 @@ namespace rubinius {
     NMP;
 
     if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
+      b = Bignum::from(state, b->to_native());
     }
     /* Perhaps this should use mp_or rather than our own version */
     bignum_bitwise_op(BITWISE_OP_OR, MP(this), MP(b), n);
@@ -505,7 +548,7 @@ namespace rubinius {
     NMP;
 
     if(kind_of<Fixnum>(b)) {
-      b = Bignum::create(state, b->n2i());
+      b = Bignum::from(state, b->to_native());
     }
     /* Perhaps this should use mp_xor rather than our own version */
     bignum_bitwise_op(BITWISE_OP_XOR, MP(this), MP(b), n);
@@ -542,9 +585,9 @@ namespace rubinius {
 
   INTEGER Bignum::left_shift(STATE, INTEGER bits) {
     NMP;
-    int shift = bits->n2i();
+    int shift = bits->to_native();
     if(shift < 0) {
-      return right_shift(state, Fixnum::from(-bits->n2i()));
+      return right_shift(state, Fixnum::from(-bits->to_native()));
     }
     mp_int *a = MP(this);
 
@@ -555,9 +598,9 @@ namespace rubinius {
 
   INTEGER Bignum::right_shift(STATE, INTEGER bits) {
     NMP;
-    int shift = bits->n2i();
+    int shift = bits->to_native();
     if(shift < 0) {
-      return left_shift(state, Fixnum::from(-bits->n2i()));
+      return left_shift(state, Fixnum::from(-bits->to_native()));
     }
 
     mp_int * a = MP(this);
@@ -581,7 +624,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::equal(STATE, FIXNUM b) {
-    native_int bi = b->n2i();
+    native_int bi = b->to_native();
     mp_int* a = MP(this);
     if(bi < 0) {
       bi = -bi;
@@ -609,7 +652,7 @@ namespace rubinius {
   }
 
   FIXNUM Bignum::compare(STATE, FIXNUM b) {
-    native_int bi = b->n2i();
+    native_int bi = b->to_native();
     mp_int* a = MP(this);
     if(bi < 0) {
       mp_int n;
@@ -650,7 +693,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::gt(STATE, FIXNUM b) {
-    native_int bi = b->n2i();
+    native_int bi = b->to_native();
 
     mp_int* a = MP(this);
     if(bi < 0) {
@@ -683,7 +726,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::ge(STATE, FIXNUM b) {
-    native_int bi = b->n2i();
+    native_int bi = b->to_native();
 
     mp_int* a = MP(this);
     if(bi < 0) {
@@ -718,7 +761,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::lt(STATE, FIXNUM b) {
-    native_int bi = b->n2i();
+    native_int bi = b->to_native();
 
     mp_int* a = MP(this);
     if(bi < 0) {
@@ -751,7 +794,7 @@ namespace rubinius {
   }
 
   OBJECT Bignum::le(STATE, FIXNUM b) {
-    native_int bi = b->n2i();
+    native_int bi = b->to_native();
 
     mp_int* a = MP(this);
     if(bi < 0) {
@@ -789,58 +832,6 @@ namespace rubinius {
     return Float::coerce(state, this);
   }
 
-  int Bignum::to_int(STATE) {
-    if(MP(this)->sign == MP_NEG) {
-      return -mp_get_int(MP(this));
-    }
-    return mp_get_int(MP(this));
-  }
-
-  native_int Bignum::to_nint() {
-    if(MP(this)->sign == MP_NEG) {
-      return -mp_get_long(MP(this));
-    }
-    return mp_get_long(MP(this));
-  }
-
-  int Bignum::to_i(STATE) {
-    if(MP(this)->sign == MP_NEG) {
-      return -mp_get_int(MP(this));
-    }
-    return mp_get_int(MP(this));
-  }
-
-  unsigned int Bignum::to_ui(STATE) {
-    return (unsigned int)mp_get_int(MP(this));
-  }
-
-  unsigned long long Bignum::to_ull(STATE) {
-    mp_int t;
-    mp_int *s = MP(this);
-    unsigned long long out, tmp;
-
-    /* mp_get_int() gets only the lower 32 bits, on any platform. */
-    out = mp_get_int(s);
-
-    mp_init(&t);
-    mp_div_2d(s, 32, &t, NULL);
-
-    tmp = mp_get_int(&t);
-    out |= tmp << 32;
-
-    mp_clear(&t);
-    return out;
-  }
-
-  long long Bignum::to_ll(STATE) {
-    mp_int *s = MP(this);
-
-    if (s->sign == MP_NEG)
-      return -to_ull(state);
-    else
-      return to_ull(state);
-  }
-
   String* Bignum::to_s(STATE, INTEGER radix) {
     char *buf;
     int sz = 1024;
@@ -849,7 +840,7 @@ namespace rubinius {
 
     for(;;) {
       buf = ALLOC_N(char, sz);
-      mp_toradix_nd(MP(this), buf, radix->n2i(), sz, &k);
+      mp_toradix_nd(MP(this), buf, radix->to_native(), sz, &k);
       if(k < sz - 2) {
         obj = String::create(state, buf);
         FREE(buf);

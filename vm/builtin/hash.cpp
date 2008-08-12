@@ -96,7 +96,7 @@ namespace rubinius {
       values->put(state, bin, ent);
     }
 
-    entries = Fixnum::from(entries->n2i() + 1);
+    entries = Fixnum::from(entries->to_native() + 1);
     return ent;
   }
 
@@ -116,7 +116,7 @@ namespace rubinius {
         Tuple* next = try_as<Tuple>(entry->at(3));
         entry->put(state, 3, Qnil);
 
-        native_int hash = as<Integer>(entry->at(0))->n2i();
+        native_int hash = as<Integer>(entry->at(0))->to_native();
         size_t bin = find_bin(hash, size);
         if(Tuple* slot = try_as<Tuple>(new_values->at(bin))) {
           entry_append(state, slot, entry);
@@ -141,7 +141,7 @@ namespace rubinius {
 
     for(;;) {
       INTEGER th = as<Integer>(entry->at(0));
-      if((hashval)th->n2i() == hsh) {
+      if((hashval)th->to_native() == hsh) {
         return entry;
       }
 
@@ -187,7 +187,7 @@ namespace rubinius {
     Tuple* ent = find_entry(state, hash);
     if(!ent) return false;
 
-    while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
+    while((hashval)as<Integer>(ent->at(0))->to_native() == hash) {
       hk = ent->at(1);
       if(hk == key) {
         *value = ent->at(2);
@@ -211,7 +211,7 @@ namespace rubinius {
     Tuple* ent = find_entry(state, hash);
     if(!ent) return false;
 
-    while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
+    while((hashval)as<Integer>(ent->at(0))->to_native() == hash) {
       hk = ent->at(1);
       if(compare(state, hk, key)) {
         *value = ent->at(2);
@@ -233,7 +233,7 @@ namespace rubinius {
 
     base = ent = find_entry(state, hash);
     if(ent) {
-      while((hashval)as<Integer>(ent->at(0))->n2i() == hash) {
+      while((hashval)as<Integer>(ent->at(0))->to_native() == hash) {
         hk = ent->at(1);
         if(compare(state, hk, key)) {
           ent->put(state, 2, value);
@@ -253,7 +253,7 @@ namespace rubinius {
     if(base) {
       ent = entry_new(state, hash, key, value);
       entry_append(state, base, ent);
-      entries = Fixnum::from(entries->n2i() + 1);
+      entries = Fixnum::from(entries->to_native() + 1);
       return;
     }
 
@@ -292,14 +292,14 @@ namespace rubinius {
       th = as<Integer>(entry->at(0));
       lk = (Tuple*)entry->at(3);
 
-      if((hashval)th->n2i() == hsh) {
+      if((hashval)th->to_native() == hsh) {
         val = entry->at(2);
         if(lst->nil_p()) {
           values->put(state, bin, lk);
         } else {
           lst->put(state, 3, lk);
         }
-        entries = Fixnum::from(entries->n2i() - 1);
+        entries = Fixnum::from(entries->to_native() - 1);
         return val;
       }
 

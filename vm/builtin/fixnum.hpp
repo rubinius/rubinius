@@ -17,6 +17,15 @@ namespace rubinius {
 
     static FIXNUM from(native_int);
 
+    native_int         to_native();
+
+    int                to_int();
+    unsigned int       to_uint();
+    long               to_long();
+    unsigned long      to_ulong();
+    long long          to_long_long();
+    unsigned long long to_ulong_long();
+
     // Ruby.primitive! :fixnum_add
     INTEGER add(STATE, FIXNUM other);
 
@@ -28,7 +37,7 @@ namespace rubinius {
 
     // Ruby.primitive! :fixnum_sub
     INTEGER sub(STATE, FIXNUM other);
-    
+
     // Ruby.primitive! :fixnum_sub
     INTEGER sub(STATE, Bignum* other);
 
@@ -133,8 +142,6 @@ namespace rubinius {
 
     // Ruby.primitive :fixnum_right_shift
     INTEGER right_shift(STATE, INTEGER bits);
-
-    native_int to_nint();
 
     // Ruby.primitive :fixnum_size
     INTEGER size(STATE);

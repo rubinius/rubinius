@@ -25,7 +25,7 @@ namespace rubinius {
       if(val->nil_p()) {
         opcodes[index] = 0;
       } else {
-        opcodes[index] = as<Fixnum>(val)->n2i();
+        opcodes[index] = as<Fixnum>(val)->to_native();
       }
     }
 

@@ -60,7 +60,7 @@ class Instructions
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
-    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), 47);
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->to_native(), 47);
     CODE
   end
 
@@ -90,7 +90,7 @@ class Instructions
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
-    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), -1);
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->to_native(), -1);
     CODE
   end
 
@@ -120,7 +120,7 @@ class Instructions
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
-    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), 0);
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->to_native(), 0);
     CODE
   end
 
@@ -150,7 +150,7 @@ class Instructions
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
-    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), 1);
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->to_native(), 1);
     CODE
   end
 
@@ -180,7 +180,7 @@ class Instructions
     run();
     TS_ASSERT_EQUALS(task->calculate_sp(), 0);
     TS_ASSERT(kind_of<Fixnum>(task->stack_top()));
-    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->n2i(), 2);
+    TS_ASSERT_EQUALS(as<Integer>(task->stack_top())->to_native(), 2);
     CODE
   end
 
@@ -2834,8 +2834,8 @@ class Instructions
     OBJECT t1 = stack_back(1);
     OBJECT t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
-      int j = as<Integer>(t1)->n2i();
-      int k = as<Integer>(t2)->n2i();
+      int j = as<Integer>(t1)->to_native();
+      int k = as<Integer>(t2)->to_native();
       stack_pop();
       stack_set_top((j < k) ? Qtrue : Qfalse);
       return false;
@@ -2882,8 +2882,8 @@ class Instructions
     OBJECT t1 = stack_back(1);
     OBJECT t2 = stack_back(0);
     if(t1->fixnum_p() && t2->fixnum_p()) {
-      int j = as<Integer>(t1)->n2i();
-      int k = as<Integer>(t2)->n2i();
+      int j = as<Integer>(t1)->to_native();
+      int k = as<Integer>(t2)->to_native();
       stack_pop();
       stack_set_top((j > k) ? Qtrue : Qfalse);
       return false;

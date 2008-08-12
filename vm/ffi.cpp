@@ -68,25 +68,25 @@ namespace rubinius {
           NativeFunction::fields));
 
     Module* mod = new_module("FFI");
-    mod->set_const(this, "TYPE_OBJECT",   Fixnum::from(RBX_FFI_TYPE_OBJECT));
-    mod->set_const(this, "TYPE_CHAR",     Fixnum::from(RBX_FFI_TYPE_CHAR));
-    mod->set_const(this, "TYPE_UCHAR",    Fixnum::from(RBX_FFI_TYPE_UCHAR));
-    mod->set_const(this, "TYPE_SHORT",    Fixnum::from(RBX_FFI_TYPE_SHORT));
-    mod->set_const(this, "TYPE_USHORT",   Fixnum::from(RBX_FFI_TYPE_USHORT));
-    mod->set_const(this, "TYPE_INT",      Fixnum::from(RBX_FFI_TYPE_INT));
-    mod->set_const(this, "TYPE_UINT",     Fixnum::from(RBX_FFI_TYPE_UINT));
-    mod->set_const(this, "TYPE_LONG",     Fixnum::from(RBX_FFI_TYPE_LONG));
-    mod->set_const(this, "TYPE_ULONG",    Fixnum::from(RBX_FFI_TYPE_ULONG));
-    mod->set_const(this, "TYPE_LL",       Fixnum::from(RBX_FFI_TYPE_LL));
-    mod->set_const(this, "TYPE_ULL",      Fixnum::from(RBX_FFI_TYPE_ULL));
-    mod->set_const(this, "TYPE_FLOAT",    Fixnum::from(RBX_FFI_TYPE_FLOAT));
-    mod->set_const(this, "TYPE_DOUBLE",   Fixnum::from(RBX_FFI_TYPE_DOUBLE));
-    mod->set_const(this, "TYPE_PTR",      Fixnum::from(RBX_FFI_TYPE_PTR));
-    mod->set_const(this, "TYPE_VOID",     Fixnum::from(RBX_FFI_TYPE_VOID));
-    mod->set_const(this, "TYPE_STRING",   Fixnum::from(RBX_FFI_TYPE_STRING));
-    mod->set_const(this, "TYPE_STATE",    Fixnum::from(RBX_FFI_TYPE_STATE));
-    mod->set_const(this, "TYPE_STRPTR",   Fixnum::from(RBX_FFI_TYPE_STRPTR));
-    mod->set_const(this, "TYPE_CHARARR",  Fixnum::from(RBX_FFI_TYPE_CHARARR));
+    mod->set_const(this, "TYPE_OBJECT",     Fixnum::from(RBX_FFI_TYPE_OBJECT));
+    mod->set_const(this, "TYPE_CHAR",       Fixnum::from(RBX_FFI_TYPE_CHAR));
+    mod->set_const(this, "TYPE_UCHAR",      Fixnum::from(RBX_FFI_TYPE_UCHAR));
+    mod->set_const(this, "TYPE_SHORT",      Fixnum::from(RBX_FFI_TYPE_SHORT));
+    mod->set_const(this, "TYPE_USHORT",     Fixnum::from(RBX_FFI_TYPE_USHORT));
+    mod->set_const(this, "TYPE_INT",        Fixnum::from(RBX_FFI_TYPE_INT));
+    mod->set_const(this, "TYPE_UINT",       Fixnum::from(RBX_FFI_TYPE_UINT));
+    mod->set_const(this, "TYPE_LONG",       Fixnum::from(RBX_FFI_TYPE_LONG));
+    mod->set_const(this, "TYPE_ULONG",      Fixnum::from(RBX_FFI_TYPE_ULONG));
+    mod->set_const(this, "TYPE_LONG_LONG",  Fixnum::from(RBX_FFI_TYPE_LONG_LONG));
+    mod->set_const(this, "TYPE_ULONG_LONG", Fixnum::from(RBX_FFI_TYPE_ULONG_LONG));
+    mod->set_const(this, "TYPE_FLOAT",      Fixnum::from(RBX_FFI_TYPE_FLOAT));
+    mod->set_const(this, "TYPE_DOUBLE",     Fixnum::from(RBX_FFI_TYPE_DOUBLE));
+    mod->set_const(this, "TYPE_PTR",        Fixnum::from(RBX_FFI_TYPE_PTR));
+    mod->set_const(this, "TYPE_VOID",       Fixnum::from(RBX_FFI_TYPE_VOID));
+    mod->set_const(this, "TYPE_STRING",     Fixnum::from(RBX_FFI_TYPE_STRING));
+    mod->set_const(this, "TYPE_STATE",      Fixnum::from(RBX_FFI_TYPE_STATE));
+    mod->set_const(this, "TYPE_STRPTR",     Fixnum::from(RBX_FFI_TYPE_STRPTR));
+    mod->set_const(this, "TYPE_CHARARR",    Fixnum::from(RBX_FFI_TYPE_CHARARR));
   }
 
   MemoryPointer* MemoryPointer::create(STATE, void* ptr) {
@@ -134,10 +134,10 @@ namespace rubinius {
     case RBX_FFI_TYPE_DOUBLE:
       ret = Float::create(state, READ(double));
       break;
-    case RBX_FFI_TYPE_LL:
+    case RBX_FFI_TYPE_LONG_LONG:
       ret = Fixnum::from(READ(long long));
       break;
-    case RBX_FFI_TYPE_ULL:
+    case RBX_FFI_TYPE_ULONG_LONG:
       ret = Fixnum::from(READ(unsigned long long));
       break;
     case RBX_FFI_TYPE_OBJECT:
@@ -199,62 +199,46 @@ namespace rubinius {
     switch(type) {
     case RBX_FFI_TYPE_CHAR:
       type_assert(val, FixnumType, "converting to char");
-      WRITE(char, as<Integer>(val)->n2i());
+      WRITE(char, as<Fixnum>(val)->to_native());
       break;
     case RBX_FFI_TYPE_UCHAR:
       type_assert(val, FixnumType, "converting to unsigned char");
-      WRITE(unsigned char, as<Integer>(val)->n2i());
+      WRITE(unsigned char, as<Fixnum>(val)->to_native());
       break;
     case RBX_FFI_TYPE_SHORT:
       type_assert(val, FixnumType, "converting to short");
-      WRITE(short, as<Integer>(val)->n2i());
+      WRITE(short, as<Fixnum>(val)->to_native());
       break;
     case RBX_FFI_TYPE_USHORT:
       type_assert(val, FixnumType, "converting to unsigned short");
-      WRITE(unsigned short, as<Integer>(val)->n2i());
+      WRITE(unsigned short, as<Fixnum>(val)->to_native());
       break;
     case RBX_FFI_TYPE_INT:
       if(FIXNUM_P(val)) {
-        WRITE(int, as<Integer>(val)->n2i());
+        WRITE(int, as<Fixnum>(val)->to_int());
       } else {
-        Bignum *big = as<Bignum>(val);
-        type_assert(val, BignumType, "converting to int");
-        WRITE(int, big->to_i(state));
+        WRITE(int, as<Bignum>(val)->to_int());
       }
       break;
     case RBX_FFI_TYPE_UINT:
       if(FIXNUM_P(val)) {
-        WRITE(unsigned int, as<Integer>(val)->n2i());
+        WRITE(int, as<Fixnum>(val)->to_uint());
       } else {
-        Bignum *big = as<Bignum>(val);
-        type_assert(val, BignumType, "converting to unsigned int");
-        WRITE(unsigned int, big->to_i(state));
+        WRITE(int, as<Bignum>(val)->to_uint());
       }
       break;
     case RBX_FFI_TYPE_LONG:
       if(FIXNUM_P(val)) {
-        WRITE(long, as<Integer>(val)->n2i());
+        WRITE(int, as<Fixnum>(val)->to_long());
       } else {
-        Bignum *big = as<Bignum>(val);
-        type_assert(val, BignumType, "converting to long");
-        if(sizeof(long) == sizeof(long long)) {
-          WRITE(long, big->to_ll(state));
-        } else {
-          WRITE(long, big->to_i(state));
-        }
+        WRITE(int, as<Bignum>(val)->to_long());
       }
       break;
     case RBX_FFI_TYPE_ULONG:
       if(FIXNUM_P(val)) {
-        WRITE(unsigned long, as<Integer>(val)->n2i());
+        WRITE(int, as<Fixnum>(val)->to_ulong());
       } else {
-        Bignum *big = as<Bignum>(val);
-        type_assert(val, BignumType, "converting to long");
-        if(sizeof(long) == sizeof(long long)) {
-          WRITE(unsigned long, big->to_ll(state));
-        } else {
-          WRITE(unsigned long, big->to_i(state));
-        }
+        WRITE(int, as<Bignum>(val)->to_ulong());
       }
       break;
     case RBX_FFI_TYPE_FLOAT: {
@@ -269,22 +253,18 @@ namespace rubinius {
       WRITE(double, flt->to_double(state));
       break;
     }
-    case RBX_FFI_TYPE_LL:
+    case RBX_FFI_TYPE_LONG_LONG:
       if(FIXNUM_P(val)) {
-        WRITE(long long, as<Integer>(val)->n2i());
+        WRITE(int, as<Fixnum>(val)->to_long_long());
       } else {
-        Bignum *big = as<Bignum>(val);
-        type_assert(val, BignumType, "converting to long long");
-        WRITE(long long, big->to_ll(state));
+        WRITE(int, as<Bignum>(val)->to_long_long());
       }
       break;
-    case RBX_FFI_TYPE_ULL:
+    case RBX_FFI_TYPE_ULONG_LONG:
       if(FIXNUM_P(val)) {
-        WRITE(unsigned long long, as<Integer>(val)->n2i());
+        WRITE(int, as<Fixnum>(val)->to_ulong_long());
       } else {
-        Bignum *big = as<Bignum>(val);
-        type_assert(val, BignumType, "converting to unsigned long long");
-        WRITE(unsigned long long, big->to_ll(state));
+        WRITE(int, as<Bignum>(val)->to_ulong_long());
       }
       break;
     case RBX_FFI_TYPE_OBJECT:
@@ -337,8 +317,8 @@ namespace rubinius {
       case RBX_FFI_TYPE_ULONG:
         return sizeof(long);
 
-      case RBX_FFI_TYPE_LL:
-      case RBX_FFI_TYPE_ULL:
+      case RBX_FFI_TYPE_LONG_LONG:
+      case RBX_FFI_TYPE_ULONG_LONG:
         return sizeof(long long);
 
       case RBX_FFI_TYPE_FLOAT:
@@ -454,10 +434,10 @@ namespace rubinius {
       case RBX_FFI_TYPE_DOUBLE:
         types[i] = &ffi_type_double;
         break;
-      case RBX_FFI_TYPE_LL:
+      case RBX_FFI_TYPE_LONG_LONG:
         types[i] = &ffi_type_sint64;
         break;
-      case RBX_FFI_TYPE_ULL:
+      case RBX_FFI_TYPE_ULONG_LONG:
         types[i] = &ffi_type_uint64;
         break;
       case RBX_FFI_TYPE_OBJECT:
@@ -500,10 +480,10 @@ namespace rubinius {
     case RBX_FFI_TYPE_DOUBLE:
       rtype = &ffi_type_double;
       break;
-    case RBX_FFI_TYPE_LL:
+    case RBX_FFI_TYPE_LONG_LONG:
       rtype = &ffi_type_sint64;
       break;
-    case RBX_FFI_TYPE_ULL:
+    case RBX_FFI_TYPE_ULONG_LONG:
       rtype = &ffi_type_uint64;
       break;
     case RBX_FFI_TYPE_OBJECT:
@@ -557,7 +537,7 @@ namespace rubinius {
       for(i = 0; i < tot; i++) {
         type = args->get(state, i);
         if(!type->fixnum_p()) return (NativeFunction*)Qnil;
-        arg_types[i] = as<Integer>(type)->n2i();
+        arg_types[i] = as<Integer>(type)->to_native();
 
         /* State can only be passed as the first arg, and it's invisible,
            ie doesn't get seen as in onbound arg by ruby. But it can ONLY
@@ -576,7 +556,7 @@ namespace rubinius {
       arg_types = NULL;
     }
 
-    ret_type = as<Integer>(ret)->n2i();
+    ret_type = as<Integer>(ret)->to_native();
 
     NativeFunction* func = NativeFunction::create(state, name->to_sym(state), arg_count);
     func->bind(state, tot, arg_types, ret_type, ep);
@@ -597,41 +577,31 @@ namespace rubinius {
         char *tmp = (char*)malloc(sizeof(char));
         obj = msg->get_argument(i);
         type_assert(obj, FixnumType, "converting to char");
-        *tmp = (char)as<Integer>(obj)->n2i();
+        *tmp = (char)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_UCHAR: {
         unsigned char *tmp = (unsigned char*)malloc(sizeof(char));
         obj = msg->get_argument(i);
-        type_assert(obj, FixnumType, "converting to unsigned char");
-        *tmp = (unsigned char)as<Integer>(obj)->n2i();
+        type_assert(obj, FixnumType, "converting to char");
+        *tmp = (unsigned char)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_SHORT: {
         short *tmp = (short*)malloc(sizeof(short));
         obj = msg->get_argument(i);
-        if(FIXNUM_P(obj)) {
-          *tmp = (short)as<Integer>(obj)->n2i();
-        } else {
-          type_assert(obj, BignumType, "converting to short");
-          *tmp = as<Bignum>(obj)->to_i(state);
-        }
-        *tmp = (short)as<Integer>(obj)->n2i();
+        type_assert(obj, FixnumType, "converting to char");
+        *tmp = (short)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
       }
       case RBX_FFI_TYPE_USHORT: {
         unsigned short *tmp = (unsigned short*)malloc(sizeof(short));
         obj = msg->get_argument(i);
-        if(FIXNUM_P(obj)) {
-          *tmp = (unsigned short)as<Integer>(obj)->n2i();
-        } else {
-          type_assert(obj, BignumType, "converting to unsigned short");
-          *tmp = (unsigned short)as<Bignum>(obj)->to_i(state);
-        }
-        *tmp = (unsigned short)as<Integer>(obj)->n2i();
+        type_assert(obj, FixnumType, "converting to char");
+        *tmp = (unsigned short)as<Fixnum>(obj)->to_native();
         values[i] = tmp;
         break;
       }
@@ -639,10 +609,10 @@ namespace rubinius {
         int *tmp = (int*)malloc(sizeof(int));
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
-          *tmp = (int)as<Integer>(obj)->n2i();
+          *tmp = as<Fixnum>(obj)->to_int();
         } else {
           type_assert(obj, BignumType, "converting to int");
-          *tmp = as<Bignum>(obj)->to_i(state);
+          *tmp = as<Bignum>(obj)->to_int();
         }
         values[i] = tmp;
         break;
@@ -651,10 +621,10 @@ namespace rubinius {
         unsigned int *tmp = (unsigned int*)malloc(sizeof(unsigned int));
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
-          *tmp = (int)as<Integer>(obj)->n2i();
+          *tmp = as<Fixnum>(obj)->to_uint();
         } else {
-          type_assert(obj, BignumType, "converting to int");
-          *tmp = as<Bignum>(obj)->to_i(state);
+          type_assert(obj, BignumType, "converting to unsigned int");
+          *tmp = as<Bignum>(obj)->to_uint();
         }
         values[i] = tmp;
         break;
@@ -663,14 +633,10 @@ namespace rubinius {
         long *tmp = (long*)malloc(sizeof(long));
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
-          *tmp = (long)as<Integer>(obj)->n2i();
+          *tmp = as<Fixnum>(obj)->to_long();
         } else {
           type_assert(obj, BignumType, "converting to long");
-          if(sizeof(long) == sizeof(long long)) {
-            *tmp = (long)as<Bignum>(obj)->to_ll(state);
-          } else {
-            *tmp = as<Bignum>(obj)->to_i(state);
-          }
+          *tmp = as<Bignum>(obj)->to_long();
         }
         values[i] = tmp;
         break;
@@ -679,14 +645,10 @@ namespace rubinius {
         unsigned long *tmp = (unsigned long*)malloc(sizeof(long));
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
-          *tmp = (unsigned long)as<Integer>(obj)->n2i();
+          *tmp = as<Fixnum>(obj)->to_ulong();
         } else {
           type_assert(obj, BignumType, "converting to unsigned long");
-          if(sizeof(long) == sizeof(long long)) {
-            *tmp = (unsigned long)as<Bignum>(obj)->to_ll(state);
-          } else {
-            *tmp = as<Bignum>(obj)->to_i(state);
-          }
+          *tmp = as<Bignum>(obj)->to_ulong();
         }
         values[i] = tmp;
         break;
@@ -707,26 +669,26 @@ namespace rubinius {
         values[i] = tmp;
         break;
       }
-      case RBX_FFI_TYPE_LL: {
+      case RBX_FFI_TYPE_LONG_LONG: {
         long long *tmp = (long long*)malloc(sizeof(long long));
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
-          *tmp = (long long)as<Integer>(obj)->n2i();
+          *tmp = as<Fixnum>(obj)->to_long_long();
         } else {
-          type_assert(obj, BignumType, "converting to unsigned long");
-          *tmp = (long long)as<Bignum>(obj)->to_ll(state);
+          type_assert(obj, BignumType, "converting to long long");
+          *tmp = as<Bignum>(obj)->to_long_long();
         }
         values[i] = tmp;
         break;
       }
-      case RBX_FFI_TYPE_ULL: {
+      case RBX_FFI_TYPE_ULONG_LONG: {
         unsigned long long *tmp = (unsigned long long*)malloc(sizeof(long long));
         obj = msg->get_argument(i);
         if(FIXNUM_P(obj)) {
-          *tmp = (unsigned long long)as<Integer>(obj)->n2i();
+          *tmp = as<Fixnum>(obj)->to_ulong_long();
         } else {
-          type_assert(obj, BignumType, "converting to unsigned long");
-          *tmp = (unsigned long long)as<Bignum>(obj)->to_ll(state);
+          type_assert(obj, BignumType, "converting to unsigned long long");
+          *tmp = as<Bignum>(obj)->to_ulong_long();
         }
         values[i] = tmp;
         break;
@@ -840,13 +802,13 @@ namespace rubinius {
       ret = Float::create(state, result);
       break;
     }
-    case RBX_FFI_TYPE_LL: {
+    case RBX_FFI_TYPE_LONG_LONG: {
       long long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
       ret = Integer::from(state, result);
       break;
     }
-    case RBX_FFI_TYPE_ULL: {
+    case RBX_FFI_TYPE_ULONG_LONG: {
       unsigned long long result;
       ffi_call(&stub->cif, FFI_FN(stub->ep), &result, values);
       ret = Integer::from(state, result);

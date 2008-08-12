@@ -24,19 +24,19 @@ class TestByteArray : public CxxTest::TestSuite {
     ByteArray* b;
    
     b = ByteArray::create(state, 0);
-    TS_ASSERT_EQUALS(b->size(state)->n2i(), 4);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 4);
 
     b = ByteArray::create(state, 54);
-    TS_ASSERT_EQUALS(b->size(state)->n2i(), 56);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 56);
 
     b = ByteArray::create(state, 55);
-    TS_ASSERT_EQUALS(b->size(state)->n2i(), 60);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 60);
 
     b = ByteArray::create(state, 58);
-    TS_ASSERT_EQUALS(b->size(state)->n2i(), 60);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 60);
 
     b = ByteArray::create(state, 59);
-    TS_ASSERT_EQUALS(b->size(state)->n2i(), 64);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 64);
   }
 
   void test_to_chars() {

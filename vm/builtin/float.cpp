@@ -15,7 +15,7 @@ namespace rubinius {
 
   Float* Float::coerce(STATE, OBJECT value) {
     if(value->fixnum_p()) {
-      return Float::create(state, (double)(as<Fixnum>(value)->to_nint()));
+      return Float::create(state, (double)(as<Fixnum>(value)->to_native()));
     } else if(kind_of<Bignum>(value)) {
       return Float::create(state, as<Bignum>(value)->to_double(state));
     }

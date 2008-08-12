@@ -36,7 +36,7 @@ public:
   }
 
   void test_bignum() {
-    mar->marshal(Bignum::create(state, (native_int)1));
+    mar->marshal(Bignum::from(state, (native_int)1));
     TS_ASSERT_EQUALS(mar->sstream.str(), "I\n1\n");
   }
 

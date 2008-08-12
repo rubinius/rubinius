@@ -53,7 +53,7 @@ namespace rubinius {
       return lookup(state, String::create(state, str, size));
     }
 
-    return Symbol::from_index(state, as<Fixnum>(ent->at(2))->n2i());
+    return Symbol::from_index(state, as<Fixnum>(ent->at(2))->to_native());
   }
 
   SYMBOL SymbolTable::lookup(STATE, String* str) {
@@ -65,7 +65,7 @@ namespace rubinius {
       FIXNUM idx = strings->entries;
       size_t sz = symbols->field_count;
 
-      if((size_t)idx->to_nint() == sz) {
+      if((size_t)idx->to_native() == sz) {
         Tuple* ns = (Tuple*)Tuple::create(state, sz + Increments);
         for(size_t i = 0; i < sz; i++) {
           ns->put(state, i, symbols->at(i));
@@ -73,12 +73,12 @@ namespace rubinius {
         SET(this, symbols, ns);
       }
 
-      symbols->put(state, idx->to_nint(), str);
+      symbols->put(state, idx->to_native(), str);
       strings->assign(state, String::string_equal_p, str, hash, idx);
-      return Symbol::from_index(state, idx->to_nint());
+      return Symbol::from_index(state, idx->to_native());
     }
 
-    return Symbol::from_index(state, as<Integer>(val)->n2i());
+    return Symbol::from_index(state, as<Integer>(val)->to_native());
   }
 
   String* SymbolTable::find_string(STATE, SYMBOL sym) {

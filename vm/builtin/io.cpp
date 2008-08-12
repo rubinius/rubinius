@@ -33,11 +33,11 @@ namespace rubinius {
   }
 
   native_int IO::to_fd() {
-    return descriptor->to_nint();
+    return descriptor->to_native();
   }
 
   void IOBuffer::read_bytes(size_t bytes) {
-    used = Fixnum::from(used->n2i() + bytes);
+    used = Fixnum::from(used->to_native() + bytes);
   }
 
   char* IOBuffer::byte_address() {
@@ -45,12 +45,12 @@ namespace rubinius {
   }
 
   size_t IOBuffer::left() {
-    return total->n2i() - used->n2i();
+    return total->to_native() - used->to_native();
   }
 
   char* IOBuffer::at_unused() {
     char* start = (char*)storage->bytes;
-    start += used->n2i();
+    start += used->to_native();
     return start;
   }
 };

@@ -29,7 +29,7 @@ namespace rubinius {
 
   void TypeInfo::show(STATE, OBJECT self) {
     if(FIXNUM i = try_as<Fixnum>(self)) {
-      std::cout << i->n2i() << std::endl;
+      std::cout << i->to_native() << std::endl;
     } else if(Bignum* b = try_as<Bignum>(self)) {
       std::cout << *b->to_s(state, Fixnum::from(10)) << std::endl;
     } else if(Float* f = try_as<Float>(self)) {

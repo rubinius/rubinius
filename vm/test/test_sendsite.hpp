@@ -22,7 +22,7 @@ class TestSendSite : public CxxTest::TestSuite {
 
   void test_init() {
     TS_ASSERT(G(send_site)->kind_of_p(state, G(klass)));
-    TS_ASSERT_EQUALS(G(send_site)->instance_type->n2i(), SendSiteType);
+    TS_ASSERT_EQUALS(G(send_site)->instance_type->to_native(), SendSiteType);
   }
 
   void test_create() {

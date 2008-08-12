@@ -23,7 +23,7 @@ class TestSelector : public CxxTest::TestSuite {
 
   void test_init() {
     TS_ASSERT(G(selector)->kind_of_p(state, G(klass)));
-    TS_ASSERT_EQUALS(G(selector)->instance_type->n2i(), SelectorType);
+    TS_ASSERT_EQUALS(G(selector)->instance_type->to_native(), SelectorType);
 
     TS_ASSERT(G(selector)->get_const(state, "ALL")->kind_of_p(state, G(lookuptable)));
   }

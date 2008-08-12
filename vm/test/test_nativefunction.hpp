@@ -30,8 +30,8 @@ class TestNativeFunction : public CxxTest::TestSuite {
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_UINT) == 4);
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_LONG) >= 4);
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_ULONG) >= 4);
-    TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_LL) >= 8);
-    TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_ULL) >= 8);
+    TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_LONG_LONG) >= 8);
+    TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_ULONG_LONG) >= 8);
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_FLOAT) >= 4);
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_DOUBLE) >= 8);
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_PTR) >= 4);
@@ -94,7 +94,7 @@ class TestNativeFunction : public CxxTest::TestSuite {
     OBJECT out = func->call(state, msg);
 
     TS_ASSERT(out->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(out)->n2i(), 6);
+    TS_ASSERT_EQUALS(as<Integer>(out)->to_native(), 6);
   }
 
 };

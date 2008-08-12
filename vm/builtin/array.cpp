@@ -11,7 +11,7 @@
 namespace rubinius {
 
   size_t Array::size() {
-    return total->n2i();
+    return total->to_native();
   }
 
 
@@ -42,11 +42,11 @@ namespace rubinius {
   }
 
   OBJECT Array::get(STATE, size_t idx) {
-    if(idx >= (size_t)total->n2i()) {
+    if(idx >= (size_t)total->to_native()) {
       return Qnil;
     }
 
-    idx += start->n2i();
+    idx += start->to_native();
 
     return tuple->at(idx);
   }
@@ -58,7 +58,7 @@ namespace rubinius {
     cur = tup->field_count;
 
     oidx = idx;
-    idx += start->n2i();
+    idx += start->to_native();
 
     if(idx >= cur) {
       size_t new_size = (cur == 0) ? 1 : cur;
@@ -78,14 +78,14 @@ namespace rubinius {
     }
 
     tup->put(state, idx, val);
-    if((size_t)total->n2i() <= oidx) {
+    if((size_t)total->to_native() <= oidx) {
       total = Fixnum::from(oidx+1);
     }
     return val;
   }
 
   OBJECT Array::append(STATE, OBJECT val) {
-    set(state, (size_t)total->n2i(), val);
+    set(state, (size_t)total->to_native(), val);
     return val;
   }
 

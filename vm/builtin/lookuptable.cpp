@@ -47,10 +47,10 @@ namespace rubinius {
     size_t size, i;
     LookupTable *dup;
 
-    size = bins->n2i();
+    size = bins->to_native();
     dup = (LookupTable*)LookupTable::create(state, size);
     state->om->set_class(dup, class_object(state));
-    size_t num = entries->n2i();
+    size_t num = entries->to_native();
 
     Array* entries = all_entries(state);
     for(i = 0; i < num; i++) {
@@ -85,7 +85,7 @@ namespace rubinius {
   }
 
   void LookupTable::redistribute(STATE, size_t size) {
-    size_t num = bins->n2i();
+    size_t num = bins->to_native();
     Tuple* new_values = Tuple::create(state, size);
 
     for(size_t i = 0; i < num; i++) {
@@ -119,8 +119,8 @@ namespace rubinius {
     Tuple* entry;
 
     key_to_sym(key);
-    num_entries = entries->n2i();
-    num_bins = bins->n2i();
+    num_entries = entries->to_native();
+    num_bins = bins->to_native();
 
     if(max_density_p(num_entries, num_bins)) {
       redistribute(state, num_bins <<= 1);
@@ -154,7 +154,7 @@ namespace rubinius {
     Tuple* entry;
 
     key_to_sym(key);
-    bin = find_bin(key_hash(key), bins->n2i());
+    bin = find_bin(key_hash(key), bins->to_native());
     entry = try_as<Tuple>(values->at(bin));
 
     while(entry) {
@@ -205,8 +205,8 @@ namespace rubinius {
 
     key_to_sym(key);
 
-    size_t num_entries = entries->n2i();
-    size_t num_bins = bins->n2i();
+    size_t num_entries = entries->to_native();
+    size_t num_bins = bins->to_native();
 
     if(min_density_p(num_entries, num_bins) && (num_bins >> 1) >= LOOKUPTABLE_MIN_SIZE) {
       redistribute(state, num_bins >>= 1);
@@ -227,7 +227,7 @@ namespace rubinius {
         } else {
           lst->put(state, 2, lk);
         }
-        entries = Fixnum::from(entries->n2i() - 1);
+        entries = Fixnum::from(entries->to_native() - 1);
         return val;
       }
 
@@ -250,8 +250,8 @@ namespace rubinius {
     Tuple* values;
     Tuple* entry;
 
-    Array* ary = Array::create(state, tbl->entries->n2i());
-    size_t num_bins = tbl->bins->n2i();
+    Array* ary = Array::create(state, tbl->entries->to_native());
+    size_t num_bins = tbl->bins->to_native();
     values = tbl->values;
 
     for(i = j = 0; i < num_bins; i++) {
