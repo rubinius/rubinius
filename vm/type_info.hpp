@@ -26,6 +26,8 @@ namespace rubinius {
 
     static void init(STATE);
     TypeInfo(object_type type);
+    virtual void auto_mark(OBJECT obj, ObjectMark& mark);
+
     // These are virtual methods that are 're-dispatched' using an object's
     // 'obj_type' field to determine the correct type info
     virtual ~TypeInfo();
@@ -40,7 +42,7 @@ namespace rubinius {
   Info(object_type type) : super(type) { } \
   virtual void set_field(STATE, OBJECT target, size_t index, OBJECT val); \
   virtual OBJECT get_field(STATE, OBJECT target, size_t index); \
-  virtual void mark(OBJECT obj, ObjectMark& mark);
+  virtual void auto_mark(OBJECT obj, ObjectMark& mark);
 
 }
 

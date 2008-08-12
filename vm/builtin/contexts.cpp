@@ -126,4 +126,21 @@ initialize:
     BlockContext* ctx = (BlockContext*)allocate(state, G(blokctx), stack_size);
     return ctx;
   }
+
+  void MethodContext::Info::mark(OBJECT obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
+
+    MethodContext* ctx = as<MethodContext>(obj);
+
+    /* Now also mark the stack */
+    OBJECT stack_obj, marked;
+    for(size_t i = 0; i < ctx->stack_size; i++) {
+      stack_obj = ctx->stack_at(i);
+      marked = mark.call(stack_obj);
+      if(marked) {
+        ctx->stack_put(i, marked);
+        mark.just_set(ctx, marked);
+      }
+    }
+  }
 }

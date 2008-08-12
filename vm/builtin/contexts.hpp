@@ -86,6 +86,10 @@ namespace rubinius {
       return stk[pos];
     }
 
+    void stack_put(size_t pos, OBJECT val) {
+      stk[pos] = val;
+    }
+
     void position_stack(int pos) {
       js.stack = stk + pos;
     }
@@ -97,6 +101,8 @@ namespace rubinius {
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
+
+      virtual void mark(OBJECT, ObjectMark& mark);
     };
   };
 

@@ -280,7 +280,7 @@ OBJECT #{@name}::Info::get_field(STATE, OBJECT _t, size_t index) {
     str = ''
 
     str << <<-EOF unless marks.empty?
-void #{@name}::Info::mark(OBJECT _t, ObjectMark& mark) {
+void #{@name}::Info::auto_mark(OBJECT _t, ObjectMark& mark) {
   #{@name}* target = as<#{@name}>(_t);
 
 #{marks}

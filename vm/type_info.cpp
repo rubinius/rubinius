@@ -23,7 +23,17 @@ namespace rubinius {
     throw std::runtime_error("unable to access field");
   }
 
+  /* By default, just call auto_mark(). This exists so that
+   * other types can overload this to perform work before or
+   * after auto_marking is done. */
   void TypeInfo::mark(OBJECT obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
+  }
+
+  /* For each type, there is an automatically generated version
+   * of this function (called via virtual dispatch) that marks
+   * all slots. */
+  void TypeInfo::auto_mark(OBJECT, ObjectMark& mark) {
     throw std::runtime_error("unable to mark object");
   }
 
