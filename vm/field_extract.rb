@@ -8,8 +8,6 @@ class BasicPrimitive
   end
 
   def output_args(str, arg_types)
-    str << "    #{@type}* recv;\n"
-    str << "    if((recv = try_as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
     args = []
     i = -1
     arg_types.each do |t|
@@ -26,7 +24,7 @@ class BasicPrimitive
   def output_call(str, call, args)
     str << "    ret = #{call}(#{args.join(', ')});\n"
     str << "  } catch(PrimitiveFailed& e) {\n"
-    str << "    return VMMethod::executor(state, exec, task, msg);\n"
+    str << "    goto fail;\n"
     str << "  }\n"
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
@@ -35,16 +33,6 @@ class BasicPrimitive
     str << "}\n"
   end
 
-  def generate_call_glue(call)
-    str = ""
-    output_header str
-
-    args = output_args str, arg_types
-
-    output_call str, call, args
-
-    return str
-  end
 end
 
 class CPPPrimitive < BasicPrimitive
@@ -57,13 +45,30 @@ class CPPPrimitive < BasicPrimitive
   attr_accessor :cpp_name, :return_type, :arg_types
 
   def generate_glue
-    generate_call_glue "recv->#{@cpp_name}"
+    str = ""
+    output_header str
+
+    str << "    #{@type}* recv;\n"
+    str << "    if((recv = try_as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
+
+    args = output_args str, arg_types
+
+    output_call str, "recv->#{@cpp_name}", args
+
+    return str
   end
 end
 
 class CPPStaticPrimitive < CPPPrimitive
   def generate_glue
-    generate_call_glue "#{@type}::#{@cpp_name}"
+    str = ""
+    output_header str
+
+    args = output_args str, arg_types
+
+    output_call str, "#{@type}::#{@cpp_name}", args
+
+    return str
   end
 end
 
