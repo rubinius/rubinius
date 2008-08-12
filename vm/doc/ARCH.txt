@@ -3,10 +3,10 @@ A: Because they're all immediates (ie, not heap allocated). If when
    using a Symbol you had to use 'Symbol*', it gets visually confusing
    because you see the * there and assume it's a pointer to somewhere in
    memory. But because it's an immediate, that doesn't work. C++ lets you
-   do this, just so long as you don't do try and dereference 'this' in any
+   do this, just so long as you don't try to dereference 'this' in any
    Symbol methods.
 
-   You'll notice that the Symbol and Fixnum classes don't have an data members
+   You'll notice that the Symbol and Fixnum classes don't have any data members
    declared. Again, this is because they're not actually pointers into memory,
    and thus can't have data members.
 
@@ -25,7 +25,7 @@ A: Globals is a place where we're using a little C++ mojo. One of the principles
    assists with the management of those root pointers. All globals are also root
    pointers, so you'll see that all data members in globals.hpp are TypedRoots.
 
-   So, to add a new global, look for the "Add new globals above this line" comment.
+   To add a new global, look for the "Add new globals above this line" comment.
    Add the declaration of your new global there, say "TypedRoot<Class*> awesome".
 
    Next, find the "Add initialize of globals above this line." comment, and insert
@@ -37,8 +37,9 @@ A: Globals is a place where we're using a little C++ mojo. One of the principles
 Q: Do primitives always have to return a value?
 A: Yes, every method in Ruby returns a value.
 
-Q: When should a method be define in the body of a class?
-A: Existing code uses the pattern in a few places, to define short, heavily
-   used methods. That same rubric should continue to be used.
+Q: When should a method be implemented in a header?
+A: In the VM code, a few short, heavily-used methods are implemented this way.
+   If you are sure that your new method meets these criteria, go for it.
+   When in doubt, follow the style of the longer functions.
 
    In short, if you're not sure, don't put it into the header.
