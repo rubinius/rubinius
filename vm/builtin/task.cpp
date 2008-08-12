@@ -200,6 +200,7 @@ stack_cleanup:
     GlobalCacheResolver res;
 
     if(!res.resolve(state, msg)) {
+      msg.unshift_argument(state, msg.name);
       msg.name = G(sym_method_missing);
       if(!res.resolve(state, msg)) {
         tragic_failure(msg);

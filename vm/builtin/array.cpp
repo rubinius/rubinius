@@ -84,6 +84,20 @@ namespace rubinius {
     return val;
   }
 
+  void Array::unshift(STATE, OBJECT val) {
+    size_t new_size = total->to_native() + 1;
+    Tuple* nt = Tuple::create(state, new_size);
+    for(size_t i = 0; i < (size_t)total->to_native(); i++) {
+      nt->put(state, i + 1, get(state, i));
+    }
+
+    nt->put(state, 0, val);
+    total = Fixnum::from(new_size);
+    start = Fixnum::from(0);
+
+    tuple = nt;
+  }
+
   OBJECT Array::append(STATE, OBJECT val) {
     set(state, (size_t)total->to_native(), val);
     return val;

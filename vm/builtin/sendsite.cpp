@@ -43,6 +43,7 @@ namespace rubinius {
 
   bool SendSite::locate(STATE, Message& msg) {
     if(!resolver->resolve(state, msg)) {
+      msg.unshift_argument(state, msg.name);
       msg.name = G(sym_method_missing);
       if(!resolver->resolve(state, msg)) {
         return false;

@@ -176,6 +176,8 @@ namespace rubinius {
         std::cout << *ctx->cm->name->to_str(this);
       }
 
+      std::cout << "+" << ctx->ip << " in " << *ctx->cm->file->to_str(this);
+
       std::cout << "\n";
       ctx = ctx->sender;
     }

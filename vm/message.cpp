@@ -51,6 +51,7 @@ namespace rubinius {
   }
 
   void Message::import_arguments(STATE, Task* task, size_t args) {
+    this->task = task;
     if(!arguments) {
       arguments = Array::create(state, args);
     }
@@ -63,6 +64,27 @@ namespace rubinius {
     }
 
     this->args = args;
+  }
+
+  void Message::unshift_argument(STATE, OBJECT val) {
+    if(arguments) {
+      args++;
+      arguments->unshift(state, val);
+      return;
+    }
+
+    arguments = Array::create(state, args);
+
+    size_t stack_pos = args - 1;
+
+    arguments->set(state, 0, val);
+
+    for(size_t i = 1; i <= args; i++, stack_pos--) {
+      OBJECT arg = task->active->stack_back(stack_pos);
+      arguments->set(state, i, arg);
+    }
+
+    args++;
   }
 
 }

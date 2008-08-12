@@ -23,6 +23,7 @@ namespace rubinius {
     void   setup(STATE, size_t size);
     OBJECT get(STATE, size_t idx);
     OBJECT set(STATE, size_t idx, OBJECT val);
+    void   unshift(STATE, OBJECT val);
     OBJECT append(STATE, OBJECT val);
     bool   includes_p(STATE, OBJECT val);
 

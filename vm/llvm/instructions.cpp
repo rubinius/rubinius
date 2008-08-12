@@ -110,7 +110,9 @@ CODE
     /* pull receiver off stack */
     stack_pop();
 
-    return task->send_message_slowly(msg);
+    bool res = task->send_message_slowly(msg);
+    msg.reset();
+    return res;
   }
 }
 

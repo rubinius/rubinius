@@ -2020,7 +2020,9 @@ class Instructions
 
     task->call_flags = 0;
 
-    return task->send_message(msg);
+    bool res = task->send_message(msg);
+    msg.reset();
+    return res;
     CODE
   end
 
@@ -2121,7 +2123,9 @@ class Instructions
 
     task->call_flags = 0;
 
-    return task->send_message(msg);
+    bool res = task->send_message(msg);
+    msg.reset();
+    return res;
     CODE
   end
 
@@ -2201,7 +2205,9 @@ class Instructions
 
     task->call_flags = 0;
 
-    return task->send_message(msg);
+    bool res = task->send_message(msg);
+    msg.reset();
+    return res;
     CODE
   end
 
@@ -2291,7 +2297,9 @@ class Instructions
 
     task->call_flags = 0;
 
-    return task->send_message(msg);
+    bool res = task->send_message(msg);
+    msg.reset();
+    return res;
     CODE
   end
 
@@ -2376,7 +2384,9 @@ class Instructions
 
     task->call_flags = 0;
 
-    return task->send_message(msg);
+    bool res = task->send_message(msg);
+    msg.reset();
+    return res;
     CODE
   end
 
@@ -2470,7 +2480,9 @@ class Instructions
 
     task->call_flags = 0;
 
-    return task->send_message(msg);
+    bool res = task->send_message(msg);
+    msg.reset();
+    return res;
     CODE
   end
 

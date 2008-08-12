@@ -38,10 +38,15 @@ namespace rubinius {
 
     void import_arguments(STATE, Task* task, size_t args);
     void combine_with_splat(STATE, Task* task, Array* splat);
+    void unshift_argument(STATE, OBJECT val);
 
     void use_from_task(Task* task, size_t args) {
       this->task = task;
       this->args = args;
+    }
+
+    void reset() {
+      arguments = NULL;
     }
   };
 }
