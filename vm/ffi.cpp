@@ -222,23 +222,23 @@ namespace rubinius {
       break;
     case RBX_FFI_TYPE_UINT:
       if(FIXNUM_P(val)) {
-        WRITE(int, as<Fixnum>(val)->to_uint());
+        WRITE(unsigned int, as<Fixnum>(val)->to_uint());
       } else {
-        WRITE(int, as<Bignum>(val)->to_uint());
+        WRITE(unsigned int, as<Bignum>(val)->to_uint());
       }
       break;
     case RBX_FFI_TYPE_LONG:
       if(FIXNUM_P(val)) {
-        WRITE(int, as<Fixnum>(val)->to_long());
+        WRITE(long, as<Fixnum>(val)->to_long());
       } else {
-        WRITE(int, as<Bignum>(val)->to_long());
+        WRITE(long, as<Bignum>(val)->to_long());
       }
       break;
     case RBX_FFI_TYPE_ULONG:
       if(FIXNUM_P(val)) {
-        WRITE(int, as<Fixnum>(val)->to_ulong());
+        WRITE(unsigned long, as<Fixnum>(val)->to_ulong());
       } else {
-        WRITE(int, as<Bignum>(val)->to_ulong());
+        WRITE(unsigned long, as<Bignum>(val)->to_ulong());
       }
       break;
     case RBX_FFI_TYPE_FLOAT: {
@@ -255,16 +255,16 @@ namespace rubinius {
     }
     case RBX_FFI_TYPE_LONG_LONG:
       if(FIXNUM_P(val)) {
-        WRITE(int, as<Fixnum>(val)->to_long_long());
+        WRITE(long long, as<Fixnum>(val)->to_long_long());
       } else {
-        WRITE(int, as<Bignum>(val)->to_long_long());
+        WRITE(long long, as<Bignum>(val)->to_long_long());
       }
       break;
     case RBX_FFI_TYPE_ULONG_LONG:
       if(FIXNUM_P(val)) {
-        WRITE(int, as<Fixnum>(val)->to_ulong_long());
+        WRITE(unsigned long long, as<Fixnum>(val)->to_ulong_long());
       } else {
-        WRITE(int, as<Bignum>(val)->to_ulong_long());
+        WRITE(unsigned long long, as<Bignum>(val)->to_ulong_long());
       }
       break;
     case RBX_FFI_TYPE_OBJECT:
