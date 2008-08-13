@@ -1,9 +1,11 @@
 class BasicPrimitive
   attr_accessor :pass_state
+  attr_accessor :pass_self
 
   def output_header(str)
     str << "bool Primitives::#{@name}(STATE, VMExecutable* exec, Task* task, Message& msg) {\n"
     str << "  OBJECT ret;\n"
+    str << "  OBJECT self;\n" if @pass_self
     str << "  try {\n"
   end
 
@@ -16,6 +18,7 @@ class BasicPrimitive
       str << "    if((a#{i} = try_as<#{t}>(msg.get_argument(#{i}))) == NULL) goto fail;\n"
       args << "a#{i}"
     end
+    args.unshift "self" if @pass_self
     args.unshift "state" if @pass_state
 
     return args
@@ -52,6 +55,7 @@ class CPPPrimitive < BasicPrimitive
     str << "    if((recv = try_as<#{@type}>(msg.recv)) == NULL) goto fail;\n"
 
     args = output_args str, arg_types
+    str << "    self = recv;\n" if @pass_self
 
     output_call str, "recv->#{@cpp_name}", args
 
@@ -65,6 +69,7 @@ class CPPStaticPrimitive < CPPPrimitive
     output_header str
 
     args = output_args str, arg_types
+    str << "    self = (Object*)msg.recv;\n" if @pass_self
 
     output_call str, "#{@type}::#{@cpp_name}", args
 
@@ -406,11 +411,17 @@ class CPPParser
 
           m = prototype_pattern.match(prototype)
           args = m[4].split(/\s*,\s*/)
+          # If the first argument is the +STATE+ macro, handle it in +output_args+
           if args.first == "STATE"
-            args.shift
-            pass_state = true
+            args.shift and pass_state = true
+            # If the second argument is +OBJECT self+, we will automatically pass
+            # in the receiver of the primitive message in +output_call+
+            if args.first == "OBJECT self"
+              args.shift and pass_self = true
+            end
           else
             pass_state = false
+            pass_self = false
           end
 
           arg_types = args.map { |a| strip_and_map(a.split(/\s+/, 2).first, @type_map) }
@@ -424,6 +435,7 @@ class CPPParser
           end
 
           obj.pass_state = pass_state
+          obj.pass_self = pass_self
         end
       end
 
