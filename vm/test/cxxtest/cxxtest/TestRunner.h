@@ -42,7 +42,7 @@ namespace CxxTest
             tracker().enterWorld( wd );
             if ( wd.setUp() ) {
                 for ( SuiteDescription *sd = wd.firstSuite(); sd; sd = sd->next() )
-                    if ( char* which = getenv("SUITE") ) {
+                    if ( char* which = getenv( "SUITE" ) ) {
                         if ( sd->active() && strstr(sd->suiteName(), which) ) {
                             runSuite( *sd );
                         }
@@ -63,7 +63,7 @@ namespace CxxTest
             if ( sd.setUp() ) {
                 for ( TestDescription *td = sd.firstTest(); td; td = td->next() ) {
                     /* run only tests that match this 'pattern' */
-                    if ( char* which = getenv("TEST") ) {
+                    if ( char* which = getenv( "TEST" ) ) {
                         if ( td->active() && strstr(td->testName(), which) ) {
                             runTest( *td );
                         }

@@ -52,18 +52,18 @@ namespace CxxTest
 
         void enterWorld( const WorldDescription & /*desc*/ )
         {
-            if(getenv("TEST") || getenv("SUITE")) {
+            if ( getenv( "TEST" ) || getenv( "SUITE" ) ) {
               (*_o) << "Running tests...";
             } else {
               (*_o) << "Running " << totalTests;
             }
             _o->flush();
-            if(getenv("VERBOSE")) {
+            if ( getenv( "VERBOSE" ) ) {
               _verbose = true;
             } else {
               _dotting = true;
             }
-            if(getenv("AUTO")) {
+            if ( getenv( "AUTO" ) ) {
               _auto = true;
             }
             _reported = false;
@@ -78,7 +78,7 @@ namespace CxxTest
 
         void enterSuite( const SuiteDescription &d )
         {
-          if(_verbose) {
+          if ( _verbose ) {
             (*_o) << endl << "Suite " << d.suiteName() << endl;
           }
             _reported = false;
@@ -86,25 +86,25 @@ namespace CxxTest
 
         void enterTest( const TestDescription & d)
         {
-          if(_verbose) {
+          if ( _verbose ) {
             ((*_o) << "  " << d.testName() << ": ").flush();
           }
-          
+
           _reported = false;
         }
 
         void leaveTest( const TestDescription &d)
         {
-          if(_verbose) {
-            if(tracker().testFailed()) {
+          if ( _verbose ) {
+            if ( tracker().testFailed() ) {
               (*_o) << "FAIL" << endl;
-              if(_auto) {
+              if ( _auto ) {
                 (*_o) << "--- F " << d.suiteName() << "::" << d.testName() << "::" << 
                   d.file() << "::" << d.line() << endl;
               }
             } else {
               (*_o) << "ok" << endl;
-              if(_auto) {
+              if ( _auto ) {
                 (*_o) << "--- O " << d.suiteName() << "::" << d.testName() << endl;
               }
             }
