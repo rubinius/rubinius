@@ -756,6 +756,43 @@ class TestTask : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(G(object)->get_const(state, "Person"), mod);
   }
 
+  void test_raise() {
+    CompiledMethod* cm = create_cm();
+    cm->iseq = InstructionSequence::create(state, 40);
+    cm->total_args = Fixnum::from(0);
+    cm->stack_size = Fixnum::from(1);
+    cm->exceptions = Tuple::from(state, 1,
+        Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(3), Fixnum::from(5)));
+
+    Task* task = Task::create(state, Qnil, cm);
+
+    MethodContext* top = task->active;
+    task->set_ip(3);
+
+    /* Call a method ... */
+    CompiledMethod* cm2 = create_cm();
+
+    G(true_class)->method_table->store(state, state->symbol("blah"), cm2);
+
+    Message msg(state);
+    msg.recv = Qtrue;
+    msg.lookup_from = G(true_class);
+    msg.name = state->symbol("blah");
+    msg.send_site = SendSite::create(state, state->symbol("blah"));
+    msg.args = 0;
+
+    task->send_message(msg);
+    TS_ASSERT(task->active != top);
+
+    Exception* exc = Exception::create(state);
+
+    Task* t2 = task->raise(state, exc);
+
+    TS_ASSERT_EQUALS(task, t2);
+    TS_ASSERT_EQUALS(task->active, top);
+    TS_ASSERT_EQUALS(task->current_ip(), 5);
+  }
+
   void test_raise_exception() {
     CompiledMethod* cm = create_cm();
     cm->iseq = InstructionSequence::create(state, 40);

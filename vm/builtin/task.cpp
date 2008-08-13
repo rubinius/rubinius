@@ -230,6 +230,28 @@ stack_cleanup:
     push(value);
   }
 
+  Task* Task::raise(STATE, Exception* exc) {
+    for(;;) {
+      int ip = active->ip;
+      Tuple* table = active->cm->exceptions;
+
+      if(!table->nil_p()) {
+        for(size_t i = 0; i < table->field_count; i++) {
+          Tuple* entry = as<Tuple>(table->at(i));
+          if(as<Integer>(entry->at(0))->to_native() <= ip && as<Integer>(entry->at(1))->to_native() >= ip) {
+            set_ip(as<Integer>(entry->at(2))->to_native());
+            return this;
+          }
+        }
+      }
+
+      if(active->sender->nil_p()) break;
+      make_active(active->sender);
+    }
+
+    return this;
+  }
+
   void Task::raise_exception(Exception* exc) {
     for(;;) {
       int ip = active->ip;
