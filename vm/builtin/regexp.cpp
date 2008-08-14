@@ -161,6 +161,13 @@ namespace rubinius {
     return o_reg;
   }
 
+  // 'self' is passed in automatically by the primitive glue
+  Regexp* Regexp::new_expression(STATE, OBJECT self, String* pattern, INTEGER options) {
+    Regexp* re = Regexp::create(state, pattern, options);
+    SET(re, klass, self);
+    return re;
+  }
+
   OBJECT Regexp::options(STATE) {
     OnigEncoding   enc;
     OnigOptionType option;

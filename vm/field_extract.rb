@@ -69,7 +69,7 @@ class CPPStaticPrimitive < CPPPrimitive
     output_header str
 
     args = output_args str, arg_types
-    str << "    self = (Object*)msg.recv;\n" if @pass_self
+    str << "    self = msg.recv;\n" if @pass_self
 
     output_call str, "#{@type}::#{@cpp_name}", args
 

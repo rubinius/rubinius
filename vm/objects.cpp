@@ -55,7 +55,7 @@ namespace rubinius {
   /* State is a VM* so, we can just use this in here */
   #define state this
 
-  Class *VM::new_basic_class(OBJECT sup, size_t fields) {
+  Class* VM::new_basic_class(OBJECT sup, size_t fields) {
     Class *cls = (Class*)om->new_object(G(klass), Class::fields);
     cls->instance_fields = Fixnum::from(fields);
     cls->has_ivars = Qtrue;
@@ -65,7 +65,7 @@ namespace rubinius {
     return cls;
   }
 
-  Class *VM::new_class(OBJECT sup, size_t fields) {
+  Class* VM::new_class(OBJECT sup, size_t fields) {
     Class *cls = new_basic_class(sup, fields);
     MetaClass::attach(this, cls);
     return cls;

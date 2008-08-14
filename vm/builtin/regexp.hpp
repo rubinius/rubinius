@@ -45,6 +45,9 @@ namespace rubinius {
     // Ruby.primitive :regexp_match_start
     OBJECT match_start(STATE, String* string, INTEGER start);
 
+    // Ruby.primitive :regexp_new
+    static Regexp* new_expression(STATE, OBJECT self, String* pattern, INTEGER options);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
