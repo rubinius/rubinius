@@ -69,7 +69,7 @@ class TestString : public CxxTest::TestSuite {
 
   void test_append() {
     str = String::create(state, "blah");
-    str->to_sym(state);
+    str->hash_string(state);
     TS_ASSERT(str->hash != Qnil);
 
     str->append(state, String::create(state, " foo"));
