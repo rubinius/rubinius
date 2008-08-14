@@ -155,7 +155,7 @@ class Compiler
         str << marshal(val.file)
         str << marshal(val.local_names)
       else
-        raise ArgumentError, "Unknown type: #{val.class}"
+        raise ArgumentError, "Unknown type #{val.class}: #{val.inspect}"
       end
 
       return str

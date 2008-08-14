@@ -1406,18 +1406,21 @@ class Node
 
     def consume(sexp)
       if sexp[0].kind_of? Symbol
-        name = sexp[0]
+        sym = sexp[0]
         parent = nil
       else
-        name = convert(sexp[0])
-        sym = name.name
+        # name is not just the name as a symbol, it's something else...
 
-        if name.is? ConstFind
+        # Turn the sexp into a Node object
+        name_node = convert(sexp[0])
+        sym = name_node.name
+
+        if name_node.is? ConstFind
           parent = nil
-        elsif name.is? ConstAtTop
+        elsif name_node.is? ConstAtTop
           parent = name
         else
-          parent = name.parent
+          parent = name_node.parent
         end
       end
 
@@ -1425,7 +1428,7 @@ class Node
         super([sexp.last])
       end
 
-      [name, parent, body]
+      [sym, parent, body]
     end
 
     attr_accessor :name, :body, :parent
