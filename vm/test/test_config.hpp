@@ -66,7 +66,7 @@ class TestConfig : public CxxTest::TestSuite {
 
     ConfigParser::EntryList* l = cfg.get_section("rbx.test");
 
-    TS_ASSERT_EQUALS(l->size(), 2);
+    TS_ASSERT_EQUALS(l->size(), (unsigned int)2);
     TS_ASSERT_EQUALS(l->at(0)->variable, "rbx.test.blah");
     TS_ASSERT_EQUALS(l->at(1)->variable, "rbx.test.foo");
 
