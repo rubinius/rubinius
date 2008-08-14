@@ -253,8 +253,8 @@ namespace rubinius {
         MethodVisibility::fields, G(cmethod)));
     G(cmethod_vis)->set_object_type(CMVisibilityType);
 
-    Module* x = new_module("Rubinius");
-    GO(vm).set(new_module("VM", x));
+    Module* rbx = new_module("Rubinius");
+    GO(vm).set(new_module("VM", rbx));
 
     bootstrap_exceptions();
 
@@ -269,6 +269,12 @@ namespace rubinius {
     Thread::init(state);
 
     TypeInfo::init(state);
+
+    if(sizeof(int) == sizeof(long)) {
+      rbx->set_const(state, "L64", Qfalse);
+    } else {
+      rbx->set_const(state, "L64", Qtrue);
+    }
   }
 
   void VM::bootstrap_symbol() {

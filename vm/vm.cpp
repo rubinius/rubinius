@@ -13,12 +13,16 @@
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 
+#include "config.hpp"
+
 #include <iostream>
 
 namespace rubinius {
   VM::VM(size_t bytes) : probe(NULL), wait_events(false) {
     config.compile_up_front = false;
     context_cache = NULL;
+
+    user_config = new ConfigParser();
 
     om = new ObjectMemory(bytes);
 

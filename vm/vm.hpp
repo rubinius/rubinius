@@ -26,6 +26,7 @@ namespace rubinius {
   class MethodContext;
   class ContextCache;
   class String;
+  class ConfigParser;
 
   struct Configuration {
     bool compile_up_front;
@@ -42,6 +43,7 @@ namespace rubinius {
     Primitives* primitives;
     Configuration config;
     SymbolTable symbols;
+    ConfigParser *user_config;
 
     /* Used to implement a simple context cache */
     ContextCache* context_cache;

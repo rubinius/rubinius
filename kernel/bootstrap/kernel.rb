@@ -75,12 +75,9 @@ module Kernel
   end
 
   def raise(cls, str, junk=nil)
-    STDOUT.write "Fatal error in bootstrap/core:\n  "
-    STDOUT.write str
-    STDOUT.write " ("
-    STDOUT.write cls.name
-    STDOUT.write ")"
-    STDOUT.write "\n"
+    Rubinius::VM.write_error "Fatal error in bootstrap/core:\n  "
+    Rubinius::VM.write_error str
+    Rubinius::VM.write_error "\n"
     Process.exit 1
   end
 

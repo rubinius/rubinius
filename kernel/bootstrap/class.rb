@@ -46,61 +46,29 @@ class Class
   end
 end
 
-class RuntimePrimitive
-
-  PrimitiveIndex = 1
-  RequiredArguments = 2
-  SerialNumber = 3
-  ByteCodes = 4
-
-  def put(idx, val)
-    Ruby.primitive :put
-    raise InvalidIndexError, "Object#put failed."
+class RuntimePrimitive < Executable
+  def initialize(prim_name)
+    @primitive = prim_name
+    @serial = 0
   end
 
-  def at(idx)
-    Ruby.primitive :at
-    raise InvalidIndexError, "RuntimePrimitive#at failed."
+  def variable=(var)
+    @variable = var
   end
-
 end
 
 class AccessVarMethod < RuntimePrimitive
-  self.instance_fields = 5
-
   def self.get_ivar(name)
-    obj = allocate()
-    obj.put RuntimePrimitive::PrimitiveIndex, :get_ivar
-    obj.put RuntimePrimitive::RequiredArguments, 0
-    obj.put RuntimePrimitive::SerialNumber, 0 # serial number
-    obj.put RuntimePrimitive::ByteCodes, name
+    obj = new(:get_ivar)
+    obj.variable = name
+
     return obj
   end
-  
+
   def self.set_ivar(name)
-    obj = allocate()
-    obj.put RuntimePrimitive::PrimitiveIndex, :set_ivar
-    obj.put RuntimePrimitive::RequiredArguments, 1
-    obj.put RuntimePrimitive::SerialNumber, 0 # serial number
-    obj.put RuntimePrimitive::ByteCodes, name
-    return obj
-  end
-  
-  def self.get_index(idx)
-    obj = allocate()
-    obj.put RuntimePrimitive::PrimitiveIndex, :get_index
-    obj.put RuntimePrimitive::RequiredArguments, 0
-    obj.put RuntimePrimitive::SerialNumber, 0 # serial number
-    obj.put RuntimePrimitive::ByteCodes, idx
-    return obj
-  end
-  
-  def self.set_index(idx)
-    obj = allocate()
-    obj.put RuntimePrimitive::PrimitiveIndex, :set_index
-    obj.put RuntimePrimitive::RequiredArguments, 1
-    obj.put RuntimePrimitive::SerialNumber, 0 # serial number
-    obj.put RuntimePrimitive::ByteCodes, idx
+    obj = new(:set_ivar)
+    obj.variable = name
+
     return obj
   end
 end

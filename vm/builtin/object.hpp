@@ -7,6 +7,7 @@
 namespace rubinius {
   class MetaClass;
   class Integer;
+  class String;
 
   class Object : public ObjectHeader {
   public:
@@ -112,6 +113,18 @@ namespace rubinius {
     void copy_metaclass(STATE, OBJECT other);
 
     static const char* type_to_name(object_type type);
+
+    /* VM level primitives. It's dumb to have them here, but it's more
+     * complicated to make field_extract parse non-Object classes. */
+
+    // Ruby.primitive :vm_get_config_item
+    static OBJECT vm_get_config_item(STATE, String* var);
+
+    // Ruby.primitive :vm_get_config_section
+    static OBJECT vm_get_config_section(STATE, String* section);
+
+    // Ruby.primitive :vm_write_error
+    static OBJECT vm_write_error(STATE, String* str);
   };
 
 }

@@ -4,6 +4,10 @@ class Rubinius::VM
     raise PrimitiveFailure, "primitive failed"
   end
 
+  def self.write_error(str)
+    Ruby.primitive :vm_write_error
+  end
+
   def self.load_library(path, name)
     Ruby.primitive :load_library
     raise PrimitiveFailure, "primitive failed"

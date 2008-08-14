@@ -111,13 +111,10 @@ module FFI
 
   TypeSizes[8] = :long if Rubinius::L64
 
-  
   # Load all the platform dependent types
 
-  ::RUBY_CONFIG.each do |key, value|
-    if key.substring(0, 20) == "rbx.platform.typedef"
-      add_typedef(find_type(value.to_sym), key.substring(21, key.length).to_sym)
-    end
+  Rubinius::RUBY_CONFIG.section("rbx.platform.typedef.") do |key, value|
+    add_typedef(find_type(value.to_sym), key.substring(21, key.length).to_sym)
   end
 
   def self.size_to_type(size)
@@ -130,15 +127,14 @@ module FFI
   end
 
   def self.config(name)
-    ::RUBY_CONFIG["rbx.platform.#{name}"]
+    Rubinius::RUBY_CONFIG["rbx.platform.#{name}"]
   end
 
   def self.config_hash(name)
     vals = { }
-    ::RUBY_CONFIG.each do |key,value|
-      if(key =~ /rbx\.platform\.#{name}\.(.+)/)
-        vals[$1] = value
-      end
+    section = "rbx.platform.#{name}."
+    Rubinius::RUBY_CONFIG.section(section).each do |key,value|
+      vals[key.substring(section.size - 1, key.length)] = value
     end
     vals
   end

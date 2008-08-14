@@ -57,7 +57,9 @@ namespace rubinius {
     VMMethod* vmm;
     if((vmm = active->vmm->blocks[index]) == NULL) {
       vmm = new VMMethod(state, cm);
-      vmm->specialize(active->vmm->type);
+      if(active->vmm->type) {
+        vmm->specialize(active->vmm->type);
+      }
       active->vmm->blocks[index] = vmm;
     }
 

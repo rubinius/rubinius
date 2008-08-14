@@ -7,7 +7,10 @@
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/array.hpp"
 #include "objectmemory.hpp"
+
+#include "config.hpp"
 
 #include <cstring>
 
@@ -493,4 +496,35 @@ namespace rubinius {
     return Qnil;
   }
 
+  /* VM level primitives. This is a silly place, I know. */
+  OBJECT Object::vm_get_config_item(STATE, String* var) {
+    ConfigParser::Entry* ent = state->user_config->find(var->byte_address());
+    if(!ent) return Qnil;
+
+    if(ent->is_number()) {
+      return Fixnum::from(atoi(ent->value.c_str()));
+    }
+    return String::create(state, ent->value.c_str());
+  }
+
+  OBJECT Object::vm_get_config_section(STATE, String* section) {
+    ConfigParser::EntryList* list;
+
+    list = state->user_config->get_section(section->byte_address());
+
+    Array* ary = Array::create(state, list->size());
+    for(size_t i = 0; i < list->size(); i++) {
+      String* var = String::create(state, list->at(i)->variable.c_str());
+      String* val = String::create(state, list->at(i)->value.c_str());
+
+      ary->set(state, i, Tuple::from(state, 2, var, val));
+    }
+
+    return ary;
+  }
+
+  OBJECT Object::vm_write_error(STATE, String* str) {
+    std::cerr << str->byte_address() << std::endl;
+    return Qnil;
+  }
 }
