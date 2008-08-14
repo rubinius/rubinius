@@ -35,17 +35,16 @@ MRI can be used to compile Ruby files to bytecode, which can then be run by
 the VM. To compile 'file.rb' to 'file.rbc':
 
   # in the root of the cpp directory
-  $ ruby lib/compiler/mri_compile.rb -frbx-kernel file.rb file.rbc
+  $ rake compile_ruby[file.rb]
 
 
  Running bytecode with the VM
 ------------------------------
 
-Once a Ruby file has been compiled to bytecode (.rbc), it can be run by the VM
-with the following command:
+A Ruby file has can be run by the VM with the following command:
 
   # at toplevel
-  $ vm/vm file.rbc
+  $ rake run_ruby[file.rb]
 
 
  Primitives

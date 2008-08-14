@@ -74,6 +74,14 @@ def create_load_order(files, output=".load_order.txt")
   end
 end
 
+def compile_ruby(src, rbc)
+  dir = File.dirname rbc
+  FileUtils.mkdir_p dir unless File.directory? dir
+
+  ruby "lib/compiler/mri_compile.rb -frbx-kernel #{src} #{rbc}",
+       :verbose => $verbose
+end
+
 loose =  []
 modules = Hash.new { |h,k| h[k] = [] }
 
@@ -87,12 +95,12 @@ Dir["kernel/**/*.rb"].each do |path|
   end
 end
 
-@all_kernel = []
+all_kernel = []
 
 modules.each do |name, files|
   files.each do |file|
     compiled = "runtime/#{name}/#{File.basename(file)}c"
-    @all_kernel << compiled
+    all_kernel << compiled
 
     file compiled => file
   end
@@ -101,26 +109,59 @@ end
 rule ".rbc" do |t|
   rbc = t.name
   src = t.prerequisites.first
-  
-  dir = File.dirname(rbc)
-  FileUtils.mkdir_p(dir) unless File.directory?(dir)
 
-  ruby "lib/compiler/mri_compile.rb -frbx-kernel #{src} #{rbc}"
+  compile_ruby src, rbc
 end
 
 namespace :kernel do
+
   task :show do
     p modules
     p loose
   end
 
-  task :build => @all_kernel do
+  task :build => all_kernel do
     modules.each do |name, files|
       create_load_order files, "runtime/#{name}/.load_order.txt"
     end
   end
 
   task :clean do
-    sh "rm -rf runtime/bootstrap runtime/platform runtime/core"
+    rm_rf %w[runtime/bootstrap runtime/platform runtime/core],
+          :verbose => $verbose
+
+    files_to_delete = []
+    files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"] + Dir["**/.*.rbc"]
+    files_to_delete += Dir["**/.load_order.txt"]
+    files_to_delete += ["runtime/platform.conf"]
+    files_to_delete -= ["runtime/stable/loader.rbc"] # never ever delete this
+
+    rm_f files_to_delete, :verbose => $verbose
   end
+
 end
+
+desc "Compile the given ruby file into a .rbc file"
+task :compile_ruby, :file do |task, args|
+  file = args[:file]
+  raise ArgumentError, 'compile_ruby requires a file name' if file.nil?
+
+  rbc = file + 'c'
+
+  compile_ruby file, rbc
+end
+task :compile_ruby => 'kernel:build' # HACK argument + dependency is broken
+
+desc "Run the given ruby fil ewith the vm"
+task :run_ruby, :file do |task, args|
+  file = args[:file]
+  raise ArgumentError, 'compile_ruby requires a file name' if file.nil?
+
+  rbc = file + 'c'
+
+  compile_ruby file, rbc
+
+  sh 'vm/vm', rbc
+end
+task :run_ruby => 'kernel:build' # HACK argument + dependency is broken
+
