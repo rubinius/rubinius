@@ -211,7 +211,12 @@ def write_rbconfig
 
     # TODO: fill in these values
     f.puts '  # compile tools flags'
-    f.puts '  CONFIG["CFLAGS"]             = ""'
+    case HOST
+    when /darwin/i
+      f.puts '  CONFIG["CFLAGS"]             = "-O2 -g -Wall"'
+    else
+      f.puts '  CONFIG["CFLAGS"]             = "-fPIC -O2 -g -Wall"'
+    end
     f.puts '  CONFIG["LDFLAGS"]            = ""'
     f.puts '  CONFIG["CPPFLAGS"]           = ""'
     f.puts '  CONFIG["OBJEXT"]             = "o"'
@@ -220,7 +225,12 @@ def write_rbconfig
     f.puts '  CONFIG["OUTFLAG"]            = "-o "'
     f.puts '  CONFIG["YFLAGS"]             = ""'
     f.puts '  CONFIG["ASFLAGS"]            = ""'
-    f.puts '  CONFIG["DLDFLAGS"]           = ""'
+    case HOST
+    when /darwin/i
+      f.puts '  CONFIG["DLDFLAGS"]           = ""'
+    else
+      f.puts '  CONFIG["DLDFLAGS"]           = "-L.  -rdynamic -Wl,-export-dynamic"'
+    end
     f.puts '  CONFIG["ARCH_FLAG"]          = ""'
     f.puts '  CONFIG["STATIC"]             = ""'
     f.puts '  CONFIG["CCDLFLAGS"]          = ""'
@@ -249,12 +259,22 @@ def write_rbconfig
     f.puts '  CONFIG["LIBRUBYARG_SHARED"]  = "-l$(RUBY_SO_NAME)"'
     f.puts '  CONFIG["configure_args"]     = ""'
     f.puts '  CONFIG["ALLOCA"]             = ""'
-    f.puts '  CONFIG["DLEXT"]              = "bundle"'
+    case HOST
+    when /darwin/i
+      f.puts '  CONFIG["DLEXT"]              = "bundle"'
+    else
+      f.puts '  CONFIG["DLEXT"]              = "so"'
+    end
     f.puts '  CONFIG["LIBEXT"]             = "a"'
     f.puts '  CONFIG["LINK_SO"]            = ""'
     f.puts '  CONFIG["LIBPATHFLAG"]        = " -L%s"'
     f.puts '  CONFIG["RPATHFLAG"]          = ""'
-    f.puts '  CONFIG["LIBPATHENV"]         = "DYLD_LIBRARY_PATH"'
+    case HOST
+    when /darwin/i
+      f.puts '  CONFIG["LIBPATHENV"]         = "DYLD_LIBRARY_PATH"'
+    else
+      f.puts '  CONFIG["LIBPATHENV"]         = "LD_LIBRARY_PATH"'
+    end
     f.puts '  CONFIG["TRY_LINK"]           = ""'
     f.puts '  CONFIG["EXTSTATIC"]          = ""'
     f.puts '  CONFIG["setup"]              = "Setup"'
@@ -266,8 +286,14 @@ def write_rbconfig
     f.puts '  CONFIG["PACKAGE_BUGREPORT"]  = ""'
 
     # HACK: we need something equivalent, but I'm cheating for now - zenspider
-    f.puts '  CONFIG["LDSHARED"]          = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
-    f.puts '  CONFIG["LIBRUBY_LDSHARED"]  = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
+    case HOST
+    when /darwin/i
+      f.puts '  CONFIG["LDSHARED"]          = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
+      f.puts '  CONFIG["LIBRUBY_LDSHARED"]  = "cc -dynamic -bundle -undefined suppress -flat_namespace"'
+    else
+      f.puts '  CONFIG["LDSHARED"]          = "cc -shared"'
+      f.puts '  CONFIG["LIBRUBY_LDSHARED"]  = "cc -shared"'
+    end
     f.puts
     f.puts <<-EOC
   # Adapted from MRI's' rbconfig.rb
