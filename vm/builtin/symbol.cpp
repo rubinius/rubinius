@@ -1,6 +1,5 @@
 #include "builtin/symbol.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/hash.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
 

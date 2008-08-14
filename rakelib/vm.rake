@@ -57,7 +57,6 @@ field_extract_headers = %w[
   vm/builtin/exception.hpp
   vm/builtin/fixnum.hpp
   vm/builtin/float.hpp
-  vm/builtin/hash.hpp
   vm/builtin/immediates.hpp
   vm/builtin/io.hpp
   vm/builtin/iseq.hpp

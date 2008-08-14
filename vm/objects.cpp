@@ -13,7 +13,6 @@
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
-#include "builtin/hash.hpp"
 #include "builtin/io.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/list.hpp"
@@ -161,9 +160,6 @@ namespace rubinius {
     GO(cmethod).set(new_class(G(executable), CompiledMethod::fields));
     G(cmethod)->instance_type = Fixnum::from(CMethodType);
 
-    GO(hash).set(new_class(object, Hash::fields));
-    G(hash)->instance_type = Fixnum::from(HashType);
-
     GO(io).set(new_class(object, IO::fields));
 
     GO(blokenv).set(new_class(object, BlockEnvironment::fields));
@@ -188,7 +184,6 @@ namespace rubinius {
     G(tuple)->setup(this, "Tuple");
     G(array)->setup(this, "Array");
     G(bytearray)->setup(this, "ByteArray");
-    G(hash)->setup(this, "Hash");
     G(lookuptable)->setup(this, "LookupTable");
     G(string)->setup(this, "String");
     G(methtbl)->setup(this, "MethodTable");

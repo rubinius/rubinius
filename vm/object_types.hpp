@@ -31,7 +31,6 @@ namespace rubinius {
     BlockEnvType    ,
     TupleType       ,
     ArrayType       ,
-    HashType        ,
     RegexpDataType  ,
     RegexpType      ,
     ByteArrayType   ,

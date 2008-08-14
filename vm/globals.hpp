@@ -26,7 +26,7 @@ namespace rubinius {
 
     /* classes for the core 'types' */
     TypedRoot<Class*> blokctx, cmethod, tuple, module, object, array;
-    TypedRoot<Class*> klass, hash, methtbl, bytearray, methctx, blank;
+    TypedRoot<Class*> klass, methtbl, bytearray, methctx, blank;
     TypedRoot<Class*> blokenv, bignum, regexp, regexpdata, matchdata;
     TypedRoot<Class*> string, symbol, io, metaclass;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
@@ -74,7 +74,7 @@ namespace rubinius {
     Globals() :
       blokctx(&roots), cmethod(&roots), tuple(&roots), module(&roots),
       object(&roots), array(&roots),
-      klass(&roots), hash(&roots), methtbl(&roots), bytearray(&roots),
+      klass(&roots), methtbl(&roots), bytearray(&roots),
       methctx(&roots), blank(&roots),
       blokenv(&roots), bignum(&roots), regexp(&roots), regexpdata(&roots),
       matchdata(&roots),
