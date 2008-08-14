@@ -56,7 +56,7 @@ class TestVM : public CxxTest::TestSuite {
   }
 
   void test_globals() {
-    TS_ASSERT_EQUALS(state->globals.roots.size(), 123U);
+    TS_ASSERT_EQUALS(state->globals.roots.size(), 122U);
   }
 
   void test_collection() {

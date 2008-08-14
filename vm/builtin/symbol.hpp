@@ -37,25 +37,6 @@ namespace rubinius {
     }
 
   typedef Symbol* SYMBOL;
-
-  class SymbolTable : public Object {
-  public:
-    const static size_t fields = 2;
-    const static object_type type = SymbolTableType;
-
-    Tuple* symbols; // slot
-    Hash*  strings; // slot
-
-    static SymbolTable* create(STATE);
-    SYMBOL lookup(STATE, const char* str, size_t size = 0);
-    SYMBOL lookup(STATE, String* str);
-    String* find_string(STATE, Symbol* sym);
-
-    class Info : public TypeInfo {
-    public:
-      BASIC_TYPEINFO(TypeInfo)
-    };
-  };
 }
 
 #endif

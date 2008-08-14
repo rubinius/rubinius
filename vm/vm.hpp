@@ -3,6 +3,7 @@
 
 #include "prelude.hpp"
 #include "globals.hpp"
+#include "symboltable.hpp"
 
 namespace llvm {
   class Module;
@@ -40,6 +41,7 @@ namespace rubinius {
     TaskProbe* probe;
     Primitives* primitives;
     Configuration config;
+    SymbolTable symbols;
 
     /* Used to implement a simple context cache */
     ContextCache* context_cache;
@@ -66,7 +68,7 @@ namespace rubinius {
     Class* new_class(const char* name, OBJECT sup, size_t fields);
     Class* new_class(const char* name, OBJECT sup, size_t fields, Module* under);
     Module* new_module(const char* name, Module* under = NULL);
-    SYMBOL symbol(const char *str, size_t len = 0);
+    SYMBOL symbol(const char *str);
     SYMBOL symbol(String* str);
     String* symbol_to_string(SYMBOL sym);
     OBJECT new_struct(Class* cls, size_t bytes);

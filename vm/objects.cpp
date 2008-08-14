@@ -156,9 +156,6 @@ namespace rubinius {
     G(string)->instance_type = Fixnum::from(StringType);
     G(string)->has_ivars = Qfalse;
 
-    GO(symtbl).set(new_class(object, SymbolTable::fields));
-    GO(symtbl)->instance_type = Fixnum::from(SymbolTable::type);
-
     GO(executable).set(new_class(object, Executable::fields));
 
     GO(cmethod).set(new_class(G(executable), CompiledMethod::fields));
@@ -194,7 +191,6 @@ namespace rubinius {
     G(hash)->setup(this, "Hash");
     G(lookuptable)->setup(this, "LookupTable");
     G(string)->setup(this, "String");
-    G(symtbl)->setup(this, "SymbolTable");
     G(methtbl)->setup(this, "MethodTable");
     G(executable)->setup(this, "Executable");
     G(cmethod)->setup(this, "CompiledMethod");
@@ -204,8 +200,6 @@ namespace rubinius {
     G(symbol)->setup(this, "Symbol");
     G(dir)->setup(this, "Dir");
     G(compactlookuptable)->setup(this, "CompactLookupTable");
-
-    G(object)->set_const(this, symbol("Symbols"), G(symbols));
 
     GO(nil_class).set(new_class("NilClass", object, 0));
     GO(true_class).set(new_class("TrueClass", object, 0));
@@ -278,7 +272,6 @@ namespace rubinius {
   }
 
   void VM::bootstrap_symbol() {
-    GO(symbols).set(SymbolTable::create(this));
 #define add_sym(name) GO(sym_ ## name).set(symbol(#name))
     add_sym(object_id);
     add_sym(method_missing);

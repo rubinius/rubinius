@@ -143,16 +143,6 @@ class TestObjects : public CxxTest::TestSuite {
     check_const(string, "String");
   }
 
-  void test_symtbl() {
-    Class *cls;
-
-    cls = G(symtbl);
-
-    TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(cls->superclass, G(object));
-    check_const(symtbl, "SymbolTable");
-  }
-
   void test_cmethod() {
     Class *cls;
 

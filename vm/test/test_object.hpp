@@ -91,14 +91,14 @@ class TestObject : public CxxTest::TestSuite {
   }
 
   void test_set_ivar() {
-    char name[7] = "@testX";
-    unsigned int i, size = COMPACTLOOKUPTABLE_SIZE / 2 + 2;
+    size_t size = COMPACTLOOKUPTABLE_SIZE / 2 + 2;
     OBJECT obj = state->om->new_object(G(object), Object::fields);
     OBJECT sym;
 
-    for (i = 0; i < size; i++) {
-      name[5] = '0' + i;
-      sym = state->symbol(name);
+    for(size_t i = 0; i < size; i++) {
+      std::stringstream name;
+      name << "@test" << i;
+      sym = state->symbol(name.str().c_str());
       obj->set_ivar(state, sym, Fixnum::from(i));
     }
 
