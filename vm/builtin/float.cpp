@@ -6,6 +6,8 @@
 #include "prelude.hpp"
 #include "vm.hpp"
 
+#include <cmath>
+
 namespace rubinius {
   Float* Float::create(STATE, double val) {
     Float* flt = (Float*)state->new_struct(G(floatpoint), sizeof(Float));
@@ -162,7 +164,7 @@ namespace rubinius {
   }
 
   OBJECT Float::fisinf(STATE) {
-    if(isinf(this->val) != 0) {
+    if(std::isinf(this->val) != 0) {
       return this->val < 0 ? Fixnum::from(-1) : Fixnum::from(1);
     } else {
       return Qnil;
@@ -170,7 +172,7 @@ namespace rubinius {
   }
 
   OBJECT Float::fisnan(STATE) {
-    return isnan(this->val) == 1 ? Qtrue : Qfalse;
+    return std::isnan(this->val) == 1 ? Qtrue : Qfalse;
   }
 
   INTEGER Float::fround(STATE) {

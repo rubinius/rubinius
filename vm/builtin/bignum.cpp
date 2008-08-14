@@ -12,6 +12,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include <cmath>
 #include "tommath.h"
 
 #define BASIC_CLASS(blah) G(blah)
@@ -927,7 +928,7 @@ namespace rubinius {
       res = (res * m) + DIGIT(a,i);
     }
 
-    if(isinf(res)) {
+    if(std::isinf(res)) {
       /* Bignum out of range */
       res = HUGE_VAL;
     }
@@ -950,9 +951,9 @@ namespace rubinius {
 
     value = (d < 0) ? -d : d;
 
-    if(isinf(d)) {
+    if(std::isinf(d)) {
       throw FloatDomainError(d, d < 0 ? "-Infinity" : "Infinity");
-    } else if(isnan(d)) {
+    } else if(std::isnan(d)) {
       throw FloatDomainError(d, "NaN");
     }
 
