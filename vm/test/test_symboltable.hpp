@@ -22,7 +22,7 @@ class TestSymbolTable : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_lookup() {
+  void test_lookup_with_c_str() {
     OBJECT sym = symbols->lookup(state, "unique");
     TS_ASSERT(sym->symbol_p());
 
@@ -30,11 +30,27 @@ class TestSymbolTable : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(sym, sym2);
   }
 
+  void test_lookup_with_std_string() {
+    std::string str("unique");
+    std::string str2("uniquer");
+
+    OBJECT sym = symbols->lookup(state, str);
+    TS_ASSERT(sym->symbol_p());
+
+    OBJECT sym2 = symbols->lookup(state, str2);
+    TS_ASSERT_DIFFERS(sym, sym2);
+  }
+
   void test_lookup_colliding_hash() {
     OBJECT sym, sym2;
+    const char* str = "__uint_fast64_t";
+    const char* str2 = "TkIF_MOD";
 
-    sym  = symbols->lookup(state, "__uint_fast64_t");
-    sym2 = symbols->lookup(state, "TkIF_MOD");
+    TS_ASSERT_EQUALS(String::hash_str((unsigned char*)str, std::strlen(str)),
+                     String::hash_str((unsigned char*)str2, std::strlen(str2)));
+
+    sym  = symbols->lookup(state, str);
+    sym2 = symbols->lookup(state, str2);
 
     TS_ASSERT(sym != sym2);
   }

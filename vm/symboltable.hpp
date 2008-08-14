@@ -4,7 +4,6 @@
 #include "oop.hpp"
 #include "prelude.hpp"
 
-#include <map>
 #include <string>
 #include <vector>
 #include <tr1/unordered_map>
@@ -27,9 +26,9 @@
 namespace rubinius {
   class String;
 
-  typedef std::vector<std::string> symbol_strings;
-  typedef std::vector<std::size_t> symbol_ids;
-  typedef std::tr1::unordered_map<hashval, symbol_ids> symbol_map;
+  typedef std::vector<std::string> SymbolStrings;
+  typedef std::vector<std::size_t> SymbolIds;
+  typedef std::tr1::unordered_map<hashval, SymbolIds> SymbolMap;
 
   class SymbolTable {
   public:
@@ -40,8 +39,8 @@ namespace rubinius {
     size_t size();
 
   private:
-    symbol_map symbols;
-    symbol_strings strings;
+    SymbolMap symbols;
+    SymbolStrings strings;
 
     size_t add(std::string str);
   };

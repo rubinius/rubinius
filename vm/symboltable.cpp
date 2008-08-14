@@ -13,14 +13,14 @@ namespace rubinius {
 
     hashval hash = String::hash_str((unsigned char*)str.c_str(), str.size());
 
-    symbol_map::iterator entry = symbols.find(hash);
+    SymbolMap::iterator entry = symbols.find(hash);
     if(entry == symbols.end()) {
       sym = add(str);
-      symbol_ids v(1, sym);
+      SymbolIds v(1, sym);
       symbols[hash] = v;
     } else {
-      symbol_ids v = entry->second;
-      for(symbol_ids::iterator i = v.begin(); i != v.end(); i++) {
+      SymbolIds& v = entry->second;
+      for(SymbolIds::iterator i = v.begin(); i != v.end(); i++) {
         if(strings[*i] == str) return Symbol::from_index(state, *i);
       }
       sym = add(str);
