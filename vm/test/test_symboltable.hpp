@@ -65,7 +65,7 @@ class TestSymbolTable : public CxxTest::TestSuite {
     symbols->lookup(state, "dos");
     symbols->lookup(state, "tres");
 
-    TS_ASSERT_EQUALS(symbols->size(), 3)
+    TS_ASSERT_EQUALS(symbols->size(), 3U)
   }
 
   void test_many_symbols() {
