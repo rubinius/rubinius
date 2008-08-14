@@ -17,11 +17,15 @@ namespace rubinius {
     native_int index();
 
     // Ruby.primitive :symbol_index
-    INTEGER index(STATE); // {
+    INTEGER index(STATE);
 
     static Symbol* from_index(STATE, size_t index);
 
+    // Ruby.primitive :symbol_to_s
     String* to_str(STATE);
+
+    // Ruby.primitive :symbol_all_symbols
+    static Array* all_symbols(STATE);
 
     class Info : public TypeInfo {
     public:
@@ -30,7 +34,7 @@ namespace rubinius {
     };
   };
 
-  /* See t1 */
+  /* See Note(t1) in immediates.hpp */
   template <>
     static bool kind_of<Symbol>(OBJECT obj) {
       return obj->symbol_p();

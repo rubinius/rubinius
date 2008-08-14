@@ -1,6 +1,7 @@
-#include "builtin/symbol.hpp"
+#include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
 #include "vm.hpp"
@@ -24,7 +25,11 @@ namespace rubinius {
   }
 
   String* Symbol::to_str(STATE) {
-    return state->symbol_to_string(this);
+    return state->symbols.lookup_string(state, this);
+  }
+
+  Array* Symbol::all_symbols(STATE) {
+    return state->symbols.all_as_array(state);
   }
 
   void Symbol::Info::mark(OBJECT t, ObjectMark& mark) { }

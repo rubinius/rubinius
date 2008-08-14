@@ -70,11 +70,12 @@ namespace rubinius {
     Class* new_class(const char* name, OBJECT sup, size_t fields);
     Class* new_class(const char* name, OBJECT sup, size_t fields, Module* under);
     Module* new_module(const char* name, Module* under = NULL);
-    SYMBOL symbol(const char *str);
-    SYMBOL symbol(String* str);
-    String* symbol_to_string(SYMBOL sym);
     OBJECT new_struct(Class* cls, size_t bytes);
     Task* new_task();
+
+    SYMBOL VM::symbol(const char* str);
+    SYMBOL VM::symbol(String* str);
+    SYMBOL VM::symbol(std::string str);
 
     void add_type_info(TypeInfo* ti);
     TypeInfo* find_type(int type);

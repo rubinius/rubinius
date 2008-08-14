@@ -2,6 +2,10 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "symboltable.hpp"
+#include "builtin/array.hpp"
+
+#include <algorithm>
+#include <vector>
 
 #include <cxxtest/TestSuite.h>
 
@@ -69,9 +73,9 @@ class TestSymbolTable : public CxxTest::TestSuite {
     TS_ASSERT(sym != sym2);
   }
 
-  void test_symbol_to_string() {
+  void test_lookup_string() {
     Symbol* sym = symbols->lookup(state, "circle");
-    String* str = symbols->symbol_to_string(state, sym);
+    String* str = symbols->lookup_string(state, sym);
 
     TS_ASSERT(!strncmp("circle", str->byte_address(state), 6));
   }
@@ -94,5 +98,23 @@ class TestSymbolTable : public CxxTest::TestSuite {
     }
 
     TS_ASSERT(symbols->size() > size);
+  }
+
+  void test_all_as_array() {
+    std::vector<SYMBOL> syms;
+
+    syms.push_back(symbols->lookup(state, "__uint_fast64_t"));
+    syms.push_back(symbols->lookup(state, "ponies"));
+    syms.push_back(symbols->lookup(state, "cupcakes"));
+    syms.push_back(symbols->lookup(state, "TkIF_MOD"));
+    syms.push_back(symbols->lookup(state, "turtles"));
+    syms.push_back(symbols->lookup(state, "starts"));
+
+    Array* ary = symbols->all_as_array(state);
+    TS_ASSERT_EQUALS(ary->size(), 6U);
+
+    for(size_t i = 0; i < ary->size(); i++) {
+      TS_ASSERT(std::find(syms.begin(), syms.end(), ary->get(state, i)) != syms.end());
+    }
   }
 };

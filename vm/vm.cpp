@@ -63,8 +63,8 @@ namespace rubinius {
     return symbols.lookup(this, str);
   }
 
-  String* VM::symbol_to_string(SYMBOL sym) {
-    return symbols.symbol_to_string(this, sym);
+  SYMBOL VM::symbol(std::string str) {
+    return symbols.lookup(this, str);
   }
 
   OBJECT VM::new_struct(Class* cls, size_t bytes) {

@@ -43,7 +43,6 @@ namespace rubinius {
     LookupTableType ,
     IOBufferType    ,
     StaticScopeType ,
-    SymbolTableType ,
     MatchDataType   ,
     ExceptionType   ,
     IOType          ,

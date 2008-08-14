@@ -8,7 +8,6 @@
 
 namespace rubinius {
 
-  class SymbolTable;
   class LookupTable;
   class Tuple;
   class Module;
@@ -36,7 +35,6 @@ namespace rubinius {
     TypedRoot<Class*> cmethod_vis;
 
     /* the primary symbol table */
-    TypedRoot<SymbolTable*> symbols;
     TypedRoot<SYMBOL> sym_method_missing;
     TypedRoot<SYMBOL> sym_inherited, sym_opened_class;
     TypedRoot<SYMBOL> sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
@@ -86,7 +84,6 @@ namespace rubinius {
       staticscope(&roots), send_site(&roots), selector(&roots), lookuptable(&roots),
       iseq(&roots), executable(&roots), ffi_ptr(&roots), ffi_func(&roots),
       iobuffer(&roots), cmethod_vis(&roots),
-      symbols(&roots),
       sym_method_missing(&roots),
       sym_inherited(&roots), sym_opened_class(&roots),
       sym_from_literal(&roots), sym_method_added(&roots), sym_s_method_added(&roots),

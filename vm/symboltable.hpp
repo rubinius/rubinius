@@ -24,6 +24,7 @@
  * class Symbol::from_index and oop.hpp.)
  */
 namespace rubinius {
+  class Array;
   class String;
 
   typedef std::vector<std::string> SymbolStrings;
@@ -35,8 +36,9 @@ namespace rubinius {
     SYMBOL lookup(STATE, std::string str);
     SYMBOL lookup(STATE, const char* str);
     SYMBOL lookup(STATE, String* str);
-    String* symbol_to_string(STATE, Symbol* sym);
+    String* lookup_string(STATE, Symbol* sym);
     size_t size();
+    Array* all_as_array(STATE);
 
   private:
     SymbolMap symbols;

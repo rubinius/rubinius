@@ -12,7 +12,6 @@ class Compiler
     :Array=>{:@total=>0, :@tuple=>1, :@start => 2, :@shared => 3},
     :String=>{:@bytes=>0, :@characters=>1, :@encoding=>2, :@data=>3, :@hash => 4, :@shared => 5},
     :CompiledMethod=>{:@__ivars__=>0, :@primitive => 1, :@required=>2, :@serial=>3, :@bytecodes=>4, :@name=>5, :@file=>6, :@local_count=>7, :@literals=>8, :@total_args => 9, :@splat => 10, :@exceptions=>11, :@lines=>12, :@path=>13, :@bonus => 15, :@compiled => 16, :@staticscope => 17, :@args => 18},
-    :SymbolTable=>{:@__ivars__=>0,:@symbols=>1, :@strings=>2},
     :IO=>{:@__ivars__ => 0, :@descriptor => 1, :@buffer => 2, :@mode => 3 },
     :Module=>{:@__ivars__=>0, :@method_table=>1, :@method_cache=>2, :@name=>3, :@constants=>4, :@encloser=>5, :@superclass => 6},
     :MethodContext=>{},
@@ -25,7 +24,7 @@ class Compiler
     }
 
     TYPES = {
-      :symtbl => :SymbolTable, :matchdata => :MatchData,
+      :matchdata => :MatchData,
       :array => :Array, :class => :Class, :bignum => :Bignum,
       :methtbl => :MethodTable, :floatpoint => :Float, :blokctx => :BlockContext,
       :object => :Object, :io => :IO, :module => :Module,

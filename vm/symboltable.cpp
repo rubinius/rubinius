@@ -1,4 +1,5 @@
 #include "symboltable.hpp"
+#include "builtin/array.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
@@ -38,12 +39,25 @@ namespace rubinius {
     return lookup(state, str->byte_address());
   }
 
-  String* SymbolTable::symbol_to_string(STATE, Symbol* sym) {
+  String* SymbolTable::lookup_string(STATE, Symbol* sym) {
     std::string str = strings[sym->index()];
     return String::create(state, str.c_str(), str.size());
   }
 
   size_t SymbolTable::size() {
     return strings.size();
+  }
+
+  Array* SymbolTable::all_as_array(STATE) {
+    size_t idx = 0;
+    Array* ary = Array::create(state, this->size());
+
+    for(SymbolMap::iterator s = symbols.begin(); s != symbols.end(); s++) {
+      for(SymbolIds::iterator i = s->second.begin(); i != s->second.end(); i++) {
+        ary->set(state, idx++, (OBJECT)Symbol::from_index(state, *i));
+      }
+    }
+
+    return ary;
   }
 }

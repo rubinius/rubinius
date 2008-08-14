@@ -40,11 +40,14 @@ class TestVM : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(sym1, sym2);
   }
 
-  void test_symbol_to_string() {
-    SYMBOL sym = state->symbol("georgia");
-    String* str = state->symbol_to_string(sym);
+  void test_symbol_given_std_string() {
+    std::string str1("standard");
+    std::string str2("standard");
 
-    TS_ASSERT(!strncmp("georgia", str->byte_address(state), 4));
+    SYMBOL sym1 = state->symbol(str1);
+    SYMBOL sym2 = state->symbol(str2);
+
+    TS_ASSERT_EQUALS(sym1, sym2);
   }
 
   void test_new_object_uses_field_count_from_class() {
@@ -56,7 +59,7 @@ class TestVM : public CxxTest::TestSuite {
   }
 
   void test_globals() {
-    TS_ASSERT_EQUALS(state->globals.roots.size(), 121U);
+    TS_ASSERT_EQUALS(state->globals.roots.size(), 120U);
   }
 
   void test_collection() {

@@ -1,19 +1,14 @@
-class SymbolTable
-  def symbol_to_string(sym)
-    @symbols.at(sym.index)  
-  end
-end
-
 class Symbol
   def index
     Ruby.primitive :symbol_index
     raise PrimitiveFailure, "Symbol#index failed."
   end
-  
+
   def to_s
-    Symbols.symbol_to_string(self)
+    Ruby.primitive :symbol_to_s
+    raise PrimitiveFailure, "Symbol#to_s failed."
   end
-  
+
   def to_sym
     self
   end

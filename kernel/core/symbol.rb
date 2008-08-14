@@ -1,15 +1,9 @@
 # depends on: class.rb
 
-class SymbolTable
-  def __ivars__; @__ivars__ ; end
-  def symbols  ; @symbols   ; end
-  def strings  ; @strings   ; end
-end
-
 class Symbol
   def self.all_symbols
-    # The find_all prunes nil out of the Tuple
-    Symbols.symbols.find_all { |s| s }.map { |x| x.to_sym }
+    Ruby.primitive :symbol_all_symbols
+    raise PrimitiveFailure, "Symbol.all_symbols failed."
   end
 
   def inspect
@@ -28,16 +22,7 @@ class Symbol
     end
   end
 
-  def to_sym
-    self
-  end
-
   alias_method :intern, :to_sym
-
-  def to_s
-    Symbols.symbol_to_string(self).dup
-  end
-
   alias_method :id2name, :to_s
 
   # Slightly modified from ActiveSupport to avoid a reliance on left-to-right

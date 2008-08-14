@@ -20,15 +20,22 @@ class TestSymbol : public CxxTest::TestSuite {
   }
 
   void test_index() {
-    Symbol* sym = state->symbols.lookup(state, "blah");
+    Symbol* sym = state->symbol("blah");
 
     TS_ASSERT_EQUALS(sym->index(state)->to_native(), sym->index());
   }
 
   void test_to_str() {
-    Symbol* sym = state->symbols.lookup(state, "blah");
+    Symbol* sym = state->symbol("blah");
     String* str = sym->to_str(state);
 
     TS_ASSERT(!strncmp("blah", str->byte_address(state), 4));
+  }
+
+  void test_all_symbols() {
+    Array* symbols = Symbol::all_symbols(state);
+
+    TS_ASSERT(kind_of<Array>(symbols));
+    TS_ASSERT(state->symbols.size() > 0);
   }
 };
