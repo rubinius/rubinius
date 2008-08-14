@@ -16,9 +16,6 @@ task :default => %w[build vm:test]
 
 # BUILD TASKS
 
-desc "Build everything that needs to be built"
-task :build => 'build:all'
-
 # task :stable_compiler do
 #   if ENV['USE_CURRENT'] or ENV['SYSTEM']
 #     puts "Use current versions, not stable."
@@ -28,10 +25,6 @@ task :build => 'build:all'
 #     ENV['RBX_LOADER'] = "runtime/stable/loader.rbc"
 #     ENV['RBX_PLATFORM'] = "runtime/stable/platform.rba"
 #   end
-# end
-
-# rule ".rbc" => %w[.rb] do |t|
-#   compile t.source, t.name
 # end
 
 # files = FileList['kernel/core/*.rb']
@@ -77,65 +70,19 @@ task :build => 'build:all'
 # AllPreCompiled = Core.output + Bootstrap.output + PlatformFiles.output
 # AllPreCompiled << "runtime/loader.rbc"
 
+desc "Build everything that needs to be built"
+task :build => %w[
+  vm
+  kernel:build
+]
+#  build:platform
+#  build:rbc
+#  compiler
+#  lib/etc.rb
+#  lib/rbconfig.rb
+#  extensions
+
 namespace :build do
-
-   task :all => %w[
-     vm
-   ]
-#     build:platform
-#     build:rbc
-#     compiler
-#     lib/etc.rb
-#     lib/rbconfig.rb
-#     extensions
-
-#   task :simple => "build:rbc" do
-#     sh "cd vm; rake"
-#   end
-
-#   # This nobody rule lets use use all the shotgun files as
-#   # prereqs. This rule is run for all those prereqs and just
-#   # (obviously) does nothing, but it makes rake happy.
-#   rule '^shotgun/.+'
-
-#   # These files must be excluded from the c_source FileList
-#   # because they are build products (i.e. there is no rule
-#   # to build them, they will be built) and the c_source list
-#   # list gets created before they are deleted by the clean task.
-#   exclude_source = [
-#     /auto/,
-#     /instruction_names/,
-#     /node_types/,
-#     /grammar.c/,
-#     'primitive_indexes.h',
-#     'primitive_util.h'
-#   ]
-
-#   c_source = FileList[
-#     "shotgun/config.h",
-#     "shotgun/lib/*.[chy]",
-#     "shotgun/lib/*.rb",
-#     "shotgun/lib/subtend/*.[chS]",
-#     "shotgun/main.c",
-#   ].exclude(*exclude_source)
-
-#   file "shotgun/rubinius.bin" => c_source do
-#     sh make('vm')
-#   end
-
-#   file "shotgun/rubinius.local.bin" => c_source do
-#     sh make('vm')
-#   end
-
-#   file 'shotgun/mkconfig.sh' => 'configure'
-#   file 'shotgun/config.mk' => %w[shotgun/config.h shotgun/mkconfig.sh shotgun/vars.mk]
-#   file 'shotgun/config.h' => %w[shotgun/mkconfig.sh shotgun/vars.mk] do
-#     sh "./configure"
-#     raise 'Failed to configure Rubinius' unless $?.success?
-#   end
-
-#   desc "Compiles shotgun (the C-code VM)"
-#   task :shotgun => %w[configure shotgun/rubinius.bin shotgun/rubinius.local.bin]
 
 #   task :setup_rbc => :stable_compiler
 
@@ -220,35 +167,16 @@ end
 
 # # CLEAN TASKS
 
-# desc "Recompile all ruby system files"
-# task :rebuild => %w[clean build:all]
+desc "Recompile all ruby system files"
+task :rebuild => %w[clean build]
 
 desc 'Remove rubinius build files'
-task :clean => %w[vm:clean clean:crap]
+task :clean => %w[vm:clean kernel:clean clean:crap]
 
 desc 'Remove rubinius build files and external library build files'
 task :distclean => %w[vm:distclean]
 
 namespace :clean do
-#   desc "Clean everything but third-party libs"
-#   task :all => %w[clean:rbc clean:extensions clean:shotgun clean:generated clean:crap]
-
-#   desc "Clean everything including third-party libs"
-#   task :distclean => %w[clean:all clean:external]
-
-#   desc "Remove all compile system ruby files"
-#   task :rbc do
-#     files_to_delete = []
-#     files_to_delete += Dir["*.rbc"] + Dir["**/*.rbc"] + Dir["**/.*.rbc"]
-#     files_to_delete += Dir["**/.load_order.txt"]
-#     files_to_delete += ["runtime/platform.conf"]
-#     files_to_delete -= ["runtime/stable/loader.rbc"] # never ever delete this
-
-#     files_to_delete.each do |f|
-#       rm_f f, :verbose => $verbose
-#     end
-#   end
-
 #   desc "Cleans all compiled extension files (lib/ext)"
 #   task :extensions do
 #     Dir["lib/ext/**/*#{$dlext}"].each do |f|
