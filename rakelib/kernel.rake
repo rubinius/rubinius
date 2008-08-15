@@ -50,7 +50,7 @@ def create_load_order(files, output=".load_order.txt")
     end
   end
 
-  puts "Generating #{output}..."
+  puts "Generating #{output}..." if $verbose
 
   File.open(output, "w") do |f|
     begin
