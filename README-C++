@@ -52,6 +52,22 @@ your screen.  Alternately, run the vm by hand:
   $ rake compile_ruby[file.rb]
   $ PROBE=1 vm/vm file.rbc
 
+ Examining C++ exceptions
+--------------------------
+
+If the vm exits with a C++ exceptions you won't get much useful information.
+Re-run with gdb to examine the cause of the failure.  To start:
+
+  $ gdb vm/vm
+  (gdb) catch throw
+  (gdb) run file.rbc
+  [...]
+  (gdb) continue # until you find your exception
+  [normal gdb usage here]
+
+ If state is in-scope you can print a ruby backtrace:
+ 
+   (gdb) p __printbt__(state)
 
  Primitives
 ------------
