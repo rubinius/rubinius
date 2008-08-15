@@ -41,10 +41,16 @@ the VM. To compile 'file.rb' to 'file.rbc':
  Running bytecode with the VM
 ------------------------------
 
-A Ruby file has can be run by the VM with the following command:
+A Ruby file can be run by the VM with the following command:
 
   # at toplevel
   $ rake run_ruby[file.rb]
+
+Add -t to enable printing of probes in the vm to see various information on
+your screen.  Alternately, run the vm by hand:
+
+  $ rake compile_ruby[file.rb]
+  $ PROBE=1 vm/vm file.rbc
 
 
  Primitives

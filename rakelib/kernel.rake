@@ -161,6 +161,8 @@ task :run_ruby, :file do |task, args|
 
   compile_ruby file, rbc
 
+  ENV['PROBE'] = 'yes' if $verbose
+
   sh 'vm/vm', rbc
 end
 task :run_ruby => 'kernel:build' # HACK argument + dependency is broken
