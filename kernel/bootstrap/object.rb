@@ -38,12 +38,12 @@ class Object
   end
 
   def get_instance_variable(sym)
-    Ruby.primitive :ivar_get
+    Ruby.primitive :object_get_ivar
     raise PrimitiveFailure, "primitive failed"
   end
 
   def set_instance_variable(sym, value)
-    Ruby.primitive :ivar_set
+    Ruby.primitive :object_set_ivar
     raise PrimitiveFailure, "primitive failed"
   end
 
