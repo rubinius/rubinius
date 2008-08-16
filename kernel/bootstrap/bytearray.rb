@@ -16,7 +16,7 @@ class ByteArray
   end
 
   def fetch_bytes(start, count)
-    Ruby.primitive :fetch_bytes
+    Ruby.primitive :bytearray_fetch_bytes
     raise PrimitiveFailure, "primitive failed"
   end
 

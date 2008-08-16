@@ -27,6 +27,9 @@ namespace rubinius {
     // Ruby.primitive :bytearray_move_bytes
     INTEGER move_bytes(STATE, INTEGER start, INTEGER count, INTEGER dest);
 
+    // Ruby.primitive :bytearray_fetch_bytes
+    ByteArray* fetch_bytes(STATE, INTEGER start, INTEGER count);
+
     char* to_chars(STATE);
 
     class Info : public TypeInfo {

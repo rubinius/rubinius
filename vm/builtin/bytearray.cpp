@@ -64,4 +64,20 @@ namespace rubinius {
 
     return count;
   }
+
+  ByteArray* ByteArray::fetch_bytes(STATE, INTEGER start, INTEGER count) {
+    native_int size = SIZE_OF_BODY(this);
+    native_int src = start->to_native();
+    native_int cnt = count->to_native();
+
+    if(src + cnt > size || src < 0 || cnt < 0) {
+      throw PrimitiveFailed();
+    }
+
+    ByteArray* ba = ByteArray::create(state, cnt + 1);
+    memcpy(ba->bytes, this->bytes + src, cnt);
+    ba->bytes[cnt] = 0;
+
+    return ba;
+  }
 }
