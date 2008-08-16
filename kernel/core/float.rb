@@ -34,7 +34,7 @@ class Float < Numeric
   end
   
   def -@
-    Ruby.primitive :float_uminus
+    Ruby.primitive :float_neg
   end
 
   def +(other)

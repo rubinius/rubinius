@@ -76,7 +76,7 @@ fixnum_invert
 fixnum_le
 fixnum_left_shift
 fixnum_lt
-fixnum_modulo
+fixnum_mod
 fixnum_mul
 fixnum_neg
 fixnum_or
@@ -99,11 +99,11 @@ float_isnan
 float_le
 float_lt
 float_mul
+float_neg
 float_pow
 float_round
 float_sub
 float_to_i
-float_uminus
 fork_process
 gc_collect_references
 gc_start

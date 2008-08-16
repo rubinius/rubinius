@@ -110,6 +110,17 @@ namespace rubinius {
     return Qfalse;
   }
 
+  OBJECT Float::eql(STATE, Float* other) {
+    if(this->val == other->val) {
+      return Qtrue;
+    }
+    return Qfalse;
+  }
+
+  OBJECT Float::eql(STATE, INTEGER other) {
+    return Qfalse;
+  }
+
   FIXNUM Float::compare(STATE, Float* other) {
     if(this->val == other->val) {
       return Fixnum::from(0);

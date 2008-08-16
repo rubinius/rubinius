@@ -196,6 +196,14 @@ class TestFloat : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Float::create(state, 2.1)->equal(state, Fixnum::from(2)), Qfalse);
   }
 
+  void test_eql() {
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->eql(state, Float::create(state, 0.2)), Qtrue);
+    TS_ASSERT_EQUALS(Float::create(state, 0.2)->eql(state, Float::create(state, 0.3)), Qfalse);
+
+    TS_ASSERT_EQUALS(Float::create(state, 2.0)->eql(state, Fixnum::from(2)), Qfalse);
+    TS_ASSERT_EQUALS(Float::create(state, 2.1)->eql(state, Fixnum::from(2)), Qfalse);
+  }
+
   void test_compare() {
     TS_ASSERT_EQUALS(Float::create(state, 0.2)->compare(state, Float::create(state, 0.1)), Fixnum::from( 1));
     TS_ASSERT_EQUALS(Float::create(state, 0.2)->compare(state, Float::create(state, 0.2)), Fixnum::from( 0));

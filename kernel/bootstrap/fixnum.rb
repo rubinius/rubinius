@@ -37,7 +37,7 @@ class Fixnum < Integer
   end
   
   def %(o)
-    Ruby.primitive :fixnum_modulo
+    Ruby.primitive :fixnum_mod
     super(o)
   end
   

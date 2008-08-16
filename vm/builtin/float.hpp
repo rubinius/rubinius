@@ -74,6 +74,11 @@ namespace rubinius {
     // Ruby.primitive! :float_equal
     OBJECT equal(STATE, INTEGER other);
 
+    // Ruby.primitive! :float_eql
+    OBJECT eql(STATE, Float* other);
+    // Ruby.primitive! :float_eql
+    OBJECT eql(STATE, INTEGER other);
+
     // Ruby.primitive! :float_compare
     FIXNUM compare(STATE, Float* other);
     // Ruby.primitive! :float_compare
