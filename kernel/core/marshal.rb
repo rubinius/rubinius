@@ -553,7 +553,7 @@ module Marshal
 
     def frexp(flt)
       ptr = MemoryPointer.new :int
-      return Platform::Float.frexp flt, ptr
+      return Platform::Float.frexp(flt, ptr)
     ensure
       ptr.free if ptr
     end

@@ -872,7 +872,7 @@ class Array
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
   def map!(&block)
-    replace(map &block)
+    replace(map(&block))
   end
   
   alias_method :collect!, :map!
@@ -1411,7 +1411,7 @@ class Array
   # whether the first parameter is smaller, equal or larger than the
   # second parameter.
   def sort(&block)
-    dup.sort! &block
+    dup.sort!(&block)
   end
 
   # Sorts this Array in-place. See #sort.

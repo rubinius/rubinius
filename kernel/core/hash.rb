@@ -12,7 +12,7 @@ class Hash
 
   def self.[](*args)
     if args.first.kind_of? Hash and args.length == 1
-      return new.replace args.first
+      return new.replace(args.first)
     end
 
     raise ArgumentError, "Expected an even number, got #{args.length}" if args.length % 2 == 1
