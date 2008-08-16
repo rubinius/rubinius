@@ -91,6 +91,10 @@ namespace rubinius {
     native_int slim = a->to_native();
     native_int olim = b->to_native();
 
+    if(slim < 0 || olim < 0) {
+      throw PrimitiveFailed();
+    }
+
     // clamp limits to actual sizes
     native_int m = size < slim ? size : slim;
     native_int n = osize < olim ? osize : olim;

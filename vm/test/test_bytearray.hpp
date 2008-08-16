@@ -132,15 +132,33 @@ class TestByteArray : public CxxTest::TestSuite {
   }
 
   void test_compare_bytes() {
-    ByteArray* a = String::create(state, "xyZzy")->data;
-    ByteArray* b = String::create(state, "xyzzy")->data;
+    ByteArray* a = String::create(state, "xyZzyx")->data;
+    ByteArray* b = String::create(state, "xyzzyx")->data;
 
     INTEGER two = Fixnum::from(2);
     INTEGER three = Fixnum::from(3);
+    INTEGER size = Fixnum::from(8);
+    INTEGER size1 = Fixnum::from(9);
+
+    TS_ASSERT_EQUALS(a->size(state)->to_native(), 8);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
 
     TS_ASSERT_EQUALS(a->compare_bytes(state, b, two, two), Fixnum::from(0));
     TS_ASSERT_EQUALS(a->compare_bytes(state, b, two, three), Fixnum::from(-1));
     TS_ASSERT_EQUALS(a->compare_bytes(state, b, three, two), Fixnum::from(1));
     TS_ASSERT_EQUALS(a->compare_bytes(state, b, three, three), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(a->compare_bytes(state, b, size, size), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(a->compare_bytes(state, b, size1, size1), Fixnum::from(-1));
+  }
+
+  void test_compare_bytes_out_of_bounds() {
+    ByteArray* a = String::create(state, "xyZzy")->data;
+    ByteArray* b = String::create(state, "xyzzy")->data;
+
+    INTEGER zero = Fixnum::from(0);
+    INTEGER neg = Fixnum::from(-1);
+
+    TS_ASSERT_THROWS(a->compare_bytes(state, b, neg, zero), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(a->compare_bytes(state, b, zero, neg), const PrimitiveFailed &);
   }
 };
