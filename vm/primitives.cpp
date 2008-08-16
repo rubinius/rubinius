@@ -8,6 +8,7 @@ namespace rubinius {
     state->print_backtrace();
     std::cout << "Called unbound or invalid primitive from: " << *msg.name->to_str(state) <<"\n";
     abort();
+    return false;
   }
 
 #include "gen/primitives_glue.gen.cpp"

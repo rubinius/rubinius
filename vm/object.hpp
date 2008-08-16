@@ -16,7 +16,18 @@
 
 namespace rubinius {
 
-  class VMException { };
+  void abort();
+  void print_backtrace();
+
+  class VMException {
+  public:
+    typedef std::vector<std::string> Backtrace;
+
+    Backtrace* backtrace;
+    VMException();
+    void print_backtrace();
+  };
+
   class Assertion : public VMException {
   public:
     char *reason;

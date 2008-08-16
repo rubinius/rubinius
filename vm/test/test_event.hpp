@@ -40,7 +40,7 @@ class TestEventLoop : public CxxTest::TestSuite {
   
   void test_timer() {
     TestChannelObject chan(state);
-    event::Timer* timer = new event::Timer(state, &chan, 0.2);
+    event::Timer* timer = new event::Timer(state, &chan, 0.05);
 
     state->events->start(timer);
 
