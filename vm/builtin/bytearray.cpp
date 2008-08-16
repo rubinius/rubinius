@@ -23,6 +23,10 @@ namespace rubinius {
     return out;
   }
 
+  ByteArray* ByteArray::allocate(STATE, INTEGER bytes) {
+    return ByteArray::create(state, bytes->to_native());
+  }
+
   INTEGER ByteArray::size(STATE) {
     return Fixnum::from(SIZE_OF_BODY(this));
   }

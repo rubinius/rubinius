@@ -1,6 +1,6 @@
 class ByteArray
   def self.allocate(cnt)
-    Ruby.primitive :allocate_bytes
+    Ruby.primitive :bytearray_allocate
     raise PrimitiveFailure, "primitive failed"
   end
 

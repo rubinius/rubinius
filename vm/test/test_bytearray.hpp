@@ -21,6 +21,11 @@ class TestByteArray : public CxxTest::TestSuite {
     delete state;
   }
 
+  void test_allocate() {
+    ByteArray* b = ByteArray::allocate(state, Fixnum::from(5));
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
+  }
+
   void test_size() {
     ByteArray* b;
 
