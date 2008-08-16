@@ -45,7 +45,7 @@ namespace rubinius {
    */
   static int mp_set_long (mp_int * a, unsigned long b)
   {
-    int     res;
+    int     err;
     // TODO: Move these two values to bignum.h
     size_t  x = 0;
     size_t  count = sizeof(unsigned long) * 2;
@@ -56,8 +56,8 @@ namespace rubinius {
     /* set four bits at a time */
     for (x = 0; x < count; x++) {
       /* shift the number up four bits */
-      if ((res = mp_mul_2d (a, 4, a)) != MP_OKAY) {
-        return res;
+      if ((err = mp_mul_2d (a, 4, a)) != MP_OKAY) {
+        return err;
       }
 
       /* OR in the top four bits of the source */
@@ -219,11 +219,18 @@ namespace rubinius {
     a = (mp_int*)(o->bytes);
 
     if(num < 0) {
-      mp_init_set_long(a, (unsigned long)-num);
+      mp_init_set_int(a, (unsigned int)-num);
       a->sign = MP_NEG;
     } else {
-      mp_init_set_long(a, (unsigned long)num);
+      mp_init_set_int(a, (unsigned int)num);
     }
+    return o;
+  }
+
+  Bignum* Bignum::from(STATE, unsigned int num) {
+    Bignum* o;
+    o = (Bignum*)state->new_struct(G(bignum), sizeof(mp_int));
+    mp_init_set_int(MP(o), num);
     return o;
   }
 

@@ -1,5 +1,6 @@
 #include "builtin/bignum.hpp"
 #include "builtin/float.hpp"
+#include "builtin/string.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
@@ -28,25 +29,112 @@ class TestBignum : public CxxTest::TestSuite {
     delete state;
   }
 
-  void test_from_native() {
-    Bignum* obj = Bignum::from(state, (native_int)13);
+  void test_from_int() {
+    Bignum* obj = Bignum::from(state, (int)13);
     TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
     TS_ASSERT_EQUALS(obj->obj_type, BignumType);
+    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
   }
 
-  void test_to_int() {
-    Bignum* obj = Bignum::from(state, (native_int)13);
-    TS_ASSERT_EQUALS(obj->to_int(), (native_int)13);
+  void test_from_int_negative() {
+    Bignum* obj = Bignum::from(state, (int)-13);
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(obj->obj_type, BignumType);
+    TS_ASSERT_EQUALS(obj->to_native(), (native_int)-13);
   }
 
-  void test_from_native_negative() {
-    Bignum* obj = Bignum::from(state, (native_int)-13);
+  void test_from_unsigned_int() {
+    Bignum* obj = Bignum::from(state, (unsigned int)13);
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(obj->obj_type, BignumType);
+    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+  }
+
+  void test_from_long() {
+    Bignum* obj = Bignum::from(state, (long)13);
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(obj->obj_type, BignumType);
+    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+  }
+
+  void test_from_long_negative() {
+    Bignum* obj = Bignum::from(state, (long)-13);
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(obj->obj_type, BignumType);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int)-13);
   }
 
   void test_from_unsigned_long() {
     Bignum* obj = Bignum::from(state, (unsigned long)13);
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(obj->obj_type, BignumType);
     TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+  }
+
+  void test_from_long_long() {
+    Bignum* obj = Bignum::from(state, (long long)13);
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(obj->obj_type, BignumType);
+    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+  }
+
+  void test_from_long_long_negative() {
+    Bignum* obj = Bignum::from(state, (long long)-13);
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(obj->obj_type, BignumType);
+    TS_ASSERT_EQUALS(obj->to_native(), (native_int)-13);
+  }
+
+  void test_from_unsigned_long_long() {
+    Bignum* obj = Bignum::from(state, (unsigned long long)13);
+    TS_ASSERT_EQUALS(obj->class_object(state), G(bignum));
+    TS_ASSERT_EQUALS(obj->obj_type, BignumType);
+    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+  }
+
+  void test_to_int() {
+    Bignum* obj = Bignum::from(state, (native_int)13);
+    TS_ASSERT_EQUALS(obj->to_int(), (int)13);
+  }
+
+  void test_to_int_negative() {
+    Bignum* obj = Bignum::from(state, (native_int)-13);
+    TS_ASSERT_EQUALS(obj->to_int(), (int)-13);
+  }
+
+  void test_to_unsigned_int() {
+    Bignum* obj = Bignum::from(state, (native_int)13);
+    TS_ASSERT_EQUALS(obj->to_uint(), (unsigned int)13);
+  }
+
+  void test_to_long() {
+    Bignum* obj = Bignum::from(state, (native_int)13);
+    TS_ASSERT_EQUALS(obj->to_long(), (long)13);
+  }
+
+  void test_to_long_negative() {
+    Bignum* obj = Bignum::from(state, (native_int)-13);
+    TS_ASSERT_EQUALS(obj->to_long(), (long)-13);
+  }
+
+  void test_to_unsigned_long() {
+    Bignum* obj = Bignum::from(state, (native_int)13);
+    TS_ASSERT_EQUALS(obj->to_ulong(), (unsigned long)13);
+  }
+
+  void test_to_long_long() {
+    Bignum* obj = Bignum::from(state, (native_int)13);
+    TS_ASSERT_EQUALS(obj->to_long_long(), (long long)13);
+  }
+
+  void test_to_long_long_negative() {
+    Bignum* obj = Bignum::from(state, (native_int)-13);
+    TS_ASSERT_EQUALS(obj->to_long_long(), (long long)-13);
+  }
+
+  void test_to_unsigned_long_long() {
+    Bignum* obj = Bignum::from(state, (native_int)13);
+    TS_ASSERT_EQUALS(obj->to_ulong_long(), (unsigned long long)13);
   }
 
   void test_create() {
@@ -430,6 +518,31 @@ class TestBignum : public CxxTest::TestSuite {
     check_float(b1->to_float(state), Float::create(state, 2147483647.0));
   }
 
+  void test_to_float_huge_positive() {
+    /* Make sure we have a big enough bignum */
+    char* buf = new char[2048];
+    for(int i = 0; i < 2047; i++) {
+      buf[i] = '1';
+    }
+    buf[2047] = '\0';
+    Bignum* b = as<Bignum>(Bignum::from_string(state, buf, 10));
+    Float*  f = b->to_float(state);
+    TS_ASSERT_EQUALS(f->fisinf(state), Fixnum::from(1));
+  }
+
+  void test_to_float_huge_negative() {
+    /* Make sure we have a big enough bignum */
+    char* buf = new char[2049];
+    buf[0] = '-';
+    for(int i = 1; i < 2048; i++) {
+      buf[i] = '1';
+    }
+    buf[2048] = '\0';
+    Bignum* b = as<Bignum>(Bignum::from_string(state, buf, 10));
+    Float*  f = b->to_float(state);
+    TS_ASSERT_EQUALS(f->fisinf(state), Fixnum::from(-1));
+  }
+
   void test_from_float() {
     double f = 2147483647.0;
 
@@ -479,6 +592,19 @@ class TestBignum : public CxxTest::TestSuite {
     OBJECT b = Bignum::from_string(state, "47", 10);
     TS_ASSERT(b->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(b)->to_native(), 47);
+  }
+
+  void test_to_s() {
+    /* Make sure we have a big enough bignum */
+    char* buf = new char[2048];
+    for(int i = 0; i < 2047; i++) {
+      buf[i] = '1';
+    }
+    buf[2047] = '\0';
+    Bignum* b = as<Bignum>(Bignum::from_string(state, buf, 10));
+    String* s = b->to_s(state, Fixnum::from(10));
+
+    TS_ASSERT_EQUALS(std::string(buf), (char*)*s);
   }
 
   void test_size() {

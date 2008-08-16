@@ -18,6 +18,7 @@ namespace rubinius {
     static void init(STATE);
 
     static Bignum* from(STATE, int num);
+    static Bignum* from(STATE, unsigned int num);
     static Bignum* from(STATE, long num);
     static Bignum* from(STATE, unsigned long);
     static Bignum* from(STATE, long long val);
