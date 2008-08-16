@@ -24,6 +24,9 @@ namespace rubinius {
     // Ruby.primitive :bytearray_set_byte
     FIXNUM set_byte(STATE, INTEGER index, FIXNUM value);
 
+    // Ruby.primitive :bytearray_move_bytes
+    INTEGER move_bytes(STATE, INTEGER start, INTEGER count, INTEGER dest);
+
     char* to_chars(STATE);
 
     class Info : public TypeInfo {

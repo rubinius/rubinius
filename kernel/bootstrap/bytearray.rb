@@ -20,8 +20,8 @@ class ByteArray
     raise PrimitiveFailure, "primitive failed"
   end
 
-  def move_bytes(start, count, offset)
-    Ruby.primitive :move_bytes
+  def move_bytes(start, count, dest)
+    Ruby.primitive :bytearray_move_bytes
     raise ArgumentError, "move_bytes failed!"
   end
 

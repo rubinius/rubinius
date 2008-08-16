@@ -49,4 +49,19 @@ namespace rubinius {
     this->bytes[idx] = value->to_native();
     return Fixnum::from(this->bytes[idx]);
   }
+
+  INTEGER ByteArray::move_bytes(STATE, INTEGER start, INTEGER count, INTEGER dest) {
+    native_int size = SIZE_OF_BODY(this);
+    native_int src = start->to_native();
+    native_int cnt = count->to_native();
+    native_int dst = dest->to_native();
+
+    if(src + cnt > size || dst + cnt > size || src < 0 || dst < 0 || cnt < 0) {
+      throw PrimitiveFailed();
+    }
+
+    memmove(this->bytes + dst, this->bytes + src, cnt);
+
+    return count;
+  }
 }

@@ -77,4 +77,29 @@ class TestByteArray : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(b->set_byte(state, Fixnum::from(sz+1), Fixnum::from('0')), const PrimitiveFailed &);
     TS_ASSERT_THROWS(b->set_byte(state, Fixnum::from(-1), Fixnum::from('0')), const PrimitiveFailed &);
   }
+
+  void test_move_bytes() {
+    String* s = String::create(state, "xyzzy");
+    ByteArray* b = s->data;
+    b->move_bytes(state, Fixnum::from(0), Fixnum::from(2), Fixnum::from(3));
+    TS_ASSERT_SAME_DATA(b->bytes, "xyzxy", 5);
+  }
+
+  void test_move_bytes_out_of_bounds() {
+    ByteArray* b = String::create(state, "xyzzy")->data;
+
+    INTEGER neg = Fixnum::from(-1);
+    INTEGER one = Fixnum::from(1);
+    INTEGER zero = Fixnum::from(0);
+    INTEGER size = b->size(state);
+    INTEGER size1 = Fixnum::from(b->size(state)->to_native()+1);
+
+    TS_ASSERT_THROWS(b->move_bytes(state, neg, zero, zero), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(b->move_bytes(state, zero, neg, zero), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(b->move_bytes(state, zero, zero, neg), const PrimitiveFailed &);
+
+    TS_ASSERT_THROWS(b->move_bytes(state, zero, size1, zero), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(b->move_bytes(state, zero, size, one), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(b->move_bytes(state, one, size, zero), const PrimitiveFailed &);
+  }
 };
