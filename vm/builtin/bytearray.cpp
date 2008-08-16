@@ -37,4 +37,16 @@ namespace rubinius {
 
     return Fixnum::from(this->bytes[idx]);
   }
+
+  FIXNUM ByteArray::set_byte(STATE, INTEGER index, FIXNUM value) {
+    native_int size = SIZE_OF_BODY(this);
+    native_int idx = index->to_native();
+
+    if(idx < 0 || idx >= size) {
+      throw PrimitiveFailed();
+    }
+
+    this->bytes[idx] = value->to_native();
+    return Fixnum::from(this->bytes[idx]);
+  }
 }

@@ -21,6 +21,9 @@ namespace rubinius {
     // Ruby.primitive :bytearray_get_byte
     FIXNUM get_byte(STATE, INTEGER index);
 
+    // Ruby.primitive :bytearray_set_byte
+    FIXNUM set_byte(STATE, INTEGER index, FIXNUM value);
+
     char* to_chars(STATE);
 
     class Info : public TypeInfo {

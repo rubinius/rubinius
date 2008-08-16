@@ -61,4 +61,20 @@ class TestByteArray : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(b->get_byte(state, Fixnum::from(sz+1)), const PrimitiveFailed &);
     TS_ASSERT_THROWS(b->get_byte(state, Fixnum::from(-1)), const PrimitiveFailed &);
   }
+
+  void test_set_byte() {
+    ByteArray* b = String::create(state, "xyz")->data;
+    b->set_byte(state, Fixnum::from(0), Fixnum::from('1'));
+    TS_ASSERT_EQUALS(b->get_byte(state, Fixnum::from(0)), Fixnum::from('1'));
+    b->set_byte(state, Fixnum::from(2), Fixnum::from('2'));
+    TS_ASSERT_EQUALS(b->get_byte(state, Fixnum::from(2)), Fixnum::from('2'));
+  }
+
+  void test_set_byte_out_of_bounds() {
+    ByteArray* b = String::create(state, "xyz")->data;
+    native_int sz = b->size(state)->to_native();
+    TS_ASSERT_THROWS(b->set_byte(state, Fixnum::from(sz), Fixnum::from('0')), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(b->set_byte(state, Fixnum::from(sz+1), Fixnum::from('0')), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(b->set_byte(state, Fixnum::from(-1), Fixnum::from('0')), const PrimitiveFailed &);
+  }
 };

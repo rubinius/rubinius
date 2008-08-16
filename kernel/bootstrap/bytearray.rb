@@ -26,30 +26,30 @@ class ByteArray
   end
 
   def get_byte(index)
-    Ruby.primitive :get_byte
+    Ruby.primitive :bytearray_get_byte
     raise PrimitiveFailure, "primitive failed"
   end
-  
+
   def set_byte(index, value)
-    Ruby.primitive :set_byte
+    Ruby.primitive :bytearray_set_byte
     raise PrimitiveFailure, "primitive failed"
   end
 
   def compare_bytes(other, a, b)
     Ruby.primitive :compare_bytes
     raise PrimitiveFailure, "primitive failed"
-  end  
+  end
 
   def size
     Ruby.primitive :bytearray_size
     raise PrimitiveFailure, "primitive failed"
   end
-  
+
   def dup_into(other)
     Ruby.primitive :bytes_dup_into
     raise PrimitiveFailure, "primitive failed"
   end
-  
+
   def dup(cls=nil)
     cls ||= self.class
     obj = cls.new(self.size)
