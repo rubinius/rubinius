@@ -1,6 +1,5 @@
 activate_as_script
 activate_context
-allocate_bytes
 allocate_count
 allocate_hash
 allocate_module
@@ -33,8 +32,14 @@ bignum_to_s
 bignum_xor
 block_call
 block_given
+bytearray_allocate
+bytearray_compare_bytes
+bytearray_dup_into
+bytearray_fetch_bytes
+bytearray_get_byte
+bytearray_move_bytes
+bytearray_set_byte
 bytearray_size
-bytes_dup_into
 channel_new
 channel_receive
 channel_send
@@ -45,7 +50,6 @@ channel_send_on_signal
 channel_send_on_stopped
 channel_send_on_writable
 class_allocate
-compare_bytes
 context_dup
 context_get_field
 context_reload_method
@@ -60,7 +64,6 @@ dispatch_as_method
 dtrace_fire_ruby_probe
 dup_into
 env_as_hash
-fetch_bytes
 file_to_sexp
 file_unlink
 find_method
@@ -107,7 +110,6 @@ float_to_i
 fork_process
 gc_collect_references
 gc_start
-get_byte
 get_index
 get_ivar
 hash_delete
@@ -124,8 +126,6 @@ io_reopen
 io_seek
 io_write
 iseq_compile
-ivar_get
-ivar_set
 ivars_get
 load_file
 load_library
@@ -145,7 +145,6 @@ machine_send_message
 make_weak_ref
 marshal_object
 marshal_to_file
-move_bytes
 nfunc_add
 nfunc_call
 nfunc_call_object
@@ -158,9 +157,11 @@ object_dup
 object_equal
 object_freeze
 object_frozen_p
+object_get_ivar
 object_id
 object_put
 object_send
+object_set_ivar
 object_taint
 object_tainted_p
 object_untaint
@@ -185,7 +186,6 @@ selector_clear
 sendsite_at
 sendsite_create
 sendsite_set_sender
-set_byte
 set_index
 set_ivar
 string_append
