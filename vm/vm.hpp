@@ -67,6 +67,7 @@ namespace rubinius {
     Class* new_class(OBJECT sup, size_t fields);
     Class* new_class(const char* name);
     Class* new_class(const char* name, size_t fields);
+    Class* new_class(const char* name, Module* under);
     Class* new_class(const char* name, OBJECT sup, size_t fields);
     Class* new_class(const char* name, OBJECT sup, size_t fields, Module* under);
     Module* new_module(const char* name, Module* under = NULL);

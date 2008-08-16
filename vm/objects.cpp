@@ -78,6 +78,13 @@ namespace rubinius {
     return new_class(name, G(object), fields);
   }
 
+  Class* VM::new_class(const char* name, Module* under) {
+    size_t fields = G(object)->instance_fields->to_native();
+    Class* cls = new_class(name, G(object), fields);
+    cls->setup(this, name, under);
+    return cls;
+  }
+
   Class* VM::new_class(const char* name, OBJECT sup, size_t fields) {
     return new_class(name, sup, fields, G(object));
   }
@@ -249,7 +256,7 @@ namespace rubinius {
     G(cmethod_vis)->set_object_type(CMVisibilityType);
 
     Module* rbx = new_module("Rubinius");
-    GO(vm).set(new_module("VM", rbx));
+    GO(vm).set(new_class("VM", rbx));
 
     bootstrap_exceptions();
 
