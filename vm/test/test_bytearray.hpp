@@ -2,6 +2,7 @@
 #include "vm.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/string.hpp"
+#include "primitives.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -22,7 +23,7 @@ class TestByteArray : public CxxTest::TestSuite {
 
   void test_size() {
     ByteArray* b;
-   
+
     b = ByteArray::create(state, 0);
     TS_ASSERT_EQUALS(b->size(state)->to_native(), 4);
 
@@ -47,5 +48,17 @@ class TestByteArray : public CxxTest::TestSuite {
     TS_ASSERT_SAME_DATA("xy", chars, 2);
   }
 
-};
+  void test_get_byte() {
+    ByteArray* b = String::create(state, "xyz")->data;
+    TS_ASSERT_EQUALS(b->get_byte(state, Fixnum::from(0)), Fixnum::from('x'));
+    TS_ASSERT_EQUALS(b->get_byte(state, Fixnum::from(2)), Fixnum::from('z'));
+  }
 
+  void test_get_byte_index_out_of_bounds() {
+    ByteArray* b = String::create(state, "xyz")->data;
+    native_int sz = b->size(state)->to_native();
+    TS_ASSERT_THROWS(b->get_byte(state, Fixnum::from(sz)), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(b->get_byte(state, Fixnum::from(sz+1)), const PrimitiveFailed &);
+    TS_ASSERT_THROWS(b->get_byte(state, Fixnum::from(-1)), const PrimitiveFailed &);
+  }
+};

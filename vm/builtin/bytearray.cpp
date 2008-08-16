@@ -3,6 +3,7 @@
 #include "bytearray.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "primitives.hpp"
 #include "builtin/fixnum.hpp"
 
 namespace rubinius {
@@ -24,5 +25,16 @@ namespace rubinius {
 
   INTEGER ByteArray::size(STATE) {
     return Fixnum::from(SIZE_OF_BODY(this));
+  }
+
+  FIXNUM ByteArray::get_byte(STATE, INTEGER index) {
+    native_int size = SIZE_OF_BODY(this);
+    native_int idx = index->to_native();
+
+    if(idx < 0 || idx >= size) {
+      throw PrimitiveFailed();
+    }
+
+    return Fixnum::from(this->bytes[idx]);
   }
 }

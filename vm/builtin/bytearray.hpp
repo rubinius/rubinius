@@ -17,6 +17,10 @@ namespace rubinius {
 
     // Ruby.primitive :bytearray_size
     INTEGER size(STATE);
+
+    // Ruby.primitive :bytearray_get_byte
+    FIXNUM get_byte(STATE, INTEGER index);
+
     char* to_chars(STATE);
 
     class Info : public TypeInfo {
