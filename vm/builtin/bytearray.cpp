@@ -84,4 +84,34 @@ namespace rubinius {
 
     return ba;
   }
+
+  FIXNUM ByteArray::compare_bytes(STATE, ByteArray* other, INTEGER a, INTEGER b) {
+    native_int size = SIZE_OF_BODY(this);
+    native_int osize = SIZE_OF_BODY(other);
+    native_int slim = a->to_native();
+    native_int olim = b->to_native();
+
+    // clamp limits to actual sizes
+    native_int m = size < slim ? size : slim;
+    native_int n = osize < olim ? osize : olim;
+
+    // only compare the shortest string
+    native_int len = m < n ? m : n;
+
+    native_int cmp = memcmp(this->bytes, other->bytes, len);
+
+    // even if substrings are equal, check actual requested limits
+    // of comparison e.g. "xyz", "xyzZ"
+    if(cmp == 0) {
+      if(m < n) {
+        return Fixnum::from(-1);
+      } else if(m > n) {
+        return Fixnum::from(1);
+      } else {
+        return Fixnum::from(0);
+      }
+    } else {
+      return cmp < 0 ? Fixnum::from(-1) : Fixnum::from(1);
+    }
+  }
 }

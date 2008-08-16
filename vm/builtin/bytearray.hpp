@@ -33,6 +33,9 @@ namespace rubinius {
     // Ruby.primitive :bytearray_fetch_bytes
     ByteArray* fetch_bytes(STATE, INTEGER start, INTEGER count);
 
+    // Ruby.primitive :bytearray_compare_bytes
+    FIXNUM compare_bytes(STATE, ByteArray* other, INTEGER a, INTEGER b);
+
     char* to_chars(STATE);
 
     class Info : public TypeInfo {

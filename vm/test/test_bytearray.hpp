@@ -130,4 +130,17 @@ class TestByteArray : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(b->fetch_bytes(state, zero, size1), const PrimitiveFailed &);
     TS_ASSERT_THROWS(b->fetch_bytes(state, one, size), const PrimitiveFailed &);
   }
+
+  void test_compare_bytes() {
+    ByteArray* a = String::create(state, "xyZzy")->data;
+    ByteArray* b = String::create(state, "xyzzy")->data;
+
+    INTEGER two = Fixnum::from(2);
+    INTEGER three = Fixnum::from(3);
+
+    TS_ASSERT_EQUALS(a->compare_bytes(state, b, two, two), Fixnum::from(0));
+    TS_ASSERT_EQUALS(a->compare_bytes(state, b, two, three), Fixnum::from(-1));
+    TS_ASSERT_EQUALS(a->compare_bytes(state, b, three, two), Fixnum::from(1));
+    TS_ASSERT_EQUALS(a->compare_bytes(state, b, three, three), Fixnum::from(-1));
+  }
 };

@@ -36,7 +36,7 @@ class ByteArray
   end
 
   def compare_bytes(other, a, b)
-    Ruby.primitive :compare_bytes
+    Ruby.primitive :bytearray_compare_bytes
     raise PrimitiveFailure, "primitive failed"
   end
 
