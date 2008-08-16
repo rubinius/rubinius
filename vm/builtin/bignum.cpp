@@ -279,6 +279,10 @@ namespace rubinius {
     return ret;
   }
 
+  Bignum* Bignum::create(STATE, FIXNUM val) {
+    return Bignum::from(state, val->to_native());
+  }
+
   native_int Bignum::to_native() {
     return (MP(this)->sign == MP_NEG) ? -mp_get_long(MP(this)) : mp_get_long(MP(this));
   }
@@ -829,7 +833,7 @@ namespace rubinius {
     return Float::coerce(state, this)->le(state, b);
   }
 
-  Float* Bignum::to_f(STATE) {
+  Float* Bignum::to_float(STATE) {
     return Float::coerce(state, this);
   }
 
@@ -938,7 +942,7 @@ namespace rubinius {
     return res;
   }
 
-  INTEGER Bignum::from_double(STATE, Float* f) {
+  INTEGER Bignum::from_float(STATE, Float* f) {
     return Bignum::from_double(state, f->val);
   }
 

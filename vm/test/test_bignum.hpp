@@ -49,6 +49,11 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
   }
 
+  void test_create() {
+    Bignum* obj = Bignum::create(state, Fixnum::from(13));
+    TS_ASSERT_EQUALS(obj->to_native(), (native_int)13);
+  }
+
   void test_normalize() {
     Bignum* obj = Bignum::from(state, (native_int)13);
     OBJECT out = Bignum::normalize(state, obj);
@@ -421,24 +426,24 @@ class TestBignum : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(Bignum::from(state, (native_int)-3)->le(state, Float::create(state, -3.1)), Qfalse);
   }
 
-  void test_to_f() {
-    check_float(b1->to_f(state), Float::create(state, 2147483647.0));
+  void test_to_float() {
+    check_float(b1->to_float(state), Float::create(state, 2147483647.0));
   }
 
-  void test_from_double_external() {
+  void test_from_float() {
     double f = 2147483647.0;
 
-    OBJECT s = Bignum::from_double(state, Float::create(state, f));
+    OBJECT s = Bignum::from_float(state, Float::create(state, f));
     TS_ASSERT_EQUALS(as<Integer>(s)->to_native(), (long)f);
 
     f = -2147483647.0;
 
-    s = Bignum::from_double(state, Float::create(state, f));
+    s = Bignum::from_float(state, Float::create(state, f));
     TS_ASSERT_EQUALS(as<Integer>(s)->to_native(), (long)f);
   }
 
 
-  void test_from_double_internal() { // TODO: wtf? this doesn't test bignum at all.
+  void test_from_double() { // TODO: wtf? this doesn't test bignum at all.
     OBJECT s = Bignum::from_double(state, 1.0);
     TS_ASSERT(s->fixnum_p());
     TS_ASSERT_EQUALS(as<Integer>(s)->to_native(), 1.0);

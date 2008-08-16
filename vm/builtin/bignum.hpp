@@ -37,8 +37,11 @@ namespace rubinius {
     static INTEGER from_string(STATE, const char* str, size_t radix);
     static INTEGER from_double(STATE, double d);
 
-    // Ruby.primitive :bignum_from_double
-    static INTEGER from_double(STATE, Float* f); // FIX: this is horrible to overload against a non-primitive
+    // Ruby.primitive :bignum_new
+    static Bignum* create(STATE, FIXNUM f);
+
+    // Ruby.primitive :bignum_from_float
+    static INTEGER from_float(STATE, Float* f);
 
     void   debug(STATE);
     // Ruby.primitive! :bignum_add
@@ -153,8 +156,8 @@ namespace rubinius {
     // Ruby.primitive! :bignum_le
     OBJECT le(STATE, Float* b);
 
-    // Ruby.primitive :bignum_to_f
-    Float* to_f(STATE);
+    // Ruby.primitive :bignum_to_float
+    Float* to_float(STATE);
 
     // Ruby.primitive :bignum_to_s
     String* to_s(STATE, INTEGER radix);
