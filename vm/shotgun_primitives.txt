@@ -1,9 +1,7 @@
 activate_as_script
 activate_context
 allocate_count
-allocate_hash
 allocate_module
-allocate_table
 array_aref
 array_aset
 bignum_add
@@ -63,7 +61,6 @@ dir_read
 dispatch_as_method
 dtrace_fire_ruby_probe
 dup_into
-env_as_hash
 file_to_sexp
 file_unlink
 find_method
@@ -112,12 +109,6 @@ gc_collect_references
 gc_start
 get_index
 get_ivar
-hash_delete
-hash_get
-hash_object
-hash_redistribute
-hash_set
-hash_value_set
 io_close_ng
 io_open
 io_operation
@@ -130,6 +121,7 @@ ivars_get
 load_file
 load_library
 logical_class
+lookuptable_allocate
 lookuptable_delete
 lookuptable_dup
 lookuptable_entries
@@ -158,6 +150,7 @@ object_equal
 object_freeze
 object_frozen_p
 object_get_ivar
+object_hash
 object_id
 object_put
 object_send
