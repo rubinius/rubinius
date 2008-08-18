@@ -249,11 +249,13 @@ rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp', *hdrs do |path|
 end
 
 namespace :vm do
-  desc 'Run all VM tests'
-  task :test => 'vm/test/runner' do
+  desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'
+  task :test, :filter do |task, args|
+    ENV['SUITE'] = args[:filter] if args[:filter]
     ENV['VERBOSE'] = '1' if $verbose
     sh 'vm/test/runner', :verbose => $verbose
   end
+  task :test => 'vm/test/runner'
 
   task :coverage do
     Dir.mkdir "vm/test/coverage" unless File.directory? "vm/test/coverage"
