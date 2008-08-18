@@ -190,7 +190,7 @@ void #{meth}() {
   cm->literals = Tuple::create(state, 10);
   cm->formalize(state);
 
-  MethodContext* ctx = task->generate_context(Qnil, cm);
+  MethodContext* ctx = task->generate_context(Qnil, cm, G(object));
   task->make_active(ctx);
   // The += 0 disable unused variable warnings.
 

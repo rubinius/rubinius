@@ -69,7 +69,7 @@ namespace rubinius {
     // Ruby.primitive :task_current_context
     MethodContext* current_context(STATE);
 
-    MethodContext* generate_context(OBJECT recv, CompiledMethod* meth);
+    MethodContext* generate_context(OBJECT recv, CompiledMethod* meth, Class* module);
     void restore_context(MethodContext* ctx);
     void make_active(MethodContext* ctx);
     void execute();

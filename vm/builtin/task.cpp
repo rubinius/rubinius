@@ -55,7 +55,7 @@ namespace rubinius {
     if(stack_size == 0) stack_size = CompiledMethod::tramp_stack_size;
 
     CompiledMethod* cm = CompiledMethod::generate_tramp(state, stack_size);
-    MethodContext* ctx = task->generate_context(G(main), cm);
+    MethodContext* ctx = task->generate_context(G(main), cm, G(object));
 
     SET(task, active, ctx);
 
@@ -72,13 +72,13 @@ namespace rubinius {
     return context;
   }
 
-  MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth) {
+  MethodContext* Task::generate_context(OBJECT recv, CompiledMethod* meth, Class* module) {
     MethodContext* ctx = MethodContext::create(state, meth->stack_size->to_native());
 
     SET(ctx, sender, (MethodContext*)Qnil);
     SET(ctx, self, recv);
     SET(ctx, cm, meth);
-    SET(ctx, module, G(object));
+    SET(ctx, module, module);
     SET(ctx, home, ctx);
 
     ctx->vmm = (VMMethod*)meth->executable;

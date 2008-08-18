@@ -74,7 +74,7 @@ namespace rubinius {
   bool VMMethod::executor(STATE, VMExecutable* exec, Task* task, Message& msg) {
     VMMethod* meth = (VMMethod*)exec;
 
-    MethodContext* ctx = task->generate_context(msg.recv, meth->original.get());
+    MethodContext* ctx = task->generate_context(msg.recv, meth->original.get(), G(object));
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);
