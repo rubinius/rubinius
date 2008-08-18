@@ -161,4 +161,24 @@ class TestByteArray : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(a->compare_bytes(state, b, neg, zero), const PrimitiveFailed &);
     TS_ASSERT_THROWS(a->compare_bytes(state, b, zero, neg), const PrimitiveFailed &);
   }
+
+  void test_dup_into() {
+    ByteArray* a = String::create(state, "xyZzyx")->data;
+    ByteArray* b = ByteArray::create(state, 4);
+
+    TS_ASSERT_EQUALS(a->size(state)->to_native(), 8);
+    TS_ASSERT_EQUALS(b->size(state)->to_native(), 8);
+
+    a->dup_into(state, b);
+    TS_ASSERT_SAME_DATA(b->bytes, "xyZzyx", 7);
+
+    ByteArray* c = ByteArray::create(state, 0);
+    TS_ASSERT_EQUALS(c->size(state)->to_native(), 4);
+    a->dup_into(state, c);
+    TS_ASSERT_SAME_DATA(c->bytes, "xyZz", 4);
+
+    ByteArray* d = ByteArray::create(state, 12);
+    a->dup_into(state, d);
+    TS_ASSERT_SAME_DATA(d->bytes, "xyZzyx", 7);
+  }
 };

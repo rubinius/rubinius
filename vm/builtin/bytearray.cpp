@@ -118,4 +118,13 @@ namespace rubinius {
       return cmp < 0 ? Fixnum::from(-1) : Fixnum::from(1);
     }
   }
+
+  ByteArray* ByteArray::dup_into(STATE, ByteArray* other) {
+    native_int size = SIZE_OF_BODY(this);
+    native_int osize = SIZE_OF_BODY(other);
+
+    memcpy(other->bytes, this->bytes, size < osize ? size : osize);
+
+    return other;
+  }
 }

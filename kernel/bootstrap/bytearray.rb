@@ -46,7 +46,7 @@ class ByteArray
   end
 
   def dup_into(other)
-    Ruby.primitive :bytes_dup_into
+    Ruby.primitive :bytearray_dup_into
     raise PrimitiveFailure, "primitive failed"
   end
 

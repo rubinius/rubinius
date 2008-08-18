@@ -36,6 +36,9 @@ namespace rubinius {
     // Ruby.primitive :bytearray_compare_bytes
     FIXNUM compare_bytes(STATE, ByteArray* other, INTEGER a, INTEGER b);
 
+    // Ruby.primitive :bytearray_dup_into
+    ByteArray* dup_into(STATE, ByteArray* other);
+
     char* to_chars(STATE);
 
     class Info : public TypeInfo {
