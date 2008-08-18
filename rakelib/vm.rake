@@ -108,11 +108,11 @@ def compile(obj, src)
 
   flags = (INCLUDES + FLAGS + $llvm_c).join(' ')
 
-  if ENV['TERSE']
+  if $verbose
+    sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1"
+  else
     puts "CC #{src}"
     sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1", :verbose => false
-  else
-    sh "#{CC} #{flags} -c -o #{obj} #{src} 2>&1"
   end
 end
 
@@ -123,11 +123,11 @@ def link t
   o  = t.prerequisites.find_all { |f| f =~ /o$/ }.join(' ')
   l  = ex_libs.join(' ')
 
-  if ENV['TERSE']
+  if $verbose
+    sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
+  else
     puts "LD #{t.name}"
     sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}", :verbose => false
-  else
-    sh "#{ld} #{$link_opts} -o #{t.name} #{o} #{l}"
   end
 end
 
