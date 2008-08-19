@@ -8,6 +8,7 @@ namespace rubinius {
   class MetaClass;
   class Integer;
   class String;
+  class Module;
 
   class Object : public ObjectHeader {
   public:
@@ -113,6 +114,9 @@ namespace rubinius {
 
     // Ruby.primitive :object_get_ivars
     OBJECT get_ivars(STATE);
+
+    // Ruby.primitive :object_kind_of
+    OBJECT kind_of_prim(STATE, Module* klass);
 
     void copy_flags(STATE, OBJECT other);
     void copy_ivars(STATE, OBJECT other);

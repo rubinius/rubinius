@@ -318,6 +318,10 @@ namespace rubinius {
     return false;
   }
 
+  OBJECT Object::kind_of_prim(STATE, Module* klass) {
+    return kind_of_p(state, klass) ? Qtrue : Qfalse;
+  }
+
   hashval Object::hash(STATE) {
     hashval hsh;
     hsh = (hashval)(uintptr_t)this;

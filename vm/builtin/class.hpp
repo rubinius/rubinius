@@ -89,7 +89,6 @@ namespace rubinius {
     };
   };
 
-  /* See t1 */
   template <>
     static bool kind_of<Module>(OBJECT obj) {
       return obj->reference_p() &&

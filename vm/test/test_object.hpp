@@ -64,6 +64,13 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT(!str->kind_of_p(state, G(tuple)));
   }
 
+  void test_kind_of_prim() {
+    String* str = String::create(state, "thingy");
+
+    TS_ASSERT_EQUALS(Qtrue, str->kind_of_prim(state, G(string)));
+    TS_ASSERT_EQUALS(Qfalse, str->kind_of_prim(state, G(tuple)));
+  }
+
   void test_hash() {
     TS_ASSERT(Fixnum::from(8)->hash(state) > 0);
     TS_ASSERT(Fixnum::from(-8)->hash(state) > 0);
