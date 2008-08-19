@@ -26,12 +26,22 @@ namespace rubinius {
 
   class Task;
 
+  /* Task is a place to hang the current information about what is running.
+   * There is always exactly one Task per thread, but there may be
+   * arbitrarily-many threads.
+   */
+
   class Task : public Object {
   public:
     const static size_t fields = 0;
     const static object_type type = TaskType;
 
     OBJECT self; // slot
+
+    /* Literals are cached here for performance reasons.
+     * Otherwise, each reference would need to traverse:
+     * task->active->cm->literals
+     */
     Tuple* literals; // slot
     MethodContext* active; // slot
     MethodContext* home; // slot

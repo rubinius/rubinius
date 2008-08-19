@@ -71,6 +71,12 @@ namespace rubinius {
     }
   }
 
+  /* This is the executor implementation used by normal Ruby code,
+   * as opposed to Primitives or FFI functions.
+   * It prepares a Ruby method for execution.
+   * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
+   * CompiledMethod.
+   */
   bool VMMethod::executor(STATE, VMExecutable* exec, Task* task, Message& msg) {
     VMMethod* meth = (VMMethod*)exec;
 

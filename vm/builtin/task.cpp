@@ -32,7 +32,7 @@ namespace rubinius {
   }
 
   Task* Task::create(STATE, OBJECT recv, CompiledMethod* meth) {
-    Task* task = create(state);
+    Task* task = create(state, 0);
 
     Message msg(state, Array::create(state, 0));
     meth->execute(state, task, msg);
