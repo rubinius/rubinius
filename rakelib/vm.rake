@@ -197,10 +197,11 @@ files EXTERNALS do |t|
   end
 end
 
-file "vm/primitives.o" => "vm/field_extract.rb"
+file 'vm/primitives.o' => 'vm/field_extract.rb'
 file 'vm/instructions_gen.rb' => 'kernel/core/iseq.rb'
-file 'vm/instructions.rb' => "vm/gen"
-file 'vm/instructions.rb' => "vm/instructions_gen.rb"
+file 'vm/instructions.rb' => 'vm/gen'
+file 'vm/instructions.rb' => 'vm/instructions_gen.rb'
+file 'vm/test/test_instructions.hpp' => 'vm/instructions_gen.rb'
 
 files INSN_GEN, %w[vm/instructions.rb] do
   ruby 'vm/instructions.rb', :verbose => $verbose
