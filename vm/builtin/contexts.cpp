@@ -1,9 +1,10 @@
 #include "builtin/contexts.hpp"
 #include "objectmemory.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/class.hpp"
+#include "builtin/tuple.hpp"
 
 #include "context_cache.hpp"
 
@@ -62,6 +63,25 @@ initialize:
     state->context_cache->reclaim++;
     init_context(state, ctx, stack_size);
     return ctx;
+  }
+
+  int MethodContext::line() {
+    if(this->cm->nil_p()) return -2;        // trampoline context
+    if(this->cm->lines->nil_p()) return -3;
+
+    for(size_t i = 0; i < this->cm->lines->field_count; i++) {
+      Tuple* entry = as<Tuple>(this->cm->lines->at(i));
+
+      FIXNUM start_ip = as<Fixnum>(entry->at(0));
+      FIXNUM end_ip   = as<Fixnum>(entry->at(1));
+      FIXNUM line     = as<Fixnum>(entry->at(2));
+
+      if(start_ip->to_native() <= this->ip &&
+         end_ip->to_native()   >= this->ip)
+        return line->to_native();
+    }
+
+    return -1;
   }
 
   /* Attempt to recycle +this+ context into the context cache, based

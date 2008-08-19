@@ -171,6 +171,7 @@ namespace rubinius {
 
     while(!ctx->nil_p()) {
       std::cout << (void*)ctx << ": ";
+      // HACK reports Object#[] instead of Hash::[], etc
       std::cout << *ctx->module->name->to_str(this) << "#";
 
       SYMBOL name = try_as<Symbol>(ctx->name);
@@ -180,7 +181,7 @@ namespace rubinius {
         std::cout << *ctx->cm->name->to_str(this);
       }
 
-      std::cout << "+" << ctx->ip << " in " << *ctx->cm->file->to_str(this);
+      std::cout << ":" << ctx->line() << " in " << *ctx->cm->file->to_str(this);
 
       std::cout << "\n";
       ctx = ctx->sender;
