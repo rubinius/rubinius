@@ -6,6 +6,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/contexts.hpp"
 
 namespace rubinius {
   VMMethod::VMMethod(STATE, CompiledMethod* meth) :
@@ -80,7 +81,8 @@ namespace rubinius {
   bool VMMethod::executor(STATE, VMExecutable* exec, Task* task, Message& msg) {
     VMMethod* meth = (VMMethod*)exec;
 
-    MethodContext* ctx = task->generate_context(msg.recv, meth->original.get(), G(object));
+    MethodContext* ctx = MethodContext::create(state, msg.recv, meth->original.get());
+    // TODO - Set the MethodContext's module based on the Message we were passed.
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);

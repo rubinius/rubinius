@@ -1,6 +1,9 @@
 #include "builtin/contexts.hpp"
 #include "objectmemory.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/class.hpp"
 
 #include "context_cache.hpp"
 
@@ -101,9 +104,29 @@ initialize:
   }
 
   /* Return a new +MethodContext+ object, which needs +stack_size fields
-   * worth of stack. */
+   * worth of stack.
+   */
   MethodContext* MethodContext::create(STATE, size_t stack_size) {
     return allocate(state, G(methctx), stack_size);
+  }
+
+  /* Generate a MethodContext for the provided receiver and CompiledMethod
+   * The returned MethodContext is in an 'initial' state. The caller is
+   * expected to SET any fields it needs to, e.g. +module+
+   */
+  MethodContext* MethodContext::create(STATE, OBJECT recv, CompiledMethod* meth) {
+    MethodContext* ctx = MethodContext::create(state, meth->stack_size->to_native());
+
+    SET(ctx, sender, (MethodContext*)Qnil);
+    SET(ctx, self, recv);
+    SET(ctx, cm, meth);
+    SET(ctx, module, G(object));
+    SET(ctx, home, ctx);
+
+    ctx->vmm = (VMMethod*)meth->executable;
+    ctx->position_stack(meth->number_of_locals() - 1);
+
+    return ctx;
   }
 
   /* Retrieve the BlockEnvironment from +this+ BlockContext. We reuse the

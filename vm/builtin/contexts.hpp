@@ -40,6 +40,7 @@ namespace rubinius {
     OBJECT stk[];
 
     static MethodContext* create(STATE, size_t stack_size);
+    static MethodContext* create(STATE, OBJECT recv, CompiledMethod* meth);
     static void initialize_cache(STATE);
     static void reset_cache(STATE);
     bool recycle(STATE);

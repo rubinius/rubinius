@@ -58,8 +58,7 @@ CODE
       return false;
     }
 
-    MethodContext* ctx = task->generate_context(
-            msg->recv, original.get(), this);
+    MethodContext* ctx = MethodContext::create(state, msg->recv, original.get());
     task->make_active(ctx);
 
     for(size_t i = 0; i < required; i++) {
@@ -73,7 +72,7 @@ CODE
     Message* const msg = task->msg;
     if(task->msg.args != 0) return false;
 
-    MethodContext* ctx = task->generate_context(msg.recv, original.get(), this);
+    MethodContext* ctx = MethodContext::create(state, msg->recv, original.get());
     task->make_active(ctx);
     return true;
   }
