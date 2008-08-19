@@ -8,7 +8,15 @@
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
 
+/*
+ * An internalization of a CompiledMethod which holds the instructions for the
+ * method.
+ */
 namespace rubinius {
+
+  /*
+   * Turns a CompiledMethod's InstructionSequence into a C array of opcodes.
+   */
   VMMethod::VMMethod(STATE, CompiledMethod* meth) :
       original(state, meth), type(NULL) {
 
@@ -109,6 +117,9 @@ namespace rubinius {
         this->execute = func;
       }
 
+  /*
+   * Turns a VMMethod into a C++ vector of Opcodes.
+   */
   std::vector<Opcode*> VMMethod::create_opcodes() {
     std::vector<Opcode*> ops;
     std::map<int, size_t> stream2opcode;

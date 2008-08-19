@@ -33,6 +33,10 @@ namespace rubinius {
 
     std::vector<Opcode*> create_opcodes();
 
+    /*
+     * Helper class for iterating over an Opcode array.  Used to convert a
+     * VMMethod to an LLVM method.
+     */
     class Iterator {
     public:
       VMMethod* vmm;
