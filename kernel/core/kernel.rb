@@ -525,22 +525,8 @@ module Kernel
 
   def instance_variables
     vars = get_instance_variables
-    return [] if vars.nil?
+    return [] unless vars
 
-    # CSM awareness
-    if vars.kind_of? Tuple
-      out = []
-      0.step(vars.size - 1, 2) do |i|
-        k = vars[i]
-        if k
-          k = k.to_s
-          out << k
-        else
-          return out
-        end
-      end
-      return out
-    end
     return vars.keys.collect { |v| v.to_s }
   end
 
@@ -549,17 +535,6 @@ module Kernel
     return false unless vars
 
     name = name.to_sym unless name.kind_of? Symbol
-    
-    # CSM awareness
-    if vars.kind_of? Tuple
-      out = []
-      0.step(vars.size - 1, 2) do |i|
-        k = vars[i]
-        return true if k == name
-      end
-
-      return false
-    end
 
     return vars.key?(name)
   end

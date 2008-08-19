@@ -1,3 +1,4 @@
+#include "builtin/array.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/lookuptable.hpp"
 #include "objectmemory.hpp"
@@ -9,23 +10,16 @@ namespace rubinius {
   }
 
   OBJECT CompactLookupTable::fetch(STATE, OBJECT key) {
-    unsigned int i;
-
-    for(i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      if(at(i) == key) {
-        return at(i + 1);
-      }
+    for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
+      if(at(i) == key) return at(i + 1);
     }
 
     return Qnil;
   }
 
   OBJECT CompactLookupTable::store(STATE, OBJECT key, OBJECT val) {
-    unsigned int i;
-    OBJECT tmp;
-
-    for(i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      tmp = at(i);
+    for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
+      OBJECT tmp = at(i);
       if(tmp == key || tmp->nil_p()) {
         put(state, i, key);
         put(state, i + 1, val);
@@ -36,17 +30,42 @@ namespace rubinius {
     return Qfalse;
   }
 
-  LookupTable* CompactLookupTable::to_lookuptable(STATE) {
-    unsigned int i;
-    OBJECT key;
+  OBJECT CompactLookupTable::has_key(STATE, OBJECT key) {
+    for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
+      if(at(i) == key) return Qtrue;
+    }
 
+    return Qfalse;
+  }
+
+  Array* CompactLookupTable::keys(STATE) {
+    Array* ary = Array::create(state, COMPACTLOOKUPTABLE_SIZE / 2);
+
+    for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
+      OBJECT key = at(i);
+      if(!key->nil_p()) ary->append(state, key);
+    }
+
+    return ary;
+  }
+
+  Array* CompactLookupTable::values(STATE) {
+    Array* ary = Array::create(state, COMPACTLOOKUPTABLE_SIZE / 2);
+
+    for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
+      OBJECT key = at(i);
+      if(!key->nil_p()) ary->append(state, at(i + 1));
+    }
+
+    return ary;
+  }
+
+  LookupTable* CompactLookupTable::to_lookuptable(STATE) {
     LookupTable* tbl = (LookupTable*)LookupTable::create(state);
 
-    for(i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
-      key = at(i);
-      if(!key->nil_p()) {
-        tbl->store(state, key, at(i + 1));
-      }
+    for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
+      OBJECT key = at(i);
+      if(!key->nil_p()) tbl->store(state, key, at(i + 1));
     }
 
     return tbl;

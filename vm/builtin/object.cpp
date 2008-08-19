@@ -237,6 +237,9 @@ namespace rubinius {
     case DirType:
       type = "Dir";
       break;
+    case CompactLookupTableType:
+      type = "CompactLookupTable";
+      break;
     default:
       type = "unknown";
       break;

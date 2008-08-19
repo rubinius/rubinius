@@ -52,6 +52,32 @@ class TestCompactLookupTable : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(tbl->store(state, Fixnum::from(6), Qnil), Qfalse);
   }
 
+  void test_has_key() {
+    tbl->store(state, Fixnum::from(0), Qnil);
+    TS_ASSERT_EQUALS(tbl->has_key(state, Fixnum::from(0)), Qtrue);
+    TS_ASSERT_EQUALS(tbl->has_key(state, Fixnum::from(1)), Qfalse);
+  }
+
+  void test_keys() {
+    tbl->store(state, Fixnum::from(0), Fixnum::from(1));
+    tbl->store(state, Fixnum::from(2), Fixnum::from(3));
+    Array* ary = tbl->keys(state);
+
+    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(0));
+    TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(2));
+  }
+
+  void test_values() {
+    tbl->store(state, Fixnum::from(0), Fixnum::from(1));
+    tbl->store(state, Fixnum::from(2), Fixnum::from(3));
+    Array* ary = tbl->values(state);
+
+    TS_ASSERT_EQUALS(ary->size(), 2);
+    TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(1));
+    TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(3));
+  }
+
   void test_to_lookuptable() {
     LookupTable* lt;
     OBJECT key = Fixnum::from(1);

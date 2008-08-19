@@ -39,6 +39,9 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/primitives_declare.hpp
                   vm/gen/primitives_glue.gen.cpp ]
 
+# Files are in order based on dependencies. For example,
+# CompactLookupTable inherits from Tuple, so the header
+# for compactlookuptable.hpp has to come after tuple.hpp
 field_extract_headers = %w[
   vm/objects.hpp
   vm/builtin/object.hpp
@@ -50,7 +53,6 @@ field_extract_headers = %w[
   vm/builtin/channel.hpp
   vm/builtin/class.hpp
   vm/builtin/executable.hpp
-  vm/builtin/compactlookuptable.hpp
   vm/builtin/compiledmethod.hpp
   vm/builtin/contexts.hpp
   vm/builtin/dir.hpp
@@ -74,6 +76,7 @@ field_extract_headers = %w[
   vm/builtin/task.hpp
   vm/builtin/thread.hpp
   vm/builtin/tuple.hpp
+  vm/builtin/compactlookuptable.hpp
 ]
 
 BC          = "vm/instructions.bc"
