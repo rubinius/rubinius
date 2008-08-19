@@ -32,8 +32,8 @@ class BasicPrimitive
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
     str << "fail:\n"
-    str << "    return VMMethod::executor(state, exec, task, msg);\n"
-    str << "}\n"
+    str << "  return VMMethod::executor(state, exec, task, msg);\n"
+    str << "}\n\n"
   end
 
 end
@@ -116,8 +116,8 @@ class CPPOverloadedPrimitive < BasicPrimitive
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
     str << "fail:\n"
-    str << "    return VMMethod::executor(state, exec, task, msg);"
-    str << "}\n"
+    str << "  return VMMethod::executor(state, exec, task, msg);"
+    str << "}\n\n"
     return str
   end
 end
@@ -552,21 +552,30 @@ File.open("vm/gen/primitives_glue.gen.cpp", "w") do |f|
   parser.classes.each do |n, cpp|
     cpp.primitives.each do |pn, prim|
       names << pn
-      f.puts prim.generate_glue
+
+      f << prim.generate_glue
     end
   end
 
   f.puts "executor Primitives::resolve_primitive(STATE, SYMBOL name) {"
+
   names.each do |name|
-    f.puts "  if(name == state->symbol(\"#{name}\")) {"
-    f.puts "    return &Primitives::#{name};"
-    f.puts "  }"
+    f.puts <<-EOF
+  if(name == state->symbol("#{name}")) {
+    return &Primitives::#{name};
+  }
+
+    EOF
   end
-  f.puts "  std::string msg = std::string(\"Unable to resolve primitive: \") + (char*)*name->to_str(state);"
-  f.puts "  std::cout << msg << std::endl;"
-  f.puts "  return &Primitives::unknown_primitive;"
-  # commented out while we have soft primitive failures
-  #f.puts "  throw std::runtime_error(msg.c_str());"
-  f.puts "}"
+
+  f.puts <<-EOF
+std::string msg = std::string(\"Unable to resolve primitive: \") +
+                  (char*)*name->to_str(state);
+std::cout << msg << std::endl;
+return &Primitives::unknown_primitive;
+// commented out while we have soft primitive failures
+// throw std::runtime_error(msg.c_str());
+}
+  EOF
 end
 
