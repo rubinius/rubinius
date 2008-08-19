@@ -111,6 +111,9 @@ namespace rubinius {
     // Ruby.primitive :object_set_ivar
     OBJECT set_ivar(STATE, OBJECT sym, OBJECT val);
 
+    // Ruby.primitive :object_get_ivars
+    OBJECT get_ivars(STATE);
+
     void copy_flags(STATE, OBJECT other);
     void copy_ivars(STATE, OBJECT other);
     void copy_metaclass(STATE, OBJECT other);

@@ -118,6 +118,22 @@ class TestObject : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(val, obj->get_ivar(state, sym));
   }
 
+  void test_get_ivars() {
+    OBJECT obj = state->om->new_object(G(object), Object::fields);
+
+    SYMBOL sym1 = state->symbol("@test1");
+    SYMBOL sym2 = state->symbol("@test2");
+    FIXNUM one = Fixnum::from(1);
+    FIXNUM two = Fixnum::from(2);
+    obj->set_ivar(state, sym1, one);
+    obj->set_ivar(state, sym2, two);
+
+    CompactLookupTable* ivars = (CompactLookupTable*)obj->get_ivars(state);
+
+    TS_ASSERT_EQUALS(ivars->fetch(state, sym1), one);
+    TS_ASSERT_EQUALS(ivars->fetch(state, sym2), two);
+  }
+
   void test_id() {
     Tuple* t1 = Tuple::create(state, 2);
     Tuple* t2 = Tuple::create(state, 2);

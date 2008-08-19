@@ -33,7 +33,7 @@ class Object
   end
 
   def get_instance_variables
-    Ruby.primitive :ivars_get
+    Ruby.primitive :object_get_ivars
     raise PrimitiveFailure, "primitive failed"
   end
 

@@ -388,6 +388,10 @@ namespace rubinius {
     return class_object(state);
   }
 
+  OBJECT Object::get_ivars(STATE) {
+    return ivars;
+  }
+
   OBJECT Object::get_ivar(STATE, OBJECT sym) {
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
