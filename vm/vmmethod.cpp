@@ -45,9 +45,17 @@ namespace rubinius {
     delete[] opcodes;
   }
 
+  /*
+   * Looks at the opcodes for this method and optimizes instance variable
+   * access by using special byte codes.
+   *
+   * For push_ivar, uses push_my_field when the instance variable has an
+   * index assigned.  Same for set_ivar/store_my_field.
+   */
+
   void VMMethod::specialize(TypeInfo* ti) {
     type = ti;
-    for(size_t i = 0; i < total; i++) {
+    for(size_t i = 0; i < total;) {
       opcode op = opcodes[i];
 
       if(op == InstructionSequence::insn_push_ivar) {
@@ -57,7 +65,7 @@ namespace rubinius {
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_push_my_field;
-          opcodes[++i] = it->second;
+          opcodes[i + 1] = it->second;
         }
       } else if(op == InstructionSequence::insn_set_ivar) {
         native_int idx = opcodes[i + 1];
@@ -66,9 +74,11 @@ namespace rubinius {
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_store_my_field;
-          opcodes[++i] = it->second;
+          opcodes[i + 1] = it->second;
         }
       }
+
+      i += InstructionSequence::instruction_width(op);
     }
   }
 

@@ -15,8 +15,11 @@ namespace rubinius {
     Tuple* opcodes; // slot
     FIXNUM stack_depth; // slot
 
-    void post_marshal(STATE);
     static InstructionSequence* create(STATE, size_t instructions);
+
+    static size_t instruction_width(size_t op);
+
+    void post_marshal(STATE);
 
     class Info : public TypeInfo {
     public:

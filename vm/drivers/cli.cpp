@@ -54,9 +54,11 @@ int main(int argc, char** argv) {
     return 0;
 
   } catch(ObjectBoundsExceeded *e) {
+    TypeInfo* info = env.state->find_type(e->obj->obj_type); // HACK use object
+
     std::cout << "Bounds of object exceeded:" << std::endl;
-    std::cout << "  type: " << (int)e->obj->obj_type << ", fields: " << 
-      e->obj->field_count << ". Accessed: " << e->index << std::endl;
+    std::cout << "  type: " << info->type_name << ", fields: " <<
+      e->obj->field_count << ", accessed: " << e->index << std::endl;
     e->print_backtrace();
   } catch(Assertion *e) {
     std::cout << "VM Assertion:" << std::endl;
