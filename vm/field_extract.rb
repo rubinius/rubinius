@@ -111,12 +111,12 @@ class CPPOverloadedPrimitive < BasicPrimitive
     str << "    else { goto fail; }\n"
 
     str << "  } catch(PrimitiveFailed& e) {\n"
-    str << "    return VMMethod::executor(state, exec, task, msg);"
+    str << "    return VMMethod::executor(state, exec, task, msg);\n"
     str << "  }\n"
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
     str << "fail:\n"
-    str << "  return VMMethod::executor(state, exec, task, msg);"
+    str << "  return VMMethod::executor(state, exec, task, msg);\n"
     str << "}\n\n"
     return str
   end
@@ -549,8 +549,8 @@ end
 
 File.open("vm/gen/primitives_glue.gen.cpp", "w") do |f|
   names = []
-  parser.classes.each do |n, cpp|
-    cpp.primitives.each do |pn, prim|
+  parser.classes.sort_by { |name,| name }.each do |n, cpp|
+    cpp.primitives.sort_by { |name,| name }.each do |pn, prim|
       names << pn
 
       f << prim.generate_glue
@@ -559,7 +559,7 @@ File.open("vm/gen/primitives_glue.gen.cpp", "w") do |f|
 
   f.puts "executor Primitives::resolve_primitive(STATE, SYMBOL name) {"
 
-  names.each do |name|
+  names.sort.each do |name|
     f.puts <<-EOF
   if(name == state->symbol("#{name}")) {
     return &Primitives::#{name};
