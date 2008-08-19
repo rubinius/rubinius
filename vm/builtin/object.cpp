@@ -393,12 +393,6 @@ namespace rubinius {
 
       if(tbl) return tbl->fetch(state, sym);
       return Qnil;
-    } else if(!has_ivars_p()) {
-      MetaClass* meta = as<MetaClass>(metaclass(state));
-      LookupTable* tbl = try_as<LookupTable>(meta->has_ivars);
-
-      if(tbl) return tbl->fetch(state, sym);
-      return Qnil;
     }
 
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars)) {
@@ -422,17 +416,6 @@ namespace rubinius {
         tbl = LookupTable::create(state);
         G(external_ivars)->store(state, this, tbl);
       }
-      tbl->store(state, sym, val);
-      return val;
-    } else if(!has_ivars_p()) {
-      MetaClass* meta = as<MetaClass>(metaclass(state));
-      tbl = try_as<LookupTable>(meta->has_ivars);
-
-      if(!tbl) {
-        tbl = LookupTable::create(state);
-        SET(meta, has_ivars, tbl);
-      }
-
       tbl->store(state, sym, val);
       return val;
     }
