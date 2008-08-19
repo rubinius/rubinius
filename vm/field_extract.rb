@@ -102,16 +102,16 @@ class CPPOverloadedPrimitive < BasicPrimitive
       type = prim.arg_types.first
       str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
       if @pass_state
-        str << "      return recv->#{@cpp_name}(state, arg);\n"
+        str << "      ret = recv->#{@cpp_name}(state, arg);\n"
       else
-        str << "      return recv->#{@cpp_name}(arg);\n"
+        str << "      ret = recv->#{@cpp_name}(arg);\n"
       end
-      str << "    }\n"
+      str << "    } else\n"
     end
-    str << "    else { goto fail; }\n"
+    str << "      goto fail;\n"
 
     str << "  } catch(PrimitiveFailed& e) {\n"
-    str << "    return VMMethod::executor(state, exec, task, msg);\n"
+    str << "    goto fail;\n"
     str << "  }\n"
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
