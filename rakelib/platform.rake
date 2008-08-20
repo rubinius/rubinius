@@ -1,4 +1,14 @@
-file 'runtime/platform.conf' => %w[Rakefile rakelib/platform.rake rakelib/struct_generator.rb] do |task|
+require 'rakelib/const_generator'
+require 'rakelib/struct_generator'
+require 'rakelib/types_generator'
+
+file 'runtime/platform.conf' => %w[
+       Rakefile
+       rakelib/platform.rake
+       rakelib/struct_generator.rb
+       rakelib/types_generator.rb
+       rakelib/const_generator.rb
+     ] do |task|
   addrinfo = StructGenerator.new
   addrinfo.include 'sys/socket.h'
   addrinfo.include 'netdb.h'
