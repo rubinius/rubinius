@@ -48,10 +48,10 @@ class String
   end
 
   def substring(start, count)
-    return if count < 0 || start > @bytes || -start > @bytes
+    return if count < 0 || start > @num_bytes || -start > @num_bytes
 
-    start += @bytes if start < 0
-    count = @bytes - start if start + count > @bytes
+    start += @num_bytes if start < 0
+    count = @num_bytes - start if start + count > @num_bytes
     count = 0 if count < 0
 
     str = self.class.template count, 0
@@ -66,6 +66,6 @@ class String
   end
 
   def length
-    @bytes
+    @num_bytes
   end
 end

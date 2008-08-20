@@ -70,7 +70,7 @@ class String
     raise RangeError, "bignum too big to convert into `long' (#{num})" if num.is_a? Bignum
     raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
-    str = self.class.template num * @bytes, self
+    str = self.class.template num * @num_bytes, self
     return str
   end
 
@@ -129,7 +129,7 @@ class String
   #    "abcdef" <=> "ABCDEF"    #=> 1
   def <=>(other)
     if other.kind_of?(String)
-      @data.compare_bytes(other.data, @bytes, other.size)
+      @data.compare_bytes(other.data, @num_bytes, other.size)
     else
       return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
       return unless tmp = (other <=> self)
@@ -156,8 +156,8 @@ class String
       return false
     end
 
-    return false unless @bytes == other.size
-    return @data.compare_bytes(other.data, @bytes, other.size) == 0
+    return false unless @num_bytes == other.size
+    return @data.compare_bytes(other.data, @num_bytes, other.size) == 0
   end
   alias_method :===, :==
 
@@ -255,15 +255,15 @@ class String
       start   = Type.coerce_to index.first, Fixnum, :to_int
       length  = Type.coerce_to index.last,  Fixnum, :to_int
 
-      start += @bytes if start < 0
+      start += @num_bytes if start < 0
 
-      length += @bytes if length < 0
+      length += @num_bytes if length < 0
       length += 1 unless index.exclude_end?
 
-      return "" if start == @bytes
-      return nil if start < 0 || start > @bytes
+      return "" if start == @num_bytes
+      return nil if start < 0 || start > @num_bytes
 
-      length = @bytes if length > @bytes
+      length = @num_bytes if length > @num_bytes
       length = length - start
       length = 0 if length < 0
 
@@ -275,9 +275,9 @@ class String
       return nil
     else
       index = Type.coerce_to index, Fixnum, :to_int
-      index = @bytes + index if index < 0
+      index = @num_bytes + index if index < 0
 
-      return if index < 0 || @bytes <= index
+      return if index < 0 || @num_bytes <= index
       return @data[index]
     end
   end
@@ -334,13 +334,13 @@ class String
       start   = Type.coerce_to(index.first, Integer, :to_int)
       length  = Type.coerce_to(index.last, Integer, :to_int)
 
-      start += @bytes if start < 0
+      start += @num_bytes if start < 0
 
       # TODO: this is wrong
-      return nil if start < 0 || start > @bytes
+      return nil if start < 0 || start > @num_bytes
 
-      length = @bytes if length > @bytes
-      length += @bytes if length < 0
+      length = @num_bytes if length > @num_bytes
+      length += @num_bytes if length < 0
       length += 1 unless index.exclude_end?
 
       length = length - start
@@ -349,11 +349,11 @@ class String
       splice! start, length, replacement
     else
       index = Type.coerce_to(index, Integer, :to_int)
-      raise IndexError, "index #{index} out of string" if @bytes <= index
+      raise IndexError, "index #{index} out of string" if @num_bytes <= index
 
       if index < 0
-        raise IndexError, "index #{index} out of string" if -index > @bytes
-        index += @bytes
+        raise IndexError, "index #{index} out of string" if -index > @num_bytes
+        index += @num_bytes
       end
 
       if replacement.is_a?(Fixnum)
@@ -386,7 +386,7 @@ class String
   #   a               #=> "Hello"
   #   a.capitalize!   #=> nil
   def capitalize!
-    return if @bytes == 0
+    return if @num_bytes == 0
     self.modify!
 
     modified = false
@@ -398,7 +398,7 @@ class String
     end
 
     i = 1
-    while i < @bytes
+    while i < @num_bytes
       c = @data[i]
       if c.isupper
         @data[i] = c.tolower
@@ -417,8 +417,8 @@ class String
   #   "abcdef".casecmp("abcdefg")   #=> -1
   #   "abcdef".casecmp("ABCDEF")    #=> 0
   def casecmp(to)
-    order = @bytes - to.bytes
-    size = order < 0 ? @bytes : to.bytes
+    order = @num_bytes - to.bytes
+    size = order < 0 ? @num_bytes : to.bytes
 
     i = 0
     while i < size
@@ -478,21 +478,21 @@ class String
   # self is frozen. This is intended behaviour.
   #+++
   def chomp!(sep = $/)
-    return if sep.nil? || @bytes == 0
+    return if sep.nil? || @num_bytes == 0
     sep = StringValue sep
 
     if (sep == $/ && sep == DEFAULT_RECORD_SEPARATOR) || sep == "\n"
-      c = @data[@bytes-1]
+      c = @data[@num_bytes-1]
       if c == ?\n
-        @bytes -= 1 if @bytes > 1 && @data[@bytes-2] == ?\r
+        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == ?\r
       elsif c != ?\r
         return
       end
 
       modify!
-      @bytes = @characters = @bytes - 1
+      @num_bytes = @characters = @num_bytes - 1
     elsif sep.size == 0
-      size = @bytes
+      size = @num_bytes
       while size > 0 && @data[size-1] == ?\n
         if size > 1 && @data[size-2] == ?\r
           size -= 2
@@ -501,15 +501,15 @@ class String
         end
       end
 
-      return if size == @bytes
+      return if size == @num_bytes
       modify!
-      @bytes = @characters = size
+      @num_bytes = @characters = size
     else
       size = sep.size
-      return if size > @bytes || sep.compare_substring(self, -size, size) != 0
+      return if size > @num_bytes || sep.compare_substring(self, -size, size) != 0
 
       modify!
-      @bytes = @characters = @bytes - size
+      @num_bytes = @characters = @num_bytes - size
     end
 
     return self
@@ -534,13 +534,14 @@ class String
   # or <code>nil</code> if <i>self</i> is the empty string.  See also
   # <code>String#chomp!</code>.
   def chop!
-    return if @bytes == 0
+    return if @num_bytes == 0
 
     self.modify!
-    if @bytes > 1 and @data[@bytes-1] == ?\n and @data[@bytes-2] == ?\r
-      @bytes = @characters = @bytes - 2
+    if @num_bytes > 1 and @data[@num_bytes-1] == ?\n and
+       @data[@num_bytes-2] == ?\r then
+      @num_bytes = @characters = @num_bytes - 2
     else
-      @bytes = @characters = @bytes - 1
+      @num_bytes = @characters = @num_bytes - 1
     end
 
     self
@@ -558,12 +559,12 @@ class String
   #   a.count "ej-m"          #=> 4
   def count(*strings)
     raise ArgumentError, "wrong number of Arguments" if strings.empty?
-    return 0 if @bytes == 0
+    return 0 if @num_bytes == 0
 
     table = count_table(*strings).data
 
     count = i = 0
-    while i < @bytes
+    while i < @num_bytes
       count += 1 if table[@data[i]] == 1
       i += 1
     end
@@ -605,7 +606,7 @@ class String
     table = count_table(*strings).data
 
     i, j = 0, -1
-    while i < @bytes
+    while i < @num_bytes
       c = @data[i]
       unless table[c] == 1
         @data[j+=1] = c
@@ -613,8 +614,8 @@ class String
       i += 1
     end
 
-    if (j += 1) < @bytes
-      @bytes = j
+    if (j += 1) < @num_bytes
+      @num_bytes = j
       self
     else
       nil
@@ -633,13 +634,13 @@ class String
   # Downcases the contents of <i>self</i>, returning <code>nil</code> if no
   # changes were made.
   def downcase!
-    return if @bytes == 0
+    return if @num_bytes == 0
     self.modify!
 
     modified = false
 
     i = 0
-    while i < @bytes
+    while i < @num_bytes
       c = @data[i]
       if c.isupper
         @data[i] = c.tolower!
@@ -660,7 +661,7 @@ class String
   #   104 101 108 108 111
   def each_byte()
     i = 0
-    while i < @bytes do
+    while i < @num_bytes do
       yield @data.get_byte(i)
       i += 1
     end
@@ -670,7 +671,7 @@ class String
   # works exactly like each_byte, but returns characters instead of bytes
   def each_char()
     i = 0
-    while i < @bytes do
+    while i < @num_bytes do
       yield @data.get_byte(i).chr
       i += 1
     end
@@ -713,7 +714,7 @@ class String
     raise LocalJumpError, "no block given" unless block_given?
 
     id = @data.object_id
-    size = @bytes
+    size = @num_bytes
     ssize = sep.size
     newline = ssize == 0 ? ?\n : sep[ssize-1]
 
@@ -754,14 +755,15 @@ class String
   #   "hello".empty?   #=> false
   #   "".empty?        #=> true
   def empty?
-    @bytes == 0
+    @num_bytes == 0
   end
 
   # Two strings are equal if the have the same length and content.
   def eql?(other)
     Ruby.primitive :string_equal
-    return false unless other.is_a?(String) && other.size == @bytes
-    (@data.fetch_bytes(0, @bytes) <=> other.data.fetch_bytes(0, @bytes)) == 0
+    return false unless other.is_a?(String) && other.size == @num_bytes
+    (@data.fetch_bytes(0, @num_bytes) <=>
+     other.data.fetch_bytes(0, @num_bytes)) == 0
   end
 
   # Returns a copy of <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
@@ -844,7 +846,7 @@ class String
 
     Regexp.last_match = last_match
 
-    str = substring(last_end, @bytes-last_end+1)
+    str = substring(last_end, @num_bytes-last_end+1)
     ret << str if str
 
     ret.taint if tainted || self.tainted?
@@ -906,8 +908,8 @@ class String
   #   "hello".index(/[aeiou]/, -3)   #=> 4
   def index(needle, offset = 0)
     offset = Type.coerce_to(offset, Integer, :to_int)
-    offset = @bytes + offset if offset < 0
-    return nil if offset < 0 || offset > @bytes
+    offset = @num_bytes + offset if offset < 0
+    return nil if offset < 0 || offset > @num_bytes
 
     needle = needle.to_str if !needle.instance_of?(String) && needle.respond_to?(:to_str)
 
@@ -922,7 +924,7 @@ class String
 
       needle_size = needle.size
 
-      max = @bytes - needle_size
+      max = @num_bytes - needle_size
       return if max < 0 # <= 0 maybe?
 
       offset.upto(max) do |i|
@@ -960,24 +962,26 @@ class String
     index = Type.coerce_to(index, Integer, :to_int) unless index.__kind_of__ Fixnum
 
     osize = other.size
-    size = @bytes + osize
+    size = @num_bytes + osize
     str = self.class.new("\0") * size
 
-    index = @bytes + 1 + index if index < 0
-    raise IndexError, "index #{index} out of string" if index > @bytes or index < 0
+    index = @num_bytes + 1 + index if index < 0
+    if index > @num_bytes or index < 0 then
+      raise IndexError, "index #{index} out of string"
+    end
 
     if index == 0
       str.copy_from other, 0, other.size, 0
-      str.copy_from self, 0, @bytes, other.size
-    elsif index < @bytes
+      str.copy_from self, 0, @num_bytes, other.size
+    elsif index < @num_bytes
       str.copy_from self, 0, index, 0
       str.copy_from other, 0, osize, index
-      str.copy_from self, index, @bytes - index, index + osize
+      str.copy_from self, index, @num_bytes - index, index + osize
     else
-      str.copy_from self, 0, @bytes, 0
-      str.copy_from other, 0, other.size, @bytes
+      str.copy_from self, 0, @num_bytes, 0
+      str.copy_from other, 0, other.size, @num_bytes
     end
-    @bytes = size
+    @num_bytes = size
     @data = str.data
     taint if other.tainted?
 
@@ -999,7 +1003,7 @@ class String
     else
       str = "\""
       i = -1
-      str << @data[i].toprint while (i += 1) < @bytes
+      str << @data[i].toprint while (i += 1) < @num_bytes
       str << "\""
     end
     str.taint if tainted?
@@ -1008,7 +1012,7 @@ class String
 
   # Returns the length of <i>self</i>.
   def length
-    @bytes
+    @num_bytes
   end
   alias_method :size, :length
 
@@ -1039,10 +1043,10 @@ class String
   #   "  hello  ".lstrip   #=> "hello  "
   #   "hello".lstrip!      #=> nil
   def lstrip!
-    return if @bytes == 0
+    return if @num_bytes == 0
 
     start = 0
-    while start < @bytes
+    while start < @num_bytes
       c = @data[start]
       if c.isspace or c == 0
         start += 1
@@ -1054,8 +1058,8 @@ class String
     return if start == 0
 
     modify!
-    @bytes = @characters = @bytes - start
-    @data.move_bytes start, @bytes, 0
+    @num_bytes = @characters = @num_bytes - start
+    @data.move_bytes start, @num_bytes, 0
     self
   end
 
@@ -1098,7 +1102,7 @@ class String
     @shared = true
     other.shared!
     @data = other.data
-    @bytes = other.bytes
+    @num_bytes = other.bytes
     @characters = other.characters
     @encoding = other.encoding
 
@@ -1118,11 +1122,11 @@ class String
 
   # Reverses <i>self</i> in place.
   def reverse!
-    return self if @bytes <= 1
+    return self if @num_bytes <= 1
     self.modify!
 
     i = 0
-    j = @bytes - 1
+    j = @num_bytes - 1
     while i < j
       @data[i], @data[j] = @data[j], @data[i]
       i += 1
@@ -1147,9 +1151,9 @@ class String
     original_klass = arg.class
     if !finish.equal?(Undefined)
       finish = Type.coerce_to(finish, Integer, :to_int)
-      finish += @bytes if finish < 0
+      finish += @num_bytes if finish < 0
       return nil if finish < 0
-      finish = @bytes if finish >= @bytes
+      finish = @num_bytes if finish >= @num_bytes
     else
       finish = size
     end
@@ -1193,9 +1197,9 @@ class String
   #   "  hello  ".rstrip   #=> "  hello"
   #   "hello".rstrip!      #=> nil
   def rstrip!
-    return if @bytes == 0
+    return if @num_bytes == 0
 
-    stop = @bytes - 1
+    stop = @num_bytes - 1
     while stop >= 0
       c = @data[stop]
       if c.isspace || c == 0
@@ -1205,10 +1209,10 @@ class String
       end
     end
 
-    return if (stop += 1) == @bytes
+    return if (stop += 1) == @num_bytes
 
     modify!
-    @bytes = @characters = stop
+    @num_bytes = @characters = stop
     self
   end
 
@@ -1458,13 +1462,13 @@ class String
   # Squeezes <i>self</i> in place, returning either <i>self</i>, or
   # <code>nil</code> if no changes were made.
   def squeeze!(*strings)
-    return if @bytes == 0
+    return if @num_bytes == 0
     self.modify!
 
     table = count_table(*strings).data
 
     i, j, last = 1, 0, @data[0]
-    while i < @bytes
+    while i < @num_bytes
       c = @data[i]
       unless c == last and table[c] == 1
         @data[j+=1] = last = c
@@ -1472,8 +1476,8 @@ class String
       i += 1
     end
 
-    if (j += 1) < @bytes
-      @bytes = j
+    if (j += 1) < @num_bytes
+      @num_bytes = j
       self
     else
       nil
@@ -1605,11 +1609,11 @@ class String
   # Equivalent to <code>String#succ</code>, but modifies the receiver in
   # place.
   def succ!
-    return self if @bytes == 0
+    return self if @num_bytes == 0
 
     carry = nil
     last_alnum = 0
-    start = @bytes - 1
+    start = @num_bytes - 1
 
     self.modify!
 
@@ -1670,7 +1674,7 @@ class String
   def sum(bits = 16)
     bits = Type.coerce_to bits, Integer, :to_int unless bits.__kind_of__ Fixnum
     i, sum = -1, 0
-    sum += @data[i] while (i += 1) < @bytes
+    sum += @data[i] while (i += 1) < @num_bytes
     sum & ((1 << bits) - 1)
   end
 
@@ -1687,12 +1691,12 @@ class String
   # place, returning <i>self</i>, or <code>nil</code> if no changes were made.
   def swapcase!
     self.modify!
-    return if @bytes == 0
+    return if @num_bytes == 0
 
     modified = false
 
     i = 0
-    while i < @bytes
+    while i < @num_bytes
       c = @data[i]
       if c.islower
         @data[i] = c.toupper!
@@ -1811,13 +1815,13 @@ class String
   # changes were made.
 
   def upcase!
-    return if @bytes == 0
+    return if @num_bytes == 0
     self.modify!
 
     modified = false
 
     i = 0
-    while i < @bytes
+    while i < @num_bytes
       c = @data[i]
       if c.islower
         @data[i] = c.toupper!
@@ -1836,7 +1840,7 @@ class String
     self.modify!
 
     return self.delete!(source) if replacement.empty?
-    return if @bytes == 0
+    return if @num_bytes == 0
 
     invert = source[0] == ?^ && source.length > 1
     expanded = source.tr_expand! nil
@@ -1872,7 +1876,7 @@ class String
 
     if squeeze
       i, j, last = -1, -1, nil
-      while (i += 1) < @bytes
+      while (i += 1) < @num_bytes
         s = @data[i]
         c = table[s]
         if c >= 0
@@ -1885,10 +1889,10 @@ class String
         end
       end
 
-      @bytes = j if (j += 1) < @bytes
+      @num_bytes = j if (j += 1) < @num_bytes
     else
       i = 0
-      while i < @bytes
+      while i < @num_bytes
         c = table[@data[i]]
         if c >= 0
           @data[i] = c
@@ -1904,16 +1908,16 @@ class String
   def to_sub_replacement(match)
     index = 0
     result = ""
-    while index < @bytes
+    while index < @num_bytes
       current = index
-      while current < @bytes && @data[current] != ?\\
+      while current < @num_bytes && @data[current] != ?\\
         current += 1
       end
       result << substring(index, current - index)
-      break if current == @bytes
+      break if current == @num_bytes
 
       # found backslash escape, looking next
-      if current == @bytes - 1
+      if current == @num_bytes - 1
         result << ?\\ # backslash at end of string
         break
       end
@@ -2019,7 +2023,7 @@ class String
 
   def compare_substring(other, start, size)
     Ruby.primitive :string_compare_substring
-    if start > @bytes || start + @bytes < 0
+    if start > @num_bytes || start + @num_bytes < 0
       raise IndexError, "index #{start} out of string"
     end
     raise PrimitiveFailure, "String#compare_substring primitive failed"
@@ -2059,24 +2063,24 @@ class String
     raise ArgumentError, "zero width padding" if padstr.size == 0
 
     width = Type.coerce_to(width, Integer, :to_int) unless width.__kind_of__ Fixnum
-    if width > @bytes
-      padsize = width - @bytes
+    if width > @num_bytes
+      padsize = width - @num_bytes
     else
       return dup
     end
 
-    str = self.class.new("\0") * (padsize + @bytes)
+    str = self.class.new("\0") * (padsize + @num_bytes)
     str.taint if tainted? or padstr.tainted?
 
     case direction
     when :right
       pad = String.template padsize, padstr
       str.copy_from pad, 0, padsize, 0
-      str.copy_from self, 0, @bytes, padsize
+      str.copy_from self, 0, @num_bytes, padsize
     when :left
       pad = String.template padsize, padstr
-      str.copy_from self, 0, @bytes, 0
-      str.copy_from pad, 0, padsize, @bytes
+      str.copy_from self, 0, @num_bytes, 0
+      str.copy_from pad, 0, padsize, @num_bytes
     when :center
       half = padsize / 2.0
       lsize = half.floor
@@ -2084,8 +2088,8 @@ class String
       lpad = String.template lsize, padstr
       rpad = String.template rsize, padstr
       str.copy_from lpad, 0, lsize, 0
-      str.copy_from self, 0, @bytes, lsize
-      str.copy_from rpad, 0, rsize, lsize + @bytes
+      str.copy_from self, 0, @num_bytes, lsize
+      str.copy_from rpad, 0, rsize, lsize + @num_bytes
     end
 
     str
@@ -2102,7 +2106,7 @@ class String
   # Raises RuntimeError if either the ByteArray object_id
   # or the size has changed.
   def modified?(id, size)
-    if id != @data.object_id or size != @bytes
+    if id != @data.object_id or size != @num_bytes
       raise RuntimeError, "string has been modified"
     end
   end
@@ -2144,14 +2148,16 @@ class String
   end
 
   def splice!(start, count, replacement)
-    start += @bytes if start < 0
-    raise IndexError, "index #{start} out of string" if start > @bytes || start < 0
+    start += @num_bytes if start < 0
+    if start > @num_bytes || start < 0 then
+      raise IndexError, "index #{start} out of string"
+    end
     raise IndexError, "negative length #{count}" if count < 0
     replacement = StringValue replacement
     modify!
 
-    count = @bytes - start if start + count > @bytes
-    size = start < @bytes ? @bytes - count : @bytes
+    count = @num_bytes - start if start + count > @num_bytes
+    size = start < @num_bytes ? @num_bytes - count : @num_bytes
     rsize = replacement.size
 
     str = self.class.new("\0") * (size + rsize)
@@ -2160,7 +2166,10 @@ class String
     last = start + count
     str.copy_from self, 0, start, 0 if start > 0
     str.copy_from replacement, 0, rsize, start
-    str.copy_from self, last, @bytes - last, start + rsize if last < @bytes
+
+    if last < @num_bytes then
+      str.copy_from self, last, @num_bytes - last, start + rsize
+    end
 
     replace str
   end
@@ -2169,7 +2178,7 @@ class String
   def codepoints
     chars = []
     i = 0
-    while i < @bytes
+    while i < @num_bytes
       chars << self.substring(i, 1)
       i += 1
     end
@@ -2178,13 +2187,13 @@ class String
 
   def prefix?(other)
     size = other.size
-    return false if size > @bytes
+    return false if size > @num_bytes
     other.compare_substring(self, 0, size) == 0
   end
 
   def suffix?(other)
     size = other.size
-    return false if size > @bytes
+    return false if size > @num_bytes
     other.compare_substring(self, -size, size) == 0
   end
 
