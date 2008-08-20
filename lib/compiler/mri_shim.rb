@@ -43,12 +43,18 @@ require File.dirname(__FILE__) + '/../../kernel/core/iseq'
 require File.dirname(__FILE__) + '/../../kernel/core/compiled_method'
 require File.dirname(__FILE__) + '/../../vm/gen/simple_field'
 
-def File.to_sexp(file, opt=nil)
-  $: << File.expand_path "~/Work/p4/zss/src/ruby_parser/dev/lib/" # HACK
-  require 'ruby_parser'
+class String
+  def to_sexp(file = "(string)")
+    $: << File.expand_path("~/Work/p4/zss/src/ruby_parser/dev/lib/") # HACK
+    require 'ruby_parser'
 
-  top = RubyParser.new(true).process(File.read(file), file)
-  raise "huh?" if top.size != 1
-  top
+    sexp = RubyParser.new.process(self, file)
+    p sexp
+    sexp
+  end
+end
+
+def File.to_sexp(file, opt=nil)
+  File.read(file).to_sexp(file)
 end
 
