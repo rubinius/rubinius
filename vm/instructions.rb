@@ -1320,7 +1320,7 @@ class Instructions
     if(k == 1) {
       OBJECT t1 = tup->at(0);
       /* and that thing is an array... */
-      if(kind_of<Array>(t1)) {
+      if(kind_of<Array>(t1)) { // HACK use try_as
         /* make a tuple out of the array contents... */
         Array* ary = as<Array>(t1);
         int j = ary->size();
@@ -1330,7 +1330,7 @@ class Instructions
           out->put(state, k, ary->get(state, k));
         }
 
-        /* and put it on the top o the stack. */
+        /* and put it on the top of the stack. */
         stack_set_top(out);
       }
     }
@@ -3053,18 +3053,20 @@ class Instructions
 
   def shift_tuple
     <<-CODE
-    OBJECT t1 = stack_pop();
-    Tuple* tup = as<Tuple>(t1);
-    if(NUM_FIELDS(t1) == 0) {
-      stack_push(tup);
+    Tuple* tuple = as<Tuple>(stack_pop());
+
+    if(NUM_FIELDS(tuple) == 0) {
+      stack_push(tuple);
       stack_push(Qnil);
     } else {
-      int j = NUM_FIELDS(t1) - 1;
-      OBJECT t2 = tup->at(0);
-      Tuple* tup = Tuple::create(state, j);
-      tup->copy_from(state, tup, 1, j);
-      stack_push(tup);
-      stack_push(t2);
+      int j = NUM_FIELDS(tuple) - 1;
+      OBJECT shifted_value = tuple->at(0);
+
+      Tuple* new_tuple = Tuple::create(state, j);
+      new_tuple->copy_from(state, tuple, 1, j);
+
+      stack_push(new_tuple);
+      stack_push(shifted_value);
     }
     CODE
   end
