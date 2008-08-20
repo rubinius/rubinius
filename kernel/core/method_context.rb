@@ -240,7 +240,7 @@ class MethodContext
 
   def const_path_defined?(path)
     if path.prefix? "::"
-      return Object.const_path_defined? path[2..-1]
+      return Object.const_path_defined?(path[2..-1])
     end
 
     parts = path.split("::")
@@ -250,12 +250,12 @@ class MethodContext
 
     while scope
       mod = top.to_s !~ /self/ ? scope.module.__send__(:recursive_const_get, top, false) : scope.module
-      return mod.const_path_defined? parts.join("::") if mod
+      return mod.const_path_defined?(parts.join("::")) if mod
 
       scope = scope.parent
     end
 
-    return Object.const_path_defined? parts.join("::")
+    return Object.const_path_defined?(parts.join("::"))
   end
 
   def class_variable_get(name)
