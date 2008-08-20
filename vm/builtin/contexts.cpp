@@ -52,6 +52,7 @@ namespace rubinius {
     }
 
     if((ctx = state->context_cache->get(which_cache)) != NULL) {
+      ctx->obj_type = (object_type)cls->instance_type->to_native();
       goto initialize;
     }
 
