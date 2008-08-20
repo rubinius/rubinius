@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "Task#debug_context_change=" do
+describe "Rubinius::Task#debug_context_change=" do
   before do
     @a = TaskSpecs::A.new
     @listener = TaskSpecs::Listener.new
@@ -12,7 +12,7 @@ describe "Task#debug_context_change=" do
   end
 
   it "sets the debug_context_change flag as specified" do
-    task = Task.current
+    task = Rubinius::Task.current
     task.debug_context_change.should_not == true
     task.debug_context_change = true
     f = task.debug_context_change
@@ -22,7 +22,7 @@ describe "Task#debug_context_change=" do
   end
 end
 
-describe "Task#debug_context_change" do
+describe "Rubinius::Task#debug_context_change" do
   before do
     @a = TaskSpecs::A.new
     @listener = TaskSpecs::Listener.new
@@ -33,7 +33,7 @@ describe "Task#debug_context_change" do
   end
 
   it "returns the current state of the debug_context_change flag" do
-    Task.current.debug_context_change.should_not == true
+    Rubinius::Task.current.debug_context_change.should_not == true
     t = nil
     f = nil
     @listener.wait_for_breakpoint do |task|
@@ -48,7 +48,7 @@ describe "Task#debug_context_change" do
   end
 end
 
-describe "Task#debug_context_change behavior" do
+describe "Rubinius::Task#debug_context_change behavior" do
   before do
     @a = TaskSpecs::A.new
     @listener = TaskSpecs::Listener.new

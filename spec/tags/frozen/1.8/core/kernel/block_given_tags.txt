@@ -1,0 +1,1 @@
+incomplete:Kernel.block_given? needs to be reviewed for spec completeness

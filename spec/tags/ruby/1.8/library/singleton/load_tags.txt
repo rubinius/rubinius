@@ -1,1 +1,0 @@
-fails:Singleton._load returns the singleton instance for anything passed in for a singleton clone

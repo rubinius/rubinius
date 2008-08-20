@@ -7,6 +7,7 @@
 
 #include "objects.hpp"
 #include "vm.hpp"
+#include "primitives.hpp"
 #include "objectmemory.hpp"
 
 #define HashPrime 16777619
@@ -34,9 +35,9 @@ namespace rubinius {
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
-    so->num_bytes = Fixnum::from(bytes);
-    so->characters = so->num_bytes;
-    so->encoding = Qnil;
+    SET(so, num_bytes, Fixnum::from(bytes));
+    SET(so, characters, so->num_bytes);
+    SET(so, encoding, Qnil);
 
     OBJECT ba = ByteArray::create(state, bytes);
     ba->bytes[bytes] = 0;
@@ -53,9 +54,9 @@ namespace rubinius {
 
     so = (String*)state->om->new_object(G(string), String::fields);
 
-    so->num_bytes = Fixnum::from(bytes);
-    so->characters = so->num_bytes;
-    so->encoding = Qnil;
+    SET(so, num_bytes, Fixnum::from(bytes));
+    SET(so, characters, so->num_bytes);
+    SET(so, encoding, Qnil);
 
     OBJECT ba = ByteArray::create(state, bytes);
     if(str) {
@@ -259,6 +260,143 @@ namespace rubinius {
     }
 
     return this;
+  }
+
+  struct tr_data {
+    char tr[256];
+    native_int set[256];
+    native_int steps;
+    native_int last;
+    native_int limit;
+
+    bool assign(native_int chr) {
+      int j, i = this->set[chr];
+
+      if(this->limit >= 0 && this->steps >= this->limit) return true;
+
+      if(i < 0) {
+        this->tr[this->last] = chr;
+      } else {
+        this->last--;
+        for(j = i + 1; j <= this->last; j++) {
+          this->set[(native_int)this->tr[j]]--;
+          this->tr[j-1] = this->tr[j];
+        }
+        this->tr[this->last] = chr;
+      }
+      this->set[chr] = this->last++;
+      this->steps++;
+
+      return false;
+    }
+  };
+
+  FIXNUM String::tr_expand(STATE, OBJECT limit) {
+    struct tr_data data;
+    native_int seq;
+    native_int max;
+    native_int chr;
+
+    data.last = 0;
+    data.steps = 0;
+
+    if(Integer* lim = try_as<Integer>(limit)) {
+      data.limit = lim->to_native();
+    } else {
+      data.limit = -1;
+    }
+
+    unsigned char* str = this->data->bytes;
+    native_int bytes = (native_int)this->size();
+    native_int start = bytes > 1 && str[0] == '^' ? 1 : 0;
+    std::memset(data.set, -1, sizeof(native_int) * 256);
+
+    for(native_int i = start; i < bytes;) {
+      chr = str[i];
+      seq = ++i < bytes ? str[i] : -1;
+
+      if(seq == '-') {
+        max = ++i < bytes ? str[i] : -1;
+        if(max >= 0) {
+          while(chr <= max) {
+            if(data.assign(chr)) return tr_replace(state, &data);
+            chr++;
+          }
+          i++;
+        } else {
+          if(data.assign(chr)) return tr_replace(state, &data);
+          if(data.assign(seq)) return tr_replace(state, &data);
+        }
+      } else if(chr == '\\' && seq >= 0) {
+        continue;
+      } else {
+        if(data.assign(chr)) return tr_replace(state, &data);
+      }
+    }
+
+    return tr_replace(state, &data);
+  }
+
+  FIXNUM String::tr_replace(STATE, struct tr_data* data) {
+    if(data->last > (native_int)this->size() || this->shared->true_p()) {
+      ByteArray* ba = ByteArray::create(state, this->size() + 1);
+
+      SET(this, data, ba);
+      SET(this, shared, Qfalse);
+    }
+
+    memcpy(this->data->bytes, data->tr, data->last);
+    this->data->bytes[data->last] = 0;
+
+    SET(this, num_bytes, Fixnum::from(data->last));
+    SET(this, characters, this->num_bytes);
+
+    return Fixnum::from(data->steps);
+  }
+
+  String* String::copy_from(STATE, String* other, FIXNUM start, FIXNUM size, FIXNUM dest) {
+    native_int src = start->to_native();
+    native_int dst = dest->to_native();
+    native_int cnt = size->to_native();
+
+    native_int osz = other->size();
+    if(src >= osz) return this;
+    if(src < 0) src = 0;
+    if(cnt > osz - src) cnt = osz - src;
+
+    native_int sz = this->size();
+    if(dst >= sz) return this;
+    if(dst < 0) dst = 0;
+    if(cnt > sz - dst) cnt = sz - dst;
+
+    std::memcpy(this->data->bytes + dst, other->data->bytes + src, cnt);
+
+    return this;
+  }
+
+  FIXNUM String::compare_substring(STATE, String* other, FIXNUM start, FIXNUM size) {
+    native_int src = start->to_native();
+    native_int cnt = size->to_native();
+    native_int sz = (native_int)this->size();
+    native_int osz = (native_int)other->size();
+
+    if(src < 0) src = osz + src;
+    if(src >= osz || src < 0) {
+      throw PrimitiveFailed();
+    }
+    if(src + cnt > osz) cnt = osz - src;
+
+    if(cnt > sz) cnt = sz;
+
+    native_int cmp = std::memcmp(this->data->bytes, other->data->bytes + src, cnt);
+
+    if(cmp < 0) {
+      return Fixnum::from(-1);
+    } else if(cmp > 0) {
+      return Fixnum::from(1);
+    } else {
+      return Fixnum::from(0);
+    }
   }
 
   void String::Info::show(STATE, OBJECT self) {

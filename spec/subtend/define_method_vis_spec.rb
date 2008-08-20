@@ -67,4 +67,9 @@ describe "SubtendMethodVis" do
   it "should have global method smv_test_global_function" do
     Kernel.methods.include?("smv_test_global_function").should == true
   end
+
+  it "rb_undef_method should undef a previously defined method" do
+    @c.rb_undef_method(@c.class, "smv_test_public")
+    @c.methods.include?("smv_test_public").should == false
+  end
 end

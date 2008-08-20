@@ -56,6 +56,33 @@ static VALUE sa_array_store(VALUE self, VALUE array, VALUE offset, VALUE value) 
   return Qnil;
 }
 
+static VALUE sa_rarray_iterate(VALUE self, VALUE array) {
+  int i;
+  for(i = 0; i < RARRAY(array)->len; ++i) {
+    rb_yield(RARRAY(array)->ptr[i]);
+  }
+  return Qnil;
+}
+
+static VALUE sa_rarray_assign_global_alphabet(VALUE self) {
+  int i;
+  char *str = ALLOC_N(char, 2);
+  VALUE array = rb_gv_get("$global_rarray_test");
+  str[0] = 'a'; str[1] = 0;
+  RARRAY(array)->len = 5;
+  RARRAY(array)->ptr = ALLOC_N(VALUE, 5);
+  for(i = 0; i < RARRAY(array)->len; ++i, ++(*str)) {
+    RARRAY(array)->ptr[i] = rb_str_new2(str);
+  }
+  free(str);
+  return Qnil;
+}
+
+static VALUE sa_rarray_set_len(VALUE self, VALUE array, VALUE len) {
+  RARRAY(array)->len = NUM2INT(len);
+  return Qnil;
+}
+
 void Init_subtend_array() {
   VALUE cls;
   cls = rb_define_class("SubtendArray", rb_cObject);
@@ -71,4 +98,7 @@ void Init_subtend_array() {
   rb_define_method(cls, "rb_ary_shift", sa_array_shift, 1);
   rb_define_method(cls, "rb_ary_store", sa_array_store, 3);
   rb_define_method(cls, "rb_ary_pop", sa_array_pop, 1);
+  rb_define_method(cls, "rb_rarray_iterate", sa_rarray_iterate, 1);
+  rb_define_method(cls, "rb_rarray_assign_global_alphabet", sa_rarray_assign_global_alphabet, 0);
+  rb_define_method(cls, "rb_rarray_set_len", sa_rarray_set_len, 2);
 }

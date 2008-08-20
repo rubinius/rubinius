@@ -1,8 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-$load_fixture_dir = (File.dirname(__FILE__) + '/../../ruby/1.8/fixtures/load')
+# FIXME: somehow make these fixture dirs independent of the
+# rubyspec submodule dir in spec/frozen, otherwise these specs
+# won't behave the same with the clone of rubyspecs in spec/ruby.
+$load_fixture_dir = (File.dirname(__FILE__) + '/../../frozen/1.8/fixtures/load')
 $LOAD_PATH << $load_fixture_dir
-$LOAD_PATH << (File.dirname(__FILE__) + '/../../ruby/1.8/fixtures/load/load_spec_rba.rba')
+$LOAD_PATH << (File.dirname(__FILE__) + '/../../frozen/1.8/fixtures/load/load_spec_rba.rba')
 
 $load_spec_1 = nil
 $load_spec_2 = nil
@@ -22,19 +25,25 @@ $load_spec_rooby = nil
 require 'rbconfig'
 
 describe "Kernel#load" do
-
   # Avoid storing .rbc and .rba in repo
   before :all do
-    Dir.chdir($load_fixture_dir) do |dir|
-      `rm -f ./*.rbc`
-    end
+    # Kernel.compile will not work correctly from that dir so no chdir here
+    system "rm #{$load_fixture_dir}/*.rbc 2>/dev/null"
 
     Kernel.compile($load_fixture_dir + '/load_spec_10.rb')
-
     Dir.chdir($load_fixture_dir) do |dir|
-      system "rm -f load_spec_rba.rba"
+      system "rm load_spec_rba.rba 2>/dev/null"
       system "ar r load_spec_rba.rba load_spec_10.rbc 2>/dev/null"
     end
+  end
+
+  after :all do
+    Dir.glob("#{$load_fixture_dir}/*.rbc") {|f| File.delete f }
+    Dir.glob("#{$load_fixture_dir}/load_dynamic.rb*") {|f| File.delete f }
+  end
+
+  before :each do
+    Dir.glob("#{$load_fixture_dir}/load_dynamic.rb*") {|f| File.delete f }
   end
 
   it "loads a .rbc file directly" do
@@ -42,7 +51,7 @@ describe "Kernel#load" do
     load('load_spec_2.rbc').should == true
   end
 
-  it "compiles a new .rbc file whenever using the source file" do
+  it "compiles a new .rbc file if one does not exist" do
     `rm -f #{$load_fixture_dir}/load_spec_2.rbc`
 
     load('load_spec_2.rb').should == true
@@ -50,65 +59,21 @@ describe "Kernel#load" do
     File.exist?("#{$load_fixture_dir}/load_spec_2.rbc").should == true
   end
 
-  it "generates a .rbc but no .rb file if using a file with no extension (appends .rbc)" do
+  it "generates a .<name>.compiled.rbc but no .rb file if using a file with no extension" do
     `rm -f #{$load_fixture_dir}/load_spec.rbc`
 
     load('load_spec').should == true
-    File.exist?("#{$load_fixture_dir}/load_spec.rbc").should == true
+    File.exist?("#{$load_fixture_dir}/.load_spec.compiled.rbc").should == true
   end
 
-  it "generates a .rbc file if using a file with an arbitrary extension (appends .rbc)" do
+  it "generates a .<name>.compiled.rbc file if using a file with some arbitrary extension" do
     `rm -f #{$load_fixture_dir}/load_spec.rooby.rbc`
 
     load('load_spec.rooby').should == true
-    File.exist?("#{$load_fixture_dir}/load_spec.rooby.rbc").should == true
+    File.exist?("#{$load_fixture_dir}/.load_spec.rooby.compiled.rbc").should == true
   end
 
-  it "loads a .rbc file if it's not older than the associated .rb file" do
-    begin
-      time = Time.now
-
-      File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", 'w+') do |f| 
-        f.puts "$load_spec_dynamic = [#{time.tv_sec}, #{time.tv_usec}]" 
-      end
-
-      Kernel.compile "#{$load_fixture_dir}/load_spec_dynamic.rb"
-
-      load('load_spec_dynamic.rb').should == true
-      $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
-
-      load('load_spec_dynamic.rb').should == true
-      $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
-
-      time2 = Time.now
-
-      Dir.chdir($load_fixture_dir) do |dir|
-        `mv load_spec_dynamic.rbc rsd.old`
-
-        File.open('load_spec_dynamic.rb', 'w+') do |f| 
-          f.puts "$load_spec_dynamic = [#{time2.tv_sec}, #{time2.tv_usec}]" 
-        end
-      end
-
-      load('load_spec_dynamic.rb').should == true
-      $load_spec_dynamic.should == [time2.tv_sec, time2.tv_usec]
-
-      Dir.chdir($load_fixture_dir) do |dir|
-        `mv rsd.old load_spec_dynamic.rbc`
-        `touch load_spec_dynamic.rbc`
-      end
-
-      load('load_spec_dynamic.rb').should == true
-      $load_spec_dynamic.should == [time.tv_sec, time.tv_usec]
-
-    ensure
-      Dir.chdir($load_fixture_dir) do |dir|
-        `rm -f ./load_dynamic.rb*`
-      end
-    end
-  end
-
-  it "loads a .rbc even if the .rb is missing" do
+  it "loads the .rbc if the .rb does not exist" do
     begin
       load('load_spec_9.rb').should == true
 
@@ -125,6 +90,75 @@ describe "Kernel#load" do
     end   
   end
 
+  it "loads the .rbc file unless the .rb file is newer by modification time" do
+    File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", "w+") do |f|
+      f.puts "$load_spec_dynamic = 1"
+    end
+    Kernel.compile "#{$load_fixture_dir}/load_spec_dynamic.rb"
+    system "mv #{$load_fixture_dir}/load_spec_dynamic.rbc #{$load_fixture_dir}/lsd.old"
+
+    File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", "w+") do |f|
+      f.puts "$load_spec_dynamic = 2"
+    end
+
+    load("load_spec_dynamic.rb").should == true
+    $load_spec_dynamic.should == 2
+
+    system "mv #{$load_fixture_dir}/lsd.old #{$load_fixture_dir}/load_spec_dynamic.rbc"
+
+    system "touch -t 200701011800 #{$load_fixture_dir}/load_spec_dynamic.rb"
+    system "touch -t 200801011800 #{$load_fixture_dir}/load_spec_dynamic.rbc"
+
+    load("load_spec_dynamic.rb").should == true
+    $load_spec_dynamic.should == 1
+
+    system "touch -t 200701011800 #{$load_fixture_dir}/load_spec_dynamic.rbc"
+    system "touch -t 200801011800 #{$load_fixture_dir}/load_spec_dynamic.rb"
+
+    load("load_spec_dynamic.rb").should == true
+    $load_spec_dynamic.should == 2
+
+    # Smaller resolution
+    system "touch -t 200801011800 #{$load_fixture_dir}/load_spec_dynamic.rbc"
+    system "touch -t 200801011801 #{$load_fixture_dir}/load_spec_dynamic.rb"
+
+    load("load_spec_dynamic.rb").should == true
+    $load_spec_dynamic.should == 2
+  end
+
+  it "recompiles the file each time if the second parameter is a Hash with non-false :recompile" do
+    File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", "w+") do |f|
+      f.puts "$load_spec_dynamic = 1"
+    end
+    Kernel.compile "#{$load_fixture_dir}/load_spec_dynamic.rb"
+    system "mv #{$load_fixture_dir}/load_spec_dynamic.rbc #{$load_fixture_dir}/lsd.old"
+
+    File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", "w+") do |f|
+      f.puts "$load_spec_dynamic = 2"
+    end
+
+    load("load_spec_dynamic.rb").should == true
+    $load_spec_dynamic.should == 2
+
+    system "mv #{$load_fixture_dir}/lsd.old #{$load_fixture_dir}/load_spec_dynamic.rbc"
+
+    system "touch -t 200701011800 #{$load_fixture_dir}/load_spec_dynamic.rb"
+    system "touch -t 200801011800 #{$load_fixture_dir}/load_spec_dynamic.rbc"
+
+    load("load_spec_dynamic.rb", :recompile => true).should == true
+    $load_spec_dynamic.should == 2
+  end
+
+  it "raises an error if the source file does not exist and :recompile is present" do
+    File.open("#{$load_fixture_dir}/load_spec_dynamic.rb", "w+") do |f|
+      f.puts "$load_spec_dynamic = 1"
+    end
+    Kernel.compile "#{$load_fixture_dir}/load_spec_dynamic.rb"
+    system "rm #{$load_fixture_dir}/load_spec_dynamic.rb"
+
+    lambda { load "load_spec_dynamic.rb", :recompile => true }.should raise_error
+  end
+
   it "loads a .rbc from a .rba in $LOAD_PATH" do
     load('load_spec_10.rbc').should == true
     $load_spec_10.nil?.should == false
@@ -136,4 +170,5 @@ describe "Kernel#load" do
     $load_spec_10.nil?.should == false
   end
 end
+
 

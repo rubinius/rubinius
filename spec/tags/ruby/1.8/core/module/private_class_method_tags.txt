@@ -1,2 +1,0 @@
-fails:Module#private_class_method makes an existing class method private
-fails:Module#private_class_method makes an existing class method private up the inheritance tree

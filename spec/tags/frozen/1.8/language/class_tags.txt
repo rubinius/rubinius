@@ -1,0 +1,2 @@
+fails:A class definition returns the value of the last statement in the body
+fails:A class definition allows using self as the superclass iff self is a class

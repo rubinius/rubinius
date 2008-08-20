@@ -1,0 +1,1 @@
+incomplete:Matrix::Scalar#Raise needs to be reviewed for spec completeness

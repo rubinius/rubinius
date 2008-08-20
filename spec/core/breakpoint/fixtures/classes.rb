@@ -24,8 +24,16 @@ module BreakpointSpecs
       end
       puts "Total is #{tot}"
     end
-  end
 
+    if_cm = def if_method
+      if false
+        'f'
+      else
+        't'
+        'ohoh'
+      end
+    end
+  end
 
   class TaskStub
     def initialize(ctxt)
@@ -137,5 +145,26 @@ end
      0036:  goto                       39
      0038:  push_nil
      0039:  soft_return
+
+
+     ### Bytecode for if_method ###
+
+            # line 28
+     0000:  check_argcount             0, 0
+            # line 29
+     0003:  push_false
+     0004:  goto_if_false              11
+            # line 30
+     0006:  push_literal               "f"
+     0008:  string_dup
+     0009:  goto                       14
+            # line 32
+     0011:  push_literal               "t"
+     0013:  string_dup
+     0014:  pop
+            # line 33
+     0015:  push_literal               "ohoh"
+     0017:  string_dup
+     0018:  sret
 
 =end

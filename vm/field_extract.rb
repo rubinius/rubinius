@@ -32,8 +32,8 @@ class BasicPrimitive
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
     str << "fail:\n"
-    str << "    return VMMethod::executor(state, exec, task, msg);\n"
-    str << "}\n"
+    str << "  return VMMethod::executor(state, exec, task, msg);\n"
+    str << "}\n\n"
   end
 
 end
@@ -102,22 +102,22 @@ class CPPOverloadedPrimitive < BasicPrimitive
       type = prim.arg_types.first
       str << "    if(#{type}* arg = try_as<#{type}>(msg.get_argument(0))) {\n"
       if @pass_state
-        str << "      return recv->#{@cpp_name}(state, arg);\n"
+        str << "      ret = recv->#{@cpp_name}(state, arg);\n"
       else
-        str << "      return recv->#{@cpp_name}(arg);\n"
+        str << "      ret = recv->#{@cpp_name}(arg);\n"
       end
-      str << "    }\n"
+      str << "    } else\n"
     end
-    str << "    else { goto fail; }\n"
+    str << "      goto fail;\n"
 
     str << "  } catch(PrimitiveFailed& e) {\n"
-    str << "    return VMMethod::executor(state, exec, task, msg);"
+    str << "    goto fail;\n"
     str << "  }\n"
     str << "  task->primitive_return(ret, msg);\n"
     str << "  return false;\n"
     str << "fail:\n"
-    str << "    return VMMethod::executor(state, exec, task, msg);"
-    str << "}\n"
+    str << "  return VMMethod::executor(state, exec, task, msg);\n"
+    str << "}\n\n"
     return str
   end
 end
@@ -549,24 +549,33 @@ end
 
 File.open("vm/gen/primitives_glue.gen.cpp", "w") do |f|
   names = []
-  parser.classes.each do |n, cpp|
-    cpp.primitives.each do |pn, prim|
+  parser.classes.sort_by { |name,| name }.each do |n, cpp|
+    cpp.primitives.sort_by { |name,| name }.each do |pn, prim|
       names << pn
-      f.puts prim.generate_glue
+
+      f << prim.generate_glue
     end
   end
 
   f.puts "executor Primitives::resolve_primitive(STATE, SYMBOL name) {"
-  names.each do |name|
-    f.puts "  if(name == state->symbol(\"#{name}\")) {"
-    f.puts "    return &Primitives::#{name};"
-    f.puts "  }"
+
+  names.sort.each do |name|
+    f.puts <<-EOF
+  if(name == state->symbol("#{name}")) {
+    return &Primitives::#{name};
+  }
+
+    EOF
   end
-  f.puts "  std::string msg = std::string(\"Unable to resolve primitive: \") + (char*)*name->to_str(state);"
-  f.puts "  std::cout << msg << std::endl;"
-  f.puts "  return &Primitives::unknown_primitive;"
-  # commented out while we have soft primitive failures
-  #f.puts "  throw std::runtime_error(msg.c_str());"
-  f.puts "}"
+
+  f.puts <<-EOF
+std::string msg = std::string(\"Unable to resolve primitive: \") +
+                  (char*)*name->to_str(state);
+std::cout << msg << std::endl;
+return &Primitives::unknown_primitive;
+// commented out while we have soft primitive failures
+// throw std::runtime_error(msg.c_str());
+}
+  EOF
 end
 

@@ -1,0 +1,3 @@
+unstable(see ticket #433):Generator#rewind does nothing for empty generator
+unstable(see ticket #433):Generator#rewind rewinds the generator
+unstable(see ticket #433):Generator#rewind rewinds the previously finished generator

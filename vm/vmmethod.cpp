@@ -1,4 +1,6 @@
 #include "vmmethod.hpp"
+#include "message.hpp"
+#include "objectmemory.hpp"
 
 #include "builtin/compiledmethod.hpp"
 #include "builtin/fixnum.hpp"
@@ -7,8 +9,17 @@
 #include "builtin/task.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/contexts.hpp"
+#include "builtin/class.hpp"
 
+/*
+ * An internalization of a CompiledMethod which holds the instructions for the
+ * method.
+ */
 namespace rubinius {
+
+  /*
+   * Turns a CompiledMethod's InstructionSequence into a C array of opcodes.
+   */
   VMMethod::VMMethod(STATE, CompiledMethod* meth) :
       original(state, meth), type(NULL) {
 
@@ -29,25 +40,23 @@ namespace rubinius {
         opcodes[index] = as<Fixnum>(val)->to_native();
       }
     }
-
-    /*
-    std::vector<Opcode*> ops = create_opcodes();
-    size_t idx = 0;
-    for(std::vector<Opcode*>::iterator i = ops.begin(); i != ops.end(); i++) {
-      Opcode* op = *i;
-      std::cout << idx++ << ":" << op->block << ": " << InstructionSequence::get_instruction_name(op->op);
-      std::cout << "\n";
-    }
-    */
   }
 
   VMMethod::~VMMethod() {
     delete[] opcodes;
   }
 
+  /*
+   * Looks at the opcodes for this method and optimizes instance variable
+   * access by using special byte codes.
+   *
+   * For push_ivar, uses push_my_field when the instance variable has an
+   * index assigned.  Same for set_ivar/store_my_field.
+   */
+
   void VMMethod::specialize(TypeInfo* ti) {
     type = ti;
-    for(size_t i = 0; i < total; i++) {
+    for(size_t i = 0; i < total;) {
       opcode op = opcodes[i];
 
       if(op == InstructionSequence::insn_push_ivar) {
@@ -57,7 +66,7 @@ namespace rubinius {
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_push_my_field;
-          opcodes[++i] = it->second;
+          opcodes[i + 1] = it->second;
         }
       } else if(op == InstructionSequence::insn_set_ivar) {
         native_int idx = opcodes[i + 1];
@@ -66,9 +75,11 @@ namespace rubinius {
         TypeInfo::Slots::iterator it = ti->slots.find(sym);
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_store_my_field;
-          opcodes[++i] = it->second;
+          opcodes[i + 1] = it->second;
         }
       }
+
+      i += InstructionSequence::instruction_width(op);
     }
   }
 
@@ -82,7 +93,13 @@ namespace rubinius {
     VMMethod* meth = (VMMethod*)exec;
 
     MethodContext* ctx = MethodContext::create(state, msg.recv, meth->original.get());
-    // TODO - Set the MethodContext's module based on the Message we were passed.
+    /* The context returned by ::create has Object as its module, so we
+     * need to set it to the module of the actual Message we are sending.
+     */
+    if(!msg.module) {
+      throw new Assertion("Message passed to executor did not have a module set");
+    }
+    SET(ctx, module, msg.module);
 
     task->import_arguments(ctx, msg);
     task->make_active(ctx);
@@ -99,6 +116,9 @@ namespace rubinius {
         this->execute = func;
       }
 
+  /*
+   * Turns a VMMethod into a C++ vector of Opcodes.
+   */
   std::vector<Opcode*> VMMethod::create_opcodes() {
     std::vector<Opcode*> ops;
     std::map<int, size_t> stream2opcode;
@@ -145,7 +165,7 @@ namespace rubinius {
     size_t block = 0;
     for(std::vector<Opcode*>::iterator i = ops.begin(); i != ops.end(); i++) {
       Opcode* op = *i;
-      
+
       if(op->start_block) block++;
       op->block = block;
     }

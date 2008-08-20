@@ -1,0 +1,1 @@
+fails:Complex when passed [Integer] returns a new Complex number with 0 as the imaginary component

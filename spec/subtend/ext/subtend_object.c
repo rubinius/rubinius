@@ -9,7 +9,7 @@ VALUE so_kind_of(VALUE self, VALUE obj, VALUE klass) {
 }
 
 VALUE so_respond_to(VALUE self, VALUE obj, VALUE sym) {
-  return rb_respond_to(obj, SYM2ID(sym)) == 1 ? Qtrue : Qfalse;
+  return (VALUE)rb_respond_to(obj, SYM2ID(sym));
 }
 
 VALUE so_to_id(VALUE self, VALUE obj) {
@@ -34,7 +34,58 @@ VALUE so_check_string_type(VALUE self, VALUE str) {
 }
 
 VALUE so_check_convert_type(VALUE self, VALUE obj) {
-  return rb_check_convert_type(obj, 9, "Array", "to_ary");
+  return rb_check_convert_type(obj, T_ARRAY, "Array", "to_ary");
+}
+
+VALUE so_convert_type(VALUE self, VALUE obj) {
+  return rb_convert_type(obj, T_ARRAY, "Array", "to_ary");
+}
+
+VALUE so_rbobjclassname(VALUE self, VALUE obj) {
+  return rb_str_new2( rb_obj_classname(obj) );
+}
+
+VALUE so_rbclassof(VALUE self, VALUE obj) {
+  return rb_class_of(obj);
+}
+
+VALUE so_inspect(VALUE self, VALUE obj) {
+  return rb_inspect(obj);
+}
+
+VALUE so_is_type_nil(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_NIL) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+VALUE so_is_type_object(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_OBJECT) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+VALUE so_is_type_array(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_ARRAY) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+VALUE so_is_type_module(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_MODULE) {
+    return Qtrue;
+  }
+  return Qfalse;
+}
+
+VALUE so_is_type_class(VALUE self, VALUE obj) {
+  if(TYPE(obj) == T_CLASS) {
+    return Qtrue;
+  }
+  return Qfalse;
 }
 
 void Init_subtend_object() {
@@ -49,4 +100,13 @@ void Init_subtend_object() {
   rb_define_method(cls, "rb_check_array_type", so_check_array_type, 1);
   rb_define_method(cls, "rb_check_string_type", so_check_string_type, 1);
   rb_define_method(cls, "rb_check_convert_type", so_check_convert_type, 1);  
+  rb_define_method(cls, "rb_convert_type", so_convert_type, 1);
+  rb_define_method(cls, "rb_inspect", so_inspect, 1);
+  rb_define_method(cls, "rb_obj_classname", so_rbobjclassname, 1);
+  rb_define_method(cls, "rb_class_of", so_rbclassof, 1);
+  rb_define_method(cls, "rb_is_type_nil", so_is_type_nil, 1);
+  rb_define_method(cls, "rb_is_type_object", so_is_type_object, 1);
+  rb_define_method(cls, "rb_is_type_array", so_is_type_array, 1);
+  rb_define_method(cls, "rb_is_type_module", so_is_type_module, 1);
+  rb_define_method(cls, "rb_is_type_class", so_is_type_class, 1);
 }

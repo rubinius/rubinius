@@ -10,6 +10,11 @@ namespace rubinius {
     return is;
   }
 
+  size_t InstructionSequence::instruction_width(size_t op) {
+#include "gen/iseq_instruction_size.gen"
+    return width;
+  }
+
   void InstructionSequence::post_marshal(STATE) {
 
   }

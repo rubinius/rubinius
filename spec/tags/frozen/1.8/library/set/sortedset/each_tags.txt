@@ -1,0 +1,1 @@
+fails:SortedSet#each returns self

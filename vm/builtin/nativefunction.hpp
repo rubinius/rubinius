@@ -20,8 +20,11 @@ namespace rubinius {
 
     static size_t type_size(size_t type);
     static NativeFunction* create(STATE, OBJECT name, int args);
+
+    // Ruby.primitive :nfunc_add
+    static NativeFunction* bind(STATE, OBJECT library, String* name, Array* args, OBJECT ret);
+
     void bind(STATE, int arg_count, int *arg_types, int ret_type, void* func);
-    static NativeFunction* bind(STATE, String* library, String* name, Array* args, OBJECT ret);
     void **marshal_arguments(STATE, Message *msg);
     OBJECT call(STATE, Message* msg);
 

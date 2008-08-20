@@ -1,8 +1,11 @@
 #include "compiled_file.hpp"
+#include "objectmemory.hpp"
+#include "builtin/task.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/staticscope.hpp"
+#include "builtin/symbol.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -59,6 +62,7 @@ public:
     Message msg(state);
     msg.args = 0;
     msg.recv = G(main);
+    msg.module = G(object);
 
     SET(cm, scope, StaticScope::create(state));
     SET(cm->scope, module, G(object));

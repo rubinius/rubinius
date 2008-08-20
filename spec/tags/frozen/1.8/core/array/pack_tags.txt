@@ -1,0 +1,1 @@
+fails:Array#pack converts big integers into UTF-8 encoded byte sequences with ('U')

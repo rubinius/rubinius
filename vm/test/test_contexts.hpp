@@ -29,6 +29,20 @@ class TestContexts : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(ctx->ip, 0);
   }
 
+  void test_line() {
+    MethodContext* ctx = MethodContext::create(state, 10);
+    ctx->ip = 0;
+    ctx->cm = CompiledMethod::create(state);
+
+    ctx->cm->lines = Tuple::from(state, 1,
+                                 Tuple::from(state, 3,
+                                             Fixnum::from(0),
+                                             Fixnum::from(20),
+                                             Fixnum::from(10)));
+
+    TS_ASSERT_EQUALS(10, ctx->line());
+  }
+
   void test_recycle() {
     MethodContext* ctx = MethodContext::create(state, 10);
     state->context_cache->reclaim = 1;

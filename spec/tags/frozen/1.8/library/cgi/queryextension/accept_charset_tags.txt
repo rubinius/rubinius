@@ -1,0 +1,1 @@
+incomplete:CGI::QueryExtension#accept_charset needs to be reviewed for spec completeness

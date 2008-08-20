@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "CompiledMethod#decode" do
-  before do
+  before :each do
     @cm = CompiledMethodSpecs.instance_method(:simple_puts).compiled_method
   end
 

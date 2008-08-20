@@ -1,0 +1,3 @@
+fails:IO#popen with block does not raise error when io closed inside the block
+incomplete:IO.popen needs to be reviewed for spec completeness
+fails:IO#popen writes to a read/write pipe

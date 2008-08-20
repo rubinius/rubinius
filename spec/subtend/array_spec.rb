@@ -65,7 +65,7 @@ describe "SubtendArray" do
     b = @s.rb_ary_dup(a)
 
     b.should == a
-    b.should_not equal?(a)
+    b.should_not equal(a)
   end
 
   it "rb_ary_unshift should prepend the element to the array" do
@@ -103,7 +103,7 @@ describe "SubtendArray" do
   it "rb_ary_store should raise IndexError if the offset is still negative after wrap around " do
     a = [1, 2, 3]
 
-    lambda { @s.rb_ary_store(a, -10, 5) }.should raise_error IndexError
+    lambda { @s.rb_ary_store(a, -10, 5) }.should raise_error(IndexError)
   end
 
   it "rb_ary_store should enlarge the array if necessary" do
@@ -112,5 +112,26 @@ describe "SubtendArray" do
     @s.rb_ary_store(a, 2, 7)
 
     a.should == [nil, nil, 7]
+  end
+
+  it "RARRAY(a)->ptr should access the elements of an array" do
+    a = [1, 2, 3]
+    b = []
+    @s.rb_rarray_iterate(a) do |e|
+      b << e
+    end
+    a.should == b
+  end
+
+  it "Changing RARRAY(a)->ptr should change the array" do
+    $global_rarray_test = [1, 2, 3, 4, 5, 6, 7]
+    @s.rb_rarray_assign_global_alphabet
+    $global_rarray_test.should == ['a', 'b', 'c', 'd', 'e'];
+  end
+
+  it "Reducing RARRAY(a)->len should cut the array" do
+    t = [1, 2, 3, 4, 5]
+    @s.rb_rarray_set_len(t, 3)
+    t.should == [1, 2, 3]
   end
 end

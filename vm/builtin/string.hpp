@@ -73,6 +73,16 @@ namespace rubinius {
     // Ruby.primitive :string_apply_and
     String* apply_and(STATE, String* other);
 
+    // Ruby.primitive :string_tr_expand
+    FIXNUM tr_expand(STATE, OBJECT limit);
+    FIXNUM tr_replace(STATE, struct tr_data* data);
+
+    // Ruby.primitive :string_copy_from
+    String* copy_from(STATE, String* other, FIXNUM start, FIXNUM size, FIXNUM dest);
+
+    // Ruby.primitive :string_compare_substring
+    FIXNUM compare_substring(STATE, String* other, FIXNUM start, FIXNUM size);
+
     operator char *();
 
     class Info : public TypeInfo {
@@ -80,7 +90,6 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
       virtual void show(STATE, OBJECT self);
     };
-
   };
 };
 

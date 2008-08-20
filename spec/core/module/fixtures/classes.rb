@@ -5,4 +5,16 @@ module ModuleSpecs
       @special = 10
     end
   end
+
+  module A
+    cm = def self.a
+      :added
+    end
+
+    MethodContext.current.__add_method__ :b, cm
+  end
+
+  class F
+    include A
+  end
 end

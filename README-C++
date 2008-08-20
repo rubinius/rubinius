@@ -1,27 +1,36 @@
  Running the C++ Branch
 ------------------------
 
-+  Set up an altogether new clone of the repository for yourself:
++ Make a new clone of the repository to avoid mixups with master (recommended)
     - For current committers:
         `cd $WHEREVER; git clone git@github.com:evanphx/rubinius.git`
     - For others: `cd $WHEREVER; git clone git://github.com/evanphx/rubinius.git my_cpp`
+    - After the clone, change into the newly-created directory.
 
-+ `cd my_cpp`
-
-+  Switch to the C++ branch:
-      `git branch --track cpp origin/cpp; git checkout cpp`
++ Switch to the C++ branch:
+  `git branch --track cpp origin/cpp; git checkout cpp`
     - The --track allows you to push and pull directly to/from the branch.
+    - If you want to name your local branch something other than 'cpp',
+      please make sure you understand what `man git-push` is saying about
+      pushing branches.
 
-+  All of the C++ work is in the vm subdirectory
++ All of the C++ work is in the 'vm' subdirectory
 
-+  Build the codebase (from toplevel): `rake vm`
++ Build the codebase (from toplevel): `rake build`
+    - The default rake task is synonymous with `rake build vm:test`
 
-+  Build and run the tests (from toplevel): `rake vm:test`
++ Build and run the tests (from toplevel): `rake vm:test`
+    - To run only one test suite, use: `rake vm:test[SomeClass]`
+    - If you want to run a single test suite under gdb, use:
+      `SUITE="SomeClass" gdb vm/test/runner`
 
-+  You can use `git pull` or `rake git:pull to get updates
++ You can use `git pull` or `rake git:pull to get updates
 
-+  ...And `git push` or `rake git:push` to send back any of your commits to the
-   C++ branch.
++ Use `git push` or `rake git:push` to send back any of your commits to the
+  C++ branch.
+    - You can use `git push origin cpp` to specify that you only want to
+      push your local 'cpp' branch changes to the remote 'cpp' branch.
+      By default, git will try to push 'master' and 'cpp'.
 
  Building the VM
 -----------------
@@ -31,23 +40,23 @@
  Compiling to .rbc with MRI
 ----------------------------
 
-MRI can be used to compile Ruby files to bytecode, which can then be run by
-the VM. To compile 'file.rb' to 'file.rbc':
++ MRI can be used to compile Ruby files to bytecode, which can then be run by
+  the VM. To compile 'file.rb' to 'file.rbc':
 
   # in the root of the cpp directory
   $ rake compile_ruby[file.rb]
-
+  # Depending on your shell, you may need to escape the brackets
 
  Running bytecode with the VM
 ------------------------------
 
-A Ruby file can be run by the VM with the following command:
++ A Ruby file can be run by the VM with the following command:
 
   # at toplevel
   $ rake run_ruby[file.rb]
 
-Add -t to enable printing of probes in the vm to see various information on
-your screen.  Alternately, run the vm by hand:
++ Add -t to enable printing of probes in the vm to see various information on
+  your screen.  Alternately, run the vm by hand:
 
   $ rake compile_ruby[file.rb]
   $ PROBE=1 vm/vm file.rbc
@@ -55,8 +64,8 @@ your screen.  Alternately, run the vm by hand:
  Examining C++ exceptions
 --------------------------
 
-If the vm exits with a C++ exceptions you won't get much useful information.
-Re-run with gdb to examine the cause of the failure.  To start:
++ If the vm exits with a C++ exceptions you won't get much useful information.
+  Re-run with gdb to examine the cause of the failure.  To start:
 
   $ gdb vm/vm
   (gdb) catch throw
@@ -65,79 +74,82 @@ Re-run with gdb to examine the cause of the failure.  To start:
   (gdb) continue # until you find your exception
   [normal gdb usage here]
 
- If state is in-scope you can print a ruby backtrace:
- 
-   (gdb) p __printbt__(state)
++ If state is in-scope you can print a ruby backtrace:
+  (gdb) p __printbt__(state)
 
  Primitives
 ------------
 
-Primitives are normal methods on C++ classes. Comment annotation links the C++
-method to a symbol with which the primitive is accessed in Ruby code.
++ Primitives are normal methods on C++ classes. Comment annotation links the C++
+  method to a symbol with which the primitive is accessed in Ruby code.
 
-For example, consider the Ruby Fixnum class:
+  For example, consider the Ruby Fixnum class:
 
-class Fixnum
-  def -@
-    Ruby.primitive :fixnum_neg
-    raise PrimitiveFailure, "Fixnum#-@ primitive failed"
+  class Fixnum
+    def -@
+      Ruby.primitive :fixnum_neg
+      raise PrimitiveFailure, "Fixnum#-@ primitive failed"
+    end
   end
-end
 
-In the C++ file, vm/builtin_fixnum.hpp, the primitive is annotated:
+  In the C++ file, vm/builtin_fixnum.hpp, the primitive is annotated:
 
-namespace rubinius {
+  namespace rubinius {
 
-  class Fixnum : public Integer {
-    // ...
+    class Fixnum : public Integer {
+      // ...
 
-    // Ruby.primitive :fixnum_neg
-    INTEGER neg(STATE) {
+      // Ruby.primitive :fixnum_neg
+      INTEGER neg(STATE) {
 
-The magic for this happens in vm/field_extract.rb and the output goes to
-vm/gen/primitives_declare.hpp and vm/gen/primitives_glue.gen.cpp.
++ The magic for this happens in vm/field_extract.rb and the output goes to
+  vm/gen/primitives_declare.hpp and vm/gen/primitives_glue.gen.cpp.
 
 
  Overloaded C++ Methods as Primitives
 --------------------------------------
 
-There are two ways to annotate the C++ methods as primitives. If there is a
-single C++ method, use 'Ruby.primitive :name_of_primitive'.
++ There are two ways to annotate the C++ methods as primitives. If there is a
+  single C++ method, use 'Ruby.primitive :name_of_primitive'.
 
-If there are multiple C++ methods (i.e. overloaded methods), use
-'Ruby.primitive! :name_of_primitive'. The '!' annotation is used for each
-overloaded method and uses the argument types to determine which implementation
-method to call for the primitive.
++ If there are multiple C++ methods (i.e. overloaded methods), use
+  'Ruby.primitive! :name_of_primitive'. The '!' annotation is used for each
+  overloaded method and uses the argument types to determine which implementation
+  method to call for the primitive.
 
-The resulting glue code for overloaded methods looks something like the
-following:
+  The resulting glue code for overloaded methods looks something like the
+  following, but please do not assume this sample is up-to-date:
 
-bool Primitives::float_mul(STATE, VMExecutable* exec,
-                           Task* task, Message& msg) {
-  OBJECT ret;
-  try {
-    if(Float* arg = try_as<Float>(msg.get_argument(0))) {
-      return as<Float>(msg.recv)->mul(state, arg);
+  bool Primitives::float_mul(STATE, VMExecutable* exec,
+                             Task* task, Message& msg) {
+    OBJECT ret;
+    try {
+      // Attempt to treat the argument as a Float, but do not
+      // raise an exception if it is not.
+      // as<Float>, by contrast, would fail if the argument was
+      // not actually a Float instance.
+      if(Float* arg = try_as<Float>(msg.get_argument(0))) {
+        return as<Float>(msg.recv)->mul(state, arg);
+      }
+      if(Integer* arg = try_as<Integer>(msg.get_argument(0))) {
+        return as<Float>(msg.recv)->mul(state, arg);
+      }
+      else {
+        throw new Assertion("unable to resolve primitive float_mul types");
+      }
+    } catch(PrimitiveFailed& e) {
+      abort(); // The real behavior here is fancier than this example.
+      return true;
     }
-    if(Integer* arg = try_as<Integer>(msg.get_argument(0))) {
-      return as<Float>(msg.recv)->mul(state, arg);
-    }
-    else {
-      throw new Assertion("unable to resolve primitive float_mul types");
-    }
-  } catch(PrimitiveFailed& e) {
-    abort(); // FIXME
-    return true;
+    task->primitive_return(ret, msg);
+    return false;
   }
-  task->primitive_return(ret, msg);
-  return false;
-}
 
 
  Tests for Primitives
 ----------------------
 
-Since the "primitives" are ordinary C++ methods, tests for them are written
-along with the other VM tests. Each builtin_xxx.cpp method has a corresponding
-vm/test/test_xxx.hpp method. See the existing files for more examples.
++ Since the "primitives" are ordinary C++ methods, tests for them are written
+  along with the other VM tests. Each builtin_xxx.cpp method has a corresponding
+  vm/test/test_xxx.hpp method. See the existing files for more examples.
 

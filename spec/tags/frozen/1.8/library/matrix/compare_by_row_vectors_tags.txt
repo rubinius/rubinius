@@ -1,0 +1,1 @@
+incomplete:Matrix#compare_by_row_vectors needs to be reviewed for spec completeness

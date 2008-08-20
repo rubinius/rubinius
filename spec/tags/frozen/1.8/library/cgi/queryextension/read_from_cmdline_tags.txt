@@ -1,0 +1,1 @@
+incomplete:CGI::QueryExtension#read_from_cmdline needs to be reviewed for spec completeness

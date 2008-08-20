@@ -1,0 +1,1 @@
+fails:Constant lookup rule looks up in modules included in Object

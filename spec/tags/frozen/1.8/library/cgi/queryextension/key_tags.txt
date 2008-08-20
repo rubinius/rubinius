@@ -1,0 +1,1 @@
+incomplete:CGI::QueryExtension#key? needs to be reviewed for spec completeness

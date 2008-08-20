@@ -2,6 +2,7 @@
  * VMs, as well as imports C data from the process into Rubyland. */
 
 #include "environment.hpp"
+#include "config.hpp" // HACK rename to config_parser.hpp
 #include "compiled_file.hpp"
 #include "probes.hpp"
 #include "builtin/string.hpp"
@@ -50,6 +51,17 @@ namespace rubinius {
       std::cout << "Loading: " << line << std::endl;
       run_file(dir + "/" + line);
     }
+  }
+
+  void Environment::load_platform_conf(std::string dir) {
+    std::string path = dir + "/platform.conf";
+    std::ifstream stream(path.c_str());
+    if(!stream) {
+      std::string error = "Unable to load " + path + ", it is missing";
+      throw std::runtime_error(error);
+    }
+
+    state->user_config->import_stream(stream);
   }
 
   void Environment::run_file(std::string file) {

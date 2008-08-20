@@ -35,6 +35,7 @@ namespace rubinius {
     Task* task = create(state, 0);
 
     Message msg(state, Array::create(state, 0));
+    msg.module = recv->class_object(state);
     meth->execute(state, task, msg);
 
     return task;

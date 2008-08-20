@@ -1,0 +1,9 @@
+Digest::Base#:
+- finish
+- reset
+- update
+Digest::Class.:
+- digest
+- hexdigest
+Digest::Instance#:
+- digest

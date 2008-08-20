@@ -1,0 +1,1 @@
+incomplete:Matrix#minor needs to be reviewed for spec completeness

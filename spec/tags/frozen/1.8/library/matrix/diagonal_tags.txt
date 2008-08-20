@@ -1,0 +1,1 @@
+incomplete:Matrix.diagonal needs to be reviewed for spec completeness

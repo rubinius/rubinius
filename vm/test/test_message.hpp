@@ -1,5 +1,14 @@
-#include "objects.hpp"
+#include "builtin/tuple.hpp"
 #include "builtin/list.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/array.hpp"
+#include "builtin/task.hpp"
+#include "builtin/iseq.hpp"
+#include "builtin/compiledmethod.hpp"
+#include "builtin/symbol.hpp"
+
+#include "objects.hpp"
+#include "message.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 

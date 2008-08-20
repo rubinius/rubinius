@@ -43,6 +43,8 @@ namespace rubinius {
     static MethodContext* create(STATE, OBJECT recv, CompiledMethod* meth);
     static void initialize_cache(STATE);
     static void reset_cache(STATE);
+
+    int  line();
     bool recycle(STATE);
     void reference(STATE);
 

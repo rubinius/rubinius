@@ -249,11 +249,13 @@ rubypp_task 'vm/instructions.bc', 'vm/llvm/instructions.cpp', *hdrs do |path|
 end
 
 namespace :vm do
-  desc 'Run all VM tests'
-  task :test => 'vm/test/runner' do
+  desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'
+  task :test, :filter do |task, args|
+    ENV['SUITE'] = args[:filter] if args[:filter]
     ENV['VERBOSE'] = '1' if $verbose
     sh 'vm/test/runner', :verbose => $verbose
   end
+  task :test => 'vm/test/runner'
 
   task :coverage do
     Dir.mkdir "vm/test/coverage" unless File.directory? "vm/test/coverage"
@@ -271,21 +273,21 @@ namespace :vm do
       path = tmpname do |path|
         ruby 'vm/rubypp.rb', "vm/llvm/instructions.cpp", path
         sh "g++ -fprofile-arcs -ftest-coverage #{flags} -o vm/test/coverage/runner vm/test/runner.cpp vm/*.cpp vm/builtin/*.cpp vm/*.c #{path} #{$link_opts} #{(ex_libs + EXTERNALS).join(' ')}"
-      end
 
-      puts "RUN vm/test/coverage/runner"
-      sh "vm/test/coverage/runner"
-      if $verbose
-        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info"
-      else
-        sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info > /dev/null 2>&1"
-      end
+        puts "RUN vm/test/coverage/runner"
+        sh "vm/test/coverage/runner"
+        if $verbose
+          sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info"
+        else
+          sh "vm/test/lcov/bin/lcov --directory . --capture --output-file vm/test/coverage/app.info > /dev/null 2>&1"
+        end
 
-      puts "GEN vm/test/coverage/index.html"
-      if $verbose
-        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info"
-      else
-        sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info > /dev/null 2>&1"
+        puts "GEN vm/test/coverage/index.html"
+        if $verbose
+          sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info"
+        else
+          sh "cd vm/test/coverage; ../lcov/bin/genhtml app.info > /dev/null 2>&1"
+        end
       end
     ensure
       sh "rm -f *.gcno *.gcda"

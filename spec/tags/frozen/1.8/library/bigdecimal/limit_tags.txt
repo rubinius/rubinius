@@ -1,0 +1,1 @@
+fails:BigDecimal.limit use the global limit if no precision is specified

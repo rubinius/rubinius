@@ -1,0 +1,1 @@
+fails:Fixnum#** returns Infinity for 0**-1

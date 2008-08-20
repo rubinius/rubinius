@@ -6,6 +6,8 @@ $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
 $compiler = nil
 
+RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
+
 # require 'tsort'
 # require 'rakelib/rubinius'
 # require 'rakelib/struct_generator'
@@ -74,8 +76,8 @@ desc "Build everything that needs to be built"
 task :build => %w[
   vm
   kernel:build
+  runtime/platform.conf
 ]
-#  build:platform
 #  build:rbc
 #  compiler
 #  lib/etc.rb
@@ -117,7 +119,6 @@ namespace :build do
 #     end
 #   end
 
-#   task :platform => 'runtime/platform.conf'
 end
 
 # # INSTALL TASKS

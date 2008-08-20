@@ -1,0 +1,1 @@
+incomplete:CSV::StreamBuf#idx_is_eos? needs to be reviewed for spec completeness

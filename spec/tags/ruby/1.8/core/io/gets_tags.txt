@@ -1,3 +1,0 @@
-fails:IO#gets returns tainted strings
-fails:IO#gets updates $. with each invocation
-fails:IO#gets raises IOError on closed stream
