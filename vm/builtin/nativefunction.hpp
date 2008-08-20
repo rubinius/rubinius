@@ -22,7 +22,7 @@ namespace rubinius {
     static NativeFunction* create(STATE, OBJECT name, int args);
 
     // Ruby.primitive :nfunc_add
-    static NativeFunction* bind(STATE, String* library, String* name, Array* args, OBJECT ret);
+    static NativeFunction* bind(STATE, OBJECT library, String* name, Array* args, OBJECT ret);
 
     void bind(STATE, int arg_count, int *arg_types, int ret_type, void* func);
     void **marshal_arguments(STATE, Message *msg);

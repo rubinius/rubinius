@@ -170,8 +170,8 @@ namespace rubinius {
       if(result == NULL) {
         s = p = Qnil;
       } else {
-        p = MemoryPointer::create(state, result);
         s = String::create(state, result);
+        p = MemoryPointer::create(state, result);
       }
 
       Array* ary = Array::create(state, 2);
@@ -524,7 +524,7 @@ namespace rubinius {
   /* The main interface function, handles looking up the pointer in the library,
    * generating the stub, wrapping it up and attaching it to the module.
    */
-  NativeFunction* NativeFunction::bind(STATE, String* library, String* name, 
+  NativeFunction* NativeFunction::bind(STATE, OBJECT library, String* name,
       Array* args, OBJECT ret) {
     void *ep;
     int *arg_types;
@@ -700,7 +700,9 @@ namespace rubinius {
         break;
       }
       case RBX_FFI_TYPE_STATE:
-        values[i] = &state;
+        VM **tmp = (VM**)malloc(sizeof(VM*));
+        *tmp = state;
+        values[i] = tmp;
         break;
       case RBX_FFI_TYPE_OBJECT: {
         OBJECT *tmp = (OBJECT*)malloc(sizeof(OBJECT));
@@ -853,8 +855,8 @@ namespace rubinius {
       if(result == NULL) {
         s = p = Qnil;
       } else {
-        p = MemoryPointer::create(state, result);
         s = String::create(state, result);
+        p = MemoryPointer::create(state, result);
       }
 
       Array* ary = Array::create(state, 2);
