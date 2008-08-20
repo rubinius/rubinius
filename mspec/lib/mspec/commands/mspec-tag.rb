@@ -76,6 +76,8 @@ class MSpecTag < MSpecScript
     options.doc "\n     $ mspec tag path/to/the_file_spec.rb"
     options.doc "\n   2. To remove the 'fails' tag from passing specs"
     options.doc "\n     $ mspec tag --del fails path/to/the_file_spec.rb"
+    options.doc "\n   3. To display the descriptions for all specs tagged with 'fails'"
+    options.doc "\n     $ mspec tag --list fails path/to/the/specs"
     options.doc ""
 
     @patterns = options.parse argv

@@ -58,6 +58,20 @@ describe DottedFormatter, "#print" do
     formatter.print "begonias"
     out.should == "begonias"
   end
+
+  it "flushes the IO output" do
+    $stdout = IOStub.new
+    $stdout.should_receive(:flush)
+    formatter = DottedFormatter.new
+    formatter.print "begonias"
+  end
+
+  it "rescues errors from flush" do
+    $stdout = IOStub.new
+    $stdout.should_receive(:flush).and_raise(RuntimeError.new)
+    formatter = DottedFormatter.new
+    formatter.print("begonias").should == nil
+  end
 end
 
 describe DottedFormatter, "#exception" do

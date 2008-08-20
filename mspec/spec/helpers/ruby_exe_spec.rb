@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
-require 'mspec/helpers/ruby_exe'
+require 'mspec/helpers/ruby_exe' 
 require 'rbconfig'
 
 class RubyExeSpecs
@@ -52,8 +52,9 @@ describe "#ruby_exe_options" do
     @script.ruby_exe_options(:name).should == name
   end
 
-  it "returns $(bindir)/$(RUBY_INSTALL_NAME) when passed :install_name" do
-    name = File.join Config::CONFIG['bindir'], Config::CONFIG['RUBY_INSTALL_NAME']
+  it "returns $(bindir)/$(RUBY_INSTALL_NAME) + $(EXEEXT) when passed :install_name" do
+    bin = Config::CONFIG['RUBY_INSTALL_NAME'] + (Config::CONFIG['EXEEXT'] || Config::CONFIG['exeext'] || '')
+    name = File.join Config::CONFIG['bindir'], bin
     @script.ruby_exe_options(:install_name).should == name
   end
 end
@@ -69,6 +70,11 @@ describe "#resolve_ruby_exe" do
     File.should_receive(:exists?).with(name).and_return(true)
     File.should_receive(:executable?).with(name).and_return(true)
     @script.resolve_ruby_exe.should == name
+  end
+
+  it "returns nil if no exe is found" do
+    File.should_receive(:exists?).at_least(:once).and_return(false)
+    @script.resolve_ruby_exe.should be_nil
   end
 end
 
