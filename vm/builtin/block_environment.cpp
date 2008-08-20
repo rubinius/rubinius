@@ -34,6 +34,10 @@ namespace rubinius {
     throw std::runtime_error("call2: not implemented");
   }
 
+  /*
+   * Allocates a context, adjusting the initial stack pointer by the number of
+   * locals the method requires.
+   */
   BlockContext* BlockEnvironment::create_context(STATE, MethodContext* sender) {
     BlockContext* ctx = BlockContext::create(state, method->stack_size->to_native());
     SET(ctx, sender, sender);
@@ -43,7 +47,8 @@ namespace rubinius {
 
     ctx->vmm = vmm;
     ctx->ip = 0;
-    ctx->position_stack(-1);
+    // HACK dup'd from MethodContext
+    ctx->position_stack(method->number_of_locals() - 1);
 
     return ctx;
   }
