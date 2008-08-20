@@ -58,8 +58,21 @@ namespace rubinius {
     return tup;
   }
 
+  /*
+   * Copies items from +other+ to this tuple from +start+ to +end+ inclusive.  
+   */
   void Tuple::copy_from(STATE, Tuple* other, int start, int end) {
+    size_t length;
 
+    if((size_t)end >= other->field_count) {
+      length = other->field_count - 1;
+    } else {
+      length = end;
+    }
+
+    for(size_t i = start, j = 0; i <= length; i++, j++) {
+      this->put(state, j, other->at(i));
+    }
   }
 
 
