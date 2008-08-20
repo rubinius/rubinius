@@ -6,6 +6,8 @@ $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
 $compiler = nil
 
+RUBINIUS_BASE = File.expand_path(File.dirname(__FILE__))
+
 # require 'tsort'
 # require 'rakelib/rubinius'
 # require 'rakelib/struct_generator'
