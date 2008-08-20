@@ -1,3 +1,7 @@
+# When you add an instruction here, you MUST also add it to the master
+# list in kernel/core/iseq.rb
+# TODO: Change instructions_gen.rb so that it warns when instructions are missing.
+
 class Instructions
 
   # [Operation]
@@ -3028,6 +3032,53 @@ class Instructions
   def ret
     <<-CODE
     task->simple_return(stack_top());
+    CODE
+  end
+
+  # [Operation]
+  #   Reverses the order on the stack of the top +count+ items
+  # [Format]
+  # \rotate count
+  # [Stack Before]
+  # * obj1
+  # * obj2
+  # * obj3
+  # * ...
+  # [Stack After]
+  # * obj3
+  # * obj2
+  # * obj1
+  # * ...
+
+  def rotate(count)
+    <<-CODE
+    Object** objs = new Object*[count];
+    int i;
+
+    for(i = 0; i < count; i++) {
+      objs[i] = stack_pop();
+    }
+
+    for(i = 0; i < count; i++) {
+      stack_push(objs[i]);
+    }
+
+    free(objs);
+    CODE
+  end
+
+  def test_rotate
+    <<-CODE
+      task->push(Fixnum::from(0));
+      task->push(Fixnum::from(1));
+      task->push(Fixnum::from(2));
+      stream[1] = (opcode)3;
+      TS_ASSERT_EQUALS(task->calculate_sp(), 2);
+      run();
+      TS_ASSERT_EQUALS(as<Integer>(task->stack_at(0))->to_native(), 2);
+      TS_ASSERT_EQUALS(as<Integer>(task->stack_at(1))->to_native(), 1);
+      TS_ASSERT_EQUALS(as<Integer>(task->stack_at(2))->to_native(), 0);
+      TS_ASSERT_EQUALS(task->calculate_sp(), 2);
     CODE
   end
 
